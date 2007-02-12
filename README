@@ -1,0 +1,42 @@
+----------------------------
+Database Driver Installation
+----------------------------
+
+(1) MySQL
+ ---------
+
+ To connect to a MySQL database, one needs the appropriate JDBC driver
+(jar file) in the classpath. The one currently being used is called
+
+mysql-connector-java-5.0.4-bin.jar
+
+It can be downloaded from
+
+http://dev.mysql.com/downloads/connector/j
+
+(2) Oracle
+----------
+
+To connect to an Oracle Database, one needs the appropriate JDBC
+driver (jar file) in the classpath. The one currently being used is
+called
+
+ojdbc14.jar
+
+It can be found as part of any Oracle Installation in
+
+$ORACLE_HOME/jdbc/lib/
+
+It can also be downlaoded from
+
+http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/index.html
+
+
+NOTE:
+-----
+
+I have found it to be convenient to copy these drivers into
+$JAVA_HOME/jre/lib/ext, which will make them appear in the classpath
+automatically. If there is a technical reason why this is not a good
+idea, let me know: philipp.schieferdecker@cern.ch
+
