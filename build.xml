@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<project name="ConfDB" default="gui" basedir=".">
+
+  <description>
+  Build ConfDB project.
+  </description>
+
+  <property name="dir.src" location="src"/>
+  <property name="dir.build" location="classes"/>
+  <property name="dir.lib" location="lib"/>
+
+  <!-- initialize variables, make directories -->
+  <target name="init">
+    <mkdir dir="${dir.build}"/>
+    <mkdir dir="${dir.lib}"/>
+  </target>
+
+  <!-- compile all *.java files in src/** to *.class files in classes/** -->
+  <target name="compile" depends="init">
+    <javac srcdir="${dir.src}" destdir="${dir.build}"/>
+  </target>
+
+  <!-- combine all classes into jar file -->
+  <target name="gui" depends="compile">
+    <jar jarfile="${dir.lib}/ConfDbGUI.jar" basedir="${dir.build}">
+      <manifest>
+        <attribute name="Main-Class" value="confdb.gui.ConfDbGUI" />    
+      </manifest>
+    </jar>
+  </target>
+
+  <!-- run GUI -->
+  <target name="rungui" depends="gui">
+    <java jar="${dir.lib}/ConfDbGUI.jar" fork="true"/>
+  </target>
+
+  <!-- delete all class files -->
+  <target name="clean">
+    <delete>
+      <fileset dir="${basedir}" includes="**/*.class"/>
+      <fileset dir="${basedir}" includes="**/*.jar"/>
+    </delete>
+    <echo message="clean successful"/>
+  </target>
+
+</project>
