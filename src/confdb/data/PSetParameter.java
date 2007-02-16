@@ -45,6 +45,14 @@ public class PSetParameter extends Parameter
     }
     
 
+    /** constructor from a string which contains all the info */
+    public PSetParameter(String valueAsString)
+    {
+	super("",false,false);
+	setValue(valueAsString);
+    }
+    
+
     //
     // member functions
     //
@@ -65,18 +73,29 @@ public class PSetParameter extends Parameter
     {
 	String result = new String();
 	if (isValueSet) {
+	    result =
+		"<" + type() +
+		" name="     + name() +
+		" default="  + Boolean.toString(isDefault()) +
+		" tracked="  + Boolean.toString(isTracked()) +
+		">";
 	    for (Parameter p : parameters) {
-		String paramIsDef = Boolean.toString(p.isDefault());
-		String paramIsTrk = Boolean.toString(p.isTracked());
-		String parameterString =
-		    p.name()           + ":" +
-		    p.type()           + ":" +
-		    p.valueAsString()  + ":" +
-		    paramIsDef         + ":" +
-		    paramIsTrk;
-		result += parameterString + "#";
+		if (p instanceof PSetParameter||
+		    p instanceof VPSetParameter) {
+		    result += p.valueAsString();
+		}
+		else {
+		    result +=
+			"<" + p.type() +
+			" name=" + p.name() +
+			" default=" + Boolean.toString(p.isDefault()) +
+			" tracked=" + Boolean.toString(p.isTracked()) +
+			">" + p.valueAsString() + "</" + 
+			p.type() +
+			">";
+		}
 	    }
-	    result = result.substring(0,result.length()-1);
+	    result += "</" + type() + ">";
 	}
 	return result;
     }
@@ -89,26 +108,34 @@ public class PSetParameter extends Parameter
 	    isValueSet = false;
 	}
 	else {
-	    String[] strValues = valueAsString.split("#");
-	    for (int i=0;i<strValues.length;i++) {
-		String[] strParam = strValues[i].split(":");
-		if (strParam.length!=5) return false;
-		String    paramName   = strParam[0];
-		String    paramType   = strParam[1];
-		String    paramValue  = strParam[2];
-		Boolean   paramIsDef  = new Boolean(strParam[3]);
-		Boolean   paramIsTrkd = new Boolean(strParam[4]);
-		Parameter param       = ParameterFactory.create(paramType,
-								paramName,
-								paramValue,
-								paramIsTrkd,
-								paramIsDef);
-		parameters.add(param);
+	    if (!valueAsString.startsWith("<PSet"))
+		valueAsString=
+		    "<PSet" +
+		    " name=" + name() +
+		    " default=" + Boolean.toString(isDefault()) +
+		    " tracked=" + Boolean.toString(isTracked()) +
+		    ">" + valueAsString + "</PSet>";
+	    ParameterSetParser p1 = new ParameterSetParser(valueAsString);
+	    if (!p1.parseNextParameter()) return false;
+	    String value = p1.value();
+	    //if (!p1.type().equals(type())||
+	    //!p1.name().equals(name())||
+	    //!p1.isTracked()==isTracked()||
+	    if (p1.parseNextParameter()) return false;
+	    ParameterSetParser p2 = new ParameterSetParser(value);
+	    while (p2.parseNextParameter()) {
+		Parameter p = ParameterFactory.create(p2.type(),
+						      p2.name(),
+						      p2.value(),
+						      new Boolean(p2.isTracked()),
+						      new Boolean(p2.isDefault()));
+		parameters.add(p);
 	    }
 	    isValueSet = true;
 	}
 	return true;
     }
+    
     
     /** a parameter set is default if all of its children are */
     public boolean isDefault()
@@ -141,10 +168,113 @@ public class PSetParameter extends Parameter
     /** add a parameter */
     public boolean addParameter(Parameter p)
     {
-	if (p instanceof PSetParameter||p instanceof VPSetParameter) return false;
+	//if (p instanceof PSetParameter||p instanceof VPSetParameter) return false;
 	parameters.add(p);
 	isValueSet = true;
 	return true;
     }
 
+}
+
+
+
+/**
+ * ParameterSetParser
+ * ------------------
+ * @author Philipp Schieferdecker
+ *
+ * The string representation of a PSetParameter value needs to be
+ * somewhat complex, sort of a xml format. this class helps decode it.
+ */
+class ParameterSetParser
+{
+    //
+    // member data
+    //
+    private String  parseString = null;
+    private String  type;
+    private String  name;
+    private String  value;
+    private boolean isDefault = false;
+    private boolean isTracked = false;
+    
+
+    //
+    // construction
+    //
+    
+    /** standard constructor */
+    public ParameterSetParser(String parseString)
+    {
+	this.parseString = parseString;
+    }
+    
+    //
+    // member functions
+    //
+    
+    /** parse the next parameter */
+    public boolean parseNextParameter()
+    {
+	String s = parseString;
+	
+	int pos = s.indexOf("<"); if (pos==-1) return false;
+	s       = s.substring(pos+1);
+	pos     = s.indexOf(" ");
+	
+	type = s.substring(0,pos);
+	
+	s   = s.substring(pos);
+	pos = s.indexOf(">");
+
+	String attStr = s.substring(1,pos);
+
+	s   = s.substring(pos);
+	
+	String[] atts = attStr.split(" ");
+	for (int i=0;i<atts.length;i++) {
+	    pos = atts[i].indexOf("=");
+	    String attName = atts[i].substring(0,pos);
+	    String attVal  = atts[i].substring(pos+1);
+	    if      (attName.equals("name"))    name     =attVal;
+	    else if (attName.equals("default"))	isDefault=Boolean.valueOf(attVal);
+	    else if (attName.equals("tracked")) isTracked=Boolean.valueOf(attVal);
+	    else return false;
+	}
+	
+	String otag = "<"  + type;
+	String ctag = "</" + type + ">";
+	
+	int opos = s.indexOf(otag);
+	int cpos = s.indexOf(ctag);
+	int skipCount = 0;
+	while (opos>=0&&opos<cpos) {
+	    opos = s.indexOf(otag,opos+1);
+	    cpos = s.indexOf(ctag,opos+1);
+	    skipCount++;
+	}
+	for (int i=0;i<skipCount;i++) cpos = s.indexOf(ctag,cpos+1);
+	
+	value       = s.substring(1,cpos);
+	parseString = s.substring(cpos+ctag.length());
+	
+	return true;
+    }
+    
+    
+    /** get last parsed parameter type */
+    public String type() { return type; }
+
+    /** get last parsed parameter name */
+    public String name() { return name; }
+    
+    /** get last parsed parameter value */
+    public String value() { return value; }
+    
+    /** get last parsed paramter default flag */
+    public boolean isDefault() { return isDefault; }
+    
+    /** get last parsed parameter tracked flag */
+    public boolean isTracked() { return isTracked; }
+    
 }

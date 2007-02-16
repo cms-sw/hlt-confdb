@@ -37,7 +37,7 @@ CREATE TABLE Configurations
 	config     	VARCHAR(64)       NOT NULL,
 	version         SMALLINT UNSIGNED NOT NULL,
 	created         TIMESTAMP         NOT NULL,
-	UNIQUE (config,version),
+	UNIQUE (parentDirId,config,version),
 	PRIMARY KEY(configId),
 	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
 ) ENGINE=INNODB;
@@ -132,6 +132,7 @@ CREATE TABLE Services
 	superId      	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	templateId     	BIGINT UNSIGNED   NOT NULL,
 	configId   	BIGINT UNSIGNED   NOT NULL,
+	sequenceNb	SMALLINT UNSIGNED NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
 	FOREIGN KEY(templateId) REFERENCES ServiceTemplates(superId),
@@ -159,6 +160,7 @@ CREATE TABLE EDSources
 	superId      	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	templateId     	BIGINT UNSIGNED   NOT NULL,
 	configId   	BIGINT UNSIGNED   NOT NULL,
+	sequenceNb	SMALLINT UNSIGNED NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
 	FOREIGN KEY(templateId) REFERENCES EDSourceTemplates(superId),
@@ -187,6 +189,7 @@ CREATE TABLE ESSources
 	templateId     	BIGINT UNSIGNED   NOT NULL,
 	configId   	BIGINT UNSIGNED   NOT NULL,
 	name       	VARCHAR(64)	  NOT NULL,
+	sequenceNb      SMALLINT UNSIGNED NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
 	FOREIGN KEY(templateId) REFERENCES ESSourceTemplates(superId),
@@ -274,20 +277,12 @@ CREATE TABLE VecParameterSets
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
 ) ENGINE=INNODB;
 
--- TABLE 'VecParameterSetAssoc'
---CREATE TABLE VecParameterSetAssoc
---(
---	vecParamSetId	BIGINT UNSIGNED	  NOT NULL,
---	paramSetId	BIGINT UNSIGNED	  NOT NULL,
---	FOREIGN KEY(vecParamSetId) REFERENCES VecParameterSets(superId),
---	FOREIGN KEY(paramSetId)	   REFERENCES ParameterSets(superId)
---) ENGINE=INNODB;
-
 -- TABLE 'SuperIdParamSetAssoc'
 CREATE TABLE SuperIdParamSetAssoc
 (
 	superId		BIGINT UNSIGNED	  NOT NULL,
 	paramSetId	BIGINT UNSIGNED	  NOT NULL,
+	sequenceNb	SMALLINT UNSIGNED NOT NULL,
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
 	FOREIGN KEY(paramSetId) REFERENCES ParameterSets(superId)
 ) ENGINE=INNODB;
@@ -297,6 +292,7 @@ CREATE TABLE SuperIdVecParamSetAssoc
 (
 	superId		BIGINT UNSIGNED	  NOT NULL,
 	vecParamSetId	BIGINT UNSIGNED	  NOT NULL,
+	sequenceNb	SMALLINT UNSIGNED NOT NULL,
 	FOREIGN KEY(superId)       REFERENCES SuperIds(superId),
 	FOREIGN KEY(vecParamSetId) REFERENCES VecParameterSets(superId)
 ) ENGINE=INNODB;
@@ -330,6 +326,7 @@ CREATE TABLE SuperIdParameterAssoc
 (
 	superId		BIGINT UNSIGNED	  NOT NULL,
 	paramId		BIGINT UNSIGNED	  NOT NULL,
+	sequenceNb	SMALLINT UNSIGNED NOT NULL,
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 ) ENGINE=INNODB;

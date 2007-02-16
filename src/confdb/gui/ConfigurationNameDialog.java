@@ -156,21 +156,22 @@ public class ConfigurationNameDialog extends JDialog implements ActionListener,
 	    optionPane.setValue(JOptionPane.UNINITIALIZED_VALUE);
 	    
 	    if (ok.equals(value)) {
-		if (database.getConfigVersions(textFieldName.getText()).length==0&&
-		    comboBoxReleaseTag.getSelectedIndex()>0) {
+		if (comboBoxReleaseTag.getSelectedIndex()>0) {
 		    name = textFieldName.getText();
 		    releaseTag = (String)comboBoxReleaseTag.getSelectedItem();
 		    validChoice = true;
 		}
 		else {
 		    String msg = 
-			"Invalid Choice: Configuration exists already, or no release choosen.";
-		    JOptionPane.showMessageDialog(frame,msg,"",JOptionPane.ERROR_MESSAGE);
+			"Invalid Choice: Configuration exists already, " +
+			"or no release choosen.";
+		    JOptionPane.showMessageDialog(frame,msg,"",
+						  JOptionPane.ERROR_MESSAGE);
 		}
 	    }
 	    else {
-		name = null;
-		releaseTag = null;
+		name        = null;
+		releaseTag  = null;
 		validChoice = false;
 	    }
 	    setVisible(false);

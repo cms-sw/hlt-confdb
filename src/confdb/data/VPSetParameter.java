@@ -48,7 +48,7 @@ public class VPSetParameter extends Parameter
     //
     // member functions
     //
-
+    
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
@@ -65,18 +65,16 @@ public class VPSetParameter extends Parameter
     {
 	String result = new String();
 	if (isValueSet) {
-	    for (PSetParameter p : parameterSets) {
-		String paramIsDef = Boolean.toString(p.isDefault());
-		String paramIsTrk = Boolean.toString(p.isTracked());
-		String parameterString =
-		    p.name()           + ";" +
-		    p.type()           + ";" +
-		    p.valueAsString()  + ";" +
-		    paramIsDef         + ";" +
-		    paramIsTrk;
-		result += parameterString + "|";
+	    result =
+		"<" + type() +
+		" name="     + name() +
+		" default="  + Boolean.toString(isDefault()) +
+		" tracked="  + Boolean.toString(isTracked()) +
+		">";
+	    for (PSetParameter pset : parameterSets) {
+		result += pset.valueAsString();
 	    }
-	    result = result.substring(0,result.length()-1);
+	    result += "</" + type() + ">";
 	}
 	return result;
     }
@@ -89,27 +87,19 @@ public class VPSetParameter extends Parameter
 	    isValueSet = false;
 	}
 	else {
-	    String[] strValues = valueAsString.split("|");
-	    for (int i=0;i<strValues.length;i++) {
-		String[] strParam = strValues[i].split(";");
-		if (strParam.length!=5) return false;
-		String    paramName   = strParam[0];
-		String    paramType   = strParam[1];
-		String    paramValue  = strParam[2];
-		Boolean   paramIsDef  = new Boolean(strParam[3]);
-		Boolean   paramIsTrkd = new Boolean(strParam[4]);
-		Parameter param       = ParameterFactory.create(paramType,
-								paramName,
-								paramValue,
-								paramIsTrkd,
-								paramIsDef);
-		parameterSets.add((PSetParameter)param);
+	    VParameterSetParser parser = new VParameterSetParser(valueAsString);
+	    if (!parser.parseVParameterSet()||
+		!parser.vpsetName().equals(name())||
+		!parser.vpsetIsTracked()==isTracked()) return false;
+	    while (parser.parseNextParameterSet()) {
+		PSetParameter pset = new PSetParameter(parser.psetString());
+		parameterSets.add(pset);
 	    }
 	    isValueSet = true;
 	}
 	return true;
     }
-
+    
     /** a vecotr<pset> is default if all of its children are */
     public boolean isDefault()
     {
@@ -144,5 +134,110 @@ public class VPSetParameter extends Parameter
 	parameterSets.add(pset);
 	isValueSet = true;
     }
+    
+}
+
+
+
+/**
+ * VParameterSetParser
+ * ------------------
+ * @author Philipp Schieferdecker
+ *
+ * The string representation of a VPSetParameter value needs to be
+ * somewhat complex, sort of a xml format. this class helps decode it.
+ */
+class VParameterSetParser
+{
+    //
+    // member data
+    //
+    private String  parseString = null;
+    private String  psetString  = null;
+    private String  name        = null;
+    private boolean isDefault   = false;
+    private boolean isTracked   = false;
+
+    
+    //
+    // construction
+    //
+    
+    /** standard constructor */
+    public VParameterSetParser(String parseString)
+    {
+	this.parseString = parseString;
+    }
+    
+    //
+    // member functions
+    //
+    
+    /** parse the VPSet properties*/
+    public boolean parseVParameterSet()
+    {
+	String s = parseString;
+	if (!s.startsWith("<VPSet")||!s.endsWith("</VPSet>")) return false;
+	s = s.substring(7,s.length()-8);
+
+	int    pos    = s.indexOf(">");
+	String attStr = s.substring(0,pos);
+	
+	s = s.substring(pos+1);
+	
+	String[] atts = attStr.split(" ");
+	for (int i=0;i<atts.length;i++) {
+	    pos = atts[i].indexOf("=");
+	    String attName = atts[i].substring(0,pos);
+	    String attVal  = atts[i].substring(pos+1);
+	    if      (attName.equals("name"))    name=attVal;
+	    else if (attName.equals("default"))	isDefault=Boolean.valueOf(attVal);
+	    else if (attName.equals("tracked")) isTracked=Boolean.valueOf(attVal);
+	    else return false;
+	}
+	
+	parseString = s;
+	
+	return true;
+    }
+    
+    /** parse the next parameter set */
+    public boolean parseNextParameterSet()
+    {
+	String s = parseString;
+	
+	if (!s.startsWith("<PSet")) return false;
+	
+	String otag = "<PSet";
+	String ctag = "</PSet>";
+	int    opos = s.indexOf(otag,1);
+	int    cpos = s.indexOf(ctag);
+	int    skipCount = 0;
+	while (opos>=0&&opos<cpos) {
+	    opos = s.indexOf(otag,opos+1);
+	    cpos = s.indexOf(ctag,opos+1);
+	    skipCount++;
+	}
+	for (int i=0;i<skipCount;i++) cpos = s.indexOf(ctag,cpos+1);
+	
+	psetString  = s.substring(0,cpos+ctag.length());
+	parseString = s.substring(cpos+ctag.length());
+	
+	return true;
+    }
+    
+    
+    /** get parsed vectro<parameterset> name */
+    public String vpsetName() { return name; }
+
+    /** get last parsed paramter default flag */
+    public boolean vpsetIsDefault() { return isDefault; }
+    
+    /** get last parsed parameter tracked flag */
+    public boolean vpsetIsTracked() { return isTracked; }
+    
+    /** get last parsed pset string value */
+    public String psetString() { return psetString; }
+    
     
 }

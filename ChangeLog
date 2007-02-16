@@ -1,3 +1,21 @@
+2007-02-16  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-00-03
+	* Jonathan has checked in the first release of the parser. module
+	to store in MySQL ready, Oracle module to follow. PSets/VPSets are
+	handled.
+	* changes to the database schema: The tables Services, EDSource,
+	ESSources, SuperIdParameterAssoc, SuperIdParamSetAssoc, and
+	SuperIdVerParamSetAssoc got an additional field 'sequenceNb' to
+	indicate the order in which parameters are associated with their
+	parent. This is important for VPSets, and possibly for PSets. If
+	the order of Services matters isn't quite certain, but this way we
+	avoid for them to appear in different orders in different
+	sessions, which might be confusing.
+	* The parser version is not compliant with that schema yet
+	* the java database API and the data model can now deal with
+	nested PSets. This hasn't been extensively tested yet.
+
 2007-02-12  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-00-02

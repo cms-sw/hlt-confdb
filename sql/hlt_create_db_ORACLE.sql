@@ -64,7 +64,7 @@ CREATE TABLE Configurations
 	config     	VARCHAR2(64)    NOT NULL,
 	version         NUMBER(4)	NOT NULL,
 	created         TIMESTAMP       NOT NULL,
-	UNIQUE (config,version),
+	UNIQUE (parentDirId,config,version),
 	PRIMARY KEY(configId),
 	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
 );
@@ -234,6 +234,7 @@ CREATE TABLE Services
 	superId      	NUMBER,
 	templateId     	NUMBER		NOT NULL,
 	configId   	NUMBER		NOT NULL,
+	sequenceNb	NUMBER(3)	NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
 	FOREIGN KEY(templateId) REFERENCES ServiceTemplates(superId),
@@ -268,6 +269,7 @@ CREATE TABLE EDSources
 	superId      	NUMBER,
 	templateId     	NUMBER		NOT NULL,
 	configId   	NUMBER		NOT NULL,
+	sequenceNb	NUMBER(3)	NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
 	FOREIGN KEY(templateId) REFERENCES EDSourceTemplates(superId),
@@ -303,6 +305,7 @@ CREATE TABLE ESSources
 	templateId     	NUMBER		NOT NULL,
 	configId   	NUMBER		NOT NULL,
 	name       	VARCHAR2(64)	NOT NULL,
+	sequenceNb	NUMBER(3)	NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
 	FOREIGN KEY(templateId) REFERENCES ESSourceTemplates(superId),
@@ -415,24 +418,13 @@ CREATE TABLE VecParameterSets
 
 
 --
--- TABLE 'VecParameterSetAssoc'
---
---CREATE TABLE VecParameterSetAssoc
---(
---	vecParamSetId	NUMBER		NOT NULL,
---	paramSetId	NUMBER		NOT NULL,
---	FOREIGN KEY(vecParamSetId) REFERENCES VecParameterSets(superId),
---	FOREIGN KEY(paramSetId)	   REFERENCES ParameterSets(superId)
---);
-
-
---
 -- TABLE 'SuperIdParamSetAssoc'
 --
 CREATE TABLE SuperIdParamSetAssoc
 (
 	superId		NUMBER		NOT NULL,
 	paramSetId	NUMBER		NOT NULL,
+	sequenceNb	NUMBER(3)	NOT NULL,
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
 	FOREIGN KEY(paramSetId) REFERENCES ParameterSets(superId)
 );
@@ -445,6 +437,7 @@ CREATE TABLE SuperIdVecParamSetAssoc
 (
 	superId		NUMBER		NOT NULL,
 	vecParamSetId	NUMBER		NOT NULL,
+	sequenceNb	NUMBER(3)	NOT NULL,
 	FOREIGN KEY(superId)       REFERENCES SuperIds(superId),
 	FOREIGN KEY(vecParamSetId) REFERENCES VecParameterSets(superId)
 );
@@ -498,6 +491,7 @@ CREATE TABLE SuperIdParameterAssoc
 (
 	superId		NUMBER		NOT NULL,
 	paramId		NUMBER		NOT NULL,
+	sequenceNb	NUMBER(3)	NOT NULL,
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
