@@ -264,7 +264,7 @@ class ConfdbMySQLModuleLoader:
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
-	self.ConfdbUpdateParameterSets(thecursor,oldsuperid,newsuperid,paramsets,vecparamsets)
+	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
     # End ConfdbUpdateModuleTemplate
 
     # Given a component, update parameters that have changed from the 
@@ -299,7 +299,7 @@ class ConfdbMySQLModuleLoader:
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
-	self.ConfdbUpdateParameterSets(thecursor,oldsuperid,newsuperid,paramsets,vecparamsets)
+	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
     # End ConfdbUpdateServiceTemplate
 
     # Given a component, update parameters that have changed from the 
@@ -332,7 +332,7 @@ class ConfdbMySQLModuleLoader:
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
-	self.ConfdbUpdateParameterSets(thecursor,oldsuperid,newsuperid,paramsets,vecparamsets)
+	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
     # End ConfdbUpdateESSourceTemplate
 
     # Given a component, update parameters that have changed from the 
@@ -365,7 +365,7 @@ class ConfdbMySQLModuleLoader:
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
-	self.ConfdbUpdateParameterSets(thecursor,oldsuperid,newsuperid,paramsets,vecparamsets)
+	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
     # End ConfdbUpdateEDSourceTemplate
 
     # Associate a list of parameters with a component template (via superId)
@@ -1137,7 +1137,6 @@ class ConfdbMySQLModuleLoader:
 	for pset, psettype, psetname, psetval, psettracked in paramsets:
 	    # If this is the first entry in this PSet for this component, add it to the ParameterSets table
 	    if(pset != lastpsetname):
-		print "Load New PSet " + pset
 		
 		# Each new PSet gets a new SuperId
 		thecursor.execute("INSERT INTO SuperIds VALUE()")
@@ -1161,7 +1160,7 @@ class ConfdbMySQLModuleLoader:
 		continue
 
 	    type = self.paramtypedict[psettype]
-	    
+
 	    # Fill Parameters table
 	    newparammemberid = self.AddNewParam(thecursor,newparamsetid,psetname,type,psettracked)	    
 
@@ -1213,7 +1212,6 @@ class ConfdbMySQLModuleLoader:
 	for vpset, vpsettype, vpsetname, vpsetval, vpsettracked, vpsetindex in vecparamsets:
 	    # If this is the first entry in this VPSet for this component, add it to the ParameterSets table
 	    if(vpset != lastvpsetname):
-		print "Load New VPSet " + vpset
 		
 		# Each new VPSet gets a new SuperId
 		thecursor.execute("INSERT INTO SuperIds VALUE()")
