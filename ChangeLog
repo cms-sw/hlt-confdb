@@ -1,3 +1,8 @@
+2007-02-20  Jonathan HOLLAR <jjhollar@cern.ch>
+
+	* tag V00-00-04
+	* Add automatic filling of 'sequenceNb' to the parser. 
+
 2007-02-16  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-00-03

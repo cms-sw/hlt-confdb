@@ -20,7 +20,7 @@ class ConfdbMySQLModuleLoader:
     # Connect to the Confdb db
     def ConfdbMySQLConnect(self):
 	connection = MySQLdb.connect(host="localhost", 
-				     user="user", passwd="password",
+				     user="jjhollar", passwd="password",
                                      db="hltdb1" )
         
 	cursor = connection.cursor() 
@@ -372,14 +372,14 @@ class ConfdbMySQLModuleLoader:
     def ConfdbAttachParameters(self,thecursor,newsuperid,parameters,vecparameters):
 
 	# First the non-vectors
-	for paramtype, paramname, paramval, paramistracked in parameters:
+	for paramtype, paramname, paramval, paramistracked, paramseq in parameters:
 
 	    # int32
 	    if(paramtype == "int32" or paramtype == "int"):
 		type = self.paramtypedict['int32']
 
 		# Fill Parameters table
-		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked)
+		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 
 		if(paramval):
 		    if(paramval.find('::') != -1 or paramval.find('_') != -1):
@@ -403,7 +403,7 @@ class ConfdbMySQLModuleLoader:
 		    paramval = (str(paramval).rstrip("U"))
 
 		# Fill Parameters table
-		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked)    
+		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)    
 
 		# Fill ParameterValues table
 		if(paramval == None):
@@ -417,7 +417,7 @@ class ConfdbMySQLModuleLoader:
 		type = self.paramtypedict['bool']
 
 		# Fill Parameters table
-		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked)   
+		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)   
 
 		# Fill ParameterValues table
 		if(paramval == None):
@@ -432,7 +432,7 @@ class ConfdbMySQLModuleLoader:
 		type = self.paramtypedict['double']
 
 		# Fill Parameters table
-		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked)
+		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 
 		# Fill ParameterValues table
 		if(paramval == None):
@@ -446,7 +446,7 @@ class ConfdbMySQLModuleLoader:
 		type = self.paramtypedict['string']
 
 		# Fill Parameters table
-		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked)
+		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 
 		if(paramval == None):
 		    if(self.verbose > 1):
@@ -465,7 +465,7 @@ class ConfdbMySQLModuleLoader:
 		type = self.paramtypedict['InputTag']
 
 		# Fill Parameters table
-		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked)
+		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 
 		# Fill ParameterValues table
 		if(paramval == None):
@@ -478,14 +478,14 @@ class ConfdbMySQLModuleLoader:
 		print 'Unknown param type ' + paramtype + ' ' + paramname + ' - do nothing'
 	    
 	# Now deal with any vectors
-	for vecptype, vecpname, vecpvals, vecpistracked in vecparameters:
+	for vecptype, vecpname, vecpvals, vecpistracked, vecpseq in vecparameters:
 
 	    # vector<int32>
 	    if(vecptype == "vint32"):
 		type = self.paramtypedict['vint32']
 
 		# Fill Parameters table
-		newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked)
+		newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
 
 		sequencer = 0
 
@@ -501,7 +501,7 @@ class ConfdbMySQLModuleLoader:
 		type = self.paramtypedict['vuint32']
 
 		# Fill Parameters table
-		newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked)
+		newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
 
 		sequencer = 0
 
@@ -517,7 +517,7 @@ class ConfdbMySQLModuleLoader:
 		type = self.paramtypedict['vdouble']
 
 		# Fill Parameters table
-		newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked)
+		newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
 
 		sequencer = 0
 
@@ -533,7 +533,7 @@ class ConfdbMySQLModuleLoader:
 		type = self.paramtypedict['VInputTag']
 
 		# Fill Parameters table
-		newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked)
+		newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
 
 		sequencer = 0
 
@@ -549,7 +549,7 @@ class ConfdbMySQLModuleLoader:
 		type = self.paramtypedict['vstring']
 
 		# Fill Parameters table
-		newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked)
+		newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
 
 		sequencer = 0
 
@@ -578,7 +578,7 @@ class ConfdbMySQLModuleLoader:
     def ConfdbUpdateParameters(self,thecursor,oldsuperid,newsuperid,parameters,vecparameters):
 	
 	# First the non-vectors
-	for paramtype, paramname, paramval, paramistracked in parameters:
+	for paramtype, paramname, paramval, paramistracked, paramseq in parameters:
 	    
 	    neednewparam = False
 
@@ -608,7 +608,7 @@ class ConfdbMySQLModuleLoader:
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or 
 		       (oldparamval == None and paramval == None)):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ")")
+			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
 			if(self.verbose > 0):
 			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
@@ -628,7 +628,7 @@ class ConfdbMySQLModuleLoader:
 			print "Parameter is changed (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 		    # Fill Parameters table
-		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked)
+		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 		    
 		    # Fill ParameterValues table
 		    if(paramval == None):
@@ -662,7 +662,7 @@ class ConfdbMySQLModuleLoader:
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or 
 		       (oldparamval == None and paramval == None)):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ")")
+			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
 			if(self.verbose > 0):
 			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 			
@@ -682,7 +682,7 @@ class ConfdbMySQLModuleLoader:
 			print "Parameter is changed (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 		    # Fill Parameters table
-		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked)
+		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 		    
 		    # Fill ParameterValues table
 		    if(paramval == None):
@@ -716,7 +716,7 @@ class ConfdbMySQLModuleLoader:
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or 
 		       (oldparamval == None and paramval == None)):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ")")
+			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
 			if(self.verbose > 0):
 			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 			
@@ -736,7 +736,7 @@ class ConfdbMySQLModuleLoader:
 			print "Parameter is changed (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 		    # Fill Parameters table
-		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked)
+		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 		    
 		    # Fill ParameterValues table
 		    if(paramval == None):
@@ -767,7 +767,7 @@ class ConfdbMySQLModuleLoader:
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or 
 		       (oldparamval == None and paramval == None)):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ")")
+			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
 			if(self.verbose > 0):
 			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 			
@@ -787,7 +787,7 @@ class ConfdbMySQLModuleLoader:
 			print "Parameter is changed (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 		    # Fill Parameters table
-		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked)
+		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 		    
 		    # Fill ParameterValues table
 		    if(paramval == None):
@@ -820,7 +820,7 @@ class ConfdbMySQLModuleLoader:
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or
 		       (oldparamval == None and paramval == None)):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ")")
+			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
 			if(self.verbose > 0):
 			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
@@ -841,7 +841,7 @@ class ConfdbMySQLModuleLoader:
 			print "Parameter is changed (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 		    # Fill Parameters table
-		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked)
+		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 		    
 		    if(paramval == None):
 			if(self.verbose > 1):
@@ -875,7 +875,7 @@ class ConfdbMySQLModuleLoader:
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or
 		       (oldparamval == None and paramval == None)):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ")")
+			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
 			
 			neednewparam = False
 
@@ -893,7 +893,7 @@ class ConfdbMySQLModuleLoader:
 			print "Parameter is changed (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 		    # Fill Parameters table
-		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked)
+		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 		    
 		    # Fill ParameterValues table
 		    if(paramval == None):
@@ -903,7 +903,7 @@ class ConfdbMySQLModuleLoader:
 			thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
 
 	# Now deal with any vectors
-	for vecptype, vecpname, vecpvals, vecpistracked in vecparameters:
+	for vecptype, vecpname, vecpvals, vecpistracked, vecpseq in vecparameters:
 	    # vector<int32>
 	    if(vecptype == "vint32"):
 		type = self.paramtypedict['vint32']
@@ -922,7 +922,7 @@ class ConfdbMySQLModuleLoader:
 
 		    # No changes. Attach parameter to new template.
 		    if(valssame):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ")")
+			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
 			if(self.verbose > 0):
 			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 			
@@ -940,7 +940,7 @@ class ConfdbMySQLModuleLoader:
 		if(neednewparam == True):
 	    
 		    # Fill Parameters table
-		    newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked)
+		    newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
 
 		    sequencer = 0
 
@@ -966,7 +966,7 @@ class ConfdbMySQLModuleLoader:
 
 		    # No changes. Attach parameter to new template.
 		    if(valssame):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ")")
+			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
 			
 			neednewparam = False
 
@@ -981,7 +981,7 @@ class ConfdbMySQLModuleLoader:
 		# value changed, or there is no previous version.
 		if(neednewparam == True):
 		    # Fill Parameters table
-		    newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked)
+		    newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
 
 		    sequencer = 0
 
@@ -1007,7 +1007,7 @@ class ConfdbMySQLModuleLoader:
 
 		    # No changes. Attach parameter to new template.
 		    if(valssame):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ")")
+			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
 			
 			print "vdouble is unchanged"
 			neednewparam = False
@@ -1024,7 +1024,7 @@ class ConfdbMySQLModuleLoader:
 		if(neednewparam == True):
 		    print "vdouble has changed"
 		    # Fill Parameters table
-		    newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked)
+		    newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
 
 		    sequencer = 0
 
@@ -1052,7 +1052,7 @@ class ConfdbMySQLModuleLoader:
 
 		    # No changes. Attach parameter to new template.
 		    if(valssame):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ")")
+			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
 			
 			neednewparam = False
 
@@ -1067,7 +1067,7 @@ class ConfdbMySQLModuleLoader:
 		# value changed, or there is no previous version.
 		if(neednewparam == True):
 		    # Fill Parameters table
-		    newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked)
+		    newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
 
 		    sequencer = 0
 
@@ -1103,7 +1103,7 @@ class ConfdbMySQLModuleLoader:
 
 		    # No changes. Attach parameter to new template.
 		    if(valssame):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ")")
+			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
 			
 			neednewparam = False
 
@@ -1118,7 +1118,7 @@ class ConfdbMySQLModuleLoader:
 		# value changed, or there is no previous version.
 		if(neednewparam == True):
 		    # Fill Parameters table
-		    newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked)
+		    newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
 
 		    sequencer = 0
 
@@ -1134,7 +1134,7 @@ class ConfdbMySQLModuleLoader:
 
 	lastpsetname = ''
 
-	for pset, psettype, psetname, psetval, psettracked in paramsets:
+	for pset, psettype, psetname, psetval, psettracked, psetseq in paramsets:
 	    # If this is the first entry in this PSet for this component, add it to the ParameterSets table
 	    if(pset != lastpsetname):
 		
@@ -1150,8 +1150,8 @@ class ConfdbMySQLModuleLoader:
 
 		# Attach the PSet to a Fwk component via their superIds
 		if(self.verbose > 1):
-		    print "INSERT INTO SuperIdParamSetAssoc (superId, paramSetId) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ")"
-		thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, paramSetId) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ")")
+		    print "INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetseq) + ")"
+		thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetseq) + ")")
 
 	    lastpsetname = pset
 
@@ -1162,7 +1162,7 @@ class ConfdbMySQLModuleLoader:
 	    type = self.paramtypedict[psettype]
 
 	    # Fill Parameters table
-	    newparammemberid = self.AddNewParam(thecursor,newparamsetid,psetname,type,psettracked)	    
+	    newparammemberid = self.AddNewParam(thecursor,newparamsetid,psetname,type,psettracked,psetseq)	    
 
 	    if(psettype == "int32" or psettype == "int"):
 		thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
@@ -1209,7 +1209,7 @@ class ConfdbMySQLModuleLoader:
 
 	# Now VPSets
 	lastvpsetname = ''
-	for vpset, vpsettype, vpsetname, vpsetval, vpsettracked, vpsetindex in vecparamsets:
+	for vpset, vpsettype, vpsetname, vpsetval, vpsettracked, vpsetindex, vpsetseq in vecparamsets:
 	    # If this is the first entry in this VPSet for this component, add it to the ParameterSets table
 	    if(vpset != lastvpsetname):
 		
@@ -1225,8 +1225,8 @@ class ConfdbMySQLModuleLoader:
 
 		# Attach the PSet to a Fwk component via their superIds
 		if(self.verbose > 1):
-		    print "INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ")"
-		thecursor.execute("INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ")")
+		    print "INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetseq) + ")"
+		thecursor.execute("INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetseq) + ")")
 
 	    lastvpsetname = vpset
 
@@ -1237,7 +1237,7 @@ class ConfdbMySQLModuleLoader:
 	    type = self.paramtypedict[vpsettype]
 	    
 	    # Fill Parameters table
-	    newvparammemberid = self.AddNewParam(thecursor,newvparamsetid,vpsetname,type,vpsettracked)	    
+	    newvparammemberid = self.AddNewParam(thecursor,newvparamsetid,vpsetname,type,vpsettracked,vpsetseq)	    
 
 	    if(vpsettype == "int32" or vpsettype == "int"):
 		thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
@@ -1261,7 +1261,7 @@ class ConfdbMySQLModuleLoader:
     # End ConfdbUpdateParameterSets
 
     # Utility function for adding a new parameter 
-    def AddNewParam(self,thecursor,sid,pname,ptype,ptracked):
+    def AddNewParam(self,thecursor,sid,pname,ptype,ptracked,pseq):
 	if(self.verbose > 1):
 	    print "INSERT INTO Parameters (paramTypeId, name, tracked) VALUES (" + str(ptype) + ", '" + pname + "', " + ptracked + ")"
 
@@ -1272,8 +1272,8 @@ class ConfdbMySQLModuleLoader:
 
 	# Fill Parameter <-> Super ID table
 	if(self.verbose > 1):
-	    print "INSERT INTO SuperIdParameterAssoc (superId, paramId) VALUES (" + str(sid) + ", " + str(newparamid) + ")"
-	thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId) VALUES (" + str(sid) + ", " + str(newparamid) + ")")
+	    print "INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(pseq) + ")"
+	thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(pseq) + ")")
 
 	return newparamid
 

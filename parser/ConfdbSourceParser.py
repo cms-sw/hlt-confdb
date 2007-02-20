@@ -19,7 +19,8 @@ class SourceParser:
 	self.paramfailures = []
 	self.includefile = ""
         self.baseclass = ""
-	self.verbose = 0
+	self.sequencenb = 1
+	self.verbose = 2
 
     # Parser for .cf* files. Look for default values of tracked parameters.
     # Anything specific to the .cf* file syntax nominally goes here.
@@ -158,7 +159,8 @@ class SourceParser:
                                         if(self.verbose > 1):
                                             print '\t\t\t' + paramtype + '\t' + paramname + ' = ' + paramval
 
-                                        self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true"))
+                                        self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb))
+					self.sequencenb = self.sequencenb + 1
 
 				# Fill vector values - account for vectors spread over several lines
 				if(startedvector == True):
@@ -195,8 +197,8 @@ class SourceParser:
 					for vecval in values:
 					    if(self.verbose > 1):
 						print '\t\t\t\t' + vecval
-					self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),values,"true"))
-					
+					self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),values,"true",self.sequencenb))
+					self.sequencenb = self.sequencenb + 1
 					readingvector = False
 					foundvectorend = False
 
@@ -235,7 +237,8 @@ class SourceParser:
 					psetparamval = (line.split('=')[1]).strip('\n')
 					if(self.verbose > 1):
 					    print 'attach ' + paramname + '\t' + psetparamtype + '\t' + psetparamname + '\t' + psetparamval
-					self.paramsetmemberlist.append((paramname,psetparamtype,psetparamname,psetparamval,"true"))
+					self.paramsetmemberlist.append((paramname,psetparamtype,psetparamname,psetparamval,"true",self.sequencenb))
+					self.sequencenb = self.sequencenb + 1
 
 				# Fill VPSets
 				elif(startedvpset == True):
@@ -269,21 +272,22 @@ class SourceParser:
 						vpsetparamval = vpsettokens[0]
 						if(self.verbose > 1):
 						    print 'attach ' + paramname + '\t' + vpsetparamtype + '\t' + vpsetparamname + '\t= ' + vpsetparamval + '\t\t' + str(vpsetindex)
-						self.vecparamsetmemberlist.append((paramname,vpsetparamtype,vpsetparamname,vpsetparamval,"true",vpsetindex))
-						
+						self.vecparamsetmemberlist.append((paramname,vpsetparamtype,vpsetparamname,vpsetparamval,"true",vpsetindex,self.sequencenb))
+						self.sequencenb = self.sequencenb + 1
+				
 						vpsetparamtypetwo = vpsettokens[1]
 						vpsetparamnametwo = vpsettokens[2]
 						vpsetparamvaltwo = (line.split('=')[2]).strip('\n').rstrip('}')
 						if(self.verbose > 1):
 						    print 'attach ' + paramname + '\t' + vpsetparamtypetwo + '\t' + vpsetparamnametwo + '\t= ' + vpsetparamvaltwo + '\t\t' + str(vpsetindex)
-						self.vecparamsetmemberlist.append((paramname,vpsetparamtypetwo,vpsetparamnametwo,vpsetparamvaltwo,"true",vpsetindex))
-						
+						self.vecparamsetmemberlist.append((paramname,vpsetparamtypetwo,vpsetparamnametwo,vpsetparamvaltwo,"true",vpsetindex,self.sequencenb))
+						self.sequencenb = self.sequencenb + 1
 					    else:
 						vpsetparamval = vpsetparamrhs
 						if(self.verbose > 1):
 						    print 'attach ' + paramname + '\t' + vpsetparamtype + '\t' + vpsetparamname + '\t= ' + vpsetparamval + '\t\t' + str(vpsetindex)
-						self.vecparamsetmemberlist.append((paramname,vpsetparamtype,vpsetparamname,vpsetparamval,"true",vpsetindex))
-
+						self.vecparamsetmemberlist.append((paramname,vpsetparamtype,vpsetparamname,vpsetparamval,"true",vpsetindex,self.sequencenb))
+						self.sequencenb = self.sequencenb + 1
 
 				# This is the end of the module definition
 				elif ((line.lstrip()).startswith('}')):
@@ -448,24 +452,30 @@ class SourceParser:
 
 			    # Special cases for typedef'd vectors
 			    if(paramtype.lstrip().rstrip() == 'vtag'):
-				self.vecparamlist.append(('VInputTag',paramname.lstrip().rstrip(),'',"true"))
+				self.vecparamlist.append(('VInputTag',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
+				self.sequencenb = self.sequencenb + 1
 			    elif(paramtype.lstrip().rstrip() == 'Labels'):
-				self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"true"))
+				self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
+				self.sequencenb = self.sequencenb + 1
 			    elif(paramtype.lstrip().rstrip() == 'vString'):
-				self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"true"))
+				self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
+				self.sequencenb = self.sequencenb + 1
 			    elif(paramtype.lstrip().rstrip() == 'Parameters'):
-				self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",0))
+				self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",0,self.sequencenb))
+				self.sequencenb = self.sequencenb + 1
 			    elif(paramtype.lstrip().rstrip() == 'PSet' or 
 				 paramtype.lstrip().rstrip() == 'ParameterSet'):
 				print "Appending to paramsetlist with no values"
-				self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true"))
+				self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",self.sequencenb))
+				self.sequencenb = self.sequencenb + 1
 
 			    elif(isvector == False):
-				self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),None,"true"))	   
-
+				self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),None,"true",self.sequencenb))	   
+				self.sequencenb = self.sequencenb + 1
 			    else:
-				self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true"))
-			    self.paramfailures.append((themodulename,paramtype,paramname.lstrip().rstrip(),"true"))
+				self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true",self.sequencenb))
+				self.paramfailures.append((themodulename,paramtype,paramname.lstrip().rstrip(),"true",self.sequencenb))
+				self.sequencenb = self.sequencenb + 1
 
                     # Now look at untracked parameters. Default
                     # value _may_ be specified as the second argument
@@ -508,7 +518,8 @@ class SourceParser:
 			    elif(paramtype == 'InputTag'):
 				paramtype = 'VInputTag'
 
-			    self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"false"))
+			    self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"false",self.sequencenb))
+			    self.sequencenb = self.sequencenb + 1
 			    defaultincc = True
 
                         # Templated getParameter call
@@ -536,11 +547,14 @@ class SourceParser:
 				    if(self.verbose > 1): 
 					print '\t\t' + paramtype + '\t' + paramname + ' = ' + paramval + '\t\t(Untracked)'
 				    if(paramtype == 'PSet' or paramtype == 'ParameterSet'):
-					self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false"))
+					self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb))
+					self.sequencenb = self.sequencenb + 1
 				    elif(paramtype == 'VPSet'):
-					self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0))
+					self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb))
+					self.sequencenb = self.sequencenb + 1
 				    else:
-					self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"false"))
+					self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"false",self.sequencenb))
+					self.sequencenb = self.sequencenb + 1
 
 				    defaultincc = True
 
@@ -568,13 +582,16 @@ class SourceParser:
 			    if(defaultincc == False and success == False):
 				if(self.verbose > 0):
 				    print 'Failed to find a default value for the untracked parameter: ' + paramtype + ' ' + paramname + ' in module ' + themodulename
-				self.paramfailures.append((themodulename,paramtype,paramname.lstrip().rstrip(),"false"))
+				self.paramfailures.append((themodulename,paramtype,paramname.lstrip().rstrip(),"false",self.sequencenb))
 				if(paramtype == 'PSet' or paramtype == 'ParameterSet'):
-				    self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false"))
+				    self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb))
+				    self.sequencenb = self.sequencenb + 1
 				elif(paramtype == 'VPSet'):
-				    self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0))
+				    self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb))
+				    self.sequencenb = self.sequencenb + 1
 				else:
-				    self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),None,"false"))
+				    self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),None,"false",self.sequencenb))
+				    self.sequencenb = self.sequencenb + 1
 
                         # Not using the templated getParameter. Look for
                         # parameter name and default value. If we're really
@@ -610,11 +627,14 @@ class SourceParser:
                             if(self.verbose > 1):
                                 print '\t\t(Untemplated) ' + paramtype + ' ' + paramname + ' ' + paramdefault + '\t\t(Untracked)'
 			    if(paramtype == 'PSet' or paramtype == 'ParameterSet'):
-				self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false"))
+				self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb))
+				self.sequencenb = self.sequencenb + 1
 			    elif(paramtype == 'VPSet'):
-				self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0))
+				self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb))
+				self.sequencenb = self.sequencenb + 1
 			    else:
-				self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramdefault,"false"))
+				self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramdefault,"false",self.sequencenb))
+				self.sequencenb = self.sequencenb + 1
 
 			# We're finished with this line(s)
                         totalline = ''
@@ -825,8 +845,8 @@ class SourceParser:
 	if(self.verbose > 0):
 	    print "\tDumping parameters for module/service " + modname + "(" + self.baseclass + ")"
 	    
-	    for ptype, pname, pval, ptracked in self.paramlist:
-		print "\t\t" + ptype + "\t" + pname + "\t" + str(pval) + "\t(tracked = " + str(ptracked) + ")"
+	    for ptype, pname, pval, ptracked, pseq in self.paramlist:
+		print "\t\t" + ptype + "\t" + pname + "\t" + str(pval) + "\t(tracked = " + str(ptracked) + ")" + str(pseq)
 
 	    print "\n"
 
@@ -837,8 +857,8 @@ class SourceParser:
 	if(self.verbose > 0):
 	    print "\tDumping vector parameters for module " + modname + "(" + self.baseclass + ")"
 
-	    for vecptype, vecpname, vecpvals, vectracked in self.vecparamlist:
-		print "\t\t" + vecptype + "\t" + vecpname + "\t(tracked = " + str(vectracked) + ")"
+	    for vecptype, vecpname, vecpvals, vectracked, vecpseq in self.vecparamlist:
+		print "\t\t" + vecptype + "\t" + vecpname + "\t(tracked = " + str(vectracked) + ")" + str(vecpseq)
 
 		for vecpval in vecpvals:
 		    print "\t\t\t" + vecpval
@@ -851,8 +871,8 @@ class SourceParser:
 	if(self.verbose > 0):
 	    print "\tDumping parameter sets for module " + modname + "(" + self.baseclass + ")"
 
-	    for pset, psettype, psetname, psetval, psettracked in self.paramsetmemberlist:
-		print "\t\t" + pset + "\t" + psettype + "\t" + psetname + "\t" + psetval + "\t(tracked = " + str(psettracked) + ")"
+	    for pset, psettype, psetname, psetval, psettracked, psetseq in self.paramsetmemberlist:
+		print "\t\t" + pset + "\t" + psettype + "\t" + psetname + "\t" + psetval + "\t(tracked = " + str(psettracked) + ")" + str(psetseq)
 
     
         return self.paramsetmemberlist	    
@@ -862,8 +882,8 @@ class SourceParser:
 	if(self.verbose > 0):
 	    print "\tDumping <vector>parameter sets for module " + modname + "(" + self.baseclass + ")"
 
-	    for vpset, vpsettype, vpsetname, vpsetval, vpsettracked, vpsetindex in self.vecparamsetmemberlist:
-		print "\t\t" + vpset + "\t" + vpsettype + "\t" + vpsetname + "\t" + vpsetval + "\t(tracked = " + str(vpsettracked) + ") [" + str(vpsetindex) + "]"
+	    for vpset, vpsettype, vpsetname, vpsetval, vpsettracked, vpsetindex, vpsetseq in self.vecparamsetmemberlist:
+		print "\t\t" + vpset + "\t" + vpsettype + "\t" + vpsetname + "\t" + vpsetval + "\t(tracked = " + str(vpsettracked) + ") [" + str(vpsetindex) + "]" + str(vpsetseq)
 
     
         return self.vecparamsetmemberlist	    
@@ -876,8 +896,8 @@ class SourceParser:
     def ShowParamFailures(self):
 	if(len(self.paramfailures) > 0):
 	    print "\tCould not find defaults for (component, (type)parameter):"
-	    for mod, paramtype, param, istracked in self.paramfailures:
-		print "\t\t" + mod + "\t\t(" + paramtype + ")" + param + "\t\t(Tracked = " + istracked + ")"
+	    for mod, paramtype, param, istracked, paramseq in self.paramfailures:
+		print "\t\t" + mod + "\t\t(" + paramtype + ")" + param + "\t\t(Tracked = " + istracked + ")" + str(paramseq)
 
 
     # Set the verbosity
@@ -898,6 +918,8 @@ class SourceParser:
 
 	self.vecparamsetmemberlist = []
 	
+	self.sequencenb = 1
+
         self.baseclass = ""
 
 	self.includefile = ""
