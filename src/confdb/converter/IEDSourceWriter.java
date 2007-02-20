@@ -1,0 +1,9 @@
+package confdb.converter;
+
+import confdb.data.EDSourceInstance;
+
+public interface IEDSourceWriter {
+
+	public String toString( EDSourceInstance edsource, Converter converter );
+	
+}
