@@ -19,8 +19,8 @@ public class ParameterWriterV1  implements IParameterWriter {
 		{
 			str += "{ "; 
 			PSetParameter pset = (PSetParameter)parameter;
-			for ( int i = 0; i < pset.vectorSize(); i++ )
-				str += toString( (Parameter)pset.value(i), converter );
+			for ( int i = 0; i < pset.parameterCount(); i++ )
+				str += toString( (Parameter)pset.parameter(i), converter );
 			str += " }"; 
 		}
 		else if ( parameter instanceof VectorParameter )
@@ -29,8 +29,8 @@ public class ParameterWriterV1  implements IParameterWriter {
 			if ( parameter instanceof VPSetParameter )
 			{
 				VPSetParameter vpset = (VPSetParameter)parameter;
-				for ( int i = 0; i < vpset.vectorSize(); i++ )
-					str += toString( (Parameter)vpset.value(i), converter );
+				for ( int i = 0; i < vpset.parameterSetCount(); i++ )
+					str += toString( (Parameter)vpset.parameterSet(i), converter );
 			}
 			else
 				str += parameter.valueAsString(); 
