@@ -662,7 +662,7 @@ COMMIT;
 --
 -- INSERT root directory
 --
-INSERT INTO Directories (parentDirId,dirName,created) VALUES(null,"/",SYSDATE);
+INSERT INTO Directories (parentDirId,dirName,created) VALUES(null,'/',SYSDATE);
 
 
 --
