@@ -7,7 +7,6 @@ public class ConverterFactory {
 	static private HashMap<String, String> cmssw2version = null;
 	static private final String writerPackage = ConverterFactory.class.getPackage().getName();
 
-	private String releaseTag = null;
 	private String version = null;
 	
 	static public ConverterFactory getFactory( String releaseTag )
@@ -23,7 +22,7 @@ public class ConverterFactory {
 	
 	public Converter getConverter() throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
-		Converter converter = new Converter( releaseTag );
+		Converter converter = new Converter();
 		converter.setConfigurationWriter( getConfigurationWriter() );
 		converter.setParameterWriter( getParameterWriter() );
 
@@ -116,7 +115,6 @@ public class ConverterFactory {
 	
 	private ConverterFactory( String releaseTag )
 	{
-		this.releaseTag = releaseTag;
 		version = cmssw2version.get( releaseTag );
 		if ( version == null )
 			version = cmssw2version.get( "default" );
