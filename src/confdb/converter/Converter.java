@@ -4,13 +4,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.prefs.Preferences;
 
+import confdb.data.ConfigInfo;
 import confdb.data.Configuration;
+import confdb.data.Directory;
 import confdb.data.Template;
 import confdb.db.CfgDatabase;
 import confdb.db.DatabaseException;
 
 public class Converter {
-	private String releaseTag = "";
 	private CfgDatabase database = null;
 	private Configuration configuration = null;
 	private IConfigurationWriter configurationWriter = null;
@@ -34,11 +35,22 @@ public class Converter {
 	static final public String newline = "\n";
 
 	
-	protected Converter( String releaseTag )
+	protected Converter()
 	{
-		this.releaseTag = releaseTag;
 	}
 	
+	
+	public boolean readConfiguration( int configKey ) throws SQLException
+	{
+		ConfigInfo configInfo = findConfig(configKey);
+		if ( configInfo == null )
+			return false;
+		configuration = loadConfiguration(configInfo);
+		if ( configuration == null )
+			return false;
+		else
+			return true;
+	}
 	
 	public boolean readConfiguration( String configKey ) throws SQLException
 	{
@@ -51,14 +63,27 @@ public class Converter {
 			String versionStr = configKey.substring( startVersion + keyVersionSeparator.length() );
 			configVersion = Integer.parseInt( versionStr );
 		}
-		int configVersionMax = 100000;
-		configuration = 
-			database.loadConfigurationThrowsException( configName, configVersion, configVersionMax, 
-													   releaseTag, 
-													   edsourceTemplateList, essourceTemplateList, serviceTemplateList, moduleTemplateList);
+		ConfigInfo configInfo = findConfig(configName);
+		if ( configInfo == null )
+			return false;
+		if ( configInfo.version(configVersion) == null )
+			return false;
+		configInfo.setVersionIndex( configVersion );
+
+		configuration = loadConfiguration(configInfo);
 		if ( configuration == null )
 			return false;
-		return true;
+		else
+			return true;
+	}
+	
+	protected Configuration loadConfiguration( ConfigInfo configInfo ) throws SQLException
+	{
+		return database.loadConfiguration( configInfo, 
+										edsourceTemplateList, 
+										essourceTemplateList, 
+										serviceTemplateList, 
+										moduleTemplateList );
 	}
 	
 	public String convertConfiguration()
@@ -69,7 +94,69 @@ public class Converter {
 	}
 	
 
+	public ConfigInfo findConfig( String configName )
+	{
+		Directory directory = database.loadConfigurationTree();
+		return findConfig( configName, directory );
+	}
+
+
+	public ConfigInfo findConfig( int key )
+	{
+		Directory directory = database.loadConfigurationTree();
+		return findConfig( key, directory );
+	}
+
+	protected ConfigInfo findConfig( String name, Directory directory )
+	{
+		for ( int i = 0; i < directory.configInfoCount(); i++ )
+		{
+			ConfigInfo configInfo = directory.configInfo(i);
+			if ( configInfo.name().equals(name) ) 
+				return configInfo;
+		}
+		for ( int i = 0; i < directory.childDirCount(); i++ )
+		{
+			ConfigInfo configInfo = findConfig( name, directory.childDir(i) );
+			if ( configInfo != null )
+				return configInfo;
+		}
+		return null;
+	}
 	
+	protected ConfigInfo findConfig( int key, Directory directory )
+	{
+		for ( int i = 0; i < directory.configInfoCount(); i++ )
+		{
+			ConfigInfo configInfo = directory.configInfo(i);
+			if ( configInfo.dbId() == key ) 
+				return configInfo;
+		}
+		for ( int i = 0; i < directory.childDirCount(); i++ )
+		{
+			ConfigInfo configInfo = findConfig( key, directory.childDir(i) );
+			if ( configInfo != null )
+				return configInfo;
+		}
+		return null;
+	}
+	
+	public Directory[] listSubDirectories( Directory directory )
+	{
+		Directory[] list = new Directory[ directory.childDirCount() ];
+		for ( int i = 0; i < directory.childDirCount(); i++ )
+			list[i] = directory.childDir(i);
+		return list;
+	}
+	
+	
+	public ConfigInfo[] listConfigs( Directory directory )
+	{
+		ConfigInfo[] list = new ConfigInfo[ directory.configInfoCount() ];
+		for ( int i = 0; i < directory.configInfoCount(); i++ )
+			list[i] = directory.configInfo(i);
+		return list;
+	}
 	
 	
 	public static void main(String[] args) 
