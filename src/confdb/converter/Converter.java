@@ -96,15 +96,18 @@ public class Converter {
 
 	public ConfigInfo findConfig( String configName )
 	{
-		Directory directory = database.loadConfigurationTree();
-		return findConfig( configName, directory );
+		return findConfig( configName, getRootDirectory() );
 	}
 
 
 	public ConfigInfo findConfig( int key )
 	{
-		Directory directory = database.loadConfigurationTree();
-		return findConfig( key, directory );
+		return findConfig( key, getRootDirectory() );
+	}
+
+	public Directory getRootDirectory()
+	{
+		return database.loadConfigurationTree();
 	}
 
 	protected ConfigInfo findConfig( String name, Directory directory )
