@@ -3,12 +3,12 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL Jan. 24, 2006
+# Jonathan Hollar LLNL Feb. 22, 2007
 
 import os, string, sys, posix, tokenize, array
 
 class SourceParser:
-    def __init__(self):
+    def __init__(self,verbosity):
         self.data = []
         self.paramlist = []
         self.vecparamlist = []
@@ -20,7 +20,7 @@ class SourceParser:
 	self.includefile = ""
         self.baseclass = ""
 	self.sequencenb = 1
-	self.verbose = 2
+	self.verbose = int(verbosity)
 
     # Parser for .cf* files. Look for default values of tracked parameters.
     # Anything specific to the .cf* file syntax nominally goes here.
@@ -59,6 +59,7 @@ class SourceParser:
 		    totalvectorline = ""
 		    paramtype = ""
 		    paramname = ""
+		    toppsetname = ""
 		    vpsetindex = 0
  
                     for line in lines:
@@ -87,6 +88,7 @@ class SourceParser:
 				if(line.find('PSet') != -1 and line.find('VPSet') == -1):
 				    if(startedpset == False):
 					startedpset = True
+					toppsetname = (line.split('PSet')[1]).split('=')[0].rstrip().lstrip()
 				    else:
 					startednestedpset = True
 					
@@ -204,7 +206,6 @@ class SourceParser:
 
 				# Do nested PSets
 				elif(startednestedpset == True):
-				    #				    print "Nested PSet line: " + line
 				    if((line.lstrip()).startswith('}') or ((line.lstrip().startswith('PSet')) and line.rstrip().endswith('}'))):
 					if(readingnestedpset == True):
 					    readingnestedpset = False
@@ -212,6 +213,25 @@ class SourceParser:
 					startednestedpset = False
 					continue
 				    
+				    elif(line.find('=') != -1 and foundpset == True and readingnestedpset == True):
+					if(line.find(paramname) != -1 and 
+					   (line.rstrip().endswith('{') or line.rstrip().endswith('='))):
+					    continue
+					if(vals[0] == 'untracked'):
+					    psetparamtype = vals[1]
+
+					    psetparamname = vals[2]
+					else:
+					    psetparamtype = vals[0]
+					    
+					    psetparamname = vals[1]                   
+
+					psetparamval = (line.split('=')[1]).strip('\n')
+					if(self.verbose > 1):
+					    print 'attach ' + paramname + '\t' + psetparamtype + '\t' + psetparamname + '\t' + psetparamval
+					self.paramsetmemberlist.append((paramname,psetparamtype,psetparamname,psetparamval,"true",self.sequencenb,toppsetname))
+					self.sequencenb = self.sequencenb + 1
+
 				# Do PSets
 				elif(startedpset == True and startednestedpset == False):
 				    if((line.lstrip()).startswith('}') or ((line.lstrip().startswith('PSet')) and line.rstrip().endswith('}'))):					
@@ -237,7 +257,7 @@ class SourceParser:
 					psetparamval = (line.split('=')[1]).strip('\n')
 					if(self.verbose > 1):
 					    print 'attach ' + paramname + '\t' + psetparamtype + '\t' + psetparamname + '\t' + psetparamval
-					self.paramsetmemberlist.append((paramname,psetparamtype,psetparamname,psetparamval,"true",self.sequencenb))
+					self.paramsetmemberlist.append((paramname,psetparamtype,psetparamname,psetparamval,"true",self.sequencenb,'None'))
 					self.sequencenb = self.sequencenb + 1
 
 				# Fill VPSets
@@ -338,7 +358,7 @@ class SourceParser:
     # declarations
     def ParseSrcFile(self,theccfile,themodulename,thedatadir,thetdefedmodule):                            
         filename = open(theccfile)
-	print theccfile
+
         lines = filename.readlines()
 
         startedmod = False
@@ -466,7 +486,7 @@ class SourceParser:
 			    elif(paramtype.lstrip().rstrip() == 'PSet' or 
 				 paramtype.lstrip().rstrip() == 'ParameterSet'):
 				print "Appending to paramsetlist with no values"
-				self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",self.sequencenb))
+				self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",self.sequencenb,'None'))
 				self.sequencenb = self.sequencenb + 1
 
 			    elif(isvector == False):
@@ -547,7 +567,7 @@ class SourceParser:
 				    if(self.verbose > 1): 
 					print '\t\t' + paramtype + '\t' + paramname + ' = ' + paramval + '\t\t(Untracked)'
 				    if(paramtype == 'PSet' or paramtype == 'ParameterSet'):
-					self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb))
+					self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb,'None'))
 					self.sequencenb = self.sequencenb + 1
 				    elif(paramtype == 'VPSet'):
 					self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb))
@@ -584,7 +604,7 @@ class SourceParser:
 				    print 'Failed to find a default value for the untracked parameter: ' + paramtype + ' ' + paramname + ' in module ' + themodulename
 				self.paramfailures.append((themodulename,paramtype,paramname.lstrip().rstrip(),"false",self.sequencenb))
 				if(paramtype == 'PSet' or paramtype == 'ParameterSet'):
-				    self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb))
+				    self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb,'None'))
 				    self.sequencenb = self.sequencenb + 1
 				elif(paramtype == 'VPSet'):
 				    self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb))
@@ -627,7 +647,7 @@ class SourceParser:
                             if(self.verbose > 1):
                                 print '\t\t(Untemplated) ' + paramtype + ' ' + paramname + ' ' + paramdefault + '\t\t(Untracked)'
 			    if(paramtype == 'PSet' or paramtype == 'ParameterSet'):
-				self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb))
+				self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb,'None'))
 				self.sequencenb = self.sequencenb + 1
 			    elif(paramtype == 'VPSet'):
 				self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb))
@@ -871,8 +891,8 @@ class SourceParser:
 	if(self.verbose > 0):
 	    print "\tDumping parameter sets for module " + modname + "(" + self.baseclass + ")"
 
-	    for pset, psettype, psetname, psetval, psettracked, psetseq in self.paramsetmemberlist:
-		print "\t\t" + pset + "\t" + psettype + "\t" + psetname + "\t" + psetval + "\t(tracked = " + str(psettracked) + ")" + str(psetseq)
+	    for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting in self.paramsetmemberlist:
+		print "\t\t" + pset + "\t" + psettype + "\t" + psetname + "\t" + psetval + "\t(tracked = " + str(psettracked) + ")" + str(psetseq) + " nested in (" + psetnesting + ")"
 
     
         return self.paramsetmemberlist	    

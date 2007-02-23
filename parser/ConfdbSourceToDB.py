@@ -4,367 +4,449 @@
 # Main file for parsing source code in a CMSSW release and
 # loading module templates to the Conf DB.
 # 
-# Jonathan Hollar LLNL Feb. 12, 2006
+# Jonathan Hollar LLNL Feb. 22, 2007
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
-import MySQLdb, ConfdbSQLModuleLoader
-
-# Get a Conf DB connection. Only need to do this once at the 
-# beginning of a job.
-dbloader = ConfdbSQLModuleLoader.ConfdbMySQLModuleLoader()
-dbcursor = dbloader.ConfdbMySQLConnect()
-verbose = 0
-
-# List of all package tags for this release.
-tagtuple = []
+import MySQLdb, ConfdbSQLModuleLoader, ConfdbOracleModuleLoader
 
 def main(argv):
     # Get information from the environment
-    base_path = os.environ.get("CMSSW_RELEASE_BASE")
-    cmsswrel = os.environ.get("CMSSW_VERSION")
+    input_base_path = os.environ.get("CMSSW_RELEASE_BASE")
+    input_cmsswrel = os.environ.get("CMSSW_VERSION")
 
     # User can provide a list of packages to ignore...
-    usingblacklist = False
-    blacklist = []
+    input_usingblacklist = False
+    input_blacklist = []
 
     # or a list of packages (and only these packages) to use
-    usingwhitelist = False
-    whitelist = []
+    input_usingwhitelist = False
+    input_whitelist = []
+
+    input_verbose = 0
+    input_dbname = "hltdb1"
+    input_dbuser = "jjhollar"
+    input_dbpwd = "password"
+    input_dbtype = "MySQL"
 
     # Parse command line options
-    opts, args = getopt.getopt(sys.argv[1:], "p:b:w:c:", ["sourcepath=","blacklist=","whitelist=","release="])
+    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:t:h", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","dbtype=","help="])
     for o, a in opts:
+	if o in ("-r","release="):
+	    if(input_base_path and input_cmsswrel):
+		input_base_path = input_base_path.replace(input_cmsswrel,str(a))
+		input_cmsswrel = str(a)
+		print "Using release " + input_cmsswrel + " at path " + input_base_path
+	    else:
+		print "Could not resolve path to the release " + str(a)
+		print "Check that the CMSSW_RELEASE_BASE and CMSSW_VERSION envvars are set"
+		return
         if o in ("-p","releasepath="):
-            base_path = str(a)
+            input_base_path = str(a)
+	if o in ("-c","releasename="):
+	    input_cmsswrel = str(a)
+	    print "Using release " + input_cmsswrel
         if o in ("-b","blacklist="):
-	    blacklist.append(a.split(","))
+	    input_blacklist.append(a.split(","))
             print 'Skip directories:'
-	    usingblacklist = True
+	    input_usingblacklist = True
         if o in ("-w","whitelist="):
-	    whitelist.append(a.split(","))
+	    input_whitelist.append(a.split(","))
             print 'Use directories:'
-	    print whitelist
-	    usingwhitelist = True	    
-	if o in ("-c","release="):
-	    cmsswrel = str(a)
-	    print "Using release " + cmsswrel
+	    print input_whitelist
+	    input_usingwhitelist = True	    
+	if o in ("-v","verbose="):
+	    input_verbose = a
+	    print "Verbosity = " + str(input_verbose)
+	if o in ("-d","dbname="):
+	    input_dbname = str(a)
+	    print "Using DB named " + input_dbname
+	if o in ("-u","user="):
+	    input_dbuser = str(a)
+	    print "Connecting as user " + input_dbuser
+	if o in ("-t","dbtype="):
+	    input_dbtype = str(a)
+	    if(input_dbtype == "MySQL"):
+		print "Using MySQL DB"
+	    elif(input_dbtype == "Oracle"):
+		print "Using Oracle DB"
+		print "\t***Oracle is not tested yet. Exiting now***"
+		return
+	    else:
+		print "Unknown DB type " + input_dbtype + ", exiting now"
+		return
+	if o in ("-h","help="):
+	    print "Help menu for ConfdbSourceToDB"
+	    print "\t-r <CMSSW release (default is the CMSSW_VERSION envvar)>"
+	    print "\t-p <Absolute path to the release>"
+	    print "\t-c <Manually set the name of the release>"
+	    print "\t-w <Comma-delimited list of packages to parse>"
+	    print "\t-b <Comma-delimited list of packages to ignore>"
+	    print "\t-v <Verbosity level (0-2)>"
+	    print "\t-d <Name of the database to connect to>"
+	    print "\t-u <User name to connect as>" 
+	    print "\t-t <Type of database. Options are MySQL (default) or Oracle (not yet implemented)>"	    
+	    return
 
-    print "Using release base: " + base_path
+    if((not input_base_path) or (not input_cmsswrel)):
+	print "Configuration error: Could not resolve path to the release"
+	print "\tEither the CMSSW_RELEASE_BASE and CMSSW_VERSION envvars must be set, or use the -p and -c options to explicitly set the path"
+	print "\tExiting now"
+	return
 
-    # Get the list of valid package tags for this release, using the 
-    # CmsTCPackageList.pl script.
-    os.system("CmsTCPackageList.pl --rel " + cmsswrel + " >& temptags.txt")
-    tagfile = open("temptags.txt")
-    taglines = tagfile.readlines()
-    for tagline in taglines:
-	tagtuple.append(((tagline.split())[0], (tagline.split())[1]))
-    os.system("rm temptags.txt")
+    print "Using release base: " + input_base_path
 
-    # List of all available modules
-    sealcomponenttuple = []
+    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype)
+    confdbjob.BeginJob()
 
-    # Track all modules which will be modified
-    modifiedmodules = []
+class ConfdbSourceToDB:
+    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype):
+	self.data = []
+	self.dbname = clidbname
+	self.dbuser = clidbuser
+	self.dbtype = clidbtype
+	self.verbose = int(cliverbose)
 
-    source_tree = base_path + "/src/"
+	# Get a Conf DB connection. Only need to do this once at the 
+	# beginning of a job.
+	if(self.dbtype == "MySQL"):
+	    self.dbloader = ConfdbSQLModuleLoader.ConfdbMySQLModuleLoader(self.verbose)
+	    self.dbcursor = self.dbloader.ConfdbMySQLConnect(self.dbname,self.dbuser)
+	elif(self.dbtype == "Oracle"):
+	    self.dbloader = ConfdbOracleModuleLoader.ConfdbOracleModuleLoader(self.verbose)
+	    self.dbcursor = self.dbloader.ConfdbOracleConnect(self.dbname,self.dbuser)
 
-    print "The  source tree is: " + source_tree
+	# Deal with package tags for this release.
+	self.tagtuple = []
+	self.cmsswrel = clirel
+	self.base_path = clibasepath
+	self.whitelist = cliwhitelist
+	self.blacklist = cliblacklist
+	self.usingwhitelist = cliusingwhitelist
+	self.usingblacklist = cliusingblacklist
 
-    foundcomponent = 0
+    def BeginJob(self):
+	# Get the list of valid package tags for this release, using the 
+	# CmsTCPackageList.pl script.
+	os.system("CmsTCPackageList.pl --rel " + self.cmsswrel + " >& temptags.txt")
+	tagfile = open("temptags.txt")
+	taglines = tagfile.readlines()
+	for tagline in taglines:
+	    self.tagtuple.append(((tagline.split())[0], (tagline.split())[1]))
+	os.system("rm temptags.txt")
 
-    # Add this release to the DB and check for success
-    print "Release is = " + cmsswrel
-    addrelease = dbloader.ConfdbAddNewRelease(dbcursor,cmsswrel)
+	# List of all available modules
+	sealcomponenttuple = []
 
-    # Get package list for this release
-    packagelist = os.listdir(source_tree)
+	# Track all modules which will be modified
+	modifiedmodules = []
 
-    # Start decending into the source tree
-    for package in packagelist:
-        foundcomponent = 0
+	source_tree = self.base_path + "/src/"
 
-        # Check if this is really a directory
-        if(os.path.isdir(source_tree + package)):
+	print "The  source tree is: " + source_tree
 
-            subdirlist = os.listdir(source_tree + package)
+	foundcomponent = 0
 
-            for subdir in subdirlist:
-		# Check if the user really wants to use this package
-		if (usingblacklist == True and (package+"/"+subdir) in blacklist[0]):
-		    if(verbose > 0):
-			print "Skipping package " + (package+"/"+subdir)
-		    continue
+	# Add this release to the DB and check for success
+	print "Release is = " + self.cmsswrel
+	addrelease = -1
+	addrelease = self.dbloader.ConfdbAddNewRelease(self.dbcursor,self.cmsswrel)
+	if(addrelease > 0):
+	    print "Succesfully added release " + self.cmsswrel + " to the DB"
+	else:
+	    print "Failed to add release " + self.cmsswrel + " to the DB: Error " + addrelease
+	    print "Exiting now"
+	    return
 
-		elif (usingwhitelist == True and not ((package+"/"+subdir) in whitelist[0])):
-		    if(verbose > 0):
-			print "Skipping package " + (package+"/"+subdir)
-		    continue
+	# Get package list for this release
+	packagelist = os.listdir(source_tree)
 
+	# Start decending into the source tree
+	for package in packagelist:
+	    foundcomponent = 0
 
-                packagedir = source_tree + package + "/" + subdir
+	    # Check if this is really a directory
+	    if(os.path.isdir(source_tree + package)):
+
+		subdirlist = os.listdir(source_tree + package)
+
+		for subdir in subdirlist:
+		    # Check if the user really wants to use this package
+		    if (self.usingblacklist == True and (package+"/"+subdir) in self.blacklist[0]):
+			if(self.verbose > 0):
+			    print "Skipping package " + (package+"/"+subdir)
+			continue
+
+		    elif (self.usingwhitelist == True and not ((package+"/"+subdir) in self.whitelist[0])):
+			if(self.verbose > 0):
+			    print "Skipping package " + (package+"/"+subdir)
+			continue
+
+		    packagedir = source_tree + package + "/" + subdir
 		
-		if(verbose > 0):
-		    print packagedir
+		    print "Scanning package: " + package + "/" + subdir
                 
-                srcdir = packagedir + "/src/"
-                testdir = packagedir + "/test/"
+		    srcdir = packagedir + "/src/"
+		    testdir = packagedir + "/test/"
     
-                if(os.path.isdir(srcdir)):
-                    srcfiles = os.listdir(srcdir)
+		    if(os.path.isdir(srcdir)):
+			srcfiles = os.listdir(srcdir)
 
-                    for srcfile in srcfiles:
-                        # Get all cc files
-                        if(srcfile.endswith(".cc")):
-                            sealcomponentfilename = srcdir + srcfile
-                            if(os.path.isfile(sealcomponentfilename)):
-                                sealcomponentfile = open(sealcomponentfilename)
+			for srcfile in srcfiles:
+			    # Get all cc files
+			    if(srcfile.endswith(".cc")):
+				sealcomponentfilename = srcdir + srcfile
+				if(os.path.isfile(sealcomponentfilename)):
+				    sealcomponentfile = open(sealcomponentfilename)
                   
-                                sealcomponentlines = sealcomponentfile.readlines()
+				    sealcomponentlines = sealcomponentfile.readlines()
 
-                                # Look through each file for framework component definitions
-                                for sealcomponentline in sealcomponentlines:
-				    if(sealcomponentline.lstrip().startswith("//")):
-					continue
+				    # Look through each file for framework component definitions
+				    for sealcomponentline in sealcomponentlines:
+					if(sealcomponentline.lstrip().startswith("//")):
+					    continue
 
-				    # First modules
-                                    if(sealcomponentline.find("DEFINE_FWK_MODULE") != -1 or
-                                        sealcomponentline.find("DEFINE_ANOTHER_FWK_MODULE") != -1):
-                                        sealmodulestring = sealcomponentline.split('(')
+					# First modules
+					if(sealcomponentline.find("DEFINE_FWK_MODULE") != -1 or
+					   sealcomponentline.find("DEFINE_ANOTHER_FWK_MODULE") != -1):
+					    sealmodulestring = sealcomponentline.split('(')
 
-                                        sealclass = (sealmodulestring[1]).split(')')[0].lstrip().rstrip()
-                                        sealmodule = package + sealclass
+					    sealclass = (sealmodulestring[1]).split(')')[0].lstrip().rstrip()
+					    sealmodule = package + sealclass
 
-					if(verbose > 0):
-					    print "\tSEAL Module name = " + sealmodule
+					    if(self.verbose > 0):
+						print "\tSEAL Module name = " + sealmodule
                                         
-                                        sealcomponenttuple.append(sealmodule)
+					    sealcomponenttuple.append(sealmodule)
 
-                                        # If a new module definition was found, start parsing the source
-                                        # code for the details
-                                        ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,1)
+					    # If a new module definition was found, start parsing the source
+					    # code for the details
+					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,1)
 
-                                        foundcomponent = 1
+					    foundcomponent = 1
 
-				    # Next Services
-				    if((sealcomponentline.find("DEFINE_FWK_SERVICE") != -1 or
-					sealcomponentline.find("DEFINE_ANOTHER_FWK_SERVICE") != -1) and
-				       sealcomponentline.find("DEFINE_FWK_SERVICE_MAKER") == -1 and
-				       sealcomponentline.find("DEFINE_ANOTHER_FWK_SERVICE_MAKER") == -1):
-                                        sealservicestring = sealcomponentline.split('(')
+					# Next Services
+					if((sealcomponentline.find("DEFINE_FWK_SERVICE") != -1 or
+					    sealcomponentline.find("DEFINE_ANOTHER_FWK_SERVICE") != -1) and
+					   sealcomponentline.find("DEFINE_FWK_SERVICE_MAKER") == -1 and
+					   sealcomponentline.find("DEFINE_ANOTHER_FWK_SERVICE_MAKER") == -1):
+					    sealservicestring = sealcomponentline.split('(')
 
-                                        sealclass = (sealservicestring[1]).split(')')[0].lstrip().rstrip()
-                                        sealservice = package + sealclass
+					    sealclass = (sealservicestring[1]).split(')')[0].lstrip().rstrip()
+					    sealservice = package + sealclass
 					
-					if(verbose > 0):
-					    print "\tSEAL Service name = " + sealservice
+					    if(self.verbose > 0):
+						print "\tSEAL Service name = " + sealservice
 
-					sealcomponenttuple.append(sealservice)
+					    sealcomponenttuple.append(sealservice)
 
-                                        ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,2)
+					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,2)
 
-                                        foundcomponent = 1
+					    foundcomponent = 1
 
-				    # And next services defined through service makers
-				    if(sealcomponentline.find("DEFINE_FWK_SERVICE_MAKER") != -1 or
-					sealcomponentline.find("DEFINE_ANOTHER_FWK_SERVICE_MAKER") != -1):
-				       sealservicestring = sealcomponentline.split('(')
+					# And next services defined through service makers
+					if(sealcomponentline.find("DEFINE_FWK_SERVICE_MAKER") != -1 or
+					   sealcomponentline.find("DEFINE_ANOTHER_FWK_SERVICE_MAKER") != -1):
+					    sealservicestring = sealcomponentline.split('(')
 
-				       sealservice = ((sealservicestring[1]).split(',')[0]).lstrip().rstrip()
+					    sealservice = ((sealservicestring[1]).split(',')[0]).lstrip().rstrip()
 
-				       if(verbose > 0):
-					   print "\tSEAL ServiceMaker name = " + sealservice
+					    if(self.verbose > 0):
+						print "\tSEAL ServiceMaker name = " + sealservice
 
-				       sealcomponenttuple.append(sealservice)
+					    sealcomponenttuple.append(sealservice)
 
-				       ScanComponent(sealservice, packagedir,package+"/"+subdir,source_tree,2)
+					    self.ScanComponent(sealservice, packagedir,package+"/"+subdir,source_tree,2)
 
-				       foundcomponent = 1	   
+					    foundcomponent = 1	   
 
-				    # Then ES_Sources
-                                    if((sealcomponentline.find("DEFINE_FWK_EVENTSETUP_SOURCE") != -1 or
-                                        sealcomponentline.find("DEFINE_ANOTHER_FWK_EVENTSETUP_SOURCE") != -1)): 
-                                        sealessourcestring = sealcomponentline.split('(')
+					# Then ES_Sources
+					if((sealcomponentline.find("DEFINE_FWK_EVENTSETUP_SOURCE") != -1 or
+					    sealcomponentline.find("DEFINE_ANOTHER_FWK_EVENTSETUP_SOURCE") != -1)): 
+					    sealessourcestring = sealcomponentline.split('(')
 
-                                        sealclass = (sealessourcestring[1]).split(')')[0].lstrip().rstrip()
-                                        sealessource = package + sealclass
+					    sealclass = (sealessourcestring[1]).split(')')[0].lstrip().rstrip()
+					    sealessource = package + sealclass
 
-					if(verbose > 0):
-					    print "\tSEAL ES_Source name = " + sealessource
+					    if(self.verbose > 0):
+						print "\tSEAL ES_Source name = " + sealessource
 
-					sealcomponenttuple.append(sealessource)
+					    sealcomponenttuple.append(sealessource)
 
-                                        ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,3)
+					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,3)
 
-                                        foundcomponent = 1					
+					    foundcomponent = 1					
 
-				    # And finally ED_Sources
-                                    if((sealcomponentline.find("DEFINE_FWK_INPUT_SOURCE") != -1 or
-                                        sealcomponentline.find("DEFINE_ANOTHER_FWK_INPUT_SOURCE") != -1)): 
-                                        sealessourcestring = sealcomponentline.split('(')
+					# And finally ED_Sources
+					if((sealcomponentline.find("DEFINE_FWK_INPUT_SOURCE") != -1 or
+					    sealcomponentline.find("DEFINE_ANOTHER_FWK_INPUT_SOURCE") != -1)): 
+					    sealessourcestring = sealcomponentline.split('(')
 
-                                        sealclass = (sealessourcestring[1]).split(')')[0].lstrip().rstrip()
-                                        sealessource = package + sealclass
+					    sealclass = (sealessourcestring[1]).split(')')[0].lstrip().rstrip()
+					    sealessource = package + sealclass
 
-					if(verbose > 0):
-					    print "\tSEAL ED_Source name = " + sealessource
+					    if(self.verbose > 0):
+						print "\tSEAL ED_Source name = " + sealessource
 
-					sealcomponenttuple.append(sealessource)
+					    sealcomponenttuple.append(sealessource)
 
-                                        ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,4)
+					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,4)
 
-                                        foundcomponent = 1			
+					    foundcomponent = 1			
 
-    # Just print a list of all components found in the release
-    if(verbose > 1):					
-	for mycomponent in sealcomponenttuple:
-	    print mycomponent
+	# Just print a list of all components found in the release
+	if(self.verbose > 1):					
+	    for mycomponent in sealcomponenttuple:
+		print mycomponent
 
-    if(verbose > 0):
-	print "Scanned " + str(len(sealcomponenttuple)) + " fwk components"
+	if(self.verbose > 0):
+	    print "Scanned " + str(len(sealcomponenttuple)) + " fwk components"
 
-def ScanComponent(modulename, packagedir, packagename, sourcetree, componenttype):
+	self.dbloader.ConfdbExitGracefully()
 
-    # Get a parser object
-    myParser = ConfdbSourceParser.SourceParser()
+    def ScanComponent(self,modulename, packagedir, packagename, sourcetree, componenttype):
 
-    srcdir = packagedir + "/src/"
-    interfacedir = packagedir + "/interface/"
-    datadir = packagedir + "/data/"
-    cvsdir = packagedir + "/CVS/"
-    testdir = packagedir + "/test/"
+	# Get a parser object
+	myParser = ConfdbSourceParser.SourceParser(self.verbose)
 
-    tagline = ""
+	srcdir = packagedir + "/src/"
+	interfacedir = packagedir + "/interface/"
+	datadir = packagedir + "/data/"
+	cvsdir = packagedir + "/CVS/"
+	testdir = packagedir + "/test/"
 
-#    tagfile = open("tags130.txt")
-#    taglines = tagfile.readlines()
-#    for modtag in taglines:
-#	if((modtag.split()[0]).lstrip().rstrip() == packagename.lstrip().rstrip()):
-#	    tagline = (modtag.split()[1]).lstrip().rstrip()
+	tagline = ""
 
-    for modtag, cvstag in tagtuple:
-	if(modtag.lstrip().rstrip() == packagename.lstrip().rstrip()):
-	    tagline = cvstag
+#	tagfile = open("tags130.txt")
+#	taglines = tagfile.readlines()
 
-    if(os.path.isdir(srcdir)):        
-        srcfiles = os.listdir(srcdir)
+#	for modtag in taglines:
+#	    if((modtag.split()[0]).lstrip().rstrip() == packagename.lstrip().rstrip()):
+#		tagline = (modtag.split()[1]).lstrip().rstrip()
 
-        for srcfile in srcfiles:
-            # Get all cc files
-            if(srcfile.endswith(".cc")):
-                interfacefile = srcfile.rstrip('.cc') + '.h'
+        for modtag, cvstag in self.tagtuple:
+	    if(modtag.lstrip().rstrip() == packagename.lstrip().rstrip()):
+		tagline = cvstag
 
-                # Find the base class from the .h files in the interface/ directory
-		if(os.path.isdir(interfacedir)):
-		    myParser.ParseInterfaceFile(interfacedir + interfacefile, modulename)
+	if(os.path.isdir(srcdir)):        
+	    srcfiles = os.listdir(srcdir)
 
-                # Because some people like to put .h files in the src/ directory...
-                myParser.ParseInterfaceFile(srcdir + interfacefile, modulename)
+	    for srcfile in srcfiles:
+		# Get all cc files
+		if(srcfile.endswith(".cc")):
+		    interfacefile = srcfile.rstrip('.cc') + '.h'
 
-                # Now find the relevant constructor and parameter declarations
-                # in the .cc files in the src/ directory
-                myParser.ParseSrcFile(srcdir + srcfile, modulename, datadir, "")
+		    # Find the base class from the .h files in the interface/ directory
+		    if(os.path.isdir(interfacedir)):
+			myParser.ParseInterfaceFile(interfacedir + interfacefile, modulename)
 
-		# Lastly the special case of modules declared via typedef
-		myParser.HandleTypedefs(srcdir + srcfile, modulename, srcdir, interfacedir, datadir, sourcetree)
+		    # Because some people like to put .h files in the src/ directory...
+		    myParser.ParseInterfaceFile(srcdir + interfacefile, modulename)
 
-    # Retrieve the relevant information to be loaded to the DB
-    hltparamlist = myParser.GetParams(modulename)
-    hltvecparamlist = myParser.GetVectorParams(modulename)
-    hltparamsetlist = myParser.GetParamSets(modulename)
-    hltvecparamsetlist = myParser.GetVecParamSets(modulename)
-    modulebaseclass = myParser.GetBaseClass()
+		    # Now find the relevant constructor and parameter declarations
+		    # in the .cc files in the src/ directory
+		    myParser.ParseSrcFile(srcdir + srcfile, modulename, datadir, "")
 
-    # OK, now we know the module, it's base class, it's parameters, and their
-    # default values. Start updating the database if necessary
-    if(componenttype == 1):
+		    # Lastly the special case of modules declared via typedef
+		    myParser.HandleTypedefs(srcdir + srcfile, modulename, srcdir, interfacedir, datadir, sourcetree)
 
-	# Make sure we recognize the base class of this module
-	if(modulebaseclass == "EDProducer" or
-	   modulebaseclass == "EDFilter" or 
-	   modulebaseclass == "ESProducer" or
-	   modulebaseclass == "OutputModule" or
-	   modulebaseclass == "EDAnalyzer" or 
-	   modulebaseclass == "HLTProducer" or 
-	   modulebaseclass == "HLTFilter"):
-	    # First check if this module template already exists
-	    if(modulebaseclass):
-		modid = dbloader.ConfdbCheckModuleExistence(dbcursor,modulebaseclass,modulename,tagline)
-		if(modid):
-		    # If so, see if parameters need to be updated
-		    print "***UPDATING MODULE " + modulename + "***"
-		    dbloader.ConfdbUpdateModuleTemplate(dbcursor,modulename,modulebaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
-		else:
-		    # If not, make a new template
-		    dbloader.ConfdbLoadNewModuleTemplate(dbcursor,modulename,modulebaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+	# Retrieve the relevant information to be loaded to the DB
+	hltparamlist = myParser.GetParams(modulename)
+	hltvecparamlist = myParser.GetVectorParams(modulename)
+	hltparamsetlist = myParser.GetParamSets(modulename)
+	hltvecparamsetlist = myParser.GetVecParamSets(modulename)
+	modulebaseclass = myParser.GetBaseClass()
 
+	# OK, now we know the module, it's base class, it's parameters, and their
+	# default values. Start updating the database if necessary
+	if(componenttype == 1):
 
-	# This is an unknown base class. See if it really inherits from something
-	# else we know.
-	else:
-	    if(modulebaseclass):
-		therealbaseclass = myParser.FindOriginalBaseClass(modulebaseclass, sourcetree)
-
-		if(therealbaseclass == "EDProducer" or
-		   therealbaseclass == "EDFilter" or 
-		   therealbaseclass == "ESProducer" or
-		   therealbaseclass == "OutputModule" or
-		   therealbaseclass == "EDAnalyzer" or 
-		   therealbaseclass == "HLTProducer" or 
-		   therealbaseclass == "HLTFilter"):
-		    # First check if this module template already exists
-		    if(therealbaseclass):
-			modid = dbloader.ConfdbCheckModuleExistence(dbcursor,therealbaseclass,modulename,tagline)
-			if(modid):
-			    # If so, see if parameters need to be updated
-			    print "***UPDATING MODULE " + modulename + "***"
-			    dbloader.ConfdbUpdateModuleTemplate(dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
-			else:
-			    # If not, make a new template
-			    dbloader.ConfdbLoadNewModuleTemplate(dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
-		else:
-		    print  "Unknown module base class " + modulebaseclass + ":" + therealbaseclass
-
-    # This is a Service. Use the ServiceTemplate
-    elif(componenttype == 2):
-	# First check if this service template already exists
-	servid = dbloader.ConfdbCheckServiceExistence(dbcursor,modulename,tagline)
-	if(servid):
-	    # If so, see if parameters need to be updated
-	    print "***UPDATING SERVICE " + modulename + "***"
-	    dbloader.ConfdbUpdateServiceTemplate(dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
-	else:
-	    # If not, make a new template
-	    dbloader.ConfdbLoadNewServiceTemplate(dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
-
-    # This is an ES_Source. Use the ESSourceTemplate
-    elif(componenttype == 3):
-	# First check if this service template already exists
-	sourceid = dbloader.ConfdbCheckESSourceExistence(dbcursor,modulename,tagline)
-	if(sourceid):
-	    # If so, see if parameters need to be updated
-	    print "***UPDATING " + modulename + "***"
-	    dbloader.ConfdbUpdateESSourceTemplate(dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
-	else:
-	    # If not, make a new template
-	    dbloader.ConfdbLoadNewESSourceTemplate(dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
-
-    # This is an ED_Source. Use the EDSourceTemplate
-    elif(componenttype == 4):
-	# First check if this service template already exists
-	sourceid = dbloader.ConfdbCheckEDSourceExistence(dbcursor,modulename,tagline)
-	if(sourceid):
-	    # If so, see if parameters need to be updated
-	    print "***UPDATING EDSOURCE " + modulename + "***"
-	    dbloader.ConfdbUpdateEDSourceTemplate(dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
-	else:
-	    # If not, make a new template
-	    dbloader.ConfdbLoadNewEDSourceTemplate(dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
+	    # Make sure we recognize the base class of this module
+	    if(modulebaseclass == "EDProducer" or
+	       modulebaseclass == "EDFilter" or 
+	       modulebaseclass == "ESProducer" or
+	       modulebaseclass == "OutputModule" or
+	       modulebaseclass == "EDAnalyzer" or 
+	       modulebaseclass == "HLTProducer" or 
+	       modulebaseclass == "HLTFilter"):
+		# First check if this module template already exists
+		if(modulebaseclass):
+		    modid = self.dbloader.ConfdbCheckModuleExistence(self.dbcursor,modulebaseclass,modulename,tagline)
+		    if(modid):
+			# If so, see if parameters need to be updated
+			print "***UPDATING MODULE " + modulename + "***"
+			self.dbloader.ConfdbUpdateModuleTemplate(self.dbcursor,modulename,modulebaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+		    else:
+			# If not, make a new template
+			self.dbloader.ConfdbLoadNewModuleTemplate(self.dbcursor,modulename,modulebaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
 
 
-    # Display any cases where we ran into trouble
-    myParser.ShowParamFailures()
-    myParser.ResetParams()
+	    # This is an unknown base class. See if it really inherits from something
+	    # else we know.
+	    else:
+		if(modulebaseclass):
+		    therealbaseclass = myParser.FindOriginalBaseClass(modulebaseclass, sourcetree)
+
+		    if(therealbaseclass == "EDProducer" or
+		       therealbaseclass == "EDFilter" or 
+		       therealbaseclass == "ESProducer" or
+		       therealbaseclass == "OutputModule" or
+		       therealbaseclass == "EDAnalyzer" or 
+		       therealbaseclass == "HLTProducer" or 
+		       therealbaseclass == "HLTFilter"):
+			# First check if this module template already exists
+			if(therealbaseclass):
+			    modid = self.dbloader.ConfdbCheckModuleExistence(self.dbcursor,therealbaseclass,modulename,tagline)
+			    if(modid):
+				# If so, see if parameters need to be updated
+				print "***UPDATING MODULE " + modulename + "***"
+				self.dbloader.ConfdbUpdateModuleTemplate(self.dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+			    else:
+				# If not, make a new template
+				self.dbloader.ConfdbLoadNewModuleTemplate(self.dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+		    else:
+			print  "Unknown module base class " + modulebaseclass + ":" + therealbaseclass
+
+	# This is a Service. Use the ServiceTemplate
+	elif(componenttype == 2):
+	    # First check if this service template already exists
+	    servid = self.dbloader.ConfdbCheckServiceExistence(self.dbcursor,modulename,tagline)
+	    if(servid):
+		# If so, see if parameters need to be updated
+		print "***UPDATING SERVICE " + modulename + "***"
+		self.dbloader.ConfdbUpdateServiceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+	    else:
+		# If not, make a new template
+		self.dbloader.ConfdbLoadNewServiceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
+
+	# This is an ES_Source. Use the ESSourceTemplate
+	elif(componenttype == 3):
+	    # First check if this service template already exists
+	    sourceid = self.dbloader.ConfdbCheckESSourceExistence(self.dbcursor,modulename,tagline)
+	    if(sourceid):
+		# If so, see if parameters need to be updated
+		print "***UPDATING " + modulename + "***"
+		self.dbloader.ConfdbUpdateESSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+	    else:
+		# If not, make a new template
+		self.dbloader.ConfdbLoadNewESSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
+
+	# This is an ED_Source. Use the EDSourceTemplate
+	elif(componenttype == 4):
+	    # First check if this service template already exists
+	    sourceid = self.dbloader.ConfdbCheckEDSourceExistence(self.dbcursor,modulename,tagline)
+	    if(sourceid):
+		# If so, see if parameters need to be updated
+		print "***UPDATING EDSOURCE " + modulename + "***"
+		self.dbloader.ConfdbUpdateEDSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+	    else:
+		# If not, make a new template
+		self.dbloader.ConfdbLoadNewEDSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
+
+
+	# Display any cases where we ran into trouble
+	myParser.ShowParamFailures()
+	myParser.ResetParams()
                 
 if __name__ == "__main__":
     main(sys.argv[1:])

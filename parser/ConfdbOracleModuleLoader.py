@@ -1,13 +1,14 @@
 #!/usr/local/bin/python2.4
  
-# ConfdbSQLModuleLoader.py
+# ConfdbOracleModuleLoader.py
 # Interface for loading module templates to the Conf DB
-# (MySQL version). All MySQL specific code belongs here.
-# Jonathan Hollar LLNL Feb. 22, 2007
+# (Oracle version). All Oracle specific code belongs here.
+# Jonathan Hollar LLNL Feb. 20, 2007
 
-import os, string, sys, posix, tokenize, array, MySQLdb
+import os, string, sys, posix, tokenize, array
+#import cx_Oracle
 
-class ConfdbMySQLModuleLoader:
+class ConfdbOracleModuleLoader:
 
     def __init__(self, verbosity):
 	self.data = []
@@ -16,15 +17,14 @@ class ConfdbMySQLModuleLoader:
         self.modtypedict = {}
 	self.releasekey = -1
 	self.verbose = int(verbosity)
-	self.connection = None
 
     # Connect to the Confdb db
-    def ConfdbMySQLConnect(self,dbname,username):
-	self.connection = MySQLdb.connect(host="localhost", 
+    def ConfdbOracleConnect(self,dbname,username):
+	connection = cx_Oracle.connect(host="localhost", 
 				     user=username, passwd="password",
                                      db=dbname )
         
-	cursor = self.connection.cursor() 
+	cursor = connection.cursor() 
 
         # Do some one-time operations - get dictionaries of parameter, module,
         # and service type mappings so we don't have to do this every time
@@ -52,8 +52,6 @@ class ConfdbMySQLModuleLoader:
 	print "New releasekey = " + str(therelnum)
 
 	self.releasekey = therelnum
-
-	return therelnum
 
     # Given a tag of a module, check if its template exists in the DB
     def ConfdbCheckModuleExistence(self,thecursor,modtype,modname,modtag):
@@ -136,7 +134,7 @@ class ConfdbMySQLModuleLoader:
 	
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUE();")
+	thecursor.execute("INSERT INTO SuperIds VALUE('');")
 
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 
@@ -163,7 +161,7 @@ class ConfdbMySQLModuleLoader:
 
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUE();")
+	thecursor.execute("INSERT INTO SuperIds VALUE('');")
 
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 
@@ -187,7 +185,7 @@ class ConfdbMySQLModuleLoader:
 	
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUE();")
+	thecursor.execute("INSERT INTO SuperIds VALUE('');")
 
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 
@@ -211,7 +209,7 @@ class ConfdbMySQLModuleLoader:
 	
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUE();")
+	thecursor.execute("INSERT INTO SuperIds VALUE('');")
 
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 
@@ -252,7 +250,7 @@ class ConfdbMySQLModuleLoader:
 
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
-	thecursor.execute("INSERT INTO SuperIds VALUE();")
+	thecursor.execute("INSERT INTO SuperIds VALUE('');")
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
@@ -290,7 +288,7 @@ class ConfdbMySQLModuleLoader:
 
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
-	thecursor.execute("INSERT INTO SuperIds VALUE();")
+	thecursor.execute("INSERT INTO SuperIds VALUE('');")
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
@@ -325,7 +323,7 @@ class ConfdbMySQLModuleLoader:
 
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
-	thecursor.execute("INSERT INTO SuperIds VALUE();")
+	thecursor.execute("INSERT INTO SuperIds VALUE('');")
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
@@ -358,7 +356,7 @@ class ConfdbMySQLModuleLoader:
 
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
-	thecursor.execute("INSERT INTO SuperIds VALUE();")
+	thecursor.execute("INSERT INTO SuperIds VALUE('');")
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
@@ -1137,12 +1135,12 @@ class ConfdbMySQLModuleLoader:
 
 	lastpsetname = ''
 
-	for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting in paramsets:
+	for pset, psettype, psetname, psetval, psettracked, psetseq in paramsets:
 	    # If this is the first entry in this PSet for this component, add it to the ParameterSets table
 	    if(pset != lastpsetname):
 		
 		# Each new PSet gets a new SuperId
-		thecursor.execute("INSERT INTO SuperIds VALUE()")
+		thecursor.execute("INSERT INTO SuperIds VALUE('')")
 		thecursor.execute("SELECT LAST_INSERT_ID()")
 		newparamsetid = thecursor.fetchone()[0]	
 
@@ -1217,7 +1215,7 @@ class ConfdbMySQLModuleLoader:
 	    if(vpset != lastvpsetname):
 		
 		# Each new VPSet gets a new SuperId
-		thecursor.execute("INSERT INTO SuperIds VALUE()")
+		thecursor.execute("INSERT INTO SuperIds VALUE('')")
 		thecursor.execute("SELECT LAST_INSERT_ID()")
 		newvparamsetid = thecursor.fetchone()[0]	
 
@@ -1322,5 +1320,6 @@ class ConfdbMySQLModuleLoader:
 
     # All done. Clean up and commit changes (necessary for INNODB engine)
     def ConfdbExitGracefully(self):
-	self.connection.commit()
-	self.connection.close()
+        self.connection.commit()
+        self.connection.close()
+                        
