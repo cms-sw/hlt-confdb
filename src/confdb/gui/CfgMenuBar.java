@@ -30,7 +30,7 @@ public class CfgMenuBar implements ActionListener
     /** confdbMenu */
     private static final String confdbMenuAbout = "About";
     private static final String confdbMenuQuit  = "Quit";
-
+    
     /** configMenu */
     private static final String configMenuNew        = "New";
     private static final String configMenuOpen       = "Open";
@@ -132,7 +132,7 @@ public class CfgMenuBar implements ActionListener
 	    app.disconnectFromDatabase();
 	    System.exit(0);
 	}
-
+	
 	// configMenu
 	if (command.equals(configMenuNew))    app.newConfiguration();
 	if (command.equals(configMenuOpen))   app.openConfiguration();

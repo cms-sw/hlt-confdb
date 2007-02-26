@@ -593,8 +593,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter implements Tree
 
     /** TreeModelListener: treeNodesInserted() */
     public void treeNodesInserted(TreeModelEvent e) {}
-
-
+    
     /** TreeModelListener: treeNodesRemoved() */
     public void treeNodesRemoved(TreeModelEvent e) {}
 
@@ -827,14 +826,15 @@ class PathMenuListener implements ActionListener
 	    TreePath parentTreePath = treePath;
 	    if (depth>2) parentTreePath = parentTreePath.getParentPath();
 	    if (depth>3) parentTreePath = parentTreePath.getParentPath();
-	    TreePath newTreePath    = parentTreePath.pathByAddingChild(config.path(insertIndex));
+	    TreePath newTreePath =
+		parentTreePath.pathByAddingChild(config.path(insertIndex));
 	    tree.expandPath(newTreePath);
 	    editPathName(newTreePath);
 	    //treeModel.nodeInserted(parentTreePath,insertIndex);
 	    return;
 	}
 	else if (action.equals("PATHREF")) {
-	    TreePath parentTreePath = (depth==3) ? treePath : treePath.getParentPath();
+	    TreePath parentTreePath = (depth==3) ? treePath:treePath.getParentPath();
 	    Path     parentPath  = (depth==3) ? (Path)node : (Path)parent;
 	    int      insertIndex = (depth==3) ? 0 : parentPath.indexOfEntry((Reference)node)+1;
 	    String   pathName    = cmd;

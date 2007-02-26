@@ -549,7 +549,7 @@ public class CfgDatabase
 		 " SuperIdParamSetAssoc.sequenceNb " +
 		 "FROM ParameterSets " +
 		 "JOIN SuperIdParamSetAssoc " +
-		 "ON SuperIdParamSetAssoc.superId = ParameterSets.superId " +
+		 "ON SuperIdParamSetAssoc.paramSetId = ParameterSets.superId " +
 		 "WHERE SuperIdParamSetAssoc.superId = ? " +
 		 "ORDER BY SuperIdParamSetAssoc.sequenceNb ASC");
 
@@ -563,7 +563,7 @@ public class CfgDatabase
 		 " SuperIdVecParamSetAssoc.sequenceNb " +
 		 "FROM VecParameterSets " +
 		 "JOIN SuperIdVecParamSetAssoc " +
-		 "ON SuperIdVecParamSetAssoc.superId = VecParameterSets.superId " +
+		 "ON SuperIdVecParamSetAssoc.vecParamSetId=VecParameterSets.superId "+
 		 "WHERE SuperIdVecParamSetAssoc.superId = ? "+
 		 "ORDER BY SuperIdVecParamSetAssoc.sequenceNb ASC");
 
@@ -1126,7 +1126,7 @@ public class CfgDatabase
 	try {
 	    rs = psSelectTemplates.executeQuery();
 	    while (rs.next()) {
-		int  superId = rs.getInt(1);
+		int    superId = rs.getInt(1);
 		String type;
 		String name;
 		String cvsTag;
@@ -1140,15 +1140,27 @@ public class CfgDatabase
 		    name   = rs.getString(2);
 		    cvsTag = rs.getString(3);
 		}
-		
+
 		ArrayList<Parameter> parameters = new ArrayList<Parameter>();
+		
 		loadParameters(superId,parameters);
 		loadParameterSets(superId,parameters);
 		loadVecParameterSets(superId,parameters);
-		templateList.add(TemplateFactory
-				 .create(type,name,cvsTag,superId,parameters));
+		
+		boolean paramIsNull = false;
+		for (Parameter p : parameters) if (p==null) paramIsNull=true;
+
+		if (paramIsNull) {
+		    System.out.println("ERROR: " + type + " '" + name +
+				       " has 'null' parameter, can't load template.");
+		}
+		else {
+		    templateList.add(TemplateFactory
+				     .create(type,name,cvsTag,superId,parameters));
+		}
 	    }
 	}
+	catch (SQLException e) { e.printStackTrace(); }
 	catch (Exception e) { System.out.println(e.getMessage()); }
 	finally {
 	    dbConnector.release(rs);
@@ -1262,10 +1274,8 @@ public class CfgDatabase
 		new HashMap<Integer,Sequence>();
 	    psSelectSequences.setInt(1,configId);
 	    rs = psSelectSequences.executeQuery();
-	    System.out.println("load sequences ... (configId = " + configId + ")");
 	    while (rs.next()) {
 		int seqId = rs.getInt(1);
-		System.out.println("Found seqId " + seqId);
 		if (!sequenceHashMap.containsKey(seqId)) {
 		    String    seqName  = rs.getString(3);
 		    Sequence  sequence = config.insertSequence(config.sequenceCount(),
@@ -1439,8 +1449,7 @@ public class CfgDatabase
 						      true);
 		
 		while (parameters.size()<sequenceNb) parameters.add(null);
-		if    (parameters.size()==sequenceNb) parameters.add(p);
-		else  parameters.set(sequenceNb,p);
+		parameters.set(sequenceNb-1,p);
 	    }
 	}
 	catch (SQLException e) {
@@ -1475,8 +1484,7 @@ public class CfgDatabase
 		for (Parameter p : psetParameters) pset.addParameter(p);
 		
 		while (parameters.size()<sequenceNb)  parameters.add(null);
-		if    (parameters.size()==sequenceNb) parameters.add(pset);
-		else  parameters.set(sequenceNb,pset);
+		parameters.set(sequenceNb-1,pset);
 	    }
 	}
 	catch (SQLException e) {
@@ -1514,8 +1522,7 @@ public class CfgDatabase
 		}
 		
 		while (parameters.size()<sequenceNb)  parameters.add(null);
-		if    (parameters.size()==sequenceNb) parameters.add(vpset);
-		else  parameters.set(sequenceNb,vpset);
+		parameters.set(sequenceNb-1,vpset);
 	    }
 	}
 	catch (SQLException e) {

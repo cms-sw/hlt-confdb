@@ -51,6 +51,9 @@ public class ConfDbGUI implements TableModelListener
 
     /** panel to display information about the current configuration */
     private ConfigurationPanel configurationPanel = null;
+
+    /** progress bar for database operations */
+    private JProgressBar progressBar = null;
     
     /** tree structure holding the current configuration */
     private JTree tree = null;
@@ -153,21 +156,30 @@ public class ConfDbGUI implements TableModelListener
 	dialog.setVisible(true);
 	
 	if (dialog.validChoice()) {
+	    progressBar.setIndeterminate(true);
+	    progressBar.setString("Loading Templates for Release " +
+	    			  dialog.releaseTag() + " ... ");
+	    progressBar.setVisible(true);
+
 	    String cfgName    = dialog.name();
 	    String releaseTag = dialog.releaseTag();
+	    
 	    database.loadEDSourceTemplates(releaseTag,edsourceTemplateList);
 	    database.loadESSourceTemplates(releaseTag,essourceTemplateList);
 	    database.loadServiceTemplates(releaseTag,serviceTemplateList);
 	    database.loadModuleTemplates(releaseTag,moduleTemplateList);
+
 	    config.initialize(new ConfigInfo(cfgName,null,releaseTag),
 			      edsourceTemplateList,
 			      essourceTemplateList,
 			      serviceTemplateList,
 			      moduleTemplateList);
-	    //tree.setConfiguration(config);
 	    treeModel.setConfiguration(config);
 	    tree.updateUI();
 	    configurationPanel.update(config);
+	    
+	    progressBar.setIndeterminate(false);
+	    progressBar.setVisible(false);
 	}
     }
     
@@ -183,6 +195,10 @@ public class ConfDbGUI implements TableModelListener
 	dialog.setVisible(true);
 	
 	if (dialog.validChoice()) {
+	    progressBar.setIndeterminate(true);
+	    progressBar.setString("Loading Configuration ...");
+	    progressBar.setVisible(true);
+
 	    ConfigInfo configInfo = dialog.configInfo();
 	    config = database.loadConfiguration(dialog.configInfo(),
 						edsourceTemplateList,
@@ -193,6 +209,9 @@ public class ConfDbGUI implements TableModelListener
 	    treeModel.setConfiguration(config);
 	    tree.updateUI();
 	    configurationPanel.update(config);
+
+	    progressBar.setIndeterminate(false);
+	    progressBar.setVisible(false);
 	}
     }
 
@@ -232,11 +251,20 @@ public class ConfDbGUI implements TableModelListener
 	if (!checkConfiguration()) return false;
 	if (config.version()==0) return saveAsConfiguration();
 	
+	
+	progressBar.setIndeterminate(true);
+	progressBar.setString("Storing Configuration ...");
+	progressBar.setVisible(true);
+	
 	if (database.insertConfiguration(config)) {
 	    config.setHasChanged(false);
 	    configurationPanel.update(config);
 	    return true;
 	}
+	
+	progressBar.setIndeterminate(false);
+	progressBar.setVisible(false);
+
 	return false;
     }
     
@@ -303,13 +331,13 @@ public class ConfDbGUI implements TableModelListener
 	c.fill = GridBagConstraints.BOTH;
 	c.weightx = 0.5;
 	
-	c.gridx=1;c.gridy=0; c.weighty=0.01;
+	c.gridx=0;c.gridy=0; c.weighty=0.01;
 	contentPane.add(createDbInfoView(),c);
 	
-	// create the component panel and stuff it into a JScrollPane
+	// create the instance view
 	JPanel instanceView = createInstanceView(new Dimension(500,800));
 	
-	// create the tree and stuff it into a JScrollPane
+	// create the tree view
 	JPanel treeView = createTreeView(new Dimension(500,800));
 	
 	// create the tree/component panel split pane
@@ -320,8 +348,19 @@ public class ConfDbGUI implements TableModelListener
 	horizontalSplitPane.setDividerLocation(0.5);
 	
 	// add horizontal split pane to content pane
-	c.gridx=1;c.gridy=1; c.weighty=0.99;
+	c.gridx=0;c.gridy=1; c.weighty=0.98;
 	contentPane.add(horizontalSplitPane,c);
+	
+	// add the status bar at the bottom
+	c.gridx=0;c.gridy=2; c.weighty=0.01;
+	JPanel statusPanel = new JPanel(new GridLayout());
+	progressBar = new JProgressBar(0);
+	progressBar.setIndeterminate(true);
+	progressBar.setStringPainted(true);
+	progressBar.setVisible(false);
+	statusPanel.add(progressBar);
+	contentPane.add(statusPanel,c);
+	
 	
 	// return content pane, to be set in main frame
 	return contentPane;
