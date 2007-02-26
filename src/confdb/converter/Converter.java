@@ -34,42 +34,44 @@ public class Converter {
 	
 	static final public String newline = "\n";
 
+	private static String CMSSWrelease = getPrefs().get( "CMSSWrelease", "CMSSW_1_3_0_pre3" );
+	private static String dbName = getPrefs().get( "dbName", "hltdb" );
+	private static String dbType = getPrefs().get( "dbType", "mysql" );
+	private static String dbHost = getPrefs().get( "dbHost", "localhost" );
+	private static String dbUser = getPrefs().get( "dbUser", "hlt" );
+	private static String dbPwrd = getPrefs().get( "dbPwrd", "hlt" );
+
+
 	
 	protected Converter()
 	{
 	}
 	
-	
-	public boolean readConfiguration( int configKey ) throws SQLException
+	public String readConfiguration( int configKey ) throws DatabaseException, SQLException
+	{
+		String dbUrl = "jdbc:mysql://" + dbHost + ":3306/" + dbName;
+		if ( dbType.equals("oracle") )
+		    dbUrl = "jdbc:oracle:thin:@//" + dbHost + "/" + dbName;
+		
+		try {
+			database.connect( dbType, dbUrl, dbUser, dbPwrd );
+			database.prepareStatements();
+			
+			if ( !loadConfiguration(configKey) )
+				return null;
+			return convertConfiguration();
+		} finally {
+			database.disconnect();
+		}
+	}
+
+		
+		
+	public boolean loadConfiguration( int configKey ) throws SQLException
 	{
 		ConfigInfo configInfo = findConfig(configKey);
 		if ( configInfo == null )
 			return false;
-		configuration = loadConfiguration(configInfo);
-		if ( configuration == null )
-			return false;
-		else
-			return true;
-	}
-	
-	public boolean readConfiguration( String configKey ) throws SQLException
-	{
-		String configName = configKey;
-		int configVersion = 1;
-		int startVersion = configKey.lastIndexOf( keyVersionSeparator );
-		if ( startVersion != -1 )
-		{
-			configName = configKey.substring( 0, startVersion );
-			String versionStr = configKey.substring( startVersion + keyVersionSeparator.length() );
-			configVersion = Integer.parseInt( versionStr );
-		}
-		ConfigInfo configInfo = findConfig(configName);
-		if ( configInfo == null )
-			return false;
-		if ( configInfo.version(configVersion) == null )
-			return false;
-		configInfo.setVersionIndex( configVersion );
-
 		configuration = loadConfiguration(configInfo);
 		if ( configuration == null )
 			return false;
@@ -94,12 +96,6 @@ public class Converter {
 	}
 	
 
-	public ConfigInfo findConfig( String configName )
-	{
-		return findConfig( configName, getRootDirectory() );
-	}
-
-
 	public ConfigInfo findConfig( int key )
 	{
 		return findConfig( key, getRootDirectory() );
@@ -110,23 +106,6 @@ public class Converter {
 		return database.loadConfigurationTree();
 	}
 
-	protected ConfigInfo findConfig( String name, Directory directory )
-	{
-		for ( int i = 0; i < directory.configInfoCount(); i++ )
-		{
-			ConfigInfo configInfo = directory.configInfo(i);
-			if ( configInfo.name().equals(name) ) 
-				return configInfo;
-		}
-		for ( int i = 0; i < directory.childDirCount(); i++ )
-		{
-			ConfigInfo configInfo = findConfig( name, directory.childDir(i) );
-			if ( configInfo != null )
-				return configInfo;
-		}
-		return null;
-	}
-	
 	protected ConfigInfo findConfig( int key, Directory directory )
 	{
 		for ( int i = 0; i < directory.configInfoCount(); i++ )
@@ -165,7 +144,7 @@ public class Converter {
 	public static void main(String[] args) 
 	{
 		String usage = "java " + Converter.class.getName() 
-		  + "  configKey [ CMSSWrelease dbName dbType dbHost dbUser dbPwrd keyVersionSeparator]";
+		  + "  configKey [ CMSSWrelease dbName dbType dbHost dbUser dbPwrd]";
 		
 		if ( args.length < 1 )
 		{
@@ -176,21 +155,12 @@ public class Converter {
 
 		int argI = 1;
 		
-		String CMSSWrelease = Converter.getPrefs().get( "CMSSWrelease", "CMSSW_1_2_0_pre5" );
-		String dbName = Converter.getPrefs().get( "dbName", "hltdb" );
-		String dbType = Converter.getPrefs().get( "dbType", "mysql" );
-		String dbHost = Converter.getPrefs().get( "dbHost", "localhost" );
-		String dbUser = Converter.getPrefs().get( "dbUser", "hlts" );
-		String dbPwrd = Converter.getPrefs().get( "dbPwrd", "cms" );
-		keyVersionSeparator = Converter.getPrefs().get( "keyVersionSeparator", keyVersionSeparator );
-
 		if ( args.length > argI )
 		{
 			CMSSWrelease = args[argI++];
 			prefs.put( "CMSSWrelease", CMSSWrelease );
 		}
-			
-		
+					
 		if ( args.length > argI )
 		{
 			dbName = args[argI++];
@@ -209,7 +179,6 @@ public class Converter {
 			prefs.put( "dbHost", dbHost );
 		}
 
-
 		if ( args.length > argI )
 		{
 			dbUser = args[argI++];
@@ -222,33 +191,14 @@ public class Converter {
 			prefs.put( "dbPwrd", dbPwrd );
 		}
 
-		if ( args.length > argI )
-		{
-			keyVersionSeparator = args[argI++];
-			prefs.put( "keyVersionSeparator", keyVersionSeparator );
-		}
-
-
-		String dbUrl = "jdbc:mysql://" + dbHost + ":3306/" + dbName;
-		if ( dbType.equals("oracle") )
-		    dbUrl = "jdbc:oracle:thin:@//" + dbHost + "/" + dbName;
-		
-		CfgDatabase database = new CfgDatabase();
 		try {
 			int configKey = Integer.parseInt( args[0] );
-			database.connect( dbType, dbUrl, dbUser, dbPwrd );
-			database.prepareStatements();
-			
-			Converter converter = ConverterFactory.getFactory( CMSSWrelease ).getConverter();
-			converter.setDatabase( database );
-			if ( !converter.readConfiguration( configKey ) )
-			{
-				System.err.println( "config " + configKey + " doesn't exist!");
-				System.exit(1);
-			}
-			String config = converter.convertConfiguration();
-			System.out.println( config );
-			database.disconnect();
+			Converter converter = Converter.getConverter();
+			String config = converter.readConfiguration(configKey);
+			if ( config == null )
+				System.out.println( "config " + configKey + " not found!" );
+			else
+				System.out.println( config );
 		} catch (DatabaseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -367,4 +317,13 @@ public class Converter {
 	}
 
 	
+	public static Converter getConverter() throws ClassNotFoundException, InstantiationException, IllegalAccessException
+	{
+		CfgDatabase database = new CfgDatabase();
+		Converter converter = ConverterFactory.getFactory( CMSSWrelease ).getConverter();
+		converter.setDatabase( database );
+		
+		return converter;
+	}
+		
 }
