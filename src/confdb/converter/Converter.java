@@ -173,7 +173,6 @@ public class Converter {
 			System.err.println( usage );
 			System.exit(1);
 		}
-		String configKey = args[0];
 
 		int argI = 1;
 		
@@ -236,6 +235,7 @@ public class Converter {
 		
 		CfgDatabase database = new CfgDatabase();
 		try {
+			int configKey = Integer.parseInt( args[0] );
 			database.connect( dbType, dbUrl, dbUser, dbPwrd );
 			database.prepareStatements();
 			
