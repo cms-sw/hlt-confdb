@@ -429,7 +429,7 @@ public class CfgDatabase
 		 " ESSources.name," +
 		 " ESSources.sequenceNb " +
 		 "FROM ESSources " +
-		 "WHERE configId=?" +
+		 "WHERE configId=? " +
 		 "ORDER BY ESSources.sequenceNb ASC");
 	    
 	    psSelectPaths =
