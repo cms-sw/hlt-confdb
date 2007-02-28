@@ -18,21 +18,21 @@
       confdb.data.ConfigInfo[] configs = converter.listConfigs( directory );
       for ( int i = 0; i < configs.length; i++ )
       {
-	str += "<tr>" + indent( indent + 1 ) + "<td>";
-	confdb.data.ConfigVersion versionInfo = configs[i].version( configs[i].versionCount() - 1 ); 
- 	str += "<a href=\"convert.jsp?configKey=" + versionInfo.dbId() + "\">" 
-	    + configs[i].name() + " V" + versionInfo.version() + "</a>";
-	for ( int ii = configs[i].versionCount() - 2; i >= 0; i-- )
+	    str += "<tr>" + indent( indent + 1 ) + "<td>";
+	    confdb.data.ConfigVersion versionInfo = configs[i].version( configs[i].versionCount() - 1 ); 
+ 	    str += "<a href=\"convert.jsp?configKey=" + versionInfo.dbId() + "\">" 
+	      + configs[i].name() + " V" + versionInfo.version() + "</a>";
+	    for ( int ii = configs[i].versionCount() - 2; ii >= 0; ii-- )
         {
-	  versionInfo = configs[i].version( ii ); 
- 	  str += " <a href=\"convert.jsp?configKey=" + versionInfo.dbId() + "\"> V" 
+	      versionInfo = configs[i].version( ii ); 
+ 	      str += " <a href=\"convert.jsp?configKey=" + versionInfo.dbId() + "\"> V" 
               + versionInfo.version() + "</a>";
         }
-	str += "</td></tr>";
+	    str += "</td></tr>";
       }
       confdb.data.Directory[] list = converter.listSubDirectories( directory );
       for ( int i = 0; i < list.length; i++ )
-	str += writeAll( indent + 1, list[i], converter );
+	    str += writeAll( indent + 1, list[i], converter );
       return str;
     }
 
