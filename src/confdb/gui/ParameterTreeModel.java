@@ -87,9 +87,15 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     public boolean isLeaf(Object node)
     {
 	boolean result = true;
-	if (node.equals(root)||
-	    node instanceof PSetParameter||
-	    node instanceof VPSetParameter) result = false;
+	if (node.equals(root)) result = false;
+	if (node instanceof PSetParameter) {
+	    PSetParameter pset = (PSetParameter)node;
+	    if (pset.parameterCount()>0) result = false;
+	}
+	if (node instanceof VPSetParameter) {
+	    VPSetParameter vpset = (VPSetParameter)node;
+	    if (vpset.parameterSetCount()>0) result = false;
+	}
 	return result;
     }
     
@@ -106,9 +112,9 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     public boolean isCellEditable(Object node,int column)
     {
 	if (getColumnClass(column) == TreeTableTreeModel.class) return true;
-	if (column!=2||node.equals(root)||
-	    node instanceof PSetParameter||
-	    node instanceof VPSetParameter) return false;
+	if (column!=2||node.equals(root)) return false;
+	//node instanceof PSetParameter||
+	//node instanceof VPSetParameter) return false;
 	return true;
     }
     
@@ -124,7 +130,7 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 	switch (column) {
 	case 0: return p.name();
 	case 1: return p.type();
-	case 2: return (isPSet) ? null : p.valueAsString();
+	case 2: return (isPSet) ? "" : p.valueAsString();
 	case 3: return new Boolean(p.isDefault());
 	case 4: return new Boolean(p.isTracked());
 	}
@@ -167,12 +173,18 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 		parameterList.toArray(new Parameter[parameterList.size()]);
 	    return children;
 	}
-	if (node instanceof PSetParameter||
-	    node instanceof VPSetParameter) {
-	    VectorParameter pset = (VectorParameter)node;
-	    Object[] children = new Parameter[pset.vectorSize()];
-	    for (int i=0;i<pset.vectorSize();i++)
-		children[i] = (Parameter)pset.value(i);
+	if (node instanceof PSetParameter) {
+	    PSetParameter pset = (PSetParameter)node;
+	    Object[] children = new Parameter[pset.parameterCount()];
+	    for (int i=0;i<pset.parameterCount();i++)
+		children[i] = pset.parameter(i);
+	    return children;
+	}
+	else if (node instanceof VPSetParameter) {
+	    VPSetParameter vpset = (VPSetParameter)node;
+	    Object[] children = new PSetParameter[vpset.parameterSetCount()];
+	    for (int i=0;i<vpset.parameterSetCount();i++)
+		children[i] = vpset.parameterSet(i);
 	    return children;
 	}
 	return null;

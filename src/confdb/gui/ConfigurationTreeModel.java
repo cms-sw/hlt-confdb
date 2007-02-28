@@ -166,6 +166,14 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     /** indicate if a node is a leaf node */
     public boolean isLeaf(Object node)
     {
+	if (node instanceof PSetParameter) {
+	    PSetParameter pset = (PSetParameter)node;
+	    return (pset.parameterCount()>0) ? false : true;
+	}
+	else if (node instanceof VPSetParameter) {
+	    VPSetParameter vpset = (VPSetParameter)node;
+	    return (vpset.parameterSetCount()>0) ? false : true;
+	}
 	return (node instanceof Parameter) ? true : false;
     }
     
