@@ -30,7 +30,6 @@ public class Converter {
 	private ArrayList<Template> moduleTemplateList = new ArrayList<Template>();
 
 	static private Preferences  prefs = Preferences.userNodeForPackage( Converter.class );
-	static protected String keyVersionSeparator = ".V";
 	
 	static final public String newline = "\n";
 
@@ -40,7 +39,7 @@ public class Converter {
 	private static String dbHost = getPrefs().get( "dbHost", "localhost" );
 	private static String dbUser = getPrefs().get( "dbUser", "hlt" );
 	private static String dbPwrd = getPrefs().get( "dbPwrd", "hlt" );
-
+	private static String configURL = getPrefs().get( "configURL", "test.cfg" );
 
 	
 	protected Converter()
@@ -49,6 +48,8 @@ public class Converter {
 	
 	public String readConfiguration( int configKey ) throws DatabaseException, SQLException
 	{
+		if ( configKey < -1 )
+			return configURL;
 		String dbUrl = "jdbc:mysql://" + dbHost + ":3306/" + dbName;
 		if ( dbType.equals("oracle") )
 		    dbUrl = "jdbc:oracle:thin:@//" + dbHost + "/" + dbName;
@@ -57,6 +58,8 @@ public class Converter {
 			database.connect( dbType, dbUrl, dbUser, dbPwrd );
 			database.prepareStatements();
 			
+			if ( configKey < 0 )
+				return configURL;
 			if ( !loadConfiguration(configKey) )
 				return null;
 			return convertConfiguration();
@@ -144,7 +147,8 @@ public class Converter {
 	public static void main(String[] args) 
 	{
 		String usage = "java " + Converter.class.getName() 
-		  + "  configKey [ CMSSWrelease dbName dbType dbHost dbUser dbPwrd]";
+		  + "  configKey [ CMSSWrelease dbName dbType dbHost dbUser dbPwrd]\n"
+		  + "  if configKey <0 : next arg is configURL to be set as pref";
 		
 		if ( args.length < 1 )
 		{
@@ -153,6 +157,13 @@ public class Converter {
 			System.exit(1);
 		}
 
+		int configKey = Integer.parseInt( args[0] );
+		if ( configKey < 0 )
+		{
+			String url = args[1];
+			prefs.put( "configURL", url );
+		}
+		
 		int argI = 1;
 		
 		if ( args.length > argI )
@@ -192,7 +203,6 @@ public class Converter {
 		}
 
 		try {
-			int configKey = Integer.parseInt( args[0] );
 			Converter converter = Converter.getConverter();
 			String config = converter.readConfiguration(configKey);
 			if ( config == null )
@@ -324,6 +334,62 @@ public class Converter {
 		converter.setDatabase( database );
 		
 		return converter;
+	}
+
+	public static String getCMSSWrelease() {
+		return CMSSWrelease;
+	}
+
+	public static void setCMSSWrelease(String wrelease) {
+		CMSSWrelease = wrelease;
+	}
+
+	public static String getDbName() {
+		return dbName;
+	}
+
+	public static void setDbName(String dbName) {
+		Converter.dbName = dbName;
+	}
+
+	public static String getDbType() {
+		return dbType;
+	}
+
+	public static void setDbType(String dbType) {
+		Converter.dbType = dbType;
+	}
+
+	public static String getDbHost() {
+		return dbHost;
+	}
+
+	public static void setDbHost(String dbHost) {
+		Converter.dbHost = dbHost;
+	}
+
+	public static String getDbUser() {
+		return dbUser;
+	}
+
+	public static void setDbUser(String dbUser) {
+		Converter.dbUser = dbUser;
+	}
+
+	public static String getDbPwrd() {
+		return dbPwrd;
+	}
+
+	public static void setDbPwrd(String dbPwrd) {
+		Converter.dbPwrd = dbPwrd;
+	}
+
+	public static String getConfigFile() {
+		return configURL;
+	}
+
+	public static void setConfigFile(String configURL) {
+		Converter.configURL = configURL;
 	}
 		
 }
