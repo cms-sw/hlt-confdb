@@ -2,6 +2,7 @@ package confdb.converter;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.prefs.Preferences;
 
 import confdb.data.ConfigInfo;
@@ -39,8 +40,15 @@ public class Converter {
 	private static String dbHost = getPrefs().get( "dbHost", "localhost" );
 	private static String dbUser = getPrefs().get( "dbUser", "hlt" );
 	private static String dbPwrd = getPrefs().get( "dbPwrd", "hlt" );
-	private static String configURL = getPrefs().get( "configURL", "test.cfg" );
+	
+	private static HashMap<Integer, String> cache = new HashMap<Integer, String>();
 
+	static 
+	{
+		cache.put( new Integer(-1), "file:/home/daqpro/cms/triggertables/emulator_async.cfg" );
+		cache.put( new Integer(-2), "file:/home/daqpro/cms/triggertables/emulator_async_2.cfg" );
+	}
+	
 	
 	protected Converter()
 	{
@@ -48,8 +56,9 @@ public class Converter {
 	
 	public String readConfiguration( int configKey ) throws DatabaseException, SQLException
 	{
-		if ( configKey < -1 )
-			return configURL;
+		if ( configKey < 0 )
+			return cache.get( new Integer(configKey) );
+
 		String dbUrl = "jdbc:mysql://" + dbHost + ":3306/" + dbName;
 		if ( dbType.equals("oracle") )
 		    dbUrl = "jdbc:oracle:thin:@//" + dbHost + "/" + dbName;
@@ -58,8 +67,6 @@ public class Converter {
 			database.connect( dbType, dbUrl, dbUser, dbPwrd );
 			database.prepareStatements();
 			
-			if ( configKey < 0 )
-				return configURL;
 			if ( !loadConfiguration(configKey) )
 				return null;
 			return convertConfiguration();
@@ -147,8 +154,7 @@ public class Converter {
 	public static void main(String[] args) 
 	{
 		String usage = "java " + Converter.class.getName() 
-		  + "  configKey [ CMSSWrelease dbName dbType dbHost dbUser dbPwrd]\n"
-		  + "  if configKey <0 : next arg is configURL to be set as pref";
+		  + "  configKey [ CMSSWrelease dbName dbType dbHost dbUser dbPwrd]\n";
 		
 		if ( args.length < 1 )
 		{
@@ -158,11 +164,6 @@ public class Converter {
 		}
 
 		int configKey = Integer.parseInt( args[0] );
-		if ( configKey < 0 )
-		{
-			String url = args[1];
-			prefs.put( "configURL", url );
-		}
 		
 		int argI = 1;
 		
@@ -384,12 +385,8 @@ public class Converter {
 		Converter.dbPwrd = dbPwrd;
 	}
 
-	public static String getConfigFile() {
-		return configURL;
+	public static void addToCache( int key, String info )
+	{
+		cache.put( new Integer( key ), info );
 	}
-
-	public static void setConfigFile(String configURL) {
-		Converter.configURL = configURL;
-	}
-		
 }
