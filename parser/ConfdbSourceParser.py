@@ -8,7 +8,7 @@
 import os, string, sys, posix, tokenize, array
 
 class SourceParser:
-    def __init__(self,verbosity):
+    def __init__(self,verbosity,srctree):
         self.data = []
         self.paramlist = []
         self.vecparamlist = []
@@ -17,9 +17,12 @@ class SourceParser:
 	self.vecparamsetlist = []
 	self.vecparamsetmemberlist = []
 	self.paramfailures = []
+	self.inheritancelevel = 0
 	self.includefile = ""
         self.baseclass = ""
+	self.sourcetree = srctree
 	self.sequencenb = 1
+	self.psetsequencenb = 1
 	self.verbose = int(verbosity)
 
     # Parser for .cf* files. Look for default values of tracked parameters.
@@ -59,6 +62,7 @@ class SourceParser:
 		    totalvectorline = ""
 		    paramtype = ""
 		    paramname = ""
+		    psetname = ""
 		    toppsetname = ""
 		    vpsetindex = 0
  
@@ -89,6 +93,7 @@ class SourceParser:
 				    if(startedpset == False):
 					startedpset = True
 					toppsetname = (line.split('PSet')[1]).split('=')[0].rstrip().lstrip()
+					psetname = toppsetname
 				    else:
 					startednestedpset = True
 					
@@ -97,6 +102,7 @@ class SourceParser:
 				    if(startedvpset == False):
 					startedvpset = True
 					vpsetindex = 0
+					psetname = (line.split('VPSet')[1]).split('=')[0].rstrip().lstrip()
 				if(line.find('}') != -1 and startedvpset == True and startedvpsetentry == False):
 				    startedvpset = False
 				    vpsetindex = 0
@@ -137,13 +143,14 @@ class SourceParser:
 				    # This is the start of the PSet we're looking for
 				    if(startedpset == True):
 					foundpset = True
-					readingpset = True
+					readingpset = True					
 
 				    # This is the start of the VPSet we're looking for
 				    if(startedvpset == True):
 					if(paramtype == 'VPSet'):
 					    foundvpset = True
 					    readingvpset = True
+					    
 
                                     # This is the start of the vector we're looking for 
                                     if(paramtype == 'vdouble' or
@@ -155,7 +162,7 @@ class SourceParser:
 					readingvector = True
 				    
 				    # This is a normal parameter
-                                    elif(paramtype != 'PSet' and paramtype != 'VPSet'):
+                                    elif(paramtype != 'PSet' and paramtype != 'VPSet' and readingpset == False and readingvpset == False):
 					paramval = (line.split('=')[1]).strip('\n')
 
                                         if(self.verbose > 1):
@@ -200,7 +207,7 @@ class SourceParser:
 					    if(self.verbose > 1):
 						print '\t\t\t\t' + vecval
 					self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),values,"true",self.sequencenb))
-					self.sequencenb = self.sequencenb + 1
+#					self.sequencenb = self.sequencenb + 1
 					readingvector = False
 					foundvectorend = False
 
@@ -228,9 +235,9 @@ class SourceParser:
 
 					psetparamval = (line.split('=')[1]).strip('\n')
 					if(self.verbose > 1):
-					    print 'attach ' + paramname + '\t' + psetparamtype + '\t' + psetparamname + '\t' + psetparamval
-					self.paramsetmemberlist.append((paramname,psetparamtype,psetparamname,psetparamval,"true",self.sequencenb,toppsetname))
-					self.sequencenb = self.sequencenb + 1
+					    print 'attach ' + psetname + '\t' + psetparamtype + '\t' + psetparamname + '\t' + psetparamval
+					self.paramsetmemberlist.append((psetname,psetparamtype,psetparamname,psetparamval,"true",self.sequencenb,toppsetname))
+#					self.sequencenb = self.sequencenb + 1
 
 				# Do PSets
 				elif(startedpset == True and startednestedpset == False):
@@ -256,9 +263,9 @@ class SourceParser:
 
 					psetparamval = (line.split('=')[1]).strip('\n')
 					if(self.verbose > 1):
-					    print 'attach ' + paramname + '\t' + psetparamtype + '\t' + psetparamname + '\t' + psetparamval
-					self.paramsetmemberlist.append((paramname,psetparamtype,psetparamname,psetparamval,"true",self.sequencenb,'None'))
-					self.sequencenb = self.sequencenb + 1
+					    print 'attach ' + psetname + '\t' + psetparamtype + '\t' + psetparamname + '\t' + psetparamval
+					self.paramsetmemberlist.append((psetname,psetparamtype,psetparamname,psetparamval,"true",self.sequencenb,'None'))
+#					self.sequencenb = self.sequencenb + 1
 
 				# Fill VPSets
 				elif(startedvpset == True):
@@ -291,23 +298,23 @@ class SourceParser:
 						vpsettokens = vpsetparamrhs.split()
 						vpsetparamval = vpsettokens[0]
 						if(self.verbose > 1):
-						    print 'attach ' + paramname + '\t' + vpsetparamtype + '\t' + vpsetparamname + '\t= ' + vpsetparamval + '\t\t' + str(vpsetindex)
-						self.vecparamsetmemberlist.append((paramname,vpsetparamtype,vpsetparamname,vpsetparamval,"true",vpsetindex,self.sequencenb))
-						self.sequencenb = self.sequencenb + 1
+						    print 'attach ' + psetname + '\t' + vpsetparamtype + '\t' + vpsetparamname + '\t= ' + vpsetparamval + '\t\t' + str(vpsetindex)
+						self.vecparamsetmemberlist.append((psetname,vpsetparamtype,vpsetparamname,vpsetparamval,"true",vpsetindex,self.sequencenb))
+#						self.sequencenb = self.sequencenb + 1
 				
 						vpsetparamtypetwo = vpsettokens[1]
 						vpsetparamnametwo = vpsettokens[2]
 						vpsetparamvaltwo = (line.split('=')[2]).strip('\n').rstrip('}')
 						if(self.verbose > 1):
-						    print 'attach ' + paramname + '\t' + vpsetparamtypetwo + '\t' + vpsetparamnametwo + '\t= ' + vpsetparamvaltwo + '\t\t' + str(vpsetindex)
-						self.vecparamsetmemberlist.append((paramname,vpsetparamtypetwo,vpsetparamnametwo,vpsetparamvaltwo,"true",vpsetindex,self.sequencenb))
-						self.sequencenb = self.sequencenb + 1
+						    print 'attach ' + psetname + '\t' + vpsetparamtypetwo + '\t' + vpsetparamnametwo + '\t= ' + vpsetparamvaltwo + '\t\t' + str(vpsetindex)
+						self.vecparamsetmemberlist.append((psetname,vpsetparamtypetwo,vpsetparamnametwo,vpsetparamvaltwo,"true",vpsetindex,self.sequencenb))
+#						self.sequencenb = self.sequencenb + 1
 					    else:
 						vpsetparamval = vpsetparamrhs
 						if(self.verbose > 1):
-						    print 'attach ' + paramname + '\t' + vpsetparamtype + '\t' + vpsetparamname + '\t= ' + vpsetparamval + '\t\t' + str(vpsetindex)
-						self.vecparamsetmemberlist.append((paramname,vpsetparamtype,vpsetparamname,vpsetparamval,"true",vpsetindex,self.sequencenb))
-						self.sequencenb = self.sequencenb + 1
+						    print 'attach ' + psetname + '\t' + vpsetparamtype + '\t' + vpsetparamname + '\t= ' + vpsetparamval + '\t\t' + str(vpsetindex)
+						self.vecparamsetmemberlist.append((psetname,vpsetparamtype,vpsetparamname,vpsetparamval,"true",vpsetindex,self.sequencenb))
+#						self.sequencenb = self.sequencenb + 1
 
 				# This is the end of the module definition
 				elif ((line.lstrip()).startswith('}')):
@@ -354,6 +361,8 @@ class SourceParser:
 
 	return foundparam
 
+    # End of ParseCfFile
+
     # Parser for .cc files. Find constructors, tracked & untracked parameter
     # declarations
     def ParseSrcFile(self,theccfile,themodulename,thedatadir,thetdefedmodule):                            
@@ -362,10 +371,11 @@ class SourceParser:
         lines = filename.readlines()
 
         startedmod = False
-        startedservice = False
+	startedconstructor = False
+	endedconstructor = False
+	totalconstrline = ''
 	isvector = False
 
-        paramtuple = []
         modulename = ''
         theconstructor = ''
 
@@ -485,7 +495,8 @@ class SourceParser:
 				self.sequencenb = self.sequencenb + 1
 			    elif(paramtype.lstrip().rstrip() == 'PSet' or 
 				 paramtype.lstrip().rstrip() == 'ParameterSet'):
-				print "Appending to paramsetlist with no values"
+				if(self.verbose > 0):
+				    print "Appending to paramsetlist with no values"
 				self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",self.sequencenb,'None'))
 				self.sequencenb = self.sequencenb + 1
 
@@ -496,7 +507,7 @@ class SourceParser:
 				self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true",self.sequencenb))
 				self.paramfailures.append((themodulename,paramtype,paramname.lstrip().rstrip(),"true",self.sequencenb))
 				self.sequencenb = self.sequencenb + 1
-
+				
                     # Now look at untracked parameters. Default
                     # value _may_ be specified as the second argument
                     # in the declaration.
@@ -661,7 +672,7 @@ class SourceParser:
                         foundlineend = False
 
 		    # This line is uninteresting
-		    if(foundlineend == True and line.find('getParameter') == -1 and line.find('getUntrackedParameter') == -1):
+		    elif(foundlineend == True and line.find('getParameter') == -1 and line.find('getUntrackedParameter') == -1):
 			foundlineend = False
 			totalline = ''
 			
@@ -685,14 +696,68 @@ class SourceParser:
                             # Check if this is really the module we want
                             if(theclass != themodulename): 
                                 continue
-
+			    
                             if(self.verbose > 1):
                                 print '\t\tConstructor ' + theclass + '::' + theconstructor
 
                             startedmod = True
+			    startedconstructor = True				
+			    
 		elif(startedmod == False and line.find(themodulename + '(') != -1):
 		    theconstructor = themodulename
 		    startedmod = True
+
+		if(startedconstructor == True and not (line.rstrip().endswith('{') or line.lstrip().startswith('{'))): 	    
+		    totalconstrline = totalconstrline + line
+
+		# Look for ParameterSets passed by reference to classes that this module inherits from
+		elif(startedconstructor == True and  (line.rstrip().endswith('{') or line.lstrip().startswith('{'))):
+		    startedconstructor = False
+		    thepsetline = ""
+		    thepsetname = ""
+		    lookupclass = ""
+		    multint = False 
+
+		    if(totalconstrline.find('ParameterSet') != -1 and totalconstrline.find('&') != -1):
+			if(totalconstrline.find('ParameterSet&') != -1):
+			    thepsetline = totalconstrline.split('ParameterSet&')[1]
+			    thepsetname = totalconstrline.split('ParameterSet&')[1].split(')')[0].lstrip().rstrip()
+			elif(totalconstrline.find('ParameterSet const&') != -1):
+			    thepsetline = totalconstrline.split('ParameterSet const&')[1]
+			    thepsetname = totalconstrline.split('ParameterSet const&')[1].split(')')[0].lstrip().rstrip()
+
+			if(thepsetname):
+			    if(thepsetname.find(',') != -1):
+				thepsetname = thepsetname.split(',')[0].lstrip().rstrip()
+			    if(thepsetline.find(': ') != -1 or thepsetline.find(' :') != -1):
+				if(thepsetline.find('(' + thepsetname + ')') != -1):
+				    lookupclass = thepsetline.split(':')[1].split('('+thepsetname+')')[0].lstrip().rstrip()
+				elif(thepsetline.find('(' + thepsetname + ',') != -1):
+				    lookupclass = thepsetline.split(':')[1].split('('+thepsetname+',')[0].lstrip().rstrip()
+
+				if(lookupclass):
+				    # deal with multiple levels of inheritance
+				    self.inheritancelevel = self.inheritancelevel + 1
+				    if(self.inheritancelevel > 1):
+					thehfile = theccfile.replace('/src/','/interface/').replace('.cc','.h').replace('//interface','//src')
+				    else:
+					thehfile = self.includefile
+				
+				    self.FindInheritedParameters(lookupclass,thedatadir,thehfile)
+
+				    # Deal with multiple inheritance...
+				    if(len(thepsetline.split(':')[1].split('('+thepsetname+')')) > 2):	
+					lookupclass = thepsetline.split(':')[1].split('('+thepsetname+')')[1].split(',')[1].lstrip().rstrip()
+					multint = True
+
+				    elif(len(thepsetline.split(':')[1].split('('+thepsetname+',')) > 2):
+					lookupclass = thepsetline.split(':')[1].split('('+thepsetname+',')[1].split(',')[1].lstrip().rstrip()
+					multint = True
+
+				    if(multint == True):
+					self.FindInheritedParameters(lookupclass,thedatadir,thehfile)			
+	    
+    # End of ParseSrcFile
 
     # Parse .h files. Find class definitions and base classes
     def ParseInterfaceFile(self, thehfile, themodname):
@@ -713,10 +778,10 @@ class SourceParser:
                         continue
                     else:
 			startedclass = True
-
+			
 		if(startedclass == True):
-                    if(line.endswith('{\n') or line.endswith(';\n')):
-                        totalline = totalline + line.lstrip().rstrip('\n')
+                    if(line.rstrip().endswith('{') or line.rstrip().endswith(';')):
+                        totalline = totalline + line.lstrip().rstrip()
 
                         foundlineend = True
 
@@ -748,6 +813,7 @@ class SourceParser:
 
 			totalline = ''
 
+    # End of ParseInterfaceFile
 
     # Special case for handling module declarations of the form
     # typedef BaseClass<> ModuleName;
@@ -755,38 +821,56 @@ class SourceParser:
         filename = open(theccfile)
 
         lines = filename.readlines()
-        
+        totalline = ''
+	foundlineend = False
+	startedtypedef = False
+
         for line in lines:
-            if(line.startswith('typedef ') and line.find(themodulename) != -1):
-		if(self.verbose > 1):
-		    print 'found a typedef module declaration in ' + theccfile
-		    print '\n' + line
+	    if(line.startswith('typedef ')):
+		startedtypedef = True
 
-                theclass =  (line.split('<')[0]).lstrip('typedef').lstrip().rstrip()
-                if(theclass.find('::') != -1):
-                    theclass = theclass.split('::')[1]
+	    if(startedtypedef):
+		totalline = totalline + line
+		if (totalline.find('//') != -1):
+		    totalline = (totalline.split('//'))[0]
+		if(totalline.rstrip().endswith(';')):
+		    foundlineend = True
+		    startedtypedef = False
+		else:
+		    foundlineend = False
 
-		if(os.path.isdir(theinterfacedir)):
-		    hfiles = os.listdir(theinterfacedir)
+		if(foundlineend == True and line.find(themodulename) != -1):
+		    if(self.verbose > 1):
+			print 'found a typedef module declaration in ' + theccfile
+			print '\n' + line
 
-		    for hfile in hfiles:
-			if(hfile.endswith(".h")):
-			    # Check the interface file for the real base class
-			    self.ParseInterfaceFile(theinterfacedir + hfile, theclass)
+		    theclass =  (line.split('<')[0]).lstrip('typedef').lstrip().rstrip()
+		    if(theclass.find('::') != -1):
+			theclass = theclass.split('::')[1]
 
-			    # And check if the class constructor is in the .h file
+		    if(os.path.isdir(theinterfacedir)):
+			hfiles = os.listdir(theinterfacedir)
+
+			for hfile in hfiles:
+			    if(hfile.endswith(".h")):
+				# Check the interface file for the real base class
+				self.ParseInterfaceFile(theinterfacedir + hfile, theclass)
+
+				# And check if the class constructor is in the .h file
+				if(self.verbose > 0):
+				    print "\t\tChecking include file  " + theinterfacedir + hfile + " for " + theclass 
+				self.ParseSrcFile(theinterfacedir + hfile, theclass, thedatadir, themodulename)
+
+		    ccfiles = os.listdir(thesrcdir)
+
+		    for ccfile in ccfiles:
+			if(ccfile.endswith(".cc")):
 			    if(self.verbose > 0):
-				print "\t\tChecking include file  " + theinterfacedir + hfile + " for " + theclass 
-			    self.ParseSrcFile(theinterfacedir + hfile, theclass, thedatadir, themodulename)
-
-                ccfiles = os.listdir(thesrcdir)
-
-                for ccfile in ccfiles:
-                    if(ccfile.endswith(".cc")):
-			if(self.verbose > 0):
-			    print "\t\tChecking sourcefile " + thesrcdir + ccfile + " for " + theclass
-                        self.ParseSrcFile(thesrcdir + ccfile, theclass, thedatadir, themodulename)
+				print "\t\tChecking sourcefile " + thesrcdir + ccfile + " for " + theclass
+			    self.ParseSrcFile(thesrcdir + ccfile, theclass, thedatadir, themodulename)
 		
+		    foundlineend = False
+		    totalline = ''
 
     # Find the base class for modules that have 2 levels of inheritance. This can be expensive, so
     # try to be smart and look at what files are being included.		    
@@ -860,15 +944,79 @@ class SourceParser:
 					foundlineend = False
 	return basebaseclass
 
+    # Look for parameters that this component may have inherited
+    def FindInheritedParameters(self,thebaseobject,thederiveddatadir,theincfile):
+	objectinstantiated = False
+	includeclass = ""
+
+	if(self.verbose > 1):
+	    print '\tIncludefile is ' + theincfile
+	    print '\tLook for parameters from the base object ' + thebaseobject
+
+	if(os.path.isfile(theincfile)):
+
+	    classfile = open(theincfile)
+
+	    includelines = classfile.readlines()
+
+	    # Look for the declaration of this object
+	    for includeline in includelines:
+
+		# It's explicitly instantiated in the include file. Get the class name, stop, and go look for the #include
+		if (includeline.find(thebaseobject) != -1 and not (includeline.lstrip().startswith('#')) and 
+		    includeline.find('public') == -1 and not (includeline.lstrip().startswith('$')) and not 
+		    (includeline.lstrip().startswith('//')) and not (includeline.lstrip().startswith('/*'))):
+		    includeclass = includeline.split(thebaseobject)[0].lstrip().rstrip()
+		    if(self.verbose > 1):
+			print '\tThe base class is ' + includeclass
+		    objectinstantiated = True
+		    break
+
+		# It's not explicitly instantiated. Trace it back using the #include file
+		elif (includeline.find(thebaseobject) != -1 and (includeline.lstrip().startswith('#include')) and not
+		      (includeline.lstrip().startswith('$'))):
+		    objectinstantiated = False
+		    baseobjectincludefile = includeline.lstrip('#include').lstrip().rstrip().lstrip('"').rstrip('"')
+		    baseobjectsrcfile = baseobjectincludefile.replace('interface','src').rstrip('.h') + '.cc'
+		    if(self.verbose > 1):
+			print '\tLook for it in the package/library ' + self.sourcetree + baseobjectsrcfile
+		    
+		    if(os.path.isfile(self.sourcetree + baseobjectsrcfile)):
+			if(self.verbose > 1):
+			    print '\tParse the file ' + self.sourcetree + baseobjectsrcfile
+			baseobjectdatadir = baseobjectincludefile.replace('interface','data').rstrip('.h').rstrip(thebaseobject)
+			if(self.verbose > 1):
+			    print '\tAnd the data dir ' + thederiveddatadir
+
+			self.ParseSrcFile(self.sourcetree+baseobjectsrcfile,thebaseobject,thederiveddatadir,"")
+
+	    # Go look for the #include 
+	    if(objectinstantiated == True):
+		if(self.verbose > 1):
+		    print '\tInstantiated object. Search for include file for ' + includeclass
+		for includeline in includelines:
+		    if (includeline.find(includeclass) != -1 and (includeline.lstrip().startswith('#include'))):
+			baseobjectincludefile = includeline.lstrip('#include').lstrip().rstrip().lstrip('"').rstrip('"')
+			baseobjectsrcfile = baseobjectincludefile.replace('interface','src').rstrip('.h') + '.cc'
+			if(self.verbose > 1):
+			    print '\tLook for it in the package/library ' + self.sourcetree + baseobjectsrcfile
+
+			if(os.path.isfile(self.sourcetree + baseobjectsrcfile)):
+			    if(self.verbose > 1):
+				print '\tParse the file ' + self.sourcetree + baseobjectsrcfile
+			    baseobjectdatadir = baseobjectincludefile.replace('interface','data').rstrip('.h').rstrip(thebaseobject)
+			    if(self.verbose > 1):
+				print '\tAnd the data dir ' + thederiveddatadir
+			    self.ParseSrcFile(self.sourcetree+baseobjectsrcfile,includeclass,thederiveddatadir,"")			
+			    objectinstantiated = False
+
     # Return the parameters and default values associated with a module
     def GetParams(self ,modname):
 	if(self.verbose > 0):
 	    print "\tDumping parameters for module/service " + modname + "(" + self.baseclass + ")"
 	    
 	    for ptype, pname, pval, ptracked, pseq in self.paramlist:
-		print "\t\t" + ptype + "\t" + pname + "\t" + str(pval) + "\t(tracked = " + str(ptracked) + ")" + str(pseq)
-
-	    print "\n"
+		print "\t\t" + ptype + "\t" + pname + "\t" + str(pval) + "\t(tracked = " + str(ptracked) + ")" + " sequenceNb = " + str(pseq)
 
         return self.paramlist
 
@@ -878,7 +1026,7 @@ class SourceParser:
 	    print "\tDumping vector parameters for module " + modname + "(" + self.baseclass + ")"
 
 	    for vecptype, vecpname, vecpvals, vectracked, vecpseq in self.vecparamlist:
-		print "\t\t" + vecptype + "\t" + vecpname + "\t(tracked = " + str(vectracked) + ")" + str(vecpseq)
+		print "\t\t" + vecptype + "\t" + vecpname + "\t(tracked = " + str(vectracked) + ")" + " sequenceNb = " + str(vecpseq)
 
 		for vecpval in vecpvals:
 		    print "\t\t\t" + vecpval
@@ -892,7 +1040,7 @@ class SourceParser:
 	    print "\tDumping parameter sets for module " + modname + "(" + self.baseclass + ")"
 
 	    for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting in self.paramsetmemberlist:
-		print "\t\t" + pset + "\t" + psettype + "\t" + psetname + "\t" + psetval + "\t(tracked = " + str(psettracked) + ")" + str(psetseq) + " nested in (" + psetnesting + ")"
+		print "\t\t" + pset + "\t" + psettype + "\t" + psetname + "\t" + psetval + "\t(tracked = " + str(psettracked) + ")" +  " sequenceNb = " + str(psetseq) + " nested in (" + psetnesting + ")"
 
     
         return self.paramsetmemberlist	    
@@ -903,7 +1051,7 @@ class SourceParser:
 	    print "\tDumping <vector>parameter sets for module " + modname + "(" + self.baseclass + ")"
 
 	    for vpset, vpsettype, vpsetname, vpsetval, vpsettracked, vpsetindex, vpsetseq in self.vecparamsetmemberlist:
-		print "\t\t" + vpset + "\t" + vpsettype + "\t" + vpsetname + "\t" + vpsetval + "\t(tracked = " + str(vpsettracked) + ") [" + str(vpsetindex) + "]" + str(vpsetseq)
+		print "\t\t" + vpset + "\t" + vpsettype + "\t" + vpsetname + "\t" + vpsetval + "\t(tracked = " + str(vpsettracked) + ") [" + str(vpsetindex) + "]" +  " sequenceNb = " + str(vpsetseq)
 
     
         return self.vecparamsetmemberlist	    
@@ -915,7 +1063,7 @@ class SourceParser:
     # Return parameters where we failed to find a default value
     def ShowParamFailures(self):
 	if(len(self.paramfailures) > 0):
-	    print "\tCould not find defaults for (component, (type)parameter):"
+	    print "\tMessage: Could not find defaults for (component, (type)parameter):"
 	    for mod, paramtype, param, istracked, paramseq in self.paramfailures:
 		print "\t\t" + mod + "\t\t(" + paramtype + ")" + param + "\t\t(Tracked = " + istracked + ")" + str(paramseq)
 
@@ -934,12 +1082,13 @@ class SourceParser:
 
 	self.paramsetmemberlist = []
 
-	self.vecparamsetlist = []
-
 	self.vecparamsetmemberlist = []
 	
 	self.sequencenb = 1
 
+	self.inheritancelevel = 0
+
         self.baseclass = ""
 
 	self.includefile = ""
+

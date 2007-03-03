@@ -56,7 +56,7 @@ def main(argv):
 	    print input_whitelist
 	    input_usingwhitelist = True	    
 	if o in ("-v","verbose="):
-	    input_verbose = a
+	    input_verbose = int(a)
 	    print "Verbosity = " + str(input_verbose)
 	if o in ("-d","dbname="):
 	    input_dbname = str(a)
@@ -82,7 +82,7 @@ def main(argv):
 	    print "\t-c <Manually set the name of the release>"
 	    print "\t-w <Comma-delimited list of packages to parse>"
 	    print "\t-b <Comma-delimited list of packages to ignore>"
-	    print "\t-v <Verbosity level (0-2)>"
+	    print "\t-v <Verbosity level (0-3)>"
 	    print "\t-d <Name of the database to connect to>"
 	    print "\t-u <User name to connect as>" 
 	    print "\t-t <Type of database. Options are MySQL (default) or Oracle (not yet implemented)>"	    
@@ -154,7 +154,7 @@ class ConfdbSourceToDB:
 	if(addrelease > 0):
 	    print "Succesfully added release " + self.cmsswrel + " to the DB"
 	else:
-	    print "Failed to add release " + self.cmsswrel + " to the DB: Error " + addrelease
+	    print "Error: Failed to add release " + self.cmsswrel + " to the DB"
 	    print "Exiting now"
 	    return
 
@@ -212,10 +212,10 @@ class ConfdbSourceToDB:
 					    sealmodulestring = sealcomponentline.split('(')
 
 					    sealclass = (sealmodulestring[1]).split(')')[0].lstrip().rstrip()
-					    sealmodule = package + sealclass
+					    sealmodule = package + "/" + sealclass
 
 					    if(self.verbose > 0):
-						print "\tSEAL Module name = " + sealmodule
+						print "\n\tSEAL Module name = " + sealmodule
                                         
 					    sealcomponenttuple.append(sealmodule)
 
@@ -233,10 +233,10 @@ class ConfdbSourceToDB:
 					    sealservicestring = sealcomponentline.split('(')
 
 					    sealclass = (sealservicestring[1]).split(')')[0].lstrip().rstrip()
-					    sealservice = package + sealclass
+					    sealservice = package + "/" + sealclass
 					
 					    if(self.verbose > 0):
-						print "\tSEAL Service name = " + sealservice
+						print "\n\tSEAL Service name = " + sealservice
 
 					    sealcomponenttuple.append(sealservice)
 
@@ -252,7 +252,7 @@ class ConfdbSourceToDB:
 					    sealservice = ((sealservicestring[1]).split(',')[0]).lstrip().rstrip()
 
 					    if(self.verbose > 0):
-						print "\tSEAL ServiceMaker name = " + sealservice
+						print "\n\tSEAL ServiceMaker name = " + sealservice
 
 					    sealcomponenttuple.append(sealservice)
 
@@ -266,10 +266,10 @@ class ConfdbSourceToDB:
 					    sealessourcestring = sealcomponentline.split('(')
 
 					    sealclass = (sealessourcestring[1]).split(')')[0].lstrip().rstrip()
-					    sealessource = package + sealclass
+					    sealessource = package + "/" + sealclass
 
 					    if(self.verbose > 0):
-						print "\tSEAL ES_Source name = " + sealessource
+						print "\n\tSEAL ES_Source name = " + sealessource
 
 					    sealcomponenttuple.append(sealessource)
 
@@ -283,10 +283,10 @@ class ConfdbSourceToDB:
 					    sealessourcestring = sealcomponentline.split('(')
 
 					    sealclass = (sealessourcestring[1]).split(')')[0].lstrip().rstrip()
-					    sealessource = package + sealclass
+					    sealessource = package + "/" + sealclass
 
 					    if(self.verbose > 0):
-						print "\tSEAL ED_Source name = " + sealessource
+						print "\n\tSEAL ED_Source name = " + sealessource
 
 					    sealcomponenttuple.append(sealessource)
 
@@ -295,19 +295,21 @@ class ConfdbSourceToDB:
 					    foundcomponent = 1			
 
 	# Just print a list of all components found in the release
-	if(self.verbose > 1):					
+	if(self.verbose > 0):					
+	    print "Scanned the following framework components:"
 	    for mycomponent in sealcomponenttuple:
-		print mycomponent
+		print "\t" + mycomponent
+	   
+	    print "End of job: Scanned " + str(len(sealcomponenttuple)) + " fwk components for release" + self.cmsswrel 
+	    self.dbloader.PrintStats()
 
-	if(self.verbose > 0):
-	    print "Scanned " + str(len(sealcomponenttuple)) + " fwk components"
-
+	# Commit and disconnect to be compatible with either INNODB or MyISAM
 	self.dbloader.ConfdbExitGracefully()
 
     def ScanComponent(self,modulename, packagedir, packagename, sourcetree, componenttype):
 
 	# Get a parser object
-	myParser = ConfdbSourceParser.SourceParser(self.verbose)
+	myParser = ConfdbSourceParser.SourceParser(self.verbose,sourcetree)
 
 	srcdir = packagedir + "/src/"
 	interfacedir = packagedir + "/interface/"
@@ -343,6 +345,9 @@ class ConfdbSourceToDB:
 		    # Because some people like to put .h files in the src/ directory...
 		    myParser.ParseInterfaceFile(srcdir + interfacefile, modulename)
 
+		    # And other people like to put class definitions in .cc files
+		    myParser.ParseInterfaceFile(srcdir + srcfile, modulename)
+
 		    # Now find the relevant constructor and parameter declarations
 		    # in the .cc files in the src/ directory
 		    myParser.ParseSrcFile(srcdir + srcfile, modulename, datadir, "")
@@ -356,6 +361,7 @@ class ConfdbSourceToDB:
 	hltparamsetlist = myParser.GetParamSets(modulename)
 	hltvecparamsetlist = myParser.GetVecParamSets(modulename)
 	modulebaseclass = myParser.GetBaseClass()
+	    
 
 	# OK, now we know the module, it's base class, it's parameters, and their
 	# default values. Start updating the database if necessary
@@ -406,6 +412,8 @@ class ConfdbSourceToDB:
 				self.dbloader.ConfdbLoadNewModuleTemplate(self.dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
 		    else:
 			print  "Unknown module base class " + modulebaseclass + ":" + therealbaseclass
+		else:
+		    print "Warning: No module base class at all for " + modulename
 
 	# This is a Service. Use the ServiceTemplate
 	elif(componenttype == 2):

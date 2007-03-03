@@ -3,7 +3,7 @@
 # ConfdbOracleModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (Oracle version). All Oracle specific code belongs here.
-# Jonathan Hollar LLNL Feb. 20, 2007
+# Jonathan Hollar LLNL Feb. 22, 2007
 
 import os, string, sys, posix, tokenize, array
 #import cx_Oracle
@@ -17,14 +17,17 @@ class ConfdbOracleModuleLoader:
         self.modtypedict = {}
 	self.releasekey = -1
 	self.verbose = int(verbosity)
+	self.connection = None
+	self.fwknew = 0
+	self.fwkunchanged = 0
 
     # Connect to the Confdb db
     def ConfdbOracleConnect(self,dbname,username):
-	connection = cx_Oracle.connect(host="localhost", 
+	self.connection = cx_Oracle.connect(host="localhost", 
 				     user=username, passwd="password",
                                      db=dbname )
         
-	cursor = connection.cursor() 
+	cursor = self.connection.cursor() 
 
         # Do some one-time operations - get dictionaries of parameter, module,
         # and service type mappings so we don't have to do this every time
@@ -44,6 +47,12 @@ class ConfdbOracleModuleLoader:
     # Add this CMSSW release to the table after a sanity check 
     # to make sure it doesn't already exist.
     def ConfdbAddNewRelease(self,thecursor,therelease):
+	thecursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (releaseTag = '" + therelease + "')")
+	therelnum =  thecursor.fetchone()
+	if(therelnum):
+	    print "\tThis release already exists in the DB!"
+	    return -1
+
 	thecursor.execute("INSERT INTO SoftwareReleases (releaseTag) VALUES ('" + therelease + "')")
 
 	thecursor.execute("SELECT LAST_INSERT_ID()")
@@ -53,6 +62,8 @@ class ConfdbOracleModuleLoader:
 
 	self.releasekey = therelnum
 
+	return therelnum
+
     # Given a tag of a module, check if its template exists in the DB
     def ConfdbCheckModuleExistence(self,thecursor,modtype,modname,modtag):
 	thecursor.execute("SELECT * FROM SuperIds")
@@ -61,7 +72,7 @@ class ConfdbOracleModuleLoader:
 	modtypestr = str(self.modtypedict[modtype])
 
         # See if a module of this type, name, and CVS tag already exists
-	if(self.verbose > 1):
+	if(self.verbose > 2):
 	    print "SELECT ModuleTemplates.superId FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modname + "') AND (ModuleTemplates.typeId = " + modtypestr + ")"
 	thecursor.execute("SELECT ModuleTemplates.superId FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modname + "') AND (ModuleTemplates.typeId = '" + modtypestr + "')")
 
@@ -79,7 +90,7 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("SELECT * FROM SuperIds")
 
         # See if a service of this name and CVS tag already exists
-	if(self.verbose > 1):
+	if(self.verbose > 2):
 	    print "SELECT ServiceTemplates.superId FROM ServiceTemplates WHERE (ServiceTemplates.name = '" + servname + "')"
 	thecursor.execute("SELECT ServiceTemplates.superId FROM ServiceTemplates WHERE (ServiceTemplates.name = '" + servname + "')")
 
@@ -97,7 +108,7 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("SELECT * FROM SuperIds")
 
         # See if a service of this name and CVS tag already exists
-	if(self.verbose > 1):
+	if(self.verbose > 2):
 	    print "SELECT ESSourceTemplates.superId FROM ESSourceTemplates WHERE (ESSourceTemplates.name = '" + srcname + "')"
 	thecursor.execute("SELECT ESSourceTemplates.superId FROM ESSourceTemplates WHERE (ESSourceTemplates.name = '" + srcname + "')")
 
@@ -115,7 +126,7 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("SELECT * FROM SuperIds")
 
         # See if a service of this name and CVS tag already exists
-	if(self.verbose > 1):
+	if(self.verbose > 2):
 	    print "SELECT EDSourceTemplates.superId FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + srcname + "')"
 	thecursor.execute("SELECT EDSourceTemplates.superId FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + srcname + "')")
 
@@ -132,6 +143,8 @@ class ConfdbOracleModuleLoader:
     # Create a new module template in the DB
     def ConfdbLoadNewModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,parameters,vecparameters,paramsets,vecparamsets):
 	
+	self.fwknew = self.fwknew + 1
+
 	# Allocate a new SuperId
 	newsuperid = -1
 	thecursor.execute("INSERT INTO SuperIds VALUE('');")
@@ -148,7 +161,7 @@ class ConfdbOracleModuleLoader:
 
 	# Now create a new module
 	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')")
-	if(self.verbose > 1):
+	if(self.verbose > 2):
 	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')"
 	
 	# Now deal with parameters
@@ -158,6 +171,8 @@ class ConfdbOracleModuleLoader:
 	
     # Create a new service template in the DB
     def ConfdbLoadNewServiceTemplate(self,thecursor,servclassname,servcvstag,parameters,vecparameters,paramsets,vecparamsets):
+
+	self.fwknew = self.fwknew + 1
 
 	# Allocate a new SuperId
 	newsuperid = -1
@@ -172,7 +187,7 @@ class ConfdbOracleModuleLoader:
 
 	# Now create a new service
 	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "')")
-	if(self.verbose > 1):
+	if(self.verbose > 2):
 	    print "INSERT INTO ServiceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "')"
 	
 	# Now deal with parameters
@@ -183,6 +198,8 @@ class ConfdbOracleModuleLoader:
     # Create a new es_source template in the DB
     def ConfdbLoadNewESSourceTemplate(self,thecursor,srcclassname,srccvstag,parameters,vecparameters,paramsets,vecparamsets):
 	
+	self.fwknew = self.fwknew + 1
+
 	# Allocate a new SuperId
 	newsuperid = -1
 	thecursor.execute("INSERT INTO SuperIds VALUE('');")
@@ -196,7 +213,7 @@ class ConfdbOracleModuleLoader:
 
 	# Now create a new es_source
 	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
-	if(self.verbose > 1):
+	if(self.verbose > 2):
 	    print "INSERT INTO ESSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')"
 	
 	# Now deal with parameters
@@ -207,6 +224,8 @@ class ConfdbOracleModuleLoader:
     # Create a new ed_source template in the DB
     def ConfdbLoadNewEDSourceTemplate(self,thecursor,srcclassname,srccvstag,parameters,vecparameters,paramsets,vecparamsets):
 	
+	self.fwknew = self.fwknew + 1
+
 	# Allocate a new SuperId
 	newsuperid = -1
 	thecursor.execute("INSERT INTO SuperIds VALUE('');")
@@ -220,7 +239,7 @@ class ConfdbOracleModuleLoader:
 
 	# Now create a new es_source
 	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
-	if(self.verbose > 1):
+	if(self.verbose > 2):
 	    print "INSERT INTO EDSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')"
 	
 	# Now deal with parameters
@@ -242,6 +261,7 @@ class ConfdbOracleModuleLoader:
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
 	if(oldtag == modcvstag):
+	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this module is unchanged - attach old template to new release'
 	    if(self.verbose > 0):
 		print 'New releaseId = ' + str(self.releasekey)
@@ -260,7 +280,7 @@ class ConfdbOracleModuleLoader:
 
 	# Now create a new module
 	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')")
-	if(self.verbose > 1):
+	if(self.verbose > 2):
 	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')"
 	
 	# Now deal with parameters
@@ -282,6 +302,7 @@ class ConfdbOracleModuleLoader:
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
 	if(oldtag == servcvstag):
+	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this service is unchanged - attach old template to new release'
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
 	    return
@@ -317,6 +338,7 @@ class ConfdbOracleModuleLoader:
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
 	if(oldtag == sourcecvstag):
+	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this source is unchanged - attach old template to new release'
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
 	    return
@@ -350,6 +372,7 @@ class ConfdbOracleModuleLoader:
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
 	if(oldtag == sourcecvstag):
+	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this source is unchanged - attach old template to new release'
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
 	    return
@@ -376,7 +399,7 @@ class ConfdbOracleModuleLoader:
 	for paramtype, paramname, paramval, paramistracked, paramseq in parameters:
 
 	    # int32
-	    if(paramtype == "int32" or paramtype == "int"):
+	    if(paramtype == "int32" or paramtype == "int" or paramtype == "int32_t"):
 		type = self.paramtypedict['int32']
 
 		# Fill Parameters table
@@ -384,20 +407,20 @@ class ConfdbOracleModuleLoader:
 
 		if(paramval):
 		    if(paramval.find('::') != -1 or paramval.find('_') != -1):
-			print "Attempted to load a non-integer value to integer table:"
+			print "\tWarning: Attempted to load a non-integer value to integer table:"
 			print "\t\tint32 " + str(paramname) + " = " + str(paramval)
 			print "\t\tLoading parameter with no default value"
 			continue
 
 		# Fill ParameterValues table
 		if(paramval == None):
-		    if(self.verbose > 1):
+		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
 		    thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
 
 	    # uint32
-	    elif(paramtype == "uint32" or paramtype == "unsigned int"):
+	    elif(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t" or paramtype == "unsigned"):
 		type = self.paramtypedict['uint32']
 
 		if(str(paramval).endswith("U")):
@@ -408,7 +431,7 @@ class ConfdbOracleModuleLoader:
 
 		# Fill ParameterValues table
 		if(paramval == None):
-		    if(self.verbose > 1):
+		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
 		    thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
@@ -422,7 +445,7 @@ class ConfdbOracleModuleLoader:
 
 		# Fill ParameterValues table
 		if(paramval == None):
-		    if(self.verbose > 1):
+		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
 		    thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
@@ -437,7 +460,7 @@ class ConfdbOracleModuleLoader:
 
 		# Fill ParameterValues table
 		if(paramval == None):
-		    if(self.verbose > 1):
+		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
 		    thecursor.execute("INSERT INTO DoubleParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
@@ -450,7 +473,7 @@ class ConfdbOracleModuleLoader:
 		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 
 		if(paramval == None):
-		    if(self.verbose > 1):
+		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
 		    # Stupid special case for string variables defined in 
@@ -470,19 +493,19 @@ class ConfdbOracleModuleLoader:
 
 		# Fill ParameterValues table
 		if(paramval == None):
-		    if(self.verbose > 1):
+		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
 		    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES ('" + str(newparamid) + "', '" + paramval + "')")
 
 	    else:
-		print 'Unknown param type ' + paramtype + ' ' + paramname + ' - do nothing'
+		print '\tError: Unknown param type ' + paramtype + ' ' + paramname + ' - do nothing'
 	    
 	# Now deal with any vectors
 	for vecptype, vecpname, vecpvals, vecpistracked, vecpseq in vecparameters:
 
 	    # vector<int32>
-	    if(vecptype == "vint32"):
+	    if(vecptype == "vint32" or vecptype == "int32" or vecptype == "int" or vecptype == "int32_t"):
 		type = self.paramtypedict['vint32']
 
 		# Fill Parameters table
@@ -491,14 +514,15 @@ class ConfdbOracleModuleLoader:
 		sequencer = 0
 
 		for vecpval in vecpvals:
-		    # Fill ParameterValues table
-		    if(self.verbose > 1):
-			print "INSERT INTO VInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")"
-		    thecursor.execute("INSERT INTO VInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
-		    sequencer = sequencer + 1
+		    if(vecpval):
+			# Fill ParameterValues table
+			if(self.verbose > 2):
+			    print "INSERT INTO VInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")"
+			thecursor.execute("INSERT INTO VInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+			sequencer = sequencer + 1
 
 	    # vector<uint32>
-	    elif(vecptype == "vunsigned"):
+	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "vuint32"):
 		type = self.paramtypedict['vuint32']
 
 		# Fill Parameters table
@@ -507,14 +531,15 @@ class ConfdbOracleModuleLoader:
 		sequencer = 0
 
 		for vecpval in vecpvals:
-		    # Fill ParameterValues table
-		    if(self.verbose > 1):
-			print "INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")"
-		    thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
-		    sequencer = sequencer + 1
+		    if(vecpval):
+			# Fill ParameterValues table
+			if(self.verbose > 2):
+			    print "INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")"
+			thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+			sequencer = sequencer + 1
 
 	    #vector<double>
-	    elif(vecptype == "vdouble"):
+	    elif(vecptype == "vdouble" or vecptype == "double"):
 		type = self.paramtypedict['vdouble']
 
 		# Fill Parameters table
@@ -523,11 +548,12 @@ class ConfdbOracleModuleLoader:
 		sequencer = 0
 
 		for vecpval in vecpvals:
-		    # Fill ParameterValues table
-		    if(self.verbose > 1):
-			print "INSERT INTO VDoubleParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")"
-		    thecursor.execute("INSERT INTO VDoubleParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
-		    sequencer = sequencer + 1
+		    if(vecpval):
+			# Fill ParameterValues table
+			if(self.verbose > 2):
+			    print "INSERT INTO VDoubleParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")"
+			thecursor.execute("INSERT INTO VDoubleParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+			sequencer = sequencer + 1
 
 	    # vector<InputTag>
 	    elif(vecptype == "VInputTag"):
@@ -539,14 +565,15 @@ class ConfdbOracleModuleLoader:
 		sequencer = 0
 
 		for vecpval in vecpvals:
-		    # Fill ParameterValues table
-		    if(self.verbose > 1):
-			print "INSERT INTO VInputTagParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + vecpval + "')"
-		    thecursor.execute("INSERT INTO VInputTagParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + vecpval + "')")   
-		    sequencer = sequencer + 1
+		    if(vecpval):
+			# Fill ParameterValues table
+			if(self.verbose > 2):
+			    print "INSERT INTO VInputTagParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + vecpval + "')"
+			thecursor.execute("INSERT INTO VInputTagParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + vecpval + "')")   
+			sequencer = sequencer + 1
 
 	    # vector<string>
-	    elif(vecptype == "vstring" or vecptype == "vString"):
+	    elif(vecptype == "vstring" or vecptype == "vString" or vecptype == "string"):
 		type = self.paramtypedict['vstring']
 
 		# Fill Parameters table
@@ -555,19 +582,20 @@ class ConfdbOracleModuleLoader:
 		sequencer = 0
 
 		for vecpval in vecpvals:
-		    # Handle signle quoted strings
-		    if(vecpval.find("'") != -1):
-			# Fill ParameterValues table
-			if(self.verbose > 1):
-			    print "INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) +", " + vecpval + ")"
-			thecursor.execute("INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
-		    else:
-			# Fill ParameterValues table
-			if(self.verbose > 1):
-			    print "INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + vecpval + "')"
-			thecursor.execute("INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + vecpval + "')")   
+		    if(vecpval):
+			# Handle signle quoted strings
+			if(vecpval.find("'") != -1):
+			    # Fill ParameterValues table
+			    if(self.verbose > 2):
+				print "INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) +", " + vecpval + ")"
+			    thecursor.execute("INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+			else:
+			    # Fill ParameterValues table
+			    if(self.verbose > 2):
+				print "INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + vecpval + "')"
+			    thecursor.execute("INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + vecpval + "')")   
 
-		    sequencer = sequencer + 1
+			sequencer = sequencer + 1
 
 	    else:
 		if(self.verbose > 0):
@@ -586,7 +614,7 @@ class ConfdbOracleModuleLoader:
 	    oldparamval = None
 
 	    # int32
-	    if(paramtype == "int32" or paramtype == "int"):
+	    if(paramtype == "int32" or paramtype == "int" or paramtype == "int32_t"):
 		type = self.paramtypedict['int32']
 
 		# Get the old value of this parameter
@@ -633,13 +661,13 @@ class ConfdbOracleModuleLoader:
 		    
 		    # Fill ParameterValues table
 		    if(paramval == None):
-			if(self.verbose > 1):
+			if(self.verbose > 2):
 			    print "No default parameter value found"
 		    else:
 			thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
 
 	    # uint32
-	    if(paramtype == "uint32" or paramtype == "unsigned int"):
+	    if(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t"):
 		type = self.paramtypedict['uint32']
 
 		if(str(paramval).endswith("U")):
@@ -687,7 +715,7 @@ class ConfdbOracleModuleLoader:
 		    
 		    # Fill ParameterValues table
 		    if(paramval == None):
-			if(self.verbose > 1):
+			if(self.verbose > 2):
 			    print "No default parameter value found"
 		    else:
 			thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
@@ -741,7 +769,7 @@ class ConfdbOracleModuleLoader:
 		    
 		    # Fill ParameterValues table
 		    if(paramval == None):
-			if(self.verbose > 1):
+			if(self.verbose > 2):
 			    print "No default parameter value found"
 		    else:
 			thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
@@ -792,7 +820,7 @@ class ConfdbOracleModuleLoader:
 		    
 		    # Fill ParameterValues table
 		    if(paramval == None):
-			if(self.verbose > 1):
+			if(self.verbose > 2):
 			    print "No default parameter value found"
 		    else:
 			thecursor.execute("INSERT INTO DoubleParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
@@ -845,7 +873,7 @@ class ConfdbOracleModuleLoader:
 		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 		    
 		    if(paramval == None):
-			if(self.verbose > 1):
+			if(self.verbose > 2):
 			    print "No default parameter value found"
 		    else:
 			# Special case for string variables defined in 
@@ -898,7 +926,7 @@ class ConfdbOracleModuleLoader:
 		    
 		    # Fill ParameterValues table
 		    if(paramval == None):
-			if(self.verbose > 1):
+			if(self.verbose > 2):
 			    print "No default parameter value found"
 		    else:
 			thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
@@ -906,7 +934,7 @@ class ConfdbOracleModuleLoader:
 	# Now deal with any vectors
 	for vecptype, vecpname, vecpvals, vecpistracked, vecpseq in vecparameters:
 	    # vector<int32>
-	    if(vecptype == "vint32"):
+	    if(vecptype == "vint32" or vecptype == "int32" or vecptype == "int" or vecptype == "int32_t"):
 		type = self.paramtypedict['vint32']
 
 		# Get the old value of this parameter
@@ -946,12 +974,13 @@ class ConfdbOracleModuleLoader:
 		    sequencer = 0
 
 		    for vecpval in vecpvals:
-			# Fill ParameterValues table
-			thecursor.execute("INSERT INTO VInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
-			sequencer = sequencer + 1
+			if(vecpval):
+			    # Fill ParameterValues table
+			    thecursor.execute("INSERT INTO VInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+			    sequencer = sequencer + 1
 
 	    # vector<uint32>
-	    elif(vecptype == "vunsigned"):
+	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "vuint32"):
 		type = self.paramtypedict['vuint32']
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,vecpname,oldsuperid)
@@ -987,9 +1016,10 @@ class ConfdbOracleModuleLoader:
 		    sequencer = 0
 
 		    for vecpval in vecpvals:
-			# Fill ParameterValues table
-			thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
-			sequencer = sequencer + 1
+			if(vecpval):
+			    # Fill ParameterValues table
+			    thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+			    sequencer = sequencer + 1
 
 	    # vector<double>
 	    elif(vecptype == "vdouble"):
@@ -1030,14 +1060,15 @@ class ConfdbOracleModuleLoader:
 		    sequencer = 0
 
 		    for vecpval in vecpvals:
-			# Fill ParameterValues table
-			thecursor.execute("INSERT INTO VDoubleParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
-			if(self.verbose > 1):
-			    print "INSERT INTO VDoubleParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")"
-			sequencer = sequencer + 1
+			if(vecpval):
+			    # Fill ParameterValues table
+			    thecursor.execute("INSERT INTO VDoubleParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+			    if(self.verbose > 2):
+				print "INSERT INTO VDoubleParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")"
+			    sequencer = sequencer + 1
 
 	    # vector<string>
-	    elif(vecptype == "vstring" or vecptype == "vString"):
+	    elif(vecptype == "vstring" or vecptype == "vString" or vecptype == "string"):
 		type = self.paramtypedict['vstring']
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,vecpname,oldsuperid)
@@ -1073,19 +1104,20 @@ class ConfdbOracleModuleLoader:
 		    sequencer = 0
 
 		    for vecpval in vecpvals:
-			# Handle signle quoted strings
-			if(vecpval.find("'") != -1):
-			    # Fill ParameterValues table
-			    if(self.verbose > 1):
-				print "INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) +", " + vecpval + ")"
-			    thecursor.execute("INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
-			else:
-			    # Fill ParameterValues table
-			    if(self.verbose > 1):
-				print "INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + vecpval + "')"
-			    thecursor.execute("INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + vecpval + "')")   
+			if(vecpval):
+			    # Handle signle quoted strings
+			    if(vecpval.find("'") != -1):
+				# Fill ParameterValues table
+				if(self.verbose > 2):
+				    print "INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) +", " + vecpval + ")"
+				thecursor.execute("INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+			    else:
+				# Fill ParameterValues table
+				if(self.verbose > 2):
+				    print "INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + vecpval + "')"
+				thecursor.execute("INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + vecpval + "')")   
 
-			sequencer = sequencer + 1
+			    sequencer = sequencer + 1
 
 	    # vector<InputTag>
 	    elif(vecptype == "VInputTag"):		
@@ -1124,9 +1156,10 @@ class ConfdbOracleModuleLoader:
 		    sequencer = 0
 
 		    for vecpval in vecpvals:
-			# Fill ParameterValues table
-			thecursor.execute("INSERT INTO VInputTagParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
-			sequencer = sequencer + 1
+			if(vecpval):
+			    # Fill ParameterValues table
+			    thecursor.execute("INSERT INTO VInputTagParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+			    sequencer = sequencer + 1
 
     # End ConfdbUpdateParameters
 
@@ -1135,7 +1168,7 @@ class ConfdbOracleModuleLoader:
 
 	lastpsetname = ''
 
-	for pset, psettype, psetname, psetval, psettracked, psetseq in paramsets:
+	for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting in paramsets:
 	    # If this is the first entry in this PSet for this component, add it to the ParameterSets table
 	    if(pset != lastpsetname):
 		
@@ -1145,12 +1178,12 @@ class ConfdbOracleModuleLoader:
 		newparamsetid = thecursor.fetchone()[0]	
 
 		# Add a new PSet
-		if(self.verbose > 1):
+		if(self.verbose > 2):
 		    print "INSERT INTO ParameterSets (superId, name, tracked) VALUES (" + str(newparamsetid) + ", '" + pset + "', " + psettracked + ")"
 		thecursor.execute("INSERT INTO ParameterSets (superId, name, tracked) VALUES (" + str(newparamsetid) + ", '" + pset + "', " + psettracked + ")")
 
 		# Attach the PSet to a Fwk component via their superIds
-		if(self.verbose > 1):
+		if(self.verbose > 2):
 		    print "INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetseq) + ")"
 		thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetseq) + ")")
 
@@ -1165,9 +1198,9 @@ class ConfdbOracleModuleLoader:
 	    # Fill Parameters table
 	    newparammemberid = self.AddNewParam(thecursor,newparamsetid,psetname,type,psettracked,psetseq)	    
 
-	    if(psettype == "int32" or psettype == "int"):
+	    if(psettype == "int32" or psettype == "int" or psettype == "int32_t"):
 		thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
-	    elif(psettype == "uint32" or psettype == "unsigned int"):
+	    elif(psettype == "uint32" or psettype == "unsigned int" or psettype == "uint32_t"):
 		if(str(psetval).endswith("U")):
 		    psetval = (str(psetval).rstrip("U"))
 		    thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
@@ -1220,12 +1253,12 @@ class ConfdbOracleModuleLoader:
 		newvparamsetid = thecursor.fetchone()[0]	
 
 		# Add a new VPSet
-		if(self.verbose > 1):
+		if(self.verbose > 2):
 		    print "INSERT INTO VecParameterSets (superId, name, tracked) VALUES (" + str(newvparamsetid) + ", '" + vpset + "', " + vpsettracked + ")"
 		thecursor.execute("INSERT INTO VecParameterSets (superId, name, tracked) VALUES (" + str(newvparamsetid) + ", '" + vpset + "', " + vpsettracked + ")")
 
 		# Attach the PSet to a Fwk component via their superIds
-		if(self.verbose > 1):
+		if(self.verbose > 2):
 		    print "INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetseq) + ")"
 		thecursor.execute("INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetseq) + ")")
 
@@ -1240,9 +1273,9 @@ class ConfdbOracleModuleLoader:
 	    # Fill Parameters table
 	    newvparammemberid = self.AddNewParam(thecursor,newvparamsetid,vpsetname,type,vpsettracked,vpsetseq)	    
 
-	    if(vpsettype == "int32" or vpsettype == "int"):
+	    if(vpsettype == "int32" or vpsettype == "int" or vpsettype == "int32_t"):
 		thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
-	    elif(vpsettype == "uint32" or vpsettype == "unsigned int"):
+	    elif(vpsettype == "uint32" or vpsettype == "unsigned int" or vpsettype == "uint32_t"):
 		if(str(vpsetval).endswith("U")):
 		    vpsetval = (str(vpsetval).rstrip("U"))
 		    thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
@@ -1263,7 +1296,7 @@ class ConfdbOracleModuleLoader:
 
     # Utility function for adding a new parameter 
     def AddNewParam(self,thecursor,sid,pname,ptype,ptracked,pseq):
-	if(self.verbose > 1):
+	if(self.verbose > 2):
 	    print "INSERT INTO Parameters (paramTypeId, name, tracked) VALUES (" + str(ptype) + ", '" + pname + "', " + ptracked + ")"
 
 	thecursor.execute("INSERT INTO Parameters (paramTypeId, name, tracked) VALUES ('" + str(ptype) + "', '" + pname + "', " + ptracked + ")")
@@ -1272,7 +1305,7 @@ class ConfdbOracleModuleLoader:
 	newparamid = thecursor.fetchone()[0]
 
 	# Fill Parameter <-> Super ID table
-	if(self.verbose > 1):
+	if(self.verbose > 2):
 	    print "INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(pseq) + ")"
 	thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(pseq) + ")")
 
@@ -1284,7 +1317,7 @@ class ConfdbOracleModuleLoader:
 	
 	oldparamid = thecursor.fetchone()
 
-	if(self.verbose > 1):
+	if(self.verbose > 2):
 	    print "SELECT SuperIdParameterAssoc.paramId FROM SuperIdParameterAssoc JOIN Parameters ON (Parameters.name = '" + pname + "') WHERE (SuperIdParameterAssoc.superId = " + str(sid) + ") AND (SuperIdParameterAssoc.paramId = Parameters.paramId)"
 	    if(oldparamid):	    
 		print "Old param id was " + str(oldparamid[0])
@@ -1318,8 +1351,11 @@ class ConfdbOracleModuleLoader:
     def SetVerbosity(self, verbosity):
 	self.verbose = verbosity
 
+    def PrintStats(self):
+	print "\tAdded " + str(self.fwknew) + " new framework components to the DB" 
+	print "\t" + str(self.fwkunchanged)  + " framework components were unchanged from the previous release"
+
     # All done. Clean up and commit changes (necessary for INNODB engine)
     def ConfdbExitGracefully(self):
-        self.connection.commit()
-        self.connection.close()
-                        
+	self.connection.commit()
+	self.connection.close()
