@@ -956,6 +956,30 @@ public class CfgDatabase
 	return true;
     }
 
+    /** create a prepared statement to select psets, needed for recursive calls */
+    private PreparedStatement createSelectParameterSetsPS()
+    {
+	PreparedStatement result = null;
+	try {
+	    result = dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " ParameterSets.superId," +
+		 " ParameterSets.name," +
+		 " ParameterSets.tracked," +
+		 " SuperIdParamSetAssoc.superId," +
+		 " SuperIdParamSetAssoc.sequenceNb " +
+		 "FROM ParameterSets " +
+		 "JOIN SuperIdParamSetAssoc " +
+		 "ON SuperIdParamSetAssoc.paramSetId = ParameterSets.superId " +
+	     "WHERE SuperIdParamSetAssoc.superId = ? " +
+		 "ORDER BY SuperIdParamSetAssoc.sequenceNb ASC");
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	return result;
+    }
+
     /** connect to the database */
     public boolean connect(String dbType,String dbUrl,String dbUser,String dbPwrd)
 	throws DatabaseException
@@ -1140,19 +1164,19 @@ public class CfgDatabase
 		    name   = rs.getString(2);
 		    cvsTag = rs.getString(3);
 		}
-
+		
 		ArrayList<Parameter> parameters = new ArrayList<Parameter>();
 		
 		loadParameters(superId,parameters);
 		loadParameterSets(superId,parameters);
 		loadVecParameterSets(superId,parameters);
 		
-		boolean paramIsNull = false;
-		for (Parameter p : parameters) if (p==null) paramIsNull=true;
-
-		if (paramIsNull) {
-		    System.out.println("ERROR: " + type + " '" + name +
-				       " has 'null' parameter, can't load template.");
+		boolean allParamsFound = true;
+		for (Parameter p : parameters) if (p==null) allParamsFound=false;
+		
+		if (!allParamsFound) {
+		    System.out.println("ERROR: can't load " + type + " '" + name +
+				       "' incomplete parameter list.");
 		}
 		else {
 		    templateList.add(TemplateFactory
@@ -1465,41 +1489,57 @@ public class CfgDatabase
     /** load ParameterSets */
     public boolean loadParameterSets(int superId,ArrayList<Parameter> parameters)
     {
+	boolean result = true;
 	ResultSet rs = null;
+	PreparedStatement ps = null;
 	try {
-	    psSelectParameterSets.setInt(1,superId);
-	    rs = psSelectParameterSets.executeQuery();
+	    ps = createSelectParameterSetsPS();
+	    ps.setInt(1,superId);
+	    rs = ps.executeQuery();
 	    while (rs.next()) {
 		int     psetId     = rs.getInt(1);
 		String  psetName   = rs.getString(2);
 		boolean psetIsTrkd = rs.getBoolean(3); 
 		int     sequenceNb = rs.getInt(5);
-
+		
 		PSetParameter pset =
 		    (PSetParameter)ParameterFactory
 		    .create("PSet",psetName,"",psetIsTrkd,true);
 		
 		ArrayList<Parameter> psetParameters = new ArrayList<Parameter>();
 		loadParameters(psetId,psetParameters);
-		for (Parameter p : psetParameters) pset.addParameter(p);
+		loadParameterSets(psetId,psetParameters);
+		loadVecParameterSets(psetId,psetParameters);
+		
+		boolean allParamsFound=true;
+		for (Parameter p : psetParameters) if (p==null) allParamsFound=false;
 		
 		while (parameters.size()<sequenceNb)  parameters.add(null);
-		parameters.set(sequenceNb-1,pset);
+		
+		if (allParamsFound) {
+		    for (Parameter p : psetParameters) pset.addParameter(p);
+		    parameters.set(sequenceNb-1,pset);
+		}
+		else {
+		    parameters.set(sequenceNb-1,null);
+		    result = false;
+		}
 	    }
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
-	    return false;
+	    result = false;
 	}
 	finally {
 	    dbConnector.release(rs);
 	}
-	return true;
+	return result;
     }
     
     /** load vector<ParameterSet>s */
     public boolean loadVecParameterSets(int superId,ArrayList<Parameter> parameters)
     {
+	boolean result = true;
 	ResultSet rs = null;
 	try {
 	    psSelectVecParameterSets.setInt(1,superId);
@@ -1516,23 +1556,33 @@ public class CfgDatabase
 		
 		ArrayList<Parameter> vpsetParameters = new ArrayList<Parameter>();
 		loadParameterSets(vpsetId,vpsetParameters);
-		for (Parameter p : vpsetParameters) {
-		    PSetParameter pset = (PSetParameter)p;
-		    vpset.addParameterSet(pset);
-		}
-		
+
+		boolean allPSetsFound = true;
+		for (Parameter p : vpsetParameters) if (p==null) allPSetsFound=false;
+
 		while (parameters.size()<sequenceNb)  parameters.add(null);
-		parameters.set(sequenceNb-1,vpset);
+		
+		if (allPSetsFound) {
+		    for (Parameter p : vpsetParameters) {
+			PSetParameter pset = (PSetParameter)p;
+			vpset.addParameterSet(pset);
+		    }
+		    parameters.set(sequenceNb-1,vpset);
+		}
+		else {
+		    parameters.set(sequenceNb-1,null);
+		    result = false;
+		}
 	    }
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
-	    return false;
+	    result = false;
 	}
 	finally {
 	    dbConnector.release(rs);
 	}
-	return true;
+	return result;
     }
     
     /** load *instance* (overwritten) parameters */
