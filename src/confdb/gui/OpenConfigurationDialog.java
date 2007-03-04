@@ -55,13 +55,9 @@ public class OpenConfigurationDialog
     public OpenConfigurationDialog(JFrame frame,CfgDatabase database)
     {
 	super(frame,database);
-	
 	setTitle("Open Configuration");
-	
 	setContentPane(createContentPane());
-
-	addTreeSelectionListener(new OpenConfigTreeSelListener(dirTree));
-	addTreeModelListener(new OpenConfigTreeModelListener(dirTree,database));
+	addTreeSelectionListener(new OpenConfigTreeSelListener());
     }
 	
 
@@ -180,19 +176,11 @@ public class OpenConfigurationDialog
      */
     public class OpenConfigTreeSelListener implements TreeSelectionListener
     {
-	/** directory tree */
-	private JTree dirTree = null;
-
-	/** standard constructor */
-	public OpenConfigTreeSelListener(JTree dirTree)
-	{
-	    this.dirTree = dirTree;
-	}
-	
 	/** TreeSelectionListener: valueChanged() */
 	public void valueChanged(TreeSelectionEvent ev)
 	{
-	    Object o = dirTree.getLastSelectedPathComponent();
+	    JTree  dirTree = (JTree)ev.getSource();
+	    Object o       = dirTree.getLastSelectedPathComponent();
 	    if (o instanceof Directory) {
 		Directory d = (Directory)o;
 		if (configInfo!=null) {
@@ -209,54 +197,6 @@ public class OpenConfigurationDialog
 		configTable.getSelectionModel().setSelectionInterval(0,0);
 	    }
 	}
-	
-    }
-
-
-    /**
-     * OpenConfigTreeModelListener
-     * ---------------------------
-     * @author Philipp Schieferdecker
-     */
-    public class OpenConfigTreeModelListener implements TreeModelListener
-    {
-	/** directory tree */
-	private JTree dirTree = null;
-
-	/** database interface */
-	private CfgDatabase database = null;
-
-	/** standard constructor */
-	public OpenConfigTreeModelListener(JTree dirTree,CfgDatabase database)
-	{
-	    this.dirTree = dirTree;
-	    this.database = database;
-	}
-	
-	/** TreeModelListener: treeNodesChanged() */
-	public void treeNodesChanged(TreeModelEvent ev)
-	{
-	    TreePath  treePath  = ev.getTreePath();
-	    int       index     = ev.getChildIndices()[0];
-	    Directory parentDir = (Directory)treePath.getLastPathComponent();
-	    Directory childDir  =  parentDir.childDir(index);
-	    
-	    if (!database.insertDirectory(childDir)) {
-		TreePath childTreePath = treePath.pathByAddingChild(childDir);
-		childDir.setName("<ENTER DIR NAME>");
-		dirTree.startEditingAtPath(childTreePath);
-		return;
-	    }
-	}
-	
-	/** TreeModelListener: treeNodesInserted() */
-	public void treeNodesInserted(TreeModelEvent ev) {}
-	
-	/** TreeModelListener: treeNodesRemoved() */
-	public void treeNodesRemoved(TreeModelEvent ev) {}
-	
-	/** TreeModelListener: treeStructureChanged() */
-	public void treeStructureChanged(TreeModelEvent ev) {}
 	
     }
 

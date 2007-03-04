@@ -46,9 +46,6 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     /** list of parameters to be displayed */
     private ArrayList<Parameter> parameterList = null;
     
-    /** reference to the configuration tree, to notify of changes */
-    private JTree configurationTree = null;
-    
     /** for orphan parameters, a default template can be set */
     private Template defaultTemplate = null;
     
@@ -146,22 +143,20 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 	    if (p.parent() == null) {
 		String defaultAsString = getDefaultFromTemplate(p);
 		p.setValue(value.toString(),defaultAsString);
-		fireNodesChanged();
-		return;
+		
 	    }
-	    
-	    try {
-		String   valueAsString = p.valueAsString();
-		Instance instance = (Instance)p.parent();
-		Template template = instance.template();
-		instance.updateParameter(p.name(),value.toString());
-		fireNodesChanged();
+	    else {
+		try {
+		    String   valueAsString = p.valueAsString();
+		    Instance instance = (Instance)p.parent();
+		    Template template = instance.template();
+		    instance.updateParameter(p.name(),value.toString());
+		}
+		catch (Exception e) {
+		    System.out.println("setValueAt failed: "+e.getMessage());
+		}
 	    }
-	    catch (Exception e) {
-		System.out.println("setValueAt failed: "+e.getMessage());
-	    }
-	    
-	    if (configurationTree!=null) configurationTree.updateUI();
+	    fireNodesChanged();
 	}
     }
 
@@ -190,12 +185,6 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 	return null;
     }
 
-    /** set the configuration-tree tree model */
-    public void setConfigurationTree(JTree configurationTree)
-    {
-	this.configurationTree = configurationTree;
-    }
-    
     /** display a new set of parameters */
     public void setParameters(String moduleName,
 			      ArrayList<Parameter> parameterList)

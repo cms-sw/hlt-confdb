@@ -19,7 +19,8 @@ import confdb.data.*;
  * @author Philipp Schieferdecker
  *
  */
-public class ConfigurationTreeMouseListener extends MouseAdapter implements TreeModelListener
+public class ConfigurationTreeMouseListener extends    MouseAdapter 
+                                            implements TreeModelListener
 {
     //
     // member data
@@ -127,10 +128,10 @@ public class ConfigurationTreeMouseListener extends MouseAdapter implements Tree
     private void maybeShowPopup(MouseEvent e)
     {
 	if (!e.isPopupTrigger()) return;
-
+	
 	Configuration config = (Configuration)treeModel.getRoot();
 	if (config.name().length()==0) return;
-
+	
 	tree = (JTree)e.getComponent();
 	TreePath treePath = tree.getPathForLocation(e.getX(), e.getY());
 	if(treePath==null) return;
@@ -557,14 +558,16 @@ public class ConfigurationTreeMouseListener extends MouseAdapter implements Tree
     /** TreeModelListener: treeNodesChanged() */
     public void treeNodesChanged(TreeModelEvent e)
     {
-	TreePath treePath = e.getTreePath();
-	int      depth    = treePath.getPathCount();
+	TreePath treePath = e.getTreePath(); if (treePath==null) return;
+	int      depth    = treePath.getPathCount(); if (depth<2) return;
 	int      index    = e.getChildIndices()[0];
 	Object   child    = e.getChildren()[0];
 	Object   parent   = treePath.getLastPathComponent();
 	
 	Configuration      config = (Configuration)treeModel.getRoot();
 	ReferenceContainer container = null;
+	
+	if (config==null) return;
 	
 	if (parent.equals(treeModel.pathsNode())) {
 	    Path newPath = config.path(index);
@@ -631,24 +634,22 @@ class EDSourceMenuListener implements ActionListener
 	Object    node     = treePath.getLastPathComponent();
 	
 	Configuration config = (Configuration)treeModel.getRoot();
-	
+
 	if (cmd.equals("Remove EDSource")) {
 	    EDSourceInstance edsource       = (EDSourceInstance)node;
 	    TreePath         parentTreePath = treePath.getParentPath();
 	    int              index          = config.indexOfEDSource(edsource);
 	    config.removeEDSource(edsource);
-	    treeModel.nodeRemoved(parentTreePath,index,edsource);
+	    treeModel.nodeRemoved(treeModel.edsourcesNode(),index,edsource);
 	    tree.setSelectionPath(parentTreePath);
 	}
 	else {
 	    String templateName = cmd;
 	    EDSourceInstance edsource = config.insertEDSource(templateName);
+	    treeModel.nodeInserted(treeModel.edsourcesNode(),0);
 	    tree.expandPath(treePath);
-	    TreePath newTreePath = treePath.pathByAddingChild(edsource);
-	    treeModel.nodeInserted(treePath,0);
 	}
 	treeModel.updateLevel1Nodes();
-	tree.updateUI();
     }
     
 }
@@ -688,7 +689,7 @@ class ESSourceMenuListener implements ActionListener
 	    ESSourceInstance essource = (ESSourceInstance)node;
 	    int              index    = config.indexOfESSource(essource);
 	    config.removeESSource(essource);
-	    treeModel.nodeRemoved(treePath.getParentPath(),index,essource);
+	    treeModel.nodeRemoved(treeModel.essourcesNode(),index,essource);
 	    tree.setSelectionPath(treePath.getParentPath());
  	}
 	// add an event setup source TODO
@@ -707,14 +708,13 @@ class ESSourceMenuListener implements ActionListener
 		String templateName = cmd;
 		config.insertESSource(insertIndex,templateName,templateName);
 	    }
+	    treeModel.nodeInserted(treeModel.essourcesNode(),insertIndex);
 	    if (insertIndex==0) tree.expandPath(treePath);
 	    TreePath parentTreePath = (depth==2) ? treePath : treePath.getParentPath();
 	    TreePath newTreePath=parentTreePath.pathByAddingChild(config.essource(insertIndex));
-	    treeModel.nodeInserted(parentTreePath,insertIndex);
 	    tree.setSelectionPath(newTreePath);
 	}
 	treeModel.updateLevel1Nodes();
-	tree.updateUI();
     }
 }
 
@@ -753,7 +753,7 @@ class ServiceMenuListener implements ActionListener
 	    ServiceInstance service = (ServiceInstance)node;	
 	    int             index   = config.indexOfService(service);
 	    config.removeService(service);
-	    treeModel.nodeRemoved(treePath.getParentPath(),index,service);
+	    treeModel.nodeRemoved(treeModel.servicesNode(),index,service);
 	    tree.setSelectionPath(treePath.getParentPath());
 	}
 	else {
@@ -764,14 +764,13 @@ class ServiceMenuListener implements ActionListener
 	    }
 	    String templateName = cmd;
 	    config.insertService(insertIndex,templateName);
+	    treeModel.nodeInserted(treeModel.servicesNode(),insertIndex);
 	    if (insertIndex==0) tree.expandPath(treePath);
 	    TreePath parentTreePath = (depth==2) ? treePath : treePath.getParentPath();
 	    TreePath newTreePath = parentTreePath.pathByAddingChild(config.service(insertIndex));
-	    treeModel.nodeInserted(parentTreePath,insertIndex);
 	    tree.setSelectionPath(newTreePath);
 	}
 	treeModel.updateLevel1Nodes();
-	tree.updateUI();
     }
     
 }
@@ -820,9 +819,9 @@ class PathMenuListener implements ActionListener
 		insertIndex = config.indexOfPath(path)+1;
 	    }
 	    config.insertPath(insertIndex,"<ENTER PATH NAME>");
+	    treeModel.nodeInserted(treeModel.pathsNode(),insertIndex);
 	    if (insertIndex==0) tree.expandPath(treePath);
 	    treeModel.updateLevel1Nodes();
-	    tree.updateUI();
 	    TreePath parentTreePath = treePath;
 	    if (depth>2) parentTreePath = parentTreePath.getParentPath();
 	    if (depth>3) parentTreePath = parentTreePath.getParentPath();
@@ -830,7 +829,6 @@ class PathMenuListener implements ActionListener
 		parentTreePath.pathByAddingChild(config.path(insertIndex));
 	    tree.expandPath(newTreePath);
 	    editPathName(newTreePath);
-	    //treeModel.nodeInserted(parentTreePath,insertIndex);
 	    return;
 	}
 	else if (action.equals("PATHREF")) {
@@ -842,9 +840,8 @@ class PathMenuListener implements ActionListener
 		Path path = config.path(i);
 		if (path.name().equals(pathName)) {
 		    config.insertPathReference(parentPath,insertIndex,path);
-		    treeModel.nodeInserted(parentTreePath,insertIndex);
+		    treeModel.nodeInserted(parentPath,insertIndex);
 		    treeModel.updateLevel1Nodes();
-		    tree.updateUI();
 		    return;
 		}
 	    }
@@ -858,9 +855,8 @@ class PathMenuListener implements ActionListener
 		Sequence sequence = config.sequence(i);
 		if (sequence.name().equals(sequenceName)) {
 		    config.insertSequenceReference(parentPath,insertIndex,sequence);
-		    treeModel.nodeInserted(parentTreePath,insertIndex);
+		    treeModel.nodeInserted(parentPath,insertIndex);
 		    treeModel.updateLevel1Nodes();
-		    tree.updateUI();
 		    return;
 		}
 	    }
@@ -874,14 +870,14 @@ class PathMenuListener implements ActionListener
 		Path path = (Path)node;
 		int  index = config.indexOfPath(path);
 		config.removePath(path);
-		treeModel.nodeRemoved(treePath.getParentPath(),index,path);
+		treeModel.nodeRemoved(treeModel.pathsNode(),index,path);
 	    }
 	    else {
 		PathReference reference  = (PathReference)node;
 		Path          parentPath = (Path)parent;
 		int           index = parentPath.indexOfEntry(reference);
 		parentPath.removeEntry(reference);
-		treeModel.nodeRemoved(treePath.getParentPath(),index,reference);
+		treeModel.nodeRemoved(parentPath,index,reference);
 	    }
 	    tree.setSelectionPath(treePath.getParentPath());
 	}
@@ -903,7 +899,7 @@ class PathMenuListener implements ActionListener
 	    Path            parentPath = (Path)reference.container();
 	    int             index      = parentPath.indexOfEntry(reference);
 	    config.removeModuleReference(reference);
-	    treeModel.nodeRemoved(treePath.getParentPath(),index,reference);
+	    treeModel.nodeRemoved(parentPath,index,reference);
 	    tree.setSelectionPath(treePath.getParentPath());
 	}
 	else if (cmd.equals("Remove Sequence")) {
@@ -912,7 +908,7 @@ class PathMenuListener implements ActionListener
 	    int               index      = parentPath.indexOfEntry(reference);
 	    parentPath.removeEntry(reference);
 	    config.setHasChanged(true);
-	    treeModel.nodeRemoved(treePath.getParentPath(),index,reference);
+	    treeModel.nodeRemoved(parentPath,index,reference);
 	    tree.setSelectionPath(treePath.getParentPath());
 	}
  	// add a module to the currently selected path
@@ -943,12 +939,11 @@ class PathMenuListener implements ActionListener
 	    else {
 		config.insertModuleReference(parentPath,insertIndex,templateName,instanceName);
 	    }
-	    treeModel.nodeInserted(parentTreePath,insertIndex);
+	    treeModel.nodeInserted(parentPath,insertIndex);
 	}
 	treeModel.updateLevel1Nodes();
-	tree.updateUI();
     }
-
+    
     /** edit a path name in place */
     private void editPathName(TreePath treePath)
     {
@@ -1001,10 +996,14 @@ class ModuleMenuListener implements ActionListener
 	    dialog.setVisible(true);
 	    if (dialog.success()) {
 		instance.setName(dialog.instanceName());
+		treeModel.nodeChanged(instance);
+		for (int i=0;i<instance.referenceCount();i++) {
+		    Reference r= instance.reference(i);
+		    treeModel.nodeChanged(r);
+		}
 		config.setHasChanged(true);
 	    }
  	}
-	tree.updateUI();
     }
 }
 
@@ -1050,13 +1049,12 @@ class SequenceMenuListener implements ActionListener
 		insertIndex = config.indexOfSequence(seq)+1;
 	    }
 	    config.insertSequence(insertIndex,"<ENTER SEQUENCE NAME>");
+	    treeModel.nodeInserted(treeModel.sequencesNode(),insertIndex);
 	    if (insertIndex==0) tree.expandPath(treePath);
 	    treeModel.updateLevel1Nodes();
-	    tree.updateUI();
 	    TreePath parentTreePath = treePath;
 	    if (depth>2) parentTreePath = parentTreePath.getParentPath();
 	    TreePath newTreePath = parentTreePath.pathByAddingChild(config.sequence(insertIndex));
-	    //treeModel.nodeInserted(parentTreePath,insertIndex);
 	    editSequenceName(newTreePath);
 	    return;
 	}
@@ -1068,7 +1066,7 @@ class SequenceMenuListener implements ActionListener
 	    Sequence sequence = (Sequence)node;
 	    int      index    = config.indexOfSequence(sequence);
 	    config.removeSequence(sequence);
-	    treeModel.nodeRemoved(treePath.getParentPath(),index,sequence);
+	    treeModel.nodeRemoved(parent,index,sequence);
 	    tree.setSelectionPath(treePath.getParentPath());
  	}
 	else if (cmd.equals("Remove Module")) {
@@ -1076,7 +1074,7 @@ class SequenceMenuListener implements ActionListener
 	    Sequence        sequence  = (Sequence)reference.container();
 	    int             index     = sequence.indexOfEntry(reference);
 	    config.removeModuleReference(reference);
-	    treeModel.nodeRemoved(treePath.getParentPath(),index,reference);
+	    treeModel.nodeRemoved(sequence,index,reference);
 	    tree.setSelectionPath(treePath.getParentPath());
 	}
 	else {
@@ -1105,10 +1103,9 @@ class SequenceMenuListener implements ActionListener
 	    else {
 		config.insertModuleReference(sequence,insertIndex,templateName,instanceName);
 	    }
-	    treeModel.nodeInserted(parentTreePath,insertIndex);
+	    treeModel.nodeInserted(sequence,insertIndex);
 	}
 	treeModel.updateLevel1Nodes();
-	tree.updateUI();
     }
     
     /** edit a sequence name in place */

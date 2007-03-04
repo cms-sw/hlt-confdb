@@ -52,8 +52,6 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	level1Nodes.add(pathsNode);
 	level1Nodes.add(modulesNode);
 	level1Nodes.add(sequencesNode);
-
-	
     }
 
 
@@ -83,6 +81,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     public void setConfiguration(Configuration config)
     {
 	this.config = config;
+	nodeStructureChanged(config);
 	updateLevel1Nodes();
     }
     
@@ -102,6 +101,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    edsourcesNode.append("]</font>");
 	}
 	edsourcesNode.append("</html>");
+	nodeChanged(edsourcesNode);
 	
 	// ESSource node
 	int essourceCount = config.essourceCount();
@@ -116,6 +116,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    essourcesNode.append("]</font>");
 	}
 	essourcesNode.append("</html>");
+	nodeChanged(essourcesNode);
 	
 	// Service node
 	int serviceCount = config.serviceCount();
@@ -130,6 +131,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    servicesNode.append("]</font>");
 	}
 	servicesNode.append("</html>");
+	nodeChanged(servicesNode);
 	
 	// Module node
 	int moduleCount = config.moduleCount();
@@ -144,6 +146,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    modulesNode.append("]</font>");
 	}
 	modulesNode.append("</html>");
+	nodeChanged(modulesNode);
 	
 	// Paths node
 	int pathCount = config.pathCount();
@@ -151,6 +154,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	pathsNode.append("<html>Paths (");
 	pathsNode.append(pathCount);
 	pathsNode.append(")</html>");
+	nodeChanged(pathsNode);
 	
 	// Sequences node
 	int sequenceCount = config.sequenceCount();
@@ -158,6 +162,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	sequencesNode.append("<html>Sequences (");
 	sequencesNode.append(sequenceCount);
 	sequencesNode.append(")</html>");
+	nodeChanged(sequencesNode);
     }
     
     /** get root directory */
@@ -166,15 +171,20 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     /** indicate if a node is a leaf node */
     public boolean isLeaf(Object node)
     {
+	boolean result;
 	if (node instanceof PSetParameter) {
 	    PSetParameter pset = (PSetParameter)node;
-	    return (pset.parameterCount()>0) ? false : true;
+	    result = (pset.parameterCount()>0) ? false : true;
 	}
 	else if (node instanceof VPSetParameter) {
 	    VPSetParameter vpset = (VPSetParameter)node;
-	    return (vpset.parameterSetCount()>0) ? false : true;
+	    result = (vpset.parameterSetCount()>0) ? false : true;
 	}
-	return (node instanceof Parameter) ? true : false;
+	else {
+	    result = (node instanceof Parameter) ? true : false;
+	}
+
+	return result;
     }
     
     /** number of child nodes */
@@ -221,6 +231,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    VPSetParameter vpset = (VPSetParameter)node;
 	    return vpset.parameterSetCount();
 	}
+	
 	return 0;
     }
     
@@ -341,7 +352,43 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    PSetParameter pset = (PSetParameter)child;
 	    return vpset.indexOfParameterSet(pset);
 	}
+	
 	return -1;
+    }
+    
+    /** get parent of a node */
+    public Object getParent(Object node)
+    {
+	if (node instanceof Parameter) {
+	    Parameter p = (Parameter)node;
+	    return p.parent();
+	}
+	else if (node instanceof Reference) {
+	    Reference r = (Reference)node;
+	    return r.container();
+	}
+	else if (node instanceof EDSourceInstance) {
+	    return edsourcesNode;
+	}
+	else if (node instanceof ESSourceInstance) {
+	    return essourcesNode;
+	}
+	else if (node instanceof ServiceInstance) {
+	    return servicesNode;
+	}
+	else if (node instanceof ModuleInstance) {
+	    return modulesNode;
+	}
+	else if (node instanceof Path) {
+	    return pathsNode;
+	}
+	else if (node instanceof Sequence) {
+	    return sequencesNode;
+	}
+	else if (node instanceof StringBuffer) {
+	    return getRoot();
+	}
+	return null;
     }
     
 

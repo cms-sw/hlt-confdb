@@ -24,6 +24,9 @@ public class TreeTableTableModel extends AbstractTableModel
     /** reference to that tree's TreeModel */
     private TreeTableTreeModel treeModel = null;
 
+    /** reference to the last node which had its value chaged */
+    private Object changedNode = null;
+    
     
     //
     // construction
@@ -77,7 +80,10 @@ public class TreeTableTableModel extends AbstractTableModel
     //
     // member functions
     //
-    
+
+    /** get last changed node */
+    public Object changedNode() { return changedNode; }
+
     /** convert the table row into the respective tree node */
     protected Object nodeForRow(int row)
     {
@@ -87,7 +93,7 @@ public class TreeTableTableModel extends AbstractTableModel
     
     /** TableModel interface */
     public int getColumnCount() { return treeModel.getColumnCount(); }
-
+    
     public String getColumnName(int column)
     {
 	return treeModel.getColumnName(column);
@@ -113,6 +119,7 @@ public class TreeTableTableModel extends AbstractTableModel
     public void setValueAt(Object value,int row,int column)
     {
 	treeModel.setValueAt(value, nodeForRow(row), column);
+	changedNode = nodeForRow(row);
     }
     
     /** notify table model of changes *after* pending events have been processed */

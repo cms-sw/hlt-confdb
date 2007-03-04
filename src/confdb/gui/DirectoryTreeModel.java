@@ -27,6 +27,7 @@ public class DirectoryTreeModel extends AbstractTreeModel
     /** root of the tree = root directory */
     private Directory rootDir = null;
 
+    
     //
     // construction
     //
@@ -85,5 +86,19 @@ public class DirectoryTreeModel extends AbstractTreeModel
 	}
 	return -1;
     }
-
+    
+    /** get parent of a node */
+    public Object getParent(Object node)
+    {
+	if (node instanceof Directory) {
+	    Directory d = (Directory)node;
+	    return d.parentDir();
+	}
+	if (node instanceof ConfigInfo) {
+	    ConfigInfo ci = (ConfigInfo)node;
+	    return ci.parentDir();
+	}
+	return null;
+    }
+    
 }

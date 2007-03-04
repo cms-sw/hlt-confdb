@@ -19,8 +19,16 @@ public abstract class AbstractTreeModel implements TreeModel
     //
     
     /** list of event listeners */
-    private EventListenerList listenerList = new EventListenerList();
+    protected EventListenerList listenerList = new EventListenerList();
 
+    
+    //
+    // abstract member functions
+    // 
+    
+    /** get the parent of a node */
+    abstract public Object getParent(Object node);
+    
     
     //
     // member functions
@@ -38,50 +46,121 @@ public abstract class AbstractTreeModel implements TreeModel
 	listenerList.remove(TreeModelListener.class,l);
     }
     
-    /** TreeModel: valueForPathChanged() */
+    /** fire node-changed event if the value of a node has changed */
     public void valueForPathChanged(TreePath treePath,Object newValue)
     {
-	nodeChanged(treePath);
-    }
-
-
-    /** to be called if a node has changed */
-    public void nodeChanged(TreePath treePath)
-    {
-	int      depth    = treePath.getPathCount();
-	Object   child    = treePath.getPathComponent(depth-1);
-	Object   parent   = treePath.getPathComponent(depth-2);
-	Object[] source   = { this };
-	Object[] path     = treePath.getParentPath().getPath();
-	int[]    indices  = { getIndexOfChild(parent,child) };
-	Object[] children = { child };
-	fireTreeNodesChanged(source,path,indices,children);
+	if (treePath!=null) {
+	    Object node = treePath.getLastPathComponent();
+	    nodeChanged(node);
+	}
     }
     
-    /** to be called if a node has changed */
-    public void nodeInserted(TreePath parentTreePath,int index)
+        /** invoke if represantation of node has changed in the tree */
+    public void nodeChanged(Object node)
     {
-	Object   parent   = parentTreePath.getLastPathComponent();	
-	Object   child    = getChild(parent,index);
-	Object[] source   = { this };
-	Object[] path     = parentTreePath.getPath();
-	int[]    indices  = { index };
-	Object[] children = { child };
-	fireTreeNodesInserted(source,path,indices,children);
+	if (listenerList!=null && node!=null) {
+	    Object parent = getParent(node);
+	    if (parent!=null) {
+		int index = getIndexOfChild(parent,node);
+		if (index!=-1) {
+		    int[] indices = new int[1];
+		    indices[0] = index;
+		    childNodesChanged(parent,indices);
+		}
+	    }
+	    else if (node==getRoot()) {
+		childNodesChanged(node,null);
+	    }
+	}
     }
     
-    /** to be called if a node has changed */
-    public void nodeRemoved(TreePath parentTreePath,int index,Object node)
+    /** invoke if representation of children of node was changed in the tree */
+    public void childNodesChanged(Object parent,int[] childIndices)
     {
-	Object[] source   = { this };
-	Object[] path     = parentTreePath.getPath();
-	int[]    indices  = { index };
-	Object[] children = { node };
-	fireTreeNodesRemoved(source,path,indices,children);
+	if (parent != null) {
+	    if (childIndices != null) {
+		int childCount = childIndices.length;
+		if (childCount>0) {
+		    Object[] children = new Object[childCount];
+		    for (int i=0;i<childCount;i++)
+			children[i] = getChild(parent,i);
+		    fireTreeNodesChanged(this,getPathToRoot(parent),childIndices,children);
+		}
+	    }
+	    else if (parent == getRoot()) {
+		fireTreeNodesChanged(this,getPathToRoot(parent), null, null);
+	    }
+	}
     }
 
+    /** invoke if a child was inserted at i-th position in parent */
+    public void nodeInserted(Object parent,int i)
+    {
+	int[] childIndices = { i };
+	nodesInserted(parent,childIndices);
+    }
+    
+    /** invoke if nodes were inserted as children of parent */
+    public void nodesInserted(Object parent,int[] childIndices)
+    {
+	if (listenerList!=null && parent != null &&
+	    childIndices != null && childIndices.length > 0) {
+	    int      childCount = childIndices.length;
+	    Object[] children   = new Object[childCount];
+	    for (int i=0;i<childCount;i++)
+		children[i] = getChild(parent,i);
+	    fireTreeNodesInserted(this,getPathToRoot(parent),childIndices,children);
+	}
+    }
+    
+    /** invoke if child was removed at i-th position of parent */
+    public void nodeRemoved(Object parent,int i,Object child)
+    {
+	int[]    childIndices = { i };
+	Object[] children     = { child };
+	nodesRemoved(parent,childIndices,children);
+    }
+    
+    /** invoke if nodes were removed from parent */
+    public void nodesRemoved(Object parent,int[] childIndices,Object[] children)
+    {
+	if (parent!=null && childIndices!=null) {
+	    fireTreeNodesRemoved(this,getPathToRoot(parent),childIndices,children);
+	}
+    }
+    
+    /** invoke if the tree structure below node */
+    public void nodeStructureChanged(Object node)
+    {
+	if (node!=null)
+	    fireTreeStructureChanged(this,getPathToRoot(node),null,null);
+    }
+
+    /** get the path to the root */
+    protected Object[] getPathToRoot(Object node)
+    {
+	return getPathToRoot(node,0);
+    }
+
+    /** get path to root, called recursively by getPathToRoot(Object node) */
+    protected Object[] getPathToRoot(Object node,int depth)
+    {
+	Object[] result;
+	if(node == null) {
+            if(depth == 0) return null;
+            else result = new Object[depth];
+        }
+        else {
+            depth++;
+            if(node == getRoot()) result = new Object[depth];
+            else result = getPathToRoot(getParent(node),depth);
+            result[result.length - depth] = node;
+        }
+        return result;
+    }
+    
     /** notify all listeners for TreeModelEvent that a node has changed */
-    protected void fireTreeNodesChanged(Object[] source,
+    protected void fireTreeNodesChanged(Object   source,
 					Object[] path,
 					int[]    childIndices,
 					Object[] children)
@@ -97,7 +176,7 @@ public abstract class AbstractTreeModel implements TreeModel
     }
     
     /** notify all listeners for TreeModelEvent that a node was inserted */
-    protected void fireTreeNodesInserted(Object[] source,
+    protected void fireTreeNodesInserted(Object   source,
 					 Object[] path,
 					 int[]    childIndices,
 					 Object[] children)
@@ -113,7 +192,7 @@ public abstract class AbstractTreeModel implements TreeModel
     }
     
     /** notify all listeners for TreeModelEvent that a node was removed */
-    protected void fireTreeNodesRemoved(Object[] source,
+    protected void fireTreeNodesRemoved(Object   source,
 					Object[] path,
 					int[]    childIndices,
 					Object[] children)
@@ -129,7 +208,7 @@ public abstract class AbstractTreeModel implements TreeModel
     }
     
     /** notify all listeners for TreeModelEvent that the tree structure changed */
-    protected void fireTreeStructureChanged(Object[] source,
+    protected void fireTreeStructureChanged(Object   source,
 					    Object[] path,
 					    int[]    childIndices,
 					    Object[] children)

@@ -23,8 +23,7 @@ import confdb.db.CfgDatabase;
  * @author Philipp Schieferdecker
  *
  */
-public class SaveConfigurationDialog
-    extends ConfigurationDialog implements ActionListener
+public class SaveConfigurationDialog extends ConfigurationDialog implements ActionListener
 {
     //
     // member data
@@ -53,7 +52,8 @@ public class SaveConfigurationDialog
     //
     
     /** standard constructor */
-    public SaveConfigurationDialog(JFrame frame,CfgDatabase database,
+    public SaveConfigurationDialog(JFrame frame,
+				   CfgDatabase database,
 				   Configuration config)
     {
 	super(frame,database);
@@ -68,7 +68,8 @@ public class SaveConfigurationDialog
 	}
 	
 	addMouseListener(new SaveConfigMouseListener());
-	addTreeSelectionListener(new SaveConfigTreeSelListener(dirTree));
+	addTreeSelectionListener(new SaveConfigTreeSelListener());
+	addTreeModelListener(new SaveConfigTreeModelListener(database));
     }
     
     
@@ -196,10 +197,14 @@ public class SaveConfigurationDialog
 	/** directory tree */
 	private JTree dirTree = null;
 
+	/** directory tree model */
+	private DirectoryTreeModel treeModel = null;
+	
 	/** standard constructor */
 	public SaveConfigActionListener(JTree dirTree)
 	{
 	    this.dirTree = dirTree;
+	    this.treeModel = (DirectoryTreeModel)dirTree.getModel();
 	}
 	
 	/** ActionListener: actionPerformed() */
@@ -211,13 +216,12 @@ public class SaveConfigurationDialog
 		Directory parentDir = (Directory)treePath.getLastPathComponent();
 		Directory newDir    = new Directory(-1,"<ENTER DIR NAME>","",
 						    parentDir);
-		parentDir.addChildDir(newDir);
 		
-		dirTree.updateUI();
+		parentDir.addChildDir(newDir);
+		treeModel.nodeInserted(parentDir,parentDir.childDirCount()-1);
+		
 		dirTree.expandPath(treePath);
-		int      parentRow   = dirTree.getRowForPath(treePath);
-		int      newRow      = parentRow + parentDir.childDirCount();
-		TreePath newTreePath = dirTree.getPathForRow(newRow);
+		TreePath newTreePath = treePath.pathByAddingChild(newDir);
 		
 		dirTree.expandPath(newTreePath);
 		dirTree.scrollPathToVisible(newTreePath);
@@ -226,7 +230,7 @@ public class SaveConfigurationDialog
 	    }
 	}
     }
-  
+    
 
     /**
      * SaveConfigTreeSelListener
@@ -235,19 +239,11 @@ public class SaveConfigurationDialog
      */
     public class SaveConfigTreeSelListener implements TreeSelectionListener
     {
-	/** directory tree */
-	private JTree dirTree = null;
-
-	/** standard constructor */
-	public SaveConfigTreeSelListener(JTree dirTree)
-	{
-	    this.dirTree = dirTree;
-	}
-	
 	/** TreeSelectionListener: valueChanged() */
 	public void valueChanged(TreeSelectionEvent ev)
 	{
-	    Object o = dirTree.getLastSelectedPathComponent();
+	    JTree  dirTree = (JTree)ev.getSource();
+	    Object o       = dirTree.getLastSelectedPathComponent();
 	    if (o instanceof Directory) {
 		selectedDir = (Directory)o;
 		if (textFieldConfigName.getText().length()>0)
@@ -262,6 +258,46 @@ public class SaveConfigurationDialog
     }
 
 
+    /**
+     * SaveConfigTreeModelListener
+     * ---------------------------
+     * @author Philipp Schieferdecker
+     */
+    public class SaveConfigTreeModelListener implements TreeModelListener
+    {
+	/** reference to the db interface */
+	private CfgDatabase database = null;
 
+	/** standard constructor */
+	public SaveConfigTreeModelListener(CfgDatabase database)
+	{
+	    this.database = database;
+	}
+	
+	/** TreeModelListener: treeNodesChanged() */
+	public void treeNodesChanged(TreeModelEvent e)
+	{
+	    TreePath  treePath  = e.getTreePath(); if (treePath==null) return;
+	    int       index     = e.getChildIndices()[0];
+	    Directory parentDir = (Directory)treePath.getLastPathComponent();
+	    Directory childDir  = parentDir.childDir(index);
+	    
+	    if (!database.insertDirectory(childDir)) {
+		parentDir.removeChildDir(childDir);
+		DirectoryTreeModel treeModel = (DirectoryTreeModel)e.getSource();
+		treeModel.nodeRemoved(parentDir,parentDir.childDirCount(),childDir);
+	    }
+	}
+	
+	/** TreeModelListener: treeNodesInserted() */
+	public void treeNodesInserted(TreeModelEvent e) {}
+	
+	/** TreeModelListener: treeNodesRemoved() */
+	public void treeNodesRemoved(TreeModelEvent e) {}
+	
+	/** TreeModelListener: treeStructureChanged() */
+	public void treeStructureChanged(TreeModelEvent e) {}
+	
+    }
 }
 

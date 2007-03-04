@@ -16,6 +16,8 @@ import confdb.data.Configuration;
 import confdb.data.ConfigInfo;
 import confdb.data.Template;
 
+import confdb.gui.treetable.TreeTableTableModel;
+
 
 /**
  * ConfDbGUI
@@ -96,11 +98,18 @@ public class ConfDbGUI implements TableModelListener
     /** TableModelListener: tableChanged() */
     public void tableChanged(TableModelEvent e)
     {
-	treeModel.updateLevel1Nodes();
-	tree.updateUI();
+	Object source = e.getSource();
+	if (source instanceof TreeTableTableModel) {
+	    TreeTableTableModel tableModel = (TreeTableTableModel)source;
+	    Object node = tableModel.changedNode();
+	    if (node!=null) {
+		treeModel.nodeChanged(node);
+		treeModel.updateLevel1Nodes();
+	    }
+	}
     }
     
-    // connect to the database
+    /** connect to the database */
     public void connectToDatabase()
     {
 	// query the database info from the user in a dialog
@@ -156,10 +165,10 @@ public class ConfDbGUI implements TableModelListener
 	dialog.setVisible(true);
 	
 	if (dialog.validChoice()) {
-	    progressBar.setIndeterminate(true);
-	    progressBar.setString("Loading Templates for Release " +
-	    			  dialog.releaseTag() + " ... ");
-	    progressBar.setVisible(true);
+	    //progressBar.setIndeterminate(true);
+	    //progressBar.setString("Loading Templates for Release " +
+	    //			  dialog.releaseTag() + " ... ");
+	    //progressBar.setVisible(true);
 
 	    String cfgName    = dialog.name();
 	    String releaseTag = dialog.releaseTag();
@@ -175,11 +184,10 @@ public class ConfDbGUI implements TableModelListener
 			      serviceTemplateList,
 			      moduleTemplateList);
 	    treeModel.setConfiguration(config);
-	    tree.updateUI();
 	    configurationPanel.update(config);
 	    
-	    progressBar.setIndeterminate(false);
-	    progressBar.setVisible(false);
+	    //progressBar.setIndeterminate(false);
+	    //progressBar.setVisible(false);
 	}
     }
     
@@ -205,9 +213,7 @@ public class ConfDbGUI implements TableModelListener
 						essourceTemplateList,
 						serviceTemplateList,
 						moduleTemplateList);
-	    //tree.setConfiguration(config);
 	    treeModel.setConfiguration(config);
-	    tree.updateUI();
 	    configurationPanel.update(config);
 
 	    progressBar.setIndeterminate(false);
@@ -238,7 +244,6 @@ public class ConfDbGUI implements TableModelListener
 	}
 	config.reset();
 	treeModel.setConfiguration(config);
-	tree.updateUI();
 	configurationPanel.update(config);
 	instancePanel.clear();
 	return true;
@@ -250,7 +255,6 @@ public class ConfDbGUI implements TableModelListener
 	if (!config.hasChanged()) return true;
 	if (!checkConfiguration()) return false;
 	if (config.version()==0) return saveAsConfiguration();
-	
 	
 	progressBar.setIndeterminate(true);
 	progressBar.setString("Storing Configuration ...");
@@ -264,7 +268,7 @@ public class ConfDbGUI implements TableModelListener
 	
 	progressBar.setIndeterminate(false);
 	progressBar.setVisible(false);
-
+	
 	return false;
     }
     
@@ -407,8 +411,6 @@ public class ConfDbGUI implements TableModelListener
 	tree.setCellRenderer(renderer);
 	tree.setCellEditor(new ConfigurationTreeEditor(tree,renderer));
 	
-	instancePanel.setConfigurationTree(tree);
-
 	JPanel treeView = new JPanel(new GridBagLayout());
 	treeView.setPreferredSize(dim);
 	

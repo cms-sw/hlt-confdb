@@ -21,7 +21,7 @@ import confdb.gui.treetable.*;
  * @author Philipp Schieferdecker
  *
  * Display the information about the selected instance in the tree.
- * This is the only place where the user can edit the information about
+ * This is the only place where the user can edit the parameters of
  * this instance.
  */
 public class InstancePanel extends JPanel implements TreeSelectionListener,
@@ -59,7 +59,7 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     /** the current instance, to redisplay upon change */
     private Instance currentInstance = null;
     
-
+    
     //
     // construction
     //
@@ -184,22 +184,13 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	currentInstance = null;
     }
     
-    /** pass the tree model to the table model, to initiate updates */
-    public void setConfigurationTree(JTree configurationTree)
-    {
-	treeModel.setConfigurationTree(configurationTree);
-    }
-    
     /** TreeSelectionListener: valueChanged() */
     public void valueChanged(TreeSelectionEvent e)
     {
-	TreePath treePath = e.getNewLeadSelectionPath();
-	if (treePath==null) return;
-	Object   node     = treePath.getLastPathComponent();
+	TreePath treePath=e.getNewLeadSelectionPath(); if(treePath==null)return;
+	Object   node=treePath.getLastPathComponent(); if(node==null){clear();return;}
 	
-	if (node==null) { clear(); return; }
-	
-	if (node instanceof Parameter) {
+	while (node instanceof Parameter) {
 	    Parameter p = (Parameter)node;
 	    node = p.parent();
 	}
@@ -207,17 +198,15 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	if (node instanceof Instance) {
 	    Instance instance = (Instance)node;
 	    displayInstance(instance);
-	    return;
 	}
-	
-	if (node instanceof ModuleReference) {
+	else if (node instanceof ModuleReference) {
 	    ModuleReference reference = (ModuleReference)node;
 	    ModuleInstance  instance = (ModuleInstance)reference.parent();
 	    displayInstance(instance);
-	    return;
 	}
-
-	clear();
+	else {
+	    clear();
+	}
     }
     
     /** TableModelListener: tableChanged() */
