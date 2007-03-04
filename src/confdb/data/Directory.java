@@ -95,5 +95,16 @@ public class Directory
     
     /** add a child directory */
     public void addChildDir(Directory childDir) { directories.add(childDir); }
+
+    /** remove a child direcory */
+    public boolean removeChildDir(Directory childDir)
+    {
+	int i = directories.indexOf(childDir);
+	if (i>=0) {
+	    directories.remove(i);
+	    return true;
+	}
+	return false;
+    }
     
 }

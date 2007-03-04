@@ -52,7 +52,8 @@ public class VPSetParameter extends Parameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	VPSetParameter result = new VPSetParameter(name,parameterSets,isTracked,isDefault);
+	VPSetParameter result =
+	    new VPSetParameter(name,parameterSets,isTracked,isDefault);
 	result.setParent(parent);
 	return result;
     }
@@ -93,6 +94,7 @@ public class VPSetParameter extends Parameter
 		!parser.vpsetIsTracked()==isTracked()) return false;
 	    while (parser.parseNextParameterSet()) {
 		PSetParameter pset = new PSetParameter(parser.psetString());
+		pset.setParent(this);
 		parameterSets.add(pset);
 	    }
 	    isValueSet = true;
@@ -117,7 +119,10 @@ public class VPSetParameter extends Parameter
     public PSetParameter parameterSet(int i) { return parameterSets.get(i); }
 
     /** index of a certain parameter set */
-    public int indexOfParameterSet(PSetParameter pset) { return parameterSets.indexOf(pset); }
+    public int indexOfParameterSet(PSetParameter pset)
+    {
+	return parameterSets.indexOf(pset);
+    }
 
     /** set i-th parameter set value  */
     public boolean setParameterSetValue(int i,String valueAsString)
@@ -131,6 +136,7 @@ public class VPSetParameter extends Parameter
     /** add a parameter-set */
     public void addParameterSet(PSetParameter pset)
     {
+	pset.setParent(this);
 	parameterSets.add(pset);
 	isValueSet = true;
     }

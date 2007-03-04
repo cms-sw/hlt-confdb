@@ -118,9 +118,6 @@ public class PSetParameter extends Parameter
 	    ParameterSetParser p1 = new ParameterSetParser(valueAsString);
 	    if (!p1.parseNextParameter()) return false;
 	    String value = p1.value();
-	    //if (!p1.type().equals(type())||
-	    //!p1.name().equals(name())||
-	    //!p1.isTracked()==isTracked()||
 	    if (p1.parseNextParameter()) return false;
 	    ParameterSetParser p2 = new ParameterSetParser(value);
 	    while (p2.parseNextParameter()) {
@@ -129,6 +126,7 @@ public class PSetParameter extends Parameter
 						      p2.value(),
 						      new Boolean(p2.isTracked()),
 						      new Boolean(p2.isDefault()));
+		p.setParent(this);
 		parameters.add(p);
 	    }
 	    isValueSet = true;
@@ -168,7 +166,7 @@ public class PSetParameter extends Parameter
     /** add a parameter */
     public boolean addParameter(Parameter p)
     {
-	//if (p instanceof PSetParameter||p instanceof VPSetParameter) return false;
+	p.setParent(this);
 	parameters.add(p);
 	isValueSet = true;
 	return true;
