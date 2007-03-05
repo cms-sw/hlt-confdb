@@ -141,7 +141,7 @@ class ConfdbSourceToDB:
 	# Track all modules which will be modified
 	modifiedmodules = []
 
-	source_tree = self.base_path + "/src/"
+	source_tree = self.base_path + "//src/"
 
 	print "The  source tree is: " + source_tree
 
