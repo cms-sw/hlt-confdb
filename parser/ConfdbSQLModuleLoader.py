@@ -3,7 +3,7 @@
 # ConfdbSQLModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (MySQL version). All MySQL specific code belongs here.
-# Jonathan Hollar LLNL Feb. 22, 2007
+# Jonathan Hollar LLNL Mar. 7, 2007
 
 import os, string, sys, posix, tokenize, array, MySQLdb
 
@@ -630,7 +630,12 @@ class ConfdbMySQLModuleLoader:
 			oldparamval = oldparamval[0]
 
 		    if(paramval):
-			if(paramval.find('x') == -1):
+			if(paramval.find('::') != -1 or paramval.find('_') != -1):
+			    print "\tWarning: Attempted to load a non-integer value to integer table:"
+			    print "\t\tint32 " + str(paramname) + " = " + str(paramval)
+			    print "\t\tLoading parameter with no default value"
+			    continue
+			elif(paramval.find('x') == -1):
 			    paramval = int(paramval)
 
 		    # No changes. Attach parameter to new template.
@@ -1167,7 +1172,7 @@ class ConfdbMySQLModuleLoader:
 
 	lastpsetname = ''
 
-	for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting in paramsets:
+	for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq in paramsets:
 	    # If this is the first entry in this PSet for this component, add it to the ParameterSets table
 	    if(pset != lastpsetname):
 		
@@ -1183,8 +1188,8 @@ class ConfdbMySQLModuleLoader:
 
 		# Attach the PSet to a Fwk component via their superIds
 		if(self.verbose > 2):
-		    print "INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetseq) + ")"
-		thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetseq) + ")")
+		    print "INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")"
+		thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")
 
 	    lastpsetname = pset
 
@@ -1242,7 +1247,7 @@ class ConfdbMySQLModuleLoader:
 
 	# Now VPSets
 	lastvpsetname = ''
-	for vpset, vpsettype, vpsetname, vpsetval, vpsettracked, vpsetindex, vpsetseq in vecparamsets:
+	for vpset, vpsettype, vpsetname, vpsetval, vpsettracked, vpsetindex, vpsetseq, vpsetpsetseq in vecparamsets:
 	    # If this is the first entry in this VPSet for this component, add it to the ParameterSets table
 	    if(vpset != lastvpsetname):
 		
@@ -1258,8 +1263,8 @@ class ConfdbMySQLModuleLoader:
 
 		# Attach the PSet to a Fwk component via their superIds
 		if(self.verbose > 2):
-		    print "INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetseq) + ")"
-		thecursor.execute("INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetseq) + ")")
+		    print "INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetpsetseq) + ")"
+		thecursor.execute("INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetpsetseq) + ")")
 
 	    lastvpsetname = vpset
 

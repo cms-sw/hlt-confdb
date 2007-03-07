@@ -3,10 +3,10 @@
 # ConfdbOracleModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (Oracle version). All Oracle specific code belongs here.
-# Jonathan Hollar LLNL Feb. 22, 2007
+# Jonathan Hollar LLNL Mar. 7, 2007
 
 import os, string, sys, posix, tokenize, array
-#import cx_Oracle
+import cx_Oracle
 
 class ConfdbOracleModuleLoader:
 
@@ -147,7 +147,7 @@ class ConfdbOracleModuleLoader:
 
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUE('');")
+	thecursor.execute("INSERT INTO SuperIds VALUE();")
 
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 
@@ -176,7 +176,7 @@ class ConfdbOracleModuleLoader:
 
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUE('');")
+	thecursor.execute("INSERT INTO SuperIds VALUE();")
 
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 
@@ -202,7 +202,7 @@ class ConfdbOracleModuleLoader:
 
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUE('');")
+	thecursor.execute("INSERT INTO SuperIds VALUE();")
 
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 
@@ -228,7 +228,7 @@ class ConfdbOracleModuleLoader:
 
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUE('');")
+	thecursor.execute("INSERT INTO SuperIds VALUE();")
 
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 
@@ -270,7 +270,7 @@ class ConfdbOracleModuleLoader:
 
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
-	thecursor.execute("INSERT INTO SuperIds VALUE('');")
+	thecursor.execute("INSERT INTO SuperIds VALUE();")
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
@@ -309,7 +309,7 @@ class ConfdbOracleModuleLoader:
 
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
-	thecursor.execute("INSERT INTO SuperIds VALUE('');")
+	thecursor.execute("INSERT INTO SuperIds VALUE();")
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
@@ -345,7 +345,7 @@ class ConfdbOracleModuleLoader:
 
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
-	thecursor.execute("INSERT INTO SuperIds VALUE('');")
+	thecursor.execute("INSERT INTO SuperIds VALUE();")
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
@@ -379,7 +379,7 @@ class ConfdbOracleModuleLoader:
 
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
-	thecursor.execute("INSERT INTO SuperIds VALUE('');")
+	thecursor.execute("INSERT INTO SuperIds VALUE();")
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
@@ -631,7 +631,12 @@ class ConfdbOracleModuleLoader:
 			oldparamval = oldparamval[0]
 
 		    if(paramval):
-			if(paramval.find('x') == -1):
+			if(paramval.find('::') != -1 or paramval.find('_') != -1):
+			    print "\tWarning: Attempted to load a non-integer value to integer table:"
+			    print "\t\tint32 " + str(paramname) + " = " + str(paramval)
+			    print "\t\tLoading parameter with no default value"
+			    continue
+			elif(paramval.find('x') == -1):
 			    paramval = int(paramval)
 
 		    # No changes. Attach parameter to new template.
@@ -1168,12 +1173,12 @@ class ConfdbOracleModuleLoader:
 
 	lastpsetname = ''
 
-	for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting in paramsets:
+	for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq in paramsets:
 	    # If this is the first entry in this PSet for this component, add it to the ParameterSets table
 	    if(pset != lastpsetname):
 		
 		# Each new PSet gets a new SuperId
-		thecursor.execute("INSERT INTO SuperIds VALUE('')")
+		thecursor.execute("INSERT INTO SuperIds VALUE()")
 		thecursor.execute("SELECT LAST_INSERT_ID()")
 		newparamsetid = thecursor.fetchone()[0]	
 
@@ -1184,8 +1189,8 @@ class ConfdbOracleModuleLoader:
 
 		# Attach the PSet to a Fwk component via their superIds
 		if(self.verbose > 2):
-		    print "INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetseq) + ")"
-		thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetseq) + ")")
+		    print "INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")"
+		thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")
 
 	    lastpsetname = pset
 
@@ -1243,12 +1248,12 @@ class ConfdbOracleModuleLoader:
 
 	# Now VPSets
 	lastvpsetname = ''
-	for vpset, vpsettype, vpsetname, vpsetval, vpsettracked, vpsetindex, vpsetseq in vecparamsets:
+	for vpset, vpsettype, vpsetname, vpsetval, vpsettracked, vpsetindex, vpsetseq, vpsetpsetseq in vecparamsets:
 	    # If this is the first entry in this VPSet for this component, add it to the ParameterSets table
 	    if(vpset != lastvpsetname):
 		
 		# Each new VPSet gets a new SuperId
-		thecursor.execute("INSERT INTO SuperIds VALUE('')")
+		thecursor.execute("INSERT INTO SuperIds VALUE()")
 		thecursor.execute("SELECT LAST_INSERT_ID()")
 		newvparamsetid = thecursor.fetchone()[0]	
 
@@ -1259,8 +1264,8 @@ class ConfdbOracleModuleLoader:
 
 		# Attach the PSet to a Fwk component via their superIds
 		if(self.verbose > 2):
-		    print "INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetseq) + ")"
-		thecursor.execute("INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetseq) + ")")
+		    print "INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetpsetseq) + ")"
+		thecursor.execute("INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetpsetseq) + ")")
 
 	    lastvpsetname = vpset
 
