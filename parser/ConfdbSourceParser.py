@@ -868,6 +868,7 @@ class SourceParser:
         totalline = ''
 	foundlineend = False
 	startedtypedef = False
+	foundatypedef = False
 
         for line in lines:
 	    if(line.startswith('typedef ')):
@@ -884,6 +885,7 @@ class SourceParser:
 		    foundlineend = False
 
 		if(foundlineend == True and line.find(themodulename) != -1):
+		    foundatypedef = True
 		    if(self.verbose > 1):
 			print 'found a typedef module declaration in ' + theccfile
 			print '\n' + line
@@ -916,6 +918,14 @@ class SourceParser:
 		    foundlineend = False
 		    totalline = ''
 
+	# We found a typedef/templated module declaration, but couldn't find the template class 
+	# in this package. As a last resort, look for it in any included files. 
+	if((foundatypedef == True) and (self.baseclass == '')):
+	    self.includefile = theccfile
+	    thebaseclass = self.FindOriginalBaseClass(theclass, sourcetree)
+	    if(thebaseclass):
+		self.baseclass = thebaseclass
+
     # Find the base class for modules that have 2 levels of inheritance. This can be expensive, so
     # try to be smart and look at what files are being included.		    
     def FindOriginalBaseClass(self, classname, sourcetree):
@@ -934,7 +944,7 @@ class SourceParser:
 
 		    includedlib = includeline.split('#include')[1]
 
-		    if(includedlib.find('.h') != -1):
+		    if(includedlib.find('.h') != -1 and includedlib.find('"') != -1):
 			includedlib = (includedlib.split('"')[1]).lstrip().rstrip()
 
 			if(self.verbose > 1):
