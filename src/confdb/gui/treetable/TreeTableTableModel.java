@@ -22,9 +22,9 @@ public class TreeTableTableModel extends AbstractTableModel
     private JTree tree = null;
 
     /** reference to that tree's TreeModel */
-    private TreeTableTreeModel treeModel = null;
+    private AbstractTreeTableTreeModel treeModel = null;
 
-    /** reference to the last node which had its value chaged */
+    /** reference to the last node changed node */
     private Object changedNode = null;
     
     
@@ -33,7 +33,7 @@ public class TreeTableTableModel extends AbstractTableModel
     //
     
     /** standard constructor */
-    public TreeTableTableModel(JTree tree, TreeTableTreeModel treeModel)
+    public TreeTableTableModel(JTree tree,AbstractTreeTableTreeModel treeModel)
     {
 	this.tree      = tree;
 	this.treeModel = treeModel;
@@ -54,16 +54,19 @@ public class TreeTableTableModel extends AbstractTableModel
 	    {
 		public void treeNodesChanged(TreeModelEvent e)
 		{
+		    changedNode = e.getChildren()[0];
 		    delayedFireTableDataChanged();
 		}
 		
 		public void treeNodesInserted(TreeModelEvent e)
 		{
+		    changedNode = e.getTreePath().getLastPathComponent();
 		    delayedFireTableDataChanged();
 		}
 		
 		public void treeNodesRemoved(TreeModelEvent e)
 		{
+		    changedNode = e.getTreePath().getLastPathComponent();
 		    delayedFireTableDataChanged();
 		}
 		
@@ -85,7 +88,7 @@ public class TreeTableTableModel extends AbstractTableModel
     public Object changedNode() { return changedNode; }
 
     /** convert the table row into the respective tree node */
-    protected Object nodeForRow(int row)
+    public Object nodeForRow(int row)
     {
 	TreePath treePath = tree.getPathForRow(row);
 	return treePath.getLastPathComponent();
@@ -119,7 +122,6 @@ public class TreeTableTableModel extends AbstractTableModel
     public void setValueAt(Object value,int row,int column)
     {
 	treeModel.setValueAt(value, nodeForRow(row), column);
-	changedNode = nodeForRow(row);
     }
     
     /** notify table model of changes *after* pending events have been processed */

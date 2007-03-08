@@ -119,8 +119,8 @@ class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 		 node instanceof PathReference)     return pathIcon;
 	else if (node instanceof Sequence||
 		 node instanceof SequenceReference) return sequenceIcon;
-	else if (node instanceof PSetParameter)     return psetIcon;
-	else if (node instanceof VPSetParameter)    return vpsetIcon;
+	//else if (node instanceof PSetParameter)     return psetIcon;
+	//else if (node instanceof VPSetParameter)    return vpsetIcon;
 
 	return null;
     }
@@ -160,9 +160,10 @@ class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    result += "</html>";
 	}
 	if (node instanceof PSetParameter||
-		 node instanceof VPSetParameter) {
+	    node instanceof VPSetParameter) {
 	    Parameter p = (Parameter)node;
-	    result = "<html><font size=-1><b>" + p.name() + "</b></font></html>";
+	    result = "<font color=#00ff00>" +p.type() + "</font> " + p.name();
+	    result = "<html><font size=-2><b>" + result + "</b></font></html>";
 	}
 	else if (node instanceof Parameter) {
 	    Parameter p = (Parameter)node;

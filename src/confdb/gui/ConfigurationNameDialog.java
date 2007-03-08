@@ -68,6 +68,7 @@ public class ConfigurationNameDialog extends JDialog implements ActionListener,
 	
 	textFieldName = new JTextField(20);
 	comboBoxReleaseTag = new JComboBox(database.getReleaseTags());
+	comboBoxReleaseTag.setBackground(Color.WHITE);
 	
 	Object[] components = { new JLabel("Name:"),textFieldName,
 				new JLabel("Release:"), comboBoxReleaseTag

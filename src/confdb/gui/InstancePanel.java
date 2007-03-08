@@ -30,6 +30,9 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     //
     // member data
     //
+
+    /** parent frame */
+    private JFrame frame = null;
     
     /** text field shoing the instance name */
     private JLabel labelName = null;
@@ -65,9 +68,10 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     //
     
     /** standard constructor */
-    public InstancePanel(Dimension size)
+    public InstancePanel(JFrame frame,Dimension size)
     {
 	super(new GridBagLayout());
+	this.frame = frame;
 	setPreferredSize(size);
 	
 	Dimension dimTop = new Dimension(size.width,(int)(size.height*0.1));
@@ -81,6 +85,8 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	tableModel.addTableModelListener(this);
 	parameterTable.setTreeCellRenderer(new ParameterTreeCellRenderer());
 	
+	parameterTable.addMouseListener(new ParameterTableMouseListener());
+
 	parameterTable.getColumnModel().getColumn(0).setPreferredWidth(100);
 	parameterTable.getColumnModel().getColumn(1).setPreferredWidth(100);
 	parameterTable.getColumnModel().getColumn(2).setPreferredWidth(150);
@@ -217,4 +223,156 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	else
 	    editorPaneSnippet.setText("");
     }
+
+
+    /** liste to mouse events and add/remove parameters from PSets/VPSets */
+    public class ParameterTableMouseListener extends    MouseAdapter
+	                                     implements ActionListener
+    {
+	/** current parameter (set by MouseAdapter for ActionListener) */
+	private Parameter parameter = null;
+	
+	/** */
+	public void mousePressed(MouseEvent e)  { maybeShowPopup(e); }
+
+	public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
+	
+	private void maybeShowPopup(MouseEvent e)
+	{
+	    if (!e.isPopupTrigger()) return;
+	    Point     pnt = e.getPoint();
+            int       col = parameterTable.columnAtPoint(pnt);
+            int       row = parameterTable.rowAtPoint(pnt);
+	    
+	    parameter = (Parameter)tableModel.nodeForRow(row);
+	    
+	    if (col!=0) return;
+	    
+	    JPopupMenu popup  = new JPopupMenu();	    
+	    Object     parent = parameter.parent();
+	    
+	    if (parameter instanceof VPSetParameter) {
+		JMenuItem  menuItem = new JMenuItem("Add PSet");
+		menuItem.addActionListener(this);
+		popup.add(menuItem);
+		if (parent instanceof PSetParameter) {
+		    popup.addSeparator();
+		    menuItem = new JMenuItem("Remove VPSet");
+		    menuItem.addActionListener(this);
+		    popup.add(menuItem);
+		}
+		popup.show(e.getComponent(),e.getX(),e.getY());
+	    }
+	    else if (parameter instanceof PSetParameter) {
+		JMenuItem  menuItem = new JMenuItem("Add Parameter");
+		menuItem.addActionListener(this);
+		popup.add(menuItem);
+		if (parent instanceof VPSetParameter||
+		    parent instanceof PSetParameter) {
+		    popup.addSeparator();
+		    menuItem = new JMenuItem("Remove PSet");
+		    menuItem.addActionListener(this);
+		    popup.add(menuItem);
+		}
+		popup.show(e.getComponent(),e.getX(),e.getY());
+	    }
+	    else if (parent instanceof PSetParameter) {
+		JMenuItem  menuItem = new JMenuItem("Remove Parameter");
+		menuItem.addActionListener(this);
+		popup.add(menuItem);
+		popup.show(e.getComponent(),e.getX(),e.getY());
+	    }
+	}
+	
+	/** ActionListener: actionPerformed() */
+	public void actionPerformed(ActionEvent e)
+	{
+	    JMenuItem src = (JMenuItem)e.getSource();
+	    String    cmd = src.getText();
+	    Object parent = parameter.parent();
+	    
+	    if (parent instanceof VPSetParameter) {
+		VPSetParameter vpset = (VPSetParameter)parent;
+		PSetParameter  pset  = (PSetParameter)parameter;
+		if (cmd.equals("Add Parameter")) {
+		    addParameter(pset);
+		}
+		else if (cmd.equals("Remove PSet")) {
+		    int index = vpset.removeParameterSet(pset);
+		    treeModel.nodeRemoved(vpset,index,pset);
+		}
+	    }
+	    else if (parent instanceof PSetParameter) {
+		PSetParameter pset = (PSetParameter)parent;
+		if (cmd.equals("Remove Parameter")) {
+		    int index = pset.removeParameter(parameter);
+		    treeModel.nodeRemoved(pset,index,parameter);
+		}
+		else if (parameter instanceof PSetParameter) {
+		    if (cmd.equals("Remove PSet")) {
+			int index = pset.removeParameter(parameter);
+			treeModel.nodeRemoved(pset,index,parameter);
+		    }
+		    if (cmd.equals("Add Parameter")) {
+			addParameter(pset);
+		    }
+		}
+		else if (parameter instanceof VPSetParameter) {
+		    VPSetParameter child = (VPSetParameter)parameter;
+		    if (cmd.equals("Add PSet")) {
+			addParameterSet(child);
+		    }
+		}
+	    }
+	    else if (parameter instanceof VPSetParameter) {
+		if (cmd.equals("Add PSet")) {
+		    VPSetParameter vpset = (VPSetParameter)parameter;
+		    addParameterSet(vpset);
+		}
+	    }
+	    else if (parameter instanceof PSetParameter) {
+		if (cmd.equals("Add Parameter")) {
+		    PSetParameter pset = (PSetParameter)parameter;
+		    addParameter(pset);
+		}
+	    }
+	}
+	
+	/** show dialog to add parameter to pset */
+	private void addParameter(PSetParameter pset)
+	{
+	    AddParameterDialog dlg = new AddParameterDialog(frame);
+	    dlg.pack();
+	    dlg.setLocationRelativeTo(frame);
+	    dlg.setVisible(true);
+	    if (dlg.validChoice()) {
+		Parameter p =
+		    ParameterFactory.create(dlg.type(),dlg.name(),
+					    dlg.valueAsString(),false,false);
+		pset.addParameter(p);
+		treeModel.nodeInserted(pset,pset.parameterCount()-1);
+	    }
+	}
+	
+	/** show dialog to add PSet to VPSet */
+	private void addParameterSet(VPSetParameter vpset)
+	{
+	    AddParameterDialog dlg = new AddParameterDialog(frame);
+	    dlg.addParameterSet();
+	    dlg.pack();
+	    dlg.setLocationRelativeTo(frame);
+	    dlg.setVisible(true);
+	    if (dlg.validChoice()) {
+		PSetParameter pset =
+		    (PSetParameter)ParameterFactory.create(dlg.type(),dlg.name(),
+							   dlg.valueAsString(),
+							   false,false);
+		vpset.addParameterSet(pset);
+		treeModel.nodeInserted(vpset,vpset.parameterSetCount()-1);
+	    }
+	}
+	
+    }
+
+
 }

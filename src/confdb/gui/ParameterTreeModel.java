@@ -57,13 +57,23 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     /** standard constructor */
     ParameterTreeModel()
     {
-	super(null);
+	super(new String("root"));
     }
     
     
     //
     // member functions
     //
+    
+    /** AbstractTreeTableTreeModel: getParent() */
+    public Object getParent(Object node)
+    {
+	if (node==getRoot()) return null;
+	Parameter p = (Parameter)node;
+	Object parent = p.parent();
+	if (parent instanceof Parameter) return parent;
+	return getRoot();
+    }
 
     /** TreeModel: number of children of the node */
     public int getChildCount(Object node)
@@ -110,8 +120,8 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     {
 	if (getColumnClass(column) == TreeTableTreeModel.class) return true;
 	if (column!=2||node.equals(root)) return false;
-	//node instanceof PSetParameter||
-	//node instanceof VPSetParameter) return false;
+	if (node instanceof PSetParameter||
+	    node instanceof VPSetParameter) return false;
 	return true;
     }
     
@@ -156,7 +166,7 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 		    System.out.println("setValueAt failed: "+e.getMessage());
 		}
 	    }
-	    fireNodesChanged();
+	    nodeChanged(node);
 	}
     }
 
@@ -164,6 +174,7 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     private Object[] getChildren(Object node)
     {
 	if (node.equals(root)) {
+	    if (parameterList==null) return new Object[0];
 	    Object[] children =
 		parameterList.toArray(new Parameter[parameterList.size()]);
 	    return children;
@@ -190,20 +201,13 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 			      ArrayList<Parameter> parameterList)
     {
 	this.parameterList = parameterList;
-	root = new String(moduleName);
-	Object[] source   = { ParameterTreeModel.this };
-	Object[] path     = { root };
-	fireTreeStructureChanged(source,path,null,null);
+	nodeStructureChanged(root);
+	//root = new String(moduleName);
+	//Object[] source   = { ParameterTreeModel.this };
+	//Object[] path     = { root };
+	//fireTreeStructureChanged(source,path,null,null);
     }
     
-   /** some node has changed */
-    private void fireNodesChanged()
-    {
-	Object[] source = { ParameterTreeModel.this };
-	Object[] path   = { root };
-	fireTreeNodesChanged(source,path,null,null);
-    }
-
     /** set a default template, only considered for orphan parameters */
     public void setDefaultTemplate(Template template)
     {

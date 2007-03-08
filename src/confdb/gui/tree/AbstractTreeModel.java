@@ -55,7 +55,7 @@ public abstract class AbstractTreeModel implements TreeModel
 	}
     }
     
-        /** invoke if represantation of node has changed in the tree */
+    /** invoke if represantation of node has changed in the tree */
     public void nodeChanged(Object node)
     {
 	if (listenerList!=null && node!=null) {

@@ -15,6 +15,7 @@ import confdb.db.DatabaseException;
 import confdb.data.Configuration;
 import confdb.data.ConfigInfo;
 import confdb.data.Template;
+import confdb.data.Parameter;
 
 import confdb.gui.treetable.TreeTableTableModel;
 
@@ -101,8 +102,14 @@ public class ConfDbGUI implements TableModelListener
 	Object source = e.getSource();
 	if (source instanceof TreeTableTableModel) {
 	    TreeTableTableModel tableModel = (TreeTableTableModel)source;
-	    Object node = tableModel.changedNode();
+	    Parameter node = (Parameter)tableModel.changedNode();
 	    if (node!=null) {
+		Object parent = node.parent();
+		while (parent instanceof Parameter) {
+		    Parameter p = (Parameter)parent;
+		    parent = p.parent();
+		}
+		treeModel.nodeChanged(parent);
 		treeModel.nodeChanged(node);
 		treeModel.updateLevel1Nodes();
 	    }
@@ -165,36 +172,23 @@ public class ConfDbGUI implements TableModelListener
 	dialog.setVisible(true);
 	
 	if (dialog.validChoice()) {
-	    //progressBar.setIndeterminate(true);
-	    //progressBar.setString("Loading Templates for Release " +
-	    //			  dialog.releaseTag() + " ... ");
-	    //progressBar.setVisible(true);
-
 	    String cfgName    = dialog.name();
 	    String releaseTag = dialog.releaseTag();
 	    
-	    database.loadEDSourceTemplates(releaseTag,edsourceTemplateList);
-	    database.loadESSourceTemplates(releaseTag,essourceTemplateList);
-	    database.loadServiceTemplates(releaseTag,serviceTemplateList);
-	    database.loadModuleTemplates(releaseTag,moduleTemplateList);
-
-	    config.initialize(new ConfigInfo(cfgName,null,releaseTag),
-			      edsourceTemplateList,
-			      essourceTemplateList,
-			      serviceTemplateList,
-			      moduleTemplateList);
-	    treeModel.setConfiguration(config);
-	    configurationPanel.update(config);
-	    
-	    //progressBar.setIndeterminate(false);
-	    //progressBar.setVisible(false);
+	    NewConfigurationThread worker =
+		new NewConfigurationThread(cfgName,releaseTag);
+	    worker.start();
+	    progressBar.setIndeterminate(true);
+	    progressBar.setVisible(true);
+	    progressBar.setString("Loading Templates for Release " +
+				  dialog.releaseTag() + " ... ");
 	}
     }
     
     /** open configuration */
     public void openConfiguration()
     {
-	if (!closeConfiguration()) return;
+	closeConfiguration();
 	
 	OpenConfigurationDialog dialog =
 	    new OpenConfigurationDialog(frame,database);
@@ -203,78 +197,65 @@ public class ConfDbGUI implements TableModelListener
 	dialog.setVisible(true);
 	
 	if (dialog.validChoice()) {
+	    OpenConfigurationThread worker =
+		new OpenConfigurationThread(dialog.configInfo());
+	    worker.start();
 	    progressBar.setIndeterminate(true);
-	    progressBar.setString("Loading Configuration ...");
 	    progressBar.setVisible(true);
-
-	    ConfigInfo configInfo = dialog.configInfo();
-	    config = database.loadConfiguration(dialog.configInfo(),
-						edsourceTemplateList,
-						essourceTemplateList,
-						serviceTemplateList,
-						moduleTemplateList);
-	    treeModel.setConfiguration(config);
-	    configurationPanel.update(config);
-
-	    progressBar.setIndeterminate(false);
-	    progressBar.setVisible(false);
+	    progressBar.setString("Loading Configuration ...");
 	}
     }
 
     /** close configuration */
-    public boolean closeConfiguration()
+    public void closeConfiguration()
     {
-	if (config.hasChanged()) {
-	    String msg =
-		"The current configuration has changed.\n" +
-		"Do you want to save it before closing?";
-	    int answer = 
-		JOptionPane.showConfirmDialog(frame,msg,"",
-					      JOptionPane.YES_NO_OPTION);
-	    if (answer==0) {
-		if (!saveConfiguration()) {
-		    msg =
-			"The current configuration can't be saved. " +
-			"Do you really want to close it?";
-		    answer = JOptionPane.showConfirmDialog(frame,msg,"",
-							   JOptionPane.YES_NO_OPTION);
-		    if (answer==1) return false;
-		}
-	    }
-	}
+	/*
+	  if (config.hasChanged()) {
+	  String msg =
+	  "The current configuration has changed.\n" +
+	  "Do you want to save it before closing?";
+	  int answer = 
+	  JOptionPane.showConfirmDialog(frame,msg,"",
+	  JOptionPane.YES_NO_OPTION);
+	  if (answer==0) {
+	  
+	  if (config.hasChanged) {
+	  msg =
+	  "The current configuration can't be saved. " +
+	  "Do you really want to close it?";
+	  answer = JOptionPane.showConfirmDialog(frame,msg,"",
+	  JOptionPane.YES_NO_OPTION);
+	  if (answer==1) return false;
+	  }
+	  }
+	  }
+	*/
 	config.reset();
 	treeModel.setConfiguration(config);
 	configurationPanel.update(config);
 	instancePanel.clear();
-	return true;
     }
     
     /** save configuration */
-    public boolean saveConfiguration()
+    public void saveConfiguration()
     {
-	if (!config.hasChanged()) return true;
-	if (!checkConfiguration()) return false;
-	if (config.version()==0) return saveAsConfiguration();
+	if (!config.hasChanged()) return;
+	if (config.version()==0) { saveAsConfiguration(); return; }
+	if (!checkConfiguration()) return;	
 	
+	SaveConfigurationThread worker =
+	    new SaveConfigurationThread();
+	worker.start();
 	progressBar.setIndeterminate(true);
-	progressBar.setString("Storing Configuration ...");
+	progressBar.setString("Save Configuration ...");
 	progressBar.setVisible(true);
-	
-	if (database.insertConfiguration(config)) {
-	    config.setHasChanged(false);
-	    configurationPanel.update(config);
-	    return true;
-	}
-	
-	progressBar.setIndeterminate(false);
-	progressBar.setVisible(false);
-	
-	return false;
     }
     
     /** saveAs configuration */
-    public boolean saveAsConfiguration()
+    public void saveAsConfiguration()
     {
+	if (!checkConfiguration()) return;
+
 	SaveConfigurationDialog dialog =
 	    new SaveConfigurationDialog(frame,database,config);
 	dialog.pack();
@@ -282,13 +263,13 @@ public class ConfDbGUI implements TableModelListener
 	dialog.setVisible(true);
 	
 	if (dialog.validChoice()) {
-	    if (database.insertConfiguration(config)) {
-		config.setHasChanged(false);
-		configurationPanel.update(config);
-		return true;
-	    }
+	    SaveConfigurationThread worker =
+		new SaveConfigurationThread();
+	    worker.start();
+	    progressBar.setIndeterminate(true);
+	    progressBar.setString("Save Configuration ...");
+	    progressBar.setVisible(true);
 	}
-	return false;
     }
     
     /** check if configuration is in a storable state */
@@ -314,14 +295,13 @@ public class ConfDbGUI implements TableModelListener
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
 	String releaseTag = config.releaseTag();
-	database.loadEDSourceTemplates(releaseTag,edsourceTemplateList);
-	database.loadESSourceTemplates(releaseTag,essourceTemplateList);
-	database.loadServiceTemplates(releaseTag,serviceTemplateList);
-	database.loadModuleTemplates(releaseTag,moduleTemplateList);
-	config.updateHashMaps(edsourceTemplateList,
-			      essourceTemplateList,
-			      serviceTemplateList,
-			      moduleTemplateList);
+	
+	UpdateTemplatesThread worker =
+	    new UpdateTemplatesThread(releaseTag);
+	worker.start();
+	progressBar.setIndeterminate(true);
+	progressBar.setVisible(true);
+	progressBar.setString("Updating Templates for Release "+releaseTag+" ... ");
     }
 
     /** create the content pane */
@@ -380,7 +360,7 @@ public class ConfDbGUI implements TableModelListener
     /** create the component panel, to display the currently selected component */
     private JPanel createInstanceView(Dimension dim)
     {
-	instancePanel = new InstancePanel(dim);
+	instancePanel = new InstancePanel(frame,dim);
 	instancePanel.addTableModelListener(this);
 	return instancePanel;
     }
@@ -486,6 +466,195 @@ public class ConfDbGUI implements TableModelListener
 			createAndShowGUI();
 		    }
 		});
+    }
+    
+
+    //
+    // threads *not* to be executed on the EDT
+    //
+
+    /** load release templates from the database */
+    private class NewConfigurationThread extends SwingWorker<String>
+    {
+	/** name of the new configuration */
+	private String cfgName = null;
+	
+	/** release to be loaded */
+	private String releaseTag = null;
+	
+	/** start time */
+	private long startTime;
+	
+	/** standard constructor */
+	public NewConfigurationThread(String cfgName,String releaseTag)
+	{
+	    this.cfgName    = cfgName;
+	    this.releaseTag = releaseTag;
+	}
+	
+	/** SwingWorker: construct() */
+	protected String construct() throws InterruptedException
+	{
+	    startTime = System.currentTimeMillis();
+	    database.loadEDSourceTemplates(releaseTag,edsourceTemplateList);
+	    database.loadESSourceTemplates(releaseTag,essourceTemplateList);
+	    database.loadServiceTemplates(releaseTag,serviceTemplateList);
+	    database.loadModuleTemplates(releaseTag,moduleTemplateList);
+	    return new String("Done!");
+	}
+	
+	/** SwingWorker: finished */
+	protected void finished()
+	{
+	    try {
+		config.initialize(new ConfigInfo(cfgName,null,releaseTag),
+				  edsourceTemplateList,
+				  essourceTemplateList,
+				  serviceTemplateList,
+				  moduleTemplateList);
+		treeModel.setConfiguration(config);
+		configurationPanel.update(config);
+		long elapsedTime = System.currentTimeMillis() - startTime;
+		progressBar.setString(progressBar.getString() +
+				      get() + " (" + elapsedTime + " ms)");
+	    }
+	    catch (Exception e) {
+		System.out.println("EXCEPTION: "+ e.getMessage());
+		e.printStackTrace();
+		progressBar.setString(progressBar.getString() + "FAILED!");	
+	    }
+	    progressBar.setIndeterminate(false);
+	}
+    }
+    
+
+    /** load a configuration from the database */
+    private class OpenConfigurationThread extends SwingWorker<String>
+    {
+	/** configuration info */
+	private ConfigInfo configInfo = null;
+	
+	/** start time */
+	private long startTime;
+	
+	/** standard constructor */
+	public OpenConfigurationThread(ConfigInfo configInfo)
+	{
+	    this.configInfo = configInfo;
+	}
+	
+	/** SwingWorker: construct() */
+	protected String construct() throws InterruptedException
+	{
+	    startTime = System.currentTimeMillis();
+	    config = database.loadConfiguration(configInfo,
+						edsourceTemplateList,
+						essourceTemplateList,
+						serviceTemplateList,
+						moduleTemplateList);
+	    return new String("Done!");
+	}
+	
+	/** SwingWorker: finished */
+	protected void finished()
+	{
+	    try {
+		treeModel.setConfiguration(config);
+		configurationPanel.update(config);
+		long elapsedTime = System.currentTimeMillis() - startTime;
+		progressBar.setString(progressBar.getString() +
+				      get() + " (" + elapsedTime + " ms)");
+	    }
+	    catch (Exception e) {
+		System.out.println("EXCEPTION: "+ e.getMessage());
+		e.printStackTrace();
+		progressBar.setString(progressBar.getString() + "FAILED!");
+	    }
+	    progressBar.setIndeterminate(false);
+	}
+    }
+
+    /** save a configuration in the database */
+    private class SaveConfigurationThread extends SwingWorker<String>
+    {
+	/** start time */
+	private long startTime;
+	
+	/** standard constructor */
+	public SaveConfigurationThread() {}
+	
+	/** SwingWorker: construct() */
+	protected String construct() throws InterruptedException
+	{
+	    startTime = System.currentTimeMillis();
+	    database.insertConfiguration(config);
+	    return new String("Done!");
+	}
+	
+	/** SwingWorker: finished */
+	protected void finished()
+	{
+	    try {
+		config.setHasChanged(false);
+		configurationPanel.update(config);
+		long elapsedTime = System.currentTimeMillis() - startTime;
+		progressBar.setString(progressBar.getString() +
+				      get() + " (" + elapsedTime + " ms)");
+	    }
+	    catch (Exception e) {
+		System.out.println("EXCEPTION: "+ e.getMessage());
+		e.printStackTrace();
+		progressBar.setString(progressBar.getString() + "FAILED!");
+	    }
+	    progressBar.setIndeterminate(false);
+	}
+    }
+
+    /** load release templates from the database */
+    private class UpdateTemplatesThread extends SwingWorker<String>
+    {
+	/** release to be loaded */
+	private String releaseTag = null;
+	
+	/** start time */
+	private long startTime;
+	
+	/** standard constructor */
+	public UpdateTemplatesThread(String releaseTag)
+	{
+	    this.releaseTag = releaseTag;
+	}
+	
+	/** SwingWorker: construct() */
+	protected String construct() throws InterruptedException
+	{
+	    startTime = System.currentTimeMillis();
+	    database.loadEDSourceTemplates(releaseTag,edsourceTemplateList);
+	    database.loadESSourceTemplates(releaseTag,essourceTemplateList);
+	    database.loadServiceTemplates(releaseTag,serviceTemplateList);
+	    database.loadModuleTemplates(releaseTag,moduleTemplateList);
+	    return new String("Done!");
+	}
+	
+	/** SwingWorker: finished */
+	protected void finished()
+	{
+	    try {
+		config.updateHashMaps(edsourceTemplateList,
+				      essourceTemplateList,
+				      serviceTemplateList,
+				      moduleTemplateList);
+		long elapsedTime = System.currentTimeMillis() - startTime;
+		progressBar.setString(progressBar.getString() +
+				      get() + " (" + elapsedTime + " ms)");
+	    }
+	    catch (Exception e) {
+		System.out.println("EXCEPTION: "+ e.getMessage());
+		e.printStackTrace();
+		progressBar.setString(progressBar.getString() + "FAILED!");	
+	    }
+	    progressBar.setIndeterminate(false);
+	}
     }
     
 }

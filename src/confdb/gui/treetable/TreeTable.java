@@ -33,7 +33,7 @@ public class TreeTable extends JTable
     //
 
     /** standard constructor */
-    public TreeTable(TreeTableTreeModel treeModel)
+    public TreeTable(AbstractTreeTableTreeModel treeModel)
     {
 	super();
 	cellRenderer = new TreeTableTableCellRenderer(treeModel);
@@ -43,7 +43,7 @@ public class TreeTable extends JTable
 	    new ListToTreeSelectionModelWrapper();
 	cellRenderer.setSelectionModel(selectionWrapper);
 	setSelectionModel(selectionWrapper.getListSelectionModel());
-
+	
 	DefaultTableCellRenderer alignCenter = new DefaultTableCellRenderer();
 	alignCenter.setHorizontalAlignment(SwingConstants.CENTER);
 	
@@ -98,7 +98,7 @@ public class TreeTable extends JTable
     
     /** get the tree which is shared between the models */
     public JTree getTree() { return cellRenderer; }
-
+    
     /** expand the tree */
     public void expandTree()
     {

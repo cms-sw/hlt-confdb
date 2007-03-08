@@ -1,6 +1,6 @@
 package confdb.gui.treetable;
 
-import javax.swing.tree.TreeModel;
+//import javax.swing.tree.TreeModel;
 
 
 /**
@@ -10,7 +10,7 @@ import javax.swing.tree.TreeModel;
    
    TreeModel of the TreeTable, in charge!
 */
-public interface TreeTableTreeModel extends TreeModel
+public interface TreeTableTreeModel // extends TreeModel
 {
     /** number of columns */
     public int getColumnCount();
