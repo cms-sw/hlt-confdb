@@ -629,12 +629,15 @@ class ConfdbMySQLModuleLoader:
 		    if(oldparamval):
 			oldparamval = oldparamval[0]
 
+		    # Protect against loading non-integer values
 		    if(paramval):
 			if(paramval.find('::') != -1 or paramval.find('_') != -1):
 			    print "\tWarning: Attempted to load a non-integer value to integer table:"
 			    print "\t\tint32 " + str(paramname) + " = " + str(paramval)
 			    print "\t\tLoading parameter with no default value"
 			    continue
+			elif(paramval.find('.') != -1):
+			    paramval = int(float(paramval))
 			elif(paramval.find('x') == -1):
 			    paramval = int(paramval)
 
