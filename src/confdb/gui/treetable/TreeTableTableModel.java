@@ -54,7 +54,7 @@ public class TreeTableTableModel extends AbstractTableModel
 	    {
 		public void treeNodesChanged(TreeModelEvent e)
 		{
-		    changedNode = e.getChildren()[0];
+		    //changedNode = e.getChildren()[0];
 		    delayedFireTableDataChanged();
 		}
 		
@@ -122,6 +122,7 @@ public class TreeTableTableModel extends AbstractTableModel
     public void setValueAt(Object value,int row,int column)
     {
 	treeModel.setValueAt(value, nodeForRow(row), column);
+	changedNode = nodeForRow(row);
     }
     
     /** notify table model of changes *after* pending events have been processed */
