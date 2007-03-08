@@ -8,7 +8,7 @@
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
-import MySQLdb, ConfdbSQLModuleLoader, ConfdbOracleModuleLoader
+import MySQLdb, ConfdbSQLModuleLoader #, ConfdbOracleModuleLoader
 
 def main(argv):
     # Get information from the environment
@@ -24,9 +24,9 @@ def main(argv):
     input_whitelist = []
 
     input_verbose = 0
-    input_dbname = "hltdb1"
-    input_dbuser = "jjhollar"
-    input_dbpwd = "password"
+    input_dbname = "hltdb"
+    input_dbuser = "schiefer"
+    input_dbpwd = "monopoles"
     input_dbtype = "MySQL"
 
     # Parse command line options

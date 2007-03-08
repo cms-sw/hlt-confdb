@@ -1,3 +1,11 @@
+2007-03-08  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-00-06
+	* collect fixes to the parser by Jonathan
+	* after various patches, the GUI should be fully functional
+	* this version is going to be bundled with the next RCMS release,
+	I guess version 3.1.
+
 2007-3-02   Jonathan HOLLAR <jjhollar@cern.ch>
 
 	* tag V00-00-05

@@ -23,7 +23,7 @@ class ConfdbMySQLModuleLoader:
     # Connect to the Confdb db
     def ConfdbMySQLConnect(self,dbname,username):
 	self.connection = MySQLdb.connect(host="localhost", 
-				     user=username, passwd="password",
+				     user=username, passwd="monopoles",
                                      db=dbname )
         
 	cursor = self.connection.cursor() 
