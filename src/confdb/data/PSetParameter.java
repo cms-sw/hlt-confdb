@@ -33,7 +33,6 @@ public class PSetParameter extends Parameter
     {
 	super(name,isTracked,isDefault);
 	for (Parameter p : parameters) this.parameters.add(p.clone(this));
-	isValueSet = (parameters.size()>0);
     }
     
     /** constructor from a string */
@@ -104,10 +103,7 @@ public class PSetParameter extends Parameter
     public boolean setValue(String valueAsString)
     {
 	parameters.clear();
-	if (valueAsString.length()==0) {
-	    isValueSet = false;
-	}
-	else {
+	if (valueAsString.length()>0) {
 	    if (!valueAsString.startsWith("<PSet"))
 		valueAsString=
 		    "<PSet" +
@@ -129,13 +125,12 @@ public class PSetParameter extends Parameter
 		p.setParent(this);
 		parameters.add(p);
 	    }
-	    isValueSet = true;
 	}
 	return true;
     }
     
     
-    /** a parameter set is default if all of its children are */
+    /** a pset is default if all of its children are */
     public boolean isDefault()
     {
 	for (int i=0;i<parameterCount();i++) {
@@ -144,6 +139,14 @@ public class PSetParameter extends Parameter
 	}
 	return true;
     }
+
+    /** a pset is set if all of its children are */
+    public boolean isValueSet()
+    {
+	for (Parameter p : parameters) if (!p.isValueSet()) return false;
+	return (parameters.size()>0);
+    }
+    
 
     /** number of parameters in parameter-set */
     public int parameterCount() { return parameters.size(); }
@@ -164,12 +167,19 @@ public class PSetParameter extends Parameter
     }
     
     /** add a parameter */
-    public boolean addParameter(Parameter p)
+    public void addParameter(Parameter p)
     {
 	p.setParent(this);
 	parameters.add(p);
-	isValueSet = true;
-	return true;
+    }
+
+    /** remove a parameter */
+    public int removeParameter(Parameter p)
+    {
+	int index = parameters.indexOf(p);
+	if (index>=0) parameters.remove(index);
+	isValueSet = (parameters.size()>0);
+	return index;
     }
 
 }

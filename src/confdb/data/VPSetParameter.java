@@ -33,7 +33,6 @@ public class VPSetParameter extends Parameter
 	super(name,isTracked,isDefault);
 	for (PSetParameter p : parameterSets)
 	    this.parameterSets.add((PSetParameter)p.clone(this));
-	isValueSet = (parameterSets.size()>0);
     }
     
     /** constructor from a string */
@@ -102,7 +101,7 @@ public class VPSetParameter extends Parameter
 	return true;
     }
     
-    /** a vecotr<pset> is default if all of its children are */
+    /** a vpset is default if all of its children are */
     public boolean isDefault()
     {
 	for (int i=0;i<parameterSetCount();i++) {
@@ -112,6 +111,14 @@ public class VPSetParameter extends Parameter
 	return true;
     }
     
+    /** a vpset is set if all of its children are */
+    public boolean isValueSet()
+    {
+	for (PSetParameter pset : parameterSets)
+	    if (!pset.isValueSet()) return false;
+	return (parameterSets.size()>0);
+    }
+
     /** number of parameter set entries */
     public int parameterSetCount() { return parameterSets.size(); }
 
@@ -140,7 +147,15 @@ public class VPSetParameter extends Parameter
 	parameterSets.add(pset);
 	isValueSet = true;
     }
-    
+
+    /** remove a parameter-set */
+    public int removeParameterSet(PSetParameter pset)
+    {
+	int index = parameterSets.indexOf(pset);
+	if (index>=0) parameterSets.remove(index);
+	isValueSet = (parameterSets.size()>0);
+	return index;
+    }
 }
 
 
