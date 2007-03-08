@@ -30,7 +30,7 @@ def main(argv):
     input_dbtype = "MySQL"
 
     # Parse command line options
-    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:t:h", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","dbtype=","help="])
+    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:h", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","help="])
     for o, a in opts:
 	if o in ("-r","release="):
 	    if(input_base_path and input_cmsswrel):
@@ -64,6 +64,9 @@ def main(argv):
 	if o in ("-u","user="):
 	    input_dbuser = str(a)
 	    print "Connecting as user " + input_dbuser
+	if o in ("-s","password="):
+	    input_dbpwd = str(a)
+	    print "Use DB password " + input_dbpwd
 	if o in ("-t","dbtype="):
 	    input_dbtype = str(a)
 	    if(input_dbtype == "MySQL"):
@@ -85,6 +88,7 @@ def main(argv):
 	    print "\t-v <Verbosity level (0-3)>"
 	    print "\t-d <Name of the database to connect to>"
 	    print "\t-u <User name to connect as>" 
+	    print "\t-s <Database password>"
 	    print "\t-t <Type of database. Options are MySQL (default) or Oracle (not yet implemented)>"	    
 	    return
 
@@ -96,25 +100,26 @@ def main(argv):
 
     print "Using release base: " + input_base_path
 
-    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype)
+    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype,input_dbpwd)
     confdbjob.BeginJob()
 
 class ConfdbSourceToDB:
-    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype):
+    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype,clidbpwd):
 	self.data = []
 	self.dbname = clidbname
 	self.dbuser = clidbuser
 	self.dbtype = clidbtype
 	self.verbose = int(cliverbose)
+	self.dbpwd = clidbpwd
 
 	# Get a Conf DB connection. Only need to do this once at the 
 	# beginning of a job.
 	if(self.dbtype == "MySQL"):
 	    self.dbloader = ConfdbSQLModuleLoader.ConfdbMySQLModuleLoader(self.verbose)
-	    self.dbcursor = self.dbloader.ConfdbMySQLConnect(self.dbname,self.dbuser)
+	    self.dbcursor = self.dbloader.ConfdbMySQLConnect(self.dbname,self.dbuser,self.dbpwd)
 	elif(self.dbtype == "Oracle"):
 	    self.dbloader = ConfdbOracleModuleLoader.ConfdbOracleModuleLoader(self.verbose)
-	    self.dbcursor = self.dbloader.ConfdbOracleConnect(self.dbname,self.dbuser)
+	    self.dbcursor = self.dbloader.ConfdbOracleConnect(self.dbname,self.dbuser,self.dbpwd)
 
 	# Deal with package tags for this release.
 	self.tagtuple = []

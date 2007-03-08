@@ -6,7 +6,7 @@
 # Jonathan Hollar LLNL Mar. 7, 2007
 
 import os, string, sys, posix, tokenize, array
-import cx_Oracle
+#import cx_Oracle
 
 class ConfdbOracleModuleLoader:
 
@@ -22,9 +22,9 @@ class ConfdbOracleModuleLoader:
 	self.fwkunchanged = 0
 
     # Connect to the Confdb db
-    def ConfdbOracleConnect(self,dbname,username):
+    def ConfdbOracleConnect(self,dbname,username,userpwd):
 	self.connection = cx_Oracle.connect(host="localhost", 
-				     user=username, passwd="password",
+				     user=username, passwd=userpwd,
                                      db=dbname )
         
 	cursor = self.connection.cursor() 
