@@ -2,8 +2,8 @@ package confdb.converter;
 
 import confdb.data.ModuleInstance;
 
-public interface IModuleWriter {
+public interface IModuleWriter extends ConverterSetter {
 	
-	public String toString( ModuleInstance module, Converter converter );
+	public String toString( ModuleInstance module );
 
 }
