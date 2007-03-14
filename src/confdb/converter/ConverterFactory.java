@@ -2,6 +2,7 @@ package confdb.converter;
 
 import java.util.HashMap;
 
+
 public class ConverterFactory {
 
 	static private HashMap<String, String> cmssw2version = null;
@@ -19,12 +20,14 @@ public class ConverterFactory {
 		return new ConverterFactory( releaseTag );
 	}
 	
-	
-	public IConverter getAsciiConverter() throws ClassNotFoundException, InstantiationException, IllegalAccessException
+
+	public Converter getConverter( String typeOfConverter ) throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
-		return getConverter();
+		String type = typeOfConverter.toUpperCase();
+		if ( type.equals( "ASCII") )
+			return getConverter();
+		return null;
 	}
-	
 	
 	public Converter getConverter() throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
@@ -44,21 +47,21 @@ public class ConverterFactory {
 
 	public IConfigurationWriter getConfigurationWriter() 
 	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
-{
-	String className = writerPackage + ".ConfigurationWriter" + version;
-	Class c = Class.forName( className );
-	Object o = c.newInstance();
-	return (IConfigurationWriter)o;
-}
+	{
+		String className = writerPackage + ".ConfigurationWriter" + version;
+		Class c = Class.forName( className );
+		Object o = c.newInstance();
+		return (IConfigurationWriter)o;
+	}
 
 	public IPathWriter getPathWriter() 
 	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
-{
-	String className = writerPackage + ".PathWriter" + version;
-	Class c = Class.forName( className );
-	Object o = c.newInstance();
-	return (IPathWriter)o;
-}
+	{
+		String className = writerPackage + ".PathWriter" + version;
+		Class c = Class.forName( className );
+		Object o = c.newInstance();
+		return (IPathWriter)o;
+	}
 
 	
 	public IServiceWriter getServiceWriter() 
