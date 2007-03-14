@@ -12,7 +12,7 @@ import confdb.data.Template;
 import confdb.db.CfgDatabase;
 import confdb.db.DatabaseException;
 
-public class Converter {
+public class Converter implements IConverter {
 	private CfgDatabase database = null;
 	private Configuration configuration = null;
 	private IConfigurationWriter configurationWriter = null;
@@ -99,6 +99,12 @@ public class Converter {
 	}
 	
 	public String convertConfiguration()
+	{
+		return convert( configuration );
+	}
+	
+
+	public String convert( Configuration configuration )
 	{
 		String str = "// " + configuration.name() + " V" + configuration.version()
 			+ " (" + configuration.releaseTag() + ")" + getNewline();
