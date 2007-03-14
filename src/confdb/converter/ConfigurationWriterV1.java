@@ -10,12 +10,11 @@ import confdb.data.ServiceInstance;
 
 public class ConfigurationWriterV1 implements IConfigurationWriter 
 {
-	static final public String header = "process FU = {";
+	protected Converter converter = null;
 
-
-	public String toString( Configuration conf, Converter converter )
+	public String toString( Configuration conf )
 	{
-		String str = header + converter.getNewline();
+		String str = converter.getConfigurationHeader();
 		IPathWriter pathWriter = converter.getPathWriter();
 		for ( int i = 0; i < conf.pathCount(); i++ )
 		{
@@ -57,11 +56,15 @@ public class ConfigurationWriterV1 implements IConfigurationWriter
 		for ( int i = 0; i < conf.moduleCount(); i++ )
 		{
 			ModuleInstance module = conf.module(i);
-			str += moduleWriter.toString( module, converter );
+			str += moduleWriter.toString( module );
 		}
 
-		str += "}" + converter.getNewline();
+		str += converter.getConfigurationTrailer();
 		return str;
+	}
+
+	public void setConverter(Converter converter) {
+		this.converter = converter;
 	}
 	
 }
