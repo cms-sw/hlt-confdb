@@ -14,7 +14,6 @@ import confdb.db.DatabaseException;
 
 public class Converter implements IConverter {
 	private CfgDatabase database = null;
-	private Configuration configuration = null;
 	private IConfigurationWriter configurationWriter = null;
 	private IParameterWriter parameterWriter = null;
 
@@ -32,7 +31,10 @@ public class Converter implements IConverter {
 
 	static private Preferences  prefs = Preferences.userNodeForPackage( Converter.class );
 	
-	static final public String newline = "\n";
+	static final private String newline = "\n";
+	final private String configurationHeader = "process FU = {" + newline;
+	final private String configurationTrailer = "}" + newline;
+
 
 	private static String CMSSWrelease = getPrefs().get( "CMSSWrelease", "CMSSW_1_3_0_pre3" );
 	private static String dbName = getPrefs().get( "dbName", "hltdb" );
@@ -66,10 +68,11 @@ public class Converter implements IConverter {
 		try {
 			database.connect( dbType, dbUrl, dbUser, dbPwrd );
 			database.prepareStatements();
-			
-			if ( !loadConfiguration(configKey) )
+
+			Configuration configuration = loadConfiguration(configKey);
+			if ( configuration == null )
 				return null;
-			return convertConfiguration();
+			return convert( configuration );
 		} finally {
 			database.disconnect();
 		}
@@ -77,16 +80,12 @@ public class Converter implements IConverter {
 
 		
 		
-	public boolean loadConfiguration( int configKey ) throws SQLException
+	public Configuration loadConfiguration( int configKey ) throws SQLException
 	{
 		ConfigInfo configInfo = findConfig(configKey);
 		if ( configInfo == null )
-			return false;
-		configuration = loadConfiguration(configInfo);
-		if ( configuration == null )
-			return false;
-		else
-			return true;
+			return null;
+		return loadConfiguration(configInfo);
 	}
 	
 	protected Configuration loadConfiguration( ConfigInfo configInfo ) throws SQLException
@@ -98,17 +97,11 @@ public class Converter implements IConverter {
 										moduleTemplateList );
 	}
 	
-	public String convertConfiguration()
-	{
-		return convert( configuration );
-	}
-	
-
 	public String convert( Configuration configuration )
 	{
 		String str = "// " + configuration.name() + " V" + configuration.version()
 			+ " (" + configuration.releaseTag() + ")" + getNewline();
-		return str + configurationWriter.toString( configuration, this );
+		return str + configurationWriter.toString( configuration );
 	}
 	
 
@@ -256,6 +249,7 @@ public class Converter implements IConverter {
 
 	protected void setConfigurationWriter(IConfigurationWriter configurationWriter) {
 		this.configurationWriter = configurationWriter;
+		this.configurationWriter.setConverter(this);
 	}
 
 
@@ -316,6 +310,7 @@ public class Converter implements IConverter {
 
 	protected void setModuleWriter(IModuleWriter moduleWriter) {
 		this.moduleWriter = moduleWriter;
+		this.moduleWriter.setConverter(this);
 	}
 
 
@@ -394,5 +389,18 @@ public class Converter implements IConverter {
 	public static void addToCache( int key, String info )
 	{
 		cache.put( new Integer( key ), info );
+	}
+
+	public String getConfigurationHeader() {
+		return configurationHeader;
+	}
+
+	public String getConfigurationTrailer() {
+		return configurationTrailer;
+	}
+	
+	static protected String getAsciiNewline()
+	{
+		return newline;
 	}
 }
