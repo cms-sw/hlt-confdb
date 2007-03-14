@@ -20,6 +20,12 @@ public class ConverterFactory {
 	}
 	
 	
+	public IConverter getAsciiConverter() throws ClassNotFoundException, InstantiationException, IllegalAccessException
+	{
+		return getConverter();
+	}
+	
+	
 	public Converter getConverter() throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
 		Converter converter = new Converter();
