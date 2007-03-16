@@ -153,24 +153,29 @@ class SourceParser:
 				       paramname = paramname.rstrip('=')
 				    if(paramname.find('=') != -1):
 					paramname = paramname.split('=')[0]
-                                    foundparam = True
+
+				    if(itsparamset == ''):
+					foundparam = True
 
 				    # This is the start of the PSet we're looking for
 				    if(startedpset == True):
 					foundpset = True
 					if(psetname == itsparamset):
 					    readingpset = True					
+					    foundparam = True
 
 				    # This is the start of the VPSet we're looking for
 				    if(startedvpset == True):
 					if(paramtype == 'VPSet'):
 					    foundvpset = True
 					    readingvpset = True
+					    foundparam = True
 
 				    if(startednestedpset == True):
 					foundnestedpset = True
 					if(nestedpsetname == itsparamset):
 					    readingnestedpset = True
+					    foundparam = True
 
                                     # This is the start of the vector we're looking for 
                                     if(paramtype == 'vdouble' or
@@ -182,7 +187,8 @@ class SourceParser:
 					readingvector = True
 				    
 				    # This is a normal parameter
-                                    elif(paramtype != 'PSet' and paramtype != 'VPSet' and readingpset == False and readingvpset == False):
+                                    elif(paramtype != 'PSet' and paramtype != 'VPSet' and readingpset == False 
+					 and readingvpset == False and itsparamset == ''):
 					paramval = (line.split('=')[1]).strip('\n')
 
                                         if(self.verbose > 1):
