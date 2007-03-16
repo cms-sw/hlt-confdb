@@ -193,14 +193,24 @@ class ConfdbSourceToDB:
                 
 		    srcdir = packagedir + "/src/"
 		    testdir = packagedir + "/test/"
-    
-		    if(os.path.isdir(srcdir)):
-			srcfiles = os.listdir(srcdir)
+		    pluginsdir = packagedir + "/plugins/"
+
+		    if(os.path.isdir(srcdir) or os.path.isdir(pluginsdir)):
+			if(os.path.isdir(srcdir)):
+			    srcfiles = os.listdir(srcdir)
+			    if(os.path.isdir(pluginsdir)):
+				srcfiles = srcfiles + os.listdir(pluginsdir)
+			elif(os.path.isdir(pluginsdir)):
+			    srcfiles = os.listdir(pluginsdir)
 
 			for srcfile in srcfiles:
 			    # Get all cc files
-			    if(srcfile.endswith(".cc")):
-				sealcomponentfilename = srcdir + srcfile
+			    if(srcfile.endswith(".cc")):				
+				if(os.path.isfile(srcdir + srcfile)):
+				    sealcomponentfilename = srcdir + srcfile
+				elif(os.path.isfile(pluginsdir + srcfile)):
+				    sealcomponentfilename = pluginsdir + srcfile
+
 				if(os.path.isfile(sealcomponentfilename)):
 				    sealcomponentfile = open(sealcomponentfilename)
                   
@@ -321,12 +331,13 @@ class ConfdbSourceToDB:
 	datadir = packagedir + "/data/"
 	cvsdir = packagedir + "/CVS/"
 	testdir = packagedir + "/test/"
+	pluginsdir = packagedir + "/plugins/"
 
 	tagline = ""
 
 #	tagfile = open("tags130.txt")
 #	taglines = tagfile.readlines()
-
+#
 #	for modtag in taglines:
 #	    if((modtag.split()[0]).lstrip().rstrip() == packagename.lstrip().rstrip()):
 #		tagline = (modtag.split()[1]).lstrip().rstrip()
@@ -335,8 +346,13 @@ class ConfdbSourceToDB:
 	    if(modtag.lstrip().rstrip() == packagename.lstrip().rstrip()):
 		tagline = cvstag
 
-	if(os.path.isdir(srcdir)):        
-	    srcfiles = os.listdir(srcdir)
+	if(os.path.isdir(srcdir) or os.path.isdir(pluginsdir)):        
+	    if(os.path.isdir(srcdir)):
+		srcfiles = os.listdir(srcdir)
+		if(os.path.isdir(pluginsdir)):
+		    srcfiles = srcfiles + os.listdir(pluginsdir)
+	    elif(os.path.isdir(pluginsdir)):
+		srcfiles = os.listdir(pluginsdir)
 
 	    for srcfile in srcfiles:
 		# Get all cc files
@@ -347,18 +363,23 @@ class ConfdbSourceToDB:
 		    if(os.path.isdir(interfacedir)):
 			myParser.ParseInterfaceFile(interfacedir + interfacefile, modulename)
 
-		    # Because some people like to put .h files in the src/ directory...
-		    myParser.ParseInterfaceFile(srcdir + interfacefile, modulename)
+		    if(os.path.isdir(srcdir) and os.path.isfile(srcdir + srcfile)):
+			# Because some people like to put .h files in the src/ directory...
+			myParser.ParseInterfaceFile(srcdir + interfacefile, modulename)
 
-		    # And other people like to put class definitions in .cc files
-		    myParser.ParseInterfaceFile(srcdir + srcfile, modulename)
+			# And other people like to put class definitions in .cc files
+			myParser.ParseInterfaceFile(srcdir + srcfile, modulename)
 
-		    # Now find the relevant constructor and parameter declarations
-		    # in the .cc files in the src/ directory
-		    myParser.ParseSrcFile(srcdir + srcfile, modulename, datadir, "")
+			# Now find the relevant constructor and parameter declarations
+			# in the .cc files in the src/ directory
+			myParser.ParseSrcFile(srcdir + srcfile, modulename, datadir, "")
 
-		    # Lastly the special case of modules declared via typedef
-		    myParser.HandleTypedefs(srcdir + srcfile, modulename, srcdir, interfacedir, datadir, sourcetree)
+			# Lastly the special case of modules declared via typedef
+			myParser.HandleTypedefs(srcdir + srcfile, modulename, srcdir, interfacedir, datadir, sourcetree)
+
+		    if(os.path.isdir(pluginsdir) and os.path.isfile(pluginsdir + srcfile)):
+			# Even if the typedefs are in a special "plugins" directory
+			myParser.HandleTypedefs(pluginsdir + srcfile, modulename, pluginsdir, interfacedir, datadir, sourcetree)
 
 	# Retrieve the relevant information to be loaded to the DB
 	hltparamlist = myParser.GetParams(modulename)

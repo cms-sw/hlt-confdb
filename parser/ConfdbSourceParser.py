@@ -3,20 +3,29 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL Mar. 7, 2007
+# Jonathan Hollar LLNL Mar. 16, 2007
 
-import os, string, sys, posix, tokenize, array
+import os, string, sys, posix, tokenize, array, re
 
 class SourceParser:
     def __init__(self,verbosity,srctree):
         self.data = []
+
+	# Store parameters(sets) and their default values for this package
         self.paramlist = []
         self.vecparamlist = []
 	self.paramsetmemberlist = []
 	self.paramsetlist = []
 	self.vecparamsetlist = []
 	self.vecparamsetmemberlist = []
+
+	# List of parameters where we couldn't find a default value
 	self.paramfailures = []
+
+	# Hash table of parameter set variables
+	self.psetdict = {}
+	self.psetsequences = {}
+
 	self.inheritancelevel = 0
 	self.includefile = ""
         self.baseclass = ""
@@ -27,15 +36,17 @@ class SourceParser:
 
     # Parser for .cf* files. Look for default values of tracked parameters.
     # Anything specific to the .cf* file syntax nominally goes here.
-    def ParseCfFile(self,thecfidir,themodule,theparam):
+    def ParseCfFile(self,thecfidir,themodule,theparam,itsparamset):
 
         foundparam = False
+
+	if(itsparamset in self.psetsequences):
+	    self.psetsequencenb = self.psetsequences[itsparamset]
 
         if(os.path.isdir(thecfidir)):
             cfifiles = os.listdir(thecfidir)
             for cfifile in cfifiles:
                 # Get all cfi files
-#                if((cfifile.find('cfi') != -1 or cfifile.find('cfg') != -1) and foundparam == False):
 		if((cfifile.find('cfi') != -1) and foundparam == False):
 		    if(not os.path.isfile(thecfidir+cfifile)):
 			continue
@@ -43,7 +54,7 @@ class SourceParser:
 		    filename = open(thecfidir + cfifile)
 
                     if(self.verbose > 1):
-                        print '\t\tChecking cf* file: ' + cfifile + ' for ' + str(theparam)
+                        print '\t\tChecking cf* file: ' + cfifile + ' for ' + str(theparam) + '(in (V)PSet ' + str(itsparamset) + ')'
         
                     lines = filename.readlines()
         
@@ -60,10 +71,12 @@ class SourceParser:
 		    readingvpset = False
 		    foundvpset = False
 		    foundvectorend = False
+		    foundpsetparams = 0
 		    totalvectorline = ""
 		    paramtype = ""
 		    paramname = ""
 		    psetname = ""
+		    nestedpsetname = ""
 		    toppsetname = ""
 		    vpsetindex = 0
  
@@ -92,12 +105,13 @@ class SourceParser:
 				# Handle PSets
 				if(line.find('PSet') != -1 and line.find('VPSet') == -1):
 				    if(startedpset == False):
-					startedpset = True
 					toppsetname = (line.split('PSet')[1]).split('=')[0].rstrip().lstrip()
 					psetname = toppsetname
+					startedpset = True
 				    else:
 					startednestedpset = True
-					
+					nestedpsetname =  (line.split('PSet')[1]).split('=')[0].rstrip().lstrip()
+
 				# Handle VPSets
 				if(line.find('VPSet') != -1):
 				    if(startedvpset == False):
@@ -144,14 +158,19 @@ class SourceParser:
 				    # This is the start of the PSet we're looking for
 				    if(startedpset == True):
 					foundpset = True
-					readingpset = True					
+					if(psetname == itsparamset):
+					    readingpset = True					
 
 				    # This is the start of the VPSet we're looking for
 				    if(startedvpset == True):
 					if(paramtype == 'VPSet'):
 					    foundvpset = True
 					    readingvpset = True
-					    
+
+				    if(startednestedpset == True):
+					foundnestedpset = True
+					if(nestedpsetname == itsparamset):
+					    readingnestedpset = True
 
                                     # This is the start of the vector we're looking for 
                                     if(paramtype == 'vdouble' or
@@ -169,7 +188,8 @@ class SourceParser:
                                         if(self.verbose > 1):
                                             print '\t\t\t' + paramtype + '\t' + paramname + ' = ' + paramval
 					    
-					if(not paramname.lstrip().startswith('@module')):
+					if((not paramname.lstrip().startswith('@module')) 
+					   and ((self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None')))):
 					   self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb))
 					   self.sequencenb = self.sequencenb + 1
 
@@ -209,9 +229,23 @@ class SourceParser:
 					    if(self.verbose > 1):
 						print '\t\t\t\t' + vecval
 
-					if(not paramname.lstrip().startswith('@module')):
+					if((not paramname.lstrip().startswith('@module')) and (readingpset == False)
+					   and ((self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')))):
 					    self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),values,"true",self.sequencenb))
-					self.sequencenb = self.sequencenb + 1
+					    self.sequencenb = self.sequencenb + 1
+					elif((not paramname.lstrip().startswith('@module')) and (readingpset == True) and (readingnestedpset == False)
+					     and ((self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,psetname)))):
+					    if(self.verbose > 1):
+						print '\t\tattach ' + psetname + '\t' + paramtype + '\t' + paramname + '\t' + totalvectorline + ' (' + str(self.sequencenb) + ', ' + str(self.psetsequencenb) + ')'
+					    self.paramsetmemberlist.append((psetname,paramtype,paramname,totalvectorline,"true",self.sequencenb,'None',self.psetsequencenb))
+					    self.sequencenb = self.sequencenb + 1
+					elif((not paramname.lstrip().startswith('@module')) and (readingpset == True) and (readingnestedpset == True)
+					     and ((self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,psetname)))):
+					    if(self.verbose > 1):
+						print '\t\tattach ' + psetname + '\t' + paramtype + '\t' + paramname + '\t' + totalvectorline + ' (' + str(self.sequencenb) + ', ' + str(self.psetsequencenb) + ')'
+					    self.paramsetmemberlist.append((psetname,paramtype,paramname,totalvectorline,"true",self.sequencenb,toppsetname,self.psetsequencenb))
+					    self.sequencenb = self.sequencenb + 1
+
 					readingvector = False
 					foundvectorend = False
 
@@ -220,6 +254,9 @@ class SourceParser:
 				    if((line.lstrip()).startswith('}') or ((line.lstrip().startswith('PSet')) and line.rstrip().endswith('}'))):
 					if(readingnestedpset == True):
 					    readingnestedpset = False
+
+					startedpset = False
+					foundpset = False
 
 					startednestedpset = False
 					continue
@@ -239,15 +276,18 @@ class SourceParser:
 
 					psetparamval = (line.split('=')[1]).strip('\n')
 					if(self.verbose > 1):
-					    print 'attach ' + psetname + '\t' + psetparamtype + '\t' + psetparamname + '\t' + psetparamval
+					    print '\t\tattach ' + nestedpsetname + '\t' + psetparamtype + '\t' + psetparamname + '\t' + psetparamval + ' (' + str(self.sequencenb)  + ', ' + str(self.psetsequencenb) + ')'
 					
-					if(not psetparamname.lstrip().startswith('@module')):
-					    self.paramsetmemberlist.append((psetname,psetparamtype,psetparamname,psetparamval,"true",self.sequencenb,toppsetname,self.psetsequencenb))
-#					self.sequencenb = self.sequencenb + 1
+					if((not psetparamname.lstrip().startswith('@module')) and 
+					   (self.IsNewParameter(psetparamname,self.paramsetmemberlist,nestedpsetname))):
+					    self.paramsetmemberlist.append((nestedpsetname,psetparamtype,psetparamname,psetparamval,"true",self.sequencenb,toppsetname,self.psetsequencenb))
+					    self.sequencenb = self.sequencenb + 1
+					    foundpsetparams = foundpsetparams + 1
 
+					    
 				# Do PSets
 				elif(startedpset == True and startednestedpset == False):
-				    if((line.lstrip()).startswith('}') or ((line.lstrip().startswith('PSet')) and line.rstrip().endswith('}'))):					
+				    if((line.lstrip()).startswith('}') or ((line.lstrip().startswith('PSet')) and line.rstrip().endswith('}'))):
 					if(readingpset == True):
 					    readingpset = False
 
@@ -269,12 +309,13 @@ class SourceParser:
 
 					psetparamval = (line.split('=')[1]).strip('\n')
 					if(self.verbose > 1):
-					    print 'attach ' + psetname + '\t' + psetparamtype + '\t' + psetparamname + '\t' + psetparamval
+					    print '\t\tattach ' + psetname + '\t' + psetparamtype + '\t' + psetparamname + '\t' + psetparamval + ' (' + str(self.sequencenb) + ', ' + str(self.psetsequencenb) + ')'
 
-					if(not psetparamname.lstrip().startswith('@module')):
-					   self.paramsetmemberlist.append((psetname,psetparamtype,psetparamname,psetparamval,"true",self.sequencenb,'None',self.psetsequencenb))
-#					self.sequencenb = self.sequencenb + 1
-
+					if((not psetparamname.lstrip().startswith('@module')) 
+					   and (self.IsNewParameter(psetparamname,self.paramsetmemberlist,psetname))):
+					    self.paramsetmemberlist.append((psetname,psetparamtype,psetparamname,psetparamval,"true",self.sequencenb,'None',self.psetsequencenb))
+					    self.sequencenb = self.sequencenb + 1
+					    foundpsetparams = foundpsetparams + 1
 
 				# Fill VPSets
 				elif(startedvpset == True):
@@ -307,29 +348,32 @@ class SourceParser:
 						vpsettokens = vpsetparamrhs.split()
 						vpsetparamval = vpsettokens[0]
 						if(self.verbose > 1):
-						    print 'attach ' + psetname + '\t' + vpsetparamtype + '\t' + vpsetparamname + '\t= ' + vpsetparamval + '\t\t' + str(vpsetindex)
-						if(not vpsetparamname.lstrip().startswith('@module')):
+						    print '\t\tattach ' + psetname + '\t' + vpsetparamtype + '\t' + vpsetparamname + '\t= ' + vpsetparamval + '\t\t' + str(vpsetindex) + ' (' + str(self.sequencenb) + ', ' + str(self.psetsequencenb) + ')'
+						if((not vpsetparamname.lstrip().startswith('@module')) 
+						   and (self.IsNewParameter(vpsetparamname,self.vecparamsetmemberlist,psetname))):
 						    self.vecparamsetmemberlist.append((psetname,vpsetparamtype,vpsetparamname,vpsetparamval,"true",vpsetindex,self.sequencenb,self.psetsequencenb))
-#						self.sequencenb = self.sequencenb + 1
+						    self.sequencenb = self.sequencenb + 1
 				
 						vpsetparamtypetwo = vpsettokens[1]
 						vpsetparamnametwo = vpsettokens[2]
 						vpsetparamvaltwo = (line.split('=')[2]).strip('\n').rstrip('}')
 						if(self.verbose > 1):
-						    print 'attach ' + psetname + '\t' + vpsetparamtypetwo + '\t' + vpsetparamnametwo + '\t= ' + vpsetparamvaltwo + '\t\t' + str(vpsetindex)
+						    print '\t\tattach ' + psetname + '\t' + vpsetparamtypetwo + '\t' + vpsetparamnametwo + '\t= ' + vpsetparamvaltwo + '\t\t' + str(vpsetindex) + ' (' + str(self.sequencenb) + ', ' + str(self.psetsequencenb) + ')'
 
-						if(not vpsetparamnametwo.lstrip().startswith('@module')):
+						if((not vpsetparamnametwo.lstrip().startswith('@module')) 
+						   and (self.IsNewParameter(vpsetparamnametwo,self.vecparamsetmemberlist,psetname))):
 						    self.vecparamsetmemberlist.append((psetname,vpsetparamtypetwo,vpsetparamnametwo,vpsetparamvaltwo,"true",vpsetindex,self.sequencenb,self.psetsequencenb))
-						    #						self.sequencenb = self.sequencenb + 1
+						    self.sequencenb = self.sequencenb + 1
 
 					    else:
 						vpsetparamval = vpsetparamrhs
 						if(self.verbose > 1):
-						    print 'attach ' + psetname + '\t' + vpsetparamtype + '\t' + vpsetparamname + '\t= ' + vpsetparamval + '\t\t' + str(vpsetindex)
+						    print '\t\tattach ' + psetname + '\t' + vpsetparamtype + '\t' + vpsetparamname + '\t= ' + vpsetparamval + '\t\t' + str(vpsetindex) + ' (' + str(self.sequencenb) + ', ' + str(self.psetsequencenb) + ')'
 
-						if(not vpsetparamname.lstrip().startswith('@module')):
+						if((not vpsetparamname.lstrip().startswith('@module')) 
+						   and (self.IsNewParameter(vpsetparamname,self.vecparamsetmemberlist,psetname))):
 						    self.vecparamsetmemberlist.append((psetname,vpsetparamtype,vpsetparamname,vpsetparamval,"true",vpsetindex,self.sequencenb,self.psetsequencenb))
-						    #						self.sequencenb = self.sequencenb + 1
+						    self.sequencenb = self.sequencenb + 1
 
 				# This is the end of the module definition
 				elif ((line.lstrip()).startswith('}')):
@@ -385,6 +429,8 @@ class SourceParser:
 
         lines = filename.readlines()
 
+	paraminparamset = ''
+
         startedmod = False
 	startedconstructor = False
 	endedconstructor = False
@@ -436,13 +482,29 @@ class SourceParser:
                     if((foundlineend == True) and
                        (totalline.find('getParameter') != -1) and (totalline.find('"') != -1)):
 
+			# If this is a parameter, figure out what ParameterSet this belongs to
+			belongstopset = totalline.split('.getParameter')[0].rstrip().lstrip()
+			belongstopsetname = re.split('\W+',belongstopset)
+			belongstovar = belongstopsetname[len(belongstopsetname)-1].lstrip().rstrip()
+			if(belongstovar in self.psetdict):
+			    if(self.verbose > 1):
+				print '\tMember of parameter set named ' + belongstovar + ' (' + self.psetdict[belongstovar] + ')'
+			    paraminparamset = self.psetdict[belongstovar]
+
                         paramstring = totalline.split('"')
 
-                        # Parameter name should be the first thing in quotes
+                        # Parameter name should be the first thing in quotes after 'getParameter'
 			if(paramstring[0].find('getParameter') != -1):
 			    paramname = paramstring[1]
-			else:
+			elif(paramstring[2].find('getParameter') != -1):
 			    paramname = paramstring[3]
+			elif(paramstring[4].find('getParameter') != -1):
+			    paramname = paramstring[5]
+			elif(paramstring[6].find('getParameter') != -1):
+			    paramname = paramstring[7]
+			elif(paramstring[8].find('getParameter') != -1):
+			    paramname = paramstring[9]
+
 
                         # Now look for parameter <type>
 			paramstring2 = totalline.split('<')
@@ -476,6 +538,30 @@ class SourceParser:
 
                         else:
 			    isvector = False
+
+			    # If this is a ParameterSet, figure out it's variable name 
+			    if(paramtype == 'ParameterSet' or paramtype == 'PSet'):
+				if(totalline.find('=') != -1):
+				    thisparamset = totalline.split('=')[0].rstrip().lstrip()
+				
+				    if(thisparamset.find('vector<edm::ParameterSet>') != -1):
+					thisparamset = thisparamset.split('>')[1].rstrip().lstrip()
+				    elif(thisparamset.find('PSet ') != -1):
+					thisparamset = thisparamset.split('PSet ')[1].rstrip().lstrip()
+				    elif(thisparamset.find('ParameterSet ') != -1):
+					thisparamset = thisparamset.split('ParameterSet ')[1].rstrip().lstrip()
+				    elif(thisparamset.find('ParameterSet& ') != -1):
+					thisparamset = thisparamset.split('ParameterSet& ')[1].rstrip().lstrip()
+
+				    if(len(re.split('\W+',thisparamset)) == 1):
+					self.psetdict[thisparamset] = paramname
+					if(paramname in self.psetsequences):
+					    self.psetsequencenb = self.psetsequences[paramname]
+					else:
+					    self.psetsequencenb = self.sequencenb
+					    self.sequencenb = self.sequencenb + 1
+					    self.psetsequences[paramname] = self.psetsequencenb
+
                             if(self.verbose > 1):
                                 print '\t\t\t' + paramtype + '\t' + paramname + '\t\t(Tracked)' 
 
@@ -483,13 +569,13 @@ class SourceParser:
                         # their default values from the corresponding .cfi
                         # file
                         if(thetdefedmodule == ""):
-                            success = self.ParseCfFile(thedatadir,theconstructor,paramname)
+                            success = self.ParseCfFile(thedatadir,theconstructor,paramname,paraminparamset)
                         else:
-                            success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname)
+                            success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname,paraminparamset)
 
                         totalline = ''
                         foundlineend = False
-
+			
 			# We didn't find a default setting for this tracked parameter
 			if(success == False):
 			    if(self.verbose > 0):
@@ -498,34 +584,50 @@ class SourceParser:
 			    if(not paramname.lstrip().startswith('@module')):
 				# Special cases for typedef'd vectors
 				if(paramtype.lstrip().rstrip() == 'vtag'):
-				    self.vecparamlist.append(('VInputTag',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
-				    self.sequencenb = self.sequencenb + 1
+				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
+					self.vecparamlist.append(('VInputTag',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
+					self.sequencenb = self.sequencenb + 1
 				elif(paramtype.lstrip().rstrip() == 'Labels'):
-				    self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
-				    self.sequencenb = self.sequencenb + 1
+				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
+					self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
+					self.sequencenb = self.sequencenb + 1
 				elif(paramtype.lstrip().rstrip() == 'vString'):
-				    self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
-				    self.sequencenb = self.sequencenb + 1
+				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
+					self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
+					self.sequencenb = self.sequencenb + 1
 				elif(paramtype.lstrip().rstrip() == 'Parameters'):
-				    self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",0,self.sequencenb,self.psetsequencenb))
-				    self.psetsequencenb = self.sequencenb + 1
-				    self.sequencenb = self.sequencenb + 1
+				     if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,'None')):
+					 self.sequencenb = self.psetsequencenb
+					 self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",0,self.sequencenb,self.psetsequencenb))	
+					 self.sequencenb = self.sequencenb + 1
 				elif(paramtype.lstrip().rstrip() == 'PSet' or 
 				     paramtype.lstrip().rstrip() == 'ParameterSet'):
 				    if(self.verbose > 0):
 					print "Appending to paramsetlist with no values"
-				    self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",self.sequencenb,'None',self.psetsequencenb))
-				    self.psetsequencenb = self.sequencenb + 1
-				    self.sequencenb = self.sequencenb + 1
-
-				elif(isvector == False):
-				    self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),None,"true",self.sequencenb))	   
-				    self.sequencenb = self.sequencenb + 1
+				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,'None')):
+					self.sequencenb = self.psetsequencenb
+					self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",self.sequencenb,'None',self.psetsequencenb))
+					self.sequencenb = self.sequencenb + 1
+				elif(isvector == False and paraminparamset == ''):
+				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None')):
+					self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),None,"true",self.sequencenb))	   
+					self.sequencenb = self.sequencenb + 1
+				elif(isvector == False and paraminparamset != ''):
+				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
+					self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true",self.sequencenb,'None',self.psetsequencenb))
+					self.sequencenb = self.sequencenb + 1
+				elif(isvector == True and paraminparamset == ''):
+				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
+					self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true",self.sequencenb))
+					self.paramfailures.append((themodulename,paramtype,paramname.lstrip().rstrip(),"true",self.sequencenb))
+					self.sequencenb = self.sequencenb + 1
 				else:
-				    self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true",self.sequencenb))
-				    self.paramfailures.append((themodulename,paramtype,paramname.lstrip().rstrip(),"true",self.sequencenb))
-				    self.sequencenb = self.sequencenb + 1
-				
+				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
+					self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true",self.sequencenb,'None',self.psetsequencenb))
+					self.sequencenb = self.sequencenb + 1					    
+
+			paraminparamset = ''	
+
                     # Now look at untracked parameters. Default
                     # value _may_ be specified as the second argument
                     # in the declaration.
@@ -535,6 +637,15 @@ class SourceParser:
 			defaultincc = False
 
                         paramstring = totalline.split('"')
+
+			# Figure out what ParameterSet this belongs to
+			belongstopset = totalline.split('.getUntrackedParameter')[0].rstrip().lstrip()
+			belongstopsetname = re.split('\W+',belongstopset)
+			belongstovar = belongstopsetname[len(belongstopsetname)-1].lstrip().rstrip()
+			if(belongstovar in self.psetdict):
+			    if(self.verbose > 1):
+				print '\tMember of parameter set named ' + belongstovar + ' (' + self.psetdict[belongstovar] + ')'
+			    paraminparamset = self.psetdict[belongstovar]
 
                         # Parameter name should be the first thing in
                         # quotes
@@ -569,7 +680,8 @@ class SourceParser:
 			    elif(paramtype == 'Labels'):
 				paramtype = 'vstring'
 
-			    if(not paramname.lstrip().startswith('@module')):
+			    if((not paramname.lstrip().startswith('@module')) 
+			       and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None'))):
 				self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"false",self.sequencenb))
 				self.sequencenb = self.sequencenb + 1
 			    defaultincc = True
@@ -588,6 +700,30 @@ class SourceParser:
                             else:
                                 paramtype = therest[0]
 				
+			    # If this is a ParameterSet, figure out it's variable name 
+			    if(paramtype == 'ParameterSet' or paramtype == 'PSet'):
+				if(totalline.find('=') != -1):
+				    thisparamset = totalline.split('=')[0].rstrip().lstrip()
+				
+				    if(thisparamset.find('vector<edm::ParameterSet>') != -1):
+					thisparamset = thisparamset.split('>')[1].rstrip().lstrip()
+				    elif(thisparamset.find('PSet ') != -1):
+					thisparamset = thisparamset.split('PSet ')[1].rstrip().lstrip()
+				    elif(thisparamset.find('ParameterSet ') != -1):
+					thisparamset = thisparamset.split('ParameterSet ')[1].rstrip().lstrip()
+				    elif(thisparamset.find('ParameterSet& ') != -1):
+					thisparamset = thisparamset.split('ParameterSet& ')[1].rstrip().lstrip()
+
+				    if(len(re.split('\W+',thisparamset)) == 1):
+					self.psetdict[thisparamset] = paramname
+					if(paramname in self.psetsequences):
+					    self.psetsequencenb = self.psetsequences[paramname]
+					    print 'The PSet ' + paramname + ' was already found with sequencenb = ' + str(self.psetsequences[paramname])
+					else:
+					    self.psetsequencenb = self.sequencenb
+					    self.sequencenb = self.sequencenb + 1
+					    self.psetsequences[paramname] = self.psetsequencenb
+
                             # Check whether there are default
                             # parameter values
                             if(totalline.find(',') != -1):
@@ -599,23 +735,29 @@ class SourceParser:
 				    if(self.verbose > 1): 
 					print '\t\t' + paramtype + '\t' + paramname + ' = ' + paramval + '\t\t(Untracked)'
 				    if(paramtype == 'PSet' or paramtype == 'ParameterSet'):
-					if(not paramname.lstrip().startswith('@module')):
+					if((not paramname.lstrip().startswith('@module'))
+					   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,'None'))):
 					    self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb,'None',self.psetsequencenb))
-					    self.psetsequencenb = self.sequencenb + 1
 					    self.sequencenb = self.sequencenb + 1
 				    elif(paramtype == 'VPSet'):
-					if(not paramname.lstrip().startswith('@module')):
+					if((not paramname.lstrip().startswith('@module'))
+					   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,'None'))):
 					    self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb,self.psetsequencenb))
-					    self.psetsequencenb = self.sequencenb + 1
 					    self.sequencenb = self.sequencenb + 1
 				    elif(paramtype == 'Labels'):
-					if(not paramname.lstrip().startswith('@module')):
+					if((not paramname.lstrip().startswith('@module')) 
+					    and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None'))):
 					    self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"false",self.sequencenb))
 					    self.sequencenb = self.sequencenb + 1
 				    else:
-					if(not paramname.lstrip().startswith('@module')):
-					    self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"false",self.sequencenb))
-					    self.sequencenb = self.sequencenb + 1
+					if((not paramname.lstrip().startswith('@module')) 
+					   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None'))):
+					    if(paraminparamset == ''):
+						self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"false",self.sequencenb))
+						self.sequencenb = self.sequencenb + 1
+					    else:
+						self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"false",self.sequencenb,'None',self.psetsequencenb))
+						self.sequencenb = self.sequencenb + 1						
 
 				    defaultincc = True
 
@@ -635,27 +777,28 @@ class SourceParser:
 			    # find their default values in the .cc file, look in 
 			    # .cfi files
 			    if(thetdefedmodule == "" and defaultincc == False):
-				success = self.ParseCfFile(thedatadir,theconstructor,paramname)
+				success = self.ParseCfFile(thedatadir,theconstructor,paramname,paraminparamset)
 
 			    elif(thetdefedmodule != "" and defaultincc == False):
-				success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname)
+				success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname,paraminparamset)
 
 			    if(defaultincc == False and success == False):
 				if(self.verbose > 0):
 				    print 'Failed to find a default value for the untracked parameter: ' + paramtype + ' ' + paramname + ' in module ' + themodulename
 				self.paramfailures.append((themodulename,paramtype,paramname.lstrip().rstrip(),"false",self.sequencenb))
 				if(paramtype == 'PSet' or paramtype == 'ParameterSet'):
-				    if(not paramname.lstrip().startswith('@module')):
+				    if((not paramname.lstrip().startswith('@module'))
+				       and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,'None'))):
 					self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb,'None',self.psetsequencenb))
-					self.psetsequencenb = self.sequencenb + 1
 					self.sequencenb = self.sequencenb + 1
 				elif(paramtype == 'VPSet'):
-				    if(not paramname.lstrip().startswith('@module')):
+				    if((not paramname.lstrip().startswith('@module'))
+				        and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,'None'))):
 					self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb,self.psetsequencenb))
-					self.psetsequencenb = self.sequencenb + 1
 					self.sequencenb = self.sequencenb + 1
 				else:
-				    if(not paramname.lstrip().startswith('@module')):
+				    if((not paramname.lstrip().startswith('@module'))
+				       and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None'))):
 				       self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),None,"false",self.sequencenb))
 				       self.sequencenb = self.sequencenb + 1
 
@@ -665,6 +808,14 @@ class SourceParser:
                         else:
                             paramnamestring = (totalline.split('getUntrackedParameter('))[1]
                             
+			    # Figure out what ParameterSet this belongs to
+			    belongstopset = totalline.split('.getUntrackedParameter')[0].rstrip().lstrip()
+			    belongstopsetname = re.split('\W+',belongstopset)
+			    belongstovar = belongstopsetname[len(belongstopsetname)-1].lstrip().rstrip()
+			    if(belongstovar in self.psetdict):
+				if(self.verbose > 1):
+				    print '\tMember of parameter set named ' + belongstovar + ' (' + self.psetdict[belongstovar] + ')'
+
                             paramname = paramnamestring.split(',')[0]
                             
                             therest = (paramnamestring.split(',')[1]).split('))')[0]
@@ -693,22 +844,30 @@ class SourceParser:
                             if(self.verbose > 1):
                                 print '\t\t(Untemplated) ' + paramtype + ' ' + paramname + ' ' + paramdefault + '\t\t(Untracked)'
 			    if(paramtype == 'PSet' or paramtype == 'ParameterSet'):
-				if(not paramname.lstrip().startswith('@module')):
+				if((not paramname.lstrip().startswith('@module'))
+				   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,'None'))):
+#				    self.psetsequencenb = self.sequencenb
 				    self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb,'None',self.psetsequencenb))
-				    self.psetsequencenb = self.sequencenb + 1
 				    self.sequencenb = self.sequencenb + 1
 			    elif(paramtype == 'VPSet'):
-				if(not paramname.lstrip().startswith('@module')):
+				if((not paramname.lstrip().startswith('@module')) 
+				   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,'None'))):
+#				    self.psetsequencenb = self.sequencenb
 				    self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb,self.psetsequencenb))
-				    self.psetsequencenb = self.sequencenb + 1
 				    self.sequencenb = self.sequencenb + 1
 			    elif(paramtype == 'Labels'):
-				if(not paramname.lstrip().startswith('@module')):
+				if((not paramname.lstrip().startswith('@module'))
+				   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None'))):
 				    self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"false",self.sequencenb))
 				    self.sequencenb + self.sequencenb + 1
 			    else:
-				if(not paramname.lstrip().startswith('@module')):
+				if((not paramname.lstrip().startswith('@module') and (paraminparamset == '') 
+				    and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None')))):
 				    self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramdefault,"false",self.sequencenb))
+				    self.sequencenb = self.sequencenb + 1
+				elif((not paramname.lstrip().startswith('@module') and (paraminparamset != '') 
+				      and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)))):
+				    self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramdefault,"false",self.sequencenb,'None',self.psetsequencenb))
 				    self.sequencenb = self.sequencenb + 1
 
 			# We're finished with this line(s)
@@ -871,11 +1030,12 @@ class SourceParser:
 	foundatypedef = False
 
         for line in lines:
-	    if(line.startswith('typedef ')):
+	    if(line.lstrip().startswith('typedef ')):
 		startedtypedef = True
 
 	    if(startedtypedef):
 		totalline = totalline + line
+
 		if (totalline.find('//') != -1):
 		    totalline = (totalline.split('//'))[0]
 		if(totalline.rstrip().endswith(';')):
@@ -888,9 +1048,9 @@ class SourceParser:
 		    foundatypedef = True
 		    if(self.verbose > 1):
 			print 'found a typedef module declaration in ' + theccfile
-			print '\n' + line
+			print '\n' + totalline
 
-		    theclass =  (line.split('<')[0]).lstrip('typedef').lstrip().rstrip()
+		    theclass =  (totalline.split('<')[0]).lstrip().lstrip('typedef').lstrip().rstrip()
 		    if(theclass.find('::') != -1):
 			theclass = theclass.split('::')[1]
 
@@ -923,6 +1083,7 @@ class SourceParser:
 	if((foundatypedef == True) and (self.baseclass == '')):
 	    self.includefile = theccfile
 	    thebaseclass = self.FindOriginalBaseClass(theclass, sourcetree)
+
 	    if(thebaseclass):
 		self.baseclass = thebaseclass
 
@@ -962,7 +1123,6 @@ class SourceParser:
 	    
 			    for baseincludeline in baseincludelines:
 				if((baseincludeline.lstrip()).startswith('class')):
-
 				    baseclassname = (baseincludeline.lstrip().split(':')[0]).lstrip('class').lstrip().rstrip()
 
 				    if(baseclassname != classname):
@@ -971,7 +1131,7 @@ class SourceParser:
 					startedbaseclass = True
 
 				if(startedbaseclass == True):
-				    if(baseincludeline.endswith('{\n') or baseincludeline.endswith(';\n')):
+				    if(baseincludeline.rstrip().endswith('{') or baseincludeline.rstrip().endswith(';')):
 					totalline = totalline + baseincludeline.lstrip().rstrip('\n')
 
 					foundlineend = True
@@ -980,22 +1140,25 @@ class SourceParser:
 
 				    else:
 					totalline = totalline + baseincludeline.lstrip().rstrip('\n')
-
+					
 					foundlineend = False
 
 				if(foundlineend == True and totalline.find('public') != -1):
 				    basepos = totalline.split('public')[1]
-
+				    
 				    basebaseclass = ((basepos.split())[0]).rstrip('{')
+				    if(basebaseclass.find('<') != -1):
+					basebaseclass = basebaseclass.split('<')[0].lstrip().rstrip()
+
 				    if(basebaseclass.find('::') != -1):
 					basebaseclass = (basebaseclass.split('::'))[1]
 
 					basebaseclass = basebaseclass.rstrip(',').lstrip(',')
 
-					if(self.verbose > 1):
-					    print '\t\tBase base class is ' + basebaseclass
+				    if(self.verbose > 1):
+					print '\t\tBase base class is ' + basebaseclass
 
-					foundlineend = False
+				    foundlineend = False
 	return basebaseclass
 
     # Look for parameters that this component may have inherited
@@ -1061,6 +1224,28 @@ class SourceParser:
 				print '\tAnd the data dir ' + thederiveddatadir
 			    self.ParseSrcFile(self.sourcetree+baseobjectsrcfile,includeclass,thederiveddatadir,"")			
 			    objectinstantiated = False
+
+    # Check whether a variable has already been parsed
+    def IsNewParameter(self, parametername, parameterlist, parameterset):
+
+	for listings in parameterlist:
+	    if(parameterset == 'None'):
+		if(parametername in listings):
+		    return False
+	    else:
+		if((parametername in listings) and (parameterset in listings)):
+		    return False
+	    
+	return True
+
+    # Check if a PSet has already been parsed
+    def IsNewParameterSet(self, parameterlist, parameterset):
+
+	for listings in parameterlist:
+	    if(parameterset in listings):
+		return False
+	    
+	return True
 
     # Return the parameters and default values associated with a module
     def GetParams(self ,modname):
@@ -1135,7 +1320,11 @@ class SourceParser:
 	self.paramsetmemberlist = []
 
 	self.vecparamsetmemberlist = []
+
+	self.psetdict = {}
 	
+	self.psetsequences = {}
+
 	self.sequencenb = 1
 
 	self.inheritancelevel = 0

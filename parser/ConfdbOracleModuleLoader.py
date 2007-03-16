@@ -6,7 +6,7 @@
 # Jonathan Hollar LLNL Mar. 7, 2007
 
 import os, string, sys, posix, tokenize, array
-#import cx_Oracle
+#import cs_Oracle
 
 class ConfdbOracleModuleLoader:
 
@@ -1175,12 +1175,13 @@ class ConfdbOracleModuleLoader:
     def ConfdbAttachParameterSets(self,thecursor,newsuperid,paramsets,vecparamsets):
 
 	lastpsetname = ''
+	psetcache = []
 
 	for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq in paramsets:
 	    # If this is the first entry in this PSet for this component, add it to the ParameterSets table
-	    if(pset != lastpsetname):
-		
-		# Each new PSet gets a new SuperId
+	    if(not pset in psetcache):
+		psetcache.append(pset)
+
 		thecursor.execute("INSERT INTO SuperIds VALUE()")
 		thecursor.execute("SELECT LAST_INSERT_ID()")
 		newparamsetid = thecursor.fetchone()[0]	
@@ -1190,21 +1191,46 @@ class ConfdbOracleModuleLoader:
 		    print "INSERT INTO ParameterSets (superId, name, tracked) VALUES (" + str(newparamsetid) + ", '" + pset + "', " + psettracked + ")"
 		thecursor.execute("INSERT INTO ParameterSets (superId, name, tracked) VALUES (" + str(newparamsetid) + ", '" + pset + "', " + psettracked + ")")
 
-		# Attach the PSet to a Fwk component via their superIds
-		if(self.verbose > 2):
-		    print "INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")"
-		thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")
+		# Each new top level PSet points to the framework component
+		if(psetnesting == 'None' or psetnesting == ''):
+		    # Attach the PSet to a Fwk component via their superIds
+		    if(self.verbose > 2):
+			print "INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")"
+		    thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")
 
-	    lastpsetname = pset
+		# Nested PSets point to the relevant top level PSet 
+		else:
+		    # Attach the PSet to another PSet component via their superIds
+		    print "SELECT ParameterSets.superId FROM ParameterSets WHERE (name = '" + psetnesting + "')"
+		    thecursor.execute("SELECT ParameterSets.superId FROM ParameterSets WHERE (name = '" + psetnesting + "')")
+		    toplevelid = thecursor.fetchone()[0]
+		    if(self.verbose > 2):
+			print "INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")"
+		    thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")   
 
 	    # Now make new entries for each parameter in this PSet if they exist
 	    if(psettype == '' or psetname == ''):
+		continue
+
+	    if(psettype == "int" or psettype == "int32_t"):
+		psettype = "int32"
+	    if(psettype == "uint32_t" or psettype == "unsigned int"):
+		psettype = "uint32"
+	    if(psettype == "FileInPath"):
+		psettype = "string"
+	    if(psettype == "vunsigned"):
+		psettype = "vuint32"
+
+	    if(not (psettype in self.paramtypedict)):
 		continue
 
 	    type = self.paramtypedict[psettype]
 
 	    # Fill Parameters table
 	    newparammemberid = self.AddNewParam(thecursor,newparamsetid,psetname,type,psettracked,psetseq)	    
+
+	    if(psetval == ''):
+		continue
 
 	    if(psettype == "int32" or psettype == "int" or psettype == "int32_t"):
 		thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
@@ -1222,39 +1248,41 @@ class ConfdbOracleModuleLoader:
 		sequencer = 0
 		entries = psetval.lstrip().rstrip().lstrip('{').rstrip('}').split(',')
 		for entry in entries:
-		    thecursor.execute("INSERT INTO VInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ")")   
+		    thecursor.execute("INSERT INTO VInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ")")   
 		    sequencer = sequencer + 1	
 	    elif(psettype == "vunsigned" or psettype == "vuint32"):
 		sequencer = 0
 		entries = psetval.lstrip().rstrip().lstrip('{').rstrip('}').split(',')
 		for entry in entries:
-		    thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ")")   
+		    thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ")")   
 		    sequencer = sequencer + 1	
 	    elif(psettype == "vdouble"):
 		sequencer = 0
 		entries = psetval.lstrip().rstrip().lstrip('{').rstrip('}').split(',')
 		for entry in entries:
-		    thecursor.execute("INSERT INTO VDoubleParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ")")   
+		    thecursor.execute("INSERT INTO VDoubleParamValues (paramId, sequenceNb, value) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ")")   
 		    sequencer = sequencer + 1
 	    elif(psettype == "vstring" or psettype == "vString"):
 		sequencer = 0
 		entries = psetval.lstrip().rstrip().lstrip('{').rstrip('}').split(',')
 		for entry in entries:
-		    thecursor.execute("INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + entry.lstrip().rstrip() + "')")   
+		    thecursor.execute("INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", '" + entry.lstrip().rstrip() + "')")   
 		    sequencer = sequencer + 1		
 	    elif(psettype == "VInputTag"):
 		sequencer = 0
 		entries = psetval.lstrip().rstrip().lstrip('{').rstrip('}').split(',')
 		for entry in entries:
-		    thecursor.execute("INSERT INTO VInputTagParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ")")   
+		    thecursor.execute("INSERT INTO VInputTagParamValues (paramId, sequenceNb, value) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ")")   
 		    sequencer = sequencer + 1	
 
 	# Now VPSets
-	lastvpsetname = ''
+	vpsetcache = []
+
 	for vpset, vpsettype, vpsetname, vpsetval, vpsettracked, vpsetindex, vpsetseq, vpsetpsetseq in vecparamsets:
 	    # If this is the first entry in this VPSet for this component, add it to the ParameterSets table
-	    if(vpset != lastvpsetname):
-		
+	    if(not vpset in vpsetcache):
+		vpsetcache.append(vpset)
+
 		# Each new VPSet gets a new SuperId
 		thecursor.execute("INSERT INTO SuperIds VALUE()")
 		thecursor.execute("SELECT LAST_INSERT_ID()")
@@ -1275,6 +1303,15 @@ class ConfdbOracleModuleLoader:
 	    # Now make new entries for each parameter in this VPSet if they exist
 	    if(vpsettype == '' or vpsetname == ''):
 		continue
+
+	    if(vpsettype == "int" or vpsettype == "int32_t"):
+		vpsettype = "int32"
+	    if(vpsettype == "uint32_t" or vpsettype == "unsigned int"):
+		vpsettype = "uint32"
+	    if(vpsettype == "FileInPath"):
+		vpsettype = "string"
+	    if(vpsettype == "vunsigned"):
+		vpsettype = "vuint32"
 
 	    type = self.paramtypedict[vpsettype]
 	    
