@@ -28,9 +28,10 @@ def main(argv):
     input_dbuser = "jjhollar"
     input_dbpwd = "password"
     input_dbtype = "MySQL"
+    input_host = "localhost"
 
     # Parse command line options
-    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:h", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","help="])
+    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:h", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","help="])
     for o, a in opts:
 	if o in ("-r","release="):
 	    if(input_base_path and input_cmsswrel):
@@ -67,6 +68,9 @@ def main(argv):
 	if o in ("-s","password="):
 	    input_dbpwd = str(a)
 	    print "Use DB password " + input_dbpwd
+	if o in ("-o","hostname="):
+	    input_host = str(a)
+	    print "Use hostname " + input_host
 	if o in ("-t","dbtype="):
 	    input_dbtype = str(a)
 	    if(input_dbtype == "MySQL"):
@@ -89,7 +93,9 @@ def main(argv):
 	    print "\t-d <Name of the database to connect to>"
 	    print "\t-u <User name to connect as>" 
 	    print "\t-s <Database password>"
-	    print "\t-t <Type of database. Options are MySQL (default) or Oracle (not yet implemented)>"	    
+	    print "\t-o <Hostname>"
+	    print "\t-t <Type of database. Options are MySQL (default) or Oracle (not yet implemented)>"
+	    print "\t-h Print this help menu"
 	    return
 
     if((not input_base_path) or (not input_cmsswrel)):
@@ -100,26 +106,27 @@ def main(argv):
 
     print "Using release base: " + input_base_path
 
-    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype,input_dbpwd)
+    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype,input_dbpwd,input_host)
     confdbjob.BeginJob()
 
 class ConfdbSourceToDB:
-    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype,clidbpwd):
+    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype,clidbpwd,clihost):
 	self.data = []
 	self.dbname = clidbname
 	self.dbuser = clidbuser
 	self.dbtype = clidbtype
 	self.verbose = int(cliverbose)
 	self.dbpwd = clidbpwd
+	self.dbhost = clihost
 
 	# Get a Conf DB connection. Only need to do this once at the 
 	# beginning of a job.
 	if(self.dbtype == "MySQL"):
 	    self.dbloader = ConfdbSQLModuleLoader.ConfdbMySQLModuleLoader(self.verbose)
-	    self.dbcursor = self.dbloader.ConfdbMySQLConnect(self.dbname,self.dbuser,self.dbpwd)
+	    self.dbcursor = self.dbloader.ConfdbMySQLConnect(self.dbname,self.dbuser,self.dbpwd,self.dbhost)
 	elif(self.dbtype == "Oracle"):
 	    self.dbloader = ConfdbOracleModuleLoader.ConfdbOracleModuleLoader(self.verbose)
-	    self.dbcursor = self.dbloader.ConfdbOracleConnect(self.dbname,self.dbuser,self.dbpwd)
+	    self.dbcursor = self.dbloader.ConfdbOracleConnect(self.dbname,self.dbuser,self.dbpwd,self.dbhost)
 
 	# Deal with package tags for this release.
 	self.tagtuple = []
@@ -335,7 +342,7 @@ class ConfdbSourceToDB:
 
 	tagline = ""
 
-#	tagfile = open("tags130.txt")
+#	tagfile = open("tags130_pre2.txt")
 #	taglines = tagfile.readlines()
 #
 #	for modtag in taglines:

@@ -21,8 +21,8 @@ class ConfdbMySQLModuleLoader:
 	self.fwkunchanged = 0
 
     # Connect to the Confdb db
-    def ConfdbMySQLConnect(self,dbname,username,userpwd):
-	self.connection = MySQLdb.connect(host="localhost", 
+    def ConfdbMySQLConnect(self,dbname,username,userpwd,userhost):
+	self.connection = MySQLdb.connect(host=userhost, 
 				     user=username, passwd=userpwd,
                                      db=dbname )
         
