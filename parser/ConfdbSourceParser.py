@@ -391,6 +391,7 @@ class SourceParser:
                                 (line.find('module') != -1) and
                                 (line.find('es_module') == -1) and not
                                 (line.startswith('//')) and
+				(line.find('=') != -1) and 
                                 line.find(themodule) != -1):
                                 namedeclaration = (line.split('='))[0]
 
@@ -410,6 +411,7 @@ class SourceParser:
                                 (line.find('service') != -1) and
                                 (line.find('es_module') == -1) and not
                                 (line.startswith('//')) and
+				 (line.find('=') != -1) and 
                                 line.find(themodule) != -1):
                                 namedeclaration = (line.split('='))[0]
 

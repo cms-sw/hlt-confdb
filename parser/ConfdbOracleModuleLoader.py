@@ -1201,9 +1201,11 @@ class ConfdbOracleModuleLoader:
 		# Nested PSets point to the relevant top level PSet 
 		else:
 		    # Attach the PSet to another PSet component via their superIds
-		    print "SELECT ParameterSets.superId FROM ParameterSets WHERE (name = '" + psetnesting + "')"
+		    if(self.verbose > 2):
+			print "SELECT ParameterSets.superId FROM ParameterSets WHERE (name = '" + psetnesting + "')"
 		    thecursor.execute("SELECT ParameterSets.superId FROM ParameterSets WHERE (name = '" + psetnesting + "')")
 		    toplevelid = thecursor.fetchone()[0]
+
 		    if(self.verbose > 2):
 			print "INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")"
 		    thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")   
