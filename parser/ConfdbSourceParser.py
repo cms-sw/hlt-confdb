@@ -445,6 +445,7 @@ class SourceParser:
 	totalconstrline = ''
 	isvector = False
 
+	thepsetname = ''
         modulename = ''
         theconstructor = ''
 
@@ -925,7 +926,7 @@ class SourceParser:
 		elif(startedconstructor == True and  (line.rstrip().endswith('{') or line.lstrip().startswith('{'))):
 		    startedconstructor = False
 		    thepsetline = ""
-		    thepsetname = ""
+#		    thepsetname = ""
 		    lookupclass = ""
 		    multint = False 
 
@@ -967,7 +968,38 @@ class SourceParser:
 
 				    if(multint == True):
 					self.FindInheritedParameters(lookupclass,thedatadir,thehfile)			
-	    
+	
+		# Look for ParameterSets passed to objects instantiated within this module. This won't pick up PSets 
+		# passed to methods of the new object - are there any cases of this?
+		elif(startedconstructor == False and  (line.find('new ') != -1) and (line.find('(') != -1)):
+		    theobjectclass = ''
+		    theobjectargument = ''
+
+		    if(len(line.split('new ')) == 1):
+			theobjectclass = line.split('new ')[0].split('(')[0].lstrip().rstrip()
+		    elif(len(line.split('new ')) == 2):
+			theobjectclass = line.split('new ')[1].split('(')[0].lstrip().rstrip()
+		    elif(len(line.split('new ')) == 3):
+			theobjectclass = line.split('new ')[2].split('(')[0].lstrip().rstrip()
+
+		    if(theobjectclass):
+			if(len(line.split(theobjectclass)) == 2):
+			    theobjectargument = line.split(theobjectclass)[1].lstrip('(')
+			elif(len(line.split(theobjectclass)) == 3):
+			    theobjectargument = line.split(theobjectclass)[2].lstrip('(')
+    
+			if(line.find(',') != -1):
+			    thepassedpset = theobjectargument.split(',')[0].lstrip().rstrip()
+			else:
+			    thepassedpset = theobjectargument.split(')')[0].lstrip('(').rstrip(');').lstrip().rstrip()
+
+			if(thepassedpset in self.psetdict):
+			    psettype = self.psetdict[thepassedpset] 
+			    if(self.verbose > 1):
+				print 'Found pset of type ' + psettype + ' passed to object of type ' + theobjectclass
+
+			    self.ParsePassedParameterSet(psettype, theccfile, theobjectclass, 'None')
+
     # End of ParseSrcFile
 
     # Parse .h files. Find class definitions and base classes
@@ -1232,6 +1264,67 @@ class SourceParser:
 				print '\tAnd the data dir ' + thederiveddatadir
 			    self.ParseSrcFile(self.sourcetree+baseobjectsrcfile,includeclass,thederiveddatadir,"")			
 			    objectinstantiated = False
+
+    # Handle the case of a ParameterSet being passed to an object that's been "new'd" in the original 
+    # module.
+    def ParsePassedParameterSet(self, thepsetname, thesrcfile, theobjectclass, thenestedpsetname):
+
+	if(self.verbose > 1):
+	    print 'Parsing passed parameter set ' + thepsetname + ' passed from file ' + thesrcfile + ' to object of class ' + theobjectclass
+
+	srcfilehandle = open(thesrcfile)
+
+        srcfilelines = srcfilehandle.readlines()
+
+	for srcline in srcfilelines:
+	    if(srcline.lstrip().startswith('#include') and 
+	       (srcline.find(theobjectclass + '.h') != -1)):
+		theincfile = srcline.lstrip('#include').lstrip().rstrip().lstrip('"').rstrip('"').lstrip('<').rstrip('>').replace('.h','.cc').replace('interface','src')
+
+		if(self.verbose > 1):
+		    print 'Look in file ' + self.sourcetree + theincfile
+
+		newsrcfilehandle = open(self.sourcetree + theincfile)
+
+		newsrcfilelines = newsrcfilehandle.readlines()
+
+		for srcline in newsrcfilelines:
+		    if(srcline.find('getParameter') != -1):
+			paramname = srcline.split('getParameter')[1].split('"')[1]
+
+			if(len(srcline.split('getParameter')[1].split('<')) == 3):
+			    paramtype = srcline.split('getParameter')[1].split('<')[2].split('>')[0]
+			elif(len(srcline.split('getParameter')[1].split('<')) == 2):
+			    paramtype = srcline.split('getParameter')[1].split('<')[1].split('>')[0]
+
+			if(paramtype.find('::') != -1):
+			    paramtype = paramtype.split('::')[1].lstrip().rstrip()
+
+			if(self.verbose > 1):
+			    print '\tPassed parameter ' + paramtype + '\t' + paramname + ' (tracked)'
+
+			if(paramtype != 'ParameterSet'):
+			    self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"true",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
+			    self.sequencenb = self.sequencenb + 1
+
+
+		    if(srcline.find('getUntrackedParameter') != -1):
+			paramname = srcline.split('getUntrackedParameter')[1].split('"')[1]
+
+			if(len(srcline.split('getUntrackedParameter')[1].split('<')) == 3):
+			    paramtype = srcline.split('getUntrackedParameter')[1].split('<')[2].split('>')[0]
+			elif(len(srcline.split('getUntrackedParameter')[1].split('<')) == 2):
+			    paramtype = srcline.split('getUntrackedParameter')[1].split('<')[1].split('>')[0]
+
+			if(paramtype.find('::') != -1):
+			    paramtype = paramtype.split('::')[1].lstrip().rstrip()
+
+			if(self.verbose > 1):
+			    print '\tPassed parameter ' + paramtype + '\t' + paramname + ' (untracked)'
+
+			if(paramtype != 'ParameterSet'):
+			    self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"false",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
+			    self.sequencenb = self.sequencenb + 1
 
     # Check whether a variable has already been parsed
     def IsNewParameter(self, parametername, parameterlist, parameterset):
