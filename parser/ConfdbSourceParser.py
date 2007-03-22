@@ -998,7 +998,7 @@ class SourceParser:
 			    if(self.verbose > 1):
 				print 'Found pset of type ' + psettype + ' passed to object of type ' + theobjectclass
 
-			    self.ParsePassedParameterSet(psettype, theccfile, theobjectclass, 'None')
+			    self.ParsePassedParameterSet(psettype, theccfile, theobjectclass, 'None',thedatadir,themodulename)
 
     # End of ParseSrcFile
 
@@ -1267,7 +1267,7 @@ class SourceParser:
 
     # Handle the case of a ParameterSet being passed to an object that's been "new'd" in the original 
     # module.
-    def ParsePassedParameterSet(self, thepsetname, thesrcfile, theobjectclass, thenestedpsetname):
+    def ParsePassedParameterSet(self, thepsetname, thesrcfile, theobjectclass, thenestedpsetname, thedatadir, themodulename):
 
 	if(self.verbose > 1):
 	    print 'Parsing passed parameter set ' + thepsetname + ' passed from file ' + thesrcfile + ' to object of class ' + theobjectclass
@@ -1304,9 +1304,11 @@ class SourceParser:
 			    print '\tPassed parameter ' + paramtype + '\t' + paramname + ' (tracked)'
 
 			if(paramtype != 'ParameterSet'):
-			    self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"true",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
-			    self.sequencenb = self.sequencenb + 1
+			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname)			
 
+			    if(success == False):
+				self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"true",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
+				self.sequencenb = self.sequencenb + 1
 
 		    if(srcline.find('getUntrackedParameter') != -1):
 			paramname = srcline.split('getUntrackedParameter')[1].split('"')[1]
@@ -1323,8 +1325,12 @@ class SourceParser:
 			    print '\tPassed parameter ' + paramtype + '\t' + paramname + ' (untracked)'
 
 			if(paramtype != 'ParameterSet'):
-			    self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"false",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
-			    self.sequencenb = self.sequencenb + 1
+			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname)			
+
+			    if(success == False):
+				self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"false",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
+				self.sequencenb = self.sequencenb + 1
+			    
 
     # Check whether a variable has already been parsed
     def IsNewParameter(self, parametername, parameterlist, parameterset):
