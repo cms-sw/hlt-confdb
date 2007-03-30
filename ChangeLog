@@ -1,3 +1,8 @@
+2007-03-30  Jonathan HOLLAR <jjhollar@cern.ch>
+	* tag V00-00-07
+	* Collect recent parser changes for handling PSets defined in multiple 
+	  packages w. multiple levels of nesting.
+
 2007-03-08  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-00-06
