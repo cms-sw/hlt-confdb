@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL Mar. 16, 2007
+# Jonathan Hollar LLNL Mar. 30, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -1288,7 +1288,23 @@ class SourceParser:
 
 		newsrcfilelines = newsrcfilehandle.readlines()
 
+		startedcomment = False
+
 		for srcline in newsrcfilelines:
+
+		    # C-style comments. Seriously. Why?
+		    if(srcline.lstrip().startswith('/*')):
+			startedcomment = True
+		    if(startedcomment == True and (srcline.rstrip().endswith('*/'))):
+			startedcomment = False
+			continue
+		    if(startedcomment == True and not (srcline.rstrip().endswith('*/'))):
+			continue
+
+		    # C++-style comments
+		    if(srcline.lstrip().startswith('//')):
+			continue
+
 		    if(srcline.find('getParameter') != -1):
 			paramname = srcline.split('getParameter')[1].split('"')[1]
 
@@ -1303,12 +1319,36 @@ class SourceParser:
 			if(self.verbose > 1):
 			    print '\tPassed parameter ' + paramtype + '\t' + paramname + ' (tracked)'
 
-			if(paramtype != 'ParameterSet'):
+			if((paramtype != 'ParameterSet') and (paramtype != 'PSet')):
 			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname)			
 
 			    if(success == False):
 				self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"true",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
 				self.sequencenb = self.sequencenb + 1
+
+			else:
+			    if(srcline.find('=') != -1):
+				thisparamset = srcline.split('=')[0].rstrip().lstrip()
+				
+				if(thisparamset.find('vector<edm::ParameterSet>') != -1):
+				    thisparamset = thisparamset.split('>')[1].rstrip().lstrip()
+				elif(thisparamset.find('PSet ') != -1):
+				    thisparamset = thisparamset.split('PSet ')[1].rstrip().lstrip()
+				elif(thisparamset.find('ParameterSet ') != -1):
+				    thisparamset = thisparamset.split('ParameterSet ')[1].rstrip().lstrip()
+				elif(thisparamset.find('ParameterSet& ') != -1):
+				    thisparamset = thisparamset.split('ParameterSet& ')[1].rstrip().lstrip()
+
+				if(len(re.split('\W+',thisparamset)) == 1):
+				    self.psetdict[thisparamset] = paramname
+				    if(paramname in self.psetsequences):
+					self.psetsequencenb = self.psetsequences[paramname]
+				    else:
+					self.psetsequencenb = self.sequencenb
+					self.sequencenb = self.sequencenb + 1
+					self.psetsequences[paramname] = self.psetsequencenb
+
+				print 'new PSet in this object = ' + paramname
 
 		    if(srcline.find('getUntrackedParameter') != -1):
 			paramname = srcline.split('getUntrackedParameter')[1].split('"')[1]
@@ -1324,13 +1364,43 @@ class SourceParser:
 			if(self.verbose > 1):
 			    print '\tPassed parameter ' + paramtype + '\t' + paramname + ' (untracked)'
 
-			if(paramtype != 'ParameterSet'):
+			if((paramtype != 'ParameterSet') and (paramtype != 'PSet')):
 			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname)			
 
 			    if(success == False):
 				self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"false",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
 				self.sequencenb = self.sequencenb + 1
 			    
+
+		    # Look for ParameterSets passed to objects instantiated within this module. This won't pick up PSets 
+		    # passed to methods of the new object - are there any cases of this?
+		    if((srcline.find('new ') != -1) and (srcline.find('(') != -1)):
+			newtheobjectclass = ''
+			newtheobjectargument = ''
+
+			if(len(srcline.split('new ')) == 1):
+			    newtheobjectclass = srcline.split('new ')[0].split('(')[0].lstrip().rstrip()
+			elif(len(srcline.split('new ')) == 2):
+			    newtheobjectclass = srcline.split('new ')[1].split('(')[0].lstrip().rstrip()
+			elif(len(srcline.split('new ')) == 3):
+			    newtheobjectclass = srcline.split('new ')[2].split('(')[0].lstrip().rstrip()
+
+			if(newtheobjectclass):
+			    if(len(srcline.split(newtheobjectclass)) == 2):
+				newtheobjectargument = srcline.split(newtheobjectclass)[1].lstrip('(')
+			    elif(len(srcline.split(newtheobjectclass)) == 3):
+				newtheobjectargument = srcline.split(newtheobjectclass)[2].lstrip('(')
+    
+			    if(srcline.find(',') != -1):
+				newthepassedpset = newtheobjectargument.split(',')[0].lstrip().rstrip()
+			    else:
+				newthepassedpset = newtheobjectargument.split(')')[0].lstrip('(').rstrip(');').lstrip().rstrip()
+
+			    if(newthepassedpset in self.psetdict):
+				newpsettype = self.psetdict[newthepassedpset] 
+				if(self.verbose > 1):
+				    print 'Found pset of type ' + newpsettype + ', nested in the PSet ' + thepsetname + ', passed to object of type ' + newtheobjectclass
+				    self.ParsePassedParameterSet(newpsettype, self.sourcetree + theincfile, newtheobjectclass, thepsetname, thedatadir, themodulename)
 
     # Check whether a variable has already been parsed
     def IsNewParameter(self, parametername, parameterlist, parameterset):
@@ -1386,8 +1456,17 @@ class SourceParser:
 	    for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq in self.paramsetmemberlist:
 		print "\t\t" + pset + "\t" + psettype + "\t" + psetname + "\t" + psetval + "\t(tracked = " + str(psettracked) + ")" +  " param sequenceNb = " + str(psetseq) + " pset sequenceNb = " + str(psetpsetseq) + " nested in (" + psetnesting + ")"
 
-    
-        return self.paramsetmemberlist	    
+	# Now reorder the list so that top-level PSets will be loaded to the DB first.
+	tempparamsetmemberlist = []
+		
+	for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq in self.paramsetmemberlist:
+	    if(psetnesting == 'None'):
+		tempparamsetmemberlist.append((pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq))
+	for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq in self.paramsetmemberlist:
+	    if(psetnesting != 'None'):
+		tempparamsetmemberlist.append((pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq))	
+
+	return tempparamsetmemberlist
     
     # Return the VPSets associated with this module
     def GetVecParamSets(self, modname):

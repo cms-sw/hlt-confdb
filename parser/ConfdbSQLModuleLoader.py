@@ -3,7 +3,7 @@
 # ConfdbSQLModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (MySQL version). All MySQL specific code belongs here.
-# Jonathan Hollar LLNL Mar. 7, 2007
+# Jonathan Hollar LLNL Mar. 30, 2007
 
 import os, string, sys, posix, tokenize, array, MySQLdb
 
@@ -1201,8 +1201,9 @@ class ConfdbMySQLModuleLoader:
 		else:
 		    # Attach the PSet to another PSet component via their superIds
 		    if(self.verbose > 2):
-			print "SELECT ParameterSets.superId FROM ParameterSets WHERE (name = '" + psetnesting + "')"
-		    thecursor.execute("SELECT ParameterSets.superId FROM ParameterSets WHERE (name = '" + psetnesting + "')")
+			print "SELECT ParameterSets.superId FROM ParameterSets WHERE (name = '" + psetnesting + "') ORDER BY ParameterSets.superId DESC"
+		    thecursor.execute("SELECT ParameterSets.superId FROM ParameterSets WHERE (name = '" + psetnesting + "') ORDER BY ParameterSets.superId DESC")
+
 		    toplevelid = thecursor.fetchone()[0]
 
 		    if(self.verbose > 2):
@@ -1229,7 +1230,6 @@ class ConfdbMySQLModuleLoader:
 
 	    # Fill Parameters table
 	    newparammemberid = self.AddNewParam(thecursor,newparamsetid,psetname,type,psettracked,psetseq)	    
-
 	    if(psetval == ''):
 		continue
 
@@ -1275,6 +1275,7 @@ class ConfdbMySQLModuleLoader:
 		for entry in entries:
 		    thecursor.execute("INSERT INTO VInputTagParamValues (paramId, sequenceNb, value) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ")")   
 		    sequencer = sequencer + 1	
+
 
 	# Now VPSets
 	vpsetcache = []
@@ -1334,9 +1335,9 @@ class ConfdbMySQLModuleLoader:
 
     # End ConfdbAttachParameterSets
 
-    # Update a ParameterSet/VParameterSet if necessary
-    def ConfdbUpdateParameterSets(self,thecursor,oldsuperid,newsuperid,paramsets,vecparamsets):
-	print "TBD"
+#    # Update a ParameterSet/VParameterSet if necessary
+#    def ConfdbUpdateParameterSets(self,thecursor,oldsuperid,newsuperid,paramsets,vecparamsets):
+#	print "TBD"
 
     # End ConfdbUpdateParameterSets
 
