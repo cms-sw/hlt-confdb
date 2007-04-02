@@ -366,27 +366,32 @@ class ConfdbSourceToDB:
 		if(srcfile.endswith(".cc")):
 		    interfacefile = srcfile.rstrip('.cc') + '.h'
 
-		    # Find the base class from the .h files in the interface/ directory
-		    if(os.path.isdir(interfacedir)):
-			myParser.ParseInterfaceFile(interfacedir + interfacefile, modulename)
+		    try:
+			# Find the base class from the .h files in the interface/ directory
+			if(os.path.isdir(interfacedir)):
+			    myParser.ParseInterfaceFile(interfacedir + interfacefile, modulename)
 
-		    if(os.path.isdir(srcdir) and os.path.isfile(srcdir + srcfile)):
-			# Because some people like to put .h files in the src/ directory...
-			myParser.ParseInterfaceFile(srcdir + interfacefile, modulename)
+			if(os.path.isdir(srcdir) and os.path.isfile(srcdir + srcfile)):
+			    # Because some people like to put .h files in the src/ directory...
+			    myParser.ParseInterfaceFile(srcdir + interfacefile, modulename)
 
-			# And other people like to put class definitions in .cc files
-			myParser.ParseInterfaceFile(srcdir + srcfile, modulename)
+			    # And other people like to put class definitions in .cc files
+			    myParser.ParseInterfaceFile(srcdir + srcfile, modulename)
 
-			# Now find the relevant constructor and parameter declarations
-			# in the .cc files in the src/ directory
-			myParser.ParseSrcFile(srcdir + srcfile, modulename, datadir, "")
+			    # Now find the relevant constructor and parameter declarations
+			    # in the .cc files in the src/ directory
+			    myParser.ParseSrcFile(srcdir + srcfile, modulename, datadir, "")
 
-			# Lastly the special case of modules declared via typedef
-			myParser.HandleTypedefs(srcdir + srcfile, modulename, srcdir, interfacedir, datadir, sourcetree)
+			    # Lastly the special case of modules declared via typedef
+			    myParser.HandleTypedefs(srcdir + srcfile, modulename, srcdir, interfacedir, datadir, sourcetree)
 
-		    if(os.path.isdir(pluginsdir) and os.path.isfile(pluginsdir + srcfile)):
-			# Even if the typedefs are in a special "plugins" directory
-			myParser.HandleTypedefs(pluginsdir + srcfile, modulename, pluginsdir, interfacedir, datadir, sourcetree)
+			if(os.path.isdir(pluginsdir) and os.path.isfile(pluginsdir + srcfile)):
+			    # Even if the typedefs are in a special "plugins" directory
+			    myParser.HandleTypedefs(pluginsdir + srcfile, modulename, pluginsdir, interfacedir, datadir, sourcetree)
+
+		    except IndexError:
+			print "Error: exception caught during parsing. The component " + modulename + " will not be loaded to the DB"
+			return
 
 	# Retrieve the relevant information to be loaded to the DB
 	hltparamlist = myParser.GetParams(modulename)
