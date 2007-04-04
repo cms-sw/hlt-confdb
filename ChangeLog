@@ -5,6 +5,7 @@
 	* optimizations to CfgDatabase.loadConfiguration()
 	* add isEndPath() to Path, based on any 'OutputModule' being
 	present in the Path
+	* sql: add 'configDescriptor' field to 'Configurations'
 	
 2007-03-30  Jonathan HOLLAR <jjhollar@cern.ch>
 	* tag V00-00-07
