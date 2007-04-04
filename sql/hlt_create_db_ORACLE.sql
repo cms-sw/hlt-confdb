@@ -60,6 +60,7 @@ END;
 CREATE TABLE Configurations
 (
 	configId   	NUMBER,
+	configDescriptor VARCHAR2(256)  NOT NULL UNIQUE,
 	parentDirId     NUMBER		NOT NULL,
 	config     	VARCHAR2(64)    NOT NULL,
 	version         NUMBER(4)	NOT NULL,

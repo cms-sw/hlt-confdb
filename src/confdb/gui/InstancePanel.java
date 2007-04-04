@@ -12,6 +12,13 @@ import java.util.ArrayList;
 
 import confdb.data.*;
 
+import confdb.converter.ConverterFactory;
+import confdb.converter.Converter;
+import confdb.converter.IEDSourceWriter;
+import confdb.converter.IESSourceWriter;
+import confdb.converter.IServiceWriter;
+import confdb.converter.IModuleWriter;
+
 import confdb.gui.treetable.*;
 
 
@@ -62,6 +69,9 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     /** the current instance, to redisplay upon change */
     private Instance currentInstance = null;
     
+    /** converter, to display instance configuration snippets */
+    private Converter converter = null;
+
     
     //
     // construction
@@ -141,13 +151,22 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	snippetPanel.setPreferredSize(dimSnp);
 	snippetPanel.setBorder(BorderFactory
 			       .createTitledBorder("Configuration Snippet"));
-	editorPaneSnippet = new JEditorPane("text/html","");
+	//editorPaneSnippet = new JEditorPane("text/html","");
+	editorPaneSnippet = new JEditorPane("text/plain","");
 	editorPaneSnippet.setEditable(false);
 	editorPaneSnippet.setPreferredSize(dimSnp);
 	snippetPanel.add(new JScrollPane(editorPaneSnippet));
 	
 	c.gridx=0; c.gridy=2; c.gridwidth=1; c.weighty=0.45;
 	add(snippetPanel,c);
+
+	ConverterFactory factory = ConverterFactory.getFactory("default");
+	try {
+	    converter = factory.getConverter("ASCII");
+	}
+	catch (Exception e) {
+	    System.out.println("Failed to get Converter: " + e.getMessage());
+	}
 	
 	clear();
     }
@@ -218,10 +237,33 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     /** TableModelListener: tableChanged() */
     public void tableChanged(TableModelEvent e)
     {
-	if (currentInstance!=null)
-	    editorPaneSnippet.setText(currentInstance.getSnippet());
-	else
+	if (currentInstance!=null) {
+	    String configAsString = null;
+	    if (currentInstance instanceof EDSourceInstance) {
+		EDSourceInstance edsource = (EDSourceInstance)currentInstance;
+		configAsString =converter.getEDSourceWriter().toString(edsource,
+								       converter);
+	    }
+	    if (currentInstance instanceof ESSourceInstance) {
+		ESSourceInstance essource = (ESSourceInstance)currentInstance;
+		configAsString = converter.getESSourceWriter().toString(essource,
+									converter);
+	    }
+	    if (currentInstance instanceof ServiceInstance) {
+		ServiceInstance service = (ServiceInstance)currentInstance;
+		configAsString =converter.getServiceWriter().toString(service,
+								     converter);
+	    }
+	    if (currentInstance instanceof ModuleInstance) {
+		ModuleInstance module = (ModuleInstance)currentInstance;
+		configAsString =converter.getModuleWriter().toString(module);
+	    }
+	    
+	    editorPaneSnippet.setText(configAsString);
+	}
+	else {
 	    editorPaneSnippet.setText("");
+	}
     }
 
 

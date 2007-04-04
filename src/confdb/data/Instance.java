@@ -128,24 +128,4 @@ abstract public class Instance
 	return result;
     }
     
-    /** configuration language snippet for this instance */
-    public String getSnippet()
-    {
-	String newline = "\n";
-	String tab = "  ";
-	String snippet = "<html><pre>"+newline+"<b>"+template.keyword()+"</b> "
-	    +"<font color=#ff0000>"+name+"</font> ";
-	if (!name.equals(template.name())) 
-	    snippet+="= <font color=#0000ff><b>"+template.name()+"</b></font> ";
-	snippet+=" {"+newline;
-	for (int i=0;i<parameterCount();i++) {
-	    Parameter p = parameter(i);
-	    snippet+=tab
-		+"<font color=#00ff00>"+p.type()+"</font> "+"<b>"+p.name()+"</b> = ";
-	    snippet+="<font color=#0000ff>"+p.valueAsString()+"</font>"+newline;
-	}
-	snippet+="}"+newline+"</pre></html>";
-	return snippet;
-    }
-    
 }

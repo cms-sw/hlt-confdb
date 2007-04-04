@@ -9,7 +9,7 @@ import java.util.HashMap;
  * -------------
  * @author Philipp Schieferdecker
  *
- * A cpmplete CMSSW (hlt-)job configuration.
+ * A complete CMSSW (hlt-)job configuration.
  */
 public class Configuration
 {
@@ -192,6 +192,9 @@ public class Configuration
 	result += name() + ", Version " + version();
 	return result;
     }
+    
+    /** database identifier */
+    public int dbId() { return configInfo.dbId(); }
 
     /** get configuration name */
     public String name() { return configInfo.name(); }

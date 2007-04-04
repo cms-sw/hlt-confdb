@@ -28,6 +28,23 @@ public class Path extends ReferenceContainer
     // member functions
     //
 
+    /** chek if this path contains an output module */
+    public boolean isEndPath()
+    {
+	for (Reference r : entries) {
+	    Referencable parent = r.parent();
+	    if (parent instanceof ModuleInstance) {
+		ModuleInstance module = (ModuleInstance)parent;
+		if (module.template().type().equals("OutputModule")) return true;
+	    }
+	    else if (parent instanceof Path) {
+		Path path = (Path)parent;
+		if (path.isEndPath()) return true;
+	    }
+	}
+	return false;
+    }
+
     /** insert a path entry */
     public void insertEntry(int i,Reference reference)
     {

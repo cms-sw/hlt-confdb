@@ -33,6 +33,7 @@ CREATE TABLE Directories
 CREATE TABLE Configurations
 (
 	configId   	BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT UNIQUE,
+	configDescriptor VARCHAR(256)     NOT NULL UNIQUE,
 	parentDirId     BIGINT UNSIGNED   NOT NULL,
 	config     	VARCHAR(64)       NOT NULL,
 	version         SMALLINT UNSIGNED NOT NULL,

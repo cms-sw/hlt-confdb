@@ -9,13 +9,13 @@ import java.awt.event.*;
 
 import java.util.ArrayList;
 
-import confdb.db.CfgDatabase;
-import confdb.db.DatabaseException;
-
 import confdb.data.Configuration;
 import confdb.data.ConfigInfo;
 import confdb.data.Template;
 import confdb.data.Parameter;
+
+import confdb.db.CfgDatabase;
+import confdb.db.DatabaseException;
 
 import confdb.gui.treetable.TreeTableTableModel;
 
@@ -209,27 +209,6 @@ public class ConfDbGUI implements TableModelListener
     /** close configuration */
     public void closeConfiguration()
     {
-	/*
-	  if (config.hasChanged()) {
-	  String msg =
-	  "The current configuration has changed.\n" +
-	  "Do you want to save it before closing?";
-	  int answer = 
-	  JOptionPane.showConfirmDialog(frame,msg,"",
-	  JOptionPane.YES_NO_OPTION);
-	  if (answer==0) {
-	  
-	  if (config.hasChanged) {
-	  msg =
-	  "The current configuration can't be saved. " +
-	  "Do you really want to close it?";
-	  answer = JOptionPane.showConfirmDialog(frame,msg,"",
-	  JOptionPane.YES_NO_OPTION);
-	  if (answer==1) return false;
-	  }
-	  }
-	  }
-	*/
 	config.reset();
 	treeModel.setConfiguration(config);
 	configurationPanel.update(config);
@@ -328,7 +307,7 @@ public class ConfDbGUI implements TableModelListener
 	JSplitPane  horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 							 treeView,instanceView);
 	horizontalSplitPane.setOneTouchExpandable(true);
-	horizontalSplitPane.setResizeWeight(0.5);
+	horizontalSplitPane.setResizeWeight(0.01);
 	horizontalSplitPane.setDividerLocation(0.5);
 	
 	// add horizontal split pane to content pane

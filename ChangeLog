@@ -1,3 +1,11 @@
+2007-04-04  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-00-08
+	* first integration of the converter with the GUI
+	* optimizations to CfgDatabase.loadConfiguration()
+	* add isEndPath() to Path, based on any 'OutputModule' being
+	present in the Path
+	
 2007-03-30  Jonathan HOLLAR <jjhollar@cern.ch>
 	* tag V00-00-07
 	* Collect recent parser changes for handling PSets defined in multiple 
