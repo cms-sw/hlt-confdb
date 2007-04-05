@@ -3,7 +3,7 @@
 # ConfdbSQLModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (MySQL version). All MySQL specific code belongs here.
-# Jonathan Hollar LLNL Mar. 30, 2007
+# Jonathan Hollar LLNL Apr. 4, 2007
 
 import os, string, sys, posix, tokenize, array, MySQLdb
 
@@ -480,8 +480,12 @@ class ConfdbMySQLModuleLoader:
 		    if(paramval.find("'") != -1):
 			# Fill ParameterValues table
 			thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
-		    else:
+		    elif(paramval.find('"') != -1):
 			thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
+		    else:
+			print "\tWarning: Attempted to load a non-string value to string table:"
+			print "\t\tstring " + str(paramname) + " = " + str(paramval)
+			print "\t\tLoading parameter with no default value"
 
 	    # InputTag
 	    elif(paramtype == "InputTag"):
@@ -629,7 +633,7 @@ class ConfdbMySQLModuleLoader:
 		    if(oldparamval):
 			oldparamval = oldparamval[0]
 
-		    # Protect against loading non-integer values
+		    # Protect against loading non-integer values. Also deal with implicit fp->int conversions and hex.
 		    if(paramval):
 			if(paramval.find('::') != -1 or paramval.find('_') != -1):
 			    print "\tWarning: Attempted to load a non-integer value to integer table:"
@@ -888,10 +892,14 @@ class ConfdbMySQLModuleLoader:
 			if(paramval.find("'") != -1):
 			    # Fill ParameterValues table
 			    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
-			else:
+			elif(paramval.find('"') != -1):
 			    # Fill ParameterValues table
 			    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
-	    
+			else:
+			    print "\tWarning: Attempted to load a non-string value to string table:"
+			    print "\t\tstring " + str(paramname) + " = " + str(paramval)
+			    print "\t\tLoading parameter with no default value"
+
 	    # InputTag
 	    if(paramtype == "InputTag"):
 		type = self.paramtypedict['InputTag']
@@ -1242,7 +1250,14 @@ class ConfdbMySQLModuleLoader:
 	    elif(psettype == "bool"):
 		thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
 	    elif(psettype == "string" or psettype == "FileInPath"):
-		thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+		if(psetval.find("'") != -1):
+		    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+		elif(psetval.find('"') != -1):
+		    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", '" + psetval + "')")
+		else:
+		    print "\tWarning: Attempted to load a non-string value to string table:"
+		    print "\t\tstring " + str(psetname) + " = " + str(psetval)
+		    print "\t\tLoading parameter with no default value"
 	    elif(psettype == "InputTag"):
 		thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", '" + psetval + "')")
 	    elif(psettype == "vint32"):
@@ -1329,7 +1344,14 @@ class ConfdbMySQLModuleLoader:
 	    elif(vpsettype == "bool"):
 		thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
 	    elif(vpsettype == "string" or vpsettype == "FileInPath"):
-		thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
+		if(vpsetval.find("'") != -1):
+		    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
+		elif(vpsetval.find('"') != -1):
+		    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", '" + vpsetval + "')")
+		else:
+		    print "\tWarning: Attempted to load a non-string value to string table:"
+		    print "\t\tstring " + str(vpsetname) + " = " + str(vpsetval)
+		    print "\t\tLoading parameter with no default value" 
 	    elif(vpsettype == "InputTag"):
 		thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
 

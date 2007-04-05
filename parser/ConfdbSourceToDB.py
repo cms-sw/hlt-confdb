@@ -449,9 +449,9 @@ class ConfdbSourceToDB:
 				# If not, make a new template
 				self.dbloader.ConfdbLoadNewModuleTemplate(self.dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
 		    else:
-			print  "Unknown module base class " + modulebaseclass + ":" + therealbaseclass
+			print  "Message: Unknown module base class " + modulebaseclass + ":" + therealbaseclass + ". Module will not be loaded."
 		else:
-		    print "Warning: No module base class at all for " + modulename
+		    print "Error: No module base class at all for " + modulename + ". Module will not be loaded"
 
 	# This is a Service. Use the ServiceTemplate
 	elif(componenttype == 2):
