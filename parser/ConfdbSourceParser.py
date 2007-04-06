@@ -712,6 +712,8 @@ class SourceParser:
 				paramtype = 'VInputTag'
 			    elif(paramtype == 'Labels'):
 				paramtype = 'vstring'
+			    elif(paramtype == 'vString'):
+				paramtype = 'vstring'
 
 			    if((not paramname.lstrip().startswith('@module')) 
 			       and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None'))):
@@ -778,6 +780,11 @@ class SourceParser:
 					    self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb,self.psetsequencenb))
 					    self.sequencenb = self.sequencenb + 1
 				    elif(paramtype == 'Labels'):
+					if((not paramname.lstrip().startswith('@module')) 
+					    and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None'))):
+					    self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"false",self.sequencenb))
+					    self.sequencenb = self.sequencenb + 1
+				    elif(paramtype == 'vString'):
 					if((not paramname.lstrip().startswith('@module')) 
 					    and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None'))):
 					    self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"false",self.sequencenb))
