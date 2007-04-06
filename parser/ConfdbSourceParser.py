@@ -266,9 +266,6 @@ class SourceParser:
 					if(readingnestedpset == True):
 					    readingnestedpset = False
 
-					startedpset = False
-					foundpset = False
-
 					startednestedpset = False
 					continue
 				    
@@ -827,11 +824,13 @@ class SourceParser:
 				if(paramtype == 'PSet' or paramtype == 'ParameterSet'):
 				    if(paramname in self.psetsequences):
 					self.psetsequencenb = self.psetsequences[paramname]
+					self.sequencenb = self.psetsequencenb
 				    else:
 					self.psetsequencenb = self.sequencenb
 					self.psetsequences[paramname] = self.psetsequencenb
-					self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb,'None',self.psetsequencenb))
-					self.sequencenb = self.sequencenb + 1
+
+				    self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb,'None',self.psetsequencenb))
+				    self.sequencenb = self.sequencenb + 1
 
 				elif(paramtype == 'VPSet'):
 				    if((not paramname.lstrip().startswith('@module'))
