@@ -1,11 +1,15 @@
-#!/usr/local/bin/python2.4
+#!/usr/bin/env python
  
 # ConfdbSQLModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (MySQL version). All MySQL specific code belongs here.
 # Jonathan Hollar LLNL Apr. 4, 2007
 
-import os, string, sys, posix, tokenize, array, MySQLdb
+import os, string, sys, posix, tokenize, array
+
+sys.path.append(os.environ.get("CMS_PATH") + "/sw/slc4_ia32_gcc345/external/py2-mysqldb/1.2.0/lib/python2.4/site-packages/")
+
+import MySQLdb
 
 class ConfdbMySQLModuleLoader:
 

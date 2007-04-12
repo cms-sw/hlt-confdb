@@ -1,4 +1,4 @@
-#!/usr/local/bin/python2.4
+#!/usr/bin/env python
 
 # ConfdbSourceToDB.py
 # Main file for parsing source code in a CMSSW release and
@@ -8,7 +8,7 @@
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
-import MySQLdb, ConfdbSQLModuleLoader, ConfdbOracleModuleLoader
+import ConfdbSQLModuleLoader, ConfdbOracleModuleLoader
 
 def main(argv):
     # Get information from the environment

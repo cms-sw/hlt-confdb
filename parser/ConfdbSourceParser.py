@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
  
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
