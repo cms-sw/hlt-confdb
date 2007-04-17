@@ -10,7 +10,7 @@ public class ParameterWriterV1  implements IParameterWriter {
 
 	public String toString( Parameter parameter, Converter converter ) 
 	{
-		String str = (parameter.isTracked() ? "" : "untracked" )
+		String str = (parameter.isTracked() ? "" : "untracked " )
 			 + parameter.type() + " " + parameter.name() + " = ";
 		
 		if ( parameter instanceof ScalarParameter )
