@@ -19,14 +19,14 @@ public class ConfigurationWriterV1 implements IConfigurationWriter
 		for ( int i = 0; i < conf.pathCount(); i++ )
 		{
 			Path path = conf.path(i);
-			str += pathWriter.toString( path, converter );
+			str += pathWriter.toString( path, converter, "  " );
 		}
 
 		ISequenceWriter sequenceWriter = converter.getSequenceWriter();
 		for ( int i = 0; i < conf.sequenceCount(); i++ )
 		{
 			Sequence sequence = conf.sequence(i);
-			str += sequenceWriter.toString(sequence, converter);
+			str += sequenceWriter.toString(sequence, converter );
 		}
 
 
@@ -34,7 +34,7 @@ public class ConfigurationWriterV1 implements IConfigurationWriter
 		for ( int i = 0; i < conf.edsourceCount(); i++ )
 		{
 			EDSourceInstance edsource = conf.edsource(i);
-			str += edsourceWriter.toString(edsource, converter);
+			str += edsourceWriter.toString(edsource, converter );
 		}
 
 		IESSourceWriter essourceWriter = converter.getESSourceWriter();

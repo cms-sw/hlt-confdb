@@ -8,20 +8,25 @@ import confdb.data.VectorParameter;
 
 public class ParameterWriterV1  implements IParameterWriter {
 
-	public String toString( Parameter parameter, Converter converter ) 
+	public String toString( Parameter parameter, Converter converter, String indent ) 
 	{
-		String str = (parameter.isTracked() ? "" : "untracked " )
+		String str = indent + (parameter.isTracked() ? "" : "untracked " )
 			 + parameter.type() + " " + parameter.name() + " = ";
 		
 		if ( parameter instanceof ScalarParameter )
 			str += parameter.valueAsString();
 		else if ( parameter instanceof PSetParameter )
 		{
-			str += "{ "; 
 			PSetParameter pset = (PSetParameter)parameter;
-			for ( int i = 0; i < pset.parameterCount(); i++ )
-				str += toString( (Parameter)pset.parameter(i), converter );
-			str += " }"; 
+			if ( pset.parameterCount() == 0 )
+				str += "{}";
+			else
+			{
+				str += "{" + converter.getNewline(); 
+				for ( int i = 0; i < pset.parameterCount(); i++ )
+					str += toString( (Parameter)pset.parameter(i), converter, indent + "  " );
+				str += indent + "}"; 
+			}
 		}
 		else if ( parameter instanceof VectorParameter )
 		{
@@ -30,7 +35,7 @@ public class ParameterWriterV1  implements IParameterWriter {
 			{
 				VPSetParameter vpset = (VPSetParameter)parameter;
 				for ( int i = 0; i < vpset.parameterSetCount(); i++ )
-					str += toString( (Parameter)vpset.parameterSet(i), converter );
+					str += toString( (Parameter)vpset.parameterSet(i), converter, indent + "  " );
 			}
 			else
 				str += parameter.valueAsString(); 

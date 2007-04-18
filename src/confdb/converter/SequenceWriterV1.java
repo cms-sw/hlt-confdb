@@ -4,10 +4,11 @@ import confdb.data.Sequence;
 
 public class SequenceWriterV1 implements ISequenceWriter {
 
+	private static final String indent = "  ";
 
 	public String toString( Sequence sequence, Converter converter ) 
 	{
-		String str = "sequence " + sequence.name() + " = { ";
+		String str = indent + "sequence " + sequence.name() + " = { ";
 		for ( int i = 0; i < sequence.entryCount(); i++  )
 		{
 			str += sequence.entry(i).name();
