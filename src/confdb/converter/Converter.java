@@ -1,9 +1,11 @@
 package confdb.converter;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.prefs.Preferences;
+import java.util.Properties;
 
 import confdb.data.ConfigInfo;
 import confdb.data.Configuration;
@@ -29,20 +31,20 @@ public class Converter implements IConverter {
 	private ArrayList<Template> serviceTemplateList = new ArrayList<Template>();
 	private ArrayList<Template> moduleTemplateList = new ArrayList<Template>();
 
-	static private Preferences  prefs = Preferences.userNodeForPackage( Converter.class );
-	
 	static final private String newline = "\n";
+	static final private String indent = "  ";
+	
 	final private String configurationHeader = "process FU = {" + newline;
 	final private String configurationTrailer = "}" + newline;
 
 
-	private static String CMSSWrelease = getPrefs().get( "CMSSWrelease", "CMSSW_1_3_0_pre3" );
-	private static String dbName = getPrefs().get( "dbName", "hltdb" );
-	private static String dbType = getPrefs().get( "dbType", "mysql" );
-	private static String dbHost = getPrefs().get( "dbHost", "localhost" );
-	private static String dbUser = getPrefs().get( "dbUser", "hlt" );
-	private static String dbPwrd = getPrefs().get( "dbPwrd", "hlt" );
-	
+	private static String CMSSWrelease = "CMSSW_1_4_0_pre1";
+	private static String dbName = null;
+	private static String dbType = null;
+	private static String dbHost = null;
+	private static String dbUser = null;
+	private static String dbPwrd = null;
+
 	private static HashMap<Integer, String> cache = new HashMap<Integer, String>();
 
 	static 
@@ -149,11 +151,32 @@ public class Converter implements IConverter {
 		return list;
 	}
 	
+	protected void loadProperties() throws IOException
+	{
+		InputStream inStream = getClass().getResourceAsStream( "/conf/confdb.properties" );
+		Properties properties = new Properties();
+		properties.load(inStream);
+
+		String property = properties.getProperty( "confdb.dbName" );
+		if ( property != null )
+			dbName = new String( property );
+		property = properties.getProperty( "confdb.dbType" );
+		if ( property != null )
+			dbType = new String( property );
+		property = properties.getProperty( "confdb.dbHost" );
+		if ( property != null )
+			dbHost = new String( property );
+		property = properties.getProperty( "confdb.dbUser" );
+		if ( property != null )
+			dbUser = new String( property );
+		property = properties.getProperty( "confdb.dbPwrd" );
+		if ( property != null )
+			dbPwrd = new String( property );
+	}
 	
 	public static void main(String[] args) 
 	{
-		String usage = "java " + Converter.class.getName() 
-		  + "  configKey [ CMSSWrelease dbName dbType dbHost dbUser dbPwrd]\n";
+		String usage = "java " + Converter.class.getName() + "  configKey\n";
 		
 		if ( args.length < 1 )
 		{
@@ -164,44 +187,8 @@ public class Converter implements IConverter {
 
 		int configKey = Integer.parseInt( args[0] );
 		
-		int argI = 1;
+	
 		
-		if ( args.length > argI )
-		{
-			CMSSWrelease = args[argI++];
-			prefs.put( "CMSSWrelease", CMSSWrelease );
-		}
-					
-		if ( args.length > argI )
-		{
-			dbName = args[argI++];
-			prefs.put( "dbName", dbName );
-		}
-
-		if ( args.length > argI )
-		{
-			dbType = args[argI++];
-			prefs.put( "dbType", dbType );
-		}
-
-		if ( args.length > argI )
-		{
-			dbHost = args[argI++];
-			prefs.put( "dbHost", dbHost );
-		}
-
-		if ( args.length > argI )
-		{
-			dbUser = args[argI++];
-			prefs.put( "dbUser", dbUser );
-		}
-
-		if ( args.length > argI )
-		{
-			dbPwrd = args[argI++];
-			prefs.put( "dbPwrd", dbPwrd );
-		}
-
 		try {
 			Converter converter = Converter.getConverter();
 			String config = converter.readConfiguration(configKey);
@@ -222,6 +209,9 @@ public class Converter implements IConverter {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -324,15 +314,11 @@ public class Converter implements IConverter {
 	}
 
 
-	public static Preferences getPrefs() {
-		return prefs;
-	}
-
-	
-	public static Converter getConverter() throws ClassNotFoundException, InstantiationException, IllegalAccessException
+	public static Converter getConverter() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException
 	{
 		CfgDatabase database = new CfgDatabase();
 		Converter converter = ConverterFactory.getFactory( CMSSWrelease ).getConverter();
+		converter.loadProperties();
 		converter.setDatabase( database );
 		
 		return converter;
@@ -402,5 +388,9 @@ public class Converter implements IConverter {
 	static protected String getAsciiNewline()
 	{
 		return newline;
+	}
+
+	public static String getIndent() {
+		return indent;
 	}
 }
