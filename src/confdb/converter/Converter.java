@@ -32,7 +32,6 @@ public class Converter implements IConverter {
 	private ArrayList<Template> moduleTemplateList = new ArrayList<Template>();
 
 	static final private String newline = "\n";
-	static final private String indent = "  ";
 	
 	final private String configurationHeader = "process FU = {" + newline;
 	final private String configurationTrailer = "}" + newline;
@@ -58,18 +57,22 @@ public class Converter implements IConverter {
 	{
 	}
 	
+	static public String readConfiguration( int configKey, String typeOfConverter ) throws DatabaseException, SQLException, ClassNotFoundException, InstantiationException, IllegalAccessException, IOException
+	{
+		Converter converter = ConverterFactory.getFactory().getConverter(typeOfConverter);
+
+		converter.loadProperties();
+		converter.setDatabase( new CfgDatabase() );
+		return converter.readConfiguration(configKey);
+	}
+
 	public String readConfiguration( int configKey ) throws DatabaseException, SQLException
 	{
 		if ( configKey < 0 )
 			return cache.get( new Integer(configKey) );
 
-		String dbUrl = "jdbc:mysql://" + dbHost + ":3306/" + dbName;
-		if ( dbType.equals("oracle") )
-		    dbUrl = "jdbc:oracle:thin:@//" + dbHost + "/" + dbName;
-		
 		try {
-			database.connect( dbType, dbUrl, dbUser, dbPwrd );
-			database.prepareStatements();
+			connectToDatabase();
 
 			Configuration configuration = loadConfiguration(configKey);
 			if ( configuration == null )
@@ -102,7 +105,7 @@ public class Converter implements IConverter {
 	public String convert( Configuration configuration )
 	{
 		String str = "// " + configuration.name() + " V" + configuration.version()
-			+ " (" + configuration.releaseTag() + ")" + getNewline();
+			+ " (" + configuration.releaseTag() + ")" + getNewline() + getNewline();
 		return str + configurationWriter.toString( configuration );
 	}
 	
@@ -173,10 +176,25 @@ public class Converter implements IConverter {
 		if ( property != null )
 			dbPwrd = new String( property );
 	}
+
+	public void connectToDatabase() throws DatabaseException
+	{
+		String dbUrl = "jdbc:mysql://" + dbHost + ":3306/" + dbName;
+		if ( dbType.equals("oracle") )
+		    dbUrl = "jdbc:oracle:thin:@//" + dbHost + "/" + dbName;
+		
+		database.connect( dbType, dbUrl, dbUser, dbPwrd );
+		database.prepareStatements();
+	}
+
+	public void disconnectFromDatabase() throws DatabaseException
+ 	{
+		database.disconnect();
+ 	}
 	
 	public static void main(String[] args) 
 	{
-		String usage = "java " + Converter.class.getName() + "  configKey\n";
+		String usage = "java " + Converter.class.getName() + "  configKey [typeOfConversion:ascii or html]\n";
 		
 		if ( args.length < 1 )
 		{
@@ -190,8 +208,11 @@ public class Converter implements IConverter {
 	
 		
 		try {
-			Converter converter = Converter.getConverter();
-			String config = converter.readConfiguration(configKey);
+			String config = null;
+			if ( args.length > 1 )
+				config = Converter.readConfiguration( configKey, args[1] );
+			else
+				config = Converter.readConfiguration( configKey, "ascii" );
 			if ( config == null )
 				System.out.println( "config " + configKey + " not found!" );
 			else
@@ -390,7 +411,4 @@ public class Converter implements IConverter {
 		return newline;
 	}
 
-	public static String getIndent() {
-		return indent;
-	}
 }
