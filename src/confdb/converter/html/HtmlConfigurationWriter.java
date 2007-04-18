@@ -18,22 +18,23 @@ import confdb.data.ServiceInstance;
 
 public class HtmlConfigurationWriter implements IConfigurationWriter 
 {
+	protected Converter converter = null;
 
-	public String toString( Configuration conf, Converter converter )
+	public String toString( Configuration conf )
 	{
-		String str = converter.getConfigurationHeader();
+		String str = "<table>\n";
 		IPathWriter pathWriter = converter.getPathWriter();
 		for ( int i = 0; i < conf.pathCount(); i++ )
 		{
 			Path path = conf.path(i);
-			str += pathWriter.toString( path, converter );
+			str += pathWriter.toString( path, converter, "" );
 		}
 
 		ISequenceWriter sequenceWriter = converter.getSequenceWriter();
 		for ( int i = 0; i < conf.sequenceCount(); i++ )
 		{
 			Sequence sequence = conf.sequence(i);
-			str += sequenceWriter.toString(sequence, converter);
+			str += sequenceWriter.toString(sequence, converter );
 		}
 
 
@@ -41,7 +42,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 		for ( int i = 0; i < conf.edsourceCount(); i++ )
 		{
 			EDSourceInstance edsource = conf.edsource(i);
-			str += edsourceWriter.toString(edsource, converter);
+			str += edsourceWriter.toString(edsource, converter );
 		}
 
 		IESSourceWriter essourceWriter = converter.getESSourceWriter();
@@ -63,11 +64,15 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 		for ( int i = 0; i < conf.moduleCount(); i++ )
 		{
 			ModuleInstance module = conf.module(i);
-			str += moduleWriter.toString( module, converter );
+			str += moduleWriter.toString( module );
 		}
 
-		str += converter.getConfigurationTrailer();
+		str += "</table>";
 		return str;
+	}
+
+	public void setConverter(Converter converter) {
+		this.converter = converter;
 	}
 	
 }
