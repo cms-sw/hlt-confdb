@@ -15,8 +15,13 @@ public class HtmlParameterWriter  implements IParameterWriter {
 		String str = "<tr>";
 		for ( int i = 0; i < indent.length(); i++ )
 			str += "<td></td>";
-		str += "<td>" + (parameter.isTracked() ? "" : "untracked " )
-			 + parameter.type() + "</td><td>" + parameter.name() + "</td><td>=</td>";
+		boolean tracked = parameter.isTracked();
+		if ( tracked )
+			str += "<td colspan=\"2\">";
+		else
+			str += "<td>untracked</td><td>";
+		
+		str	+= parameter.type() + "</td><td>" + parameter.name() + "</td><td align=\"center\">=</td>";
 		
 		if ( parameter instanceof ScalarParameter )
 			str += "<td>" + parameter.valueAsString() + "</td>";

@@ -14,16 +14,17 @@ public class HtmlInstanceWriter {
 		if ( parameterWriter == null )
 			parameterWriter = converter.getParameterWriter();
 		
-		String str = "<tr><td>"+ type + "</td><td>=</td><td>" + instance.name() + "</td></tr>\n";
+		String str = "<tr><td>"+ type + "</td><td align=\"center\">=</td><td>" + instance.name() + "</td></tr>\n";
 		if ( instance.parameterCount() == 0 )
 			return str;
 			
-		//str += "<tr>";
+		str += "<tr><td></td><td colspan=\"5\"><table>";
 		for ( int i = 0; i < instance.parameterCount(); i++ )
 		{
 			Parameter parameter = instance.parameter(i);
 			str += parameterWriter.toString( parameter, converter, "  " );
 		}
+		str += "</table></td></tr>";
 		return str;
 	}
 

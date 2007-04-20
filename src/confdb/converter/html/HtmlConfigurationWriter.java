@@ -22,7 +22,8 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 
 	public String toString( Configuration conf )
 	{
-		String str = "<table>\n";
+		String str = "<table><th><td colspan=\"5\"><b>" + conf.name() + " V" + conf.version() + "</td></th>\n";
+		str += "<tr><td colspan=\"2\"><b>Paths</td></tr>\n";
 		IPathWriter pathWriter = converter.getPathWriter();
 		for ( int i = 0; i < conf.pathCount(); i++ )
 		{
@@ -30,6 +31,9 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 			str += pathWriter.toString( path, converter, "" );
 		}
 
+		str += "<tr></tr>\n";
+		if ( conf.sequenceCount() > 0 )
+			str += "<tr><td colspan=\"2\"><b>Sequences</td></tr>\n";
 		ISequenceWriter sequenceWriter = converter.getSequenceWriter();
 		for ( int i = 0; i < conf.sequenceCount(); i++ )
 		{
@@ -38,6 +42,9 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 		}
 
 
+		str += "<tr></tr>\n";
+		if ( conf.edsourceCount() > 0 )
+			str += "<tr><td colspan=\"2\"><b>Sources</td></tr>\n";
 		IEDSourceWriter edsourceWriter = converter.getEDSourceWriter();
 		for ( int i = 0; i < conf.edsourceCount(); i++ )
 		{
@@ -45,6 +52,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 			str += edsourceWriter.toString(edsource, converter );
 		}
 
+		//str += "<tr></tr>\n";
 		IESSourceWriter essourceWriter = converter.getESSourceWriter();
 		for ( int i = 0; i < conf.essourceCount(); i++ )
 		{
@@ -53,6 +61,9 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 		}
 
 
+		str += "<tr></tr>\n";
+		if ( conf.serviceCount() > 0 )
+			str += "<tr><td colspan=\"2\"><b>Services</td></tr>\n";
 		IServiceWriter serviceWriter = converter.getServiceWriter();
 		for ( int i = 0; i < conf.serviceCount(); i++ )
 		{
@@ -60,6 +71,9 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 			str += serviceWriter.toString( service, converter );
 		}
 
+		str += "<tr></tr>\n";
+		if ( conf.moduleCount() > 0 )
+			str += "<tr><td colspan=\"2\"><b>Modules</td></tr>\n";
 		IModuleWriter moduleWriter = converter.getModuleWriter();
 		for ( int i = 0; i < conf.moduleCount(); i++ )
 		{
