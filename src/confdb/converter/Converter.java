@@ -104,9 +104,7 @@ public class Converter implements IConverter {
 	
 	public String convert( Configuration configuration )
 	{
-		String str = "// " + configuration.name() + " V" + configuration.version()
-			+ " (" + configuration.releaseTag() + ")" + getNewline() + getNewline();
-		return str + configurationWriter.toString( configuration );
+		return configurationWriter.toString( configuration );
 	}
 	
 
