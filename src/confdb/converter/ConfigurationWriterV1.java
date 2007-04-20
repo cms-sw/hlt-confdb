@@ -14,7 +14,10 @@ public class ConfigurationWriterV1 implements IConfigurationWriter
 
 	public String toString( Configuration conf )
 	{
-		String str = converter.getConfigurationHeader();
+		String str = "// " + conf.name() + " V" + conf.version()
+		+ " (" + conf.releaseTag() + ")" + converter.getNewline() + converter.getNewline();
+
+		str += converter.getConfigurationHeader();
 		IPathWriter pathWriter = converter.getPathWriter();
 		for ( int i = 0; i < conf.pathCount(); i++ )
 		{
