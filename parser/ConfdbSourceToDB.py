@@ -389,7 +389,7 @@ class ConfdbSourceToDB:
 			    # Even if the typedefs are in a special "plugins" directory
 			    myParser.HandleTypedefs(pluginsdir + srcfile, modulename, pluginsdir, interfacedir, datadir, sourcetree)
 
-		    except IndexError:
+		    except:
 			print "Error: exception caught during parsing. The component " + modulename + " will not be loaded to the DB"
 			return
 
@@ -401,98 +401,103 @@ class ConfdbSourceToDB:
 	modulebaseclass = myParser.GetBaseClass()
 	    
 
-	# OK, now we know the module, it's base class, it's parameters, and their
-	# default values. Start updating the database if necessary
-	if(componenttype == 1):
+	try:
+	    # OK, now we know the module, it's base class, it's parameters, and their
+	    # default values. Start updating the database if necessary
+	    if(componenttype == 1):
+		
+		# Make sure we recognize the base class of this module
+		if(modulebaseclass == "EDProducer" or
+		   modulebaseclass == "EDFilter" or 
+		   modulebaseclass == "ESProducer" or
+		   modulebaseclass == "OutputModule" or
+		   modulebaseclass == "EDAnalyzer" or 
+		   modulebaseclass == "HLTProducer" or 
+		   modulebaseclass == "HLTFilter"):
+		    # First check if this module template already exists
+		    if(modulebaseclass):
+			modid = self.dbloader.ConfdbCheckModuleExistence(self.dbcursor,modulebaseclass,modulename,tagline)
+			if(modid):
+			    # If so, see if parameters need to be updated
+			    print "***UPDATING MODULE " + modulename + "***"
+			    self.dbloader.ConfdbUpdateModuleTemplate(self.dbcursor,modulename,modulebaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+			else:
+			    # If not, make a new template
+			    self.dbloader.ConfdbLoadNewModuleTemplate(self.dbcursor,modulename,modulebaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
 
-	    # Make sure we recognize the base class of this module
-	    if(modulebaseclass == "EDProducer" or
-	       modulebaseclass == "EDFilter" or 
-	       modulebaseclass == "ESProducer" or
-	       modulebaseclass == "OutputModule" or
-	       modulebaseclass == "EDAnalyzer" or 
-	       modulebaseclass == "HLTProducer" or 
-	       modulebaseclass == "HLTFilter"):
-		# First check if this module template already exists
-		if(modulebaseclass):
-		    modid = self.dbloader.ConfdbCheckModuleExistence(self.dbcursor,modulebaseclass,modulename,tagline)
-		    if(modid):
-			# If so, see if parameters need to be updated
-			print "***UPDATING MODULE " + modulename + "***"
-			self.dbloader.ConfdbUpdateModuleTemplate(self.dbcursor,modulename,modulebaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
-		    else:
-			# If not, make a new template
-			self.dbloader.ConfdbLoadNewModuleTemplate(self.dbcursor,modulename,modulebaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
 
-
-	    # This is an unknown base class. See if it really inherits from something
-	    # else we know.
-	    else:
-		if(modulebaseclass):
-		    therealbaseclass = myParser.FindOriginalBaseClass(modulebaseclass, sourcetree)
-
-		    if(therealbaseclass == "EDProducer" or
-		       therealbaseclass == "EDFilter" or 
-		       therealbaseclass == "ESProducer" or
-		       therealbaseclass == "OutputModule" or
-		       therealbaseclass == "EDAnalyzer" or 
-		       therealbaseclass == "HLTProducer" or 
-		       therealbaseclass == "HLTFilter"):
-			# First check if this module template already exists
-			if(therealbaseclass):
-			    modid = self.dbloader.ConfdbCheckModuleExistence(self.dbcursor,therealbaseclass,modulename,tagline)
-			    if(modid):
-				# If so, see if parameters need to be updated
-				print "***UPDATING MODULE " + modulename + "***"
-				self.dbloader.ConfdbUpdateModuleTemplate(self.dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
-			    else:
-				# If not, make a new template
-				self.dbloader.ConfdbLoadNewModuleTemplate(self.dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
-		    else:
-			print  "Message: Unknown module base class " + modulebaseclass + ":" + therealbaseclass + ". Module will not be loaded."
+		# This is an unknown base class. See if it really inherits from something
+		# else we know.
 		else:
-		    print "Error: No module base class at all for " + modulename + ". Module will not be loaded"
+		    if(modulebaseclass):
+			therealbaseclass = myParser.FindOriginalBaseClass(modulebaseclass, sourcetree)
 
-	# This is a Service. Use the ServiceTemplate
-	elif(componenttype == 2):
-	    # First check if this service template already exists
-	    servid = self.dbloader.ConfdbCheckServiceExistence(self.dbcursor,modulename,tagline)
-	    if(servid):
-		# If so, see if parameters need to be updated
-		print "***UPDATING SERVICE " + modulename + "***"
-		self.dbloader.ConfdbUpdateServiceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
-	    else:
-		# If not, make a new template
-		self.dbloader.ConfdbLoadNewServiceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
+			if(therealbaseclass == "EDProducer" or
+			   therealbaseclass == "EDFilter" or 
+			   therealbaseclass == "ESProducer" or
+			   therealbaseclass == "OutputModule" or
+			   therealbaseclass == "EDAnalyzer" or 
+			   therealbaseclass == "HLTProducer" or 
+			   therealbaseclass == "HLTFilter"):
+			    # First check if this module template already exists
+			    if(therealbaseclass):
+				modid = self.dbloader.ConfdbCheckModuleExistence(self.dbcursor,therealbaseclass,modulename,tagline)
+				if(modid):
+				    # If so, see if parameters need to be updated
+				    print "***UPDATING MODULE " + modulename + "***"
+				    self.dbloader.ConfdbUpdateModuleTemplate(self.dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+				else:
+				    # If not, make a new template
+				    self.dbloader.ConfdbLoadNewModuleTemplate(self.dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+			else:
+			    print  "Message: Unknown module base class " + modulebaseclass + ":" + therealbaseclass + ". Module will not be loaded."
+		    else:
+			print "Error: No module base class at all for " + modulename + ". Module will not be loaded"
 
-	# This is an ES_Source. Use the ESSourceTemplate
-	elif(componenttype == 3):
-	    # First check if this service template already exists
-	    sourceid = self.dbloader.ConfdbCheckESSourceExistence(self.dbcursor,modulename,tagline)
-	    if(sourceid):
-		# If so, see if parameters need to be updated
-		print "***UPDATING " + modulename + "***"
-		self.dbloader.ConfdbUpdateESSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
-	    else:
-		# If not, make a new template
-		self.dbloader.ConfdbLoadNewESSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
+	    # This is a Service. Use the ServiceTemplate
+	    elif(componenttype == 2):
+		# First check if this service template already exists
+		servid = self.dbloader.ConfdbCheckServiceExistence(self.dbcursor,modulename,tagline)
+		if(servid):
+		    # If so, see if parameters need to be updated
+		    print "***UPDATING SERVICE " + modulename + "***"
+		    self.dbloader.ConfdbUpdateServiceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+		else:
+		    # If not, make a new template
+		    self.dbloader.ConfdbLoadNewServiceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
 
-	# This is an ED_Source. Use the EDSourceTemplate
-	elif(componenttype == 4):
-	    # First check if this service template already exists
-	    sourceid = self.dbloader.ConfdbCheckEDSourceExistence(self.dbcursor,modulename,tagline)
-	    if(sourceid):
-		# If so, see if parameters need to be updated
-		print "***UPDATING EDSOURCE " + modulename + "***"
-		self.dbloader.ConfdbUpdateEDSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
-	    else:
-		# If not, make a new template
-		self.dbloader.ConfdbLoadNewEDSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
+	    # This is an ES_Source. Use the ESSourceTemplate
+	    elif(componenttype == 3):
+		# First check if this service template already exists
+		sourceid = self.dbloader.ConfdbCheckESSourceExistence(self.dbcursor,modulename,tagline)
+		if(sourceid):
+		    # If so, see if parameters need to be updated
+		    print "***UPDATING " + modulename + "***"
+		    self.dbloader.ConfdbUpdateESSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+		else:
+		    # If not, make a new template
+		    self.dbloader.ConfdbLoadNewESSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
+
+	    # This is an ED_Source. Use the EDSourceTemplate
+	    elif(componenttype == 4):
+		# First check if this service template already exists
+		sourceid = self.dbloader.ConfdbCheckEDSourceExistence(self.dbcursor,modulename,tagline)
+		if(sourceid):
+		    # If so, see if parameters need to be updated
+		    print "***UPDATING EDSOURCE " + modulename + "***"
+		    self.dbloader.ConfdbUpdateEDSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+		else:
+		    # If not, make a new template
+		    self.dbloader.ConfdbLoadNewEDSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
 
 
-	# Display any cases where we ran into trouble
-	myParser.ShowParamFailures()
-	myParser.ResetParams()
-                
+	    # Display any cases where we ran into trouble
+	    myParser.ShowParamFailures()
+	    myParser.ResetParams()
+
+	except:
+	    print "Error: SQL exception caught while loading the component " + modulename + " to DB. The template may be incomplete." 
+	    return
+    
 if __name__ == "__main__":
     main(sys.argv[1:])
