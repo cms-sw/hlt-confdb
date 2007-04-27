@@ -1,9 +1,9 @@
 #!/usr/bin/env python
- 
+
 # ConfdbSourceParser.py
-# Parse cc files in a release, and identify the modules/parameters 
+# Parse cc files in a release, and identify the modules/parameters
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL Apr. 4, 2007
+# Jonathan Hollar LLNL April 27, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -605,8 +605,8 @@ class SourceParser:
 			
 			# We didn't find a default setting for this tracked parameter
 			if(success == False):
-			    if(self.verbose > 0):
-				print 'Failed to find a default value for the tracked parameter: ' + paramtype + ' ' + paramname + ' in module ' + themodulename
+			    if(self.verbose > 1):
+				print '\t\tFailed to find a default value for the tracked parameter: ' + paramtype + ' ' + paramname + ' in module ' + themodulename
 
 			    if(not paramname.lstrip().startswith('@module')):
 				# Special cases for typedef'd vectors
@@ -825,8 +825,8 @@ class SourceParser:
 				success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname,paraminparamset)
 
 			    if(defaultincc == False and success == False):
-				if(self.verbose > 0):
-				    print 'Failed to find a default value for the untracked parameter: ' + paramtype + ' ' + paramname + ' in module ' + themodulename
+				if(self.verbose > 1):
+				    print '\t\tFailed to find a default value for the untracked parameter: ' + paramtype + ' ' + paramname + ' in module ' + themodulename
 				self.paramfailures.append((themodulename,paramtype,paramname.lstrip().rstrip(),"false",self.sequencenb))
 				if(paramtype == 'PSet' or paramtype == 'ParameterSet'):
 				    if(paramname in self.psetsequences):
@@ -1140,7 +1140,7 @@ class SourceParser:
 				self.ParseInterfaceFile(theinterfacedir + hfile, theclass)
 
 				# And check if the class constructor is in the .h file
-				if(self.verbose > 0):
+				if(self.verbose > 1):
 				    print "\t\tChecking include file  " + theinterfacedir + hfile + " for " + theclass 
 				self.ParseSrcFile(theinterfacedir + hfile, theclass, thedatadir, themodulename)
 
@@ -1148,7 +1148,7 @@ class SourceParser:
 
 		    for ccfile in ccfiles:
 			if(ccfile.endswith(".cc")):
-			    if(self.verbose > 0):
+			    if(self.verbose > 1):
 				print "\t\tChecking sourcefile " + thesrcdir + ccfile + " for " + theclass
 			    self.ParseSrcFile(thesrcdir + ccfile, theclass, thedatadir, themodulename)
 		
@@ -1170,7 +1170,7 @@ class SourceParser:
 	basebaseclass = ""
 
 	if(self.verbose > 1):
-	    print "Need to look for " + classname + " from " + self.includefile
+	    print "\tNeed to look for " + classname + " from " + self.includefile
 
 	if(os.path.isfile(self.includefile)):
 	    classfile = open(self.includefile)

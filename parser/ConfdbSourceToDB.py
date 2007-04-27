@@ -3,8 +3,8 @@
 # ConfdbSourceToDB.py
 # Main file for parsing source code in a CMSSW release and
 # loading module templates to the Conf DB.
-# 
-# Jonathan Hollar LLNL Feb. 22, 2007
+#
+# Jonathan Hollar LLNL April. 27, 2007
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
@@ -184,14 +184,14 @@ class ConfdbSourceToDB:
 
 		for subdir in subdirlist:
 		    # Check if the user really wants to use this package
-		    if (self.usingblacklist == True and (package+"/"+subdir) in self.blacklist[0]):
+		    if (self.usingblacklist == True and (package) in self.blacklist[0]):
 			if(self.verbose > 0):
-			    print "Skipping package " + (package+"/"+subdir)
+			    print "Skipping package " + (package)
 			continue
 
-		    elif (self.usingwhitelist == True and not ((package+"/"+subdir) in self.whitelist[0])):
+		    elif (self.usingwhitelist == True and not ((package) in self.whitelist[0])):
 			if(self.verbose > 0):
-			    print "Skipping package " + (package+"/"+subdir)
+			    print "Skipping package " + (package)
 			continue
 
 		    packagedir = source_tree + package + "/" + subdir
@@ -496,7 +496,7 @@ class ConfdbSourceToDB:
 	    myParser.ResetParams()
 
 	except:
-	    print "Error: SQL exception caught while loading the component " + modulename + " to DB. The template may be incomplete." 
+	    print "Error: SQL exception caught while loading the component " + modulename + " to DB. The template may be incomplete" 
 	    return
     
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
- 
+
 # ConfdbSQLModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (MySQL version). All MySQL specific code belongs here.
@@ -409,11 +409,16 @@ class ConfdbMySQLModuleLoader:
 		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 
 		if(paramval):
-		    if(paramval.find('::') != -1 or paramval.find('_') != -1):
-			print "\tWarning: Attempted to load a non-integer value to integer table:"
-			print "\t\tint32 " + str(paramname) + " = " + str(paramval)
-			print "\t\tLoading parameter with no default value"
-			continue
+		    if(paramval.find('.') != -1):
+			paramval = str(int(float(paramval)))
+		    elif(not paramval.isdigit()):
+			paramval = None
+
+#		    if(paramval.find('::') != -1 or paramval.find('_') != -1):
+#			print "\tWarning: Attempted to load a non-integer value to integer table:"
+#			print "\t\tint32 " + str(paramname) + " = " + str(paramval)
+#			print "\t\tLoading parameter with no default value"
+#			continue
 
 		# Fill ParameterValues table
 		if(paramval == None):
@@ -426,8 +431,14 @@ class ConfdbMySQLModuleLoader:
 	    elif(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t" or paramtype == "unsigned"):
 		type = self.paramtypedict['uint32']
 
-		if(str(paramval).endswith("U")):
-		    paramval = (str(paramval).rstrip("U"))
+		if(paramval):
+		    if(str(paramval).endswith("U")):
+			paramval = (str(paramval).rstrip("U"))
+
+		    if(paramval.find('.') != -1):
+			paramval = str(int(float(paramval)))
+		    elif(not paramval.isdigit()):
+			paramval = None
 
 		# Fill Parameters table
 		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)    
@@ -460,6 +471,10 @@ class ConfdbMySQLModuleLoader:
 
 		# Fill Parameters table
 		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
+
+		if(paramval):
+		    if(paramval.find('.') == -1 and (not paramval.isdigit())):
+			paramval = None
 
 		# Fill ParameterValues table
 		if(paramval == None):
@@ -503,7 +518,10 @@ class ConfdbMySQLModuleLoader:
 		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
-		    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES ('" + str(newparamid) + "', '" + paramval + "')")
+		    if(paramval.find("'") != -1):
+			thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+		    else:
+			thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
 
 	    else:
 		print '\tError: Unknown param type ' + paramtype + ' ' + paramname + ' - do nothing'
@@ -626,6 +644,13 @@ class ConfdbMySQLModuleLoader:
 
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,paramname,oldsuperid)
+
+		# Protect against loading non-integer values. Also deal with implicit fp->int conversions and hex.
+		if(paramval):
+		    if(paramval.find('.') != -1):
+			paramval = str(int(float(paramval)))
+		    elif(not paramval.isdigit()):
+			paramval = None
 		
 		# A previous version of this parameter exists. See if its 
 		# value has changed.
@@ -637,17 +662,16 @@ class ConfdbMySQLModuleLoader:
 		    if(oldparamval):
 			oldparamval = oldparamval[0]
 
-		    # Protect against loading non-integer values. Also deal with implicit fp->int conversions and hex.
-		    if(paramval):
-			if(paramval.find('::') != -1 or paramval.find('_') != -1):
-			    print "\tWarning: Attempted to load a non-integer value to integer table:"
-			    print "\t\tint32 " + str(paramname) + " = " + str(paramval)
-			    print "\t\tLoading parameter with no default value"
-			    continue
-			elif(paramval.find('.') != -1):
-			    paramval = int(float(paramval))
-			elif(paramval.find('x') == -1):
-			    paramval = int(paramval)
+
+#			if(paramval.find('::') != -1 or paramval.find('_') != -1):
+#			    print "\tWarning: Attempted to load a non-integer value to integer table:"
+#			    print "\t\tint32 " + str(paramname) + " = " + str(paramval)
+#			    print "\t\tLoading parameter with no default value"
+#			    continue
+#			elif(paramval.find('.') != -1):
+#			    paramval = int(float(paramval))
+#			elif(paramval.find('x') == -1):
+#			    paramval = int(paramval)
 
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or 
@@ -673,7 +697,7 @@ class ConfdbMySQLModuleLoader:
 
 		    # Fill Parameters table
 		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
-		    
+
 		    # Fill ParameterValues table
 		    if(paramval == None):
 			if(self.verbose > 2):
@@ -685,8 +709,14 @@ class ConfdbMySQLModuleLoader:
 	    if(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t"):
 		type = self.paramtypedict['uint32']
 
-		if(str(paramval).endswith("U")):
-		    paramval = (str(paramval).rstrip("U"))
+		if(paramval):
+		    if(str(paramval).endswith("U")):
+			paramval = (str(paramval).rstrip("U"))
+
+		    if(paramval.find('.') != -1):
+			paramval = str(int(float(paramval)))
+		    elif(not paramval.isdigit()):
+			paramval = None
 
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,paramname,oldsuperid)
@@ -796,6 +826,10 @@ class ConfdbMySQLModuleLoader:
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,paramname,oldsuperid)
 		
+		if(paramval):
+		    if(paramval.find('.') == -1 and (not paramval.isdigit())):
+			paramval = None
+
 		# A previous version of this parameter exists. See if its 
 		# value has changed.
 		if(oldparamid):
@@ -948,7 +982,10 @@ class ConfdbMySQLModuleLoader:
 			if(self.verbose > 2):
 			    print "No default parameter value found"
 		    else:
-			thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
+			if(paramval.find("'") != -1):
+			    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+			else:
+			    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
 
 	# Now deal with any vectors
 	for vecptype, vecpname, vecpvals, vecpistracked, vecpseq in vecparameters:
@@ -1246,13 +1283,47 @@ class ConfdbMySQLModuleLoader:
 		continue
 
 	    if(psettype == "int32" or psettype == "int" or psettype == "int32_t"):
-		thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+		# Protect against loading non-integer values. Also deal with implicit fp->int conversions and hex.
+		if(psetval):
+		    if(psetval.find('.') != -1):
+			psetval = str(int(float(psetval)))
+		    elif(not psetval.isdigit()):
+			psetval = None
+
+		if(psetval == None):
+		    if(self.verbose > 2):
+			print "No default parameter value found"
+		else:
+		    thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
 	    elif(psettype == "uint32" or psettype == "unsigned int" or psettype == "uint32_t"):
 		if(str(psetval).endswith("U")):
 		    psetval = (str(psetval).rstrip("U"))
+
+		# Protect against loading non-integer values. Also deal with implicit fp->int conversions and hex.
+		if(psetval):
+		    if(psetval.find('.') != -1):
+			psetval = str(int(float(psetval)))
+		    elif(not psetval.isdigit()):
+			psetval = None
+
+		if(psetval == None):
+		    if(self.verbose > 2):
+			print "No default parameter value found"
+		else:
 		    thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+
 	    elif(psettype == "bool"):
 		thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+	    elif(psettype == "double"):
+		if(psetval):
+		    if(psetval.find('.') == -1 and (not psetval.isdigit())):
+			psetval = None
+
+		if(psetval == None):
+		    if(self.verbose > 2):
+			print "No default parameter value found"
+		else:
+		    thecursor.execute("INSERT INTO DoubleParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
 	    elif(psettype == "string" or psettype == "FileInPath"):
 		if(psetval.find("'") != -1):
 		    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
@@ -1263,7 +1334,10 @@ class ConfdbMySQLModuleLoader:
 		    print "\t\tstring " + str(psetname) + " = " + str(psetval)
 		    print "\t\tLoading parameter with no default value"
 	    elif(psettype == "InputTag"):
-		thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", '" + psetval + "')")
+		if(psetval.find("'") != -1):
+		    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+		else:
+		    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", '" + psetval + "')")
 	    elif(psettype == "vint32"):
 		sequencer = 0
 		entries = psetval.lstrip().rstrip().lstrip('{').rstrip('}').split(',')
@@ -1340,13 +1414,46 @@ class ConfdbMySQLModuleLoader:
 	    newvparammemberid = self.AddNewParam(thecursor,newvparamsetid,vpsetname,type,vpsettracked,vpsetseq)	    
 
 	    if(vpsettype == "int32" or vpsettype == "int" or vpsettype == "int32_t"):
-		thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
+		# Protect against loading non-integer values. Also deal with implicit fp->int conversions and hex.
+		if(vpsetval):
+		    if(vpsetval.find('.') != -1):
+			vpsetval = str(int(float(vpsetval)))
+		    elif(not vpsetval.isdigit()):
+			vpsetval = None
+
+		if(vpsetval == None):
+		    if(self.verbose > 2):
+			print "No default parameter value found"
+		else:
+		    thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
 	    elif(vpsettype == "uint32" or vpsettype == "unsigned int" or vpsettype == "uint32_t"):
-		if(str(vpsetval).endswith("U")):
-		    vpsetval = (str(vpsetval).rstrip("U"))
+		if(vpsetval):
+		    if(str(vpsetval).endswith("U")):
+			vpsetval = (str(vpsetval).rstrip("U"))
+
+		    # Protect against loading non-integer values. Also deal with implicit fp->int conversions and hex.		
+		    if(vpsetval.find('.') != -1):
+			vpsetval = str(int(float(vpsetval)))
+		    elif(not vpsetval.isdigit()):
+			vpsetval = None
+
+		if(vpsetval == None):
+		    if(self.verbose > 2):
+			print "No default parameter value found"
+		else:
 		    thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
 	    elif(vpsettype == "bool"):
 		thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
+	    elif(vpsettype == "double"):
+		if(vpsetval):
+		    if(vpsetval.find('.') == -1 and (not paramval.isdigit())):
+			vpsetval = None
+
+		if(vpsetval == None):
+		    if(self.verbose > 2):
+			print "No default parameter value found"
+		else:
+		    thecursor.execute("INSERT INTO DoubleParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
 	    elif(vpsettype == "string" or vpsettype == "FileInPath"):
 		if(vpsetval.find("'") != -1):
 		    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
@@ -1357,7 +1464,10 @@ class ConfdbMySQLModuleLoader:
 		    print "\t\tstring " + str(vpsetname) + " = " + str(vpsetval)
 		    print "\t\tLoading parameter with no default value" 
 	    elif(vpsettype == "InputTag"):
-		thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
+		if(vpsetval.find("'") != -1):
+		    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
+		else:
+		    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", '" + vpsetval + "')")
 
     # End ConfdbAttachParameterSets
 
