@@ -4,7 +4,7 @@
 # Main file for parsing source code in a CMSSW release and
 # loading module templates to the Conf DB.
 #
-# Jonathan Hollar LLNL April. 27, 2007
+# Jonathan Hollar LLNL April 27, 2007
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
@@ -430,7 +430,7 @@ class ConfdbSourceToDB:
 		# else we know.
 		else:
 		    if(modulebaseclass):
-			therealbaseclass = myParser.FindOriginalBaseClass(modulebaseclass, sourcetree)
+			therealbaseclass = myParser.FindOriginalBaseClass(modulebaseclass, sourcetree, datadir)
 
 			if(therealbaseclass == "EDProducer" or
 			   therealbaseclass == "EDFilter" or 

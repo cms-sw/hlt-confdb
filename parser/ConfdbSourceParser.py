@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-
+ 
 # ConfdbSourceParser.py
-# Parse cc files in a release, and identify the modules/parameters
+# Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
 # Jonathan Hollar LLNL April 27, 2007
 
@@ -1159,14 +1159,14 @@ class SourceParser:
 	# in this package. As a last resort, look for it in any included files. 
 	if((foundatypedef == True) and (self.baseclass == '')):
 	    self.includefile = theccfile
-	    thebaseclass = self.FindOriginalBaseClass(theclass, sourcetree)
+	    thebaseclass = self.FindOriginalBaseClass(theclass, sourcetree, thedatadir)
 
 	    if(thebaseclass):
 		self.baseclass = thebaseclass
 
     # Find the base class for modules that have 2 levels of inheritance. This can be expensive, so
     # try to be smart and look at what files are being included.		    
-    def FindOriginalBaseClass(self, classname, sourcetree):
+    def FindOriginalBaseClass(self, classname, sourcetree, thedatadir):
 	basebaseclass = ""
 
 	if(self.verbose > 1):
@@ -1235,7 +1235,11 @@ class SourceParser:
 				    if(self.verbose > 1):
 					print '\t\tBase base class is ' + basebaseclass
 
+				    # Now see if the actual class implementation is also in the same .h file
+				    self.ParseSrcFile(sourcetree + includedlib, classname, thedatadir, classname)
+
 				    foundlineend = False
+
 	return basebaseclass
 
     # Look for parameters that this component may have inherited
