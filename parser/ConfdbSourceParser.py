@@ -1,5 +1,5 @@
-#!/usr/bin/env python
- 
+#!/usr/bin/env python 
+
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
@@ -25,6 +25,8 @@ class SourceParser:
 	# Hash table of parameter set variables
 	self.psetdict = {}
 	self.psetsequences = {}
+
+	self.goodbaseclasses = ['EDProducer','EDFilter','ESProducer','OutputModule','EDAnalyzer','HLTProducer','HLTFilter']
 
 	self.inheritancelevel = 0
 	self.includefile = ""
@@ -1082,16 +1084,40 @@ class SourceParser:
 
 			baseclass = baseclass.rstrip(',').lstrip(',')
 
-                        if(self.verbose > 1):
-                            print '\t\tBase class is ' + baseclass
-
 			self.baseclass = baseclass
 
 			self.includefile = thehfile
-                        
-			foundlineend = False
 
-			totalline = ''
+			if(baseclass in self.goodbaseclasses):
+			    if(self.verbose > 1):
+				print '\t\tBase class is ' + baseclass
+                        
+			    foundlineend = False
+
+			    totalline = ''
+
+			# Multiple inheritance...
+			elif(len(totalline.split(', public')) > 1):
+			    basepos = totalline.split(', public')[1]
+
+			    baseclass = ((basepos.split())[0]).rstrip('{')
+
+			    if(baseclass.find('::') != -1):
+				# Remove namespace information - do we want this?
+				baseclass = (baseclass.split('::'))[1]
+
+			    baseclass = baseclass.rstrip(',').lstrip(',')
+
+			    if(self.verbose > 1):
+				print '\t\tBase class is ' + baseclass
+
+			    self.baseclass = baseclass
+
+			    self.includefile = thehfile
+                        
+			    foundlineend = False
+
+			    totalline = ''			     
 
     # End of ParseInterfaceFile
 

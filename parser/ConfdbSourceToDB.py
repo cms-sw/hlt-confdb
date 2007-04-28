@@ -3,7 +3,7 @@
 # ConfdbSourceToDB.py
 # Main file for parsing source code in a CMSSW release and
 # loading module templates to the Conf DB.
-#
+# 
 # Jonathan Hollar LLNL April 27, 2007
 
 import os, string, sys, posix, tokenize, array, getopt
@@ -29,9 +29,10 @@ def main(argv):
     input_dbpwd = "password"
     input_dbtype = "MySQL"
     input_host = "localhost"
+    input_dotest = False
 
     # Parse command line options
-    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:h", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","help="])
+    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:e:h", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","parsetestdir=","help="])
     for o, a in opts:
 	if o in ("-r","release="):
 	    if(input_base_path and input_cmsswrel):
@@ -82,6 +83,13 @@ def main(argv):
 	    else:
 		print "Unknown DB type " + input_dbtype + ", exiting now"
 		return
+	if o in ("-e","parsetestdir="):
+	    if(int(a) == 1):
+		print "Will parse test/ directories"
+		input_dotest = True
+	    else:
+		print "Will not parse test/ directories"
+		input_dotest = False
 	if o in ("-h","help="):
 	    print "Help menu for ConfdbSourceToDB"
 	    print "\t-r <CMSSW release (default is the CMSSW_VERSION envvar)>"
@@ -95,6 +103,7 @@ def main(argv):
 	    print "\t-s <Database password>"
 	    print "\t-o <Hostname>"
 	    print "\t-t <Type of database. Options are MySQL (default) or Oracle (not yet implemented)>"
+	    print "\t-e <Parse test/ directories. 1 = yes, 0/default = no>"
 	    print "\t-h Print this help menu"
 	    return
 
@@ -106,11 +115,11 @@ def main(argv):
 
     print "Using release base: " + input_base_path
 
-    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype,input_dbpwd,input_host)
+    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype,input_dbpwd,input_host,input_dotest)
     confdbjob.BeginJob()
 
 class ConfdbSourceToDB:
-    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype,clidbpwd,clihost):
+    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype,clidbpwd,clihost,clidotest):
 	self.data = []
 	self.dbname = clidbname
 	self.dbuser = clidbuser
@@ -118,6 +127,11 @@ class ConfdbSourceToDB:
 	self.verbose = int(cliverbose)
 	self.dbpwd = clidbpwd
 	self.dbhost = clihost
+	self.dotestdir = clidotest
+	self.sqlerrors = []
+	self.parseerrors = []
+	self.baseclasserrors = []
+	self.unknownbaseclasses = []
 
 	# Get a Conf DB connection. Only need to do this once at the 
 	# beginning of a job.
@@ -202,21 +216,40 @@ class ConfdbSourceToDB:
 		    testdir = packagedir + "/test/"
 		    pluginsdir = packagedir + "/plugins/"
 
-		    if(os.path.isdir(srcdir) or os.path.isdir(pluginsdir)):
+		    # Stupid way of dealing with duplicate file names when parsing both src/ and test/ 
+		    donefiles = []
+
+		    if(os.path.isdir(srcdir) or os.path.isdir(pluginsdir) or 
+		       (self.dotestdir == True and os.path.isdir(testdir))):        
 			if(os.path.isdir(srcdir)):
 			    srcfiles = os.listdir(srcdir)
 			    if(os.path.isdir(pluginsdir)):
 				srcfiles = srcfiles + os.listdir(pluginsdir)
+			    if(os.path.isdir(testdir) and self.dotestdir == True):
+				srcfiles = srcfiles + os.listdir(testdir)
 			elif(os.path.isdir(pluginsdir)):
 			    srcfiles = os.listdir(pluginsdir)
+			    if(os.path.isdir(testdir) and self.dotestdir == True):
+				srcfiles = srcfiles + os.listdir(testdir)
+			elif(os.path.isdir(testdir) and self.dotestdir == True):
+			    srcfiles = os.listdir(testdir)
 
 			for srcfile in srcfiles:
 			    # Get all cc files
 			    if(srcfile.endswith(".cc")):				
-				if(os.path.isfile(srcdir + srcfile)):
+				if(os.path.isfile(srcdir + srcfile) and not ((srcdir + srcfile) in donefiles)):
 				    sealcomponentfilename = srcdir + srcfile
-				elif(os.path.isfile(pluginsdir + srcfile)):
+				    donefiles.append(sealcomponentfilename)
+				elif(os.path.isfile(pluginsdir + srcfile) and not ((pluginsdir + srcfile) in donefiles)):
 				    sealcomponentfilename = pluginsdir + srcfile
+				    donefiles.append(sealcomponentfilename)
+				elif(self.dotestdir == True and 
+				     (os.path.isfile(testdir + srcfile)) and not ((testdir + srcfile) in donefiles)):
+				    sealcomponentfilename = testdir + srcfile
+				    donefiles.append(sealcomponentfilename)
+
+				if(self.verbose > 1):
+				    print "Searching for Fwk. components in " + sealcomponentfilename
 
 				if(os.path.isfile(sealcomponentfilename)):
 				    sealcomponentfile = open(sealcomponentfilename)
@@ -322,8 +355,32 @@ class ConfdbSourceToDB:
 	    for mycomponent in sealcomponenttuple:
 		print "\t" + mycomponent
 	   
-	    print "End of job: Scanned " + str(len(sealcomponenttuple)) + " fwk components for release" + self.cmsswrel 
-	    self.dbloader.PrintStats()
+	print "\n\n*************************************************************************"
+	print "End of job report"
+	print "Scanned " + str(len(sealcomponenttuple)) + " fwk components for release " + self.cmsswrel 
+	self.dbloader.PrintStats()
+	if(len(self.unknownbaseclasses) > 0):
+	    print "The following components were not loaded because their base class" 
+	    print "does not appear to be one of"
+	    print "EDProducer/EDFilter/ESProducer/OutputModule/EDAnalyzer/HLTProducer/HLTFilter:"
+	    for myunknownclass in self.unknownbaseclasses:
+		print "\t\t" + myunknownclass
+	print "The parser was unable to determine the base class for the following components:"
+	if(len(self.baseclasserrors) == 0):
+	    print "\tNo problems found!"
+	for mybaseclasserror in self.baseclasserrors:
+	    print "\t" + mybaseclasserror
+	print "The following components had unknown parse errors:"
+	if(len(self.parseerrors) == 0):
+	    print "\tNo problems found!"
+	for myparseerror in self.parseerrors:
+	    print "\t" + myparseerror
+	print "The following components had parameter type mismatch/SQL errors:"
+	if(len(self.sqlerrors) == 0):
+	    print "\tNo problems found!"
+	for mysqlerror in self.sqlerrors:
+	    print "\t" + mysqlerror
+
 
 	# Commit and disconnect to be compatible with either INNODB or MyISAM
 	self.dbloader.ConfdbExitGracefully()
@@ -353,18 +410,28 @@ class ConfdbSourceToDB:
 	    if(modtag.lstrip().rstrip() == packagename.lstrip().rstrip()):
 		tagline = cvstag
 
-	if(os.path.isdir(srcdir) or os.path.isdir(pluginsdir)):        
+
+
+
+	if(os.path.isdir(srcdir) or os.path.isdir(pluginsdir) or 
+	   (self.dotestdir == True and os.path.isdir(testdir))):        
 	    if(os.path.isdir(srcdir)):
 		srcfiles = os.listdir(srcdir)
 		if(os.path.isdir(pluginsdir)):
 		    srcfiles = srcfiles + os.listdir(pluginsdir)
+		if(os.path.isdir(testdir) and self.dotestdir == True):
+		    srcfiles = srcfiles + os.listdir(testdir)
 	    elif(os.path.isdir(pluginsdir)):
 		srcfiles = os.listdir(pluginsdir)
+		if(os.path.isdir(testdir) and self.dotestdir == True):
+		    srcfiles = srcfiles + os.listdir(testdir)
+	    elif(os.path.isdir(testdir) and self.dotestdir == True):
+		srcfiles = os.listdir(testdir)
 
 	    for srcfile in srcfiles:
 		# Get all cc files
 		if(srcfile.endswith(".cc")):
-		    interfacefile = srcfile.rstrip('.cc') + '.h'
+		    interfacefile = srcfile.replace('.cc','.h')
 
 		    try:
 			# Find the base class from the .h files in the interface/ directory
@@ -386,11 +453,26 @@ class ConfdbSourceToDB:
 			    myParser.HandleTypedefs(srcdir + srcfile, modulename, srcdir, interfacedir, datadir, sourcetree)
 
 			if(os.path.isdir(pluginsdir) and os.path.isfile(pluginsdir + srcfile)):
-			    # Even if the typedefs are in a special "plugins" directory
+			    # Even if things are in a special "plugins" directory
+
+			    myParser.ParseInterfaceFile(pluginsdir + interfacefile, modulename)
+
+			    myParser.ParseInterfaceFile(pluginsdir + srcfile, modulename)
+
+			    myParser.ParseSrcFile(pluginsdir + srcfile, modulename, datadir, "")
+
 			    myParser.HandleTypedefs(pluginsdir + srcfile, modulename, pluginsdir, interfacedir, datadir, sourcetree)
+
+			if(self.dotestdir == True): 
+			    if(os.path.isfile(testdir + interfacefile)):
+				myParser.ParseInterfaceFile(testdir + interfacefile, modulename)
+				myParser.ParseInterfaceFile(testdir + srcfile, modulename)
+			    if (os.path.isfile(testdir+srcfile)):
+				myParser.ParseSrcFile(testdir + srcfile, modulename, testdir, "")
 
 		    except:
 			print "Error: exception caught during parsing. The component " + modulename + " will not be loaded to the DB"
+			self.parseerrors.append(modulename + "\t(in " + packagename +")")
 			return
 
 	# Retrieve the relevant information to be loaded to the DB
@@ -451,8 +533,10 @@ class ConfdbSourceToDB:
 				    self.dbloader.ConfdbLoadNewModuleTemplate(self.dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
 			else:
 			    print  "Message: Unknown module base class " + modulebaseclass + ":" + therealbaseclass + ". Module will not be loaded."
+			    self.unknownbaseclasses.append(modulename + "\t(in " + packagename +")")
 		    else:
 			print "Error: No module base class at all for " + modulename + ". Module will not be loaded"
+			self.baseclasserrors.append(modulename + "\t(in " + packagename +")")
 
 	    # This is a Service. Use the ServiceTemplate
 	    elif(componenttype == 2):
@@ -497,6 +581,7 @@ class ConfdbSourceToDB:
 
 	except:
 	    print "Error: SQL exception caught while loading the component " + modulename + " to DB. The template may be incomplete" 
+	    self.sqlerrors.append(modulename + "\t(in " + packagename +")")
 	    return
     
 if __name__ == "__main__":
