@@ -533,7 +533,7 @@ class ConfdbSourceToDB:
 				    self.dbloader.ConfdbLoadNewModuleTemplate(self.dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
 			else:
 			    print  "Message: Unknown module base class " + modulebaseclass + ":" + therealbaseclass + ". Module will not be loaded."
-			    self.unknownbaseclasses.append(modulename + "\t(in " + packagename +")")
+			    self.unknownbaseclasses.append(modulename + "\t(in " + packagename + ") has base class: " +  modulebaseclass)
 		    else:
 			print "Error: No module base class at all for " + modulename + ". Module will not be loaded"
 			self.baseclasserrors.append(modulename + "\t(in " + packagename +")")
