@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+ 
 # ConfdbSQLModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (MySQL version). All MySQL specific code belongs here.
@@ -428,7 +428,7 @@ class ConfdbMySQLModuleLoader:
 		    thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
 
 	    # uint32
-	    elif(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t" or paramtype == "unsigned"):
+	    elif(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t" or paramtype == "unsigned" or paramtype == "uint"):
 		type = self.paramtypedict['uint32']
 
 		if(paramval):
@@ -547,7 +547,7 @@ class ConfdbMySQLModuleLoader:
 			sequencer = sequencer + 1
 
 	    # vector<uint32>
-	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "vuint32"):
+	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "uint32" or vecptype == "uint"):
 		type = self.paramtypedict['vuint32']
 
 		# Fill Parameters table
@@ -706,7 +706,7 @@ class ConfdbMySQLModuleLoader:
 			thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
 
 	    # uint32
-	    if(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t"):
+	    if(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t" or paramtype == "uint"):
 		type = self.paramtypedict['uint32']
 
 		if(paramval):
@@ -1036,7 +1036,7 @@ class ConfdbMySQLModuleLoader:
 			    sequencer = sequencer + 1
 
 	    # vector<uint32>
-	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "vuint32"):
+	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "uint32" or vecptype == "uint"):
 		type = self.paramtypedict['vuint32']
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,vecpname,oldsuperid)
@@ -1265,7 +1265,7 @@ class ConfdbMySQLModuleLoader:
 
 	    if(psettype == "int" or psettype == "int32_t"):
 		psettype = "int32"
-	    if(psettype == "uint32_t" or psettype == "unsigned int"):
+	    if(psettype == "uint32_t" or psettype == "unsigned int" or psettype == "uint"):
 		psettype = "uint32"
 	    if(psettype == "FileInPath"):
 		psettype = "string"
@@ -1295,7 +1295,7 @@ class ConfdbMySQLModuleLoader:
 			print "No default parameter value found"
 		else:
 		    thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
-	    elif(psettype == "uint32" or psettype == "unsigned int" or psettype == "uint32_t"):
+	    elif(psettype == "uint32" or psettype == "unsigned int" or psettype == "uint32_t" or psettype == "uint"):
 		if(str(psetval).endswith("U")):
 		    psetval = (str(psetval).rstrip("U"))
 
@@ -1401,7 +1401,7 @@ class ConfdbMySQLModuleLoader:
 
 	    if(vpsettype == "int" or vpsettype == "int32_t"):
 		vpsettype = "int32"
-	    if(vpsettype == "uint32_t" or vpsettype == "unsigned int"):
+	    if(vpsettype == "uint32_t" or vpsettype == "unsigned int" or vpsettype == "uint"):
 		vpsettype = "uint32"
 	    if(vpsettype == "FileInPath"):
 		vpsettype = "string"
@@ -1426,7 +1426,7 @@ class ConfdbMySQLModuleLoader:
 			print "No default parameter value found"
 		else:
 		    thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
-	    elif(vpsettype == "uint32" or vpsettype == "unsigned int" or vpsettype == "uint32_t"):
+	    elif(vpsettype == "uint32" or vpsettype == "unsigned int" or vpsettype == "uint32_t" or vpsettype == "uint"):
 		if(vpsetval):
 		    if(str(vpsetval).endswith("U")):
 			vpsetval = (str(vpsetval).rstrip("U"))

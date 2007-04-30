@@ -1,5 +1,5 @@
-#!/usr/bin/env python 
-
+#!/usr/bin/env python
+ 
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
@@ -1557,7 +1557,7 @@ class SourceParser:
         
     # Return parameters where we failed to find a default value
     def ShowParamFailures(self):
-	if(len(self.paramfailures) > 0):
+	if(len(self.paramfailures) > 1):
 	    print "\tMessage: Could not find defaults for (component, (type)parameter):"
 	    for mod, paramtype, param, istracked, paramseq in self.paramfailures:
 		print "\t\t" + mod + "\t\t(" + paramtype + ")" + param + "\t\t(Tracked = " + istracked + ")" + str(paramseq)

@@ -360,26 +360,23 @@ class ConfdbSourceToDB:
 	print "Scanned " + str(len(sealcomponenttuple)) + " fwk components for release " + self.cmsswrel 
 	self.dbloader.PrintStats()
 	if(len(self.unknownbaseclasses) > 0):
-	    print "The following components were not loaded because their base class" 
+	    print "The following " + str(len(self.unknownbaseclasses)) + " components were not loaded because their base class" 
 	    print "does not appear to be one of"
 	    print "EDProducer/EDFilter/ESProducer/OutputModule/EDAnalyzer/HLTProducer/HLTFilter:"
 	    for myunknownclass in self.unknownbaseclasses:
 		print "\t\t" + myunknownclass
-	print "The parser was unable to determine the base class for the following components:"
-	if(len(self.baseclasserrors) == 0):
-	    print "\tNo problems found!"
-	for mybaseclasserror in self.baseclasserrors:
-	    print "\t" + mybaseclasserror
-	print "The following components had unknown parse errors:"
-	if(len(self.parseerrors) == 0):
-	    print "\tNo problems found!"
-	for myparseerror in self.parseerrors:
-	    print "\t" + myparseerror
-	print "The following components had parameter type mismatch/SQL errors:"
-	if(len(self.sqlerrors) == 0):
-	    print "\tNo problems found!"
-	for mysqlerror in self.sqlerrors:
-	    print "\t" + mysqlerror
+	if(len(self.baseclasserrors) > 0):
+	    print "The parser was unable to determine the base class for the following " + str(len(self.baseclasserrors)) + " components:"
+	    for mybaseclasserror in self.baseclasserrors:
+		print "\t" + mybaseclasserror
+	if(len(self.parseerrors) > 0):
+	    print "The following " + str(len(self.parseerrors)) + " components had unknown parse errors:"
+	    for myparseerror in self.parseerrors:
+		print "\t" + myparseerror
+	if(len(self.sqlerrors) > 0):
+	    print "The following " + str(len(self.sqlerrors)) + " components had parameter type mismatch/SQL errors:"
+	    for mysqlerror in self.sqlerrors:
+		print "\t" + mysqlerror
 
 
 	# Commit and disconnect to be compatible with either INNODB or MyISAM
@@ -466,6 +463,7 @@ class ConfdbSourceToDB:
 			if(self.dotestdir == True): 
 			    if(os.path.isfile(testdir + interfacefile)):
 				myParser.ParseInterfaceFile(testdir + interfacefile, modulename)
+			    if(os.path.isfile(testdir + srcfile)):
 				myParser.ParseInterfaceFile(testdir + srcfile, modulename)
 			    if (os.path.isfile(testdir+srcfile)):
 				myParser.ParseSrcFile(testdir + srcfile, modulename, testdir, "")

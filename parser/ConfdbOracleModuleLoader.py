@@ -1,16 +1,16 @@
 #!/usr/bin/env python
-
+ 
 # ConfdbOracleModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (Oracle version). All Oracle specific code belongs here.
-# Jonathan Hollar LLNL April 27, 2007
+# Jonathan Hollar LLNL Apr. 4, 2007
 
 import os, string, sys, posix, tokenize, array
 
 sys.path.append(os.environ.get("CMS_PATH") + "/sw/slc4_ia32_gcc345/external/py2-cx-oracle/4.2/lib/python2.4/site-packages/")
 
 import cx_Oracle
- 
+
 class ConfdbOracleModuleLoader:
 
     def __init__(self, verbosity):
@@ -30,7 +30,7 @@ class ConfdbOracleModuleLoader:
 #                                    user=username, passwd=userpwd,
 #                                     db=dbname )
         self.connection = cx_Oracle.connect(username+"/"+userpwd+"@"+userhost)
-
+        
 	cursor = self.connection.cursor() 
 
         # Do some one-time operations - get dictionaries of parameter, module,
@@ -429,7 +429,7 @@ class ConfdbOracleModuleLoader:
 		    thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
 
 	    # uint32
-	    elif(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t" or paramtype == "unsigned"):
+	    elif(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t" or paramtype == "unsigned" or paramtype == "uint"):
 		type = self.paramtypedict['uint32']
 
 		if(paramval):
@@ -548,7 +548,7 @@ class ConfdbOracleModuleLoader:
 			sequencer = sequencer + 1
 
 	    # vector<uint32>
-	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "vuint32"):
+	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "uint32" or vecptype == "uint"):
 		type = self.paramtypedict['vuint32']
 
 		# Fill Parameters table
@@ -707,7 +707,7 @@ class ConfdbOracleModuleLoader:
 			thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
 
 	    # uint32
-	    if(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t"):
+	    if(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t" or paramtype == "uint"):
 		type = self.paramtypedict['uint32']
 
 		if(paramval):
@@ -1037,7 +1037,7 @@ class ConfdbOracleModuleLoader:
 			    sequencer = sequencer + 1
 
 	    # vector<uint32>
-	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "vuint32"):
+	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "uint32" or vecptype == "uint"):
 		type = self.paramtypedict['vuint32']
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,vecpname,oldsuperid)
@@ -1266,7 +1266,7 @@ class ConfdbOracleModuleLoader:
 
 	    if(psettype == "int" or psettype == "int32_t"):
 		psettype = "int32"
-	    if(psettype == "uint32_t" or psettype == "unsigned int"):
+	    if(psettype == "uint32_t" or psettype == "unsigned int" or psettype == "uint"):
 		psettype = "uint32"
 	    if(psettype == "FileInPath"):
 		psettype = "string"
@@ -1296,7 +1296,7 @@ class ConfdbOracleModuleLoader:
 			print "No default parameter value found"
 		else:
 		    thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
-	    elif(psettype == "uint32" or psettype == "unsigned int" or psettype == "uint32_t"):
+	    elif(psettype == "uint32" or psettype == "unsigned int" or psettype == "uint32_t" or psettype == "uint"):
 		if(str(psetval).endswith("U")):
 		    psetval = (str(psetval).rstrip("U"))
 
@@ -1402,7 +1402,7 @@ class ConfdbOracleModuleLoader:
 
 	    if(vpsettype == "int" or vpsettype == "int32_t"):
 		vpsettype = "int32"
-	    if(vpsettype == "uint32_t" or vpsettype == "unsigned int"):
+	    if(vpsettype == "uint32_t" or vpsettype == "unsigned int" or vpsettype == "uint"):
 		vpsettype = "uint32"
 	    if(vpsettype == "FileInPath"):
 		vpsettype = "string"
@@ -1427,7 +1427,7 @@ class ConfdbOracleModuleLoader:
 			print "No default parameter value found"
 		else:
 		    thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
-	    elif(vpsettype == "uint32" or vpsettype == "unsigned int" or vpsettype == "uint32_t"):
+	    elif(vpsettype == "uint32" or vpsettype == "unsigned int" or vpsettype == "uint32_t" or vpsettype == "uint"):
 		if(vpsetval):
 		    if(str(vpsetval).endswith("U")):
 			vpsetval = (str(vpsetval).rstrip("U"))
@@ -1467,12 +1467,8 @@ class ConfdbOracleModuleLoader:
 	    elif(vpsettype == "InputTag"):
 		if(vpsetval.find("'") != -1):
 		    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
-		elif(vpsetval.find('"') != -1):
-		    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", '" + vpsetval + "')")
 		else:
-		    print "\tWarning: Attempted to load a non-string value to InputTag table:"
-		    print "\t\tInputTag " + str(vpsetname) + " = " + str(vpsetval)
-		    print "\t\tLoading parameter with no default value" 
+		    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", '" + vpsetval + "')")
 
     # End ConfdbAttachParameterSets
 
