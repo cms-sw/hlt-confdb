@@ -582,7 +582,7 @@ class ConfdbOracleModuleLoader:
 			sequencer = sequencer + 1
 
 	    # vector<InputTag>
-	    elif(vecptype == "VInputTag"):
+	    elif(vecptype == "VInputTag" or vecptype == "InputTag"):
 		type = self.paramtypedict['VInputTag']
 
 		# Fill Parameters table
@@ -1037,7 +1037,7 @@ class ConfdbOracleModuleLoader:
 			    sequencer = sequencer + 1
 
 	    # vector<uint32>
-	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "uint32" or vecptype == "uint"):
+	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "uint"):
 		type = self.paramtypedict['vuint32']
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,vecpname,oldsuperid)
@@ -1079,7 +1079,7 @@ class ConfdbOracleModuleLoader:
 			    sequencer = sequencer + 1
 
 	    # vector<double>
-	    elif(vecptype == "vdouble"):
+	    elif(vecptype == "vdouble" or vecptype == "double"):
 		type = self.paramtypedict['vdouble']
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,vecpname,oldsuperid)
@@ -1177,7 +1177,7 @@ class ConfdbOracleModuleLoader:
 			    sequencer = sequencer + 1
 
 	    # vector<InputTag>
-	    elif(vecptype == "VInputTag"):		
+	    elif(vecptype == "VInputTag" or vecptype == "InputTag"):		
 		type = self.paramtypedict['VInputTag']
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,vecpname,oldsuperid)
@@ -1516,19 +1516,22 @@ class ConfdbOracleModuleLoader:
 	# If the old & new parameter vectors have different #'s of elements 
 	# it's easy - they don't match
 	if(len(vec1) != len(vec2)):
-	    print "Vectors are of different lengths"
+	    if(self.verbose > 2):
+		print "Vectors are of different lengths"
 	    return False
 
 	else:
 	    if(vec1 != vec2):
-		print "Vectors have changed"
-		print vec1
-		print vec2
+		if(self.verbose > 2):
+		    print "Vectors have changed"
+		    print vec1
+		    print vec2
 		return False
 
-	print "Vectors are unchanged"
-	print vec1
-	print vec2
+	if(self.verbose > 2):
+	    print "Vectors are unchanged"
+	    print vec1
+	    print vec2
 	return True
 
     # Set the verbosity

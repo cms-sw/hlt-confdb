@@ -519,6 +519,8 @@ class SourceParser:
 			    if(self.verbose > 1):
 				print '\tMember of parameter set named ' + belongstovar + ' (' + self.psetdict[belongstovar] + ')'
 			    paraminparamset = self.psetdict[belongstovar]
+			else:
+			    paraminparamset = ''
 
                         paramstring = totalline.split('"')
 
@@ -681,6 +683,8 @@ class SourceParser:
 			    if(self.verbose > 1):
 				print '\tMember of parameter set named ' + belongstovar + ' (' + self.psetdict[belongstovar] + ')'
 			    paraminparamset = self.psetdict[belongstovar]
+			else:
+			    paraminparamset = ''
 
                         # Parameter name should be the first thing in
                         # quotes
@@ -865,6 +869,8 @@ class SourceParser:
 			    if(belongstovar in self.psetdict):
 				if(self.verbose > 1):
 				    print '\tMember of parameter set named ' + belongstovar + ' (' + self.psetdict[belongstovar] + ')'
+			    else:
+				paraminparamset = ''
 
                             paramname = paramnamestring.split(',')[0]
                             
