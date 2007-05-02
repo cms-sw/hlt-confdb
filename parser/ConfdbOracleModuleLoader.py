@@ -1,16 +1,16 @@
 #!/usr/bin/env python
- 
+
 # ConfdbOracleModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (Oracle version). All Oracle specific code belongs here.
-# Jonathan Hollar LLNL Apr. 4, 2007
+# Jonathan Hollar LLNL May 2, 2007
 
 import os, string, sys, posix, tokenize, array
 
 sys.path.append(os.environ.get("CMS_PATH") + "/sw/slc4_ia32_gcc345/external/py2-cx-oracle/4.2/lib/python2.4/site-packages/")
 
 import cx_Oracle
-
+ 
 class ConfdbOracleModuleLoader:
 
     def __init__(self, verbosity):
@@ -260,7 +260,7 @@ class ConfdbOracleModuleLoader:
 	oldmodule = thecursor.fetchone()
 	oldsuperid = oldmodule[0]
 	oldtag = oldmodule[1]
-	print 'Old module had tag' + ' ' + oldtag + ', new module has tag ' + modcvstag
+	print '\tOld module had tag' + ' ' + oldtag + ', new module has tag ' + modcvstag
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
@@ -414,12 +414,6 @@ class ConfdbOracleModuleLoader:
 			paramval = str(int(float(paramval)))
 		    elif(not paramval.isdigit()):
 			paramval = None
-
-#		    if(paramval.find('::') != -1 or paramval.find('_') != -1):
-#			print "\tWarning: Attempted to load a non-integer value to integer table:"
-#			print "\t\tint32 " + str(paramname) + " = " + str(paramval)
-#			print "\t\tLoading parameter with no default value"
-#			continue
 
 		# Fill ParameterValues table
 		if(paramval == None):
@@ -662,17 +656,6 @@ class ConfdbOracleModuleLoader:
 
 		    if(oldparamval):
 			oldparamval = oldparamval[0]
-
-
-#			if(paramval.find('::') != -1 or paramval.find('_') != -1):
-#			    print "\tWarning: Attempted to load a non-integer value to integer table:"
-#			    print "\t\tint32 " + str(paramname) + " = " + str(paramval)
-#			    print "\t\tLoading parameter with no default value"
-#			    continue
-#			elif(paramval.find('.') != -1):
-#			    paramval = int(float(paramval))
-#			elif(paramval.find('x') == -1):
-#			    paramval = int(paramval)
 
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or 
@@ -1110,7 +1093,6 @@ class ConfdbOracleModuleLoader:
 		# We need a new entry for this parameter, either because its 
 		# value changed, or there is no previous version.
 		if(neednewparam == True):
-		    print "vdouble has changed"
 		    # Fill Parameters table
 		    newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
 
@@ -1215,7 +1197,7 @@ class ConfdbOracleModuleLoader:
 		    for vecpval in vecpvals:
 			if(vecpval):
 			    # Fill ParameterValues table
-			    thecursor.execute("INSERT INTO VInputTagParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+			    thecursor.execute("INSERT INTO VInputTagParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + vecpval + "')")   
 			    sequencer = sequencer + 1
 
     # End ConfdbUpdateParameters
