@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL April 27, 2007
+# Jonathan Hollar LLNL May 1, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -571,7 +571,7 @@ class SourceParser:
 			    isvector = False
 
 			    # If this is a ParameterSet, figure out it's variable name 
-			    if(paramtype == 'ParameterSet' or paramtype == 'PSet'):
+			    if(paramtype == 'ParameterSet' or paramtype == 'PSet' or paramtype == 'Parameters' or paramtype == 'VPSet'):
 				if(totalline.find('=') != -1):
 				    thisparamset = totalline.split('=')[0].rstrip().lstrip()
 				
@@ -579,12 +579,20 @@ class SourceParser:
 					thisparamset = thisparamset.split('>')[1].rstrip().lstrip()
 				    elif(thisparamset.find('PSet ') != -1):
 					thisparamset = thisparamset.split('PSet ')[1].rstrip().lstrip()
+				    elif(thisparamset.find('VPSet ') != -1):
+					thisparamset = thisparamset.split('VPSet ')[1].rstrip().lstrip()
 				    elif(thisparamset.find('ParameterSet ') != -1):
 					thisparamset = thisparamset.split('ParameterSet ')[1].rstrip().lstrip()
 				    elif(thisparamset.find('ParameterSet& ') != -1):
 					thisparamset = thisparamset.split('ParameterSet& ')[1].rstrip().lstrip()
+				elif(totalline.split('.getParameter')[0].find('(') != -1):
+				    thisparamset = totalline.split('.getParameter')[0].split('(')[0]
 
+				if(totalline.find('=') != -1 or totalline.split('.getParameter')[0].find('(') != -1):
 				    if(len(re.split('\W+',thisparamset)) == 1):
+					if(self.verbose > 1):
+					    print '\t\tFound a new PSet named ' + paramname + ' with variable name ' + thisparamset
+					
 					self.psetdict[thisparamset] = paramname
 					if(paramname in self.psetsequences):
 					    self.psetsequencenb = self.psetsequences[paramname]
@@ -626,11 +634,13 @@ class SourceParser:
 				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
 					self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
 					self.sequencenb = self.sequencenb + 1
-				elif(paramtype.lstrip().rstrip() == 'Parameters'):
-				     if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,'None')):
-					 self.sequencenb = self.psetsequencenb
-					 self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",0,self.sequencenb,self.psetsequencenb))	
-					 self.sequencenb = self.sequencenb + 1
+				elif(paramtype.lstrip().rstrip() == 'VPSet' or paramtype.lstrip().rstrip() == 'Parameters'):
+				    if(self.verbose > 0):
+					print "Appending to vecparamsetlist with no values"
+				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,'None')):
+					self.sequencenb = self.psetsequencenb
+					self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",0,self.sequencenb,self.psetsequencenb))	
+					self.sequencenb = self.sequencenb + 1
 				elif(paramtype.lstrip().rstrip() == 'PSet' or 
 				     paramtype.lstrip().rstrip() == 'ParameterSet'):
 				    if(self.verbose > 0):
@@ -659,6 +669,7 @@ class SourceParser:
 			elif(paramtype.lstrip().rstrip() == 'PSet' or 
 			     paramtype.lstrip().rstrip() == 'ParameterSet'):
 			    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,'None')):
+				self.psetsequencenb = self.psetsequences[paramname] 
 				self.sequencenb = self.psetsequencenb
 				self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",self.sequencenb,'None',self.psetsequencenb))
 				self.sequencenb = self.sequencenb + 1
@@ -742,7 +753,7 @@ class SourceParser:
                                 paramtype = therest[0]
 				
 			    # If this is a ParameterSet, figure out it's variable name 
-			    if(paramtype == 'ParameterSet' or paramtype == 'PSet'):
+			    if(paramtype == 'ParameterSet' or paramtype == 'PSet' or paramtype == 'Parameters' or paramtype == 'VPSet'):
 				if(totalline.find('=') != -1):
 				    thisparamset = totalline.split('=')[0].rstrip().lstrip()
 				
@@ -750,12 +761,20 @@ class SourceParser:
 					thisparamset = thisparamset.split('>')[1].rstrip().lstrip()
 				    elif(thisparamset.find('PSet ') != -1):
 					thisparamset = thisparamset.split('PSet ')[1].rstrip().lstrip()
+				    elif(thisparamset.find('VPSet ') != -1):
+					thisparamset = thisparamset.split('VPSet ')[1].rstrip().lstrip()
 				    elif(thisparamset.find('ParameterSet ') != -1):
 					thisparamset = thisparamset.split('ParameterSet ')[1].rstrip().lstrip()
 				    elif(thisparamset.find('ParameterSet& ') != -1):
 					thisparamset = thisparamset.split('ParameterSet& ')[1].rstrip().lstrip()
+				elif(totalline.split('.getParameter')[0].find('(') != -1):
+				    thisparamset = totalline.split('.getParameter')[0].split('(')[0]
 
+				if(totalline.find('=') != -1 or totalline.split('.getParameter')[0].find('(') != -1):
 				    if(len(re.split('\W+',thisparamset)) == 1):
+					if(self.verbose > 1):
+					    print 'Found a new PSet named ' + paramname + ' with variable name ' + thisparamset
+
 					self.psetdict[thisparamset] = paramname
 					if(paramname in self.psetsequences):
 					    self.psetsequencenb = self.psetsequences[paramname]
@@ -780,7 +799,7 @@ class SourceParser:
 					   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,'None'))):
 					    self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb,'None',self.psetsequencenb))
 					    self.sequencenb = self.sequencenb + 1
-				    elif(paramtype == 'VPSet'):
+				    elif(paramtype == 'VPSet' or paramtype == 'Parameters'):
 					if((not paramname.lstrip().startswith('@module'))
 					   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,'None'))):
 					    self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb,self.psetsequencenb))
@@ -845,7 +864,7 @@ class SourceParser:
 				    self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb,'None',self.psetsequencenb))
 				    self.sequencenb = self.sequencenb + 1
 
-				elif(paramtype == 'VPSet'):
+				elif(paramtype == 'VPSet' or paramtype == 'Parameters'):
 				    if((not paramname.lstrip().startswith('@module'))
 				        and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,'None'))):
 					self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb,self.psetsequencenb))
@@ -855,6 +874,19 @@ class SourceParser:
 				       and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None'))):
 				       self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),None,"false",self.sequencenb))
 				       self.sequencenb = self.sequencenb + 1
+
+			    elif(paramtype.lstrip().rstrip() == 'PSet' or 
+				 paramtype.lstrip().rstrip() == 'ParameterSet'):
+				if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,'None')):
+#				    if(paraminparamset == ''):
+				    self.psetsequencenb = self.psetsequences[paramname]
+				    self.sequencenb = self.psetsequencenb
+				    self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb,'None',self.psetsequencenb))
+				    self.sequencenb = self.sequencenb + 1
+
+			    paraminparamset = ''	
+
+
 
                         # Not using the templated getParameter. Look for
                         # parameter name and default value. If we're really
@@ -904,7 +936,7 @@ class SourceParser:
 				   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,'None'))):
 				    self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb,'None',self.psetsequencenb))
 				    self.sequencenb = self.sequencenb + 1
-			    elif(paramtype == 'VPSet'):
+			    elif(paramtype == 'VPSet' or paramtype == 'Parameters'):
 				if((not paramname.lstrip().startswith('@module')) 
 				   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,'None'))):
 				    self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb,self.psetsequencenb))
