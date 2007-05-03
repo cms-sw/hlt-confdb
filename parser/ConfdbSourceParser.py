@@ -617,8 +617,6 @@ class SourceParser:
 			
 			# We didn't find a default setting for this tracked parameter
 			if(success == False):
-			    if(paraminparamset == ''):
-				paraminparamset = 'None'
 
 			    if(self.verbose > 1):
 				print '\t\tFailed to find a default value for the tracked parameter: ' + paramtype + ' ' + paramname + ' in module ' + themodulename
