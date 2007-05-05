@@ -256,7 +256,7 @@ class ConfdbOracleModuleLoader:
     def ConfdbUpdateModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,parameters,vecparameters,paramsets,vecparamsets):
 
 	# Get the SuperId of the previous version of this template
-	thecursor.execute("SELECT ModuleTemplates.superId, ModuleTemplates.cvstag FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modclassname + "') ORDER BY ModuleTemplates.superId")
+	thecursor.execute("SELECT ModuleTemplates.superId, ModuleTemplates.cvstag FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modclassname + "') ORDER BY ModuleTemplates.superId DESC")
 	oldmodule = thecursor.fetchone()
 	oldsuperid = oldmodule[0]
 	oldtag = oldmodule[1]
@@ -297,7 +297,7 @@ class ConfdbOracleModuleLoader:
     def ConfdbUpdateServiceTemplate(self,thecursor,servclassname,servcvstag,parameters,vecparameters,paramsets,vecparamsets):
 
 	# Get the SuperId of the previous version of this template
-	thecursor.execute("SELECT ServiceTemplates.superId, ServiceTemplates.cvstag FROM ServiceTemplates WHERE (ServiceTemplates.name = '" + servclassname + "') ORDER BY ServiceTemplates.superId")
+	thecursor.execute("SELECT ServiceTemplates.superId, ServiceTemplates.cvstag FROM ServiceTemplates WHERE (ServiceTemplates.name = '" + servclassname + "') ORDER BY ServiceTemplates.superId DESC")
 	oldservice = thecursor.fetchone()
 	oldsuperid = oldservice[0]
 	oldtag = oldservice[1]
@@ -333,7 +333,7 @@ class ConfdbOracleModuleLoader:
     def ConfdbUpdateESSourceTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets):
 
 	# Get the SuperId of the previous version of this template
-	thecursor.execute("SELECT ESSourceTemplates.superId, ESSourceTemplates.cvstag FROM ESSourceTemplates WHERE (ESSourceTemplates.name = '" + sourceclassname + "') ORDER BY ESSourceTemplates.superId")
+	thecursor.execute("SELECT ESSourceTemplates.superId, ESSourceTemplates.cvstag FROM ESSourceTemplates WHERE (ESSourceTemplates.name = '" + sourceclassname + "') ORDER BY ESSourceTemplates.superId DESC")
 	oldsource = thecursor.fetchone()
 	oldsuperid = oldsource[0]
 	oldtag = oldsource[1]
@@ -367,7 +367,7 @@ class ConfdbOracleModuleLoader:
     def ConfdbUpdateEDSourceTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets):
 
 	# Get the SuperId of the previous version of this template
-	thecursor.execute("SELECT EDSourceTemplates.superId, EDSourceTemplates.cvstag FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + sourceclassname + "') ORDER BY EDSourceTemplates.superId")
+	thecursor.execute("SELECT EDSourceTemplates.superId, EDSourceTemplates.cvstag FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + sourceclassname + "') ORDER BY EDSourceTemplates.superId DESC")
 	oldsource = thecursor.fetchone()
 	oldsuperid = oldsource[0]
 	oldtag = oldsource[1]
