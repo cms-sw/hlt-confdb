@@ -6,7 +6,7 @@ Database Driver Installation
  ---------
 
  To connect to a MySQL database, one needs the appropriate JDBC driver
-(jar file) in the classpath. The one currently being used is called
+(jar file) in the classpath. The one currently being used is
 
 mysql-connector-java-5.0.4-bin.jar
 
@@ -25,18 +25,31 @@ ojdbc14.jar
 
 It can be found as part of any Oracle Installation in
 
-$ORACLE_HOME/jdbc/lib/
+$ORACLE_HOME/jdbc/lib/ or $ORACLE_HOME/java
 
 It can also be downlaoded from
 
 http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/index.html
 
 
-NOTE:
------
+startGUI script:
+----------------
 
-I have found it to be convenient to copy these drivers into
-$JAVA_HOME/jre/lib/ext, which will make them appear in the classpath
-automatically. If there is a technical reason why this is not a good
-idea, let me know: philipp.schieferdecker@cern.ch
+The following steps are necessary to setup the startGUI script to work
+(the $MYSQL_HOME variable should hopefully be setup by scramv1 in the
+future):
 
+cd $HOME
+mkdir java
+cp mysql-connector-java-5.0.4-bin.jar java
+setenv MYSQL_HOME ${HOME}
+
+cd /path/to/CMSSW_X_Y_Z/src
+eval `scramv1 runtime -[c]sh`
+cvs co EventFilter/ConfigDB
+cd EventFilter/ConfigDB
+./startGUI
+
+Once you have checked out the ConfigDB package, you can execute the
+script from any place you want, *if* you have executed the "eval
+`scramv1 runtime -[c]sh`" command beforehand!

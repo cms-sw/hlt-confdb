@@ -76,20 +76,35 @@ class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     public ConfigurationTreeRenderer()
     {
 	super();
-	edsourceDirIcon  = new ImageIcon("icons/EDSourceDirIcon.png");
-	edsourceIcon     = new ImageIcon("icons/EDSourceIcon.png");
-	essourcesDirIcon = new ImageIcon("icons/ESSourcesDirIcon.png");
-	essourceIcon     = new ImageIcon("icons/ESSourceIcon.png");
-	servicesDirIcon  = new ImageIcon("icons/ServicesDirIcon.png");
-	serviceIcon      = new ImageIcon("icons/ServiceIcon.png");
-	pathsDirIcon     = new ImageIcon("icons/PathsDirIcon.png");
-	pathIcon         = new ImageIcon("icons/PathIcon.png");
-	modulesDirIcon   = new ImageIcon("icons/ModulesDirIcon.png");
-	moduleIcon       = new ImageIcon("icons/ModuleIcon.png");
-	sequencesDirIcon = new ImageIcon("icons/SequencesDirIcon.png");
-	sequenceIcon     = new ImageIcon("icons/SequenceIcon.png");
-	psetIcon         = new ImageIcon("icons/PSetIcon.png");      
-	vpsetIcon        = new ImageIcon("icons/VPSetIcon.png");      
+	//edsourceDirIcon  = new ImageIcon("./EDSourceDirIcon.png");
+	edsourceDirIcon  =
+	    new ImageIcon(ClassLoader.getSystemResource("EDSourceDirIcon.png"));
+	edsourceIcon     =
+	    new ImageIcon(ClassLoader.getSystemResource("EDSourceIcon.png"));
+	essourcesDirIcon =
+	    new ImageIcon(ClassLoader.getSystemResource("ESSourcesDirIcon.png"));
+	essourceIcon     =
+	    new ImageIcon(ClassLoader.getSystemResource("ESSourceIcon.png"));
+	servicesDirIcon  =
+	    new ImageIcon(ClassLoader.getSystemResource("ServicesDirIcon.png"));
+	serviceIcon      =
+	    new ImageIcon(ClassLoader.getSystemResource("ServiceIcon.png"));
+	pathsDirIcon     = 
+	    new ImageIcon(ClassLoader.getSystemResource("PathsDirIcon.png"));
+	pathIcon         =
+	    new ImageIcon(ClassLoader.getSystemResource("PathIcon.png"));
+	modulesDirIcon   =
+	    new ImageIcon(ClassLoader.getSystemResource("ModulesDirIcon.png"));
+	moduleIcon       =
+	    new ImageIcon(ClassLoader.getSystemResource("ModuleIcon.png"));
+	sequencesDirIcon = 
+	    new ImageIcon(ClassLoader.getSystemResource("SequencesDirIcon.png"));
+	sequenceIcon     = 
+	    new ImageIcon(ClassLoader.getSystemResource("SequenceIcon.png"));
+	psetIcon         =
+	    new ImageIcon(ClassLoader.getSystemResource("PSetIcon.png"));      
+	vpsetIcon        =
+	    new ImageIcon(ClassLoader.getSystemResource("VPSetIcon.png"));      
     }
 
     

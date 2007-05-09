@@ -119,7 +119,7 @@ public class DatabaseConnectionDialog
 			    labelDbUser,textFieldDbUser,
 			    labelDbPwrd,textFieldDbPwrd };
 
-	ImageIcon icon = new ImageIcon("icons/dbicon.gif");
+	ImageIcon icon = new ImageIcon(ClassLoader.getSystemResource("dbicon.gif"));
 
 	Object[] options = { okString,cancelString };
 	

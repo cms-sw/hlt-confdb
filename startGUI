@@ -1,0 +1,67 @@
+#!/usr/bin/perl
+
+
+# get environment variables
+my $cmssw_version = get_env_variable("CMSSW_VERSION");
+my $cmssw_base    = get_env_variable("CMSSW_BASE");
+my $java_home     = get_env_variable("JAVA_HOME");
+my $oracle_home   = get_env_variable("ORACLE_HOME");
+my $mysql_home    = get_env_variable("MYSQL_HOME");
+
+
+# build the ConfDbGUI jar file if necessary
+my $confdb_gui_jar = "$cmssw_base/src/EventFilter/ConfigDB/lib/ConfDbGUI.jar";
+my $classpath      = $confdb_gui_jar;
+
+if (!-e $confdb_gui_jar)
+{
+    print "\nBuilding ConfDbGUI.jar ...\n";
+    my $pwd = `pwd`; chomp($pwd);
+    `cd $cmssw_base/src/EventFilter/ConfigDB`;
+    my $oldpath = $ENV{"PATH"};
+    $ENV{"PATH"} = "$java_home/bin:$oldpath";
+    `classic-ant`;
+    $ENV{"PATH"} = $oldpath;
+    `cd $pwd`;
+
+    if (-e $confdb_gui_jar)
+    {
+	print "ConfDbGUI.jar successfully built.\n";
+    }
+    else { die ("Failed to build ConfDbGUI.jar\n"); }
+}
+
+# check for MySQL JDBC Driver
+my $mysql_jar      = "$mysql_home/java/mysql-connector-java-5.0.5-bin.jar";
+if (!-e $mysql_jar) { print "\nWARNING: MySQL JDBC driver not found!\n"; }
+else { $classpath = $classpath . ":$mysql_jar"; }
+
+# check for Oracle JDBC Driver
+my $oracle_jar     = "$oracle_home/java/ojdbc14.jar";
+if (!-e $oracle_jar) { print "\nWARNING: Oracle JDBC driver not found!\n"; }
+else { $classpath = $classpath . ":$oracle_jar"; }
+
+
+# start the GUI
+`$java_home/bin/java -classpath $classpath confdb.gui.ConfDbGUI &`;
+
+exit 0;
+
+
+#-------------------------------------------------------------------------------
+# subroutines
+#-------------------------------------------------------------------------------
+
+#_______________________________________________________________________________
+sub get_env_variable
+{
+    my ($varname) = @_;
+    my $result;
+    if (defined $ENV{$varname}) 
+    {
+	$result = $ENV{$varname};
+	print "\$" . $varname . " = $result\n";
+    }
+    else { die ("ERROR: \$" . $varname . " undefined!"); }
+    return $result;
+}

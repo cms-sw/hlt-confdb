@@ -26,13 +26,16 @@ public class ParameterTreeCellRenderer extends DefaultTreeCellRenderer
     private Object    node      = null;
 
     /** icon for a ParameterSet node */
-    private ImageIcon psetIcon  = new ImageIcon("icons/PSetIcon.png");
+    private ImageIcon psetIcon =
+	new ImageIcon(ClassLoader.getSystemResource("PSetIcon.png"));
 
     /** icon for a vector<ParameterSet> node */
-    private ImageIcon vpsetIcon = new ImageIcon("icons/VPSetIcon.png");
+    private ImageIcon vpsetIcon =
+	new ImageIcon(ClassLoader.getSystemResource("VPSetIcon.png"));
     
     /** icon for any other Parameter */
-    private ImageIcon parameterIcon = new ImageIcon("icons/ParameterIcon.png");
+    private ImageIcon parameterIcon =
+	new ImageIcon(ClassLoader.getSystemResource("ParameterIcon.png"));
     
     
     //

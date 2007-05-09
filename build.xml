@@ -8,6 +8,7 @@
 
   <property name="dir.src" location="src"/>
   <property name="dir.build" location="classes"/>
+  <property name="dir.icons" location="icons"/>
   <property name="dir.lib" location="lib"/>
 
   <!-- initialize variables, make directories -->
@@ -23,7 +24,9 @@
 
   <!-- combine all classes into jar file -->
   <target name="gui" depends="compile">
-    <jar jarfile="${dir.lib}/ConfDbGUI.jar" basedir="${dir.build}">
+    <jar jarfile="${dir.lib}/ConfDbGUI.jar">
+      <fileset dir="${dir.build}"/>
+      <fileset dir="${dir.icons}"/>
       <manifest>
         <attribute name="Main-Class" value="confdb.gui.ConfDbGUI" />    
       </manifest>
