@@ -1186,10 +1186,11 @@ class SourceParser:
 		    foundlineend = False
 
 		if(foundlineend == True and line.find(themodulename) != -1):
-		    foundatypedef = True
-		    if(self.verbose > 1):
-			print 'found a typedef module declaration in ' + theccfile
-			print '\n' + totalline
+                    if((line.find('>') != -1) and (line.split('>')[1].find(themodulename) != -1)):
+                        foundatypedef = True
+                        if(self.verbose > 1):
+                                print 'found a typedef module declaration in ' + theccfile
+                                    print '\n' + totalline
 
 		    theclass =  (totalline.split('<')[0]).lstrip().lstrip('typedef').lstrip().rstrip()
 		    if(theclass.find('::') != -1):
