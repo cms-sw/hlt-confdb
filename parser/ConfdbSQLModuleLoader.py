@@ -1,16 +1,16 @@
 #!/usr/bin/env python
-
+ 
 # ConfdbSQLModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (MySQL version). All MySQL specific code belongs here.
-# Jonathan Hollar LLNL May 2, 2007
+# Jonathan Hollar LLNL May. 10, 2007
 
 import os, string, sys, posix, tokenize, array
 
 sys.path.append(os.environ.get("CMS_PATH") + "/sw/slc4_ia32_gcc345/external/py2-mysqldb/1.2.0/lib/python2.4/site-packages/")
 
 import MySQLdb
- 
+
 class ConfdbMySQLModuleLoader:
 
     def __init__(self, verbosity):
@@ -23,6 +23,8 @@ class ConfdbMySQLModuleLoader:
 	self.connection = None
 	self.fwknew = 0
 	self.fwkunchanged = 0
+	self.fwkchanged = 0
+	self.globalseqcount = 0
 
     # Connect to the Confdb db
     def ConfdbMySQLConnect(self,dbname,username,userpwd,userhost):
@@ -170,6 +172,8 @@ class ConfdbMySQLModuleLoader:
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
 	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
+
+	self.globalseqcount = 0
     # End ConfdbLoadNewModuleTemplate
 	
     # Create a new service template in the DB
@@ -196,6 +200,8 @@ class ConfdbMySQLModuleLoader:
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
 	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
+
+	self.globalseqcount = 0
     # End ConfdbLoadNewServiceTemplate
 
     # Create a new es_source template in the DB
@@ -222,6 +228,8 @@ class ConfdbMySQLModuleLoader:
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
 	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
+
+	self.globalseqcount = 0
     # End ConfdbLoadNewESSourceTemplate
 
     # Create a new ed_source template in the DB
@@ -248,6 +256,8 @@ class ConfdbMySQLModuleLoader:
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
 	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
+
+	self.globalseqcount = 0
     # End ConfdbLoadNewEDSourceTemplate
 
     # Given a component, update parameters that have changed from the 
@@ -271,6 +281,8 @@ class ConfdbMySQLModuleLoader:
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
 	    return
 
+	self.fwkchanged = self.fwkchanged + 1
+
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
 	thecursor.execute("INSERT INTO SuperIds VALUE();")
@@ -289,6 +301,8 @@ class ConfdbMySQLModuleLoader:
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
 	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
+
+	self.globalseqcount = 0
     # End ConfdbUpdateModuleTemplate
 
     # Given a component, update parameters that have changed from the 
@@ -310,6 +324,8 @@ class ConfdbMySQLModuleLoader:
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
 	    return
 
+	self.fwkchanged = self.fwkchanged + 1
+
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
 	thecursor.execute("INSERT INTO SuperIds VALUE();")
@@ -325,6 +341,8 @@ class ConfdbMySQLModuleLoader:
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
 	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
+
+	self.globalseqcount = 0
     # End ConfdbUpdateServiceTemplate
 
     # Given a component, update parameters that have changed from the 
@@ -346,6 +364,8 @@ class ConfdbMySQLModuleLoader:
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
 	    return
 
+	self.fwkchanged = self.fwkchanged + 1
+
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
 	thecursor.execute("INSERT INTO SuperIds VALUE();")
@@ -359,6 +379,8 @@ class ConfdbMySQLModuleLoader:
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
 	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
+
+	self.globalseqcount = 0
     # End ConfdbUpdateESSourceTemplate
 
     # Given a component, update parameters that have changed from the 
@@ -380,6 +402,8 @@ class ConfdbMySQLModuleLoader:
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
 	    return
 
+	self.fwkchanged = self.fwkchanged + 1
+
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
 	thecursor.execute("INSERT INTO SuperIds VALUE();")
@@ -393,6 +417,8 @@ class ConfdbMySQLModuleLoader:
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
 	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
+
+	self.globalseqcount = 0
     # End ConfdbUpdateEDSourceTemplate
 
     # Associate a list of parameters with a component template (via superId)
@@ -400,6 +426,9 @@ class ConfdbMySQLModuleLoader:
 
 	# First the non-vectors
 	for paramtype, paramname, paramval, paramistracked, paramseq in parameters:
+
+	    paramseq = self.globalseqcount
+	    self.globalseqcount = self.globalseqcount + 1
 
 	    # int32
 	    if(paramtype == "int32" or paramtype == "int" or paramtype == "int32_t"):
@@ -523,6 +552,9 @@ class ConfdbMySQLModuleLoader:
 	# Now deal with any vectors
 	for vecptype, vecpname, vecpvals, vecpistracked, vecpseq in vecparameters:
 
+	    vecpseq = self.globalseqcount
+	    self.globalseqcount = self.globalseqcount + 1
+
 	    # vector<int32>
 	    if(vecptype == "vint32" or vecptype == "int32" or vecptype == "int" or vecptype == "int32_t"):
 		type = self.paramtypedict['vint32']
@@ -628,6 +660,9 @@ class ConfdbMySQLModuleLoader:
 	# First the non-vectors
 	for paramtype, paramname, paramval, paramistracked, paramseq in parameters:
 	    
+	    paramseq = self.globalseqcount
+	    self.globalseqcount = self.globalseqcount + 1
+
 	    neednewparam = False
 
 	    oldparamval = None
@@ -972,6 +1007,10 @@ class ConfdbMySQLModuleLoader:
 
 	# Now deal with any vectors
 	for vecptype, vecpname, vecpvals, vecpistracked, vecpseq in vecparameters:
+
+	    vecpseq = self.globalseqcount
+	    self.globalseqcount = self.globalseqcount + 1
+
 	    # vector<int32>
 	    if(vecptype == "vint32" or vecptype == "int32" or vecptype == "int" or vecptype == "int32_t"):
 		type = self.paramtypedict['vint32']
@@ -1206,11 +1245,17 @@ class ConfdbMySQLModuleLoader:
 
 	lastpsetname = ''
 	psetcache = []
+	lastpsetseqdict = {}
+	localseqcount = 0
 
 	for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq in paramsets:
 	    # If this is the first entry in this PSet for this component, add it to the ParameterSets table
 	    if(not pset in psetcache):
 		psetcache.append(pset)
+
+		psetpsetseq = self.globalseqcount
+		self.globalseqcount = self.globalseqcount + 1
+		localseqcount = 0
 
 		thecursor.execute("INSERT INTO SuperIds VALUE()")
 		thecursor.execute("SELECT LAST_INSERT_ID()")
@@ -1237,9 +1282,19 @@ class ConfdbMySQLModuleLoader:
 
 		    toplevelid = thecursor.fetchone()[0]
 
+		    psetpsetseq = lastpsetseqdict[psetnesting]		    
+		    lastpsetseqdict[psetnesting] = psetpsetseq + 1
+		    lastpsetseqdict[pset] = localseqcount
+
 		    if(self.verbose > 2):
 			print "INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")"
 		    thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")   
+	    else:
+		if(pset in lastpsetseqdict):
+		    localseqcount = lastpsetseqdict[pset]
+		else:
+		    localseqcount = 0		    
+		    lastpsetseqdict[pset] = localseqcount
 
 	    # Now make new entries for each parameter in this PSet if they exist
 	    if(psettype == '' or psetname == ''):
@@ -1258,6 +1313,10 @@ class ConfdbMySQLModuleLoader:
 		continue
 
 	    type = self.paramtypedict[psettype]
+
+	    psetseq = localseqcount
+	    localseqcount = localseqcount + 1
+	    lastpsetseqdict[pset] = localseqcount
 
 	    # Fill Parameters table
 	    newparammemberid = self.AddNewParam(thecursor,newparamsetid,psetname,type,psettracked,psetseq)	    
@@ -1360,6 +1419,10 @@ class ConfdbMySQLModuleLoader:
 	    if(not vpset in vpsetcache):
 		vpsetcache.append(vpset)
 
+		vpsetpsetseq = self.globalseqcount
+		self.globalseqcount = self.globalseqcount + 1
+		localseqcount = 0
+
 		# Each new VPSet gets a new SuperId
 		thecursor.execute("INSERT INTO SuperIds VALUE()")
 		thecursor.execute("SELECT LAST_INSERT_ID()")
@@ -1391,7 +1454,11 @@ class ConfdbMySQLModuleLoader:
 		vpsettype = "vuint32"
 
 	    type = self.paramtypedict[vpsettype]
-	    
+
+	    vpsetseq = localseqcount
+	    localseqcount = localseqcount + 1
+	    lastpsetseqdict[vpset] = localseqcount
+
 	    # Fill Parameters table
 	    newvparammemberid = self.AddNewParam(thecursor,newvparamsetid,vpsetname,type,vpsettracked,vpsetseq)	    
 
@@ -1521,6 +1588,7 @@ class ConfdbMySQLModuleLoader:
 
     def PrintStats(self):
 	print "\tAdded " + str(self.fwknew) + " new framework components to the DB" 
+	print "\t" + str(self.fwkchanged) + " framework components were updated"
 	print "\t" + str(self.fwkunchanged)  + " framework components were unchanged from the previous release"
 
     # All done. Clean up and commit changes (necessary for INNODB engine)

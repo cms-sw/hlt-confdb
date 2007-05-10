@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL May 2, 2007
+# Jonathan Hollar LLNL May 10, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -1186,11 +1186,11 @@ class SourceParser:
 		    foundlineend = False
 
 		if(foundlineend == True and line.find(themodulename) != -1):
-                    if((line.find('>') != -1) and (line.split('>')[1].find(themodulename) != -1)):
-                        foundatypedef = True
-                        if(self.verbose > 1):
-                                print 'found a typedef module declaration in ' + theccfile
-                                    print '\n' + totalline
+		    if((line.find('>') != -1) and (line.split('>')[1].find(themodulename) != -1)):
+			foundatypedef = True
+			if(self.verbose > 1):
+			    print 'found a typedef module declaration in ' + theccfile
+			    print '\n' + totalline
 
 		    theclass =  (totalline.split('<')[0]).lstrip().lstrip('typedef').lstrip().rstrip()
 		    if(theclass.find('::') != -1):
@@ -1479,7 +1479,7 @@ class SourceParser:
 			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname)			
 
 			    if(success == False and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thenestedpsetname))):
-				self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"false",self.sequencenb,thepsetname,self.psetsequences[thepsetname]))
+				self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"false",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
 				self.sequencenb = self.sequencenb + 1
 			    
 
