@@ -1,9 +1,9 @@
 #!/usr/bin/env python
- 
+
 # ConfdbOracleModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (Oracle version). All Oracle specific code belongs here.
-# Jonathan Hollar LLNL May. 10, 2007
+# Jonathan Hollar LLNL May. 11, 2007
 
 import os, string, sys, posix, tokenize, array
 
@@ -32,7 +32,7 @@ class ConfdbOracleModuleLoader:
 #                                    user=username, passwd=userpwd,
 #                                     db=dbname )
         self.connection = cx_Oracle.connect(username+"/"+userpwd+"@"+userhost)
-
+        
         cursor = self.connection.cursor() 
 
         # Do some one-time operations - get dictionaries of parameter, module,
@@ -574,7 +574,7 @@ class ConfdbOracleModuleLoader:
 			sequencer = sequencer + 1
 
 	    # vector<uint32>
-	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "uint32" or vecptype == "uint"):
+	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "uint32" or vecptype == "uint" or vecptype == "vuint32"):
 		type = self.paramtypedict['vuint32']
 
 		# Fill Parameters table
@@ -1059,7 +1059,7 @@ class ConfdbOracleModuleLoader:
 			    sequencer = sequencer + 1
 
 	    # vector<uint32>
-	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "uint"):
+	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "uint" or vecptype == "vuint32"):
 		type = self.paramtypedict['vuint32']
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,vecpname,oldsuperid)

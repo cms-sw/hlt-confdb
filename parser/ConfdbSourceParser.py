@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL May 10, 2007
+# Jonathan Hollar LLNL May 11, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -525,17 +525,12 @@ class SourceParser:
                         paramstring = totalline.split('"')
 
                         # Parameter name should be the first thing in quotes after 'getParameter'
-			if(paramstring[0].find('getParameter') != -1):
-			    paramname = paramstring[1]
-			elif(paramstring[2].find('getParameter') != -1):
-			    paramname = paramstring[3]
-			elif(paramstring[4].find('getParameter') != -1):
-			    paramname = paramstring[5]
-			elif(paramstring[6].find('getParameter') != -1):
-			    paramname = paramstring[7]
-			elif(paramstring[8].find('getParameter') != -1):
-			    paramname = paramstring[9]
-
+			index = 0
+			for paramsubstring in paramstring:
+			    if ((paramstring[index]).find('getParameter') != -1):
+				paramname = paramstring[index+1]
+				break
+			    index = index + 1
 
                         # Now look for parameter <type>
 			paramstring2 = totalline.split('<')
@@ -631,7 +626,7 @@ class SourceParser:
 				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
 					self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
 					self.sequencenb = self.sequencenb + 1
-				elif(paramtype.lstrip().rstrip() == 'vString'):
+				elif(paramtype.lstrip().rstrip() == 'vString' or paramtype.lstrip().rstrip() == 'vstring'):
 				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
 					self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
 					self.sequencenb = self.sequencenb + 1
@@ -700,10 +695,12 @@ class SourceParser:
 
                         # Parameter name should be the first thing in
                         # quotes
-			if(paramstring[0].find('getUntrackedParameter') != -1):
-			    paramname = paramstring[1]
-			else:
-			    paramname = paramstring[3]
+			index = 0
+			for paramsubstring in paramstring:
+			    if ((paramstring[index]).find('getUntrackedParameter') != -1):
+				paramname = paramstring[index+1]
+				break
+			    index = index + 1
 
 			# Vector template 
 			if(totalline.find('vector<') != -1):
@@ -810,7 +807,7 @@ class SourceParser:
 					    and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None'))):
 					    self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"false",self.sequencenb))
 					    self.sequencenb = self.sequencenb + 1
-				    elif(paramtype == 'vString'):
+				    elif(paramtype == 'vString' or paramtype == 'vstring'):
 					if((not paramname.lstrip().startswith('@module')) 
 					    and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None'))):
 					    self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"false",self.sequencenb))

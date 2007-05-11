@@ -1,9 +1,9 @@
 #!/usr/bin/env python
- 
+
 # ConfdbSQLModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (MySQL version). All MySQL specific code belongs here.
-# Jonathan Hollar LLNL May. 10, 2007
+# Jonathan Hollar LLNL May. 11, 2007
 
 import os, string, sys, posix, tokenize, array
 
@@ -573,7 +573,7 @@ class ConfdbMySQLModuleLoader:
 			sequencer = sequencer + 1
 
 	    # vector<uint32>
-	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "uint32" or vecptype == "uint"):
+	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "uint32" or vecptype == "uint" or vecptype == "vuint32"):
 		type = self.paramtypedict['vuint32']
 
 		# Fill Parameters table
@@ -1058,7 +1058,7 @@ class ConfdbMySQLModuleLoader:
 			    sequencer = sequencer + 1
 
 	    # vector<uint32>
-	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "uint"):
+	    elif(vecptype == "vunsigned" or vecptype == "uint32" or vecptype == "unsigned int" or vecptype == "uint32_t" or vecptype == "unsigned" or vecptype == "uint" or vecptype == "vuint32"):
 		type = self.paramtypedict['vuint32']
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,vecpname,oldsuperid)

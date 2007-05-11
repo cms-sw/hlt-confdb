@@ -4,7 +4,7 @@
 # Main file for parsing source code in a CMSSW release and
 # loading module templates to the Conf DB.
 # 
-# Jonathan Hollar LLNL April 27, 2007
+# Jonathan Hollar LLNL May 11, 2007
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
@@ -256,9 +256,20 @@ class ConfdbSourceToDB:
                   
 				    sealcomponentlines = sealcomponentfile.readlines()
 
+				    startedccomment = False
+
 				    # Look through each file for framework component definitions
 				    for sealcomponentline in sealcomponentlines:
 					if(sealcomponentline.lstrip().startswith("//")):
+					    continue
+
+					if(sealcomponentline.lstrip().startswith("/*")):
+					    startedccomment = True
+
+					if(sealcomponentline.rstrip().endswith("*/")):
+					    startedccomment = False
+
+					if(startedccomment == True):
 					    continue
 
 					# First modules
