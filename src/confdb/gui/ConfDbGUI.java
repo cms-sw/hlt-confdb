@@ -9,6 +9,8 @@ import java.awt.event.*;
 
 import java.util.ArrayList;
 
+import java.util.concurrent.ExecutionException;
+
 import confdb.data.Configuration;
 import confdb.data.ConfigInfo;
 import confdb.data.Template;
@@ -526,6 +528,7 @@ public class ConfDbGUI implements TableModelListener
 	protected String construct() throws InterruptedException
 	{
 	    startTime = System.currentTimeMillis();
+
 	    config = database.loadConfiguration(configInfo,
 						edsourceTemplateList,
 						essourceTemplateList,
@@ -543,6 +546,10 @@ public class ConfDbGUI implements TableModelListener
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		progressBar.setString(progressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
+	    }
+	    catch (ExecutionException e) {
+		System.out.println("EXECUTION-EXCEPTION: "+ e.getCause());
+		e.printStackTrace();
 	    }
 	    catch (Exception e) {
 		System.out.println("EXCEPTION: "+ e.getMessage());

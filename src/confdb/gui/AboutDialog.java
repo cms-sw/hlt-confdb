@@ -46,7 +46,7 @@ public class AboutDialog extends JDialog implements ActionListener
 	
 	editorPane = new JEditorPane("text/html","");
 	editorPane.setEditable(false);
-	editorPane.setPreferredSize(new Dimension(300,250));
+	editorPane.setPreferredSize(new Dimension(620,250));
 	c.weighty=0.95;
 	c.gridx=0;c.gridy=0;c.gridwidth=5;
 	contentPane.add(new JScrollPane(editorPane),c);
@@ -62,12 +62,14 @@ public class AboutDialog extends JDialog implements ActionListener
 
 	String txt =
 	    "<font size=+1>" +
-	    "<p>Thanks for using <b>ConfDbGUI</b>, \n" +
-	    "the official CMS tool to create and manage\n" +
-	    "job configurations based on a \n" +
-	    "central database system.</p>\n\n" +
-	    "<p>For feedback contact me at \n" +
-	    "Philipp.Schieferdecker@cern.ch." +
+	    "<p>Thanks for using <b>ConfDbGUI</b>, " +
+	    "a CMS tool to create and manage" +
+	    "CMSSW job configurations based on a " +
+	    "central database system.</p>" +
+	    "<p>For feedback please contact me at " +
+	    "<b>philipp.schieferdecker@cern.ch</b>.</p>" +
+	    "<p>The system is documented on the web under " +
+	    "<b>https://twiki.cern.ch/twiki/bin/view/CMS/EvfConfDBDesign</b>.</p>"+
 	    "</font></n>";
 	editorPane.setText(txt);
     }

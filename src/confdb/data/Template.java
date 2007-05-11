@@ -175,5 +175,11 @@ abstract public class Template
     
     /** set the db superId */
     public void setDbSuperId(int dbSuperId) { this.dbSuperId = dbSuperId; }
+
     
+    /** DEBUG */
+    public void finalize()
+    {
+	System.out.println("finalize " + name);
+    }
 }

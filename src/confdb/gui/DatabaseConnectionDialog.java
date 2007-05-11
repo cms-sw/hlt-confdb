@@ -96,10 +96,10 @@ public class DatabaseConnectionDialog
 	textFieldDbName.setText("hltdb");
 	
 	textFieldDbUser = new JTextField(15);
-	textFieldDbUser.setText("schiefer");
+	textFieldDbUser.setText("");
 	
 	textFieldDbPwrd = new JPasswordField(15);
-	textFieldDbPwrd.setText("monopoles");
+	textFieldDbPwrd.setText("");
 	
 	JPanel panelDbType = new JPanel(new FlowLayout());
 	panelDbType.add(mysqlButton);

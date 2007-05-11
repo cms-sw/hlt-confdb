@@ -1385,7 +1385,17 @@ public class CfgDatabase
 		
 		if (!allParamsFound) {
 		    System.out.println("ERROR: can't load " + type + " '" + name +
-				       "' incomplete parameter list.");
+				       "' incomplete parameter list:");
+		    // DEBUG
+		    //int i=0;
+		    //for (Parameter p : parameters) {
+		    //if (p==null) 
+		    //  System.out.println("  "+i+". MISSING");
+		    //else
+		    //   System.out.println("  "+i+". "+p.name()+" / "+p.type());
+		    //i++;
+		    //}
+		    // END DEBUG
 		}
 		else {
 		    templateList.add(TemplateFactory
@@ -1411,30 +1421,50 @@ public class CfgDatabase
 	
 	String releaseTag = configInfo.releaseTag();
 	
+	// EDSources
 	if (!releaseTag.equals(edsourceReleaseTag)) {
+	    edsourceTemplateList.clear();
+	    edsourceTemplateNameHashMap.clear();
 	    loadEDSourceTemplates(releaseTag,edsourceTemplateList);
+	}
+	if (edsourceTemplateList.size()!=edsourceTemplateNameHashMap.size()) {
 	    edsourceTemplateNameHashMap.clear();
 	    for (Template t : edsourceTemplateList)
 		edsourceTemplateNameHashMap.put(t.dbSuperId(),t.name());
 	}
 	
+	// ESSources
 	if (!releaseTag.equals(essourceReleaseTag)) {
+	    essourceTemplateList.clear();
+	    essourceTemplateNameHashMap.clear();
 	    loadESSourceTemplates(releaseTag,essourceTemplateList);
+	}
+	if (essourceTemplateList.size()!=essourceTemplateNameHashMap.size()) {
 	    essourceTemplateNameHashMap.clear();
 	    for (Template t : essourceTemplateList)
 		essourceTemplateNameHashMap.put(t.dbSuperId(),t.name());
 	}
 	
+	// Services
 	if (!releaseTag.equals(serviceReleaseTag)) {
+	    serviceTemplateList.clear();
+	    serviceTemplateNameHashMap.clear();
 	    loadServiceTemplates(releaseTag,serviceTemplateList);
+	}
+	if (serviceTemplateList.size()!=serviceTemplateNameHashMap.size()) {
 	    serviceTemplateNameHashMap.clear();
 	    for (Template t : serviceTemplateList)
 		serviceTemplateNameHashMap.put(t.dbSuperId(),t.name());
 	}
-	
+
+	// Modules
 	if (!releaseTag.equals(moduleReleaseTag)) {
-	    loadModuleTemplates(releaseTag,moduleTemplateList);
+	    moduleTemplateList.clear();
 	    moduleTemplateNameHashMap.clear();
+	    loadModuleTemplates(releaseTag,moduleTemplateList);
+	}
+	    if (moduleTemplateList.size()!=moduleTemplateNameHashMap.size()) {
+		moduleTemplateNameHashMap.clear();
 	    for (Template t : moduleTemplateList)
 		moduleTemplateNameHashMap.put(t.dbSuperId(),t.name());
 	}
@@ -1444,6 +1474,7 @@ public class CfgDatabase
 				   essourceTemplateList,
 				   serviceTemplateList,
 				   moduleTemplateList);
+
 	loadConfiguration(config);
 	config.setHasChanged(false);
 	
@@ -1465,7 +1496,7 @@ public class CfgDatabase
 	loadESSourceTemplates(configId,essourceTemplateList);
 	loadServiceTemplates(configId,serviceTemplateList);
 	loadModuleTemplates(configId,moduleTemplateList);
-	
+
 	edsourceTemplateNameHashMap.clear();
 	essourceTemplateNameHashMap.clear();
 	serviceTemplateNameHashMap.clear();
@@ -1753,6 +1784,7 @@ public class CfgDatabase
 	}
 	finally {
 	    dbConnector.release(rs);
+	    try { ps.close(); } catch (SQLException ex) {}
 	}
 	return result;
     }
@@ -1792,6 +1824,19 @@ public class CfgDatabase
 		    parameters.set(sequenceNb,pset);
 		}
 		else {
+		    // DEBUG
+		    //System.out.println("  -> Can't load pset '" + psetName + " '" +
+		    //	       ", incomplete parameter list:");
+		    //int i=0;
+		    //for (Parameter p : psetParameters) {
+		    //	if (p==null) 
+		    //    System.out.println("  "+i+". MISSING");
+		    //else
+		    //    System.out.println("  "+i+". "+p.name()+" / "+p.type());
+		    //i++;
+		    //}
+		    // END DEBUG
+
 		    parameters.set(sequenceNb,null);
 		    result = false;
 		}
@@ -1803,6 +1848,7 @@ public class CfgDatabase
 	}
 	finally {
 	    dbConnector.release(rs);
+	    try { ps.close(); } catch (SQLException ex) {}
 	}
 	return result;
     }
@@ -1854,6 +1900,7 @@ public class CfgDatabase
 	}
 	finally {
 	    dbConnector.release(rs);
+	    try { ps.close(); } catch (SQLException ex) {}
 	}
 	return result;
     }
