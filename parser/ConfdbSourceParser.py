@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL May 11, 2007
+# Jonathan Hollar LLNL May 10, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -765,10 +765,10 @@ class SourceParser:
 					thisparamset = thisparamset.split('ParameterSet ')[1].rstrip().lstrip()
 				    elif(thisparamset.find('ParameterSet& ') != -1):
 					thisparamset = thisparamset.split('ParameterSet& ')[1].rstrip().lstrip()
-				elif(totalline.split('.getParameter')[0].find('(') != -1):
-				    thisparamset = totalline.split('.getParameter')[0].split('(')[0]
+				elif(totalline.split('.getUntrackedParameter')[0].find('(') != -1):
+				    thisparamset = totalline.split('.getUntrackedParameter')[0].split('(')[0]
 
-				if(totalline.find('=') != -1 or totalline.split('.getParameter')[0].find('(') != -1):
+				if(totalline.find('=') != -1 or totalline.split('.getUntrackedParameter')[0].find('(') != -1):
 				    if(len(re.split('\W+',thisparamset)) == 1):
 					if(self.verbose > 1):
 					    print 'Found a new PSet named ' + paramname + ' with variable name ' + thisparamset
@@ -926,11 +926,46 @@ class SourceParser:
                                 paramdefault = therest
 
 			    paramname = paramname.rstrip('"').lstrip('"')
+			    paramtype = paramtype.lstrip().rstrip()
+
+			    # If this is a ParameterSet, figure out it's variable name 
+			    if(paramtype == 'ParameterSet' or paramtype == 'PSet' or paramtype == 'Parameters' or paramtype == 'VPSet'):
+				if(totalline.find('=') != -1):
+				    thisparamset = totalline.split('=')[0].rstrip().lstrip()
+				
+				    if(thisparamset.find('vector<edm::ParameterSet>') != -1):
+					thisparamset = thisparamset.split('>')[1].rstrip().lstrip()
+				    elif(thisparamset.find('PSet ') != -1):
+					thisparamset = thisparamset.split('PSet ')[1].rstrip().lstrip()
+				    elif(thisparamset.find('VPSet ') != -1):
+					thisparamset = thisparamset.split('VPSet ')[1].rstrip().lstrip()
+				    elif(thisparamset.find('ParameterSet ') != -1):
+					thisparamset = thisparamset.split('ParameterSet ')[1].rstrip().lstrip()
+				    elif(thisparamset.find('ParameterSet& ') != -1):
+					thisparamset = thisparamset.split('ParameterSet& ')[1].rstrip().lstrip()
+				elif(totalline.split('.getUntrackedParameter')[0].find('(') != -1):
+				    thisparamset = totalline.split('.getUntrackedParameter')[0].split('(')[0]
+
+				if(totalline.find('=') != -1 or totalline.split('.getUntrackedParameter')[0].find('(') != -1):
+				    if(len(re.split('\W+',thisparamset)) == 1):
+					if(self.verbose > 1):
+					    print 'Found a new PSet named ' + paramname + ' with variable name ' + thisparamset
+
+					self.psetdict[thisparamset] = paramname
+					if(paramname in self.psetsequences):
+					    self.psetsequencenb = self.psetsequences[paramname]
+					    print 'The PSet ' + paramname + ' was already found with sequencenb = ' + str(self.psetsequences[paramname])
+					else:
+					    self.psetsequencenb = self.sequencenb
+					    self.sequencenb = self.sequencenb + 1
+					    self.psetsequences[paramname] = self.psetsequencenb
+
                             if(self.verbose > 1):
                                 print '\t\t(Untemplated) ' + paramtype + ' ' + paramname + ' ' + paramdefault + '\t\t(Untracked)'
 			    if(paramtype == 'PSet' or paramtype == 'ParameterSet'):
 				if((not paramname.lstrip().startswith('@module'))
 				   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,'None'))):
+				    self.sequencenb = self.psetsequencenb
 				    self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb,'None',self.psetsequencenb))
 				    self.sequencenb = self.sequencenb + 1
 			    elif(paramtype == 'VPSet' or paramtype == 'Parameters'):
@@ -1518,7 +1553,7 @@ class SourceParser:
 		if(parametername in listings):
 		    return False
 	    else:
-		if((parametername in listings) and (parameterset in listings)):
+		if((listings[0] == parametername) and (listings[6] == parameterset)):
 		    return False
 	    
 	return True
