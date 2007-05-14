@@ -511,6 +511,12 @@ class SourceParser:
 			    totalline = ''
 			    continue
 
+                        # Totally confused. We can't find a parameter name in the getParameter call.
+                        if((totalline.split('getParameter')[1]).find('"') == -1):
+                            totalline = ''
+                            print "Error: getParameter used with no parameter name. Parameter will not be loaded."
+                            continue
+
 			# If this is a parameter, figure out what ParameterSet this belongs to
 			belongstopset = totalline.split('.getParameter')[0].rstrip().lstrip()
 			belongstopsetname = re.split('\W+',belongstopset)
@@ -681,6 +687,12 @@ class SourceParser:
 			defaultincc = False
 
                         paramstring = totalline.split('"')
+
+                        # Totally confused. We can't find a parameter name in the getUntrackedParameter call.
+                        if((totalline.split('getUntrackedParameter')[1]).find('"') == -1):
+                            totalline = ''
+                            print "Error: getUntrackedParameter used with no parameter name. Parameter will not be loaded."
+                            continue
 
 			# Figure out what ParameterSet this belongs to
 			belongstopset = totalline.split('.getUntrackedParameter')[0].rstrip().lstrip()
