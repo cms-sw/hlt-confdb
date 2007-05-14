@@ -193,6 +193,14 @@ public class Configuration
 	return result;
     }
     
+    /** isEmpty() */
+    public boolean isEmpty()
+    {
+	return (edsources.isEmpty()&&essources.isEmpty()&&
+		services.isEmpty()&&modules.isEmpty()&&
+		paths.isEmpty()&&sequences.isEmpty());
+    }
+
     /** database identifier */
     public int dbId() { return configInfo.dbId(); }
 

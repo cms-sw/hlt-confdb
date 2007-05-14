@@ -333,7 +333,19 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	    String    cmd = src.getText();
 	    Object parent = parameter.parent();
 	    
-	    if (parent instanceof VPSetParameter) {
+	    if (parameter instanceof VPSetParameter) {
+		if (cmd.equals("Add PSet")) {
+		    VPSetParameter vpset = (VPSetParameter)parameter;
+		    addParameterSet(vpset);
+		}
+	    }
+	    else if (parameter instanceof PSetParameter) {
+		if (cmd.equals("Add Parameter")) {
+		    PSetParameter pset = (PSetParameter)parameter;
+		    addParameter(pset);
+		}
+	    }
+	    else if (parent instanceof VPSetParameter) {
 		VPSetParameter vpset = (VPSetParameter)parent;
 		PSetParameter  pset  = (PSetParameter)parameter;
 		if (cmd.equals("Add Parameter")) {
@@ -366,31 +378,22 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 		    }
 		}
 	    }
-	    else if (parameter instanceof VPSetParameter) {
-		if (cmd.equals("Add PSet")) {
-		    VPSetParameter vpset = (VPSetParameter)parameter;
-		    addParameterSet(vpset);
-		}
-	    }
-	    else if (parameter instanceof PSetParameter) {
-		if (cmd.equals("Add Parameter")) {
-		    PSetParameter pset = (PSetParameter)parameter;
-		    addParameter(pset);
-		}
-	    }
 	}
 	
 	/** show dialog to add parameter to pset */
 	private void addParameter(PSetParameter pset)
 	{
-	    AddParameterDialog dlg = new AddParameterDialog(frame);
+	    AddParameterDialog dlg = new AddParameterDialog(frame,pset.isTracked());
 	    dlg.pack();
 	    dlg.setLocationRelativeTo(frame);
 	    dlg.setVisible(true);
 	    if (dlg.validChoice()) {
 		Parameter p =
-		    ParameterFactory.create(dlg.type(),dlg.name(),
-					    dlg.valueAsString(),false,false);
+		    ParameterFactory.create(dlg.type(),
+					    dlg.name(),
+					    dlg.valueAsString(),
+					    dlg.isTracked(),
+					    false);
 		pset.addParameter(p);
 		treeModel.nodeInserted(pset,pset.parameterCount()-1);
 	    }
@@ -399,16 +402,18 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	/** show dialog to add PSet to VPSet */
 	private void addParameterSet(VPSetParameter vpset)
 	{
-	    AddParameterDialog dlg = new AddParameterDialog(frame);
+	    AddParameterDialog dlg = new AddParameterDialog(frame,vpset.isTracked());
 	    dlg.addParameterSet();
 	    dlg.pack();
 	    dlg.setLocationRelativeTo(frame);
 	    dlg.setVisible(true);
 	    if (dlg.validChoice()) {
 		PSetParameter pset =
-		    (PSetParameter)ParameterFactory.create(dlg.type(),dlg.name(),
+		    (PSetParameter)ParameterFactory.create(dlg.type(),
+							   dlg.name(),
 							   dlg.valueAsString(),
-							   false,false);
+							   dlg.isTracked(),
+							   false);
 		vpset.addParameterSet(pset);
 		treeModel.nodeInserted(vpset,vpset.parameterSetCount()-1);
 	    }

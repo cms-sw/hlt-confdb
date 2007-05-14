@@ -34,6 +34,9 @@ public class AddParameterDialog extends JDialog implements ActionListener
     /** parameter value text field */
     private JTextField textFieldValue = null;
     
+    /** parameter isTracked check-box */
+    private JCheckBox checkBoxIsTrkd = null;
+
     /** array of valid parameter types */
     private static final String[] types =
     {
@@ -54,10 +57,10 @@ public class AddParameterDialog extends JDialog implements ActionListener
     //
 
     /** standard constructor */
-    public AddParameterDialog(JFrame frame)
+    public AddParameterDialog(JFrame frame,boolean isTrackedDefault)
     {
 	super(frame,true);
-	setContentPane(createContentPane());
+	setContentPane(createContentPane(isTrackedDefault));
 	setTitle("Add Parameter");
     }
     
@@ -65,14 +68,17 @@ public class AddParameterDialog extends JDialog implements ActionListener
     //
     // member functions
     //
-
+    
     /** layout the dialog box*/
-    private JPanel createContentPane()
+    private JPanel createContentPane(boolean isTrackedDefault)
     {
 	textFieldName  = new JTextField(10);
 	comboBoxType   = new JComboBox(types);
 	textFieldValue = new JTextField(10);
+	checkBoxIsTrkd = new JCheckBox("tracked",isTrackedDefault);
 	
+	if (!isTrackedDefault) checkBoxIsTrkd.setEnabled(false);
+
 	okButton.addActionListener(this);
 	cancelButton.addActionListener(this);
 	textFieldName.addActionListener(this);
@@ -92,6 +98,7 @@ public class AddParameterDialog extends JDialog implements ActionListener
 	panel.add(comboBoxType);
 	panel.add(new JLabel("Value: "));
 	panel.add(textFieldValue);
+	panel.add(checkBoxIsTrkd);
 	panel.add(okButton);
 	panel.add(cancelButton);
 	
@@ -155,6 +162,9 @@ public class AddParameterDialog extends JDialog implements ActionListener
     /** parameter type */
     public String type() { return (String)comboBoxType.getSelectedItem(); }
 
+    /** parameter isTracked */
+    public boolean isTracked() { return checkBoxIsTrkd.isSelected(); }
+    
     /** parameter value as string */
     public String valueAsString() { return textFieldValue.getText(); }
     

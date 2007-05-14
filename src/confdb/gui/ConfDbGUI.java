@@ -19,6 +19,9 @@ import confdb.data.Parameter;
 import confdb.db.CfgDatabase;
 import confdb.db.DatabaseException;
 
+import confdb.converter.ConverterFactory;
+import confdb.converter.Converter;
+
 import confdb.gui.treetable.TreeTableTableModel;
 
 
@@ -63,7 +66,10 @@ public class ConfDbGUI implements TableModelListener
     /** tree structure holding the current configuration */
     private JTree tree = null;
     private ConfigurationTreeModel treeModel = null;
-    
+
+    /** JEditorPane for converted configuration */
+    private JEditorPane editorPaneConverter = null;
+
     /** list of all available Event Data Source templates */
     private ArrayList<Template> edsourceTemplateList = null;
     
@@ -114,6 +120,7 @@ public class ConfDbGUI implements TableModelListener
 		treeModel.nodeChanged(parent);
 		treeModel.nodeChanged(node);
 		treeModel.updateLevel1Nodes();
+		config.setHasChanged(true);
 	    }
 	}
     }
@@ -220,6 +227,7 @@ public class ConfDbGUI implements TableModelListener
     /** save configuration */
     public void saveConfiguration()
     {
+	if (config.isEmpty()) return;
 	if (!config.hasChanged()) return;
 	if (config.version()==0) { saveAsConfiguration(); return; }
 	if (!checkConfiguration()) return;	
@@ -256,6 +264,7 @@ public class ConfDbGUI implements TableModelListener
     /** check if configuration is in a storable state */
     public boolean checkConfiguration()
     {
+	if (config.isEmpty()) return false;
 	int unsetParamCount = config.unsetTrackedParameterCount();
 	if (unsetParamCount>0) {
 	    String msg =
@@ -350,6 +359,8 @@ public class ConfDbGUI implements TableModelListener
     private JPanel createTreeView(Dimension dim)
     {
 	configurationPanel = new ConfigurationPanel();
+
+	// the tree
 	treeModel = new ConfigurationTreeModel(config);
 	tree      = new JTree(treeModel);
 	tree.addTreeSelectionListener(instancePanel);
@@ -371,13 +382,43 @@ public class ConfDbGUI implements TableModelListener
 	ConfigurationTreeRenderer renderer = new ConfigurationTreeRenderer();
 	tree.setCellRenderer(renderer);
 	tree.setCellEditor(new ConfigurationTreeEditor(tree,renderer));
+
+	// the converted configuration
+	editorPaneConverter = new JEditorPane("text/plain","");
+	editorPaneConverter.setEditable(false);
 	
 	JPanel treeView = new JPanel(new GridBagLayout());
 	treeView.setPreferredSize(dim);
 	
-	JScrollPane spTree = new JScrollPane(tree);
-	//spTree.setPreferredSize(??);
+	// tabbed pane
+	JTabbedPane tabbedPane = new JTabbedPane();
+	tabbedPane.addTab("Tree",new JScrollPane(tree));
+	tabbedPane.addTab("Converter",new JScrollPane(editorPaneConverter));
 	
+	// react to 'Converter' tab being selected
+	tabbedPane.addChangeListener(new ChangeListener() {
+	    public void stateChanged(ChangeEvent e) {
+		JTabbedPane pane = (JTabbedPane)e.getSource();
+		int sel = pane.getSelectedIndex();
+		
+		if (sel==1) {
+		    if (config==null) editorPaneConverter.setText("");
+		    else try {
+			ConverterFactory fac = ConverterFactory.getFactory("default");
+			Converter        cnv = fac.getConverter("ASCII");
+			String           configAsString = cnv.convert(config);
+			editorPaneConverter.setText(configAsString);
+		    }
+		    catch (Exception ex) {
+			String msg =
+			    "Failed to convert configuration: " + ex.getMessage();
+			editorPaneConverter.setText(msg);
+		    }
+		}
+	    }
+	});
+
+	// place components in tree view
 	GridBagConstraints c = new GridBagConstraints();
 	c.fill = GridBagConstraints.BOTH;
 	c.weightx = 0.5;
@@ -386,7 +427,7 @@ public class ConfDbGUI implements TableModelListener
 	treeView.add(configurationPanel,c);
 	
 	c.gridx=0;c.gridy=1;c.gridwidth=1; c.weighty=0.99;
-	treeView.add(spTree,c);
+	treeView.add(tabbedPane,c);
 	
 	treeView.setPreferredSize(dim);
 	return treeView;
@@ -488,6 +529,7 @@ public class ConfDbGUI implements TableModelListener
 	protected void finished()
 	{
 	    try {
+		config = new Configuration();
 		config.initialize(new ConfigInfo(cfgName,null,releaseTag),
 				  edsourceTemplateList,
 				  essourceTemplateList,
@@ -529,6 +571,7 @@ public class ConfDbGUI implements TableModelListener
 	{
 	    startTime = System.currentTimeMillis();
 
+	    config = new Configuration();
 	    config = database.loadConfiguration(configInfo,
 						edsourceTemplateList,
 						essourceTemplateList,

@@ -44,14 +44,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     /** standard constructor */
     public ConfigurationTreeModel(Configuration config)
     {
-	this.config = config;
-	updateLevel1Nodes();
-	level1Nodes.add(edsourcesNode);
-	level1Nodes.add(essourcesNode);
-	level1Nodes.add(servicesNode);
-	level1Nodes.add(pathsNode);
-	level1Nodes.add(modulesNode);
-	level1Nodes.add(sequencesNode);
+	setConfiguration(config);
     }
 
 
@@ -81,13 +74,28 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     public void setConfiguration(Configuration config)
     {
 	this.config = config;
+	if (config.isEmpty()) {
+	    level1Nodes.clear();
+	}
+	else {
+	    if (level1Nodes.isEmpty()) {
+		level1Nodes.add(edsourcesNode);
+		level1Nodes.add(essourcesNode);
+		level1Nodes.add(servicesNode);
+		level1Nodes.add(pathsNode);
+		level1Nodes.add(modulesNode);
+		level1Nodes.add(sequencesNode);
+	    }
+	    updateLevel1Nodes();
+	}
 	nodeStructureChanged(config);
-	updateLevel1Nodes();
     }
     
     /** update information of level1 nodes */
     public void updateLevel1Nodes()
     {
+	if (config==null) return;
+	
 	// EDSources node
 	int edsourceCount = config.edsourceCount();
 	int unsetEDSourceCount = config.unsetTrackedEDSourceParameterCount();
@@ -191,7 +199,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     public int getChildCount(Object node)
     {
 	if (node.equals(config)) {
-	    return level1Nodes.size();
+	    return (config.isEmpty()) ? 0 : level1Nodes.size();
 	}
 	else if (node instanceof StringBuffer) {
 	    if (node.equals(edsourcesNode)) return config.edsourceCount();
@@ -390,6 +398,5 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	return null;
     }
-    
 
 }

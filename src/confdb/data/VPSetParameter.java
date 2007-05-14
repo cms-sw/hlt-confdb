@@ -64,7 +64,7 @@ public class VPSetParameter extends Parameter
     public String valueAsString()
     {
 	String result = new String();
-	if (isValueSet) {
+	if (isValueSet()) {
 	    result =
 		"<" + type() +
 		" name="     + name() +

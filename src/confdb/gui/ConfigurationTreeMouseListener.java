@@ -438,23 +438,52 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 				      ActionListener     listener)
     {
 	JMenu     addModuleMenu = new JMenu("Add Module");
+	JMenuItem menuItemAll;
 	JMenuItem menuItem;
 	
 	HashMap<String,JMenu> menuHashMap = new HashMap<String,JMenu>();
 	
 	for (Template t : modules) {
+
+	    JMenu moduleTypeMenu;
+	    JMenu moduleTypeAllMenu;
+	    JMenu moduleTypeAndLetterMenu;
 	    
 	    String moduleType = t.type();
+	    String moduleTypeAll = moduleType + "All";
 	    if (!menuHashMap.containsKey(moduleType)) {
-		JMenu menu = new ScrollableMenu(moduleType);
-		menuHashMap.put(moduleType,menu);
-		addModuleMenu.add(menu);
+		moduleTypeMenu = new ScrollableMenu(moduleType);
+		moduleTypeAllMenu = new ScrollableMenu("All");
+		menuHashMap.put(moduleType,moduleTypeMenu);
+		menuHashMap.put(moduleTypeAll,moduleTypeAllMenu);
+		addModuleMenu.add(moduleTypeMenu);
+		moduleTypeMenu.add(moduleTypeAllMenu);
+	    }
+	    else {
+		moduleTypeMenu = menuHashMap.get(moduleType);
+		moduleTypeAllMenu = menuHashMap.get(moduleTypeAll);
+	    }
+	    
+
+	    String moduleLetter = t.name().substring(0,1);
+	    String moduleTypeAndLetter = t.type() + moduleLetter;
+	    if (!menuHashMap.containsKey(moduleTypeAndLetter)) {
+		moduleTypeAndLetterMenu = new ScrollableMenu(moduleLetter);
+		menuHashMap.put(moduleTypeAndLetter,moduleTypeAndLetterMenu);
+		moduleTypeMenu.add(moduleTypeAndLetterMenu);
+	    }
+	    else {
+		moduleTypeAndLetterMenu = menuHashMap.get(moduleTypeAndLetter);
 	    }
 	    
 	    if (t.instanceCount()>0) {
+		JMenu instanceMenuAll = new JMenu(t.name());
 		JMenu instanceMenu = new JMenu(t.name());
 		for (int i=0;i<t.instanceCount();i++) {
 		    ModuleInstance instance = (ModuleInstance)t.instance(i);
+		    menuItemAll = new JMenuItem(instance.name());
+		    menuItemAll.addActionListener(listener);
+		    menuItemAll.setActionCommand(t.name());
 		    menuItem = new JMenuItem(instance.name());
 		    menuItem.addActionListener(listener);
 		    menuItem.setActionCommand(t.name());
@@ -462,21 +491,32 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 		    for (int j=0;j<container.entryCount();j++) {
 			Reference reference = container.entry(j);
 			if (instance.isReferencedBy(reference))
+			    menuItemAll.setEnabled(false);
 			    menuItem.setEnabled(false);
 		    }
+		    instanceMenuAll.add(menuItemAll);
 		    instanceMenu.add(menuItem);
 		}
+		instanceMenuAll.addSeparator();
 		instanceMenu.addSeparator();
+		menuItemAll = new JMenuItem("New Instance");
+		menuItemAll.addActionListener(listener);
+		menuItemAll.setActionCommand(t.name());
+		instanceMenuAll.add(menuItemAll);
 		menuItem = new JMenuItem("New Instance");
 		menuItem.addActionListener(listener);
 		menuItem.setActionCommand(t.name());
 		instanceMenu.add(menuItem);
-		menuHashMap.get(moduleType).add(instanceMenu);
+		moduleTypeAllMenu.add(instanceMenuAll);
+		moduleTypeAndLetterMenu.add(instanceMenu);
 	    }
 	    else {
+		menuItemAll = new JMenuItem(t.name());
 		menuItem = new JMenuItem(t.name());
+		menuItemAll.addActionListener(listener);
 		menuItem.addActionListener(listener);
-		menuHashMap.get(moduleType).add(menuItem);
+		moduleTypeAllMenu.add(menuItemAll);
+		moduleTypeAndLetterMenu.add(menuItem);
 	    }
 	}
 	return addModuleMenu;

@@ -31,27 +31,22 @@ public class ConfigurationPanel extends JPanel implements ActionListener
 
     /** configuration name */
     private JLabel labelConfigName = null;
-    //private JLabel valueConfigName = null;
     private JTextField valueConfigName = null;
 
     /** configuration directory */
     private JLabel labelConfigDir = null;
-    //private JLabel valueConfigDir = null;
     private JTextField valueConfigDir = null;
 
     /** configuration version */
     private JLabel labelConfigVersion = null;
-    //private JLabel valueConfigVersion = null;
     private JTextField valueConfigVersion = null;
 
     /** configuration creation date */
     private JLabel labelConfigCreated = null;
-    //private JLabel valueConfigCreated = null;
     private JTextField valueConfigCreated = null;
 
     /** configuration version */
     private JLabel labelReleaseTag = null;
-    //private JLabel valueReleaseTag = null;
     private JTextField valueReleaseTag = null;
 
     /** converter text fields */
@@ -202,8 +197,24 @@ public class ConfigurationPanel extends JPanel implements ActionListener
     {
 	configuration = config;
 	
-	if (configuration!=null&&configuration.name().length()>0) {
-	    String fileName = configuration.name() + configuration.version();
+	if (configuration.isEmpty()) {
+	    valueConfigName.setText("");
+	    valueConfigDir.setText("");
+	    valueConfigVersion.setText("");
+	    valueConfigCreated.setText("");
+	    valueReleaseTag.setText("");
+	    
+	    textFieldFilePath.setText("");
+	    textFieldFileName.setText("");
+	    textFieldInput.setText("");
+	    
+	    textFieldFilePath.setEditable(false);
+	    textFieldFileName.setEditable(false);
+	    textFieldInput.setEditable(false);
+	    buttonConvert.setEnabled(false);
+	}
+	else {
+	    String fileName = configuration.name() + "_V" + configuration.version();
 	    String format   = formatButtonGroup.getSelection().getActionCommand();
 	    
 	    if      (format.equals("ASCII"))  fileName += ".cfg";
@@ -215,26 +226,20 @@ public class ConfigurationPanel extends JPanel implements ActionListener
 	    textFieldFilePath.setEditable(true);
 	    textFieldFileName.setEditable(true);
 	    buttonConvert.setEnabled(true);
+	    
+	    valueConfigName.setText(configuration.name());
+	    
+	    if (configuration.parentDir()!=null)
+		valueConfigDir.setText(configuration.parentDir().name());
+	    else valueConfigDir.setText("");
+	    
+	    if (configuration.version()>0)
+		valueConfigVersion.setText(Integer.toString(configuration.version()));
+	    else valueConfigVersion.setText("");
+	    
+	    valueConfigCreated.setText(configuration.created());
+	    valueReleaseTag.setText(configuration.releaseTag());
 	}
-	else {
-	    textFieldFilePath.setEditable(false);
-	    textFieldFileName.setEditable(false);
-	    textFieldInput.setEditable(false);
-	    buttonConvert.setEnabled(false);
-	}
-	
-	valueConfigName.setText(configuration.name());
-
-	if (configuration.parentDir()!=null)
-	    valueConfigDir.setText(configuration.parentDir().name());
-	else valueConfigDir.setText("");
-	
-	if (configuration.version()>0)
-	    valueConfigVersion.setText(Integer.toString(configuration.version()));
-	else valueConfigVersion.setText("");
-
-	valueConfigCreated.setText(configuration.created());
-	valueReleaseTag.setText(configuration.releaseTag());
     }
 
     /** ActionListener interface: actionPerformed() */
@@ -258,8 +263,9 @@ public class ConfigurationPanel extends JPanel implements ActionListener
 	    ConverterFactory factory        = ConverterFactory.getFactory("default");
 	    Converter        converter      = factory.getConverter(format);
 	    String           configAsString = converter.convert(configuration);
-	    System.out.println(fileName);
-	    System.out.println(configAsString);
+	    
+	    //System.out.println(fileName);
+	    //System.out.println(configAsString);
 	    
 	    outputStream = new FileWriter(fileName);
 	    outputStream.write(configAsString,0,configAsString.length());

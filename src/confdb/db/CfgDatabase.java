@@ -1073,7 +1073,7 @@ public class CfgDatabase
     private PreparedStatement createSelectParameterSetsPS()
     {
 	PreparedStatement result = null;
-	try {
+	try { 
 	    result = dbConnector.getConnection().prepareStatement
 		("SELECT" +
 		 " ParameterSets.superId," +
@@ -1804,7 +1804,7 @@ public class CfgDatabase
 		String  psetName   = rs.getString(2);
 		boolean psetIsTrkd = rs.getBoolean(3); 
 		int     sequenceNb = rs.getInt(5);
-		
+
 		PSetParameter pset =
 		    (PSetParameter)ParameterFactory
 		    .create("PSet",psetName,"",psetIsTrkd,true);
@@ -1813,10 +1813,10 @@ public class CfgDatabase
 		loadParameters(psetId,psetParameters);
 		loadParameterSets(psetId,psetParameters);
 		loadVecParameterSets(psetId,psetParameters);
-		
+
 		boolean allParamsFound=true;
 		for (Parameter p : psetParameters) if (p==null) allParamsFound=false;
-		
+
 		while (parameters.size()<=sequenceNb)  parameters.add(null);
 		
 		if (allParamsFound) {

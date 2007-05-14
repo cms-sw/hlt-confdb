@@ -1,3 +1,19 @@
+2007-05-14  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-00-12
+	* various fixes, but no schema change regarding global PSets yet!
+	* bugfix: PSet children were not properly loaded in 'Open'
+	* change 'New Configuration' dialog such that dialog doesn't bail
+	out if name and/or release are not set
+	* Improve 'AddModule' context menu: all ModuleType submenus have
+	now an 'All' submenu (as before) plus additional submenus for the
+	starting letters of all modules
+	* put tree-view in a tab ('Tree') and add tab 'Converter', where
+	the converted configuration is displayed. currently ASCII. Plan:
+	have three tabs: HTML/ASCII/Python.
+	* don't display any tree nodes if the current configuration is
+	empty
+
 2007-05-09  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-00-11
