@@ -153,7 +153,7 @@ public class Configuration
     /** reset configuration */
     public void reset()
     { 
-	configInfo = new ConfigInfo("",null,"");
+	configInfo = null;
 	
 	setHasChanged(false);
 	
@@ -196,28 +196,35 @@ public class Configuration
     /** isEmpty() */
     public boolean isEmpty()
     {
-	return (edsources.isEmpty()&&essources.isEmpty()&&
+	return (name().length()==0&&
+		edsources.isEmpty()&&essources.isEmpty()&&
 		services.isEmpty()&&modules.isEmpty()&&
 		paths.isEmpty()&&sequences.isEmpty());
     }
 
     /** database identifier */
-    public int dbId() { return configInfo.dbId(); }
+    public int dbId() { return (configInfo!=null) ? configInfo.dbId() : -1; }
 
     /** get configuration name */
-    public String name() { return configInfo.name(); }
+    public String name() { return (configInfo!=null) ? configInfo.name() : ""; }
     
     /** get parent directory */
-    public Directory parentDir() { return configInfo.parentDir(); }
+    public Directory parentDir()
+    {
+	return (configInfo!=null) ? configInfo.parentDir() : null;
+    }
 
     /** get parent directory database id */
     public int parentDirId() { return (parentDir()!=null) ? parentDir().dbId() : 0; }
     
     /** get configuration version */
-    public int version() { return configInfo.version(); }
+    public int version() { return (configInfo!=null) ? configInfo.version() : 0; }
     
     /** next version */
-    public int nextVersion() { return configInfo.nextVersion(); }
+    public int nextVersion()
+    {
+	return (configInfo!=null) ? configInfo.nextVersion() : 0;
+    }
     
     /** add the next version */
     public void addNextVersion(int versionId,String created,String releaseTag)
@@ -227,10 +234,13 @@ public class Configuration
     }
     
     /** get configuration data of creation as a string */
-    public String created() { return configInfo.created(); }
+    public String created() { return (configInfo!=null) ? configInfo.created() : ""; }
     
     /** get release tag this configuration is associated with */
-    public String releaseTag() { return configInfo.releaseTag(); }
+    public String releaseTag()
+    {
+	return (configInfo!=null) ? configInfo.releaseTag() : "";
+    }
     
     /** indicate if configuration must be saved */
     public boolean hasChanged() { return hasChanged; }
