@@ -441,6 +441,9 @@ class ConfdbSourceToDB:
 		if(srcfile.endswith(".cc")):
 		    interfacefile = srcfile.replace('.cc','.h')
 
+                    if(modulename == "L1GlobalTriggerRawToDigi"):
+                        interfacefile = interfacefile.replace('L1GlobaTriggerRawToDigi','L1GlobalTriggerRawToDigi')
+                        
 		    try:
 			# Find the base class from the .h files in the interface/ directory
 			if(os.path.isdir(interfacedir)):
