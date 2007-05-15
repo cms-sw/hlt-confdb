@@ -361,7 +361,7 @@ public class ConfDbGUI implements TableModelListener
     /** create the configuration tree */
     private JPanel createTreeView(Dimension dim)
     {
-	configurationPanel = new ConfigurationPanel();
+	configurationPanel = new ConfigurationPanel(database);
 
 	// the tree
 	treeModel = new ConfigurationTreeModel(config);
@@ -521,10 +521,14 @@ public class ConfDbGUI implements TableModelListener
 	protected String construct() throws InterruptedException
 	{
 	    startTime = System.currentTimeMillis();
-	    database.loadEDSourceTemplates(releaseTag,edsourceTemplateList);
-	    database.loadESSourceTemplates(releaseTag,essourceTemplateList);
-	    database.loadServiceTemplates(releaseTag,serviceTemplateList);
-	    database.loadModuleTemplates(releaseTag,moduleTemplateList);
+	    if (!releaseTag.equals(database.edsourceReleaseTag()))
+		database.loadEDSourceTemplates(releaseTag,edsourceTemplateList);
+	    if (!releaseTag.equals(database.essourceReleaseTag()))
+		database.loadESSourceTemplates(releaseTag,essourceTemplateList);
+	    if (!releaseTag.equals(database.serviceReleaseTag()))
+		database.loadServiceTemplates(releaseTag,serviceTemplateList);
+	    if (!releaseTag.equals(database.moduleReleaseTag()))
+		database.loadModuleTemplates(releaseTag,moduleTemplateList);
 	    return new String("Done!");
 	}
 	

@@ -400,7 +400,7 @@ public class CreateTemplateDialog extends JDialog implements ActionListener
 				   name+"'\n");
 	    }
 	    parameterList.clear();
-	    treeModel.setParameters("ParametersRoot",parameterList);
+	    treeModel.setParameters(parameterList);
 	    textFieldTemplateName.setText("");
 	    textFieldTemplateCvsTag.setText("");
 	    comboBoxReleaseTag.setSelectedIndex(0);
@@ -412,7 +412,7 @@ public class CreateTemplateDialog extends JDialog implements ActionListener
 	// 'clear' button pressed
 	if (actionClear.equals(e.getActionCommand())) {
 	    parameterList.clear();
-	    treeModel.setParameters("ParametersRoot",parameterList);
+	    treeModel.setParameters(parameterList);
 	    textFieldTemplateName.setText("");
 	    textFieldTemplateCvsTag.setText("");
 	    comboBoxReleaseTag.setSelectedIndex(0);
@@ -478,7 +478,7 @@ public class CreateTemplateDialog extends JDialog implements ActionListener
 		    parameterList.add(ParameterFactory
 				      .create(type,name,value,true,true));
 		}
-		treeModel.setParameters("ParametersRoot",parameterList);
+		treeModel.setParameters(parameterList);
 		parameterTable.expandTree();
 	    }
 	    textFieldParameterName.requestFocusInWindow();

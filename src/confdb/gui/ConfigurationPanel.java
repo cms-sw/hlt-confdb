@@ -8,9 +8,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import confdb.data.Configuration;
+import confdb.data.Template;
+import confdb.data.EDSourceTemplate;
+import confdb.data.EDSourceInstance;
+import confdb.data.DataException;
 
 import confdb.converter.ConverterFactory;
 import confdb.converter.Converter;
+
+import confdb.db.CfgDatabase;
 
 
 /**
@@ -25,6 +31,9 @@ public class ConfigurationPanel extends JPanel implements ActionListener
     //
     // member data
     //
+
+    /** reference to the database interface */
+    private CfgDatabase database = null;
     
     /** the configuration being displayed */
     private Configuration configuration = null;
@@ -64,11 +73,10 @@ public class ConfigurationPanel extends JPanel implements ActionListener
     //
 
     /** default constructor */
-    public ConfigurationPanel()
+    public ConfigurationPanel(CfgDatabase database)
     {
-	//super(new GridBagLayout());
 	super(new GridLayout(1,2));
-
+	this.database = database;
 	
 	JPanel infoPanel = new JPanel(new SpringLayout());
 	infoPanel.setBorder(BorderFactory
@@ -225,6 +233,7 @@ public class ConfigurationPanel extends JPanel implements ActionListener
 	    
 	    textFieldFilePath.setEditable(true);
 	    textFieldFileName.setEditable(true);
+	    textFieldInput.setEditable(true);
 	    buttonConvert.setEnabled(true);
 	    
 	    valueConfigName.setText(configuration.name());
@@ -248,6 +257,7 @@ public class ConfigurationPanel extends JPanel implements ActionListener
 	FileWriter outputStream=null;
 	String     filePath    =textFieldFilePath.getText();
 	String     fileName    =textFieldFileName.getText();
+	String     input       =textFieldInput.getText();
 	String     format      =formatButtonGroup.getSelection().getActionCommand();
 	
 	if (filePath.length()>0) fileName = filePath += "/" + fileName;
@@ -262,10 +272,11 @@ public class ConfigurationPanel extends JPanel implements ActionListener
 	try {
 	    ConverterFactory factory        = ConverterFactory.getFactory("default");
 	    Converter        converter      = factory.getConverter(format);
-	    String           configAsString = converter.convert(configuration);
 	    
-	    //System.out.println(fileName);
-	    //System.out.println(configAsString);
+	    if (input.length()>0)
+		converter.overrideEDSource(getPoolSource(input));
+	    
+	    String           configAsString = converter.convert(configuration);
 	    
 	    outputStream = new FileWriter(fileName);
 	    outputStream.write(configAsString,0,configAsString.length());
@@ -275,6 +286,22 @@ public class ConfigurationPanel extends JPanel implements ActionListener
 	    String msg = "Failed to convert configuration: " + e.getMessage();
 	    System.out.println(msg);
 	}
+    }
+    
+    /** make a PoolSource */
+    public EDSourceInstance getPoolSource(String input)
+    {
+	EDSourceTemplate template = database
+	    .loadEDSourceTemplate(configuration.releaseTag(),"PoolSource");
+	EDSourceInstance result = null;
+	try {
+	    result = (EDSourceInstance)template.instance();
+	}
+	catch (DataException e) {
+	    System.out.println("FAILED to create instance of PoolSource:"+
+			       e.getMessage());
+	}
+	return result;
     }
     
 }

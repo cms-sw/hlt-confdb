@@ -1,5 +1,11 @@
 2007-05-15  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-01-01
+	* bugfix for gui
+	* pick up Ulf's fix for vpset conversion
+
+2007-05-15  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-01-00
 	* change schema (sql/) to accomodate global psets
 	* change data model (src/confdb/data) to accomodate global psets

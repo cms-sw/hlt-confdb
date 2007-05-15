@@ -697,5 +697,6 @@ public class Configuration
 	hasChanged = true;
 	return reference;
     }
+
     
 }

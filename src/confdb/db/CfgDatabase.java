@@ -10,29 +10,8 @@ import java.util.Map;
 import java.util.HashSet;
 import java.util.HashMap;
 
-import confdb.data.Directory;
-import confdb.data.ConfigInfo;
-import confdb.data.Configuration;
-import confdb.data.TemplateFactory;
-import confdb.data.Template;
-import confdb.data.Instance;
-import confdb.data.Reference;
-import confdb.data.ParameterFactory;
-import confdb.data.Parameter;
-import confdb.data.ScalarParameter;
-import confdb.data.VectorParameter;
-import confdb.data.PSetParameter;
-import confdb.data.VPSetParameter;
-import confdb.data.EDSourceInstance;
-import confdb.data.ESSourceInstance;
-import confdb.data.ServiceInstance;
-import confdb.data.Referencable;
-import confdb.data.ModuleInstance;
-import confdb.data.Path;
-import confdb.data.Sequence;
-import confdb.data.PathReference;
-import confdb.data.SequenceReference;
-import confdb.data.ModuleReference;
+import confdb.data.*;
+
 
 
 /**
@@ -118,6 +97,7 @@ public class CfgDatabase
     private PreparedStatement psSelectSuperIdReleaseAssoc         = null;
     
     private PreparedStatement psSelectEDSourceTemplate            = null;
+    private PreparedStatement psSelectEDSourceTemplateByRelease   = null;
     private PreparedStatement psSelectEDSourceTemplatesByRelease  = null;
     private PreparedStatement psSelectEDSourceTemplatesByConfig   = null;
     private PreparedStatement psSelectESSourceTemplate            = null;
@@ -229,6 +209,18 @@ public class CfgDatabase
     // member functions
     //
     
+    /** get current EDSource releaseTag */
+    public String edsourceReleaseTag() { return edsourceReleaseTag; }
+    
+    /** get current ESSource releaseTag */
+    public String essourceReleaseTag() { return essourceReleaseTag; }
+    
+    /** get current Service releaseTag */
+    public String serviceReleaseTag() { return serviceReleaseTag; }
+    
+    /** get current Module releaseTag */
+    public String moduleReleaseTag() { return moduleReleaseTag; }
+    
     /** prepare database transaction statements */
     public boolean prepareStatements()
     {
@@ -322,7 +314,21 @@ public class CfgDatabase
 		 " EDSourceTemplates.name," +
 		 " EDSourceTemplates.cvstag " +
 		 "FROM EDSourceTemplates " +
-		 "WHERE name=? AND cvstag=?");
+		 "WHERE EDSourceTemplates.name=? AND EDSourceTemplates.cvstag=?");
+
+	    psSelectEDSourceTemplateByRelease =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " EDSourceTemplates.superId," +
+		 " EDSourceTemplates.name," +
+		 " EDSourceTemplates.cvstag " +
+		 "FROM EDSourceTemplates " +
+		 "JOIN SuperIdReleaseAssoc " +
+		 "ON SuperIdReleaseAssoc.superId = EDSourceTemplates.superId " +
+		 "JOIN SoftwareReleases " +
+		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
+		 "WHERE SoftwareReleases.releaseTag = ?" +
+		 " AND EDSourceTemplates.name = ? ");
 
 	    psSelectEDSourceTemplatesByRelease =
 		dbConnector.getConnection().prepareStatement
@@ -1242,6 +1248,23 @@ public class CfgDatabase
 	return rootDir;
     }
 
+    /** load single edsource template by release / name */
+    public EDSourceTemplate loadEDSourceTemplate(String releaseTag,
+						 String name)
+    {
+	ArrayList<Template> templateList = new ArrayList<Template>();;
+	try {
+	    psSelectEDSourceTemplateByRelease.setString(1,releaseTag);
+	    psSelectEDSourceTemplateByRelease.setString(2,name);
+	    loadTemplates(psSelectEDSourceTemplateByRelease,"EDSource",templateList);
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	return
+	    (templateList.size()==1) ? (EDSourceTemplate)templateList.get(0) : null;
+    }
+    
     /** load edsource templates by release */
     public int loadEDSourceTemplates(String releaseTag,
 				     ArrayList<Template> templateList)

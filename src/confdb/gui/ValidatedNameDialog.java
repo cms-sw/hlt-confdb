@@ -96,7 +96,7 @@ public class ValidatedNameDialog extends JDialog implements PropertyChangeListen
 	JScrollPane splitPaneTable = new JScrollPane(parameterTable);
 	splitPaneTable.setPreferredSize(new Dimension(400,100));
 	
-	treeModel.setParameters(template.name(),instanceParameters);
+	treeModel.setParameters(instanceParameters);
 	parameterTable.expandTree();
 	treeModel.setDefaultTemplate(template);
 	
