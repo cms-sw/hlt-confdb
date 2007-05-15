@@ -44,6 +44,9 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
     /** list of available module templates */
     private ArrayList<Template> modules = null;
 
+    /** popup mneu associated with global psets */
+    private JPopupMenu popupPSets = null;
+
     /** popup menu showing all available service templates */
     private JPopupMenu popupServices = null;
 
@@ -61,6 +64,9 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
     
     /** popup menu associated with sequences */
     private JPopupMenu popupSequences = null;
+    
+    /** action listener for psets-menu actions */
+    private PSetMenuListener psetListener = null;
     
     /** action listener for services-menu actions */
     private ServiceMenuListener serviceListener = null;
@@ -99,6 +105,7 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	this.edsources = edsources;
 	this.essources = essources;
 	
+	psetListener     = new PSetMenuListener(tree,frame);
 	serviceListener  = new ServiceMenuListener(tree);
 	edsourceListener = new EDSourceMenuListener(tree);
 	essourceListener = new ESSourceMenuListener(tree);
@@ -141,6 +148,13 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	tree.setSelectionPath(treePath);
 	
 	Object node = treePath.getLastPathComponent();
+	
+	// show the 'PSets' popup?
+	if (isInTreePath(treePath,treeModel.psetsNode())&&depth<=3) {
+	    updatePSetMenu();
+	    popupPSets.show(e.getComponent(),e.getX(),e.getY());
+	    return;
+	}
 	
 	// show the 'EDSources' popup?
 	if (isInTreePath(treePath,treeModel.edsourcesNode())&&depth<=3) {
@@ -192,6 +206,28 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	for (int i=0;i<treePath.getPathCount();i++)
 	    if (treePath.getPathComponent(i).equals(node)) return true;
 	return false;
+    }
+    
+    /** update 'PSets' menu */
+    public void updatePSetMenu()
+    {
+	JMenuItem menuItem;
+	popupPSets = new JPopupMenu();
+	
+	TreePath treePath = tree.getSelectionPath();
+	int      depth    = treePath.getPathCount();
+	Object   node     = treePath.getLastPathComponent();
+	
+	menuItem = new JMenuItem("Add PSet");
+	menuItem.addActionListener(psetListener);
+	menuItem.setActionCommand("NEWPSET");
+	popupPSets.add(menuItem);
+    
+	if (depth==3) {
+	    menuItem = new JMenuItem("Remove PSet");
+	    menuItem.addActionListener(psetListener);
+	    popupPSets.add(menuItem);
+	}
     }
     
     /** update 'EDSource' menu */
@@ -688,6 +724,70 @@ class EDSourceMenuListener implements ActionListener
 	    EDSourceInstance edsource = config.insertEDSource(templateName);
 	    treeModel.nodeInserted(treeModel.edsourcesNode(),0);
 	    tree.expandPath(treePath);
+	}
+	treeModel.updateLevel1Nodes();
+    }
+    
+}
+
+
+/**
+ * listen to actions from the 'PSets' popup menu
+ */
+class PSetMenuListener implements ActionListener
+{
+    /** reference to the tree to be manipulated */
+    private JTree tree = null;
+    
+    /** reference to the parent frame */
+    private JFrame frame = null;
+    
+    /** reference to the tree model */
+    private ConfigurationTreeModel treeModel = null;
+    
+    /** standard constructor */
+    public PSetMenuListener(JTree tree,JFrame frame)
+    {
+	this.tree = tree;
+	this.frame = frame;
+	this.treeModel = (ConfigurationTreeModel)tree.getModel();
+    }
+    
+    /** ActionListener interface */
+    public void actionPerformed(ActionEvent e)
+    {
+	JMenuItem source   = (JMenuItem)(e.getSource());
+	String    cmd      = source.getText();
+	TreePath  treePath = tree.getSelectionPath();
+	Object    node     = treePath.getLastPathComponent();
+	
+	Configuration config = (Configuration)treeModel.getRoot();
+
+	if (cmd.equals("Remove PSet")) {
+	    PSetParameter pset = (PSetParameter)node;
+	    TreePath      parentTreePath = treePath.getParentPath();
+	    int           index = config.indexOfPSet(pset);
+	    config.removePSet(pset);
+	    treeModel.nodeRemoved(treeModel.psetsNode(),index,pset);
+	    tree.setSelectionPath(parentTreePath);
+	}
+	else if (cmd.equals("Add PSet")) {
+	    AddParameterDialog dlg = new AddParameterDialog(frame,true);
+	    dlg.addParameterSet();
+	    dlg.pack();
+	    dlg.setLocationRelativeTo(frame);
+	    dlg.setVisible(true);
+	    if (dlg.validChoice()) {
+		PSetParameter pset =
+		    (PSetParameter)ParameterFactory.create(dlg.type(),
+							   dlg.name(),
+							   dlg.valueAsString(),
+							   dlg.isTracked(),
+							   false);
+		pset.setParent(treeModel.psetsNode());
+		config.insertPSet(pset);
+		treeModel.nodeInserted(treeModel.psetsNode(),config.psetCount()-1);
+	    }
 	}
 	treeModel.updateLevel1Nodes();
     }

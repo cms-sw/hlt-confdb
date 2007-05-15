@@ -314,6 +314,9 @@ public class ConfDbGUI implements TableModelListener
 	// create the tree view
 	JPanel treeView = createTreeView(new Dimension(500,800));
 	
+	// set configuration tree model in instance panel
+	instancePanel.setConfigurationTreeModel(treeModel);
+	
 	// create the tree/component panel split pane
 	JSplitPane  horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 							 treeView,instanceView);

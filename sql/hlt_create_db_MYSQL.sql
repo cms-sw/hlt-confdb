@@ -278,6 +278,16 @@ CREATE TABLE VecParameterSets
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
 ) ENGINE=INNODB;
 
+-- TABLE 'ConfigurationParamSetAssoc'
+CREATE TABLE ConfigurationParamSetAssoc
+(
+	configId	BIGINT UNSIGNED	  NOT NULL,
+	paramSetId	BIGINT UNSIGNED	  NOT NULL,
+	sequenceNb	SMALLINT UNSIGNED NOT NULL,
+	FOREIGN KEY(configId)    REFERENCES Configurations(configId),
+	FOREIGN KEY(paramSetId) REFERENCES ParameterSets(superId)
+) ENGINE=INNODB;
+
 -- TABLE 'SuperIdParamSetAssoc'
 CREATE TABLE SuperIdParamSetAssoc
 (

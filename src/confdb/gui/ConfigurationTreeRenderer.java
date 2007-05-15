@@ -25,6 +25,9 @@ class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     /** reference to the tree model */
     private ConfigurationTreeModel treeModel = null;
     
+    /** pset dir icons */
+    private ImageIcon psetDirIcon = null;
+    
     /** edsource dir icons */
     private ImageIcon edsourceDirIcon = null;
     
@@ -76,7 +79,9 @@ class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     public ConfigurationTreeRenderer()
     {
 	super();
-	//edsourceDirIcon  = new ImageIcon("./EDSourceDirIcon.png");
+
+	psetDirIcon  =
+	    new ImageIcon(ClassLoader.getSystemResource("EDSourceDirIcon.png")); //!
 	edsourceDirIcon  =
 	    new ImageIcon(ClassLoader.getSystemResource("EDSourceDirIcon.png"));
 	edsourceIcon     =
@@ -117,6 +122,7 @@ class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     {
 	if (node==null||node.equals(treeModel.getRoot())) return null;
 	if (node instanceof StringBuffer) {
+	    if (node.equals(treeModel.psetsNode()))     return psetDirIcon;
 	    if (node.equals(treeModel.edsourcesNode())) return edsourceDirIcon;
 	    if (node.equals(treeModel.essourcesNode())) return essourcesDirIcon;
 	    if (node.equals(treeModel.servicesNode()))  return servicesDirIcon;

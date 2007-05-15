@@ -35,6 +35,9 @@ public class Configuration
     /** module template hash map */
     private HashMap<String,Template> moduleTemplateHashMap   = null;
     
+    /** list of globale parameter sets */
+    private ArrayList<PSetParameter> psets = null;
+
     /** list of EDSources */
     private ArrayList<EDSourceInstance> edsources = null;
 
@@ -66,6 +69,7 @@ public class Configuration
 	serviceTemplateHashMap  = new HashMap<String,Template>();
 	moduleTemplateHashMap   = new HashMap<String,Template>();
 	
+	psets     = new ArrayList<PSetParameter>();
 	edsources = new ArrayList<EDSourceInstance>();
 	essources = new ArrayList<ESSourceInstance>();
 	services  = new ArrayList<ServiceInstance>();
@@ -86,6 +90,7 @@ public class Configuration
 	serviceTemplateHashMap  = new HashMap<String,Template>();
 	moduleTemplateHashMap   = new HashMap<String,Template>();
 	
+	psets     = new ArrayList<PSetParameter>();
 	edsources = new ArrayList<EDSourceInstance>();
 	essources = new ArrayList<ESSourceInstance>();
 	services  = new ArrayList<ServiceInstance>();
@@ -121,6 +126,7 @@ public class Configuration
 		       serviceTemplateList,
 		       moduleTemplateList);
 
+	psets.clear();
 	edsources.clear();
 	essources.clear();
 	services.clear();
@@ -162,6 +168,7 @@ public class Configuration
 	serviceTemplateHashMap.clear();
 	moduleTemplateHashMap.clear();
 
+	psets.clear();
 	edsources.clear();
 	essources.clear();
 	services.clear();
@@ -196,17 +203,23 @@ public class Configuration
     /** isEmpty() */
     public boolean isEmpty()
     {
-	return (name().length()==0&&
+	return (name().length()==0&&psets.isEmpty()&&
 		edsources.isEmpty()&&essources.isEmpty()&&
 		services.isEmpty()&&modules.isEmpty()&&
 		paths.isEmpty()&&sequences.isEmpty());
     }
 
     /** database identifier */
-    public int dbId() { return (configInfo!=null) ? configInfo.dbId() : -1; }
+    public int dbId()
+    {
+	return (configInfo!=null) ? configInfo.dbId() : -1;
+    }
 
     /** get configuration name */
-    public String name() { return (configInfo!=null) ? configInfo.name() : ""; }
+    public String name()
+    {
+	return (configInfo!=null) ? configInfo.name() : "";
+    }
     
     /** get parent directory */
     public Directory parentDir()
@@ -215,10 +228,16 @@ public class Configuration
     }
 
     /** get parent directory database id */
-    public int parentDirId() { return (parentDir()!=null) ? parentDir().dbId() : 0; }
+    public int parentDirId() 
+    {
+	return (parentDir()!=null) ? parentDir().dbId() : 0;
+    }
     
     /** get configuration version */
-    public int version() { return (configInfo!=null) ? configInfo.version() : 0; }
+    public int version()
+    {
+	return (configInfo!=null) ? configInfo.version() : 0;
+    }
     
     /** next version */
     public int nextVersion()
@@ -234,7 +253,10 @@ public class Configuration
     }
     
     /** get configuration data of creation as a string */
-    public String created() { return (configInfo!=null) ? configInfo.created() : ""; }
+    public String created()
+    {
+	return (configInfo!=null) ? configInfo.created() : "";
+    }
     
     /** get release tag this configuration is associated with */
     public String releaseTag()
@@ -257,6 +279,7 @@ public class Configuration
     public int unsetTrackedParameterCount()
     {
 	int result = 0;
+	result += unsetTrackedPSetParameterCount();
 	result += unsetTrackedEDSourceParameterCount();
 	result += unsetTrackedESSourceParameterCount();
 	result += unsetTrackedServiceParameterCount();
@@ -264,6 +287,19 @@ public class Configuration
 	return result;
     }
 
+    /** number of unsert tracked global pset parameters */
+    public int unsetTrackedPSetParameterCount()
+    {
+	int result = 0;
+	for (PSetParameter pset : psets) {
+	    for (int i=0;i<pset.parameterCount();i++) {
+		Parameter p = pset.parameter(i);
+		if (p.isTracked()&&!p.isValueSet()) result++;
+	    }
+	}
+	return result;
+    }
+    
     /** number of unsert tracked edsource parameters */
     public int unsetTrackedEDSourceParameterCount()
     {
@@ -299,7 +335,40 @@ public class Configuration
 	    result+=mod.unsetTrackedParameterCount();
 	return result;
     }
+
+
+    //
+    // PSets
+    //
     
+    /**  number of global PSets */
+    public int psetCount() { return psets.size(); }
+
+    /** get i-th global PSet */
+    public PSetParameter pset(int i) { return psets.get(i); }
+
+    /** index of a certain global PSet */
+    public int indexOfPSet(PSetParameter pset)
+    {
+	return psets.indexOf(pset);
+    }
+    
+    /** insert global pset at i-th position */
+    public void insertPSet(PSetParameter pset)
+    {
+	psets.add(pset);
+	hasChanged = true;
+    }
+    
+    /** remove a global PSet */
+    public void removePSet(PSetParameter pset)
+    {
+	int index = psets.indexOf(pset);
+	psets.remove(pset);
+	hasChanged = true;
+    }
+    
+
 
     //
     // EDSources 

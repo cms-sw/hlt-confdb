@@ -130,7 +130,8 @@ public class CfgDatabase
     private PreparedStatement psSelectModuleTemplatesByRelease    = null;
     private PreparedStatement psSelectModuleTemplatesByConfigPath = null;
     private PreparedStatement psSelectModuleTemplatesByConfigSeq  = null;
-    
+
+    private PreparedStatement psSelectGlobalPSets                 = null;
     private PreparedStatement psSelectServices                    = null;
     private PreparedStatement psSelectEDSources                   = null;
     private PreparedStatement psSelectESSources                   = null;
@@ -165,9 +166,10 @@ public class CfgDatabase
     private PreparedStatement psInsertConfiguration               = null;
     private PreparedStatement psInsertConfigReleaseAssoc          = null;
     private PreparedStatement psInsertSuperId                     = null;
-    private PreparedStatement psInsertService                     = null;
+    private PreparedStatement psInsertGlobalPSet                  = null;
     private PreparedStatement psInsertEDSource                    = null;
     private PreparedStatement psInsertESSource                    = null;
+    private PreparedStatement psInsertService                     = null;
     private PreparedStatement psInsertPath                        = null;
     private PreparedStatement psInsertSequence                    = null;
     private PreparedStatement psInsertModule                      = null;
@@ -483,6 +485,20 @@ public class CfgDatabase
 		 "WHERE Sequences.configId = ? " +
 		 "ORDER BY ModuleTemplates.name ASC");
 
+	    psSelectGlobalPSets =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " ParameterSets.superId," +
+		 " ParameterSets.name," +
+		 " ParameterSets.tracked," +
+		 " ConfigurationParamSetAssoc.configId," +
+		 " ConfigurationParamSetAssoc.sequenceNb " +
+		 "FROM ParameterSets " +
+		 "JOIN ConfigurationParamSetAssoc " +
+		 "ON ParameterSets.superId=ConfigurationParamSetAssoc.paramSetId " +
+		 "WHERE ConfigurationParamSetAssoc.configId = ? " +
+		 "ORDER BY ConfigurationParamSetAssoc.sequenceNb");
+	    
 	    psSelectServices =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -807,11 +823,12 @@ public class CfgDatabase
 		psInsertSuperId = dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO SuperIds VALUES('')",keyColumn);
 	    
-	    psInsertService =
+	    psInsertGlobalPSet =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO Services (superId,templateId,configId,sequenceNb) " +
-		 "VALUES(?, ?, ?, ?)");
-
+		("INSERT INTO ConfigurationParamSetAssoc " +
+		 "(configId,paramSetId,sequenceNb) " +
+		 "VALUES(?, ?, ?)");
+	    
 	    psInsertEDSource =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO EDSources (superId,templateId,configId,sequenceNb) " +
@@ -822,6 +839,11 @@ public class CfgDatabase
 		("INSERT INTO " +
 		 "ESSources (superId,templateId,configId,name,sequenceNb) " +
 		 "VALUES(?, ?, ?, ?, ?)");
+
+	    psInsertService =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO Services (superId,templateId,configId,sequenceNb) " +
+		 "VALUES(?, ?, ?, ?)");
 
 	    psInsertPath =
 		dbConnector.getConnection().prepareStatement
@@ -1531,6 +1553,35 @@ public class CfgDatabase
 	ResultSet rs       = null;
 
 	try {
+	    // load global PSets
+	    psSelectGlobalPSets.setInt(1,configId);
+	    rs = psSelectGlobalPSets.executeQuery();
+	    while (rs.next()) {
+		int     psetId     = rs.getInt(1);
+		String  psetName   = rs.getString(2);
+		boolean psetIsTrkd = rs.getBoolean(3); 
+		
+		PSetParameter pset =
+		    (PSetParameter)ParameterFactory
+		    .create("PSet",psetName,"",psetIsTrkd,false);
+		
+		ArrayList<Parameter> psetParameters = new ArrayList<Parameter>();
+		loadParameters(psetId,psetParameters);
+		loadParameterSets(psetId,psetParameters);
+		loadVecParameterSets(psetId,psetParameters);
+		
+		boolean allParamsFound=true;
+		for (Parameter p : psetParameters) if (p==null) allParamsFound=false;
+		
+		if (allParamsFound) {
+		    for (Parameter p : psetParameters) pset.addParameter(p);
+		    config.insertPSet(pset);
+		}
+		else {
+		    System.out.println("Failed to load global PSet '"+psetName+"'.");
+		}
+	    }
+	    
 	    // load EDSource
 	    psSelectEDSources.setInt(1,configId);
 	    rs = psSelectEDSources.executeQuery();
@@ -2004,14 +2055,17 @@ public class CfgDatabase
 	}
 
 	if (result) {
-	    // insert services
-	    insertServices(configId,config);
+	    // insert global psets
+	    insertGlobalPSets(configId,config);
 	    
 	    // insert edsource
 	    insertEDSources(configId,config);
 	    
 	    // insert essources
 	    insertESSources(configId,config);
+	    
+	    // insert services
+	    insertServices(configId,config);
 	    
 	    // insert paths
 	    HashMap<String,Integer> pathHashMap=insertPaths(configId,config);
@@ -2049,26 +2103,42 @@ public class CfgDatabase
 	return result;
     }
 
-    /** insert configuration's services */
-    private boolean insertServices(int configId,Configuration config)
+    /** insert configuration's global PSets */
+    private boolean insertGlobalPSets(int configId,Configuration config)
     {
-	for (int sequenceNb=0;sequenceNb<config.serviceCount();sequenceNb++) {
-	    ServiceInstance service    = config.service(sequenceNb);
-	    int             superId    = insertSuperId();
-	    int             templateId = service.template().dbSuperId();
-
+	for (int sequenceNb=0;sequenceNb<config.psetCount();sequenceNb++) {
+	    int           psetId = insertSuperId();
+	    PSetParameter pset   = config.pset(sequenceNb);
 	    try {
-		psInsertService.setInt(1,superId);
-		psInsertService.setInt(2,templateId);
-		psInsertService.setInt(3,configId);
-		psInsertService.setInt(4,sequenceNb);
-		psInsertService.executeUpdate();
+		// first, insert the pset (constraint!)
+		psInsertParameterSet.setInt(1,psetId);
+		psInsertParameterSet.setString(2,pset.name());
+		psInsertParameterSet.setBoolean(3,pset.isTracked());
+		psInsertParameterSet.executeUpdate();
+		
+		for (int i=0;i<pset.parameterCount();i++) {
+		    Parameter p = pset.parameter(i);
+		    if (p instanceof PSetParameter) {
+			PSetParameter ps = (PSetParameter)p;
+			insertParameterSet(psetId,i,ps);
+		    }
+		    else if (p instanceof VPSetParameter) {
+			VPSetParameter vps = (VPSetParameter)p;
+			insertVecParameterSet(psetId,i,vps);
+		    }
+		    else insertParameter(psetId,i,p);
+		}
+	    
+		// now, enter association to configuration
+		psInsertGlobalPSet.setInt(1,configId);
+		psInsertGlobalPSet.setInt(2,psetId);
+		psInsertGlobalPSet.setInt(3,sequenceNb);
+		psInsertGlobalPSet.executeUpdate();
 	    }
 	    catch (SQLException e) {
 		e.printStackTrace();
 		return false;
 	    }
-	    if (!insertInstanceParameters(superId,service)) return false;
 	}
 	return true;
     }
@@ -2116,6 +2186,30 @@ public class CfgDatabase
 		return false;
 	    }
 	    if (!insertInstanceParameters(superId,essource)) return false;
+	}
+	return true;
+    }
+    
+    /** insert configuration's services */
+    private boolean insertServices(int configId,Configuration config)
+    {
+	for (int sequenceNb=0;sequenceNb<config.serviceCount();sequenceNb++) {
+	    ServiceInstance service    = config.service(sequenceNb);
+	    int             superId    = insertSuperId();
+	    int             templateId = service.template().dbSuperId();
+
+	    try {
+		psInsertService.setInt(1,superId);
+		psInsertService.setInt(2,templateId);
+		psInsertService.setInt(3,configId);
+		psInsertService.setInt(4,sequenceNb);
+		psInsertService.executeUpdate();
+	    }
+	    catch (SQLException e) {
+		e.printStackTrace();
+		return false;
+	    }
+	    if (!insertInstanceParameters(superId,service)) return false;
 	}
 	return true;
     }

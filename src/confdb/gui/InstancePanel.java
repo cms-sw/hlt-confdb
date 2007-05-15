@@ -38,8 +38,14 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     // member data
     //
 
+    /** the tree model of the current configuration */
+    private ConfigurationTreeModel configurationTreeModel = null;
+
     /** parent frame */
     private JFrame frame = null;
+    
+    /** top panel */
+    private JPanel topPanel = null;
     
     /** text field shoing the instance name */
     private JLabel labelName = null;
@@ -67,7 +73,7 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     private JEditorPane editorPaneSnippet = null;
 
     /** the current instance, to redisplay upon change */
-    private Instance currentInstance = null;
+    private Object currentObject = null;
     
     /** converter, to display instance configuration snippets */
     private Converter converter = null;
@@ -81,6 +87,7 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     public InstancePanel(JFrame frame,Dimension size)
     {
 	super(new GridBagLayout());
+	this.configurationTreeModel = null;
 	this.frame = frame;
 	setPreferredSize(size);
 	
@@ -97,11 +104,11 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	
 	parameterTable.addMouseListener(new ParameterTableMouseListener());
 
-	parameterTable.getColumnModel().getColumn(0).setPreferredWidth(100);
-	parameterTable.getColumnModel().getColumn(1).setPreferredWidth(100);
-	parameterTable.getColumnModel().getColumn(2).setPreferredWidth(150);
-	parameterTable.getColumnModel().getColumn(3).setPreferredWidth(50);
-	parameterTable.getColumnModel().getColumn(4).setPreferredWidth(50);
+	parameterTable.getColumnModel().getColumn(0).setPreferredWidth(120);
+	parameterTable.getColumnModel().getColumn(1).setPreferredWidth(90);
+	parameterTable.getColumnModel().getColumn(2).setPreferredWidth(180);
+	parameterTable.getColumnModel().getColumn(3).setPreferredWidth(30);
+	parameterTable.getColumnModel().getColumn(4).setPreferredWidth(30);
 
 	GridBagConstraints c = new GridBagConstraints();
 	c.fill = GridBagConstraints.BOTH;
@@ -109,9 +116,11 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	c.weighty = 0.01;
 	
 	// top panel
-	JPanel topPanel = new JPanel(new GridBagLayout());
-	topPanel.setPreferredSize(dimTop);
-	topPanel.setBorder(BorderFactory.createTitledBorder("Selected Instance"));
+	topPanel = new JPanel(new CardLayout());
+
+	JPanel infoPanel = new JPanel(new GridBagLayout());
+	infoPanel.setPreferredSize(dimTop);
+	infoPanel.setBorder(BorderFactory.createTitledBorder("Selected Instance"));
 	labelType = new JLabel("<html><u>Type:</u></html>");
 	valueType = new JLabel(" - ");
 	labelName = new JLabel("<html><u>Name:</u></html>");
@@ -120,18 +129,25 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	valueCvsTag = new JLabel(" - ");
 	
 	c.gridx=0;c.gridy=0;c.gridwidth=1;
-	topPanel.add(labelType,c);
+	infoPanel.add(labelType,c);
 	c.gridx=0;c.gridy=1;c.gridwidth=1;
-	topPanel.add(valueType,c);
+	infoPanel.add(valueType,c);
 	c.gridx=1;c.gridy=0;c.gridwidth=1;
-	topPanel.add(labelName,c);
+	infoPanel.add(labelName,c);
 	c.gridx=1;c.gridy=1;c.gridwidth=1;
-	topPanel.add(valueName,c);
+	infoPanel.add(valueName,c);
 	c.gridx=2;c.gridy=0;c.gridwidth=1;
-	topPanel.add(labelCvsTag,c);
+	infoPanel.add(labelCvsTag,c);
 	c.gridx=2;c.gridy=1;c.gridwidth=1;
-	topPanel.add(valueCvsTag,c);
+	infoPanel.add(valueCvsTag,c);
 
+	JPanel psetPanel = new JPanel();
+	psetPanel.add(new JLabel());
+	psetPanel.setBorder(BorderFactory.createTitledBorder("Global PSets"));
+	
+	topPanel.add(infoPanel,"InfoPanel");
+	topPanel.add(psetPanel,"PSetPanel");
+	
 	c.gridx=0;c.gridy=0;c.gridwidth=1;
 	add(topPanel,c);
 	
@@ -181,6 +197,12 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     {
 	tableModel.addTableModelListener(l);
     }
+
+    /** set the ConfigurationTreeModel */
+    public void setConfigurationTreeModel(ConfigurationTreeModel model)
+    {
+	this.configurationTreeModel = model;
+    }
     
     /** set instance to be displayed */
     public void displayInstance(Instance instance)
@@ -192,8 +214,22 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	parameterList.clear();
 	for (int i=0;i<instance.parameterCount();i++)
 	    parameterList.add(instance.parameter(i));
-	currentInstance = instance;
-	treeModel.setParameters(instance.name(),parameterList);
+	currentObject = instance;
+	treeModel.setParameters(parameterList);
+	parameterTable.expandTree();
+    }
+    
+    /** set instance to be displayed */
+    public void displayGlobalPSets()
+    {
+	clear();
+	parameterList.clear();
+	Configuration config = (Configuration)configurationTreeModel.getRoot();
+	if (null==config) return;
+	
+	for (int i=0;i<config.psetCount();i++) parameterList.add(config.pset(i));
+	currentObject = config;
+	treeModel.setParameters(parameterList);
 	parameterTable.expandTree();
     }
     
@@ -205,8 +241,8 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	valueType.setText(" - ");
 	valueCvsTag.setText(" - ");
 	parameterList.clear();
-	treeModel.setParameters("ParametersRoot",parameterList);
-	currentInstance = null;
+	treeModel.setParameters(parameterList);
+	currentObject = null;
     }
     
     /** TreeSelectionListener: valueChanged() */
@@ -214,6 +250,9 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     {
 	TreePath treePath=e.getNewLeadSelectionPath(); if(treePath==null)return;
 	Object   node=treePath.getLastPathComponent(); if(node==null){clear();return;}
+
+	CardLayout cardLayout = (CardLayout)(topPanel.getLayout());
+	cardLayout.show(topPanel,"InfoPanel");
 	
 	while (node instanceof Parameter) {
 	    Parameter p = (Parameter)node;
@@ -229,6 +268,11 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	    ModuleInstance  instance = (ModuleInstance)reference.parent();
 	    displayInstance(instance);
 	}
+	else if ((node instanceof StringBuffer)&&
+		 node.toString().startsWith("<html>PSets")) {
+	    displayGlobalPSets();
+	    cardLayout.show(topPanel,"PSetPanel");
+	}
 	else {
 	    clear();
 	}
@@ -237,33 +281,44 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     /** TableModelListener: tableChanged() */
     public void tableChanged(TableModelEvent e)
     {
-	if (currentInstance!=null) {
-	    String configAsString = null;
-	    if (currentInstance instanceof EDSourceInstance) {
-		EDSourceInstance edsource = (EDSourceInstance)currentInstance;
+	if (currentObject==null) {
+	    editorPaneSnippet.setText("");
+	    return;
+	}
+
+	String configAsString = null;
+	
+	if (currentObject instanceof Instance) {
+	    if (currentObject instanceof EDSourceInstance) {
+		EDSourceInstance edsource = (EDSourceInstance)currentObject;
 		configAsString =converter.getEDSourceWriter().toString(edsource,
 								       converter);
 	    }
-	    if (currentInstance instanceof ESSourceInstance) {
-		ESSourceInstance essource = (ESSourceInstance)currentInstance;
+	    if (currentObject instanceof ESSourceInstance) {
+		ESSourceInstance essource = (ESSourceInstance)currentObject;
 		configAsString = converter.getESSourceWriter().toString(essource,
 									converter);
 	    }
-	    if (currentInstance instanceof ServiceInstance) {
-		ServiceInstance service = (ServiceInstance)currentInstance;
+	    if (currentObject instanceof ServiceInstance) {
+		ServiceInstance service = (ServiceInstance)currentObject;
 		configAsString =converter.getServiceWriter().toString(service,
 								     converter);
 	    }
-	    if (currentInstance instanceof ModuleInstance) {
-		ModuleInstance module = (ModuleInstance)currentInstance;
+	    if (currentObject instanceof ModuleInstance) {
+		ModuleInstance module = (ModuleInstance)currentObject;
 		configAsString =converter.getModuleWriter().toString(module);
 	    }
-	    
-	    editorPaneSnippet.setText(configAsString);
 	}
-	else {
-	    editorPaneSnippet.setText("");
+	else if (currentObject instanceof Configuration) {
+	    configAsString = new String();
+	    Configuration config = (Configuration)currentObject;
+	    for (int i=0;i<config.psetCount();i++) {
+		PSetParameter pset = config.pset(i);
+		configAsString +=
+		    converter.getParameterWriter().toString(pset,converter,"")+"\n";
+	    }
 	}
+	editorPaneSnippet.setText(configAsString);	
     }
 
 

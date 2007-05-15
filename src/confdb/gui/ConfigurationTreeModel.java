@@ -28,6 +28,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     private Configuration config = null;
     
     /** first level of nodes */
+    private StringBuffer psetsNode     = new StringBuffer();
     private StringBuffer edsourcesNode = new StringBuffer();
     private StringBuffer essourcesNode = new StringBuffer();
     private StringBuffer servicesNode  = new StringBuffer();
@@ -52,6 +53,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     // member functions
     //
 
+    /** get the PSets root node */
+    public StringBuffer psetsNode() { return psetsNode; }
+    
     /** get the EDSources root node */
     public StringBuffer edsourcesNode() { return edsourcesNode; }
     
@@ -79,6 +83,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	else {
 	    if (level1Nodes.isEmpty()) {
+		level1Nodes.add(psetsNode);
 		level1Nodes.add(edsourcesNode);
 		level1Nodes.add(essourcesNode);
 		level1Nodes.add(servicesNode);
@@ -95,6 +100,21 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     public void updateLevel1Nodes()
     {
 	if (config==null) return;
+	
+	// PSets node
+	int psetCount = config.psetCount();
+	int unsetPSetCount = config.unsetTrackedPSetParameterCount();
+	psetsNode.delete(0,edsourcesNode.length());
+	psetsNode.append("<html>PSets (");
+	psetsNode.append(psetCount);
+	psetsNode.append(")");
+	if (unsetPSetCount>0) {
+	    psetsNode.append(" <font color=#ff0000>[");
+	    psetsNode.append(unsetPSetCount);
+	    psetsNode.append("]</font>");
+	}
+	psetsNode.append("</html>");
+	nodeChanged(psetsNode);
 	
 	// EDSources node
 	int edsourceCount = config.edsourceCount();
@@ -202,6 +222,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    return (config.isEmpty()) ? 0 : level1Nodes.size();
 	}
 	else if (node instanceof StringBuffer) {
+	    if (node.equals(psetsNode))     return config.psetCount();
 	    if (node.equals(edsourcesNode)) return config.edsourceCount();
 	    if (node.equals(essourcesNode)) return config.essourceCount();
 	    if (node.equals(servicesNode))  return config.serviceCount();
@@ -250,6 +271,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    return level1Nodes.get(i);
 	}
 	else if (parent instanceof StringBuffer) {
+	    if (parent.equals(psetsNode))     return config.pset(i);
 	    if (parent.equals(edsourcesNode)) return config.edsource(i);
 	    if (parent.equals(essourcesNode)) return config.essource(i);
 	    if (parent.equals(servicesNode))  return config.service(i);
@@ -298,6 +320,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    return level1Nodes.indexOf(child);
 	}
 	else if (parent instanceof StringBuffer) {
+	    if (parent.equals(psetsNode)) {
+		PSetParameter pset = (PSetParameter)child;
+		return config.indexOfPSet(pset);
+	    }
 	    if (parent.equals(edsourcesNode)) {
 		EDSourceInstance edsource = (EDSourceInstance)child;
 		return config.indexOfEDSource(edsource);
@@ -368,8 +394,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     public Object getParent(Object node)
     {
 	if (node instanceof Parameter) {
-	    Parameter p = (Parameter)node;
-	    return p.parent();
+	    Parameter p      = (Parameter)node;
+	    Object    parent = p.parent();
+	    return (null==parent) ? psetsNode : parent;
 	}
 	else if (node instanceof Reference) {
 	    Reference r = (Reference)node;

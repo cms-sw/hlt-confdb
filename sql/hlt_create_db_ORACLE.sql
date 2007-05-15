@@ -419,6 +419,19 @@ CREATE TABLE VecParameterSets
 
 
 --
+-- TABLE 'ConfigurationParamSetAssoc'
+--
+CREATE TABLE ConfigurationParamSetAssoc
+(
+	configId        NUMBER		NOT NULL,
+	paramSetId	NUMBER		NOT NULL,
+	sequenceNb	NUMBER(3)	NOT NULL,
+	FOREIGN KEY(configId)   REFERENCES Configurations(configId),
+	FOREIGN KEY(paramSetId) REFERENCES ParameterSets(superId)
+);
+
+
+--
 -- TABLE 'SuperIdParamSetAssoc'
 --
 CREATE TABLE SuperIdParamSetAssoc

@@ -44,7 +44,7 @@ else { $classpath = $classpath . ":$oracle_jar"; }
 
 # start the GUI
 `rm -f ConfDbGUI.log`;
-`$java_home/bin/java -classpath $classpath confdb.gui.ConfDbGUI > ConfDbGUI.log &`;
+system("$java_home/bin/java -classpath $classpath confdb.gui.ConfDbGUI");
 
 exit 0;
 

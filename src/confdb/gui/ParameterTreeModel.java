@@ -33,8 +33,8 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     private static String[] columnNames = { "name",
 					    "type",
 					    "value",
-					    "default",
-					    "tracked" };
+					    "dflt",
+					    "trkd" };
     
     /** column class types */
     private static Class[] columnTypes = { TreeTableTreeModel.class,
@@ -197,15 +197,10 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     }
 
     /** display a new set of parameters */
-    public void setParameters(String moduleName,
-			      ArrayList<Parameter> parameterList)
+    public void setParameters(ArrayList<Parameter> parameterList)
     {
 	this.parameterList = parameterList;
 	nodeStructureChanged(root);
-	//root = new String(moduleName);
-	//Object[] source   = { ParameterTreeModel.this };
-	//Object[] path     = { root };
-	//fireTreeStructureChanged(source,path,null,null);
     }
     
     /** set a default template, only considered for orphan parameters */
