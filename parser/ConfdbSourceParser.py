@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL May 10, 2007
+# Jonathan Hollar LLNL May 11, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -511,11 +511,11 @@ class SourceParser:
 			    totalline = ''
 			    continue
 
-                        # Totally confused. We can't find a parameter name in the getParameter call.
-                        if((totalline.split('getParameter')[1]).find('"') == -1):
-                            totalline = ''
-                            print "Error: getParameter used with no parameter name. Parameter will not be loaded."
-                            continue
+			# Totally confused. We can't find a parameter name in the getParameter call.
+			if((totalline.split('getParameter')[1]).find('"') == -1):
+			    totalline = ''
+			    print "Error: getParameter used with no parameter name. Parameter will not be loaded."
+			    continue
 
 			# If this is a parameter, figure out what ParameterSet this belongs to
 			belongstopset = totalline.split('.getParameter')[0].rstrip().lstrip()
@@ -688,11 +688,11 @@ class SourceParser:
 
                         paramstring = totalline.split('"')
 
-                        # Totally confused. We can't find a parameter name in the getUntrackedParameter call.
-                        if((totalline.split('getUntrackedParameter')[1]).find('"') == -1):
-                            totalline = ''
-                            print "Error: getUntrackedParameter used with no parameter name. Parameter will not be loaded."
-                            continue
+			# Totally confused. We can't find a parameter name in the getUntrackedParameter call.
+			if((totalline.split('getUntrackedParameter')[1]).find('"') == -1):
+			    totalline = ''
+			    print "Error: getUntrackedParameter used with no parameter name. Parameter will not be loaded."
+			    continue
 
 			# Figure out what ParameterSet this belongs to
 			belongstopset = totalline.split('.getUntrackedParameter')[0].rstrip().lstrip()
@@ -801,6 +801,11 @@ class SourceParser:
                                 
 				if(paramvalstring[1].find(')') != -1):
 				    paramval = (paramvalstring[1].split(')'))[0]
+
+				    if(paramval.find('(') != -1):
+					paramval = paramval.split('(')[1]
+					if(not paramval):
+					    paramval = 'None'
 
 				    if(self.verbose > 1): 
 					print '\t\t' + paramtype + '\t' + paramname + ' = ' + paramval + '\t\t(Untracked)'
@@ -1049,6 +1054,7 @@ class SourceParser:
 		    thepsetline = ""
 #		    thepsetname = ""
 		    lookupclass = ""
+		    lookupclass2 = ""
 		    multint = False 
 
 		    if(totalconstrline.find('ParameterSet') != -1 and totalconstrline.find('&') != -1):
@@ -1068,6 +1074,11 @@ class SourceParser:
 				elif(thepsetline.find('(' + thepsetname + ',') != -1):
 				    lookupclass = thepsetline.split(':')[1].split('('+thepsetname+',')[0].lstrip().rstrip()
 
+				if((thepsetline.find('(' + thepsetname + ')') != -1) and 
+				   (thepsetline.find('(' + thepsetname + ',') != -1)):
+				    lookupclass = thepsetline.split(':')[1].split('('+thepsetname+',')[0].lstrip().rstrip()
+				    lookupclass2 = thepsetline.split(':')[1].split('),')[1].split('('+thepsetname+')')[0].lstrip().rstrip()
+
 				if(lookupclass):
 				    # deal with multiple levels of inheritance
 				    self.inheritancelevel = self.inheritancelevel + 1
@@ -1082,13 +1093,15 @@ class SourceParser:
 				    if(len(thepsetline.split(':')[1].split('('+thepsetname+')')) > 2):	
 					lookupclass = thepsetline.split(':')[1].split('('+thepsetname+')')[1].split(',')[1].lstrip().rstrip()
 					multint = True
-
 				    elif(len(thepsetline.split(':')[1].split('('+thepsetname+',')) > 2):
 					lookupclass = thepsetline.split(':')[1].split('('+thepsetname+',')[1].split(',')[1].lstrip().rstrip()
 					multint = True
 
 				    if(multint == True):
 					self.FindInheritedParameters(lookupclass,thedatadir,thehfile)			
+
+				    if(lookupclass2):
+					self.FindInheritedParameters(lookupclass2,thedatadir,thehfile)
 	
 		# Look for ParameterSets passed to objects instantiated within this module. This won't pick up PSets 
 		# passed to methods of the new object - are there any cases of this?
@@ -1372,7 +1385,8 @@ class SourceParser:
 		# It's explicitly instantiated in the include file. Get the class name, stop, and go look for the #include
 		if (includeline.find(thebaseobject) != -1 and not (includeline.lstrip().startswith('#')) and 
 		    includeline.find('public') == -1 and not (includeline.lstrip().startswith('$')) and not 
-		    (includeline.lstrip().startswith('//')) and not (includeline.lstrip().startswith('/*'))):
+		    (includeline.lstrip().startswith('//')) and not (includeline.lstrip().startswith('/*')) and 
+		    (includeline.split(thebaseobject)[1].find('}') == -1)):
 		    includeclass = includeline.split(thebaseobject)[0].lstrip().rstrip()
 		    if(self.verbose > 1):
 			print '\tThe base class is ' + includeclass
@@ -1397,6 +1411,10 @@ class SourceParser:
 
 	    # Go look for the #include 
 	    if(objectinstantiated == True):
+		# Hack for massive redirection of PoolSource
+		if(includeclass == 'InputFileCatalog'):
+		    includeclass = 'FileCatalog'
+
 		if(self.verbose > 1):
 		    print '\tInstantiated object. Search for include file for ' + includeclass
 		for includeline in includelines:
