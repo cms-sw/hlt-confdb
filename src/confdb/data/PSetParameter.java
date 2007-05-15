@@ -111,10 +111,15 @@ public class PSetParameter extends Parameter
 		    " default=" + Boolean.toString(isDefault()) +
 		    " tracked=" + Boolean.toString(isTracked()) +
 		    ">" + valueAsString + "</PSet>";
+	    
 	    ParameterSetParser p1 = new ParameterSetParser(valueAsString);
 	    if (!p1.parseNextParameter()) return false;
+	    this.name = p1.name();
+	    this.isDefault = p1.isDefault();
+	    this.isTracked = p1.isTracked();
 	    String value = p1.value();
 	    if (p1.parseNextParameter()) return false;
+	    
 	    ParameterSetParser p2 = new ParameterSetParser(value);
 	    while (p2.parseNextParameter()) {
 		Parameter p = ParameterFactory.create(p2.type(),

@@ -1,5 +1,10 @@
 2007-05-15  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-01-02
+	* fix bug where the name of a PSet would not be loaded from the DB.
+
+2007-05-15  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-01-01
 	* bugfix for gui
 	* pick up Ulf's fix for vpset conversion
