@@ -30,20 +30,29 @@ public class ParameterWriterV1  implements IParameterWriter {
 		}
 		else if ( parameter instanceof VectorParameter )
 		{
-			str += "{ "; 
-			if ( parameter instanceof VPSetParameter )
-			{
-				VPSetParameter vpset = (VPSetParameter)parameter;
-				for ( int i = 0; i < vpset.parameterSetCount(); i++ )
-					str += toString( (Parameter)vpset.parameterSet(i), converter, indent + "  " );
-			}
-			else
-				str += parameter.valueAsString(); 
-			str += " }"; 
+			str += "{ " + parameter.valueAsString() + " }"; 
+		}
+		else if ( parameter instanceof VPSetParameter )
+		{
+			str += "{" + converter.getNewline(); 
+			VPSetParameter vpset = (VPSetParameter)parameter;
+			for ( int i = 0; i < vpset.parameterSetCount() - 1; i++ )
+				str += addComma( toString( (Parameter)vpset.parameterSet(i), converter, indent + "  " ), converter );
+			if ( vpset.parameterSetCount() >  0)
+				str += toString( (Parameter)vpset.parameterSet( vpset.parameterSetCount() - 1), converter, indent + "  " );
+			str += indent + "}"; 
 		}
 		
 		str += converter.getNewline();
 		return str;
 	}
 
+	
+	protected String addComma( String text, Converter converter )
+	{
+		if ( !text.endsWith( converter.getNewline() )  )
+			return text + ",";
+		return text.substring(0, text.length() - 1) + "," + converter.getNewline(); 
+	}
+	
 }
