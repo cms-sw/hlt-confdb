@@ -3,17 +3,20 @@ package confdb.converter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
 import confdb.data.ConfigInfo;
 import confdb.data.Configuration;
 import confdb.data.Directory;
-import confdb.data.Template;
+import confdb.data.EDSourceInstance;
 import confdb.db.CfgDatabase;
 import confdb.db.DatabaseException;
 
+/**
+ * @author behrens
+ *
+ */
 public class Converter implements IConverter {
 	private CfgDatabase database = null;
 	private IConfigurationWriter configurationWriter = null;
@@ -25,11 +28,6 @@ public class Converter implements IConverter {
 	private IModuleWriter moduleWriter = null;
 	private IPathWriter pathWriter = null;
 	private ISequenceWriter sequenceWriter = null;
-
-	private ArrayList<Template> edsourceTemplateList = new ArrayList<Template>();
-	private ArrayList<Template> essourceTemplateList = new ArrayList<Template>();
-	private ArrayList<Template> serviceTemplateList = new ArrayList<Template>();
-	private ArrayList<Template> moduleTemplateList = new ArrayList<Template>();
 
 	static final private String newline = "\n";
 	
@@ -95,11 +93,7 @@ public class Converter implements IConverter {
 	
 	protected Configuration loadConfiguration( ConfigInfo configInfo ) throws SQLException
 	{
-		return database.loadConfiguration( configInfo, 
-										edsourceTemplateList, 
-										essourceTemplateList, 
-										serviceTemplateList, 
-										moduleTemplateList );
+		return database.loadConfiguration( configInfo );
 	}
 	
 	public String convert( Configuration configuration )
@@ -189,6 +183,16 @@ public class Converter implements IConverter {
  	{
 		database.disconnect();
  	}
+	
+	/**
+	 * call this method to specify source to be used in output instead od data
+	 * coming from database
+	 */
+	public void overrideEDSource( EDSourceInstance source )
+	{
+		setEDSourceWriter( new EDSourceOverrider( source, getEDSourceWriter() ));
+	}
+	
 	
 	public static void main(String[] args) 
 	{
