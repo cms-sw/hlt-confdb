@@ -37,14 +37,13 @@ public class HtmlParameterWriter  implements IParameterWriter {
 		}
 		else if ( parameter instanceof VectorParameter )
 		{
-			if ( parameter instanceof VPSetParameter )
-			{
-				VPSetParameter vpset = (VPSetParameter)parameter;
-				for ( int i = 0; i < vpset.parameterSetCount(); i++ )
-					str += toString( (Parameter)vpset.parameterSet(i), converter, indent + " " );
-			}
-			else
 				str += "<td>" + parameter.valueAsString() + "</td>"; 
+		}
+		else if ( parameter instanceof VPSetParameter )
+		{
+			VPSetParameter vpset = (VPSetParameter)parameter;
+			for ( int i = 0; i < vpset.parameterSetCount(); i++ )
+				str += toString( (Parameter)vpset.parameterSet(i), converter, indent + " " );
 		}
 		
 		str += "</tr>\n";
