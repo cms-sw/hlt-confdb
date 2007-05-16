@@ -18,6 +18,9 @@ public class ParameterWriterV1  implements IParameterWriter
 
 	protected String toString( Parameter parameter, String indent ) 
 	{
+		if ( !parameter.isTracked()  &&  !parameter.isValueSet() )
+			return "";
+		
 		String str = indent + (parameter.isTracked() ? "" : "untracked " )
 			 + parameter.type() + " " + parameter.name() + " = ";
 		
