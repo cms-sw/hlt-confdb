@@ -70,32 +70,29 @@ public class PSetParameter extends Parameter
     /** retrieve the values of the parameter set as a string */
     public String valueAsString()
     {
-	String result = new String();
-	if (isValueSet()) {
-	    result =
-		"<" + type() +
-		" name="     + name() +
-		" default="  + Boolean.toString(isDefault()) +
-		" tracked="  + Boolean.toString(isTracked()) +
-		">";
-	    for (Parameter p : parameters) {
-		if (p instanceof PSetParameter||
-		    p instanceof VPSetParameter) {
-		    result += p.valueAsString();
-		}
-		else {
-		    result +=
-			"<" + p.type() +
-			" name=" + p.name() +
-			" default=" + Boolean.toString(p.isDefault()) +
-			" tracked=" + Boolean.toString(p.isTracked()) +
-			">" + p.valueAsString() + "</" + 
-			p.type() +
-			">";
-		}
+	String result =
+	    "<" + type() +
+	    " name="     + name() +
+	    " default="  + Boolean.toString(isDefault) +
+	    " tracked="  + Boolean.toString(isTracked()) +
+	    ">";
+	for (Parameter p : parameters) {
+	    if (p instanceof PSetParameter||
+		p instanceof VPSetParameter) {
+		result += p.valueAsString();
 	    }
-	    result += "</" + type() + ">";
+	    else {
+		result +=
+		    "<" + p.type() +
+		    " name=" + p.name() +
+		    " default=" + Boolean.toString(p.isDefault()) +
+		    " tracked=" + Boolean.toString(p.isTracked()) +
+		    ">" + p.valueAsString() + "</" + 
+		    p.type() +
+		    ">";
+	    }
 	}
+	result += "</" + type() + ">";
 	return result;
     }
     
@@ -134,24 +131,55 @@ public class PSetParameter extends Parameter
 	return true;
     }
     
-    
-    /** a pset is default if all of its children are */
+    /** a pset is default if its string-rep matches the template */
     public boolean isDefault()
     {
-	for (int i=0;i<parameterCount();i++) {
-	    Parameter p = (Parameter)parameter(i);
-	    if (!p.isDefault()) return false;
+	if (parent() instanceof Instance) {
+	    isDefault = true;
+	    Instance instance = (Instance)parent();
+	    Template template = instance.template();
+	    String defaultAsString = template.parameter(name()).valueAsString();
+	    isDefault = defaultAsString.equals(valueAsString());
 	}
-	return true;
+	else{
+	    isDefault = false;
+	}
+	return isDefault;
     }
-
+    
     /** a pset is set if all of its children are */
     public boolean isValueSet()
     {
-	for (Parameter p : parameters) if (!p.isValueSet()) return false;
+	for (Parameter p : parameters)
+	    if (!p.isValueSet()) return false;
 	return (parameters.size()>0);
     }
     
+    /** number of unset tracked parameters in pset */
+    public int unsetTrackedParameterCount()
+    {
+	int result = 0;
+	for (Parameter p : parameters) {
+	    if (p instanceof VPSetParameter) {
+		VPSetParameter vpset = (VPSetParameter)p;
+		if (vpset.parameterSetCount()>0)
+		    result += vpset.unsetTrackedParameterCount();
+		else if (vpset.isTracked())
+		    result++;
+	    }
+	    else if (p instanceof PSetParameter) {
+		PSetParameter pset = (PSetParameter)p;
+		if (pset.parameterCount()>0)
+		    result += pset.unsetTrackedParameterCount();
+		else if (pset.isTracked())
+		    result++;
+	    }
+	    else {
+		if (p.isTracked()&&!p.isValueSet()) result++;
+	    }
+	}
+	return result;
+    }
 
     /** number of parameters in parameter-set */
     public int parameterCount() { return parameters.size(); }

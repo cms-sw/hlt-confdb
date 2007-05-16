@@ -63,19 +63,14 @@ public class VPSetParameter extends Parameter
     /** retrieve the values of the vpset as a string */
     public String valueAsString()
     {
-	String result = new String();
-	if (isValueSet()) {
-	    result =
-		"<" + type() +
-		" name="     + name() +
-		" default="  + Boolean.toString(isDefault()) +
-		" tracked="  + Boolean.toString(isTracked()) +
-		">";
-	    for (PSetParameter pset : parameterSets) {
-		result += pset.valueAsString();
-	    }
-	    result += "</" + type() + ">";
-	}
+	String result =
+	    "<" + type() +
+	    " name="     + name() +
+	    " default="  + Boolean.toString(isDefault) +
+	    " tracked="  + Boolean.toString(isTracked()) +
+	    ">";
+	for (PSetParameter pset : parameterSets) result += pset.valueAsString();
+	result += "</" + type() + ">";
 	return result;
     }
     
@@ -101,22 +96,41 @@ public class VPSetParameter extends Parameter
 	return true;
     }
     
-    /** a vpset is default if all of its children are */
+    /** a vpset is default if its string-rep matches the template */
     public boolean isDefault()
     {
-	for (int i=0;i<parameterSetCount();i++) {
-	    PSetParameter p = parameterSet(i);
-	    if (!p.isDefault()) return false;
+	if (parent() instanceof Instance) {
+	    isDefault = true;
+	    Instance instance = (Instance)parent();
+	    Template template = instance.template();
+	    String defaultAsString = template.parameter(name()).valueAsString();
+	    isDefault = defaultAsString.equals(valueAsString());
 	}
-	return true;
+	else {
+	    isDefault = false;
+	}
+	return isDefault;
     }
     
-    /** a vpset is set if all of its children are */
+     /** a vpset is set if all of its children are */
     public boolean isValueSet()
     {
 	for (PSetParameter pset : parameterSets)
 	    if (!pset.isValueSet()) return false;
 	return (parameterSets.size()>0);
+    }
+
+    /** number of unset tracked parameters in vpset */
+    public int unsetTrackedParameterCount()
+    {
+	int result = 0;
+	for (PSetParameter pset : parameterSets) {
+	    if (pset.parameterCount()>0)
+		result += pset.unsetTrackedParameterCount();
+	    else if (pset.isTracked())
+		result++;
+	}
+	return result;
     }
 
     /** number of parameter set entries */

@@ -388,49 +388,48 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	    String    cmd = src.getText();
 	    Object parent = parameter.parent();
 	    
+	    // vpset
 	    if (parameter instanceof VPSetParameter) {
 		if (cmd.equals("Add PSet")) {
 		    VPSetParameter vpset = (VPSetParameter)parameter;
 		    addParameterSet(vpset);
 		}
+		else if (parent instanceof PSetParameter) {
+		    PSetParameter pset = (PSetParameter)parent;
+		    if (cmd.equals("Remove Parameter")) {
+			int index = pset.removeParameter(parameter);
+			treeModel.nodeRemoved(pset,index,parameter);
+		    }
+		}
 	    }
+	    // pset
 	    else if (parameter instanceof PSetParameter) {
 		if (cmd.equals("Add Parameter")) {
 		    PSetParameter pset = (PSetParameter)parameter;
 		    addParameter(pset);
 		}
-	    }
-	    else if (parent instanceof VPSetParameter) {
-		VPSetParameter vpset = (VPSetParameter)parent;
-		PSetParameter  pset  = (PSetParameter)parameter;
-		if (cmd.equals("Add Parameter")) {
-		    addParameter(pset);
+		else if (parent instanceof VPSetParameter) {
+		    VPSetParameter vpset = (VPSetParameter)parent;
+		    PSetParameter  pset  = (PSetParameter)parameter;
+		    if (cmd.equals("Remove PSet")) {
+			int index = vpset.removeParameterSet(pset);
+			treeModel.nodeRemoved(vpset,index,pset);
+		    }
 		}
-		else if (cmd.equals("Remove PSet")) {
-		    int index = vpset.removeParameterSet(pset);
-		    treeModel.nodeRemoved(vpset,index,pset);
+		else if (parent instanceof PSetParameter) {
+		    PSetParameter pset = (PSetParameter)parent;
+		    if (cmd.equals("Remove Parameter")) {
+			int index = pset.removeParameter(parameter);
+			treeModel.nodeRemoved(pset,index,parameter);
+		    }
 		}
 	    }
+	    // regular parameter
 	    else if (parent instanceof PSetParameter) {
 		PSetParameter pset = (PSetParameter)parent;
 		if (cmd.equals("Remove Parameter")) {
 		    int index = pset.removeParameter(parameter);
 		    treeModel.nodeRemoved(pset,index,parameter);
-		}
-		else if (parameter instanceof PSetParameter) {
-		    if (cmd.equals("Remove PSet")) {
-			int index = pset.removeParameter(parameter);
-			treeModel.nodeRemoved(pset,index,parameter);
-		    }
-		    if (cmd.equals("Add Parameter")) {
-			addParameter(pset);
-		    }
-		}
-		else if (parameter instanceof VPSetParameter) {
-		    VPSetParameter child = (VPSetParameter)parameter;
-		    if (cmd.equals("Add PSet")) {
-			addParameterSet(child);
-		    }
 		}
 	    }
 	}

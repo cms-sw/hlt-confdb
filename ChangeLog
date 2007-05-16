@@ -1,3 +1,12 @@
+2007-05-16  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-01-03
+	* collect latest parser update
+	* collect latest converter update [still in progress]
+	* add [V]PSetParameter.unsetTrackedParameterCount()
+	* fix [V]PSetParameter.isDefault()
+	* fix InstancePanel.actionPerformed()
+
 2007-05-15  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-01-02

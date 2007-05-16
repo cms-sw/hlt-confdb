@@ -89,6 +89,16 @@ abstract public class Template
     /** get the i-th parameter */
     public Parameter parameter(int i) { return parameters.get(i); }
      
+    /** get parameter by name */
+    public Parameter parameter(String name)
+    {
+	for (Parameter p : parameters)
+	    if (name.equals(p.name())) return p;
+	System.out.println("ERROR: template '"+name()+
+			   "' has no parameter '"+name+"'.");
+	return null;
+    }
+     
     /** get the index of a parameter */
     public int parameterIndex(Parameter p) { return parameters.indexOf(p); }
     

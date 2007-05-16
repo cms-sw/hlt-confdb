@@ -291,12 +291,8 @@ public class Configuration
     public int unsetTrackedPSetParameterCount()
     {
 	int result = 0;
-	for (PSetParameter pset : psets) {
-	    for (int i=0;i<pset.parameterCount();i++) {
-		Parameter p = pset.parameter(i);
-		if (p.isTracked()&&!p.isValueSet()) result++;
-	    }
-	}
+	for (PSetParameter pset : psets)
+	    result += pset.unsetTrackedParameterCount();
 	return result;
     }
     
