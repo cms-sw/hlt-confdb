@@ -4,11 +4,11 @@
 # Main file for parsing source code in a CMSSW release and
 # loading module templates to the Conf DB.
 # 
-# Jonathan Hollar LLNL May 11, 2007
+# Jonathan Hollar LLNL May 16, 2007
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
-import ConfdbSQLModuleLoader, ConfdbOracleModuleLoader
+import ConfdbSQLModuleLoader, ConfdbOracleModuleLoader, ConfdbConfigurationComponentParser
 
 def main(argv):
     # Get information from the environment
@@ -29,10 +29,11 @@ def main(argv):
     input_dbpwd = "password"
     input_dbtype = "MySQL"
     input_host = "localhost"
+    input_configfile = ""
     input_dotest = False
 
     # Parse command line options
-    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:e:h", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","parsetestdir=","help="])
+    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:l:e:h", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","configfile=","parsetestdir=","help="])
     for o, a in opts:
 	if o in ("-r","release="):
 	    if(input_base_path and input_cmsswrel):
@@ -83,6 +84,9 @@ def main(argv):
 	    else:
 		print "Unknown DB type " + input_dbtype + ", exiting now"
 		return
+	if o in ("-l","config="):
+	    input_configfile = str(a)
+	    print "Parsing components for config: " + input_configfile
 	if o in ("-e","parsetestdir="):
 	    if(int(a) == 1):
 		print "Will parse test/ directories"
@@ -103,6 +107,7 @@ def main(argv):
 	    print "\t-s <Database password>"
 	    print "\t-o <Hostname>"
 	    print "\t-t <Type of database. Options are MySQL (default) or Oracle (not yet implemented)>"
+	    print "\t-l <Name of config file>"
 	    print "\t-e <Parse test/ directories. 1 = yes, 0/default = no>"
 	    print "\t-h Print this help menu"
 	    return
@@ -115,11 +120,11 @@ def main(argv):
 
     print "Using release base: " + input_base_path
 
-    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype,input_dbpwd,input_host,input_dotest)
+    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype,input_dbpwd,input_host,input_configfile,input_dotest)
     confdbjob.BeginJob()
 
 class ConfdbSourceToDB:
-    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype,clidbpwd,clihost,clidotest):
+    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype,clidbpwd,clihost,cliconfig,clidotest):
 	self.data = []
 	self.dbname = clidbname
 	self.dbuser = clidbuser
@@ -128,6 +133,9 @@ class ConfdbSourceToDB:
 	self.dbpwd = clidbpwd
 	self.dbhost = clihost
 	self.dotestdir = clidotest
+	self.doconfig = cliconfig
+	self.needconfigcomponents = []
+	self.needconfigpackages = []
 	self.sqlerrors = []
 	self.parseerrors = []
 	self.baseclasserrors = []
@@ -170,6 +178,12 @@ class ConfdbSourceToDB:
 	source_tree = self.base_path + "//src/"
 
 	print "The  source tree is: " + source_tree
+
+	# Generate list of components needed for a particular configuration
+	# if requested
+	if(self.doconfig != ""):
+	    self.configcomp = ConfdbConfigurationComponentParser.ConfigurationComponentParser(1)
+	    self.needconfigcomponents = self.configcomp.FindConfigurationComponents(self.doconfig,source_tree,0)
 
 	foundcomponent = 0
 
@@ -282,7 +296,15 @@ class ConfdbSourceToDB:
 
 					    if(self.verbose > 0):
 						print "\n\tSEAL Module name = " + sealmodule
+
+					    if(self.doconfig != "" and (not sealclass in self.needconfigcomponents)):
+						if(self.verbose > 0):
+						    print "\t\tModule " + sealclass + " not needed for this config"
+						continue
                                         
+					    if(not (package+"/"+subdir) in self.needconfigpackages):
+						self.needconfigpackages.append(package+"/"+subdir)
+
 					    sealcomponenttuple.append(sealmodule)
 
 					    # If a new module definition was found, start parsing the source
@@ -304,6 +326,14 @@ class ConfdbSourceToDB:
 					    if(self.verbose > 0):
 						print "\n\tSEAL Service name = " + sealservice
 
+					    if(self.doconfig != "" and (not sealclass in self.needconfigcomponents)):
+						if(self.verbose > 0):
+						    print "\t\tService " + sealclass + " not needed for this config"
+						continue
+                                        
+					    if(not (package+"/"+subdir) in self.needconfigpackages):
+						self.needconfigpackages.append(package+"/"+subdir)
+
 					    sealcomponenttuple.append(sealservice)
 
 					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,2)
@@ -319,6 +349,14 @@ class ConfdbSourceToDB:
 
 					    if(self.verbose > 0):
 						print "\n\tSEAL ServiceMaker name = " + sealservice
+
+					    if(self.doconfig != "" and (not sealclass in self.needconfigcomponents)):
+						if(self.verbose > 0):
+						    print "\t\tServiceMaker " + sealclass + " not needed for this config"
+						continue
+                                        
+					    if(not (package+"/"+subdir) in self.needconfigpackages):
+						self.needconfigpackages.append(package+"/"+subdir)
 
 					    sealcomponenttuple.append(sealservice)
 
@@ -337,6 +375,14 @@ class ConfdbSourceToDB:
 					    if(self.verbose > 0):
 						print "\n\tSEAL ES_Source name = " + sealessource
 
+					    if(self.doconfig != "" and (not sealclass in self.needconfigcomponents)):
+						if(self.verbose > 0):
+						    print "\t\tESSource " + sealclass + " not needed for this config"
+						continue
+                                        
+					    if(not (package+"/"+subdir) in self.needconfigpackages):
+						self.needconfigpackages.append(package+"/"+subdir)
+
 					    sealcomponenttuple.append(sealessource)
 
 					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,3)
@@ -353,6 +399,14 @@ class ConfdbSourceToDB:
 
 					    if(self.verbose > 0):
 						print "\n\tSEAL ED_Source name = " + sealessource
+
+					    if(self.doconfig != "" and (not sealclass in self.needconfigcomponents)):
+						if(self.verbose > 0):
+						    print "\t\tEDSource " + sealclass + " not needed for this config"
+						continue
+                                        
+					    if(not (package+"/"+subdir) in self.needconfigpackages):
+						self.needconfigpackages.append(package+"/"+subdir)
 
 					    sealcomponenttuple.append(sealessource)
 
@@ -388,6 +442,12 @@ class ConfdbSourceToDB:
 	    print "The following " + str(len(self.sqlerrors)) + " components had parameter type mismatch/SQL errors:"
 	    for mysqlerror in self.sqlerrors:
 		print "\t" + mysqlerror
+	if(self.doconfig != ""):
+	    confpkgfile = "configurationpackagesused.txt"
+	    confpkgfilehandle = open(confpkgfile,"wt")
+	    print "Printing list of packages needed for the specified configuration to the file " + confpkgfile
+	    for confpkg in self.needconfigpackages:
+		confpkgfilehandle.write(confpkg + "\n")
 
 
 	# Commit and disconnect to be compatible with either INNODB or MyISAM
@@ -441,9 +501,9 @@ class ConfdbSourceToDB:
 		if(srcfile.endswith(".cc")):
 		    interfacefile = srcfile.replace('.cc','.h')
 
-                    if(modulename == "L1GlobalTriggerRawToDigi"):
-                        interfacefile = interfacefile.replace('L1GlobaTriggerRawToDigi','L1GlobalTriggerRawToDigi')
-                        
+		    if(modulename == "L1GlobalTriggerRawToDigi"):
+			interfacefile = interfacefile.replace('L1GlobaTriggerRawToDigi','L1GlobalTriggerRawToDigi')
+
 		    try:
 			# Find the base class from the .h files in the interface/ directory
 			if(os.path.isdir(interfacedir)):
