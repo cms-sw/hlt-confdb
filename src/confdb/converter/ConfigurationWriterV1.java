@@ -4,6 +4,7 @@ import confdb.data.Configuration;
 import confdb.data.EDSourceInstance;
 import confdb.data.ESSourceInstance;
 import confdb.data.ModuleInstance;
+import confdb.data.Parameter;
 import confdb.data.Path;
 import confdb.data.Sequence;
 import confdb.data.ServiceInstance;
@@ -30,6 +31,14 @@ public class ConfigurationWriterV1 implements IConfigurationWriter
 		{
 			Sequence sequence = conf.sequence(i);
 			str += sequenceWriter.toString(sequence, converter );
+		}
+
+
+		IParameterWriter parameterWriter = converter.getParameterWriter();
+		for ( int i = 0; i < conf.psetCount(); i++ )
+		{
+			Parameter pset = conf.pset(i);
+			str += parameterWriter.toString( pset, converter, "  " );
 		}
 
 
