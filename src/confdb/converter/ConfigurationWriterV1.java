@@ -48,6 +48,8 @@ public class ConfigurationWriterV1 implements IConfigurationWriter
 			EDSourceInstance edsource = conf.edsource(i);
 			str += edsourceWriter.toString(edsource, converter );
 		}
+		if ( conf.edsourceCount() == 0 )  // edsource may be overridden
+			str += edsourceWriter.toString( null, converter );
 
 		IESSourceWriter essourceWriter = converter.getESSourceWriter();
 		for ( int i = 0; i < conf.essourceCount(); i++ )
