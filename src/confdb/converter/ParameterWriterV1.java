@@ -18,9 +18,9 @@ public class ParameterWriterV1  implements IParameterWriter
 
 	protected String toString( Parameter parameter, String indent ) 
 	{
-		if ( !parameter.isTracked()  &&  !parameter.isValueSet() )
+		if ( skip( parameter ) )
 			return "";
-		
+
 		String str = indent + (parameter.isTracked() ? "" : "untracked " )
 			 + parameter.type() + " " + parameter.name() + " = ";
 		
@@ -85,7 +85,54 @@ public class ParameterWriterV1  implements IParameterWriter
 		return str;
 	}
 	
+	static public boolean skipPSet( PSetParameter pset )
+	{
+		if ( pset.isTracked() )
+			return false;
 
+		if ( pset.parameterCount() == 0 )
+			return true;
+		for ( int i = 0; i < pset.parameterCount(); i++ )
+		{
+			Parameter p = pset.parameter(i);
+			if ( p.isTracked() ||  p.isValueSet() )
+				return false;
+		}
+		return true;
+	}
+
+
+	static public boolean skip( Parameter parameter )
+	{
+		if ( parameter.isTracked() )
+			return false;
+
+		if (  parameter instanceof PSetParameter )
+		{
+			PSetParameter pset = (PSetParameter) parameter;
+			return skipPSet(pset);
+		}
+
+		if (  parameter instanceof VPSetParameter )
+		{
+			VPSetParameter vpset = (VPSetParameter) parameter;
+			if ( vpset.parameterSetCount() == 0 )
+				return true;
+			for ( int i = 0; i < vpset.parameterSetCount(); i++ )
+			{
+				PSetParameter pset = vpset.parameterSet(i);
+				if ( !skipPSet(pset) )
+					return false;
+			}
+			return true;
+		}
+
+		if ( parameter.isValueSet() )
+			return false;
+
+		return true;
+	}
+	
 	
 	
 	protected String addComma( String text )
