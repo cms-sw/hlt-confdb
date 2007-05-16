@@ -102,7 +102,7 @@ public class ConverterService
 	// set 'fileNames' parameter
 	ArrayList<String> fileNames = new ArrayList<String>();
 	if (input.endsWith(".root")) {
-	    fileNames.add(input);
+	    fileNames.add("file:" + input);
 	}
 	else {
 	    BufferedReader inputStream = null;
@@ -110,7 +110,7 @@ public class ConverterService
 		inputStream=new BufferedReader(new FileReader(input));
 		String fileName;
 		while ((fileName = inputStream.readLine()) != null) {
-		    if (fileName.endsWith(".root")) fileNames.add(fileName);
+		    if (fileName.endsWith(".root")) fileNames.add("file:"+fileName);
 		    else System.out.println("ERROR parsing filelist '"+input+"'.");
 		}
 	    }

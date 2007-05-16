@@ -1,5 +1,11 @@
 2007-05-16  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-01-05
+	* fix bug reported by Marco: PSet children couldn't have their
+	values reset in the ParameterTreeModel
+
+2007-05-16  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-01-04
 	* pick up latest converter updates [still in progress]
 	* add src/confdb/gui/ConverterService.java
