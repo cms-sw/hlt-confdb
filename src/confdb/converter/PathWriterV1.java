@@ -18,7 +18,7 @@ public class PathWriterV1 implements IPathWriter {
 		{
 			str += path.entry(i).name();
 			if ( i + 1 < path.entryCount() )
-				str += ", ";
+				str += " & ";
 		}
 		str += " }" + converter.getNewline();
 		return str;
