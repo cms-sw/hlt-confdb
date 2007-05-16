@@ -1,5 +1,18 @@
 2007-05-16  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-01-04
+	* pick up latest converter updates [still in progress]
+	* add src/confdb/gui/ConverterService.java
+	* if 'input' is set in the Converter section of the
+	ConfigurationPanel, a PoolSource with 'fileNames' parameter set
+	according to input replaces any EDSource given in the
+	configuration; the PoolSource should be inserted if no EDSource
+	was present in the first place, but that isn't the case yet.
+	* There are now four tabs on the left side: Tree, Ascii, Python,
+	and Html
+
+2007-05-16  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-01-03
 	* collect latest parser update
 	* collect latest converter update [still in progress]

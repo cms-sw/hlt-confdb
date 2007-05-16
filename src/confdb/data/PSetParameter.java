@@ -59,7 +59,7 @@ public class PSetParameter extends Parameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	PSetParameter result = new PSetParameter(name,parameters,isTracked,isDefault);
+	PSetParameter result=new PSetParameter(name,parameters,isTracked,isDefault);
 	result.setParent(parent);
 	return result;
     }
@@ -186,6 +186,14 @@ public class PSetParameter extends Parameter
 
     /** retrieve the i-th parameter in the set */
     public Parameter parameter(int i) { return parameters.get(i); }
+
+    /** retrieve parameter by name */
+    public Parameter parameter(String name)
+    {
+	for (Parameter p : parameters)
+	    if (name.equals(p.name())) return p;
+	return null;
+    }
 
     /** index of a certain parameter */
     public int indexOfParameter(Parameter p) { return parameters.indexOf(p); }

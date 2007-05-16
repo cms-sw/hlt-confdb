@@ -44,6 +44,9 @@ public class ConfDbGUI implements TableModelListener
     
     /** handle access to the database */
     private CfgDatabase database = null;
+
+    /** ConverterService */
+    private ConverterService converterService = null;
     
     /** main frame of the application */
     private JFrame frame = null; 
@@ -67,8 +70,10 @@ public class ConfDbGUI implements TableModelListener
     private JTree tree = null;
     private ConfigurationTreeModel treeModel = null;
 
-    /** JEditorPane for converted configuration */
-    private JEditorPane editorPaneConverter = null;
+    /** JEditorPanes for configuration in ASCII/PYTHON/HTML */
+    private JEditorPane editorPaneAscii  = null;
+    private JEditorPane editorPanePython = null;
+    private JEditorPane editorPaneHtml   = null;
 
     /** list of all available Event Data Source templates */
     private ArrayList<Template> edsourceTemplateList = null;
@@ -93,6 +98,7 @@ public class ConfDbGUI implements TableModelListener
 	this.frame           = frame;
 	config               = new Configuration();
 	database             = new CfgDatabase();
+	converterService     = new ConverterService(database);
 	serviceTemplateList  = new ArrayList<Template>();
 	edsourceTemplateList = new ArrayList<Template>();
 	essourceTemplateList = new ArrayList<Template>();
@@ -361,7 +367,7 @@ public class ConfDbGUI implements TableModelListener
     /** create the configuration tree */
     private JPanel createTreeView(Dimension dim)
     {
-	configurationPanel = new ConfigurationPanel(database);
+	configurationPanel = new ConfigurationPanel(database,converterService);
 
 	// the tree
 	treeModel = new ConfigurationTreeModel(config);
@@ -386,9 +392,13 @@ public class ConfDbGUI implements TableModelListener
 	tree.setCellRenderer(renderer);
 	tree.setCellEditor(new ConfigurationTreeEditor(tree,renderer));
 
-	// the converted configuration
-	editorPaneConverter = new JEditorPane("text/plain","");
-	editorPaneConverter.setEditable(false);
+	// the converted configurations
+	editorPaneAscii  = new JEditorPane("text/plain","");
+	editorPanePython = new JEditorPane("text/plain","");
+	editorPaneHtml   = new JEditorPane("text/html","");
+	editorPaneAscii.setEditable(false);
+	editorPanePython.setEditable(false);
+	editorPaneHtml.setEditable(false);
 	
 	JPanel treeView = new JPanel(new GridBagLayout());
 	treeView.setPreferredSize(dim);
@@ -396,31 +406,38 @@ public class ConfDbGUI implements TableModelListener
 	// tabbed pane
 	JTabbedPane tabbedPane = new JTabbedPane();
 	tabbedPane.addTab("Tree",new JScrollPane(tree));
-	tabbedPane.addTab("Converter",new JScrollPane(editorPaneConverter));
+	tabbedPane.addTab("Ascii",new JScrollPane(editorPaneAscii));
+	tabbedPane.addTab("Python",new JScrollPane(editorPanePython));
+	tabbedPane.addTab("Html",new JScrollPane(editorPaneHtml));
 	
 	// react to 'Converter' tab being selected
-	tabbedPane.addChangeListener(new ChangeListener() {
-	    public void stateChanged(ChangeEvent e) {
-		JTabbedPane pane = (JTabbedPane)e.getSource();
-		int sel = pane.getSelectedIndex();
-		
-		if (sel==1) {
-		    if (config==null) editorPaneConverter.setText("");
-		    else try {
-			ConverterFactory fac = ConverterFactory.getFactory("default");
-			Converter        cnv = fac.getConverter("ASCII");
-			String           configAsString = cnv.convert(config);
-			editorPaneConverter.setText(configAsString);
+	tabbedPane.addChangeListener(new ChangeListener()
+	    {
+		public void stateChanged(ChangeEvent e) {
+		    JTabbedPane pane = (JTabbedPane)e.getSource();
+		    JEditorPane editorPane = null;
+		    String      format = null;
+		    int         sel = pane.getSelectedIndex();
+		    switch (sel) {
+		    case 0 : return;
+		    case 1 : editorPane = editorPaneAscii;  format="ascii";  break; 
+		    case 2 : editorPane = editorPanePython; format="python"; break; 
+		    case 3 : editorPane = editorPaneHtml;   format="html";   break; 
+		    default : return;
 		    }
-		    catch (Exception ex) {
-			String msg =
-			    "Failed to convert configuration: " + ex.getMessage();
-			editorPaneConverter.setText(msg);
+		    
+		    if (config==null) {
+			editorPane.setText("");
+		    }
+		    else {
+			converterService.setFormat(format);
+			String  configAsString =
+			    converterService.convertConfiguration(config);
+			editorPane.setText(configAsString);
 		    }
 		}
-	    }
-	});
-
+	    });
+	
 	// place components in tree view
 	GridBagConstraints c = new GridBagConstraints();
 	c.fill = GridBagConstraints.BOTH;

@@ -136,8 +136,16 @@ public class VPSetParameter extends Parameter
     /** number of parameter set entries */
     public int parameterSetCount() { return parameterSets.size(); }
 
-    /** retrieve the i-th parameter set */
+    /** retrieve the i-th pset */
     public PSetParameter parameterSet(int i) { return parameterSets.get(i); }
+
+    /** retrieve pset by name */
+    public PSetParameter parameterSet(String name)
+    {
+	for (PSetParameter pset : parameterSets)
+	    if (name.equals(pset.name())) return pset;
+	return null;
+    }
 
     /** index of a certain parameter set */
     public int indexOfParameterSet(PSetParameter pset)

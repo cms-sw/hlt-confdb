@@ -38,6 +38,9 @@ public class ConfigurationPanel extends JPanel implements ActionListener
     /** the configuration being displayed */
     private Configuration configuration = null;
 
+    /** reference to the ConverterService */
+    private ConverterService converterService = null;
+
     /** configuration name */
     private JLabel labelConfigName = null;
     private JTextField valueConfigName = null;
@@ -73,10 +76,11 @@ public class ConfigurationPanel extends JPanel implements ActionListener
     //
 
     /** default constructor */
-    public ConfigurationPanel(CfgDatabase database)
+    public ConfigurationPanel(CfgDatabase database,ConverterService converterService)
     {
 	super(new GridLayout(1,2));
 	this.database = database;
+	this.converterService = converterService;
 	
 	JPanel infoPanel = new JPanel(new SpringLayout());
 	infoPanel.setBorder(BorderFactory
@@ -135,6 +139,15 @@ public class ConfigurationPanel extends JPanel implements ActionListener
 	
 	textFieldInput = new JTextField(10);
 	textFieldInput.setEditable(false);
+	textFieldInput.addActionListener(new ActionListener()
+	    {
+		public void actionPerformed(ActionEvent e)
+		{
+		    ConfigurationPanel.this.converterService
+			.setInput(textFieldInput.getText());
+		}
+	    });
+	
 	
 	FlowLayout layout = new FlowLayout();
 	layout.setVgap(0);
@@ -158,7 +171,35 @@ public class ConfigurationPanel extends JPanel implements ActionListener
 	pythonFormatButton.setSelected(false);
 	htmlFormatButton.setSelected(false);
 	pythonFormatButton.setEnabled(false);
-	htmlFormatButton.setEnabled(false);
+	htmlFormatButton.setEnabled(true);
+
+       asciiFormatButton.addActionListener(new ActionListener()
+	   {
+	       public void actionPerformed(ActionEvent e)
+	       {
+		   ConfigurationPanel.this.converterService
+		       .setFormat("ASCII");
+	       }
+	   });
+
+       pythonFormatButton.addActionListener(new ActionListener()
+	   {
+	       public void actionPerformed(ActionEvent e)
+	       {
+		   ConfigurationPanel.this.converterService
+		       .setFormat("PYTHON");
+	       }
+	   });
+       
+       htmlFormatButton.addActionListener(new ActionListener()
+	   {
+	       public void actionPerformed(ActionEvent e)
+	       {
+		   ConfigurationPanel.this.converterService
+		       .setFormat("HTML");
+	       }
+	   });
+
 
 	buttonConvert = new JButton("Convert");
 	buttonConvert.addActionListener(this);
@@ -254,54 +295,37 @@ public class ConfigurationPanel extends JPanel implements ActionListener
     /** ActionListener interface: actionPerformed() */
     public void actionPerformed(ActionEvent ev)
     {
-	FileWriter outputStream=null;
-	String     filePath    =textFieldFilePath.getText();
-	String     fileName    =textFieldFileName.getText();
-	String     input       =textFieldInput.getText();
-	String     format      =formatButtonGroup.getSelection().getActionCommand();
+	String     input  = textFieldInput.getText();
+	String     format = formatButtonGroup.getSelection().getActionCommand();
 	
-	if (filePath.length()>0) fileName = filePath += "/" + fileName;
+	converterService.setInput(input);
+	converterService.setFormat(format);
+	String configAsString = converterService.convertConfiguration(configuration);
 
-	if (format.equals("ASCII")&&!fileName.endsWith(".cfg"))
-	    fileName += ".cfg";
-	else if (format.equals("PYTHON")&&!fileName.endsWith(".py"))
-	    fileName += ".py";
-	else if (format.equals("HTML")&&!fileName.endsWith(".html"))
-	    fileName += ".html";
-	
-	try {
-	    ConverterFactory factory        = ConverterFactory.getFactory("default");
-	    Converter        converter      = factory.getConverter(format);
+	if (configAsString.length()>0) {
+	    FileWriter outputStream=null;
+	    String     filePath    =textFieldFilePath.getText();
+	    String     fileName    =textFieldFileName.getText();
 	    
-	    if (input.length()>0)
-		converter.overrideEDSource(getPoolSource(input));
+	    if (filePath.length()>0) fileName = filePath += "/" + fileName;
 	    
-	    String           configAsString = converter.convert(configuration);
+	    if      (format.toUpperCase().equals("ASCII")&&
+		     !fileName.endsWith(".cfg"))       fileName += ".cfg";
+	    else if (format.toUpperCase().equals("PYTHON")&&
+		     !fileName.endsWith(".py"))	  fileName += ".py";
+	    else if (format.toUpperCase().equals("HTML")&&
+		     !fileName.endsWith(".html")) fileName += ".html";
 	    
-	    outputStream = new FileWriter(fileName);
-	    outputStream.write(configAsString,0,configAsString.length());
-	    outputStream.close();
-	}
-	catch (Exception e) {
-	    String msg = "Failed to convert configuration: " + e.getMessage();
-	    System.out.println(msg);
+	    try {
+		outputStream = new FileWriter(fileName);
+		outputStream.write(configAsString,0,configAsString.length());
+		outputStream.close();
+	    }
+	    catch (Exception e) {
+		String msg = "Failed to convert configuration: " + e.getMessage();
+		System.out.println(msg);
+	    }
 	}
     }
-    
-    /** make a PoolSource */
-    public EDSourceInstance getPoolSource(String input)
-    {
-	EDSourceTemplate template = database
-	    .loadEDSourceTemplate(configuration.releaseTag(),"PoolSource");
-	EDSourceInstance result = null;
-	try {
-	    result = (EDSourceInstance)template.instance();
-	}
-	catch (DataException e) {
-	    System.out.println("FAILED to create instance of PoolSource:"+
-			       e.getMessage());
-	}
-	return result;
-    }
-    
+
 }

@@ -66,6 +66,13 @@ abstract public class Instance
     /** get i-th parameter */
     public Parameter parameter(int i) { return parameters.get(i); }
 
+    /** get parameter by name */
+    public Parameter parameter(String name)
+    {
+	for (Parameter p : parameters) if (name.equals(p.name())) return p;
+	return null;
+    }
+
     /** get the index of a parameter */
     public int indexOfParameter(Parameter p) { return parameters.indexOf(p); }
     
