@@ -79,8 +79,8 @@ def main(argv):
 		print "Using MySQL DB"
 	    elif(input_dbtype == "Oracle"):
 		print "Using Oracle DB"
-		print "\t***Oracle is not tested yet. Exiting now***"
-		return
+#		print "\t***Oracle is not tested yet. Exiting now***"
+#		return
 	    else:
 		print "Unknown DB type " + input_dbtype + ", exiting now"
 		return
