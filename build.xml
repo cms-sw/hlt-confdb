@@ -7,6 +7,7 @@
   </description>
 
   <property name="dir.src" location="src"/>
+
   <property name="dir.build" location="classes"/>
   <property name="dir.icons" location="icons"/>
   <property name="dir.lib" location="lib"/>
@@ -19,24 +20,32 @@
 
   <!-- compile all *.java files in src/** to *.class files in classes/** -->
   <target name="compile" depends="init">
-    <javac srcdir="${dir.src}" destdir="${dir.build}"/>
+    <javac srcdir="${dir.src}" destdir="${dir.build}" debug="true"/>
   </target>
 
   <!-- combine all classes into jar file -->
   <target name="gui" depends="compile">
-    <jar jarfile="${dir.lib}/ConfDbGUI.jar">
+    <jar jarfile="${dir.lib}/cmssw-evf-confdb-gui.jar">
       <fileset dir="${dir.build}"/>
       <fileset dir="${dir.icons}"/>
+      <fileset dir="${dir.src}"><include name="conf/*"/></fileset>
       <manifest>
         <attribute name="Main-Class" value="confdb.gui.ConfDbGUI" />    
       </manifest>
     </jar>
   </target>
 
-  <!-- run GUI -->
-  <target name="rungui" depends="gui">
-    <java jar="${dir.lib}/ConfDbGUI.jar" fork="true"/>
+  <!-- combine converter-relevant classes into jar file -->
+  <target name="converter" depends="compile">
+    <jar jarfile="${dir.lib}/cmssw-evf-confdb-converter.jar">
+      <fileset dir="${dir.build}"><exclude name="confdb/gui/**"/></fileset>
+      <fileset dir="${dir.src}"><include name="conf/*"/></fileset>
+      <manifest>
+        <attribute name="Main-Class" value="confdb.converter.Converter" />
+      </manifest>
+    </jar>
   </target>
+
 
   <!-- delete all class files -->
   <target name="clean">
