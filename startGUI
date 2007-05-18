@@ -10,12 +10,12 @@ my $mysql_home    = get_env_variable("MYSQL_HOME");
 
 
 # build the ConfDbGUI jar file if necessary
-my $confdb_gui_jar = "$cmssw_base/src/EventFilter/ConfigDB/lib/ConfDbGUI.jar";
+my $confdb_gui_jar = "$cmssw_base/src/EventFilter/ConfigDB/lib/cmssw-evf-confdb-gui.jar";
 my $classpath      = $confdb_gui_jar;
 
 if (!-e $confdb_gui_jar)
 {
-    print "\nBuilding ConfDbGUI.jar ...\n";
+    print "\nBuilding $confdb_gui_jar ...\n";
     my $pwd = `pwd`; chomp($pwd);
     `cd $cmssw_base/src/EventFilter/ConfigDB`;
     my $oldpath = $ENV{"PATH"};
@@ -26,9 +26,9 @@ if (!-e $confdb_gui_jar)
 
     if (-e $confdb_gui_jar)
     {
-	print "ConfDbGUI.jar successfully built.\n";
+	print "$confdb_gui_jar successfully built.\n";
     }
-    else { die ("Failed to build ConfDbGUI.jar\n"); }
+    else { die ("Failed to build $confdb_gui_jar\n"); }
 }
 
 # check for MySQL JDBC Driver
