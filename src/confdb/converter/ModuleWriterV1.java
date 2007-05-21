@@ -17,10 +17,6 @@ public class ModuleWriterV1 implements IModuleWriter {
 		String name = module.name();
 		String type = module.template().name();
 		
-		if (     module.template().instanceCount() == 1 
-		     &&  name.equals( type )  )
-			name = "";
-		
 		String str = indent + "module " +  name + " = " + type + " {";
 		if ( module.parameterCount() == 0 )
 			return str + "}" + converter.getNewline();
