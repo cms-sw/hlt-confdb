@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import confdb.data.ConfigInfo;
+import confdb.data.ConfigVersion;
 import confdb.data.Configuration;
 import confdb.data.Directory;
 import confdb.data.EDSourceInstance;
@@ -117,8 +118,15 @@ public class Converter implements IConverter {
 		for ( int i = 0; i < directory.configInfoCount(); i++ )
 		{
 			ConfigInfo configInfo = directory.configInfo(i);
-			if ( configInfo.dbId() == key ) 
-				return configInfo;
+			for ( int ii = 0; ii < configInfo.versionCount(); ii++ )
+			{
+				ConfigVersion version = configInfo.version(ii);
+				if ( version.dbId() == key )
+				{
+					configInfo.setVersionIndex( ii );
+					return configInfo;
+				}
+			}
 		}
 		for ( int i = 0; i < directory.childDirCount(); i++ )
 		{
