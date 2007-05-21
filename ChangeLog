@@ -1,3 +1,16 @@
+2007-05-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-01-06
+	* add target 'converter' to build.xml: results in
+	lib/cmssw-evf-confdb-converter.jar, which does not contain the GUI
+	relevant files.
+	* add /conf/confdb.properties to the jars
+	* change defaults in /conf/confdb.properties to current DAQ
+	parameters (temporarily still using MySQL@cmssrv0)
+	* Pick up fixes to the converter by Ulf, most importantly the
+	correct translation of unique module instances.
+	* Jonathan has unlock Oracle-mode of the parser.
+
 2007-05-16  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-01-05
