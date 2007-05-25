@@ -148,10 +148,10 @@ class ConfdbSourceToDB:
 
 	# Get a Conf DB connection. Only need to do this once at the 
 	# beginning of a job.
-	if(self.dbtype == "MySQL"):
+	if(self.dbtype == "MySQL" and self.noload == False):
 	    self.dbloader = ConfdbSQLModuleLoader.ConfdbMySQLModuleLoader(self.verbose)
 	    self.dbcursor = self.dbloader.ConfdbMySQLConnect(self.dbname,self.dbuser,self.dbpwd,self.dbhost)
-	elif(self.dbtype == "Oracle"):
+	elif(self.dbtype == "Oracle" and self.noload == False):
 	    self.dbloader = ConfdbOracleModuleLoader.ConfdbOracleModuleLoader(self.verbose)
 	    self.dbcursor = self.dbloader.ConfdbOracleConnect(self.dbname,self.dbuser,self.dbpwd,self.dbhost)
 
