@@ -11,6 +11,7 @@ import confdb.data.ConfigVersion;
 import confdb.data.Configuration;
 import confdb.data.Directory;
 import confdb.data.EDSourceInstance;
+import confdb.data.Path;
 import confdb.db.CfgDatabase;
 import confdb.db.DatabaseException;
 
@@ -18,11 +19,12 @@ import confdb.db.DatabaseException;
  * @author behrens
  *
  */
-public class Converter implements IConverter {
+public class Converter implements IConverter 
+{
 	private CfgDatabase database = null;
+
 	private IConfigurationWriter configurationWriter = null;
 	private IParameterWriter parameterWriter = null;
-
 	private IEDSourceWriter edsourceWriter  = null;
 	private IESSourceWriter essourceWriter = null;
 	private IServiceWriter serviceWriter = null;
@@ -30,6 +32,8 @@ public class Converter implements IConverter {
 	private IPathWriter pathWriter = null;
 	private ISequenceWriter sequenceWriter = null;
 
+	private Path newEndpath = null;
+	
 	static final private String newline = "\n";
 	
 	final private String configurationHeader = "process FU = {" + newline;
@@ -99,6 +103,8 @@ public class Converter implements IConverter {
 	
 	public String convert( Configuration configuration )
 	{
+		if ( newEndpath != null )
+			return configurationWriter.toString( new ConfigModifier( configuration, newEndpath )  );
 		return configurationWriter.toString( configuration );
 	}
 	
@@ -193,12 +199,21 @@ public class Converter implements IConverter {
  	}
 	
 	/**
-	 * call this method to specify source to be used in output instead od data
+	 * call this method to specify source to be used in output instead of data
 	 * coming from database
 	 */
 	public void overrideEDSource( EDSourceInstance source )
 	{
 		setEDSourceWriter( new EDSourceOverrider( source, getEDSourceWriter() ));
+	}
+	
+	/**
+	 * call this method to specify endpath to be used in output instead of endpath
+	 * coming from database
+	 */
+	public void overrideEndPath( Path endpath )
+	{
+		newEndpath = endpath;
 	}
 	
 	
@@ -227,23 +242,7 @@ public class Converter implements IConverter {
 				System.out.println( "config " + configKey + " not found!" );
 			else
 				System.out.println( config );
-		} catch (DatabaseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
