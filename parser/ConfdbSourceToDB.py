@@ -4,7 +4,7 @@
 # Main file for parsing source code in a CMSSW release and
 # loading module templates to the Conf DB.
 # 
-# Jonathan Hollar LLNL May 16, 2007
+# Jonathan Hollar LLNL May 25, 2007
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
@@ -31,9 +31,10 @@ def main(argv):
     input_host = "localhost"
     input_configfile = ""
     input_dotest = False
+    input_noload = False
 
     # Parse command line options
-    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:l:e:h", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","configfile=","parsetestdir=","help="])
+    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:l:e:nh", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","configfile=","parsetestdir=","noload=","help="])
     for o, a in opts:
 	if o in ("-r","release="):
 	    if(input_base_path and input_cmsswrel):
@@ -94,6 +95,9 @@ def main(argv):
 	    else:
 		print "Will not parse test/ directories"
 		input_dotest = False
+	if o in ("-n","noload="):
+	    print "Will parse release without loading to the DB"
+	    input_noload = True
 	if o in ("-h","help="):
 	    print "Help menu for ConfdbSourceToDB"
 	    print "\t-r <CMSSW release (default is the CMSSW_VERSION envvar)>"
@@ -120,11 +124,11 @@ def main(argv):
 
     print "Using release base: " + input_base_path
 
-    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype,input_dbpwd,input_host,input_configfile,input_dotest)
+    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype,input_dbpwd,input_host,input_configfile,input_dotest,input_noload)
     confdbjob.BeginJob()
 
 class ConfdbSourceToDB:
-    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype,clidbpwd,clihost,cliconfig,clidotest):
+    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype,clidbpwd,clihost,cliconfig,clidotest,clinoload):
 	self.data = []
 	self.dbname = clidbname
 	self.dbuser = clidbuser
@@ -134,6 +138,7 @@ class ConfdbSourceToDB:
 	self.dbhost = clihost
 	self.dotestdir = clidotest
 	self.doconfig = cliconfig
+	self.noload = clinoload
 	self.needconfigcomponents = []
 	self.needconfigpackages = []
 	self.sqlerrors = []
@@ -189,14 +194,15 @@ class ConfdbSourceToDB:
 
 	# Add this release to the DB and check for success
 	print "Release is = " + self.cmsswrel
-	addrelease = -1
-	addrelease = self.dbloader.ConfdbAddNewRelease(self.dbcursor,self.cmsswrel)
-	if(addrelease > 0):
-	    print "Succesfully added release " + self.cmsswrel + " to the DB"
-	else:
-	    print "Error: Failed to add release " + self.cmsswrel + " to the DB"
-	    print "Exiting now"
-	    return
+	if(self.noload == False):
+	    addrelease = -1
+	    addrelease = self.dbloader.ConfdbAddNewRelease(self.dbcursor,self.cmsswrel)
+	    if(addrelease > 0):
+		print "Succesfully added release " + self.cmsswrel + " to the DB"
+	    else:
+		print "Error: Failed to add release " + self.cmsswrel + " to the DB"
+		print "Exiting now"
+		return
 
 	# Get package list for this release
 	packagelist = os.listdir(source_tree)
@@ -423,7 +429,8 @@ class ConfdbSourceToDB:
 	print "\n\n*************************************************************************"
 	print "End of job report"
 	print "Scanned " + str(len(sealcomponenttuple)) + " fwk components for release " + self.cmsswrel 
-	self.dbloader.PrintStats()
+	if(self.noload == False):
+	    self.dbloader.PrintStats()
 	if(len(self.unknownbaseclasses) > 0):
 	    print "The following " + str(len(self.unknownbaseclasses)) + " components were not loaded because their base class" 
 	    print "does not appear to be one of"
@@ -448,7 +455,10 @@ class ConfdbSourceToDB:
 	    print "Printing list of packages needed for the specified configuration to the file " + confpkgfile
 	    for confpkg in self.needconfigpackages:
 		confpkgfilehandle.write(confpkg + "\n")
-
+	if(self.noload == True):
+            print "\n*************************************************************************" 
+	    print "This job was run with the -n option. No DB operations were performed"
+	    return
 
 	# Commit and disconnect to be compatible with either INNODB or MyISAM
 	self.dbloader.ConfdbExitGracefully()
@@ -477,9 +487,6 @@ class ConfdbSourceToDB:
         for modtag, cvstag in self.tagtuple:
 	    if(modtag.lstrip().rstrip() == packagename.lstrip().rstrip()):
 		tagline = cvstag
-
-
-
 
 	if(os.path.isdir(srcdir) or os.path.isdir(pluginsdir) or 
 	   (self.dotestdir == True and os.path.isdir(testdir))):        
@@ -553,7 +560,6 @@ class ConfdbSourceToDB:
 	hltparamsetlist = myParser.GetParamSets(modulename)
 	hltvecparamsetlist = myParser.GetVecParamSets(modulename)
 	modulebaseclass = myParser.GetBaseClass()
-	    
 
 	try:
 	    # OK, now we know the module, it's base class, it's parameters, and their
@@ -568,6 +574,9 @@ class ConfdbSourceToDB:
 		   modulebaseclass == "EDAnalyzer" or 
 		   modulebaseclass == "HLTProducer" or 
 		   modulebaseclass == "HLTFilter"):
+		    if(self.noload == True):
+			return
+
 		    # First check if this module template already exists
 		    if(modulebaseclass):
 			modid = self.dbloader.ConfdbCheckModuleExistence(self.dbcursor,modulebaseclass,modulename,tagline)
@@ -593,6 +602,9 @@ class ConfdbSourceToDB:
 			   therealbaseclass == "EDAnalyzer" or 
 			   therealbaseclass == "HLTProducer" or 
 			   therealbaseclass == "HLTFilter"):
+			    if(self.noload == True):
+				return
+
 			    # First check if this module template already exists
 			    if(therealbaseclass):
 				modid = self.dbloader.ConfdbCheckModuleExistence(self.dbcursor,therealbaseclass,modulename,tagline)
@@ -612,6 +624,9 @@ class ConfdbSourceToDB:
 
 	    # This is a Service. Use the ServiceTemplate
 	    elif(componenttype == 2):
+		if(self.noload == True):
+		    return
+
 		# First check if this service template already exists
 		servid = self.dbloader.ConfdbCheckServiceExistence(self.dbcursor,modulename,tagline)
 		if(servid):
@@ -624,6 +639,9 @@ class ConfdbSourceToDB:
 
 	    # This is an ES_Source. Use the ESSourceTemplate
 	    elif(componenttype == 3):
+		if(self.noload == True):
+		    return
+
 		# First check if this service template already exists
 		sourceid = self.dbloader.ConfdbCheckESSourceExistence(self.dbcursor,modulename,tagline)
 		if(sourceid):
@@ -636,6 +654,9 @@ class ConfdbSourceToDB:
 
 	    # This is an ED_Source. Use the EDSourceTemplate
 	    elif(componenttype == 4):
+		if(self.noload == True):
+		    return
+
 		# First check if this service template already exists
 		sourceid = self.dbloader.ConfdbCheckEDSourceExistence(self.dbcursor,modulename,tagline)
 		if(sourceid):
