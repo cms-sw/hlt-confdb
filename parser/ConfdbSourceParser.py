@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL May 11, 2007
+# Jonathan Hollar LLNL May 30, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -464,6 +464,8 @@ class SourceParser:
 	thepsetname = ''
         modulename = ''
         theconstructor = ''
+	externalbranch = ''
+	externalbranchpset = ''
 
         # Bookkeeping for dealing with linebreaks
         totalline = ''
@@ -502,6 +504,15 @@ class SourceParser:
 
                         totalline = totalline + line.lstrip().rstrip('\n')
 
+		    # Handle (i.e. ignore) PSets from "friend" branches
+		    if((foundlineend == True) and (totalline.find('BranchDescription ') != -1) and (totalline.find('=') != -1)):
+			externalbranch = totalline.split('BranchDescription')[1].split('=')[0].lstrip().rstrip()
+			totalline = ''
+		    if((foundlineend == True) and (totalline.find('getParameterSet') != -1)):
+		       if(totalline.split('getParameterSet')[1].split(')')[0].find(externalbranch) != -1):
+			   externalbranchpset = totalline.split('=')[0].split('ParameterSet')[1].lstrip().rstrip()
+			   totalline = ''
+
                     # First look at tracked parameters. No default value
                     # is specified in the .cc file                
                     if((foundlineend == True) and
@@ -525,6 +536,11 @@ class SourceParser:
 			    if(self.verbose > 1):
 				print '\tMember of parameter set named ' + belongstovar + ' (' + self.psetdict[belongstovar] + ')'
 			    paraminparamset = self.psetdict[belongstovar]
+			elif(belongstovar != '' and belongstovar == externalbranchpset):
+			    if(self.verbose > 1):
+				print '\tMember of external PSet ' + externalbranchpset + ' - ignoring this parameter'
+			    totalline = ''
+			    continue
 			else:
 			    paraminparamset = ''
 
