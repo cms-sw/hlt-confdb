@@ -362,7 +362,7 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    JMenu addPathMenu = createAddPathMenu(path);
 	    popupPaths.add(addPathMenu);
 	    
-	    JMenu addSequenceMenu = createAddSequenceMenu(path);
+	    JMenu addSequenceMenu = createAddSequenceMenu(path,pathListener);
 	    popupPaths.add(addSequenceMenu);
 	    
 	    popupPaths.addSeparator();
@@ -388,7 +388,7 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    popupPaths.add(addPathMenu);
 		
 	    if (config.sequenceCount()>0) {
-		JMenu addSequenceMenu = createAddSequenceMenu(path);
+		JMenu addSequenceMenu = createAddSequenceMenu(path,pathListener);
 		popupPaths.add(addSequenceMenu);
 	    }
 	    
@@ -442,10 +442,13 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 
 	    JMenu addModuleMenu = createAddModuleMenu(sequence,sequenceListener);
 	    popupSequences.add(addModuleMenu);
-
-	    menuItem = new JMenuItem("Add Sequence");
-	    menuItem.addActionListener(sequenceListener);
-	    popupSequences.add(menuItem);
+	    
+	    JMenu addSequenceMenu = createAddSequenceMenu(sequence,sequenceListener);
+	    popupSequences.add(addSequenceMenu);
+	    
+	    //menuItem = new JMenuItem("Add Sequence");
+	    //menuItem.addActionListener(sequenceListener);
+	    //popupSequences.add(menuItem);
 	    
 	    popupSequences.addSeparator();
 	    
@@ -574,8 +577,7 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    menuItem.addActionListener(pathListener);
 	    menuItem.setActionCommand("NEWPATH");
 	    addPathMenu.add(menuItem);
-	    Configuration config = (Configuration)treeModel.getRoot();
-	    if (config.pathCount()>1) addPathMenu.addSeparator();
+	    addPathMenu.addSeparator();
 	}
 	else if (node instanceof Reference) {
 	    Reference reference  = (Reference)node;
@@ -603,14 +605,25 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
     }
     
     /** create 'Add Sequence' Menu */
-    private JMenu createAddSequenceMenu(Path path)
+    private JMenu createAddSequenceMenu(ReferenceContainer pathOrSequence,
+					ActionListener     listener)
     {
 	JMenu     addSequenceMenu = new JMenu("Add Sequence");
 	JMenuItem menuItem;
-	
 	ArrayList<Sequence> forbiddenSequences = new ArrayList<Sequence>();
-	for (int i=0;i<path.entryCount();i++) {
-	    Reference reference = path.entry(i);
+	
+	if (pathOrSequence instanceof Sequence) {
+	    Sequence sequence = (Sequence)pathOrSequence;
+	    forbiddenSequences.add(sequence);
+	    menuItem = new JMenuItem("New Sequence");
+	    menuItem.addActionListener(listener);
+	    menuItem.setActionCommand("NEWSEQ");
+	    addSequenceMenu.add(menuItem);
+	    addSequenceMenu.addSeparator();
+	}
+	
+	for (int i=0;i<pathOrSequence.entryCount();i++) {
+	    Reference reference = pathOrSequence.entry(i);
 	    if (reference instanceof SequenceReference) {
 		SequenceReference seqreference = (SequenceReference)reference;
 		Sequence          sequence     = (Sequence)seqreference.parent();
@@ -622,7 +635,7 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	for (int i=0;i<config.sequenceCount();i++) {
 	    Sequence sequence = config.sequence(i);
 	    menuItem = new JMenuItem(sequence.name());
-	    menuItem.addActionListener(pathListener);
+	    menuItem.addActionListener(listener);
 	    menuItem.setActionCommand("SEQREF");
 	    if (forbiddenSequences.contains(sequence)) menuItem.setEnabled(false);
 	    addSequenceMenu.add(menuItem); 
@@ -1175,6 +1188,7 @@ class SequenceMenuListener implements ActionListener
     {
 	JMenuItem source   = (JMenuItem)(e.getSource());
 	String    cmd      = source.getText();
+	String    action   = source.getActionCommand();
 	TreePath  treePath = tree.getSelectionPath();
 	int       depth    = treePath.getPathCount();
 	Object    node     = treePath.getPathComponent(depth-1);
@@ -1182,7 +1196,43 @@ class SequenceMenuListener implements ActionListener
 	
 	Configuration config = (Configuration)treeModel.getRoot();
 	
-	if (cmd.equals("Add Sequence")) {
+	if (action.equals("NEWSEQ")) {
+	    int insertIndex = 0;
+	    if (depth>2) {
+		if (depth==4) node = parent;
+		Sequence sequence = (Sequence)node;
+		insertIndex = config.indexOfSequence(sequence)+1;
+	    }
+	    config.insertSequence(insertIndex,"<ENTER SEQUENCE NAME>");
+	    treeModel.nodeInserted(treeModel.sequencesNode(),insertIndex);
+	    if (insertIndex==0) tree.expandPath(treePath);
+	    treeModel.updateLevel1Nodes();
+	    TreePath parentTreePath = treePath;
+	    if (depth>2) parentTreePath = parentTreePath.getParentPath();
+	    if (depth>3) parentTreePath = parentTreePath.getParentPath();
+	    TreePath newTreePath =
+		parentTreePath.pathByAddingChild(config.sequence(insertIndex));
+	    tree.expandPath(newTreePath);
+	    editSequenceName(newTreePath);
+	    return;
+	}
+	else if (action.equals("SEQREF")) {
+	    TreePath parentTreePath=(depth==3) ? treePath : treePath.getParentPath();
+	    Sequence parentSequence=(depth==3) ? (Sequence)node : (Sequence)parent;
+	    int insertIndex=(depth==3) ?
+		0 : parentSequence.indexOfEntry((Reference)node)+1;
+	    String   sequenceName = cmd;
+	    for (int i=0;i<config.sequenceCount();i++) {
+		Sequence sequence = config.sequence(i);
+		if (sequence.name().equals(sequenceName)) {
+		    config.insertSequenceReference(parentSequence,insertIndex,sequence);
+		    treeModel.nodeInserted(parentSequence,insertIndex);
+		    treeModel.updateLevel1Nodes();
+		    return;
+		}
+	    }
+	}
+	else if (cmd.equals("Add Sequence")) {
 	    int insertIndex = 0;
 	    if (depth==3) {
 		Sequence seq = (Sequence)node;
@@ -1194,7 +1244,8 @@ class SequenceMenuListener implements ActionListener
 	    treeModel.updateLevel1Nodes();
 	    TreePath parentTreePath = treePath;
 	    if (depth>2) parentTreePath = parentTreePath.getParentPath();
-	    TreePath newTreePath = parentTreePath.pathByAddingChild(config.sequence(insertIndex));
+	    TreePath newTreePath =
+		parentTreePath.pathByAddingChild(config.sequence(insertIndex));
 	    editSequenceName(newTreePath);
 	    return;
 	}
@@ -1241,7 +1292,10 @@ class SequenceMenuListener implements ActionListener
 		}
 	    }
 	    else {
-		config.insertModuleReference(sequence,insertIndex,templateName,instanceName);
+		config.insertModuleReference(sequence,
+					     insertIndex,
+					     templateName,
+					     instanceName);
 	    }
 	    treeModel.nodeInserted(sequence,insertIndex);
 	}

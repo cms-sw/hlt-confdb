@@ -112,6 +112,16 @@ CREATE TABLE PathSequenceAssoc
 	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId)
 ) ENGINE=INNODB;
 
+-- TABLE 'SequenceInSequenceAssoc'
+CREATE TABLE SequenceInSequenceAssoc
+(
+	parentSequenceId BIGINT UNSIGNED   NOT NULL,
+	childSequenceId	 BIGINT UNSIGNED   NOT NULL,
+	sequenceNb	 SMALLINT UNSIGNED NOT NULL,
+	FOREIGN KEY (parentSequenceId) REFERENCES Sequences(sequenceId),
+	FOREIGN KEY (childSequenceId)  REFERENCES Sequences(sequenceId)
+) ENGINE=INNODB;
+
 
 --
 -- SERVICES

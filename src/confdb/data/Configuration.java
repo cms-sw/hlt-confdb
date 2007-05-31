@@ -670,26 +670,29 @@ public class Configuration
 	
 	// remove all modules from this sequence
 	while (sequence.entryCount()>0) {
-	    ModuleReference reference = (ModuleReference)sequence.entry(0);
-	    ModuleInstance  instance  = (ModuleInstance)reference.parent();
+	    Reference reference = sequence.entry(0);
 	    reference.remove();
-	    if (instance.referenceCount()==0) {
-		int index = modules.indexOf(instance);
-		modules.remove(index);
+	    if (reference instanceof ModuleReference) {
+		ModuleReference module   = (ModuleReference)reference;
+		ModuleInstance  instance = (ModuleInstance)module.parent();
+		if (instance.referenceCount()==0) {
+		    int index = modules.indexOf(instance);
+		    modules.remove(index);
+		}
 	    }
 	}
-
+	
 	int index = sequences.indexOf(sequence);
 	sequences.remove(index);
 	hasChanged = true;
     }
     
     /** insert a sequence reference into another path */
-    public SequenceReference insertSequenceReference(Path parentPath,int i,
+    public SequenceReference insertSequenceReference(ReferenceContainer parent,int i,
 						     Sequence sequence)
     {
 	SequenceReference reference =
-	    (SequenceReference)sequence.createReference(parentPath,i);
+	    (SequenceReference)sequence.createReference(parent,i);
 	hasChanged = true;
 	return reference;
     }

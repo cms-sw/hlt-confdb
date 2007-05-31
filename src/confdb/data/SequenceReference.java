@@ -8,7 +8,7 @@ import java.util.ArrayList;
  * -----------------
  * @author Philipp Schieferdecker
  *
- * Reference of a Sequence within another path.
+ * Reference of a Sequence within another sequence or path.
 */
 public class SequenceReference extends Reference
 {

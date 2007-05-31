@@ -5,12 +5,12 @@ import java.util.Iterator;
 
 
 /**
-   Sequence
-   --------
-   @author Philipp Schieferdecker
-   
-   A 'Sequence' can host any number of ModuleReferences, but no
-   references to other Sequences or Paths.
+ * Sequence
+ * --------
+ *  @author Philipp Schieferdecker
+ *  
+ *  A 'Sequence' can host any number of ModuleReferences and
+ *  SequenceReferences, but no references to other Paths.
 */
 public class Sequence extends ReferenceContainer
 {
@@ -32,7 +32,8 @@ public class Sequence extends ReferenceContainer
     /** insert a module into the sequence */
     public void insertEntry(int i,Reference reference)
     {
-	if (reference instanceof ModuleReference) {
+	if (reference instanceof ModuleReference ||
+	    reference instanceof SequenceReference) {
 	    if (!entries.contains(reference)) {
 		entries.add(reference);
 		return;

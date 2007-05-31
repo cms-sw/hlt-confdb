@@ -122,6 +122,7 @@ public class CfgDatabase
     private PreparedStatement psSelectSequenceModuleAssoc         = null;
     private PreparedStatement psSelectPathPathAssoc               = null;
     private PreparedStatement psSelectPathSequenceAssoc           = null;
+    private PreparedStatement psSelectSequenceSequenceAssoc       = null;
     private PreparedStatement psSelectPathModuleAssoc             = null;
     
     private PreparedStatement psSelectParameters                  = null;
@@ -156,6 +157,7 @@ public class CfgDatabase
     private PreparedStatement psInsertSequenceModuleAssoc         = null;
     private PreparedStatement psInsertPathPathAssoc               = null;
     private PreparedStatement psInsertPathSequenceAssoc           = null;
+    private PreparedStatement psInsertSequenceSequenceAssoc       = null;
     private PreparedStatement psInsertPathModuleAssoc             = null;
     private PreparedStatement psInsertSuperIdReleaseAssoc         = null;
     private PreparedStatement psInsertServiceTemplate             = null;
@@ -619,6 +621,15 @@ public class CfgDatabase
 		 "FROM PathSequenceAssoc " +
 		 "WHERE PathSequenceAssoc.pathId = ?");
 
+	    psSelectSequenceSequenceAssoc           = 
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " SequenceInSequenceAssoc.parentSequenceId," +
+		 " SequenceInSequenceAssoc.childSequenceId," +
+		 " SequenceInSequenceAssoc.sequenceNb " +
+		 "FROM SequenceInSequenceAssoc " +
+		 "WHERE SequenceInSequenceAssoc.parentSequenceId = ?");
+
 	    psSelectPathModuleAssoc             =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -879,6 +890,12 @@ public class CfgDatabase
 	    psInsertPathSequenceAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO PathSequenceAssoc (pathId,sequenceId,sequenceNb) " +
+		 "VALUES(?, ?, ?)");
+	    
+	    psInsertSequenceSequenceAssoc =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO SequenceInSequenceAssoc"+
+		 "(parentSequenceId,childSequenceId,sequenceNb) "+
 		 "VALUES(?, ?, ?)");
 	    
 	    psInsertPathModuleAssoc =
@@ -1734,14 +1751,50 @@ public class CfgDatabase
 		int      sequenceId = e.getKey();
 		Sequence sequence   = e.getValue();
 		
+		HashMap<Integer,Referencable> refHashMap=
+		    new HashMap<Integer,Referencable>();
+		
+		// sequences to be referenced
+		psSelectSequenceSequenceAssoc.setInt(1,sequenceId);
+		rs = psSelectSequenceSequenceAssoc.executeQuery();
+		while (rs.next()) {
+		    int childSeqId    = rs.getInt(2);
+		    int sequenceNb    = rs.getInt(3);
+		    Sequence childSequence = sequenceHashMap.get(childSeqId);
+		    refHashMap.put(sequenceNb,childSequence);
+		}
+		
+		// modules to be referenced
 		psSelectSequenceModuleAssoc.setInt(1,sequenceId);
 		rs = psSelectSequenceModuleAssoc.executeQuery();
 		while (rs.next()) {
 		    int moduleId   = rs.getInt(2);
 		    int sequenceNb = rs.getInt(3);
-
 		    ModuleInstance module = moduleHashMap.get(moduleId);
-		    config.insertModuleReference(sequence,sequenceNb,module);
+		    refHashMap.put(sequenceNb,module);
+		}
+
+		// check that the keys are 0...size-1
+		Set<Integer> keys = refHashMap.keySet();
+		Set<Integer> requiredKeys = new HashSet<Integer>();
+		for (int i=0;i<refHashMap.size();i++)
+		    requiredKeys.add(new Integer(i));
+		if (!keys.containsAll(requiredKeys))
+		    System.out.println("CfgDatabase.loadConfiguration ERROR:" +
+				       "sequence '"+sequence.name()+"' has invalid " +
+				       "key set!");
+		
+		// add references to sequence
+		for (int i=0;i<refHashMap.size();i++) {
+		    Referencable r = refHashMap.get(i);
+		    if (r instanceof Sequence) {
+			Sequence s = (Sequence)r;
+			config.insertSequenceReference(sequence,i,s);
+		    }
+		    else if (r instanceof ModuleInstance) {
+			ModuleInstance m = (ModuleInstance)r;
+			config.insertModuleReference(sequence,i,m);
+		    }
 		}
 	    }
 	    
@@ -2370,16 +2423,30 @@ public class CfgDatabase
 	    Sequence sequence = config.sequence(i);
 	    int      sequenceId = sequenceHashMap.get(sequence.name());
 	    for (int sequenceNb=0;sequenceNb<sequence.entryCount();sequenceNb++) {
-		ModuleReference m = (ModuleReference)sequence.entry(sequenceNb);
-		int moduleId = moduleHashMap.get(m.name());
-		try {
-		    psInsertSequenceModuleAssoc.setInt(1,sequenceId);
-		    psInsertSequenceModuleAssoc.setInt(2,moduleId);
-		    psInsertSequenceModuleAssoc.setInt(3,sequenceNb);
-		    psInsertSequenceModuleAssoc.executeUpdate();
+		Reference r = sequence.entry(sequenceNb);
+		if (r instanceof SequenceReference) {
+		    int childSequenceId = sequenceHashMap.get(r.name());
+		    try {
+			psInsertSequenceSequenceAssoc.setInt(1,sequenceId);
+			psInsertSequenceSequenceAssoc.setInt(2,childSequenceId);
+			psInsertSequenceSequenceAssoc.setInt(3,sequenceNb);
+			psInsertSequenceSequenceAssoc.executeUpdate();
+		    }
+		    catch (SQLException e) {
+			e.printStackTrace();
+		    }
 		}
-		catch (SQLException e) {
-		    e.printStackTrace();
+		else if (r instanceof ModuleReference) {
+		    int moduleId = moduleHashMap.get(r.name());
+		    try {
+			psInsertSequenceModuleAssoc.setInt(1,sequenceId);
+			psInsertSequenceModuleAssoc.setInt(2,moduleId);
+			psInsertSequenceModuleAssoc.setInt(3,sequenceNb);
+			psInsertSequenceModuleAssoc.executeUpdate();
+		    }
+		    catch (SQLException e) {
+			e.printStackTrace();
+		    }
 		}
 	    }
 	}

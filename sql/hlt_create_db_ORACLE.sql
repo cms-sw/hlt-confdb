@@ -209,6 +209,19 @@ CREATE TABLE PathSequenceAssoc
 
 
 --
+-- TABLE 'SequenceInSequenceAssoc'
+--
+CREATE TABLE SequenceInSequenceAssoc
+(
+	parentSequenceId NUMBER		NOT NULL,
+	childSequenceId	 NUMBER		NOT NULL,
+	sequenceNb	 NUMBER(3)	NOT NULL,
+	FOREIGN KEY (parentSequenceId) REFERENCES Sequences(sequenceId),
+	FOREIGN KEY (childSequenceId)  REFERENCES Sequences(sequenceId)
+);
+
+
+--
 --
 -- SERVICES
 --
