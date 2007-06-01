@@ -7,7 +7,11 @@ import java.awt.event.*;
 
 import java.util.ArrayList;
 
+import confdb.data.SoftwareRelease;
+import confdb.data.Configuration;
 import confdb.data.Template;
+import confdb.data.ModuleTemplate;
+import confdb.data.ESSourceTemplate;
 import confdb.data.Instance;
 import confdb.data.Parameter;
 
@@ -27,6 +31,9 @@ public class ValidatedNameDialog extends JDialog implements PropertyChangeListen
     // member data
     //
     
+    /** the configuration this needs to be added to */
+    private Configuration config = null;
+
     /** the component template */
     private Template template = null;
 
@@ -61,27 +68,29 @@ public class ValidatedNameDialog extends JDialog implements PropertyChangeListen
     //
     
     /** standard constructor */
-    public ValidatedNameDialog(JFrame frame,Template template)
+    public ValidatedNameDialog(JFrame frame,Configuration config,Template template)
     {
 	super(frame,true);
+	this.config = config;
 	this.template = template;
 	
 	instanceParameters = new ArrayList<Parameter>();
 	for (int i=0;i<template.parameterCount();i++)
 	    instanceParameters.add(template.parameter(i).clone(null));
-	
-	setTitle(template.type() + " Instance Name");
+
+	if (template instanceof ModuleTemplate)
+	    setTitle(template.type() + " Instance Name");
+	else if (template instanceof ESSourceTemplate)
+	    setTitle("ESSource Instance Name");
 	
 	// text field label
-	String labelInstanceName =
-	    "Enter the Name of the " + template.name() + " instance: ";
+	String labelInstanceName = "Name of the " + template.name() + " instance: ";
 	
 	// text field
 	textFieldInstanceName = new JTextField(20);
-	initTextField();
-
+	
 	// parameter table label
-	String labelInstanceParameters = "Enter a unique set of parameter values: ";
+	String labelInstanceParameters = "Parameters of the instance: ";
 	
 	// parameter table
 	treeModel      = new ParameterTreeModel();
@@ -170,15 +179,15 @@ public class ValidatedNameDialog extends JDialog implements PropertyChangeListen
 	    optionPane.setValue(JOptionPane.UNINITIALIZED_VALUE);
 	    
 	    if (ok.equals(value)) {
-		if (isValidInstanceName(textFieldInstanceName.getText())&&
-		    template.isUniqueParameterSet(instanceParameters)) {
+		if (isValid(textFieldInstanceName.getText())) {
 		    instanceName = textFieldInstanceName.getText();
 		    validChoice = true;
 		    textFieldInstanceName.setText(null);
 		    setVisible(false);
 		}
 		else {
-		    initTextField();
+		    System.out.println("Invalid instance name!");
+		    textFieldInstanceName.setText("");
 		    textFieldInstanceName.requestFocusInWindow();
 		}
 	    }
@@ -189,24 +198,13 @@ public class ValidatedNameDialog extends JDialog implements PropertyChangeListen
 	    }
 	}   
     }
-    
-    /** validate the entered instance name */
-    private boolean isValidInstanceName(String instanceName)
+
+    /** check if the entered label name is valid */
+    boolean isValid(String instanceName)
     {
-	if (!instanceName.startsWith(template.name())) return false;
-	if (instanceName.length()>template.name().length()) {
-	    if (!instanceName.startsWith(template.name()+"_")) return false;
-	    if (instanceName.length()==template.name().length()+1) return false;
-	}
-	if (template.hasInstance(instanceName)) return false;
-	return true;
-    } 
-    
-    /** initialize the text field with a hint to what's valid */
-    private void initTextField()
-    {
-	textFieldInstanceName.setText(template.name()+"_");
-	textFieldInstanceName.setCaretPosition(template.name().length()+1);
+	return (instanceName.length()>0&&
+		instanceName.indexOf('_')<0&&
+		config.isUniqueQualifier(instanceName));
     }
     
 }

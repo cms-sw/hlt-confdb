@@ -2,6 +2,7 @@ package confdb.converter;
 
 import java.util.ArrayList;
 
+import confdb.data.SoftwareRelease;
 import confdb.data.ConfigInfo;
 import confdb.data.Configuration;
 import confdb.data.Directory;
@@ -22,11 +23,11 @@ import confdb.data.Template;
 
 public class ConfigModifier extends Configuration 
 {
-	private Configuration orig = null;
+    private Configuration orig = null;
     private ArrayList<Path> paths = new ArrayList<Path>();
     private ArrayList<ModuleInstance> modules = new ArrayList<ModuleInstance>();
-	
-	public ConfigModifier( Configuration orig, Path newEndpath )
+    
+    public ConfigModifier( Configuration orig, Path newEndpath )
 	{
 		this.orig = orig;
 
@@ -162,10 +163,10 @@ public class ConfigModifier extends Configuration
 		return orig.indexOfService(service);
 	}
 
-	public void initialize(ConfigInfo configInfo, ArrayList<Template> edsourceTemplateList, ArrayList<Template> essourceTemplateList, ArrayList<Template> serviceTemplateList, ArrayList<Template> moduleTemplateList) {
-		orig.initialize(configInfo, edsourceTemplateList, essourceTemplateList, serviceTemplateList, moduleTemplateList);
-	}
-
+        public void initialize(ConfigInfo configInfo,SoftwareRelease release) {
+	        orig.initialize(configInfo,release);
+        }
+    
 	public EDSourceInstance insertEDSource(String templateName) {
 		return orig.insertEDSource(templateName);
 	}
@@ -215,7 +216,7 @@ public class ConfigModifier extends Configuration
 	}
 
 	public ModuleTemplate moduleTemplate(String templateName) {
-		return orig.moduleTemplate(templateName);
+		return orig.release().moduleTemplate(templateName);
 	}
 
 	public String name() {
@@ -332,10 +333,6 @@ public class ConfigModifier extends Configuration
 
 	public int unsetTrackedServiceParameterCount() {
 		return orig.unsetTrackedServiceParameterCount();
-	}
-
-	public void updateHashMaps(ArrayList<Template> edsourceTemplateList, ArrayList<Template> essourceTemplateList, ArrayList<Template> serviceTemplateList, ArrayList<Template> moduleTemplateList) {
-		orig.updateHashMaps(edsourceTemplateList, essourceTemplateList, serviceTemplateList, moduleTemplateList);
 	}
 
 	public int version() {

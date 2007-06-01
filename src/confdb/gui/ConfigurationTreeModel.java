@@ -425,5 +425,5 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	return null;
     }
-
+    
 }

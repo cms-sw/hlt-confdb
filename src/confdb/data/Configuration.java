@@ -20,20 +20,11 @@ public class Configuration
     /** configuration information */
     private ConfigInfo configInfo = null;
     
+    /** current software release */
+    private SoftwareRelease release = null;
+
     /** has the configuration changed since the last 'save' operation? */
     private boolean hasChanged = false;
-    
-    /** edsource template hash map */
-    private HashMap<String,Template> edsourceTemplateHashMap = null;
-
-    /** essource template hash map */
-    private HashMap<String,Template> essourceTemplateHashMap = null;
-
-    /** service template hash map */
-    private HashMap<String,Template> serviceTemplateHashMap  = null;
-
-    /** module template hash map */
-    private HashMap<String,Template> moduleTemplateHashMap   = null;
     
     /** list of globale parameter sets */
     private ArrayList<PSetParameter> psets = null;
@@ -64,11 +55,6 @@ public class Configuration
     /** empty constructor */
     public Configuration()
     {
-	edsourceTemplateHashMap = new HashMap<String,Template>();
-	essourceTemplateHashMap = new HashMap<String,Template>();
-	serviceTemplateHashMap  = new HashMap<String,Template>();
-	moduleTemplateHashMap   = new HashMap<String,Template>();
-	
 	psets     = new ArrayList<PSetParameter>();
 	edsources = new ArrayList<EDSourceInstance>();
 	essources = new ArrayList<ESSourceInstance>();
@@ -79,17 +65,8 @@ public class Configuration
     }
     
     /** standard constructor */
-    public Configuration(ConfigInfo configInfo,
-			 ArrayList<Template> edsourceTemplateList,
-			 ArrayList<Template> essourceTemplateList,
-			 ArrayList<Template> serviceTemplateList,
-			 ArrayList<Template> moduleTemplateList)
+    public Configuration(ConfigInfo configInfo,SoftwareRelease release)
     {
-	edsourceTemplateHashMap = new HashMap<String,Template>();
-	essourceTemplateHashMap = new HashMap<String,Template>();
-	serviceTemplateHashMap  = new HashMap<String,Template>();
-	moduleTemplateHashMap   = new HashMap<String,Template>();
-	
 	psets     = new ArrayList<PSetParameter>();
 	edsources = new ArrayList<EDSourceInstance>();
 	essources = new ArrayList<ESSourceInstance>();
@@ -98,11 +75,7 @@ public class Configuration
 	paths     = new ArrayList<Path>();
 	sequences = new ArrayList<Sequence>();
 	
-	initialize(configInfo,
-		   edsourceTemplateList,
-		   essourceTemplateList,
-		   serviceTemplateList,
-		   moduleTemplateList);
+	initialize(configInfo,release);
     }
     
     
@@ -111,20 +84,12 @@ public class Configuration
     //
 
     /** new configuration*/
-    public void initialize(ConfigInfo configInfo,
-			   ArrayList<Template> edsourceTemplateList,
-			   ArrayList<Template> essourceTemplateList,
-			   ArrayList<Template> serviceTemplateList,
-			   ArrayList<Template> moduleTemplateList)
+    public void initialize(ConfigInfo configInfo,SoftwareRelease release)
     {
 	this.configInfo = configInfo;
+	this.release    = release;
 	
 	setHasChanged(false);
-	
-	updateHashMaps(edsourceTemplateList,
-		       essourceTemplateList,
-		       serviceTemplateList,
-		       moduleTemplateList);
 
 	psets.clear();
 	edsources.clear();
@@ -135,39 +100,14 @@ public class Configuration
 	sequences.clear();
     }
 
-    /** update template hash maps */
-    public void updateHashMaps(ArrayList<Template> edsourceTemplateList,
-			       ArrayList<Template> essourceTemplateList,
-			       ArrayList<Template> serviceTemplateList,
-			       ArrayList<Template> moduleTemplateList)
-    {
-	edsourceTemplateHashMap.clear();
-	essourceTemplateHashMap.clear();
-	serviceTemplateHashMap.clear();
-	moduleTemplateHashMap.clear();
-	
-	for (Template t : edsourceTemplateList)
-	    edsourceTemplateHashMap.put(t.name(),t);
-	for (Template t : essourceTemplateList)
-	    essourceTemplateHashMap.put(t.name(),t);
-	for (Template t : serviceTemplateList)
-	    serviceTemplateHashMap.put(t.name(),t);
-	for (Template t : moduleTemplateList)
-	    moduleTemplateHashMap.put(t.name(),t);
-    }
-
     /** reset configuration */
     public void reset()
     { 
 	configInfo = null;
+	release    = null;
 	
 	setHasChanged(false);
 	
-	edsourceTemplateHashMap.clear();
-	essourceTemplateHashMap.clear();
-	serviceTemplateHashMap.clear();
-	moduleTemplateHashMap.clear();
-
 	psets.clear();
 	edsources.clear();
 	essources.clear();
@@ -264,11 +204,46 @@ public class Configuration
 	return (configInfo!=null) ? configInfo.releaseTag() : "";
     }
     
+    /** get the software release */
+    public SoftwareRelease release() { return release; }
+
     /** indicate if configuration must be saved */
     public boolean hasChanged() { return hasChanged; }
     
     /** set the 'hasChanged' flag */
     public void setHasChanged(boolean hasChanged) { this.hasChanged = hasChanged; }
+
+    /** check if a qualifier is unique */
+    public boolean isUniqueQualifier(String qualifier)
+    {
+	for (ESSourceInstance ess : essources)
+	    if (ess.name().equals(qualifier)) return false;
+	for (ModuleInstance m : modules)
+	    if (m.name().equals(qualifier)) return false;
+	for (Path p : paths)
+	    if (p.name().equals(qualifier)) return false;
+	for (Sequence s : sequences)
+	    if (s.name().equals(qualifier)) return false;
+	return true;
+    }
+    
+    /** check if the reference container has a unique qualifier */
+    public boolean hasUniqueQualifier(ReferenceContainer container)
+    {
+	for (ESSourceInstance ess : essources)
+	    if (ess.name().equals(container.name())) return false;
+	for (ModuleInstance m : modules)
+	    if (m.name().equals(container.name())) return false;
+	for (Path p : paths) {
+	    if (p==container) continue;
+	    if (p.name().equals(container.name())) return false;
+	}
+	for (Sequence s : sequences) {
+	    if (s==container) continue;
+	    if (s.name().equals(container.name())) return false;
+	}
+	return true;
+    }
 
 
     //
@@ -387,7 +362,7 @@ public class Configuration
     {
 	if (edsourceCount()>0) return null;
 	EDSourceTemplate template =
-	    (EDSourceTemplate)edsourceTemplateHashMap.get(templateName);
+	    (EDSourceTemplate)release.edsourceTemplate(templateName);
 	EDSourceInstance instance = null;
 	try {
 	    instance = (EDSourceInstance)template.instance();
@@ -428,10 +403,11 @@ public class Configuration
     
     /** insert ESSource at i=th position */
     public ESSourceInstance insertESSource(int i,
-					   String templateName,String instanceName)
+					   String templateName,
+					   String instanceName)
     {
 	ESSourceTemplate template =
-	    (ESSourceTemplate)essourceTemplateHashMap.get(templateName);
+	    (ESSourceTemplate)release.essourceTemplate(templateName);
 	ESSourceInstance instance = null;
 	try {
 	    instance = (ESSourceInstance)template.instance(instanceName);
@@ -474,7 +450,7 @@ public class Configuration
     public ServiceInstance insertService(int i,String templateName)
     {
 	ServiceTemplate template =
-	    (ServiceTemplate)serviceTemplateHashMap.get(templateName);
+	    (ServiceTemplate)release.serviceTemplate(templateName);
 	ServiceInstance instance = null;
 	try {
 	    instance = (ServiceInstance)template.instance();
@@ -513,18 +489,12 @@ public class Configuration
 	return modules.indexOf(module);
     }
     
-    /** get module template by name, from hash map */
-    public ModuleTemplate moduleTemplate(String templateName)
-    {
-	return (ModuleTemplate)moduleTemplateHashMap.get(templateName);
-    }
-
     /** insert a module */
     public ModuleInstance insertModule(String templateName,String instanceName)
     {
-	ModuleTemplate  template =
-	    (ModuleTemplate)moduleTemplateHashMap.get(templateName);
-	ModuleInstance  instance  = null;
+	ModuleTemplate template =
+	    (ModuleTemplate)release.moduleTemplate(templateName);
+	ModuleInstance instance = null;
 	try {
 	    instance = (ModuleInstance)template.instance(instanceName);
 	}

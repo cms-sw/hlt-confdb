@@ -8,10 +8,12 @@ import java.awt.event.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import confdb.gui.menu.ScrollableMenu;
 
 import confdb.data.*;
+
 
 /**
  * ConfigurationTreeMouseListener
@@ -32,17 +34,8 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
     /** reference to the configuration tree-model */
     private ConfigurationTreeModel treeModel = null;
     
-    /** list of available service templates */
-    private ArrayList<Template> services = null;
-    
-    /** list of available event data source templates */
-    private ArrayList<Template>  edsources= null;
-    
-    /** list of available event setup source templates */
-    private ArrayList<Template> essources = null;
-    
-    /** list of available module templates */
-    private ArrayList<Template> modules = null;
+    /** current software release */
+    private SoftwareRelease release = null;
 
     /** popup mneu associated with global psets */
     private JPopupMenu popupPSets = null;
@@ -93,22 +86,16 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
     
     /** standard constructor */
     public ConfigurationTreeMouseListener(JTree tree, JFrame frame,
-					  ArrayList<Template> services,
-					  ArrayList<Template> edsources,
-					  ArrayList<Template> essources,
-					  ArrayList<Template> modules)
+					  SoftwareRelease release)
     {
 	this.tree      = tree;
 	this.treeModel = (ConfigurationTreeModel)tree.getModel();
-	this.services  = services;
-	this.modules   = modules;
-	this.edsources = edsources;
-	this.essources = essources;
+	this.release   = release;
 	
 	psetListener     = new PSetMenuListener(tree,frame);
 	serviceListener  = new ServiceMenuListener(tree);
 	edsourceListener = new EDSourceMenuListener(tree);
-	essourceListener = new ESSourceMenuListener(tree);
+	essourceListener = new ESSourceMenuListener(tree,frame);
 	pathListener     = new PathMenuListener(tree,frame);
 	moduleListener   = new ModuleMenuListener(tree,frame);
 	sequenceListener = new SequenceMenuListener(tree,frame);
@@ -247,7 +234,9 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    popupEDSources.add(edsourceMenu);
 	}
 	else {
-	    for (Template t : edsources) {
+	    Iterator it = release.edsourceTemplateIterator();
+	    while (it.hasNext()) {
+		EDSourceTemplate t = (EDSourceTemplate)it.next();
 		menuItem = new JMenuItem(t.name());
 		menuItem.addActionListener(edsourceListener);
 		edsourceMenu.add(menuItem);
@@ -273,7 +262,9 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	// 'ESSources' or specific event setup source
 	if (depth>=2&&depth<=3) {
 	    JMenu essourceMenu = new JMenu("Add ESSource");
-	    for (Template t : essources) {
+	    Iterator it = release.essourceTemplateIterator();
+	    while (it.hasNext()) {
+		ESSourceTemplate t = (ESSourceTemplate)it.next();
 		if (t.instanceCount()>0) {
 		    JMenu instanceMenu = new JMenu(t.name());
 		    for (int i=0;i<t.instanceCount();i++) {
@@ -314,7 +305,9 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	int depth = tree.getSelectionPath().getPathCount();
 	
 	JMenu serviceMenu = new JMenu("Add Service");
-	for (Template t : services) {
+	Iterator it = release.serviceTemplateIterator();
+	while (it.hasNext()) {
+	    ServiceTemplate t = (ServiceTemplate)it.next();
 	    menuItem = new JMenuItem(t.name());
 	    if (t.instanceCount()>0) menuItem.setEnabled(false);
 	    else menuItem.addActionListener(serviceListener);
@@ -432,6 +425,8 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	Object   node     = treePath.getPathComponent(depth-1);
 	Object   parent   = treePath.getPathComponent(depth-2);
 	
+	Configuration config = (Configuration)treeModel.getRoot();
+	
 	if (depth==2) {
 	    menuItem = new JMenuItem("Add Sequence");
 	    menuItem.addActionListener(sequenceListener);
@@ -445,10 +440,6 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    
 	    JMenu addSequenceMenu = createAddSequenceMenu(sequence,sequenceListener);
 	    popupSequences.add(addSequenceMenu);
-	    
-	    //menuItem = new JMenuItem("Add Sequence");
-	    //menuItem.addActionListener(sequenceListener);
-	    //popupSequences.add(menuItem);
 	    
 	    popupSequences.addSeparator();
 	    
@@ -465,7 +456,13 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 
 	    JMenu addModuleMenu = createAddModuleMenu(sequence,sequenceListener);
 	    popupSequences.add(addModuleMenu);
-
+	    
+	    if (config.sequenceCount()>1) {
+		JMenu addSequenceMenu = createAddSequenceMenu(sequence,
+							      sequenceListener);
+		popupSequences.add(addSequenceMenu);
+	    }
+	    
 	    menuItem = new JMenuItem("Remove Module");
 	    menuItem.addActionListener(sequenceListener);
 	    popupSequences.add(menuItem);
@@ -482,8 +479,10 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	
 	HashMap<String,JMenu> menuHashMap = new HashMap<String,JMenu>();
 	
-	for (Template t : modules) {
-
+	Iterator it = release.moduleTemplateIterator();
+	while (it.hasNext()) {
+	    ModuleTemplate t = (ModuleTemplate)it.next();
+	    
 	    JMenu moduleTypeMenu;
 	    JMenu moduleTypeAllMenu;
 	    JMenu moduleTypeAndLetterMenu;
@@ -503,7 +502,6 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 		moduleTypeAllMenu = menuHashMap.get(moduleTypeAll);
 	    }
 	    
-
 	    String moduleLetter = t.name().substring(0,1);
 	    String moduleTypeAndLetter = t.type() + moduleLetter;
 	    if (!menuHashMap.containsKey(moduleTypeAndLetter)) {
@@ -652,7 +650,7 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	int      index    = e.getChildIndices()[0];
 	Object   child    = e.getChildren()[0];
 	Object   parent   = treePath.getLastPathComponent();
-	
+
 	Configuration      config = (Configuration)treeModel.getRoot();
 	ReferenceContainer container = null;
 	
@@ -660,21 +658,11 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	
 	if (parent.equals(treeModel.pathsNode())) {
 	    Path newPath = config.path(index);
-	    for (int i=0;i<config.pathCount();i++) {
-		if (i==index) continue;
-		Path path = config.path(i);
-		if (0==path.name().compareToIgnoreCase(newPath.name()))
-		    container = newPath;
-	    }
+	    if (!config.hasUniqueQualifier(newPath)) container = newPath;
 	}
 	else if (parent.equals(treeModel.sequencesNode())) {
 	    Sequence newSequence = config.sequence(index);
-	    for (int i=0;i<config.sequenceCount();i++) {
-		if (i==index) continue;
-		Sequence sequence = config.sequence(i);
-		if (0==sequence.name().compareToIgnoreCase(newSequence.name()))
-		    container = newSequence;
-	    }
+	    if (!config.hasUniqueQualifier(newSequence)) container = newSequence;
 	}
 	if (container!=null) {
 	    TreePath containerTreePath = treePath.pathByAddingChild(child);
@@ -816,13 +804,17 @@ class ESSourceMenuListener implements ActionListener
     /** reference to the tree to be manipulated */
     private JTree tree = null;
 
+    /** reference to the parent frame */
+    private JFrame frame = null;
+    
     /** reference to the tree model */
     private ConfigurationTreeModel treeModel = null;
     
     /** standard constructor */
-    public ESSourceMenuListener(JTree tree)
+    public ESSourceMenuListener(JTree tree, JFrame frame)
     {
 	this.tree = tree;
+	this.frame = frame;
 	this.treeModel = (ConfigurationTreeModel)tree.getModel();
     }
     
@@ -852,20 +844,33 @@ class ESSourceMenuListener implements ActionListener
 		ESSourceInstance essource = (ESSourceInstance)node;
 		insertIndex = config.indexOfESSource(essource) + 1;
 	    }
-	    if (cmd.equals("New Instance")) {
-		// TODO: dialog
-		String templateName = source.getActionCommand();
-		config.insertESSource(insertIndex,templateName,templateName);
+	    String templateName = (cmd.equals("New Instance")) ?
+		source.getActionCommand() : cmd;
+	    ESSourceTemplate template=config.release().essourceTemplate(templateName);
+
+	    ValidatedNameDialog dialog = new ValidatedNameDialog(frame,
+								 config,
+								 template);
+	    dialog.pack();
+	    dialog.setLocationRelativeTo(frame);
+	    dialog.setVisible(true);
+	    if (dialog.success()) {
+		String instanceName = dialog.instanceName();
+		System.out.println("instanceName = " + instanceName);
+		ArrayList<Parameter> parameters = dialog.instanceParameters();
+		ESSourceInstance instance =
+		    config.insertESSource(insertIndex,templateName,instanceName);
+		instance.setParameters(parameters);
+		
+		treeModel.nodeInserted(treeModel.essourcesNode(),insertIndex);
+		
+		if (insertIndex==0) tree.expandPath(treePath);
+		TreePath parentTreePath = (depth==2) ?
+		    treePath : treePath.getParentPath();
+		TreePath newTreePath =
+		    parentTreePath.pathByAddingChild(config.essource(insertIndex));
+		tree.setSelectionPath(newTreePath);
 	    }
-	    else {
-		String templateName = cmd;
-		config.insertESSource(insertIndex,templateName,templateName);
-	    }
-	    treeModel.nodeInserted(treeModel.essourcesNode(),insertIndex);
-	    if (insertIndex==0) tree.expandPath(treePath);
-	    TreePath parentTreePath = (depth==2) ? treePath : treePath.getParentPath();
-	    TreePath newTreePath=parentTreePath.pathByAddingChild(config.essource(insertIndex));
-	    tree.setSelectionPath(newTreePath);
 	}
 	treeModel.updateLevel1Nodes();
     }
@@ -1038,7 +1043,8 @@ class PathMenuListener implements ActionListener
 	    ModuleReference reference = (ModuleReference)node;
 	    ModuleInstance  instance  = (ModuleInstance)reference.parent();
 	    ModuleTemplate  template  = (ModuleTemplate)instance.template();
-	    ValidatedNameDialog dialog = new ValidatedNameDialog(frame,template);
+	    ValidatedNameDialog dialog = new ValidatedNameDialog(frame,
+								 config,template);
 	    dialog.pack();
 	    dialog.setLocationRelativeTo(frame);
 	    dialog.setVisible(true);
@@ -1066,33 +1072,31 @@ class PathMenuListener implements ActionListener
 	}
  	// add a module to the currently selected path
 	else if (depth>=3&&depth<=4) {
-	    TreePath parentTreePath = (depth==3) ? treePath : treePath.getParentPath();
-	    Path     parentPath   = (depth==3) ? (Path)node : (Path)parent;
-	    int      insertIndex  = (depth==3) ? 0 : parentPath.indexOfEntry((Reference)node)+1;
-	    String   sequenceName = cmd;
+	    TreePath parentTreePath=(depth==3) ? treePath : treePath.getParentPath();
+	    Path     parentPath    =(depth==3) ? (Path)node : (Path)parent;
+	    int      insertIndex   =(depth==3) ? 0 : parentPath.indexOfEntry((Reference)node)+1;
 	    String   templateName = source.getActionCommand();
 	    String   instanceName = cmd;
 	    if (templateName.length()==0) templateName = cmd;
-	    if (instanceName.equals("New Instance")) {
-		Template template = config.moduleTemplate(templateName);
-		ValidatedNameDialog dialog = new ValidatedNameDialog(frame,template);
-		dialog.pack();
-		dialog.setLocationRelativeTo(frame);
-		dialog.setVisible(true);
-		if (dialog.success()) {
-		    instanceName = dialog.instanceName();
-		    ArrayList<Parameter> parameters = dialog.instanceParameters();
-		    ModuleReference reference =
-			config.insertModuleReference(parentPath,insertIndex,
-						     templateName,instanceName);
-		    ModuleInstance instance = (ModuleInstance)reference.parent();
-		    instance.setParameters(parameters);
-		}
+	    
+	    Template template = config.release().moduleTemplate(templateName);
+	    ValidatedNameDialog dialog = new ValidatedNameDialog(frame,
+								 config,template);
+	    dialog.pack();
+	    dialog.setLocationRelativeTo(frame);
+	    dialog.setVisible(true);
+	    if (dialog.success()) {
+		instanceName = dialog.instanceName();
+		ArrayList<Parameter> parameters = dialog.instanceParameters();
+		ModuleReference reference =
+		    config.insertModuleReference(parentPath,
+						 insertIndex,
+						 templateName,
+						 instanceName);
+		ModuleInstance instance = (ModuleInstance)reference.parent();
+		instance.setParameters(parameters);
+		treeModel.nodeInserted(parentPath,insertIndex);
 	    }
-	    else {
-		config.insertModuleReference(parentPath,insertIndex,templateName,instanceName);
-	    }
-	    treeModel.nodeInserted(parentPath,insertIndex);
 	}
 	treeModel.updateLevel1Nodes();
     }
@@ -1143,7 +1147,9 @@ class ModuleMenuListener implements ActionListener
 	if (cmd.equals("Rename Module")) {
 	    ModuleInstance  instance   = (ModuleInstance)node;
 	    ModuleTemplate  template   = (ModuleTemplate)instance.template();
-	    ValidatedNameDialog dialog = new ValidatedNameDialog(frame,template);
+	    ValidatedNameDialog dialog = new ValidatedNameDialog(frame,
+								 config,
+								 template);
 	    dialog.pack();
 	    dialog.setLocationRelativeTo(frame);
 	    dialog.setVisible(true);
@@ -1268,36 +1274,33 @@ class SequenceMenuListener implements ActionListener
 	    treeModel.nodeRemoved(sequence,index,reference);
 	    tree.setSelectionPath(treePath.getParentPath());
 	}
-	else {
-	    TreePath parentTreePath = (depth==3) ? treePath : treePath.getParentPath();
-	    Sequence sequence     = (depth==3) ? (Sequence)node : (Sequence)parent;
-	    int      insertIndex  = (depth==3) ? 0 : sequence.indexOfEntry((Reference)node)+1;
+	// add a module to the selected sequence
+	else if (depth>=3&&depth<=4) {
+	    TreePath parentTreePath=(depth==3) ? treePath : treePath.getParentPath();
+	    Sequence parentSequence=(depth==3) ? (Sequence)node : (Sequence)parent;
+	    int      insertIndex   =(depth==3) ? 0 : parentSequence.indexOfEntry((Reference)node)+1;
 	    String   templateName = source.getActionCommand();
 	    String   instanceName = cmd;
 	    if (templateName.length()==0) templateName = cmd;
-	    if (instanceName.equals("New Instance")) {
-		Template template = config.moduleTemplate(templateName);
-		ValidatedNameDialog dialog = new ValidatedNameDialog(frame,template);
-		dialog.pack();
-		dialog.setLocationRelativeTo(frame);
-		dialog.setVisible(true);
-		if (dialog.success()) {
-		    instanceName = dialog.instanceName();
-		    ArrayList<Parameter> parameters = dialog.instanceParameters();
-		    ModuleReference reference =
-			config.insertModuleReference(sequence,insertIndex,
-						     templateName,instanceName);
-		    ModuleInstance instance = (ModuleInstance)reference.parent();
-		    instance.setParameters(parameters);
-		}
+
+	    Template template = config.release().moduleTemplate(templateName);
+	    ValidatedNameDialog dialog = new ValidatedNameDialog(frame,
+								 config,template);
+	    dialog.pack();
+	    dialog.setLocationRelativeTo(frame);
+	    dialog.setVisible(true);
+	    if (dialog.success()) {
+		instanceName = dialog.instanceName();
+		ArrayList<Parameter> parameters = dialog.instanceParameters();
+		ModuleReference reference =
+		    config.insertModuleReference(parentSequence,
+						 insertIndex,
+						 templateName,
+						 instanceName);
+		ModuleInstance instance = (ModuleInstance)reference.parent();
+		instance.setParameters(parameters);
+		treeModel.nodeInserted(parentSequence,insertIndex);
 	    }
-	    else {
-		config.insertModuleReference(sequence,
-					     insertIndex,
-					     templateName,
-					     instanceName);
-	    }
-	    treeModel.nodeInserted(sequence,insertIndex);
 	}
 	treeModel.updateLevel1Nodes();
     }

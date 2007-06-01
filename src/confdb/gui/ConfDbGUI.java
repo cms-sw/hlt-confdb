@@ -11,6 +11,7 @@ import java.util.ArrayList;
 
 import java.util.concurrent.ExecutionException;
 
+import confdb.data.SoftwareRelease;
 import confdb.data.Configuration;
 import confdb.data.ConfigInfo;
 import confdb.data.Template;
@@ -39,6 +40,9 @@ public class ConfDbGUI implements TableModelListener
     // member data
     //
     
+    /** the current software release (collection of all templates) */
+    private SoftwareRelease release = null;
+
     /** the current configuration */
     private Configuration config = null;
     
@@ -74,18 +78,6 @@ public class ConfDbGUI implements TableModelListener
     private JEditorPane editorPaneAscii  = null;
     private JEditorPane editorPanePython = null;
     private JEditorPane editorPaneHtml   = null;
-
-    /** list of all available Event Data Source templates */
-    private ArrayList<Template> edsourceTemplateList = null;
-    
-    /** list of all available Event Setup Source templates */
-    private ArrayList<Template> essourceTemplateList = null;
-    
-    /** list of all available Service templates */
-    private ArrayList<Template> serviceTemplateList = null;
-    
-    /** list of all available Module templates */
-    private ArrayList<Template> moduleTemplateList = null;
     
 
     //
@@ -96,13 +88,10 @@ public class ConfDbGUI implements TableModelListener
     public ConfDbGUI(JFrame frame)
     {
 	this.frame           = frame;
+	release              = new SoftwareRelease();
 	config               = new Configuration();
 	database             = new CfgDatabase();
 	converterService     = new ConverterService(database);
-	serviceTemplateList  = new ArrayList<Template>();
-	edsourceTemplateList = new ArrayList<Template>();
-	essourceTemplateList = new ArrayList<Template>();
-	moduleTemplateList   = new ArrayList<Template>();
     }
     
     
@@ -134,6 +123,9 @@ public class ConfDbGUI implements TableModelListener
     /** connect to the database */
     public void connectToDatabase()
     {
+	// close currently open configuration
+	if (!closeConfiguration()) return;
+	
 	// query the database info from the user in a dialog
 	DatabaseConnectionDialog dbDialog = new DatabaseConnectionDialog(frame);
 	dbDialog.pack();
@@ -163,13 +155,12 @@ public class ConfDbGUI implements TableModelListener
     // connect to the database
     public void disconnectFromDatabase()
     {
+	if (!closeConfiguration()) return;
+	
 	try {
 	    database.disconnect();
 	    dbInfoPanel.disconnectedFromDatabase();
-	    serviceTemplateList.clear();
-	    edsourceTemplateList.clear();
-	    essourceTemplateList.clear();
-	    moduleTemplateList.clear();
+	    release.clear("");
 	}
 	catch (DatabaseException e) {
 	    String msg = "Failed to disconnect from DB: " + e.getMessage();
@@ -180,7 +171,8 @@ public class ConfDbGUI implements TableModelListener
     /** new configuration */
     public void newConfiguration()
     {
-	closeConfiguration();
+	if (!closeConfiguration()) return;
+	
 	ConfigurationNameDialog dialog = new ConfigurationNameDialog(frame,database);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
@@ -203,7 +195,7 @@ public class ConfDbGUI implements TableModelListener
     /** open configuration */
     public void openConfiguration()
     {
-	closeConfiguration();
+	if (!closeConfiguration()) return;
 	
 	OpenConfigurationDialog dialog =
 	    new OpenConfigurationDialog(frame,database);
@@ -222,12 +214,29 @@ public class ConfDbGUI implements TableModelListener
     }
 
     /** close configuration */
-    public void closeConfiguration()
+    public boolean closeConfiguration()
     {
+	if (config.isEmpty()) return true;
+	
+	if (config.hasChanged()) {
+	    Object[] options = { "OK", "CANCEL" };
+	    int answer = 
+		JOptionPane.showOptionDialog(null,
+					     "The current configuration contains "+
+					     "unsaved changes, really close?",
+					     "Warning",
+					     JOptionPane.DEFAULT_OPTION,
+					     JOptionPane.WARNING_MESSAGE,
+					     null, options, options[1]);
+	    if (answer==1) return false;
+	}
+	
+	release.clearInstances();
 	config.reset();
 	treeModel.setConfiguration(config);
 	configurationPanel.update(config);
 	instancePanel.clear();
+	return true;
     }
     
     /** save configuration */
@@ -235,8 +244,12 @@ public class ConfDbGUI implements TableModelListener
     {
 	if (config.isEmpty()) return;
 	if (!config.hasChanged()) return;
-	if (config.version()==0) { saveAsConfiguration(); return; }
 	if (!checkConfiguration()) return;	
+
+	if (config.version()==0) {
+	    saveAsConfiguration();
+	    return;
+	}
 	
 	SaveConfigurationThread worker =
 	    new SaveConfigurationThread();
@@ -276,13 +289,12 @@ public class ConfDbGUI implements TableModelListener
 	    String msg =
 		"The configuration contains " + unsetParamCount +
 		" unset tracked parameters. They must be set before saving!";
-	    JOptionPane.showMessageDialog(frame,msg,"",
-					  JOptionPane.ERROR_MESSAGE);
+	    JOptionPane.showMessageDialog(frame,msg,"",JOptionPane.ERROR_MESSAGE);
 	    return false;
 	}
 	return true;
     }
-
+    
     /** show 'create templates' dialog */
     public void createTemplates()
     {
@@ -367,7 +379,7 @@ public class ConfDbGUI implements TableModelListener
     /** create the configuration tree */
     private JPanel createTreeView(Dimension dim)
     {
-	configurationPanel = new ConfigurationPanel(database,converterService);
+	configurationPanel = new ConfigurationPanel(converterService);
 
 	// the tree
 	treeModel = new ConfigurationTreeModel(config);
@@ -375,11 +387,7 @@ public class ConfDbGUI implements TableModelListener
 	tree.addTreeSelectionListener(instancePanel);
 
 	ConfigurationTreeMouseListener mouseListener =
-	    new ConfigurationTreeMouseListener(tree,frame,
-					       serviceTemplateList,
-					       edsourceTemplateList,
-					       essourceTemplateList,
-					       moduleTemplateList);
+	    new ConfigurationTreeMouseListener(tree,frame,release);
 	tree.addMouseListener(mouseListener);
 	treeModel.addTreeModelListener(mouseListener);
 	
@@ -491,9 +499,6 @@ public class ConfDbGUI implements TableModelListener
 		
 	// try to etablish a database connection
 	app.connectToDatabase();
-
-	// reset configurations
-	app.closeConfiguration();
     }
     
 
@@ -538,14 +543,8 @@ public class ConfDbGUI implements TableModelListener
 	protected String construct() throws InterruptedException
 	{
 	    startTime = System.currentTimeMillis();
-	    if (!releaseTag.equals(database.edsourceReleaseTag()))
-		database.loadEDSourceTemplates(releaseTag,edsourceTemplateList);
-	    if (!releaseTag.equals(database.essourceReleaseTag()))
-		database.loadESSourceTemplates(releaseTag,essourceTemplateList);
-	    if (!releaseTag.equals(database.serviceReleaseTag()))
-		database.loadServiceTemplates(releaseTag,serviceTemplateList);
-	    if (!releaseTag.equals(database.moduleReleaseTag()))
-		database.loadModuleTemplates(releaseTag,moduleTemplateList);
+	    if (!releaseTag.equals(release.releaseTag()))
+		database.loadSoftwareRelease(releaseTag,release);
 	    return new String("Done!");
 	}
 	
@@ -554,11 +553,7 @@ public class ConfDbGUI implements TableModelListener
 	{
 	    try {
 		config = new Configuration();
-		config.initialize(new ConfigInfo(cfgName,null,releaseTag),
-				  edsourceTemplateList,
-				  essourceTemplateList,
-				  serviceTemplateList,
-				  moduleTemplateList);
+		config.initialize(new ConfigInfo(cfgName,null,releaseTag),release);
 		treeModel.setConfiguration(config);
 		configurationPanel.update(config);
 		long elapsedTime = System.currentTimeMillis() - startTime;
@@ -596,11 +591,7 @@ public class ConfDbGUI implements TableModelListener
 	    startTime = System.currentTimeMillis();
 
 	    config = new Configuration();
-	    config = database.loadConfiguration(configInfo,
-						edsourceTemplateList,
-						essourceTemplateList,
-						serviceTemplateList,
-						moduleTemplateList);
+	    config = database.loadConfiguration(configInfo,release);
 	    return new String("Done!");
 	}
 	
@@ -682,10 +673,8 @@ public class ConfDbGUI implements TableModelListener
 	protected String construct() throws InterruptedException
 	{
 	    startTime = System.currentTimeMillis();
-	    database.loadEDSourceTemplates(releaseTag,edsourceTemplateList);
-	    database.loadESSourceTemplates(releaseTag,essourceTemplateList);
-	    database.loadServiceTemplates(releaseTag,serviceTemplateList);
-	    database.loadModuleTemplates(releaseTag,moduleTemplateList);
+	    if (!releaseTag.equals(release.releaseTag()))
+		database.loadSoftwareRelease(releaseTag,release);
 	    return new String("Done!");
 	}
 	
@@ -693,10 +682,6 @@ public class ConfDbGUI implements TableModelListener
 	protected void finished()
 	{
 	    try {
-		config.updateHashMaps(edsourceTemplateList,
-				      essourceTemplateList,
-				      serviceTemplateList,
-				      moduleTemplateList);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		progressBar.setString(progressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");

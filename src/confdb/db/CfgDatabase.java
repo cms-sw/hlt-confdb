@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.Map;
 import java.util.HashSet;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import confdb.data.*;
 
@@ -43,12 +44,6 @@ public class CfgDatabase
     /** database type */
     private String dbType = null;
     
-    /** current release tags */
-    private String edsourceReleaseTag = "";
-    private String essourceReleaseTag = "";
-    private String serviceReleaseTag  = "";
-    private String moduleReleaseTag   = "";
-    
     /** template table name hash map */
     private HashMap<String,String> templateTableNameHashMap = null;
     
@@ -70,18 +65,6 @@ public class CfgDatabase
     /** 'selevt parameter' sql statement hash map, by parameter id */
     private HashMap<Integer,PreparedStatement> selectParameterIdHashMap = null;
     
-    /** service template-name hash map */
-    private HashMap<Integer,String> serviceTemplateNameHashMap  = null;
-
-    /** edsource template-name hash map */
-    private HashMap<Integer,String> edsourceTemplateNameHashMap = null;
-
-    /** essource template-name hash map */
-    private HashMap<Integer,String> essourceTemplateNameHashMap = null;
-
-    /** module template-name hash map */
-    private HashMap<Integer,String> moduleTemplateNameHashMap   = null;
-    
     /** prepared sql statements */
     private PreparedStatement psSelectModuleTypes                 = null;
     private PreparedStatement psSelectParameterTypes              = null;
@@ -94,6 +77,7 @@ public class CfgDatabase
 
     private PreparedStatement psSelectReleaseTags                 = null;
     private PreparedStatement psSelectReleaseTag                  = null;
+    private PreparedStatement psSelectReleaseTagByConfig          = null;
     private PreparedStatement psSelectSuperIdReleaseAssoc         = null;
     
     private PreparedStatement psSelectEDSourceTemplate            = null;
@@ -197,31 +181,12 @@ public class CfgDatabase
 	templateTableNameHashMap.put("Service",     tableServiceTemplates);
 	templateTableNameHashMap.put("EDSource",    tableEDSourceTemplates);
 	templateTableNameHashMap.put("ESSource",    tableESSourceTemplates);
-
-	// template name hash maps
-	serviceTemplateNameHashMap  = new HashMap<Integer,String>();
-	edsourceTemplateNameHashMap = new HashMap<Integer,String>();
-	essourceTemplateNameHashMap = new HashMap<Integer,String>();
-	moduleTemplateNameHashMap   = new HashMap<Integer,String>();
-
     }
     
     
     //
     // member functions
     //
-    
-    /** get current EDSource releaseTag */
-    public String edsourceReleaseTag() { return edsourceReleaseTag; }
-    
-    /** get current ESSource releaseTag */
-    public String essourceReleaseTag() { return essourceReleaseTag; }
-    
-    /** get current Service releaseTag */
-    public String serviceReleaseTag() { return serviceReleaseTag; }
-    
-    /** get current Module releaseTag */
-    public String moduleReleaseTag() { return moduleReleaseTag; }
     
     /** prepare database transaction statements */
     public boolean prepareStatements()
@@ -275,7 +240,7 @@ public class CfgDatabase
 		 " Configurations.configId," +
 		 " Configurations.config " +
 		 "FROM Configurations " +
-		 "WHERE version=1 " +
+		 "WHERE Configurations.version=1 " +
 		 "ORDER BY created DESC");
 	    
 	    psSelectConfiguration =
@@ -291,7 +256,7 @@ public class CfgDatabase
 		 " SoftwareReleases.releaseId," +
 		 " SoftwareReleases.releaseTag " +
 		 "FROM SoftwareReleases " +
-		 "ORDER BY releaseId DESC");
+		 "ORDER BY SoftwareReleases.releaseId DESC");
 	    
 	    psSelectReleaseTag =
 		dbConnector.getConnection().prepareStatement
@@ -299,7 +264,18 @@ public class CfgDatabase
 		 " SoftwareReleases.releaseId," +
 		 " SoftwareReleases.releaseTag " +
 		 "FROM SoftwareReleases " +
-		 "WHERE releaseTag = ?");
+		 "WHERE SoftwareReleases.releaseTag = ?");
+	    
+	    psSelectReleaseTagByConfig =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " SoftwareReleases.releaseId," +
+		 " SoftwareReleases.releaseTag " +
+		 "FROM SoftwareReleases " +
+		 "JOIN ConfigurationReleaseAssoc " +
+		 "ON ConfigurationReleaseAssoc.releaseId =" +
+		 " SoftwareReleases.releaseId " +
+		 "WHERE ConfigurationReleaseAssoc.configId = ?");
 	    
 	    psSelectSuperIdReleaseAssoc =
 		dbConnector.getConnection().prepareStatement
@@ -457,7 +433,7 @@ public class CfgDatabase
 
 	    psSelectModuleTemplatesByConfigPath =
 		dbConnector.getConnection().prepareStatement
-		("SELECT" +
+		("SELECT DISTINCT" +
 		 " ModuleTemplates.superId," +
 		 " ModuleTypes.type," +
 		 " ModuleTemplates.name," +
@@ -476,7 +452,7 @@ public class CfgDatabase
 
 	    psSelectModuleTemplatesByConfigSeq =
 		dbConnector.getConnection().prepareStatement
-		("SELECT" +
+		("SELECT DISTINCT" +
 		 " ModuleTemplates.superId," +
 		 " ModuleTypes.type," +
 		 " ModuleTemplates.name," +
@@ -1166,7 +1142,6 @@ public class CfgDatabase
     public boolean connect(String dbType,String dbUrl,String dbUser,String dbPwrd)
 	throws DatabaseException
     {
-	
 	if (dbType.equals(dbTypeMySQL))
 	    dbConnector = new MySQLDatabaseConnector(dbUrl,dbUser,dbPwrd);
 	else if (dbType.equals(dbTypeOracle))
@@ -1266,156 +1241,133 @@ public class CfgDatabase
     }
 
     /** load single edsource template by release / name */
-    public EDSourceTemplate loadEDSourceTemplate(String releaseTag,
-						 String name)
+    public EDSourceTemplate loadEDSourceTemplate(String releaseTag,String name)
     {
-	ArrayList<Template> templateList = new ArrayList<Template>();;
+	//ArrayList<Template> templateList = new ArrayList<Template>();
+	SoftwareRelease release = new SoftwareRelease();
+	release.clear(releaseTag);
 	try {
 	    psSelectEDSourceTemplateByRelease.setString(1,releaseTag);
 	    psSelectEDSourceTemplateByRelease.setString(2,name);
-	    loadTemplates(psSelectEDSourceTemplateByRelease,"EDSource",templateList);
+	    loadTemplates(psSelectEDSourceTemplateByRelease,"EDSource",release);
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
 	}
-	return
-	    (templateList.size()==1) ? (EDSourceTemplate)templateList.get(0) : null;
+	Iterator it = release.edsourceTemplateIterator();
+	return (it.hasNext()) ? (EDSourceTemplate)it.next() : null;
     }
     
-    /** load edsource templates by release */
-    public int loadEDSourceTemplates(String releaseTag,
-				     ArrayList<Template> templateList)
+    /** load a full software release */
+    public void loadSoftwareRelease(String releaseTag,SoftwareRelease release)
     {
-	templateList.clear();
+	release.clear(releaseTag);
+	
+	// load EDSourceTemplates
 	try {
 	    psSelectEDSourceTemplatesByRelease.setString(1,releaseTag);
-	    loadTemplates(psSelectEDSourceTemplatesByRelease,"EDSource",templateList);
+	    loadTemplates(psSelectEDSourceTemplatesByRelease,"EDSource",release);
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
 	}
-	edsourceReleaseTag = releaseTag;
-	return templateList.size();
+	
+	// load ESSourceTemplates
+	try {
+ 	    psSelectESSourceTemplatesByRelease.setString(1,releaseTag);
+ 	    loadTemplates(psSelectESSourceTemplatesByRelease,"ESSource",release);
+ 	}
+ 	catch (SQLException e) {
+ 	    e.printStackTrace();
+ 	}
+
+	// load ServiceTemplates
+	try {
+ 	    psSelectServiceTemplatesByRelease.setString(1,releaseTag);
+ 	    loadTemplates(psSelectServiceTemplatesByRelease,"Service",release);
+ 	}
+ 	catch (SQLException e) {
+ 	    e.printStackTrace();
+ 	}
+	
+	// load ModuleTemplates
+	try {
+ 	    psSelectModuleTemplatesByRelease.setString(1,releaseTag);
+ 	    loadTemplates(psSelectModuleTemplatesByRelease,"Module",release);
+ 	}
+ 	catch (SQLException e) {
+ 	    e.printStackTrace();
+ 	}
+ 	
     }
-    
-    /** load edsource templates by configuration */
-    public int loadEDSourceTemplates(int configId,
-				     ArrayList<Template> templateList)
+
+    /** load a partial software release: all the templates instantiated in config */
+    public void loadPartialSoftwareRelease(int configId,SoftwareRelease release)
     {
-	templateList.clear();
+	String releaseTag = null;
+	ResultSet rs = null;
+	try {
+	    psSelectReleaseTagByConfig.setInt(1,configId);
+	    rs = psSelectReleaseTagByConfig.executeQuery();
+	    rs.next();
+	    releaseTag = rs.getString(2);
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+	
+	if (releaseTag==null) return;
+
+	release.clear(releaseTag);
+
+	// EDSources
 	try {
 	    psSelectEDSourceTemplatesByConfig.setInt(1,configId);
-	    loadTemplates(psSelectEDSourceTemplatesByConfig,"EDSource",templateList);
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	}
-	edsourceReleaseTag = "";
-	return templateList.size();
-    }
-    
-    /** load essource templates by release */
-    public int loadESSourceTemplates(String releaseTag,
-				     ArrayList<Template> templateList)
-    {	
-	templateList.clear();
+ 	    loadTemplates(psSelectEDSourceTemplatesByConfig,"EDSource",release);
+ 	}
+ 	catch (SQLException e) {
+ 	    e.printStackTrace();
+ 	}
+ 	
+	// ESSources
 	try {
-	    psSelectESSourceTemplatesByRelease.setString(1,releaseTag);
-	    loadTemplates(psSelectESSourceTemplatesByRelease,"ESSource",templateList);
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	}
-	essourceReleaseTag = releaseTag;
-	return templateList.size();
+ 	    psSelectESSourceTemplatesByConfig.setInt(1,configId);
+ 	    loadTemplates(psSelectESSourceTemplatesByConfig,"ESSource",release);
+ 	}
+ 	catch (SQLException e) {
+ 	    e.printStackTrace();
+ 	}
+
+	// Services
+	try {
+ 	    psSelectServiceTemplatesByConfig.setInt(1,configId);
+ 	    loadTemplates(psSelectServiceTemplatesByConfig,"Service",release);
+ 	}
+ 	catch (SQLException e) {
+ 	    e.printStackTrace();
+ 	}
+	
+	// Modules
+	try {
+ 	    psSelectModuleTemplatesByConfigPath.setInt(1,configId);
+ 	    loadTemplates(psSelectModuleTemplatesByConfigPath,"Module",release);
+ 	    psSelectModuleTemplatesByConfigSeq.setInt(1,configId);
+ 	    loadTemplates(psSelectModuleTemplatesByConfigSeq,"Module",release);
+ 	}
+ 	catch (SQLException e) {
+ 	    e.printStackTrace();
+ 	}
+ 	
     }
 
-    /** load essource templates by configuration */
-    public int loadESSourceTemplates(int configId,
-				     ArrayList<Template> templateList)
-    {
-	templateList.clear();
-	try {
-	    psSelectESSourceTemplatesByConfig.setInt(1,configId);
-	    loadTemplates(psSelectESSourceTemplatesByConfig,"ESSource",templateList);
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	}
-	essourceReleaseTag = "";
-	return templateList.size();
-    }
-
-    /** load service templates by release */
-    public int loadServiceTemplates(String releaseTag,
-				    ArrayList<Template> templateList)
-    {
-	templateList.clear();
-	try {
-	    psSelectServiceTemplatesByRelease.setString(1,releaseTag);
-	    loadTemplates(psSelectServiceTemplatesByRelease,"Service",templateList);
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	}
-	serviceReleaseTag = releaseTag;
-	return templateList.size();
-    }
-
-    /** load service templates by configuration */
-    public int loadServiceTemplates(int configId,
-				    ArrayList<Template> templateList)
-    {
-	templateList.clear();
-	try {
-	    psSelectServiceTemplatesByConfig.setInt(1,configId);
-	    loadTemplates(psSelectServiceTemplatesByConfig,"Service",templateList);
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	}
-	serviceReleaseTag = "";
-	return templateList.size();
-    }
-    
-    /** load module templates by release */
-    public int loadModuleTemplates(String releaseTag,
-				   ArrayList<Template> templateList)
-    {
-	templateList.clear();
-	try {
-	    psSelectModuleTemplatesByRelease.setString(1,releaseTag);
-	    loadTemplates(psSelectModuleTemplatesByRelease,"Module",templateList);
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	}
-	moduleReleaseTag = releaseTag;
-	return templateList.size();
-    }
-    
-    /** load module templates by configuration */
-    public int loadModuleTemplates(int configId,
-				   ArrayList<Template> templateList)
-    {
-	templateList.clear();
-	try {
-	    psSelectModuleTemplatesByConfigPath.setInt(1,configId);
-	    loadTemplates(psSelectModuleTemplatesByConfigPath,"Module",templateList);
-	    psSelectModuleTemplatesByConfigSeq.setInt(1,configId);
-	    loadTemplates(psSelectModuleTemplatesByConfigSeq,"Module",templateList);
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	}
-	moduleReleaseTag = "";
-	return templateList.size();
-    }
     
     /** load templates, given the already prepared statement */
     public void loadTemplates(PreparedStatement   psSelectTemplates,
 			      String              templateType,
-			      ArrayList<Template> templateList)
+			      SoftwareRelease     release)
     {
 	ResultSet rs = null;
 	try {
@@ -1460,8 +1412,9 @@ public class CfgDatabase
 		    // END DEBUG
 		}
 		else {
-		    templateList.add(TemplateFactory
-				     .create(type,name,cvsTag,superId,parameters));
+		    //templateList.add(TemplateFactory
+		    release.addTemplate(TemplateFactory
+					.create(type,name,cvsTag,superId,parameters));
 		}
 	    }
 	}
@@ -1474,68 +1427,16 @@ public class CfgDatabase
     
     /** load a configuration&templates from the database */
     public Configuration loadConfiguration(ConfigInfo configInfo,
-					   ArrayList<Template> edsourceTemplateList,
-					   ArrayList<Template> essourceTemplateList,
-					   ArrayList<Template> serviceTemplateList,
-					   ArrayList<Template> moduleTemplateList)
+					   SoftwareRelease release)
     {
 	Configuration config = null;
 	
 	String releaseTag = configInfo.releaseTag();
 	
-	// EDSources
-	if (!releaseTag.equals(edsourceReleaseTag)) {
-	    edsourceTemplateList.clear();
-	    edsourceTemplateNameHashMap.clear();
-	    loadEDSourceTemplates(releaseTag,edsourceTemplateList);
-	}
-	if (edsourceTemplateList.size()!=edsourceTemplateNameHashMap.size()) {
-	    edsourceTemplateNameHashMap.clear();
-	    for (Template t : edsourceTemplateList)
-		edsourceTemplateNameHashMap.put(t.dbSuperId(),t.name());
-	}
+	if (!releaseTag.equals(release.releaseTag()))
+	    loadSoftwareRelease(releaseTag,release);
 	
-	// ESSources
-	if (!releaseTag.equals(essourceReleaseTag)) {
-	    essourceTemplateList.clear();
-	    essourceTemplateNameHashMap.clear();
-	    loadESSourceTemplates(releaseTag,essourceTemplateList);
-	}
-	if (essourceTemplateList.size()!=essourceTemplateNameHashMap.size()) {
-	    essourceTemplateNameHashMap.clear();
-	    for (Template t : essourceTemplateList)
-		essourceTemplateNameHashMap.put(t.dbSuperId(),t.name());
-	}
-	
-	// Services
-	if (!releaseTag.equals(serviceReleaseTag)) {
-	    serviceTemplateList.clear();
-	    serviceTemplateNameHashMap.clear();
-	    loadServiceTemplates(releaseTag,serviceTemplateList);
-	}
-	if (serviceTemplateList.size()!=serviceTemplateNameHashMap.size()) {
-	    serviceTemplateNameHashMap.clear();
-	    for (Template t : serviceTemplateList)
-		serviceTemplateNameHashMap.put(t.dbSuperId(),t.name());
-	}
-
-	// Modules
-	if (!releaseTag.equals(moduleReleaseTag)) {
-	    moduleTemplateList.clear();
-	    moduleTemplateNameHashMap.clear();
-	    loadModuleTemplates(releaseTag,moduleTemplateList);
-	}
-	    if (moduleTemplateList.size()!=moduleTemplateNameHashMap.size()) {
-		moduleTemplateNameHashMap.clear();
-	    for (Template t : moduleTemplateList)
-		moduleTemplateNameHashMap.put(t.dbSuperId(),t.name());
-	}
-	
-	config = new Configuration(configInfo,
-				   edsourceTemplateList,
-				   essourceTemplateList,
-				   serviceTemplateList,
-				   moduleTemplateList);
+	config = new Configuration(configInfo,release);
 
 	loadConfiguration(config);
 	config.setHasChanged(false);
@@ -1546,39 +1447,16 @@ public class CfgDatabase
     /** load a configuration&templates from the database */
     public Configuration loadConfiguration(ConfigInfo configInfo)
     {
-	Configuration config   = null;
-	int           configId = configInfo.dbId();
+	Configuration config     = null;
+	int           configId   = configInfo.dbId();
+	String        releaseTag = configInfo.releaseTag();
 	
-	ArrayList<Template> edsourceTemplateList = new ArrayList<Template>();
-	ArrayList<Template> essourceTemplateList = new ArrayList<Template>();
-	ArrayList<Template> serviceTemplateList  = new ArrayList<Template>();
-	ArrayList<Template> moduleTemplateList   = new ArrayList<Template>();
-	
-	loadEDSourceTemplates(configId,edsourceTemplateList);
-	loadESSourceTemplates(configId,essourceTemplateList);
-	loadServiceTemplates(configId,serviceTemplateList);
-	loadModuleTemplates(configId,moduleTemplateList);
+	SoftwareRelease release = new SoftwareRelease();
+	release.clear(releaseTag);
+	loadPartialSoftwareRelease(configId,release);
 
-	edsourceTemplateNameHashMap.clear();
-	essourceTemplateNameHashMap.clear();
-	serviceTemplateNameHashMap.clear();
-	moduleTemplateNameHashMap.clear();
-	
-	for (Template t : edsourceTemplateList)
-	    edsourceTemplateNameHashMap.put(t.dbSuperId(),t.name());
-	for (Template t : essourceTemplateList)
-	    essourceTemplateNameHashMap.put(t.dbSuperId(),t.name());
-	for (Template t : serviceTemplateList)
-	    serviceTemplateNameHashMap.put(t.dbSuperId(),t.name());
-	for (Template t : moduleTemplateList)
-	    moduleTemplateNameHashMap.put(t.dbSuperId(),t.name());
+	config = new Configuration(configInfo,release);
 
-	config = new Configuration(configInfo,
-				   edsourceTemplateList,
-				   essourceTemplateList,
-				   serviceTemplateList,
-				   moduleTemplateList);
-	
 	loadConfiguration(config);
 	config.setHasChanged(false);
 	
@@ -1591,7 +1469,9 @@ public class CfgDatabase
 	boolean   result   = true;
 	int       configId = config.dbId();
 	ResultSet rs       = null;
-
+	
+	SoftwareRelease release = config.release();
+	
 	try {
 	    // load global PSets
 	    psSelectGlobalPSets.setInt(1,configId);
@@ -1628,7 +1508,7 @@ public class CfgDatabase
 	    if (rs.next()) {
 		int      edsourceId   = rs.getInt(1);
 		int      templateId   = rs.getInt(2);
-		String   templateName = edsourceTemplateNameHashMap.get(templateId);
+		String   templateName = release.edsourceTemplateName(templateId);
 		Instance edsource     = config.insertEDSource(templateName);
 		loadInstanceParameters(edsourceId,edsource);
 		loadInstanceParameterSets(edsourceId,edsource);
@@ -1643,7 +1523,7 @@ public class CfgDatabase
 		int      essourceId   = rs.getInt(1);
 		int      templateId   = rs.getInt(2);
 		String   instanceName = rs.getString(4);
-		String   templateName = essourceTemplateNameHashMap.get(templateId);
+		String   templateName = release.essourceTemplateName(templateId);
 		Instance essource     = config.insertESSource(insertIndex,
 							      templateName,
 							      instanceName);
@@ -1661,7 +1541,7 @@ public class CfgDatabase
 	    while (rs.next()) {
 		int      serviceId    = rs.getInt(1);
 		int      templateId   = rs.getInt(2);
-		String   templateName = serviceTemplateNameHashMap.get(templateId);
+		String   templateName = release.serviceTemplateName(templateId);
 		Instance service      = config.insertService(insertIndex,
 							     templateName);
 		loadInstanceParameters(serviceId,service);
@@ -1712,7 +1592,7 @@ public class CfgDatabase
 		if (!moduleHashMap.containsKey(moduleId)) {
 		    int    templateId   = rs.getInt(2);
 		    String instanceName = rs.getString(3);
-		    String templateName = moduleTemplateNameHashMap.get(templateId);
+		    String templateName = release.moduleTemplateName(templateId);
 
 		    ModuleInstance module = config.insertModule(templateName,
 								instanceName);
@@ -1733,7 +1613,7 @@ public class CfgDatabase
 		if (!moduleHashMap.containsKey(moduleId)) {
 		    int    templateId   = rs.getInt(2);
 		    String instanceName = rs.getString(3);
-		    String templateName = moduleTemplateNameHashMap.get(templateId);
+		    String templateName = release.moduleTemplateName(templateId);
 
 		    ModuleInstance module = config.insertModule(templateName,
 								instanceName);
@@ -1741,7 +1621,7 @@ public class CfgDatabase
 		    loadInstanceParameters(moduleId,module);
 		    loadInstanceParameterSets(moduleId,module);
 		    loadInstanceVecParameterSets(moduleId,module);
-
+		    
 		    moduleHashMap.put(moduleId,module);
 		}
 	    }

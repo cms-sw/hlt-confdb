@@ -16,8 +16,6 @@ import confdb.data.DataException;
 import confdb.converter.ConverterFactory;
 import confdb.converter.Converter;
 
-import confdb.db.CfgDatabase;
-
 
 /**
  * ConfigurationPanel
@@ -32,9 +30,6 @@ public class ConfigurationPanel extends JPanel implements ActionListener
     // member data
     //
 
-    /** reference to the database interface */
-    private CfgDatabase database = null;
-    
     /** the configuration being displayed */
     private Configuration configuration = null;
 
@@ -76,10 +71,9 @@ public class ConfigurationPanel extends JPanel implements ActionListener
     //
 
     /** default constructor */
-    public ConfigurationPanel(CfgDatabase database,ConverterService converterService)
+    public ConfigurationPanel(ConverterService converterService)
     {
 	super(new GridLayout(1,2));
-	this.database = database;
 	this.converterService = converterService;
 	
 	JPanel infoPanel = new JPanel(new SpringLayout());

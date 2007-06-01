@@ -65,7 +65,7 @@ public class ESSourceTemplate extends Template
     {
 	for (Instance i : instances)
 	    if (i.name().equals(instanceName)) return i;
-	ESSourceInstance instance = new ESSourceInstance(name,this);
+	ESSourceInstance instance = new ESSourceInstance(instanceName,this);
 	instances.add(instance);
 	return instance;
     }

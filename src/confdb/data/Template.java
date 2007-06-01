@@ -115,6 +115,14 @@ abstract public class Template
 	return false;
     }
     
+    /** remove all instances of this template */
+    public int removeAllInstances()
+    {
+	int result = instances.size();
+	instances.clear();
+	return result;
+    }
+
     /** check if there is an instance with the specified parameters */
     public boolean isUniqueInstance(Instance instance)
     {

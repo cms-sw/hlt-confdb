@@ -35,7 +35,7 @@ public class Sequence extends ReferenceContainer
 	if (reference instanceof ModuleReference ||
 	    reference instanceof SequenceReference) {
 	    if (!entries.contains(reference)) {
-		entries.add(reference);
+		entries.add(i,reference);
 		return;
 	    }
 	}

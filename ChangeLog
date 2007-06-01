@@ -1,3 +1,31 @@
+2007-06-01  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-02-00
+	* pick up parser fix regarding parameters retrieved via
+	BranchDescription 
+	* pick up converter changes: *V1.java files removed, ascii
+	converter files now in src/confdb/converter/ascii; ConfigModifier
+	and Converter.overrideEndpath() features; ',' -> '&' as operator
+	between modules in SequenceWriter
+	* add SoftwareRelease class to src/confdb/data. Hold collection of
+	all software component templates of the current release
+	* SoftwareRelease.clearInstances() is called in
+	ConfDbGui.closeConfiguration() now, ensuring that if a release is
+	kept in memory, all instances are properly cleaned up
+	* Fix bug regarding the addition of a module to a sequence in the
+	GUI
+	* change the DB schemas, the data model, and the GUI to allow for
+	Sequences in Sequences
+	* Keep track of a configuration being changed since the last time
+	saved, if yes, prompt the user if he is about to close it without
+	saving the changes
+	* Remove the strict naming convention for Modules, instead check
+	for each Path/Sequence/Instance that the given name doesn't occur
+	anywhere else. All restrictions on the parameters of different
+	instances of the same type are lifted.
+	* Add 'ValidatedNameDialog' to ESSource context menu, to allow for
+	the insertion of several instances of the same ESSource
+
 2007-05-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-01-06

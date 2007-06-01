@@ -83,7 +83,7 @@ public abstract class AbstractTreeModel implements TreeModel
 		if (childCount>0) {
 		    Object[] children = new Object[childCount];
 		    for (int i=0;i<childCount;i++)
-			children[i] = getChild(parent,i);
+			children[i] = getChild(parent,childIndices[i]);
 		    fireTreeNodesChanged(this,getPathToRoot(parent),childIndices,children);
 		}
 	    }
@@ -108,7 +108,7 @@ public abstract class AbstractTreeModel implements TreeModel
 	    int      childCount = childIndices.length;
 	    Object[] children   = new Object[childCount];
 	    for (int i=0;i<childCount;i++)
-		children[i] = getChild(parent,i);
+		children[i] = getChild(parent,childIndices[i]);
 	    fireTreeNodesInserted(this,getPathToRoot(parent),childIndices,children);
 	}
     }

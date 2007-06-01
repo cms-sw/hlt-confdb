@@ -85,10 +85,6 @@ abstract public class Instance
 	String  oldValueAsString = parameter(index).valueAsString();
 	String  defaultAsString  = template.parameter(index).valueAsString();
 	parameter(index).setValue(valueAsString,defaultAsString);
-	if (!template.isUniqueInstance(this)) {
-	    parameter(index).setValue(oldValueAsString,defaultAsString);
-	    System.out.println("Instance.updateParameter failed. Not Unique!");
-	}
     }
 
     /** update a parameter when the value is changed */
