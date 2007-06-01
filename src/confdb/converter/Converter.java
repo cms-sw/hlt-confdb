@@ -41,11 +41,11 @@ public class Converter implements IConverter
 
 
 	private static String CMSSWrelease = "CMSSW_1_4_0_pre1";
-	private static String dbName = null;
-	private static String dbType = null;
-	private static String dbHost = null;
-	private static String dbUser = null;
-	private static String dbPwrd = null;
+	private String dbName = null;
+	private String dbType = null;
+	private String dbHost = null;
+	private String dbUser = null;
+	private String dbPwrd = null;
 
 	private static HashMap<Integer, String> cache = new HashMap<Integer, String>();
 
@@ -360,46 +360,6 @@ public class Converter implements IConverter
 
 	public static void setCMSSWrelease(String wrelease) {
 		CMSSWrelease = wrelease;
-	}
-
-	public static String getDbName() {
-		return dbName;
-	}
-
-	public static void setDbName(String dbName) {
-		Converter.dbName = dbName;
-	}
-
-	public static String getDbType() {
-		return dbType;
-	}
-
-	public static void setDbType(String dbType) {
-		Converter.dbType = dbType;
-	}
-
-	public static String getDbHost() {
-		return dbHost;
-	}
-
-	public static void setDbHost(String dbHost) {
-		Converter.dbHost = dbHost;
-	}
-
-	public static String getDbUser() {
-		return dbUser;
-	}
-
-	public static void setDbUser(String dbUser) {
-		Converter.dbUser = dbUser;
-	}
-
-	public static String getDbPwrd() {
-		return dbPwrd;
-	}
-
-	public static void setDbPwrd(String dbPwrd) {
-		Converter.dbPwrd = dbPwrd;
 	}
 
 	public static void addToCache( int key, String info )
