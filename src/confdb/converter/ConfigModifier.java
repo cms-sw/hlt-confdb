@@ -13,6 +13,7 @@ import confdb.data.ModuleTemplate;
 import confdb.data.PSetParameter;
 import confdb.data.Path;
 import confdb.data.PathReference;
+import confdb.data.Referencable;
 import confdb.data.ReferenceContainer;
 import confdb.data.Sequence;
 import confdb.data.SequenceReference;
@@ -22,12 +23,75 @@ import confdb.data.Template;
 public class ConfigModifier extends Configuration 
 {
 	private Configuration orig = null;
+    private ArrayList<Path> paths = new ArrayList<Path>();
+    private ArrayList<ModuleInstance> modules = new ArrayList<ModuleInstance>();
 	
 	public ConfigModifier( Configuration orig, Path newEndpath )
 	{
 		this.orig = orig;
+
+	    ArrayList<Path> removedPaths = new ArrayList<Path>();
+		for ( int i = 0; i < orig.pathCount(); i++ )
+		{
+			Path path = orig.path(i);
+			if ( path.isEndPath() )
+				removedPaths.add( path );
+			else
+				paths.add( path );
+		}
+		if ( newEndpath != null )
+			paths.add( newEndpath );
+		
+		// list all modules to be removed from modules list
+		ArrayList<String> obsoleteModules = new ArrayList<String>();
+		for ( Path path : removedPaths )
+		{
+			for ( int i = 0; i < path.entryCount(); i++ )
+				obsoleteModules.add( path.entry(i).name() );
+		}
+
+		
+		// copy orig modules to new module list but skip modules of removed paths
+		for ( int i = 0; i < orig.moduleCount(); i++ )
+		{
+			ModuleInstance module = orig.module(i);
+			if ( !obsoleteModules.contains( module.name() ) )
+				modules.add( module );
+		}
+
+		if ( newEndpath == null )
+			return;
+		
+		// add modules from new endpath to module list
+		for ( int i = 0; i < newEndpath.entryCount(); i++ )
+		{
+			Referencable parent = newEndpath.entry(i).parent();
+			if ( parent instanceof ModuleInstance ) 
+				modules.add( (ModuleInstance)parent );
+		}
 	}
 	
+	public Path path(int index) 
+	{
+		return paths.get(index);
+	}
+
+	public int pathCount() 
+	{
+		return paths.size();
+	}
+
+	public ModuleInstance module(int index) 
+	{
+		return modules.get(index);
+	}
+
+	public int moduleCount() 
+	{
+		return modules.size();
+	}
+
+
 	
 
 	public void addNextVersion(int versionId, String created, String releaseTag) {
@@ -150,14 +214,6 @@ public class ConfigModifier extends Configuration
 		return orig.isEmpty();
 	}
 
-	public ModuleInstance module(int i) {
-		return orig.module(i);
-	}
-
-	public int moduleCount() {
-		return orig.moduleCount();
-	}
-
 	public ModuleTemplate moduleTemplate(String templateName) {
 		return orig.moduleTemplate(templateName);
 	}
@@ -176,14 +232,6 @@ public class ConfigModifier extends Configuration
 
 	public int parentDirId() {
 		return orig.parentDirId();
-	}
-
-	public Path path(int i) {
-		return orig.path(i);
-	}
-
-	public int pathCount() {
-		return orig.pathCount();
 	}
 
 	public int pathSequenceNb(Path path) {
