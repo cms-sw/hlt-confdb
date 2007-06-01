@@ -15,7 +15,7 @@ public class AsciiSequenceWriter implements ISequenceWriter {
 		{
 			str += sequence.entry(i).name();
 			if ( i + 1 < sequence.entryCount() )
-				str += ", ";
+				str += " & ";
 		}
 		str += " }" + converter.getNewline();
 		return str;
