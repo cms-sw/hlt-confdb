@@ -2,14 +2,6 @@ package confdb.converter;
 
 import java.util.HashMap;
 
-import confdb.converter.html.HtmlConfigurationWriter;
-import confdb.converter.html.HtmlEDSourceWriter;
-import confdb.converter.html.HtmlESSourceWriter;
-import confdb.converter.html.HtmlModuleWriter;
-import confdb.converter.html.HtmlParameterWriter;
-import confdb.converter.html.HtmlPathWriter;
-import confdb.converter.html.HtmlServiceWriter;
-
 
 public class ConverterFactory {
 
@@ -47,7 +39,9 @@ public class ConverterFactory {
 		char[] type = typeOfConverter.toLowerCase().toCharArray();
 		type[0] = Character.toUpperCase( type[0] );
 		outputFormat = new String( type );
-		if ( !outputFormat.equals( "Ascii") && !outputFormat.equals( "Html") ) 
+		if (    !outputFormat.equals( "Ascii") 
+			 && !outputFormat.equals( "Html")
+			 && !outputFormat.equals( "Python")  ) 
 			return null;
 		
 		writerPackage = thisPackage + "." + outputFormat.toLowerCase();
