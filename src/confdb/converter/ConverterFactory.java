@@ -14,16 +14,18 @@ import confdb.converter.html.HtmlServiceWriter;
 public class ConverterFactory {
 
 	static private HashMap<String, String> cmssw2version = null;
-	static private final String writerPackage = ConverterFactory.class.getPackage().getName();
+	static private final String thisPackage = ConverterFactory.class.getPackage().getName();
 
 	private String version = null;
+	private String writerPackage = "";
+	private String outputFormat = "";
 	
 	static public ConverterFactory getFactory( String releaseTag )
 	{
 		if ( cmssw2version == null )
 		{
 			cmssw2version = new HashMap<String, String>();
-			cmssw2version.put("default", "V1" );			
+			cmssw2version.put("default", "" );			
 		}
 		return new ConverterFactory( releaseTag );
 	}
@@ -34,7 +36,7 @@ public class ConverterFactory {
 		if ( cmssw2version == null )
 		{
 			cmssw2version = new HashMap<String, String>();
-			cmssw2version.put("default", "V1" );			
+			cmssw2version.put("default", "" );			
 		}
 		return new ConverterFactory( null );
 	}
@@ -42,12 +44,14 @@ public class ConverterFactory {
 
 	public Converter getConverter( String typeOfConverter ) throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
-		String type = typeOfConverter.toUpperCase();
-		if ( type.equals( "ASCII") )
-			return getConverter();
-		if ( type.equals( "HTML") )
-			return getHtmlConverter();
-		return null;
+		char[] type = typeOfConverter.toLowerCase().toCharArray();
+		type[0] = Character.toUpperCase( type[0] );
+		outputFormat = new String( type );
+		if ( !outputFormat.equals( "Ascii") && !outputFormat.equals( "Html") ) 
+			return null;
+		
+		writerPackage = thisPackage + "." + outputFormat.toLowerCase();
+		return getConverter();
 	}
 	
 	public Converter getConverter() throws ClassNotFoundException, InstantiationException, IllegalAccessException
@@ -66,98 +70,55 @@ public class ConverterFactory {
 		return converter;
 	}
 
-	public Converter getHtmlConverter() throws ClassNotFoundException, InstantiationException, IllegalAccessException
-	{
-		Converter converter = new Converter();
-		converter.setConfigurationWriter( new HtmlConfigurationWriter() );
-		converter.setParameterWriter( new HtmlParameterWriter() );
-
-		converter.setEDSourceWriter( new HtmlEDSourceWriter() );
-		converter.setESSourceWriter( new HtmlESSourceWriter() );
-		converter.setServiceWriter( new HtmlServiceWriter() );
-		converter.setModuleWriter( new HtmlModuleWriter() );
-		converter.setPathWriter( new HtmlPathWriter() );
-		converter.setSequenceWriter( getSequenceWriter() );
-		
-		return converter;
-	}
-
 	public IConfigurationWriter getConfigurationWriter() 
 	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
-		String className = writerPackage + ".ConfigurationWriter" + version;
-		Class c = Class.forName( className );
-		Object o = c.newInstance();
-		return (IConfigurationWriter)o;
+		return (IConfigurationWriter)getWriter( "ConfigurationWriter" );
 	}
 
 	public IPathWriter getPathWriter() 
 	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
-		String className = writerPackage + ".PathWriter" + version;
-		Class c = Class.forName( className );
-		Object o = c.newInstance();
-		return (IPathWriter)o;
+		return (IPathWriter)getWriter( "PathWriter" );
 	}
 
 	
 	public IServiceWriter getServiceWriter() 
 	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
-{
-	String className = writerPackage + ".ServiceWriter" + version;
-	Class c = Class.forName( className );
-	Object o = c.newInstance();
-	return (IServiceWriter)o;
-}
-
+	{
+		return (IServiceWriter)getWriter( "ServiceWriter" );
+	}
 	
 	public IParameterWriter getParameterWriter() 
 	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
-{
-	String className = writerPackage + ".ParameterWriter" + version;
-	Class c = Class.forName( className );
-	Object o = c.newInstance();
-	return (IParameterWriter)o;
-}
+	{
+		return (IParameterWriter)getWriter( "ParameterWriter" );
+	}
 
 	public IEDSourceWriter getEDSourceWriter()
 	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
-{
-	String className = writerPackage + ".EDSourceWriter" + version;
-	Class c = Class.forName( className );
-	Object o = c.newInstance();
-	return (IEDSourceWriter)o;
-}
+	{
+		return (IEDSourceWriter)getWriter( "EDSourceWriter" );
+	}
 
 	public IESSourceWriter getESSourceWriter()
 	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
-{
-	String className = writerPackage + ".ESSourceWriter" + version;
-	Class c = Class.forName( className );
-	Object o = c.newInstance();
-	return (IESSourceWriter)o;
-}
+	{
+		return (IESSourceWriter)getWriter( "ESSourceWriter" );
+	}
 
 	public IModuleWriter getModuleWriter()
 	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
-{
-	String className = writerPackage + ".ModuleWriter" + version;
-	Class c = Class.forName( className );
-	Object o = c.newInstance();
-	return (IModuleWriter)o;
-}
-
+	{
+		return (IModuleWriter)getWriter( "ModuleWriter" );
+	}
 	
 	public ISequenceWriter getSequenceWriter()
 	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
-{
-	String className = writerPackage + ".SequenceWriter" + version;
-	Class c = Class.forName( className );
-	Object o = c.newInstance();
-	return (ISequenceWriter)o;
-}
+	{
+		return (ISequenceWriter)getWriter( "SequenceWriter" );
+	}
 
-	
 	
 	private ConverterFactory( String releaseTag )
 	{
@@ -166,5 +127,12 @@ public class ConverterFactory {
 			version = cmssw2version.get( "default" );
 	}
 	
+	private Object getWriter( String type ) throws ClassNotFoundException, InstantiationException, IllegalAccessException
+	{
+		String className = writerPackage + "." + outputFormat + type + version;
+		Class c = Class.forName( className );
+		return c.newInstance();
+	}
+
 	
 }
