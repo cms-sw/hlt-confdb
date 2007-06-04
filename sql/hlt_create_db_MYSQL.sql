@@ -87,6 +87,7 @@ CREATE TABLE PathInPathAssoc
 	parentPathId	BIGINT UNSIGNED   NOT NULL,
 	childPathId	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
+	operator	SMALLINT UNSIGNED NOT NULL DEFAULT 0,
 	FOREIGN KEY (parentPathId) REFERENCES Paths(pathId),
 	FOREIGN KEY (childPathId)  REFERENCES Paths(pathId)
 ) ENGINE=INNODB;
@@ -107,6 +108,7 @@ CREATE TABLE PathSequenceAssoc
 	pathId		BIGINT UNSIGNED   NOT NULL,
 	sequenceId	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb      SMALLINT UNSIGNED NOT NULL,
+	operator	SMALLINT UNSIGNED NOT NULL DEFAULT 0,
 	UNIQUE(pathId,sequenceId),
 	FOREIGN KEY(pathId)     REFERENCES Paths(pathId),
 	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId)
@@ -118,6 +120,7 @@ CREATE TABLE SequenceInSequenceAssoc
 	parentSequenceId BIGINT UNSIGNED   NOT NULL,
 	childSequenceId	 BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	 SMALLINT UNSIGNED NOT NULL,
+	operator	 SMALLINT UNSIGNED NOT NULL DEFAULT 0,
 	FOREIGN KEY (parentSequenceId) REFERENCES Sequences(sequenceId),
 	FOREIGN KEY (childSequenceId)  REFERENCES Sequences(sequenceId)
 ) ENGINE=INNODB;
@@ -249,6 +252,7 @@ CREATE TABLE PathModuleAssoc
 	pathId     	BIGINT UNSIGNED   NOT NULL,
         moduleId   	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
+	operator	SMALLINT UNSIGNED NOT NULL DEFAULT 0,
 	FOREIGN KEY(pathId)   REFERENCES Paths(pathId),
 	FOREIGN KEY(moduleId) REFERENCES Modules(superId)
 ) ENGINE=INNODB;
@@ -259,6 +263,7 @@ CREATE TABLE SequenceModuleAssoc
 	sequenceId     	BIGINT UNSIGNED   NOT NULL,
         moduleId   	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
+	operator	SMALLINT UNSIGNED NOT NULL DEFAULT 0,
 	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId),
 	FOREIGN KEY(moduleId)   REFERENCES Modules(superId)
 ) ENGINE=INNODB;

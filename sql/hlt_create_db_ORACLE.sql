@@ -164,6 +164,7 @@ CREATE TABLE PathInPathAssoc
 	parentPathId	NUMBER		NOT NULL,
 	childPathId	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
+	operator	NUMBER(3)	NOT NULL DEFAULT '0',
 	FOREIGN KEY (parentPathId) REFERENCES Paths(pathId),
 	FOREIGN KEY (childPathId)  REFERENCES Paths(pathId)
 );
@@ -202,6 +203,7 @@ CREATE TABLE PathSequenceAssoc
 	pathId		NUMBER		NOT NULL,
 	sequenceId	NUMBER   	NOT NULL,
 	sequenceNb      NUMBER(3) 	NOT NULL,
+	operator	NUMBER(3)	NOT NULL DEFAULT '0',
 	UNIQUE(pathId,sequenceId),
 	FOREIGN KEY(pathId)     REFERENCES Paths(pathId),
 	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId)
@@ -216,6 +218,7 @@ CREATE TABLE SequenceInSequenceAssoc
 	parentSequenceId NUMBER		NOT NULL,
 	childSequenceId	 NUMBER		NOT NULL,
 	sequenceNb	 NUMBER(3)	NOT NULL,
+	operator	 NUMBER(3)	NOT NULL DEFAULT '0',
 	FOREIGN KEY (parentSequenceId) REFERENCES Sequences(sequenceId),
 	FOREIGN KEY (childSequenceId)  REFERENCES Sequences(sequenceId)
 );
@@ -381,6 +384,7 @@ CREATE TABLE PathModuleAssoc
 	pathId     	NUMBER		NOT NULL,
         moduleId   	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(4)	NOT NULL,
+	operator	NUMBER(3)	NOT NULL DEFAULT '0',
 	FOREIGN KEY(pathId)   REFERENCES Paths(pathId),
 	FOREIGN KEY(moduleId) REFERENCES Modules(superId)
 );
@@ -394,6 +398,7 @@ CREATE TABLE SequenceModuleAssoc
 	sequenceId     	NUMBER		NOT NULL,
         moduleId   	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
+	operator	NUMBER(3)	NOT NULL DEFAULT '0',
 	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId),
 	FOREIGN KEY(moduleId)   REFERENCES Modules(superId)
 );
