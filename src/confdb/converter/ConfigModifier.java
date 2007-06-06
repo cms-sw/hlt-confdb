@@ -19,7 +19,6 @@ import confdb.data.ReferenceContainer;
 import confdb.data.Sequence;
 import confdb.data.SequenceReference;
 import confdb.data.ServiceInstance;
-import confdb.data.Template;
 
 public class ConfigModifier extends Configuration 
 {
