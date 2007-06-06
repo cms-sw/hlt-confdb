@@ -32,7 +32,6 @@ class ConfdbOracleModuleLoader:
 #                                    user=username, passwd=userpwd,
 #                                     db=dbname )
         self.connection = cx_Oracle.connect(username+"/"+userpwd+"@"+userhost)
-        
         cursor = self.connection.cursor() 
 
         # Do some one-time operations - get dictionaries of parameter, module,

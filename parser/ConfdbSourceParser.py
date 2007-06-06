@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL May 30, 2007
+# Jonathan Hollar LLNL June 6, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -508,7 +508,7 @@ class SourceParser:
 		    if((foundlineend == True) and (totalline.find('BranchDescription ') != -1) and (totalline.find('=') != -1)):
 			externalbranch = totalline.split('BranchDescription')[1].split('=')[0].lstrip().rstrip()
 			totalline = ''
-		    if((foundlineend == True) and (totalline.find('getParameterSet') != -1)):
+		    if((foundlineend == True) and (totalline.find('getParameterSet') != -1) and externalbranch != ''):
 		       if(totalline.split('getParameterSet')[1].split(')')[0].find(externalbranch) != -1):
 			   externalbranchpset = totalline.split('=')[0].split('ParameterSet')[1].lstrip().rstrip()
 			   totalline = ''
@@ -556,6 +556,8 @@ class SourceParser:
 
                         # Now look for parameter <type>
 			paramstring2 = totalline.split('<')
+			if(paramstring2[1].find('=') != -1 and paramstring2[1].find('==') == -1 and paramstring2[1].find('!=') == -1):
+			    paramstring2 = totalline.split('=')[1].split('<')
 
                         therest = (paramstring2[1]).split('>')
 
@@ -583,6 +585,22 @@ class SourceParser:
 				vectype = (vectype.split('::'))[1]
 			    
 			    paramtype = vectype
+
+			    if(paramtype == 'int' or paramtype == 'int32'):
+				paramtype = 'vint32'
+			    elif(paramtype == 'unsigned'):
+				paramtype = 'vunsigned'
+			    elif(paramtype == 'double'):
+				paramtype = 'vdouble'
+			    elif(paramtype == 'string'):
+				paramtype = 'vstring'
+			    elif(paramtype == 'InputTag'):
+				paramtype = 'VInputTag'
+			    elif(paramtype == 'Labels'):
+				paramtype = 'vstring'
+			    elif(paramtype == 'vString'):
+				paramtype = 'vstring'
+
 
                         else:
 			    isvector = False
@@ -733,6 +751,9 @@ class SourceParser:
 			# Vector template 
 			if(totalline.find('vector<') != -1):
 			    paramstring2 = totalline.split('vector<')
+			    if(paramstring2[1].find('=') != -1 and paramstring2[1].find('==') == -1 and paramstring2[1].find('!=') == -1):
+				paramstring2 = totalline.split('=')[1].split('<')
+
 			    therest = (paramstring2[1]).split('>')
 
 			    if(therest[0].find('::') != -1):
@@ -1492,16 +1513,65 @@ class SourceParser:
 		    if(srcline.find('getParameter') != -1):
 			paramname = srcline.split('getParameter')[1].split('"')[1]
 
-			if(len(srcline.split('getParameter')[1].split('<')) == 3):
-			    paramtype = srcline.split('getParameter')[1].split('<')[2].split('>')[0]
-			elif(len(srcline.split('getParameter')[1].split('<')) == 2):
-			    paramtype = srcline.split('getParameter')[1].split('<')[1].split('>')[0]
+                        paramstring = srcline.split('"')
 
-			if(paramtype.find('::') != -1):
-			    paramtype = paramtype.split('::')[1].lstrip().rstrip()
+                        # Parameter name should be the first thing in quotes after 'getParameter'
+			index = 0
+			for paramsubstring in paramstring:
+			    if ((paramstring[index]).find('getParameter') != -1):
+				paramname = paramstring[index+1]
+				break
+			    index = index + 1
+			paramstring2 = srcline.split('<')
+			if(paramstring2[1].find('=') != -1 and paramstring2[1].find('==') == -1 and paramstring2[1].find('!=') == -1):
+			    paramstring2 = srcline.split('=')[1].split('<')
+                        therest = (paramstring2[1]).split('>')
 
-			if(self.verbose > 1):
-			    print '\tPassed parameter ' + paramtype + '\t' + paramname + ' (tracked)'
+                        # It looks like our parameter type uses a namespace
+                        if(therest[0].find('::') != -1):
+                            namespace = therest[0].split('::')[0]
+                        
+                            paramtype = therest[0].split('::')[1]
+                            
+                        else:
+                            paramtype = therest[0]
+
+			if(paramtype.lstrip().rstrip() == 'vector'):
+			    isvector = True
+			    if(srcline.find('vector<') != -1):
+				vectype = (srcline.split('vector<')[1]).split('>')[0]
+			    elif(srcline.find('vector <') != -1):
+				vectype = (srcline.split('vector <')[1]).split('>')[0]
+
+                            if(self.verbose > 1):
+                                print '\tPassed parameter ' + paramtype + '<' + vectype + '>' + '\t' + paramname + '\t\t(Tracked)' 
+                            
+			    # Strip namespace
+			    if(vectype.find('::') != -1):
+				vectype = (vectype.split('::'))[1]
+			    
+			    paramtype = vectype
+
+			    if(paramtype == 'int' or paramtype == 'int32'):
+				paramtype = 'vint32'
+			    elif(paramtype == 'unsigned'):
+				paramtype = 'vunsigned'
+			    elif(paramtype == 'double'):
+				paramtype = 'vdouble'
+			    elif(paramtype == 'string'):
+				paramtype = 'vstring'
+			    elif(paramtype == 'InputTag'):
+				paramtype = 'VInputTag'
+			    elif(paramtype == 'Labels'):
+				paramtype = 'vstring'
+			    elif(paramtype == 'vString'):
+				paramtype = 'vstring'
+
+                        else:
+			    isvector = False
+
+			    if(self.verbose > 1):
+				print '\tPassed parameter ' + paramtype + '\t' + paramname + ' (tracked)'
 
 			if((paramtype != 'ParameterSet') and (paramtype != 'PSet')):
 			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname)			
@@ -1542,16 +1612,65 @@ class SourceParser:
 		    if(srcline.find('getUntrackedParameter') != -1):
 			paramname = srcline.split('getUntrackedParameter')[1].split('"')[1]
 
-			if(len(srcline.split('getUntrackedParameter')[1].split('<')) == 3):
-			    paramtype = srcline.split('getUntrackedParameter')[1].split('<')[2].split('>')[0]
-			elif(len(srcline.split('getUntrackedParameter')[1].split('<')) == 2):
-			    paramtype = srcline.split('getUntrackedParameter')[1].split('<')[1].split('>')[0]
+                        paramstring = srcline.split('"')
 
-			if(paramtype.find('::') != -1):
-			    paramtype = paramtype.split('::')[1].lstrip().rstrip()
+                        # Parameter name should be the first thing in quotes after 'getUntrackedParameter'
+			index = 0
+			for paramsubstring in paramstring:
+			    if ((paramstring[index]).find('getParameter') != -1):
+				paramname = paramstring[index+1]
+				break
+			    index = index + 1
+			paramstring2 = srcline.split('<')
+			if(paramstring2[1].find('=') != -1 and paramstring2[1].find('==') == -1 and paramstring2[1].find('!=') == -1):
+			    paramstring2 = srcline.split('=')[1].split('<')
+                        therest = (paramstring2[1]).split('>')
 
-			if(self.verbose > 1):
-			    print '\tPassed parameter ' + paramtype + '\t' + paramname + ' (untracked)'
+                        # It looks like our parameter type uses a namespace
+                        if(therest[0].find('::') != -1):
+                            namespace = therest[0].split('::')[0]
+                        
+                            paramtype = therest[0].split('::')[1]
+                            
+                        else:
+                            paramtype = therest[0]
+
+			if(paramtype.lstrip().rstrip() == 'vector'):
+			    isvector = True
+			    if(srcline.find('vector<') != -1):
+				vectype = (srcline.split('vector<')[1]).split('>')[0]
+			    elif(srcline.find('vector <') != -1):
+				vectype = (srcline.split('vector <')[1]).split('>')[0]
+
+                            if(self.verbose > 1):
+                                print '\tPassed parameter ' + paramtype + '<' + vectype + '>' + '\t' + paramname + '\t\t(Tracked)' 
+                            
+			    # Strip namespace
+			    if(vectype.find('::') != -1):
+				vectype = (vectype.split('::'))[1]
+			    
+			    paramtype = vectype
+
+			    if(paramtype == 'int' or paramtype == 'int32'):
+				paramtype = 'vint32'
+			    elif(paramtype == 'unsigned'):
+				paramtype = 'vunsigned'
+			    elif(paramtype == 'double'):
+				paramtype = 'vdouble'
+			    elif(paramtype == 'string'):
+				paramtype = 'vstring'
+			    elif(paramtype == 'InputTag'):
+				paramtype = 'VInputTag'
+			    elif(paramtype == 'Labels'):
+				paramtype = 'vstring'
+			    elif(paramtype == 'vString'):
+				paramtype = 'vstring'
+
+                        else:
+			    isvector = False
+
+			    if(self.verbose > 1):
+				print '\tPassed parameter ' + paramtype + '\t' + paramname + ' (untracked)'
 
 			if((paramtype != 'ParameterSet') and (paramtype != 'PSet')):
 			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname)			

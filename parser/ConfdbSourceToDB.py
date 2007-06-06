@@ -80,8 +80,6 @@ def main(argv):
 		print "Using MySQL DB"
 	    elif(input_dbtype == "Oracle"):
 		print "Using Oracle DB"
-#		print "\t***Oracle is not tested yet. Exiting now***"
-#		return
 	    else:
 		print "Unknown DB type " + input_dbtype + ", exiting now"
 		return
@@ -110,7 +108,7 @@ def main(argv):
 	    print "\t-u <User name to connect as>" 
 	    print "\t-s <Database password>"
 	    print "\t-o <Hostname>"
-	    print "\t-t <Type of database. Options are MySQL (default) or Oracle (not yet implemented)>"
+	    print "\t-t <Type of database. Options are MySQL (default) or Oracle>"
 	    print "\t-l <Name of config file>"
 	    print "\t-e <Parse test/ directories. 1 = yes, 0/default = no>"
 	    print "\t-h Print this help menu"
@@ -154,6 +152,7 @@ class ConfdbSourceToDB:
 	elif(self.dbtype == "Oracle" and self.noload == False):
 	    self.dbloader = ConfdbOracleModuleLoader.ConfdbOracleModuleLoader(self.verbose)
 	    self.dbcursor = self.dbloader.ConfdbOracleConnect(self.dbname,self.dbuser,self.dbpwd,self.dbhost)
+
 
 	# Deal with package tags for this release.
 	self.tagtuple = []
