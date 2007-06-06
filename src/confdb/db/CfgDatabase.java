@@ -1,5 +1,6 @@
 package confdb.db;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -43,6 +44,9 @@ public class CfgDatabase
 
     /** database type */
     private String dbType = null;
+    
+    /** database url */
+    private String dbUrl = null;
     
     /** template table name hash map */
     private HashMap<String,String> templateTableNameHashMap = null;
@@ -167,7 +171,9 @@ public class CfgDatabase
     private PreparedStatement psInsertVStringParamValue           = null;
     private PreparedStatement psInsertVEventIDParamValue          = null;
     private PreparedStatement psInsertVInputTagParamValue         = null;
-    
+
+    private ArrayList<PreparedStatement> preparedStatements =
+	new ArrayList<PreparedStatement>();
     
     //
     // construction
@@ -187,6 +193,9 @@ public class CfgDatabase
     //
     // member functions
     //
+
+    /** retrieve db url */
+    public String dbUrl() { return this.dbUrl; }
     
     /** prepare database transaction statements */
     public boolean prepareStatements()
@@ -200,6 +209,7 @@ public class CfgDatabase
 		 " ModuleTypes.typeId," +
 		 " ModuleTypes.type " +
 		 "FROM ModuleTypes");
+	    preparedStatements.add(psSelectModuleTypes);
 	    
 	    psSelectParameterTypes =
 		dbConnector.getConnection().prepareStatement
@@ -207,6 +217,7 @@ public class CfgDatabase
 		 " ParameterTypes.paramTypeId," +
 		 " ParameterTypes.paramType " +
 		 "FROM ParameterTypes");
+	    preparedStatements.add(psSelectParameterTypes);
 	    
 	    psSelectDirectories =
 		dbConnector.getConnection().prepareStatement
@@ -217,7 +228,8 @@ public class CfgDatabase
 		 " Directories.created " +
 		 "FROM Directories " +
 		 "ORDER BY Directories.created ASC");
-
+	    preparedStatements.add(psSelectDirectories);
+	    
 	    psSelectConfigurationsByDir =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -233,6 +245,7 @@ public class CfgDatabase
 		 "ON SoftwareReleases.releaseId = ConfigurationReleaseAssoc.releaseId " +
 		 "WHERE Configurations.parentDirId = ? " +
 		 "ORDER BY Configurations.created DESC");
+	    preparedStatements.add(psSelectConfigurationsByDir);
 	    
 	    psSelectConfigNames =
 		dbConnector.getConnection().prepareStatement
@@ -242,6 +255,7 @@ public class CfgDatabase
 		 "FROM Configurations " +
 		 "WHERE Configurations.version=1 " +
 		 "ORDER BY created DESC");
+	    preparedStatements.add(psSelectConfigNames);
 	    
 	    psSelectConfiguration =
 		dbConnector.getConnection().prepareStatement
@@ -249,6 +263,7 @@ public class CfgDatabase
 		 " Configurations.created " +
 		 "FROM Configurations " +
 		 "WHERE Configurations.configId = ?");
+	    preparedStatements.add(psSelectConfiguration);
 	    
 	    psSelectReleaseTags =
 		dbConnector.getConnection().prepareStatement
@@ -257,6 +272,7 @@ public class CfgDatabase
 		 " SoftwareReleases.releaseTag " +
 		 "FROM SoftwareReleases " +
 		 "ORDER BY SoftwareReleases.releaseId DESC");
+	    preparedStatements.add(psSelectReleaseTags);
 	    
 	    psSelectReleaseTag =
 		dbConnector.getConnection().prepareStatement
@@ -265,6 +281,7 @@ public class CfgDatabase
 		 " SoftwareReleases.releaseTag " +
 		 "FROM SoftwareReleases " +
 		 "WHERE SoftwareReleases.releaseTag = ?");
+	    preparedStatements.add(psSelectReleaseTag);
 	    
 	    psSelectReleaseTagByConfig =
 		dbConnector.getConnection().prepareStatement
@@ -276,6 +293,7 @@ public class CfgDatabase
 		 "ON ConfigurationReleaseAssoc.releaseId =" +
 		 " SoftwareReleases.releaseId " +
 		 "WHERE ConfigurationReleaseAssoc.configId = ?");
+	    preparedStatements.add(psSelectReleaseTagByConfig);
 	    
 	    psSelectSuperIdReleaseAssoc =
 		dbConnector.getConnection().prepareStatement
@@ -284,6 +302,7 @@ public class CfgDatabase
 		 " SuperIdReleaseAssoc.releaseId " +
 		 "FROM SuperIdReleaseAssoc " +
 		 "WHERE superId =? AND releaseId = ?");
+	    preparedStatements.add(psSelectSuperIdReleaseAssoc);
 	    
 	    psSelectEDSourceTemplate =
 		dbConnector.getConnection().prepareStatement
@@ -293,7 +312,8 @@ public class CfgDatabase
 		 " EDSourceTemplates.cvstag " +
 		 "FROM EDSourceTemplates " +
 		 "WHERE EDSourceTemplates.name=? AND EDSourceTemplates.cvstag=?");
-
+	    preparedStatements.add(psSelectEDSourceTemplate);
+	    
 	    psSelectEDSourceTemplateByRelease =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -307,6 +327,7 @@ public class CfgDatabase
 		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
 		 "WHERE SoftwareReleases.releaseTag = ?" +
 		 " AND EDSourceTemplates.name = ? ");
+	    preparedStatements.add(psSelectEDSourceTemplateByRelease);
 
 	    psSelectEDSourceTemplatesByRelease =
 		dbConnector.getConnection().prepareStatement
@@ -321,7 +342,8 @@ public class CfgDatabase
 		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
 		 "WHERE SoftwareReleases.releaseTag = ? " +
 		 "ORDER BY EDSourceTemplates.name ASC");
-
+	    preparedStatements.add(psSelectEDSourceTemplatesByRelease);
+	    
 	    psSelectEDSourceTemplatesByConfig =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -333,7 +355,8 @@ public class CfgDatabase
 		 "ON EDSources.templateId = EDSourceTemplates.superId " +
 		 "WHERE EDSources.configId = ? " +
 		 "ORDER BY EDSourceTemplates.name ASC");
-
+	    preparedStatements.add(psSelectEDSourceTemplatesByConfig);
+	    
 	    psSelectESSourceTemplate =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -342,7 +365,8 @@ public class CfgDatabase
 		 " ESSourceTemplates.cvstag " +
 		 "FROM ESSourceTemplates " +
 		 "WHERE name=? AND cvstag=?");
-
+	    preparedStatements.add(psSelectESSourceTemplate);
+	    
 	    psSelectESSourceTemplatesByRelease =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -356,6 +380,7 @@ public class CfgDatabase
 		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
 		 "WHERE SoftwareReleases.releaseTag = ? " +
 		 "ORDER BY ESSourceTemplates.name ASC");
+	    preparedStatements.add(psSelectESSourceTemplatesByRelease);
 	    
 	    psSelectESSourceTemplatesByConfig =
 		dbConnector.getConnection().prepareStatement
@@ -368,6 +393,7 @@ public class CfgDatabase
 		 "ON ESSources.templateId = ESSourceTemplates.superId " +
 		 "WHERE ESSources.configId = ? " +
 		 "ORDER BY ESSourceTemplates.name ASC");
+	    preparedStatements.add(psSelectESSourceTemplatesByConfig);
 	    
 	    psSelectServiceTemplate =
 		dbConnector.getConnection().prepareStatement
@@ -377,7 +403,8 @@ public class CfgDatabase
 		 " ServiceTemplates.cvstag " +
 		 "FROM ServiceTemplates " +
 		 "WHERE name=? AND cvstag=?");
-
+	    preparedStatements.add(psSelectServiceTemplate);
+	    
 	    psSelectServiceTemplatesByRelease =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -391,7 +418,8 @@ public class CfgDatabase
 		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
 		 "WHERE SoftwareReleases.releaseTag = ? " +
 		 "ORDER BY ServiceTemplates.name ASC");
-
+	    preparedStatements.add(psSelectServiceTemplatesByRelease);
+	    
 	    psSelectServiceTemplatesByConfig =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -403,7 +431,8 @@ public class CfgDatabase
 		 "ON Services.templateId = ServiceTemplates.superId " +
 		 "WHERE Services.configId = ? " +
 		 "ORDER BY ServiceTemplates.name ASC");
-
+	    preparedStatements.add(psSelectServiceTemplatesByConfig);
+	    
 	    psSelectModuleTemplate = 
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -413,6 +442,7 @@ public class CfgDatabase
 		 " ModuleTemplates.cvstag " +
 		 "FROM ModuleTemplates " +
 		 "WHERE name=? AND cvstag=?");
+	    preparedStatements.add(psSelectModuleTemplate);
 	    
 	    psSelectModuleTemplatesByRelease =
 		dbConnector.getConnection().prepareStatement
@@ -430,6 +460,7 @@ public class CfgDatabase
 		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
 		 "WHERE SoftwareReleases.releaseTag = ? " +
 		 "ORDER BY ModuleTemplates.name ASC");
+	    preparedStatements.add(psSelectModuleTemplatesByRelease);
 
 	    psSelectModuleTemplatesByConfigPath =
 		dbConnector.getConnection().prepareStatement
@@ -449,7 +480,8 @@ public class CfgDatabase
 		 "ON Paths.pathId=PathModuleAssoc.pathId " +
 		 "WHERE Paths.configId = ? " +
 		 "ORDER BY ModuleTemplates.name ASC");
-
+	    preparedStatements.add(psSelectModuleTemplatesByConfigPath);
+	    
 	    psSelectModuleTemplatesByConfigSeq =
 		dbConnector.getConnection().prepareStatement
 		("SELECT DISTINCT" +
@@ -468,6 +500,7 @@ public class CfgDatabase
 		 "ON Sequences.sequenceId=SequenceModuleAssoc.sequenceId " +
 		 "WHERE Sequences.configId = ? " +
 		 "ORDER BY ModuleTemplates.name ASC");
+	    preparedStatements.add(psSelectModuleTemplatesByConfigSeq);
 
 	    psSelectGlobalPSets =
 		dbConnector.getConnection().prepareStatement
@@ -482,6 +515,7 @@ public class CfgDatabase
 		 "ON ParameterSets.superId=ConfigurationParamSetAssoc.paramSetId " +
 		 "WHERE ConfigurationParamSetAssoc.configId = ? " +
 		 "ORDER BY ConfigurationParamSetAssoc.sequenceNb");
+	    preparedStatements.add(psSelectGlobalPSets);
 	    
 	    psSelectServices =
 		dbConnector.getConnection().prepareStatement
@@ -493,6 +527,7 @@ public class CfgDatabase
 		 "FROM Services " +
 		 "WHERE configId=? "+
 		 "ORDER BY Services.sequenceNb ASC");
+	    preparedStatements.add(psSelectServices);
 	    
 	    psSelectEDSources =
 		dbConnector.getConnection().prepareStatement
@@ -504,6 +539,7 @@ public class CfgDatabase
 		 "FROM EDSources " +
 		 "WHERE configId=? " +
 		 "ORDER BY EDSources.sequenceNb ASC");
+	    preparedStatements.add(psSelectEDSources);
 	    
 	    psSelectESSources =
 		dbConnector.getConnection().prepareStatement
@@ -516,6 +552,7 @@ public class CfgDatabase
 		 "FROM ESSources " +
 		 "WHERE configId=? " +
 		 "ORDER BY ESSources.sequenceNb ASC");
+	    preparedStatements.add(psSelectESSources);
 	    
 	    psSelectPaths =
 		dbConnector.getConnection().prepareStatement
@@ -528,6 +565,7 @@ public class CfgDatabase
 		 "FROM Paths " +
 		 "WHERE Paths.configId=? " +
 		 "ORDER BY sequenceNb ASC");
+	    preparedStatements.add(psSelectPaths);
 
 	    psSelectSequences =
 		dbConnector.getConnection().prepareStatement
@@ -537,38 +575,35 @@ public class CfgDatabase
 		 " Sequences.name " +
  		 "FROM Sequences " +
 		 "WHERE Sequences.configId=?");
+	    preparedStatements.add(psSelectSequences);
 
-	    psSelectModulesFromPaths=
+	    psSelectModulesFromPaths =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
 		 " Modules.superId," +
 		 " Modules.templateId," +
-		 " Modules.name," +
-		 " Paths.configId " +
+		 " Modules.name " +
 		 "FROM Modules " +
 		 "JOIN PathModuleAssoc " +
 		 "ON PathModuleAssoc.moduleId = Modules.superId " +
 		 "JOIN Paths " +
 		 "ON Paths.pathId = PathModuleAssoc.pathId " +
 		 "WHERE Paths.configId=?");
+	    preparedStatements.add(psSelectModulesFromPaths);
 	    
-	    psSelectModulesFromSequences=
+	    psSelectModulesFromSequences =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
 		 " Modules.superId," +
 		 " Modules.templateId," +
-		 " Modules.name," +
-		 " Paths.configId " +
+		 " Modules.name " +
 		 "FROM Modules " +
 		 "JOIN SequenceModuleAssoc " +
 		 "ON SequenceModuleAssoc.moduleId = Modules.superId " +
 		 "JOIN Sequences " +
 		 "ON Sequences.sequenceId = SequenceModuleAssoc.sequenceId " +
-		 "JOIN PathSequenceAssoc " +
-		 "ON PathSequenceAssoc.sequenceId = Sequences.sequenceId " +
-		 "JOIN Paths " +
-		 "ON Paths.pathId = PathSequenceAssoc.pathId " +
-		 "WHERE Paths.configId=?");
+		 "WHERE Sequences.configId=?");
+	    preparedStatements.add(psSelectModulesFromSequences);
 	    
 	    psSelectSequenceModuleAssoc =
 		dbConnector.getConnection().prepareStatement
@@ -578,8 +613,9 @@ public class CfgDatabase
 		 " SequenceModuleAssoc.sequenceNb " +
 		 "FROM SequenceModuleAssoc " +
 		 "WHERE SequenceModuleAssoc.sequenceId = ?");
+	    preparedStatements.add(psSelectSequenceModuleAssoc);
 	    
-	    psSelectPathPathAssoc               =
+	    psSelectPathPathAssoc =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
 		 " PathInPathAssoc.parentPathId," +
@@ -587,8 +623,9 @@ public class CfgDatabase
 		 " PathInPathAssoc.sequenceNb " +
 		 "FROM PathInPathAssoc " +
 		 "WHERE PathInPathAssoc.parentPathId = ?"); 
+	    preparedStatements.add(psSelectPathPathAssoc);
 
-	    psSelectPathSequenceAssoc           = 
+	    psSelectPathSequenceAssoc = 
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
 		 " PathSequenceAssoc.pathId," +
@@ -596,8 +633,9 @@ public class CfgDatabase
 		 " PathSequenceAssoc.sequenceNb " +
 		 "FROM PathSequenceAssoc " +
 		 "WHERE PathSequenceAssoc.pathId = ?");
-
-	    psSelectSequenceSequenceAssoc           = 
+	    preparedStatements.add(psSelectPathSequenceAssoc);
+	    
+	    psSelectSequenceSequenceAssoc = 
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
 		 " SequenceInSequenceAssoc.parentSequenceId," +
@@ -605,8 +643,9 @@ public class CfgDatabase
 		 " SequenceInSequenceAssoc.sequenceNb " +
 		 "FROM SequenceInSequenceAssoc " +
 		 "WHERE SequenceInSequenceAssoc.parentSequenceId = ?");
+	    preparedStatements.add(psSelectSequenceSequenceAssoc);
 
-	    psSelectPathModuleAssoc             =
+	    psSelectPathModuleAssoc =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
 		 " PathModuleAssoc.pathId," +
@@ -614,6 +653,7 @@ public class CfgDatabase
 		 " PathModuleAssoc.sequenceNb " +
 		 "FROM PathModuleAssoc " +
 		 "WHERE PathModuleAssoc.pathId = ?"); 
+	    preparedStatements.add(psSelectPathModuleAssoc);
 
 	    psSelectParameters =
 		dbConnector.getConnection().prepareStatement
@@ -632,6 +672,7 @@ public class CfgDatabase
 		 "ON Parameters.paramTypeId = ParameterTypes.paramTypeId " +
 		 "WHERE SuperIdParameterAssoc.superId = ? " +
 		 "ORDER BY SuperIdParameterAssoc.sequenceNb ASC");
+	    preparedStatements.add(psSelectParameters);
 
 	    psSelectParameterSets =
 		dbConnector.getConnection().prepareStatement
@@ -646,6 +687,7 @@ public class CfgDatabase
 		 "ON SuperIdParamSetAssoc.paramSetId = ParameterSets.superId " +
 		 "WHERE SuperIdParamSetAssoc.superId = ? " +
 		 "ORDER BY SuperIdParamSetAssoc.sequenceNb ASC");
+	    preparedStatements.add(psSelectParameterSets);
 
 	    psSelectVecParameterSets =
 		dbConnector.getConnection().prepareStatement
@@ -660,6 +702,7 @@ public class CfgDatabase
 		 "ON SuperIdVecParamSetAssoc.vecParamSetId=VecParameterSets.superId "+
 		 "WHERE SuperIdVecParamSetAssoc.superId = ? "+
 		 "ORDER BY SuperIdVecParamSetAssoc.sequenceNb ASC");
+	    preparedStatements.add(psSelectVecParameterSets);
 
 	    psSelectBoolParamValue =
 		dbConnector.getConnection().prepareStatement
@@ -668,6 +711,7 @@ public class CfgDatabase
 		 " BoolParamValues.value " +
 		 "FROM BoolParamValues " +
 		 "WHERE paramId = ?");
+	    preparedStatements.add(psSelectBoolParamValue);
 	    
 	    psSelectInt32ParamValue =
 		dbConnector.getConnection().prepareStatement
@@ -676,6 +720,7 @@ public class CfgDatabase
 		 " Int32ParamValues.value " +
 		 "FROM Int32ParamValues " +
 		 "WHERE paramId = ?");
+	    preparedStatements.add(psSelectInt32ParamValue);
 	    
 	    psSelectUInt32ParamValue =
 		dbConnector.getConnection().prepareStatement
@@ -684,6 +729,7 @@ public class CfgDatabase
 		 " UInt32ParamValues.value " +
 		 "FROM UInt32ParamValues " +
 		 "WHERE paramId = ?");
+	    preparedStatements.add(psSelectUInt32ParamValue);
 
 	    psSelectDoubleParamValue =
 		dbConnector.getConnection().prepareStatement
@@ -692,6 +738,7 @@ public class CfgDatabase
 		 " DoubleParamValues.value " +
 		 "FROM DoubleParamValues " +
 		 "WHERE paramId = ?");
+	    preparedStatements.add(psSelectDoubleParamValue);
 
 	    psSelectStringParamValue =
 		dbConnector.getConnection().prepareStatement
@@ -700,6 +747,7 @@ public class CfgDatabase
 		 " StringParamValues.value " +
 		 "FROM StringParamValues " +
 		 "WHERE paramId = ?");
+	    preparedStatements.add(psSelectStringParamValue);
 
 	    psSelectEventIDParamValue =
 		dbConnector.getConnection().prepareStatement
@@ -708,6 +756,7 @@ public class CfgDatabase
 		 " EventIDParamValues.value " +
 		 "FROM EventIDParamValues " +
 		 "WHERE paramId = ?");
+	    preparedStatements.add(psSelectEventIDParamValue);
 
 	    psSelectInputTagParamValue =
 		dbConnector.getConnection().prepareStatement
@@ -716,6 +765,7 @@ public class CfgDatabase
 		 " InputTagParamValues.value " +
 		 "FROM InputTagParamValues " +
 		 "WHERE paramId = ?");
+	    preparedStatements.add(psSelectInputTagParamValue);
 
 	    psSelectVInt32ParamValues =
 		dbConnector.getConnection().prepareStatement
@@ -726,6 +776,7 @@ public class CfgDatabase
 		 "FROM VInt32ParamValues " +
 		 "WHERE paramId = ? " +
 		 "ORDER BY sequenceNb ASC");
+	    preparedStatements.add(psSelectVInt32ParamValues);
 
 	    psSelectVUInt32ParamValues =
 		dbConnector.getConnection().prepareStatement
@@ -736,6 +787,7 @@ public class CfgDatabase
 		 "FROM VUInt32ParamValues " +
 		 "WHERE paramId = ? " +
 		 "ORDER BY sequenceNb ASC");
+	    preparedStatements.add(psSelectVUInt32ParamValues);
 
 	    psSelectVDoubleParamValues =
 		dbConnector.getConnection().prepareStatement
@@ -746,6 +798,7 @@ public class CfgDatabase
 		 "FROM VDoubleParamValues " +
 		 "WHERE paramId = ? " + 
 		 "ORDER BY sequenceNb ASC");
+	    preparedStatements.add(psSelectVDoubleParamValues);
 
 	    psSelectVStringParamValues =
 		dbConnector.getConnection().prepareStatement
@@ -756,6 +809,7 @@ public class CfgDatabase
 		 "FROM VStringParamValues " +
 		 "WHERE paramId = ? " +
 		 "ORDER BY sequenceNb ASC");
+	    preparedStatements.add(psSelectVStringParamValues);
 	    
 	    psSelectVEventIDParamValues =
 		dbConnector.getConnection().prepareStatement
@@ -766,6 +820,7 @@ public class CfgDatabase
 		 "FROM VEventIDParamValues " +
 		 "WHERE paramId = ? " +
 		 "ORDER BY sequenceNb ASC");
+	    preparedStatements.add(psSelectVEventIDParamValues);
 	    
 	    psSelectVInputTagParamValues =
 		dbConnector.getConnection().prepareStatement
@@ -776,7 +831,7 @@ public class CfgDatabase
 		 "FROM VInputTagParamValues " +
 		 "WHERE paramId = ? " +
 		 "ORDER BY sequenceNb ASC");
-	    
+	    preparedStatements.add(psSelectVInputTagParamValues);
 
 
 	    if (dbType.equals(dbTypeMySQL))
@@ -791,6 +846,7 @@ public class CfgDatabase
 		    ("INSERT INTO Directories " +
 		     "(parentDirId,dirName,created) " +
 		     "VALUES (?, ?, SYSDATE)",keyColumn);
+	    preparedStatements.add(psInsertDirectory);
 	    
 	    if (dbType.equals(dbTypeMySQL))
 		psInsertConfiguration =
@@ -804,10 +860,12 @@ public class CfgDatabase
 		    ("INSERT INTO Configurations " +
 		     "(configDescriptor,parentDirId,config,version,created) " +
 		     "VALUES (?, ?, ?, ?, SYSDATE)",keyColumn);
+	    preparedStatements.add(psInsertConfiguration);
 	    
 	    psInsertConfigReleaseAssoc = dbConnector.getConnection().prepareStatement
 		("INSERT INTO ConfigurationReleaseAssoc (configId,releaseId) " +
 		 "VALUES(?, ?)");
+	    preparedStatements.add(psInsertConfigReleaseAssoc);
 	    
 	    if (dbType.equals(dbTypeMySQL))
 		psInsertSuperId = dbConnector.getConnection().prepareStatement
@@ -815,178 +873,227 @@ public class CfgDatabase
 	    else if (dbType.equals(dbTypeOracle))
 		psInsertSuperId = dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO SuperIds VALUES('')",keyColumn);
+	    preparedStatements.add(psInsertSuperId);
 	    
 	    psInsertGlobalPSet =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO ConfigurationParamSetAssoc " +
 		 "(configId,paramSetId,sequenceNb) " +
 		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertGlobalPSet);
 	    
 	    psInsertEDSource =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO EDSources (superId,templateId,configId,sequenceNb) " +
 		 "VALUES(?, ?, ?, ?)");
+	    preparedStatements.add(psInsertEDSource);
 
 	    psInsertESSource =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
 		 "ESSources (superId,templateId,configId,name,sequenceNb) " +
 		 "VALUES(?, ?, ?, ?, ?)");
+	    preparedStatements.add(psInsertESSource);
 
 	    psInsertService =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO Services (superId,templateId,configId,sequenceNb) " +
 		 "VALUES(?, ?, ?, ?)");
+	    preparedStatements.add(psInsertService);
 
 	    psInsertPath =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO Paths (configId,name,sequenceNb) " +
 		 "VALUES(?, ?, ?)",keyColumn);
+	    preparedStatements.add(psInsertPath);
 	    
 	    psInsertSequence =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO Sequences (configId,name) " +
 		 "VALUES(?, ?)",keyColumn);
+	    preparedStatements.add(psInsertSequence);
 	    
 	    psInsertModule =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO Modules (superId,templateId,name) " +
 		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertModule);
 	    
 	    psInsertSequenceModuleAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO SequenceModuleAssoc (sequenceId,moduleId,sequenceNb) "+
 		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertSequenceModuleAssoc);
 	    
 	    psInsertPathPathAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO PathInPathAssoc(parentPathId,childPathId,sequenceNb) "+
 		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertPathPathAssoc);
 	    
 	    psInsertPathSequenceAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO PathSequenceAssoc (pathId,sequenceId,sequenceNb) " +
 		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertPathSequenceAssoc);
 	    
 	    psInsertSequenceSequenceAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO SequenceInSequenceAssoc"+
 		 "(parentSequenceId,childSequenceId,sequenceNb) "+
 		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertSequenceSequenceAssoc);
 	    
 	    psInsertPathModuleAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO PathModuleAssoc (pathId,moduleId,sequenceNb) " +
 		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertPathModuleAssoc);
 	    
 	    psInsertSuperIdReleaseAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO SuperIdReleaseAssoc (superId,releaseId) " +
 		 "VALUES(?, ?)");
+	    preparedStatements.add(psInsertSuperIdReleaseAssoc);
 	    
 	    psInsertServiceTemplate =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO ServiceTemplates (superId,name,cvstag) " +
 		 "VALUES (?, ?, ?)");
+	    preparedStatements.add(psInsertServiceTemplate);
 	    
 	    psInsertEDSourceTemplate =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO EDSourceTemplates (superId,name,cvstag) " +
 		 "VALUES (?, ?, ?)");
+	    preparedStatements.add(psInsertEDSourceTemplate);
 	    
 	    psInsertESSourceTemplate =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO ESSourceTemplates (superId,name,cvstag) " +
 		 "VALUES (?, ?, ?)");
+	    preparedStatements.add(psInsertESSourceTemplate);
 	    
 	    psInsertModuleTemplate =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO ModuleTemplates (superId,typeId,name,cvstag) " +
 		 "VALUES (?, ?, ?, ?)");
+	    preparedStatements.add(psInsertModuleTemplate);
 	    
 	    psInsertParameterSet =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO ParameterSets(superId,name,tracked) " +
 		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertParameterSet);
 
 	    psInsertVecParameterSet =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO VecParameterSets(superId,name,tracked) " +
 		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertVecParameterSet);
 
 	    psInsertParameter =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO Parameters (paramTypeId,name,tracked) " +
 		 "VALUES(?, ?, ?)",keyColumn);
+	    preparedStatements.add(psInsertParameter);
 	    
 	    psInsertSuperIdParamSetAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO SuperIdParamSetAssoc (superId,paramSetId,sequenceNb) " +
+		("INSERT INTO SuperIdParamSetAssoc (superId,paramSetId,sequenceNb) "+
 		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertSuperIdParamSetAssoc);
 	    
 	    psInsertSuperIdVecParamSetAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
 		 "SuperIdVecParamSetAssoc (superId,vecParamSetId,sequenceNb) " +
 		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertSuperIdVecParamSetAssoc);
 	    
 	    psInsertSuperIdParamAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO SuperIdParameterAssoc (superId,paramId,sequenceNb) " +
 		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertSuperIdParamAssoc);
 	    
 	    psInsertBoolParamValue =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO BoolParamValues (paramId,value) " +
 		 "VALUES (?, ?)");
+	    preparedStatements.add(psInsertBoolParamValue);
+
 	    psInsertInt32ParamValue =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO Int32ParamValues (paramId,value) " +
 		 "VALUES (?, ?)");
+	    preparedStatements.add(psInsertInt32ParamValue);
+
 	    psInsertUInt32ParamValue =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO UInt32ParamValues (paramId,value) " +
 		 "VALUES (?, ?)");
+	    preparedStatements.add(psInsertUInt32ParamValue);
+
 	    psInsertDoubleParamValue =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO DoubleParamValues (paramId,value) " +
 		 "VALUES (?, ?)");
+	    preparedStatements.add(psInsertDoubleParamValue);
+
 	    psInsertStringParamValue =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO StringParamValues (paramId,value) " +
 		 "VALUES (?, ?)");
+	    preparedStatements.add(psInsertStringParamValue);
+
 	    psInsertEventIDParamValue =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO EventIDParamValues (paramId,value) " +
 		 "VALUES (?, ?)");
+	    preparedStatements.add(psInsertEventIDParamValue);
+
 	    psInsertInputTagParamValue =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO InputTagParamValues (paramId,value) " +
 		 "VALUES (?, ?)");
+	    preparedStatements.add(psInsertInputTagParamValue);
+
 	    psInsertVInt32ParamValue =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO VInt32ParamValues (paramId,sequenceNb,value) " +
 		 "VALUES (?, ?, ?)");
+	    preparedStatements.add(psInsertVInt32ParamValue);
+
 	    psInsertVUInt32ParamValue
 		= dbConnector.getConnection().prepareStatement
 		("INSERT INTO VUInt32ParamValues (paramId,sequenceNb,value) " +
 		 "VALUES (?, ?, ?)");
+	    preparedStatements.add(psInsertVUInt32ParamValue);
+
 	    psInsertVDoubleParamValue =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO VDoubleParamValues (paramId,sequenceNb,value) " +
 		 "VALUES (?, ?, ?)");
+	    preparedStatements.add(psInsertVDoubleParamValue);
+
 	    psInsertVStringParamValue =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO VStringParamValues (paramId,sequenceNb,value) " +
 		 "VALUES (?, ?, ?)");
+	    preparedStatements.add(psInsertVStringParamValue);
+
 	    psInsertVEventIDParamValue =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO VEventIDParamValues (paramId,sequenceNb,value) " +
 		 "VALUES (?, ?, ?)");
+	    preparedStatements.add(psInsertVEventIDParamValue);
+
 	    psInsertVInputTagParamValue =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO VInputTagParamValues (paramId,sequenceNb,value) " +
 		 "VALUES (?, ?, ?)");
+	    preparedStatements.add(psInsertVInputTagParamValue);
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
@@ -1061,6 +1168,19 @@ public class CfgDatabase
 	
 	return true;
     }
+
+    /** close all prepared statements */
+    void closePreparedStatements()
+    {
+	for (PreparedStatement ps : preparedStatements) {
+	    try {
+		ps.close();
+	    }
+	    catch (SQLException e) { e.printStackTrace(); }
+	}
+	preparedStatements.clear();
+    }
+    
 
     /** create a prepared statement to select parameters,needed for recursive calls */
     private PreparedStatement createSelectParametersPS()
@@ -1149,6 +1269,17 @@ public class CfgDatabase
 	
 	dbConnector.openConnection();
 	this.dbType = dbType;
+	this.dbUrl  = dbUrl;
+	return prepareStatements();
+    }
+    
+    /** connect to the database */
+    public boolean connect(Connection connection)
+	throws DatabaseException
+    {
+	this.dbType = dbTypeOracle;
+	this.dbUrl  = "UNKNOWN";
+	dbConnector = new OracleDatabaseConnector(connection);
 	return prepareStatements();
     }
     
@@ -1156,8 +1287,11 @@ public class CfgDatabase
     public boolean disconnect()	throws DatabaseException
     {
 	if (dbConnector==null) return false;
+	closePreparedStatements();
 	dbConnector.closeConnection();
 	dbConnector = null;
+	this.dbType = "";
+	this.dbUrl = "";
 	return true;
     }
 
@@ -1258,6 +1392,26 @@ public class CfgDatabase
 	return (it.hasNext()) ? (EDSourceTemplate)it.next() : null;
     }
     
+    /** check if the release corresponding to 'releaseTag' is present */
+    public boolean hasSoftwareRelease(String releaseTag)
+    {
+	boolean result = true;
+	ResultSet rs = null;
+	try {
+	    psSelectReleaseTag.setString(1,releaseTag);
+	    rs = psSelectReleaseTag.executeQuery();
+	    rs.next();
+	}
+	catch (SQLException e) {
+	    System.out.println("SW Release '"+releaseTag+"' not found in DB!");
+	    result = false;
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+	return result;
+    }
+
     /** load a full software release */
     public void loadSoftwareRelease(String releaseTag,SoftwareRelease release)
     {
@@ -1601,6 +1755,8 @@ public class CfgDatabase
 		    loadInstanceParameterSets(moduleId,module);
 		    loadInstanceVecParameterSets(moduleId,module);
 
+		    module.setDbId(moduleId);
+		    
 		    moduleHashMap.put(moduleId,module);
 		}
 	    }
@@ -1621,6 +1777,8 @@ public class CfgDatabase
 		    loadInstanceParameters(moduleId,module);
 		    loadInstanceParameterSets(moduleId,module);
 		    loadInstanceVecParameterSets(moduleId,module);
+		    
+		    module.setDbId(moduleId);
 		    
 		    moduleHashMap.put(moduleId,module);
 		}
@@ -1973,7 +2131,10 @@ public class CfgDatabase
 	String  releaseTag = config.releaseTag();
 	int     releaseId  = getReleaseId(releaseTag);
 	
-	if (releaseId==0) return false;
+	if (releaseId==0) {
+	    System.out.println("releaseId=0, releaseTag="+releaseTag);
+	    return false;
+	}
 
 	String  configDescriptor =
 	    config.parentDir().name() + "/" +
@@ -2105,7 +2266,7 @@ public class CfgDatabase
 	for (int sequenceNb=0;sequenceNb<config.edsourceCount();sequenceNb++) {
 	    EDSourceInstance edsource   = config.edsource(sequenceNb);
 	    int              superId    = insertSuperId();
-	    int              templateId = edsource.template().dbSuperId();
+	    int              templateId = edsource.template().dbId();
 	    try {
 		psInsertEDSource.setInt(1,superId);
 		psInsertEDSource.setInt(2,templateId);
@@ -2128,7 +2289,7 @@ public class CfgDatabase
 	for (int sequenceNb=0;sequenceNb<config.essourceCount();sequenceNb++) {
 	    ESSourceInstance essource   = config.essource(sequenceNb);
 	    int              superId    = insertSuperId();
-	    int              templateId = essource.template().dbSuperId();
+	    int              templateId = essource.template().dbId();
 	    try {
 		psInsertESSource.setInt(1,superId);
 		psInsertESSource.setInt(2,templateId);
@@ -2152,7 +2313,7 @@ public class CfgDatabase
 	for (int sequenceNb=0;sequenceNb<config.serviceCount();sequenceNb++) {
 	    ServiceInstance service    = config.service(sequenceNb);
 	    int             superId    = insertSuperId();
-	    int             templateId = service.template().dbSuperId();
+	    int             templateId = service.template().dbId();
 
 	    try {
 		psInsertService.setInt(1,superId);
@@ -2227,22 +2388,33 @@ public class CfgDatabase
 	HashMap<String,Integer> result = new HashMap<String,Integer>();
 	for (int i=0;i<config.moduleCount();i++) {
 	    ModuleInstance module     = config.module(i);
-	    int            superId    = insertSuperId();
-	    int            templateId = module.template().dbSuperId();
-	    try {
-		psInsertModule.setInt(1,superId);
-		psInsertModule.setInt(2,templateId);
-		psInsertModule.setString(3,module.name());
-		psInsertModule.executeUpdate();
-		result.put(module.name(),superId);
+	    int            moduleId   = module.dbId();
+	    if (moduleId>0) {
+		result.put(module.name(),moduleId);
 	    }
-	    catch (SQLException e) {
-		e.printStackTrace();
+	    else {
+		int superId    = insertSuperId();
+		int templateId = module.template().dbId();
+		try {
+		    psInsertModule.setInt(1,superId);
+		    psInsertModule.setInt(2,templateId);
+		    psInsertModule.setString(3,module.name());
+		    psInsertModule.executeUpdate();
+		    result.put(module.name(),superId);
+		}
+		catch (SQLException e) {
+		    e.printStackTrace();
+		}
+		
+		if (!insertInstanceParameters(superId,module)) {
+		    System.out.println("CfgDatabase.insertModules ERROR: " +
+				       "failed to insert instance parameters "+
+				       "for module '"+module.name()+"'");
+		}
+		else {
+		    module.setDbId(superId);
+		}
 	    }
-	    if (!insertInstanceParameters(superId,module))
-		System.out.println("CfgDatabase.insertModules ERROR: " +
-				   "failed to insert instance parameters "+
-				   "for module '"+module.name()+"'");
 	}
 	return result;
     }
@@ -2418,7 +2590,7 @@ public class CfgDatabase
 	    }
 	}
 	insertSuperIdReleaseAssoc(superId,releaseTag);
-	template.setDbSuperId(superId);
+	template.setDbId(superId);
 	
 	return true;
     }

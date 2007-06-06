@@ -84,7 +84,8 @@ public abstract class AbstractTreeModel implements TreeModel
 		    Object[] children = new Object[childCount];
 		    for (int i=0;i<childCount;i++)
 			children[i] = getChild(parent,childIndices[i]);
-		    fireTreeNodesChanged(this,getPathToRoot(parent),childIndices,children);
+		    fireTreeNodesChanged(this,getPathToRoot(parent),
+					 childIndices,children);
 		}
 	    }
 	    else if (parent == getRoot()) {

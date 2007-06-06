@@ -37,6 +37,10 @@ public class Path extends ReferenceContainer
 		ModuleInstance module = (ModuleInstance)parent;
 		if (module.template().type().equals("OutputModule")) return true;
 	    }
+	    else if (parent instanceof Sequence) {
+		Sequence sequence  = (Sequence)parent;
+		if (sequence.hasOutputModule()) return true;
+	    }
 	    else if (parent instanceof Path) {
 		Path path = (Path)parent;
 		if (path.isEndPath()) return true;

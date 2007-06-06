@@ -37,10 +37,12 @@ public class CfgMenuBar implements ActionListener
     private static final String configMenuClose      = "Close";
     private static final String configMenuSave       = "Save";
     private static final String configMenuSaveAs     = "Save As";
+    private static final String configMenuMigrate    = "Migrate";
 
     /** dbMenu */
     private static final String dbMenuConnectToDB      = "Connect to DB";
     private static final String dbMenuDisconnectFromDB = "Disconnect from DB";
+    private static final String dbMenuExportConfig     = "Export Configuration";
     private static final String dbMenuCreateTemplates  = "Create Templates";
     
 
@@ -97,8 +99,10 @@ public class CfgMenuBar implements ActionListener
 	menuItem = new JMenuItem(configMenuSaveAs,KeyEvent.VK_A);
 	menuItem.addActionListener(this);
 	configMenu.add(menuItem);
+	menuItem = new JMenuItem(configMenuMigrate,KeyEvent.VK_M);
+	menuItem.addActionListener(this);
+	configMenu.add(menuItem);
 	
-
 	JMenu dbMenu = new JMenu("Database");
 	dbMenu.setMnemonic(KeyEvent.VK_D);
 	menuBar.add(dbMenu);
@@ -106,6 +110,9 @@ public class CfgMenuBar implements ActionListener
 	menuItem.addActionListener(this);
 	dbMenu.add(menuItem);
 	menuItem = new JMenuItem(dbMenuDisconnectFromDB,KeyEvent.VK_D);
+	menuItem.addActionListener(this);
+	dbMenu.add(menuItem);
+	menuItem = new JMenuItem(dbMenuExportConfig,KeyEvent.VK_E);
 	menuItem.addActionListener(this);
 	dbMenu.add(menuItem);
 	menuItem = new JMenuItem(dbMenuCreateTemplates,KeyEvent.VK_T);
@@ -134,15 +141,17 @@ public class CfgMenuBar implements ActionListener
 	}
 	
 	// configMenu
-	if (command.equals(configMenuNew))    app.newConfiguration();
-	if (command.equals(configMenuOpen))   app.openConfiguration();
-	if (command.equals(configMenuClose))  app.closeConfiguration();
-	if (command.equals(configMenuSave))   app.saveConfiguration();
-	if (command.equals(configMenuSaveAs)) app.saveAsConfiguration();
+	if (command.equals(configMenuNew))     app.newConfiguration();
+	if (command.equals(configMenuOpen))    app.openConfiguration();
+	if (command.equals(configMenuClose))   app.closeConfiguration();
+	if (command.equals(configMenuSave))    app.saveConfiguration();
+	if (command.equals(configMenuSaveAs))  app.saveAsConfiguration();
+	if (command.equals(configMenuMigrate)) app.migrateConfiguration();
 	
 	// dbMenu
 	if (command.equals(dbMenuConnectToDB))      app.connectToDatabase();
 	if (command.equals(dbMenuDisconnectFromDB)) app.disconnectFromDatabase();
+	if (command.equals(dbMenuExportConfig))     app.exportConfiguration();
 	if (command.equals(dbMenuCreateTemplates))  app.createTemplates();
     }
 

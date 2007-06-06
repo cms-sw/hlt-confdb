@@ -248,8 +248,8 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     /** TreeSelectionListener: valueChanged() */
     public void valueChanged(TreeSelectionEvent e)
     {
-	TreePath treePath=e.getNewLeadSelectionPath(); if(treePath==null)return;
-	Object   node=treePath.getLastPathComponent(); if(node==null){clear();return;}
+	TreePath treePath=e.getNewLeadSelectionPath();if(treePath==null)return;
+	Object   node=treePath.getLastPathComponent();if(node==null){clear();return;}
 
 	CardLayout cardLayout = (CardLayout)(topPanel.getLayout());
 	cardLayout.show(topPanel,"InfoPanel");

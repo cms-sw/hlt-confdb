@@ -47,6 +47,7 @@ public class ConfigurationDialog extends JDialog
     /** directory tree-model */
     private DirectoryTreeModel dirTreeModel = null;
     
+    
     //
     // construction
     //
@@ -60,12 +61,24 @@ public class ConfigurationDialog extends JDialog
     }
     
     
+    /** constructor without database */
+    public ConfigurationDialog(JFrame frame)
+    {
+	super(frame,true);
+	this.frame    = frame;
+	this.database = null;
+    }
+    
+    
     //
     // member functions
     //
 
     /** was a valid choice made? */
     public boolean validChoice() { return validChoice; }
+    
+    /** set the database */
+    public void setDatabase(CfgDatabase database) { this.database = database; }
     
     /** create the tree view */
     protected JScrollPane createTreeView(Dimension dim)

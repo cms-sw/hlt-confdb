@@ -66,7 +66,7 @@ public class DatabaseConnectionDialog
     //
     
     /** constructor */
-    public DatabaseConnectionDialog(Frame frame)
+    public DatabaseConnectionDialog(JFrame frame)
     {
 	super(frame,"Estabish Database connection",true);
 	
@@ -174,36 +174,21 @@ public class DatabaseConnectionDialog
     }
 
     /** was a valid choice made? */
-    public boolean validChoice()
-    {
-	return validChoice;
-    }
+    public boolean validChoice() { return validChoice; }
 
     /** get database type */
-    public String getDbType()
-    {
-	return dbType;
-    }
+    public String getDbType() {	return dbType; }
 
     /** get database host */
-    public String getDbHost()
-    {
-	return dbHost;
-    }
+    public String getDbHost() { return dbHost; }
 
     /** get database port number */
-    public String getDbPort()
-    {
-	return dbPort;
-    }
+    public String getDbPort() {	return dbPort; }
 
     /** get database name */
-    public String getDbName()
-    {
-	return dbName;
-    }
+    public String getDbName() {	return dbName; }
     
-    //** get database url */
+    /** get database url */
     public String getDbUrl()
     {
 	String result = null;
@@ -218,16 +203,10 @@ public class DatabaseConnectionDialog
     }
 
     /** get database user name */
-    public String getDbUser()
-    {
-	return dbUser;
-    }
+    public String getDbUser() {	return dbUser; }
     
     /** get database password */
-    public String getDbPassword()
-    {
-	return dbPwrd;
-    }
+    public String getDbPassword() { return dbPwrd; }
     
     /** callback to handle text field events. (Hitting <RETURN> will be like <OK>) */
     public void actionPerformed(ActionEvent e)

@@ -44,12 +44,23 @@ abstract public class DatabaseConnector implements IDatabaseConnector
 	throws DatabaseException
     {
 	// assign the database parameters
-	dbURL      = url;
-	dbUser     = user;
-	dbPassword = password;
+	this.dbURL      = url;
+	this.dbUser     = user;
+	this.dbPassword = password;
 	
 	// open the database connection
-	this.openConnection();
+	//this.openConnection();
+    }
+    
+    
+    /** constructor via passing of connection */
+    public DatabaseConnector(Connection connection) throws DatabaseException
+    {
+	// assign the database parameters
+	this.dbURL      = "UNKNOWN";
+	this.dbUser     = "UNKNOWN";
+	this.dbPassword = "UNKNOWN";
+	this.connection = connection;
     }
     
     
@@ -64,8 +75,8 @@ abstract public class DatabaseConnector implements IDatabaseConnector
     public void closeConnection() throws DatabaseException
     {
 	try {
-	    if (connection != null || connection.isClosed()) {
-		connection.close();
+	    if (connection!=null&&!connection.isClosed()) {
+		if (!dbURL.equals("UNKNOWN")) connection.close();
 		connection = null;
 	    }
 	}
@@ -131,17 +142,7 @@ abstract public class DatabaseConnector implements IDatabaseConnector
 		System.out.println(msg);
 	    }
 	    rs = null;
-	    //if (stmt != null) {
-	    //try {
-	    //    stmt.close();
-	    //} 
-	    //catch (SQLException e) {
-	    //    String msg =
-	    //	"WARNING: Can't close SQL Statement: "+e.getMessage();
-	    //    System.out.println(msg);
-	    //}
-	    //stmt = null;
-	    //}
+
 	}
 	return rs;
     }

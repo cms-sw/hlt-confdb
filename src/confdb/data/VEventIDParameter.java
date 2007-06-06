@@ -112,7 +112,7 @@ public class VEventIDParameter extends VectorParameter
     public int vectorSize() { return values.size(); }
 
     /** i-th value of a vector type parameter */
-    public Object value(int i) { return values.get(i); }
+    public Object value(int i) { return values.get(i).toString(); }
 
     /** set i-th value of a vector-type parameter */
     public boolean setValue(int i,String valueAsString)

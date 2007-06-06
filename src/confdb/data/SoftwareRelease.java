@@ -229,7 +229,7 @@ public class SoftwareRelease
 	    if (!edsourceTemplatesByName.containsKey(edsource.name())) {
 		edsourceTemplates.add(edsource);
 		edsourceTemplatesByName.put(edsource.name(),edsource);
-		edsourceTemplateNamesByDbId.put(edsource.dbSuperId(),edsource.name());
+		edsourceTemplateNamesByDbId.put(edsource.dbId(),edsource.name());
 		return true;
 	    }
 	}
@@ -238,7 +238,7 @@ public class SoftwareRelease
 	    if (!essourceTemplatesByName.containsKey(essource.name())) {
 		essourceTemplates.add(essource);
 		essourceTemplatesByName.put(essource.name(),essource);
-		essourceTemplateNamesByDbId.put(essource.dbSuperId(),essource.name());
+		essourceTemplateNamesByDbId.put(essource.dbId(),essource.name());
 		return true;
 	    }
 	}
@@ -247,7 +247,7 @@ public class SoftwareRelease
 	    if (!serviceTemplatesByName.containsKey(service.name())) {
 		serviceTemplates.add(service);
 		serviceTemplatesByName.put(service.name(),service);
-		serviceTemplateNamesByDbId.put(service.dbSuperId(),service.name());
+		serviceTemplateNamesByDbId.put(service.dbId(),service.name());
 		return true;
 	    }
 	}
@@ -256,7 +256,7 @@ public class SoftwareRelease
 	    if (!moduleTemplatesByName.containsKey(module.name())) {
 		moduleTemplates.add(module);
 		moduleTemplatesByName.put(module.name(),module);
-		moduleTemplateNamesByDbId.put(module.dbSuperId(),module.name());
+		moduleTemplateNamesByDbId.put(module.dbId(),module.name());
 		return true;
 	    }
 	}

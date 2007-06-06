@@ -54,7 +54,7 @@ public class TreeTableTableModel extends AbstractTableModel
 	    {
 		public void treeNodesChanged(TreeModelEvent e)
 		{
-		    //changedNode = e.getChildren()[0];
+		    changedNode = e.getChildren()[0]; // TODO
 		    delayedFireTableDataChanged();
 		}
 		

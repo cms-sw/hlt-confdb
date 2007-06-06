@@ -550,6 +550,8 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    else {
 		menuItemAll = new JMenuItem(t.name());
 		menuItem = new JMenuItem(t.name());
+		menuItemAll.setActionCommand("");
+		menuItem.setActionCommand("");
 		menuItemAll.addActionListener(listener);
 		menuItem.addActionListener(listener);
 		moduleTypeAllMenu.add(menuItemAll);
@@ -645,6 +647,8 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
     /** TreeModelListener: treeNodesChanged() */
     public void treeNodesChanged(TreeModelEvent e)
     {
+
+	
 	TreePath treePath = e.getTreePath(); if (treePath==null) return;
 	int      depth    = treePath.getPathCount(); if (depth<2) return;
 	int      index    = e.getChildIndices()[0];
@@ -1075,26 +1079,36 @@ class PathMenuListener implements ActionListener
 	    TreePath parentTreePath=(depth==3) ? treePath : treePath.getParentPath();
 	    Path     parentPath    =(depth==3) ? (Path)node : (Path)parent;
 	    int      insertIndex   =(depth==3) ? 0 : parentPath.indexOfEntry((Reference)node)+1;
-	    String   templateName = source.getActionCommand();
-	    String   instanceName = cmd;
-	    if (templateName.length()==0) templateName = cmd;
 	    
-	    Template template = config.release().moduleTemplate(templateName);
-	    ValidatedNameDialog dialog = new ValidatedNameDialog(frame,
-								 config,template);
-	    dialog.pack();
-	    dialog.setLocationRelativeTo(frame);
-	    dialog.setVisible(true);
-	    if (dialog.success()) {
-		instanceName = dialog.instanceName();
-		ArrayList<Parameter> parameters = dialog.instanceParameters();
-		ModuleReference reference =
-		    config.insertModuleReference(parentPath,
-						 insertIndex,
-						 templateName,
-						 instanceName);
-		ModuleInstance instance = (ModuleInstance)reference.parent();
-		instance.setParameters(parameters);
+	    if (action.length()==0||cmd.equals("New Instance")) {
+		
+		String templateName = (action.length()==0) ? cmd : action;
+		
+		Template template = config.release().moduleTemplate(templateName);
+		ValidatedNameDialog dialog = new ValidatedNameDialog(frame,
+								     config,
+								     template);
+		dialog.pack();
+		dialog.setLocationRelativeTo(frame);
+		dialog.setVisible(true);
+		if (dialog.success()) {
+		    String instanceName = dialog.instanceName();
+		    ArrayList<Parameter> parameters = dialog.instanceParameters();
+		    ModuleReference reference =
+			config.insertModuleReference(parentPath,
+						     insertIndex,
+						     templateName,
+						     instanceName);
+		    ModuleInstance instance = (ModuleInstance)reference.parent();
+		    instance.setParameters(parameters);
+		    treeModel.nodeInserted(parentPath,insertIndex);
+		}
+	    }
+	    else {
+		String templateName = action;
+		String instanceName = cmd;
+		config.insertModuleReference(parentPath,insertIndex,
+					     templateName,instanceName);
 		treeModel.nodeInserted(parentPath,insertIndex);
 	    }
 	}
@@ -1231,7 +1245,8 @@ class SequenceMenuListener implements ActionListener
 	    for (int i=0;i<config.sequenceCount();i++) {
 		Sequence sequence = config.sequence(i);
 		if (sequence.name().equals(sequenceName)) {
-		    config.insertSequenceReference(parentSequence,insertIndex,sequence);
+		    config
+			.insertSequenceReference(parentSequence,insertIndex,sequence);
 		    treeModel.nodeInserted(parentSequence,insertIndex);
 		    treeModel.updateLevel1Nodes();
 		    return;
@@ -1279,26 +1294,36 @@ class SequenceMenuListener implements ActionListener
 	    TreePath parentTreePath=(depth==3) ? treePath : treePath.getParentPath();
 	    Sequence parentSequence=(depth==3) ? (Sequence)node : (Sequence)parent;
 	    int      insertIndex   =(depth==3) ? 0 : parentSequence.indexOfEntry((Reference)node)+1;
-	    String   templateName = source.getActionCommand();
-	    String   instanceName = cmd;
-	    if (templateName.length()==0) templateName = cmd;
-
-	    Template template = config.release().moduleTemplate(templateName);
-	    ValidatedNameDialog dialog = new ValidatedNameDialog(frame,
-								 config,template);
-	    dialog.pack();
-	    dialog.setLocationRelativeTo(frame);
-	    dialog.setVisible(true);
-	    if (dialog.success()) {
-		instanceName = dialog.instanceName();
-		ArrayList<Parameter> parameters = dialog.instanceParameters();
-		ModuleReference reference =
-		    config.insertModuleReference(parentSequence,
-						 insertIndex,
-						 templateName,
-						 instanceName);
-		ModuleInstance instance = (ModuleInstance)reference.parent();
-		instance.setParameters(parameters);
+	    
+	    if (action.length()==0||cmd.equals("New Instance")) {
+		
+		String templateName = (action.length()==0) ? cmd : action;
+		
+		Template template = config.release().moduleTemplate(templateName);
+		ValidatedNameDialog dialog = new ValidatedNameDialog(frame,
+								     config,
+								     template);
+		dialog.pack();
+		dialog.setLocationRelativeTo(frame);
+		dialog.setVisible(true);
+		if (dialog.success()) {
+		    String instanceName = dialog.instanceName();
+		    ArrayList<Parameter> parameters = dialog.instanceParameters();
+		    ModuleReference reference =
+			config.insertModuleReference(parentSequence,
+						     insertIndex,
+						     templateName,
+						     instanceName);
+		    ModuleInstance instance = (ModuleInstance)reference.parent();
+		    instance.setParameters(parameters);
+		    treeModel.nodeInserted(parentSequence,insertIndex);
+		}
+	    }
+	    else {
+		String templateName = action;
+		String instanceName = cmd;
+		config.insertModuleReference(parentSequence,insertIndex,
+					     templateName,instanceName);
 		treeModel.nodeInserted(parentSequence,insertIndex);
 	    }
 	}

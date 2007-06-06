@@ -216,6 +216,7 @@ public class Configuration
     /** check if a qualifier is unique */
     public boolean isUniqueQualifier(String qualifier)
     {
+	if (qualifier.length()==0) return false;
 	for (ESSourceInstance ess : essources)
 	    if (ess.name().equals(qualifier)) return false;
 	for (ModuleInstance m : modules)
@@ -230,6 +231,7 @@ public class Configuration
     /** check if the reference container has a unique qualifier */
     public boolean hasUniqueQualifier(ReferenceContainer container)
     {
+	if (container.name().length()==0) return false;
 	for (ESSourceInstance ess : essources)
 	    if (ess.name().equals(container.name())) return false;
 	for (ModuleInstance m : modules)
@@ -482,6 +484,13 @@ public class Configuration
 
     /** get i-th Module */
     public ModuleInstance module(int i) { return modules.get(i); }
+    
+    /** get Module by name */
+    public ModuleInstance module(String moduleName)
+    {
+	for (ModuleInstance m : modules) if (m.name().equals(moduleName)) return m;
+	return null;
+    }
     
     /** index of a certain Module */
     public int indexOfModule(ModuleInstance module)

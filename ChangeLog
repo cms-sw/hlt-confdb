@@ -1,3 +1,20 @@
+2007-06-06  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-03-00
+	* add functionality to *export* configurations to other DBs (Menu
+	Database -> Export Configuration)
+	* add functionality to *migrate* a configuration to another
+	release (Menu Configurations -> Migrate)
+	* optimize db storage: reassociate unchanged modules
+	* fix bugs reported by Marco: insert another reference to an
+	already referenced module instance; correct storage of VInputTag
+	and VEventID datatypes; parameter value changes not reflected in
+	the tree view in some cases; a tracked PSet can be empty (?!).
+	* change DB schema to allow for an additional integer to be stored
+	with each (path / sequence / module) *reference*, which indicates
+	the operator to that reference ('&',',','!','-'). To be reflected
+	in the datamodel.
+
 2007-06-01  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-02-00

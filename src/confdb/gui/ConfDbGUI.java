@@ -13,8 +13,10 @@ import java.util.concurrent.ExecutionException;
 
 import confdb.data.SoftwareRelease;
 import confdb.data.Configuration;
+import confdb.data.Directory;
 import confdb.data.ConfigInfo;
 import confdb.data.Template;
+import confdb.data.ModuleInstance;
 import confdb.data.Parameter;
 
 import confdb.db.CfgDatabase;
@@ -22,6 +24,9 @@ import confdb.db.DatabaseException;
 
 import confdb.converter.ConverterFactory;
 import confdb.converter.Converter;
+
+import confdb.migrator.DatabaseMigrator;
+import confdb.migrator.ReleaseMigrator;
 
 import confdb.gui.treetable.TreeTableTableModel;
 
@@ -106,14 +111,16 @@ public class ConfDbGUI implements TableModelListener
 	if (source instanceof TreeTableTableModel) {
 	    TreeTableTableModel tableModel = (TreeTableTableModel)source;
 	    Parameter node = (Parameter)tableModel.changedNode();
+
 	    if (node!=null) {
 		Object parent = node.parent();
 		while (parent instanceof Parameter) {
 		    Parameter p = (Parameter)parent;
 		    parent = p.parent();
 		}
-		treeModel.nodeChanged(parent);
+
 		treeModel.nodeChanged(node);
+		if (parent instanceof ModuleInstance) tree.updateUI();
 		treeModel.updateLevel1Nodes();
 		config.setHasChanged(true);
 	    }
@@ -152,7 +159,7 @@ public class ConfDbGUI implements TableModelListener
 	}
     }
     
-    // connect to the database
+    /** connect to the database */
     public void disconnectFromDatabase()
     {
 	if (!closeConfiguration()) return;
@@ -168,6 +175,34 @@ public class ConfDbGUI implements TableModelListener
 	}
     }
     
+    /** migrate configuration to another database */
+    public void exportConfiguration()
+    {
+	if (!checkConfiguration()) return;
+	
+	ConfigurationExportDialog dialog =
+	    new ConfigurationExportDialog(frame,config.name());
+
+	dialog.pack();
+	dialog.setLocationRelativeTo(frame);
+	dialog.setVisible(true);
+
+	if (dialog.validChoice()) {
+	    CfgDatabase targetDB   = dialog.targetDB();
+	    String      targetName = dialog.targetName();
+	    Directory   targetDir  = dialog.targetDir();
+	    
+	    ConfigurationExportThread worker =
+		new ConfigurationExportThread(targetDB,targetName,targetDir);
+	    worker.start();
+	    progressBar.setIndeterminate(true);
+	    progressBar.setVisible(true);
+	    progressBar.setString("Migrate Configuration to " +
+				  targetDB.dbUrl() + " ... ");
+	}
+    }
+    
+
     /** new configuration */
     public void newConfiguration()
     {
@@ -280,6 +315,31 @@ public class ConfDbGUI implements TableModelListener
 	}
     }
     
+    /** migrate configuration (to another release) */
+    public void migrateConfiguration()
+    {
+	if (!checkConfiguration()) return;
+	
+	ConfigurationMigrationDialog dialog =
+	    new ConfigurationMigrationDialog(frame,database);
+	dialog.pack();
+	dialog.setLocationRelativeTo(frame);
+	dialog.setVisible(true);
+	
+	String releaseTag = dialog.releaseTag();	
+	
+	if (releaseTag.length()>0) {
+	    ConfigurationMigrationThread worker =
+		new ConfigurationMigrationThread(releaseTag);
+	    worker.start();
+	    progressBar.setIndeterminate(true);
+	    progressBar.setVisible(true);
+	    progressBar.setString("Migration configuration to release '" +
+				  releaseTag + "' ... ");
+	}
+    }
+    
+
     /** check if configuration is in a storable state */
     public boolean checkConfiguration()
     {
@@ -520,7 +580,73 @@ public class ConfDbGUI implements TableModelListener
     // threads *not* to be executed on the EDT
     //
 
-    /** load release templates from the database */
+    /**
+     * migrate current configuration to another database
+     */
+    private class ConfigurationExportThread extends SwingWorker<String>
+    {
+	/** target database */
+	private CfgDatabase targetDB = null;
+	
+	/** name of the configuration in the target DB */
+	private String targetName = null;
+	
+	/** target directory */
+	private Directory targetDir = null;
+	
+	/** database migrator */
+	DatabaseMigrator migrator = null;
+
+	/** start time */
+	private long startTime;
+	
+	/** standard constructor */
+	public ConfigurationExportThread(CfgDatabase targetDB,
+					 String targetName,Directory targetDir)
+	{
+	    this.targetDB   = targetDB;
+	    this.targetName = targetName;
+	    this.targetDir  = targetDir;
+	}
+	
+	/** SwingWorker: construct() */
+	protected String construct() throws InterruptedException
+	{
+	    startTime = System.currentTimeMillis();
+	    
+	    migrator = new DatabaseMigrator(config,database,targetDB);
+	    migrator.migrate(targetName,targetDir);
+	    
+	    return new String("Done!");
+	}
+	
+	/** SwingWorker: finished */
+	protected void finished()
+	{
+	    try {
+		targetDB.disconnect();
+		long elapsedTime = System.currentTimeMillis() - startTime;
+		progressBar.setString(progressBar.getString() +
+				      get() + " (" + elapsedTime + " ms)");
+		MigrationReportDialog dialog =
+		    new MigrationReportDialog(frame,migrator.releaseMigrator());
+		dialog.pack();
+		dialog.setLocationRelativeTo(frame);
+		dialog.setVisible(true);
+	    }
+	    catch (Exception e) {
+		System.out.println("EXCEPTION: "+ e.getMessage());
+		e.printStackTrace();
+		progressBar.setString(progressBar.getString() + "FAILED!");	
+	    }
+	    progressBar.setIndeterminate(false);
+	}
+    }
+    
+
+    /**
+     * load release templates from the database
+     */
     private class NewConfigurationThread extends SwingWorker<String>
     {
 	/** name of the new configuration */
@@ -570,7 +696,9 @@ public class ConfDbGUI implements TableModelListener
     }
     
 
-    /** load a configuration from the database */
+    /**
+     * load a configuration from the database
+     */
     private class OpenConfigurationThread extends SwingWorker<String>
     {
 	/** configuration info */
@@ -590,7 +718,7 @@ public class ConfDbGUI implements TableModelListener
 	{
 	    startTime = System.currentTimeMillis();
 
-	    config = new Configuration();
+	    //config = new Configuration();
 	    config = database.loadConfiguration(configInfo,release);
 	    return new String("Done!");
 	}
@@ -618,7 +746,9 @@ public class ConfDbGUI implements TableModelListener
 	}
     }
 
-    /** save a configuration in the database */
+    /**
+     * save a configuration in the database
+     */
     private class SaveConfigurationThread extends SwingWorker<String>
     {
 	/** start time */
@@ -654,7 +784,78 @@ public class ConfDbGUI implements TableModelListener
 	}
     }
 
-    /** load release templates from the database */
+    /**
+     * save a configuration in the database
+     */
+    private class ConfigurationMigrationThread extends SwingWorker<String>
+    {
+	/** the target release */
+	private String targetReleaseTag = null;
+	
+	/** release migrator */
+	private ReleaseMigrator migrator = null;
+	
+	/** start time */
+	private long startTime;
+	
+	/** standard constructor */
+	public ConfigurationMigrationThread(String targetReleaseTag)
+	{
+	    this.targetReleaseTag = targetReleaseTag;
+	}
+	
+	/** SwingWorker: construct() */
+	protected String construct() throws InterruptedException
+	{
+	    startTime = System.currentTimeMillis();
+	    
+	    SoftwareRelease targetRelease = new SoftwareRelease();
+	    database.loadSoftwareRelease(targetReleaseTag,targetRelease);
+
+	    ConfigInfo targetConfigInfo = new ConfigInfo(config.name(),
+							 config.parentDir(),
+							 -1,config.version(),
+							 "",
+							 targetReleaseTag);
+	    Configuration targetConfig = new Configuration(targetConfigInfo,
+							   targetRelease);
+	    
+	    migrator = new ReleaseMigrator(config,targetConfig);
+	    migrator.migrate();
+	    
+	    database.insertConfiguration(targetConfig);
+	    release.clearInstances();
+	    config =  database.loadConfiguration(targetConfigInfo,release);
+	    return new String("Done!");
+	}
+	
+	/** SwingWorker: finished */
+	protected void finished()
+	{
+	    try {
+		config.setHasChanged(false);
+		configurationPanel.update(config);
+		long elapsedTime = System.currentTimeMillis() - startTime;
+		progressBar.setString(progressBar.getString() +
+				      get() + " (" + elapsedTime + " ms)");
+		MigrationReportDialog dialog =
+		    new MigrationReportDialog(frame,migrator);
+		dialog.pack();
+		dialog.setLocationRelativeTo(frame);
+		dialog.setVisible(true);
+	    }
+	    catch (Exception e) {
+		System.out.println("EXCEPTION: "+ e.getMessage());
+		e.printStackTrace();
+		progressBar.setString(progressBar.getString() + "FAILED!");
+	    }
+	    progressBar.setIndeterminate(false);
+	}
+    }
+
+    /**
+     * load release templates from the database
+     */
     private class UpdateTemplatesThread extends SwingWorker<String>
     {
 	/** release to be loaded */

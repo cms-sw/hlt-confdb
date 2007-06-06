@@ -27,10 +27,10 @@ public class ESSourceTemplate extends Template
     //
     
     /** standard constructor */
-    public ESSourceTemplate(String name,String cvsTag,int dbSuperId,
+    public ESSourceTemplate(String name,String cvsTag,int dbId,
 			    ArrayList<Parameter> parameters)
     {
-	super(name,cvsTag,dbSuperId,parameters);
+	super(name,cvsTag,dbId,parameters);
     }
 
     

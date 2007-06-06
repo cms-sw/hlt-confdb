@@ -1,6 +1,7 @@
 package confdb.db;
 
 import java.sql.DriverManager;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -35,6 +36,12 @@ public class MySQLDatabaseConnector extends DatabaseConnector
 	super(url, user, password);
     }
     
+    /** constructor via Connection object*/
+    public MySQLDatabaseConnector(Connection connection) throws DatabaseException
+    {
+	super(connection);
+    }
+    
     //
     // member functions
     //
@@ -42,6 +49,8 @@ public class MySQLDatabaseConnector extends DatabaseConnector
     /** open database connection */
     public void openConnection() throws DatabaseException
     {
+	if (connection!=null) return;
+	
 	try {
 	    Class.forName(driver).newInstance();
 	}

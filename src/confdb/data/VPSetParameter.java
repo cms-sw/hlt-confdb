@@ -112,12 +112,13 @@ public class VPSetParameter extends Parameter
 	return isDefault;
     }
     
-     /** a vpset is set if all of its children are */
+     /** a vpset is set if all of its children are, or if it is empty (?!) */
     public boolean isValueSet()
     {
 	for (PSetParameter pset : parameterSets)
 	    if (!pset.isValueSet()) return false;
-	return (parameterSets.size()>0);
+	//return (parameterSets.size()>0);
+	return true;
     }
 
     /** number of unset tracked parameters in vpset */
@@ -125,10 +126,10 @@ public class VPSetParameter extends Parameter
     {
 	int result = 0;
 	for (PSetParameter pset : parameterSets) {
-	    if (pset.parameterCount()>0)
-		result += pset.unsetTrackedParameterCount();
-	    else if (pset.isTracked())
-		result++;
+	    //if (pset.parameterCount()>0)
+	    result += pset.unsetTrackedParameterCount();
+	    //else if (pset.isTracked())
+	    //result++;
 	}
 	return result;
     }

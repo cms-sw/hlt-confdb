@@ -22,7 +22,7 @@ abstract public class Template
     protected String cvsTag = null;
 
     /** the database super id */
-    private int dbSuperId = 0;
+    private int dbId = 0;
 
     /** parameters of this template */
     private ArrayList<Parameter> parameters = null;
@@ -36,12 +36,12 @@ abstract public class Template
     //
     
     /** standard constructor */
-    public Template(String name,String cvsTag,int dbSuperId,
+    public Template(String name,String cvsTag,int dbId,
 		    ArrayList<Parameter> parameters)
     {
 	this.name       = name;
 	this.cvsTag     = cvsTag;
-	this.dbSuperId  = dbSuperId;
+	this.dbId       = dbId;
 	this.parameters = parameters;
 	for (Parameter p : this.parameters) p.setParent(this);
     }
@@ -80,8 +80,8 @@ abstract public class Template
     /** cvs tag of the template */
     public String cvsTag() { return cvsTag; }
 
-    /** database super id */
-    public int dbSuperId() { return dbSuperId; }
+    /** database id */
+    public int dbId() { return dbId; }
 
     /** number of parameters */
     public int parameterCount() { return parameters.size(); }
@@ -191,7 +191,7 @@ abstract public class Template
 	return true;
     }
     
-    /** set the db superId */
-    public void setDbSuperId(int dbSuperId) { this.dbSuperId = dbSuperId; }
+    /** set the db id */
+    public void setDbId(int dbId) { this.dbId = dbId; }
 
 }

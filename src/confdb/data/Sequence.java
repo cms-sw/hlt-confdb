@@ -28,6 +28,23 @@ public class Sequence extends ReferenceContainer
     //
     // member functions
     //
+    
+    /** check if the sequence contains an outputmodule */
+    public boolean hasOutputModule()
+    {
+	for (Reference r : entries) {
+	    Referencable parent = r.parent();
+	    if (parent instanceof ModuleInstance) {
+		ModuleInstance module = (ModuleInstance)parent;
+		if (module.template().type().equals("OutputModule")) return true;
+	    }
+	    else if (parent instanceof Sequence) {
+		Sequence sequence = (Sequence)parent;
+		if (sequence.hasOutputModule()) return true;
+	    }
+	}
+	return false;
+    }
 
     /** insert a module into the sequence */
     public void insertEntry(int i,Reference reference)

@@ -19,6 +19,9 @@ abstract public class Instance
     /** name of the instance*/
     protected String name = null;
     
+    /** database id */
+    private int dbId = 0;
+
     /** reference to the template of this instance */
     private Template template = null;
 
@@ -57,6 +60,12 @@ abstract public class Instance
     /** name of the instance */
     public String name() { return name; }
     
+    /** dbId of the instance */
+    public int dbId() { return dbId; }
+    
+    /** check if the instance has changed w.r.t. the database */
+    public boolean hasChanged() { return (this.dbId==0); }
+    
     /** get the template */
     public Template template() { return template; }
     
@@ -77,7 +86,10 @@ abstract public class Instance
     public int indexOfParameter(Parameter p) { return parameters.indexOf(p); }
     
     /** set the name of this instance */
-    public void setName(String name) { this.name = name; }
+    public void setName(String name) { this.name = name; this.dbId = 0; }
+    
+    /** set the dbId of this instance */
+    public void setDbId(int dbId) { this.dbId = dbId; }
     
     /** update a parameter when the value is changed */
     public void updateParameter(int index,String valueAsString)
@@ -85,6 +97,7 @@ abstract public class Instance
 	String  oldValueAsString = parameter(index).valueAsString();
 	String  defaultAsString  = template.parameter(index).valueAsString();
 	parameter(index).setValue(valueAsString,defaultAsString);
+	dbId = 0;
     }
 
     /** update a parameter when the value is changed */
@@ -93,6 +106,7 @@ abstract public class Instance
 	for (int i=0;i<parameterCount();i++) {
 	    if (name.equals(parameter(i).name())) {
 		updateParameter(i,valueAsString);
+		dbId = 0;
 		return true;
 	    }
 	}
@@ -130,17 +144,17 @@ abstract public class Instance
 	for (Parameter p : parameters) {
 	    if (p instanceof VPSetParameter) {
 		VPSetParameter vpset = (VPSetParameter)p;
-		if (vpset.parameterSetCount()>0)
-		    result += vpset.unsetTrackedParameterCount();
-		else if (vpset.isTracked())
-		    result++;
+		//if (vpset.parameterSetCount()>0)
+		result += vpset.unsetTrackedParameterCount();
+		//else if (vpset.isTracked())
+		//result++;
 	    }
 	    else if (p instanceof PSetParameter) {
 		PSetParameter pset = (PSetParameter)p;
-		if (pset.parameterCount()>0)
-		    result += pset.unsetTrackedParameterCount();
-		else if (pset.isTracked())
-		    result++;
+		//if (pset.parameterCount()>0)
+		result += pset.unsetTrackedParameterCount();
+		//else if (pset.isTracked())
+		//result++;
 	    }
 	    else {
 		if (p.isTracked()&&!p.isValueSet()) result++;
