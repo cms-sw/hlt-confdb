@@ -439,7 +439,7 @@ class ConfdbSourceToDB:
 
 					    sealcomponenttuple.append(sealessource)
 
-					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,5)
+					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,1)
 
 					    foundcomponent = 1			
 
