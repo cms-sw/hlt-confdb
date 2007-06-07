@@ -108,7 +108,7 @@ def main(argv):
 	    print "\t-u <User name to connect as>" 
 	    print "\t-s <Database password>"
 	    print "\t-o <Hostname>"
-	    print "\t-t <Type of database. Options are MySQL (default) or Oracle"
+	    print "\t-t <Type of database. Options are MySQL (default) or Oracle>"
 	    print "\t-l <Name of config file>"
 	    print "\t-e <Parse test/ directories. 1 = yes, 0/default = no>"
 	    print "\t-h Print this help menu"

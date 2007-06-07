@@ -452,7 +452,7 @@ class SourceParser:
                                 modname = namedeclaration
 
                                 if(self.verbose > 1):
-                                    print '\t\t\tFound es_module  = ' + modtype + ', name = ' + modname
+                                    print '\t\t\tFound es_module  = ' + modname
 
                                 # Set a flag when entering a new module definition
                                 startedmod = True
