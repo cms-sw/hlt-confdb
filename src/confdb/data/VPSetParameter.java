@@ -78,10 +78,16 @@ public class VPSetParameter extends Parameter
     public boolean setValue(String valueAsString)
     {
 	parameterSets.clear();
-	if (valueAsString.length()==0) {
-	    isValueSet = false;
-	}
-	else {
+	if (valueAsString.length()>0) {
+
+	    if (!valueAsString.startsWith("<VPSet"))
+		valueAsString=
+		    "<VPSet" +
+		    " name=" + name() +
+		    " default=" + Boolean.toString(isDefault()) +
+		    " tracked=" + Boolean.toString(isTracked()) +
+		    ">" + valueAsString + "</VPSet>";
+	    
 	    VParameterSetParser parser = new VParameterSetParser(valueAsString);
 	    if (!parser.parseVParameterSet()||
 		!parser.vpsetName().equals(name())||
@@ -91,7 +97,6 @@ public class VPSetParameter extends Parameter
 		pset.setParent(this);
 		parameterSets.add(pset);
 	    }
-	    isValueSet = true;
 	}
 	return true;
     }
@@ -168,7 +173,6 @@ public class VPSetParameter extends Parameter
     {
 	pset.setParent(this);
 	parameterSets.add(pset);
-	isValueSet = true;
     }
 
     /** remove a parameter-set */
@@ -176,7 +180,6 @@ public class VPSetParameter extends Parameter
     {
 	int index = parameterSets.indexOf(pset);
 	if (index>=0) parameterSets.remove(index);
-	isValueSet = (parameterSets.size()>0);
 	return index;
     }
 }

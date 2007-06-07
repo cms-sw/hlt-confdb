@@ -149,21 +149,20 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 	if (col!=2) return;
 	if (node instanceof Parameter) {
 	    Parameter p = (Parameter)node;
-	    
+
 	    if (p.parent() == null) {
 		String defaultAsString = getDefaultFromTemplate(p);
 		p.setValue(value.toString(),defaultAsString);
 	    }
 	    else {
 		try {
-		    Object parent        = p.parent();
-		    String valueAsString = p.valueAsString();
-
+		    Object parent = p.parent();
+		    
 		    if (p.parent() instanceof PSetParameter) {
 			String defaultAsString = getDefaultFromTemplate(p);
 			p.setValue(value.toString(),defaultAsString);
 			while (parent instanceof Parameter) {
-			    p      =(Parameter)parent;
+			    p      = (Parameter)parent;
 			    parent = p.parent();
 			}
 			value = p.valueAsString();
@@ -174,12 +173,14 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 			Template template = instance.template();
 			instance.updateParameter(p.name(),value.toString());
 		    }
+
+		    nodeChanged(p);
+		    if (p!=node) nodeChanged(node);
 		}
 		catch (Exception e) {
 		    System.out.println("setValueAt failed: "+e.getMessage());
 		}
 	    }
-	    nodeChanged(node);
 	}
     }
 

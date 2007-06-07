@@ -860,7 +860,6 @@ class ESSourceMenuListener implements ActionListener
 	    dialog.setVisible(true);
 	    if (dialog.success()) {
 		String instanceName = dialog.instanceName();
-		System.out.println("instanceName = " + instanceName);
 		ArrayList<Parameter> parameters = dialog.instanceParameters();
 		ESSourceInstance instance =
 		    config.insertESSource(insertIndex,templateName,instanceName);

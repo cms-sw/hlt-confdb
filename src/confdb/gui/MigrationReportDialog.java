@@ -29,15 +29,19 @@ public class MigrationReportDialog extends JDialog implements ActionListener
 	super(frame);
 	
 	JPanel contentPane = new JPanel(new GridBagLayout());
+	contentPane.setPreferredSize(new Dimension(350,350));
 
 	GridBagConstraints c = new GridBagConstraints();
-	c.fill = GridBagConstraints.BOTH;
-	c.weightx = 0.5;
+	c.fill = GridBagConstraints.NONE;
+
 	
 	JEditorPane editorPane = new JEditorPane("text/plain","");
 	editorPane.setEditable(false);
-	editorPane.setPreferredSize(new Dimension(350,350));
-	
+	//editorPane.setPreferredSize(new Dimension(350,350));
+	JScrollPane editorScrollPane = new JScrollPane(editorPane);
+	editorScrollPane.setPreferredSize(new Dimension(300,300));
+	editorScrollPane.setMinimumSize(new Dimension(150,150));
+
 	JButton okButton = new JButton("OK");
 	okButton.setActionCommand("OK");
 	okButton.addActionListener(this);
@@ -53,8 +57,10 @@ public class MigrationReportDialog extends JDialog implements ActionListener
 	while (it.hasNext()) report.append(new String((String)(it.next()) + "\n"));
 	editorPane.setText(report.toString());
 	
-	c.gridx=0; c.gridy=0; c.gridwidth=3;
-	contentPane.add(new JScrollPane(editorPane),c);
+	c.weightx = 0.1;
+	c.gridx=0; c.gridy=0; c.gridwidth=3;// c.ipady=350;
+	contentPane.add(editorScrollPane,c);
+	c.weightx = 0.9;
 	c.gridx=1; c.gridy=1; c.gridwidth=1;
 	contentPane.add(okButton,c);
 	

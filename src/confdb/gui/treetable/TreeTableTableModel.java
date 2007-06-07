@@ -72,6 +72,7 @@ public class TreeTableTableModel extends AbstractTableModel
 		
 		public void treeStructureChanged(TreeModelEvent e)
 		{
+		    changedNode = null;
 		    delayedFireTableDataChanged();
 		}
 	    });

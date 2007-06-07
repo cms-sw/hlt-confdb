@@ -120,7 +120,11 @@ public class ConfDbGUI implements TableModelListener
 		}
 
 		treeModel.nodeChanged(node);
-		if (parent instanceof ModuleInstance) tree.updateUI();
+		if (parent instanceof ModuleInstance) {
+		    System.out.println("type="+e.getType());
+		    System.out.println("updateUI");
+		    tree.updateUI();
+		}
 		treeModel.updateLevel1Nodes();
 		config.setHasChanged(true);
 	    }
