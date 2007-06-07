@@ -3,8 +3,8 @@
 # ConfdbSourceToDB.py
 # Main file for parsing source code in a CMSSW release and
 # loading module templates to the Conf DB.
-# 
-# Jonathan Hollar LLNL May 25, 2007
+#
+# Jonathan Hollar LLNL June 7, 2007
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
@@ -108,7 +108,7 @@ def main(argv):
 	    print "\t-u <User name to connect as>" 
 	    print "\t-s <Database password>"
 	    print "\t-o <Hostname>"
-	    print "\t-t <Type of database. Options are MySQL (default) or Oracle>"
+	    print "\t-t <Type of database. Options are MySQL (default) or Oracle"
 	    print "\t-l <Name of config file>"
 	    print "\t-e <Parse test/ directories. 1 = yes, 0/default = no>"
 	    print "\t-h Print this help menu"
@@ -152,7 +152,6 @@ class ConfdbSourceToDB:
 	elif(self.dbtype == "Oracle" and self.noload == False):
 	    self.dbloader = ConfdbOracleModuleLoader.ConfdbOracleModuleLoader(self.verbose)
 	    self.dbcursor = self.dbloader.ConfdbOracleConnect(self.dbname,self.dbuser,self.dbpwd,self.dbhost)
-
 
 	# Deal with package tags for this release.
 	self.tagtuple = []
@@ -419,6 +418,32 @@ class ConfdbSourceToDB:
 
 					    foundcomponent = 1			
 
+					# And really finally ESModules
+					if ((sealcomponentline.find("DEFINE_FWK_EVENTSETUP_MODULE") != -1 or
+					    sealcomponentline.find("DEFINE_ANOTHER_FWK_EVENTSETUP_MODULE") != -1)): 
+					    sealessourcestring = sealcomponentline.split('(')
+
+					    sealclass = (sealessourcestring[1]).split(')')[0].lstrip().rstrip()
+					    sealessource = package + "/" + sealclass
+
+					    if(self.verbose > 0):
+						print "\n\tSEAL ES_Module name = " + sealessource
+
+					    if(self.doconfig != "" and (not sealclass in self.needconfigcomponents)):
+						if(self.verbose > 0):
+						    print "\t\tES_Module " + sealclass + " not needed for this config"
+						continue
+                                        
+					    if(not (package+"/"+subdir) in self.needconfigpackages):
+						self.needconfigpackages.append(package+"/"+subdir)
+
+					    sealcomponenttuple.append(sealessource)
+
+					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,5)
+
+					    foundcomponent = 1			
+
+
 	# Just print a list of all components found in the release
 	if(self.verbose > 0):					
 	    print "Scanned the following framework components:"
@@ -476,7 +501,7 @@ class ConfdbSourceToDB:
 
 	tagline = ""
 
-#	tagfile = open("tags130_pre2.txt")
+#	tagfile = open("tags131_HLT4.txt")
 #	taglines = tagfile.readlines()
 #
 #	for modtag in taglines:
@@ -486,6 +511,9 @@ class ConfdbSourceToDB:
         for modtag, cvstag in self.tagtuple:
 	    if(modtag.lstrip().rstrip() == packagename.lstrip().rstrip()):
 		tagline = cvstag
+
+
+
 
 	if(os.path.isdir(srcdir) or os.path.isdir(pluginsdir) or 
 	   (self.dotestdir == True and os.path.isdir(testdir))):        
@@ -665,6 +693,21 @@ class ConfdbSourceToDB:
 		else:
 		    # If not, make a new template
 		    self.dbloader.ConfdbLoadNewEDSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
+
+	    # This is an ES_Module. Use the ESModuleTemplate
+	    elif(componenttype == 5):
+		if(self.noload == True):
+		    return
+
+		# First check if this es_module template already exists
+		sourceid = self.dbloader.ConfdbCheckESModuleExistence(self.dbcursor,modulename,tagline)
+		if(sourceid):
+		    # If so, see if parameters need to be updated
+		    print "***UPDATING ESMODULE" + modulename + "***"
+		    self.dbloader.ConfdbUpdateESModuleTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+		else:
+		    # If not, make a new template
+		    self.dbloader.ConfdbLoadNewESModuleTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
 
 
 	    # Display any cases where we ran into trouble

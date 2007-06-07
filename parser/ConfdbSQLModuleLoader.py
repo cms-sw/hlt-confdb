@@ -3,7 +3,7 @@
 # ConfdbSQLModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (MySQL version). All MySQL specific code belongs here.
-# Jonathan Hollar LLNL May. 11, 2007
+# Jonathan Hollar LLNL June 7, 2007
 
 import os, string, sys, posix, tokenize, array
 
@@ -144,6 +144,23 @@ class ConfdbMySQLModuleLoader:
         
         return srcsuperid
 
+    # Given a tag of an es_module, check if its template exists in the DB
+    def ConfdbCheckESModuleExistence(self,thecursor,srcname,srctag):
+	thecursor.execute("SELECT * FROM SuperIds")
+
+        # See if a service of this name and CVS tag already exists
+	if(self.verbose > 2):
+	    print "SELECT ESModuleTemplates.superId FROM ESModuleTemplates WHERE (ESModuleTemplates.name = '" + srcname + "')"
+	thecursor.execute("SELECT ESModuleTemplates.superId FROM ESModuleTemplates WHERE (ESModuleTemplates.name = '" + srcname + "')")
+
+	esmodsuperid = thecursor.fetchone()
+
+        if(esmodsuperid):
+            return esmodsuperid
+        else:
+            return 0
+        
+        return esmodsuperid
                
     # Create a new module template in the DB
     def ConfdbLoadNewModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,parameters,vecparameters,paramsets,vecparamsets):
@@ -259,6 +276,34 @@ class ConfdbMySQLModuleLoader:
 
 	self.globalseqcount = 0
     # End ConfdbLoadNewEDSourceTemplate
+
+    # Create a new es_module template in the DB
+    def ConfdbLoadNewESModuleTemplate(self,thecursor,modclassname,modcvstag,parameters,vecparameters,paramsets,vecparamsets):
+	
+	self.fwknew = self.fwknew + 1
+
+	# Allocate a new SuperId
+	newsuperid = -1
+	thecursor.execute("INSERT INTO SuperIds VALUE();")
+
+	thecursor.execute("SELECT LAST_INSERT_ID()")
+
+	newsuperid = (thecursor.fetchall()[0])[0]
+
+	# Attach this template to the currect release
+	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
+
+	# Now create a new module
+	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag + "')")
+	if(self.verbose > 2):
+	    print "INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", " + modclassname + "', '" + modcvstag + "')"
+	
+	# Now deal with parameters
+	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
+	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
+
+	self.globalseqcount = 0
+    # End ConfdbLoadNewESModuleTemplate
 
     # Given a component, update parameters that have changed from the 
     # templated version
@@ -420,6 +465,45 @@ class ConfdbMySQLModuleLoader:
 
 	self.globalseqcount = 0
     # End ConfdbUpdateEDSourceTemplate
+
+    # Given a component, update parameters that have changed from the 
+    # templated version
+    def ConfdbUpdateESModuleTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets):
+
+	# Get the SuperId of the previous version of this template
+	thecursor.execute("SELECT ESModuleTemplates.superId, EDSourceTemplates.cvstag FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + sourceclassname + "') ORDER BY ESModuleTemplates.superId DESC")
+	oldsource = thecursor.fetchone()
+	oldsuperid = oldsource[0]
+	oldtag = oldsource[1]
+	print 'Old source had ' + ' ' + oldtag + ', new source has tag ' + sourcecvstag
+
+	# If the template hasn't been updated (with a new CVS tag), 
+	# just attach the old template to the new release and exit
+	if(oldtag == sourcecvstag):
+	    self.fwkunchanged = self.fwkunchanged + 1
+	    print 'The CVS tag for this source is unchanged - attach old template to new release'
+	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
+	    return
+
+	self.fwkchanged = self.fwkchanged + 1
+
+	# Otherwise allocate a new SuperId for this template and attach 
+	# it to the release
+	thecursor.execute("INSERT INTO SuperIds VALUE();")
+	thecursor.execute("SELECT LAST_INSERT_ID()")
+	newsuperid = (thecursor.fetchall()[0])[0]
+	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
+
+	# Now create a new source
+	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "')")
+	
+	# Now deal with parameters
+	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
+	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
+
+	self.globalseqcount = 0
+    # End ConfdbUpdateESModuleTemplate
+
 
     # Associate a list of parameters with a component template (via superId)
     def ConfdbAttachParameters(self,thecursor,newsuperid,parameters,vecparameters):

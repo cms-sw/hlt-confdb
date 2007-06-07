@@ -1,9 +1,9 @@
 #!/usr/bin/env python
- 
+
 # ConfdbSourceParser.py
-# Parse cc files in a release, and identify the modules/parameters 
+# Parse cc files in a release, and identify the modules/parameters
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL June 6, 2007
+# Jonathan Hollar LLNL June 7, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -439,6 +439,24 @@ class SourceParser:
                                     print '\t\t\tFound service  = ' + modname
 
 				startedmod = True
+
+                            elif ((startedmod == False) and
+                                (line.find('es_module') != -1) and not
+                                (line.startswith('//')) and
+				(line.find('=') != -1) and 
+                                line.find(themodule) != -1):
+                                namedeclaration = (line.split('='))[0]
+
+                                typedeclaration = (line.split('='))[1]
+
+                                modname = namedeclaration
+
+                                if(self.verbose > 1):
+                                    print '\t\t\tFound es_module  = ' + modtype + ', name = ' + modname
+
+                                # Set a flag when entering a new module definition
+                                startedmod = True
+
 
                     filename.close()
 
@@ -1094,6 +1112,9 @@ class SourceParser:
 		    lookupclass2 = ""
 		    multint = False 
 
+#		    if(totalconstrline == ''):
+#			totalconstrline = totalconstrline + line
+
 		    if(totalconstrline.find('ParameterSet') != -1 and totalconstrline.find('&') != -1):
 			if(totalconstrline.find('ParameterSet&') != -1):
 			    thepsetline = totalconstrline.split('ParameterSet&')[1]
@@ -1170,6 +1191,11 @@ class SourceParser:
 				print 'Found pset of type ' + psettype + ' passed to object of type ' + theobjectclass
 
 			    self.ParsePassedParameterSet(psettype, theccfile, theobjectclass, 'None',thedatadir,themodulename)
+#			elif(thepsetname == thepassedpset):
+#			    if(self.verbose > 1):
+#				print 'Found top-level pset passed to object of type ' + theobjectclass
+#
+#			    self.ParsePassedParameterSet('None', theccfile, theobjectclass, 'None',thedatadir,themodulename)
 
     # End of ParseSrcFile
 
