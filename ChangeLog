@@ -1,3 +1,19 @@
+2007-06-08  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-03-01
+	* parser: ESProducers being parsed (as Modules with type
+	'ESProducer')
+	* add directory 'ext' and add the jars for the JDBC drivers to
+	it. Also add a jar for org.jdesktop.layout.* support, which allows
+	for GUIs to be designed with the Netbeans GUI Editor
+	* adjust startGUI script to rely on the jars in ext/
+	* bug fix: correctly change values of nested PSet in the instance
+	panel
+	* bug fix: VPSet.setValue() needed one.
+	* set currentObject to null if the treetable fires a
+	treeStructureChanged event -> avoid Add Path / Add Sequence to
+	skip the entering of a valid name
+	
 2007-06-06  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-03-00

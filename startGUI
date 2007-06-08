@@ -5,8 +5,8 @@
 my $cmssw_version = get_env_variable("CMSSW_VERSION");
 my $cmssw_base    = get_env_variable("CMSSW_BASE");
 my $java_home     = get_env_variable("JAVA_HOME");
-my $oracle_home   = get_env_variable("ORACLE_HOME");
-my $mysql_home    = get_env_variable("MYSQL_HOME");
+#my $oracle_home   = get_env_variable("ORACLE_HOME");
+#my $mysql_home    = get_env_variable("MYSQL_HOME");
 
 
 # build the ConfDbGUI jar file if necessary
@@ -31,16 +31,14 @@ if (!-e $confdb_gui_jar)
     else { die ("Failed to build $confdb_gui_jar\n"); }
 }
 
-# check for MySQL JDBC Driver
-my $mysql_jar      = "$mysql_home/java/mysql-connector-java-5.0.5-bin.jar";
-if (!-e $mysql_jar) { print "\nWARNING: MySQL JDBC driver not found!\n"; }
-else { $classpath = $classpath . ":$mysql_jar"; }
+# add MySQL JDBC Driver to claspath
+$classpath = $classpath . ":ext/mysql-connector-java-5.0.5-bin.jar";
 
-# check for Oracle JDBC Driver
-my $oracle_jar     = "$oracle_home/java/ojdbc14.jar";
-if (!-e $oracle_jar) { print "\nWARNING: Oracle JDBC driver not found!\n"; }
-else { $classpath = $classpath . ":$oracle_jar"; }
+# add Oracle JDBC Driver to classpath
+$classpath = $classpath . ":ext/ojdbc14.jar";
 
+# add swing-layout-1.0.jar to classpath for org.jdesktop.layout.* support
+$classpath = $classpath . ":ext/swing-layout-1.0.jar";
 
 # start the GUI
 `rm -f ConfDbGUI.log`;

@@ -7,7 +7,7 @@
   </description>
 
   <property name="dir.src" location="src"/>
-
+  <property name="dir.ext" location="ext"/>
   <property name="dir.build" location="classes"/>
   <property name="dir.icons" location="icons"/>
   <property name="dir.lib" location="lib"/>
@@ -20,7 +20,11 @@
 
   <!-- compile all *.java files in src/** to *.class files in classes/** -->
   <target name="compile" depends="init">
-    <javac srcdir="${dir.src}" destdir="${dir.build}" debug="true"/>
+    <javac srcdir="${dir.src}" destdir="${dir.build}" debug="true">
+      <classpath>
+        <fileset dir="${dir.ext}" includes="swing-layout-1.0.jar"/>
+      </classpath>
+    </javac>
   </target>
 
   <!-- combine all classes into jar file -->
@@ -50,8 +54,8 @@
   <!-- delete all class files -->
   <target name="clean">
     <delete>
-      <fileset dir="${basedir}" includes="**/*.class"/>
-      <fileset dir="${basedir}" includes="**/*.jar"/>
+      <fileset dir="${dir.build}" includes="**/*.class"/>
+      <fileset dir="${dir.lib}" includes="**/*.jar"/>
     </delete>
     <echo message="clean successful"/>
   </target>
