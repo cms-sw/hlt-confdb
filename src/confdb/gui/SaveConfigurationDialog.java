@@ -3,16 +3,14 @@ package confdb.gui;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
-import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import java.util.EventObject;
+import org.jdesktop.layout.*;
 
 import confdb.data.Directory;
 import confdb.data.Configuration;
 import confdb.data.ConfigInfo;
-import confdb.data.ConfigVersion;
     
 import confdb.db.CfgDatabase;
 
@@ -23,24 +21,23 @@ import confdb.db.CfgDatabase;
  * @author Philipp Schieferdecker
  *
  */
-public class SaveConfigurationDialog extends ConfigurationDialog implements ActionListener
+public class SaveConfigurationDialog extends ConfigurationDialog
 {
     //
     // member data
     //
-
+    
     /** configuration to be saved */
     private Configuration config = null;
-
+    
     /** currently selected directory */
     private Directory selectedDir = null;
-
-    /** text field for the name of the configurations */
-    private JTextField textFieldConfigName = null;
     
-    /** Cancel / OK buttons */
-    private JButton okButton = null;
-    private JButton cancelButton = null;
+    /** GUI components */
+    private JTree      jTreeDirectories     = null;
+    private JTextField jTextFieldConfigName = new JTextField();
+    private JButton    okButton             = new JButton();
+    private JButton    cancelButton         = new JButton();
     
     /** action commands */
     private static final String OK            = new String("OK");
@@ -52,8 +49,8 @@ public class SaveConfigurationDialog extends ConfigurationDialog implements Acti
     //
     
     /** standard constructor */
-    public SaveConfigurationDialog(JFrame frame,
-				   CfgDatabase database,
+    public SaveConfigurationDialog(JFrame        frame,
+				   CfgDatabase   database,
 				   Configuration config)
     {
 	super(frame,database);
@@ -61,10 +58,13 @@ public class SaveConfigurationDialog extends ConfigurationDialog implements Acti
 	
 	setTitle("Save Configuration");
 	
+	createTreeView(new Dimension(200,200));
+	jTreeDirectories = this.dirTree;
 	setContentPane(createContentPane());
+	
 	if (config.version()==0) {
-	    textFieldConfigName.setText(config.name());
-	    textFieldConfigName.selectAll();
+	    jTextFieldConfigName.setText(config.name());
+	    jTextFieldConfigName.selectAll();
 	}
 	
 	addMouseListener(new SaveConfigMouseListener());
@@ -76,80 +76,30 @@ public class SaveConfigurationDialog extends ConfigurationDialog implements Acti
     //
     // member functions
     //
-
-    /** create the content pane */
-    public JPanel createContentPane()
+    
+    /** 'OK' button pressed */
+    public void okButtonActionPerformed(ActionEvent e)
     {
-	GridBagConstraints c = new GridBagConstraints();
-	c.fill = GridBagConstraints.VERTICAL;
-	c.weightx = 0.5;
+	String    configName  = jTextFieldConfigName.getText();
+	Directory parentDir   = selectedDir;
+	String    releaseTag  = config.releaseTag();
 	
-	JPanel contentPane = new JPanel(new GridBagLayout());
-	
-	Dimension dimTreeView = new Dimension(300,300);
-	c.gridx=0; c.gridy=0;
-	contentPane.add(createTreeView(dimTreeView),c);
-	
-	c.gridx=0;c.gridy=1;
-	contentPane.add(createTextFieldPanel(),c);
-
-	c.gridx=0;c.gridy=2;
-	contentPane.add(createButtonPanel(),c);
-
-	return contentPane;
-    }
-
-    /** create the text field panel */
-    public JPanel createTextFieldPanel()
-    {
-	JPanel result = new JPanel(new FlowLayout());
-	result.add(new JLabel("Configuration Name: "));
-	textFieldConfigName = new JTextField(12);
-	result.add(textFieldConfigName);
-	return result;
-    }
-
-    /** create the bottom panel: text field for config name and buttons */
-    public JPanel createButtonPanel()
-    {
-	JPanel result = new JPanel(new FlowLayout());
-
-	okButton = new JButton(OK);
-	okButton.addActionListener(this);
-	okButton.setActionCommand(OK);
-	okButton.setEnabled(false);
-	result.add(okButton);
-	
-	cancelButton = new JButton(CANCEL);
-	cancelButton.addActionListener(this);
-	cancelButton.setActionCommand(CANCEL);
-	result.add(cancelButton);
-
-	return result;	
+	if (configName.length()>0&&parentDir!=null) {
+	    ConfigInfo configInfo = new ConfigInfo(configName,parentDir,releaseTag);
+	    config.setConfigInfo(configInfo);
+	    validChoice = true;
+	    setVisible(false);
+	}
     }
     
-    /** ActionListener: actionPerformed() */
-    public void actionPerformed(ActionEvent e)
+    /** 'Cancel' button pressed */
+    public void cancelButtonActionPerformed(ActionEvent e)
     {
 	validChoice = false;
-	if (e.getActionCommand().equals(OK)) {
-	    String    configName  = textFieldConfigName.getText();
-	    Directory parentDir   = selectedDir;
-	    String    releaseTag  = config.releaseTag();
-	    if (configName.length()>0&&parentDir!=null) {
-		ConfigInfo configInfo = new ConfigInfo(configName,
-						       parentDir,
-						       releaseTag);
-		config.setConfigInfo(configInfo);
-		validChoice = true;
-	    }
-	}
-	else {
-	    System.out.println(CANCEL);
-	}
 	setVisible(false);
     }
-    
+
+
 
     //
     // classes
@@ -246,7 +196,7 @@ public class SaveConfigurationDialog extends ConfigurationDialog implements Acti
 	    Object o       = dirTree.getLastSelectedPathComponent();
 	    if (o instanceof Directory) {
 		selectedDir = (Directory)o;
-		if (textFieldConfigName.getText().length()>0)
+		if (jTextFieldConfigName.getText().length()>0)
 		    okButton.setEnabled(true);
 	    }
 	    else if (o instanceof ConfigInfo) {
@@ -299,5 +249,71 @@ public class SaveConfigurationDialog extends ConfigurationDialog implements Acti
 	public void treeStructureChanged(TreeModelEvent e) {}
 	
     }
+
+    //
+    // private member functions
+    //
+    
+    /** init GUI components [generated with NetBeans] */
+    private JPanel createContentPane()
+    {
+	JPanel      contentPane  = new JPanel();
+        JScrollPane jScrollPane1 = new JScrollPane();
+        JLabel      jLabel1      = new JLabel();
+
+        jScrollPane1.setViewportView(jTreeDirectories);
+
+        jLabel1.setText("Configuration Name:");
+        okButton.setText("OK");
+        cancelButton.setText("Cancel");
+
+        GroupLayout layout = new GroupLayout(contentPane);
+        contentPane.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
+                .add(layout.createParallelGroup(GroupLayout.LEADING)
+                    .add(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .add(layout.createParallelGroup(GroupLayout.LEADING)
+                            .add(jScrollPane1,
+				 GroupLayout.DEFAULT_SIZE, 358, Short.MAX_VALUE)
+                            .add(layout.createSequentialGroup()
+                                .add(jLabel1)
+                                .addPreferredGap(LayoutStyle.RELATED)
+                                .add(jTextFieldConfigName,
+				     GroupLayout.DEFAULT_SIZE,
+				     217, Short.MAX_VALUE))))
+                    .add(layout.createSequentialGroup()
+                        .add(91, 91, 91)
+                        .add(okButton, GroupLayout.DEFAULT_SIZE, 88, Short.MAX_VALUE)
+                        .addPreferredGap(LayoutStyle.RELATED)
+                        .add(cancelButton,
+			     GroupLayout.DEFAULT_SIZE, 86, Short.MAX_VALUE)
+                        .add(99, 99, 99)))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
+                .addContainerGap()
+                .add(jScrollPane1,GroupLayout.DEFAULT_SIZE, 387, Short.MAX_VALUE)
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(jLabel1)
+                    .add(jTextFieldConfigName,
+			 GroupLayout.PREFERRED_SIZE,
+			 GroupLayout.DEFAULT_SIZE,
+			 GroupLayout.PREFERRED_SIZE))
+                .add(19, 19, 19)
+                .add(layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(okButton)
+                    .add(cancelButton))
+                .addContainerGap())
+        );
+
+	return contentPane;
+    }
+
 }
 

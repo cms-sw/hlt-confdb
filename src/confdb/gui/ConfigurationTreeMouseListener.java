@@ -928,7 +928,8 @@ class ServiceMenuListener implements ActionListener
 	    treeModel.nodeInserted(treeModel.servicesNode(),insertIndex);
 	    if (insertIndex==0) tree.expandPath(treePath);
 	    TreePath parentTreePath = (depth==2) ? treePath : treePath.getParentPath();
-	    TreePath newTreePath = parentTreePath.pathByAddingChild(config.service(insertIndex));
+	    TreePath newTreePath =
+		parentTreePath.pathByAddingChild(config.service(insertIndex));
 	    tree.setSelectionPath(newTreePath);
 	}
 	treeModel.updateLevel1Nodes();
@@ -1101,14 +1102,21 @@ class PathMenuListener implements ActionListener
 		    ModuleInstance instance = (ModuleInstance)reference.parent();
 		    instance.setParameters(parameters);
 		    treeModel.nodeInserted(parentPath,insertIndex);
+		    TreePath newTreePath
+			= parentTreePath.pathByAddingChild(reference);
+		    tree.setSelectionPath(newTreePath);
 		}
 	    }
 	    else {
 		String templateName = action;
 		String instanceName = cmd;
-		config.insertModuleReference(parentPath,insertIndex,
-					     templateName,instanceName);
+		ModuleReference reference =
+		    config.insertModuleReference(parentPath,insertIndex,
+						 templateName,instanceName);
 		treeModel.nodeInserted(parentPath,insertIndex);
+		TreePath newTreePath
+		    = parentTreePath.pathByAddingChild(reference);
+		tree.setSelectionPath(newTreePath);
 	    }
 	}
 	treeModel.updateLevel1Nodes();
@@ -1316,14 +1324,21 @@ class SequenceMenuListener implements ActionListener
 		    ModuleInstance instance = (ModuleInstance)reference.parent();
 		    instance.setParameters(parameters);
 		    treeModel.nodeInserted(parentSequence,insertIndex);
+		    TreePath newTreePath
+			= parentTreePath.pathByAddingChild(reference);
+		    tree.setSelectionPath(newTreePath);
 		}
 	    }
 	    else {
 		String templateName = action;
 		String instanceName = cmd;
-		config.insertModuleReference(parentSequence,insertIndex,
-					     templateName,instanceName);
+		ModuleReference reference =
+		    config.insertModuleReference(parentSequence,insertIndex,
+						 templateName,instanceName);
 		treeModel.nodeInserted(parentSequence,insertIndex);
+		TreePath newTreePath
+		    = parentTreePath.pathByAddingChild(reference);
+		tree.setSelectionPath(newTreePath);
 	    }
 	}
 	treeModel.updateLevel1Nodes();

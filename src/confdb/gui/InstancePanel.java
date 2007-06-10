@@ -10,14 +10,12 @@ import java.awt.event.*;
 
 import java.util.ArrayList;
 
+import org.jdesktop.layout.*;
+
 import confdb.data.*;
 
 import confdb.converter.ConverterFactory;
 import confdb.converter.Converter;
-import confdb.converter.IEDSourceWriter;
-import confdb.converter.IESSourceWriter;
-import confdb.converter.IServiceWriter;
-import confdb.converter.IModuleWriter;
 
 import confdb.gui.treetable.*;
 
@@ -44,33 +42,22 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     /** parent frame */
     private JFrame frame = null;
     
-    /** top panel */
-    private JPanel topPanel = null;
-    
-    /** text field shoing the instance name */
-    private JLabel labelName = null;
-    private JLabel valueName = null;
-    
-    /** text field shoing the template name */
-    private JLabel labelType = null;
-    private JLabel valueType = null;
-
-    /** text field shoing the template cvs tag */
-    private JLabel labelCvsTag = null;
-    private JLabel valueCvsTag = null;
-    
     /** list of parameters, for the table */
-    private ArrayList<Parameter> parameterList = null;
+    private ArrayList<Parameter> parameterList = new ArrayList<Parameter>();
     
     /** the table and tree model to display parameter list */
     private ParameterTreeModel  treeModel  = null;
     private TreeTableTableModel tableModel = null;
     
-    /** the table to display the parameter, their types, and values */
-    private TreeTable parameterTable = null;
+    /** GUI components */
+    private JPanel      jPanelTop          = new JPanel(new CardLayout());
+    private JLabel      jLabelType         = new JLabel();
+    private JTextField  jTextFieldType     = new JTextField();
+    private JTextField  jTextFieldLabel    = new JTextField();
+    private JTextField  jTextFieldCvsTag   = new JTextField();
+    private TreeTable   jTreeTableParameters   = null;
+    private JEditorPane jEditorPaneSnippet = new JEditorPane();
 
-    /** text area for configuration snippet */
-    private JEditorPane editorPaneSnippet = null;
 
     /** the current instance, to redisplay upon change */
     private Object currentObject = null;
@@ -84,105 +71,32 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     //
     
     /** standard constructor */
-    public InstancePanel(JFrame frame,Dimension size)
+    public InstancePanel(JFrame frame)
     {
-	super(new GridBagLayout());
-	this.configurationTreeModel = null;
 	this.frame = frame;
-	setPreferredSize(size);
 	
-	Dimension dimTop = new Dimension(size.width,(int)(size.height*0.1));
-	Dimension dimPar = new Dimension(size.width,(int)(size.height*0.45));
-	Dimension dimSnp = new Dimension(size.width,(int)(size.height*0.45));
-
-	parameterList  = new ArrayList<Parameter>();
-	treeModel      = new ParameterTreeModel();
-	parameterTable = new TreeTable(treeModel);
-	tableModel     = (TreeTableTableModel)parameterTable.getModel();
+	treeModel            = new ParameterTreeModel();
+	jTreeTableParameters = new TreeTable(treeModel);
+	tableModel           = (TreeTableTableModel)jTreeTableParameters.getModel();
 	tableModel.addTableModelListener(this);
-	parameterTable.setTreeCellRenderer(new ParameterTreeCellRenderer());
-	
-	parameterTable.addMouseListener(new ParameterTableMouseListener());
+	jTreeTableParameters.setTreeCellRenderer(new ParameterTreeCellRenderer());
+	jTreeTableParameters.getColumnModel().getColumn(0).setPreferredWidth(120);
+	jTreeTableParameters.getColumnModel().getColumn(1).setPreferredWidth(90);
+	jTreeTableParameters.getColumnModel().getColumn(2).setPreferredWidth(180);
+	jTreeTableParameters.getColumnModel().getColumn(3).setPreferredWidth(30);
+	jTreeTableParameters.getColumnModel().getColumn(4).setPreferredWidth(30);
 
-	parameterTable.getColumnModel().getColumn(0).setPreferredWidth(120);
-	parameterTable.getColumnModel().getColumn(1).setPreferredWidth(90);
-	parameterTable.getColumnModel().getColumn(2).setPreferredWidth(180);
-	parameterTable.getColumnModel().getColumn(3).setPreferredWidth(30);
-	parameterTable.getColumnModel().getColumn(4).setPreferredWidth(30);
-
-	GridBagConstraints c = new GridBagConstraints();
-	c.fill = GridBagConstraints.BOTH;
-	c.weightx = 0.5;
-	c.weighty = 0.01;
+	jTreeTableParameters
+	    .addMouseListener(new ParameterTableMouseListener(frame,
+							      jTreeTableParameters,
+							      tableModel,
+							      treeModel));
 	
-	// top panel
-	topPanel = new JPanel(new CardLayout());
-
-	JPanel infoPanel = new JPanel(new GridBagLayout());
-	infoPanel.setPreferredSize(dimTop);
-	infoPanel.setBorder(BorderFactory.createTitledBorder("Selected Instance"));
-	labelType = new JLabel("<html><u>Type:</u></html>");
-	valueType = new JLabel(" - ");
-	labelName = new JLabel("<html><u>Name:</u></html>");
-	valueName = new JLabel(" - ");
-	labelCvsTag = new JLabel("<html><u>CVS Tag:</u></html>");
-	valueCvsTag = new JLabel(" - ");
-	
-	c.gridx=0;c.gridy=0;c.gridwidth=1;
-	infoPanel.add(labelType,c);
-	c.gridx=0;c.gridy=1;c.gridwidth=1;
-	infoPanel.add(valueType,c);
-	c.gridx=1;c.gridy=0;c.gridwidth=1;
-	infoPanel.add(labelName,c);
-	c.gridx=1;c.gridy=1;c.gridwidth=1;
-	infoPanel.add(valueName,c);
-	c.gridx=2;c.gridy=0;c.gridwidth=1;
-	infoPanel.add(labelCvsTag,c);
-	c.gridx=2;c.gridy=1;c.gridwidth=1;
-	infoPanel.add(valueCvsTag,c);
-
-	JPanel psetPanel = new JPanel();
-	psetPanel.add(new JLabel());
-	psetPanel.setBorder(BorderFactory.createTitledBorder("Global PSets"));
-	
-	topPanel.add(infoPanel,"InfoPanel");
-	topPanel.add(psetPanel,"PSetPanel");
-	
-	c.gridx=0;c.gridy=0;c.gridwidth=1;
-	add(topPanel,c);
-	
-	// parameter panel
-	JPanel parameterPanel = new JPanel(new BorderLayout());
-	parameterPanel.setPreferredSize(dimPar);
-	parameterPanel.setBorder(BorderFactory.createTitledBorder("Parameters"));
-	JScrollPane scrollPane = new JScrollPane(parameterTable);
-	scrollPane.setPreferredSize(dimPar);
-	parameterPanel.add(scrollPane);
-	
-	c.gridx=0; c.gridy=1; c.gridwidth=1; c.weighty=0.45;
-	add(parameterPanel,c);
-
-	// snippet panel
-	JPanel snippetPanel = new JPanel(new BorderLayout());
-	snippetPanel.setPreferredSize(dimSnp);
-	snippetPanel.setBorder(BorderFactory
-			       .createTitledBorder("Configuration Snippet"));
-	//editorPaneSnippet = new JEditorPane("text/html","");
-	editorPaneSnippet = new JEditorPane("text/plain","");
-	editorPaneSnippet.setEditable(false);
-	editorPaneSnippet.setPreferredSize(dimSnp);
-	snippetPanel.add(new JScrollPane(editorPaneSnippet));
-	
-	c.gridx=0; c.gridy=2; c.gridwidth=1; c.weighty=0.45;
-	add(snippetPanel,c);
+	initComponents();
 
 	ConverterFactory factory = ConverterFactory.getFactory("default");
-	try {
-	    converter = factory.getConverter("ASCII");
-	}
-	catch (Exception e) {
-	    System.out.println("Failed to get Converter: " + e.getMessage());
-	}
+	try { converter = factory.getConverter("ASCII"); }
+	catch (Exception e){ e.printStackTrace(); }
 	
 	clear();
     }
@@ -207,16 +121,16 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     /** set instance to be displayed */
     public void displayInstance(Instance instance)
     {
-	valueType.setText(instance.template().name());
-	labelType.setText("<html><u>" + instance.template().type()+":</u></html>");
-	valueName.setText(instance.name());
-	valueCvsTag.setText(instance.template().cvsTag());
+	jTextFieldType.setText(instance.template().name());
+	jLabelType.setText(instance.template().type()+":");
+	jTextFieldLabel.setText(instance.name());
+	jTextFieldCvsTag.setText(instance.template().cvsTag());
 	parameterList.clear();
 	for (int i=0;i<instance.parameterCount();i++)
 	    parameterList.add(instance.parameter(i));
 	currentObject = instance;
 	treeModel.setParameters(parameterList);
-	parameterTable.expandTree();
+	jTreeTableParameters.expandTree();
     }
     
     /** set instance to be displayed */
@@ -230,16 +144,16 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	for (int i=0;i<config.psetCount();i++) parameterList.add(config.pset(i));
 	currentObject = config;
 	treeModel.setParameters(parameterList);
-	parameterTable.expandTree();
+	jTreeTableParameters.expandTree();
     }
     
     /** clear all fields */
     public void clear()
     {
-	labelType.setText("<html><u>Type:</u></html>");
-	valueName.setText(" - ");
-	valueType.setText(" - ");
-	valueCvsTag.setText(" - ");
+	jLabelType.setText("Type:");
+	jTextFieldLabel.setText("");
+	jTextFieldType.setText("");
+	jTextFieldCvsTag.setText("");
 	parameterList.clear();
 	treeModel.setParameters(parameterList);
 	currentObject = null;
@@ -251,8 +165,8 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	TreePath treePath=e.getNewLeadSelectionPath();if(treePath==null)return;
 	Object   node=treePath.getLastPathComponent();if(node==null){clear();return;}
 
-	CardLayout cardLayout = (CardLayout)(topPanel.getLayout());
-	cardLayout.show(topPanel,"InfoPanel");
+	CardLayout cardLayout = (CardLayout)(jPanelTop.getLayout());
+	cardLayout.show(jPanelTop,"InstancePanel");
 	
 	while (node instanceof Parameter) {
 	    Parameter p = (Parameter)node;
@@ -271,7 +185,7 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	else if ((node instanceof StringBuffer)&&
 		 node.toString().startsWith("<html>PSets")) {
 	    displayGlobalPSets();
-	    cardLayout.show(topPanel,"PSetPanel");
+	    cardLayout.show(jPanelTop,"PSetPanel");
 	}
 	else {
 	    clear();
@@ -282,7 +196,7 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     public void tableChanged(TableModelEvent e)
     {
 	if (currentObject==null) {
-	    editorPaneSnippet.setText("");
+	    jEditorPaneSnippet.setText("");
 	    return;
 	}
 
@@ -318,162 +232,145 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 		    converter.getParameterWriter().toString(pset,converter,"")+"\n";
 	    }
 	}
-	editorPaneSnippet.setText(configAsString);	
+	jEditorPaneSnippet.setText(configAsString);	
     }
 
+    
+    //
+    // private member functions
+    //
+    
+    /** init GUI components [generated by NetBeans] */
+    private void initComponents() {
+        JPanel      jPanelInstance        = new JPanel();
+        JPanel      jPanelGlobalPSets     = new JPanel();
+        JLabel      jLabel2               = new JLabel();
+        JLabel      jLabel3               = new JLabel();
+        JScrollPane jScrollPaneParameters = new JScrollPane();
+        JScrollPane jScrollPaneSnippet    = new JScrollPane();
 
-    /** liste to mouse events and add/remove parameters from PSets/VPSets */
-    public class ParameterTableMouseListener extends    MouseAdapter
-	                                     implements ActionListener
-    {
-	/** current parameter (set by MouseAdapter for ActionListener) */
-	private Parameter parameter = null;
-	
-	/** */
-	public void mousePressed(MouseEvent e)  { maybeShowPopup(e); }
+	jPanelTop.add(jPanelInstance,"InstancePanel");
+	jPanelTop.add(jPanelGlobalPSets,"PSetPanel");
 
-	public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
-	
-	private void maybeShowPopup(MouseEvent e)
-	{
-	    if (!e.isPopupTrigger()) return;
-	    Point     pnt = e.getPoint();
-            int       col = parameterTable.columnAtPoint(pnt);
-            int       row = parameterTable.rowAtPoint(pnt);
-	    
-	    parameter = (Parameter)tableModel.nodeForRow(row);
-	    
-	    if (col!=0) return;
-	    
-	    JPopupMenu popup  = new JPopupMenu();	    
-	    Object     parent = parameter.parent();
-	    
-	    if (parameter instanceof VPSetParameter) {
-		JMenuItem  menuItem = new JMenuItem("Add PSet");
-		menuItem.addActionListener(this);
-		popup.add(menuItem);
-		if (parent instanceof PSetParameter) {
-		    popup.addSeparator();
-		    menuItem = new JMenuItem("Remove VPSet");
-		    menuItem.addActionListener(this);
-		    popup.add(menuItem);
-		}
-		popup.show(e.getComponent(),e.getX(),e.getY());
-	    }
-	    else if (parameter instanceof PSetParameter) {
-		JMenuItem  menuItem = new JMenuItem("Add Parameter");
-		menuItem.addActionListener(this);
-		popup.add(menuItem);
-		if (parent instanceof VPSetParameter||
-		    parent instanceof PSetParameter) {
-		    popup.addSeparator();
-		    menuItem = new JMenuItem("Remove PSet");
-		    menuItem.addActionListener(this);
-		    popup.add(menuItem);
-		}
-		popup.show(e.getComponent(),e.getX(),e.getY());
-	    }
-	    else if (parent instanceof PSetParameter) {
-		JMenuItem  menuItem = new JMenuItem("Remove Parameter");
-		menuItem.addActionListener(this);
-		popup.add(menuItem);
-		popup.show(e.getComponent(),e.getX(),e.getY());
-	    }
-	}
-	
-	/** ActionListener: actionPerformed() */
-	public void actionPerformed(ActionEvent e)
-	{
-	    JMenuItem src = (JMenuItem)e.getSource();
-	    String    cmd = src.getText();
-	    Object parent = parameter.parent();
-	    
-	    // vpset
-	    if (parameter instanceof VPSetParameter) {
-		if (cmd.equals("Add PSet")) {
-		    VPSetParameter vpset = (VPSetParameter)parameter;
-		    addParameterSet(vpset);
-		}
-		else if (parent instanceof PSetParameter) {
-		    PSetParameter pset = (PSetParameter)parent;
-		    if (cmd.equals("Remove Parameter")) {
-			int index = pset.removeParameter(parameter);
-			treeModel.nodeRemoved(pset,index,parameter);
-		    }
-		}
-	    }
-	    // pset
-	    else if (parameter instanceof PSetParameter) {
-		if (cmd.equals("Add Parameter")) {
-		    PSetParameter pset = (PSetParameter)parameter;
-		    addParameter(pset);
-		}
-		else if (parent instanceof VPSetParameter) {
-		    VPSetParameter vpset = (VPSetParameter)parent;
-		    PSetParameter  pset  = (PSetParameter)parameter;
-		    if (cmd.equals("Remove PSet")) {
-			int index = vpset.removeParameterSet(pset);
-			treeModel.nodeRemoved(vpset,index,pset);
-		    }
-		}
-		else if (parent instanceof PSetParameter) {
-		    PSetParameter pset = (PSetParameter)parent;
-		    if (cmd.equals("Remove Parameter")) {
-			int index = pset.removeParameter(parameter);
-			treeModel.nodeRemoved(pset,index,parameter);
-		    }
-		}
-	    }
-	    // regular parameter
-	    else if (parent instanceof PSetParameter) {
-		PSetParameter pset = (PSetParameter)parent;
-		if (cmd.equals("Remove Parameter")) {
-		    int index = pset.removeParameter(parameter);
-		    treeModel.nodeRemoved(pset,index,parameter);
-		}
-	    }
-	}
-	
-	/** show dialog to add parameter to pset */
-	private void addParameter(PSetParameter pset)
-	{
-	    AddParameterDialog dlg = new AddParameterDialog(frame,pset.isTracked());
-	    dlg.pack();
-	    dlg.setLocationRelativeTo(frame);
-	    dlg.setVisible(true);
-	    if (dlg.validChoice()) {
-		Parameter p =
-		    ParameterFactory.create(dlg.type(),
-					    dlg.name(),
-					    dlg.valueAsString(),
-					    dlg.isTracked(),
-					    false);
-		pset.addParameter(p);
-		treeModel.nodeInserted(pset,pset.parameterCount()-1);
-	    }
-	}
-	
-	/** show dialog to add PSet to VPSet */
-	private void addParameterSet(VPSetParameter vpset)
-	{
-	    AddParameterDialog dlg = new AddParameterDialog(frame,vpset.isTracked());
-	    dlg.addParameterSet();
-	    dlg.pack();
-	    dlg.setLocationRelativeTo(frame);
-	    dlg.setVisible(true);
-	    if (dlg.validChoice()) {
-		PSetParameter pset =
-		    (PSetParameter)ParameterFactory.create(dlg.type(),
-							   dlg.name(),
-							   dlg.valueAsString(),
-							   dlg.isTracked(),
-							   false);
-		vpset.addParameterSet(pset);
-		treeModel.nodeInserted(vpset,vpset.parameterSetCount()-1);
-	    }
-	}
-	
+        jPanelInstance
+	    .setBorder(BorderFactory
+		       .createTitledBorder(null,
+					   "Selected Instance",
+					   TitledBorder.DEFAULT_JUSTIFICATION,
+					   TitledBorder.DEFAULT_POSITION,
+					   new Font("Dialog", 1, 12)));
+        jPanelGlobalPSets
+	    .setBorder(BorderFactory
+		       .createTitledBorder(null,
+					   "Global PSets",
+					   TitledBorder.DEFAULT_JUSTIFICATION,
+					   TitledBorder.DEFAULT_POSITION,
+					   new Font("Dialog", 1, 12)));
+        jPanelInstance.setFont(new Font("Dialog", 1, 12));
+
+        jTextFieldType.setBackground(new java.awt.Color(255, 255, 255));
+        jTextFieldType.setEditable(false);
+        jTextFieldType.setBorder(BorderFactory.createBevelBorder(BevelBorder
+								 .LOWERED));
+        jTextFieldLabel.setBackground(new java.awt.Color(255, 255, 255));
+        jTextFieldLabel.setEditable(false);
+        jTextFieldLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder
+								  .LOWERED));
+        jTextFieldCvsTag.setBackground(new java.awt.Color(255, 255, 255));
+        jTextFieldCvsTag.setEditable(false);
+        jTextFieldCvsTag.setBorder(BorderFactory.createBevelBorder(BevelBorder
+								   .LOWERED));
+        jLabelType.setText("Type:");
+        jLabel2.setText("Label:");
+        jLabel3.setText("CVS Tag:");
+
+        GroupLayout jPanelInstanceLayout = new GroupLayout(jPanelInstance);
+        jPanelInstance.setLayout(jPanelInstanceLayout);
+        jPanelInstanceLayout.setHorizontalGroup(
+            jPanelInstanceLayout.createParallelGroup(GroupLayout.LEADING)
+            .add(jPanelInstanceLayout.createSequentialGroup()
+                .addContainerGap()
+                .add(jPanelInstanceLayout.createParallelGroup(GroupLayout.LEADING)
+                    .add(jTextFieldType,
+			 GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE)
+                    .add(jLabelType))
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(jPanelInstanceLayout.createParallelGroup(GroupLayout.LEADING)
+                    .add(jTextFieldLabel,
+			 GroupLayout.DEFAULT_SIZE, 132, Short.MAX_VALUE)
+                    .add(jLabel2))
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(jPanelInstanceLayout.createParallelGroup(GroupLayout.LEADING)
+                    .add(jLabel3)
+                    .add(jTextFieldCvsTag,
+			 GroupLayout.DEFAULT_SIZE, 85, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        jPanelInstanceLayout.setVerticalGroup(
+            jPanelInstanceLayout.createParallelGroup(GroupLayout.LEADING)
+            .add(jPanelInstanceLayout.createSequentialGroup()
+                .add(jPanelInstanceLayout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(jLabel2)
+                    .add(jLabel3)
+                    .add(jLabelType))
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(jPanelInstanceLayout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(jTextFieldType,
+			 GroupLayout.PREFERRED_SIZE,
+			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .add(jTextFieldLabel,
+			 GroupLayout.PREFERRED_SIZE,
+			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .add(jTextFieldCvsTag,
+			 GroupLayout.PREFERRED_SIZE,
+			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(12, Short.MAX_VALUE))
+        );
+
+        jScrollPaneParameters
+	    .setBorder(BorderFactory
+		       .createTitledBorder(null, "Parameters",
+					   TitledBorder.DEFAULT_JUSTIFICATION,
+					   TitledBorder.DEFAULT_POSITION,
+					   new Font("Dialog", 1, 12)));
+        jScrollPaneParameters.setViewportView(jTreeTableParameters);
+
+        jScrollPaneSnippet
+	    .setBorder(BorderFactory
+		       .createTitledBorder(null, "Configuration Snippet",
+					   TitledBorder.DEFAULT_JUSTIFICATION,
+					   TitledBorder.DEFAULT_POSITION,
+					   new java.awt.Font("Dialog", 1, 12)));
+        jEditorPaneSnippet.setEditable(false);
+        jScrollPaneSnippet.setViewportView(jEditorPaneSnippet);
+
+        GroupLayout layout = new GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(GroupLayout.LEADING)
+            .add(jScrollPaneSnippet,
+		 GroupLayout.DEFAULT_SIZE, 411, Short.MAX_VALUE)
+            .add(jScrollPaneParameters,
+		 GroupLayout.DEFAULT_SIZE, 411, Short.MAX_VALUE)
+            //.add(jPanelInstance,
+	    .add(jPanelTop,
+		 GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
+		 //.add(jPanelInstance,
+		 .add(jPanelTop,
+		      GroupLayout.PREFERRED_SIZE,
+		      GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+		 .addPreferredGap(LayoutStyle.RELATED)
+		 .add(jScrollPaneParameters,
+		      GroupLayout.PREFERRED_SIZE, 237, GroupLayout.PREFERRED_SIZE)
+		 .addPreferredGap(LayoutStyle.RELATED)
+		 .add(jScrollPaneSnippet,
+		      GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE))
+        );
     }
-
+    
 
 }

@@ -22,9 +22,6 @@ import confdb.data.Parameter;
 import confdb.db.CfgDatabase;
 import confdb.db.DatabaseException;
 
-import confdb.converter.ConverterFactory;
-import confdb.converter.Converter;
-
 import confdb.migrator.DatabaseMigrator;
 import confdb.migrator.ReleaseMigrator;
 
@@ -45,11 +42,17 @@ public class ConfDbGUI implements TableModelListener
     // member data
     //
     
+    /** main frame of the application */
+    private JFrame frame = null; 
+    
     /** the current software release (collection of all templates) */
-    private SoftwareRelease release = null;
+    private SoftwareRelease currentRelease = null;
 
     /** the current configuration */
-    private Configuration config = null;
+    private Configuration currentConfig = null;
+    
+    /** the import configuration */
+    private Configuration importConfig = null;
     
     /** handle access to the database */
     private CfgDatabase database = null;
@@ -57,32 +60,18 @@ public class ConfDbGUI implements TableModelListener
     /** ConverterService */
     private ConverterService converterService = null;
     
-    /** main frame of the application */
-    private JFrame frame = null; 
+    /** tree models for both the current and the import tree */
+    private ConfigurationTreeModel currentTreeModel = null;
+    private ConfigurationTreeModel importTreeModel = null;
     
-    /** content pane of the application */
-    private JPanel contentPane = null;
 
-    /** database information panel */
-    private DatabaseInfoPanel dbInfoPanel = null;
-    
-    /** panel to display the currently selected instance and its properties */
-    private InstancePanel instancePanel = null;
-
-    /** panel to display information about the current configuration */
+    /** GUI components */
+    private DatabaseInfoPanel  dbInfoPanel        = new DatabaseInfoPanel();
     private ConfigurationPanel configurationPanel = null;
-
-    /** progress bar for database operations */
-    private JProgressBar progressBar = null;
-    
-    /** tree structure holding the current configuration */
-    private JTree tree = null;
-    private ConfigurationTreeModel treeModel = null;
-
-    /** JEditorPanes for configuration in ASCII/PYTHON/HTML */
-    private JEditorPane editorPaneAscii  = null;
-    private JEditorPane editorPanePython = null;
-    private JEditorPane editorPaneHtml   = null;
+    private InstancePanel      instancePanel      = null;
+    private JProgressBar       progressBar        = null;
+    private JTree              currentTree        = null;
+    private JTree              importTree         = null;
     
 
     //
@@ -92,11 +81,38 @@ public class ConfDbGUI implements TableModelListener
     /** standard constructor */
     public ConfDbGUI(JFrame frame)
     {
-	this.frame           = frame;
-	release              = new SoftwareRelease();
-	config               = new Configuration();
-	database             = new CfgDatabase();
-	converterService     = new ConverterService(database);
+	this.frame            = frame;
+	this.currentRelease   = new SoftwareRelease();
+	this.currentConfig    = new Configuration();
+	this.importConfig     = new Configuration();
+	this.database         = new CfgDatabase();
+	this.converterService = new ConverterService(database);
+	
+	// current configuration tree
+	currentTreeModel = new ConfigurationTreeModel(currentConfig);
+	currentTree      = new JTree(currentTreeModel);
+	currentTree.setRootVisible(false);
+	currentTree.setEditable(true);
+	currentTree.getSelectionModel().setSelectionMode(TreeSelectionModel
+							.SINGLE_TREE_SELECTION);
+	ConfigurationTreeRenderer renderer = new ConfigurationTreeRenderer();
+	currentTree.setCellRenderer(renderer);
+	currentTree.setCellEditor(new ConfigurationTreeEditor(currentTree,renderer));
+	
+	ConfigurationTreeMouseListener mouseListener =
+	    new ConfigurationTreeMouseListener(currentTree,frame,currentRelease);
+	currentTree.addMouseListener(mouseListener);
+	currentTreeModel.addTreeModelListener(mouseListener);
+	
+	// import tree
+	importTreeModel = new ConfigurationTreeModel(importConfig);
+	importTree      = new JTree(importTreeModel);
+	importTree.setRootVisible(false);
+	importTree.setEditable(false);
+	importTree.getSelectionModel().setSelectionMode(TreeSelectionModel
+							.SINGLE_TREE_SELECTION);
+	importTree.setCellRenderer(new ConfigurationTreeRenderer());
+	
     }
     
     
@@ -119,14 +135,10 @@ public class ConfDbGUI implements TableModelListener
 		    parent = p.parent();
 		}
 
-		treeModel.nodeChanged(node);
-		if (parent instanceof ModuleInstance) {
-		    System.out.println("type="+e.getType());
-		    System.out.println("updateUI");
-		    tree.updateUI();
-		}
-		treeModel.updateLevel1Nodes();
-		config.setHasChanged(true);
+		currentTreeModel.nodeChanged(node);
+		if (parent instanceof ModuleInstance) currentTree.updateUI();
+		currentTreeModel.updateLevel1Nodes();
+		currentConfig.setHasChanged(true);
 	    }
 	}
     }
@@ -171,7 +183,7 @@ public class ConfDbGUI implements TableModelListener
 	try {
 	    database.disconnect();
 	    dbInfoPanel.disconnectedFromDatabase();
-	    release.clear("");
+	    currentRelease.clear("");
 	}
 	catch (DatabaseException e) {
 	    String msg = "Failed to disconnect from DB: " + e.getMessage();
@@ -185,7 +197,7 @@ public class ConfDbGUI implements TableModelListener
 	if (!checkConfiguration()) return;
 	
 	ConfigurationExportDialog dialog =
-	    new ConfigurationExportDialog(frame,config.name());
+	    new ConfigurationExportDialog(frame,currentConfig.name());
 
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
@@ -255,9 +267,9 @@ public class ConfDbGUI implements TableModelListener
     /** close configuration */
     public boolean closeConfiguration()
     {
-	if (config.isEmpty()) return true;
+	if (currentConfig.isEmpty()) return true;
 	
-	if (config.hasChanged()) {
+	if (currentConfig.hasChanged()) {
 	    Object[] options = { "OK", "CANCEL" };
 	    int answer = 
 		JOptionPane.showOptionDialog(null,
@@ -270,10 +282,10 @@ public class ConfDbGUI implements TableModelListener
 	    if (answer==1) return false;
 	}
 	
-	release.clearInstances();
-	config.reset();
-	treeModel.setConfiguration(config);
-	configurationPanel.update(config);
+	currentRelease.clearInstances();
+	currentConfig.reset();
+	currentTreeModel.setConfiguration(currentConfig);
+	configurationPanel.setCurrentConfig(currentConfig);
 	instancePanel.clear();
 	return true;
     }
@@ -281,11 +293,11 @@ public class ConfDbGUI implements TableModelListener
     /** save configuration */
     public void saveConfiguration()
     {
-	if (config.isEmpty()) return;
-	if (!config.hasChanged()) return;
+	if (currentConfig.isEmpty()) return;
+	if (!currentConfig.hasChanged()) return;
 	if (!checkConfiguration()) return;	
 
-	if (config.version()==0) {
+	if (currentConfig.version()==0) {
 	    saveAsConfiguration();
 	    return;
 	}
@@ -304,7 +316,7 @@ public class ConfDbGUI implements TableModelListener
 	if (!checkConfiguration()) return;
 
 	SaveConfigurationDialog dialog =
-	    new SaveConfigurationDialog(frame,database,config);
+	    new SaveConfigurationDialog(frame,database,currentConfig);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
@@ -347,8 +359,8 @@ public class ConfDbGUI implements TableModelListener
     /** check if configuration is in a storable state */
     public boolean checkConfiguration()
     {
-	if (config.isEmpty()) return false;
-	int unsetParamCount = config.unsetTrackedParameterCount();
+	if (currentConfig.isEmpty()) return false;
+	int unsetParamCount = currentConfig.unsetTrackedParameterCount();
 	if (unsetParamCount>0) {
 	    String msg =
 		"The configuration contains " + unsetParamCount +
@@ -366,7 +378,7 @@ public class ConfDbGUI implements TableModelListener
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-	String releaseTag = config.releaseTag();
+	String releaseTag = currentConfig.releaseTag();
 	
 	UpdateTemplatesThread worker =
 	    new UpdateTemplatesThread(releaseTag);
@@ -375,11 +387,11 @@ public class ConfDbGUI implements TableModelListener
 	progressBar.setVisible(true);
 	progressBar.setString("Updating Templates for Release "+releaseTag+" ... ");
     }
+    
 
     /** create the content pane */
     private JPanel createContentPane()
     {
-	// the contentPane of the main frame
 	JPanel contentPane = new JPanel(new GridBagLayout());
 	contentPane.setOpaque(true);
 	
@@ -388,148 +400,42 @@ public class ConfDbGUI implements TableModelListener
 	c.weightx = 0.5;
 	
 	c.gridx=0;c.gridy=0; c.weighty=0.01;
-	contentPane.add(createDbInfoView(),c);
+	contentPane.add(dbInfoPanel,c);
+
+	instancePanel = new InstancePanel(frame);
+	instancePanel.setConfigurationTreeModel(currentTreeModel);
+	instancePanel.addTableModelListener(this);
+	currentTree.addTreeSelectionListener(instancePanel);
 	
-	// create the instance view
-	JPanel instanceView = createInstanceView(new Dimension(500,800));
+	configurationPanel = new ConfigurationPanel(currentTree,importTree,
+						    converterService);
 	
-	// create the tree view
-	JPanel treeView = createTreeView(new Dimension(500,800));
+	JSplitPane  splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+					       configurationPanel,
+					       instancePanel);
+	splitPane.setOneTouchExpandable(true);
+	splitPane.setResizeWeight(0.4);
+	splitPane.setDividerLocation(0.4);
 	
-	// set configuration tree model in instance panel
-	instancePanel.setConfigurationTreeModel(treeModel);
-	
-	// create the tree/component panel split pane
-	JSplitPane  horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-							 treeView,instanceView);
-	horizontalSplitPane.setOneTouchExpandable(true);
-	horizontalSplitPane.setResizeWeight(0.01);
-	horizontalSplitPane.setDividerLocation(0.5);
-	
-	// add horizontal split pane to content pane
 	c.gridx=0;c.gridy=1; c.weighty=0.98;
-	contentPane.add(horizontalSplitPane,c);
+	contentPane.add(splitPane,c);
 	
-	// add the status bar at the bottom
-	c.gridx=0;c.gridy=2; c.weighty=0.01;
 	JPanel statusPanel = new JPanel(new GridLayout());
 	progressBar = new JProgressBar(0);
 	progressBar.setIndeterminate(true);
 	progressBar.setStringPainted(true);
 	progressBar.setVisible(false);
 	statusPanel.add(progressBar);
+
+	c.gridx=0;c.gridy=2; c.weighty=0.01;
 	contentPane.add(statusPanel,c);
 	
-	
-	// return content pane, to be set in main frame
 	return contentPane;
     }
 
-    /** craete the top panel with the database connection info */
-    private JPanel createDbInfoView()
-    {
-	dbInfoPanel = new DatabaseInfoPanel();
-	return dbInfoPanel;
-    }
-        
-    /** create the component panel, to display the currently selected component */
-    private JPanel createInstanceView(Dimension dim)
-    {
-	instancePanel = new InstancePanel(frame,dim);
-	instancePanel.addTableModelListener(this);
-	return instancePanel;
-    }
-    
-    /** create the configuration tree */
-    private JPanel createTreeView(Dimension dim)
-    {
-	configurationPanel = new ConfigurationPanel(converterService);
-
-	// the tree
-	treeModel = new ConfigurationTreeModel(config);
-	tree      = new JTree(treeModel);
-	tree.addTreeSelectionListener(instancePanel);
-
-	ConfigurationTreeMouseListener mouseListener =
-	    new ConfigurationTreeMouseListener(tree,frame,release);
-	tree.addMouseListener(mouseListener);
-	treeModel.addTreeModelListener(mouseListener);
-	
-	tree.setRootVisible(false);
-	tree.setEditable(true);
-	tree.getSelectionModel()
-	    .setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-	
-	ConfigurationTreeRenderer renderer = new ConfigurationTreeRenderer();
-	tree.setCellRenderer(renderer);
-	tree.setCellEditor(new ConfigurationTreeEditor(tree,renderer));
-
-	// the converted configurations
-	editorPaneAscii  = new JEditorPane("text/plain","");
-	editorPanePython = new JEditorPane("text/plain","");
-	editorPaneHtml   = new JEditorPane("text/html","");
-	editorPaneAscii.setEditable(false);
-	editorPanePython.setEditable(false);
-	editorPaneHtml.setEditable(false);
-	
-	JPanel treeView = new JPanel(new GridBagLayout());
-	treeView.setPreferredSize(dim);
-	
-	// tabbed pane
-	JTabbedPane tabbedPane = new JTabbedPane();
-	tabbedPane.addTab("Tree",new JScrollPane(tree));
-	tabbedPane.addTab("Ascii",new JScrollPane(editorPaneAscii));
-	tabbedPane.addTab("Python",new JScrollPane(editorPanePython));
-	tabbedPane.addTab("Html",new JScrollPane(editorPaneHtml));
-	
-	// react to 'Converter' tab being selected
-	tabbedPane.addChangeListener(new ChangeListener()
-	    {
-		public void stateChanged(ChangeEvent e) {
-		    JTabbedPane pane = (JTabbedPane)e.getSource();
-		    JEditorPane editorPane = null;
-		    String      format = null;
-		    int         sel = pane.getSelectedIndex();
-		    switch (sel) {
-		    case 0 : return;
-		    case 1 : editorPane = editorPaneAscii;  format="ascii";  break; 
-		    case 2 : editorPane = editorPanePython; format="python"; break; 
-		    case 3 : editorPane = editorPaneHtml;   format="html";   break; 
-		    default : return;
-		    }
-		    
-		    if (config==null) {
-			editorPane.setText("");
-		    }
-		    else {
-			converterService.setFormat(format);
-			String  configAsString =
-			    converterService.convertConfiguration(config);
-			editorPane.setText(configAsString);
-		    }
-		}
-	    });
-	
-	// place components in tree view
-	GridBagConstraints c = new GridBagConstraints();
-	c.fill = GridBagConstraints.BOTH;
-	c.weightx = 0.5;
-	
-	c.gridx=0;c.gridy=0;c.gridwidth=1; c.weighty = 0.01;
-	treeView.add(configurationPanel,c);
-	
-	c.gridx=0;c.gridy=1;c.gridwidth=1; c.weighty=0.99;
-	treeView.add(tabbedPane,c);
-	
-	treeView.setPreferredSize(dim);
-	return treeView;
-    }
-    
     /** create the menu bar */
-    private void createMenuBar()
-    {
-	CfgMenuBar menuBar = new CfgMenuBar(frame,this);
-    }
+    private void createMenuBar() { new CfgMenuBar(frame,this); }
+    
     
     //
     // static member functions
@@ -566,17 +472,14 @@ public class ConfDbGUI implements TableModelListener
     }
     
 
-    /** main, create and show GUI, thread-safe */
+    /**
+     * MAIN create and show GUI, thread-safe
+     */
     public static void main(String[] args)
     {
-	javax.swing.SwingUtilities
-	    .invokeLater(new Runnable() 
-		{
-		    public void run()
-		    {
-			createAndShowGUI();
-		    }
-		});
+	javax.swing.SwingUtilities.invokeLater(new Runnable() {
+		public void run() {  createAndShowGUI(); }
+	    });
     }
     
 
@@ -617,10 +520,8 @@ public class ConfDbGUI implements TableModelListener
 	protected String construct() throws InterruptedException
 	{
 	    startTime = System.currentTimeMillis();
-	    
-	    migrator = new DatabaseMigrator(config,database,targetDB);
+	    migrator = new DatabaseMigrator(currentConfig,database,targetDB);
 	    migrator.migrate(targetName,targetDir);
-	    
 	    return new String("Done!");
 	}
 	
@@ -673,8 +574,8 @@ public class ConfDbGUI implements TableModelListener
 	protected String construct() throws InterruptedException
 	{
 	    startTime = System.currentTimeMillis();
-	    if (!releaseTag.equals(release.releaseTag()))
-		database.loadSoftwareRelease(releaseTag,release);
+	    if (!releaseTag.equals(currentRelease.releaseTag()))
+		database.loadSoftwareRelease(releaseTag,currentRelease);
 	    return new String("Done!");
 	}
 	
@@ -682,10 +583,11 @@ public class ConfDbGUI implements TableModelListener
 	protected void finished()
 	{
 	    try {
-		config = new Configuration();
-		config.initialize(new ConfigInfo(cfgName,null,releaseTag),release);
-		treeModel.setConfiguration(config);
-		configurationPanel.update(config);
+		currentConfig = new Configuration();
+		currentConfig.initialize(new ConfigInfo(cfgName,null,releaseTag),
+					 currentRelease);
+		currentTreeModel.setConfiguration(currentConfig);
+		configurationPanel.setCurrentConfig(currentConfig);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		progressBar.setString(progressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
@@ -721,9 +623,7 @@ public class ConfDbGUI implements TableModelListener
 	protected String construct() throws InterruptedException
 	{
 	    startTime = System.currentTimeMillis();
-
-	    //config = new Configuration();
-	    config = database.loadConfiguration(configInfo,release);
+	    currentConfig = database.loadConfiguration(configInfo,currentRelease);
 	    return new String("Done!");
 	}
 	
@@ -731,8 +631,8 @@ public class ConfDbGUI implements TableModelListener
 	protected void finished()
 	{
 	    try {
-		treeModel.setConfiguration(config);
-		configurationPanel.update(config);
+		currentTreeModel.setConfiguration(currentConfig);
+		configurationPanel.setCurrentConfig(currentConfig);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		progressBar.setString(progressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
@@ -765,7 +665,7 @@ public class ConfDbGUI implements TableModelListener
 	protected String construct() throws InterruptedException
 	{
 	    startTime = System.currentTimeMillis();
-	    database.insertConfiguration(config);
+	    database.insertConfiguration(currentConfig);
 	    return new String("Done!");
 	}
 	
@@ -773,8 +673,8 @@ public class ConfDbGUI implements TableModelListener
 	protected void finished()
 	{
 	    try {
-		config.setHasChanged(false);
-		configurationPanel.update(config);
+		currentConfig.setHasChanged(false);
+		configurationPanel.setCurrentConfig(currentConfig);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		progressBar.setString(progressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
@@ -816,20 +716,19 @@ public class ConfDbGUI implements TableModelListener
 	    SoftwareRelease targetRelease = new SoftwareRelease();
 	    database.loadSoftwareRelease(targetReleaseTag,targetRelease);
 
-	    ConfigInfo targetConfigInfo = new ConfigInfo(config.name(),
-							 config.parentDir(),
-							 -1,config.version(),
-							 "",
-							 targetReleaseTag);
+	    ConfigInfo targetConfigInfo =
+		new ConfigInfo(currentConfig.name(),currentConfig.parentDir(),
+			       -1,currentConfig.version(),"",targetReleaseTag);
 	    Configuration targetConfig = new Configuration(targetConfigInfo,
 							   targetRelease);
 	    
-	    migrator = new ReleaseMigrator(config,targetConfig);
+	    migrator = new ReleaseMigrator(currentConfig,targetConfig);
 	    migrator.migrate();
 	    
 	    database.insertConfiguration(targetConfig);
-	    release.clearInstances();
-	    config =  database.loadConfiguration(targetConfigInfo,release);
+	    currentRelease.clearInstances();
+	    currentConfig =
+		database.loadConfiguration(targetConfigInfo,currentRelease);
 	    return new String("Done!");
 	}
 	
@@ -837,8 +736,8 @@ public class ConfDbGUI implements TableModelListener
 	protected void finished()
 	{
 	    try {
-		config.setHasChanged(false);
-		configurationPanel.update(config);
+		currentConfig.setHasChanged(false);
+		configurationPanel.setCurrentConfig(currentConfig);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		progressBar.setString(progressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
@@ -878,8 +777,8 @@ public class ConfDbGUI implements TableModelListener
 	protected String construct() throws InterruptedException
 	{
 	    startTime = System.currentTimeMillis();
-	    if (!releaseTag.equals(release.releaseTag()))
-		database.loadSoftwareRelease(releaseTag,release);
+	    if (!releaseTag.equals(currentRelease.releaseTag()))
+		database.loadSoftwareRelease(releaseTag,currentRelease);
 	    return new String("Done!");
 	}
 	

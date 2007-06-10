@@ -4,6 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
+import org.jdesktop.layout.*;
+
 import confdb.data.ParameterFactory;
 import confdb.data.Parameter;
 
@@ -13,7 +15,7 @@ import confdb.data.Parameter;
  * @author Philipp Schieferdecker
  *
  */
-public class AddParameterDialog extends JDialog implements ActionListener
+public class AddParameterDialog extends JDialog
 {
     //
     // member data
@@ -25,18 +27,6 @@ public class AddParameterDialog extends JDialog implements ActionListener
     /** inidcate if only PSet is allowed as type (for adding to VPSet) */
     private boolean psetMode = false;
     
-    /** parameter name text field */
-    private JTextField textFieldName = null;
-
-    /** parameter type combo box */
-    private JComboBox  comboBoxType = null;
-
-    /** parameter value text field */
-    private JTextField textFieldValue = null;
-    
-    /** parameter isTracked check-box */
-    private JCheckBox checkBoxIsTrkd = null;
-
     /** array of valid parameter types */
     private static final String[] types =
     {
@@ -45,11 +35,13 @@ public class AddParameterDialog extends JDialog implements ActionListener
 	"vint32","vuint32","vdouble","vstring","VEventID","VInputTag","VPSet"
     };
     
-    /** buttons */
-    private static final String OK           = "Add";
-    private static final String CANCEL       = "Cancel";
-    private JButton             okButton     = new JButton(OK);
-    private JButton             cancelButton = new JButton(CANCEL);
+    /** GUI components */
+    private JTextField jTextFieldName   = new JTextField();
+    private JComboBox  jComboBoxType    = new JComboBox(types);
+    private JTextField jTextFieldValue  = new JTextField();
+    private JCheckBox  jCheckBoxTracked = new JCheckBox();
+    private JButton    addButton        = new JButton();
+    private JButton    cancelButton     = new JButton();
     
     
     //
@@ -61,6 +53,9 @@ public class AddParameterDialog extends JDialog implements ActionListener
     {
 	super(frame,true);
 	setContentPane(createContentPane(isTrackedDefault));
+	jTextFieldValue.setEditable(false);
+	jComboBoxType.setEditable(false);
+	addButton.setEnabled(false);
 	setTitle("Add Parameter");
     }
     
@@ -69,103 +64,196 @@ public class AddParameterDialog extends JDialog implements ActionListener
     // member functions
     //
     
-    /** layout the dialog box*/
-    private JPanel createContentPane(boolean isTrackedDefault)
-    {
-	textFieldName  = new JTextField(10);
-	comboBoxType   = new JComboBox(types);
-	textFieldValue = new JTextField(10);
-	checkBoxIsTrkd = new JCheckBox("tracked",isTrackedDefault);
-	
-	if (!isTrackedDefault) checkBoxIsTrkd.setEnabled(false);
-
-	okButton.addActionListener(this);
-	cancelButton.addActionListener(this);
-	textFieldName.addActionListener(this);
-	comboBoxType.addActionListener(this);
-	
-	textFieldValue.setEditable(false);
-	comboBoxType.setEditable(false);
-	okButton.setEnabled(false);
-	
-	comboBoxType.setBackground(Color.WHITE);
-	
-	JPanel panel = new JPanel(new FlowLayout());
-
-	panel.add(new JLabel("Name: "));
-	panel.add(textFieldName);
-	panel.add(new JLabel(" Type: "));
-	panel.add(comboBoxType);
-	panel.add(new JLabel("Value: "));
-	panel.add(textFieldValue);
-	panel.add(checkBoxIsTrkd);
-	panel.add(okButton);
-	panel.add(cancelButton);
-	
-	return panel;
-    }
-    
     /** only allow the addition of a pset! */
     public void addParameterSet()
     {
 	psetMode = true;
-	comboBoxType.setSelectedIndex(8);
-	comboBoxType.setEnabled(false);
+	jComboBoxType.setSelectedIndex(8);
+	jComboBoxType.setEnabled(false);
     }
 
-    /** ActionListener: actionPerformed() */
-    public void actionPerformed(ActionEvent e)
+    /** parameter name entered */
+    public void jTextFieldNameActionPerformed(ActionEvent e)
     {
-	Object src = e.getSource();
+	String name = jTextFieldName.getText();
+	if (!name.equals("")) {
+	    if (psetMode) {
+		addButton.setEnabled(true);
+	    }
+	    else {
+		jComboBoxType.setEditable(true);
+	    }
+	}
+    }
+    
+    /** type choosen from the combo box */
+    public void jComboBoxTypeActionPerformed(ActionEvent e)
+    {
+	String type = (String)jComboBoxType.getSelectedItem();
+	if (type.equals("PSet")||type.equals("VPSet")) {
+	    jTextFieldValue.setEditable(false);
+	    addButton.setEnabled(true);
+	}
+	else if (!type.equals("")) {
+	    jTextFieldValue.setEditable(true);
+	    jTextFieldValue.requestFocusInWindow();
+	    addButton.setEnabled(true);
+	}
+    }
 
-	if (src instanceof JComboBox) {
-	    JComboBox cb = (JComboBox)src;
-	    String type = (String)cb.getSelectedItem();
-	    if (type.equals("PSet")||type.equals("VPSet")) {
-		textFieldValue.setEditable(false);
-		okButton.setEnabled(true);
-	    }
-	    else if (!type.equals("")) {
-		textFieldValue.setEditable(true);
-		textFieldValue.requestFocusInWindow();
-		okButton.setEnabled(true);
-	    }
-	}
-	else if (src instanceof JTextField) {
-	    JTextField tf   = (JTextField)src;
-	    String     name = tf.getText();
-	    if (!name.equals("")) {
-		if (psetMode) {
-		    okButton.setEnabled(true);
-		}
-		else {
-		    comboBoxType.setEditable(true);
-		}
-	    }
-	}
-	else if (src instanceof JButton) {
-	    JButton b = (JButton)src;
-	    String cmd = b.getText();
-	    if (cmd.equals(OK)) {
-		validChoice = true;
-	    }
-	    setVisible(false);
-	}
+    /** 'Add' button pressed */
+    public void addButtonActionPerformed(ActionEvent e)
+    {
+	validChoice = true;
+	setVisible(false);
+    }
+
+    /** 'Cancel' button pressed */
+    public void cancelButtonActionPerformed(ActionEvent e)
+    {
+	validChoice = false;
+	setVisible(false);
     }
 
     /** valid choide? */
     public boolean validChoice() { return validChoice; }
     
     /** parameter name */
-    public String name() { return textFieldName.getText(); }
+    public String name() { return jTextFieldName.getText(); }
 
     /** parameter type */
-    public String type() { return (String)comboBoxType.getSelectedItem(); }
+    public String type() { return (String)jComboBoxType.getSelectedItem(); }
 
     /** parameter isTracked */
-    public boolean isTracked() { return checkBoxIsTrkd.isSelected(); }
+    public boolean isTracked() { return jCheckBoxTracked.isSelected(); }
     
     /** parameter value as string */
-    public String valueAsString() { return textFieldValue.getText(); }
+    public String valueAsString() { return jTextFieldValue.getText(); }
+
     
+    //
+    // private member functions
+    //
+
+    /** init GUI components [generated with NetBeans] */
+    private JPanel createContentPane(boolean isTrackedDefault)
+    {
+	JPanel contentPane = new JPanel();
+	
+        JLabel jLabel1 = new JLabel();
+        JLabel jLabel2 = new JLabel();
+        JLabel jLabel3 = new JLabel();
+	
+        jLabel1.setText("Name:");
+        jLabel2.setText("Type:");
+        jLabel3.setText("Value:");
+        
+	jTextFieldName.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                jTextFieldNameActionPerformed(evt);
+            }
+        });
+	
+        
+	jComboBoxType.setBackground(new Color(255, 255, 255));
+        jComboBoxType.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                jComboBoxTypeActionPerformed(evt);
+            }
+        });
+	
+        jCheckBoxTracked.setText("tracked");
+        jCheckBoxTracked.setSelected(isTrackedDefault);
+        jCheckBoxTracked.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        jCheckBoxTracked.setMargin(new java.awt.Insets(0, 0, 0, 0));
+	if (!isTrackedDefault) jCheckBoxTracked.setEnabled(false);
+	
+        addButton.setText("Add");
+        addButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                addButtonActionPerformed(evt);
+            }
+        });
+
+        cancelButton.setText("Cancel");
+        cancelButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                cancelButtonActionPerformed(evt);
+            }
+        });
+
+	GroupLayout layout = new GroupLayout(contentPane);
+	contentPane.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
+                .add(layout.createParallelGroup(GroupLayout.LEADING)
+                    .add(layout.createSequentialGroup()
+                        .add(12, 12, 12)
+                        .add(layout.createParallelGroup(GroupLayout.LEADING)
+                            .add(layout.createSequentialGroup()
+                                .add(jLabel3,
+				     GroupLayout.DEFAULT_SIZE,
+				     GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .add(223, 223, 223))
+                            .add(layout.createSequentialGroup()
+                                .add(jTextFieldValue,
+				     GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
+                                .addPreferredGap(LayoutStyle.RELATED)))
+                        .add(jCheckBoxTracked))
+                    .add(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .add(layout.createParallelGroup(GroupLayout.LEADING)
+                            .add(jLabel1)
+                            .add(jTextFieldName,
+				 GroupLayout.PREFERRED_SIZE,
+				 149, GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(LayoutStyle.RELATED)
+                        .add(layout.createParallelGroup(GroupLayout.TRAILING)
+                            .add(jLabel2,
+				 GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE)
+                            .add(GroupLayout.LEADING,
+				 jComboBoxType, 0, 162, Short.MAX_VALUE)))
+                    .add(GroupLayout.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap()
+                        .add(addButton,
+			     GroupLayout.PREFERRED_SIZE,
+			     84, GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(LayoutStyle.RELATED)
+                        .add(cancelButton,
+			     GroupLayout.PREFERRED_SIZE,
+			     85, GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
+                .addContainerGap()
+                .add(layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(jLabel1)
+                    .add(jLabel2))
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(jComboBoxType,
+			 GroupLayout.PREFERRED_SIZE,
+			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .add(jTextFieldName,
+			 GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(jLabel3)
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(jCheckBoxTracked)
+                    .add(jTextFieldValue,
+			 GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(LayoutStyle.RELATED, 35, Short.MAX_VALUE)
+                .add(layout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(addButton)
+                    .add(cancelButton))
+                .addContainerGap())
+        );
+
+	return contentPane;
+    }
+
 }
