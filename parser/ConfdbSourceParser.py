@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-
+ 
 # ConfdbSourceParser.py
-# Parse cc files in a release, and identify the modules/parameters
+# Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL June 7, 2007
+# Jonathan Hollar LLNL June 10, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -38,7 +38,7 @@ class SourceParser:
 
     # Parser for .cf* files. Look for default values of tracked parameters.
     # Anything specific to the .cf* file syntax nominally goes here.
-    def ParseCfFile(self,thecfidir,themodule,theparam,itsparamset):
+    def ParseCfFile(self,thecfidir,themodule,theparam,itsparamset,theblock,thecfifile):
 
         foundparam = False
 
@@ -53,6 +53,9 @@ class SourceParser:
 		    if(not os.path.isfile(thecfidir+cfifile)):
 			continue
 
+		    if(thecfifile and (cfifile != thecfifile)):
+			continue
+		    
 		    filename = open(thecfidir + cfifile)
 
                     if(self.verbose > 1):
@@ -60,6 +63,7 @@ class SourceParser:
         
                     lines = filename.readlines()
         
+		    includedcfis = []
                     startedmod = False
                     startedvector = False
 		    startedpset = False
@@ -89,6 +93,12 @@ class SourceParser:
                         
                         # Check that line isn't empty
                         if(vals):
+
+			    # Look for using/block constructs - can appear anywhere in cfi
+			    if(line.lstrip().startswith('include ') and line.rstrip().endswith('.cfi"')):
+				includecfi = line.split('include')[1].lstrip().rstrip().lstrip('"').rstrip('"')
+				includedcfis.append(includecfi)
+
                             # If we found the start of a module definition, start reading parameters
                             if(startedmod == True):
                                 paramcount = 0
@@ -457,6 +467,34 @@ class SourceParser:
                                 # Set a flag when entering a new module definition
                                 startedmod = True
 
+			    elif ((startedmod == False) and 
+				  line.find('block ') !=  -1 and not
+				  (line.startswith('//')) and
+				  (line.find('=') != -1) and 
+				  (theblock) and 
+				  line.find(theblock) != -1):
+                                if(self.verbose > 1):
+                                    print '\t\t\tFound block  = ' + theblock
+				startedmod = True
+
+		    # We didn't find the default. Before giving up, go back and look for instances of using
+		    # blocks from external config files
+		    if(foundparam == False and len(includedcfis) != 0):
+			for line in lines:
+			    # Tokenize the line
+			    vals = string.split(line)
+                        
+			    # Check that line isn't empty
+			    if(vals):
+				if(line.lstrip().startswith('using ')):
+				    usingblock = line.split('using ')[1].lstrip().rstrip()
+				    # If we do have a using block, find the cfi file it's declared in and 
+				    # get the parameters
+				    for theincludedcfi in includedcfis:
+					theincludedcfidatadir = theincludedcfi.split('data')[0] + 'data/'
+					theincludedcfidir = thecfidir.split('src')[0] + 'src/' + theincludedcfidatadir
+					theincludedcfifile = theincludedcfi.split('data/')[1]
+					foundparam = self.ParseCfFile(theincludedcfidir,themodule,theparam,itsparamset,usingblock,theincludedcfifile)
 
                     filename.close()
 
@@ -661,9 +699,9 @@ class SourceParser:
                         # their default values from the corresponding .cfi
                         # file
                         if(thetdefedmodule == ""):
-                            success = self.ParseCfFile(thedatadir,theconstructor,paramname,paraminparamset)
+                            success = self.ParseCfFile(thedatadir,theconstructor,paramname,paraminparamset,None,None)
                         else:
-                            success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname,paraminparamset)
+                            success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname,paraminparamset,None,None)
 
                         totalline = ''
                         foundlineend = False
@@ -914,10 +952,10 @@ class SourceParser:
 			    # find their default values in the .cc file, look in 
 			    # .cfi files
 			    if(thetdefedmodule == "" and defaultincc == False):
-				success = self.ParseCfFile(thedatadir,theconstructor,paramname,paraminparamset)
+				success = self.ParseCfFile(thedatadir,theconstructor,paramname,paraminparamset,None,None)
 
 			    elif(thetdefedmodule != "" and defaultincc == False):
-				success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname,paraminparamset)
+				success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname,paraminparamset,None,None)
 
 			    if(defaultincc == False and success == False):
 				if(self.verbose > 1):
@@ -1112,9 +1150,6 @@ class SourceParser:
 		    lookupclass2 = ""
 		    multint = False 
 
-#		    if(totalconstrline == ''):
-#			totalconstrline = totalconstrline + line
-
 		    if(totalconstrline.find('ParameterSet') != -1 and totalconstrline.find('&') != -1):
 			if(totalconstrline.find('ParameterSet&') != -1):
 			    thepsetline = totalconstrline.split('ParameterSet&')[1]
@@ -1191,11 +1226,6 @@ class SourceParser:
 				print 'Found pset of type ' + psettype + ' passed to object of type ' + theobjectclass
 
 			    self.ParsePassedParameterSet(psettype, theccfile, theobjectclass, 'None',thedatadir,themodulename)
-#			elif(thepsetname == thepassedpset):
-#			    if(self.verbose > 1):
-#				print 'Found top-level pset passed to object of type ' + theobjectclass
-#
-#			    self.ParsePassedParameterSet('None', theccfile, theobjectclass, 'None',thedatadir,themodulename)
 
     # End of ParseSrcFile
 
@@ -1600,7 +1630,7 @@ class SourceParser:
 				print '\tPassed parameter ' + paramtype + '\t' + paramname + ' (tracked)'
 
 			if((paramtype != 'ParameterSet') and (paramtype != 'PSet')):
-			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname)			
+			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
 
 			    if(success == False and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thenestedpsetname))):
 				self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"true",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
@@ -1699,7 +1729,7 @@ class SourceParser:
 				print '\tPassed parameter ' + paramtype + '\t' + paramname + ' (untracked)'
 
 			if((paramtype != 'ParameterSet') and (paramtype != 'PSet')):
-			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname)			
+			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
 
 			    if(success == False and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thenestedpsetname))):
 				self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"false",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
