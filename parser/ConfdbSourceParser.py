@@ -1774,7 +1774,7 @@ class SourceParser:
 		if(parametername in listings):
 		    return False
 	    else:
-		if((listings[0] == parametername) and (listings[6] == parameterset)):
+		if((listings[2] == parametername) and (listings[0] == parameterset)):
 		    return False
 	    
 	return True
