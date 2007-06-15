@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL June 10, 2007
+# Jonathan Hollar LLNL June 15, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -34,6 +34,7 @@ class SourceParser:
 	self.sourcetree = srctree
 	self.sequencenb = 0
 	self.psetsequencenb = 0
+	self.mainpset = "None"
 	self.verbose = int(verbosity)
 
     # Parser for .cf* files. Look for default values of tracked parameters.
@@ -1150,6 +1151,9 @@ class SourceParser:
 		    lookupclass2 = ""
 		    multint = False 
 
+		    if(totalconstrline == ''):
+			totalconstrline = totalconstrline + line
+
 		    if(totalconstrline.find('ParameterSet') != -1 and totalconstrline.find('&') != -1):
 			if(totalconstrline.find('ParameterSet&') != -1):
 			    thepsetline = totalconstrline.split('ParameterSet&')[1]
@@ -1157,10 +1161,16 @@ class SourceParser:
 			elif(totalconstrline.find('ParameterSet const&') != -1):
 			    thepsetline = totalconstrline.split('ParameterSet const&')[1]
 			    thepsetname = totalconstrline.split('ParameterSet const&')[1].split(')')[0].lstrip().rstrip()
+			elif(totalconstrline.find('ParameterSet &') != -1):
+			    thepsetline = totalconstrline.split('ParameterSet &')[1]
+			    thepsetname = totalconstrline.split('ParameterSet &')[1].split(')')[0].lstrip().rstrip()
 
 			if(thepsetname):
 			    if(thepsetname.find(',') != -1):
 				thepsetname = thepsetname.split(',')[0].lstrip().rstrip()
+
+			    self.mainpset = thepsetname
+
 			    if(thepsetline.find(': ') != -1 or thepsetline.find(' :') != -1):
 				if(thepsetline.find('(' + thepsetname + ')') != -1):
 				    lookupclass = thepsetline.split(':')[1].split('('+thepsetname+')')[0].lstrip().rstrip()
@@ -1220,12 +1230,46 @@ class SourceParser:
 			else:
 			    thepassedpset = theobjectargument.split(')')[0].lstrip('(').rstrip(');').lstrip().rstrip()
 
-			if(thepassedpset in self.psetdict):
+			if((thepassedpset in self.psetdict)):
 			    psettype = self.psetdict[thepassedpset] 
 			    if(self.verbose > 1):
 				print 'Found pset of type ' + psettype + ' passed to object of type ' + theobjectclass
 
 			    self.ParsePassedParameterSet(psettype, theccfile, theobjectclass, 'None',thedatadir,themodulename)
+			elif(thepassedpset == self.mainpset):
+			    if(self.verbose > 1):
+				print 'Found top-level pset passed to object of type ' + theobjectclass
+
+			    self.ParsePassedParameterSet('None', theccfile, theobjectclass, 'None',thedatadir,themodulename)
+
+		elif(startedconstructor == False and  (line.find('new ') == -1) and (line.find('(') != -1)):
+		    theobjectclass = ''
+		    theobjectargument = ''
+
+		    if(len(line.split('(')[0].split()) == 2):
+			theobjectclass = line.split('(')[0].split()[0]
+
+		    if(theobjectclass):
+			if(len(line.split(theobjectclass)) == 2):
+			    theobjectargument = line.split('(')[1]
+    
+			if(line.find(',') != -1):
+			    thepassedpset = theobjectargument.split(',')[0].lstrip().rstrip()
+			else:
+			    thepassedpset = theobjectargument.split(')')[0].lstrip('(').rstrip(');').lstrip().rstrip()
+
+			if((thepassedpset in self.psetdict)):
+			    psettype = self.psetdict[thepassedpset] 
+			    if(self.verbose > 1):
+				print 'Found pset of type ' + psettype + ' passed to object of type ' + theobjectclass
+
+			    self.ParsePassedParameterSet(psettype, theccfile, theobjectclass, 'None',thedatadir,themodulename)
+			elif(thepassedpset == self.mainpset):
+			    if(self.verbose > 1):
+				print 'Found top-level pset passed to object of type ' + theobjectclass
+
+			    self.ParsePassedParameterSet('None', theccfile, theobjectclass, 'None',thedatadir,themodulename)
+
 
     # End of ParseSrcFile
 
@@ -1632,10 +1676,20 @@ class SourceParser:
 			if((paramtype != 'ParameterSet') and (paramtype != 'PSet')):
 			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
 
-			    if(success == False and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thenestedpsetname))):
-				self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"true",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
-				self.sequencenb = self.sequencenb + 1
-
+			    if(success == False):
+				if(thepsetname != "None"):
+				    if(success == False and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thenestedpsetname))):
+					self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"true",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
+					self.sequencenb = self.sequencenb + 1			    
+				elif(isvector == True):
+				    if(self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
+					self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true",self.sequencenb))
+					self.sequencenb = self.sequencenb + 1
+				elif(isvector == False):
+				    if(self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None')):
+					self.paramlist.append((paramtype,paramname,None,"true",self.sequencenb))
+					self.sequencenb = self.sequencenb + 1
+				    
 			else:
 			    if(srcline.find('=') != -1):
 				thisparamset = srcline.split('=')[0].rstrip().lstrip()
@@ -1656,10 +1710,16 @@ class SourceParser:
 				    else:
 					self.psetsequencenb = self.sequencenb
 					self.psetsequences[paramname] = self.psetsequencenb
-					self.paramsetmemberlist.append((paramname,paramtype,'','',"true",self.sequencenb,thepsetname,self.psetsequences[paramname]))
 
-					self.sequencenb = self.sequencenb + 1
-					
+					if(thepsetname != "None"):
+					    self.paramsetmemberlist.append((paramname,paramtype,'','',"true",self.sequencenb,thepsetname,self.psetsequences[paramname]))
+					    self.sequencenb = self.sequencenb + 1
+					elif(isvector == True):
+					    self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true",self.sequencenb))
+					    self.sequencenb = self.sequencenb + 1
+					elif(isvector == False):
+					    self.paramlist.append((paramtype,paramname,None,"true",self.sequencenb))
+					    self.sequencenb = self.sequencenb + 1
 
 				if(self.verbose > 0):
 				    print '\tnew PSet in this object = ' + paramname
@@ -1731,10 +1791,21 @@ class SourceParser:
 			if((paramtype != 'ParameterSet') and (paramtype != 'PSet')):
 			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
 
-			    if(success == False and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thenestedpsetname))):
-				self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"false",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
-				self.sequencenb = self.sequencenb + 1
-			    
+			    if(success == False):
+
+				if(thepsetname != "None"):
+				    if(success == False and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thenestedpsetname))):
+					self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"false",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
+					self.sequencenb = self.sequencenb + 1			    
+				elif(isvector == True):
+				    if(self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
+					self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"false",self.sequencenb))
+					self.sequencenb = self.sequencenb + 1
+				elif(isvector == False):
+				    if(self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None')):
+					self.paramlist.append((paramtype,paramname,None,"false",self.sequencenb))
+					self.sequencenb = self.sequencenb + 1
+
 
 		    # Look for ParameterSets passed to objects instantiated within this module. This won't pick up PSets 
 		    # passed to methods of the new object - are there any cases of this?
@@ -1883,3 +1954,4 @@ class SourceParser:
 
 	self.includefile = ""
 
+	self.mainpset = ""
