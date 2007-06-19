@@ -10,7 +10,7 @@ public class ConverterFactory {
 
 	private String version = null;
 	private String writerPackage = "";
-	private String outputFormat = "";
+	private String outputFormat = "Ascii";
 	
 	static public ConverterFactory getFactory( String releaseTag )
 	{
@@ -44,12 +44,12 @@ public class ConverterFactory {
 			 && !outputFormat.equals( "Python")  ) 
 			return null;
 		
-		writerPackage = thisPackage + "." + outputFormat.toLowerCase();
 		return getConverter();
 	}
 	
 	public Converter getConverter() throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
+		writerPackage = thisPackage + "." + outputFormat.toLowerCase();
 		Converter converter = new Converter();
 		converter.setConfigurationWriter( getConfigurationWriter() );
 		converter.setParameterWriter( getParameterWriter() );
