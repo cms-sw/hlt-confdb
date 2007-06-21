@@ -3,7 +3,7 @@
 # ConfdbOracleModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (Oracle version). All Oracle specific code belongs here.
-# Jonathan Hollar LLNL May. 11, 2007
+# Jonathan Hollar LLNL June 21, 2007
 
 import os, string, sys, posix, tokenize, array
 
@@ -59,12 +59,13 @@ class ConfdbOracleModuleLoader:
 	    print "\tThis release already exists in the DB!"
 	    return -1
 
-	thecursor.execute("INSERT INTO SoftwareReleases (releaseTag) VALUES ('" + therelease + "') RETURNING releaseId INTO therelnum")
+	thecursor.execute("INSERT INTO SoftwareReleases (releaseTag) VALUES ('" + therelease + "')")
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
-#
-#	therelnum = (thecursor.fetchone())[0]
-#	print "New releasekey = " + str(therelnum)
+
+	thecursor.execute("SELECT releaseId FROM SoftwareReleases ORDER BY releaseId DESC")
+	therelnum = (thecursor.fetchone())[0]
+	print "New releasekey = " + str(therelnum)
 
 	self.releasekey = therelnum
 
@@ -170,11 +171,12 @@ class ConfdbOracleModuleLoader:
 
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUE('') RETURNING superId INTO newsuperid;")
+	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
-#
-#	newsuperid = (thecursor.fetchall()[0])[0]
+
+	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC");
+	newsuperid = (thecursor.fetchall()[0])[0]
 
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
@@ -183,9 +185,11 @@ class ConfdbOracleModuleLoader:
 	modbaseclassid = self.modtypedict[modbaseclass]
 
 	# Now create a new module
-	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')")
 	if(self.verbose > 2):
 	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')"
+            
+	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')")
+
 	
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -201,11 +205,12 @@ class ConfdbOracleModuleLoader:
 
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUE('') RETURNING superId INTO newsuperid;")
+	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
-#
-#	newsuperid = (thecursor.fetchall()[0])[0]
+
+	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+	newsuperid = (thecursor.fetchall()[0])[0]
 
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
@@ -229,11 +234,12 @@ class ConfdbOracleModuleLoader:
 
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUE('') RETURNING superId INTO newsuperid;")
+	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
-#
-#	newsuperid = (thecursor.fetchall()[0])[0]
+
+	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+	newsuperid = (thecursor.fetchall()[0])[0]
 
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
@@ -257,11 +263,12 @@ class ConfdbOracleModuleLoader:
 
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUE('') RETURNING superId INTO newsuperid;")
+	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
-#
-#	newsuperid = (thecursor.fetchall()[0])[0]
+
+	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+	newsuperid = (thecursor.fetchall()[0])[0]
 
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
@@ -285,11 +292,12 @@ class ConfdbOracleModuleLoader:
 
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUE() RETURNING superId INTO newsuperid;")
+	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
-#
-#	newsuperid = (thecursor.fetchall()[0])[0]
+
+	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC");
+	newsuperid = (thecursor.fetchall()[0])[0]
 
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
@@ -331,9 +339,11 @@ class ConfdbOracleModuleLoader:
 
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
-	thecursor.execute("INSERT INTO SuperIds VALUE('') RETURNING superId INTO newsuperid;")
+	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
-#	newsuperid = (thecursor.fetchall()[0])[0]
+
+	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Get the module type (base class)
@@ -374,9 +384,11 @@ class ConfdbOracleModuleLoader:
 
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
-	thecursor.execute("INSERT INTO SuperIds VALUE('') RETURNING superId INTO newsuperid;")
+	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
-#	newsuperid = (thecursor.fetchall()[0])[0]
+
+	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	print 'New service has ' + str(newsuperid) + ' ' + servcvstag
@@ -414,9 +426,11 @@ class ConfdbOracleModuleLoader:
 
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
-	thecursor.execute("INSERT INTO SuperIds VALUE('') RETURNING superId INTO newsuperid;")
+	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
-#	newsuperid = (thecursor.fetchall()[0])[0]
+
+	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Now create a new source
@@ -452,9 +466,11 @@ class ConfdbOracleModuleLoader:
 
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
-	thecursor.execute("INSERT INTO SuperIds VALUE('') RETURNING superId INTO newsuperid;")
+	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
-#	newsuperid = (thecursor.fetchall()[0])[0]
+
+	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Now create a new source
@@ -490,9 +506,11 @@ class ConfdbOracleModuleLoader:
 
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
-	thecursor.execute("INSERT INTO SuperIds VALUE() RETURNING superId INTO newsuperid;")
+	thecursor.execute("INSERT INTO SuperIds VALUES()")
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
-#	newsuperid = (thecursor.fetchall()[0])[0]
+
+	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Now create a new source
@@ -565,11 +583,19 @@ class ConfdbOracleModuleLoader:
 		# Fill Parameters table
 		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)   
 
+                boolval = str(paramval).strip('"').strip()
+                if(boolval == "true"):
+                    paramval = str(1)
+                if(boolval == "false"):
+                    paramval = str(0)
+                
 		# Fill ParameterValues table
 		if(paramval == None):
 		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
+                    if(self.verbose > 2):
+                        print "INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")"
 		    thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
 
 
@@ -622,13 +648,15 @@ class ConfdbOracleModuleLoader:
 		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 
 		# Fill ParameterValues table
-		if(paramval == None):
+		if(paramval == None or paramval == ''):
 		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
 		    if(paramval.find("'") != -1):
+                        print "INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")"
 			thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
 		    else:
+                        print "INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')"
 			thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
 
 	    else:
@@ -747,6 +775,12 @@ class ConfdbOracleModuleLoader:
 	    
 	    paramseq = self.globalseqcount
 	    self.globalseqcount = self.globalseqcount + 1
+
+            if(paramval == 'true'):
+                paramval = str(1)
+            elif(paramval == 'false'):
+                paramval = str(0)
+
 
 	    neednewparam = False
 
@@ -885,10 +919,11 @@ class ConfdbOracleModuleLoader:
 		    if(oldparamval):
 			oldparamval = oldparamval[0]
 
-			if(oldparamval == 1):
-			    oldparamval = "true"
-			if(oldparamval == 0):
-			    oldparamval = "false"
+                        #Oracle uses NUMBER(1) to represent Booleans!
+#			if(oldparamval == 1):
+#			    oldparamval = "true"
+#			if(oldparamval == 0):
+#			    oldparamval = "false"
 		    
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or 
@@ -1095,6 +1130,11 @@ class ConfdbOracleModuleLoader:
 
 	    vecpseq = self.globalseqcount
 	    self.globalseqcount = self.globalseqcount + 1
+
+            if(vecpistracked == 'true'):
+                vecpistracked = str(1)
+            elif(vecpistracked == 'false'):
+                vecpistracked = str(0)
 
 	    # vector<int32>
 	    if(vecptype == "vint32" or vecptype == "int32" or vecptype == "int" or vecptype == "int32_t"):
@@ -1342,9 +1382,16 @@ class ConfdbOracleModuleLoader:
 		self.globalseqcount = self.globalseqcount + 1
 		localseqcount = 0
 
-		thecursor.execute("INSERT INTO SuperIds VALUE('') RETURNING superId INTO newparamsetid")
+                if(psettracked == 'true'):
+                    psettracked = str(1)
+                elif(psettracked == 'false'):
+                    psettracked = str(0)
+
+		thecursor.execute("INSERT INTO SuperIds VALUES('')")
 #		thecursor.execute("SELECT LAST_INSERT_ID()")
-#		newparamsetid = thecursor.fetchone()[0]	
+
+		thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+		newparamsetid = thecursor.fetchone()[0]	
 
 		# Add a new PSet
 		if(self.verbose > 2):
@@ -1439,6 +1486,15 @@ class ConfdbOracleModuleLoader:
 		    thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
 
 	    elif(psettype == "bool"):
+                print "psetval = " + str(psetval)
+                boolval = str(psetval).strip('"').strip()
+                if(boolval == "true"):
+                    psetval = str(1)
+                if(boolval == "false"):
+                    psetval = str(0)
+
+                print "INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")"
+
 		thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
 	    elif(psettype == "double"):
 		if(psetval):
@@ -1508,10 +1564,17 @@ class ConfdbOracleModuleLoader:
 		self.globalseqcount = self.globalseqcount + 1
 		localseqcount = 0
 
+                if(vpsettracked == 'true'):
+                    vpsettracked = str(1)
+                elif(vpsettracked == 'false'):
+                    vpsettracked = str(0)
+
 		# Each new VPSet gets a new SuperId
-		thecursor.execute("INSERT INTO SuperIds VALUE('') RETURNING superId INTO newvparamsetid")
+		thecursor.execute("INSERT INTO SuperIds VALUES('')")
 #		thecursor.execute("SELECT LAST_INSERT_ID()")
-#		newvparamsetid = thecursor.fetchone()[0]	
+
+		thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+		newvparamsetid = thecursor.fetchone()[0]	
 
 		# Add a new VPSet
 		if(self.verbose > 2):
@@ -1577,6 +1640,12 @@ class ConfdbOracleModuleLoader:
 		else:
 		    thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
 	    elif(vpsettype == "bool"):
+                boolval = str(vpsetval).strip('"').strip()
+                if(boolval == "true"):
+                    vpsetval = str(1)
+                if(boolval == "false"):
+                    vpsetval = str(0)
+ 
 		thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
 	    elif(vpsettype == "double"):
 		if(vpsetval):
@@ -1613,13 +1682,20 @@ class ConfdbOracleModuleLoader:
 
     # Utility function for adding a new parameter 
     def AddNewParam(self,thecursor,sid,pname,ptype,ptracked,pseq):
+        if(ptracked == 'true'):
+            ptracked = str(1)
+        elif(ptracked == 'false'):
+            ptracked = str(0)
+
 	if(self.verbose > 2):
 	    print "INSERT INTO Parameters (paramTypeId, name, tracked) VALUES (" + str(ptype) + ", '" + pname + "', " + ptracked + ")"
 
-	thecursor.execute("INSERT INTO Parameters (paramTypeId, name, tracked) VALUES ('" + str(ptype) + "', '" + pname + "', " + ptracked + ") RETURNING paramId INTO newparamid")
+	thecursor.execute("INSERT INTO Parameters (paramTypeId, name, tracked) VALUES (" + str(ptype) + ", '" + pname + "', " + ptracked + ")")
 	
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
-#	newparamid = thecursor.fetchone()[0]
+
+	thecursor.execute("SELECT paramId FROM Parameters ORDER BY paramId DESC")
+	newparamid = thecursor.fetchone()[0]
 
 	# Fill Parameter <-> Super ID table
 	if(self.verbose > 2):
