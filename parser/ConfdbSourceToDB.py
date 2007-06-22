@@ -3,8 +3,8 @@
 # ConfdbSourceToDB.py
 # Main file for parsing source code in a CMSSW release and
 # loading module templates to the Conf DB.
-#
-# Jonathan Hollar LLNL June 7, 2007
+# 
+# Jonathan Hollar LLNL June 22, 2007
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
@@ -32,9 +32,10 @@ def main(argv):
     input_configfile = ""
     input_dotest = False
     input_noload = False
+    input_addtorelease = False
 
     # Parse command line options
-    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:l:e:nh", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","configfile=","parsetestdir=","noload=","help="])
+    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:l:e:a:nh", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","configfile=","parsetestdir=","addtorelease=","noload=","help="])
     for o, a in opts:
 	if o in ("-r","release="):
 	    if(input_base_path and input_cmsswrel):
@@ -93,6 +94,12 @@ def main(argv):
 	    else:
 		print "Will not parse test/ directories"
 		input_dotest = False
+	if o in ("-a","addtorelease="):
+	    if(int(a) == 1):
+		print "Will update using packages from testrelease"
+		input_addtorelease = True
+	    else:
+		input_addtorelease = False
 	if o in ("-n","noload="):
 	    print "Will parse release without loading to the DB"
 	    input_noload = True
@@ -108,7 +115,7 @@ def main(argv):
 	    print "\t-u <User name to connect as>" 
 	    print "\t-s <Database password>"
 	    print "\t-o <Hostname>"
-	    print "\t-t <Type of database. Options are MySQL (default) or Oracle>"
+	    print "\t-t <Type of database. Options are MySQL (default) or Oracle)>"
 	    print "\t-l <Name of config file>"
 	    print "\t-e <Parse test/ directories. 1 = yes, 0/default = no>"
 	    print "\t-h Print this help menu"
@@ -122,11 +129,11 @@ def main(argv):
 
     print "Using release base: " + input_base_path
 
-    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype,input_dbpwd,input_host,input_configfile,input_dotest,input_noload)
+    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype,input_dbpwd,input_host,input_configfile,input_dotest,input_noload,input_addtorelease)
     confdbjob.BeginJob()
 
 class ConfdbSourceToDB:
-    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype,clidbpwd,clihost,cliconfig,clidotest,clinoload):
+    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype,clidbpwd,clihost,cliconfig,clidotest,clinoload,cliaddtorelease):
 	self.data = []
 	self.dbname = clidbname
 	self.dbuser = clidbuser
@@ -137,6 +144,7 @@ class ConfdbSourceToDB:
 	self.dotestdir = clidotest
 	self.doconfig = cliconfig
 	self.noload = clinoload
+	self.addtorelease = cliaddtorelease
 	self.needconfigcomponents = []
 	self.needconfigpackages = []
 	self.sqlerrors = []
@@ -147,10 +155,10 @@ class ConfdbSourceToDB:
 	# Get a Conf DB connection. Only need to do this once at the 
 	# beginning of a job.
 	if(self.dbtype == "MySQL" and self.noload == False):
-	    self.dbloader = ConfdbSQLModuleLoader.ConfdbMySQLModuleLoader(self.verbose)
+	    self.dbloader = ConfdbSQLModuleLoader.ConfdbMySQLModuleLoader(self.verbose,self.addtorelease)
 	    self.dbcursor = self.dbloader.ConfdbMySQLConnect(self.dbname,self.dbuser,self.dbpwd,self.dbhost)
 	elif(self.dbtype == "Oracle" and self.noload == False):
-	    self.dbloader = ConfdbOracleModuleLoader.ConfdbOracleModuleLoader(self.verbose)
+	    self.dbloader = ConfdbOracleModuleLoader.ConfdbOracleModuleLoader(self.verbose,self.addtorelease)
 	    self.dbcursor = self.dbloader.ConfdbOracleConnect(self.dbname,self.dbuser,self.dbpwd,self.dbhost)
 
 	# Deal with package tags for this release.

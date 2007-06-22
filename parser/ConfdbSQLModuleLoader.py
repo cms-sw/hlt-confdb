@@ -3,23 +3,24 @@
 # ConfdbSQLModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (MySQL version). All MySQL specific code belongs here.
-# Jonathan Hollar LLNL June 7, 2007
+# Jonathan Hollar LLNL June 22, 2007
 
 import os, string, sys, posix, tokenize, array
 
-sys.path.append(os.environ.get("CMS_PATH") + "/sw/slc4_ia32_gcc345/external/py2-mysqldb/1.2.0/lib/python2.4/site-packages/")
+#sys.path.append(os.environ.get("CMS_PATH") + "/sw/slc4_ia32_gcc345/external/py2-mysqldb/1.2.0/lib/python2.4/site-packages/")
 
 import MySQLdb
 
 class ConfdbMySQLModuleLoader:
 
-    def __init__(self, verbosity):
+    def __init__(self, verbosity, addtorelease):
 	self.data = []
 	self.changes = []
         self.paramtypedict = {}
         self.modtypedict = {}
 	self.releasekey = -1
 	self.verbose = int(verbosity)
+	self.addtorel = int(addtorelease)
 	self.connection = None
 	self.fwknew = 0
 	self.fwkunchanged = 0
@@ -318,7 +319,7 @@ class ConfdbMySQLModuleLoader:
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
-	if(oldtag == modcvstag):
+	if((oldtag == modcvstag) and (self.addtorel != 1)):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this module is unchanged - attach old template to new release'
 	    if(self.verbose > 0):
@@ -363,7 +364,7 @@ class ConfdbMySQLModuleLoader:
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
-	if(oldtag == servcvstag):
+	if((oldtag == servcvstag) and (self.addtorel != 1)):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this service is unchanged - attach old template to new release'
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
@@ -403,7 +404,7 @@ class ConfdbMySQLModuleLoader:
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
-	if(oldtag == sourcecvstag):
+	if((oldtag == sourcecvstag) and (self.addtorel != 1)):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this source is unchanged - attach old template to new release'
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
@@ -441,7 +442,7 @@ class ConfdbMySQLModuleLoader:
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
-	if(oldtag == sourcecvstag):
+	if((oldtag == sourcecvstag) and (self.addtorel != 1)):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this source is unchanged - attach old template to new release'
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
@@ -471,7 +472,7 @@ class ConfdbMySQLModuleLoader:
     def ConfdbUpdateESModuleTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets):
 
 	# Get the SuperId of the previous version of this template
-	thecursor.execute("SELECT ESModuleTemplates.superId, EDSourceTemplates.cvstag FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + sourceclassname + "') ORDER BY ESModuleTemplates.superId DESC")
+	thecursor.execute("SELECT ESModuleTemplates.superId, ESModuleTemplates.cvstag FROM ESModuleTemplates WHERE (ESModuleTemplates.name = '" + sourceclassname + "') ORDER BY ESModuleTemplates.superId DESC")
 	oldsource = thecursor.fetchone()
 	oldsuperid = oldsource[0]
 	oldtag = oldsource[1]
@@ -479,7 +480,7 @@ class ConfdbMySQLModuleLoader:
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
-	if(oldtag == sourcecvstag):
+	if((oldtag == sourcecvstag) and (self.addtorel != 1)):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this source is unchanged - attach old template to new release'
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")

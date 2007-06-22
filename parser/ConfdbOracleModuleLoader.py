@@ -3,7 +3,7 @@
 # ConfdbOracleModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (Oracle version). All Oracle specific code belongs here.
-# Jonathan Hollar LLNL June 21, 2007
+# Jonathan Hollar LLNL June 22, 2007
 
 import os, string, sys, posix, tokenize, array
 
@@ -13,13 +13,14 @@ import cx_Oracle
 
 class ConfdbOracleModuleLoader:
 
-    def __init__(self, verbosity):
+    def __init__(self, verbosity, addtorelease):
 	self.data = []
 	self.changes = []
         self.paramtypedict = {}
         self.modtypedict = {}
 	self.releasekey = -1
 	self.verbose = int(verbosity)
+	self.addtorel = int(addtorelease)
 	self.connection = None
 	self.fwknew = 0
 	self.fwkunchanged = 0
@@ -327,7 +328,7 @@ class ConfdbOracleModuleLoader:
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
-	if(oldtag == modcvstag):
+	if((oldtag == modcvstag) and (self.addtorel != 1)):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this module is unchanged - attach old template to new release'
 	    if(self.verbose > 0):
@@ -374,7 +375,7 @@ class ConfdbOracleModuleLoader:
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
-	if(oldtag == servcvstag):
+	if((oldtag == servcvstag) and (self.addtorel != 1)):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this service is unchanged - attach old template to new release'
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
@@ -416,7 +417,7 @@ class ConfdbOracleModuleLoader:
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
-	if(oldtag == sourcecvstag):
+	if((oldtag == sourcecvstag) and (self.addtorel != 1)):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this source is unchanged - attach old template to new release'
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
@@ -456,7 +457,7 @@ class ConfdbOracleModuleLoader:
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
-	if(oldtag == sourcecvstag):
+	if((oldtag == sourcecvstag) and (self.addtorel != 1)):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this source is unchanged - attach old template to new release'
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
@@ -488,7 +489,7 @@ class ConfdbOracleModuleLoader:
     def ConfdbUpdateESModuleTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets):
 
 	# Get the SuperId of the previous version of this template
-	thecursor.execute("SELECT ESModuleTemplates.superId, EDSourceTemplates.cvstag FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + sourceclassname + "') ORDER BY ESModuleTemplates.superId DESC")
+	thecursor.execute("SELECT ESModuleTemplates.superId, ESModuleTemplates.cvstag FROM ESModuleTemplates WHERE (ESModuleTemplates.name = '" + sourceclassname + "') ORDER BY ESModuleTemplates.superId DESC")
 	oldsource = thecursor.fetchone()
 	oldsuperid = oldsource[0]
 	oldtag = oldsource[1]
@@ -496,7 +497,7 @@ class ConfdbOracleModuleLoader:
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
-	if(oldtag == sourcecvstag):
+	if((oldtag == sourcecvstag) and (self.addtorel != 1)):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this source is unchanged - attach old template to new release'
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
