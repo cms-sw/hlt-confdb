@@ -7,7 +7,7 @@
 
 import os, string, sys, posix, tokenize, array
 
-#sys.path.append(os.environ.get("CMS_PATH") + "/sw/slc4_ia32_gcc345/external/py2-mysqldb/1.2.0/lib/python2.4/site-packages/")
+sys.path.append(os.environ.get("CMS_PATH") + "/sw/slc4_ia32_gcc345/external/py2-mysqldb/1.2.0/lib/python2.4/site-packages/")
 
 import MySQLdb
 
@@ -1367,7 +1367,11 @@ class ConfdbMySQLModuleLoader:
 
 		    toplevelid = thecursor.fetchone()[0]
 
-		    psetpsetseq = lastpsetseqdict[psetnesting]		    
+                    if(psetnesting in lastpsetseqdict):
+                        psetpsetseq = lastpsetseqdict[psetnesting]
+                    else:
+                        psetpsetseq = 0
+
 		    lastpsetseqdict[psetnesting] = psetpsetseq + 1
 		    lastpsetseqdict[pset] = localseqcount
 

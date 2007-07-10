@@ -1415,7 +1415,11 @@ class ConfdbOracleModuleLoader:
 
 		    toplevelid = thecursor.fetchone()[0]
 
-		    psetpsetseq = lastpsetseqdict[psetnesting]		    
+                    if(psetnesting in lastpsetseqdict):
+                        psetpsetseq = lastpsetseqdict[psetnesting]
+                    else:
+                        psetpsetseq = 0
+
 		    lastpsetseqdict[psetnesting] = psetpsetseq + 1
 		    lastpsetseqdict[pset] = localseqcount
 
