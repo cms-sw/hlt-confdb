@@ -1294,6 +1294,14 @@ class SourceParser:
                         continue
                     else:
 			startedclass = True
+
+		elif((line.lstrip()).startswith('template') and line.find('class') != -1 and line.find('public') != -1):
+		    classname = line.split(':')[0].split('>')[1].split('class')[1].lstrip().rstrip()
+		    print classname
+                    if(classname != themodname):
+                        continue
+                    else:
+			startedclass = True
 			
 		if(startedclass == True):
                     if(line.rstrip().endswith('{') or line.rstrip().endswith(';')):
