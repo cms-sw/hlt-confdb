@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL June 15, 2007
+# Jonathan Hollar LLNL July 10, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -658,7 +658,6 @@ class SourceParser:
 			    elif(paramtype == 'vString'):
 				paramtype = 'vstring'
 
-
                         else:
 			    isvector = False
 
@@ -762,7 +761,11 @@ class SourceParser:
 			elif(paramtype.lstrip().rstrip() == 'PSet' or 
 			     paramtype.lstrip().rstrip() == 'ParameterSet'):
 			    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
-				self.psetsequencenb = self.psetsequences[paramname] 
+				if(paramname in self.psetsequences):
+				    self.psetsequencenb = self.psetsequences[paramname]
+				else:
+				    self.psetsequencenb = self.sequencenb
+
 				self.sequencenb = self.psetsequencenb
 				self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",self.sequencenb,paraminparamset,self.psetsequencenb))
 				self.sequencenb = self.sequencenb + 1
@@ -1207,7 +1210,7 @@ class SourceParser:
 					self.FindInheritedParameters(lookupclass2,thedatadir,thehfile)
 	
 		# Look for ParameterSets passed to objects instantiated within this module. This won't pick up PSets 
-		# passed to methods of the new object - are there any cases of this?
+		# passed to methods of the new object
 		elif(startedconstructor == False and  (line.find('new ') != -1) and (line.find('(') != -1)):
 		    theobjectclass = ''
 		    theobjectargument = ''
@@ -1269,7 +1272,6 @@ class SourceParser:
 				print 'Found top-level pset passed to object of type ' + theobjectclass
 
 			    self.ParsePassedParameterSet('None', theccfile, theobjectclass, 'None',thedatadir,themodulename)
-
 
     # End of ParseSrcFile
 
@@ -1527,7 +1529,18 @@ class SourceParser:
 		    includeclass = includeline.split(thebaseobject)[0].lstrip().rstrip()
 		    if(self.verbose > 1):
 			print '\tThe base class is ' + includeclass
-		    objectinstantiated = True
+
+		    # More C++ fun. Is this an assignment or a usage of the PSet?
+		    if(includeclass.find('ParameterSet') != -1):
+			# Assignment:
+			self.mainpset = thebaseobject
+			if(self.verbose > 1):
+			    print '\tFound a copy of the main PSet. Setting main PSet to ' + thebaseobject
+			objectinstantiated = False			
+		    else:
+			# Usage:
+			objectinstantiated = True
+
 		    break
 
 		# It's not explicitly instantiated. Trace it back using the #include file
@@ -1577,6 +1590,9 @@ class SourceParser:
 	if(self.verbose > 1):
 	    print 'Parsing passed parameter set ' + thepsetname + ' passed from file ' + thesrcfile + ' to object of class ' + theobjectclass
 
+	totalline = ''
+	foundlineend = False
+
 	srcfilehandle = open(thesrcfile)
 
         srcfilelines = srcfilehandle.readlines()
@@ -1610,10 +1626,19 @@ class SourceParser:
 		    if(srcline.lstrip().startswith('//')):
 			continue
 
-		    if(srcline.find('getParameter') != -1):
-			paramname = srcline.split('getParameter')[1].split('"')[1]
+                    if(srcline.rstrip().endswith(';')): 
+                        foundlineend = True
+			
+                        totalline = totalline + srcline.lstrip().rstrip('\n')
+                    else:
+                        foundlineend = False
 
-                        paramstring = srcline.split('"')
+                        totalline = totalline + srcline.lstrip().rstrip('\n')
+
+		    if((foundlineend == True) and totalline.find('getParameter') != -1):
+			paramname = totalline.split('getParameter')[1].split('"')[1]
+
+                        paramstring = totalline.split('"')
 
                         # Parameter name should be the first thing in quotes after 'getParameter'
 			index = 0
@@ -1622,9 +1647,9 @@ class SourceParser:
 				paramname = paramstring[index+1]
 				break
 			    index = index + 1
-			paramstring2 = srcline.split('<')
+			paramstring2 = totalline.split('<')
 			if(paramstring2[1].find('=') != -1 and paramstring2[1].find('==') == -1 and paramstring2[1].find('!=') == -1):
-			    paramstring2 = srcline.split('=')[1].split('<')
+			    paramstring2 = totalline.split('=')[1].split('<')
                         therest = (paramstring2[1]).split('>')
 
                         # It looks like our parameter type uses a namespace
@@ -1638,10 +1663,10 @@ class SourceParser:
 
 			if(paramtype.lstrip().rstrip() == 'vector'):
 			    isvector = True
-			    if(srcline.find('vector<') != -1):
-				vectype = (srcline.split('vector<')[1]).split('>')[0]
-			    elif(srcline.find('vector <') != -1):
-				vectype = (srcline.split('vector <')[1]).split('>')[0]
+			    if(totalline.find('vector<') != -1):
+				vectype = (totalline.split('vector<')[1]).split('>')[0]
+			    elif(totalline.find('vector <') != -1):
+				vectype = (totalline.split('vector <')[1]).split('>')[0]
 
                             if(self.verbose > 1):
                                 print '\tPassed parameter ' + paramtype + '<' + vectype + '>' + '\t' + paramname + '\t\t(Tracked)' 
@@ -1691,8 +1716,8 @@ class SourceParser:
 					self.sequencenb = self.sequencenb + 1
 				    
 			else:
-			    if(srcline.find('=') != -1):
-				thisparamset = srcline.split('=')[0].rstrip().lstrip()
+			    if(totalline.find('=') != -1):
+				thisparamset = totalline.split('=')[0].rstrip().lstrip()
 				
 				if(thisparamset.find('vector<edm::ParameterSet>') != -1):
 				    thisparamset = thisparamset.split('>')[1].rstrip().lstrip()
@@ -1724,11 +1749,10 @@ class SourceParser:
 				if(self.verbose > 0):
 				    print '\tnew PSet in this object = ' + paramname
 
+		    if((foundlineend == True) and totalline.find('getUntrackedParameter') != -1):
+			paramname = totalline.split('getUntrackedParameter')[1].split('"')[1]
 
-		    if(srcline.find('getUntrackedParameter') != -1):
-			paramname = srcline.split('getUntrackedParameter')[1].split('"')[1]
-
-                        paramstring = srcline.split('"')
+                        paramstring = totalline.split('"')
 
                         # Parameter name should be the first thing in quotes after 'getUntrackedParameter'
 			index = 0
@@ -1737,9 +1761,12 @@ class SourceParser:
 				paramname = paramstring[index+1]
 				break
 			    index = index + 1
-			paramstring2 = srcline.split('<')
+			paramstring2 = totalline.split('<')
+
 			if(paramstring2[1].find('=') != -1 and paramstring2[1].find('==') == -1 and paramstring2[1].find('!=') == -1):
-			    paramstring2 = srcline.split('=')[1].split('<')
+			    if(totalline.split('=')[1].find('>') != -1):
+				paramstring2 = totalline.split('=')[1].split('<')
+
                         therest = (paramstring2[1]).split('>')
 
                         # It looks like our parameter type uses a namespace
@@ -1753,10 +1780,10 @@ class SourceParser:
 
 			if(paramtype.lstrip().rstrip() == 'vector'):
 			    isvector = True
-			    if(srcline.find('vector<') != -1):
-				vectype = (srcline.split('vector<')[1]).split('>')[0]
-			    elif(srcline.find('vector <') != -1):
-				vectype = (srcline.split('vector <')[1]).split('>')[0]
+			    if(totalline.find('vector<') != -1):
+				vectype = (totalline.split('vector<')[1]).split('>')[0]
+			    elif(totalline.find('vector <') != -1):
+				vectype = (totalline.split('vector <')[1]).split('>')[0]
 
                             if(self.verbose > 1):
                                 print '\tPassed parameter ' + paramtype + '<' + vectype + '>' + '\t' + paramname + '\t\t(Tracked)' 
@@ -1809,24 +1836,24 @@ class SourceParser:
 
 		    # Look for ParameterSets passed to objects instantiated within this module. This won't pick up PSets 
 		    # passed to methods of the new object - are there any cases of this?
-		    if((srcline.find('new ') != -1) and (srcline.find('(') != -1)):
+		    if((foundlineend == True) and (totalline.find('new ') != -1) and (totalline.find('(') != -1)):
 			newtheobjectclass = ''
 			newtheobjectargument = ''
 
-			if(len(srcline.split('new ')) == 1):
-			    newtheobjectclass = srcline.split('new ')[0].split('(')[0].lstrip().rstrip()
-			elif(len(srcline.split('new ')) == 2):
-			    newtheobjectclass = srcline.split('new ')[1].split('(')[0].lstrip().rstrip()
-			elif(len(srcline.split('new ')) == 3):
-			    newtheobjectclass = srcline.split('new ')[2].split('(')[0].lstrip().rstrip()
+			if(len(totalline.split('new ')) == 1):
+			    newtheobjectclass = totalline.split('new ')[0].split('(')[0].lstrip().rstrip()
+			elif(len(totalline.split('new ')) == 2):
+			    newtheobjectclass = totalline.split('new ')[1].split('(')[0].lstrip().rstrip()
+			elif(len(totalline.split('new ')) == 3):
+			    newtheobjectclass = totalline.split('new ')[2].split('(')[0].lstrip().rstrip()
 
 			if(newtheobjectclass):
-			    if(len(srcline.split(newtheobjectclass)) == 2):
-				newtheobjectargument = srcline.split(newtheobjectclass)[1].lstrip('(')
-			    elif(len(srcline.split(newtheobjectclass)) == 3):
-				newtheobjectargument = srcline.split(newtheobjectclass)[2].lstrip('(')
+			    if(len(totalline.split(newtheobjectclass)) == 2):
+				newtheobjectargument = totalline.split(newtheobjectclass)[1].lstrip('(')
+			    elif(len(totalline.split(newtheobjectclass)) == 3):
+				newtheobjectargument = totalline.split(newtheobjectclass)[2].lstrip('(')
     
-			    if(srcline.find(',') != -1):
+			    if(totalline.find(',') != -1):
 				newthepassedpset = newtheobjectargument.split(',')[0].lstrip().rstrip()
 			    else:
 				newthepassedpset = newtheobjectargument.split(')')[0].lstrip('(').rstrip(');').lstrip().rstrip()
@@ -1836,6 +1863,12 @@ class SourceParser:
 				if(self.verbose > 1):
 				    print 'Found pset of type ' + newpsettype + ', nested in the PSet ' + thepsetname + ', passed to object of type ' + newtheobjectclass
 				self.ParsePassedParameterSet(newpsettype, self.sourcetree + theincfile, newtheobjectclass, thepsetname, thedatadir, themodulename)
+
+		    # This line is uninteresting
+		    if(foundlineend == True and srcline.find('getParameter') == -1 and srcline.find('getUntrackedParameter') == -1):
+			foundlineend = False
+			totalline = ''
+
 
     # Check whether a variable has already been parsed
     def IsNewParameter(self, parametername, parameterlist, parameterset):
