@@ -264,9 +264,21 @@ public class SaveConfigurationDialog extends ConfigurationDialog
         jScrollPane1.setViewportView(jTreeDirectories);
 
         jLabel1.setText("Configuration Name:");
-        okButton.setText("OK");
-        cancelButton.setText("Cancel");
 
+        okButton.setText("OK");
+	okButton.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    okButtonActionPerformed(e);
+		}
+	    });
+	
+        cancelButton.setText("Cancel");
+	cancelButton.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    cancelButtonActionPerformed(e);
+		}
+	    });
+	
         GroupLayout layout = new GroupLayout(contentPane);
         contentPane.setLayout(layout);
         layout.setHorizontalGroup(
