@@ -1,3 +1,11 @@
+2007-07-20  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-03-03
+	* fix bug in SaveConfigurationDialog (wouldn't react to OK/Cancel
+	buttons)
+	* change name of temporary db server from cmssrv0.cern.ch to
+	cmssrv0 (as it was moved to the private .cms network)
+
 2007-06-10  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-03-02
