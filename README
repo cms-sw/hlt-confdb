@@ -1,48 +1,8 @@
-----------------------------
-Database Driver Installation
-----------------------------
-
-(1) MySQL
- ---------
-
- To connect to a MySQL database, one needs the appropriate JDBC driver
-(jar file) in the classpath. The one currently being used is
-
-mysql-connector-java-5.0.4-bin.jar
-
-It can be downloaded from
-
-http://dev.mysql.com/downloads/connector/j
-
-(2) Oracle
-----------
-
-To connect to an Oracle Database, one needs the appropriate JDBC
-driver (jar file) in the classpath. The one currently being used is
-called
-
-ojdbc14.jar
-
-It can be found as part of any Oracle Installation in
-
-$ORACLE_HOME/jdbc/lib/ or $ORACLE_HOME/java
-
-It can also be downlaoded from
-
-http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/index.html
-
-
+----------------
 startGUI script:
 ----------------
 
 The following steps are necessary to setup the startGUI script to work
-(the $MYSQL_HOME variable should hopefully be setup by scramv1 in the
-future):
-
-cd $HOME
-mkdir java
-cp mysql-connector-java-5.0.4-bin.jar java
-setenv MYSQL_HOME ${HOME}
 
 cd /path/to/CMSSW_X_Y_Z/src
 eval `scramv1 runtime -[c]sh`
