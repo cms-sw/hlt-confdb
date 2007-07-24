@@ -34,10 +34,11 @@ public class CfgDatabase
     public static final String dbTypeOracle = "oracle";
 
     /** define database table names */
-    public static final String tableModuleTemplates   = "ModuleTemplates";
-    public static final String tableServiceTemplates  = "ServiceTemplates";
     public static final String tableEDSourceTemplates = "EDSourceTemplates";
     public static final String tableESSourceTemplates = "ESSourceTemplates";
+    public static final String tableESModuleTemplates = "ESModuleTemplates";
+    public static final String tableServiceTemplates  = "ServiceTemplates";
+    public static final String tableModuleTemplates   = "ModuleTemplates";
     
     /** database connector object, handles access to various DBMSs */
     private IDatabaseConnector dbConnector = null;
@@ -91,6 +92,9 @@ public class CfgDatabase
     private PreparedStatement psSelectESSourceTemplate            = null;
     private PreparedStatement psSelectESSourceTemplatesByRelease  = null;
     private PreparedStatement psSelectESSourceTemplatesByConfig   = null;
+    private PreparedStatement psSelectESModuleTemplate            = null;
+    private PreparedStatement psSelectESModuleTemplatesByRelease  = null;
+    private PreparedStatement psSelectESModuleTemplatesByConfig   = null;
     private PreparedStatement psSelectServiceTemplate             = null;
     private PreparedStatement psSelectServiceTemplatesByRelease   = null;
     private PreparedStatement psSelectServiceTemplatesByConfig    = null;
@@ -100,13 +104,15 @@ public class CfgDatabase
     private PreparedStatement psSelectModuleTemplatesByConfigSeq  = null;
 
     private PreparedStatement psSelectGlobalPSets                 = null;
-    private PreparedStatement psSelectServices                    = null;
+
     private PreparedStatement psSelectEDSources                   = null;
     private PreparedStatement psSelectESSources                   = null;
-    private PreparedStatement psSelectPaths                       = null;
-    private PreparedStatement psSelectSequences                   = null;
+    private PreparedStatement psSelectESModules                   = null;
+    private PreparedStatement psSelectServices                    = null;
     private PreparedStatement psSelectModulesFromPaths            = null;
     private PreparedStatement psSelectModulesFromSequences        = null;
+    private PreparedStatement psSelectPaths                       = null;
+    private PreparedStatement psSelectSequences                   = null;
     private PreparedStatement psSelectSequenceModuleAssoc         = null;
     private PreparedStatement psSelectPathPathAssoc               = null;
     private PreparedStatement psSelectPathSequenceAssoc           = null;
@@ -138,6 +144,7 @@ public class CfgDatabase
     private PreparedStatement psInsertGlobalPSet                  = null;
     private PreparedStatement psInsertEDSource                    = null;
     private PreparedStatement psInsertESSource                    = null;
+    private PreparedStatement psInsertESModule                    = null;
     private PreparedStatement psInsertService                     = null;
     private PreparedStatement psInsertPath                        = null;
     private PreparedStatement psInsertSequence                    = null;
@@ -151,6 +158,7 @@ public class CfgDatabase
     private PreparedStatement psInsertServiceTemplate             = null;
     private PreparedStatement psInsertEDSourceTemplate            = null;
     private PreparedStatement psInsertESSourceTemplate            = null;
+    private PreparedStatement psInsertESModuleTemplate            = null;
     private PreparedStatement psInsertModuleTemplate              = null;
     private PreparedStatement psInsertParameter                   = null;
     private PreparedStatement psInsertParameterSet                = null;
@@ -187,6 +195,7 @@ public class CfgDatabase
 	templateTableNameHashMap.put("Service",     tableServiceTemplates);
 	templateTableNameHashMap.put("EDSource",    tableEDSourceTemplates);
 	templateTableNameHashMap.put("ESSource",    tableESSourceTemplates);
+	templateTableNameHashMap.put("ESModule",    tableESModuleTemplates);
     }
     
     
@@ -395,6 +404,44 @@ public class CfgDatabase
 		 "ORDER BY ESSourceTemplates.name ASC");
 	    preparedStatements.add(psSelectESSourceTemplatesByConfig);
 	    
+	    psSelectESModuleTemplate =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " ESModuleTemplates.superId," +
+		 " ESModuleTemplates.name," +
+		 " ESModuleTemplates.cvstag " +
+		 "FROM ESModuleTemplates " +
+		 "WHERE name=? AND cvstag=?");
+	    preparedStatements.add(psSelectESModuleTemplate);
+	    
+	    psSelectESModuleTemplatesByRelease =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " ESModuleTemplates.superId," +
+		 " ESModuleTemplates.name," +
+		 " ESModuleTemplates.cvstag " +
+		 "FROM ESModuleTemplates " +
+		 "JOIN SuperIdReleaseAssoc " +
+		 "ON SuperIdReleaseAssoc.superId = ESModuleTemplates.superId " +
+		 "JOIN SoftwareReleases " +
+		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
+		 "WHERE SoftwareReleases.releaseTag = ? " +
+		 "ORDER BY ESModuleTemplates.name ASC");
+	    preparedStatements.add(psSelectESModuleTemplatesByRelease);
+	    
+	    psSelectESModuleTemplatesByConfig =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " ESModuleTemplates.superId," +
+		 " ESModuleTemplates.name," +
+		 " ESModuleTemplates.cvstag " +
+		 "FROM ESModuleTemplates " +
+		 "JOIN ESModules " +
+		 "ON ESModules.templateId = ESModuleTemplates.superId " +
+		 "WHERE ESModules.configId = ? " +
+		 "ORDER BY ESModuleTemplates.name ASC");
+	    preparedStatements.add(psSelectESModuleTemplatesByConfig);
+	    
 	    psSelectServiceTemplate =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -553,6 +600,19 @@ public class CfgDatabase
 		 "WHERE configId=? " +
 		 "ORDER BY ESSources.sequenceNb ASC");
 	    preparedStatements.add(psSelectESSources);
+	    
+	    psSelectESModules =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " ESModules.superId," +
+		 " ESModules.templateId," +
+		 " ESModules.configId," +
+		 " ESModules.name," +
+		 " ESModules.sequenceNb " +
+		 "FROM ESModules " +
+		 "WHERE configId=? " +
+		 "ORDER BY ESModules.sequenceNb ASC");
+	    preparedStatements.add(psSelectESModules);
 	    
 	    psSelectPaths =
 		dbConnector.getConnection().prepareStatement
@@ -895,6 +955,13 @@ public class CfgDatabase
 		 "VALUES(?, ?, ?, ?, ?)");
 	    preparedStatements.add(psInsertESSource);
 
+	    psInsertESModule =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO " +
+		 "ESModules (superId,templateId,configId,name,sequenceNb) " +
+		 "VALUES(?, ?, ?, ?, ?)");
+	    preparedStatements.add(psInsertESModule);
+
 	    psInsertService =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO Services (superId,templateId,configId,sequenceNb) " +
@@ -973,6 +1040,12 @@ public class CfgDatabase
 		("INSERT INTO ESSourceTemplates (superId,name,cvstag) " +
 		 "VALUES (?, ?, ?)");
 	    preparedStatements.add(psInsertESSourceTemplate);
+	    
+	    psInsertESModuleTemplate =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO ESModuleTemplates (superId,name,cvstag) " +
+		 "VALUES (?, ?, ?)");
+	    preparedStatements.add(psInsertESModuleTemplate);
 	    
 	    psInsertModuleTemplate =
 		dbConnector.getConnection().prepareStatement
@@ -1435,6 +1508,15 @@ public class CfgDatabase
  	    e.printStackTrace();
  	}
 
+	// load ESModuleTemplates
+	try {
+ 	    psSelectESModuleTemplatesByRelease.setString(1,releaseTag);
+ 	    loadTemplates(psSelectESModuleTemplatesByRelease,"ESModule",release);
+ 	}
+ 	catch (SQLException e) {
+ 	    e.printStackTrace();
+ 	}
+	
 	// load ServiceTemplates
 	try {
  	    psSelectServiceTemplatesByRelease.setString(1,releaseTag);
@@ -1490,6 +1572,15 @@ public class CfgDatabase
 	try {
  	    psSelectESSourceTemplatesByConfig.setInt(1,configId);
  	    loadTemplates(psSelectESSourceTemplatesByConfig,"ESSource",release);
+ 	}
+ 	catch (SQLException e) {
+ 	    e.printStackTrace();
+ 	}
+
+	// ESModules
+	try {
+ 	    psSelectESModuleTemplatesByConfig.setInt(1,configId);
+ 	    loadTemplates(psSelectESModuleTemplatesByConfig,"ESModule",release);
  	}
  	catch (SQLException e) {
  	    e.printStackTrace();
@@ -1684,6 +1775,24 @@ public class CfgDatabase
 		loadInstanceParameters(essourceId,essource);
 		loadInstanceParameterSets(essourceId,essource);
 		loadInstanceVecParameterSets(essourceId,essource);
+
+		insertIndex++;
+	    }
+	    
+	    // load ESModules 
+	    psSelectESModules.setInt(1,configId);
+	    rs = psSelectESModules.executeQuery();
+	    while (rs.next()) {
+		int      esmoduleId   = rs.getInt(1);
+		int      templateId   = rs.getInt(2);
+		String   instanceName = rs.getString(4);
+		String   templateName = release.esmoduleTemplateName(templateId);
+		Instance esmodule     = config.insertESModule(insertIndex,
+							      templateName,
+							      instanceName);
+		loadInstanceParameters(esmoduleId,esmodule);
+		loadInstanceParameterSets(esmoduleId,esmodule);
+		loadInstanceVecParameterSets(esmoduleId,esmodule);
 
 		insertIndex++;
 	    }
@@ -2181,6 +2290,9 @@ public class CfgDatabase
 	    // insert essources
 	    insertESSources(configId,config);
 	    
+	    // insert esmodules
+	    insertESModules(configId,config);
+	    
 	    // insert services
 	    insertServices(configId,config);
 	    
@@ -2303,6 +2415,30 @@ public class CfgDatabase
 		return false;
 	    }
 	    if (!insertInstanceParameters(superId,essource)) return false;
+	}
+	return true;
+    }
+    
+    /** insert configuration's esmodules */
+    private boolean insertESModules(int configId,Configuration config)
+    {
+	for (int sequenceNb=0;sequenceNb<config.esmoduleCount();sequenceNb++) {
+	    ESModuleInstance esmodule   = config.esmodule(sequenceNb);
+	    int              superId    = insertSuperId();
+	    int              templateId = esmodule.template().dbId();
+	    try {
+		psInsertESModule.setInt(1,superId);
+		psInsertESModule.setInt(2,templateId);
+		psInsertESModule.setInt(3,configId);
+		psInsertESModule.setString(4,esmodule.name());
+		psInsertESModule.setInt(5,sequenceNb);
+		psInsertESModule.executeUpdate();
+	    }
+	    catch (SQLException e) {
+		e.printStackTrace();
+		return false;
+	    }
+	    if (!insertInstanceParameters(superId,esmodule)) return false;
 	}
 	return true;
     }
@@ -2553,6 +2689,8 @@ public class CfgDatabase
 	    psInsertTemplate = psInsertEDSourceTemplate;
 	else if (templateTable.equals(tableESSourceTemplates))
 	    psInsertTemplate = psInsertESSourceTemplate;
+	else if (templateTable.equals(tableESModuleTemplates))
+	    psInsertTemplate = psInsertESModuleTemplate;
 	else if (templateTable.equals(tableModuleTemplates))
 	    psInsertTemplate = psInsertModuleTemplate;
 	
@@ -2932,6 +3070,8 @@ public class CfgDatabase
 	    psSelectTemplate = psSelectEDSourceTemplate;
 	if (table.equals(tableESSourceTemplates))
 	    psSelectTemplate = psSelectESSourceTemplate;
+	if (table.equals(tableESModuleTemplates))
+	    psSelectTemplate = psSelectESModuleTemplate;
 	if (table.equals(tableModuleTemplates))
 	    psSelectTemplate = psSelectModuleTemplate;
 	int result = 0;

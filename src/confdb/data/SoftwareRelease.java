@@ -28,6 +28,9 @@ public class SoftwareRelease
     /** list of available ESSource templates */
     private ArrayList<ESSourceTemplate> essourceTemplates = null;
     
+    /** list of available ESModule templates */
+    private ArrayList<ESModuleTemplate> esmoduleTemplates = null;
+    
     /** list of available Service templates */
     private ArrayList<ServiceTemplate> serviceTemplates = null;
     
@@ -41,6 +44,9 @@ public class SoftwareRelease
     /** hash-map of available ESSource templates BY NAME */
     private HashMap<String,ESSourceTemplate> essourceTemplatesByName = null;
 
+    /** hash-map of available ESModule templates BY NAME */
+    private HashMap<String,ESModuleTemplate> esmoduleTemplatesByName = null;
+
     /** hash-map of available Service templates BY NAME */
     private HashMap<String,ServiceTemplate> serviceTemplatesByName = null;
 
@@ -48,16 +54,19 @@ public class SoftwareRelease
     private HashMap<String,ModuleTemplate> moduleTemplatesByName  = null;
     
     
-    /** hash-map of available EDSource template names BY DBID */
+    /** hash-map of available EDSource templates names BY DBID */
     private HashMap<Integer,String> edsourceTemplateNamesByDbId = null;
 
-    /** hash-map of available ESSource template names BY DBID */
+    /** hash-map of available ESSource templates names BY DBID */
     private HashMap<Integer,String> essourceTemplateNamesByDbId = null;
 
-    /** hash-map of available Service template names BY DBID */
+    /** hash-map of available ESModule templates names BY DBID */
+    private HashMap<Integer,String> esmoduleTemplateNamesByDbId = null;
+
+    /** hash-map of available Service templates names BY DBID */
     private HashMap<Integer,String> serviceTemplateNamesByDbId = null;
 
-    /** hash-map of available Module template names BY DBID */
+    /** hash-map of available Module templates names BY DBID */
     private HashMap<Integer,String> moduleTemplateNamesByDbId  = null;
     
 
@@ -72,16 +81,19 @@ public class SoftwareRelease
 	
 	edsourceTemplates    = new ArrayList<EDSourceTemplate>();
 	essourceTemplates    = new ArrayList<ESSourceTemplate>();
+	esmoduleTemplates    = new ArrayList<ESModuleTemplate>();
 	serviceTemplates     = new ArrayList<ServiceTemplate>();
 	moduleTemplates      = new ArrayList<ModuleTemplate>();
 	
 	edsourceTemplatesByName = new HashMap<String,EDSourceTemplate>();
 	essourceTemplatesByName = new HashMap<String,ESSourceTemplate>();
+	esmoduleTemplatesByName = new HashMap<String,ESModuleTemplate>();
 	serviceTemplatesByName  = new HashMap<String,ServiceTemplate>();
 	moduleTemplatesByName   = new HashMap<String,ModuleTemplate>();
 
 	edsourceTemplateNamesByDbId = new HashMap<Integer,String>();
 	essourceTemplateNamesByDbId = new HashMap<Integer,String>();
+	esmoduleTemplateNamesByDbId = new HashMap<Integer,String>();
 	serviceTemplateNamesByDbId  = new HashMap<Integer,String>();
 	moduleTemplateNamesByDbId   = new HashMap<Integer,String>();
      }
@@ -101,16 +113,19 @@ public class SoftwareRelease
 
 	edsourceTemplates.clear();
 	essourceTemplates.clear();
+	esmoduleTemplates.clear();
 	serviceTemplates.clear();
 	moduleTemplates.clear();
 	
 	edsourceTemplatesByName.clear();
 	essourceTemplatesByName.clear();
+	esmoduleTemplatesByName.clear();
 	serviceTemplatesByName.clear();
 	moduleTemplatesByName.clear();
 
 	edsourceTemplateNamesByDbId.clear();
 	essourceTemplateNamesByDbId.clear();
+	esmoduleTemplateNamesByDbId.clear();
 	serviceTemplateNamesByDbId.clear();
 	moduleTemplateNamesByDbId.clear();
     }
@@ -121,6 +136,7 @@ public class SoftwareRelease
 	int result = 0;
 	for (Template eds : edsourceTemplates) result += eds.removeAllInstances();
 	for (Template ess : essourceTemplates) result += ess.removeAllInstances();
+	for (Template esm : esmoduleTemplates) result += esm.removeAllInstances();
 	for (Template svc : serviceTemplates)  result += svc.removeAllInstances();
 	for (Template mod : moduleTemplates)   result += mod.removeAllInstances();
 	return result;
@@ -149,6 +165,12 @@ public class SoftwareRelease
 	return essourceTemplates.iterator();
     }
 
+    /** ESModule template iterator */
+    public Iterator esmoduleTemplateIterator()
+    {
+	return esmoduleTemplates.iterator();
+    }
+
     /** Service template iterator */
     public Iterator serviceTemplateIterator()
     {
@@ -167,6 +189,9 @@ public class SoftwareRelease
     /** number of ESSource templates */
     public int essourceTemplateCount() { return essourceTemplates.size(); }
 
+    /** number of ESModule templates */
+    public int esmoduleTemplateCount() { return esmoduleTemplates.size(); }
+
     /** number of Service templates */
     public int serviceTemplateCount() { return serviceTemplates.size(); }
 
@@ -183,6 +208,12 @@ public class SoftwareRelease
     public ESSourceTemplate essourceTemplate(String name)
     {
 	return essourceTemplatesByName.get(name);
+    }
+    
+    /** get ESModule template by name */
+    public ESModuleTemplate esmoduleTemplate(String name)
+    {
+	return esmoduleTemplatesByName.get(name);
     }
     
     /** get Service template by name */
@@ -207,6 +238,12 @@ public class SoftwareRelease
     public String essourceTemplateName(int dbId)
     {
 	return essourceTemplateNamesByDbId.get(dbId);
+    }
+    
+    /** get ESModule template name by dbId */
+    public String esmoduleTemplateName(int dbId)
+    {
+	return esmoduleTemplateNamesByDbId.get(dbId);
     }
     
     /** get Service template name by dbId */
@@ -239,6 +276,15 @@ public class SoftwareRelease
 		essourceTemplates.add(essource);
 		essourceTemplatesByName.put(essource.name(),essource);
 		essourceTemplateNamesByDbId.put(essource.dbId(),essource.name());
+		return true;
+	    }
+	}
+	if (template instanceof ESModuleTemplate) {
+	    ESModuleTemplate esmodule = (ESModuleTemplate)template;
+	    if (!esmoduleTemplatesByName.containsKey(esmodule.name())) {
+		esmoduleTemplates.add(esmodule);
+		esmoduleTemplatesByName.put(esmodule.name(),esmodule);
+		esmoduleTemplateNamesByDbId.put(esmodule.dbId(),esmodule.name());
 		return true;
 	    }
 	}

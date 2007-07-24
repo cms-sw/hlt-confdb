@@ -4,6 +4,7 @@ import confdb.converter.Converter;
 import confdb.converter.IConfigurationWriter;
 import confdb.converter.IEDSourceWriter;
 import confdb.converter.IESSourceWriter;
+import confdb.converter.IESModuleWriter;
 import confdb.converter.IModuleWriter;
 import confdb.converter.IParameterWriter;
 import confdb.converter.IPathWriter;
@@ -12,6 +13,7 @@ import confdb.converter.IServiceWriter;
 import confdb.data.Configuration;
 import confdb.data.EDSourceInstance;
 import confdb.data.ESSourceInstance;
+import confdb.data.ESModuleInstance;
 import confdb.data.ModuleInstance;
 import confdb.data.Parameter;
 import confdb.data.Path;
@@ -65,6 +67,14 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 		{
 			ESSourceInstance essource = conf.essource(i);
 			str += essourceWriter.toString(essource, converter);
+		}
+
+
+		IESModuleWriter esmoduleWriter = converter.getESModuleWriter();
+		for ( int i = 0; i < conf.esmoduleCount(); i++ )
+		{
+			ESModuleInstance esmodule = conf.esmodule(i);
+			str += esmoduleWriter.toString(esmodule,converter);
 		}
 
 

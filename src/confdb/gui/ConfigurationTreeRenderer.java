@@ -40,6 +40,12 @@ class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     /** essource icon */
     private ImageIcon essourceIcon = null;
 
+    /** esmodules dir icon */
+    private ImageIcon esmodulesDirIcon = null;
+
+    /** esmodule icon */
+    private ImageIcon esmoduleIcon = null;
+
     /** service dir icon */
     private ImageIcon servicesDirIcon = null;
 
@@ -90,6 +96,10 @@ class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    new ImageIcon(ClassLoader.getSystemResource("ESSourcesDirIcon.png"));
 	essourceIcon     =
 	    new ImageIcon(ClassLoader.getSystemResource("ESSourceIcon.png"));
+	esmodulesDirIcon =
+	    new ImageIcon(ClassLoader.getSystemResource("ESSourcesDirIcon.png")); //!
+	esmoduleIcon     =
+	    new ImageIcon(ClassLoader.getSystemResource("ESSourceIcon.png")); //!
 	servicesDirIcon  =
 	    new ImageIcon(ClassLoader.getSystemResource("ServicesDirIcon.png"));
 	serviceIcon      =
@@ -111,7 +121,7 @@ class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	vpsetIcon        =
 	    new ImageIcon(ClassLoader.getSystemResource("VPSetIcon.png"));      
     }
-
+    
     
     //
     // member functions
@@ -125,14 +135,16 @@ class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    if (node.equals(treeModel.psetsNode()))     return psetDirIcon;
 	    if (node.equals(treeModel.edsourcesNode())) return edsourceDirIcon;
 	    if (node.equals(treeModel.essourcesNode())) return essourcesDirIcon;
+	    if (node.equals(treeModel.esmodulesNode())) return esmodulesDirIcon;
 	    if (node.equals(treeModel.servicesNode()))  return servicesDirIcon;
 	    if (node.equals(treeModel.pathsNode()))     return pathsDirIcon;
-	    if (node.equals(treeModel.modulesNode()))   return modulesDirIcon;
 	    if (node.equals(treeModel.sequencesNode())) return sequencesDirIcon;
+	    if (node.equals(treeModel.modulesNode()))   return modulesDirIcon;
 	}
 	
 	else if (node instanceof EDSourceInstance)  return edsourceIcon;
 	else if (node instanceof ESSourceInstance)  return essourceIcon;
+	else if (node instanceof ESModuleInstance)  return esmoduleIcon;
 	else if (node instanceof ServiceInstance)   return serviceIcon;
 	else if (node instanceof ModuleInstance||
 		 node instanceof ModuleReference)   return moduleIcon;

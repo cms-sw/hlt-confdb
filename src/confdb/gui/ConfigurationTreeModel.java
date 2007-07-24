@@ -31,10 +31,12 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     private StringBuffer psetsNode     = new StringBuffer();
     private StringBuffer edsourcesNode = new StringBuffer();
     private StringBuffer essourcesNode = new StringBuffer();
+    private StringBuffer esmodulesNode = new StringBuffer();
     private StringBuffer servicesNode  = new StringBuffer();
     private StringBuffer pathsNode     = new StringBuffer();
-    private StringBuffer modulesNode   = new StringBuffer();
     private StringBuffer sequencesNode = new StringBuffer();
+    private StringBuffer modulesNode   = new StringBuffer();
+
     private ArrayList<StringBuffer> level1Nodes = new ArrayList<StringBuffer>();
     
     
@@ -62,6 +64,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     /** get the ESSources root node */
     public StringBuffer essourcesNode() { return essourcesNode; }
     
+    /** get the ESModules root node */
+    public StringBuffer esmodulesNode() { return esmodulesNode; }
+    
     /** get the EDSource root node */
     public StringBuffer servicesNode() { return servicesNode; }
     
@@ -69,10 +74,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     public StringBuffer pathsNode() { return pathsNode; }
     
     /** get the EDSource root node */
-    public StringBuffer modulesNode() { return modulesNode; }
+    public StringBuffer sequencesNode() { return sequencesNode; }
     
     /** get the EDSource root node */
-    public StringBuffer sequencesNode() { return sequencesNode; }
+    public StringBuffer modulesNode() { return modulesNode; }
     
     /** set the configuration to be displayed */
     public void setConfiguration(Configuration config)
@@ -86,10 +91,11 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 		level1Nodes.add(psetsNode);
 		level1Nodes.add(edsourcesNode);
 		level1Nodes.add(essourcesNode);
+		level1Nodes.add(esmodulesNode);
 		level1Nodes.add(servicesNode);
 		level1Nodes.add(pathsNode);
-		level1Nodes.add(modulesNode);
 		level1Nodes.add(sequencesNode);
+		level1Nodes.add(modulesNode);
 	    }
 	    updateLevel1Nodes();
 	}
@@ -145,6 +151,21 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	essourcesNode.append("</html>");
 	nodeChanged(essourcesNode);
+	
+	// ESModule node
+	int esmoduleCount = config.esmoduleCount();
+	int unsetESModuleCount = config.unsetTrackedESModuleParameterCount();
+	esmodulesNode.delete(0,esmodulesNode.length());
+	esmodulesNode.append("<html>ESModules (");
+	esmodulesNode.append(esmoduleCount);
+	esmodulesNode.append(")");
+	if (unsetESModuleCount>0) {
+	    esmodulesNode.append(" <font color=#ff0000>[");
+	    esmodulesNode.append(unsetESModuleCount);
+	    esmodulesNode.append("]</font>");
+	}
+	esmodulesNode.append("</html>");
+	nodeChanged(esmodulesNode);
 	
 	// Service node
 	int serviceCount = config.serviceCount();
@@ -225,6 +246,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    if (node.equals(psetsNode))     return config.psetCount();
 	    if (node.equals(edsourcesNode)) return config.edsourceCount();
 	    if (node.equals(essourcesNode)) return config.essourceCount();
+	    if (node.equals(esmodulesNode)) return config.esmoduleCount();
 	    if (node.equals(servicesNode))  return config.serviceCount();
 	    if (node.equals(pathsNode))     return config.pathCount();
 	    if (node.equals(modulesNode))   return config.moduleCount();
@@ -274,6 +296,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    if (parent.equals(psetsNode))     return config.pset(i);
 	    if (parent.equals(edsourcesNode)) return config.edsource(i);
 	    if (parent.equals(essourcesNode)) return config.essource(i);
+	    if (parent.equals(esmodulesNode)) return config.esmodule(i);
 	    if (parent.equals(servicesNode))  return config.service(i);
 	    if (parent.equals(pathsNode))     return config.path(i);
 	    if (parent.equals(modulesNode))   return config.module(i);
@@ -331,6 +354,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    if (parent.equals(essourcesNode)) {
 		ESSourceInstance essource = (ESSourceInstance)child;
 		return config.indexOfESSource(essource);
+	    }
+	    if (parent.equals(esmodulesNode)) {
+		ESModuleInstance esmodule = (ESModuleInstance)child;
+		return config.indexOfESModule(esmodule);
 	    }
 	    if (parent.equals(servicesNode)) {
 		ServiceInstance service = (ServiceInstance)child;
@@ -407,6 +434,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	else if (node instanceof ESSourceInstance) {
 	    return essourcesNode;
+	}
+	else if (node instanceof ESModuleInstance) {
+	    return esmodulesNode;
 	}
 	else if (node instanceof ServiceInstance) {
 	    return servicesNode;

@@ -49,6 +49,9 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
     /** popup menu showing all available event setup source templates */
     private JPopupMenu popupESSources = null;
 
+    /** popup menu showing all available event setup module templates */
+    private JPopupMenu popupESModules = null;
+
     /** popup menu associated with paths */
     private JPopupMenu popupPaths = null;
     
@@ -69,6 +72,9 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 
     /** action listener for essources-menu actions */
     private ESSourceMenuListener essourceListener = null;
+    
+    /** action listener for esmodules-menu actions */
+    private ESModuleMenuListener esmoduleListener = null;
     
     /** action listener for paths-menu actions */
     private PathMenuListener pathListener = null;
@@ -93,9 +99,10 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	this.release   = release;
 	
 	psetListener     = new PSetMenuListener(tree,frame);
-	serviceListener  = new ServiceMenuListener(tree);
 	edsourceListener = new EDSourceMenuListener(tree);
 	essourceListener = new ESSourceMenuListener(tree,frame);
+	esmoduleListener = new ESModuleMenuListener(tree,frame);
+	serviceListener  = new ServiceMenuListener(tree);
 	pathListener     = new PathMenuListener(tree,frame);
 	moduleListener   = new ModuleMenuListener(tree,frame);
 	sequenceListener = new SequenceMenuListener(tree,frame);
@@ -154,6 +161,13 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	if (isInTreePath(treePath,treeModel.essourcesNode())&&depth<=3) {
 	    updateESSourceMenu();
 	    popupESSources.show(e.getComponent(),e.getX(),e.getY());
+	    return;
+	}
+	
+	// show the 'ESModules' popup?
+	if (isInTreePath(treePath,treeModel.esmodulesNode())&&depth<=3) {
+	    updateESModuleMenu();
+	    popupESModules.show(e.getComponent(),e.getX(),e.getY());
 	    return;
 	}
 	
@@ -294,6 +308,54 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    menuItem = new JMenuItem("Remove ESSource");
 	    menuItem.addActionListener(essourceListener);
 	    popupESSources.add(menuItem);
+	}
+    }
+    
+    /** update 'ESModules' menu */
+    public void updateESModuleMenu()
+    {
+	JMenuItem menuItem;
+	popupESModules    = new JPopupMenu();
+	
+	TreePath treePath = tree.getSelectionPath();
+	int      depth    = treePath.getPathCount();
+	
+	// 'ESModules' or specific event setup module
+	if (depth>=2&&depth<=3) {
+	    //JMenu esmoduleMenu = new JMenu("Add ESModule");
+	    JMenu esmoduleMenu = new ScrollableMenu("Add ESModule");
+	    Iterator it = release.esmoduleTemplateIterator();
+	    while (it.hasNext()) {
+		ESModuleTemplate t = (ESModuleTemplate)it.next();
+		if (t.instanceCount()>0) {
+		    JMenu instanceMenu = new JMenu(t.name());
+		    for (int i=0;i<t.instanceCount();i++) {
+			Instance instance = t.instance(i);
+			menuItem = new JMenuItem(instance.name());
+			menuItem.setEnabled(false);
+			instanceMenu.add(menuItem);
+		    }
+		    instanceMenu.addSeparator();
+		    menuItem = new JMenuItem("New Instance");
+		    menuItem.addActionListener(esmoduleListener);
+		    menuItem.setActionCommand(t.name());
+		    instanceMenu.add(menuItem);
+		    esmoduleMenu.add(instanceMenu);
+		}
+		else {
+		    menuItem = new JMenuItem(t.name());
+		    menuItem.addActionListener(esmoduleListener);
+		    esmoduleMenu.add(menuItem);
+		}
+	    }
+	    popupESModules.add(esmoduleMenu);
+	}
+	
+	// a specific event setup source is selected
+	if (depth==3) {
+	    menuItem = new JMenuItem("Remove ESModule");
+	    menuItem.addActionListener(esmoduleListener);
+	    popupESModules.add(menuItem);
 	}
     }
     
@@ -872,6 +934,86 @@ class ESSourceMenuListener implements ActionListener
 		    treePath : treePath.getParentPath();
 		TreePath newTreePath =
 		    parentTreePath.pathByAddingChild(config.essource(insertIndex));
+		tree.setSelectionPath(newTreePath);
+	    }
+	}
+	treeModel.updateLevel1Nodes();
+    }
+}
+
+
+/**
+ * listen to actions from the 'ESModules' popup menu
+ */
+class ESModuleMenuListener implements ActionListener
+{
+    /** reference to the tree to be manipulated */
+    private JTree tree = null;
+
+    /** reference to the parent frame */
+    private JFrame frame = null;
+    
+    /** reference to the tree model */
+    private ConfigurationTreeModel treeModel = null;
+    
+    /** standard constructor */
+    public ESModuleMenuListener(JTree tree, JFrame frame)
+    {
+	this.tree = tree;
+	this.frame = frame;
+	this.treeModel = (ConfigurationTreeModel)tree.getModel();
+    }
+    
+    /** ActionListener interface */
+    public void actionPerformed(ActionEvent e)
+    {
+	JMenuItem source   = (JMenuItem)(e.getSource());
+	String    cmd      = source.getText();
+	TreePath  treePath = tree.getSelectionPath();
+       	int       depth    = treePath.getPathCount();
+	Object    node     = treePath.getPathComponent(depth-1);
+	Object    parent   = treePath.getPathComponent(depth-2);
+	
+	Configuration config = (Configuration)treeModel.getRoot();
+	
+	if (cmd.equals("Remove ESModule")) {
+	    ESModuleInstance esmodule = (ESModuleInstance)node;
+	    int              index    = config.indexOfESModule(esmodule);
+	    config.removeESModule(esmodule);
+	    treeModel.nodeRemoved(treeModel.esmodulesNode(),index,esmodule);
+	    tree.setSelectionPath(treePath.getParentPath());
+ 	}
+	// add an event setup source TODO
+	else if (depth>=2&&depth<=3) {
+	    int insertIndex = 0;
+	    if (depth==3) {
+		ESModuleInstance esmodule = (ESModuleInstance)node;
+		insertIndex = config.indexOfESModule(esmodule) + 1;
+	    }
+	    String templateName = (cmd.equals("New Instance")) ?
+		source.getActionCommand() : cmd;
+	    ESModuleTemplate template=config.release().esmoduleTemplate(templateName);
+
+	    ValidatedNameDialog dialog = new ValidatedNameDialog(frame,
+								 config,
+								 template);
+	    dialog.pack();
+	    dialog.setLocationRelativeTo(frame);
+	    dialog.setVisible(true);
+	    if (dialog.success()) {
+		String instanceName = dialog.instanceName();
+		ArrayList<Parameter> parameters = dialog.instanceParameters();
+		ESModuleInstance instance =
+		    config.insertESModule(insertIndex,templateName,instanceName);
+		instance.setParameters(parameters);
+		
+		treeModel.nodeInserted(treeModel.esmodulesNode(),insertIndex);
+		
+		if (insertIndex==0) tree.expandPath(treePath);
+		TreePath parentTreePath = (depth==2) ?
+		    treePath : treePath.getParentPath();
+		TreePath newTreePath =
+		    parentTreePath.pathByAddingChild(config.esmodule(insertIndex));
 		tree.setSelectionPath(newTreePath);
 	    }
 	}

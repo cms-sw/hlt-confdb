@@ -4,6 +4,7 @@ import confdb.converter.Converter;
 import confdb.converter.IConfigurationWriter;
 import confdb.converter.IEDSourceWriter;
 import confdb.converter.IESSourceWriter;
+import confdb.converter.IESModuleWriter;
 import confdb.converter.IModuleWriter;
 import confdb.converter.IPathWriter;
 import confdb.converter.ISequenceWriter;
@@ -11,6 +12,7 @@ import confdb.converter.IServiceWriter;
 import confdb.data.Configuration;
 import confdb.data.EDSourceInstance;
 import confdb.data.ESSourceInstance;
+import confdb.data.ESModuleInstance;
 import confdb.data.ModuleInstance;
 import confdb.data.Path;
 import confdb.data.Sequence;
@@ -52,12 +54,22 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 			str += edsourceWriter.toString(edsource, converter );
 		}
 
-		//str += "<tr></tr>\n";
+
+		str += "<tr></tr>\n";
 		IESSourceWriter essourceWriter = converter.getESSourceWriter();
 		for ( int i = 0; i < conf.essourceCount(); i++ )
 		{
 			ESSourceInstance essource = conf.essource(i);
 			str += essourceWriter.toString(essource, converter);
+		}
+
+
+		str += "<tr></tr>\n";
+		IESModuleWriter esmoduleWriter = converter.getESModuleWriter();
+		for ( int i = 0; i < conf.esmoduleCount(); i++ )
+		{
+			ESModuleInstance esmodule = conf.esmodule(i);
+			str += esmoduleWriter.toString(esmodule, converter);
 		}
 
 

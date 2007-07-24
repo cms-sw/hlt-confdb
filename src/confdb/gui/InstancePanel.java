@@ -213,6 +213,11 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 		configAsString = converter.getESSourceWriter().toString(essource,
 									converter);
 	    }
+	    if (currentObject instanceof ESModuleInstance) {
+		ESModuleInstance esmodule = (ESModuleInstance)currentObject;
+		configAsString = converter.getESModuleWriter().toString(esmodule,
+									converter);
+	    }
 	    if (currentObject instanceof ServiceInstance) {
 		ServiceInstance service = (ServiceInstance)currentObject;
 		configAsString =converter.getServiceWriter().toString(service,

@@ -10,7 +10,6 @@ public class TemplateFactory
     { 
 	"EDProducer","EDFilter","EDAnalyzer",
 	"HLTProducer","HLTFilter",
-	"ESProducer",
 	"OutputModule"
     }; 
     
@@ -32,6 +31,8 @@ public class TemplateFactory
 	    return new EDSourceTemplate(name,cvsTag,dbId,parameters);
 	else if (type.equals("ESSource"))
 	    return new ESSourceTemplate(name,cvsTag,dbId,parameters);
+	else if (type.equals("ESModule"))
+	    return new ESModuleTemplate(name,cvsTag,dbId,parameters);
 	else if (isValidModuleType(type))
 	    return new ModuleTemplate(name,cvsTag,dbId,parameters,type);
 	

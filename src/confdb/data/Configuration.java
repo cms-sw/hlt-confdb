@@ -35,6 +35,9 @@ public class Configuration
     /** list of ESSources */
     private ArrayList<ESSourceInstance> essources = null;
     
+    /** list of ESModules */
+    private ArrayList<ESModuleInstance> esmodules = null;
+    
     /** list of Services */
     private ArrayList<ServiceInstance>  services = null;
     
@@ -58,6 +61,7 @@ public class Configuration
 	psets     = new ArrayList<PSetParameter>();
 	edsources = new ArrayList<EDSourceInstance>();
 	essources = new ArrayList<ESSourceInstance>();
+	esmodules = new ArrayList<ESModuleInstance>();
 	services  = new ArrayList<ServiceInstance>();
 	modules   = new ArrayList<ModuleInstance>();
 	paths     = new ArrayList<Path>();
@@ -70,6 +74,7 @@ public class Configuration
 	psets     = new ArrayList<PSetParameter>();
 	edsources = new ArrayList<EDSourceInstance>();
 	essources = new ArrayList<ESSourceInstance>();
+	esmodules = new ArrayList<ESModuleInstance>();
 	services  = new ArrayList<ServiceInstance>();
 	modules   = new ArrayList<ModuleInstance>();
 	paths     = new ArrayList<Path>();
@@ -219,6 +224,8 @@ public class Configuration
 	if (qualifier.length()==0) return false;
 	for (ESSourceInstance ess : essources)
 	    if (ess.name().equals(qualifier)) return false;
+	for (ESModuleInstance esm : esmodules)
+	    if (esm.name().equals(qualifier)) return false;
 	for (ModuleInstance m : modules)
 	    if (m.name().equals(qualifier)) return false;
 	for (Path p : paths)
@@ -234,6 +241,8 @@ public class Configuration
 	if (container.name().length()==0) return false;
 	for (ESSourceInstance ess : essources)
 	    if (ess.name().equals(container.name())) return false;
+	for (ESModuleInstance esm : esmodules)
+	    if (esm.name().equals(container.name())) return false;
 	for (ModuleInstance m : modules)
 	    if (m.name().equals(container.name())) return false;
 	for (Path p : paths) {
@@ -259,6 +268,7 @@ public class Configuration
 	result += unsetTrackedPSetParameterCount();
 	result += unsetTrackedEDSourceParameterCount();
 	result += unsetTrackedESSourceParameterCount();
+	result += unsetTrackedESModuleParameterCount();
 	result += unsetTrackedServiceParameterCount();
 	result += unsetTrackedModuleParameterCount();
 	return result;
@@ -288,6 +298,15 @@ public class Configuration
 	int result = 0;
 	for (ESSourceInstance ess : essources)
 	    result+=ess.unsetTrackedParameterCount();
+	return result;
+    }
+
+    /** number of unsert tracked esmodule parameters */
+    public int unsetTrackedESModuleParameterCount()
+    {
+	int result = 0;
+	for (ESModuleInstance esm : esmodules)
+	    result+=esm.unsetTrackedParameterCount();
 	return result;
     }
 
@@ -428,6 +447,51 @@ public class Configuration
 	essource.remove();
 	int index = essources.indexOf(essource);
 	essources.remove(index);
+	hasChanged = true;
+    }
+    
+    
+    //
+    // ESModules
+    //
+    
+    /**  number of ESModules */
+    public int esmoduleCount() { return esmodules.size(); }
+    
+    /** get i-th ESModule */
+    public ESModuleInstance esmodule(int i) { return esmodules.get(i); }
+    
+    /** index of a certain ESSource */
+    public int indexOfESModule(ESModuleInstance esmodule)
+    {
+	return esmodules.indexOf(esmodule);
+    }
+    
+    /** insert ESModule at i-th position */
+    public ESModuleInstance insertESModule(int i,
+					   String templateName,
+					   String instanceName)
+    {
+	ESModuleTemplate template =
+	    (ESModuleTemplate)release.esmoduleTemplate(templateName);
+	ESModuleInstance instance = null;
+	try {
+	    instance = (ESModuleInstance)template.instance(instanceName);
+	    esmodules.add(i,instance);
+	    hasChanged = true;
+	}
+	catch (DataException e) {
+	    System.out.println(e.getMessage());
+	}
+	return instance;
+    }
+    
+    /** remove a ESModule */
+    public void removeESModule(ESModuleInstance esmodule)
+    {
+	esmodule.remove();
+	int index = esmodules.indexOf(esmodule);
+	esmodules.remove(index);
 	hasChanged = true;
     }
     

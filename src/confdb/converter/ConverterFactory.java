@@ -56,6 +56,7 @@ public class ConverterFactory {
 
 		converter.setEDSourceWriter( getEDSourceWriter() );
 		converter.setESSourceWriter( getESSourceWriter() );
+		converter.setESModuleWriter( getESModuleWriter() );
 		converter.setServiceWriter( getServiceWriter() );
 		converter.setModuleWriter( getModuleWriter() );
 		converter.setPathWriter( getPathWriter() );
@@ -99,6 +100,12 @@ public class ConverterFactory {
 	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
 		return (IESSourceWriter)getWriter( "ESSourceWriter" );
+	}
+
+	public IESModuleWriter getESModuleWriter()
+	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
+	{
+		return (IESModuleWriter)getWriter( "ESModuleWriter" );
 	}
 
 	public IModuleWriter getModuleWriter()

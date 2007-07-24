@@ -24,7 +24,7 @@ public class ScrollableMenu extends JMenu
     //
 
     /** How fast the scrolling will happen. */
-    private int scrollSpeed = 25;
+    private int scrollSpeed = 50;
     /** Handles the scrolling upwards. */
     private Timer timerUp;
     /** Handles the scrolling downwards. */
@@ -74,7 +74,6 @@ public class ScrollableMenu extends JMenu
         screenHeight = screenSize.getHeight() - 100; //room for toolbar
 	
         createButtons();
-        hideButtons();
     }
  
     //
@@ -100,7 +99,6 @@ public class ScrollableMenu extends JMenu
 	
         if(menuHeight > screenHeight) {
 	    menuItem.setVisible(false);
-            downButton.setVisible(true);
         }
         else {
             visibleItems++;
@@ -119,7 +117,6 @@ public class ScrollableMenu extends JMenu
 	
         if(menuHeight > screenHeight) {
 	    menu.setVisible(false);
-            downButton.setVisible(true);
         }
         else {
             visibleItems++;
@@ -162,15 +159,12 @@ public class ScrollableMenu extends JMenu
         closeOpenedSubMenus();
 	
         if(indexVisible == 0) {
-            upButton.setVisible(false);
             return;
         }
         else {
             indexVisible--;
             ((JComponent)subMenus.get(indexVisible+visibleItems)).setVisible(false);
             ((JComponent)subMenus.get(indexVisible)).setVisible(true);
-            downButton.setVisible(true);
-            if(indexVisible == 0)  upButton.setVisible(false);
         }
     }
     
@@ -185,7 +179,6 @@ public class ScrollableMenu extends JMenu
         closeOpenedSubMenus();
 	
         if((indexVisible + visibleItems) == subMenus.size()) {
-            downButton.setVisible(false);
             return;
         }
         else if((indexVisible + visibleItems) > subMenus.size()) {
@@ -196,10 +189,7 @@ public class ScrollableMenu extends JMenu
                 ((JComponent)subMenus.get(indexVisible)).setVisible(false);
                 ((JComponent)subMenus.get(indexVisible+visibleItems))
 		    .setVisible(true);
-                upButton.setVisible(true);
                 indexVisible++;
-                if((indexVisible + visibleItems) == subMenus.size())
-		    downButton.setVisible(false);
             }
             catch(Exception e) {
 		e.printStackTrace();
@@ -291,15 +281,6 @@ public class ScrollableMenu extends JMenu
         MouseListener scrollDownListener = new Down();
         downButton.addMouseListener(scrollDownListener);
         add(downButton);
-    }
- 
-    /**
-     * Hides the scrollButtons.
-     */
-    public void hideButtons()
-    {
-        upButton.setVisible(false);
-        downButton.setVisible(false);
     }
 
 }

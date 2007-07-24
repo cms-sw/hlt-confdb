@@ -212,6 +212,35 @@ CREATE TABLE ESSources
 
 
 --
+-- ESMODULES
+--
+
+-- TABLE 'ESModuleTemplates'
+CREATE TABLE ESModuleTemplates
+(
+	superId  	BIGINT UNSIGNED   NOT NULL UNIQUE,
+	name       	VARCHAR(64)       NOT NULL,
+	cvstag       	VARCHAR(64)       NOT NULL,
+	PRIMARY KEY(superId),
+	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
+) ENGINE=INNODB;
+
+-- TABLE 'ESModules'
+CREATE TABLE ESModules
+(
+	superId      	BIGINT UNSIGNED   NOT NULL UNIQUE,
+	templateId     	BIGINT UNSIGNED   NOT NULL,
+	configId   	BIGINT UNSIGNED   NOT NULL,
+	name       	VARCHAR(64)	  NOT NULL,
+	sequenceNb      SMALLINT UNSIGNED NOT NULL,
+	PRIMARY KEY(superId),
+	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
+	FOREIGN KEY(templateId) REFERENCES ESModuleTemplates(superId),
+	FOREIGN KEY(configId)   REFERENCES Configurations(configId)
+) ENGINE=INNODB;
+
+
+--
 -- MODULES
 --
 

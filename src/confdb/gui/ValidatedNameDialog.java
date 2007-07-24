@@ -12,6 +12,7 @@ import confdb.data.Configuration;
 import confdb.data.Template;
 import confdb.data.ModuleTemplate;
 import confdb.data.ESSourceTemplate;
+import confdb.data.ESModuleTemplate;
 import confdb.data.Instance;
 import confdb.data.Parameter;
 
@@ -82,6 +83,8 @@ public class ValidatedNameDialog extends JDialog implements PropertyChangeListen
 	    setTitle(template.type() + " Instance Name");
 	else if (template instanceof ESSourceTemplate)
 	    setTitle("ESSource Instance Name");
+	else if (template instanceof ESModuleTemplate)
+	    setTitle("ESModule Instance Name");
 	
 	// text field label
 	String labelInstanceName = "Name of the " + template.name() + " instance: ";

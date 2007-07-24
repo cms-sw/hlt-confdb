@@ -50,14 +50,16 @@ public class CreateTemplateDialog extends JDialog implements ActionListener
     
     /** radio button to specify the type (service/module) */
     private ButtonGroup buttonGroupTemplateType = null;
-    private JRadioButton serviceButton  = null;
     private JRadioButton edsourceButton = null;
     private JRadioButton essourceButton = null;
+    private JRadioButton esmoduleButton = null;
+    private JRadioButton serviceButton  = null;
     private JRadioButton moduleButton   = null;  
     private JRadioButton noneButton     = null;
     private static final String templateTypeService  = "Service";
     private static final String templateTypeEDSource = "EDSource";
     private static final String templateTypeESSource = "ESSource";
+    private static final String templateTypeESModule = "ESModule";
     private static final String templateTypeModule   = "Module";
     private static final String templateTypeNone     = "None";
 
@@ -191,6 +193,11 @@ public class CreateTemplateDialog extends JDialog implements ActionListener
 	essourceButton.addActionListener(this);
 	essourceButton.setActionCommand(templateTypeESSource);
 	essourceButton.setSelected(false);
+	esmoduleButton = new JRadioButton("ESModule");
+	esmoduleButton.setMnemonic(KeyEvent.VK_E);
+	esmoduleButton.addActionListener(this);
+	esmoduleButton.setActionCommand(templateTypeESModule);
+	esmoduleButton.setSelected(false);
 	moduleButton = new JRadioButton("Module");
 	moduleButton.setMnemonic(KeyEvent.VK_M);
 	moduleButton.addActionListener(this);
@@ -201,9 +208,10 @@ public class CreateTemplateDialog extends JDialog implements ActionListener
 	noneButton.setActionCommand(templateTypeNone);
 	noneButton.setSelected(true);
 	buttonGroupTemplateType = new ButtonGroup();
-	buttonGroupTemplateType.add(serviceButton);
-	buttonGroupTemplateType.add(essourceButton);
 	buttonGroupTemplateType.add(edsourceButton);
+	buttonGroupTemplateType.add(essourceButton);
+	buttonGroupTemplateType.add(esmoduleButton);
+	buttonGroupTemplateType.add(serviceButton);
 	buttonGroupTemplateType.add(moduleButton);
 	buttonGroupTemplateType.add(noneButton);
 	typePanel.add(new JLabel("<html><b>Type:</b></html>"));
@@ -326,9 +334,10 @@ public class CreateTemplateDialog extends JDialog implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
 	// handle template type buttons
-	if (templateTypeService.equals(e.getActionCommand())||
-	    templateTypeEDSource.equals(e.getActionCommand())||
+	if (templateTypeEDSource.equals(e.getActionCommand())||
 	    templateTypeESSource.equals(e.getActionCommand())||
+	    templateTypeESModule.equals(e.getActionCommand())||
+	    templateTypeService.equals(e.getActionCommand())||
 	    templateTypeNone.equals(e.getActionCommand())) {
 	    comboBoxModuleType.setSelectedIndex(0);
 	    comboBoxModuleType.setEnabled(false);
@@ -338,7 +347,7 @@ public class CreateTemplateDialog extends JDialog implements ActionListener
 	    comboBoxModuleType.setEnabled(true);
 	    return;
 	}
-
+	
 	// 'add template' button pressed
 	if(actionAddTemplate.equals(e.getActionCommand())) {
 	    String name = textFieldTemplateName.getText();

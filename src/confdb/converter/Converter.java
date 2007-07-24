@@ -27,6 +27,7 @@ public class Converter implements IConverter
 	private IParameterWriter parameterWriter = null;
 	private IEDSourceWriter edsourceWriter  = null;
 	private IESSourceWriter essourceWriter = null;
+	private IESModuleWriter esmoduleWriter = null;
 	private IServiceWriter serviceWriter = null;
 	private IModuleWriter moduleWriter = null;
 	private IPathWriter pathWriter = null;
@@ -318,8 +319,18 @@ public class Converter implements IConverter
 	}
 
 
+	public IESModuleWriter getESModuleWriter() {
+		return esmoduleWriter;
+	}
+
+
 	protected void setESSourceWriter(IESSourceWriter essourceWriter) {
 		this.essourceWriter = essourceWriter;
+	}
+
+
+	protected void setESModuleWriter(IESModuleWriter esmoduleWriter) {
+		this.esmoduleWriter = esmoduleWriter;
 	}
 
 

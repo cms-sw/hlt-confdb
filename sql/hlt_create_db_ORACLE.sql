@@ -332,6 +332,42 @@ CREATE TABLE ESSources
 
 --
 --
+-- ESModules
+--
+--
+
+--
+-- TABLE 'ESModuleTemplates'
+--
+CREATE TABLE ESModuleTemplates
+(
+	superId  	NUMBER,
+	name       	VARCHAR2(64)	NOT NULL,
+	cvstag       	VARCHAR2(64)	NOT NULL,
+	PRIMARY KEY(superId),
+	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
+);
+
+
+--
+-- TABLE 'ESModules'
+--
+CREATE TABLE ESModules
+(
+	superId      	NUMBER,
+	templateId     	NUMBER		NOT NULL,
+	configId   	NUMBER		NOT NULL,
+	name       	VARCHAR2(64)	NOT NULL,
+	sequenceNb	NUMBER(3)	NOT NULL,
+	PRIMARY KEY(superId),
+	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
+	FOREIGN KEY(templateId) REFERENCES ESModuleTemplates(superId),
+	FOREIGN KEY(configId)   REFERENCES Configurations(configId)
+);
+
+
+--
+--
 -- MODULES
 --
 --

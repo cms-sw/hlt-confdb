@@ -10,7 +10,7 @@ public class HtmlESSourceWriter extends HtmlInstanceWriter implements IESSourceW
 	
 	public String toString( ESSourceInstance essource, Converter converter ) 
 	{
-		return toString( "service", essource, converter );
+		return toString( "es_source", essource, converter );
 	}
 
 }
