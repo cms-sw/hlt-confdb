@@ -1454,6 +1454,13 @@ class SourceParser:
 		    if(includedlib.find('.h') != -1 and includedlib.find('"') != -1):
 			includedlib = (includedlib.split('"')[1]).lstrip().rstrip()
 
+                        # Account for includes not requiring the full path when the .h file exists in the same
+                        # directory as the source
+                        if(includedlib.find('/') == -1):
+                            localincludedlib = self.includefile.split('//src/')[1].split('/src/')[0]
+                            localincludedlib = localincludedlib + '/src/' + includedlib
+                            includedlib = localincludedlib
+
 			if(self.verbose > 1):
 			    print "\tNeed to check the file " + sourcetree + includedlib 
 
