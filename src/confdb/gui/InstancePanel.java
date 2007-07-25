@@ -182,8 +182,10 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	    ModuleInstance  instance = (ModuleInstance)reference.parent();
 	    displayInstance(instance);
 	}
-	else if ((node instanceof StringBuffer)&&
-		 node.toString().startsWith("<html>PSets")) {
+	else if (node == null ||
+		 ((node instanceof StringBuffer)&&
+		  node.toString().startsWith("<html>PSets"))
+		 ) {
 	    displayGlobalPSets();
 	    cardLayout.show(jPanelTop,"PSetPanel");
 	}

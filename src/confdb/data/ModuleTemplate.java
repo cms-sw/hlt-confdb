@@ -18,10 +18,6 @@ public class ModuleTemplate extends Template
     /** type of the module */
     private String type = null;
     
-    /** keyword */
-    private String keyword = "module";
-    
-    
     //
     // construction
     //
@@ -41,10 +37,7 @@ public class ModuleTemplate extends Template
 
     /** type of the template */
     public String type() { return type; }
-    
-    /** keyword (configuration language) */
-    public String keyword() { return keyword; }
-    
+
     /** create or retrieve an instance of this template (name=template-name)*/
     public Instance instance() throws DataException
     {

@@ -1,5 +1,14 @@
 2007-07-25  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-05-00
+	* change db schema to allow many-to-many relations between
+	configurations and edsources, essources, esmodules, services,
+	paths, and sequences
+	* adjust parser
+	* adjust gui
+
+2007-07-25  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-04-01
 	* allow for empty (db) directories to be removed in the
 	SaveConfiguration dialog (context menu)

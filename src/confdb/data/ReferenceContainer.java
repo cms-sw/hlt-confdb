@@ -10,7 +10,7 @@ import java.util.ArrayList;
    
    Common base class of Path and Sequence.
 */
-abstract public class ReferenceContainer implements Referencable
+abstract public class ReferenceContainer extends DatabaseEntry implements Referencable
 {
     //
     // member data
@@ -57,8 +57,19 @@ abstract public class ReferenceContainer implements Referencable
     /** get the name of the container */
     public String name() { return name; }
     
+    /** override DatabaseEntry.hasChanged, check on entries! */
+    public boolean hasChanged()
+    {
+	if (databaseId()==0) return true;
+	for (Reference r : entries) {
+	    DatabaseEntry dbentry = (DatabaseEntry)r.parent();
+	    if (dbentry!=null&&dbentry.hasChanged()) return true;
+	}
+	return false;
+    }
+    
     /** set the name of the container */
-    public void setName(String name) { this.name = name; }
+    public void setName(String name) { this.name = name; setHasChanged(); }
     
     /** number of entries */
     public int entryCount() { return entries.size(); }
@@ -72,12 +83,17 @@ abstract public class ReferenceContainer implements Referencable
 	return entries.indexOf(reference);
     }
     
-    /** number of entries in the container */
+    /** remove a reference from the container */
     public void removeEntry(Reference reference)
     {
 	int index = entries.indexOf(reference);
-	if (index>=0) entries.remove(index);
-	else System.out.println("ReferenceContainer.removeEntry FAILED.");
+	if (index>=0) {
+	    entries.remove(index);
+	    setHasChanged();
+	}
+	else {
+	    System.out.println("ReferenceContainer.removeEntry FAILED.");
+	}
     }
     
     /** create a reference of this in a reference container (path/sequence) */

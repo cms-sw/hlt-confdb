@@ -53,6 +53,7 @@ public class Sequence extends ReferenceContainer
 	    reference instanceof SequenceReference) {
 	    if (!entries.contains(reference)) {
 		entries.add(i,reference);
+		setHasChanged();
 		return;
 	    }
 	}
@@ -77,6 +78,7 @@ public class Sequence extends ReferenceContainer
 	SequenceReference reference = new SequenceReference(container,this);
 	references.add(reference);
 	container.insertEntry(i,reference);
+	container.setHasChanged();
 	return reference;
     }
     

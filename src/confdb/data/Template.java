@@ -9,7 +9,7 @@ import java.util.ArrayList;
  *
  * abstract base-class for Service, EDSource, ESSource, and Module Templates.
  */
-abstract public class Template
+abstract public class Template extends DatabaseEntry
 {
     //
     // member data
@@ -20,9 +20,6 @@ abstract public class Template
     
     /** cvs tag of the template */
     protected String cvsTag = null;
-
-    /** the database super id */
-    private int dbId = 0;
 
     /** parameters of this template */
     private ArrayList<Parameter> parameters = null;
@@ -39,9 +36,9 @@ abstract public class Template
     public Template(String name,String cvsTag,int dbId,
 		    ArrayList<Parameter> parameters)
     {
+	super(dbId);
 	this.name       = name;
 	this.cvsTag     = cvsTag;
-	this.dbId       = dbId;
 	this.parameters = parameters;
 	for (Parameter p : this.parameters) p.setParent(this);
     }
@@ -53,9 +50,6 @@ abstract public class Template
 
     /** type of the template */
     abstract public String type();
-    
-    /** keyword (configuration language) */
-    abstract public String keyword();
     
     /** create or retrieve an instance of this template (name=template-name)*/
     abstract public Instance instance() throws DataException;
@@ -79,9 +73,6 @@ abstract public class Template
 
     /** cvs tag of the template */
     public String cvsTag() { return cvsTag; }
-
-    /** database id */
-    public int dbId() { return dbId; }
 
     /** number of parameters */
     public int parameterCount() { return parameters.size(); }
@@ -190,8 +181,5 @@ abstract public class Template
 	}
 	return true;
     }
-    
-    /** set the db id */
-    public void setDbId(int dbId) { this.dbId = dbId; }
 
 }

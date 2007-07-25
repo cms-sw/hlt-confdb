@@ -18,9 +18,6 @@ public class ServiceTemplate extends Template
     /** template type */
     private String type = "Service";
     
-    /** keyword */
-    private String keyword = "service";
-
     
     //
     // construction
@@ -38,16 +35,7 @@ public class ServiceTemplate extends Template
     //
     
     /** type of the template */
-    public String type()
-    {
-	return type;
-    }
-    
-    /** keyword (configuration language) */
-    public String keyword()
-    {
-	return keyword;
-    }
+    public String type() { return type; }
     
     /** create or retrieve an instance of this template (name=template-name)*/
     public Instance instance() throws DataException

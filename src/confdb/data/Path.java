@@ -52,8 +52,10 @@ public class Path extends ReferenceContainer
     /** insert a path entry */
     public void insertEntry(int i,Reference reference)
     {
-	if (!entries.contains(reference))
+	if (!entries.contains(reference)) {
 	    entries.add(i,reference);
+	    setHasChanged();
+	}
 	else System.out.println("Path.insertEntry FAILED.");
 	
     }
@@ -80,6 +82,7 @@ public class Path extends ReferenceContainer
 	PathReference reference = new PathReference(container,this);
 	references.add(reference);
 	container.insertEntry(i,reference);
+	container.setHasChanged();
 	return reference;
     }
     

@@ -851,7 +851,6 @@ class PSetMenuListener implements ActionListener
 							   dlg.valueAsString(),
 							   dlg.isTracked(),
 							   false);
-		pset.setParent(treeModel.psetsNode());
 		config.insertPSet(pset);
 		treeModel.nodeInserted(treeModel.psetsNode(),config.psetCount()-1);
 	    }

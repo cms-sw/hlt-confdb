@@ -10,7 +10,7 @@ import java.util.ArrayList;
  *
  * abstract base class for Service, EDSource, ESSource, and Module Instances.
  */
-abstract public class Instance
+abstract public class Instance extends DatabaseEntry
 {
     //
     // member data
@@ -18,9 +18,6 @@ abstract public class Instance
     
     /** name of the instance*/
     protected String name = null;
-    
-    /** database id */
-    private int dbId = 0;
 
     /** reference to the template of this instance */
     private Template template = null;
@@ -60,12 +57,6 @@ abstract public class Instance
     /** name of the instance */
     public String name() { return name; }
     
-    /** dbId of the instance */
-    public int dbId() { return dbId; }
-    
-    /** check if the instance has changed w.r.t. the database */
-    public boolean hasChanged() { return (this.dbId==0); }
-    
     /** get the template */
     public Template template() { return template; }
     
@@ -86,18 +77,17 @@ abstract public class Instance
     public int indexOfParameter(Parameter p) { return parameters.indexOf(p); }
     
     /** set the name of this instance */
-    public void setName(String name) { this.name = name; this.dbId = 0; }
-    
-    /** set the dbId of this instance */
-    public void setDbId(int dbId) { this.dbId = dbId; }
+    public void setName(String name) { this.name = name; setHasChanged(); }
     
     /** update a parameter when the value is changed */
     public void updateParameter(int index,String valueAsString)
     {
 	String  oldValueAsString = parameter(index).valueAsString();
+	if (valueAsString.equals(oldValueAsString)) return;
+	
 	String  defaultAsString  = template.parameter(index).valueAsString();
 	parameter(index).setValue(valueAsString,defaultAsString);
-	dbId = 0;
+	setHasChanged();
     }
 
     /** update a parameter when the value is changed */
@@ -106,14 +96,13 @@ abstract public class Instance
 	for (int i=0;i<parameterCount();i++) {
 	    if (name.equals(parameter(i).name())) {
 		updateParameter(i,valueAsString);
-		dbId = 0;
 		return true;
 	    }
 	}
 	System.out.println("Instance.updateParameter ERROR: no parameter '"+name+"'");
 	return false;
     }
-
+    
     /** set parameters */
     public boolean setParameters(ArrayList<Parameter> newParameters)
     {

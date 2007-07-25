@@ -1355,8 +1355,8 @@ class ConfdbMySQLModuleLoader:
 		if(psetnesting == 'None' or psetnesting == ''):
 		    # Attach the PSet to a Fwk component via their superIds
 		    if(self.verbose > 2):
-			print "INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")"
-		    thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")
+			print "INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")"
+		    thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")
 
 		# Nested PSets point to the relevant top level PSet 
 		else:
@@ -1376,8 +1376,8 @@ class ConfdbMySQLModuleLoader:
 		    lastpsetseqdict[pset] = localseqcount
 
 		    if(self.verbose > 2):
-			print "INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")"
-		    thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, paramSetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")   
+			print "INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")"
+		    thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")   
 	    else:
 		if(pset in lastpsetseqdict):
 		    localseqcount = lastpsetseqdict[pset]
@@ -1524,8 +1524,8 @@ class ConfdbMySQLModuleLoader:
 
 		# Attach the PSet to a Fwk component via their superIds
 		if(self.verbose > 2):
-		    print "INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetpsetseq) + ")"
-		thecursor.execute("INSERT INTO SuperIdVecParamSetAssoc (superId, vecParamSetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetpsetseq) + ")")
+		    print "INSERT INTO SuperIdVecParamSetAssoc (superId, vpsetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetpsetseq) + ")"
+		thecursor.execute("INSERT INTO SuperIdVecParamSetAssoc (superId, vpsetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newvparamsetid) + ", " + str(vpsetpsetseq) + ")")
 
 	    lastvpsetname = vpset
 
