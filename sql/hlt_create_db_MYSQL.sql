@@ -35,7 +35,7 @@ CREATE TABLE Configurations
 	configId   	BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT UNIQUE,
 	configDescriptor VARCHAR(256)     NOT NULL UNIQUE,
 	parentDirId     BIGINT UNSIGNED   NOT NULL,
-	config     	VARCHAR(64)       NOT NULL,
+	config     	VARCHAR(128)      NOT NULL,
 	version         SMALLINT UNSIGNED NOT NULL,
 	created         TIMESTAMP         NOT NULL,
 	UNIQUE (parentDirId,config,version),
@@ -48,6 +48,7 @@ CREATE TABLE ConfigurationReleaseAssoc
 (
 	configId   	BIGINT UNSIGNED   NOT NULL,
 	releaseId  	BIGINT UNSIGNED   NOT NULL,
+	UNIQUE(configId,releaseId),
 	FOREIGN KEY(configId) REFERENCES Configurations(configId),
 	FOREIGN KEY(releaseId) REFERENCES SoftwareReleases(releaseId)
 ) ENGINE=INNODB;
@@ -64,7 +65,8 @@ CREATE TABLE SuperIdReleaseAssoc
 (
 	superId    	BIGINT UNSIGNED   NOT NULL,
 	releaseId  	BIGINT UNSIGNED   NOT NULL,
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
+	UNIQUE(superId,releaseId),
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
 	FOREIGN KEY(releaseId) REFERENCES SoftwareReleases(releaseId)
 ) ENGINE=INNODB;
 
@@ -72,13 +74,20 @@ CREATE TABLE SuperIdReleaseAssoc
 CREATE TABLE Paths
 (
 	pathId     	BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT UNIQUE,
-	configId   	BIGINT UNSIGNED   NOT NULL,
-	name       	VARCHAR(64)       NOT NULL,
-	sequenceNb 	SMALLINT UNSIGNED NOT NULL,
+	name       	VARCHAR(128)      NOT NULL,
 	isEndPath       BOOL              NOT NULL DEFAULT false,
-	UNIQUE(configId,name),
-	PRIMARY KEY(pathId),
-	FOREIGN KEY(configId) REFERENCES Configurations(configId)
+	PRIMARY KEY(pathId)
+) ENGINE=INNODB;
+
+-- TABLE 'ConfigurationPathAssoc'
+CREATE TABLE ConfigurationPathAssoc
+(
+	configId	BIGINT UNSIGNED   NOT NULL,
+	pathId          BIGINT UNSIGNED   NOT NULL,
+	sequenceNb      SMALLINT UNSIGNED NOT NULL,
+	UNIQUE(configId,pathId),
+	FOREIGN KEY(configID) REFERENCES Configurations(configId),
+	FOREIGN KEY(pathId)   REFERENCES Paths(pathId)
 ) ENGINE=INNODB;
 
 -- TABLE 'PathInPathAssoc'
@@ -88,6 +97,7 @@ CREATE TABLE PathInPathAssoc
 	childPathId	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
 	operator	SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+	UNIQUE(parentPathId,childPathId),
 	FOREIGN KEY (parentPathId) REFERENCES Paths(pathId),
 	FOREIGN KEY (childPathId)  REFERENCES Paths(pathId)
 ) ENGINE=INNODB;
@@ -96,10 +106,19 @@ CREATE TABLE PathInPathAssoc
 CREATE TABLE Sequences
 (
 	sequenceId	BIGINT UNSIGNED	  NOT NULL AUTO_INCREMENT UNIQUE,
-	configId        BIGINT UNSIGNED   NOT NULL,
-	name		VARCHAR(64)	  NOT NULL,
-	PRIMARY KEY(sequenceId),
-	FOREIGN KEY(configId) REFERENCES Configurations(configId)
+	name		VARCHAR(128)	  NOT NULL,
+	PRIMARY KEY(sequenceId)
+) ENGINE=INNODB;
+
+-- TABLE 'ConfigurationSequenceAssoc'
+CREATE TABLE ConfigurationSequenceAssoc
+(
+	configId	BIGINT UNSIGNED	  NOT NULL,
+	sequenceId	BIGINT UNSIGNED	  NOT NULL,
+	sequenceNb	SMALLINT UNSIGNED NOT NULL,
+	UNIQUE(configId,sequenceId),
+	FOREIGN KEY(configId)   REFERENCES Configurations(configId),
+	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId)
 ) ENGINE=INNODB;
 
 -- TABLE 'PathSequenceAssoc'
@@ -121,6 +140,7 @@ CREATE TABLE SequenceInSequenceAssoc
 	childSequenceId	 BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	 SMALLINT UNSIGNED NOT NULL,
 	operator	 SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+	UNIQUE(parentSequenceId,childSequenceId),
 	FOREIGN KEY (parentSequenceId) REFERENCES Sequences(sequenceId),
 	FOREIGN KEY (childSequenceId)  REFERENCES Sequences(sequenceId)
 ) ENGINE=INNODB;
@@ -134,8 +154,8 @@ CREATE TABLE SequenceInSequenceAssoc
 CREATE TABLE ServiceTemplates
 (
 	superId  	BIGINT UNSIGNED   NOT NULL UNIQUE,
-	name       	VARCHAR(64)       NOT NULL,
-	cvstag       	VARCHAR(64)       NOT NULL,
+	name       	VARCHAR(128)      NOT NULL,
+	cvstag       	VARCHAR(32)       NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
 ) ENGINE=INNODB;
@@ -145,12 +165,20 @@ CREATE TABLE Services
 (
 	superId      	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	templateId     	BIGINT UNSIGNED   NOT NULL,
-	configId   	BIGINT UNSIGNED   NOT NULL,
-	sequenceNb	SMALLINT UNSIGNED NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
-	FOREIGN KEY(templateId) REFERENCES ServiceTemplates(superId),
-	FOREIGN KEY(configId)   REFERENCES Configurations(configId)
+	FOREIGN KEY(templateId) REFERENCES ServiceTemplates(superId)
+) ENGINE=INNODB;
+
+-- TABLE 'ConfigurationServiceAssoc'
+CREATE TABLE ConfigurationServiceAssoc
+(
+	configId	BIGINT UNSIGNED	  NOT NULL,
+	serviceId       BIGINT UNSIGNED   NOT NULL,
+	sequenceNb	SMALLINT UNSIGNED NOT NULL,
+	UNIQUE(configId,serviceId),
+	FOREIGN KEY(configId)  REFERENCES Configurations(configId),
+	FOREIGN KEY(serviceId) REFERENCES SuperIds(superId)
 ) ENGINE=INNODB;
 
 
@@ -162,8 +190,8 @@ CREATE TABLE Services
 CREATE TABLE EDSourceTemplates
 (
 	superId  	BIGINT UNSIGNED   NOT NULL UNIQUE,
-	name       	VARCHAR(64)       NOT NULL,
-	cvstag       	VARCHAR(64)       NOT NULL,
+	name       	VARCHAR(128)      NOT NULL,
+	cvstag       	VARCHAR(32)       NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
 ) ENGINE=INNODB;
@@ -173,13 +201,22 @@ CREATE TABLE EDSources
 (
 	superId      	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	templateId     	BIGINT UNSIGNED   NOT NULL,
-	configId   	BIGINT UNSIGNED   NOT NULL,
-	sequenceNb	SMALLINT UNSIGNED NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
-	FOREIGN KEY(templateId) REFERENCES EDSourceTemplates(superId),
-	FOREIGN KEY(configId)   REFERENCES Configurations(configId)
+	FOREIGN KEY(templateId) REFERENCES EDSourceTemplates(superId)
 ) ENGINE=INNODB;
+
+-- TABLE 'ConfigurationEDSourceAssoc'
+CREATE TABLE ConfigurationEDSourceAssoc
+(
+	configId	BIGINT UNSIGNED	  NOT NULL,
+	edsourceId      BIGINT UNSIGNED   NOT NULL,
+	sequenceNb	SMALLINT UNSIGNED NOT NULL,
+	UNIQUE(configId,edsourceId),
+	FOREIGN KEY(configId)   REFERENCES Configurations(configId),
+	FOREIGN KEY(edsourceId) REFERENCES SuperIds(superId)
+) ENGINE=INNODB;
+
 
 
 --
@@ -190,8 +227,8 @@ CREATE TABLE EDSources
 CREATE TABLE ESSourceTemplates
 (
 	superId  	BIGINT UNSIGNED   NOT NULL UNIQUE,
-	name       	VARCHAR(64)       NOT NULL,
-	cvstag       	VARCHAR(64)       NOT NULL,
+	name       	VARCHAR(128)      NOT NULL,
+	cvstag       	VARCHAR(32)       NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
 ) ENGINE=INNODB;
@@ -201,13 +238,21 @@ CREATE TABLE ESSources
 (
 	superId      	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	templateId     	BIGINT UNSIGNED   NOT NULL,
-	configId   	BIGINT UNSIGNED   NOT NULL,
-	name       	VARCHAR(64)	  NOT NULL,
-	sequenceNb      SMALLINT UNSIGNED NOT NULL,
+	name       	VARCHAR(128)	  NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
-	FOREIGN KEY(templateId) REFERENCES ESSourceTemplates(superId),
-	FOREIGN KEY(configId)   REFERENCES Configurations(configId)
+	FOREIGN KEY(templateId) REFERENCES ESSourceTemplates(superId)
+) ENGINE=INNODB;
+
+-- TABLE 'ConfigurationESSourceAssoc'
+CREATE TABLE ConfigurationESSourceAssoc
+(
+	configId	BIGINT UNSIGNED	  NOT NULL,
+	essourceId      BIGINT UNSIGNED   NOT NULL,
+	sequenceNb	SMALLINT UNSIGNED NOT NULL,
+	UNIQUE(configId,essourceId),
+	FOREIGN KEY(configId)   REFERENCES Configurations(configId),
+	FOREIGN KEY(essourceId) REFERENCES SuperIds(superId)
 ) ENGINE=INNODB;
 
 
@@ -219,8 +264,8 @@ CREATE TABLE ESSources
 CREATE TABLE ESModuleTemplates
 (
 	superId  	BIGINT UNSIGNED   NOT NULL UNIQUE,
-	name       	VARCHAR(64)       NOT NULL,
-	cvstag       	VARCHAR(64)       NOT NULL,
+	name       	VARCHAR(128)      NOT NULL,
+	cvstag       	VARCHAR(32)       NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
 ) ENGINE=INNODB;
@@ -230,14 +275,23 @@ CREATE TABLE ESModules
 (
 	superId      	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	templateId     	BIGINT UNSIGNED   NOT NULL,
-	configId   	BIGINT UNSIGNED   NOT NULL,
-	name       	VARCHAR(64)	  NOT NULL,
-	sequenceNb      SMALLINT UNSIGNED NOT NULL,
+	name       	VARCHAR(128)	  NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
-	FOREIGN KEY(templateId) REFERENCES ESModuleTemplates(superId),
-	FOREIGN KEY(configId)   REFERENCES Configurations(configId)
+	FOREIGN KEY(templateId) REFERENCES ESModuleTemplates(superId)
 ) ENGINE=INNODB;
+
+-- TABLE 'ConfigurationESModuleAssoc'
+CREATE TABLE ConfigurationESModuleAssoc
+(
+	configId	BIGINT UNSIGNED	  NOT NULL,
+	esmoduleId      BIGINT UNSIGNED   NOT NULL,
+	sequenceNb	SMALLINT UNSIGNED NOT NULL,
+	UNIQUE(configId,esmoduleId),
+	FOREIGN KEY(configId)   REFERENCES Configurations(configId),
+	FOREIGN KEY(esmoduleId) REFERENCES SuperIds(superId)
+) ENGINE=INNODB;
+
 
 
 --
@@ -257,8 +311,8 @@ CREATE TABLE ModuleTemplates
 (
 	superId  	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	typeId  	BIGINT UNSIGNED   NOT NULL,
-	name       	VARCHAR(64)       NOT NULL,
-	cvstag       	VARCHAR(64)       NOT NULL,
+	name       	VARCHAR(128)      NOT NULL,
+	cvstag       	VARCHAR(32)       NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
 	FOREIGN KEY(typeId)  REFERENCES ModuleTypes(typeId)
@@ -269,7 +323,7 @@ CREATE TABLE Modules
 (
 	superId   	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	templateId  	BIGINT UNSIGNED   NOT NULL,
-	name       	VARCHAR(64)       NOT NULL,
+	name       	VARCHAR(128)      NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
 	FOREIGN KEY(templateId) REFERENCES ModuleTemplates(superId)
@@ -282,6 +336,7 @@ CREATE TABLE PathModuleAssoc
         moduleId   	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
 	operator	SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+	UNIQUE(pathId,moduleId),
 	FOREIGN KEY(pathId)   REFERENCES Paths(pathId),
 	FOREIGN KEY(moduleId) REFERENCES Modules(superId)
 ) ENGINE=INNODB;
@@ -293,6 +348,7 @@ CREATE TABLE SequenceModuleAssoc
         moduleId   	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
 	operator	SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+	UNIQUE(sequenceId,moduleId),
 	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId),
 	FOREIGN KEY(moduleId)   REFERENCES Modules(superId)
 ) ENGINE=INNODB;
@@ -306,7 +362,7 @@ CREATE TABLE SequenceModuleAssoc
 CREATE TABLE ParameterSets
 (
 	superId		BIGINT UNSIGNED	  NOT NULL UNIQUE,
-	name		VARCHAR(64)	  NOT NULL,
+	name		VARCHAR(128)	  NOT NULL,
 	tracked         BOOLEAN           NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
@@ -316,7 +372,7 @@ CREATE TABLE ParameterSets
 CREATE TABLE VecParameterSets
 (
 	superId		BIGINT UNSIGNED   NOT NULL UNIQUE,
-	name		VARCHAR(64)	  NOT NULL,
+	name		VARCHAR(128)	  NOT NULL,
 	tracked         BOOLEAN           NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
@@ -326,30 +382,33 @@ CREATE TABLE VecParameterSets
 CREATE TABLE ConfigurationParamSetAssoc
 (
 	configId	BIGINT UNSIGNED	  NOT NULL,
-	paramSetId	BIGINT UNSIGNED	  NOT NULL,
+	psetId		BIGINT UNSIGNED	  NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
-	FOREIGN KEY(configId)    REFERENCES Configurations(configId),
-	FOREIGN KEY(paramSetId) REFERENCES ParameterSets(superId)
+	UNIQUE(configId,psetId),
+	FOREIGN KEY(configId) REFERENCES Configurations(configId),
+	FOREIGN KEY(psetId)   REFERENCES ParameterSets(superId)
 ) ENGINE=INNODB;
 
 -- TABLE 'SuperIdParamSetAssoc'
 CREATE TABLE SuperIdParamSetAssoc
 (
 	superId		BIGINT UNSIGNED	  NOT NULL,
-	paramSetId	BIGINT UNSIGNED	  NOT NULL,
+	psetId		BIGINT UNSIGNED	  NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
-	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
-	FOREIGN KEY(paramSetId) REFERENCES ParameterSets(superId)
+	UNIQUE(superId,psetId),
+	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
+	FOREIGN KEY(psetId)  REFERENCES ParameterSets(superId)
 ) ENGINE=INNODB;
 
 -- TABLE 'SuperIdVecParamSetAssoc'
 CREATE TABLE SuperIdVecParamSetAssoc
 (
 	superId		BIGINT UNSIGNED	  NOT NULL,
-	vecParamSetId	BIGINT UNSIGNED	  NOT NULL,
+	vpsetId	        BIGINT UNSIGNED	  NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
-	FOREIGN KEY(superId)       REFERENCES SuperIds(superId),
-	FOREIGN KEY(vecParamSetId) REFERENCES VecParameterSets(superId)
+	UNIQUE(superId,vpsetId),
+	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
+	FOREIGN KEY(vpsetId) REFERENCES VecParameterSets(superId)
 ) ENGINE=INNODB;
 
 
@@ -370,7 +429,7 @@ CREATE TABLE Parameters
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT UNIQUE,
 	paramTypeId    	BIGINT UNSIGNED   NOT NULL,
-	name       	VARCHAR(64)       NOT NULL,
+	name       	VARCHAR(128)       NOT NULL,
 	tracked         BOOLEAN           NOT NULL,
 	PRIMARY KEY(paramId),
 	FOREIGN KEY(paramTypeId) REFERENCES ParameterTypes(paramTypeId)
@@ -382,6 +441,7 @@ CREATE TABLE SuperIdParameterAssoc
 	superId		BIGINT UNSIGNED	  NOT NULL,
 	paramId		BIGINT UNSIGNED	  NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
+	UNIQUE(superId,paramId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 ) ENGINE=INNODB;
@@ -470,7 +530,7 @@ CREATE TABLE VStringParamValues
 CREATE TABLE InputTagParamValues
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL,
-	value      	VARCHAR(64)       NOT NULL,
+	value      	VARCHAR(128)      NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 ) ENGINE=INNODB;
 
@@ -479,7 +539,7 @@ CREATE TABLE VInputTagParamValues
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb 	SMALLINT UNSIGNED NOT NULL,
-	value      	VARCHAR(64)       NOT NULL,
+	value      	VARCHAR(128)      NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 ) ENGINE=INNODB;
 
@@ -514,7 +574,7 @@ INSERT INTO ModuleTypes (type) VALUES("EDFilter");
 INSERT INTO ModuleTypes (type) VALUES("EDAnalyzer");
 INSERT INTO ModuleTypes (type) VALUES("HLTProducer");
 INSERT INTO ModuleTypes (type) VALUES("HLTFilter");
-INSERT INTO ModuleTypes (type) VALUES("ESProducer");
+-- INSERT INTO ModuleTypes (type) VALUES("ESProducer");
 INSERT INTO ModuleTypes (type) VALUES("OutputModule");
 
 

@@ -62,7 +62,7 @@ CREATE TABLE Configurations
 	configId   	NUMBER,
 	configDescriptor VARCHAR2(256)  NOT NULL UNIQUE,
 	parentDirId     NUMBER		NOT NULL,
-	config     	VARCHAR2(64)    NOT NULL,
+	config     	VARCHAR2(128)    NOT NULL,
 	version         NUMBER(4)	NOT NULL,
 	created         TIMESTAMP       NOT NULL,
 	UNIQUE (parentDirId,config,version),
@@ -90,6 +90,7 @@ CREATE TABLE ConfigurationReleaseAssoc
 (
 	configId   	NUMBER		NOT NULL,
 	releaseId   	NUMBER		NOT NULL,
+	UNIQUE(configId,releaseId),
 	FOREIGN KEY(configId) REFERENCES Configurations(configId),
 	FOREIGN KEY(releaseId) REFERENCES SoftwareReleases(releaseId)
 );
@@ -123,6 +124,7 @@ CREATE TABLE SuperIdReleaseAssoc
 (
 	superId    	NUMBER          NOT NULL,
 	releaseId   	NUMBER 		NOT NULL,
+	UNIQUE(superId,releaseId),
 	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
 	FOREIGN KEY(releaseId) REFERENCES SoftwareReleases(releaseId)
 );
@@ -133,14 +135,9 @@ CREATE TABLE SuperIdReleaseAssoc
 CREATE TABLE Paths
 (
 	pathId     	NUMBER,
-	configId   	NUMBER		NOT NULL,
-	name       	VARCHAR2(64)    NOT NULL,
-	sequenceNb 	NUMBER(3) 	NOT NULL,
+	name       	VARCHAR2(128)    NOT NULL,
 	isEndPath       NUMBER(1)       DEFAULT '0' NOT NULL,
-	UNIQUE(configId,name),
-	UNIQUE(configId,sequenceNb),
-	PRIMARY KEY(pathId),
-	FOREIGN KEY(configId) REFERENCES Configurations(configId)
+	PRIMARY KEY(pathId)
 );
 
 -- SEQUENCE 'PathId_Sequence'
@@ -157,6 +154,20 @@ END;
 
 
 --
+-- TABLE 'ConfigurationPathAssoc'
+--
+CREATE TABLE ConfigurationPathAssoc
+(
+	configId	NUMBER		NOT NULL,
+	pathId		NUMBER		NOT NULL,
+	sequenceNb	NUMBER(3)	NOT NULL,
+	UNIQUE(configId,pathId),
+	FOREIGN KEY (configId) REFERENCES Configurations(configId),
+	FOREIGN KEY (pathId)   REFERENCES Paths(pathId)
+);
+
+
+--
 -- TABLE 'PathInPathAssoc'
 --
 CREATE TABLE PathInPathAssoc
@@ -165,6 +176,7 @@ CREATE TABLE PathInPathAssoc
 	childPathId	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
 	operator	NUMBER(3)	DEFAULT '0' NOT NULL,
+	UNIQUE(parentPathId,childPathId),
 	FOREIGN KEY (parentPathId) REFERENCES Paths(pathId),
 	FOREIGN KEY (childPathId)  REFERENCES Paths(pathId)
 );
@@ -176,10 +188,8 @@ CREATE TABLE PathInPathAssoc
 CREATE TABLE Sequences
 (
 	sequenceId	NUMBER		NOT NULL,
-	configId        NUMBER		NOT NULL,
-	name		VARCHAR2(64)	NOT NULL,
-	PRIMARY KEY(sequenceId),
-	FOREIGN KEY(configId) REFERENCES Configurations(configId)
+	name		VARCHAR2(128)	NOT NULL,
+	PRIMARY KEY(sequenceId)
 );
 
 -- SEQUENCE 'SequenceId_Sequence'
@@ -193,6 +203,20 @@ BEGIN
 SELECT SequenceId_Sequence.nextval INTO :NEW.sequenceId FROM dual;
 END;
 /
+
+
+--
+-- TABLE 'ConfigurationSequenceAssoc'
+--
+CREATE TABLE ConfigurationSequenceAssoc
+(
+	configId	NUMBER		NOT NULL,
+	sequenceId	NUMBER		NOT NULL,
+	sequenceNb	NUMBER(3)	NOT NULL,
+	UNIQUE(configId,sequenceId),
+	FOREIGN KEY (configId)   REFERENCES Configurations(configId),
+	FOREIGN KEY (sequenceId) REFERENCES Sequences(sequenceId)
+);
 
 
 --
@@ -219,6 +243,7 @@ CREATE TABLE SequenceInSequenceAssoc
 	childSequenceId	 NUMBER		NOT NULL,
 	sequenceNb	 NUMBER(3)	NOT NULL,
 	operator	 NUMBER(3)	DEFAULT '0' NOT NULL,
+	UNIQUE(parentSequenceId,childSequenceId),
 	FOREIGN KEY (parentSequenceId) REFERENCES Sequences(sequenceId),
 	FOREIGN KEY (childSequenceId)  REFERENCES Sequences(sequenceId)
 );
@@ -236,8 +261,8 @@ CREATE TABLE SequenceInSequenceAssoc
 CREATE TABLE ServiceTemplates
 (
 	superId  	NUMBER,
-	name       	VARCHAR2(64)	NOT NULL,
-	cvstag       	VARCHAR2(64)	NOT NULL,
+	name       	VARCHAR2(128)	NOT NULL,
+	cvstag       	VARCHAR2(32)	NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
 );
@@ -250,12 +275,23 @@ CREATE TABLE Services
 (
 	superId      	NUMBER,
 	templateId     	NUMBER		NOT NULL,
-	configId   	NUMBER		NOT NULL,
-	sequenceNb	NUMBER(3)	NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
-	FOREIGN KEY(templateId) REFERENCES ServiceTemplates(superId),
-	FOREIGN KEY(configId)   REFERENCES Configurations(configId)
+	FOREIGN KEY(templateId) REFERENCES ServiceTemplates(superId)
+);
+
+
+--
+-- TABLE 'ConfigurationServiceAssoc'
+--
+CREATE TABLE ConfigurationServiceAssoc
+(
+	configId	NUMBER		NOT NULL,
+	serviceId	NUMBER		NOT NULL,
+	sequenceNb	NUMBER(3)	NOT NULL,
+	UNIQUE(configId,serviceId),
+	FOREIGN KEY (configId)  REFERENCES Configurations(configId),
+	FOREIGN KEY (serviceId) REFERENCES Services(superId)
 );
 
 
@@ -271,8 +307,8 @@ CREATE TABLE Services
 CREATE TABLE EDSourceTemplates
 (
 	superId  	NUMBER,
-	name       	VARCHAR2(64)	NOT NULL,
-	cvstag       	VARCHAR2(64)	NOT NULL,
+	name       	VARCHAR2(128)	NOT NULL,
+	cvstag       	VARCHAR2(32)	NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
 );
@@ -285,12 +321,23 @@ CREATE TABLE EDSources
 (
 	superId      	NUMBER,
 	templateId     	NUMBER		NOT NULL,
-	configId   	NUMBER		NOT NULL,
-	sequenceNb	NUMBER(3)	NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
-	FOREIGN KEY(templateId) REFERENCES EDSourceTemplates(superId),
-	FOREIGN KEY(configId)   REFERENCES Configurations(configId)
+	FOREIGN KEY(templateId) REFERENCES EDSourceTemplates(superId)
+);
+
+
+--
+-- TABLE 'ConfigurationEDSourceAssoc'
+--
+CREATE TABLE ConfigurationEDSourceAssoc
+(
+	configId	NUMBER		NOT NULL,
+	edsourceId	NUMBER		NOT NULL,
+	sequenceNb	NUMBER(3)	NOT NULL,
+	UNIQUE(configId,edsourceId),
+	FOREIGN KEY (configId)   REFERENCES Configurations(configId),
+	FOREIGN KEY (edsourceId) REFERENCES EDSources(superId)
 );
 
 
@@ -306,8 +353,8 @@ CREATE TABLE EDSources
 CREATE TABLE ESSourceTemplates
 (
 	superId  	NUMBER,
-	name       	VARCHAR2(64)	NOT NULL,
-	cvstag       	VARCHAR2(64)	NOT NULL,
+	name       	VARCHAR2(128)	NOT NULL,
+	cvstag       	VARCHAR2(32)	NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
 );
@@ -320,13 +367,24 @@ CREATE TABLE ESSources
 (
 	superId      	NUMBER,
 	templateId     	NUMBER		NOT NULL,
-	configId   	NUMBER		NOT NULL,
-	name       	VARCHAR2(64)	NOT NULL,
-	sequenceNb	NUMBER(3)	NOT NULL,
+	name       	VARCHAR2(128)	NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
-	FOREIGN KEY(templateId) REFERENCES ESSourceTemplates(superId),
-	FOREIGN KEY(configId)   REFERENCES Configurations(configId)
+	FOREIGN KEY(templateId) REFERENCES ESSourceTemplates(superId)
+);
+
+
+--
+-- TABLE 'ConfigurationESSourceAssoc'
+--
+CREATE TABLE ConfigurationESSourceAssoc
+(
+	configId	NUMBER		NOT NULL,
+	essourceId	NUMBER		NOT NULL,
+	sequenceNb	NUMBER(3)	NOT NULL,
+	UNIQUE(configId,essourceId),
+	FOREIGN KEY (configId)   REFERENCES Configurations(configId),
+	FOREIGN KEY (essourceId) REFERENCES ESSources(superId)
 );
 
 
@@ -342,8 +400,8 @@ CREATE TABLE ESSources
 CREATE TABLE ESModuleTemplates
 (
 	superId  	NUMBER,
-	name       	VARCHAR2(64)	NOT NULL,
-	cvstag       	VARCHAR2(64)	NOT NULL,
+	name       	VARCHAR2(128)	NOT NULL,
+	cvstag       	VARCHAR2(32)	NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
 );
@@ -356,13 +414,24 @@ CREATE TABLE ESModules
 (
 	superId      	NUMBER,
 	templateId     	NUMBER		NOT NULL,
-	configId   	NUMBER		NOT NULL,
-	name       	VARCHAR2(64)	NOT NULL,
-	sequenceNb	NUMBER(3)	NOT NULL,
+	name       	VARCHAR2(128)	NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
-	FOREIGN KEY(templateId) REFERENCES ESModuleTemplates(superId),
-	FOREIGN KEY(configId)   REFERENCES Configurations(configId)
+	FOREIGN KEY(templateId) REFERENCES ESModuleTemplates(superId)
+);
+
+
+--
+-- TABLE 'ConfigurationESModuleAssoc'
+--
+CREATE TABLE ConfigurationESModuleAssoc
+(
+	configId	NUMBER		NOT NULL,
+	esmoduleId	NUMBER		NOT NULL,
+	sequenceNb	NUMBER(3)	NOT NULL,
+	UNIQUE(configId,esmoduleId),
+	FOREIGN KEY (configId)   REFERENCES Configurations(configId),
+	FOREIGN KEY (esmoduleId) REFERENCES ESModules(superId)
 );
 
 
@@ -390,8 +459,8 @@ CREATE TABLE ModuleTemplates
 (
 	superId  	NUMBER,
 	typeId  	NUMBER		NOT NULL,
-	name       	VARCHAR2(64)	NOT NULL,
-	cvstag       	VARCHAR2(64)	NOT NULL,
+	name       	VARCHAR2(128)	NOT NULL,
+	cvstag       	VARCHAR2(32)	NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
 	FOREIGN KEY(typeId)  REFERENCES ModuleTypes(typeId)
@@ -405,7 +474,7 @@ CREATE TABLE Modules
 (
 	superId   	NUMBER,
 	templateId  	NUMBER		NOT NULL,
-	name       	VARCHAR2(64)	NOT NULL,
+	name       	VARCHAR2(128)	NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
 	FOREIGN KEY(templateId) REFERENCES ModuleTemplates(superId)
@@ -421,6 +490,7 @@ CREATE TABLE PathModuleAssoc
         moduleId   	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(4)	NOT NULL,
 	operator	NUMBER(3)	DEFAULT '0' NOT NULL,
+	UNIQUE(pathId,moduleId),
 	FOREIGN KEY(pathId)   REFERENCES Paths(pathId),
 	FOREIGN KEY(moduleId) REFERENCES Modules(superId)
 );
@@ -435,6 +505,7 @@ CREATE TABLE SequenceModuleAssoc
         moduleId   	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
 	operator	NUMBER(3)	DEFAULT '0' NOT NULL,
+	UNIQUE(sequenceId,moduleId),
 	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId),
 	FOREIGN KEY(moduleId)   REFERENCES Modules(superId)
 );
@@ -452,7 +523,7 @@ CREATE TABLE SequenceModuleAssoc
 CREATE TABLE ParameterSets
 (
 	superId		NUMBER,
-	name		VARCHAR2(64)	NOT NULL,
+	name		VARCHAR2(128)	NOT NULL,
 	tracked         NUMBER(1)       NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
@@ -465,7 +536,7 @@ CREATE TABLE ParameterSets
 CREATE TABLE VecParameterSets
 (
 	superId		NUMBER,
-	name		VARCHAR2(64)	NOT NULL,
+	name		VARCHAR2(128)	NOT NULL,
 	tracked         NUMBER(1)       NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
@@ -478,10 +549,11 @@ CREATE TABLE VecParameterSets
 CREATE TABLE ConfigurationParamSetAssoc
 (
 	configId        NUMBER		NOT NULL,
-	paramSetId	NUMBER		NOT NULL,
+	psetId		NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
-	FOREIGN KEY(configId)   REFERENCES Configurations(configId),
-	FOREIGN KEY(paramSetId) REFERENCES ParameterSets(superId)
+	UNIQUE(configId,psetId),
+	FOREIGN KEY(configId) REFERENCES Configurations(configId),
+	FOREIGN KEY(psetId)   REFERENCES ParameterSets(superId)
 );
 
 
@@ -491,10 +563,11 @@ CREATE TABLE ConfigurationParamSetAssoc
 CREATE TABLE SuperIdParamSetAssoc
 (
 	superId		NUMBER		NOT NULL,
-	paramSetId	NUMBER		NOT NULL,
+	psetId		NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
-	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
-	FOREIGN KEY(paramSetId) REFERENCES ParameterSets(superId)
+	UNIQUE(superId,psetId),
+	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
+	FOREIGN KEY(psetId)  REFERENCES ParameterSets(superId)
 );
 
 
@@ -504,10 +577,11 @@ CREATE TABLE SuperIdParamSetAssoc
 CREATE TABLE SuperIdVecParamSetAssoc
 (
 	superId		NUMBER		NOT NULL,
-	vecParamSetId	NUMBER		NOT NULL,
+	vpsetId		NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
-	FOREIGN KEY(superId)       REFERENCES SuperIds(superId),
-	FOREIGN KEY(vecParamSetId) REFERENCES VecParameterSets(superId)
+	UNIQUE(superId,vpsetId),
+	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
+	FOREIGN KEY(vpsetId) REFERENCES VecParameterSets(superId)
 );
 
 
@@ -533,7 +607,7 @@ CREATE TABLE Parameters
 (
 	paramId    	NUMBER,
 	paramTypeId    	NUMBER		NOT NULL,
-	name       	VARCHAR2(64)	NOT NULL,
+	name       	VARCHAR2(128)	NOT NULL,
 	tracked         NUMBER(1)       NOT NULL,
 	PRIMARY KEY(paramId),
 	FOREIGN KEY(paramTypeId) REFERENCES ParameterTypes(paramTypeId)
@@ -560,6 +634,7 @@ CREATE TABLE SuperIdParameterAssoc
 	superId		NUMBER		NOT NULL,
 	paramId		NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
+	UNIQUE(superId,paramId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
@@ -678,7 +753,7 @@ CREATE TABLE VStringParamValues
 CREATE TABLE InputTagParamValues
 (
 	paramId    	NUMBER		NOT NULL,
-	value      	VARCHAR2(64)    NOT NULL,
+	value      	VARCHAR2(128)    NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
 
@@ -690,7 +765,7 @@ CREATE TABLE VInputTagParamValues
 (
 	paramId    	NUMBER		NOT NULL,
 	sequenceNb 	NUMBER(6)	NOT NULL,
-	value      	VARCHAR2(64)	NOT NULL,
+	value      	VARCHAR2(128)	NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
 
