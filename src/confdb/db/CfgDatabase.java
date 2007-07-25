@@ -138,6 +138,7 @@ public class CfgDatabase
     
     
     private PreparedStatement psInsertDirectory                   = null;
+    private PreparedStatement psRemoveDirectory                   = null;
     private PreparedStatement psInsertConfiguration               = null;
     private PreparedStatement psInsertConfigReleaseAssoc          = null;
     private PreparedStatement psInsertSuperId                     = null;
@@ -907,7 +908,12 @@ public class CfgDatabase
 		     "(parentDirId,dirName,created) " +
 		     "VALUES (?, ?, SYSDATE)",keyColumn);
 	    preparedStatements.add(psInsertDirectory);
-	    
+
+	    psRemoveDirectory =
+		dbConnector.getConnection().prepareStatement
+		("DELETE FROM Directories WHERE dirId=?");
+	    preparedStatements.add(psRemoveDirectory);
+
 	    if (dbType.equals(dbTypeMySQL))
 		psInsertConfiguration =
 		    dbConnector.getConnection().prepareStatement
@@ -2232,6 +2238,25 @@ public class CfgDatabase
 	return result;
     }
 
+    /** remove an (empty!) directory */
+    public boolean removeDirectory(Directory dir)
+    {
+	boolean result = false;
+	ResultSet rs = null;
+	try {
+	    psRemoveDirectory.setInt(1,dir.dbId());
+	    psRemoveDirectory.executeUpdate();
+	    result = true;
+	}
+	catch (SQLException e) {
+	    System.out.println("removeDirectory FAILED: " + e.getMessage());
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+	return result;
+    }
+    
     /** insert a new configuration */
     public boolean insertConfiguration(Configuration config)
     {

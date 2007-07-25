@@ -43,6 +43,8 @@ public class SaveConfigurationDialog extends ConfigurationDialog
     private static final String OK            = new String("OK");
     private static final String CANCEL        = new String("Cancel");
     private static final String ADD_DIRECTORY = new String("Add Directory");
+    private static final String RMV_DIRECTORY = new String("Remove Directory");
+    
     
     //
     // construction
@@ -125,11 +127,23 @@ public class SaveConfigurationDialog extends ConfigurationDialog
 	    tree.setSelectionPath(treePath);
 	    Object o = treePath.getLastPathComponent();
 	    if (o instanceof Directory) {
+		Directory selectedDir = (Directory)o;
 		JPopupMenu popup    = new JPopupMenu();
+		
 		JMenuItem  menuItem = new JMenuItem(ADD_DIRECTORY);
 		menuItem.addActionListener(new SaveConfigActionListener(tree));
 		menuItem.setActionCommand(ADD_DIRECTORY);
 		popup.add(menuItem);
+		
+		if (selectedDir!=rootDir&&
+		    selectedDir.childDirCount()==0&&
+		    selectedDir.configInfoCount()==0){
+		    menuItem = new JMenuItem(RMV_DIRECTORY);
+		    menuItem.addActionListener(new SaveConfigActionListener(tree));
+		    menuItem.setActionCommand(RMV_DIRECTORY);
+		    popup.add(menuItem);
+		}
+		
 		popup.show(e.getComponent(),e.getX(),e.getY());
 	    }
 	}
@@ -160,15 +174,15 @@ public class SaveConfigurationDialog extends ConfigurationDialog
 	/** ActionListener: actionPerformed() */
 	public void actionPerformed(ActionEvent e)
 	{
-	    String actionCmd = e.getActionCommand();
-	    if (actionCmd.equals(ADD_DIRECTORY)) {
-		TreePath  treePath  = dirTree.getSelectionPath();
-		Directory parentDir = (Directory)treePath.getLastPathComponent();
-		Directory newDir    = new Directory(-1,"<ENTER DIR NAME>","",
-						    parentDir);
+	    String    actionCmd = e.getActionCommand();
+	    TreePath  treePath  = dirTree.getSelectionPath();
+	    Directory selDir    = (Directory)treePath.getLastPathComponent();
 		
-		parentDir.addChildDir(newDir);
-		treeModel.nodeInserted(parentDir,parentDir.childDirCount()-1);
+	    if (actionCmd.equals(ADD_DIRECTORY)) {
+		Directory newDir    = new Directory(-1,"<ENTER DIR NAME>","",selDir);
+		
+		selDir.addChildDir(newDir);
+		treeModel.nodeInserted(selDir,selDir.childDirCount()-1);
 		
 		dirTree.expandPath(treePath);
 		TreePath newTreePath = treePath.pathByAddingChild(newDir);
@@ -177,6 +191,12 @@ public class SaveConfigurationDialog extends ConfigurationDialog
 		dirTree.scrollPathToVisible(newTreePath);
 		dirTree.setSelectionPath(newTreePath);
 		dirTree.startEditingAtPath(newTreePath);
+	    }
+	    else if (actionCmd.equals(RMV_DIRECTORY)) {
+		Directory parentDir = selDir.parentDir();
+		int       iChildDir = parentDir.indexOfChildDir(selDir);
+		parentDir.removeChildDir(selDir);
+		treeModel.nodeRemoved(parentDir,iChildDir,selDir);
 	    }
 	}
     }
@@ -243,7 +263,15 @@ public class SaveConfigurationDialog extends ConfigurationDialog
 	public void treeNodesInserted(TreeModelEvent e) {}
 	
 	/** TreeModelListener: treeNodesRemoved() */
-	public void treeNodesRemoved(TreeModelEvent e) {}
+	public void treeNodesRemoved(TreeModelEvent e)
+	{
+	    Directory dirToBeRemoved = (Directory)(e.getChildren()[0]);
+	    if (database.removeDirectory(dirToBeRemoved))
+		System.out.println("Directory '"+dirToBeRemoved.name()+"' removed.");
+	    else
+		System.out.println("ERROR: can't remove Directory '"+
+				   dirToBeRemoved.name()+"'");
+	}
 	
 	/** TreeModelListener: treeStructureChanged() */
 	public void treeStructureChanged(TreeModelEvent e) {}

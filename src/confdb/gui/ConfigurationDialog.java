@@ -39,7 +39,7 @@ public class ConfigurationDialog extends JDialog
     protected boolean validChoice = false;
     
     /** root directory */
-    private Directory rootDir = null;
+    protected Directory rootDir = null;
 
     /** dirctory tree */
     protected JTree dirTree = null;

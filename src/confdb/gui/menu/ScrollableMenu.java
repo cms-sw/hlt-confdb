@@ -24,7 +24,7 @@ public class ScrollableMenu extends JMenu
     //
 
     /** How fast the scrolling will happen. */
-    private int scrollSpeed = 50;
+    private int scrollSpeed = 500;
     /** Handles the scrolling upwards. */
     private Timer timerUp;
     /** Handles the scrolling downwards. */
@@ -99,6 +99,8 @@ public class ScrollableMenu extends JMenu
 	
         if(menuHeight > screenHeight) {
 	    menuItem.setVisible(false);
+	    upButton.setVisible(true);
+	    downButton.setVisible(true);
         }
         else {
             visibleItems++;
@@ -117,6 +119,8 @@ public class ScrollableMenu extends JMenu
 	
         if(menuHeight > screenHeight) {
 	    menu.setVisible(false);
+	    upButton.setVisible(true);
+	    downButton.setVisible(true);
         }
         else {
             visibleItems++;
@@ -281,6 +285,9 @@ public class ScrollableMenu extends JMenu
         MouseListener scrollDownListener = new Down();
         downButton.addMouseListener(scrollDownListener);
         add(downButton);
+
+	upButton.setVisible(false);
+	downButton.setVisible(false);
     }
 
 }

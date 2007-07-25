@@ -270,7 +270,7 @@ public class SoftwareRelease
 		return true;
 	    }
 	}
-	if (template instanceof ESSourceTemplate) {
+	else if (template instanceof ESSourceTemplate) {
 	    ESSourceTemplate essource = (ESSourceTemplate)template;
 	    if (!essourceTemplatesByName.containsKey(essource.name())) {
 		essourceTemplates.add(essource);
@@ -279,7 +279,7 @@ public class SoftwareRelease
 		return true;
 	    }
 	}
-	if (template instanceof ESModuleTemplate) {
+	else if (template instanceof ESModuleTemplate) {
 	    ESModuleTemplate esmodule = (ESModuleTemplate)template;
 	    if (!esmoduleTemplatesByName.containsKey(esmodule.name())) {
 		esmoduleTemplates.add(esmodule);
@@ -307,7 +307,8 @@ public class SoftwareRelease
 	    }
 	}
 	
-	System.out.println("addTemplate("+template.name()+") FAILED!");
+	System.out.println("addTemplate("+template.name()+
+			   ") FAILED ("+template.getClass().getName()+")");
 	
 	return true;
     }

@@ -92,6 +92,12 @@ public class Directory
     
     /** retrieve the i=th child dir*/
     public Directory childDir(int i) { return directories.get(i); }
+
+    /** index of child directory */
+    public int indexOfChildDir(Directory childDir)
+    {
+	return directories.indexOf(childDir);
+    }
     
     /** add a child directory */
     public void addChildDir(Directory childDir) { directories.add(childDir); }
@@ -99,7 +105,7 @@ public class Directory
     /** remove a child direcory */
     public boolean removeChildDir(Directory childDir)
     {
-	int i = directories.indexOf(childDir);
+	int i = indexOfChildDir(childDir);
 	if (i>=0) {
 	    directories.remove(i);
 	    return true;
