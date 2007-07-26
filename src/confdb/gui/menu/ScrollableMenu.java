@@ -24,7 +24,7 @@ public class ScrollableMenu extends JMenu
     //
 
     /** How fast the scrolling will happen. */
-    private int scrollSpeed = 500;
+    private int scrollSpeed = 10;
     /** Handles the scrolling upwards. */
     private Timer timerUp;
     /** Handles the scrolling downwards. */

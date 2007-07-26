@@ -29,9 +29,22 @@ public class DatabaseConnectionDialog
     /** indicate if a valid choice was made */
     private boolean validChoice = false;
 
+    /** database setup */
+    private String dbSetup = null;
+    private JComboBox comboBoxDbSetup = null;
+    private static final String[] dbSetupChoices =
+    { "",
+      "cms_hlt@omds","cms_hlt_writer@omds",
+      "cms_hlt@int2r","cms_hlt_writer@int2r",
+      "MySQL - local","Oracle XE - local",
+    };
+    
     /** database type (mysql/oracle) */
     private String dbType = null;
     private ButtonGroup buttonGroupDbType = null;
+    private JRadioButton mysqlButton = null;
+    private JRadioButton oracleButton = null;
+    private JRadioButton noneButton = null;
     
     /** database host */
     private String dbHost = null;
@@ -53,6 +66,7 @@ public class DatabaseConnectionDialog
     private String dbPwrd = null;
     private JPasswordField textFieldDbPwrd = null;    
 
+    
     /** option pane */
     private JOptionPane optionPane = null;
     
@@ -72,28 +86,43 @@ public class DatabaseConnectionDialog
 	
 	validChoice = false;
 
-	// create the text fields for the user's responses
-	JRadioButton mysqlButton = new JRadioButton("MySQL");
+	// create the text fields for the database connection attributes
+	comboBoxDbSetup = new JComboBox(dbSetupChoices);
+	comboBoxDbSetup.setEditable(false);
+	comboBoxDbSetup.setSelectedIndex(0);
+	comboBoxDbSetup.setBackground(new Color(255, 255, 255));
+        comboBoxDbSetup.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent evt) {
+	        comboBoxDbSetupActionPerformed(evt);
+	    }
+	});
+	
+	mysqlButton = new JRadioButton("MySQL");
 	mysqlButton.setMnemonic(KeyEvent.VK_M);
         mysqlButton.setActionCommand(dbTypeMySQL);
         mysqlButton.setSelected(true);
 
-	JRadioButton oracleButton = new JRadioButton("Oracle");
+	oracleButton = new JRadioButton("Oracle");
 	oracleButton.setMnemonic(KeyEvent.VK_O);
         oracleButton.setActionCommand(dbTypeOracle);
+	
+	noneButton = new JRadioButton("NONE");
 	
 	buttonGroupDbType = new ButtonGroup();
 	buttonGroupDbType.add(mysqlButton);
 	buttonGroupDbType.add(oracleButton);
+	buttonGroupDbType.add(noneButton);
+
+	noneButton.setSelected(true);
 	
 	textFieldDbHost = new JTextField(15);
-	textFieldDbHost.setText("localhost");
+	textFieldDbHost.setText("");
 	
 	textFieldDbPort = new JTextField(6);
-	textFieldDbPort.setText("3306");
+	textFieldDbPort.setText("");
 	
 	textFieldDbName = new JTextField(15);
-	textFieldDbName.setText("hltdb");
+	textFieldDbName.setText("");
 	
 	textFieldDbUser = new JTextField(15);
 	textFieldDbUser.setText("");
@@ -106,13 +135,15 @@ public class DatabaseConnectionDialog
 	panelDbType.add(oracleButton);
 	
 	// create the option pane
+	String labelDbStup = "Setup:";
 	String labelDbHost = "Host:";
 	String labelDbPort = "Port:";
 	String labelDbName = "DB Name:";
 	String labelDbUser = "User:";
 	String labelDbPwrd = "Password:";
 	
-	Object[] inputs = { panelDbType,
+	Object[] inputs = { labelDbStup,comboBoxDbSetup,
+	                    panelDbType,
 			    labelDbHost,textFieldDbHost,
 			    labelDbPort,textFieldDbPort,
 			    labelDbName,textFieldDbName,
@@ -148,8 +179,8 @@ public class DatabaseConnectionDialog
 	    {
 		public void componentShown(ComponentEvent ce)
 		{
-		    textFieldDbUser.requestFocusInWindow();
-		    textFieldDbUser.selectAll();
+		    textFieldDbHost.requestFocusInWindow();
+		    textFieldDbHost.selectAll();
 		}
 	    });
 	
@@ -207,7 +238,84 @@ public class DatabaseConnectionDialog
     
     /** get database password */
     public String getDbPassword() { return dbPwrd; }
+
+    /** type choosen from the combo box */
+    public void comboBoxDbSetupActionPerformed(ActionEvent e)
+    {
+	String setup = (String)comboBoxDbSetup.getSelectedItem();
+	if (setup.equals(new String())) {
+	    noneButton.setSelected(true);
+	    textFieldDbHost.setText("");
+	    textFieldDbPort.setText("");
+	    textFieldDbName.setText("");
+	    textFieldDbUser.setText("");
+	    textFieldDbPwrd.setText("");
+	    textFieldDbHost.requestFocusInWindow();
+	    textFieldDbHost.selectAll();
+	}
+	else if (setup.equals("cms_hlt@omds")) {
+	    oracleButton.setSelected(true);
+	    textFieldDbHost.setText("oracms.cern.ch");
+	    textFieldDbPort.setText("10121");
+	    textFieldDbName.setText("omds");
+	    textFieldDbUser.setText("cms_hlt");
+	    textFieldDbPwrd.setText("");
+	    textFieldDbPwrd.requestFocusInWindow();
+	    textFieldDbPwrd.selectAll();
+	}
+	else if (setup.equals("cms_hlt_writer@omds")) {
+	    oracleButton.setSelected(true);
+	    textFieldDbHost.setText("oracms.cern.ch");
+	    textFieldDbPort.setText("10121");
+	    textFieldDbName.setText("OMDS");
+	    textFieldDbUser.setText("cms_hlt_writer");
+	    textFieldDbPwrd.setText("");
+	    textFieldDbPwrd.requestFocusInWindow();
+	    textFieldDbPwrd.selectAll();
+	}
+	else if (setup.equals("cms_hlt@int2r")) {
+	    oracleButton.setSelected(true);
+	    textFieldDbHost.setText("int2r1-v.cern.ch");
+	    textFieldDbPort.setText("10121");
+	    textFieldDbName.setText("int2r_lb.cern.ch");
+	    textFieldDbUser.setText("cms_hlt");
+	    textFieldDbPwrd.setText("");
+	    textFieldDbPwrd.requestFocusInWindow();
+	    textFieldDbPwrd.selectAll();
+	}
+	else if (setup.equals("cms_hlt_writer@int2r")) {
+	    oracleButton.setSelected(true);
+	    textFieldDbHost.setText("int2r1-v.cern.ch");
+	    textFieldDbPort.setText("10121");
+	    textFieldDbName.setText("int2r_lb.cern.ch");
+	    textFieldDbUser.setText("cms_hlt_writer");
+	    textFieldDbPwrd.setText("");
+	    textFieldDbPwrd.requestFocusInWindow();
+	    textFieldDbPwrd.selectAll();
+	}
+	else if (setup.equals("MySQL - local")) {
+	    mysqlButton.setSelected(true);
+	    textFieldDbHost.setText("localhost");
+	    textFieldDbPort.setText("3306");
+	    textFieldDbName.setText("hltdb");
+	    textFieldDbUser.setText("username");
+	    textFieldDbPwrd.setText("");
+	    textFieldDbUser.requestFocusInWindow();
+	    textFieldDbUser.selectAll();
+	}
+	else if (setup.equals("Oracle XE - local")) {
+	    oracleButton.setSelected(true);
+	    textFieldDbHost.setText("localhost");
+	    textFieldDbPort.setText("1521");
+	    textFieldDbName.setText("XE");
+	    textFieldDbUser.setText("username");
+	    textFieldDbPwrd.setText("");
+	    textFieldDbUser.requestFocusInWindow();
+	    textFieldDbUser.selectAll();
+	}
+    }
     
+
     /** callback to handle text field events. (Hitting <RETURN> will be like <OK>) */
     public void actionPerformed(ActionEvent e)
     {

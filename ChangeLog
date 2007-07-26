@@ -4,6 +4,7 @@
 	* add 'setup' pull-down to database connection dialog
 	* add sql scripts for int2r / odms maintanance
 	* increase scroll speed in SrollableMenu
+	* parser update/fix from Jonathan
 
 2007-07-25  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 

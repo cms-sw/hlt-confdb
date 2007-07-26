@@ -929,7 +929,8 @@ public class CfgDatabase
 		    dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO Directories " +
 		     "(parentDirId,dirName,created) " +
-		     "VALUES (?, ?, SYSDATE)",keyColumn);
+		     "VALUES (?, ?, SYSDATE)",
+		     keyColumn);
 	    preparedStatements.add(psInsertDirectory);
 
 	    psRemoveDirectory =
@@ -948,7 +949,8 @@ public class CfgDatabase
 		    dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO Configurations " +
 		     "(configDescriptor,parentDirId,config,version,created) " +
-		     "VALUES (?, ?, ?, ?, SYSDATE)",keyColumn);
+		     "VALUES (?, ?, ?, ?, SYSDATE')",
+		     keyColumn);
 	    preparedStatements.add(psInsertConfiguration);
 	    
 	    psInsertConfigReleaseAssoc = dbConnector.getConnection().prepareStatement
@@ -1454,7 +1456,7 @@ public class CfgDatabase
 		int    dirId       = rs.getInt(1);
 		int    parentDirId = rs.getInt(2);
 		String dirName     = rs.getString(3);
-		String dirCreated  = rs.getObject(4).toString();
+		String dirCreated  = rs.getTimestamp(4).toString();
 		
 		if (directoryList.size()==0) {
 		    rootDir = new Directory(dirId,dirName,dirCreated,null);
@@ -1482,7 +1484,7 @@ public class CfgDatabase
 		    int    configId         = rs.getInt(1);
 		    String configName       = rs.getString(2);
 		    int    configVersion    = rs.getInt(3);
-		    String configCreated    = rs.getObject(4).toString();
+		    String configCreated    = rs.getTimestamp(4).toString();
 		    String configReleaseTag = rs.getString(5);
 
 		    String configPathAndName = dir.name()+"/"+configName;
