@@ -13,3 +13,28 @@ cd EventFilter/ConfigDB
 Once you have checked out the ConfigDB package, you can execute the
 script from any place you want, *if* you have executed the "eval
 `scramv1 runtime -[c]sh`" command beforehand!
+
+---------
+ parser:
+---------
+
+assuming:
+eval `scramv1 runtime -[c]sh`
+
+with MySQL:
+***********
+python ConfdbSourceToDB.py -r CMSSW_X_Y_Z [-p /path/to/CMSSW_X_Y_Z] -d hltdb -u <username> -s <pwd> -o machine.cern.ch -t MySQL
+
+with Oracle [dev@IT]:
+*********************
+python ConfdbSourceToDB.py -r CMSSW_X_Y_Z [-p /path/to/CMSSW_X_Y_Z] -u cms_hlt -s <pwd> -o cms_orcoff_int2r -t Oracle
+
+
+with Oracle XE [LOCAL]:
+***********************
+- setup your local XE installation:
+source /usr/lib/oracle/xe/app/oracle/product/10.2.0/server/bin/oracle_env.[c]sh
+
+- setenv TNS_ADMIN $ORACLE_HOME/network/admin
+
+python ConfdbSourceToDB.py -r CMSSW_X_Y_Z [-p /path/to/CMSSW_X_Y_Z] -u <username> -s <pwd> -o XE -t Oracle
