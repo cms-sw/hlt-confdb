@@ -37,6 +37,7 @@ public class CfgMenuBar implements ActionListener
     private static final String configMenuClose      = "Close";
     private static final String configMenuSave       = "Save";
     private static final String configMenuSaveAs     = "Save As";
+    private static final String configMenuImport     = "Import";
     private static final String configMenuMigrate    = "Migrate";
 
     /** dbMenu */
@@ -89,14 +90,18 @@ public class CfgMenuBar implements ActionListener
 	menuItem = new JMenuItem(configMenuOpen,KeyEvent.VK_O);
 	menuItem.addActionListener(this);
 	configMenu.add(menuItem);
-	configMenu.addSeparator();
 	menuItem = new JMenuItem(configMenuClose,KeyEvent.VK_C);
 	menuItem.addActionListener(this);
 	configMenu.add(menuItem);
+	configMenu.addSeparator();
 	menuItem = new JMenuItem(configMenuSave,KeyEvent.VK_S);
 	menuItem.addActionListener(this);
 	configMenu.add(menuItem);
 	menuItem = new JMenuItem(configMenuSaveAs,KeyEvent.VK_A);
+	menuItem.addActionListener(this);
+	configMenu.add(menuItem);
+	configMenu.addSeparator();
+	menuItem = new JMenuItem(configMenuImport,KeyEvent.VK_I);
 	menuItem.addActionListener(this);
 	configMenu.add(menuItem);
 	menuItem = new JMenuItem(configMenuMigrate,KeyEvent.VK_M);
@@ -146,6 +151,7 @@ public class CfgMenuBar implements ActionListener
 	if (command.equals(configMenuClose))   app.closeConfiguration();
 	if (command.equals(configMenuSave))    app.saveConfiguration();
 	if (command.equals(configMenuSaveAs))  app.saveAsConfiguration();
+	if (command.equals(configMenuImport))  app.importConfiguration();
 	if (command.equals(configMenuMigrate)) app.migrateConfiguration();
 	
 	// dbMenu

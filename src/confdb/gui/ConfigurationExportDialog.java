@@ -37,12 +37,18 @@ public class ConfigurationExportDialog extends ConfigurationDialog
     /** currently selected directory in target DB */
     private Directory targetDir = null;
     
+    /** setup choices */
+    private static final String[] setupChoices =
+    { "","CMS Online","HLT Development","MySQL - local","Oracle XE - local"};
+
     /** GUI components */
     private JPanel         jPanelLeft           = new JPanel();
     private JPanel         jPanelRight          = new JPanel();
+    private JComboBox      jComboBoxSetup       = new JComboBox(setupChoices);
     private ButtonGroup    buttonGroup          = new ButtonGroup();
     private JRadioButton   jRadioButtonMySQL    = new JRadioButton();
     private JRadioButton   jRadioButtonOracle   = new JRadioButton();
+    private JRadioButton   jRadioButtonNone     = new JRadioButton();
     private JTextField     jTextFieldHost       = new JTextField();
     private JTextField     jTextFieldPort       = new JTextField();
     private JTextField     jTextFieldName       = new JTextField();
@@ -93,6 +99,62 @@ public class ConfigurationExportDialog extends ConfigurationDialog
     
     /** retrieve configuration directory in target DB */
     public Directory targetDir() { return this.targetDir; }
+
+    /** type choosen from the combo box */
+    public void jComboBoxSetupActionPerformed(ActionEvent e)
+    {
+	String setup = (String)jComboBoxSetup.getSelectedItem();
+	if (setup.equals(new String())) {
+	    jRadioButtonNone.setSelected(true);
+	    jTextFieldHost.setText("");
+	    jTextFieldPort.setText("");
+	    jTextFieldName.setText("");
+	    jTextFieldUser.setText("");
+	    jTextFieldPwrd.setText("");
+	    jTextFieldHost.requestFocusInWindow();
+	    jTextFieldHost.selectAll();
+	}
+	else if (setup.equals("CMS Online")) {
+	    jRadioButtonOracle.setSelected(true);
+	    jTextFieldHost.setText("oracms.cern.ch");
+	    jTextFieldPort.setText("10121");
+	    jTextFieldName.setText("OMDS");
+	    jTextFieldUser.setText("cms_hlt_writer");
+	    jTextFieldPwrd.setText("");
+	    jTextFieldPwrd.requestFocusInWindow();
+	    jTextFieldPwrd.selectAll();
+	}
+	else if (setup.equals("HLT Development")) {
+	    jRadioButtonOracle.setSelected(true);
+	    jTextFieldHost.setText("int2r1-v.cern.ch");
+	    jTextFieldPort.setText("10121");
+	    jTextFieldName.setText("int2r_lb.cern.ch");
+	    jTextFieldUser.setText("cms_hlt_writer");
+	    jTextFieldPwrd.setText("");
+	    jTextFieldPwrd.requestFocusInWindow();
+	    jTextFieldPwrd.selectAll();
+	}
+	else if (setup.equals("MySQL - local")) {
+	    jRadioButtonMySQL.setSelected(true);
+	    jTextFieldHost.setText("localhost");
+	    jTextFieldPort.setText("3306");
+	    jTextFieldName.setText("hltdb");
+	    jTextFieldUser.setText("username");
+	    jTextFieldPwrd.setText("");
+	    jTextFieldUser.requestFocusInWindow();
+	    jTextFieldUser.selectAll();
+	}
+	else if (setup.equals("Oracle XE - local")) {
+	    jRadioButtonOracle.setSelected(true);
+	    jTextFieldHost.setText("localhost");
+	    jTextFieldPort.setText("1521");
+	    jTextFieldName.setText("XE");
+	    jTextFieldUser.setText("username");
+	    jTextFieldPwrd.setText("");
+	    jTextFieldUser.requestFocusInWindow();
+	    jTextFieldUser.selectAll();
+	}
+    }
     
     /** 'Connect' button pressed */
     public void connectButtonActionPerformed(ActionEvent e)
@@ -199,6 +261,7 @@ public class ConfigurationExportDialog extends ConfigurationDialog
         JLabel jLabel6 = new JLabel();
         JLabel jLabel7 = new JLabel();
         JLabel jLabel8 = new JLabel();
+	JLabel jLabel9 = new JLabel();
 
 	
         jPanelLeft
@@ -208,6 +271,7 @@ public class ConfigurationExportDialog extends ConfigurationDialog
 					   TitledBorder.DEFAULT_JUSTIFICATION,
 					   TitledBorder.DEFAULT_POSITION,
 					   new Font("Dialog", 1, 12)));
+        jLabel9.setText("Setup:");
         jLabel3.setText("Host:");
         jLabel4.setText("Port:");
         jLabel5.setText("Name:");
@@ -215,9 +279,18 @@ public class ConfigurationExportDialog extends ConfigurationDialog
         jLabel7.setText("Password:");
         jLabel8.setText("Type:");
 
+	jComboBoxSetup.setBackground(new java.awt.Color(255, 255, 255));
+	jComboBoxSetup.setSelectedIndex(0);
+	jComboBoxSetup.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent evt) {
+		jComboBoxSetupActionPerformed(evt);
+	    }
+	});
+	
 	buttonGroup.add(jRadioButtonMySQL);
 	buttonGroup.add(jRadioButtonOracle);
-	jRadioButtonMySQL.setSelected(true);
+	buttonGroup.add(jRadioButtonNone);
+	jRadioButtonNone.setSelected(true);
 	
         jRadioButtonMySQL.setText("MySQL");
         jRadioButtonMySQL.setActionCommand("mysql");
@@ -241,89 +314,115 @@ public class ConfigurationExportDialog extends ConfigurationDialog
         jPanelLeftLayout.setHorizontalGroup(
             jPanelLeftLayout.createParallelGroup(GroupLayout.LEADING)
             .add(jPanelLeftLayout.createSequentialGroup()
-                .addContainerGap()
-                .add(jPanelLeftLayout.createParallelGroup(GroupLayout.LEADING)
-                    .add(connectButton,
-			 GroupLayout.DEFAULT_SIZE, 225, Short.MAX_VALUE)
-                    .add(jPanelLeftLayout.createSequentialGroup()
-                        .add(jPanelLeftLayout.createParallelGroup(GroupLayout.LEADING)
-                            .add(jLabel4)
-                            .add(jLabel3)
-                            .add(jLabel5)
-                            .add(jLabel8)
-                            .add(jLabel6)
-                            .add(jLabel7))
-                        .addPreferredGap(LayoutStyle.RELATED)
-                        .add(jPanelLeftLayout.createParallelGroup(GroupLayout
-								  .TRAILING)
-                            .add(jPanelLeftLayout.createSequentialGroup()
-                                .add(jRadioButtonMySQL)
-                                .addPreferredGap(LayoutStyle.RELATED)
-                                .add(jRadioButtonOracle))
-                            .add(jTextFieldName,
-				 GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
-                            .add(jTextFieldPort,
-				 GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
-                            .add(jTextFieldHost,
-				 GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
-                            .add(jTextFieldUser,
-				 GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
-                            .add(jTextFieldPwrd,
-				 GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))))
-                .addContainerGap())
-        );
+		 .addContainerGap()
+		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.LEADING)
+		      .add(GroupLayout.TRAILING,
+			   jPanelLeftLayout.createSequentialGroup()
+			   .add(jLabel9)
+			   .add(37, 37, 37)
+			   .add(jComboBoxSetup, 0, 150, Short.MAX_VALUE))
+		      .add(jPanelLeftLayout.createSequentialGroup()
+			   .add(jLabel8)
+			   .add(42, 42, 42)
+			   .add(jRadioButtonMySQL)
+			   .addPreferredGap(LayoutStyle.RELATED, 35, Short.MAX_VALUE)
+			   .add(jRadioButtonOracle))
+		      .add(GroupLayout.TRAILING,
+			   jPanelLeftLayout.createSequentialGroup()
+			   .add(jLabel3)
+			   .add(43, 43, 43)
+			   .add(jTextFieldHost,
+				GroupLayout.DEFAULT_SIZE,150,Short.MAX_VALUE))
+		      .add(jPanelLeftLayout.createSequentialGroup()
+			   .add(jLabel4)
+			   .add(47, 47, 47)
+			   .add(jTextFieldPort,
+				GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))
+		      .add(GroupLayout.TRAILING,
+			   jPanelLeftLayout.createSequentialGroup()
+			   .add(jLabel5)
+			   .addPreferredGap(LayoutStyle.RELATED, 38, Short.MAX_VALUE)
+			   .add(jTextFieldName,
+				GroupLayout.PREFERRED_SIZE,149,
+				GroupLayout.PREFERRED_SIZE))
+		      .add(jPanelLeftLayout.createSequentialGroup()
+			   .add(jLabel6)
+			   .add(44, 44, 44)
+			   .add(jTextFieldUser,
+				GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))
+		      .add(jPanelLeftLayout.createSequentialGroup()
+			   .add(jLabel7)
+			   .addPreferredGap(LayoutStyle.RELATED)
+			   .add(jTextFieldPwrd,
+				GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))
+		      .add(connectButton,
+			   GroupLayout.DEFAULT_SIZE, 225, Short.MAX_VALUE))
+		 .addContainerGap())
+	    );
+
         jPanelLeftLayout.setVerticalGroup(
             jPanelLeftLayout.createParallelGroup(GroupLayout.LEADING)
             .add(jPanelLeftLayout.createSequentialGroup()
-                .addContainerGap()
-                .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(jLabel8)
-                    .add(jRadioButtonOracle)
-                    .add(jRadioButtonMySQL))
-                .add(23, 23, 23)
-                .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(jLabel3)
-                    .add(jTextFieldHost,
-			 GroupLayout.PREFERRED_SIZE,
-			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .add(22, 22, 22)
-                .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(jLabel4)
-                    .add(jTextFieldPort,
-			 GroupLayout.PREFERRED_SIZE,
-			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .add(23, 23, 23)
-                .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(jTextFieldName,
-			 GroupLayout.PREFERRED_SIZE,
-			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .add(jLabel5))
-                .add(27, 27, 27)
-                .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(jLabel6)
-                    .add(jTextFieldUser,
-			 GroupLayout.PREFERRED_SIZE,
-			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .add(26, 26, 26)
-                .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(jLabel7)
-                    .add(jTextFieldPwrd,
-			 GroupLayout.PREFERRED_SIZE,
-			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .add(24, 24, 24)
-                .add(connectButton)
-                .addContainerGap(13, Short.MAX_VALUE))
-        );
-
+		 .addContainerGap()
+		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
+		      .add(jComboBoxSetup,
+			   GroupLayout.PREFERRED_SIZE,
+			   GroupLayout.DEFAULT_SIZE,
+			   GroupLayout.PREFERRED_SIZE)
+		      .add(jLabel9))
+		 .add(30, 30, 30)
+		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
+		      .add(jLabel8)
+		      .add(jRadioButtonMySQL)
+		      .add(jRadioButtonOracle))
+		 .addPreferredGap(LayoutStyle.RELATED)
+		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
+		      .add(jTextFieldHost,
+			   GroupLayout.PREFERRED_SIZE,
+			   GroupLayout.DEFAULT_SIZE,
+			   GroupLayout.PREFERRED_SIZE)
+		      .add(jLabel3))
+		 .addPreferredGap(LayoutStyle.RELATED)
+		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
+		      .add(jLabel4)
+		      .add(jTextFieldPort,
+			   GroupLayout.PREFERRED_SIZE,
+			   GroupLayout.DEFAULT_SIZE,
+			   GroupLayout.PREFERRED_SIZE))
+		 .addPreferredGap(LayoutStyle.RELATED)
+		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
+		      .add(jTextFieldName,
+			   GroupLayout.PREFERRED_SIZE,
+			   GroupLayout.DEFAULT_SIZE,
+			   GroupLayout.PREFERRED_SIZE)
+		      .add(jLabel5))
+		 .addPreferredGap(LayoutStyle.RELATED)
+		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
+		      .add(jLabel6)
+		      .add(jTextFieldUser,
+			   GroupLayout.PREFERRED_SIZE,
+			   GroupLayout.DEFAULT_SIZE,
+			   GroupLayout.PREFERRED_SIZE))
+		 .addPreferredGap(LayoutStyle.RELATED)
+		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
+		      .add(jLabel7)
+		      .add(jTextFieldPwrd,
+			   GroupLayout.PREFERRED_SIZE,
+			   GroupLayout.DEFAULT_SIZE,
+			   GroupLayout.PREFERRED_SIZE))
+		 .add(29, 29, 29)
+		 .add(connectButton)
+		 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+	    );
 	
-     jPanelRight
-	 .setBorder(BorderFactory
-		    .createTitledBorder(null,
-					"Target Name / Directory",
-					TitledBorder.DEFAULT_JUSTIFICATION,
-					TitledBorder.DEFAULT_POSITION,
-					new Font("Dialog", 1, 12)));
-
+	jPanelRight
+	    .setBorder(BorderFactory
+		       .createTitledBorder(null,
+					   "Target Name / Directory",
+					   TitledBorder.DEFAULT_JUSTIFICATION,
+					   TitledBorder.DEFAULT_POSITION,
+					   new Font("Dialog", 1, 12)));
+	
         jLabel1.setText("Name:");
         jLabel2.setText("Directory:");
 	
@@ -358,7 +457,7 @@ public class ConfigurationExportDialog extends ConfigurationDialog
                 .addPreferredGap(LayoutStyle.RELATED)
                 .add(jLabel2)
                 .addPreferredGap(LayoutStyle.RELATED)
-                .add(jScrollPaneTree, GroupLayout.DEFAULT_SIZE, 235, Short.MAX_VALUE)
+                .add(jScrollPaneTree, GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE)
                 .addContainerGap())
         );
 

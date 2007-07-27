@@ -26,8 +26,14 @@ public class ConfigurationPanel extends JPanel
     // member data
     //
 
+    /** the mother application, to call 'importConfiguration' */
+    private ConfDbGUI app = null;
+    
     /** the configuration being displayed */
     private Configuration currentConfig = null;
+    
+    /** the configuration imported */
+    private Configuration importConfig = null;
     
     /** configuration tree */
     private JTree currentTree = null;
@@ -82,10 +88,12 @@ public class ConfigurationPanel extends JPanel
     //
 
     /** default constructor */
-    public ConfigurationPanel(JTree            currentTree,
+    public ConfigurationPanel(ConfDbGUI        app,
+			      JTree            currentTree,
 			      JTree            importTree,
 			      ConverterService converterService)
     {
+	this.app              = app;
 	this.currentTree      = currentTree;
 	this.importTree       = importTree;
 	this.converterService = converterService;
@@ -135,7 +143,7 @@ public class ConfigurationPanel extends JPanel
     /** 'Import' button pressed */
     public void importButtonActionPerformed(ActionEvent ev)
     {
-	System.out.println("Import!");
+	app.importConfiguration();
     }
 
     
@@ -207,6 +215,24 @@ public class ConfigurationPanel extends JPanel
 	    jTextFieldRelease.setText(currentConfig.releaseTag());
 	}
     }
+    
+    /** set the import configuration and update fields accordingly */
+    public void setImportConfig(Configuration config)
+    {
+	importConfig = config;
+	
+	if (importConfig==null||importConfig.isEmpty()) {
+	    jTextFieldImportName.setText("");
+	    jTextFieldImportDirectory.setText("");
+	    jTextFieldImportVersion.setText("");
+	}
+	else {
+	    jTextFieldImportName.setText(importConfig.name());
+	    jTextFieldImportDirectory.setText(importConfig.parentDir().name());
+	    jTextFieldImportVersion.setText(Integer.toString(importConfig.version()));
+	}
+    }
+    
     
     //
     // private member functions

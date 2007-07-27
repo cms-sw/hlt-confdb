@@ -246,6 +246,7 @@ class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	node = value;
 	setIcon(prepareIcon());
 	setText(prepareText());
+	setOpaque(true);
 	return this;
     }
 	

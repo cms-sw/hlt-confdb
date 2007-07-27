@@ -33,11 +33,7 @@ public class DatabaseConnectionDialog
     private String dbSetup = null;
     private JComboBox comboBoxDbSetup = null;
     private static final String[] dbSetupChoices =
-    { "",
-      "cms_hlt@omds","cms_hlt_writer@omds",
-      "cms_hlt@int2r","cms_hlt_writer@int2r",
-      "MySQL - local","Oracle XE - local",
-    };
+    { "","CMS Online","HLT Development","MySQL - local","Oracle XE - local"};
     
     /** database type (mysql/oracle) */
     private String dbType = null;
@@ -253,17 +249,7 @@ public class DatabaseConnectionDialog
 	    textFieldDbHost.requestFocusInWindow();
 	    textFieldDbHost.selectAll();
 	}
-	else if (setup.equals("cms_hlt@omds")) {
-	    oracleButton.setSelected(true);
-	    textFieldDbHost.setText("oracms.cern.ch");
-	    textFieldDbPort.setText("10121");
-	    textFieldDbName.setText("omds");
-	    textFieldDbUser.setText("cms_hlt");
-	    textFieldDbPwrd.setText("");
-	    textFieldDbPwrd.requestFocusInWindow();
-	    textFieldDbPwrd.selectAll();
-	}
-	else if (setup.equals("cms_hlt_writer@omds")) {
+	else if (setup.equals("CMS Online")) {
 	    oracleButton.setSelected(true);
 	    textFieldDbHost.setText("oracms.cern.ch");
 	    textFieldDbPort.setText("10121");
@@ -273,17 +259,7 @@ public class DatabaseConnectionDialog
 	    textFieldDbPwrd.requestFocusInWindow();
 	    textFieldDbPwrd.selectAll();
 	}
-	else if (setup.equals("cms_hlt@int2r")) {
-	    oracleButton.setSelected(true);
-	    textFieldDbHost.setText("int2r1-v.cern.ch");
-	    textFieldDbPort.setText("10121");
-	    textFieldDbName.setText("int2r_lb.cern.ch");
-	    textFieldDbUser.setText("cms_hlt");
-	    textFieldDbPwrd.setText("");
-	    textFieldDbPwrd.requestFocusInWindow();
-	    textFieldDbPwrd.selectAll();
-	}
-	else if (setup.equals("cms_hlt_writer@int2r")) {
+	else if (setup.equals("HLT Development")) {
 	    oracleButton.setSelected(true);
 	    textFieldDbHost.setText("int2r1-v.cern.ch");
 	    textFieldDbPort.setText("10121");

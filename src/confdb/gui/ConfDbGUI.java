@@ -264,9 +264,32 @@ public class ConfDbGUI implements TableModelListener
 	}
     }
 
+    /** import configuration */
+    public void importConfiguration()
+    {
+	ImportConfigurationDialog dialog =
+	    new ImportConfigurationDialog(frame,database,currentRelease.releaseTag());
+	dialog.pack();
+	dialog.setLocationRelativeTo(frame);
+	dialog.setVisible(true);
+	
+	if (dialog.validChoice()) {
+	    ImportConfigurationThread worker =
+		new ImportConfigurationThread(dialog.configInfo());
+	    worker.start();
+	    progressBar.setIndeterminate(true);
+	    progressBar.setVisible(true);
+	    progressBar.setString("Importing Configuration ...");
+	}
+    }
+    
     /** close configuration */
     public boolean closeConfiguration()
     {
+	importConfig.reset();
+	importTreeModel.setConfiguration(importConfig);
+	configurationPanel.setImportConfig(importConfig);
+	
 	if (currentConfig.isEmpty()) return true;
 	
 	if (currentConfig.hasChanged()) {
@@ -407,7 +430,8 @@ public class ConfDbGUI implements TableModelListener
 	instancePanel.addTableModelListener(this);
 	currentTree.addTreeSelectionListener(instancePanel);
 	
-	configurationPanel = new ConfigurationPanel(currentTree,importTree,
+	configurationPanel = new ConfigurationPanel(this,
+						    currentTree,importTree,
 						    converterService);
 	
 	JSplitPane  splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
@@ -650,6 +674,54 @@ public class ConfDbGUI implements TableModelListener
 	}
     }
 
+    /**
+     * import a configuration from the database
+     */
+    private class ImportConfigurationThread extends SwingWorker<String>
+    {
+	/** configuration info */
+	private ConfigInfo configInfo = null;
+	
+	/** start time */
+	private long startTime;
+	
+	/** standard constructor */
+	public ImportConfigurationThread(ConfigInfo configInfo)
+	{
+	    this.configInfo = configInfo;
+	}
+	
+	/** SwingWorker: construct() */
+	protected String construct() throws InterruptedException
+	{
+	    startTime = System.currentTimeMillis();
+	    importConfig = database.loadConfiguration(configInfo,currentRelease);
+	    return new String("Done!");
+	}
+	
+	/** SwingWorker: finished */
+	protected void finished()
+	{
+	    try {
+		importTreeModel.setConfiguration(currentConfig);
+		configurationPanel.setImportConfig(importConfig);
+		long elapsedTime = System.currentTimeMillis() - startTime;
+		progressBar.setString(progressBar.getString() +
+				      get() + " (" + elapsedTime + " ms)");
+	    }
+	    catch (ExecutionException e) {
+		System.out.println("EXECUTION-EXCEPTION: " + e.getCause());
+		e.printStackTrace();
+	    }
+	    catch (Exception e) {
+		System.out.println("EXCEPTION: "+ e.getMessage());
+		e.printStackTrace();
+		progressBar.setString(progressBar.getString() + "FAILED!");
+	    }
+	    progressBar.setIndeterminate(false);
+	}
+    }
+    
     /**
      * save a configuration in the database
      */

@@ -1,3 +1,10 @@
+2007-07-27  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-05-02
+	* add the ability to import another tree
+	* no functionality yet, the imported tree merely shows up on the
+	right side of the current configuration tree
+
 2007-07-26  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-05-01
