@@ -1,5 +1,7 @@
 package confdb.data;
 
+import java.io.Serializable;
+
 
 /**
  * Reference
@@ -8,7 +10,7 @@ package confdb.data;
  *
  * Reference base class.
  */
-public class Reference
+public class Reference implements Serializable
 {
     //
     // member data

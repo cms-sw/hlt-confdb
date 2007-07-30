@@ -551,8 +551,8 @@ public class ConfigurationPanel extends JPanel
         jTabbedPaneConvert.addTab("Import", jPanelImport);
 
         jScrollPaneCurrentTree.setViewportView(currentTree);
-        importTree.setBackground(UIManager.getDefaults()
-				 .getColor("Button.background"));
+        //importTree.setBackground(UIManager.getDefaults()
+	//			 .getColor("Button.background"));
         jScrollPaneImportTree.setViewportView(importTree);
 	
         jSplitPaneTree.setDividerLocation(1.0);

@@ -1,5 +1,6 @@
 package confdb.data;
 
+
 /**
  * Referencable
  * ------------

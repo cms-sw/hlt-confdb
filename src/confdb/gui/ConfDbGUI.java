@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 import javax.swing.table.*;
+import javax.swing.plaf.*;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -104,14 +105,34 @@ public class ConfDbGUI implements TableModelListener
 	currentTree.addMouseListener(mouseListener);
 	currentTreeModel.addTreeModelListener(mouseListener);
 	
+	ConfigurationTreeTransferHandler currentDndHandler =
+	    new ConfigurationTreeTransferHandler(currentTree);
+	currentTree.setTransferHandler(currentDndHandler);
+	currentTree.setDropTarget(new ConfigurationTreeDropTarget());
+	currentTree.setDragEnabled(true);
+	
 	// import tree
+	Color defaultTreeBackground = UIManager.getColor("Tree.textBackground");
+	Color importTreeBackground  = UIManager.getColor("Button.background");
+	UIManager.put("Tree.textBackground",importTreeBackground);
 	importTreeModel = new ConfigurationTreeModel(importConfig);
 	importTree      = new JTree(importTreeModel);
+        importTree.setBackground(importTreeBackground);
+
 	importTree.setRootVisible(false);
 	importTree.setEditable(false);
 	importTree.getSelectionModel().setSelectionMode(TreeSelectionModel
 							.SINGLE_TREE_SELECTION);
 	importTree.setCellRenderer(new ConfigurationTreeRenderer());
+	
+	
+	ConfigurationTreeTransferHandler importDndHandler =
+	    new ConfigurationTreeTransferHandler(importTree);
+	importTree.setTransferHandler(importDndHandler);
+	importTree.setDropTarget(new ConfigurationTreeDropTarget());
+	importTree.setDragEnabled(true);
+	
+	UIManager.put("Tree.textBackground",defaultTreeBackground);
 	
     }
     
@@ -703,7 +724,7 @@ public class ConfDbGUI implements TableModelListener
 	protected void finished()
 	{
 	    try {
-		importTreeModel.setConfiguration(currentConfig);
+		importTreeModel.setConfiguration(importConfig);
 		configurationPanel.setImportConfig(importConfig);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		progressBar.setString(progressBar.getString() +
