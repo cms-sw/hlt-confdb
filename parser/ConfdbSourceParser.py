@@ -541,8 +541,9 @@ class SourceParser:
 		if(line.find('//') != -1):
 		    line = line.split('//')[0]
 
-                # If we found a constructor, start reading the ParameterSet
-                if(startedmod == True):
+                # If we found a constructor, start reading the ParameterSet. The second condition is for
+                # dealing with the case where getParameter is used in the same line as the constructor.
+                if(startedmod == True or (line.find(themodulename + '::' + themodulename) != -1 and (line.find('getParameter') != -1 or line.find('getUntrackedParameter') != -1))):
                     # Look for ends of parameter declarations 
                     if(line.rstrip().endswith('))') or
                        line.rstrip().endswith(')),') or
@@ -1640,6 +1641,9 @@ class SourceParser:
 		    # C++-style comments
 		    if(srcline.lstrip().startswith('//')):
 			continue
+
+                    if(srcline.lstrip().startswith('#include')):
+                        continue;
 
                     if(srcline.rstrip().endswith(';')): 
                         foundlineend = True
