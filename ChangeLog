@@ -1,3 +1,16 @@
+2007-07-31  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-06-00
+	* fixes to the converter:
+	  - sequences need to be defined before paths
+	  - es_source and es_module require the instance and template
+	    names
+	  - add 'processName' to data/Configuration and consider it in
+	    Converter.getConfigurationHeader() 
+	  - THESE CHANGES WERE MADE FOR ASCII ONLY AND SHOULD BE REVIEWED
+	    BY ULF!!!
+	* add Drag N Drop to the GUI (finally)
+
 2007-07-27  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-05-02
