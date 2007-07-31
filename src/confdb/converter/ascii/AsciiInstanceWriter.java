@@ -11,12 +11,23 @@ public class AsciiInstanceWriter {
 
 	private IParameterWriter parameterWriter = null;
 	
-	protected String toString( String type, Instance instance, Converter converter ) 
-	{
+	protected String toString(String type,Instance instance,Converter converter)
+        {
 		if ( parameterWriter == null )
 			parameterWriter = converter.getParameterWriter();
 		
-		String str = indent + type + " = " + instance.name() + " {";
+		boolean needInstanceLabel = !(type.equals("source")||
+					      type.equals("service"));
+
+		String str = (needInstanceLabel)
+		    ?
+		    indent + type + " " +
+		    instance.name() + " = " +
+		    instance.template().name() + " {"
+		    :
+		    indent + type + " = " + instance.template().name() + " {";
+
+		
 		if ( instance.parameterCount() == 0 )
 			return str + "}" + converter.getNewline();
 			

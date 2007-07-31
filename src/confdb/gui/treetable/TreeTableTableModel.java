@@ -27,7 +27,13 @@ public class TreeTableTableModel extends AbstractTableModel
     /** reference to the last node changed node */
     private Object changedNode = null;
     
+    /** reference to the last node removed (child of changedNode!) */
+    private Object removedNode = null;
     
+    /** >=0 if a child was removed from 'changedNode' */
+    private int removedChildIndex = -1;
+
+
     //
     // construction
     //
@@ -55,24 +61,32 @@ public class TreeTableTableModel extends AbstractTableModel
 		public void treeNodesChanged(TreeModelEvent e)
 		{
 		    changedNode = e.getChildren()[0]; // TODO
+		    removedNode = null;
+		    removedChildIndex = -1;
 		    delayedFireTableDataChanged();
 		}
 		
 		public void treeNodesInserted(TreeModelEvent e)
 		{
 		    changedNode = e.getTreePath().getLastPathComponent();
+		    removedNode = null;
+		    removedChildIndex = -1;
 		    delayedFireTableDataChanged();
 		}
 		
 		public void treeNodesRemoved(TreeModelEvent e)
 		{
 		    changedNode = e.getTreePath().getLastPathComponent();
+		    removedNode = e.getChildren()[0];
+		    removedChildIndex = e.getChildIndices()[0];
 		    delayedFireTableDataChanged();
 		}
 		
 		public void treeStructureChanged(TreeModelEvent e)
 		{
 		    changedNode = null;
+		    removedNode = null;
+		    removedChildIndex = -1;
 		    delayedFireTableDataChanged();
 		}
 	    });
@@ -87,6 +101,12 @@ public class TreeTableTableModel extends AbstractTableModel
 
     /** get last changed node */
     public Object changedNode() { return changedNode; }
+
+    /** get last removed node (former child of changedNode!) */
+    public Object removedNode() { return removedNode; }
+
+    /** get last changed node */
+    public int removedChildIndex() { return removedChildIndex; }
 
     /** convert the table row into the respective tree node */
     public Object nodeForRow(int row)

@@ -65,10 +65,10 @@ public class AboutDialog extends JDialog implements ActionListener
 	    "<p>Thanks for using <b>ConfDbGUI</b>, " +
 	    "a CMS tool to create and manage" +
 	    "CMSSW job configurations based on a " +
-	    "central database system.</p>" +
+	    "relational database backend.</p>" +
 	    "<p>For feedback please contact me at " +
 	    "<b>philipp.schieferdecker@cern.ch</b>.</p>" +
-	    "<p>The system is documented on the web under " +
+	    "<p>Find documented on the web under " +
 	    "<b>https://twiki.cern.ch/twiki/bin/view/CMS/EvfConfDBDesign</b>.</p>"+
 	    "</font></n>";
 	editorPane.setText(txt);

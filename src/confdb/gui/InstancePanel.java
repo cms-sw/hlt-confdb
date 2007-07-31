@@ -359,14 +359,12 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 		 GroupLayout.DEFAULT_SIZE, 411, Short.MAX_VALUE)
             .add(jScrollPaneParameters,
 		 GroupLayout.DEFAULT_SIZE, 411, Short.MAX_VALUE)
-            //.add(jPanelInstance,
 	    .add(jPanelTop,
 		 GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
-		 //.add(jPanelInstance,
 		 .add(jPanelTop,
 		      GroupLayout.PREFERRED_SIZE,
 		      GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)

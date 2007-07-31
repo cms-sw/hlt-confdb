@@ -100,7 +100,7 @@ public class ParameterTableMouseListener extends MouseAdapter
 	    if (parent instanceof VPSetParameter||
 		parent instanceof PSetParameter) {
 		popup.addSeparator();
-		menuItem = new JMenuItem("Remove PSet");
+		menuItem = new JMenuItem("Remove Parameter");
 		menuItem.addActionListener(this);
 		popup.add(menuItem);
 	    }

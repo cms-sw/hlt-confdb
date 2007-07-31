@@ -96,7 +96,113 @@ public class SoftwareRelease
 	esmoduleTemplateNamesByDbId = new HashMap<Integer,String>();
 	serviceTemplateNamesByDbId  = new HashMap<Integer,String>();
 	moduleTemplateNamesByDbId   = new HashMap<Integer,String>();
-     }
+    }
+    
+    /** construct release from another release */
+    public SoftwareRelease(SoftwareRelease otherRelease)
+    {
+	this.releaseTag = otherRelease.releaseTag();
+
+	edsourceTemplates    = new ArrayList<EDSourceTemplate>();
+	essourceTemplates    = new ArrayList<ESSourceTemplate>();
+	esmoduleTemplates    = new ArrayList<ESModuleTemplate>();
+	serviceTemplates     = new ArrayList<ServiceTemplate>();
+	moduleTemplates      = new ArrayList<ModuleTemplate>();
+	
+	edsourceTemplatesByName = new HashMap<String,EDSourceTemplate>();
+	essourceTemplatesByName = new HashMap<String,ESSourceTemplate>();
+	esmoduleTemplatesByName = new HashMap<String,ESModuleTemplate>();
+	serviceTemplatesByName  = new HashMap<String,ServiceTemplate>();
+	moduleTemplatesByName   = new HashMap<String,ModuleTemplate>();
+
+	edsourceTemplateNamesByDbId = new HashMap<Integer,String>();
+	essourceTemplateNamesByDbId = new HashMap<Integer,String>();
+	esmoduleTemplateNamesByDbId = new HashMap<Integer,String>();
+	serviceTemplateNamesByDbId  = new HashMap<Integer,String>();
+	moduleTemplateNamesByDbId   = new HashMap<Integer,String>();
+
+	// EDSourceTemplates
+	Iterator templateIt = otherRelease.edsourceTemplateIterator();
+	while (templateIt.hasNext()) {
+	    EDSourceTemplate template = (EDSourceTemplate)templateIt.next();
+	    ArrayList<Parameter> parameters = new ArrayList<Parameter>();
+	    Iterator parameterIt = template.parameterIterator();
+	    while (parameterIt.hasNext()) {
+		Parameter p = (Parameter)parameterIt.next();
+		parameters.add(p.clone(null));
+	    }
+	    addTemplate(new EDSourceTemplate(template.name(),
+					     template.cvsTag(),
+					     template.databaseId(),
+					     parameters));
+	}
+	
+	// ESSourceTemplates
+	templateIt = otherRelease.essourceTemplateIterator();
+	while (templateIt.hasNext()) {
+	    ESSourceTemplate template = (ESSourceTemplate)templateIt.next();
+	    ArrayList<Parameter> parameters = new ArrayList<Parameter>();
+	    Iterator parameterIt = template.parameterIterator();
+	    while (parameterIt.hasNext()) {
+		Parameter p = (Parameter)parameterIt.next();
+		parameters.add(p.clone(null));
+	    }
+	    addTemplate(new ESSourceTemplate(template.name(),
+					     template.cvsTag(),
+					     template.databaseId(),
+					     parameters));
+	}
+	
+	// ESModuleTemplates
+	templateIt = otherRelease.esmoduleTemplateIterator();
+	while (templateIt.hasNext()) {
+	    ESModuleTemplate template = (ESModuleTemplate)templateIt.next();
+	    ArrayList<Parameter> parameters = new ArrayList<Parameter>();
+	    Iterator parameterIt = template.parameterIterator();
+	    while (parameterIt.hasNext()) {
+		Parameter p = (Parameter)parameterIt.next();
+		parameters.add(p.clone(null));
+	    }
+	    addTemplate(new ESModuleTemplate(template.name(),
+					     template.cvsTag(),
+					     template.databaseId(),
+					     parameters));
+	}
+	
+	// ServiceTemplates
+	templateIt = otherRelease.serviceTemplateIterator();
+	while (templateIt.hasNext()) {
+	    ServiceTemplate template = (ServiceTemplate)templateIt.next();
+	    ArrayList<Parameter> parameters = new ArrayList<Parameter>();
+	    Iterator parameterIt = template.parameterIterator();
+	    while (parameterIt.hasNext()) {
+		Parameter p = (Parameter)parameterIt.next();
+		parameters.add(p.clone(null));
+	    }
+	    addTemplate(new ServiceTemplate(template.name(),
+					     template.cvsTag(),
+					     template.databaseId(),
+					     parameters));
+	}
+	
+	// ModuleTemplates
+	templateIt = otherRelease.moduleTemplateIterator();
+	while (templateIt.hasNext()) {
+	    ModuleTemplate template = (ModuleTemplate)templateIt.next();
+	    ArrayList<Parameter> parameters = new ArrayList<Parameter>();
+	    Iterator parameterIt = template.parameterIterator();
+	    while (parameterIt.hasNext()) {
+		Parameter p = (Parameter)parameterIt.next();
+		parameters.add(p.clone(null));
+	    }
+	    addTemplate(new ModuleTemplate(template.name(),
+					   template.cvsTag(),
+					   template.databaseId(),
+					   parameters,
+					   template.type()));
+	}
+	
+    }
 
     
     //

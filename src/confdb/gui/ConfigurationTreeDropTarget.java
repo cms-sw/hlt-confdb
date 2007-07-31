@@ -8,6 +8,8 @@ import java.awt.datatransfer.*;
 import javax.swing.*;
 import javax.swing.tree.*;
 
+import confdb.data.*;
+
 
 /**
  * ConfigurationTreeDropTarget
@@ -73,31 +75,56 @@ public class ConfigurationTreeDropTarget extends DropTarget
 	updateDragMark(tree,loc);
 	paintImage(tree,loc);
 	autoscroll(tree,loc);
+	
+	TreePath selectedPath = tree.getSelectionPath();
+	Object   selectedNode =
+	    (selectedPath==null) ? null : selectedPath.getLastPathComponent();
+	Object   sourceNode   = ConfigurationTreeTransferHandler.getSourceNode();
+	if (selectedNode!=null&&
+	    acceptAsDropTarget(tree,sourceNode,selectedNode)) {
+	    dtde.acceptDrag(dtde.getDropAction());
+	}
+	else {
+	    dtde.rejectDrag();
+	}
+	   
 	super.dragOver(dtde);
     }
 
     /**clear the drawings on exit */
     public void dragExit(DropTargetDragEvent dtde)
     {
-	clearImage((JTree) dtde.getDropTargetContext().getComponent());
+	clearImage((JTree)dtde.getDropTargetContext().getComponent());
 	super.dragExit(dtde);
     }
     
     /**clear the drawings on drop */
     public void drop(DropTargetDropEvent dtde)
     {
-	JTree           targetTree=(JTree)dtde.getDropTargetContext().getComponent();
-	TransferHandler dndHandler=targetTree.getTransferHandler();
-
-	try {
-	    Transferable t = dtde.getTransferable();
-	    dtde.dropComplete(dndHandler.importData(targetTree,t));
+	JTree targetTree=(JTree)dtde.getDropTargetContext().getComponent();
+	ConfigurationTreeTransferHandler dndHandler=
+	    (ConfigurationTreeTransferHandler)targetTree.getTransferHandler();
+	
+	TreePath targetPath = targetTree.getSelectionPath();
+	Object   targetNode = targetPath.getLastPathComponent();
+	Object   sourceNode = ConfigurationTreeTransferHandler.getSourceNode();
+	
+	if (acceptAsDropTarget(targetTree,sourceNode,targetNode)) {
+	    dtde.acceptDrop(dtde.getDropAction());
+	    
+	    try {
+		Transferable t = dtde.getTransferable();
+		dtde.dropComplete(dndHandler.importData(targetTree,t));
+	    }
+	    catch (RuntimeException re) {
+		dtde.dropComplete(false);
+	    }
 	}
-	catch (RuntimeException re) {
-	    dtde.dropComplete(false);
+	else {
+	    dtde.rejectDrop();
 	}
 	
-	clearImage((JTree) dtde.getDropTargetContext().getComponent());
+	clearImage(targetTree);
 	super.drop(dtde);
     }
     
@@ -159,7 +186,7 @@ public class ConfigurationTreeDropTarget extends DropTarget
 	    Point topBottom = new Point(rby - topBottomDist, rby + topBottomDist);
 	    if(topBottom.x <= location.y && topBottom.y >= location.y) {
 		// we are inside an insertArea
-		paintInsertMarker(tree, location);
+		//paintInsertMarker(tree, location);
 	    }
 	    else {
 		// we are inside a node
@@ -183,7 +210,34 @@ public class ConfigurationTreeDropTarget extends DropTarget
 			   lastRowBounds.x + lastRowBounds.width, lastRowBounds.y);
 	    }
 	    tree.setSelectionPath(path);
-	    tree.expandPath(path);
+
+	    // only expand the path if it makes sense
+	    ConfigurationTreeModel model = (ConfigurationTreeModel)tree.getModel();
+	    Object selectedNode = path.getLastPathComponent();
+	    Object sourceNode = ConfigurationTreeTransferHandler.getSourceNode();
+	    if (expandOnDragOver(tree,sourceNode,selectedNode)) tree.expandPath(path);
+	    
+	    /*
+	      if (!tree.isEditable()) return;
+	      ConfigurationTreeModel model = (ConfigurationTreeModel)tree.getModel();
+	      Object selectedNode = path.getLastPathComponent();
+	      Object sourceNode = ConfigurationTreeTransferHandler.getSourceNode();
+	      if      (sourceNode instanceof EDSourceInstance &&
+	      selectedNode == model.edsourcesNode())  tree.expandPath(path);
+	      else if (sourceNode instanceof ESSourceInstance &&
+	      selectedNode == model.essourcesNode()) tree.expandPath(path);
+	      else if (sourceNode instanceof ESModuleInstance &&
+	      selectedNode == model.esmodulesNode()) tree.expandPath(path);
+	      else if (sourceNode instanceof ServiceInstance &&
+	      selectedNode == model.servicesNode()) tree.expandPath(path);
+	      else if ((sourceNode instanceof ModuleInstance ||
+	      sourceNode instanceof ReferenceContainer ||
+	      sourceNode instanceof Reference) &&
+	      (selectedNode instanceof ReferenceContainer ||
+	      selectedNode == model.pathsNode() ||
+	      selectedNode == model.sequencesNode())) tree.expandPath(path);
+	      else if (sourceNode instanceof Parameter) tree.expandPath(path);
+	    */
 	}
     }
     
@@ -209,6 +263,68 @@ public class ConfigurationTreeDropTarget extends DropTarget
 	    }
 	    lastRowBounds = rowBounds;
 	}
+    }
+    
+
+    /** check if the current node should be expanded on drag-over */
+    private boolean expandOnDragOver(JTree selectedTree,
+				     Object sourceNode,Object selectedNode)
+    {
+	if (!selectedTree.isEditable()) return false;
+
+	ConfigurationTreeModel model =
+	    (ConfigurationTreeModel)selectedTree.getModel();
+	
+	if ((sourceNode instanceof EDSourceInstance &&
+	     selectedNode == model.edsourcesNode()) ||
+	    (sourceNode instanceof ESSourceInstance &&
+	     selectedNode == model.essourcesNode()) ||
+	    (sourceNode instanceof ESModuleInstance &&
+	     selectedNode == model.esmodulesNode()) ||
+	    (sourceNode instanceof ServiceInstance &&
+	     selectedNode == model.servicesNode()) ||
+	    ((sourceNode instanceof ModuleInstance ||
+	      sourceNode instanceof ReferenceContainer ||
+	      sourceNode instanceof Reference) &&
+	     (selectedNode instanceof ReferenceContainer ||
+	      selectedNode == model.pathsNode() ||
+	      selectedNode == model.sequencesNode())) ||
+	    (sourceNode instanceof Parameter)) return true;
+	return false;
+    }
+    
+
+    /** check if the node is accepted as a drop-target */
+    private boolean acceptAsDropTarget(JTree targetTree,
+				       Object sourceNode,Object targetNode)
+    {
+	if (!targetTree.isEditable()) return false;
+
+	ConfigurationTreeModel model =
+	    (ConfigurationTreeModel)targetTree.getModel();
+	
+	if ((sourceNode instanceof EDSourceInstance &&
+	     targetNode == model.edsourcesNode()) ||
+	    (sourceNode instanceof ESSourceInstance &&
+	     targetNode == model.essourcesNode()) ||
+	    (sourceNode instanceof ESModuleInstance &&
+	     targetNode == model.esmodulesNode()) ||
+	    (sourceNode instanceof ServiceInstance &&
+	     targetNode == model.servicesNode()) ||
+	    ((sourceNode instanceof ModuleInstance ||
+	      sourceNode instanceof ReferenceContainer ||
+	      sourceNode instanceof Reference) &&
+	     (targetNode instanceof ReferenceContainer ||
+	      targetNode instanceof Reference ||
+	      targetNode == model.pathsNode() ||
+	      targetNode == model.sequencesNode())) ||
+	    (sourceNode instanceof Parameter &&
+	     targetNode instanceof PSetParameter) ||
+	    (sourceNode instanceof PSetParameter &&
+	     targetNode == model.psetsNode()) ||
+	    (sourceNode instanceof PSetParameter &&
+	     targetNode instanceof VPSetParameter)) return true;
+	return false;
     }
 
 }

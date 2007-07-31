@@ -22,6 +22,9 @@ public class Configuration
     
     /** current software release */
     private SoftwareRelease release = null;
+    
+    /** current process name */
+    private String processName = "FU";
 
     /** has the configuration changed since the last 'save' operation? */
     private boolean hasChanged = false;
@@ -134,6 +137,9 @@ public class Configuration
 	this.configInfo = configInfo;
     }
 
+    /** set the process name */
+    public void setProcessName(String processName) { this.processName=processName; }
+    
     /** overlaod toString() */
     public String toString()
     {
@@ -208,6 +214,9 @@ public class Configuration
     {
 	return (configInfo!=null) ? configInfo.releaseTag() : "";
     }
+
+    /** get the process name */
+    public String processName() { return processName; }
     
     /** get the software release */
     public SoftwareRelease release() { return release; }
@@ -256,7 +265,22 @@ public class Configuration
 	return true;
     }
 
+    /** check if all entries of a reference container are unique */
+    public boolean hasUniqueEntries(ReferenceContainer container)
+    {
+	for (int i=0;i<container.entryCount();i++) {
+	    Reference entry = container.entry(i);
+	    if (entry.parent() instanceof ReferenceContainer) {
+		ReferenceContainer c = (ReferenceContainer)entry.parent();
+		if (!hasUniqueQualifier(c)) return false;
+		if (!hasUniqueEntries(c)) return false;
+	    }
+	    else if (!isUniqueQualifier(entry.name())) return false;
+	}
+	return true;
+    }
 
+    
     //
     // unset tracked parameter counts
     //
@@ -669,8 +693,10 @@ public class Configuration
 	hasChanged = true;
     }
     
-    /** insert a path reference into another path */
-    public PathReference insertPathReference(Path parentPath,int i,Path path)
+    /** insert a path reference into another path/sequence */
+    //public PathReference insertPathReference(Path parentPath,int i,Path path)
+    public PathReference insertPathReference(ReferenceContainer parentPath,
+					     int i,Path path)
     {
 	PathReference reference = (PathReference)path.createReference(parentPath,i);
 	hasChanged = true;

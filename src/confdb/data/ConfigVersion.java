@@ -19,13 +19,13 @@ public class ConfigVersion implements Comparable<ConfigVersion>
 
     /** version number */
     private int version = -1;
-
+    
     /** creation date */
     private String created = null;
     
     /** release tag associated with this version */
     private String releaseTag = null;
-    
+
 
     //
     // construction
@@ -58,7 +58,6 @@ public class ConfigVersion implements Comparable<ConfigVersion>
     public String releaseTag() { return releaseTag; }
     
     /** Comparable: compareTo() */
-    //public int compareTo(Object o)
     public int compareTo(ConfigVersion otherVersion)
     {
 	if      (otherVersion.version()>version())  return +1;

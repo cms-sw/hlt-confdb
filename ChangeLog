@@ -10,6 +10,7 @@
 	  - THESE CHANGES WERE MADE FOR ASCII ONLY AND SHOULD BE REVIEWED
 	    BY ULF!!!
 	* add Drag N Drop to the GUI (finally)
+	* pick up latest fixes to the parser
 
 2007-07-27  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 

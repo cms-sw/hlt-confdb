@@ -37,7 +37,7 @@ public class Converter implements IConverter
 	
 	static final private String newline = "\n";
 	
-	final private String configurationHeader = "process FU = {" + newline;
+        //final private String configurationHeader = "process FU = {" + newline;
 	final private String configurationTrailer = "}" + newline;
 
 
@@ -378,8 +378,9 @@ public class Converter implements IConverter
 		cache.put( new Integer( key ), info );
 	}
 
-	public String getConfigurationHeader() {
-		return configurationHeader;
+	public String getConfigurationHeader(String processName) {
+	       //return configurationHeader;
+	       return "process " + processName + " = {" + newline;
 	}
 
 	public String getConfigurationTrailer() {

@@ -1,6 +1,8 @@
 package confdb.data;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+
 
 /**
  * Template
@@ -73,6 +75,9 @@ abstract public class Template extends DatabaseEntry
 
     /** cvs tag of the template */
     public String cvsTag() { return cvsTag; }
+
+    /** parameter iterator */
+    public Iterator parameterIterator() { return parameters.iterator(); }
 
     /** number of parameters */
     public int parameterCount() { return parameters.size(); }

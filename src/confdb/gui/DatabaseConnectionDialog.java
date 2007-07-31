@@ -33,7 +33,8 @@ public class DatabaseConnectionDialog
     private String dbSetup = null;
     private JComboBox comboBoxDbSetup = null;
     private static final String[] dbSetupChoices =
-    { "","CMS Online","HLT Development","MySQL - local","Oracle XE - local"};
+    { "","Tutorial Aug 1st 07",
+      "CMS Online","HLT Development","MySQL - local","Oracle XE - local"};
     
     /** database type (mysql/oracle) */
     private String dbType = null;
@@ -249,22 +250,12 @@ public class DatabaseConnectionDialog
 	    textFieldDbHost.requestFocusInWindow();
 	    textFieldDbHost.selectAll();
 	}
-	else if (setup.equals("CMS Online")) {
-	    oracleButton.setSelected(true);
-	    textFieldDbHost.setText("oracms.cern.ch");
-	    textFieldDbPort.setText("10121");
-	    textFieldDbName.setText("OMDS");
-	    textFieldDbUser.setText("cms_hlt_writer");
-	    textFieldDbPwrd.setText("");
-	    textFieldDbPwrd.requestFocusInWindow();
-	    textFieldDbPwrd.selectAll();
-	}
-	else if (setup.equals("HLT Development")) {
-	    oracleButton.setSelected(true);
-	    textFieldDbHost.setText("int2r1-v.cern.ch");
-	    textFieldDbPort.setText("10121");
-	    textFieldDbName.setText("int2r_lb.cern.ch");
-	    textFieldDbUser.setText("cms_hlt_writer");
+	else if (setup.equals("Tutorial Aug 1st 07")) {
+	    mysqlButton.setSelected(true);
+	    textFieldDbHost.setText("lxcmsmz01.cern.ch");
+	    textFieldDbPort.setText("3306");
+	    textFieldDbName.setText("HLTConfDB");
+	    textFieldDbUser.setText("tutorial");
 	    textFieldDbPwrd.setText("");
 	    textFieldDbPwrd.requestFocusInWindow();
 	    textFieldDbPwrd.selectAll();

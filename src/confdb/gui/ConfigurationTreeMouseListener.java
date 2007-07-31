@@ -36,7 +36,7 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
     
     /** current software release */
     private SoftwareRelease release = null;
-
+    
     /** popup mneu associated with global psets */
     private JPopupMenu popupPSets = null;
 

@@ -32,6 +32,7 @@ public class ConfigInfo
     /** selected version index */
     private int versionIndex = -1;
     
+    
     //
     // construction
     //
@@ -90,9 +91,8 @@ public class ConfigInfo
     
     /** get the latest releaseTag */
     public String releaseTag() { return releaseTag; }
-
     
-    /** number of versions */
+   /** number of versions */
     public int versionCount() { return versions.size(); }
     
     /** get the i-th version */

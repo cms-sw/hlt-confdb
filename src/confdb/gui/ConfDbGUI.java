@@ -52,6 +52,9 @@ public class ConfDbGUI implements TableModelListener
     /** the current configuration */
     private Configuration currentConfig = null;
     
+    /** the current software release for imports */
+    private SoftwareRelease importRelease = null;
+
     /** the import configuration */
     private Configuration importConfig = null;
     
@@ -85,6 +88,7 @@ public class ConfDbGUI implements TableModelListener
 	this.frame            = frame;
 	this.currentRelease   = new SoftwareRelease();
 	this.currentConfig    = new Configuration();
+	this.importRelease    = new SoftwareRelease();
 	this.importConfig     = new Configuration();
 	this.database         = new CfgDatabase();
 	this.converterService = new ConverterService(database);
@@ -106,7 +110,7 @@ public class ConfDbGUI implements TableModelListener
 	currentTreeModel.addTreeModelListener(mouseListener);
 	
 	ConfigurationTreeTransferHandler currentDndHandler =
-	    new ConfigurationTreeTransferHandler(currentTree);
+	    new ConfigurationTreeTransferHandler(currentTree,currentRelease);
 	currentTree.setTransferHandler(currentDndHandler);
 	currentTree.setDropTarget(new ConfigurationTreeDropTarget());
 	currentTree.setDragEnabled(true);
@@ -127,7 +131,7 @@ public class ConfDbGUI implements TableModelListener
 	
 	
 	ConfigurationTreeTransferHandler importDndHandler =
-	    new ConfigurationTreeTransferHandler(importTree);
+	    new ConfigurationTreeTransferHandler(importTree,null);
 	importTree.setTransferHandler(importDndHandler);
 	importTree.setDropTarget(new ConfigurationTreeDropTarget());
 	importTree.setDragEnabled(true);
@@ -147,16 +151,24 @@ public class ConfDbGUI implements TableModelListener
 	Object source = e.getSource();
 	if (source instanceof TreeTableTableModel) {
 	    TreeTableTableModel tableModel = (TreeTableTableModel)source;
-	    Parameter node = (Parameter)tableModel.changedNode();
-
+	    Parameter node              = (Parameter)tableModel.changedNode();
+	    Object    removedNode       = tableModel.removedNode();
+	    int       removedChildIndex = tableModel.removedChildIndex();
+	    
 	    if (node!=null) {
 		Object parent = node.parent();
 		while (parent instanceof Parameter) {
 		    Parameter p = (Parameter)parent;
 		    parent = p.parent();
 		}
-
-		currentTreeModel.nodeChanged(node);
+		
+		if (removedChildIndex<0) {
+		    currentTreeModel.nodeChanged(node);
+		}
+		else {
+		    currentTreeModel.nodeRemoved(node,removedChildIndex,removedNode);
+		}
+		
 		if (parent instanceof ModuleInstance) currentTree.updateUI();
 		currentTreeModel.updateLevel1Nodes();
 		currentConfig.setHasChanged(true);
@@ -716,7 +728,10 @@ public class ConfDbGUI implements TableModelListener
 	protected String construct() throws InterruptedException
 	{
 	    startTime = System.currentTimeMillis();
-	    importConfig = database.loadConfiguration(configInfo,currentRelease);
+	    if (importRelease.releaseTag()!=currentRelease.releaseTag()) {
+		importRelease = new SoftwareRelease(currentRelease);
+	    }
+	    importConfig = database.loadConfiguration(configInfo,importRelease);
 	    return new String("Done!");
 	}
 	

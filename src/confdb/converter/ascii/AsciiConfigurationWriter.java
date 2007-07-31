@@ -29,13 +29,7 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 		String str = "// " + conf.name() + " V" + conf.version()
 		+ " (" + conf.releaseTag() + ")" + converter.getNewline() + converter.getNewline();
 
-		str += converter.getConfigurationHeader();
-		IPathWriter pathWriter = converter.getPathWriter();
-		for ( int i = 0; i < conf.pathCount(); i++ )
-		{
-			Path path = conf.path(i);
-			str += pathWriter.toString( path, converter, "  " );
-		}
+		str += converter.getConfigurationHeader(conf.processName());
 
 		ISequenceWriter sequenceWriter = converter.getSequenceWriter();
 		for ( int i = 0; i < conf.sequenceCount(); i++ )
@@ -44,6 +38,12 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 			str += sequenceWriter.toString(sequence, converter );
 		}
 
+		IPathWriter pathWriter = converter.getPathWriter();
+		for ( int i = 0; i < conf.pathCount(); i++ )
+		{
+			Path path = conf.path(i);
+			str += pathWriter.toString( path, converter, "  " );
+		}
 
 		IParameterWriter parameterWriter = converter.getParameterWriter();
 		for ( int i = 0; i < conf.psetCount(); i++ )

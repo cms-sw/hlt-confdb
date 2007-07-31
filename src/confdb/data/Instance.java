@@ -1,6 +1,7 @@
 package confdb.data;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 
 /**
@@ -60,6 +61,9 @@ abstract public class Instance extends DatabaseEntry
     /** get the template */
     public Template template() { return template; }
     
+    /** parameter iterator */
+    public Iterator parameterIterator() { return parameters.iterator(); }
+
     /** number of parameters */
     public int parameterCount() { return parameters.size(); }
     
