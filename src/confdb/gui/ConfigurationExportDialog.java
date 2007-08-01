@@ -175,6 +175,9 @@ public class ConfigurationExportDialog extends ConfigurationDialog
 	    jTreeDirectories = this.dirTree;
 	    jScrollPaneTree.setViewportView(jTreeDirectories);
 
+	    jTreeDirectories
+		.addMouseListener(new DirectoryTreeMouseListener(jTreeDirectories,
+								 targetDB));
 	    jTreeDirectories.addTreeSelectionListener(new TreeSelectionListener() {
 		    public void valueChanged(TreeSelectionEvent e) {
 			jTreeDirectoriesValueChanged(e);

@@ -79,6 +79,7 @@ public class CfgDatabase
 
     private PreparedStatement psSelectConfigNames                 = null;
     private PreparedStatement psSelectConfiguration               = null;
+    private PreparedStatement psSelectConfigurationProcessName    = null;
 
     private PreparedStatement psSelectReleaseTags                 = null;
     private PreparedStatement psSelectReleaseTag                  = null;
@@ -280,6 +281,14 @@ public class CfgDatabase
 		 "FROM Configurations " +
 		 "WHERE Configurations.configId = ?");
 	    preparedStatements.add(psSelectConfiguration);
+	    
+	    psSelectConfigurationProcessName =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " Configurations.processName " +
+		 "FROM Configurations " +
+		 "WHERE Configurations.configId = ?");
+	    preparedStatements.add(psSelectConfigurationProcessName);
 	    
 	    psSelectReleaseTags =
 		dbConnector.getConnection().prepareStatement
@@ -942,14 +951,16 @@ public class CfgDatabase
 		psInsertConfiguration =
 		    dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO Configurations " +
-		     "(configDescriptor,parentDirId,config,version,created) " +
-		     "VALUES (?, ?, ?, ?, NOW())",keyColumn);
+		     "(configDescriptor,parentDirId,config," +
+		     "version,created,processName) " +
+		     "VALUES (?, ?, ?, ?, NOW(), ?)",keyColumn);
 	    else if (dbType.equals(dbTypeOracle))
 		psInsertConfiguration =
 		    dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO Configurations " +
-		     "(configDescriptor,parentDirId,config,version,created) " +
-		     "VALUES (?, ?, ?, ?, SYSDATE')",
+		     "(configDescriptor,parentDirId,config," +
+		     "version,created,processName) " +
+		     "VALUES (?, ?, ?, ?, SYSDATE, ?)",
 		     keyColumn);
 	    preparedStatements.add(psInsertConfiguration);
 	    
@@ -1748,14 +1759,28 @@ public class CfgDatabase
     public Configuration loadConfiguration(ConfigInfo configInfo,
 					   SoftwareRelease release)
     {
-	Configuration config = null;
-	
-	String releaseTag = configInfo.releaseTag();
-	
+	Configuration config      = null;
+	String        releaseTag  = configInfo.releaseTag();
+	String        processName = null;	
+
 	if (!releaseTag.equals(release.releaseTag()))
 	    loadSoftwareRelease(releaseTag,release);
 	
-	config = new Configuration(configInfo,release);
+	ResultSet rs = null;
+	try {
+	    psSelectConfigurationProcessName.setInt(1,configInfo.dbId());
+	    rs = psSelectConfigurationProcessName.executeQuery();
+	    rs.next();
+	    processName = rs.getString(1);
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+
+	config = new Configuration(configInfo,processName,release);
 
 	loadConfiguration(config);
 	config.setHasChanged(false);
@@ -1766,16 +1791,31 @@ public class CfgDatabase
     /** load a configuration&templates from the database */
     public Configuration loadConfiguration(ConfigInfo configInfo)
     {
-	Configuration config     = null;
-	int           configId   = configInfo.dbId();
-	String        releaseTag = configInfo.releaseTag();
+	Configuration config      = null;
+	int           configId    = configInfo.dbId();
+	String        releaseTag  = configInfo.releaseTag();
+	String        processName = null;;
+
+	ResultSet rs = null;
+	try {
+	    psSelectConfigurationProcessName.setInt(1,configInfo.dbId());
+	    rs = psSelectConfigurationProcessName.executeQuery();
+	    rs.next();
+	    processName = rs.getString(1);
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
 	
 	SoftwareRelease release = new SoftwareRelease();
 	release.clear(releaseTag);
 	loadPartialSoftwareRelease(configId,release);
 
-	config = new Configuration(configInfo,release);
-
+	config = new Configuration(configInfo,processName,release);
+	
 	loadConfiguration(config);
 	config.setHasChanged(false);
 	
@@ -2022,14 +2062,13 @@ public class CfgDatabase
 		    if (r instanceof Sequence) {
 			Sequence s = (Sequence)r;
 			config.insertSequenceReference(sequence,i,s);
-			sequence.setDatabaseId(sequenceId);
 		    }
 		    else if (r instanceof ModuleInstance) {
 			ModuleInstance m = (ModuleInstance)r;
 			config.insertModuleReference(sequence,i,m);
-			sequence.setDatabaseId(sequenceId);
 		    }
 		}
+		sequence.setDatabaseId(sequenceId);
 	    }
 	    
 	    // loop over Paths and insert references
@@ -2086,19 +2125,17 @@ public class CfgDatabase
 		    if (r instanceof Path) {
 			Path p = (Path)r;
 			config.insertPathReference(path,i,p);
-			path.setDatabaseId(pathId);
 		    }
 		    else if (r instanceof Sequence) {
 			Sequence s = (Sequence)r;
 			config.insertSequenceReference(path,i,s);
-			path.setDatabaseId(pathId);
 		    }
 		    else if (r instanceof ModuleInstance) {
 			ModuleInstance m = (ModuleInstance)r;
 			config.insertModuleReference(path,i,m);
-			path.setDatabaseId(pathId);
 		    }
 		}
+		path.setDatabaseId(pathId);
 	    }
 	}
 	catch (SQLException e) {
@@ -2365,6 +2402,7 @@ public class CfgDatabase
 	    psInsertConfiguration.setInt(2,config.parentDirId());
 	    psInsertConfiguration.setString(3,config.name());
 	    psInsertConfiguration.setInt(4,config.nextVersion());
+	    psInsertConfiguration.setString(5,config.processName());
 	    psInsertConfiguration.executeUpdate();
 	    rs = psInsertConfiguration.getGeneratedKeys();
 	    
@@ -2654,7 +2692,7 @@ public class CfgDatabase
 
 		    result.put(pathName,pathId);
 		}
-		else result.put(pathName,0);
+		else result.put(pathName,-pathId);
 		
 		psInsertConfigPathAssoc.setInt(1,configId);
 		psInsertConfigPathAssoc.setInt(2,pathId);
@@ -2683,6 +2721,7 @@ public class CfgDatabase
 		String   sequenceName = sequence.name();
 		
 		if (sequenceId<=0) {
+		    
 		    psInsertSequence.setString(1,sequenceName);
 		    psInsertSequence.executeUpdate();
 		    
@@ -2694,7 +2733,7 @@ public class CfgDatabase
 		    
 		    result.put(sequenceName,sequenceId);
 		}
-		else result.put(sequenceName,0);
+		else result.put(sequenceName,-sequenceId);
 		
 		psInsertConfigSequenceAssoc.setInt(1,configId);
 		psInsertConfigSequenceAssoc.setInt(2,sequenceId);
@@ -2763,7 +2802,7 @@ public class CfgDatabase
 		for (int sequenceNb=0;sequenceNb<path.entryCount();sequenceNb++) {
 		    Reference r = path.entry(sequenceNb);
 		    if (r instanceof PathReference) {
-			int childPathId = pathHashMap.get(r.name());
+			int childPathId = Math.abs(pathHashMap.get(r.name()));
 			try {
 			    psInsertPathPathAssoc.setInt(1,pathId);
 			    psInsertPathPathAssoc.setInt(2,childPathId);
@@ -2775,7 +2814,7 @@ public class CfgDatabase
 			}
 		    }
 		    else if (r instanceof SequenceReference) {
-			int sequenceId = sequenceHashMap.get(r.name());
+			int sequenceId = Math.abs(sequenceHashMap.get(r.name()));
 			try {
 			    psInsertPathSequenceAssoc.setInt(1,pathId);
 			    psInsertPathSequenceAssoc.setInt(2,sequenceId);
@@ -2812,7 +2851,7 @@ public class CfgDatabase
 		for (int sequenceNb=0;sequenceNb<sequence.entryCount();sequenceNb++) {
 		    Reference r = sequence.entry(sequenceNb);
 		    if (r instanceof SequenceReference) {
-			int childSequenceId = sequenceHashMap.get(r.name());
+			int childSequenceId=Math.abs(sequenceHashMap.get(r.name()));
 			try {
 			    psInsertSequenceSequenceAssoc.setInt(1,sequenceId);
 			    psInsertSequenceSequenceAssoc.setInt(2,childSequenceId);

@@ -62,9 +62,10 @@ CREATE TABLE Configurations
 	configId   	NUMBER,
 	configDescriptor VARCHAR2(256)  NOT NULL UNIQUE,
 	parentDirId     NUMBER		NOT NULL,
-	config     	VARCHAR2(128)    NOT NULL,
+	config     	VARCHAR2(128)   NOT NULL,
 	version         NUMBER(4)	NOT NULL,
 	created         TIMESTAMP       NOT NULL,
+	processName	VARCHAR2(32)	NOT NULL,
 	UNIQUE (parentDirId,config,version),
 	PRIMARY KEY(configId),
 	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)

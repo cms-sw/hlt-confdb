@@ -1,3 +1,13 @@
+2007-08-01  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-07-00
+	* db schema change: add field 'processName' to table
+	'Configurations'
+	* datamodel/gui/db fixes
+	* allow for the creation of new directories in
+	ConfigurationExportDialog
+	
+
 2007-07-31  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-06-00

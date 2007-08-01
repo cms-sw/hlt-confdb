@@ -20,12 +20,12 @@ public class Configuration
     /** configuration information */
     private ConfigInfo configInfo = null;
     
+    /** current process name */
+    private String processName = "";
+
     /** current software release */
     private SoftwareRelease release = null;
     
-    /** current process name */
-    private String processName = "FU";
-
     /** has the configuration changed since the last 'save' operation? */
     private boolean hasChanged = false;
     
@@ -72,7 +72,8 @@ public class Configuration
     }
     
     /** standard constructor */
-    public Configuration(ConfigInfo configInfo,SoftwareRelease release)
+    public Configuration(ConfigInfo configInfo,String processName,
+			 SoftwareRelease release)
     {
 	psets     = new ArrayList<PSetParameter>();
 	edsources = new ArrayList<EDSourceInstance>();
@@ -83,7 +84,7 @@ public class Configuration
 	paths     = new ArrayList<Path>();
 	sequences = new ArrayList<Sequence>();
 	
-	initialize(configInfo,release);
+	initialize(configInfo,processName,release);
     }
     
     
@@ -92,10 +93,12 @@ public class Configuration
     //
 
     /** new configuration*/
-    public void initialize(ConfigInfo configInfo,SoftwareRelease release)
+    public void initialize(ConfigInfo configInfo,String processName,
+			   SoftwareRelease release)
     {
-	this.configInfo = configInfo;
-	this.release    = release;
+	this.configInfo  = configInfo;
+	this.processName = processName;
+	this.release     = release;
 	
 	setHasChanged(false);
 
@@ -113,7 +116,7 @@ public class Configuration
     { 
 	configInfo = null;
 	release    = null;
-	
+	processName = "";
 	setHasChanged(false);
 	
 	psets.clear();
@@ -138,7 +141,11 @@ public class Configuration
     }
 
     /** set the process name */
-    public void setProcessName(String processName) { this.processName=processName; }
+    public void setProcessName(String processName)
+    {
+	this.processName=processName;
+	setHasChanged(true);
+    }
     
     /** overlaod toString() */
     public String toString()
@@ -414,7 +421,7 @@ public class Configuration
 	    edsources.add(instance);
 	    hasChanged = true;
 	}
-	catch (DataException e) {
+	catch (Exception e) {
 	    System.out.println(e.getMessage());
 	}
 	return instance;
@@ -459,7 +466,7 @@ public class Configuration
 	    essources.add(i,instance);
 	    hasChanged = true;
 	}
-	catch (DataException e) {
+	catch (Exception e) {
 	    System.out.println(e.getMessage());
 	}
 	return instance;
@@ -504,7 +511,7 @@ public class Configuration
 	    esmodules.add(i,instance);
 	    hasChanged = true;
 	}
-	catch (DataException e) {
+	catch (Exception e) {
 	    System.out.println(e.getMessage());
 	}
 	return instance;
@@ -547,7 +554,7 @@ public class Configuration
 	    services.add(i,instance);
 	    hasChanged = true;
 	}
-	catch (DataException e) {
+	catch (Exception e) {
 	    System.out.println(e.getMessage());
 	}
 	return instance;
@@ -595,7 +602,9 @@ public class Configuration
 	try {
 	    instance = (ModuleInstance)template.instance(instanceName);
 	}
-	catch (DataException e) { System.out.println(e.getMessage()); }
+	catch (Exception e) {
+	    System.out.println(e.getMessage());
+	}
 	if (instance.referenceCount()==0) {
 	    modules.add(instance);
 	    hasChanged = true;

@@ -260,6 +260,26 @@ public class DatabaseConnectionDialog
 	    textFieldDbPwrd.requestFocusInWindow();
 	    textFieldDbPwrd.selectAll();
 	}
+	else if (setup.equals("CMS Online")) {
+	    oracleButton.setSelected(true);
+	    textFieldDbHost.setText("oracms.cern.ch");
+	    textFieldDbPort.setText("10121");
+	    textFieldDbName.setText("OMDS");
+	    textFieldDbUser.setText("cms_hlt_writer");
+	    textFieldDbPwrd.setText("");
+	    textFieldDbPwrd.requestFocusInWindow();
+	    textFieldDbPwrd.selectAll();
+	}
+	else if (setup.equals("HLT Development")) {
+	    oracleButton.setSelected(true);
+	    textFieldDbHost.setText("int2r1-v.cern.ch");
+	    textFieldDbPort.setText("10121");
+	    textFieldDbName.setText("int2r_lb.cern.ch");
+	    textFieldDbUser.setText("cms_hlt_writer");
+	    textFieldDbPwrd.setText("");
+	    textFieldDbPwrd.requestFocusInWindow();
+	    textFieldDbPwrd.selectAll();
+	}
 	else if (setup.equals("MySQL - local")) {
 	    mysqlButton.setSelected(true);
 	    textFieldDbHost.setText("localhost");

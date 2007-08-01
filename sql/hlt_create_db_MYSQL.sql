@@ -38,6 +38,7 @@ CREATE TABLE Configurations
 	config     	VARCHAR(128)      NOT NULL,
 	version         SMALLINT UNSIGNED NOT NULL,
 	created         TIMESTAMP         NOT NULL,
+	processName	VARCHAR(32)	  NOT NULL,
 	UNIQUE (parentDirId,config,version),
 	PRIMARY KEY(configId),
 	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)

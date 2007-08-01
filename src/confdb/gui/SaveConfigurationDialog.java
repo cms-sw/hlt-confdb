@@ -69,9 +69,25 @@ public class SaveConfigurationDialog extends ConfigurationDialog
 	    jTextFieldConfigName.selectAll();
 	}
 	
-	addMouseListener(new SaveConfigMouseListener());
-	addTreeSelectionListener(new SaveConfigTreeSelListener());
-	addTreeModelListener(new SaveConfigTreeModelListener(database));
+	addMouseListener(new DirectoryTreeMouseListener(this.dirTree,database));
+	addTreeSelectionListener(new TreeSelectionListener()
+	    {
+		public void valueChanged(TreeSelectionEvent ev)
+		{
+		    JTree  dirTree = (JTree)ev.getSource();
+		    Object o       = dirTree.getLastSelectedPathComponent();
+		    if (o instanceof Directory) {
+			selectedDir = (Directory)o;
+			if (jTextFieldConfigName.getText().length()>0)
+			    okButton.setEnabled(true);
+		    }
+		    else if (o instanceof ConfigInfo) {
+			selectedDir = null;
+			dirTree.getSelectionModel().clearSelection();
+			okButton.setEnabled(false);
+		    }
+		}
+	    });
     }
     
     
@@ -86,6 +102,8 @@ public class SaveConfigurationDialog extends ConfigurationDialog
 	Directory parentDir   = selectedDir;
 	String    releaseTag  = config.releaseTag();
 	
+	System.out.println(selectedDir);
+
 	if (configName.length()>0&&parentDir!=null) {
 	    ConfigInfo configInfo = new ConfigInfo(configName,parentDir,releaseTag);
 	    config.setConfigInfo(configInfo);
@@ -100,184 +118,8 @@ public class SaveConfigurationDialog extends ConfigurationDialog
 	validChoice = false;
 	setVisible(false);
     }
-
-
-
-    //
-    // classes
-    //
-    
-    /**
-     * SaveConfigMouseListener
-     * -----------------------
-     * @author Philipp Schieferdecker
-     */
-    public class SaveConfigMouseListener extends MouseAdapter
-    {
-	public void mousePressed(MouseEvent e) { maybeShowPopup(e); }
-
-	public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
-
-	private void maybeShowPopup(MouseEvent e)
-	{
-	    if (!e.isPopupTrigger()) return;
-	    JTree    tree     = (JTree)e.getComponent();
-	    TreePath treePath = tree.getPathForLocation(e.getX(),e.getY());
-	    if (treePath==null) return;
-	    tree.setSelectionPath(treePath);
-	    Object o = treePath.getLastPathComponent();
-	    if (o instanceof Directory) {
-		Directory selectedDir = (Directory)o;
-		JPopupMenu popup    = new JPopupMenu();
-		
-		JMenuItem  menuItem = new JMenuItem(ADD_DIRECTORY);
-		menuItem.addActionListener(new SaveConfigActionListener(tree));
-		menuItem.setActionCommand(ADD_DIRECTORY);
-		popup.add(menuItem);
-		
-		if (selectedDir!=rootDir&&
-		    selectedDir.childDirCount()==0&&
-		    selectedDir.configInfoCount()==0){
-		    menuItem = new JMenuItem(RMV_DIRECTORY);
-		    menuItem.addActionListener(new SaveConfigActionListener(tree));
-		    menuItem.setActionCommand(RMV_DIRECTORY);
-		    popup.add(menuItem);
-		}
-		
-		popup.show(e.getComponent(),e.getX(),e.getY());
-	    }
-	}
-	
-    }
     
     
-    /** 
-     * SaveConfigActionListener
-     * ------------------------
-     * @author Philipp Schieferdecker
-     */
-    public class SaveConfigActionListener implements ActionListener
-    {
-	/** directory tree */
-	private JTree dirTree = null;
-
-	/** directory tree model */
-	private DirectoryTreeModel treeModel = null;
-	
-	/** standard constructor */
-	public SaveConfigActionListener(JTree dirTree)
-	{
-	    this.dirTree = dirTree;
-	    this.treeModel = (DirectoryTreeModel)dirTree.getModel();
-	}
-	
-	/** ActionListener: actionPerformed() */
-	public void actionPerformed(ActionEvent e)
-	{
-	    String    actionCmd = e.getActionCommand();
-	    TreePath  treePath  = dirTree.getSelectionPath();
-	    Directory selDir    = (Directory)treePath.getLastPathComponent();
-		
-	    if (actionCmd.equals(ADD_DIRECTORY)) {
-		Directory newDir    = new Directory(-1,"<ENTER DIR NAME>","",selDir);
-		
-		selDir.addChildDir(newDir);
-		treeModel.nodeInserted(selDir,selDir.childDirCount()-1);
-		
-		dirTree.expandPath(treePath);
-		TreePath newTreePath = treePath.pathByAddingChild(newDir);
-		
-		dirTree.expandPath(newTreePath);
-		dirTree.scrollPathToVisible(newTreePath);
-		dirTree.setSelectionPath(newTreePath);
-		dirTree.startEditingAtPath(newTreePath);
-	    }
-	    else if (actionCmd.equals(RMV_DIRECTORY)) {
-		Directory parentDir = selDir.parentDir();
-		int       iChildDir = parentDir.indexOfChildDir(selDir);
-		parentDir.removeChildDir(selDir);
-		treeModel.nodeRemoved(parentDir,iChildDir,selDir);
-	    }
-	}
-    }
-    
-
-    /**
-     * SaveConfigTreeSelListener
-     * -------------------------
-     * @author Philipp Schieferdecker
-     */
-    public class SaveConfigTreeSelListener implements TreeSelectionListener
-    {
-	/** TreeSelectionListener: valueChanged() */
-	public void valueChanged(TreeSelectionEvent ev)
-	{
-	    JTree  dirTree = (JTree)ev.getSource();
-	    Object o       = dirTree.getLastSelectedPathComponent();
-	    if (o instanceof Directory) {
-		selectedDir = (Directory)o;
-		if (jTextFieldConfigName.getText().length()>0)
-		    okButton.setEnabled(true);
-	    }
-	    else if (o instanceof ConfigInfo) {
-		selectedDir = null;
-		dirTree.getSelectionModel().clearSelection();
-		okButton.setEnabled(false);
-	    }
-	}
-    }
-
-
-    /**
-     * SaveConfigTreeModelListener
-     * ---------------------------
-     * @author Philipp Schieferdecker
-     */
-    public class SaveConfigTreeModelListener implements TreeModelListener
-    {
-	/** reference to the db interface */
-	private CfgDatabase database = null;
-
-	/** standard constructor */
-	public SaveConfigTreeModelListener(CfgDatabase database)
-	{
-	    this.database = database;
-	}
-	
-	/** TreeModelListener: treeNodesChanged() */
-	public void treeNodesChanged(TreeModelEvent e)
-	{
-	    TreePath  treePath  = e.getTreePath(); if (treePath==null) return;
-	    int       index     = e.getChildIndices()[0];
-	    Directory parentDir = (Directory)treePath.getLastPathComponent();
-	    Directory childDir  = parentDir.childDir(index);
-	    
-	    if (!database.insertDirectory(childDir)) {
-		parentDir.removeChildDir(childDir);
-		DirectoryTreeModel treeModel = (DirectoryTreeModel)e.getSource();
-		treeModel.nodeRemoved(parentDir,parentDir.childDirCount(),childDir);
-	    }
-	}
-	
-	/** TreeModelListener: treeNodesInserted() */
-	public void treeNodesInserted(TreeModelEvent e) {}
-	
-	/** TreeModelListener: treeNodesRemoved() */
-	public void treeNodesRemoved(TreeModelEvent e)
-	{
-	    Directory dirToBeRemoved = (Directory)(e.getChildren()[0]);
-	    if (database.removeDirectory(dirToBeRemoved))
-		System.out.println("Directory '"+dirToBeRemoved.name()+"' removed.");
-	    else
-		System.out.println("ERROR: can't remove Directory '"+
-				   dirToBeRemoved.name()+"'");
-	}
-	
-	/** TreeModelListener: treeStructureChanged() */
-	public void treeStructureChanged(TreeModelEvent e) {}
-	
-    }
-
     //
     // private member functions
     //

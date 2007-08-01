@@ -51,18 +51,23 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
     /** target software release */
     private SoftwareRelease targetRelease = null;
     
+    /** parameter tree (-table) model, to be notified of changes */
+    private ParameterTreeModel parameterTreeModel = null;
     
+
     //
     // construction
     //
     
     /**standard constructor */
     public ConfigurationTreeTransferHandler(JTree targetTree,
-					    SoftwareRelease targetRelease)
+					    SoftwareRelease targetRelease,
+					    ParameterTreeModel parameterTreeModel)
     {
 	super();
 	this.targetTree = targetTree;
 	this.targetRelease = targetRelease;
+	this.parameterTreeModel = parameterTreeModel;
     }
     
     
@@ -128,6 +133,28 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
 	    targetModel.nodeInserted(pset,pset.parameterCount()-1);
 	    targetConfig.setHasChanged(true);
 	    targetModel.updateLevel1Nodes();
+	    if (parameterTreeModel!=null) {
+		parameterTreeModel.setNextFromListener();
+		parameterTreeModel.nodeInserted(pset,pset.parameterCount()-1);
+	    }
+
+	    // TEMPORARY!
+	    Object parent = pset.parent();
+	    while (parent != null) {
+		if (parent instanceof DatabaseEntry) {
+		    DatabaseEntry dbEntry = (DatabaseEntry)parent;
+		    dbEntry.setHasChanged();
+		    parent = null;
+		}
+		else if (parent instanceof Parameter) {
+		    p = (Parameter)parent;
+		    parent = p.parent();
+		}
+		else {
+		    parent = null;
+		}
+	    }
+	    
 	    return true;
 	}
 	
@@ -141,6 +168,28 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
 	    targetModel.nodeInserted(vpset,vpset.parameterSetCount()-1);
 	    targetConfig.setHasChanged(true);
 	    targetModel.updateLevel1Nodes();
+	    if (parameterTreeModel!=null) {
+		parameterTreeModel.setNextFromListener();
+		parameterTreeModel.nodeInserted(pset,pset.parameterCount()-1);
+	    }
+
+	    // TEMPORARY!
+	    Object parent = vpset.parent();
+	    while (parent != null) {
+		if (parent instanceof DatabaseEntry) {
+		    DatabaseEntry dbEntry = (DatabaseEntry)parent;
+		    dbEntry.setHasChanged();
+		    parent = null;
+		}
+		else if (parent instanceof Parameter) {
+		    Parameter p = (Parameter)parent;
+		    parent = p.parent();
+		}
+		else {
+		    parent = null;
+		}
+	    }
+
 	    return true;
 	}
 	

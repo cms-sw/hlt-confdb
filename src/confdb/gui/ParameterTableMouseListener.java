@@ -8,6 +8,7 @@ import confdb.data.ParameterFactory;
 import confdb.data.Parameter;
 import confdb.data.PSetParameter;
 import confdb.data.VPSetParameter;
+import confdb.data.DatabaseEntry;
 
 import confdb.gui.treetable.*;
 
@@ -87,7 +88,7 @@ public class ParameterTableMouseListener extends MouseAdapter
 	    popup.add(menuItem);
 	    if (parent instanceof PSetParameter) {
 		popup.addSeparator();
-		menuItem = new JMenuItem("Remove VPSet");
+		menuItem = new JMenuItem("Remove Parameter");
 		menuItem.addActionListener(this);
 		popup.add(menuItem);
 	    }
@@ -144,7 +145,7 @@ public class ParameterTableMouseListener extends MouseAdapter
 	    else if (parent instanceof VPSetParameter) {
 		VPSetParameter vpset = (VPSetParameter)parent;
 		PSetParameter  pset  = (PSetParameter)parameter;
-		if (cmd.equals("Remove PSet")) {
+		if (cmd.equals("Remove Parameter")) {
 		    int index = vpset.removeParameterSet(pset);
 		    treeModel.nodeRemoved(vpset,index,pset);
 		}
@@ -183,6 +184,7 @@ public class ParameterTableMouseListener extends MouseAdapter
 					false);
 	    pset.addParameter(p);
 	    treeModel.nodeInserted(pset,pset.parameterCount()-1);
+	    notifyParent(pset);
 	}
     }
 	
@@ -203,7 +205,28 @@ public class ParameterTableMouseListener extends MouseAdapter
 						       false);
 	    vpset.addParameterSet(pset);
 	    treeModel.nodeInserted(vpset,vpset.parameterSetCount()-1);
+	    notifyParent(vpset);
 	}
     }
-	
+    
+    /** notify parent instance of change */
+    private void notifyParent(Parameter p)
+    {
+	Object parent = p.parent();
+	while (parent != null) {
+	    if (parent instanceof DatabaseEntry) {
+		DatabaseEntry dbEntry = (DatabaseEntry)parent;
+		dbEntry.setHasChanged();
+		parent = null;
+	    }
+	    else if (parent instanceof Parameter) {
+		p = (Parameter)parent;
+		parent = p.parent();
+	    }
+	    else {
+		parent = null;
+	    }
+	}
+    }
+    
 }

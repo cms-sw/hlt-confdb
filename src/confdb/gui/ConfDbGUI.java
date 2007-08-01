@@ -92,6 +92,7 @@ public class ConfDbGUI implements TableModelListener
 	this.importConfig     = new Configuration();
 	this.database         = new CfgDatabase();
 	this.converterService = new ConverterService(database);
+	this.instancePanel    = new InstancePanel(frame);
 	
 	// current configuration tree
 	currentTreeModel = new ConfigurationTreeModel(currentConfig);
@@ -110,7 +111,8 @@ public class ConfDbGUI implements TableModelListener
 	currentTreeModel.addTreeModelListener(mouseListener);
 	
 	ConfigurationTreeTransferHandler currentDndHandler =
-	    new ConfigurationTreeTransferHandler(currentTree,currentRelease);
+	    new ConfigurationTreeTransferHandler(currentTree,currentRelease,
+						 instancePanel.parameterTreeModel());
 	currentTree.setTransferHandler(currentDndHandler);
 	currentTree.setDropTarget(new ConfigurationTreeDropTarget());
 	currentTree.setDragEnabled(true);
@@ -131,13 +133,22 @@ public class ConfDbGUI implements TableModelListener
 	
 	
 	ConfigurationTreeTransferHandler importDndHandler =
-	    new ConfigurationTreeTransferHandler(importTree,null);
+	    new ConfigurationTreeTransferHandler(importTree,null,null);
 	importTree.setTransferHandler(importDndHandler);
 	importTree.setDropTarget(new ConfigurationTreeDropTarget());
 	importTree.setDragEnabled(true);
 	
 	UIManager.put("Tree.textBackground",defaultTreeBackground);
 	
+	// instance panel (right side), placed in createContentPane()
+	instancePanel.setConfigurationTreeModel(currentTreeModel);
+	instancePanel.addTableModelListener(this);
+	currentTree.addTreeSelectionListener(instancePanel);
+	  
+	// configuration panel (left side), placed in createContentPane()
+	configurationPanel = new ConfigurationPanel(this,
+						    currentTree,importTree,
+						    converterService);
     }
     
     
@@ -151,10 +162,12 @@ public class ConfDbGUI implements TableModelListener
 	Object source = e.getSource();
 	if (source instanceof TreeTableTableModel) {
 	    TreeTableTableModel tableModel = (TreeTableTableModel)source;
-	    Parameter node              = (Parameter)tableModel.changedNode();
-	    Object    removedNode       = tableModel.removedNode();
-	    int       removedChildIndex = tableModel.removedChildIndex();
-	    
+
+	    Parameter node         = (Parameter)tableModel.changedNode();
+	    Object    childNode    = tableModel.childNode();
+	    int       childIndex   = tableModel.childIndex();
+	    String    typeOfChange = tableModel.typeOfChange();
+
 	    if (node!=null) {
 		Object parent = node.parent();
 		while (parent instanceof Parameter) {
@@ -162,12 +175,12 @@ public class ConfDbGUI implements TableModelListener
 		    parent = p.parent();
 		}
 		
-		if (removedChildIndex<0) {
+		if (childNode==null)
 		    currentTreeModel.nodeChanged(node);
-		}
-		else {
-		    currentTreeModel.nodeRemoved(node,removedChildIndex,removedNode);
-		}
+		else if (typeOfChange.equals("REMOVE"))
+		    currentTreeModel.nodeRemoved(node,childIndex,childNode);
+		else if (typeOfChange.equals("INSERT"))
+		    currentTreeModel.nodeInserted(node,childIndex);
 		
 		if (parent instanceof ModuleInstance) currentTree.updateUI();
 		currentTreeModel.updateLevel1Nodes();
@@ -263,11 +276,12 @@ public class ConfDbGUI implements TableModelListener
 	dialog.setVisible(true);
 	
 	if (dialog.validChoice()) {
-	    String cfgName    = dialog.name();
+	    String name       = dialog.name();
+	    String process    = dialog.process();
 	    String releaseTag = dialog.releaseTag();
 	    
 	    NewConfigurationThread worker =
-		new NewConfigurationThread(cfgName,releaseTag);
+		new NewConfigurationThread(name,process,releaseTag);
 	    worker.start();
 	    progressBar.setIndeterminate(true);
 	    progressBar.setVisible(true);
@@ -458,14 +472,18 @@ public class ConfDbGUI implements TableModelListener
 	c.gridx=0;c.gridy=0; c.weighty=0.01;
 	contentPane.add(dbInfoPanel,c);
 
-	instancePanel = new InstancePanel(frame);
-	instancePanel.setConfigurationTreeModel(currentTreeModel);
-	instancePanel.addTableModelListener(this);
-	currentTree.addTreeSelectionListener(instancePanel);
-	
-	configurationPanel = new ConfigurationPanel(this,
-						    currentTree,importTree,
-						    converterService);
+	/*
+	  move to ctor!
+	  =============
+	  instancePanel = new InstancePanel(frame);
+	  instancePanel.setConfigurationTreeModel(currentTreeModel);
+	  instancePanel.addTableModelListener(this);
+	  currentTree.addTreeSelectionListener(instancePanel);
+	  
+	  configurationPanel = new ConfigurationPanel(this,
+	  currentTree,importTree,
+	  converterService);
+	*/
 	
 	JSplitPane  splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 					       configurationPanel,
@@ -612,7 +630,10 @@ public class ConfDbGUI implements TableModelListener
     private class NewConfigurationThread extends SwingWorker<String>
     {
 	/** name of the new configuration */
-	private String cfgName = null;
+	private String name = null;
+	
+	/** process of the new configuration */
+	private String process = null;
 	
 	/** release to be loaded */
 	private String releaseTag = null;
@@ -621,9 +642,10 @@ public class ConfDbGUI implements TableModelListener
 	private long startTime;
 	
 	/** standard constructor */
-	public NewConfigurationThread(String cfgName,String releaseTag)
+	public NewConfigurationThread(String name,String process,String releaseTag)
 	{
-	    this.cfgName    = cfgName;
+	    this.name       = name;
+	    this.process    = process;
 	    this.releaseTag = releaseTag;
 	}
 	
@@ -641,7 +663,8 @@ public class ConfDbGUI implements TableModelListener
 	{
 	    try {
 		currentConfig = new Configuration();
-		currentConfig.initialize(new ConfigInfo(cfgName,null,releaseTag),
+		currentConfig.initialize(new ConfigInfo(name,null,releaseTag),
+					 process,
 					 currentRelease);
 		currentTreeModel.setConfiguration(currentConfig);
 		configurationPanel.setCurrentConfig(currentConfig);
@@ -827,7 +850,9 @@ public class ConfDbGUI implements TableModelListener
 	    ConfigInfo targetConfigInfo =
 		new ConfigInfo(currentConfig.name(),currentConfig.parentDir(),
 			       -1,currentConfig.version(),"",targetReleaseTag);
+	    String targetProcessName = currentConfig.processName();
 	    Configuration targetConfig = new Configuration(targetConfigInfo,
+							   targetProcessName,
 							   targetRelease);
 	    
 	    migrator = new ReleaseMigrator(currentConfig,targetConfig);

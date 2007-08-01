@@ -10,7 +10,7 @@ import confdb.db.CfgDatabase;
 
 /**
  * ConfigurationMigrationDialog
- * -----------------------
+ * ----------------------------
  * @author Philipp Schieferdecker
  *
  * Enter the name of a configuration and associate it with a release tag.

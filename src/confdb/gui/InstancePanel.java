@@ -106,6 +106,9 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     // member functions
     //
 
+    /** get the tree model of the parameter tree-table*/
+    public ParameterTreeModel parameterTreeModel() { return treeModel; }
+
     /** add a TableModelListener */
     public void addTableModelListener(TableModelListener l)
     {

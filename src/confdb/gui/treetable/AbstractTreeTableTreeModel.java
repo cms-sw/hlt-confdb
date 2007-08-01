@@ -22,6 +22,9 @@ public abstract class AbstractTreeTableTreeModel extends    AbstractTreeModel
     
     /** the root of the tree */
     protected Object root = null;
+    
+    /** inidicate that the next TreeModel event comes from Listener */
+    private boolean nextFromListener = false;
 
 
     //
@@ -41,6 +44,17 @@ public abstract class AbstractTreeTableTreeModel extends    AbstractTreeModel
     
     /** get the root of the tree */
     public Object getRoot() { return root; }
+    
+    /** does the next tree model event come from a listener? */
+    public boolean nextFromListener()
+    {
+	boolean result = nextFromListener;
+	nextFromListener = false;
+	return result;
+    }
+    
+    /** indicate that the next tree model event comes from a listener */
+    public void setNextFromListener() { nextFromListener = true; }
 
     /** indicate if a node is a leaf or not */
     public boolean isLeaf(Object node) { return getChildCount(node) == 0; }

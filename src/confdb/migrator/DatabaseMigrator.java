@@ -63,7 +63,8 @@ public class DatabaseMigrator
 	targetDB.loadSoftwareRelease(releaseTag,targetRelease);
 	
 	ConfigInfo targetConfigInfo = new ConfigInfo(targetName,targetDir,releaseTag);
-	targetConfig = new Configuration(targetConfigInfo,targetRelease);
+	targetConfig = new Configuration(targetConfigInfo,sourceConfig.processName(),
+					 targetRelease);
 	
 	releaseMigrator = new ReleaseMigrator(sourceConfig,targetConfig);
 	releaseMigrator.migrate();

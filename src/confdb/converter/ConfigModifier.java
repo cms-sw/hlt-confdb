@@ -162,8 +162,9 @@ public class ConfigModifier extends Configuration
 		return orig.indexOfService(service);
 	}
 
-        public void initialize(ConfigInfo configInfo,SoftwareRelease release) {
-	        orig.initialize(configInfo,release);
+        public void initialize(ConfigInfo configInfo,String processName,
+			       SoftwareRelease release) {
+	        orig.initialize(configInfo,processName,release);
         }
     
 	public EDSourceInstance insertEDSource(String templateName) {

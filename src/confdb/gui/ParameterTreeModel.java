@@ -147,9 +147,11 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     /** TreeTableTreeModel: set the value of a parameter */
     public void setValueAt(Object value, Object node, int col) {
 	if (col!=2) return;
-	if (node instanceof Parameter) {
-	    Parameter p = (Parameter)node;
 
+	if (node instanceof Parameter) {
+	
+	    Parameter p = (Parameter)node;
+	    
 	    if (p.parent() == null) {
 		String defaultAsString = getDefaultFromTemplate(p);
 		p.setValue(value.toString(),defaultAsString);
