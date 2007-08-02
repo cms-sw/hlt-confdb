@@ -1,5 +1,12 @@
 2007-08-02  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-07-02
+	* add file chooser dialogs to be shown via the buttons on the
+	converter pane to choose output cfg file name, input root
+	file/list, and output root file.
+
+2007-08-02  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-07-01
 	* fix bug regarding db storage of paths the content of which has
 	changed w.r.t. the last db version

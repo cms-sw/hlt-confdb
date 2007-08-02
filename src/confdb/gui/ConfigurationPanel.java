@@ -3,9 +3,11 @@ package confdb.gui;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
+import javax.swing.filechooser.*;
 import java.awt.*;
 import java.awt.event.*;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -54,9 +56,9 @@ public class ConfigurationPanel extends JPanel
 
     private JTabbedPane  jTabbedPaneConvert   = new JTabbedPane();  
     
-    private JTextField   jTextFieldFileName   = new JTextField();
-    private JTextField   jTextFieldInput      = new JTextField();
-    private JTextField   jTextFieldOutput     = new JTextField();
+    private JTextField   jTextFieldFileName   = new JTextField(8);
+    private JTextField   jTextFieldInput      = new JTextField(8);
+    private JTextField   jTextFieldOutput     = new JTextField(8);
 
     private JTextField   jTextFieldImportDirectory = new JTextField();
     private JTextField   jTextFieldImportName      = new JTextField();
@@ -160,19 +162,39 @@ public class ConfigurationPanel extends JPanel
     /** Browse FileName [...] button pressed */
     public void browseFileNameButtonActionPerformed(ActionEvent ev)
     {
-	System.out.println("BrowseFileName!");
+	JFileChooser fileChooser = new JFileChooser();
+	
+	int result = fileChooser.showSaveDialog(this);
+	if (result == JFileChooser.APPROVE_OPTION) {
+	    File file = fileChooser.getSelectedFile();
+	    jTextFieldFileName.setText(file.getAbsolutePath());
+	}
     }
-
+    
     /** Browse FileName [...] button pressed */
     public void browseInputButtonActionPerformed(ActionEvent ev)
     {
-	System.out.println("BrowseInput!");
+	JFileChooser fileChooser = new JFileChooser();
+	fileChooser.addChoosableFileFilter(new RootFileFilter());
+	fileChooser.setAcceptAllFileFilterUsed(false);
+	
+	int result = fileChooser.showOpenDialog(this);
+	if (result == JFileChooser.APPROVE_OPTION) {
+	    File file = fileChooser.getSelectedFile();
+	    jTextFieldInput.setText(file.getAbsolutePath());
+	}
     }
 
     /** Browse FileName [...] button pressed */
     public void browseOutputButtonActionPerformed(ActionEvent ev)
     {
-	System.out.println("BrowseOutput!");
+	JFileChooser fileChooser = new JFileChooser();
+	
+	int result = fileChooser.showSaveDialog(this);
+	if (result == JFileChooser.APPROVE_OPTION) {
+	    File file = fileChooser.getSelectedFile();
+	    jTextFieldOutput.setText(file.getAbsolutePath());
+	}
     }
 
     /** set the current configuration and update fields accordingly */
@@ -766,3 +788,44 @@ public class ConfigurationPanel extends JPanel
     }
 
 }
+
+/**
+ * CfgFileFilter
+ * -------------
+ * @author Philipp Schieferdecker
+ */
+class RootFileFilter extends FileFilter
+{
+    /** FileFilter.accept() */
+    public boolean accept(File f)
+    {
+        if (f.isDirectory()) return true;
+	
+        String extension = getExtension(f);
+        if (extension != null) {
+            if (extension.equals("root") || extension.equals("list"))
+		return true;
+	    else
+                return false;
+	}
+        return false;
+    }
+    
+    /* get description of this filter */
+    public String getDescription()
+    {
+	return "ROOT file or list of ROOT files (*.root, *.list)";
+    }
+
+    /** get extension of a file name */
+    public String getExtension(File f)
+    {
+        String ext = null;
+        String s = f.getName();
+        int i = s.lastIndexOf('.');
+	
+        if (i>0 && i<s.length()-1) ext = s.substring(i+1).toLowerCase();
+        return ext;
+    }
+}
+

@@ -104,7 +104,7 @@ public class ConverterService
 	if (input.endsWith(".root")) {
 	    fileNames.add("file:" + input);
 	}
-	else {
+	else if (input.endsWith(".list")) {
 	    BufferedReader inputStream = null;
 	    try {
 		inputStream=new BufferedReader(new FileReader(input));
@@ -128,7 +128,7 @@ public class ConverterService
 	    System.out.println("ERROR: Failed to parse any fileNames.");
 	    return null;
 	}
-
+	
 	Parameter pFileNames=new VStringParameter("fileNames",fileNames,false,false);
 
 	// create PoolSource instance
