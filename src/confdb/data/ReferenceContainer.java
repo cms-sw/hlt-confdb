@@ -63,7 +63,10 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Refere
 	if (databaseId()==0) return true;
 	for (Reference r : entries) {
 	    DatabaseEntry dbentry = (DatabaseEntry)r.parent();
-	    if (dbentry!=null&&dbentry.hasChanged()) return true;
+	    if (dbentry!=null&&dbentry.hasChanged()) {
+		setHasChanged();
+		return true;
+	    }
 	}
 	return false;
     }

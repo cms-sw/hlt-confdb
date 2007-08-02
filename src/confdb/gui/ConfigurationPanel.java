@@ -50,6 +50,7 @@ public class ConfigurationPanel extends JPanel
     private JTextField   jTextFieldVersion    = new JTextField();
     private JTextField   jTextFieldCreated    = new JTextField();
     private JTextField   jTextFieldRelease    = new JTextField();
+    private JTextField   jTextFieldProcess    = new JTextField();
 
     private JTabbedPane  jTabbedPaneConvert   = new JTabbedPane();  
     
@@ -107,6 +108,16 @@ public class ConfigurationPanel extends JPanel
     // member functions
     //
 
+    /** 'Process' field edited */
+    public void jTextFieldProcessActionPerformed(ActionEvent ev)
+    {
+	String process = jTextFieldProcess.getText();
+	if (process.length()>0&&process.indexOf('_')==-1)
+	    currentConfig.setProcessName(process);
+	else
+	    jTextFieldProcess.setText(currentConfig.processName());
+    }
+
     /** 'Convert' button pressed */
     public void convertButtonActionPerformed(ActionEvent ev)
     {
@@ -146,7 +157,6 @@ public class ConfigurationPanel extends JPanel
 	app.importConfiguration();
     }
 
-    
     /** Browse FileName [...] button pressed */
     public void browseFileNameButtonActionPerformed(ActionEvent ev)
     {
@@ -176,6 +186,8 @@ public class ConfigurationPanel extends JPanel
 	    jTextFieldVersion.setText("");
 	    jTextFieldCreated.setText("");
 	    jTextFieldRelease.setText("");
+	    jTextFieldProcess.setText("");
+	    jTextFieldProcess.setEditable(false);
 	    
 	    jTextFieldFileName.setText("");
 	    jTextFieldInput.setText("");
@@ -213,6 +225,8 @@ public class ConfigurationPanel extends JPanel
 	    
 	    jTextFieldCreated.setText(currentConfig.created());
 	    jTextFieldRelease.setText(currentConfig.releaseTag());
+	    jTextFieldProcess.setText(currentConfig.processName());
+	    jTextFieldProcess.setEditable(true);
 	}
     }
     
@@ -258,6 +272,7 @@ public class ConfigurationPanel extends JPanel
         JLabel       jLabel9      = new JLabel();
         JLabel       jLabel10     = new JLabel();
         JLabel       jLabel11     = new JLabel();
+        JLabel       jLabel12     = new JLabel();
 	
         JScrollPane  jScrollPane2 = new JScrollPane();
         JScrollPane  jScrollPane3 = new JScrollPane();
@@ -278,32 +293,41 @@ public class ConfigurationPanel extends JPanel
         jLabel3.setText("Version:");
         jLabel4.setText("Created:");
         jLabel5.setText("Release:");
+        jLabel12.setText("Process:");
 
-        jTextFieldName.setBackground(new Color(255, 255, 255));
+	Color bkgColor = new Color(250,250,250);
+
+        jTextFieldName.setBackground(bkgColor);
         jTextFieldName.setEditable(false);
         jTextFieldName.setFont(new Font("Dialog", 1, 12));
         jTextFieldName.setBorder(BorderFactory.createBevelBorder(BevelBorder
 								 .LOWERED));
 	
-        jTextFieldDirectory.setBackground(new Color(255, 255, 255));
+        jTextFieldDirectory.setBackground(bkgColor);
         jTextFieldDirectory.setEditable(false);
         jTextFieldDirectory.setBorder(BorderFactory
 				      .createBevelBorder(BevelBorder.LOWERED));
 
-        jTextFieldVersion.setBackground(new Color(255, 255, 255));
+        jTextFieldVersion.setBackground(bkgColor);
         jTextFieldVersion.setEditable(false);
         jTextFieldVersion.setBorder(BorderFactory
 				    .createBevelBorder(BevelBorder.LOWERED));
 
-        jTextFieldCreated.setBackground(new Color(255, 255, 255));
+        jTextFieldCreated.setBackground(bkgColor);
         jTextFieldCreated.setEditable(false);
         jTextFieldCreated.setBorder(BorderFactory
 				    .createBevelBorder(BevelBorder.LOWERED));
 
-        jTextFieldRelease.setBackground(new Color(255, 255, 255));
+        jTextFieldRelease.setBackground(bkgColor);
         jTextFieldRelease.setEditable(false);
         jTextFieldRelease.setForeground(Color.red);
         jTextFieldRelease.setBorder(BorderFactory
+				    .createBevelBorder(BevelBorder.LOWERED));
+	
+        jTextFieldProcess.setBackground(new Color(255,255,255));
+        jTextFieldProcess.setEditable(false);
+        //jTextFieldProcess.setForeground(Color.green);
+        jTextFieldProcess.setBorder(BorderFactory
 				    .createBevelBorder(BevelBorder.LOWERED));
 	
         GroupLayout jPanel1Layout = new GroupLayout(jPanel1);
@@ -317,57 +341,69 @@ public class ConfigurationPanel extends JPanel
                     .add(jLabel1)
                     .add(jLabel3)
                     .add(jLabel4)
-                    .add(jLabel5))
+                    .add(jLabel5)
+                    .add(jLabel12))
                 .addPreferredGap(LayoutStyle.RELATED)
                 .add(jPanel1Layout.createParallelGroup(GroupLayout.LEADING)
-                    .add(jTextFieldRelease,
-			 GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
-                    .add(jTextFieldCreated,
-			 GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
-                    .add(jTextFieldVersion,
-			 GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
-                    .add(jTextFieldName,
-			 GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
-                    .add(jTextFieldDirectory,
-			 GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE))
+		     .add(jTextFieldRelease,
+			  GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+		     .add(jTextFieldCreated,
+			  GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+		     .add(jTextFieldVersion,
+			  GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+		     //.add(jTextFieldName,
+		     //	 GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+		     .add(GroupLayout.TRAILING,
+			  jTextFieldName,
+			  GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+		     .add(jTextFieldDirectory,
+			  GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+		     .add(jTextFieldProcess,
+			  GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(GroupLayout.LEADING)
             .add(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .add(jPanel1Layout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(jLabel1,
-			 GroupLayout.PREFERRED_SIZE, 15, GroupLayout.PREFERRED_SIZE)
-                    .add(jTextFieldName,
+		 .addContainerGap()
+		 .add(jPanel1Layout.createParallelGroup(GroupLayout.BASELINE)
+		      .add(jLabel1,
+			   GroupLayout.PREFERRED_SIZE, 15, GroupLayout.PREFERRED_SIZE)
+		      .add(jTextFieldName,
+			   GroupLayout.PREFERRED_SIZE,
+			   GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+		 .addPreferredGap(LayoutStyle.RELATED)
+		 .add(jPanel1Layout.createParallelGroup(GroupLayout.BASELINE)
+		      .add(jLabel2)
+		      .add(jTextFieldDirectory,
+			   GroupLayout.PREFERRED_SIZE,
+			   GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+		 .addPreferredGap(LayoutStyle.RELATED)
+		 .add(jPanel1Layout.createParallelGroup(GroupLayout.BASELINE)
+		      .add(jLabel3)
+		      .add(jTextFieldVersion,
+			   GroupLayout.PREFERRED_SIZE,
+			   GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+		 .addPreferredGap(LayoutStyle.RELATED)
+		 .add(jPanel1Layout.createParallelGroup(GroupLayout.TRAILING)
+		      .add(jLabel4)
+		      .add(jTextFieldCreated,
 			 GroupLayout.PREFERRED_SIZE,
-			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(jPanel1Layout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(jLabel2)
-                    .add(jTextFieldDirectory,
-			 GroupLayout.PREFERRED_SIZE,
-			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(jPanel1Layout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(jLabel3)
-                    .add(jTextFieldVersion,
-			 GroupLayout.PREFERRED_SIZE,
-			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(jPanel1Layout.createParallelGroup(GroupLayout.TRAILING)
-                    .add(jLabel4)
-                    .add(jTextFieldCreated,
-			 GroupLayout.PREFERRED_SIZE,
-			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(jPanel1Layout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(jLabel5)
-                    .add(jTextFieldRelease,
-			 GroupLayout.PREFERRED_SIZE,
-			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(23, Short.MAX_VALUE))
-        );
+			   GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+		 .addPreferredGap(LayoutStyle.RELATED)
+		 .add(jPanel1Layout.createParallelGroup(GroupLayout.BASELINE)
+		      .add(jLabel5)
+		      .add(jTextFieldRelease,
+			   GroupLayout.PREFERRED_SIZE,
+			   GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+		 .addPreferredGap(LayoutStyle.RELATED)
+		 .add(jPanel1Layout.createParallelGroup(GroupLayout.BASELINE)
+		      .add(jLabel12)
+		      .add(jTextFieldProcess,
+			   GroupLayout.PREFERRED_SIZE,
+			   GroupLayout.DEFAULT_SIZE,GroupLayout.PREFERRED_SIZE))
+		 .addContainerGap())
+	);
 
         jLabel6.setText("Filename:");
         jLabel7.setText("Input:");
@@ -480,17 +516,17 @@ public class ConfigurationPanel extends JPanel
         jLabel10.setText("Directory:");
         jLabel11.setText("Version:");
 
-        jTextFieldImportDirectory.setBackground(new Color(255, 255, 255));
+        jTextFieldImportDirectory.setBackground(bkgColor);
         jTextFieldImportDirectory.setEditable(false);
         jTextFieldImportDirectory.setBorder(BorderFactory
 					    .createBevelBorder(BevelBorder.LOWERED));
 
-        jTextFieldImportName.setBackground(new Color(255, 255, 255));
+        jTextFieldImportName.setBackground(bkgColor);
         jTextFieldImportName.setEditable(false);
         jTextFieldImportName.setBorder(BorderFactory
 				       .createBevelBorder(BevelBorder.LOWERED));
 
-        jTextFieldImportVersion.setBackground(new Color(255, 255, 255));
+        jTextFieldImportVersion.setBackground(bkgColor);
         jTextFieldImportVersion.setEditable(false);
         jTextFieldImportVersion.setBorder(BorderFactory
 					  .createBevelBorder(BevelBorder.LOWERED));
@@ -545,21 +581,18 @@ public class ConfigurationPanel extends JPanel
 			 GroupLayout.PREFERRED_SIZE,
 			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(LayoutStyle.RELATED)
-                .add(importButton, GroupLayout.DEFAULT_SIZE, 53, Short.MAX_VALUE)
+                .add(importButton, GroupLayout.DEFAULT_SIZE, 56, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jTabbedPaneConvert.addTab("Import", jPanelImport);
 
         jScrollPaneCurrentTree.setViewportView(currentTree);
-        //importTree.setBackground(UIManager.getDefaults()
-	//			 .getColor("Button.background"));
         jScrollPaneImportTree.setViewportView(importTree);
 	
         jSplitPaneTree.setDividerLocation(1.0);
         jSplitPaneTree.setResizeWeight(1.0);
         jSplitPaneTree.setDividerSize(1);
         jSplitPaneTree.setLeftComponent(jScrollPaneCurrentTree);
-        //jSplitPaneTree.setRightComponent(jScrollPaneImportTree);
 	jSplitPaneTree.setRightComponent(null);
 
 	jTabbedPaneTree.addTab("Tree", jSplitPaneTree);
@@ -600,7 +633,7 @@ public class ConfigurationPanel extends JPanel
                     .add(jTabbedPaneConvert,
 			 GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE))
                 .addPreferredGap(LayoutStyle.RELATED)
-                .add(jTabbedPaneTree, GroupLayout.DEFAULT_SIZE, 428, Short.MAX_VALUE))
+                .add(jTabbedPaneTree, GroupLayout.DEFAULT_SIZE, 425, Short.MAX_VALUE))
         );
     
 	// initialize conversion-format button group
@@ -620,6 +653,12 @@ public class ConfigurationPanel extends JPanel
     /** add ActionListeners to releavant components */
     private void addListeners()
     {
+	jTextFieldProcess.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jTextFieldProcessActionPerformed(e);
+		}
+	    });
+	
 	jTextFieldInput.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    ConfigurationPanel.this.converterService

@@ -225,8 +225,11 @@ public class ConfigurationExportDialog extends ConfigurationDialog
 	if (o instanceof Directory) {
 	    Directory d = (Directory)o;
 	    targetDir = d;
-	    if (jTextFieldConfigName.getText().length()>0)
+	    if (jTextFieldConfigName.getText().length()>0&&
+		targetDir.dbId()>0)
 		exportButton.setEnabled(true);
+	    else
+		exportButton.setEnabled(false);
 	}
 	else if (o instanceof ConfigInfo) {
 	    exportButton.setEnabled(false);

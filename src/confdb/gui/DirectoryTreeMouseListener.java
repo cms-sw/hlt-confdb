@@ -133,15 +133,13 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
     /** TreeModelListener: treeNodesChanged() */
     public void treeNodesChanged(TreeModelEvent e)
     {
-	System.out.println("treeNodesChanged");
-	
 	TreePath  treePath  = e.getTreePath(); if (treePath==null) return;
 	int       index     = e.getChildIndices()[0];
 	Directory parentDir = (Directory)treePath.getLastPathComponent();
 	Directory childDir  = parentDir.childDir(index);
 	
 	if (!database.insertDirectory(childDir)) {
-	    System.out.println("Directory *NOT* created in DB!");
+	    System.out.println("NO Directory created in DB!");
 	    parentDir.removeChildDir(childDir);
 	    directoryTreeModel.nodeRemoved(parentDir,
 					   parentDir.childDirCount(),
@@ -150,6 +148,11 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
 	else {
 	    System.out.println("Directory created in DB!");
 	}
+	// want to fire a tree selection event here
+	TreeSelectionModel selModel=directoryTree.getSelectionModel();
+	TreePath newDirPath = selModel.getSelectionPath();
+	selModel.clearSelection();
+	selModel.setSelectionPath(newDirPath);
     }
     
     /** TreeModelListener: treeNodesRemoved() */

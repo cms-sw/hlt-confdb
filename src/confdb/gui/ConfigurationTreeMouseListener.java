@@ -241,7 +241,7 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	int      depth    = treePath.getPathCount();
 	Object   node     = treePath.getLastPathComponent();
 	
-	JMenu edsourceMenu = new JMenu("Add EDSource");
+	JMenu edsourceMenu = new ScrollableMenu("Add EDSource");
 	if (depth==3||
 	    (depth==2&&treeModel.getChildCount(node)>0)) {
 	    edsourceMenu.setEnabled(false);
@@ -275,7 +275,7 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	
 	// 'ESSources' or specific event setup source
 	if (depth>=2&&depth<=3) {
-	    JMenu essourceMenu = new JMenu("Add ESSource");
+	    JMenu essourceMenu = new ScrollableMenu("Add ESSource");
 	    Iterator it = release.essourceTemplateIterator();
 	    while (it.hasNext()) {
 		ESSourceTemplate t = (ESSourceTemplate)it.next();
@@ -322,7 +322,6 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	
 	// 'ESModules' or specific event setup module
 	if (depth>=2&&depth<=3) {
-	    //JMenu esmoduleMenu = new JMenu("Add ESModule");
 	    JMenu esmoduleMenu = new ScrollableMenu("Add ESModule");
 	    Iterator it = release.esmoduleTemplateIterator();
 	    while (it.hasNext()) {
@@ -366,7 +365,7 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	popupServices = new JPopupMenu();
 	int depth = tree.getSelectionPath().getPathCount();
 	
-	JMenu serviceMenu = new JMenu("Add Service");
+	JMenu serviceMenu = new ScrollableMenu("Add Service");
 	Iterator it = release.serviceTemplateIterator();
 	while (it.hasNext()) {
 	    ServiceTemplate t = (ServiceTemplate)it.next();
@@ -628,7 +627,7 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
     private JMenu createAddPathMenu(Object node)
     {
 	JMenuItem menuItem;
-	JMenu     addPathMenu = new JMenu("Add Path");
+	JMenu     addPathMenu = new ScrollableMenu("Add Path");
 	
 	ArrayList<Path> forbiddenPaths = new ArrayList<Path>();
 	
@@ -670,7 +669,7 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
     private JMenu createAddSequenceMenu(ReferenceContainer pathOrSequence,
 					ActionListener     listener)
     {
-	JMenu     addSequenceMenu = new JMenu("Add Sequence");
+	JMenu     addSequenceMenu = new ScrollableMenu("Add Sequence");
 	JMenuItem menuItem;
 	ArrayList<Sequence> forbiddenSequences = new ArrayList<Sequence>();
 	

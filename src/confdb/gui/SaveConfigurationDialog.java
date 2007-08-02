@@ -69,6 +69,18 @@ public class SaveConfigurationDialog extends ConfigurationDialog
 	    jTextFieldConfigName.selectAll();
 	}
 	
+	jTextFieldConfigName.addActionListener(new ActionListener()
+	    {
+		public void actionPerformed(ActionEvent e)
+		{
+		    if (jTextFieldConfigName.getText().equals(new String()))
+			okButton.setEnabled(false);
+		    else if (selectedDir!=null)
+			okButton.setEnabled(true);
+		}
+	    });
+
+
 	addMouseListener(new DirectoryTreeMouseListener(this.dirTree,database));
 	addTreeSelectionListener(new TreeSelectionListener()
 	    {
@@ -78,8 +90,11 @@ public class SaveConfigurationDialog extends ConfigurationDialog
 		    Object o       = dirTree.getLastSelectedPathComponent();
 		    if (o instanceof Directory) {
 			selectedDir = (Directory)o;
-			if (jTextFieldConfigName.getText().length()>0)
+			if (jTextFieldConfigName.getText().length()>0&&
+			    selectedDir.dbId()>0)
 			    okButton.setEnabled(true);
+			else
+			    okButton.setEnabled(false);
 		    }
 		    else if (o instanceof ConfigInfo) {
 			selectedDir = null;
@@ -136,6 +151,7 @@ public class SaveConfigurationDialog extends ConfigurationDialog
         jLabel1.setText("Configuration Name:");
 
         okButton.setText("OK");
+	okButton.setEnabled(false);
 	okButton.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    okButtonActionPerformed(e);

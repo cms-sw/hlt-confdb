@@ -4,11 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import confdb.data.ParameterFactory;
-import confdb.data.Parameter;
-import confdb.data.PSetParameter;
-import confdb.data.VPSetParameter;
-import confdb.data.DatabaseEntry;
+import confdb.data.*;
 
 import confdb.gui.treetable.*;
 
@@ -214,7 +210,13 @@ public class ParameterTableMouseListener extends MouseAdapter
     {
 	Object parent = p.parent();
 	while (parent != null) {
-	    if (parent instanceof DatabaseEntry) {
+	    if (parent instanceof Reference) {
+		Reference r = (Reference)parent;
+		DatabaseEntry dbEntry = (DatabaseEntry)r.parent();
+		dbEntry.setHasChanged();
+		parent = null;
+	    }
+	    else if (parent instanceof DatabaseEntry) {
 		DatabaseEntry dbEntry = (DatabaseEntry)parent;
 		dbEntry.setHasChanged();
 		parent = null;

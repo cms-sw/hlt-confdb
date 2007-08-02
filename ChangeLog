@@ -1,3 +1,15 @@
+2007-08-02  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-07-01
+	* fix bug regarding db storage of paths the content of which has
+	changed w.r.t. the last db version
+	* fix directory tree view to appropriately enable/disable the OK
+	button. The user can't press OK anymore while editing the name of
+	a new directory
+	* make all popup submenus scrollable
+	* the process is now editable in the configuration panel (upper
+	left)
+
 2007-08-01  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-07-00

@@ -15,7 +15,6 @@ import java.util.Iterator;
 import confdb.data.*;
 
 
-
 /**
  * CfgDatabase
  * -----------
@@ -2205,7 +2204,7 @@ public class CfgDatabase
 		String  psetName   = rs.getString(2);
 		boolean psetIsTrkd = rs.getBoolean(3); 
 		int     sequenceNb = rs.getInt(5);
-
+		
 		PSetParameter pset =
 		    (PSetParameter)ParameterFactory
 		    .create("PSet",psetName,"",psetIsTrkd,true);
@@ -2214,7 +2213,7 @@ public class CfgDatabase
 		loadParameters(psetId,psetParameters);
 		loadParameterSets(psetId,psetParameters);
 		loadVecParameterSets(psetId,psetParameters);
-
+		
 		boolean allParamsFound=true;
 		for (Parameter p : psetParameters) if (p==null) allParamsFound=false;
 
@@ -2321,8 +2320,11 @@ public class CfgDatabase
     {
 	ArrayList<Parameter> psets = new ArrayList<Parameter>();
 	loadParameterSets(instanceId,psets);
-	for (Parameter p : psets)
-	    if (p!=null) instance.updateParameter(p.name(),p.valueAsString());
+	for (Parameter p : psets) {
+	    if (p!=null) {
+		instance.updateParameter(p.name(),p.valueAsString());
+	    }
+	}
 	return true;
     }
     
@@ -2677,6 +2679,7 @@ public class CfgDatabase
 	try {
 	    for (int sequenceNb=0;sequenceNb<config.pathCount();sequenceNb++) {
 		Path   path     = config.path(sequenceNb);
+		path.hasChanged();
 		String pathName = path.name();
 		int    pathId   = path.databaseId();
 		
@@ -2717,6 +2720,7 @@ public class CfgDatabase
 	try {
 	    for (int sequenceNb=0;sequenceNb<config.sequenceCount();sequenceNb++) {
 		Sequence sequence     = config.sequence(sequenceNb);
+		sequence.hasChanged();
 		int      sequenceId   = sequence.databaseId();
 		String   sequenceName = sequence.name();
 		
@@ -2886,6 +2890,8 @@ public class CfgDatabase
     {
 	for (int sequenceNb=0;sequenceNb<instance.parameterCount();sequenceNb++) {
 	    Parameter p = instance.parameter(sequenceNb);
+
+	    
 	    if (!p.isDefault()) {
 		if (p instanceof VPSetParameter) {
 		    VPSetParameter vpset = (VPSetParameter)p;
@@ -3095,7 +3101,9 @@ public class CfgDatabase
 		    VPSetParameter vps = (VPSetParameter)p;
 		    insertVecParameterSet(psetId,i,vps);
 		}
-		else insertParameter(psetId,i,p);
+		else {
+		    insertParameter(psetId,i,p);
+		}
 	    }
 	    result = true;
 	}
@@ -3105,9 +3113,9 @@ public class CfgDatabase
 	finally {
 	    dbConnector.release(rs);
 	}
-	if (result)
-	    if (!insertSuperIdParamSetAssoc(superId,psetId,sequenceNb))
-		return false;
+	if (result&&!insertSuperIdParamSetAssoc(superId,psetId,sequenceNb))
+	    return false;
+
 	return result;
     }
     
