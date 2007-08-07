@@ -101,6 +101,22 @@ public class ReleaseMigrator
 	    }
 	}
 
+	// migrate ESModules
+	for (int i=0;i<sourceConfig.esmoduleCount();i++) {
+	    ESModuleInstance source = sourceConfig.esmodule(i);
+	    ESModuleInstance target =
+		targetConfig.insertESModule(i,source.template().name(),source.name());
+	    if (target!=null) {
+		migrateParameters(source,target);
+	    }
+	    else {
+		String msg = "TEMPLATE NOT FOUND: ESModule '"+
+		    source.template().name()+"'.";
+		messages.add(msg);
+		missingTemplateCount++;
+	    }
+	}
+
 	// migrate Services
 	for (int i=0;i<sourceConfig.serviceCount();i++) {
 	    ServiceInstance source = sourceConfig.service(i);
@@ -151,7 +167,7 @@ public class ReleaseMigrator
 	    migrateReferences(source,target);
 	}
 
-	// migrate References within Paths
+	// migrate References within Sequnences
 	for (int i=0;i<sourceConfig.sequenceCount();i++) {
 	    Sequence source = sourceConfig.sequence(i);
 	    Sequence target = targetConfig.sequence(i);
@@ -193,11 +209,11 @@ public class ReleaseMigrator
 	    Parameter targetParameter = target.parameter(i);
 	    String    parameterName   = targetParameter.name();
 	    String    parameterType   = targetParameter.type();
-	    Parameter sourceParameter = source.parameter(parameterName);
+	    Parameter sourceParameter = source.parameter(parameterName,parameterType);
 	    if (sourceParameter!=null) {
 		if (sourceParameter.type().equals(parameterType)) {
 		    String valueAsString=sourceParameter.valueAsString();
-		    target.updateParameter(parameterName,valueAsString);
+		    target.updateParameter(parameterName,parameterType,valueAsString);
 		}
 		else {
 		    String msg =
@@ -224,8 +240,8 @@ public class ReleaseMigrator
     private void migrateReferences(ReferenceContainer source,
 				   ReferenceContainer target)
     {
+	int iTarget=0;
 	for (int i=0;i<source.entryCount();i++) {
-	    int iTarget=0;
 	    Reference reference = source.entry(i);
 	    if (reference instanceof PathReference) {
 		Path sourcePath = (Path)reference.parent();

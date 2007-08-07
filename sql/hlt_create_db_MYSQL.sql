@@ -513,7 +513,7 @@ CREATE TABLE VDoubleParamValues
 CREATE TABLE StringParamValues
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL UNIQUE,
-	value      	VARCHAR(256)      NOT NULL,
+	value      	VARCHAR(512)     NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 ) ENGINE=INNODB;
 
@@ -522,7 +522,7 @@ CREATE TABLE VStringParamValues
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb 	SMALLINT UNSIGNED NOT NULL,
-	value      	VARCHAR(256)      NOT NULL,
+	value      	VARCHAR(512)     NOT NULL,
 	UNIQUE(paramId,sequenceNb),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 ) ENGINE=INNODB;

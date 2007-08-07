@@ -117,8 +117,6 @@ public class SaveConfigurationDialog extends ConfigurationDialog
 	Directory parentDir   = selectedDir;
 	String    releaseTag  = config.releaseTag();
 	
-	System.out.println(selectedDir);
-
 	if (configName.length()>0&&parentDir!=null) {
 	    ConfigInfo configInfo = new ConfigInfo(configName,parentDir,releaseTag);
 	    config.setConfigInfo(configInfo);

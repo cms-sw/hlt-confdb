@@ -162,7 +162,14 @@ class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     public String prepareText()
     {
 	String result = getText();
-	if (node instanceof Path) {
+	if (node instanceof Instance) {
+	    Instance instance = (Instance)node;
+	    int      count = instance.unsetTrackedParameterCount();
+	    result="<html>"+instance.name();	    
+	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
+	    result+="</html>";
+	}
+	else if (node instanceof Path) {
 	    Path path = (Path)node;
 	    int  count = path.unsetTrackedParameterCount();
 	    result = "<html><b>"+getText()+"</b> ("+path.entryCount()+")";

@@ -524,7 +524,7 @@ CREATE TABLE SequenceModuleAssoc
 CREATE TABLE ParameterSets
 (
 	superId		NUMBER,
-	name		VARCHAR2(128)	NOT NULL,
+	name		VARCHAR2(128),
 	tracked         NUMBER(1)       NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
@@ -537,7 +537,7 @@ CREATE TABLE ParameterSets
 CREATE TABLE VecParameterSets
 (
 	superId		NUMBER,
-	name		VARCHAR2(128)	NOT NULL,
+	name		VARCHAR2(128),
 	tracked         NUMBER(1)       NOT NULL,
 	PRIMARY KEY(superId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
@@ -730,7 +730,7 @@ CREATE TABLE VDoubleParamValues
 CREATE TABLE StringParamValues
 (
 	paramId    	NUMBER		NOT NULL,
-	value      	VARCHAR2(256)	NOT NULL,
+	value      	VARCHAR2(512)	NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
 
@@ -742,7 +742,7 @@ CREATE TABLE VStringParamValues
 (
 	paramId    	NUMBER		NOT NULL,
 	sequenceNb 	NUMBER(6)	NOT NULL,
-	value      	VARCHAR2(256)	NOT NULL,
+	value      	VARCHAR2(512)	NOT NULL,
 	UNIQUE(paramId,sequenceNb),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );

@@ -2,6 +2,7 @@ package confdb.data;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 
 /**
@@ -53,7 +54,7 @@ public class Configuration
     /** list of Sequences */
     private ArrayList<Sequence> sequences = null;
     
-    
+
     //
     // construction
     //
@@ -61,28 +62,28 @@ public class Configuration
     /** empty constructor */
     public Configuration()
     {
-	psets     = new ArrayList<PSetParameter>();
-	edsources = new ArrayList<EDSourceInstance>();
-	essources = new ArrayList<ESSourceInstance>();
-	esmodules = new ArrayList<ESModuleInstance>();
-	services  = new ArrayList<ServiceInstance>();
-	modules   = new ArrayList<ModuleInstance>();
-	paths     = new ArrayList<Path>();
-	sequences = new ArrayList<Sequence>();
+	psets         = new ArrayList<PSetParameter>();
+	edsources     = new ArrayList<EDSourceInstance>();
+	essources     = new ArrayList<ESSourceInstance>();
+	esmodules     = new ArrayList<ESModuleInstance>();
+	services      = new ArrayList<ServiceInstance>();
+	modules       = new ArrayList<ModuleInstance>();
+	paths         = new ArrayList<Path>();
+	sequences     = new ArrayList<Sequence>();
     }
     
     /** standard constructor */
     public Configuration(ConfigInfo configInfo,String processName,
 			 SoftwareRelease release)
     {
-	psets     = new ArrayList<PSetParameter>();
-	edsources = new ArrayList<EDSourceInstance>();
-	essources = new ArrayList<ESSourceInstance>();
-	esmodules = new ArrayList<ESModuleInstance>();
-	services  = new ArrayList<ServiceInstance>();
-	modules   = new ArrayList<ModuleInstance>();
-	paths     = new ArrayList<Path>();
-	sequences = new ArrayList<Sequence>();
+	psets         = new ArrayList<PSetParameter>();
+	edsources     = new ArrayList<EDSourceInstance>();
+	essources     = new ArrayList<ESSourceInstance>();
+	esmodules     = new ArrayList<ESModuleInstance>();
+	services      = new ArrayList<ServiceInstance>();
+	modules       = new ArrayList<ModuleInstance>();
+	paths         = new ArrayList<Path>();
+	sequences     = new ArrayList<Sequence>();
 	
 	initialize(configInfo,processName,release);
     }
@@ -252,22 +253,24 @@ public class Configuration
     }
     
     /** check if the reference container has a unique qualifier */
-    public boolean hasUniqueQualifier(ReferenceContainer container)
+    public boolean hasUniqueQualifier(Referencable referencable)
     {
-	if (container.name().length()==0) return false;
+	if (referencable.name().length()==0) return false;
 	for (ESSourceInstance ess : essources)
-	    if (ess.name().equals(container.name())) return false;
+	    if (ess.name().equals(referencable.name())) return false;
 	for (ESModuleInstance esm : esmodules)
-	    if (esm.name().equals(container.name())) return false;
-	for (ModuleInstance m : modules)
-	    if (m.name().equals(container.name())) return false;
+	    if (esm.name().equals(referencable.name())) return false;
+	for (ModuleInstance m : modules) {
+	    if (m==referencable) continue;
+	    if (m.name().equals(referencable.name())) return false;
+	}
 	for (Path p : paths) {
-	    if (p==container) continue;
-	    if (p.name().equals(container.name())) return false;
+	    if (p==referencable) continue;
+	    if (p.name().equals(referencable.name())) return false;
 	}
 	for (Sequence s : sequences) {
-	    if (s==container) continue;
-	    if (s.name().equals(container.name())) return false;
+	    if (s==referencable) continue;
+	    if (s.name().equals(referencable.name())) return false;
 	}
 	return true;
     }
@@ -657,6 +660,18 @@ public class Configuration
     /** get i-th Path */
     public Path path(int i) { return paths.get(i); }
 
+    /** get Path by name*/
+    public Path path(String pathName)
+    {
+	Iterator it = paths.iterator();
+	while (it.hasNext()) {
+	    Path p = (Path)it.next();
+	    if (p.name().equals(pathName)) return p;
+	}
+	System.out.println("ERROR: path '"+pathName+"' not found.");
+	return null;
+    }
+
     /** index of a certain Path */
     public int indexOfPath(Path path)
     {
@@ -703,7 +718,6 @@ public class Configuration
     }
     
     /** insert a path reference into another path/sequence */
-    //public PathReference insertPathReference(Path parentPath,int i,Path path)
     public PathReference insertPathReference(ReferenceContainer parentPath,
 					     int i,Path path)
     {
@@ -723,6 +737,18 @@ public class Configuration
     /** get i-th Sequence */
     public Sequence sequence(int i) { return sequences.get(i); }
 
+    /** get Sequence by name*/
+    public Sequence sequence(String sequenceName)
+    {
+	Iterator it = sequences.iterator();
+	while (it.hasNext()) {
+	    Sequence s = (Sequence)it.next();
+	    if (s.name().equals(sequenceName)) return s;
+	}
+	System.out.println("ERROR: sequence '"+sequenceName+"' not found.");
+	return null;
+    }
+    
     /** index of a certain Sequence */
     public int indexOfSequence(Sequence sequence)
     {
@@ -774,6 +800,5 @@ public class Configuration
 	hasChanged = true;
 	return reference;
     }
-
     
 }

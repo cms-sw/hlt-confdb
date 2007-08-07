@@ -119,9 +119,6 @@ public class CfgDatabase
     private PreparedStatement psSelectSequenceSequenceAssoc       = null;
     private PreparedStatement psSelectPathModuleAssoc             = null;
     
-    private PreparedStatement psSelectParameters                  = null;
-    private PreparedStatement psSelectParameterSets               = null;
-    private PreparedStatement psSelectVecParameterSets            = null;
     private PreparedStatement psSelectBoolParamValue              = null;
     private PreparedStatement psSelectInt32ParamValue             = null;
     private PreparedStatement psSelectUInt32ParamValue            = null;
@@ -746,55 +743,6 @@ public class CfgDatabase
 		 "FROM PathModuleAssoc " +
 		 "WHERE PathModuleAssoc.pathId = ?"); 
 	    preparedStatements.add(psSelectPathModuleAssoc);
-
-	    psSelectParameters =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " Parameters.paramId," +
-		 " Parameters.name," +
-		 " Parameters.tracked," +
-		 " Parameters.paramTypeId," +
-		 " ParameterTypes.paramType," +
-		 " SuperIdParameterAssoc.superId," +
-		 " SuperIdParameterAssoc.sequenceNb " +
-		 "FROM Parameters " +
-		 "JOIN SuperIdParameterAssoc " +
-		 "ON SuperIdParameterAssoc.paramId = Parameters.paramId " +
-		 "JOIN ParameterTypes " +
-		 "ON Parameters.paramTypeId = ParameterTypes.paramTypeId " +
-		 "WHERE SuperIdParameterAssoc.superId = ? " +
-		 "ORDER BY SuperIdParameterAssoc.sequenceNb ASC");
-	    preparedStatements.add(psSelectParameters);
-
-	    psSelectParameterSets =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " ParameterSets.superId," +
-		 " ParameterSets.name," +
-		 " ParameterSets.tracked," +
-		 " SuperIdParamSetAssoc.superId," +
-		 " SuperIdParamSetAssoc.sequenceNb " +
-		 "FROM ParameterSets " +
-		 "JOIN SuperIdParamSetAssoc " +
-		 "ON SuperIdParamSetAssoc.psetId = ParameterSets.superId " +
-		 "WHERE SuperIdParamSetAssoc.superId = ? " +
-		 "ORDER BY SuperIdParamSetAssoc.sequenceNb ASC");
-	    preparedStatements.add(psSelectParameterSets);
-
-	    psSelectVecParameterSets =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " VecParameterSets.superId," +
-		 " VecParameterSets.name," +
-		 " VecParameterSets.tracked," +
-		 " SuperIdVecParamSetAssoc.superId," +
-		 " SuperIdVecParamSetAssoc.sequenceNb " +
-		 "FROM VecParameterSets " +
-		 "JOIN SuperIdVecParamSetAssoc " +
-		 "ON SuperIdVecParamSetAssoc.vpsetId=VecParameterSets.superId "+
-		 "WHERE SuperIdVecParamSetAssoc.superId = ? "+
-		 "ORDER BY SuperIdVecParamSetAssoc.sequenceNb ASC");
-	    preparedStatements.add(psSelectVecParameterSets);
 
 	    psSelectBoolParamValue =
 		dbConnector.getConnection().prepareStatement
@@ -2205,6 +2153,8 @@ public class CfgDatabase
 		boolean psetIsTrkd = rs.getBoolean(3); 
 		int     sequenceNb = rs.getInt(5);
 		
+		if (psetName==null) psetName = new String(); // Oracle :|
+
 		PSetParameter pset =
 		    (PSetParameter)ParameterFactory
 		    .create("PSet",psetName,"",psetIsTrkd,true);
@@ -2269,6 +2219,8 @@ public class CfgDatabase
 		boolean vpsetIsTrkd = rs.getBoolean(3);
 		int     sequenceNb  = rs.getInt(5);
 		
+		if (vpsetName == null) vpsetName = new String(); // Oracle :|
+
 		VPSetParameter vpset =
 		    (VPSetParameter)ParameterFactory
 		    .create("VPSet",vpsetName,"",vpsetIsTrkd,true);
@@ -2311,7 +2263,8 @@ public class CfgDatabase
 	ArrayList<Parameter> parameters = new ArrayList<Parameter>();
 	loadParameters(instanceId,parameters);
 	for (Parameter p : parameters)
-	    if (p!=null) instance.updateParameter(p.name(),p.valueAsString());
+	    if (p!=null)
+		instance.updateParameter(p.name(),p.type(),p.valueAsString());
 	return true;
     }
     
@@ -2320,11 +2273,9 @@ public class CfgDatabase
     {
 	ArrayList<Parameter> psets = new ArrayList<Parameter>();
 	loadParameterSets(instanceId,psets);
-	for (Parameter p : psets) {
-	    if (p!=null) {
-		instance.updateParameter(p.name(),p.valueAsString());
-	    }
-	}
+	for (Parameter p : psets)
+	    if (p!=null)
+		instance.updateParameter(p.name(),p.type(),p.valueAsString());
 	return true;
     }
     
@@ -2334,7 +2285,8 @@ public class CfgDatabase
 	ArrayList<Parameter> vpsets = new ArrayList<Parameter>();
 	loadVecParameterSets(instanceId,vpsets);
 	for (Parameter p : vpsets)
-	    if (p!=null) instance.updateParameter(p.name(),p.valueAsString());
+	    if (p!=null)
+		instance.updateParameter(p.name(),p.type(),p.valueAsString());
 	return true;
     }
     

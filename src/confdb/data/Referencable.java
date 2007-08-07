@@ -11,8 +11,11 @@ package confdb.data;
  */
 public interface Referencable
 {
-    /** name of this */
+    /** name of this referencable */
     public String name();
+
+    /** set name of this referencable */
+    public void setName(String name);
 
     /** create a reference of this in a reference container (path/sequence) */
     public Reference createReference(ReferenceContainer container,int i);

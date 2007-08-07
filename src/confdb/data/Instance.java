@@ -46,14 +46,7 @@ abstract public class Instance extends DatabaseEntry
     //
     
     /** overload toString */
-    public String toString()
-    { 
-	String result = "<html>"+name;
-	int count = unsetTrackedParameterCount();
-	if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
-	result+="</html>";
-	return result;
-    }
+    public String toString() { return name(); }
 
     /** name of the instance */
     public String name() { return name; }
@@ -70,13 +63,14 @@ abstract public class Instance extends DatabaseEntry
     /** get i-th parameter */
     public Parameter parameter(int i) { return parameters.get(i); }
 
-    /** get parameter by name */
-    public Parameter parameter(String name)
+    /** get parameter by name & type */
+    public Parameter parameter(String name,String type)
     {
-	for (Parameter p : parameters) if (name.equals(p.name())) return p;
+	for (Parameter p : parameters)
+	    if (name.equals(p.name())&&type.equals(p.type())) return p;
 	return null;
     }
-
+    
     /** get the index of a parameter */
     public int indexOfParameter(Parameter p) { return parameters.indexOf(p); }
     
@@ -95,15 +89,17 @@ abstract public class Instance extends DatabaseEntry
     }
 
     /** update a parameter when the value is changed */
-    public boolean updateParameter(String name,String valueAsString)
+    public boolean updateParameter(String name,String type,String valueAsString)
     {
 	for (int i=0;i<parameterCount();i++) {
-	    if (name.equals(parameter(i).name())) {
+	    if (name.equals(parameter(i).name())&&
+		type.equals(parameter(i).type())) {
 		updateParameter(i,valueAsString);
 		return true;
 	    }
 	}
-	System.out.println("Instance.updateParameter ERROR: no parameter '"+name+"'");
+	System.out.println("Instance.updateParameter ERROR: "+
+			   "no parameter '"+name+"' of type "+type);
 	return false;
     }
     
@@ -113,8 +109,10 @@ abstract public class Instance extends DatabaseEntry
 	for (int i=0;i<newParameters.size();i++) {
 	    Parameter parameter     = newParameters.get(i);
 	    String    parameterName = parameter.name();
+	    String    parameterType = parameter.type();
 	    String    valueAsString = parameter.valueAsString();
-	    if (!updateParameter(parameterName,valueAsString)) return false;
+	    if (!updateParameter(parameterName,parameterType,valueAsString))
+		return false;
 	}
 	return true;
     }

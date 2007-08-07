@@ -610,6 +610,7 @@ public class ConfDbGUI implements TableModelListener
 				      get() + " (" + elapsedTime + " ms)");
 		MigrationReportDialog dialog =
 		    new MigrationReportDialog(frame,migrator.releaseMigrator());
+		dialog.setTitle("Configuration Export Report");
 		dialog.pack();
 		dialog.setLocationRelativeTo(frame);
 		dialog.setVisible(true);
@@ -876,6 +877,7 @@ public class ConfDbGUI implements TableModelListener
 				      get() + " (" + elapsedTime + " ms)");
 		MigrationReportDialog dialog =
 		    new MigrationReportDialog(frame,migrator);
+		dialog.setTitle("Release-Migration Report");
 		dialog.pack();
 		dialog.setLocationRelativeTo(frame);
 		dialog.setVisible(true);

@@ -101,7 +101,7 @@ public class PSetParameter extends Parameter
     {
 	parameters.clear();
 	if (valueAsString.length()>0) {
-	    if (!valueAsString.startsWith("<PSet"))
+	    if (!valueAsString.startsWith("<PSet name="+name()))
 		valueAsString=
 		    "<PSet" +
 		    " name=" + name() +
@@ -215,6 +215,13 @@ public class PSetParameter extends Parameter
 	parameters.add(p);
     }
 
+    /** add a parameter at index i */
+    public void addParameter(int i,Parameter p)
+    {
+	p.setParent(this);
+	parameters.add(i,p);
+    }
+
     /** remove a parameter */
     public int removeParameter(Parameter p)
     {
@@ -267,7 +274,7 @@ class ParameterSetParser
     public boolean parseNextParameter()
     {
 	String s = parseString;
-	
+
 	int pos = s.indexOf("<"); if (pos==-1) return false;
 	s       = s.substring(pos+1);
 	pos     = s.indexOf(" ");
@@ -298,16 +305,18 @@ class ParameterSetParser
 	int opos = s.indexOf(otag);
 	int cpos = s.indexOf(ctag);
 	int skipCount = 0;
+	
 	while (opos>=0&&opos<cpos) {
 	    opos = s.indexOf(otag,opos+1);
-	    cpos = s.indexOf(ctag,opos+1);
+	    //cpos = s.indexOf(ctag,opos+1);
+	    cpos = s.indexOf(ctag,cpos+1);
 	    skipCount++;
 	}
-	for (int i=0;i<skipCount;i++) cpos = s.indexOf(ctag,cpos+1);
-	
+	//for (int i=0;i<skipCount;i++) cpos = s.indexOf(ctag,cpos+1);
+
 	value       = s.substring(1,cpos);
 	parseString = s.substring(cpos+ctag.length());
-	
+
 	return true;
     }
     

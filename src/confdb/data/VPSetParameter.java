@@ -80,7 +80,7 @@ public class VPSetParameter extends Parameter
 	parameterSets.clear();
 	if (valueAsString.length()>0) {
 
-	    if (!valueAsString.startsWith("<VPSet"))
+	    if (!valueAsString.startsWith("<VPSet name="+name()))
 		valueAsString=
 		    "<VPSet" +
 		    " name=" + name() +
@@ -262,10 +262,11 @@ class VParameterSetParser
 	int    skipCount = 0;
 	while (opos>=0&&opos<cpos) {
 	    opos = s.indexOf(otag,opos+1);
-	    cpos = s.indexOf(ctag,opos+1);
+	    //cpos = s.indexOf(ctag,opos+1);
+	    cpos = s.indexOf(ctag,cpos+1);
 	    skipCount++;
 	}
-	for (int i=0;i<skipCount;i++) cpos = s.indexOf(ctag,cpos+1);
+	//for (int i=0;i<skipCount;i++) cpos = s.indexOf(ctag,cpos+1);
 	
 	psetString  = s.substring(0,cpos+ctag.length());
 	parseString = s.substring(cpos+ctag.length());

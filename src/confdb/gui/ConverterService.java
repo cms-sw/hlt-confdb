@@ -137,7 +137,7 @@ public class ConverterService
 	EDSourceInstance poolSource = null;
 	try {
 	    poolSource = (EDSourceInstance)template.instance();
-	    Parameter p = poolSource.parameter("fileNames");
+	    Parameter p = poolSource.parameter("fileNames","vstring");
 	    int i = poolSource.indexOfParameter(p);
 	    poolSource.updateParameter(i,pFileNames.valueAsString());
 	}

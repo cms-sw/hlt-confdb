@@ -126,14 +126,14 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     }
     
     /** TreeTableTreeModel: return the value of the i-th table column */
-    public Object getValueAt(Object node, int column)
+    public Object getValueAt(Object node,int column)
     {
 	if (node.equals(root)) return (column==0) ? node.toString() : null;
 	
 	Parameter p      = (Parameter)node;
 	boolean   isPSet = (p instanceof PSetParameter||
 			    p instanceof VPSetParameter);
-
+	
 	switch (column) {
 	case 0: return p.name();
 	case 1: return p.type();
@@ -173,7 +173,7 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 		    if (parent instanceof Instance) {
 			Instance instance = (Instance)p.parent();
 			Template template = instance.template();
-			instance.updateParameter(p.name(),value.toString());
+			instance.updateParameter(p.name(),p.type(),value.toString());
 		    }
 
 		    nodeChanged(p);

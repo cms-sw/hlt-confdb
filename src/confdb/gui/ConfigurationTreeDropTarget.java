@@ -92,7 +92,7 @@ public class ConfigurationTreeDropTarget extends DropTarget
     }
 
     /**clear the drawings on exit */
-    public void dragExit(DropTargetDragEvent dtde)
+    public void dragExit(DropTargetEvent dtde)
     {
 	clearImage((JTree)dtde.getDropTargetContext().getComponent());
 	super.dragExit(dtde);
@@ -216,28 +216,6 @@ public class ConfigurationTreeDropTarget extends DropTarget
 	    Object selectedNode = path.getLastPathComponent();
 	    Object sourceNode = ConfigurationTreeTransferHandler.getSourceNode();
 	    if (expandOnDragOver(tree,sourceNode,selectedNode)) tree.expandPath(path);
-	    
-	    /*
-	      if (!tree.isEditable()) return;
-	      ConfigurationTreeModel model = (ConfigurationTreeModel)tree.getModel();
-	      Object selectedNode = path.getLastPathComponent();
-	      Object sourceNode = ConfigurationTreeTransferHandler.getSourceNode();
-	      if      (sourceNode instanceof EDSourceInstance &&
-	      selectedNode == model.edsourcesNode())  tree.expandPath(path);
-	      else if (sourceNode instanceof ESSourceInstance &&
-	      selectedNode == model.essourcesNode()) tree.expandPath(path);
-	      else if (sourceNode instanceof ESModuleInstance &&
-	      selectedNode == model.esmodulesNode()) tree.expandPath(path);
-	      else if (sourceNode instanceof ServiceInstance &&
-	      selectedNode == model.servicesNode()) tree.expandPath(path);
-	      else if ((sourceNode instanceof ModuleInstance ||
-	      sourceNode instanceof ReferenceContainer ||
-	      sourceNode instanceof Reference) &&
-	      (selectedNode instanceof ReferenceContainer ||
-	      selectedNode == model.pathsNode() ||
-	      selectedNode == model.sequencesNode())) tree.expandPath(path);
-	      else if (sourceNode instanceof Parameter) tree.expandPath(path);
-	    */
 	}
     }
     
@@ -304,13 +282,17 @@ public class ConfigurationTreeDropTarget extends DropTarget
 	    (ConfigurationTreeModel)targetTree.getModel();
 	
 	if ((sourceNode instanceof EDSourceInstance &&
-	     targetNode == model.edsourcesNode()) ||
+	     (targetNode == model.edsourcesNode()||
+	      targetNode instanceof EDSourceInstance)) ||
 	    (sourceNode instanceof ESSourceInstance &&
-	     targetNode == model.essourcesNode()) ||
+	     (targetNode == model.essourcesNode()||
+	      targetNode instanceof ESSourceInstance)) ||
 	    (sourceNode instanceof ESModuleInstance &&
-	     targetNode == model.esmodulesNode()) ||
+	     (targetNode == model.esmodulesNode()||
+	      targetNode instanceof ESModuleInstance)) ||
 	    (sourceNode instanceof ServiceInstance &&
-	     targetNode == model.servicesNode()) ||
+	     (targetNode == model.servicesNode()||
+	      targetNode instanceof ServiceInstance)) ||
 	    ((sourceNode instanceof ModuleInstance ||
 	      sourceNode instanceof ReferenceContainer ||
 	      sourceNode instanceof Reference) &&
@@ -319,11 +301,7 @@ public class ConfigurationTreeDropTarget extends DropTarget
 	      targetNode == model.pathsNode() ||
 	      targetNode == model.sequencesNode())) ||
 	    (sourceNode instanceof Parameter &&
-	     targetNode instanceof PSetParameter) ||
-	    (sourceNode instanceof PSetParameter &&
-	     targetNode == model.psetsNode()) ||
-	    (sourceNode instanceof PSetParameter &&
-	     targetNode instanceof VPSetParameter)) return true;
+	     targetNode instanceof Parameter)) return true;
 	return false;
     }
 

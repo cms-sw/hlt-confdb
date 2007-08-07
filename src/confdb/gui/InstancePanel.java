@@ -50,13 +50,13 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     private TreeTableTableModel tableModel = null;
     
     /** GUI components */
-    private JPanel      jPanelTop          = new JPanel(new CardLayout());
-    private JLabel      jLabelType         = new JLabel();
-    private JTextField  jTextFieldType     = new JTextField();
-    private JTextField  jTextFieldLabel    = new JTextField();
-    private JTextField  jTextFieldCvsTag   = new JTextField();
-    private TreeTable   jTreeTableParameters   = null;
-    private JEditorPane jEditorPaneSnippet = new JEditorPane();
+    private JPanel      jPanelTop            = new JPanel(new CardLayout());
+    private JLabel      jLabelType           = new JLabel();
+    private JTextField  jTextFieldType       = new JTextField();
+    private JTextField  jTextFieldLabel      = new JTextField();
+    private JTextField  jTextFieldCvsTag     = new JTextField();
+    private TreeTable   jTreeTableParameters = null;
+    private JEditorPane jEditorPaneSnippet   = new JEditorPane();
 
 
     /** the current instance, to redisplay upon change */
@@ -93,6 +93,8 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 							      treeModel));
 	
 	initComponents();
+
+	jTreeTableParameters.getParent().setBackground(new Color(255,255,255));
 
 	ConverterFactory factory = ConverterFactory.getFactory("default");
 	try { converter = factory.getConverter("ASCII"); }

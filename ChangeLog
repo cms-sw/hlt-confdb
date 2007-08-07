@@ -1,3 +1,20 @@
+2007-08-07  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-08-00
+	* db schema changes: allow string parameter values with up to 1024
+	characters; remove "NOT NULL" constraint for column 'name' of
+	tables 'ParameterSets' and 'VecParameterSets', as both can be
+	unnamed, and Oracle interprets '' as NULL.
+	* remove 'ValidatedNameDialog': if a Path / Sequence / Module /
+	ESSource / ESModule is instantiated, the label name is entered via
+	editing the tree node of the new instance. 
+	* fix ReleaseMigrator: ESModule migration, order of references in
+	path/sequence
+	* introduce 'ConfigurationTreeActions', which is a repository for
+	all interactive user actions on the tree / configuration. Used by
+	ConfigurationTreeMouseListener and
+	ConfigurationTreeTransferHandler mostly.
+
 2007-08-02  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-07-02

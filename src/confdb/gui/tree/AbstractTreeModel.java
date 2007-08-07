@@ -138,7 +138,8 @@ public abstract class AbstractTreeModel implements TreeModel
     }
 
     /** get the path to the root */
-    protected Object[] getPathToRoot(Object node)
+    //protected Object[] getPathToRoot(Object node)
+    public Object[] getPathToRoot(Object node)
     {
 	return getPathToRoot(node,0);
     }

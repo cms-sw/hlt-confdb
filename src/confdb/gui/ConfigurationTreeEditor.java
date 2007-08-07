@@ -7,7 +7,7 @@ import java.awt.event.*;
 
 import java.util.EventObject;
 
-import confdb.data.ReferenceContainer;
+import confdb.data.*;
 
 
 /**
@@ -22,9 +22,13 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
     // data members
     //
     
-    /** Path/Sequence to be edited */
-    private ReferenceContainer container = null;
+    /** Referencable to be edited */
+    private Object toBeEdited = null;
     
+    /** the configuration being represented */
+    private Configuration config = null;
+    
+
     //
     // construction
     //
@@ -33,6 +37,8 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
     public ConfigurationTreeEditor(JTree tree,DefaultTreeCellRenderer renderer)
     {
 	super(tree,renderer);
+	ConfigurationTreeModel model = (ConfigurationTreeModel)tree.getModel();
+	this.config = (Configuration)model.getRoot();
     }
 
     
@@ -51,12 +57,37 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
     public Object getCellEditorValue()
     {
 	Object value = super.getCellEditorValue();
-	if (container == null) return null;
-	container.setName(value.toString());
-	return container;
-    }
+	String name  = value.toString();
 
-    /** */
+	if (toBeEdited == null) return null;
+	
+	if (toBeEdited instanceof Referencable) {
+	    Referencable referencable = (Referencable)toBeEdited;
+	    if (config.isUniqueQualifier(name))
+		referencable.setName(name);
+	    else
+		referencable.setName("<ENTER UNIQUE NAME>");
+	}
+	else if (toBeEdited instanceof Instance) {
+	    Instance instance = (Instance)toBeEdited;
+	    Template template = instance.template();
+	    if (!template.hasInstance(name))
+		instance.setName(name);
+	    else
+		instance.setName("<ENTER UNIQUE NAME>");
+	}
+	else if (toBeEdited instanceof Reference) {
+	    Reference reference = (Reference)toBeEdited;
+	    Referencable referencable = reference.parent();
+	    if (config.isUniqueQualifier(name))
+		referencable.setName(name);
+	    else
+		referencable.setName("<ENTER UNIQUE NAME>");
+	}
+	return toBeEdited;
+    }
+    
+    /** to determine the offset ;) */
     protected void determineOffset(JTree tree,
 				   Object value,
 				   boolean isSelected,
@@ -86,9 +117,11 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 						boolean leaf,
 						int     row)
     {
-	if (value instanceof ReferenceContainer)
-	    container = (ReferenceContainer)value;
-	return super.getTreeCellEditorComponent(tree,value,isSelected,expanded,
+	if (value instanceof Referencable||
+	    value instanceof Instance||
+	    value instanceof Reference) toBeEdited = value;
+	return super.getTreeCellEditorComponent(tree,value,
+						isSelected,expanded,
 						leaf,row);
     }
     
