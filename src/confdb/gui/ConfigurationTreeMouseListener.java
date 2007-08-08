@@ -307,6 +307,9 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	if (depth==3) {
 	    menuItem = new JMenuItem("Remove ESSource");
 	    menuItem.addActionListener(essourceListener);
+	    popupESSources.add(menuItem);	
+	    menuItem = new JMenuItem("Rename ESSource");
+	    menuItem.addActionListener(essourceListener);
 	    popupESSources.add(menuItem);
 	}
     }
@@ -353,6 +356,9 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	// a specific event setup source is selected
 	if (depth==3) {
 	    menuItem = new JMenuItem("Remove ESModule");
+	    menuItem.addActionListener(esmoduleListener);
+	    popupESModules.add(menuItem);
+	    menuItem = new JMenuItem("Rename ESModule");
 	    menuItem.addActionListener(esmoduleListener);
 	    popupESModules.add(menuItem);
 	}
@@ -857,6 +863,9 @@ class ESSourceMenuListener implements ActionListener
 	    ESSourceInstance essource = (ESSourceInstance)node;
 	    ConfigurationTreeActions.removeESSource(tree,essource);
  	}
+	else if (cmd.equals("Rename ESSource")) {
+	    ConfigurationTreeActions.editNodeName(tree);
+ 	}
 	else {
 	    String templateName = 
 		(cmd.equals("New Instance")) ? source.getActionCommand() : cmd;
@@ -888,6 +897,9 @@ class ESModuleMenuListener implements ActionListener
 	if (cmd.equals("Remove ESModule")) {
 	    ESModuleInstance esmodule = (ESModuleInstance)node;
 	    ConfigurationTreeActions.removeESModule(tree,esmodule);
+ 	}
+	else if (cmd.equals("Rename ESModule")) {
+	    ConfigurationTreeActions.editNodeName(tree);
  	}
 	else {
 	    String templateName = (cmd.equals("New Instance")) ?

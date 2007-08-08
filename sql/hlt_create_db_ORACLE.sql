@@ -71,6 +71,9 @@ CREATE TABLE Configurations
 	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
 );
 
+-- INDEX ConfigParentDirId_idx
+CREATE INDEX ConfigParentDirId_idx ON Configurations(parentDirId);
+
 -- SEQUENCE 'ConfigId_Sequence'
 CREATE SEQUENCE ConfigId_Sequence START WITH 1 INCREMENT BY 1;
 
@@ -95,6 +98,13 @@ CREATE TABLE ConfigurationReleaseAssoc
 	FOREIGN KEY(configId) REFERENCES Configurations(configId),
 	FOREIGN KEY(releaseId) REFERENCES SoftwareReleases(releaseId)
 );
+
+-- INDEX ConfigRelAssocConfigId_idx
+CREATE INDEX ConfigRelAssocConfigId_idx ON ConfigurationReleaseAssoc(configId);
+
+-- INDEX ConfigRelAssocReleaseId_idx
+CREATE INDEX ConfigRelAssocReleaseId_idx ON ConfigurationReleaseAssoc(releaseId);
+
 
 --
 -- TABLE 'SuperIds'
@@ -129,6 +139,12 @@ CREATE TABLE SuperIdReleaseAssoc
 	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
 	FOREIGN KEY(releaseId) REFERENCES SoftwareReleases(releaseId)
 );
+-- INDEX SuperIdRelAssocSuperId_idx
+CREATE INDEX SuperIdRelAssocSuperId_idx ON SuperIdReleaseAssoc(superId);
+
+-- INDEX SuperIdRelAssocReleaseId_idx
+CREATE INDEX SuperIdRelAssocReleaseId_idx ON SuperIdReleaseAssoc(releaseId);
+
 
 --
 -- TABLE 'Paths'
@@ -167,6 +183,12 @@ CREATE TABLE ConfigurationPathAssoc
 	FOREIGN KEY (pathId)   REFERENCES Paths(pathId)
 );
 
+-- INDEX ConfigPathAssocConfigId_idx
+CREATE INDEX ConfigPathAssocConfigId_idx ON ConfigurationPathAssoc(configId);
+
+-- INDEX ConfigPathAssocPathId_idx
+CREATE INDEX ConfigPathAssocPathId_idx ON ConfigurationPathAssoc(pathId);
+
 
 --
 -- TABLE 'PathInPathAssoc'
@@ -181,6 +203,12 @@ CREATE TABLE PathInPathAssoc
 	FOREIGN KEY (parentPathId) REFERENCES Paths(pathId),
 	FOREIGN KEY (childPathId)  REFERENCES Paths(pathId)
 );
+
+-- INDEX PathPathAssocParentId_idx
+CREATE INDEX PathPathAssocParentId_idx ON PathInPathAssoc(parentPathId);
+
+-- INDEX PathPathAssocChildId_idx
+CREATE INDEX PathPathAssocChildId_idx ON PathInPathAssoc(childPathId);
 
 
 --
@@ -219,6 +247,12 @@ CREATE TABLE ConfigurationSequenceAssoc
 	FOREIGN KEY (sequenceId) REFERENCES Sequences(sequenceId)
 );
 
+-- INDEX ConfigSeqAssocConfigId_idx
+CREATE INDEX ConfigSeqAssocConfigId_idx ON ConfigurationSequenceAssoc(configId);
+
+-- INDEX ConfigSeqAssocSequenceId_idx
+CREATE INDEX ConfigSeqAssocSequenceId_idx ON ConfigurationSequenceAssoc(sequenceId);
+
 
 --
 -- TABLE 'PathSequenceAssoc'
@@ -234,6 +268,12 @@ CREATE TABLE PathSequenceAssoc
 	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId)
 );
 
+-- INDEX PathSeqAssocPathId_idx
+CREATE INDEX  PathSeqAssocPathId_idx ON PathSequenceAssoc(pathId);
+
+-- INDEX PathSeqAssocSequenceId_idx
+CREATE INDEX PathSeqAssocSequenceId_idx ON PathSequenceAssoc(sequenceId);
+
 
 --
 -- TABLE 'SequenceInSequenceAssoc'
@@ -248,6 +288,12 @@ CREATE TABLE SequenceInSequenceAssoc
 	FOREIGN KEY (parentSequenceId) REFERENCES Sequences(sequenceId),
 	FOREIGN KEY (childSequenceId)  REFERENCES Sequences(sequenceId)
 );
+
+-- INDEX SeqSeqAssocParentId_idx
+CREATE INDEX SeqSeqAssocParentId_idx ON SequenceInSequenceAssoc(parentSequenceId);
+
+-- INDEX SeqSeqAssocChildId_idx
+CREATE INDEX SeqSeqAssocChildId_idx ON SequenceInSequenceAssoc(childSequenceId);
 
 
 --
@@ -281,6 +327,9 @@ CREATE TABLE Services
 	FOREIGN KEY(templateId) REFERENCES ServiceTemplates(superId)
 );
 
+-- INDEX ServicesTemplateId_idx
+CREATE INDEX ServicesTemplateId_idx ON Services(templateId);
+
 
 --
 -- TABLE 'ConfigurationServiceAssoc'
@@ -294,6 +343,12 @@ CREATE TABLE ConfigurationServiceAssoc
 	FOREIGN KEY (configId)  REFERENCES Configurations(configId),
 	FOREIGN KEY (serviceId) REFERENCES Services(superId)
 );
+
+-- INDEX ConfigSvcAssocConfigId_idx
+CREATE INDEX ConfigSvcAssocConfigId_idx ON ConfigurationServiceAssoc(configId);
+	
+-- INDEX ConfigSvcAssocServiceId_idx
+CREATE INDEX ConfigSvcAssocServiceId_idx ON ConfigurationServiceAssoc(serviceId);
 
 
 --
@@ -327,6 +382,9 @@ CREATE TABLE EDSources
 	FOREIGN KEY(templateId) REFERENCES EDSourceTemplates(superId)
 );
 
+-- INDEX EDSourcesTemplateId_idx
+CREATE INDEX EDSourcesTemplateId_idx ON EDSources(templateId);
+
 
 --
 -- TABLE 'ConfigurationEDSourceAssoc'
@@ -340,6 +398,12 @@ CREATE TABLE ConfigurationEDSourceAssoc
 	FOREIGN KEY (configId)   REFERENCES Configurations(configId),
 	FOREIGN KEY (edsourceId) REFERENCES EDSources(superId)
 );
+
+-- INDEX ConfigEDSrcAssocConfigId_idx
+CREATE INDEX ConfigEDSrcAssocConfigId_idx ON ConfigurationEDSourceAssoc(configId);
+	
+-- INDEX ConfigEDSrcAssocEDSourceId_idx
+CREATE INDEX ConfigEDSrcAssocEDSourceId_idx ON ConfigurationEDSourceAssoc(edsourceId);
 
 
 --
@@ -374,6 +438,9 @@ CREATE TABLE ESSources
 	FOREIGN KEY(templateId) REFERENCES ESSourceTemplates(superId)
 );
 
+-- INDEX ESSourcesTemplateId_idx
+CREATE INDEX ESSourcesTemplateId_idx ON ESSources(templateId);
+
 
 --
 -- TABLE 'ConfigurationESSourceAssoc'
@@ -387,6 +454,12 @@ CREATE TABLE ConfigurationESSourceAssoc
 	FOREIGN KEY (configId)   REFERENCES Configurations(configId),
 	FOREIGN KEY (essourceId) REFERENCES ESSources(superId)
 );
+
+-- INDEX ConfigESSrcAssocConfigId_idx
+CREATE INDEX ConfigESSrcAssocConfigId_idx ON ConfigurationESSourceAssoc(configId);
+	
+-- INDEX ConfigESSrcAssocESSourceId_idx
+CREATE INDEX ConfigESSrcAssocESSourceId_idx ON ConfigurationESSourceAssoc(essourceId);
 
 
 --
@@ -421,6 +494,9 @@ CREATE TABLE ESModules
 	FOREIGN KEY(templateId) REFERENCES ESModuleTemplates(superId)
 );
 
+-- INDEX ESModulesTemplateId_idx
+CREATE INDEX ESModulesTemplateId_idx ON ESModules(templateId);
+
 
 --
 -- TABLE 'ConfigurationESModuleAssoc'
@@ -434,6 +510,12 @@ CREATE TABLE ConfigurationESModuleAssoc
 	FOREIGN KEY (configId)   REFERENCES Configurations(configId),
 	FOREIGN KEY (esmoduleId) REFERENCES ESModules(superId)
 );
+
+-- INDEX ConfigESModAssocConfigId_idx
+CREATE INDEX ConfigESModAssocConfigId_idx ON ConfigurationESModuleAssoc(configId);
+	
+-- INDEX ConfigESModAssocEDModuleId_idx
+CREATE INDEX ConfigESModAssocESModuleId_idx ON ConfigurationESModuleAssoc(esmoduleId);
 
 
 --
@@ -467,6 +549,9 @@ CREATE TABLE ModuleTemplates
 	FOREIGN KEY(typeId)  REFERENCES ModuleTypes(typeId)
 );
 
+-- INDEX ModuleTemplatesTypeId_idx
+CREATE INDEX ModuleTemplatesTypeId_idx ON ModuleTemplates(typeId);
+
 
 --
 -- TABLE 'Modules'
@@ -480,6 +565,9 @@ CREATE TABLE Modules
 	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
 	FOREIGN KEY(templateId) REFERENCES ModuleTemplates(superId)
 );
+
+-- INDEX ModulesTemplateId_idx
+CREATE INDEX ModulesTemplateId_idx ON Modules(templateId);
 
 
 --
@@ -496,6 +584,12 @@ CREATE TABLE PathModuleAssoc
 	FOREIGN KEY(moduleId) REFERENCES Modules(superId)
 );
 
+-- INDEX PathModAssocPathId_idx
+CREATE INDEX PathModAssocPathId_idx ON PathModuleAssoc(pathId);
+	
+-- INDEX PathModAssocModuleId_idx
+CREATE INDEX PathModAssocModuleId_idx ON PathModuleAssoc(moduleId);
+
 
 --
 -- TABLE 'SequenceModuleAssoc'
@@ -510,6 +604,12 @@ CREATE TABLE SequenceModuleAssoc
 	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId),
 	FOREIGN KEY(moduleId)   REFERENCES Modules(superId)
 );
+
+-- INDEX SeqModAssocSequenceId_idx
+CREATE INDEX SeqModAssocSequenceId_idx ON SequenceModuleAssoc(sequenceId);
+	
+-- INDEX SeqModAssocModuleId_idx
+CREATE INDEX SeqModAssocModuleId_idx ON SequenceModuleAssoc(moduleId);
 
 
 --
@@ -557,6 +657,12 @@ CREATE TABLE ConfigurationParamSetAssoc
 	FOREIGN KEY(psetId)   REFERENCES ParameterSets(superId)
 );
 
+-- INDEX ConfigurationParamSetAssocConfigId_idx
+CREATE INDEX ConfigPSetAssocConfigId_idx ON ConfigurationParamSetAssoc(configId);
+
+-- INDEX ConfigPSetAssocPsetId_idx
+CREATE INDEX ConfigPSetAssocPsetId_idx ON ConfigurationParamSetAssoc(psetId);
+
 
 --
 -- TABLE 'SuperIdParamSetAssoc'
@@ -571,6 +677,12 @@ CREATE TABLE SuperIdParamSetAssoc
 	FOREIGN KEY(psetId)  REFERENCES ParameterSets(superId)
 );
 
+-- INDEX SuperIdPSetAssocSuperId_idx
+CREATE INDEX SuperIdPSetAssocSuperId_idx ON SuperIdParamSetAssoc(superId);
+
+-- INDEX SuperIdPSetAssocPSetId_idx
+CREATE INDEX SuperIdPSetAssocPSetId_idx ON SuperIdParamSetAssoc(psetId);
+
 
 --
 -- TABLE 'SuperIdVecParamSetAssoc'
@@ -584,6 +696,12 @@ CREATE TABLE SuperIdVecParamSetAssoc
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
 	FOREIGN KEY(vpsetId) REFERENCES VecParameterSets(superId)
 );
+
+-- INDEX SuperIdVPSetAssocSuperId_idx
+CREATE INDEX SuperIdVPSetAssocSuperId_idx ON SuperIdVecParamSetAssoc(superId);
+
+-- INDEX SuperIdVPSetAssocVPSetId_idx
+CREATE INDEX SuperIdVPSetAssocVPSetId_idx ON SuperIdVecParamSetAssoc(vpsetId);
 
 
 --
@@ -614,6 +732,9 @@ CREATE TABLE Parameters
 	FOREIGN KEY(paramTypeId) REFERENCES ParameterTypes(paramTypeId)
 );
 
+-- INDEX ParametersTypeId_idx
+CREATE INDEX ParametersTypeId_idx ON Parameters(paramTypeId);
+
 -- SEQUENCE 'ParamId_Sequence'
 CREATE SEQUENCE ParamId_Sequence START WITH 1 INCREMENT BY 1;
 
@@ -640,6 +761,12 @@ CREATE TABLE SuperIdParameterAssoc
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
 
+-- INDEX SuperIdParamAssocSuperId_idx
+CREATE INDEX SuperIdParamAssocSuperId_idx ON SuperIdParameterAssoc(superId);
+
+-- INDEX SuperIdParamAssocParamId_idx
+CREATE INDEX SuperIdParamAssocParamId_idx ON SuperIdParameterAssoc(paramId);
+
 
 --
 -- TABLE 'Int32ParamValues'
@@ -650,6 +777,9 @@ CREATE TABLE Int32ParamValues
 	value      	NUMBER		NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
+
+-- INDEX Int32ValuesParamId_idx
+CREATE INDEX Int32ParamValuesParamId_idx ON Int32ParamValues(paramId);
 
 
 --
@@ -664,6 +794,9 @@ CREATE TABLE VInt32ParamValues
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
 
+-- INDEX VInt32ValuesParamId_idx
+CREATE INDEX VInt32ValuesParamId_idx ON VInt32ParamValues(paramId);
+
 
 --
 -- TABLE 'UInt32ParamValues'
@@ -674,6 +807,9 @@ CREATE TABLE UInt32ParamValues
 	value      	NUMBER		NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
+
+-- INDEX UInt32ValuesParamId_idx
+CREATE INDEX UInt32ValuesParamId_idx ON UInt32ParamValues(paramId);
 
 
 --
@@ -688,6 +824,9 @@ CREATE TABLE VUInt32ParamValues
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
 
+-- INDEX VUInt32ValuesParamId_idx
+CREATE INDEX VUInt32ValuesParamId_idx ON VUInt32ParamValues(paramId);
+
 
 --
 -- TABLE 'BoolParamValues'
@@ -699,6 +838,9 @@ CREATE TABLE BoolParamValues
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
 
+-- INDEX BoolValuesParamId_idx
+CREATE INDEX BoolValuesParamId_idx ON BoolParamValues(paramId);
+
 
 --
 -- TABLE 'DoubleParamValues'
@@ -709,6 +851,9 @@ CREATE TABLE DoubleParamValues
 	value      	FLOAT		NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
+
+-- INDEX DoubleValuesParamId_idx
+CREATE INDEX DoubleValuesParamId_idx ON DoubleParamValues(paramId);
 
 
 --
@@ -723,6 +868,9 @@ CREATE TABLE VDoubleParamValues
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
 
+-- INDEX VDoubleValuesParamId_idx
+CREATE INDEX VDoubleValuesParamId_idx ON VDoubleParamValues(paramId);
+
 
 --
 -- TABLE 'StringParamValues'
@@ -734,9 +882,12 @@ CREATE TABLE StringParamValues
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
 
+-- INDEX StringValuesParamId_idx
+CREATE INDEX StringValuesParamId_idx ON StringParamValues(paramId);
+
 
 --
--- TABLE 'VIntParamValues'
+-- TABLE 'VStringParamValues'
 --
 CREATE TABLE VStringParamValues
 (
@@ -747,6 +898,9 @@ CREATE TABLE VStringParamValues
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
 
+-- INDEX VStringValuesParamId_idx
+CREATE INDEX VStringValuesParamId_idx ON VStringParamValues(paramId);
+
 
 --
 -- TABLE 'InputTagParamValues'
@@ -754,9 +908,12 @@ CREATE TABLE VStringParamValues
 CREATE TABLE InputTagParamValues
 (
 	paramId    	NUMBER		NOT NULL,
-	value      	VARCHAR2(128)    NOT NULL,
+	value      	VARCHAR2(128)   NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
+
+-- INDEX InputTagValuesParamId_idx
+CREATE INDEX InputTagValuesParamId_idx ON InputTagParamValues(paramId);
 
 
 --
@@ -770,6 +927,9 @@ CREATE TABLE VInputTagParamValues
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
 
+-- INDEX VInputTagValuesParamId_idx
+CREATE INDEX VInputTagValuesParamId_idx ON VInputTagParamValues(paramId);
+
 
 --
 -- TABLE 'EventIDParamValues'
@@ -780,6 +940,9 @@ CREATE TABLE EventIDParamValues
 	value      	VARCHAR2(32)	NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
+
+-- INDEX EventIDValuesParamId_idx
+CREATE INDEX EventIDValuesParamId_idx ON EventIDParamValues(paramId);
 
 
 --
@@ -792,6 +955,9 @@ CREATE TABLE VEventIDParamValues
 	value      	VARCHAR2(32)	NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
+
+-- INDEX VEventIDValuesParamId_idx
+CREATE INDEX VEventIDValuesParamId_idx ON VEventIDParamValues(paramId);
 
 
 COMMIT;

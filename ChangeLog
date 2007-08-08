@@ -1,3 +1,12 @@
+2007-08-08  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-08-01
+	* javaws related changes from Ulf
+	* fix bug were instances couldn't be named after their template
+	* allow for ESSources / ESModules to be renamed in the GUI
+	* db schema (Oracle only): create an index for each foreign key
+	(which isn't a primary key). 
+
 2007-08-07  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-08-00

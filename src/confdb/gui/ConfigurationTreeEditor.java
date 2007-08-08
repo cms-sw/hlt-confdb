@@ -73,8 +73,15 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 	    Template template = instance.template();
 	    if (!template.hasInstance(name))
 		instance.setName(name);
-	    else
-		instance.setName("<ENTER UNIQUE NAME>");
+	    else {
+		Instance existingInstance = null;
+		try {
+		    existingInstance=template.instance(name);
+		}
+		catch (DataException e) {}
+		if (instance!=existingInstance)
+		    instance.setName("<ENTER UNIQUE NAME>");
+	    }
 	}
 	else if (toBeEdited instanceof Reference) {
 	    Reference reference = (Reference)toBeEdited;
