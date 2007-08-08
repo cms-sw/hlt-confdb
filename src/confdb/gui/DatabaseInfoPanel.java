@@ -62,8 +62,8 @@ public class DatabaseInfoPanel extends JPanel
 	connectionStatus.setBorder(BorderFactory.createRaisedBevelBorder());
 	
 	labelDbType = new JLabel();
-	iconDbTypeMySQL  = new ImageIcon(ClassLoader.getSystemResource("mysql.gif"));
-	iconDbTypeOracle = new ImageIcon(ClassLoader.getSystemResource("oracle.gif"));
+	iconDbTypeMySQL  = new ImageIcon(getClass().getResource("/mysql.gif"));
+	iconDbTypeOracle = new ImageIcon(getClass().getResource("/oracle.gif"));
 
 	labelDbHost = new JLabel("<html> <b>Host:</b></html>");
 	labelDbPort = new JLabel("<html> <b>Port:</b></html>");

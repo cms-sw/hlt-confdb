@@ -147,7 +147,7 @@ public class DatabaseConnectionDialog
 			    labelDbUser,textFieldDbUser,
 			    labelDbPwrd,textFieldDbPwrd };
 
-	ImageIcon icon = new ImageIcon(ClassLoader.getSystemResource("dbicon.gif"));
+	ImageIcon icon = new ImageIcon(getClass().getResource("/dbicon.gif"));
 
 	Object[] options = { okString,cancelString };
 	
