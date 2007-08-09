@@ -530,10 +530,21 @@ class SourceParser:
 
 	success = False
 
+        startedcomment = False
+
         for line in lines:
             # Tokenize the line
             vals = string.split(line)
 
+            # C-style comments. Seriously. Why?
+            if(line.lstrip().startswith('/*')):
+                startedcomment = True
+            if(startedcomment == True and (line.rstrip().endswith('*/'))):
+                startedcomment = False
+                continue
+            if(startedcomment == True and not (line.rstrip().endswith('*/'))):
+                continue
+                    
             # Check that the line isn't empty and isn't commented out
             if(vals and not line.lstrip().startswith('//') and not line.lstrip().startswith('#')):
                 
