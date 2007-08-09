@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL July 10, 2007
+# Jonathan Hollar LLNL Aug. 8, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -613,7 +613,8 @@ class SourceParser:
 			    index = index + 1
 
                         # Now look for parameter <type>
-			paramstring2 = totalline.split('<')
+                        paramstring2 = totalline.split('getParameter')[1].split(')')[0].split('<')
+
 			if(paramstring2[1].find('=') != -1 and paramstring2[1].find('==') == -1 and paramstring2[1].find('!=') == -1):
 			    paramstring2 = totalline.split('=')[1].split('<')
 
@@ -848,7 +849,7 @@ class SourceParser:
 
                         # Templated getParameter call
                         elif(totalline.find('<') != -1):
-                            paramstring2 = totalline.split('<')                            
+                            paramstring2 = totalline.split('getUntrackedParameter')[1].split(')')[0].split('<')   
                             therest = paramstring2[1].split('>')
                             
                             # It looks like our parameter type uses a
@@ -1645,7 +1646,14 @@ class SourceParser:
                     if(srcline.lstrip().startswith('#include')):
                         continue;
 
-                    if(srcline.rstrip().endswith(';')): 
+                    if(srcline.rstrip().endswith('))') or
+                       srcline.rstrip().endswith(')),') or
+                       srcline.rstrip().endswith('),') or
+ 		       srcline.rstrip().endswith(';') or
+ 		       srcline.rstrip().endswith(');') or
+ 		       srcline.rstrip().endswith(') ,') or
+ 		       srcline.rstrip().endswith('{') or 
+ 		       srcline.rstrip().endswith('}')):
                         foundlineend = True
 			
                         totalline = totalline + srcline.lstrip().rstrip('\n')
@@ -1666,7 +1674,8 @@ class SourceParser:
 				paramname = paramstring[index+1]
 				break
 			    index = index + 1
-			paramstring2 = totalline.split('<')
+
+                        paramstring2 = totalline.split('getParameter')[1].split(')')[0].split('<')
 			if(paramstring2[1].find('=') != -1 and paramstring2[1].find('==') == -1 and paramstring2[1].find('!=') == -1):
 			    paramstring2 = totalline.split('=')[1].split('<')
                         therest = (paramstring2[1]).split('>')
@@ -1768,6 +1777,8 @@ class SourceParser:
 				if(self.verbose > 0):
 				    print '\tnew PSet in this object = ' + paramname
 
+                        totalline = ''
+
 		    if((foundlineend == True) and totalline.find('getUntrackedParameter') != -1):
 			paramname = totalline.split('getUntrackedParameter')[1].split('"')[1]
 
@@ -1776,12 +1787,12 @@ class SourceParser:
                         # Parameter name should be the first thing in quotes after 'getUntrackedParameter'
 			index = 0
 			for paramsubstring in paramstring:
-			    if ((paramstring[index]).find('getParameter') != -1):
+			    if ((paramstring[index]).find('getUntrackedParameter') != -1):
 				paramname = paramstring[index+1]
 				break
 			    index = index + 1
-			paramstring2 = totalline.split('<')
 
+                        paramstring2 = totalline.split('getUntrackedParameter')[1].split(')')[0].split('<')
 			if(paramstring2[1].find('=') != -1 and paramstring2[1].find('==') == -1 and paramstring2[1].find('!=') == -1):
 			    if(totalline.split('=')[1].find('>') != -1):
 				paramstring2 = totalline.split('=')[1].split('<')
@@ -1852,6 +1863,7 @@ class SourceParser:
 					self.paramlist.append((paramtype,paramname,None,"false",self.sequencenb))
 					self.sequencenb = self.sequencenb + 1
 
+			totalline = ''
 
 		    # Look for ParameterSets passed to objects instantiated within this module. This won't pick up PSets 
 		    # passed to methods of the new object - are there any cases of this?
@@ -1882,6 +1894,8 @@ class SourceParser:
 				if(self.verbose > 1):
 				    print 'Found pset of type ' + newpsettype + ', nested in the PSet ' + thepsetname + ', passed to object of type ' + newtheobjectclass
 				self.ParsePassedParameterSet(newpsettype, self.sourcetree + theincfile, newtheobjectclass, thepsetname, thedatadir, themodulename)
+
+			totalline = ''
 
 		    # This line is uninteresting
 		    if(foundlineend == True and srcline.find('getParameter') == -1 and srcline.find('getUntrackedParameter') == -1):
