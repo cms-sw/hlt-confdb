@@ -571,6 +571,14 @@ class SourceParser:
 			   externalbranchpset = totalline.split('=')[0].split('ParameterSet')[1].lstrip().rstrip()
 			   totalline = ''
 
+		    if((foundlineend == True) and (totalline.find(' = ' + self.mainpset + ';')) != -1):
+			psetassign = totalline.split(' = ' + self.mainpset + ';')[0]
+			if(psetassign.find('ParameterSet') != -1):
+			    psetassign = psetassign.split('ParameterSet')[1].lstrip().rstrip()
+			if(self.verbose > 1):
+			    print '\tAssigning variable ' + psetassign + ' as the main pset'
+			self.mainpset = psetassign
+
                     # First look at tracked parameters. No default value
                     # is specified in the .cc file                
                     if((foundlineend == True) and
@@ -1229,7 +1237,7 @@ class SourceParser:
 			    theobjectargument = line.split(theobjectclass)[1].lstrip('(')
 			elif(len(line.split(theobjectclass)) == 3):
 			    theobjectargument = line.split(theobjectclass)[2].lstrip('(')
-    
+
 			if(line.find(',') != -1):
 			    thepassedpset = theobjectargument.split(',')[0].lstrip().rstrip()
 			else:
