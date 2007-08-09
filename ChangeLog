@@ -1,3 +1,12 @@
+2007-08-09  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-08-02
+	* fix problem where [v]string parameters initialized to [one]
+	empty string would not be saved/loaded correctly.
+	* Since Oracle treats '' as NULL (argh!), the Oracle db schema
+	needed to be changed as well to allow 'value' to be NULL in the
+	tables '[V]StringParamValues'.
+
 2007-08-08  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-08-01

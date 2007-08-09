@@ -97,7 +97,7 @@ public class InputTagParameter extends ScalarParameter
     /** set the value  the parameter */
     public boolean setValue(String valueAsString)
     {
-	if (valueAsString.length()==0) {
+	if (valueAsString==null||valueAsString.length()==0) {
 	    isValueSet = false;
 	    label      = null;
 	    instance   = null;

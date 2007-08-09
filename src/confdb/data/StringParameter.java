@@ -29,8 +29,8 @@ public class StringParameter extends ScalarParameter
 			   boolean isTracked,boolean isDefault)
     {
 	super(name,isTracked,isDefault);
-	if (value==null) setValue(new String());
-	else             setValue(value);
+	if (value!=null&&value.length()==0) value="''";
+	setValue(value);
     }
 
     
@@ -61,7 +61,7 @@ public class StringParameter extends ScalarParameter
     /** set the value  the parameter, indicate if default */
     public boolean setValue(String valueAsString)
     {
-	if (valueAsString.length()==0) {
+	if (valueAsString==null||valueAsString.length()==0) {
 	    isValueSet = false;
 	    value      = null;
 	}

@@ -76,7 +76,7 @@ public class VUInt32Parameter extends VectorParameter
     public boolean setValue(String valueAsString)
     {
 	values.clear();
-	if (valueAsString.length()==0) {
+	if (valueAsString==null||valueAsString.length()==0) {
 	    isValueSet = false;
 	}
 	else {

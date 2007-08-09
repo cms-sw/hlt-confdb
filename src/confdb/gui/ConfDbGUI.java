@@ -43,6 +43,9 @@ public class ConfDbGUI implements TableModelListener
     // member data
     //
     
+    /** name of the current user according to system env */
+    private String userName = null;
+
     /** main frame of the application */
     private JFrame frame = null; 
     
@@ -85,6 +88,7 @@ public class ConfDbGUI implements TableModelListener
     /** standard constructor */
     public ConfDbGUI(JFrame frame)
     {
+	this.userName         = System.getProperty("user.name");
 	this.frame            = frame;
 	this.currentRelease   = new SoftwareRelease();
 	this.currentConfig    = new Configuration();

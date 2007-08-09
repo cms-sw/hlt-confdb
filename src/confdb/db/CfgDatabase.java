@@ -2115,7 +2115,7 @@ public class CfgDatabase
 		int     sequenceNb   = rs.getInt(7);
 		
 		String  paramValue   = loadParamValue(paramId,paramTypeId);
-
+		
 		Parameter p = ParameterFactory.create(paramType,
 						      paramName,
 						      paramValue,
@@ -2973,7 +2973,8 @@ public class CfgDatabase
     /** load parameter value */
     private String loadParamValue(int paramId,int paramTypeId)
     {
-	String valueAsString = new String();
+	String valueAsString = null;
+	
 	PreparedStatement psSelectParameterValue =
 	    selectParameterIdHashMap.get(paramTypeId);
 	ResultSet rs = null;
@@ -2982,18 +2983,30 @@ public class CfgDatabase
 	    rs = psSelectParameterValue.executeQuery();
 	    
 	    if (isVectorParamHashMap.get(paramTypeId)) {
-		while (rs.next()) valueAsString += rs.getObject(3).toString() + ", ";
-		int length = valueAsString.length();
+		while (rs.next()) {
+		    if (valueAsString==null) valueAsString = new String();
+		    Object valueAsObject = rs.getObject(3);
+		    if (valueAsObject!=null) valueAsString+=valueAsObject.toString();
+		    valueAsString += ", ";
+		}
+		int length = (valueAsString!=null) ? valueAsString.length() : 0;
 		if (length>0) valueAsString = valueAsString.substring(0,length-2);
 	    }
 	    else {
-		if (rs.next()) valueAsString = rs.getObject(2).toString();
+		if (rs.next()) {
+		    Object valueAsObject = rs.getObject(2);
+		    if (valueAsObject!=null)
+			valueAsString = valueAsObject.toString();
+		    else
+			valueAsString = new String();
+		}
 	    }
 	}
-	catch (Exception e) { /* ignore */ }
+	catch (Exception e) { e.printStackTrace(); }
 	finally {
 	    dbConnector.release(rs);
 	}
+
 	return valueAsString;
     }
     

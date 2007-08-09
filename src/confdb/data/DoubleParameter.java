@@ -69,7 +69,7 @@ public class DoubleParameter extends ScalarParameter
     /** set the value  the parameter, indicate if default */
     public boolean setValue(String valueAsString)
     {
-	if (valueAsString.length()==0) {
+	if (valueAsString==null||valueAsString.length()==0) {
 	    isValueSet = false;
 	    value      = null;
 	}

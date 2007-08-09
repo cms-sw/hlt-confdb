@@ -32,7 +32,10 @@ public class VStringParameter extends VectorParameter
 			    boolean isTracked,boolean isDefault)
     {
 	super(name,isTracked,isDefault);
-	for (String s : values) this.values.add(new String(s));
+	for (String s : values) {
+	    if (s!=null) this.values.add(new String(s));
+	    else         this.values.add(new String());
+	}
 	isValueSet = (values.size()>0);
     }
     
@@ -41,6 +44,7 @@ public class VStringParameter extends VectorParameter
 			    boolean isTracked,boolean isDefault)
     {
 	super(name,isTracked,isDefault);
+	if (valuesAsString!=null&&valuesAsString.length()==0) valuesAsString="''";
 	setValue(valuesAsString);
     }
     
@@ -76,7 +80,7 @@ public class VStringParameter extends VectorParameter
     public boolean setValue(String valueAsString)
     {
 	values.clear();
-	if (valueAsString.length()==0) {
+	if (valueAsString==null||valueAsString.length()==0) {
 	    isValueSet = false;
 	}
 	else {

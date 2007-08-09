@@ -878,7 +878,7 @@ CREATE INDEX VDoubleValuesParamId_idx ON VDoubleParamValues(paramId);
 CREATE TABLE StringParamValues
 (
 	paramId    	NUMBER		NOT NULL,
-	value      	VARCHAR2(512)	NOT NULL,
+	value      	VARCHAR2(512),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
 
@@ -893,7 +893,7 @@ CREATE TABLE VStringParamValues
 (
 	paramId    	NUMBER		NOT NULL,
 	sequenceNb 	NUMBER(6)	NOT NULL,
-	value      	VARCHAR2(512)	NOT NULL,
+	value      	VARCHAR2(512),
 	UNIQUE(paramId,sequenceNb),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
