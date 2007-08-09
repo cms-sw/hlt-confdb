@@ -2,7 +2,7 @@
 <jnlp codebase="$$codebase">
   <information>
     <title>ConfigDB editor</title>
-    <vendor>ube</vendor>
+    <vendor>CMS-ube</vendor>
     <description>HLT configuration editor</description>
     <offline-allowed/>
   </information>
@@ -11,7 +11,7 @@
   </security>
   <resources>
     <j2se version="1.5+"/>
-    <jar href="confdb.jar" main="true" download="eager"/>
+    <jar href="cmssw-evf-confdb-gui.jar" main="true" download="eager"/>
     <jar href="mysql-connector-java-5.0.5-bin.jar" download="eager"/>
     <jar href="ojdbc14.jar" download="eager"/>
     <jar href="swing-layout-1.0.jar" download="eager"/>
