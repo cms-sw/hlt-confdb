@@ -153,6 +153,11 @@ public class ConfDbGUI implements TableModelListener
 	configurationPanel = new ConfigurationPanel(this,
 						    currentTree,importTree,
 						    converterService);
+
+	frame.addWindowListener(new WindowAdapter() {
+		public void windowClosing(WindowEvent e) { closeConfiguration(); }
+        });
+	
     }
     
     

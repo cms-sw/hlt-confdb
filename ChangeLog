@@ -1,5 +1,10 @@
 2007-08-09  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-08-03
+	* gui bugfix regarding 'Remove Sequence'.
+
+2007-08-09  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-08-02
 	* fix problem where [v]string parameters initialized to [one]
 	empty string would not be saved/loaded correctly.

@@ -498,23 +498,25 @@ public class ConfigurationTreeActions
 	    }
 	}
 	
-	int index = -1;
+	int    index  = -1;
+	Object parent = null;
 	if (container instanceof Path) {
-	    index = config.indexOfPath((Path)container);
+	    index  = config.indexOfPath((Path)container);
+	    parent = model.pathsNode();
 	    config.removePath((Path)container);
 	}
 	else if (container instanceof Sequence) {
 	    index = config.indexOfSequence((Sequence)container);
+	    parent = model.sequencesNode();
 	    config.removeSequence((Sequence)container);
 	}
 	
-	model.nodeRemoved(model.pathsNode(),index,container);
+	model.nodeRemoved(parent,index,container);
 	if (childIndices!=null)
 	    model.nodesRemoved(model.modulesNode(),childIndices,children);
 	model.updateLevel1Nodes();
 	
 	TreePath parentTreePath = treePath.getParentPath();
-	Object   parent         = parentTreePath.getLastPathComponent();
 	if (index==0)
 	    tree.setSelectionPath(parentTreePath);
 	else
