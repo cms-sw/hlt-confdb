@@ -1641,6 +1641,10 @@ class SourceParser:
 		if(self.verbose > 1):
 		    print 'Look in file ' + self.sourcetree + theincfile
 
+                if(not os.path.isfile(self.sourcetree + theincfile)):
+                    print '\tCould not find the file ' + self.sourcetree + theincfile
+                    continue
+
 		newsrcfilehandle = open(self.sourcetree + theincfile)
 
 		newsrcfilelines = newsrcfilehandle.readlines()
