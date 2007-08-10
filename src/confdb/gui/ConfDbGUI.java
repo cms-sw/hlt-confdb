@@ -158,6 +158,13 @@ public class ConfDbGUI implements TableModelListener
 		public void windowClosing(WindowEvent e) { closeConfiguration(); }
         });
 	
+	
+	Runtime.getRuntime().addShutdownHook(new Thread() {
+		public void run()
+		{
+		    System.out.println("user " + userName + " is shutting down!");
+		}
+	    });
     }
     
     
@@ -942,5 +949,6 @@ public class ConfDbGUI implements TableModelListener
 	    progressBar.setIndeterminate(false);
 	}
     }
-    
+
+
 }
