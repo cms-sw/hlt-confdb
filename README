@@ -2,17 +2,20 @@
 startGUI script:
 ----------------
 
-The following steps are necessary to setup the startGUI script to work
+You shouldn't have to start the GUI by checkking out the package and
+invoking the startGUI script! You can start the GUI by pointing your
+browser to the following address:
 
-cd /path/to/CMSSW_X_Y_Z/src
-eval `scramv1 runtime -[c]sh`
-cvs co EventFilter/ConfigDB
-cd EventFilter/ConfigDB
+http://www.cern.ch/confdb/gui/start.jnlp
+
+
+To invoke the startGUI script you need 'java' and 'classic-ant' in
+your path. Then:
+
+cvs co [-r VXX-YY-ZZ] -d . EventFilter/ConfigDB
+cd ConfigDB
 ./startGUI
 
-Once you have checked out the ConfigDB package, you can execute the
-script from any place you want, *if* you have executed the "eval
-`scramv1 runtime -[c]sh`" command beforehand!
 
 ---------
  parser:

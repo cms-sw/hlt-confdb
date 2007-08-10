@@ -36,6 +36,7 @@ GRANT SELECT ON Modules 			TO cms_hlt_writer;
 GRANT SELECT ON ModuleTemplates 		TO cms_hlt_writer;
 GRANT SELECT ON ModuleTypes 			TO cms_hlt_writer;
 GRANT SELECT ON Configurations 			TO cms_hlt_writer;
+GRANT SELECT ON LockedConfigurations  		TO cms_hlt_writer;
 GRANT SELECT ON Directories 			TO cms_hlt_writer;
 GRANT SELECT ON Int32ParamValues 		TO cms_hlt_writer;
 GRANT SELECT ON VInt32ParamValues 		TO cms_hlt_writer;
@@ -91,6 +92,7 @@ GRANT INSERT ON ESSources 			TO cms_hlt_writer;
 GRANT INSERT ON ESModules 			TO cms_hlt_writer;
 GRANT INSERT ON Modules 			TO cms_hlt_writer;
 GRANT INSERT ON Configurations 			TO cms_hlt_writer;
+GRANT INSERT ON LockedConfigurations		TO cms_hlt_writer;
 GRANT INSERT ON Directories 			TO cms_hlt_writer;
 GRANT INSERT ON Int32ParamValues 		TO cms_hlt_writer;
 GRANT INSERT ON VInt32ParamValues 		TO cms_hlt_writer;
@@ -116,6 +118,7 @@ GRANT INSERT ON SuperIds 			TO cms_hlt_writer;
 
 --  DELETE
 GRANT DELETE ON Directories		 	TO cms_hlt_writer;
+GRANT DELETE ON LockedConfigurations	 	TO cms_hlt_writer;
 
 
 --
@@ -152,6 +155,7 @@ GRANT SELECT ON Modules 			TO cms_hlt_reader;
 GRANT SELECT ON ModuleTemplates 		TO cms_hlt_reader;
 GRANT SELECT ON ModuleTypes 			TO cms_hlt_reader;
 GRANT SELECT ON Configurations 			TO cms_hlt_reader;
+GRANT SELECT ON LockedConfigurations		TO cms_hlt_reader;
 GRANT SELECT ON Directories 			TO cms_hlt_reader;
 GRANT SELECT ON Int32ParamValues 		TO cms_hlt_reader;
 GRANT SELECT ON VInt32ParamValues 		TO cms_hlt_reader;

@@ -154,6 +154,7 @@ public class TreeTableTableModel extends AbstractTableModel
 
     public boolean isCellEditable(int row,int column)
     {
+	if (!tree.isEditable()) return false;
 	return treeModel.isCellEditable(nodeForRow(row),column);
     }
 

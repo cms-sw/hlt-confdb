@@ -58,7 +58,7 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     private TreeTable   jTreeTableParameters = null;
     private JEditorPane jEditorPaneSnippet   = new JEditorPane();
 
-
+    
     /** the current instance, to redisplay upon change */
     private Object currentObject = null;
     
@@ -121,6 +121,12 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     public void setConfigurationTreeModel(ConfigurationTreeModel model)
     {
 	this.configurationTreeModel = model;
+    }
+
+    /** set editable (or not) */
+    public void setEditable(boolean editable)
+    {
+	jTreeTableParameters.getTree().setEditable(editable);
     }
     
     /** set instance to be displayed */

@@ -85,8 +85,26 @@ public class ConfigurationDialog extends JDialog
     {
 	rootDir = database.loadConfigurationTree();
 	dirTreeModel = new DirectoryTreeModel(rootDir);
-	dirTree = new JTree(dirTreeModel);
+
+	dirTree = new JTree(dirTreeModel) {
+		public String getToolTipText(MouseEvent evt) {
+		    String text = "";
+		    if (getRowForLocation(evt.getX(),evt.getY()) == -1) return text;
+		    TreePath tp = getPathForLocation(evt.getX(), evt.getY());
+		    Object selectedNode = tp.getLastPathComponent();
+		    if (selectedNode instanceof ConfigInfo) {
+			ConfigInfo info = (ConfigInfo)selectedNode;
+			if (info.isLocked()) {
+			    text = "locked by user '" + info.lockedByUser() + "'";
+			}
+		    }
+		    return text;
+		}
+	    };
+	dirTree.setToolTipText("");
+	
 	dirTree.setEditable(true);
+	dirTree.setCellRenderer(new DirTreeCellRenderer());
 	dirTree.setCellEditor(new DirTreeCellEditor(dirTree,
 						    new DefaultTreeCellRenderer()));
 	JScrollPane result = new JScrollPane(dirTree);
@@ -123,27 +141,14 @@ public class ConfigurationDialog extends JDialog
      */
     public class DirTreeCellEditor extends DefaultTreeCellEditor
     {
-	//
-	// data member
-	//
-	
 	/** Directory to be edited */
 	private Directory dir = null;
-	
-	//
-	//
-	//
 	
 	/** standard constructor */
 	public DirTreeCellEditor(JTree tree,DefaultTreeCellRenderer renderer)
 	{
 	    super(tree,renderer);
 	}
-	
-	//
-	// member functions
-	//
-	
 	/** is cell editable? don't respond to double clicks */
 	public boolean isCellEditable(EventObject e)
 	{
@@ -183,6 +188,40 @@ public class ConfigurationDialog extends JDialog
 						    row);
 	}
 	
+    }
+    
+    /**
+     * DirTreeCellRenderer
+     * -------------------
+     * @author Philipp Schieferdecker
+     */
+    public class DirTreeCellRenderer extends DefaultTreeCellRenderer
+    {
+	/** Directory to be edited */
+	private Directory dir = null;
+	
+	/** TreeCellRenderer interface, overwrite Default implementation */
+	public Component getTreeCellRendererComponent(JTree   tree,
+						      Object  value,
+						      boolean sel,
+						      boolean expanded,
+						      boolean leaf,
+						      int     row,
+						      boolean hasFocus)
+	{
+	    super.getTreeCellRendererComponent(tree,value,sel,
+					       expanded,leaf,row,
+					       hasFocus);
+	    if (value instanceof ConfigInfo) {
+		ConfigInfo configInfo = (ConfigInfo)value;
+		if (configInfo.isLocked()) {
+		    setText("<html>"+getText() +
+			    " <font color=#ff0000>LOCKED</font></html>");
+		}
+	    }
+	    
+	    return this;
+	}
     }
     
 }

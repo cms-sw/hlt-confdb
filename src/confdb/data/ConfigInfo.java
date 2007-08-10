@@ -31,8 +31,11 @@ public class ConfigInfo
     
     /** selected version index */
     private int versionIndex = -1;
+
+    /** user who is currently locking this configuration */
+    private String lockedByUser = "";
     
-    
+
     //
     // construction
     //
@@ -98,6 +101,23 @@ public class ConfigInfo
     /** get the i-th version */
     public ConfigVersion version(int i) { return versions.get(i); }
     
+    /** check if configuration and all versions are locked */
+    public boolean isLocked() { return (lockedByUser.length()>0); }
+    
+    /** user who currently locks this configuration and all versions */
+    public String lockedByUser() { return lockedByUser; }
+    
+    /** lock this configuration and all its versions */
+    public boolean lock(String userName)
+    {
+	if (isLocked()||userName.equals(new String())) return false;
+	lockedByUser = userName;
+	return true;
+    }
+    
+    /** unlock this configuration and all its versions */
+    public void unlock() { this.lockedByUser = ""; }
+
     /** add an new version of this configuration */
     public void addVersion(int dbId,int version,String created,String releaseTag)
     {

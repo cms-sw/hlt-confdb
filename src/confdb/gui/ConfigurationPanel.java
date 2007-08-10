@@ -248,7 +248,11 @@ public class ConfigurationPanel extends JPanel
 	    jTextFieldCreated.setText(currentConfig.created());
 	    jTextFieldRelease.setText(currentConfig.releaseTag());
 	    jTextFieldProcess.setText(currentConfig.processName());
-	    jTextFieldProcess.setEditable(true);
+
+	    if (currentConfig.isLocked())
+		jTextFieldProcess.setEditable(false);
+	    else
+		jTextFieldProcess.setEditable(true);
 	}
     }
     

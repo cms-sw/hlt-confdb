@@ -88,6 +88,22 @@ END;
 
 
 --
+-- TABLE 'LockedConfigurations'
+--
+CREATE TABLE LockedConfigurations
+(
+	parentDirId	NUMBER	  	NOT NULL,
+	config		VARCHAR2(128)	NOT NULL,
+	userName        VARCHAR2(128)	NOT NULL,
+	UNIQUE (parentDirId,config),
+	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
+);
+
+-- INDEX LockedConfigs_idx
+-- CREATE INDEX LockedConfigs_idx ON LockedConfigurations(parentDirId,config);
+
+
+--
 -- TABLE 'ConfigurationReleaseAssoc'
 --
 CREATE TABLE ConfigurationReleaseAssoc

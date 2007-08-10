@@ -2,27 +2,16 @@
 
 
 # get environment variables
-my $cmssw_version = get_env_variable("CMSSW_VERSION");
-my $cmssw_base    = get_env_variable("CMSSW_BASE");
-my $java_home     = get_env_variable("JAVA_HOME");
-#my $oracle_home   = get_env_variable("ORACLE_HOME");
-#my $mysql_home    = get_env_variable("MYSQL_HOME");
-
+#my $java_home = get_env_variable("JAVA_HOME");
 
 # build the ConfDbGUI jar file if necessary
-my $confdb_gui_jar = "$cmssw_base/src/EventFilter/ConfigDB/lib/cmssw-evf-confdb-gui.jar";
+my $confdb_gui_jar = "lib/cmssw-evf-confdb-gui.jar";
 my $classpath      = $confdb_gui_jar;
 
 if (!-e $confdb_gui_jar)
 {
     print "\nBuilding $confdb_gui_jar ...\n";
-    my $pwd = `pwd`; chomp($pwd);
-    `cd $cmssw_base/src/EventFilter/ConfigDB`;
-    my $oldpath = $ENV{"PATH"};
-    $ENV{"PATH"} = "$java_home/bin:$oldpath";
     `classic-ant`;
-    $ENV{"PATH"} = $oldpath;
-    `cd $pwd`;
 
     if (-e $confdb_gui_jar)
     {
@@ -42,7 +31,7 @@ $classpath = $classpath . ":ext/swing-layout-1.0.jar";
 
 # start the GUI
 `rm -f ConfDbGUI.log`;
-system("$java_home/bin/java -classpath $classpath confdb.gui.ConfDbGUI");
+system("java -classpath $classpath confdb.gui.ConfDbGUI");
 
 exit 0;
 
@@ -61,6 +50,6 @@ sub get_env_variable
 	$result = $ENV{$varname};
 	print "\$" . $varname . " = $result\n";
     }
-    else { die ("ERROR: \$" . $varname . " undefined!"); }
+    else { print ("WARNING: \$" . $varname . " undefined!"); }
     return $result;
 }

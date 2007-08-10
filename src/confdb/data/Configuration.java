@@ -168,6 +168,18 @@ public class Configuration
 		paths.isEmpty()&&sequences.isEmpty());
     }
 
+    /** check if configuration and all its versions are locked */
+    public boolean isLocked()
+    {
+	return (configInfo!=null) ? configInfo.isLocked() : false;
+    }
+
+    /** check if configuration and all its versions are locked */
+    public String lockedByUser()
+    {
+	return (configInfo!=null) ? configInfo.lockedByUser() : new String();
+    }
+
     /** database identifier */
     public int dbId()
     {

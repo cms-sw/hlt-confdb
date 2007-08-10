@@ -1,3 +1,15 @@
+2007-08-10  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-09-00
+	* pick up several parser fixes
+	* lock all versions of a configuration while somebody is working
+	on it
+	* indicate that a configuration and all its version are locked in
+	the 'Open' dialog; hovering over the locked node will show the
+	locking user via tooltip.
+	* change startGUI script not to look for java in the CMSSW
+	environment
+
 2007-08-09  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-08-03

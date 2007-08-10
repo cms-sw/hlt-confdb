@@ -31,6 +31,7 @@ CREATE SYNONYM Modules 				FOR CMS_HLT.Modules;
 CREATE SYNONYM ModuleTemplates		 	FOR CMS_HLT.ModuleTemplates;
 CREATE SYNONYM ModuleTypes 			FOR CMS_HLT.ModuleTypes;
 CREATE SYNONYM Configurations 			FOR CMS_HLT.Configurations;
+CREATE SYNONYM LockedConfigurations		FOR CMS_HLT.LockedConfigurations;
 CREATE SYNONYM Directories 			FOR CMS_HLT.Directories;
 CREATE SYNONYM Int32ParamValues 		FOR CMS_HLT.Int32ParamValues;
 CREATE SYNONYM VInt32ParamValues 		FOR CMS_HLT.VInt32ParamValues;

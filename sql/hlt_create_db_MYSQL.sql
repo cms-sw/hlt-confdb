@@ -33,7 +33,7 @@ CREATE TABLE Directories
 CREATE TABLE Configurations
 (
 	configId   	BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT UNIQUE,
-	configDescriptor VARCHAR(256)     NOT NULL UNIQUE,
+	configDescriptor VARCHAR(512)     NOT NULL UNIQUE,
 	parentDirId     BIGINT UNSIGNED   NOT NULL,
 	config     	VARCHAR(128)      NOT NULL,
 	version         SMALLINT UNSIGNED NOT NULL,
@@ -41,6 +41,16 @@ CREATE TABLE Configurations
 	processName	VARCHAR(32)	  NOT NULL,
 	UNIQUE (parentDirId,config,version),
 	PRIMARY KEY(configId),
+	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
+) ENGINE=INNODB;
+
+-- TABLE'LockedConfigurations'
+CREATE TABLE LockedConfigurations
+(
+	parentDirId	BIGINT UNSIGNED	  NOT NULL,
+	config		VARCHAR(128)	  NOT NULL,
+	userName        VARCHAR(128)      NOT NULL,
+	UNIQUE (parentDirId,config),
 	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
 ) ENGINE=INNODB;
 

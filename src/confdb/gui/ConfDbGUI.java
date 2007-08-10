@@ -155,14 +155,19 @@ public class ConfDbGUI implements TableModelListener
 						    converterService);
 
 	frame.addWindowListener(new WindowAdapter() {
-		public void windowClosing(WindowEvent e) { closeConfiguration(); }
+		public void windowClosing(WindowEvent e)
+		{
+		    closeConfiguration();
+		    disconnectFromDatabase();
+		}
         });
 	
 	
 	Runtime.getRuntime().addShutdownHook(new Thread() {
 		public void run()
 		{
-		    System.out.println("user " + userName + " is shutting down!");
+		    closeConfiguration();
+		    disconnectFromDatabase();
 		}
 	    });
     }
@@ -270,8 +275,8 @@ public class ConfDbGUI implements TableModelListener
 	    String      targetName = dialog.targetName();
 	    Directory   targetDir  = dialog.targetDir();
 	    
-	    ConfigurationExportThread worker =
-		new ConfigurationExportThread(targetDB,targetName,targetDir);
+	    ExportConfigurationThread worker =
+		new ExportConfigurationThread(targetDB,targetName,targetDir);
 	    worker.start();
 	    progressBar.setIndeterminate(true);
 	    progressBar.setVisible(true);
@@ -368,6 +373,8 @@ public class ConfDbGUI implements TableModelListener
 	    if (answer==1) return false;
 	}
 	
+	if (!currentConfig.isLocked())
+	    database.unlockConfiguration(currentConfig);
 	currentRelease.clearInstances();
 	currentConfig.reset();
 	currentTreeModel.setConfiguration(currentConfig);
@@ -381,8 +388,9 @@ public class ConfDbGUI implements TableModelListener
     {
 	if (currentConfig.isEmpty()) return;
 	if (!currentConfig.hasChanged()) return;
+	if (currentConfig.isLocked()) return;
 	if (!checkConfiguration()) return;	
-
+	
 	if (currentConfig.version()==0) {
 	    saveAsConfiguration();
 	    return;
@@ -400,7 +408,11 @@ public class ConfDbGUI implements TableModelListener
     public void saveAsConfiguration()
     {
 	if (!checkConfiguration()) return;
-
+	if (currentConfig.isLocked()) return;
+	
+	if (currentConfig.version()!=0)
+	    database.unlockConfiguration(currentConfig);
+	
 	SaveConfigurationDialog dialog =
 	    new SaveConfigurationDialog(frame,database,currentConfig);
 	dialog.pack();
@@ -415,6 +427,8 @@ public class ConfDbGUI implements TableModelListener
 	    progressBar.setString("Save Configuration ...");
 	    progressBar.setVisible(true);
 	}
+	else
+	    database.lockConfiguration(currentConfig,userName);
     }
     
     /** migrate configuration (to another release) */
@@ -431,12 +445,12 @@ public class ConfDbGUI implements TableModelListener
 	String releaseTag = dialog.releaseTag();	
 	
 	if (releaseTag.length()>0) {
-	    ConfigurationMigrationThread worker =
-		new ConfigurationMigrationThread(releaseTag);
+	    MigrateConfigurationThread worker =
+		new MigrateConfigurationThread(releaseTag);
 	    worker.start();
 	    progressBar.setIndeterminate(true);
 	    progressBar.setVisible(true);
-	    progressBar.setString("Migration configuration to release '" +
+	    progressBar.setString("Migrate configuration to release '" +
 				  releaseTag + "' ... ");
 	}
     }
@@ -581,7 +595,7 @@ public class ConfDbGUI implements TableModelListener
     /**
      * migrate current configuration to another database
      */
-    private class ConfigurationExportThread extends SwingWorker<String>
+    private class ExportConfigurationThread extends SwingWorker<String>
     {
 	/** target database */
 	private CfgDatabase targetDB = null;
@@ -599,7 +613,7 @@ public class ConfDbGUI implements TableModelListener
 	private long startTime;
 	
 	/** standard constructor */
-	public ConfigurationExportThread(CfgDatabase targetDB,
+	public ExportConfigurationThread(CfgDatabase targetDB,
 					 String targetName,Directory targetDir)
 	{
 	    this.targetDB   = targetDB;
@@ -733,6 +747,7 @@ public class ConfDbGUI implements TableModelListener
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		progressBar.setString(progressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
+	    
 	    }
 	    catch (ExecutionException e) {
 		System.out.println("EXECUTION-EXCEPTION: "+ e.getCause());
@@ -744,6 +759,27 @@ public class ConfDbGUI implements TableModelListener
 		progressBar.setString(progressBar.getString() + "FAILED!");
 	    }
 	    progressBar.setIndeterminate(false);
+
+	    // check if the loaded config is locked and thus read-only
+	    if (currentConfig.isLocked()) {
+		currentTree.setEditable(false);
+		instancePanel.setEditable(false);
+		String msg =
+		    "The configuration '" +
+		    currentConfig.parentDir().name() + "/" +
+		    currentConfig.name() + " is locked by user '" +
+		    currentConfig.lockedByUser() + "'!\n" +
+		    "You can't manipulate any of its versions " +
+		    "until it is released.";
+		JOptionPane.showMessageDialog(frame,msg,"READ ONLY!",
+					      JOptionPane.WARNING_MESSAGE,
+					      null);
+	    }
+	    else {
+		currentTree.setEditable(true);
+		instancePanel.setEditable(true);
+		database.lockConfiguration(currentConfig,userName);
+	    }
 	}
     }
 
@@ -814,6 +850,8 @@ public class ConfDbGUI implements TableModelListener
 	{
 	    startTime = System.currentTimeMillis();
 	    database.insertConfiguration(currentConfig);
+	    if (!currentConfig.isLocked())
+		database.lockConfiguration(currentConfig,userName);
 	    return new String("Done!");
 	}
 	
@@ -839,7 +877,7 @@ public class ConfDbGUI implements TableModelListener
     /**
      * save a configuration in the database
      */
-    private class ConfigurationMigrationThread extends SwingWorker<String>
+    private class MigrateConfigurationThread extends SwingWorker<String>
     {
 	/** the target release */
 	private String targetReleaseTag = null;
@@ -851,7 +889,7 @@ public class ConfDbGUI implements TableModelListener
 	private long startTime;
 	
 	/** standard constructor */
-	public ConfigurationMigrationThread(String targetReleaseTag)
+	public MigrateConfigurationThread(String targetReleaseTag)
 	{
 	    this.targetReleaseTag = targetReleaseTag;
 	}

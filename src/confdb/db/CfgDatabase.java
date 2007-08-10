@@ -75,6 +75,7 @@ public class CfgDatabase
 
     private PreparedStatement psSelectDirectories                 = null;
     private PreparedStatement psSelectConfigurationsByDir         = null;
+    private PreparedStatement psSelectLockedConfigurations        = null;
 
     private PreparedStatement psSelectConfigNames                 = null;
     private PreparedStatement psSelectConfiguration               = null;
@@ -135,8 +136,8 @@ public class CfgDatabase
     
     
     private PreparedStatement psInsertDirectory                   = null;
-    private PreparedStatement psRemoveDirectory                   = null;
     private PreparedStatement psInsertConfiguration               = null;
+    private PreparedStatement psInsertConfigurationLock           = null;
     private PreparedStatement psInsertConfigReleaseAssoc          = null;
     private PreparedStatement psInsertSuperId                     = null;
     private PreparedStatement psInsertGlobalPSet                  = null;
@@ -184,6 +185,9 @@ public class CfgDatabase
     private PreparedStatement psInsertVEventIDParamValue          = null;
     private PreparedStatement psInsertVInputTagParamValue         = null;
 
+    private PreparedStatement psDeleteDirectory                   = null;
+    private PreparedStatement psDeleteLock                        = null;
+
     private ArrayList<PreparedStatement> preparedStatements =
 	new ArrayList<PreparedStatement>();
     
@@ -216,6 +220,10 @@ public class CfgDatabase
 	int[] keyColumn = { 1 };
 
 	try {
+	    //
+	    // SELECT
+	    //
+
 	    psSelectModuleTypes =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -260,6 +268,17 @@ public class CfgDatabase
 		 "ORDER BY Configurations.created DESC");
 	    preparedStatements.add(psSelectConfigurationsByDir);
 	    
+	    psSelectLockedConfigurations =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " LockedConfigurations.parentDirId," +
+		 " LockedConfigurations.config," +
+		 " LockedConfigurations.userName " +
+		 "FROM LockedConfigurations " +
+		 "WHERE LockedConfigurations.parentDirId = ? " +
+		 "AND   LockedConfigurations.config = ?");
+	    preparedStatements.add(psSelectLockedConfigurations);
+
 	    psSelectConfigNames =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -874,6 +893,10 @@ public class CfgDatabase
 	    preparedStatements.add(psSelectVInputTagParamValues);
 
 
+	    //
+	    // INSERT
+	    //
+
 	    if (dbType.equals(dbTypeMySQL))
 		psInsertDirectory =
 		    dbConnector.getConnection().prepareStatement
@@ -888,11 +911,6 @@ public class CfgDatabase
 		     "VALUES (?, ?, SYSDATE)",
 		     keyColumn);
 	    preparedStatements.add(psInsertDirectory);
-
-	    psRemoveDirectory =
-		dbConnector.getConnection().prepareStatement
-		("DELETE FROM Directories WHERE dirId=?");
-	    preparedStatements.add(psRemoveDirectory);
 
 	    if (dbType.equals(dbTypeMySQL))
 		psInsertConfiguration =
@@ -911,7 +929,14 @@ public class CfgDatabase
 		     keyColumn);
 	    preparedStatements.add(psInsertConfiguration);
 	    
-	    psInsertConfigReleaseAssoc = dbConnector.getConnection().prepareStatement
+	    psInsertConfigurationLock =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO LockedConfigurations (parentDirId,config,userName)" +
+		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertConfigurationLock);
+
+	    psInsertConfigReleaseAssoc =
+		dbConnector.getConnection().prepareStatement
 		("INSERT INTO ConfigurationReleaseAssoc (configId,releaseId) " +
 		 "VALUES(?, ?)");
 	    preparedStatements.add(psInsertConfigReleaseAssoc);
@@ -1199,6 +1224,24 @@ public class CfgDatabase
 		("INSERT INTO VInputTagParamValues (paramId,sequenceNb,value) " +
 		 "VALUES (?, ?, ?)");
 	    preparedStatements.add(psInsertVInputTagParamValue);
+
+
+	    //
+	    // DELETE
+	    //
+	    
+	    psDeleteDirectory =
+		dbConnector.getConnection().prepareStatement
+		("DELETE FROM Directories WHERE dirId=?");
+	    preparedStatements.add(psDeleteDirectory);
+
+	    psDeleteLock =
+		dbConnector.getConnection().prepareStatement
+		("DELETE FROM LockedConfigurations " +
+		 "WHERE parentDirId=? AND config=?");
+	    preparedStatements.add(psDeleteLock);
+
+	    
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
@@ -1425,7 +1468,8 @@ public class CfgDatabase
 		    if (!directoryHashMap.containsKey(parentDirId))
 			throw new DatabaseException("parent dir not found in DB!");
 		    Directory parentDir = directoryHashMap.get(parentDirId);
-		    Directory newDir    = new Directory(dirId,dirName,dirCreated,parentDir);
+		    Directory newDir    = new Directory(dirId,
+							dirName,dirCreated,parentDir);
 		    parentDir.addChildDir(newDir);
 		    directoryList.add(newDir);
 		    directoryHashMap.put(dirId,newDir);
@@ -1462,6 +1506,24 @@ public class CfgDatabase
 							       configReleaseTag);
 			configHashMap.put(configPathAndName,configInfo);
 			dir.addConfigInfo(configInfo);
+
+			// determine if these configurations are locked
+			ResultSet rs2 = null;
+			try {
+			    psSelectLockedConfigurations.setInt(1,dir.dbId());
+			    psSelectLockedConfigurations.setString(2,configName);
+			    rs2 = psSelectLockedConfigurations.executeQuery();
+			    if (rs2.next()) {
+				String userName = rs2.getString(3);
+				configInfo.lock(userName);
+			    }
+			}
+			catch(SQLException e) {
+			    e.printStackTrace();
+			}
+			finally {
+			    dbConnector.release(rs2);
+			}
 		    }
 		}
 	    }
@@ -2317,17 +2379,13 @@ public class CfgDatabase
     public boolean removeDirectory(Directory dir)
     {
 	boolean result = false;
-	ResultSet rs = null;
 	try {
-	    psRemoveDirectory.setInt(1,dir.dbId());
-	    psRemoveDirectory.executeUpdate();
+	    psDeleteDirectory.setInt(1,dir.dbId());
+	    psDeleteDirectory.executeUpdate();
 	    result = true;
 	}
 	catch (SQLException e) {
 	    System.out.println("removeDirectory FAILED: " + e.getMessage());
-	}
-	finally {
-	    dbConnector.release(rs);
 	}
 	return result;
     }
@@ -2410,6 +2468,58 @@ public class CfgDatabase
 	    insertReferences(config,pathHashMap,sequenceHashMap,moduleHashMap);
 	}
 
+	return result;
+    }
+
+    /** lock a configuration and all of its versions */
+    public boolean lockConfiguration(Configuration config,String userName)
+    {
+	int    parentDirId   = config.parentDir().dbId();
+	String parentDirName = config.parentDir().name();
+	String configName    = config.name();
+	
+	if (config.isLocked()) {
+	    System.out.println("Can't lock " + parentDirName + "/" + configName +
+			       ": already locked by user '" + config.lockedByUser() +
+			       "'!");
+	    return false;
+	}
+
+	boolean result = false;
+	
+	try {
+	    psInsertConfigurationLock.setInt(1,parentDirId);
+	    psInsertConfigurationLock.setString(2,configName);
+	    psInsertConfigurationLock.setString(3,userName);
+	    psInsertConfigurationLock.executeUpdate();
+	    result = true;
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	return result;
+    }
+
+    /** unlock a configuration and all its versions */
+    public boolean unlockConfiguration(Configuration config)
+    {
+	boolean    result        = false;
+	int        parentDirId   = config.parentDir().dbId();
+	String     parentDirName = config.parentDir().name();
+	String     configName    = config.name();
+	String     userName      = config.lockedByUser();
+	try {
+	    psDeleteLock.setInt(1,parentDirId);
+	    psDeleteLock.setString(2,configName);
+	    psDeleteLock.executeUpdate();
+	    result = true;
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	    System.out.println("FAILED to unlock "+parentDirName+"/"+
+			       configName+" (user: "+userName+"): "+
+			       e.getMessage());
+	}
 	return result;
     }
     

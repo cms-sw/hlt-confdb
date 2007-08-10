@@ -130,6 +130,8 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
     {
 	if (!e.isPopupTrigger()) return;
 	
+	if (!tree.isEditable()) return;
+
 	Configuration config = (Configuration)treeModel.getRoot();
 	if (config.name().length()==0) return;
 	
