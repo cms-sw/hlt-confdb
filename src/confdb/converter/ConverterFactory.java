@@ -36,14 +36,16 @@ public class ConverterFactory {
 
 	public Converter getConverter( String typeOfConverter ) throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
-		char[] type = typeOfConverter.toLowerCase().toCharArray();
-		type[0] = Character.toUpperCase( type[0] );
-		outputFormat = new String( type );
-		if (    !outputFormat.equals( "Ascii") 
-			 && !outputFormat.equals( "Html")
-			 && !outputFormat.equals( "Python")  ) 
-			return null;
-		
+		if ( typeOfConverter != null )
+		{
+			char[] type = typeOfConverter.toLowerCase().toCharArray();
+			type[0] = Character.toUpperCase( type[0] );
+			outputFormat = new String( type );
+			if (    !outputFormat.equals( "Ascii") 
+				 && !outputFormat.equals( "Html")
+			     && !outputFormat.equals( "Python")  ) 
+				return null;
+		}
 		return getConverter();
 	}
 	
@@ -131,7 +133,7 @@ public class ConverterFactory {
 	private Object getWriter( String type ) throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
 		String className = writerPackage + "." + outputFormat + type + version;
-		Class c = Class.forName( className );
+		Class<?> c = Class.forName( className );
 		return c.newInstance();
 	}
 
