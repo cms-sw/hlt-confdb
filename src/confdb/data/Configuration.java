@@ -613,16 +613,22 @@ public class Configuration
     {
 	ModuleTemplate template =
 	    (ModuleTemplate)release.moduleTemplate(templateName);
+	if (template == null) {
+	    System.out.println("ERROR: unknown module template '" +
+			       templateName + "'!");
+	    return null;
+	}
+
 	ModuleInstance instance = null;
 	try {
 	    instance = (ModuleInstance)template.instance(instanceName);
+	    if (instance.referenceCount()==0) {
+		modules.add(instance);
+		hasChanged = true;
+	    }
 	}
 	catch (Exception e) {
 	    System.out.println(e.getMessage());
-	}
-	if (instance.referenceCount()==0) {
-	    modules.add(instance);
-	    hasChanged = true;
 	}
 	return instance;
     }

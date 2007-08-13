@@ -1,3 +1,12 @@
+2007-08-13  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-09-01
+	* rename confdb.db.CfgDatabase -> confdb.db.ConfDB
+	* add confdb.db.ConfDBSetups, a property-file initialized
+	repository of default db connections
+	* confdb.gui.CfgMenuBar -> confdb.gui.ConfDBMenuBar, disable menu
+	bar commands when they are not available
+	
 2007-08-10  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-09-00

@@ -13,7 +13,7 @@ import confdb.data.Directory;
 import confdb.data.ConfigInfo;
 import confdb.data.ConfigVersion;
 
-import confdb.db.CfgDatabase;
+import confdb.db.ConfDB;
 
     
 /**
@@ -55,7 +55,7 @@ public class ImportConfigurationDialog
     //
     
     /** standard constructor */
-    public ImportConfigurationDialog(JFrame frame,CfgDatabase database,
+    public ImportConfigurationDialog(JFrame frame,ConfDB database,
 				     String releaseTag)
     {
 	super(frame,database);

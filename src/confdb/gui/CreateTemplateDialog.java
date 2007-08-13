@@ -21,7 +21,7 @@ import confdb.data.VPSetParameter;
 import confdb.data.TemplateFactory;
 import confdb.data.Template;
 
-import confdb.db.CfgDatabase;
+import confdb.db.ConfDB;
 
 
 /**
@@ -118,7 +118,7 @@ public class CreateTemplateDialog extends JDialog implements ActionListener
     private JTextArea textAreaLog = null;
     
     /** reference to the database */
-    private CfgDatabase database = null;
+    private ConfDB database = null;
     
     
     //
@@ -126,7 +126,7 @@ public class CreateTemplateDialog extends JDialog implements ActionListener
     //
 
     /** standard constructor */
-    public CreateTemplateDialog(JFrame frame,CfgDatabase database)
+    public CreateTemplateDialog(JFrame frame,ConfDB database)
     {
 	super(frame,true);
 	this.database = database;

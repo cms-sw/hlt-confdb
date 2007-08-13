@@ -1,7 +1,7 @@
 package confdb.migrator;
 
 import confdb.data.*;
-import confdb.db.CfgDatabase;
+import confdb.db.ConfDB;
 
 
 /**
@@ -24,10 +24,10 @@ public class DatabaseMigrator
     private Configuration targetConfig = null;
 
     /** source database */
-    private CfgDatabase sourceDB = null;
+    private ConfDB sourceDB = null;
 
     /** target database */
-    private CfgDatabase targetDB = null;
+    private ConfDB targetDB = null;
     
     /** release migrator to actually migrate the configuration */
     private ReleaseMigrator releaseMigrator = null;
@@ -39,12 +39,12 @@ public class DatabaseMigrator
     
     /** standard constructor */
     public DatabaseMigrator(Configuration sourceConfig,
-			    CfgDatabase   sourceDB,
-			    CfgDatabase   targetDB)
+			    ConfDB        sourceDB,
+			    ConfDB        targetDB)
     {
 	this.sourceConfig = sourceConfig;
-	this.sourceDB = sourceDB;
-	this.targetDB = targetDB;
+	this.sourceDB     = sourceDB;
+	this.targetDB     = targetDB;
     }
     
     

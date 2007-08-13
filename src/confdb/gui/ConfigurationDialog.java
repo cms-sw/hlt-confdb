@@ -13,7 +13,7 @@ import confdb.data.Directory;
 import confdb.data.ConfigInfo;
 import confdb.data.ConfigVersion;
     
-import confdb.db.CfgDatabase;
+import confdb.db.ConfDB;
 
 
 /**
@@ -33,7 +33,7 @@ public class ConfigurationDialog extends JDialog
     private JFrame frame = null;
     
     /** reference to the database */
-    protected CfgDatabase database = null;
+    protected ConfDB database = null;
     
     /** was a valid choice made? */
     protected boolean validChoice = false;
@@ -53,7 +53,7 @@ public class ConfigurationDialog extends JDialog
     //
     
     /** standard constructor */
-    public ConfigurationDialog(JFrame frame,CfgDatabase database)
+    public ConfigurationDialog(JFrame frame,ConfDB database)
     {
 	super(frame,true);
 	this.frame    = frame;
@@ -78,7 +78,7 @@ public class ConfigurationDialog extends JDialog
     public boolean validChoice() { return validChoice; }
     
     /** set the database */
-    public void setDatabase(CfgDatabase database) { this.database = database; }
+    public void setDatabase(ConfDB database) { this.database = database; }
     
     /** create the tree view */
     protected JScrollPane createTreeView(Dimension dim)

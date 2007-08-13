@@ -15,7 +15,7 @@ import confdb.data.Directory;
 import confdb.data.ConfigInfo;
 import confdb.data.ConfigVersion;
 
-import confdb.db.CfgDatabase;
+import confdb.db.ConfDB;
 
     
 /**
@@ -48,7 +48,7 @@ public class OpenConfigurationDialog extends ConfigurationDialog
     //
     
     /** standard constructor */
-    public OpenConfigurationDialog(JFrame frame,CfgDatabase database)
+    public OpenConfigurationDialog(JFrame frame,ConfDB database)
     {
 	super(frame,database);
 	setTitle("Open Configuration");

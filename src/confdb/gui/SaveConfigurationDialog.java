@@ -12,7 +12,7 @@ import confdb.data.Directory;
 import confdb.data.Configuration;
 import confdb.data.ConfigInfo;
     
-import confdb.db.CfgDatabase;
+import confdb.db.ConfDB;
 
 
 /**
@@ -52,7 +52,7 @@ public class SaveConfigurationDialog extends ConfigurationDialog
     
     /** standard constructor */
     public SaveConfigurationDialog(JFrame        frame,
-				   CfgDatabase   database,
+				   ConfDB   database,
 				   Configuration config)
     {
 	super(frame,database);

@@ -5,7 +5,7 @@ import java.beans.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import confdb.db.CfgDatabase;
+import confdb.db.ConfDB;
 
 
 /**
@@ -25,7 +25,7 @@ public class ConfigurationMigrationDialog extends JDialog implements ActionListe
     private JFrame frame = null;
     
     /** reference to the database */
-    private CfgDatabase database = null;
+    private ConfDB database = null;
     
     /** the target release tag */
     private String releaseTag = null;
@@ -43,7 +43,7 @@ public class ConfigurationMigrationDialog extends JDialog implements ActionListe
     //
     
     /** standard constructor */
-    public ConfigurationMigrationDialog(JFrame frame,CfgDatabase database)
+    public ConfigurationMigrationDialog(JFrame frame,ConfDB database)
     {
 	super(frame,true);
 	this.frame = frame;

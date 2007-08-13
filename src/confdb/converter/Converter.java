@@ -12,7 +12,7 @@ import confdb.data.Configuration;
 import confdb.data.Directory;
 import confdb.data.EDSourceInstance;
 import confdb.data.Path;
-import confdb.db.CfgDatabase;
+import confdb.db.ConfDB;
 import confdb.db.DatabaseException;
 
 /**
@@ -21,7 +21,7 @@ import confdb.db.DatabaseException;
  */
 public class Converter implements IConverter 
 {
-	private CfgDatabase database = null;
+	private ConfDB database = null;
 
 	private IConfigurationWriter configurationWriter = null;
 	private IParameterWriter parameterWriter = null;
@@ -66,7 +66,7 @@ public class Converter implements IConverter
 		Converter converter = ConverterFactory.getFactory().getConverter(typeOfConverter);
 
 		converter.loadProperties();
-		converter.setDatabase( new CfgDatabase() );
+		converter.setDatabase( new ConfDB() );
 		return converter.readConfiguration(configKey);
 	}
 
@@ -255,12 +255,12 @@ public class Converter implements IConverter
 		return newline;
 	}
 
-	public CfgDatabase getDatabase() {
+	public ConfDB getDatabase() {
 		return database;
 	}
 
 
-	public void setDatabase(CfgDatabase database) {
+	public void setDatabase(ConfDB database) {
 		this.database = database;
 	}
 	
@@ -357,7 +357,7 @@ public class Converter implements IConverter
 
 	public static Converter getConverter() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException
 	{
-		CfgDatabase database = new CfgDatabase();
+		ConfDB database = new ConfDB();
 		Converter converter = ConverterFactory.getFactory( CMSSWrelease ).getConverter();
 		converter.loadProperties();
 		converter.setDatabase( database );

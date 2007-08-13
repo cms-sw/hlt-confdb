@@ -15,7 +15,8 @@ import confdb.data.Directory;
 import confdb.data.ConfigInfo;
 import confdb.data.ConfigVersion;
 
-import confdb.db.CfgDatabase;
+import confdb.db.ConfDB;
+import confdb.db.ConfDBSetups;
 import confdb.db.DatabaseException;
 
     
@@ -32,19 +33,19 @@ public class ConfigurationExportDialog extends ConfigurationDialog
     //
 
     /** target database */
-    private CfgDatabase targetDB = null;
+    private ConfDB targetDB = null;
 
     /** currently selected directory in target DB */
     private Directory targetDir = null;
     
-    /** setup choices */
-    private static final String[] setupChoices =
-    { "","CMS Online","HLT Development","MySQL - local","Oracle XE - local"};
+    /** predefined database setup */
+    private ConfDBSetups dbSetups = new ConfDBSetups();
 
     /** GUI components */
     private JPanel         jPanelLeft           = new JPanel();
     private JPanel         jPanelRight          = new JPanel();
-    private JComboBox      jComboBoxSetup       = new JComboBox(setupChoices);
+    private JComboBox      jComboBoxSetup       = new JComboBox(dbSetups
+								.labelsAsArray());
     private ButtonGroup    buttonGroup          = new ButtonGroup();
     private JRadioButton   jRadioButtonMySQL    = new JRadioButton();
     private JRadioButton   jRadioButtonOracle   = new JRadioButton();
@@ -70,7 +71,7 @@ public class ConfigurationExportDialog extends ConfigurationDialog
     public ConfigurationExportDialog(JFrame frame,String targetName)
     {
 	super(frame);
-	this.targetDB = new CfgDatabase();
+	this.targetDB = new ConfDB();
 	
 	setContentPane(createContentPane());
 
@@ -92,7 +93,7 @@ public class ConfigurationExportDialog extends ConfigurationDialog
     //
     
     /** retrieve target database */
-    public CfgDatabase targetDB() { return this.targetDB; }
+    public ConfDB targetDB() { return this.targetDB; }
     
     /** retrieve configuration name in target DB */
     public String targetName() { return jTextFieldConfigName.getText(); }
@@ -103,57 +104,18 @@ public class ConfigurationExportDialog extends ConfigurationDialog
     /** type choosen from the combo box */
     public void jComboBoxSetupActionPerformed(ActionEvent e)
     {
-	String setup = (String)jComboBoxSetup.getSelectedItem();
-	if (setup.equals(new String())) {
-	    jRadioButtonNone.setSelected(true);
-	    jTextFieldHost.setText("");
-	    jTextFieldPort.setText("");
-	    jTextFieldName.setText("");
-	    jTextFieldUser.setText("");
-	    jTextFieldPwrd.setText("");
-	    jTextFieldHost.requestFocusInWindow();
-	    jTextFieldHost.selectAll();
-	}
-	else if (setup.equals("CMS Online")) {
-	    jRadioButtonOracle.setSelected(true);
-	    jTextFieldHost.setText("oracms.cern.ch");
-	    jTextFieldPort.setText("10121");
-	    jTextFieldName.setText("OMDS");
-	    jTextFieldUser.setText("cms_hlt_writer");
-	    jTextFieldPwrd.setText("");
-	    jTextFieldPwrd.requestFocusInWindow();
-	    jTextFieldPwrd.selectAll();
-	}
-	else if (setup.equals("HLT Development")) {
-	    jRadioButtonOracle.setSelected(true);
-	    jTextFieldHost.setText("int2r1-v.cern.ch");
-	    jTextFieldPort.setText("10121");
-	    jTextFieldName.setText("int2r_lb.cern.ch");
-	    jTextFieldUser.setText("cms_hlt_writer");
-	    jTextFieldPwrd.setText("");
-	    jTextFieldPwrd.requestFocusInWindow();
-	    jTextFieldPwrd.selectAll();
-	}
-	else if (setup.equals("MySQL - local")) {
-	    jRadioButtonMySQL.setSelected(true);
-	    jTextFieldHost.setText("localhost");
-	    jTextFieldPort.setText("3306");
-	    jTextFieldName.setText("hltdb");
-	    jTextFieldUser.setText("username");
-	    jTextFieldPwrd.setText("");
-	    jTextFieldUser.requestFocusInWindow();
-	    jTextFieldUser.selectAll();
-	}
-	else if (setup.equals("Oracle XE - local")) {
-	    jRadioButtonOracle.setSelected(true);
-	    jTextFieldHost.setText("localhost");
-	    jTextFieldPort.setText("1521");
-	    jTextFieldName.setText("XE");
-	    jTextFieldUser.setText("username");
-	    jTextFieldPwrd.setText("");
-	    jTextFieldUser.requestFocusInWindow();
-	    jTextFieldUser.selectAll();
-	}
+	int selectedIndex = jComboBoxSetup.getSelectedIndex();
+	jTextFieldHost.setText(dbSetups.host(selectedIndex));
+	jTextFieldPort.setText(dbSetups.port(selectedIndex));
+	jTextFieldName.setText(dbSetups.name(selectedIndex));
+	jTextFieldUser.setText(dbSetups.user(selectedIndex));
+	String dbType = dbSetups.type(selectedIndex);
+	if      (dbType.equals("mysql"))  jRadioButtonMySQL.setSelected(true);
+	else if (dbType.equals("oracle")) jRadioButtonOracle.setSelected(true);
+	else                              jRadioButtonNone.setSelected(true);
+	
+	jTextFieldUser.requestFocusInWindow();
+	jTextFieldUser.selectAll();
     }
     
     /** 'Connect' button pressed */

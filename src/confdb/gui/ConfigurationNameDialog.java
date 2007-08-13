@@ -5,7 +5,7 @@ import java.beans.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import confdb.db.CfgDatabase;
+import confdb.db.ConfDB;
 
 
 /**
@@ -26,7 +26,7 @@ public class ConfigurationNameDialog extends JDialog implements ActionListener,
     private JFrame frame = null;
     
     /** reference to the database */
-    private CfgDatabase database = null;
+    private ConfDB database = null;
     
     /** the name of the new configuration */
     private String name = null;
@@ -64,7 +64,7 @@ public class ConfigurationNameDialog extends JDialog implements ActionListener,
     //
     
     /** standard constructor */
-    public ConfigurationNameDialog(JFrame frame,CfgDatabase database)
+    public ConfigurationNameDialog(JFrame frame,ConfDB database)
     {
 	super(frame,true);
 	this.frame = frame;

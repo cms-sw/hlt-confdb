@@ -16,13 +16,13 @@ import confdb.data.*;
 
 
 /**
- * CfgDatabase
- * -----------
+ * ConfDB
+ * ------
  * @author Philipp Schieferdecker
  *
- * Handle database access operations.
+ * Handle all database access operations.
  */
-public class CfgDatabase
+public class ConfDB
 {
     //
     // member data
@@ -196,7 +196,7 @@ public class CfgDatabase
     //
     
     /** standard constructor */
-    public CfgDatabase()
+    public ConfDB()
     {
 	// template table name hash map
 	templateTableNameHashMap = new HashMap<String,String>();
@@ -2061,7 +2061,7 @@ public class CfgDatabase
 		for (int i=0;i<refHashMap.size();i++)
 		    requiredKeys.add(new Integer(i));
 		if (!keys.containsAll(requiredKeys))
-		    System.out.println("CfgDatabase.loadConfiguration ERROR:" +
+		    System.out.println("ConfDB.loadConfiguration ERROR:" +
 				       "sequence '"+sequence.name()+"' has invalid " +
 				       "key set!");
 		
@@ -2124,7 +2124,7 @@ public class CfgDatabase
 		for (int i=0;i<refHashMap.size();i++)
 		    requiredKeys.add(new Integer(i));
 		if (!keys.containsAll(requiredKeys))
-		    System.out.println("CfgDatabase.loadConfiguration ERROR:" +
+		    System.out.println("ConfDB.loadConfiguration ERROR:" +
 				       "path '"+path.name()+"' has invalid " +
 				       "key set!");
 		
@@ -2841,7 +2841,7 @@ public class CfgDatabase
 		}
 		
 		if (!insertInstanceParameters(moduleId,module)) {
-		    System.out.println("CfgDatabase.insertModules ERROR: " +
+		    System.out.println("ConfDB.insertModules ERROR: " +
 				       "failed to insert instance parameters "+
 				       "for module '"+module.name()+"'");
 		}

@@ -20,7 +20,7 @@ import confdb.data.Template;
 import confdb.data.ModuleInstance;
 import confdb.data.Parameter;
 
-import confdb.db.CfgDatabase;
+import confdb.db.ConfDB;
 import confdb.db.DatabaseException;
 
 import confdb.migrator.DatabaseMigrator;
@@ -62,15 +62,17 @@ public class ConfDbGUI implements TableModelListener
     private Configuration importConfig = null;
     
     /** handle access to the database */
-    private CfgDatabase database = null;
+    private ConfDB database = null;
 
     /** ConverterService */
     private ConverterService converterService = null;
+
+    /** the menu bar of the application */
+    private ConfDBMenuBar menuBar = null;
     
     /** tree models for both the current and the import tree */
     private ConfigurationTreeModel currentTreeModel = null;
     private ConfigurationTreeModel importTreeModel = null;
-    
 
     /** GUI components */
     private DatabaseInfoPanel  dbInfoPanel        = new DatabaseInfoPanel();
@@ -79,8 +81,8 @@ public class ConfDbGUI implements TableModelListener
     private JProgressBar       progressBar        = null;
     private JTree              currentTree        = null;
     private JTree              importTree         = null;
-    
 
+    
     //
     // construction
     //
@@ -94,7 +96,7 @@ public class ConfDbGUI implements TableModelListener
 	this.currentConfig    = new Configuration();
 	this.importRelease    = new SoftwareRelease();
 	this.importConfig     = new Configuration();
-	this.database         = new CfgDatabase();
+	this.database         = new ConfDB();
 	this.converterService = new ConverterService(database);
 	this.instancePanel    = new InstancePanel(frame);
 	
@@ -157,7 +159,7 @@ public class ConfDbGUI implements TableModelListener
 	frame.addWindowListener(new WindowAdapter() {
 		public void windowClosing(WindowEvent e)
 		{
-		    closeConfiguration();
+		    closeConfiguration(false);
 		    disconnectFromDatabase();
 		}
         });
@@ -166,7 +168,7 @@ public class ConfDbGUI implements TableModelListener
 	Runtime.getRuntime().addShutdownHook(new Thread() {
 		public void run()
 		{
-		    closeConfiguration();
+		    closeConfiguration(false);
 		    disconnectFromDatabase();
 		}
 	    });
@@ -240,6 +242,7 @@ public class ConfDbGUI implements TableModelListener
 	    String msg = "Failed to connect to DB: " + e.getMessage();
 	    JOptionPane.showMessageDialog(frame,msg,"",JOptionPane.ERROR_MESSAGE);
 	}
+	menuBar.dbConnectionIsEstablished();
     }
     
     /** connect to the database */
@@ -256,6 +259,7 @@ public class ConfDbGUI implements TableModelListener
 	    String msg = "Failed to disconnect from DB: " + e.getMessage();
 	    JOptionPane.showMessageDialog(frame,msg,"",JOptionPane.ERROR_MESSAGE);
 	}
+	menuBar.dbConnectionIsNotEstablished();
     }
     
     /** migrate configuration to another database */
@@ -271,7 +275,7 @@ public class ConfDbGUI implements TableModelListener
 	dialog.setVisible(true);
 
 	if (dialog.validChoice()) {
-	    CfgDatabase targetDB   = dialog.targetDB();
+	    ConfDB targetDB   = dialog.targetDB();
 	    String      targetName = dialog.targetName();
 	    Directory   targetDir  = dialog.targetDir();
 	    
@@ -308,12 +312,14 @@ public class ConfDbGUI implements TableModelListener
 	    progressBar.setVisible(true);
 	    progressBar.setString("Loading Templates for Release " +
 				  dialog.releaseTag() + " ... ");
+	    menuBar.configurationIsOpen();
 	}
     }
     
     /** open configuration */
     public void openConfiguration()
     {
+	if (database.dbUrl().equals(new String())) return;
 	if (!closeConfiguration()) return;
 	
 	OpenConfigurationDialog dialog =
@@ -329,6 +335,7 @@ public class ConfDbGUI implements TableModelListener
 	    progressBar.setIndeterminate(true);
 	    progressBar.setVisible(true);
 	    progressBar.setString("Loading Configuration ...");
+	    menuBar.configurationIsOpen();
 	}
     }
 
@@ -354,13 +361,19 @@ public class ConfDbGUI implements TableModelListener
     /** close configuration */
     public boolean closeConfiguration()
     {
+	return closeConfiguration(true);
+    }
+    
+    /** close configuration */
+    public boolean closeConfiguration(boolean showDialog)
+    {
 	importConfig.reset();
 	importTreeModel.setConfiguration(importConfig);
 	configurationPanel.setImportConfig(importConfig);
 	
 	if (currentConfig.isEmpty()) return true;
 	
-	if (currentConfig.hasChanged()) {
+	if (currentConfig.hasChanged()&&showDialog) {
 	    Object[] options = { "OK", "CANCEL" };
 	    int answer = 
 		JOptionPane.showOptionDialog(null,
@@ -373,13 +386,14 @@ public class ConfDbGUI implements TableModelListener
 	    if (answer==1) return false;
 	}
 	
-	if (!currentConfig.isLocked())
+	if (!currentConfig.isLocked()&&currentConfig.version()>0)
 	    database.unlockConfiguration(currentConfig);
 	currentRelease.clearInstances();
 	currentConfig.reset();
 	currentTreeModel.setConfiguration(currentConfig);
 	configurationPanel.setCurrentConfig(currentConfig);
 	instancePanel.clear();
+	menuBar.configurationIsNotOpen();
 	return true;
     }
     
@@ -502,19 +516,6 @@ public class ConfDbGUI implements TableModelListener
 	c.gridx=0;c.gridy=0; c.weighty=0.01;
 	contentPane.add(dbInfoPanel,c);
 
-	/*
-	  move to ctor!
-	  =============
-	  instancePanel = new InstancePanel(frame);
-	  instancePanel.setConfigurationTreeModel(currentTreeModel);
-	  instancePanel.addTableModelListener(this);
-	  currentTree.addTreeSelectionListener(instancePanel);
-	  
-	  configurationPanel = new ConfigurationPanel(this,
-	  currentTree,importTree,
-	  converterService);
-	*/
-	
 	JSplitPane  splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 					       configurationPanel,
 					       instancePanel);
@@ -539,7 +540,11 @@ public class ConfDbGUI implements TableModelListener
     }
 
     /** create the menu bar */
-    private void createMenuBar() { new CfgMenuBar(frame,this); }
+    private void createMenuBar()
+    {
+	menuBar = new ConfDBMenuBar(frame,this);
+	menuBar.dbConnectionIsNotEstablished();
+    }
     
     
     //
@@ -598,7 +603,7 @@ public class ConfDbGUI implements TableModelListener
     private class ExportConfigurationThread extends SwingWorker<String>
     {
 	/** target database */
-	private CfgDatabase targetDB = null;
+	private ConfDB targetDB = null;
 	
 	/** name of the configuration in the target DB */
 	private String targetName = null;
@@ -613,7 +618,7 @@ public class ConfDbGUI implements TableModelListener
 	private long startTime;
 	
 	/** standard constructor */
-	public ExportConfigurationThread(CfgDatabase targetDB,
+	public ExportConfigurationThread(ConfDB targetDB,
 					 String targetName,Directory targetDir)
 	{
 	    this.targetDB   = targetDB;

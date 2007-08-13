@@ -5,6 +5,14 @@ import java.beans.*;
 import java.awt.*;
 import java.awt.event.*;
 
+import java.util.Properties;
+
+import java.io.InputStream;
+import java.io.IOException;
+
+import confdb.db.ConfDBSetups;
+
+
 /**
  * DatabaseConnectionDialog
  * ------------------------
@@ -30,45 +38,25 @@ public class DatabaseConnectionDialog
     private boolean validChoice = false;
 
     /** database setup */
-    private String dbSetup = null;
-    private JComboBox comboBoxDbSetup = null;
-    private static final String[] dbSetupChoices =
-    { "","Tutorial Aug 1st 07",
-      "CMS Online","HLT Development","MySQL - local","Oracle XE - local"};
-    
-    /** database type (mysql/oracle) */
-    private String dbType = null;
-    private ButtonGroup buttonGroupDbType = null;
-    private JRadioButton mysqlButton = null;
-    private JRadioButton oracleButton = null;
-    private JRadioButton noneButton = null;
-    
-    /** database host */
-    private String dbHost = null;
-    private JTextField textFieldDbHost = null;
+    private ConfDBSetups dbSetups = new ConfDBSetups();
 
-    /** database port */
-    private String dbPort = null;
-    private JTextField textFieldDbPort = null;
+    /** GUI components */
+    private JComboBox      comboBoxDbSetup   = null;
+    private ButtonGroup    buttonGroupDbType = null;
+    private JRadioButton   mysqlButton       = null;
+    private JRadioButton   oracleButton      = null;
+    private JRadioButton   noneButton        = null;
+    private JTextField     textFieldDbHost   = null;
+    private JTextField     textFieldDbPort   = null;
+    private JTextField     textFieldDbName   = null;
+    private JTextField     textFieldDbUser   = null;
+    private JPasswordField textFieldDbPwrd   = null;    
 
-    /** database name */
-    private String dbName = null;
-    private JTextField textFieldDbName = null;
-    
-    /** database user name */
-    private String dbUser = null;
-    private JTextField textFieldDbUser = null;
-
-    /** database user password */
-    private String dbPwrd = null;
-    private JPasswordField textFieldDbPwrd = null;    
-
-    
     /** option pane */
     private JOptionPane optionPane = null;
     
     /** option button labels */
-    private static final String okString = "OK";
+    private static final String okString     = "OK";
     private static final String cancelString = "Cancel";
     
 
@@ -83,16 +71,15 @@ public class DatabaseConnectionDialog
 	
 	validChoice = false;
 
-	// create the text fields for the database connection attributes
-	comboBoxDbSetup = new JComboBox(dbSetupChoices);
+	comboBoxDbSetup = new JComboBox(dbSetups.labelsAsArray());
 	comboBoxDbSetup.setEditable(false);
 	comboBoxDbSetup.setSelectedIndex(0);
 	comboBoxDbSetup.setBackground(new Color(255, 255, 255));
-        comboBoxDbSetup.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent evt) {
-	        comboBoxDbSetupActionPerformed(evt);
-	    }
-	});
+	comboBoxDbSetup.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent evt) {
+		    comboBoxDbSetupActionPerformed(evt);
+		}
+	    });
 	
 	mysqlButton = new JRadioButton("MySQL");
 	mysqlButton.setMnemonic(KeyEvent.VK_M);
@@ -113,19 +100,10 @@ public class DatabaseConnectionDialog
 	noneButton.setSelected(true);
 	
 	textFieldDbHost = new JTextField(15);
-	textFieldDbHost.setText("");
-	
 	textFieldDbPort = new JTextField(6);
-	textFieldDbPort.setText("");
-	
 	textFieldDbName = new JTextField(15);
-	textFieldDbName.setText("");
-	
 	textFieldDbUser = new JTextField(15);
-	textFieldDbUser.setText("");
-	
 	textFieldDbPwrd = new JPasswordField(15);
-	textFieldDbPwrd.setText("");
 	
 	JPanel panelDbType = new JPanel(new FlowLayout());
 	panelDbType.add(mysqlButton);
@@ -205,101 +183,60 @@ public class DatabaseConnectionDialog
     public boolean validChoice() { return validChoice; }
 
     /** get database type */
-    public String getDbType() {	return dbType; }
-
+    public String getDbType()
+    {
+	return buttonGroupDbType.getSelection().getActionCommand();
+    }
+    
     /** get database host */
-    public String getDbHost() { return dbHost; }
+    public String getDbHost() { return textFieldDbHost.getText(); }
 
     /** get database port number */
-    public String getDbPort() {	return dbPort; }
+    public String getDbPort() {	return textFieldDbPort.getText(); }
 
     /** get database name */
-    public String getDbName() {	return dbName; }
+    public String getDbName() {	return textFieldDbName.getText(); }
     
     /** get database url */
     public String getDbUrl()
     {
 	String result = null;
-	if (dbHost==null || dbPort==null || dbName==null) return result;
-	if (dbType.equals(dbTypeMySQL))
-	    result = "jdbc:mysql://";
-	else if (dbType.equals(dbTypeOracle))
-	    result = "jdbc:oracle:thin:@//";
+	String type = getDbType();
+	String host = getDbHost();
+	String port = getDbPort();
+	String name = getDbName();
+	if (host.length()==0 || port.length()==0 || name.length()==0) return result;
+	if (type.equals(dbTypeMySQL))       result = "jdbc:mysql://";
+	else if (type.equals(dbTypeOracle)) result = "jdbc:oracle:thin:@//";
 	else return result;
-	result += dbHost + ":" + dbPort + "/" + dbName;
+	result += host + ":" + port + "/" + name;
 	return result;
     }
 
     /** get database user name */
-    public String getDbUser() {	return dbUser; }
+    public String getDbUser() {	return textFieldDbUser.getText(); }
     
     /** get database password */
-    public String getDbPassword() { return dbPwrd; }
+    public String getDbPassword()
+    {
+	return new String(textFieldDbPwrd.getPassword());
+    }
 
     /** type choosen from the combo box */
     public void comboBoxDbSetupActionPerformed(ActionEvent e)
     {
-	String setup = (String)comboBoxDbSetup.getSelectedItem();
-	if (setup.equals(new String())) {
-	    noneButton.setSelected(true);
-	    textFieldDbHost.setText("");
-	    textFieldDbPort.setText("");
-	    textFieldDbName.setText("");
-	    textFieldDbUser.setText("");
-	    textFieldDbPwrd.setText("");
-	    textFieldDbHost.requestFocusInWindow();
-	    textFieldDbHost.selectAll();
-	}
-	else if (setup.equals("Tutorial Aug 1st 07")) {
-	    mysqlButton.setSelected(true);
-	    textFieldDbHost.setText("lxcmsmz01.cern.ch");
-	    textFieldDbPort.setText("3306");
-	    textFieldDbName.setText("HLTConfDB");
-	    textFieldDbUser.setText("tutorial");
-	    textFieldDbPwrd.setText("");
-	    textFieldDbPwrd.requestFocusInWindow();
-	    textFieldDbPwrd.selectAll();
-	}
-	else if (setup.equals("CMS Online")) {
-	    oracleButton.setSelected(true);
-	    textFieldDbHost.setText("oracms.cern.ch");
-	    textFieldDbPort.setText("10121");
-	    textFieldDbName.setText("OMDS");
-	    textFieldDbUser.setText("cms_hlt_writer");
-	    textFieldDbPwrd.setText("");
-	    textFieldDbPwrd.requestFocusInWindow();
-	    textFieldDbPwrd.selectAll();
-	}
-	else if (setup.equals("HLT Development")) {
-	    oracleButton.setSelected(true);
-	    textFieldDbHost.setText("int2r1-v.cern.ch");
-	    textFieldDbPort.setText("10121");
-	    textFieldDbName.setText("int2r_lb.cern.ch");
-	    textFieldDbUser.setText("cms_hlt_writer");
-	    textFieldDbPwrd.setText("");
-	    textFieldDbPwrd.requestFocusInWindow();
-	    textFieldDbPwrd.selectAll();
-	}
-	else if (setup.equals("MySQL - local")) {
-	    mysqlButton.setSelected(true);
-	    textFieldDbHost.setText("localhost");
-	    textFieldDbPort.setText("3306");
-	    textFieldDbName.setText("hltdb");
-	    textFieldDbUser.setText("username");
-	    textFieldDbPwrd.setText("");
-	    textFieldDbUser.requestFocusInWindow();
-	    textFieldDbUser.selectAll();
-	}
-	else if (setup.equals("Oracle XE - local")) {
-	    oracleButton.setSelected(true);
-	    textFieldDbHost.setText("localhost");
-	    textFieldDbPort.setText("1521");
-	    textFieldDbName.setText("XE");
-	    textFieldDbUser.setText("username");
-	    textFieldDbPwrd.setText("");
-	    textFieldDbUser.requestFocusInWindow();
-	    textFieldDbUser.selectAll();
-	}
+	int selectedIndex = comboBoxDbSetup.getSelectedIndex();
+	textFieldDbHost.setText(dbSetups.host(selectedIndex));
+	textFieldDbPort.setText(dbSetups.port(selectedIndex));
+	textFieldDbName.setText(dbSetups.name(selectedIndex));
+	textFieldDbUser.setText(dbSetups.user(selectedIndex));
+	String dbType = dbSetups.type(selectedIndex);
+	if      (dbType.equals("mysql"))  mysqlButton.setSelected(true);
+	else if (dbType.equals("oracle")) oracleButton.setSelected(true);
+	else                              noneButton.setSelected(true);
+	
+	textFieldDbUser.requestFocusInWindow();
+	textFieldDbUser.selectAll();
     }
     
 
@@ -317,10 +254,7 @@ public class DatabaseConnectionDialog
     }
 
     /** if a text field looses focus, do nothing */
-    public void focusLost(FocusEvent e)
-    {
-
-    }
+    public void focusLost(FocusEvent e) {}
     
     /** callback to handle option pane state changes */
     public void propertyChange(PropertyChangeEvent e)
@@ -340,18 +274,10 @@ public class DatabaseConnectionDialog
 	    optionPane.setValue(JOptionPane.UNINITIALIZED_VALUE);
 	    
 	    if (okString.equals(value)) {
-		dbType = buttonGroupDbType.getSelection().getActionCommand();
-		dbHost = textFieldDbHost.getText();
-		dbPort = textFieldDbPort.getText();
-		dbName = textFieldDbName.getText();
-		dbUser = textFieldDbUser.getText();
-		dbPwrd = new String(textFieldDbPwrd.getPassword());
 		validChoice = true;
 		setVisible(false);
 	    }
 	    else {
-		dbType=null; dbHost=null; dbPort=null;
-		dbName=null; dbUser=null; dbPwrd=null;
 		setVisible(false);
 		JOptionPane.showMessageDialog(optionPane.getRootFrame(),
 					      "No database connection established.",

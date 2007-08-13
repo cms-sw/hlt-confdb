@@ -10,7 +10,7 @@ import confdb.data.Directory;
 import confdb.data.Configuration;
 import confdb.data.ConfigInfo;
     
-import confdb.db.CfgDatabase;
+import confdb.db.ConfDB;
 
 
 /**
@@ -37,7 +37,7 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
     private Directory rootDir = null;
     
     /** the database which is being described */
-    private CfgDatabase database = null;
+    private ConfDB database = null;
     
     /** action commands */
     private static final String ADD_DIRECTORY = new String("Add Directory");
@@ -49,7 +49,7 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
     //
     
     /** standard constructor */
-    public DirectoryTreeMouseListener(JTree directoryTree,CfgDatabase database)
+    public DirectoryTreeMouseListener(JTree directoryTree,ConfDB database)
     {
 	this.directoryTree      = directoryTree;
 	this.directoryTreeModel = (DirectoryTreeModel)directoryTree.getModel();

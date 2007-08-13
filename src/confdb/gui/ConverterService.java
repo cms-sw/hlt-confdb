@@ -14,7 +14,7 @@ import confdb.data.Parameter;
 import confdb.data.VStringParameter;
 import confdb.data.DataException;
 
-import confdb.db.CfgDatabase;
+import confdb.db.ConfDB;
 
 import confdb.converter.*;
 
@@ -35,7 +35,7 @@ public class ConverterService
     //
     
     /** reference to the db interface */
-    private CfgDatabase database = null;
+    private ConfDB database = null;
 
     /** format to convert to */
     private String format = "ASCII";
@@ -49,7 +49,7 @@ public class ConverterService
     //
 
     /** standard constructor */
-    public ConverterService(CfgDatabase database)
+    public ConverterService(ConfDB database)
     {
 	this.database = database;
     }
