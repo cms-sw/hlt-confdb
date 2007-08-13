@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import confdb.db.ConfDBSetups;
+
 public class DbProperties 
 {
 	String dbURL = null;
@@ -29,6 +31,17 @@ public class DbProperties
 	}
 
 	
+	public DbProperties( ConfDBSetups dbList, int index, String password )
+	{
+		dbName = dbList.name( index );
+		dbType = dbList.type( index );
+		dbHost = dbList.host( index );
+		dbUser = dbList.user( index );
+		dbPwrd = password;
+
+		initURL();
+	}
+	
 	private void init( InputStream stream ) throws IOException
 	{
 		Properties properties = new Properties();
@@ -53,7 +66,12 @@ public class DbProperties
 		property = properties.getProperty( "confdb.dbPwrd" );
 		if ( property != null )
 			dbPwrd = new String( property );
+		initURL();
+	}
+		
 
+	private void initURL()
+	{
 		dbURL = "jdbc:mysql://" + dbHost + ":3306/" + dbName;
 		if ( dbType.equals("oracle") )
 		    dbURL = "jdbc:oracle:thin:@//" + dbHost + ":10121/" + dbName;
