@@ -1,19 +1,23 @@
 package confdb.gui;
 
 import javax.swing.*;
+import javax.swing.tree.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
 import javax.swing.filechooser.*;
 import java.awt.*;
 import java.awt.event.*;
 
+import org.jdesktop.layout.*;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import org.jdesktop.layout.*;
-
-import confdb.data.Configuration;
+import confdb.data.*;
 
 
 /**
@@ -43,6 +47,9 @@ public class ConfigurationPanel extends JPanel
     /** import configuration tree */
     private JTree importTree = null;
     
+    /** streams tree */
+    private JTree streamTree = null;
+
     /** reference to the ConverterService */
     private ConverterService converterService = null;
 
@@ -75,6 +82,10 @@ public class ConfigurationPanel extends JPanel
     private JButton      browseInputButton    = new JButton();
     private JButton      browseOutputButton   = new JButton();
 
+    private JTextField   jTextFieldStreamCount          = new JTextField();
+    private JTextField   jTextFieldPathNotAssignedCount = new JTextField();
+    private JComboBox    jComboBoxDefaultStream         = new JComboBox();
+
     private JTabbedPane  jTabbedPaneTree      = new JTabbedPane();
     private JEditorPane  jEditorPaneAscii     = new JEditorPane("text/plain","");
     private JEditorPane  jEditorPanePython    = new JEditorPane("text/plain","");
@@ -83,8 +94,9 @@ public class ConfigurationPanel extends JPanel
     private JScrollPane  jScrollPaneTreeTab     = new JScrollPane();
     private JScrollPane  jScrollPaneCurrentTree = new JScrollPane();
     private JScrollPane  jScrollPaneImportTree  = new JScrollPane();
+    private JScrollPane  jScrollPaneStreamTree  = new JScrollPane();
     private JSplitPane   jSplitPaneTree         = new JSplitPane();
-        
+    
 
     //
     // construction
@@ -94,11 +106,13 @@ public class ConfigurationPanel extends JPanel
     public ConfigurationPanel(ConfDbGUI        app,
 			      JTree            currentTree,
 			      JTree            importTree,
+			      JTree            streamTree,
 			      ConverterService converterService)
     {
 	this.app              = app;
 	this.currentTree      = currentTree;
 	this.importTree       = importTree;
+	this.streamTree       = streamTree;
 	this.converterService = converterService;
 	
 	initComponents();
@@ -299,6 +313,11 @@ public class ConfigurationPanel extends JPanel
         JLabel       jLabel10     = new JLabel();
         JLabel       jLabel11     = new JLabel();
         JLabel       jLabel12     = new JLabel();
+
+        JPanel       jPanelStreams = new JPanel();
+        JLabel       jLabel13       = new JLabel();
+        JLabel       jLabel14      = new JLabel();
+        JLabel       jLabel15      = new JLabel();
 	
         JScrollPane  jScrollPane2 = new JScrollPane();
         JScrollPane  jScrollPane3 = new JScrollPane();
@@ -352,7 +371,6 @@ public class ConfigurationPanel extends JPanel
 	
         jTextFieldProcess.setBackground(new Color(255,255,255));
         jTextFieldProcess.setEditable(false);
-        //jTextFieldProcess.setForeground(Color.green);
         jTextFieldProcess.setBorder(BorderFactory
 				    .createBevelBorder(BevelBorder.LOWERED));
 	
@@ -377,8 +395,6 @@ public class ConfigurationPanel extends JPanel
 			  GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
 		     .add(jTextFieldVersion,
 			  GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
-		     //.add(jTextFieldName,
-		     //	 GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
 		     .add(GroupLayout.TRAILING,
 			  jTextFieldName,
 			  GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
@@ -612,8 +628,90 @@ public class ConfigurationPanel extends JPanel
         );
         jTabbedPaneConvert.addTab("Import", jPanelImport);
 
+	
+	jLabel13.setText("Number of Streams:");
+
+        jTextFieldStreamCount.setEnabled(false);
+        jTextFieldStreamCount.setEditable(false);
+        jTextFieldStreamCount.setHorizontalAlignment(JTextField.RIGHT);
+        jTextFieldStreamCount.setText("0");
+        jTextFieldStreamCount.setBackground(bkgColor);
+        jTextFieldStreamCount.setBorder(BorderFactory
+					.createBevelBorder(BevelBorder.LOWERED));
+
+        jLabel14.setText("Unassigned Paths:");
+
+        jTextFieldPathNotAssignedCount.setEnabled(false);
+        jTextFieldPathNotAssignedCount.setEditable(false);
+        jTextFieldPathNotAssignedCount.setHorizontalAlignment(JTextField.RIGHT);
+        jTextFieldPathNotAssignedCount.setText("0");
+        jTextFieldPathNotAssignedCount.setBackground(bkgColor);
+        jTextFieldPathNotAssignedCount.setBorder(BorderFactory
+						 .createBevelBorder(BevelBorder
+								    .LOWERED));
+
+        jLabel15.setText("Default Stream:");
+
+        jComboBoxDefaultStream.setBackground(new java.awt.Color(255, 255, 255));
+        jComboBoxDefaultStream.setEnabled(false);
+	
+        GroupLayout jPanelStreamsLayout = new GroupLayout(jPanelStreams);
+        jPanelStreams.setLayout(jPanelStreamsLayout);
+        jPanelStreamsLayout.setHorizontalGroup(
+            jPanelStreamsLayout.createParallelGroup(GroupLayout.LEADING)
+            .add(jPanelStreamsLayout.createSequentialGroup()
+		 .addContainerGap()
+		 .add(jPanelStreamsLayout.createParallelGroup(GroupLayout.LEADING)
+		      .add(jPanelStreamsLayout.createSequentialGroup()
+			   .add(jPanelStreamsLayout.createParallelGroup(GroupLayout
+									.LEADING)
+				.add(jLabel13)
+				.add(jLabel14))
+			   .addPreferredGap(LayoutStyle.RELATED)
+			   .add(jPanelStreamsLayout
+				.createParallelGroup(GroupLayout.TRAILING)
+				.add(jTextFieldStreamCount,
+				     GroupLayout.DEFAULT_SIZE,
+				     83, Short.MAX_VALUE)
+				.add(jTextFieldPathNotAssignedCount,
+				     GroupLayout.DEFAULT_SIZE, 83, Short.MAX_VALUE)))
+		      .add(GroupLayout.TRAILING,
+			   jComboBoxDefaultStream,0,218,Short.MAX_VALUE)
+		      .add(jLabel15))
+		 .addContainerGap())
+	    );
+        jPanelStreamsLayout.setVerticalGroup(
+            jPanelStreamsLayout.createParallelGroup(GroupLayout.LEADING)
+            .add(jPanelStreamsLayout.createSequentialGroup()
+		 .addContainerGap()
+                .add(jPanelStreamsLayout.createParallelGroup(GroupLayout.BASELINE)
+                    .add(jLabel13)
+                    .add(jTextFieldStreamCount,
+			 GroupLayout.PREFERRED_SIZE,
+			 GroupLayout.DEFAULT_SIZE,
+			 GroupLayout.PREFERRED_SIZE))
+		 .add(15, 15, 15)
+		 .add(jPanelStreamsLayout.createParallelGroup(GroupLayout.BASELINE)
+		      .add(jLabel14)
+		      .add(jTextFieldPathNotAssignedCount,
+			   GroupLayout.PREFERRED_SIZE,
+			   GroupLayout.DEFAULT_SIZE,
+			   GroupLayout.PREFERRED_SIZE))
+		 .addPreferredGap(LayoutStyle.RELATED, 40, Short.MAX_VALUE)
+		 .add(jLabel15)
+		 .addPreferredGap(LayoutStyle.RELATED)
+		 .add(jComboBoxDefaultStream,
+		      GroupLayout.PREFERRED_SIZE,
+		      GroupLayout.DEFAULT_SIZE,
+		      GroupLayout.PREFERRED_SIZE)
+		 .addContainerGap())
+	    );
+        jTabbedPaneConvert.addTab("Streams", jPanelStreams);
+	
+	
         jScrollPaneCurrentTree.setViewportView(currentTree);
         jScrollPaneImportTree.setViewportView(importTree);
+        jScrollPaneStreamTree.setViewportView(streamTree);
 	
         jSplitPaneTree.setDividerLocation(1.0);
         jSplitPaneTree.setResizeWeight(1.0);
@@ -787,7 +885,171 @@ public class ConfigurationPanel extends JPanel
 			jSplitPaneTree.setDividerLocation(0.5);
 			jSplitPaneTree.setDividerSize(8);
 		    }
+		    if (sel==2) {
+			jSplitPaneTree.setRightComponent(jScrollPaneStreamTree);
+			jSplitPaneTree.setDividerLocation(0.5);
+			jSplitPaneTree.setDividerSize(8);
+		    }
 		}
+	    });
+
+	jComboBoxDefaultStream.addActionListener(new ActionListener()
+	    {
+		public void actionPerformed(ActionEvent e)
+		{
+		    Object selectedItem = jComboBoxDefaultStream.getSelectedItem();
+		    if (selectedItem instanceof Stream) {
+			Stream stream = (Stream)selectedItem;
+			currentConfig.setDefaultStream(stream);
+		    }
+		    else {
+			currentConfig.setDefaultStream(null);
+		    }
+		}
+	    });
+	
+	currentTree.getModel().addTreeModelListener(new TreeModelListener()
+	    {
+		public void treeNodesChanged(TreeModelEvent e)
+		{
+		    if (currentConfig==null||currentConfig.streamCount()==0) return;
+		    
+		    Object changedNode = e.getChildren()[0];
+		    
+		    if (changedNode instanceof Path) {
+			Path path = (Path)changedNode;
+			StreamTreeModel streamModel =
+			    (StreamTreeModel)streamTree.getModel();
+			if (path.streamCount()>0)
+			    streamModel.nodeChanged(path); // :(
+		    }
+		}
+		
+		public void treeNodesInserted(TreeModelEvent e)
+		{
+		    if (currentConfig.streamCount()==0) return;
+		    if (currentConfig.defaultStream()==null) return;
+		    
+		    TreePath treePath = e.getTreePath();
+		    Object parentNode = treePath.getLastPathComponent();
+
+		    ConfigurationTreeModel configModel =
+			(ConfigurationTreeModel)currentTree.getModel();
+		    
+		    if (parentNode ==configModel.pathsNode()) {
+			StreamTreeModel streamModel =
+			    (StreamTreeModel)streamTree.getModel();
+			streamModel.nodeInserted(currentConfig.defaultStream(),
+						 currentConfig.defaultStream()
+						 .pathCount()-1);
+		    }
+		}
+		
+		public void treeNodesRemoved(TreeModelEvent e)
+		{
+		    if (currentConfig.streamCount()==0) return;
+		    
+		    Object removedNode = e.getChildren()[0];
+		    
+		    if (removedNode instanceof Path) {
+			Path path = (Path)removedNode;
+			StreamTreeModel streamModel =
+			    (StreamTreeModel)streamTree.getModel();
+			Iterator it = path.streamIterator();
+			while (it.hasNext()) {
+			    Stream stream = (Stream)it.next();
+			    int    index = stream.indexOfPath(path);
+			    streamModel.nodeRemoved(stream,index,path);
+			    stream.removePath(path);
+			}
+		    }
+		}
+		public void treeStructureChanged(TreeModelEvent e) {}
+		
+	    });
+	
+	streamTree.getModel().addTreeModelListener(new TreeModelListener()
+	    {
+		public void treeNodesInserted(TreeModelEvent e)
+		{
+		    TreePath treePath   = e.getTreePath();
+		    Object   parentNode = treePath.getLastPathComponent();
+
+		    StreamTreeModel model = (StreamTreeModel)streamTree.getModel();
+		    if (parentNode == model.getRoot()) updateComboBox(currentConfig);
+		    
+		    jTextFieldStreamCount.setEnabled(true);
+		    jTextFieldPathNotAssignedCount.setEnabled(true);
+		    jTextFieldStreamCount.setText(""+currentConfig.streamCount());
+		    jTextFieldPathNotAssignedCount
+			.setText(""+currentConfig.pathNotAssignedToStreamCount());
+		    if (currentConfig.pathNotAssignedToStreamCount()>0)
+			jTextFieldPathNotAssignedCount.setForeground(Color.RED);
+		    else
+			jTextFieldPathNotAssignedCount.setForeground(Color.GREEN);
+
+		    currentConfig.setHasChanged(true);
+		}
+		
+		public void treeNodesRemoved(TreeModelEvent e)
+		{
+		    if (currentConfig.streamCount()==0) {
+			jTextFieldStreamCount.setEnabled(false);
+			jTextFieldPathNotAssignedCount.setEnabled(false);
+			jComboBoxDefaultStream.setEnabled(false);
+			jTextFieldStreamCount.setText("0");
+			jTextFieldPathNotAssignedCount.setText("0");
+			jComboBoxDefaultStream.setSelectedIndex(0);
+		    }
+		    else {
+			Object removedNode = e.getChildren()[0];
+			if (removedNode instanceof Stream) {
+			    updateComboBox(currentConfig);
+			}
+
+			jTextFieldStreamCount
+			    .setText(""+currentConfig.streamCount());
+			jTextFieldPathNotAssignedCount
+			    .setText(""+currentConfig.pathNotAssignedToStreamCount());
+			if (currentConfig.pathNotAssignedToStreamCount()>0)
+			    jTextFieldPathNotAssignedCount.setForeground(Color.RED);
+			else
+			    jTextFieldPathNotAssignedCount.setForeground(Color.GREEN);
+		    }
+
+		    currentConfig.setHasChanged(true);
+		}
+		
+		public void treeNodesChanged(TreeModelEvent e)
+		{
+		    Object changedNode = e.getChildren()[0];
+		    if (changedNode instanceof Stream) {
+			updateComboBox(currentConfig);
+			currentConfig.setHasChanged(true);
+		    }
+		}
+		
+		public void treeStructureChanged(TreeModelEvent e) {}
+		
+		private void updateComboBox(Configuration config)
+		{
+		    jComboBoxDefaultStream.setEnabled(true);
+		    DefaultComboBoxModel comboBoxModel =
+			(DefaultComboBoxModel)jComboBoxDefaultStream.getModel();
+		    comboBoxModel.removeAllElements();
+		    comboBoxModel.addElement(new String());
+		    Iterator it = config.streamIterator();
+		    while (it.hasNext()) comboBoxModel.addElement(it.next());
+		    if (config.defaultStream()==null) {
+			jComboBoxDefaultStream.setSelectedIndex(0);
+		    }
+		    else {
+			Stream defaultStream = config.defaultStream();
+			int    index = config.indexOfStream(defaultStream);
+			jComboBoxDefaultStream.setSelectedIndex(index+1);
+		    }
+		}
+		
 	    });
     }
 

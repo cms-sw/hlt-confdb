@@ -4,21 +4,13 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 import javax.swing.table.*;
-import javax.swing.plaf.*;
+//import javax.swing.plaf.*;
 import java.awt.*;
 import java.awt.event.*;
 
 import java.util.ArrayList;
 
 import java.util.concurrent.ExecutionException;
-
-import confdb.data.SoftwareRelease;
-import confdb.data.Configuration;
-import confdb.data.Directory;
-import confdb.data.ConfigInfo;
-import confdb.data.Template;
-import confdb.data.ModuleInstance;
-import confdb.data.Parameter;
 
 import confdb.db.ConfDB;
 import confdb.db.DatabaseException;
@@ -27,6 +19,8 @@ import confdb.migrator.DatabaseMigrator;
 import confdb.migrator.ReleaseMigrator;
 
 import confdb.gui.treetable.TreeTableTableModel;
+
+import confdb.data.*;
 
 
 /**
@@ -73,6 +67,7 @@ public class ConfDbGUI implements TableModelListener
     /** tree models for both the current and the import tree */
     private ConfigurationTreeModel currentTreeModel = null;
     private ConfigurationTreeModel importTreeModel = null;
+    private StreamTreeModel        streamTreeModel = null;
 
     /** GUI components */
     private DatabaseInfoPanel  dbInfoPanel        = new DatabaseInfoPanel();
@@ -81,6 +76,7 @@ public class ConfDbGUI implements TableModelListener
     private JProgressBar       progressBar        = null;
     private JTree              currentTree        = null;
     private JTree              importTree         = null;
+    private JTree              streamTree         = null;
 
     
     //
@@ -102,7 +98,29 @@ public class ConfDbGUI implements TableModelListener
 	
 	// current configuration tree
 	currentTreeModel = new ConfigurationTreeModel(currentConfig);
-	currentTree      = new JTree(currentTreeModel);
+	currentTree      = new JTree(currentTreeModel) {
+		public String getToolTipText(MouseEvent evt) {
+		    String text = null;
+
+		    ConfigurationTreeModel model = (ConfigurationTreeModel)getModel();
+		    Configuration          config= (Configuration)model.getRoot();
+		    if (config.streamCount()==0) return text;
+		    
+		    if (getRowForLocation(evt.getX(),evt.getY()) == -1) return text;
+		    TreePath tp = getPathForLocation(evt.getX(),evt.getY());
+		    Object selectedNode = tp.getLastPathComponent();
+		    if (selectedNode instanceof Path) {
+			Path path = (Path)selectedNode;
+			if (path.streamCount()>0) {
+			    text = path.name()+" assigned to stream(s): ";
+			    for (int i=0;i<path.streamCount();i++)
+				text += path.stream(i) + " ";
+			}
+		    }
+		    return text;
+		}
+	    };
+	currentTree.setToolTipText("");
 	currentTree.setRootVisible(false);
 	currentTree.setEditable(true);
 	currentTree.getSelectionModel().setSelectionMode(TreeSelectionModel
@@ -146,6 +164,22 @@ public class ConfDbGUI implements TableModelListener
 	
 	UIManager.put("Tree.textBackground",defaultTreeBackground);
 	
+	// stream tree TODO
+	streamTreeModel = new StreamTreeModel(currentConfig);
+	streamTree      = new JTree(streamTreeModel);
+	streamTree.setEditable(true);
+	streamTree.getSelectionModel().setSelectionMode(TreeSelectionModel
+							.SINGLE_TREE_SELECTION);
+	StreamTreeRenderer streamTreeRenderer = new StreamTreeRenderer();
+	streamTree.setCellRenderer(streamTreeRenderer);
+	streamTree.setCellEditor(new StreamTreeEditor(streamTree,streamTreeRenderer));
+	
+	StreamTreeMouseListener streamTreeMouseListener =
+	    new StreamTreeMouseListener(streamTree);
+	streamTree.addMouseListener(streamTreeMouseListener);
+	streamTreeModel.addTreeModelListener(streamTreeMouseListener);
+	
+	
 	// instance panel (right side), placed in createContentPane()
 	instancePanel.setConfigurationTreeModel(currentTreeModel);
 	instancePanel.addTableModelListener(this);
@@ -153,7 +187,7 @@ public class ConfDbGUI implements TableModelListener
 	  
 	// configuration panel (left side), placed in createContentPane()
 	configurationPanel = new ConfigurationPanel(this,
-						    currentTree,importTree,
+						    currentTree,importTree,streamTree,
 						    converterService);
 
 	frame.addWindowListener(new WindowAdapter() {
@@ -391,6 +425,7 @@ public class ConfDbGUI implements TableModelListener
 	currentRelease.clearInstances();
 	currentConfig.reset();
 	currentTreeModel.setConfiguration(currentConfig);
+	streamTreeModel.setConfiguration(currentConfig);
 	configurationPanel.setCurrentConfig(currentConfig);
 	instancePanel.clear();
 	menuBar.configurationIsNotOpen();
@@ -409,6 +444,7 @@ public class ConfDbGUI implements TableModelListener
 	    saveAsConfiguration();
 	    return;
 	}
+	else database.unlockConfiguration(currentConfig);
 	
 	SaveConfigurationThread worker =
 	    new SaveConfigurationThread();
@@ -424,8 +460,9 @@ public class ConfDbGUI implements TableModelListener
 	if (!checkConfiguration()) return;
 	if (currentConfig.isLocked()) return;
 	
-	if (currentConfig.version()!=0)
+	if (currentConfig.version()!=0) {
 	    database.unlockConfiguration(currentConfig);
+	}
 	
 	SaveConfigurationDialog dialog =
 	    new SaveConfigurationDialog(frame,database,currentConfig);
@@ -703,6 +740,7 @@ public class ConfDbGUI implements TableModelListener
 					 process,
 					 currentRelease);
 		currentTreeModel.setConfiguration(currentConfig);
+		streamTreeModel.setConfiguration(currentConfig);
 		configurationPanel.setCurrentConfig(currentConfig);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		progressBar.setString(progressBar.getString() +
@@ -714,6 +752,9 @@ public class ConfDbGUI implements TableModelListener
 		progressBar.setString(progressBar.getString() + "FAILED!");	
 	    }
 	    progressBar.setIndeterminate(false);
+
+	    currentTree.setEditable(true);
+	    instancePanel.setEditable(true);
 	}
     }
     
@@ -748,6 +789,7 @@ public class ConfDbGUI implements TableModelListener
 	{
 	    try {
 		currentTreeModel.setConfiguration(currentConfig);
+		streamTreeModel.setConfiguration(currentConfig);
 		configurationPanel.setCurrentConfig(currentConfig);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		progressBar.setString(progressBar.getString() +
@@ -854,7 +896,7 @@ public class ConfDbGUI implements TableModelListener
 	protected String construct() throws InterruptedException
 	{
 	    startTime = System.currentTimeMillis();
-	    database.insertConfiguration(currentConfig);
+	    database.insertConfiguration(currentConfig,userName);
 	    if (!currentConfig.isLocked())
 		database.lockConfiguration(currentConfig,userName);
 	    return new String("Done!");
@@ -880,7 +922,7 @@ public class ConfDbGUI implements TableModelListener
     }
 
     /**
-     * save a configuration in the database
+     * migrate a configuration in the database to a new release
      */
     private class MigrateConfigurationThread extends SwingWorker<String>
     {
@@ -909,7 +951,8 @@ public class ConfDbGUI implements TableModelListener
 
 	    ConfigInfo targetConfigInfo =
 		new ConfigInfo(currentConfig.name(),currentConfig.parentDir(),
-			       -1,currentConfig.version(),"",targetReleaseTag);
+			       -1,currentConfig.version(),
+			       "",userName,targetReleaseTag);
 	    String targetProcessName = currentConfig.processName();
 	    Configuration targetConfig = new Configuration(targetConfigInfo,
 							   targetProcessName,
@@ -918,7 +961,7 @@ public class ConfDbGUI implements TableModelListener
 	    migrator = new ReleaseMigrator(currentConfig,targetConfig);
 	    migrator.migrate();
 	    
-	    database.insertConfiguration(targetConfig);
+	    database.insertConfiguration(targetConfig,userName);
 	    currentRelease.clearInstances();
 	    currentConfig =
 		database.loadConfiguration(targetConfigInfo,currentRelease);

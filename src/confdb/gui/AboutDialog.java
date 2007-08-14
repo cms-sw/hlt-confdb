@@ -52,7 +52,7 @@ public class AboutDialog extends JDialog
 	    "<b>https://twiki.cern.ch/twiki/bin/view/CMS/EvfConfDBDesign</b>.</p>";
 
 	jTextFieldApplication.setText("ConfDbGUI");
-	jTextFieldVersion.setText("V00-09-01");
+	jTextFieldVersion.setText("V00-10-00");
 
 	jEditorPaneAbout.setContentType("text/html");
 	jEditorPaneAbout.setText(txt);

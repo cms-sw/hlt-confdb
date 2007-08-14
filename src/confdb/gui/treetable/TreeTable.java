@@ -186,7 +186,7 @@ public class TreeTable extends JTable
 	    super.paint(g);
 	}
 	
-	/** TreeCellRenderer interface method. */
+	/** TableCellRenderer interface method. */
 	public Component getTableCellRendererComponent(JTable  table,
 						       Object  value,
 						       boolean isSelected,
@@ -200,6 +200,7 @@ public class TreeTable extends JTable
 	    return this;
 	}
 	
+
     } // class TreeTableTableCellRenderer
     
     

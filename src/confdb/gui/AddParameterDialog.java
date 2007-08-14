@@ -166,7 +166,7 @@ public class AddParameterDialog extends JDialog
         jCheckBoxTracked.setSelected(isTrackedDefault);
         jCheckBoxTracked.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         jCheckBoxTracked.setMargin(new java.awt.Insets(0, 0, 0, 0));
-	if (!isTrackedDefault) jCheckBoxTracked.setEnabled(false);
+	//if (!isTrackedDefault) jCheckBoxTracked.setEnabled(false);
 	
         addButton.setText("Add");
         addButton.addActionListener(new ActionListener() {

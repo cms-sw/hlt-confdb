@@ -91,11 +91,9 @@ public class ConfigModifier extends Configuration
 		return modules.size();
 	}
 
-
-	
-
-	public void addNextVersion(int versionId, String created, String releaseTag) {
-		orig.addNextVersion(versionId, created, releaseTag);
+	public void addNextVersion(int versionId,
+				   String created,String creator,String releaseTag) {
+		orig.addNextVersion(versionId,created,creator,releaseTag);
 	}
 
 	public String created() {

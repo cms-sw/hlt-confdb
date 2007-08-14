@@ -114,16 +114,10 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
     //
     
     /** MouseAdapter: mousePressed() */
-    public void mousePressed(MouseEvent e)
-    {
-	maybeShowPopup(e);
-    }
+    public void mousePressed(MouseEvent e) { maybeShowPopup(e); }
     
     /** MouseAdapter: mouseReleased() */
-    public void mouseReleased(MouseEvent e)
-    {
-	maybeShowPopup(e);
-    }
+    public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
     
     /** check if this event should really trigger the menu to be displayed */
     private void maybeShowPopup(MouseEvent e)

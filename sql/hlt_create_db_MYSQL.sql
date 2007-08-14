@@ -33,14 +33,17 @@ CREATE TABLE Directories
 CREATE TABLE Configurations
 (
 	configId   	BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT UNIQUE,
+	releaseId	BIGINT UNSIGNED	  NOT NULL,
 	configDescriptor VARCHAR(512)     NOT NULL UNIQUE,
 	parentDirId     BIGINT UNSIGNED   NOT NULL,
 	config     	VARCHAR(128)      NOT NULL,
 	version         SMALLINT UNSIGNED NOT NULL,
 	created         TIMESTAMP         NOT NULL,
+	creator		VARCHAR(128)	  NOT NULL,
 	processName	VARCHAR(32)	  NOT NULL,
 	UNIQUE (parentDirId,config,version),
 	PRIMARY KEY(configId),
+	FOREIGN KEY(releaseId)   REFERENCES SoftwareReleases(releaseId),
 	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
 ) ENGINE=INNODB;
 
@@ -54,14 +57,16 @@ CREATE TABLE LockedConfigurations
 	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
 ) ENGINE=INNODB;
 
--- TABLE 'ConfigurationReleaseAssoc'
-CREATE TABLE ConfigurationReleaseAssoc
+-- TABLE 'Streams'
+CREATE Table Streams
 (
-	configId   	BIGINT UNSIGNED   NOT NULL,
-	releaseId  	BIGINT UNSIGNED   NOT NULL,
-	UNIQUE(configId,releaseId),
-	FOREIGN KEY(configId) REFERENCES Configurations(configId),
-	FOREIGN KEY(releaseId) REFERENCES SoftwareReleases(releaseId)
+	streamId	BIGINT UNSIGNED	  NOT NULL AUTO_INCREMENT UNIQUE,
+	configId	BIGINT UNSIGNED   NOT NULL,
+	streamLabel	VARCHAR(128)	  NOT NULL,
+	UNIQUE (configId,streamLabel),
+	UNIQUE (streamId,configId),
+	PRIMARY KEY(streamId),
+	FOREIGN KEY(configId) REFERENCES Configurations(configId)
 ) ENGINE=INNODB;
 
 -- TABLE 'SuperIds'
@@ -96,7 +101,8 @@ CREATE TABLE ConfigurationPathAssoc
 	configId	BIGINT UNSIGNED   NOT NULL,
 	pathId          BIGINT UNSIGNED   NOT NULL,
 	sequenceNb      SMALLINT UNSIGNED NOT NULL,
-	UNIQUE(configId,pathId),
+	UNIQUE(configId,sequenceNb),
+	PRIMARY KEY(configId,pathId),
 	FOREIGN KEY(configID) REFERENCES Configurations(configId),
 	FOREIGN KEY(pathId)   REFERENCES Paths(pathId)
 ) ENGINE=INNODB;
@@ -108,9 +114,20 @@ CREATE TABLE PathInPathAssoc
 	childPathId	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
 	operator	SMALLINT UNSIGNED NOT NULL DEFAULT 0,
-	UNIQUE(parentPathId,childPathId),
-	FOREIGN KEY (parentPathId) REFERENCES Paths(pathId),
-	FOREIGN KEY (childPathId)  REFERENCES Paths(pathId)
+	UNIQUE(parentPathId,sequenceNb),
+	PRIMARY KEY(parentPathId,childPathId),
+	FOREIGN KEY(parentPathId) REFERENCES Paths(pathId),
+	FOREIGN KEY(childPathId)  REFERENCES Paths(pathId)
+) ENGINE=INNODB;
+
+-- TABLE 'StreamPathAssoc'
+CREATE TABLE StreamPathAssoc
+(
+	streamId	BIGINT UNSIGNED	  NOT NULL,
+	pathId		BIGINT UNSIGNED   NOT NULL,
+	PRIMARY KEY(streamId,pathId),
+	FOREIGN KEY(streamId) REFERENCES Streams(streamId),
+	FOREIGN KEY(pathId)   REFERENCES Paths(pathId)
 ) ENGINE=INNODB;
 
 -- TABLE 'Sequences'
@@ -127,7 +144,8 @@ CREATE TABLE ConfigurationSequenceAssoc
 	configId	BIGINT UNSIGNED	  NOT NULL,
 	sequenceId	BIGINT UNSIGNED	  NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
-	UNIQUE(configId,sequenceId),
+	UNIQUE(configId,sequenceNb),
+	PRIMARY KEY(configId,sequenceId),
 	FOREIGN KEY(configId)   REFERENCES Configurations(configId),
 	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId)
 ) ENGINE=INNODB;
@@ -139,7 +157,8 @@ CREATE TABLE PathSequenceAssoc
 	sequenceId	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb      SMALLINT UNSIGNED NOT NULL,
 	operator	SMALLINT UNSIGNED NOT NULL DEFAULT 0,
-	UNIQUE(pathId,sequenceId),
+	UNIQUE(pathId,sequenceNb),
+	PRIMARY KEY(pathId,sequenceId),
 	FOREIGN KEY(pathId)     REFERENCES Paths(pathId),
 	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId)
 ) ENGINE=INNODB;
@@ -151,7 +170,8 @@ CREATE TABLE SequenceInSequenceAssoc
 	childSequenceId	 BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	 SMALLINT UNSIGNED NOT NULL,
 	operator	 SMALLINT UNSIGNED NOT NULL DEFAULT 0,
-	UNIQUE(parentSequenceId,childSequenceId),
+	UNIQUE(parentSequenceId,sequenceNb),
+	PRIMARY KEY(parentSequenceId,childSequenceId),
 	FOREIGN KEY (parentSequenceId) REFERENCES Sequences(sequenceId),
 	FOREIGN KEY (childSequenceId)  REFERENCES Sequences(sequenceId)
 ) ENGINE=INNODB;
@@ -187,7 +207,8 @@ CREATE TABLE ConfigurationServiceAssoc
 	configId	BIGINT UNSIGNED	  NOT NULL,
 	serviceId       BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
-	UNIQUE(configId,serviceId),
+	UNIQUE(configId,sequenceNb),
+	PRIMARY KEY(configId,serviceId),
 	FOREIGN KEY(configId)  REFERENCES Configurations(configId),
 	FOREIGN KEY(serviceId) REFERENCES SuperIds(superId)
 ) ENGINE=INNODB;
@@ -223,7 +244,8 @@ CREATE TABLE ConfigurationEDSourceAssoc
 	configId	BIGINT UNSIGNED	  NOT NULL,
 	edsourceId      BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
-	UNIQUE(configId,edsourceId),
+	UNIQUE(configId,sequenceNb),
+	PRIMARY KEY(configId,edsourceId),
 	FOREIGN KEY(configId)   REFERENCES Configurations(configId),
 	FOREIGN KEY(edsourceId) REFERENCES SuperIds(superId)
 ) ENGINE=INNODB;
@@ -261,7 +283,8 @@ CREATE TABLE ConfigurationESSourceAssoc
 	configId	BIGINT UNSIGNED	  NOT NULL,
 	essourceId      BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
-	UNIQUE(configId,essourceId),
+	UNIQUE(configId,sequenceNb),
+	PRIMARY KEY(configId,essourceId),
 	FOREIGN KEY(configId)   REFERENCES Configurations(configId),
 	FOREIGN KEY(essourceId) REFERENCES SuperIds(superId)
 ) ENGINE=INNODB;
@@ -298,7 +321,8 @@ CREATE TABLE ConfigurationESModuleAssoc
 	configId	BIGINT UNSIGNED	  NOT NULL,
 	esmoduleId      BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
-	UNIQUE(configId,esmoduleId),
+	UNIQUE(configId,sequenceNb),
+	PRIMARY KEY(configId,esmoduleId),
 	FOREIGN KEY(configId)   REFERENCES Configurations(configId),
 	FOREIGN KEY(esmoduleId) REFERENCES SuperIds(superId)
 ) ENGINE=INNODB;
@@ -347,7 +371,8 @@ CREATE TABLE PathModuleAssoc
         moduleId   	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
 	operator	SMALLINT UNSIGNED NOT NULL DEFAULT 0,
-	UNIQUE(pathId,moduleId),
+	UNIQUE(pathId,sequenceNb),
+	PRIMARY KEY(pathId,moduleId),
 	FOREIGN KEY(pathId)   REFERENCES Paths(pathId),
 	FOREIGN KEY(moduleId) REFERENCES Modules(superId)
 ) ENGINE=INNODB;
@@ -359,7 +384,8 @@ CREATE TABLE SequenceModuleAssoc
         moduleId   	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
 	operator	SMALLINT UNSIGNED NOT NULL DEFAULT 0,
-	UNIQUE(sequenceId,moduleId),
+	UNIQUE(sequenceId,sequenceNb),
+	PRIMARY KEY(sequenceId,moduleId),
 	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId),
 	FOREIGN KEY(moduleId)   REFERENCES Modules(superId)
 ) ENGINE=INNODB;
@@ -395,7 +421,8 @@ CREATE TABLE ConfigurationParamSetAssoc
 	configId	BIGINT UNSIGNED	  NOT NULL,
 	psetId		BIGINT UNSIGNED	  NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
-	UNIQUE(configId,psetId),
+	UNIQUE(configId,sequenceNb),
+	PRIMARY KEY(configId,psetId),
 	FOREIGN KEY(configId) REFERENCES Configurations(configId),
 	FOREIGN KEY(psetId)   REFERENCES ParameterSets(superId)
 ) ENGINE=INNODB;
@@ -406,7 +433,8 @@ CREATE TABLE SuperIdParamSetAssoc
 	superId		BIGINT UNSIGNED	  NOT NULL,
 	psetId		BIGINT UNSIGNED	  NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
-	UNIQUE(superId,psetId),
+	UNIQUE(superId,sequenceNb),
+	PRIMARY KEY(superId,psetId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
 	FOREIGN KEY(psetId)  REFERENCES ParameterSets(superId)
 ) ENGINE=INNODB;
@@ -417,7 +445,8 @@ CREATE TABLE SuperIdVecParamSetAssoc
 	superId		BIGINT UNSIGNED	  NOT NULL,
 	vpsetId	        BIGINT UNSIGNED	  NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
-	UNIQUE(superId,vpsetId),
+	UNIQUE(superId,sequenceNb),
+	PRIMARY KEY(superId,vpsetId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
 	FOREIGN KEY(vpsetId) REFERENCES VecParameterSets(superId)
 ) ENGINE=INNODB;
@@ -452,7 +481,8 @@ CREATE TABLE SuperIdParameterAssoc
 	superId		BIGINT UNSIGNED	  NOT NULL,
 	paramId		BIGINT UNSIGNED	  NOT NULL,
 	sequenceNb	SMALLINT UNSIGNED NOT NULL,
-	UNIQUE(superId,paramId),
+	UNIQUE(superId,sequenceNb),
+	PRIMARY KEY(superId,paramId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 ) ENGINE=INNODB;

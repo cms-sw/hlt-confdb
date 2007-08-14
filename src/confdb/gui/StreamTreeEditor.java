@@ -11,22 +11,22 @@ import confdb.data.*;
 
 
 /**
- * ConfigurationTreeEditor
- * ----------------------
+ * StreamTreeEditor
+ * ----------------
  * @author Philipp Schieferdecker
  *
  */
-class ConfigurationTreeEditor extends DefaultTreeCellEditor
+class StreamTreeEditor extends DefaultTreeCellEditor
 {
     //
     // data members
     //
     
-    /** Referencable to be edited */
-    private Object toBeEdited = null;
+    /** Stream be edited */
+    private Stream toBeEdited = null;
     
-    /** the configuration tree model */
-    private ConfigurationTreeModel treeModel = null;
+    /** the tree model */
+    private StreamTreeModel treeModel = null;
     
 
     //
@@ -34,10 +34,10 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
     //
     
     /** standard constructor */
-    public ConfigurationTreeEditor(JTree tree,DefaultTreeCellRenderer renderer)
+    public StreamTreeEditor(JTree tree,DefaultTreeCellRenderer renderer)
     {
 	super(tree,renderer);
-	treeModel = (ConfigurationTreeModel)tree.getModel();
+	treeModel = (StreamTreeModel)tree.getModel();
     }
     
     
@@ -56,42 +56,20 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
     public Object getCellEditorValue()
     {
 	Object value = super.getCellEditorValue();
-	String name  = value.toString();
+	String label = value.toString();
 
 	if (toBeEdited == null) return null;
+
+	Configuration config = treeModel.getConfiguration();
 	
-	Configuration config = (Configuration)treeModel.getRoot();
-	
-	if (toBeEdited instanceof Referencable) {
-	    Referencable referencable = (Referencable)toBeEdited;
-	    if (config.isUniqueQualifier(name))
-		referencable.setName(name);
-	    else
-		referencable.setName("<ENTER UNIQUE NAME>");
-	}
-	else if (toBeEdited instanceof Instance) {
-	    Instance instance = (Instance)toBeEdited;
-	    Template template = instance.template();
-	    if (!template.hasInstance(name))
-		instance.setName(name);
-	    else {
-		Instance existingInstance = null;
-		try {
-		    existingInstance=template.instance(name);
-		}
-		catch (DataException e) {}
-		if (instance!=existingInstance)
-		    instance.setName("<ENTER UNIQUE NAME>");
+	for (int i=0;i<config.streamCount();i++) {
+	    if (label.equals(config.stream(i).label())) {
+		toBeEdited.setLabel("<ENTER UNIQUE LABEL>");
+		return toBeEdited;
 	    }
 	}
-	else if (toBeEdited instanceof Reference) {
-	    Reference reference = (Reference)toBeEdited;
-	    Referencable referencable = reference.parent();
-	    if (config.isUniqueQualifier(name))
-		referencable.setName(name);
-	    else
-		referencable.setName("<ENTER UNIQUE NAME>");
-	}
+	
+	toBeEdited.setLabel(label);
 	return toBeEdited;
     }
     
@@ -125,9 +103,7 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 						boolean leaf,
 						int     row)
     {
-	if (value instanceof Referencable||
-	    value instanceof Instance||
-	    value instanceof Reference) toBeEdited = value;
+	if (value instanceof Stream) toBeEdited = (Stream)value;
 	return super.getTreeCellEditorComponent(tree,value,
 						isSelected,expanded,
 						leaf,row);

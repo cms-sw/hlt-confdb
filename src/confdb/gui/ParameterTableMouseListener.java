@@ -67,6 +67,7 @@ public class ParameterTableMouseListener extends MouseAdapter
     private void maybeShowPopup(MouseEvent e)
     {
 	if (!e.isPopupTrigger()) return;
+
 	Point     pnt = e.getPoint();
 	int       col = treeTable.columnAtPoint(pnt);
 	int       row = treeTable.rowAtPoint(pnt);

@@ -58,6 +58,7 @@ public class DatabaseMigrator
 	SoftwareRelease sourceRelease = sourceConfig.release();
 	SoftwareRelease targetRelease = new SoftwareRelease();
 	String          releaseTag    = sourceRelease.releaseTag();
+	String          creator       = System.getProperty("user.name");
 	
 	if (!targetDB.hasSoftwareRelease(releaseTag)) return false;
 	targetDB.loadSoftwareRelease(releaseTag,targetRelease);
@@ -69,7 +70,7 @@ public class DatabaseMigrator
 	releaseMigrator = new ReleaseMigrator(sourceConfig,targetConfig);
 	releaseMigrator.migrate();
 	
-	if (!targetDB.insertConfiguration(targetConfig)) return false;
+	if (!targetDB.insertConfiguration(targetConfig,creator)) return false;
 	
 	return true;
     }

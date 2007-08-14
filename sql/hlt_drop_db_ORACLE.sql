@@ -2,10 +2,9 @@
 -- drop all tables and sequences
 --
 
-DROP TABLE    ConfigurationReleaseAssoc;
 DROP TABLE    SuperIdReleaseAssoc;
-DROP TABLE    SoftwareReleases;
 DROP TABLE    ConfigurationPathAssoc;
+DROP TABLE    StreamPathAssoc;
 DROP TABLE    PathInPathAssoc;
 DROP TABLE    PathModuleAssoc;
 DROP TABLE    ConfigurationSequenceAssoc;
@@ -30,9 +29,11 @@ DROP TABLE    ESModuleTemplates;
 DROP TABLE    Modules;
 DROP TABLE    ModuleTemplates;
 DROP TABLE    ModuleTypes;
+DROP TABLE    Streams;
 DROP TABLE    Configurations;
 DROP TABLE    LockedConfigurations;
 DROP TABLE    Directories;
+DROP TABLE    SoftwareReleases;
 DROP TABLE    Int32ParamValues;
 DROP TABLE    VInt32ParamValues;
 DROP TABLE    UInt32ParamValues;
@@ -57,6 +58,7 @@ DROP TABLE    ParameterTypes;
 
 DROP SEQUENCE ReleaseId_Sequence;
 DROP SEQUENCE DirId_Sequence;
+DROP SEQUENCE StreamId_Sequence;
 DROP SEQUENCE ConfigId_Sequence;
 DROP SEQUENCE SuperId_Sequence;
 DROP SEQUENCE PathId_Sequence;

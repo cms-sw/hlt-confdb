@@ -7,10 +7,10 @@
 --
 
 -- SELECT
-GRANT SELECT ON ConfigurationReleaseAssoc 	TO cms_hlt_writer;
 GRANT SELECT ON SuperIdReleaseAssoc 		TO cms_hlt_writer;
 GRANT SELECT ON SoftwareReleases		TO cms_hlt_writer;
 GRANT SELECT ON ConfigurationPathAssoc 		TO cms_hlt_writer;
+GRANT SELECT ON StreamPathAssoc 		TO cms_hlt_writer;
 GRANT SELECT ON PathInPathAssoc 		TO cms_hlt_writer;
 GRANT SELECT ON PathModuleAssoc 		TO cms_hlt_writer;
 GRANT SELECT ON ConfigurationSequenceAssoc 	TO cms_hlt_writer;
@@ -37,6 +37,7 @@ GRANT SELECT ON ModuleTemplates 		TO cms_hlt_writer;
 GRANT SELECT ON ModuleTypes 			TO cms_hlt_writer;
 GRANT SELECT ON Configurations 			TO cms_hlt_writer;
 GRANT SELECT ON LockedConfigurations  		TO cms_hlt_writer;
+GRANT SELECT ON Streams		  		TO cms_hlt_writer;
 GRANT SELECT ON Directories 			TO cms_hlt_writer;
 GRANT SELECT ON Int32ParamValues 		TO cms_hlt_writer;
 GRANT SELECT ON VInt32ParamValues 		TO cms_hlt_writer;
@@ -63,6 +64,7 @@ GRANT SELECT ON ParameterTypes 			TO cms_hlt_writer;
 GRANT SELECT ON ReleaseId_Sequence 		TO cms_hlt_writer;
 GRANT SELECT ON DirId_Sequence 			TO cms_hlt_writer;
 GRANT SELECT ON ConfigId_Sequence 		TO cms_hlt_writer;
+GRANT SELECT ON StreamId_Sequence 		TO cms_hlt_writer;
 GRANT SELECT ON SuperId_Sequence 		TO cms_hlt_writer;
 GRANT SELECT ON PathId_Sequence 		TO cms_hlt_writer;
 GRANT SELECT ON SequenceId_Sequence 		TO cms_hlt_writer;
@@ -70,9 +72,9 @@ GRANT SELECT ON ParamId_Sequence 		TO cms_hlt_writer;
 
 
 -- INSERT
-GRANT INSERT ON ConfigurationReleaseAssoc 	TO cms_hlt_writer;
 GRANT INSERT ON SuperIdReleaseAssoc 		TO cms_hlt_writer;
 GRANT INSERT ON ConfigurationPathAssoc 		TO cms_hlt_writer;
+GRANT INSERT ON StreamPathAssoc 		TO cms_hlt_writer;
 GRANT INSERT ON PathInPathAssoc 		TO cms_hlt_writer;
 GRANT INSERT ON PathModuleAssoc 		TO cms_hlt_writer;
 GRANT INSERT ON ConfigurationSequenceAssoc 	TO cms_hlt_writer;
@@ -93,6 +95,7 @@ GRANT INSERT ON ESModules 			TO cms_hlt_writer;
 GRANT INSERT ON Modules 			TO cms_hlt_writer;
 GRANT INSERT ON Configurations 			TO cms_hlt_writer;
 GRANT INSERT ON LockedConfigurations		TO cms_hlt_writer;
+GRANT INSERT ON Streams				TO cms_hlt_writer;
 GRANT INSERT ON Directories 			TO cms_hlt_writer;
 GRANT INSERT ON Int32ParamValues 		TO cms_hlt_writer;
 GRANT INSERT ON VInt32ParamValues 		TO cms_hlt_writer;
@@ -126,10 +129,10 @@ GRANT DELETE ON LockedConfigurations	 	TO cms_hlt_writer;
 --
 
 --  SELECT
-GRANT SELECT ON ConfigurationReleaseAssoc 	TO cms_hlt_reader;
 GRANT SELECT ON SuperIdReleaseAssoc 		TO cms_hlt_reader;
 GRANT SELECT ON SoftwareReleases		TO cms_hlt_reader;
 GRANT SELECT ON ConfigurationPathAssoc 		TO cms_hlt_reader;
+GRANT SELECT ON StreamPathAssoc 		TO cms_hlt_reader;
 GRANT SELECT ON PathInPathAssoc 		TO cms_hlt_reader;
 GRANT SELECT ON PathModuleAssoc 		TO cms_hlt_reader;
 GRANT SELECT ON ConfigurationSequenceAssoc 	TO cms_hlt_reader;
@@ -156,6 +159,7 @@ GRANT SELECT ON ModuleTemplates 		TO cms_hlt_reader;
 GRANT SELECT ON ModuleTypes 			TO cms_hlt_reader;
 GRANT SELECT ON Configurations 			TO cms_hlt_reader;
 GRANT SELECT ON LockedConfigurations		TO cms_hlt_reader;
+GRANT SELECT ON Streams 			TO cms_hlt_reader;
 GRANT SELECT ON Directories 			TO cms_hlt_reader;
 GRANT SELECT ON Int32ParamValues 		TO cms_hlt_reader;
 GRANT SELECT ON VInt32ParamValues 		TO cms_hlt_reader;
@@ -182,6 +186,7 @@ GRANT SELECT ON ParameterTypes 			TO cms_hlt_reader;
 GRANT SELECT ON ReleaseId_Sequence 		TO cms_hlt_reader;
 GRANT SELECT ON DirId_Sequence 			TO cms_hlt_reader;
 GRANT SELECT ON ConfigId_Sequence 		TO cms_hlt_reader;
+GRANT SELECT ON StreamId_Sequence 		TO cms_hlt_reader;
 GRANT SELECT ON SuperId_Sequence 		TO cms_hlt_reader;
 GRANT SELECT ON PathId_Sequence 		TO cms_hlt_reader;
 GRANT SELECT ON SequenceId_Sequence 		TO cms_hlt_reader;

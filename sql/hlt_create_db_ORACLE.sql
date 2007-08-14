@@ -60,14 +60,17 @@ END;
 CREATE TABLE Configurations
 (
 	configId   	NUMBER,
+	releaseId	NUMBER		NOT NULL,
 	configDescriptor VARCHAR2(256)  NOT NULL UNIQUE,
 	parentDirId     NUMBER		NOT NULL,
 	config     	VARCHAR2(128)   NOT NULL,
 	version         NUMBER(4)	NOT NULL,
 	created         TIMESTAMP       NOT NULL,
+	creator		VARCHAR2(128)	NOT NULL,
 	processName	VARCHAR2(32)	NOT NULL,
 	UNIQUE (parentDirId,config,version),
 	PRIMARY KEY(configId),
+	FOREIGN KEY(releaseId)   REFERENCES SoftwareReleases(releaseId),
 	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
 );
 
@@ -99,27 +102,36 @@ CREATE TABLE LockedConfigurations
 	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
 );
 
--- INDEX LockedConfigs_idx
--- CREATE INDEX LockedConfigs_idx ON LockedConfigurations(parentDirId,config);
-
 
 --
--- TABLE 'ConfigurationReleaseAssoc'
+-- TABLE 'Streams'
 --
-CREATE TABLE ConfigurationReleaseAssoc
+CREATE TABLE Streams
 (
-	configId   	NUMBER		NOT NULL,
-	releaseId   	NUMBER		NOT NULL,
-	UNIQUE(configId,releaseId),
-	FOREIGN KEY(configId) REFERENCES Configurations(configId),
-	FOREIGN KEY(releaseId) REFERENCES SoftwareReleases(releaseId)
+	streamId	NUMBER,
+	configId	NUMBER		NOT NULL,
+	streamLabel	VARCHAR2(128)	NOT NULL,
+	UNIQUE (streamId,configId),
+	UNIQUE (configId,streamLabel),
+	PRIMARY KEY(streamId),
+	FOREIGN KEY(configId) REFERENCES Configurations(configId)
 );
 
--- INDEX ConfigRelAssocConfigId_idx
-CREATE INDEX ConfigRelAssocConfigId_idx ON ConfigurationReleaseAssoc(configId);
 
--- INDEX ConfigRelAssocReleaseId_idx
-CREATE INDEX ConfigRelAssocReleaseId_idx ON ConfigurationReleaseAssoc(releaseId);
+-- INDEX 'StreamsConfigId_idx'
+CREATE INDEX StreamsConfigId_idx ON Streams(configId);
+
+-- SEQUENCE 'StreamId_Sequence'
+CREATE SEQUENCE StreamId_Sequence START WITH 1 INCREMENT BY 1;
+
+-- TRIGGER 'StreamId_Trigger'
+CREATE OR REPLACE TRIGGER StreamId_Trigger
+BEFORE INSERT ON Streams
+FOR EACH ROW
+BEGIN
+SELECT StreamId_Sequence.nextval INTO :NEW.streamId FROM dual;
+END;
+/
 
 
 --
@@ -151,10 +163,11 @@ CREATE TABLE SuperIdReleaseAssoc
 (
 	superId    	NUMBER          NOT NULL,
 	releaseId   	NUMBER 		NOT NULL,
-	UNIQUE(superId,releaseId),
+	PRIMARY KEY(superId,releaseId),
 	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
 	FOREIGN KEY(releaseId) REFERENCES SoftwareReleases(releaseId)
 );
+
 -- INDEX SuperIdRelAssocSuperId_idx
 CREATE INDEX SuperIdRelAssocSuperId_idx ON SuperIdReleaseAssoc(superId);
 
@@ -194,13 +207,11 @@ CREATE TABLE ConfigurationPathAssoc
 	configId	NUMBER		NOT NULL,
 	pathId		NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
-	UNIQUE(configId,pathId),
-	FOREIGN KEY (configId) REFERENCES Configurations(configId),
-	FOREIGN KEY (pathId)   REFERENCES Paths(pathId)
+	UNIQUE(configId,sequenceNb),
+	PRIMARY KEY(configId,pathId),
+	FOREIGN KEY(configId) REFERENCES Configurations(configId),
+	FOREIGN KEY(pathId)   REFERENCES Paths(pathId)
 );
-
--- INDEX ConfigPathAssocConfigId_idx
-CREATE INDEX ConfigPathAssocConfigId_idx ON ConfigurationPathAssoc(configId);
 
 -- INDEX ConfigPathAssocPathId_idx
 CREATE INDEX ConfigPathAssocPathId_idx ON ConfigurationPathAssoc(pathId);
@@ -215,16 +226,30 @@ CREATE TABLE PathInPathAssoc
 	childPathId	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
 	operator	NUMBER(3)	DEFAULT '0' NOT NULL,
-	UNIQUE(parentPathId,childPathId),
-	FOREIGN KEY (parentPathId) REFERENCES Paths(pathId),
-	FOREIGN KEY (childPathId)  REFERENCES Paths(pathId)
+	UNIQUE(parentPathId,sequenceNb),
+	PRIMARY KEY(parentPathId,childPathId),
+	FOREIGN KEY(parentPathId) REFERENCES Paths(pathId),
+	FOREIGN KEY(childPathId)  REFERENCES Paths(pathId)
 );
-
--- INDEX PathPathAssocParentId_idx
-CREATE INDEX PathPathAssocParentId_idx ON PathInPathAssoc(parentPathId);
 
 -- INDEX PathPathAssocChildId_idx
 CREATE INDEX PathPathAssocChildId_idx ON PathInPathAssoc(childPathId);
+
+
+--
+-- TABLE 'StreamPathAssoc'
+--
+CREATE TABLE StreamPathAssoc
+(
+	streamId	NUMBER	 	NOT NULL,
+	pathId		NUMBER    	NOT NULL,
+	PRIMARY KEY(streamId,pathId),
+	FOREIGN KEY(streamId) REFERENCES Streams(streamId),
+	FOREIGN KEY(pathId)   REFERENCES Paths(pathId)
+);
+
+-- INDEX StreamPathAssocPathId_idx
+CREATE INDEX StreamPathAssocPathId_idx ON StreamPathAssoc(pathId);
 
 
 --
@@ -258,13 +283,11 @@ CREATE TABLE ConfigurationSequenceAssoc
 	configId	NUMBER		NOT NULL,
 	sequenceId	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
-	UNIQUE(configId,sequenceId),
-	FOREIGN KEY (configId)   REFERENCES Configurations(configId),
-	FOREIGN KEY (sequenceId) REFERENCES Sequences(sequenceId)
+	UNIQUE(configId,sequenceNb),
+	PRIMARY KEY(configId,sequenceId),
+	FOREIGN KEY(configId)   REFERENCES Configurations(configId),
+	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId)
 );
-
--- INDEX ConfigSeqAssocConfigId_idx
-CREATE INDEX ConfigSeqAssocConfigId_idx ON ConfigurationSequenceAssoc(configId);
 
 -- INDEX ConfigSeqAssocSequenceId_idx
 CREATE INDEX ConfigSeqAssocSequenceId_idx ON ConfigurationSequenceAssoc(sequenceId);
@@ -279,13 +302,11 @@ CREATE TABLE PathSequenceAssoc
 	sequenceId	NUMBER   	NOT NULL,
 	sequenceNb      NUMBER(3) 	NOT NULL,
 	operator	NUMBER(3)	DEFAULT '0' NOT NULL,
-	UNIQUE(pathId,sequenceId),
+	UNIQUE(pathId,sequenceNb),
+	PRIMARY KEY(pathId,sequenceId),
 	FOREIGN KEY(pathId)     REFERENCES Paths(pathId),
 	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId)
 );
-
--- INDEX PathSeqAssocPathId_idx
-CREATE INDEX  PathSeqAssocPathId_idx ON PathSequenceAssoc(pathId);
 
 -- INDEX PathSeqAssocSequenceId_idx
 CREATE INDEX PathSeqAssocSequenceId_idx ON PathSequenceAssoc(sequenceId);
@@ -300,13 +321,11 @@ CREATE TABLE SequenceInSequenceAssoc
 	childSequenceId	 NUMBER		NOT NULL,
 	sequenceNb	 NUMBER(3)	NOT NULL,
 	operator	 NUMBER(3)	DEFAULT '0' NOT NULL,
-	UNIQUE(parentSequenceId,childSequenceId),
-	FOREIGN KEY (parentSequenceId) REFERENCES Sequences(sequenceId),
-	FOREIGN KEY (childSequenceId)  REFERENCES Sequences(sequenceId)
+	UNIQUE(parentSequenceId,SequenceNb),
+	PRIMARY KEY(parentSequenceId,childSequenceId),
+	FOREIGN KEY(parentSequenceId) REFERENCES Sequences(sequenceId),
+	FOREIGN KEY(childSequenceId)  REFERENCES Sequences(sequenceId)
 );
-
--- INDEX SeqSeqAssocParentId_idx
-CREATE INDEX SeqSeqAssocParentId_idx ON SequenceInSequenceAssoc(parentSequenceId);
 
 -- INDEX SeqSeqAssocChildId_idx
 CREATE INDEX SeqSeqAssocChildId_idx ON SequenceInSequenceAssoc(childSequenceId);
@@ -355,13 +374,11 @@ CREATE TABLE ConfigurationServiceAssoc
 	configId	NUMBER		NOT NULL,
 	serviceId	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
-	UNIQUE(configId,serviceId),
-	FOREIGN KEY (configId)  REFERENCES Configurations(configId),
-	FOREIGN KEY (serviceId) REFERENCES Services(superId)
+	UNIQUE(configId,sequenceNb),
+	PRIMARY KEY(configId,serviceId),
+	FOREIGN KEY(configId)  REFERENCES Configurations(configId),
+	FOREIGN KEY(serviceId) REFERENCES Services(superId)
 );
-
--- INDEX ConfigSvcAssocConfigId_idx
-CREATE INDEX ConfigSvcAssocConfigId_idx ON ConfigurationServiceAssoc(configId);
 	
 -- INDEX ConfigSvcAssocServiceId_idx
 CREATE INDEX ConfigSvcAssocServiceId_idx ON ConfigurationServiceAssoc(serviceId);
@@ -410,14 +427,12 @@ CREATE TABLE ConfigurationEDSourceAssoc
 	configId	NUMBER		NOT NULL,
 	edsourceId	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
-	UNIQUE(configId,edsourceId),
-	FOREIGN KEY (configId)   REFERENCES Configurations(configId),
-	FOREIGN KEY (edsourceId) REFERENCES EDSources(superId)
+	UNIQUE(configId,sequenceNb),
+	PRIMARY KEY(configId,edsourceId),
+	FOREIGN KEY(configId)   REFERENCES Configurations(configId),
+	FOREIGN KEY(edsourceId) REFERENCES EDSources(superId)
 );
 
--- INDEX ConfigEDSrcAssocConfigId_idx
-CREATE INDEX ConfigEDSrcAssocConfigId_idx ON ConfigurationEDSourceAssoc(configId);
-	
 -- INDEX ConfigEDSrcAssocEDSourceId_idx
 CREATE INDEX ConfigEDSrcAssocEDSourceId_idx ON ConfigurationEDSourceAssoc(edsourceId);
 
@@ -466,13 +481,11 @@ CREATE TABLE ConfigurationESSourceAssoc
 	configId	NUMBER		NOT NULL,
 	essourceId	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
-	UNIQUE(configId,essourceId),
-	FOREIGN KEY (configId)   REFERENCES Configurations(configId),
-	FOREIGN KEY (essourceId) REFERENCES ESSources(superId)
+	UNIQUE(configId,sequenceNb),
+	PRIMARY KEY(configId,essourceId),
+	FOREIGN KEY(configId)   REFERENCES Configurations(configId),
+	FOREIGN KEY(essourceId) REFERENCES ESSources(superId)
 );
-
--- INDEX ConfigESSrcAssocConfigId_idx
-CREATE INDEX ConfigESSrcAssocConfigId_idx ON ConfigurationESSourceAssoc(configId);
 	
 -- INDEX ConfigESSrcAssocESSourceId_idx
 CREATE INDEX ConfigESSrcAssocESSourceId_idx ON ConfigurationESSourceAssoc(essourceId);
@@ -522,14 +535,12 @@ CREATE TABLE ConfigurationESModuleAssoc
 	configId	NUMBER		NOT NULL,
 	esmoduleId	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
-	UNIQUE(configId,esmoduleId),
-	FOREIGN KEY (configId)   REFERENCES Configurations(configId),
-	FOREIGN KEY (esmoduleId) REFERENCES ESModules(superId)
+	UNIQUE(configId,sequenceNb),
+	PRIMARY KEY(configId,esmoduleId),
+	FOREIGN KEY(configId)   REFERENCES Configurations(configId),
+	FOREIGN KEY(esmoduleId) REFERENCES ESModules(superId)
 );
 
--- INDEX ConfigESModAssocConfigId_idx
-CREATE INDEX ConfigESModAssocConfigId_idx ON ConfigurationESModuleAssoc(configId);
-	
 -- INDEX ConfigESModAssocEDModuleId_idx
 CREATE INDEX ConfigESModAssocESModuleId_idx ON ConfigurationESModuleAssoc(esmoduleId);
 
@@ -595,14 +606,12 @@ CREATE TABLE PathModuleAssoc
         moduleId   	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(4)	NOT NULL,
 	operator	NUMBER(3)	DEFAULT '0' NOT NULL,
-	UNIQUE(pathId,moduleId),
+	UNIQUE(pathId,sequenceNb),
+	PRIMARY KEY(pathId,moduleId),
 	FOREIGN KEY(pathId)   REFERENCES Paths(pathId),
 	FOREIGN KEY(moduleId) REFERENCES Modules(superId)
 );
 
--- INDEX PathModAssocPathId_idx
-CREATE INDEX PathModAssocPathId_idx ON PathModuleAssoc(pathId);
-	
 -- INDEX PathModAssocModuleId_idx
 CREATE INDEX PathModAssocModuleId_idx ON PathModuleAssoc(moduleId);
 
@@ -616,13 +625,11 @@ CREATE TABLE SequenceModuleAssoc
         moduleId   	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
 	operator	NUMBER(3)	DEFAULT '0' NOT NULL,
-	UNIQUE(sequenceId,moduleId),
+	UNIQUE(sequenceId,sequenceNb),
+	PRIMARY KEY(sequenceId,moduleId),
 	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId),
 	FOREIGN KEY(moduleId)   REFERENCES Modules(superId)
 );
-
--- INDEX SeqModAssocSequenceId_idx
-CREATE INDEX SeqModAssocSequenceId_idx ON SequenceModuleAssoc(sequenceId);
 	
 -- INDEX SeqModAssocModuleId_idx
 CREATE INDEX SeqModAssocModuleId_idx ON SequenceModuleAssoc(moduleId);
@@ -668,13 +675,11 @@ CREATE TABLE ConfigurationParamSetAssoc
 	configId        NUMBER		NOT NULL,
 	psetId		NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
-	UNIQUE(configId,psetId),
+	UNIQUE(configId,sequenceNb),
+	PRIMARY KEY(configId,psetId),
 	FOREIGN KEY(configId) REFERENCES Configurations(configId),
 	FOREIGN KEY(psetId)   REFERENCES ParameterSets(superId)
 );
-
--- INDEX ConfigurationParamSetAssocConfigId_idx
-CREATE INDEX ConfigPSetAssocConfigId_idx ON ConfigurationParamSetAssoc(configId);
 
 -- INDEX ConfigPSetAssocPsetId_idx
 CREATE INDEX ConfigPSetAssocPsetId_idx ON ConfigurationParamSetAssoc(psetId);
@@ -688,13 +693,11 @@ CREATE TABLE SuperIdParamSetAssoc
 	superId		NUMBER		NOT NULL,
 	psetId		NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
-	UNIQUE(superId,psetId),
+	UNIQUE(superId,sequenceNb),
+	PRIMARY KEY(superId,psetId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
 	FOREIGN KEY(psetId)  REFERENCES ParameterSets(superId)
 );
-
--- INDEX SuperIdPSetAssocSuperId_idx
-CREATE INDEX SuperIdPSetAssocSuperId_idx ON SuperIdParamSetAssoc(superId);
 
 -- INDEX SuperIdPSetAssocPSetId_idx
 CREATE INDEX SuperIdPSetAssocPSetId_idx ON SuperIdParamSetAssoc(psetId);
@@ -708,13 +711,11 @@ CREATE TABLE SuperIdVecParamSetAssoc
 	superId		NUMBER		NOT NULL,
 	vpsetId		NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
-	UNIQUE(superId,vpsetId),
+	UNIQUE(superId,sequenceNb),
+	PRIMARY KEY(superId,vpsetId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
 	FOREIGN KEY(vpsetId) REFERENCES VecParameterSets(superId)
 );
-
--- INDEX SuperIdVPSetAssocSuperId_idx
-CREATE INDEX SuperIdVPSetAssocSuperId_idx ON SuperIdVecParamSetAssoc(superId);
 
 -- INDEX SuperIdVPSetAssocVPSetId_idx
 CREATE INDEX SuperIdVPSetAssocVPSetId_idx ON SuperIdVecParamSetAssoc(vpsetId);
@@ -772,13 +773,11 @@ CREATE TABLE SuperIdParameterAssoc
 	superId		NUMBER		NOT NULL,
 	paramId		NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
-	UNIQUE(superId,paramId),
+	UNIQUE(superId,sequenceNb),
+	PRIMARY KEY(superId,paramId),
 	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
-
--- INDEX SuperIdParamAssocSuperId_idx
-CREATE INDEX SuperIdParamAssocSuperId_idx ON SuperIdParameterAssoc(superId);
 
 -- INDEX SuperIdParamAssocParamId_idx
 CREATE INDEX SuperIdParamAssocParamId_idx ON SuperIdParameterAssoc(paramId);

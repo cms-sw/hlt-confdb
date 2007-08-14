@@ -23,6 +23,9 @@ public class ConfigVersion implements Comparable<ConfigVersion>
     /** creation date */
     private String created = null;
     
+    /** user who created this version */
+    private String creator = null;
+    
     /** release tag associated with this version */
     private String releaseTag = null;
 
@@ -32,11 +35,13 @@ public class ConfigVersion implements Comparable<ConfigVersion>
     //
 
     /** standard constructor */
-    public ConfigVersion(int dbId,int version,String created,String releaseTag)
+    public ConfigVersion(int dbId,int version,
+			 String created,String creator,String releaseTag)
     {
 	this.dbId = dbId;
 	this.version = version;
 	this.created = created;
+	this.creator = creator;
 	this.releaseTag = releaseTag;
     }
     
@@ -53,6 +58,9 @@ public class ConfigVersion implements Comparable<ConfigVersion>
     
     /** get creation date */
     public String created() { return created; }
+    
+    /** get creator */
+    public String creator() { return creator; }
     
     /** get releaese tag */
     public String releaseTag() { return releaseTag; }

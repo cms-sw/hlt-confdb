@@ -41,14 +41,14 @@ public class ConfigInfo
     //
     
     /** standard constructor */
-    public ConfigInfo(String name,Directory parentDir,
-		      int dbId,int version,String created,String releaseTag)
+    public ConfigInfo(String name,Directory parentDir,int dbId,int version,
+		      String created,String creator,String releaseTag)
     {
 	this.name         = name;
 	this.parentDir    = parentDir;
 	this.releaseTag   = releaseTag;
 	this.versionIndex = 0;
-	versions.add(new ConfigVersion(dbId,version,created,releaseTag));
+	versions.add(new ConfigVersion(dbId,version,created,creator,releaseTag));
     }
     
     /** constructor without a version */
@@ -92,6 +92,12 @@ public class ConfigInfo
 	return (versionIndex<0) ? "" : versions.get(versionIndex).created();
     }
     
+    /** get latest configuration creator */
+    public String creator()
+    {
+	return (versionIndex<0) ? "" : versions.get(versionIndex).creator();
+    }
+    
     /** get the latest releaseTag */
     public String releaseTag() { return releaseTag; }
     
@@ -119,7 +125,8 @@ public class ConfigInfo
     public void unlock() { this.lockedByUser = ""; }
 
     /** add an new version of this configuration */
-    public void addVersion(int dbId,int version,String created,String releaseTag)
+    public void addVersion(int dbId,int version,
+			   String created,String creator,String releaseTag)
     {
 	for (ConfigVersion v : versions) {
 	    if (v.version()==version) {
@@ -131,6 +138,7 @@ public class ConfigInfo
 	ConfigVersion configVersion = new ConfigVersion(dbId,
 							version,
 							created,
+							creator,
 							releaseTag);
 	versions.add(configVersion);
 	Collections.<ConfigVersion>sort(versions);

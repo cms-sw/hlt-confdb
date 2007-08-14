@@ -54,7 +54,13 @@ public class Configuration
     /** list of Sequences */
     private ArrayList<Sequence> sequences = null;
     
+    /** list of streams */
+    private ArrayList<Stream> streams = null;
 
+    /** default stream, if any */
+    private Stream defaultStream = null;
+    
+    
     //
     // construction
     //
@@ -70,6 +76,7 @@ public class Configuration
 	modules       = new ArrayList<ModuleInstance>();
 	paths         = new ArrayList<Path>();
 	sequences     = new ArrayList<Sequence>();
+	streams       = new ArrayList<Stream>();
     }
     
     /** standard constructor */
@@ -84,6 +91,7 @@ public class Configuration
 	modules       = new ArrayList<ModuleInstance>();
 	paths         = new ArrayList<Path>();
 	sequences     = new ArrayList<Sequence>();
+	streams       = new ArrayList<Stream>();
 	
 	initialize(configInfo,processName,release);
     }
@@ -110,6 +118,7 @@ public class Configuration
 	modules.clear();
 	paths.clear();
 	sequences.clear();
+	streams.clear();
     }
 
     /** reset configuration */
@@ -127,6 +136,7 @@ public class Configuration
 	modules.clear();
 	paths.clear();
 	sequences.clear();
+	streams.clear();
     }
     
     /** set the configuration info */
@@ -165,7 +175,8 @@ public class Configuration
 	return (name().length()==0&&psets.isEmpty()&&
 		edsources.isEmpty()&&essources.isEmpty()&&
 		services.isEmpty()&&modules.isEmpty()&&
-		paths.isEmpty()&&sequences.isEmpty());
+		paths.isEmpty()&&sequences.isEmpty()&&
+		streams.isEmpty());
     }
 
     /** check if configuration and all its versions are locked */
@@ -217,16 +228,23 @@ public class Configuration
     }
     
     /** add the next version */
-    public void addNextVersion(int versionId,String created,String releaseTag)
+    public void addNextVersion(int versionId,
+			       String created,String creator,String releaseTag)
     {
-	configInfo.addVersion(versionId,nextVersion(),created,releaseTag);
+	configInfo.addVersion(versionId,nextVersion(),created,creator,releaseTag);
 	configInfo.setVersionIndex(0);
     }
     
-    /** get configuration data of creation as a string */
+    /** get configuration date of creation as a string */
     public String created()
     {
 	return (configInfo!=null) ? configInfo.created() : "";
+    }
+    
+    /** get configuration creator */
+    public String creator()
+    {
+	return (configInfo!=null) ? configInfo.creator() : "";
     }
     
     /** get release tag this configuration is associated with */
@@ -302,7 +320,6 @@ public class Configuration
 	return true;
     }
 
-    
     //
     // unset tracked parameter counts
     //
@@ -374,6 +391,15 @@ public class Configuration
 	return result;
     }
 
+    /** number of paths unassigned to any stream */
+    public int pathNotAssignedToStreamCount()
+    {
+	int result = 0;
+	if (streams.size()==0) return result;
+	for (Path p : paths) if (p.streamCount()==0) result++;
+	return result;
+    }
+
 
     //
     // PSets
@@ -390,6 +416,9 @@ public class Configuration
     {
 	return psets.indexOf(pset);
     }
+
+    /** retrieve pset iterator */
+    public Iterator psetIterator() { return psets.iterator(); }
     
     /** insert global pset at i-th position */
     public void insertPSet(PSetParameter pset)
@@ -424,6 +453,9 @@ public class Configuration
 	return edsources.indexOf(edsource);
     }
     
+    /** retrieve edsource iterator */
+    public Iterator edsourceIterator() { return edsources.iterator(); }
+
     /** insert EDSource at i-th position */
     public EDSourceInstance insertEDSource(String templateName)
     {
@@ -468,6 +500,9 @@ public class Configuration
 	return essources.indexOf(essource);
     }
     
+    /** retrieve essource iterator */
+    public Iterator essourceIterator() { return essources.iterator(); }
+
     /** insert ESSource at i=th position */
     public ESSourceInstance insertESSource(int i,
 					   String templateName,
@@ -512,7 +547,11 @@ public class Configuration
     {
 	return esmodules.indexOf(esmodule);
     }
-    
+   
+    /** retrieve esmodule iterator */
+    public Iterator esmoduleIterator() { return esmodules.iterator(); }
+
+
     /** insert ESModule at i-th position */
     public ESModuleInstance insertESModule(int i,
 					   String templateName,
@@ -557,6 +596,9 @@ public class Configuration
     {
 	return services.indexOf(service);
     }
+
+    /** retrieve service iterator */
+    public Iterator serviceIterator() { return services.iterator(); }
     
     /** insert Service at i=th position */
     public ServiceInstance insertService(int i,String templateName)
@@ -607,6 +649,9 @@ public class Configuration
     {
 	return modules.indexOf(module);
     }
+    
+    /** retrieve module iterator */
+    public Iterator moduleIterator() { return modules.iterator(); }
     
     /** insert a module */
     public ModuleInstance insertModule(String templateName,String instanceName)
@@ -696,11 +741,15 @@ public class Configuration
 	return paths.indexOf(path);
     }
     
+    /** retrieve path iterator */
+    public Iterator pathIterator() { return paths.iterator(); }
+
     /** insert path at i-th position */
     public Path insertPath(int i, String pathName)
     {
 	Path path = new Path(pathName);
 	paths.add(i,path);
+	if (defaultStream!=null) defaultStream.insertPath(path);
 	hasChanged = true;
 	return path;
     }
@@ -773,6 +822,9 @@ public class Configuration
 	return sequences.indexOf(sequence);
     }
     
+    /** retrieve sequence iterator */
+    public Iterator sequenceIterator() { return sequences.iterator(); }
+    
     /** insert sequence */
     public Sequence insertSequence(int i,String sequenceName)
     {
@@ -818,5 +870,66 @@ public class Configuration
 	hasChanged = true;
 	return reference;
     }
+
+
+    //
+    // Streams
+    //
+    
+    /** number of streams */
+    public int streamCount() { return streams.size(); }
+    
+    /** retrieve i-th stream */
+    public Stream stream(int i) { return streams.get(i); }
+
+    /** retrieve stream by label */
+    public Stream stream(String streamLabel)
+    {
+	for (Stream s : streams)
+	    if (s.label().equals(streamLabel)) return s;
+	System.out.println("ERROR: stream '"+streamLabel+"' not found.");
+	return null;
+    }
+
+    /** index of a certain stream */
+    public int indexOfStream(Stream stream) { return streams.indexOf(stream); }
+
+    /** retrieve stream iterator */
+    public Iterator streamIterator() { return streams.iterator(); }
+    
+    /** insert a new stream */
+    public Stream insertStream(int i,String streamLabel)
+    {
+	Stream stream = new Stream(streamLabel);
+	streams.add(i,stream);
+	return stream;
+    }
+
+    /** remove a stream */
+    public void removeStream(Stream stream)
+    {
+	int index = streams.indexOf(stream);
+	if (index<0) return;
+	Iterator it = stream.pathIterator();
+	while (it.hasNext()) {
+	    Path p = (Path)it.next();
+	    p.removeFromStream(stream);
+	}
+	streams.remove(index);
+	if (defaultStream==stream) defaultStream=null;
+    }
+
+    /** default stream*/
+    public Stream defaultStream() { return defaultStream; }
+    
+    /** set the default stream */
+    public boolean setDefaultStream(Stream stream)
+    {
+	if (streams.indexOf(stream)<0) return false;
+	defaultStream = stream;
+	return true;
+    }
+    
+
     
 }

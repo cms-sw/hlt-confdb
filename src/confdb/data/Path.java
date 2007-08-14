@@ -14,6 +14,14 @@ import java.util.Iterator;
 public class Path extends ReferenceContainer
 {
     //
+    // member data
+    //
+
+    /** streams this path is associated with*/
+    private ArrayList<Stream> streams = new ArrayList<Stream>();
+    
+
+    //
     // construction
     //
     
@@ -84,6 +92,32 @@ public class Path extends ReferenceContainer
 	container.insertEntry(i,reference);
 	container.setHasChanged();
 	return reference;
+    }
+
+    /** number of streams this path is associated with */
+    public int streamCount() { return streams.size(); }
+
+    /** retrieve the i=th stream this path is associated with */
+    public Stream stream(int i) { return streams.get(i); }
+
+    /** retrieve iterator over streams this path is associated with */
+    public Iterator streamIterator() { return streams.iterator(); }
+
+    /** add this path to a stream */
+    public boolean addToStream(Stream stream)
+    {
+	if (streams.indexOf(stream)>=0) return false;
+	streams.add(stream);
+	return true;
+    }
+    
+    /** remove this path from a stream */
+    public boolean removeFromStream(Stream stream)
+    {
+	int index = streams.indexOf(stream);
+	if (index<0) return false;
+	streams.remove(index);
+	return true;
     }
     
 }

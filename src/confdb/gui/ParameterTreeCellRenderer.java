@@ -23,7 +23,7 @@ public class ParameterTreeCellRenderer extends DefaultTreeCellRenderer
     //
 
     /** node to be displayed */
-    private Object    node      = null;
+    private Object    node = null;
 
     /** icon for a ParameterSet node */
     private ImageIcon psetIcon =
@@ -49,7 +49,16 @@ public class ParameterTreeCellRenderer extends DefaultTreeCellRenderer
 	if (node instanceof VPSetParameter) return vpsetIcon;
 	return parameterIcon;
     }
+
+    /** get the leaf icon, for editing */
+    public Icon getLeafIcon() { return prepareIcon(); }
     
+    /** get the leaf icon, for editing */
+    public Icon getOpenIcon() { return prepareIcon(); }
+    
+    /** get the leaf icon, for editing */
+    public Icon getClosedIcon() { return prepareIcon(); }
+     
     /** TreeCellRenderer */
     public Component getTreeCellRendererComponent(JTree   tree,
 						  Object  value,

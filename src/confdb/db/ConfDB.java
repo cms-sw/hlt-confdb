@@ -78,12 +78,11 @@ public class ConfDB
     private PreparedStatement psSelectLockedConfigurations        = null;
 
     private PreparedStatement psSelectConfigNames                 = null;
-    private PreparedStatement psSelectConfiguration               = null;
+    private PreparedStatement psSelectConfigurationCreated        = null;
     private PreparedStatement psSelectConfigurationProcessName    = null;
 
     private PreparedStatement psSelectReleaseTags                 = null;
     private PreparedStatement psSelectReleaseTag                  = null;
-    private PreparedStatement psSelectReleaseTagByConfig          = null;
     private PreparedStatement psSelectSuperIdReleaseAssoc         = null;
     
     private PreparedStatement psSelectEDSourceTemplate            = null;
@@ -103,7 +102,7 @@ public class ConfDB
     private PreparedStatement psSelectModuleTemplatesByRelease    = null;
     private PreparedStatement psSelectModuleTemplatesByConfigPath = null;
     private PreparedStatement psSelectModuleTemplatesByConfigSeq  = null;
-
+    
     private PreparedStatement psSelectGlobalPSets                 = null;
 
     private PreparedStatement psSelectEDSources                   = null;
@@ -114,6 +113,8 @@ public class ConfDB
     private PreparedStatement psSelectModulesFromSequences        = null;
     private PreparedStatement psSelectPaths                       = null;
     private PreparedStatement psSelectSequences                   = null;
+    private PreparedStatement psSelectStreams                     = null;
+    private PreparedStatement psSelectStreamPathAssoc             = null;
     private PreparedStatement psSelectSequenceModuleAssoc         = null;
     private PreparedStatement psSelectPathPathAssoc               = null;
     private PreparedStatement psSelectPathSequenceAssoc           = null;
@@ -138,7 +139,7 @@ public class ConfDB
     private PreparedStatement psInsertDirectory                   = null;
     private PreparedStatement psInsertConfiguration               = null;
     private PreparedStatement psInsertConfigurationLock           = null;
-    private PreparedStatement psInsertConfigReleaseAssoc          = null;
+    private PreparedStatement psInsertStream                      = null;
     private PreparedStatement psInsertSuperId                     = null;
     private PreparedStatement psInsertGlobalPSet                  = null;
     private PreparedStatement psInsertEDSource                    = null;
@@ -151,6 +152,7 @@ public class ConfDB
     private PreparedStatement psInsertConfigServiceAssoc          = null;
     private PreparedStatement psInsertPath                        = null;
     private PreparedStatement psInsertConfigPathAssoc             = null;
+    private PreparedStatement psInsertStreamPathAssoc             = null;
     private PreparedStatement psInsertSequence                    = null;
     private PreparedStatement psInsertConfigSequenceAssoc         = null;
     private PreparedStatement psInsertModule                      = null;
@@ -258,12 +260,11 @@ public class ConfDB
 		 " Configurations.config," +
 		 " Configurations.version," +
 		 " Configurations.created," +
+		 " Configurations.creator," +
 		 " SoftwareReleases.releaseTag " +
 		 "FROM Configurations " +
-		 "JOIN ConfigurationReleaseAssoc " +
-		 "ON ConfigurationReleaseAssoc.configId = Configurations.configId " +
 		 "JOIN SoftwareReleases " +
-		 "ON SoftwareReleases.releaseId = ConfigurationReleaseAssoc.releaseId " +
+		 "ON SoftwareReleases.releaseId = Configurations.releaseId " +
 		 "WHERE Configurations.parentDirId = ? " +
 		 "ORDER BY Configurations.created DESC");
 	    preparedStatements.add(psSelectConfigurationsByDir);
@@ -286,16 +287,16 @@ public class ConfDB
 		 " Configurations.config " +
 		 "FROM Configurations " +
 		 "WHERE Configurations.version=1 " +
-		 "ORDER BY created DESC");
+		 "ORDER BY Configurations.created DESC");
 	    preparedStatements.add(psSelectConfigNames);
 	    
-	    psSelectConfiguration =
+	    psSelectConfigurationCreated =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
 		 " Configurations.created " +
 		 "FROM Configurations " +
 		 "WHERE Configurations.configId = ?");
-	    preparedStatements.add(psSelectConfiguration);
+	    preparedStatements.add(psSelectConfigurationCreated);
 	    
 	    psSelectConfigurationProcessName =
 		dbConnector.getConnection().prepareStatement
@@ -322,18 +323,6 @@ public class ConfDB
 		 "FROM SoftwareReleases " +
 		 "WHERE SoftwareReleases.releaseTag = ?");
 	    preparedStatements.add(psSelectReleaseTag);
-	    
-	    psSelectReleaseTagByConfig =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " SoftwareReleases.releaseId," +
-		 " SoftwareReleases.releaseTag " +
-		 "FROM SoftwareReleases " +
-		 "JOIN ConfigurationReleaseAssoc " +
-		 "ON ConfigurationReleaseAssoc.releaseId =" +
-		 " SoftwareReleases.releaseId " +
-		 "WHERE ConfigurationReleaseAssoc.configId = ?");
-	    preparedStatements.add(psSelectReleaseTagByConfig);
 	    
 	    psSelectSuperIdReleaseAssoc =
 		dbConnector.getConnection().prepareStatement
@@ -713,6 +702,28 @@ public class ConfDB
 		 "WHERE ConfigurationSequenceAssoc.configId=?");
 	    preparedStatements.add(psSelectModulesFromSequences);
 	    
+	    psSelectStreams =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " Streams.streamId," +
+		 " Streams.streamLabel " +
+		 "FROM Streams " +
+		 "WHERE Streams.configId=?");
+	    preparedStatements.add(psSelectStreams);
+	    
+	    psSelectStreamPathAssoc =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " StreamPathAssoc.streamId," +
+		 " StreamPathAssoc.pathId, " +
+		 " Paths.name " +
+		 "FROM StreamPathAssoc " +
+		 "JOIN Paths " +
+		 "ON Paths.pathId=StreamPathAssoc.pathId " +
+		 "WHERE StreamPathAssoc.streamId = ? "+
+		 "ORDER BY Paths.name ASC");
+	    preparedStatements.add(psSelectStreamPathAssoc);
+	    
 	    psSelectSequenceModuleAssoc =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -916,16 +927,16 @@ public class ConfDB
 		psInsertConfiguration =
 		    dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO Configurations " +
-		     "(configDescriptor,parentDirId,config," +
-		     "version,created,processName) " +
-		     "VALUES (?, ?, ?, ?, NOW(), ?)",keyColumn);
+		     "(releaseId,configDescriptor,parentDirId,config," +
+		     "version,created,creator,processName) " +
+		     "VALUES (?, ?, ?, ?, ?, NOW(), ?, ?)",keyColumn);
 	    else if (dbType.equals(dbTypeOracle))
 		psInsertConfiguration =
 		    dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO Configurations " +
-		     "(configDescriptor,parentDirId,config," +
-		     "version,created,processName) " +
-		     "VALUES (?, ?, ?, ?, SYSDATE, ?)",
+		     "(releaseId,configDescriptor,parentDirId,config," +
+		     "version,created,creator,processName) " +
+		     "VALUES (?, ?, ?, ?, ?, SYSDATE, ?, ?)",
 		     keyColumn);
 	    preparedStatements.add(psInsertConfiguration);
 	    
@@ -935,12 +946,12 @@ public class ConfDB
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigurationLock);
 
-	    psInsertConfigReleaseAssoc =
+	    psInsertStream =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO ConfigurationReleaseAssoc (configId,releaseId) " +
-		 "VALUES(?, ?)");
-	    preparedStatements.add(psInsertConfigReleaseAssoc);
-	    
+		("INSERT INTO Streams (configId,streamLabel)" +
+		 "VALUES(?, ?)",keyColumn);
+	    preparedStatements.add(psInsertStream);
+
 	    if (dbType.equals(dbTypeMySQL))
 		psInsertSuperId = dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO SuperIds VALUES()",keyColumn);
@@ -1023,6 +1034,12 @@ public class ConfDB
 		 "ConfigurationPathAssoc (configId,pathId,sequenceNb) " +
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigPathAssoc);
+	    
+	    psInsertStreamPathAssoc =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO " +
+		 "StreamPathAssoc (streamId,pathId) VALUES(?, ?)");
+	    preparedStatements.add(psInsertStreamPathAssoc);
 	    
 	    psInsertSequence =
 		dbConnector.getConnection().prepareStatement
@@ -1487,7 +1504,8 @@ public class ConfDB
 		    String configName       = rs.getString(2);
 		    int    configVersion    = rs.getInt(3);
 		    String configCreated    = rs.getTimestamp(4).toString();
-		    String configReleaseTag = rs.getString(5);
+		    String configCreator    = rs.getString(5);
+		    String configReleaseTag = rs.getString(6);
 
 		    String configPathAndName = dir.name()+"/"+configName;
 		    if (configHashMap.containsKey(configPathAndName)) {
@@ -1495,6 +1513,7 @@ public class ConfDB
 			configInfo.addVersion(configId,
 					      configVersion,
 					      configCreated,
+					      configCreator,
 					      configReleaseTag);
 		    }
 		    else {
@@ -1503,6 +1522,7 @@ public class ConfDB
 							       configId,
 							       configVersion,
 							       configCreated,
+							       configCreator,
 							       configReleaseTag);
 			configHashMap.put(configPathAndName,configInfo);
 			dir.addConfigInfo(configInfo);
@@ -1634,25 +1654,6 @@ public class ConfDB
     /** load a partial software release: all the templates instantiated in config */
     public void loadPartialSoftwareRelease(int configId,SoftwareRelease release)
     {
-	String releaseTag = null;
-	ResultSet rs = null;
-	try {
-	    psSelectReleaseTagByConfig.setInt(1,configId);
-	    rs = psSelectReleaseTagByConfig.executeQuery();
-	    rs.next();
-	    releaseTag = rs.getString(2);
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	}
-	finally {
-	    dbConnector.release(rs);
-	}
-	
-	if (releaseTag==null) return;
-
-	release.clear(releaseTag);
-
 	// EDSources
 	try {
 	    psSelectEDSourceTemplatesByConfig.setInt(1,configId);
@@ -2146,6 +2147,34 @@ public class ConfDB
 		}
 		path.setDatabaseId(pathId);
 	    }
+
+	    // load streams
+	    psSelectStreams.setInt(1,configId);
+	    rs = psSelectStreams.executeQuery();
+	    while (rs.next()) {
+		int     streamId      = rs.getInt(1);
+		String  streamLabel   = rs.getString(2);
+		Stream  stream        = config.insertStream(config.streamCount(),
+							    streamLabel);
+		
+		ResultSet rs2 = null;
+		try {
+		    psSelectStreamPathAssoc.setInt(1,streamId);
+		    rs2 = psSelectStreamPathAssoc.executeQuery();
+		    while (rs2.next()) {
+			int  pathId = rs2.getInt(2);
+			Path path   = pathHashMap.get(pathId);
+			stream.insertPath(path);
+		    }
+		}
+		catch (SQLException e) {
+		    e.printStackTrace();
+		    return false;
+		}
+		finally {
+		    dbConnector.release(rs2);
+		}
+	    }
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
@@ -2391,7 +2420,7 @@ public class ConfDB
     }
     
     /** insert a new configuration */
-    public boolean insertConfiguration(Configuration config)
+    public boolean insertConfiguration(Configuration config,String creator)
     {
 	boolean result     = true;
 	int     configId   = 0;
@@ -2410,26 +2439,24 @@ public class ConfDB
 	
 	ResultSet rs = null;
 	try {
-	    psInsertConfiguration.setString(1,configDescriptor);
-	    psInsertConfiguration.setInt(2,config.parentDirId());
-	    psInsertConfiguration.setString(3,config.name());
-	    psInsertConfiguration.setInt(4,config.nextVersion());
-	    psInsertConfiguration.setString(5,config.processName());
+	    psInsertConfiguration.setInt(1,releaseId);
+	    psInsertConfiguration.setString(2,configDescriptor);
+	    psInsertConfiguration.setInt(3,config.parentDirId());
+	    psInsertConfiguration.setString(4,config.name());
+	    psInsertConfiguration.setInt(5,config.nextVersion());
+	    psInsertConfiguration.setString(6,creator);
+	    psInsertConfiguration.setString(7,config.processName());
 	    psInsertConfiguration.executeUpdate();
 	    rs = psInsertConfiguration.getGeneratedKeys();
 	    
 	    rs.next();
 	    configId = rs.getInt(1);
 	    
-	    psSelectConfiguration.setInt(1,configId);
-	    rs = psSelectConfiguration.executeQuery();
+	    psSelectConfigurationCreated.setInt(1,configId);
+	    rs = psSelectConfigurationCreated.executeQuery();
 	    rs.next();
 	    String created = rs.getString(1);
-	    config.addNextVersion(configId,created,releaseTag);
-	    
-	    psInsertConfigReleaseAssoc.setInt(1,configId);
-	    psInsertConfigReleaseAssoc.setInt(2,releaseId);
-	    psInsertConfigReleaseAssoc.executeUpdate();
+	    config.addNextVersion(configId,created,creator,releaseTag);
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
@@ -2466,6 +2493,9 @@ public class ConfDB
 	    
 	    // insert references regarding paths and sequences
 	    insertReferences(config,pathHashMap,sequenceHashMap,moduleHashMap);
+
+	    // insert streams
+	    insertStreams(configId,config);
 	}
 
 	return result;
@@ -2947,6 +2977,48 @@ public class ConfDB
 	return true;
     }
     
+    /** insert streams */
+    private boolean insertStreams(int configId,Configuration config)
+    {
+	Iterator it = config.streamIterator();
+	while (it.hasNext()) {
+	    Stream stream      = (Stream)it.next();
+	    int    streamId    = -1;
+	    String streamLabel = stream.label();
+	    
+	    ResultSet rs = null;
+	    try {
+		psInsertStream.setInt(1,configId);
+		psInsertStream.setString(2,streamLabel);
+		psInsertStream.executeUpdate();
+		rs = psInsertStream.getGeneratedKeys();
+		rs.next();
+		streamId = rs.getInt(1);
+	    }
+	    catch (SQLException e) {
+		e.printStackTrace();
+		return false;
+	    }
+	    
+	    Iterator it2 = stream.pathIterator();
+	    while (it2.hasNext()) {
+		Path path   = (Path)it2.next();
+		int  pathId = path.databaseId();
+		try {
+		    psInsertStreamPathAssoc.setInt(1,streamId);
+		    psInsertStreamPathAssoc.setInt(2,pathId);
+		    psInsertStreamPathAssoc.executeUpdate();
+		}
+		catch (SQLException e) {
+		    e.printStackTrace();
+		    return false;
+		}
+	    }
+	}
+	
+	return true;
+    }
+
     /** insert all instance parameters */
     private boolean insertInstanceParameters(int superId,Instance instance)
     {
