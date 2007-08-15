@@ -62,9 +62,9 @@ function createTabs( tabs )
 	for ( var i = 0; i < tabs.length; i++ )
 	{    
 		if ( i == 0 )
-			createTab( tabs[i], true, "browseDB.jsp" );
+			createTab( tabs[i], true, "browseDB.jsp?db=" + escape( tabs[i] ) );
 	    else
-			createTab( tabs[i], false, "browseDB.jsp" );
+			createTab( tabs[i], false, "browseDB.jsp?db=" + escape( tabs[i] ) );
 	}
 }
 
