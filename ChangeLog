@@ -1,3 +1,12 @@
+2007-08-15  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-10-01
+	* pick up latest converter / browser developments from Ulf
+	* gui bugfixes
+	* add ability to sort components, disabled for now and *not* yet
+	reflected in the db schema!
+	* fixed typo in confdb.properties: it is OMDS, not ODMS:)
+
 2007-08-14  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-10-00

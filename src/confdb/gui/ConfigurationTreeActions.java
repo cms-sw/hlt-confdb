@@ -145,7 +145,17 @@ public class ConfigurationTreeActions
     {
 	return removeNode(tree,pset);
     }
+     
+    /** sort global psets */
+    public static void sortPSets(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	config.sortPSets();
+	model.nodeStructureChanged(model.psetsNode());
+    }
     
+
     //
     // EDSources
     //
@@ -171,6 +181,16 @@ public class ConfigurationTreeActions
 	return removeNode(tree,edsource);
     }
     
+    /** sort EDSources */
+    public static void sortEDSources(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	config.sortEDSources();
+	model.nodeStructureChanged(model.edsourcesNode());
+    }
+    
+
     //
     // ESSources
     //
@@ -196,6 +216,16 @@ public class ConfigurationTreeActions
 	return removeNode(tree,essource);
     }
     
+    /** sort ESSources */
+    public static void sortESSources(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	config.sortESSources();
+	model.nodeStructureChanged(model.essourcesNode());
+    }
+    
+
     //
     // ESModules
     //
@@ -220,6 +250,16 @@ public class ConfigurationTreeActions
     {
 	return removeNode(tree,esmodule);
     }
+
+    /** sort ESModules */
+    public static void sortESModules(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	config.sortESModules();
+	model.nodeStructureChanged(model.esmodulesNode());
+    }
+    
 
     //
     // Services
@@ -246,6 +286,14 @@ public class ConfigurationTreeActions
 	return removeNode(tree,service);
     }
     
+    /** sort services */
+    public static void sortServices(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	config.sortServices();
+	model.nodeStructureChanged(model.servicesNode());
+    }
     
     //
     // Paths & Sequences
@@ -454,7 +502,7 @@ public class ConfigurationTreeActions
 	model.updateLevel1Nodes();
 
 	TreePath newTreePath = parentTreePath.pathByAddingChild(reference);
-	tree.expandPath(newTreePath);
+	tree.expandPath(newTreePath.getParentPath());
 	tree.setSelectionPath(newTreePath);
 	
 	if (module!=null&&module.referenceCount()==1) {
@@ -539,7 +587,6 @@ public class ConfigurationTreeActions
 	int                    indexOfModule= -1;
 	
 	if (reference instanceof ModuleReference) {
-	    
 	    module = (ModuleInstance)reference.parent();
 	    indexOfModule = config.indexOfModule(module);
 	    config.removeModuleReference((ModuleReference)reference);
@@ -610,7 +657,34 @@ public class ConfigurationTreeActions
 	return true;
     }
     
+    /** sort Paths */
+    public static void sortPaths(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	config.sortPaths();
+	model.nodeStructureChanged(model.pathsNode());
+    }
+
+    /** sort Sequences */
+    public static void sortSequences(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	config.sortSequences();
+	model.nodeStructureChanged(model.sequencesNode());
+    }
+
+    /** sort Modules */
+    public static void sortModules(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	config.sortModules();
+	model.nodeStructureChanged(model.modulesNode());
+    }
     
+
     //
     // generic functions
     //
@@ -788,7 +862,7 @@ public class ConfigurationTreeActions
     public static void editNodeName(JTree tree)
     {
 	TreePath treePath = tree.getSelectionPath();
-	tree.expandPath(treePath);
+	tree.expandPath(treePath.getParentPath());
 	tree.scrollPathToVisible(treePath);
 	tree.startEditingAtPath(treePath);
     }

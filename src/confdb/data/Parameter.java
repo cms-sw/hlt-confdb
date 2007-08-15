@@ -8,7 +8,7 @@ package confdb.data;
  *
  * a common parameter base class for scalar *and* vector type parameters.
  */
-abstract public class Parameter
+abstract public class Parameter implements Comparable<Parameter>
 {
     //
     // member data
@@ -65,6 +65,9 @@ abstract public class Parameter
 
     /** overload toString() */
     public String toString() { return name(); }
+
+    /** Comparable: compareTo() */
+    public int compareTo(Parameter p) { return toString().compareTo(p.toString()); }
 
     /** retrieve the parent of the parameter */
     public Object parent() { return parent; }

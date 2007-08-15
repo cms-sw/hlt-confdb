@@ -21,8 +21,8 @@ public class ConfigVersionTableModel extends AbstractTableModel
     //
     
     /** column names */
-    private String[] columnNames = { "version","created","releaseTag"};
-
+    private String[] columnNames = { "version","created","creator","releaseTag"};
+    
     /** configuration info object to be displayed */
     private ConfigInfo configInfo = null;
     
@@ -59,7 +59,8 @@ public class ConfigVersionTableModel extends AbstractTableModel
 	switch (col) {
 	case 0: return new Integer(cVersion.version());
 	case 1: return cVersion.created();
-	case 2: return cVersion.releaseTag();
+	case 2: return cVersion.creator();
+	case 3: return cVersion.releaseTag();
 	}
 	return null;
     }

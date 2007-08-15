@@ -85,6 +85,8 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
     /** action listener for sequences-menu actions */
     private SequenceMenuListener sequenceListener = null;
 
+    /** enable the ability to sort components */
+    private boolean enableSort = false;
 
     //
     // construction
@@ -182,7 +184,7 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	}
 	
 	// show the 'Modules' popup?
-	if (node instanceof ModuleInstance) {
+	if (isInTreePath(treePath,treeModel.modulesNode())&&depth<=3) {
 	    updateModuleMenu();
 	    popupModules.show(e.getComponent(),e.getX(),e.getY());
 	    return;
@@ -225,6 +227,13 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    menuItem.addActionListener(psetListener);
 	    popupPSets.add(menuItem);
 	}
+	
+	if (depth==2&&enableSort) {
+	    popupPSets.addSeparator();
+	    menuItem = new JMenuItem("Sort");
+	    menuItem.addActionListener(psetListener);
+	    popupPSets.add(menuItem);
+	}
     }
     
     /** update 'EDSource' menu */
@@ -255,6 +264,13 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	}
 	if (depth==3) {
 	    menuItem = new JMenuItem("Remove EDSource");
+	    menuItem.addActionListener(edsourceListener);
+	    popupEDSources.add(menuItem);
+	}
+
+	if (depth==2&&enableSort) {
+	    popupEDSources.addSeparator();
+	    menuItem = new JMenuItem("Sort");
 	    menuItem.addActionListener(edsourceListener);
 	    popupEDSources.add(menuItem);
 	}
@@ -308,6 +324,13 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    menuItem.addActionListener(essourceListener);
 	    popupESSources.add(menuItem);
 	}
+
+	if (depth==2&&enableSort) {
+	    popupESSources.addSeparator();
+	    menuItem = new JMenuItem("Sort");
+	    menuItem.addActionListener(essourceListener);
+	    popupESSources.add(menuItem);
+	}
     }
     
     /** update 'ESModules' menu */
@@ -358,6 +381,13 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    menuItem.addActionListener(esmoduleListener);
 	    popupESModules.add(menuItem);
 	}
+
+	if (depth==2&&enableSort) {
+	    popupESModules.addSeparator();
+	    menuItem = new JMenuItem("Sort");
+	    menuItem.addActionListener(esmoduleListener);
+	    popupESModules.add(menuItem);
+	}
     }
     
     /** update 'Services' menu */
@@ -384,6 +414,12 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    popupServices.add(menuItem);
 	}
 	
+	if (depth==2&&enableSort) {
+	    popupServices.addSeparator();
+	    menuItem = new JMenuItem("Sort");
+	    menuItem.addActionListener(serviceListener);
+	    popupServices.add(menuItem);
+	}
     }
     
     /** update 'Paths' menu */
@@ -405,7 +441,6 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    menuItem.addActionListener(pathListener);
 	    menuItem.setActionCommand("NEWPATH");
 	    popupPaths.add(menuItem);
-	    return;
 	}
 	
 	// specific path is selected
@@ -464,6 +499,13 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 		popupPaths.add(menuItem);
 	    }
 	}
+
+	if (depth==2&&enableSort) {
+	    popupPaths.addSeparator();
+	    menuItem = new JMenuItem("Sort");
+	    menuItem.addActionListener(pathListener);
+	    popupPaths.add(menuItem);
+	}
     }
     
     /** update 'Sequences' Menu */
@@ -516,15 +558,37 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    menuItem.addActionListener(sequenceListener);
 	    popupSequences.add(menuItem);
 	}
+
+	if (depth==2&&enableSort) {
+	    popupSequences.addSeparator();
+	    menuItem = new JMenuItem("Sort");
+	    menuItem.addActionListener(sequenceListener);
+	    popupSequences.add(menuItem);
+	}
     }
     
     /** update 'Modules' Menu */
     public void updateModuleMenu()
     {
-	popupModules = new JPopupMenu();
-	JMenuItem menuItem = new JMenuItem("Rename Module");
-	menuItem.addActionListener(moduleListener);
-	popupModules.add(menuItem);
+
+	TreePath treePath = tree.getSelectionPath();
+	int      depth    = treePath.getPathCount();
+
+	JMenuItem menuItem;
+	popupModules = new JPopupMenu();	
+
+	if (depth==3) {
+	    menuItem = new JMenuItem("Rename Module");
+	    menuItem.addActionListener(moduleListener);
+	    popupModules.add(menuItem);
+	}
+	
+	if (depth==2&&enableSort) {
+	    popupModules.addSeparator();
+	    menuItem = new JMenuItem("Sort");
+	    menuItem.addActionListener(moduleListener);
+	    popupModules.add(menuItem);
+	}
     }
     
     /** create the 'Add Module' submenu */
@@ -779,7 +843,10 @@ class PSetMenuListener implements ActionListener
 	JMenuItem source = (JMenuItem)(e.getSource());
 	String    cmd    = source.getText();
 	
-	if (cmd.equals("Remove PSet")) {
+	if (cmd.equals("Sort")) {
+	    ConfigurationTreeActions.sortPSets(tree);
+	}
+	else if (cmd.equals("Remove PSet")) {
 	    PSetParameter pset =
 		(PSetParameter)tree.getSelectionPath().getLastPathComponent();
 	    ConfigurationTreeActions.removePSet(tree,pset);
@@ -824,7 +891,10 @@ class EDSourceMenuListener implements ActionListener
 	TreePath  treePath = tree.getSelectionPath();
 	Object    node     = treePath.getLastPathComponent();
 	
-	if (cmd.equals("Remove EDSource")) {
+	if (cmd.equals("Sort")) {
+	    ConfigurationTreeActions.sortEDSources(tree);
+	}
+	else if (cmd.equals("Remove EDSource")) {
 	    EDSourceInstance edsource = (EDSourceInstance)node;
 	    ConfigurationTreeActions.removeEDSource(tree,edsource);
 	}
@@ -855,7 +925,10 @@ class ESSourceMenuListener implements ActionListener
 	TreePath  treePath = tree.getSelectionPath();
 	Object    node     = treePath.getLastPathComponent();
 	
-	if (cmd.equals("Remove ESSource")) {
+	if (cmd.equals("Sort")) {
+	    ConfigurationTreeActions.sortESSources(tree);
+	}
+	else if (cmd.equals("Remove ESSource")) {
 	    ESSourceInstance essource = (ESSourceInstance)node;
 	    ConfigurationTreeActions.removeESSource(tree,essource);
  	}
@@ -890,7 +963,10 @@ class ESModuleMenuListener implements ActionListener
 	TreePath  treePath = tree.getSelectionPath();
 	Object    node     = treePath.getLastPathComponent();
 	
-	if (cmd.equals("Remove ESModule")) {
+	if (cmd.equals("Sort")) {
+	    ConfigurationTreeActions.sortESModules(tree);
+	}
+	else if (cmd.equals("Remove ESModule")) {
 	    ESModuleInstance esmodule = (ESModuleInstance)node;
 	    ConfigurationTreeActions.removeESModule(tree,esmodule);
  	}
@@ -925,7 +1001,10 @@ class ServiceMenuListener implements ActionListener
 	TreePath  treePath = tree.getSelectionPath();
 	Object    node     = treePath.getLastPathComponent();
 	
-	if (cmd.equals("Remove Service")) {
+	if (cmd.equals("Sort")) {
+	    ConfigurationTreeActions.sortServices(tree);
+	}
+	else if (cmd.equals("Remove Service")) {
 	    ServiceInstance service = (ServiceInstance)node;	
 	    ConfigurationTreeActions.removeService(tree,service);
 	}
@@ -966,6 +1045,9 @@ class PathMenuListener implements ActionListener
 	}
 	else if (action.equals("SEQREF")) {
 	    ConfigurationTreeActions.insertReference(tree,"Sequence",cmd);
+	}
+	else if (cmd.equals("Sort")) {
+	    ConfigurationTreeActions.sortPaths(tree);
 	}
 	else if (cmd.equals("Rename Path")) {
 	    ConfigurationTreeActions.editNodeName(tree);
@@ -1022,6 +1104,9 @@ class SequenceMenuListener implements ActionListener
 	else if (action.equals("SEQREF")) {
 	    ConfigurationTreeActions.insertReference(tree,"Sequence",cmd);
 	}
+	else if (cmd.equals("Sort")) {
+	    ConfigurationTreeActions.sortSequences(tree);
+	}
 	else if (cmd.equals("Add Sequence")) {
 	    ConfigurationTreeActions.insertSequence(tree);
 	}
@@ -1071,7 +1156,10 @@ class ModuleMenuListener implements ActionListener
 	JMenuItem source   = (JMenuItem)(e.getSource());
 	String    cmd      = source.getText();
 	
-	if (cmd.equals("Rename Module")) {
+	if (cmd.equals("Sort")) {
+	    ConfigurationTreeActions.sortModules(tree);
+	}
+	else if (cmd.equals("Rename Module")) {
 	    ConfigurationTreeActions.editNodeName(tree);
  	}
     }

@@ -3,6 +3,7 @@ package confdb.data;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Collections;
 
 
 /**
@@ -435,7 +436,9 @@ public class Configuration
 	hasChanged = true;
     }
     
-
+    /** sort global PSets*/
+    public void sortPSets() { Collections.sort(psets); }
+    
 
     //
     // EDSources 
@@ -482,6 +485,9 @@ public class Configuration
 	edsources.remove(index);
 	hasChanged = true;
     }
+    
+    /** sort  EDSources */
+    public void sortEDSources() { Collections.sort(edsources); }
     
 
     //
@@ -530,6 +536,9 @@ public class Configuration
 	essources.remove(index);
 	hasChanged = true;
     }
+
+    /** sort  ESSources */
+    public void sortESSources() { Collections.sort(essources); }
     
     
     //
@@ -580,6 +589,9 @@ public class Configuration
 	hasChanged = true;
     }
     
+    /** sort  ESModules */
+    public void sortESModules() { Collections.sort(esmodules); }
+    
     
     //
     // Services
@@ -625,6 +637,9 @@ public class Configuration
 	services.remove(index);
 	hasChanged = true;
     }
+    
+    /** sort services */
+    public void sortServices() { Collections.sort(services); }
     
     
     //
@@ -712,7 +727,10 @@ public class Configuration
 	return insertModuleReference(container,i,instance);
     }    
     
+    /** sort  Modules */
+    public void sortModules() { Collections.sort(modules); }
 
+    
     //
     // Paths
     //
@@ -793,6 +811,9 @@ public class Configuration
 	return reference;
     }
     
+    /** sort Paths */
+    public void sortPaths() { Collections.sort(paths); }
+
     
     //
     // Sequences
@@ -871,6 +892,9 @@ public class Configuration
 	return reference;
     }
 
+    /** sort Sequences */
+    public void sortSequences() { Collections.sort(sequences); }
+
 
     //
     // Streams
@@ -919,6 +943,9 @@ public class Configuration
 	if (defaultStream==stream) defaultStream=null;
     }
 
+    /** sort Streams */
+    public void sortStreams() { Collections.sort(streams); }
+    
     /** default stream*/
     public Stream defaultStream() { return defaultStream; }
     

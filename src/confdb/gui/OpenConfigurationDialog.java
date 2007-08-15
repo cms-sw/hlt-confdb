@@ -183,13 +183,15 @@ public class OpenConfigurationDialog extends ConfigurationDialog
 	jTableConfig.getTableHeader().setReorderingAllowed(false);
 	jTableConfig.getColumnModel().getColumn(0).setPreferredWidth(50);
 	jTableConfig.getColumnModel().getColumn(1).setPreferredWidth(150);
-	jTableConfig.getColumnModel().getColumn(2).setPreferredWidth(150);
+	jTableConfig.getColumnModel().getColumn(2).setPreferredWidth(60);
+	jTableConfig.getColumnModel().getColumn(3).setPreferredWidth(120);
 	
 	ToolTipTableCellRenderer renderer = new ToolTipTableCellRenderer();
 	renderer.setHorizontalAlignment(SwingConstants.CENTER);
 	jTableConfig.getColumnModel().getColumn(0).setCellRenderer(renderer);
 	jTableConfig.getColumnModel().getColumn(1).setCellRenderer(renderer);
 	jTableConfig.getColumnModel().getColumn(2).setCellRenderer(renderer);
+	jTableConfig.getColumnModel().getColumn(3).setCellRenderer(renderer);
 	
         jScrollPane2.setViewportView(jTableConfig);
 	jTableConfig.getParent().setBackground(new Color(255,255,255));
@@ -212,8 +214,7 @@ public class OpenConfigurationDialog extends ConfigurationDialog
 	
 	GroupLayout layout = new GroupLayout(contentPane);
 	contentPane.setLayout(layout);
-        layout.setHorizontalGroup(
-				  layout.createParallelGroup(GroupLayout.LEADING)
+        layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
 		 .addContainerGap()
 		 .add(layout.createParallelGroup(GroupLayout.LEADING)

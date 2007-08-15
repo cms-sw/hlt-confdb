@@ -10,7 +10,9 @@ import java.util.ArrayList;
    
    Common base class of Path and Sequence.
 */
-abstract public class ReferenceContainer extends DatabaseEntry implements Referencable
+abstract public class ReferenceContainer extends    DatabaseEntry
+                                         implements Comparable<ReferenceContainer>,
+						    Referencable
 {
     //
     // member data
@@ -53,6 +55,12 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Refere
     
     /** overload toString() */
     public String toString() { return name(); }
+    
+    /* Comparable: compareTo() */
+    public int compareTo(ReferenceContainer rc)
+    {
+	return toString().compareTo(rc.toString());
+    }
 
     /** get the name of the container */
     public String name() { return name; }

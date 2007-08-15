@@ -84,13 +84,19 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 		    instance.setName("<ENTER UNIQUE NAME>");
 	    }
 	}
-	else if (toBeEdited instanceof Reference) {
-	    Reference reference = (Reference)toBeEdited;
-	    Referencable referencable = reference.parent();
-	    if (config.isUniqueQualifier(name))
-		referencable.setName(name);
+	else if (toBeEdited instanceof ModuleReference) {
+	    ModuleReference reference = (ModuleReference)toBeEdited;
+	    ModuleInstance  instance  = (ModuleInstance)reference.parent();
+	    instance.setName(name);
+
+	    Instance existingInstance = null;
+	    try { existingInstance = instance.template().instance(name); }
+	    catch (DataException e) {}
+	    
+	    if (instance==existingInstance)
+		instance.setName(name);
 	    else
-		referencable.setName("<ENTER UNIQUE NAME>");
+		instance.setName("<ENTER UNIQUE NAME>");
 	}
 	return toBeEdited;
     }

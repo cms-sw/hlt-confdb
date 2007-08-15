@@ -21,5 +21,5 @@ public class ServiceInstance extends Instance
     {
 	super(name,template);
     }
-    
+
 }

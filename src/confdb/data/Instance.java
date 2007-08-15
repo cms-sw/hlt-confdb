@@ -11,7 +11,7 @@ import java.util.Iterator;
  *
  * abstract base class for Service, EDSource, ESSource, and Module Instances.
  */
-abstract public class Instance extends DatabaseEntry
+abstract public class Instance extends DatabaseEntry implements Comparable<Instance>
 {
     //
     // member data
@@ -47,6 +47,9 @@ abstract public class Instance extends DatabaseEntry
     
     /** overload toString */
     public String toString() { return name(); }
+    
+    /** Comparable: compareTo() */
+    public int compareTo(Instance i) { return toString().compareTo(i.toString()); }
 
     /** name of the instance */
     public String name() { return name; }

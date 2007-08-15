@@ -14,7 +14,7 @@ import java.util.Iterator;
  * must be passed to the StorageManager (and doesn't make any sense in
  * the offline world!)
  */
-public class Stream
+public class Stream implements Comparable<Stream>
 {
     //
     // member data
@@ -50,6 +50,9 @@ public class Stream
     
     /** overload 'toString()' */
     public String toString() { return label(); }
+
+    /** Comparable: compareTo() */
+    public int compareTo(Stream s) { return toString().compareTo(s.toString()); }
 
     /** number of paths */
     public int pathCount() { return paths.size(); }
