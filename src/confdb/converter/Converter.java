@@ -1,10 +1,8 @@
 package confdb.converter;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.Properties;
 
 import confdb.data.ConfigInfo;
 import confdb.data.ConfigVersion;
@@ -13,6 +11,7 @@ import confdb.data.Directory;
 import confdb.data.EDSourceInstance;
 import confdb.data.Path;
 import confdb.db.ConfDB;
+import confdb.db.ConfDBSetups;
 import confdb.db.DatabaseException;
 
 /**
@@ -21,7 +20,10 @@ import confdb.db.DatabaseException;
  */
 public class Converter implements IConverter 
 {
+	static private DbProperties defaultDbProperties = null;
+	
 	private ConfDB database = null;
+	private DbProperties dbProperties = null;
 
 	private IConfigurationWriter configurationWriter = null;
 	private IParameterWriter parameterWriter = null;
@@ -40,14 +42,6 @@ public class Converter implements IConverter
         //final private String configurationHeader = "process FU = {" + newline;
 	final private String configurationTrailer = "}" + newline;
 
-
-	private static String CMSSWrelease = "CMSSW_1_4_0_pre1";
-	private String dbName = null;
-	private String dbType = null;
-	private String dbHost = null;
-	private String dbUser = null;
-	private String dbPwrd = null;
-
 	private static HashMap<Integer, String> cache = new HashMap<Integer, String>();
 
 	static 
@@ -61,14 +55,33 @@ public class Converter implements IConverter
 	{
 	}
 	
+	public static void setDefaultDbProperties( DbProperties defaultDbProperties) 
+	{
+		Converter.defaultDbProperties = defaultDbProperties;
+	}
+
 	static public String readConfiguration( int configKey, String typeOfConverter ) throws DatabaseException, SQLException, ClassNotFoundException, InstantiationException, IllegalAccessException, IOException
 	{
-		Converter converter = ConverterFactory.getFactory().getConverter(typeOfConverter);
-
-		converter.loadProperties();
-		converter.setDatabase( new ConfDB() );
-		return converter.readConfiguration(configKey);
+		return getConverter( typeOfConverter ).readConfiguration(configKey);
 	}
+	
+	public static Converter getConverter( String typeOfConverter ) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException
+	{
+		Converter converter = ConverterFactory.getFactory().getConverter(typeOfConverter);
+		if ( defaultDbProperties == null ) 
+			defaultDbProperties = DbProperties.getDefaultDbProperties();
+		converter.setDbProperties( defaultDbProperties );
+		converter.setDatabase( new ConfDB() );
+		
+		return converter;
+	}
+
+	public static Converter getConverter() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException 
+	{
+		return getConverter( null );
+	}
+
+
 
 	public String readConfiguration( int configKey ) throws DatabaseException, SQLException
 	{
@@ -161,36 +174,9 @@ public class Converter implements IConverter
 		return list;
 	}
 	
-	protected void loadProperties() throws IOException
-	{
-		InputStream inStream = getClass().getResourceAsStream( "/conf/confdb.properties" );
-		Properties properties = new Properties();
-		properties.load(inStream);
-
-		String property = properties.getProperty( "confdb.dbName" );
-		if ( property != null )
-			dbName = new String( property );
-		property = properties.getProperty( "confdb.dbType" );
-		if ( property != null )
-			dbType = new String( property );
-		property = properties.getProperty( "confdb.dbHost" );
-		if ( property != null )
-			dbHost = new String( property );
-		property = properties.getProperty( "confdb.dbUser" );
-		if ( property != null )
-			dbUser = new String( property );
-		property = properties.getProperty( "confdb.dbPwrd" );
-		if ( property != null )
-			dbPwrd = new String( property );
-	}
-
 	public void connectToDatabase() throws DatabaseException
 	{
-		String dbUrl = "jdbc:mysql://" + dbHost + ":3306/" + dbName;
-		if ( dbType.equals("oracle") )
-		    dbUrl = "jdbc:oracle:thin:@//" + dbHost + "/" + dbName;
-		
-		database.connect( dbType, dbUrl, dbUser, dbPwrd );
+		database.connect( dbProperties.dbType, dbProperties.dbURL, dbProperties.dbUser, dbProperties.dbPwrd );
 		database.prepareStatements();
 	}
 
@@ -222,18 +208,26 @@ public class Converter implements IConverter
 	{
 		String usage = "java " + Converter.class.getName() + "  configKey [typeOfConversion:ascii or html]\n";
 		
-		if ( args.length < 1 )
-		{
-			System.err.println( "usage:" );
-			System.err.println( usage );
-			System.exit(1);
-		}
-
-		int configKey = Integer.parseInt( args[0] );
-		
-	
 		
 		try {
+		    Converter converter = Converter.getConverter();
+		    DbProperties dbProperties = new DbProperties( new ConfDBSetups(), 1, "convertme!" );
+		    dbProperties.setDbUser( "cms_hlt_reader" );
+		    converter.setDbProperties( dbProperties );
+		    System.out.println( dbProperties.getDbURL() );
+		    converter.connectToDatabase();
+
+			if ( args.length < 1 )
+			{
+				System.err.println( "usage:" );
+				System.err.println( usage );
+				System.exit(1);
+			}
+
+			int configKey = Integer.parseInt( args[0] );
+			
+		
+			
 			String config = null;
 			if ( args.length > 1 )
 				config = Converter.readConfiguration( configKey, args[1] );
@@ -355,24 +349,6 @@ public class Converter implements IConverter
 	}
 
 
-	public static Converter getConverter() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException
-	{
-		ConfDB database = new ConfDB();
-		Converter converter = ConverterFactory.getFactory( CMSSWrelease ).getConverter();
-		converter.loadProperties();
-		converter.setDatabase( database );
-		
-		return converter;
-	}
-
-	public static String getCMSSWrelease() {
-		return CMSSWrelease;
-	}
-
-	public static void setCMSSWrelease(String wrelease) {
-		CMSSWrelease = wrelease;
-	}
-
 	public static void addToCache( int key, String info )
 	{
 		cache.put( new Integer( key ), info );
@@ -391,5 +367,26 @@ public class Converter implements IConverter
 	{
 		return newline;
 	}
+
+	public String getDbURL() {
+		return dbProperties.dbURL;
+	}
+
+	public String getDbName() {
+		return dbProperties.dbName;
+	}
+
+	public String getDbUser() {
+		return dbProperties.dbUser;
+	}
+
+	public DbProperties getDbProperties() {
+		return dbProperties;
+	}
+
+	public void setDbProperties(DbProperties dbProperties) {
+		this.dbProperties = dbProperties;
+	}
+	
 
 }
