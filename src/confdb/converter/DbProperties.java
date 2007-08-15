@@ -83,4 +83,24 @@ public class DbProperties
 		return new DbProperties( "/conf/confdb.properties" );
 	}
 
+	public String getDbUser() {
+		return dbUser;
+	}
+
+	public void setDbUser(String dbUser) {
+		this.dbUser = dbUser;
+	}
+
+	public String getDbURL() {
+		return dbURL;
+	}
+
+	public String getDbName() {
+		return dbName;
+	}
+
+	public String getDbHost() {
+		return dbHost;
+	}
+
 }
