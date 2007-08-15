@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>HLT config browser</title>
+<style type="text/css">
+/*margin and padding on body element
+  can introduce errors in determining
+  element position and are not recommended;
+  we turn them off as a foundation for YUI
+  CSS treatments. */
+body {
+	margin:0;
+	padding:0;
+}
+</style>
+
+<link rel="stylesheet" type="text/css" href="../js/yui/fonts/fonts-min.css" />
+<link rel="stylesheet" type="text/css" href="../js/yui/tabview/assets/skins/sam/tabview.css" />
+<script type="text/javascript" src="../js/yui/utilities/utilities.js"></script>
+<script type="text/javascript" src="../js/yui/tabview/tabview.js"></script>
+<script type='text/javascript' src='../dwr/interface/AjaxInfo.js'></script>
+<script type='text/javascript' src='../dwr/engine.js'></script>
+<script type='text/javascript' src='../dwr/util.js'></script>
+
+
+<!--begin custom header content for this example-->
+<style type="text/css">
+.yui-navset div.loading div {
+    background:url(assets/loading.gif) no-repeat center center;
+    height:8em; /* hold some space while loading */
+}
+
+</style>
+
+<script type="text/javascript">
+
+var viewportHeight;
+var tabHeight;
+var tabView;
+
+function init()
+{
+	viewportHeight = YAHOO.util.Dom.getViewportHeight();
+	tabHeight = viewportHeight - 80; 
+	tabView = new YAHOO.widget.TabView( 'tabMain' );
+	AjaxInfo.listDBs( processDBList );	
+}
+
+
+function processDBList( dbList )
+{
+	tabView = new YAHOO.widget.TabView( 'tabMain' );
+	if ( dbList.length > 0 )
+		createTabs( dbList );
+//	dwr.engine.setActiveReverseAjax(true);
+}
+
+
+function createTabs( tabs )
+{
+	for ( var i = 0; i < tabs.length; i++ )
+	{    
+		if ( i == 0 )
+			createTab( tabs[i], true, "browseDB.jsp" );
+	    else
+			createTab( tabs[i], false, "browseDB.jsp" );
+	}
+}
+
+function createTab( name, active, tabSource )
+{
+    var tabContent = '<iframe name="' + name + '" height="' + tabHeight + '" width="100%" frameborder="0" src="' + tabSource + '"></iframe>';
+	if ( active )
+	  tabView.addTab(new YAHOO.widget.Tab({
+    	        	label: name,
+        	    	content: tabContent,
+        	    	active : true
+	    	    }));
+	else
+	  tabView.addTab(new YAHOO.widget.Tab({
+    	        	label: name,
+        	    	content: tabContent
+	        	}));
+}
+
+
+YAHOO.util.Event.onDOMReady(init);
+
+</script>
+
+</head>
+
+<body class=" yui-skin-sam">
+<div id="info" style="height: 2em"></div>
+<div id="tabMain" class="yui-navset">
+ <ul class="yui-nav"></ul>
+ <div class="yui-content"></div>
+</div>
+</body>
+
+</html>
+
