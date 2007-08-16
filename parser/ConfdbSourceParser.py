@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL Aug. 8, 2007
+# Jonathan Hollar LLNL Aug. 16, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -31,6 +31,8 @@ class SourceParser:
 	self.inheritancelevel = 0
 	self.includefile = ""
         self.baseclass = ""
+	self.templatearg = ""
+	self.componentdefinitionfile = ""
 	self.sourcetree = srctree
 	self.sequencenb = 0
 	self.psetsequencenb = 0
@@ -530,24 +532,24 @@ class SourceParser:
 
 	success = False
 
-        startedcomment = False
+	startedcomment = False
 
         for line in lines:
             # Tokenize the line
             vals = string.split(line)
 
-            # C-style comments. Seriously. Why?
-            if(line.lstrip().startswith('/*')):
-                startedcomment = True
-            if(startedcomment == True and (line.rstrip().endswith('*/'))):
-                startedcomment = False
-                continue
-            if(startedcomment == True and not (line.rstrip().endswith('*/'))):
-                continue
-                    
+	    # C-style comments. Seriously. Why?
+	    if(line.lstrip().startswith('/*')):
+		startedcomment = True
+	    if(startedcomment == True and (line.rstrip().endswith('*/'))):
+		startedcomment = False
+		continue
+	    if(startedcomment == True and not (line.rstrip().endswith('*/'))):
+		continue
+
             # Check that the line isn't empty and isn't commented out
             if(vals and not line.lstrip().startswith('//') and not line.lstrip().startswith('#')):
-                
+
 		# Handle inline C++ style comments. 
 		if(line.find('//') != -1):
 		    line = line.split('//')[0]
@@ -577,7 +579,7 @@ class SourceParser:
 		    if((foundlineend == True) and (totalline.find('BranchDescription ') != -1) and (totalline.find('=') != -1)):
 			externalbranch = totalline.split('BranchDescription')[1].split('=')[0].lstrip().rstrip()
 			totalline = ''
-		    if((foundlineend == True) and (totalline.find('getParameterSet') != -1) and externalbranch != ''):
+		    if((foundlineend == True) and (totalline.find('getParaeterSet') != -1) and externalbranch != ''):
 		       if(totalline.split('getParameterSet')[1].split(')')[0].find(externalbranch) != -1):
 			   externalbranchpset = totalline.split('=')[0].split('ParameterSet')[1].lstrip().rstrip()
 			   totalline = ''
@@ -593,7 +595,7 @@ class SourceParser:
                     # First look at tracked parameters. No default value
                     # is specified in the .cc file                
                     if((foundlineend == True) and
-                       (totalline.find('getParameter') != -1) and (totalline.find('"') != -1)):
+                       ((totalline.find('.getParameter') != -1) or (totalline.find('->getParameter') != -1)) and (totalline.find('"') != -1)):
 
 			if(totalline.count('getParameter') > 1):
 			    totalline = ''
@@ -797,7 +799,7 @@ class SourceParser:
                     # value _may_ be specified as the second argument
                     # in the declaration.
                     if((foundlineend == True) and
-                       (totalline.find('getUntrackedParameter') != -1) and 
+                       ((totalline.find('.getUntrackedParameter') != -1) or (totalline.find('->getUntrackedParameter') != -1)) and 
 		       (totalline.find('"') != -1)):
 			defaultincc = False
 
@@ -1023,7 +1025,7 @@ class SourceParser:
                         # Not using the templated getParameter. Look for
                         # parameter name and default value. If we're really
                         # lucky, we can find the parameter type too...
-                        else:
+			else:
                             paramnamestring = (totalline.split('getUntrackedParameter('))[1]
                             
 			    # Figure out what ParameterSet this belongs to
@@ -1126,6 +1128,29 @@ class SourceParser:
 			# We're finished with this line(s)
                         totalline = ''
                         foundlineend = False
+
+		    # Of course we support more than one method of getting parameters. Why wouldn't we?
+		    if((totalline.find('.retrieve(') != -1) and
+		       (totalline.find('"') != -1)):
+
+			# If this is a parameter, figure out what ParameterSet this belongs to
+			belongstopset = totalline.split('.retrieve')[0].rstrip().lstrip()
+			belongstopsetname = re.split('\W+',belongstopset)
+			belongstovar = belongstopsetname[len(belongstopsetname)-1].lstrip().rstrip()
+			if(belongstovar in self.psetdict):
+			    if(self.verbose > 1):
+				print '\tMember of parameter set named ' + belongstovar + ' (' + self.psetdict[belongstovar] + ')'
+			    paraminparamset = self.psetdict[belongstovar]
+			elif(belongstovar != '' and belongstovar == externalbranchpset):
+			    if(self.verbose > 1):
+				print '\tMember of external PSet ' + externalbranchpset + ' - ignoring this parameter'
+			    totalline = ''
+			    continue
+			else:
+			    paraminparamset = ''
+
+                        paramstring = totalline.split('"')
+			paramname = paramstring[1]
 
 		    # This line is uninteresting
 		    elif(foundlineend == True and line.find('getParameter') == -1 and line.find('getUntrackedParameter') == -1):
@@ -1243,7 +1268,7 @@ class SourceParser:
 		    elif(len(line.split('new ')) == 3):
 			theobjectclass = line.split('new ')[2].split('(')[0].lstrip().rstrip()
 
-		    if(theobjectclass):
+		    if(theobjectclass):			
 			if(len(line.split(theobjectclass)) == 2):
 			    theobjectargument = line.split(theobjectclass)[1].lstrip('(')
 			elif(len(line.split(theobjectclass)) == 3):
@@ -1253,6 +1278,14 @@ class SourceParser:
 			    thepassedpset = theobjectargument.split(',')[0].lstrip().rstrip()
 			else:
 			    thepassedpset = theobjectargument.split(')')[0].lstrip('(').rstrip(');').lstrip().rstrip()
+
+			if(theobjectclass == "ConcreteJetTagComputer"):
+			    if(self.verbose > 0):
+				print "\tMessage: Changing argument ConcreteJetTagComputer to " + self.templatearg
+			    theobjectclass = self.templatearg
+			    if(self.verbose > 0):
+				print "\tMessage: Changing source file to the definition file " + self.componentdefinitionfile
+			    theccfile = self.componentdefinitionfile
 
 			if((thepassedpset in self.psetdict)):
 			    psettype = self.psetdict[thepassedpset] 
@@ -1265,6 +1298,14 @@ class SourceParser:
 				print 'Found top-level pset passed to object of type ' + theobjectclass
 
 			    self.ParsePassedParameterSet('None', theccfile, theobjectclass, 'None',thedatadir,themodulename)
+			elif(thepassedpset.find('getParameter') != -1 and thepassedpset.find("ParameterSet") != -1):
+			    # We're creating a new PSet
+			    temppset = thepassedpset.split('"')[1]
+			    self.psetdict["Newobject"] = temppset
+			    self.psetsequences[temppset] = 0
+			    #JJH
+			    self.paramsetmemberlist.append((temppset.lstrip().rstrip(),'','','',"true",0,'None',self.psetsequencenb))
+			    self.ParsePassedParameterSet(temppset, theccfile, theobjectclass, 'None',thedatadir,themodulename)
 
 		elif(startedconstructor == False and  (line.find('new ') == -1) and (line.find('(') != -1)):
 		    theobjectclass = ''
@@ -1411,11 +1452,16 @@ class SourceParser:
 		    foundlineend = False
 
 		if(foundlineend == True and line.find(themodulename) != -1):
-		    if((line.find('>') != -1) and (line.split('>')[1].find(themodulename) != -1)):
+		    if((line.find('>') != -1) and (line.find('<') != -1) and (line.split('>')[1].find(themodulename) != -1)):
 			foundatypedef = True
 			if(self.verbose > 1):
-			    print 'found a typedef module declaration in ' + theccfile
-			    print '\n' + totalline
+			    print '\tfound a typedef module declaration in ' + theccfile
+			    print '\t\t' + totalline
+
+			# PhysicsTools...
+			if(totalline.count(themodulename) == 1):
+			    thetemplatetypename = line.split(themodulename)[0].split('>')[0].split('<')[1]
+			    self.templatearg = thetemplatetypename
 
 		    theclass =  (totalline.split('<')[0]).lstrip().lstrip('typedef').lstrip().rstrip()
 		    if(theclass.find('::') != -1):
@@ -1445,14 +1491,14 @@ class SourceParser:
 		    foundlineend = False
 		    totalline = ''
 
-	# We found a typedef/templated module declaration, but couldn't find the template class 
-	# in this package. As a last resort, look for it in any included files. 
-	if((foundatypedef == True) and (self.baseclass == '')):
-	    self.includefile = theccfile
-	    thebaseclass = self.FindOriginalBaseClass(theclass, sourcetree, thedatadir)
+	    # We found a typedef/templated module declaration, but couldn't find the template class 
+	    # in this package. As a last resort, look for it in any included files. 
+	    if((foundatypedef == True) and (self.baseclass == '')):
+		self.includefile = theccfile
+		thebaseclass = self.FindOriginalBaseClass(theclass, sourcetree, thedatadir)
 
-	    if(thebaseclass):
-		self.baseclass = thebaseclass
+		if(thebaseclass):
+		    self.baseclass = thebaseclass
 
     # Find the base class for modules that have 2 levels of inheritance. This can be expensive, so
     # try to be smart and look at what files are being included.		    
@@ -1641,9 +1687,15 @@ class SourceParser:
 		if(self.verbose > 1):
 		    print 'Look in file ' + self.sourcetree + theincfile
 
-                if(not os.path.isfile(self.sourcetree + theincfile)):
-                    print '\tCould not find the file ' + self.sourcetree + theincfile
-                    continue
+		if(not os.path.isfile(self.sourcetree + theincfile)):
+		    print '\tCould not find the file ' + self.sourcetree + theincfile
+		    theincfile = theincfile.replace('.cc','.h').replace('/src/','/interface/').replace('//interface','//src')
+		    if(self.verbose > 1):
+			print 'Look in file ' + self.sourcetree + theincfile
+		    if(not os.path.isfile(self.sourcetree + theincfile)):
+			print '\tCould not find the file ' + self.sourcetree + theincfile
+			continue
+		
 
 		newsrcfilehandle = open(self.sourcetree + theincfile)
 
@@ -1687,7 +1739,7 @@ class SourceParser:
 
 		    if((foundlineend == True) and totalline.find('getParameter') != -1):
 			paramname = totalline.split('getParameter')[1].split('"')[1]
-
+			
                         paramstring = totalline.split('"')
 
                         # Parameter name should be the first thing in quotes after 'getParameter'
@@ -2014,6 +2066,10 @@ class SourceParser:
 	    for mod, paramtype, param, istracked, paramseq in self.paramfailures:
 		print "\t\t" + mod + "\t\t(" + paramtype + ")" + param + "\t\t(Tracked = " + istracked + ")" + str(paramseq)
 
+    # For the BTagging modules we have to remember which file the module was originally defined to 
+    # work backwards and find the actual ESProducer class.
+    def SetModuleDefFile(self, componentdeffile):
+	self.componentdefinitionfile = componentdeffile
 
     # Set the verbosity
     def SetVerbosity(self, verbosity):
@@ -2040,6 +2096,10 @@ class SourceParser:
 	self.inheritancelevel = 0
 
         self.baseclass = ""
+
+	self.templatearg = ""
+
+	self.componentdefinitionfile = ""
 
 	self.includefile = ""
 

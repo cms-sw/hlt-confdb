@@ -4,7 +4,7 @@
 # Main file for parsing source code in a CMSSW release and
 # loading module templates to the Conf DB.
 # 
-# Jonathan Hollar LLNL June 22, 2007
+# Jonathan Hollar LLNL Aug. 16, 2007
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
@@ -145,6 +145,7 @@ class ConfdbSourceToDB:
 	self.doconfig = cliconfig
 	self.noload = clinoload
 	self.addtorelease = cliaddtorelease
+	self.moduledefinedinfile = ""
 	self.needconfigcomponents = []
 	self.needconfigpackages = []
 	self.sqlerrors = []
@@ -226,12 +227,12 @@ class ConfdbSourceToDB:
 		    # Check if the user really wants to use this package
 		    if (self.usingblacklist == True and (package) in self.blacklist[0]):
 			if(self.verbose > 0):
-			    print "Skipping package " + (package)
+			    print "Skipping subsystem/package " + (package) + "/" + subdir
 			continue
 
 		    elif (self.usingwhitelist == True and not ((package) in self.whitelist[0])):
 			if(self.verbose > 0):
-			    print "Skipping package " + (package)
+			    print "Skipping subsystem/package " + (package) + "/" + subdir
 			continue
 
 		    packagedir = source_tree + package + "/" + subdir
@@ -323,6 +324,8 @@ class ConfdbSourceToDB:
 					    # code for the details
 					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,1)
 
+					    self.moduledefinedinfile = sealcomponentfilename
+
 					    foundcomponent = 1
 
 					# Next Services
@@ -350,6 +353,8 @@ class ConfdbSourceToDB:
 
 					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,2)
 
+					    self.moduledefinedinfile = sealcomponentfilename
+
 					    foundcomponent = 1
 
 					# And next services defined through service makers
@@ -373,6 +378,8 @@ class ConfdbSourceToDB:
 					    sealcomponenttuple.append(sealservice)
 
 					    self.ScanComponent(sealservice, packagedir,package+"/"+subdir,source_tree,2)
+
+					    self.moduledefinedinfile = sealcomponentfilename
 
 					    foundcomponent = 1	   
 
@@ -399,6 +406,8 @@ class ConfdbSourceToDB:
 
 					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,3)
 
+					    self.moduledefinedinfile = sealcomponentfilename
+
 					    foundcomponent = 1					
 
 					# And finally ED_Sources
@@ -424,6 +433,8 @@ class ConfdbSourceToDB:
 
 					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,4)
 
+					    self.moduledefinedinfile = sealcomponentfilename
+
 					    foundcomponent = 1			
 
 					# And really finally ESModules
@@ -448,6 +459,8 @@ class ConfdbSourceToDB:
 					    sealcomponenttuple.append(sealessource)
 
 					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,5)
+
+					    self.moduledefinedinfile = sealcomponentfilename
 
 					    foundcomponent = 1			
 
@@ -499,6 +512,7 @@ class ConfdbSourceToDB:
 
 	# Get a parser object
 	myParser = ConfdbSourceParser.SourceParser(self.verbose,sourcetree)
+	myParser.SetModuleDefFile(self.moduledefinedinfile)
 
 	srcdir = packagedir + "/src/"
 	interfacedir = packagedir + "/interface/"
@@ -509,7 +523,7 @@ class ConfdbSourceToDB:
 
 	tagline = ""
 
-#	tagfile = open("tags131_HLT4.txt")
+#	tagfile = open("tags160_pre5.txt")
 #	taglines = tagfile.readlines()
 #
 #	for modtag in taglines:
@@ -561,7 +575,7 @@ class ConfdbSourceToDB:
 			    # Now find the relevant constructor and parameter declarations
 			    # in the .cc files in the src/ directory
 			    myParser.ParseSrcFile(srcdir + srcfile, modulename, datadir, "")
-
+			    
 			    # Lastly the special case of modules declared via typedef
 			    myParser.HandleTypedefs(srcdir + srcfile, modulename, srcdir, interfacedir, datadir, sourcetree)
 
