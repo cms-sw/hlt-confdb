@@ -555,8 +555,9 @@ class SourceParser:
 		    line = line.split('//')[0]
 
                 # If we found a constructor, start reading the ParameterSet. The second condition is for
-                # dealing with the case where getParameter is used in the same line as the constructor.
-                if(startedmod == True or (line.find(themodulename + '::' + themodulename) != -1 and (line.find('getParameter') != -1 or line.find('getUntrackedParameter') != -1))):
+                # dealing with the case where getParameter is used in the same line as the constructor. The 
+		# third is a hack for the 1 instance of getting a parameter using retrieve instead of getParameter. 
+                if(startedmod == True or (line.find(themodulename + '::' + themodulename) != -1 and (line.find('getParameter') != -1 or line.find('getUntrackedParameter') != -1)) or (line.find('.retrieve(') != -1 and theccfile.endswith('.h'))):
                     # Look for ends of parameter declarations 
                     if(line.rstrip().endswith('))') or
                        line.rstrip().endswith(')),') or
@@ -1132,7 +1133,6 @@ class SourceParser:
 		    # Of course we support more than one method of getting parameters. Why wouldn't we?
 		    if((totalline.find('.retrieve(') != -1) and
 		       (totalline.find('"') != -1)):
-
 			# If this is a parameter, figure out what ParameterSet this belongs to
 			belongstopset = totalline.split('.retrieve')[0].rstrip().lstrip()
 			belongstopsetname = re.split('\W+',belongstopset)
@@ -1151,6 +1151,10 @@ class SourceParser:
 
                         paramstring = totalline.split('"')
 			paramname = paramstring[1]
+			if(totalline.split(paramname)[1].find('getString')):
+			    if(self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None')):
+				self.paramlist.append(("string",paramname.lstrip().rstrip(),'','true',self.sequencenb))
+				self.sequencenb = self.sequencenb + 1
 
 		    # This line is uninteresting
 		    elif(foundlineend == True and line.find('getParameter') == -1 and line.find('getUntrackedParameter') == -1):
@@ -1303,7 +1307,6 @@ class SourceParser:
 			    temppset = thepassedpset.split('"')[1]
 			    self.psetdict["Newobject"] = temppset
 			    self.psetsequences[temppset] = 0
-			    #JJH
 			    self.paramsetmemberlist.append((temppset.lstrip().rstrip(),'','','',"true",0,'None',self.psetsequencenb))
 			    self.ParsePassedParameterSet(temppset, theccfile, theobjectclass, 'None',thedatadir,themodulename)
 
