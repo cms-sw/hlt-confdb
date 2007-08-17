@@ -7,16 +7,22 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>HLT config browser</title>
 
+
+
+
+
 <link rel="stylesheet" type="text/css" href="../js/yui/reset-fonts-grids/reset-fonts-grids.css" />
 <link rel="stylesheet" type="text/css" href="../js/yui/treeview/assets/skins/sam/treeview.css" />
 <link rel="stylesheet" type="text/css" href="../js/yui/tabview/assets/skins/sam/tabview.css" />
-<script type="text/javascript" src="../js/yui/yahoo/yahoo.js"></script>
-<script type="text/javascript" src="../js/yui/event/event.js"></script>
+<link rel="stylesheet" type="text/css" href="../js/yui/container/assets/skins/sam/container.css" />
+<script type="text/javascript" src="../js/yui/yahoo-dom-event/yahoo-dom-event.js"></script>
 <script type="text/javascript" src="../js/yui/treeview/treeview.js"></script>
+<script type="text/javascript" src="../js/yui/container/container.js"></script>
 
 <link rel="stylesheet" type="text/css" href="assets/css/folders/tree.css"><!-- Some custom style for the expand/contract section-->
 
 <style type="text/css">
+
 /*margin and padding on body element
   can introduce errors in determining
   element position and are not recommended;
@@ -26,8 +32,18 @@ body {
 	margin:0;
 	padding:0;
 }
+
+.yui-module { padding:5px;margin:0px; display:none; }
+/*
+.yui-module .hd { border:1px solid red; }
+.yui-module .bd { border:1px solid green; }
+.yui-module .ft { border:1px solid blue;padding:5px; }
+*/
+
 .icon-gen, .icon-gen:link, .icon-gen:visited, .icon-gen:hover  { padding-left: 20px; background: transparent url(../img/icons.png) 0 -108px no-repeat; 	text-decoration: none;
 }
+ 
+ 
  
 /* via css class selector */
 .xygtvtn {background: transparent;  width:1em; height:20px; }
@@ -41,12 +57,13 @@ body {
 .xygtvlp { background: url(assets/img/menu/expand.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
 .xygtvlph { background: url(assets/img/menu/expandh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
 
-</style>
 
-<style>
+
+
 body { "background:#edf5ff" }
-#treeMain { background: white;  }
-#expandcontractdiv {margin:0 0 .5em 0; padding:0.4em;}
+#mainLeft { background: white; border: 1px solid #B6CDE1;  }
+#mainRight { background-color:#FFF5DF; border: 1px solid #B6CDE1; }
+.headerDiv { margin:0 0 .5em 0; padding:0.4em;}
 </style>
 
 <script type="text/javascript">
@@ -92,9 +109,14 @@ YAHOO.extend(YAHOO.widget.ConfigNode, YAHOO.widget.TextNode, {
 
 
 var tree; //will hold our TreeView instance
+var loadingModule;
+var configModule;
 	
 function treeInit() 
 {
+	var viewportHeight = YAHOO.util.Dom.getViewportHeight();
+	document.getElementById("configFrame").height = viewportHeight - 50; 
+
 	//instantiate the tree:
 	tree = new YAHOO.widget.TreeView("treeDiv1");
 		
@@ -117,6 +139,12 @@ function treeInit()
 			tree.collapseAll();
 			YAHOO.util.Event.preventDefault(e);
 		});
+		
+    loadingModule = new YAHOO.widget.Module("loading", { visible: false });
+    loadingModule.render();
+
+    configModule = new YAHOO.widget.Module("config", { visible: false });
+    configModule.render();
 }
 	
 	
@@ -124,10 +152,24 @@ function labelClicked( node )
 {
   if ( !node.data.key )
   	return;
-  document.getElementById( "selectedConfig" ).innerHTML = "<b>" + node.data.name + " " + node.data.label + "</b>";
-  document.getElementById("config").src = "convert.jsp?configKey=" + node.data.key + "&dbIndex=" + dbIndex;
+  document.getElementById("configFrame").src = "convert.jsp?configKey=" + node.data.key + "&dbIndex=" + dbIndex;
+  //document.getElementById("loading").style.visibility = "visible";
+  //document.getElementById("config").style.visibility = "hidden";
+  
+  loadingModule.show();
+  configModule.hide();
+  var header = "<b>" + node.data.name + " " + node.data.label + "</b>";
+  loadingModule.setHeader( header );
+  loadingModule.render();
+  configModule.setHeader( header );
+  configModule.render();
 }
 	
+function iframeReady()
+{
+  loadingModule.hide();
+  configModule.show();
+}
 	
 //When the DOM is done loading, we can initialize our TreeView
 //instance:
@@ -227,16 +269,22 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
   <div id="hd"><!-- header --></div>  
   <div id="bd"><!-- body --></div>  
     <div class="yui-gd"> 
-	  <div class="yui-u first" id="treeMain"> 
-        <div id="expandcontractdiv">
-          <a id="expand" href="#">Expand all</a>
-          <a id="collapse" href="#">Collapse all</a>
+	  <div class="yui-u first">
+	    <div id="mainLeft"> 
+          <div class="headerDiv">
+            <a id="expand" href="#">Expand all</a>
+            <a id="collapse" href="#">Collapse all</a>
+          </div>
+          <div id="treeDiv1"></div>
         </div>
-        <div id="treeDiv1"></div>
 	  </div> 
-	  <div class="yui-u"> 
-	    <div id="selectedConfig"></div>
-		<iframe id="config" width="100%" height="650" marginheight="10" marginwidth="10" frameborder="0"></iframe>
+	  <div class="yui-u">
+	    <div id="mainRight"> 
+	      <div id="loading"><img src="assets/img/default/loading.gif"></div>
+	      <div id="config">
+		    <iframe id="configFrame" width="100%" height="100%" marginheight="10" marginwidth="10" frameborder="0"></iframe>
+		  </div>
+		</div>
 	  </div> 
 	</div>
   <div id="ft"><!-- footer --></div>  
