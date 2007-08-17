@@ -60,7 +60,7 @@ body {
 
 
 
-body { "background:#edf5ff" }
+body { background:#edf5ff }
 #mainLeft { background: white; border: 1px solid #B6CDE1;  }
 #mainRight { background-color:#FFF5DF; border: 1px solid #B6CDE1; }
 .headerDiv { margin:0 0 .5em 0; padding:0.4em;}
@@ -112,7 +112,7 @@ var tree; //will hold our TreeView instance
 var loadingModule;
 var configModule;
 	
-function treeInit() 
+function init() 
 {
 	var viewportHeight = YAHOO.util.Dom.getViewportHeight();
 	document.getElementById("configFrame").height = viewportHeight - 50; 
@@ -152,9 +152,7 @@ function labelClicked( node )
 {
   if ( !node.data.key )
   	return;
-  document.getElementById("configFrame").src = "convert.jsp?configKey=" + node.data.key + "&dbIndex=" + dbIndex;
-  //document.getElementById("loading").style.visibility = "visible";
-  //document.getElementById("config").style.visibility = "hidden";
+  document.getElementById("configFrame").src = "convert.jsp?configKey=" + node.data.key + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF";
   
   loadingModule.show();
   configModule.hide();
@@ -173,7 +171,7 @@ function iframeReady()
 	
 //When the DOM is done loading, we can initialize our TreeView
 //instance:
-YAHOO.util.Event.onDOMReady(treeInit);
+YAHOO.util.Event.onContentReady( "doc3", init );
 	
 </script>
 
@@ -282,7 +280,9 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
 	    <div id="mainRight"> 
 	      <div id="loading"><img src="assets/img/default/loading.gif"></div>
 	      <div id="config">
-		    <iframe id="configFrame" width="100%" height="100%" marginheight="10" marginwidth="10" frameborder="0"></iframe>
+	        <div class="bd">
+		      <iframe id="configFrame" width="100%" marginheight="10" marginwidth="10" frameborder="0"></iframe>
+		    </div>
 		  </div>
 		</div>
 	  </div> 
