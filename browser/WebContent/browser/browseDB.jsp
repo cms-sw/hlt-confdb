@@ -7,8 +7,9 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>HLT config browser</title>
 
-<link rel="stylesheet" type="text/css" href="../js/yui/fonts/fonts-min.css" />
+<link rel="stylesheet" type="text/css" href="../js/yui/reset-fonts-grids/reset-fonts-grids.css" />
 <link rel="stylesheet" type="text/css" href="../js/yui/treeview/assets/skins/sam/treeview.css" />
+<link rel="stylesheet" type="text/css" href="../js/yui/tabview/assets/skins/sam/tabview.css" />
 <script type="text/javascript" src="../js/yui/yahoo/yahoo.js"></script>
 <script type="text/javascript" src="../js/yui/event/event.js"></script>
 <script type="text/javascript" src="../js/yui/treeview/treeview.js"></script>
@@ -43,65 +44,10 @@ body {
 </style>
 
 <style>
-#expandcontractdiv {border:1px dotted #dedede; background-color:#EBE4F2; margin:0 0 .5em 0; padding:0.4em;}
-#treeDiv1 { background: #fff; padding:1em; margin-top:1em; }
+body { "background:#edf5ff" }
+#treeMain { background: white;  }
+#expandcontractdiv {margin:0 0 .5em 0; padding:0.4em;}
 </style>
-
-</head>
-<body class="yui-skin-sam">
-
-<%
-  String tree = "";
-  try {
-	  	ConfDBSetups dbs = new ConfDBSetups();
-	  	int dbIndex = 1;
-	  	String db = request.getParameter( "db" );
-	  	if ( db != null )
-	  	{
-	  		String[] labels = dbs.labelsAsArray();
-	  		for ( int i = 0; i < dbs.setupCount(); i++ )
-	  		{
-	  			if ( db.equalsIgnoreCase( labels[i] ) )
-	  			{
-	  				dbIndex = i;
-	  				break;
-	  			}
-	  		}
-	  	}
-	    Converter converter = Converter.getConverter();
-	    DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertme!" );
-	    dbProperties.setDbUser( "cms_hlt_reader" );
-	    converter.setDbProperties( dbProperties );
-	    converter.connectToDatabase();
-	    confdb.data.Directory root = converter.getRootDirectory();
-	    tree = "<script>\n" 
-    	    + "function buildTree()\n"
-        	+ "{\n"
-    		+ "var parentNode\n"
-    		+ "var configNode\n"
-    		+ "var versionNode\n"
-    		+ "var dir = tree.getRoot();\n"
-        	+ prepareTree( "dir", root, converter )
-        	+ "}\n"
-			+ "</script>\n";
-    	converter.disconnectFromDatabase();
-%>
-    <!-- markup for expand/contract links -->
-    <div id="expandcontractdiv">
-    	<a id="expand" href="#">Expand all</a>
-    	<a id="collapse" href="#">Collapse all</a>
-    </div>
-
-    <div id="treeDiv1"></div>
-<%
-		out.println( tree );
-  } catch (Exception e) {
-    out.println( "<tr><td>" + e.toString() + "</td></tr>" );
-    e.printStackTrace();
-  }
-%>
-
-<!-- markup for expand/contract links -->
 
 <script type="text/javascript">
 
@@ -158,6 +104,8 @@ function treeInit()
 	//our TreeView instance:
 	tree.draw();
 
+	tree.subscribe( "labelClick", labelClicked );
+
 	//handler for expanding all nodes
 	YAHOO.util.Event.on("expand", "click", function(e) {
 			tree.expandAll();
@@ -171,11 +119,24 @@ function treeInit()
 		});
 }
 	
+	
+function labelClicked( node )
+{
+  if ( !node.data.key )
+  	return;
+  document.getElementById( "selectedConfig" ).innerHTML = "<b>" + node.data.name + " " + node.data.label + "</b>";
+  document.getElementById("config").src = "convert.jsp?configKey=" + node.data.key + "&dbIndex=" + dbIndex;
+}
+	
+	
 //When the DOM is done loading, we can initialize our TreeView
 //instance:
 YAHOO.util.Event.onDOMReady(treeInit);
 	
 </script>
+
+</head>
+<body class="yui-skin-sam" style="background:#edf5ff">
 
 <%!
 String prepareTree( String parentNode, confdb.data.Directory directory, confdb.converter.Converter converter )
@@ -193,18 +154,12 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
 		for ( int ii = 0; ii < configs[i].versionCount(); ii++ )
     	{
 	  	  versionInfo = configs[i].version( ii );
+	  	  int key = versionInfo.dbId();
 	  	  String vx = "V" + versionInfo.version() + "  -  " + versionInfo.created();
-			str += "versionNode = new YAHOO.widget.ConfigNode( \"" + vx + "\", configNode, false);\n";
-
-/*
-	  	  str += "d.add(" + nodeCounter.incrementAndGet() + ", " + thisParent + ", '" + vx 
-	     + "','javascript:showSelectedConfig( \\'" + name + "\\', " 
-	     + versionInfo.version() + ", " + versionInfo.dbId() + ");', '', '', '../img/spacer.gif' )\n";
-    	    }
-*/
+	  		str += "var nodeData = { label: \"" + vx + "\", key:\"" + key + "\", name:\"" + name + "\" };\n"
+			    + "versionNode = new YAHOO.widget.ConfigNode( nodeData, configNode, false);\n";
 	    }
 	}
-
 
 	confdb.data.Directory[] list = converter.listSubDirectories( directory );
 	for ( int i = 0; i < list.length; i++ )
@@ -220,5 +175,71 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
     return str;
 }
 %>
+
+<%
+  String tree = "";
+  Converter converter = Converter.getConverter();
+  try {
+	  	ConfDBSetups dbs = new ConfDBSetups();
+	  	int dbIndex = 1;
+	  	String db = request.getParameter( "db" );
+	  	if ( db != null )
+	  	{
+	  		String[] labels = dbs.labelsAsArray();
+	  		for ( int i = 0; i < dbs.setupCount(); i++ )
+	  		{
+	  			if ( db.equalsIgnoreCase( labels[i] ) )
+	  			{
+	  				dbIndex = i;
+	  				break;
+	  			}
+	  		}
+	  	}
+	    DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertme!" );
+	    dbProperties.setDbUser( "cms_hlt_reader" );
+	    converter.setDbProperties( dbProperties );
+	    converter.connectToDatabase();
+	    confdb.data.Directory root = converter.getRootDirectory();
+	    tree = "<script>\n"
+	        + "var dbIndex = " + dbIndex + ";\n"
+	        + "function buildTree()\n"
+	    	+ "{\n"
+	    	+ "var parentNode\n"
+	    	+ "var configNode\n"
+	    	+ "var versionNode\n"
+	    	+ "var nodeData\n"
+	    	+ "var dir = tree.getRoot();\n";
+        tree += prepareTree( "dir", root, converter )
+    		 + "}\n</script>\n";
+  } catch (Exception e) {
+	  out.println( "<script>\nfunction buildTree(){}\n</script>\n"
+			  	+ e.toString() + "</body></html>" );
+      return;
+  }
+  finally {
+  	converter.disconnectFromDatabase();
+  }
+%>
+
+<%= tree %>
+
+<div id="doc3"> 
+  <div id="hd"><!-- header --></div>  
+  <div id="bd"><!-- body --></div>  
+    <div class="yui-gd"> 
+	  <div class="yui-u first" id="treeMain"> 
+        <div id="expandcontractdiv">
+          <a id="expand" href="#">Expand all</a>
+          <a id="collapse" href="#">Collapse all</a>
+        </div>
+        <div id="treeDiv1"></div>
+	  </div> 
+	  <div class="yui-u"> 
+	    <div id="selectedConfig"></div>
+		<iframe id="config" width="100%" height="650" marginheight="10" marginwidth="10" frameborder="0"></iframe>
+	  </div> 
+	</div>
+  <div id="ft"><!-- footer --></div>  
+</div>
 </body>
 </html>
