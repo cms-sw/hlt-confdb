@@ -1,9 +1,32 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <%@page import="java.io.PrintWriter"%>
 <%@page import="java.io.ByteArrayOutputStream"%>
 <%@page import="confdb.converter.DbProperties"%>
 <%@page import="confdb.db.ConfDBSetups"%>
 <%@page import="confdb.converter.Converter"%>
-<%@ page contentType="text/plain" %>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>HLT config</title>
+
+<script type="text/javascript" src="../js/yui/yahoo/yahoo.js"></script>
+<script type="text/javascript" src="../js/yui/utilities/utilities.js"></script>
+<script type="text/javascript" src="../js/yui/event/event.js"></script>
+<script type="text/javascript">
+
+function signalReady()
+{
+  if ( parent &&  parent.iframeReady )
+    parent.iframeReady();
+}
+
+//YAHOO.util.Event.onDOMReady( signalReady );
+
+ </script>
+
+</head>
+<body onload="signalReady()">
+<pre><code>
 <%
   try {
 	Converter converter = Converter.getConverter();
@@ -32,5 +55,7 @@
 	  out.println( buffer.toString() );
   }
 %>
-
+</code></pre>
+</body>
+</html>
 
