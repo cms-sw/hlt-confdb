@@ -12,6 +12,22 @@
 <script type="text/javascript" src="../js/yui/yahoo/yahoo.js"></script>
 <script type="text/javascript" src="../js/yui/utilities/utilities.js"></script>
 <script type="text/javascript" src="../js/yui/event/event.js"></script>
+
+<style type="text/css">
+
+body {
+	margin:0;
+	padding:0;
+<%
+  String background = request.getParameter( "bgcolor" );
+  if ( background != null )
+	  out.println( "background:#" + background + ";" );
+%>
+}
+
+</style>
+
+
 <script type="text/javascript">
 
 function signalReady()
@@ -25,6 +41,7 @@ function signalReady()
  </script>
 
 </head>
+
 <body onload="signalReady()">
 <pre><code>
 <%
