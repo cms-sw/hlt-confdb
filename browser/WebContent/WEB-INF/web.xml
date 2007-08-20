@@ -25,8 +25,21 @@
 			<param-value>true</param-value>
 		</init-param>
 	</servlet>
+	<servlet>
+		<description>
+		</description>
+		<display-name>
+		CfgServlet</display-name>
+		<servlet-name>CfgServlet</servlet-name>
+		<servlet-class>
+		CfgServlet</servlet-class>
+	</servlet>
 	<servlet-mapping>
 		<servlet-name>dwr-invoker</servlet-name>
 		<url-pattern>/dwr/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>CfgServlet</servlet-name>
+		<url-pattern>*.cfg</url-pattern>
 	</servlet-mapping>
 </web-app>
