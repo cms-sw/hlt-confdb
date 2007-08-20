@@ -206,17 +206,12 @@ public class Converter implements IConverter
 	
 	public static void main(String[] args) 
 	{
-		String usage = "java " + Converter.class.getName() + "  configKey [typeOfConversion:ascii or html]\n";
+		String usage = "java " + Converter.class.getName() + "  configKey [dbIndex]\n";
 		
 		
 		try {
 		    Converter converter = Converter.getConverter();
-		    DbProperties dbProperties = new DbProperties( new ConfDBSetups(), 1, "convertme!" );
-		    dbProperties.setDbUser( "cms_hlt_reader" );
-		    converter.setDbProperties( dbProperties );
-		    System.out.println( dbProperties.getDbURL() );
-		    converter.connectToDatabase();
-
+		    
 			if ( args.length < 1 )
 			{
 				System.err.println( "usage:" );
@@ -226,13 +221,18 @@ public class Converter implements IConverter
 
 			int configKey = Integer.parseInt( args[0] );
 			
-		
-			
 			String config = null;
 			if ( args.length > 1 )
-				config = Converter.readConfiguration( configKey, args[1] );
-			else
-				config = Converter.readConfiguration( configKey, "ascii" );
+			{
+				int dbIndex = Integer.parseInt( args[1] );
+				ConfDBSetups dbs = new ConfDBSetups();
+			    DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertme!" );
+		    	dbProperties.setDbUser( "cms_hlt_reader" );
+		    	converter.setDbProperties( dbProperties );
+			}
+				
+			config = converter.readConfiguration( configKey );
+
 			if ( config == null )
 				System.out.println( "config " + configKey + " not found!" );
 			else
