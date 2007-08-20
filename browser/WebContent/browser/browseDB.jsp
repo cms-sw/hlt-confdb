@@ -44,7 +44,6 @@ body {
 }
  
  
- 
 /* via css class selector */
 .xygtvtn {background: transparent;  width:1em; height:20px; }
 .xygtvtm { background: url(assets/img/menu/collapse.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
@@ -145,6 +144,8 @@ function init()
 
     configModule = new YAHOO.widget.Module("config", { visible: false });
     configModule.render();
+    
+    
 }
 	
 	
@@ -152,13 +153,15 @@ function labelClicked( node )
 {
   if ( !node.data.key )
   	return;
-  document.getElementById("configFrame").src = "convert.jsp?configKey=" + node.data.key + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF";
+  document.getElementById("configFrame").src = "convert2Html.jsp?configKey=" + node.data.key + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF";
   
   loadingModule.show();
   configModule.hide();
   var header = "<b>" + node.data.name + " " + node.data.label + "</b>";
   loadingModule.setHeader( header );
   loadingModule.render();
+
+  header += '<a style="position:absolute; right:20px;" href="download.cfg?configKey='+ node.data.key + '&dbIndex=' + dbIndex + '">download cfg</a>';
   configModule.setHeader( header );
   configModule.render();
 }
@@ -280,6 +283,8 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
 	    <div id="mainRight"> 
 	      <div id="loading"><img src="assets/img/default/loading.gif"></div>
 	      <div id="config">
+	        <div class="hd">
+			</div>
 	        <div class="bd">
 		      <iframe id="configFrame" width="100%" marginheight="10" marginwidth="10" frameborder="0"></iframe>
 		    </div>
