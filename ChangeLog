@@ -1,3 +1,14 @@
+2007-08-20  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-10-02
+	* fix sql queries for 'fast' loading of templates (restricted to
+	the ones referenced in the configuration to be converted).
+	* confdb.converter.Converter fixed, takes two parameters now:
+	configId *and* the index of the database setup in the ConfDBSetups
+	class (1=HLT Dev, 2=OMDS)
+	* pick up latest parser fixes
+	* pick up latest browser fixes
+	
 2007-08-15  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-10-01

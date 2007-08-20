@@ -382,7 +382,9 @@ public class ConfDB
 		 "FROM EDSourceTemplates " +
 		 "JOIN EDSources " +
 		 "ON EDSources.templateId = EDSourceTemplates.superId " +
-		 "WHERE EDSources.configId = ? " +
+		 "JOIN ConfigurationEDSourceAssoc " +
+		 "ON EDSources.superId = ConfigurationEDSourceAssoc.edsourceId " +
+		 "WHERE ConfigurationEDSourceAssoc.configId = ? " +
 		 "ORDER BY EDSourceTemplates.name ASC");
 	    preparedStatements.add(psSelectEDSourceTemplatesByConfig);
 	    
@@ -413,14 +415,16 @@ public class ConfDB
 	    
 	    psSelectESSourceTemplatesByConfig =
 		dbConnector.getConnection().prepareStatement
-		("SELECT" +
+		("SELECT DISTINCT " +
 		 " ESSourceTemplates.superId," +
 		 " ESSourceTemplates.name," +
 		 " ESSourceTemplates.cvstag " +
 		 "FROM ESSourceTemplates " +
 		 "JOIN ESSources " +
 		 "ON ESSources.templateId = ESSourceTemplates.superId " +
-		 "WHERE ESSources.configId = ? " +
+		 "JOIN ConfigurationESSourceAssoc " +
+		 "ON ESSources.superId = ConfigurationESSourceAssoc.essourceId " +
+		 "WHERE ConfigurationESSourceAssoc.configId = ? " +
 		 "ORDER BY ESSourceTemplates.name ASC");
 	    preparedStatements.add(psSelectESSourceTemplatesByConfig);
 	    
@@ -451,14 +455,16 @@ public class ConfDB
 	    
 	    psSelectESModuleTemplatesByConfig =
 		dbConnector.getConnection().prepareStatement
-		("SELECT" +
+		("SELECT DISTINCT " +
 		 " ESModuleTemplates.superId," +
 		 " ESModuleTemplates.name," +
 		 " ESModuleTemplates.cvstag " +
 		 "FROM ESModuleTemplates " +
 		 "JOIN ESModules " +
 		 "ON ESModules.templateId = ESModuleTemplates.superId " +
-		 "WHERE ESModules.configId = ? " +
+		 "JOIN ConfigurationESModuleAssoc " +
+		 "ON ESModules.superId = ConfigurationESModuleAssoc.esmoduleId " +
+		 "WHERE ConfigurationESModuleAssoc.configId = ? " +
 		 "ORDER BY ESModuleTemplates.name ASC");
 	    preparedStatements.add(psSelectESModuleTemplatesByConfig);
 	    
@@ -497,7 +503,7 @@ public class ConfDB
 		 "JOIN Services " +
 		 "ON Services.templateId = ServiceTemplates.superId " +
 		 "JOIN ConfigurationServiceAssoc " +
-		 "ON Services.superId=ConfigurationServiceAssoc.serviceId " +
+		 "ON Services.superId = ConfigurationServiceAssoc.serviceId " +
 		 "WHERE ConfigurationServiceAssoc.configId = ? " +
 		 "ORDER BY ServiceTemplates.name ASC");
 	    preparedStatements.add(psSelectServiceTemplatesByConfig);
@@ -545,9 +551,9 @@ public class ConfDB
 		 "ON Modules.templateId = ModuleTemplates.superId " +
 		 "JOIN PathModuleAssoc " +
 		 "ON PathModuleAssoc.moduleId=Modules.superId " +
-		 "JOIN Paths " +
-		 "ON Paths.pathId=PathModuleAssoc.pathId " +
-		 "WHERE Paths.configId = ? " +
+		 "JOIN ConfigurationPathAssoc " +
+		 "ON PathModuleAssoc.pathId = ConfigurationPathAssoc.pathId " +
+		 "WHERE ConfigurationPathAssoc.configId = ? " +
 		 "ORDER BY ModuleTemplates.name ASC");
 	    preparedStatements.add(psSelectModuleTemplatesByConfigPath);
 	    
@@ -565,12 +571,13 @@ public class ConfDB
 		 "ON Modules.templateId = ModuleTemplates.superId " +
 		 "JOIN SequenceModuleAssoc " +
 		 "ON SequenceModuleAssoc.moduleId=Modules.superId " +
-		 "JOIN Sequences " +
-		 "ON Sequences.sequenceId=SequenceModuleAssoc.sequenceId " +
-		 "WHERE Sequences.configId = ? " +
+		 "JOIN ConfigurationSequenceAssoc " +
+		 "ON SequenceModuleAssoc.sequenceId =" +
+		 " ConfigurationSequenceAssoc.sequenceId " +
+		 "WHERE ConfigurationSequenceAssoc.configId = ? " +
 		 "ORDER BY ModuleTemplates.name ASC");
 	    preparedStatements.add(psSelectModuleTemplatesByConfigSeq);
-
+	    
 	    psSelectGlobalPSets =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
