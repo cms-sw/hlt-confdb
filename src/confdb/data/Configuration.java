@@ -463,9 +463,16 @@ public class Configuration
     public EDSourceInstance insertEDSource(String templateName)
     {
 	if (edsourceCount()>0) return null;
+
 	EDSourceTemplate template =
 	    (EDSourceTemplate)release.edsourceTemplate(templateName);
-	EDSourceInstance instance = null;
+	if (template==null) {
+	    System.out.println("insertEDSource ERROR: unknown template '" +
+			       templateName+"'!");
+	    return null;
+	}
+
+	EDSourceInstance instance = null;	
 	try {
 	    instance = (EDSourceInstance)template.instance();
 	    edsources.add(instance);
@@ -516,7 +523,13 @@ public class Configuration
     {
 	ESSourceTemplate template =
 	    (ESSourceTemplate)release.essourceTemplate(templateName);
-	ESSourceInstance instance = null;
+	if (template==null) {
+	    System.out.println("insertESSource ERROR: unknown template '"+
+			       templateName+"'!");
+	    return null;
+	}
+	
+	ESSourceInstance instance = null;	
 	try {
 	    instance = (ESSourceInstance)template.instance(instanceName);
 	    essources.add(i,instance);
@@ -568,6 +581,12 @@ public class Configuration
     {
 	ESModuleTemplate template =
 	    (ESModuleTemplate)release.esmoduleTemplate(templateName);
+	if (template==null) {
+	    System.out.println("insertESModule ERROR: unknown template '" +
+			       templateName+"'!");
+	    return null;
+	}
+
 	ESModuleInstance instance = null;
 	try {
 	    instance = (ESModuleInstance)template.instance(instanceName);
@@ -617,6 +636,12 @@ public class Configuration
     {
 	ServiceTemplate template =
 	    (ServiceTemplate)release.serviceTemplate(templateName);
+	if (template==null) {
+	    System.out.println("insertService ERROR: unknown template '" +
+			       templateName+"'!");
+	    return null;
+	}
+
 	ServiceInstance instance = null;
 	try {
 	    instance = (ServiceInstance)template.instance();
@@ -674,8 +699,8 @@ public class Configuration
 	ModuleTemplate template =
 	    (ModuleTemplate)release.moduleTemplate(templateName);
 	if (template == null) {
-	    System.out.println("ERROR: unknown module template '" +
-			       templateName + "'!");
+	    System.out.println("insertModule ERROR: unknown template '" +
+			       templateName+"'!");
 	    return null;
 	}
 

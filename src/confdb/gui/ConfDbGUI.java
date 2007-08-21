@@ -973,7 +973,10 @@ public class ConfDbGUI implements TableModelListener
 	{
 	    try {
 		currentConfig.setHasChanged(false);
+		currentTreeModel.setConfiguration(currentConfig);
+		streamTreeModel.setConfiguration(currentConfig);
 		configurationPanel.setCurrentConfig(currentConfig);
+		instancePanel.clear();
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		progressBar.setString(progressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");

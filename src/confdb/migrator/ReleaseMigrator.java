@@ -174,6 +174,22 @@ public class ReleaseMigrator
 	    migrateReferences(source,target);
 	}
 	
+	// migrate streams
+	for (int i=0;i<sourceConfig.streamCount();i++) {
+	    Stream source = sourceConfig.stream(i);
+	    Stream target = targetConfig.insertStream(i,source.label());
+	    Iterator it = source.pathIterator();
+	    while (it.hasNext()) {
+		Path sourcePath = (Path)it.next();
+		Path targetPath = targetConfig.path(sourcePath.name());
+		if (targetPath!=null)
+		    target.insertPath(targetPath);
+		else
+		    System.out.println("ERROR: path '"+sourcePath.name()+
+				       "' not found in target configuration!");
+	    }
+	}
+
 	return true;
     }
     
