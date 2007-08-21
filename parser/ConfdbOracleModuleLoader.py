@@ -549,7 +549,7 @@ class ConfdbOracleModuleLoader:
 
 	# Otherwise allocate a new SuperId for this template and attach 
 	# it to the release
-	thecursor.execute("INSERT INTO SuperIds VALUES()")
+	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
 	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
