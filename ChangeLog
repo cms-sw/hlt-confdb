@@ -1,5 +1,12 @@
 2007-08-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-10-04
+	* bug fix: boolean parameter values would always come back 'false'
+	from the database
+	* pick up latest parser fix
+	
+2007-08-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-10-03
 	* migrate streams
 	* make Configuration.insert* more robust against invalid template

@@ -69,6 +69,9 @@ public class ConfDB
     /** 'selevt parameter' sql statement hash map, by parameter id */
     private HashMap<Integer,PreparedStatement> selectParameterIdHashMap = null;
     
+    /** keep track of the 'bool' type id */
+    private int boolTypeId = -1;
+    
     /** prepared sql statements */
     private PreparedStatement psSelectModuleTypes                 = null;
     private PreparedStatement psSelectParameterTypes              = null;
@@ -1329,6 +1332,7 @@ public class ConfDB
 		    isVectorParamHashMap.put(typeId,true);
 		else
 		    isVectorParamHashMap.put(typeId,false);
+		if (type.equals("bool")) boolTypeId = typeId;
 	    }
 	}
 	catch (SQLException e) {
@@ -1753,9 +1757,9 @@ public class ConfDB
 		    //if (p==null) 
 		    //  System.out.println("  "+i+". MISSING");
 		    //else
-		    //   System.out.println("  "+i+". "+p.name()+" / "+p.type());
+		    //  System.out.println("  "+i+". "+p.name()+" / "+p.type());
 		    //i++;
-		    // }
+		    //}
 		    // END DEBUG
 		}
 		else {
@@ -2272,9 +2276,9 @@ public class ConfDB
 		    parameters.set(sequenceNb,pset);
 		}
 		else {
+		    System.out.println("  -> Can't load PSet '" + psetName + " '" +
+				       ", incomplete parameter list:");
 		    // DEBUG
-		    //System.out.println("  -> Can't load pset '" + psetName + " '" +
-		    //	       ", incomplete parameter list:");
 		    //int i=0;
 		    //for (Parameter p : psetParameters) {
 		    //	if (p==null) 
@@ -3183,7 +3187,9 @@ public class ConfDB
 	    }
 	    else {
 		if (rs.next()) {
-		    Object valueAsObject = rs.getObject(2);
+		    Object valueAsObject = (paramTypeId != boolTypeId) ?
+			rs.getObject(2) : rs.getBoolean(2);
+		    
 		    if (valueAsObject!=null)
 			valueAsString = valueAsObject.toString();
 		    else
