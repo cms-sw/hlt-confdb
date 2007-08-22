@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL Aug. 16, 2007
+# Jonathan Hollar LLNL Aug. 22, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -596,7 +596,7 @@ class SourceParser:
                     # First look at tracked parameters. No default value
                     # is specified in the .cc file                
                     if((foundlineend == True) and
-                       ((totalline.find('.getParameter') != -1) or (totalline.find('->getParameter') != -1)) and (totalline.find('"') != -1)):
+                       ((totalline.find('.getParameter') != -1) or (totalline.find('->getParameter') != -1) or (totalline.find(' getParameter') != -1)) and (totalline.find('"') != -1)):
 
 			if(totalline.count('getParameter') > 1):
 			    totalline = ''
@@ -1493,7 +1493,7 @@ class SourceParser:
 		
 		    foundlineend = False
 		    totalline = ''
-
+	
 	    # We found a typedef/templated module declaration, but couldn't find the template class 
 	    # in this package. As a last resort, look for it in any included files. 
 	    if((foundatypedef == True) and (self.baseclass == '')):
@@ -1676,6 +1676,7 @@ class SourceParser:
 	    print 'Parsing passed parameter set ' + thepsetname + ' passed from file ' + thesrcfile + ' to object of class ' + theobjectclass
 
 	totalline = ''
+	mainpassedpset = ''
 	foundlineend = False
 
 	srcfilehandle = open(thesrcfile)
@@ -1723,6 +1724,7 @@ class SourceParser:
 
                     if(srcline.lstrip().startswith('#include')):
                         continue;
+
 
                     if(srcline.rstrip().endswith('))') or
                        srcline.rstrip().endswith(')),') or
@@ -1824,7 +1826,7 @@ class SourceParser:
 			else:
 			    if(totalline.find('=') != -1):
 				thisparamset = totalline.split('=')[0].rstrip().lstrip()
-				
+
 				if(thisparamset.find('vector<edm::ParameterSet>') != -1):
 				    thisparamset = thisparamset.split('>')[1].rstrip().lstrip()
 				elif(thisparamset.find('PSet ') != -1):
@@ -1841,7 +1843,6 @@ class SourceParser:
 				    else:
 					self.psetsequencenb = self.sequencenb
 					self.psetsequences[paramname] = self.psetsequencenb
-
 					if(thepsetname != "None"):
 					    self.paramsetmemberlist.append((paramname,paramtype,'','',"true",self.sequencenb,thepsetname,self.psetsequences[paramname]))
 					    self.sequencenb = self.sequencenb + 1
@@ -1849,7 +1850,7 @@ class SourceParser:
 					    self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true",self.sequencenb))
 					    self.sequencenb = self.sequencenb + 1
 					elif(isvector == False):
-					    self.paramlist.append((paramtype,paramname,None,"true",self.sequencenb))
+					    self.paramsetmemberlist.append((paramname,'','','',"true",self.sequencenb,thepsetname,self.sequencenb))
 					    self.sequencenb = self.sequencenb + 1
 
 				if(self.verbose > 0):
