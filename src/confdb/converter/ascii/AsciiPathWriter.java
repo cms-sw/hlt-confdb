@@ -4,10 +4,8 @@ import confdb.converter.Converter;
 import confdb.converter.IPathWriter;
 import confdb.data.Path;
 
-public class AsciiPathWriter implements IPathWriter {
-
-	
-
+public class AsciiPathWriter implements IPathWriter 
+{
 	public String toString( Path path, Converter converter, String indent ) 
 	{
 		String str = indent;
@@ -18,7 +16,7 @@ public class AsciiPathWriter implements IPathWriter {
 		str += path.name() + " = { ";
 		for ( int i = 0; i < path.entryCount(); i++  )
 		{
-			str += path.entry(i).name();
+			str += decorate( path.entry(i).name() );
 			if ( i + 1 < path.entryCount() )
 				str += " & ";
 		}
@@ -26,4 +24,9 @@ public class AsciiPathWriter implements IPathWriter {
 		return str;
 	}
 
+	
+	protected String decorate( String name )
+	{
+		return name;
+	}
 }
