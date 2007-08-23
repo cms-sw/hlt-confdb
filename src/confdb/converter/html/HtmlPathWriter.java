@@ -8,7 +8,12 @@ public class HtmlPathWriter extends AsciiPathWriter implements IPathWriter
 
 	protected String decorate( String moduleName )
 	{
-		return "<a href=\"#M_" + moduleName + "\">" + moduleName + "</a>";
+		return "<a href=\"#" + moduleName + "\">" + moduleName + "</a>";
+	}
+
+	protected String decorateName( String pathName )
+	{
+		return "<b>" + pathName + "</b>";
 	}
 	
 }
