@@ -1,27 +1,17 @@
 package confdb.converter.html;
 
-import confdb.converter.Converter;
 import confdb.converter.ISequenceWriter;
-import confdb.data.Sequence;
+import confdb.converter.ascii.AsciiSequenceWriter;
 
-public class HtmlSequenceWriter implements ISequenceWriter {
-
-	private static final String indent = "  ";
-
-	public String toString( Sequence sequence, Converter converter ) 
+public class HtmlSequenceWriter extends AsciiSequenceWriter implements ISequenceWriter 
+{
+	protected String decorate( String moduleName )
 	{
-		String str = "<tr>";
-		for ( int i = 0; i < indent.length(); i++ )
-			str += "<td></td>";
-		str += "<td>";
-		str += sequence.name() + "</td><td align=\"center\">=</td>";
-		for ( int i = 0; i < sequence.entryCount(); i++  )
-		{
-			str += "<td>" + sequence.entry(i).name() + "</td>";
-		}
-		str += "</tr>\n";
-		return str;
+		return "<a href=\"#" + moduleName + "\">" + moduleName + "</a>";
 	}
-
-
+	
+	protected String decorateName( String sequenceName )
+	{
+		return "<a name=\"" + sequenceName + "\"><b>" + sequenceName + "</b></a>";
+	}
 }
