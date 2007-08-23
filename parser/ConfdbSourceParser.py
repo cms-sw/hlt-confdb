@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL Aug. 22, 2007
+# Jonathan Hollar LLNL Aug. 23, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -1847,7 +1847,7 @@ class SourceParser:
 					    self.paramsetmemberlist.append((paramname,paramtype,'','',"true",self.sequencenb,thepsetname,self.psetsequences[paramname]))
 					    self.sequencenb = self.sequencenb + 1
 					elif(isvector == True):
-					    self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true",self.sequencenb))
+					    self.vecparamsetmemberlist.append((paramname,'','','','true',self.sequencenb,thepsetname,self.sequencenb))
 					    self.sequencenb = self.sequencenb + 1
 					elif(isvector == False):
 					    self.paramsetmemberlist.append((paramname,'','','',"true",self.sequencenb,thepsetname,self.sequencenb))
