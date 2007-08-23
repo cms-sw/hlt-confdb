@@ -33,9 +33,9 @@ body {
 	padding:0;
 }
 
-.yui-module { padding:5px;margin:0px; display:none; }
+.yui-module { padding:0px;margin-left:5px; margin-right:5px; display:none; }
+.yui-module .hd { margin-bottom:10px; margin-top:5px; padding-left:5px; background-color:#FFE19A }
 /*
-.yui-module .hd { border:1px solid red; }
 .yui-module .bd { border:1px solid green; }
 .yui-module .ft { border:1px solid blue;padding:5px; }
 */
@@ -61,7 +61,7 @@ body {
 
 body { background:#edf5ff }
 #mainLeft { background: white; border: 1px solid #B6CDE1;  }
-#mainRight { background-color:#FFF5DF; border: 1px solid #B6CDE1; }
+#mainRight { margin:0px; padding:0px; background-color:#FFF5DF; border: 1px solid #B6CDE1; }
 .headerDiv { margin:0 0 .5em 0; padding:0.4em;}
 </style>
 
@@ -111,10 +111,12 @@ var tree; //will hold our TreeView instance
 var loadingModule;
 var configModule;
 	
+var jumpTo = '<div><a href="#paths">paths</a></div>';
+	
 function init() 
 {
 	var viewportHeight = YAHOO.util.Dom.getViewportHeight();
-	document.getElementById("configFrame").height = viewportHeight - 50; 
+	document.getElementById("configFrame").height = viewportHeight - 70; 
 
 	//instantiate the tree:
 	tree = new YAHOO.widget.TreeView("treeDiv1");
@@ -161,8 +163,9 @@ function labelClicked( node )
   loadingModule.setHeader( header );
   loadingModule.render();
 
-  header += '<a style="position:absolute; right:20px;" href="download.cfg?configKey='+ node.data.key + '&dbIndex=' + dbIndex + '">download cfg</a>';
-  configModule.setHeader( header );
+  var fileName = node.data.name.replace( '//s/g', '_' ) + "_V" + node.data.version;
+  header += '<a style="position:absolute; right:20px;" href="' + fileName + '.cfg?configKey='+ node.data.key + '&dbIndex=' + dbIndex + '">download cfg</a>';
+  configModule.setHeader( "<div>" +  header + "</div>" + jumpTo);
   configModule.render();
 }
 	
@@ -199,7 +202,7 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
 	  	  versionInfo = configs[i].version( ii );
 	  	  int key = versionInfo.dbId();
 	  	  String vx = "V" + versionInfo.version() + "  -  " + versionInfo.created();
-	  		str += "var nodeData = { label: \"" + vx + "\", key:\"" + key + "\", name:\"" + name + "\" };\n"
+	  		str += "var nodeData = { version:\"" + versionInfo.version() + "\", label: \"" + vx + "\", key:\"" + key + "\", name:\"" + name + "\" };\n"
 			    + "versionNode = new YAHOO.widget.ConfigNode( nodeData, configNode, false);\n";
 	    }
 	}
@@ -286,7 +289,7 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
 	        <div class="hd">
 			</div>
 	        <div class="bd">
-		      <iframe id="configFrame" width="100%" marginheight="10" marginwidth="10" frameborder="0"></iframe>
+		      <iframe id="configFrame" width="100%" frameborder="0"></iframe>
 		    </div>
 		  </div>
 		</div>
