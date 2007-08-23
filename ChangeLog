@@ -1,3 +1,12 @@
+2007-08-23  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-10-05
+	* parser improvements:
+	* missing parameters in HLTrigger are back
+	* out-of-sequence errors w. the CSC*Producers and
+	DTSegment*Producers gone
+	* pick up latest converter changes
+	
 2007-08-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-10-04
