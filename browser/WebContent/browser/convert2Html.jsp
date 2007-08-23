@@ -43,10 +43,10 @@ function signalReady()
 </head>
 
 <body onload="signalReady()">
-<pre><code>
+<pre>
 <%
   try {
-	Converter converter = Converter.getConverter();
+	Converter converter = Converter.getConverter( "HTML" );
 	int configKey = Integer.parseInt( request.getParameter( "configKey" ) );
 	String index = request.getParameter( "dbIndex" );
 	if ( index != null )
@@ -72,7 +72,7 @@ function signalReady()
 	  out.println( buffer.toString() );
   }
 %>
-</code></pre>
+</pre>
 </body>
 </html>
 
