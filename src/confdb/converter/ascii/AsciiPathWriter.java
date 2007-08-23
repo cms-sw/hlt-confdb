@@ -13,7 +13,7 @@ public class AsciiPathWriter implements IPathWriter
 			str += "endpath ";
 		else
 			str += "path ";
-		str += path.name() + " = { ";
+		str += decorateName( path.name() ) + " = { ";
 		for ( int i = 0; i < path.entryCount(); i++  )
 		{
 			str += decorate( path.entry(i).name() );
@@ -29,4 +29,11 @@ public class AsciiPathWriter implements IPathWriter
 	{
 		return name;
 	}
+	
+	
+	protected String decorateName( String name )
+	{
+		return name;
+	}
+	
 }
