@@ -20,7 +20,7 @@ public class AsciiModuleWriter implements IModuleWriter {
 		String name = module.name();
 		String type = module.template().name();
 		
-		String str = indent + "module " +  name + " = " + type + " {";
+		String str = indent + "module " +  decorate( name ) + " = " + type + " {";
 		if ( module.parameterCount() == 0 )
 			return str + "}" + converter.getNewline();
 			
@@ -38,6 +38,13 @@ public class AsciiModuleWriter implements IModuleWriter {
 	public void setConverter(Converter converter) {
 		this.converter = converter;
 	}
+
+
+	protected String decorate( String name )
+	{
+		return name;
+	}
+
 
 	
 }
