@@ -1,16 +1,10 @@
 package confdb.converter.html;
 
-import confdb.converter.Converter;
+
 import confdb.converter.IEDSourceWriter;
-import confdb.data.EDSourceInstance;
+import confdb.converter.ascii.AsciiEDSourceWriter;
 
 
-public class HtmlEDSourceWriter extends HtmlInstanceWriter implements IEDSourceWriter 
+public class HtmlEDSourceWriter extends AsciiEDSourceWriter implements IEDSourceWriter 
 {
-	
-	public String toString( EDSourceInstance edsource, Converter converter ) 
-	{
-		return toString( "source", edsource, converter );
-	}
-
 }
