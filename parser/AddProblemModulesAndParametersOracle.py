@@ -19,7 +19,8 @@ def main(argv):
     input_dbtype = "Oracle"
     input_host = "localhost"
     input_problemfile = "myproblems.txt"
-
+    input_verbose = 0;
+    
     # Parse command line options
     opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:l:e:a:z:nh", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","configfile=","parsetestdir=","addtorelease=","problemfile=","noload=","help="])
     for o, a in opts:
@@ -45,13 +46,13 @@ def main(argv):
             input_problemfile = str(a)
             print "Using problem file " + input_problemfile
 
-    myFixer = AddProblemModulesAndParametersOracle(1,1)
+    myFixer = AddProblemModulesAndParametersOracle(input_verbose,1)
 
     # Connect to DB, get module types
     connection = cx_Oracle.connect(input_dbuser+"/"+input_dbpwd+"@"+input_host)
     
     cursor = connection.cursor() 
-    myFixer.ConfdbOracleConnect(cursor)
+    myFixer.ConfdbOracleConnect(cursor,input_cmsswrel)
 
     problemfile = open(input_problemfile)
     problemlines = problemfile.readlines()
@@ -65,6 +66,8 @@ def main(argv):
     modcvstag = 'V00-00-00'
     thenewparams = []
     thenewvecparams = []
+    thenewpsets = []
+    thenewvpsets = []
 
     for problemline in problemlines:
 	if(len(problemline.split()) == 0):
@@ -85,7 +88,7 @@ def main(argv):
 	    componenttable = "ServiceTemplates"
 	    componentsuperid = myFixer.ConfdbCheckServiceExistence(cursor,currentcomponent,"")
 	    if(componentsuperid == 0):
-		print "Add service"
+		print "Add Service"
 		componentsuperid = myFixer.ConfdbLoadNewServiceTemplate(cursor,currentcomponent,modcvstag)
 	    else:
 		print "Service exists"
@@ -94,11 +97,11 @@ def main(argv):
 	    componenttable = "ESSourceTemplates"
 	    componentsuperid = myFixer.ConfdbCheckESSourceExistence(cursor,currentcomponent,"")
 	    if(componentsuperid == 0):
-		print "Add Source"
+		print "Add ESSource"
 		componentsuperid = myFixer.ConfdbLoadNewESSourceTemplate(cursor,currentcomponent,modcvstag)
 	    else:
-		print "Source exists"
-	elif(problemline.split()[0] == "EDource"):
+		print "ESSource exists"
+	elif(problemline.split()[0] == "EDSource"):
 	    currentcomponent = problemline.split()[1]
 	    componenttable = "EDSourceTemplates"
 	    componentsuperid = myFixer.ConfdbCheckEDSourceExistence(cursor,currentcomponent,"")
@@ -177,19 +180,25 @@ class AddProblemModulesAndParametersOracle:
 	self.fwkchanged = 0
 
     # Connect to the Confdb db
-    def ConfdbOracleConnect(self,thecursor):
+    def ConfdbOracleConnect(self,thecursor,therelease):
         # Do some one-time operations - get dictionaries of parameter, module,
         # and service type mappings so we don't have to do this every time
         thecursor.execute("SELECT ParameterTypes.paramType, ParameterTypes.paramTypeId FROM ParameterTypes")
         temptuple = thecursor.fetchall()
 	for temptype, tempname in temptuple:
 	    self.paramtypedict[temptype] = tempname
-
-	thecursor.execute("SELECT ModuleTypes.type, ModuleTypes.typeId FROM ModuleTypes")
+            
+            thecursor.execute("SELECT ModuleTypes.type, ModuleTypes.typeId FROM ModuleTypes")
         temptuple = thecursor.fetchall()
 	for temptype, tempname in temptuple:
 	    self.modtypedict[temptype] = tempname
- 
+            
+        thecursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (releaseTag = '" + therelease + "')")
+        therelnum =  thecursor.fetchone()
+
+	self.releasekey = therelnum[0]
+        
+
     # Given a tag of a module, check if its template exists in the DB
     def ConfdbCheckModuleExistence(self,thecursor,modtype,modname,modtag):
 	thecursor.execute("SELECT * FROM SuperIds")
@@ -284,7 +293,8 @@ class AddProblemModulesAndParametersOracle:
         return esmodsuperid
                
     # Create a new module template in the DB
-    def ConfdbLoadNewModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    #def ConfdbLoadNewModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbLoadNewModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -319,7 +329,8 @@ class AddProblemModulesAndParametersOracle:
     # End ConfdbLoadNewModuleTemplate
 	
     # Create a new service template in the DB
-    def ConfdbLoadNewServiceTemplate(self,thecursor,servclassname,servcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    #def ConfdbLoadNewServiceTemplate(self,thecursor,servclassname,servcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbLoadNewServiceTemplate(self,thecursor,servclassname,servcvstag):
 
 	self.fwknew = self.fwknew + 1
 
@@ -349,7 +360,8 @@ class AddProblemModulesAndParametersOracle:
     # End ConfdbLoadNewServiceTemplate
 
     # Create a new es_source template in the DB
-    def ConfdbLoadNewESSourceTemplate(self,thecursor,srcclassname,srccvstag,parameters,vecparameters,paramsets,vecparamsets):
+    #def ConfdbLoadNewESSourceTemplate(self,thecursor,srcclassname,srccvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbLoadNewESSourceTemplate(self,thecursor,srcclassname,srccvstag):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -361,6 +373,9 @@ class AddProblemModulesAndParametersOracle:
 
 	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
 	newsuperid = (thecursor.fetchall()[0])[0]
+
+        print "newsuperid = " + str(newsuperid)
+        print "releasekey = " + str(self.releasekey)
 
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
@@ -379,7 +394,8 @@ class AddProblemModulesAndParametersOracle:
     # End ConfdbLoadNewESSourceTemplate
 
     # Create a new ed_source template in the DB
-    def ConfdbLoadNewEDSourceTemplate(self,thecursor,srcclassname,srccvstag,parameters,vecparameters,paramsets,vecparamsets):
+    #def ConfdbLoadNewEDSourceTemplate(self,thecursor,srcclassname,srccvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbLoadNewEDSourceTemplate(self,thecursor,srcclassname,srccvstag):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -391,7 +407,7 @@ class AddProblemModulesAndParametersOracle:
 
 	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
 	newsuperid = (thecursor.fetchall()[0])[0]
-
+        
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
@@ -409,7 +425,8 @@ class AddProblemModulesAndParametersOracle:
     # End ConfdbLoadNewEDSourceTemplate
 
     # Create a new es_module template in the DB
-    def ConfdbLoadNewESModuleTemplate(self,thecursor,modclassname,modcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    #def ConfdbLoadNewESModuleTemplate(self,thecursor,modclassname,modcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbLoadNewESModuleTemplate(self,thecursor,modclassname,modcvstag):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -691,9 +708,9 @@ class AddProblemModulesAndParametersOracle:
 
 		localseqcount = 0
 
-                if(psettracked == 'true'):
+                if(psettracked == 'tracked'):
                     psettracked = str(1)
-                elif(psettracked == 'false'):
+                elif(psettracked == 'untracked'):
                     psettracked = str(0)
 
 		thecursor.execute("INSERT INTO SuperIds VALUES('')")
@@ -874,12 +891,11 @@ class AddProblemModulesAndParametersOracle:
 		vpsetcache.append(vpset)
 
 		localseqcount = 0
-
-                if(vpsettracked == 'true'):
+                if(vpsettracked == 'tracked'):
                     vpsettracked = str(1)
-                elif(vpsettracked == 'false'):
+                elif(vpsettracked == 'untracked'):
                     vpsettracked = str(0)
-
+                
 		# Each new VPSet gets a new SuperId
 		thecursor.execute("INSERT INTO SuperIds VALUES('')")
 #		thecursor.execute("SELECT LAST_INSERT_ID()")
@@ -987,9 +1003,9 @@ class AddProblemModulesAndParametersOracle:
 
     # Utility function for adding a new parameter 
     def AddNewParam(self,thecursor,sid,pname,ptype,ptracked,pseq):
-        if(ptracked == 'true'):
+        if(ptracked == 'tracked'):
             ptracked = str(1)
-        elif(ptracked == 'false'):
+        elif(ptracked == 'untracked'):
             ptracked = str(0)
 
 	if(self.verbose > 2):
@@ -1064,12 +1080,15 @@ class AddProblemModulesAndParametersOracle:
 	    if seq != orderedseq:
 		print "Out of order after seqnueceNb = " + str(prevseq)
 		thenextseq = seq
-		break
+		outoforder = True
 	    orderedseq = orderedseq + 1
 	    prevseq = seq
-	    thenextseq = seq
 
-	return thenextseq
+	if(outoforder == True):
+	    return thenextseq
+
+        return (orderedseq)
+
 	
     # Does this parameter exist (i.e. has it already been fixed)?
     def CheckParameterExistence(self,thecursor,thecurrentcomponent,thecomponentsuperid,thevarname,strvartype):
