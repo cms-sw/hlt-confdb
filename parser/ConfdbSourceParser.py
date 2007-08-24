@@ -1493,6 +1493,10 @@ class SourceParser:
 		
 		    foundlineend = False
 		    totalline = ''
+
+                elif (foundlineend == True):
+                    totalline = ''
+                    foundlineend = False                            
 	
 	    # We found a typedef/templated module declaration, but couldn't find the template class 
 	    # in this package. As a last resort, look for it in any included files. 
@@ -1501,7 +1505,7 @@ class SourceParser:
 		thebaseclass = self.FindOriginalBaseClass(theclass, sourcetree, thedatadir)
 
 		if(thebaseclass):
-		    self.baseclass = thebaseclass
+		    self.baseclass = thebaseclass                            
 
     # Find the base class for modules that have 2 levels of inheritance. This can be expensive, so
     # try to be smart and look at what files are being included.		    
