@@ -1,3 +1,15 @@
+2007-08-24  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-10-06
+	* appropriately retrieve the arrow icons in ScrollableMenu via
+	getClass().getResource()
+	* set the ScrollableMenu maximum hight to 80% of the screen height
+	* show the converted configuration from the beginning in the
+	respective tabs
+	* enable the hyper-links within the html conversion tab
+	* pick up the latest parser changes (emergency scripts!)
+	* picl up latest converter / browser improvements
+
 2007-08-23  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-10-05

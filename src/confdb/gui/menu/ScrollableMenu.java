@@ -71,7 +71,7 @@ public class ScrollableMenu extends JMenu
 				});
 	
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        screenHeight = screenSize.getHeight() - 100; //room for toolbar
+        screenHeight = 0.8*screenSize.getHeight(); //room for toolbar
 	
         createButtons();
     }
@@ -206,8 +206,9 @@ public class ScrollableMenu extends JMenu
      */
     private void createButtons()
     {
-        upButton = new JButton(new ImageIcon("icons/upArrow.gif"));
-        Dimension d = new Dimension(30,20);
+        upButton =
+	    new JButton(new ImageIcon(getClass().getResource("/upArrow.gif")));
+	Dimension d = new Dimension(30,20);
         upButton.setPreferredSize(d);
         upButton.setBorderPainted(false);
         upButton.setFocusPainted(false);
@@ -247,7 +248,8 @@ public class ScrollableMenu extends JMenu
         upButton.addMouseListener(scrollUpListener);
         add(upButton);
         
-	downButton = new JButton(new ImageIcon("icons/downArrow.gif"));
+	downButton =
+	    new JButton(new ImageIcon(getClass().getResource("/downArrow.gif")));
         downButton.setPreferredSize(d);
         downButton.setBorderPainted(false);
         downButton.setFocusPainted(false);

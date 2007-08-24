@@ -254,7 +254,11 @@ public class DatabaseConnectionDialog
     }
 
     /** if a text field looses focus, do nothing */
-    public void focusLost(FocusEvent e) {}
+    public void focusLost(FocusEvent e)
+    {
+	JTextField textField = (JTextField)e.getComponent();
+	if (textField!=null) textField.select(0,0);
+    }
     
     /** callback to handle option pane state changes */
     public void propertyChange(PropertyChangeEvent e)

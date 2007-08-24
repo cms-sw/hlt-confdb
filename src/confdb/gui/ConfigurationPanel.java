@@ -732,6 +732,15 @@ public class ConfigurationPanel extends JPanel
         jTabbedPaneTree.addTab("Python", jScrollPane3);
 
         jEditorPaneHtml.setEditable(false);
+	jEditorPaneHtml.addHyperlinkListener(new HyperlinkListener() {
+		public void hyperlinkUpdate(HyperlinkEvent e) {
+		    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+			if (e.getDescription().startsWith("#"))
+			    jEditorPaneHtml
+				.scrollToReference(e.getDescription().substring(1));
+		    }
+		}
+	    });
         jScrollPane4.setViewportView(jEditorPaneHtml);
 
         jTabbedPaneTree.addTab("Html", jScrollPane4);
@@ -866,7 +875,13 @@ public class ConfigurationPanel extends JPanel
 			converterService.setFormat(format);
 			String  configAsString =
 			    converterService.convertConfiguration(currentConfig);
+			if (format.equals("html"))
+			    configAsString =
+				"<html><pre><font size=-1>\n" +
+				configAsString +
+				"\n</font></pre></html>\n";
 			editorPane.setText(configAsString);
+			editorPane.setCaretPosition(0);
 		    }
 		}
 	    });

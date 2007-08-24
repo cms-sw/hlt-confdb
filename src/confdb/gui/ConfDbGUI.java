@@ -104,7 +104,6 @@ public class ConfDbGUI implements TableModelListener
 
 		    ConfigurationTreeModel model = (ConfigurationTreeModel)getModel();
 		    Configuration          config= (Configuration)model.getRoot();
-		    if (config.streamCount()==0) return text;
 		    
 		    if (getRowForLocation(evt.getX(),evt.getY()) == -1) return text;
 		    TreePath tp = getPathForLocation(evt.getX(),evt.getY());
@@ -116,6 +115,17 @@ public class ConfDbGUI implements TableModelListener
 			    for (int i=0;i<path.streamCount();i++)
 				text += path.stream(i) + " ";
 			}
+		    }
+		    else if (selectedNode instanceof ESSourceInstance||
+			     selectedNode instanceof ESModuleInstance||
+			     selectedNode instanceof ModuleInstance) {
+			Instance instance = (Instance)selectedNode;
+			text = instance.template().name();
+		    }
+		    else if (selectedNode instanceof ModuleReference) {
+			ModuleReference reference=(ModuleReference)selectedNode;
+			ModuleInstance  instance =(ModuleInstance)reference.parent();
+			text = instance.template().name();
 		    }
 		    return text;
 		}
