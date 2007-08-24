@@ -63,6 +63,7 @@ body { background:#edf5ff }
 #mainLeft { background: white; border: 1px solid #B6CDE1;  }
 #mainRight { margin:0px; padding:0px; background-color:#FFF5DF; border: 1px solid #B6CDE1; }
 .headerDiv { margin:0 0 .5em 0; padding:0.4em;}
+
 </style>
 
 <script type="text/javascript">
@@ -111,7 +112,6 @@ var tree; //will hold our TreeView instance
 var loadingModule;
 var configModule;
 	
-var jumpTo = '<div><a href="#paths">paths</a></div>';
 	
 function init() 
 {
@@ -155,7 +155,8 @@ function labelClicked( node )
 {
   if ( !node.data.key )
   	return;
-  document.getElementById("configFrame").src = "convert2Html.jsp?configKey=" + node.data.key + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF";
+  var configFrameUrl = "convert2Html.jsp?configKey=" + node.data.key + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
+  document.getElementById("configFrame").src = configFrameUrl;
   
   loadingModule.show();
   configModule.hide();
@@ -165,6 +166,14 @@ function labelClicked( node )
 
   var fileName = node.data.name.replace( '//s/g', '_' ) + "_V" + node.data.version;
   header += '<a style="position:absolute; right:20px;" href="' + fileName + '.cfg?configKey='+ node.data.key + '&dbIndex=' + dbIndex + '">download cfg</a>';
+  var jumpTo = '<div>'
+ 	+  '<a class="navi" href="' + configFrameUrl + '#paths" target="configIFrame">paths</a>  ' 
+ 	+  '<a href="' + configFrameUrl + '#modules" target="configIFrame">modules</a>  ' 
+   	+  '<a href="' + configFrameUrl + '#services" target="configIFrame">services</a>  ' 
+   	+  '<a href="' + configFrameUrl + '#edsources" target="configIFrame">ed_sources</a>  ' 
+    +  '<a href="' + configFrameUrl + '#essources" target="configIFrame">es_sources</a>  ' 
+    +  '<a href="' + configFrameUrl + '#esmodules" target="configIFrame">es_modules</a>  ' 
+    + '</div>';
   configModule.setHeader( "<div>" +  header + "</div>" + jumpTo);
   configModule.render();
 }
@@ -289,7 +298,7 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
 	        <div class="hd">
 			</div>
 	        <div class="bd">
-		      <iframe id="configFrame" width="100%" frameborder="0"></iframe>
+		      <iframe name="configIFrame" id="configFrame" width="100%" frameborder="0"></iframe>
 		    </div>
 		  </div>
 		</div>
