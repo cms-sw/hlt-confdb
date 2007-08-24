@@ -1,0 +1,23 @@
+ESSource HcalTextCalibration
+HcalTextCalibration.Parameter input VPSet tracked
+
+ESModule MCJetCorrectionService
+MCJetCorrectionService.Parameter tagName string "Spring07_Iterative_Cone_05" tracked
+MCJetCorrectionService.Parameter label   string "MCJetCorrectorIcone5"	     tracked
+
+Module EDProducer HcalSimpleReconstructor
+HcalSimpleReconstructor.Parameter samplesToAdd               int32  4		tracked
+HcalSimpleReconstructor.Parameter firstSample                int32  4		tracked
+HcalSimpleReconstructor.Parameter correctForTimeslew         bool   true	tracked
+HcalSimpleReconstructor.Parameter correctForPhaseContainment bool   true	tracked
+HcalSimpleReconstructor.Parameter correctionPhaseNS          double 13.0	tracked
+
+Module EDProducer IterativeConeJetProducer
+IterativeConeJetProducer.Parameter src        InputTag "caloTowers"	tracked
+IterativeConeJetProducer.Parameter inputEMin  double   0.0		tracked
+IterativeConeJetProducer.Parameter inputEtMin double   0.5		tracked
+
+Module EDProducer HcalRawToDigi
+HcalRawToDigi.Parameter firstSample       int32 0	tracked
+HcalRawToDigi.Parameter lastSample        int32 9	tracked
+HcalRawToDigi.Parameter FilterDataQuality bool  true	tracked
