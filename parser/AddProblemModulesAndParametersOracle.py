@@ -48,9 +48,9 @@ def main(argv):
     myFixer = AddProblemModulesAndParametersOracle(1,1)
 
     # Connect to DB, get module types
-    self.connection = cx_Oracle.connect(username+"/"+userpwd+"@"+userhost)
+    connection = cx_Oracle.connect(input_dbuser+"/"+input_dbpwd+"@"+input_host)
     
-    cursor = self.connection.cursor() 
+    cursor = connection.cursor() 
     myFixer.ConfdbOracleConnect(cursor)
 
     problemfile = open(input_problemfile)
