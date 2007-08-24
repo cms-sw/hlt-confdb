@@ -214,7 +214,7 @@ class SourceParser:
                                         if(self.verbose > 1):
                                             print '\t\t\t' + paramtype + '\t' + paramname + ' = ' + paramval
 					    
-					if((not paramname.lstrip().startswith('@module')) 
+					if((not paramname.lstrip().startswith('@')) 
 					   and ((self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None')))):
 					   self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),paramtracked,self.sequencenb))
 					   self.sequencenb = self.sequencenb + 1
@@ -255,17 +255,17 @@ class SourceParser:
 					    if(self.verbose > 1):
 						print '\t\t\t\t' + vecval
 
-					if((not paramname.lstrip().startswith('@module')) and (readingpset == False)
+					if((not paramname.lstrip().startswith('@')) and (readingpset == False)
 					   and ((self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')))):
 					    self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),values,"true",self.sequencenb))
 					    self.sequencenb = self.sequencenb + 1
-					elif((not paramname.lstrip().startswith('@module')) and (readingpset == True) and (readingnestedpset == False)
+					elif((not paramname.lstrip().startswith('@')) and (readingpset == True) and (readingnestedpset == False)
 					     and ((self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,psetname)))):
 					    if(self.verbose > 1):
 						print '\t\tattach ' + psetname + '\t' + paramtype + '\t' + paramname + '\t' + totalvectorline + ' (' + str(self.sequencenb) + ', ' + str(self.psetsequencenb) + ')'
 					    self.paramsetmemberlist.append((psetname,paramtype,paramname,totalvectorline,"true",self.sequencenb,'None',self.psetsequencenb))
 					    self.sequencenb = self.sequencenb + 1
-					elif((not paramname.lstrip().startswith('@module')) and (readingpset == True) and (readingnestedpset == True)
+					elif((not paramname.lstrip().startswith('@')) and (readingpset == True) and (readingnestedpset == True)
 					     and ((self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,psetname)))):
 					    if(self.verbose > 1):
 						print '\t\tattach ' + psetname + '\t' + paramtype + '\t' + paramname + '\t' + totalvectorline + ' (' + str(self.sequencenb) + ', ' + str(self.psetsequencenb) + ')'
@@ -305,7 +305,7 @@ class SourceParser:
 					if(self.verbose > 1):
 					    print '\t\tattach ' + nestedpsetname + '\t' + psetparamtype + '\t' + psetparamname + '\t' + psetparamval + ' (' + str(self.sequencenb)  + ', ' + str(self.psetsequencenb) + ')'
 					
-					if((not psetparamname.lstrip().startswith('@module')) and 
+					if((not psetparamname.lstrip().startswith('@')) and 
 					   (self.IsNewParameter(psetparamname,self.paramsetmemberlist,nestedpsetname))):
 					    self.paramsetmemberlist.append((nestedpsetname,psetparamtype,psetparamname,psetparamval,paramtracked,self.sequencenb,toppsetname,self.psetsequencenb))
 					    self.sequencenb = self.sequencenb + 1
@@ -342,7 +342,7 @@ class SourceParser:
 					if(self.verbose > 1):
 					    print '\t\tattach ' + psetname + '\t' + psetparamtype + '\t' + psetparamname + '\t' + psetparamval + ' (' + str(self.sequencenb) + ', ' + str(self.psetsequencenb) + ')'
 
-					if((not psetparamname.lstrip().startswith('@module')) 
+					if((not psetparamname.lstrip().startswith('@')) 
 					   and (self.IsNewParameter(psetparamname,self.paramsetmemberlist,psetname))):
 					    self.paramsetmemberlist.append((psetname,psetparamtype,psetparamname,psetparamval,paramtracked,self.sequencenb,'None',self.psetsequencenb))
 					    self.sequencenb = self.sequencenb + 1
@@ -384,7 +384,7 @@ class SourceParser:
 						vpsetparamval = vpsettokens[0]
 						if(self.verbose > 1):
 						    print '\t\tattach ' + psetname + '\t' + vpsetparamtype + '\t' + vpsetparamname + '\t= ' + vpsetparamval + '\t\t' + str(vpsetindex) + ' (' + str(self.sequencenb) + ', ' + str(self.psetsequencenb) + ')'
-						if((not vpsetparamname.lstrip().startswith('@module')) 
+						if((not vpsetparamname.lstrip().startswith('@')) 
 						   and (self.IsNewParameter(vpsetparamname,self.vecparamsetmemberlist,psetname))):
 						    self.vecparamsetmemberlist.append((psetname,vpsetparamtype,vpsetparamname,vpsetparamval,paramtracked,vpsetindex,self.sequencenb,self.psetsequencenb))
 						    self.sequencenb = self.sequencenb + 1
@@ -395,7 +395,7 @@ class SourceParser:
 						if(self.verbose > 1):
 						    print '\t\tattach ' + psetname + '\t' + vpsetparamtypetwo + '\t' + vpsetparamnametwo + '\t= ' + vpsetparamvaltwo + '\t\t' + str(vpsetindex) + ' (' + str(self.sequencenb) + ', ' + str(self.psetsequencenb) + ')'
 
-						if((not vpsetparamnametwo.lstrip().startswith('@module')) 
+						if((not vpsetparamnametwo.lstrip().startswith('@')) 
 						   and (self.IsNewParameter(vpsetparamnametwo,self.vecparamsetmemberlist,psetname))):
 						    self.vecparamsetmemberlist.append((psetname,vpsetparamtypetwo,vpsetparamnametwo,vpsetparamvaltwo,"true",vpsetindex,self.sequencenb,self.psetsequencenb))
 						    self.sequencenb = self.sequencenb + 1
@@ -405,7 +405,7 @@ class SourceParser:
 						if(self.verbose > 1):
 						    print '\t\tattach ' + psetname + '\t' + vpsetparamtype + '\t' + vpsetparamname + '\t= ' + vpsetparamval + '\t\t' + str(vpsetindex) + ' (' + str(self.sequencenb) + ', ' + str(self.psetsequencenb) + ')'
 
-						if((not vpsetparamname.lstrip().startswith('@module')) 
+						if((not vpsetparamname.lstrip().startswith('@')) 
 						   and (self.IsNewParameter(vpsetparamname,self.vecparamsetmemberlist,psetname))):
 						    self.vecparamsetmemberlist.append((psetname,vpsetparamtype,vpsetparamname,vpsetparamval,"true",vpsetindex,self.sequencenb,self.psetsequencenb))
 						    self.sequencenb = self.sequencenb + 1
@@ -736,7 +736,7 @@ class SourceParser:
 			    if(self.verbose > 1):
 				print '\t\tFailed to find a default value for the tracked parameter: ' + paramtype + ' ' + paramname + ' in module ' + themodulename
 
-			    if(not paramname.lstrip().startswith('@module')):
+			    if(not paramname.lstrip().startswith('@')):
 				# Special cases for typedef'd vectors
 				if(paramtype.lstrip().rstrip() == 'vtag'):
 				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
@@ -863,7 +863,7 @@ class SourceParser:
 			    elif(paramtype == 'vString'):
 				paramtype = 'vstring'
 
-			    if((not paramname.lstrip().startswith('@module')) 
+			    if((not paramname.lstrip().startswith('@')) 
 			       and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None'))):
 				self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"false",self.sequencenb))
 				self.sequencenb = self.sequencenb + 1
@@ -931,33 +931,33 @@ class SourceParser:
 				    if(self.verbose > 1): 
 					print '\t\t' + paramtype + '\t' + paramname + ' = ' + paramval + '\t\t(Untracked)'
 				    if(paramtype == 'PSet' or paramtype == 'ParameterSet'):
-					if((not paramname.lstrip().startswith('@module'))
+					if((not paramname.lstrip().startswith('@'))
 					   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,'None'))):
 					    self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb,'None',self.psetsequencenb))
 					    self.sequencenb = self.sequencenb + 1
 				    elif(paramtype == 'VPSet' or paramtype == 'Parameters'):
-					if((not paramname.lstrip().startswith('@module'))
+					if((not paramname.lstrip().startswith('@'))
 					   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,'None'))):
 					    self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb,self.psetsequencenb))
 					    self.sequencenb = self.sequencenb + 1
 				    elif(paramtype == 'Labels'):
-					if((not paramname.lstrip().startswith('@module')) 
+					if((not paramname.lstrip().startswith('@')) 
 					    and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None'))):
 					    self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"false",self.sequencenb))
 					    self.sequencenb = self.sequencenb + 1
 				    elif(paramtype == 'vString' or paramtype == 'vstring'):
-					if((not paramname.lstrip().startswith('@module')) 
+					if((not paramname.lstrip().startswith('@')) 
 					    and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None'))):
 					    self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"false",self.sequencenb))
 					    self.sequencenb = self.sequencenb + 1
 				    else:
 					if(paraminparamset == ''):
-					    if((not paramname.lstrip().startswith('@module')) 
+					    if((not paramname.lstrip().startswith('@')) 
 					       and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None'))):
 						self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"false",self.sequencenb))
 						self.sequencenb = self.sequencenb + 1
 					else:
-					    if((not paramname.lstrip().startswith('@module')) 
+					    if((not paramname.lstrip().startswith('@')) 
 					       and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset))): 
 						self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"false",self.sequencenb,'None',self.psetsequencenb))
 						self.sequencenb = self.sequencenb + 1						
@@ -1001,12 +1001,12 @@ class SourceParser:
 				    self.sequencenb = self.sequencenb + 1
 
 				elif(paramtype == 'VPSet' or paramtype == 'Parameters'):
-				    if((not paramname.lstrip().startswith('@module'))
+				    if((not paramname.lstrip().startswith('@'))
 				        and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,'None'))):
 					self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb,self.psetsequencenb))
 					self.sequencenb = self.sequencenb + 1
 				else:
-				    if((not paramname.lstrip().startswith('@module'))
+				    if((not paramname.lstrip().startswith('@'))
 				       and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None'))):
 				       self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),None,"false",self.sequencenb))
 				       self.sequencenb = self.sequencenb + 1
@@ -1101,27 +1101,27 @@ class SourceParser:
                             if(self.verbose > 1):
                                 print '\t\t(Untemplated) ' + paramtype + ' ' + paramname + ' ' + paramdefault + '\t\t(Untracked)'
 			    if(paramtype == 'PSet' or paramtype == 'ParameterSet'):
-				if((not paramname.lstrip().startswith('@module'))
+				if((not paramname.lstrip().startswith('@'))
 				   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,'None'))):
 				    self.sequencenb = self.psetsequencenb
 				    self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",self.sequencenb,'None',self.psetsequencenb))
 				    self.sequencenb = self.sequencenb + 1
 			    elif(paramtype == 'VPSet' or paramtype == 'Parameters'):
-				if((not paramname.lstrip().startswith('@module')) 
+				if((not paramname.lstrip().startswith('@')) 
 				   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,'None'))):
 				    self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"false",0,self.sequencenb,self.psetsequencenb))
 				    self.sequencenb = self.sequencenb + 1
 			    elif(paramtype == 'Labels'):
-				if((not paramname.lstrip().startswith('@module'))
+				if((not paramname.lstrip().startswith('@'))
 				   and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None'))):
 				    self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"false",self.sequencenb))
 				    self.sequencenb + self.sequencenb + 1
 			    else:
-				if((not paramname.lstrip().startswith('@module') and (paraminparamset == '') 
+				if((not paramname.lstrip().startswith('@') and (paraminparamset == '') 
 				    and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None')))):
 				    self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramdefault,"false",self.sequencenb))
 				    self.sequencenb = self.sequencenb + 1
-				elif((not paramname.lstrip().startswith('@module') and (paraminparamset != '') 
+				elif((not paramname.lstrip().startswith('@') and (paraminparamset != '') 
 				      and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)))):
 				    self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramdefault,"false",self.sequencenb,'None',self.psetsequencenb))
 				    self.sequencenb = self.sequencenb + 1
