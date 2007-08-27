@@ -4,6 +4,8 @@
 <%@page import="confdb.converter.DbProperties"%>
 <%@page import="confdb.db.ConfDBSetups"%>
 <%@page import="confdb.converter.Converter"%>
+<%@page import="cache.ConfCache"%>
+<%@page import="confdb.data.Configuration"%>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -48,17 +50,26 @@ function signalReady()
   try {
 	Converter converter = Converter.getConverter( "HTML" );
 	int configKey = Integer.parseInt( request.getParameter( "configKey" ) );
+	int dbIndex = -1;
 	String index = request.getParameter( "dbIndex" );
 	if ( index != null )
+	  dbIndex = Integer.parseInt( index );
+	String cacheKey = "db:" + dbIndex + " key:" + configKey;
+	ConfCache cache = ConfCache.getInstance();
+	Configuration conf = cache.get( cacheKey  );
+	if ( conf == null )
 	{
-		int dbIndex = Integer.parseInt( index );
 		ConfDBSetups dbs = new ConfDBSetups();
 	    DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertme!" );
     	dbProperties.setDbUser( "cms_hlt_reader" );
     	converter.setDbProperties( dbProperties );
+    	converter.connectToDatabase();
+    	conf = converter.loadConfiguration( configKey );
+    	converter.disconnectFromDatabase();
+    	cache.put( cacheKey, conf );
 	}
 
-	String confStr = converter.readConfiguration(configKey);
+	String confStr = converter.convert( conf );
 	if ( confStr == null )
 	  out.print( "ERROR!\nconfig " + configKey + " not found!" );
 	else
