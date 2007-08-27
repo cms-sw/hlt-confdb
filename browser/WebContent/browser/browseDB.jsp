@@ -115,9 +115,6 @@ var configModule;
 	
 function init() 
 {
-	var viewportHeight = YAHOO.util.Dom.getViewportHeight();
-	document.getElementById("configFrame").height = viewportHeight - 70; 
-
 	//instantiate the tree:
 	tree = new YAHOO.widget.TreeView("treeDiv1");
 		
@@ -145,14 +142,16 @@ function init()
     loadingModule.render();
 
     configModule = new YAHOO.widget.Module("config", { visible: false });
+	configModule.setBody( '<iframe name="configIFrame" id="configFrame" width="100%" height="500" frameborder="0"></iframe>');
     configModule.render();
-    
-    
 }
 	
 	
 function labelClicked( node )
 {
+  document.getElementById("configFrame").height = 
+  	YAHOO.util.Dom.getViewportHeight() - 70;
+
   if ( !node.data.key )
   	return;
   var configFrameUrl = "convert2Html.jsp?configKey=" + node.data.key + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
@@ -295,11 +294,6 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
 	    <div id="mainRight"> 
 	      <div id="loading"><img src="assets/img/default/loading.gif"></div>
 	      <div id="config">
-	        <div class="hd">
-			</div>
-	        <div class="bd">
-		      <iframe name="configIFrame" id="configFrame" width="100%" frameborder="0"></iframe>
-		    </div>
 		  </div>
 		</div>
 	  </div> 
