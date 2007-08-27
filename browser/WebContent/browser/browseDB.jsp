@@ -32,7 +32,7 @@ body {
 
 
 body { background:#edf5ff }
-#mainLeft { background:#edf5ff; border: 0px solid #B6CDE1;  }
+#mainLeft { background:#edf5ff; border: 0px solid #B6CDE1; margin:0px; padding:0px }
 #mainRight { margin:0px; padding:0px; background-color:#FFF5DF; border: 1px solid #B6CDE1; }
 .headerDiv { margin:0px; padding:0.4em; background:white }
 
@@ -67,7 +67,7 @@ function init()
 
     var height = 500;
     if ( parent.tabHeight )
-    	height = parent.tabHeight - 45;
+    	height = parent.tabHeight - 46;
     document.getElementById( "treeFrame" ).height = height;
 }
 	
