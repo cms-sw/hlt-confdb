@@ -4,7 +4,7 @@
 <%@page import="confdb.converter.DbProperties"%>
 <%@page import="confdb.db.ConfDBSetups"%>
 <%@page import="confdb.converter.Converter"%>
-<%@page import="cache.ConfCache"%>
+<%@page import="confdb.converter.ConfCache"%>
 <%@page import="confdb.data.Configuration"%>
 <html>
 <head>
