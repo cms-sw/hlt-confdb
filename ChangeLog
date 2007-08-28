@@ -1,3 +1,10 @@
+2007-08-28  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-10-07
+	* IMPORTANT BUG FIX
+	* If a child parameter of a PSet of a module already stored would
+	be changed, the changes wouldn't be stored. Now they are.
+
 2007-08-24  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-10-06

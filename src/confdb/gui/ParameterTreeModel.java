@@ -163,6 +163,7 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 		    if (p.parent() instanceof PSetParameter) {
 			String defaultAsString = getDefaultFromTemplate(p);
 			p.setValue(value.toString(),defaultAsString);
+			
 			while (parent instanceof Parameter) {
 			    p      = (Parameter)parent;
 			    parent = p.parent();
@@ -174,6 +175,7 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 			Instance instance = (Instance)p.parent();
 			Template template = instance.template();
 			instance.updateParameter(p.name(),p.type(),value.toString());
+			instance.setHasChanged();
 		    }
 
 		    nodeChanged(p);

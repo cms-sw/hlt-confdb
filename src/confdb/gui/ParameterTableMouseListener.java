@@ -1,6 +1,7 @@
 package confdb.gui;
 
 import javax.swing.*;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -182,6 +183,9 @@ public class ParameterTableMouseListener extends MouseAdapter
 	    pset.addParameter(p);
 	    treeModel.nodeInserted(pset,pset.parameterCount()-1);
 	    notifyParent(pset);
+
+	    TreePath treePath =new TreePath(treeModel.getPathToRoot(pset));
+	    treeTable.getTree().expandPath(treePath);
 	}
     }
 	
@@ -203,6 +207,9 @@ public class ParameterTableMouseListener extends MouseAdapter
 	    vpset.addParameterSet(pset);
 	    treeModel.nodeInserted(vpset,vpset.parameterSetCount()-1);
 	    notifyParent(vpset);
+
+	    TreePath treePath =new TreePath(treeModel.getPathToRoot(vpset));
+	    treeTable.getTree().expandPath(treePath);
 	}
     }
     
@@ -210,6 +217,7 @@ public class ParameterTableMouseListener extends MouseAdapter
     private void notifyParent(Parameter p)
     {
 	Object parent = p.parent();
+
 	while (parent != null) {
 	    if (parent instanceof Reference) {
 		Reference r = (Reference)parent;
