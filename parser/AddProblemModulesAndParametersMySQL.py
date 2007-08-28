@@ -125,6 +125,10 @@ def main(argv):
 	    varname = problemline.split()[1].lstrip().rstrip()
 	    vartype = problemline.split()[2].lstrip().rstrip()
 
+            if(problemline.find('tracked') == -1 and problemline.find('untracked') == -1):
+                print 'Parameter ' + varname + ' was not defined as tracked or untracked. Will not be loaded'
+                continue
+            
 	    if(len(problemline.split()) == 5):
 		# it has a default value
 		varval = problemline.split()[3].lstrip().rstrip()
