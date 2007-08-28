@@ -21,3 +21,43 @@ Module EDProducer HcalRawToDigi
 HcalRawToDigi.Parameter firstSample       int32 0	tracked
 HcalRawToDigi.Parameter lastSample        int32 9	tracked
 HcalRawToDigi.Parameter FilterDataQuality bool  true	tracked
+
+Module HLTFilter HLTGlobalSumHT
+HLTGlobalSumHT.Parameter observable	  string "sumEt" tracked
+HLTGlobalSumHT.Parameter Min		  double 0.0     tracked
+HLTGlobalSumHT.Parameter Max		  double -1.0    tracked
+
+Module HLTFilter HLTGlobalSumMET
+HLTGlobalSumMET.Parameter observable	  string "sumEt" tracked
+HLTGlobalSumMET.Parameter Min		  double 0.0     tracked
+HLTGlobalSumMET.Parameter Max		  double -1.0    tracked
+
+Module EDProducer CSCDCCUnpacker
+CSCDCCUnpacker.Parameter theMappingFile   string "CondFormats/CSCObjects/data/csc_slice_test_map.txt" tracked
+
+Module EDProducer CSCRecHitBProducer
+CSCRecHitBProducer.Parameter CSCchamberIdPrefix		int32	0		untracked
+CSCRecHitBProducer.Parameter theMappingFile		string  ""		tracked
+CSCRecHitBProducer.Parameter CSCuseCleanStripCollection	bool	false		untracked
+CSCRecHitBProducer.Parameter CSCuseCleanWireCollection	bool	false		untracked
+CSCRecHitBProducer.Parameter CSCWireClusterDeltaT	int32	1		untracked
+CSCRecHitBProducer.Parameter CSCWireClusterMaxSize	int32	999		untracked
+CSCRecHitBProducer.Parameter CSCStripPeakThreshold	double	10.		untracked
+CSCRecHitBProducer.Parameter CSCStripClusterChargeCut	double	30.		untracked
+CSCRecHitBProducer.Parameter CSCStripClusterSize	int32	3		untracked
+CSCRecHitBProducer.Parameter CSCUseGattiFit		bool	true		untracked
+CSCRecHitBProducer.Parameter CSCminGattiStepSize	double	0.0001		untracked
+CSCRecHitBProducer.Parameter CSCminGattiError		double	0.022		untracked
+CSCRecHitBProducer.Parameter CSCMaxGattiChi2		double	300.		untracked
+CSCRecHitBProducer.Parameter CSCCalibrationSystematics	double	0.0		untracked
+CSCRecHitBProducer.Parameter CSCStripxtalksOffset	double	0.0		untracked
+CSCRecHitBProducer.Parameter CSCStripxtalksSystematics	double	0.0		untracked
+CSCRecHitBProducer.Parameter CSCstripWireDeltaTime	int32	8		untracked
+CSCRecHitBProducer.Parameter CSCSegmentPerChamberMax	int32	3		untracked
+CSCRecHitBProducer.Parameter CSCWireminLayersApart	int32	2		untracked
+CSCRecHitBProducer.Parameter CSCWireMaxDistance		double	5.		untracked
+CSCRecHitBProducer.Parameter CSCStripCloseToSegment	double	8.		untracked
+CSCRecHitBProducer.Parameter CSCStripSegmentDeltaT	int32	1		untracked
+CSCRecHitBProducer.Parameter CSCminStipHitsPerSegment	int32	1		untracked
+CSCRecHitBProducer.Parameter CSCuseLeftOverStripHits	bool	false		untracked
+CSCRecHitBProducer.Parameter CSCuseStripHitsFromFits	bool	false		untracked
