@@ -37,6 +37,8 @@ public class Converter implements IConverter
 
 	private Path newEndpath = null;
 	
+	private int maxLineLength = 250;
+	
 	static final private String newline = "\n";
 	
         //final private String configurationHeader = "process FU = {" + newline;
@@ -386,6 +388,14 @@ public class Converter implements IConverter
 
 	public void setDbProperties(DbProperties dbProperties) {
 		this.dbProperties = dbProperties;
+	}
+
+	public int getMaxLineLength() {
+		return maxLineLength;
+	}
+
+	public void setMaxLineLength(int maxLineLength) {
+		this.maxLineLength = maxLineLength;
 	}
 	
 
