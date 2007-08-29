@@ -29,6 +29,7 @@ body {
 .yui-navset div.loading div {
     background:url(assets/loading.gif) no-repeat center center;
     height:8em; /* hold some space while loading */
+.yui-content { border:1px solid red; }
 }
 
 </style>
@@ -42,7 +43,7 @@ var tabView;
 function init()
 {
 	viewportHeight = YAHOO.util.Dom.getViewportHeight();
-	tabHeight = viewportHeight - 80; 
+	tabHeight = viewportHeight - 65; 
 	tabView = new YAHOO.widget.TabView( 'tabMain' );
 	AjaxInfo.listDBs( processDBList );	
 }
@@ -70,7 +71,7 @@ function createTabs( tabs )
 
 function createTab( name, active, tabSource )
 {
-    var tabContent = '<iframe name="' + name + '" height="' + tabHeight + '" width="100%" frameborder="0" src="' + tabSource + '"></iframe>';
+    var tabContent = '<iframe name="' + name + '" height="' + tabHeight + '" width="100%" frameborder="0" marginheight="0" marginwidth="0" scrolling="no" src="' + tabSource + '"></iframe>';
 	if ( active )
 	  tabView.addTab(new YAHOO.widget.Tab({
     	        	label: name,
@@ -92,7 +93,7 @@ YAHOO.util.Event.onDOMReady(init);
 </head>
 
 <body class=" yui-skin-sam">
-<div id="info" style="height: 2em"></div>
+<div id="info" style="height:1em"></div>
 <div id="tabMain" class="yui-navset">
  <ul class="yui-nav"></ul>
  <div class="yui-content"></div>
