@@ -24,6 +24,7 @@ import confdb.data.ServiceInstance;
 public class HtmlConfigurationWriter implements IConfigurationWriter 
 {
 	protected Converter converter = null;
+	private static final String spaces = "                                                   ";
 
 	public String toString( Configuration conf )
 	{
@@ -45,25 +46,28 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 
 		if ( conf.pathCount() > 0 )
 		{
-			str += "<a name=\"paths\"></a>"; 
+			str += "<a name=\"paths\"></a>";
 			IPathWriter pathWriter = converter.getPathWriter();
 			for ( int i = 0; i < conf.pathCount(); i++ )
 			{
 				Path path = conf.path(i);
-				str += pathWriter.toString( path, converter, "  " );
+				str += wrapLine( pathWriter.toString(path, converter, "  "),
+							     '&', 12 + path.name().length() );
 			}
-			str += converter.getNewline(); 
+			if ( conf.sequenceCount() == 0 )
+				str += converter.getNewline();
 		}
 
 		
 		if ( conf.sequenceCount() > 0 )
 		{
-			str += "<a name=\"sequences\"></a>"; 
+			str += "<a name=\"sequences\"></a>" + converter.getNewline(); 
 			ISequenceWriter sequenceWriter = converter.getSequenceWriter();
 			for ( int i = 0; i < conf.sequenceCount(); i++ )
 			{
 				Sequence sequence = conf.sequence(i);
-				str += sequenceWriter.toString(sequence, converter );
+				str += wrapLine( sequenceWriter.toString(sequence, converter ),
+								 '&', 16 + sequence.name().length() );
 			}
 			str += converter.getNewline(); 
 		}
@@ -140,4 +144,18 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 	}
 	
 
+	protected String wrapLine( String line, char separator, int nspaces )
+	{
+		if ( line.length() < converter.getMaxLineLength() )
+			return line;
+		int split = line.lastIndexOf( separator, converter.getMaxLineLength() );
+		if ( split <= 0 )
+			return line;
+		String spacer = spaces.substring(0, nspaces );
+
+		String firstLine = line.substring( 0, split + 2 );
+		String secondLine = wrapLine( spacer + line.substring( split + 2 ), separator, nspaces);
+		line = firstLine + converter.getNewline() + secondLine;
+		return line;
+	}
 }
