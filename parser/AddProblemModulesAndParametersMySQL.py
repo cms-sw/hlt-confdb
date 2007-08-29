@@ -80,7 +80,7 @@ def main(argv):
 	    componentsuperid = myFixer.ConfdbCheckModuleExistence(cursor,baseclass,currentcomponent,"")
 	    if(componentsuperid == 0):
 #		print "Add module"
-		componentsuperid = myFixer.ConfdbLoadNewModuleTemplate(cursor,baseclass,currentcomponent,modcvstag)
+		componentsuperid = myFixer.ConfdbLoadNewModuleTemplate(cursor,currentcomponent,baseclass,modcvstag)
 #	    else:
 #		print "Module exists"
 	elif(problemline.split()[0] == "Service"):
