@@ -63,6 +63,7 @@ def main(argv):
     varname = ''
     vartype = ''
     varval = ''
+    vecvarvals = []
     modcvstag = 'V00-00-00'
     thenewparams = []
     thenewvecparams = []
@@ -129,7 +130,12 @@ def main(argv):
                 print 'Parameter ' + varname + ' was not defined as tracked or untracked. Will not be loaded'
                 continue
             
-	    if(len(problemline.split()) == 5):
+	    if(vartype == "vstring" or vartype == "vint32" or vartype == "vdouble" or vartype == "vuint32" or vartype == "VInputTag"):
+		if(problemline.find('{') != -1 and problemline.find('}') != -1):
+		 #Vector
+		    vecvarvals = problemline.split('{')[1].split('}')[0].split(',')
+		    vartracked = problemline.split('}')[1].lstrip().rstrip()
+	    elif(len(problemline.split()) == 5):
 		# it has a default value
 		varval = problemline.split()[3].lstrip().rstrip()
 		vartracked = problemline.split()[4].lstrip().rstrip()
@@ -145,18 +151,28 @@ def main(argv):
 
 	    thenewseq = myFixer.GetNextSequenceNb(cursor,currentcomponent,componenttable)
 
+	    if(vartracked == "tracked"):
+		vartracked = True
+	    if(vartracked == "untracked"):
+		vartracked = False
+
 	    if(len(varline) == 2):		
-		print "\tComponent is " + varline[0] + ", parameter is " + vartype + " " + varname + " = " + varval + " (" + vartracked +")" + "sequence nb is " + str(thenewseq)
+		print "\tComponent is " + varline[0] + ", parameter is " + vartype + " " + varname + " = " + varval + " (" + str(vartracked) +") " + "sequence nb is " + str(thenewseq)
 
 	    if(len(varline) == 3):
-		print "\tComponent is " + varline[0] + ", parameter is " + " (in  (V)Pset " + varline[1] + ") " + vartype + " " + varname + " = " + varval + " (" + vartracked +")" + "sequence nb is " + str(thenewseq)
+		print "\tComponent is " + varline[0] + ", parameter is " + " (in  (V)Pset " + varline[1] + ") " + vartype + " " + varname + " = " + varval + " (" + str(vartracked) +") " + "sequence nb is " + str(thenewseq)
 
 	    if(vartype == "PSet"):
 		thenewpsets.append((varname,'','','',vartracked,0,'',thenewseq))
 		myFixer.ConfdbAttachParameterSets(cursor,componentsuperid,thenewpsets,thenewvpsets)
-	    if(vartype == "VPSet"):
+	    elif(vartype == "VPSet"):
 		thenewvpsets.append((varname,'','','',vartracked,0,0,thenewseq))
 		myFixer.ConfdbAttachParameterSets(cursor,componentsuperid,thenewpsets,thenewvpsets)
+	    elif (vartype == "vstring" or vartype == "vint32" or vartype == "vdouble" or vartype == "vuint32" or vartype == "VInputTag"):
+		for vecval in vecvarvals:
+		    print '\tVector entry ' + vecval
+		thenewvecparams.append((vartype, varname, vecvarvals, vartracked, thenewseq))
+		myFixer.ConfdbAttachParameters(cursor,componentsuperid,thenewparams,thenewvecparams)
 	    else:
 		thenewparams.append((vartype,varname,varval,vartracked,thenewseq))
 		myFixer.ConfdbAttachParameters(cursor,componentsuperid,thenewparams,thenewvecparams)
@@ -165,6 +181,7 @@ def main(argv):
 	    thenewvecparams = []
 	    thenewpsets = []
 	    thenewvpsets = []
+	    vecvarvals = []
 
     connection.commit()
     connection.close()
@@ -954,9 +971,9 @@ class AddProblemModulesAndParametersMySQL:
     # Utility function for adding a new parameter 
     def AddNewParam(self,thecursor,sid,pname,ptype,ptracked,pseq):
 	if(self.verbose > 2):
-	    print "INSERT INTO Parameters (paramTypeId, name, tracked) VALUES (" + str(ptype) + ", '" + pname + "', " + ptracked + ")"
+	    print "INSERT INTO Parameters (paramTypeId, name, tracked) VALUES (" + str(ptype) + ", '" + pname + "', " + str(ptracked) + ")"
 
-	thecursor.execute("INSERT INTO Parameters (paramTypeId, name, tracked) VALUES ('" + str(ptype) + "', '" + pname + "', " + ptracked + ")")
+	thecursor.execute("INSERT INTO Parameters (paramTypeId, name, tracked) VALUES ('" + str(ptype) + "', '" + pname + "', " + str(ptracked) + ")")
 	
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 	newparamid = thecursor.fetchone()[0]

@@ -63,6 +63,7 @@ def main(argv):
     varname = ''
     vartype = ''
     varval = ''
+    vecvarvals = []	
     modcvstag = 'V00-00-00'
     thenewparams = []
     thenewvecparams = []
@@ -129,12 +130,17 @@ def main(argv):
                 print 'Parameter ' + varname + ' was not defined as tracked or untracked. Will not be loaded'
                 continue
 
-	    if(len(problemline.split()) == 5):
-		# it has a default value
+	    if(vartype == "vstring" or vartype == "vint32" or vartype == "vdouble" or vartype == "vuint32" or vartype == "VInputTag"):
+		if(problemline.find('{') != -1 and problemline.find('}') != -1):
+		 #Vector
+		    vecvarvals = problemline.split('{')[1].split('}')[0].split(',')
+		    vartracked = problemline.split('}')[1].lstrip().rstrip()
+	    elif(len(problemline.split()) == 5):
+		# Regular parameter with a default value
 		varval = problemline.split()[3].lstrip().rstrip()
 		vartracked = problemline.split()[4].lstrip().rstrip()
 	    else:
-		# No default
+		# Regular parameter with no default
 		varval = 'None'
 		vartracked = problemline.split()[3].lstrip().rstrip()
 
@@ -153,9 +159,14 @@ def main(argv):
 	    if(vartype == "PSet"):
 		thenewpsets.append((varname,'','','',vartracked,0,'',thenewseq))
 		myFixer.ConfdbAttachParameterSets(cursor,componentsuperid,thenewpsets,thenewvpsets)
-	    if(vartype == "VPSet"):
+	    elif(vartype == "VPSet"):
 		thenewvpsets.append((varname,'','','',vartracked,0,0,thenewseq))
 		myFixer.ConfdbAttachParameterSets(cursor,componentsuperid,thenewpsets,thenewvpsets)
+	    elif (vartype == "vstring" or vartype == "vint32" or vartype == "vdouble" or vartype == "vuint32" or vartype == "VInputTag"):
+		for vecval in vecvarvals:
+		    print '\tVector entry ' + vecval
+		thenewvecparams.append((vartype, varname, vecvarvals, vartracked, thenewseq))
+		myFixer.ConfdbAttachParameters(cursor,componentsuperid,thenewparams,thenewvecparams)
 	    else:
 		thenewparams.append((vartype,varname,varval,vartracked,thenewseq))
 		myFixer.ConfdbAttachParameters(cursor,componentsuperid,thenewparams,thenewvecparams)
@@ -164,6 +175,7 @@ def main(argv):
 	    thenewvecparams = []
 	    thenewpsets = []
 	    thenewvpsets = []
+	    vecvarvals = []
 
     connection.commit()
     connection.close()
