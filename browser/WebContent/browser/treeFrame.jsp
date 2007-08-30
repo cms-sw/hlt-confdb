@@ -103,10 +103,17 @@ function init()
 	
 YAHOO.util.Event.onContentReady( "treeDiv1", init );
 	
+function signalReady()
+{
+  if ( parent &&  parent.treeReady )
+    parent.treeReady();
+}
+
+
 </script>
 
 </head>
-<body class="yui-skin-sam" style="background:#edf5ff">
+<body class="yui-skin-sam" style="background:#edf5ff" onload="signalReady()">
 
 <%!
 String prepareTree( String parentNode, confdb.data.Directory directory, confdb.converter.Converter converter )
