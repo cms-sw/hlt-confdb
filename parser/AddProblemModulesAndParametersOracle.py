@@ -132,8 +132,13 @@ def main(argv):
 
 	    if(vartype == "vstring" or vartype == "vint32" or vartype == "vdouble" or vartype == "vuint32" or vartype == "VInputTag"):
 		if(problemline.find('{') != -1 and problemline.find('}') != -1):
-		 #Vector
-		    vecvarvals = problemline.split('{')[1].split('}')[0].split(',')
+                    #Vector
+                    if(problemline.find(',') != -1):    
+                        vecvarvals = problemline.split('{')[1].split('}')[0].split(',')
+                    else:
+                        vecvarvals = []
+                        singleval = problemline.split('{')[1].split('}')[0].lstrip().rstrip()
+                        vecvarvals.append(singleval)                        
 		    vartracked = problemline.split('}')[1].lstrip().rstrip()
 	    elif(len(problemline.split()) == 5):
 		# Regular parameter with a default value
