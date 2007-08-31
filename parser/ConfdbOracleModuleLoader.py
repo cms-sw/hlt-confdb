@@ -3,7 +3,7 @@
 # ConfdbOracleModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (Oracle version). All Oracle specific code belongs here.
-# Jonathan Hollar LLNL June 22, 2007
+# Jonathan Hollar LLNL Aug 31, 2007
 
 import os, string, sys, posix, tokenize, array
 
@@ -172,7 +172,7 @@ class ConfdbOracleModuleLoader:
         
         return esmodsuperid
                
-    # Create a new module template in the DB
+    # Create a  new module template in the DB
     def ConfdbLoadNewModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,parameters,vecparameters,paramsets,vecparamsets):
 	
 	self.fwknew = self.fwknew + 1
@@ -696,12 +696,12 @@ class ConfdbOracleModuleLoader:
 			print "No default parameter value found"
 		else:
 		    if(paramval.find("'") != -1):
-                        if(self.verbose > 2):
-                            print "INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")"
+			if(self.verbose > 2):
+			    print "INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")"
 			thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
 		    else:
-                        if(self.verbose > 2):
-                            print "INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')"
+			if(self.verbose > 2):
+			    print "INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')"
 			thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
 
 	    else:
@@ -864,6 +864,14 @@ class ConfdbOracleModuleLoader:
 
 			neednewparam = False
 
+			# Now check if the tracked/untracked status has changed
+			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
+			oldparamstatus = thecursor.fetchone()[0]
+			if(bool(oldparamstatus) != paramistracked):
+			    if(self.verbose > 0):
+				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+			    neednewparam = True
+
 		    # The parameter value has changed. Create a new parameter 
 		    # entry and attach it to the new template.
 		    else:
@@ -924,6 +932,14 @@ class ConfdbOracleModuleLoader:
 			
 			neednewparam = False
 
+			# Now check if the tracked/untracked status has changed
+			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
+			oldparamstatus = thecursor.fetchone()[0]
+			if(bool(oldparamstatus) != paramistracked):
+			    if(self.verbose > 0):
+				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+			    neednewparam = True
+
 		    # The parameter value has changed. Create a new parameter 
 		    # entry and attach it to the new template.
 		    else:
@@ -978,6 +994,14 @@ class ConfdbOracleModuleLoader:
 			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 			
 			neednewparam = False
+
+			# Now check if the tracked/untracked status has changed
+			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
+			oldparamstatus = thecursor.fetchone()[0]
+			if(bool(oldparamstatus) != paramistracked):
+			    if(self.verbose > 0):
+				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
 		    # entry and attach it to the new template.
@@ -1034,6 +1058,14 @@ class ConfdbOracleModuleLoader:
 			
 			neednewparam = False
 
+			# Now check if the tracked/untracked status has changed
+			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
+			oldparamstatus = thecursor.fetchone()[0]
+			if(bool(oldparamstatus) != paramistracked):
+			    if(self.verbose > 0):
+				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+			    neednewparam = True
+
 		    # The parameter value has changed. Create a new parameter 
 		    # entry and attach it to the new template.
 		    else:
@@ -1086,6 +1118,14 @@ class ConfdbOracleModuleLoader:
 			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 			neednewparam = False
+
+			# Now check if the tracked/untracked status has changed
+			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
+			oldparamstatus = thecursor.fetchone()[0]
+			if(bool(oldparamstatus) != paramistracked):
+			    if(self.verbose > 0):
+				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
 		    # entry and attach it to the new template.
@@ -1143,6 +1183,14 @@ class ConfdbOracleModuleLoader:
 			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
 			
 			neednewparam = False
+
+			# Now check if the tracked/untracked status has changed
+			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
+			oldparamstatus = thecursor.fetchone()[0]
+			if(bool(oldparamstatus) != paramistracked):
+			    if(self.verbose > 0):
+				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
 		    # entry and attach it to the new template.
@@ -1205,6 +1253,14 @@ class ConfdbOracleModuleLoader:
 			
 			neednewparam = False
 
+			# Now check if the tracked/untracked status has changed
+			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
+			oldparamstatus = thecursor.fetchone()[0]
+			if(bool(oldparamstatus) != vecpistracked):
+			    if(self.verbose > 0):
+				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(vecpistracked)
+			    neednewparam = True
+
 		    # The parameter value has changed. Create a new parameter 
 		    # entry and attach it to the new template.
 		    else:
@@ -1247,6 +1303,14 @@ class ConfdbOracleModuleLoader:
 			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
 			
 			neednewparam = False
+
+			# Now check if the tracked/untracked status has changed
+			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
+			oldparamstatus = thecursor.fetchone()[0]
+			if(bool(oldparamstatus) != vecpistracked):
+			    if(self.verbose > 0):
+				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(vecpistracked)
+			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
 		    # entry and attach it to the new template.
@@ -1291,6 +1355,14 @@ class ConfdbOracleModuleLoader:
 			print "vdouble is unchanged"
 			neednewparam = False
 
+			# Now check if the tracked/untracked status has changed
+			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
+			oldparamstatus = thecursor.fetchone()[0]
+			if(bool(oldparamstatus) != vecpistracked):
+			    if(self.verbose > 0):
+				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(vecpistracked)
+			    neednewparam = True
+
 		    # The parameter value has changed. Create a new parameter 
 		    # entry and attach it to the new template.
 		    else:
@@ -1334,6 +1406,14 @@ class ConfdbOracleModuleLoader:
 			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
 			
 			neednewparam = False
+
+			# Now check if the tracked/untracked status has changed
+			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
+			oldparamstatus = thecursor.fetchone()[0]
+			if(bool(oldparamstatus) != vecpistracked):
+			    if(self.verbose > 0):
+				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(vecpistracked)
+			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
 		    # entry and attach it to the new template.
@@ -1386,6 +1466,14 @@ class ConfdbOracleModuleLoader:
 			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
 			
 			neednewparam = False
+
+			# Now check if the tracked/untracked status has changed
+			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
+			oldparamstatus = thecursor.fetchone()[0]
+			if(bool(oldparamstatus) != vecpistracked):
+			    if(self.verbose > 0):
+				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(vecpistracked)
+			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
 		    # entry and attach it to the new template.
