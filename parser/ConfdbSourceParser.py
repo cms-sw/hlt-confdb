@@ -800,7 +800,7 @@ class SourceParser:
                     # value _may_ be specified as the second argument
                     # in the declaration.
                     if((foundlineend == True) and
-                       ((totalline.find('.getUntrackedParameter') != -1) or (totalline.find('->getUntrackedParameter') != -1)) and 
+                       ((totalline.find('.getUntrackedParameter') != -1) or (totalline.find('->getUntrackedParameter') != -1)  or (totalline.find(' getUntrackedParameter') != -1)) and 
 		       (totalline.find('"') != -1)):
 			defaultincc = False
 
