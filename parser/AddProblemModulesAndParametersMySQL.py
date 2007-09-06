@@ -714,8 +714,8 @@ class AddProblemModulesAndParametersMySQL:
 
 		# Add a new PSet
 		if(self.verbose > 2):
-		    print "INSERT INTO ParameterSets (superId, name, tracked) VALUES (" + str(newparamsetid) + ", '" + pset + "', " + psettracked + ")"
-		thecursor.execute("INSERT INTO ParameterSets (superId, name, tracked) VALUES (" + str(newparamsetid) + ", '" + pset + "', " + psettracked + ")")
+		    print "INSERT INTO ParameterSets (superId, name, tracked) VALUES (" + str(newparamsetid) + ", '" + pset + "', " + str(psettracked) + ")"
+		thecursor.execute("INSERT INTO ParameterSets (superId, name, tracked) VALUES (" + str(newparamsetid) + ", '" + pset + "', " + str(psettracked) + ")")
 
 		# Each new top level PSet points to the framework component
 		if(psetnesting == 'None' or psetnesting == ''):
@@ -883,8 +883,8 @@ class AddProblemModulesAndParametersMySQL:
 
 		# Add a new VPSet
 		if(self.verbose > 2):
-		    print "INSERT INTO VecParameterSets (superId, name, tracked) VALUES (" + str(newvparamsetid) + ", '" + vpset + "', " + vpsettracked + ")"
-		thecursor.execute("INSERT INTO VecParameterSets (superId, name, tracked) VALUES (" + str(newvparamsetid) + ", '" + vpset + "', " + vpsettracked + ")")
+		    print "INSERT INTO VecParameterSets (superId, name, tracked) VALUES (" + str(newvparamsetid) + ", '" + vpset + "', " + str(vpsettracked) + ")"
+		thecursor.execute("INSERT INTO VecParameterSets (superId, name, tracked) VALUES (" + str(newvparamsetid) + ", '" + vpset + "', " + str(vpsettracked) + ")")
 
 		# Attach the PSet to a Fwk component via their superIds
 		if(self.verbose > 2):
