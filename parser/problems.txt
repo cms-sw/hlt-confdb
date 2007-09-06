@@ -1,7 +1,7 @@
 Service MessageLogger
-MessageLogger.Parameter destinations vstring "cout" untracked
-MessageLogger.PSet	cout			    untracked
-MessageLogger.PSet	log4cplus		    untracked
+MessageLogger.Parameter destinations vstring {"cout"} untracked
+MessageLogger.Parameter cout    PSet                    untracked
+MessageLogger.Parameter log4cplus       PSet                        untracked
 
 ESSource HcalTextCalibration
 HcalTextCalibration.Parameter input VPSet tracked
