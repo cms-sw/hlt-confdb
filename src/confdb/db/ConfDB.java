@@ -27,6 +27,11 @@ public class ConfDB
     //
     // member data
     //
+
+    /** debug */
+    private int createCount      = 0;
+    private int createCountPSet  = 0;
+    private int createCountVPSet = 0;
     
     /** define database arch types */
     public static final String dbTypeMySQL  = "mysql";
@@ -124,6 +129,10 @@ public class ConfDB
     private PreparedStatement psSelectSequenceSequenceAssoc       = null;
     private PreparedStatement psSelectPathModuleAssoc             = null;
     
+    private PreparedStatement psSelectParameters                  = null;
+    private PreparedStatement psSelectParameterSets               = null;
+    private PreparedStatement psSelectVecParameterSets            = null;
+
     private PreparedStatement psSelectBoolParamValue              = null;
     private PreparedStatement psSelectInt32ParamValue             = null;
     private PreparedStatement psSelectUInt32ParamValue            = null;
@@ -254,6 +263,7 @@ public class ConfDB
 		 " Directories.created " +
 		 "FROM Directories " +
 		 "ORDER BY Directories.created ASC");
+	    psSelectDirectories.setFetchSize(32);
 	    preparedStatements.add(psSelectDirectories);
 	    
 	    psSelectConfigurationsByDir =
@@ -316,6 +326,7 @@ public class ConfDB
 		 " SoftwareReleases.releaseTag " +
 		 "FROM SoftwareReleases " +
 		 "ORDER BY SoftwareReleases.releaseId DESC");
+	    psSelectReleaseTags.setFetchSize(32);
 	    preparedStatements.add(psSelectReleaseTags);
 	    
 	    psSelectReleaseTag =
@@ -374,6 +385,7 @@ public class ConfDB
 		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
 		 "WHERE SoftwareReleases.releaseTag = ? " +
 		 "ORDER BY EDSourceTemplates.name ASC");
+	    psSelectEDSourceTemplatesByRelease.setFetchSize(32);
 	    preparedStatements.add(psSelectEDSourceTemplatesByRelease);
 	    
 	    psSelectEDSourceTemplatesByConfig =
@@ -414,6 +426,7 @@ public class ConfDB
 		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
 		 "WHERE SoftwareReleases.releaseTag = ? " +
 		 "ORDER BY ESSourceTemplates.name ASC");
+	    psSelectESSourceTemplatesByRelease.setFetchSize(64);
 	    preparedStatements.add(psSelectESSourceTemplatesByRelease);
 	    
 	    psSelectESSourceTemplatesByConfig =
@@ -429,6 +442,7 @@ public class ConfDB
 		 "ON ESSources.superId = ConfigurationESSourceAssoc.essourceId " +
 		 "WHERE ConfigurationESSourceAssoc.configId = ? " +
 		 "ORDER BY ESSourceTemplates.name ASC");
+	    psSelectESSourceTemplatesByConfig.setFetchSize(32);
 	    preparedStatements.add(psSelectESSourceTemplatesByConfig);
 	    
 	    psSelectESModuleTemplate =
@@ -454,6 +468,7 @@ public class ConfDB
 		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
 		 "WHERE SoftwareReleases.releaseTag = ? " +
 		 "ORDER BY ESModuleTemplates.name ASC");
+	    psSelectESModuleTemplatesByRelease.setFetchSize(64);
 	    preparedStatements.add(psSelectESModuleTemplatesByRelease);
 	    
 	    psSelectESModuleTemplatesByConfig =
@@ -469,6 +484,7 @@ public class ConfDB
 		 "ON ESModules.superId = ConfigurationESModuleAssoc.esmoduleId " +
 		 "WHERE ConfigurationESModuleAssoc.configId = ? " +
 		 "ORDER BY ESModuleTemplates.name ASC");
+	    psSelectESModuleTemplatesByConfig.setFetchSize(16);
 	    preparedStatements.add(psSelectESModuleTemplatesByConfig);
 	    
 	    psSelectServiceTemplate =
@@ -494,6 +510,7 @@ public class ConfDB
 		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
 		 "WHERE SoftwareReleases.releaseTag = ? " +
 		 "ORDER BY ServiceTemplates.name ASC");
+	    psSelectServiceTemplatesByRelease.setFetchSize(32);
 	    preparedStatements.add(psSelectServiceTemplatesByRelease);
 	    
 	    psSelectServiceTemplatesByConfig =
@@ -509,6 +526,7 @@ public class ConfDB
 		 "ON Services.superId = ConfigurationServiceAssoc.serviceId " +
 		 "WHERE ConfigurationServiceAssoc.configId = ? " +
 		 "ORDER BY ServiceTemplates.name ASC");
+	    psSelectServiceTemplatesByConfig.setFetchSize(16);
 	    preparedStatements.add(psSelectServiceTemplatesByConfig);
 	    
 	    psSelectModuleTemplate = 
@@ -538,8 +556,9 @@ public class ConfDB
 		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
 		 "WHERE SoftwareReleases.releaseTag = ? " +
 		 "ORDER BY ModuleTemplates.name ASC");
+	    psSelectModuleTemplatesByRelease.setFetchSize(256);
 	    preparedStatements.add(psSelectModuleTemplatesByRelease);
-
+	    
 	    psSelectModuleTemplatesByConfigPath =
 		dbConnector.getConnection().prepareStatement
 		("SELECT DISTINCT" +
@@ -558,6 +577,7 @@ public class ConfDB
 		 "ON PathModuleAssoc.pathId = ConfigurationPathAssoc.pathId " +
 		 "WHERE ConfigurationPathAssoc.configId = ? " +
 		 "ORDER BY ModuleTemplates.name ASC");
+	    psSelectModuleTemplatesByConfigPath.setFetchSize(64);
 	    preparedStatements.add(psSelectModuleTemplatesByConfigPath);
 	    
 	    psSelectModuleTemplatesByConfigSeq =
@@ -579,6 +599,7 @@ public class ConfDB
 		 " ConfigurationSequenceAssoc.sequenceId " +
 		 "WHERE ConfigurationSequenceAssoc.configId = ? " +
 		 "ORDER BY ModuleTemplates.name ASC");
+	    psSelectModuleTemplatesByConfigSeq.setFetchSize(64);
 	    preparedStatements.add(psSelectModuleTemplatesByConfigSeq);
 	    
 	    psSelectGlobalPSets =
@@ -637,6 +658,7 @@ public class ConfDB
 		 "ON ESSources.superId=ConfigurationESSourceAssoc.essourceId " +
 		 "WHERE ConfigurationESSourceAssoc.configId=? " +
 		 "ORDER BY ConfigurationESSourceAssoc.sequenceNb ASC");
+	    psSelectESSources.setFetchSize(32);
 	    preparedStatements.add(psSelectESSources);
 	    
 	    psSelectESModules =
@@ -652,6 +674,7 @@ public class ConfDB
 		 "ON ESModules.superId=ConfigurationESModuleAssoc.esmoduleId " +
 		 "WHERE ConfigurationESModuleAssoc.configId=? " +
 		 "ORDER BY ConfigurationESModuleAssoc.sequenceNb ASC");
+	    psSelectESModules.setFetchSize(32);
 	    preparedStatements.add(psSelectESModules);
 	    
 	    psSelectPaths =
@@ -667,6 +690,7 @@ public class ConfDB
 		 "ON Paths.pathId=ConfigurationPathAssoc.pathId " +
 		 "WHERE ConfigurationPathAssoc.configId=? " +
 		 "ORDER BY ConfigurationPathAssoc.sequenceNb ASC");
+	    psSelectPaths.setFetchSize(64);
 	    preparedStatements.add(psSelectPaths);
 
 	    psSelectSequences =
@@ -681,6 +705,7 @@ public class ConfDB
 		 "ON Sequences.sequenceId=ConfigurationSequenceAssoc.sequenceId " +
 		 "WHERE ConfigurationSequenceAssoc.configId=? " +
 		 "ORDER BY ConfigurationSequenceAssoc.sequenceNb ASC");
+	    psSelectSequences.setFetchSize(64);
 	    preparedStatements.add(psSelectSequences);
 
 	    psSelectModulesFromPaths =
@@ -695,6 +720,7 @@ public class ConfDB
 		 "JOIN ConfigurationPathAssoc " +
 		 "ON PathModuleAssoc.pathId=ConfigurationPathAssoc.pathId " +
 		 "WHERE ConfigurationPathAssoc.configId=?");
+	    psSelectModulesFromPaths.setFetchSize(128);
 	    preparedStatements.add(psSelectModulesFromPaths);
 	    
 	    psSelectModulesFromSequences =
@@ -710,6 +736,7 @@ public class ConfDB
 		 "ON SequenceModuleAssoc.sequenceId=" +
 		 "ConfigurationSequenceAssoc.sequenceId " +
 		 "WHERE ConfigurationSequenceAssoc.configId=?");
+	    psSelectModulesFromSequences.setFetchSize(128);
 	    preparedStatements.add(psSelectModulesFromSequences);
 	    
 	    psSelectStreams =
@@ -784,6 +811,55 @@ public class ConfDB
 		 "WHERE PathModuleAssoc.pathId = ?"); 
 	    preparedStatements.add(psSelectPathModuleAssoc);
 
+	    psSelectParameters =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " Parameters.paramId," +
+		 " Parameters.name," +
+		 " Parameters.tracked," +
+		 " Parameters.paramTypeId," +
+		 " ParameterTypes.paramType," +
+		 " SuperIdParameterAssoc.superId," +
+		 " SuperIdParameterAssoc.sequenceNb " +
+		 "FROM Parameters " +
+		 "JOIN SuperIdParameterAssoc " +
+		 "ON SuperIdParameterAssoc.paramId = Parameters.paramId " +
+		 "JOIN ParameterTypes " +
+		 "ON Parameters.paramTypeId = ParameterTypes.paramTypeId " +
+		 "WHERE SuperIdParameterAssoc.superId = ? " +
+		 "ORDER BY SuperIdParameterAssoc.sequenceNb ASC");
+	    preparedStatements.add(psSelectParameters);
+	    
+	    psSelectParameterSets =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " ParameterSets.superId," +
+		 " ParameterSets.name," +
+		 " ParameterSets.tracked," +
+		 " SuperIdParamSetAssoc.superId," +
+		 " SuperIdParamSetAssoc.sequenceNb " +
+		 "FROM ParameterSets " +
+		 "JOIN SuperIdParamSetAssoc " +
+		 "ON SuperIdParamSetAssoc.psetId = ParameterSets.superId " +
+		 "WHERE SuperIdParamSetAssoc.superId = ? " +
+		 "ORDER BY SuperIdParamSetAssoc.sequenceNb ASC");
+	    preparedStatements.add(psSelectParameterSets);
+	    
+	    psSelectVecParameterSets =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " VecParameterSets.superId," +
+		 " VecParameterSets.name," +
+		 " VecParameterSets.tracked," +
+		 " SuperIdVecParamSetAssoc.superId," +
+		 " SuperIdVecParamSetAssoc.sequenceNb " +
+		 "FROM VecParameterSets " +
+		 "JOIN SuperIdVecParamSetAssoc " +
+		 "ON SuperIdVecParamSetAssoc.vpsetId=VecParameterSets.superId "+
+		 "WHERE SuperIdVecParamSetAssoc.superId = ? "+
+		 "ORDER BY SuperIdVecParamSetAssoc.sequenceNb ASC");
+	    preparedStatements.add(psSelectVecParameterSets);
+	    
 	    psSelectBoolParamValue =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" + 
@@ -1361,6 +1437,7 @@ public class ConfDB
     /** create a prepared statement to select parameters,needed for recursive calls */
     private PreparedStatement createSelectParametersPS()
     {
+	createCount++;
 	PreparedStatement result = null;
 	try {
 	    result = dbConnector.getConnection().prepareStatement
@@ -1389,6 +1466,7 @@ public class ConfDB
     /** create a prepared statement to select psets, needed for recursive calls */
     private PreparedStatement createSelectParameterSetsPS()
     {
+	createCountPSet++;
 	PreparedStatement result = null;
 	try { 
 	    result = dbConnector.getConnection().prepareStatement
@@ -1413,6 +1491,7 @@ public class ConfDB
     /** create a prepared statement to select vpsets, needed for recursive calls */
     private PreparedStatement createSelectVecParameterSetsPS()
     {
+	createCountVPSet++;
 	PreparedStatement result = null;
 	try {
 	    result = dbConnector.getConnection().prepareStatement
@@ -1624,6 +1703,7 @@ public class ConfDB
 	    e.printStackTrace();
 	}
 	
+
 	// load ESSourceTemplates
 	try {
  	    psSelectESSourceTemplatesByRelease.setString(1,releaseTag);
@@ -1633,6 +1713,7 @@ public class ConfDB
  	    e.printStackTrace();
  	}
 
+	
 	// load ESModuleTemplates
 	try {
  	    psSelectESModuleTemplatesByRelease.setString(1,releaseTag);
@@ -1641,6 +1722,7 @@ public class ConfDB
  	catch (SQLException e) {
  	    e.printStackTrace();
  	}
+	
 	
 	// load ServiceTemplates
 	try {
@@ -1651,6 +1733,7 @@ public class ConfDB
  	    e.printStackTrace();
  	}
 	
+
 	// load ModuleTemplates
 	try {
  	    psSelectModuleTemplatesByRelease.setString(1,releaseTag);
@@ -1659,7 +1742,10 @@ public class ConfDB
  	catch (SQLException e) {
  	    e.printStackTrace();
  	}
- 	
+
+	//System.out.println("createCount      = " + createCount);
+	//System.out.println("createCountPSet  = " + createCountPSet);
+	//System.out.println("createCountVPset = " + createCountVPSet);
     }
 
     /** load a partial software release: all the templates instantiated in config */
@@ -1723,6 +1809,7 @@ public class ConfDB
 	ResultSet rs = null;
 	try {
 	    rs = psSelectTemplates.executeQuery();
+
 	    while (rs.next()) {
 		int    superId = rs.getInt(1);
 		String type;
@@ -1741,16 +1828,16 @@ public class ConfDB
 		
 		ArrayList<Parameter> parameters = new ArrayList<Parameter>();
 		
-		loadParameters(superId,parameters);
-		loadParameterSets(superId,parameters);
-		loadVecParameterSets(superId,parameters);
+		loadParameters(superId,parameters,psSelectParameters);
+		loadParameterSets(superId,parameters,psSelectParameterSets);
+		loadVecParameterSets(superId,parameters,psSelectVecParameterSets);
 		
 		boolean allParamsFound = true;
 		for (Parameter p : parameters) if (p==null) allParamsFound=false;
 		
 		if (!allParamsFound) {
-		    System.out.println("ERROR: can't load " + type + " '" + name +
-				       "' incomplete parameter list:");
+		    System.out.println("ERROR: "+type+" '"+name+"' " +
+				       "has incomplete parameter list.");
 		    // DEBUG
 		    //int i=0;
 		    //for (Parameter p : parameters) {
@@ -1763,9 +1850,9 @@ public class ConfDB
 		    // END DEBUG
 		}
 		else {
-		    //templateList.add(TemplateFactory
 		    release.addTemplate(TemplateFactory
-					.create(type,name,cvsTag,superId,parameters));
+					.create(type,name,cvsTag,superId,
+						parameters));
 		}
 	    }
 	}
@@ -1866,9 +1953,9 @@ public class ConfDB
 		    .create("PSet",psetName,"",psetIsTrkd,false);
 		
 		ArrayList<Parameter> psetParameters = new ArrayList<Parameter>();
-		loadParameters(psetId,psetParameters);
-		loadParameterSets(psetId,psetParameters);
-		loadVecParameterSets(psetId,psetParameters);
+		loadParameters(psetId,psetParameters,psSelectParameters);
+		loadParameterSets(psetId,psetParameters,psSelectParameterSets);
+		loadVecParameterSets(psetId,psetParameters,psSelectVecParameterSets);
 		
 		boolean allParamsFound=true;
 		for (Parameter p : psetParameters) if (p==null) allParamsFound=false;
@@ -1882,6 +1969,7 @@ public class ConfDB
 		}
 	    }
 	    
+
 	    // load EDSource
 	    psSelectEDSources.setInt(1,configId);
 	    rs = psSelectEDSources.executeQuery();
@@ -1896,6 +1984,7 @@ public class ConfDB
 		loadInstanceVecParameterSets(edsourceId,edsource);
 		edsource.setDatabaseId(edsourceId);
 	    }
+	    
 	    
 	    // load ESSources 
 	    psSelectESSources.setInt(1,configId);
@@ -2199,13 +2288,14 @@ public class ConfDB
     }
     
     /** load parameters */
-    public boolean loadParameters(int superId,ArrayList<Parameter> parameters)
+    public boolean loadParameters(int superId,ArrayList<Parameter> parameters,
+				  PreparedStatement stmt)
     {
 	boolean result = true;
 	ResultSet rs = null;
-	PreparedStatement ps = null;
+	PreparedStatement ps = stmt;
 	try {
-	    ps = createSelectParametersPS();
+	    if (ps==null) ps = createSelectParametersPS();
 	    ps.setInt(1,superId);
 	    rs = ps.executeQuery();
 	    while (rs.next()) {
@@ -2234,19 +2324,20 @@ public class ConfDB
 	}
 	finally {
 	    dbConnector.release(rs);
-	    try { ps.close(); } catch (SQLException ex) {}
+	    if (stmt==null) try { ps.close(); } catch (SQLException ex) {}
 	}
 	return result;
     }
     
     /** load ParameterSets */
-    public boolean loadParameterSets(int superId,ArrayList<Parameter> parameters)
+    public boolean loadParameterSets(int superId,ArrayList<Parameter> parameters,
+				     PreparedStatement stmt)
     {
 	boolean result = true;
 	ResultSet rs = null;
-	PreparedStatement ps = null;
+	PreparedStatement ps = stmt;
 	try {
-	    ps = createSelectParameterSetsPS();
+	    if (ps==null) ps = createSelectParameterSetsPS();
 	    ps.setInt(1,superId);
 	    rs = ps.executeQuery();
 	    while (rs.next()) {
@@ -2262,22 +2353,22 @@ public class ConfDB
 		    .create("PSet",psetName,"",psetIsTrkd,true);
 		
 		ArrayList<Parameter> psetParameters = new ArrayList<Parameter>();
-		loadParameters(psetId,psetParameters);
-		loadParameterSets(psetId,psetParameters);
-		loadVecParameterSets(psetId,psetParameters);
+		loadParameters(psetId,psetParameters,null);
+		loadParameterSets(psetId,psetParameters,null);
+		loadVecParameterSets(psetId,psetParameters,null);
 		
 		boolean allParamsFound=true;
 		for (Parameter p : psetParameters) if (p==null) allParamsFound=false;
 
 		while (parameters.size()<=sequenceNb)  parameters.add(null);
 		
-		if (allParamsFound) {
-		    for (Parameter p : psetParameters) pset.addParameter(p);
-		    parameters.set(sequenceNb,pset);
-		}
-		else {
-		    System.out.println("  -> Can't load PSet '" + psetName + " '" +
-				       ", incomplete parameter list:");
+		//if (allParamsFound) {
+		for (Parameter p : psetParameters) if (p!=null) pset.addParameter(p);
+		parameters.set(sequenceNb,pset);
+		//}
+		//else {
+		if (!allParamsFound) {
+		    System.out.println("WARNING PSet '"+psetName+"' is incomplete!");
 		    // DEBUG
 		    //int i=0;
 		    //for (Parameter p : psetParameters) {
@@ -2288,9 +2379,9 @@ public class ConfDB
 		    //	i++;
 		    //}
 		    // END DEBUG
-
-		    parameters.set(sequenceNb,null);
-		    result = false;
+		    
+		    //parameters.set(sequenceNb,null);
+		    //result = false;
 		}
 	    }
 	}
@@ -2300,19 +2391,20 @@ public class ConfDB
 	}
 	finally {
 	    dbConnector.release(rs);
-	    try { ps.close(); } catch (SQLException ex) {}
+	    if (stmt==null) try { ps.close(); } catch (SQLException ex) {}
 	}
 	return result;
     }
     
     /** load vector<ParameterSet>s */
-    public boolean loadVecParameterSets(int superId,ArrayList<Parameter> parameters)
+    public boolean loadVecParameterSets(int superId,ArrayList<Parameter> parameters,
+					PreparedStatement stmt)
     {
 	boolean result = true;
 	ResultSet rs = null;
-	PreparedStatement ps = null;
+	PreparedStatement ps = stmt;
 	try {
-	    ps = createSelectVecParameterSetsPS();
+	    if (ps==null) ps = createSelectVecParameterSetsPS();
 	    ps.setInt(1,superId);
 	    rs = ps.executeQuery();
 	    while (rs.next()) {
@@ -2328,7 +2420,7 @@ public class ConfDB
 		    .create("VPSet",vpsetName,"",vpsetIsTrkd,true);
 		
 		ArrayList<Parameter> vpsetParameters = new ArrayList<Parameter>();
-		loadParameterSets(vpsetId,vpsetParameters);
+		loadParameterSets(vpsetId,vpsetParameters,null);
 
 		boolean allPSetsFound = true;
 		for (Parameter p : vpsetParameters) if (p==null) allPSetsFound=false;
@@ -2354,7 +2446,7 @@ public class ConfDB
 	}
 	finally {
 	    dbConnector.release(rs);
-	    try { ps.close(); } catch (SQLException ex) {}
+	    if (stmt==null) try { ps.close(); } catch (SQLException ex) {}
 	}
 	return result;
     }
@@ -2363,7 +2455,7 @@ public class ConfDB
     public boolean loadInstanceParameters(int instanceId,Instance instance)
     {
 	ArrayList<Parameter> parameters = new ArrayList<Parameter>();
-	loadParameters(instanceId,parameters);
+	loadParameters(instanceId,parameters,psSelectParameters);
 	for (Parameter p : parameters)
 	    if (p!=null)
 		instance.updateParameter(p.name(),p.type(),p.valueAsString());
@@ -2374,7 +2466,7 @@ public class ConfDB
     public boolean loadInstanceParameterSets(int instanceId,Instance instance)
     {
 	ArrayList<Parameter> psets = new ArrayList<Parameter>();
-	loadParameterSets(instanceId,psets);
+	loadParameterSets(instanceId,psets,psSelectParameterSets);
 	for (Parameter p : psets)
 	    if (p!=null)
 		instance.updateParameter(p.name(),p.type(),p.valueAsString());
@@ -2385,7 +2477,7 @@ public class ConfDB
     public boolean loadInstanceVecParameterSets(int instanceId,Instance instance)
     {
 	ArrayList<Parameter> vpsets = new ArrayList<Parameter>();
-	loadVecParameterSets(instanceId,vpsets);
+	loadVecParameterSets(instanceId,vpsets,psSelectVecParameterSets);
 	for (Parameter p : vpsets)
 	    if (p!=null)
 		instance.updateParameter(p.name(),p.type(),p.valueAsString());

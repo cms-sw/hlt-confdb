@@ -1,3 +1,11 @@
+2007-09-07  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-10-08
+	* optimisation to database interface, regarding the retrieval
+	of templates (mostly).
+	* load a module if one of its psets is incomplete, and just print
+	a warning
+
 2007-08-28  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-10-07
