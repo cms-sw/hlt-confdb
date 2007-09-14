@@ -19,6 +19,9 @@ public class UInt32Parameter extends ScalarParameter
     /** parameter values */
     private Long value = null;
          
+    /** flag to indicate that this integer is given in hex format */
+    private boolean isHex = false;
+    
     
     //
     // construction
@@ -62,7 +65,8 @@ public class UInt32Parameter extends ScalarParameter
     /** retrieve the value of the parameter as a string */
     public String valueAsString()
     {
-	return (isValueSet) ? value.toString() : new String();
+	if (!isValueSet) return new String();
+	return (isHex) ? "0x"+Long.toHexString(value) : value.toString();
     }
 
     /** set the value  the parameter, indicate if default */
@@ -73,8 +77,19 @@ public class UInt32Parameter extends ScalarParameter
 	    value      = null;
 	}
 	else {
+	    if (valueAsString.startsWith("+"))
+		valueAsString = valueAsString.substring(1);
+	    
+	    isHex = false;
+	    if (valueAsString.startsWith("0x")) {
+		isHex = true;
+		valueAsString = valueAsString.substring(2);
+	    }
+	    
 	    try {
-		this.value = new Long(valueAsString);
+		this.value = (isHex) ?
+		    new Long(Long.parseLong(valueAsString,16)) :
+		    new Long(valueAsString);
 		isValueSet = true;
 	    }
 	    catch (NumberFormatException e) {

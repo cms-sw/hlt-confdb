@@ -1,3 +1,17 @@
+2007-09-14  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-11-01
+	* parser: add FileInPath parameter type
+	* parser: latest problems.txt with FileInPath
+	* parser PENDING: AddProblem* script yet to deal with strings
+	which contain blanks
+	* data model: allow for [u]int32 values to be specified in hex
+	(not propagated to vector types yet)
+	* config-parser: add command line option to main routine to pass
+	database connection info (and some other stuff)
+	* Verfied that after application of problems.txt (to 1_6_0),
+	HLTtable.py is parsed completely!
+	
 2007-09-14  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-11-00

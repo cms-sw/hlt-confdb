@@ -584,9 +584,6 @@ public class PythonParser
 	    isdefault = true;
 	}
 	
-	// TEMPORARY!
-	if (type.equals("FileInPath")) type = "string";
-	
 	Parameter parameter =
 	    ParameterFactory.create(type,name,"",istracked,isdefault);
 	
@@ -734,39 +731,116 @@ public class PythonParser
     /** main method */
     public static void main(String[] args)
     {
-	if (args.length!=1) {
-	    System.out.println("Usage: java " +
-			       PythonParser.class.getName() +
-			       " <file.py>");
+	String configFile  = "";
+	String releaseTag  = "CMSSW_1_6_0";
+	String dbType      = "mysql";
+	String dbHost      = "localhost";
+	String dbPort      = "3306";
+	String dbName      = "hltdb";
+	String dbUser      = "schiefer";
+	String dbPwrd      = "monopoles";
+	String dbSetup     = "";
+	String printTree   = "false";
+	String printConfig = "true";
+
+	for (int iarg=0;iarg<args.length;iarg++) {
+	    String arg = args[iarg];
+	    if (arg.equals("-config")||arg.equals("-c")) {
+		iarg++; configFile = args[iarg];
+	    }
+	    else if (arg.equals("-release")||arg.equals("-r")) {
+		iarg++; releaseTag = args[iarg];
+	    }
+	    else if (arg.equals("-dbtype")||arg.equals("-t")) {
+		iarg++; dbType=args[iarg];
+	    }
+	    else if (arg.equals("-dbhost")||arg.equals("-h")) {
+		iarg++; dbHost=args[iarg];
+	    }
+	    else if (arg.equals("-dbport")||arg.equals("-p")) {
+		iarg++; dbPort=args[iarg];
+	    }
+	    else if (arg.equals("-dbname")||arg.equals("-n")) {
+		iarg++; dbName=args[iarg];
+	    }
+	    else if (arg.equals("-dbuser")||arg.equals("-u")) {
+		iarg++; dbUser=args[iarg];
+	    }
+	    else if (arg.equals("-dbpwrd")||arg.equals("-s")) {
+		iarg++; dbPwrd=args[iarg];
+	    }
+	    else if (arg.equals("-dbsetup")||arg.equals("-x")) {
+		iarg++; dbSetup=args[iarg];
+	    }
+	    else if (arg.equals("-printtree")||arg.equals("-y")) {
+		iarg++; printTree=args[iarg];
+	    }
+	    else if (arg.equals("-printconfig")||arg.equals("-z")) {
+		iarg++; printConfig=args[iarg];
+	    }
+	    else {
+		System.err.println("invalid command line option '"+arg+"'");
+		System.exit(1);
+	    }
+	}
+	
+	if (configFile.length()==0) {
+	    System.err.println("No *.py config file specified via -c[onfig]");
+	    System.exit(1);
+	}
+	else System.out.println("Parse config file "+configFile);
+
+	String dbUrl = null;
+	if (dbSetup.length()>0) {
+	    try {
+		int isetup = (new Integer(dbSetup)).intValue();
+		ConfDBSetups setup = new ConfDBSetups();
+		dbUrl=(setup.type(isetup).equals("mysql")) ?
+		    "jdbc:mysql://" : "jdbc:oracle:thin:@//";
+		dbUrl+=setup.host(isetup)+":"+setup.port(isetup)+"/"+
+		    setup.name(isetup);
+	    }
+	    catch (Exception e) {
+		System.err.println("Invalid dbSetup '"+dbSetup+"'");
+		System.exit(1);
+	    }
+	}
+	else if (dbType.equals("mysql"))
+	    dbUrl  = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+dbName;
+	else if (dbType.equals("oracle"))
+	    dbUrl = "jdbc:oracle:thin:@//"+dbHost+":"+dbPort+"/"+dbName;
+
+	if (dbUrl==null) {
+	    System.err.println("invalid dbtype '"+dbType+"'");
 	    System.exit(1);
 	}
 	
 	try {
 	    // connect ot db and load release
 	    SoftwareRelease release = new SoftwareRelease();
-	    String releaseTag = "CMSSW_1_6_0";
-	    System.out.println("connect to DB and load release " +
-			       releaseTag + "...");
+	    System.out.println("connect to DB and load release "+releaseTag+"...");
 	    ConfDB database = new ConfDB();
-	    database.connect("mysql","jdbc:mysql://localhost:3306/hltdb",
-			     "schiefer","monopoles");
+	    database.connect(dbType,dbUrl,dbUser,dbPwrd);
 	    database.loadSoftwareRelease(releaseTag,release);
 	    System.out.println("release " + releaseTag + " loaded!\n");
 
 	    // parse the input Python file
-	    String fileName = args[0];
 	    PythonParser parser = new PythonParser(release);
-	    parser.parseFile(fileName);
-	    //parser.printParsedTree();
-
+	    parser.parseFile(configFile);
+	    boolean doPrintTree = (new Boolean(printTree)).booleanValue();
+	    if (doPrintTree) parser.printParsedTree();
+	    
 	    // create the configuration
 	    Configuration config = parser.createConfiguration();
 	    
 	    // convert the configuration to ascii
-	    ConverterFactory factory=ConverterFactory.getFactory("default");
-	    Converter        cnv    = factory.getConverter("ascii");
-	    System.out.println(cnv.convert(config));
+	    ConverterFactory factory = ConverterFactory.getFactory("default");
+	    Converter        cnv     = factory.getConverter("ascii");
+	    String configAsString = cnv.convert(config);
 
+	    boolean doPrintConfig = (new Boolean(printConfig)).booleanValue();
+	    if (doPrintConfig) System.out.println(configAsString);
+	    
 	    if (parser.closeProblemStream())
 		System.out.println("problems encountered, see problems.txt.");
 	}
@@ -774,7 +848,7 @@ public class PythonParser
 	    System.err.println("Failed to connect to DB: " + e.getMessage());
 	}
 	catch (ParserException e) {
-	    System.err.println("Error parsing "+args[0]+": "+e.getMessage());
+	    System.err.println("Error parsing "+configFile+": "+e.getMessage());
 	}
 	catch (Exception e) {
 	    e.printStackTrace();
