@@ -8,9 +8,7 @@
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
-import ConfdbSQLModuleLoader
-# import ConfdbOracleModuleLoader
-import ConfdbConfigurationComponentParser
+import ConfdbSQLModuleLoader, ConfdbOracleModuleLoader, ConfdbConfigurationComponentParser
 
 def main(argv):
     # Get information from the environment
