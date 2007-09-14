@@ -2,7 +2,7 @@
 
 # AddProblemModulesAndParameters.py
 # Patch for ConfDB problems (Oracle version)
-# Jonathan Hollar LLNL Aug. 24, 2007
+# Jonathan Hollar LLNL Sept. 14, 2007
 
 import os, string, sys, posix, tokenize, array, getopt
 
@@ -133,12 +133,12 @@ def main(argv):
 	    if(vartype == "vstring" or vartype == "vint32" or vartype == "vdouble" or vartype == "vuint32" or vartype == "VInputTag"):
 		if(problemline.find('{') != -1 and problemline.find('}') != -1):
                     #Vector
-                    if(problemline.find(',') != -1):    
+                    if(problemline.find(',') != -1):
                         vecvarvals = problemline.split('{')[1].split('}')[0].split(',')
                     else:
                         vecvarvals = []
                         singleval = problemline.split('{')[1].split('}')[0].lstrip().rstrip()
-                        vecvarvals.append(singleval)                        
+                        vecvarvals.append(singleval)
 		    vartracked = problemline.split('}')[1].lstrip().rstrip()
 	    elif(len(problemline.split()) == 5):
 		# Regular parameter with a default value
@@ -567,7 +567,7 @@ class AddProblemModulesAndParametersOracle:
 		    thecursor.execute("INSERT INTO DoubleParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
 
 	    #string
-	    elif(paramtype == "string" or paramtype == "FileInPath"):
+	    elif(paramtype == "string"):
 		type = self.paramtypedict['string']
 
 		# Fill Parameters table
@@ -588,6 +588,30 @@ class AddProblemModulesAndParametersOracle:
 			print "\tWarning: Attempted to load a non-string value to string table:"
 			print "\t\tstring " + str(paramname) + " = " + str(paramval)
 			print "\t\tLoading parameter with no default value"
+
+	    #FileInPath
+	    elif(paramtype == "FileInPath"):
+		type = self.paramtypedict['FileInPath']
+
+		# Fill Parameters table
+		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
+
+		if(paramval == None):
+		    if(self.verbose > 2):
+			print "No default parameter value found"
+		else:
+		    # Stupid special case for string variables defined in 
+		    # single quotes in .cf* files
+		    if(paramval.find("'") != -1):
+			# Fill ParameterValues table
+			thecursor.execute("INSERT INTO FileInPathParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+		    elif(paramval.find('"') != -1):
+			thecursor.execute("INSERT INTO FileInPathParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
+		    else:
+			print "\tWarning: Attempted to load a non-string value to FileInPath table:"
+			print "\t\tFileInPath " + str(paramname) + " = " + str(paramval)
+			print "\t\tLoading parameter with no default value"
+
 
 	    # InputTag
 	    elif(paramtype == "InputTag"):
@@ -787,8 +811,8 @@ class AddProblemModulesAndParametersOracle:
 		psettype = "int32"
 	    if(psettype == "uint32_t" or psettype == "unsigned int" or psettype == "uint"):
 		psettype = "uint32"
-	    if(psettype == "FileInPath"):
-		psettype = "string"
+#	    if(psettype == "FileInPath"):
+#		psettype = "string"
 	    if(psettype == "vunsigned"):
 		psettype = "vuint32"
 
@@ -857,7 +881,7 @@ class AddProblemModulesAndParametersOracle:
 			print "No default parameter value found"
 		else:
 		    thecursor.execute("INSERT INTO DoubleParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
-	    elif(psettype == "string" or psettype == "FileInPath"):
+	    elif(psettype == "string"):
 		if(psetval.find("'") != -1):
 		    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
 		elif(psetval.find('"') != -1):
@@ -865,6 +889,15 @@ class AddProblemModulesAndParametersOracle:
 		else:
 		    print "\tWarning: Attempted to load a non-string value to string table:"
 		    print "\t\tstring " + str(psetname) + " = " + str(psetval)
+		    print "\t\tLoading parameter with no default value"
+	    elif(psettype == "FileInPath"):
+		if(psetval.find("'") != -1):
+		    thecursor.execute("INSERT INTO FileInPathParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+		elif(psetval.find('"') != -1):
+		    thecursor.execute("INSERT INTO FileInPathParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", '" + psetval + "')")
+		else:
+		    print "\tWarning: Attempted to load a non-string value to FileInPath table:"
+		    print "\t\tFileInPath " + str(psetname) + " = " + str(psetval)
 		    print "\t\tLoading parameter with no default value"
 	    elif(psettype == "InputTag"):
 		if(psetval.find("'") != -1):
@@ -944,8 +977,8 @@ class AddProblemModulesAndParametersOracle:
 		vpsettype = "int32"
 	    if(vpsettype == "uint32_t" or vpsettype == "unsigned int" or vpsettype == "uint"):
 		vpsettype = "uint32"
-	    if(vpsettype == "FileInPath"):
-		vpsettype = "string"
+#	    if(vpsettype == "FileInPath"):
+#		vpsettype = "string"
 	    if(vpsettype == "vunsigned"):
 		vpsettype = "vuint32"
 
@@ -1005,7 +1038,7 @@ class AddProblemModulesAndParametersOracle:
 			print "No default parameter value found"
 		else:
 		    thecursor.execute("INSERT INTO DoubleParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
-	    elif(vpsettype == "string" or vpsettype == "FileInPath"):
+	    elif(vpsettype == "string"):
 		if(vpsetval.find("'") != -1):
 		    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
 		elif(vpsetval.find('"') != -1):
@@ -1013,6 +1046,15 @@ class AddProblemModulesAndParametersOracle:
 		else:
 		    print "\tWarning: Attempted to load a non-string value to string table:"
 		    print "\t\tstring " + str(vpsetname) + " = " + str(vpsetval)
+		    print "\t\tLoading parameter with no default value" 
+	    elif(vpsettype == "FileInPath"):
+		if(vpsetval.find("'") != -1):
+		    thecursor.execute("INSERT INTO FileInPathParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
+		elif(vpsetval.find('"') != -1):
+		    thecursor.execute("INSERT INTO FileInPathParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", '" + vpsetval + "')")
+		else:
+		    print "\tWarning: Attempted to load a non-string value to FileInPath table:"
+		    print "\t\tFileInPath " + str(vpsetname) + " = " + str(vpsetval)
 		    print "\t\tLoading parameter with no default value" 
 	    elif(vpsettype == "InputTag"):
 		if(vpsetval.find("'") != -1):
