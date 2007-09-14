@@ -79,7 +79,7 @@ public class DoubleParameter extends ScalarParameter
 		isValueSet = true;
 	    }
 	    catch (NumberFormatException e) {
-		System.out.println("DoubleParameter.setValue " +
+		System.err.println("DoubleParameter.setValue " +
 				   "NumberFormatException: "+
 				   e.getMessage());
 		return false;

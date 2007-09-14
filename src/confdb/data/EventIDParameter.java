@@ -102,7 +102,7 @@ public class EventIDParameter extends ScalarParameter
 		isValueSet = true;
 	    }
 	    catch (NumberFormatException e) {
-		System.out.println("EventIDParameter.setValue " +
+		System.err.println("EventIDParameter.setValue " +
 				   "NumberFormatException: "+
 				   e.getMessage());
 		return false;

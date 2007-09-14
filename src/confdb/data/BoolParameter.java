@@ -79,7 +79,8 @@ public class BoolParameter extends ScalarParameter
 		isValueSet = true;
 	    }
 	    catch (NumberFormatException e) {
-		System.out.println("BoolParameter.setValue NumberFormatException: "+
+		System.err.println("BoolParameter.setValue "+
+				   "NumberFormatException: "+
 				   e.getMessage());
 		return false;
 	    }

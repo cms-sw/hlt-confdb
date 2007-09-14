@@ -96,4 +96,6 @@ abstract public class Parameter implements Comparable<Parameter>
 	return true;
     }
     
+    /** set isTracked */
+    public void setTracked(boolean isTracked) { this.isTracked = isTracked; }
 }

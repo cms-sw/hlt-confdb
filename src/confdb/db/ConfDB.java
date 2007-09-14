@@ -140,6 +140,7 @@ public class ConfDB
     private PreparedStatement psSelectStringParamValue            = null;
     private PreparedStatement psSelectEventIDParamValue           = null;
     private PreparedStatement psSelectInputTagParamValue          = null;
+    private PreparedStatement psSelectFileInPathParamValue        = null;
     private PreparedStatement psSelectVInt32ParamValues           = null;
     private PreparedStatement psSelectVUInt32ParamValues          = null;
     private PreparedStatement psSelectVDoubleParamValues          = null;
@@ -192,6 +193,7 @@ public class ConfDB
     private PreparedStatement psInsertStringParamValue            = null;
     private PreparedStatement psInsertEventIDParamValue           = null;
     private PreparedStatement psInsertInputTagParamValue          = null;
+    private PreparedStatement psInsertFileInPathParamValue        = null;
     private PreparedStatement psInsertVInt32ParamValue            = null;
     private PreparedStatement psInsertVUInt32ParamValue           = null;
     private PreparedStatement psInsertVDoubleParamValue           = null;
@@ -923,6 +925,15 @@ public class ConfDB
 		 "WHERE paramId = ?");
 	    preparedStatements.add(psSelectInputTagParamValue);
 
+	    psSelectFileInPathParamValue =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " FileInPathParamValues.paramId," +
+		 " FileInPathParamValues.value " +
+		 "FROM FileInPathParamValues " +
+		 "WHERE paramId = ?");
+	    preparedStatements.add(psSelectFileInPathParamValue);
+	    
 	    psSelectVInt32ParamValues =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -1292,6 +1303,12 @@ public class ConfDB
 		 "VALUES (?, ?)");
 	    preparedStatements.add(psInsertInputTagParamValue);
 
+	    psInsertFileInPathParamValue =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO FileInPathParamValues (paramId,value) " +
+		 "VALUES (?, ?)");
+	    preparedStatements.add(psInsertFileInPathParamValue);
+
 	    psInsertVInt32ParamValue =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO VInt32ParamValues (paramId,sequenceNb,value) " +
@@ -1359,33 +1376,35 @@ public class ConfDB
 	selectParameterHashMap   = new HashMap<String,PreparedStatement>();
 	selectParameterIdHashMap = new HashMap<Integer,PreparedStatement>();
 	
-	insertParameterHashMap.put("bool",     psInsertBoolParamValue);
-	insertParameterHashMap.put("int32",    psInsertInt32ParamValue);
-	insertParameterHashMap.put("vint32",   psInsertVInt32ParamValue);
-	insertParameterHashMap.put("uint32",   psInsertUInt32ParamValue);
-	insertParameterHashMap.put("vuint32",  psInsertVUInt32ParamValue);
-	insertParameterHashMap.put("double",   psInsertDoubleParamValue);
-	insertParameterHashMap.put("vdouble",  psInsertVDoubleParamValue);
-	insertParameterHashMap.put("string",   psInsertStringParamValue);
-	insertParameterHashMap.put("vstring",  psInsertVStringParamValue);
-	insertParameterHashMap.put("EventID",  psInsertEventIDParamValue);
-	insertParameterHashMap.put("VEventID", psInsertVEventIDParamValue);
-	insertParameterHashMap.put("InputTag", psInsertInputTagParamValue);
-	insertParameterHashMap.put("VInputTag",psInsertVInputTagParamValue);
+	insertParameterHashMap.put("bool",      psInsertBoolParamValue);
+	insertParameterHashMap.put("int32",     psInsertInt32ParamValue);
+	insertParameterHashMap.put("vint32",    psInsertVInt32ParamValue);
+	insertParameterHashMap.put("uint32",    psInsertUInt32ParamValue);
+	insertParameterHashMap.put("vuint32",   psInsertVUInt32ParamValue);
+	insertParameterHashMap.put("double",    psInsertDoubleParamValue);
+	insertParameterHashMap.put("vdouble",   psInsertVDoubleParamValue);
+	insertParameterHashMap.put("string",    psInsertStringParamValue);
+	insertParameterHashMap.put("vstring",   psInsertVStringParamValue);
+	insertParameterHashMap.put("EventID",   psInsertEventIDParamValue);
+	insertParameterHashMap.put("VEventID",  psInsertVEventIDParamValue);
+	insertParameterHashMap.put("InputTag",  psInsertInputTagParamValue);
+	insertParameterHashMap.put("VInputTag", psInsertVInputTagParamValue);
+	insertParameterHashMap.put("FileInPath",psInsertFileInPathParamValue);
 	
-	selectParameterHashMap.put("bool",     psSelectBoolParamValue);
-	selectParameterHashMap.put("int32",    psSelectInt32ParamValue);
-	selectParameterHashMap.put("vint32",   psSelectVInt32ParamValues);
-	selectParameterHashMap.put("uint32",   psSelectUInt32ParamValue);
-	selectParameterHashMap.put("vuint32",  psSelectVUInt32ParamValues);
-	selectParameterHashMap.put("double",   psSelectDoubleParamValue);
-	selectParameterHashMap.put("vdouble",  psSelectVDoubleParamValues);
-	selectParameterHashMap.put("string",   psSelectStringParamValue);
-	selectParameterHashMap.put("vstring",  psSelectVStringParamValues);
-	selectParameterHashMap.put("EventID",  psSelectEventIDParamValue);
-	selectParameterHashMap.put("VEventID", psSelectVEventIDParamValues);
-	selectParameterHashMap.put("InputTag", psSelectInputTagParamValue);
-	selectParameterHashMap.put("VInputTag",psSelectVInputTagParamValues);
+	selectParameterHashMap.put("bool",      psSelectBoolParamValue);
+	selectParameterHashMap.put("int32",     psSelectInt32ParamValue);
+	selectParameterHashMap.put("vint32",    psSelectVInt32ParamValues);
+	selectParameterHashMap.put("uint32",    psSelectUInt32ParamValue);
+	selectParameterHashMap.put("vuint32",   psSelectVUInt32ParamValues);
+	selectParameterHashMap.put("double",    psSelectDoubleParamValue);
+	selectParameterHashMap.put("vdouble",   psSelectVDoubleParamValues);
+	selectParameterHashMap.put("string",    psSelectStringParamValue);
+	selectParameterHashMap.put("vstring",   psSelectVStringParamValues);
+	selectParameterHashMap.put("EventID",   psSelectEventIDParamValue);
+	selectParameterHashMap.put("VEventID",  psSelectVEventIDParamValues);
+	selectParameterHashMap.put("InputTag",  psSelectInputTagParamValue);
+	selectParameterHashMap.put("VInputTag", psSelectVInputTagParamValues);
+	selectParameterHashMap.put("FileInPath",psSelectFileInPathParamValue);
 
 	ResultSet rs = null;
 	try {

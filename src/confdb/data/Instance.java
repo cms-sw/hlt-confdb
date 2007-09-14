@@ -101,7 +101,7 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 		return true;
 	    }
 	}
-	System.out.println("Instance.updateParameter ERROR: "+
+	System.err.println("Instance.updateParameter ERROR: "+
 			   "no parameter '"+name+"' of type "+type);
 	return false;
     }
@@ -127,7 +127,7 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 	    template.removeInstance(name);
 	}
 	catch (DataException e) {
-	    System.out.println(e.getMessage());
+	    System.err.println("Instance.remove ERROR: "+e.getMessage());
 	}
     }
 

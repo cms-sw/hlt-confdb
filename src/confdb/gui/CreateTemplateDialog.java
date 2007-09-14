@@ -83,17 +83,11 @@ public class CreateTemplateDialog extends JDialog implements ActionListener
     
     /** combo box to pick a parameter type */
     private JComboBox comboBoxParameterType = null;
-    private static final String[] parameterTypeOptions = 
-    {
-	"",
-	"int32","uint32","double","string","bool","EventID","InputTag","PSet",
-	"vector<int32>","vector<uint32>","vector<double>",
-	"vector<string>","vector<EventID>","vector<InputTag>","vector<PSet>"
-    };
     private static final String[] parameterTypes = 
     {
 	"",
-	"int32", "uint32", "double", "string","bool","EventID","InputTag","PSet",
+	"int32", "uint32", "double", "string","bool","EventID","InputTag",
+	"FileInPath","PSet",
 	"vint32","vuint32","vdouble","vstring","VEventID","VInputTag","VPSet"
     };
     
@@ -264,7 +258,7 @@ public class CreateTemplateDialog extends JDialog implements ActionListener
 	addParPanel.add(textFieldParameterName);
 	
 	// add parameter: parameter type
-	comboBoxParameterType = new JComboBox(parameterTypeOptions);
+	comboBoxParameterType = new JComboBox(parameterTypes);
 	comboBoxParameterType.setBackground(Color.WHITE);
 	addParPanel.add(comboBoxParameterType);
 	
@@ -444,8 +438,7 @@ public class CreateTemplateDialog extends JDialog implements ActionListener
 	if (actionAddParameter.equals(e.getActionCommand())) {
 	    
 	    String name  = textFieldParameterName.getText();
-	    int    itype = comboBoxParameterType.getSelectedIndex();
-	    String type  = parameterTypes[itype];
+	    String type  = (String)comboBoxParameterType.getSelectedItem();
 	    String value = textFieldParameterValue.getText();
 	    
 	    textFieldParameterName.setText("");

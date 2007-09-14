@@ -130,7 +130,7 @@ public class ConfigInfo
     {
 	for (ConfigVersion v : versions) {
 	    if (v.version()==version) {
-		System.out.println("addVersion ERROR: version exists already.");
+		System.err.println("addVersion ERROR: version exists already.");
 		return;
 	    }
 	}

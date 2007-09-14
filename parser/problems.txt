@@ -3,7 +3,7 @@ MessageLogger.Parameter destinations vstring {"cout"} untracked
 MessageLogger.Parameter cout    PSet                    untracked
 MessageLogger.Parameter log4cplus       PSet                        untracked
 
-ESSource HcalTextCalibration
+ESSource HcalTextCalibrations
 HcalTextCalibration.Parameter input VPSet tracked
 
 ESModule MCJetCorrectionService

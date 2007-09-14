@@ -91,7 +91,7 @@ public class VUInt32Parameter extends VectorParameter
 		isValueSet = true;
 	    }
 	    catch (NumberFormatException e) {
-		System.out.println(e.getMessage());
+		System.err.println(e.getMessage());
 		return false;
 	    }
 	}
@@ -111,7 +111,7 @@ public class VUInt32Parameter extends VectorParameter
 	    values.set(i,new Integer(valueAsString));
 	}
 	catch (NumberFormatException e) {
-	    System.out.println(e.getMessage());
+	    System.err.println(e.getMessage());
 	    return false;
 	}
 	return true;

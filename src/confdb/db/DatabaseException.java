@@ -7,8 +7,6 @@ package confdb.db;
  *
  * Exception signature of the confdb.db. package.
  */
-
-
 public class DatabaseException extends Exception
 {
     //

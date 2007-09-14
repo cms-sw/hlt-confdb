@@ -90,7 +90,7 @@ abstract public class Template extends DatabaseEntry
     {
 	for (Parameter p : parameters)
 	    if (name.equals(p.name())) return p;
-	System.out.println("ERROR: template '"+name()+
+	System.err.println("ERROR: template '"+name()+
 			   "' has no parameter '"+name+"'.");
 	return null;
     }

@@ -30,6 +30,8 @@ public class ParameterFactory
 	    return new EventIDParameter(name,value,isTracked,isDefault);
 	if (type.equals("InputTag"))
 	    return new InputTagParameter(name,value,isTracked,isDefault);
+	if (type.equals("FileInPath"))
+	    return new FileInPathParameter(name,value,isTracked,isDefault);
 	if (type.equals("vint32"))
 	    return new VInt32Parameter(name,value,isTracked,isDefault);
 	if (type.equals("vuint32"))

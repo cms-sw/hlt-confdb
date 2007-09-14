@@ -37,7 +37,7 @@ public class VInputTagParameter extends VectorParameter
 		this.values.add(new InputTag(v));
 	    }
 	    catch (DataException e) {
-		System.out.println("VInputTagParameter ctor error: " +
+		System.err.println("VInputTagParameter ctor ERROR: " +
 				   e.getMessage());
 	    }
 	}
@@ -100,7 +100,7 @@ public class VInputTagParameter extends VectorParameter
 		isValueSet = true;
 	    }
 	    catch (DataException e) {
-		System.out.println("VInputTagParameter.setValue error: " +
+		System.err.println("VInputTagParameter.setValue ERROR: " +
 				   e.getMessage());
 		return false;
 	    }
@@ -122,7 +122,7 @@ public class VInputTagParameter extends VectorParameter
 	    values.set(i,tag);
 	}
 	catch (DataException e) {
-	    System.out.println("VInputTagParameter.setValue error: " +
+	    System.err.println("VInputTagParameter.setValue ERROR: " +
 			       e.getMessage());
 	    return false;
 	}

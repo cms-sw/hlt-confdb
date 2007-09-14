@@ -78,7 +78,7 @@ public class UInt32Parameter extends ScalarParameter
 		isValueSet = true;
 	    }
 	    catch (NumberFormatException e) {
-		System.out.println("UInt32Parameter.setValue " +
+		System.err.println("UInt32Parameter.setValue " +
 				   "NumberFormatException: "+
 				   e.getMessage());
 		return false;

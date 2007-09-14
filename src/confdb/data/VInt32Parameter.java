@@ -90,7 +90,7 @@ public class VInt32Parameter extends VectorParameter
 		isValueSet = true;
 	    }
 	    catch (NumberFormatException e) {
-		System.out.println("VInt32Parameter.setValue " +
+		System.err.println("VInt32Parameter.setValue " +
 				   "NumberFormatException: "+
 				   e.getMessage());
 		return false;
@@ -112,7 +112,7 @@ public class VInt32Parameter extends VectorParameter
 	    values.set(i,new Integer(valueAsString));
 	}
 	catch (NumberFormatException e) {
-	    System.out.println(e.getMessage());
+	    System.err.println(e.getMessage());
 	    return false;
 	}
 	return true;

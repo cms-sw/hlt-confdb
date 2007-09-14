@@ -1,3 +1,16 @@
+2007-09-14  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-11-00
+	* add src/confdb/parser
+	* this parser subdomain of the java code is independent and
+	orthogonal to the 'parser' system component (ConfigDB/parser)
+	* it is an administrator-only data entry tool, which is cabable to
+	turn a *.py configuration created with EdmConfigToPython (found in
+	CMSSW releases)
+	* at the same time, it creates a 'problems.txt' file, which can be
+	used with the respective script from the ConfigDB/parser component
+	* add 'FileInPath' parameter type (sql & java, PARSER PENDING)
+
 2007-09-07  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-10-08

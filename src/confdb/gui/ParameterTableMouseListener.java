@@ -192,25 +192,18 @@ public class ParameterTableMouseListener extends MouseAdapter
     /** show dialog to add PSet to VPSet */
     private void addParameterSet(VPSetParameter vpset)
     {
-	AddParameterDialog dlg = new AddParameterDialog(frame,vpset.isTracked());
-	dlg.addParameterSet();
-	dlg.pack();
-	dlg.setLocationRelativeTo(frame);
-	dlg.setVisible(true);
-	if (dlg.validChoice()) {
-	    PSetParameter pset =
-		(PSetParameter)ParameterFactory.create(dlg.type(),
-						       dlg.name(),
-						       dlg.valueAsString(),
-						       dlg.isTracked(),
-						       false);
-	    vpset.addParameterSet(pset);
-	    treeModel.nodeInserted(vpset,vpset.parameterSetCount()-1);
-	    notifyParent(vpset);
-
-	    TreePath treePath =new TreePath(treeModel.getPathToRoot(vpset));
-	    treeTable.getTree().expandPath(treePath);
-	}
+	PSetParameter pset =
+	    (PSetParameter)ParameterFactory.create("PSet",
+						   "",
+						   "",
+						   vpset.isTracked(),
+						   false);
+	vpset.addParameterSet(pset);
+	treeModel.nodeInserted(vpset,vpset.parameterSetCount()-1);
+	notifyParent(vpset);
+	
+	TreePath treePath = new TreePath(treeModel.getPathToRoot(vpset));
+	treeTable.getTree().expandPath(treePath);
     }
     
     /** notify parent instance of change */

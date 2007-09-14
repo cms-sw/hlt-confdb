@@ -47,6 +47,7 @@ DROP TABLE    InputTagParamValues;
 DROP TABLE    VInputTagParamValues;
 DROP TABLE    EventIDParamValues;
 DROP TABLE    VEventIDParamValues;
+DROP TABLE    FileInPathParamValues;
 DROP TABLE    SuperIdParameterAssoc;
 DROP TABLE    SuperIdParamSetAssoc;
 DROP TABLE    SuperIdVecParamSetAssoc;

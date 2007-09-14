@@ -975,6 +975,20 @@ CREATE TABLE VEventIDParamValues
 CREATE INDEX VEventIDValuesParamId_idx ON VEventIDParamValues(paramId);
 
 
+--
+-- TABLE 'FileInPathParamValues'
+--
+CREATE TABLE FileInPathParamValues
+(
+	paramId    	NUMBER		NOT NULL,
+	value      	VARCHAR2(512)	NOT NULL,
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+);
+
+-- INDEX EventIDValuesParamId_idx
+CREATE INDEX FileInPathValuesParamId_idx ON FileInPathParamValues(paramId);
+
+
 COMMIT;
 
 
@@ -999,8 +1013,7 @@ INSERT INTO ModuleTypes VALUES (2,'EDAnalyzer');
 INSERT INTO ModuleTypes VALUES (3,'EDFilter');
 INSERT INTO ModuleTypes VALUES (4,'HLTProducer');
 INSERT INTO ModuleTypes VALUES (5,'HLTFilter');
-INSERT INTO ModuleTypes VALUES (6,'ESProducer');
-INSERT INTO ModuleTypes VALUES (7,'OutputModule');
+INSERT INTO ModuleTypes VALUES (6,'OutputModule');
 
 
 --
@@ -1019,6 +1032,7 @@ INSERT INTO ParameterTypes VALUES (10,'InputTag');
 INSERT INTO ParameterTypes VALUES (11,'VInputTag');
 INSERT INTO ParameterTypes VALUES (12,'EventID');
 INSERT INTO ParameterTypes VALUES (13,'VEventID');
+INSERT INTO ParameterTypes VALUES (14,'FileInPath');
 
 
 COMMIT;

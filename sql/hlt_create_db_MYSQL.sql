@@ -601,6 +601,14 @@ CREATE TABLE VEventIDParamValues
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 ) ENGINE=INNODB;
 
+-- TABLE 'FileInPathParamValues'
+CREATE TABLE FileInPathParamValues
+(
+	paramId    	BIGINT UNSIGNED   NOT NULL,
+	value      	VARCHAR(512)      NOT NULL,
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+) ENGINE=INNODB;
+
 
 --
 -- INSERTs
@@ -615,7 +623,6 @@ INSERT INTO ModuleTypes (type) VALUES("EDFilter");
 INSERT INTO ModuleTypes (type) VALUES("EDAnalyzer");
 INSERT INTO ModuleTypes (type) VALUES("HLTProducer");
 INSERT INTO ModuleTypes (type) VALUES("HLTFilter");
--- INSERT INTO ModuleTypes (type) VALUES("ESProducer");
 INSERT INTO ModuleTypes (type) VALUES("OutputModule");
 
 
@@ -633,3 +640,4 @@ INSERT INTO ParameterTypes (paramType) VALUES("InputTag");
 INSERT INTO ParameterTypes (paramType) VALUES("VInputTag");
 INSERT INTO ParameterTypes (paramType) VALUES("EventID");
 INSERT INTO ParameterTypes (paramType) VALUES("VEventID");
+INSERT INTO ParameterTypes (paramType) VALUES("FileInPath");

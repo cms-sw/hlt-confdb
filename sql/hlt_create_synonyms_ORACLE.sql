@@ -47,6 +47,7 @@ CREATE SYNONYM InputTagParamValues 		FOR CMS_HLT.InputTagParamValues;
 CREATE SYNONYM VInputTagParamValues 		FOR CMS_HLT.VInputTagParamValues;
 CREATE SYNONYM EventIDParamValues 		FOR CMS_HLT.EventIDParamValues;
 CREATE SYNONYM VEventIDParamValues 		FOR CMS_HLT.VEventIDParamValues;
+CREATE SYNONYM FileInPathParamValues 		FOR CMS_HLT.FileInPathParamValues;
 CREATE SYNONYM SuperIdParameterAssoc 		FOR CMS_HLT.SuperIdParameterAssoc;
 CREATE SYNONYM SuperIdParamSetAssoc 		FOR CMS_HLT.SuperIdParamSetAssoc;
 CREATE SYNONYM SuperIdVecParamSetAssoc 		FOR CMS_HLT.SuperIdVecParamSetAssoc;

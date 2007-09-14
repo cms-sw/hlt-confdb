@@ -144,7 +144,7 @@ public class Configuration
     public void setConfigInfo(ConfigInfo configInfo)
     {
 	if (!configInfo.releaseTag().equals(releaseTag())) {
-	    System.out.println("Configuration.setConfigInfo ERROR: "+
+	    System.err.println("Configuration.setConfigInfo ERROR: "+
 			       "releaseTag mismatch (" +
 			       releaseTag() + " / " +
 			       configInfo.releaseTag() + ")");
@@ -467,7 +467,7 @@ public class Configuration
 	EDSourceTemplate template =
 	    (EDSourceTemplate)release.edsourceTemplate(templateName);
 	if (template==null) {
-	    System.out.println("insertEDSource ERROR: unknown template '" +
+	    System.err.println("insertEDSource ERROR: unknown template '" +
 			       templateName+"'!");
 	    return null;
 	}
@@ -524,7 +524,7 @@ public class Configuration
 	ESSourceTemplate template =
 	    (ESSourceTemplate)release.essourceTemplate(templateName);
 	if (template==null) {
-	    System.out.println("insertESSource ERROR: unknown template '"+
+	    System.err.println("insertESSource ERROR: unknown template '"+
 			       templateName+"'!");
 	    return null;
 	}
@@ -582,7 +582,7 @@ public class Configuration
 	ESModuleTemplate template =
 	    (ESModuleTemplate)release.esmoduleTemplate(templateName);
 	if (template==null) {
-	    System.out.println("insertESModule ERROR: unknown template '" +
+	    System.err.println("insertESModule ERROR: unknown template '" +
 			       templateName+"'!");
 	    return null;
 	}
@@ -637,7 +637,7 @@ public class Configuration
 	ServiceTemplate template =
 	    (ServiceTemplate)release.serviceTemplate(templateName);
 	if (template==null) {
-	    System.out.println("insertService ERROR: unknown template '" +
+	    System.err.println("insertService ERROR: unknown template '" +
 			       templateName+"'!");
 	    return null;
 	}
@@ -699,7 +699,7 @@ public class Configuration
 	ModuleTemplate template =
 	    (ModuleTemplate)release.moduleTemplate(templateName);
 	if (template == null) {
-	    System.out.println("insertModule ERROR: unknown template '" +
+	    System.err.println("insertModule ERROR: unknown template '" +
 			       templateName+"'!");
 	    return null;
 	}
@@ -749,7 +749,8 @@ public class Configuration
 						 String             instanceName)
     {
 	ModuleInstance instance = insertModule(templateName,instanceName);
-	return insertModuleReference(container,i,instance);
+	return (instance!=null) ?
+	    insertModuleReference(container,i,instance) : null;
     }    
     
     /** sort  Modules */
@@ -774,7 +775,7 @@ public class Configuration
 	    Path p = (Path)it.next();
 	    if (p.name().equals(pathName)) return p;
 	}
-	System.out.println("ERROR: path '"+pathName+"' not found.");
+	System.err.println("ERROR: path '"+pathName+"' not found.");
 	return null;
     }
 
@@ -858,7 +859,7 @@ public class Configuration
 	    Sequence s = (Sequence)it.next();
 	    if (s.name().equals(sequenceName)) return s;
 	}
-	System.out.println("ERROR: sequence '"+sequenceName+"' not found.");
+	System.err.println("ERROR: sequence '"+sequenceName+"' not found.");
 	return null;
     }
     
@@ -936,7 +937,7 @@ public class Configuration
     {
 	for (Stream s : streams)
 	    if (s.label().equals(streamLabel)) return s;
-	System.out.println("ERROR: stream '"+streamLabel+"' not found.");
+	System.err.println("ERROR: stream '"+streamLabel+"' not found.");
 	return null;
     }
 

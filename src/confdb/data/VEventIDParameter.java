@@ -37,7 +37,7 @@ public class VEventIDParameter extends VectorParameter
 		this.values.add(new EventID(v));
 	    }
 	    catch (DataException e) {
-		System.out.println("VEventIDParameter ctor error: " +
+		System.err.println("VEventIDParameter ctor ERROR: " +
 				   e.getMessage());
 	    }
 	}
@@ -100,8 +100,8 @@ public class VEventIDParameter extends VectorParameter
 		isValueSet = true;
 	    }
 	    catch (DataException e) {
-		System.out.println("VEventIDParameter.setValue ERROR: "
-				   + e.getMessage());
+		System.err.println("VEventIDParameter.setValue ERROR: "+
+				   e.getMessage());
 		return false;
 	    }
 	}
@@ -122,7 +122,7 @@ public class VEventIDParameter extends VectorParameter
 	    values.set(i,id);
 	}
 	catch (DataException e) {
-	    System.out.println("VEventIDParameter.setValue error: "
+	    System.err.println("VEventIDParameter.setValue ERROR: "
 			       + e.getMessage());
 	    return false;
 	}
