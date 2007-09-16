@@ -144,6 +144,9 @@ def main(argv):
 		# Regular parameter with a default value
 		varval = problemline.split()[3].lstrip().rstrip()
 		vartracked = problemline.split()[4].lstrip().rstrip()
+            elif(problemline.find('"') != -1):
+                varval = '"' + problemline.split('"')[1] + '"'
+                vartracked = problemline.split('"')[2].lstrip().rstrip()
 	    else:
 		# Regular parameter with no default
 		varval = 'None'
