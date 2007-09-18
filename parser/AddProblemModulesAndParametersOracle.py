@@ -1145,7 +1145,7 @@ class AddProblemModulesAndParametersOracle:
 	for seq in seqtuple:
 	    if seq != orderedseq:
 		print "Out of order after seqnueceNb = " + str(prevseq)
-		thenextseq = seq
+		thenextseq = orderedseq
 		outoforder = True
 	    orderedseq = orderedseq + 1
 	    prevseq = seq
