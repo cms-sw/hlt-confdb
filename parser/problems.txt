@@ -82,35 +82,30 @@ MessageLogger.Parameter default PSet untracked
 MessageLogger.Parameter fwkJobReports vstring { "FrameworkJobReport" } untracked
 MessageLogger.Parameter FrameworkJobReport PSet untracked
 
-Module EDProducer LargestEtCaloJetSelector
-LargestEtCaloJetSelector.Parameter src InputTag iterativeCone5CaloJets tracked
-LargestEtCaloJetSelector.Parameter filter bool false tracked
-LargestEtCaloJetSelector.Parameter maxNumber uint32 2 tracked
+Module EDProducer HcalRawToDigi
+HcalRawToDigi.Parameter firstSample int32 0 tracked
+HcalRawToDigi.Parameter lastSample int32 9 tracked
+HcalRawToDigi.Parameter FilterDataQuality bool true tracked
+HcalRawToDigi.Parameter ExceptionEmptyData bool false untracked
 
-Module EDProducer EtMinCaloJetSelector
-EtMinCaloJetSelector.Parameter src InputTag softmuonHighestEtJets tracked
-EtMinCaloJetSelector.Parameter filter bool false tracked
-EtMinCaloJetSelector.Parameter etMin double 20.0 tracked
+Module EDProducer SiPixelClusterProducer
+SiPixelClusterProducer.Parameter MaxPed double 35.0 tracked
+SiPixelClusterProducer.Parameter MinPed double 25.0 tracked
+SiPixelClusterProducer.Parameter MaxGain double 3.0 tracked
+SiPixelClusterProducer.Parameter MinGain double 2.5 tracked
+SiPixelClusterProducer.Parameter GainValue double 2.8 tracked
+SiPixelClusterProducer.Parameter PedestalValue double 28.2 tracked
+SiPixelClusterProducer.Parameter UseCalibDataFromDB bool false tracked
+SiPixelClusterProducer.Parameter VerbosityLevel int32 1 untracked
+
+Module EDProducer SiStripRawToClusters
+SiStripRawToClusters.Parameter MaxHolesInCluster uint32 0 untracked
+SiStripRawToClusters.Parameter ClusterThreshold double 5.0 untracked
+SiStripRawToClusters.Parameter SeedThreshold double 3.0 untracked
+SiStripRawToClusters.Parameter ChannelThreshold double 2.0 untracked
 
 Module HLTFilter HLTLevel1Seed
 HLTLevel1Seed.Parameter byName bool true tracked
-
-Module EDProducer EgammaHLTIslandClusterProducer
-EgammaHLTIslandClusterProducer.Parameter clustershapecollectionEB string "islandBarrelShape" tracked
-EgammaHLTIslandClusterProducer.Parameter clustershapecollectionEE string "islandEndcapShape" tracked
-EgammaHLTIslandClusterProducer.Parameter barrelShapeAssociation string "islandBarrelShapeAssoc" tracked
-EgammaHLTIslandClusterProducer.Parameter endcapShapeAssociation string "islandEndcapShapeAssoc" tracked
-
-Module EDProducer EgammaHLTHybridClusterProducer
-EgammaHLTHybridClusterProducer.Parameter clustershapecollection string "" tracked
-EgammaHLTHybridClusterProducer.Parameter shapeAssociation string "hybridShapeAssoc" tracked
-
-Module EDProducer ConcreteChargedCandidateProducer
-ConcreteChargedCandidateProducer.Parameter src InputTag pixelTracksForMinBias tracked
-ConcreteChargedCandidateProducer.Parameter particleType string "pi+" tracked
-
-Module EDProducer CSCDCCUnpacker
-CSCDCCUnpacker.Parameter theMappingFile FileInPath "CondFormats/CSCObjects/data/csc_slice_test_map.txt" tracked
 
 Module EDProducer SeedGeneratorFromRegionHitsEDProducer
 SeedGeneratorFromRegionHitsEDProducer.Parameter TTRHBuilder string "WithTrackAngle" tracked
@@ -128,16 +123,9 @@ TrackProducer.Parameter Fitter string "KFFittingSmoother" tracked
 TrackProducer.Parameter Propagator string "PropagatorWithMaterial" tracked
 TrackProducer.Parameter TTRHBuilder string "WithTrackAngle" tracked
 
-Module EDProducer EgammaHLTRegionalPixelSeedGeneratorProducers
-EgammaHLTRegionalPixelSeedGeneratorProducers.Parameter HitProducer string "siPixelRecHits" tracked
-EgammaHLTRegionalPixelSeedGeneratorProducers.Parameter TTRHBuilder string "WithTrackAngle" tracked
-
-Module EDProducer CaloTowersCreator
-CaloTowersCreator.Parameter UseHO bool true tracked
-
 Module EDProducer ConeIsolation
 ConeIsolation.Parameter MinimumNumberOfPixelHits int32 2 tracked
-ConeIsolation.Parameter MinimumNumberOfHits int32 2 tracked
+ConeIsolation.Parameter MinimumNumberOfHits int32 5 tracked
 ConeIsolation.Parameter MaximumTransverseImpactParameter double 100.0 tracked
 ConeIsolation.Parameter MinimumTransverseMomentum double 1.0 tracked
 ConeIsolation.Parameter MaximumChiSquared double 100.0 tracked
@@ -153,10 +141,26 @@ ConeIsolation.Parameter VariableConeParameter double 3.5 tracked
 ConeIsolation.Parameter VariableMaxCone double 0.17 tracked
 ConeIsolation.Parameter VariableMinCone double 0.05 tracked
 
+Module EDProducer EgammaHLTPixelMatchElectronProducers
+EgammaHLTPixelMatchElectronProducers.Parameter TrackBarrelLabel string "ctfL1IsoWithMaterialTracksBarrel" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter TrackBarrelProducer string "" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter TrackEndcapLabel string "ctfL1IsoWithMaterialTracksEndcap" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter TrackEndcapProducer string "" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter SCLBarrelLabel string "l1IsoElectronPixelSeeds" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter SCLBarrelProducer string "correctedHybridSuperClustersL1Isolated" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter SCLEndcapLabel string "l1IsoElectronPixelSeeds" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter SCLEndcapProducer string "correctedEndcapSuperClustersWithPreshowerL1Isolated" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter TrajectoryBuilder string "TrajectoryBuilderForPixelMatchElectronsL1Iso" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter TransientInitialStateEstimatorParameters PSet tracked
+EgammaHLTPixelMatchElectronProducers.Parameter propagatorAlong string "PropagatorWithMaterial" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter propagatorOpposite string "PropagatorWithMaterialOpposite" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter updator string "KFUpdator" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter estimator string "egammaChi2" tracked
+
 Module EDProducer IsolatedTauJetsSelector
-IsolatedTauJetsSelector.Parameter JetSrc VInputTag { coneIsolationL25PixelRelaxedTauIsolated } tracked
+IsolatedTauJetsSelector.Parameter JetSrc VInputTag { coneIsolationL25PixelTauIsolated } tracked
 IsolatedTauJetsSelector.Parameter MatchingCone double 0.1 tracked
-IsolatedTauJetsSelector.Parameter SignalCone double 0.1 tracked
+IsolatedTauJetsSelector.Parameter SignalCone double 0.07 tracked
 IsolatedTauJetsSelector.Parameter IsolationCone double 0.3 tracked
 IsolatedTauJetsSelector.Parameter MinimumTransverseMomentumInIsolationRing double 1.0 tracked
 IsolatedTauJetsSelector.Parameter MinimumTransverseMomentumLeadingTrack double 3.0 tracked
@@ -165,24 +169,39 @@ IsolatedTauJetsSelector.Parameter MaximumNumberOfTracksIsolationRing int32 0 tra
 IsolatedTauJetsSelector.Parameter VertexSrc InputTag pixelVertices tracked
 IsolatedTauJetsSelector.Parameter UseVertex bool false tracked
 
-Module EDProducer EgammaHLTPixelMatchElectronProducers
-EgammaHLTPixelMatchElectronProducers.Parameter TrackBarrelLabel string "ctfL1NonIsoWithMaterialTracksBarrel" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter TrackBarrelProducer string "" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter TrackEndcapLabel string "ctfL1NonIsoWithMaterialTracksEndcap" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter TrackEndcapProducer string "" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter SCLBarrelLabel string "l1NonIsoElectronPixelSeeds" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter SCLBarrelProducer string "correctedHybridSuperClustersL1NonIsolated" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter SCLEndcapLabel string "l1NonIsoElectronPixelSeeds" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter SCLEndcapProducer string "correctedEndcapSuperClustersWithPreshowerL1NonIsolated" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter TrajectoryBuilder string "TrajectoryBuilderForPixelMatchElectronsL1NonIso" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter TransientInitialStateEstimatorParameters PSet tracked
-EgammaHLTPixelMatchElectronProducers.Parameter propagatorAlong string "PropagatorWithMaterial" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter propagatorOpposite string "PropagatorWithMaterialOpposite" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter updator string "KFUpdator" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter estimator string "egammaChi2" tracked
+Module EDProducer CSCDCCUnpacker
+CSCDCCUnpacker.Parameter theMappingFile FileInPath "CondFormats/CSCObjects/data/csc_slice_test_map.txt" tracked
+
+Module EDProducer HcalSimpleReconstructor
+HcalSimpleReconstructor.Parameter firstSample int32 4 tracked
+HcalSimpleReconstructor.Parameter samplesToAdd int32 4 tracked
+HcalSimpleReconstructor.Parameter correctForTimeslew bool true tracked
+HcalSimpleReconstructor.Parameter correctForPhaseContainment bool true tracked
+HcalSimpleReconstructor.Parameter correctionPhaseNS double 13.0 tracked
 
 Module EDProducer ElectronPixelSeedProducer
 ElectronPixelSeedProducer.Parameter NSigmaInside double 3.0 tracked
+
+Module EDProducer EgammaHLTRegionalPixelSeedGeneratorProducers
+EgammaHLTRegionalPixelSeedGeneratorProducers.Parameter HitProducer string "siPixelRecHits" tracked
+EgammaHLTRegionalPixelSeedGeneratorProducers.Parameter TTRHBuilder string "WithTrackAngle" tracked
+
+Module EDProducer CaloTowersCreator
+CaloTowersCreator.Parameter UseHO bool true tracked
+
+Module EDProducer EgammaHLTIslandClusterProducer
+EgammaHLTIslandClusterProducer.Parameter clustershapecollectionEB string "islandBarrelShape" tracked
+EgammaHLTIslandClusterProducer.Parameter clustershapecollectionEE string "islandEndcapShape" tracked
+EgammaHLTIslandClusterProducer.Parameter barrelShapeAssociation string "islandBarrelShapeAssoc" tracked
+EgammaHLTIslandClusterProducer.Parameter endcapShapeAssociation string "islandEndcapShapeAssoc" tracked
+
+Module EDProducer EgammaHLTHybridClusterProducer
+EgammaHLTHybridClusterProducer.Parameter clustershapecollection string "" tracked
+EgammaHLTHybridClusterProducer.Parameter shapeAssociation string "hybridShapeAssoc" tracked
+
+Module EDProducer ConcreteChargedCandidateProducer
+ConcreteChargedCandidateProducer.Parameter src InputTag pixelTracksForMinBias tracked
+ConcreteChargedCandidateProducer.Parameter particleType string "pi+" tracked
 
 Module EDProducer FastJetProducer
 FastJetProducer.Parameter verbose bool false untracked
@@ -209,35 +228,6 @@ MidpointJetProducer.Parameter inputEMin double 0.0 tracked
 MidpointJetProducer.Parameter inputEtMin double 0.5 tracked
 MidpointJetProducer.Parameter alias string "MC5CaloJet" untracked
 
-Module EDProducer SiStripRawToClusters
-SiStripRawToClusters.Parameter MaxHolesInCluster uint32 0 untracked
-SiStripRawToClusters.Parameter ClusterThreshold double 5.0 untracked
-SiStripRawToClusters.Parameter SeedThreshold double 3.0 untracked
-SiStripRawToClusters.Parameter ChannelThreshold double 2.0 untracked
-
-Module EDProducer HcalRawToDigi
-HcalRawToDigi.Parameter firstSample int32 0 tracked
-HcalRawToDigi.Parameter lastSample int32 9 tracked
-HcalRawToDigi.Parameter FilterDataQuality bool true tracked
-HcalRawToDigi.Parameter ExceptionEmptyData bool false untracked
-
-Module EDProducer HcalSimpleReconstructor
-HcalSimpleReconstructor.Parameter firstSample int32 4 tracked
-HcalSimpleReconstructor.Parameter samplesToAdd int32 4 tracked
-HcalSimpleReconstructor.Parameter correctForTimeslew bool true tracked
-HcalSimpleReconstructor.Parameter correctForPhaseContainment bool true tracked
-HcalSimpleReconstructor.Parameter correctionPhaseNS double 13.0 tracked
-
-Module EDProducer SiPixelClusterProducer
-SiPixelClusterProducer.Parameter MaxPed double 35.0 tracked
-SiPixelClusterProducer.Parameter MinPed double 25.0 tracked
-SiPixelClusterProducer.Parameter MaxGain double 3.0 tracked
-SiPixelClusterProducer.Parameter MinGain double 2.5 tracked
-SiPixelClusterProducer.Parameter GainValue double 2.8 tracked
-SiPixelClusterProducer.Parameter PedestalValue double 28.2 tracked
-SiPixelClusterProducer.Parameter UseCalibDataFromDB bool false tracked
-SiPixelClusterProducer.Parameter VerbosityLevel int32 1 untracked
-
 Module EDProducer ChargedCandidateProducer
 ChargedCandidateProducer.Parameter src InputTag ctfWithMaterialTracksMumu tracked
 ChargedCandidateProducer.Parameter particleType string "mu-" tracked
@@ -250,6 +240,16 @@ CandSelector.Parameter filter bool false tracked
 Module EDProducer CandCombiner
 CandCombiner.Parameter decay string "muTracks@+ muTracks@-" tracked
 CandCombiner.Parameter cut string "1.00 < mass < 6.00 & pt > 4.0" tracked
+
+Module EDProducer LargestEtCaloJetSelector
+LargestEtCaloJetSelector.Parameter src InputTag iterativeCone5CaloJets tracked
+LargestEtCaloJetSelector.Parameter filter bool false tracked
+LargestEtCaloJetSelector.Parameter maxNumber uint32 4 tracked
+
+Module EDProducer EtMinCaloJetSelector
+EtMinCaloJetSelector.Parameter src InputTag lifetimeHighestEtJets tracked
+EtMinCaloJetSelector.Parameter filter bool false tracked
+EtMinCaloJetSelector.Parameter etMin double 35.0 tracked
 
 Module EDProducer CSCRecHitBProducer
 CSCRecHitBProducer.Parameter CSCchamberIdPrefix int32 0 untracked

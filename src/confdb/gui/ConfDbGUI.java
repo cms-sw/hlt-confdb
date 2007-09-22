@@ -4,13 +4,16 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 import javax.swing.table.*;
-//import javax.swing.plaf.*;
 import java.awt.*;
 import java.awt.event.*;
 
 import java.util.ArrayList;
 
 import java.util.concurrent.ExecutionException;
+
+
+import confdb.parser.PythonParser;
+import confdb.parser.ParserException;
 
 import confdb.db.ConfDB;
 import confdb.db.DatabaseException;
@@ -36,6 +39,9 @@ public class ConfDbGUI implements TableModelListener
     //
     // member data
     //
+
+    /** administrator accounts */
+    private ArrayList<String> admins = new ArrayList<String>();
     
     /** name of the current user according to system env */
     private String userName = null;
@@ -96,16 +102,23 @@ public class ConfDbGUI implements TableModelListener
 	this.converterService = new ConverterService(database);
 	this.instancePanel    = new InstancePanel(frame);
 	
+	this.admins.add("schiefer");
+	this.admins.add("meschi");
+	this.admins.add("mzanetti");
+	
 	// current configuration tree
 	currentTreeModel = new ConfigurationTreeModel(currentConfig);
 	currentTree      = new JTree(currentTreeModel) {
 		public String getToolTipText(MouseEvent evt) {
 		    String text = null;
 
-		    ConfigurationTreeModel model = (ConfigurationTreeModel)getModel();
-		    Configuration          config= (Configuration)model.getRoot();
+		    ConfigurationTreeModel model =
+			(ConfigurationTreeModel)getModel();
+		    Configuration config = (Configuration)model.getRoot();
 		    
-		    if (getRowForLocation(evt.getX(),evt.getY()) == -1) return text;
+		    if (getRowForLocation(evt.getX(),evt.getY()) == -1)
+			return text;
+
 		    TreePath tp = getPathForLocation(evt.getX(),evt.getY());
 		    Object selectedNode = tp.getLastPathComponent();
 		    if (selectedNode instanceof Path) {
@@ -133,20 +146,24 @@ public class ConfDbGUI implements TableModelListener
 	currentTree.setToolTipText("");
 	currentTree.setRootVisible(false);
 	currentTree.setEditable(true);
-	currentTree.getSelectionModel().setSelectionMode(TreeSelectionModel
-							.SINGLE_TREE_SELECTION);
+	currentTree.getSelectionModel()
+	    .setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+
 	ConfigurationTreeRenderer renderer = new ConfigurationTreeRenderer();
 	currentTree.setCellRenderer(renderer);
-	currentTree.setCellEditor(new ConfigurationTreeEditor(currentTree,renderer));
+	currentTree.setCellEditor(new ConfigurationTreeEditor(currentTree,
+							      renderer));
 	
 	ConfigurationTreeMouseListener mouseListener =
-	    new ConfigurationTreeMouseListener(currentTree,frame,currentRelease);
+	    new ConfigurationTreeMouseListener(currentTree,frame,
+					       currentRelease);
 	currentTree.addMouseListener(mouseListener);
 	currentTreeModel.addTreeModelListener(mouseListener);
 	
 	ConfigurationTreeTransferHandler currentDndHandler =
 	    new ConfigurationTreeTransferHandler(currentTree,currentRelease,
-						 instancePanel.parameterTreeModel());
+						 instancePanel
+						 .parameterTreeModel());
 	currentTree.setTransferHandler(currentDndHandler);
 	currentTree.setDropTarget(new ConfigurationTreeDropTarget());
 	currentTree.setDragEnabled(true);
@@ -356,6 +373,32 @@ public class ConfDbGUI implements TableModelListener
 	    progressBar.setVisible(true);
 	    progressBar.setString("Loading Templates for Release " +
 				  dialog.releaseTag() + " ... ");
+	    menuBar.configurationIsOpen();
+	}
+    }
+    
+    /** parse configuration from *.py file */
+    public void parseConfiguration()
+    {
+	if (!closeConfiguration()) return;
+	
+	ConfigurationParseDialog dialog =
+	    new ConfigurationParseDialog(frame,database);
+	dialog.pack();
+	dialog.setLocationRelativeTo(frame);
+	dialog.setVisible(true);
+	
+	if (dialog.validChoice()) {
+	    String fileName   = dialog.fileName();
+	    String releaseTag = dialog.releaseTag();
+	    
+	    ParseConfigurationThread worker =
+		new ParseConfigurationThread(fileName,releaseTag);
+	    worker.start();
+	    progressBar.setIndeterminate(true);
+	    progressBar.setVisible(true);
+	    progressBar.setString("Parsing '"+fileName+"' against Release " +
+				  releaseTag + " ... ");
 	    menuBar.configurationIsOpen();
 	}
     }
@@ -589,7 +632,7 @@ public class ConfDbGUI implements TableModelListener
     /** create the menu bar */
     private void createMenuBar()
     {
-	menuBar = new ConfDBMenuBar(frame,this);
+	menuBar = new ConfDBMenuBar(frame,this,admins.contains(userName));
 	menuBar.dbConnectionIsNotEstablished();
     }
     
@@ -758,6 +801,74 @@ public class ConfDbGUI implements TableModelListener
 	    }
 	    catch (Exception e) {
 		System.out.println("EXCEPTION: "+ e.getMessage());
+		e.printStackTrace();
+		progressBar.setString(progressBar.getString() + "FAILED!");	
+	    }
+	    progressBar.setIndeterminate(false);
+
+	    currentTree.setEditable(true);
+	    instancePanel.setEditable(true);
+	}
+    }
+    
+
+    /**
+     * load release templates from the database and parse config from *.py
+     */
+    private class ParseConfigurationThread extends SwingWorker<String>
+    {
+	/** name of the file to be parsed */
+	private String fileName = null;
+	
+	/** release to be loaded */
+	private String releaseTag = null;
+	
+	/** start time */
+	private long startTime;
+	
+	/** standard constructor */
+	public ParseConfigurationThread(String fileName,String releaseTag)
+	{
+	    this.fileName   = fileName;
+	    this.releaseTag = releaseTag;
+	}
+	
+	/** SwingWorker: construct() */
+	protected String construct() throws InterruptedException
+	{
+	    startTime = System.currentTimeMillis();
+	    if (!releaseTag.equals(currentRelease.releaseTag()))
+		database.loadSoftwareRelease(releaseTag,currentRelease);
+
+	    try {
+		PythonParser parser = new PythonParser(currentRelease);
+		parser.parseFile(fileName);
+		currentConfig = parser.createConfiguration();
+		if (parser.closeProblemStream())
+		    System.out.println("problems encountered, " +
+				       "see problems.txt.");
+	    }
+	    catch (ParserException e) {
+		System.err.println("Error parsing "+fileName+": "+
+				   e.getMessage());
+	    }
+	    
+	    return new String("Done!");
+	}
+	
+	/** SwingWorker: finished */
+	protected void finished()
+	{
+	    try {
+		currentTreeModel.setConfiguration(currentConfig);
+		streamTreeModel.setConfiguration(currentConfig);
+		configurationPanel.setCurrentConfig(currentConfig);
+		long elapsedTime = System.currentTimeMillis() - startTime;
+		progressBar.setString(progressBar.getString() +
+				      get() + " (" + elapsedTime + " ms)");
+	    }
+	    catch (Exception e) {
+		System.err.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
 		progressBar.setString(progressBar.getString() + "FAILED!");	
 	    }

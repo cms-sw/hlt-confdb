@@ -33,6 +33,7 @@ public class ConfDBMenuBar implements ActionListener
     
     /** menu bar item names: configMenu */
     private static final String configMenuNew        = "New";
+    private static final String configMenuParse      = "Parse";
     private static final String configMenuOpen       = "Open";
     private static final String configMenuClose      = "Close";
     private static final String configMenuSave       = "Save";
@@ -51,6 +52,7 @@ public class ConfDBMenuBar implements ActionListener
     private JMenuItem confdbMenuQuitItem        = null;
     
     private JMenuItem configMenuNewItem         = null;
+    private JMenuItem configMenuParseItem       = null;
     private JMenuItem configMenuOpenItem        = null;
     private JMenuItem configMenuCloseItem       = null;
     private JMenuItem configMenuSaveItem        = null;
@@ -68,13 +70,13 @@ public class ConfDBMenuBar implements ActionListener
     //
     // construction
     //
-    public ConfDBMenuBar(JFrame frame,ConfDbGUI parentApp)
+    public ConfDBMenuBar(JFrame frame,ConfDbGUI parentApp,boolean enableParse)
     {
 	this.frame = frame;
 	this.app = parentApp;
 	
 	menuBar = new JMenuBar();
-	populateMenuBar();
+	populateMenuBar(enableParse);
 	frame.setJMenuBar(menuBar);
     }
     
@@ -88,6 +90,7 @@ public class ConfDBMenuBar implements ActionListener
     {
 	dbConnectionIsEstablished();
 	configMenuNewItem.setEnabled(true);
+	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(true);
 	configMenuOpenItem.setEnabled(true);
 	configMenuCloseItem.setEnabled(true);
 	configMenuSaveItem.setEnabled(true);
@@ -112,6 +115,7 @@ public class ConfDBMenuBar implements ActionListener
     public void dbConnectionIsEstablished()
     {
 	configMenuNewItem.setEnabled(true);
+	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(true);
 	configMenuOpenItem.setEnabled(true);
 	dbMenuDisconnectItem.setEnabled(true);
 	dbMenuCreateTemplatesItem.setEnabled(true);
@@ -122,13 +126,14 @@ public class ConfDBMenuBar implements ActionListener
     {
 	configurationIsNotOpen();
 	configMenuNewItem.setEnabled(false);
+	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(false);
 	configMenuOpenItem.setEnabled(false);
 	dbMenuDisconnectItem.setEnabled(false);
 	dbMenuCreateTemplatesItem.setEnabled(false);
     }
 
     /** populate the menu bar with all menus and their items */
-    private void populateMenuBar()
+    private void populateMenuBar(boolean enableParse)
     {
 	JMenuItem menuItem;
 	
@@ -149,6 +154,11 @@ public class ConfDBMenuBar implements ActionListener
 	configMenuNewItem = new JMenuItem(configMenuNew,KeyEvent.VK_N);
 	configMenuNewItem.addActionListener(this);
 	configMenu.add(configMenuNewItem);
+	if (enableParse) {
+	    configMenuParseItem = new JMenuItem(configMenuParse,KeyEvent.VK_P);
+	    configMenuParseItem.addActionListener(this);
+	    configMenu.add(configMenuParseItem);
+	}
 	configMenuOpenItem = new JMenuItem(configMenuOpen,KeyEvent.VK_O);
 	configMenuOpenItem.addActionListener(this);
 	configMenu.add(configMenuOpenItem);
@@ -208,6 +218,7 @@ public class ConfDBMenuBar implements ActionListener
 	
 	// configMenu
 	if (command.equals(configMenuNew))     app.newConfiguration();
+	if (command.equals(configMenuParse))   app.parseConfiguration();
 	if (command.equals(configMenuOpen))    app.openConfiguration();
 	if (command.equals(configMenuClose))   app.closeConfiguration();
 	if (command.equals(configMenuSave))    app.saveConfiguration();
