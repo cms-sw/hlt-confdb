@@ -681,7 +681,9 @@ class SourceParser:
 				paramtype = 'vstring'
 			    elif(paramtype == 'vString'):
 				paramtype = 'vstring'
-
+                            elif(paramtype == 'ParameterSet'):
+                                paramtype = 'VPSet'
+                                    
                         else:
 			    isvector = False
 
