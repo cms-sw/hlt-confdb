@@ -1261,7 +1261,7 @@ class SourceParser:
 	
 		# Look for ParameterSets passed to objects instantiated within this module. This won't pick up PSets 
 		# passed to methods of the new object
-		elif(startedconstructor == False and  (line.find('new ') != -1) and (line.find('(') != -1)):
+		elif(startedconstructor == False and startedmod == True and  (line.find('new ') != -1) and (line.find('(') != -1)):
 		    theobjectclass = ''
 		    theobjectargument = ''
 
