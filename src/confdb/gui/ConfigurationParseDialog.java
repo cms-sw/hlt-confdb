@@ -1,11 +1,14 @@
 package confdb.gui;
 
 import javax.swing.*;
+import javax.swing.filechooser.*;
 import java.beans.*;
 import java.awt.*;
 import java.awt.event.*;
 
 import confdb.db.ConfDB;
+
+import java.io.File;
 
 
 /**
@@ -14,8 +17,7 @@ import confdb.db.ConfDB;
  * @author Philipp Schieferdecker
  *
  */
-public class ConfigurationParseDialog extends JDialog implements ActionListener,
-								 PropertyChangeListener
+public class ConfigurationParseDialog extends JDialog
 {
     //
     // member data
@@ -33,18 +35,16 @@ public class ConfigurationParseDialog extends JDialog implements ActionListener,
     /** the release tag to be associated with the new configuration */
     private String releaseTag = null;
     
-    /** the dialog's option pane */
-    private JOptionPane optionPane = null;
-    
-    /** the text field where the file name is entered */
-    private JTextField textFieldFileName = null;
-
-    /** the combo box to pick the release tag from */
-    private JComboBox comboBoxReleaseTag = null;
-    
     /** was a valid choice made? */
     private boolean validChoice = false;
-    
+
+    /** GUI components */
+    JTextField jTextFieldFileName  = new javax.swing.JTextField();
+    JComboBox  jComboBoxReleaseTag = null;
+    JButton    jButtonBrowse       = new javax.swing.JButton();
+    JButton    jButtonOK           = new javax.swing.JButton();
+    JButton    jButtonCancel       = new javax.swing.JButton();
+
     /** label of the 'OK' button */
     private static final String ok = new String("OK");
     
@@ -63,42 +63,16 @@ public class ConfigurationParseDialog extends JDialog implements ActionListener,
 	this.frame = frame;
 	this.database = database;
 	
-	setTitle("Parse *.py file");
-	
-	textFieldFileName = new JTextField(20);
-	comboBoxReleaseTag = new JComboBox(database.getReleaseTags());
-	comboBoxReleaseTag.setBackground(Color.WHITE);
-	
-	Object[] components = { new JLabel("File:"),textFieldFileName,
-				new JLabel("Release:"), comboBoxReleaseTag
-	                      };
-	Object[] options    = { ok, cancel };
-	optionPane = new JOptionPane(components,
-				     JOptionPane.QUESTION_MESSAGE,
-				     JOptionPane.YES_NO_OPTION,
-				     null,options,options[0]);
-	setContentPane(optionPane);
-	
-	// handle window closing correctly
-	setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-	addWindowListener(new WindowAdapter() {
-	    public void windowClosing(WindowEvent e) {
-	        optionPane.setValue(new Integer(JOptionPane.CLOSED_OPTION));
-	    }
-	});
+	setTitle("Parse configuration file");
+
+	setContentPane(initComponents());
 	
 	// ensure that the text field gets focus
 	addComponentListener(new ComponentAdapter() {
 	    public void componentShown(ComponentEvent e) {
-		textFieldFileName.requestFocusInWindow();
+		jTextFieldFileName.requestFocusInWindow();
 	    }
 	});
-	
-	// add action listener to text field, in case <RETURN> is pressed
-	textFieldFileName.addActionListener(this);
-	
-	// add property change listener to the option pane, for validatation
-	optionPane.addPropertyChangeListener(this);
     }
 
     
@@ -118,53 +92,220 @@ public class ConfigurationParseDialog extends JDialog implements ActionListener,
     /** set the release tag, by making it the selected item in the combo box */
     public boolean setReleaseTag(String releaseTag)
     {
-	for (int i=0;i<comboBoxReleaseTag.getItemCount();i++) {
-	    String itemString = (String)comboBoxReleaseTag.getItemAt(i);
+	for (int i=0;i<jComboBoxReleaseTag.getItemCount();i++) {
+	    String itemString = (String)jComboBoxReleaseTag.getItemAt(i);
 	    if (itemString.equals(releaseTag)) {
-		comboBoxReleaseTag.setSelectedIndex(i);
+		jComboBoxReleaseTag.setSelectedIndex(i);
 		return true;
 	    }
 	}
 	return false;
     }
-    
-    /** <RETURN> is like <OK PRESSED> */
-    public void actionPerformed(ActionEvent e) {
-	optionPane.setValue(ok);
+
+    /** fileName entered callback */
+    public void jTextFieldFileNameActionPerformed(ActionEvent e)
+    {
+	if (jTextFieldFileName.getText().length()>0&&
+	    jComboBoxReleaseTag.getSelectedIndex()>0) {
+	    jButtonOK.setEnabled(true);
+	}
+	else {
+	    validChoice = false;
+	    jButtonOK.setEnabled(false);
+	}
     }
     
-    /** handle option pane property changes, to validate entered name */
-    public void propertyChange(PropertyChangeEvent e) {
-	String propertyName = e.getPropertyName();
+    /** releaseTag choosen callback */
+    public void jComboBoxReleaseTagActionPerformed(ActionEvent e)
+    {
+	if (jTextFieldFileName.getText().length()>0&&
+	    jComboBoxReleaseTag.getSelectedIndex()>0) {
+	    jButtonOK.setEnabled(true);
+	}
+	else {
+	    validChoice = false;
+	    jButtonOK.setEnabled(false);
+	}
+    }
+
+    /** "Browse ..." button callback */
+    public void jButtonBrowseActionPerformed(ActionEvent e)
+    {
+	JFileChooser fileChooser = new JFileChooser();
+	fileChooser.addChoosableFileFilter(new PythonFileFilter());
+	fileChooser.setAcceptAllFileFilterUsed(false);
 	
-	if (isVisible()&&
-	    e.getSource()==optionPane&&
-	    (JOptionPane.VALUE_PROPERTY.equals(propertyName)||
-	     JOptionPane.INPUT_VALUE_PROPERTY.equals(propertyName))) {
-	    Object value = optionPane.getValue();
-	    
-	    if (value==JOptionPane.UNINITIALIZED_VALUE) return;
-	    optionPane.setValue(JOptionPane.UNINITIALIZED_VALUE);
-	    
-	    if (ok.equals(value)) {
-		if (textFieldFileName.getText().length()>0&&
-		    comboBoxReleaseTag.getSelectedIndex()>0) {
-		    fileName = textFieldFileName.getText();
-		    releaseTag = (String)comboBoxReleaseTag.getSelectedItem();
-		    validChoice = true;
-		}
-		else {
-		    System.out.println("You must specify file&release!");
-		    return;
-		}
-	    }
-	    else {
-		fileName    = null;
-		releaseTag  = null;
-		validChoice = false;
-	    }
-	    setVisible(false);
-	}   
+	int result = fileChooser.showOpenDialog(this);
+	if (result == JFileChooser.APPROVE_OPTION) {
+	    File file = fileChooser.getSelectedFile();
+	    jTextFieldFileName.setText(file.getAbsolutePath());
+	}
     }
     
+    /** "OK" button callback */
+    public void jButtonOKActionPerformed(ActionEvent e)
+    {
+	fileName    = jTextFieldFileName.getText();
+	releaseTag  = (String)jComboBoxReleaseTag.getSelectedItem();
+	validChoice = true;
+	setVisible(false);
+    }
+
+    /** "Cancel" button callback */
+    public void jButtonCancelActionPerformed(ActionEvent e)
+    {
+	validChoice = false;
+	setVisible(false);
+    }
+
+
+    //
+    // private member functions
+    //
+
+    /** init GUI components */
+    private JPanel initComponents()
+    {
+	JPanel jPanel = new JPanel();
+        JLabel jLabel1 = new javax.swing.JLabel();
+        JLabel jLabel2 = new javax.swing.JLabel();
+
+        jLabel1.setText("File Name:");
+        jLabel2.setText("Release Tag:");
+
+	jComboBoxReleaseTag = new JComboBox(database.getReleaseTags());
+        jComboBoxReleaseTag.setBackground(new java.awt.Color(255, 255, 255));
+
+        jButtonBrowse.setText("Browse ...");
+        jButtonOK.setText("OK");
+        jButtonCancel.setText("Cancel");
+
+	jButtonOK.setEnabled(false);
+
+	jTextFieldFileName.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jTextFieldFileNameActionPerformed(e);
+		}
+	 });
+
+	jComboBoxReleaseTag.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jComboBoxReleaseTagActionPerformed(e);
+		}
+	 });
+
+	jButtonBrowse.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonBrowseActionPerformed(e);
+		}
+	 });
+
+	jButtonOK.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonOKActionPerformed(e);
+		}
+	 });
+
+	jButtonCancel.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonCancelActionPerformed(e);
+		}
+	 });
+
+        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanel);
+        jPanel.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(layout.createSequentialGroup()
+                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                                .add(jLabel2))
+                            .add(jLabel1))
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
+                            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                                .add(jTextFieldFileName)
+                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                                .add(jButtonBrowse, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 93, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                            .add(jComboBoxReleaseTag, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 355, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                    .add(layout.createSequentialGroup()
+                        .add(139, 139, 139)
+                        .add(jButtonOK, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 92, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jButtonCancel)))
+                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        layout.linkSize(new java.awt.Component[] {jButtonCancel, jButtonOK}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
+
+        layout.setVerticalGroup(
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
+                .addContainerGap()
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jLabel1)
+                    .add(jButtonBrowse)
+                    .add(jTextFieldFileName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jLabel2)
+                    .add(jComboBoxReleaseTag, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 24, Short.MAX_VALUE)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jButtonOK)
+                    .add(jButtonCancel))
+                .addContainerGap())
+        );
+
+        layout.linkSize(new java.awt.Component[] {jComboBoxReleaseTag, jTextFieldFileName}, org.jdesktop.layout.GroupLayout.VERTICAL);
+
+	return jPanel;
+    }
+
 }
+
+
+/**
+ * PythonFileFilter
+ * ----------------
+ * @author Philipp Schieferdecker
+ */
+class PythonFileFilter extends FileFilter
+{
+    /** FileFilter.accept() */
+    public boolean accept(File f)
+    {
+        if (f.isDirectory()) return true;
+	
+        String extension = getExtension(f);
+        if (extension != null) {
+            if (extension.equals("py"))
+		return true;
+	    else
+                return false;
+	}
+        return false;
+    }
+    
+    /* get description of this filter */
+    public String getDescription()
+    {
+	return "CMSSW Python configuration files (*.py)";
+    }
+    
+    /** get extension of a file name */
+    public String getExtension(File f)
+    {
+        String ext = null;
+        String s = f.getName();
+        int i = s.lastIndexOf('.');
+	
+        if (i>0 && i<s.length()-1) ext = s.substring(i+1).toLowerCase();
+        return ext;
+    }
+}
+
