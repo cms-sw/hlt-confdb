@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL Aug. 23, 2007
+# Jonathan Hollar LLNL Sept. 25, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -521,6 +521,7 @@ class SourceParser:
 	isvector = False
 
 	thepsetname = ''
+	thevpsetname = ''
         modulename = ''
         theconstructor = ''
 	externalbranch = ''
@@ -593,6 +594,25 @@ class SourceParser:
 			    print '\tAssigning variable ' + psetassign + ' as the main pset'
 			self.mainpset = psetassign
 
+		    if(totalline.find("Parameters::iterator") != -1):
+			vpsetiter = totalline.split("Parameters::iterator")[1].split("=")[0].lstrip().rstrip()
+			if(self.verbose > 0):
+			    print "\tVPSet iterator = " + vpsetiter + " in line " + totalline
+			if(totalline.find(".begin") != -1):
+			    thevpsetvar = totalline.split(".begin")[0].split("=")[1].lstrip().rstrip()
+			    if(self.verbose > 0):
+				print "Iterates over VPSet var " + thevpsetvar + " of VPSet " + self.psetdict[thevpsetvar]
+			    self.psetdict[vpsetiter] = thevpsetvar
+		    if(totalline.find("vector<edm::ParameterSet>::iterator") != -1):
+			vpsetiter = totalline.split("vector<edm::ParameterSet>::iterator")[1].split("=")[0].lstrip().rstrip()
+			if(self.verbose > 0):
+			    print "VPSet iterator = " + vpsetiter + " in line " + totalline
+			if(totalline.find(".begin") != -1):
+			    thevpsetvar = totalline.split(".begin")[0].split("=")[1].lstrip().rstrip()
+			    if(self.verbose > 0):
+				print "Iterates over VPSet var " + thevpsetvar + " of VPSet " + self.psetdict[thevpsetvar]
+			    self.psetdict[vpsetiter] = thevpsetvar
+
                     # First look at tracked parameters. No default value
                     # is specified in the .cc file                
                     if((foundlineend == True) and
@@ -609,9 +629,14 @@ class SourceParser:
 			    continue
 
 			# If this is a parameter, figure out what ParameterSet this belongs to
-			belongstopset = totalline.split('.getParameter')[0].rstrip().lstrip()
+			belongstopset = ''
+			if(totalline.find('.getParameter') != -1):
+			    belongstopset = totalline.split('.getParameter')[0].rstrip().lstrip()
+			if(totalline.find('->getParameter') != -1):
+			    belongstopset = totalline.split('->getParameter')[0].rstrip().lstrip()
 			belongstopsetname = re.split('\W+',belongstopset)
 			belongstovar = belongstopsetname[len(belongstopsetname)-1].lstrip().rstrip()
+
 			if(belongstovar in self.psetdict):
 			    if(self.verbose > 1):
 				print '\tMember of parameter set named ' + belongstovar + ' (' + self.psetdict[belongstovar] + ')'
@@ -621,6 +646,12 @@ class SourceParser:
 				print '\tMember of external PSet ' + externalbranchpset + ' - ignoring this parameter'
 			    totalline = ''
 			    continue
+			elif(len(belongstopsetname) > 3):
+			    if(belongstopsetname[len(belongstopsetname)-3]):
+				# An indexed vector of parameters (VPSet)
+				indexedpsetname = belongstopsetname[len(belongstopsetname)-3]
+				if(indexedpsetname in self.psetdict):
+				    paraminparamset = self.psetdict[indexedpsetname]
 			else:
 			    paraminparamset = ''
 
@@ -681,9 +712,14 @@ class SourceParser:
 				paramtype = 'vstring'
 			    elif(paramtype == 'vString'):
 				paramtype = 'vstring'
-                            elif(paramtype == 'ParameterSet'):
-                                paramtype = 'VPSet'
-                                    
+			    elif(paramtype == 'ParameterSet'):
+				paramtype = 'VPSet'
+				if(totalline.find('=') != -1):
+				    thisparamset = totalline.split('=')[0].rstrip().lstrip()
+				    if(thisparamset.find('vector<edm::ParameterSet>') != -1):
+					thisparamset = thisparamset.split('>')[1].rstrip().lstrip()
+					self.psetdict[thisparamset] = paramname
+
                         else:
 			    isvector = False
 
@@ -691,7 +727,6 @@ class SourceParser:
 			    if(paramtype == 'ParameterSet' or paramtype == 'PSet' or paramtype == 'Parameters' or paramtype == 'VPSet'):
 				if(totalline.find('=') != -1):
 				    thisparamset = totalline.split('=')[0].rstrip().lstrip()
-				
 				    if(thisparamset.find('vector<edm::ParameterSet>') != -1):
 					thisparamset = thisparamset.split('>')[1].rstrip().lstrip()
 				    elif(thisparamset.find('PSet ') != -1):
@@ -702,6 +737,9 @@ class SourceParser:
 					thisparamset = thisparamset.split('ParameterSet ')[1].rstrip().lstrip()
 				    elif(thisparamset.find('ParameterSet& ') != -1):
 					thisparamset = thisparamset.split('ParameterSet& ')[1].rstrip().lstrip()
+				    elif(thisparamset.find('Parameters ') != -1):
+					thisparamset = thisparamset.split('Parameters ')[1].rstrip().lstrip()
+
 				elif(totalline.split('.getParameter')[0].find('(') != -1):
 				    thisparamset = totalline.split('.getParameter')[0].split('(')[0]
 
@@ -772,7 +810,12 @@ class SourceParser:
 					self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),None,"true",self.sequencenb))	   
 					self.sequencenb = self.sequencenb + 1
 				elif(isvector == False and paraminparamset != ''):
-				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
+				    # JJH
+				    if (not self.IsNewParameter('',self.vecparamsetmemberlist,paraminparamset)):
+					if(self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,paraminparamset)):
+					    #vpset, vpsettype, vpsetname, vpsetval, vpsettracked, vpsetindex, vpsetseq, vpsetpsetseq
+					    self.vecparamsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'','true',0,self.sequencenb,self.psetsequencenb))
+				    elif (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
 					self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true",self.sequencenb,'None',self.psetsequencenb))
 					self.sequencenb = self.sequencenb + 1
 				elif(isvector == True and paraminparamset == ''):
@@ -802,7 +845,7 @@ class SourceParser:
                     # value _may_ be specified as the second argument
                     # in the declaration.
                     if((foundlineend == True) and
-                       ((totalline.find('.getUntrackedParameter') != -1) or (totalline.find('->getUntrackedParameter') != -1)  or (totalline.find(' getUntrackedParameter') != -1)) and 
+                       ((totalline.find('.getUntrackedParameter') != -1) or (totalline.find('->getUntrackedParameter') != -1) or (totalline.find(' getUntrackedParameter') != -1)) and 
 		       (totalline.find('"') != -1)):
 			defaultincc = False
 
@@ -1162,7 +1205,7 @@ class SourceParser:
 		    elif(foundlineend == True and line.find('getParameter') == -1 and line.find('getUntrackedParameter') == -1):
 			foundlineend = False
 			totalline = ''
-			
+		
                 # Find a constructor
                 if(startedmod == False and line.find('::') != -1):
                     constrline = line.split('::')
@@ -1297,7 +1340,7 @@ class SourceParser:
 			    psettype = self.psetdict[thepassedpset] 
 			    if(self.verbose > 1):
 				print 'Found pset of type ' + psettype + ' passed to object of type ' + theobjectclass
-
+	
 			    self.ParsePassedParameterSet(psettype, theccfile, theobjectclass, 'None',thedatadir,themodulename)
 			elif(thepassedpset == self.mainpset):
 			    if(self.verbose > 1):
@@ -1459,9 +1502,10 @@ class SourceParser:
 		if(foundlineend == True and line.find(themodulename) != -1):
 		    if((line.find('>') != -1) and (line.find('<') != -1) and (line.split('>')[1].find(themodulename) != -1)):
 			foundatypedef = True
+
 			if(self.verbose > 1):
 			    print '\tfound a typedef module declaration in ' + theccfile
-			    print '\t\t' + totalline
+			    print '\t\t' + totalline			
 
 			# PhysicsTools...
 			if(totalline.count(themodulename) == 1):
@@ -1492,14 +1536,14 @@ class SourceParser:
 			    if(self.verbose > 1):
 				print "\t\tChecking sourcefile " + thesrcdir + ccfile + " for " + theclass
 			    self.ParseSrcFile(thesrcdir + ccfile, theclass, thedatadir, themodulename)
-		
+
 		    foundlineend = False
 		    totalline = ''
 
-                elif (foundlineend == True):
-                    totalline = ''
-                    foundlineend = False                            
-	
+		elif (foundlineend == True):
+		    totalline = ''
+		    foundlineend = False
+
 	    # We found a typedef/templated module declaration, but couldn't find the template class 
 	    # in this package. As a last resort, look for it in any included files. 
 	    if((foundatypedef == True) and (self.baseclass == '')):
@@ -1507,7 +1551,7 @@ class SourceParser:
 		thebaseclass = self.FindOriginalBaseClass(theclass, sourcetree, thedatadir)
 
 		if(thebaseclass):
-		    self.baseclass = thebaseclass                            
+		    self.baseclass = thebaseclass
 
     # Find the base class for modules that have 2 levels of inheritance. This can be expensive, so
     # try to be smart and look at what files are being included.		    
@@ -1677,10 +1721,11 @@ class SourceParser:
     # Handle the case of a ParameterSet being passed to an object that's been "new'd" in the original 
     # module.
     def ParsePassedParameterSet(self, thepsetname, thesrcfile, theobjectclass, thenestedpsetname, thedatadir, themodulename):
-
+	
 	if(self.verbose > 1):
 	    print 'Parsing passed parameter set ' + thepsetname + ' passed from file ' + thesrcfile + ' to object of class ' + theobjectclass
 
+	thevpsetname = ''
 	totalline = ''
 	mainpassedpset = ''
 	foundlineend = False
@@ -1714,7 +1759,6 @@ class SourceParser:
 		startedcomment = False
 
 		for srcline in newsrcfilelines:
-
 		    # C-style comments. Seriously. Why?
 		    if(srcline.lstrip().startswith('/*')):
 			startedcomment = True
@@ -1813,6 +1857,23 @@ class SourceParser:
 				print '\tPassed parameter ' + paramtype + '\t' + paramname + ' (tracked)'
 
 			if((paramtype != 'ParameterSet') and (paramtype != 'PSet')):
+
+			    # If this is a parameter, figure out what ParameterSet this belongs to
+			    belongstopset = totalline.split('.getParameter')[0].rstrip().lstrip()
+			    belongstopsetname = re.split('\W+',belongstopset)
+			    belongstovar = belongstopsetname[len(belongstopsetname)-1].lstrip().rstrip()
+
+			    if(belongstovar in self.psetdict):
+				if(self.verbose > 1):
+				    print '\tMember of parameter set named ' + belongstovar + ' (' + self.psetdict[belongstovar] + ')'
+				thepsetname = self.psetdict[belongstovar]
+			    elif(len(belongstopsetname) > 3):
+				if(belongstopsetname[len(belongstopsetname)-3]):
+				    # An indexed vector of parameters (VPSet)
+				    indexedpsetname = belongstopsetname[len(belongstopsetname)-3]
+				    if(indexedpsetname in self.psetdict):
+					thevpsetname = self.psetdict[indexedpsetname]
+
 			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
 
 			    if(success == False):
@@ -1820,6 +1881,12 @@ class SourceParser:
 				    if(success == False and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thenestedpsetname))):
 					self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"true",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
 					self.sequencenb = self.sequencenb + 1			    
+				elif(thevpsetname != ""):
+				    if(success == False and (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,thenestedpsetname))):
+					self.psetsequences[thevpsetname] = self.sequencenb
+					self.vecparamsetmemberlist.append((thevpsetname,paramtype,paramname,'',"true",0,self.sequencenb,self.psetsequences[thevpsetname]))
+					self.sequencenb = self.sequencenb + 1			    
+				    thevpsetname = ''
 				elif(isvector == True):
 				    if(self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
 					self.vecparamlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true",self.sequencenb))
