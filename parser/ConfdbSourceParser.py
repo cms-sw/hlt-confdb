@@ -636,7 +636,7 @@ class SourceParser:
 			    belongstopset = totalline.split('->getParameter')[0].rstrip().lstrip()
 			belongstopsetname = re.split('\W+',belongstopset)
 			belongstovar = belongstopsetname[len(belongstopsetname)-1].lstrip().rstrip()
-
+			
 			if(belongstovar in self.psetdict):
 			    if(self.verbose > 1):
 				print '\tMember of parameter set named ' + belongstovar + ' (' + self.psetdict[belongstovar] + ')'
@@ -786,7 +786,7 @@ class SourceParser:
 				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
 					self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
 					self.sequencenb = self.sequencenb + 1
-				elif(paramtype.lstrip().rstrip() == 'vString' or paramtype.lstrip().rstrip() == 'vstring'):
+				elif(paramtype.lstrip().rstrip() == 'vString' or paramtype.lstrip().rstrip() == 'vstring' or paramtype.lstrip().rstrip() == 'Strings'):
 				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
 					self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
 					self.sequencenb = self.sequencenb + 1
@@ -1724,6 +1724,8 @@ class SourceParser:
 	    print 'Parsing passed parameter set ' + thepsetname + ' passed from file ' + thesrcfile + ' to object of class ' + theobjectclass
 
 	thevpsetname = ''
+	thelocalnewpsetnesting = 'None'
+	thelocalnewpsetvar = ''
 	totalline = ''
 	mainpassedpset = ''
 	foundlineend = False
@@ -1860,7 +1862,6 @@ class SourceParser:
 			    belongstopset = totalline.split('.getParameter')[0].rstrip().lstrip()
 			    belongstopsetname = re.split('\W+',belongstopset)
 			    belongstovar = belongstopsetname[len(belongstopsetname)-1].lstrip().rstrip()
-
 			    if(belongstovar in self.psetdict):
 				if(self.verbose > 1):
 				    print '\tMember of parameter set named ' + belongstovar + ' (' + self.psetdict[belongstovar] + ')'
@@ -1871,6 +1872,11 @@ class SourceParser:
 				    indexedpsetname = belongstopsetname[len(belongstopsetname)-3]
 				    if(indexedpsetname in self.psetdict):
 					thevpsetname = self.psetdict[indexedpsetname]
+
+#			    if(belongstovar == thelocalnewpsetvar):
+#				thenestedpsetname = thelocalnewpsetnesting
+#				thelocalnewpsetnesting = ''			    
+
 
 			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
 
@@ -1923,6 +1929,9 @@ class SourceParser:
 					elif(isvector == False):
 					    self.paramsetmemberlist.append((paramname,'','','',"true",self.sequencenb,thepsetname,self.sequencenb))
 					    self.sequencenb = self.sequencenb + 1
+
+				thelocalnewpsetnesting = thepsetname
+				thelocalnewpsetvar = thisparamset
 
 				if(self.verbose > 0):
 				    print '\tnew PSet in this object = ' + paramname
