@@ -602,7 +602,7 @@ class SourceParser:
 			    thevpsetvar = totalline.split(".begin")[0].split("=")[1].lstrip().rstrip()
 			    if(self.verbose > 0):
 				print "Iterates over VPSet var " + thevpsetvar + " of VPSet " + self.psetdict[thevpsetvar]
-			    self.psetdict[vpsetiter] = thevpsetvar
+			    self.psetdict[vpsetiter] = self.psetdict[thevpsetvar]
 		    if(totalline.find("vector<edm::ParameterSet>::iterator") != -1):
 			vpsetiter = totalline.split("vector<edm::ParameterSet>::iterator")[1].split("=")[0].lstrip().rstrip()
 			if(self.verbose > 0):
@@ -611,7 +611,7 @@ class SourceParser:
 			    thevpsetvar = totalline.split(".begin")[0].split("=")[1].lstrip().rstrip()
 			    if(self.verbose > 0):
 				print "Iterates over VPSet var " + thevpsetvar + " of VPSet " + self.psetdict[thevpsetvar]
-			    self.psetdict[vpsetiter] = thevpsetvar
+			    self.psetdict[vpsetiter] = self.psetdict[thevpsetvar]
 
                     # First look at tracked parameters. No default value
                     # is specified in the .cc file                
