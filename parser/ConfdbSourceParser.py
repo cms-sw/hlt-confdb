@@ -1873,9 +1873,9 @@ class SourceParser:
 				    if(indexedpsetname in self.psetdict):
 					thevpsetname = self.psetdict[indexedpsetname]
 
-#			    if(belongstovar == thelocalnewpsetvar):
-#				thenestedpsetname = thelocalnewpsetnesting
-#				thelocalnewpsetnesting = ''			    
+			    if(belongstovar == thelocalnewpsetvar):
+				thenestedpsetname = thelocalnewpsetnesting
+				thelocalnewpsetnesting = ''			    
 
 
 			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
