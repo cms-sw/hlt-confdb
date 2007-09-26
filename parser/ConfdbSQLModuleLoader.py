@@ -1819,7 +1819,7 @@ class ConfdbMySQLModuleLoader:
 		thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
 	    elif(vpsettype == "double"):
 		if(vpsetval):
-		    if(vpsetval.find('.') == -1 and (not paramval.isdigit())):
+		    if(vpsetval.find('.') == -1 and (not vpsetval.isdigit())):
 			vpsetval = None
 
 		if(vpsetval == None):

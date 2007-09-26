@@ -810,11 +810,9 @@ class SourceParser:
 					self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),None,"true",self.sequencenb))	   
 					self.sequencenb = self.sequencenb + 1
 				elif(isvector == False and paraminparamset != ''):
-				    # JJH
 				    if (not self.IsNewParameter('',self.vecparamsetmemberlist,paraminparamset)):
 					if(self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,paraminparamset)):
-					    #vpset, vpsettype, vpsetname, vpsetval, vpsettracked, vpsetindex, vpsetseq, vpsetpsetseq
-					    self.vecparamsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'','true',0,self.sequencenb,self.psetsequencenb))
+					    self.vecparamsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'None','true',0,self.sequencenb,self.psetsequencenb))
 				    elif (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
 					self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true",self.sequencenb,'None',self.psetsequencenb))
 					self.sequencenb = self.sequencenb + 1
