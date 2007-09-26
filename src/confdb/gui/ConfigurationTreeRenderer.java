@@ -174,6 +174,8 @@ class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    int  count = path.unsetTrackedParameterCount();
 	    result = "<html><b>"+getText()+"</b> ("+path.entryCount()+")";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
+	    //count = path.unresolvedInputTagCount();
+	    //if (count>0) result += " <font color=#0000ff>["+count+"]</font>";
 	    if (path.isEndPath()) result += " <font color=#ff11a9>[endpath]</font>";
 	    result += "</html>";
 	}

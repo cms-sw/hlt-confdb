@@ -299,6 +299,19 @@ public class ConfigurationTreeActions
     // Paths & Sequences
     //
 
+    /** set a path as endpath */
+    public static void setPathAsEndpath(JTree tree,boolean isEndPath)
+    {
+	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config   = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+
+	Path path = (Path)treePath.getLastPathComponent();
+	path.setAsEndPath(isEndPath);
+	config.setHasChanged(true);
+	model.nodeChanged(path);
+    }
+
     /** insert a new path */
     public static boolean insertPath(JTree tree)
     {
@@ -324,6 +337,25 @@ public class ConfigurationTreeActions
 	return true;
     }
     
+    /** move an existing path within the list of paths */
+    public static boolean movePath(JTree tree,Path sourcePath)
+    {
+	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config   = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	int sourceIndex = config.indexOfPath(sourcePath);
+	int targetIndex = (treePath.getPathCount()==2) ?
+	    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+				    treePath.getLastPathComponent())+1;
+	
+	config.movePath(sourcePath,targetIndex);
+	model.nodeRemoved(model.pathsNode(),sourceIndex,sourcePath);
+	if (sourceIndex<targetIndex) targetIndex--;
+	model.nodeInserted(model.pathsNode(),targetIndex);
+	return true;
+    }
+
     /** insert a new sequence */
     public static boolean insertSequence(JTree tree)
     {
@@ -349,6 +381,25 @@ public class ConfigurationTreeActions
 	return true;
     }
     
+    /** move an existing sequence within the list of sequences */
+    public static boolean moveSequence(JTree tree,Sequence sourceSequence)
+    {
+	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config   = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	int sourceIndex = config.indexOfSequence(sourceSequence);
+	int targetIndex = (treePath.getPathCount()==2) ?
+	    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+				    treePath.getLastPathComponent())+1;
+	
+	config.moveSequence(sourceSequence,targetIndex);
+	model.nodeRemoved(model.sequencesNode(),sourceIndex,sourceSequence);
+	if (sourceIndex<targetIndex) targetIndex--;
+	model.nodeInserted(model.sequencesNode(),targetIndex);
+	return true;
+    }
+
     /** import Path / Sequence */
     public static boolean importReferenceContainer(JTree tree,
 						   ReferenceContainer external)
@@ -512,6 +563,33 @@ public class ConfigurationTreeActions
 	    editNodeName(tree);
 	}
 	
+	return true;
+    }
+    
+    /** move a reference within its container */
+    public static boolean moveReference(JTree tree,Reference sourceReference)
+    {
+	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config   = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	Object target = treePath.getLastPathComponent();
+	
+	ReferenceContainer container = (target instanceof ReferenceContainer) ?
+	    (ReferenceContainer)target : ((Reference)target).container();
+	
+	if (sourceReference.container()!=container) return false;
+	
+	int sourceIndex = container.indexOfEntry(sourceReference);
+	int targetIndex = (treePath.getPathCount()==3) ?
+	    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+				    treePath.getLastPathComponent())+1;
+	
+	container.moveEntry(sourceReference,targetIndex);
+	model.nodeRemoved(container,sourceIndex,sourceReference);
+	if (sourceIndex<targetIndex) targetIndex--;
+	model.nodeInserted(container,targetIndex);
+	config.setHasChanged(true);
 	return true;
     }
     
@@ -688,7 +766,7 @@ public class ConfigurationTreeActions
     //
     // generic functions
     //
-
+    
     /**
      * insert a node into the tree and add the respective component to
      * the configuration

@@ -1,6 +1,8 @@
 package confdb.data;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 
 
 /**
@@ -79,9 +81,43 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 	return false;
     }
     
+    /** calculate the number of unresolved InputTags */
+    public int unresolvedInputTagCount()
+    {
+	ArrayList<String> unresolved = new ArrayList<String>();
+	HashSet<String> labels = new HashSet<String>();
+	for (Reference r : entries) {
+	    getUnresolvedInputTags(r,labels,unresolved);
+	}
+	
+	// DEBUG
+	if (unresolved.size()>0) {
+	    System.out.println("Unresolved InputTags for path "+name()+":");
+	    for (String s : unresolved) System.out.println(s);
+	    System.out.println();
+	}
+
+	return unresolved.size();
+    }
+    
+    /** does this container contain an OutputModule? */
+    public boolean hasOutputModule() { return hasModuleOfType("OutputModule"); }
+
+    /** does this container contain an EDProducer? */
+    public boolean hasEDProducer()   { return hasModuleOfType("EDProducer"); }
+
+    /** does this container contain an EDFilter? */
+    public boolean hasEDFilter() { return hasModuleOfType("EDFilter"); }
+
+    /** does this container contain an HLTFilter? */
+    public boolean hasHLTFilter() { return hasModuleOfType("HLTFilter"); }
+    
     /** set the name of the container */
     public void setName(String name) { this.name = name; setHasChanged(); }
     
+    /** get entry iterator */
+    public Iterator entryIterator() { return entries.iterator(); }
+
     /** number of entries */
     public int entryCount() { return entries.size(); }
 
@@ -107,6 +143,22 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 	}
     }
     
+    /** move an entry to a new position within the container */
+    public boolean moveEntry(Reference reference,int targetIndex)
+    {
+	int currentIndex = entries.indexOf(reference);
+	if (currentIndex<0) return false;
+	if (currentIndex==targetIndex) return true;
+	if (targetIndex>entries.size()) return false;
+	if (currentIndex<targetIndex) targetIndex--;
+	entries.remove(currentIndex);
+	entries.add(targetIndex,reference);
+	setHasChanged();
+	return true;
+    }
+    
+    
+
     /** create a reference of this in a reference container (path/sequence) */
     abstract public Reference createReference(ReferenceContainer container,int i);
     
@@ -142,4 +194,92 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 	return result;
     }
 
+    
+    //
+    // private member functions
+    //
+
+    /** does this container contain a module of type 'type' */
+    private boolean hasModuleOfType(String type)
+    {
+	for (Reference r : entries) {
+	    Referencable parent = r.parent();
+	    if (parent instanceof ModuleInstance) {
+		ModuleInstance module = (ModuleInstance)parent;
+		if (module.template().type().equals(type)) return true;
+	    }
+	    else if (parent instanceof ReferenceContainer) {
+		ReferenceContainer container = (ReferenceContainer)parent;
+		if (container.hasModuleOfType(type)) return true;
+	    }
+	}
+	return false;
+    }
+
+    /** get unresolved InputTags from a reference, given the labels to this point */
+    private void getUnresolvedInputTags(Reference r,
+					HashSet<String> labels,
+					ArrayList<String> unresolved)
+    {
+	if (r instanceof ModuleReference) {
+	    ModuleReference modref = (ModuleReference)r;
+	    ModuleInstance  module = (ModuleInstance)modref.parent();
+	    labels.add(module.name());
+	    Iterator it = module.parameterIterator();
+	    while (it.hasNext()) {
+		Parameter p = (Parameter)it.next();
+		getUnresolvedInputTags(p,labels,unresolved);
+	    }
+	}
+	else {
+	    ReferenceContainer container = (ReferenceContainer)r.parent();
+	    Iterator it = container.entryIterator();
+	    while (it.hasNext()) {
+		Reference entry = (Reference)it.next();
+		getUnresolvedInputTags(entry,labels,unresolved);
+	    }
+	}
+    }
+
+    /** get unresolved InputTags from a parameter, given the labels to this point */
+    private void getUnresolvedInputTags(Parameter p,
+					HashSet<String> labels,
+					ArrayList<String> unresolved)
+    {
+	if (p instanceof InputTagParameter) {
+	    InputTagParameter itp = (InputTagParameter)p;
+	    if (!labels.contains(itp.label())) {
+		Object parent = itp;
+		String s = ":"+itp.name()+"@"+itp.label();
+		do {
+		    parent = ((Parameter)parent).parent();
+		    s = "/"+parent+s;
+		}
+		while (parent instanceof Parameter);
+		unresolved.add(s);
+	    }
+	}
+	else if (p instanceof VInputTagParameter) {
+	    VInputTagParameter vitp = (VInputTagParameter)p;
+	    for (int i=0;i<vitp.vectorSize();i++) {
+		InputTagParameter itp =
+		    new InputTagParameter((new Integer(i)).toString(),
+					  vitp.value(i).toString(),false,false);
+		itp.setParent(vitp);
+		getUnresolvedInputTags(itp,labels,unresolved);
+	    }
+	}
+	else if (p instanceof PSetParameter) {
+	    PSetParameter pset = (PSetParameter)p;
+	    for (int i=0;i<pset.parameterCount();i++)
+		getUnresolvedInputTags(pset.parameter(i),labels,unresolved);
+	}
+	else if (p instanceof VPSetParameter) {
+	    VPSetParameter vpset = (VPSetParameter)p;
+	    for (int i=0;i<vpset.parameterSetCount();i++)
+		getUnresolvedInputTags(vpset.parameterSet(i),labels,unresolved);
+	}
+    }
+    
 }
+

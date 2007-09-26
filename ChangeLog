@@ -1,3 +1,19 @@
+2007-09-26  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-11-03
+	* parser: collect latest fixes
+	* DB: disbable JDBC's auto-commit when storing a configuration
+	* GUI/DB: allow for a path to be declared endpath
+	* GUI: delay the expansion of a configuration tree node upon drag-over
+	* GUI: enable automatic alphabetical sorting of the children of a
+	top-level configuration tree node (services, paths, modules, etc.)
+	* GUI: enable reordering of paths & sequences via drag-n-drop
+	* GUI: enable reordering of path- / sequence- ENTRIES via drag-n-drop
+	* GUI: tool to identify the number of 'unresolved' InputTags
+	within a given Path/Sequence; unresolved means that no module with
+	that label is found upstream within that path. That is fine though
+	in case the InputTag references data expected in the input file ...
+	
 2007-09-22  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-11-02

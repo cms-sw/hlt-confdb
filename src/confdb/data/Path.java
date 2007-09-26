@@ -20,6 +20,9 @@ public class Path extends ReferenceContainer
     /** streams this path is associated with*/
     private ArrayList<Stream> streams = new ArrayList<Stream>();
     
+    /** flag indicating that the path was set to be an endpath */
+    private boolean isSetAsEndPath = false;
+    
 
     //
     // construction
@@ -39,24 +42,41 @@ public class Path extends ReferenceContainer
     /** chek if this path contains an output module */
     public boolean isEndPath()
     {
-	for (Reference r : entries) {
-	    Referencable parent = r.parent();
-	    if (parent instanceof ModuleInstance) {
-		ModuleInstance module = (ModuleInstance)parent;
-		if (module.template().type().equals("OutputModule")) return true;
-	    }
-	    else if (parent instanceof Sequence) {
-		Sequence sequence  = (Sequence)parent;
-		if (sequence.hasOutputModule()) return true;
-	    }
-	    else if (parent instanceof Path) {
-		Path path = (Path)parent;
-		if (path.isEndPath()) return true;
-	    }
-	}
-	return false;
+	if (isSetAsEndPath) return true;
+	return hasOutputModule();
     }
 
+    /** is this path *set* to be an endpath? *Not* the same as above! */
+    public boolean isSetAsEndPath() { return isSetAsEndPath; }
+    
+    /** set this path to be an endpath */
+    public boolean setAsEndPath(boolean isSetAsEndPath)
+    {
+	if (this.isSetAsEndPath==isSetAsEndPath) return true;
+	
+	/*
+	  if (hasEDProducer()) {
+	  System.err.println("Can't declare path '"+name()+"' as endpath: "+
+	  "it contains one or more EDProducer(s).");
+	  return false;
+	  }
+	  if (hasEDFilter()) {
+	  System.err.println("Can't declare path '"+name()+"' as endpath: "+
+	  "it contains one or more EDFilter(s).");
+	  return false;
+	  }
+	  if (hasHLTFilter()) {
+	  System.err.println("Can't declare path '"+name()+"' as endpath: "+
+	  "it contains one or more HLTFilter(s).");
+	  return false;
+	  }
+	*/
+
+	this.isSetAsEndPath = isSetAsEndPath;
+	setHasChanged();
+	return true;
+    }
+    
     /** insert a path entry */
     public void insertEntry(int i,Reference reference)
     {

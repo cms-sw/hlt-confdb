@@ -325,6 +325,16 @@ public class PythonParser
 	    pathToNodeMap.put(path,pathsNode.child(i));
 	}
 	
+	// add endpaths
+	ParseNode endpathsNode = getChildNode(rootNode,"endpaths");
+	for (int i=0;i<endpathsNode.childCount();i++) {
+	    String endpathName = endpathsNode.child(i).unquoted();
+	    Path   endpath = config.insertPath(config.pathCount(),endpathName);
+	    endpath.setAsEndPath(true);
+	    nameToPathMap.put(endpath.name(),endpath);
+	    pathToNodeMap.put(endpath,endpathsNode.child(i));
+	}
+
 	// get modules ParseNode
 	ParseNode modulesNode = getChildNode(rootNode,"modules");
 	

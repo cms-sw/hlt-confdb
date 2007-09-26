@@ -780,10 +780,7 @@ public class Configuration
     }
 
     /** index of a certain Path */
-    public int indexOfPath(Path path)
-    {
-	return paths.indexOf(path);
-    }
+    public int indexOfPath(Path path) { return paths.indexOf(path); }
     
     /** retrieve path iterator */
     public Iterator pathIterator() { return paths.iterator(); }
@@ -796,6 +793,20 @@ public class Configuration
 	if (defaultStream!=null) defaultStream.insertPath(path);
 	hasChanged = true;
 	return path;
+    }
+    
+    /** move a path to another position within paths */
+    public boolean movePath(Path path,int targetIndex)
+    {
+	int currentIndex = paths.indexOf(path);
+	if (currentIndex<0) return false;
+	if (currentIndex==targetIndex) return true;
+	if (targetIndex>paths.size()) return false;
+	if (currentIndex<targetIndex) targetIndex--;
+	paths.remove(currentIndex);
+	paths.add(targetIndex,path);
+	hasChanged = true;
+	return true;
     }
     
     /** get the sequence number of a certain path */
@@ -879,6 +890,20 @@ public class Configuration
 	sequences.add(i,sequence);
 	hasChanged = true;
 	return sequence;
+    }
+    
+    /** move a sequence to another position within sequences */
+    public boolean moveSequence(Sequence sequence,int targetIndex)
+    {
+	int currentIndex = sequences.indexOf(sequence);
+	if (currentIndex<0) return false;
+	if (currentIndex==targetIndex) return true;
+	if (targetIndex>sequences.size()) return false;
+	if (currentIndex<targetIndex) targetIndex--;
+	sequences.remove(currentIndex);
+	sequences.add(targetIndex,sequence);
+	hasChanged = true;
+	return true;
     }
     
     /** remove a sequence */

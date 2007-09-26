@@ -86,8 +86,9 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
     private SequenceMenuListener sequenceListener = null;
 
     /** enable the ability to sort components */
-    private boolean enableSort = false;
+    private boolean enableSort = true;
 
+    
     //
     // construction
     //
@@ -466,6 +467,14 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    menuItem.addActionListener(pathListener);
 	    popupPaths.add(menuItem);
 
+	    
+	    popupPaths.addSeparator();
+	    JCheckBoxMenuItem cbMenuItem = new JCheckBoxMenuItem("endpath");
+	    cbMenuItem.setState(path.isEndPath());
+	    if (path.hasOutputModule()) cbMenuItem.setEnabled(false);
+	    cbMenuItem.addItemListener(new PathItemListener(tree));
+	    popupPaths.add(cbMenuItem);
+	    
 	    return;
 	}
 	
@@ -506,6 +515,7 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    menuItem.addActionListener(pathListener);
 	    popupPaths.add(menuItem);
 	}
+	
     }
     
     /** update 'Sequences' Menu */
@@ -1144,9 +1154,6 @@ class ModuleMenuListener implements ActionListener
     /** reference to the tree to be manipulated */
     private JTree tree = null;
     
-    /** the application frame */
-    private JFrame frame = null;
-    
     /** standard constructor */
     public ModuleMenuListener(JTree tree) { this.tree = tree; }
     
@@ -1166,3 +1173,22 @@ class ModuleMenuListener implements ActionListener
 }
 
 
+/**
+ * listen to item events of the Paths menu
+ */
+class PathItemListener implements ItemListener
+{
+    /** the currently selected path*/
+    private JTree tree = null;
+
+    /** constructor */
+    public PathItemListener(JTree tree) { this.tree = tree; }
+    
+    /** ItemListener.itemStateChanged() */
+    public void itemStateChanged(ItemEvent e)
+    {
+	JCheckBoxMenuItem item = (JCheckBoxMenuItem)e.getItemSelectable();
+	ConfigurationTreeActions.setPathAsEndpath(tree,item.isSelected());
+    }
+
+}

@@ -1,6 +1,7 @@
 package confdb.gui;
 
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.dnd.*;
 import java.awt.image.*;
 import java.awt.datatransfer.*;
@@ -44,7 +45,8 @@ public class ConfigurationTreeDropTarget extends DropTarget
     private int insertAreaHeight = 8;
   
     /** insets for autoscroll */
-    private Insets autoscrollInsets = new Insets(20, 20, 20, 20);
+    //private Insets autoscrollInsets = new Insets(20, 20, 20, 20);
+private Insets autoscrollInsets = new Insets(30, 30, 30, 30);
   
     /** rectangle to clear (where the last image was drawn) */
     private Rectangle rect2D = new Rectangle();
@@ -215,7 +217,12 @@ public class ConfigurationTreeDropTarget extends DropTarget
 	    ConfigurationTreeModel model = (ConfigurationTreeModel)tree.getModel();
 	    Object selectedNode = path.getLastPathComponent();
 	    Object sourceNode = ConfigurationTreeTransferHandler.getSourceNode();
-	    if (expandOnDragOver(tree,sourceNode,selectedNode)) tree.expandPath(path);
+	    if (expandOnDragOver(tree,sourceNode,selectedNode)) {
+		Timer timer = new Timer(0,new TimerActionListener(tree,path));
+		timer.setInitialDelay(500);
+		timer.setRepeats(false);
+		timer.start(); 
+	    }
 	}
     }
     
@@ -262,11 +269,13 @@ public class ConfigurationTreeDropTarget extends DropTarget
 	    (sourceNode instanceof ServiceInstance &&
 	     selectedNode == model.servicesNode()) ||
 	    ((sourceNode instanceof ModuleInstance ||
-	      sourceNode instanceof ReferenceContainer ||
+	      sourceNode instanceof Sequence ||
 	      sourceNode instanceof Reference) &&
 	     (selectedNode instanceof ReferenceContainer ||
 	      selectedNode == model.pathsNode() ||
 	      selectedNode == model.sequencesNode())) ||
+	    ((sourceNode instanceof Path) &&
+	     (selectedNode == model.pathsNode())) ||
 	    (sourceNode instanceof Parameter)) return true;
 	return false;
     }
@@ -306,3 +315,40 @@ public class ConfigurationTreeDropTarget extends DropTarget
     }
 
 }
+
+
+/**
+ * listen to ActionEvents of the Timer, delaying the expansion of a
+ * node upon drag-over
+ */
+class TimerActionListener implements ActionListener
+{
+    /** the tree */
+    private JTree tree = null;
+
+    /** the TreePath which was selected upon 'start' of the timer */
+    private TreePath path = null;
+    
+    /** constructor */
+    public TimerActionListener(JTree tree,TreePath path)
+    {
+	this.tree = tree;
+	this.path = path;
+    }
+
+    /** ActionListener.actionPerformed() */
+    public void actionPerformed(ActionEvent e)
+    {
+	PointerInfo info = MouseInfo.getPointerInfo();
+	Point       mouseLocation = info.getLocation();
+
+	mouseLocation.translate(-tree.getLocationOnScreen().x,
+				-tree.getLocationOnScreen().y);
+	
+	TreePath    currentPath = tree.getClosestPathForLocation(mouseLocation.x,
+								 mouseLocation.y);
+	
+	if (currentPath==path) tree.expandPath(path);
+    }
+}
+

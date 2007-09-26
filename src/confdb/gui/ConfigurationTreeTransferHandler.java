@@ -190,6 +190,32 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
 									 container);
 	    }
 	}
+	// sourceTree *is* targetTree -> reordering
+	else {
+	    // move a path
+	    if (sourceNode instanceof Path &&
+		(targetNode instanceof Path||
+		 targetNode==targetModel.pathsNode())) {
+		Path source = (Path)sourceNode;
+		return ConfigurationTreeActions.movePath(targetTree,source);
+	    }
+
+	    // move a sequence
+	    if (sourceNode instanceof Sequence &&
+		(targetNode instanceof Sequence||
+		 targetNode==targetModel.sequencesNode())) {
+		Sequence source = (Sequence)sourceNode;
+		return ConfigurationTreeActions.moveSequence(targetTree,source);
+	    }
+
+	    // move a reference within its parent container
+	    if (sourceNode instanceof Reference &&
+		(targetNode instanceof Reference ||
+		 targetNode instanceof ReferenceContainer)) {
+		Reference source = (Reference)sourceNode;
+		return ConfigurationTreeActions.moveReference(targetTree,source);
+	    }
+	}
 	
 	return false;
     }

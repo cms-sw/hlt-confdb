@@ -1121,8 +1121,8 @@ public class ConfDB
 
 	    psInsertPath =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO Paths (name) " +
-		 "VALUES(?)",keyColumn);
+		("INSERT INTO Paths (name,isEndPath) " +
+		 "VALUES(?, ?)",keyColumn);
 	    preparedStatements.add(psInsertPath);
 	    
 	    psInsertConfigPathAssoc =
@@ -2078,6 +2078,7 @@ public class ConfDB
 		int     pathIndex     = rs.getInt(5);
 		Path    path          = config.insertPath(pathIndex,pathName);
 		path.setDatabaseId(pathId);
+		path.setAsEndPath(pathIsEndPath);
 		pathHashMap.put(pathId,path);
 	    }
 	    
@@ -2561,6 +2562,8 @@ public class ConfDB
 	
 	ResultSet rs = null;
 	try {
+	    dbConnector.getConnection().setAutoCommit(false);
+	    
 	    psInsertConfiguration.setInt(1,releaseId);
 	    psInsertConfiguration.setString(2,configDescriptor);
 	    psInsertConfiguration.setInt(3,config.parentDirId());
@@ -2579,16 +2582,7 @@ public class ConfDB
 	    rs.next();
 	    String created = rs.getString(1);
 	    config.addNextVersion(configId,created,creator,releaseTag);
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	    result = false;
-	}
-	finally {
-	    dbConnector.release(rs);
-	}
 
-	if (result) {
 	    // insert global psets
 	    insertGlobalPSets(configId,config);
 	    
@@ -2618,8 +2612,26 @@ public class ConfDB
 
 	    // insert streams
 	    insertStreams(configId,config);
+	    
+	    dbConnector.getConnection().commit();
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	    result = false;
+	}
+	catch (DatabaseException e) {
+	    System.err.println("FAILED to store configuration: " + e.getMessage());
+	    result = false;
+	}
+	finally {
+	    try { dbConnector.getConnection().setAutoCommit(true); }
+	    catch (SQLException e) {}
+	    dbConnector.release(rs);
 	}
 
+	//if (result) {
+	//	}
+	
 	return result;
     }
 
@@ -2696,7 +2708,8 @@ public class ConfDB
     }
 
     /** insert configuration's global PSets */
-    private boolean insertGlobalPSets(int configId,Configuration config)
+    private void insertGlobalPSets(int configId,Configuration config)
+	throws DatabaseException
     {
 	for (int sequenceNb=0;sequenceNb<config.psetCount();sequenceNb++) {
 	    int           psetId = insertSuperId();
@@ -2729,20 +2742,20 @@ public class ConfDB
 	    }
 	    catch (SQLException e) {
 		e.printStackTrace();
-		return false;
+		throw new DatabaseException("could not store global PSets.");
 	    }
 	}
-	return true;
     }
     
     /** insert configuration's edsoures */
-    private boolean insertEDSources(int configId,Configuration config)
+    private void insertEDSources(int configId,Configuration config)
+	throws DatabaseException
     {
 	for (int sequenceNb=0;sequenceNb<config.edsourceCount();sequenceNb++) {
 	    EDSourceInstance edsource   = config.edsource(sequenceNb);
 	    int              edsourceId = edsource.databaseId();
 	    int              templateId = edsource.template().databaseId();
-
+	    
 	    if (edsourceId<=0) {
 		edsourceId = insertSuperId();
 		try {
@@ -2752,9 +2765,10 @@ public class ConfDB
 		}
 		catch (SQLException e) {
 		    e.printStackTrace();
-		    return false;
+		    throw new DatabaseException("could not store EDSources.");
 		}
-		if (!insertInstanceParameters(edsourceId,edsource)) return false; 
+		if (!insertInstanceParameters(edsourceId,edsource))
+		    throw new DatabaseException("could not store EDSources.");
 	    }
 	    
 	    try {
@@ -2765,15 +2779,14 @@ public class ConfDB
 	    }
 	    catch (SQLException e) {
 		e.printStackTrace();
-		return false;
+		throw new DatabaseException("could not store EDSources.");
 	    }
 	}
-
-	return true;
     }
     
     /** insert configuration's essources */
-    private boolean insertESSources(int configId,Configuration config)
+    private void insertESSources(int configId,Configuration config)
+	throws DatabaseException
     {
 	for (int sequenceNb=0;sequenceNb<config.essourceCount();sequenceNb++) {
 	    ESSourceInstance essource   = config.essource(sequenceNb);
@@ -2790,9 +2803,10 @@ public class ConfDB
 		}
 		catch (SQLException e) {
 		    e.printStackTrace();
-		    return false;
+		    throw new DatabaseException("could not store ESSources.");
 		}
-		if (!insertInstanceParameters(essourceId,essource)) return false;
+		if (!insertInstanceParameters(essourceId,essource))
+		    throw new DatabaseException("could not store ESSources.");
 	    }
 	    
 	    try {
@@ -2803,15 +2817,14 @@ public class ConfDB
 	    }
 	    catch (SQLException e) {
 		e.printStackTrace();
-		return false;
+		throw new DatabaseException("could not store ESSources.");
 	    }
 	}
-
-	return true;
     }
     
     /** insert configuration's esmodules */
-    private boolean insertESModules(int configId,Configuration config)
+    private void insertESModules(int configId,Configuration config)
+	throws DatabaseException
     {
 	for (int sequenceNb=0;sequenceNb<config.esmoduleCount();sequenceNb++) {
 	    ESModuleInstance esmodule   = config.esmodule(sequenceNb);
@@ -2828,9 +2841,10 @@ public class ConfDB
 		}
 		catch (SQLException e) {
 		    e.printStackTrace();
-		    return false;
+		    throw new DatabaseException("could not store ESModules.");
 		}
-		if (!insertInstanceParameters(esmoduleId,esmodule)) return false;
+		if (!insertInstanceParameters(esmoduleId,esmodule))
+		    throw new DatabaseException("could not store ESModules.");
 	    }
 	    
 	    try {
@@ -2841,15 +2855,14 @@ public class ConfDB
 	    }
 	    catch (SQLException e) {
 		e.printStackTrace();
-		return false;
+		throw new DatabaseException("could not store ESModules.");
 	    }
 	}
-	
-	return true;
     }
     
     /** insert configuration's services */
-    private boolean insertServices(int configId,Configuration config)
+    private void insertServices(int configId,Configuration config)
+    	throws DatabaseException
     {
 	for (int sequenceNb=0;sequenceNb<config.serviceCount();sequenceNb++) {
 	    ServiceInstance service    = config.service(sequenceNb);
@@ -2865,9 +2878,11 @@ public class ConfDB
 		}
 		catch (SQLException e) {
 		    e.printStackTrace();
-		    return false;
+		    throw new DatabaseException("could not store Services.");
 		}
-		if (!insertInstanceParameters(serviceId,service)) return false;
+
+		if (!insertInstanceParameters(serviceId,service))
+		    throw new DatabaseException("could not store Services.");
 	    }
 	    
 	    try {
@@ -2878,15 +2893,14 @@ public class ConfDB
 	    }
 	    catch (SQLException e) {
 		e.printStackTrace();
-		return false;
+		throw new DatabaseException("could not store Services.");
 	    }
 	}
-	
-	return true;
     }
     
     /** insert configuration's paths */
     private HashMap<String,Integer> insertPaths(int configId,Configuration config)
+	throws DatabaseException
     {
 	HashMap<String,Integer> result = new HashMap<String,Integer>();
 	ResultSet rs = null;
@@ -2894,11 +2908,13 @@ public class ConfDB
 	    for (int sequenceNb=0;sequenceNb<config.pathCount();sequenceNb++) {
 		Path   path     = config.path(sequenceNb);
 		path.hasChanged();
-		String pathName = path.name();
-		int    pathId   = path.databaseId();
+		String pathName       = path.name();
+		int    pathId         = path.databaseId();
+		boolean pathIsEndPath = path.isSetAsEndPath();
 		
 		if (pathId<=0) {
 		    psInsertPath.setString(1,pathName);
+		    psInsertPath.setBoolean(2,pathIsEndPath);
 		    psInsertPath.executeUpdate();
 		    
 		    rs = psInsertPath.getGeneratedKeys();
@@ -2919,6 +2935,7 @@ public class ConfDB
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
+	    throw new DatabaseException("could not store paths.");
 	}
 	finally {
 	    dbConnector.release(rs);
@@ -2927,7 +2944,9 @@ public class ConfDB
     }
     
     /** insert configuration's sequences */
-    private HashMap<String,Integer> insertSequences(int configId,Configuration config)
+    private HashMap<String,Integer> insertSequences(int configId,
+						    Configuration config)
+	throws DatabaseException
     {
 	HashMap<String,Integer> result = new HashMap<String,Integer>();
 	ResultSet rs = null;
@@ -2961,6 +2980,7 @@ public class ConfDB
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
+	    throw new DatabaseException("could not store sequences.");
 	}
 	finally {
 	    dbConnector.release(rs);
@@ -2970,6 +2990,7 @@ public class ConfDB
     
     /** insert configuration's modules */
     private HashMap<String,Integer> insertModules(Configuration config)
+	throws DatabaseException
     {
 	HashMap<String,Integer> result = new HashMap<String,Integer>();
 	for (int i=0;i<config.moduleCount();i++) {
@@ -2990,12 +3011,12 @@ public class ConfDB
 		}
 		catch (SQLException e) {
 		    e.printStackTrace();
+		    throw new DatabaseException("could not store modules.");
 		}
 		
 		if (!insertInstanceParameters(moduleId,module)) {
-		    System.out.println("ConfDB.insertModules ERROR: " +
-				       "failed to insert instance parameters "+
-				       "for module '"+module.name()+"'");
+		    throw new DatabaseException("could not store parameters for "+
+						"module '"+module.name()+"'");
 		}
 		else module.setDatabaseId(moduleId);
 	    }
@@ -3005,10 +3026,11 @@ public class ConfDB
     }
     
     /** insert all references, regarding paths and sequences */
-    private boolean insertReferences(Configuration config,
-				     HashMap<String,Integer> pathHashMap,
-				     HashMap<String,Integer> sequenceHashMap,
-				     HashMap<String,Integer> moduleHashMap)
+    private void insertReferences(Configuration config,
+				  HashMap<String,Integer> pathHashMap,
+				  HashMap<String,Integer> sequenceHashMap,
+				  HashMap<String,Integer> moduleHashMap)
+	throws DatabaseException
     {
 	// paths
 	for (int i=0;i<config.pathCount();i++) {
@@ -3029,6 +3051,8 @@ public class ConfDB
 			}
 			catch (SQLException e) {
 			    e.printStackTrace();
+			    throw new DatabaseException("couldn't store "+
+							"path->path reference(s).");
 			}
 		    }
 		    else if (r instanceof SequenceReference) {
@@ -3041,6 +3065,8 @@ public class ConfDB
 			}
 			catch (SQLException e) {
 			    e.printStackTrace();
+			    throw new DatabaseException("couldn't store "+
+							"path->sequence reference(s).");
 			}
 		    }
 		    else if (r instanceof ModuleReference) {
@@ -3053,6 +3079,8 @@ public class ConfDB
 			}
 			catch (SQLException e) {
 			    e.printStackTrace();
+			    throw new DatabaseException("couldn't store "+
+							"path->module reference(s).");
 			}
 		    }
 		}
@@ -3078,6 +3106,8 @@ public class ConfDB
 			}
 			catch (SQLException e) {
 			    e.printStackTrace();
+			    throw new DatabaseException("couldn't store "+
+							"sequence->sequence reference(s).");
 			}
 		    }
 		    else if (r instanceof ModuleReference) {
@@ -3090,17 +3120,18 @@ public class ConfDB
 			}
 			catch (SQLException e) {
 			    e.printStackTrace();
+			    throw new DatabaseException("couldn't store "+
+							"sequence->module reference(s).");
 			}
 		    }
 		}
 	    }
 	}
-
-	return true;
     }
     
     /** insert streams */
-    private boolean insertStreams(int configId,Configuration config)
+    private void insertStreams(int configId,Configuration config)
+	throws DatabaseException
     {
 	Iterator it = config.streamIterator();
 	while (it.hasNext()) {
@@ -3119,7 +3150,7 @@ public class ConfDB
 	    }
 	    catch (SQLException e) {
 		e.printStackTrace();
-		return false;
+		throw new DatabaseException("could not insert streams.");
 	    }
 	    
 	    Iterator it2 = stream.pathIterator();
@@ -3133,12 +3164,11 @@ public class ConfDB
 		}
 		catch (SQLException e) {
 		    e.printStackTrace();
-		    return false;
+		    throw new DatabaseException("could not insert "+
+						"path->stream association(s).");
 		}
 	    }
 	}
-	
-	return true;
     }
 
     /** insert all instance parameters */
