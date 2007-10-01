@@ -531,7 +531,7 @@ public class ConfDbGUI implements TableModelListener
 	    progressBar.setString("Save Configuration ...");
 	    progressBar.setVisible(true);
 	}
-	else
+	else if (currentConfig.version()!=0)
 	    database.lockConfiguration(currentConfig,userName);
     }
     
