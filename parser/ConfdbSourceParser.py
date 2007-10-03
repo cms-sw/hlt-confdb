@@ -786,7 +786,7 @@ class SourceParser:
 				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
 					self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
 					self.sequencenb = self.sequencenb + 1
-				elif(paramtype.lstrip().rstrip() == 'vString' or paramtype.lstrip().rstrip() == 'vstring' or paramtype.lstrip().rstrip() == 'Strings'):
+				elif((paraminparamset == '') and (paramtype.lstrip().rstrip() == 'vString' or paramtype.lstrip().rstrip() == 'vstring' or paramtype.lstrip().rstrip() == 'Strings')):
 				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
 					self.vecparamlist.append(('vstring',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
 					self.sequencenb = self.sequencenb + 1
