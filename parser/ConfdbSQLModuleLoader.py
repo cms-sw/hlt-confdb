@@ -3,7 +3,7 @@
 # ConfdbSQLModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (MySQL version). All MySQL specific code belongs here.
-# Jonathan Hollar LLNL Sept. 14, 2007
+# Jonathan Hollar LLNL Oct. 4, 2007
 
 import os, string, sys, posix, tokenize, array
 
@@ -184,10 +184,16 @@ class ConfdbMySQLModuleLoader:
 	newsuperid = (thecursor.fetchall()[0])[0]
 
 	# Attach this template to the currect release
+	if(self.verbose > 2):
+	    print "INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")"
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Get the module type (base class)
 	modbaseclassid = self.modtypedict[modbaseclass]
+
+        if(self.addtorel == 1):
+            print 'This module does not exist in the release. Will ADD from the specified test release'
+            modcvstag = "TESTRELEASE"
 
 	# Now create a new module
 	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')")
@@ -217,6 +223,10 @@ class ConfdbMySQLModuleLoader:
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
+        if(self.addtorel == 1):
+            print 'This service does not exist in the release. Will ADD from the specified test release'
+            modcvstag = "TESTRELEASE"
+
 	# Now create a new service
 	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "')")
 	if(self.verbose > 2):
@@ -244,6 +254,10 @@ class ConfdbMySQLModuleLoader:
 
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
+
+        if(self.addtorel == 1):
+            print 'This es_source does not exist in the release. Will ADD from the specified test release'
+            modcvstag = "TESTRELEASE"
 
 	# Now create a new es_source
 	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
@@ -273,7 +287,11 @@ class ConfdbMySQLModuleLoader:
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
-	# Now create a new es_source
+        if(self.addtorel == 1):
+            print 'This ed_source does not exist in the release. Will ADD from the specified test release'
+            modcvstag = "TESTRELEASE"
+
+	# Now create a new ed_source
 	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
 	if(self.verbose > 2):
 	    print "INSERT INTO EDSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')"
@@ -300,6 +318,10 @@ class ConfdbMySQLModuleLoader:
 
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
+
+        if(self.addtorel == 1):
+            print 'This es_module does not exist in the release. Will ADD from the specified test release'
+            modcvstag = "TESTRELEASE"
 
 	# Now create a new module
 	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag + "')")
@@ -357,7 +379,7 @@ class ConfdbMySQLModuleLoader:
 	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')")
 	if(self.verbose > 2):
 	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')"
-	
+
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
 	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
@@ -854,9 +876,9 @@ class ConfdbMySQLModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(oldparamstatus != paramistracked):
+			if(str(bool(oldparamstatus)).lower() != paramistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -924,7 +946,7 @@ class ConfdbMySQLModuleLoader:
 			oldparamstatus = thecursor.fetchone()[0]
 			if(str(bool(oldparamstatus)).lower() != paramistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -984,9 +1006,9 @@ class ConfdbMySQLModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(str(oldparamstatus).lower() != paramistracked):
+			if(str(bool(oldparamstatus)).lower() != paramistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1047,9 +1069,9 @@ class ConfdbMySQLModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(str(oldparamstatus).lower() != paramistracked):
+			if(str(bool(oldparamstatus)).lower() != paramistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1108,9 +1130,9 @@ class ConfdbMySQLModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(str(oldparamstatus).lower() != paramistracked):
+			if(str(bool(oldparamstatus)).lower() != paramistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1180,9 +1202,9 @@ class ConfdbMySQLModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(str(oldparamstatus).lower() != paramistracked):
+			if(str(bool(oldparamstatus)).lower() != paramistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1225,7 +1247,7 @@ class ConfdbMySQLModuleLoader:
 
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,paramname,oldsuperid)
-		
+
 		# A previous version of this parameter exists. See if its 
 		# value has changed.
 		if(oldparamid):
@@ -1245,9 +1267,9 @@ class ConfdbMySQLModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(str(oldparamstatus).lower() != paramistracked):
+			if(str(bool(oldparamstatus)).lower() != paramistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1309,9 +1331,9 @@ class ConfdbMySQLModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(str(oldparamstatus).lower() != vecpistracked):
+			if(str(bool(oldparamstatus)).lower() != vecpistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(vecpistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(vecpistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1360,9 +1382,9 @@ class ConfdbMySQLModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(str(oldparamstatus).lower() != vecpistracked):
+			if(str(bool(oldparamstatus)).lower() != vecpistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(vecpistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(vecpistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1411,9 +1433,9 @@ class ConfdbMySQLModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(str(oldparamstatus).lower() != vecpistracked):
+			if(str(bool(oldparamstatus)).lower() != vecpistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(vecpistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(vecpistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1463,9 +1485,9 @@ class ConfdbMySQLModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(str(oldparamstatus).lower() != vecpistracked):
+			if(str(bool(oldparamstatus)).lower() != vecpistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(vecpistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(vecpistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1523,9 +1545,9 @@ class ConfdbMySQLModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(str(oldparamstatus).lower() != vecpistracked):
+			if(str(bool(oldparamstatus)).lower() != vecpistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(vecpistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(vecpistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1798,6 +1820,7 @@ class ConfdbMySQLModuleLoader:
 		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
+		    print "INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")"
 		    thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
 	    elif(vpsettype == "uint32" or vpsettype == "unsigned int" or vpsettype == "uint32_t" or vpsettype == "uint"):
 		if(vpsetval):

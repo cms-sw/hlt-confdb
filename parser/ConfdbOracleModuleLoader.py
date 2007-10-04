@@ -3,7 +3,7 @@
 # ConfdbOracleModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (Oracle version). All Oracle specific code belongs here.
-# Jonathan Hollar LLNL Sept. 14, 2007
+# Jonathan Hollar LLNL Oct. 4, 2007
 
 import os, string, sys, posix, tokenize, array
 
@@ -192,6 +192,10 @@ class ConfdbOracleModuleLoader:
 	# Get the module type (base class)
 	modbaseclassid = self.modtypedict[modbaseclass]
 
+        if(self.addtorel == 1):
+            print 'This module does not exist in the release. Will ADD from the specified test release'
+            modcvstag = "TESTRELEASE"
+
 	# Now create a new module
 	if(self.verbose > 2):
 	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')"
@@ -223,6 +227,10 @@ class ConfdbOracleModuleLoader:
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
+        if(self.addtorel == 1):
+            print 'This service does not exist in the release. Will ADD from the specified test release'
+            modcvstag = "TESTRELEASE"
+
 	# Now create a new service
 	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "')")
 	if(self.verbose > 2):
@@ -251,6 +259,10 @@ class ConfdbOracleModuleLoader:
 
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
+
+        if(self.addtorel == 1):
+            print 'This es_source does not exist in the release. Will ADD from the specified test release'
+            modcvstag = "TESTRELEASE"
 
 	# Now create a new es_source
 	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
@@ -281,6 +293,10 @@ class ConfdbOracleModuleLoader:
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
+        if(self.addtorel == 1):
+            print 'This ed_source does not exist in the release. Will ADD from the specified test release'
+            modcvstag = "TESTRELEASE"
+
 	# Now create a new es_source
 	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
 	if(self.verbose > 2):
@@ -309,6 +325,10 @@ class ConfdbOracleModuleLoader:
 
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
+
+        if(self.addtorel == 1):
+            print 'This es_module does not exist in the release. Will ADD from the specified test release'
+            modcvstag = "TESTRELEASE"
 
 	# Now create a new module
 	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag + "')")
