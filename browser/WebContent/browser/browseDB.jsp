@@ -68,7 +68,6 @@ function init()
     loadingModule.render();
 
     configModule = new YAHOO.widget.Module("config", { visible: false });
-	configModule.setBody( '<iframe name="configIFrame" id="configFrame" width="100%" height="600" frameborder="0"></iframe>');
     configModule.render();
 
     var height = 500;
@@ -80,15 +79,14 @@ function init()
 	
 function labelClicked( node )
 {
-  document.getElementById("configFrame").height = 
-  	YAHOO.util.Dom.getViewportHeight() - 75;
 
   if ( !node.data.key )
   	return;
   configKey = node.data.key;
   dbIndex = node.data.dbIndex;
   configFrameUrl = "convert2Html.jsp?configKey=" + node.data.key + "&dbIndex=" + node.data.dbIndex + "&bgcolor=FFF5DF"; 
-  document.getElementById("configFrame").src = configFrameUrl;
+  var height = YAHOO.util.Dom.getViewportHeight() - 75;
+  configModule.setBody( '<iframe src="' + configFrameUrl + '" name="configIFrame" id="configFrame" width="100%" height="'+ height + '" frameborder="0"></iframe>');
   
   loadingModule.show();
   configModule.hide();
