@@ -41,6 +41,7 @@ CREATE TABLE Configurations
 	created         TIMESTAMP         NOT NULL,
 	creator		VARCHAR(128)	  NOT NULL,
 	processName	VARCHAR(32)	  NOT NULL,
+	description     VARCHAR(1024)     DEFAULT NULL,
 	UNIQUE (parentDirId,config,version),
 	PRIMARY KEY(configId),
 	FOREIGN KEY(releaseId)   REFERENCES SoftwareReleases(releaseId),
