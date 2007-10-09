@@ -118,7 +118,7 @@ function updateJumpTo( list )
 	
 function iframeReady()
 {
-  //AjaxInfo.getAnchors( dbIndex, configKey, updateJumpTo );
+  AjaxInfo.getAnchors( dbIndex, configKey, updateJumpTo );
   loadingModule.hide();
   configModule.show();
 }
