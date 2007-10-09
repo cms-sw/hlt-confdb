@@ -82,6 +82,8 @@ function labelClicked( node )
 
   if ( !node.data.key )
   	return;
+  configModule.hide();
+
   configKey = node.data.key;
   dbIndex = node.data.dbIndex;
   configFrameUrl = "convert2Html.jsp?configKey=" + node.data.key + "&dbIndex=" + node.data.dbIndex + "&bgcolor=FFF5DF"; 
@@ -89,7 +91,6 @@ function labelClicked( node )
   configModule.setBody( '<iframe src="' + configFrameUrl + '" name="configIFrame" id="configFrame" width="100%" height="'+ height + '" frameborder="0"></iframe>');
   
   loadingModule.show();
-  configModule.hide();
   var header = "<b>" + node.data.name + " " + node.data.label + "</b>";
   loadingModule.setHeader( header );
   loadingModule.render();
@@ -117,7 +118,7 @@ function updateJumpTo( list )
 	
 function iframeReady()
 {
-  AjaxInfo.getAnchors( dbIndex, configKey, updateJumpTo );
+  //AjaxInfo.getAnchors( dbIndex, configKey, updateJumpTo );
   loadingModule.hide();
   configModule.show();
 }
