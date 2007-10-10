@@ -642,3 +642,7 @@ INSERT INTO ParameterTypes (paramType) VALUES("VInputTag");
 INSERT INTO ParameterTypes (paramType) VALUES("EventID");
 INSERT INTO ParameterTypes (paramType) VALUES("VEventID");
 INSERT INTO ParameterTypes (paramType) VALUES("FileInPath");
+
+
+-- CREATE PROCEDURES
+source hlt_create_procedures_MYSQL.sql;
