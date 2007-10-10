@@ -2,8 +2,11 @@ package confdb.db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import oracle.jdbc.driver.*;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -25,7 +28,7 @@ import confdb.data.*;
 public class ConfDB
 {
     //
-    // member data
+    // member datas
     //
 
     /** debug */
@@ -204,8 +207,17 @@ public class ConfDB
     private PreparedStatement psDeleteDirectory                   = null;
     private PreparedStatement psDeleteLock                        = null;
 
+    private CallableStatement csLoadTemplates                     = null;
+    private CallableStatement csGetParameters                     = null;
+    private CallableStatement csGetBooleanValues                  = null;
+    private CallableStatement csGetIntValues                      = null;
+    private CallableStatement csGetRealValues                     = null;
+    private CallableStatement csGetStringValues                   = null;
+    
+
     private ArrayList<PreparedStatement> preparedStatements =
 	new ArrayList<PreparedStatement>();
+    
     
     //
     // construction
@@ -1362,6 +1374,97 @@ public class ConfDB
 	    preparedStatements.add(psDeleteLock);
 
 	    
+	    //
+	    // STORED PROCEDURES
+	    //
+
+	    // MySQL
+	    if (dbType.equals(dbTypeMySQL)) {
+
+		csLoadTemplates =
+		    dbConnector.getConnection().prepareCall
+		    ("{ CALL load_templates(?) }");
+		csLoadTemplates.setFetchSize(1024);
+		preparedStatements.add(csLoadTemplates);
+		
+		csGetParameters =
+		    dbConnector.getConnection().prepareCall
+		    ("{ CALL get_parameters() }");
+		csGetParameters.setFetchSize(2048);
+		preparedStatements.add(csGetParameters);
+
+		csGetBooleanValues =
+		    dbConnector.getConnection().prepareCall
+		    ("{ CALL get_boolean_values() }");
+		csGetBooleanValues.setFetchSize(1024);
+		preparedStatements.add(csGetBooleanValues);
+		
+		csGetIntValues =
+		    dbConnector.getConnection().prepareCall
+		    ("{ CALL get_int_values() }");
+		csGetIntValues.setFetchSize(1024);
+		preparedStatements.add(csGetIntValues);
+		
+		csGetRealValues =
+		    dbConnector.getConnection().prepareCall
+		    ("{ CALL get_real_values() }");
+		csGetRealValues.setFetchSize(1024);
+		preparedStatements.add(csGetRealValues);
+		
+		csGetStringValues =
+		    dbConnector.getConnection().prepareCall
+		    ("{ CALL get_string_values() }");
+		csGetStringValues.setFetchSize(1024);
+		preparedStatements.add(csGetStringValues);
+	    }
+	    // Oracle
+	    else {
+
+		System.out.println("WARNING: CallableStatements not yet "+
+				   "available for Oracle!");
+		
+		csLoadTemplates =
+		    dbConnector.getConnection().prepareCall
+		    ("begin ? := load_templates(?); end;");
+		csLoadTemplates.registerOutParameter(1,OracleTypes.CURSOR);
+		csLoadTemplates.setFetchSize(1024);
+		preparedStatements.add(csLoadTemplates);
+		
+		csGetParameters =
+		    dbConnector.getConnection().prepareCall
+		    ("begin ? := get_parameters(); end;");
+		csGetParameters.registerOutParameter(1,OracleTypes.CURSOR);
+		csGetParameters.setFetchSize(2048);
+		preparedStatements.add(csGetParameters);
+
+		csGetBooleanValues =
+		    dbConnector.getConnection().prepareCall
+		    ("begin ? := get_boolean_values(); end;");
+		csGetBooleanValues.registerOutParameter(1,OracleTypes.CURSOR);
+		csGetBooleanValues.setFetchSize(1024);
+		preparedStatements.add(csGetBooleanValues);
+		
+		csGetIntValues =
+		    dbConnector.getConnection().prepareCall
+		    ("begin ? := get_int_values(); end;");
+		csGetIntValues.registerOutParameter(1,OracleTypes.CURSOR);
+		csGetIntValues.setFetchSize(1024);
+		preparedStatements.add(csGetIntValues);
+		
+		csGetRealValues =
+		    dbConnector.getConnection().prepareCall
+		    ("begin ? := get_real_values(); end;");
+		csGetRealValues.registerOutParameter(1,OracleTypes.CURSOR);
+		csGetRealValues.setFetchSize(1024);
+		preparedStatements.add(csGetRealValues);
+		
+		csGetStringValues =
+		    dbConnector.getConnection().prepareCall
+		    ("begin ? := get_string_values(); end;");
+		csGetStringValues.registerOutParameter(1,OracleTypes.CURSOR);
+		csGetStringValues.setFetchSize(1024);
+		preparedStatements.add(csGetStringValues);
+	    }
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
@@ -1708,8 +1811,140 @@ public class ConfDB
 	return result;
     }
 
-    /** load a full software release */
+    /** load a full software release, based on stored procedures */
     public void loadSoftwareRelease(String releaseTag,SoftwareRelease release)
+    {
+	int releaseId = -1;
+	ResultSet rs = null;
+	try {
+	    psSelectReleaseTag.setString(1,releaseTag);
+	    rs = psSelectReleaseTag.executeQuery();
+	    if (!rs.next())
+		System.err.println("release '"+releaseTag+"' not found!");
+	    else
+		releaseId = rs.getInt(1);
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+	
+	if (releaseId<0) return;
+
+	ResultSet rsComponents    = null;
+	ResultSet rsParameters    = null;
+	ResultSet rsBooleanValues = null;
+	ResultSet rsIntValues     = null;
+	ResultSet rsRealValues    = null;
+	ResultSet rsStringValues  = null;
+	
+	try {
+	    if (dbType.equals(dbTypeMySQL)) {
+		csLoadTemplates.setInt(1,releaseId);
+
+		csLoadTemplates.executeUpdate();
+		csGetParameters.executeUpdate();
+		csGetBooleanValues.executeUpdate();
+		csGetIntValues.executeUpdate();
+		csGetRealValues.executeUpdate();
+		csGetStringValues.executeUpdate();
+		
+		rsComponents    = csLoadTemplates.getResultSet();
+		rsParameters    = csGetParameters.getResultSet();
+		rsBooleanValues = csGetBooleanValues.getResultSet();
+		rsIntValues     = csGetIntValues.getResultSet();
+		rsRealValues    = csGetRealValues.getResultSet();
+		rsStringValues  = csGetStringValues.getResultSet();
+	    }
+	    else {
+		csLoadTemplates.setInt(2,releaseId);
+
+		csLoadTemplates.execute();
+		csGetParameters.execute();
+		csGetBooleanValues.execute();
+		csGetIntValues.execute();
+		csGetRealValues.execute();
+		csGetStringValues.execute();
+		
+		rsComponents    = (ResultSet)csLoadTemplates.getObject(1);
+		rsParameters    = (ResultSet)csGetParameters.getObject(1);
+		rsBooleanValues = (ResultSet)csGetBooleanValues.getObject(1);
+		rsIntValues     = (ResultSet)csGetIntValues.getObject(1);
+		rsRealValues    = (ResultSet)csGetRealValues.getObject(1);
+		rsStringValues  = (ResultSet)csGetStringValues.getObject(1);
+	    }
+	    
+	    HashMap<Integer,ArrayList<Parameter> > idToCompParams =
+		new HashMap<Integer,ArrayList<Parameter> >();
+	    
+	    HashMap<Integer,ArrayList<Parameter> > idToPSetParams =
+		new HashMap<Integer,ArrayList<Parameter> >();
+	    
+	    HashMap<Integer,ArrayList<Parameter> > idToVPSetParams =
+		new HashMap<Integer,ArrayList<Parameter> >();
+	    
+	    HashMap<Integer,Parameter> idToParams =
+		new HashMap<Integer,Parameter>();
+	    
+	    while (rsComponents.next()) {
+		int    id     = rsComponents.getInt(1);
+		String type   = rsComponents.getString(2);
+		String name   = rsComponents.getString(3);
+		String cvstag = rsComponents.getString(4);
+
+		ArrayList<Parameter> parameters = new ArrayList<Parameter>();
+		idToCompParams.put(id,parameters);
+		release.addTemplate(TemplateFactory
+				    .create(type,name,cvstag,id,parameters));
+	    }
+	    
+	    while (rsParameters.next()) {
+		int     id       = rsParameters.getInt(1);
+		String  type     = rsParameters.getString(2);
+		String  name     = rsParameters.getString(3);
+		boolean isTrkd   = rsParameters.getBoolean(4);
+		int     seqNb    = rsParameters.getInt(5);
+		int     parentId = rsParameters.getInt(6);
+		
+		Parameter p = ParameterFactory.create(type,name,"",isTrkd,true);
+		
+		ArrayList<Parameter> parameters;
+		if (idToCompParams.containsKey(parentId))
+		    parameters = idToCompParams.get(parentId);
+		else if (idToPSetParams.containsKey(parentId))
+		    parameters = idToPSetParams.get(parentId);
+		else if (idToVPSetParams.containsKey(parentId))
+		    parameters = idToVPSetParams.get(parentId);
+		else
+		    System.err.println("WHY THE FUCK IS THERE NO PARENT FOR "+
+				       "PARAMETER "+id+" "+name+" ("+type+")");
+
+		if (type.equals("PSet"))
+		    idToPSetParams.put(id,new ArrayList<Parameter>());
+		else if (type.equals("VPSet"))
+		    idToVPSetParams.put(id,new ArrayList<Parameter>());
+	    }
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	finally {
+	    dbConnector.release(rsComponents);
+	    dbConnector.release(rsParameters);
+	    dbConnector.release(rsBooleanValues);
+	    dbConnector.release(rsIntValues);
+	    dbConnector.release(rsRealValues);
+	    dbConnector.release(rsStringValues);
+	}
+
+	release.sortTemplates();
+    }
+    
+    /** load a full software release (old version) */
+    public void loadSoftwareReleaseOld(String releaseTag,
+				       SoftwareRelease release)
     {
 	release.clear(releaseTag);
 	

@@ -1,5 +1,6 @@
 package confdb.data;
 
+import java.util.Collections;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -211,6 +212,16 @@ public class SoftwareRelease
     
     /** get the release tag */
     public String releaseTag() { return releaseTag; }
+
+    /** sort templates alphabetically */
+    public void sortTemplates()
+    {
+	Collections.sort(edsourceTemplates);
+	Collections.sort(essourceTemplates);
+	Collections.sort(esmoduleTemplates);
+	Collections.sort(serviceTemplates);
+	Collections.sort(moduleTemplates);
+    }
     
     /** clear the whole release */
     public void clear(String releaseTag)

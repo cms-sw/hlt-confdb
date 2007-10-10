@@ -11,7 +11,7 @@ import java.util.Iterator;
  *
  * abstract base-class for Service, EDSource, ESSource, and Module Templates.
  */
-abstract public class Template extends DatabaseEntry
+abstract public class Template extends DatabaseEntry implements Comparable<Template>
 {
     //
     // member data
@@ -69,6 +69,12 @@ abstract public class Template extends DatabaseEntry
     //
     // non-abstract member functions
     //
+    
+    /** toString conversion */
+    public String toString() { return name; }
+
+    /** Comparable: compareTo */
+    public int compareTo(Template t) { return name.compareTo(t.toString()); }
     
     /** name of the template */
     public String name() { return name; }
