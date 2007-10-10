@@ -22,7 +22,7 @@
   <target name="compile" depends="init">
     <javac srcdir="${dir.src}" destdir="${dir.build}" debug="true">
       <classpath>
-        <fileset dir="${dir.ext}" includes="swing-layout-1.0.jar"/>
+        <fileset dir="${dir.ext}" includes="*.jar"/>
       </classpath>
     </javac>
   </target>
