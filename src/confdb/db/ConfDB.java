@@ -1814,7 +1814,7 @@ public class ConfDB
     /** load a full software release, based on stored procedures */
     public void loadSoftwareRelease(String releaseTag,SoftwareRelease release)
     {
-	int releaseId = -1;
+	int releaseId = getReleaseId;
 	ResultSet rs = null;
 	try {
 	    psSelectReleaseTag.setString(1,releaseTag);
@@ -1875,30 +1875,89 @@ public class ConfDB
 		rsRealValues    = (ResultSet)csGetRealValues.getObject(1);
 		rsStringValues  = (ResultSet)csGetStringValues.getObject(1);
 	    }
-	    
-	    HashMap<Integer,ArrayList<Parameter> > idToCompParams =
-		new HashMap<Integer,ArrayList<Parameter> >();
-	    
-	    HashMap<Integer,ArrayList<Parameter> > idToPSetParams =
-		new HashMap<Integer,ArrayList<Parameter> >();
-	    
-	    HashMap<Integer,ArrayList<Parameter> > idToVPSetParams =
-		new HashMap<Integer,ArrayList<Parameter> >();
-	    
-	    HashMap<Integer,Parameter> idToParams =
-		new HashMap<Integer,Parameter>();
+
+	    HashMap<Integer,Template> idToTemplates =
+		new HashMap<Integer,Template>();
+
+	    HashMap<Template,ArrayList<Parameter> >templateParams =
+		new HashMap<Template,ArrayList<Parameter> >();
 	    
 	    while (rsComponents.next()) {
 		int    id     = rsComponents.getInt(1);
 		String type   = rsComponents.getString(2);
 		String name   = rsComponents.getString(3);
 		String cvstag = rsComponents.getString(4);
-
-		ArrayList<Parameter> parameters = new ArrayList<Parameter>();
-		idToCompParams.put(id,parameters);
-		release.addTemplate(TemplateFactory
-				    .create(type,name,cvstag,id,parameters));
+		
+		if (name==null) name = new String();
+		
+		Template template = 
+		    TemplateFactory.create(type,name,cvstag,id,null);
+		
+		idToTemplates.put(id,template);
+		templateParams.put(template,new ArrayList<Parameter>());
 	    }
+	    
+	    HashMap<Integer,String> idToValueAsString =
+		new HashMap<Integer,String>();
+	    
+	    while (rsBooleanValues.next()) {
+		int    parameterId   = rsBooleanValues.getInt(1);
+		String valueAsString =
+		    (new Boolean(rsBooleanValues.getBoolean(2))).toString();
+		idToValueAsString.put(parameterId,valueAsString);
+	    }
+
+	    while (rsIntValues.next()) {
+		int     parameterId   = rsIntValues.getInt(1);
+		String  valueAsString =
+		(new Integer(rsIntValues.getInt(2))).toString();
+		Integer sequenceNb    = new Integer(rsIntValues.getInt(3));
+		if (sequenceNb!=null&&
+		    idToValueAsString.containsKey(parameterId))
+		    idToValueAsString.put(parameterId,
+					  idToValueAsString.get(parameterId) +
+					  ", "+valueAsString);
+		else
+		    idToValueAsString.put(parameterId,valueAsString);
+	    }
+	    
+	    while (rsRealValues.next()) {
+		int     parameterId   = rsRealValues.getInt(1);
+		String  valueAsString =
+		    (new Double(rsRealValues.getDouble(2))).toString();
+		Integer sequenceNb    = new Integer(rsRealValues.getInt(3));
+		if (sequenceNb!=null&&
+		    idToValueAsString.containsKey(parameterId))
+		    idToValueAsString.put(parameterId,
+					  idToValueAsString.get(parameterId) +
+					  ", "+valueAsString);
+		else
+		    idToValueAsString.put(parameterId,valueAsString);
+	    }
+	    
+	    while (rsStringValues.next()) {
+		int     parameterId   = rsStringValues.getInt(1);
+		String  valueAsString = rsStringValues.getString(2);
+		Integer sequenceNb    = new Integer(rsStringValues.getInt(3));
+		if (sequenceNb!=null&&
+		    idToValueAsString.containsKey(parameterId))
+		    idToValueAsString.put(parameterId,
+					  idToValueAsString.get(parameterId) +
+					  ", "+valueAsString);
+		else idToValueAsString.put(parameterId,valueAsString);
+	    }
+	    
+	    HashMap<Integer,PSetParameter> idToPSets =
+		new HashMap<Integer,PSetParameter>();
+
+	    HashMap<Integer,VPSetParameter> idToVPSets =
+		new HashMap<Integer,VPSetParameter>();
+	    
+	    HashMap<PSetParameter,ArrayList<Parameter> > psetParams =
+		new HashMap<PSetParameter,ArrayList<Parameter> >();
+	    
+	    HashMap<VPSetParameter,ArrayList<PSetParameter> > vpsetParams =
+		new HashMap<VPSetParameter,ArrayList<PSetParameter> >();
 	    
 	    while (rsParameters.next()) {
 		int     id       = rsParameters.getInt(1);
@@ -1908,24 +1967,109 @@ public class ConfDB
 		int     seqNb    = rsParameters.getInt(5);
 		int     parentId = rsParameters.getInt(6);
 		
-		Parameter p = ParameterFactory.create(type,name,"",isTrkd,true);
+		String valueAsString = idToValueAsString.remove(id);
+		if (valueAsString==null) valueAsString=new String();
+		Parameter p = ParameterFactory
+		    .create(type,name,valueAsString,isTrkd,true);
 		
-		ArrayList<Parameter> parameters;
-		if (idToCompParams.containsKey(parentId))
-		    parameters = idToCompParams.get(parentId);
-		else if (idToPSetParams.containsKey(parentId))
-		    parameters = idToPSetParams.get(parentId);
-		else if (idToVPSetParams.containsKey(parentId))
-		    parameters = idToVPSetParams.get(parentId);
+		if (type.equals("PSet")) {
+		    PSetParameter pset = (PSetParameter)p;
+		    idToPSets.put(id,pset);
+		    psetParams.put(pset,new ArrayList<Parameter>());
+		}
+		else if (type.equals("VPSet")) {
+		    VPSetParameter vpset = (VPSetParameter)p;
+		    idToVPSets.put(id,vpset);
+		    vpsetParams.put(vpset,new ArrayList<PSetParameter>());
+		}
+
+		
+		if (idToTemplates.containsKey(parentId)) {
+		    Template template = idToTemplates.get(parentId);
+		    ArrayList<Parameter> params =templateParams.get(template);
+		    while (params.size()<=seqNb) params.add(null);
+		    params.set(seqNb,p);
+		}
+		else if (idToPSets.containsKey(parentId)) {
+		    PSetParameter pset = idToPSets.get(parentId);
+		    ArrayList<Parameter> parameters =
+			psetParams.get(pset);
+		    while (parameters.size()<=seqNb) parameters.add(null);
+		    parameters.set(seqNb,p);
+		}
+		else if (idToVPSets.containsKey(parentId)&&
+			 p instanceof PSetParameter) {
+		    VPSetParameter vpset = idToVPSets.get(parentId);
+		    PSetParameter  pset  = (PSetParameter)p;
+		    ArrayList<PSetParameter> psets =
+			vpsetParams.get(vpset);
+		    while (psets.size()<=seqNb) psets.add(null);
+		    psets.set(seqNb,pset);
+		}
 		else
 		    System.err.println("WHY THE FUCK IS THERE NO PARENT FOR "+
 				       "PARAMETER "+id+" "+name+" ("+type+")");
-
-		if (type.equals("PSet"))
-		    idToPSetParams.put(id,new ArrayList<Parameter>());
-		else if (type.equals("VPSet"))
-		    idToVPSetParams.put(id,new ArrayList<Parameter>());
 	    }
+	    
+	    // set PSet parameters
+	    for (Map.Entry<PSetParameter,ArrayList<Parameter> > e : 
+		     psetParams.entrySet()) {
+		PSetParameter        pset   = e.getKey();
+		ArrayList<Parameter> params = e.getValue();
+		int missingCount = 0;
+		Iterator it = params.iterator();
+		while (it.hasNext()) {
+		    Parameter p = (Parameter)it.next();
+		    if (p==null) missingCount++;
+		    else pset.addParameter(p);
+		}
+		if (missingCount>0) {
+		    System.err.println("WARNING: "+missingCount+" parameter(s)"+
+				       " missing from PSet '"+pset.name()+"'");
+		}
+	    }
+
+	    // set VPSet parameters
+	    for (Map.Entry<VPSetParameter,ArrayList<PSetParameter> > e : 
+		     vpsetParams.entrySet()) {
+		VPSetParameter           vpset = e.getKey();
+		ArrayList<PSetParameter> psets = e.getValue();
+		int missingCount = 0;
+		Iterator it = psets.iterator();
+		while (it.hasNext()) {
+		    PSetParameter pset = (PSetParameter)it.next();
+		    if (pset==null) missingCount++;
+		    else vpset.addParameterSet(pset);
+		}
+		if (missingCount>0) {
+		    System.err.println("WARNING: "+missingCount+" pset(s) "+
+				       "missing from VPSet '"+vpset.name()+"'");
+		}
+	    }
+
+	    // set Template parameters
+	    for (Map.Entry<Template,ArrayList<Parameter> > e : 
+		     templateParams.entrySet()) {
+		Template             template = e.getKey();
+		ArrayList<Parameter> params   = e.getValue();
+		int missingCount = 0;
+		Iterator it = params.iterator();
+		while (it.hasNext()) {
+		    Parameter p = (Parameter)it.next();
+		    if (p==null) missingCount++;
+		}
+		if (missingCount>0) {
+		    System.err.println("ERROR: "+missingCount+" parameter(s) "+
+				       "missing from "+template.type()+
+				       " Template '"+template.name()+"'");
+		}
+		else {
+		    template.setParameters(params);
+		    release.addTemplate(template);
+		}
+	    }
+
+	    
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
@@ -1938,7 +2082,7 @@ public class ConfDB
 	    dbConnector.release(rsRealValues);
 	    dbConnector.release(rsStringValues);
 	}
-
+	
 	release.sortTemplates();
     }
     

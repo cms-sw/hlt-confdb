@@ -41,7 +41,8 @@ abstract public class Template extends DatabaseEntry implements Comparable<Templ
 	super(dbId);
 	this.name       = name;
 	this.cvsTag     = cvsTag;
-	this.parameters = parameters;
+	this.parameters = (parameters==null) ?
+	    new ArrayList<Parameter>() : parameters;
 	for (Parameter p : this.parameters) p.setParent(this);
     }
 
@@ -103,7 +104,17 @@ abstract public class Template extends DatabaseEntry implements Comparable<Templ
      
     /** get the index of a parameter */
     public int parameterIndex(Parameter p) { return parameters.indexOf(p); }
-    
+
+    /** set parameters */
+    public void setParameters(ArrayList<Parameter> params)
+    {
+	parameters.clear();
+	for (Parameter p : params) {
+	    p.setParent(this);
+	    parameters.add(p);
+	}
+    }
+
     /** number of instance */
     public int instanceCount() { return instances.size(); }
 
