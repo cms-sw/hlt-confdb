@@ -27,7 +27,7 @@ BEGIN
   DECLARE temporary_table_exists BOOLEAN;
   BEGIN
     DECLARE CONTINUE HANDLER FOR SQLEXCEPTION BEGIN END;
-    DROP TABLE IF EXISTS tmp_component_table;
+    DROP TABLE IF EXISTS tmp_template_table;
     DROP TABLE IF EXISTS tmp_parameter_table;
     DROP TABLE IF EXISTS tmp_boolean_table;
     DROP TABLE IF EXISTS tmp_int_table;
@@ -36,10 +36,10 @@ BEGIN
   END;
   BEGIN
     /* variables */
-    DECLARE v_component_id     INT;
-    DECLARE v_component_type   CHAR(64);
-    DECLARE v_component_name   CHAR(128);
-    DECLARE v_component_cvstag CHAR(32);
+    DECLARE v_template_id     INT;
+    DECLARE v_template_type   CHAR(64);
+    DECLARE v_template_name   CHAR(128);
+    DECLARE v_template_cvstag CHAR(32);
     DECLARE done               BOOLEAN DEFAULT FALSE;
 
     /* cursor for edsource templates */
@@ -98,13 +98,13 @@ BEGIN
     /* error handlers */
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-    /* temporary component table */
-    CREATE TEMPORARY TABLE tmp_component_table
+    /* temporary template table */
+    CREATE TEMPORARY TABLE tmp_template_table
     (
-      component_id	BIGINT UNSIGNED,
-      component_type    CHAR(64),
-      component_name    CHAR(128),
-      component_cvstag  CHAR(32)
+      template_id	BIGINT UNSIGNED,
+      template_type    CHAR(64),
+      template_name    CHAR(128),
+      template_cvstag  CHAR(32)
     );
     SET temporary_table_exists = TRUE;
 
@@ -153,12 +153,12 @@ BEGIN
     /* load edsource templates */
     OPEN cur_edsource_templates;
     FETCH cur_edsource_templates
-      INTO v_component_id,v_component_name,v_component_cvstag;
+      INTO v_template_id,v_template_name,v_template_cvstag;
     WHILE done=FALSE DO
-      INSERT INTO tmp_component_table
-        VALUES(v_component_id,'EDSource',v_component_name,v_component_cvstag);
+      INSERT INTO tmp_template_table
+        VALUES(v_template_id,'EDSource',v_template_name,v_template_cvstag);
       FETCH cur_edsource_templates
-        INTO v_component_id,v_component_name,v_component_cvstag;
+        INTO v_template_id,v_template_name,v_template_cvstag;
     END WHILE;
     CLOSE cur_edsource_templates;
     SET done=FALSE;
@@ -166,13 +166,13 @@ BEGIN
     /* load essource templates */
     OPEN cur_essource_templates;
     FETCH cur_essource_templates
-      INTO v_component_id,v_component_name,v_component_cvstag;
+      INTO v_template_id,v_template_name,v_template_cvstag;
     WHILE done=FALSE DO
-      INSERT INTO tmp_component_table
-        VALUES(v_component_id,'ESSource',v_component_name,v_component_cvstag);
-      CALL load_parameters(v_component_id);
+      INSERT INTO tmp_template_table
+        VALUES(v_template_id,'ESSource',v_template_name,v_template_cvstag);
+      CALL load_parameters(v_template_id);
       FETCH cur_essource_templates
-        INTO v_component_id,v_component_name,v_component_cvstag;
+        INTO v_template_id,v_template_name,v_template_cvstag;
     END WHILE;
     CLOSE cur_essource_templates;
     SET done=FALSE;
@@ -180,13 +180,13 @@ BEGIN
     /* load esmodule templates */
     OPEN cur_esmodule_templates;
     FETCH cur_esmodule_templates
-      INTO v_component_id,v_component_name,v_component_cvstag;
+      INTO v_template_id,v_template_name,v_template_cvstag;
     WHILE done=FALSE DO
-      INSERT INTO tmp_component_table
-        VALUES(v_component_id,'ESModule',v_component_name,v_component_cvstag);
-      CALL load_parameters(v_component_id);
+      INSERT INTO tmp_template_table
+        VALUES(v_template_id,'ESModule',v_template_name,v_template_cvstag);
+      CALL load_parameters(v_template_id);
       FETCH cur_esmodule_templates
-        INTO v_component_id,v_component_name,v_component_cvstag;
+        INTO v_template_id,v_template_name,v_template_cvstag;
     END WHILE;
     CLOSE cur_esmodule_templates;
     SET done=FALSE;
@@ -194,13 +194,13 @@ BEGIN
     /* load service templates */
     OPEN cur_service_templates;
     FETCH cur_service_templates
-      INTO v_component_id,v_component_name,v_component_cvstag;
+      INTO v_template_id,v_template_name,v_template_cvstag;
     WHILE done=FALSE DO
-      INSERT INTO tmp_component_table
-        VALUES(v_component_id,'Service',v_component_name,v_component_cvstag);
-      CALL load_parameters(v_component_id);
+      INSERT INTO tmp_template_table
+        VALUES(v_template_id,'Service',v_template_name,v_template_cvstag);
+      CALL load_parameters(v_template_id);
       FETCH cur_service_templates
-        INTO v_component_id,v_component_name,v_component_cvstag;
+        INTO v_template_id,v_template_name,v_template_cvstag;
     END WHILE;
     CLOSE cur_service_templates;
     SET done=FALSE;
@@ -208,28 +208,28 @@ BEGIN
     /* load module templates */
     OPEN cur_module_templates;
     FETCH cur_module_templates
-      INTO v_component_id,v_component_name,
-           v_component_cvstag,v_component_type;
+      INTO v_template_id,v_template_name,
+           v_template_cvstag,v_template_type;
     WHILE done=FALSE DO
-      INSERT INTO tmp_component_table
-        VALUES(v_component_id,v_component_type,
-               v_component_name,v_component_cvstag);
-      CALL load_parameters(v_component_id);
+      INSERT INTO tmp_template_table
+        VALUES(v_template_id,v_template_type,
+               v_template_name,v_template_cvstag);
+      CALL load_parameters(v_template_id);
       FETCH cur_module_templates
-        INTO v_component_id,v_component_name,
-             v_component_cvstag,v_component_type;
+        INTO v_template_id,v_template_name,
+             v_template_cvstag,v_template_type;
     END WHILE;
     CLOSE cur_module_templates;
     SET done=FALSE;
 
     /* generate the final result set by selecting the temporary table */
-    SELECT component_id,component_type,component_name,component_cvstag
-    FROM tmp_component_table;
+    SELECT template_id,template_type,template_name,template_cvstag
+    FROM tmp_template_table;
   END;  
 
   /* if the temporary table was created, drop it now */
   IF temporary_table_exists THEN
-    DROP TEMPORARY TABLE tmp_component_table;
+    DROP TEMPORARY TABLE tmp_template_table;
   END IF;
 END;
 //
