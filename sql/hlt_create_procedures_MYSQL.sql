@@ -4,7 +4,10 @@
 
 -- drop the procedure if it already exists
 USE hltdb;
+DROP PROCEDURE IF EXISTS load_template;
 DROP PROCEDURE IF EXISTS load_templates;
+DROP PROCEDURE IF EXISTS load_templates_for_config;
+DROP PROCEDURE IF EXISTS load_configuration;
 DROP PROCEDURE IF EXISTS load_parameters;
 DROP PROCEDURE IF EXISTS load_parameter_value;
 DROP PROCEDURE IF EXISTS get_parameters;
@@ -18,11 +21,13 @@ DROP PROCEDURE IF EXISTS get_string_values;
 DELIMITER //
 
 
+
+
 --
--- PROCEDURE load_templates
+-- PROCEDURE load_template
 --
-CREATE PROCEDURE load_templates(release_id BIGINT UNSIGNED)
-proc:
+CREATE PROCEDURE load_template(release_id BIGINT UNSIGNED,
+                               template_name CHAR(128))
 BEGIN
   DECLARE temporary_table_exists BOOLEAN;
   BEGIN
@@ -36,11 +41,240 @@ BEGIN
   END;
   BEGIN
     /* variables */
-    DECLARE v_template_id     INT;
+    DECLARE v_template_id     BIGINT UNSIGNED;
     DECLARE v_template_type   CHAR(64);
     DECLARE v_template_name   CHAR(128);
     DECLARE v_template_cvstag CHAR(32);
-    DECLARE done               BOOLEAN DEFAULT FALSE;
+    DECLARE done              BOOLEAN DEFAULT FALSE;
+
+    /* cursor for edsource templates */
+    DECLARE cur_edsource_templates CURSOR FOR
+      SELECT EDSourceTemplates.superId,
+             EDSourceTemplates.name,
+             EDSourceTemplates.cvstag
+      FROM EDSourceTemplates
+      JOIN SuperIdReleaseAssoc
+      ON EDSourceTemplates.superId = SuperIdReleaseAssoc.superId
+      JOIN SoftwareReleases
+      ON SoftwareReleases.releaseId = SuperIdReleaseAssoc.releaseId
+      WHERE SoftwareReleases.releaseId = release_id
+      AND   EDSourceTemplates.name = template_name;
+
+    /* cursor for essource templates */
+    DECLARE cur_essource_templates CURSOR FOR
+      SELECT ESSourceTemplates.superId,
+             ESSourceTemplates.name,
+             ESSourceTemplates.cvstag
+      FROM ESSourceTemplates
+      JOIN SuperIdReleaseAssoc
+      ON ESSourceTemplates.superId = SuperIdReleaseAssoc.superId
+      JOIN SoftwareReleases
+      ON SoftwareReleases.releaseId = SuperIdReleaseAssoc.releaseId
+      WHERE SoftwareReleases.releaseId = release_id
+      AND   ESSourceTemplates.name = template_name;
+
+    /* cursor for esmodule templates */
+    DECLARE cur_esmodule_templates CURSOR FOR
+      SELECT ESModuleTemplates.superId,
+             ESModuleTemplates.name,
+             ESModuleTemplates.cvstag
+      FROM ESModuleTemplates
+      JOIN SuperIdReleaseAssoc
+      ON ESModuleTemplates.superId = SuperIdReleaseAssoc.superId
+      JOIN SoftwareReleases
+      ON SoftwareReleases.releaseId = SuperIdReleaseAssoc.releaseId
+      WHERE SuperIdReleaseAssoc.releaseId = release_id
+      AND   ESModuleTemplates.name = template_name;
+
+    /* cursor for service templates */
+    DECLARE cur_service_templates CURSOR FOR
+      SELECT ServiceTemplates.superId,
+             ServiceTemplates.name,
+             ServiceTemplates.cvstag
+      FROM ServiceTemplates
+      JOIN SuperIdReleaseAssoc
+      ON ServiceTemplates.superId = SuperIdReleaseAssoc.superId
+      JOIN SoftwareReleases
+      ON SoftwareReleases.releaseId = SuperIdReleaseAssoc.releaseId
+      WHERE SuperIdReleaseAssoc.releaseId = release_id
+      AND   ServiceTemplates.name = template_name;
+
+    /* cursor for module templates */
+    DECLARE cur_module_templates CURSOR FOR
+      SELECT ModuleTemplates.superId,
+             ModuleTemplates.name,
+             ModuleTemplates.cvstag,
+             ModuleTypes.type
+      FROM ModuleTemplates
+      JOIN ModuleTypes
+      ON   ModuleTemplates.typeId = ModuleTypes.typeId
+      JOIN SuperIdReleaseAssoc
+      ON ModuleTemplates.superId = SuperIdReleaseAssoc.superId
+      JOIN SoftwareReleases
+      ON SoftwareReleases.releaseId = SuperIdReleaseAssoc.releaseId
+      WHERE SuperIdReleaseAssoc.releaseId = release_id
+      AND   ModuleTemplates.name = template_name;
+
+    /* error handlers */
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    /* temporary template table */
+    CREATE TEMPORARY TABLE tmp_template_table
+    (
+      template_id      BIGINT UNSIGNED,
+      template_type    CHAR(64),
+      template_name    CHAR(128),
+      template_cvstag  CHAR(32)
+    );
+    SET temporary_table_exists = TRUE;
+
+    /* temporary parameter table */
+    CREATE TEMPORARY TABLE tmp_parameter_table
+    (
+      parameter_id	BIGINT UNSIGNED,
+      parameter_type    CHAR(64),
+      parameter_name    CHAR(128),
+      parameter_trkd    BOOLEAN,
+      parameter_seqnb   INT,
+      parent_id         BIGINT UNSIGNED
+    );
+
+    /* temporary bool parameter-value table */
+    CREATE TEMPORARY TABLE tmp_boolean_table
+    (
+      parameter_id	BIGINT UNSIGNED,
+      parameter_value   BOOLEAN
+    );
+
+    /* temporary int32 parameter-value table */
+    CREATE TEMPORARY TABLE tmp_int_table
+    (
+      parameter_id	BIGINT UNSIGNED,
+      parameter_value   BIGINT,
+      sequence_nb       INT
+    );
+
+    /* temporary double parameter-value table */
+    CREATE TEMPORARY TABLE tmp_real_table
+    (
+      parameter_id	BIGINT UNSIGNED,
+      parameter_value   REAL,
+      sequence_nb       INT
+    );
+
+    /* temporary string parameter-value table */
+    CREATE TEMPORARY TABLE tmp_string_table
+    (
+      parameter_id	BIGINT UNSIGNED,
+      parameter_value   VARCHAR(512),
+      sequence_nb       INT
+    );
+
+    /* load edsource templates */
+    OPEN cur_edsource_templates;
+    FETCH cur_edsource_templates
+      INTO v_template_id,v_template_name,v_template_cvstag;
+    IF done=FALSE THEN
+      INSERT INTO tmp_template_table
+        VALUES(v_template_id,'EDSource',v_template_name,v_template_cvstag);
+      CALL load_parameters(v_template_id);
+      SET done = TRUE;   
+    END IF;
+    CLOSE cur_edsource_templates;
+
+
+    /* load essource templates */
+    IF done=FALSE THEN
+      OPEN cur_essource_templates;
+      FETCH cur_essource_templates
+        INTO v_template_id,v_template_name,v_template_cvstag;
+      IF done=FALSE THEN
+        INSERT INTO tmp_template_table
+          VALUES(v_template_id,'ESSource',v_template_name,v_template_cvstag);
+        CALL load_parameters(v_template_id);
+        SET done=TRUE;
+      END IF;
+      CLOSE cur_essource_templates;
+    END IF;
+
+    /* load esmodule templates */
+    IF done=FALSE THEN
+      OPEN cur_esmodule_templates;
+      FETCH cur_esmodule_templates
+        INTO v_template_id,v_template_name,v_template_cvstag;
+      IF done=FALSE THEN
+        INSERT INTO tmp_template_table
+          VALUES(v_template_id,'ESModule',v_template_name,v_template_cvstag);
+        CALL load_parameters(v_template_id);
+      SET done=TRUE;
+      END IF;
+      CLOSE cur_esmodule_templates;
+    END IF;
+
+    /* load service templates */
+    IF done=FALSE THEN
+      OPEN cur_service_templates;
+      FETCH cur_service_templates
+        INTO v_template_id,v_template_name,v_template_cvstag;
+      IF done=FALSE THEN
+        INSERT INTO tmp_template_table
+          VALUES(v_template_id,'Service',v_template_name,v_template_cvstag);
+        CALL load_parameters(v_template_id);
+      SET done=TRUE;
+      END IF;
+      CLOSE cur_service_templates;
+    END IF;
+
+    /* load module templates */
+    IF done=FALSE THEN
+      OPEN cur_module_templates;
+      FETCH cur_module_templates
+        INTO v_template_id,v_template_name,v_template_cvstag,v_template_type;
+      IF done=FALSE THEN
+        INSERT INTO tmp_template_table
+          VALUES(v_template_id,
+                 v_template_type,v_template_name,v_template_cvstag);
+        CALL load_parameters(v_template_id);
+      SET done=TRUE;
+      END IF;
+      CLOSE cur_module_templates;
+    END IF;
+
+    /* generate the final result set by selecting the temporary table */
+    SELECT template_id,template_type,template_name,template_cvstag
+    FROM tmp_template_table;
+  END;  
+
+  /* if the temporary table was created, drop it now */
+  IF temporary_table_exists THEN
+    DROP TEMPORARY TABLE tmp_template_table;
+  END IF;
+END;
+//
+
+
+--
+-- PROCEDURE load_templates
+--
+CREATE PROCEDURE load_templates(release_id BIGINT UNSIGNED)
+BEGIN
+  DECLARE temporary_table_exists BOOLEAN;
+  BEGIN
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION BEGIN END;
+    DROP TABLE IF EXISTS tmp_template_table;
+    DROP TABLE IF EXISTS tmp_parameter_table;
+    DROP TABLE IF EXISTS tmp_boolean_table;
+    DROP TABLE IF EXISTS tmp_int_table;
+    DROP TABLE IF EXISTS tmp_real_table;
+    DROP TABLE IF EXISTS tmp_string_table;
+  END;
+  BEGIN
+    /* variables */
+    DECLARE v_template_id     BIGINT UNSIGNED;
+    DECLARE v_template_type   CHAR(64);
+    DECLARE v_template_name   CHAR(128);
+    DECLARE v_template_cvstag CHAR(32);
+    DECLARE done              BOOLEAN DEFAULT FALSE;
 
     /* cursor for edsource templates */
     DECLARE cur_edsource_templates CURSOR FOR
@@ -157,6 +391,7 @@ BEGIN
     WHILE done=FALSE DO
       INSERT INTO tmp_template_table
         VALUES(v_template_id,'EDSource',v_template_name,v_template_cvstag);
+      CALL load_parameters(v_template_id);
       FETCH cur_edsource_templates
         INTO v_template_id,v_template_name,v_template_cvstag;
     END WHILE;
@@ -231,6 +466,284 @@ BEGIN
   IF temporary_table_exists THEN
     DROP TEMPORARY TABLE tmp_template_table;
   END IF;
+END;
+//
+
+
+--
+-- PROCEDURE load_templates_for_config
+--
+CREATE PROCEDURE load_templates_for_config(config_id BIGINT UNSIGNED)
+BEGIN
+  DECLARE temporary_table_exists BOOLEAN;
+  BEGIN
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION BEGIN END;
+    DROP TABLE IF EXISTS tmp_template_table;
+    DROP TABLE IF EXISTS tmp_parameter_table;
+    DROP TABLE IF EXISTS tmp_boolean_table;
+    DROP TABLE IF EXISTS tmp_int_table;
+    DROP TABLE IF EXISTS tmp_real_table;
+    DROP TABLE IF EXISTS tmp_string_table;
+  END;
+  BEGIN
+    /* variables */
+    DECLARE v_template_id     BIGINT UNSIGNED;
+    DECLARE v_template_type   CHAR(64);
+    DECLARE v_template_name   CHAR(128);
+    DECLARE v_template_cvstag CHAR(32);
+    DECLARE done              BOOLEAN DEFAULT FALSE;
+
+    /* cursor for edsource templates */
+    DECLARE cur_edsource_templates CURSOR FOR
+      SELECT DISTINCT
+        EDSourceTemplates.superId,
+        EDSourceTemplates.name,
+        EDSourceTemplates.cvstag
+      FROM EDSourceTemplates
+      JOIN EDSources 
+      ON EDSources.templateId = EDSourceTemplates.superId
+      JOIN ConfigurationEDSourceAssoc
+      ON EDSources.superId = ConfigurationEDSourceAssoc.edsourceId
+      WHERE ConfigurationEDSourceAssoc.configId = config_id;
+
+    /* cursor for essource templates */
+    DECLARE cur_essource_templates CURSOR FOR
+      SELECT DISTINCT
+        ESSourceTemplates.superId,
+        ESSourceTemplates.name,
+        ESSourceTemplates.cvstag
+      FROM ESSourceTemplates
+      JOIN ESSources
+      ON ESSources.templateId = ESSourceTemplates.superId
+      JOIN ConfigurationESSourceAssoc
+      ON ESSources.superId = ConfigurationESSourceAssoc.essourceId
+      WHERE ConfigurationESSourceAssoc.configId = config_id;
+
+    /* cursor for esmodule templates */
+    DECLARE cur_esmodule_templates CURSOR FOR
+      SELECT DISTINCT
+        ESModuleTemplates.superId,
+        ESModuleTemplates.name,
+        ESModuleTemplates.cvstag
+      FROM ESModuleTemplates
+      JOIN ESModules
+      ON ESModules.templateId = ESModuleTemplates.superId
+      JOIN ConfigurationESModuleAssoc
+      ON ESModules.superId = ConfigurationESModuleAssoc.esmoduleId
+      WHERE ConfigurationESModuleAssoc.configId = config_id;
+
+    /* cursor for service templates */
+    DECLARE cur_service_templates CURSOR FOR
+      SELECT DISTINCT
+        ServiceTemplates.superId,
+        ServiceTemplates.name,
+        ServiceTemplates.cvstag
+      FROM ServiceTemplates
+      JOIN Services
+      ON   Services.templateId = ServiceTemplates.superId
+      JOIN ConfigurationServiceAssoc
+      ON   Services.superId = ConfigurationServiceAssoc.serviceId
+      WHERE ConfigurationServiceAssoc.configId = config_id;
+
+    /* cursor for module templates from configuration *paths* */
+    DECLARE cur_module_templates_from_paths CURSOR FOR
+      SELECT DISTINCT
+        ModuleTemplates.superId,
+        ModuleTemplates.name,
+        ModuleTemplates.cvstag,
+        ModuleTypes.type
+      FROM ModuleTemplates
+      JOIN ModuleTypes
+      ON   ModuleTemplates.typeId = ModuleTypes.typeId
+      JOIN Modules
+      ON   Modules.templateId = ModuleTemplates.superId
+      JOIN PathModuleAssoc
+      ON   PathModuleAssoc.moduleId = Modules.superId
+      JOIN ConfigurationPathAssoc
+      ON   PathModuleAssoc.pathId = ConfigurationPathAssoc.pathId
+      WHERE ConfigurationPathAssoc.configId = config_id;
+
+    /* cursor for module templates from configuration *sequences* */
+    DECLARE cur_module_templates_from_sequences CURSOR FOR
+      SELECT DISTINCT
+        ModuleTemplates.superId,
+        ModuleTemplates.name,
+        ModuleTemplates.cvstag,
+        ModuleTypes.type
+      FROM ModuleTemplates
+      JOIN ModuleTypes
+      ON   ModuleTemplates.typeId = ModuleTypes.typeId
+      JOIN Modules
+      ON   Modules.templateId = ModuleTemplates.superId
+      JOIN SequenceModuleAssoc
+      ON   SequenceModuleAssoc.moduleId = Modules.superId
+      JOIN ConfigurationSequenceAssoc
+      ON   SequenceModuleAssoc.sequenceId=ConfigurationSequenceAssoc.sequenceId
+      WHERE ConfigurationSequenceAssoc.configId = config_id;
+
+    /* error handlers */
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    /* temporary template table */
+    CREATE TEMPORARY TABLE tmp_template_table
+    (
+      template_id	BIGINT UNSIGNED,
+      template_type    CHAR(64),
+      template_name    CHAR(128),
+      template_cvstag  CHAR(32)
+    );
+    SET temporary_table_exists = TRUE;
+
+    /* temporary parameter table */
+    CREATE TEMPORARY TABLE tmp_parameter_table
+    (
+      parameter_id	BIGINT UNSIGNED,
+      parameter_type    CHAR(64),
+      parameter_name    CHAR(128),
+      parameter_trkd    BOOLEAN,
+      parameter_seqnb   INT,
+      parent_id         BIGINT UNSIGNED
+    );
+
+    /* temporary bool parameter-value table */
+    CREATE TEMPORARY TABLE tmp_boolean_table
+    (
+      parameter_id	BIGINT UNSIGNED,
+      parameter_value   BOOLEAN
+    );
+
+    /* temporary int32 parameter-value table */
+    CREATE TEMPORARY TABLE tmp_int_table
+    (
+      parameter_id	BIGINT UNSIGNED,
+      parameter_value   BIGINT,
+      sequence_nb       INT
+    );
+
+    /* temporary double parameter-value table */
+    CREATE TEMPORARY TABLE tmp_real_table
+    (
+      parameter_id	BIGINT UNSIGNED,
+      parameter_value   REAL,
+      sequence_nb       INT
+    );
+
+    /* temporary string parameter-value table */
+    CREATE TEMPORARY TABLE tmp_string_table
+    (
+      parameter_id	BIGINT UNSIGNED,
+      parameter_value   VARCHAR(512),
+      sequence_nb       INT
+    );
+
+    /* load edsource templates */
+    OPEN cur_edsource_templates;
+    FETCH cur_edsource_templates
+      INTO v_template_id,v_template_name,v_template_cvstag;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_template_table
+        VALUES(v_template_id,'EDSource',v_template_name,v_template_cvstag);
+      CALL load_parameters(v_template_id);
+      FETCH cur_edsource_templates
+        INTO v_template_id,v_template_name,v_template_cvstag;
+    END WHILE;
+    CLOSE cur_edsource_templates;
+    SET done=FALSE;
+
+    /* load essource templates */
+    OPEN cur_essource_templates;
+    FETCH cur_essource_templates
+      INTO v_template_id,v_template_name,v_template_cvstag;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_template_table
+        VALUES(v_template_id,'ESSource',v_template_name,v_template_cvstag);
+      CALL load_parameters(v_template_id);
+      FETCH cur_essource_templates
+        INTO v_template_id,v_template_name,v_template_cvstag;
+    END WHILE;
+    CLOSE cur_essource_templates;
+    SET done=FALSE;
+
+    /* load esmodule templates */
+    OPEN cur_esmodule_templates;
+    FETCH cur_esmodule_templates
+      INTO v_template_id,v_template_name,v_template_cvstag;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_template_table
+        VALUES(v_template_id,'ESModule',v_template_name,v_template_cvstag);
+      CALL load_parameters(v_template_id);
+      FETCH cur_esmodule_templates
+        INTO v_template_id,v_template_name,v_template_cvstag;
+    END WHILE;
+    CLOSE cur_esmodule_templates;
+    SET done=FALSE;
+
+    /* load service templates */
+    OPEN cur_service_templates;
+    FETCH cur_service_templates
+      INTO v_template_id,v_template_name,v_template_cvstag;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_template_table
+        VALUES(v_template_id,'Service',v_template_name,v_template_cvstag);
+      CALL load_parameters(v_template_id);
+      FETCH cur_service_templates
+        INTO v_template_id,v_template_name,v_template_cvstag;
+    END WHILE;
+    CLOSE cur_service_templates;
+    SET done=FALSE;
+
+    /* load module templates from *paths* */
+    OPEN cur_module_templates_from_paths;
+    FETCH cur_module_templates_from_paths
+      INTO v_template_id,v_template_name,
+           v_template_cvstag,v_template_type;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_template_table
+        VALUES(v_template_id,v_template_type,
+               v_template_name,v_template_cvstag);
+      CALL load_parameters(v_template_id);
+      FETCH cur_module_templates_from_paths
+        INTO v_template_id,v_template_name,
+             v_template_cvstag,v_template_type;
+    END WHILE;
+    CLOSE cur_module_templates_from_paths;
+    SET done=FALSE;
+
+    /* load module templates from *sequences* */
+    OPEN cur_module_templates_from_sequences;
+    FETCH cur_module_templates_from_sequences
+      INTO v_template_id,v_template_name,
+           v_template_cvstag,v_template_type;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_template_table
+        VALUES(v_template_id,v_template_type,
+               v_template_name,v_template_cvstag);
+      CALL load_parameters(v_template_id);
+      FETCH cur_module_templates_from_sequences
+        INTO v_template_id,v_template_name,
+             v_template_cvstag,v_template_type;
+    END WHILE;
+    CLOSE cur_module_templates_from_sequences;
+    SET done=FALSE;
+
+    /* generate the final result set by selecting the temporary table */
+    SELECT template_id,template_type,template_name,template_cvstag
+    FROM tmp_template_table;
+  END;  
+
+  /* if the temporary table was created, drop it now */
+  IF temporary_table_exists THEN
+    DROP TEMPORARY TABLE tmp_template_table;
+  END IF;
+END;
+//
+
+
+--
+-- PROCEDURE load_configuration
+--
+CREATE PROCEDURE load_configuration(config_id BIGINT UNSIGNED)
+BEGIN
 END;
 //
 

@@ -31,11 +31,6 @@ public class ConfDB
     // member datas
     //
 
-    /** debug */
-    private int createCount      = 0;
-    private int createCountPSet  = 0;
-    private int createCountVPSet = 0;
-    
     /** define database arch types */
     public static final String dbTypeMySQL  = "mysql";
     public static final String dbTypeOracle = "oracle";
@@ -89,6 +84,8 @@ public class ConfDB
     private PreparedStatement psSelectLockedConfigurations        = null;
 
     private PreparedStatement psSelectConfigNames                 = null;
+    private PreparedStatement psSelectConfiguration               = null;
+    private PreparedStatement psSelectConfigurationLatest         = null;
     private PreparedStatement psSelectConfigurationCreated        = null;
     private PreparedStatement psSelectConfigurationProcessName    = null;
 
@@ -97,22 +94,10 @@ public class ConfDB
     private PreparedStatement psSelectSuperIdReleaseAssoc         = null;
     
     private PreparedStatement psSelectEDSourceTemplate            = null;
-    private PreparedStatement psSelectEDSourceTemplateByRelease   = null;
-    private PreparedStatement psSelectEDSourceTemplatesByRelease  = null;
-    private PreparedStatement psSelectEDSourceTemplatesByConfig   = null;
     private PreparedStatement psSelectESSourceTemplate            = null;
-    private PreparedStatement psSelectESSourceTemplatesByRelease  = null;
-    private PreparedStatement psSelectESSourceTemplatesByConfig   = null;
     private PreparedStatement psSelectESModuleTemplate            = null;
-    private PreparedStatement psSelectESModuleTemplatesByRelease  = null;
-    private PreparedStatement psSelectESModuleTemplatesByConfig   = null;
     private PreparedStatement psSelectServiceTemplate             = null;
-    private PreparedStatement psSelectServiceTemplatesByRelease   = null;
-    private PreparedStatement psSelectServiceTemplatesByConfig    = null;
     private PreparedStatement psSelectModuleTemplate              = null;
-    private PreparedStatement psSelectModuleTemplatesByRelease    = null;
-    private PreparedStatement psSelectModuleTemplatesByConfigPath = null;
-    private PreparedStatement psSelectModuleTemplatesByConfigSeq  = null;
     
     private PreparedStatement psSelectGlobalPSets                 = null;
 
@@ -207,13 +192,17 @@ public class ConfDB
     private PreparedStatement psDeleteDirectory                   = null;
     private PreparedStatement psDeleteLock                        = null;
 
+    private CallableStatement csLoadTemplate                      = null;
     private CallableStatement csLoadTemplates                     = null;
+    private CallableStatement csLoadTemplatesForConfig            = null;
+    private CallableStatement csLoadConfiguration                 = null;
     private CallableStatement csGetParameters                     = null;
     private CallableStatement csGetBooleanValues                  = null;
     private CallableStatement csGetIntValues                      = null;
     private CallableStatement csGetRealValues                     = null;
     private CallableStatement csGetStringValues                   = null;
-    
+    private CallableStatement csGetPathEntries                    = null;
+    private CallableStatement csGetSequenceEntries                = null;
 
     private ArrayList<PreparedStatement> preparedStatements =
 	new ArrayList<PreparedStatement>();
@@ -317,6 +306,30 @@ public class ConfDB
 		 "ORDER BY Configurations.created DESC");
 	    preparedStatements.add(psSelectConfigNames);
 	    
+	    psSelectConfiguration =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " Configurations.configId " +
+		 "FROM Configurations "+
+		 "JOIN Directories " +
+		 "ON Directories.dirId=Configurations.parentDirId " +
+		 "WHERE Directories.dirName = ? AND" +
+		 " Configurations.config = ? AND" +
+		 " Configurations.version = ?");
+	    preparedStatements.add(psSelectConfiguration);
+	    
+	    psSelectConfigurationLatest =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " Configurations.configId " +
+		 "FROM Configurations " +
+		 "JOIN Directories " +
+		 "ON Directories.dirId=Configurations.parentDirId " +
+		 "WHERE Directories.dirName = ? AND" +
+		 " Configurations.config = ? AND" +
+		 " MAX(Configurations.version)");
+	    preparedStatements.add(psSelectConfigurationLatest);
+
 	    psSelectConfigurationCreated =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -370,53 +383,7 @@ public class ConfDB
 		 "FROM EDSourceTemplates " +
 		 "WHERE EDSourceTemplates.name=? AND EDSourceTemplates.cvstag=?");
 	    preparedStatements.add(psSelectEDSourceTemplate);
-	    
-	    psSelectEDSourceTemplateByRelease =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " EDSourceTemplates.superId," +
-		 " EDSourceTemplates.name," +
-		 " EDSourceTemplates.cvstag " +
-		 "FROM EDSourceTemplates " +
-		 "JOIN SuperIdReleaseAssoc " +
-		 "ON SuperIdReleaseAssoc.superId = EDSourceTemplates.superId " +
-		 "JOIN SoftwareReleases " +
-		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
-		 "WHERE SoftwareReleases.releaseTag = ?" +
-		 " AND EDSourceTemplates.name = ? ");
-	    preparedStatements.add(psSelectEDSourceTemplateByRelease);
 
-	    psSelectEDSourceTemplatesByRelease =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " EDSourceTemplates.superId," +
-		 " EDSourceTemplates.name," +
-		 " EDSourceTemplates.cvstag " +
-		 "FROM EDSourceTemplates " +
-		 "JOIN SuperIdReleaseAssoc " +
-		 "ON SuperIdReleaseAssoc.superId = EDSourceTemplates.superId " +
-		 "JOIN SoftwareReleases " +
-		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
-		 "WHERE SoftwareReleases.releaseTag = ? " +
-		 "ORDER BY EDSourceTemplates.name ASC");
-	    psSelectEDSourceTemplatesByRelease.setFetchSize(32);
-	    preparedStatements.add(psSelectEDSourceTemplatesByRelease);
-	    
-	    psSelectEDSourceTemplatesByConfig =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " EDSourceTemplates.superId," +
-		 " EDSourceTemplates.name," +
-		 " EDSourceTemplates.cvstag " +
-		 "FROM EDSourceTemplates " +
-		 "JOIN EDSources " +
-		 "ON EDSources.templateId = EDSourceTemplates.superId " +
-		 "JOIN ConfigurationEDSourceAssoc " +
-		 "ON EDSources.superId = ConfigurationEDSourceAssoc.edsourceId " +
-		 "WHERE ConfigurationEDSourceAssoc.configId = ? " +
-		 "ORDER BY EDSourceTemplates.name ASC");
-	    preparedStatements.add(psSelectEDSourceTemplatesByConfig);
-	    
 	    psSelectESSourceTemplate =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -427,38 +394,6 @@ public class ConfDB
 		 "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectESSourceTemplate);
 	    
-	    psSelectESSourceTemplatesByRelease =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " ESSourceTemplates.superId," +
-		 " ESSourceTemplates.name," +
-		 " ESSourceTemplates.cvstag " +
-		 "FROM ESSourceTemplates " +
-		 "JOIN SuperIdReleaseAssoc " +
-		 "ON SuperIdReleaseAssoc.superId = ESSourceTemplates.superId " +
-		 "JOIN SoftwareReleases " +
-		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
-		 "WHERE SoftwareReleases.releaseTag = ? " +
-		 "ORDER BY ESSourceTemplates.name ASC");
-	    psSelectESSourceTemplatesByRelease.setFetchSize(64);
-	    preparedStatements.add(psSelectESSourceTemplatesByRelease);
-	    
-	    psSelectESSourceTemplatesByConfig =
-		dbConnector.getConnection().prepareStatement
-		("SELECT DISTINCT " +
-		 " ESSourceTemplates.superId," +
-		 " ESSourceTemplates.name," +
-		 " ESSourceTemplates.cvstag " +
-		 "FROM ESSourceTemplates " +
-		 "JOIN ESSources " +
-		 "ON ESSources.templateId = ESSourceTemplates.superId " +
-		 "JOIN ConfigurationESSourceAssoc " +
-		 "ON ESSources.superId = ConfigurationESSourceAssoc.essourceId " +
-		 "WHERE ConfigurationESSourceAssoc.configId = ? " +
-		 "ORDER BY ESSourceTemplates.name ASC");
-	    psSelectESSourceTemplatesByConfig.setFetchSize(32);
-	    preparedStatements.add(psSelectESSourceTemplatesByConfig);
-	    
 	    psSelectESModuleTemplate =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -468,39 +403,7 @@ public class ConfDB
 		 "FROM ESModuleTemplates " +
 		 "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectESModuleTemplate);
-	    
-	    psSelectESModuleTemplatesByRelease =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " ESModuleTemplates.superId," +
-		 " ESModuleTemplates.name," +
-		 " ESModuleTemplates.cvstag " +
-		 "FROM ESModuleTemplates " +
-		 "JOIN SuperIdReleaseAssoc " +
-		 "ON SuperIdReleaseAssoc.superId = ESModuleTemplates.superId " +
-		 "JOIN SoftwareReleases " +
-		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
-		 "WHERE SoftwareReleases.releaseTag = ? " +
-		 "ORDER BY ESModuleTemplates.name ASC");
-	    psSelectESModuleTemplatesByRelease.setFetchSize(64);
-	    preparedStatements.add(psSelectESModuleTemplatesByRelease);
-	    
-	    psSelectESModuleTemplatesByConfig =
-		dbConnector.getConnection().prepareStatement
-		("SELECT DISTINCT " +
-		 " ESModuleTemplates.superId," +
-		 " ESModuleTemplates.name," +
-		 " ESModuleTemplates.cvstag " +
-		 "FROM ESModuleTemplates " +
-		 "JOIN ESModules " +
-		 "ON ESModules.templateId = ESModuleTemplates.superId " +
-		 "JOIN ConfigurationESModuleAssoc " +
-		 "ON ESModules.superId = ConfigurationESModuleAssoc.esmoduleId " +
-		 "WHERE ConfigurationESModuleAssoc.configId = ? " +
-		 "ORDER BY ESModuleTemplates.name ASC");
-	    psSelectESModuleTemplatesByConfig.setFetchSize(16);
-	    preparedStatements.add(psSelectESModuleTemplatesByConfig);
-	    
+
 	    psSelectServiceTemplate =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -510,39 +413,7 @@ public class ConfDB
 		 "FROM ServiceTemplates " +
 		 "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectServiceTemplate);
-	    
-	    psSelectServiceTemplatesByRelease =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " ServiceTemplates.superId," +
-		 " ServiceTemplates.name," +
-		 " ServiceTemplates.cvstag " +
-		 "FROM ServiceTemplates " +
-		 "JOIN SuperIdReleaseAssoc " +
-		 "ON SuperIdReleaseAssoc.superId = ServiceTemplates.superId " +
-		 "JOIN SoftwareReleases " +
-		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
-		 "WHERE SoftwareReleases.releaseTag = ? " +
-		 "ORDER BY ServiceTemplates.name ASC");
-	    psSelectServiceTemplatesByRelease.setFetchSize(32);
-	    preparedStatements.add(psSelectServiceTemplatesByRelease);
-	    
-	    psSelectServiceTemplatesByConfig =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " ServiceTemplates.superId," +
-		 " ServiceTemplates.name," +
-		 " ServiceTemplates.cvstag " +
-		 "FROM ServiceTemplates " +
-		 "JOIN Services " +
-		 "ON Services.templateId = ServiceTemplates.superId " +
-		 "JOIN ConfigurationServiceAssoc " +
-		 "ON Services.superId = ConfigurationServiceAssoc.serviceId " +
-		 "WHERE ConfigurationServiceAssoc.configId = ? " +
-		 "ORDER BY ServiceTemplates.name ASC");
-	    psSelectServiceTemplatesByConfig.setFetchSize(16);
-	    preparedStatements.add(psSelectServiceTemplatesByConfig);
-	    
+
 	    psSelectModuleTemplate = 
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -553,69 +424,7 @@ public class ConfDB
 		 "FROM ModuleTemplates " +
 		 "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectModuleTemplate);
-	    
-	    psSelectModuleTemplatesByRelease =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " ModuleTemplates.superId," +
-		 " ModuleTypes.type," +
-		 " ModuleTemplates.name," +
-		 " ModuleTemplates.cvstag " +
-		 "FROM ModuleTemplates " +
-		 "JOIN ModuleTypes " +
-		 "ON ModuleTypes.typeId = ModuleTemplates.typeId " +
-		 "JOIN SuperIdReleaseAssoc " +
-		 "ON SuperIdReleaseAssoc.superId = ModuleTemplates.superId " +
-		 "JOIN SoftwareReleases " +
-		 "ON SoftwareReleases.releaseId=SuperIdReleaseAssoc.releaseId " +
-		 "WHERE SoftwareReleases.releaseTag = ? " +
-		 "ORDER BY ModuleTemplates.name ASC");
-	    psSelectModuleTemplatesByRelease.setFetchSize(256);
-	    preparedStatements.add(psSelectModuleTemplatesByRelease);
-	    
-	    psSelectModuleTemplatesByConfigPath =
-		dbConnector.getConnection().prepareStatement
-		("SELECT DISTINCT" +
-		 " ModuleTemplates.superId," +
-		 " ModuleTypes.type," +
-		 " ModuleTemplates.name," +
-		 " ModuleTemplates.cvstag " +
-		 "FROM ModuleTemplates " +
-		 "JOIN ModuleTypes " +
-		 "ON ModuleTypes.typeId = ModuleTemplates.typeId " +
-		 "JOIN Modules " +
-		 "ON Modules.templateId = ModuleTemplates.superId " +
-		 "JOIN PathModuleAssoc " +
-		 "ON PathModuleAssoc.moduleId=Modules.superId " +
-		 "JOIN ConfigurationPathAssoc " +
-		 "ON PathModuleAssoc.pathId = ConfigurationPathAssoc.pathId " +
-		 "WHERE ConfigurationPathAssoc.configId = ? " +
-		 "ORDER BY ModuleTemplates.name ASC");
-	    psSelectModuleTemplatesByConfigPath.setFetchSize(64);
-	    preparedStatements.add(psSelectModuleTemplatesByConfigPath);
-	    
-	    psSelectModuleTemplatesByConfigSeq =
-		dbConnector.getConnection().prepareStatement
-		("SELECT DISTINCT" +
-		 " ModuleTemplates.superId," +
-		 " ModuleTypes.type," +
-		 " ModuleTemplates.name," +
-		 " ModuleTemplates.cvstag " +
-		 "FROM ModuleTemplates " +
-		 "JOIN ModuleTypes " +
-		 "ON ModuleTypes.typeId = ModuleTemplates.typeId " +
-		 "JOIN Modules " +
-		 "ON Modules.templateId = ModuleTemplates.superId " +
-		 "JOIN SequenceModuleAssoc " +
-		 "ON SequenceModuleAssoc.moduleId=Modules.superId " +
-		 "JOIN ConfigurationSequenceAssoc " +
-		 "ON SequenceModuleAssoc.sequenceId =" +
-		 " ConfigurationSequenceAssoc.sequenceId " +
-		 "WHERE ConfigurationSequenceAssoc.configId = ? " +
-		 "ORDER BY ModuleTemplates.name ASC");
-	    psSelectModuleTemplatesByConfigSeq.setFetchSize(64);
-	    preparedStatements.add(psSelectModuleTemplatesByConfigSeq);
-	    
+
 	    psSelectGlobalPSets =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -1381,11 +1190,28 @@ public class ConfDB
 	    // MySQL
 	    if (dbType.equals(dbTypeMySQL)) {
 
+		csLoadTemplate =
+		    dbConnector.getConnection().prepareCall
+		    ("{ CALL load_template(?) }");
+		preparedStatements.add(csLoadTemplate);
+		
 		csLoadTemplates =
 		    dbConnector.getConnection().prepareCall
 		    ("{ CALL load_templates(?) }");
 		csLoadTemplates.setFetchSize(1024);
 		preparedStatements.add(csLoadTemplates);
+		
+		csLoadTemplatesForConfig =
+		    dbConnector.getConnection().prepareCall
+		    ("{ CALL load_templates_for_config(?) }");
+		csLoadTemplatesForConfig.setFetchSize(1024);
+		preparedStatements.add(csLoadTemplatesForConfig);
+		
+		csLoadConfiguration =
+		    dbConnector.getConnection().prepareCall
+		    ("{ CALL get_configuration(?) }");
+		csLoadConfiguration.setFetchSize(1024);
+		preparedStatements.add(csLoadConfiguration);
 		
 		csGetParameters =
 		    dbConnector.getConnection().prepareCall
@@ -1416,12 +1242,30 @@ public class ConfDB
 		    ("{ CALL get_string_values() }");
 		csGetStringValues.setFetchSize(1024);
 		preparedStatements.add(csGetStringValues);
+
+		csGetPathEntries =
+		    dbConnector.getConnection().prepareCall
+		    ("{ CALL get_path_entries() }");
+		csGetPathEntries.setFetchSize(512);
+		preparedStatements.add(csGetPathEntries);
+
+		csGetSequenceEntries =
+		    dbConnector.getConnection().prepareCall
+		    ("{ CALL get_sequence_entries() }");
+		csGetSequenceEntries.setFetchSize(512);
+		preparedStatements.add(csGetSequenceEntries);
 	    }
 	    // Oracle
 	    else {
 
 		System.out.println("WARNING: CallableStatements not yet "+
 				   "available for Oracle!");
+		
+		csLoadTemplate =
+		    dbConnector.getConnection().prepareCall
+		    ("begin ? := load_template(?); end;");
+		csLoadTemplate.registerOutParameter(1,OracleTypes.CURSOR);
+		preparedStatements.add(csLoadTemplate);
 		
 		csLoadTemplates =
 		    dbConnector.getConnection().prepareCall
@@ -1430,6 +1274,21 @@ public class ConfDB
 		csLoadTemplates.setFetchSize(1024);
 		preparedStatements.add(csLoadTemplates);
 		
+		csLoadTemplatesForConfig =
+		    dbConnector.getConnection().prepareCall
+		    ("begin ? := load_templates_for_config(?); end;");
+		csLoadTemplatesForConfig.registerOutParameter(1,OracleTypes
+							      .CURSOR);
+		csLoadTemplatesForConfig.setFetchSize(1024);
+		preparedStatements.add(csLoadTemplatesForConfig);
+		
+		csLoadConfiguration =
+		    dbConnector.getConnection().prepareCall
+		    ("begin ? := load_configuration(?); end;");
+		csLoadConfiguration.registerOutParameter(1,OracleTypes.CURSOR);
+		csLoadConfiguration.setFetchSize(1024);
+		preparedStatements.add(csLoadConfiguration);
+
 		csGetParameters =
 		    dbConnector.getConnection().prepareCall
 		    ("begin ? := get_parameters(); end;");
@@ -1464,6 +1323,20 @@ public class ConfDB
 		csGetStringValues.registerOutParameter(1,OracleTypes.CURSOR);
 		csGetStringValues.setFetchSize(1024);
 		preparedStatements.add(csGetStringValues);
+
+		csGetPathEntries =
+		    dbConnector.getConnection().prepareCall
+		    ("begin ? := get_path_entries(); end;");
+		csGetPathEntries.registerOutParameter(1,OracleTypes.CURSOR);
+		csGetPathEntries.setFetchSize(512);
+		preparedStatements.add(csGetPathEntries);
+
+		csGetSequenceEntries =
+		    dbConnector.getConnection().prepareCall
+		    ("begin ? := get_sequence_entries(); end;");
+		csGetSequenceEntries.registerOutParameter(1,OracleTypes.CURSOR);
+		csGetSequenceEntries.setFetchSize(512);
+		preparedStatements.add(csGetSequenceEntries);
 	    }
 	}
 	catch (SQLException e) {
@@ -1559,7 +1432,6 @@ public class ConfDB
     /** create a prepared statement to select parameters,needed for recursive calls */
     private PreparedStatement createSelectParametersPS()
     {
-	createCount++;
 	PreparedStatement result = null;
 	try {
 	    result = dbConnector.getConnection().prepareStatement
@@ -1588,7 +1460,6 @@ public class ConfDB
     /** create a prepared statement to select psets, needed for recursive calls */
     private PreparedStatement createSelectParameterSetsPS()
     {
-	createCountPSet++;
 	PreparedStatement result = null;
 	try { 
 	    result = dbConnector.getConnection().prepareStatement
@@ -1613,7 +1484,6 @@ public class ConfDB
     /** create a prepared statement to select vpsets, needed for recursive calls */
     private PreparedStatement createSelectVecParameterSetsPS()
     {
-	createCountVPSet++;
 	PreparedStatement result = null;
 	try {
 	    result = dbConnector.getConnection().prepareStatement
@@ -1679,8 +1549,11 @@ public class ConfDB
 	ResultSet rs = null;
 	try {
 	    // retrieve all directories
-	    ArrayList<Directory>       directoryList    = new ArrayList<Directory>();
-	    HashMap<Integer,Directory> directoryHashMap = new HashMap<Integer,Directory>();
+	    ArrayList<Directory>       directoryList =
+		new ArrayList<Directory>();
+	    HashMap<Integer,Directory> directoryHashMap =
+		new HashMap<Integer,Directory>();
+
 	    rs = psSelectDirectories.executeQuery();
 	    while (rs.next()) {
 		int    dirId       = rs.getInt(1);
@@ -1698,7 +1571,9 @@ public class ConfDB
 			throw new DatabaseException("parent dir not found in DB!");
 		    Directory parentDir = directoryHashMap.get(parentDirId);
 		    Directory newDir    = new Directory(dirId,
-							dirName,dirCreated,parentDir);
+							dirName,
+							dirCreated,
+							parentDir);
 		    parentDir.addChildDir(newDir);
 		    directoryList.add(newDir);
 		    directoryHashMap.put(dirId,newDir);
@@ -1773,24 +1648,28 @@ public class ConfDB
 	return rootDir;
     }
 
-    /** load single edsource template by release / name */
-    public EDSourceTemplate loadEDSourceTemplate(String releaseTag,String name)
+    /** load a single template from a certain release */
+    public Template loadTemplate(String releaseTag,String templateName)
     {
-	//ArrayList<Template> templateList = new ArrayList<Template>();
+	int releaseId = getReleaseId(releaseTag);
+	if (releaseId<=0) return null;
+	
 	SoftwareRelease release = new SoftwareRelease();
 	release.clear(releaseTag);
 	try {
-	    psSelectEDSourceTemplateByRelease.setString(1,releaseTag);
-	    psSelectEDSourceTemplateByRelease.setString(2,name);
-	    loadTemplates(psSelectEDSourceTemplateByRelease,"EDSource",release);
+	    csLoadTemplate.setInt(1,releaseId);
+	    csLoadTemplate.setString(2,templateName);
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
 	}
-	Iterator it = release.edsourceTemplateIterator();
-	return (it.hasNext()) ? (EDSourceTemplate)it.next() : null;
+	loadTemplates(csLoadTemplate,release);
+	
+	Iterator it = release.templateIterator();
+	
+	return (it.hasNext()) ? (Template)it.next() : null;
     }
-    
+
     /** check if the release corresponding to 'releaseTag' is present */
     public boolean hasSoftwareRelease(String releaseTag)
     {
@@ -1811,29 +1690,51 @@ public class ConfDB
 	return result;
     }
 
-    /** load a full software release, based on stored procedures */
-    public void loadSoftwareRelease(String releaseTag,SoftwareRelease release)
+    /** load a software release (all templates) */
+    public void loadSoftwareRelease(int releaseId,SoftwareRelease release)
     {
-	int releaseId = getReleaseId;
-	ResultSet rs = null;
 	try {
-	    psSelectReleaseTag.setString(1,releaseTag);
-	    rs = psSelectReleaseTag.executeQuery();
-	    if (!rs.next())
-		System.err.println("release '"+releaseTag+"' not found!");
-	    else
-		releaseId = rs.getInt(1);
+	    csLoadTemplates.setInt(1,releaseId);
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
 	}
-	finally {
-	    dbConnector.release(rs);
-	}
-	
-	if (releaseId<0) return;
+	loadTemplates(csLoadTemplates,release);
+    }
+    
+    /** load a software release (all templates) */
+    public void loadSoftwareRelease(String releaseTag,SoftwareRelease release)
+    {
+	int releaseId = getReleaseId(releaseTag);
+	if (releaseId<=0) return;
+	loadSoftwareRelease(releaseId,release);
+    }
 
-	ResultSet rsComponents    = null;
+    /** load a partial software release */
+    public void loadPartialSoftwareRelease(int configId,SoftwareRelease release)
+    {
+	try {
+	    csLoadTemplatesForConfig.setInt(1,configId);
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	loadTemplates(csLoadTemplatesForConfig,release);
+    }
+
+    /** load a partial software releaes */
+    public void loadPartialSoftwareRelease(String configName,
+					   SoftwareRelease release)
+    {
+	int configId = getConfigId(configName);
+	if (configId<=0) return;
+	loadPartialSoftwareRelease(configId,release);
+    }
+    
+    /** load a full software release, based on stored procedures */
+    private void loadTemplates(CallableStatement cs,SoftwareRelease release)
+    {
+	ResultSet rsTemplates     = null;
 	ResultSet rsParameters    = null;
 	ResultSet rsBooleanValues = null;
 	ResultSet rsIntValues     = null;
@@ -1842,16 +1743,14 @@ public class ConfDB
 	
 	try {
 	    if (dbType.equals(dbTypeMySQL)) {
-		csLoadTemplates.setInt(1,releaseId);
-
-		csLoadTemplates.executeUpdate();
+		cs.executeUpdate();
 		csGetParameters.executeUpdate();
 		csGetBooleanValues.executeUpdate();
 		csGetIntValues.executeUpdate();
 		csGetRealValues.executeUpdate();
 		csGetStringValues.executeUpdate();
 		
-		rsComponents    = csLoadTemplates.getResultSet();
+		rsTemplates    =  cs.getResultSet();
 		rsParameters    = csGetParameters.getResultSet();
 		rsBooleanValues = csGetBooleanValues.getResultSet();
 		rsIntValues     = csGetIntValues.getResultSet();
@@ -1859,16 +1758,14 @@ public class ConfDB
 		rsStringValues  = csGetStringValues.getResultSet();
 	    }
 	    else {
-		csLoadTemplates.setInt(2,releaseId);
-
-		csLoadTemplates.execute();
+		cs.execute();
 		csGetParameters.execute();
 		csGetBooleanValues.execute();
 		csGetIntValues.execute();
 		csGetRealValues.execute();
 		csGetStringValues.execute();
 		
-		rsComponents    = (ResultSet)csLoadTemplates.getObject(1);
+		rsTemplates     = (ResultSet)cs.getObject(1);
 		rsParameters    = (ResultSet)csGetParameters.getObject(1);
 		rsBooleanValues = (ResultSet)csGetBooleanValues.getObject(1);
 		rsIntValues     = (ResultSet)csGetIntValues.getObject(1);
@@ -1882,11 +1779,11 @@ public class ConfDB
 	    HashMap<Template,ArrayList<Parameter> >templateParams =
 		new HashMap<Template,ArrayList<Parameter> >();
 	    
-	    while (rsComponents.next()) {
-		int    id     = rsComponents.getInt(1);
-		String type   = rsComponents.getString(2);
-		String name   = rsComponents.getString(3);
-		String cvstag = rsComponents.getString(4);
+	    while (rsTemplates.next()) {
+		int    id     = rsTemplates.getInt(1);
+		String type   = rsTemplates.getString(2);
+		String name   = rsTemplates.getString(3);
+		String cvstag = rsTemplates.getString(4);
 		
 		if (name==null) name = new String();
 		
@@ -1983,7 +1880,6 @@ public class ConfDB
 		    vpsetParams.put(vpset,new ArrayList<PSetParameter>());
 		}
 
-		
 		if (idToTemplates.containsKey(parentId)) {
 		    Template template = idToTemplates.get(parentId);
 		    ArrayList<Parameter> params =templateParams.get(template);
@@ -2075,7 +1971,7 @@ public class ConfDB
 	    e.printStackTrace();
 	}
 	finally {
-	    dbConnector.release(rsComponents);
+	    dbConnector.release(rsTemplates);
 	    dbConnector.release(rsParameters);
 	    dbConnector.release(rsBooleanValues);
 	    dbConnector.release(rsIntValues);
@@ -2084,181 +1980,6 @@ public class ConfDB
 	}
 	
 	release.sortTemplates();
-    }
-    
-    /** load a full software release (old version) */
-    public void loadSoftwareReleaseOld(String releaseTag,
-				       SoftwareRelease release)
-    {
-	release.clear(releaseTag);
-	
-	// load EDSourceTemplates
-	try {
-	    psSelectEDSourceTemplatesByRelease.setString(1,releaseTag);
-	    loadTemplates(psSelectEDSourceTemplatesByRelease,"EDSource",release);
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	}
-	
-
-	// load ESSourceTemplates
-	try {
- 	    psSelectESSourceTemplatesByRelease.setString(1,releaseTag);
- 	    loadTemplates(psSelectESSourceTemplatesByRelease,"ESSource",release);
- 	}
- 	catch (SQLException e) {
- 	    e.printStackTrace();
- 	}
-
-	
-	// load ESModuleTemplates
-	try {
- 	    psSelectESModuleTemplatesByRelease.setString(1,releaseTag);
- 	    loadTemplates(psSelectESModuleTemplatesByRelease,"ESModule",release);
- 	}
- 	catch (SQLException e) {
- 	    e.printStackTrace();
- 	}
-	
-	
-	// load ServiceTemplates
-	try {
- 	    psSelectServiceTemplatesByRelease.setString(1,releaseTag);
- 	    loadTemplates(psSelectServiceTemplatesByRelease,"Service",release);
- 	}
- 	catch (SQLException e) {
- 	    e.printStackTrace();
- 	}
-	
-
-	// load ModuleTemplates
-	try {
- 	    psSelectModuleTemplatesByRelease.setString(1,releaseTag);
- 	    loadTemplates(psSelectModuleTemplatesByRelease,"Module",release);
- 	}
- 	catch (SQLException e) {
- 	    e.printStackTrace();
- 	}
-
-	//System.out.println("createCount      = " + createCount);
-	//System.out.println("createCountPSet  = " + createCountPSet);
-	//System.out.println("createCountVPset = " + createCountVPSet);
-    }
-
-    /** load a partial software release: all the templates instantiated in config */
-    public void loadPartialSoftwareRelease(int configId,SoftwareRelease release)
-    {
-	// EDSources
-	try {
-	    psSelectEDSourceTemplatesByConfig.setInt(1,configId);
- 	    loadTemplates(psSelectEDSourceTemplatesByConfig,"EDSource",release);
- 	}
- 	catch (SQLException e) {
- 	    e.printStackTrace();
- 	}
- 	
-	// ESSources
-	try {
- 	    psSelectESSourceTemplatesByConfig.setInt(1,configId);
- 	    loadTemplates(psSelectESSourceTemplatesByConfig,"ESSource",release);
- 	}
- 	catch (SQLException e) {
- 	    e.printStackTrace();
- 	}
-
-	// ESModules
-	try {
- 	    psSelectESModuleTemplatesByConfig.setInt(1,configId);
- 	    loadTemplates(psSelectESModuleTemplatesByConfig,"ESModule",release);
- 	}
- 	catch (SQLException e) {
- 	    e.printStackTrace();
- 	}
-
-	// Services
-	try {
- 	    psSelectServiceTemplatesByConfig.setInt(1,configId);
- 	    loadTemplates(psSelectServiceTemplatesByConfig,"Service",release);
- 	}
- 	catch (SQLException e) {
- 	    e.printStackTrace();
- 	}
-	
-	// Modules
-	try {
- 	    psSelectModuleTemplatesByConfigPath.setInt(1,configId);
- 	    loadTemplates(psSelectModuleTemplatesByConfigPath,"Module",release);
- 	    psSelectModuleTemplatesByConfigSeq.setInt(1,configId);
- 	    loadTemplates(psSelectModuleTemplatesByConfigSeq,"Module",release);
- 	}
- 	catch (SQLException e) {
- 	    e.printStackTrace();
- 	}
- 	
-    }
-
-    
-    /** load templates, given the already prepared statement */
-    public void loadTemplates(PreparedStatement   psSelectTemplates,
-			      String              templateType,
-			      SoftwareRelease     release)
-    {
-	ResultSet rs = null;
-	try {
-	    rs = psSelectTemplates.executeQuery();
-
-	    while (rs.next()) {
-		int    superId = rs.getInt(1);
-		String type;
-		String name;
-		String cvsTag;
-		if (templateType.equals("Module")) {
-		    type   = rs.getString(2);
-		    name   = rs.getString(3);
-		    cvsTag = rs.getString(4);
-		}
-		else {
-		    type   = templateType;
-		    name   = rs.getString(2);
-		    cvsTag = rs.getString(3);
-		}
-		
-		ArrayList<Parameter> parameters = new ArrayList<Parameter>();
-		
-		loadParameters(superId,parameters,psSelectParameters);
-		loadParameterSets(superId,parameters,psSelectParameterSets);
-		loadVecParameterSets(superId,parameters,psSelectVecParameterSets);
-		
-		boolean allParamsFound = true;
-		for (Parameter p : parameters) if (p==null) allParamsFound=false;
-		
-		if (!allParamsFound) {
-		    System.out.println("ERROR: "+type+" '"+name+"' " +
-				       "has incomplete parameter list.");
-		    // DEBUG
-		    //int i=0;
-		    //for (Parameter p : parameters) {
-		    //if (p==null) 
-		    //  System.out.println("  "+i+". MISSING");
-		    //else
-		    //  System.out.println("  "+i+". "+p.name()+" / "+p.type());
-		    //i++;
-		    //}
-		    // END DEBUG
-		}
-		else {
-		    release.addTemplate(TemplateFactory
-					.create(type,name,cvsTag,superId,
-						parameters));
-		}
-	    }
-	}
-	catch (SQLException e) { e.printStackTrace(); }
-	catch (Exception e) { System.out.println(e.getMessage()); }
-	finally {
-	    dbConnector.release(rs);
-	}
     }
     
     /** load a configuration&templates from the database */
@@ -2293,14 +2014,14 @@ public class ConfDB
 	
 	return config;
     }
-
+    
     /** load a configuration&templates from the database */
     public Configuration loadConfiguration(ConfigInfo configInfo)
     {
 	Configuration config      = null;
 	int           configId    = configInfo.dbId();
 	String        releaseTag  = configInfo.releaseTag();
-	String        processName = null;;
+	String        processName = null;
 
 	ResultSet rs = null;
 	try {
@@ -2330,6 +2051,375 @@ public class ConfDB
     
     /** fill an empty configuration *after* template hash maps were filled! */
     private boolean loadConfiguration(Configuration config)
+    {
+	boolean result   = true;
+	int     configId = config.dbId();
+
+	ResultSet rsInstances       = null;
+	ResultSet rsParameters      = null;
+	ResultSet rsBooleanValues   = null;
+	ResultSet rsIntValues       = null;
+	ResultSet rsRealValues      = null;
+	ResultSet rsStringValues    = null;
+	ResultSet rsPathEntries     = null;
+	ResultSet rsSequenceEntries = null;
+
+	SoftwareRelease release = config.release();
+
+	try {
+	    if (dbType.equals(dbTypeMySQL)) {
+		csLoadConfiguration.setInt(1,configId);
+		csLoadConfiguration.executeUpdate();
+		csGetParameters.executeUpdate();
+		csGetBooleanValues.executeUpdate();
+		csGetIntValues.executeUpdate();
+		csGetRealValues.executeUpdate();
+		csGetStringValues.executeUpdate();
+		csGetPathEntries.executeUpdate();
+		csGetSequenceEntries.executeUpdate();
+		
+		rsInstances       = csLoadConfiguration.getResultSet();
+		rsParameters      = csGetParameters.getResultSet();
+		rsBooleanValues   = csGetBooleanValues.getResultSet();
+		rsIntValues       = csGetIntValues.getResultSet();
+		rsRealValues      = csGetRealValues.getResultSet();
+		rsStringValues    = csGetStringValues.getResultSet();
+		rsPathEntries     = csGetPathEntries.getResultSet();
+		rsSequenceEntries = csGetSequenceEntries.getResultSet();
+	    }
+	    else {
+		csLoadConfiguration.setInt(2,configId);
+		csLoadConfiguration.execute();
+		csGetParameters.execute();
+		csGetBooleanValues.execute();
+		csGetIntValues.execute();
+		csGetRealValues.execute();
+		csGetStringValues.execute();
+		csGetPathEntries.execute();
+		csGetSequenceEntries.execute();
+
+		rsInstances      = (ResultSet)csLoadConfiguration.getObject(1);
+		rsParameters     = (ResultSet)csGetParameters.getObject(1);
+		rsBooleanValues  = (ResultSet)csGetBooleanValues.getObject(1);
+		rsIntValues      = (ResultSet)csGetIntValues.getObject(1);
+		rsRealValues     = (ResultSet)csGetRealValues.getObject(1);
+		rsStringValues   = (ResultSet)csGetStringValues.getObject(1);
+		rsPathEntries    = (ResultSet)csGetPathEntries.getObject(1);
+		rsSequenceEntries= (ResultSet)csGetSequenceEntries.getObject(1);
+	    }
+
+	    HashMap<Integer,Instance> idToInstances =
+		new HashMap<Integer,Instance>();
+
+ 	    HashMap<Integer,PSetParameter> idToPSets =
+		new HashMap<Integer,PSetParameter>();
+	    
+	    HashMap<Integer,VPSetParameter> idToVPSets =
+		new HashMap<Integer,VPSetParameter>();
+	    
+	    HashMap<Integer,Path> idToPaths =
+		new HashMap<Integer,Path>();
+
+	    HashMap<Integer,Sequence> idToSequences =
+		new HashMap<Integer,Sequence>();
+	    
+	    HashMap<Instance,ArrayList<Parameter> > instanceParams =
+		new HashMap<Instance,ArrayList<Parameter> >();
+	    
+	    HashMap<PSetParameter,ArrayList<Parameter> > psetParams =
+		new HashMap<PSetParameter,ArrayList<Parameter> >();
+	    
+	    HashMap<VPSetParameter,ArrayList<PSetParameter> > vpsetParams =
+		new HashMap<VPSetParameter,ArrayList<PSetParameter> >();
+	    
+	    
+	    while (rsInstances.next()) {
+		int     id           = rsInstances.getInt(1);
+		int     templateId   = rsInstances.getInt(2);
+                String  type         = rsInstances.getString(3);
+		String  instanceName = rsInstances.getString(4);
+		boolean isTrkd       = rsInstances.getBoolean(5);
+		
+		String templateName = null;
+		
+		if (type.equals("PSet")) {
+		    PSetParameter pset = (PSetParameter)ParameterFactory
+			.create("PSet",instanceName,"",isTrkd,false);
+		    config.insertPSet(pset);
+		    idToPSets.put(id,pset);
+		    psetParams.put(pset,new ArrayList<Parameter>());
+		}
+		else if (type.equals("EDSource")) {
+		    templateName = release.edsourceTemplateName(templateId);
+		    Instance edsource = config.insertEDSource(templateName);
+		    edsource.setDatabaseId(id);
+		    idToInstances.put(id,edsource);
+		    instanceParams.put(edsource,new ArrayList<Parameter>());
+		}
+		else if (type.equals("ESSource")) {
+		    int insertIndex = config.essourceCount();
+		    templateName = release.essourceTemplateName(templateId);
+		    Instance essource = config.insertESSource(insertIndex,
+							      templateName,
+							      instanceName);
+		    essource.setDatabaseId(id);
+		    idToInstances.put(id,essource);
+		    instanceParams.put(essource,new ArrayList<Parameter>());
+		}
+		else if (type.equals("ESModule")) {
+		    int insertIndex = config.esmoduleCount();
+		    templateName = release.esmoduleTemplateName(templateId);
+		    Instance esmodule = config.insertESModule(insertIndex,
+							      templateName,
+							      instanceName);
+		    esmodule.setDatabaseId(id);
+		    idToInstances.put(id,esmodule);
+		    instanceParams.put(esmodule,new ArrayList<Parameter>());
+		}
+		else if (type.equals("Service")) {
+		    int insertIndex = config.serviceCount();
+		    templateName = release.serviceTemplateName(templateId);
+		    Instance service = config.insertService(insertIndex,
+							    templateName);
+		    service.setDatabaseId(id);
+		    idToInstances.put(id,service);
+		    instanceParams.put(service,new ArrayList<Parameter>());
+		}
+		else if (type.equals("Module")) {
+		    int insertIndex = config.moduleCount();
+		    templateName = release.moduleTemplateName(templateId);
+		    Instance module = config.insertModule(templateName,
+							  instanceName);
+		    module.setDatabaseId(id);
+		    idToInstances.put(id,module);
+		    instanceParams.put(module,new ArrayList<Parameter>());
+		}
+		else if (type.equals("Path")) {
+		    int  insertIndex = config.pathCount();
+		    Path path = config.insertPath(insertIndex,instanceName);
+		    path.setDatabaseId(id);
+		    path.setAsEndPath(isTrkd);
+		    idToPaths.put(id,path);
+		}
+		else if (type.equals("Sequence")) {
+		    int insertIndex = config.sequenceCount();
+		    Sequence sequence = config.insertSequence(insertIndex,
+							      instanceName);
+		    sequence.setDatabaseId(id);
+		    idToSequences.put(id,sequence);
+		}
+	    }
+	    
+	    HashMap<Integer,String> idToValueAsString =
+		new HashMap<Integer,String>();
+	    
+	    while (rsBooleanValues.next()) {
+		int    parameterId   = rsBooleanValues.getInt(1);
+		String valueAsString =
+		    (new Boolean(rsBooleanValues.getBoolean(2))).toString();
+		idToValueAsString.put(parameterId,valueAsString);
+	    }
+	    
+	    while (rsIntValues.next()) {
+		int     parameterId   = rsIntValues.getInt(1);
+		String  valueAsString =
+		    (new Integer(rsIntValues.getInt(2))).toString();
+		Integer sequenceNb    = new Integer(rsIntValues.getInt(3));
+		if (sequenceNb!=null&&
+		    idToValueAsString.containsKey(parameterId))
+		    idToValueAsString.put(parameterId,
+					  idToValueAsString.get(parameterId) +
+					  ", "+valueAsString);
+		else
+		    idToValueAsString.put(parameterId,valueAsString);
+	    }
+	    
+	    while (rsRealValues.next()) {
+		int     parameterId   = rsRealValues.getInt(1);
+		String  valueAsString =
+		    (new Double(rsRealValues.getDouble(2))).toString();
+		Integer sequenceNb    = new Integer(rsRealValues.getInt(3));
+		if (sequenceNb!=null&&
+		    idToValueAsString.containsKey(parameterId))
+		    idToValueAsString.put(parameterId,
+					  idToValueAsString.get(parameterId) +
+					  ", "+valueAsString);
+		else
+		    idToValueAsString.put(parameterId,valueAsString);
+	    }
+	    
+	    while (rsStringValues.next()) {
+		int     parameterId   = rsStringValues.getInt(1);
+		String  valueAsString = rsStringValues.getString(2);
+		Integer sequenceNb    = new Integer(rsStringValues.getInt(3));
+		if (sequenceNb!=null&&
+		    idToValueAsString.containsKey(parameterId))
+		    idToValueAsString.put(parameterId,
+					  idToValueAsString.get(parameterId) +
+					  ", "+valueAsString);
+		else idToValueAsString.put(parameterId,valueAsString);
+	    }
+	   
+	    while (rsParameters.next()) {
+		int     id       = rsParameters.getInt(1);
+		String  type     = rsParameters.getString(2);
+		String  name     = rsParameters.getString(3);
+		boolean isTrkd   = rsParameters.getBoolean(4);
+		int     seqNb    = rsParameters.getInt(5);
+		int     parentId = rsParameters.getInt(6);
+		
+		String valueAsString = idToValueAsString.remove(id);
+		if (valueAsString==null) valueAsString=new String();
+		
+		Parameter p = ParameterFactory
+		    .create(type,name,valueAsString,isTrkd,false);
+
+		if (type.equals("PSet")) {
+		    PSetParameter pset = (PSetParameter)p;
+		    idToPSets.put(id,pset);
+		    psetParams.put(pset,new ArrayList<Parameter>());
+		}
+		else if (type.equals("VPSet")) {
+		    VPSetParameter vpset = (VPSetParameter)p;
+		    idToVPSets.put(id,vpset);
+		    vpsetParams.put(vpset,new ArrayList<PSetParameter>());
+		}
+
+		if (idToInstances.containsKey(parentId)) {
+		    Instance instance = idToInstances.get(parentId);
+		    ArrayList<Parameter> params = instanceParams.get(instance);
+		    params.add(p);
+		}
+		else if (idToPSets.containsKey(parentId)) {
+		    PSetParameter pset = idToPSets.get(parentId);
+		    ArrayList<Parameter> params = psetParams.get(pset);
+		    while (params.size()<=seqNb) params.add(null);
+		    params.set(seqNb,p);
+		}
+		else if (idToVPSets.containsKey(parentId)&&
+			 p instanceof PSetParameter) {
+		    VPSetParameter vpset = idToVPSets.get(parentId);
+		    PSetParameter  pset  = (PSetParameter)p;
+		    ArrayList<PSetParameter> psets = vpsetParams.get(vpset);
+		    while (psets.size()<=seqNb) psets.add(null);
+		    psets.set(seqNb,pset);
+		}
+		else
+		    System.err.println("WHY THE FUCK IS THERE NO PARENT "+
+				       "FOR PARAMETER "+
+				       id+" "+name+" ("+type+")");
+	    }
+	    
+	    for (Map.Entry<PSetParameter,ArrayList<Parameter> > e : 
+		     psetParams.entrySet()) {
+		PSetParameter        pset   = e.getKey();
+		ArrayList<Parameter> params = e.getValue();
+		int missingCount = 0;
+		Iterator it = params.iterator();
+		while (it.hasNext()) {
+		    Parameter p = (Parameter)it.next();
+		    if (p==null) missingCount++;
+		    else pset.addParameter(p);
+		}
+		if (missingCount>0) {
+		    System.err.println("WARNING: "+missingCount+" parameter(s)"+
+				       " missing from PSet '"+pset.name()+"'");
+		}
+	    }
+
+	    for (Map.Entry<VPSetParameter,ArrayList<PSetParameter> > e : 
+		     vpsetParams.entrySet()) {
+		VPSetParameter           vpset = e.getKey();
+		ArrayList<PSetParameter> psets = e.getValue();
+		int missingCount = 0;
+		Iterator it = psets.iterator();
+		while (it.hasNext()) {
+		    PSetParameter pset = (PSetParameter)it.next();
+		    if (pset==null) missingCount++;
+		    else vpset.addParameterSet(pset);
+		}
+		if (missingCount>0) {
+		    System.err.println("WARNING: "+missingCount+" pset(s) "+
+				       "missing from VPSet '"+vpset.name()+"'");
+		}
+	    }
+
+	    for (Map.Entry<Instance,ArrayList<Parameter> > e : 
+		     instanceParams.entrySet()) {
+		Instance             instance = e.getKey();
+		ArrayList<Parameter> params   = e.getValue();
+		Iterator it = params.iterator();
+		while (it.hasNext()) {
+		    Parameter p = (Parameter)it.next();
+		    instance.updateParameter(p.name(),p.type(),
+					     p.valueAsString());
+		}
+	    }
+	    
+	    while (rsSequenceEntries.next()) {
+		int    sequenceId = rsSequenceEntries.getInt(1);
+		int    entryId    = rsSequenceEntries.getInt(2);
+		String entryType  = rsSequenceEntries.getString(3);
+		
+		Sequence sequence = idToSequences.get(sequenceId);
+		int      index    = sequence.entryCount();
+		if (entryType.equals("Sequence")) {
+		    Sequence entry = idToSequences.get(entryId);
+		    config.insertSequenceReference(sequence,index,entry);
+		}
+		else if (entryType.equals("Module")) {
+		    ModuleInstance entry =
+			(ModuleInstance)idToInstances.get(entryId);
+		    config.insertModuleReference(sequence,index,entry);
+		}
+		else
+		    System.err.println("Invalid entryType '"+entryType+"'");
+		
+		sequence.setDatabaseId(sequenceId);
+	    }
+
+	    while (rsPathEntries.next()) {
+		int    pathId    = rsPathEntries.getInt(1);
+		int    entryId   = rsPathEntries.getInt(2);
+		String entryType = rsPathEntries.getString(3);
+		
+		Path path  = idToPaths.get(pathId);
+		int  index = path.entryCount();
+		
+		if (entryType.equals("Path")) {
+		    Path entry = idToPaths.get(entryId);
+		    config.insertPathReference(path,index,entry);
+		}
+		else if (entryType.equals("Sequence")) {
+		    Sequence entry = idToSequences.get(entryId);
+		    config.insertSequenceReference(path,index,entry);
+		}
+		else if (entryType.equals("Module")) {
+		    ModuleInstance entry =
+			(ModuleInstance)idToInstances.get(entryId);
+		    config.insertModuleReference(path,index,entry);
+		}
+		else
+		    System.err.println("Invalid entryType '"+entryType+"'");
+	    }
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	finally {
+	    dbConnector.release(rsInstances);
+	    dbConnector.release(rsParameters);
+	    dbConnector.release(rsBooleanValues);
+	    dbConnector.release(rsIntValues);
+	    dbConnector.release(rsRealValues);
+	    dbConnector.release(rsStringValues);
+	}
+	
+	return result;
+    }
+    
+    /** fill an empty configuration *after* template hash maps were filled! */
+    private boolean loadConfigurationOld(Configuration config)
     {
 	boolean   result   = true;
 	int       configId = config.dbId();
@@ -3965,6 +4055,27 @@ public class ConfDB
 	return result;
     }
 
+    /** get the configuration id for a configuration name */
+    private int getConfigId(String configName)
+    {
+	int result = 0;
+	ResultSet rs = null;
+	
+	// TODO: analyze configName and use
+	// either psSelectConfiguration or psSelectConfigurationLatest
+
+	//try {
+	System.out.println("getConfigId not yet implemented!");
+	//}
+	//catch (SQLException e) {
+	//e.printStackTrace();
+	//}
+	//finally {
+	//dbConnector.release(rs);
+	//}
+	return result;
+    }
+    
     /** check if a superId is associate with a release Tag */
     private boolean areAssociated(int superId, String releaseTag)
     {
