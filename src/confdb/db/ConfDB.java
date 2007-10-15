@@ -66,12 +66,6 @@ public class ConfDB
     /** 'insert parameter' sql statement hash map */
     private HashMap<String,PreparedStatement> insertParameterHashMap = null;
     
-    /** 'select parameter' sql statement hash map, by parameter type */
-    private HashMap<String,PreparedStatement> selectParameterHashMap = null;
-    
-    /** 'selevt parameter' sql statement hash map, by parameter id */
-    private HashMap<Integer,PreparedStatement> selectParameterIdHashMap = null;
-    
     /** keep track of the 'bool' type id */
     private int boolTypeId = -1;
     
@@ -98,44 +92,7 @@ public class ConfDB
     private PreparedStatement psSelectESModuleTemplate            = null;
     private PreparedStatement psSelectServiceTemplate             = null;
     private PreparedStatement psSelectModuleTemplate              = null;
-    
-    private PreparedStatement psSelectGlobalPSets                 = null;
 
-    private PreparedStatement psSelectEDSources                   = null;
-    private PreparedStatement psSelectESSources                   = null;
-    private PreparedStatement psSelectESModules                   = null;
-    private PreparedStatement psSelectServices                    = null;
-    private PreparedStatement psSelectModulesFromPaths            = null;
-    private PreparedStatement psSelectModulesFromSequences        = null;
-    private PreparedStatement psSelectPaths                       = null;
-    private PreparedStatement psSelectSequences                   = null;
-    private PreparedStatement psSelectStreams                     = null;
-    private PreparedStatement psSelectStreamPathAssoc             = null;
-    private PreparedStatement psSelectSequenceModuleAssoc         = null;
-    private PreparedStatement psSelectPathPathAssoc               = null;
-    private PreparedStatement psSelectPathSequenceAssoc           = null;
-    private PreparedStatement psSelectSequenceSequenceAssoc       = null;
-    private PreparedStatement psSelectPathModuleAssoc             = null;
-    
-    private PreparedStatement psSelectParameters                  = null;
-    private PreparedStatement psSelectParameterSets               = null;
-    private PreparedStatement psSelectVecParameterSets            = null;
-
-    private PreparedStatement psSelectBoolParamValue              = null;
-    private PreparedStatement psSelectInt32ParamValue             = null;
-    private PreparedStatement psSelectUInt32ParamValue            = null;
-    private PreparedStatement psSelectDoubleParamValue            = null;
-    private PreparedStatement psSelectStringParamValue            = null;
-    private PreparedStatement psSelectEventIDParamValue           = null;
-    private PreparedStatement psSelectInputTagParamValue          = null;
-    private PreparedStatement psSelectFileInPathParamValue        = null;
-    private PreparedStatement psSelectVInt32ParamValues           = null;
-    private PreparedStatement psSelectVUInt32ParamValues          = null;
-    private PreparedStatement psSelectVDoubleParamValues          = null;
-    private PreparedStatement psSelectVStringParamValues          = null;
-    private PreparedStatement psSelectVEventIDParamValues         = null;
-    private PreparedStatement psSelectVInputTagParamValues        = null;
-    
     
     private PreparedStatement psInsertDirectory                   = null;
     private PreparedStatement psInsertConfiguration               = null;
@@ -203,6 +160,7 @@ public class ConfDB
     private CallableStatement csGetStringValues                   = null;
     private CallableStatement csGetPathEntries                    = null;
     private CallableStatement csGetSequenceEntries                = null;
+    private CallableStatement csGetStreamEntries                  = null;
 
     private ArrayList<PreparedStatement> preparedStatements =
 	new ArrayList<PreparedStatement>();
@@ -424,402 +382,6 @@ public class ConfDB
 		 "FROM ModuleTemplates " +
 		 "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectModuleTemplate);
-
-	    psSelectGlobalPSets =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " ParameterSets.superId," +
-		 " ParameterSets.name," +
-		 " ParameterSets.tracked," +
-		 " ConfigurationParamSetAssoc.configId," +
-		 " ConfigurationParamSetAssoc.sequenceNb " +
-		 "FROM ParameterSets " +
-		 "JOIN ConfigurationParamSetAssoc " +
-		 "ON ParameterSets.superId=ConfigurationParamSetAssoc.psetId " +
-		 "WHERE ConfigurationParamSetAssoc.configId = ? " +
-		 "ORDER BY ConfigurationParamSetAssoc.sequenceNb");
-	    preparedStatements.add(psSelectGlobalPSets);
-	    
-	    psSelectServices =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " Services.superId," +
-		 " Services.templateId," +
-		 " ConfigurationServiceAssoc.configId," +
-		 " ConfigurationServiceAssoc.sequenceNb " +
-		 "FROM Services " +
-		 "JOIN ConfigurationServiceAssoc " +
-		 "ON Services.superId=ConfigurationServiceAssoc.serviceId " +
-		 "WHERE ConfigurationServiceAssoc.configId=? "+
-		 "ORDER BY ConfigurationServiceAssoc.sequenceNb ASC");
-	    preparedStatements.add(psSelectServices);
-	    
-	    psSelectEDSources =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " EDSources.superId," +
-		 " EDSources.templateId," +
-		 " ConfigurationEDSourceAssoc.configId," +
-		 " ConfigurationEDSourceAssoc.sequenceNb " +
-		 "FROM EDSources " +
-		 "JOIN ConfigurationEDSourceAssoc " +
-		 "ON EDSources.superId=ConfigurationEDSourceAssoc.edsourceId " +
-		 "WHERE ConfigurationEDSourceAssoc.configId=? " +
-		 "ORDER BY ConfigurationEDSourceAssoc.sequenceNb ASC");
-	    preparedStatements.add(psSelectEDSources);
-	    
-	    psSelectESSources =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " ESSources.superId," +
-		 " ESSources.templateId," +
-		 " ESSources.name," +
-		 " ConfigurationESSourceAssoc.configId," +
-		 " ConfigurationESSourceAssoc.sequenceNb " +
-		 "FROM ESSources " +
-		 "JOIN ConfigurationESSourceAssoc " +
-		 "ON ESSources.superId=ConfigurationESSourceAssoc.essourceId " +
-		 "WHERE ConfigurationESSourceAssoc.configId=? " +
-		 "ORDER BY ConfigurationESSourceAssoc.sequenceNb ASC");
-	    psSelectESSources.setFetchSize(32);
-	    preparedStatements.add(psSelectESSources);
-	    
-	    psSelectESModules =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " ESModules.superId," +
-		 " ESModules.templateId," +
-		 " ESModules.name," +
-		 " ConfigurationESModuleAssoc.configId," +
-		 " ConfigurationESModuleAssoc.sequenceNb " +
-		 "FROM ESModules " +
-		 "JOIN ConfigurationESModuleAssoc " +
-		 "ON ESModules.superId=ConfigurationESModuleAssoc.esmoduleId " +
-		 "WHERE ConfigurationESModuleAssoc.configId=? " +
-		 "ORDER BY ConfigurationESModuleAssoc.sequenceNb ASC");
-	    psSelectESModules.setFetchSize(32);
-	    preparedStatements.add(psSelectESModules);
-	    
-	    psSelectPaths =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " Paths.pathId," +
-		 " Paths.name," +
-		 " Paths.isEndPath," +
-		 " ConfigurationPathAssoc.configId," +
-		 " ConfigurationPathAssoc.sequenceNb " +
-		 "FROM Paths " +
-		 "JOIN ConfigurationPathAssoc " +
-		 "ON Paths.pathId=ConfigurationPathAssoc.pathId " +
-		 "WHERE ConfigurationPathAssoc.configId=? " +
-		 "ORDER BY ConfigurationPathAssoc.sequenceNb ASC");
-	    psSelectPaths.setFetchSize(64);
-	    preparedStatements.add(psSelectPaths);
-
-	    psSelectSequences =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " Sequences.sequenceId," +
-		 " Sequences.name," +
-		 " ConfigurationSequenceAssoc.configId," +
-		 " ConfigurationSequenceAssoc.sequenceNb " +
- 		 "FROM Sequences " +
-		 "JOIN ConfigurationSequenceAssoc " +
-		 "ON Sequences.sequenceId=ConfigurationSequenceAssoc.sequenceId " +
-		 "WHERE ConfigurationSequenceAssoc.configId=? " +
-		 "ORDER BY ConfigurationSequenceAssoc.sequenceNb ASC");
-	    psSelectSequences.setFetchSize(64);
-	    preparedStatements.add(psSelectSequences);
-
-	    psSelectModulesFromPaths =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " Modules.superId," +
-		 " Modules.templateId," +
-		 " Modules.name " +
-		 "FROM Modules " +
-		 "JOIN PathModuleAssoc " +
-		 "ON PathModuleAssoc.moduleId = Modules.superId " +
-		 "JOIN ConfigurationPathAssoc " +
-		 "ON PathModuleAssoc.pathId=ConfigurationPathAssoc.pathId " +
-		 "WHERE ConfigurationPathAssoc.configId=?");
-	    psSelectModulesFromPaths.setFetchSize(128);
-	    preparedStatements.add(psSelectModulesFromPaths);
-	    
-	    psSelectModulesFromSequences =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " Modules.superId," +
-		 " Modules.templateId," +
-		 " Modules.name " +
-		 "FROM Modules " +
-		 "JOIN SequenceModuleAssoc " +
-		 "ON SequenceModuleAssoc.moduleId = Modules.superId " +
-		 "JOIN ConfigurationSequenceAssoc " +
-		 "ON SequenceModuleAssoc.sequenceId=" +
-		 "ConfigurationSequenceAssoc.sequenceId " +
-		 "WHERE ConfigurationSequenceAssoc.configId=?");
-	    psSelectModulesFromSequences.setFetchSize(128);
-	    preparedStatements.add(psSelectModulesFromSequences);
-	    
-	    psSelectStreams =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " Streams.streamId," +
-		 " Streams.streamLabel " +
-		 "FROM Streams " +
-		 "WHERE Streams.configId=?");
-	    preparedStatements.add(psSelectStreams);
-	    
-	    psSelectStreamPathAssoc =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " StreamPathAssoc.streamId," +
-		 " StreamPathAssoc.pathId, " +
-		 " Paths.name " +
-		 "FROM StreamPathAssoc " +
-		 "JOIN Paths " +
-		 "ON Paths.pathId=StreamPathAssoc.pathId " +
-		 "WHERE StreamPathAssoc.streamId = ? "+
-		 "ORDER BY Paths.name ASC");
-	    preparedStatements.add(psSelectStreamPathAssoc);
-	    
-	    psSelectSequenceModuleAssoc =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " SequenceModuleAssoc.sequenceId," +
-		 " SequenceModuleAssoc.moduleId," +
-		 " SequenceModuleAssoc.sequenceNb " +
-		 "FROM SequenceModuleAssoc " +
-		 "WHERE SequenceModuleAssoc.sequenceId = ?");
-	    preparedStatements.add(psSelectSequenceModuleAssoc);
-	    
-	    psSelectPathPathAssoc =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " PathInPathAssoc.parentPathId," +
-		 " PathInPathAssoc.childPathId," +
-		 " PathInPathAssoc.sequenceNb " +
-		 "FROM PathInPathAssoc " +
-		 "WHERE PathInPathAssoc.parentPathId = ?"); 
-	    preparedStatements.add(psSelectPathPathAssoc);
-
-	    psSelectPathSequenceAssoc = 
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " PathSequenceAssoc.pathId," +
-		 " PathSequenceAssoc.sequenceId," +
-		 " PathSequenceAssoc.sequenceNb " +
-		 "FROM PathSequenceAssoc " +
-		 "WHERE PathSequenceAssoc.pathId = ?");
-	    preparedStatements.add(psSelectPathSequenceAssoc);
-	    
-	    psSelectSequenceSequenceAssoc = 
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " SequenceInSequenceAssoc.parentSequenceId," +
-		 " SequenceInSequenceAssoc.childSequenceId," +
-		 " SequenceInSequenceAssoc.sequenceNb " +
-		 "FROM SequenceInSequenceAssoc " +
-		 "WHERE SequenceInSequenceAssoc.parentSequenceId = ?");
-	    preparedStatements.add(psSelectSequenceSequenceAssoc);
-
-	    psSelectPathModuleAssoc =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " PathModuleAssoc.pathId," +
-		 " PathModuleAssoc.moduleId," +
-		 " PathModuleAssoc.sequenceNb " +
-		 "FROM PathModuleAssoc " +
-		 "WHERE PathModuleAssoc.pathId = ?"); 
-	    preparedStatements.add(psSelectPathModuleAssoc);
-
-	    psSelectParameters =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " Parameters.paramId," +
-		 " Parameters.name," +
-		 " Parameters.tracked," +
-		 " Parameters.paramTypeId," +
-		 " ParameterTypes.paramType," +
-		 " SuperIdParameterAssoc.superId," +
-		 " SuperIdParameterAssoc.sequenceNb " +
-		 "FROM Parameters " +
-		 "JOIN SuperIdParameterAssoc " +
-		 "ON SuperIdParameterAssoc.paramId = Parameters.paramId " +
-		 "JOIN ParameterTypes " +
-		 "ON Parameters.paramTypeId = ParameterTypes.paramTypeId " +
-		 "WHERE SuperIdParameterAssoc.superId = ? " +
-		 "ORDER BY SuperIdParameterAssoc.sequenceNb ASC");
-	    preparedStatements.add(psSelectParameters);
-	    
-	    psSelectParameterSets =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " ParameterSets.superId," +
-		 " ParameterSets.name," +
-		 " ParameterSets.tracked," +
-		 " SuperIdParamSetAssoc.superId," +
-		 " SuperIdParamSetAssoc.sequenceNb " +
-		 "FROM ParameterSets " +
-		 "JOIN SuperIdParamSetAssoc " +
-		 "ON SuperIdParamSetAssoc.psetId = ParameterSets.superId " +
-		 "WHERE SuperIdParamSetAssoc.superId = ? " +
-		 "ORDER BY SuperIdParamSetAssoc.sequenceNb ASC");
-	    preparedStatements.add(psSelectParameterSets);
-	    
-	    psSelectVecParameterSets =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " VecParameterSets.superId," +
-		 " VecParameterSets.name," +
-		 " VecParameterSets.tracked," +
-		 " SuperIdVecParamSetAssoc.superId," +
-		 " SuperIdVecParamSetAssoc.sequenceNb " +
-		 "FROM VecParameterSets " +
-		 "JOIN SuperIdVecParamSetAssoc " +
-		 "ON SuperIdVecParamSetAssoc.vpsetId=VecParameterSets.superId "+
-		 "WHERE SuperIdVecParamSetAssoc.superId = ? "+
-		 "ORDER BY SuperIdVecParamSetAssoc.sequenceNb ASC");
-	    preparedStatements.add(psSelectVecParameterSets);
-	    
-	    psSelectBoolParamValue =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" + 
-		 " BoolParamValues.paramId," +
-		 " BoolParamValues.value " +
-		 "FROM BoolParamValues " +
-		 "WHERE paramId = ?");
-	    preparedStatements.add(psSelectBoolParamValue);
-	    
-	    psSelectInt32ParamValue =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " Int32ParamValues.paramId," +
-		 " Int32ParamValues.value " +
-		 "FROM Int32ParamValues " +
-		 "WHERE paramId = ?");
-	    preparedStatements.add(psSelectInt32ParamValue);
-	    
-	    psSelectUInt32ParamValue =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " UInt32ParamValues.paramId," +
-		 " UInt32ParamValues.value " +
-		 "FROM UInt32ParamValues " +
-		 "WHERE paramId = ?");
-	    preparedStatements.add(psSelectUInt32ParamValue);
-
-	    psSelectDoubleParamValue =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " DoubleParamValues.paramId," +
-		 " DoubleParamValues.value " +
-		 "FROM DoubleParamValues " +
-		 "WHERE paramId = ?");
-	    preparedStatements.add(psSelectDoubleParamValue);
-
-	    psSelectStringParamValue =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " StringParamValues.paramId," +
-		 " StringParamValues.value " +
-		 "FROM StringParamValues " +
-		 "WHERE paramId = ?");
-	    preparedStatements.add(psSelectStringParamValue);
-
-	    psSelectEventIDParamValue =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " EventIDParamValues.paramId," +
-		 " EventIDParamValues.value " +
-		 "FROM EventIDParamValues " +
-		 "WHERE paramId = ?");
-	    preparedStatements.add(psSelectEventIDParamValue);
-
-	    psSelectInputTagParamValue =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " InputTagParamValues.paramId," +
-		 " InputTagParamValues.value " +
-		 "FROM InputTagParamValues " +
-		 "WHERE paramId = ?");
-	    preparedStatements.add(psSelectInputTagParamValue);
-
-	    psSelectFileInPathParamValue =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " FileInPathParamValues.paramId," +
-		 " FileInPathParamValues.value " +
-		 "FROM FileInPathParamValues " +
-		 "WHERE paramId = ?");
-	    preparedStatements.add(psSelectFileInPathParamValue);
-	    
-	    psSelectVInt32ParamValues =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " VInt32ParamValues.paramId," +
-		 " VInt32ParamValues.sequenceNb," +
-		 " VInt32ParamValues.value " +
-		 "FROM VInt32ParamValues " +
-		 "WHERE paramId = ? " +
-		 "ORDER BY sequenceNb ASC");
-	    preparedStatements.add(psSelectVInt32ParamValues);
-
-	    psSelectVUInt32ParamValues =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " VUInt32ParamValues.paramId," +
-		 " VUInt32ParamValues.sequenceNb," +
-		 " VUInt32ParamValues.value " +
-		 "FROM VUInt32ParamValues " +
-		 "WHERE paramId = ? " +
-		 "ORDER BY sequenceNb ASC");
-	    preparedStatements.add(psSelectVUInt32ParamValues);
-
-	    psSelectVDoubleParamValues =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " VDoubleParamValues.paramId," +
-		 " VDoubleParamValues.sequenceNb," +
-		 " VDoubleParamValues.value " +
-		 "FROM VDoubleParamValues " +
-		 "WHERE paramId = ? " + 
-		 "ORDER BY sequenceNb ASC");
-	    preparedStatements.add(psSelectVDoubleParamValues);
-
-	    psSelectVStringParamValues =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" + 
-		 " VStringParamValues.paramId," +
-		 " VStringParamValues.sequenceNb," +
-		 " VStringParamValues.value " +
-		 "FROM VStringParamValues " +
-		 "WHERE paramId = ? " +
-		 "ORDER BY sequenceNb ASC");
-	    preparedStatements.add(psSelectVStringParamValues);
-	    
-	    psSelectVEventIDParamValues =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" + 
-		 " VEventIDParamValues.paramId," +
-		 " VEventIDParamValues.sequenceNb," +
-		 " VEventIDParamValues.value " +
-		 "FROM VEventIDParamValues " +
-		 "WHERE paramId = ? " +
-		 "ORDER BY sequenceNb ASC");
-	    preparedStatements.add(psSelectVEventIDParamValues);
-	    
-	    psSelectVInputTagParamValues =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" + 
-		 " VInputTagParamValues.paramId," +
-		 " VInputTagParamValues.sequenceNb," +
-		 " VInputTagParamValues.value " +
-		 "FROM VInputTagParamValues " +
-		 "WHERE paramId = ? " +
-		 "ORDER BY sequenceNb ASC");
-	    preparedStatements.add(psSelectVInputTagParamValues);
 
 
 	    //
@@ -1209,7 +771,7 @@ public class ConfDB
 		
 		csLoadConfiguration =
 		    dbConnector.getConnection().prepareCall
-		    ("{ CALL get_configuration(?) }");
+		    ("{ CALL load_configuration(?) }");
 		csLoadConfiguration.setFetchSize(1024);
 		preparedStatements.add(csLoadConfiguration);
 		
@@ -1254,6 +816,12 @@ public class ConfDB
 		    ("{ CALL get_sequence_entries() }");
 		csGetSequenceEntries.setFetchSize(512);
 		preparedStatements.add(csGetSequenceEntries);
+
+		csGetStreamEntries =
+		    dbConnector.getConnection().prepareCall
+		    ("{ CALL get_stream_entries() }");
+		csGetStreamEntries.setFetchSize(128);
+		preparedStatements.add(csGetStreamEntries);
 	    }
 	    // Oracle
 	    else {
@@ -1337,6 +905,13 @@ public class ConfDB
 		csGetSequenceEntries.registerOutParameter(1,OracleTypes.CURSOR);
 		csGetSequenceEntries.setFetchSize(512);
 		preparedStatements.add(csGetSequenceEntries);
+
+		csGetStreamEntries =
+		    dbConnector.getConnection().prepareCall
+		    ("begin ? := get_stream_entries(); end;");
+		csGetStreamEntries.registerOutParameter(1,OracleTypes.CURSOR);
+		csGetStreamEntries.setFetchSize(128);
+		preparedStatements.add(csGetStreamEntries);
 	    }
 	}
 	catch (SQLException e) {
@@ -1349,8 +924,6 @@ public class ConfDB
 	paramTypeIdHashMap       = new HashMap<String,Integer>();
 	isVectorParamHashMap     = new HashMap<Integer,Boolean>();
 	insertParameterHashMap   = new HashMap<String,PreparedStatement>();
-	selectParameterHashMap   = new HashMap<String,PreparedStatement>();
-	selectParameterIdHashMap = new HashMap<Integer,PreparedStatement>();
 	
 	insertParameterHashMap.put("bool",      psInsertBoolParamValue);
 	insertParameterHashMap.put("int32",     psInsertInt32ParamValue);
@@ -1366,21 +939,6 @@ public class ConfDB
 	insertParameterHashMap.put("InputTag",  psInsertInputTagParamValue);
 	insertParameterHashMap.put("VInputTag", psInsertVInputTagParamValue);
 	insertParameterHashMap.put("FileInPath",psInsertFileInPathParamValue);
-	
-	selectParameterHashMap.put("bool",      psSelectBoolParamValue);
-	selectParameterHashMap.put("int32",     psSelectInt32ParamValue);
-	selectParameterHashMap.put("vint32",    psSelectVInt32ParamValues);
-	selectParameterHashMap.put("uint32",    psSelectUInt32ParamValue);
-	selectParameterHashMap.put("vuint32",   psSelectVUInt32ParamValues);
-	selectParameterHashMap.put("double",    psSelectDoubleParamValue);
-	selectParameterHashMap.put("vdouble",   psSelectVDoubleParamValues);
-	selectParameterHashMap.put("string",    psSelectStringParamValue);
-	selectParameterHashMap.put("vstring",   psSelectVStringParamValues);
-	selectParameterHashMap.put("EventID",   psSelectEventIDParamValue);
-	selectParameterHashMap.put("VEventID",  psSelectVEventIDParamValues);
-	selectParameterHashMap.put("InputTag",  psSelectInputTagParamValue);
-	selectParameterHashMap.put("VInputTag", psSelectVInputTagParamValues);
-	selectParameterHashMap.put("FileInPath",psSelectFileInPathParamValue);
 
 	ResultSet rs = null;
 	try {
@@ -1396,9 +954,9 @@ public class ConfDB
 	    while (rs.next()) {
 		int               typeId = rs.getInt(1);
 		String            type   = rs.getString(2);
-		PreparedStatement ps     = selectParameterHashMap.get(type);
+		//PreparedStatement ps     = selectParameterHashMap.get(type);
 		paramTypeIdHashMap.put(type,typeId);
-		selectParameterIdHashMap.put(typeId,ps);
+		//selectParameterIdHashMap.put(typeId,ps);
 		if (type.startsWith("v")||type.startsWith("V"))
 		    isVectorParamHashMap.put(typeId,true);
 		else
@@ -1428,82 +986,6 @@ public class ConfDB
 	preparedStatements.clear();
     }
     
-
-    /** create a prepared statement to select parameters,needed for recursive calls */
-    private PreparedStatement createSelectParametersPS()
-    {
-	PreparedStatement result = null;
-	try {
-	    result = dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " Parameters.paramId," +
-		 " Parameters.name," +
-		 " Parameters.tracked," +
-		 " Parameters.paramTypeId," +
-		 " ParameterTypes.paramType," +
-		 " SuperIdParameterAssoc.superId," +
-		 " SuperIdParameterAssoc.sequenceNb " +
-		 "FROM Parameters " +
-		 "JOIN SuperIdParameterAssoc " +
-		 "ON SuperIdParameterAssoc.paramId = Parameters.paramId " +
-		 "JOIN ParameterTypes " +
-		 "ON Parameters.paramTypeId = ParameterTypes.paramTypeId " +
-		 "WHERE SuperIdParameterAssoc.superId = ? " +
-		 "ORDER BY SuperIdParameterAssoc.sequenceNb ASC");	
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	}
-	return result;
-    }
-
-    /** create a prepared statement to select psets, needed for recursive calls */
-    private PreparedStatement createSelectParameterSetsPS()
-    {
-	PreparedStatement result = null;
-	try { 
-	    result = dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " ParameterSets.superId," +
-		 " ParameterSets.name," +
-		 " ParameterSets.tracked," +
-		 " SuperIdParamSetAssoc.superId," +
-		 " SuperIdParamSetAssoc.sequenceNb " +
-		 "FROM ParameterSets " +
-		 "JOIN SuperIdParamSetAssoc " +
-		 "ON SuperIdParamSetAssoc.psetId = ParameterSets.superId " +
-		 "WHERE SuperIdParamSetAssoc.superId = ? " +
-		 "ORDER BY SuperIdParamSetAssoc.sequenceNb ASC");
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	}
-	return result;
-    }
-
-    /** create a prepared statement to select vpsets, needed for recursive calls */
-    private PreparedStatement createSelectVecParameterSetsPS()
-    {
-	PreparedStatement result = null;
-	try {
-	    result = dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " VecParameterSets.superId," +
-		 " VecParameterSets.name," +
-		 " VecParameterSets.tracked," +
-		 " SuperIdVecParamSetAssoc.superId," +
-		 " SuperIdVecParamSetAssoc.sequenceNb " +
-		 "FROM VecParameterSets " +
-		 "JOIN SuperIdVecParamSetAssoc " +
-		 "ON SuperIdVecParamSetAssoc.vpsetId=VecParameterSets.superId "+
-		 "WHERE SuperIdVecParamSetAssoc.superId = ? "+
-		 "ORDER BY SuperIdVecParamSetAssoc.sequenceNb ASC");
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	}
-	return result;
-    }
 
     /** connect to the database */
     public boolean connect(String dbType,String dbUrl,String dbUser,String dbPwrd)
@@ -1693,6 +1175,7 @@ public class ConfDB
     /** load a software release (all templates) */
     public void loadSoftwareRelease(int releaseId,SoftwareRelease release)
     {
+	// TODO: set releaseTag!?
 	try {
 	    csLoadTemplates.setInt(1,releaseId);
 	}
@@ -1705,6 +1188,7 @@ public class ConfDB
     /** load a software release (all templates) */
     public void loadSoftwareRelease(String releaseTag,SoftwareRelease release)
     {
+	release.clear(releaseTag);
 	int releaseId = getReleaseId(releaseTag);
 	if (releaseId<=0) return;
 	loadSoftwareRelease(releaseId,release);
@@ -1713,6 +1197,7 @@ public class ConfDB
     /** load a partial software release */
     public void loadPartialSoftwareRelease(int configId,SoftwareRelease release)
     {
+	//TODO: set release tag
 	try {
 	    csLoadTemplatesForConfig.setInt(1,configId);
 	}
@@ -1726,6 +1211,7 @@ public class ConfDB
     public void loadPartialSoftwareRelease(String configName,
 					   SoftwareRelease release)
     {
+	// TODO: set releasetag
 	int configId = getConfigId(configName);
 	if (configId<=0) return;
 	loadPartialSoftwareRelease(configId,release);
@@ -1990,9 +1476,10 @@ public class ConfDB
 	String        releaseTag  = configInfo.releaseTag();
 	String        processName = null;	
 
-	if (!releaseTag.equals(release.releaseTag()))
+	if (!releaseTag.equals(release.releaseTag())) {
 	    loadSoftwareRelease(releaseTag,release);
-	
+	}
+
 	ResultSet rs = null;
 	try {
 	    psSelectConfigurationProcessName.setInt(1,configInfo.dbId());
@@ -2063,7 +1550,8 @@ public class ConfDB
 	ResultSet rsStringValues    = null;
 	ResultSet rsPathEntries     = null;
 	ResultSet rsSequenceEntries = null;
-
+	ResultSet rsStreamEntries   = null;
+	
 	SoftwareRelease release = config.release();
 
 	try {
@@ -2077,7 +1565,8 @@ public class ConfDB
 		csGetStringValues.executeUpdate();
 		csGetPathEntries.executeUpdate();
 		csGetSequenceEntries.executeUpdate();
-		
+		csGetStreamEntries.executeUpdate();
+
 		rsInstances       = csLoadConfiguration.getResultSet();
 		rsParameters      = csGetParameters.getResultSet();
 		rsBooleanValues   = csGetBooleanValues.getResultSet();
@@ -2086,6 +1575,7 @@ public class ConfDB
 		rsStringValues    = csGetStringValues.getResultSet();
 		rsPathEntries     = csGetPathEntries.getResultSet();
 		rsSequenceEntries = csGetSequenceEntries.getResultSet();
+		rsStreamEntries   = csGetStreamEntries.getResultSet();
 	    }
 	    else {
 		csLoadConfiguration.setInt(2,configId);
@@ -2097,6 +1587,7 @@ public class ConfDB
 		csGetStringValues.execute();
 		csGetPathEntries.execute();
 		csGetSequenceEntries.execute();
+		csGetStreamEntries.execute();
 
 		rsInstances      = (ResultSet)csLoadConfiguration.getObject(1);
 		rsParameters     = (ResultSet)csGetParameters.getObject(1);
@@ -2106,6 +1597,7 @@ public class ConfDB
 		rsStringValues   = (ResultSet)csGetStringValues.getObject(1);
 		rsPathEntries    = (ResultSet)csGetPathEntries.getObject(1);
 		rsSequenceEntries= (ResultSet)csGetSequenceEntries.getObject(1);
+		rsStreamEntries  = (ResultSet)csGetStreamEntries.getObject(1);
 	    }
 
 	    HashMap<Integer,Instance> idToInstances =
@@ -2122,6 +1614,9 @@ public class ConfDB
 
 	    HashMap<Integer,Sequence> idToSequences =
 		new HashMap<Integer,Sequence>();
+	    
+	    HashMap<Integer,Stream> idToStreams =
+		new HashMap<Integer,Stream>();
 	    
 	    HashMap<Instance,ArrayList<Parameter> > instanceParams =
 		new HashMap<Instance,ArrayList<Parameter> >();
@@ -2185,7 +1680,7 @@ public class ConfDB
 		    idToInstances.put(id,service);
 		    instanceParams.put(service,new ArrayList<Parameter>());
 		}
-		else if (type.equals("Module")) {
+		else if (type.equals("Module")&&!idToInstances.containsKey(id)){
 		    int insertIndex = config.moduleCount();
 		    templateName = release.moduleTemplateName(templateId);
 		    Instance module = config.insertModule(templateName,
@@ -2208,6 +1703,12 @@ public class ConfDB
 		    sequence.setDatabaseId(id);
 		    idToSequences.put(id,sequence);
 		}
+		else if (type.equals("Stream")) {
+		    int insertIndex = config.streamCount();
+		    Stream stream = config.insertStream(insertIndex,
+							instanceName);
+		    idToStreams.put(id,stream);
+		}
 	    }
 	    
 	    HashMap<Integer,String> idToValueAsString =
@@ -2215,6 +1716,8 @@ public class ConfDB
 	    
 	    while (rsBooleanValues.next()) {
 		int    parameterId   = rsBooleanValues.getInt(1);
+		if (idToValueAsString.containsKey(parameterId)) continue;
+		
 		String valueAsString =
 		    (new Boolean(rsBooleanValues.getBoolean(2))).toString();
 		idToValueAsString.put(parameterId,valueAsString);
@@ -2222,6 +1725,8 @@ public class ConfDB
 	    
 	    while (rsIntValues.next()) {
 		int     parameterId   = rsIntValues.getInt(1);
+		if (idToValueAsString.containsKey(parameterId)) continue;	
+
 		String  valueAsString =
 		    (new Integer(rsIntValues.getInt(2))).toString();
 		Integer sequenceNb    = new Integer(rsIntValues.getInt(3));
@@ -2236,6 +1741,8 @@ public class ConfDB
 	    
 	    while (rsRealValues.next()) {
 		int     parameterId   = rsRealValues.getInt(1);
+		if (idToValueAsString.containsKey(parameterId)) continue;
+		
 		String  valueAsString =
 		    (new Double(rsRealValues.getDouble(2))).toString();
 		Integer sequenceNb    = new Integer(rsRealValues.getInt(3));
@@ -2250,6 +1757,8 @@ public class ConfDB
 	    
 	    while (rsStringValues.next()) {
 		int     parameterId   = rsStringValues.getInt(1);
+		if (idToValueAsString.containsKey(parameterId)) continue;
+
 		String  valueAsString = rsStringValues.getString(2);
 		Integer sequenceNb    = new Integer(rsStringValues.getInt(3));
 		if (sequenceNb!=null&&
@@ -2267,6 +1776,8 @@ public class ConfDB
 		boolean isTrkd   = rsParameters.getBoolean(4);
 		int     seqNb    = rsParameters.getInt(5);
 		int     parentId = rsParameters.getInt(6);
+		
+		if (!idToValueAsString.containsKey(id)) continue;
 		
 		String valueAsString = idToValueAsString.remove(id);
 		if (valueAsString==null) valueAsString=new String();
@@ -2359,7 +1870,8 @@ public class ConfDB
 	    while (rsSequenceEntries.next()) {
 		int    sequenceId = rsSequenceEntries.getInt(1);
 		int    entryId    = rsSequenceEntries.getInt(2);
-		String entryType  = rsSequenceEntries.getString(3);
+		int    sequenceNb = rsSequenceEntries.getInt(3);
+		String entryType  = rsSequenceEntries.getString(4);
 		
 		Sequence sequence = idToSequences.get(sequenceId);
 		int      index    = sequence.entryCount();
@@ -2379,9 +1891,10 @@ public class ConfDB
 	    }
 
 	    while (rsPathEntries.next()) {
-		int    pathId    = rsPathEntries.getInt(1);
-		int    entryId   = rsPathEntries.getInt(2);
-		String entryType = rsPathEntries.getString(3);
+		int    pathId     = rsPathEntries.getInt(1);
+		int    entryId    = rsPathEntries.getInt(2);
+		int    sequenceNb = rsPathEntries.getInt(3);
+		String entryType  = rsPathEntries.getString(4);
 		
 		Path path  = idToPaths.get(pathId);
 		int  index = path.entryCount();
@@ -2402,6 +1915,15 @@ public class ConfDB
 		else
 		    System.err.println("Invalid entryType '"+entryType+"'");
 	    }
+	    
+	    while (rsStreamEntries.next()) {
+		int    streamId = rsStreamEntries.getInt(1);
+		int    pathId   = rsStreamEntries.getInt(2);
+		Stream stream   = idToStreams.get(streamId);
+		Path   path     = idToPaths.get(pathId);
+		stream.insertPath(path);
+	    }
+	
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
@@ -2416,561 +1938,6 @@ public class ConfDB
 	}
 	
 	return result;
-    }
-    
-    /** fill an empty configuration *after* template hash maps were filled! */
-    private boolean loadConfigurationOld(Configuration config)
-    {
-	boolean   result   = true;
-	int       configId = config.dbId();
-	ResultSet rs       = null;
-	
-	SoftwareRelease release = config.release();
-	
-	try {
-	    // load global PSets
-	    psSelectGlobalPSets.setInt(1,configId);
-	    rs = psSelectGlobalPSets.executeQuery();
-	    while (rs.next()) {
-		int     psetId     = rs.getInt(1);
-		String  psetName   = rs.getString(2);
-		boolean psetIsTrkd = rs.getBoolean(3); 
-		
-		PSetParameter pset =
-		    (PSetParameter)ParameterFactory
-		    .create("PSet",psetName,"",psetIsTrkd,false);
-		
-		ArrayList<Parameter> psetParameters = new ArrayList<Parameter>();
-		loadParameters(psetId,psetParameters,psSelectParameters);
-		loadParameterSets(psetId,psetParameters,psSelectParameterSets);
-		loadVecParameterSets(psetId,psetParameters,psSelectVecParameterSets);
-		
-		boolean allParamsFound=true;
-		for (Parameter p : psetParameters) if (p==null) allParamsFound=false;
-		
-		if (allParamsFound) {
-		    for (Parameter p : psetParameters) pset.addParameter(p);
-		    config.insertPSet(pset);
-		}
-		else {
-		    System.out.println("Failed to load global PSet '"+psetName+"'.");
-		}
-	    }
-	    
-
-	    // load EDSource
-	    psSelectEDSources.setInt(1,configId);
-	    rs = psSelectEDSources.executeQuery();
-	    if (rs.next()) {
-		int      edsourceId   = rs.getInt(1);
-		int      templateId   = rs.getInt(2);
-		String   templateName = release.edsourceTemplateName(templateId);
-		Instance edsource     = config.insertEDSource(templateName);
-		
-		loadInstanceParameters(edsourceId,edsource);
-		loadInstanceParameterSets(edsourceId,edsource);
-		loadInstanceVecParameterSets(edsourceId,edsource);
-		edsource.setDatabaseId(edsourceId);
-	    }
-	    
-	    
-	    // load ESSources 
-	    psSelectESSources.setInt(1,configId);
-	    rs = psSelectESSources.executeQuery();
-	    int insertIndex = 0;
-	    while (rs.next()) {
-		int      essourceId   = rs.getInt(1);
-		int      templateId   = rs.getInt(2);
-		String   instanceName = rs.getString(3);
-		String   templateName = release.essourceTemplateName(templateId);
-		Instance essource     = config.insertESSource(insertIndex,
-							      templateName,
-							      instanceName);
-
-		loadInstanceParameters(essourceId,essource);
-		loadInstanceParameterSets(essourceId,essource);
-		loadInstanceVecParameterSets(essourceId,essource);
-		essource.setDatabaseId(essourceId);
-		
-		insertIndex++;
-	    }
-	    
-	    // load ESModules 
-	    psSelectESModules.setInt(1,configId);
-	    rs = psSelectESModules.executeQuery();
-	    insertIndex = 0;
-	    while (rs.next()) {
-		int      esmoduleId   = rs.getInt(1);
-		int      templateId   = rs.getInt(2);
-		String   instanceName = rs.getString(3);
-		String   templateName = release.esmoduleTemplateName(templateId);
-		Instance esmodule     = config.insertESModule(insertIndex,
-							      templateName,
-							      instanceName);
-
-		loadInstanceParameters(esmoduleId,esmodule);
-		loadInstanceParameterSets(esmoduleId,esmodule);
-		loadInstanceVecParameterSets(esmoduleId,esmodule);
-		esmodule.setDatabaseId(esmoduleId);
-		
-		insertIndex++;
-	    }
-	    
-	    // load Services
-	    psSelectServices.setInt(1,configId);
-	    rs = psSelectServices.executeQuery();
-	    insertIndex = 0;
-	    while (rs.next()) {
-		int      serviceId    = rs.getInt(1);
-		int      templateId   = rs.getInt(2);
-		String   templateName = release.serviceTemplateName(templateId);
-		Instance service      = config.insertService(insertIndex,
-							     templateName);
-
-		loadInstanceParameters(serviceId,service);
-		loadInstanceParameterSets(serviceId,service);
-		loadInstanceVecParameterSets(serviceId,service);
-		service.setDatabaseId(serviceId);
-		
-		insertIndex++;
-	    }
-	    
-	    // load all Paths
-	    HashMap<Integer,Path> pathHashMap =
-		new HashMap<Integer,Path>();
-	    psSelectPaths.setInt(1,configId);
-	    rs = psSelectPaths.executeQuery();
-	    while (rs.next()) {
-		int     pathId        = rs.getInt(1);
-		String  pathName      = rs.getString(2);
-		boolean pathIsEndPath = rs.getBoolean(3);
-		int     pathIndex     = rs.getInt(5);
-		Path    path          = config.insertPath(pathIndex,pathName);
-		path.setDatabaseId(pathId);
-		path.setAsEndPath(pathIsEndPath);
-		pathHashMap.put(pathId,path);
-	    }
-	    
-	    // load all Sequences
-	    HashMap<Integer,Sequence> sequenceHashMap =
-		new HashMap<Integer,Sequence>();
-	    psSelectSequences.setInt(1,configId);
-	    rs = psSelectSequences.executeQuery();
-	    while (rs.next()) {
-		int seqId = rs.getInt(1);
-		if (!sequenceHashMap.containsKey(seqId)) {
-		    String    seqName  = rs.getString(2);
-		    Sequence  sequence = config.insertSequence(config.sequenceCount(),
-							       seqName);
-		    sequence.setDatabaseId(seqId);
-		    sequenceHashMap.put(seqId,sequence);
-		}
-	    }
-	    
-	    // load all Modules
-	    HashMap<Integer,ModuleInstance> moduleHashMap =
-		new HashMap<Integer,ModuleInstance>();
-	    
-	    // from paths
-	    psSelectModulesFromPaths.setInt(1,configId);
-	    rs = psSelectModulesFromPaths.executeQuery();
-	    while (rs.next()) {
-		int moduleId = rs.getInt(1);
-		if (!moduleHashMap.containsKey(moduleId)) {
-		    int    templateId   = rs.getInt(2);
-		    String instanceName = rs.getString(3);
-		    String templateName = release.moduleTemplateName(templateId);
-
-		    ModuleInstance module = config.insertModule(templateName,
-								instanceName);
-		    
-		    loadInstanceParameters(moduleId,module);
-		    loadInstanceParameterSets(moduleId,module);
-		    loadInstanceVecParameterSets(moduleId,module);
-
-		    module.setDatabaseId(moduleId);
-		    
-		    moduleHashMap.put(moduleId,module);
-		}
-	    }
-	    
-	    // from sequences
-	    psSelectModulesFromSequences.setInt(1,configId);
-	    rs = psSelectModulesFromSequences.executeQuery();
-	    while (rs.next()) {
-		int moduleId = rs.getInt(1);
-		if (!moduleHashMap.containsKey(moduleId)) {
-		    int    templateId   = rs.getInt(2);
-		    String instanceName = rs.getString(3);
-		    String templateName = release.moduleTemplateName(templateId);
-
-		    ModuleInstance module = config.insertModule(templateName,
-								instanceName);
-		    
-		    loadInstanceParameters(moduleId,module);
-		    loadInstanceParameterSets(moduleId,module);
-		    loadInstanceVecParameterSets(moduleId,module);
-		    
-		    module.setDatabaseId(moduleId);
-		    
-		    moduleHashMap.put(moduleId,module);
-		}
-	    }
-	    
-	    // loop over all Sequences and insert all Module References
-	    for (Map.Entry<Integer,Sequence> e : sequenceHashMap.entrySet()) {
-		int      sequenceId = e.getKey();
-		Sequence sequence   = e.getValue();
-		
-		HashMap<Integer,Referencable> refHashMap=
-		    new HashMap<Integer,Referencable>();
-		
-		// sequences to be referenced
-		psSelectSequenceSequenceAssoc.setInt(1,sequenceId);
-		rs = psSelectSequenceSequenceAssoc.executeQuery();
-		while (rs.next()) {
-		    int childSeqId    = rs.getInt(2);
-		    int sequenceNb    = rs.getInt(3);
-		    Sequence childSequence = sequenceHashMap.get(childSeqId);
-		    refHashMap.put(sequenceNb,childSequence);
-		}
-		
-		// modules to be referenced
-		psSelectSequenceModuleAssoc.setInt(1,sequenceId);
-		rs = psSelectSequenceModuleAssoc.executeQuery();
-		while (rs.next()) {
-		    int moduleId   = rs.getInt(2);
-		    int sequenceNb = rs.getInt(3);
-		    ModuleInstance module = moduleHashMap.get(moduleId);
-		    refHashMap.put(sequenceNb,module);
-		}
-
-		// check that the keys are 0...size-1
-		Set<Integer> keys = refHashMap.keySet();
-		Set<Integer> requiredKeys = new HashSet<Integer>();
-		for (int i=0;i<refHashMap.size();i++)
-		    requiredKeys.add(new Integer(i));
-		if (!keys.containsAll(requiredKeys))
-		    System.out.println("ConfDB.loadConfiguration ERROR:" +
-				       "sequence '"+sequence.name()+"' has invalid " +
-				       "key set!");
-		
-		// add references to sequence
-		for (int i=0;i<refHashMap.size();i++) {
-		    Referencable r = refHashMap.get(i);
-		    if (r instanceof Sequence) {
-			Sequence s = (Sequence)r;
-			config.insertSequenceReference(sequence,i,s);
-		    }
-		    else if (r instanceof ModuleInstance) {
-			ModuleInstance m = (ModuleInstance)r;
-			config.insertModuleReference(sequence,i,m);
-		    }
-		}
-		sequence.setDatabaseId(sequenceId);
-	    }
-	    
-	    // loop over Paths and insert references
-	    for (Map.Entry<Integer,Path> e : pathHashMap.entrySet()) {
-		int  pathId = e.getKey();
-		Path path   = e.getValue();
-		
-		HashMap<Integer,Referencable> refHashMap=
-		    new HashMap<Integer,Referencable>();
-		
-		// paths to be referenced
-		psSelectPathPathAssoc.setInt(1,pathId);
-		rs = psSelectPathPathAssoc.executeQuery();
-		while (rs.next()) {
-		    int childPathId = rs.getInt(2);
-		    int sequenceNb  = rs.getInt(3);
-		    Path childPath  = pathHashMap.get(childPathId);
-		    refHashMap.put(sequenceNb,childPath);
-		}
-
-		// sequences to be referenced
-		psSelectPathSequenceAssoc.setInt(1,pathId);
-		rs = psSelectPathSequenceAssoc.executeQuery();
-		while (rs.next()) {
-		    int sequenceId    = rs.getInt(2);
-		    int sequenceNb    = rs.getInt(3);
-		    Sequence sequence = sequenceHashMap.get(sequenceId);
-		    refHashMap.put(sequenceNb,sequence);
-		}
-
-		// modules to be referenced
-		psSelectPathModuleAssoc.setInt(1,pathId);
-		rs = psSelectPathModuleAssoc.executeQuery();
-		while (rs.next()) {
-		    int moduleId   = rs.getInt(2);
-		    int sequenceNb = rs.getInt(3);
-		    ModuleInstance module = moduleHashMap.get(moduleId);
-		    refHashMap.put(sequenceNb,module);
-		}
-		
-		// check that the keys are 0...size-1
-		Set<Integer> keys = refHashMap.keySet();
-		Set<Integer> requiredKeys = new HashSet<Integer>();
-		for (int i=0;i<refHashMap.size();i++)
-		    requiredKeys.add(new Integer(i));
-		if (!keys.containsAll(requiredKeys))
-		    System.out.println("ConfDB.loadConfiguration ERROR:" +
-				       "path '"+path.name()+"' has invalid " +
-				       "key set!");
-		
-		// add references to path
-		for (int i=0;i<refHashMap.size();i++) {
-		    Referencable r = refHashMap.get(i);
-		    if (r instanceof Path) {
-			Path p = (Path)r;
-			config.insertPathReference(path,i,p);
-		    }
-		    else if (r instanceof Sequence) {
-			Sequence s = (Sequence)r;
-			config.insertSequenceReference(path,i,s);
-		    }
-		    else if (r instanceof ModuleInstance) {
-			ModuleInstance m = (ModuleInstance)r;
-			config.insertModuleReference(path,i,m);
-		    }
-		}
-		path.setDatabaseId(pathId);
-	    }
-
-	    // load streams
-	    psSelectStreams.setInt(1,configId);
-	    rs = psSelectStreams.executeQuery();
-	    while (rs.next()) {
-		int     streamId      = rs.getInt(1);
-		String  streamLabel   = rs.getString(2);
-		Stream  stream        = config.insertStream(config.streamCount(),
-							    streamLabel);
-		
-		ResultSet rs2 = null;
-		try {
-		    psSelectStreamPathAssoc.setInt(1,streamId);
-		    rs2 = psSelectStreamPathAssoc.executeQuery();
-		    while (rs2.next()) {
-			int  pathId = rs2.getInt(2);
-			Path path   = pathHashMap.get(pathId);
-			stream.insertPath(path);
-		    }
-		}
-		catch (SQLException e) {
-		    e.printStackTrace();
-		    return false;
-		}
-		finally {
-		    dbConnector.release(rs2);
-		}
-	    }
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	    result = false;
-	}
-	finally {
-	    dbConnector.release(rs);
-	}
-	
-	return result;
-    }
-    
-    /** load parameters */
-    public boolean loadParameters(int superId,ArrayList<Parameter> parameters,
-				  PreparedStatement stmt)
-    {
-	boolean result = true;
-	ResultSet rs = null;
-	PreparedStatement ps = stmt;
-	try {
-	    if (ps==null) ps = createSelectParametersPS();
-	    ps.setInt(1,superId);
-	    rs = ps.executeQuery();
-	    while (rs.next()) {
-		int     paramId      = rs.getInt(1);
-		String  paramName    = rs.getString(2);
-		boolean paramIsTrkd  = rs.getBoolean(3);
-		int     paramTypeId  = rs.getInt(4);
-		String  paramType    = rs.getString(5);
-		int     sequenceNb   = rs.getInt(7);
-		
-		String  paramValue   = loadParamValue(paramId,paramTypeId);
-		
-		Parameter p = ParameterFactory.create(paramType,
-						      paramName,
-						      paramValue,
-						      paramIsTrkd,
-						      true);
-		
-		while (parameters.size()<=sequenceNb) parameters.add(null);
-		parameters.set(sequenceNb,p);
-	    }
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	    result = false;
-	}
-	finally {
-	    dbConnector.release(rs);
-	    if (stmt==null) try { ps.close(); } catch (SQLException ex) {}
-	}
-	return result;
-    }
-    
-    /** load ParameterSets */
-    public boolean loadParameterSets(int superId,ArrayList<Parameter> parameters,
-				     PreparedStatement stmt)
-    {
-	boolean result = true;
-	ResultSet rs = null;
-	PreparedStatement ps = stmt;
-	try {
-	    if (ps==null) ps = createSelectParameterSetsPS();
-	    ps.setInt(1,superId);
-	    rs = ps.executeQuery();
-	    while (rs.next()) {
-		int     psetId     = rs.getInt(1);
-		String  psetName   = rs.getString(2);
-		boolean psetIsTrkd = rs.getBoolean(3); 
-		int     sequenceNb = rs.getInt(5);
-		
-		if (psetName==null) psetName = new String(); // Oracle :|
-
-		PSetParameter pset =
-		    (PSetParameter)ParameterFactory
-		    .create("PSet",psetName,"",psetIsTrkd,true);
-		
-		ArrayList<Parameter> psetParameters = new ArrayList<Parameter>();
-		loadParameters(psetId,psetParameters,null);
-		loadParameterSets(psetId,psetParameters,null);
-		loadVecParameterSets(psetId,psetParameters,null);
-		
-		boolean allParamsFound=true;
-		for (Parameter p : psetParameters) if (p==null) allParamsFound=false;
-
-		while (parameters.size()<=sequenceNb)  parameters.add(null);
-		
-		//if (allParamsFound) {
-		for (Parameter p : psetParameters) if (p!=null) pset.addParameter(p);
-		parameters.set(sequenceNb,pset);
-		//}
-		//else {
-		if (!allParamsFound) {
-		    System.out.println("WARNING PSet '"+psetName+"' is incomplete!");
-		    // DEBUG
-		    //int i=0;
-		    //for (Parameter p : psetParameters) {
-		    //	if (p==null) 
-		    //	    System.out.println("  "+i+". MISSING");
-		    //	else
-		    //	    System.out.println("  "+i+". "+p.name()+" / "+p.type());
-		    //	i++;
-		    //}
-		    // END DEBUG
-		    
-		    //parameters.set(sequenceNb,null);
-		    //result = false;
-		}
-	    }
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	    result = false;
-	}
-	finally {
-	    dbConnector.release(rs);
-	    if (stmt==null) try { ps.close(); } catch (SQLException ex) {}
-	}
-	return result;
-    }
-    
-    /** load vector<ParameterSet>s */
-    public boolean loadVecParameterSets(int superId,ArrayList<Parameter> parameters,
-					PreparedStatement stmt)
-    {
-	boolean result = true;
-	ResultSet rs = null;
-	PreparedStatement ps = stmt;
-	try {
-	    if (ps==null) ps = createSelectVecParameterSetsPS();
-	    ps.setInt(1,superId);
-	    rs = ps.executeQuery();
-	    while (rs.next()) {
-		int     vpsetId     = rs.getInt(1);
-		String  vpsetName   = rs.getString(2);
-		boolean vpsetIsTrkd = rs.getBoolean(3);
-		int     sequenceNb  = rs.getInt(5);
-		
-		if (vpsetName == null) vpsetName = new String(); // Oracle :|
-
-		VPSetParameter vpset =
-		    (VPSetParameter)ParameterFactory
-		    .create("VPSet",vpsetName,"",vpsetIsTrkd,true);
-		
-		ArrayList<Parameter> vpsetParameters = new ArrayList<Parameter>();
-		loadParameterSets(vpsetId,vpsetParameters,null);
-
-		boolean allPSetsFound = true;
-		for (Parameter p : vpsetParameters) if (p==null) allPSetsFound=false;
-
-		while (parameters.size()<=sequenceNb)  parameters.add(null);
-		
-		if (allPSetsFound) {
-		    for (Parameter p : vpsetParameters) {
-			PSetParameter pset = (PSetParameter)p;
-			vpset.addParameterSet(pset);
-		    }
-		    parameters.set(sequenceNb,vpset);
-		}
-		else {
-		    parameters.set(sequenceNb,null);
-		    result = false;
-		}
-	    }
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	    result = false;
-	}
-	finally {
-	    dbConnector.release(rs);
-	    if (stmt==null) try { ps.close(); } catch (SQLException ex) {}
-	}
-	return result;
-    }
-    
-    /** load *instance* (overwritten) parameters */
-    public boolean loadInstanceParameters(int instanceId,Instance instance)
-    {
-	ArrayList<Parameter> parameters = new ArrayList<Parameter>();
-	loadParameters(instanceId,parameters,psSelectParameters);
-	for (Parameter p : parameters)
-	    if (p!=null)
-		instance.updateParameter(p.name(),p.type(),p.valueAsString());
-	return true;
-    }
-    
-    /** load *instance* (overwritten) ParameterSets */
-    public boolean loadInstanceParameterSets(int instanceId,Instance instance)
-    {
-	ArrayList<Parameter> psets = new ArrayList<Parameter>();
-	loadParameterSets(instanceId,psets,psSelectParameterSets);
-	for (Parameter p : psets)
-	    if (p!=null)
-		instance.updateParameter(p.name(),p.type(),p.valueAsString());
-	return true;
-    }
-    
-    /** load *instance* (overwritten) vector<ParameterSet>s */
-    public boolean loadInstanceVecParameterSets(int instanceId,Instance instance)
-    {
-	ArrayList<Parameter> vpsets = new ArrayList<Parameter>();
-	loadVecParameterSets(instanceId,vpsets,psSelectVecParameterSets);
-	for (Parameter p : vpsets)
-	    if (p!=null)
-		instance.updateParameter(p.name(),p.type(),p.valueAsString());
-	return true;
     }
     
     /** insert a new directory */
@@ -3089,7 +2056,8 @@ public class ConfDB
 	    result = false;
 	}
 	catch (DatabaseException e) {
-	    System.err.println("FAILED to store configuration: " + e.getMessage());
+	    System.err.println("FAILED to store configuration: " +
+			       e.getMessage());
 	    result = false;
 	}
 	finally {
@@ -3098,9 +2066,6 @@ public class ConfDB
 	    dbConnector.release(rs);
 	}
 
-	//if (result) {
-	//	}
-	
 	return result;
     }
 
@@ -3112,8 +2077,10 @@ public class ConfDB
 	String configName    = config.name();
 	
 	if (config.isLocked()) {
-	    System.out.println("Can't lock " + parentDirName + "/" + configName +
-			       ": already locked by user '" + config.lockedByUser() +
+	    System.out.println("Can't lock " + parentDirName +
+			       "/" + configName +
+			       ": already locked by user '" +
+			       config.lockedByUser() +
 			       "'!");
 	    return false;
 	}
@@ -3773,48 +2740,6 @@ public class ConfDB
     // private member functions
     //
 
-    /** load parameter value */
-    private String loadParamValue(int paramId,int paramTypeId)
-    {
-	String valueAsString = null;
-	
-	PreparedStatement psSelectParameterValue =
-	    selectParameterIdHashMap.get(paramTypeId);
-	ResultSet rs = null;
-	try {
-	    psSelectParameterValue.setInt(1,paramId);
-	    rs = psSelectParameterValue.executeQuery();
-	    
-	    if (isVectorParamHashMap.get(paramTypeId)) {
-		while (rs.next()) {
-		    if (valueAsString==null) valueAsString = new String();
-		    Object valueAsObject = rs.getObject(3);
-		    if (valueAsObject!=null) valueAsString+=valueAsObject.toString();
-		    valueAsString += ", ";
-		}
-		int length = (valueAsString!=null) ? valueAsString.length() : 0;
-		if (length>0) valueAsString = valueAsString.substring(0,length-2);
-	    }
-	    else {
-		if (rs.next()) {
-		    Object valueAsObject = (paramTypeId != boolTypeId) ?
-			rs.getObject(2) : rs.getBoolean(2);
-		    
-		    if (valueAsObject!=null)
-			valueAsString = valueAsObject.toString();
-		    else
-			valueAsString = new String();
-		}
-	    }
-	}
-	catch (Exception e) { e.printStackTrace(); }
-	finally {
-	    dbConnector.release(rs);
-	}
-
-	return valueAsString;
-    }
-    
     /** insert parameter-set into ParameterSets table */
     private boolean insertVecParameterSet(int            superId,
 					  int            sequenceNb,

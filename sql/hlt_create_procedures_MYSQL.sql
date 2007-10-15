@@ -15,6 +15,9 @@ DROP PROCEDURE IF EXISTS get_boolean_values;
 DROP PROCEDURE IF EXISTS get_int_values;
 DROP PROCEDURE IF EXISTS get_real_values;
 DROP PROCEDURE IF EXISTS get_string_values;
+DROP PROCEDURE IF EXISTS get_path_entries;
+DROP PROCEDURE IF EXISTS get_sequence_entries;
+DROP PROCEDURE IF EXISTS get_stream_entries;
 
 
 -- set delimiter to '//'
@@ -744,6 +747,495 @@ END;
 --
 CREATE PROCEDURE load_configuration(config_id BIGINT UNSIGNED)
 BEGIN
+  DECLARE temporary_table_exists BOOLEAN;
+  BEGIN
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION BEGIN END;
+    DROP TABLE IF EXISTS tmp_instance_table;
+    DROP TABLE IF EXISTS tmp_parameter_table;
+    DROP TABLE IF EXISTS tmp_boolean_table;
+    DROP TABLE IF EXISTS tmp_int_table;
+    DROP TABLE IF EXISTS tmp_real_table;
+    DROP TABLE IF EXISTS tmp_string_table;
+    DROP TABLE IF EXISTS tmp_path_entries;
+    DROP TABLE IF EXISTS tmp_sequence_entries;
+    DROP TABLE IF EXISTS tmp_stream_entries;
+  END;
+  BEGIN
+    /* variables */
+    DECLARE v_instance_id     BIGINT UNSIGNED;
+    DECLARE v_template_id     BIGINT UNSIGNED;
+    DECLARE v_instance_type   CHAR(64);
+    DECLARE v_instance_name   CHAR(128);
+    DECLARE v_pset_is_trkd    BOOLEAN DEFAULT NULL;
+    DECLARE v_parent_id       BIGINT UNSIGNED;
+    DECLARE v_child_id        BIGINT UNSIGNED;
+    DECLARE v_sequence_nb     INT;
+    DECLARE done              BOOLEAN DEFAULT FALSE;
+
+    /* cursor for global psets */
+    DECLARE cur_global_psets CURSOR FOR
+      SELECT
+        ParameterSets.superId,
+        ParameterSets.name,
+        ParameterSets.tracked
+      FROM ParameterSets
+      JOIN ConfigurationParamSetAssoc
+      ON ParameterSets.superId = ConfigurationParamSetAssoc.psetId
+      WHERE ConfigurationParamSetAssoc.configId = config_id
+      ORDER BY ConfigurationParamSetAssoc.sequenceNb;
+
+    /* cursor for edsources */
+    DECLARE cur_edsources CURSOR FOR
+      SELECT
+        EDSources.superId,
+        EDSources.templateId
+      FROM EDSources
+      JOIN ConfigurationEDSourceAssoc
+      ON EDSources.superId = ConfigurationEDSourceAssoc.edsourceId
+      WHERE ConfigurationEDSourceAssoc.configId = config_id
+      ORDER BY ConfigurationEDSourceAssoc.sequenceNb ASC;
+
+    /* cursor for essources */
+    DECLARE cur_essources CURSOR FOR
+      SELECT
+        ESSources.superId,
+	ESSources.templateId,
+        ESSources.name
+      FROM ESSources
+      JOIN ConfigurationESSourceAssoc
+      ON ESSources.superId = ConfigurationESSourceAssoc.essourceId
+      WHERE ConfigurationESSourceAssoc.configId = config_id
+      ORDER BY ConfigurationESSourceAssoc.sequenceNb;
+
+    /* cursor for esmodules */
+    DECLARE cur_esmodules CURSOR FOR
+      SELECT
+        ESModules.superId,
+        ESModules.templateId,
+        ESModules.name
+      FROM ESModules
+      JOIN ConfigurationESModuleAssoc
+      ON ESModules.superId = ConfigurationESModuleAssoc.esmoduleId
+      WHERE ConfigurationESModuleAssoc.configId = config_id
+      ORDER BY ConfigurationESModuleAssoc.sequenceNb;
+
+    /* cursor for services */
+    DECLARE cur_services CURSOR FOR
+      SELECT
+        Services.superId,
+        Services.templateId
+      FROM Services
+      JOIN ConfigurationServiceAssoc
+      ON   Services.superId = ConfigurationServiceAssoc.serviceId
+      WHERE ConfigurationServiceAssoc.configId = config_id
+      ORDER BY ConfigurationServiceAssoc.sequenceNb;
+
+    /* cursor for modules from configuration *paths* */
+    DECLARE cur_modules_from_paths CURSOR FOR
+      SELECT
+        Modules.superId,
+        Modules.templateId,
+        Modules.name
+      FROM Modules
+      JOIN PathModuleAssoc
+      ON   PathModuleAssoc.moduleId = Modules.superId
+      JOIN ConfigurationPathAssoc
+      ON   PathModuleAssoc.pathId = ConfigurationPathAssoc.pathId
+      WHERE ConfigurationPathAssoc.configId = config_id;
+
+    /* cursor for modules from configuration *sequences* */
+    DECLARE cur_modules_from_sequences CURSOR FOR
+      SELECT
+        Modules.superId,
+        Modules.templateId,
+        Modules.name
+      FROM Modules
+      JOIN SequenceModuleAssoc
+      ON   SequenceModuleAssoc.moduleId = Modules.superId
+      JOIN ConfigurationSequenceAssoc
+      ON   SequenceModuleAssoc.sequenceId=ConfigurationSequenceAssoc.sequenceId
+      WHERE ConfigurationSequenceAssoc.configId = config_id;
+
+    /* cursor for paths */
+    DECLARE cur_paths CURSOR FOR
+      SELECT
+        Paths.pathId,
+        Paths.name,
+        Paths.isEndPath
+      FROM Paths
+      JOIN ConfigurationPathAssoc
+      ON Paths.pathId = ConfigurationPathAssoc.pathId
+      WHERE ConfigurationPathAssoc.configId = config_id
+      ORDER BY ConfigurationPathAssoc.sequenceNb ASC;
+
+    /* cursor for sequences */
+    DECLARE cur_sequences CURSOR FOR
+      SELECT
+        Sequences.sequenceId,
+        Sequences.name
+      FROM Sequences
+      JOIN ConfigurationSequenceAssoc
+      ON Sequences.sequenceId = ConfigurationSequenceAssoc.sequenceId
+      WHERE ConfigurationSequenceAssoc.configId = config_id
+      ORDER BY ConfigurationSequenceAssoc.sequenceNb ASC;
+
+    /* cursor for streams */
+    DECLARE cur_streams CURSOR FOR
+      SELECT
+        Streams.streamId,
+        Streams.streamLabel
+      FROM Streams
+      WHERE Streams.configId = config_id;
+
+    /* cursor for path-path associations */
+    DECLARE cur_path_path CURSOR FOR
+      SELECT
+        PathInPathAssoc.parentPathId,
+        PathInPathAssoc.childPathId,
+        PathInPathAssoc.sequenceNb
+      FROM PathInPathAssoc
+      JOIN ConfigurationPathAssoc
+      ON PathInPathAssoc.parentPathId = ConfigurationPathAssoc.pathId
+      WHERE ConfigurationPathAssoc.configId = config_id;
+
+    /* cursor for path-sequence associations */
+    DECLARE cur_path_sequence CURSOR FOR
+      SELECT
+        PathSequenceAssoc.pathId,
+        PathSequenceAssoc.sequenceId,
+        PathSequenceAssoc.sequenceNb
+      FROM PathSequenceAssoc
+      JOIN ConfigurationPathAssoc
+      ON PathSequenceAssoc.pathId = ConfigurationPathAssoc.pathId
+      WHERE ConfigurationPathAssoc.configId = config_id;
+
+    /* cursor for path-module associations */
+    DECLARE cur_path_module CURSOR FOR
+      SELECT
+        PathModuleAssoc.pathId,
+        PathModuleAssoc.moduleId,
+        PathModuleAssoc.sequenceNb
+      FROM PathModuleAssoc
+      JOIN ConfigurationPathAssoc
+      ON PathModuleAssoc.pathId = ConfigurationPathAssoc.pathId
+      WHERE ConfigurationPathAssoc.configId = config_id;
+
+    /* cursor for sequence-sequence associations */
+    DECLARE cur_sequence_sequence CURSOR FOR
+      SELECT
+        SequenceInSequenceAssoc.parentSequenceId,
+        SequenceInSequenceAssoc.childSequenceId,
+        SequenceInSequenceAssoc.sequenceNb
+      FROM SequenceInSequenceAssoc
+      JOIN ConfigurationSequenceAssoc
+      ON SequenceInSequenceAssoc.parentSequenceId =
+         ConfigurationSequenceAssoc.sequenceId
+      WHERE ConfigurationSequenceAssoc.configId = config_id;
+
+    /* cursor for sequence-module associations */
+    DECLARE cur_sequence_module CURSOR FOR
+      SELECT
+        SequenceModuleAssoc.sequenceId,
+        SequenceModuleAssoc.moduleId,
+        SequenceModuleAssoc.sequenceNb
+      FROM SequenceModuleAssoc
+      JOIN ConfigurationSequenceAssoc
+      ON SequenceModuleAssoc.sequenceId = ConfigurationSequenceAssoc.sequenceId
+      WHERE ConfigurationSequenceAssoc.configId = config_id;
+
+    /* cursor for stream-path associations */
+    DECLARE cur_stream_path CURSOR FOR
+      SELECT
+        StreamPathAssoc.streamId,
+        StreamPathAssoc.pathId
+      FROM StreamPathAssoc
+      JOIN Streams
+      ON StreamPathAssoc.streamId = Streams.streamId
+      JOIN Paths
+      ON StreamPathAssoc.pathId = Paths.pathId
+      WHERE Streams.configId = config_id;
+
+    /* error handlers */
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+
+    /* temporary instance table */
+    CREATE TEMPORARY TABLE tmp_instance_table
+    (
+      instance_id	BIGINT UNSIGNED,
+      template_id	BIGINT UNSIGNED,
+      instance_type    CHAR(64),
+      instance_name    CHAR(128),
+      pset_is_trkd     BOOLEAN
+    );
+    SET temporary_table_exists = TRUE;
+
+    /* temporary parameter table */
+    CREATE TEMPORARY TABLE tmp_parameter_table
+    (
+      parameter_id	BIGINT UNSIGNED,
+      parameter_type    CHAR(64),
+      parameter_name    CHAR(128),
+      parameter_trkd    BOOLEAN,
+      parameter_seqnb   INT,
+      parent_id         BIGINT UNSIGNED
+    );
+
+    /* temporary bool parameter-value table */
+    CREATE TEMPORARY TABLE tmp_boolean_table
+    (
+      parameter_id	BIGINT UNSIGNED,
+      parameter_value   BOOLEAN
+    );
+
+    /* temporary int32 parameter-value table */
+    CREATE TEMPORARY TABLE tmp_int_table
+    (
+      parameter_id	BIGINT UNSIGNED,
+      parameter_value   BIGINT,
+      sequence_nb       INT
+    );
+
+    /* temporary double parameter-value table */
+    CREATE TEMPORARY TABLE tmp_real_table
+    (
+      parameter_id	BIGINT UNSIGNED,
+      parameter_value   REAL,
+      sequence_nb       INT
+    );
+
+    /* temporary string parameter-value table */
+    CREATE TEMPORARY TABLE tmp_string_table
+    (
+      parameter_id	BIGINT UNSIGNED,
+      parameter_value   VARCHAR(512),
+      sequence_nb       INT
+    );
+
+    /* temporary path entry table */
+    CREATE TEMPORARY TABLE tmp_path_entries
+    (
+      path_id           BIGINT UNSIGNED,
+      entry_id          BIGINT UNSIGNED,
+      sequence_nb       INT,
+      entry_type        CHAR(64)
+    );
+
+    /* temporary sequence entry table */
+    CREATE TEMPORARY TABLE tmp_sequence_entries
+    (
+      sequence_id       BIGINT UNSIGNED,
+      entry_id          BIGINT UNSIGNED,
+      sequence_nb       INT,
+      entry_type        CHAR(64)
+    );
+
+    /* temporary stream entry table */
+    CREATE TEMPORARY TABLE tmp_stream_entries
+    (
+      stream_id         BIGINT UNSIGNED,
+      path_id           BIGINT UNSIGNED
+    );
+
+
+    /* load global psets */
+    OPEN cur_global_psets;
+    FETCH cur_global_psets INTO v_instance_id,v_instance_name,v_pset_is_trkd;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_instance_table
+        VALUES(v_instance_id,NULL,'PSet',v_instance_name,v_pset_is_trkd);    
+      CALL load_parameters(v_instance_id);
+      FETCH cur_global_psets INTO v_instance_id,v_instance_name,v_pset_is_trkd;
+    END WHILE;
+    CLOSE cur_global_psets;
+    SET done=FALSE;
+ 
+    /* load edsources */
+    OPEN cur_edsources;
+    FETCH cur_edsources INTO v_instance_id,v_template_id;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_instance_table
+        VALUES(v_instance_id,v_template_id,'EDSource',NULL,NULL);
+      CALL load_parameters(v_instance_id);
+      FETCH cur_edsources INTO v_instance_id,v_template_id;
+    END WHILE;
+    CLOSE cur_edsources;
+    SET done=FALSE;
+
+    /* load essources */
+    OPEN cur_essources;
+    FETCH cur_essources INTO v_instance_id,v_template_id,v_instance_name;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_instance_table
+        VALUES(v_instance_id,v_template_id,'ESSource',v_instance_name,NULL);
+      CALL load_parameters(v_instance_id);
+      FETCH cur_essources INTO v_instance_id,v_template_id,v_instance_name;
+    END WHILE;
+    CLOSE cur_essources;
+    SET done=FALSE;
+
+    /* load esmodules */
+    OPEN cur_esmodules;
+    FETCH cur_esmodules INTO v_instance_id,v_template_id,v_instance_name;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_instance_table
+        VALUES(v_instance_id,v_template_id,'ESModule',v_instance_name,NULL);
+      CALL load_parameters(v_instance_id);
+      FETCH cur_esmodules INTO v_instance_id,v_template_id,v_instance_name;
+    END WHILE;
+    CLOSE cur_esmodules;
+    SET done=FALSE;
+
+    /* load services */
+    OPEN cur_services;
+    FETCH cur_services INTO v_instance_id,v_template_id;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_instance_table
+        VALUES(v_instance_id,v_template_id,'Service',NULL,NULL);
+      CALL load_parameters(v_instance_id);
+      FETCH cur_services INTO v_instance_id,v_template_id;
+    END WHILE;
+    CLOSE cur_services;
+    SET done=FALSE;
+
+    /* load modules from *paths* */
+    OPEN cur_modules_from_paths;
+    FETCH cur_modules_from_paths
+      INTO v_instance_id,v_template_id,v_instance_name;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_instance_table
+        VALUES(v_instance_id,v_template_id,'Module',v_instance_name,NULL);
+      CALL load_parameters(v_instance_id);
+      FETCH cur_modules_from_paths
+        INTO v_instance_id,v_template_id,v_instance_name;
+    END WHILE;
+    CLOSE cur_modules_from_paths;
+    SET done=FALSE;
+
+    /* load modules from *sequences* */
+    OPEN cur_modules_from_sequences;
+    FETCH cur_modules_from_sequences
+      INTO v_instance_id,v_template_id,v_instance_name;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_instance_table
+        VALUES(v_instance_id,v_template_id,'Module',v_instance_name,NULL);
+      CALL load_parameters(v_instance_id);
+      FETCH cur_modules_from_sequences
+        INTO v_instance_id,v_template_id,v_instance_name;
+    END WHILE;
+    CLOSE cur_modules_from_sequences;
+    SET done=FALSE;
+
+    /* load paths */
+    OPEN cur_paths;
+    FETCH cur_paths INTO v_instance_id,v_instance_name,v_pset_is_trkd;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_instance_table
+        VALUES(v_instance_id,NULL,'Path',v_instance_name,v_pset_is_trkd);
+      FETCH cur_paths INTO v_instance_id,v_instance_name,v_pset_is_trkd;
+    END WHILE;
+    CLOSE cur_paths;
+    SET done=FALSE;
+
+    /* load sequences */
+    OPEN cur_sequences;
+    FETCH cur_sequences INTO v_instance_id,v_instance_name;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_instance_table
+        VALUES(v_instance_id,NULL,'Sequence',v_instance_name,NULL);
+      FETCH cur_sequences INTO v_instance_id,v_instance_name;
+    END WHILE;
+    CLOSE cur_sequences;
+    SET done=FALSE;
+
+    /* load streams */
+    OPEN cur_streams;
+    FETCH cur_streams INTO v_instance_id,v_instance_name;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_instance_table
+        VALUES(v_instance_id,NULL,'Stream',v_instance_name,NULL);
+      FETCH cur_streams INTO v_instance_id,v_instance_name;
+    END WHILE;
+    CLOSE cur_streams;
+    SET done=FALSE;
+  
+    /* load path-path associations */
+    OPEN cur_path_path;
+    FETCH cur_path_path INTO v_parent_id,v_child_id,v_sequence_nb;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_path_entries
+        VALUES(v_parent_id,v_child_id,v_sequence_nb,'Path');
+      FETCH cur_path_path INTO v_parent_id,v_child_id,v_sequence_nb;
+    END WHILE;
+    CLOSE cur_path_path;
+    SET done=FALSE;
+
+    /* load path-sequence associations */
+    OPEN cur_path_sequence;
+    FETCH cur_path_sequence INTO v_parent_id,v_child_id,v_sequence_nb;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_path_entries
+        VALUES(v_parent_id,v_child_id,v_sequence_nb,'Sequence');
+      FETCH cur_path_sequence INTO v_parent_id,v_child_id,v_sequence_nb;
+    END WHILE;
+    CLOSE cur_path_sequence;
+    SET done=FALSE;
+
+    /* load path-module associations */
+    OPEN cur_path_module;
+    FETCH cur_path_module INTO v_parent_id,v_child_id,v_sequence_nb;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_path_entries
+        VALUES(v_parent_id,v_child_id,v_sequence_nb,'Module');
+      FETCH cur_path_module INTO v_parent_id,v_child_id,v_sequence_nb;
+    END WHILE;
+    CLOSE cur_path_module;
+    SET done=FALSE;
+
+    /* load sequence-sequence associations */
+    OPEN cur_sequence_sequence;
+    FETCH cur_sequence_sequence INTO v_parent_id,v_child_id,v_sequence_nb;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_sequence_entries
+        VALUES(v_parent_id,v_child_id,v_sequence_nb,'Sequence');
+      FETCH cur_sequence_sequence INTO v_parent_id,v_child_id,v_sequence_nb;
+    END WHILE;
+    CLOSE cur_sequence_sequence;
+    SET done=FALSE;
+
+    /* load sequence-module associations */
+    OPEN cur_sequence_module;
+    FETCH cur_sequence_module INTO v_parent_id,v_child_id,v_sequence_nb;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_sequence_entries
+        VALUES(v_parent_id,v_child_id,v_sequence_nb,'Module');
+      FETCH cur_sequence_module INTO v_parent_id,v_child_id,v_sequence_nb;
+    END WHILE;
+    CLOSE cur_sequence_module;
+    SET done=FALSE;
+
+    /* load stream-path associations*/
+    OPEN cur_stream_path;
+    FETCH cur_stream_path INTO v_parent_id,v_child_id;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_stream_entries VALUES(v_parent_id,v_child_id);
+      FETCH cur_stream_path INTO v_parent_id,v_child_id;
+    END WHILE;
+    CLOSE cur_stream_path;
+    SET done=FALSE;
+
+
+    /* generate the final result set by selecting the temporary table */
+    SELECT DISTINCT
+      instance_id,template_id,instance_type,instance_name,pset_is_trkd
+    FROM tmp_instance_table;
+  END;  
+
+
+  /* if the temporary table was created, drop it now */
+  IF temporary_table_exists THEN
+    DROP TEMPORARY TABLE tmp_instance_table;
+  END IF;
 END;
 //
 
@@ -1100,8 +1592,9 @@ END;
 --
 CREATE PROCEDURE get_parameters()
 BEGIN
-  SELECT parameter_id,parameter_type,
-         parameter_name,parameter_trkd,parameter_seqnb,parent_id
+  SELECT DISTINCT
+    parameter_id,parameter_type,
+    parameter_name,parameter_trkd,parameter_seqnb,parent_id
   FROM tmp_parameter_table;
   DROP TEMPORARY TABLE IF EXISTS tmp_parameter_table;
 END;
@@ -1113,7 +1606,7 @@ END;
 --
 CREATE PROCEDURE get_boolean_values()
 BEGIN
-  SELECT parameter_id,parameter_value FROM tmp_boolean_table;
+  SELECT DISTINCT parameter_id,parameter_value FROM tmp_boolean_table;
   DROP TEMPORARY TABLE IF EXISTS tmp_boolean_table;
 END;
 //
@@ -1124,7 +1617,7 @@ END;
 --
 CREATE PROCEDURE get_int_values()
 BEGIN
-  SELECT parameter_id,parameter_value,sequence_nb FROM tmp_int_table;
+  SELECT DISTINCT parameter_id,parameter_value,sequence_nb FROM tmp_int_table;
   DROP TEMPORARY TABLE IF EXISTS tmp_int_table;
 END;
 //
@@ -1135,7 +1628,7 @@ END;
 --
 CREATE PROCEDURE get_real_values()
 BEGIN
-  SELECT parameter_id,parameter_value,sequence_nb FROM tmp_real_table;
+  SELECT DISTINCT parameter_id,parameter_value,sequence_nb FROM tmp_real_table;
   DROP TEMPORARY TABLE IF EXISTS tmp_real_table;
 END;
 //
@@ -1146,8 +1639,46 @@ END;
 --
 CREATE PROCEDURE get_string_values()
 BEGIN
-  SELECT parameter_id,parameter_value,sequence_nb FROM tmp_string_table;
+  SELECT DISTINCT parameter_id,parameter_value,sequence_nb
+    FROM tmp_string_table;
   DROP TEMPORARY TABLE IF EXISTS tmp_string_table;
+END;
+//
+
+
+--
+-- PROCEDURE get_path_entries
+--
+CREATE PROCEDURE get_path_entries()
+BEGIN
+  SELECT path_id, entry_id, sequence_nb, entry_type
+    FROM tmp_path_entries
+    ORDER BY path_id ASC, sequence_nb ASC;
+  DROP TEMPORARY TABLE IF EXISTS tmp_path_entries;
+END;
+//
+
+
+--
+-- PROCEDURE get_sequence_entries
+--
+CREATE PROCEDURE get_sequence_entries()
+BEGIN
+  SELECT sequence_id, entry_id, sequence_nb, entry_type
+    FROM tmp_sequence_entries
+    ORDER BY sequence_id ASC, sequence_nb ASC;
+  DROP TEMPORARY TABLE IF EXISTS tmp_sequence_entries;
+END;
+//
+
+
+--
+-- PROCEDURE get_stream_entries
+--
+CREATE PROCEDURE get_stream_entries()
+BEGIN
+  SELECT stream_id, path_id  FROM tmp_stream_entries;
+  DROP TEMPORARY TABLE IF EXISTS tmp_stream_entries;
 END;
 //
 
