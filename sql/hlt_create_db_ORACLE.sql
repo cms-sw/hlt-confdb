@@ -791,6 +791,7 @@ CREATE TABLE Int32ParamValues
 (
 	paramId    	NUMBER		NOT NULL,
 	value      	NUMBER		NOT NULL,
+	hex		NUMBER(1)       DEFAULT '0' NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
 
@@ -806,6 +807,7 @@ CREATE TABLE VInt32ParamValues
 	paramId    	NUMBER		NOT NULL,
 	sequenceNb 	NUMBER(6)	NOT NULL,
 	value      	NUMBER		NOT NULL,
+	hex		NUMBER(1)       DEFAULT '0' NOT NULL,
 	UNIQUE(paramId,sequenceNb),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
@@ -821,6 +823,7 @@ CREATE TABLE UInt32ParamValues
 (
 	paramId    	NUMBER		NOT NULL,
 	value      	NUMBER		NOT NULL,
+	hex		NUMBER(1)       DEFAULT '0' NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );
 
@@ -836,6 +839,7 @@ CREATE TABLE VUInt32ParamValues
 	paramId    	NUMBER		NOT NULL,
 	sequenceNb 	NUMBER(6)	NOT NULL,
 	value      	NUMBER		NOT NULL,
+	hex		NUMBER(1)       DEFAULT '0' NOT NULL,
 	UNIQUE(paramId,sequenceNb),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 );

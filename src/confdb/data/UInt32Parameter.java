@@ -62,6 +62,9 @@ public class UInt32Parameter extends ScalarParameter
     /** retrieve the value of the parameter */
     public Object value() { return value; }
 
+    /** hex format? */
+    public boolean isHex() { return isHex; }
+    
     /** retrieve the value of the parameter as a string */
     public String valueAsString()
     {

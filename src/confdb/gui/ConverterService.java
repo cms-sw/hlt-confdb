@@ -133,7 +133,7 @@ public class ConverterService
 
 	// create PoolSource instance
 	EDSourceTemplate template =
-	    database.loadEDSourceTemplate(releaseTag,"PoolSource");
+	    (EDSourceTemplate)database.loadTemplate(releaseTag,"PoolSource");
 	EDSourceInstance poolSource = null;
 	try {
 	    poolSource = (EDSourceInstance)template.instance();

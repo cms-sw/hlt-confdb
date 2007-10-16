@@ -1,4 +1,4 @@
-Module OutoutModule PoolOutputModule
+Module OutputModule PoolOutputModule
 PoolOutputModule.Parameter fileName string "" untracked
 PoolOutputModule.Parameter outputCommands vstring {} untracked
 

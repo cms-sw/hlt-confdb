@@ -493,6 +493,7 @@ CREATE TABLE Int32ParamValues
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	value      	BIGINT            NOT NULL,
+	hex		BOOLEAN           NOT NULL DEFAULT false,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 ) ENGINE=INNODB;
 
@@ -502,6 +503,7 @@ CREATE TABLE VInt32ParamValues
 	paramId    	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb 	SMALLINT UNSIGNED NOT NULL,
 	value      	BIGINT            NOT NULL,
+	hex		BOOLEAN		  NOT NULL DEFAULT false,
 	UNIQUE(paramId,sequenceNb),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 ) ENGINE=INNODB;
@@ -511,6 +513,7 @@ CREATE TABLE UInt32ParamValues
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	value      	BIGINT UNSIGNED   NOT NULL,
+        hex		BOOLEAN		  NOT NULL DEFAULT false,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 ) ENGINE=INNODB;
 
@@ -520,6 +523,7 @@ CREATE TABLE VUInt32ParamValues
 	paramId    	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb 	SMALLINT UNSIGNED NOT NULL,
 	value      	BIGINT UNSIGNED   NOT NULL,
+	hex		BOOLEAN		  NOT NULL DEFAULT false,
 	UNIQUE(paramId,sequenceNb),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
 ) ENGINE=INNODB;

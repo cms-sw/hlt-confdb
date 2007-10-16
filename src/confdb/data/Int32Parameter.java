@@ -51,7 +51,8 @@ public class Int32Parameter extends ScalarParameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	Int32Parameter result = new Int32Parameter(name,value,isTracked,isDefault);
+	Int32Parameter result =
+	    new Int32Parameter(name,value,isTracked,isDefault);
 	result.setParent(parent);
 	return result;
     }
@@ -62,6 +63,9 @@ public class Int32Parameter extends ScalarParameter
     /** retrieve the value of the parameter */
     public Object value() { return value; }
 
+    /** hex format? */
+    public boolean isHex() { return isHex; }
+    
     /** retrieve the value of the parameter as a string */
     public String valueAsString()
     {

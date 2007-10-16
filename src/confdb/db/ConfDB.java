@@ -78,13 +78,15 @@ public class ConfDB
     private PreparedStatement psSelectLockedConfigurations        = null;
 
     private PreparedStatement psSelectConfigNames                 = null;
-    private PreparedStatement psSelectConfiguration               = null;
-    private PreparedStatement psSelectConfigurationLatest         = null;
+    private PreparedStatement psSelectConfigurationId             = null;
+    private PreparedStatement psSelectConfigurationIdLatest       = null;
     private PreparedStatement psSelectConfigurationCreated        = null;
     private PreparedStatement psSelectConfigurationProcessName    = null;
 
     private PreparedStatement psSelectReleaseTags                 = null;
+    private PreparedStatement psSelectReleaseId                   = null;
     private PreparedStatement psSelectReleaseTag                  = null;
+    private PreparedStatement psSelectReleaseTagForConfig         = null;
     private PreparedStatement psSelectSuperIdReleaseAssoc         = null;
     
     private PreparedStatement psSelectEDSourceTemplate            = null;
@@ -264,7 +266,7 @@ public class ConfDB
 		 "ORDER BY Configurations.created DESC");
 	    preparedStatements.add(psSelectConfigNames);
 	    
-	    psSelectConfiguration =
+	    psSelectConfigurationId =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
 		 " Configurations.configId " +
@@ -274,19 +276,20 @@ public class ConfDB
 		 "WHERE Directories.dirName = ? AND" +
 		 " Configurations.config = ? AND" +
 		 " Configurations.version = ?");
-	    preparedStatements.add(psSelectConfiguration);
+	    preparedStatements.add(psSelectConfigurationId);
 	    
-	    psSelectConfigurationLatest =
+	    psSelectConfigurationIdLatest =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
 		 " Configurations.configId " +
+		 " Configurations.version " +
 		 "FROM Configurations " +
 		 "JOIN Directories " +
 		 "ON Directories.dirId=Configurations.parentDirId " +
 		 "WHERE Directories.dirName = ? AND" +
-		 " Configurations.config = ? AND" +
-		 " MAX(Configurations.version)");
-	    preparedStatements.add(psSelectConfigurationLatest);
+		 " Configurations.config = ? " +
+		 "ORDER BY Configurations.version DESC");
+	    preparedStatements.add(psSelectConfigurationIdLatest);
 
 	    psSelectConfigurationCreated =
 		dbConnector.getConnection().prepareStatement
@@ -314,14 +317,30 @@ public class ConfDB
 	    psSelectReleaseTags.setFetchSize(32);
 	    preparedStatements.add(psSelectReleaseTags);
 	    
+	    psSelectReleaseId =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " SoftwareReleases.releaseId "+
+		 "FROM SoftwareReleases " +
+		 "WHERE SoftwareReleases.releaseTag = ?");
+
 	    psSelectReleaseTag =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " SoftwareReleases.releaseId," +
 		 " SoftwareReleases.releaseTag " +
 		 "FROM SoftwareReleases " +
-		 "WHERE SoftwareReleases.releaseTag = ?");
+		 "WHERE SoftwareReleases.releaseId = ?");
 	    preparedStatements.add(psSelectReleaseTag);
+	    
+	    psSelectReleaseTagForConfig =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " SoftwareReleases.releaseTag " +
+		 "FROM SoftwareReleases " +
+		 "JOIN Configurations " +
+		 "ON Configurations.releaseId = SoftwareReleases.releaseId " +
+		 "WHERE Configurations.configId = ?");
+	    preparedStatements.add(psSelectReleaseTagForConfig);
 	    
 	    psSelectSuperIdReleaseAssoc =
 		dbConnector.getConnection().prepareStatement
@@ -652,14 +671,14 @@ public class ConfDB
 
 	    psInsertInt32ParamValue =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO Int32ParamValues (paramId,value) " +
-		 "VALUES (?, ?)");
+		("INSERT INTO Int32ParamValues (paramId,value,hex) " +
+		 "VALUES (?, ?, ?)");
 	    preparedStatements.add(psInsertInt32ParamValue);
 
 	    psInsertUInt32ParamValue =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO UInt32ParamValues (paramId,value) " +
-		 "VALUES (?, ?)");
+		("INSERT INTO UInt32ParamValues (paramId,value,hex) " +
+		 "VALUES (?, ?, ?)");
 	    preparedStatements.add(psInsertUInt32ParamValue);
 
 	    psInsertDoubleParamValue =
@@ -694,14 +713,16 @@ public class ConfDB
 
 	    psInsertVInt32ParamValue =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO VInt32ParamValues (paramId,sequenceNb,value) " +
-		 "VALUES (?, ?, ?)");
+		("INSERT INTO VInt32ParamValues "+
+		 "(paramId,sequenceNb,value,hex) "+
+		 "VALUES (?, ?, ?, ?)");
 	    preparedStatements.add(psInsertVInt32ParamValue);
 
 	    psInsertVUInt32ParamValue
 		= dbConnector.getConnection().prepareStatement
-		("INSERT INTO VUInt32ParamValues (paramId,sequenceNb,value) " +
-		 "VALUES (?, ?, ?)");
+		("INSERT INTO VUInt32ParamValues "+
+		 "(paramId,sequenceNb,value,hex) " +
+		 "VALUES (?, ?, ?, ?)");
 	    preparedStatements.add(psInsertVUInt32ParamValue);
 
 	    psInsertVDoubleParamValue =
@@ -754,7 +775,7 @@ public class ConfDB
 
 		csLoadTemplate =
 		    dbConnector.getConnection().prepareCall
-		    ("{ CALL load_template(?) }");
+		    ("{ CALL load_template(?,?) }");
 		preparedStatements.add(csLoadTemplate);
 		
 		csLoadTemplates =
@@ -831,7 +852,7 @@ public class ConfDB
 		
 		csLoadTemplate =
 		    dbConnector.getConnection().prepareCall
-		    ("begin ? := load_template(?); end;");
+		    ("begin ? := load_template(?,?); end;");
 		csLoadTemplate.registerOutParameter(1,OracleTypes.CURSOR);
 		preparedStatements.add(csLoadTemplate);
 		
@@ -1139,8 +1160,14 @@ public class ConfDB
 	SoftwareRelease release = new SoftwareRelease();
 	release.clear(releaseTag);
 	try {
-	    csLoadTemplate.setInt(1,releaseId);
-	    csLoadTemplate.setString(2,templateName);
+	    if (dbType.equals(dbTypeMySQL)) {
+		csLoadTemplate.setInt(1,releaseId);
+		csLoadTemplate.setString(2,templateName);
+	    }
+	    else {
+		csLoadTemplate.setInt(2,releaseId);
+		csLoadTemplate.setString(3,templateName);
+	    }
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
@@ -1175,7 +1202,9 @@ public class ConfDB
     /** load a software release (all templates) */
     public void loadSoftwareRelease(int releaseId,SoftwareRelease release)
     {
-	// TODO: set releaseTag!?
+	String releaseTag = getReleaseTag(releaseId);
+	if (releaseTag.length()==0) return;
+	release.clear(releaseTag);
 	try {
 	    csLoadTemplates.setInt(1,releaseId);
 	}
@@ -1188,7 +1217,6 @@ public class ConfDB
     /** load a software release (all templates) */
     public void loadSoftwareRelease(String releaseTag,SoftwareRelease release)
     {
-	release.clear(releaseTag);
 	int releaseId = getReleaseId(releaseTag);
 	if (releaseId<=0) return;
 	loadSoftwareRelease(releaseId,release);
@@ -1197,7 +1225,10 @@ public class ConfDB
     /** load a partial software release */
     public void loadPartialSoftwareRelease(int configId,SoftwareRelease release)
     {
-	//TODO: set release tag
+	String releaseTag = getReleaseTagForConfig(configId);
+	if (releaseTag.length()==0) return;
+	release.clear(releaseTag);
+	
 	try {
 	    csLoadTemplatesForConfig.setInt(1,configId);
 	}
@@ -1211,7 +1242,6 @@ public class ConfDB
     public void loadPartialSoftwareRelease(String configName,
 					   SoftwareRelease release)
     {
-	// TODO: set releasetag
 	int configId = getConfigId(configName);
 	if (configId<=0) return;
 	loadPartialSoftwareRelease(configId,release);
@@ -1292,9 +1322,13 @@ public class ConfDB
 
 	    while (rsIntValues.next()) {
 		int     parameterId   = rsIntValues.getInt(1);
-		String  valueAsString =
-		(new Integer(rsIntValues.getInt(2))).toString();
+		int     value         = rsIntValues.getInt(2);
 		Integer sequenceNb    = new Integer(rsIntValues.getInt(3));
+		boolean isHex         = rsIntValues.getBoolean(4);
+
+		String valueAsString = (isHex) ?
+		    "0x"+Integer.toHexString(value) : Integer.toString(value);
+		
 		if (sequenceNb!=null&&
 		    idToValueAsString.containsKey(parameterId))
 		    idToValueAsString.put(parameterId,
@@ -1389,8 +1423,8 @@ public class ConfDB
 		    psets.set(seqNb,pset);
 		}
 		else
-		    System.err.println("WHY THE FUCK IS THERE NO PARENT FOR "+
-				       "PARAMETER "+id+" "+name+" ("+type+")");
+		    System.err.println("ERROR: no parent for parameter "
+				       +id+" "+name+" ("+type+")");
 	    }
 	    
 	    // set PSet parameters
@@ -1716,8 +1750,6 @@ public class ConfDB
 	    
 	    while (rsBooleanValues.next()) {
 		int    parameterId   = rsBooleanValues.getInt(1);
-		if (idToValueAsString.containsKey(parameterId)) continue;
-		
 		String valueAsString =
 		    (new Boolean(rsBooleanValues.getBoolean(2))).toString();
 		idToValueAsString.put(parameterId,valueAsString);
@@ -1725,11 +1757,13 @@ public class ConfDB
 	    
 	    while (rsIntValues.next()) {
 		int     parameterId   = rsIntValues.getInt(1);
-		if (idToValueAsString.containsKey(parameterId)) continue;	
-
-		String  valueAsString =
-		    (new Integer(rsIntValues.getInt(2))).toString();
+		int     value         = rsIntValues.getInt(2);
 		Integer sequenceNb    = new Integer(rsIntValues.getInt(3));
+		boolean isHex         = rsIntValues.getBoolean(4);
+
+		String valueAsString = (isHex) ?
+		    "0x"+Integer.toHexString(value) : Integer.toString(value);
+		
 		if (sequenceNb!=null&&
 		    idToValueAsString.containsKey(parameterId))
 		    idToValueAsString.put(parameterId,
@@ -1741,11 +1775,10 @@ public class ConfDB
 	    
 	    while (rsRealValues.next()) {
 		int     parameterId   = rsRealValues.getInt(1);
-		if (idToValueAsString.containsKey(parameterId)) continue;
-		
-		String  valueAsString =
-		    (new Double(rsRealValues.getDouble(2))).toString();
+		double  value         = rsRealValues.getDouble(2);
 		Integer sequenceNb    = new Integer(rsRealValues.getInt(3));
+		String  valueAsString = Double.toString(value);
+		
 		if (sequenceNb!=null&&
 		    idToValueAsString.containsKey(parameterId))
 		    idToValueAsString.put(parameterId,
@@ -1757,8 +1790,6 @@ public class ConfDB
 	    
 	    while (rsStringValues.next()) {
 		int     parameterId   = rsStringValues.getInt(1);
-		if (idToValueAsString.containsKey(parameterId)) continue;
-
 		String  valueAsString = rsStringValues.getString(2);
 		Integer sequenceNb    = new Integer(rsStringValues.getInt(3));
 		if (sequenceNb!=null&&
@@ -2924,6 +2955,13 @@ public class ConfDB
 		    psInsertParameterValue.setInt(1,paramId);
 		    psInsertParameterValue.setInt(2,i);
 		    psInsertParameterValue.setObject(3,vp.value(i));
+		    if (vp instanceof VInt32Parameter) {
+			VInt32Parameter vint32=(VInt32Parameter)vp;
+			psInsertParameterValue.setBoolean(4,vint32.isHex(i));
+		    } else if (vp instanceof VUInt32Parameter) {
+			VUInt32Parameter vuint32=(VUInt32Parameter)vp;
+			psInsertParameterValue.setBoolean(4,vuint32.isHex(i));
+		    }
 		    psInsertParameterValue.executeUpdate();
 		}
 	    }
@@ -2931,6 +2969,13 @@ public class ConfDB
 		ScalarParameter sp = (ScalarParameter)parameter;
 		psInsertParameterValue.setInt(1,paramId);
 		psInsertParameterValue.setObject(2,sp.value());
+		if (sp instanceof Int32Parameter) {
+		    Int32Parameter int32=(Int32Parameter)sp;
+		    psInsertParameterValue.setBoolean(3,int32.isHex());
+		} else if (sp instanceof UInt32Parameter) {
+		    UInt32Parameter uint32=(UInt32Parameter)sp;
+		    psInsertParameterValue.setBoolean(3,uint32.isHex());
+		}
 		psInsertParameterValue.executeUpdate();
 	    }
 	}
@@ -2967,8 +3012,8 @@ public class ConfDB
 	int result = 0;
 	ResultSet rs = null;
 	try {
-	    psSelectReleaseTag.setString(1,releaseTag);
-	    rs = psSelectReleaseTag.executeQuery();
+	    psSelectReleaseId.setString(1,releaseTag);
+	    rs = psSelectReleaseId.executeQuery();
 	    if (rs.next()) result = rs.getInt(1);
 	}
 	catch (SQLException e) {
@@ -2980,24 +3025,95 @@ public class ConfDB
 	return result;
     }
 
-    /** get the configuration id for a configuration name */
-    private int getConfigId(String configName)
+    /** get the release id for a release tag */
+    private String getReleaseTag(int releaseId)
     {
-	int result = 0;
+	String result = new String();
 	ResultSet rs = null;
-	
-	// TODO: analyze configName and use
-	// either psSelectConfiguration or psSelectConfigurationLatest
+	try {
+	    psSelectReleaseTag.setInt(1,releaseId);
+	    rs = psSelectReleaseTag.executeQuery();
+	    if (rs.next()) result = rs.getString(1);
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+	return result;
+    }
 
-	//try {
-	System.out.println("getConfigId not yet implemented!");
-	//}
-	//catch (SQLException e) {
-	//e.printStackTrace();
-	//}
-	//finally {
-	//dbConnector.release(rs);
-	//}
+    /** get the release id for a release tag */
+    private String getReleaseTagForConfig(int configId)
+    {
+	String result = new String();
+	ResultSet rs = null;
+	try {
+	    psSelectReleaseTagForConfig.setInt(1,configId);
+	    rs = psSelectReleaseTag.executeQuery();
+	    if (rs.next()) result = rs.getString(1);
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+	return result;
+    }
+
+    /** get the configuration id for a configuration name */
+    private int getConfigId(String fullConfigName)
+    {
+	int               result = 0;
+	ResultSet         rs     = null;
+	PreparedStatement ps     = null;
+	
+	int    version    = 0;
+	
+	int index = fullConfigName.lastIndexOf("/V");
+	if (index>=0) {
+	    version = Integer.parseInt(fullConfigName.substring(index+2));
+	    fullConfigName = fullConfigName.substring(0,index);
+	}
+
+	index = fullConfigName.lastIndexOf("/");
+	if (index<0) {
+	    System.err.println("Invalid config name '"+fullConfigName+"')");
+	}
+	String dirName    = fullConfigName.substring(0,index);
+	String configName = fullConfigName.substring(index+1);
+	
+	try {
+	    if (version>0) {
+		ps = psSelectConfigurationId;
+		ps.setString(1,dirName);
+		ps.setString(2,configName);
+		ps.setInt(3,version);
+	    }
+	    else {
+		ps = psSelectConfigurationIdLatest;
+		ps.setString(1,dirName);
+		ps.setString(2,configName);
+	    }
+	 
+	    rs = ps.executeQuery();
+	    if (rs.next()) result = rs.getInt(1);
+	    
+	    if (version==0) {
+		version=rs.getInt(2);
+		System.out.println("Selected latest version ("+version+
+				   "of configuration "+dirName+"/"+configName);
+	    }
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+	
 	return result;
     }
     

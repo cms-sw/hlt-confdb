@@ -154,7 +154,8 @@ BEGIN
     (
       parameter_id	BIGINT UNSIGNED,
       parameter_value   BIGINT,
-      sequence_nb       INT
+      sequence_nb       INT,
+      hex 		BOOLEAN
     );
 
     /* temporary double parameter-value table */
@@ -368,7 +369,8 @@ BEGIN
     (
       parameter_id	BIGINT UNSIGNED,
       parameter_value   BIGINT,
-      sequence_nb       INT
+      sequence_nb       INT,
+      hex		BOOLEAN
     );
 
     /* temporary double parameter-value table */
@@ -993,7 +995,8 @@ BEGIN
     (
       parameter_id	BIGINT UNSIGNED,
       parameter_value   BIGINT,
-      sequence_nb       INT
+      sequence_nb       INT,
+      hex               BOOLEAN
     );
 
     /* temporary double parameter-value table */
@@ -1358,6 +1361,7 @@ proc:
 BEGIN
   DECLARE v_bool_value   BOOLEAN;
   DECLARE v_int32_value  BIGINT;
+  DECLARE v_int32_hex    BOOLEAN;
   DECLARE v_double_value REAL;
   DECLARE v_string_value VARCHAR(512);
   DECLARE v_sequence_nb  INT;
@@ -1368,17 +1372,17 @@ BEGIN
     SELECT value FROM BoolParamValues
     WHERE paramId=parameter_id;
   DECLARE cur_int32 CURSOR FOR
-    SELECT value FROM Int32ParamValues
+    SELECT value,hex FROM Int32ParamValues
     WHERE paramId=parameter_id;
   DECLARE cur_vint32 CURSOR FOR
-    SELECT value,sequenceNb FROM VInt32ParamValues
+    SELECT value,sequenceNb,hex FROM VInt32ParamValues
     WHERE paramId=parameter_id
     ORDER BY sequenceNb ASC;
   DECLARE cur_uint32 CURSOR FOR
-    SELECT value FROM UInt32ParamValues
+    SELECT value,hex FROM UInt32ParamValues
     WHERE paramId=parameter_id;
   DECLARE cur_vuint32 CURSOR FOR
-    SELECT value,sequenceNb FROM VUInt32ParamValues
+    SELECT value,sequenceNb,hex FROM VUInt32ParamValues
     WHERE paramId=parameter_id
     ORDER BY sequenceNb ASC;
   DECLARE cur_double CURSOR FOR
@@ -1430,9 +1434,10 @@ BEGIN
   /** load int32 values */
   IF parameter_type='int32' THEN
     OPEN cur_int32;
-    FETCH cur_int32 INTO v_int32_value;
+    FETCH cur_int32 INTO v_int32_value,v_int32_hex;
     IF done=FALSE THEN
-      INSERT INTO tmp_int_table VALUES(parameter_id,v_int32_value,NULL);
+      INSERT INTO tmp_int_table
+        VALUES(parameter_id,v_int32_value,NULL,v_int32_hex);
     END IF;
     CLOSE cur_int32;
     LEAVE proc;
@@ -1441,11 +1446,11 @@ BEGIN
   /** load vint32 values */
   IF parameter_type='vint32' THEN
     OPEN cur_vint32;
-    FETCH cur_vint32 INTO v_int32_value,v_sequence_nb;
+    FETCH cur_vint32 INTO v_int32_value,v_sequence_nb,v_int32_hex;
     WHILE done=FALSE DO
       INSERT INTO tmp_int_table
-        VALUES(parameter_id,v_int32_value,v_sequence_nb);
-      FETCH cur_vint32 INTO v_int32_value,v_sequence_nb;
+        VALUES(parameter_id,v_int32_value,v_sequence_nb,v_int32_hex);
+      FETCH cur_vint32 INTO v_int32_value,v_sequence_nb,v_int32_hex;
     END WHILE;
     CLOSE cur_vint32;
     LEAVE proc;
@@ -1454,9 +1459,10 @@ BEGIN
   /** load uint32 values */
   IF parameter_type='uint32' THEN
     OPEN cur_uint32;
-    FETCH cur_uint32 INTO v_int32_value;
+    FETCH cur_uint32 INTO v_int32_value,v_int32_hex;
     IF done=FALSE THEN
-      INSERT INTO tmp_int_table VALUES(parameter_id,v_int32_value,NULL);
+      INSERT INTO tmp_int_table
+        VALUES(parameter_id,v_int32_value,NULL,v_int32_hex);
     END IF;
     CLOSE cur_uint32;
     LEAVE proc;
@@ -1465,11 +1471,11 @@ BEGIN
   /** load vuint32 values */
   IF parameter_type='vuint32' THEN
     OPEN cur_vuint32;
-    FETCH cur_vuint32 INTO v_int32_value,v_sequence_nb;
+    FETCH cur_vuint32 INTO v_int32_value,v_sequence_nb,v_int32_hex;
     WHILE done=FALSE DO
       INSERT INTO tmp_int_table
-        VALUES(parameter_id,v_int32_value,v_sequence_nb);
-      FETCH cur_vuint32 INTO v_int32_value,v_sequence_nb;
+        VALUES(parameter_id,v_int32_value,v_sequence_nb,v_int32_hex);
+      FETCH cur_vuint32 INTO v_int32_value,v_sequence_nb,v_int32_hex;
     END WHILE;
     CLOSE cur_vuint32;
     LEAVE proc;
@@ -1617,7 +1623,8 @@ END;
 --
 CREATE PROCEDURE get_int_values()
 BEGIN
-  SELECT DISTINCT parameter_id,parameter_value,sequence_nb FROM tmp_int_table;
+  SELECT DISTINCT parameter_id,parameter_value,sequence_nb,hex
+    FROM tmp_int_table;
   DROP TEMPORARY TABLE IF EXISTS tmp_int_table;
 END;
 //

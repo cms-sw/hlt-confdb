@@ -139,6 +139,7 @@ public class ConfigurationParseDialog extends JDialog
 	if (result == JFileChooser.APPROVE_OPTION) {
 	    File file = fileChooser.getSelectedFile();
 	    jTextFieldFileName.setText(file.getAbsolutePath());
+	    jComboBoxReleaseTagActionPerformed(null);
 	}
     }
     
