@@ -54,8 +54,11 @@ public class ParseNode
 	    System.err.println("ParseNode.unquoted ERROR: "+
 			       "missing closing quotes.");
 
-	return content.substring(oquotes[iquote].length(),
-				 content.length()-cquotes[iquote].length());
+	int olength = (oquotes[iquote].length()==1) ? 1 : oquotes[iquote].length()-1;
+	int clength = (cquotes[iquote].length()==1) ? 1 : cquotes[iquote].length()-1;
+	return content.substring(olength,content.length()-clength);
+	//return content.substring(oquotes[iquote].length(),
+	//			 content.length()-cquotes[iquote].length());
     }
     
     /** get the parent node */
