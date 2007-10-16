@@ -1058,9 +1058,9 @@ class AddProblemModulesAndParametersMySQL:
     def GetNextSequenceNb(self,thecursor,componentname,componenttablename):
 	seqtuple = []
 
-#	print "SELECT " + componenttablename + ".superId FROM " + componenttablename + " WHERE " + componenttablename + ".name = '" + componentname + "'"
-	thecursor.execute("SELECT " + componenttablename + ".superId FROM " + componenttablename + " WHERE " + componenttablename + ".name = '" + componentname + "'")
-	thesuperid = (thecursor.fetchall()[0])[0]
+#        print "SELECT " + componenttablename + ".superId FROM " + componenttablename + " JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.releaseId = " + str(self.releasekey) + " AND SuperIdReleaseAssoc.superId = " + componenttablename + ".superId) WHERE " + componenttablename + ".name = '" + componentname + "'";
+        thecursor.execute("SELECT " + componenttablename + ".superId FROM " + componenttablename + " JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.releaseId = " + str(self.releasekey) + " AND SuperIdReleaseAssoc.superId = " + componenttablename + ".superId) WHERE " + componenttablename + ".name = '" + componentname + "'")
+        thesuperid = (thecursor.fetchall()[0])[0]
 
 #	print "SELECT sequenceNb FROM SuperIdParameterAssoc WHERE SuperIdParameterAssoc.superId = " + str(thesuperid)
 	thecursor.execute("SELECT sequenceNb FROM SuperIdParameterAssoc WHERE SuperIdParameterAssoc.superId = " + str(thesuperid))
