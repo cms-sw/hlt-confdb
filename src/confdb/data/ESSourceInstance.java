@@ -8,8 +8,16 @@ package confdb.data;
  *
  * CMSSW event setup source instance.
  */
-public class ESSourceInstance extends Instance
+public class ESSourceInstance extends Instance implements Preferable
 {
+    //
+    // member data
+    //
+
+    /** is data from this ESSource preferred? */
+    private boolean isPreferred = false;
+
+
     //
     // construction
     //
@@ -19,5 +27,24 @@ public class ESSourceInstance extends Instance
     {
 	super(name,template);
     }
+    
+    /** construcor setting isPreferred */
+    public ESSourceInstance(String name,ESSourceTemplate template,
+			    boolean isPreferred)
+    {
+	super(name,template);
+	setPreferred(isPreferred);
+    }
+
+
+    //
+    // member functions
+    //
+
+    /** check if this source is preferred */
+    public boolean isPreferred() { return isPreferred; }
+    
+    /** set if this source is preferred */
+    public void setPreferred(boolean isPreferred) { this.isPreferred=isPreferred; }
     
 }

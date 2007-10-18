@@ -235,15 +235,20 @@ public class PythonParser
 	
 	// add primary data source (edsource)
 	ParseNode edsourceNode = getChildNode(rootNode,"main_input");
-	String    edsourceName = getNodeValue(edsourceNode,"@classname");
-	EDSourceInstance edsource = config.insertEDSource(edsourceName);
-	ArrayList<Parameter> edsourceParams = getParameters(edsourceNode);
-	for (Parameter p : edsourceParams) {
-	    if (edsource==null||
-		!edsource.updateParameter(p.name(),p.type(),p.valueAsString()))
-		addProblem("EDSource",edsourceName,p);
+	if (edsourceNode.childCount()>0) {
+	    String    edsourceName = getNodeValue(edsourceNode,"@classname");
+	    EDSourceInstance edsource = config.insertEDSource(edsourceName);
+	    ArrayList<Parameter> edsourceParams = getParameters(edsourceNode);
+	    for (Parameter p : edsourceParams) {
+		if (edsource==null||
+		    !edsource.updateParameter(p.name(),p.type(),p.valueAsString()))
+		    addProblem("EDSource",edsourceName,p);
+	    }
 	}
 	
+	HashMap <String,Preferable> labelToPreferable =
+	    new HashMap<String,Preferable>();
+
 	// add essources
 	ParseNode essourcesNode = getChildNode(rootNode,"es_sources");
 	for (int i=0;i<essourcesNode.childCount();i++) {
@@ -254,6 +259,7 @@ public class PythonParser
 	    ESSourceInstance essource =
 		config.insertESSource(config.essourceCount(),
 				      essourceName,essourceLabel);
+	    labelToPreferable.put(essourceLabel,essource);
 	    ArrayList<Parameter> essourceParams = getParameters(essourceNode);
 	    for (Parameter p : essourceParams) {
 		if (essource==null||
@@ -273,6 +279,7 @@ public class PythonParser
 	    ESModuleInstance esmodule =
 		config.insertESModule(config.esmoduleCount(),
 				      esmoduleName,esmoduleLabel);
+	    labelToPreferable.put(esmoduleLabel,esmodule);
 	    ArrayList<Parameter> esmoduleParams = getParameters(esmoduleNode);
 	    for (Parameter p : esmoduleParams) {
 		if (esmodule==null||
@@ -282,6 +289,15 @@ public class PythonParser
 	    }
 	}
 	
+	// set preferred essources / esmodules
+	ParseNode esprefersNode = getChildNode(rootNode,"es_prefers");
+	for (int i=0;i<esprefersNode.childCount();i++) {
+	    ParseNode  espreferNode = esprefersNode.child(i);
+	    String     label        = getNodeValue(espreferNode,"@label");
+	    Preferable es           = labelToPreferable.get(label);
+	    es.setPreferred(true);
+	}
+
 	// add services
 	ParseNode servicesNode = getChildNode(rootNode,"services");
 	for (int i=0;i<servicesNode.childCount();i++) {

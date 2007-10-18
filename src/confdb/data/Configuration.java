@@ -437,7 +437,7 @@ public class Configuration
     }
     
     /** sort global PSets*/
-    public void sortPSets() { Collections.sort(psets); }
+    public void sortPSets() { Collections.sort(psets); hasChanged=true; }
     
 
     //
@@ -494,7 +494,7 @@ public class Configuration
     }
     
     /** sort  EDSources */
-    public void sortEDSources() { Collections.sort(edsources); }
+    public void sortEDSources() { Collections.sort(edsources); hasChanged=true; }
     
 
     //
@@ -551,7 +551,7 @@ public class Configuration
     }
 
     /** sort  ESSources */
-    public void sortESSources() { Collections.sort(essources); }
+    public void sortESSources() { Collections.sort(essources); hasChanged=true; }
     
     
     //
@@ -609,7 +609,7 @@ public class Configuration
     }
     
     /** sort  ESModules */
-    public void sortESModules() { Collections.sort(esmodules); }
+    public void sortESModules() { Collections.sort(esmodules); hasChanged=true; }
     
     
     //
@@ -664,7 +664,7 @@ public class Configuration
     }
     
     /** sort services */
-    public void sortServices() { Collections.sort(services); }
+    public void sortServices() { Collections.sort(services); hasChanged=true; }
     
     
     //
@@ -849,7 +849,7 @@ public class Configuration
     }
     
     /** sort Paths */
-    public void sortPaths() { Collections.sort(paths); }
+    public void sortPaths() { Collections.sort(paths); hasChanged=true; }
 
     
     //
@@ -944,7 +944,7 @@ public class Configuration
     }
 
     /** sort Sequences */
-    public void sortSequences() { Collections.sort(sequences); }
+    public void sortSequences() { Collections.sort(sequences); hasChanged=true; }
 
 
     //
@@ -977,6 +977,7 @@ public class Configuration
     {
 	Stream stream = new Stream(streamLabel);
 	streams.add(i,stream);
+	hasChanged=true;
 	return stream;
     }
 
@@ -991,11 +992,12 @@ public class Configuration
 	    p.removeFromStream(stream);
 	}
 	streams.remove(index);
+	hasChanged=true;
 	if (defaultStream==stream) defaultStream=null;
     }
 
     /** sort Streams */
-    public void sortStreams() { Collections.sort(streams); }
+    public void sortStreams() { Collections.sort(streams); hasChanged=true;}
     
     /** default stream*/
     public Stream defaultStream() { return defaultStream; }

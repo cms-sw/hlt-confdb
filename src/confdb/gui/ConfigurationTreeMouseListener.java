@@ -324,6 +324,13 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    menuItem = new JMenuItem("Rename ESSource");
 	    menuItem.addActionListener(essourceListener);
 	    popupESSources.add(menuItem);
+	    popupESSources.addSeparator();
+
+	    Preferable essource = (Preferable)treePath.getLastPathComponent();
+	    JCheckBoxMenuItem cbMenuItem = new JCheckBoxMenuItem("preferred");
+	    cbMenuItem.setState(essource.isPreferred());
+	    cbMenuItem.addItemListener(new PreferableItemListener(tree));
+	    popupESSources.add(cbMenuItem);
 	}
 
 	if (depth==2&&enableSort) {
@@ -381,6 +388,12 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    menuItem = new JMenuItem("Rename ESModule");
 	    menuItem.addActionListener(esmoduleListener);
 	    popupESModules.add(menuItem);
+
+	    Preferable esmodule = (Preferable)treePath.getLastPathComponent();
+	    JCheckBoxMenuItem cbMenuItem = new JCheckBoxMenuItem("preferred");
+	    cbMenuItem.setState(esmodule.isPreferred());
+	    cbMenuItem.addItemListener(new PreferableItemListener(tree));
+	    popupESModules.add(cbMenuItem);
 	}
 
 	if (depth==2&&enableSort) {
@@ -1173,12 +1186,32 @@ class ModuleMenuListener implements ActionListener
 }
 
 
+/*
+ * listen to item events from the ESSource / ESModule menus
+ */
+class PreferableItemListener implements ItemListener
+{
+    /** reference to  tree */
+    private JTree tree = null;
+
+    /** constructor */
+    public PreferableItemListener(JTree tree) { this.tree = tree; }
+    
+    /** ItemListener.itemStateChanged() */
+    public void itemStateChanged(ItemEvent e)
+    {
+	JCheckBoxMenuItem item = (JCheckBoxMenuItem)e.getItemSelectable();
+	ConfigurationTreeActions.setPreferred(tree,item.isSelected());
+    }
+}
+
+
 /**
  * listen to item events of the Paths menu
  */
 class PathItemListener implements ItemListener
 {
-    /** the currently selected path*/
+    /** reference to tree */
     private JTree tree = null;
 
     /** constructor */

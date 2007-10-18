@@ -489,8 +489,9 @@ public class ConfDB
 	    psInsertConfigESSourceAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
-		 "ConfigurationESSourceAssoc (configId,essourceId,sequenceNb) " +
-		 "VALUES(?, ?, ?)");
+		 "ConfigurationESSourceAssoc " +
+		 "(configId,essourceId,sequenceNb,prefer) " +
+		 "VALUES(?, ?, ?, ?)");
 	    preparedStatements.add(psInsertConfigESSourceAssoc);
 
 	    psInsertESModule =
@@ -503,8 +504,9 @@ public class ConfDB
 	    psInsertConfigESModuleAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
-		 "ConfigurationESModuleAssoc (configId,esmoduleId,sequenceNb) " +
-		 "VALUES(?, ?, ?)");
+		 "ConfigurationESModuleAssoc " +
+		 "(configId,esmoduleId,sequenceNb,prefer) " +
+		 "VALUES(?, ?, ?, ?)");
 	    preparedStatements.add(psInsertConfigESModuleAssoc);
 	    
 	    psInsertService =
@@ -1670,13 +1672,13 @@ public class ConfDB
 		int     templateId   = rsInstances.getInt(2);
                 String  type         = rsInstances.getString(3);
 		String  instanceName = rsInstances.getString(4);
-		boolean isTrkd       = rsInstances.getBoolean(5);
+		boolean flag         = rsInstances.getBoolean(5);
 		
 		String templateName = null;
 		
 		if (type.equals("PSet")) {
 		    PSetParameter pset = (PSetParameter)ParameterFactory
-			.create("PSet",instanceName,"",isTrkd,false);
+			.create("PSet",instanceName,"",flag,false);
 		    config.insertPSet(pset);
 		    idToPSets.put(id,pset);
 		    psetParams.put(pset,new ArrayList<Parameter>());
@@ -1691,9 +1693,10 @@ public class ConfDB
 		else if (type.equals("ESSource")) {
 		    int insertIndex = config.essourceCount();
 		    templateName = release.essourceTemplateName(templateId);
-		    Instance essource = config.insertESSource(insertIndex,
-							      templateName,
-							      instanceName);
+		    ESSourceInstance essource = config.insertESSource(insertIndex,
+								      templateName,
+								      instanceName);
+		    essource.setPreferred(flag);
 		    essource.setDatabaseId(id);
 		    idToInstances.put(id,essource);
 		    instanceParams.put(essource,new ArrayList<Parameter>());
@@ -1701,9 +1704,10 @@ public class ConfDB
 		else if (type.equals("ESModule")) {
 		    int insertIndex = config.esmoduleCount();
 		    templateName = release.esmoduleTemplateName(templateId);
-		    Instance esmodule = config.insertESModule(insertIndex,
-							      templateName,
-							      instanceName);
+		    ESModuleInstance esmodule = config.insertESModule(insertIndex,
+								      templateName,
+								      instanceName);
+		    esmodule.setPreferred(flag);
 		    esmodule.setDatabaseId(id);
 		    idToInstances.put(id,esmodule);
 		    instanceParams.put(esmodule,new ArrayList<Parameter>());
@@ -1730,7 +1734,7 @@ public class ConfDB
 		    int  insertIndex = config.pathCount();
 		    Path path = config.insertPath(insertIndex,instanceName);
 		    path.setDatabaseId(id);
-		    path.setAsEndPath(isTrkd);
+		    path.setAsEndPath(flag);
 		    idToPaths.put(id,path);
 		}
 		else if (type.equals("Sequence")) {
@@ -2257,10 +2261,11 @@ public class ConfDB
 	throws DatabaseException
     {
 	for (int sequenceNb=0;sequenceNb<config.essourceCount();sequenceNb++) {
-	    ESSourceInstance essource   = config.essource(sequenceNb);
-	    int              essourceId = essource.databaseId();
-	    int              templateId = essource.template().databaseId();
-	    
+	    ESSourceInstance essource    = config.essource(sequenceNb);
+	    int              essourceId  = essource.databaseId();
+	    int              templateId  = essource.template().databaseId();
+	    boolean          isPreferred = essource.isPreferred();
+
 	    if (essourceId<=0) {
 		essourceId = insertSuperId();
 		try {
@@ -2281,6 +2286,7 @@ public class ConfDB
 		psInsertConfigESSourceAssoc.setInt(1,configId);
 		psInsertConfigESSourceAssoc.setInt(2,essourceId);
 		psInsertConfigESSourceAssoc.setInt(3,sequenceNb);
+		psInsertConfigESSourceAssoc.setBoolean(4,isPreferred);
 		psInsertConfigESSourceAssoc.executeUpdate();
 	    }
 	    catch (SQLException e) {
@@ -2295,10 +2301,11 @@ public class ConfDB
 	throws DatabaseException
     {
 	for (int sequenceNb=0;sequenceNb<config.esmoduleCount();sequenceNb++) {
-	    ESModuleInstance esmodule   = config.esmodule(sequenceNb);
-	    int              esmoduleId = esmodule.databaseId();
-	    int              templateId = esmodule.template().databaseId();
-
+	    ESModuleInstance esmodule    = config.esmodule(sequenceNb);
+	    int              esmoduleId  = esmodule.databaseId();
+	    int              templateId  = esmodule.template().databaseId();
+	    boolean          isPreferred = esmodule.isPreferred();
+	    
 	    if (esmoduleId<=0) {
 		esmoduleId = insertSuperId();
 		try {
@@ -2319,6 +2326,7 @@ public class ConfDB
 		psInsertConfigESModuleAssoc.setInt(1,configId);
 		psInsertConfigESModuleAssoc.setInt(2,esmoduleId);
 		psInsertConfigESModuleAssoc.setInt(3,sequenceNb);
+		psInsertConfigESModuleAssoc.setBoolean(4,isPreferred);
 		psInsertConfigESModuleAssoc.executeUpdate();
 	    }
 	    catch (SQLException e) {

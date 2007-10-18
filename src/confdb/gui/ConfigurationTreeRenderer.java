@@ -163,9 +163,15 @@ class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     {
 	String result = getText();
 	if (node instanceof Instance) {
-	    Instance instance = (Instance)node;
-	    int      count = instance.unsetTrackedParameterCount();
-	    result="<html>"+instance.name();	    
+	    Instance instance      = (Instance)node;
+	    int      count         = instance.unsetTrackedParameterCount();
+	    result="<html>";
+	    if (instance instanceof Preferable) {
+		Preferable es = (Preferable)instance;
+		if   (es.isPreferred()) result += "<b>"+instance.name()+"</b>";
+		else                    result += instance.name();
+	    }
+	    else result += instance.name();
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
 	    result+="</html>";
 	}

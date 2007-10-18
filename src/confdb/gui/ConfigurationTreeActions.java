@@ -224,7 +224,6 @@ public class ConfigurationTreeActions
 	config.sortESSources();
 	model.nodeStructureChanged(model.essourcesNode());
     }
-    
 
     //
     // ESModules
@@ -258,6 +257,25 @@ public class ConfigurationTreeActions
 	Configuration          config = (Configuration)model.getRoot();
 	config.sortESModules();
 	model.nodeStructureChanged(model.esmodulesNode());
+    }
+
+
+    //
+    // ESSources *and* ESModules (Preferables)
+    //
+    
+    /** set Preferable attribute */
+    public static void setPreferred(JTree tree,boolean isPreferred)
+    {
+	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config   = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	Preferable  es = (Preferable)treePath.getLastPathComponent();
+	es.setPreferred(isPreferred);
+	config.setHasChanged(true);
+	model.nodeChanged(es);
+	model.updateLevel1Nodes();
     }
     
 
