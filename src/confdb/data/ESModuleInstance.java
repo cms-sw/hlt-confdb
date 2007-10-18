@@ -8,7 +8,7 @@ package confdb.data;
  *
  * CMSSW event setup module instance.
  */
-public class ESModuleInstance extends Instance implements Preferable
+public class ESModuleInstance extends Instance implements ESPreferable
 {
     //
     // member data

@@ -166,10 +166,10 @@ class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    Instance instance      = (Instance)node;
 	    int      count         = instance.unsetTrackedParameterCount();
 	    result="<html>";
-	    if (instance instanceof Preferable) {
-		Preferable es = (Preferable)instance;
-		if   (es.isPreferred()) result += "<b>"+instance.name()+"</b>";
-		else                    result += instance.name();
+	    if (instance instanceof ESPreferable) {
+		ESPreferable esp = (ESPreferable)instance;
+		if   (esp.isPreferred()) result += "<b>"+instance.name()+"</b>";
+		else                     result += instance.name();
 	    }
 	    else result += instance.name();
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";

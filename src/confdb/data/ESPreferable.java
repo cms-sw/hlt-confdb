@@ -2,12 +2,12 @@ package confdb.data;
 
 
 /**
- * Preferable
- * ----------
+ * ESPreferable
+ * ------------
  * @author Philipp Schieferdecker
  *
  */
-public interface Preferable
+public interface ESPreferable
 {
     /** query if this module is preferred */
     public boolean isPreferred();

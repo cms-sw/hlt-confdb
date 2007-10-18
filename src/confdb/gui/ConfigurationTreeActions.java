@@ -261,7 +261,7 @@ public class ConfigurationTreeActions
 
 
     //
-    // ESSources *and* ESModules (Preferables)
+    // ESSources *and* ESModules (ESPreferables)
     //
     
     /** set Preferable attribute */
@@ -271,10 +271,10 @@ public class ConfigurationTreeActions
 	Configuration          config   = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 	
-	Preferable  es = (Preferable)treePath.getLastPathComponent();
-	es.setPreferred(isPreferred);
+	ESPreferable esp = (ESPreferable)treePath.getLastPathComponent();
+	esp.setPreferred(isPreferred);
 	config.setHasChanged(true);
-	model.nodeChanged(es);
+	model.nodeChanged(esp);
 	model.updateLevel1Nodes();
     }
     

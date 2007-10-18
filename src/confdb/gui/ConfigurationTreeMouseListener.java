@@ -293,18 +293,18 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    while (it.hasNext()) {
 		ESSourceTemplate t = (ESSourceTemplate)it.next();
 		if (t.instanceCount()>0) {
-		    JMenu instanceMenu = new JMenu(t.name());
+		    JMenu instanceMenu = new ScrollableMenu(t.name());
+		    menuItem = new JMenuItem("New Instance");
+		    menuItem.addActionListener(essourceListener);
+		    instanceMenu.add(menuItem);
+		    menuItem.setActionCommand(t.name());
+		    if (t.instanceCount()>0) instanceMenu.addSeparator();		    
 		    for (int i=0;i<t.instanceCount();i++) {
 			Instance instance = t.instance(i);
 			menuItem = new JMenuItem(instance.name());
 			menuItem.setEnabled(false);
 			instanceMenu.add(menuItem);
 		    }
-		    instanceMenu.addSeparator();
-		    menuItem = new JMenuItem("New Instance");
-		    menuItem.addActionListener(essourceListener);
-		    menuItem.setActionCommand(t.name());
-		    instanceMenu.add(menuItem);
 		    essourceMenu.add(instanceMenu);
 		}
 		else {
@@ -326,10 +326,10 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    popupESSources.add(menuItem);
 	    popupESSources.addSeparator();
 
-	    Preferable essource = (Preferable)treePath.getLastPathComponent();
+	    ESPreferable essource = (ESPreferable)treePath.getLastPathComponent();
 	    JCheckBoxMenuItem cbMenuItem = new JCheckBoxMenuItem("preferred");
 	    cbMenuItem.setState(essource.isPreferred());
-	    cbMenuItem.addItemListener(new PreferableItemListener(tree));
+	    cbMenuItem.addItemListener(new ESPreferableItemListener(tree));
 	    popupESSources.add(cbMenuItem);
 	}
 
@@ -357,18 +357,18 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    while (it.hasNext()) {
 		ESModuleTemplate t = (ESModuleTemplate)it.next();
 		if (t.instanceCount()>0) {
-		    JMenu instanceMenu = new JMenu(t.name());
+		    JMenu instanceMenu = new ScrollableMenu(t.name());
+		    menuItem = new JMenuItem("New Instance");
+		    menuItem.addActionListener(esmoduleListener);
+		    menuItem.setActionCommand(t.name());
+		    instanceMenu.add(menuItem);
+		    if (t.instanceCount()>0) instanceMenu.addSeparator();
 		    for (int i=0;i<t.instanceCount();i++) {
 			Instance instance = t.instance(i);
 			menuItem = new JMenuItem(instance.name());
 			menuItem.setEnabled(false);
 			instanceMenu.add(menuItem);
 		    }
-		    instanceMenu.addSeparator();
-		    menuItem = new JMenuItem("New Instance");
-		    menuItem.addActionListener(esmoduleListener);
-		    menuItem.setActionCommand(t.name());
-		    instanceMenu.add(menuItem);
 		    esmoduleMenu.add(instanceMenu);
 		}
 		else {
@@ -389,10 +389,10 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    menuItem.addActionListener(esmoduleListener);
 	    popupESModules.add(menuItem);
 
-	    Preferable esmodule = (Preferable)treePath.getLastPathComponent();
+	    ESPreferable esmodule = (ESPreferable)treePath.getLastPathComponent();
 	    JCheckBoxMenuItem cbMenuItem = new JCheckBoxMenuItem("preferred");
 	    cbMenuItem.setState(esmodule.isPreferred());
-	    cbMenuItem.addItemListener(new PreferableItemListener(tree));
+	    cbMenuItem.addItemListener(new ESPreferableItemListener(tree));
 	    popupESModules.add(cbMenuItem);
 	}
 
@@ -659,8 +659,18 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	    }
 	    
 	    if (t.instanceCount()>0) {
-		JMenu instanceMenuAll = new JMenu(t.name());
-		JMenu instanceMenu = new JMenu(t.name());
+		JMenu instanceMenuAll = new ScrollableMenu(t.name());
+		JMenu instanceMenu = new ScrollableMenu(t.name());
+		menuItemAll = new JMenuItem("New Instance");
+		menuItemAll.addActionListener(listener);
+		menuItemAll.setActionCommand(t.name());
+		instanceMenuAll.add(menuItemAll);
+		menuItem = new JMenuItem("New Instance");
+		menuItem.addActionListener(listener);
+		menuItem.setActionCommand(t.name());
+		instanceMenu.add(menuItem);
+		instanceMenuAll.addSeparator();
+		instanceMenu.addSeparator();
 		for (int i=0;i<t.instanceCount();i++) {
 		    ModuleInstance instance = (ModuleInstance)t.instance(i);
 		    menuItemAll = new JMenuItem(instance.name());
@@ -679,16 +689,6 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 		    instanceMenuAll.add(menuItemAll);
 		    instanceMenu.add(menuItem);
 		}
-		instanceMenuAll.addSeparator();
-		instanceMenu.addSeparator();
-		menuItemAll = new JMenuItem("New Instance");
-		menuItemAll.addActionListener(listener);
-		menuItemAll.setActionCommand(t.name());
-		instanceMenuAll.add(menuItemAll);
-		menuItem = new JMenuItem("New Instance");
-		menuItem.addActionListener(listener);
-		menuItem.setActionCommand(t.name());
-		instanceMenu.add(menuItem);
 		moduleTypeAllMenu.add(instanceMenuAll);
 		moduleTypeAndLetterMenu.add(instanceMenu);
 	    }
@@ -1189,13 +1189,13 @@ class ModuleMenuListener implements ActionListener
 /*
  * listen to item events from the ESSource / ESModule menus
  */
-class PreferableItemListener implements ItemListener
+class ESPreferableItemListener implements ItemListener
 {
     /** reference to  tree */
     private JTree tree = null;
 
     /** constructor */
-    public PreferableItemListener(JTree tree) { this.tree = tree; }
+    public ESPreferableItemListener(JTree tree) { this.tree = tree; }
     
     /** ItemListener.itemStateChanged() */
     public void itemStateChanged(ItemEvent e)

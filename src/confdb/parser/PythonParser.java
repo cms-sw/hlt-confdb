@@ -246,8 +246,8 @@ public class PythonParser
 	    }
 	}
 	
-	HashMap <String,Preferable> labelToPreferable =
-	    new HashMap<String,Preferable>();
+	HashMap <String,ESPreferable> labelToPreferable =
+	    new HashMap<String,ESPreferable>();
 
 	// add essources
 	ParseNode essourcesNode = getChildNode(rootNode,"es_sources");
@@ -292,10 +292,10 @@ public class PythonParser
 	// set preferred essources / esmodules
 	ParseNode esprefersNode = getChildNode(rootNode,"es_prefers");
 	for (int i=0;i<esprefersNode.childCount();i++) {
-	    ParseNode  espreferNode = esprefersNode.child(i);
-	    String     label        = getNodeValue(espreferNode,"@label");
-	    Preferable es           = labelToPreferable.get(label);
-	    es.setPreferred(true);
+	    ParseNode    espreferNode = esprefersNode.child(i);
+	    String       label        = getNodeValue(espreferNode,"@label");
+	    ESPreferable esp          = labelToPreferable.get(label);
+	    esp.setPreferred(true);
 	}
 
 	// add services
