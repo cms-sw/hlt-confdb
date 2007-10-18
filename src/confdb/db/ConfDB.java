@@ -1322,12 +1322,12 @@ public class ConfDB
 
 	    while (rsIntValues.next()) {
 		int     parameterId   = rsIntValues.getInt(1);
-		int     value         = rsIntValues.getInt(2);
+		long    value         = rsIntValues.getLong(2);
 		Integer sequenceNb    = new Integer(rsIntValues.getInt(3));
 		boolean isHex         = rsIntValues.getBoolean(4);
 
 		String valueAsString = (isHex) ?
-		    "0x"+Integer.toHexString(value) : Integer.toString(value);
+		    "0x"+Long.toHexString(value) : Long.toString(value);
 		
 		if (sequenceNb!=null&&
 		    idToValueAsString.containsKey(parameterId))
@@ -1637,6 +1637,9 @@ public class ConfDB
 	    HashMap<Integer,Instance> idToInstances =
 		new HashMap<Integer,Instance>();
 
+	    HashMap<Integer,Parameter> idToParameters =
+		new HashMap<Integer,Parameter>();
+
  	    HashMap<Integer,PSetParameter> idToPSets =
 		new HashMap<Integer,PSetParameter>();
 	    
@@ -1757,12 +1760,12 @@ public class ConfDB
 	    
 	    while (rsIntValues.next()) {
 		int     parameterId   = rsIntValues.getInt(1);
-		int     value         = rsIntValues.getInt(2);
+		long    value         = rsIntValues.getLong(2);
 		Integer sequenceNb    = new Integer(rsIntValues.getInt(3));
 		boolean isHex         = rsIntValues.getBoolean(4);
 
 		String valueAsString = (isHex) ?
-		    "0x"+Integer.toHexString(value) : Integer.toString(value);
+		    "0x"+Long.toHexString(value) : Long.toString(value);
 		
 		if (sequenceNb!=null&&
 		    idToValueAsString.containsKey(parameterId))
@@ -1800,6 +1803,7 @@ public class ConfDB
 		else idToValueAsString.put(parameterId,valueAsString);
 	    }
 	   
+
 	    while (rsParameters.next()) {
 		int     id       = rsParameters.getInt(1);
 		String  type     = rsParameters.getString(2);
@@ -1807,8 +1811,6 @@ public class ConfDB
 		boolean isTrkd   = rsParameters.getBoolean(4);
 		int     seqNb    = rsParameters.getInt(5);
 		int     parentId = rsParameters.getInt(6);
-		
-		if (!idToValueAsString.containsKey(id)) continue;
 		
 		String valueAsString = idToValueAsString.remove(id);
 		if (valueAsString==null) valueAsString=new String();
@@ -1826,7 +1828,7 @@ public class ConfDB
 		    idToVPSets.put(id,vpset);
 		    vpsetParams.put(vpset,new ArrayList<PSetParameter>());
 		}
-
+		
 		if (idToInstances.containsKey(parentId)) {
 		    Instance instance = idToInstances.get(parentId);
 		    ArrayList<Parameter> params = instanceParams.get(instance);
@@ -1847,8 +1849,7 @@ public class ConfDB
 		    psets.set(seqNb,pset);
 		}
 		else
-		    System.err.println("WHY THE FUCK IS THERE NO PARENT "+
-				       "FOR PARAMETER "+
+		    System.err.println("No parent parameter found for "+
 				       id+" "+name+" ("+type+")");
 	    }
 	    
@@ -2643,7 +2644,6 @@ public class ConfDB
     {
 	for (int sequenceNb=0;sequenceNb<instance.parameterCount();sequenceNb++) {
 	    Parameter p = instance.parameter(sequenceNb);
-
 	    
 	    if (!p.isDefault()) {
 		if (p instanceof VPSetParameter) {
@@ -2954,7 +2954,13 @@ public class ConfDB
 		for (int i=0;i<vp.vectorSize();i++) {
 		    psInsertParameterValue.setInt(1,paramId);
 		    psInsertParameterValue.setInt(2,i);
-		    psInsertParameterValue.setObject(3,vp.value(i));
+		    if (vp instanceof VStringParameter) {
+			String value = "\"" + (String)vp.value(i) + "\"";
+			psInsertParameterValue.setString(3,value);
+		    }
+		    else {
+			psInsertParameterValue.setObject(3,vp.value(i));
+		    }
 		    if (vp instanceof VInt32Parameter) {
 			VInt32Parameter vint32=(VInt32Parameter)vp;
 			psInsertParameterValue.setBoolean(4,vint32.isHex(i));
@@ -2968,7 +2974,13 @@ public class ConfDB
 	    else {
 		ScalarParameter sp = (ScalarParameter)parameter;
 		psInsertParameterValue.setInt(1,paramId);
-		psInsertParameterValue.setObject(2,sp.value());
+		if (sp instanceof StringParameter) {
+		    StringParameter string = (StringParameter)sp;
+		    psInsertParameterValue.setString(2,string.valueAsString());
+		}
+		else {
+		    psInsertParameterValue.setObject(2,sp.value());
+		}
 		if (sp instanceof Int32Parameter) {
 		    Int32Parameter int32=(Int32Parameter)sp;
 		    psInsertParameterValue.setBoolean(3,int32.isHex());

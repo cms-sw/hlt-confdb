@@ -966,9 +966,9 @@ BEGIN
     (
       instance_id	BIGINT UNSIGNED,
       template_id	BIGINT UNSIGNED,
-      instance_type    CHAR(64),
-      instance_name    CHAR(128),
-      pset_is_trkd     BOOLEAN
+      instance_type     CHAR(64),
+      instance_name     CHAR(128),
+      pset_is_trkd      BOOLEAN
     );
     SET temporary_table_exists = TRUE;
 

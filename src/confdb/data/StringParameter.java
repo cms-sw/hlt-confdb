@@ -40,7 +40,8 @@ public class StringParameter extends ScalarParameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	StringParameter result = new StringParameter(name,value,isTracked,isDefault);
+	StringParameter result = new StringParameter(name,valueAsString(),
+						     isTracked,isDefault);
 	result.setParent(parent);
 	return result;
     }
