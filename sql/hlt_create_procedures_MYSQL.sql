@@ -768,7 +768,9 @@ BEGIN
     DECLARE v_template_id     BIGINT UNSIGNED;
     DECLARE v_instance_type   CHAR(64);
     DECLARE v_instance_name   CHAR(128);
-    DECLARE v_pset_is_trkd    BOOLEAN DEFAULT NULL;
+    DECLARE v_pset_is_trkd    BOOLEAN;
+    DECLARE v_endpath         BOOLEAN;
+    DECLARE v_prefer          BOOLEAN;
     DECLARE v_parent_id       BIGINT UNSIGNED;
     DECLARE v_child_id        BIGINT UNSIGNED;
     DECLARE v_sequence_nb     INT;
@@ -802,7 +804,8 @@ BEGIN
       SELECT
         ESSources.superId,
 	ESSources.templateId,
-        ESSources.name
+        ESSources.name,
+	ConfigurationESSourceAssoc.prefer
       FROM ESSources
       JOIN ConfigurationESSourceAssoc
       ON ESSources.superId = ConfigurationESSourceAssoc.essourceId
@@ -814,7 +817,8 @@ BEGIN
       SELECT
         ESModules.superId,
         ESModules.templateId,
-        ESModules.name
+        ESModules.name,
+	ConfigurationESModuleAssoc.prefer
       FROM ESModules
       JOIN ConfigurationESModuleAssoc
       ON ESModules.superId = ConfigurationESModuleAssoc.esmoduleId
@@ -968,7 +972,7 @@ BEGIN
       template_id	BIGINT UNSIGNED,
       instance_type     CHAR(64),
       instance_name     CHAR(128),
-      pset_is_trkd      BOOLEAN
+      flag              BOOLEAN
     );
     SET temporary_table_exists = TRUE;
 
@@ -1067,24 +1071,24 @@ BEGIN
 
     /* load essources */
     OPEN cur_essources;
-    FETCH cur_essources INTO v_instance_id,v_template_id,v_instance_name;
+    FETCH cur_essources INTO v_instance_id,v_template_id,v_instance_name,v_prefer;
     WHILE done=FALSE DO
       INSERT INTO tmp_instance_table
-        VALUES(v_instance_id,v_template_id,'ESSource',v_instance_name,NULL);
+        VALUES(v_instance_id,v_template_id,'ESSource',v_instance_name,v_prefer);
       CALL load_parameters(v_instance_id);
-      FETCH cur_essources INTO v_instance_id,v_template_id,v_instance_name;
+      FETCH cur_essources INTO v_instance_id,v_template_id,v_instance_name,v_prefer;
     END WHILE;
     CLOSE cur_essources;
     SET done=FALSE;
 
     /* load esmodules */
     OPEN cur_esmodules;
-    FETCH cur_esmodules INTO v_instance_id,v_template_id,v_instance_name;
+    FETCH cur_esmodules INTO v_instance_id,v_template_id,v_instance_name,v_prefer;
     WHILE done=FALSE DO
       INSERT INTO tmp_instance_table
-        VALUES(v_instance_id,v_template_id,'ESModule',v_instance_name,NULL);
+        VALUES(v_instance_id,v_template_id,'ESModule',v_instance_name,v_prefer);
       CALL load_parameters(v_instance_id);
-      FETCH cur_esmodules INTO v_instance_id,v_template_id,v_instance_name;
+      FETCH cur_esmodules INTO v_instance_id,v_template_id,v_instance_name,v_prefer;
     END WHILE;
     CLOSE cur_esmodules;
     SET done=FALSE;
@@ -1131,11 +1135,11 @@ BEGIN
 
     /* load paths */
     OPEN cur_paths;
-    FETCH cur_paths INTO v_instance_id,v_instance_name,v_pset_is_trkd;
+    FETCH cur_paths INTO v_instance_id,v_instance_name,v_endpath;
     WHILE done=FALSE DO
       INSERT INTO tmp_instance_table
-        VALUES(v_instance_id,NULL,'Path',v_instance_name,v_pset_is_trkd);
-      FETCH cur_paths INTO v_instance_id,v_instance_name,v_pset_is_trkd;
+        VALUES(v_instance_id,NULL,'Path',v_instance_name,v_endpath);
+      FETCH cur_paths INTO v_instance_id,v_instance_name,v_endpath;
     END WHILE;
     CLOSE cur_paths;
     SET done=FALSE;
@@ -1230,7 +1234,7 @@ BEGIN
 
     /* generate the final result set by selecting the temporary table */
     SELECT DISTINCT
-      instance_id,template_id,instance_type,instance_name,pset_is_trkd
+      instance_id,template_id,instance_type,instance_name,flag
     FROM tmp_instance_table;
   END;  
 

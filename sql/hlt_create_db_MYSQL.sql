@@ -19,6 +19,24 @@ CREATE TABLE SoftwareReleases
 	PRIMARY KEY(releaseId)
 ) ENGINE=INNODB;
 
+-- TABLE 'SoftwareSubsystems'
+CREATE TABLE SoftwareSybsystems
+(
+	subsysId	BIGINT UNSIGNED	  NOT NULL UNIQUE,
+	name		VARCHAR(64)	  NOT NULL,
+	PRIMARY KEY(subsysId)
+) ENGINE=INNODB;
+
+-- TABLE 'SoftwarePackages'
+CREATE TABLE SoftwarePackages
+(
+	packageId	BIGINT UNSIGNED	  NOT NULL UNIQUE,
+	subsysId	BIGINT UNSIGNED	  NOT NULL,
+	name		VARCHAR(64)	  NOT NULL,
+	PRIMARY KEY(packageId),
+	FOREIGN KEY(subsysId) REFERENCES SoftwareSubsystems(subsysId)
+) ENGINE=INNODB;
+
 -- TABLE 'Directories'
 CREATE TABLE Directories
 (
@@ -176,6 +194,7 @@ CREATE TABLE SequenceInSequenceAssoc
 	FOREIGN KEY (parentSequenceId) REFERENCES Sequences(sequenceId),
 	FOREIGN KEY (childSequenceId)  REFERENCES Sequences(sequenceId)
 ) ENGINE=INNODB;
+
 
 
 --

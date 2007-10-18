@@ -4,6 +4,8 @@
 
 CREATE SYNONYM SuperIdReleaseAssoc 		FOR CMS_HLT.SuperIdReleaseAssoc; 	
 CREATE SYNONYM SoftwareReleases 		FOR CMS_HLT.SoftwareReleases;		
+CREATE SYNONYM SoftwareSubsystems 		FOR CMS_HLT.SoftwareSubsystems;
+CREATE SYNONYM SoftwarePackages 		FOR CMS_HLT.SoftwarePackages;
 CREATE SYNONYM ConfigurationPathAssoc 		FOR CMS_HLT.ConfigurationPathAssoc; 	
 CREATE SYNONYM StreamPathAssoc	 		FOR CMS_HLT.StreamPathAssoc; 	
 CREATE SYNONYM PathInPathAssoc 			FOR CMS_HLT.PathInPathAssoc; 		
@@ -58,6 +60,8 @@ CREATE SYNONYM SuperIds 			FOR CMS_HLT.SuperIds;
 CREATE SYNONYM ParameterTypes 			FOR CMS_HLT.ParameterTypes;
 
 CREATE SYNONYM ReleaseId_Sequence 		FOR CMS_HLT.ReleaseId_Sequence;
+CREATE SYNONYM SubsysId_Sequence 		FOR CMS_HLT.SubsysId_Sequence;
+CREATE SYNONYM PackageId_Sequence 		FOR CMS_HLT.PackageId_Sequence;
 CREATE SYNONYM DirId_Sequence 			FOR CMS_HLT.DirId_Sequence;
 CREATE SYNONYM ConfigId_Sequence 		FOR CMS_HLT.ConfigId_Sequence;
 CREATE SYNONYM StreamId_Sequence 		FOR CMS_HLT.StreamId_Sequence;

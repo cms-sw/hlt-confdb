@@ -9,6 +9,8 @@
 -- SELECT
 GRANT SELECT ON SuperIdReleaseAssoc 		TO cms_hlt_writer;
 GRANT SELECT ON SoftwareReleases		TO cms_hlt_writer;
+GRANT SELECT ON SoftwareSubsystems		TO cms_hlt_writer;
+GRANT SELECT ON SoftwarePackages		TO cms_hlt_writer;
 GRANT SELECT ON ConfigurationPathAssoc 		TO cms_hlt_writer;
 GRANT SELECT ON StreamPathAssoc 		TO cms_hlt_writer;
 GRANT SELECT ON PathInPathAssoc 		TO cms_hlt_writer;
@@ -63,6 +65,8 @@ GRANT SELECT ON SuperIds 			TO cms_hlt_writer;
 GRANT SELECT ON ParameterTypes 			TO cms_hlt_writer;
 
 GRANT SELECT ON ReleaseId_Sequence 		TO cms_hlt_writer;
+GRANT SELECT ON SubsysId_Sequence 		TO cms_hlt_writer;
+GRANT SELECT ON PackageId_Sequence 		TO cms_hlt_writer;
 GRANT SELECT ON DirId_Sequence 			TO cms_hlt_writer;
 GRANT SELECT ON ConfigId_Sequence 		TO cms_hlt_writer;
 GRANT SELECT ON StreamId_Sequence 		TO cms_hlt_writer;
@@ -133,6 +137,8 @@ GRANT DELETE ON LockedConfigurations	 	TO cms_hlt_writer;
 --  SELECT
 GRANT SELECT ON SuperIdReleaseAssoc 		TO cms_hlt_reader;
 GRANT SELECT ON SoftwareReleases		TO cms_hlt_reader;
+GRANT SELECT ON SoftwareSubsystems		TO cms_hlt_reader;
+GRANT SELECT ON SoftwarePackages		TO cms_hlt_reader;
 GRANT SELECT ON ConfigurationPathAssoc 		TO cms_hlt_reader;
 GRANT SELECT ON StreamPathAssoc 		TO cms_hlt_reader;
 GRANT SELECT ON PathInPathAssoc 		TO cms_hlt_reader;
@@ -187,6 +193,8 @@ GRANT SELECT ON SuperIds 			TO cms_hlt_reader;
 GRANT SELECT ON ParameterTypes 			TO cms_hlt_reader;
 
 GRANT SELECT ON ReleaseId_Sequence 		TO cms_hlt_reader;
+GRANT SELECT ON SubsysId_Sequence 		TO cms_hlt_reader;
+GRANT SELECT ON PackageId_Sequence 		TO cms_hlt_reader;
 GRANT SELECT ON DirId_Sequence 			TO cms_hlt_reader;
 GRANT SELECT ON ConfigId_Sequence 		TO cms_hlt_reader;
 GRANT SELECT ON StreamId_Sequence 		TO cms_hlt_reader;

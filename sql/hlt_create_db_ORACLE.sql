@@ -30,6 +30,58 @@ END;
 
 
 --
+-- TABLE 'SoftwareSubsystems'
+--
+CREATE TABLE SoftwareSubsystems
+(
+	susbsysId	NUMBER,
+	name	 	VARCHAR2(64)	NOT NULL,
+	PRIMARY KEY(subsysId)
+);
+
+-- SEQUENCE 'SubsysId_Sequence'
+CREATE SEQUENCE SubsysId_Sequence START WITH 1 INCREMENT BY 1;
+
+-- TRIGGER 'SubsysId_Trigger'
+CREATE OR REPLACE TRIGGER SubsysId_Trigger
+BEFORE INSERT ON SoftwareSubsystems
+FOR EACH ROW
+BEGIN
+SELECT SubsysId_Sequence.nextval INTO :NEW.subsysId FROM dual;
+END;
+/
+
+
+--
+-- TABLE 'SoftwarePackages'
+--
+CREATE TABLE SoftwarePackages
+(
+	packageId 	NUMBER,
+	susbsysId	NUMBER 		NOT NULL,
+	name	 	VARCHAR2(64)	NOT NULL,
+	PRIMARY KEY(packageId),
+	FOREIGN KEY(subsysId) REFERENCES SoftwareSubsystems(subsysId)
+);
+
+-- SEQUENCE 'PackageId_Sequence'
+CREATE SEQUENCE PackageId_Sequence START WITH 1 INCREMENT BY 1;
+
+-- TRIGGER 'PackageId_Trigger'
+CREATE OR REPLACE TRIGGER PackageId_Trigger
+BEFORE INSERT ON SoftwarePackages
+FOR EACH ROW
+BEGIN
+SELECT PackageId_Sequence.nextval INTO :NEW.packageId FROM dual;
+END;
+/
+
+-- INDEX PackageSubsystemId_idx
+CREATE INDEX PackageSubsystemId_idx ON SoftwarePackages(subsysId);
+
+
+
+--
 -- TABLE 'Directories'
 --
 CREATE TABLE Directories
