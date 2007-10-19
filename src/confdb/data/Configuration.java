@@ -11,9 +11,9 @@ import java.util.Collections;
  * -------------
  * @author Philipp Schieferdecker
  *
- * A complete CMSSW (hlt-)job configuration.
+ * Description of a CMSSW job configuration.
  */
-public class Configuration
+public class Configuration implements IConfiguration
 {
     //
     // member data

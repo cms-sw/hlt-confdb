@@ -157,6 +157,30 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 	return true;
     }
     
+
+    /** create iterator for all contained Paths */
+    public Iterator pathIterator()
+    {
+	ArrayList<Path> paths = new ArrayList<Path>();
+	getPathsAmongEntries(entryIterator(),paths);
+	return paths.iterator();
+    }
+
+    /** create iterator for all contained Sequences */
+    public Iterator sequenceIterator()
+    {
+	ArrayList<Sequence> sequences = new ArrayList<Sequence>();
+	getSequencesAmongEntries(entryIterator(),sequences);
+	return sequences.iterator();
+    }
+
+    /** create iterator for all contained Modules */
+    public Iterator moduleIterator()
+    {
+	ArrayList<ModuleInstance> modules = new ArrayList<ModuleInstance>();
+	getModulesAmongEntries(entryIterator(),modules);
+	return modules.iterator();
+    }
     
 
     /** create a reference of this in a reference container (path/sequence) */
@@ -280,6 +304,71 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 		getUnresolvedInputTags(vpset.parameterSet(i),labels,unresolved);
 	}
     }
+ 
+
+    /** add all Path entries to 'paths' array (recursively) */
+    private void getPathsAmongEntries(Iterator itEntry,ArrayList<Path> paths)
+    {
+	while (itEntry.hasNext()) {
+	    Reference entry = (Reference)itEntry.next();
+	    if (entry instanceof PathReference) {
+		PathReference ref  = (PathReference)entry;
+		Path          path = (Path)ref.parent();
+		paths.add(path);
+		getPathsAmongEntries(path.entryIterator(),paths);
+	    }
+	    else if (entry instanceof SequenceReference) {
+		SequenceReference ref      = (SequenceReference)entry;
+		Sequence          sequence = (Sequence)entry.parent();
+		getPathsAmongEntries(sequence.entryIterator(),paths);
+	    }
+	}
+    }
+
+    /** add all Sequence entries to 'sequences' array (recursively) */
+    private void getSequencesAmongEntries(Iterator itEntry,
+					  ArrayList<Sequence> sequences)
+    {
+	while (itEntry.hasNext()) {
+	    Reference entry = (Reference)itEntry.next();
+	    if (entry instanceof PathReference) {
+		PathReference ref  = (PathReference)entry;
+		Path          path = (Path)ref.parent();
+		getSequencesAmongEntries(path.entryIterator(),sequences);
+	    }
+	    else if (entry instanceof SequenceReference) {
+		SequenceReference ref      = (SequenceReference)entry;
+		Sequence          sequence = (Sequence)entry.parent();
+		sequences.add(sequence);
+		getSequencesAmongEntries(sequence.entryIterator(),sequences);
+	    }
+	}
+    }
     
+    /** add all Module entries to 'modules' array (recursively) */
+    private void getModulesAmongEntries(Iterator itEntry,
+					ArrayList<ModuleInstance> modules)
+    {
+	while (itEntry.hasNext()) {
+	    Reference entry = (Reference)itEntry.next();
+	    if (entry instanceof ModuleReference) {
+		ModuleReference ref    = (ModuleReference)entry;
+		ModuleInstance  module = (ModuleInstance)ref.parent();
+		modules.add(module);
+	    }
+	    else if (entry instanceof PathReference) {
+		PathReference ref  = (PathReference)entry;
+		Path          path = (Path)ref.parent();
+		getModulesAmongEntries(path.entryIterator(),modules);
+	    }
+	    else if (entry instanceof SequenceReference) {
+		SequenceReference ref      = (SequenceReference)entry;
+		Sequence          sequence = (Sequence)entry.parent();
+		getModulesAmongEntries(sequence.entryIterator(),modules);
+	    }
+	}
+    }
+    
+
 }
 
