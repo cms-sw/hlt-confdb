@@ -1022,11 +1022,11 @@ class SourceParser:
 			    # We have untracked parameters in this module. If we didn't 
 			    # find their default values in the .cc file, look in 
 			    # .cfi files
-			    if(thetdefedmodule == "" and defaultincc == False):
-				success = self.ParseCfFile(thedatadir,theconstructor,paramname,paraminparamset,None,None)
-
-			    elif(thetdefedmodule != "" and defaultincc == False):
-				success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname,paraminparamset,None,None)
+#			    if(thetdefedmodule == "" and defaultincc == False):
+#				success = self.ParseCfFile(thedatadir,theconstructor,paramname,paraminparamset,None,None)
+#
+#			    elif(thetdefedmodule != "" and defaultincc == False):
+#				success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname,paraminparamset,None,None)
 
 			    if(defaultincc == False and success == False):
 				if(self.verbose > 1):
