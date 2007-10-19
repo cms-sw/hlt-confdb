@@ -25,7 +25,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     //
 
     /** root of the tree = configuration */
-    private Configuration config = null;
+    private IConfiguration config = null;
     
     /** first level of nodes */
     private StringBuffer psetsNode     = new StringBuffer();
@@ -45,7 +45,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     //
 
     /** standard constructor */
-    public ConfigurationTreeModel(Configuration config)
+    public ConfigurationTreeModel(IConfiguration config)
     {
 	setConfiguration(config);
     }
@@ -80,7 +80,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     public StringBuffer modulesNode() { return modulesNode; }
     
     /** set the configuration to be displayed */
-    public void setConfiguration(Configuration config)
+    public void setConfiguration(IConfiguration config)
     {
 	this.config = config;
 	if (config.isEmpty()) {

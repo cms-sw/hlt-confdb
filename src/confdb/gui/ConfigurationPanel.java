@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import java.io.File;
-import java.io.FileWriter;
+//import java.io.FileWriter;
 import java.io.IOException;
 
 import confdb.data.*;
@@ -49,9 +49,6 @@ public class ConfigurationPanel extends JPanel
     
     /** streams tree */
     private JTree streamTree = null;
-
-    /** reference to the ConverterService */
-    private ConverterService converterService = null;
 
     /** GUI components */
     private JTextField   jTextFieldName       = new JTextField();
@@ -106,14 +103,12 @@ public class ConfigurationPanel extends JPanel
     public ConfigurationPanel(ConfDbGUI        app,
 			      JTree            currentTree,
 			      JTree            importTree,
-			      JTree            streamTree,
-			      ConverterService converterService)
+			      JTree            streamTree)
     {
 	this.app              = app;
 	this.currentTree      = currentTree;
 	this.importTree       = importTree;
 	this.streamTree       = streamTree;
-	this.converterService = converterService;
 	
 	initComponents();
 	addListeners();
@@ -137,34 +132,12 @@ public class ConfigurationPanel extends JPanel
     /** 'Convert' button pressed */
     public void convertButtonActionPerformed(ActionEvent ev)
     {
-	String input  = jTextFieldInput.getText();
-	String format = formatButtonGroup.getSelection().getActionCommand();
+	String fileName = jTextFieldFileName.getText();
+	String format   = formatButtonGroup.getSelection().getActionCommand();
+	String input    = jTextFieldInput.getText();
+	String output   = jTextFieldOutput.getText();
 	
-	converterService.setInput(input);
-	converterService.setFormat(format);
-	String configAsString = converterService.convertConfiguration(currentConfig);
-
-	if (configAsString.length()>0) {
-	    FileWriter outputStream=null;
-	    String     fileName    =jTextFieldFileName.getText();
-	    
-	    if      (format.toUpperCase().equals("ASCII")&&
-		     !fileName.endsWith(".cfg"))       fileName += ".cfg";
-	    else if (format.toUpperCase().equals("PYTHON")&&
-		     !fileName.endsWith(".py"))	  fileName += ".py";
-	    else if (format.toUpperCase().equals("HTML")&&
-		     !fileName.endsWith(".html")) fileName += ".html";
-	    
-	    try {
-		outputStream = new FileWriter(fileName);
-		outputStream.write(configAsString,0,configAsString.length());
-		outputStream.close();
-	    }
-	    catch (Exception e) {
-		String msg = "Failed to convert configuration: " + e.getMessage();
-		System.out.println(msg);
-	    }
-	}
+	app.convertConfiguration(fileName,format,input,output);
     }
 
     /** 'Import' button pressed */
@@ -792,22 +765,6 @@ public class ConfigurationPanel extends JPanel
 		}
 	    });
 	
-	jTextFieldInput.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    ConfigurationPanel.this.converterService
-			.setInput(jTextFieldInput.getText());
-		}
-	    });
-	
-	/*
-	  jTextFieldOutput.addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent e) {
-	  ConfigurationPanel.this.converterService
-	  .setOutput(jTextFieldOutput.getText());
-	  }
-	  });
-	*/
-	
 	convertButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 convertButtonActionPerformed(evt);
@@ -838,51 +795,56 @@ public class ConfigurationPanel extends JPanel
 		}
 	    });
 
-	jRadioButtonAscii.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    ConfigurationPanel.this.converterService.setFormat("ASCII");
-		}
-	    });
-	
-	jRadioButtonPython.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    ConfigurationPanel.this.converterService.setFormat("PYTHON");
-		}
-	    });
-	
-	jRadioButtonHtml.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    ConfigurationPanel.this.converterService.setFormat("HTML");
-		}
-	    });
+	/*
+	  jRadioButtonAscii.addActionListener(new ActionListener() {
+	  public void actionPerformed(ActionEvent e) {
+	  ConfigurationPanel.this.converterService.setFormat("ASCII");
+	  }
+	  });
+	  
+	  jRadioButtonPython.addActionListener(new ActionListener() {
+	  public void actionPerformed(ActionEvent e) {
+	  ConfigurationPanel.this.converterService.setFormat("PYTHON");
+	  }
+	  });
+	  
+	  jRadioButtonHtml.addActionListener(new ActionListener() {
+	  public void actionPerformed(ActionEvent e) {
+	  ConfigurationPanel.this.converterService.setFormat("HTML");
+	  }
+	  });
+	*/
 	
 	jTabbedPaneTree.addChangeListener(new ChangeListener() {
-		public void stateChanged(ChangeEvent e) {
-		    JTabbedPane pane = (JTabbedPane)e.getSource();
-		    JEditorPane editorPane = null;
-		    String      format = null;
-		    int         sel = pane.getSelectedIndex();
-		    switch (sel) {
-		    case 0 : return;
-		    case 1 : editorPane = jEditorPaneAscii;  format="ascii";  break; 
-		    case 2 : editorPane = jEditorPanePython; format="python"; break; 
-		    case 3 : editorPane = jEditorPaneHtml;   format="html";   break; 
-		    default : return;
-		    }
+ 		public void stateChanged(ChangeEvent e) {
+		    //JTabbedPane pane = (JTabbedPane)e.getSource();
+		    //JEditorPane editorPane = null;
+		    //String      format = null;
+		    //int         sel = pane.getSelectedIndex();
+		    //switch (sel) {
+		    //case 0 : return;
+		    //case 1 : editorPane = jEditorPaneAscii;  format="ascii";  break; 
+		    //case 2 : editorPane = jEditorPanePython; format="python"; break; 
+		    //case 3 : editorPane = jEditorPaneHtml;   format="html";   break; 
+		    //default : return;
+		    //}
 		    
-		    if (currentConfig==null) { editorPane.setText(""); }
-		    else {
-			converterService.setFormat(format);
-			String  configAsString =
-			    converterService.convertConfiguration(currentConfig);
-			if (format.equals("html"))
-			    configAsString =
-				"<html><pre><font size=-1>\n" +
-				configAsString +
-				"\n</font></pre></html>\n";
-			editorPane.setText(configAsString);
-			editorPane.setCaretPosition(0);
-		    }
+		    //editorPane.setText("");
+		    /*
+		      if (currentConfig==null) { editorPane.setText(""); }
+		      else {
+		      converterService.setFormat(format);
+		      String  configAsString =
+		      converterService.convertConfiguration(currentConfig);
+		      if (format.equals("html"))
+		      configAsString =
+		      "<html><pre><font size=-1>\n" +
+		      configAsString +
+		      "\n</font></pre></html>\n";
+		      editorPane.setText(configAsString);
+		      editorPane.setCaretPosition(0);
+		      }
+		    */
 		}
 	    });
 	

@@ -37,11 +37,17 @@ public class ConverterService
     /** reference to the db interface */
     private ConfDB database = null;
 
+    /** configuration file name */
+    private String fileName = null;
+
     /** format to convert to */
     private String format = "ASCII";
     
     /** input file(s) for PoolSource */
     private String input = "";
+    
+    /** output file name */
+    private String output = "";
     
 
     //
@@ -58,7 +64,13 @@ public class ConverterService
     //
     // member functions
     //
+
+    /** get the name of the output file name */
+    public String fileName() { return this.fileName; }
     
+    /** set file name */
+    public void setFileName(String fileName) { this.fileName = fileName; }
+
     /** set the format */
     public boolean setFormat(String format)
     {
@@ -74,6 +86,9 @@ public class ConverterService
     /** set input: either a root file, or a text file with a list of root files */
     public void setInput(String input) { this.input = input; }
     
+    /** set name of output file */
+    public void setOutput(String output) { this.output = output; }
+    
     /** convert configuration */
     public String convertConfiguration(Configuration config)
     {
@@ -88,6 +103,15 @@ public class ConverterService
 	    }
 
 	    result = converter.convert(config);
+	
+	    if (fileName!=null) {
+		if      (format.toUpperCase().equals("ASCII")&&
+			 !fileName.endsWith(".cfg"))  fileName += ".cfg";
+		else if (format.toUpperCase().equals("PYTHON")&&
+			 !fileName.endsWith(".py"))   fileName += ".py";
+		else if (format.toUpperCase().equals("HTML")&&
+			 !fileName.endsWith(".html")) fileName += ".html";
+	    }
 	}
 	catch (Exception e) {
 	    String msg = "FAILED to convert configuration: " + e.getMessage();

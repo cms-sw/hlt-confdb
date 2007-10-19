@@ -8,12 +8,12 @@ import java.awt.*;
 import java.awt.event.*;
 
 import java.util.ArrayList;
-
 import java.util.concurrent.ExecutionException;
 
+import java.io.FileWriter;
+import java.io.IOException;
 
-import confdb.parser.PythonParser;
-import confdb.parser.ParserException;
+import confdb.gui.treetable.TreeTableTableModel;
 
 import confdb.db.ConfDB;
 import confdb.db.DatabaseException;
@@ -21,7 +21,8 @@ import confdb.db.DatabaseException;
 import confdb.migrator.DatabaseMigrator;
 import confdb.migrator.ReleaseMigrator;
 
-import confdb.gui.treetable.TreeTableTableModel;
+import confdb.parser.PythonParser;
+import confdb.parser.ParserException;
 
 import confdb.data.*;
 
@@ -214,8 +215,9 @@ public class ConfDbGUI implements TableModelListener
 	  
 	// configuration panel (left side), placed in createContentPane()
 	configurationPanel = new ConfigurationPanel(this,
-						    currentTree,importTree,streamTree,
-						    converterService);
+						    currentTree,
+						    importTree,
+						    streamTree);
 
 	frame.addWindowListener(new WindowAdapter() {
 		public void windowClosing(WindowEvent e)
@@ -560,6 +562,28 @@ public class ConfDbGUI implements TableModelListener
     }
     
 
+    /** convert current Configuration */
+    public void convertConfiguration(String fileName,
+				     String format,
+				     String input,
+				     String output)
+    {
+	if (!checkConfiguration()) return;
+	
+	converterService.setFileName(fileName);
+	converterService.setFormat(format);
+	converterService.setInput(input);
+	converterService.setOutput(output);
+
+	ConvertConfigurationThread worker =  new ConvertConfigurationThread();
+	worker.start();
+	progressBar.setIndeterminate(true);
+	progressBar.setVisible(true);
+	progressBar.setString("Convert configuration '"+currentConfig.name()+
+			      "' ... ");
+    }
+
+    
     /** check if configuration is in a storable state */
     public boolean checkConfiguration()
     {
@@ -1117,6 +1141,62 @@ public class ConfDbGUI implements TableModelListener
 	}
     }
 
+    /**
+     * convert configuration to a text file
+     */
+    private class ConvertConfigurationThread extends SwingWorker<String>
+    {
+	/** start time */
+	private long startTime;
+	
+	/** standard constructor */
+	public ConvertConfigurationThread() {}
+	
+	/** SwingWorker: construct() */
+	protected String construct() throws InterruptedException
+	{
+	    startTime = System.currentTimeMillis();
+	    
+	    String configAsString =
+		converterService.convertConfiguration(currentConfig);
+
+	    if (configAsString.length()>0) {
+		FileWriter outputStream=null;
+		String     fileName = converterService.fileName();
+		
+		try {
+		    outputStream = new FileWriter(fileName);
+		    outputStream.write(configAsString,0,configAsString.length());
+		    outputStream.close();
+		}
+		catch (Exception e) {
+		    String msg =
+			"Failed to convert configuration: " + e.getMessage();
+		    System.out.println(msg);
+		    return new String("FAILED!");
+		}
+	    }
+	    return new String("Done!");
+	}
+	    
+	/** SwingWorker: finished */
+	protected void finished()
+	{
+	    try {
+		long elapsedTime = System.currentTimeMillis() - startTime;
+		progressBar.setString(progressBar.getString() +
+				      get() + " (" + elapsedTime + " ms)");
+	    }
+	    catch (Exception e) {
+		System.out.println("EXCEPTION: "+ e.getMessage());
+		e.printStackTrace();
+		progressBar.setString(progressBar.getString() + "FAILED!");
+	    }
+	    progressBar.setIndeterminate(false);
+	}
+    }
+
+    
     /**
      * load release templates from the database
      */

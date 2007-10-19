@@ -99,7 +99,7 @@ public class PythonParser
 		if (index>=0) line = line.substring(0,index);
 		
 		Scanner lineScan = new Scanner(line);
-		lineScan.useDelimiter("[\\s*]+");
+		lineScan.useDelimiter("[\\s]+");
 		
 		while (lineScan.hasNext()) {
 		    
