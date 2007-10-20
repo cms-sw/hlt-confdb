@@ -69,3 +69,31 @@ CREATE SYNONYM SuperId_Sequence 		FOR CMS_HLT.SuperId_Sequence;
 CREATE SYNONYM PathId_Sequence 			FOR CMS_HLT.PathId_Sequence;
 CREATE SYNONYM SequenceId_Sequence 		FOR CMS_HLT.SequenceId_Sequence;
 CREATE SYNONYM ParamId_Sequence 		FOR CMS_HLT.ParamId_Sequence;
+
+CREATE SYNONYM load_parameter_value             FOR CMS_HLT.load_parameter_value;
+CREATE SYNONYM load_parameters                  FOR CMS_HLT.load_parameters;
+CREATE SYNONYM load_template                    FOR CMS_HLT.load_template;
+CREATE SYNONYM load_templates                   FOR CMS_HLT.load_templates;
+CREATE SYNONYM load_templates_for_config        FOR CMS_HLT.load_templates_for_config;
+CREATE SYNONYM load_configuration               FOR CMS_HLT.load_configuration;
+CREATE SYNONYM get_parameters                   FOR CMS_HLT.get_parameters; 
+CREATE SYNONYM get_boolean_values               FOR CMS_HLT.get_boolean_values;
+CREATE SYNONYM get_int_values                   FOR CMS_HLT.get_int_values;
+CREATE SYNONYM get_real_values                  FOR CMS_HLT.get_real_values;
+CREATE SYNONYM get_string_values                FOR CMS_HLT.get_string_values;
+CREATE SYNONYM get_path_entries                 FOR CMS_HLT.get_path_entries;
+CREATE SYNONYM get_sequence_entries             FOR CMS_HLT.get_sequence_entries;
+CREATE SYNONYM get_stream_entries               FOR CMS_HLT.get_stream_entries;
+
+CREATE SYNONYM types                            FOR CMS_HLT.types;
+
+CREATE SYNONYM tmp_template_table               FOR CMS_HLT.tmp_template_table;
+CREATE SYNONYM tmp_instance_table               FOR CMS_HLT.tmp_instance_table;
+CREATE SYNONYM tmp_parameter_table              FOR CMS_HLT.tmp_parameter_table;
+CREATE SYNONYM tmp_boolean_table                FOR CMS_HLT.tmp_boolean_table;
+CREATE SYNONYM tmp_int_table                    FOR CMS_HLT.tmp_int_table;
+CREATE SYNONYM tmp_real_table                   FOR CMS_HLT.tmp_real_table;
+CREATE SYNONYM tmp_string_table                 FOR CMS_HLT.tmp_string_table;
+CREATE SYNONYM tmp_path_entries                 FOR CMS_HLT.tmp_path_entries;
+CREATE SYNONYM tmp_sequence_entries             FOR CMS_HLT.tmp_sequence_entries;
+CREATE SYNONYM tmp_stream_entries               FOR CMS_HLT.tmp_stream_entries;

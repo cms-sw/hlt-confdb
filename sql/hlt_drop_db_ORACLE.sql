@@ -58,6 +58,8 @@ DROP TABLE    SuperIds;
 DROP TABLE    ParameterTypes;
 
 DROP SEQUENCE ReleaseId_Sequence;
+DROP SEQUENCE SubsysId_Sequence;
+DROP SEQUENCE PackageId_Sequence;
 DROP SEQUENCE DirId_Sequence;
 DROP SEQUENCE StreamId_Sequence;
 DROP SEQUENCE ConfigId_Sequence;

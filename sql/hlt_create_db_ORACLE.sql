@@ -34,7 +34,7 @@ END;
 --
 CREATE TABLE SoftwareSubsystems
 (
-	susbsysId	NUMBER,
+	subsysId	NUMBER,
 	name	 	VARCHAR2(64)	NOT NULL,
 	PRIMARY KEY(subsysId)
 );
@@ -58,7 +58,7 @@ END;
 CREATE TABLE SoftwarePackages
 (
 	packageId 	NUMBER,
-	susbsysId	NUMBER 		NOT NULL,
+	subsysId	NUMBER 		NOT NULL,
 	name	 	VARCHAR2(64)	NOT NULL,
 	PRIMARY KEY(packageId),
 	FOREIGN KEY(subsysId) REFERENCES SoftwareSubsystems(subsysId)

@@ -130,6 +130,24 @@ GRANT DELETE ON Directories		 	TO cms_hlt_writer;
 GRANT DELETE ON LockedConfigurations	 	TO cms_hlt_writer;
 
 
+-- EXECUTE
+GRANT EXECUTE ON load_parameter_value           TO cms_hlt_writer;
+GRANT EXECUTE ON load_parameters                TO cms_hlt_writer;
+GRANT EXECUTE ON load_template                  TO cms_hlt_writer;
+GRANT EXECUTE ON load_templates                 TO cms_hlt_writer;
+GRANT EXECUTE ON load_templates_for_config      TO cms_hlt_writer;
+GRANT EXECUTE ON load_configuration             TO cms_hlt_writer;
+GRANT EXECUTE ON get_parameters                 TO cms_hlt_writer;
+GRANT EXECUTE ON get_boolean_values             TO cms_hlt_writer;
+GRANT EXECUTE ON get_int_values                 TO cms_hlt_writer;
+GRANT EXECUTE ON get_real_values                TO cms_hlt_writer;
+GRANT EXECUTE ON get_string_values              TO cms_hlt_writer;
+GRANT EXECUTE ON get_path_entries               TO cms_hlt_writer;
+GRANT EXECUTE ON get_sequence_entries           TO cms_hlt_writer;
+GRANT EXECUTE ON get_stream_entries             TO cms_hlt_writer;
+
+
+
 --
 -- cms_hlt_reader
 --
@@ -207,3 +225,18 @@ GRANT SELECT ON ParamId_Sequence 		TO cms_hlt_reader;
 
 -- DELETE
 
+-- EXECUTE
+GRANT EXECUTE ON load_parameter_value           TO cms_hlt_reader;
+GRANT EXECUTE ON load_parameters                TO cms_hlt_reader;
+GRANT EXECUTE ON load_template                  TO cms_hlt_reader;
+GRANT EXECUTE ON load_templates                 TO cms_hlt_reader;
+GRANT EXECUTE ON load_templates_for_config      TO cms_hlt_reader;
+GRANT EXECUTE ON load_configuration             TO cms_hlt_reader;
+GRANT EXECUTE ON get_parameters                 TO cms_hlt_reader;
+GRANT EXECUTE ON get_boolean_values             TO cms_hlt_reader;
+GRANT EXECUTE ON get_int_values                 TO cms_hlt_reader;
+GRANT EXECUTE ON get_real_values                TO cms_hlt_reader;
+GRANT EXECUTE ON get_string_values              TO cms_hlt_reader;
+GRANT EXECUTE ON get_path_entries               TO cms_hlt_reader;
+GRANT EXECUTE ON get_sequence_entries           TO cms_hlt_reader;
+GRANT EXECUTE ON get_stream_entries             TO cms_hlt_reader;
