@@ -848,10 +848,6 @@ public class ConfDB
 	    }
 	    // Oracle
 	    else {
-
-		System.out.println("WARNING: CallableStatements not yet "+
-				   "available for Oracle!");
-		
 		csLoadTemplate =
 		    dbConnector.getConnection().prepareCall
 		    ("begin ? := load_template(?,?); end;");
@@ -882,56 +878,56 @@ public class ConfDB
 
 		csGetParameters =
 		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_parameters(); end;");
+		    ("begin ? := get_parameters; end;");
 		csGetParameters.registerOutParameter(1,OracleTypes.CURSOR);
 		csGetParameters.setFetchSize(2048);
 		preparedStatements.add(csGetParameters);
 
 		csGetBooleanValues =
 		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_boolean_values(); end;");
+		    ("begin ? := get_boolean_values; end;");
 		csGetBooleanValues.registerOutParameter(1,OracleTypes.CURSOR);
 		csGetBooleanValues.setFetchSize(1024);
 		preparedStatements.add(csGetBooleanValues);
 		
 		csGetIntValues =
 		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_int_values(); end;");
+		    ("begin ? := get_int_values; end;");
 		csGetIntValues.registerOutParameter(1,OracleTypes.CURSOR);
 		csGetIntValues.setFetchSize(1024);
 		preparedStatements.add(csGetIntValues);
 		
 		csGetRealValues =
 		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_real_values(); end;");
+		    ("begin ? := get_real_values; end;");
 		csGetRealValues.registerOutParameter(1,OracleTypes.CURSOR);
 		csGetRealValues.setFetchSize(1024);
 		preparedStatements.add(csGetRealValues);
 		
 		csGetStringValues =
 		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_string_values(); end;");
+		    ("begin ? := get_string_values; end;");
 		csGetStringValues.registerOutParameter(1,OracleTypes.CURSOR);
 		csGetStringValues.setFetchSize(1024);
 		preparedStatements.add(csGetStringValues);
 
 		csGetPathEntries =
 		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_path_entries(); end;");
+		    ("begin ? := get_path_entries; end;");
 		csGetPathEntries.registerOutParameter(1,OracleTypes.CURSOR);
 		csGetPathEntries.setFetchSize(512);
 		preparedStatements.add(csGetPathEntries);
 
 		csGetSequenceEntries =
 		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_sequence_entries(); end;");
+		    ("begin ? := get_sequence_entries; end;");
 		csGetSequenceEntries.registerOutParameter(1,OracleTypes.CURSOR);
 		csGetSequenceEntries.setFetchSize(512);
 		preparedStatements.add(csGetSequenceEntries);
 
 		csGetStreamEntries =
 		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_stream_entries(); end;");
+		    ("begin ? := get_stream_entries; end;");
 		csGetStreamEntries.registerOutParameter(1,OracleTypes.CURSOR);
 		csGetStreamEntries.setFetchSize(128);
 		preparedStatements.add(csGetStreamEntries);
@@ -1208,7 +1204,10 @@ public class ConfDB
 	if (releaseTag.length()==0) return;
 	release.clear(releaseTag);
 	try {
-	    csLoadTemplates.setInt(1,releaseId);
+	    if (dbType.equals(dbTypeMySQL))	    
+		csLoadTemplates.setInt(1,releaseId);
+	    else if (dbType.equals(dbTypeOracle))
+		csLoadTemplates.setInt(2,releaseId);
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
@@ -1232,7 +1231,10 @@ public class ConfDB
 	release.clear(releaseTag);
 	
 	try {
-	    csLoadTemplatesForConfig.setInt(1,configId);
+	    if (dbType.equals(dbTypeMySQL))	    
+		csLoadTemplatesForConfig.setInt(1,configId);
+	    else if (dbType.equals(dbTypeOracle))
+		csLoadTemplatesForConfig.setInt(2,configId);
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();

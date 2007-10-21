@@ -1095,3 +1095,9 @@ INSERT INTO ParameterTypes VALUES (14,'FileInPath');
 
 
 COMMIT;
+
+
+@hlt_create_procedures_ORACLE.sql
+
+
+COMMIT;

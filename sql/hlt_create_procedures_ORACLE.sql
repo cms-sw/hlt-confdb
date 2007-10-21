@@ -9,25 +9,25 @@
 CREATE GLOBAL TEMPORARY TABLE tmp_template_table
 (
   template_id	   NUMBER,
-  template_type    CHAR(64),
-  template_name    CHAR(128),
-  template_cvstag  CHAR(32)
+  template_type    VARCHAR2(64),
+  template_name    VARCHAR2(128),
+  template_cvstag  VARCHAR2(32)
 ) ON COMMIT PRESERVE ROWS;
 
 CREATE GLOBAL TEMPORARY TABLE tmp_instance_table
 (
   instance_id       NUMBER,
   template_id       NUMBER,
-  instance_type     CHAR(64),
-  instance_name     CHAR(128),
+  instance_type     VARCHAR2(64),
+  instance_name     VARCHAR2(128),
   flag              NUMBER(1)
 ) ON COMMIT PRESERVE ROWS;
 
 CREATE GLOBAL TEMPORARY TABLE tmp_parameter_table
 (
   parameter_id      NUMBER,
-  parameter_type    CHAR(64),
-  parameter_name    CHAR(128),
+  parameter_type    VARCHAR2(64),
+  parameter_name    VARCHAR2(128),
   parameter_trkd    NUMBER(1),
   parameter_seqnb   NUMBER,
   parent_id         NUMBER
@@ -43,7 +43,8 @@ CREATE GLOBAL TEMPORARY TABLE tmp_int_table
 (
   parameter_id	  NUMBER,
   parameter_value NUMBER,
-  sequence_nb     NUMBER
+  sequence_nb     NUMBER,
+  hex		  NUMBER(1)
 ) ON COMMIT PRESERVE ROWS;
 
 CREATE GLOBAL TEMPORARY TABLE tmp_real_table
@@ -65,7 +66,7 @@ CREATE GLOBAL TEMPORARY TABLE tmp_path_entries
   path_id           NUMBER,
   entry_id          NUMBER,
   sequence_nb       NUMBER,
-  entry_type        CHAR(64)
+  entry_type        VARCHAR2(64)
 ) ON COMMIT PRESERVE ROWS;
 
 CREATE GLOBAL TEMPORARY TABLE tmp_sequence_entries
@@ -73,7 +74,7 @@ CREATE GLOBAL TEMPORARY TABLE tmp_sequence_entries
   sequence_id       NUMBER,
   entry_id          NUMBER,
   sequence_nb       NUMBER,
-  entry_type        CHAR(64)
+  entry_type        VARCHAR2(64)
 ) ON COMMIT PRESERVE ROWS;
 
 CREATE GLOBAL TEMPORARY TABLE tmp_stream_entries
@@ -102,6 +103,7 @@ CREATE PROCEDURE load_parameter_value(parameter_id   NUMBER,
 AS
   v_bool_value   NUMBER(1);
   v_int32_value  PLS_INTEGER;
+  v_int32_hex    NUMBER(1);
   v_double_value FLOAT;
   v_string_value VARCHAR2(512);
   v_sequence_nb  PLS_INTEGER;
@@ -111,17 +113,17 @@ AS
     SELECT value FROM BoolParamValues
     WHERE paramId=parameter_id;
   CURSOR cur_int32 IS
-    SELECT value FROM Int32ParamValues
+    SELECT value,hex FROM Int32ParamValues
     WHERE paramId=parameter_id;
   CURSOR cur_vint32 IS
-    SELECT value,sequenceNb FROM VInt32ParamValues
+    SELECT value,sequenceNb,hex FROM VInt32ParamValues
     WHERE paramId=parameter_id
     ORDER BY sequenceNb ASC;
   CURSOR cur_uint32 IS
-    SELECT value FROM UInt32ParamValues
+    SELECT value,hex FROM UInt32ParamValues
     WHERE paramId=parameter_id;
   CURSOR cur_vuint32 IS
-    SELECT value,sequenceNb FROM VUInt32ParamValues
+    SELECT value,sequenceNb,hex FROM VUInt32ParamValues
     WHERE paramId=parameter_id
     ORDER BY sequenceNb ASC;
   CURSOR cur_double IS
@@ -171,9 +173,10 @@ BEGIN
   ELSIF parameter_type='int32'
   THEN
     OPEN cur_int32;
-    FETCH cur_int32 INTO v_int32_value;
+    FETCH cur_int32 INTO v_int32_value,v_int32_hex;
     IF cur_int32%FOUND THEN
-      INSERT INTO tmp_int_table VALUES(parameter_id,v_int32_value,NULL);
+      INSERT INTO tmp_int_table
+        VALUES(parameter_id,v_int32_value,NULL,v_int32_hex);
     END IF;
     CLOSE cur_int32;
   /** load vint32 values */
@@ -181,19 +184,20 @@ BEGIN
   THEN
     OPEN cur_vint32;
     LOOP 
-      FETCH cur_vint32 INTO v_int32_value,v_sequence_nb;
+      FETCH cur_vint32 INTO v_int32_value,v_sequence_nb,v_int32_hex;
       EXIT WHEN cur_vint32%NOTFOUND;
       INSERT INTO tmp_int_table
-        VALUES(parameter_id,v_int32_value,v_sequence_nb);
+        VALUES(parameter_id,v_int32_value,v_sequence_nb,v_int32_hex);
     END LOOP;
     CLOSE cur_vint32;
   /** load uint32 values */
   ELSIF parameter_type='uint32'
   THEN
     OPEN cur_uint32;
-    FETCH cur_uint32 INTO v_int32_value;
+    FETCH cur_uint32 INTO v_int32_value,v_int32_hex;
     IF cur_uint32%FOUND THEN
-      INSERT INTO tmp_int_table VALUES(parameter_id,v_int32_value,NULL);
+      INSERT INTO tmp_int_table
+        VALUES(parameter_id,v_int32_value,NULL,v_int32_hex);
     END IF;
     CLOSE cur_uint32;
   /** load vuint32 values */
@@ -201,10 +205,10 @@ BEGIN
   THEN
     OPEN cur_vuint32;
     LOOP
-      FETCH cur_vuint32 INTO v_int32_value,v_sequence_nb;
+      FETCH cur_vuint32 INTO v_int32_value,v_sequence_nb,v_int32_hex;
       EXIT WHEN cur_vuint32%NOTFOUND;
       INSERT INTO tmp_int_table
-        VALUES(parameter_id,v_int32_value,v_sequence_nb);
+        VALUES(parameter_id,v_int32_value,v_sequence_nb,v_int32_hex);
     END LOOP;
     CLOSE cur_vuint32;
   /** load double values */
@@ -307,8 +311,8 @@ END;
 CREATE PROCEDURE load_parameters(parent_id IN NUMBER)
 AS
   v_parameter_id    PLS_INTEGER;
-  v_parameter_type  CHAR(64);
-  v_parameter_name  CHAR(128);
+  v_parameter_type  VARCHAR2(64);
+  v_parameter_name  VARCHAR2(128);
   v_parameter_trkd  NUMBER(1);
   v_parameter_seqnb PLS_INTEGER;
 
@@ -406,9 +410,9 @@ CREATE FUNCTION load_template(release_id IN NUMBER,
 AS
   template_cursor   types.ref_cursor;
   v_template_id     PLS_INTEGER;
-  v_template_type   CHAR(64);
-  v_template_name   CHAR(128);
-  v_template_cvstag CHAR(32);
+  v_template_type   VARCHAR2(64);
+  v_template_name   VARCHAR2(128);
+  v_template_cvstag VARCHAR2(32);
   template_found    BOOLEAN := FALSE;
 
   /* cursor for edsource templates */
@@ -582,9 +586,9 @@ CREATE FUNCTION load_templates(release_id IN NUMBER)
 AS
   template_cursor   types.ref_cursor;
   v_template_id     PLS_INTEGER;
-  v_template_type   CHAR(64);
-  v_template_name   CHAR(128);
-  v_template_cvstag CHAR(32);
+  v_template_type   VARCHAR2(64);
+  v_template_name   VARCHAR2(128);
+  v_template_cvstag VARCHAR2(32);
 
   /* cursor for edsource templates */
   CURSOR cur_edsource_templates IS
@@ -727,9 +731,9 @@ CREATE FUNCTION load_templates_for_config(config_id IN NUMBER)
 AS
   template_cursor   types.ref_cursor;
   v_template_id     PLS_INTEGER;
-  v_template_type   CHAR(64);
-  v_template_name   CHAR(128);
-  v_template_cvstag CHAR(32);
+  v_template_type   VARCHAR2(64);
+  v_template_name   VARCHAR2(128);
+  v_template_cvstag VARCHAR2(32);
 
   /* cursor for edsource templates */
   CURSOR cur_edsource_templates IS
@@ -923,8 +927,8 @@ AS
   instance_cursor   types.ref_cursor;
   v_instance_id     PLS_INTEGER;
   v_template_id     PLS_INTEGER;
-  v_instance_type   CHAR(64);
-  v_instance_name   CHAR(128);
+  v_instance_type   VARCHAR2(64);
+  v_instance_name   VARCHAR2(128);
   v_pset_is_trkd    NUMBER(1);
   v_endpath         NUMBER(1);
   v_prefer          NUMBER(1);
@@ -1352,7 +1356,8 @@ AS
   value_cursor types.ref_cursor;
 BEGIN
   OPEN value_cursor FOR
-    SELECT DISTINCT parameter_id,parameter_value,sequence_nb FROM tmp_int_table;
+    SELECT DISTINCT parameter_id,parameter_value,sequence_nb,hex
+      FROM tmp_int_table;
   RETURN value_cursor;
 END;
 /

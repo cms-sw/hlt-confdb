@@ -67,3 +67,9 @@ DROP SEQUENCE SuperId_Sequence;
 DROP SEQUENCE PathId_Sequence;
 DROP SEQUENCE SequenceId_Sequence;
 DROP SEQUENCE ParamId_Sequence;
+
+
+--
+-- DROP STORED PROCEDURES & FUNCTIONS
+--
+@hlt_drop_procedures_ORACLE.sql
