@@ -146,6 +146,17 @@ GRANT EXECUTE ON get_path_entries               TO cms_hlt_writer;
 GRANT EXECUTE ON get_sequence_entries           TO cms_hlt_writer;
 GRANT EXECUTE ON get_stream_entries             TO cms_hlt_writer;
 
+GRANT SELECT  ON tmp_template_table             TO cms_hlt_writer;
+GRANT SELECT  ON tmp_instance_table             TO cms_hlt_writer;
+GRANT SELECT  ON tmp_parameter_table            TO cms_hlt_writer;
+GRANT SELECT  ON tmp_boolean_table              TO cms_hlt_writer;
+GRANT SELECT  ON tmp_int_table                  TO cms_hlt_writer;
+GRANT SELECT  ON tmp_real_table                 TO cms_hlt_writer;
+GRANT SELECT  ON tmp_string_table               TO cms_hlt_writer;
+GRANT SELECT  ON tmp_path_entries               TO cms_hlt_writer;
+GRANT SELECT  ON tmp_sequence_entries           TO cms_hlt_writer;
+GRANT SELECT  ON tmp_stream_entries             TO cms_hlt_writer;
+
 
 
 --
@@ -240,3 +251,14 @@ GRANT EXECUTE ON get_string_values              TO cms_hlt_reader;
 GRANT EXECUTE ON get_path_entries               TO cms_hlt_reader;
 GRANT EXECUTE ON get_sequence_entries           TO cms_hlt_reader;
 GRANT EXECUTE ON get_stream_entries             TO cms_hlt_reader;
+
+GRANT SELECT  ON tmp_template_table             TO cms_hlt_reader;
+GRANT SELECT  ON tmp_instance_table             TO cms_hlt_reader;
+GRANT SELECT  ON tmp_parameter_table            TO cms_hlt_reader;
+GRANT SELECT  ON tmp_boolean_table              TO cms_hlt_reader;
+GRANT SELECT  ON tmp_int_table                  TO cms_hlt_reader;
+GRANT SELECT  ON tmp_real_table                 TO cms_hlt_reader;
+GRANT SELECT  ON tmp_string_table               TO cms_hlt_reader;
+GRANT SELECT  ON tmp_path_entries               TO cms_hlt_reader;
+GRANT SELECT  ON tmp_sequence_entries           TO cms_hlt_reader;
+GRANT SELECT  ON tmp_stream_entries             TO cms_hlt_reader;
