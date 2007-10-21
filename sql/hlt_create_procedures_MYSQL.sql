@@ -10,6 +10,8 @@ DROP PROCEDURE IF EXISTS load_templates_for_config;
 DROP PROCEDURE IF EXISTS load_configuration;
 DROP PROCEDURE IF EXISTS load_parameters;
 DROP PROCEDURE IF EXISTS load_parameter_value;
+
+-- TO BE REMOVED
 DROP PROCEDURE IF EXISTS get_parameters;
 DROP PROCEDURE IF EXISTS get_boolean_values;
 DROP PROCEDURE IF EXISTS get_int_values;
@@ -25,14 +27,12 @@ DELIMITER //
 
 
 
-
 --
 -- PROCEDURE load_template
 --
 CREATE PROCEDURE load_template(release_id BIGINT UNSIGNED,
                                template_name CHAR(128))
 BEGIN
-  DECLARE temporary_table_exists BOOLEAN;
   BEGIN
     DECLARE CONTINUE HANDLER FOR SQLEXCEPTION BEGIN END;
     DROP TABLE IF EXISTS tmp_template_table;
@@ -129,7 +129,6 @@ BEGIN
       template_name    CHAR(128),
       template_cvstag  CHAR(32)
     );
-    SET temporary_table_exists = TRUE;
 
     /* temporary parameter table */
     CREATE TEMPORARY TABLE tmp_parameter_table
@@ -244,15 +243,8 @@ BEGIN
       CLOSE cur_module_templates;
     END IF;
 
-    /* generate the final result set by selecting the temporary table */
-    SELECT template_id,template_type,template_name,template_cvstag
-    FROM tmp_template_table;
   END;  
 
-  /* if the temporary table was created, drop it now */
-  IF temporary_table_exists THEN
-    DROP TEMPORARY TABLE tmp_template_table;
-  END IF;
 END;
 //
 
@@ -262,7 +254,6 @@ END;
 --
 CREATE PROCEDURE load_templates(release_id BIGINT UNSIGNED)
 BEGIN
-  DECLARE temporary_table_exists BOOLEAN;
   BEGIN
     DECLARE CONTINUE HANDLER FOR SQLEXCEPTION BEGIN END;
     DROP TABLE IF EXISTS tmp_template_table;
@@ -344,7 +335,6 @@ BEGIN
       template_name    CHAR(128),
       template_cvstag  CHAR(32)
     );
-    SET temporary_table_exists = TRUE;
 
     /* temporary parameter table */
     CREATE TEMPORARY TABLE tmp_parameter_table
@@ -462,15 +452,8 @@ BEGIN
     CLOSE cur_module_templates;
     SET done=FALSE;
 
-    /* generate the final result set by selecting the temporary table */
-    SELECT template_id,template_type,template_name,template_cvstag
-    FROM tmp_template_table;
   END;  
 
-  /* if the temporary table was created, drop it now */
-  IF temporary_table_exists THEN
-    DROP TEMPORARY TABLE tmp_template_table;
-  END IF;
 END;
 //
 
@@ -480,7 +463,6 @@ END;
 --
 CREATE PROCEDURE load_templates_for_config(config_id BIGINT UNSIGNED)
 BEGIN
-  DECLARE temporary_table_exists BOOLEAN;
   BEGIN
     DECLARE CONTINUE HANDLER FOR SQLEXCEPTION BEGIN END;
     DROP TABLE IF EXISTS tmp_template_table;
@@ -597,7 +579,6 @@ BEGIN
       template_name    CHAR(128),
       template_cvstag  CHAR(32)
     );
-    SET temporary_table_exists = TRUE;
 
     /* temporary parameter table */
     CREATE TEMPORARY TABLE tmp_parameter_table
@@ -731,15 +712,8 @@ BEGIN
     CLOSE cur_module_templates_from_sequences;
     SET done=FALSE;
 
-    /* generate the final result set by selecting the temporary table */
-    SELECT template_id,template_type,template_name,template_cvstag
-    FROM tmp_template_table;
   END;  
 
-  /* if the temporary table was created, drop it now */
-  IF temporary_table_exists THEN
-    DROP TEMPORARY TABLE tmp_template_table;
-  END IF;
 END;
 //
 
@@ -749,7 +723,6 @@ END;
 --
 CREATE PROCEDURE load_configuration(config_id BIGINT UNSIGNED)
 BEGIN
-  DECLARE temporary_table_exists BOOLEAN;
   BEGIN
     DECLARE CONTINUE HANDLER FOR SQLEXCEPTION BEGIN END;
     DROP TABLE IF EXISTS tmp_instance_table;
@@ -974,7 +947,6 @@ BEGIN
       instance_name     CHAR(128),
       flag              BOOLEAN
     );
-    SET temporary_table_exists = TRUE;
 
     /* temporary parameter table */
     CREATE TEMPORARY TABLE tmp_parameter_table
@@ -1231,18 +1203,8 @@ BEGIN
     CLOSE cur_stream_path;
     SET done=FALSE;
 
-
-    /* generate the final result set by selecting the temporary table */
-    SELECT DISTINCT
-      instance_id,template_id,instance_type,instance_name,flag
-    FROM tmp_instance_table;
   END;  
 
-
-  /* if the temporary table was created, drop it now */
-  IF temporary_table_exists THEN
-    DROP TEMPORARY TABLE tmp_instance_table;
-  END IF;
 END;
 //
 
@@ -1593,103 +1555,6 @@ BEGIN
   END IF;
 
   SELECT 'UNKNOWN PARAMETER TYPE',parameter_type;
-END;
-//
-
-
---
--- PROCEDURE get_parameters
---
-CREATE PROCEDURE get_parameters()
-BEGIN
-  SELECT DISTINCT
-    parameter_id,parameter_type,
-    parameter_name,parameter_trkd,parameter_seqnb,parent_id
-  FROM tmp_parameter_table;
-  DROP TEMPORARY TABLE IF EXISTS tmp_parameter_table;
-END;
-//
-
-
---
--- PROCEDURE get_boolean_values
---
-CREATE PROCEDURE get_boolean_values()
-BEGIN
-  SELECT DISTINCT parameter_id,parameter_value FROM tmp_boolean_table;
-  DROP TEMPORARY TABLE IF EXISTS tmp_boolean_table;
-END;
-//
-
-
---
--- PROCEDURE get_int_values
---
-CREATE PROCEDURE get_int_values()
-BEGIN
-  SELECT DISTINCT parameter_id,parameter_value,sequence_nb,hex
-    FROM tmp_int_table;
-  DROP TEMPORARY TABLE IF EXISTS tmp_int_table;
-END;
-//
-
-
---
--- PROCEDURE get_real_values
---
-CREATE PROCEDURE get_real_values()
-BEGIN
-  SELECT DISTINCT parameter_id,parameter_value,sequence_nb FROM tmp_real_table;
-  DROP TEMPORARY TABLE IF EXISTS tmp_real_table;
-END;
-//
-
-
---
--- PROCEDURE get_string_values
---
-CREATE PROCEDURE get_string_values()
-BEGIN
-  SELECT DISTINCT parameter_id,parameter_value,sequence_nb
-    FROM tmp_string_table;
-  DROP TEMPORARY TABLE IF EXISTS tmp_string_table;
-END;
-//
-
-
---
--- PROCEDURE get_path_entries
---
-CREATE PROCEDURE get_path_entries()
-BEGIN
-  SELECT path_id, entry_id, sequence_nb, entry_type
-    FROM tmp_path_entries
-    ORDER BY path_id ASC, sequence_nb ASC;
-  DROP TEMPORARY TABLE IF EXISTS tmp_path_entries;
-END;
-//
-
-
---
--- PROCEDURE get_sequence_entries
---
-CREATE PROCEDURE get_sequence_entries()
-BEGIN
-  SELECT sequence_id, entry_id, sequence_nb, entry_type
-    FROM tmp_sequence_entries
-    ORDER BY sequence_id ASC, sequence_nb ASC;
-  DROP TEMPORARY TABLE IF EXISTS tmp_sequence_entries;
-END;
-//
-
-
---
--- PROCEDURE get_stream_entries
---
-CREATE PROCEDURE get_stream_entries()
-BEGIN
-  SELECT stream_id, path_id  FROM tmp_stream_entries;
-  DROP TEMPORARY TABLE IF EXISTS tmp_stream_entries;
 END;
 //
 

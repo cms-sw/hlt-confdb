@@ -6,8 +6,6 @@ import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import oracle.jdbc.driver.*;
-
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.Map;
@@ -155,22 +153,18 @@ public class ConfDB
     private CallableStatement csLoadTemplates                     = null;
     private CallableStatement csLoadTemplatesForConfig            = null;
     private CallableStatement csLoadConfiguration                 = null;
-    private CallableStatement csGetParameters                     = null;
-    private CallableStatement csGetBooleanValues                  = null;
-    private CallableStatement csGetIntValues                      = null;
-    private CallableStatement csGetRealValues                     = null;
-    private CallableStatement csGetStringValues                   = null;
-    private CallableStatement csGetPathEntries                    = null;
-    private CallableStatement csGetSequenceEntries                = null;
-    private CallableStatement csGetStreamEntries                  = null;
 
-    // test
     private PreparedStatement psSelectTemplates                   = null;
+    private PreparedStatement psSelectInstances                   = null;
     private PreparedStatement psSelectParameters                  = null;
     private PreparedStatement psSelectBooleanValues               = null;
     private PreparedStatement psSelectIntValues                   = null;
     private PreparedStatement psSelectRealValues                  = null;
     private PreparedStatement psSelectStringValues                = null;
+    private PreparedStatement psSelectPathEntries                 = null;
+    private PreparedStatement psSelectSequenceEntries             = null;
+    private PreparedStatement psSelectStreamEntries               = null;
+
 
     private ArrayList<PreparedStatement> preparedStatements =
 	new ArrayList<PreparedStatement>();
@@ -791,223 +785,154 @@ public class ConfDB
 		csLoadTemplates =
 		    dbConnector.getConnection().prepareCall
 		    ("{ CALL load_templates(?) }");
-		csLoadTemplates.setFetchSize(1024);
 		preparedStatements.add(csLoadTemplates);
 		
 		csLoadTemplatesForConfig =
 		    dbConnector.getConnection().prepareCall
 		    ("{ CALL load_templates_for_config(?) }");
-		csLoadTemplatesForConfig.setFetchSize(1024);
 		preparedStatements.add(csLoadTemplatesForConfig);
 		
 		csLoadConfiguration =
 		    dbConnector.getConnection().prepareCall
 		    ("{ CALL load_configuration(?) }");
-		csLoadConfiguration.setFetchSize(1024);
 		preparedStatements.add(csLoadConfiguration);
 		
-		csGetParameters =
-		    dbConnector.getConnection().prepareCall
-		    ("{ CALL get_parameters() }");
-		csGetParameters.setFetchSize(2048);
-		preparedStatements.add(csGetParameters);
-
-		csGetBooleanValues =
-		    dbConnector.getConnection().prepareCall
-		    ("{ CALL get_boolean_values() }");
-		csGetBooleanValues.setFetchSize(1024);
-		preparedStatements.add(csGetBooleanValues);
-		
-		csGetIntValues =
-		    dbConnector.getConnection().prepareCall
-		    ("{ CALL get_int_values() }");
-		csGetIntValues.setFetchSize(1024);
-		preparedStatements.add(csGetIntValues);
-		
-		csGetRealValues =
-		    dbConnector.getConnection().prepareCall
-		    ("{ CALL get_real_values() }");
-		csGetRealValues.setFetchSize(1024);
-		preparedStatements.add(csGetRealValues);
-		
-		csGetStringValues =
-		    dbConnector.getConnection().prepareCall
-		    ("{ CALL get_string_values() }");
-		csGetStringValues.setFetchSize(1024);
-		preparedStatements.add(csGetStringValues);
-
-		csGetPathEntries =
-		    dbConnector.getConnection().prepareCall
-		    ("{ CALL get_path_entries() }");
-		csGetPathEntries.setFetchSize(512);
-		preparedStatements.add(csGetPathEntries);
-
-		csGetSequenceEntries =
-		    dbConnector.getConnection().prepareCall
-		    ("{ CALL get_sequence_entries() }");
-		csGetSequenceEntries.setFetchSize(512);
-		preparedStatements.add(csGetSequenceEntries);
-
-		csGetStreamEntries =
-		    dbConnector.getConnection().prepareCall
-		    ("{ CALL get_stream_entries() }");
-		csGetStreamEntries.setFetchSize(128);
-		preparedStatements.add(csGetStreamEntries);
 	    }
 	    // Oracle
 	    else {
 		csLoadTemplate =
 		    dbConnector.getConnection().prepareCall
-		    ("begin ? := load_template(?,?); end;");
-		csLoadTemplate.registerOutParameter(1,OracleTypes.CURSOR);
+		    ("begin load_template(?,?); end;");
 		preparedStatements.add(csLoadTemplate);
 		
 		csLoadTemplates =
 		    dbConnector.getConnection().prepareCall
-		    //("begin ? := load_templates(?); end;");
 		    ("begin load_templates(?); end;");
-		//csLoadTemplates.registerOutParameter(1,OracleTypes.CURSOR);
-		csLoadTemplates.setFetchSize(1024);
 		preparedStatements.add(csLoadTemplates);
-		
-		// TEST
-		psSelectTemplates =
-		    dbConnector.getConnection().prepareStatement
-		    ("SELECT" +
-		     " template_id," +
-		     " template_type," +
-		     " template_name," +
-		     " template_cvstag " +
-		     "FROM tmp_template_table");
-		psSelectTemplates.setFetchSize(2048);
-		preparedStatements.add(psSelectTemplates);
-
-		psSelectParameters =
-		    dbConnector.getConnection().prepareStatement
-		    ("SELECT" +
-		     " parameter_id," +
-		     " parameter_type," +
-		     " parameter_name," +
-		     " parameter_trkd," +
-		     " parameter_seqnb," +
-		     " parent_id " +
-		     "FROM tmp_parameter_table");
-		psSelectParameters.setFetchSize(2048);
-		preparedStatements.add(psSelectParameters);
-
-		psSelectBooleanValues =
-		    dbConnector.getConnection().prepareStatement
-		    ("SELECT"+
-		     " parameter_id," +
-		     " parameter_value " +
-		     "FROM tmp_boolean_table");
-		psSelectBooleanValues.setFetchSize(2048);
-		preparedStatements.add(psSelectBooleanValues);
-
-		psSelectIntValues =
-		    dbConnector.getConnection().prepareStatement
-		    ("SELECT"+
-		     " parameter_id," +
-		     " parameter_value," +
-		     " sequence_nb," +
-		     " hex " +
-		     "FROM tmp_int_table");
-		psSelectIntValues.setFetchSize(2048);
-		preparedStatements.add(psSelectIntValues);
-		
-		psSelectRealValues =
-		    dbConnector.getConnection().prepareStatement
-		    ("SELECT"+
-		     " parameter_id," +
-		     " parameter_value," +
-		     " sequence_nb " +
-		     "FROM tmp_real_table");
-		psSelectRealValues.setFetchSize(2048);
-		preparedStatements.add(psSelectRealValues);
-
-		psSelectStringValues =
-		    dbConnector.getConnection().prepareStatement
-		    ("SELECT"+
-		     " parameter_id," +
-		     " parameter_value," +
-		     " sequence_nb " +
-		     "FROM tmp_string_table");
-		psSelectStringValues.setFetchSize(2048);
-		preparedStatements.add(psSelectStringValues);
-		// END TEST
-
 		
 		csLoadTemplatesForConfig =
 		    dbConnector.getConnection().prepareCall
-		    ("begin ? := load_templates_for_config(?); end;");
-		csLoadTemplatesForConfig.registerOutParameter(1,OracleTypes
-							      .CURSOR);
-		csLoadTemplatesForConfig.setFetchSize(1024);
+		    ("begin load_templates_for_config(?); end;");
 		preparedStatements.add(csLoadTemplatesForConfig);
 		
 		csLoadConfiguration =
 		    dbConnector.getConnection().prepareCall
-		    ("begin ? := load_configuration(?); end;");
-		csLoadConfiguration.registerOutParameter(1,OracleTypes.CURSOR);
-		csLoadConfiguration.setFetchSize(1024);
+		    ("begin load_configuration(?); end;");
 		preparedStatements.add(csLoadConfiguration);
 
-		csGetParameters =
-		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_parameters; end;");
-		csGetParameters.registerOutParameter(1,OracleTypes.CURSOR);
-		csGetParameters.setFetchSize(2048);
-		preparedStatements.add(csGetParameters);
-
-		csGetBooleanValues =
-		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_boolean_values; end;");
-		csGetBooleanValues.registerOutParameter(1,OracleTypes.CURSOR);
-		csGetBooleanValues.setFetchSize(1024);
-		preparedStatements.add(csGetBooleanValues);
-		
-		csGetIntValues =
-		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_int_values; end;");
-		csGetIntValues.registerOutParameter(1,OracleTypes.CURSOR);
-		csGetIntValues.setFetchSize(1024);
-		preparedStatements.add(csGetIntValues);
-		
-		csGetRealValues =
-		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_real_values; end;");
-		csGetRealValues.registerOutParameter(1,OracleTypes.CURSOR);
-		csGetRealValues.setFetchSize(1024);
-		preparedStatements.add(csGetRealValues);
-		
-		csGetStringValues =
-		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_string_values; end;");
-		csGetStringValues.registerOutParameter(1,OracleTypes.CURSOR);
-		csGetStringValues.setFetchSize(1024);
-		preparedStatements.add(csGetStringValues);
-
-		csGetPathEntries =
-		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_path_entries; end;");
-		csGetPathEntries.registerOutParameter(1,OracleTypes.CURSOR);
-		csGetPathEntries.setFetchSize(512);
-		preparedStatements.add(csGetPathEntries);
-
-		csGetSequenceEntries =
-		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_sequence_entries; end;");
-		csGetSequenceEntries.registerOutParameter(1,OracleTypes.CURSOR);
-		csGetSequenceEntries.setFetchSize(512);
-		preparedStatements.add(csGetSequenceEntries);
-
-		csGetStreamEntries =
-		    dbConnector.getConnection().prepareCall
-		    ("begin ? := get_stream_entries; end;");
-		csGetStreamEntries.registerOutParameter(1,OracleTypes.CURSOR);
-		csGetStreamEntries.setFetchSize(128);
-		preparedStatements.add(csGetStreamEntries);
 	    }
+	    
+
+	    //
+	    // SELECT FOR TEMPORARY TABLES
+	    //
+	    psSelectTemplates =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " template_id," +
+		 " template_type," +
+		 " template_name," +
+		 " template_cvstag " +
+		 "FROM tmp_template_table");
+	    psSelectTemplates.setFetchSize(1024);
+	    preparedStatements.add(psSelectTemplates);
+	    
+	    psSelectInstances =
+		dbConnector.getConnection().prepareStatement
+		("SELECT DISTINCT" +
+		 " instance_id," +
+		 " template_id," +
+		 " instance_type," +
+		 " instance_name," +
+		 " flag " +
+		 "FROM tmp_instance_table");
+	    psSelectInstances.setFetchSize(1024);
+	    preparedStatements.add(psSelectInstances);
+	    
+	    psSelectParameters =
+		dbConnector.getConnection().prepareStatement
+		("SELECT DISTINCT" +
+		 " parameter_id," +
+		 " parameter_type," +
+		 " parameter_name," +
+		 " parameter_trkd," +
+		 " parameter_seqnb," +
+		 " parent_id " +
+		 "FROM tmp_parameter_table");
+	    psSelectParameters.setFetchSize(4096);
+	    preparedStatements.add(psSelectParameters);
+	    
+	    psSelectBooleanValues =
+		dbConnector.getConnection().prepareStatement
+		("SELECT DISTINCT"+
+		 " parameter_id," +
+		 " parameter_value " +
+		 "FROM tmp_boolean_table");
+	    psSelectBooleanValues.setFetchSize(2048);
+	    preparedStatements.add(psSelectBooleanValues);
+	    
+	    psSelectIntValues =
+		dbConnector.getConnection().prepareStatement
+		("SELECT DISTINCT"+
+		 " parameter_id," +
+		 " parameter_value," +
+		 " sequence_nb," +
+		 " hex " +
+		 "FROM tmp_int_table");
+	    psSelectIntValues.setFetchSize(2048);
+	    preparedStatements.add(psSelectIntValues);
+	    
+	    psSelectRealValues =
+		dbConnector.getConnection().prepareStatement
+		("SELECT DISTINCT"+
+		 " parameter_id," +
+		 " parameter_value," +
+		 " sequence_nb " +
+		 "FROM tmp_real_table");
+	    psSelectRealValues.setFetchSize(2048);
+	    preparedStatements.add(psSelectRealValues);
+	    
+	    psSelectStringValues =
+		dbConnector.getConnection().prepareStatement
+		("SELECT DISTINCT"+
+		 " parameter_id," +
+		 " parameter_value," +
+		 " sequence_nb " +
+		 "FROM tmp_string_table");
+	    psSelectStringValues.setFetchSize(2048);
+	    preparedStatements.add(psSelectStringValues);
+	    
+	    psSelectPathEntries =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " path_id," +
+		 " entry_id," +
+		 " sequence_nb," +
+		 " entry_type " +
+		 "FROM tmp_path_entries");
+	    psSelectPathEntries.setFetchSize(1024);
+	    preparedStatements.add(psSelectPathEntries);
+	    
+	    psSelectSequenceEntries =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " sequence_id," +
+		 " entry_id," +
+		 " sequence_nb," +
+		 " entry_type " +
+		 "FROM tmp_sequence_entries");
+	    psSelectSequenceEntries.setFetchSize(1024);
+	    preparedStatements.add(psSelectSequenceEntries);
+	    
+	    psSelectStreamEntries =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " stream_id," +
+		 " path_id " +
+		 "FROM tmp_stream_entries");
+	    psSelectStreamEntries.setFetchSize(1024);
+	    preparedStatements.add(psSelectStreamEntries);
+	    
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
@@ -1280,10 +1205,7 @@ public class ConfDB
 	if (releaseTag.length()==0) return;
 	release.clear(releaseTag);
 	try {
-	    //if (dbType.equals(dbTypeMySQL))	    
 	    csLoadTemplates.setInt(1,releaseId);
-	    //else if (dbType.equals(dbTypeOracle))
-	    //csLoadTemplates.setInt(2,releaseId);
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
@@ -1307,10 +1229,7 @@ public class ConfDB
 	release.clear(releaseTag);
 	
 	try {
-	    if (dbType.equals(dbTypeMySQL))	    
-		csLoadTemplatesForConfig.setInt(1,configId);
-	    else if (dbType.equals(dbTypeOracle))
-		csLoadTemplatesForConfig.setInt(2,configId);
+	    csLoadTemplatesForConfig.setInt(1,configId);
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
@@ -1338,43 +1257,15 @@ public class ConfDB
 	ResultSet rsStringValues  = null;
 	
 	try {
-	    if (dbType.equals(dbTypeMySQL)) {
-		cs.executeUpdate();
-		csGetParameters.executeUpdate();
-		csGetBooleanValues.executeUpdate();
-		csGetIntValues.executeUpdate();
-		csGetRealValues.executeUpdate();
-		csGetStringValues.executeUpdate();
-		
-		rsTemplates    =  cs.getResultSet();
-		rsParameters    = csGetParameters.getResultSet();
-		rsBooleanValues = csGetBooleanValues.getResultSet();
-		rsIntValues     = csGetIntValues.getResultSet();
-		rsRealValues    = csGetRealValues.getResultSet();
-		rsStringValues  = csGetStringValues.getResultSet();
-	    }
-	    else {
-		cs.execute();
-		//csGetParameters.execute();
-		//csGetBooleanValues.execute();
-		//csGetIntValues.execute();
-		//csGetRealValues.execute();
-		//csGetStringValues.execute();
-		
-		//rsTemplates     = (ResultSet)cs.getObject(1);
-		//rsParameters    = (ResultSet)csGetParameters.getObject(1);
-		//rsBooleanValues = (ResultSet)csGetBooleanValues.getObject(1);
-		//rsIntValues     = (ResultSet)csGetIntValues.getObject(1);
-		//rsRealValues    = (ResultSet)csGetRealValues.getObject(1);
-		//rsStringValues  = (ResultSet)csGetStringValues.getObject(1);
-
-		rsTemplates     = psSelectTemplates.executeQuery();
-		rsParameters    = psSelectParameters.executeQuery();
-		rsBooleanValues = psSelectBooleanValues.executeQuery();
-		rsIntValues     = psSelectIntValues.executeQuery();
-		rsRealValues    = psSelectRealValues.executeQuery();
-		rsStringValues  = psSelectStringValues.executeQuery();
-	    }
+	    cs.executeUpdate();
+	    
+	    rsTemplates     = psSelectTemplates.executeQuery();
+	    rsParameters    = psSelectParameters.executeQuery();
+	    rsBooleanValues = psSelectBooleanValues.executeQuery();
+	    rsIntValues     = psSelectIntValues.executeQuery();
+	    rsRealValues    = psSelectRealValues.executeQuery();
+	    rsStringValues  = psSelectStringValues.executeQuery();
+	    
 
 	    HashMap<Integer,Template> idToTemplates =
 		new HashMap<Integer,Template>();
@@ -1676,50 +1567,19 @@ public class ConfDB
 	SoftwareRelease release = config.release();
 
 	try {
-	    if (dbType.equals(dbTypeMySQL)) {
-		csLoadConfiguration.setInt(1,configId);
-		csLoadConfiguration.executeUpdate();
-		csGetParameters.executeUpdate();
-		csGetBooleanValues.executeUpdate();
-		csGetIntValues.executeUpdate();
-		csGetRealValues.executeUpdate();
-		csGetStringValues.executeUpdate();
-		csGetPathEntries.executeUpdate();
-		csGetSequenceEntries.executeUpdate();
-		csGetStreamEntries.executeUpdate();
+	    csLoadConfiguration.setInt(1,configId);
+	    csLoadConfiguration.executeUpdate();
 
-		rsInstances       = csLoadConfiguration.getResultSet();
-		rsParameters      = csGetParameters.getResultSet();
-		rsBooleanValues   = csGetBooleanValues.getResultSet();
-		rsIntValues       = csGetIntValues.getResultSet();
-		rsRealValues      = csGetRealValues.getResultSet();
-		rsStringValues    = csGetStringValues.getResultSet();
-		rsPathEntries     = csGetPathEntries.getResultSet();
-		rsSequenceEntries = csGetSequenceEntries.getResultSet();
-		rsStreamEntries   = csGetStreamEntries.getResultSet();
-	    }
-	    else {
-		csLoadConfiguration.setInt(2,configId);
-		csLoadConfiguration.execute();
-		csGetParameters.execute();
-		csGetBooleanValues.execute();
-		csGetIntValues.execute();
-		csGetRealValues.execute();
-		csGetStringValues.execute();
-		csGetPathEntries.execute();
-		csGetSequenceEntries.execute();
-		csGetStreamEntries.execute();
+	    rsInstances       = psSelectInstances.executeQuery();
+	    rsParameters      = psSelectParameters.executeQuery();
+	    rsBooleanValues   = psSelectBooleanValues.executeQuery();
+	    rsIntValues       = psSelectIntValues.executeQuery();
+	    rsRealValues      = psSelectRealValues.executeQuery();
+	    rsStringValues    = psSelectStringValues.executeQuery();
+	    rsPathEntries     = psSelectPathEntries.executeQuery();
+	    rsSequenceEntries = psSelectSequenceEntries.executeQuery();
+	    rsStreamEntries   = psSelectStreamEntries.executeQuery();
 
-		rsInstances      = (ResultSet)csLoadConfiguration.getObject(1);
-		rsParameters     = (ResultSet)csGetParameters.getObject(1);
-		rsBooleanValues  = (ResultSet)csGetBooleanValues.getObject(1);
-		rsIntValues      = (ResultSet)csGetIntValues.getObject(1);
-		rsRealValues     = (ResultSet)csGetRealValues.getObject(1);
-		rsStringValues   = (ResultSet)csGetStringValues.getObject(1);
-		rsPathEntries    = (ResultSet)csGetPathEntries.getObject(1);
-		rsSequenceEntries= (ResultSet)csGetSequenceEntries.getObject(1);
-		rsStreamEntries  = (ResultSet)csGetStreamEntries.getObject(1);
-	    }
 
 	    HashMap<Integer,Instance> idToInstances =
 		new HashMap<Integer,Instance>();

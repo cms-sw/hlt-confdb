@@ -85,15 +85,6 @@ CREATE GLOBAL TEMPORARY TABLE tmp_stream_entries
 
 
 
---
--- TYPE declaration(s)
---
-CREATE PACKAGE types
-AS
-  TYPE ref_cursor IS REF CURSOR;
-END;
-/
-
 
 --
 -- PROCDEDURE load_parameter_value
@@ -402,13 +393,11 @@ END;
 
 
 --
--- FUNCTION load_template
+-- PROCEDURE load_template
 --
-CREATE FUNCTION load_template(release_id IN NUMBER,
-                              template_name IN CHAR)
-  RETURN types.ref_cursor
+CREATE PROCEDURE load_template(release_id IN NUMBER,
+                               template_name IN CHAR)
 AS
-  template_cursor   types.ref_cursor;
   v_template_id     PLS_INTEGER;
   v_template_type   VARCHAR2(64);
   v_template_name   VARCHAR2(128);
@@ -567,25 +556,17 @@ BEGIN
     END LOOP;
     CLOSE cur_module_templates;
   END IF;
-   
-  /* generate the final result set by selecting the temporary table */
-  OPEN template_cursor FOR
-    SELECT template_id,template_type,template_name,template_cvstag
-    FROM tmp_template_table;
-  RETURN template_cursor;
+
 END;  
 /
 
 
 
 --
--- FUNCTION load_templates
+-- PROCEDURE load_templates
 --
---CREATE FUNCTION load_templates(release_id IN NUMBER)
---  RETURN types.ref_cursor
 CREATE PROCEDURE load_templates(release_id IN NUMBER)
 AS
---  template_cursor   types.ref_cursor;
   v_template_id     PLS_INTEGER;
   v_template_type   VARCHAR2(64);
   v_template_name   VARCHAR2(128);
@@ -715,22 +696,15 @@ BEGIN
   END LOOP;
   CLOSE cur_module_templates;
 
-  /* generate the final result set by selecting the temporary table */
---  OPEN template_cursor FOR
---    SELECT template_id,template_type,template_name,template_cvstag
---    FROM tmp_template_table;
---  RETURN template_cursor;
 END;  
 /
 
 
 --
--- FUNCTION load_templates_for_config
+-- PROCEDURE load_templates_for_config
 --
-CREATE FUNCTION load_templates_for_config(config_id IN NUMBER)
-  RETURN types.ref_cursor
+CREATE PROCEDURE load_templates_for_config(config_id IN NUMBER)
 AS
-  template_cursor   types.ref_cursor;
   v_template_id     PLS_INTEGER;
   v_template_type   VARCHAR2(64);
   v_template_name   VARCHAR2(128);
@@ -910,22 +884,15 @@ BEGIN
   END LOOP;
   CLOSE cur_module_templates_sequences;
 
-  /* generate the final result set by selecting the temporary table */
-  OPEN template_cursor FOR
-    SELECT template_id,template_type,template_name,template_cvstag
-    FROM tmp_template_table;
-  RETURN template_cursor;
 END;  
 /
 
 
 --
--- FUNCTION load_configuration
+-- PROCEDURE load_configuration
 --
-CREATE FUNCTION load_configuration(config_id IN NUMBER)
-  RETURN types.ref_cursor
+CREATE PROCEDURE load_configuration(config_id IN NUMBER)
 AS
-  instance_cursor   types.ref_cursor;
   v_instance_id     PLS_INTEGER;
   v_template_id     PLS_INTEGER;
   v_instance_type   VARCHAR2(64);
@@ -1306,138 +1273,7 @@ BEGIN
   END LOOP;
   CLOSE cur_stream_path;
 
-  /* generate the final result set by selecting the temporary table */
-  OPEN instance_cursor FOR
-    SELECT DISTINCT instance_id,template_id,instance_type,instance_name,flag
-    FROM tmp_instance_table;
-  RETURN instance_cursor;  
 END;  
-/
-
-
-
---
--- FUNCTION get_parameters
---
-CREATE FUNCTION get_parameters
-  RETURN types.ref_cursor
-AS
-  parameter_cursor types.ref_cursor;
-BEGIN
-  OPEN parameter_cursor FOR
-    SELECT parameter_id,parameter_type,
-           parameter_name,parameter_trkd,parameter_seqnb,parent_id
-    FROM tmp_parameter_table;
-  RETURN parameter_cursor;
-END;
-/
-
-
---
--- FUNCTION get_boolean_values
---
-CREATE FUNCTION get_boolean_values
-  RETURN types.ref_cursor
-AS
-  value_cursor types.ref_cursor;
-BEGIN
-  OPEN value_cursor FOR
-    SELECT DISTINCT parameter_id,parameter_value FROM tmp_boolean_table;
-  RETURN value_cursor;
-END;
-/
-
-
---
--- FUNCTION get_int_values
---
-CREATE FUNCTION get_int_values
-  RETURN types.ref_cursor
-AS
-  value_cursor types.ref_cursor;
-BEGIN
-  OPEN value_cursor FOR
-    SELECT DISTINCT parameter_id,parameter_value,sequence_nb,hex
-      FROM tmp_int_table;
-  RETURN value_cursor;
-END;
-/
-
-
---
--- FUNCTION get_real_values
---
-CREATE FUNCTION get_real_values
-  RETURN types.ref_cursor
-AS
-  value_cursor types.ref_cursor;
-BEGIN
-  OPEN value_cursor FOR
-    SELECT DISTINCT parameter_id,parameter_value,sequence_nb FROM tmp_real_table;
-  RETURN value_cursor;
-END;
-/
-
-
---
--- FUNCTION get_string_values
---
-CREATE FUNCTION get_string_values
-  RETURN types.ref_cursor
-AS
-  value_cursor types.ref_cursor;
-BEGIN
-  OPEN value_cursor FOR
-    SELECT DISTINCT parameter_id,parameter_value,sequence_nb FROM tmp_string_table;
-  RETURN value_cursor;
-END;
-/
-
-
---
--- FUNCTION get_path_entries
---
-CREATE FUNCTION get_path_entries
-  RETURN types.ref_cursor
-AS
-  entry_cursor types.ref_cursor;
-BEGIN
-  OPEN entry_cursor FOR
-    SELECT path_id, entry_id, sequence_nb, entry_type FROM tmp_path_entries
-    ORDER BY path_id ASC, sequence_nb ASC;
-  RETURN entry_cursor;
-END;
-/
-
-
---
--- FUNCTION get_sequence_entries
---
-CREATE FUNCTION get_sequence_entries
-  RETURN types.ref_cursor
-AS
-  entry_cursor types.ref_cursor;
-BEGIN
-  OPEN entry_cursor FOR
-    SELECT sequence_id, entry_id, sequence_nb, entry_type FROM tmp_sequence_entries
-    ORDER BY sequence_id ASC, sequence_nb ASC;
-  RETURN entry_cursor;
-END;
-/
-
-
---
--- FUNCTION get_stream_entries
---
-CREATE FUNCTION get_stream_entries
-  RETURN types.ref_cursor
-AS
-  entry_cursor types.ref_cursor;
-BEGIN
-  OPEN entry_cursor FOR
-    SELECT stream_id, path_id FROM tmp_stream_entries;
-  RETURN entry_cursor;
-END;
 /
 
 

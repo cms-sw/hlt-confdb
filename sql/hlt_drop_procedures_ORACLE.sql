@@ -4,21 +4,10 @@
 
 DROP PROCEDURE load_parameter_value;
 DROP PROCEDURE load_parameters;
-DROP FUNCTION  load_template;
---DROP FUNCTION  load_templates;
-DROP PROCEDURE  load_templates;
-DROP FUNCTION  load_templates_for_config;
-DROP FUNCTION  load_configuration;
-DROP FUNCTION  get_parameters;
-DROP FUNCTION  get_boolean_values;
-DROP FUNCTION  get_int_values;
-DROP FUNCTION  get_real_values;
-DROP FUNCTION  get_string_values;
-DROP FUNCTION  get_path_entries;
-DROP FUNCTION  get_sequence_entries;
-DROP FUNCTION  get_stream_entries;
-
-DROP PACKAGE   types;
+DROP PROCEDURE load_template;
+DROP PROCEDURE load_templates;
+DROP PROCEDURE load_templates_for_config;
+DROP PROCEDURE load_configuration;
 
 DROP TABLE tmp_template_table;
 DROP TABLE tmp_instance_table;
