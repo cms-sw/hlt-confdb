@@ -581,10 +581,11 @@ END;
 --
 -- FUNCTION load_templates
 --
-CREATE FUNCTION load_templates(release_id IN NUMBER)
-  RETURN types.ref_cursor
+--CREATE FUNCTION load_templates(release_id IN NUMBER)
+--  RETURN types.ref_cursor
+CREATE PROCEDURE load_templates(release_id IN NUMBER)
 AS
-  template_cursor   types.ref_cursor;
+--  template_cursor   types.ref_cursor;
   v_template_id     PLS_INTEGER;
   v_template_type   VARCHAR2(64);
   v_template_name   VARCHAR2(128);
@@ -715,10 +716,10 @@ BEGIN
   CLOSE cur_module_templates;
 
   /* generate the final result set by selecting the temporary table */
-  OPEN template_cursor FOR
-    SELECT template_id,template_type,template_name,template_cvstag
-    FROM tmp_template_table;
-  RETURN template_cursor;
+--  OPEN template_cursor FOR
+--    SELECT template_id,template_type,template_name,template_cvstag
+--    FROM tmp_template_table;
+--  RETURN template_cursor;
 END;  
 /
 

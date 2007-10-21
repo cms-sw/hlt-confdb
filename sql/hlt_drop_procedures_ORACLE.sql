@@ -5,7 +5,8 @@
 DROP PROCEDURE load_parameter_value;
 DROP PROCEDURE load_parameters;
 DROP FUNCTION  load_template;
-DROP FUNCTION  load_templates;
+--DROP FUNCTION  load_templates;
+DROP PROCEDURE  load_templates;
 DROP FUNCTION  load_templates_for_config;
 DROP FUNCTION  load_configuration;
 DROP FUNCTION  get_parameters;

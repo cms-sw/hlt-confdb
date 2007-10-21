@@ -164,6 +164,14 @@ public class ConfDB
     private CallableStatement csGetSequenceEntries                = null;
     private CallableStatement csGetStreamEntries                  = null;
 
+    // test
+    private PreparedStatement psSelectTemplates                   = null;
+    private PreparedStatement psSelectParameters                  = null;
+    private PreparedStatement psSelectBooleanValues               = null;
+    private PreparedStatement psSelectIntValues                   = null;
+    private PreparedStatement psSelectRealValues                  = null;
+    private PreparedStatement psSelectStringValues                = null;
+
     private ArrayList<PreparedStatement> preparedStatements =
 	new ArrayList<PreparedStatement>();
     
@@ -856,10 +864,78 @@ public class ConfDB
 		
 		csLoadTemplates =
 		    dbConnector.getConnection().prepareCall
-		    ("begin ? := load_templates(?); end;");
-		csLoadTemplates.registerOutParameter(1,OracleTypes.CURSOR);
+		    //("begin ? := load_templates(?); end;");
+		    ("begin load_templates(?); end;");
+		//csLoadTemplates.registerOutParameter(1,OracleTypes.CURSOR);
 		csLoadTemplates.setFetchSize(1024);
 		preparedStatements.add(csLoadTemplates);
+		
+		// TEST
+		psSelectTemplates =
+		    dbConnector.getConnection().prepareStatement
+		    ("SELECT" +
+		     " template_id," +
+		     " template_type," +
+		     " template_name," +
+		     " template_cvstag " +
+		     "FROM tmp_template_table");
+		psSelectTemplates.setFetchSize(2048);
+		preparedStatements.add(psSelectTemplates);
+
+		psSelectParameters =
+		    dbConnector.getConnection().prepareStatement
+		    ("SELECT" +
+		     " parameter_id," +
+		     " parameter_type," +
+		     " parameter_name," +
+		     " parameter_trkd," +
+		     " parameter_seqnb," +
+		     " parent_id " +
+		     "FROM tmp_parameter_table");
+		psSelectParameters.setFetchSize(2048);
+		preparedStatements.add(psSelectParameters);
+
+		psSelectBooleanValues =
+		    dbConnector.getConnection().prepareStatement
+		    ("SELECT"+
+		     " parameter_id," +
+		     " parameter_value " +
+		     "FROM tmp_boolean_table");
+		psSelectBooleanValues.setFetchSize(2048);
+		preparedStatements.add(psSelectBooleanValues);
+
+		psSelectIntValues =
+		    dbConnector.getConnection().prepareStatement
+		    ("SELECT"+
+		     " parameter_id," +
+		     " parameter_value," +
+		     " sequence_nb," +
+		     " hex " +
+		     "FROM tmp_int_table");
+		psSelectIntValues.setFetchSize(2048);
+		preparedStatements.add(psSelectIntValues);
+		
+		psSelectRealValues =
+		    dbConnector.getConnection().prepareStatement
+		    ("SELECT"+
+		     " parameter_id," +
+		     " parameter_value," +
+		     " sequence_nb " +
+		     "FROM tmp_real_table");
+		psSelectRealValues.setFetchSize(2048);
+		preparedStatements.add(psSelectRealValues);
+
+		psSelectStringValues =
+		    dbConnector.getConnection().prepareStatement
+		    ("SELECT"+
+		     " parameter_id," +
+		     " parameter_value," +
+		     " sequence_nb " +
+		     "FROM tmp_string_table");
+		psSelectStringValues.setFetchSize(2048);
+		preparedStatements.add(psSelectStringValues);
+		// END TEST
+
 		
 		csLoadTemplatesForConfig =
 		    dbConnector.getConnection().prepareCall
@@ -1204,10 +1280,10 @@ public class ConfDB
 	if (releaseTag.length()==0) return;
 	release.clear(releaseTag);
 	try {
-	    if (dbType.equals(dbTypeMySQL))	    
-		csLoadTemplates.setInt(1,releaseId);
-	    else if (dbType.equals(dbTypeOracle))
-		csLoadTemplates.setInt(2,releaseId);
+	    //if (dbType.equals(dbTypeMySQL))	    
+	    csLoadTemplates.setInt(1,releaseId);
+	    //else if (dbType.equals(dbTypeOracle))
+	    //csLoadTemplates.setInt(2,releaseId);
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
@@ -1279,18 +1355,25 @@ public class ConfDB
 	    }
 	    else {
 		cs.execute();
-		csGetParameters.execute();
-		csGetBooleanValues.execute();
-		csGetIntValues.execute();
-		csGetRealValues.execute();
-		csGetStringValues.execute();
+		//csGetParameters.execute();
+		//csGetBooleanValues.execute();
+		//csGetIntValues.execute();
+		//csGetRealValues.execute();
+		//csGetStringValues.execute();
 		
-		rsTemplates     = (ResultSet)cs.getObject(1);
-		rsParameters    = (ResultSet)csGetParameters.getObject(1);
-		rsBooleanValues = (ResultSet)csGetBooleanValues.getObject(1);
-		rsIntValues     = (ResultSet)csGetIntValues.getObject(1);
-		rsRealValues    = (ResultSet)csGetRealValues.getObject(1);
-		rsStringValues  = (ResultSet)csGetStringValues.getObject(1);
+		//rsTemplates     = (ResultSet)cs.getObject(1);
+		//rsParameters    = (ResultSet)csGetParameters.getObject(1);
+		//rsBooleanValues = (ResultSet)csGetBooleanValues.getObject(1);
+		//rsIntValues     = (ResultSet)csGetIntValues.getObject(1);
+		//rsRealValues    = (ResultSet)csGetRealValues.getObject(1);
+		//rsStringValues  = (ResultSet)csGetStringValues.getObject(1);
+
+		rsTemplates     = psSelectTemplates.executeQuery();
+		rsParameters    = psSelectParameters.executeQuery();
+		rsBooleanValues = psSelectBooleanValues.executeQuery();
+		rsIntValues     = psSelectIntValues.executeQuery();
+		rsRealValues    = psSelectRealValues.executeQuery();
+		rsStringValues  = psSelectStringValues.executeQuery();
 	    }
 
 	    HashMap<Integer,Template> idToTemplates =
