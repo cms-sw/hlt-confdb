@@ -62,6 +62,18 @@
     </jar>
   </target>
 
+  <!-- combine webservice relevant files into war file -->
+  <target name="war">
+    <war destfile="${dir.lib}/confdb.war" webxml="browser/WebContent/WEB-INF/web.xml">
+      <lib file="${dir.lib}/cmssw-evf-confdb-gui.jar"/>
+      <lib file="${dir.lib}/browser.jar"/>
+      <lib file="${dir.ext}/mysql-connector-java-5.0.5-bin.jar"/>
+      <fileset dir="browser/WebContent"/>
+      <zipfileset dir="${dir.lib}" includes="cmssw-evf-confdb-gui.jar" prefix="gui"/>
+      <zipfileset dir="${dir.ext}" prefix="gui"/>
+    </war>
+  </target>
+
   <!-- delete all class files -->
   <target name="clean">
     <delete>
