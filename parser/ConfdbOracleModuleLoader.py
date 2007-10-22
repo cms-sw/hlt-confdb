@@ -331,9 +331,9 @@ class ConfdbOracleModuleLoader:
             modcvstag = "TESTRELEASE"
 
 	# Now create a new module
+        if(self.verbose > 2):
+            print "INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", " + modclassname + "', '" + modcvstag + "')"
 	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag + "')")
-	if(self.verbose > 2):
-	    print "INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", " + modclassname + "', '" + modcvstag + "')"
 	
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)

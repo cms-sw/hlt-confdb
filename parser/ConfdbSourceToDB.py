@@ -30,6 +30,10 @@ def main(argv):
     input_dbuser = "jjhollar"
     input_dbpwd = "password"
     input_dbtype = "MySQL"
+#    input_dbuser = "cms_hlt"
+#    input_dbpwd = "Magnum2Classic"
+#    input_host = "cms_orcoff_int2r"
+#    input_dbtype = "Oracle"
     input_host = "localhost"
     input_configfile = ""
     input_dotest = False
@@ -176,12 +180,13 @@ class ConfdbSourceToDB:
     def BeginJob(self):
 	# Get the list of valid package tags for this release, using the 
 	# CmsTCPackageList.pl script.
-	os.system("CmsTCPackageList.pl --rel " + self.cmsswrel + " >& temptags.txt")
-	tagfile = open("temptags.txt")
+        #	os.system("CmsTCPackageList.pl --rel " + self.cmsswrel + " >& temptags.txt")
+        #	tagfile = open("temptags.txt")
+        tagfile = open(self.base_path + "//src/PackageList.cmssw")
 	taglines = tagfile.readlines()
 	for tagline in taglines:
 	    self.tagtuple.append(((tagline.split())[0], (tagline.split())[1]))
-	os.system("rm temptags.txt")
+            #	os.system("rm temptags.txt")
 
 	# List of all available modules
 	sealcomponenttuple = []
@@ -738,7 +743,7 @@ class ConfdbSourceToDB:
 	    myParser.ShowParamFailures()
 	    myParser.ResetParams()
 
-	except:
+	except FloatingPointError:
 	    print "Error: SQL exception caught while loading the component " + modulename + " to DB. The template may be incomplete" 
 	    self.sqlerrors.append(modulename + "\t(in " + packagename +")")
 	    return
