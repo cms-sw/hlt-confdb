@@ -182,11 +182,12 @@ class ConfdbSourceToDB:
 	# CmsTCPackageList.pl script.
         #	os.system("CmsTCPackageList.pl --rel " + self.cmsswrel + " >& temptags.txt")
         #	tagfile = open("temptags.txt")
-        tagfile = open(self.base_path + "//src/PackageList.cmssw")
-	taglines = tagfile.readlines()
-	for tagline in taglines:
-	    self.tagtuple.append(((tagline.split())[0], (tagline.split())[1]))
-            #	os.system("rm temptags.txt")
+        if(os.path.isfile(self.base_path + "//src/PackageList.cmssw")):
+            tagfile = open(self.base_path + "//src/PackageList.cmssw")
+            taglines = tagfile.readlines()
+            for tagline in taglines:
+                self.tagtuple.append(((tagline.split())[0], (tagline.split())[1]))
+                #	os.system("rm temptags.txt")
 
 	# List of all available modules
 	sealcomponenttuple = []
@@ -541,8 +542,19 @@ class ConfdbSourceToDB:
 	    if(modtag.lstrip().rstrip() == packagename.lstrip().rstrip()):
 		tagline = cvstag
 
-
-
+        if(self.addtorelease == True):
+            if(tagline == ""):
+                print "No PackageList found - looking in CVS/Tag"
+                if(os.path.isfile(cvsdir + "/Tag")):
+                    cvscotagfile = open(cvsdir + "/Tag")
+                    cvscotaglines = cvscotagfile.readlines()
+                    for cvscotagline in cvscotaglines:
+                        tagline = cvscotagline
+                        print "Will enter component with CVS tag " + tagline
+                else:
+                    tagline = ""
+            else:
+                tagline = ""
 
 	if(os.path.isdir(srcdir) or os.path.isdir(pluginsdir) or 
 	   (self.dotestdir == True and os.path.isdir(testdir))):        

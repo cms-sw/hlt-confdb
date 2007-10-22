@@ -194,7 +194,6 @@ class ConfdbOracleModuleLoader:
 
         if(self.addtorel == 1):
             print 'This module does not exist in the release. Will ADD from the specified test release'
-            modcvstag = "TESTRELEASE"
 
 	# Now create a new module
 	if(self.verbose > 2):
@@ -229,7 +228,6 @@ class ConfdbOracleModuleLoader:
 
         if(self.addtorel == 1):
             print 'This service does not exist in the release. Will ADD from the specified test release'
-            modcvstag = "TESTRELEASE"
 
 	# Now create a new service
 	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "')")
@@ -262,7 +260,6 @@ class ConfdbOracleModuleLoader:
 
         if(self.addtorel == 1):
             print 'This es_source does not exist in the release. Will ADD from the specified test release'
-            modcvstag = "TESTRELEASE"
 
 	# Now create a new es_source
 	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
@@ -295,7 +292,6 @@ class ConfdbOracleModuleLoader:
 
         if(self.addtorel == 1):
             print 'This ed_source does not exist in the release. Will ADD from the specified test release'
-            modcvstag = "TESTRELEASE"
 
 	# Now create a new es_source
 	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
@@ -328,7 +324,6 @@ class ConfdbOracleModuleLoader:
 
         if(self.addtorel == 1):
             print 'This es_module does not exist in the release. Will ADD from the specified test release'
-            modcvstag = "TESTRELEASE"
 
 	# Now create a new module
         if(self.verbose > 2):
@@ -368,7 +363,6 @@ class ConfdbOracleModuleLoader:
             if(self.verbose > 2):
                 print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
             thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
-            modcvstag = "TESTRELEASE"
                                                                     
 	self.fwkchanged = self.fwkchanged + 1
 
@@ -420,7 +414,6 @@ class ConfdbOracleModuleLoader:
             if(self.verbose > 2):
                 print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
             thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
-            modcvstag = "TESTRELEASE"
                                                                     
 	self.fwkchanged = self.fwkchanged + 1
 
@@ -469,7 +462,6 @@ class ConfdbOracleModuleLoader:
             if(self.verbose > 2):
                 print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
             thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
-            modcvstag = "TESTRELEASE"
                                                                     
 	self.fwkchanged = self.fwkchanged + 1
 
@@ -516,7 +508,6 @@ class ConfdbOracleModuleLoader:
             if(self.verbose > 2):
                 print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
             thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
-            modcvstag = "TESTRELEASE"
                                                                     
 	self.fwkchanged = self.fwkchanged + 1
 
@@ -548,7 +539,7 @@ class ConfdbOracleModuleLoader:
 	oldsource = thecursor.fetchone()
 	oldsuperid = oldsource[0]
 	oldtag = oldsource[1]
-	print 'Old esmodule had ' + ' ' + oldtag + ', new source has tag ' + sourcecvstag
+	print 'Old esmodule had ' + ' ' + oldtag + ', new esmodule has tag ' + sourcecvstag
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
@@ -563,7 +554,6 @@ class ConfdbOracleModuleLoader:
             if(self.verbose > 2):
                 print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
             thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
-            modcvstag = "TESTRELEASE"
                                                                     
 	self.fwkchanged = self.fwkchanged + 1
 
@@ -576,7 +566,7 @@ class ConfdbOracleModuleLoader:
 	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
-	# Now create a new source
+	# Now create a new module
 	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "')")
 	
 	# Now deal with parameters

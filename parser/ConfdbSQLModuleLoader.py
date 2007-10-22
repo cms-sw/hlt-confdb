@@ -193,7 +193,6 @@ class ConfdbMySQLModuleLoader:
 
         if(self.addtorel == 1):
             print 'This module does not exist in the release. Will ADD from the specified test release'
-            modcvstag = "TESTRELEASE"
 
 	# Now create a new module
 	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')")
@@ -225,7 +224,6 @@ class ConfdbMySQLModuleLoader:
 
         if(self.addtorel == 1):
             print 'This service does not exist in the release. Will ADD from the specified test release'
-            modcvstag = "TESTRELEASE"
 
 	# Now create a new service
 	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "')")
@@ -257,7 +255,6 @@ class ConfdbMySQLModuleLoader:
 
         if(self.addtorel == 1):
             print 'This es_source does not exist in the release. Will ADD from the specified test release'
-            modcvstag = "TESTRELEASE"
 
 	# Now create a new es_source
 	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
@@ -289,7 +286,6 @@ class ConfdbMySQLModuleLoader:
 
         if(self.addtorel == 1):
             print 'This ed_source does not exist in the release. Will ADD from the specified test release'
-            modcvstag = "TESTRELEASE"
 
 	# Now create a new ed_source
 	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
@@ -321,7 +317,6 @@ class ConfdbMySQLModuleLoader:
 
         if(self.addtorel == 1):
             print 'This es_module does not exist in the release. Will ADD from the specified test release'
-            modcvstag = "TESTRELEASE"
 
 	# Now create a new module
 	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag + "')")
@@ -361,7 +356,6 @@ class ConfdbMySQLModuleLoader:
             if(self.verbose > 2):    
                 print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
             thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
-            modcvstag = "TESTRELEASE"
 
 	self.fwkchanged = self.fwkchanged + 1
 
@@ -411,7 +405,6 @@ class ConfdbMySQLModuleLoader:
             if(self.verbose > 2):
                 print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
             thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
-            modcvstag = "TESTRELEASE"
                                                                             
 	self.fwkchanged = self.fwkchanged + 1
 
@@ -458,7 +451,6 @@ class ConfdbMySQLModuleLoader:
             if(self.verbose > 2):
                 print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
             thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
-            modcvstag = "TESTRELEASE"
                                                                             
 	self.fwkchanged = self.fwkchanged + 1
 
@@ -503,7 +495,6 @@ class ConfdbMySQLModuleLoader:
             if(self.verbose > 2):
                 print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
             thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
-            modcvstag = "TESTRELEASE"
                                                                             
 	self.fwkchanged = self.fwkchanged + 1
 
@@ -548,7 +539,6 @@ class ConfdbMySQLModuleLoader:
             if(self.verbose > 2):
                 print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
             thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
-            modcvstag = "TESTRELEASE"                                                                            
 
 	self.fwkchanged = self.fwkchanged + 1
 
