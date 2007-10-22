@@ -94,8 +94,7 @@ public class ConverterService
     {
 	String result = new String();
 	try {
-	    ConverterFactory converterFactory=ConverterFactory.getFactory("default");
-	    Converter        converter       =converterFactory.getConverter(format);
+	    Converter  converter = Converter.getConverter(format);
 	    
 	    if (input.length()>0) {
 		EDSourceInstance poolSource = getPoolSource(config.releaseTag());

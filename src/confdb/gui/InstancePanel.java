@@ -14,8 +14,8 @@ import org.jdesktop.layout.*;
 
 import confdb.data.*;
 
-import confdb.converter.ConverterFactory;
 import confdb.converter.Converter;
+import confdb.converter.ConverterEngine;
 
 import confdb.gui.treetable.*;
 
@@ -63,7 +63,7 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
     private Object currentObject = null;
     
     /** converter, to display instance configuration snippets */
-    private Converter converter = null;
+    private ConverterEngine converter = null;
 
     
     //
@@ -96,8 +96,7 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 
 	jTreeTableParameters.getParent().setBackground(new Color(255,255,255));
 
-	ConverterFactory factory = ConverterFactory.getFactory("default");
-	try { converter = factory.getConverter("ASCII"); }
+	try { converter = Converter.getConverter("ASCII").getConverterEngine(); }
 	catch (Exception e){ e.printStackTrace(); }
 	
 	clear();
