@@ -23,7 +23,7 @@ public class ConfigInfo
     /** parent directory */
     private Directory parentDir = null;
     
-    /** current releaseTag */
+    /** current release tag */
     private String releaseTag = null;
     
     /** versions of the configuration */
@@ -42,13 +42,15 @@ public class ConfigInfo
     
     /** standard constructor */
     public ConfigInfo(String name,Directory parentDir,int dbId,int version,
-		      String created,String creator,String releaseTag)
+		      String created,String creator,
+		      String releaseTag,String processName)
     {
 	this.name         = name;
 	this.parentDir    = parentDir;
 	this.releaseTag   = releaseTag;
 	this.versionIndex = 0;
-	versions.add(new ConfigVersion(dbId,version,created,creator,releaseTag));
+	versions.add(new ConfigVersion(dbId,version,created,creator,
+				       releaseTag,processName));
     }
     
     /** constructor without a version */
@@ -98,10 +100,16 @@ public class ConfigInfo
 	return (versionIndex<0) ? "" : versions.get(versionIndex).creator();
     }
     
-    /** get the latest releaseTag */
+    /** get the current releaseTag */
     public String releaseTag() { return releaseTag; }
+
+    /** get the current process name */
+    public String processName()
+    {
+	return (versionIndex<0) ? "" : versions.get(versionIndex).processName();
+    }
     
-   /** number of versions */
+    /** number of versions */
     public int versionCount() { return versions.size(); }
     
     /** get the i-th version */
@@ -126,7 +134,8 @@ public class ConfigInfo
 
     /** add an new version of this configuration */
     public void addVersion(int dbId,int version,
-			   String created,String creator,String releaseTag)
+			   String created,String creator,
+			   String releaseTag,String processName)
     {
 	for (ConfigVersion v : versions) {
 	    if (v.version()==version) {
@@ -139,7 +148,8 @@ public class ConfigInfo
 							version,
 							created,
 							creator,
-							releaseTag);
+							releaseTag,
+							processName);
 	versions.add(configVersion);
 	Collections.<ConfigVersion>sort(versions);
 	this.releaseTag = releaseTag;
@@ -149,7 +159,7 @@ public class ConfigInfo
     public void setVersionIndex(int index)
     {
 	versionIndex = index;
-	releaseTag = versions.get(versionIndex).releaseTag();
+	releaseTag   = versions.get(versionIndex).releaseTag();
     }
     
     /** move to the next available version number */

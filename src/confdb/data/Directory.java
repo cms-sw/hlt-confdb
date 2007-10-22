@@ -112,5 +112,21 @@ public class Directory
 	}
 	return false;
     }
-    
+
+    /** list all (direct!) daughters which are of type Directory */
+    public Directory[] listOfDirectories()
+    {
+	Directory[] list = new Directory[childDirCount()];
+	for (int i=0;i<childDirCount();i++) list[i] = childDir(i);
+	return list;
+    }
+
+    /** list all (direct!) daughters of type ConfigInfo */
+    public ConfigInfo[] listOfConfigurations()
+    {
+	ConfigInfo[] list = new ConfigInfo[configInfoCount()];
+	for (int i=0;i<configInfoCount();i++) list[i]=configInfo(i);
+	return list;
+    }
+
 }

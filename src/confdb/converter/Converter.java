@@ -63,30 +63,33 @@ public class Converter implements IConverter
 		try {
 			connectToDatabase();
 
-			Configuration configuration = loadConfiguration(configKey);
-			if ( configuration == null )
-				return null;
+			Configuration configuration =
+			    database.loadConfiguration(configKey);
+			if ( configuration == null ) return null;
 			return convert( configuration );
-		} finally {
+		}
+		finally {
 			database.disconnect();
 		}
 	}
 
 		
 		
-	public Configuration loadConfiguration( int configKey ) throws SQLException, DatabaseException
-	{
-		ConfigInfo configInfo = findConfig(configKey);
-		if ( configInfo == null )
-			return null;
-		return loadConfiguration(configInfo);
-	}
-	
-	protected Configuration loadConfiguration( ConfigInfo configInfo ) throws SQLException
-	{
-		return database.loadConfiguration( configInfo );
-	}
-	
+    /*
+      public Configuration loadConfiguration( int configKey ) throws SQLException, DatabaseException
+      {
+      ConfigInfo configInfo = findConfig(configKey);
+      if ( configInfo == null )
+      return null;
+      return loadConfiguration(configInfo);
+      }
+    */
+    /*
+      protected Configuration loadConfiguration( ConfigInfo configInfo ) throws SQLException
+      {
+      return database.loadConfiguration( configInfo );
+      }
+    */
 	public String convert( Configuration configuration )
 	{
 		if ( newEndpath != null )
@@ -95,55 +98,65 @@ public class Converter implements IConverter
 	}
 	
 
-	public ConfigInfo findConfig( int key ) throws SQLException, DatabaseException
-	{
-		return findConfig( key, getRootDirectory() );
-	}
-
+    /*
+      public ConfigInfo findConfig( int key ) throws SQLException, DatabaseException
+      {
+      return findConfig( key, getRootDirectory() );
+      }
+    */
+    
 	public Directory getRootDirectory() throws SQLException, DatabaseException
 	{
 		return database.loadConfigurationTree();
 	}
 
-	protected ConfigInfo findConfig( int key, Directory directory )
-	{
-		for ( int i = 0; i < directory.configInfoCount(); i++ )
-		{
-			ConfigInfo configInfo = directory.configInfo(i);
-			for ( int ii = 0; ii < configInfo.versionCount(); ii++ )
-			{
-				ConfigVersion version = configInfo.version(ii);
-				if ( version.dbId() == key )
-				{
-					configInfo.setVersionIndex( ii );
-					return configInfo;
-				}
-			}
-		}
-		for ( int i = 0; i < directory.childDirCount(); i++ )
-		{
-			ConfigInfo configInfo = findConfig( key, directory.childDir(i) );
-			if ( configInfo != null )
-				return configInfo;
-		}
+    /*
+      protected ConfigInfo findConfig( int key, Directory directory )
+      {
+      for ( int i = 0; i < directory.configInfoCount(); i++ )
+      {
+      ConfigInfo configInfo = directory.configInfo(i);
+      for ( int ii = 0; ii < configInfo.versionCount(); ii++ )
+      {
+      ConfigVersion version = configInfo.version(ii);
+      if ( version.dbId() == key )
+      {
+      configInfo.setVersionIndex( ii );
+      return configInfo;
+      }
+      }
+      }
+      for ( int i = 0; i < directory.childDirCount(); i++ )
+      {
+      ConfigInfo configInfo = findConfig( key, directory.childDir(i) );
+      if ( configInfo != null )
+      return configInfo;
+      }
 		return null;
-	}
-	
-	public Directory[] listSubDirectories( Directory directory )
+		}
+    */
+    
+        public Directory[] listSubDirectories( Directory directory )
 	{
-		Directory[] list = new Directory[ directory.childDirCount() ];
-		for ( int i = 0; i < directory.childDirCount(); i++ )
-			list[i] = directory.childDir(i);
-		return list;
+	    return directory.listOfDirectories();
+	    /*
+	      Directory[] list = new Directory[ directory.childDirCount() ];
+	      for ( int i = 0; i < directory.childDirCount(); i++ )
+	      list[i] = directory.childDir(i);
+	      return list;
+	    */
 	}
 	
 	
 	public ConfigInfo[] listConfigs( Directory directory )
 	{
-		ConfigInfo[] list = new ConfigInfo[ directory.configInfoCount() ];
-		for ( int i = 0; i < directory.configInfoCount(); i++ )
-			list[i] = directory.configInfo(i);
-		return list;
+	    return directory.listOfConfigurations();
+	    /*
+	      ConfigInfo[] list = new ConfigInfo[ directory.configInfoCount() ];
+	      for ( int i = 0; i < directory.configInfoCount(); i++ )
+	      list[i] = directory.configInfo(i);
+	      return list;
+	    */
 	}
 	
 	public void connectToDatabase() throws DatabaseException, SQLException

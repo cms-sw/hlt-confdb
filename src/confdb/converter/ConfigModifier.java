@@ -92,8 +92,10 @@ public class ConfigModifier extends Configuration
 	}
 
 	public void addNextVersion(int versionId,
-				   String created,String creator,String releaseTag) {
-		orig.addNextVersion(versionId,created,creator,releaseTag);
+				   String created,String creator,
+				   String releaseTag,String processName) {
+		orig.addNextVersion(versionId,created,creator,
+				    releaseTag,processName);
 	}
 
 	public String created() {
@@ -160,9 +162,8 @@ public class ConfigModifier extends Configuration
 		return orig.indexOfService(service);
 	}
 
-        public void initialize(ConfigInfo configInfo,String processName,
-			       SoftwareRelease release) {
-	        orig.initialize(configInfo,processName,release);
+        public void initialize(ConfigInfo configInfo,SoftwareRelease release) {
+	        orig.initialize(configInfo,release);
         }
     
 	public EDSourceInstance insertEDSource(String templateName) {

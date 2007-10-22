@@ -224,7 +224,8 @@ public class PythonParser
 						     "can't find process name");
 	
 	Configuration config = new Configuration();
-	config.initialize(new ConfigInfo(name,null,releaseTag),process,release);
+	config.initialize(new ConfigInfo(name,null,-1,0,"","",
+					 releaseTag,process),release);
 	
 	// add global psets
 	ParseNode psetNode = getChildNode(rootNode,"psets");

@@ -22,17 +22,15 @@ public class Configuration implements IConfiguration
     /** configuration information */
     private ConfigInfo configInfo = null;
     
-    /** current process name */
-    private String processName = "";
-
     /** current software release */
     private SoftwareRelease release = null;
     
     /** has the configuration changed since the last 'save' operation? */
     private boolean hasChanged = false;
     
+    
     /** list of globale parameter sets */
-    private ArrayList<PSetParameter> psets = null;
+    private ArrayList<PSetParameter>    psets = null;
 
     /** list of EDSources */
     private ArrayList<EDSourceInstance> edsources = null;
@@ -47,16 +45,17 @@ public class Configuration implements IConfiguration
     private ArrayList<ServiceInstance>  services = null;
     
     /** list of Modules */
-    private ArrayList<ModuleInstance> modules = null;
+    private ArrayList<ModuleInstance>   modules = null;
     
     /** list of Paths */
-    private ArrayList<Path> paths = null;
+    private ArrayList<Path>             paths = null;
     
     /** list of Sequences */
-    private ArrayList<Sequence> sequences = null;
+    private ArrayList<Sequence>         sequences = null;
     
     /** list of streams */
-    private ArrayList<Stream> streams = null;
+    private ArrayList<Stream>           streams = null;
+
 
     /** default stream, if any */
     private Stream defaultStream = null;
@@ -81,8 +80,7 @@ public class Configuration implements IConfiguration
     }
     
     /** standard constructor */
-    public Configuration(ConfigInfo configInfo,String processName,
-			 SoftwareRelease release)
+    public Configuration(ConfigInfo configInfo,SoftwareRelease release)
     {
 	psets         = new ArrayList<PSetParameter>();
 	edsources     = new ArrayList<EDSourceInstance>();
@@ -94,7 +92,7 @@ public class Configuration implements IConfiguration
 	sequences     = new ArrayList<Sequence>();
 	streams       = new ArrayList<Stream>();
 	
-	initialize(configInfo,processName,release);
+	initialize(configInfo,release);
     }
     
     
@@ -103,11 +101,9 @@ public class Configuration implements IConfiguration
     //
 
     /** new configuration*/
-    public void initialize(ConfigInfo configInfo,String processName,
-			   SoftwareRelease release)
+    public void initialize(ConfigInfo configInfo,SoftwareRelease release)
     {
 	this.configInfo  = configInfo;
-	this.processName = processName;
 	this.release     = release;
 	
 	setHasChanged(false);
@@ -127,7 +123,6 @@ public class Configuration implements IConfiguration
     { 
 	configInfo = null;
 	release    = null;
-	processName = "";
 	setHasChanged(false);
 	
 	psets.clear();
@@ -151,13 +146,6 @@ public class Configuration implements IConfiguration
 	}
 	this.configInfo = configInfo;
     }
-
-    /** set the process name */
-    public void setProcessName(String processName)
-    {
-	this.processName=processName;
-	setHasChanged(true);
-    }
     
     /** overlaod toString() */
     public String toString()
@@ -166,7 +154,7 @@ public class Configuration implements IConfiguration
 	if (configInfo==null) return result;
 	if (parentDir()!=null) result += parentDir().name();
 	if (result.length()!=1) result += "/";
-	result += name() + ", Version " + version();
+	result += name() + "/V" + version();
 	return result;
     }
     
@@ -186,7 +174,7 @@ public class Configuration implements IConfiguration
 	return (configInfo!=null) ? configInfo.isLocked() : false;
     }
 
-    /** check if configuration and all its versions are locked */
+    /** check by which user the configuration and all its versions are locked */
     public String lockedByUser()
     {
 	return (configInfo!=null) ? configInfo.lockedByUser() : new String();
@@ -230,9 +218,11 @@ public class Configuration implements IConfiguration
     
     /** add the next version */
     public void addNextVersion(int versionId,
-			       String created,String creator,String releaseTag)
+			       String created,String creator,
+			       String releaseTag,String processName)
     {
-	configInfo.addVersion(versionId,nextVersion(),created,creator,releaseTag);
+	configInfo.addVersion(versionId,nextVersion(),created,creator,
+			      releaseTag,processName);
 	configInfo.setVersionIndex(0);
     }
     
@@ -255,7 +245,10 @@ public class Configuration implements IConfiguration
     }
 
     /** get the process name */
-    public String processName() { return processName; }
+    public String processName()
+    {
+	return (configInfo!=null) ? configInfo.processName() : "";
+    }
     
     /** get the software release */
     public SoftwareRelease release() { return release; }

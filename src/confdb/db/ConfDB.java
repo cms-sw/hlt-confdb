@@ -72,14 +72,13 @@ public class ConfDB
     private PreparedStatement psSelectParameterTypes              = null;
 
     private PreparedStatement psSelectDirectories                 = null;
-    private PreparedStatement psSelectConfigurationsByDir         = null;
+    private PreparedStatement psSelectConfigurations              = null;
     private PreparedStatement psSelectLockedConfigurations        = null;
 
     private PreparedStatement psSelectConfigNames                 = null;
     private PreparedStatement psSelectConfigurationId             = null;
     private PreparedStatement psSelectConfigurationIdLatest       = null;
     private PreparedStatement psSelectConfigurationCreated        = null;
-    private PreparedStatement psSelectConfigurationProcessName    = null;
 
     private PreparedStatement psSelectReleaseTags                 = null;
     private PreparedStatement psSelectReleaseId                   = null;
@@ -227,25 +226,27 @@ public class ConfDB
 		 " Directories.dirName," +
 		 " Directories.created " +
 		 "FROM Directories " +
-		 "ORDER BY Directories.created ASC");
+		 "ORDER BY Directories.dirName ASC");
 	    psSelectDirectories.setFetchSize(32);
 	    preparedStatements.add(psSelectDirectories);
 	    
-	    psSelectConfigurationsByDir =
+	    psSelectConfigurations =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
 		 " Configurations.configId," +
+		 " Configurations.parentDirId," +
 		 " Configurations.config," +
 		 " Configurations.version," +
 		 " Configurations.created," +
 		 " Configurations.creator," +
-		 " SoftwareReleases.releaseTag " +
+		 " SoftwareReleases.releaseTag," +
+		 " Configurations.processName " +
 		 "FROM Configurations " +
 		 "JOIN SoftwareReleases " +
 		 "ON SoftwareReleases.releaseId = Configurations.releaseId " +
-		 "WHERE Configurations.parentDirId = ? " +
-		 "ORDER BY Configurations.created DESC");
-	    preparedStatements.add(psSelectConfigurationsByDir);
+		 "ORDER BY Configurations.config ASC");
+	    psSelectConfigurations.setFetchSize(64);
+	    preparedStatements.add(psSelectConfigurations);
 	    
 	    psSelectLockedConfigurations =
 		dbConnector.getConnection().prepareStatement
@@ -300,14 +301,6 @@ public class ConfDB
 		 "FROM Configurations " +
 		 "WHERE Configurations.configId = ?");
 	    preparedStatements.add(psSelectConfigurationCreated);
-	    
-	    psSelectConfigurationProcessName =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " Configurations.processName " +
-		 "FROM Configurations " +
-		 "WHERE Configurations.configId = ?");
-	    preparedStatements.add(psSelectConfigurationProcessName);
 	    
 	    psSelectReleaseTags =
 		dbConnector.getConnection().prepareStatement
@@ -1050,12 +1043,9 @@ public class ConfDB
 	Directory rootDir = null;
 	ResultSet rs = null;
 	try {
-	    // retrieve all directories
-	    ArrayList<Directory>       directoryList =
-		new ArrayList<Directory>();
 	    HashMap<Integer,Directory> directoryHashMap =
 		new HashMap<Integer,Directory>();
-
+	    
 	    rs = psSelectDirectories.executeQuery();
 	    while (rs.next()) {
 		int    dirId       = rs.getInt(1);
@@ -1063,9 +1053,8 @@ public class ConfDB
 		String dirName     = rs.getString(3);
 		String dirCreated  = rs.getTimestamp(4).toString();
 		
-		if (directoryList.size()==0) {
+		if (directoryHashMap.size()==0) {
 		    rootDir = new Directory(dirId,dirName,dirCreated,null);
-		    directoryList.add(rootDir);
 		    directoryHashMap.put(dirId,rootDir);
 		}
 		else {
@@ -1077,7 +1066,6 @@ public class ConfDB
 							dirCreated,
 							parentDir);
 		    parentDir.addChildDir(newDir);
-		    directoryList.add(newDir);
 		    directoryHashMap.put(dirId,newDir);
 		}
 	    }
@@ -1085,55 +1073,65 @@ public class ConfDB
 	    // retrieve list of configurations for all directories
 	    HashMap<String,ConfigInfo> configHashMap =
 		new HashMap<String,ConfigInfo>();
-	    for (Directory dir : directoryList) {
-		psSelectConfigurationsByDir.setInt(1,dir.dbId());
-		rs = psSelectConfigurationsByDir.executeQuery();
-		while (rs.next()) {
-		    int    configId         = rs.getInt(1);
-		    String configName       = rs.getString(2);
-		    int    configVersion    = rs.getInt(3);
-		    String configCreated    = rs.getTimestamp(4).toString();
-		    String configCreator    = rs.getString(5);
-		    String configReleaseTag = rs.getString(6);
 
-		    String configPathAndName = dir.name()+"/"+configName;
-		    if (configHashMap.containsKey(configPathAndName)) {
-			ConfigInfo configInfo = configHashMap.get(configPathAndName);
-			configInfo.addVersion(configId,
-					      configVersion,
-					      configCreated,
-					      configCreator,
-					      configReleaseTag);
+	    rs = psSelectConfigurations.executeQuery();
+	    while (rs.next()) {
+		int    configId          = rs.getInt(1);
+		int    parentDirId       = rs.getInt(2);
+		String configName        = rs.getString(3);
+		int    configVersion     = rs.getInt(4);
+		String configCreated     = rs.getTimestamp(5).toString();
+		String configCreator     = rs.getString(6);
+		String configReleaseTag  = rs.getString(7);
+		String configProcessName = rs.getString(8);
+		
+		Directory dir = directoryHashMap.get(parentDirId);
+		if (dir==null) {
+		    System.err.println("ERROR: can't find parentDir " +
+				       parentDirId);
+		    return rootDir;
+		}
+		
+		String configPathAndName = dir.name()+"/"+configName;
+		
+		if (configHashMap.containsKey(configPathAndName)) {
+		    ConfigInfo configInfo = configHashMap.get(configPathAndName);
+		    configInfo.addVersion(configId,
+					  configVersion,
+					  configCreated,
+					  configCreator,
+					  configReleaseTag,
+					  configProcessName);
+		}
+		else {
+		    ConfigInfo configInfo = new ConfigInfo(configName,
+							   dir,
+							   configId,
+							   configVersion,
+							   configCreated,
+							   configCreator,
+							   configReleaseTag,
+							   configProcessName);
+		    configHashMap.put(configPathAndName,configInfo);
+		    dir.addConfigInfo(configInfo);
+		    
+		    // determine if these configurations are locked
+		    ResultSet rs2 = null;
+		    try {
+			psSelectLockedConfigurations.setInt(1,dir.dbId());
+			psSelectLockedConfigurations.setString(2,configName);
+			rs2 = psSelectLockedConfigurations.executeQuery();
+			if (rs2.next()) {
+			    String userName = rs2.getString(3);
+			    configInfo.lock(userName);
+			}
 		    }
-		    else {
-			ConfigInfo configInfo = new ConfigInfo(configName,
-							       dir,
-							       configId,
-							       configVersion,
-							       configCreated,
-							       configCreator,
-							       configReleaseTag);
-			configHashMap.put(configPathAndName,configInfo);
-			dir.addConfigInfo(configInfo);
-
-			// determine if these configurations are locked
-			ResultSet rs2 = null;
-			try {
-			    psSelectLockedConfigurations.setInt(1,dir.dbId());
-			    psSelectLockedConfigurations.setString(2,configName);
-			    rs2 = psSelectLockedConfigurations.executeQuery();
-			    if (rs2.next()) {
-				String userName = rs2.getString(3);
-				configInfo.lock(userName);
-			    }
-			}
-			catch(SQLException e) {
-			    e.printStackTrace();
-			}
-			finally {
-			    dbConnector.release(rs2);
-			}
+		    catch(SQLException e) {
+			e.printStackTrace();
 		    }
+		    finally {
+			dbConnector.release(rs2);
+			}
 		}
 	    }
 	}
@@ -1149,7 +1147,7 @@ public class ConfDB
 	
 	return rootDir;
     }
-
+    
     /** load a single template from a certain release */
     public Template loadTemplate(String releaseTag,String templateName)
     {
@@ -1479,75 +1477,61 @@ public class ConfDB
 	
 	release.sortTemplates();
     }
-    
-    /** load a configuration&templates from the database */
-    public Configuration loadConfiguration(ConfigInfo configInfo,
+
+    /** load a configuration& *all* release templates from the database */
+    public Configuration loadConfiguration(int configId,
 					   SoftwareRelease release)
     {
 	Configuration config      = null;
-	String        releaseTag  = configInfo.releaseTag();
-	String        processName = null;	
-
-	if (!releaseTag.equals(release.releaseTag())) {
-	    loadSoftwareRelease(releaseTag,release);
-	}
-
-	ResultSet rs = null;
-	try {
-	    psSelectConfigurationProcessName.setInt(1,configInfo.dbId());
-	    rs = psSelectConfigurationProcessName.executeQuery();
-	    rs.next();
-	    processName = rs.getString(1);
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	}
-	finally {
-	    dbConnector.release(rs);
-	}
-
-	config = new Configuration(configInfo,processName,release);
-
-	loadConfiguration(config);
-	config.setHasChanged(false);
+	ConfigInfo    configInfo  = getConfigInfo(configId);
+	
+	if (configInfo!=null)
+	    config = loadConfiguration(configInfo,release);
+	else
+	    System.err.println("ConfDB.loadConfiguration() ERROR: "+
+			       "no configuration found for configId="+configId);
 	
 	return config;
     }
     
-    /** load a configuration&templates from the database */
-    public Configuration loadConfiguration(ConfigInfo configInfo)
+    
+    /** load a configuration& *all* release templates from the database */
+    public Configuration loadConfiguration(ConfigInfo configInfo,
+					   SoftwareRelease release)
     {
-	Configuration config      = null;
-	int           configId    = configInfo.dbId();
-	String        releaseTag  = configInfo.releaseTag();
-	String        processName = null;
-
-	ResultSet rs = null;
-	try {
-	    psSelectConfigurationProcessName.setInt(1,configInfo.dbId());
-	    rs = psSelectConfigurationProcessName.executeQuery();
-	    rs.next();
-	    processName = rs.getString(1);
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	}
-	finally {
-	    dbConnector.release(rs);
-	}
-	
-	SoftwareRelease release = new SoftwareRelease();
-	release.clear(releaseTag);
-	loadPartialSoftwareRelease(configId,release);
-
-	config = new Configuration(configInfo,processName,release);
-	
+	String releaseTag = configInfo.releaseTag();
+	if (!releaseTag.equals(release.releaseTag()))
+	    loadSoftwareRelease(releaseTag,release);
+	Configuration config = new Configuration(configInfo,release);
 	loadConfiguration(config);
 	config.setHasChanged(false);
-	
 	return config;
     }
     
+    
+    /** load a configuration & *necessary* release templates from the database */
+    public Configuration loadConfiguration(int configId)
+    {
+	Configuration config     = null;
+	ConfigInfo    configInfo = getConfigInfo(configId);
+	
+	if (configInfo!=null) {
+	    String releaseTag = configInfo.releaseTag();
+	    SoftwareRelease release = new SoftwareRelease();
+	    release.clear(releaseTag);
+	    loadPartialSoftwareRelease(configId,release);
+	    config = new Configuration(configInfo,release);
+	    loadConfiguration(config);
+	    config.setHasChanged(false);
+	}
+	else {
+	    System.err.println("ConfDB.loadConfiguration() ERROR: "+
+			       "no configuration found for configId="+configId);
+	}
+	
+	return config;
+    }
+
     /** fill an empty configuration *after* template hash maps were filled! */
     private boolean loadConfiguration(Configuration config)
     {
@@ -1960,7 +1944,8 @@ public class ConfDB
     }
     
     /** insert a new configuration */
-    public boolean insertConfiguration(Configuration config,String creator)
+    public boolean insertConfiguration(Configuration config,
+				       String creator,String processName)
     {
 	boolean result     = true;
 	int     configId   = 0;
@@ -1987,7 +1972,7 @@ public class ConfDB
 	    psInsertConfiguration.setString(4,config.name());
 	    psInsertConfiguration.setInt(5,config.nextVersion());
 	    psInsertConfiguration.setString(6,creator);
-	    psInsertConfiguration.setString(7,config.processName());
+	    psInsertConfiguration.setString(7,processName);
 	    psInsertConfiguration.executeUpdate();
 	    rs = psInsertConfiguration.getGeneratedKeys();
 	    
@@ -1998,7 +1983,7 @@ public class ConfDB
 	    rs = psSelectConfigurationCreated.executeQuery();
 	    rs.next();
 	    String created = rs.getString(1);
-	    config.addNextVersion(configId,created,creator,releaseTag);
+	    config.addNextVersion(configId,created,creator,releaseTag,processName);
 
 	    // insert global psets
 	    insertGlobalPSets(configId,config);
@@ -3082,6 +3067,34 @@ public class ConfDB
 	return result;
     }
     
+    /** get ConfigInfo for a particular configId */
+    private ConfigInfo getConfigInfo(int configId)
+    {
+	return getConfigInfo(configId,loadConfigurationTree());
+    }
+
+    /** look ConfigInfo in the specified parent directory */
+    private ConfigInfo getConfigInfo(int configId,Directory parentDir)
+    {
+	for (int i=0;i<parentDir.configInfoCount();i++) {
+	    ConfigInfo configInfo = parentDir.configInfo(i);
+	    for (int ii=0;ii<configInfo.versionCount();ii++) {
+		ConfigVersion configVersion = configInfo.version(ii);
+		if (configVersion.dbId()==configId) {
+		    configInfo.setVersionIndex(ii);
+		    return configInfo;
+		}
+	    }
+	}
+
+	for (int i=0;i<parentDir.childDirCount();i++) {
+	    ConfigInfo configInfo = getConfigInfo(configId,parentDir.childDir(i));
+	    if (configInfo!=null) return configInfo;
+	}
+
+	return null;
+    }
+
     /** check if a superId is associate with a release Tag */
     private boolean areAssociated(int superId, String releaseTag)
     {

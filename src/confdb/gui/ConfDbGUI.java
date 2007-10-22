@@ -501,8 +501,10 @@ public class ConfDbGUI implements TableModelListener
 	}
 	else database.unlockConfiguration(currentConfig);
 	
+	String processName = configurationPanel.processName();
+
 	SaveConfigurationThread worker =
-	    new SaveConfigurationThread();
+	    new SaveConfigurationThread(processName);
 	worker.start();
 	progressBar.setIndeterminate(true);
 	progressBar.setString("Save Configuration ...");
@@ -519,6 +521,8 @@ public class ConfDbGUI implements TableModelListener
 	    database.unlockConfiguration(currentConfig);
 	}
 	
+	String processName = configurationPanel.processName();
+
 	SaveConfigurationDialog dialog =
 	    new SaveConfigurationDialog(frame,database,currentConfig);
 	dialog.pack();
@@ -527,7 +531,7 @@ public class ConfDbGUI implements TableModelListener
 	
 	if (dialog.validChoice()) {
 	    SaveConfigurationThread worker =
-		new SaveConfigurationThread();
+		new SaveConfigurationThread(processName);
 	    worker.start();
 	    progressBar.setIndeterminate(true);
 	    progressBar.setString("Save Configuration ...");
@@ -814,11 +818,11 @@ public class ConfDbGUI implements TableModelListener
 	    try {
 		currentConfig = new Configuration();
 		currentConfig.initialize(new ConfigInfo(name,null,releaseTag),
-					 process,
 					 currentRelease);
 		currentTreeModel.setConfiguration(currentConfig);
 		streamTreeModel.setConfiguration(currentConfig);
 		configurationPanel.setCurrentConfig(currentConfig);
+		configurationPanel.setProcessName(process);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		progressBar.setString(progressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
@@ -1034,14 +1038,20 @@ public class ConfDbGUI implements TableModelListener
 	/** start time */
 	private long startTime;
 	
+	/** process name */
+	private String processName;
+
 	/** standard constructor */
-	public SaveConfigurationThread() {}
+	public SaveConfigurationThread(String processName)
+	{
+	    this.processName = processName;
+	}
 	
 	/** SwingWorker: construct() */
 	protected String construct() throws InterruptedException
 	{
 	    startTime = System.currentTimeMillis();
-	    database.insertConfiguration(currentConfig,userName);
+	    database.insertConfiguration(currentConfig,userName,processName);
 	    if (!currentConfig.isLocked())
 		database.lockConfiguration(currentConfig,userName);
 	    return new String("Done!");
@@ -1094,19 +1104,20 @@ public class ConfDbGUI implements TableModelListener
 	    SoftwareRelease targetRelease = new SoftwareRelease();
 	    database.loadSoftwareRelease(targetReleaseTag,targetRelease);
 
+	    String targetProcessName = currentConfig.processName();
+
 	    ConfigInfo targetConfigInfo =
 		new ConfigInfo(currentConfig.name(),currentConfig.parentDir(),
-			       -1,currentConfig.version(),
-			       "",userName,targetReleaseTag);
-	    String targetProcessName = currentConfig.processName();
+			       -1,currentConfig.version(),"",userName,
+			       targetReleaseTag,targetProcessName);
+
 	    Configuration targetConfig = new Configuration(targetConfigInfo,
-							   targetProcessName,
 							   targetRelease);
 	    
 	    migrator = new ReleaseMigrator(currentConfig,targetConfig);
 	    migrator.migrate();
 	    
-	    database.insertConfiguration(targetConfig,userName);
+	    database.insertConfiguration(targetConfig,userName,targetProcessName);
 	    currentRelease.clearInstances();
 	    currentConfig =
 		database.loadConfiguration(targetConfigInfo,currentRelease);

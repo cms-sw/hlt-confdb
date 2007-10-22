@@ -64,13 +64,15 @@ public class DatabaseMigrator
 	targetDB.loadSoftwareRelease(releaseTag,targetRelease);
 	
 	ConfigInfo targetConfigInfo = new ConfigInfo(targetName,targetDir,releaseTag);
-	targetConfig = new Configuration(targetConfigInfo,sourceConfig.processName(),
-					 targetRelease);
+	targetConfig = new Configuration(targetConfigInfo,targetRelease);
 	
 	releaseMigrator = new ReleaseMigrator(sourceConfig,targetConfig);
 	releaseMigrator.migrate();
 	
-	if (!targetDB.insertConfiguration(targetConfig,creator)) return false;
+	if (!targetDB.insertConfiguration(targetConfig,
+					  creator,
+					  sourceConfig.processName()))
+	    return false;
 	
 	return true;
     }

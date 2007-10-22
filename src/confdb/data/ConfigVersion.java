@@ -29,6 +29,9 @@ public class ConfigVersion implements Comparable<ConfigVersion>
     /** release tag associated with this version */
     private String releaseTag = null;
 
+    /** process name */
+    private String processName = null;
+    
 
     //
     // construction
@@ -36,13 +39,15 @@ public class ConfigVersion implements Comparable<ConfigVersion>
 
     /** standard constructor */
     public ConfigVersion(int dbId,int version,
-			 String created,String creator,String releaseTag)
+			 String created,String creator,
+			 String releaseTag,String processName)
     {
-	this.dbId = dbId;
-	this.version = version;
-	this.created = created;
-	this.creator = creator;
-	this.releaseTag = releaseTag;
+	this.dbId        = dbId;
+	this.version     = version;
+	this.created     = created;
+	this.creator     = creator;
+	this.releaseTag  = releaseTag;
+	this.processName = processName;
     }
     
 
@@ -65,6 +70,9 @@ public class ConfigVersion implements Comparable<ConfigVersion>
     /** get releaese tag */
     public String releaseTag() { return releaseTag; }
     
+    /** get process name */
+    public String processName() { return processName; }
+
     /** Comparable: compareTo() */
     public int compareTo(ConfigVersion otherVersion)
     {

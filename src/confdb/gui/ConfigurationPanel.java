@@ -119,14 +119,25 @@ public class ConfigurationPanel extends JPanel
     // member functions
     //
 
+    /** get the currently entered process name */
+    public String processName() { return jTextFieldProcess.getText(); }
+    
+    /** set the current process name */
+    public void setProcessName(String processName)
+    {
+	jTextFieldProcess.setText(processName);
+    }
+    
     /** 'Process' field edited */
     public void jTextFieldProcessActionPerformed(ActionEvent ev)
     {
 	String process = jTextFieldProcess.getText();
-	if (process.length()>0&&process.indexOf('_')==-1)
-	    currentConfig.setProcessName(process);
-	else
+	if (process.length()==0||process.indexOf('_')>=0) {
 	    jTextFieldProcess.setText(currentConfig.processName());
+	}
+	else {
+	    currentConfig.setHasChanged(true);
+	}
     }
 
     /** 'Convert' button pressed */
