@@ -860,8 +860,8 @@ public class PythonParser
 	    Configuration config = parser.createConfiguration();
 	    
 	    // convert the configuration to ascii
-	    ConverterFactory factory = ConverterFactory.getFactory("default");
-	    Converter        cnv     = factory.getConverter("ascii");
+	    //ConverterFactory factory = ConverterFactory.getFactory("default");
+	    Converter        cnv     = Converter.getConverter("ascii");
 	    String configAsString = cnv.convert(config);
 
 	    boolean doPrintConfig = (new Boolean(printConfig)).booleanValue();
