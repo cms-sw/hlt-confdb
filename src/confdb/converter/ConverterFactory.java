@@ -1,41 +1,18 @@
 package confdb.converter;
 
-import java.util.HashMap;
 
-
-public class ConverterFactory {
-
-	static private HashMap<String, String> cmssw2version = null;
+public class ConverterFactory 
+{
 	static private final String thisPackage = ConverterFactory.class.getPackage().getName();
 
-	private String version = null;
 	private String writerPackage = "";
 	private String outputFormat = "Ascii";
 	
-	static public ConverterFactory getFactory( String releaseTag )
-	{
-		if ( cmssw2version == null )
-		{
-			cmssw2version = new HashMap<String, String>();
-			cmssw2version.put("default", "" );			
-		}
-		return new ConverterFactory( releaseTag );
-	}
-	
 
-	static public ConverterFactory getFactory()
+	static public ConverterEngine getConverterEngine( String typeOfConverter ) throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
-		if ( cmssw2version == null )
-		{
-			cmssw2version = new HashMap<String, String>();
-			cmssw2version.put("default", "" );			
-		}
-		return new ConverterFactory( null );
-	}
-	
-
-	public Converter getConverter( String typeOfConverter ) throws ClassNotFoundException, InstantiationException, IllegalAccessException
-	{
+		String outputFormat = "Ascii";
+		
 		if ( typeOfConverter != null )
 		{
 			char[] type = typeOfConverter.toLowerCase().toCharArray();
@@ -46,25 +23,41 @@ public class ConverterFactory {
 			     && !outputFormat.equals( "Python")  ) 
 				return null;
 		}
-		return getConverter();
+		return new ConverterFactory( outputFormat ).getConverterEngine();
 	}
 	
-	public Converter getConverter() throws ClassNotFoundException, InstantiationException, IllegalAccessException
+	
+	private ConverterFactory( String typeOfConverter )
+	{
+		if ( typeOfConverter != null )
+		{
+			char[] type = typeOfConverter.toLowerCase().toCharArray();
+			type[0] = Character.toUpperCase( type[0] );
+			outputFormat = new String( type );
+			if (    !outputFormat.equals( "Ascii") 
+				 && !outputFormat.equals( "Html")
+			     && !outputFormat.equals( "Python")  ) 
+				return;
+		}
+	}
+	
+	
+	public ConverterEngine getConverterEngine() throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
 		writerPackage = thisPackage + "." + outputFormat.toLowerCase();
-		Converter converter = new Converter();
-		converter.setConfigurationWriter( getConfigurationWriter() );
-		converter.setParameterWriter( getParameterWriter() );
+		ConverterEngine converterEngine = new ConverterEngine();
+		converterEngine.setConfigurationWriter( getConfigurationWriter() );
+		converterEngine.setParameterWriter( getParameterWriter() );
 
-		converter.setEDSourceWriter( getEDSourceWriter() );
-		converter.setESSourceWriter( getESSourceWriter() );
-		converter.setESModuleWriter( getESModuleWriter() );
-		converter.setServiceWriter( getServiceWriter() );
-		converter.setModuleWriter( getModuleWriter() );
-		converter.setPathWriter( getPathWriter() );
-		converter.setSequenceWriter( getSequenceWriter() );
+		converterEngine.setEDSourceWriter( getEDSourceWriter() );
+		converterEngine.setESSourceWriter( getESSourceWriter() );
+		converterEngine.setESModuleWriter( getESModuleWriter() );
+		converterEngine.setServiceWriter( getServiceWriter() );
+		converterEngine.setModuleWriter( getModuleWriter() );
+		converterEngine.setPathWriter( getPathWriter() );
+		converterEngine.setSequenceWriter( getSequenceWriter() );
 		
-		return converter;
+		return converterEngine;
 	}
 
 	public IConfigurationWriter getConfigurationWriter() 
@@ -123,16 +116,9 @@ public class ConverterFactory {
 	}
 
 	
-	private ConverterFactory( String releaseTag )
-	{
-		version = cmssw2version.get( releaseTag );
-		if ( version == null )
-			version = cmssw2version.get( "default" );
-	}
-	
 	private Object getWriter( String type ) throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
-		String className = writerPackage + "." + outputFormat + type + version;
+		String className = writerPackage + "." + outputFormat + type;
 		Class<?> c = Class.forName( className );
 		return c.newInstance();
 	}

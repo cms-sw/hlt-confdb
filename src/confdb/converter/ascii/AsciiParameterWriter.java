@@ -1,6 +1,6 @@
 package confdb.converter.ascii;
 
-import confdb.converter.Converter;
+import confdb.converter.ConverterEngine;
 import confdb.converter.IParameterWriter;
 import confdb.data.PSetParameter;
 import confdb.data.Parameter;
@@ -10,11 +10,11 @@ import confdb.data.VectorParameter;
 
 public class AsciiParameterWriter  implements IParameterWriter 
 {
-	private Converter converter = null;
+	private ConverterEngine converterEngine = null;
 
-	public String toString( Parameter parameter, Converter converter, String indent ) 
+	public String toString( Parameter parameter, ConverterEngine converterEngine, String indent ) 
 	{
-		this.converter = converter;
+		this.converterEngine = converterEngine;
 		return toString( parameter, indent );
 	}
 
@@ -35,7 +35,7 @@ public class AsciiParameterWriter  implements IParameterWriter
 		else if ( parameter instanceof VPSetParameter )
 			str += writeVPSetParameters( (VPSetParameter)parameter, indent );
 		
-		str += converter.getNewline();
+		str += converterEngine.getNewline();
 		return str;
 	}
 
@@ -46,7 +46,7 @@ public class AsciiParameterWriter  implements IParameterWriter
 			str += "{}";
 		else if ( newline )
 		{
-			str += "{" + converter.getNewline(); 
+			str += "{" + converterEngine.getNewline(); 
 			for ( int i = 0; i < pset.parameterCount(); i++ )
 				str += toString( (Parameter)pset.parameter(i), indent + "  " );
 			str += indent + "}"; 
@@ -65,7 +65,7 @@ public class AsciiParameterWriter  implements IParameterWriter
 
 	protected String writeVPSetParameters( VPSetParameter vpset, String indent ) 	
 	{
-		String str = "{" + converter.getNewline(); 
+		String str = "{" + converterEngine.getNewline(); 
 		for ( int i = 0; i < vpset.parameterSetCount() - 1; i++ )
 		{
 			PSetParameter pset = vpset.parameterSet(i);
@@ -73,7 +73,7 @@ public class AsciiParameterWriter  implements IParameterWriter
 				str += addComma( toString( pset, indent + "  " ) );
 			else
 				str += indent + "  " + writePSetParameters(pset, indent + "  ", false )
-					   + "," + converter.getNewline();
+					   + "," + converterEngine.getNewline();
 		}
 		if ( vpset.parameterSetCount() >  0 )
 		{
@@ -81,7 +81,7 @@ public class AsciiParameterWriter  implements IParameterWriter
 			if ( pset.name().length() != 0 )
 				str += toString( pset, indent + "  " );
 			else
-				str += indent + "  " + writePSetParameters(pset, indent + "  ", false ) + converter.getNewline();
+				str += indent + "  " + writePSetParameters(pset, indent + "  ", false ) + converterEngine.getNewline();
 		}
 		str += indent + "}"; 
 		return str;
@@ -139,9 +139,9 @@ public class AsciiParameterWriter  implements IParameterWriter
 	
 	protected String addComma( String text )
 	{
-		if ( !text.endsWith( converter.getNewline() )  )
+		if ( !text.endsWith( converterEngine.getNewline() )  )
 			return text + ",";
-		return text.substring(0, text.length() - 1) + "," + converter.getNewline(); 
+		return text.substring(0, text.length() - 1) + "," + converterEngine.getNewline(); 
 	}
 	
 }

@@ -4,6 +4,6 @@ import confdb.data.Path;
 
 public interface IPathWriter {
 	
-	public String toString( Path path, Converter converter, String indent );
+	public String toString( Path path, ConverterEngine converterEngine, String indent );
 
 }

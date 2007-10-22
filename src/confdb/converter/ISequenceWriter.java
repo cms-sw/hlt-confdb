@@ -4,6 +4,6 @@ import confdb.data.Sequence;
 
 public interface ISequenceWriter {
 	
-	public String toString( Sequence sequence, Converter converter );
+	public String toString( Sequence sequence, ConverterEngine converterEngine );
 
 }

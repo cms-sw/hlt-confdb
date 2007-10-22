@@ -14,7 +14,7 @@ public class EDSourceOverrider implements IEDSourceWriter
 	}
 	
 	
-	public String toString(EDSourceInstance dontUse, Converter converter) 
+	public String toString(EDSourceInstance dontUse, ConverterEngine converter) 
 	{
 		return writer.toString( edsource, converter );
 	}

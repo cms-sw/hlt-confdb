@@ -2,8 +2,10 @@ package confdb.converter;
 
 import confdb.data.Configuration;
 
-public interface IConfigurationWriter extends ConverterSetter {
-
-	public String toString( Configuration configuration );
+public interface IConfigurationWriter extends ConverterEngineSetter 
+{
+	static enum WriteProcess { YES, NO };
+	
+	public String toString( Configuration configuration, WriteProcess yesNo );
 	
 }

@@ -2,8 +2,8 @@ package confdb.converter;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashMap;
 
+import confdb.converter.IConfigurationWriter.WriteProcess;
 import confdb.data.ConfigInfo;
 import confdb.data.ConfigVersion;
 import confdb.data.Configuration;
@@ -14,47 +14,19 @@ import confdb.db.ConfDB;
 import confdb.db.ConfDBSetups;
 import confdb.db.DatabaseException;
 
-/**
- * @author behrens
- *
- */
 public class Converter implements IConverter 
 {
 	static private DbProperties defaultDbProperties = null;
 	
 	private ConfDB database = null;
 	private DbProperties dbProperties = null;
-
-	private IConfigurationWriter configurationWriter = null;
-	private IParameterWriter parameterWriter = null;
-	private IEDSourceWriter edsourceWriter  = null;
-	private IESSourceWriter essourceWriter = null;
-	private IESModuleWriter esmoduleWriter = null;
-	private IServiceWriter serviceWriter = null;
-	private IModuleWriter moduleWriter = null;
-	private IPathWriter pathWriter = null;
-	private ISequenceWriter sequenceWriter = null;
-
+	private ConverterEngine converterEngine = null;
 	private Path newEndpath = null;
 	
-	private int maxLineLength = 250;
 	
-	static final private String newline = "\n";
-	
-        //final private String configurationHeader = "process FU = {" + newline;
-	final private String configurationTrailer = "}" + newline;
-
-	private static HashMap<Integer, String> cache = new HashMap<Integer, String>();
-
-	static 
+	private Converter( String typeOfConverter ) throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
-		cache.put( new Integer(-1), "file:/home/daqpro/cms/triggertables/emulator_async.cfg" );
-		cache.put( new Integer(-2), "file:/home/daqpro/cms/triggertables/emulator_async_2.cfg" );
-	}
-	
-	
-	protected Converter()
-	{
+		converterEngine = ConverterFactory.getConverterEngine(typeOfConverter);
 	}
 	
 	public static void setDefaultDbProperties( DbProperties defaultDbProperties) 
@@ -69,7 +41,7 @@ public class Converter implements IConverter
 	
 	public static Converter getConverter( String typeOfConverter ) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException
 	{
-		Converter converter = ConverterFactory.getFactory().getConverter(typeOfConverter);
+		Converter converter = new Converter(typeOfConverter);
 		if ( defaultDbProperties == null ) 
 			defaultDbProperties = DbProperties.getDefaultDbProperties();
 		converter.setDbProperties( defaultDbProperties );
@@ -85,11 +57,9 @@ public class Converter implements IConverter
 
 
 
+		
 	public String readConfiguration( int configKey ) throws DatabaseException, SQLException
 	{
-		if ( configKey < 0 )
-			return cache.get( new Integer(configKey) );
-
 		try {
 			connectToDatabase();
 
@@ -104,7 +74,7 @@ public class Converter implements IConverter
 
 		
 		
-	public Configuration loadConfiguration( int configKey ) throws SQLException
+	public Configuration loadConfiguration( int configKey ) throws SQLException, DatabaseException
 	{
 		ConfigInfo configInfo = findConfig(configKey);
 		if ( configInfo == null )
@@ -120,17 +90,17 @@ public class Converter implements IConverter
 	public String convert( Configuration configuration )
 	{
 		if ( newEndpath != null )
-			return configurationWriter.toString( new ConfigModifier( configuration, newEndpath )  );
-		return configurationWriter.toString( configuration );
+			return converterEngine.getConfigurationWriter().toString( new ConfigModifier( configuration, newEndpath ), WriteProcess.YES  );
+		return converterEngine.getConfigurationWriter().toString( configuration, WriteProcess.YES );
 	}
 	
 
-	public ConfigInfo findConfig( int key )
+	public ConfigInfo findConfig( int key ) throws SQLException, DatabaseException
 	{
 		return findConfig( key, getRootDirectory() );
 	}
 
-	public Directory getRootDirectory()
+	public Directory getRootDirectory() throws SQLException, DatabaseException
 	{
 		return database.loadConfigurationTree();
 	}
@@ -176,10 +146,9 @@ public class Converter implements IConverter
 		return list;
 	}
 	
-	public void connectToDatabase() throws DatabaseException
+	public void connectToDatabase() throws DatabaseException, SQLException
 	{
 		database.connect( dbProperties.dbType, dbProperties.dbURL, dbProperties.dbUser, dbProperties.dbPwrd );
-		database.prepareStatements();
 	}
 
 	public void disconnectFromDatabase() throws DatabaseException
@@ -193,7 +162,7 @@ public class Converter implements IConverter
 	 */
 	public void overrideEDSource( EDSourceInstance source )
 	{
-		setEDSourceWriter( new EDSourceOverrider( source, getEDSourceWriter() ));
+		converterEngine.setEDSourceWriter( new EDSourceOverrider( source, converterEngine.getEDSourceWriter() ));
 	}
 	
 	/**
@@ -246,11 +215,6 @@ public class Converter implements IConverter
 		
 	}
 
-	public String getNewline()
-	{
-		return newline;
-	}
-
 	public ConfDB getDatabase() {
 		return database;
 	}
@@ -260,115 +224,6 @@ public class Converter implements IConverter
 		this.database = database;
 	}
 	
-	public IConfigurationWriter getConfigurationWriter() {
-		return configurationWriter;
-	}
-
-	protected void setConfigurationWriter(IConfigurationWriter configurationWriter) {
-		this.configurationWriter = configurationWriter;
-		this.configurationWriter.setConverter(this);
-	}
-
-
-	public IPathWriter getPathWriter() {
-		return pathWriter;
-	}
-
-
-	protected void setPathWriter(IPathWriter pathWriter) {
-		this.pathWriter = pathWriter;
-	}
-
-
-	public IServiceWriter getServiceWriter() {
-		return serviceWriter;
-	}
-
-
-	protected void setServiceWriter(IServiceWriter serviceWriter) {
-		this.serviceWriter = serviceWriter;
-	}
-
-
-	public IParameterWriter getParameterWriter() {
-		return parameterWriter;
-	}
-
-
-	protected void setParameterWriter(IParameterWriter parameterWriter) {
-		this.parameterWriter = parameterWriter;
-	}
-
-
-	public IEDSourceWriter getEDSourceWriter() {
-		return edsourceWriter;
-	}
-
-
-	protected void setEDSourceWriter(IEDSourceWriter edsourceWriter) {
-		this.edsourceWriter = edsourceWriter;
-	}
-
-
-	public IESSourceWriter getESSourceWriter() {
-		return essourceWriter;
-	}
-
-
-	public IESModuleWriter getESModuleWriter() {
-		return esmoduleWriter;
-	}
-
-
-	protected void setESSourceWriter(IESSourceWriter essourceWriter) {
-		this.essourceWriter = essourceWriter;
-	}
-
-
-	protected void setESModuleWriter(IESModuleWriter esmoduleWriter) {
-		this.esmoduleWriter = esmoduleWriter;
-	}
-
-
-	public IModuleWriter getModuleWriter() {
-		return moduleWriter;
-	}
-
-
-	protected void setModuleWriter(IModuleWriter moduleWriter) {
-		this.moduleWriter = moduleWriter;
-		this.moduleWriter.setConverter(this);
-	}
-
-
-	public ISequenceWriter getSequenceWriter() {
-		return sequenceWriter;
-	}
-
-
-	protected void setSequenceWriter(ISequenceWriter sequenceWriter) {
-		this.sequenceWriter = sequenceWriter;
-	}
-
-
-	public static void addToCache( int key, String info )
-	{
-		cache.put( new Integer( key ), info );
-	}
-
-	public String getConfigurationHeader(String processName) {
-	       //return configurationHeader;
-	       return "process " + processName + " = {" + newline;
-	}
-
-	public String getConfigurationTrailer() {
-		return configurationTrailer;
-	}
-	
-	static protected String getAsciiNewline()
-	{
-		return newline;
-	}
 
 	public String getDbURL() {
 		return dbProperties.dbURL;
@@ -390,13 +245,14 @@ public class Converter implements IConverter
 		this.dbProperties = dbProperties;
 	}
 
-	public int getMaxLineLength() {
-		return maxLineLength;
+	public ConverterEngine getConverterEngine() {
+		return converterEngine;
 	}
 
-	public void setMaxLineLength(int maxLineLength) {
-		this.maxLineLength = maxLineLength;
+	public void setConverterEngine(ConverterEngine converterEngine) {
+		this.converterEngine = converterEngine;
 	}
+
 	
 
 }

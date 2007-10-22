@@ -1,12 +1,12 @@
 package confdb.converter.ascii;
 
-import confdb.converter.Converter;
+import confdb.converter.ConverterEngine;
 import confdb.converter.IPathWriter;
 import confdb.data.Path;
 
 public class AsciiPathWriter implements IPathWriter 
 {
-	public String toString( Path path, Converter converter, String indent ) 
+	public String toString( Path path, ConverterEngine converterEngine, String indent ) 
 	{
 		String str = indent;
 		if ( path.isEndPath() )
@@ -20,7 +20,7 @@ public class AsciiPathWriter implements IPathWriter
 			if ( i + 1 < path.entryCount() )
 				str += " & ";
 		}
-		str += " }" + converter.getNewline();
+		str += " }" + converterEngine.getNewline();
 		return str;
 	}
 

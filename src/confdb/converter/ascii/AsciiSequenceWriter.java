@@ -1,6 +1,6 @@
 package confdb.converter.ascii;
 
-import confdb.converter.Converter;
+import confdb.converter.ConverterEngine;
 import confdb.converter.ISequenceWriter;
 import confdb.data.Sequence;
 
@@ -8,7 +8,7 @@ public class AsciiSequenceWriter implements ISequenceWriter {
 
 	private static final String indent = "  ";
 
-	public String toString( Sequence sequence, Converter converter ) 
+	public String toString( Sequence sequence, ConverterEngine converterEngine ) 
 	{
 		String str = indent + "sequence " + decorateName( sequence.name()) 
 			       + " = { ";
@@ -18,7 +18,7 @@ public class AsciiSequenceWriter implements ISequenceWriter {
 			if ( i + 1 < sequence.entryCount() )
 				str += " & ";
 		}
-		str += " }" + converter.getNewline();
+		str += " }" + converterEngine.getNewline();
 		return str;
 	}
 	

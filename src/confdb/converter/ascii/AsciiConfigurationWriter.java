@@ -1,6 +1,6 @@
 package confdb.converter.ascii;
 
-import confdb.converter.Converter;
+import confdb.converter.ConverterEngine;
 import confdb.converter.IConfigurationWriter;
 import confdb.converter.IEDSourceWriter;
 import confdb.converter.IESSourceWriter;
@@ -22,82 +22,85 @@ import confdb.data.ServiceInstance;
 
 public class AsciiConfigurationWriter implements IConfigurationWriter 
 {
-	protected Converter converter = null;
+	protected ConverterEngine converterEngine = null;
 
-	public String toString( Configuration conf )
+	public String toString( Configuration conf, WriteProcess writeProcess  )
 	{
 		String str = "// " + conf.name() + " V" + conf.version()
-		+ " (" + conf.releaseTag() + ")" + converter.getNewline() + converter.getNewline();
+		+ " (" + conf.releaseTag() + ")" + converterEngine.getNewline() + converterEngine.getNewline();
 
-		str += converter.getConfigurationHeader(conf.processName());
+		if ( writeProcess == WriteProcess.YES )
+			str += "process " + conf.processName() + " = {" + converterEngine.getNewline();
 
-		ISequenceWriter sequenceWriter = converter.getSequenceWriter();
+		ISequenceWriter sequenceWriter = converterEngine.getSequenceWriter();
 		for ( int i = 0; i < conf.sequenceCount(); i++ )
 		{
 			Sequence sequence = conf.sequence(i);
-			str += sequenceWriter.toString(sequence, converter );
+			str += sequenceWriter.toString(sequence, converterEngine );
 		}
 
-		IPathWriter pathWriter = converter.getPathWriter();
+		IPathWriter pathWriter = converterEngine.getPathWriter();
 		for ( int i = 0; i < conf.pathCount(); i++ )
 		{
 			Path path = conf.path(i);
-			str += pathWriter.toString( path, converter, "  " );
+			str += pathWriter.toString( path, converterEngine, "  " );
 		}
 
-		IParameterWriter parameterWriter = converter.getParameterWriter();
+		IParameterWriter parameterWriter = converterEngine.getParameterWriter();
 		for ( int i = 0; i < conf.psetCount(); i++ )
 		{
 			Parameter pset = conf.pset(i);
-			str += parameterWriter.toString( pset, converter, "  " );
+			str += parameterWriter.toString( pset, converterEngine, "  " );
 		}
 
 
-		IEDSourceWriter edsourceWriter = converter.getEDSourceWriter();
+		IEDSourceWriter edsourceWriter = converterEngine.getEDSourceWriter();
 		for ( int i = 0; i < conf.edsourceCount(); i++ )
 		{
 			EDSourceInstance edsource = conf.edsource(i);
-			str += edsourceWriter.toString(edsource, converter );
+			str += edsourceWriter.toString(edsource, converterEngine );
 		}
 		if ( conf.edsourceCount() == 0 )  // edsource may be overridden
-			str += edsourceWriter.toString( null, converter );
+			str += edsourceWriter.toString( null, converterEngine );
 
-		IESSourceWriter essourceWriter = converter.getESSourceWriter();
+		IESSourceWriter essourceWriter = converterEngine.getESSourceWriter();
 		for ( int i = 0; i < conf.essourceCount(); i++ )
 		{
 			ESSourceInstance essource = conf.essource(i);
-			str += essourceWriter.toString(essource, converter);
+			str += essourceWriter.toString(essource, converterEngine);
 		}
 
 
-		IESModuleWriter esmoduleWriter = converter.getESModuleWriter();
+		IESModuleWriter esmoduleWriter = converterEngine.getESModuleWriter();
 		for ( int i = 0; i < conf.esmoduleCount(); i++ )
 		{
 			ESModuleInstance esmodule = conf.esmodule(i);
-			str += esmoduleWriter.toString(esmodule,converter);
+			str += esmoduleWriter.toString(esmodule,converterEngine);
 		}
 
 
-		IServiceWriter serviceWriter = converter.getServiceWriter();
+		IServiceWriter serviceWriter = converterEngine.getServiceWriter();
 		for ( int i = 0; i < conf.serviceCount(); i++ )
 		{
 			ServiceInstance service = conf.service(i);
-			str += serviceWriter.toString( service, converter );
+			str += serviceWriter.toString( service, converterEngine );
 		}
 
-		IModuleWriter moduleWriter = converter.getModuleWriter();
+		IModuleWriter moduleWriter = converterEngine.getModuleWriter();
 		for ( int i = 0; i < conf.moduleCount(); i++ )
 		{
 			ModuleInstance module = conf.module(i);
 			str += moduleWriter.toString( module );
 		}
 
-		str += converter.getConfigurationTrailer();
+		if ( writeProcess == WriteProcess.YES )
+			str += converterEngine.getConfigurationTrailer();
 		return str;
 	}
 
-	public void setConverter(Converter converter) {
-		this.converter = converter;
+	public void setConverterEngine( ConverterEngine converterEngine ) 
+	{
+		this.converterEngine = converterEngine;
 	}
 	
 }

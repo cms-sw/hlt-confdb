@@ -1,6 +1,6 @@
 package confdb.converter.ascii;
 
-import confdb.converter.Converter;
+import confdb.converter.ConverterEngine;
 import confdb.converter.IParameterWriter;
 import confdb.data.Instance;
 import confdb.data.Parameter;
@@ -11,10 +11,10 @@ public class AsciiInstanceWriter {
 
 	private IParameterWriter parameterWriter = null;
 	
-	protected String toString(String type,Instance instance,Converter converter)
+	protected String toString(String type,Instance instance,ConverterEngine converterEngine)
         {
 		if ( parameterWriter == null )
-			parameterWriter = converter.getParameterWriter();
+			parameterWriter = converterEngine.getParameterWriter();
 		
 		boolean needInstanceLabel = !(type.equals("source")||
 					      type.equals("service"));
@@ -29,15 +29,15 @@ public class AsciiInstanceWriter {
 
 		
 		if ( instance.parameterCount() == 0 )
-			return str + "}" + converter.getNewline();
+			return str + "}" + converterEngine.getNewline();
 			
-		str += converter.getNewline();
+		str += converterEngine.getNewline();
 		for ( int i = 0; i < instance.parameterCount(); i++ )
 		{
 			Parameter parameter = instance.parameter(i);
-			str += parameterWriter.toString( parameter, converter, indent + "  " );
+			str += parameterWriter.toString( parameter, converterEngine, indent + "  " );
 		}
-		str += indent + "}" + converter.getNewline();
+		str += indent + "}" + converterEngine.getNewline();
 		return str;
 	}
 
