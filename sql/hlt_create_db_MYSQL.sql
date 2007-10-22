@@ -20,7 +20,7 @@ CREATE TABLE SoftwareReleases
 ) ENGINE=INNODB;
 
 -- TABLE 'SoftwareSubsystems'
-CREATE TABLE SoftwareSybsystems
+CREATE TABLE SoftwareSubsystems
 (
 	subsysId	BIGINT UNSIGNED	  NOT NULL UNIQUE,
 	name		VARCHAR(64)	  NOT NULL,
