@@ -900,9 +900,9 @@ class ConfdbOracleModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(bool(oldparamstatus) != paramistracked):
+			if(str(bool(oldparamstatus)).lower() != paramistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -968,9 +968,9 @@ class ConfdbOracleModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(bool(oldparamstatus) != paramistracked):
+			if(str(bool(oldparamstatus)).lower() != paramistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1031,9 +1031,9 @@ class ConfdbOracleModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(bool(oldparamstatus) != paramistracked):
+			if(str(bool(oldparamstatus)).lower() != paramistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1094,9 +1094,9 @@ class ConfdbOracleModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(bool(oldparamstatus) != paramistracked):
+			if(str(bool(oldparamstatus)).lower() != paramistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1155,9 +1155,9 @@ class ConfdbOracleModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(bool(oldparamstatus) != paramistracked):
+			if(str(bool(oldparamstatus)).lower() != paramistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1227,9 +1227,9 @@ class ConfdbOracleModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(bool(oldparamstatus) != paramistracked):
+			if(str(bool(oldparamstatus)).lower() != paramistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1292,9 +1292,9 @@ class ConfdbOracleModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(bool(oldparamstatus) != paramistracked):
+			if(str(bool(oldparamstatus)).lower() != paramistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(paramistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1361,9 +1361,9 @@ class ConfdbOracleModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(bool(oldparamstatus) != vecpistracked):
+			if(str(bool(oldparamstatus)).lower() != vecpistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(vecpistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(vecpistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1412,9 +1412,9 @@ class ConfdbOracleModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(bool(oldparamstatus) != vecpistracked):
+			if(str(bool(oldparamstatus)).lower() != vecpistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(vecpistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(vecpistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1463,9 +1463,9 @@ class ConfdbOracleModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(bool(oldparamstatus) != vecpistracked):
+			if(str(bool(oldparamstatus)).lower() != vecpistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(vecpistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(vecpistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1515,9 +1515,9 @@ class ConfdbOracleModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(bool(oldparamstatus) != vecpistracked):
+			if(str(bool(oldparamstatus)).lower() != vecpistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(vecpistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(vecpistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
@@ -1575,9 +1575,9 @@ class ConfdbOracleModuleLoader:
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
 			oldparamstatus = thecursor.fetchone()[0]
-			if(bool(oldparamstatus) != vecpistracked):
+			if(str(bool(oldparamstatus)).lower() != vecpistracked):
 			    if(self.verbose > 0):
-				print "Parameter status has changed from " + str(oldparamstatus) + " to " + str(vecpistracked)
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(vecpistracked)
 			    neednewparam = True
 
 		    # The parameter value has changed. Create a new parameter 
