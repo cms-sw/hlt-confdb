@@ -2,6 +2,8 @@
 <%@page import="confdb.converter.DbProperties"%>
 <%@page import="confdb.db.ConfDBSetups"%>
 <%@page import="confdb.converter.Converter"%>
+<%@page import="java.io.ByteArrayOutputStream"%>
+<%@page import="java.io.PrintWriter"%>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -116,8 +118,12 @@ function signalReady()
 <body class="yui-skin-sam" style="background:#edf5ff" onload="signalReady()">
 
 <%!
+
+String info = "";
+
 String prepareTree( String parentNode, confdb.data.Directory directory, confdb.converter.Converter converter )
 {
+	info = parentNode;
 	String str = "";
 	confdb.data.ConfigInfo[] configs = converter.listConfigs( directory );
   	for ( int i = 0; i < configs.length; i++ )
@@ -175,7 +181,7 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
 	    DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertme!" );
 	    dbProperties.setDbUser( "cms_hlt_reader" );
 	    converter.setDbProperties( dbProperties );
-	    converter.connectToDatabase();
+	    converter.connectToDatabase();  
 	    confdb.data.Directory root = converter.getRootDirectory();
 	    tree = "<script>\n"
 	        + "var dbIndex = " + dbIndex + ";\n"
@@ -189,8 +195,12 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
         tree += prepareTree( "dir", root, converter )
     		 + "}\n</script>\n";
   } catch (Exception e) {
-	  out.println( "<script>\nfunction buildTree(){}\n</script>\n"
-			  	+ e.toString() + "</body></html>" );
+	  ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+	  PrintWriter writer = new PrintWriter( buffer );
+	  e.printStackTrace( writer );
+	  writer.close();
+	  out.println( "<script>\nfunction buildTree(){}\n</script>\nERROR in '" + info + "'!\n"
+			  	+ buffer.toString() + "</body></html>" );
       return;
   }
   finally {
