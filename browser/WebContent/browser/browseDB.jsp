@@ -67,7 +67,7 @@ function init()
     loadingModule = new YAHOO.widget.Module("loading", { visible: false });
     loadingModule.render();
 
-    configModule = new YAHOO.widget.Module("config", { visible: false });
+    configModule = new YAHOO.widget.Module("config", { visible: true });
     configModule.render();
 
     var height = 500;
@@ -82,7 +82,7 @@ function labelClicked( node )
 
   if ( !node.data.key )
   	return;
-  configModule.hide();
+  //configModule.hide();
 
   configKey = node.data.key;
   dbIndex = node.data.dbIndex;
