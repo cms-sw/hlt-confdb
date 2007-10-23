@@ -56,7 +56,7 @@ function signalReady()
 	  dbIndex = Integer.parseInt( index );
 	String cacheKey = "db:" + dbIndex + " key:" + configKey;
 	ConfCache cache = ConfCache.getInstance();
-	Configuration conf = cache.get( cacheKey  );
+	Configuration conf = cache.getConf( cacheKey  );
 	if ( conf == null )
 	{
 		ConfDBSetups dbs = new ConfDBSetups();
@@ -64,16 +64,21 @@ function signalReady()
     	dbProperties.setDbUser( "cms_hlt_reader" );
     	converter.setDbProperties( dbProperties );
     	converter.connectToDatabase();
-    	conf = converter.loadConfiguration( configKey );
+    	conf = converter.loadConfiguration( configKey  );
     	converter.disconnectFromDatabase();
-    	cache.put( cacheKey, conf );
+    	if ( conf != null )
+	    	cache.put( cacheKey, conf );
 	}
-
-	String confStr = converter.convert( conf );
-	if ( confStr == null )
-	  out.print( "ERROR!\nconfig " + configKey + " not found!" );
+	if ( conf == null )
+		out.print( "ERROR!\nconfig " + configKey + " not found!" );
 	else
-	  out.print( confStr );
+	{
+		long start = System.currentTimeMillis();
+		out.print( converter.convert( conf ) );
+		long dt = System.currentTimeMillis() - start;
+		out.println();
+		out.println( "// conversion time: " + (dt /1000) + " secs" );
+	}
   } catch ( Exception e ) {
 	  out.print( "ERROR!\n\n" ); 
 	  ByteArrayOutputStream buffer = new ByteArrayOutputStream();
