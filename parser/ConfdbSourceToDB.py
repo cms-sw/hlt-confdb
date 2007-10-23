@@ -550,6 +550,8 @@ class ConfdbSourceToDB:
                     cvscotaglines = cvscotagfile.readlines()
                     for cvscotagline in cvscotaglines:
                         tagline = cvscotagline
+                        if(tagline.startswith('N')):
+                            tagline = tagline.split('N')[1]
                         print "Will enter component with CVS tag " + tagline
                 else:
                     tagline = ""
