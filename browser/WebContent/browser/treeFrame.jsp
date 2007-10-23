@@ -14,7 +14,7 @@
 <script type="text/javascript" src="../js/yui/yahoo-dom-event/yahoo-dom-event.js"></script>
 <script type="text/javascript" src="../js/yui/treeview/treeview.js"></script>
 
-<link rel="stylesheet" type="text/css" href="assets/css/folders/tree.css"><!-- Some custom style for the expand/contract section-->
+<link rel="stylesheet" type="text/css" href="css/tree.css"><!-- Some custom style for the expand/contract section-->
 
 <style type="text/css">
 
@@ -34,15 +34,15 @@ body {
  
 /* via css class selector */
 .xygtvtn {background: transparent;  width:1em; height:20px; }
-.xygtvtm { background: url(assets/img/menu/collapse.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvtmh { background: url(assets/img/menu/collapseh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvtp { background: url(assets/img/menu/expand.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvtph { background: url(assets/img/menu/expandh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
+.xygtvtm { background: url(../img/tree/collapse.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
+.xygtvtmh { background: url(../img/tree/collapseh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
+.xygtvtp { background: url(../img/tree/expand.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
+.xygtvtph { background: url(../img/tree/expandh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
 .xygtvln { background: transparent; width:1em; height:20px; }
-.xygtvlm { background: url(assets/img/menu/collapse.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvlmh { background: url(assets/img/menu/collapseh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvlp { background: url(assets/img/menu/expand.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvlph { background: url(assets/img/menu/expandh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
+.xygtvlm { background: url(../img/tree/collapse.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
+.xygtvlmh { background: url(../img/tree/collapseh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
+.xygtvlp { background: url(../img/tree/expand.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
+.xygtvlph { background: url(../img/tree/expandh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
 
 </style>
 
