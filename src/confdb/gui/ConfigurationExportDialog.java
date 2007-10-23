@@ -276,158 +276,393 @@ public class ConfigurationExportDialog extends ConfigurationDialog
 		    connectButtonActionPerformed(e);
 		}
 	    });
-	
-        GroupLayout jPanelLeftLayout = new GroupLayout(jPanelLeft);
-        jPanelLeft.setLayout(jPanelLeftLayout);
-        jPanelLeftLayout.setHorizontalGroup(
-            jPanelLeftLayout.createParallelGroup(GroupLayout.LEADING)
-            .add(jPanelLeftLayout.createSequentialGroup()
-		 .addContainerGap()
-		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.LEADING)
-		      .add(GroupLayout.TRAILING,
-			   jPanelLeftLayout.createSequentialGroup()
-			   .add(jLabel9)
-			   .add(37, 37, 37)
-			   .add(jComboBoxSetup, 0, 150, Short.MAX_VALUE))
-		      .add(jPanelLeftLayout.createSequentialGroup()
-			   .add(jLabel8)
-			   .add(42, 42, 42)
-			   .add(jRadioButtonMySQL)
-			   .addPreferredGap(LayoutStyle.RELATED, 35, Short.MAX_VALUE)
-			   .add(jRadioButtonOracle))
-		      .add(GroupLayout.TRAILING,
-			   jPanelLeftLayout.createSequentialGroup()
-			   .add(jLabel3)
-			   .add(43, 43, 43)
-			   .add(jTextFieldHost,
-				GroupLayout.DEFAULT_SIZE,150,Short.MAX_VALUE))
-		      .add(jPanelLeftLayout.createSequentialGroup()
-			   .add(jLabel4)
-			   .add(47, 47, 47)
-			   .add(jTextFieldPort,
-				GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))
-		      .add(GroupLayout.TRAILING,
-			   jPanelLeftLayout.createSequentialGroup()
-			   .add(jLabel5)
-			   .addPreferredGap(LayoutStyle.RELATED, 38, Short.MAX_VALUE)
-			   .add(jTextFieldName,
-				GroupLayout.PREFERRED_SIZE,149,
-				GroupLayout.PREFERRED_SIZE))
-		      .add(jPanelLeftLayout.createSequentialGroup()
-			   .add(jLabel6)
-			   .add(44, 44, 44)
-			   .add(jTextFieldUser,
-				GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))
-		      .add(jPanelLeftLayout.createSequentialGroup()
-			   .add(jLabel7)
-			   .addPreferredGap(LayoutStyle.RELATED)
-			   .add(jTextFieldPwrd,
-				GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))
-		      .add(connectButton,
-			   GroupLayout.DEFAULT_SIZE, 225, Short.MAX_VALUE))
-		 .addContainerGap())
-	    );
 
-        jPanelLeftLayout.setVerticalGroup(
-            jPanelLeftLayout.createParallelGroup(GroupLayout.LEADING)
-            .add(jPanelLeftLayout.createSequentialGroup()
-		 .addContainerGap()
-		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
-		      .add(jComboBoxSetup,
-			   GroupLayout.PREFERRED_SIZE,
-			   GroupLayout.DEFAULT_SIZE,
-			   GroupLayout.PREFERRED_SIZE)
-		      .add(jLabel9))
-		 .add(30, 30, 30)
-		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
-		      .add(jLabel8)
-		      .add(jRadioButtonMySQL)
-		      .add(jRadioButtonOracle))
-		 .addPreferredGap(LayoutStyle.RELATED)
-		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
-		      .add(jTextFieldHost,
-			   GroupLayout.PREFERRED_SIZE,
-			   GroupLayout.DEFAULT_SIZE,
-			   GroupLayout.PREFERRED_SIZE)
-		      .add(jLabel3))
-		 .addPreferredGap(LayoutStyle.RELATED)
-		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
-		      .add(jLabel4)
-		      .add(jTextFieldPort,
-			   GroupLayout.PREFERRED_SIZE,
-			   GroupLayout.DEFAULT_SIZE,
-			   GroupLayout.PREFERRED_SIZE))
-		 .addPreferredGap(LayoutStyle.RELATED)
-		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
-		      .add(jTextFieldName,
-			   GroupLayout.PREFERRED_SIZE,
-			   GroupLayout.DEFAULT_SIZE,
-			   GroupLayout.PREFERRED_SIZE)
-		      .add(jLabel5))
-		 .addPreferredGap(LayoutStyle.RELATED)
-		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
-		      .add(jLabel6)
-		      .add(jTextFieldUser,
-			   GroupLayout.PREFERRED_SIZE,
-			   GroupLayout.DEFAULT_SIZE,
-			   GroupLayout.PREFERRED_SIZE))
-		 .addPreferredGap(LayoutStyle.RELATED)
-		 .add(jPanelLeftLayout.createParallelGroup(GroupLayout.BASELINE)
-		      .add(jLabel7)
-		      .add(jTextFieldPwrd,
-			   GroupLayout.PREFERRED_SIZE,
-			   GroupLayout.DEFAULT_SIZE,
-			   GroupLayout.PREFERRED_SIZE))
-		 .add(29, 29, 29)
-		 .add(connectButton)
-		 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-	    );
-	
-	jPanelRight
-	    .setBorder(BorderFactory
-		       .createTitledBorder(null,
-					   "Target Name / Directory",
-					   TitledBorder.DEFAULT_JUSTIFICATION,
-					   TitledBorder.DEFAULT_POSITION,
-					   new Font("Dialog", 1, 12)));
-	
+	org.jdesktop.layout.GroupLayout jPanelLeftLayout =
+	    new org.jdesktop.layout.GroupLayout(jPanelLeft);
+        jPanelLeft.setLayout(jPanelLeftLayout);
+        jPanelLeftLayout
+	    .setHorizontalGroup(jPanelLeftLayout
+				.createParallelGroup(org.jdesktop
+						     .layout
+						     .GroupLayout
+						     .LEADING)
+				.add(jPanelLeftLayout
+				     .createSequentialGroup()
+				     .addContainerGap()
+				     .add(jPanelLeftLayout
+					  .createParallelGroup(org
+							       .jdesktop
+							       .layout
+							       .GroupLayout
+							       .LEADING)
+					  .add(org.jdesktop
+					       .layout
+					       .GroupLayout
+					       .TRAILING,
+					       jPanelLeftLayout
+					       .createSequentialGroup()
+					       .add(jLabel9)
+					       .add(37, 37, 37)
+					       .add(jComboBoxSetup, 0, 150,
+						    Short.MAX_VALUE))
+					  .add(jPanelLeftLayout
+					       .createSequentialGroup()
+					       .add(jLabel8)
+					       .add(42, 42, 42)
+					       .add(jRadioButtonMySQL)
+					       .addPreferredGap(org.jdesktop
+								.layout
+								.LayoutStyle
+								.RELATED, 35,
+								Short.MAX_VALUE)
+					       .add(jRadioButtonOracle))
+					  .add(org.jdesktop
+					       .layout
+					       .GroupLayout
+					       .TRAILING,
+					       jPanelLeftLayout
+					       .createSequentialGroup()
+					       .add(jLabel3)
+					       .add(43, 43, 43)
+					       .add(jTextFieldHost,
+						    org.jdesktop
+						    .layout
+						    .GroupLayout
+						    .DEFAULT_SIZE, 150,
+						    Short.MAX_VALUE))
+					  .add(jPanelLeftLayout
+					       .createSequentialGroup()
+					       .add(jLabel4)
+					       .add(47, 47, 47)
+					       .add(jTextFieldPort,
+						    org.jdesktop
+						    .layout
+						    .GroupLayout
+						    .DEFAULT_SIZE, 150,
+						    Short.MAX_VALUE))
+					  .add(org.jdesktop
+					       .layout
+					       .GroupLayout
+					       .TRAILING,
+					       jPanelLeftLayout
+					       .createSequentialGroup()
+					       .add(jLabel5)
+					       .add(38, 38, 38)
+					       .add(jTextFieldName,
+						    org.jdesktop
+						    .layout
+						    .GroupLayout
+						    .DEFAULT_SIZE, 149,
+						    Short.MAX_VALUE))
+					  .add(jPanelLeftLayout
+					       .createSequentialGroup()
+					       .add(jLabel6)
+					       .add(44, 44, 44)
+					       .add(jTextFieldUser,
+						    org.jdesktop
+						    .layout
+						    .GroupLayout
+						    .DEFAULT_SIZE, 150,
+						    Short.MAX_VALUE))
+					  .add(jPanelLeftLayout
+					       .createSequentialGroup()
+					       .add(jLabel7)
+					       .addPreferredGap(org.jdesktop
+								.layout
+								.LayoutStyle
+								.RELATED)
+					       .add(jTextFieldPwrd,
+						    org.jdesktop
+						    .layout
+						    .GroupLayout
+						    .DEFAULT_SIZE, 150,
+						    Short.MAX_VALUE))
+					  .add(connectButton,
+					       org.jdesktop
+					       .layout
+					       .GroupLayout
+					       .DEFAULT_SIZE, 225,
+					       Short.MAX_VALUE))
+				     .addContainerGap())
+				);
+
+        jPanelLeftLayout
+	    .setVerticalGroup(jPanelLeftLayout
+			      .createParallelGroup(org.jdesktop
+						   .layout.GroupLayout.LEADING)
+			      .add(jPanelLeftLayout.createSequentialGroup()
+				   .addContainerGap()
+				   .add(jPanelLeftLayout
+					.createParallelGroup(org.jdesktop
+							     .layout
+							     .GroupLayout.BASELINE)
+					.add(jComboBoxSetup,
+					     org.jdesktop
+					     .layout
+					     .GroupLayout
+					     .PREFERRED_SIZE,
+					     org.jdesktop
+					     .layout
+					     .GroupLayout
+					     .DEFAULT_SIZE,
+					     org.jdesktop
+					     .layout
+					     .GroupLayout
+					     .PREFERRED_SIZE)
+					.add(jLabel9))
+				   .add(30, 30, 30)
+				   .add(jPanelLeftLayout
+					.createParallelGroup(org.jdesktop
+							     .layout
+							     .GroupLayout.BASELINE)
+					.add(jLabel8)
+					.add(jRadioButtonMySQL)
+					.add(jRadioButtonOracle))
+				   .addPreferredGap(org.jdesktop
+						    .layout
+						    .LayoutStyle
+						    .RELATED)
+				   .add(jPanelLeftLayout
+					.createParallelGroup(org.jdesktop
+							     .layout
+							     .GroupLayout.BASELINE)
+					.add(jTextFieldHost,
+					     org.jdesktop
+					     .layout
+					     .GroupLayout
+					     .PREFERRED_SIZE,
+					     org.jdesktop
+					     .layout
+					     .GroupLayout.DEFAULT_SIZE,
+					     org.jdesktop
+					     .layout
+					     .GroupLayout.PREFERRED_SIZE)
+					.add(jLabel3))
+				   .addPreferredGap(org.jdesktop
+						    .layout
+						    .LayoutStyle
+						    .RELATED)
+				   .add(jPanelLeftLayout
+					.createParallelGroup(org.jdesktop
+							     .layout
+							     .GroupLayout.BASELINE)
+					.add(jLabel4)
+					.add(jTextFieldPort,
+					     org.jdesktop
+					     .layout
+					     .GroupLayout
+					     .PREFERRED_SIZE,
+					     org.jdesktop
+					     .layout
+					     .GroupLayout
+					     .DEFAULT_SIZE,
+					     org.jdesktop
+					     .layout
+					     .GroupLayout.PREFERRED_SIZE))
+				   .addPreferredGap(org.jdesktop
+						    .layout
+						    .LayoutStyle.RELATED)
+				   .add(jPanelLeftLayout
+					.createParallelGroup(org.jdesktop
+							     .layout
+							     .GroupLayout.BASELINE)
+					.add(jTextFieldName,
+					     org.jdesktop
+					     .layout
+					     .GroupLayout.PREFERRED_SIZE,
+					     org.jdesktop
+					     .layout.GroupLayout
+					     .DEFAULT_SIZE,
+					     org.jdesktop
+					     .layout.GroupLayout
+					     .PREFERRED_SIZE)
+					.add(jLabel5))
+				   .addPreferredGap(org.jdesktop
+						    .layout.LayoutStyle.RELATED)
+				   .add(jPanelLeftLayout
+					.createParallelGroup(org.jdesktop
+							     .layout.GroupLayout
+							     .BASELINE)
+					.add(jLabel6)
+					.add(jTextFieldUser,
+					     org.jdesktop
+					     .layout.GroupLayout.PREFERRED_SIZE,
+					     org.jdesktop
+					     .layout.GroupLayout.DEFAULT_SIZE,
+					     org.jdesktop
+					     .layout.GroupLayout.PREFERRED_SIZE))
+				   .addPreferredGap(org.jdesktop
+						    .layout.LayoutStyle.RELATED)
+				   .add(jPanelLeftLayout
+					.createParallelGroup(org.jdesktop
+							     .layout.GroupLayout
+							     .BASELINE)
+					.add(jLabel7)
+					.add(jTextFieldPwrd,
+					     org.jdesktop
+					     .layout.GroupLayout.PREFERRED_SIZE,
+					     org.jdesktop
+					     .layout.GroupLayout.DEFAULT_SIZE,
+					     org.jdesktop
+					     .layout.GroupLayout.PREFERRED_SIZE))
+				   .addPreferredGap(org.jdesktop
+						    .layout.LayoutStyle.RELATED, 29,
+						    Short.MAX_VALUE)
+				   .add(connectButton)
+				   .addContainerGap())
+			      );
+
+        jPanelRight.setBorder(javax.swing.BorderFactory
+			      .createTitledBorder("Target Name / Directory"));
         jLabel1.setText("Name:");
         jLabel2.setText("Directory:");
-	
-        //jScrollPaneTree.setViewportView(jTreeDirectories);
-	
-        GroupLayout jPanelRightLayout = new GroupLayout(jPanelRight);
+
+        jScrollPaneTree.setViewportView(jTreeDirectories);
+
+        org.jdesktop.layout.GroupLayout jPanelRightLayout =
+	    new org.jdesktop.layout.GroupLayout(jPanelRight);
         jPanelRight.setLayout(jPanelRightLayout);
-        jPanelRightLayout.setHorizontalGroup(
-            jPanelRightLayout.createParallelGroup(GroupLayout.LEADING)
-            .add(jPanelRightLayout.createSequentialGroup()
-                .addContainerGap()
-                .add(jPanelRightLayout.createParallelGroup(GroupLayout.LEADING)
-                    .add(jScrollPaneTree,
-			 GroupLayout.DEFAULT_SIZE, 225, Short.MAX_VALUE)
-                    .add(jPanelRightLayout.createSequentialGroup()
-                        .add(jLabel1)
-                        .addPreferredGap(LayoutStyle.RELATED)
-                        .add(jTextFieldConfigName,
-			     GroupLayout.DEFAULT_SIZE, 175, Short.MAX_VALUE))
-                    .add(jLabel2))
-                .addContainerGap())
-        );
-        jPanelRightLayout.setVerticalGroup(
-            jPanelRightLayout.createParallelGroup(GroupLayout.LEADING)
-            .add(jPanelRightLayout.createSequentialGroup()
-                .addContainerGap()
-                .add(jPanelRightLayout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(jLabel1)
-                    .add(jTextFieldConfigName,
-			 GroupLayout.PREFERRED_SIZE,
-			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(jLabel2)
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(jScrollPaneTree, GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+        jPanelRightLayout
+	    .setHorizontalGroup(jPanelRightLayout
+				.createParallelGroup(org.jdesktop
+						     .layout.GroupLayout.LEADING)
+				.add(jPanelRightLayout.createSequentialGroup()
+				     .addContainerGap()
+				     .add(jPanelRightLayout
+					  .createParallelGroup(org.jdesktop
+							       .layout.GroupLayout
+							       .LEADING)
+					  .add(jScrollPaneTree,
+					       org.jdesktop
+					       .layout.GroupLayout.DEFAULT_SIZE,
+					       231, Short.MAX_VALUE)
+					  .add(jPanelRightLayout
+					       .createSequentialGroup()
+					       .add(jLabel1)
+					       .addPreferredGap(org.jdesktop
+								.layout.LayoutStyle
+								.RELATED)
+					       .add(jTextFieldConfigName,
+						    org.jdesktop
+						    .layout.GroupLayout.DEFAULT_SIZE,
+						    181, Short.MAX_VALUE))
+					  .add(jLabel2))
+				     .addContainerGap())
+				);
+
+        jPanelRightLayout
+	    .setVerticalGroup(jPanelRightLayout
+			      .createParallelGroup(org.jdesktop
+						   .layout.GroupLayout.LEADING)
+			      .add(jPanelRightLayout
+				   .createSequentialGroup()
+				   .addContainerGap()
+				   .add(jPanelRightLayout
+					.createParallelGroup(org.jdesktop
+							     .layout.GroupLayout
+							     .BASELINE)
+					.add(jLabel1)
+					.add(jTextFieldConfigName,
+					     org.jdesktop
+					     .layout.GroupLayout.PREFERRED_SIZE,
+					     org.jdesktop
+					     .layout.GroupLayout.DEFAULT_SIZE,
+					     org.jdesktop
+					     .layout.GroupLayout.PREFERRED_SIZE))
+				   .addPreferredGap(org.jdesktop
+						    .layout.LayoutStyle.RELATED)
+				   .add(jLabel2)
+				   .addPreferredGap(org.jdesktop
+						    .layout.LayoutStyle.RELATED)
+				   .add(jScrollPaneTree,
+					org.jdesktop
+					.layout.GroupLayout.DEFAULT_SIZE, 202,
+					Short.MAX_VALUE)
+				   .addContainerGap())
+			      );
+	
+        org.jdesktop.layout.GroupLayout layout =
+	    new org.jdesktop.layout.GroupLayout(contentPane);
+        contentPane.setLayout(layout);
+        layout
+	    .setHorizontalGroup(layout
+				.createParallelGroup(org.jdesktop
+						     .layout.GroupLayout.LEADING)
+				.add(layout.createSequentialGroup()
+				     .add(0, 0, 0)
+				     .add(layout
+					  .createParallelGroup(org.jdesktop
+							       .layout.GroupLayout
+							       .TRAILING)
+					  .add(layout.createSequentialGroup()
+					       .add(184, 184, 184)
+					       .add(cancelButton,
+						    org.jdesktop
+						    .layout.GroupLayout.DEFAULT_SIZE,
+						    81, Short.MAX_VALUE))
+					  .add(layout.createSequentialGroup()
+					       .add(6, 6, 6)
+					       .add(jPanelLeft,
+						    org.jdesktop
+						    .layout.GroupLayout.DEFAULT_SIZE,
+						    org.jdesktop
+						    .layout.GroupLayout.DEFAULT_SIZE,
+						    Short.MAX_VALUE)))
+				     .addPreferredGap(org.jdesktop
+						      .layout.LayoutStyle.RELATED)
+				     .add(layout
+					  .createParallelGroup(org.jdesktop
+							       .layout.GroupLayout
+							       .LEADING)
+					  .add(jPanelRight,
+					       org.jdesktop
+					       .layout.GroupLayout.DEFAULT_SIZE,
+					       org.jdesktop
+					       .layout.GroupLayout.DEFAULT_SIZE,
+					       Short.MAX_VALUE)
+					  .add(layout.createSequentialGroup()
+					       .add(exportButton,
+						    org.jdesktop
+						    .layout.GroupLayout.DEFAULT_SIZE,
+						    org.jdesktop
+						    .layout.GroupLayout.DEFAULT_SIZE,
+						    Short.MAX_VALUE)
+					       .add(191, 191, 191)))
+				     .addContainerGap())
+				);
+
+        layout
+	    .setVerticalGroup(layout
+			      .createParallelGroup(org.jdesktop
+						   .layout.GroupLayout.LEADING)
+			      .add(layout.createSequentialGroup()
+				   .addContainerGap()
+				   .add(layout
+					.createParallelGroup(org.jdesktop
+							     .layout.GroupLayout
+							     .LEADING)
+					.add(jPanelRight,
+					     org.jdesktop
+					     .layout.GroupLayout.DEFAULT_SIZE,
+					     org.jdesktop
+					     .layout.GroupLayout.DEFAULT_SIZE,
+					     Short.MAX_VALUE)
+					.add(jPanelLeft,
+					     org.jdesktop
+					     .layout.GroupLayout.DEFAULT_SIZE,
+					     org.jdesktop
+					     .layout.GroupLayout.DEFAULT_SIZE,
+					     Short.MAX_VALUE))
+				   .addPreferredGap(org.jdesktop
+						    .layout.LayoutStyle.RELATED)
+				   .add(layout.createParallelGroup(org.jdesktop
+								   .layout
+								   .GroupLayout
+								   .BASELINE)
+					.add(cancelButton)
+					.add(exportButton))
+				   .add(13, 13, 13))
+			      );
 
         cancelButton.setText("Cancel");
 	cancelButton.addActionListener(new ActionListener() {
@@ -443,44 +678,6 @@ public class ConfigurationExportDialog extends ConfigurationDialog
 		    exportButtonActionPerformed(e);
 		}
 	    });
-	
-        GroupLayout layout = new GroupLayout(contentPane);
-        contentPane.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .addContainerGap()
-                .add(layout.createParallelGroup(GroupLayout.TRAILING)
-                    .add(jPanelLeft,
-			 GroupLayout.PREFERRED_SIZE,
-			 GroupLayout.DEFAULT_SIZE,
-			 GroupLayout.PREFERRED_SIZE)
-                    .add(cancelButton))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(GroupLayout.LEADING)
-                    .add(jPanelRight,
-			 GroupLayout.DEFAULT_SIZE,
-			 GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .add(exportButton))
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .addContainerGap()
-                .add(layout.createParallelGroup(GroupLayout.LEADING)
-                    .add(jPanelRight,
-			 GroupLayout.DEFAULT_SIZE,
-			 GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .add(jPanelLeft,
-			 GroupLayout.DEFAULT_SIZE,
-			 GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(cancelButton)
-                    .add(exportButton))
-                .add(13, 13, 13))
-        );
 	
 	return contentPane;
     }

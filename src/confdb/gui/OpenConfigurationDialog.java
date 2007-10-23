@@ -211,52 +211,145 @@ public class OpenConfigurationDialog extends ConfigurationDialog
 		    jButtonCancelActionPerformed(evt);
 		}
 	    });
-	
-	GroupLayout layout = new GroupLayout(contentPane);
-	contentPane.setLayout(layout);
-        layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-		 .addContainerGap()
-		 .add(layout.createParallelGroup(GroupLayout.LEADING)
-		      .add(layout.createSequentialGroup()
-			   .add(jButtonOk,
-				GroupLayout.PREFERRED_SIZE,
-				113, GroupLayout.PREFERRED_SIZE)
-			   .addPreferredGap(LayoutStyle.RELATED)
-			   .add(jButtonCancel,
-				GroupLayout.PREFERRED_SIZE,
-				107, GroupLayout.PREFERRED_SIZE))
-		      .add(jScrollPane1,
-			   GroupLayout.PREFERRED_SIZE,
-			   226, GroupLayout.PREFERRED_SIZE))
-		 .addPreferredGap(LayoutStyle.RELATED)
-		 .add(jScrollPane2,GroupLayout.DEFAULT_SIZE, 396, Short.MAX_VALUE)
-		 .addContainerGap())
+	     
+	org.jdesktop.layout.GroupLayout layout =
+	    new org.jdesktop.layout.GroupLayout(contentPane);
+        contentPane.setLayout(layout);
+        layout.setHorizontalGroup(layout
+				  .createParallelGroup(org.jdesktop.layout
+						       .GroupLayout.LEADING)
+				  .add(layout.createSequentialGroup()
+				       .addContainerGap()
+				       .add(layout
+					    .createParallelGroup(org.jdesktop.layout
+								 .GroupLayout
+								 .LEADING)
+					    .add(layout.createSequentialGroup()
+						 .add(jButtonOk,
+						      org.jdesktop.layout
+						      .GroupLayout
+						      .DEFAULT_SIZE, 113,
+						      Short.MAX_VALUE)
+						 .addPreferredGap(org.jdesktop
+								  .layout
+								  .LayoutStyle
+								  .RELATED)
+						 .add(jButtonCancel,
+						      org.jdesktop
+						      .layout
+						      .GroupLayout
+						      .DEFAULT_SIZE, 107,
+						      Short.MAX_VALUE))
+					    .add(jScrollPane1,
+						 org.jdesktop
+						 .layout
+						 .GroupLayout
+						 .DEFAULT_SIZE, 226,
+						 Short.MAX_VALUE))
+				       .addPreferredGap(org.jdesktop
+							.layout
+							.LayoutStyle.RELATED)
+				       .add(jScrollPane2,
+					    org.jdesktop
+					    .layout
+					    .GroupLayout
+					    .DEFAULT_SIZE, 396,
+					    Short.MAX_VALUE)
+				       .addContainerGap())
 				  );
-        layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.LEADING)
-	      .add(layout.createSequentialGroup()
-		   .add(layout.createParallelGroup(GroupLayout.LEADING)
-			.add(GroupLayout.TRAILING, layout.createSequentialGroup()
-			     .add(12, 12, 12)
-			     .add(jButtonOk))
-			.add(GroupLayout.TRAILING, layout.createSequentialGroup()
-			     .addContainerGap()
-			     .add(jScrollPane2,
-				  GroupLayout.DEFAULT_SIZE, 402, Short.MAX_VALUE)))
-		   .addContainerGap())
-				.add(GroupLayout.TRAILING,
+        layout.setVerticalGroup(layout
+				.createParallelGroup(org.jdesktop
+						     .layout
+						     .GroupLayout.LEADING)
+				.add(org.jdesktop
+				     .layout
+				     .GroupLayout
+				     .TRAILING,
+				     layout.createSequentialGroup()
+				     .add(layout
+					  .createParallelGroup(org.jdesktop
+							       .layout
+							       .GroupLayout.LEADING)
+					  .add(org.jdesktop
+					       .layout
+					       .GroupLayout.TRAILING,
+					       layout.createSequentialGroup()
+					       .addContainerGap(389, Short.MAX_VALUE)
+					       .add(jButtonOk))
+					  .add(org.jdesktop
+					       .layout
+					       .GroupLayout
+					       .TRAILING,
+					       layout.createSequentialGroup()
+					       .add(0, 0, 0)
+					       .add(jScrollPane2,
+						    org.jdesktop
+						    .layout
+						    .GroupLayout
+						    .DEFAULT_SIZE, 414,
+						    Short.MAX_VALUE)))
+				     .addContainerGap())
+				.add(org.jdesktop
+				     .layout
+				     .GroupLayout
+				     .TRAILING,
 				     layout.createSequentialGroup()
 				     .addContainerGap(389, Short.MAX_VALUE)
 				     .add(jButtonCancel)
 				     .add(12, 12, 12))
 				.add(layout.createSequentialGroup()
 				     .addContainerGap()
-				     .add(jScrollPane1,
-					  GroupLayout.PREFERRED_SIZE,
-					  GroupLayout.DEFAULT_SIZE,
-					  GroupLayout.PREFERRED_SIZE)
+				     .add(jScrollPane1)
 				     .add(51, 51, 51))
 				);
+	
+	/*
+	  GroupLayout layout = new GroupLayout(contentPane);
+	  contentPane.setLayout(layout);
+	  layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.LEADING)
+	  .add(layout.createSequentialGroup()
+	  .addContainerGap()
+	  .add(layout.createParallelGroup(GroupLayout.LEADING)
+	  .add(layout.createSequentialGroup()
+	  .add(jButtonOk,
+	  GroupLayout.PREFERRED_SIZE,
+	  113, GroupLayout.PREFERRED_SIZE)
+	  .addPreferredGap(LayoutStyle.RELATED)
+	  .add(jButtonCancel,
+	  GroupLayout.PREFERRED_SIZE,
+	  107, GroupLayout.PREFERRED_SIZE))
+	  .add(jScrollPane1,
+	  GroupLayout.PREFERRED_SIZE,
+	  226, GroupLayout.PREFERRED_SIZE))
+	  .addPreferredGap(LayoutStyle.RELATED)
+	  .add(jScrollPane2,GroupLayout.DEFAULT_SIZE, 396, Short.MAX_VALUE)
+	  .addContainerGap())
+	  );
+	  layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.LEADING)
+	  .add(layout.createSequentialGroup()
+	  .add(layout.createParallelGroup(GroupLayout.LEADING)
+	  .add(GroupLayout.TRAILING, layout.createSequentialGroup()
+	  .add(12, 12, 12)
+	  .add(jButtonOk))
+	  .add(GroupLayout.TRAILING, layout.createSequentialGroup()
+	  .addContainerGap()
+	  .add(jScrollPane2,
+	  GroupLayout.DEFAULT_SIZE, 402, Short.MAX_VALUE)))
+	  .addContainerGap())
+	  .add(GroupLayout.TRAILING,
+	  layout.createSequentialGroup()
+	  .addContainerGap(389, Short.MAX_VALUE)
+	  .add(jButtonCancel)
+	  .add(12, 12, 12))
+	  .add(layout.createSequentialGroup()
+	  .addContainerGap()
+	  .add(jScrollPane1,
+	  GroupLayout.PREFERRED_SIZE,
+	  GroupLayout.DEFAULT_SIZE,
+	  GroupLayout.PREFERRED_SIZE)
+	  .add(51, 51, 51))
+	  );
+	*/
 	
 	return contentPane;
     }

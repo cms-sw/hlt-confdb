@@ -213,56 +213,134 @@ public class ConfigurationParseDialog extends JDialog
 		}
 	 });
 
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanel);
+
+        org.jdesktop.layout.GroupLayout layout =
+	    new org.jdesktop.layout.GroupLayout(jPanel);
         jPanel.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(layout.createSequentialGroup()
-                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                                .add(jLabel2))
-                            .add(jLabel1))
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
-                            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                                .add(jTextFieldFileName)
-                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                                .add(jButtonBrowse, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 93, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                            .add(jComboBoxReleaseTag, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 355, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
-                    .add(layout.createSequentialGroup()
-                        .add(139, 139, 139)
-                        .add(jButtonOK, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 92, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(jButtonCancel)))
-                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
+        layout
+	    .setHorizontalGroup(layout
+				.createParallelGroup(org.jdesktop
+						     .layout.GroupLayout
+						     .LEADING)
+				.add(layout
+				     .createSequentialGroup()
+				     .add(layout
+					  .createParallelGroup(org.jdesktop
+							       .layout.GroupLayout
+							       .LEADING)
+					  .add(layout
+					       .createSequentialGroup()
+					       .addContainerGap()
+					       .add(layout
+						    .createParallelGroup(org.jdesktop
+									 .layout
+									 .GroupLayout
+									 .LEADING)
+						    .add(layout
+							 .createSequentialGroup()
+							 .addPreferredGap(org
+									  .jdesktop
+									  .layout
+									  .LayoutStyle.RELATED)
+							   .add(jLabel2))
+						    .add(jLabel1))
+					       .addPreferredGap(org.jdesktop
+								.layout.LayoutStyle
+								.RELATED)
+					       .add(layout
+						    .createParallelGroup(org.jdesktop
+									 .layout
+									 .GroupLayout
+									 .LEADING)
+						    .add(layout
+							 .createSequentialGroup()
+							 .add(jTextFieldFileName,
+							      org.jdesktop
+							      .layout.GroupLayout
+							      .DEFAULT_SIZE, 245,
+							      Short.MAX_VALUE)
+							 .addPreferredGap(org
+									  .jdesktop
+									  .layout
+									  .LayoutStyle
+									  .RELATED)
+							 .add(jButtonBrowse,
+							      org.jdesktop
+							      .layout.GroupLayout
+							      .PREFERRED_SIZE, 104,
+							      org.jdesktop
+							      .layout.GroupLayout
+							      .PREFERRED_SIZE))
+						    .add(jComboBoxReleaseTag, 0, 355,
+							 Short.MAX_VALUE)))
+					  .add(layout
+					       .createSequentialGroup()
+					       .add(139, 139, 139)
+					       .add(jButtonOK,
+						    org.jdesktop
+						    .layout.GroupLayout.DEFAULT_SIZE,
+						    92, Short.MAX_VALUE)
+					       .addPreferredGap(org.jdesktop
+								.layout.LayoutStyle
+								.RELATED)
+					       .add(jButtonCancel,
+						    org.jdesktop
+						    .layout.GroupLayout
+						    .DEFAULT_SIZE, 92,
+						    Short.MAX_VALUE)
+					       .add(127, 127, 127)))
+				     .addContainerGap())
+				);
 
-        layout.linkSize(new java.awt.Component[] {jButtonCancel, jButtonOK}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
-
-        layout.setVerticalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .addContainerGap()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jLabel1)
-                    .add(jButtonBrowse)
-                    .add(jTextFieldFileName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jLabel2)
-                    .add(jComboBoxReleaseTag, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 24, Short.MAX_VALUE)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jButtonOK)
-                    .add(jButtonCancel))
-                .addContainerGap())
-        );
-
-        layout.linkSize(new java.awt.Component[] {jComboBoxReleaseTag, jTextFieldFileName}, org.jdesktop.layout.GroupLayout.VERTICAL);
+        layout
+	    .setVerticalGroup(layout
+			      .createParallelGroup(org.jdesktop
+						   .layout.GroupLayout.LEADING)
+			      .add(layout.createSequentialGroup()
+				   .addContainerGap()
+				   .add(layout.createParallelGroup(org.jdesktop
+								   .layout
+								   .GroupLayout
+								   .BASELINE)
+					.add(jLabel1)
+					.add(jTextFieldFileName, org.jdesktop
+					     .layout.GroupLayout.PREFERRED_SIZE,
+					     org.jdesktop
+					     .layout.GroupLayout.DEFAULT_SIZE,
+					     org.jdesktop
+					     .layout.GroupLayout.PREFERRED_SIZE)
+					.add(jButtonBrowse))
+				   .addPreferredGap(org.jdesktop
+						    .layout.LayoutStyle.RELATED)
+				   .add(layout
+					.createParallelGroup(org.jdesktop
+							     .layout.GroupLayout
+							     .BASELINE)
+					.add(jLabel2)
+					.add(jComboBoxReleaseTag,
+					     org.jdesktop
+					     .layout.GroupLayout.PREFERRED_SIZE,
+					     org.jdesktop
+					     .layout.GroupLayout.DEFAULT_SIZE,
+					     org.jdesktop
+					     .layout.GroupLayout.PREFERRED_SIZE))
+				   .addPreferredGap(org.jdesktop
+						    .layout.LayoutStyle.RELATED, 24,
+						    Short.MAX_VALUE)
+				   .add(layout.createParallelGroup(org.jdesktop
+								   .layout
+								   .GroupLayout
+								   .BASELINE)
+					.add(jButtonOK)
+					.add(jButtonCancel))
+				   .addContainerGap())
+			      );
+	
+	layout.linkSize(new java.awt.Component[] { jButtonBrowse,
+						   jComboBoxReleaseTag,
+						   jTextFieldFileName },
+			org.jdesktop.layout.GroupLayout.VERTICAL);
+	
 
 	return jPanel;
     }

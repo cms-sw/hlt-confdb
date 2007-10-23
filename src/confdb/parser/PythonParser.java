@@ -296,7 +296,7 @@ public class PythonParser
 	    ParseNode    espreferNode = esprefersNode.child(i);
 	    String       label        = getNodeValue(espreferNode,"@label");
 	    ESPreferable esp          = labelToPreferable.get(label);
-	    esp.setPreferred(true);
+	    if(esp!=null) esp.setPreferred(true);
 	}
 
 	// add services

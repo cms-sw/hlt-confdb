@@ -4,6 +4,12 @@
 
 
 --
+-- SEQUENCE Parameter_Sequence
+--
+CREATE SEQUENCE parameter_sequence START WITH 1 INCREMENT BY 1;
+
+
+--
 -- create global temporary tables
 --
 CREATE GLOBAL TEMPORARY TABLE tmp_template_table
@@ -25,6 +31,7 @@ CREATE GLOBAL TEMPORARY TABLE tmp_instance_table
 
 CREATE GLOBAL TEMPORARY TABLE tmp_parameter_table
 (
+  sequence_nb       NUMBER,
   parameter_id      NUMBER,
   parameter_type    VARCHAR2(64),
   parameter_name    VARCHAR2(128),
@@ -93,7 +100,7 @@ CREATE PROCEDURE load_parameter_value(parameter_id   NUMBER,
                                       parameter_type CHAR)
 AS
   v_bool_value   NUMBER(1);
-  v_int32_value  PLS_INTEGER;
+  v_int32_value  NUMBER;
   v_int32_hex    NUMBER(1);
   v_double_value FLOAT;
   v_string_value VARCHAR2(512);
@@ -301,7 +308,7 @@ END;
 --
 CREATE PROCEDURE load_parameters(parent_id IN NUMBER)
 AS
-  v_parameter_id    PLS_INTEGER;
+  v_parameter_id    NUMBER;
   v_parameter_type  VARCHAR2(64);
   v_parameter_name  VARCHAR2(128);
   v_parameter_trkd  NUMBER(1);
@@ -356,7 +363,7 @@ BEGIN
            v_parameter_name,v_parameter_trkd,v_parameter_seqnb;
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
-      VALUES(v_parameter_id,v_parameter_type,
+      VALUES(parameter_sequence.nextval,v_parameter_id,v_parameter_type,
              v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id);
     load_parameter_value(v_parameter_id,v_parameter_type);
   END LOOP;
@@ -369,7 +376,7 @@ BEGIN
       INTO v_parameter_id,v_parameter_name,v_parameter_trkd,v_parameter_seqnb;
     EXIT WHEN cur_psets%NOTFOUND;
     INSERT INTO tmp_parameter_table
-      VALUES(v_parameter_id,'PSet',
+      VALUES(parameter_sequence.nextval,v_parameter_id,'PSet',
              v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id);
     load_parameters(v_parameter_id);
   END LOOP;
@@ -383,7 +390,7 @@ BEGIN
            v_parameter_name,v_parameter_trkd,v_parameter_seqnb;
     EXIT WHEN cur_vpsets%NOTFOUND;
     INSERT INTO tmp_parameter_table
-      VALUES(v_parameter_id,'VPSet',
+      VALUES(parameter_sequence.nextval,v_parameter_id,'VPSet',
              v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id);
     load_parameters(v_parameter_id);
   END LOOP;
@@ -398,7 +405,7 @@ END;
 CREATE PROCEDURE load_template(release_id IN NUMBER,
                                template_name IN CHAR)
 AS
-  v_template_id     PLS_INTEGER;
+  v_template_id     NUMBER;
   v_template_type   VARCHAR2(64);
   v_template_name   VARCHAR2(128);
   v_template_cvstag VARCHAR2(32);
@@ -567,7 +574,7 @@ END;
 --
 CREATE PROCEDURE load_templates(release_id IN NUMBER)
 AS
-  v_template_id     PLS_INTEGER;
+  v_template_id     NUMBER;
   v_template_type   VARCHAR2(64);
   v_template_name   VARCHAR2(128);
   v_template_cvstag VARCHAR2(32);
@@ -705,7 +712,7 @@ END;
 --
 CREATE PROCEDURE load_templates_for_config(config_id IN NUMBER)
 AS
-  v_template_id     PLS_INTEGER;
+  v_template_id     NUMBER;
   v_template_type   VARCHAR2(64);
   v_template_name   VARCHAR2(128);
   v_template_cvstag VARCHAR2(32);
@@ -893,16 +900,16 @@ END;
 --
 CREATE PROCEDURE load_configuration(config_id IN NUMBER)
 AS
-  v_instance_id     PLS_INTEGER;
-  v_template_id     PLS_INTEGER;
+  v_instance_id     NUMBER;
+  v_template_id     NUMBER;
   v_instance_type   VARCHAR2(64);
   v_instance_name   VARCHAR2(128);
   v_pset_is_trkd    NUMBER(1);
   v_endpath         NUMBER(1);
   v_prefer          NUMBER(1);
-  v_parent_id       PLS_INTEGER;
-  v_child_id        PLS_INTEGER;
-  v_sequence_nb     PLS_INTEGER;
+  v_parent_id       NUMBER;
+  v_child_id        NUMBER;
+  v_sequence_nb     NUMBER;
 
   /* cursor for global psets */
   CURSOR cur_global_psets IS

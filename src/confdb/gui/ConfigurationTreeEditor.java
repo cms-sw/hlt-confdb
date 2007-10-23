@@ -68,6 +68,10 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 		referencable.setName(name);
 	    else
 		referencable.setName("<ENTER UNIQUE NAME>");
+
+	    treeModel.nodeChanged(referencable);
+	    for (int i=0;i<referencable.referenceCount();i++)
+		treeModel.nodeChanged(referencable.reference(i));
 	}
 	else if (toBeEdited instanceof Instance) {
 	    Instance instance = (Instance)toBeEdited;
@@ -84,20 +88,25 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 		    instance.setName("<ENTER UNIQUE NAME>");
 	    }
 	}
-	else if (toBeEdited instanceof ModuleReference) {
-	    ModuleReference reference = (ModuleReference)toBeEdited;
-	    ModuleInstance  instance  = (ModuleInstance)reference.parent();
-	    instance.setName(name);
-
-	    Instance existingInstance = null;
-	    try { existingInstance = instance.template().instance(name); }
-	    catch (DataException e) {}
-	    
-	    if (instance==existingInstance)
-		instance.setName(name);
-	    else
-		instance.setName("<ENTER UNIQUE NAME>");
-	}
+	/*
+	  else if (toBeEdited instanceof ModuleReference) {
+	  ModuleReference reference = (ModuleReference)toBeEdited;
+	  ModuleInstance  instance  = (ModuleInstance)reference.parent();
+	  instance.setName(name);
+	  
+	  Instance existingInstance = null;
+	  try { existingInstance = instance.template().instance(name); }
+	  catch (DataException e) {}
+	  
+	  if (instance==existingInstance)
+	  instance.setName(name);
+	  else
+	  instance.setName("<ENTER UNIQUE NAME>");
+	  treeModel.nodeChanged(instance);
+	  for (int i=0;i<instance.referenceCount();i++)
+	  treeModel.nodeChanged(instance.reference(i));
+	  }
+	*/
 	return toBeEdited;
     }
     

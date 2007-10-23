@@ -133,12 +133,14 @@ BEGIN
     /* temporary parameter table */
     CREATE TEMPORARY TABLE tmp_parameter_table
     (
+      sequence_nb       BIGINT UNSIGNED AUTO_INCREMENT,
       parameter_id	BIGINT UNSIGNED,
       parameter_type    CHAR(64),
       parameter_name    CHAR(128),
       parameter_trkd    BOOLEAN,
       parameter_seqnb   INT,
-      parent_id         BIGINT UNSIGNED
+      parent_id         BIGINT UNSIGNED,
+      PRIMARY KEY(sequence_nb)
     );
 
     /* temporary bool parameter-value table */
@@ -339,12 +341,14 @@ BEGIN
     /* temporary parameter table */
     CREATE TEMPORARY TABLE tmp_parameter_table
     (
+      sequence_nb	BIGINT UNSIGNED AUTO_INCREMENT,
       parameter_id	BIGINT UNSIGNED,
       parameter_type    CHAR(64),
       parameter_name    CHAR(128),
       parameter_trkd    BOOLEAN,
       parameter_seqnb   INT,
-      parent_id         BIGINT UNSIGNED
+      parent_id         BIGINT UNSIGNED,
+      PRIMARY KEY(sequence_nb)
     );
 
     /* temporary bool parameter-value table */
@@ -583,12 +587,14 @@ BEGIN
     /* temporary parameter table */
     CREATE TEMPORARY TABLE tmp_parameter_table
     (
+      sequence_nb	BIGINT UNSIGNED AUTO_INCREMENT,
       parameter_id	BIGINT UNSIGNED,
       parameter_type    CHAR(64),
       parameter_name    CHAR(128),
       parameter_trkd    BOOLEAN,
       parameter_seqnb   INT,
-      parent_id         BIGINT UNSIGNED
+      parent_id         BIGINT UNSIGNED,
+      PRIMARY KEY(sequence_nb)
     );
 
     /* temporary bool parameter-value table */
@@ -951,12 +957,14 @@ BEGIN
     /* temporary parameter table */
     CREATE TEMPORARY TABLE tmp_parameter_table
     (
+      sequence_nb	BIGINT UNSIGNED AUTO_INCREMENT,
       parameter_id	BIGINT UNSIGNED,
       parameter_type    CHAR(64),
       parameter_name    CHAR(128),
       parameter_trkd    BOOLEAN,
       parameter_seqnb   INT,
-      parent_id         BIGINT UNSIGNED
+      parent_id         BIGINT UNSIGNED,
+      PRIMARY KEY(sequence_nb)
     );
 
     /* temporary bool parameter-value table */
@@ -1271,6 +1279,8 @@ BEGIN
          v_parameter_name,v_parameter_trkd,v_parameter_seqnb;
   WHILE done=FALSE DO
     INSERT INTO tmp_parameter_table
+      (parameter_id,parameter_type,parameter_name,
+       parameter_trkd,parameter_seqnb,parent_id)
       VALUES(v_parameter_id,v_parameter_type,
              v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id);
     CALL load_parameter_value(v_parameter_id,v_parameter_type);
@@ -1287,6 +1297,8 @@ BEGIN
     INTO v_parameter_id,v_parameter_name,v_parameter_trkd,v_parameter_seqnb;
   WHILE done=FALSE DO
     INSERT INTO tmp_parameter_table
+      (parameter_id,parameter_type,parameter_name,
+       parameter_trkd,parameter_seqnb,parent_id)
       VALUES(v_parameter_id,'PSet',
              v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id);
     CALL load_parameters(v_parameter_id);
@@ -1304,6 +1316,8 @@ BEGIN
          v_parameter_name,v_parameter_trkd,v_parameter_seqnb;
   WHILE done=FALSE DO
     INSERT INTO tmp_parameter_table
+      (parameter_id,parameter_type,parameter_name,
+       parameter_trkd,parameter_seqnb,parent_id)
       VALUES(v_parameter_id,'VPSet',
              v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id);
     CALL load_parameters(v_parameter_id);

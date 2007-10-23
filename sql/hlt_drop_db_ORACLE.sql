@@ -34,6 +34,8 @@ DROP TABLE    Configurations;
 DROP TABLE    LockedConfigurations;
 DROP TABLE    Directories;
 DROP TABLE    SoftwareReleases;
+DROP TABLE    SoftwarePackages;
+DROP TABLE    SoftwareSubsystems;
 DROP TABLE    Int32ParamValues;
 DROP TABLE    VInt32ParamValues;
 DROP TABLE    UInt32ParamValues;

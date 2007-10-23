@@ -627,7 +627,7 @@ public class ConfigurationTreeActions
 		ModuleReference reference = (ModuleReference)entry;
 		ModuleInstance  instance  = (ModuleInstance)reference.parent();
 		if (instance.referenceCount()==1)
-		    unreferencedIndices.add(i);
+		    unreferencedIndices.add(config.indexOfModule(instance));
 	    }
 	}
 	
@@ -636,9 +636,10 @@ public class ConfigurationTreeActions
 	if (unreferencedIndices.size()>0) {
 	    childIndices = new int[unreferencedIndices.size()];
 	    children     = new Object[unreferencedIndices.size()];
-	    for (Integer i : unreferencedIndices) {
-		childIndices[i.intValue()] = i.intValue();
-		children[i.intValue()] = container.entry(i.intValue());
+	    for (int i=0;i<unreferencedIndices.size();i++) {
+		int moduleIndex = unreferencedIndices.get(i).intValue();
+		childIndices[i] = moduleIndex;
+		children[i]     = config.module(moduleIndex);
 	    }
 	}
 	
@@ -665,7 +666,8 @@ public class ConfigurationTreeActions
 	    tree.setSelectionPath(parentTreePath);
 	else
 	    tree.setSelectionPath(parentTreePath
-				  .pathByAddingChild(model.getChild(parent,index-1)));
+				  .pathByAddingChild(model
+						     .getChild(parent,index-1)));
 	
 	return true;
     }
@@ -947,7 +949,8 @@ public class ConfigurationTreeActions
 	    tree.setSelectionPath(treePath);
 	else
 	    tree.setSelectionPath(treePath
-				  .pathByAddingChild(model.getChild(parent,index-1)));
+				  .pathByAddingChild(model.getChild(parent,
+								    index-1)));
 	
 	return true;
     }

@@ -19,3 +19,5 @@ DROP TABLE tmp_string_table;
 DROP TABLE tmp_path_entries;
 DROP TABLE tmp_sequence_entries;
 DROP TABLE tmp_stream_entries;
+
+DROP SEQUENCE parameter_sequence;

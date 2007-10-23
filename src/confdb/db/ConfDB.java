@@ -844,14 +844,15 @@ public class ConfDB
 	    
 	    psSelectParameters =
 		dbConnector.getConnection().prepareStatement
-		("SELECT DISTINCT" +
+		("SELECT" +
 		 " parameter_id," +
 		 " parameter_type," +
 		 " parameter_name," +
 		 " parameter_trkd," +
 		 " parameter_seqnb," +
 		 " parent_id " +
-		 "FROM tmp_parameter_table");
+		 "FROM tmp_parameter_table "+
+		 "ORDER BY sequence_nb ASC");
 	    psSelectParameters.setFetchSize(4096);
 	    preparedStatements.add(psSelectParameters);
 	    
@@ -902,7 +903,8 @@ public class ConfDB
 		 " entry_id," +
 		 " sequence_nb," +
 		 " entry_type " +
-		 "FROM tmp_path_entries");
+		 "FROM tmp_path_entries "+
+		 "ORDER BY path_id ASC, sequence_nb ASC");
 	    psSelectPathEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectPathEntries);
 	    
@@ -912,8 +914,9 @@ public class ConfDB
 		 " sequence_id," +
 		 " entry_id," +
 		 " sequence_nb," +
-		 " entry_type " +
-		 "FROM tmp_sequence_entries");
+ 		 " entry_type " +
+		 "FROM tmp_sequence_entries "+
+		 "ORDER BY sequence_id ASC, sequence_nb ASC");
 	    psSelectSequenceEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectSequenceEntries);
 	    
@@ -1340,6 +1343,9 @@ public class ConfDB
 		else idToValueAsString.put(parameterId,valueAsString);
 	    }
 	    
+	    HashMap<Integer,Parameter> parentIdToParams =
+		new HashMap<Integer,Parameter>();
+	    
 	    HashMap<Integer,PSetParameter> idToPSets =
 		new HashMap<Integer,PSetParameter>();
 
@@ -1400,7 +1406,7 @@ public class ConfDB
 		}
 		else
 		    System.err.println("ERROR: no parent for parameter "
-				       +id+" "+name+" ("+type+")");
+		    	       +id+" "+name+" ("+type+")");
 	    }
 	    
 	    // set PSet parameters
@@ -1840,6 +1846,11 @@ public class ConfDB
 		
 		Sequence sequence = idToSequences.get(sequenceId);
 		int      index    = sequence.entryCount();
+		
+		if (index!=sequenceNb)
+		    System.err.println("ERROR in sequence "+sequence.name()+": "+
+				       "index="+index+" sequenceNb="+sequenceNb);
+		
 		if (entryType.equals("Sequence")) {
 		    Sequence entry = idToSequences.get(entryId);
 		    config.insertSequenceReference(sequence,index,entry);
@@ -1863,6 +1874,10 @@ public class ConfDB
 		
 		Path path  = idToPaths.get(pathId);
 		int  index = path.entryCount();
+
+		if (index!=sequenceNb)
+		    System.err.println("ERROR in path "+path.name()+": "+
+				       "index="+index+" sequenceNb="+sequenceNb);
 		
 		if (entryType.equals("Path")) {
 		    Path entry = idToPaths.get(entryId);

@@ -515,11 +515,10 @@ public class ConfDbGUI implements TableModelListener
     public void saveAsConfiguration()
     {
 	if (!checkConfiguration()) return;
-	if (currentConfig.isLocked()) return;
 	
-	if (currentConfig.version()!=0) {
+	boolean isLocked = currentConfig.isLocked();
+	if (currentConfig.version()!=0&&!isLocked)
 	    database.unlockConfiguration(currentConfig);
-	}
 	
 	String processName = configurationPanel.processName();
 
@@ -537,7 +536,7 @@ public class ConfDbGUI implements TableModelListener
 	    progressBar.setString("Save Configuration ...");
 	    progressBar.setVisible(true);
 	}
-	else if (currentConfig.version()!=0)
+	else if (currentConfig.version()!=0&&!isLocked)
 	    database.lockConfiguration(currentConfig,userName);
     }
     
