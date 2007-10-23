@@ -153,11 +153,11 @@ YAHOO.util.Event.onContentReady( "doc3", init );
   </div> 
   <div class="yui-u">
     <div id="mainRight">
-      <div id="loading"><img src="assets/img/default/loading.gif"></div>
+      <div id="loading"><img src="../img/loading.gif"></div>
 	  <div id="config"></div>
     </div>
   </div> 
 </div>
-<div id="info" align="left"><img src="assets/img/default/loading.gif"></div>
+<div id="info" align="left"><img src="../img/loading.gif"></div>
 </body>
 </html>
