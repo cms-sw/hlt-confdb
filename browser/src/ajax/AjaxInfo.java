@@ -15,6 +15,8 @@ import org.directwebremoting.ServerContextFactory;
 import org.directwebremoting.WebContext;
 import org.directwebremoting.WebContextFactory;
 
+import confdb.converter.ConfCache;
+import confdb.data.Configuration;
 import confdb.db.ConfDBSetups;
 
 
@@ -76,8 +78,26 @@ public class AjaxInfo implements Runnable
     		}
     	}
     	return list.toArray( new String[ list.size() ] );
-    			
     }
+    
+    public String[] getAnchors( int dbIndex, int configKey )
+    {
+    	String cacheKey = "db:" + dbIndex + " key:" + configKey;
+    	ConfCache cache = ConfCache.getInstance();
+    	Configuration conf = cache.getConf( cacheKey  );
+    	ArrayList<String> list = new ArrayList<String>();
+    	if ( conf == null )
+    		list.add( "??" );
+    	else
+    	{
+    		if ( conf.pathCount() > 0 )
+    			list.add( "paths" );
+    		if ( conf.moduleCount() > 0 )
+    			list.add( "modules" );
+    	}
+    	return list.toArray( new String[ list.size() ] );
+    }
+    
     
 	public void run()
 	{
