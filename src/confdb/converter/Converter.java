@@ -63,9 +63,9 @@ public class Converter implements IConverter
 		try {
 			connectToDatabase();
 
-			Configuration configuration =
-			    database.loadConfiguration(configKey);
-			if ( configuration == null ) return null;
+			Configuration configuration = loadConfiguration(configKey);
+			if ( configuration == null ) 
+				return null;
 			return convert( configuration );
 		}
 		finally {
@@ -75,15 +75,11 @@ public class Converter implements IConverter
 
 		
 		
-    /*
-      public Configuration loadConfiguration( int configKey ) throws SQLException, DatabaseException
-      {
-      ConfigInfo configInfo = findConfig(configKey);
-      if ( configInfo == null )
-      return null;
-      return loadConfiguration(configInfo);
-      }
-    */
+	public Configuration loadConfiguration( int configKey )
+	{
+		return database.loadConfiguration( configKey );
+	}
+	
     /*
       protected Configuration loadConfiguration( ConfigInfo configInfo ) throws SQLException
       {
