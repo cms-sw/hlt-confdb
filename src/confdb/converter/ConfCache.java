@@ -7,11 +7,12 @@ import java.util.List;
 
 import confdb.data.Configuration;
 
-public class ConfCache implements Runnable 
+public class ConfCache
 {
 	static private ConfCache instance = null;
 
-	private HashMap<String, ConfWrapper> cache = new HashMap<String, ConfWrapper>();
+	private HashMap<String, ConfWrapper> confCache = new HashMap<String, ConfWrapper>();
+	private HashMap<String, ConfWrapper> stringCache = new HashMap<String, ConfWrapper>();
 	private int maxEntries = 10;
 	
 	static public ConfCache getInstance()
@@ -30,9 +31,9 @@ public class ConfCache implements Runnable
 	}
 	
 	
-	synchronized public Configuration get( String key ) 
+	synchronized public Configuration getConf( String key ) 
 	{
-		ConfWrapper conf = cache.get( key );
+		ConfWrapper conf = confCache.get( key );
 		if ( conf == null )
 			return null;
 		else
@@ -40,24 +41,42 @@ public class ConfCache implements Runnable
 	}
 	
 
+	synchronized public String getConfString( String key ) 
+	{
+		ConfWrapper conf = confCache.get( key );
+		if ( conf == null )
+			return null;
+		else
+			return conf.getConfString();
+	}
+	
+
 	synchronized public void put( String key, Configuration conf )
 	{
-		if ( cache.size() > maxEntries )
+		if ( confCache.size() > maxEntries )
 		{
 			List<ConfWrapper> list = 
-				new ArrayList<ConfWrapper>( cache.values() );
+				new ArrayList<ConfWrapper>( confCache.values() );
 			Collections.sort(list);
-			cache.remove( list.get(0).key );
+			confCache.remove( list.get(0).key );
 		}
-		cache.put( key, new ConfWrapper( key, conf ) );
+		confCache.put( key, new ConfWrapper( key, conf ) );
 	}
 	
 	
-	public void run()
+	synchronized public void put( String key, String conf )
 	{
-		
+		if ( stringCache.size() > maxEntries )
+		{
+			List<ConfWrapper> list = 
+				new ArrayList<ConfWrapper>( stringCache.values() );
+			Collections.sort(list);
+			stringCache.remove( list.get(0).key );
+		}
+		stringCache.put( key, new ConfWrapper( key, conf ) );
 	}
-
+	
+	
 
 	public int getMaxEntries() {
 		return maxEntries;
@@ -72,7 +91,8 @@ public class ConfCache implements Runnable
 	private class ConfWrapper implements Comparable<ConfWrapper>
 	{
 		String key;
-		Configuration configuration;
+		Configuration configuration = null;
+		String        confString = null;
 		long timestamp;
 		
 		ConfWrapper( String key, Configuration conf ) 
@@ -82,10 +102,23 @@ public class ConfCache implements Runnable
 			timestamp = System.currentTimeMillis();
 		}
 
+		ConfWrapper( String key, String conf ) 
+		{
+			this.key = key;
+			confString = new String( conf );
+			timestamp = System.currentTimeMillis();
+		}
+
 		Configuration getConfiguration() 
 		{
 			timestamp = System.currentTimeMillis();
 			return configuration;
+		}
+
+		String getConfString() 
+		{
+			timestamp = System.currentTimeMillis();
+			return confString;
 		}
 
 		public int compareTo(ConfWrapper o) 
