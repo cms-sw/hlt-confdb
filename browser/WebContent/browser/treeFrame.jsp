@@ -14,19 +14,9 @@
 <script type="text/javascript" src="../js/yui/yahoo-dom-event/yahoo-dom-event.js"></script>
 <script type="text/javascript" src="../js/yui/treeview/treeview.js"></script>
 
-<link rel="stylesheet" type="text/css" href="css/tree.css"><!-- Some custom style for the expand/contract section-->
-
+<link rel="stylesheet" type="text/css" href="assets/css/folders/tree.css">
 <style type="text/css">
 
-/*margin and padding on body element
-  can introduce errors in determining
-  element position and are not recommended;
-  we turn them off as a foundation for YUI
-  CSS treatments. */
-body {
-	margin:0;
-	padding:0;
-}
 
 .icon-gen, .icon-gen:link, .icon-gen:visited, .icon-gen:hover  { padding-left: 20px; background: transparent url(../img/icons.png) 0 -108px no-repeat; 	text-decoration: none;
 }
