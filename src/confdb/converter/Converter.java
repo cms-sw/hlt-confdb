@@ -5,11 +5,8 @@ import java.sql.SQLException;
 
 import confdb.converter.IConfigurationWriter.WriteProcess;
 import confdb.data.ConfigInfo;
-import confdb.data.ConfigVersion;
-import confdb.data.Configuration;
+import confdb.data.IConfiguration;
 import confdb.data.Directory;
-import confdb.data.EDSourceInstance;
-import confdb.data.Path;
 import confdb.db.ConfDB;
 import confdb.db.ConfDBSetups;
 import confdb.db.DatabaseException;
@@ -21,8 +18,6 @@ public class Converter implements IConverter
 	private ConfDB database = null;
 	private DbProperties dbProperties = null;
 	private ConverterEngine converterEngine = null;
-	private Path newEndpath = null;
-	
 	
 	private Converter( String typeOfConverter ) throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
@@ -63,7 +58,7 @@ public class Converter implements IConverter
 		try {
 			connectToDatabase();
 
-			Configuration configuration = loadConfiguration(configKey);
+			IConfiguration configuration = loadConfiguration(configKey);
 			if ( configuration == null ) 
 				return null;
 			return convert( configuration );
@@ -75,7 +70,7 @@ public class Converter implements IConverter
 
 		
 		
-	public Configuration loadConfiguration( int configKey )
+	public IConfiguration loadConfiguration( int configKey )
 	{
 		return database.loadConfiguration( configKey );
 	}
@@ -86,10 +81,8 @@ public class Converter implements IConverter
       return database.loadConfiguration( configInfo );
       }
     */
-	public String convert( Configuration configuration )
+	public String convert( IConfiguration configuration )
 	{
-		if ( newEndpath != null )
-			return converterEngine.getConfigurationWriter().toString( new ConfigModifier( configuration, newEndpath ), WriteProcess.YES  );
 		return converterEngine.getConfigurationWriter().toString( configuration, WriteProcess.YES );
 	}
 	
@@ -164,24 +157,6 @@ public class Converter implements IConverter
  	{
 		database.disconnect();
  	}
-	
-	/**
-	 * call this method to specify source to be used in output instead of data
-	 * coming from database
-	 */
-	public void overrideEDSource( EDSourceInstance source )
-	{
-		converterEngine.setEDSourceWriter( new EDSourceOverrider( source, converterEngine.getEDSourceWriter() ));
-	}
-	
-	/**
-	 * call this method to specify endpath to be used in output instead of endpath
-	 * coming from database
-	 */
-	public void overrideEndPath( Path endpath )
-	{
-		newEndpath = endpath;
-	}
 	
 	
 	public static void main(String[] args) 

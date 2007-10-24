@@ -10,7 +10,7 @@ import confdb.converter.IParameterWriter;
 import confdb.converter.IPathWriter;
 import confdb.converter.ISequenceWriter;
 import confdb.converter.IServiceWriter;
-import confdb.data.Configuration;
+import confdb.data.IConfiguration;
 import confdb.data.EDSourceInstance;
 import confdb.data.ESModuleInstance;
 import confdb.data.ESSourceInstance;
@@ -26,7 +26,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 	protected ConverterEngine converterEngine = null;
 	private static final String spaces = "                                                   ";
 
-	public String toString( Configuration conf, WriteProcess writeProcess )
+	public String toString( IConfiguration conf, WriteProcess writeProcess )
 	{
 		String str = "";
 		if ( writeProcess == WriteProcess.YES )

@@ -10,7 +10,7 @@ import confdb.converter.IParameterWriter;
 import confdb.converter.IPathWriter;
 import confdb.converter.ISequenceWriter;
 import confdb.converter.IServiceWriter;
-import confdb.data.Configuration;
+import confdb.data.IConfiguration;
 import confdb.data.EDSourceInstance;
 import confdb.data.ESSourceInstance;
 import confdb.data.ESModuleInstance;
@@ -24,7 +24,7 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 {
 	protected ConverterEngine converterEngine = null;
 
-	public String toString( Configuration conf, WriteProcess writeProcess  )
+	public String toString( IConfiguration conf, WriteProcess writeProcess  )
 	{
 		String str = "// " + conf.name() + " V" + conf.version()
 		+ " (" + conf.releaseTag() + ")" + converterEngine.getNewline() + converterEngine.getNewline();

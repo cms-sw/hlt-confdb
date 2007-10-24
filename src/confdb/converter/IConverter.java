@@ -1,9 +1,9 @@
 package confdb.converter;
 
-import confdb.data.Configuration;
+import confdb.data.IConfiguration;
 
 public interface IConverter {
 	
-	public String convert( Configuration configuration );
+	public String convert( IConfiguration configuration );
 
 }

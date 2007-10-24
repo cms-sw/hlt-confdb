@@ -6,7 +6,7 @@ import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 
-import confdb.data.Configuration;
+import confdb.data.IConfiguration;
 import confdb.data.Template;
 import confdb.data.EDSourceTemplate;
 import confdb.data.EDSourceInstance;
@@ -90,7 +90,7 @@ public class ConverterService
     public void setOutput(String output) { this.output = output; }
     
     /** convert configuration */
-    public String convertConfiguration(Configuration config)
+    public String convertConfiguration(IConfiguration config)
     {
 	String result = new String();
 	try {
@@ -98,7 +98,7 @@ public class ConverterService
 	    
 	    if (input.length()>0) {
 		EDSourceInstance poolSource = getPoolSource(config.releaseTag());
-		converter.overrideEDSource(poolSource);
+		//converter.overrideEDSource(poolSource);
 	    }
 
 	    result = converter.convert(config);

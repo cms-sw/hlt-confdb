@@ -1,7 +1,7 @@
 package confdb.converter;
 
 import confdb.converter.IConfigurationWriter.WriteProcess;
-import confdb.data.Configuration;
+import confdb.data.IConfiguration;
 
 public class ConverterEngine
 {
@@ -26,7 +26,7 @@ public class ConverterEngine
 	{
 	}
 	
-	public String convert( Configuration configuration )
+	public String convert( IConfiguration configuration )
 	{
 		return configurationWriter.toString( configuration, WriteProcess.YES );
 	}
