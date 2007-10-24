@@ -5,7 +5,7 @@
 <%@page import="confdb.db.ConfDBSetups"%>
 <%@page import="confdb.converter.Converter"%>
 <%@page import="confdb.converter.ConfCache"%>
-<%@page import="confdb.data.Configuration"%>
+<%@page import="confdb.data.IConfiguration"%>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -56,7 +56,7 @@ function signalReady()
 	  dbIndex = Integer.parseInt( index );
 	String cacheKey = "db:" + dbIndex + " key:" + configKey;
 	ConfCache cache = ConfCache.getInstance();
-	Configuration conf = cache.getConf( cacheKey  );
+	IConfiguration conf = cache.getConf( cacheKey  );
 	if ( conf == null )
 	{
 		ConfDBSetups dbs = new ConfDBSetups();

@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import confdb.data.Configuration;
+import confdb.data.IConfiguration;
 
 public class ConfCache
 {
@@ -31,7 +31,7 @@ public class ConfCache
 	}
 	
 	
-	synchronized public Configuration getConf( String key ) 
+	synchronized public IConfiguration getConf( String key ) 
 	{
 		ConfWrapper conf = confCache.get( key );
 		if ( conf == null )
@@ -51,7 +51,7 @@ public class ConfCache
 	}
 	
 
-	synchronized public void put( String key, Configuration conf )
+	synchronized public void put( String key, IConfiguration conf )
 	{
 		if ( confCache.size() > maxEntries )
 		{
@@ -91,11 +91,11 @@ public class ConfCache
 	private class ConfWrapper implements Comparable<ConfWrapper>
 	{
 		String key;
-		Configuration configuration = null;
+		IConfiguration configuration = null;
 		String        confString = null;
 		long timestamp;
 		
-		ConfWrapper( String key, Configuration conf ) 
+		ConfWrapper( String key, IConfiguration conf ) 
 		{
 			this.key = key;
 			configuration = conf;
@@ -109,7 +109,7 @@ public class ConfCache
 			timestamp = System.currentTimeMillis();
 		}
 
-		Configuration getConfiguration() 
+		IConfiguration getConfiguration() 
 		{
 			timestamp = System.currentTimeMillis();
 			return configuration;
