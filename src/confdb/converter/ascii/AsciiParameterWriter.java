@@ -23,68 +23,69 @@ public class AsciiParameterWriter  implements IParameterWriter
 		if ( skip( parameter ) )
 			return "";
 
-		String str = indent + (parameter.isTracked() ? "" : "untracked " )
-			 + parameter.type() + " " + parameter.name() + " = ";
+		StringBuffer str = new StringBuffer( indent + (parameter.isTracked() ? "" : "untracked " )
+			 + parameter.type() + " " + parameter.name() + " = " );
 		
 		if ( parameter instanceof ScalarParameter )
-			str += parameter.valueAsString();
+			str.append( parameter.valueAsString() );
 		else if ( parameter instanceof PSetParameter )
-			str += writePSetParameters( (PSetParameter)parameter, indent, true );
+			str.append( writePSetParameters( (PSetParameter)parameter, indent, true ) );
 		else if ( parameter instanceof VectorParameter )
-			str += "{ " + parameter.valueAsString() + " }"; 
+			str.append( "{ " + parameter.valueAsString() + " }" ); 
 		else if ( parameter instanceof VPSetParameter )
-			str += writeVPSetParameters( (VPSetParameter)parameter, indent );
+			str.append( writeVPSetParameters( (VPSetParameter)parameter, indent ) );
 		
-		str += converterEngine.getNewline();
-		return str;
+		str.append( converterEngine.getNewline() );
+		return str.toString();
 	}
 
 	protected String writePSetParameters( PSetParameter pset, String indent, boolean newline ) 	
 	{
-		String str = "";
+		StringBuffer str = new StringBuffer();
 		if ( pset.parameterCount() == 0 )
-			str += "{}";
+			str.append( "{}" );
 		else if ( newline )
 		{
-			str += "{" + converterEngine.getNewline(); 
+			str.append( "{" + converterEngine.getNewline() ); 
 			for ( int i = 0; i < pset.parameterCount(); i++ )
-				str += toString( (Parameter)pset.parameter(i), indent + "  " );
-			str += indent + "}"; 
+				str.append( toString( (Parameter)pset.parameter(i), indent + "  " ) );
+			str.append( indent + "}" ); 
 		}
 		else
 		{
 			Parameter first = (Parameter)pset.parameter(0);
-			str += "{ " + toString( first, "" );
+			str.append( "{ " + toString( first, "" ) );
 			for ( int i = 1; i < pset.parameterCount(); i++ )
-				str += toString( (Parameter)pset.parameter(i), indent + "  " );
-			str = str.substring( 0, str.length() - 1 ) + " }"; 
+				str.append( toString( (Parameter)pset.parameter(i), indent + "  " ) );
+			str = new StringBuffer( str.substring( 0, str.length() - 1 ) ); 
+			str.append( " }" ); 
 		}
-		return str;
+		return str.toString();
 	}
 
 
 	protected String writeVPSetParameters( VPSetParameter vpset, String indent ) 	
 	{
-		String str = "{" + converterEngine.getNewline(); 
+		StringBuffer str = new StringBuffer( "{" + converterEngine.getNewline() ); 
 		for ( int i = 0; i < vpset.parameterSetCount() - 1; i++ )
 		{
 			PSetParameter pset = vpset.parameterSet(i);
 			if ( pset.name().length() != 0 )
-				str += addComma( toString( pset, indent + "  " ) );
+				str.append( addComma( toString( pset, indent + "  " ) ) );
 			else
-				str += indent + "  " + writePSetParameters(pset, indent + "  ", false )
-					   + "," + converterEngine.getNewline();
+				str.append( indent + "  " + writePSetParameters(pset, indent + "  ", false )
+					   + "," + converterEngine.getNewline() );
 		}
 		if ( vpset.parameterSetCount() >  0 )
 		{
 			PSetParameter pset = vpset.parameterSet(vpset.parameterSetCount() - 1);
 			if ( pset.name().length() != 0 )
-				str += toString( pset, indent + "  " );
+				str.append( toString( pset, indent + "  " ) );
 			else
-				str += indent + "  " + writePSetParameters(pset, indent + "  ", false ) + converterEngine.getNewline();
+				str.append( indent + "  " + writePSetParameters(pset, indent + "  ", false ) + converterEngine.getNewline() );
 		}
-		str += indent + "}"; 
-		return str;
+		str.append( indent + "}" ); 
+		return str.toString();
 	}
 	
 	static public boolean skipPSet( PSetParameter pset )
