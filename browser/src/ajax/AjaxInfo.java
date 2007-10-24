@@ -16,7 +16,7 @@ import org.directwebremoting.WebContext;
 import org.directwebremoting.WebContextFactory;
 
 import confdb.converter.ConfCache;
-import confdb.data.Configuration;
+import confdb.data.IConfiguration;
 import confdb.db.ConfDBSetups;
 
 
@@ -84,7 +84,7 @@ public class AjaxInfo implements Runnable
     {
     	String cacheKey = "db:" + dbIndex + " key:" + configKey;
     	ConfCache cache = ConfCache.getInstance();
-    	Configuration conf = cache.getConf( cacheKey  );
+    	IConfiguration conf = cache.getConf( cacheKey  );
     	ArrayList<String> list = new ArrayList<String>();
     	if ( conf == null )
     		list.add( "??" );
@@ -92,8 +92,18 @@ public class AjaxInfo implements Runnable
     	{
     		if ( conf.pathCount() > 0 )
     			list.add( "paths" );
+    		if ( conf.sequenceCount() > 0 )
+    			list.add( "sequences" );
     		if ( conf.moduleCount() > 0 )
     			list.add( "modules" );
+    		if ( conf.edsourceCount() > 0 )
+    			list.add( "ed_sources" );
+    		if ( conf.essourceCount() > 0 )
+    			list.add( "es_sources" );
+    		if ( conf.esmoduleCount() > 0 )
+    			list.add( "es_modules" );
+    		if ( conf.serviceCount() > 0 )
+    			list.add( "services" );
     	}
     	return list.toArray( new String[ list.size() ] );
     }
