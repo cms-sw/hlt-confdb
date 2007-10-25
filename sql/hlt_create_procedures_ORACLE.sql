@@ -1,12 +1,6 @@
 --
--- Oracle Stored Procedure
+-- Oracle Stored Procedures
 --
-
-
---
--- SEQUENCE Parameter_Sequence
---
-CREATE SEQUENCE parameter_sequence START WITH 1 INCREMENT BY 1;
 
 
 --
@@ -31,7 +25,6 @@ CREATE GLOBAL TEMPORARY TABLE tmp_instance_table
 
 CREATE GLOBAL TEMPORARY TABLE tmp_parameter_table
 (
-  sequence_nb       NUMBER,
   parameter_id      NUMBER,
   parameter_type    VARCHAR2(64),
   parameter_name    VARCHAR2(128),
@@ -363,7 +356,7 @@ BEGIN
            v_parameter_name,v_parameter_trkd,v_parameter_seqnb;
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
-      VALUES(parameter_sequence.nextval,v_parameter_id,v_parameter_type,
+      VALUES(v_parameter_id,v_parameter_type,
              v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id);
     load_parameter_value(v_parameter_id,v_parameter_type);
   END LOOP;
@@ -376,7 +369,7 @@ BEGIN
       INTO v_parameter_id,v_parameter_name,v_parameter_trkd,v_parameter_seqnb;
     EXIT WHEN cur_psets%NOTFOUND;
     INSERT INTO tmp_parameter_table
-      VALUES(parameter_sequence.nextval,v_parameter_id,'PSet',
+      VALUES(v_parameter_id,'PSet',
              v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id);
     load_parameters(v_parameter_id);
   END LOOP;
@@ -390,7 +383,7 @@ BEGIN
            v_parameter_name,v_parameter_trkd,v_parameter_seqnb;
     EXIT WHEN cur_vpsets%NOTFOUND;
     INSERT INTO tmp_parameter_table
-      VALUES(parameter_sequence.nextval,v_parameter_id,'VPSet',
+      VALUES(v_parameter_id,'VPSet',
              v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id);
     load_parameters(v_parameter_id);
   END LOOP;

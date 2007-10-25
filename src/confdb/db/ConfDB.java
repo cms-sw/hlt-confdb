@@ -7,9 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.Map;
-import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -63,9 +61,6 @@ public class ConfDB
     
     /** 'insert parameter' sql statement hash map */
     private HashMap<String,PreparedStatement> insertParameterHashMap = null;
-    
-    /** keep track of the 'bool' type id */
-    private int boolTypeId = -1;
     
     /** prepared sql statements */
     private PreparedStatement psSelectModuleTypes                 = null;
@@ -850,10 +845,8 @@ public class ConfDB
 		 " parameter_name," +
 		 " parameter_trkd," +
 		 " parameter_seqnb," +
-		 " parent_id," +
-		 " sequence_nb " +
-		 "FROM tmp_parameter_table "+
-		 "ORDER BY sequence_nb ASC");
+		 " parent_id " +
+		 "FROM tmp_parameter_table");
 	    psSelectParameters.setFetchSize(4096);
 	    preparedStatements.add(psSelectParameters);
 	    
@@ -974,14 +967,11 @@ public class ConfDB
 	    while (rs.next()) {
 		int               typeId = rs.getInt(1);
 		String            type   = rs.getString(2);
-		//PreparedStatement ps     = selectParameterHashMap.get(type);
 		paramTypeIdHashMap.put(type,typeId);
-		//selectParameterIdHashMap.put(typeId,ps);
 		if (type.startsWith("v")||type.startsWith("V"))
 		    isVectorParamHashMap.put(typeId,true);
 		else
 		    isVectorParamHashMap.put(typeId,false);
-		if (type.equals("bool")) boolTypeId = typeId;
 	    }
 	}
 	catch (SQLException e) {
@@ -1254,29 +1244,14 @@ public class ConfDB
     /** load a full software release, based on stored procedures */
     private void loadTemplates(CallableStatement cs,SoftwareRelease release)
     {
-	ResultSet rsTemplates     = null;
-	ResultSet rsParameters    = null;
-	ResultSet rsBooleanValues = null;
-	ResultSet rsIntValues     = null;
-	ResultSet rsRealValues    = null;
-	ResultSet rsStringValues  = null;
+	ResultSet rsTemplates = null;
 	
 	try {
 	    cs.executeUpdate();
 	    
-	    rsTemplates     = psSelectTemplates.executeQuery();
-	    rsParameters    = psSelectParameters.executeQuery();
-	    rsBooleanValues = psSelectBooleanValues.executeQuery();
-	    rsIntValues     = psSelectIntValues.executeQuery();
-	    rsRealValues    = psSelectRealValues.executeQuery();
-	    rsStringValues  = psSelectStringValues.executeQuery();
-	    
+	    HashMap<Integer,ArrayList<Parameter> > templateParams = getParameters();
 
-	    HashMap<Integer,Template> idToTemplates =
-		new HashMap<Integer,Template>();
-
-	    HashMap<Template,ArrayList<Parameter> >templateParams =
-		new HashMap<Template,ArrayList<Parameter> >();
+	    rsTemplates = psSelectTemplates.executeQuery();
 	    
 	    while (rsTemplates.next()) {
 		int    id     = rsTemplates.getInt(1);
@@ -1284,211 +1259,37 @@ public class ConfDB
 		String name   = rsTemplates.getString(3);
 		String cvstag = rsTemplates.getString(4);
 		
-		if (name==null) name = new String();
-		
-		Template template = 
-		    TemplateFactory.create(type,name,cvstag,id,null);
-		
-		idToTemplates.put(id,template);
-		templateParams.put(template,new ArrayList<Parameter>());
-	    }
-	    
-	    HashMap<Integer,String> idToValueAsString =
-		new HashMap<Integer,String>();
-	    
-	    while (rsBooleanValues.next()) {
-		int    parameterId   = rsBooleanValues.getInt(1);
-		String valueAsString =
-		    (new Boolean(rsBooleanValues.getBoolean(2))).toString();
-		idToValueAsString.put(parameterId,valueAsString);
-	    }
-	    
-	    while (rsIntValues.next()) {
-		int     parameterId   = rsIntValues.getInt(1);
-		long    value         = rsIntValues.getLong(2);
-		Integer sequenceNb    = new Integer(rsIntValues.getInt(3));
-		boolean isHex         = rsIntValues.getBoolean(4);
+		Template template = TemplateFactory.create(type,name,cvstag,id,null);
 
-		String valueAsString = (isHex) ?
-		    "0x"+Long.toHexString(value) : Long.toString(value);
-		
-		if (sequenceNb!=null&&
-		    idToValueAsString.containsKey(parameterId))
-		    idToValueAsString.put(parameterId,
-					  idToValueAsString.get(parameterId) +
-					  ", "+valueAsString);
-		else
-		    idToValueAsString.put(parameterId,valueAsString);
-	    }
-	    
-	    while (rsRealValues.next()) {
-		int     parameterId   = rsRealValues.getInt(1);
-		String  valueAsString =
-		    (new Double(rsRealValues.getDouble(2))).toString();
-		Integer sequenceNb    = new Integer(rsRealValues.getInt(3));
-		if (sequenceNb!=null&&
-		    idToValueAsString.containsKey(parameterId))
-		    idToValueAsString.put(parameterId,
-					  idToValueAsString.get(parameterId) +
-					  ", "+valueAsString);
-		else
-		    idToValueAsString.put(parameterId,valueAsString);
-	    }
-	    
-	    while (rsStringValues.next()) {
-		int     parameterId   = rsStringValues.getInt(1);
-		String  valueAsString = rsStringValues.getString(2);
-		Integer sequenceNb    = new Integer(rsStringValues.getInt(3));
+		ArrayList<Parameter> params = templateParams.remove(id);
 
-		if (sequenceNb!=null&&
-		    idToValueAsString.containsKey(parameterId))
-		    idToValueAsString.put(parameterId,
-					  idToValueAsString.get(parameterId) +
-					  ", "+valueAsString);
-		else idToValueAsString.put(parameterId,valueAsString);
-	    }
-	    
-
-	    HashMap<Integer,Parameter> parentIdToParams =
-		new HashMap<Integer,Parameter>();
-	    
-	    HashMap<Integer,PSetParameter> idToPSets =
-		new HashMap<Integer,PSetParameter>();
-
-	    HashMap<Integer,VPSetParameter> idToVPSets =
-		new HashMap<Integer,VPSetParameter>();
-	    
-	    HashMap<PSetParameter,ArrayList<Parameter> > psetParams =
-		new HashMap<PSetParameter,ArrayList<Parameter> >();
-	    
-	    HashMap<VPSetParameter,ArrayList<PSetParameter> > vpsetParams =
-		new HashMap<VPSetParameter,ArrayList<PSetParameter> >();
-	    
-	    while (rsParameters.next()) {
-		int     id       = rsParameters.getInt(1);
-		String  type     = rsParameters.getString(2);
-		String  name     = rsParameters.getString(3);
-		boolean isTrkd   = rsParameters.getBoolean(4);
-		int     seqNb    = rsParameters.getInt(5);
-		int     parentId = rsParameters.getInt(6);
-		
-		if (name==null) name = new String();
-		
-		String valueAsString = idToValueAsString.remove(id);
-
-		if (valueAsString==null) valueAsString=new String();
-		
-		Parameter p = ParameterFactory
-		    .create(type,name,valueAsString,isTrkd,true);
-		
-		if (type.equals("PSet")) {
-		    PSetParameter pset = (PSetParameter)p;
-		    idToPSets.put(id,pset);
-		    psetParams.put(pset,new ArrayList<Parameter>());
-		}
-		else if (type.equals("VPSet")) {
-		    VPSetParameter vpset = (VPSetParameter)p;
-		    idToVPSets.put(id,vpset);
-		    vpsetParams.put(vpset,new ArrayList<PSetParameter>());
-		}
-
-		if (idToTemplates.containsKey(parentId)) {
-		    Template template = idToTemplates.get(parentId);
-		    ArrayList<Parameter> params =templateParams.get(template);
-		    while (params.size()<=seqNb) params.add(null);
-		    params.set(seqNb,p);
-		}
-		else if (idToPSets.containsKey(parentId)) {
-		    PSetParameter pset = idToPSets.get(parentId);
-		    ArrayList<Parameter> parameters =
-			psetParams.get(pset);
-		    while (parameters.size()<=seqNb) parameters.add(null);
-		    parameters.set(seqNb,p);
-		}
-		else if (idToVPSets.containsKey(parentId)&&
-			 p instanceof PSetParameter) {
-		    VPSetParameter vpset = idToVPSets.get(parentId);
-		    PSetParameter  pset  = (PSetParameter)p;
-		    ArrayList<PSetParameter> psets =
-			vpsetParams.get(vpset);
-		    while (psets.size()<=seqNb) psets.add(null);
-		    psets.set(seqNb,pset);
-		}
-		else
-		    System.err.println("ERROR: no parent for parameter "
-		    	       +id+" "+name+" ("+type+")");
-	    }
-	    
-	    // set PSet parameters
-	    for (Map.Entry<PSetParameter,ArrayList<Parameter> > e : 
-		     psetParams.entrySet()) {
-		PSetParameter        pset   = e.getKey();
-		ArrayList<Parameter> params = e.getValue();
-		int missingCount = 0;
-		Iterator it = params.iterator();
-		while (it.hasNext()) {
-		    Parameter p = (Parameter)it.next();
-		    if (p==null) missingCount++;
-		    else pset.addParameter(p);
-		}
-		if (missingCount>0) {
-		    System.err.println("WARNING: "+missingCount+" parameter(s)"+
-				       " missing from PSet '"+pset.name()+"'");
-		}
-	    }
-
-	    // set VPSet parameters
-	    for (Map.Entry<VPSetParameter,ArrayList<PSetParameter> > e : 
-		     vpsetParams.entrySet()) {
-		VPSetParameter           vpset = e.getKey();
-		ArrayList<PSetParameter> psets = e.getValue();
-		int missingCount = 0;
-		Iterator it = psets.iterator();
-		while (it.hasNext()) {
-		    PSetParameter pset = (PSetParameter)it.next();
-		    if (pset==null) missingCount++;
-		    else vpset.addParameterSet(pset);
-		}
-		if (missingCount>0) {
-		    System.err.println("WARNING: "+missingCount+" pset(s) "+
-				       "missing from VPSet '"+vpset.name()+"'");
-		}
-	    }
-
-	    // set Template parameters
-	    for (Map.Entry<Template,ArrayList<Parameter> > e : 
-		     templateParams.entrySet()) {
-		Template             template = e.getKey();
-		ArrayList<Parameter> params   = e.getValue();
-		int missingCount = 0;
-		Iterator it = params.iterator();
-		while (it.hasNext()) {
-		    Parameter p = (Parameter)it.next();
-		    if (p==null) missingCount++;
-		}
-		if (missingCount>0) {
-		    System.err.println("ERROR: "+missingCount+" parameter(s) "+
-				       "missing from "+template.type()+
-				       " Template '"+template.name()+"'");
+		if (params!=null) {
+		    int missingCount = 0;
+		    Iterator it = params.iterator();
+		    while (it.hasNext()) {
+			Parameter p = (Parameter)it.next();
+			if (p==null) missingCount++;
+		    }
+		    if (missingCount>0) {
+			System.err.println("ERROR: "+missingCount+" parameter(s) "+
+					   "missing from "+template.type()+
+					   " Template '"+template.name()+"'");
+		    }
+		    else {
+			template.setParameters(params);
+			release.addTemplate(template);
+		    }
 		}
 		else {
-		    template.setParameters(params);
 		    release.addTemplate(template);
 		}
 	    }
-
-	    
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
 	}
 	finally {
 	    dbConnector.release(rsTemplates);
-	    dbConnector.release(rsParameters);
-	    dbConnector.release(rsBooleanValues);
-	    dbConnector.release(rsIntValues);
-	    dbConnector.release(rsRealValues);
-	    dbConnector.release(rsStringValues);
 	}
 	
 	release.sortTemplates();
@@ -1555,11 +1356,6 @@ public class ConfDB
 	int     configId = config.dbId();
 
 	ResultSet rsInstances       = null;
-	ResultSet rsParameters      = null;
-	ResultSet rsBooleanValues   = null;
-	ResultSet rsIntValues       = null;
-	ResultSet rsRealValues      = null;
-	ResultSet rsStringValues    = null;
 	ResultSet rsPathEntries     = null;
 	ResultSet rsSequenceEntries = null;
 	ResultSet rsStreamEntries   = null;
@@ -1571,42 +1367,17 @@ public class ConfDB
 	    csLoadConfiguration.executeUpdate();
 
 	    rsInstances       = psSelectInstances.executeQuery();
-	    rsParameters      = psSelectParameters.executeQuery();
-	    rsBooleanValues   = psSelectBooleanValues.executeQuery();
-	    rsIntValues       = psSelectIntValues.executeQuery();
-	    rsRealValues      = psSelectRealValues.executeQuery();
-	    rsStringValues    = psSelectStringValues.executeQuery();
 	    rsPathEntries     = psSelectPathEntries.executeQuery();
 	    rsSequenceEntries = psSelectSequenceEntries.executeQuery();
 	    rsStreamEntries   = psSelectStreamEntries.executeQuery();
 
-
-	    HashMap<Integer,Instance> idToInstances =
-		new HashMap<Integer,Instance>();
-
- 	    HashMap<Integer,PSetParameter> idToPSets =
-		new HashMap<Integer,PSetParameter>();
+	    HashMap<Integer,ArrayList<Parameter> > idToParams = getParameters();
 	    
-	    HashMap<Integer,VPSetParameter> idToVPSets =
-		new HashMap<Integer,VPSetParameter>();
-	    
-	    HashMap<Integer,Path> idToPaths =
-		new HashMap<Integer,Path>();
-
-	    HashMap<Integer,Sequence> idToSequences =
-		new HashMap<Integer,Sequence>();
-	    
-	    HashMap<Integer,Stream> idToStreams =
-		new HashMap<Integer,Stream>();
-	    
-	    HashMap<Instance,ArrayList<Parameter> > instanceParams =
-		new HashMap<Instance,ArrayList<Parameter> >();
-	    
-	    HashMap<PSetParameter,ArrayList<Parameter> > psetParams =
-		new HashMap<PSetParameter,ArrayList<Parameter> >();
-	    
-	    HashMap<VPSetParameter,ArrayList<PSetParameter> > vpsetParams =
-		new HashMap<VPSetParameter,ArrayList<PSetParameter> >();
+	    HashMap<Integer,ModuleInstance> idToModules=
+		new HashMap<Integer,ModuleInstance>();
+	    HashMap<Integer,Path>     idToPaths    =new HashMap<Integer,Path>();
+	    HashMap<Integer,Sequence> idToSequences=new HashMap<Integer,Sequence>();
+	    HashMap<Integer,Stream>   idToStreams  =new HashMap<Integer,Stream>();
 	    
 	    
 	    while (rsInstances.next()) {
@@ -1622,15 +1393,21 @@ public class ConfDB
 		    PSetParameter pset = (PSetParameter)ParameterFactory
 			.create("PSet",instanceName,"",flag,false);
 		    config.insertPSet(pset);
-		    idToPSets.put(id,pset);
-		    psetParams.put(pset,new ArrayList<Parameter>());
+		    ArrayList<Parameter> psetParams = idToParams.remove(id);
+		    if (psetParams!=null) {
+			Iterator it = psetParams.iterator();
+			while (it.hasNext()) {
+			    Parameter p = (Parameter)it.next();
+			    if (p!=null) pset.addParameter(p);
+			}
+		    }
 		}
 		else if (type.equals("EDSource")) {
 		    templateName = release.edsourceTemplateName(templateId);
 		    Instance edsource = config.insertEDSource(templateName);
 		    edsource.setDatabaseId(id);
-		    idToInstances.put(id,edsource);
-		    instanceParams.put(edsource,new ArrayList<Parameter>());
+		    updateInstanceParameters(edsource,idToParams.remove(id));
+		    
 		}
 		else if (type.equals("ESSource")) {
 		    int insertIndex = config.essourceCount();
@@ -1640,8 +1417,7 @@ public class ConfDB
 								      instanceName);
 		    essource.setPreferred(flag);
 		    essource.setDatabaseId(id);
-		    idToInstances.put(id,essource);
-		    instanceParams.put(essource,new ArrayList<Parameter>());
+		    updateInstanceParameters(essource,idToParams.remove(id));
 		}
 		else if (type.equals("ESModule")) {
 		    int insertIndex = config.esmoduleCount();
@@ -1651,8 +1427,7 @@ public class ConfDB
 								      instanceName);
 		    esmodule.setPreferred(flag);
 		    esmodule.setDatabaseId(id);
-		    idToInstances.put(id,esmodule);
-		    instanceParams.put(esmodule,new ArrayList<Parameter>());
+		    updateInstanceParameters(esmodule,idToParams.remove(id));
 		}
 		else if (type.equals("Service")) {
 		    int insertIndex = config.serviceCount();
@@ -1660,17 +1435,15 @@ public class ConfDB
 		    Instance service = config.insertService(insertIndex,
 							    templateName);
 		    service.setDatabaseId(id);
-		    idToInstances.put(id,service);
-		    instanceParams.put(service,new ArrayList<Parameter>());
+		    updateInstanceParameters(service,idToParams.remove(id));
 		}
-		else if (type.equals("Module")&&!idToInstances.containsKey(id)){
-		    int insertIndex = config.moduleCount();
+		else if (type.equals("Module")) {
 		    templateName = release.moduleTemplateName(templateId);
-		    Instance module = config.insertModule(templateName,
-							  instanceName);
+		    ModuleInstance module = config.insertModule(templateName,
+								instanceName);
 		    module.setDatabaseId(id);
-		    idToInstances.put(id,module);
-		    instanceParams.put(module,new ArrayList<Parameter>());
+		    updateInstanceParameters(module,idToParams.remove(id));
+		    idToModules.put(id,module);
 		}
 		else if (type.equals("Path")) {
 		    int  insertIndex = config.pathCount();
@@ -1693,175 +1466,7 @@ public class ConfDB
 		    idToStreams.put(id,stream);
 		}
 	    }
-	    
-	    HashMap<Integer,String> idToValueAsString =
-		new HashMap<Integer,String>();
-	    
-	    while (rsBooleanValues.next()) {
-		int    parameterId   = rsBooleanValues.getInt(1);
-		String valueAsString =
-		    (new Boolean(rsBooleanValues.getBoolean(2))).toString();
-		idToValueAsString.put(parameterId,valueAsString);
-	    }
-	    
-	    while (rsIntValues.next()) {
-		int     parameterId   = rsIntValues.getInt(1);
-		long    value         = rsIntValues.getLong(2);
-		Integer sequenceNb    = new Integer(rsIntValues.getInt(3));
-		boolean isHex         = rsIntValues.getBoolean(4);
-
-		String valueAsString = (isHex) ?
-		    "0x"+Long.toHexString(value) : Long.toString(value);
-		
-		if (sequenceNb!=null&&
-		    idToValueAsString.containsKey(parameterId))
-		    idToValueAsString.put(parameterId,
-					  idToValueAsString.get(parameterId) +
-					  ", "+valueAsString);
-		else
-		    idToValueAsString.put(parameterId,valueAsString);
-	    }
-	    
-	    while (rsRealValues.next()) {
-		int     parameterId   = rsRealValues.getInt(1);
-		double  value         = rsRealValues.getDouble(2);
-		Integer sequenceNb    = new Integer(rsRealValues.getInt(3));
-		String  valueAsString = Double.toString(value);
-		
-		if (sequenceNb!=null&&
-		    idToValueAsString.containsKey(parameterId))
-		    idToValueAsString.put(parameterId,
-					  idToValueAsString.get(parameterId) +
-					  ", "+valueAsString);
-		else
-		    idToValueAsString.put(parameterId,valueAsString);
-	    }
-	    
-	    while (rsStringValues.next()) {
-		int     parameterId   = rsStringValues.getInt(1);
-		String  valueAsString = rsStringValues.getString(2);
-		Integer sequenceNb    = new Integer(rsStringValues.getInt(3));
-
-		if (valueAsString==null)
-		    System.err.println("valueAsString = " + valueAsString);
-		
-		if (sequenceNb!=null&&
-		    idToValueAsString.containsKey(parameterId))
-		    idToValueAsString.put(parameterId,
-					  idToValueAsString.get(parameterId) +
-					  ", "+valueAsString);
-		else idToValueAsString.put(parameterId,valueAsString);
-
-		if (parameterId==9219) System.out.println(parameterId + " " +
-							  valueAsString);
-	    }
-	   
-
-	    while (rsParameters.next()) {
-		int     id       = rsParameters.getInt(1);
-		String  type     = rsParameters.getString(2);
-		String  name     = rsParameters.getString(3);
-		boolean isTrkd   = rsParameters.getBoolean(4);
-		int     seqNb    = rsParameters.getInt(5);
-		int     parentId = rsParameters.getInt(6);
-		
-		String valueAsString = idToValueAsString.remove(id);
-
-		if (name==null)          name         =new String();
-		if (valueAsString==null) valueAsString=new String();
-
-		if (id==9219) {
-		    System.out.println("id="+id+" "+
-				       "parentId=" +parentId);
-		    Instance instance = idToInstances.get(parentId);
-		    System.out.println("instance = " + instance);
-		}
-		
-		Parameter p = ParameterFactory
-		    .create(type,name,valueAsString,isTrkd,false);
-
-		if (type.equals("PSet")) {
-		    PSetParameter pset = (PSetParameter)p;
-		    idToPSets.put(id,pset);
-		    psetParams.put(pset,new ArrayList<Parameter>());
-		}
-		else if (type.equals("VPSet")) {
-		    VPSetParameter vpset = (VPSetParameter)p;
-		    idToVPSets.put(id,vpset);
-		    vpsetParams.put(vpset,new ArrayList<PSetParameter>());
-		}
-		
-		if (idToInstances.containsKey(parentId)) {
-		    Instance instance = idToInstances.get(parentId);
-		    ArrayList<Parameter> params = instanceParams.get(instance);
-		    params.add(p);
-		}
-		else if (idToPSets.containsKey(parentId)) {
-		    PSetParameter pset = idToPSets.get(parentId);
-		    ArrayList<Parameter> params = psetParams.get(pset);
-		    while (params.size()<=seqNb) params.add(null);
-		    params.set(seqNb,p);
-		}
-		else if (idToVPSets.containsKey(parentId)&&
-			 p instanceof PSetParameter) {
-		    VPSetParameter vpset = idToVPSets.get(parentId);
-		    PSetParameter  pset  = (PSetParameter)p;
-		    ArrayList<PSetParameter> psets = vpsetParams.get(vpset);
-		    while (psets.size()<=seqNb) psets.add(null);
-		    psets.set(seqNb,pset);
-		}
-		else
-		    System.err.println("No parent parameter found for "+
-				       id+" "+name+" ("+type+")");
-	    }
-	    
-	    for (Map.Entry<PSetParameter,ArrayList<Parameter> > e : 
-		     psetParams.entrySet()) {
-		PSetParameter        pset   = e.getKey();
-		ArrayList<Parameter> params = e.getValue();
-		int missingCount = 0;
-		Iterator it = params.iterator();
-		while (it.hasNext()) {
-		    Parameter p = (Parameter)it.next();
-		    if (p==null) missingCount++;
-		    else pset.addParameter(p);
-		}
-		if (missingCount>0) {
-		    System.err.println("WARNING: "+missingCount+" parameter(s)"+
-				       " missing from PSet '"+pset.name()+"'");
-		}
-	    }
-
-	    for (Map.Entry<VPSetParameter,ArrayList<PSetParameter> > e : 
-		     vpsetParams.entrySet()) {
-		VPSetParameter           vpset = e.getKey();
-		ArrayList<PSetParameter> psets = e.getValue();
-
-		int missingCount = 0;
-		Iterator it = psets.iterator();
-		while (it.hasNext()) {
-		    PSetParameter pset = (PSetParameter)it.next();
-		    if (pset==null) missingCount++;
-		    else vpset.addParameterSet(pset);
-		}
-		if (missingCount>0) {
-		    System.err.println("WARNING: "+missingCount+" pset(s) "+
-				       "missing from VPSet '"+vpset.name()+"'");
-		}
-	    }
-
-	    for (Map.Entry<Instance,ArrayList<Parameter> > e : 
-		     instanceParams.entrySet()) {
-		Instance             instance = e.getKey();
-		ArrayList<Parameter> params   = e.getValue();
-		Iterator it = params.iterator();
-		while (it.hasNext()) {
-		    Parameter p = (Parameter)it.next();
-		    instance.updateParameter(p.name(),p.type(),
-					     p.valueAsString());
-		}
-	    }
-	    
+ 	    
 	    while (rsSequenceEntries.next()) {
 		int    sequenceId = rsSequenceEntries.getInt(1);
 		int    entryId    = rsSequenceEntries.getInt(2);
@@ -1880,8 +1485,7 @@ public class ConfDB
 		    config.insertSequenceReference(sequence,index,entry);
 		}
 		else if (entryType.equals("Module")) {
-		    ModuleInstance entry =
-			(ModuleInstance)idToInstances.get(entryId);
+		    ModuleInstance entry = (ModuleInstance)idToModules.get(entryId);
 		    config.insertModuleReference(sequence,index,entry);
 		}
 		else
@@ -1912,8 +1516,7 @@ public class ConfDB
 		    config.insertSequenceReference(path,index,entry);
 		}
 		else if (entryType.equals("Module")) {
-		    ModuleInstance entry =
-			(ModuleInstance)idToInstances.get(entryId);
+		    ModuleInstance entry = (ModuleInstance)idToModules.get(entryId);
 		    config.insertModuleReference(path,index,entry);
 		}
 		else
@@ -1927,18 +1530,16 @@ public class ConfDB
 		Path   path     = idToPaths.get(pathId);
 		stream.insertPath(path);
 	    }
-	
+	    
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
 	}
 	finally {
 	    dbConnector.release(rsInstances);
-	    dbConnector.release(rsParameters);
-	    dbConnector.release(rsBooleanValues);
-	    dbConnector.release(rsIntValues);
-	    dbConnector.release(rsRealValues);
-	    dbConnector.release(rsStringValues);
+	    dbConnector.release(rsPathEntries);
+	    dbConnector.release(rsSequenceEntries);
+	    dbConnector.release(rsStreamEntries);
 	}
 	
 	return result;
@@ -2375,7 +1976,7 @@ public class ConfDB
 		psInsertConfigPathAssoc.setInt(1,configId);
 		psInsertConfigPathAssoc.setInt(2,pathId);
 		psInsertConfigPathAssoc.setInt(3,sequenceNb);
-		psInsertConfigPathAssoc.executeUpdate();
+		psInsertConfigPathAssoc.addBatch();
 	    }
 	}
 	catch (SQLException e) {
@@ -2385,6 +1986,15 @@ public class ConfDB
 	finally {
 	    dbConnector.release(rs);
 	}
+
+	try {
+	    psInsertConfigPathAssoc.executeBatch();
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	    throw new DatabaseException("batch insert of paths failed.");
+	}
+	
 	return result;
     }
     
@@ -2420,7 +2030,7 @@ public class ConfDB
 		psInsertConfigSequenceAssoc.setInt(1,configId);
 		psInsertConfigSequenceAssoc.setInt(2,sequenceId);
 		psInsertConfigSequenceAssoc.setInt(3,sequenceNb);
-		psInsertConfigSequenceAssoc.executeUpdate();
+		psInsertConfigSequenceAssoc.addBatch();
 	    }
 	}
 	catch (SQLException e) {
@@ -2430,6 +2040,15 @@ public class ConfDB
 	finally {
 	    dbConnector.release(rs);
 	}
+
+	try {
+	    psInsertConfigSequenceAssoc.executeBatch();
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	    throw new DatabaseException("batch insert of sequences failed.");
+	}
+	
 	return result;
     }
     
@@ -2438,6 +2057,9 @@ public class ConfDB
 	throws DatabaseException
     {
 	HashMap<String,Integer> result = new HashMap<String,Integer>();
+
+	ArrayList<IdInstancePair> modulesToStore =  new ArrayList<IdInstancePair>();
+	
 	for (int i=0;i<config.moduleCount();i++) {
 	    ModuleInstance module     = config.module(i);
 	    int            moduleId   = module.databaseId();
@@ -2451,22 +2073,36 @@ public class ConfDB
 		    psInsertModule.setInt(1,moduleId);
 		    psInsertModule.setInt(2,templateId);
 		    psInsertModule.setString(3,module.name());
-		    psInsertModule.executeUpdate();
+		    psInsertModule.addBatch();
 		    result.put(module.name(),moduleId);
+		    modulesToStore.add(new IdInstancePair(moduleId,module));
 		}
 		catch (SQLException e) {
 		    e.printStackTrace();
 		    throw new DatabaseException("could not store modules.");
 		}
-		
-		if (!insertInstanceParameters(moduleId,module)) {
-		    throw new DatabaseException("could not store parameters for "+
-						"module '"+module.name()+"'");
-		}
-		else module.setDatabaseId(moduleId);
 	    }
 	}
-
+	
+	try {
+	    psInsertModule.executeBatch();
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	    throw new DatabaseException("Batch insert of modules failed.");
+	}
+	
+	Iterator it=modulesToStore.iterator();
+	while (it.hasNext()) {
+	    IdInstancePair pair     = (IdInstancePair)it.next();
+	    int            moduleId = pair.id;
+	    ModuleInstance module   = (ModuleInstance)pair.instance;
+	    if (!insertInstanceParameters(moduleId,module))
+		throw new DatabaseException("could not store parameters for "+
+					    "module '"+module.name()+"'");
+	    else module.setDatabaseId(moduleId);
+	}
+	
 	return result;
     }
     
@@ -2492,7 +2128,7 @@ public class ConfDB
 			    psInsertPathPathAssoc.setInt(1,pathId);
 			    psInsertPathPathAssoc.setInt(2,childPathId);
 			    psInsertPathPathAssoc.setInt(3,sequenceNb);
-			    psInsertPathPathAssoc.executeUpdate();
+			    psInsertPathPathAssoc.addBatch();
 			}
 			catch (SQLException e) {
 			    e.printStackTrace();
@@ -2506,7 +2142,7 @@ public class ConfDB
 			    psInsertPathSequenceAssoc.setInt(1,pathId);
 			    psInsertPathSequenceAssoc.setInt(2,sequenceId);
 			    psInsertPathSequenceAssoc.setInt(3,sequenceNb);
-			    psInsertPathSequenceAssoc.executeUpdate();
+			    psInsertPathSequenceAssoc.addBatch();
 			}
 			catch (SQLException e) {
 			    e.printStackTrace();
@@ -2520,7 +2156,7 @@ public class ConfDB
 			    psInsertPathModuleAssoc.setInt(1,pathId);
 			    psInsertPathModuleAssoc.setInt(2,moduleId);
 			    psInsertPathModuleAssoc.setInt(3,sequenceNb);
-			    psInsertPathModuleAssoc.executeUpdate();
+			    psInsertPathModuleAssoc.addBatch();
 			}
 			catch (SQLException e) {
 			    e.printStackTrace();
@@ -2531,6 +2167,8 @@ public class ConfDB
 		}
 	    }
 	}
+	
+	
 	
 	// sequences
 	for (int i=0;i<config.sequenceCount();i++) {
@@ -2547,7 +2185,7 @@ public class ConfDB
 			    psInsertSequenceSequenceAssoc.setInt(1,sequenceId);
 			    psInsertSequenceSequenceAssoc.setInt(2,childSequenceId);
 			    psInsertSequenceSequenceAssoc.setInt(3,sequenceNb);
-			    psInsertSequenceSequenceAssoc.executeUpdate();
+			    psInsertSequenceSequenceAssoc.addBatch();
 			}
 			catch (SQLException e) {
 			    e.printStackTrace();
@@ -2561,7 +2199,7 @@ public class ConfDB
 			    psInsertSequenceModuleAssoc.setInt(1,sequenceId);
 			    psInsertSequenceModuleAssoc.setInt(2,moduleId);
 			    psInsertSequenceModuleAssoc.setInt(3,sequenceNb);
-			    psInsertSequenceModuleAssoc.executeUpdate();
+			    psInsertSequenceModuleAssoc.addBatch();
 			}
 			catch (SQLException e) {
 			    e.printStackTrace();
@@ -2572,6 +2210,19 @@ public class ConfDB
 		}
 	    }
 	}
+
+	try {
+	    psInsertPathPathAssoc.executeBatch();
+	    psInsertPathSequenceAssoc.executeBatch();
+	    psInsertPathModuleAssoc.executeBatch();
+	    psInsertSequenceSequenceAssoc.executeBatch();
+	    psInsertSequenceModuleAssoc.executeBatch();
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	    throw new DatabaseException("batch insert of path entries failed.");
+	}
+	
     }
     
     /** insert streams */
@@ -2605,7 +2256,7 @@ public class ConfDB
 		try {
 		    psInsertStreamPathAssoc.setInt(1,streamId);
 		    psInsertStreamPathAssoc.setInt(2,pathId);
-		    psInsertStreamPathAssoc.executeUpdate();
+		    psInsertStreamPathAssoc.addBatch();
 		}
 		catch (SQLException e) {
 		    e.printStackTrace();
@@ -2613,6 +2264,14 @@ public class ConfDB
 						"path->stream association(s).");
 		}
 	    }
+	}
+	
+	try {
+	    psInsertStreamPathAssoc.executeBatch();	    
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	    throw new DatabaseException("Batch insert of stream entries failed.");
 	}
     }
 
@@ -2748,6 +2407,186 @@ public class ConfDB
     // private member functions
     //
 
+    /** get values as strings after loading templates/configuration */
+    private HashMap<Integer,ArrayList<Parameter> > getParameters()
+	throws SQLException
+    {
+	HashMap<Integer,ArrayList<Parameter> > idToParameters =
+	    new HashMap<Integer,ArrayList<Parameter> >();
+
+	ResultSet rsParameters    = null;
+	ResultSet rsBooleanValues = null;
+	ResultSet rsIntValues     = null;
+	ResultSet rsRealValues    = null;
+	ResultSet rsStringValues  = null;
+	
+	try {
+	    rsParameters    = psSelectParameters.executeQuery();
+	    rsBooleanValues = psSelectBooleanValues.executeQuery();
+	    rsIntValues     = psSelectIntValues.executeQuery();
+	    rsRealValues    = psSelectRealValues.executeQuery();
+	    rsStringValues  = psSelectStringValues.executeQuery();
+	    
+	    // get values as strings first
+	    HashMap<Integer,String> idToValueAsString =
+		new HashMap<Integer,String>();
+	    
+	    while (rsBooleanValues.next()) {
+		int    parameterId   = rsBooleanValues.getInt(1);
+		String valueAsString =
+		    (new Boolean(rsBooleanValues.getBoolean(2))).toString();
+		idToValueAsString.put(parameterId,valueAsString);
+	    }
+	    
+	    while (rsIntValues.next()) {
+	    int     parameterId   = rsIntValues.getInt(1);
+	    long    value         = rsIntValues.getLong(2);
+	    Integer sequenceNb    = new Integer(rsIntValues.getInt(3));
+	    boolean isHex         = rsIntValues.getBoolean(4);
+	    
+	    String valueAsString = (isHex) ?
+		"0x"+Long.toHexString(value) : Long.toString(value);
+	    
+	    if (sequenceNb!=null&&
+		idToValueAsString.containsKey(parameterId))
+		idToValueAsString.put(parameterId,
+				      idToValueAsString.get(parameterId) +
+				      ", "+valueAsString);
+	    else
+		idToValueAsString.put(parameterId,valueAsString);
+	    }
+	    
+	    while (rsRealValues.next()) {
+		int     parameterId   = rsRealValues.getInt(1);
+		String  valueAsString =
+		(new Double(rsRealValues.getDouble(2))).toString();
+		Integer sequenceNb    = new Integer(rsRealValues.getInt(3));
+		if (sequenceNb!=null&&
+		    idToValueAsString.containsKey(parameterId))
+		    idToValueAsString.put(parameterId,
+					  idToValueAsString.get(parameterId) +
+					  ", "+valueAsString);
+		else
+		    idToValueAsString.put(parameterId,valueAsString);
+	    }
+	    
+	    while (rsStringValues.next()) {
+		int     parameterId   = rsStringValues.getInt(1);
+		String  valueAsString = rsStringValues.getString(2);
+		Integer sequenceNb    = new Integer(rsStringValues.getInt(3));
+		
+		if (sequenceNb!=null&&
+		    idToValueAsString.containsKey(parameterId))
+		    idToValueAsString.put(parameterId,
+					  idToValueAsString.get(parameterId) +
+					  ", "+valueAsString);
+		else idToValueAsString.put(parameterId,valueAsString);
+	    }
+
+	    
+	    ArrayList<IdPSetPair>  psets  = new ArrayList<IdPSetPair>();
+	    ArrayList<IdVPSetPair> vpsets = new ArrayList<IdVPSetPair>();
+
+	    while (rsParameters.next()) {
+		int     id       = rsParameters.getInt(1);
+		String  type     = rsParameters.getString(2);
+		String  name     = rsParameters.getString(3);
+		boolean isTrkd   = rsParameters.getBoolean(4);
+		int     seqNb    = rsParameters.getInt(5);
+		int     parentId = rsParameters.getInt(6);
+		
+		if (name==null) name = "";
+		
+		String valueAsString = idToValueAsString.remove(id);
+		if (valueAsString==null) valueAsString="";
+		
+		Parameter p = ParameterFactory.create(type,name,valueAsString,
+						      isTrkd,true);
+
+		if (type.equals("PSet"))
+		    psets.add(new IdPSetPair(id,(PSetParameter)p));
+		if (type.equals("VPSet"))
+		    vpsets.add(new IdVPSetPair(id,(VPSetParameter)p));
+		
+		ArrayList<Parameter> parameters = null;
+		if (idToParameters.containsKey(parentId))
+		    parameters = idToParameters.get(parentId);
+		else {
+		    parameters = new ArrayList<Parameter>();
+		    idToParameters.put(parentId,parameters);
+		}
+		while (parameters.size()<=seqNb) parameters.add(null);
+		parameters.set(seqNb,p);
+	    }
+	    
+	    Iterator itPSet = psets.iterator();
+	    while (itPSet.hasNext()) {
+		IdPSetPair    pair   = (IdPSetPair)itPSet.next();
+		int           psetId = pair.id;
+		PSetParameter pset   = pair.pset;
+		ArrayList<Parameter> parameters = idToParameters.remove(psetId);
+		if (parameters!=null) {
+		    int missingCount = 0;
+		    Iterator it = parameters.iterator();
+		    while (it.hasNext()) {
+			Parameter p = (Parameter)it.next();
+			if (p==null) missingCount++;
+			else pset.addParameter(p);
+		    }
+		    if (missingCount>0)
+			System.err.println("WARNING: "+missingCount+" parameter(s)"+
+					   " missing from PSet '"+pset.name()+"'");
+		}
+	    }
+
+	    Iterator itVPSet = vpsets.iterator();
+	    while (itVPSet.hasNext()) {
+		IdVPSetPair    pair    = (IdVPSetPair)itVPSet.next();
+		int            vpsetId = pair.id;
+		VPSetParameter vpset   = pair.vpset;
+		ArrayList<Parameter> parameters=idToParameters.remove(vpsetId);
+		if (parameters!=null) {
+		    int missingCount = 0;
+		    Iterator it = parameters.iterator();
+		    while (it.hasNext()) {
+			Parameter p = (Parameter)it.next();
+			if (p==null||!(p instanceof PSetParameter)) missingCount++;
+			else vpset.addParameterSet((PSetParameter)p);
+		    }
+		    if (missingCount>0)
+			System.err.println("WARNING: "+missingCount+" pset(s)"+
+					   " missing from VPSet '"+vpset.name()+"'");
+		}
+	    }
+	    
+	}
+	finally {
+	    dbConnector.release(rsParameters);
+	    dbConnector.release(rsBooleanValues);
+	    dbConnector.release(rsIntValues);
+	    dbConnector.release(rsRealValues);
+	    dbConnector.release(rsStringValues);
+	}
+	
+	
+	return idToParameters;
+    }
+
+    /** set parameters of an instance */
+    private void updateInstanceParameters(Instance instance,
+					  ArrayList<Parameter> parameters)
+    {
+	if (parameters==null) return;
+	int id = instance.databaseId();
+	Iterator it = parameters.iterator();
+	while (it.hasNext()) {
+	    Parameter p = (Parameter)it.next();
+	    if (p==null) continue;
+	    instance.updateParameter(p.name(),p.type(),p.valueAsString());
+	}
+	instance.setDatabaseId(id);
+    }
+    
     /** insert parameter-set into ParameterSets table */
     private boolean insertVecParameterSet(int            superId,
 					  int            sequenceNb,
@@ -3187,4 +3026,39 @@ public class ConfDB
 	return result;
     }
     
+}
+
+
+// helper classes
+class IdInstancePair
+{
+    public int      id;
+    public Instance instance;
+    IdInstancePair(int id, Instance instance)
+    {
+	this.id       = id;
+	this.instance = instance;
+    }
+}
+
+class IdPSetPair
+{
+    public int           id;
+    public PSetParameter pset;
+    IdPSetPair(int id, PSetParameter pset)
+    {
+	this.id   = id;
+	this.pset = pset;
+    }
+}
+
+class IdVPSetPair
+{
+    public int            id;
+    public VPSetParameter vpset;
+    IdVPSetPair(int id, VPSetParameter vpset)
+    {
+	this.id    = id;
+	this.vpset = vpset;
+    }
 }

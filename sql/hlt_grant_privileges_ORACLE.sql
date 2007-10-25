@@ -148,7 +148,6 @@ GRANT SELECT  ON tmp_string_table               TO cms_hlt_writer;
 GRANT SELECT  ON tmp_path_entries               TO cms_hlt_writer;
 GRANT SELECT  ON tmp_sequence_entries           TO cms_hlt_writer;
 GRANT SELECT  ON tmp_stream_entries             TO cms_hlt_writer;
-GRANT SELECT  ON parameter_sequence             TO cms_hlt_writer;
 
 
 
@@ -247,4 +246,3 @@ GRANT SELECT  ON tmp_string_table               TO cms_hlt_reader;
 GRANT SELECT  ON tmp_path_entries               TO cms_hlt_reader;
 GRANT SELECT  ON tmp_sequence_entries           TO cms_hlt_reader;
 GRANT SELECT  ON tmp_stream_entries             TO cms_hlt_reader;
-GRANT SELECT  ON parameter_sequence             TO cms_hlt_reader;

@@ -11,20 +11,9 @@ DROP PROCEDURE IF EXISTS load_configuration;
 DROP PROCEDURE IF EXISTS load_parameters;
 DROP PROCEDURE IF EXISTS load_parameter_value;
 
--- TO BE REMOVED
-DROP PROCEDURE IF EXISTS get_parameters;
-DROP PROCEDURE IF EXISTS get_boolean_values;
-DROP PROCEDURE IF EXISTS get_int_values;
-DROP PROCEDURE IF EXISTS get_real_values;
-DROP PROCEDURE IF EXISTS get_string_values;
-DROP PROCEDURE IF EXISTS get_path_entries;
-DROP PROCEDURE IF EXISTS get_sequence_entries;
-DROP PROCEDURE IF EXISTS get_stream_entries;
-
 
 -- set delimiter to '//'
 DELIMITER //
-
 
 
 --
@@ -133,14 +122,12 @@ BEGIN
     /* temporary parameter table */
     CREATE TEMPORARY TABLE tmp_parameter_table
     (
-      sequence_nb       BIGINT UNSIGNED AUTO_INCREMENT,
       parameter_id	BIGINT UNSIGNED,
       parameter_type    CHAR(64),
       parameter_name    CHAR(128),
       parameter_trkd    BOOLEAN,
       parameter_seqnb   INT,
-      parent_id         BIGINT UNSIGNED,
-      PRIMARY KEY(sequence_nb)
+      parent_id         BIGINT UNSIGNED
     );
 
     /* temporary bool parameter-value table */
@@ -341,14 +328,12 @@ BEGIN
     /* temporary parameter table */
     CREATE TEMPORARY TABLE tmp_parameter_table
     (
-      sequence_nb	BIGINT UNSIGNED AUTO_INCREMENT,
       parameter_id	BIGINT UNSIGNED,
       parameter_type    CHAR(64),
       parameter_name    CHAR(128),
       parameter_trkd    BOOLEAN,
       parameter_seqnb   INT,
-      parent_id         BIGINT UNSIGNED,
-      PRIMARY KEY(sequence_nb)
+      parent_id         BIGINT UNSIGNED
     );
 
     /* temporary bool parameter-value table */
@@ -587,14 +572,12 @@ BEGIN
     /* temporary parameter table */
     CREATE TEMPORARY TABLE tmp_parameter_table
     (
-      sequence_nb	BIGINT UNSIGNED AUTO_INCREMENT,
       parameter_id	BIGINT UNSIGNED,
       parameter_type    CHAR(64),
       parameter_name    CHAR(128),
       parameter_trkd    BOOLEAN,
       parameter_seqnb   INT,
-      parent_id         BIGINT UNSIGNED,
-      PRIMARY KEY(sequence_nb)
+      parent_id         BIGINT UNSIGNED
     );
 
     /* temporary bool parameter-value table */
@@ -957,14 +940,12 @@ BEGIN
     /* temporary parameter table */
     CREATE TEMPORARY TABLE tmp_parameter_table
     (
-      sequence_nb	BIGINT UNSIGNED AUTO_INCREMENT,
       parameter_id	BIGINT UNSIGNED,
       parameter_type    CHAR(64),
       parameter_name    CHAR(128),
       parameter_trkd    BOOLEAN,
       parameter_seqnb   INT,
-      parent_id         BIGINT UNSIGNED,
-      PRIMARY KEY(sequence_nb)
+      parent_id         BIGINT UNSIGNED
     );
 
     /* temporary bool parameter-value table */
@@ -1279,8 +1260,6 @@ BEGIN
          v_parameter_name,v_parameter_trkd,v_parameter_seqnb;
   WHILE done=FALSE DO
     INSERT INTO tmp_parameter_table
-      (parameter_id,parameter_type,parameter_name,
-       parameter_trkd,parameter_seqnb,parent_id)
       VALUES(v_parameter_id,v_parameter_type,
              v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id);
     CALL load_parameter_value(v_parameter_id,v_parameter_type);
@@ -1297,8 +1276,6 @@ BEGIN
     INTO v_parameter_id,v_parameter_name,v_parameter_trkd,v_parameter_seqnb;
   WHILE done=FALSE DO
     INSERT INTO tmp_parameter_table
-      (parameter_id,parameter_type,parameter_name,
-       parameter_trkd,parameter_seqnb,parent_id)
       VALUES(v_parameter_id,'PSet',
              v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id);
     CALL load_parameters(v_parameter_id);
@@ -1316,8 +1293,6 @@ BEGIN
          v_parameter_name,v_parameter_trkd,v_parameter_seqnb;
   WHILE done=FALSE DO
     INSERT INTO tmp_parameter_table
-      (parameter_id,parameter_type,parameter_name,
-       parameter_trkd,parameter_seqnb,parent_id)
       VALUES(v_parameter_id,'VPSet',
              v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id);
     CALL load_parameters(v_parameter_id);

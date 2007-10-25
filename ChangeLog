@@ -1,3 +1,19 @@
+2007-10-25  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-12-00
+	* significantly improved db access performance, mainly due to the
+	use of stored procedures and temporary tables
+	* many parser patches, plus untracked parameters are not updated
+	according to *.cfi files anymore
+	* introduction of IConfiguration and ConfigurationModifier,
+	converter/gui were partially migrated, but it isn't used much yet
+	* ConverterEngine added
+	* 'war' target added to build.xml, allows deployment to webserver
+	(see README)
+	* read-only operations now enabled for locked configurations
+	* es_prefer is now considered for ESModules and ESSources
+		
+
 2007-10-08  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-11-05
