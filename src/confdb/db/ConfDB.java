@@ -844,13 +844,14 @@ public class ConfDB
 	    
 	    psSelectParameters =
 		dbConnector.getConnection().prepareStatement
-		("SELECT" +
+		("SELECT DISTINCT" +
 		 " parameter_id," +
 		 " parameter_type," +
 		 " parameter_name," +
 		 " parameter_trkd," +
 		 " parameter_seqnb," +
-		 " parent_id " +
+		 " parent_id," +
+		 " sequence_nb " +
 		 "FROM tmp_parameter_table "+
 		 "ORDER BY sequence_nb ASC");
 	    psSelectParameters.setFetchSize(4096);
@@ -872,7 +873,8 @@ public class ConfDB
 		 " parameter_value," +
 		 " sequence_nb," +
 		 " hex " +
-		 "FROM tmp_int_table");
+		 "FROM tmp_int_table " +
+		 "ORDER BY sequence_nb ASC");
 	    psSelectIntValues.setFetchSize(2048);
 	    preparedStatements.add(psSelectIntValues);
 	    
@@ -882,7 +884,8 @@ public class ConfDB
 		 " parameter_id," +
 		 " parameter_value," +
 		 " sequence_nb " +
-		 "FROM tmp_real_table");
+		 "FROM tmp_real_table " +
+		 "ORDER BY sequence_nb");
 	    psSelectRealValues.setFetchSize(2048);
 	    preparedStatements.add(psSelectRealValues);
 	    
@@ -892,7 +895,8 @@ public class ConfDB
 		 " parameter_id," +
 		 " parameter_value," +
 		 " sequence_nb " +
-		 "FROM tmp_string_table");
+		 "FROM tmp_string_table " +
+		 "ORDER BY sequence_nb ASC");
 	    psSelectStringValues.setFetchSize(2048);
 	    preparedStatements.add(psSelectStringValues);
 	    
@@ -1298,7 +1302,7 @@ public class ConfDB
 		    (new Boolean(rsBooleanValues.getBoolean(2))).toString();
 		idToValueAsString.put(parameterId,valueAsString);
 	    }
-
+	    
 	    while (rsIntValues.next()) {
 		int     parameterId   = rsIntValues.getInt(1);
 		long    value         = rsIntValues.getLong(2);
@@ -1335,6 +1339,7 @@ public class ConfDB
 		int     parameterId   = rsStringValues.getInt(1);
 		String  valueAsString = rsStringValues.getString(2);
 		Integer sequenceNb    = new Integer(rsStringValues.getInt(3));
+
 		if (sequenceNb!=null&&
 		    idToValueAsString.containsKey(parameterId))
 		    idToValueAsString.put(parameterId,
@@ -1343,6 +1348,7 @@ public class ConfDB
 		else idToValueAsString.put(parameterId,valueAsString);
 	    }
 	    
+
 	    HashMap<Integer,Parameter> parentIdToParams =
 		new HashMap<Integer,Parameter>();
 	    
@@ -1366,8 +1372,12 @@ public class ConfDB
 		int     seqNb    = rsParameters.getInt(5);
 		int     parentId = rsParameters.getInt(6);
 		
+		if (name==null) name = new String();
+		
 		String valueAsString = idToValueAsString.remove(id);
+
 		if (valueAsString==null) valueAsString=new String();
+		
 		Parameter p = ParameterFactory
 		    .create(type,name,valueAsString,isTrkd,true);
 		
@@ -1574,9 +1584,6 @@ public class ConfDB
 	    HashMap<Integer,Instance> idToInstances =
 		new HashMap<Integer,Instance>();
 
-	    HashMap<Integer,Parameter> idToParameters =
-		new HashMap<Integer,Parameter>();
-
  	    HashMap<Integer,PSetParameter> idToPSets =
 		new HashMap<Integer,PSetParameter>();
 	    
@@ -1734,12 +1741,19 @@ public class ConfDB
 		int     parameterId   = rsStringValues.getInt(1);
 		String  valueAsString = rsStringValues.getString(2);
 		Integer sequenceNb    = new Integer(rsStringValues.getInt(3));
+
+		if (valueAsString==null)
+		    System.err.println("valueAsString = " + valueAsString);
+		
 		if (sequenceNb!=null&&
 		    idToValueAsString.containsKey(parameterId))
 		    idToValueAsString.put(parameterId,
 					  idToValueAsString.get(parameterId) +
 					  ", "+valueAsString);
 		else idToValueAsString.put(parameterId,valueAsString);
+
+		if (parameterId==9219) System.out.println(parameterId + " " +
+							  valueAsString);
 	    }
 	   
 
@@ -1752,7 +1766,16 @@ public class ConfDB
 		int     parentId = rsParameters.getInt(6);
 		
 		String valueAsString = idToValueAsString.remove(id);
+
+		if (name==null)          name         =new String();
 		if (valueAsString==null) valueAsString=new String();
+
+		if (id==9219) {
+		    System.out.println("id="+id+" "+
+				       "parentId=" +parentId);
+		    Instance instance = idToInstances.get(parentId);
+		    System.out.println("instance = " + instance);
+		}
 		
 		Parameter p = ParameterFactory
 		    .create(type,name,valueAsString,isTrkd,false);
@@ -1813,6 +1836,7 @@ public class ConfDB
 		     vpsetParams.entrySet()) {
 		VPSetParameter           vpset = e.getKey();
 		ArrayList<PSetParameter> psets = e.getValue();
+
 		int missingCount = 0;
 		Iterator it = psets.iterator();
 		while (it.hasNext()) {

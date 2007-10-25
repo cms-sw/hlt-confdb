@@ -41,3 +41,21 @@ source /usr/lib/oracle/xe/app/oracle/product/10.2.0/server/bin/oracle_env.[c]sh
 - setenv TNS_ADMIN $ORACLE_HOME/network/admin
 
 python ConfdbSourceToDB.py -r CMSSW_X_Y_Z [-p /path/to/CMSSW_X_Y_Z] -u <username> -s <pwd> -o XE -t Oracle
+
+
+------------------------
+Deployment to Web Server
+------------------------
+
+(1) http://webservices.cern.ch/
+
+    -> Manage my web sites
+
+(2) login using your user name / passwd
+
+    -> http://cern.ch/cms-project-confdb-hltdev
+
+    -> Deploy application
+
+    -> browse : select war to upload
+    -> Upload file

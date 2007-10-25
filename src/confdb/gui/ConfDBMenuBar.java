@@ -118,7 +118,7 @@ public class ConfDBMenuBar implements ActionListener
 	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(true);
 	configMenuOpenItem.setEnabled(true);
 	dbMenuDisconnectItem.setEnabled(true);
-	dbMenuCreateTemplatesItem.setEnabled(true);
+	//dbMenuCreateTemplatesItem.setEnabled(true);
     }
     
     /** no database connection is established */
@@ -129,7 +129,7 @@ public class ConfDBMenuBar implements ActionListener
 	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(false);
 	configMenuOpenItem.setEnabled(false);
 	dbMenuDisconnectItem.setEnabled(false);
-	dbMenuCreateTemplatesItem.setEnabled(false);
+	//dbMenuCreateTemplatesItem.setEnabled(false);
     }
 
     /** populate the menu bar with all menus and their items */
@@ -192,9 +192,9 @@ public class ConfDBMenuBar implements ActionListener
 	dbMenuExportItem = new JMenuItem(dbMenuExportConfig,KeyEvent.VK_E);
 	dbMenuExportItem.addActionListener(this);
 	dbMenu.add(dbMenuExportItem);
-	dbMenuCreateTemplatesItem=new JMenuItem(dbMenuCreateTemplates,KeyEvent.VK_T);
-	dbMenuCreateTemplatesItem.addActionListener(this);
-	dbMenu.add(dbMenuCreateTemplatesItem);
+	//dbMenuCreateTemplatesItem=new JMenuItem(dbMenuCreateTemplates,KeyEvent.VK_T);
+	//dbMenuCreateTemplatesItem.addActionListener(this);
+	//dbMenu.add(dbMenuCreateTemplatesItem);
     }
     
     /** ActionListener callback to handle each and every menu commands */
@@ -230,7 +230,7 @@ public class ConfDBMenuBar implements ActionListener
 	if (command.equals(dbMenuConnectToDB))      app.connectToDatabase();
 	if (command.equals(dbMenuDisconnectFromDB)) app.disconnectFromDatabase();
 	if (command.equals(dbMenuExportConfig))     app.exportConfiguration();
-	if (command.equals(dbMenuCreateTemplates))  app.createTemplates();
+	//if (command.equals(dbMenuCreateTemplates))  app.createTemplates();
     }
 
 }
