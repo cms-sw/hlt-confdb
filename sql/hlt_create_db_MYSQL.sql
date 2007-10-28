@@ -22,7 +22,7 @@ CREATE TABLE SoftwareReleases
 -- TABLE 'SoftwareSubsystems'
 CREATE TABLE SoftwareSubsystems
 (
-	subsysId	BIGINT UNSIGNED	  NOT NULL UNIQUE,
+	subsysId	BIGINT UNSIGNED	  NOT NULL AUTO_INCREMENT UNIQUE,
 	name		VARCHAR(64)	  NOT NULL,
 	PRIMARY KEY(subsysId)
 ) ENGINE=INNODB;
@@ -30,7 +30,7 @@ CREATE TABLE SoftwareSubsystems
 -- TABLE 'SoftwarePackages'
 CREATE TABLE SoftwarePackages
 (
-	packageId	BIGINT UNSIGNED	  NOT NULL UNIQUE,
+	packageId	BIGINT UNSIGNED	  NOT NULL AUTO_INCREMENT UNIQUE,
 	subsysId	BIGINT UNSIGNED	  NOT NULL,
 	name		VARCHAR(64)	  NOT NULL,
 	PRIMARY KEY(packageId),
