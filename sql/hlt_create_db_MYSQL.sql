@@ -207,8 +207,10 @@ CREATE TABLE ServiceTemplates
 	superId  	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	name       	VARCHAR(128)      NOT NULL,
 	cvstag       	VARCHAR(32)       NOT NULL,
+	packageId       BIGINT UNSIGNED   NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 ) ENGINE=INNODB;
 
 -- TABLE 'Services'
@@ -244,8 +246,10 @@ CREATE TABLE EDSourceTemplates
 	superId  	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	name       	VARCHAR(128)      NOT NULL,
 	cvstag       	VARCHAR(32)       NOT NULL,
+	packageId	BIGINT UNSIGNED	  NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 ) ENGINE=INNODB;
 
 -- TABLE 'EDSources'
@@ -282,8 +286,10 @@ CREATE TABLE ESSourceTemplates
 	superId  	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	name       	VARCHAR(128)      NOT NULL,
 	cvstag       	VARCHAR(32)       NOT NULL,
+	packageId	BIGINT UNSIGNED	  NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 ) ENGINE=INNODB;
 
 -- TABLE 'ESSources'
@@ -321,8 +327,10 @@ CREATE TABLE ESModuleTemplates
 	superId  	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	name       	VARCHAR(128)      NOT NULL,
 	cvstag       	VARCHAR(32)       NOT NULL,
+	packageId	BIGINT UNSIGNED	  NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 ) ENGINE=INNODB;
 
 -- TABLE 'ESModules'
@@ -370,9 +378,11 @@ CREATE TABLE ModuleTemplates
 	typeId  	BIGINT UNSIGNED   NOT NULL,
 	name       	VARCHAR(128)      NOT NULL,
 	cvstag       	VARCHAR(32)       NOT NULL,
+	packageId	BIGINT UNSIGNED	  NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
-	FOREIGN KEY(typeId)  REFERENCES ModuleTypes(typeId)
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(typeId)    REFERENCES ModuleTypes(typeId),
+	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 ) ENGINE=INNODB;
 
 -- TABLE 'Modules'

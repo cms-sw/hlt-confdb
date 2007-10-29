@@ -398,8 +398,10 @@ CREATE TABLE ServiceTemplates
 	superId  	NUMBER,
 	name       	VARCHAR2(128)	NOT NULL,
 	cvstag       	VARCHAR2(32)	NOT NULL,
+	packageId	NUMBER		NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 );
 
 
@@ -451,8 +453,10 @@ CREATE TABLE EDSourceTemplates
 	superId  	NUMBER,
 	name       	VARCHAR2(128)	NOT NULL,
 	cvstag       	VARCHAR2(32)	NOT NULL,
+	packageId	NUMBER		NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 );
 
 
@@ -504,8 +508,10 @@ CREATE TABLE ESSourceTemplates
 	superId  	NUMBER,
 	name       	VARCHAR2(128)	NOT NULL,
 	cvstag       	VARCHAR2(32)	NOT NULL,
+	packageId	NUMBER		NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 );
 
 
@@ -559,8 +565,10 @@ CREATE TABLE ESModuleTemplates
 	superId  	NUMBER,
 	name       	VARCHAR2(128)	NOT NULL,
 	cvstag       	VARCHAR2(32)	NOT NULL,
+	packageId	NUMBER		NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 );
 
 
@@ -626,9 +634,11 @@ CREATE TABLE ModuleTemplates
 	typeId  	NUMBER		NOT NULL,
 	name       	VARCHAR2(128)	NOT NULL,
 	cvstag       	VARCHAR2(32)	NOT NULL,
+	packageId	NUMBER		NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
-	FOREIGN KEY(typeId)  REFERENCES ModuleTypes(typeId)
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(typeId)    REFERENCES ModuleTypes(typeId),
+	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 );
 
 -- INDEX ModuleTemplatesTypeId_idx
