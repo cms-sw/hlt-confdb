@@ -3,7 +3,7 @@
 # ConfdbSQLModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (MySQL version). All MySQL specific code belongs here.
-# Jonathan Hollar LLNL Oct. 4, 2007
+# Jonathan Hollar LLNL Oct. 28, 2007
 
 import os, string, sys, posix, tokenize, array
 
@@ -1866,12 +1866,43 @@ class ConfdbMySQLModuleLoader:
 
     # End ConfdbAttachParameterSets
 
-#    # Update a ParameterSet/VParameterSet if necessary
-#    def ConfdbUpdateParameterSets(self,thecursor,oldsuperid,newsuperid,paramsets,vecparamsets):
-#	print "TBD"
+    # Add package and subsystem information
+    def ConfdbInsertPackageSubsystem(self,thecursor,thecomponent,thesubsystem,thepackage,thecomponenttype):
+	if(self.verbose > 2):
+	    print "SELECT SoftwareSubsystems.subsysId FROM SoftwareSubsystems WHERE (SoftwareSubsystems.name = '" + thesubsystem + "')"
 
-    # End ConfdbUpdateParameterSets
+	# Insert the subsystem if it doesn't yet exist
+	thecursor.execute("SELECT SoftwareSubsystems.subsysId FROM SoftwareSubsystems WHERE (SoftwareSubsystems.name = '" + thesubsystem + "')")
+	subsys = thecursor.fetchone()
+	if(subsys):
+	    subsys = subsys[0]
 
+	if(subsys == None):
+	    if(self.verbose > 2):
+		print "INSERT INTO SoftwareSubsystems (name) VALUES ('" + str(thesubsystem) + "')"
+
+	    thecursor.execute("INSERT INTO SoftwareSubsystems (name) VALUES ('" + str(thesubsystem) + "')")
+	    thecursor.execute("SELECT LAST_INSERT_ID()")
+	    subsys = thecursor.fetchone()
+	    if(subsys):
+		subsys = subsys[0]
+
+#	thecursor.execute("SELECT SoftwarePackages.packageId FROM SoftwarePackages WHERE (SoftwarePackages.subsysId = " + str(subsys) + ")")
+	if(self.verbose > 2):
+	    print "SELECT SoftwarePackages.packageId FROM SoftwarePackages WHERE (SoftwarePackages.name = '" + str(thepackage) + "')"
+	thecursor.execute("SELECT SoftwarePackages.packageId FROM SoftwarePackages WHERE (SoftwarePackages.name = '" + str(thepackage) + "')")
+
+	pack = thecursor.fetchone()
+
+	if(pack):
+	    pack = pack[0]
+
+	if(pack == None):
+	    if(self.verbose > 2):
+		print "INSERT INTO SoftwarePackages (name,subsysId) VALUES ('" + str(thepackage) + "', " + str(subsys) + ")"
+
+	    thecursor.execute("INSERT INTO SoftwarePackages (name,subsysId) VALUES ('" + str(thepackage) + "', " + str(subsys) + ")")
+	    
     # Utility function for adding a new parameter 
     def AddNewParam(self,thecursor,sid,pname,ptype,ptracked,pseq):
 	if(self.verbose > 2):

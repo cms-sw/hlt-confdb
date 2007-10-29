@@ -4,7 +4,7 @@
 # Main file for parsing source code in a CMSSW release and
 # loading module templates to the Conf DB.
 # 
-# Jonathan Hollar LLNL Aug. 16, 2007
+# Jonathan Hollar LLNL Oct. 28, 2007
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
@@ -550,8 +550,8 @@ class ConfdbSourceToDB:
                     cvscotaglines = cvscotagfile.readlines()
                     for cvscotagline in cvscotaglines:
                         tagline = cvscotagline
-                        if(tagline.startswith('N')):
-                            tagline = tagline.split('N')[1]
+                        if(tagline.startswith('N')): 
+                            tagline = tagline.split('N')[1] 
                         print "Will enter component with CVS tag " + tagline
                 else:
                     tagline = ""
@@ -692,6 +692,8 @@ class ConfdbSourceToDB:
 			print "Error: No module base class at all for " + modulename + ". Module will not be loaded"
 			self.baseclasserrors.append(modulename + "\t(in " + packagename +")")
 
+		self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,modulename,packagename.split('/')[0].lstrip().rstrip(),packagename.split('/')[1].lstrip().rstrip(),componenttype)
+
 	    # This is a Service. Use the ServiceTemplate
 	    elif(componenttype == 2):
 		if(self.noload == True):
@@ -706,6 +708,8 @@ class ConfdbSourceToDB:
 		else:
 		    # If not, make a new template
 		    self.dbloader.ConfdbLoadNewServiceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
+
+		self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,modulename,packagename.split('/')[0].lstrip().rstrip(),packagename.split('/')[1].lstrip().rstrip(),componenttype)
 
 	    # This is an ES_Source. Use the ESSourceTemplate
 	    elif(componenttype == 3):
@@ -722,6 +726,8 @@ class ConfdbSourceToDB:
 		    # If not, make a new template
 		    self.dbloader.ConfdbLoadNewESSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
 
+		self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,modulename,packagename.split('/')[0].lstrip().rstrip(),packagename.split('/')[1].lstrip().rstrip(),componenttype)
+
 	    # This is an ED_Source. Use the EDSourceTemplate
 	    elif(componenttype == 4):
 		if(self.noload == True):
@@ -736,6 +742,8 @@ class ConfdbSourceToDB:
 		else:
 		    # If not, make a new template
 		    self.dbloader.ConfdbLoadNewEDSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
+
+		self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,modulename,packagename.split('/')[0].lstrip().rstrip(),packagename.split('/')[1].lstrip().rstrip(),componenttype)
 
 	    # This is an ES_Module. Use the ESModuleTemplate
 	    elif(componenttype == 5):
@@ -752,6 +760,7 @@ class ConfdbSourceToDB:
 		    # If not, make a new template
 		    self.dbloader.ConfdbLoadNewESModuleTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
 
+		self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,modulename,packagename.split('/')[0].lstrip().rstrip(),packagename.split('/')[1].lstrip().rstrip(),componenttype)
 
 	    # Display any cases where we ran into trouble
 	    myParser.ShowParamFailures()
