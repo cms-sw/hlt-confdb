@@ -3,7 +3,7 @@
 # ConfdbOracleModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (Oracle version). All Oracle specific code belongs here.
-# Jonathan Hollar LLNL Oct. 4, 2007
+# Jonathan Hollar LLNL Oct. 28, 2007
 
 import os, string, sys, posix, tokenize, array
 
@@ -1940,6 +1940,43 @@ class ConfdbOracleModuleLoader:
 #	print "TBD"
 
     # End ConfdbUpdateParameterSets
+
+    # Add package and subsystem information
+    def ConfdbInsertPackageSubsystem(self,thecursor,thecomponent,thesubsystem,thepackage,thecomponenttype):
+        if(self.verbose > 2):
+            print "SELECT SoftwareSubsystems.subsysId FROM SoftwareSubsystems WHERE (SoftwareSubsystems.name = '" + thesubsystem + "')"
+
+        # Insert the subsystem if it doesn't yet exist
+        thecursor.execute("SELECT SoftwareSubsystems.subsysId FROM SoftwareSubsystems WHERE (SoftwareSubsystems.name = '" + thesubsystem + "')")
+        subsys = thecursor.fetchone()
+        if(subsys):
+            subsys = subsys[0]
+
+        if(subsys == None):
+            if(self.verbose > 2):
+                print "INSERT INTO SoftwareSubsystems (name) VALUES ('" + str(thesubsystem) + "')"
+
+            thecursor.execute("INSERT INTO SoftwareSubsystems (name) VALUES ('" + str(thesubsystem) + "')")
+#            thecursor.execute("SELECT LAST_INSERT_ID()")
+	    thecursor.execute("SELECT subsysId FROM SoftwareSubsystems ORDER BY subsysId DESC")
+            subsys = thecursor.fetchone()
+            if(subsys):
+                subsys = subsys[0]
+
+        if(self.verbose > 2):
+            print "SELECT SoftwarePackages.packageId FROM SoftwarePackages WHERE (SoftwarePackages.name = '" + str(thepackage) + "')"
+        thecursor.execute("SELECT SoftwarePackages.packageId FROM SoftwarePackages WHERE (SoftwarePackages.name = '" + str(thepackage) + "')")
+
+        pack = thecursor.fetchone()
+
+        if(pack):
+            pack = pack[0]
+
+        if(pack == None):
+            if(self.verbose > 2):
+                print "INSERT INTO SoftwarePackages (name,subsysId) VALUES ('" + str(thepackage) + "', " + str(subsys) + ")"
+
+            thecursor.execute("INSERT INTO SoftwarePackages (name,subsysId) VALUES ('" + str(thepackage) + "', " + str(subsys) + ")")
 
     # Utility function for adding a new parameter 
     def AddNewParam(self,thecursor,sid,pname,ptype,ptracked,pseq):
