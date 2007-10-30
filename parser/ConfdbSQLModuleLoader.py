@@ -3,7 +3,7 @@
 # ConfdbSQLModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (MySQL version). All MySQL specific code belongs here.
-# Jonathan Hollar LLNL Oct. 28, 2007
+# Jonathan Hollar LLNL Oct. 30, 2007
 
 import os, string, sys, posix, tokenize, array
 
@@ -171,7 +171,7 @@ class ConfdbMySQLModuleLoader:
         return esmodsuperid
                
     # Create a new module template in the DB
-    def ConfdbLoadNewModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbLoadNewModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -195,9 +195,9 @@ class ConfdbMySQLModuleLoader:
             print 'This module does not exist in the release. Will ADD from the specified test release'
 
 	# Now create a new module
-	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')")
+	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')"
+	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')"
 	
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -207,7 +207,7 @@ class ConfdbMySQLModuleLoader:
     # End ConfdbLoadNewModuleTemplate
 	
     # Create a new service template in the DB
-    def ConfdbLoadNewServiceTemplate(self,thecursor,servclassname,servcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbLoadNewServiceTemplate(self,thecursor,servclassname,servcvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	self.fwknew = self.fwknew + 1
 
@@ -226,9 +226,9 @@ class ConfdbMySQLModuleLoader:
             print 'This service does not exist in the release. Will ADD from the specified test release'
 
 	# Now create a new service
-	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "')")
+	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO ServiceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "')"
+	    print "INSERT INTO ServiceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "', '" + str(softpackageid) + "')"
 	
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -238,7 +238,7 @@ class ConfdbMySQLModuleLoader:
     # End ConfdbLoadNewServiceTemplate
 
     # Create a new es_source template in the DB
-    def ConfdbLoadNewESSourceTemplate(self,thecursor,srcclassname,srccvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbLoadNewESSourceTemplate(self,thecursor,srcclassname,srccvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -257,9 +257,9 @@ class ConfdbMySQLModuleLoader:
             print 'This es_source does not exist in the release. Will ADD from the specified test release'
 
 	# Now create a new es_source
-	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
+	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO ESSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')"
+	    print "INSERT INTO ESSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')"
 	
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -269,7 +269,7 @@ class ConfdbMySQLModuleLoader:
     # End ConfdbLoadNewESSourceTemplate
 
     # Create a new ed_source template in the DB
-    def ConfdbLoadNewEDSourceTemplate(self,thecursor,srcclassname,srccvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbLoadNewEDSourceTemplate(self,thecursor,srcclassname,srccvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -288,9 +288,9 @@ class ConfdbMySQLModuleLoader:
             print 'This ed_source does not exist in the release. Will ADD from the specified test release'
 
 	# Now create a new ed_source
-	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
+	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO EDSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')"
+	    print "INSERT INTO EDSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')"
 	
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -300,7 +300,7 @@ class ConfdbMySQLModuleLoader:
     # End ConfdbLoadNewEDSourceTemplate
 
     # Create a new es_module template in the DB
-    def ConfdbLoadNewESModuleTemplate(self,thecursor,modclassname,modcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbLoadNewESModuleTemplate(self,thecursor,modclassname,modcvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -319,9 +319,9 @@ class ConfdbMySQLModuleLoader:
             print 'This es_module does not exist in the release. Will ADD from the specified test release'
 
 	# Now create a new module
-	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag + "')")
+	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", " + modclassname + "', '" + modcvstag + "')"
+	    print "INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')"
 	
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -332,7 +332,7 @@ class ConfdbMySQLModuleLoader:
 
     # Given a component, update parameters that have changed from the 
     # templated version
-    def ConfdbUpdateModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbUpdateModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	# Get the SuperId of the previous version of this template
 	thecursor.execute("SELECT ModuleTemplates.superId, ModuleTemplates.cvstag FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modclassname + "') ORDER BY ModuleTemplates.superId DESC")
@@ -370,9 +370,9 @@ class ConfdbMySQLModuleLoader:
 	modbaseclassid = self.modtypedict[modbaseclass]
 
 	# Now create a new module
-	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')")
+	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')"
+	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')"
 
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
@@ -383,7 +383,7 @@ class ConfdbMySQLModuleLoader:
 
     # Given a component, update parameters that have changed from the 
     # templated version
-    def ConfdbUpdateServiceTemplate(self,thecursor,servclassname,servcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbUpdateServiceTemplate(self,thecursor,servclassname,servcvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	# Get the SuperId of the previous version of this template
 	thecursor.execute("SELECT ServiceTemplates.superId, ServiceTemplates.cvstag FROM ServiceTemplates WHERE (ServiceTemplates.name = '" + servclassname + "') ORDER BY ServiceTemplates.superId DESC")
@@ -413,12 +413,12 @@ class ConfdbMySQLModuleLoader:
 	thecursor.execute("INSERT INTO SuperIds VALUE();")
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 	newsuperid = (thecursor.fetchall()[0])[0]
-	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
+	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + "', '" + str(softpackageid) + ")")
 
 	print 'New service has ' + str(newsuperid) + ' ' + servcvstag
 
 	# Now create a new service
-	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '"  + servclassname + "', '" + servcvstag + "')")
+	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '"  + servclassname + "', '" + servcvstag + "', '" + str(softpackageid) + "')")
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
@@ -429,7 +429,7 @@ class ConfdbMySQLModuleLoader:
 
     # Given a component, update parameters that have changed from the 
     # templated version
-    def ConfdbUpdateESSourceTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbUpdateESSourceTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	# Get the SuperId of the previous version of this template
 	thecursor.execute("SELECT ESSourceTemplates.superId, ESSourceTemplates.cvstag FROM ESSourceTemplates WHERE (ESSourceTemplates.name = '" + sourceclassname + "') ORDER BY ESSourceTemplates.superId DESC")
@@ -443,7 +443,7 @@ class ConfdbMySQLModuleLoader:
 	if((oldtag == sourcecvstag) and (self.addtorel != 1)):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this source is unchanged - attach old template to new release'
-	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
+	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + "', '" + str(softpackageid) + ")")
 	    return
 
         if(self.addtorel == 1):
@@ -462,7 +462,7 @@ class ConfdbMySQLModuleLoader:
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Now create a new source
-	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "')")
+	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "')")
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
@@ -473,7 +473,7 @@ class ConfdbMySQLModuleLoader:
 
     # Given a component, update parameters that have changed from the 
     # templated version
-    def ConfdbUpdateEDSourceTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbUpdateEDSourceTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	# Get the SuperId of the previous version of this template
 	thecursor.execute("SELECT EDSourceTemplates.superId, EDSourceTemplates.cvstag FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + sourceclassname + "') ORDER BY EDSourceTemplates.superId DESC")
@@ -506,7 +506,7 @@ class ConfdbMySQLModuleLoader:
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Now create a new source
-	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "')")
+	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "', '" + str(softpackageid) + "')")
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
@@ -517,7 +517,7 @@ class ConfdbMySQLModuleLoader:
 
     # Given a component, update parameters that have changed from the 
     # templated version
-    def ConfdbUpdateESModuleTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbUpdateESModuleTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	# Get the SuperId of the previous version of this template
 	thecursor.execute("SELECT ESModuleTemplates.superId, ESModuleTemplates.cvstag FROM ESModuleTemplates WHERE (ESModuleTemplates.name = '" + sourceclassname + "') ORDER BY ESModuleTemplates.superId DESC")
@@ -550,7 +550,7 @@ class ConfdbMySQLModuleLoader:
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Now create a new source
-	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "')")
+	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "', '" + str(softpackageid) + "')")
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
@@ -1867,7 +1867,7 @@ class ConfdbMySQLModuleLoader:
     # End ConfdbAttachParameterSets
 
     # Add package and subsystem information
-    def ConfdbInsertPackageSubsystem(self,thecursor,thecomponent,thesubsystem,thepackage,thecomponenttype):
+    def ConfdbInsertPackageSubsystem(self,thecursor,thesubsystem,thepackage):
 	if(self.verbose > 2):
 	    print "SELECT SoftwareSubsystems.subsysId FROM SoftwareSubsystems WHERE (SoftwareSubsystems.name = '" + thesubsystem + "')"
 
@@ -1902,6 +1902,12 @@ class ConfdbMySQLModuleLoader:
 		print "INSERT INTO SoftwarePackages (name,subsysId) VALUES ('" + str(thepackage) + "', " + str(subsys) + ")"
 
 	    thecursor.execute("INSERT INTO SoftwarePackages (name,subsysId) VALUES ('" + str(thepackage) + "', " + str(subsys) + ")")
+	    thecursor.execute("SELECT LAST_INSERT_ID()")
+	    pack = thecursor.fetchone()
+	    if(pack):
+	        pack = pack[0]
+
+	return pack
 	    
     # Utility function for adding a new parameter 
     def AddNewParam(self,thecursor,sid,pname,ptype,ptracked,pseq):

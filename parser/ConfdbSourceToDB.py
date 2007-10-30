@@ -4,7 +4,7 @@
 # Main file for parsing source code in a CMSSW release and
 # loading module templates to the Conf DB.
 # 
-# Jonathan Hollar LLNL Oct. 28, 2007
+# Jonathan Hollar LLNL Oct. 30, 2007
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
@@ -634,6 +634,10 @@ class ConfdbSourceToDB:
 	try:
 	    # OK, now we know the module, it's base class, it's parameters, and their
 	    # default values. Start updating the database if necessary
+	    
+	    # First enter the package & subsystem information
+	    packageid = self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,packagename.split('/')[0].lstrip().rstrip(),packagename.split('/')[1].lstrip().rstrip())
+
 	    if(componenttype == 1):
 		
 		# Make sure we recognize the base class of this module
@@ -653,10 +657,10 @@ class ConfdbSourceToDB:
 			if(modid):
 			    # If so, see if parameters need to be updated
 			    print "***UPDATING MODULE " + modulename + "***"
-			    self.dbloader.ConfdbUpdateModuleTemplate(self.dbcursor,modulename,modulebaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+			    self.dbloader.ConfdbUpdateModuleTemplate(self.dbcursor,modulename,modulebaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist,packageid)
 			else:
 			    # If not, make a new template
-			    self.dbloader.ConfdbLoadNewModuleTemplate(self.dbcursor,modulename,modulebaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+			    self.dbloader.ConfdbLoadNewModuleTemplate(self.dbcursor,modulename,modulebaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist,packageid)
 
 
 		# This is an unknown base class. See if it really inherits from something
@@ -681,18 +685,16 @@ class ConfdbSourceToDB:
 				if(modid):
 				    # If so, see if parameters need to be updated
 				    print "***UPDATING MODULE " + modulename + "***"
-				    self.dbloader.ConfdbUpdateModuleTemplate(self.dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+				    self.dbloader.ConfdbUpdateModuleTemplate(self.dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist,packageid)
 				else:
 				    # If not, make a new template
-				    self.dbloader.ConfdbLoadNewModuleTemplate(self.dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+				    self.dbloader.ConfdbLoadNewModuleTemplate(self.dbcursor,modulename,therealbaseclass,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist,packageid)
 			else:
 			    print  "Message: Unknown module base class " + modulebaseclass + ":" + therealbaseclass + ". Module will not be loaded."
 			    self.unknownbaseclasses.append(modulename + "\t(in " + packagename + ") has base class: " +  modulebaseclass)
 		    else:
 			print "Error: No module base class at all for " + modulename + ". Module will not be loaded"
 			self.baseclasserrors.append(modulename + "\t(in " + packagename +")")
-
-		self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,modulename,packagename.split('/')[0].lstrip().rstrip(),packagename.split('/')[1].lstrip().rstrip(),componenttype)
 
 	    # This is a Service. Use the ServiceTemplate
 	    elif(componenttype == 2):
@@ -704,12 +706,10 @@ class ConfdbSourceToDB:
 		if(servid):
 		    # If so, see if parameters need to be updated
 		    print "***UPDATING SERVICE " + modulename + "***"
-		    self.dbloader.ConfdbUpdateServiceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+		    self.dbloader.ConfdbUpdateServiceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist,packageid)
 		else:
 		    # If not, make a new template
-		    self.dbloader.ConfdbLoadNewServiceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
-
-		self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,modulename,packagename.split('/')[0].lstrip().rstrip(),packagename.split('/')[1].lstrip().rstrip(),componenttype)
+		    self.dbloader.ConfdbLoadNewServiceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist,packageid)	
 
 	    # This is an ES_Source. Use the ESSourceTemplate
 	    elif(componenttype == 3):
@@ -721,12 +721,10 @@ class ConfdbSourceToDB:
 		if(sourceid):
 		    # If so, see if parameters need to be updated
 		    print "***UPDATING " + modulename + "***"
-		    self.dbloader.ConfdbUpdateESSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+		    self.dbloader.ConfdbUpdateESSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist,packageid)
 		else:
 		    # If not, make a new template
-		    self.dbloader.ConfdbLoadNewESSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
-
-		self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,modulename,packagename.split('/')[0].lstrip().rstrip(),packagename.split('/')[1].lstrip().rstrip(),componenttype)
+		    self.dbloader.ConfdbLoadNewESSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist,packageid)	
 
 	    # This is an ED_Source. Use the EDSourceTemplate
 	    elif(componenttype == 4):
@@ -738,12 +736,10 @@ class ConfdbSourceToDB:
 		if(sourceid):
 		    # If so, see if parameters need to be updated
 		    print "***UPDATING EDSOURCE " + modulename + "***"
-		    self.dbloader.ConfdbUpdateEDSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+		    self.dbloader.ConfdbUpdateEDSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist,packageid)
 		else:
 		    # If not, make a new template
-		    self.dbloader.ConfdbLoadNewEDSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
-
-		self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,modulename,packagename.split('/')[0].lstrip().rstrip(),packagename.split('/')[1].lstrip().rstrip(),componenttype)
+		    self.dbloader.ConfdbLoadNewEDSourceTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist,packageid)	
 
 	    # This is an ES_Module. Use the ESModuleTemplate
 	    elif(componenttype == 5):
@@ -755,12 +751,10 @@ class ConfdbSourceToDB:
 		if(sourceid):
 		    # If so, see if parameters need to be updated
 		    print "***UPDATING ESMODULE" + modulename + "***"
-		    self.dbloader.ConfdbUpdateESModuleTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)
+		    self.dbloader.ConfdbUpdateESModuleTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist,packageid)
 		else:
 		    # If not, make a new template
-		    self.dbloader.ConfdbLoadNewESModuleTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist)	
-
-		self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,modulename,packagename.split('/')[0].lstrip().rstrip(),packagename.split('/')[1].lstrip().rstrip(),componenttype)
+		    self.dbloader.ConfdbLoadNewESModuleTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist,packageid)	
 
 	    # Display any cases where we ran into trouble
 	    myParser.ShowParamFailures()
