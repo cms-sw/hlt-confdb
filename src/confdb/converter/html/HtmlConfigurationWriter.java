@@ -159,7 +159,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 		if ( nspaces >= maxSpaces )
 			spacer = spaces;
 		else
-			spaces.substring(0, nspaces );
+			spacer = spaces.substring(0, nspaces );
 
 		String firstLine = line.substring( 0, split + 2 );
 		String secondLine = wrapLine( spacer + line.substring( split + 2 ), separator, nspaces);
