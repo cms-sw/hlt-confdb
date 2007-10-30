@@ -24,7 +24,8 @@ import confdb.data.ServiceInstance;
 public class HtmlConfigurationWriter implements IConfigurationWriter 
 {
 	protected ConverterEngine converterEngine = null;
-	private static final String spaces = "                                                   ";
+	private static final String spaces = "                                                                       ";
+	private static final int maxSpaces = spaces.length();
 
 	public String toString( IConfiguration conf, WriteProcess writeProcess )
 	{
@@ -154,7 +155,11 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 		int split = line.lastIndexOf( separator, converterEngine.getMaxLineLength() );
 		if ( split <= 0 )
 			return line;
-		String spacer = spaces.substring(0, nspaces );
+		String spacer = null;
+		if ( nspaces >= maxSpaces )
+			spacer = spaces;
+		else
+			spaces.substring(0, nspaces );
 
 		String firstLine = line.substring( 0, split + 2 );
 		String secondLine = wrapLine( spacer + line.substring( split + 2 ), separator, nspaces);
