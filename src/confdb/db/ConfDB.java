@@ -2879,7 +2879,7 @@ public class ConfDB
 	ResultSet rs = null;
 	try {
 	    psSelectReleaseTagForConfig.setInt(1,configId);
-	    rs = psSelectReleaseTag.executeQuery();
+	    rs = psSelectReleaseTagForConfig.executeQuery();
 	    if (rs.next()) result = rs.getString(1);
 	}
 	catch (SQLException e) {
