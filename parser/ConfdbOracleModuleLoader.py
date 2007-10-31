@@ -3,7 +3,7 @@
 # ConfdbOracleModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (Oracle version). All Oracle specific code belongs here.
-# Jonathan Hollar LLNL Oct. 28, 2007
+# Jonathan Hollar LLNL Oct. 31, 2007
 
 import os, string, sys, posix, tokenize, array
 
@@ -173,7 +173,7 @@ class ConfdbOracleModuleLoader:
         return esmodsuperid
                
     # Create a  new module template in the DB
-    def ConfdbLoadNewModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbLoadNewModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -197,9 +197,9 @@ class ConfdbOracleModuleLoader:
 
 	# Now create a new module
 	if(self.verbose > 2):
-	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')"
+	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')"
             
-	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')")
+	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')")
 
 	
 	# Now deal with parameters
@@ -210,7 +210,7 @@ class ConfdbOracleModuleLoader:
     # End ConfdbLoadNewModuleTemplate
 	
     # Create a new service template in the DB
-    def ConfdbLoadNewServiceTemplate(self,thecursor,servclassname,servcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbLoadNewServiceTemplate(self,thecursor,servclassname,servcvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	self.fwknew = self.fwknew + 1
 
@@ -230,9 +230,9 @@ class ConfdbOracleModuleLoader:
             print 'This service does not exist in the release. Will ADD from the specified test release'
 
 	# Now create a new service
-	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "')")
+	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO ServiceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "')"
+	    print "INSERT INTO ServiceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "', '" + str(softpackageid) + "')"
 	
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -242,7 +242,7 @@ class ConfdbOracleModuleLoader:
     # End ConfdbLoadNewServiceTemplate
 
     # Create a new es_source template in the DB
-    def ConfdbLoadNewESSourceTemplate(self,thecursor,srcclassname,srccvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbLoadNewESSourceTemplate(self,thecursor,srcclassname,srccvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -262,9 +262,9 @@ class ConfdbOracleModuleLoader:
             print 'This es_source does not exist in the release. Will ADD from the specified test release'
 
 	# Now create a new es_source
-	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
+	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO ESSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')"
+	    print "INSERT INTO ESSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')"
 	
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -274,7 +274,7 @@ class ConfdbOracleModuleLoader:
     # End ConfdbLoadNewESSourceTemplate
 
     # Create a new ed_source template in the DB
-    def ConfdbLoadNewEDSourceTemplate(self,thecursor,srcclassname,srccvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbLoadNewEDSourceTemplate(self,thecursor,srcclassname,srccvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -294,9 +294,9 @@ class ConfdbOracleModuleLoader:
             print 'This ed_source does not exist in the release. Will ADD from the specified test release'
 
 	# Now create a new es_source
-	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
+	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO EDSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')"
+	    print "INSERT INTO EDSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')"
 	
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -306,7 +306,7 @@ class ConfdbOracleModuleLoader:
     # End ConfdbLoadNewEDSourceTemplate
 
     # Create a new es_module template in the DB
-    def ConfdbLoadNewESModuleTemplate(self,thecursor,modclassname,modcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbLoadNewESModuleTemplate(self,thecursor,modclassname,modcvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -327,8 +327,8 @@ class ConfdbOracleModuleLoader:
 
 	# Now create a new module
         if(self.verbose > 2):
-            print "INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", " + modclassname + "', '" + modcvstag + "')"
-	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag + "')")
+            print "INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')"
+	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')")
 	
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -339,7 +339,7 @@ class ConfdbOracleModuleLoader:
 
     # Given a component, update parameters that have changed from the 
     # templated version
-    def ConfdbUpdateModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbUpdateModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	# Get the SuperId of the previous version of this template
 	thecursor.execute("SELECT ModuleTemplates.superId, ModuleTemplates.cvstag FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modclassname + "') ORDER BY ModuleTemplates.superId DESC")
@@ -379,9 +379,9 @@ class ConfdbOracleModuleLoader:
 	modbaseclassid = self.modtypedict[modbaseclass]
 
 	# Now create a new module
-	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')")
+	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')"
+	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')"
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
@@ -392,7 +392,7 @@ class ConfdbOracleModuleLoader:
 
     # Given a component, update parameters that have changed from the 
     # templated version
-    def ConfdbUpdateServiceTemplate(self,thecursor,servclassname,servcvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbUpdateServiceTemplate(self,thecursor,servclassname,servcvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	# Get the SuperId of the previous version of this template
 	thecursor.execute("SELECT ServiceTemplates.superId, ServiceTemplates.cvstag FROM ServiceTemplates WHERE (ServiceTemplates.name = '" + servclassname + "') ORDER BY ServiceTemplates.superId DESC")
@@ -429,7 +429,7 @@ class ConfdbOracleModuleLoader:
 	print 'New service has ' + str(newsuperid) + ' ' + servcvstag
 
 	# Now create a new service
-	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '"  + servclassname + "', '" + servcvstag + "')")
+	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '"  + servclassname + "', '" + servcvstag + "', '" + str(softpackageid) + "')")
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
@@ -440,7 +440,7 @@ class ConfdbOracleModuleLoader:
 
     # Given a component, update parameters that have changed from the 
     # templated version
-    def ConfdbUpdateESSourceTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbUpdateESSourceTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	# Get the SuperId of the previous version of this template
 	thecursor.execute("SELECT ESSourceTemplates.superId, ESSourceTemplates.cvstag FROM ESSourceTemplates WHERE (ESSourceTemplates.name = '" + sourceclassname + "') ORDER BY ESSourceTemplates.superId DESC")
@@ -475,7 +475,7 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Now create a new source
-	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "')")
+	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "', '" + str(softpackageid) + "')")
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
@@ -486,7 +486,7 @@ class ConfdbOracleModuleLoader:
 
     # Given a component, update parameters that have changed from the 
     # templated version
-    def ConfdbUpdateEDSourceTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbUpdateEDSourceTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	# Get the SuperId of the previous version of this template
 	thecursor.execute("SELECT EDSourceTemplates.superId, EDSourceTemplates.cvstag FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + sourceclassname + "') ORDER BY EDSourceTemplates.superId DESC")
@@ -521,7 +521,7 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Now create a new source
-	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "')")
+	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "', '" + str(softpackageid) + "')")
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
@@ -532,7 +532,7 @@ class ConfdbOracleModuleLoader:
 
     # Given a component, update parameters that have changed from the 
     # templated version
-    def ConfdbUpdateESModuleTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets):
+    def ConfdbUpdateESModuleTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	# Get the SuperId of the previous version of this template
 	thecursor.execute("SELECT ESModuleTemplates.superId, ESModuleTemplates.cvstag FROM ESModuleTemplates WHERE (ESModuleTemplates.name = '" + sourceclassname + "') ORDER BY ESModuleTemplates.superId DESC")
@@ -567,7 +567,7 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Now create a new module
-	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "')")
+	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "', '" + str(softpackageid) + "')")
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
@@ -1935,14 +1935,8 @@ class ConfdbOracleModuleLoader:
 
     # End ConfdbAttachParameterSets
 
-#    # Update a ParameterSet/VParameterSet if necessary
-#    def ConfdbUpdateParameterSets(self,thecursor,oldsuperid,newsuperid,paramsets,vecparamsets):
-#	print "TBD"
-
-    # End ConfdbUpdateParameterSets
-
     # Add package and subsystem information
-    def ConfdbInsertPackageSubsystem(self,thecursor,thecomponent,thesubsystem,thepackage,thecomponenttype):
+    def ConfdbInsertPackageSubsystem(self,thecursor,thesubsystem,thepackage):
         if(self.verbose > 2):
             print "SELECT SoftwareSubsystems.subsysId FROM SoftwareSubsystems WHERE (SoftwareSubsystems.name = '" + thesubsystem + "')"
 
@@ -1977,6 +1971,12 @@ class ConfdbOracleModuleLoader:
                 print "INSERT INTO SoftwarePackages (name,subsysId) VALUES ('" + str(thepackage) + "', " + str(subsys) + ")"
 
             thecursor.execute("INSERT INTO SoftwarePackages (name,subsysId) VALUES ('" + str(thepackage) + "', " + str(subsys) + ")")
+	    thecursor.execute("SELECT packageId FROM SoftwarePackages ORDER BY packageId DESC")
+	    pack = thecursor.fetchone()
+	    if(pack):
+	        pack = pack[0]
+
+	return pack
 
     # Utility function for adding a new parameter 
     def AddNewParam(self,thecursor,sid,pname,ptype,ptracked,pseq):
