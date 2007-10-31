@@ -1958,9 +1958,9 @@ class ConfdbOracleModuleLoader:
                 subsys = subsys[0]
 
         if(self.verbose > 2):
-            print "SELECT SoftwarePackages.packageId FROM SoftwarePackages WHERE (SoftwarePackages.name = '" + str(thepackage) + "')"
-        thecursor.execute("SELECT SoftwarePackages.packageId FROM SoftwarePackages WHERE (SoftwarePackages.name = '" + str(thepackage) + "')")
-
+            print "SELECT SoftwarePackages.packageId FROM SoftwarePackages JOIN SoftwareSubsystems ON (SoftwarePackages.subsysId = " + str(subsys) + ") WHERE (SoftwarePackages.name = '" + str(thepackage) + "')"
+        thecursor.execute("SELECT SoftwarePackages.packageId FROM SoftwarePackages JOIN SoftwareSubsystems ON (SoftwarePackages.subsysId = " + str(subsys) + ") WHERE (SoftwarePackages.name = '" + str(thepackage) + "')")
+                               
         pack = thecursor.fetchone()
 
         if(pack):

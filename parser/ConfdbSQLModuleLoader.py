@@ -1887,11 +1887,10 @@ class ConfdbMySQLModuleLoader:
 	    if(subsys):
 		subsys = subsys[0]
 
-#	thecursor.execute("SELECT SoftwarePackages.packageId FROM SoftwarePackages WHERE (SoftwarePackages.subsysId = " + str(subsys) + ")")
-	if(self.verbose > 2):
-	    print "SELECT SoftwarePackages.packageId FROM SoftwarePackages WHERE (SoftwarePackages.name = '" + str(thepackage) + "')"
-	thecursor.execute("SELECT SoftwarePackages.packageId FROM SoftwarePackages WHERE (SoftwarePackages.name = '" + str(thepackage) + "')")
-
+        if(self.verbose > 2):
+            print "SELECT SoftwarePackages.packageId FROM SoftwarePackages JOIN SoftwareSubsystems ON (SoftwarePackages.subsysId = " + str(subsys) + ") WHERE (SoftwarePackages.name = '" + str(thepackage) + "')"
+        thecursor.execute("SELECT SoftwarePackages.packageId FROM SoftwarePackages JOIN SoftwareSubsystems ON (SoftwarePackages.subsysId = " + str(subsys) + ") WHERE (SoftwarePackages.name = '" + str(thepackage) + "')")
+                                
 	pack = thecursor.fetchone()
 
 	if(pack):
