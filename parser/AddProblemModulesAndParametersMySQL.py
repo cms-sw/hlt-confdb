@@ -2,7 +2,7 @@
 
 # AddProblemModulesAndParametersMySQL.py
 # Patch for ConfDB problems (MySQL version)
-# Jonathan Hollar LLNL Sept. 14, 2007
+# Jonathan Hollar LLNL Nov. 1, 2007
 
 import os, string, sys, posix, tokenize, array, getopt
 
@@ -78,46 +78,61 @@ def main(argv):
 	    baseclass = problemline.split()[1]
 	    componenttable = "ModuleTemplates"
 #	    print "Baseclass is " + baseclass
+
+	    packageid = myFixer.ConfdbInsertPackageSubsystem(cursor,problemline.split()[3].lstrip().rstrip(),problemline.split()[4].lstrip().rstrip())
+
 	    componentsuperid = myFixer.ConfdbCheckModuleExistence(cursor,baseclass,currentcomponent,"")
 	    if(componentsuperid == 0):
 #		print "Add module"
-		componentsuperid = myFixer.ConfdbLoadNewModuleTemplate(cursor,currentcomponent,baseclass,modcvstag)
+		componentsuperid = myFixer.ConfdbLoadNewModuleTemplate(cursor,currentcomponent,baseclass,modcvstag,packageid)
 #	    else:
 #		print "Module exists"
 	elif(problemline.split()[0] == "Service"):
 	    currentcomponent = problemline.split()[1]
 	    componenttable = "ServiceTemplates"
+
+	    packageid = myFixer.ConfdbInsertPackageSubsystem(cursor,problemline.split()[2].lstrip().rstrip(),problemline.split()[3].lstrip().rstrip())
+
 	    componentsuperid = myFixer.ConfdbCheckServiceExistence(cursor,currentcomponent,"")
 	    if(componentsuperid == 0):
 #		print "Add service"
-		componentsuperid = myFixer.ConfdbLoadNewServiceTemplate(cursor,currentcomponent,modcvstag)
+		componentsuperid = myFixer.ConfdbLoadNewServiceTemplate(cursor,currentcomponent,modcvstag,packageid)
 #	    else:
 #		print "Service exists"
 	elif(problemline.split()[0] == "ESSource"):
 	    currentcomponent = problemline.split()[1]
 	    componenttable = "ESSourceTemplates"
+
+	    packageid = myFixer.ConfdbInsertPackageSubsystem(cursor,problemline.split()[2].lstrip().rstrip(),problemline.split()[3].lstrip().rstrip())
+
 	    componentsuperid = myFixer.ConfdbCheckESSourceExistence(cursor,currentcomponent,"")
 	    if(componentsuperid == 0):
 #		print "Add Source"
-		componentsuperid = myFixer.ConfdbLoadNewESSourceTemplate(cursor,currentcomponent,modcvstag)
+		componentsuperid = myFixer.ConfdbLoadNewESSourceTemplate(cursor,currentcomponent,modcvstag,packageid)
 #	    else:
 #		print "Source exists"
 	elif(problemline.split()[0] == "EDource"):
 	    currentcomponent = problemline.split()[1]
 	    componenttable = "EDSourceTemplates"
+
+	    packageid = myFixer.ConfdbInsertPackageSubsystem(cursor,problemline.split()[2].lstrip().rstrip(),problemline.split()[3].lstrip().rstrip())
+
 	    componentsuperid = myFixer.ConfdbCheckEDSourceExistence(cursor,currentcomponent,"")
 	    if(componentsuperid == 0):
 #		print "Add EDSource"
-		componentsuperid = myFixer.ConfdbLoadEDSourceTemplate(cursor,currentcomponent,modcvstag)
+		componentsuperid = myFixer.ConfdbLoadEDSourceTemplate(cursor,currentcomponent,modcvstag,packageid)
 #	    else:
 #		print "EDSource exists"
 	elif(problemline.split()[0] == "ESModule"):
 	    currentcomponent = problemline.split()[1]
 	    componenttable = "ESModuleTemplates"
+
+	    packageid = myFixer.ConfdbInsertPackageSubsystem(cursor,problemline.split()[2].lstrip().rstrip(),problemline.split()[3].lstrip().rstrip())
+
 	    componentsuperid = myFixer.ConfdbCheckESModuleExistence(cursor,currentcomponent,"")
 	    if(componentsuperid == 0):
 #		print "Add ESModule"
-		componentsuperid = myFixer.ConfdbLoadNewESModuleTemplate(cursor,currentcomponent,modcvstag)
+		componentsuperid = myFixer.ConfdbLoadNewESModuleTemplate(cursor,currentcomponent,modcvstag,packageid)
 #	    else:
 #		print "ESModule exists"
 	else:
@@ -321,7 +336,7 @@ class AddProblemModulesAndParametersMySQL:
         return esmodsuperid
                
     # Create a new module template in the DB
-    def ConfdbLoadNewModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag):
+    def ConfdbLoadNewModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,softpackageid):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -340,9 +355,9 @@ class AddProblemModulesAndParametersMySQL:
 	modbaseclassid = self.modtypedict[modbaseclass]
 
 	# Now create a new module
-	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')")
+	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag +  "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "')"
+	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag +  "', '" + str(softpackageid) + "')"
 	
 	# Now deal with parameters
 #	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -353,7 +368,7 @@ class AddProblemModulesAndParametersMySQL:
     # End ConfdbLoadNewModuleTemplate
 	
     # Create a new service template in the DB
-    def ConfdbLoadNewServiceTemplate(self,thecursor,servclassname,servcvstag):
+    def ConfdbLoadNewServiceTemplate(self,thecursor,servclassname,servcvstag,softpackageid):
 
 	self.fwknew = self.fwknew + 1
 
@@ -369,9 +384,9 @@ class AddProblemModulesAndParametersMySQL:
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Now create a new service
-	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "')")
+	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag +  "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO ServiceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "')"
+	    print "INSERT INTO ServiceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag +  "', '" + str(softpackageid) + "')"
 	
 	# Now deal with parameters
 #	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -382,7 +397,7 @@ class AddProblemModulesAndParametersMySQL:
     # End ConfdbLoadNewServiceTemplate
 
     # Create a new es_source template in the DB
-    def ConfdbLoadNewESSourceTemplate(self,thecursor,srcclassname,srccvstag):
+    def ConfdbLoadNewESSourceTemplate(self,thecursor,srcclassname,srccvstag,softpackageid):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -398,9 +413,9 @@ class AddProblemModulesAndParametersMySQL:
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Now create a new es_source
-	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
+	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag +  "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO ESSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')"
+	    print "INSERT INTO ESSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag +  "', '" + str(softpackageid) + "')"
 	
 	# Now deal with parameters
 #	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -411,7 +426,7 @@ class AddProblemModulesAndParametersMySQL:
     # End ConfdbLoadNewESSourceTemplate
 
     # Create a new ed_source template in the DB
-    def ConfdbLoadNewEDSourceTemplate(self,thecursor,srcclassname,srccvstag):
+    def ConfdbLoadNewEDSourceTemplate(self,thecursor,srcclassname,srccvstag,softpackageid):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -427,9 +442,9 @@ class AddProblemModulesAndParametersMySQL:
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Now create a new es_source
-	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')")
+	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag +  "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO EDSourceTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "')"
+	    print "INSERT INTO EDSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag +  "', '" + str(softpackageid) + "')"
 	
 	# Now deal with parameters
 #	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -440,7 +455,7 @@ class AddProblemModulesAndParametersMySQL:
     # End ConfdbLoadNewEDSourceTemplate
 
     # Create a new es_module template in the DB
-    def ConfdbLoadNewESModuleTemplate(self,thecursor,modclassname,modcvstag):
+    def ConfdbLoadNewESModuleTemplate(self,thecursor,modclassname,modcvstag,softpackageid):
 	
 	self.fwknew = self.fwknew + 1
 
@@ -456,9 +471,9 @@ class AddProblemModulesAndParametersMySQL:
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Now create a new module
-	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag + "')")
+	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag +  "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO ESModuleTemplates (superId, name, cvstag) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag + "')"
+	    print "INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag +  "', '" + str(softpackageid) + "')"
 	
 	# Now deal with parameters
 #	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -1016,6 +1031,52 @@ class AddProblemModulesAndParametersMySQL:
 		    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", '" + vpsetval + "')")
 
     # End ConfdbAttachParameterSets
+
+    # Add package and subsystem information
+    def ConfdbInsertPackageSubsystem(self,thecursor,thesubsystem,thepackage):
+	if(self.verbose > 2):
+	    print "SELECT SoftwareSubsystems.subsysId FROM SoftwareSubsystems WHERE (SoftwareSubsystems.name = '" + thesubsystem + "')"
+
+	# Insert the subsystem if it doesn't yet exist
+	thecursor.execute("SELECT SoftwareSubsystems.subsysId FROM SoftwareSubsystems WHERE (SoftwareSubsystems.name = '" + thesubsystem + "')")
+	subsys = thecursor.fetchone()
+	if(subsys):
+	    subsys = subsys[0]
+
+	if(subsys == None):
+	    if(self.verbose > 2):
+		print "INSERT INTO SoftwareSubsystems (name) VALUES ('" + str(thesubsystem) + "')"
+
+	    thecursor.execute("INSERT INTO SoftwareSubsystems (name) VALUES ('" + str(thesubsystem) + "')")
+	    thecursor.execute("SELECT LAST_INSERT_ID()")
+	    subsys = thecursor.fetchone()
+	    if(subsys):
+		subsys = subsys[0]
+
+	print "Subsys ID = " + str(subsys)
+
+	if(self.verbose > 2):
+	    print "SELECT SoftwarePackages.packageId FROM SoftwarePackages JOIN SoftwareSubsystems ON (SoftwarePackages.subsysId = " + str(subsys) + ") WHERE (SoftwarePackages.name = '" + str(thepackage) + "')"
+	thecursor.execute("SELECT SoftwarePackages.packageId FROM SoftwarePackages JOIN SoftwareSubsystems ON (SoftwarePackages.subsysId = " + str(subsys) + ") WHERE (SoftwarePackages.name = '" + str(thepackage) + "')")
+
+	pack = thecursor.fetchone()
+
+	if(pack):
+	    pack = pack[0]
+
+	print "Package ID = " + str(pack)
+
+	if(pack == None):
+	    if(self.verbose > 2):
+		print "INSERT INTO SoftwarePackages (name,subsysId) VALUES ('" + str(thepackage) + "', " + str(subsys) + ")"
+
+	    thecursor.execute("INSERT INTO SoftwarePackages (name,subsysId) VALUES ('" + str(thepackage) + "', " + str(subsys) + ")")
+	    thecursor.execute("SELECT LAST_INSERT_ID()")
+	    pack = thecursor.fetchone()
+	    if(pack):
+	        pack = pack[0]
+
+	return pack
 
     # Utility function for adding a new parameter 
     def AddNewParam(self,thecursor,sid,pname,ptype,ptracked,pseq):

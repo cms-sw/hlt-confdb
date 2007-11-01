@@ -443,7 +443,7 @@ class ConfdbMySQLModuleLoader:
 	if((oldtag == sourcecvstag) and (self.addtorel != 1)):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this source is unchanged - attach old template to new release'
-	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + "', '" + str(softpackageid) + ")")
+	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
 	    return
 
         if(self.addtorel == 1):
