@@ -23,6 +23,9 @@ abstract public class Template extends DatabaseEntry implements Comparable<Templ
     /** cvs tag of the template */
     protected String cvsTag = null;
 
+    /** parent software package */
+    private SoftwarePackage parentPackage = null;
+
     /** parameters of this template */
     private ArrayList<Parameter> parameters = null;
     
@@ -75,13 +78,16 @@ abstract public class Template extends DatabaseEntry implements Comparable<Templ
     public String toString() { return name; }
 
     /** Comparable: compareTo */
-    public int compareTo(Template t) { return name.compareTo(t.toString()); }
+    public int compareTo(Template t) { return name().compareTo(t.name()); }
     
     /** name of the template */
     public String name() { return name; }
 
     /** cvs tag of the template */
     public String cvsTag() { return cvsTag; }
+
+    /** parent software package of the template */
+    public SoftwarePackage parentPackage() { return parentPackage; }
 
     /** parameter iterator */
     public Iterator parameterIterator() { return parameters.iterator(); }
@@ -203,5 +209,8 @@ abstract public class Template extends DatabaseEntry implements Comparable<Templ
 	}
 	return true;
     }
+
+    /** set the parent software package */
+    public void setParentPackage(SoftwarePackage p) { parentPackage = p; }
 
 }

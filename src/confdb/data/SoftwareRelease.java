@@ -11,7 +11,9 @@ import java.util.Iterator;
  * ---------------
  * @author Philipp Schieferdecker
  *
- * Manage software component templates for a release.
+ * Manage software component templates for a release. Templates are
+ * organized in software packages which are organized in software
+ * subsystems. 
  */
 public class SoftwareRelease
 {
@@ -21,6 +23,10 @@ public class SoftwareRelease
     
     /** name of the release */
     private String releaseTag;
+    
+    /** list of software subsystems */
+    private ArrayList<SoftwareSubsystem> subsystems = null;
+
 
     /** list of all available templates */
     private ArrayList<Template> templates = null;
@@ -84,7 +90,9 @@ public class SoftwareRelease
     public SoftwareRelease()
     {
 	releaseTag = new String();
-
+	
+	subsystems = new ArrayList<SoftwareSubsystem>();
+	
 	templates            = new ArrayList<Template>();
 	edsourceTemplates    = new ArrayList<EDSourceTemplate>();
 	essourceTemplates    = new ArrayList<ESSourceTemplate>();
@@ -110,7 +118,9 @@ public class SoftwareRelease
     public SoftwareRelease(SoftwareRelease otherRelease)
     {
 	this.releaseTag = otherRelease.releaseTag();
-
+	
+	subsystems = new ArrayList<SoftwareSubsystem>();
+	
 	templates            = new ArrayList<Template>();
 	edsourceTemplates    = new ArrayList<EDSourceTemplate>();
 	essourceTemplates    = new ArrayList<ESSourceTemplate>();
@@ -130,88 +140,55 @@ public class SoftwareRelease
 	esmoduleTemplateNamesByDbId = new HashMap<Integer,String>();
 	serviceTemplateNamesByDbId  = new HashMap<Integer,String>();
 	moduleTemplateNamesByDbId   = new HashMap<Integer,String>();
-
-	// EDSourceTemplates
-	Iterator templateIt = otherRelease.edsourceTemplateIterator();
-	while (templateIt.hasNext()) {
-	    EDSourceTemplate template = (EDSourceTemplate)templateIt.next();
-	    ArrayList<Parameter> parameters = new ArrayList<Parameter>();
-	    Iterator parameterIt = template.parameterIterator();
-	    while (parameterIt.hasNext()) {
-		Parameter p = (Parameter)parameterIt.next();
-		parameters.add(p.clone(null));
-	    }
-	    addTemplate(new EDSourceTemplate(template.name(),
-					     template.cvsTag(),
-					     template.databaseId(),
-					     parameters));
-	}
 	
-	// ESSourceTemplates
-	templateIt = otherRelease.essourceTemplateIterator();
-	while (templateIt.hasNext()) {
-	    ESSourceTemplate template = (ESSourceTemplate)templateIt.next();
-	    ArrayList<Parameter> parameters = new ArrayList<Parameter>();
-	    Iterator parameterIt = template.parameterIterator();
-	    while (parameterIt.hasNext()) {
-		Parameter p = (Parameter)parameterIt.next();
-		parameters.add(p.clone(null));
+	Iterator subsysIt = otherRelease.subsystemIterator();
+	while (subsysIt.hasNext()) {
+	    SoftwareSubsystem otherSubsys = (SoftwareSubsystem)subsysIt.next();
+	    SoftwareSubsystem subsys = new SoftwareSubsystem(otherSubsys.name());
+	    Iterator pkgIt = otherSubsys.packageIterator();
+	    while (pkgIt.hasNext()) {
+		SoftwarePackage otherPkg = (SoftwarePackage)pkgIt.next();
+		SoftwarePackage pkg = new SoftwarePackage(otherPkg.name());
+		subsys.addPackage(pkg);
+		Iterator templateIt = otherPkg.templateIterator();
+		while (templateIt.hasNext()) {
+		    Template template = (Template)templateIt.next();
+		    ArrayList<Parameter> parameters = new ArrayList<Parameter>();
+		    Iterator parameterIt = template.parameterIterator();
+		    while (parameterIt.hasNext()) {
+			Parameter p = (Parameter)parameterIt.next();
+			parameters.add(p.clone(null));
+		    }
+		    if (template instanceof EDSourceTemplate)
+			pkg.addTemplate(new EDSourceTemplate(template.name(),
+							     template.cvsTag(),
+							     template.databaseId(),
+							     parameters));
+		    else if (template instanceof ESSourceTemplate)
+			pkg.addTemplate(new ESSourceTemplate(template.name(),
+							     template.cvsTag(),
+							     template.databaseId(),
+							     parameters));
+		    else if (template instanceof ESModuleTemplate)
+			pkg.addTemplate(new ESModuleTemplate(template.name(),
+							     template.cvsTag(),
+							     template.databaseId(),
+							     parameters));
+		    else if (template instanceof ServiceTemplate)
+			pkg.addTemplate(new ServiceTemplate(template.name(),
+							    template.cvsTag(),
+							    template.databaseId(),
+							    parameters));
+		    else if (template instanceof ModuleTemplate)
+			pkg.addTemplate(new ModuleTemplate(template.name(),
+							   template.cvsTag(),
+							   template.databaseId(),
+							   parameters,
+							   template.type()));
+		}
 	    }
-	    addTemplate(new ESSourceTemplate(template.name(),
-					     template.cvsTag(),
-					     template.databaseId(),
-					     parameters));
+	    addSubsystem(subsys);
 	}
-	
-	// ESModuleTemplates
-	templateIt = otherRelease.esmoduleTemplateIterator();
-	while (templateIt.hasNext()) {
-	    ESModuleTemplate template = (ESModuleTemplate)templateIt.next();
-	    ArrayList<Parameter> parameters = new ArrayList<Parameter>();
-	    Iterator parameterIt = template.parameterIterator();
-	    while (parameterIt.hasNext()) {
-		Parameter p = (Parameter)parameterIt.next();
-		parameters.add(p.clone(null));
-	    }
-	    addTemplate(new ESModuleTemplate(template.name(),
-					     template.cvsTag(),
-					     template.databaseId(),
-					     parameters));
-	}
-	
-	// ServiceTemplates
-	templateIt = otherRelease.serviceTemplateIterator();
-	while (templateIt.hasNext()) {
-	    ServiceTemplate template = (ServiceTemplate)templateIt.next();
-	    ArrayList<Parameter> parameters = new ArrayList<Parameter>();
-	    Iterator parameterIt = template.parameterIterator();
-	    while (parameterIt.hasNext()) {
-		Parameter p = (Parameter)parameterIt.next();
-		parameters.add(p.clone(null));
-	    }
-	    addTemplate(new ServiceTemplate(template.name(),
-					     template.cvsTag(),
-					     template.databaseId(),
-					     parameters));
-	}
-	
-	// ModuleTemplates
-	templateIt = otherRelease.moduleTemplateIterator();
-	while (templateIt.hasNext()) {
-	    ModuleTemplate template = (ModuleTemplate)templateIt.next();
-	    ArrayList<Parameter> parameters = new ArrayList<Parameter>();
-	    Iterator parameterIt = template.parameterIterator();
-	    while (parameterIt.hasNext()) {
-		Parameter p = (Parameter)parameterIt.next();
-		parameters.add(p.clone(null));
-	    }
-	    addTemplate(new ModuleTemplate(template.name(),
-					   template.cvsTag(),
-					   template.databaseId(),
-					   parameters,
-					   template.type()));
-	}
-	
     }
 
     
@@ -221,6 +198,21 @@ public class SoftwareRelease
     
     /** get the release tag */
     public String releaseTag() { return releaseTag; }
+
+    /** get number of subsystems */
+    public int subsystemCount() { return subsystems.size(); }
+
+    /** get the i-th subsystem */
+    public SoftwareSubsystem subsystem(int i) { return subsystems.get(i); }
+
+    /** get subsystem iterator */
+    public Iterator subsystemIterator() { return subsystems.iterator(); }
+
+    /** index of a certain subsystem */
+    public int indexOfSubsystem(SoftwareSubsystem s) { return subsystems.indexOf(s); }
+
+    /** sort software subsystems */
+    public void sortSubsystems() { Collections.sort(subsystems); }
 
     /** sort templates alphabetically */
     public void sortTemplates()
@@ -236,6 +228,8 @@ public class SoftwareRelease
     public void clear(String releaseTag)
     {
 	this.releaseTag = releaseTag;
+
+	subsystems.clear();
 
 	templates.clear();
 	edsourceTemplates.clear();
@@ -394,8 +388,33 @@ public class SoftwareRelease
 	return moduleTemplateNamesByDbId.get(dbId);
     }
     
+
+    /** add a software subsystem */
+    public boolean addSubsystem(SoftwareSubsystem subsystem)
+    {
+	subsystems.add(subsystem);
+	Iterator itP = subsystem.packageIterator();
+	while (itP.hasNext()) {
+	    SoftwarePackage pkg = (SoftwarePackage)itP.next();
+	    Iterator templateIt = pkg.templateIterator();
+	    while (templateIt.hasNext()) {
+		Template t = (Template)templateIt.next();
+		//System.out.println("add template " +
+		//	   subsystem.name() + " / " +
+		//	   pkg.name() + " / " +
+		//	   t.name());
+		addTemplate(t);
+	    }
+	}
+	return true;
+    }
+
+    //
+    // private member functions
+    //
+    
     /** add a template */
-    public boolean addTemplate(Template template)
+    private boolean addTemplate(Template template)
     {
 	if (template instanceof EDSourceTemplate) {
 	    EDSourceTemplate edsource = (EDSourceTemplate)template;
@@ -461,7 +480,7 @@ public class SoftwareRelease
 	System.out.println("addTemplate("+template.name()+
 			   ") FAILED ("+template.getClass().getName()+")");
 	
-	return true;
+	return false;
     }
     
 }

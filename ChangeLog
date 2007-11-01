@@ -1,3 +1,20 @@
+2007-11-01  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-14-00
+	* sql: add tables SoftwareSubsystems/SoftwarePackages, and a new
+	foreign key 'packageId' to all *Templates tables. Propagate to
+	stored procedures.
+	* parser: fill the above tables accordingly for both MySQL and
+	Oracle (Jonathan)
+	* confdb/data: account for subsystems and packages in
+	SoftwareRelease
+	* confdb/gui: allow the user to browse the current release and all
+	templates. So far, only subsystem/package/template is shown in the
+	tree-dialog which appears if the release button is pressed in the
+	upper left configuration panel
+	* confdb/db: account for subsystems and releases in ConfDB when
+	loading the release
+
 2007-10-25  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-12-00

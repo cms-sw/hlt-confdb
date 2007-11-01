@@ -13,7 +13,7 @@ import confdb.data.*;
  * @author Philipp Schieferdecker
  *
  */
-class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
+public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 {
     //
     // member data

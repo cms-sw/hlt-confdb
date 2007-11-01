@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import java.io.File;
-//import java.io.FileWriter;
 import java.io.IOException;
 
 import confdb.data.*;
@@ -55,7 +54,8 @@ public class ConfigurationPanel extends JPanel
     private JTextField   jTextFieldDirectory  = new JTextField();
     private JTextField   jTextFieldVersion    = new JTextField();
     private JTextField   jTextFieldCreated    = new JTextField();
-    private JTextField   jTextFieldRelease    = new JTextField();
+    //private JTextField   jTextFieldRelease    = new JTextField();
+    private JButton      jButtonRelease       = new JButton();
     private JTextField   jTextFieldProcess    = new JTextField();
 
     private JTabbedPane  jTabbedPaneConvert   = new JTabbedPane();  
@@ -139,6 +139,18 @@ public class ConfigurationPanel extends JPanel
 	    currentConfig.setHasChanged(true);
 	}
     }
+    
+    /** release button pressed */
+    public void jButtonReleaseActionPerformed(ActionEvent ev)
+    {
+	if (currentConfig.isEmpty()) return;
+	SoftwareReleaseDialog dialog = new SoftwareReleaseDialog(app.getFrame(),
+								 currentConfig
+								 .release());
+	dialog.pack();
+	dialog.setLocationRelativeTo(app.getFrame());
+	dialog.setVisible(true);
+    }
 
     /** 'Convert' button pressed */
     public void convertButtonActionPerformed(ActionEvent ev)
@@ -205,7 +217,8 @@ public class ConfigurationPanel extends JPanel
 	    jTextFieldDirectory.setText("");
 	    jTextFieldVersion.setText("");
 	    jTextFieldCreated.setText("");
-	    jTextFieldRelease.setText("");
+	    //jTextFieldRelease.setText("");
+	    jButtonRelease.setText("");
 	    jTextFieldProcess.setText("");
 	    jTextFieldProcess.setEditable(false);
 	    
@@ -216,6 +229,7 @@ public class ConfigurationPanel extends JPanel
 	    jTextFieldFileName.setEditable(false);
 	    jTextFieldInput.setEditable(false);
 	    jTextFieldOutput.setEditable(false);
+	    jButtonRelease.setEnabled(false);
 	    convertButton.setEnabled(false);
 	}
 	else {
@@ -231,6 +245,7 @@ public class ConfigurationPanel extends JPanel
 	    jTextFieldFileName.setEditable(true);
 	    jTextFieldInput.setEditable(true);
 	    jTextFieldOutput.setEditable(true);
+	    jButtonRelease.setEnabled(true);
 	    convertButton.setEnabled(true);
 	    
 	    jTextFieldName.setText(currentConfig.name());
@@ -244,7 +259,7 @@ public class ConfigurationPanel extends JPanel
 	    else jTextFieldVersion.setText("");
 	    
 	    jTextFieldCreated.setText(currentConfig.created());
-	    jTextFieldRelease.setText(currentConfig.releaseTag());
+	    jButtonRelease.setText(currentConfig.releaseTag());
 	    jTextFieldProcess.setText(currentConfig.processName());
 
 	    if (currentConfig.isLocked())
@@ -347,11 +362,12 @@ public class ConfigurationPanel extends JPanel
         jTextFieldCreated.setBorder(BorderFactory
 				    .createBevelBorder(BevelBorder.LOWERED));
 
-        jTextFieldRelease.setBackground(bkgColor);
-        jTextFieldRelease.setEditable(false);
-        jTextFieldRelease.setForeground(Color.red);
-        jTextFieldRelease.setBorder(BorderFactory
-				    .createBevelBorder(BevelBorder.LOWERED));
+	jButtonRelease.setEnabled(false);
+	jButtonRelease.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonReleaseActionPerformed(e);
+		}
+	    });
 	
         jTextFieldProcess.setBackground(new Color(255,255,255));
         jTextFieldProcess.setEditable(false);
@@ -373,7 +389,7 @@ public class ConfigurationPanel extends JPanel
                     .add(jLabel12))
                 .addPreferredGap(LayoutStyle.RELATED)
                 .add(jPanel1Layout.createParallelGroup(GroupLayout.LEADING)
-		     .add(jTextFieldRelease,
+		     .add(jButtonRelease,
 			  GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
 		     .add(jTextFieldCreated,
 			  GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
@@ -419,9 +435,9 @@ public class ConfigurationPanel extends JPanel
 		 .addPreferredGap(LayoutStyle.RELATED)
 		 .add(jPanel1Layout.createParallelGroup(GroupLayout.BASELINE)
 		      .add(jLabel5)
-		      .add(jTextFieldRelease,
-			   GroupLayout.PREFERRED_SIZE,
-			   GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+		      .add(jButtonRelease,
+			   GroupLayout.PREFERRED_SIZE, 20,
+			   GroupLayout.PREFERRED_SIZE))
 		 .addPreferredGap(LayoutStyle.RELATED)
 		 .add(jPanel1Layout.createParallelGroup(GroupLayout.BASELINE)
 		      .add(jLabel12)
@@ -1082,4 +1098,3 @@ class RootFileFilter extends FileFilter
         return ext;
     }
 }
-

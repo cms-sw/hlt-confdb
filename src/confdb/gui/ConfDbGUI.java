@@ -242,6 +242,9 @@ public class ConfDbGUI implements TableModelListener
     // member functions
     //
 
+    /** get the frame */
+    public JFrame getFrame() { return this.frame; }
+
     /** TableModelListener: tableChanged() */
     public void tableChanged(TableModelEvent e)
     {

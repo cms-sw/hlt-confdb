@@ -37,13 +37,15 @@ BEGIN
     DECLARE v_template_type   CHAR(64);
     DECLARE v_template_name   CHAR(128);
     DECLARE v_template_cvstag CHAR(32);
+    DECLARE v_template_pkgid  BIGINT UNSIGNED;
     DECLARE done              BOOLEAN DEFAULT FALSE;
 
     /* cursor for edsource templates */
     DECLARE cur_edsource_templates CURSOR FOR
       SELECT EDSourceTemplates.superId,
              EDSourceTemplates.name,
-             EDSourceTemplates.cvstag
+             EDSourceTemplates.cvstag,
+	     EDSourceTemplates.packageId
       FROM EDSourceTemplates
       JOIN SuperIdReleaseAssoc
       ON EDSourceTemplates.superId = SuperIdReleaseAssoc.superId
@@ -56,7 +58,8 @@ BEGIN
     DECLARE cur_essource_templates CURSOR FOR
       SELECT ESSourceTemplates.superId,
              ESSourceTemplates.name,
-             ESSourceTemplates.cvstag
+             ESSourceTemplates.cvstag,
+	     ESSourceTemplates.packageId
       FROM ESSourceTemplates
       JOIN SuperIdReleaseAssoc
       ON ESSourceTemplates.superId = SuperIdReleaseAssoc.superId
@@ -69,7 +72,8 @@ BEGIN
     DECLARE cur_esmodule_templates CURSOR FOR
       SELECT ESModuleTemplates.superId,
              ESModuleTemplates.name,
-             ESModuleTemplates.cvstag
+             ESModuleTemplates.cvstag,
+	     ESModuleTemplates.packageId
       FROM ESModuleTemplates
       JOIN SuperIdReleaseAssoc
       ON ESModuleTemplates.superId = SuperIdReleaseAssoc.superId
@@ -82,7 +86,8 @@ BEGIN
     DECLARE cur_service_templates CURSOR FOR
       SELECT ServiceTemplates.superId,
              ServiceTemplates.name,
-             ServiceTemplates.cvstag
+             ServiceTemplates.cvstag,
+	     ServiceTemplates.packageId
       FROM ServiceTemplates
       JOIN SuperIdReleaseAssoc
       ON ServiceTemplates.superId = SuperIdReleaseAssoc.superId
@@ -96,6 +101,7 @@ BEGIN
       SELECT ModuleTemplates.superId,
              ModuleTemplates.name,
              ModuleTemplates.cvstag,
+	     ModuleTemplates.packageId,
              ModuleTypes.type
       FROM ModuleTemplates
       JOIN ModuleTypes
@@ -116,7 +122,8 @@ BEGIN
       template_id      BIGINT UNSIGNED,
       template_type    CHAR(64),
       template_name    CHAR(128),
-      template_cvstag  CHAR(32)
+      template_cvstag  CHAR(32),
+      template_pkgid   BIGINT UNSIGNED
     );
 
     /* temporary parameter table */
@@ -165,10 +172,11 @@ BEGIN
     /* load edsource templates */
     OPEN cur_edsource_templates;
     FETCH cur_edsource_templates
-      INTO v_template_id,v_template_name,v_template_cvstag;
+      INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     IF done=FALSE THEN
       INSERT INTO tmp_template_table
-        VALUES(v_template_id,'EDSource',v_template_name,v_template_cvstag);
+        VALUES(v_template_id,'EDSource',
+               v_template_name,v_template_cvstag,v_template_pkgid);
       CALL load_parameters(v_template_id);
       SET done = TRUE;   
     END IF;
@@ -179,10 +187,11 @@ BEGIN
     IF done=FALSE THEN
       OPEN cur_essource_templates;
       FETCH cur_essource_templates
-        INTO v_template_id,v_template_name,v_template_cvstag;
+        INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
       IF done=FALSE THEN
         INSERT INTO tmp_template_table
-          VALUES(v_template_id,'ESSource',v_template_name,v_template_cvstag);
+          VALUES(v_template_id,'ESSource',
+                 v_template_name,v_template_cvstag,v_template_pkgid);
         CALL load_parameters(v_template_id);
         SET done=TRUE;
       END IF;
@@ -193,10 +202,11 @@ BEGIN
     IF done=FALSE THEN
       OPEN cur_esmodule_templates;
       FETCH cur_esmodule_templates
-        INTO v_template_id,v_template_name,v_template_cvstag;
+        INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
       IF done=FALSE THEN
         INSERT INTO tmp_template_table
-          VALUES(v_template_id,'ESModule',v_template_name,v_template_cvstag);
+          VALUES(v_template_id,'ESModule',
+                 v_template_name,v_template_cvstag,v_template_pkgid);
         CALL load_parameters(v_template_id);
       SET done=TRUE;
       END IF;
@@ -207,10 +217,11 @@ BEGIN
     IF done=FALSE THEN
       OPEN cur_service_templates;
       FETCH cur_service_templates
-        INTO v_template_id,v_template_name,v_template_cvstag;
+        INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
       IF done=FALSE THEN
         INSERT INTO tmp_template_table
-          VALUES(v_template_id,'Service',v_template_name,v_template_cvstag);
+          VALUES(v_template_id,'Service',
+                 v_template_name,v_template_cvstag,v_template_pkgid);
         CALL load_parameters(v_template_id);
       SET done=TRUE;
       END IF;
@@ -221,11 +232,12 @@ BEGIN
     IF done=FALSE THEN
       OPEN cur_module_templates;
       FETCH cur_module_templates
-        INTO v_template_id,v_template_name,v_template_cvstag,v_template_type;
+        INTO v_template_id,v_template_name,
+             v_template_cvstag,v_template_pkgid,v_template_type;
       IF done=FALSE THEN
         INSERT INTO tmp_template_table
-          VALUES(v_template_id,
-                 v_template_type,v_template_name,v_template_cvstag);
+          VALUES(v_template_id,v_template_type,
+                 v_template_name,v_template_cvstag,v_template_pkgid);
         CALL load_parameters(v_template_id);
       SET done=TRUE;
       END IF;
@@ -258,13 +270,15 @@ BEGIN
     DECLARE v_template_type   CHAR(64);
     DECLARE v_template_name   CHAR(128);
     DECLARE v_template_cvstag CHAR(32);
+    DECLARE v_template_pkgid  BIGINT UNSIGNED;
     DECLARE done              BOOLEAN DEFAULT FALSE;
 
     /* cursor for edsource templates */
     DECLARE cur_edsource_templates CURSOR FOR
       SELECT EDSourceTemplates.superId,
              EDSourceTemplates.name,
-             EDSourceTemplates.cvstag
+             EDSourceTemplates.cvstag,
+	     EDSourceTemplates.packageId
       FROM EDSourceTemplates
       JOIN SuperIdReleaseAssoc
       ON EDSourceTemplates.superId = SuperIdReleaseAssoc.superId
@@ -274,7 +288,8 @@ BEGIN
     DECLARE cur_essource_templates CURSOR FOR
       SELECT ESSourceTemplates.superId,
              ESSourceTemplates.name,
-             ESSourceTemplates.cvstag
+             ESSourceTemplates.cvstag,
+	     ESSourceTemplates.packageId
       FROM ESSourceTemplates
       JOIN SuperIdReleaseAssoc
       ON ESSourceTemplates.superId = SuperIdReleaseAssoc.superId
@@ -284,7 +299,8 @@ BEGIN
     DECLARE cur_esmodule_templates CURSOR FOR
       SELECT ESModuleTemplates.superId,
              ESModuleTemplates.name,
-             ESModuleTemplates.cvstag
+             ESModuleTemplates.cvstag,
+	     ESModuleTemplates.packageId
       FROM ESModuleTemplates
       JOIN SuperIdReleaseAssoc
       ON ESModuleTemplates.superId = SuperIdReleaseAssoc.superId
@@ -294,7 +310,8 @@ BEGIN
     DECLARE cur_service_templates CURSOR FOR
       SELECT ServiceTemplates.superId,
              ServiceTemplates.name,
-             ServiceTemplates.cvstag
+             ServiceTemplates.cvstag,
+	     ServiceTemplates.packageId
       FROM ServiceTemplates
       JOIN SuperIdReleaseAssoc
       ON ServiceTemplates.superId = SuperIdReleaseAssoc.superId
@@ -305,6 +322,7 @@ BEGIN
       SELECT ModuleTemplates.superId,
              ModuleTemplates.name,
              ModuleTemplates.cvstag,
+	     ModuleTemplates.packageId,
              ModuleTypes.type
       FROM ModuleTemplates
       JOIN ModuleTypes
@@ -319,10 +337,11 @@ BEGIN
     /* temporary template table */
     CREATE TEMPORARY TABLE tmp_template_table
     (
-      template_id	BIGINT UNSIGNED,
+      template_id      BIGINT UNSIGNED,
       template_type    CHAR(64),
       template_name    CHAR(128),
-      template_cvstag  CHAR(32)
+      template_cvstag  CHAR(32),
+      template_pkgid   BIGINT UNSIGNED
     );
 
     /* temporary parameter table */
@@ -371,13 +390,14 @@ BEGIN
     /* load edsource templates */
     OPEN cur_edsource_templates;
     FETCH cur_edsource_templates
-      INTO v_template_id,v_template_name,v_template_cvstag;
+      INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     WHILE done=FALSE DO
       INSERT INTO tmp_template_table
-        VALUES(v_template_id,'EDSource',v_template_name,v_template_cvstag);
+        VALUES(v_template_id,'EDSource',
+               v_template_name,v_template_cvstag,v_template_pkgid);
       CALL load_parameters(v_template_id);
       FETCH cur_edsource_templates
-        INTO v_template_id,v_template_name,v_template_cvstag;
+        INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     END WHILE;
     CLOSE cur_edsource_templates;
     SET done=FALSE;
@@ -385,13 +405,14 @@ BEGIN
     /* load essource templates */
     OPEN cur_essource_templates;
     FETCH cur_essource_templates
-      INTO v_template_id,v_template_name,v_template_cvstag;
+      INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     WHILE done=FALSE DO
       INSERT INTO tmp_template_table
-        VALUES(v_template_id,'ESSource',v_template_name,v_template_cvstag);
+        VALUES(v_template_id,'ESSource',
+               v_template_name,v_template_cvstag,v_template_pkgid);
       CALL load_parameters(v_template_id);
       FETCH cur_essource_templates
-        INTO v_template_id,v_template_name,v_template_cvstag;
+        INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     END WHILE;
     CLOSE cur_essource_templates;
     SET done=FALSE;
@@ -399,13 +420,14 @@ BEGIN
     /* load esmodule templates */
     OPEN cur_esmodule_templates;
     FETCH cur_esmodule_templates
-      INTO v_template_id,v_template_name,v_template_cvstag;
+      INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     WHILE done=FALSE DO
       INSERT INTO tmp_template_table
-        VALUES(v_template_id,'ESModule',v_template_name,v_template_cvstag);
+        VALUES(v_template_id,'ESModule',
+               v_template_name,v_template_cvstag,v_template_pkgid);
       CALL load_parameters(v_template_id);
       FETCH cur_esmodule_templates
-        INTO v_template_id,v_template_name,v_template_cvstag;
+        INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     END WHILE;
     CLOSE cur_esmodule_templates;
     SET done=FALSE;
@@ -413,13 +435,14 @@ BEGIN
     /* load service templates */
     OPEN cur_service_templates;
     FETCH cur_service_templates
-      INTO v_template_id,v_template_name,v_template_cvstag;
+      INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     WHILE done=FALSE DO
       INSERT INTO tmp_template_table
-        VALUES(v_template_id,'Service',v_template_name,v_template_cvstag);
+        VALUES(v_template_id,'Service',
+               v_template_name,v_template_cvstag,v_template_pkgid);
       CALL load_parameters(v_template_id);
       FETCH cur_service_templates
-        INTO v_template_id,v_template_name,v_template_cvstag;
+        INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     END WHILE;
     CLOSE cur_service_templates;
     SET done=FALSE;
@@ -428,15 +451,15 @@ BEGIN
     OPEN cur_module_templates;
     FETCH cur_module_templates
       INTO v_template_id,v_template_name,
-           v_template_cvstag,v_template_type;
+           v_template_cvstag,v_template_pkgid,v_template_type;
     WHILE done=FALSE DO
       INSERT INTO tmp_template_table
         VALUES(v_template_id,v_template_type,
-               v_template_name,v_template_cvstag);
+               v_template_name,v_template_cvstag,v_template_pkgid);
       CALL load_parameters(v_template_id);
       FETCH cur_module_templates
         INTO v_template_id,v_template_name,
-             v_template_cvstag,v_template_type;
+             v_template_cvstag,v_template_pkgid,v_template_type;
     END WHILE;
     CLOSE cur_module_templates;
     SET done=FALSE;
@@ -467,6 +490,7 @@ BEGIN
     DECLARE v_template_type   CHAR(64);
     DECLARE v_template_name   CHAR(128);
     DECLARE v_template_cvstag CHAR(32);
+    DECLARE v_template_pkgid  BIGINT UNSIGNED;
     DECLARE done              BOOLEAN DEFAULT FALSE;
 
     /* cursor for edsource templates */
@@ -474,7 +498,8 @@ BEGIN
       SELECT DISTINCT
         EDSourceTemplates.superId,
         EDSourceTemplates.name,
-        EDSourceTemplates.cvstag
+        EDSourceTemplates.cvstag,
+	EDSourceTemplates.packageId
       FROM EDSourceTemplates
       JOIN EDSources 
       ON EDSources.templateId = EDSourceTemplates.superId
@@ -487,7 +512,8 @@ BEGIN
       SELECT DISTINCT
         ESSourceTemplates.superId,
         ESSourceTemplates.name,
-        ESSourceTemplates.cvstag
+        ESSourceTemplates.cvstag,
+	ESSourceTemplates.packageId
       FROM ESSourceTemplates
       JOIN ESSources
       ON ESSources.templateId = ESSourceTemplates.superId
@@ -500,7 +526,8 @@ BEGIN
       SELECT DISTINCT
         ESModuleTemplates.superId,
         ESModuleTemplates.name,
-        ESModuleTemplates.cvstag
+        ESModuleTemplates.cvstag,
+	ESModuleTemplates.packageId
       FROM ESModuleTemplates
       JOIN ESModules
       ON ESModules.templateId = ESModuleTemplates.superId
@@ -513,7 +540,8 @@ BEGIN
       SELECT DISTINCT
         ServiceTemplates.superId,
         ServiceTemplates.name,
-        ServiceTemplates.cvstag
+        ServiceTemplates.cvstag,
+	ServiceTemplates.packageId
       FROM ServiceTemplates
       JOIN Services
       ON   Services.templateId = ServiceTemplates.superId
@@ -527,6 +555,7 @@ BEGIN
         ModuleTemplates.superId,
         ModuleTemplates.name,
         ModuleTemplates.cvstag,
+	Moduletemplates.packageId,
         ModuleTypes.type
       FROM ModuleTemplates
       JOIN ModuleTypes
@@ -545,6 +574,7 @@ BEGIN
         ModuleTemplates.superId,
         ModuleTemplates.name,
         ModuleTemplates.cvstag,
+	ModuleTemplates.packageId,
         ModuleTypes.type
       FROM ModuleTemplates
       JOIN ModuleTypes
@@ -563,10 +593,11 @@ BEGIN
     /* temporary template table */
     CREATE TEMPORARY TABLE tmp_template_table
     (
-      template_id	BIGINT UNSIGNED,
+      template_id      BIGINT UNSIGNED,
       template_type    CHAR(64),
       template_name    CHAR(128),
-      template_cvstag  CHAR(32)
+      template_cvstag  CHAR(32),
+      template_pkgid   BIGINT UNSIGNED
     );
 
     /* temporary parameter table */
@@ -614,13 +645,14 @@ BEGIN
     /* load edsource templates */
     OPEN cur_edsource_templates;
     FETCH cur_edsource_templates
-      INTO v_template_id,v_template_name,v_template_cvstag;
+      INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     WHILE done=FALSE DO
       INSERT INTO tmp_template_table
-        VALUES(v_template_id,'EDSource',v_template_name,v_template_cvstag);
+        VALUES(v_template_id,'EDSource',
+               v_template_name,v_template_cvstag,v_template_pkgid);
       CALL load_parameters(v_template_id);
       FETCH cur_edsource_templates
-        INTO v_template_id,v_template_name,v_template_cvstag;
+        INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     END WHILE;
     CLOSE cur_edsource_templates;
     SET done=FALSE;
@@ -628,13 +660,14 @@ BEGIN
     /* load essource templates */
     OPEN cur_essource_templates;
     FETCH cur_essource_templates
-      INTO v_template_id,v_template_name,v_template_cvstag;
+      INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     WHILE done=FALSE DO
       INSERT INTO tmp_template_table
-        VALUES(v_template_id,'ESSource',v_template_name,v_template_cvstag);
+        VALUES(v_template_id,'ESSource',
+               v_template_name,v_template_cvstag,v_template_pkgid);
       CALL load_parameters(v_template_id);
       FETCH cur_essource_templates
-        INTO v_template_id,v_template_name,v_template_cvstag;
+        INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     END WHILE;
     CLOSE cur_essource_templates;
     SET done=FALSE;
@@ -642,13 +675,14 @@ BEGIN
     /* load esmodule templates */
     OPEN cur_esmodule_templates;
     FETCH cur_esmodule_templates
-      INTO v_template_id,v_template_name,v_template_cvstag;
+      INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     WHILE done=FALSE DO
       INSERT INTO tmp_template_table
-        VALUES(v_template_id,'ESModule',v_template_name,v_template_cvstag);
+        VALUES(v_template_id,'ESModule',
+               v_template_name,v_template_cvstag,v_template_pkgid);
       CALL load_parameters(v_template_id);
       FETCH cur_esmodule_templates
-        INTO v_template_id,v_template_name,v_template_cvstag;
+        INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     END WHILE;
     CLOSE cur_esmodule_templates;
     SET done=FALSE;
@@ -656,13 +690,14 @@ BEGIN
     /* load service templates */
     OPEN cur_service_templates;
     FETCH cur_service_templates
-      INTO v_template_id,v_template_name,v_template_cvstag;
+      INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     WHILE done=FALSE DO
       INSERT INTO tmp_template_table
-        VALUES(v_template_id,'Service',v_template_name,v_template_cvstag);
+        VALUES(v_template_id,'Service',
+               v_template_name,v_template_cvstag,v_template_pkgid);
       CALL load_parameters(v_template_id);
       FETCH cur_service_templates
-        INTO v_template_id,v_template_name,v_template_cvstag;
+        INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     END WHILE;
     CLOSE cur_service_templates;
     SET done=FALSE;
@@ -671,15 +706,15 @@ BEGIN
     OPEN cur_module_templates_from_paths;
     FETCH cur_module_templates_from_paths
       INTO v_template_id,v_template_name,
-           v_template_cvstag,v_template_type;
+           v_template_cvstag,v_template_type,v_template_pkgid;
     WHILE done=FALSE DO
       INSERT INTO tmp_template_table
         VALUES(v_template_id,v_template_type,
-               v_template_name,v_template_cvstag);
+               v_template_name,v_template_cvstag,v_template_pkgid);
       CALL load_parameters(v_template_id);
       FETCH cur_module_templates_from_paths
         INTO v_template_id,v_template_name,
-             v_template_cvstag,v_template_type;
+             v_template_cvstag,v_template_type,v_template_pkgid;
     END WHILE;
     CLOSE cur_module_templates_from_paths;
     SET done=FALSE;
@@ -688,15 +723,15 @@ BEGIN
     OPEN cur_module_templates_from_sequences;
     FETCH cur_module_templates_from_sequences
       INTO v_template_id,v_template_name,
-           v_template_cvstag,v_template_type;
+           v_template_cvstag,v_template_type,v_template_pkgid;
     WHILE done=FALSE DO
       INSERT INTO tmp_template_table
         VALUES(v_template_id,v_template_type,
-               v_template_name,v_template_cvstag);
+               v_template_name,v_template_cvstag,v_template_pkgid);
       CALL load_parameters(v_template_id);
       FETCH cur_module_templates_from_sequences
         INTO v_template_id,v_template_name,
-             v_template_cvstag,v_template_type;
+             v_template_cvstag,v_template_type,v_template_pkgid;
     END WHILE;
     CLOSE cur_module_templates_from_sequences;
     SET done=FALSE;

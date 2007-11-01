@@ -81,6 +81,9 @@ public class ConfDB
     private PreparedStatement psSelectReleaseTagForConfig         = null;
     private PreparedStatement psSelectSuperIdReleaseAssoc         = null;
     
+    private PreparedStatement psSelectSoftwareSubsystems          = null;
+    private PreparedStatement psSelectSoftwarePackages            = null;
+
     private PreparedStatement psSelectEDSourceTemplate            = null;
     private PreparedStatement psSelectESSourceTemplate            = null;
     private PreparedStatement psSelectESModuleTemplate            = null;
@@ -341,6 +344,25 @@ public class ConfDB
 		 "WHERE superId =? AND releaseId = ?");
 	    preparedStatements.add(psSelectSuperIdReleaseAssoc);
 	    
+	    psSelectSoftwareSubsystems =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " SoftwareSubsystems.subsysId," +
+		 " SoftwareSubsystems.name " +
+		 "FROM SoftwareSubsystems");
+	    psSelectSoftwareSubsystems.setFetchSize(64);
+	    preparedStatements.add(psSelectSoftwareSubsystems);
+
+	    psSelectSoftwarePackages =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " SoftwarePackages.packageId," +
+		 " SoftwarePackages.subsysId," +
+		 " SoftwarePackages.name " +
+		 "FROM SoftwarePackages");
+	    psSelectSoftwarePackages.setFetchSize(512);
+	    preparedStatements.add(psSelectSoftwarePackages);
+
 	    psSelectEDSourceTemplate =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -820,7 +842,8 @@ public class ConfDB
 		 " template_id," +
 		 " template_type," +
 		 " template_name," +
-		 " template_cvstag " +
+		 " template_cvstag," +
+		 " template_pkgid " +
 		 "FROM tmp_template_table");
 	    psSelectTemplates.setFetchSize(1024);
 	    preparedStatements.add(psSelectTemplates);
@@ -1245,12 +1268,16 @@ public class ConfDB
     private void loadTemplates(CallableStatement cs,SoftwareRelease release)
     {
 	ResultSet rsTemplates = null;
+
+	HashMap<Integer,SoftwarePackage> idToPackage =
+	    new HashMap<Integer,SoftwarePackage>();
+	ArrayList<SoftwareSubsystem> subsystems = getSubsystems(idToPackage);
+	
 	
 	try {
 	    cs.executeUpdate();
-	    
 	    HashMap<Integer,ArrayList<Parameter> > templateParams = getParameters();
-
+	    
 	    rsTemplates = psSelectTemplates.executeQuery();
 	    
 	    while (rsTemplates.next()) {
@@ -1258,11 +1285,14 @@ public class ConfDB
 		String type   = rsTemplates.getString(2);
 		String name   = rsTemplates.getString(3);
 		String cvstag = rsTemplates.getString(4);
+		int    pkgId  = rsTemplates.getInt(5);
 		
+		SoftwarePackage pkg = idToPackage.get(pkgId);
+
 		Template template = TemplateFactory.create(type,name,cvstag,id,null);
-
+		
 		ArrayList<Parameter> params = templateParams.remove(id);
-
+		
 		if (params!=null) {
 		    int missingCount = 0;
 		    Iterator it = params.iterator();
@@ -1277,13 +1307,23 @@ public class ConfDB
 		    }
 		    else {
 			template.setParameters(params);
-			release.addTemplate(template);
+			if (pkg.templateCount()==0) pkg.subsystem().addPackage(pkg);
+			pkg.addTemplate(template);
 		    }
 		}
 		else {
-		    release.addTemplate(template);
+		    if (pkg.templateCount()==0) pkg.subsystem().addPackage(pkg);
+		    pkg.addTemplate(template);
 		}
 	    }
+
+	    for (SoftwareSubsystem s : subsystems) {
+		if (s.packageCount()>0) {
+		    s.sortPackages();
+		    release.addSubsystem(s);
+		}
+	    }
+
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
@@ -1292,6 +1332,7 @@ public class ConfDB
 	    dbConnector.release(rsTemplates);
 	}
 	
+	release.sortSubsystems();
 	release.sortTemplates();
     }
 
@@ -2973,6 +3014,51 @@ public class ConfDB
 	return null;
     }
 
+    /** get subsystems and a hash map to all packages */
+    private ArrayList<SoftwareSubsystem> getSubsystems(HashMap<Integer,
+						       SoftwarePackage> idToPackage)
+    {
+	ArrayList<SoftwareSubsystem> result =
+	    new ArrayList<SoftwareSubsystem>();
+	
+	HashMap<Integer,SoftwareSubsystem> idToSubsystem =
+	    new HashMap<Integer,SoftwareSubsystem>();
+	
+	ResultSet rs = null;
+	try {
+	    rs = psSelectSoftwareSubsystems.executeQuery();
+
+	    while (rs.next()) {
+		int    id   = rs.getInt(1);
+		String name = rs.getString(2);
+		SoftwareSubsystem subsystem = new SoftwareSubsystem(name);
+		result.add(subsystem);
+		idToSubsystem.put(id,subsystem);
+	    }
+	    
+	    rs = psSelectSoftwarePackages.executeQuery();
+
+	    while (rs.next()) {
+		int    id       = rs.getInt(1);
+		int    subsysId = rs.getInt(2);
+		String name     = rs.getString(3);
+		
+		SoftwarePackage   pkg = new SoftwarePackage(name);
+		pkg.setSubsystem(idToSubsystem.get(subsysId));
+		idToPackage.put(id,pkg);
+	    }
+	}
+	catch (SQLException e) {
+	    System.err.println("getSubsystems ERROR: " + e.getMessage());
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+	
+	return result;
+    }
+    
+
     /** check if a superId is associate with a release Tag */
     private boolean areAssociated(int superId, String releaseTag)
     {
@@ -3029,7 +3115,9 @@ public class ConfDB
 }
 
 
+//
 // helper classes
+//
 class IdInstancePair
 {
     public int      id;

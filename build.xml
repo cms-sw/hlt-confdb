@@ -87,6 +87,7 @@
     <delete>
       <fileset dir="${dir.build}" includes="**/*.class"/>
       <fileset dir="${dir.lib}" includes="**/*.jar"/>
+      <fileset dir="${dir.lib}" includes="**/*.war"/>
     </delete>
     <echo message="clean successful"/>
   </target>
