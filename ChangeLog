@@ -1,3 +1,13 @@
+2007-11-02  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-14-01
+	* parser: account for subsystems and packages in AddProblem*
+	scripts
+	* confdb/parser: account for new format of problems.txt including
+	subsystem and package for each template
+	* confdb/converter: quick fix to account for es_prefer
+	* confdb.migrator: account for es_prefer
+
 2007-11-01  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-14-00

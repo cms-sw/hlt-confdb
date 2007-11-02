@@ -240,10 +240,16 @@ public class PythonParser
 	    String    edsourceName = getNodeValue(edsourceNode,"@classname");
 	    EDSourceInstance edsource = config.insertEDSource(edsourceName);
 	    ArrayList<Parameter> edsourceParams = getParameters(edsourceNode);
+
+	    String subsys = (edsource==null) ?
+		"UNKNOWN" : edsource.template().parentPackage().subsystem().name();
+	    String pkg    = (edsource==null) ?
+		"UNKNOWN" : edsource.template().parentPackage().name();
+	    
 	    for (Parameter p : edsourceParams) {
 		if (edsource==null||
 		    !edsource.updateParameter(p.name(),p.type(),p.valueAsString()))
-		    addProblem("EDSource",edsourceName,p);
+		    addProblem("EDSource",edsourceName,subsys,pkg,p);
 	    }
 	}
 	
@@ -262,11 +268,17 @@ public class PythonParser
 				      essourceName,essourceLabel);
 	    labelToPreferable.put(essourceLabel,essource);
 	    ArrayList<Parameter> essourceParams = getParameters(essourceNode);
+
+	    String subsys = (essource==null) ?
+		"UNKNOWN" : essource.template().parentPackage().subsystem().name();
+	    String pkg    = (essource==null) ?
+		"UNKNOWN" : essource.template().parentPackage().name();
+	    
 	    for (Parameter p : essourceParams) {
 		if (essource==null||
 		    !essource.updateParameter(p.name(),p.type(),
 					      p.valueAsString()))
-		    addProblem("ESSource",essourceName,p);
+		    addProblem("ESSource",essourceName,subsys,pkg,p);
 	    }
 	}
 	
@@ -282,11 +294,17 @@ public class PythonParser
 				      esmoduleName,esmoduleLabel);
 	    labelToPreferable.put(esmoduleLabel,esmodule);
 	    ArrayList<Parameter> esmoduleParams = getParameters(esmoduleNode);
+
+	    String subsys = (esmodule==null) ?
+		"UNKNOWN" : esmodule.template().parentPackage().subsystem().name();
+	    String pkg    = (esmodule==null) ?
+		"UNKNOWN" : esmodule.template().parentPackage().name();
+	    
 	    for (Parameter p : esmoduleParams) {
 		if (esmodule==null||
 		    !esmodule.updateParameter(p.name(),p.type(),
 					      p.valueAsString()))
-		    addProblem("ESModule",esmoduleName,p);
+		    addProblem("ESModule",esmoduleName,subsys,pkg,p);
 	    }
 	}
 	
@@ -307,11 +325,17 @@ public class PythonParser
 	    ServiceInstance service =
 		config.insertService(config.serviceCount(),serviceName);
 	    ArrayList<Parameter> serviceParams = getParameters(serviceNode);
+
+	    String subsys = (service==null) ?
+		"UNKNOWN" : service.template().parentPackage().subsystem().name();
+	    String pkg    = (service==null) ?
+		"UNKNOWN" : service.template().parentPackage().name();
+	    
 	    for (Parameter p : serviceParams) {
 		if (service==null||
 		    !service.updateParameter(p.name(),p.type(),
 					     p.valueAsString()))
-		    addProblem("Service",serviceName,p);
+		    addProblem("Service",serviceName,subsys,pkg,p);
 	    }
 	}
 	
@@ -383,11 +407,15 @@ public class PythonParser
 		    ArrayList<Parameter> moduleParams=getParameters(moduleNode);
 		    int referenceCount = 0;
 		    String moduleType = "UNKNOWN";
+		    String subsys     = "UNKNOWN";
+		    String pkg        = "UNKNOWN";
 		    
 		    if (reference!=null) {
 			module         = (ModuleInstance)reference.parent();
 			referenceCount = module.referenceCount();
 			moduleType     = module.template().type();
+			subsys=module.template().parentPackage().subsystem().name();
+			pkg   =module.template().parentPackage().name();
 		    }
 		    
 		    for (Parameter p : moduleParams) {
@@ -395,7 +423,7 @@ public class PythonParser
 			    (referenceCount==1&&
 			     !module.updateParameter(p.name(),p.type(),
 						     p.valueAsString())))
-			    addProblem("Module:"+moduleType,moduleName,p);
+			    addProblem("Module:"+moduleType,moduleName,subsys,pkg,p);
 		    }
 		}
 	    }
@@ -433,11 +461,15 @@ public class PythonParser
 		    ArrayList<Parameter> moduleParams=getParameters(moduleNode);
 		    int referenceCount = 0;
 		    String moduleType = "UNKNOWN";
-		    
+		    String subsys     = "UNKNOWN";
+		    String pkg        = "UNKNOWN";
+
 		    if (reference!=null) {
 			module         = (ModuleInstance)reference.parent();
 			referenceCount = module.referenceCount();
 			moduleType     = module.template().type();
+			subsys=module.template().parentPackage().subsystem().name();
+			pkg   =module.template().parentPackage().name();
 		    }
 		    
 		    for (Parameter p : moduleParams) {
@@ -445,7 +477,7 @@ public class PythonParser
 			    (referenceCount==1&&
 			     !module.updateParameter(p.name(),p.type(),
 						     p.valueAsString())))
-			    addProblem("Module:"+moduleType,moduleName,p);
+			    addProblem("Module:"+moduleType,moduleName,subsys,pkg,p);
 		    }
 		}
 	    }
@@ -704,7 +736,8 @@ public class PythonParser
     }
     
     /** record a missing/mismatched parameter */
-    private void addProblem(String type,String name,Parameter p)
+    private void addProblem(String type,String name,String subsys,String pkg,
+			    Parameter p)
     {
 	if (problemParameters.contains(name + "." + p.name())) return;
 	   
@@ -722,7 +755,7 @@ public class PythonParser
 	    problemModules.add(name);
 	    String s = (type.startsWith("Module:")) ?
 		"Module " + type.substring(7) : type;
-	    problemStream.println("\n" + s + " " + name);
+	    problemStream.println("\n" + s + " " + name + " " + subsys + " " + pkg);
 	}
 	
 	String trkd = (p.isTracked()) ? "tracked" : "untracked";

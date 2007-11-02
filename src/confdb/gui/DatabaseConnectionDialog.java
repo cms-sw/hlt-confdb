@@ -67,7 +67,7 @@ public class DatabaseConnectionDialog
     /** constructor */
     public DatabaseConnectionDialog(JFrame frame)
     {
-	super(frame,"Estabish Database connection",true);
+	super(frame,"Establish Database connection",true);
 	
 	validChoice = false;
 

@@ -3,6 +3,7 @@ package confdb.converter.ascii;
 import confdb.converter.ConverterEngine;
 import confdb.converter.IParameterWriter;
 import confdb.data.Instance;
+import confdb.data.ESPreferable;
 import confdb.data.Parameter;
 
 public class AsciiInstanceWriter {
@@ -38,6 +39,20 @@ public class AsciiInstanceWriter {
 			str.append( parameterWriter.toString( parameter, converterEngine, indent + "  " ) );
 		}
 		str.append( indent + "}" + converterEngine.getNewline() );
+
+
+		// quick fix by PS 11/02/07
+		if (instance instanceof ESPreferable) {
+		    ESPreferable esp = (ESPreferable)instance;
+		    if (esp.isPreferred()) {
+			str.append(indent + "es_prefer " +
+				   instance.name() + " = " +
+				   instance.template().name() + " {}" +
+				   converterEngine.getNewline());
+		    }
+		}
+		// end quick fix
+		    
 		return str.toString();
 	}
 

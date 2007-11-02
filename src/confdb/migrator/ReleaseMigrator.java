@@ -91,6 +91,7 @@ public class ReleaseMigrator
 	    ESSourceInstance target =
 		targetConfig.insertESSource(i,source.template().name(),source.name());
 	    if (target!=null) {
+		target.setPreferred(source.isPreferred());
 		migrateParameters(source,target);
 	    }
 	    else {
@@ -107,6 +108,7 @@ public class ReleaseMigrator
 	    ESModuleInstance target =
 		targetConfig.insertESModule(i,source.template().name(),source.name());
 	    if (target!=null) {
+		target.setPreferred(source.isPreferred());
 		migrateParameters(source,target);
 	    }
 	    else {
@@ -167,7 +169,7 @@ public class ReleaseMigrator
 	    migrateReferences(source,target);
 	}
 
-	// migrate References within Sequnences
+	// migrate References within Sequences
 	for (int i=0;i<sourceConfig.sequenceCount();i++) {
 	    Sequence source = sourceConfig.sequence(i);
 	    Sequence target = targetConfig.sequence(i);

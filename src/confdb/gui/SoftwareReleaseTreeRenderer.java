@@ -68,17 +68,21 @@ public class SoftwareReleaseTreeRenderer extends DefaultTreeCellRenderer
 	if (node instanceof SoftwareSubsystem) {
 	    SoftwareSubsystem s = (SoftwareSubsystem)node;
 	    int count = s.referencedPackageCount();
+	    int max   = s.packageCount();
 	    result = (count > 0) ?
-		"<html><b>"+s.name()+" ("+count+")</b></html>":
-		"<html>"   +s.name()+" ("+count+")</html>";
+		"<html><b>"+s.name()+" ("+count+"/"+max+")</b></html>":
+		"<html>"   +s.name()+" ("+count+"/"+max+")</html>";
 		
 	}
 	else if (node instanceof SoftwarePackage) {
 	    SoftwarePackage p = (SoftwarePackage)node;
 	    int count = p.instantiatedTemplateCount();
+	    int max   = p.templateCount();
 	    result =(count > 0) ?
-		"<html><b>"+p.name()+" ("+count+")</b></html>":
-		"<html>"   +p.name()+" ("+count+")</html>";
+		"<html><b>"+
+		p.cvsTag()+" "+p.name()+" ("+count+"/"+max+")</b></html>":
+		"<html>"
+		+p.cvsTag()+" "+p.name()+" ("+count+"/"+max+")</html>";
 	}
 	else if (node instanceof Template) {
 	    Template t = (Template)node;
