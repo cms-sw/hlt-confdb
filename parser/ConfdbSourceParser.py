@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL Sept. 25, 2007
+# Jonathan Hollar LLNL Nov. 3, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -885,11 +885,19 @@ class SourceParser:
 
 			    if(therest[0].find('::') != -1):
 				namespace = therest[0].split('::')[0]
-                                
                                 paramtype = therest[0].split('::')[1]
-
                             else:
                                 paramtype = therest[0]
+
+			    # Nested vector templates
+			    if(paramtype == 'vector'):
+				if(len(paramstring2) == 3):
+				    therest = (paramstring2[2]).split('>')
+				if(therest[0].find('::') != -1):
+				    namespace = therest[0].split('::')[0]
+				    paramtype = therest[0].split('::')[1]
+				else:
+				    paramtype = therest[0]
 
 			    if(paramtype == 'int' or paramtype == 'int32'):
 				paramtype = 'vint32'
@@ -1296,6 +1304,12 @@ class SourceParser:
 					lookupclass = thepsetline.split(':')[1].split('('+thepsetname+',')[1].split(',')[1].lstrip().rstrip()
 					multint = True
 
+				    if(lookupclass.find(',')):
+					lookupclasses = lookupclass.split(',')
+					lookupclass = lookupclasses[len(lookupclasses)-1]
+					lookupclass = lookupclass.lstrip().rstrip()
+					multint = True
+
 				    if(multint == True):
 					self.FindInheritedParameters(lookupclass,thedatadir,thehfile)			
 
@@ -1653,7 +1667,6 @@ class SourceParser:
 
 	    # Look for the declaration of this object
 	    for includeline in includelines:
-
 		# It's explicitly instantiated in the include file. Get the class name, stop, and go look for the #include
 		if (includeline.find(thebaseobject) != -1 and not (includeline.lstrip().startswith('#')) and 
 		    includeline.find('public') == -1 and not (includeline.lstrip().startswith('$')) and not 

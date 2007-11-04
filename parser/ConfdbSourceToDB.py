@@ -4,7 +4,7 @@
 # Main file for parsing source code in a CMSSW release and
 # loading module templates to the Conf DB.
 # 
-# Jonathan Hollar LLNL Oct. 30, 2007
+# Jonathan Hollar LLNL Nov. 3, 2007
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
@@ -330,7 +330,7 @@ class ConfdbSourceToDB:
 
 					    # If a new module definition was found, start parsing the source
 					    # code for the details
-					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,1)
+					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,1,None)
 
 					    self.moduledefinedinfile = sealcomponentfilename
 
@@ -359,7 +359,7 @@ class ConfdbSourceToDB:
 
 					    sealcomponenttuple.append(sealservice)
 
-					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,2)
+					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,2,None)
 
 					    self.moduledefinedinfile = sealcomponentfilename
 
@@ -385,11 +385,38 @@ class ConfdbSourceToDB:
 
 					    sealcomponenttuple.append(sealservice)
 
-					    self.ScanComponent(sealservice, packagedir,package+"/"+subdir,source_tree,2)
+					    self.ScanComponent(sealservice, packagedir,package+"/"+subdir,source_tree,2,None)
 
 					    self.moduledefinedinfile = sealcomponentfilename
 
 					    foundcomponent = 1	   
+
+					# And a special case for jet corrections services
+					if(sealcomponentline.find("DEFINE_JET_CORRECTION_SERVICE") != -1):
+					    sealservicestring = sealcomponentline.split('(')
+
+					    sealclass = (sealservicestring[1]).split(')')[0].split(',')[0].lstrip().rstrip()
+					    sealname =  (sealservicestring[1]).split(')')[0].split(',')[1].lstrip().rstrip()
+					    sealservice = package + "/" + sealclass
+					
+					    if(self.verbose > 0):
+						print "\n\tSEAL Jet Correction Service name = " + sealservice
+
+					    if(self.doconfig != "" and (not sealclass in self.needconfigcomponents)):
+						if(self.verbose > 0):
+						    print "\t\tService " + sealclass + " not needed for this config"
+						continue
+                                        
+					    if(not (package+"/"+subdir) in self.needconfigpackages):
+						self.needconfigpackages.append(package+"/"+subdir)
+
+					    sealcomponenttuple.append(sealservice)
+
+					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,2,sealname)
+
+					    self.moduledefinedinfile = sealcomponentfilename
+
+					    foundcomponent = 1					    
 
 					# Then ES_Sources
 					if((sealcomponentline.find("DEFINE_FWK_EVENTSETUP_SOURCE") != -1 or
@@ -412,7 +439,7 @@ class ConfdbSourceToDB:
 
 					    sealcomponenttuple.append(sealessource)
 
-					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,3)
+					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,3,None)
 
 					    self.moduledefinedinfile = sealcomponentfilename
 
@@ -439,7 +466,7 @@ class ConfdbSourceToDB:
 
 					    sealcomponenttuple.append(sealessource)
 
-					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,4)
+					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,4,None)
 
 					    self.moduledefinedinfile = sealcomponentfilename
 
@@ -466,7 +493,7 @@ class ConfdbSourceToDB:
 
 					    sealcomponenttuple.append(sealessource)
 
-					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,5)
+					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,5,None)
 
 					    self.moduledefinedinfile = sealcomponentfilename
 
@@ -516,7 +543,7 @@ class ConfdbSourceToDB:
 	# Commit and disconnect to be compatible with either INNODB or MyISAM
 	self.dbloader.ConfdbExitGracefully()
 
-    def ScanComponent(self,modulename, packagedir, packagename, sourcetree, componenttype):
+    def ScanComponent(self,modulename, packagedir, packagename, sourcetree, componenttype, componentrename):
 
 	# Get a parser object
 	myParser = ConfdbSourceParser.SourceParser(self.verbose,sourcetree)
@@ -634,6 +661,11 @@ class ConfdbSourceToDB:
 	try:
 	    # OK, now we know the module, it's base class, it's parameters, and their
 	    # default values. Start updating the database if necessary
+
+	    # For components defined via macro-associations, the name of the class/file may not 
+	    # agree with the name of the framework component
+	    if(componentrename != None):
+		modulename = componentrename
 	    
 	    # First enter the package & subsystem information
 	    packageid = self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,packagename.split('/')[0].lstrip().rstrip(),packagename.split('/')[1].lstrip().rstrip())
