@@ -412,7 +412,7 @@ class ConfdbSourceToDB:
 
 					    sealcomponenttuple.append(sealservice)
 
-					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,2,sealname)
+					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,3,sealname)
 
 					    self.moduledefinedinfile = sealcomponentfilename
 
