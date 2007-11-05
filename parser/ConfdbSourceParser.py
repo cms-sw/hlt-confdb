@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL Nov. 3, 2007
+# Jonathan Hollar LLNL Nov. 5, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -1805,6 +1805,25 @@ class SourceParser:
 
                         totalline = totalline + srcline.lstrip().rstrip('\n')
 
+		    # Find the main pset name in case it's passed through to another object (a la CSCRecHitBProducer)
+		    thenewpsetname = None
+		    if(totalline.find('ParameterSet') != -1 and totalline.find('&') != -1):
+			if(totalline.find('ParameterSet&') != -1):
+			    thenewpsetline = totalline.split('ParameterSet&')[1]
+			    thenewpsetname = totalline.split('ParameterSet&')[1].split(')')[0].lstrip().rstrip()
+			elif(totalline.find('ParameterSet const&') != -1):
+			    thenewpsetline = totalline.split('ParameterSet const&')[1]
+			    thenewpsetname = totalline.split('ParameterSet const&')[1].split(')')[0].lstrip().rstrip()
+			elif(totalline.find('ParameterSet &') != -1):
+			    thenewpsetline = totalline.split('ParameterSet &')[1]
+			    thenewpsetname = totalline.split('ParameterSet &')[1].split(')')[0].lstrip().rstrip()
+
+			if(thenewpsetname):
+			    if(thenewpsetname.find(',') != -1):
+				thenewpsetname = thepsetname.split(',')[0].lstrip().rstrip()
+
+			    mainpassedpset = thenewpsetname
+
 		    if((foundlineend == True) and totalline.find('getParameter') != -1):
 			paramname = totalline.split('getParameter')[1].split('"')[1]
 			
@@ -2061,7 +2080,12 @@ class SourceParser:
 			    else:
 				newthepassedpset = newtheobjectargument.split(')')[0].lstrip('(').rstrip(');').lstrip().rstrip()
 
-			    if(newthepassedpset in self.psetdict):
+			    if(newthepassedpset == mainpassedpset):
+				if(self.verbose > 1):
+				    print 'Found top-level pset passed to object of type ' + theobjectclass
+
+				self.ParsePassedParameterSet('None', self.sourcetree+theincfile, newtheobjectclass, 'None',thedatadir,themodulename)
+			    elif(newthepassedpset in self.psetdict):
 				newpsettype = self.psetdict[newthepassedpset] 
 				if(self.verbose > 1):
 				    print 'Found pset of type ' + newpsettype + ', nested in the PSet ' + thepsetname + ', passed to object of type ' + newtheobjectclass
