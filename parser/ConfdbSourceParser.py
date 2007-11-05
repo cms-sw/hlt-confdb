@@ -2093,6 +2093,20 @@ class SourceParser:
 
 			totalline = ''
 
+		    # New object without an explicit new
+		    elif((foundlineend == True) and (totalline.find('( ' + mainpassedpset + ' )') != -1) and (totalline.find('=') != -1) and (totalline.find('new') == -1)):
+			newtheobjectclass = ''
+			newtheobjectargument = ''
+
+			newtheobjectclass = totalline.split('( ' + mainpassedpset)[0]
+			if(newtheobjectclass.find('=') != -1):
+			    newtheobjectclass = (newtheobjectclass.split('=')[1]).lstrip().rstrip()
+			    if(self.verbose > 1):
+				print 'Found top-level pset passed to object of type ' + newtheobjectclass
+
+			    self.ParsePassedParameterSet('None', self.sourcetree+theincfile, newtheobjectclass, 'None',thedatadir,themodulename)
+
+
 		    # This line is uninteresting
 		    if(foundlineend == True and srcline.find('getParameter') == -1 and srcline.find('getUntrackedParameter') == -1):
 			foundlineend = False
