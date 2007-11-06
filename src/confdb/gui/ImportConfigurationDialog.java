@@ -22,8 +22,7 @@ import confdb.db.ConfDB;
  * @author Philipp Schieferdecker
  *
  */
-public class ImportConfigurationDialog
-    extends ConfigurationDialog implements ActionListener
+public class ImportConfigurationDialog extends ConfigurationDialog
 {
     //
     // member data
@@ -36,20 +35,15 @@ public class ImportConfigurationDialog
     private ConfigInfo configInfo = null;
     
     /** configuration version table */
-    private JTable configTable = null;
-    
+    private JTree   jTreeDirectories = null;
+    private JTable  jTableConfig     = null;
+    private JButton jButtonOk        = new JButton();
+    private JButton jButtonCancel    = new JButton();
+
     /** configuration version table-model */
     private ConfigVersionTableModel configTableModel = null;
-    
-        /** Cancel / OK buttons */
-    private JButton okButton = null;
-    private JButton cancelButton = null;
 
-    /** action commands */
-    private static final String OK     = new String("OK");
-    private static final String CANCEL = new String("Cancel");
     
-
     //
     // construction
     //
@@ -61,7 +55,7 @@ public class ImportConfigurationDialog
 	super(frame,database);
 	this.releaseTag = releaseTag;
 	setTitle("Import Configuration");
-	setContentPane(createContentPane());
+	setContentPane(initComponents());
 	addTreeSelectionListener(new ImportConfigTreeSelListener());
     }
 	
@@ -76,84 +70,170 @@ public class ImportConfigurationDialog
     /** retrieve configuration information */
     public ConfigInfo configInfo() { return configInfo; }
     
-    /** create the content pane */
-    public JPanel createContentPane()
-    {
-	GridBagConstraints c = new GridBagConstraints();
-	c.fill = GridBagConstraints.NONE;
-	c.weightx = 0.5;
-	
-	JPanel contentPane = new JPanel(new GridBagLayout());
-	
-	JPanel topPanel = new JPanel(new GridBagLayout());
-	Dimension dimTreeView = new Dimension(200,300);
-	c.gridx=0; c.gridy=0;
-	topPanel.add(createTreeView(dimTreeView),c);
-
-	Dimension dimTableView = new Dimension(400,300);
-	c.gridx=1;c.gridy=0;
-	topPanel.add(createTableView(dimTableView),c);
-	
-	contentPane.add(topPanel);
-	
-	c.gridx=0;c.gridy=1;c.gridwidth=2;
-	contentPane.add(createButtonPanel(),c);
-
-	return contentPane;
-    }
-
-    /** create the table view */
-    public JScrollPane createTableView(Dimension dim)
-    {
-	configTableModel = new ConfigVersionTableModel();
-	configTable = new JTable(configTableModel);
-	configTable.getSelectionModel()
-	    .addListSelectionListener(new ImportConfigListSelListener());
-	configTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-	configTable.setPreferredSize(new Dimension(dim.width,dim.height-20));
-	configTable.setShowGrid(false);
-	configTable.getTableHeader().setReorderingAllowed(false);
-	configTable.getColumnModel().getColumn(0).setPreferredWidth(50);
-	configTable.getColumnModel().getColumn(1).setPreferredWidth(150);
-	configTable.getColumnModel().getColumn(2).setPreferredWidth(150);
-
-	ImportConfigTableCellRenderer cellRenderer =
-	    new ImportConfigTableCellRenderer();
-	cellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-	configTable.setDefaultRenderer(Integer.class,cellRenderer);
-	configTable.setDefaultRenderer(String.class,cellRenderer);
-	
-	JScrollPane result = new JScrollPane(configTable);
-	result.setPreferredSize(dim);
-	return result;
-    }
-    
-    /** create button panel */
-    public JPanel createButtonPanel()
-    {
-	JPanel result = new JPanel(new FlowLayout());
-	okButton = new JButton(OK);
-	okButton.addActionListener(this);
-	okButton.setActionCommand(OK);
-	okButton.setEnabled(false);
-	cancelButton = new JButton(CANCEL);
-	cancelButton.addActionListener(this);
-	cancelButton.setActionCommand(CANCEL);
-	result.add(cancelButton);
-	result.add(okButton);
-	return result;
-    }
-
-    /** ActionListener: actionPerformed() */
-    public void actionPerformed(ActionEvent e)
+    /** 'OK' button callback */
+    public void jButtonOkActionPerformed(ActionEvent e)
     {
 	validChoice = false;
-	if (e.getActionCommand().equals(OK)) {
-	    if (configInfo!=null) validChoice = true;
-	}
+	if (configInfo!=null) validChoice = true;
 	setVisible(false);
     }
     
+    /** 'Cancel' button callback */
+    public void jButtonCancelActionPerformed(ActionEvent e)
+    {
+	validChoice = false;
+	setVisible(false);
+    }
+
+
+    //
+    // private member functions
+    //
+    private JPanel initComponents()
+    {
+	JPanel contentPane = new JPanel();
+	
+        JScrollPane jScrollPane1 = new JScrollPane();
+        JScrollPane jScrollPane2 = new JScrollPane();
+	
+	// tree
+	createTreeView(new Dimension(200,200));
+	jTreeDirectories = this.dirTree;
+	jScrollPane1.setViewportView(jTreeDirectories);
+        
+	// table
+	configTableModel = new ConfigVersionTableModel();
+	jTableConfig = new JTable(configTableModel);
+	jTableConfig.getSelectionModel()
+	    .addListSelectionListener(new ImportConfigListSelListener());
+	jTableConfig.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	jTableConfig.setShowGrid(false);
+	jTableConfig.getTableHeader().setReorderingAllowed(false);
+	jTableConfig.getColumnModel().getColumn(0).setPreferredWidth(50);
+	jTableConfig.getColumnModel().getColumn(1).setPreferredWidth(150);
+	jTableConfig.getColumnModel().getColumn(2).setPreferredWidth(60);
+	jTableConfig.getColumnModel().getColumn(3).setPreferredWidth(120);
+	
+	DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
+	renderer.setHorizontalAlignment(SwingConstants.CENTER);
+	jTableConfig.getColumnModel().getColumn(0).setCellRenderer(renderer);
+	jTableConfig.getColumnModel().getColumn(1).setCellRenderer(renderer);
+	jTableConfig.getColumnModel().getColumn(2).setCellRenderer(renderer);
+	jTableConfig.getColumnModel().getColumn(3).setCellRenderer(renderer);
+	
+        jScrollPane2.setViewportView(jTableConfig);
+	jTableConfig.getParent().setBackground(new Color(255,255,255));
+	
+	//buttons
+        jButtonOk.setText("OK");
+        jButtonOk.setEnabled(false);
+        jButtonOk.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonOkActionPerformed(evt);
+            }
+        });
+
+        jButtonCancel.setText("Cancel");
+	jButtonCancel.addActionListener(new java.awt.event.ActionListener() {
+		public void actionPerformed(java.awt.event.ActionEvent evt) {
+		    jButtonCancelActionPerformed(evt);
+		}
+	    });
+	     
+	org.jdesktop.layout.GroupLayout layout =
+	    new org.jdesktop.layout.GroupLayout(contentPane);
+        contentPane.setLayout(layout);
+        layout.setHorizontalGroup(layout
+				  .createParallelGroup(org.jdesktop.layout
+						       .GroupLayout.LEADING)
+				  .add(layout.createSequentialGroup()
+				       .addContainerGap()
+				       .add(layout
+					    .createParallelGroup(org.jdesktop.layout
+								 .GroupLayout
+								 .LEADING)
+					    .add(layout.createSequentialGroup()
+						 .add(jButtonOk,
+						      org.jdesktop.layout
+						      .GroupLayout
+						      .DEFAULT_SIZE, 113,
+						      Short.MAX_VALUE)
+						 .addPreferredGap(org.jdesktop
+								  .layout
+								  .LayoutStyle
+								  .RELATED)
+						 .add(jButtonCancel,
+						      org.jdesktop
+						      .layout
+						      .GroupLayout
+						      .DEFAULT_SIZE, 107,
+						      Short.MAX_VALUE))
+					    .add(jScrollPane1,
+						 org.jdesktop
+						 .layout
+						 .GroupLayout
+						 .DEFAULT_SIZE, 226,
+						 Short.MAX_VALUE))
+				       .addPreferredGap(org.jdesktop
+							.layout
+							.LayoutStyle.RELATED)
+				       .add(jScrollPane2,
+					    org.jdesktop
+					    .layout
+					    .GroupLayout
+					    .DEFAULT_SIZE, 396,
+					    Short.MAX_VALUE)
+				       .addContainerGap())
+				  );
+        layout.setVerticalGroup(layout
+				.createParallelGroup(org.jdesktop
+						     .layout
+						     .GroupLayout.LEADING)
+				.add(org.jdesktop
+				     .layout
+				     .GroupLayout
+				     .TRAILING,
+				     layout.createSequentialGroup()
+				     .add(layout
+					  .createParallelGroup(org.jdesktop
+							       .layout
+							       .GroupLayout.LEADING)
+					  .add(org.jdesktop
+					       .layout
+					       .GroupLayout.TRAILING,
+					       layout.createSequentialGroup()
+					       .addContainerGap(389, Short.MAX_VALUE)
+					       .add(jButtonOk))
+					  .add(org.jdesktop
+					       .layout
+					       .GroupLayout
+					       .TRAILING,
+					       layout.createSequentialGroup()
+					       .add(0, 0, 0)
+					       .add(jScrollPane2,
+						    org.jdesktop
+						    .layout
+						    .GroupLayout
+						    .DEFAULT_SIZE, 414,
+						    Short.MAX_VALUE)))
+				     .addContainerGap())
+				.add(org.jdesktop
+				     .layout
+				     .GroupLayout
+				     .TRAILING,
+				     layout.createSequentialGroup()
+				     .addContainerGap(389, Short.MAX_VALUE)
+				     .add(jButtonCancel)
+				     .add(12, 12, 12))
+				.add(layout.createSequentialGroup()
+				     .addContainerGap()
+				     .add(jScrollPane1)
+				     .add(51, 51, 51))
+				);
+	
+
+	return contentPane;
+    }
     
     //
     // classes
@@ -161,7 +241,7 @@ public class ImportConfigurationDialog
     
     /**
      * ImportConfigListSelListener
-     * -------------------------
+     * ---------------------------
      * @author Philipp Schieferdecker
      */
     public class ImportConfigListSelListener implements ListSelectionListener
@@ -199,7 +279,7 @@ public class ImportConfigurationDialog
 		    configInfo.setVersionIndex(0);
 		    configInfo = null;
 		}
-		okButton.setEnabled(false);
+		jButtonOk.setEnabled(false);
 		configTableModel.setConfigInfo(configInfo);
 	    }
 	    else if (o instanceof ConfigInfo) {
@@ -215,13 +295,13 @@ public class ImportConfigurationDialog
 		}
 		if (selectedIndex<0) {
 		    configInfo = null;
-		    okButton.setEnabled(false);
+		    jButtonOk.setEnabled(false);
 		    return;
 		}
 		
-		configTable.getSelectionModel().setSelectionInterval(selectedIndex,
-								     selectedIndex);
-		okButton.setEnabled(true);
+		jTableConfig.getSelectionModel().setSelectionInterval(selectedIndex,
+								      selectedIndex);
+		jButtonOk.setEnabled(true);
 	    }
 	}
     }

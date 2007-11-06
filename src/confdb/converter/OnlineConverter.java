@@ -25,24 +25,12 @@ public class OnlineConverter extends ConverterBase
     /** current configuration id */
     private int configId = -1;
 
-    /** current release tag for templates */
-    private String releaseTag = "";
-
     /** current configuration string for FUEventProcessor */
     private String epConfigString = null;
 
     /** current configuration string for StorageManager */
     private String smConfigString = null;
 
-    /** EDSource template for FUEventProcessor */
-    private EDSourceTemplate epSourceT = null;
-    
-    /** OutputModule template for FUEventProcessor */
-    private ModuleTemplate   epOutputModuleT = null;
-
-    /** StreamWriter template for StorageManager */
-    private ModuleTemplate   smStreamWriterT = null;
-    
     
     //
     // construction
@@ -92,39 +80,15 @@ public class OnlineConverter extends ConverterBase
     {
 	IConfiguration epConfig = getConfiguration(configId);
 	
-	if (epConfig.releaseTag().equals(releaseTag)) {
-	    epSourceT.removeAllInstances();
-	    epOutputModuleT.removeAllInstances();
-	    smStreamWriterT.removeAllInstances();
-	}
-	else {
-	    releaseTag = epConfig.releaseTag();
-	    epSourceT  = (EDSourceTemplate)getDatabase()
-		.loadTemplate(releaseTag,"DaqSource");
-	    epOutputModuleT = (ModuleTemplate)getDatabase()
-		.loadTemplate(releaseTag,"ShmStreamConsumer");
-	    smStreamWriterT = (ModuleTemplate)getDatabase()
-		.loadTemplate(releaseTag,"EventStreamFileWriter");
-	}
-	
-	if (epSourceT==null)
-	    throw new ConverterException("Failed to load epSourceT");
-	if (epOutputModuleT==null)
-	    throw new ConverterException("Failed to load epOutputModuleT");
-	if (smStreamWriterT==null)
-	    throw new ConverterException("Failed to load smStreamWriterT");
-	
-	EDSourceInstance epSource = null;
-	try {
-	    epSource = (EDSourceInstance)epSourceT.instance();
-	}
-	catch (DataException e) {
-	    throw new ConverterException(e.getMessage());
-	}
-	epSource.updateParameter("readerPluginName","string","FUShmReader");
-	
-	SoftwareRelease smRelease = new SoftwareRelease();
-	smRelease.addSubsystem(smStreamWriterT.parentPackage().subsystem());
+	SoftwareSubsystem subsys          = new SoftwareSubsystem("IOPool");
+	SoftwarePackage   pkg             = new SoftwarePackage("Streamer");
+	ModuleTemplate    smStreamWriterT = makeSmStreamWriterT();
+	SoftwareRelease   smRelease       = new SoftwareRelease();
+
+	smRelease.clear(epConfig.releaseTag());
+	pkg.addTemplate(smStreamWriterT);
+	subsys.addPackage(pkg);
+	smRelease.addSubsystem(subsys);
 	
 	Configuration smConfig =
 	    new Configuration(new ConfigInfo(epConfig.name(),
@@ -147,9 +111,8 @@ public class OnlineConverter extends ConverterBase
 					       stream.label());
 	    ModuleInstance streamWriter = (ModuleInstance)streamWriterRef.parent();
 	    streamWriter.updateParameter("streamLabel","string",stream.label());
-	    streamWriter.updateParameter("maxSize","int32","1073741824");
-	    PSetParameter psetSelectEvents =
-		new PSetParameter("SelectEvents","",false,false);
+	    PSetParameter psetSelectEvents = new PSetParameter("SelectEvents","",
+							       false,false);
 	    String valAsString = "";
 	    Iterator itPath = stream.pathIterator();
 	    while (itPath.hasNext()) {
@@ -164,8 +127,9 @@ public class OnlineConverter extends ConverterBase
 					 psetSelectEvents.valueAsString());
 	}
 	
+	
 	ConfigurationModifier epModifier = new ConfigurationModifier(epConfig);
-	epModifier.replaceEDSource(epSource);
+	epModifier.insertDaqSource();
 	//epModifier.replaceOutputModules(epOutputModuleT);
 	epModifier.modify();
 	
@@ -174,6 +138,18 @@ public class OnlineConverter extends ConverterBase
     }
     
 
+    /** make a ep source template (-> DaqSource) */
+    private ModuleTemplate makeSmStreamWriterT()
+    {
+	ArrayList<Parameter> params = new ArrayList<Parameter>();
+	params.add(new StringParameter("streamLabel","",true,false));
+	params.add(new Int32Parameter("maxSize","1073741824",true,false));
+	params.add(new PSetParameter("SelectEvents","",false,false));
+	return new ModuleTemplate("EventStreamFileWriter",
+				  "UNKNOWN",-1,params,"OutputModule");
+    }
+
+    
     //
     // main
     //
@@ -210,9 +186,14 @@ public class OnlineConverter extends ConverterBase
 	    System.exit(0);
 	}
 	
+	System.out.println("dbType="+dbType);
+	System.out.println("dbUrl="+dbUrl);
+	System.out.println("dbUser="+dbUser);
+	System.out.println("dbPwrd="+dbPwrd);
+
 	try {
 	    OnlineConverter cnv = 
-		new OnlineConverter("ascii",dbType,dbUrl,dbName,dbPwrd);
+		new OnlineConverter("Ascii",dbType,dbUrl,dbUser,dbPwrd);
 	    System.out.println(cnv.getEpConfigString(Integer.parseInt(configId)));
 	    System.out.println(cnv.getSmConfigString(Integer.parseInt(configId)));
 	}

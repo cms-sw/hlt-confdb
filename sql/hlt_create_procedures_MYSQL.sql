@@ -555,7 +555,7 @@ BEGIN
         ModuleTemplates.superId,
         ModuleTemplates.name,
         ModuleTemplates.cvstag,
-	Moduletemplates.packageId,
+	ModuleTemplates.packageId,
         ModuleTypes.type
       FROM ModuleTemplates
       JOIN ModuleTypes
@@ -623,7 +623,8 @@ BEGIN
     (
       parameter_id	BIGINT UNSIGNED,
       parameter_value   BIGINT,
-      sequence_nb       INT
+      sequence_nb       INT,
+      hex		BOOLEAN
     );
 
     /* temporary double parameter-value table */

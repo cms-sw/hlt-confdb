@@ -1,3 +1,11 @@
+2007-11-06  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-14-02
+	* converter: add ConverterBase, OnlineConverter, OfflineConverter
+	* data: add ModifierInstructions and base ConfigurationModifier on
+	it
+	* two important bug fixes to the MySQL schema (procedures)
+	 
 2007-11-02  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-14-01

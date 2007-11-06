@@ -23,7 +23,7 @@ public class ConfigurationModifier implements IConfiguration
 
     /** flag indicating if the filter was applied */
     private boolean isModified = false;
-
+    
     /** filtered components */
     private ArrayList<PSetParameter>    psets    = new ArrayList<PSetParameter>();
     private ArrayList<EDSourceInstance> edsources= new ArrayList<EDSourceInstance>();
@@ -35,37 +35,8 @@ public class ConfigurationModifier implements IConfiguration
     private ArrayList<Sequence>         sequences= new ArrayList<Sequence>();
     private ArrayList<Stream>           streams  = new ArrayList<Stream>();
     
-    /** global pset filter settings */
-    private boolean           filterAllPSets     = false;
-    private ArrayList<String> filteredPSets      = new ArrayList<String>();
-    
-    /** EDSource filter settings */
-    private boolean           filterAllEDSources = false;
-    private ArrayList<String> filteredEDSources  = new ArrayList<String>();
-    private EDSourceInstance  addedEDSource      = null;
-
-    /** ESSource filter settings */
-    private boolean           filterAllESSources = false;
-    private ArrayList<String> filteredESSources  = new ArrayList<String>();
-    
-    /** ESModule filter settings */
-    private boolean           filterAllESModules = false;
-    private ArrayList<String> filteredESModules  = new ArrayList<String>();
-    
-    /** Service filter settings */
-    private boolean           filterAllServices  = false;
-    private ArrayList<String> filteredServices   = new ArrayList<String>();
-
-    /** Path filter settings */
-    private boolean           filterAllPaths     = false;
-    private ArrayList<String> filteredPaths      = new ArrayList<String>();
-    private ArrayList<Path>   addedPaths         = new ArrayList<Path>();
-
-    /** Sequences requested, regardless of being referenced */
-    private ArrayList<String> requestedSequences = new ArrayList<String>();
-    
-    /** Modules requested, regardless of being referenced */
-    private ArrayList<String> requestedModules   = new ArrayList<String>();
+    /** internal modifier instructions */
+    private ModifierInstructions instructions = new ModifierInstructions();
     
     
     //
@@ -83,94 +54,52 @@ public class ConfigurationModifier implements IConfiguration
     //
     
     /** choose to filter all global psets */
-    public void filterAllPSets() { filterAllPSets = true; }
+    public void filterAllPSets() { instructions.filterAllPSets(); }
     
     /** choose to filter all edsources */
-    public void filterAllEDSources() { filterAllEDSources = true; }
+    public void filterAllEDSources() { instructions.filterAllEDSources(); }
     
     /** choose to filter all essource */
-    public void filterAllESSources() { filterAllESSources = true; }
+    public void filterAllESSources() { instructions.filterAllESSources(); }
     
     /** choose to filter all esmodule */
-    public void filterAllESModules() { filterAllESModules = true; }
+    public void filterAllESModules() { instructions.filterAllESModules(); }
 
     /** choose to filter all esmodule */
-    public void filterAllServices() { filterAllServices = true; }
+    public void filterAllServices() { instructions.filterAllServices(); }
     
     /** choose to filter all paths */
-    public void filterAllPaths() { filterAllPaths = true; }
+    public void filterAllPaths() { instructions.filterAllPaths(); }
 
     /** request a sequence, regardless of it being referenced in a path */
-    public boolean requestSequence(String sequenceName)
+    public void requestSequence(String sequenceName)
     {
-	Sequence sequence = master.sequence(sequenceName);
-	if (sequence==null) return false;
-	if (requestedSequences.indexOf(sequenceName)<0)
-	    requestedSequences.add(sequenceName);
-	return true;
-    }
-
-    /** request a module, regardless of it being referenced in a path */
-    public boolean requestModule(String moduleName)
-    {
-	ModuleInstance module = master.module(moduleName);
-	if (module==null) return false;
-	if (requestedModules.indexOf(moduleName)<0)
-	    requestedModules.add(moduleName);
-	return true;
-    }
-
-    /** replace the current EDSource */
-    public void replaceEDSource(EDSourceInstance edsource)
-    {
-	filterAllEDSources = true;
-	addedEDSource = edsource;
-    }
-
-    /** replace the current OutputModule */
-    public boolean replaceOutputModule(ModuleInstance module)
-    {
-	int            count          = 0;
-	Path           replacedPath   = null;
-	
-	Iterator it = master.pathIterator();
-	while (it.hasNext()) {
-	    Path path = (Path)it.next();
-	    if (path.hasOutputModule()) {
-		count++;
-		if (replacedPath==null) replacedPath = path;
-	    }
-	}
-	
-	if (count==0) {
-	    System.err.println("replaceOutputModule ERROR: "+
-			       "no OutputModule found to replace!");
-	    return false;
-	}
-	if (count>1) {
-	    System.err.println("replaceOutputModule ERROR: "+
-			       "found more than 1 OutputModule!");
-	    return false;
-	}
-	
-	Path path = new Path(replacedPath.name());
-	Iterator itM = replacedPath.moduleIterator();
-	while (itM.hasNext()) {
-	    ModuleInstance m = (ModuleInstance)itM.next();
-	    if (m.template().type().equals("OutputModule"))
-		module.createReference(path,path.entryCount());
-	    else
-		m.createReference(path,path.entryCount());
-	}
-	
-	filteredPaths.add(replacedPath.name());
-	addedPaths.add(path);
-	
-	return true;
+	instructions.requestSequence(sequenceName);
     }
     
-    /** apply modifications */
+    /** request a module, regardless of it being referenced in a path */
+    public void requestModule(String moduleName)
+    {
+	instructions.requestModule(moduleName);
+    }
+    
+    /** replace the current EDSource with a PoolSource */
+    public void insertPoolSource(String inputFiles)
+    {
+	instructions.insertPoolSource(inputFiles);
+    }
+
+    /** replace the current EDSource with a DaqSource */
+    public void insertDaqSource() { instructions.insertDaqSource(); }
+    
+    /** apply modifications based on internal instructions */
     public void modify()
+    {
+	modify(instructions);
+    }
+
+    /** apply modifications */
+    public void modify(ModifierInstructions instructions)
     {
 	psets.clear();
 	edsources.clear();
@@ -182,57 +111,60 @@ public class ConfigurationModifier implements IConfiguration
 	sequences.clear();
 	streams.clear();
 	
-	if (!filterAllPSets) {
+	if (!instructions.resolve(master)) return;
+	
+	if (!instructions.doFilterAllPSets()) {
 	    Iterator it=master.psetIterator();
 	    while (it.hasNext()) {
 		PSetParameter pset = (PSetParameter)it.next();
-		if (filteredPSets.indexOf(pset.name())<0)
+		if (!instructions.isInBlackList(pset))
 		    psets.add(pset);
 	    }
 	}
-
-	if (!filterAllEDSources) {
+	
+	if (!instructions.doFilterAllEDSources()) {
 	    Iterator it=master.edsourceIterator();
 	    while (it.hasNext()) {
 		EDSourceInstance edsource = (EDSourceInstance)it.next();
-		if (filteredEDSources.indexOf(edsource.name())<0)
+		if (!instructions.isInBlackList(edsource))
 		    edsources.add(edsource);
 	    }
 	}
-	if (addedEDSource!=null) edsources.add(addedEDSource);
+	if (instructions.doInsertEDSource())
+	    edsources.add(instructions.edsourceToBeAdded());
 	
-	if (!filterAllESSources) {
+	if (!instructions.doFilterAllESSources()) {
 	    Iterator it=master.essourceIterator();
 	    while (it.hasNext()) {
 		ESSourceInstance essource = (ESSourceInstance)it.next();
-		if (filteredESSources.indexOf(essource.name())<0)
+		if (!instructions.isInBlackList(essource))
 		    essources.add(essource);
 	    }
 	}
-
-	if (!filterAllESModules) {
+	
+	if (!instructions.doFilterAllESModules()) {
 	    Iterator it=master.esmoduleIterator();
 	    while (it.hasNext()) {
 		ESModuleInstance esmodule = (ESModuleInstance)it.next();
-		if (filteredESModules.indexOf(esmodule.name())<0)
+		if (!instructions.isInBlackList(esmodule))
 		    esmodules.add(esmodule);
 	    }
 	}
-
-	if (!filterAllServices) {
+	
+	if (!instructions.doFilterAllServices()) {
 	    Iterator it=master.serviceIterator();
 	    while (it.hasNext()) {
 		ServiceInstance service = (ServiceInstance)it.next();
-		if (filteredServices.indexOf(service.name())<0)
+		if (!instructions.isInBlackList(service))
 		    services.add(service);
 	    }
 	}
-
-	if (!filterAllPaths) {
+	
+	if (!instructions.doFilterAllPaths()) {
 	    Iterator it=master.pathIterator();
 	    while (it.hasNext()) {
 		Path path = (Path)it.next();
-		if (filteredPaths.indexOf(path.name())<0) {
+		if (!instructions.isInBlackList(path)) {
 		    paths.add(path);
 		    Iterator itS = path.sequenceIterator();
 		    while (itS.hasNext()) {
@@ -249,25 +181,8 @@ public class ConfigurationModifier implements IConfiguration
 		}
 	    }
 	}
-	Iterator itP = addedPaths.iterator();
-	while (itP.hasNext()) {
-	    Path path = (Path)itP.next();
-	    paths.add(path);
-	    Iterator itS = path.sequenceIterator();
-	    while (itS.hasNext()) {
-		Sequence sequence = (Sequence)itS.next();
-		if (sequences.indexOf(sequence)<0)
-		    sequences.add(sequence);
-	    }
-	    Iterator itM = path.moduleIterator();
-	    while (itM.hasNext()) {
-		ModuleInstance module = (ModuleInstance)itM.next();
-		if (modules.indexOf(module)<0)
-		    modules.add(module);
-	    }
-	}
 	
-	Iterator itS = requestedSequences.iterator();
+	Iterator itS = instructions.requestedSequenceIterator();
 	while (itS.hasNext()) {
 	    String   sequenceName = (String)itS.next();
 	    Sequence sequence     = master.sequence(sequenceName);
@@ -275,7 +190,7 @@ public class ConfigurationModifier implements IConfiguration
 		sequences.add(sequence);
 	}
 	
-	Iterator itM = requestedModules.iterator();
+	Iterator itM = instructions.requestedModuleIterator();
 	while (itM.hasNext()) {
 	    String         moduleLabel = (String)itM.next();
 	    ModuleInstance module      = master.module(moduleLabel);
@@ -289,21 +204,7 @@ public class ConfigurationModifier implements IConfiguration
     /** reset all modifications */
     public void reset()
     {
-	filterAllPSets     = false;
-	filterAllEDSources = false;
-	filterAllESSources = false;
-	filterAllServices  = false;
-	filterAllPaths     = false;
-	
-	filteredPSets.clear();
-	filteredEDSources.clear();
-	filteredESSources.clear();
-	filteredESModules.clear();
-	filteredServices.clear();
-	filteredPaths.clear();
-	
-	requestedSequences.clear();
-	requestedModules.clear();
+	instructions = new ModifierInstructions();
 	
 	psets.clear();
 	edsources.clear();
@@ -317,7 +218,7 @@ public class ConfigurationModifier implements IConfiguration
 
 	isModified = false;
     }
-
+    
     
     //
     // IConfiguration interface
