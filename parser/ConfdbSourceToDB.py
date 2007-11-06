@@ -668,7 +668,8 @@ class ConfdbSourceToDB:
 		modulename = componentrename
 	    
 	    # First enter the package & subsystem information
-	    packageid = self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,packagename.split('/')[0].lstrip().rstrip(),packagename.split('/')[1].lstrip().rstrip())
+            if(self.noload == False):
+                packageid = self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,packagename.split('/')[0].lstrip().rstrip(),packagename.split('/')[1].lstrip().rstrip())
 
 	    if(componenttype == 1):
 		
