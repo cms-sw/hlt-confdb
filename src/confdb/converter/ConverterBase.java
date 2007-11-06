@@ -8,7 +8,6 @@ import java.util.List;
 
 import confdb.data.IConfiguration;
 import confdb.db.ConfDB;
-import confdb.db.DatabaseException;
 
 public class ConverterBase 
 {
@@ -20,7 +19,7 @@ public class ConverterBase
 	
 
 	
-	protected ConverterBase( String format, Connection connection ) throws ConverterException
+	public ConverterBase( String format, Connection connection ) throws ConverterException
     {
 		database = new ConfDB();
 		try {
@@ -31,8 +30,8 @@ public class ConverterBase
 		}
     }
 	
-    protected ConverterBase( String format,
-			                 String dbType, String dbUrl, String dbUser, String dbPwrd ) throws ConverterException
+    public ConverterBase( String format,
+			              String dbType, String dbUrl, String dbUser, String dbPwrd ) throws ConverterException
     {
     	database = new ConfDB();
     	try {
