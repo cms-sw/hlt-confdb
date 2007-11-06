@@ -20,19 +20,27 @@ public class ConverterBase
 	
 
 	
-	protected ConverterBase( String format, Connection connection ) throws DatabaseException, ClassNotFoundException, InstantiationException, IllegalAccessException
+	protected ConverterBase( String format, Connection connection ) throws ConverterException
     {
 		database = new ConfDB();
-		database.connect( connection );
-		converterEngine = ConverterFactory.getConverterEngine( format );
+		try {
+			database.connect( connection );
+			converterEngine = ConverterFactory.getConverterEngine( format );
+		} catch (Exception e) {
+			throw new ConverterException( "can't construct converter", e );
+		}
     }
 	
     protected ConverterBase( String format,
-			                 String dbType, String dbUrl, String dbUser, String dbPwrd ) throws DatabaseException, ClassNotFoundException, InstantiationException, IllegalAccessException
+			                 String dbType, String dbUrl, String dbUser, String dbPwrd ) throws ConverterException
     {
     	database = new ConfDB();
-    	database.connect( dbType, dbUrl, dbUser, dbPwrd );
-		converterEngine = ConverterFactory.getConverterEngine( format );
+    	try {
+			database.connect( dbType, dbUrl, dbUser, dbPwrd );
+			converterEngine = ConverterFactory.getConverterEngine( format );
+		} catch (Exception e) {
+			throw new ConverterException( "can't construct converter", e );
+		}
     }
 
     
