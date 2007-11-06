@@ -1,9 +1,12 @@
 package confdb.converter;
 
+import java.sql.Connection;
+
 import confdb.data.Template;
 import confdb.data.EDSourceTemplates;
 import confdb.data.ModuleTemplate;
 import confdb.data.Parameter;
+import confdb.data.DataException;
 
 
 /**
@@ -31,7 +34,6 @@ public class OnlineConverter extends ConverterBase
 
     /** current configuration string for StorageManager */
     private String smConfigString = null;
-
 
     /** EDSource template for FUEventProcessor */
     private EDSourceTemplate epSourceT = null;
@@ -87,12 +89,9 @@ public class OnlineConverter extends ConverterBase
     //
     
     /** convert configuration and cache ep and sm configuration string */
-    private boolean convertConfiguration(int configId)
+    private void convertConfiguration(int configId) throws ConverterException
     {
-	if (configId>0&&configId==this.configId) return true;
-	
-	IConfiguration config = getConfiguration(configId);
-	if (config==null) return false;
+	IConfiguration epConfig = getConfiguration(configId);
 	
 	if (config.releaseTag().equals(releaseTag)) {
 	    epSourceT.removeAllInstances();
@@ -108,22 +107,42 @@ public class OnlineConverter extends ConverterBase
 	    smOutputModuleT=getDatabase().loadTemplate(releaseTag,"EventStreamFileWriter");
 	}
 	
-	EDSourceInstance epSource = epSourceT.instance();
+	if (epSourceT==null)
+	    throw new ConverterException("Failed to load epSourceT");
+	if (epOutputModuleT==null)
+	    throw new ConverterException("Failed to load epOutputModuleT");
+	if (smSourceT==null)
+	    throw new ConverterException("Failed to load smSourceT");
+	if (sOutputModuleT==null)
+	    throw new ConverterException("Failed to load smOutputModuleT");
+	
+	try {
+	    EDSourceInstance epSource = epSourceT.instance();
+	}
+	catch (DataException e) {
+	    throw new ConverterException(e.getMessage());
+	}
 	epSource.updateParameter("readerPluginName","string","FUShmReader");
 	
-	EDSourceInstance smSource = smSourceT.instance();
-
+	try {
+	    EDSourceInstance smSource = smSourceT.instance();
+	}
+	catch (DataException e) {
+	    throw new ConverterException(e.getMessage());
+	}
+	
 	Configuration smConfig = new Configuration(new ConfigInfo(),
 						   config.release());
-
+	
 	// TODO
 
-	ConfigurationModifier modifier = new ConfigurationModifier(config);
-	modifier.replaceEDSource(epSource);
-	modifier.replaceOutputModules(epOutputModuleT);
-	modifier.modify();
+	ConfigurationModifier epModifier = new ConfigurationModifier(epConfig);
+	epModifier.replaceEDSource(epSource);
+	epModifier.replaceOutputModules(epOutputModuleT);
+	epModifier.modify();
 	
-	return getConverterEngine().convert(modifier);
+	epConfigString = getConverterEngine().convert(epModifier);
+	smConfigString = getConverterEngine().convert(smConfig);
     }
 
 
