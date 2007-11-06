@@ -173,4 +173,53 @@ public class OnlineConverter extends ConverterBase
 	smConfigString = getConverterEngine().convert(smConfig);
     }
     
+
+    //
+    // main
+    //
+    public static void main(String[] args)
+    {
+	String configId   =          "";
+	String dbType     =     "mysql";
+	String dbHost     = "localhost";
+	String dbPort     =      "3306";
+	String dbName     =     "hltdb";
+	String dbUser     =          "";
+	String dbPwrd     =          "";
+
+	for (int iarg=0;iarg<args.length;iarg++) {
+	    String arg = args[iarg];
+	    if      (arg.equals("-c")) { iarg++; configId = args[iarg]; }
+	    else if (arg.equals("-t")) { iarg++; dbType = args[iarg]; }
+	    else if (arg.equals("-h")) { iarg++; dbHost = args[iarg]; }
+	    else if (arg.equals("-p")) { iarg++; dbPort = args[iarg]; }
+	    else if (arg.equals("-d")) { iarg++; dbName = args[iarg]; }
+	    else if (arg.equals("-u")) { iarg++; dbUser = args[iarg]; }
+	    else if (arg.equals("-s")) { iarg++; dbPwrd = args[iarg]; }
+	}
+	
+	String dbUrl = "";
+	if (dbType.equalsIgnoreCase("mysql")) {
+	    dbUrl  = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+dbName;
+	}
+	else if (dbType.equalsIgnoreCase("oracle")) {
+	    dbUrl = "jdbc:oracle:thin:@//"+dbHost+":"+dbPort+"/"+dbName;
+	}
+	else {
+	    System.err.println("Unknwown db type '"+dbType+"'");
+	    System.exit(0);
+	}
+	
+	try {
+	    OnlineConverter cnv = 
+		new OnlineConverter("ascii",dbType,dbUrl,dbName,dbPwrd);
+	    System.out.println(cnv.getEpConfigString(Integer.parseInt(configId)));
+	    System.out.println(cnv.getSmConfigString(Integer.parseInt(configId)));
+	}
+	catch(ConverterException e) {
+	    System.out.println(e.getMessage());
+	}
+	
+    }
+    
 }

@@ -9,7 +9,7 @@
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
 import ConfdbSQLModuleLoader
-import ConfdbOracleModuleLoader
+#import ConfdbOracleModuleLoader
 import ConfdbConfigurationComponentParser
 
 def main(argv):
