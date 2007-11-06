@@ -29,7 +29,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 
 	public String toString( IConfiguration conf, WriteProcess writeProcess )
 	{
-		StringBuffer str = new StringBuffer();
+		StringBuffer str = new StringBuffer( 100000 );
 		if ( writeProcess == WriteProcess.YES )
 			str.append( "process <b>" + conf.processName() + "</b> = {" + converterEngine.getNewline() );
 
