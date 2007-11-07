@@ -48,6 +48,8 @@ YAHOO.widget.ConfigNode = function(oData, oParent, expanded) {
 
 YAHOO.extend(YAHOO.widget.ConfigNode, YAHOO.widget.TextNode, {
 
+	configNode: true,
+
     /**
      * Returns the css style name for the toggle
      * @method getStyle
@@ -91,6 +93,14 @@ function init()
 	tree.draw();
 
 	tree.subscribe( "labelClick", parent.labelClicked );
+	/*
+	tree.subscribe("expand", function(node) {
+	    if ( !node.configNode )
+	    	return true; 
+	   	alert(node.data.key); 
+		return true; // return false to cancel the expand 
+	       }); 
+	       */
 }
 	
 YAHOO.util.Event.onContentReady( "treeDiv1", init );
@@ -101,6 +111,9 @@ function signalReady()
     parent.treeReady();
 }
 
+function dummy( node )
+{
+}
 
 </script>
 
@@ -120,17 +133,21 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
   	{
  		confdb.data.ConfigVersion versionInfo = configs[i].version( 0 ); 
 		String name = configs[i].name();
+		int key = versionInfo.dbId();
 
-		str += "configNode = new YAHOO.widget.ConfigNode( \"" + name + "\", " + parentNode + ", false );\n"
-			+ "configNode.labelStyle = \"icon-gen\";";
+	  	String vx = "V" + versionInfo.version() + "  -  " + versionInfo.created();
+		str += "var nodeData = { version:\"" + versionInfo.version() + "\", versionInfo: \"" + vx + "\", label: \"" + name + "\", key:\"" + key + "\", name:\"" + name + "\", dbIndex:dbIndex };\n"
+			+ "configNode = new YAHOO.widget.ConfigNode( nodeData, " + parentNode + ", false );\n"
+			+ "configNode.labelStyle = \"icon-gen\";\n"
+			+ "configNode.href = \"javascript:dummy()\";\n";
 	
 		for ( int ii = 0; ii < configs[i].versionCount(); ii++ )
     	{
 	  	  versionInfo = configs[i].version( ii );
-	  	  int key = versionInfo.dbId();
-	  	  String vx = "V" + versionInfo.version() + "  -  " + versionInfo.created();
-	  		str += "var nodeData = { version:\"" + versionInfo.version() + "\", label: \"" + vx + "\", key:\"" + key + "\", name:\"" + name + "\", dbIndex:dbIndex };\n"
-			    + "versionNode = new YAHOO.widget.ConfigNode( nodeData, configNode, false);\n";
+	  	  key = versionInfo.dbId();
+	  	  vx = "V" + versionInfo.version() + "  -  " + versionInfo.created();
+	  	  str += "var nodeData = { version:\"" + versionInfo.version() + "\", versionInfo: \"" + vx +"\", label: \"" + vx + "\", key:\"" + key + "\", name:\"" + name + "\", dbIndex:dbIndex };\n"
+			  + "versionNode = new YAHOO.widget.ConfigNode( nodeData, configNode, false);\n";
 	    }
 	}
 
