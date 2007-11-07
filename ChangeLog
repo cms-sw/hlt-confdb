@@ -1,5 +1,10 @@
 2007-11-07  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-14-05
+	* one more bugfix, to confdb.data.ModifierInstructions
+
+2007-11-07  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-14-04
 	* OnlineConverter ctor without arguments (based on 'properties')
 	* make default stream in case no streams are defined
