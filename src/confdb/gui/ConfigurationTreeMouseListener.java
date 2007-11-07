@@ -21,8 +21,7 @@ import confdb.data.*;
  * @author Philipp Schieferdecker
  *
  */
-public class ConfigurationTreeMouseListener extends    MouseAdapter 
-                                            implements TreeModelListener
+public class ConfigurationTreeMouseListener extends MouseAdapter 
 {
     //
     // member data
@@ -788,57 +787,6 @@ public class ConfigurationTreeMouseListener extends    MouseAdapter
 	return addSequenceMenu;
     }
 
-
-    /** TreeModelListener: treeNodesChanged() */
-    public void treeNodesChanged(TreeModelEvent e)
-    {
-	TreePath      treePath      = e.getTreePath(); if (treePath==null) return;
-	int           depth         = treePath.getPathCount(); if (depth<2) return;
-	int           index         = e.getChildIndices()[0];
-	Object        child         = e.getChildren()[0];
-	Object        parent        = treePath.getLastPathComponent();
-	TreePath      childTreePath = treePath.pathByAddingChild(child);
-	Configuration config        = (Configuration)treeModel.getRoot();
-	
-	if (config==null) return;
-	
-	boolean valid = false;
-	
-	if (child instanceof Referencable) {
-	    Referencable referencable = (Referencable)child;
-	    String       name = referencable.name();
-	    if (!name.equals("<ENTER UNIQUE NAME>")) valid = true;
-	}
-	if (child instanceof Reference) {
-	    Reference    reference    = (Reference)child;
-	    Referencable referencable = reference.parent();
-	    String       name         = referencable.name();
-	    if (!name.equals("<ENTER UNIQUE NAME>")) valid = true;
-	}
-	else if (child instanceof Instance) {
-	    Instance instance = (Instance)child;
-	    String   name     = instance.name();
-	    if (!name.equals("<ENTER UNIQUE NAME>")) valid = true;
-	}
-	else {
-	    valid = true;
-	}
-	
-	if (!valid) {
-	    tree.setSelectionPath(childTreePath);
-	    ConfigurationTreeActions.editNodeName(tree);
-	}
-    }
-    
-    /** TreeModelListener: treeNodesInserted() */
-    public void treeNodesInserted(TreeModelEvent e) {}
-    
-    /** TreeModelListener: treeNodesRemoved() */
-    public void treeNodesRemoved(TreeModelEvent e) {}
-
-    /** TreeModelListener: treeStructureChanged() */
-    public void treeStructureChanged(TreeModelEvent e) {}
-    
 }
 
 

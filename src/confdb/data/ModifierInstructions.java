@@ -57,6 +57,9 @@ public class ModifierInstructions
     /** template for the EDSource to be substituted (if any) */
     private EDSourceTemplate edsourceT = null;
     
+    /** template for the OutputModule to be substituted (if any) */
+    private ModuleTemplate   outputT = null;
+
     
     //
     // construction
@@ -228,6 +231,23 @@ public class ModifierInstructions
 	return result;
     }
 
+    /** check if an OutputModule is to be added */
+    public boolean doInsertOutputModule() { return (outputT!=null); }
+
+    /** *retrieve the OutputModule template to be added */
+    public ModuleInstance outputModuleToBeAdded(String name)
+    {
+	if (outputT==null) return null;
+	ModuleInstance result = null;
+	try {
+	    result = (ModuleInstance)outputT.instance(name);
+	}
+	catch (DataException e) {
+	    System.err.println(e.getMessage());
+	}
+	return result;
+    }
+
     /** get iterator for requested sequences */
     public Iterator requestedSequenceIterator()
     {
@@ -269,13 +289,34 @@ public class ModifierInstructions
 	edsourceT = new EDSourceTemplate("DaqSource","UNKNOWN",-1,params);
     }
     
-    /** insert PoolSource [inputFiles = comma-separated list!] */
-    public void insertPoolSource(String inputFiles)
+    /** insert PoolSource [fileNames = comma-separated list!] */
+    public void insertPoolSource(String fileNames)
     {
 	filterAllEDSources = true;
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
-	params.add(new VStringParameter("fileNames",inputFiles,false,false));
+	params.add(new VStringParameter("fileNames",fileNames,false,false));
 	edsourceT = new EDSourceTemplate("PoolSource","UNKNOWN",-1,params);
+    }
+    
+    /** insert/replace FUShmStreamConsumer */
+    public void insertShmStreamConsumer()
+    {
+	ArrayList<Parameter> params = new ArrayList<Parameter>();
+	params.add(new PSetParameter("SelectEvents","",false,true));
+	params.add(new VStringParameter("outputCommands","",false,true));
+	outputT = new ModuleTemplate("ShmStreamConsumer",
+				     "UNKNOWN",-1,params,"OutputModule");
+    }
+
+    /** insert/replace PoolOutputModule */
+    public void insertPoolOutputModule(String fileName)
+    {
+	ArrayList<Parameter> params = new ArrayList<Parameter>();
+	params.add(new StringParameter("fileName",fileName,false,true));
+	params.add(new PSetParameter("SelectEvents","",false,true));
+	params.add(new VStringParameter("outputCommands","",false,true));
+	outputT = new ModuleTemplate("PoolOutputModule",
+				     "UNKNOWN",-1,params,"OutputModule");
     }
     
 }

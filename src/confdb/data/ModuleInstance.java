@@ -26,6 +26,7 @@ public class ModuleInstance extends Instance implements Referencable
     
     /** standard constructor */
     public ModuleInstance(String name,ModuleTemplate template)
+	throws DataException
     {
 	super(name,template);
     }

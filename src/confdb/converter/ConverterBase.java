@@ -37,9 +37,7 @@ public class ConverterBase
     {
     	database = new ConfDB();
     	try {
-	    System.out.println("Sers");
 	    database.connect( dbType, dbUrl, dbUser, dbPwrd );
-	    System.out.println("database connection established!");
 	    converterEngine = ConverterFactory.getConverterEngine( format );
 	} catch (Exception e) {
 	    throw new ConverterException( "can't construct converter", e );

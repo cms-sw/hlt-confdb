@@ -469,6 +469,7 @@ public class Configuration implements IConfiguration
 	try {
 	    instance = (EDSourceInstance)template.instance();
 	    edsources.add(instance);
+	    instance.setConfiguration(this);
 	    hasChanged = true;
 	}
 	catch (Exception e) {
@@ -526,6 +527,7 @@ public class Configuration implements IConfiguration
 	try {
 	    instance = (ESSourceInstance)template.instance(instanceName);
 	    essources.add(i,instance);
+	    instance.setConfiguration(this);
 	    hasChanged = true;
 	}
 	catch (Exception e) {
@@ -584,6 +586,7 @@ public class Configuration implements IConfiguration
 	try {
 	    instance = (ESModuleInstance)template.instance(instanceName);
 	    esmodules.add(i,instance);
+	    instance.setConfiguration(this);
 	    hasChanged = true;
 	}
 	catch (Exception e) {
@@ -639,6 +642,7 @@ public class Configuration implements IConfiguration
 	try {
 	    instance = (ServiceInstance)template.instance();
 	    services.add(i,instance);
+	    instance.setConfiguration(this);
 	    hasChanged = true;
 	}
 	catch (Exception e) {
@@ -702,6 +706,7 @@ public class Configuration implements IConfiguration
 	    instance = (ModuleInstance)template.instance(instanceName);
 	    if (instance.referenceCount()==0) {
 		modules.add(instance);
+		instance.setConfiguration(this);
 		hasChanged = true;
 	    }
 	}
@@ -783,6 +788,7 @@ public class Configuration implements IConfiguration
     {
 	Path path = new Path(pathName);
 	paths.add(i,path);
+	path.setConfiguration(this);
 	if (defaultStream!=null) defaultStream.insertPath(path);
 	hasChanged = true;
 	return path;
@@ -881,6 +887,7 @@ public class Configuration implements IConfiguration
     {
 	Sequence sequence = new Sequence(sequenceName);
 	sequences.add(i,sequence);
+	sequence.setConfiguration(this);
 	hasChanged = true;
 	return sequence;
     }

@@ -18,6 +18,7 @@ public class ServiceInstance extends Instance
     
     /** standard constructor */
     public ServiceInstance(String name,ServiceTemplate template)
+	throws DataException
     {
 	super(name,template);
     }

@@ -26,16 +26,19 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
     /** list of parameters */
     private ArrayList<Parameter> parameters = new ArrayList<Parameter>();
 
+    /** parent configuration of instance */
+    private IConfiguration config = null;
     
+
     //
     // construction
     //
     
     /** standard constructor */
-    public Instance(String name,Template template)
+    public Instance(String name,Template template) throws DataException
     {
-	this.name     = name;
 	this.template = template;
+	setName(name);
 	for (int i=0;i<template.parameterCount();i++)
 	    parameters.add(template.parameter(i).clone(this));
     }
@@ -78,8 +81,19 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
     public int indexOfParameter(Parameter p) { return parameters.indexOf(p); }
     
     /** set the name of this instance */
-    public void setName(String name) { this.name = name; setHasChanged(); }
+    public void setName(String name) throws DataException
+    {
+	if (template().hasInstance(name)||
+	    (config!=null&&!config.isUniqueQualifier(name)))
+	    throw new DataException("Instance.setName() ERROR: " +
+				    "name '"+name+"' is not unique!");
+	this.name = name;
+	setHasChanged();
+    }
     
+    /** set the parent configuration of the instance */
+    public void setConfiguration(IConfiguration config) { this.config = config; }
+
     /** update a parameter when the value is changed */
     public void updateParameter(int index,String valueAsString)
     {

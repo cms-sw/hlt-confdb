@@ -1,6 +1,7 @@
 package confdb.converter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import java.sql.Connection;
@@ -31,7 +32,10 @@ public class OnlineConverter extends ConverterBase
     /** current configuration string for StorageManager */
     private String smConfigString = null;
 
+    /** current hash map 'pathName' -> 'prescalerName' */
+    private HashMap<String,String> pathToPrescaler = new HashMap<String,String>();
     
+
     //
     // construction
     //
@@ -68,6 +72,14 @@ public class OnlineConverter extends ConverterBase
     {
 	if (configId!=this.configId) convertConfiguration(configId);
 	return smConfigString;
+    }
+    
+    /** get the pathName -> prescalerName map */
+    public HashMap<String,String> getPathToPrescalerMap(int configId)
+	throws ConverterException
+    {
+	if (configId!=this.configId) convertConfiguration(configId);
+	return pathToPrescaler;
     }
     
 
@@ -112,7 +124,7 @@ public class OnlineConverter extends ConverterBase
 	    ModuleInstance streamWriter = (ModuleInstance)streamWriterRef.parent();
 	    streamWriter.updateParameter("streamLabel","string",stream.label());
 	    PSetParameter psetSelectEvents = new PSetParameter("SelectEvents","",
-							       false,false);
+							       false,true);
 	    String valAsString = "";
 	    Iterator itPath = stream.pathIterator();
 	    while (itPath.hasNext()) {
@@ -130,9 +142,25 @@ public class OnlineConverter extends ConverterBase
 	
 	ConfigurationModifier epModifier = new ConfigurationModifier(epConfig);
 	epModifier.insertDaqSource();
-	//epModifier.replaceOutputModules(epOutputModuleT);
+	epModifier.insertShmStreamConsumer();
 	epModifier.modify();
 	
+	pathToPrescaler.clear();
+	Iterator itP = epModifier.pathIterator();
+	while (itP.hasNext()) {
+	    Path path = (Path)itP.next();
+	    Iterator itM = path.moduleIterator();
+	    while (itM.hasNext()) {
+		ModuleReference ref = (ModuleReference)itM.next();
+		ModuleInstance  inst = (ModuleInstance)ref.parent();
+		if (inst.template().name().equals("HLTPrescaler")) {
+		    pathToPrescaler.put(path.name(),inst.name());
+		    break;
+		}
+	    }
+	}
+	
+
 	epConfigString = getConverterEngine().convert(epModifier);
 	smConfigString = getConverterEngine().convert(smConfig);
     }
@@ -186,11 +214,6 @@ public class OnlineConverter extends ConverterBase
 	    System.exit(0);
 	}
 	
-	System.out.println("dbType="+dbType);
-	System.out.println("dbUrl="+dbUrl);
-	System.out.println("dbUser="+dbUser);
-	System.out.println("dbPwrd="+dbPwrd);
-
 	try {
 	    OnlineConverter cnv = 
 		new OnlineConverter("Ascii",dbType,dbUrl,dbUser,dbPwrd);

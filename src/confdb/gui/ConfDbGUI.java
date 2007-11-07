@@ -159,7 +159,6 @@ public class ConfDbGUI implements TableModelListener
 	    new ConfigurationTreeMouseListener(currentTree,frame,
 					       currentRelease);
 	currentTree.addMouseListener(mouseListener);
-	currentTreeModel.addTreeModelListener(mouseListener);
 	
 	ConfigurationTreeTransferHandler currentDndHandler =
 	    new ConfigurationTreeTransferHandler(currentTree,currentRelease,
@@ -1172,11 +1171,10 @@ public class ConfDbGUI implements TableModelListener
 	    
 	    String configAsString =
 		converterService.convertConfiguration(currentConfig);
-
+	    
 	    if (configAsString.length()>0) {
 		FileWriter outputStream=null;
 		String     fileName = converterService.fileName();
-		
 		try {
 		    outputStream = new FileWriter(fileName);
 		    outputStream.write(configAsString,0,configAsString.length());

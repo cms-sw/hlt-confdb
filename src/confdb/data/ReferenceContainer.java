@@ -28,7 +28,10 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     
     /** references of this path within other paths */
     protected ArrayList<Reference> references = new ArrayList<Reference>();
-     
+
+    /** the parent configuration of the container*/
+    protected IConfiguration config = null;
+    
 
     //
     // construction
@@ -113,8 +116,18 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     public boolean hasHLTFilter() { return hasModuleOfType("HLTFilter"); }
     
     /** set the name of the container */
-    public void setName(String name) { this.name = name; setHasChanged(); }
+    public void setName(String name) throws DataException
+    {
+	if (config!=null&&!config.isUniqueQualifier(name))
+	    throw new DataException("ReferenceContainer.setName ERROR: '" +
+				    name+"' is not a unique quailifer.");
+	this.name = name;
+	setHasChanged();
+    }
     
+    /** set the configuration of this container */
+    public void setConfiguration(IConfiguration config) { this.config = config; }
+
     /** get entry iterator */
     public Iterator entryIterator() { return entries.iterator(); }
 

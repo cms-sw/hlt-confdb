@@ -24,6 +24,7 @@ public class ESSourceInstance extends Instance implements ESPreferable
     
     /** standard constructor */
     public ESSourceInstance(String name,ESSourceTemplate template)
+	throws DataException
     {
 	super(name,template);
     }
@@ -31,6 +32,7 @@ public class ESSourceInstance extends Instance implements ESPreferable
     /** construcor setting isPreferred */
     public ESSourceInstance(String name,ESSourceTemplate template,
 			    boolean isPreferred)
+	throws DataException
     {
 	super(name,template);
 	setPreferred(isPreferred);

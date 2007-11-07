@@ -84,14 +84,23 @@ public class ConfigurationModifier implements IConfiguration
     }
     
     /** replace the current EDSource with a PoolSource */
-    public void insertPoolSource(String inputFiles)
+    public void insertPoolSource(String fileNames)
     {
-	instructions.insertPoolSource(inputFiles);
+	instructions.insertPoolSource(fileNames);
     }
 
     /** replace the current EDSource with a DaqSource */
     public void insertDaqSource() { instructions.insertDaqSource(); }
     
+    /** replace current OutputModules with ShmStreamConsumer */
+    public void insertShmStreamConsumer() { instructions.insertShmStreamConsumer();}
+
+    /** replace current OutputModules with PoolOutputModules */
+    public void insertPoolOutputModule(String fileName)
+    {
+	instructions.insertPoolOutputModule(fileName);
+    }
+
     /** apply modifications based on internal instructions */
     public void modify()
     {
@@ -161,10 +170,50 @@ public class ConfigurationModifier implements IConfiguration
 	}
 	
 	if (!instructions.doFilterAllPaths()) {
-	    Iterator it=master.pathIterator();
-	    while (it.hasNext()) {
-		Path path = (Path)it.next();
+	    Iterator itP = master.pathIterator();
+	    while (itP.hasNext()) {
+		Path path = (Path)itP.next();
 		if (!instructions.isInBlackList(path)) {
+		    
+		    if (path.hasOutputModule()&&
+			instructions.doInsertOutputModule()) {
+
+			Path copy = new Path(path.name());
+			Iterator it = path.entryIterator();
+			while (it.hasNext()) {
+			    Reference entry = (Reference)it.next();
+			    ModuleInstance outputModule = null;
+			    if (entry instanceof ModuleReference) {
+				ModuleReference ref  = (ModuleReference)entry;
+				ModuleInstance  inst = (ModuleInstance)ref.parent();
+				if (inst.template().type().equals("OutputModule"))
+				    outputModule = inst;
+			    }
+			    if (outputModule!=null) {
+				ModuleInstance outputI = 
+				    instructions.outputModuleToBeAdded(entry
+								       .name());
+				outputI
+				    .updateParameter("SelectEvents","PSet",
+						     outputModule
+						     .parameter("SelectEvents",
+								"PSet")
+						     .valueAsString());
+				outputI
+				    .updateParameter("outputCommands","vstring",
+						     outputModule
+						     .parameter("outputCommands",
+								"vstring")
+						     .valueAsString());
+				
+				outputI.createReference(copy,copy.entryCount());
+			    }
+			    else
+				copy.insertEntry(copy.entryCount(),entry);
+			}
+			path = copy;
+		    }
+
 		    paths.add(path);
 		    Iterator itS = path.sequenceIterator();
 		    while (itS.hasNext()) {

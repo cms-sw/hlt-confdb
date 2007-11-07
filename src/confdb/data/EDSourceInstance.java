@@ -16,6 +16,7 @@ public class EDSourceInstance extends Instance
     
     /** standard constructor */
     public EDSourceInstance(String name,EDSourceTemplate template)
+	throws DataException
     {
 	super(name,template);
     }

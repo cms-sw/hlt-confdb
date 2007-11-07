@@ -707,7 +707,7 @@ BEGIN
     OPEN cur_module_templates_from_paths;
     FETCH cur_module_templates_from_paths
       INTO v_template_id,v_template_name,
-           v_template_cvstag,v_template_type,v_template_pkgid;
+	   v_template_cvstag,v_template_pkgid,v_template_type;
     WHILE done=FALSE DO
       INSERT INTO tmp_template_table
         VALUES(v_template_id,v_template_type,
@@ -715,7 +715,7 @@ BEGIN
       CALL load_parameters(v_template_id);
       FETCH cur_module_templates_from_paths
         INTO v_template_id,v_template_name,
-             v_template_cvstag,v_template_type,v_template_pkgid;
+             v_template_cvstag,v_template_pkgid,v_template_type;
     END WHILE;
     CLOSE cur_module_templates_from_paths;
     SET done=FALSE;
@@ -724,7 +724,7 @@ BEGIN
     OPEN cur_module_templates_from_sequences;
     FETCH cur_module_templates_from_sequences
       INTO v_template_id,v_template_name,
-           v_template_cvstag,v_template_type,v_template_pkgid;
+           v_template_cvstag,v_template_pkgid,v_template_type;
     WHILE done=FALSE DO
       INSERT INTO tmp_template_table
         VALUES(v_template_id,v_template_type,
@@ -732,7 +732,7 @@ BEGIN
       CALL load_parameters(v_template_id);
       FETCH cur_module_templates_from_sequences
         INTO v_template_id,v_template_name,
-             v_template_cvstag,v_template_type,v_template_pkgid;
+             v_template_cvstag,v_template_pkgid,v_template_type;
     END WHILE;
     CLOSE cur_module_templates_from_sequences;
     SET done=FALSE;

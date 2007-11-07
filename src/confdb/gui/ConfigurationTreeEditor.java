@@ -60,53 +60,37 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 
 	if (toBeEdited == null) return null;
 	
-	Configuration config = (Configuration)treeModel.getRoot();
-	
 	if (toBeEdited instanceof Referencable) {
 	    Referencable referencable = (Referencable)toBeEdited;
-	    if (config.isUniqueQualifier(name))
+	    try {
 		referencable.setName(name);
-	    else
-		referencable.setName("<ENTER UNIQUE NAME>");
-
-	    treeModel.nodeChanged(referencable);
-	    for (int i=0;i<referencable.referenceCount();i++)
-		treeModel.nodeChanged(referencable.reference(i));
+		treeModel.nodeChanged(referencable);
+		for (int i=0;i<referencable.referenceCount();i++)
+		    treeModel.nodeChanged(referencable.reference(i));
+	    }
+	    catch (DataException e) {}
 	}
 	else if (toBeEdited instanceof Instance) {
 	    Instance instance = (Instance)toBeEdited;
 	    Template template = instance.template();
-	    if (!template.hasInstance(name))
+	    try {
 		instance.setName(name);
-	    else {
-		Instance existingInstance = null;
-		try {
-		    existingInstance=template.instance(name);
-		}
-		catch (DataException e) {}
-		if (instance!=existingInstance)
-		    instance.setName("<ENTER UNIQUE NAME>");
+		treeModel.nodeChanged(instance);
 	    }
+	    catch (DataException e) {}
 	}
-	/*
-	  else if (toBeEdited instanceof ModuleReference) {
-	  ModuleReference reference = (ModuleReference)toBeEdited;
-	  ModuleInstance  instance  = (ModuleInstance)reference.parent();
-	  instance.setName(name);
-	  
-	  Instance existingInstance = null;
-	  try { existingInstance = instance.template().instance(name); }
-	  catch (DataException e) {}
-	  
-	  if (instance==existingInstance)
-	  instance.setName(name);
-	  else
-	  instance.setName("<ENTER UNIQUE NAME>");
-	  treeModel.nodeChanged(instance);
-	  for (int i=0;i<instance.referenceCount();i++)
-	  treeModel.nodeChanged(instance.reference(i));
-	  }
-	*/
+	else if (toBeEdited instanceof ModuleReference) {
+	    ModuleReference reference = (ModuleReference)toBeEdited;
+	    ModuleInstance  instance  = (ModuleInstance)reference.parent();
+	    try {
+		instance.setName(name);
+		treeModel.nodeChanged(instance);
+		for (int i=0;i<instance.referenceCount();i++)
+		    treeModel.nodeChanged(instance.reference(i));
+	    }
+	    catch (DataException e) {}
+	}
+	
 	return toBeEdited;
     }
     

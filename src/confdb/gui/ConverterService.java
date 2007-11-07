@@ -94,15 +94,16 @@ public class ConverterService
     {
 	String result = new String();
 	try {
-	    Converter  converter = Converter.getConverter(format);
+	    Converter converter = Converter.getConverter(format);
 	    
 	    if (input.length()>0) {
 		EDSourceInstance poolSource = getPoolSource(config.releaseTag());
 		//converter.overrideEDSource(poolSource);
 	    }
-
+	    
+	    System.out.println("start converting ...");
 	    result = converter.convert(config);
-	
+	    System.out.println("finished converting");
 	    if (fileName!=null) {
 		if      (format.toUpperCase().equals("ASCII")&&
 			 !fileName.endsWith(".cfg"))  fileName += ".cfg";

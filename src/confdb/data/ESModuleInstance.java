@@ -24,6 +24,7 @@ public class ESModuleInstance extends Instance implements ESPreferable
     
     /** standard constructor */
     public ESModuleInstance(String name,ESModuleTemplate template)
+	throws DataException
     {
 	super(name,template);
     }
@@ -31,6 +32,7 @@ public class ESModuleInstance extends Instance implements ESPreferable
     /** constructor setting isPreferred */
     public ESModuleInstance(String name,ESModuleTemplate template,
 			    boolean isPreferred)
+	throws DataException
     {
 	super(name,template);
 	setPreferred(isPreferred);
