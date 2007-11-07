@@ -1,0 +1,42 @@
+Module EDAnalyzer FEDMonitor DQM FEDMonitor
+
+ESSource PoolDBESSource CondCore ESSources
+PoolDBESSource.Parameter record string "DTReadOutMappingRcd" tracked
+PoolDBESSource.Parameter tag string "DTChannelsMap" tracked
+
+ESSource HcalHardcodeCalibrations CalibCalorimetry HcalPlugins
+HcalHardcodeCalibrations.Parameter toGet vstring { "ChannelQuality", "GainWidths" } untracked
+
+Service MessageLogger FWCore MessageService
+MessageLogger.Parameter destinations vstring { "cout" } untracked
+MessageLogger.Parameter cout PSet untracked
+MessageLogger.Parameter log4cplus PSet untracked
+
+Module EDProducer HcalRawToDigi EventFilter HcalRawToDigi
+HcalRawToDigi.Parameter firstSample int32 0 tracked
+HcalRawToDigi.Parameter lastSample int32 9 tracked
+HcalRawToDigi.Parameter FilterDataQuality bool true tracked
+
+Module EDProducer HcalSimpleReconstructor RecoLocalCalo HcalRecProducers
+HcalSimpleReconstructor.Parameter samplesToAdd int32 8 tracked
+HcalSimpleReconstructor.Parameter firstSample int32 1 tracked
+HcalSimpleReconstructor.Parameter correctForTimeslew bool true tracked
+HcalSimpleReconstructor.Parameter correctForPhaseContainment bool true tracked
+HcalSimpleReconstructor.Parameter correctionPhaseNS double 10.0 tracked
+
+Module EDProducer DTRecSegment2DProducer RecoLocalMuon DTSegment
+DTRecSegment2DProducer.Parameter recAlgo string "DTLinearDriftAlgo" tracked
+DTRecSegment2DProducer.Parameter recAlgoConfig PSet tracked
+
+Module EDProducer DTRecSegment4DProducer RecoLocalMuon DTSegment
+DTRecSegment4DProducer.Parameter recAlgo string "DTLinearDriftAlgo" tracked
+DTRecSegment4DProducer.Parameter Reco2DAlgoConfig PSet tracked
+DTRecSegment4DProducer.Parameter recAlgoConfig PSet tracked
+
+Module EDProducer SiStripZeroSuppression RecoLocalTracker SiStripZeroSuppression
+SiStripZeroSuppression.Parameter RawDigiLabel string "VirginRaw" tracked
+SiStripZeroSuppression.Parameter RawDigiProducer string "SiStripDigis" tracked
+
+Module EDProducer StreamThingProducer FWCore Modules
+StreamThingProducer.Parameter array_size int32 20 tracked
+StreamThingProducer.Parameter instance_count int32 2 tracked
