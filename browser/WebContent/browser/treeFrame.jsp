@@ -1,9 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<%@page import="confdb.converter.DbProperties"%>
-<%@page import="confdb.db.ConfDBSetups"%>
-<%@page import="confdb.converter.Converter"%>
 <%@page import="java.io.ByteArrayOutputStream"%>
 <%@page import="java.io.PrintWriter"%>
+<%@page import="browser.BrowserConverter"%>
+<%@page import="confdb.db.ConfDB"%>
+<%@page import="confdb.db.ConfDBSetups"%>
+<%@page import="confdb.data.Directory"%>
+<%@page import="confdb.data.ConfigInfo"%>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -124,11 +126,11 @@ function dummy( node )
 
 String info = "";
 
-String prepareTree( String parentNode, confdb.data.Directory directory, confdb.converter.Converter converter )
+String prepareTree( String parentNode, Directory directory )
 {
 	info = parentNode;
 	String str = "";
-	confdb.data.ConfigInfo[] configs = converter.listConfigs( directory );
+	ConfigInfo[] configs = directory.listOfConfigurations();
   	for ( int i = 0; i < configs.length; i++ )
   	{
  		confdb.data.ConfigVersion versionInfo = configs[i].version( 0 ); 
@@ -151,7 +153,7 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
 	    }
 	}
 
-	confdb.data.Directory[] list = converter.listSubDirectories( directory );
+	Directory[] list = directory.listOfDirectories();
 	for ( int i = 0; i < list.length; i++ )
    	{
 		String dirNode = parentNode + i;
@@ -160,7 +162,7 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
 		if ( start > 0 )
 			name = name.substring( start + 1 );
 		str += "var " + dirNode + " = new YAHOO.widget.TextNode( \"" + name + "\", " + parentNode + ", false);\n";
-        str += prepareTree( dirNode, list[i], converter );
+        str += prepareTree( dirNode, list[i] );
     }
     return str;
 }
@@ -168,7 +170,6 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
 
 <%
   String tree = "";
-  Converter converter = Converter.getConverter();
   try {
 	  	ConfDBSetups dbs = new ConfDBSetups();
 	  	int dbIndex = 1;
@@ -185,11 +186,10 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
 	  			}
 	  		}
 	  	}
-	    DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertme!" );
-	    dbProperties.setDbUser( "cms_hlt_reader" );
-	    converter.setDbProperties( dbProperties );
-	    converter.connectToDatabase();  
-	    confdb.data.Directory root = converter.getRootDirectory();
+	 	BrowserConverter converter = BrowserConverter.getConverter( dbIndex );
+		ConfDB confDB = converter.getDatabase();
+		
+	    Directory root = confDB.loadConfigurationTree();
 	    tree = "<script>\n"
 	        + "var dbIndex = " + dbIndex + ";\n"
 	        + "function buildTree()\n"
@@ -199,7 +199,7 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
 	    	+ "var versionNode\n"
 	    	+ "var nodeData\n"
 	    	+ "var dir = tree.getRoot();\n";
-        tree += prepareTree( "dir", root, converter )
+        tree += prepareTree( "dir", root )
     		 + "}\n</script>\n";
   } catch (Exception e) {
 	  ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -209,9 +209,6 @@ String prepareTree( String parentNode, confdb.data.Directory directory, confdb.c
 	  out.println( "<script>\nfunction buildTree(){}\n</script>\nERROR in '" + info + "'!\n"
 			  	+ buffer.toString() + "</body></html>" );
       return;
-  }
-  finally {
-  	converter.disconnectFromDatabase();
   }
 %>
 
