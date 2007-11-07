@@ -126,7 +126,22 @@ public class OnlineConverter extends ConverterBase
 	
 	
 	Path endpath  = smConfig.insertPath(0,"epstreams");
-	Iterator itStream = epConfig.streamIterator();
+
+	ArrayList<Stream> defaultStreams = new ArrayList<Stream>();
+	if (epConfig.streamCount()==0) {
+	    Stream defaultStream = new Stream("default");
+	    defaultStreams.add(defaultStream);
+	    Iterator itP = epConfig.pathIterator();
+	    while (itP.hasNext()) {
+		Path path = (Path)itP.next();
+		if (path.isEndPath()) continue;
+		defaultStream.insertPath(new Path(path.name()));
+	    }
+	}
+	
+	Iterator itStream = (defaultStreams.size()>0) ?
+	    defaultStreams.iterator() : epConfig.streamIterator();
+	
 	while (itStream.hasNext()) {
 	    Stream stream = (Stream)itStream.next();
 	    ModuleReference streamWriterRef =
@@ -164,10 +179,9 @@ public class OnlineConverter extends ConverterBase
 	    Path path = (Path)itP.next();
 	    Iterator itM = path.moduleIterator();
 	    while (itM.hasNext()) {
-		ModuleReference ref = (ModuleReference)itM.next();
-		ModuleInstance  inst = (ModuleInstance)ref.parent();
-		if (inst.template().name().equals("HLTPrescaler")) {
-		    pathToPrescaler.put(path.name(),inst.name());
+		ModuleInstance module = (ModuleInstance)itM.next();
+		if (module.template().name().equals("HLTPrescaler")) {
+		    pathToPrescaler.put(path.name(),module.name());
 		    break;
 		}
 	    }
