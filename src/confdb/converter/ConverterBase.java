@@ -17,106 +17,116 @@ public class ConverterBase
     private HashMap<Integer, ConfWrapper> confCache = new HashMap<Integer, ConfWrapper>();
     private int maxCacheEntries = 10;
 	
-
-	
-    public ConverterBase( String format, Connection connection )
-	throws ConverterException
-    {
-	database = new ConfDB();
-	try {
-	    database.connect( connection );
-	    converterEngine = ConverterFactory.getConverterEngine( format );
-	} catch (Exception e) {
-	    throw new ConverterException( "can't construct converter", e );
-	}
-    }
-	
-    public ConverterBase( String format,
-			  String dbType, String dbUrl, String dbUser, String dbPwrd )
-	throws ConverterException
+    public ConverterBase( String format, Connection connection ) throws ConverterException
     {
     	database = new ConfDB();
     	try {
-	    database.connect( dbType, dbUrl, dbUser, dbPwrd );
-	    converterEngine = ConverterFactory.getConverterEngine( format );
-	} catch (Exception e) {
-	    throw new ConverterException( "can't construct converter", e );
-	}
+    		database.connect( connection );
+    		converterEngine = ConverterFactory.getConverterEngine( format );
+    	} catch (Exception e) {
+    		throw new ConverterException( "can't construct converter", e );
+    	}
+    }
+	
+    public ConverterBase( String format, String dbType, String dbUrl, String dbUser, String dbPwrd ) throws ConverterException
+    {
+    	this( format );
+    	initDB( dbType, dbUrl, dbUser, dbPwrd );
+    }
+  
+    protected ConverterBase( String format ) throws ConverterException
+    {
+		try {
+			converterEngine = ConverterFactory.getConverterEngine( format );
+		} catch (Exception e) {
+    		throw new ConverterException( "can't construct converter", e );
+		}
     }
     
+    protected void initDB( String dbType, String dbUrl, String dbUser, String dbPwrd ) throws ConverterException
+    {
+    	database = new ConfDB();
+    	try {
+    		database.connect( dbType, dbUrl, dbUser, dbPwrd );
+    	} catch (Exception e) {
+    		throw new ConverterException( "can't init database connection", e );
+    	}
+    }
+  
     
-    public int getMaxCacheEntries() {
-	return maxCacheEntries;
+    public int getMaxCacheEntries() 
+    {
+    	return maxCacheEntries;
     }
 
-    public void setMaxCacheEntries(int maxCacheEntries) {
-	this.maxCacheEntries = maxCacheEntries;
+    public void setMaxCacheEntries(int maxCacheEntries) 
+    {
+    	this.maxCacheEntries = maxCacheEntries;
     }
 
     
 	
-    protected ConfDB getDatabase() 
+    public ConfDB getDatabase() 
     {
-	return database;
+    	return database;
     }
 	
-    protected IConfiguration getConfiguration( int key ) 
+    public IConfiguration getConfiguration( int key ) 
     {
-	ConfWrapper conf = confCache.get( new Integer( key ) );
-	if ( conf != null )
-	    return conf.getConfiguration();
-	IConfiguration configuration = database.loadConfiguration( key );
-	put( key, configuration );
-	return configuration;
+    	ConfWrapper conf = confCache.get( new Integer( key ) );
+    	if ( conf != null )
+    		return conf.getConfiguration();
+    	IConfiguration configuration = database.loadConfiguration( key );
+    	put( key, configuration );
+    	return configuration;
     }
 		
     synchronized private void put( Integer key, IConfiguration conf )
     {
-	if ( confCache.size() > maxCacheEntries )
+    	if ( confCache.size() > maxCacheEntries )
 	    {
-		List<ConfWrapper> list = 
-		    new ArrayList<ConfWrapper>( confCache.values() );
-		Collections.sort(list);
-		confCache.remove( list.get(0).getKey() );
+    		List<ConfWrapper> list = new ArrayList<ConfWrapper>( confCache.values() );
+    		Collections.sort(list);
+    		confCache.remove( list.get(0).getKey() );
 	    }
-	confCache.put( key, new ConfWrapper( key, conf ) );
+    	confCache.put( key, new ConfWrapper( key, conf ) );
     }
 		
-    protected ConverterEngine getConverterEngine() 
+    public ConverterEngine getConverterEngine() 
     {
-	return converterEngine;
+    	return converterEngine;
     }
 
 	
     private class ConfWrapper implements Comparable<ConfWrapper>
     {
-	private Integer key;
-	private IConfiguration configuration = null;
-	private long timestamp;
+    	private Integer key;
+    	private IConfiguration configuration = null;
+    	private long timestamp;
 		
-	ConfWrapper( Integer key, IConfiguration conf ) 
-	{
-	    this.key = key;
-	    configuration = conf;
-	    timestamp = System.currentTimeMillis();
-	}
+    	ConfWrapper( Integer key, IConfiguration conf ) 
+    	{
+    		this.key = key;
+    		configuration = conf;
+    		timestamp = System.currentTimeMillis();
+    	}
 
-	IConfiguration getConfiguration() 
-	{
-	    timestamp = System.currentTimeMillis();
-	    return configuration;
-	}
+    	IConfiguration getConfiguration() 
+    	{
+    		timestamp = System.currentTimeMillis();
+    		return configuration;
+    	}
 
 
-	public int compareTo(ConfWrapper o) 
-	{
-	    return (int)(timestamp - o.timestamp);
-	}
+    	public int compareTo(ConfWrapper o) 
+    	{
+    		return (int)(timestamp - o.timestamp);
+    	}
 		
-	public Integer getKey()
-	{
-	    return key;
-	}
+    	public Integer getKey()
+    	{
+    		return key;
+    	}
     }
 
 
