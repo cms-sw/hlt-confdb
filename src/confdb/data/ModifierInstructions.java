@@ -285,7 +285,7 @@ public class ModifierInstructions
     {
 	filterAllEDSources = true;
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
-	params.add(new StringParameter("readerPluginName","FUShmReader",true,false));
+	params.add(new StringParameter("readerPluginName","FUShmReader",false,false));
 	edsourceT = new EDSourceTemplate("DaqSource","UNKNOWN",-1,params);
     }
     
