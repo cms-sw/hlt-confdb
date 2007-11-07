@@ -90,7 +90,11 @@ public class ConfigurationModifier implements IConfiguration
     }
 
     /** replace the current EDSource with a DaqSource */
-    public void insertDaqSource() { instructions.insertDaqSource(); }
+    public void insertDaqSource()
+    {
+	if (edsourceCount()==0||!edsource(0).template().name().equals("DaqSource"))
+	    instructions.insertDaqSource();
+    }
     
     /** replace current OutputModules with ShmStreamConsumer */
     public void insertShmStreamConsumer() { instructions.insertShmStreamConsumer();}

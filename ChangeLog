@@ -1,5 +1,11 @@
 2007-11-07  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-14-06
+	* ConfigurationModifier.insertDaqSource(): disregard if the
+	configuration has already a DaqSource defined!
+
+2007-11-07  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-14-05
 	* one more bugfix, to confdb.data.ModifierInstructions
 
