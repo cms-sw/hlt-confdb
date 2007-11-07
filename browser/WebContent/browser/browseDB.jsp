@@ -15,27 +15,12 @@
 
 <style type="text/css">
 
-/*margin and padding on body element
-  can introduce errors in determining
-  element position and are not recommended;
-  we turn them off as a foundation for YUI
-  CSS treatments. */
-body {
-	margin:0;
-	padding:0;
-}
+body { background:#edf5ff }
 
 .yui-module { padding:0px; margin-left:5px; margin-right:5px; margin-bottom:0px; display:none; }
 .yui-module .hd { margin-bottom:10px; margin-top:5px; padding-left:5px; background-color:#FFE19A }
 .yui-gd { margin-bottom:0px; }
 #doc3 { margin-bottom:0px; margin-top:5px; }
-/*
-.yui-module .ft { border:1px solid blue;padding:5px; }
-*/
-
-
-
-body { background:#edf5ff }
 #mainLeft { background:#edf5ff; border: 0px solid #B6CDE1; margin:0px; padding:0px }
 #mainRight { margin:0px; padding:0px; background-color:#FFF5DF; border: 1px solid #B6CDE1; }
 .headerDiv { margin:0px; padding:0.4em; background:white }
@@ -91,7 +76,7 @@ function labelClicked( node )
   configModule.setBody( '<iframe src="' + configFrameUrl + '" name="configIFrame" id="configFrame" width="100%" height="'+ height + '" frameborder="0"></iframe>');
   
   loadingModule.show();
-  var header = "<b>" + node.data.name + " " + node.data.label + "</b>";
+  var header = "<b>" + node.data.name + " " + node.data.versionInfo + "</b>";
   loadingModule.setHeader( header );
   loadingModule.render();
 
