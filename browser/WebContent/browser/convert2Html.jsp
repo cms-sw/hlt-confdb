@@ -1,11 +1,8 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <%@page import="java.io.PrintWriter"%>
 <%@page import="java.io.ByteArrayOutputStream"%>
-<%@page import="confdb.converter.DbProperties"%>
-<%@page import="confdb.db.ConfDBSetups"%>
-<%@page import="confdb.converter.Converter"%>
-<%@page import="confdb.converter.ConfCache"%>
 <%@page import="confdb.data.IConfiguration"%>
+<%@page import="browser.BrowserConverter"%>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -48,27 +45,15 @@ function signalReady()
 <pre>
 <%
   try {
-	Converter converter = Converter.getConverter( "HTML" );
 	int configKey = Integer.parseInt( request.getParameter( "configKey" ) );
 	int dbIndex = -1;
 	String index = request.getParameter( "dbIndex" );
 	if ( index != null )
-	  dbIndex = Integer.parseInt( index );
-	String cacheKey = "db:" + dbIndex + " key:" + configKey;
-	ConfCache cache = ConfCache.getInstance();
-	IConfiguration conf = cache.getConf( cacheKey  );
-	if ( conf == null )
-	{
-		ConfDBSetups dbs = new ConfDBSetups();
-	    DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertme!" );
-    	dbProperties.setDbUser( "cms_hlt_reader" );
-    	converter.setDbProperties( dbProperties );
-    	converter.connectToDatabase();
-    	conf = converter.loadConfiguration( configKey  );
-    	converter.disconnectFromDatabase();
-    	if ( conf != null )
-	    	cache.put( cacheKey, conf );
-	}
+		dbIndex = Integer.parseInt( index );
+
+ 	BrowserConverter converter = BrowserConverter.getConverter( dbIndex );
+	IConfiguration conf = converter.getConfiguration( configKey );
+
 	if ( conf == null )
 		out.print( "ERROR!\nconfig " + configKey + " not found!" );
 	else
