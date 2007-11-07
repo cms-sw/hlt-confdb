@@ -10,20 +10,18 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.SimpleLayout;
-import org.directwebremoting.ServerContext;
-import org.directwebremoting.ServerContextFactory;
 import org.directwebremoting.WebContext;
 import org.directwebremoting.WebContextFactory;
 
-import confdb.converter.ConfCache;
+import browser.BrowserConverter;
+
+import confdb.converter.ConverterException;
 import confdb.data.IConfiguration;
 import confdb.db.ConfDBSetups;
 
 
 public class AjaxInfo implements Runnable
 {
-	private ServerContext serverContext;
-	private String currentPage;
 	private Flag flag = new Flag();
 	static private Thread thread = null;
 	static private AjaxInfo instance = null;
@@ -47,11 +45,11 @@ public class AjaxInfo implements Runnable
 		WebContext webContext = WebContextFactory.get();
 		if ( webContext == null )
 			return;
-		currentPage = webContext.getCurrentPage();
+		//currentPage = webContext.getCurrentPage();
 		ServletContext servletContext = webContext.getServletContext();
 		if ( servletContext == null )
 			return;
-		serverContext = ServerContextFactory.get( servletContext );
+		//ServerContext serverContext = ServerContextFactory.get( servletContext );
 		webContext.getScriptSessionsByPage( "" );  // have a look at publisher demo!
     	if ( thread == null )
     	{
@@ -82,30 +80,33 @@ public class AjaxInfo implements Runnable
     
     public String[] getAnchors( int dbIndex, int configKey )
     {
-    	String cacheKey = "db:" + dbIndex + " key:" + configKey;
-    	ConfCache cache = ConfCache.getInstance();
-    	IConfiguration conf = cache.getConf( cacheKey  );
-    	ArrayList<String> list = new ArrayList<String>();
-    	if ( conf == null )
-    		list.add( "??" );
-    	else
-    	{
-    		if ( conf.pathCount() > 0 )
-    			list.add( "paths" );
-    		if ( conf.sequenceCount() > 0 )
-    			list.add( "sequences" );
-    		if ( conf.moduleCount() > 0 )
-    			list.add( "modules" );
-    		if ( conf.edsourceCount() > 0 )
-    			list.add( "ed_sources" );
-    		if ( conf.essourceCount() > 0 )
-    			list.add( "es_sources" );
-    		if ( conf.esmoduleCount() > 0 )
-    			list.add( "es_modules" );
-    		if ( conf.serviceCount() > 0 )
-    			list.add( "services" );
-    	}
-    	return list.toArray( new String[ list.size() ] );
+		ArrayList<String> list = new ArrayList<String>();
+    	try {
+			BrowserConverter converter = BrowserConverter.getConverter( dbIndex );
+			IConfiguration conf = converter.getConfiguration( configKey );
+			if ( conf == null )
+				list.add( "??" );
+			else
+			{
+				if ( conf.pathCount() > 0 )
+					list.add( "paths" );
+				if ( conf.sequenceCount() > 0 )
+					list.add( "sequences" );
+				if ( conf.moduleCount() > 0 )
+					list.add( "modules" );
+				if ( conf.edsourceCount() > 0 )
+					list.add( "ed_sources" );
+				if ( conf.essourceCount() > 0 )
+					list.add( "es_sources" );
+				if ( conf.esmoduleCount() > 0 )
+					list.add( "es_modules" );
+				if ( conf.serviceCount() > 0 )
+					list.add( "services" );
+			}
+		} catch (ConverterException e) {
+			list.add( e.toString() );
+		}
+		return list.toArray( new String[ list.size() ] );
     }
     
     
