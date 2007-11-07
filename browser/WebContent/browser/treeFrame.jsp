@@ -170,6 +170,7 @@ String prepareTree( String parentNode, Directory directory )
 
 <%
   String tree = "";
+  BrowserConverter converter = null;
   try {
 	  	ConfDBSetups dbs = new ConfDBSetups();
 	  	int dbIndex = 1;
@@ -186,7 +187,7 @@ String prepareTree( String parentNode, Directory directory )
 	  			}
 	  		}
 	  	}
-	 	BrowserConverter converter = BrowserConverter.getConverter( dbIndex );
+	 	converter = BrowserConverter.getConverter( dbIndex );
 		ConfDB confDB = converter.getDatabase();
 		
 	    Directory root = confDB.loadConfigurationTree();
@@ -208,6 +209,8 @@ String prepareTree( String parentNode, Directory directory )
 	  writer.close();
 	  out.println( "<script>\nfunction buildTree(){}\n</script>\nERROR in '" + info + "'!\n"
 			  	+ buffer.toString() + "</body></html>" );
+	  if ( converter != null )
+		  BrowserConverter.deleteConverter( converter );
       return;
   }
 %>

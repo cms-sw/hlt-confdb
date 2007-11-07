@@ -81,8 +81,9 @@ public class AjaxInfo implements Runnable
     public String[] getAnchors( int dbIndex, int configKey )
     {
 		ArrayList<String> list = new ArrayList<String>();
+		BrowserConverter converter = null;
     	try {
-			BrowserConverter converter = BrowserConverter.getConverter( dbIndex );
+			converter = BrowserConverter.getConverter( dbIndex );
 			IConfiguration conf = converter.getConfiguration( configKey );
 			if ( conf == null )
 				list.add( "??" );
@@ -105,6 +106,8 @@ public class AjaxInfo implements Runnable
 			}
 		} catch (ConverterException e) {
 			list.add( e.toString() );
+			if ( converter != null )
+				BrowserConverter.deleteConverter( converter );
 		}
 		return list.toArray( new String[ list.size() ] );
     }
