@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import java.io.IOException;
 import java.sql.Connection;
 
 import confdb.data.*;
@@ -39,6 +40,18 @@ public class OnlineConverter extends ConverterBase
     //
     // construction
     //
+
+    /** standard constructor */
+    public OnlineConverter() throws ConverterException
+    {
+    	super( "ascii" );
+    	try {
+			DbProperties dbProperties = DbProperties.getDefaultDbProperties();
+			initDB( dbProperties.dbType, dbProperties.getDbURL(), dbProperties.getDbUser(), "convertme!" );
+		} catch (IOException e) {
+			throw new ConverterException( "can't construct OnlineConverter", e );
+		}
+    }
 
     /** constructor based on Connection object */
     public OnlineConverter(String format,Connection connection)
