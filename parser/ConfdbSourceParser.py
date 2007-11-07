@@ -3,7 +3,7 @@
 # ConfdbSourceParser.py
 # Parse cc files in a release, and identify the modules/parameters 
 # that should be loaded as templates in the Conf DB
-# Jonathan Hollar LLNL Nov. 5, 2007
+# Jonathan Hollar LLNL Nov. 7, 2007
 
 import os, string, sys, posix, tokenize, array, re
 
@@ -1239,7 +1239,7 @@ class SourceParser:
                             startedmod = True
 			    startedconstructor = True				
 			    
-		elif(startedmod == False and line.find(themodulename + '(') != -1):
+		elif(startedmod == False and line.find(' ' + themodulename + '(') != -1):
 		    theconstructor = themodulename
 		    startedmod = True
 
@@ -1275,7 +1275,7 @@ class SourceParser:
 
 			    self.mainpset = thepsetname
 
-			    if(thepsetline.find(': ') != -1 or thepsetline.find(' :') != -1):
+			    if(thepsetline.find(': ') != -1 or thepsetline.find(' :') != -1 or thepsetline.find('):') != -1):
 				if(thepsetline.find('(' + thepsetname + ')') != -1):
 				    lookupclass = thepsetline.split(':')[1].split('('+thepsetname+')')[0].lstrip().rstrip()
 				elif(thepsetline.find('(' + thepsetname + ',') != -1):
@@ -1291,9 +1291,12 @@ class SourceParser:
 				    self.inheritancelevel = self.inheritancelevel + 1
 				    if(self.inheritancelevel > 1):
 					thehfile = theccfile.replace('/src/','/interface/').replace('.cc','.h').replace('//interface','//src')
+				    elif(themodulename == 'StreamerOutputModule'):
+					# Hack for ShmStreamConsumer
+					thehfile = theccfile.replace('/src/','/interface/').replace('.cc','.h').replace('//interface','//src')
 				    else:
 					thehfile = self.includefile
-				
+
 				    self.FindInheritedParameters(lookupclass,thedatadir,thehfile)
 
 				    # Deal with multiple inheritance...
