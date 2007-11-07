@@ -7,9 +7,12 @@ package confdb.converter;
  *
  * Exception signature of the confdb.db. package.
  */
+
 public class ConverterException extends Exception
 {
-    //
+	private static final long serialVersionUID = 1L;
+
+	//
     // construction
     //
     
