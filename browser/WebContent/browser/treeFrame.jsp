@@ -6,6 +6,7 @@
 <%@page import="confdb.db.ConfDBSetups"%>
 <%@page import="confdb.data.Directory"%>
 <%@page import="confdb.data.ConfigInfo"%>
+<%@page import="confdb.converter.ConverterBase"%>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -170,7 +171,7 @@ String prepareTree( String parentNode, Directory directory )
 
 <%
   String tree = "";
-  BrowserConverter converter = null;
+  ConverterBase converter = null;
   try {
 	  	ConfDBSetups dbs = new ConfDBSetups();
 	  	int dbIndex = 1;

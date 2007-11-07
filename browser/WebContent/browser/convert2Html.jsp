@@ -3,6 +3,8 @@
 <%@page import="java.io.ByteArrayOutputStream"%>
 <%@page import="confdb.data.IConfiguration"%>
 <%@page import="browser.BrowserConverter"%>
+<%@page import="confdb.converter.ConverterBase"%>
+<%@page import="confdb.converter.OnlineConverter"%>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -51,17 +53,21 @@ function signalReady()
 	if ( index != null )
 		dbIndex = Integer.parseInt( index );
 
- 	BrowserConverter converter = BrowserConverter.getConverter( dbIndex );
+ 	ConverterBase converter = BrowserConverter.getConverter( dbIndex );
 	IConfiguration conf = converter.getConfiguration( configKey );
 
 	if ( conf == null )
 		out.print( "ERROR!\nconfig " + configKey + " not found!" );
 	else
 	{
+		String confString = null;
 		long start = System.currentTimeMillis();
-		out.print( converter.convert( conf ) );
+		if ( converter instanceof OnlineConverter )
+			confString = ((OnlineConverter)converter).getEpConfigString( configKey );
+		else
+			confString = converter.getConverterEngine().convert( conf );
 		long dt = System.currentTimeMillis() - start;
-		out.println();
+		out.println( confString );
 		out.println( "// conversion time: " + (dt /1000) + " secs" );
 	}
   } catch ( Exception e ) {
