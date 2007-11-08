@@ -13,8 +13,9 @@ import confdb.data.*;
 /**
  * OnlineConverter
  * ---------------
+ * @author Ulf Behrens
  * @author Philipp Schieferdecker
- *
+ * 
  * Handle conversion of configurations stored in the database for
  * deployment to the online HLT filter farm.
  */
@@ -46,11 +47,13 @@ public class OnlineConverter extends ConverterBase
     {
     	super( "ascii" );
     	try {
-			DbProperties dbProperties = DbProperties.getDefaultDbProperties();
-			initDB( dbProperties.dbType, dbProperties.getDbURL(), dbProperties.getDbUser(), "convertme!" );
-		} catch (IOException e) {
-			throw new ConverterException( "can't construct OnlineConverter", e );
-		}
+	    DbProperties dbProperties = DbProperties.getDefaultDbProperties();
+	    initDB( dbProperties.dbType, dbProperties.getDbURL(),
+		    dbProperties.getDbUser(), "convertme!" );
+	}
+	catch (IOException e) {
+	    throw new ConverterException( "can't construct OnlineConverter", e );
+	}
     }
 
     /** constructor based on Connection object */

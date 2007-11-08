@@ -25,15 +25,15 @@ public class ConfigurationModifier implements IConfiguration
     private boolean isModified = false;
     
     /** filtered components */
-    private ArrayList<PSetParameter>    psets    = new ArrayList<PSetParameter>();
-    private ArrayList<EDSourceInstance> edsources= new ArrayList<EDSourceInstance>();
-    private ArrayList<ESSourceInstance> essources= new ArrayList<ESSourceInstance>();
-    private ArrayList<ESModuleInstance> esmodules= new ArrayList<ESModuleInstance>();
-    private ArrayList<ServiceInstance>  services = new ArrayList<ServiceInstance>();
-    private ArrayList<ModuleInstance>   modules  = new ArrayList<ModuleInstance>();
-    private ArrayList<Path>             paths    = new ArrayList<Path>();
-    private ArrayList<Sequence>         sequences= new ArrayList<Sequence>();
-    private ArrayList<Stream>           streams  = new ArrayList<Stream>();
+    private ArrayList<PSetParameter>    psets    =new ArrayList<PSetParameter>();
+    private ArrayList<EDSourceInstance> edsources=new ArrayList<EDSourceInstance>();
+    private ArrayList<ESSourceInstance> essources=new ArrayList<ESSourceInstance>();
+    private ArrayList<ESModuleInstance> esmodules=new ArrayList<ESModuleInstance>();
+    private ArrayList<ServiceInstance>  services =new ArrayList<ServiceInstance>();
+    private ArrayList<ModuleInstance>   modules  =new ArrayList<ModuleInstance>();
+    private ArrayList<Path>             paths    =new ArrayList<Path>();
+    private ArrayList<Sequence>         sequences=new ArrayList<Sequence>();
+    private ArrayList<Stream>           streams  =new ArrayList<Stream>();
     
     /** internal modifier instructions */
     private ModifierInstructions instructions = new ModifierInstructions();

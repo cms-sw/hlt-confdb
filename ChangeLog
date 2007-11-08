@@ -1,3 +1,9 @@
+2007-11-08  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-14-07
+	* fix ant target war
+	* first import of OfflineConverter
+
 2007-11-07  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-14-06
