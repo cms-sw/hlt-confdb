@@ -16,6 +16,7 @@
 	
 		String configId = "0";
 		boolean asFragment = false;
+		String format = "ascii";
 		for ( Map.Entry<String,String[]> entry : parameters )
 		{
 			String value = "";
@@ -25,6 +26,8 @@
 				configId = value;
 			else if ( entry.getKey().equals( "cff" ) )
 				asFragment =true;
+			else if ( entry.getKey().equals( "format" ) )
+				format = value;
 			else
 				toModifier.put( entry.getKey(), value );
 		}
@@ -32,7 +35,7 @@
 		modifierInstructions.interpretArgs( toModifier );
 		BrowserConverter converter = BrowserConverter.getConverter( 1 );
 		String result = converter.getConfigString( Integer.parseInt(configId),
-													"ascii",
+													format,
 													modifierInstructions,
 													asFragment );
 		out.print( result );
