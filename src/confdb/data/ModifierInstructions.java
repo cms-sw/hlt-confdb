@@ -1,7 +1,12 @@
 package confdb.data;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+
+import java.io.FileReader;
+import java.io.BufferedReader;
+import java.io.IOException;
 
 
 /**
@@ -72,6 +77,145 @@ public class ModifierInstructions
     //
     // member functions
     //
+
+    /** interpret arguments stored in a HashMap */
+    public void interpretArgs(HashMap<String,String> args) throws DataException
+    {
+	String value;
+	
+	value = args.remove("nopsets");
+	if (value!=null) filterAllPSets();
+	value = args.remove("noedsources");
+	if (value!=null) filterAllEDSources();
+	value = args.remove("noes");
+	if (value!=null) {
+	    filterAllESSources();
+	    filterAllESModules();
+	}
+	else {
+	    value = args.remove("noessources");
+	    if (value!=null) filterAllESSources();
+	    value = args.remove("noesmodules");
+	    if (value!=null) filterAllESModules();
+	}
+	value = args.remove("noservices");
+	if (value!=null) filterAllServices();
+	value = args.remove("nopaths");
+	if (value!=null) filterAllPaths();
+
+	value = args.remove("psets");
+	if (value!=null) {
+	    String[] psetNames = value.split(",");
+	    for (String s : psetNames) {
+		if (s.startsWith("-")) insertPSetIntoBlackList(s.substring(1));
+		else insertPSetIntoWhiteList(s);
+	    }
+	}
+	
+	value = args.remove("edsources");
+	if (value!=null) {
+	    String[] edsourceNames = value.split(",");
+	    for (String s : edsourceNames) {
+		if (s.startsWith("-")) insertEDSourceIntoBlackList(s.substring(1));
+		else insertEDSourceIntoWhiteList(s);
+	    }
+	}
+	
+	value = args.remove("essources");
+	if (value!=null) {
+	    String[] essourceNames = value.split(",");
+	    for (String s : essourceNames) {
+		if (s.startsWith("-")) insertESSourceIntoBlackList(s.substring(1));
+		else insertESSourceIntoWhiteList(s);
+	    }
+	}
+	
+	value = args.remove("esmodules");
+	if (value!=null) {
+	    String[] esmoduleNames = value.split(",");
+	    for (String s : esmoduleNames) {
+		if (s.startsWith("-")) insertESModuleIntoBlackList(s.substring(1));
+		else insertESModuleIntoWhiteList(s);
+	    }
+	}
+	
+	value = args.remove("services");
+	if (value!=null) {
+	    String[] serviceNames = value.split(",");
+	    for (String s : serviceNames) {
+		if (s.startsWith("-")) insertServiceIntoBlackList(s.substring(1));
+		else insertServiceIntoWhiteList(s);
+	    }
+	}
+	
+	value = args.remove("paths");
+	if (value!=null) {
+	    String[] pathNames = value.split(",");
+	    for (String s : pathNames) {
+		if (s.startsWith("-")) insertPathIntoBlackList(s.substring(1));
+		else insertPathIntoWhiteList(s);
+	    }
+	}
+	
+	value = args.remove("sequences");
+	if (value!=null) {
+	    String[] sequenceNames = value.split(",");
+	    for (String s : sequenceNames) {
+		if (s.startsWith("-"))
+		    throw new DataException("ModifierInstructions.interpretArgs"+
+					    " ERROR: sequences can *not* be "+
+					    "blacklisted!");
+		else requestSequence(s);
+	    }
+	}
+	
+	value = args.remove("modules");
+	if (value!=null) {
+	    String[] moduleNames = value.split(",");
+	    for (String s : moduleNames) {
+		if (s.startsWith("-"))
+		    throw new DataException("ModifierInstructions.interpretArgs"+
+					    " ERROR: modules can *not* be "+
+					    "blacklisted!");
+		else requestModule(s);
+	    }
+	}
+
+	value = args.remove("input");
+	if (value!=null) {
+	    if (value.indexOf(",")<0&&value.endsWith(".list")) {
+		BufferedReader inputStream = null;
+		String listFileName = value;
+		try {
+		    inputStream=new BufferedReader(new FileReader(listFileName));
+		    value="";
+		    String fileName;
+		    while ((fileName = inputStream.readLine()) != null) {
+			if (value.length()>0) value+=",";
+			value+=fileName;
+		    }
+		}
+		catch (IOException e) {
+		    System.out.println("Error parsing '"+listFileName+"':"
+				       +e.getMessage());
+		}
+		finally {
+		    if (inputStream != null) 
+			try { inputStream.close(); } catch (IOException e) {}
+		}
+	    }
+	    insertPoolSource(value);
+	}
+	
+	value = args.remove("output");
+	if (value!=null) {
+	    insertPoolOutputModule(value);
+	}
+	
+	if (args.size()>0)
+	    throw new DataException("ModifierInstructions.interpretArgs ERROR: "+
+				    "invalid arguments detected.");
+    }
 
     /** resolve white-lists based on a given configuration */
     public boolean resolve(IConfiguration config)
@@ -267,6 +411,56 @@ public class ModifierInstructions
     public void filterAllESModules() { filterAllESModules = true; }
     public void filterAllServices()  { filterAllServices  = true; }
     public void filterAllPaths()     { filterAllPaths     = true; }
+    
+    /** insert components into the corresponding whitelist/blacklist */
+    public void insertPSetIntoBlackList(String psetName)
+    {
+	psetBlackList.add(psetName);
+    }
+    public void insertPSetIntoWhiteList(String psetName)
+    {
+	psetWhiteList.add(psetName);
+    }
+    public void insertEDSourceIntoBlackList(String edsourceName)
+    {
+	edsourceBlackList.add(edsourceName);
+    }
+    public void insertEDSourceIntoWhiteList(String edsourceName)
+    {
+	edsourceWhiteList.add(edsourceName);
+    }
+    public void insertESSourceIntoBlackList(String essourceName)
+    {
+	essourceBlackList.add(essourceName);
+    }
+    public void insertESSourceIntoWhiteList(String essourceName)
+    {
+	essourceWhiteList.add(essourceName);
+    }
+    public void insertESModuleIntoBlackList(String esmoduleName)
+    {
+	esmoduleBlackList.add(esmoduleName);
+    }
+    public void insertESModuleIntoWhiteList(String esmoduleName)
+    {
+	esmoduleWhiteList.add(esmoduleName);
+    }
+    public void insertServiceIntoBlackList(String serviceName)
+    {
+	serviceBlackList.add(serviceName);
+    }
+    public void insertServiceIntoWhiteList(String serviceName)
+    {
+	serviceWhiteList.add(serviceName);
+    }
+    public void insertPathIntoBlackList(String pathName)
+    {
+	pathBlackList.add(pathName);
+    }
+    public void insertPathIntoWhiteList(String pathName)
+    {
+	pathWhiteList.add(pathName);
+    }
     
     /** request a sequence regardless of it being referenced in path */
     public void requestSequence(String sequenceName)

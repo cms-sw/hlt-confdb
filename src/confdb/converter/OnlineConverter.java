@@ -253,7 +253,6 @@ public class OnlineConverter extends ConverterBase
 	catch(ConverterException e) {
 	    System.out.println(e.getMessage());
 	}
-	
     }
     
 }

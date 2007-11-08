@@ -113,6 +113,11 @@ public class OfflineConverter extends ConverterBase
 	    else if (arg.equals("-s")||arg.equals("--dbpwrd")) {
 		iarg++; dbPwrd = args[iarg];
 	    }
+	    else if (arg.startsWith("--no")) {
+		String key = arg.substring(2);
+		String val = "";
+		cnvArgs.put(key,val);
+	    }
 	    else if (arg.startsWith("--")) {
 		String key = arg.substring(2);
 		String val = args[++iarg];
@@ -148,12 +153,15 @@ public class OfflineConverter extends ConverterBase
 
 	try {
 	    ModifierInstructions modifications = new ModifierInstructions();
-	    // modifications.interpret(cnvArgs);
+	    modifications.interpretArgs(cnvArgs);
 	    OfflineConverter cnv = 
 		new OfflineConverter(format,dbType,dbUrl,dbUser,dbPwrd);
 	    System.out.println(cnv.getConfigString(Integer.parseInt(configId),
 						   modifications,
 						   asFragment));
+	}
+	catch(DataException e) {
+	    System.err.println("ERROR: " + e.getMessage());
 	}
 	catch(ConverterException e) {
 	    System.out.println("ERROR: " + e.getMessage());
