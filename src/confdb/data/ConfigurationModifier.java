@@ -71,6 +71,59 @@ public class ConfigurationModifier implements IConfiguration
     /** choose to filter all paths */
     public void filterAllPaths() { instructions.filterAllPaths(); }
 
+    /** choose to filter all output modules */
+    public void filterAllOutputModules() { instructions.filterAllOutputModules(); }
+
+        /** insert components into the corresponding whitelist/blacklist */
+    public void insertPSetIntoBlackList(String psetName)
+    {
+	instructions.insertPSetIntoBlackList(psetName);
+    }
+    public void insertPSetIntoWhiteList(String psetName)
+    {
+	instructions.insertPSetIntoWhiteList(psetName);
+    }
+    public void insertEDSourceIntoBlackList(String edsourceName)
+    {
+	instructions.insertEDSourceIntoBlackList(edsourceName);
+    }
+    public void insertEDSourceIntoWhiteList(String edsourceName)
+    {
+	instructions.insertEDSourceIntoWhiteList(edsourceName);
+    }
+    public void insertESSourceIntoBlackList(String essourceName)
+    {
+	instructions.insertESSourceIntoBlackList(essourceName);
+    }
+    public void insertESSourceIntoWhiteList(String essourceName)
+    {
+	instructions.insertESSourceIntoWhiteList(essourceName);
+    }
+    public void insertESModuleIntoBlackList(String esmoduleName)
+    {
+	instructions.insertESModuleIntoBlackList(esmoduleName);
+    }
+    public void insertESModuleIntoWhiteList(String esmoduleName)
+    {
+	instructions.insertESModuleIntoWhiteList(esmoduleName);
+    }
+    public void insertServiceIntoBlackList(String serviceName)
+    {
+	instructions.insertServiceIntoBlackList(serviceName);
+    }
+    public void insertServiceIntoWhiteList(String serviceName)
+    {
+	instructions.insertServiceIntoWhiteList(serviceName);
+    }
+    public void insertPathIntoBlackList(String pathName)
+    {
+	instructions.insertPathIntoBlackList(pathName);
+    }
+    public void insertPathIntoWhiteList(String pathName)
+    {
+	instructions.insertPathIntoWhiteList(pathName);
+    }
+    
     /** request a sequence, regardless of it being referenced in a path */
     public void requestSequence(String sequenceName)
     {

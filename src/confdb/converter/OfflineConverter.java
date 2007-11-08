@@ -94,6 +94,8 @@ public class OfflineConverter extends ConverterBase
 	    }
 	    else if (arg.equals("--cff")) {
 		asFragment = true;
+		cnvArgs.put("noedsources","");
+		cnvArgs.put("nooutput","");
 	    }
 	    else if (arg.equals("-t")||arg.equals("--dbtype")) {
 		iarg++; dbType = args[iarg];

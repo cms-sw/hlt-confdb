@@ -50,6 +50,7 @@ public class ModifierInstructions
     
     /** Paths */
     private boolean filterAllPaths = false;
+    private boolean filterAllOutputModules = false;
     private ArrayList<String> pathBlackList = new ArrayList<String>();
     private ArrayList<String> pathWhiteList = new ArrayList<String>();
 
@@ -86,7 +87,10 @@ public class ModifierInstructions
 	value = args.remove("nopsets");
 	if (value!=null) filterAllPSets();
 	value = args.remove("noedsources");
-	if (value!=null) filterAllEDSources();
+	if (value!=null) {
+	    filterAllEDSources();
+	    args.remove("input");
+	}
 	value = args.remove("noes");
 	if (value!=null) {
 	    filterAllESSources();
@@ -102,6 +106,11 @@ public class ModifierInstructions
 	if (value!=null) filterAllServices();
 	value = args.remove("nopaths");
 	if (value!=null) filterAllPaths();
+	value = args.remove("nooutput");
+	if (value!=null) {
+	    filterAllOutputModules();
+	    args.remove("output");
+	}
 
 	value = args.remove("psets");
 	if (value!=null) {
@@ -300,6 +309,14 @@ public class ModifierInstructions
 	    }
 	}
 	
+	if (filterAllOutputModules&&pathWhiteList.size()==0) {
+	    Iterator it = config.pathIterator();
+	    while (it.hasNext()) {
+		Path path = (Path)it.next();
+		if (path.hasOutputModule()) insertPathIntoBlackList(path.name());
+	    }
+	}
+	
 	if (!filterAllPaths&&pathWhiteList.size()>0) {
 	    if (pathBlackList.size()>0) {
 		System.err.println("ModifierInstructions.resolve ERROR: " +
@@ -320,12 +337,13 @@ public class ModifierInstructions
     }
 
     /** check filter flags */
-    public boolean doFilterAllPSets()     { return filterAllPSets; }
-    public boolean doFilterAllEDSources() { return filterAllEDSources; }
-    public boolean doFilterAllESSources() { return filterAllESSources; }
-    public boolean doFilterAllESModules() { return filterAllESModules; }
-    public boolean doFilterAllServices()  { return filterAllServices; }
-    public boolean doFilterAllPaths()     { return filterAllPaths; }
+    public boolean doFilterAllPSets()         { return filterAllPSets; }
+    public boolean doFilterAllEDSources()     { return filterAllEDSources; }
+    public boolean doFilterAllESSources()     { return filterAllESSources; }
+    public boolean doFilterAllESModules()     { return filterAllESModules; }
+    public boolean doFilterAllServices()      { return filterAllServices; }
+    public boolean doFilterAllPaths()         { return filterAllPaths; }
+    public boolean doFilterAllOutputModules() { return filterAllOutputModules; }
     
     /** check if passed object is in a blacklist */
     public boolean isInBlackList(Object obj)
@@ -405,12 +423,13 @@ public class ModifierInstructions
     }
     
     /** filter all plugins of a certain type */
-    public void filterAllPSets()     { filterAllPSets     = true; }
-    public void filterAllEDSources() { filterAllEDSources = true; }
-    public void filterAllESSources() { filterAllESSources = true; }
-    public void filterAllESModules() { filterAllESModules = true; }
-    public void filterAllServices()  { filterAllServices  = true; }
-    public void filterAllPaths()     { filterAllPaths     = true; }
+    public void filterAllPSets()         { filterAllPSets         = true; }
+    public void filterAllEDSources()     { filterAllEDSources     = true; }
+    public void filterAllESSources()     { filterAllESSources     = true; }
+    public void filterAllESModules()     { filterAllESModules     = true; }
+    public void filterAllServices()      { filterAllServices      = true; }
+    public void filterAllPaths()         { filterAllPaths         = true; }
+    public void filterAllOutputModules() { filterAllOutputModules = true; }
     
     /** insert components into the corresponding whitelist/blacklist */
     public void insertPSetIntoBlackList(String psetName)
