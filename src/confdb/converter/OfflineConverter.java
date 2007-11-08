@@ -39,6 +39,19 @@ public class OfflineConverter extends ConverterBase
     //
     
     /** retrieve the configuration string for the given configId */
+    public String getConfigString(String configName,
+				  ModifierInstructions modifications,
+				  boolean asFragment)
+	throws ConverterException
+    {
+	int configId = getDatabase().getConfigId(configName);
+	if (configId<=0)
+	    throw new ConverterException("ERROR: can't find configuration '"+
+					 configName+"'");
+	return getConfigString(configId,modifications,asFragment);
+    }
+    
+    /** retrieve the configuration string for the given configId */
     public String getConfigString(int configId,
 				  ModifierInstructions modifications,
 				  boolean asFragment)
@@ -72,6 +85,7 @@ public class OfflineConverter extends ConverterBase
     public static void main(String[] args)
     {
 	String  configId    =          "";
+	String  configName  =          "";
 	String  format      =     "Ascii";
 	boolean asFragment  =       false;
 
@@ -86,8 +100,16 @@ public class OfflineConverter extends ConverterBase
 	
 	for (int iarg=0;iarg<args.length;iarg++) {
 	    String arg = args[iarg];
-	    if (arg.equals("-c")||arg.equals("--config")) {
+	    if (arg.equals("-id")||arg.equals("--configid")) {
 		iarg++; configId = args[iarg];
+	    }
+	    else if (arg.equals("-cfg")||arg.equals("--configName")) {
+		if (!configId.equals("")) {
+		    System.err.println("ERROR: can't specify "+
+				       "config-id *and* config-name!");
+			System.exit(0);
+		}
+		iarg++; configName = args[iarg];
 	    }
 	    else if (arg.equals("-f")||arg.equals("--format")) {
 		iarg++; format = args[iarg];
@@ -131,10 +153,18 @@ public class OfflineConverter extends ConverterBase
 	    }
 	}
 	
+	if (configId.length()==0) {
+	    if (configName.length()==0) {
+		System.out.println("ERROR: no configuration specified!");
+		System.exit(0);
+	    }
+	}
+
 	if (!format.equals("Ascii")&&
 	    !format.equals("Python")&&
 	    !format.equals("Html")) {
 	    System.err.println("ERROR: Invalid format '"+format+"'");
+	    System.exit(0);
 	}
     
 	String dbUrl = "";
@@ -158,9 +188,15 @@ public class OfflineConverter extends ConverterBase
 	    modifications.interpretArgs(cnvArgs);
 	    OfflineConverter cnv = 
 		new OfflineConverter(format,dbType,dbUrl,dbUser,dbPwrd);
-	    System.out.println(cnv.getConfigString(Integer.parseInt(configId),
-						   modifications,
-						   asFragment));
+	    if (configId.length()>0)
+		System.out.println(cnv.getConfigString(Integer.parseInt(configId),
+						       modifications,
+						       asFragment));
+	    else
+		System.out.println(cnv.getConfigString(configName,
+						       modifications,
+						       asFragment));
+	    
 	}
 	catch(DataException e) {
 	    System.err.println("ERROR: " + e.getMessage());

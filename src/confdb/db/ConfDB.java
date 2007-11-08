@@ -24,7 +24,7 @@ import confdb.data.*;
 public class ConfDB
 {
     //
-    // member datas
+    // member data
     //
 
     /** define database arch types */
