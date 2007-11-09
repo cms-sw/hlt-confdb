@@ -5,13 +5,19 @@ import java.util.Map;
 import java.util.Set;
 
 import confdb.converter.ConverterBase;
+import confdb.converter.ConverterEngine;
 import confdb.converter.ConverterException;
+import confdb.converter.ConverterFactory;
 import confdb.converter.DbProperties;
+import confdb.converter.OfflineConverter;
+import confdb.converter.IConfigurationWriter.WriteProcess;
+import confdb.data.ConfigurationModifier;
 import confdb.data.IConfiguration;
+import confdb.data.ModifierInstructions;
 import confdb.db.ConfDB;
 import confdb.db.ConfDBSetups;
 
-public class BrowserConverter extends ConverterBase 
+public class BrowserConverter extends OfflineConverter
 {
 	static private HashMap<Integer,BrowserConverter> map = new HashMap<Integer,BrowserConverter>();
 
@@ -20,21 +26,23 @@ public class BrowserConverter extends ConverterBase
 		super( "HTML", dbType, dbUrl, dbUser, dbPwrd );	
 	}
 		
-	public ConfDB getDatabase()
-	{
-		return super.getDatabase();
-	}
+    public String getConfigString(  int configId,
+    							    String format,
+				  					ModifierInstructions modifications,
+				  					boolean asFragment ) throws ConverterException, ClassNotFoundException, InstantiationException, IllegalAccessException
+    {
+    	IConfiguration config = getConfiguration(configId);
+    	ConfigurationModifier modifier = new ConfigurationModifier(config);
+    	modifier.modify(modifications);
 	
-	public IConfiguration getConfiguration( int key )
-	{
-		return super.getConfiguration( key );
-	}
-		
-	public String convert( IConfiguration conf )
-	{
-		return getConverterEngine().convert( conf );
-	}
+    	ConverterEngine engine = ConverterFactory.getConverterEngine( format );
+    	if ( asFragment )
+    		return engine.getConfigurationWriter().toString(modifier,WriteProcess.NO);
+    	else
+    		return engine.getConfigurationWriter().toString(modifier,WriteProcess.YES);
+    }
 
+	
 	protected void finalize() throws Throwable
 	{
 		super.finalize();
@@ -57,7 +65,7 @@ public class BrowserConverter extends ConverterBase
 		return converter;
 	}
 
-	static public void deleteConverter( BrowserConverter converter )
+	static public void deleteConverter( ConverterBase converter )
 	{
 		Set<Map.Entry<Integer,BrowserConverter>> entries = map.entrySet();
 		for ( Map.Entry<Integer,BrowserConverter> entry : entries )
