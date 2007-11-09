@@ -15,6 +15,7 @@ import org.directwebremoting.WebContextFactory;
 
 import browser.BrowserConverter;
 
+import confdb.converter.ConverterBase;
 import confdb.converter.ConverterException;
 import confdb.data.IConfiguration;
 import confdb.db.ConfDBSetups;
@@ -81,7 +82,7 @@ public class AjaxInfo implements Runnable
     public String[] getAnchors( int dbIndex, int configKey )
     {
 		ArrayList<String> list = new ArrayList<String>();
-		BrowserConverter converter = null;
+		ConverterBase converter = null;
     	try {
 			converter = BrowserConverter.getConverter( dbIndex );
 			IConfiguration conf = converter.getConfiguration( configKey );
