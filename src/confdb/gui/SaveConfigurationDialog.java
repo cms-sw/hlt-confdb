@@ -36,6 +36,7 @@ public class SaveConfigurationDialog extends ConfigurationDialog
     /** GUI components */
     private JTree      jTreeDirectories     = null;
     private JTextField jTextFieldConfigName = new JTextField();
+    private JTextField jTextFieldComment    = new JTextField();
     private JButton    okButton             = new JButton();
     private JButton    cancelButton         = new JButton();
     
@@ -51,12 +52,12 @@ public class SaveConfigurationDialog extends ConfigurationDialog
     //
     
     /** standard constructor */
-    public SaveConfigurationDialog(JFrame        frame,
-				   ConfDB   database,
-				   Configuration config)
+    public SaveConfigurationDialog(JFrame frame,ConfDB database,
+				   Configuration config,String comment)
     {
 	super(frame,database);
 	this.config = config;
+	jTextFieldComment.setText(comment);
 	
 	setTitle("Save Configuration");
 	
@@ -79,7 +80,6 @@ public class SaveConfigurationDialog extends ConfigurationDialog
 			okButton.setEnabled(true);
 		}
 	    });
-
 
 	addMouseListener(new DirectoryTreeMouseListener(this.dirTree,database));
 	addTreeSelectionListener(new TreeSelectionListener()
@@ -109,6 +109,9 @@ public class SaveConfigurationDialog extends ConfigurationDialog
     //
     // member functions
     //
+    
+    /** retrieve comment */
+    public String comment() { return jTextFieldComment.getText(); }
     
     /** 'OK' button pressed */
     public void okButtonActionPerformed(ActionEvent e)

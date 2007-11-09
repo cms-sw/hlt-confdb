@@ -71,7 +71,8 @@ public class DatabaseMigrator
 	
 	if (!targetDB.insertConfiguration(targetConfig,
 					  creator,
-					  sourceConfig.processName()))
+					  sourceConfig.processName(),
+					  "imported from external database."))
 	    return false;
 	
 	return true;

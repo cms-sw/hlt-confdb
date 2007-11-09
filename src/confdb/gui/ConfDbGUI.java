@@ -490,7 +490,7 @@ public class ConfDbGUI implements TableModelListener
     }
     
     /** save configuration */
-    public void saveConfiguration()
+    public void saveConfiguration(boolean askForComment)
     {
 	if (currentConfig.isEmpty()) return;
 	if (!currentConfig.hasChanged()) return;
@@ -504,9 +504,20 @@ public class ConfDbGUI implements TableModelListener
 	else database.unlockConfiguration(currentConfig);
 	
 	String processName = configurationPanel.processName();
+	String comment = "";
 
+	if (askForComment) {
+	    String fullConfigName =
+		currentConfig.parentDir().name()+"/"+currentConfig.name();
+	    comment = (String)JOptionPane
+		.showInputDialog(frame,"Enter comment for the new version of " +
+				 fullConfigName+":","Enter comment",
+				 JOptionPane.PLAIN_MESSAGE,
+				 null,null,"");
+	}
+	
 	SaveConfigurationThread worker =
-	    new SaveConfigurationThread(processName);
+	    new SaveConfigurationThread(processName,comment);
 	worker.start();
 	progressBar.setIndeterminate(true);
 	progressBar.setString("Save Configuration ...");
@@ -523,16 +534,19 @@ public class ConfDbGUI implements TableModelListener
 	    database.unlockConfiguration(currentConfig);
 	
 	String processName = configurationPanel.processName();
-
+	String comment = "saveAs from " +
+	    currentConfig.parentDir().name()+"/"+currentConfig.name()+"/V"+
+	    currentConfig.version()+" ["+currentConfig.dbId()+"]";
+	
 	SaveConfigurationDialog dialog =
-	    new SaveConfigurationDialog(frame,database,currentConfig);
+	    new SaveConfigurationDialog(frame,database,currentConfig,comment);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
 	
 	if (dialog.validChoice()) {
 	    SaveConfigurationThread worker =
-		new SaveConfigurationThread(processName);
+		new SaveConfigurationThread(processName,dialog.comment());
 	    worker.start();
 	    progressBar.setIndeterminate(true);
 	    progressBar.setString("Save Configuration ...");
@@ -699,11 +713,27 @@ public class ConfDbGUI implements TableModelListener
 	// try to etablish a database connection
 	app.connectToDatabase();
     }
-    
 
-    /**
-     * MAIN create and show GUI, thread-safe
-     */
+    //
+    // private member functions
+    //
+    
+    /** set the current configuration */
+    private void setCurrentConfig(Configuration config)
+    {
+	currentConfig = config;
+	currentTreeModel.setConfiguration(currentConfig);
+	streamTreeModel.setConfiguration(currentConfig);
+	configurationPanel.setCurrentConfig(currentConfig);
+	currentRelease = currentConfig.release();
+    }
+    
+    
+    //
+    // main
+    //
+    
+    /** main: create and show GUI, thread-safe */
     public static void main(String[] args)
     {
 	javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -817,12 +847,10 @@ public class ConfDbGUI implements TableModelListener
 	protected void finished()
 	{
 	    try {
-		currentConfig = new Configuration();
-		currentConfig.initialize(new ConfigInfo(name,null,releaseTag),
-					 currentRelease);
-		currentTreeModel.setConfiguration(currentConfig);
-		streamTreeModel.setConfiguration(currentConfig);
-		configurationPanel.setCurrentConfig(currentConfig);
+		Configuration config = new Configuration();
+		config.initialize(new ConfigInfo(name,null,releaseTag),
+				  currentRelease);
+		setCurrentConfig(config);
 		configurationPanel.setProcessName(process);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		progressBar.setString(progressBar.getString() +
@@ -872,7 +900,7 @@ public class ConfDbGUI implements TableModelListener
 	    try {
 		PythonParser parser = new PythonParser(currentRelease);
 		parser.parseFile(fileName);
-		currentConfig = parser.createConfiguration();
+		setCurrentConfig(parser.createConfiguration());
 		if (parser.closeProblemStream())
 		    System.out.println("problems encountered, " +
 				       "see problems.txt.");
@@ -889,9 +917,6 @@ public class ConfDbGUI implements TableModelListener
 	protected void finished()
 	{
 	    try {
-		currentTreeModel.setConfiguration(currentConfig);
-		streamTreeModel.setConfiguration(currentConfig);
-		configurationPanel.setCurrentConfig(currentConfig);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		progressBar.setString(progressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
@@ -930,7 +955,7 @@ public class ConfDbGUI implements TableModelListener
 	protected String construct() throws InterruptedException
 	{
 	    startTime = System.currentTimeMillis();
-	    currentConfig = database.loadConfiguration(configInfo,currentRelease);
+	    setCurrentConfig(database.loadConfiguration(configInfo,currentRelease));
 	    return new String("Done!");
 	}
 	
@@ -938,9 +963,6 @@ public class ConfDbGUI implements TableModelListener
 	protected void finished()
 	{
 	    try {
-		currentTreeModel.setConfiguration(currentConfig);
-		streamTreeModel.setConfiguration(currentConfig);
-		configurationPanel.setCurrentConfig(currentConfig);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		progressBar.setString(progressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
@@ -1042,17 +1064,22 @@ public class ConfDbGUI implements TableModelListener
 	/** process name */
 	private String processName;
 
+	/** comment */
+	private String comment;
+	
 	/** standard constructor */
-	public SaveConfigurationThread(String processName)
+	public SaveConfigurationThread(String processName,String comment)
 	{
 	    this.processName = processName;
+	    this.comment     = comment;
 	}
 	
 	/** SwingWorker: construct() */
 	protected String construct() throws InterruptedException
 	{
 	    startTime = System.currentTimeMillis();
-	    database.insertConfiguration(currentConfig,userName,processName);
+	    database.insertConfiguration(currentConfig,
+					 userName,processName,comment);
 	    if (!currentConfig.isLocked())
 		database.lockConfiguration(currentConfig,userName);
 	    return new String("Done!");
@@ -1110,7 +1137,8 @@ public class ConfDbGUI implements TableModelListener
 	    ConfigInfo targetConfigInfo =
 		new ConfigInfo(currentConfig.name(),currentConfig.parentDir(),
 			       -1,currentConfig.version(),"",userName,
-			       targetReleaseTag,targetProcessName);
+			       targetReleaseTag,targetProcessName,
+			       "migrated from external database");
 
 	    Configuration targetConfig = new Configuration(targetConfigInfo,
 							   targetRelease);
@@ -1118,10 +1146,11 @@ public class ConfDbGUI implements TableModelListener
 	    migrator = new ReleaseMigrator(currentConfig,targetConfig);
 	    migrator.migrate();
 	    
-	    database.insertConfiguration(targetConfig,userName,targetProcessName);
-	    currentRelease.clearInstances();
-	    currentConfig =
-		database.loadConfiguration(targetConfigInfo,currentRelease);
+	    setCurrentConfig(targetConfig);
+	    //database.insertConfiguration(targetConfig,userName,targetProcessName);
+	    //currentRelease.clearInstances();
+	    //currentConfig =
+	    //	database.loadConfiguration(targetConfigInfo,currentRelease);
 	    return new String("Done!");
 	}
 	

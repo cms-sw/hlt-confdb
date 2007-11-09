@@ -100,7 +100,7 @@ public class OfflineConverter extends ConverterBase
 	
 	for (int iarg=0;iarg<args.length;iarg++) {
 	    String arg = args[iarg];
-	    if (arg.equals("-id")||arg.equals("--configid")) {
+	    if (arg.equals("-id")||arg.equals("--configId")) {
 		iarg++; configId = args[iarg];
 	    }
 	    else if (arg.equals("-cfg")||arg.equals("--configName")) {

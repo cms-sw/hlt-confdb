@@ -125,6 +125,7 @@ public class OnlineConverter extends ConverterBase
 					     epConfig.created(),
 					     epConfig.creator(),
 					     epConfig.releaseTag(),
+					     epConfig.comment(),
 					     "SM"),smRelease);
 	
 	

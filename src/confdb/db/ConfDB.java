@@ -238,12 +238,13 @@ public class ConfDB
 		 " Configurations.created," +
 		 " Configurations.creator," +
 		 " SoftwareReleases.releaseTag," +
-		 " Configurations.processName " +
+		 " Configurations.processName," +
+		 " Configurations.description " +
 		 "FROM Configurations " +
 		 "JOIN SoftwareReleases " +
 		 "ON SoftwareReleases.releaseId = Configurations.releaseId " +
 		 "ORDER BY Configurations.config ASC");
-	    psSelectConfigurations.setFetchSize(64);
+	    psSelectConfigurations.setFetchSize(512);
 	    preparedStatements.add(psSelectConfigurations);
 	    
 	    psSelectLockedConfigurations =
@@ -259,12 +260,14 @@ public class ConfDB
 
 	    psSelectConfigNames =
 		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " Configurations.configId," +
+		("SELECT DISTINCT" +
+		 " Directories.dirName," +
 		 " Configurations.config " +
 		 "FROM Configurations " +
-		 "WHERE Configurations.version=1 " +
-		 "ORDER BY Configurations.created DESC");
+		 "JOIN Directories " +
+		 "ON Configurations.parentDirId = Directories.dirId " +
+		 "ORDER BY Directories.dirName ASC");
+	    psSelectConfigNames.setFetchSize(1024);
 	    preparedStatements.add(psSelectConfigNames);
 	    
 	    psSelectConfigurationId =
@@ -282,7 +285,7 @@ public class ConfDB
 	    psSelectConfigurationIdLatest =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " Configurations.configId " +
+		 " Configurations.configId," +
 		 " Configurations.version " +
 		 "FROM Configurations " +
 		 "JOIN Directories " +
@@ -439,15 +442,15 @@ public class ConfDB
 		    dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO Configurations " +
 		     "(releaseId,configDescriptor,parentDirId,config," +
-		     "version,created,creator,processName) " +
-		     "VALUES (?, ?, ?, ?, ?, NOW(), ?, ?)",keyColumn);
+		     "version,created,creator,processName,description) " +
+		     "VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?)",keyColumn);
 	    else if (dbType.equals(dbTypeOracle))
 		psInsertConfiguration =
 		    dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO Configurations " +
 		     "(releaseId,configDescriptor,parentDirId,config," +
-		     "version,created,creator,processName) " +
-		     "VALUES (?, ?, ?, ?, ?, SYSDATE, ?, ?)",
+		     "version,created,creator,processName,description) " +
+		     "VALUES (?, ?, ?, ?, ?, SYSDATE, ?, ?, ?)",
 		     keyColumn);
 	    preparedStatements.add(psInsertConfiguration);
 	    
@@ -1104,7 +1107,10 @@ public class ConfDB
 		String configCreator     = rs.getString(6);
 		String configReleaseTag  = rs.getString(7);
 		String configProcessName = rs.getString(8);
+		String configComment     = rs.getString(9);
 		
+		if (configComment==null) configComment="";
+
 		Directory dir = directoryHashMap.get(parentDirId);
 		if (dir==null) {
 		    System.err.println("ERROR: can't find parentDir " +
@@ -1121,7 +1127,8 @@ public class ConfDB
 					  configCreated,
 					  configCreator,
 					  configReleaseTag,
-					  configProcessName);
+					  configProcessName,
+					  configComment);
 		}
 		else {
 		    ConfigInfo configInfo = new ConfigInfo(configName,
@@ -1131,7 +1138,8 @@ public class ConfDB
 							   configCreated,
 							   configCreator,
 							   configReleaseTag,
-							   configProcessName);
+							   configProcessName,
+							   configComment);
 		    configHashMap.put(configPathAndName,configInfo);
 		    dir.addConfigInfo(configInfo);
 		    
@@ -1626,7 +1634,8 @@ public class ConfDB
     
     /** insert a new configuration */
     public boolean insertConfiguration(Configuration config,
-				       String creator,String processName)
+				       String creator,String processName,
+				       String comment)
     {
 	boolean result     = true;
 	int     configId   = 0;
@@ -1654,6 +1663,7 @@ public class ConfDB
 	    psInsertConfiguration.setInt(5,config.nextVersion());
 	    psInsertConfiguration.setString(6,creator);
 	    psInsertConfiguration.setString(7,processName);
+	    psInsertConfiguration.setString(8,comment);
 	    psInsertConfiguration.executeUpdate();
 	    rs = psInsertConfiguration.getGeneratedKeys();
 	    
@@ -1664,7 +1674,8 @@ public class ConfDB
 	    rs = psSelectConfigurationCreated.executeQuery();
 	    rs.next();
 	    String created = rs.getString(1);
-	    config.addNextVersion(configId,created,creator,releaseTag,processName);
+	    config.addNextVersion(configId,
+				  created,creator,releaseTag,processName,comment);
 
 	    // insert global psets
 	    insertGlobalPSets(configId,config);
@@ -2415,7 +2426,7 @@ public class ConfDB
 	ResultSet rs = null;
 	try {
 	    rs = psSelectConfigNames.executeQuery();
-	    while (rs.next()) listOfNames.add(rs.getString(2));
+	    while (rs.next()) listOfNames.add(rs.getString(1)+"/"+rs.getString(2));
 	}
 	catch (SQLException e) {
 	    e.printStackTrace();
@@ -2441,6 +2452,60 @@ public class ConfDB
 	}
 	catch (SQLException e) { e.printStackTrace(); }
 	return listOfTags.toArray(new String[listOfTags.size()]);
+    }
+
+    /** get the configuration id for a configuration name */
+    public int getConfigId(String fullConfigName)
+    {
+	int               result = 0;
+	ResultSet         rs     = null;
+	PreparedStatement ps     = null;
+	
+	int    version    = 0;
+	
+	int index = fullConfigName.lastIndexOf("/V");
+	if (index>=0) {
+	    version = Integer.parseInt(fullConfigName.substring(index+2));
+	    fullConfigName = fullConfigName.substring(0,index);
+	}
+
+	index = fullConfigName.lastIndexOf("/");
+	if (index<0) {
+	    System.err.println("Invalid config name '"+fullConfigName+"')");
+	}
+	String dirName    = fullConfigName.substring(0,index);
+	String configName = fullConfigName.substring(index+1);
+	
+	try {
+	    if (version>0) {
+		ps = psSelectConfigurationId;
+		ps.setString(1,dirName);
+		ps.setString(2,configName);
+		ps.setInt(3,version);
+	    }
+	    else {
+		ps = psSelectConfigurationIdLatest;
+		ps.setString(1,dirName);
+		ps.setString(2,configName);
+	    }
+	 
+	    rs = ps.executeQuery();
+	    if (rs.next()) result = rs.getInt(1);
+	}
+	catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+	
+	return result;
+    }
+    
+    /** get ConfigInfo for a particular configId */
+    public ConfigInfo getConfigInfo(int configId)
+    {
+	return getConfigInfo(configId,loadConfigurationTree());
     }
 
 
@@ -2932,66 +2997,6 @@ public class ConfDB
 	return result;
     }
 
-    /** get the configuration id for a configuration name */
-    private int getConfigId(String fullConfigName)
-    {
-	int               result = 0;
-	ResultSet         rs     = null;
-	PreparedStatement ps     = null;
-	
-	int    version    = 0;
-	
-	int index = fullConfigName.lastIndexOf("/V");
-	if (index>=0) {
-	    version = Integer.parseInt(fullConfigName.substring(index+2));
-	    fullConfigName = fullConfigName.substring(0,index);
-	}
-
-	index = fullConfigName.lastIndexOf("/");
-	if (index<0) {
-	    System.err.println("Invalid config name '"+fullConfigName+"')");
-	}
-	String dirName    = fullConfigName.substring(0,index);
-	String configName = fullConfigName.substring(index+1);
-	
-	try {
-	    if (version>0) {
-		ps = psSelectConfigurationId;
-		ps.setString(1,dirName);
-		ps.setString(2,configName);
-		ps.setInt(3,version);
-	    }
-	    else {
-		ps = psSelectConfigurationIdLatest;
-		ps.setString(1,dirName);
-		ps.setString(2,configName);
-	    }
-	 
-	    rs = ps.executeQuery();
-	    if (rs.next()) result = rs.getInt(1);
-	    
-	    if (version==0) {
-		version=rs.getInt(2);
-		System.out.println("Selected latest version ("+version+
-				   "of configuration "+dirName+"/"+configName);
-	    }
-	}
-	catch (SQLException e) {
-	    e.printStackTrace();
-	}
-	finally {
-	    dbConnector.release(rs);
-	}
-	
-	return result;
-    }
-    
-    /** get ConfigInfo for a particular configId */
-    private ConfigInfo getConfigInfo(int configId)
-    {
-	return getConfigInfo(configId,loadConfigurationTree());
-    }
-
     /** look ConfigInfo in the specified parent directory */
     private ConfigInfo getConfigInfo(int configId,Directory parentDir)
     {
@@ -3112,12 +3117,161 @@ public class ConfDB
 	return result;
     }
     
+
+    //
+    // main
+    //
+
+    /** main method for testing */
+    public static void main(String[] args)
+    {
+	String  configId    =          "";
+	String  configName  =          "";
+	boolean dopackages  =       false;
+	boolean dolist      =       false;
+	boolean doversions  =       false;
+	String  list        =          "";
+
+	String  dbType      =     "mysql";
+	String  dbHost      = "localhost";
+	String  dbPort      =      "3306";
+	String  dbName      =     "hltdb";
+	String  dbUser      =          "";
+	String  dbPwrd      =          "";
+
+	for (int iarg=0;iarg<args.length;iarg++) {
+	    String arg = args[iarg];
+	    if (arg.equals("--configId")) { configId = args[++iarg]; }
+	    else if (arg.equals("--configName")) {
+		if (!configId.equals("")) {
+		    System.err.println("ERROR: can't specify "+
+				       "--configId *and* --configName!");
+		    System.exit(0);
+		}
+		configName = args[++iarg];
+	    }
+	    else if (arg.equals("--packages")) { dopackages = true; }
+	    else if (arg.equals("--list")) {
+		if (dopackages) {
+		    System.err.println("ERROR: can't specify " +
+				       "--packages *and* --list!");
+		    System.exit(0);
+		}
+		dolist = true;
+		list = args[++iarg];
+	    }
+	    else if (arg.equals("--versions")) {
+		if (dopackages||dolist) {
+		    System.err.println("ERROR: can't specify --versions *and* " +
+				       "--packages / --list!");
+		    System.exit(0);
+		}
+		doversions = true;
+	    }
+	    else if (arg.equals("-t")||arg.equals("--dbtype")) {
+		dbType = args[++iarg];
+	    }
+	    else if (arg.equals("-h")||arg.equals("--dbhost")) {
+		dbHost = args[++iarg];
+	    }
+	    else if (arg.equals("-p")||arg.equals("--dbport")) {
+		dbPort = args[++iarg];
+	    }
+	    else if (arg.equals("-d")||arg.equals("--dbname")) {
+		dbName = args[++iarg];
+	    }
+	    else if (arg.equals("-u")||arg.equals("--dbuser")) {
+		dbUser = args[++iarg];
+	    }
+	    else if (arg.equals("-s")||arg.equals("--dbpwrd")) {
+		dbPwrd = args[++iarg];
+	    }
+	    else {
+		System.err.println("ERROR: invalid option '" + arg + "'!");
+		System.exit(0);
+	    }
+	}
+	
+	if (configId.length()==0&&configName.length()==0&&!dolist) {
+	    System.out.println("ERROR: no configuration specified!");
+	    System.exit(0);
+	}
+
+	if (!dopackages&&!dolist&&!doversions) System.exit(0);
+	
+	String dbUrl = "";
+	if (dbType.equalsIgnoreCase("mysql")) {
+	    dbUrl  = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+dbName;
+	}
+	else if (dbType.equalsIgnoreCase("oracle")) {
+	    dbUrl = "jdbc:oracle:thin:@//"+dbHost+":"+dbPort+"/"+dbName;
+	}
+	else {
+	    System.err.println("ERROR: Unknwown db type '"+dbType+"'");
+	    System.exit(0);
+	}
+	
+	System.err.println("dbURl  = " + dbUrl);
+	System.err.println("dbUser = " + dbUser);
+	System.err.println("dbPwrd = " + dbPwrd);
+	
+	ConfDB database = new ConfDB();
+
+	try {
+	    database.connect(dbType,dbUrl,dbUser,dbPwrd);
+	    if (dolist) {
+		String[] allConfigs = database.getConfigNames();
+		for (String s : allConfigs)
+		    if (s.startsWith(list)) System.out.println(s);
+	    }
+	    else {
+		int id = (configId.length()>0) ?
+		    Integer.parseInt(configId) : database.getConfigId(configName);
+		if (id<=0) {
+		    System.out.println("Configuration not found!");
+		}
+		else if (dopackages) {
+		    Configuration   config  = database.loadConfiguration(id);
+		    SoftwareRelease release = config.release();
+		    Iterator it = release.listOfReferencedPackages().iterator();
+		    while (it.hasNext()) {
+			String pkg = (String)it.next();
+			System.out.println(pkg);
+		    }
+		}
+		else if (doversions) {
+		    ConfigInfo info = database.getConfigInfo(id);
+		    System.out.println("name=" + info.parentDir().name() + "/" +
+				       info.name());
+		    for (int i=0;i<info.versionCount();i++) {
+			ConfigVersion version = info.version(i);
+			System.out.println(version.version()+"\t"+
+					   version.dbId()+"\t"+
+					   version.releaseTag()+"\t"+
+					   version.created()+"\t"+
+					   version.creator());
+			if (version.comment().length()>0)
+			    System.out.println("  -> " + version.comment());
+		    }
+		}
+	    }
+	}
+	catch (DatabaseException e) {
+	    System.err.println("Failed to connet to DB: " + e.getMessage());
+	}
+	finally {
+	    try { database.disconnect(); } catch (DatabaseException e) {}
+	}
+    }
+    
 }
 
 
 //
 // helper classes
 //
+
+/** define class holding a pair of id and associated instance */
 class IdInstancePair
 {
     public int      id;
@@ -3129,6 +3283,7 @@ class IdInstancePair
     }
 }
 
+/** define class holding a pair of id and associated PSet */
 class IdPSetPair
 {
     public int           id;
@@ -3140,6 +3295,7 @@ class IdPSetPair
     }
 }
 
+/** define class holding a pair of id and associated VPSet */
 class IdVPSetPair
 {
     public int            id;

@@ -43,14 +43,15 @@ public class ConfigInfo
     /** standard constructor */
     public ConfigInfo(String name,Directory parentDir,int dbId,int version,
 		      String created,String creator,
-		      String releaseTag,String processName)
+		      String releaseTag,String processName,
+		      String comment)
     {
 	this.name         = name;
 	this.parentDir    = parentDir;
 	this.releaseTag   = releaseTag;
 	this.versionIndex = 0;
 	versions.add(new ConfigVersion(dbId,version,created,creator,
-				       releaseTag,processName));
+				       releaseTag,processName,comment));
     }
     
     /** constructor without a version */
@@ -109,6 +110,12 @@ public class ConfigInfo
 	return (versionIndex<0) ? "" : versions.get(versionIndex).processName();
     }
     
+    /** get the comment for the current version */
+    public String comment()
+    {
+	return (versionIndex<0) ? "" : versions.get(versionIndex).comment();
+    }
+
     /** number of versions */
     public int versionCount() { return versions.size(); }
     
@@ -135,7 +142,8 @@ public class ConfigInfo
     /** add an new version of this configuration */
     public void addVersion(int dbId,int version,
 			   String created,String creator,
-			   String releaseTag,String processName)
+			   String releaseTag,String processName,
+			   String comment)
     {
 	for (ConfigVersion v : versions) {
 	    if (v.version()==version) {
@@ -149,7 +157,8 @@ public class ConfigInfo
 							created,
 							creator,
 							releaseTag,
-							processName);
+							processName,
+							comment);
 	versions.add(configVersion);
 	Collections.<ConfigVersion>sort(versions);
 	this.releaseTag = releaseTag;

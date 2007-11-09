@@ -32,14 +32,15 @@ public class ConfDBMenuBar implements ActionListener
     private static final String confdbMenuQuit  = "Quit";
     
     /** menu bar item names: configMenu */
-    private static final String configMenuNew        = "New";
-    private static final String configMenuParse      = "Parse";
-    private static final String configMenuOpen       = "Open";
-    private static final String configMenuClose      = "Close";
-    private static final String configMenuSave       = "Save";
-    private static final String configMenuSaveAs     = "Save As";
-    private static final String configMenuImport     = "Import";
-    private static final String configMenuMigrate    = "Migrate";
+    private static final String configMenuNew         = "New";
+    private static final String configMenuParse       = "Parse";
+    private static final String configMenuOpen        = "Open";
+    private static final String configMenuClose       = "Close";
+    private static final String configMenuSave        = "Save";
+    private static final String configMenuCommentSave = "Comment&Save";
+    private static final String configMenuSaveAs      = "Save As";
+    private static final String configMenuImport      = "Import";
+    private static final String configMenuMigrate     = "Migrate";
 
     /** menu bar item names: dbMenu */
     private static final String dbMenuConnectToDB      = "Connect to DB";
@@ -55,6 +56,7 @@ public class ConfDBMenuBar implements ActionListener
     private JMenuItem configMenuParseItem       = null;
     private JMenuItem configMenuOpenItem        = null;
     private JMenuItem configMenuCloseItem       = null;
+    private JMenuItem configMenuCommentSaveItem = null;
     private JMenuItem configMenuSaveItem        = null;
     private JMenuItem configMenuSaveAsItem      = null;
     private JMenuItem configMenuImportItem      = null;
@@ -94,6 +96,7 @@ public class ConfDBMenuBar implements ActionListener
 	configMenuOpenItem.setEnabled(true);
 	configMenuCloseItem.setEnabled(true);
 	configMenuSaveItem.setEnabled(true);
+	configMenuCommentSaveItem.setEnabled(true);
 	configMenuSaveAsItem.setEnabled(true);
 	configMenuImportItem.setEnabled(true);
 	configMenuMigrateItem.setEnabled(true);
@@ -105,6 +108,7 @@ public class ConfDBMenuBar implements ActionListener
     {
 	configMenuCloseItem.setEnabled(false);
 	configMenuSaveItem.setEnabled(false);
+	configMenuCommentSaveItem.setEnabled(false);
 	configMenuSaveAsItem.setEnabled(false);
 	configMenuImportItem.setEnabled(false);
 	configMenuMigrateItem.setEnabled(false);
@@ -169,6 +173,9 @@ public class ConfDBMenuBar implements ActionListener
 	configMenuSaveItem = new JMenuItem(configMenuSave,KeyEvent.VK_S);
 	configMenuSaveItem.addActionListener(this);
 	configMenu.add(configMenuSaveItem);
+	configMenuCommentSaveItem=new JMenuItem(configMenuCommentSave,KeyEvent.VK_R);
+	configMenuCommentSaveItem.addActionListener(this);
+	configMenu.add(configMenuCommentSaveItem);
 	configMenuSaveAsItem = new JMenuItem(configMenuSaveAs,KeyEvent.VK_A);
 	configMenuSaveAsItem.addActionListener(this);
 	configMenu.add(configMenuSaveAsItem);
@@ -217,14 +224,15 @@ public class ConfDBMenuBar implements ActionListener
 	}
 	
 	// configMenu
-	if (command.equals(configMenuNew))     app.newConfiguration();
-	if (command.equals(configMenuParse))   app.parseConfiguration();
-	if (command.equals(configMenuOpen))    app.openConfiguration();
-	if (command.equals(configMenuClose))   app.closeConfiguration();
-	if (command.equals(configMenuSave))    app.saveConfiguration();
-	if (command.equals(configMenuSaveAs))  app.saveAsConfiguration();
-	if (command.equals(configMenuImport))  app.importConfiguration();
-	if (command.equals(configMenuMigrate)) app.migrateConfiguration();
+	if (command.equals(configMenuNew))         app.newConfiguration();
+	if (command.equals(configMenuParse))       app.parseConfiguration();
+	if (command.equals(configMenuOpen))        app.openConfiguration();
+	if (command.equals(configMenuClose))       app.closeConfiguration();
+	if (command.equals(configMenuSave))        app.saveConfiguration(false);
+	if (command.equals(configMenuCommentSave)) app.saveConfiguration(true);
+	if (command.equals(configMenuSaveAs))      app.saveAsConfiguration();
+	if (command.equals(configMenuImport))      app.importConfiguration();
+	if (command.equals(configMenuMigrate))     app.migrateConfiguration();
 	
 	// dbMenu
 	if (command.equals(dbMenuConnectToDB))      app.connectToDatabase();

@@ -210,6 +210,26 @@ public class SoftwareRelease
 
     /** index of a certain subsystem */
     public int indexOfSubsystem(SoftwareSubsystem s) { return subsystems.indexOf(s); }
+    
+    /** get list of all referenced packages */
+    public ArrayList<String> listOfReferencedPackages()
+    {
+	ArrayList<String> result = new ArrayList<String>();
+	Iterator itS = subsystemIterator();
+	while (itS.hasNext()) {
+	    SoftwareSubsystem subsys = (SoftwareSubsystem)itS.next();
+	    if (subsys.referencedPackageCount()==0) continue;
+	    Iterator itP = subsys.packageIterator();
+	    while (itP.hasNext()) {
+		SoftwarePackage pkg = (SoftwarePackage)itP.next();
+		if (pkg.instantiatedTemplateCount()>0)
+		    result.add(subsys.name()+"/"+pkg.name());
+	    }
+	}
+	
+	return result;
+    }
+
 
     /** sort software subsystems */
     public void sortSubsystems() { Collections.sort(subsystems); }

@@ -33,6 +33,9 @@ public interface IConfiguration
     /** process name */
     public String processName();
 
+    /** comment */
+    public String comment();
+    
     
     /** check if the configuration is empty */
     public boolean isEmpty();

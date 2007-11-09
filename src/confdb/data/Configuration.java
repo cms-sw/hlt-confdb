@@ -219,10 +219,11 @@ public class Configuration implements IConfiguration
     /** add the next version */
     public void addNextVersion(int versionId,
 			       String created,String creator,
-			       String releaseTag,String processName)
+			       String releaseTag,String processName,
+			       String comment)
     {
 	configInfo.addVersion(versionId,nextVersion(),created,creator,
-			      releaseTag,processName);
+			      releaseTag,processName,comment);
 	configInfo.setVersionIndex(0);
     }
     
@@ -248,6 +249,12 @@ public class Configuration implements IConfiguration
     public String processName()
     {
 	return (configInfo!=null) ? configInfo.processName() : "";
+    }
+    
+    /** get the comment */
+    public String comment()
+    {
+	return (configInfo!=null) ? configInfo.comment() : "";
     }
     
     /** get the software release */

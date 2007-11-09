@@ -225,7 +225,8 @@ public class PythonParser
 	
 	Configuration config = new Configuration();
 	config.initialize(new ConfigInfo(name,null,-1,0,"","",
-					 releaseTag,process),release);
+					 releaseTag,process,
+					 "parsed from *.py"),release);
 	
 	// add global psets
 	ParseNode psetNode = getChildNode(rootNode,"psets");

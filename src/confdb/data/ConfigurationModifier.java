@@ -351,6 +351,9 @@ public class ConfigurationModifier implements IConfiguration
     /** process name */
     public String processName() { return master.processName(); }
 
+    /** comment */
+    public String comment() { return master.comment(); }
+    
     
     /** check if the configuration is empty */
     public boolean isEmpty() { return false; }
