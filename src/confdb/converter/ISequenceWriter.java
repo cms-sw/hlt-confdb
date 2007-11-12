@@ -4,6 +4,6 @@ import confdb.data.Sequence;
 
 public interface ISequenceWriter {
 	
-	public String toString( Sequence sequence, ConverterEngine converterEngine );
+	public String toString( Sequence sequence, ConverterEngine converterEngine, String indent );
 
 }
