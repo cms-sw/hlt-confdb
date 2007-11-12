@@ -11,7 +11,7 @@ import confdb.db.ConfDB;
 import confdb.db.ConfDBSetups;
 import confdb.db.DatabaseException;
 
-public class Converter implements IConverter 
+public class Converter
 {
 	static private DbProperties defaultDbProperties = null;
 	
