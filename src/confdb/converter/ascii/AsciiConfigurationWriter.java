@@ -26,31 +26,35 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 
 	public String toString( IConfiguration conf, WriteProcess writeProcess  )
 	{
-		String str = "// " + conf.name() + " V" + conf.version()
-		+ " (" + conf.releaseTag() + ")" + converterEngine.getNewline() + converterEngine.getNewline();
+		String indent = "  ";
+		StringBuffer str = new StringBuffer( 100000 );
+		str.append( "// " + conf.name() + " V" + conf.version()
+  		   + " (" + conf.releaseTag() + ")" + converterEngine.getNewline() + converterEngine.getNewline() );
 
 		if ( writeProcess == WriteProcess.YES )
-			str += "process " + conf.processName() + " = {" + converterEngine.getNewline();
-
-		ISequenceWriter sequenceWriter = converterEngine.getSequenceWriter();
-		for ( int i = 0; i < conf.sequenceCount(); i++ )
-		{
-			Sequence sequence = conf.sequence(i);
-			str += sequenceWriter.toString(sequence, converterEngine );
-		}
+			str.append( "process " + conf.processName() + " = {" + converterEngine.getNewline() );
+		else
+			indent = "";
 
 		IPathWriter pathWriter = converterEngine.getPathWriter();
 		for ( int i = 0; i < conf.pathCount(); i++ )
 		{
 			Path path = conf.path(i);
-			str += pathWriter.toString( path, converterEngine, "  " );
+			str.append( pathWriter.toString( path, converterEngine, indent ) );
+		}
+
+		ISequenceWriter sequenceWriter = converterEngine.getSequenceWriter();
+		for ( int i = 0; i < conf.sequenceCount(); i++ )
+		{
+			Sequence sequence = conf.sequence(i);
+			str.append( sequenceWriter.toString(sequence, converterEngine ) );
 		}
 
 		IParameterWriter parameterWriter = converterEngine.getParameterWriter();
 		for ( int i = 0; i < conf.psetCount(); i++ )
 		{
 			Parameter pset = conf.pset(i);
-			str += parameterWriter.toString( pset, converterEngine, "  " );
+			str.append( parameterWriter.toString( pset, converterEngine, indent ) );
 		}
 
 
@@ -58,16 +62,14 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 		for ( int i = 0; i < conf.edsourceCount(); i++ )
 		{
 			EDSourceInstance edsource = conf.edsource(i);
-			str += edsourceWriter.toString(edsource, converterEngine );
+			str.append( edsourceWriter.toString(edsource, converterEngine ) );
 		}
-		if ( conf.edsourceCount() == 0 )  // edsource may be overridden
-			str += edsourceWriter.toString( null, converterEngine );
 
 		IESSourceWriter essourceWriter = converterEngine.getESSourceWriter();
 		for ( int i = 0; i < conf.essourceCount(); i++ )
 		{
 			ESSourceInstance essource = conf.essource(i);
-			str += essourceWriter.toString(essource, converterEngine);
+			str.append( essourceWriter.toString(essource, converterEngine) );
 		}
 
 
@@ -75,7 +77,7 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 		for ( int i = 0; i < conf.esmoduleCount(); i++ )
 		{
 			ESModuleInstance esmodule = conf.esmodule(i);
-			str += esmoduleWriter.toString(esmodule,converterEngine);
+			str.append( esmoduleWriter.toString(esmodule,converterEngine) );
 		}
 
 
@@ -83,19 +85,19 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 		for ( int i = 0; i < conf.serviceCount(); i++ )
 		{
 			ServiceInstance service = conf.service(i);
-			str += serviceWriter.toString( service, converterEngine );
+			str.append( serviceWriter.toString( service, converterEngine ) );
 		}
 
 		IModuleWriter moduleWriter = converterEngine.getModuleWriter();
 		for ( int i = 0; i < conf.moduleCount(); i++ )
 		{
 			ModuleInstance module = conf.module(i);
-			str += moduleWriter.toString( module );
+			str.append( moduleWriter.toString( module ) );
 		}
 
 		if ( writeProcess == WriteProcess.YES )
-			str += converterEngine.getConfigurationTrailer();
-		return str;
+			str.append( converterEngine.getConfigurationTrailer() );
+		return str.toString();
 	}
 
 	public void setConverterEngine( ConverterEngine converterEngine ) 
