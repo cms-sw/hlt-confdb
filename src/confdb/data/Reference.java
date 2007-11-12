@@ -1,5 +1,7 @@
 package confdb.data;
 
+import java.util.ArrayList;
+
 
 /**
  * Reference
@@ -54,5 +56,26 @@ public class Reference
     
     /** get the parent */
     public Referencable parent() { return parent; }
+
+    /** get parent path */
+    public Path[] parentPaths()
+    {
+	ArrayList<Path> list = new ArrayList<Path>();
+	addParentPaths(container(),list);
+	return list.toArray(new Path[list.size()]);
+    }
+    
+    /** add parent paths of a reference container to list of paths */
+    private void addParentPaths(ReferenceContainer rc,ArrayList<Path> list)
+    {
+	if      (rc==null)           return;
+	else if (rc instanceof Path) list.add((Path)rc);
+	else {
+	    for (int i=0;i<rc.referenceCount();i++) {
+		Path[] paths = rc.reference(i).parentPaths();
+		for (Path p : paths) list.add(p);
+	    }
+	}
+    }
     
 }

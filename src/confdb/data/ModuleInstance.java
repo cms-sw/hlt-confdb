@@ -65,5 +65,15 @@ public class ModuleInstance extends Instance implements Referencable
 	if (referenceCount()==0) remove();
     }
     
+    /** get list of parent paths */
+    public Path[] parentPaths()
+    {
+	ArrayList<Path> list = new ArrayList<Path>();
+	for (int i=0;i<referenceCount();i++) {
+	    Path[] paths = reference(i).parentPaths();
+	    for (Path p : paths) list.add(p);
+	}
+	return list.toArray(new Path[list.size()]);
+    }
     
 }

@@ -24,6 +24,9 @@ import confdb.migrator.ReleaseMigrator;
 import confdb.parser.PythonParser;
 import confdb.parser.ParserException;
 
+import confdb.converter.OfflineConverter;
+import confdb.converter.ConverterException;
+
 import confdb.data.*;
 
 
@@ -332,8 +335,8 @@ public class ConfDbGUI implements TableModelListener
     {
 	if (!checkConfiguration()) return;
 	
-	ConfigurationExportDialog dialog =
-	    new ConfigurationExportDialog(frame,currentConfig.name());
+	ExportConfigurationDialog dialog =
+	    new ExportConfigurationDialog(frame,currentConfig.name());
 
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
@@ -360,7 +363,7 @@ public class ConfDbGUI implements TableModelListener
     {
 	if (!closeConfiguration()) return;
 	
-	ConfigurationNameDialog dialog = new ConfigurationNameDialog(frame,database);
+	NewConfigurationDialog dialog = new NewConfigurationDialog(frame,database);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
@@ -386,8 +389,8 @@ public class ConfDbGUI implements TableModelListener
     {
 	if (!closeConfiguration()) return;
 	
-	ConfigurationParseDialog dialog =
-	    new ConfigurationParseDialog(frame,database);
+	ParseConfigurationDialog dialog =
+	    new ParseConfigurationDialog(frame,database);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
@@ -561,8 +564,8 @@ public class ConfDbGUI implements TableModelListener
     {
 	if (!checkConfiguration()) return;
 	
-	ConfigurationMigrationDialog dialog =
-	    new ConfigurationMigrationDialog(frame,database);
+	MigrateConfigurationDialog dialog =
+	    new MigrateConfigurationDialog(frame,database);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
@@ -582,24 +585,27 @@ public class ConfDbGUI implements TableModelListener
     
 
     /** convert current Configuration */
-    public void convertConfiguration(String fileName,
-				     String format,
-				     String input,
-				     String output)
+    public void convertConfiguration()
     {
 	if (!checkConfiguration()) return;
 	
-	converterService.setFileName(fileName);
-	converterService.setFormat(format);
-	converterService.setInput(input);
-	converterService.setOutput(output);
+	ConvertConfigurationDialog dialog =
+	    new ConvertConfigurationDialog(frame,currentConfig);
+	dialog.pack();
+	dialog.setLocationRelativeTo(frame);
+	dialog.setVisible(true);
 
-	ConvertConfigurationThread worker =  new ConvertConfigurationThread();
-	worker.start();
-	progressBar.setIndeterminate(true);
-	progressBar.setVisible(true);
-	progressBar.setString("Convert configuration '"+currentConfig.name()+
-			      "' ... ");
+	if (!dialog.isCanceled()) {
+	    ConvertConfigurationThread worker = 
+		new ConvertConfigurationThread(dialog.configToConvert(),
+					       dialog.fileName(),
+					       dialog.format());
+	    worker.start();
+	    progressBar.setIndeterminate(true);
+	    progressBar.setVisible(true);
+	    progressBar.setString("Convert configuration '"+currentConfig.name()+
+				  "' ... ");
+	}
     }
 
     
@@ -1187,23 +1193,44 @@ public class ConfDbGUI implements TableModelListener
      */
     private class ConvertConfigurationThread extends SwingWorker<String>
     {
+	/** configuration to convert */
+	private IConfiguration config = null;
+
+	/** name of the produced configuration file */
+	private String fileName = null;
+
+	/** conversion format */
+	String format = null;
+	
 	/** start time */
 	private long startTime;
 	
 	/** standard constructor */
-	public ConvertConfigurationThread() {}
+	public ConvertConfigurationThread(IConfiguration config,
+					  String fileName, String format) {
+	    this.config   = config;
+	    this.fileName = fileName;
+	    this.format   = format;
+	}
 	
 	/** SwingWorker: construct() */
 	protected String construct() throws InterruptedException
 	{
 	    startTime = System.currentTimeMillis();
-	    
-	    String configAsString =
-		converterService.convertConfiguration(currentConfig);
+	    String configAsString = "";
+	    try {
+		OfflineConverter cnv = new OfflineConverter(format);
+		configAsString = cnv.getConfigString(config,
+						     new ModifierInstructions(),
+						     false);
+	    }
+	    catch (ConverterException e) {
+		System.err.println("Conversion failed: " + e.getMessage());
+		return new String("FAILED");
+	    }
 	    
 	    if (configAsString.length()>0) {
 		FileWriter outputStream=null;
-		String     fileName = converterService.fileName();
 		try {
 		    outputStream = new FileWriter(fileName);
 		    outputStream.write(configAsString,0,configAsString.length());
@@ -1212,7 +1239,7 @@ public class ConfDbGUI implements TableModelListener
 		catch (Exception e) {
 		    String msg =
 			"Failed to convert configuration: " + e.getMessage();
-		    System.out.println(msg);
+		    System.err.println(msg);
 		    return new String("FAILED!");
 		}
 	    }
@@ -1235,7 +1262,7 @@ public class ConfDbGUI implements TableModelListener
 	    progressBar.setIndeterminate(false);
 	}
     }
-
+    
     
     /**
      * load release templates from the database

@@ -9,13 +9,13 @@ import confdb.db.ConfDB;
 
 
 /**
- * ConfigurationMigrationDialog
- * ----------------------------
+ * MigrateConfigurationDialog
+ * --------------------------
  * @author Philipp Schieferdecker
  *
  * Enter the name of a configuration and associate it with a release tag.
  */
-public class ConfigurationMigrationDialog extends JDialog implements ActionListener
+public class MigrateConfigurationDialog extends JDialog implements ActionListener
 {
     //
     // member data
@@ -43,7 +43,7 @@ public class ConfigurationMigrationDialog extends JDialog implements ActionListe
     //
     
     /** standard constructor */
-    public ConfigurationMigrationDialog(JFrame frame,ConfDB database)
+    public MigrateConfigurationDialog(JFrame frame,ConfDB database)
     {
 	super(frame,true);
 	this.frame = frame;

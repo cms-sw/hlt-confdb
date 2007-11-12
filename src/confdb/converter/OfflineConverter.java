@@ -24,6 +24,13 @@ public class OfflineConverter extends ConverterBase
     //
     // construction
     //
+
+    /** constructor based on format, no database connection */
+    public OfflineConverter(String format)
+	throws ConverterException
+    {
+	super(format);
+    }
     
     /** constructor based on explicit connection information */
     public OfflineConverter(String format,

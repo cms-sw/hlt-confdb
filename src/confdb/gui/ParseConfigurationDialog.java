@@ -12,12 +12,12 @@ import java.io.File;
 
 
 /**
- * ConfigurationParseDialog
+ * ParseConfigurationDialog
  * ------------------------
  * @author Philipp Schieferdecker
  *
  */
-public class ConfigurationParseDialog extends JDialog
+public class ParseConfigurationDialog extends JDialog
 {
     //
     // member data
@@ -57,7 +57,7 @@ public class ConfigurationParseDialog extends JDialog
     //
     
     /** standard constructor */
-    public ConfigurationParseDialog(JFrame frame,ConfDB database)
+    public ParseConfigurationDialog(JFrame frame,ConfDB database)
     {
 	super(frame,true);
 	this.frame = frame;

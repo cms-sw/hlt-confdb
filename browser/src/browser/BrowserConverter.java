@@ -27,9 +27,10 @@ public class BrowserConverter extends OfflineConverter
 	}
 		
     public String getConfigString(  int configId,
-    							    String format,
-				  					ModifierInstructions modifications,
-				  					boolean asFragment ) throws ConverterException, ClassNotFoundException, InstantiationException, IllegalAccessException
+				    String format,
+				    ModifierInstructions modifications,
+				    boolean asFragment )
+	throws ConverterException, ClassNotFoundException, InstantiationException, IllegalAccessException
     {
     	IConfiguration config = getConfiguration(configId);
     	ConfigurationModifier modifier = new ConfigurationModifier(config);

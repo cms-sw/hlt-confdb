@@ -34,10 +34,9 @@ public class ConfigurationModifier implements IConfiguration
     private ArrayList<Path>             paths    =new ArrayList<Path>();
     private ArrayList<Sequence>         sequences=new ArrayList<Sequence>();
     private ArrayList<Stream>           streams  =new ArrayList<Stream>();
-    
-    /** internal modifier instructions */
-    private ModifierInstructions instructions = new ModifierInstructions();
-    
+
+    /** internal instructions */
+    private ModifierInstructions modifications = new ModifierInstructions();
     
     //
     // construction
@@ -52,120 +51,37 @@ public class ConfigurationModifier implements IConfiguration
     //
     // member functions
     //
-    
-    /** choose to filter all global psets */
-    public void filterAllPSets() { instructions.filterAllPSets(); }
-    
-    /** choose to filter all edsources */
-    public void filterAllEDSources() { instructions.filterAllEDSources(); }
-    
-    /** choose to filter all essource */
-    public void filterAllESSources() { instructions.filterAllESSources(); }
-    
-    /** choose to filter all esmodule */
-    public void filterAllESModules() { instructions.filterAllESModules(); }
 
-    /** choose to filter all esmodule */
-    public void filterAllServices() { instructions.filterAllServices(); }
-    
-    /** choose to filter all paths */
-    public void filterAllPaths() { instructions.filterAllPaths(); }
-
-    /** choose to filter all output modules */
-    public void filterAllOutputModules() { instructions.filterAllOutputModules(); }
-
-        /** insert components into the corresponding whitelist/blacklist */
-    public void insertPSetIntoBlackList(String psetName)
-    {
-	instructions.insertPSetIntoBlackList(psetName);
-    }
-    public void insertPSetIntoWhiteList(String psetName)
-    {
-	instructions.insertPSetIntoWhiteList(psetName);
-    }
-    public void insertEDSourceIntoBlackList(String edsourceName)
-    {
-	instructions.insertEDSourceIntoBlackList(edsourceName);
-    }
-    public void insertEDSourceIntoWhiteList(String edsourceName)
-    {
-	instructions.insertEDSourceIntoWhiteList(edsourceName);
-    }
-    public void insertESSourceIntoBlackList(String essourceName)
-    {
-	instructions.insertESSourceIntoBlackList(essourceName);
-    }
-    public void insertESSourceIntoWhiteList(String essourceName)
-    {
-	instructions.insertESSourceIntoWhiteList(essourceName);
-    }
-    public void insertESModuleIntoBlackList(String esmoduleName)
-    {
-	instructions.insertESModuleIntoBlackList(esmoduleName);
-    }
-    public void insertESModuleIntoWhiteList(String esmoduleName)
-    {
-	instructions.insertESModuleIntoWhiteList(esmoduleName);
-    }
-    public void insertServiceIntoBlackList(String serviceName)
-    {
-	instructions.insertServiceIntoBlackList(serviceName);
-    }
-    public void insertServiceIntoWhiteList(String serviceName)
-    {
-	instructions.insertServiceIntoWhiteList(serviceName);
-    }
-    public void insertPathIntoBlackList(String pathName)
-    {
-	instructions.insertPathIntoBlackList(pathName);
-    }
-    public void insertPathIntoWhiteList(String pathName)
-    {
-	instructions.insertPathIntoWhiteList(pathName);
-    }
-    
-    /** request a sequence, regardless of it being referenced in a path */
-    public void requestSequence(String sequenceName)
-    {
-	instructions.requestSequence(sequenceName);
-    }
-    
-    /** request a module, regardless of it being referenced in a path */
-    public void requestModule(String moduleName)
-    {
-	instructions.requestModule(moduleName);
-    }
-    
     /** replace the current EDSource with a PoolSource */
     public void insertPoolSource(String fileNames)
     {
-	instructions.insertPoolSource(fileNames);
+	modifications.insertPoolSource(fileNames);
     }
 
     /** replace the current EDSource with a DaqSource */
     public void insertDaqSource()
     {
 	if (edsourceCount()==0||!edsource(0).template().name().equals("DaqSource"))
-	    instructions.insertDaqSource();
+	    modifications.insertDaqSource();
     }
     
     /** replace current OutputModules with ShmStreamConsumer */
-    public void insertShmStreamConsumer() { instructions.insertShmStreamConsumer();}
+    public void insertShmStreamConsumer() { modifications.insertShmStreamConsumer();}
 
     /** replace current OutputModules with PoolOutputModules */
     public void insertPoolOutputModule(String fileName)
     {
-	instructions.insertPoolOutputModule(fileName);
+	modifications.insertPoolOutputModule(fileName);
     }
 
-    /** apply modifications based on internal instructions */
+    /** apply modifications based on internal modifications */
     public void modify()
     {
-	modify(instructions);
+	modify(modifications);
     }
 
     /** apply modifications */
-    public void modify(ModifierInstructions instructions)
+    public void modify(ModifierInstructions modifications)
     {
 	psets.clear();
 	edsources.clear();
@@ -177,63 +93,67 @@ public class ConfigurationModifier implements IConfiguration
 	sequences.clear();
 	streams.clear();
 	
-	if (!instructions.resolve(master)) return;
+	if (!modifications.resolve(master)) return;
 	
-	if (!instructions.doFilterAllPSets()) {
+	if (!modifications.doFilterAllPSets()) {
 	    Iterator it=master.psetIterator();
 	    while (it.hasNext()) {
 		PSetParameter pset = (PSetParameter)it.next();
-		if (!instructions.isInBlackList(pset))
+		if (!modifications.isInBlackList(pset))
 		    psets.add(pset);
 	    }
 	}
 	
-	if (!instructions.doFilterAllEDSources()) {
+	if (!modifications.doFilterAllEDSources()) {
 	    Iterator it=master.edsourceIterator();
 	    while (it.hasNext()) {
 		EDSourceInstance edsource = (EDSourceInstance)it.next();
-		if (!instructions.isInBlackList(edsource))
+		if (!modifications.isInBlackList(edsource))
 		    edsources.add(edsource);
 	    }
 	}
-	if (instructions.doInsertEDSource())
-	    edsources.add(instructions.edsourceToBeAdded());
+	if (modifications.doInsertEDSource())
+	    edsources.add(modifications.edsourceToBeAdded());
 	
-	if (!instructions.doFilterAllESSources()) {
+	if (!modifications.doFilterAllESSources()) {
 	    Iterator it=master.essourceIterator();
 	    while (it.hasNext()) {
 		ESSourceInstance essource = (ESSourceInstance)it.next();
-		if (!instructions.isInBlackList(essource))
+		if (!modifications.isInBlackList(essource))
 		    essources.add(essource);
 	    }
 	}
 	
-	if (!instructions.doFilterAllESModules()) {
+	if (!modifications.doFilterAllESModules()) {
 	    Iterator it=master.esmoduleIterator();
 	    while (it.hasNext()) {
 		ESModuleInstance esmodule = (ESModuleInstance)it.next();
-		if (!instructions.isInBlackList(esmodule))
+		if (!modifications.isInBlackList(esmodule))
 		    esmodules.add(esmodule);
 	    }
 	}
 	
-	if (!instructions.doFilterAllServices()) {
+	if (!modifications.doFilterAllServices()) {
 	    Iterator it=master.serviceIterator();
 	    while (it.hasNext()) {
 		ServiceInstance service = (ServiceInstance)it.next();
-		if (!instructions.isInBlackList(service))
+		if (!modifications.isInBlackList(service))
 		    services.add(service);
 	    }
 	}
 	
-	if (!instructions.doFilterAllPaths()) {
+	boolean hasOutputModule = false;
+	
+	if (!modifications.doFilterAllPaths()) {
 	    Iterator itP = master.pathIterator();
 	    while (itP.hasNext()) {
 		Path path = (Path)itP.next();
-		if (!instructions.isInBlackList(path)) {
+		if (!modifications.isInBlackList(path)) {
+		    
+		    if (path.hasOutputModule()) hasOutputModule = true;
 		    
 		    if (path.hasOutputModule()&&
-			instructions.doInsertOutputModule()) {
+			modifications.doInsertOutputModule()) {
 
 			Path copy = new Path(path.name());
 			Iterator it = path.entryIterator();
@@ -248,7 +168,7 @@ public class ConfigurationModifier implements IConfiguration
 			    }
 			    if (outputModule!=null) {
 				ModuleInstance outputI = 
-				    instructions.outputModuleToBeAdded(entry
+				    modifications.outputModuleToBeAdded(entry
 								       .name());
 				outputI
 				    .updateParameter("SelectEvents","PSet",
@@ -288,7 +208,14 @@ public class ConfigurationModifier implements IConfiguration
 	    }
 	}
 	
-	Iterator itS = instructions.requestedSequenceIterator();
+	if (!hasOutputModule&&modifications.doInsertOutputModule()) {
+	    Path out = new Path("output");
+	    ModuleInstance outputI = modifications.outputModuleToBeAdded("out");
+	    outputI.createReference(out,0);
+	    paths.add(out);
+	}
+
+	Iterator itS = modifications.requestedSequenceIterator();
 	while (itS.hasNext()) {
 	    String   sequenceName = (String)itS.next();
 	    Sequence sequence     = master.sequence(sequenceName);
@@ -296,7 +223,7 @@ public class ConfigurationModifier implements IConfiguration
 		sequences.add(sequence);
 	}
 	
-	Iterator itM = instructions.requestedModuleIterator();
+	Iterator itM = modifications.requestedModuleIterator();
 	while (itM.hasNext()) {
 	    String         moduleLabel = (String)itM.next();
 	    ModuleInstance module      = master.module(moduleLabel);
@@ -310,7 +237,7 @@ public class ConfigurationModifier implements IConfiguration
     /** reset all modifications */
     public void reset()
     {
-	instructions = new ModifierInstructions();
+	modifications = new ModifierInstructions();
 	
 	psets.clear();
 	edsources.clear();

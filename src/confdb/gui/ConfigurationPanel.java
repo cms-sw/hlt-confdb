@@ -54,7 +54,6 @@ public class ConfigurationPanel extends JPanel
     private JTextField   jTextFieldDirectory  = new JTextField();
     private JTextField   jTextFieldVersion    = new JTextField();
     private JTextField   jTextFieldCreated    = new JTextField();
-    //private JTextField   jTextFieldRelease    = new JTextField();
     private JButton      jButtonRelease       = new JButton();
     private JTextField   jTextFieldProcess    = new JTextField();
 
@@ -155,12 +154,6 @@ public class ConfigurationPanel extends JPanel
     /** 'Convert' button pressed */
     public void convertButtonActionPerformed(ActionEvent ev)
     {
-	String fileName = jTextFieldFileName.getText();
-	String format   = formatButtonGroup.getSelection().getActionCommand();
-	String input    = jTextFieldInput.getText();
-	String output   = jTextFieldOutput.getText();
-	
-	app.convertConfiguration(fileName,format,input,output);
     }
 
     /** 'Import' button pressed */
@@ -172,39 +165,16 @@ public class ConfigurationPanel extends JPanel
     /** Browse FileName [...] button pressed */
     public void browseFileNameButtonActionPerformed(ActionEvent ev)
     {
-	JFileChooser fileChooser = new JFileChooser();
-	
-	int result = fileChooser.showSaveDialog(this);
-	if (result == JFileChooser.APPROVE_OPTION) {
-	    File file = fileChooser.getSelectedFile();
-	    jTextFieldFileName.setText(file.getAbsolutePath());
-	}
     }
     
     /** Browse FileName [...] button pressed */
     public void browseInputButtonActionPerformed(ActionEvent ev)
     {
-	JFileChooser fileChooser = new JFileChooser();
-	fileChooser.addChoosableFileFilter(new RootFileFilter());
-	fileChooser.setAcceptAllFileFilterUsed(false);
-	
-	int result = fileChooser.showOpenDialog(this);
-	if (result == JFileChooser.APPROVE_OPTION) {
-	    File file = fileChooser.getSelectedFile();
-	    jTextFieldInput.setText(file.getAbsolutePath());
-	}
     }
 
     /** Browse FileName [...] button pressed */
     public void browseOutputButtonActionPerformed(ActionEvent ev)
     {
-	JFileChooser fileChooser = new JFileChooser();
-	
-	int result = fileChooser.showSaveDialog(this);
-	if (result == JFileChooser.APPROVE_OPTION) {
-	    File file = fileChooser.getSelectedFile();
-	    jTextFieldOutput.setText(file.getAbsolutePath());
-	}
     }
 
     /** set the current configuration and update fields accordingly */
@@ -217,7 +187,6 @@ public class ConfigurationPanel extends JPanel
 	    jTextFieldDirectory.setText("");
 	    jTextFieldVersion.setText("");
 	    jTextFieldCreated.setText("");
-	    //jTextFieldRelease.setText("");
 	    jButtonRelease.setText("");
 	    jTextFieldProcess.setText("");
 	    jTextFieldProcess.setEditable(false);
@@ -822,26 +791,6 @@ public class ConfigurationPanel extends JPanel
 		}
 	    });
 
-	/*
-	  jRadioButtonAscii.addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent e) {
-	  ConfigurationPanel.this.converterService.setFormat("ASCII");
-	  }
-	  });
-	  
-	  jRadioButtonPython.addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent e) {
-	  ConfigurationPanel.this.converterService.setFormat("PYTHON");
-	  }
-	  });
-	  
-	  jRadioButtonHtml.addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent e) {
-	  ConfigurationPanel.this.converterService.setFormat("HTML");
-	  }
-	  });
-	*/
-	
 	jTabbedPaneTree.addChangeListener(new ChangeListener() {
  		public void stateChanged(ChangeEvent e) {
 		    //JTabbedPane pane = (JTabbedPane)e.getSource();
@@ -1057,44 +1006,4 @@ public class ConfigurationPanel extends JPanel
 	    });
     }
 
-}
-
-/**
- * CfgFileFilter
- * -------------
- * @author Philipp Schieferdecker
- */
-class RootFileFilter extends FileFilter
-{
-    /** FileFilter.accept() */
-    public boolean accept(File f)
-    {
-        if (f.isDirectory()) return true;
-	
-        String extension = getExtension(f);
-        if (extension != null) {
-            if (extension.equals("root") || extension.equals("list"))
-		return true;
-	    else
-                return false;
-	}
-        return false;
-    }
-    
-    /* get description of this filter */
-    public String getDescription()
-    {
-	return "ROOT file or list of ROOT files (*.root, *.list)";
-    }
-
-    /** get extension of a file name */
-    public String getExtension(File f)
-    {
-        String ext = null;
-        String s = f.getName();
-        int i = s.lastIndexOf('.');
-	
-        if (i>0 && i<s.length()-1) ext = s.substring(i+1).toLowerCase();
-        return ext;
-    }
 }

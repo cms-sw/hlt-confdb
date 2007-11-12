@@ -26,6 +26,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 
     /** root of the tree = configuration */
     private IConfiguration config = null;
+
+    /** flag indicating if parameters are displayed or not */
+    private boolean displayParameters = true;
     
     /** first level of nodes */
     private StringBuffer psetsNode     = new StringBuffer();
@@ -50,6 +53,12 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	setConfiguration(config);
     }
 
+    /** constructor which allows to set displayParameter flag */
+    public ConfigurationTreeModel(IConfiguration config,boolean displayParameters)
+    {
+	this.displayParameters = displayParameters;
+	setConfiguration(config);
+    }
 
     //
     // member functions
@@ -220,6 +229,26 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     /** indicate if a node is a leaf node */
     public boolean isLeaf(Object node)
     {
+	if (node==getRoot()) return config.isEmpty();
+	
+	if (node instanceof StringBuffer) {
+	    if (node==psetsNode)     return (config.psetCount()==0);
+	    if (node==edsourcesNode) return (config.edsourceCount()==0);
+	    if (node==essourcesNode) return (config.essourceCount()==0);
+	    if (node==esmodulesNode) return (config.esmoduleCount()==0);
+	    if (node==servicesNode)  return (config.serviceCount()==0);
+	    if (node==pathsNode)     return (config.pathCount()==0);
+	    if (node==sequencesNode) return (config.sequenceCount()==0);
+	    if (node==modulesNode)   return (config.moduleCount()==0);
+	}
+
+	if (!displayParameters) return true;
+	
+	if (node instanceof Reference) {
+	    Reference ref = (Reference)node;
+	    node = ref.parent();
+	}
+	
 	boolean result;
 	if (node instanceof PSetParameter) {
 	    PSetParameter pset = (PSetParameter)node;
@@ -229,7 +258,19 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    VPSetParameter vpset = (VPSetParameter)node;
 	    result = (vpset.parameterSetCount()>0) ? false : true;
 	}
+	else if (node instanceof Parameter) {
+	    result = true;
+	}
+	else if (node instanceof ReferenceContainer) {
+	    ReferenceContainer container = (ReferenceContainer)node;
+	    result = (container.entryCount()>0) ? false : true;
+	}
+	else if (node instanceof Instance) {
+	    Instance instance = (Instance)node;
+	    return (instance.parameterCount()>0) ? false : true;
+	}
 	else {
+	    System.err.println("ConfigurationTreeModel.isLeaf: " + node);
 	    result = (node instanceof Parameter) ? true : false;
 	}
 
@@ -251,6 +292,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    if (node.equals(pathsNode))     return config.pathCount();
 	    if (node.equals(modulesNode))   return config.moduleCount();
 	    if (node.equals(sequencesNode)) return config.sequenceCount();
+	}
+	else if (!displayParameters) {
+	    return 0;
 	}
 	else if (node instanceof Instance) {
 	    Instance instance = (Instance)node;

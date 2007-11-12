@@ -31,5 +31,7 @@ public interface Referencable
 
     /** remove a reference of this */
     public void removeReference(Reference reference);
-
+    
+    public Path[] parentPaths();
+    
 }

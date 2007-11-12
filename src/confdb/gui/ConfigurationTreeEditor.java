@@ -68,7 +68,9 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 		for (int i=0;i<referencable.referenceCount();i++)
 		    treeModel.nodeChanged(referencable.reference(i));
 	    }
-	    catch (DataException e) {}
+	    catch (DataException e) {
+		System.err.println(e.getMessage());
+	    }
 	}
 	else if (toBeEdited instanceof Instance) {
 	    Instance instance = (Instance)toBeEdited;
@@ -77,7 +79,9 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 		instance.setName(name);
 		treeModel.nodeChanged(instance);
 	    }
-	    catch (DataException e) {}
+	    catch (DataException e) {
+		System.err.println(e.getMessage());
+	    }
 	}
 	else if (toBeEdited instanceof ModuleReference) {
 	    ModuleReference reference = (ModuleReference)toBeEdited;
@@ -88,7 +92,9 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 		for (int i=0;i<instance.referenceCount();i++)
 		    treeModel.nodeChanged(instance.reference(i));
 	    }
-	    catch (DataException e) {}
+	    catch (DataException e) {
+		System.err.println(e.getMessage());
+	    }
 	}
 	
 	return toBeEdited;

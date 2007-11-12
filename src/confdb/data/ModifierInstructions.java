@@ -85,30 +85,30 @@ public class ModifierInstructions
 	String value;
 	
 	value = args.remove("nopsets");
-	if (value!=null) filterAllPSets();
+	if (value!=null) filterAllPSets(true);
 	value = args.remove("noedsources");
 	if (value!=null) {
-	    filterAllEDSources();
+	    filterAllEDSources(true);
 	    args.remove("input");
 	}
 	value = args.remove("noes");
 	if (value!=null) {
-	    filterAllESSources();
-	    filterAllESModules();
+	    filterAllESSources(true);
+	    filterAllESModules(true);
 	}
 	else {
 	    value = args.remove("noessources");
-	    if (value!=null) filterAllESSources();
+	    if (value!=null) filterAllESSources(true);
 	    value = args.remove("noesmodules");
-	    if (value!=null) filterAllESModules();
+	    if (value!=null) filterAllESModules(true);
 	}
 	value = args.remove("noservices");
-	if (value!=null) filterAllServices();
+	if (value!=null) filterAllServices(true);
 	value = args.remove("nopaths");
-	if (value!=null) filterAllPaths();
+	if (value!=null) filterAllPaths(true);
 	value = args.remove("nooutput");
 	if (value!=null) {
-	    filterAllOutputModules();
+	    filterAllOutputModules(true);
 	    args.remove("output");
 	}
 
@@ -350,27 +350,27 @@ public class ModifierInstructions
     {
 	if (obj instanceof PSetParameter) {
 	    PSetParameter pset = (PSetParameter)obj;
-	    return psetBlackList.contains(pset.name());
+	    return (filterAllPSets||psetBlackList.contains(pset.name()));
 	}
 	else if (obj instanceof EDSourceInstance) {
 	    EDSourceInstance edsource = (EDSourceInstance)obj;
-	    return edsourceBlackList.contains(edsource.name());
+	    return (filterAllEDSources||edsourceBlackList.contains(edsource.name()));
 	}
 	else if (obj instanceof ESSourceInstance) {
 	    ESSourceInstance essource = (ESSourceInstance)obj;
-	    return essourceBlackList.contains(essource.name());
+	    return (filterAllESSources||essourceBlackList.contains(essource.name()));
 	}
 	else if (obj instanceof ESModuleInstance) {
 	    ESModuleInstance esmodule = (ESModuleInstance)obj;
-	    return esmoduleBlackList.contains(esmodule.name());
+	    return (filterAllESModules||esmoduleBlackList.contains(esmodule.name()));
 	}
 	else if (obj instanceof ServiceInstance) {
-	    ServiceInstance edsource = (ServiceInstance)obj;
-	    return edsourceBlackList.contains(edsource.name());
+	    ServiceInstance service = (ServiceInstance)obj;
+	    return (filterAllServices||serviceBlackList.contains(service.name()));
 	}
 	else if (obj instanceof Path) {
 	    Path path = (Path)obj;
-	    return pathBlackList.contains(path.name());
+	    return (filterAllPaths||pathBlackList.contains(path.name()));
 	}
 	return false;
     }
@@ -410,6 +410,16 @@ public class ModifierInstructions
 	return result;
     }
 
+    /** check if a sequence is specifically requested */
+    public boolean isRequested(Referencable moduleOrSequence)
+    {
+	if (moduleOrSequence instanceof Sequence)
+	    return (requestedSequences.indexOf(moduleOrSequence.name())>=0);
+	else if (moduleOrSequence instanceof ModuleInstance)
+	    return (requestedModules.indexOf(moduleOrSequence.name())>=0);
+	return false;
+    }
+    
     /** get iterator for requested sequences */
     public Iterator requestedSequenceIterator()
     {
@@ -423,13 +433,34 @@ public class ModifierInstructions
     }
     
     /** filter all plugins of a certain type */
-    public void filterAllPSets()         { filterAllPSets         = true; }
-    public void filterAllEDSources()     { filterAllEDSources     = true; }
-    public void filterAllESSources()     { filterAllESSources     = true; }
-    public void filterAllESModules()     { filterAllESModules     = true; }
-    public void filterAllServices()      { filterAllServices      = true; }
-    public void filterAllPaths()         { filterAllPaths         = true; }
-    public void filterAllOutputModules() { filterAllOutputModules = true; }
+    public void filterAllPSets(boolean filter)
+    {
+	filterAllPSets = filter;
+    }
+    public void filterAllEDSources(boolean filter)
+    {
+	filterAllEDSources     = filter;
+    }
+    public void filterAllESSources(boolean filter)
+    {
+	filterAllESSources     = filter;
+    }
+    public void filterAllESModules(boolean filter)
+    {
+	filterAllESModules     = filter;
+    }
+    public void filterAllServices(boolean filter)
+    {
+	filterAllServices      = filter;
+    }
+    public void filterAllPaths(boolean filter)
+    {
+	filterAllPaths         = filter;
+    }
+    public void filterAllOutputModules(boolean filter)
+    {
+	filterAllOutputModules =filter;
+    }
     
     /** insert components into the corresponding whitelist/blacklist */
     public void insertPSetIntoBlackList(String psetName)

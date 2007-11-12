@@ -105,14 +105,14 @@ public class ConfigurationDialog extends JDialog
 	
 	dirTree.setEditable(true);
 
-	DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
+	DefaultTreeCellRenderer renderer = new DirTreeCellRenderer();
 	renderer.setLeafIcon(new ImageIcon(getClass()
 					   .getResource("/ConfigIcon.png")));
 	renderer.setOpenIcon(new ImageIcon(getClass()
 					   .getResource("/DirIcon.png")));
 	renderer.setClosedIcon(new ImageIcon(getClass()
 					     .getResource("/DirIcon.png")));
-	dirTree.setCellRenderer(renderer);
+	dirTree.setCellRenderer((DefaultTreeCellRenderer)renderer);
 	dirTree.setCellEditor(new DirTreeCellEditor(dirTree,renderer));
 	
 	JScrollPane result = new JScrollPane(dirTree);

@@ -21,12 +21,12 @@ import confdb.db.DatabaseException;
 
     
 /**
- * ConfigurationExportDialog
+ * ExportConfigurationDialog
  * -------------------------
  * @author Philipp Schieferdecker
  *
  */
-public class ConfigurationExportDialog extends ConfigurationDialog
+public class ExportConfigurationDialog extends ConfigurationDialog
 {
     //
     // member data
@@ -68,7 +68,7 @@ public class ConfigurationExportDialog extends ConfigurationDialog
     //
     
     /** standard constructor */
-    public ConfigurationExportDialog(JFrame frame,String targetName)
+    public ExportConfigurationDialog(JFrame frame,String targetName)
     {
 	super(frame);
 	this.targetDB = new ConfDB();

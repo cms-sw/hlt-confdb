@@ -156,7 +156,7 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 	}
     }
     
-    /** move an entry to a new position within the container */
+     /** move an entry to a new position within the container */
     public boolean moveEntry(Reference reference,int targetIndex)
     {
 	int currentIndex = entries.indexOf(reference);
@@ -218,6 +218,17 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 	references.remove(index);
     }
 
+   /** get list of parent paths */
+    public Path[] parentPaths()
+    {
+	ArrayList<Path> list = new ArrayList<Path>();
+	for (int i=0;i<referenceCount();i++) {
+	    Path[] paths = reference(i).parentPaths();
+	    for (Path p : paths) list.add(p);
+	}
+	return list.toArray(new Path[list.size()]);
+    }
+    
     /** number of unset tracked paremters */
     public int unsetTrackedParameterCount()
     {

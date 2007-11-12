@@ -41,6 +41,7 @@ public class ConfDBMenuBar implements ActionListener
     private static final String configMenuSaveAs      = "Save As";
     private static final String configMenuImport      = "Import";
     private static final String configMenuMigrate     = "Migrate";
+    private static final String configMenuConvert     = "Convert";
 
     /** menu bar item names: dbMenu */
     private static final String dbMenuConnectToDB      = "Connect to DB";
@@ -61,6 +62,7 @@ public class ConfDBMenuBar implements ActionListener
     private JMenuItem configMenuSaveAsItem      = null;
     private JMenuItem configMenuImportItem      = null;
     private JMenuItem configMenuMigrateItem     = null;
+    private JMenuItem configMenuConvertItem     = null;
     
     private JMenuItem dbMenuConnectItem         = null;
     private JMenuItem dbMenuDisconnectItem      = null;
@@ -100,6 +102,7 @@ public class ConfDBMenuBar implements ActionListener
 	configMenuSaveAsItem.setEnabled(true);
 	configMenuImportItem.setEnabled(true);
 	configMenuMigrateItem.setEnabled(true);
+	configMenuConvertItem.setEnabled(true);
 	dbMenuExportItem.setEnabled(true);
     }
 
@@ -112,6 +115,7 @@ public class ConfDBMenuBar implements ActionListener
 	configMenuSaveAsItem.setEnabled(false);
 	configMenuImportItem.setEnabled(false);
 	configMenuMigrateItem.setEnabled(false);
+	configMenuConvertItem.setEnabled(false);
 	dbMenuExportItem.setEnabled(false);
     }
     
@@ -186,6 +190,9 @@ public class ConfDBMenuBar implements ActionListener
 	configMenuMigrateItem = new JMenuItem(configMenuMigrate,KeyEvent.VK_M);
 	configMenuMigrateItem.addActionListener(this);
 	configMenu.add(configMenuMigrateItem);
+	configMenuConvertItem = new JMenuItem(configMenuConvert,KeyEvent.VK_N);
+	configMenuConvertItem.addActionListener(this);
+	configMenu.add(configMenuConvertItem);
 	
 	JMenu dbMenu = new JMenu("Database");
 	dbMenu.setMnemonic(KeyEvent.VK_D);
@@ -233,6 +240,7 @@ public class ConfDBMenuBar implements ActionListener
 	if (command.equals(configMenuSaveAs))      app.saveAsConfiguration();
 	if (command.equals(configMenuImport))      app.importConfiguration();
 	if (command.equals(configMenuMigrate))     app.migrateConfiguration();
+	if (command.equals(configMenuConvert))     app.convertConfiguration();
 	
 	// dbMenu
 	if (command.equals(dbMenuConnectToDB))      app.connectToDatabase();

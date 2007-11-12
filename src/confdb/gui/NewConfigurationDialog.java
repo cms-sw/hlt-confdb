@@ -9,14 +9,14 @@ import confdb.db.ConfDB;
 
 
 /**
- * ConfigurationNameDialog
- * -----------------------
+ * NewConfigurationDialog
+ * ----------------------
  * @author Philipp Schieferdecker
  *
  * Enter the name of a configuration and associate it with a release tag.
  */
-public class ConfigurationNameDialog extends JDialog implements ActionListener,
-								PropertyChangeListener
+public class NewConfigurationDialog extends JDialog implements ActionListener,
+							       PropertyChangeListener
 {
     //
     // member data
@@ -64,7 +64,7 @@ public class ConfigurationNameDialog extends JDialog implements ActionListener,
     //
     
     /** standard constructor */
-    public ConfigurationNameDialog(JFrame frame,ConfDB database)
+    public NewConfigurationDialog(JFrame frame,ConfDB database)
     {
 	super(frame,true);
 	this.frame = frame;
