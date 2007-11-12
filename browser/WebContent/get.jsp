@@ -57,8 +57,12 @@
 		return;
 	}
 
+	BrowserConverter converter = null;
 	try {
-		BrowserConverter converter = BrowserConverter.getConverter( 1 );
+		ModifierInstructions modifierInstructions = new ModifierInstructions();
+		modifierInstructions.interpretArgs( toModifier );
+
+		converter = BrowserConverter.getConverter( 1 );
 	    int id = ( configId != null ) ?
 	    	Integer.parseInt(configId) : converter.getDatabase().getConfigId(configName);
 	    if ( id <= 0 ) 
@@ -67,8 +71,6 @@
 	    	return;
 	    }
 
-		ModifierInstructions modifierInstructions = new ModifierInstructions();
-		modifierInstructions.interpretArgs( toModifier );
 		String result = converter.getConfigString( id, format,
 												   modifierInstructions, asFragment );
 		out.print( result );
@@ -79,6 +81,8 @@
 		  e.printStackTrace( writer );
 		  writer.close();
 		  out.println( buffer.toString() );
+		  if ( converter != null )
+			  BrowserConverter.deleteConverter( converter );
 	  }
 
 		
