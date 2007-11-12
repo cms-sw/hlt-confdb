@@ -8,36 +8,69 @@
 <%@page contentType="text/plain"%>
 <%
 	out.clearBuffer();
-	try {
-		Map<String,String[]> map = request.getParameterMap();
-		Set<Map.Entry<String,String[]>> parameters = map.entrySet(); 
+	Map<String,String[]> map = request.getParameterMap();
+	if ( map.isEmpty())
+	{
+		out.println("ERROR: configId or configName must be specified!");
+		return;
+	}
+		
+	Set<Map.Entry<String,String[]>> parameters = map.entrySet(); 
 
-		HashMap<String,String> toModifier = new HashMap<String,String>();
-	
-		String configId = "0";
-		boolean asFragment = false;
-		String format = "ascii";
-		for ( Map.Entry<String,String[]> entry : parameters )
+	boolean asFragment = false;
+	String format = "ascii";
+	String configId = null;
+	String configName = null;
+	HashMap<String,String> toModifier = new HashMap<String,String>();
+
+	for ( Map.Entry<String,String[]> entry : parameters )
+	{
+		if ( entry.getValue().length > 1 )
 		{
-			String value = "";
-			for ( String para : entry.getValue() )
-				value += (value.length() == 0) ? para : ("," + para);
-			if ( entry.getKey().equals( "configId" ) )
-				configId = value;
-			else if ( entry.getKey().equals( "cff" ) )
-				asFragment =true;
-			else if ( entry.getKey().equals( "format" ) )
-				format = value;
-			else
-				toModifier.put( entry.getKey(), value );
+			out.println( "ERROR: Only one parameter '" + entry.getKey() + "' allowed!" );
+			return;
 		}
+		
+		String value = entry.getValue()[ 0 ];
+		String key = entry.getKey();
+		if ( key.equals( "configId" ) )
+			configId = value;
+		else if ( key.equals( "configName" ) )
+			configName = value;
+		else if ( key.equals( "cff" ) )
+			asFragment =true;
+		else if ( key.equals( "format" ) )
+			format = value;
+		else
+			toModifier.put( entry.getKey(), value );
+	}
+	
+	if ( configId == null  &&  configName == null )
+	{
+		out.println("ERROR: configId or configName must be specified!");
+		return;
+	}
+
+	if ( configId != null  &&  configName != null )
+	{
+		out.println("ERROR: configId *OR* configName must be specified!");
+		return;
+	}
+
+	try {
+		BrowserConverter converter = BrowserConverter.getConverter( 1 );
+	    int id = ( configId != null ) ?
+	    	Integer.parseInt(configId) : converter.getDatabase().getConfigId(configName);
+	    if ( id <= 0 ) 
+	    {
+	    	out.println( "ERROR: configuration not found!" );
+	    	return;
+	    }
+
 		ModifierInstructions modifierInstructions = new ModifierInstructions();
 		modifierInstructions.interpretArgs( toModifier );
-		BrowserConverter converter = BrowserConverter.getConverter( 1 );
-		String result = converter.getConfigString( Integer.parseInt(configId),
-													format,
-													modifierInstructions,
-													asFragment );
+		String result = converter.getConfigString( id, format,
+												   modifierInstructions, asFragment );
 		out.print( result );
 	  } catch ( Exception e ) {
 		  out.print( "ERROR!\n\n" ); 
