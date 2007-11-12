@@ -8,9 +8,9 @@ import confdb.data.ServiceInstance;
 public class HtmlServiceWriter extends HtmlInstanceWriter implements IServiceWriter 
 {
 	
-	public String toString( ServiceInstance service, ConverterEngine converterEngine ) 
+	public String toString( ServiceInstance service, ConverterEngine converterEngine, String indent ) 
 	{
-		return toString( "service", service, converterEngine );
+		return toString( "service", service, converterEngine, indent );
 	}
 
 }

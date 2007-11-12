@@ -8,9 +8,9 @@ import confdb.data.ESSourceInstance;
 public class HtmlESSourceWriter extends HtmlInstanceWriter implements IESSourceWriter 
 {
 	
-	public String toString( ESSourceInstance essource, ConverterEngine converterEngine ) 
+	public String toString( ESSourceInstance essource, ConverterEngine converterEngine, String indent ) 
 	{
-		return toString( "es_source", essource, converterEngine );
+		return toString( "es_source", essource, converterEngine, indent );
 	}
 
 }

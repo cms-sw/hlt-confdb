@@ -6,9 +6,9 @@ import confdb.data.ESModuleInstance;
 
 public class AsciiESModuleWriter extends AsciiInstanceWriter implements IESModuleWriter 
 {
-    public String toString(ESModuleInstance esmodule,ConverterEngine converterEngine) 
+    public String toString(ESModuleInstance esmodule,ConverterEngine converterEngine, String indent) 
     {
-	return toString("es_module",esmodule,converterEngine);
+	return toString("es_module",esmodule,converterEngine, indent);
     }
     
 }

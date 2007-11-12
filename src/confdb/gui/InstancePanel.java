@@ -213,27 +213,28 @@ public class InstancePanel extends JPanel implements TreeSelectionListener,
 	}
 
 	String configAsString = null;
+	String indent = "  ";
 	
 	if (currentObject instanceof Instance) {
 	    if (currentObject instanceof EDSourceInstance) {
 		EDSourceInstance edsource = (EDSourceInstance)currentObject;
 		configAsString =converter.getEDSourceWriter().toString(edsource,
-								       converter);
+								       converter, indent);
 	    }
 	    if (currentObject instanceof ESSourceInstance) {
 		ESSourceInstance essource = (ESSourceInstance)currentObject;
 		configAsString = converter.getESSourceWriter().toString(essource,
-									converter);
+									converter, indent);
 	    }
 	    if (currentObject instanceof ESModuleInstance) {
 		ESModuleInstance esmodule = (ESModuleInstance)currentObject;
 		configAsString = converter.getESModuleWriter().toString(esmodule,
-									converter);
+									converter, indent);
 	    }
 	    if (currentObject instanceof ServiceInstance) {
 		ServiceInstance service = (ServiceInstance)currentObject;
 		configAsString =converter.getServiceWriter().toString(service,
-								     converter);
+								     converter, indent);
 	    }
 	    if (currentObject instanceof ModuleInstance) {
 		ModuleInstance module = (ModuleInstance)currentObject;

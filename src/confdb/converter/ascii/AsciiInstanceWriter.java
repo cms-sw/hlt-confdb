@@ -6,13 +6,11 @@ import confdb.data.Instance;
 import confdb.data.ESPreferable;
 import confdb.data.Parameter;
 
-public class AsciiInstanceWriter {
-
-	private static final String indent = "  ";
-
+public class AsciiInstanceWriter 
+{
 	private IParameterWriter parameterWriter = null;
 	
-	protected String toString(String type,Instance instance,ConverterEngine converterEngine)
+	protected String toString( String type, Instance instance, ConverterEngine converterEngine, String indent )
 	{
 		if ( parameterWriter == null )
 			parameterWriter = converterEngine.getParameterWriter();

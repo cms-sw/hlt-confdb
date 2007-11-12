@@ -7,9 +7,9 @@ import confdb.data.ServiceInstance;
 
 public class AsciiServiceWriter extends AsciiInstanceWriter implements IServiceWriter 
 {
-	public String toString( ServiceInstance service, ConverterEngine converterEngine ) 
+	public String toString( ServiceInstance service, ConverterEngine converterEngine, String indent ) 
 	{
-		return toString( "service", service, converterEngine);
+		return toString( "service", service, converterEngine, indent);
 	}
 
 }

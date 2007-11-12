@@ -47,7 +47,7 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 		for ( int i = 0; i < conf.sequenceCount(); i++ )
 		{
 			Sequence sequence = conf.sequence(i);
-			str.append( sequenceWriter.toString(sequence, converterEngine ) );
+			str.append( sequenceWriter.toString(sequence, converterEngine, indent ) );
 		}
 
 		IParameterWriter parameterWriter = converterEngine.getParameterWriter();
@@ -62,14 +62,14 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 		for ( int i = 0; i < conf.edsourceCount(); i++ )
 		{
 			EDSourceInstance edsource = conf.edsource(i);
-			str.append( edsourceWriter.toString(edsource, converterEngine ) );
+			str.append( edsourceWriter.toString(edsource, converterEngine, indent ) );
 		}
 
 		IESSourceWriter essourceWriter = converterEngine.getESSourceWriter();
 		for ( int i = 0; i < conf.essourceCount(); i++ )
 		{
 			ESSourceInstance essource = conf.essource(i);
-			str.append( essourceWriter.toString(essource, converterEngine) );
+			str.append( essourceWriter.toString(essource, converterEngine, indent ) );
 		}
 
 
@@ -77,7 +77,7 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 		for ( int i = 0; i < conf.esmoduleCount(); i++ )
 		{
 			ESModuleInstance esmodule = conf.esmodule(i);
-			str.append( esmoduleWriter.toString(esmodule,converterEngine) );
+			str.append( esmoduleWriter.toString( esmodule, converterEngine, indent ) );
 		}
 
 
@@ -85,7 +85,7 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 		for ( int i = 0; i < conf.serviceCount(); i++ )
 		{
 			ServiceInstance service = conf.service(i);
-			str.append( serviceWriter.toString( service, converterEngine ) );
+			str.append( serviceWriter.toString( service, converterEngine, indent ) );
 		}
 
 		IModuleWriter moduleWriter = converterEngine.getModuleWriter();

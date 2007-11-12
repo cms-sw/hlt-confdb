@@ -23,6 +23,7 @@ import confdb.data.ServiceInstance;
 
 public class HtmlConfigurationWriter implements IConfigurationWriter 
 {
+	protected String indent = "  ";
 	protected ConverterEngine converterEngine = null;
 	private static final String spaces = "                                                                       ";
 	private static final int maxSpaces = spaces.length();
@@ -69,7 +70,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.sequenceCount(); i++ )
 			{
 				Sequence sequence = conf.sequence(i);
-				str.append( wrapLine( sequenceWriter.toString(sequence, converterEngine ),
+				str.append( wrapLine( sequenceWriter.toString(sequence, converterEngine, "  " ),
 								 '&', 16 + sequence.name().length() ) );
 			}
 			str.append( converterEngine.getNewline() ); 
@@ -94,10 +95,10 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 		for ( int i = 0; i < conf.edsourceCount(); i++ )
 		{
 			EDSourceInstance edsource = conf.edsource(i);
-			str.append( edsourceWriter.toString(edsource, converterEngine ) );
+			str.append( edsourceWriter.toString(edsource, converterEngine, indent ) );
 		}
 		if ( conf.edsourceCount() == 0 )  // edsource may be overridden
-			str.append( edsourceWriter.toString( null, converterEngine ) );
+			str.append( edsourceWriter.toString( null, converterEngine, indent ) );
 		if ( conf.edsourceCount() > 0 )
 			str.append( converterEngine.getNewline() ); 
 
@@ -109,7 +110,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.essourceCount(); i++ )
 			{
 				ESSourceInstance essource = conf.essource(i);
-				str.append( essourceWriter.toString(essource, converterEngine) );
+				str.append( essourceWriter.toString(essource, converterEngine, indent) );
 			}
 			str.append( converterEngine.getNewline() ); 
 		}
@@ -122,7 +123,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.esmoduleCount(); i++ )
 			{
 				ESModuleInstance esmodule = conf.esmodule(i);
-				str.append( esmoduleWriter.toString(esmodule,converterEngine) );
+				str.append( esmoduleWriter.toString(esmodule,converterEngine, indent) );
 			}
 			str.append( converterEngine.getNewline() ); 
 		}
@@ -134,7 +135,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.serviceCount(); i++ )
 			{
 				ServiceInstance service = conf.service(i);
-				str.append( serviceWriter.toString( service, converterEngine ) );
+				str.append( serviceWriter.toString( service, converterEngine, indent ) );
 			}
 		}
 
