@@ -1,3 +1,8 @@
+2007-11-12  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-15-00
+	* gui: new 'convert' dialog (menu Configurations -> Convert)
+
 2007-11-08  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-14-07

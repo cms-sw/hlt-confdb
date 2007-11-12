@@ -78,13 +78,15 @@ public class ConvertConfigurationDialog extends JDialog
 	jTreeFilter.getSelectionModel().setSelectionMode(TreeSelectionModel
 							 .SINGLE_TREE_SELECTION);
 
-	ConvertConfigTreeRenderer renderer =
+	ConvertConfigTreeRenderer r1 =
 	    new ConvertConfigTreeRenderer(modifications);
-	jTreeFilter.setCellRenderer(renderer);
+	ConvertConfigTreeRenderer r2 =
+	    new ConvertConfigTreeRenderer(modifications);
+	jTreeFilter.setCellRenderer(r1);
 	jTreeFilter.setCellEditor(new ConvertConfigTreeEditor(jTreeFilter,
 							      modifications,
-							      renderer));
-	
+							      r2));
+				  
 	jTextFieldFileName.setText(modifier.name()+"_V"+modifier.version()+".cfg");
 	
 	setTitle("Convert configuration");
@@ -482,11 +484,35 @@ class ConvertConfigTreeRenderer extends DefaultTreeCellRenderer
 		checkBox.setEnabled(config.pathCount()>0);
 	    }
 	    else if (value==treeModel.sequencesNode()) {
-		checkBox.setSelected(config.sequenceCount()>0);
+		boolean isSelected = false;
+		Iterator it = config.sequenceIterator();
+		while (!isSelected&&it.hasNext()) {
+		    Sequence sequence = (Sequence)it.next();
+		    Path[] paths = sequence.parentPaths();
+		    for (Path p : paths) {
+			if (!modifications.isInBlackList(p)) {
+			    isSelected = true;
+			    break;
+			}
+		    }
+		}
+		checkBox.setSelected(isSelected);
 		checkBox.setEnabled(false);
 	    }
 	    else if (value==treeModel.modulesNode()) {
-		checkBox.setSelected(config.moduleCount()>0);
+		boolean isSelected = false;
+		Iterator it = config.moduleIterator();
+		while (!isSelected&&it.hasNext()) {
+		    ModuleInstance module = (ModuleInstance)it.next();
+		    Path[] paths = module.parentPaths();
+		    for (Path p : paths) {
+			if (!modifications.isInBlackList(p)) {
+			    isSelected = true;
+			    break;
+			}
+		    }
+		}
+		checkBox.setSelected(isSelected);
 		checkBox.setEnabled(false);
 	    }
 	}
@@ -508,6 +534,7 @@ class ConvertConfigTreeRenderer extends DefaultTreeCellRenderer
 		    }
 		}
 		checkBox.setSelected(isSelected);
+		if (isSelected) checkBox.setEnabled(false);
 	    }
 	}
 	else {
@@ -554,58 +581,73 @@ class ConvertConfigTreeEditor extends AbstractCellEditor implements TreeCellEdit
 	Configuration          config    = (Configuration)treeModel.getRoot();
 	
 	if (value instanceof StringBuffer) {
-	    Iterator it = null;
 	    if (value==treeModel.psetsNode()) {
 		modifications.filterAllPSets(!modifications.doFilterAllPSets());
-		it = config.psetIterator();
 	    }
 	    else if (value==treeModel.edsourcesNode()) {
 		modifications
 		    .filterAllEDSources(!modifications.doFilterAllEDSources());
-		it = config.edsourceIterator();
 	    }
 	    else if (value==treeModel.essourcesNode()) {
 		modifications
 		    .filterAllESSources(!modifications.doFilterAllESSources());
-		it = config.essourceIterator();
 	    }
 	    else if (value==treeModel.esmodulesNode()) {
 		modifications
 		    .filterAllESModules(!modifications.doFilterAllESModules());
-		it = config.esmoduleIterator();
 	    }
 	    else if (value==treeModel.servicesNode()) {
 		modifications
 		    .filterAllServices(!modifications.doFilterAllServices());
-		it = config.serviceIterator();
 	    }
 	    else if (value==treeModel.pathsNode()) {
 		modifications
 		    .filterAllPaths(!modifications.doFilterAllPaths());
-		it = config.pathIterator();
-		Iterator itS = config.sequenceIterator();
-		while (itS.hasNext()) treeModel.nodeChanged(itS.next());
-		Iterator itM = config.moduleIterator();
-		while (itM.hasNext()) treeModel.nodeChanged(itM.next());
-	    }
-	    if (it!=null) {
-		treeModel.nodeChanged(value);
-		while (it.hasNext()) treeModel.nodeChanged(it.next());
+		//Iterator itS = config.sequenceIterator();
+		//while (itS.hasNext()) treeModel.nodeChanged(itS.next());
+		//Iterator itM = config.moduleIterator();
+		//while (itM.hasNext()) treeModel.nodeChanged(itM.next());
 	    }
 	}
-	else if (value instanceof Instance) {
-	    System.out.println("Instance");
+	else if (value instanceof Sequence) {
+	    System.out.println("sequence " + value);
 	}
-	else if (value instanceof ReferenceContainer) {
-	    System.out.println("ReferenceContainer");
+	else if (value instanceof ModuleInstance) {
+	    System.out.println("module " + value);
+	}
+	else {
+	    boolean isFiltered = modifications.isInBlackList(value);
+	    if (isFiltered) {
+		modifications.removeFromBlackList(value);
+	    }
+	    else {
+		int n = modifications.insertIntoBlackList(value);
+		if (n==config.componentCount(value.getClass()))
+		    modifications.filterAll(value.getClass(),true);
+	    }
+	    treeModel.nodeChanged(treeModel.getParent(value));
 	}
 	
-	return value;
+	return value.toString();
     }
     
     /** isCellEditable */
     public boolean isCellEditable(EventObject event)
     {
+	if (event instanceof MouseEvent) {
+	    MouseEvent mouseEvent = (MouseEvent)event;
+	    TreePath treePath = tree.getPathForLocation(mouseEvent.getX(),
+							mouseEvent.getY());
+	    if (treePath==null) return false;
+	    
+	    Object o = treePath.getLastPathComponent();
+	    if (o instanceof Sequence||o instanceof ModuleInstance) {
+		Referencable moduleOrSequence = (Referencable)o;
+		Path[] paths = moduleOrSequence.parentPaths();
+		for (Path p : paths) 
+		    if (!modifications.isInBlackList(p)) return false;
+	    }
+	}
 	return true;
     }
     
@@ -635,9 +677,9 @@ class ConvertConfigTreeEditor extends AbstractCellEditor implements TreeCellEdit
 		}
 	    };
 	
-	//if (editor instanceof JCheckBox) {
-	//   ((JCheckBox)editor).addItemListener(itemListener);
-	//}
+	if (editor instanceof JCheckBox) {
+	   ((JCheckBox)editor).addItemListener(itemListener);
+	}
 	
 	return editor;
     }

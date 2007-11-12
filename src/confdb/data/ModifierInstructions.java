@@ -433,36 +433,133 @@ public class ModifierInstructions
     }
     
     /** filter all plugins of a certain type */
+    public void filterAll(Class c, boolean filter)
+    {
+	if      (c==PSetParameter.class)    filterAllPSets(filter);
+	else if (c==EDSourceInstance.class) filterAllEDSources(filter);
+	else if (c==ESSourceInstance.class) filterAllESSources(filter);
+	else if (c==ESModuleInstance.class) filterAllESModules(filter);
+	else if (c==ServiceInstance.class)  filterAllServices(filter);
+	else if (c==Path.class)             filterAllPaths(filter);
+	else
+	    System.err.println("ERROR: can't filterAll of type " + c.getName());
+    }
+    
     public void filterAllPSets(boolean filter)
     {
 	filterAllPSets = filter;
+	if (!filter) psetBlackList.clear();
     }
     public void filterAllEDSources(boolean filter)
     {
-	filterAllEDSources     = filter;
+	filterAllEDSources = filter;
+	if (!filter) edsourceBlackList.clear();
     }
     public void filterAllESSources(boolean filter)
     {
-	filterAllESSources     = filter;
+	filterAllESSources = filter;
+	if (!filter) essourceBlackList.clear();
     }
     public void filterAllESModules(boolean filter)
     {
-	filterAllESModules     = filter;
+	filterAllESModules = filter;
+	if (!filter) esmoduleBlackList.clear();
     }
     public void filterAllServices(boolean filter)
     {
-	filterAllServices      = filter;
+	filterAllServices = filter;
+	if (!filter) serviceBlackList.clear();
     }
     public void filterAllPaths(boolean filter)
     {
-	filterAllPaths         = filter;
+	filterAllPaths = filter;
+	if (!filter) pathBlackList.clear();
     }
     public void filterAllOutputModules(boolean filter)
     {
 	filterAllOutputModules =filter;
     }
     
-    /** insert components into the corresponding whitelist/blacklist */
+    /** insert/remove components into the corresponding whitelist/blacklist */
+    public int insertIntoBlackList(Object o)
+    {
+	String            name = null;
+	if      (o instanceof Referencable)  name = ((Referencable)o).name();
+	else if (o instanceof Instance)      name = ((Instance)o).name();
+	else if (o instanceof PSetParameter) name = ((Parameter)o).name();
+	
+	ArrayList<String> blacklist = null;
+	if      (o instanceof PSetParameter)    blacklist = psetBlackList;
+	else if (o instanceof EDSourceInstance) blacklist = edsourceBlackList;
+	else if (o instanceof ESSourceInstance) blacklist = essourceBlackList;
+	else if (o instanceof ESModuleInstance) blacklist = esmoduleBlackList;
+	else if (o instanceof ServiceInstance)  blacklist = serviceBlackList;
+	else if (o instanceof Path)             blacklist = pathBlackList;
+	
+	if (name     ==null) System.out.println("ERROR: name is null");
+	if (blacklist==null) System.out.println("ERROR: blacklist is null");
+
+	blacklist.add(name);
+	return blacklist.size();
+    }
+    public int removeFromBlackList(Object o)
+    {
+	String            name = null;
+	if      (o instanceof Referencable)  name = ((Referencable)o).name();
+	else if (o instanceof Instance)      name = ((Instance)o).name();
+	else if (o instanceof PSetParameter) name = ((Parameter)o).name();
+	
+	if (o instanceof PSetParameter) {
+	    int index = psetBlackList.indexOf(name);
+	    if (index>=0) {
+		filterAllPSets=false;
+		psetBlackList.remove(name);
+		return psetBlackList.size();
+	    }
+	}
+	else if (o instanceof EDSourceInstance) {
+	    int index = edsourceBlackList.indexOf(name);
+	    if (index>=0) {
+		filterAllEDSources=false;
+		edsourceBlackList.remove(name);
+		return edsourceBlackList.size();
+	    }
+	}
+	else if (o instanceof ESSourceInstance) {
+	    int index = essourceBlackList.indexOf(name);
+	    if (index>=0) {
+		filterAllESSources=false;
+		essourceBlackList.remove(name);
+		return essourceBlackList.size();
+	    }
+	}
+	else if (o instanceof ESModuleInstance) {
+	    int index = esmoduleBlackList.indexOf(name);
+	    if (index>=0) {
+		filterAllESModules=false;
+		esmoduleBlackList.remove(name);
+		return esmoduleBlackList.size();
+	    }
+	}
+	else if (o instanceof ServiceInstance) {
+	    int index = serviceBlackList.indexOf(name);
+	    if (index>=0) {
+		filterAllServices=false;
+		serviceBlackList.remove(name);
+		return serviceBlackList.size();
+	    }
+	}
+	else if (o instanceof Path) {
+	    int index = pathBlackList.indexOf(name);
+	    if (index>=0) {
+		filterAllPaths=false;
+		pathBlackList.remove(name);
+		return pathBlackList.size();
+	    }
+	}
+	
+	return -1;
+    }
     public void insertPSetIntoBlackList(String psetName)
     {
 	psetBlackList.add(psetName);

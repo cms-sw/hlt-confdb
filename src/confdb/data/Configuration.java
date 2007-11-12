@@ -158,6 +158,22 @@ public class Configuration implements IConfiguration
 	return result;
     }
     
+    /** number of components of a certain type */
+    public int componentCount(Class c)
+    {
+	if      (c == PSetParameter.class)    return psetCount();
+	else if (c == EDSourceInstance.class) return edsourceCount(); 
+	else if (c == ESSourceInstance.class) return essourceCount(); 
+	else if (c == ESModuleInstance.class) return esmoduleCount(); 
+	else if (c == ServiceInstance.class)  return serviceCount(); 
+	else if (c == Path.class)             return pathCount(); 
+	else if (c == Sequence.class)         return sequenceCount();
+	else if (c == ModuleInstance.class)   return moduleCount();
+	else if (c == Stream.class)           return streamCount();
+	System.err.println("ERROR: unknwon class " + c.getName());
+	return 0;
+    }
+
     /** isEmpty() */
     public boolean isEmpty()
     {
