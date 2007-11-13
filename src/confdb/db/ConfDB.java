@@ -1531,6 +1531,12 @@ public class ConfDB
 		
 		if (entryType.equals("Sequence")) {
 		    Sequence entry = idToSequences.get(entryId);
+		    if (entry==null) {
+			System.err.println("ERROR: can't find sequence for id=" +
+					   entryId +
+					   " expected as daughter " + index +
+					   " of sequence " + sequence.name());
+		    }
 		    config.insertSequenceReference(sequence,index,entry);
 		}
 		else if (entryType.equals("Module")) {
@@ -2000,7 +2006,9 @@ public class ConfDB
     private HashMap<String,Integer> insertPaths(int configId,Configuration config)
 	throws DatabaseException
     {
-	HashMap<String,Integer> result = new HashMap<String,Integer>();
+	HashMap<String,Integer> result   = new HashMap<String,Integer>();
+	HashMap<Integer,Path>   idToPath = new HashMap<Integer,Path>();
+
 	ResultSet rs = null;
 	try {
 	    for (int sequenceNb=0;sequenceNb<config.pathCount();sequenceNb++) {
@@ -2019,9 +2027,8 @@ public class ConfDB
 		    rs.next();
 		    
 		    pathId = rs.getInt(1);
-		    path.setDatabaseId(pathId);
-
 		    result.put(pathName,pathId);
+		    idToPath.put(pathId,path);
 		}
 		else result.put(pathName,-pathId);
 		
@@ -2029,6 +2036,13 @@ public class ConfDB
 		psInsertConfigPathAssoc.setInt(2,pathId);
 		psInsertConfigPathAssoc.setInt(3,sequenceNb);
 		psInsertConfigPathAssoc.addBatch();
+	    }
+
+	    // only *now* set the new databaseId of changed paths!
+	    for (Map.Entry<Integer,Path> e : idToPath.entrySet()) {
+		int  id = e.getKey();
+		Path p  = e.getValue();
+		p.setDatabaseId(id);
 	    }
 	}
 	catch (SQLException e) {
@@ -2055,7 +2069,9 @@ public class ConfDB
 						    Configuration config)
 	throws DatabaseException
     {
-	HashMap<String,Integer> result = new HashMap<String,Integer>();
+	HashMap<String,Integer>   result       = new HashMap<String,Integer>();
+	HashMap<Integer,Sequence> idToSequence = new HashMap<Integer,Sequence>();
+	
 	ResultSet rs = null;
 	try {
 	    for (int sequenceNb=0;sequenceNb<config.sequenceCount();sequenceNb++) {
@@ -2073,16 +2089,23 @@ public class ConfDB
 		    rs.next();
 
 		    sequenceId = rs.getInt(1);
-		    sequence.setDatabaseId(sequenceId);
-		    
 		    result.put(sequenceName,sequenceId);
+		    idToSequence.put(sequenceId,sequence);
 		}
-		else result.put(sequenceName,-sequenceId);
+		else
+		    result.put(sequenceName,-sequenceId);
 		
 		psInsertConfigSequenceAssoc.setInt(1,configId);
 		psInsertConfigSequenceAssoc.setInt(2,sequenceId);
 		psInsertConfigSequenceAssoc.setInt(3,sequenceNb);
 		psInsertConfigSequenceAssoc.addBatch();
+	    }
+
+	    // only *now* set the new databaseId of changed sequences!
+	    for (Map.Entry<Integer,Sequence> e : idToSequence.entrySet()) {
+		int      id = e.getKey();
+		Sequence s  = e.getValue();
+		s.setDatabaseId(id);
 	    }
 	}
 	catch (SQLException e) {

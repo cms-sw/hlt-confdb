@@ -466,7 +466,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    JMenu addPathMenu = createAddPathMenu(path);
 	    popupPaths.add(addPathMenu);
 	    
-	    JMenu addSequenceMenu = createAddSequenceMenu(path,pathListener);
+	    JMenu addSequenceMenu = createAddSequenceMenu(path,pathListener,false);
 	    popupPaths.add(addSequenceMenu);
 	    
 	    popupPaths.addSeparator();
@@ -499,7 +499,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    JMenu addPathMenu = createAddPathMenu(path);
 	    popupPaths.add(addPathMenu);
 	    
-	    JMenu addSequenceMenu = createAddSequenceMenu(path,pathListener);
+	    JMenu addSequenceMenu = createAddSequenceMenu(path,pathListener,false);
 	    popupPaths.add(addSequenceMenu);
 	    
 	    popupPaths.addSeparator();
@@ -554,7 +554,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    JMenu addModuleMenu = createAddModuleMenu(sequence,sequenceListener);
 	    popupSequences.add(addModuleMenu);
 	    
-	    JMenu addSequenceMenu = createAddSequenceMenu(sequence,sequenceListener);
+	    JMenu addSequenceMenu = createAddSequenceMenu(sequence,
+							  sequenceListener,
+							  false);
 	    popupSequences.add(addSequenceMenu);
 	    
 	    popupSequences.addSeparator();
@@ -573,7 +575,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    JMenu addModuleMenu = createAddModuleMenu(sequence,sequenceListener);
 	    popupSequences.add(addModuleMenu);
 
-	    JMenu addSequenceMenu = createAddSequenceMenu(sequence,sequenceListener);
+	    JMenu addSequenceMenu = createAddSequenceMenu(sequence,
+							  sequenceListener,
+							  true);
 	    popupSequences.add(addSequenceMenu);
 	    
 	    menuItem = new JMenuItem("Remove Module");
@@ -750,7 +754,8 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
     
     /** create 'Add Sequence' Menu */
     private JMenu createAddSequenceMenu(ReferenceContainer pathOrSequence,
-					ActionListener     listener)
+					ActionListener     listener,
+					boolean            isSeqRef)
     {
 	JMenu     addSequenceMenu = new ScrollableMenu("Add Sequence");
 	JMenuItem menuItem;
@@ -759,11 +764,13 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	if (pathOrSequence instanceof Sequence) {
 	    Sequence sequence = (Sequence)pathOrSequence;
 	    forbiddenSequences.add(sequence);
-	    menuItem = new JMenuItem("New Sequence");
-	    menuItem.addActionListener(listener);
-	    menuItem.setActionCommand("NEWSEQ");
-	    addSequenceMenu.add(menuItem);
-	    addSequenceMenu.addSeparator();
+	    if (!isSeqRef) {
+		menuItem = new JMenuItem("New Sequence");
+		menuItem.addActionListener(listener);
+		menuItem.setActionCommand("NEWSEQ");
+		addSequenceMenu.add(menuItem);
+		addSequenceMenu.addSeparator();
+	    }
 	}
 	
 	for (int i=0;i<pathOrSequence.entryCount();i++) {

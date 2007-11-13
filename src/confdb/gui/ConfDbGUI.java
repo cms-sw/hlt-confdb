@@ -537,9 +537,9 @@ public class ConfDbGUI implements TableModelListener
 	    database.unlockConfiguration(currentConfig);
 	
 	String processName = configurationPanel.processName();
-	String comment = "saveAs from " +
-	    currentConfig.parentDir().name()+"/"+currentConfig.name()+"/V"+
-	    currentConfig.version()+" ["+currentConfig.dbId()+"]";
+	String comment = (currentConfig.version()==0) ?
+	    "first import" :
+	    "saveAs "+currentConfig+" ["+currentConfig.dbId()+"]";
 	
 	SaveConfigurationDialog dialog =
 	    new SaveConfigurationDialog(frame,database,currentConfig,comment);

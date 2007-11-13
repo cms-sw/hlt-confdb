@@ -968,7 +968,7 @@ public class Configuration implements IConfiguration
 
     /** sort Sequences */
     public void sortSequences() { Collections.sort(sequences); hasChanged=true; }
-
+    
 
     //
     // Streams

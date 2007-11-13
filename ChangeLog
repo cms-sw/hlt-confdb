@@ -1,3 +1,12 @@
+2007-11-13  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-15-01
+	* important bug reported by Marco fixed, regarding the
+	manipulation of a configurations sequences and its correct
+	reflection in the db after saving.
+	* uncovered and fixed some other bugs related with sequence
+	manipulation in the gui ...
+
 2007-11-12  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-15-00

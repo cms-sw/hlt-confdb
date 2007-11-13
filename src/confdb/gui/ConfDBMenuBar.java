@@ -225,9 +225,10 @@ public class ConfDBMenuBar implements ActionListener
 	    dialog.setVisible(true);
 	}
 	if (command.equals(confdbMenuQuit)) {
-	    app.closeConfiguration();
-	    app.disconnectFromDatabase();
-	    System.exit(0);
+	    if (app.closeConfiguration()) {
+		app.disconnectFromDatabase();
+		System.exit(0);
+	    }
 	}
 	
 	// configMenu
