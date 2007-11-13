@@ -65,7 +65,13 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 	if (toBeEdited instanceof Referencable) {
 	    Referencable referencable = (Referencable)toBeEdited;
 	    try {
-		referencable.setName(name);
+		if (referencable instanceof ModuleInstance) {
+		    ModuleInstance module = (ModuleInstance)referencable;
+		    module.setNameAndPropagate(name);
+		}
+		else {
+		    referencable.setName(name);
+		}
 		config.setHasChanged(true);
 		treeModel.nodeChanged(referencable);
 		for (int i=0;i<referencable.referenceCount();i++)

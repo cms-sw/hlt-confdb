@@ -77,8 +77,8 @@ public class ModuleInstance extends Instance implements Referencable
 	return list.toArray(new Path[list.size()]);
     }
     
-    /** Referencable.setName() */
-    public void setName(String name) throws DataException
+    /** set the name and propagate it to all relevant downstreams InputTags */
+    public void setNameAndPropagate(String name) throws DataException
     {
 	String oldName = name();
 	super.setName(name); // Instance.setName()
@@ -119,5 +119,5 @@ public class ModuleInstance extends Instance implements Referencable
 	    }
 	}
     }
-    
+
 }

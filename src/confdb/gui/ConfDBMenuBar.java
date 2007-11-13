@@ -47,7 +47,6 @@ public class ConfDBMenuBar implements ActionListener
     private static final String dbMenuConnectToDB      = "Connect to DB";
     private static final String dbMenuDisconnectFromDB = "Disconnect from DB";
     private static final String dbMenuExportConfig     = "Export Configuration";
-    private static final String dbMenuCreateTemplates  = "Create Templates";
     
     /** meny bar items */
     private JMenuItem confdbMenuAboutItem       = null;
@@ -67,7 +66,6 @@ public class ConfDBMenuBar implements ActionListener
     private JMenuItem dbMenuConnectItem         = null;
     private JMenuItem dbMenuDisconnectItem      = null;
     private JMenuItem dbMenuExportItem          = null;
-    private JMenuItem dbMenuCreateTemplatesItem = null;
     
     
 
@@ -126,7 +124,6 @@ public class ConfDBMenuBar implements ActionListener
 	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(true);
 	configMenuOpenItem.setEnabled(true);
 	dbMenuDisconnectItem.setEnabled(true);
-	//dbMenuCreateTemplatesItem.setEnabled(true);
     }
     
     /** no database connection is established */
@@ -137,7 +134,6 @@ public class ConfDBMenuBar implements ActionListener
 	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(false);
 	configMenuOpenItem.setEnabled(false);
 	dbMenuDisconnectItem.setEnabled(false);
-	//dbMenuCreateTemplatesItem.setEnabled(false);
     }
 
     /** populate the menu bar with all menus and their items */
@@ -206,9 +202,6 @@ public class ConfDBMenuBar implements ActionListener
 	dbMenuExportItem = new JMenuItem(dbMenuExportConfig,KeyEvent.VK_E);
 	dbMenuExportItem.addActionListener(this);
 	dbMenu.add(dbMenuExportItem);
-	//dbMenuCreateTemplatesItem=new JMenuItem(dbMenuCreateTemplates,KeyEvent.VK_T);
-	//dbMenuCreateTemplatesItem.addActionListener(this);
-	//dbMenu.add(dbMenuCreateTemplatesItem);
     }
     
     /** ActionListener callback to handle each and every menu commands */
@@ -247,7 +240,6 @@ public class ConfDBMenuBar implements ActionListener
 	if (command.equals(dbMenuConnectToDB))      app.connectToDatabase();
 	if (command.equals(dbMenuDisconnectFromDB)) app.disconnectFromDatabase();
 	if (command.equals(dbMenuExportConfig))     app.exportConfiguration();
-	//if (command.equals(dbMenuCreateTemplates))  app.createTemplates();
     }
 
 }

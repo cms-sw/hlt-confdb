@@ -8,6 +8,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
 
 import java.io.FileWriter;
@@ -613,34 +614,40 @@ public class ConfDbGUI implements TableModelListener
     public boolean checkConfiguration()
     {
 	if (currentConfig.isEmpty()) return false;
+
 	int unsetParamCount = currentConfig.unsetTrackedParameterCount();
 	if (unsetParamCount>0) {
 	    String msg =
-		"The configuration contains " + unsetParamCount +
+		"current configuration contains " + unsetParamCount +
 		" unset tracked parameters. They must be set before saving!";
 	    JOptionPane.showMessageDialog(frame,msg,"",JOptionPane.ERROR_MESSAGE);
 	    return false;
 	}
+
+	ArrayList<String> emptyContainers = new ArrayList<String>();
+	Iterator itP = currentConfig.pathIterator();
+	while (itP.hasNext()) {
+	    Path p = (Path)itP.next();
+	    if (p.entryCount()==0) emptyContainers.add(p.name());
+	}
+	Iterator itS = currentConfig.sequenceIterator();
+	while (itS.hasNext()) {
+	    Sequence s = (Sequence)itS.next();
+	    if (s.entryCount()==0) emptyContainers.add(s.name());
+	}
+	if (emptyContainers.size()>0) {
+	    String msg =
+		"current configuration contains the following " +
+		"empty containers (paths/sequences):";
+	    for (String s : emptyContainers) msg += "\n" + s;
+	    msg += "\nThey must be filled or removed before saving!";
+	    JOptionPane.showMessageDialog(frame,msg,"",JOptionPane.ERROR_MESSAGE);
+	    return false;
+	}
+
 	return true;
     }
-    
-    /** show 'create templates' dialog */
-    public void createTemplates()
-    {
-	CreateTemplateDialog dialog = new CreateTemplateDialog(frame,database);
-	dialog.pack();
-	dialog.setLocationRelativeTo(frame);
-	dialog.setVisible(true);
-	String releaseTag = currentConfig.releaseTag();
-	
-	UpdateTemplatesThread worker =
-	    new UpdateTemplatesThread(releaseTag);
-	worker.start();
-	progressBar.setIndeterminate(true);
-	progressBar.setVisible(true);
-	progressBar.setString("Updating Templates for Release "+releaseTag+" ... ");
-    }
-    
+
 
     /** create the content pane */
     private JPanel createContentPane()
@@ -914,6 +921,7 @@ public class ConfDbGUI implements TableModelListener
 	    catch (ParserException e) {
 		System.err.println("Error parsing "+fileName+": "+
 				   e.getMessage());
+		return new String("FAILED!");
 	    }
 	    
 	    return new String("Done!");

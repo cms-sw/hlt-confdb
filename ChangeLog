@@ -1,5 +1,11 @@
 2007-11-13  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-15-02
+	* when renaming modules, propagate the new label to all relevant
+	downstream InputTag parameters
+
+2007-11-13  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-15-01
 	* important bug reported by Marco fixed, regarding the
 	manipulation of a configurations sequences and its correct

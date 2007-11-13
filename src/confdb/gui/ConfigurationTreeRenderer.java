@@ -176,9 +176,12 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    result+="</html>";
 	}
 	else if (node instanceof Path) {
-	    Path path = (Path)node;
-	    int  count = path.unsetTrackedParameterCount();
-	    result = "<html><b>"+getText()+"</b> ("+path.entryCount()+")";
+	    Path path       = (Path)node;
+	    int  entryCount = path.entryCount();
+	    int  count      = path.unsetTrackedParameterCount();
+	    result = "<html><b>"+getText()+"</b> ";
+	    result += (entryCount>0) ?
+		"("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
 	    // TEST
 	    //count = path.unresolvedInputTagCount();
@@ -190,23 +193,32 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	else if (node instanceof PathReference) {
 	    PathReference reference = (PathReference)node;
 	    Path          path      = (Path)reference.parent();
+	    int  entryCount = path.entryCount();
 	    int           count     = path.unsetTrackedParameterCount();
-	    result = "<html>"+getText()+" ("+path.entryCount()+")";
+	    result = "<html>"+getText();
+	    result += (entryCount>0) ?
+		"("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
 	    result += "</html>";
 	}
 	else if (node instanceof Sequence) {
-	    Sequence sequence = (Sequence)node;
-	    int      count    = sequence.unsetTrackedParameterCount();
-	    result = "<html>"+getText()+" ("+sequence.entryCount()+")";
+	    Sequence sequence   = (Sequence)node;
+	    int      entryCount = sequence.entryCount();
+	    int      count      = sequence.unsetTrackedParameterCount();
+	    result = "<html>"+getText();
+	    result += (entryCount>0) ?
+		" ("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
 	    result += "</html>";
 	}
 	else if (node instanceof SequenceReference) {
-	    SequenceReference reference = (SequenceReference)node;
-	    Sequence          sequence  = (Sequence)reference.parent();
-	    int               count     = sequence.unsetTrackedParameterCount();
-	    result = "<html>"+getText()+" ("+sequence.entryCount()+")";
+	    SequenceReference reference  = (SequenceReference)node;
+	    Sequence          sequence   = (Sequence)reference.parent();
+	    int               entryCount = sequence.entryCount();
+	    int               count      = sequence.unsetTrackedParameterCount();
+	    result = "<html>"+getText();
+	    result += (entryCount>0) ?
+		" ("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
 	    result += "</html>";
 	}
