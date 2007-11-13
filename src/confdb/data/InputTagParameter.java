@@ -116,4 +116,13 @@ public class InputTagParameter extends ScalarParameter
 	return true;
     }
 
+    /** set label */
+    public void setLabel(String label) { this.label = label; }
+    
+    /** set instance */
+    public void setInstance(String instance) { this.instance = instance; }
+
+    /** set process */
+    public void setProcess(String process) { this.process = process; }
+
 }

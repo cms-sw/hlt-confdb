@@ -1,6 +1,7 @@
 package confdb.data;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 
 /**
@@ -74,6 +75,49 @@ public class ModuleInstance extends Instance implements Referencable
 	    for (Path p : paths) list.add(p);
 	}
 	return list.toArray(new Path[list.size()]);
+    }
+    
+    /** Referencable.setName() */
+    public void setName(String name) throws DataException
+    {
+	String oldName = name();
+	super.setName(name); // Instance.setName()
+	Path[] paths = parentPaths();
+	for (Path path : paths) {
+	    boolean isDownstream = false;
+	    Iterator itM = path.moduleIterator();
+	    while (itM.hasNext()) {
+		ModuleInstance module = (ModuleInstance)itM.next();
+		if (module==this) {
+		    isDownstream = true;
+		    continue;
+		}
+		if (!isDownstream) continue;
+		Iterator itP = module.parameterIterator();
+		while (itP.hasNext()) {
+		    Parameter p = (Parameter)itP.next();
+		    if (p instanceof InputTagParameter) {
+			InputTagParameter inputTag = (InputTagParameter)p;
+			if (inputTag.label().equals(oldName)) {
+			    inputTag.setLabel(name());
+			    module.setHasChanged();
+			}
+		    }
+		    else if (p instanceof VInputTagParameter) {
+			VInputTagParameter vInputTag = (VInputTagParameter)p;
+			for (int i=0;i<vInputTag.vectorSize();i++) {
+			    InputTagParameter inputTag =
+				new InputTagParameter("",vInputTag.value(i).toString(),false,false);
+			    if (inputTag.label().equals(oldName)) {
+				inputTag.setLabel(name());
+				vInputTag.setValue(i,inputTag.valueAsString());
+				module.setHasChanged();
+			    }
+			}
+		    }
+		}
+	    }
+	}
     }
     
 }

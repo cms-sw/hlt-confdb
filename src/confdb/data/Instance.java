@@ -170,5 +170,5 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 	}
 	return result;
     }
-    
+
 }
