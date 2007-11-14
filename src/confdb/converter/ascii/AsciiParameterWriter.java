@@ -15,6 +15,9 @@ public class AsciiParameterWriter  implements IParameterWriter
 	public String toString( Parameter parameter, ConverterEngine converterEngine, String indent ) 
 	{
 		this.converterEngine = converterEngine;
+		if ( !parameter.isTracked() && parameter.isDefault() )
+			return "";
+
 		return toString( parameter, indent );
 	}
 
@@ -110,9 +113,6 @@ public class AsciiParameterWriter  implements IParameterWriter
 		if ( parameter.isTracked() )
 			return false;
 		
-		if ( parameter.isDefault() )
-			return true;
-
 		if (  parameter instanceof PSetParameter )
 		{
 			PSetParameter pset = (PSetParameter) parameter;
