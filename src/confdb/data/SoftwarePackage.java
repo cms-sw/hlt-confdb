@@ -91,7 +91,7 @@ public class SoftwarePackage implements Comparable<SoftwarePackage>
 	t.setParentPackage(this);
 	if (templates.size()==0)
 	    cvsTag = t.cvsTag();
-	else if (!t.cvsTag().equals(cvsTag()))
+	else if (!t.cvsTag().equals("V00-00-00")&&!t.cvsTag().equals(cvsTag()))
 	    System.err.println("SoftwarePackage.addTemplate ERROR: " +
 			       "cvsTag mismatch!\n package: "+name()+" / "+cvsTag() +
 			       "\ntemplate: "+t.name()+" / "+t.cvsTag());

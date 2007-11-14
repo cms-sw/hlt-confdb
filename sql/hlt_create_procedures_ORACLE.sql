@@ -21,7 +21,8 @@ CREATE GLOBAL TEMPORARY TABLE tmp_instance_table
   template_id       NUMBER,
   instance_type     VARCHAR2(64),
   instance_name     VARCHAR2(128),
-  flag              NUMBER(1)
+  flag              NUMBER(1),
+  sequence_nb       NUMBER
 ) ON COMMIT PRESERVE ROWS;
 
 CREATE GLOBAL TEMPORARY TABLE tmp_parameter_table
@@ -942,23 +943,23 @@ AS
     SELECT
       ParameterSets.superId,
       ParameterSets.name,
-      ParameterSets.tracked
+      ParameterSets.tracked,
+      ConfigurationParamSetAssoc.sequenceNb
     FROM ParameterSets
     JOIN ConfigurationParamSetAssoc
     ON ParameterSets.superId = ConfigurationParamSetAssoc.psetId
-    WHERE ConfigurationParamSetAssoc.configId = config_id
-    ORDER BY ConfigurationParamSetAssoc.sequenceNb;
+    WHERE ConfigurationParamSetAssoc.configId = config_id;
 
   /* cursor for edsources */
   CURSOR cur_edsources IS
     SELECT
       EDSources.superId,
-      EDSources.templateId
+      EDSources.templateId,
+      ConfigurationEDSourceAssoc.sequenceNb
     FROM EDSources
     JOIN ConfigurationEDSourceAssoc
     ON EDSources.superId = ConfigurationEDSourceAssoc.edsourceId
-    WHERE ConfigurationEDSourceAssoc.configId = config_id
-    ORDER BY ConfigurationEDSourceAssoc.sequenceNb ASC;
+    WHERE ConfigurationEDSourceAssoc.configId = config_id;
 
   /* cursor for essources */
   CURSOR cur_essources IS
@@ -966,12 +967,12 @@ AS
       ESSources.superId,
       ESSources.templateId,
       ESSources.name,
-      ConfigurationESSourceAssoc.prefer
+      ConfigurationESSourceAssoc.prefer,
+      ConfigurationESSourceAssoc.sequenceNb
     FROM ESSources
     JOIN ConfigurationESSourceAssoc
     ON ESSources.superId = ConfigurationESSourceAssoc.essourceId
-    WHERE ConfigurationESSourceAssoc.configId = config_id
-    ORDER BY ConfigurationESSourceAssoc.sequenceNb;
+    WHERE ConfigurationESSourceAssoc.configId = config_id;
 
   /* cursor for esmodules */
   CURSOR cur_esmodules IS
@@ -979,23 +980,23 @@ AS
       ESModules.superId,
       ESModules.templateId,
       ESModules.name,
-      ConfigurationESModuleAssoc.prefer
+      ConfigurationESModuleAssoc.prefer,
+      ConfigurationESModuleAssoc.sequenceNb
     FROM ESModules
     JOIN ConfigurationESModuleAssoc
     ON ESModules.superId = ConfigurationESModuleAssoc.esmoduleId
-    WHERE ConfigurationESModuleAssoc.configId = config_id
-    ORDER BY ConfigurationESModuleAssoc.sequenceNb;
+    WHERE ConfigurationESModuleAssoc.configId = config_id;
 
   /* cursor for services */
   CURSOR cur_services IS
     SELECT
       Services.superId,
-      Services.templateId
+      Services.templateId,
+      ConfigurationServiceAssoc.sequenceNb
     FROM Services
     JOIN ConfigurationServiceAssoc
     ON   Services.superId = ConfigurationServiceAssoc.serviceId
-    WHERE ConfigurationServiceAssoc.configId = config_id
-    ORDER BY ConfigurationServiceAssoc.sequenceNb;
+    WHERE ConfigurationServiceAssoc.configId = config_id;
 
   /* cursor for modules from configuration *paths* */
   CURSOR cur_modules_from_paths IS
@@ -1028,23 +1029,23 @@ AS
     SELECT
       Paths.pathId,
       Paths.name,
-      Paths.isEndPath
+      Paths.isEndPath,
+      ConfigurationPathAssoc.sequenceNb
     FROM Paths
     JOIN ConfigurationPathAssoc
     ON Paths.pathId = ConfigurationPathAssoc.pathId
-    WHERE ConfigurationPathAssoc.configId = config_id
-    ORDER BY ConfigurationPathAssoc.sequenceNb ASC;
+    WHERE ConfigurationPathAssoc.configId = config_id;
 
   /* cursor for sequences */
   CURSOR cur_sequences IS
     SELECT
       Sequences.sequenceId,
-      Sequences.name
+      Sequences.name,
+      ConfigurationSequenceAssoc.sequenceNb
     FROM Sequences
     JOIN ConfigurationSequenceAssoc
     ON Sequences.sequenceId = ConfigurationSequenceAssoc.sequenceId
-    WHERE ConfigurationSequenceAssoc.configId = config_id
-    ORDER BY ConfigurationSequenceAssoc.sequenceNb ASC;
+    WHERE ConfigurationSequenceAssoc.configId = config_id;
 
   /* cursor for streams */
   CURSOR cur_streams IS
@@ -1139,10 +1140,10 @@ BEGIN
   OPEN cur_global_psets;
   LOOP
     FETCH cur_global_psets
-      INTO v_instance_id,v_instance_name,v_pset_is_trkd;
+      INTO v_instance_id,v_instance_name,v_pset_is_trkd,v_sequence_nb;
     EXIT WHEN cur_global_psets%NOTFOUND;
     INSERT INTO tmp_instance_table
-      VALUES(v_instance_id,NULL,'PSet',v_instance_name,v_pset_is_trkd);    
+      VALUES(v_instance_id,NULL,'PSet',v_instance_name,v_pset_is_trkd,v_sequence_nb);
     load_parameters(v_instance_id);
   END LOOP;
   CLOSE cur_global_psets;
@@ -1150,10 +1151,10 @@ BEGIN
   /* load edsources */
   OPEN cur_edsources;
   LOOP
-    FETCH cur_edsources INTO v_instance_id,v_template_id;
+    FETCH cur_edsources INTO v_instance_id,v_template_id,v_sequence_nb;
     EXIT WHEN cur_edsources%NOTFOUND;
     INSERT INTO tmp_instance_table
-      VALUES(v_instance_id,v_template_id,'EDSource',NULL,NULL);
+      VALUES(v_instance_id,v_template_id,'EDSource',NULL,NULL,v_sequence_nb);
     load_parameters(v_instance_id);
   END LOOP;
   CLOSE cur_edsources;
@@ -1162,10 +1163,11 @@ BEGIN
   OPEN cur_essources;
   LOOP
     FETCH cur_essources
-      INTO v_instance_id,v_template_id,v_instance_name,v_prefer;
+      INTO v_instance_id,v_template_id,v_instance_name,v_prefer,v_sequence_nb;
     EXIT WHEN cur_essources%NOTFOUND;
     INSERT INTO tmp_instance_table
-    VALUES(v_instance_id,v_template_id,'ESSource',v_instance_name,v_prefer);
+    VALUES(v_instance_id,v_template_id,'ESSource',
+           v_instance_name,v_prefer,v_sequence_nb);
     load_parameters(v_instance_id);
   END LOOP;
   CLOSE cur_essources;
@@ -1174,10 +1176,11 @@ BEGIN
   OPEN cur_esmodules;
   LOOP
     FETCH cur_esmodules
-      INTO v_instance_id,v_template_id,v_instance_name,v_prefer;
+      INTO v_instance_id,v_template_id,v_instance_name,v_prefer,v_sequence_nb;
     EXIT WHEN cur_esmodules%NOTFOUND;
     INSERT INTO tmp_instance_table
-    VALUES(v_instance_id,v_template_id,'ESModule',v_instance_name,v_prefer);
+    VALUES(v_instance_id,v_template_id,'ESModule',
+           v_instance_name,v_prefer,v_sequence_nb);
     load_parameters(v_instance_id);
   END LOOP;
   CLOSE cur_esmodules;
@@ -1185,10 +1188,10 @@ BEGIN
   /* load services */
   OPEN cur_services;
   LOOP
-    FETCH cur_services INTO v_instance_id,v_template_id;
+    FETCH cur_services INTO v_instance_id,v_template_id,v_sequence_nb;
     EXIT WHEN cur_services%NOTFOUND;
     INSERT INTO tmp_instance_table
-      VALUES(v_instance_id,v_template_id,'Service',NULL,NULL);
+      VALUES(v_instance_id,v_template_id,'Service',NULL,NULL,v_sequence_nb);
     load_parameters(v_instance_id);
   END LOOP;
   CLOSE cur_services;
@@ -1200,7 +1203,7 @@ BEGIN
       INTO v_instance_id,v_template_id,v_instance_name;
     EXIT WHEN cur_modules_from_paths%NOTFOUND;
     INSERT INTO tmp_instance_table
-      VALUES(v_instance_id,v_template_id,'Module',v_instance_name,NULL);
+      VALUES(v_instance_id,v_template_id,'Module',v_instance_name,NULL,NULL);
     load_parameters(v_instance_id);
   END LOOP;
   CLOSE cur_modules_from_paths;
@@ -1212,7 +1215,7 @@ BEGIN
       INTO v_instance_id,v_template_id,v_instance_name;
     EXIT WHEN cur_modules_from_sequences%NOTFOUND;
     INSERT INTO tmp_instance_table
-      VALUES(v_instance_id,v_template_id,'Module',v_instance_name,NULL);
+      VALUES(v_instance_id,v_template_id,'Module',v_instance_name,NULL,NULL);
     load_parameters(v_instance_id);
   END LOOP;
   CLOSE cur_modules_from_sequences;
@@ -1220,20 +1223,20 @@ BEGIN
   /* load paths */
   OPEN cur_paths;
   LOOP
-    FETCH cur_paths INTO v_instance_id,v_instance_name,v_endpath;
+    FETCH cur_paths INTO v_instance_id,v_instance_name,v_endpath,v_sequence_nb;
     EXIT WHEN cur_paths%NOTFOUND;
     INSERT INTO tmp_instance_table
-      VALUES(v_instance_id,NULL,'Path',v_instance_name,v_endpath);
+      VALUES(v_instance_id,NULL,'Path',v_instance_name,v_endpath,v_sequence_nb);
   END LOOP;
   CLOSE cur_paths;
 
   /* load sequences */
   OPEN cur_sequences;
   LOOP
-    FETCH cur_sequences INTO v_instance_id,v_instance_name;
+    FETCH cur_sequences INTO v_instance_id,v_instance_name,v_sequence_nb;
     EXIT WHEN cur_sequences%NOTFOUND;
     INSERT INTO tmp_instance_table
-      VALUES(v_instance_id,NULL,'Sequence',v_instance_name,NULL);
+      VALUES(v_instance_id,NULL,'Sequence',v_instance_name,NULL,v_sequence_nb);
   END LOOP;
   CLOSE cur_sequences;
 
@@ -1243,7 +1246,7 @@ BEGIN
     FETCH cur_streams INTO v_instance_id,v_instance_name;
     EXIT WHEN cur_streams%NOTFOUND;
     INSERT INTO tmp_instance_table
-      VALUES(v_instance_id,NULL,'Stream',v_instance_name,NULL);
+      VALUES(v_instance_id,NULL,'Stream',v_instance_name,NULL,NULL);
   END LOOP;
   CLOSE cur_streams;
   

@@ -615,10 +615,24 @@ public class ModifierInstructions
 	requestedSequences.add(sequenceName);
     }
 
+    /** unrequest a sequence regardless of it being referenced in path */
+    public void unrequestSequence(String sequenceName)
+    {
+	int index = requestedSequences.indexOf(sequenceName);
+	if (index>=0) requestedSequences.remove(index);
+    }
+
     /** request a module regardless of it being referenced in path */
     public void requestModule(String moduleName)
     {
 	requestedModules.add(moduleName);
+    }
+
+    /** unrequest a module regardless of it being referenced in path */
+    public void unrequestModule(String moduleName)
+    {
+	int index = requestedModules.indexOf(moduleName);
+	if (index>=0) requestedModules.remove(index);
     }
     
     /** insert a DaqSource */

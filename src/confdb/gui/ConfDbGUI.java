@@ -1228,9 +1228,7 @@ public class ConfDbGUI implements TableModelListener
 	    String configAsString = "";
 	    try {
 		OfflineConverter cnv = new OfflineConverter(format);
-		configAsString = cnv.getConfigString(config,
-						     new ModifierInstructions(),
-						     false);
+		configAsString = cnv.getConfigString(config,null,false);
 	    }
 	    catch (ConverterException e) {
 		System.err.println("Conversion failed: " + e.getMessage());

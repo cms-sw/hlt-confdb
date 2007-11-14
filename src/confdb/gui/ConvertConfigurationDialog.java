@@ -395,7 +395,7 @@ public class ConvertConfigurationDialog extends JDialog
 
 
 //
-// classes
+// private classes
 //
 
 /** ConvertConfigTreeRenderer */
@@ -485,14 +485,18 @@ class ConvertConfigTreeRenderer extends DefaultTreeCellRenderer
 	    }
 	    else if (value==treeModel.sequencesNode()) {
 		boolean isSelected = false;
-		Iterator it = config.sequenceIterator();
-		while (!isSelected&&it.hasNext()) {
-		    Sequence sequence = (Sequence)it.next();
-		    Path[] paths = sequence.parentPaths();
-		    for (Path p : paths) {
-			if (!modifications.isInBlackList(p)) {
-			    isSelected = true;
-			    break;
+		if (modifications.requestedSequenceIterator().hasNext())
+		    isSelected = true;
+		else {
+		    Iterator it = config.sequenceIterator();
+		    while (!isSelected&&it.hasNext()) {
+			Sequence sequence = (Sequence)it.next();
+			Path[] paths = sequence.parentPaths();
+			for (Path p : paths) {
+			    if (!modifications.isInBlackList(p)) {
+				isSelected = true;
+				break;
+			    }
 			}
 		    }
 		}
@@ -501,14 +505,18 @@ class ConvertConfigTreeRenderer extends DefaultTreeCellRenderer
 	    }
 	    else if (value==treeModel.modulesNode()) {
 		boolean isSelected = false;
-		Iterator it = config.moduleIterator();
-		while (!isSelected&&it.hasNext()) {
-		    ModuleInstance module = (ModuleInstance)it.next();
-		    Path[] paths = module.parentPaths();
-		    for (Path p : paths) {
-			if (!modifications.isInBlackList(p)) {
-			    isSelected = true;
-			    break;
+		if (modifications.requestedModuleIterator().hasNext())
+		    isSelected = true;
+		else {
+		    Iterator it = config.moduleIterator();
+		    while (!isSelected&&it.hasNext()) {
+			ModuleInstance module = (ModuleInstance)it.next();
+			Path[] paths = module.parentPaths();
+			for (Path p : paths) {
+			    if (!modifications.isInBlackList(p)) {
+				isSelected = true;
+				break;
+			    }
 			}
 		    }
 		}
@@ -603,17 +611,21 @@ class ConvertConfigTreeEditor extends AbstractCellEditor implements TreeCellEdit
 	    else if (value==treeModel.pathsNode()) {
 		modifications
 		    .filterAllPaths(!modifications.doFilterAllPaths());
-		//Iterator itS = config.sequenceIterator();
-		//while (itS.hasNext()) treeModel.nodeChanged(itS.next());
-		//Iterator itM = config.moduleIterator();
-		//while (itM.hasNext()) treeModel.nodeChanged(itM.next());
 	    }
 	}
 	else if (value instanceof Sequence) {
-	    System.out.println("sequence " + value);
+	    Sequence s = (Sequence)value;
+	    if (modifications.isRequested(s))
+		modifications.unrequestSequence(s.name());
+	    else
+		modifications.requestSequence(s.name());
 	}
 	else if (value instanceof ModuleInstance) {
-	    System.out.println("module " + value);
+	    ModuleInstance m = (ModuleInstance)value;
+	    if (modifications.isRequested(m))
+		modifications.unrequestModule(m.name());
+	    else
+		modifications.requestModule(m.name());
 	}
 	else {
 	    boolean isFiltered = modifications.isInBlackList(value);

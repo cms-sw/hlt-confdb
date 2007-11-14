@@ -83,6 +83,8 @@ public class ConfigurationModifier implements IConfiguration
     /** apply modifications */
     public void modify(ModifierInstructions modifications)
     {
+	if (modifications==null) return;
+	
 	psets.clear();
 	edsources.clear();
 	essources.clear();
@@ -223,6 +225,8 @@ public class ConfigurationModifier implements IConfiguration
 		sequences.add(sequence);
 	}
 	
+
+
 	Iterator itM = modifications.requestedModuleIterator();
 	while (itM.hasNext()) {
 	    String         moduleLabel = (String)itM.next();
@@ -232,6 +236,9 @@ public class ConfigurationModifier implements IConfiguration
 	}
 	
 	isModified = true;
+
+	System.out.println("sequenceCount = " + sequenceCount());
+	System.out.println("moduleCount   = " + moduleCount());
     }
 
     /** reset all modifications */
