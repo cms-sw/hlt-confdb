@@ -75,6 +75,7 @@ public class OfflineConverter extends ConverterBase
 	throws ConverterException
     {
 	ConfigurationModifier modifier = new ConfigurationModifier(config);
+	
 	modifier.modify(modifications);
 	
 	if (asFragment)

@@ -600,7 +600,8 @@ public class ConfDbGUI implements TableModelListener
 	    ConvertConfigurationThread worker = 
 		new ConvertConfigurationThread(dialog.configToConvert(),
 					       dialog.fileName(),
-					       dialog.format());
+					       dialog.format(),
+					       dialog.asFragment());
 	    worker.start();
 	    progressBar.setIndeterminate(true);
 	    progressBar.setVisible(true);
@@ -1208,17 +1209,23 @@ public class ConfDbGUI implements TableModelListener
 	private String fileName = null;
 
 	/** conversion format */
-	String format = null;
+	private String format = null;
+	
+	/** convert a configuration fragment? */
+	private boolean asFragment = false;
 	
 	/** start time */
 	private long startTime;
 	
 	/** standard constructor */
 	public ConvertConfigurationThread(IConfiguration config,
-					  String fileName, String format) {
-	    this.config   = config;
-	    this.fileName = fileName;
-	    this.format   = format;
+					  String  fileName,
+					  String  format,
+					  boolean asFragment) {
+	    this.config     = config;
+	    this.fileName   = fileName;
+	    this.format     = format;
+	    this.asFragment = asFragment;
 	}
 	
 	/** SwingWorker: construct() */
@@ -1228,7 +1235,7 @@ public class ConfDbGUI implements TableModelListener
 	    String configAsString = "";
 	    try {
 		OfflineConverter cnv = new OfflineConverter(format);
-		configAsString = cnv.getConfigString(config,null,false);
+		configAsString = cnv.getConfigString(config,null,asFragment);
 	    }
 	    catch (ConverterException e) {
 		System.err.println("Conversion failed: " + e.getMessage());

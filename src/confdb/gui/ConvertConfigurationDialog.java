@@ -41,6 +41,7 @@ public class ConvertConfigurationDialog extends JDialog
     private JButton      jButtonBrowseFileName   = new JButton();
     private JButton      jButtonBrowseInputFiles = new JButton();
     private JButton      jButtonBrowseOutputFile = new JButton();
+    private JCheckBox    jCheckBoxCff            = new JCheckBox();
     private JButton      jButtonCancel           = new JButton();
     private JButton      jButtonConvert          = new JButton();
     private JLabel       jLabelFileName          = new JLabel();
@@ -94,6 +95,11 @@ public class ConvertConfigurationDialog extends JDialog
 	setContentPane(initComponents());
 	
 	// register action listeners
+	jCheckBoxCff.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jCheckBoxCffActionPerformed(e);
+		}
+	    });
 	jButtonCancel.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    jButtonCancelActionPerformed(e);
@@ -167,6 +173,10 @@ public class ConvertConfigurationDialog extends JDialog
 	String outputFile = jTextFieldOutputFile.getText();
 	if (inputFiles.length()>0)  modifications.insertPoolSource(inputFiles);
 	if (outputFile.length()>0)  modifications.insertPoolOutputModule(outputFile);
+	if (asFragment()) {
+	    modifications.filterAllEDSources(true);
+	    modifications.filterAllOutputModules(true);
+	}
 	modifier.modify(modifications);
 	return modifier;
     }
@@ -182,11 +192,20 @@ public class ConvertConfigurationDialog extends JDialog
     {
 	return buttonGroupFormat.getSelection().getActionCommand();
     }
-    
-    
+
+    /** convert as a fragment? */
+    public boolean asFragment() { return jCheckBoxCff.isSelected(); }
+
+
     //
     // private member functions
     //
+    
+    /** CFF checkbox */
+    private void jCheckBoxCffActionPerformed(ActionEvent e)
+    {
+	setFileNameExtension();
+    }
     
     /** CANCEL button */
     private void jButtonCancelActionPerformed(ActionEvent e)
@@ -256,9 +275,12 @@ public class ConvertConfigurationDialog extends JDialog
     {
 	String extension = "";
 	String format   = format();
-	if      (format.equalsIgnoreCase("ascii"))  extension = "cfg";
-	else if (format.equalsIgnoreCase("python")) extension = "py";
-	else if (format.equalsIgnoreCase("html"))   extension = "html";
+	if      (format.equalsIgnoreCase("ascii"))
+	    extension = (asFragment()) ? "cff" : "cfg";
+	else if (format.equalsIgnoreCase("python"))
+	    extension = (asFragment()) ? "py" : "py";
+	else if (format.equalsIgnoreCase("html"))
+	    extension = (asFragment()) ? "html" : "html";
 	String fileName = fileName();
 	if (fileName.length()>0) {
 	    int index = fileName.lastIndexOf(".");
@@ -275,6 +297,11 @@ public class ConvertConfigurationDialog extends JDialog
         jLabelFileName.setText("File Name:");
         jLabelInputFiles.setText("Input Files:");
         jLabelOutputFile.setText("Output File:");
+
+        jCheckBoxCff.setBackground(new java.awt.Color(255, 255, 255));
+        jCheckBoxCff.setText("cff");
+        jCheckBoxCff.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        jCheckBoxCff.setMargin(new java.awt.Insets(0, 0, 0, 0));
 
         jButtonCancel.setText("Cancel");
 	
@@ -304,57 +331,47 @@ public class ConvertConfigurationDialog extends JDialog
         org.jdesktop.layout.GroupLayout layout =
 	    new org.jdesktop.layout.GroupLayout(jPanel);
         jPanel.setLayout(layout);
-        layout
-	    .setHorizontalGroup(layout
-				.createParallelGroup(org.jdesktop.layout
-						     .GroupLayout.LEADING)
-				.add(org.jdesktop.layout
-				     .GroupLayout.TRAILING,
-				     layout.createSequentialGroup()
-				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-					  .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
-					       .addContainerGap()
-					       .add(jScrollPaneFilter, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE))
-					  .add(layout.createSequentialGroup()
-					       .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-						    .add(layout.createSequentialGroup()
-							 .add(109, 109, 109)
-							 .add(jButtonCancel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE)
-							 .add(14, 14, 14)
-							 .add(jButtonConvert, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE)
-							 .add(41, 41, 41))
-						    .add(layout.createSequentialGroup()
-							 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-							      .add(layout.createSequentialGroup()
-								   .addContainerGap()
-								   .add(jLabelFileName))
-							      .add(layout.createSequentialGroup()
-								   .addContainerGap()
-								   .add(jLabelInputFiles))
-							      .add(layout.createSequentialGroup()
-								   .addContainerGap()
-								   .add(jLabelOutputFile))
-							      .add(layout.createSequentialGroup()
-								   .addContainerGap()
-								   .add(jLabelFormat)))
-							 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-							 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-							      .add(layout.createSequentialGroup()
-								   .add(jRadioButtonAscii)
-								   .add(41, 41, 41)
-								   .add(jRadioButtonPython)
-								   .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 43, Short.MAX_VALUE)
-								   .add(jRadioButtonHtml))
-							      .add(jTextFieldOutputFile, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
-							      .add(jTextFieldInputFiles, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
-							      .add(jTextFieldFileName, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE))))
-					       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-					       .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
-						    .add(jButtonBrowseOutputFile, 0, 0, Short.MAX_VALUE)
-						    .add(jButtonBrowseInputFiles, 0, 0, Short.MAX_VALUE)
-						    .add(jButtonBrowseFileName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 41, Short.MAX_VALUE))))
-				     .addContainerGap())
-				);
+        layout.setHorizontalGroup(
+				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				  .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+				       .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+					    .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
+						 .addContainerGap()
+						 .add(jScrollPaneFilter, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE))
+					    .add(layout.createSequentialGroup()
+						 .addContainerGap()
+						 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+						      .add(layout.createSequentialGroup()
+							   .add(jCheckBoxCff)
+							   .add(28, 28, 28)
+							   .add(jButtonCancel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 122, Short.MAX_VALUE)
+							   .add(14, 14, 14)
+							   .add(jButtonConvert, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 122, Short.MAX_VALUE)
+							   .add(19, 19, 19))
+						      .add(layout.createSequentialGroup()
+							   .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+								.add(jLabelFileName)
+								.add(jLabelInputFiles)
+								.add(jLabelOutputFile)
+								.add(jLabelFormat))
+							   .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+							   .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+								.add(layout.createSequentialGroup()
+								     .add(jRadioButtonAscii)
+								     .add(41, 41, 41)
+								     .add(jRadioButtonPython)
+								     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 43, Short.MAX_VALUE)
+								     .add(jRadioButtonHtml))
+								.add(jTextFieldOutputFile, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
+								.add(jTextFieldInputFiles, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
+								.add(jTextFieldFileName, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE))))
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
+						      .add(jButtonBrowseOutputFile, 0, 0, Short.MAX_VALUE)
+						      .add(jButtonBrowseInputFiles, 0, 0, Short.MAX_VALUE)
+						      .add(jButtonBrowseFileName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 41, Short.MAX_VALUE))))
+				       .addContainerGap())
+				  );
         layout.setVerticalGroup(
 				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
 				.add(layout.createSequentialGroup()
@@ -383,6 +400,7 @@ public class ConvertConfigurationDialog extends JDialog
 				     .add(jScrollPaneFilter, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 339, Short.MAX_VALUE)
 				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
 				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+					  .add(jCheckBoxCff)
 					  .add(jButtonConvert)
 					  .add(jButtonCancel))
 				     .addContainerGap())
