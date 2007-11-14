@@ -858,7 +858,8 @@ public class ConfDB
 		 " template_id," +
 		 " instance_type," +
 		 " instance_name," +
-		 " flag " +
+		 " flag," +
+		 " sequence_nb " +
 		 "FROM tmp_instance_table " +
 		 "ORDER BY instance_type,sequence_nb");
 	    psSelectInstances.setFetchSize(1024);

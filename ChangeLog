@@ -1,5 +1,10 @@
 2007-11-14  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-15-04
+	* oracle-related (what else?) bug fix to ConfDB.java
+
+2007-11-14  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-15-03
 	* fix ordering bug (oracle) reported by Martin
 	* fix convert dialog to correctly handle requested
