@@ -109,6 +109,9 @@ public class AsciiParameterWriter  implements IParameterWriter
 	{
 		if ( parameter.isTracked() )
 			return false;
+		
+		if ( parameter.isDefault() )
+			return true;
 
 		if (  parameter instanceof PSetParameter )
 		{
