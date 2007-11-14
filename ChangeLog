@@ -1,5 +1,10 @@
 2007-11-14  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-15-05
+	* fix ascii converter: sequences converted before apths (UB)
+
+2007-11-14  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-15-04
 	* oracle-related (what else?) bug fix to ConfDB.java
 
