@@ -36,18 +36,18 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 		else
 			indent = "";
 
-		IPathWriter pathWriter = converterEngine.getPathWriter();
-		for ( int i = 0; i < conf.pathCount(); i++ )
-		{
-			Path path = conf.path(i);
-			str.append( pathWriter.toString( path, converterEngine, indent ) );
-		}
-
 		ISequenceWriter sequenceWriter = converterEngine.getSequenceWriter();
 		for ( int i = 0; i < conf.sequenceCount(); i++ )
 		{
 			Sequence sequence = conf.sequence(i);
 			str.append( sequenceWriter.toString(sequence, converterEngine, indent ) );
+		}
+
+		IPathWriter pathWriter = converterEngine.getPathWriter();
+		for ( int i = 0; i < conf.pathCount(); i++ )
+		{
+			Path path = conf.path(i);
+			str.append( pathWriter.toString( path, converterEngine, indent ) );
 		}
 
 		IParameterWriter parameterWriter = converterEngine.getParameterWriter();
