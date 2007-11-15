@@ -92,9 +92,9 @@ public class Path extends ReferenceContainer
     public boolean containsEntry(Reference reference)
     {
 	Referencable parent = reference.parent();
-	Iterator it = entries.iterator();
+	Iterator<Reference> it = entries.iterator();
 	while (it.hasNext()) {
-	    Reference r = (Reference)it.next();
+	    Reference r = it.next();
 	    if (parent.isReferencedBy(r)) return true;
 	    if (r.parent() instanceof ReferenceContainer) {
 		ReferenceContainer container = (ReferenceContainer)r.parent();
@@ -121,7 +121,7 @@ public class Path extends ReferenceContainer
     public Stream stream(int i) { return streams.get(i); }
 
     /** retrieve iterator over streams this path is associated with */
-    public Iterator streamIterator() { return streams.iterator(); }
+    public Iterator<Stream> streamIterator() { return streams.iterator(); }
 
     /** add this path to a stream */
     public boolean addToStream(Stream stream)
