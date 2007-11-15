@@ -61,7 +61,7 @@ public class Stream implements Comparable<Stream>
     public Path path(int i) { return paths.get(i); }
     
     /** retrieve iterator over paths */
-    public Iterator pathIterator() { return paths.iterator(); }
+    public Iterator<Path> pathIterator() { return paths.iterator(); }
     
     /** index of a certain path */
     public int indexOfPath(Path path) { return paths.indexOf(path); }

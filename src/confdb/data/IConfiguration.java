@@ -79,7 +79,7 @@ public interface IConfiguration
     public int indexOfPSet(PSetParameter pset);
 
     /** retrieve pset iterator */
-    public Iterator psetIterator();
+    public Iterator<PSetParameter> psetIterator();
     
     
     /**  number of EDSources */
@@ -92,7 +92,7 @@ public interface IConfiguration
     public int indexOfEDSource(EDSourceInstance edsource);
 	
     /** retrieve edsource iterator */
-    public Iterator edsourceIterator();
+    public Iterator<EDSourceInstance> edsourceIterator();
 
     
     /**  number of ESSources */
@@ -105,7 +105,7 @@ public interface IConfiguration
     public int indexOfESSource(ESSourceInstance essource);
 
     /** retrieve essource iterator */
-    public Iterator essourceIterator();
+    public Iterator<ESSourceInstance> essourceIterator();
     
     
     /**  number of ESModules */
@@ -118,7 +118,7 @@ public interface IConfiguration
     public int indexOfESModule(ESModuleInstance esmodule);
     
     /** retrieve esmodule iterator */
-    public Iterator esmoduleIterator();
+    public Iterator<ESModuleInstance> esmoduleIterator();
 
     
     /**  number of Services */
@@ -131,7 +131,7 @@ public interface IConfiguration
     public int indexOfService(ServiceInstance service);
     
     /** retrieve service iterator */
-    public Iterator serviceIterator();
+    public Iterator<ServiceInstance> serviceIterator();
     
     
     /**  number of Modules */
@@ -147,7 +147,7 @@ public interface IConfiguration
     public int indexOfModule(ModuleInstance module);
     
     /** retrieve module iterator */
-    public Iterator moduleIterator();
+    public Iterator<ModuleInstance> moduleIterator();
     
 
     /** number of Paths */
@@ -163,7 +163,7 @@ public interface IConfiguration
     public int indexOfPath(Path path);
     
     /** retrieve path iterator */
-    public Iterator pathIterator();
+    public Iterator<Path> pathIterator();
 
     
     /** number of Sequences */
@@ -179,7 +179,7 @@ public interface IConfiguration
     public int indexOfSequence(Sequence sequence);
 
     /** retrieve sequence iterator */
-    public Iterator sequenceIterator();
+    public Iterator<Sequence> sequenceIterator();
     
     
     /** number of streams */
@@ -192,7 +192,7 @@ public interface IConfiguration
     public int indexOfStream(Stream stream);
     
     /** retrieve stream iterator */
-    public Iterator streamIterator();
+    public Iterator<Stream> streamIterator();
     
     
 }
