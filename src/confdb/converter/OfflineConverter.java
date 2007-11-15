@@ -1,11 +1,6 @@
 package confdb.converter;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-
-import java.sql.Connection;
-
 import confdb.data.*;
 
 import confdb.converter.IConfigurationWriter.WriteProcess;
