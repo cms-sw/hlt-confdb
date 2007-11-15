@@ -164,7 +164,7 @@ public class VPSetParameter extends Parameter
     {
 	PSetParameter p = parameterSet(i);
 	if (!p.setValue(valueAsString)) return false;
-	this.isDefault = isDefault;
+	this.isDefault = false;
 	return true;
     }
     
