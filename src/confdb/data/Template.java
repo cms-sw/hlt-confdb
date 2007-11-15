@@ -90,7 +90,7 @@ abstract public class Template extends DatabaseEntry implements Comparable<Templ
     public SoftwarePackage parentPackage() { return parentPackage; }
 
     /** parameter iterator */
-    public Iterator parameterIterator() { return parameters.iterator(); }
+    public Iterator<Parameter> parameterIterator() { return parameters.iterator(); }
 
     /** number of parameters */
     public int parameterCount() { return parameters.size(); }

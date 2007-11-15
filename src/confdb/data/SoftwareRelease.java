@@ -141,22 +141,22 @@ public class SoftwareRelease
 	serviceTemplateNamesByDbId  = new HashMap<Integer,String>();
 	moduleTemplateNamesByDbId   = new HashMap<Integer,String>();
 	
-	Iterator subsysIt = otherRelease.subsystemIterator();
+	Iterator<SoftwareSubsystem> subsysIt = otherRelease.subsystemIterator();
 	while (subsysIt.hasNext()) {
-	    SoftwareSubsystem otherSubsys = (SoftwareSubsystem)subsysIt.next();
+	    SoftwareSubsystem otherSubsys = subsysIt.next();
 	    SoftwareSubsystem subsys = new SoftwareSubsystem(otherSubsys.name());
-	    Iterator pkgIt = otherSubsys.packageIterator();
+	    Iterator<SoftwarePackage> pkgIt = otherSubsys.packageIterator();
 	    while (pkgIt.hasNext()) {
-		SoftwarePackage otherPkg = (SoftwarePackage)pkgIt.next();
+		SoftwarePackage otherPkg = pkgIt.next();
 		SoftwarePackage pkg = new SoftwarePackage(otherPkg.name());
 		subsys.addPackage(pkg);
-		Iterator templateIt = otherPkg.templateIterator();
+		Iterator<Template> templateIt = otherPkg.templateIterator();
 		while (templateIt.hasNext()) {
-		    Template template = (Template)templateIt.next();
+		    Template template = templateIt.next();
 		    ArrayList<Parameter> parameters = new ArrayList<Parameter>();
-		    Iterator parameterIt = template.parameterIterator();
+		    Iterator<Parameter> parameterIt = template.parameterIterator();
 		    while (parameterIt.hasNext()) {
-			Parameter p = (Parameter)parameterIt.next();
+			Parameter p = parameterIt.next();
 			parameters.add(p.clone(null));
 		    }
 		    if (template instanceof EDSourceTemplate)
@@ -206,7 +206,7 @@ public class SoftwareRelease
     public SoftwareSubsystem subsystem(int i) { return subsystems.get(i); }
 
     /** get subsystem iterator */
-    public Iterator subsystemIterator() { return subsystems.iterator(); }
+    public Iterator<SoftwareSubsystem> subsystemIterator() { return subsystems.iterator(); }
 
     /** index of a certain subsystem */
     public int indexOfSubsystem(SoftwareSubsystem s) { return subsystems.indexOf(s); }
@@ -215,13 +215,13 @@ public class SoftwareRelease
     public ArrayList<String> listOfReferencedPackages()
     {
 	ArrayList<String> result = new ArrayList<String>();
-	Iterator itS = subsystemIterator();
+	Iterator<SoftwareSubsystem> itS = subsystemIterator();
 	while (itS.hasNext()) {
-	    SoftwareSubsystem subsys = (SoftwareSubsystem)itS.next();
+	    SoftwareSubsystem subsys = itS.next();
 	    if (subsys.referencedPackageCount()==0) continue;
-	    Iterator itP = subsys.packageIterator();
+	    Iterator<SoftwarePackage> itP = subsys.packageIterator();
 	    while (itP.hasNext()) {
-		SoftwarePackage pkg = (SoftwarePackage)itP.next();
+		SoftwarePackage pkg = itP.next();
 		if (pkg.instantiatedTemplateCount()>0)
 		    result.add(subsys.name()+"/"+pkg.name());
 	    }
@@ -289,37 +289,37 @@ public class SoftwareRelease
     }
     
     /** template iterator */
-    public Iterator templateIterator()
+    public Iterator<Template> templateIterator()
     {
 	return templates.iterator();
     }
 
     /** EDSource template iterator */
-    public Iterator edsourceTemplateIterator()
+    public Iterator<EDSourceTemplate> edsourceTemplateIterator()
     {
 	return edsourceTemplates.iterator();
     }
 
     /** ESSource template iterator */
-    public Iterator essourceTemplateIterator()
+    public Iterator<ESSourceTemplate> essourceTemplateIterator()
     {
 	return essourceTemplates.iterator();
     }
 
     /** ESModule template iterator */
-    public Iterator esmoduleTemplateIterator()
+    public Iterator<ESModuleTemplate> esmoduleTemplateIterator()
     {
 	return esmoduleTemplates.iterator();
     }
 
     /** Service template iterator */
-    public Iterator serviceTemplateIterator()
+    public Iterator<ServiceTemplate> serviceTemplateIterator()
     {
 	return serviceTemplates.iterator();
     }
 
     /** Module template iterator */
-    public Iterator moduleTemplateIterator()
+    public Iterator<ModuleTemplate> moduleTemplateIterator()
     {
 	return moduleTemplates.iterator();
     }
@@ -413,12 +413,12 @@ public class SoftwareRelease
     public boolean addSubsystem(SoftwareSubsystem subsystem)
     {
 	subsystems.add(subsystem);
-	Iterator itP = subsystem.packageIterator();
+	Iterator<SoftwarePackage> itP = subsystem.packageIterator();
 	while (itP.hasNext()) {
-	    SoftwarePackage pkg = (SoftwarePackage)itP.next();
-	    Iterator templateIt = pkg.templateIterator();
+	    SoftwarePackage pkg = itP.next();
+	    Iterator<Template> templateIt = pkg.templateIterator();
 	    while (templateIt.hasNext()) {
-		Template t = (Template)templateIt.next();
+		Template t = templateIt.next();
 		//System.out.println("add template " +
 		//	   subsystem.name() + " / " +
 		//	   pkg.name() + " / " +

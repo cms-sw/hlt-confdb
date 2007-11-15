@@ -64,7 +64,7 @@ public class SoftwareSubsystem implements Comparable<SoftwareSubsystem>
     public SoftwarePackage getPackage(int i) { return packages.get(i); }
 
     /** get packkage iterator */
-    public Iterator packageIterator() { return packages.iterator(); }
+    public Iterator<SoftwarePackage> packageIterator() { return packages.iterator(); }
 
     /** get index of a certain package */
     public int indexOfPackage(SoftwarePackage p) { return packages.indexOf(p); }

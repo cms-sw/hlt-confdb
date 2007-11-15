@@ -68,7 +68,7 @@ public class SoftwarePackage implements Comparable<SoftwarePackage>
     public Template template(int i) { return templates.get(i); }
 
     /** get template iterator */
-    public Iterator templateIterator() { return templates.iterator(); }
+    public Iterator<Template> templateIterator() { return templates.iterator(); }
 
     /** get index of a certain template within the package */
     public int indexOfTemplate(Template t) { return templates.indexOf(t); }

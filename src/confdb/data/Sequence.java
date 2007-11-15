@@ -1,6 +1,5 @@
 package confdb.data;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 
 
@@ -47,9 +46,9 @@ public class Sequence extends ReferenceContainer
     public boolean containsEntry(Reference reference)
     {
 	Referencable parent = reference.parent();
-	Iterator it = entries.iterator();
+	Iterator<Reference> it = entries.iterator();
 	while (it.hasNext()) {
-	    Reference r = (Reference)it.next();
+	    Reference r = it.next();
 	    if (parent.isReferencedBy(r)) return true;
 	}
 	return false;

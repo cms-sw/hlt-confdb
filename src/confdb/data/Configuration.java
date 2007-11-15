@@ -1,7 +1,6 @@
 package confdb.data;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Collections;
 
@@ -159,7 +158,7 @@ public class Configuration implements IConfiguration
     }
     
     /** number of components of a certain type */
-    public int componentCount(Class c)
+    public int componentCount(Class<?> c)
     {
 	if      (c == PSetParameter.class)    return psetCount();
 	else if (c == EDSourceInstance.class) return edsourceCount(); 
@@ -435,7 +434,7 @@ public class Configuration implements IConfiguration
     }
 
     /** retrieve pset iterator */
-    public Iterator psetIterator() { return psets.iterator(); }
+    public Iterator<PSetParameter> psetIterator() { return psets.iterator(); }
     
     /** insert global pset at i-th position */
     public void insertPSet(PSetParameter pset)
@@ -447,7 +446,6 @@ public class Configuration implements IConfiguration
     /** remove a global PSet */
     public void removePSet(PSetParameter pset)
     {
-	int index = psets.indexOf(pset);
 	psets.remove(pset);
 	hasChanged = true;
     }
@@ -473,7 +471,7 @@ public class Configuration implements IConfiguration
     }
     
     /** retrieve edsource iterator */
-    public Iterator edsourceIterator() { return edsources.iterator(); }
+    public Iterator<EDSourceInstance> edsourceIterator() { return edsources.iterator(); }
 
     /** insert EDSource at i-th position */
     public EDSourceInstance insertEDSource(String templateName)
@@ -531,7 +529,7 @@ public class Configuration implements IConfiguration
     }
     
     /** retrieve essource iterator */
-    public Iterator essourceIterator() { return essources.iterator(); }
+    public Iterator<ESSourceInstance> essourceIterator() { return essources.iterator(); }
 
     /** insert ESSource at i=th position */
     public ESSourceInstance insertESSource(int i,
@@ -589,7 +587,7 @@ public class Configuration implements IConfiguration
     }
    
     /** retrieve esmodule iterator */
-    public Iterator esmoduleIterator() { return esmodules.iterator(); }
+    public Iterator<ESModuleInstance> esmoduleIterator() { return esmodules.iterator(); }
 
 
     /** insert ESModule at i-th position */
@@ -648,7 +646,7 @@ public class Configuration implements IConfiguration
     }
 
     /** retrieve service iterator */
-    public Iterator serviceIterator() { return services.iterator(); }
+    public Iterator<ServiceInstance> serviceIterator() { return services.iterator(); }
     
     /** insert Service at i=th position */
     public ServiceInstance insertService(int i,String templateName)
@@ -711,7 +709,7 @@ public class Configuration implements IConfiguration
     }
     
     /** retrieve module iterator */
-    public Iterator moduleIterator() { return modules.iterator(); }
+    public Iterator<ModuleInstance> moduleIterator() { return modules.iterator(); }
     
     /** insert a module */
     public ModuleInstance insertModule(String templateName,String instanceName)
@@ -791,9 +789,9 @@ public class Configuration implements IConfiguration
     /** get Path by name*/
     public Path path(String pathName)
     {
-	Iterator it = paths.iterator();
+	Iterator<Path> it = paths.iterator();
 	while (it.hasNext()) {
-	    Path p = (Path)it.next();
+	    Path p = it.next();
 	    if (p.name().equals(pathName)) return p;
 	}
 	System.err.println("ERROR: path '"+pathName+"' not found.");
@@ -804,7 +802,7 @@ public class Configuration implements IConfiguration
     public int indexOfPath(Path path) { return paths.indexOf(path); }
     
     /** retrieve path iterator */
-    public Iterator pathIterator() { return paths.iterator(); }
+    public Iterator<Path> pathIterator() { return paths.iterator(); }
 
     /** insert path at i-th position */
     public Path insertPath(int i, String pathName)
@@ -887,7 +885,7 @@ public class Configuration implements IConfiguration
     /** get Sequence by name*/
     public Sequence sequence(String sequenceName)
     {
-	Iterator it = sequences.iterator();
+	Iterator<Sequence> it = sequences.iterator();
 	while (it.hasNext()) {
 	    Sequence s = (Sequence)it.next();
 	    if (s.name().equals(sequenceName)) return s;
@@ -903,7 +901,7 @@ public class Configuration implements IConfiguration
     }
     
     /** retrieve sequence iterator */
-    public Iterator sequenceIterator() { return sequences.iterator(); }
+    public Iterator<Sequence> sequenceIterator() { return sequences.iterator(); }
     
     /** insert sequence */
     public Sequence insertSequence(int i,String sequenceName)
@@ -993,7 +991,7 @@ public class Configuration implements IConfiguration
     public int indexOfStream(Stream stream) { return streams.indexOf(stream); }
 
     /** retrieve stream iterator */
-    public Iterator streamIterator() { return streams.iterator(); }
+    public Iterator<Stream> streamIterator() { return streams.iterator(); }
     
     /** insert a new stream */
     public Stream insertStream(int i,String streamLabel)
@@ -1009,9 +1007,9 @@ public class Configuration implements IConfiguration
     {
 	int index = streams.indexOf(stream);
 	if (index<0) return;
-	Iterator it = stream.pathIterator();
+	Iterator<Path> it = stream.pathIterator();
 	while (it.hasNext()) {
-	    Path p = (Path)it.next();
+	    Path p = it.next();
 	    p.removeFromStream(stream);
 	}
 	streams.remove(index);
