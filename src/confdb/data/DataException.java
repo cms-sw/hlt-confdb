@@ -9,6 +9,7 @@ package confdb.data;
  */
 
 
+@SuppressWarnings("serial")
 public class DataException extends Exception
 {
     //

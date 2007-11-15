@@ -1,6 +1,5 @@
 package confdb.data;
 
-import java.util.ArrayList;
 
 
 /**
