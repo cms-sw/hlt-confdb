@@ -98,18 +98,18 @@ public class ConfigurationModifier implements IConfiguration
 	if (!modifications.resolve(master)) return;
 	
 	if (!modifications.doFilterAllPSets()) {
-	    Iterator it=master.psetIterator();
+	    Iterator<PSetParameter> it=master.psetIterator();
 	    while (it.hasNext()) {
-		PSetParameter pset = (PSetParameter)it.next();
+		PSetParameter pset = it.next();
 		if (!modifications.isInBlackList(pset))
 		    psets.add(pset);
 	    }
 	}
 	
 	if (!modifications.doFilterAllEDSources()) {
-	    Iterator it=master.edsourceIterator();
+	    Iterator<EDSourceInstance> it=master.edsourceIterator();
 	    while (it.hasNext()) {
-		EDSourceInstance edsource = (EDSourceInstance)it.next();
+		EDSourceInstance edsource = it.next();
 		if (!modifications.isInBlackList(edsource))
 		    edsources.add(edsource);
 	    }
@@ -118,27 +118,27 @@ public class ConfigurationModifier implements IConfiguration
 	    edsources.add(modifications.edsourceToBeAdded());
 	
 	if (!modifications.doFilterAllESSources()) {
-	    Iterator it=master.essourceIterator();
+	    Iterator<ESSourceInstance> it=master.essourceIterator();
 	    while (it.hasNext()) {
-		ESSourceInstance essource = (ESSourceInstance)it.next();
+		ESSourceInstance essource = it.next();
 		if (!modifications.isInBlackList(essource))
 		    essources.add(essource);
 	    }
 	}
 	
 	if (!modifications.doFilterAllESModules()) {
-	    Iterator it=master.esmoduleIterator();
+	    Iterator<ESModuleInstance> it=master.esmoduleIterator();
 	    while (it.hasNext()) {
-		ESModuleInstance esmodule = (ESModuleInstance)it.next();
+		ESModuleInstance esmodule = it.next();
 		if (!modifications.isInBlackList(esmodule))
 		    esmodules.add(esmodule);
 	    }
 	}
 	
 	if (!modifications.doFilterAllServices()) {
-	    Iterator it=master.serviceIterator();
+	    Iterator<ServiceInstance> it=master.serviceIterator();
 	    while (it.hasNext()) {
-		ServiceInstance service = (ServiceInstance)it.next();
+		ServiceInstance service = it.next();
 		if (!modifications.isInBlackList(service))
 		    services.add(service);
 	    }
@@ -147,9 +147,9 @@ public class ConfigurationModifier implements IConfiguration
 	boolean hasOutputModule = false;
 	
 	if (!modifications.doFilterAllPaths()) {
-	    Iterator itP = master.pathIterator();
+	    Iterator<Path> itP = master.pathIterator();
 	    while (itP.hasNext()) {
-		Path path = (Path)itP.next();
+		Path path = itP.next();
 		if (!modifications.isInBlackList(path)) {
 		    
 		    if (path.hasOutputModule()) hasOutputModule = true;
@@ -158,9 +158,9 @@ public class ConfigurationModifier implements IConfiguration
 			modifications.doInsertOutputModule()) {
 
 			Path copy = new Path(path.name());
-			Iterator it = path.entryIterator();
+			Iterator<Reference> it = path.entryIterator();
 			while (it.hasNext()) {
-			    Reference entry = (Reference)it.next();
+			    Reference entry = it.next();
 			    ModuleInstance outputModule = null;
 			    if (entry instanceof ModuleReference) {
 				ModuleReference ref  = (ModuleReference)entry;
@@ -194,15 +194,15 @@ public class ConfigurationModifier implements IConfiguration
 		    }
 
 		    paths.add(path);
-		    Iterator itS = path.sequenceIterator();
+		    Iterator<Sequence> itS = path.sequenceIterator();
 		    while (itS.hasNext()) {
-			Sequence sequence = (Sequence)itS.next();
+			Sequence sequence = itS.next();
 			if (sequences.indexOf(sequence)<0)
 			    sequences.add(sequence);
 		    }
-		    Iterator itM = path.moduleIterator();
+		    Iterator<ModuleInstance> itM = path.moduleIterator();
 		    while (itM.hasNext()) {
-			ModuleInstance module = (ModuleInstance)itM.next();
+			ModuleInstance module = itM.next();
 			if (modules.indexOf(module)<0)
 			    modules.add(module);
 		    }
@@ -217,9 +217,9 @@ public class ConfigurationModifier implements IConfiguration
 	    paths.add(out);
 	}
 
-	Iterator itS = modifications.requestedSequenceIterator();
+	Iterator<String> itS = modifications.requestedSequenceIterator();
 	while (itS.hasNext()) {
-	    String   sequenceName = (String)itS.next();
+	    String   sequenceName = itS.next();
 	    Sequence sequence     = master.sequence(sequenceName);
 	    if (sequence!=null&&sequences.indexOf(sequence)<0)
 		sequences.add(sequence);
@@ -227,9 +227,9 @@ public class ConfigurationModifier implements IConfiguration
 	
 
 
-	Iterator itM = modifications.requestedModuleIterator();
+	Iterator<String> itM = modifications.requestedModuleIterator();
 	while (itM.hasNext()) {
-	    String         moduleLabel = (String)itM.next();
+	    String         moduleLabel = itM.next();
 	    ModuleInstance module      = master.module(moduleLabel);
 	    if (module!=null&&modules.indexOf(module)<0)
 		modules.add(module);
@@ -400,7 +400,7 @@ public class ConfigurationModifier implements IConfiguration
     }
 
     /** retrieve pset iterator */
-    public Iterator psetIterator()
+    public Iterator<PSetParameter> psetIterator()
     {
 	return (isModified) ? psets.iterator() : master.psetIterator();
     }
@@ -426,7 +426,7 @@ public class ConfigurationModifier implements IConfiguration
     }
 	
     /** retrieve edsource iterator */
-    public Iterator edsourceIterator()
+    public Iterator<EDSourceInstance> edsourceIterator()
     {
 	return (isModified) ? edsources.iterator() : master.edsourceIterator();
     }
@@ -452,7 +452,7 @@ public class ConfigurationModifier implements IConfiguration
     }
 
     /** retrieve essource iterator */
-    public Iterator essourceIterator()
+    public Iterator<ESSourceInstance> essourceIterator()
     {
 	return (isModified) ? essources.iterator() : master.essourceIterator();
     }
@@ -478,7 +478,7 @@ public class ConfigurationModifier implements IConfiguration
     }
     
     /** retrieve esmodule iterator */
-    public Iterator esmoduleIterator()
+    public Iterator<ESModuleInstance> esmoduleIterator()
     {
 	return (isModified) ? esmodules.iterator() : master.esmoduleIterator();
     }
@@ -504,7 +504,7 @@ public class ConfigurationModifier implements IConfiguration
     }
     
     /** retrieve service iterator */
-    public Iterator serviceIterator()
+    public Iterator<ServiceInstance> serviceIterator()
     {
 	return (isModified) ? services.iterator() : master.serviceIterator();
     }
@@ -536,7 +536,7 @@ public class ConfigurationModifier implements IConfiguration
     }
     
     /** retrieve module iterator */
-    public Iterator moduleIterator()
+    public Iterator<ModuleInstance> moduleIterator()
     {
 	return (isModified) ? modules.iterator() : master.moduleIterator();
     }
@@ -567,7 +567,7 @@ public class ConfigurationModifier implements IConfiguration
     }
     
     /** retrieve path iterator */
-    public Iterator pathIterator()
+    public Iterator<Path> pathIterator()
     {
 	return (isModified) ? paths.iterator() : master.pathIterator();
     }
@@ -599,7 +599,7 @@ public class ConfigurationModifier implements IConfiguration
     }
 
     /** retrieve sequence iterator */
-    public Iterator sequenceIterator()
+    public Iterator<Sequence> sequenceIterator()
     {
 	return (isModified) ? sequences.iterator() : master.sequenceIterator();
     }
@@ -625,7 +625,7 @@ public class ConfigurationModifier implements IConfiguration
     }
     
     /** retrieve stream iterator */
-    public Iterator streamIterator()
+    public Iterator<Stream> streamIterator()
     {
 	return (isModified) ? streams.iterator() : master.streamIterator();
     }

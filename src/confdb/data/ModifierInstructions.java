@@ -236,9 +236,9 @@ public class ModifierInstructions
 		return false;
 	    }
 	    else {
-		Iterator it = config.psetIterator();
+		Iterator<PSetParameter> it = config.psetIterator();
 		while (it.hasNext()) {
-		    PSetParameter pset = (PSetParameter)it.next();
+		    PSetParameter pset = it.next();
 		    if (!psetWhiteList.contains(pset.name()))
 			psetBlackList.add(pset.name());
 		}
@@ -252,9 +252,9 @@ public class ModifierInstructions
 		return false;
 	    }
 	    else {
-		Iterator it = config.edsourceIterator();
+		Iterator<EDSourceInstance> it = config.edsourceIterator();
 		while (it.hasNext()) {
-		    EDSourceInstance edsource = (EDSourceInstance)it.next();
+		    EDSourceInstance edsource = it.next();
 		    if (!edsourceWhiteList.contains(edsource.name()))
 			edsourceBlackList.add(edsource.name());
 		}
@@ -268,9 +268,9 @@ public class ModifierInstructions
 		return false;
 	    }
 	    else {
-		Iterator it = config.essourceIterator();
+		Iterator<ESSourceInstance> it = config.essourceIterator();
 		while (it.hasNext()) {
-		    ESSourceInstance essource = (ESSourceInstance)it.next();
+		    ESSourceInstance essource = it.next();
 		    if (!essourceWhiteList.contains(essource.name()))
 			essourceBlackList.add(essource.name());
 		}
@@ -284,9 +284,9 @@ public class ModifierInstructions
 		return false;
 	    }
 	    else {
-		Iterator it = config.esmoduleIterator();
+		Iterator<ESModuleInstance> it = config.esmoduleIterator();
 		while (it.hasNext()) {
-		    ESModuleInstance esmodule = (ESModuleInstance)it.next();
+		    ESModuleInstance esmodule = it.next();
 		    if (!esmoduleWhiteList.contains(esmodule.name()))
 			esmoduleBlackList.add(esmodule.name());
 		}
@@ -300,9 +300,9 @@ public class ModifierInstructions
 		return false;
 	    }
 	    else {
-		Iterator it = config.serviceIterator();
+		Iterator<ServiceInstance> it = config.serviceIterator();
 		while (it.hasNext()) {
-		    ServiceInstance service = (ServiceInstance)it.next();
+		    ServiceInstance service = it.next();
 		    if (!serviceWhiteList.contains(service.name()))
 			serviceBlackList.add(service.name());
 		}
@@ -310,9 +310,9 @@ public class ModifierInstructions
 	}
 	
 	if (filterAllOutputModules&&pathWhiteList.size()==0) {
-	    Iterator it = config.pathIterator();
+	    Iterator<Path> it = config.pathIterator();
 	    while (it.hasNext()) {
-		Path path = (Path)it.next();
+		Path path = it.next();
 		if (path.hasOutputModule()) insertPathIntoBlackList(path.name());
 	    }
 	}
@@ -324,9 +324,9 @@ public class ModifierInstructions
 		return false;
 	    }
 	    else {
-		Iterator it = config.pathIterator();
+		Iterator<Path> it = config.pathIterator();
 		while (it.hasNext()) {
-		    Path path = (Path)it.next();
+		    Path path = it.next();
 		    if (!pathWhiteList.contains(path.name()))
 			pathBlackList.add(path.name());
 		}
@@ -421,19 +421,19 @@ public class ModifierInstructions
     }
     
     /** get iterator for requested sequences */
-    public Iterator requestedSequenceIterator()
+    public Iterator<String> requestedSequenceIterator()
     {
 	return requestedSequences.iterator();
     }
 
     /** get iterator for requested modules */
-    public Iterator requestedModuleIterator()
+    public Iterator<String> requestedModuleIterator()
     {
 	return requestedModules.iterator();
     }
     
     /** filter all plugins of a certain type */
-    public void filterAll(Class c, boolean filter)
+    public void filterAll(Class<?> c, boolean filter)
     {
 	if      (c==PSetParameter.class)    filterAllPSets(filter);
 	else if (c==EDSourceInstance.class) filterAllEDSources(filter);

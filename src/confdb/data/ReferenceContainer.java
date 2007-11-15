@@ -129,7 +129,7 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     public void setConfiguration(IConfiguration config) { this.config = config; }
 
     /** get entry iterator */
-    public Iterator entryIterator() { return entries.iterator(); }
+    public Iterator<Reference> entryIterator() { return entries.iterator(); }
 
     /** number of entries */
     public int entryCount() { return entries.size(); }
@@ -172,7 +172,7 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     
 
     /** create iterator for all contained Paths */
-    public Iterator pathIterator()
+    public Iterator<Path> pathIterator()
     {
 	ArrayList<Path> paths = new ArrayList<Path>();
 	getPathsAmongEntries(entryIterator(),paths);
@@ -180,7 +180,7 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     }
 
     /** create iterator for all contained Sequences */
-    public Iterator sequenceIterator()
+    public Iterator<Sequence> sequenceIterator()
     {
 	ArrayList<Sequence> sequences = new ArrayList<Sequence>();
 	getSequencesAmongEntries(entryIterator(),sequences);
@@ -188,7 +188,7 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     }
 
     /** create iterator for all contained Modules */
-    public Iterator moduleIterator()
+    public Iterator<ModuleInstance> moduleIterator()
     {
 	ArrayList<ModuleInstance> modules = new ArrayList<ModuleInstance>();
 	getModulesAmongEntries(entryIterator(),modules);
@@ -273,17 +273,17 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 	    ModuleReference modref = (ModuleReference)r;
 	    ModuleInstance  module = (ModuleInstance)modref.parent();
 	    labels.add(module.name());
-	    Iterator it = module.parameterIterator();
+	    Iterator<Parameter> it = module.parameterIterator();
 	    while (it.hasNext()) {
-		Parameter p = (Parameter)it.next();
+		Parameter p = it.next();
 		getUnresolvedInputTags(p,labels,unresolved);
 	    }
 	}
 	else {
 	    ReferenceContainer container = (ReferenceContainer)r.parent();
-	    Iterator it = container.entryIterator();
+	    Iterator<Reference> it = container.entryIterator();
 	    while (it.hasNext()) {
-		Reference entry = (Reference)it.next();
+		Reference entry = it.next();
 		getUnresolvedInputTags(entry,labels,unresolved);
 	    }
 	}
@@ -331,10 +331,10 @@ abstract public class ReferenceContainer extends    DatabaseEntry
  
 
     /** add all Path entries to 'paths' array (recursively) */
-    private void getPathsAmongEntries(Iterator itEntry,ArrayList<Path> paths)
+    private void getPathsAmongEntries(Iterator<Reference> itEntry,ArrayList<Path> paths)
     {
 	while (itEntry.hasNext()) {
-	    Reference entry = (Reference)itEntry.next();
+	    Reference entry = itEntry.next();
 	    if (entry instanceof PathReference) {
 		PathReference ref  = (PathReference)entry;
 		Path          path = (Path)ref.parent();
@@ -342,7 +342,6 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 		getPathsAmongEntries(path.entryIterator(),paths);
 	    }
 	    else if (entry instanceof SequenceReference) {
-		SequenceReference ref      = (SequenceReference)entry;
 		Sequence          sequence = (Sequence)entry.parent();
 		getPathsAmongEntries(sequence.entryIterator(),paths);
 	    }
@@ -350,18 +349,17 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     }
 
     /** add all Sequence entries to 'sequences' array (recursively) */
-    private void getSequencesAmongEntries(Iterator itEntry,
+    private void getSequencesAmongEntries(Iterator<Reference> itEntry,
 					  ArrayList<Sequence> sequences)
     {
 	while (itEntry.hasNext()) {
-	    Reference entry = (Reference)itEntry.next();
+	    Reference entry = itEntry.next();
 	    if (entry instanceof PathReference) {
 		PathReference ref  = (PathReference)entry;
 		Path          path = (Path)ref.parent();
 		getSequencesAmongEntries(path.entryIterator(),sequences);
 	    }
 	    else if (entry instanceof SequenceReference) {
-		SequenceReference ref      = (SequenceReference)entry;
 		Sequence          sequence = (Sequence)entry.parent();
 		sequences.add(sequence);
 		getSequencesAmongEntries(sequence.entryIterator(),sequences);
@@ -370,11 +368,11 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     }
     
     /** add all Module entries to 'modules' array (recursively) */
-    private void getModulesAmongEntries(Iterator itEntry,
+    private void getModulesAmongEntries(Iterator<Reference> itEntry,
 					ArrayList<ModuleInstance> modules)
     {
 	while (itEntry.hasNext()) {
-	    Reference entry = (Reference)itEntry.next();
+	    Reference entry = itEntry.next();
 	    if (entry instanceof ModuleReference) {
 		ModuleReference ref    = (ModuleReference)entry;
 		ModuleInstance  module = (ModuleInstance)ref.parent();
@@ -386,7 +384,6 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 		getModulesAmongEntries(path.entryIterator(),modules);
 	    }
 	    else if (entry instanceof SequenceReference) {
-		SequenceReference ref      = (SequenceReference)entry;
 		Sequence          sequence = (Sequence)entry.parent();
 		getModulesAmongEntries(sequence.entryIterator(),modules);
 	    }

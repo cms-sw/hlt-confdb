@@ -61,7 +61,7 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
     public Template template() { return template; }
     
     /** parameter iterator */
-    public Iterator parameterIterator() { return parameters.iterator(); }
+    public Iterator<Parameter> parameterIterator() { return parameters.iterator(); }
 
     /** number of parameters */
     public int parameterCount() { return parameters.size(); }

@@ -85,17 +85,17 @@ public class ModuleInstance extends Instance implements Referencable
 	Path[] paths = parentPaths();
 	for (Path path : paths) {
 	    boolean isDownstream = false;
-	    Iterator itM = path.moduleIterator();
+	    Iterator<ModuleInstance> itM = path.moduleIterator();
 	    while (itM.hasNext()) {
-		ModuleInstance module = (ModuleInstance)itM.next();
+		ModuleInstance module = itM.next();
 		if (module==this) {
 		    isDownstream = true;
 		    continue;
 		}
 		if (!isDownstream) continue;
-		Iterator itP = module.parameterIterator();
+		Iterator<Parameter> itP = module.parameterIterator();
 		while (itP.hasNext()) {
-		    Parameter p = (Parameter)itP.next();
+		    Parameter p = itP.next();
 		    if (p instanceof InputTagParameter) {
 			InputTagParameter inputTag = (InputTagParameter)p;
 			if (inputTag.label().equals(oldName)) {

@@ -135,19 +135,19 @@ public class OnlineConverter extends ConverterBase
 	if (epConfig.streamCount()==0) {
 	    Stream defaultStream = new Stream("default");
 	    defaultStreams.add(defaultStream);
-	    Iterator itP = epConfig.pathIterator();
+	    Iterator<Path> itP = epConfig.pathIterator();
 	    while (itP.hasNext()) {
-		Path path = (Path)itP.next();
+		Path path = itP.next();
 		if (path.isEndPath()) continue;
 		defaultStream.insertPath(new Path(path.name()));
 	    }
 	}
 	
-	Iterator itStream = (defaultStreams.size()>0) ?
+	Iterator<Stream> itStream = (defaultStreams.size()>0) ?
 	    defaultStreams.iterator() : epConfig.streamIterator();
 	
 	while (itStream.hasNext()) {
-	    Stream stream = (Stream)itStream.next();
+	    Stream stream = itStream.next();
 	    ModuleReference streamWriterRef =
 		smConfig.insertModuleReference(endpath,
 					       endpath.entryCount(),
@@ -158,9 +158,9 @@ public class OnlineConverter extends ConverterBase
 	    PSetParameter psetSelectEvents = new PSetParameter("SelectEvents","",
 							       false,true);
 	    String valAsString = "";
-	    Iterator itPath = stream.pathIterator();
+	    Iterator<Path> itPath = stream.pathIterator();
 	    while (itPath.hasNext()) {
-		Path path = (Path)itPath.next();
+		Path path = itPath.next();
 		if (valAsString.length()>0) valAsString += ",";
 		valAsString += path.name();
 	    }
@@ -178,12 +178,12 @@ public class OnlineConverter extends ConverterBase
 	epModifier.modify();
 	
 	pathToPrescaler.clear();
-	Iterator itP = epModifier.pathIterator();
+	Iterator<Path> itP = epModifier.pathIterator();
 	while (itP.hasNext()) {
-	    Path path = (Path)itP.next();
-	    Iterator itM = path.moduleIterator();
+	    Path path = itP.next();
+	    Iterator<ModuleInstance> itM = path.moduleIterator();
 	    while (itM.hasNext()) {
-		ModuleInstance module = (ModuleInstance)itM.next();
+		ModuleInstance module = itM.next();
 		if (module.template().name().equals("HLTPrescaler")) {
 		    pathToPrescaler.put(path.name(),module.name());
 		    break;
