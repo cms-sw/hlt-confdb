@@ -287,7 +287,7 @@ public class OnlineConverter extends ConverterBase
 
 	public static void setDbConnection( Connection dbConnection )
 	{
-		if ( dbConnection == null )
+		if ( OnlineConverter.dbConnection == null )
 		{
 			if ( converter != null )
 			{
