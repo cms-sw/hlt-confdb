@@ -281,6 +281,7 @@ public class Configuration implements IConfiguration
     /** set the 'hasChanged' flag */
     public void setHasChanged(boolean hasChanged) { this.hasChanged = hasChanged; }
 
+    
     /** check if a qualifier is unique */
     public boolean isUniqueQualifier(String qualifier)
     {
@@ -335,6 +336,25 @@ public class Configuration implements IConfiguration
 	}
 	return true;
     }
+
+    
+    /** number of empty containers (paths / sequences) */
+    public int emptyContainerCount()
+    {
+	int result = 0;
+	Iterator itP = paths.iterator();
+	while (itP.hasNext()) {
+	    Path p = (Path)itP.next();
+	    if (p.entryCount()==0) result++;
+	}
+	Iterator itS = sequences.iterator();
+	while (itS.hasNext()) {
+	    Sequence s = (Sequence)itS.next();
+	    if (s.entryCount()==0) result++;
+	}
+	return result;
+    }
+    
 
     //
     // unset tracked parameter counts

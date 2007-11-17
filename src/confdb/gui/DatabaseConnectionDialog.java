@@ -283,10 +283,10 @@ public class DatabaseConnectionDialog
 	    }
 	    else {
 		setVisible(false);
-		JOptionPane.showMessageDialog(optionPane.getRootFrame(),
-					      "No database connection established.",
-					      "",
-					      JOptionPane.WARNING_MESSAGE);
+		//JOptionPane.showMessageDialog(optionPane.getRootFrame(),
+		//		      "No database connection established.",
+		//		      "",
+		//		      JOptionPane.WARNING_MESSAGE);
 	    }
 	}
     }

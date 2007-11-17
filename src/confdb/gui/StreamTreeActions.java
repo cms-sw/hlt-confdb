@@ -27,8 +27,11 @@ public class StreamTreeActions
 	StreamTreeModel model    = (StreamTreeModel)tree.getModel();
 	Configuration   config   = model.getConfiguration();
 	TreePath        treePath = tree.getSelectionPath();
-	int             index    = (treePath.getPathCount()==1) ?
-	    0 : model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+	if (treePath==null) treePath = new TreePath(model.getRoot());
+	
+	int index = (treePath.getPathCount()==1) ?
+	    0 : model.getIndexOfChild(treePath.getParentPath().
+				      getLastPathComponent(),
 				      treePath.getLastPathComponent())+1;
 	
 	Stream stream = config.insertStream(index,"<ENTER STREAM LABEL>");
@@ -63,6 +66,11 @@ public class StreamTreeActions
 	config.removeStream(stream);
 	model.nodeRemoved(model.getRoot(),index,stream);
 	
+	treePath = (config.streamCount()>0&&index>0) ?
+	    new TreePath(model.getPathToRoot(config.stream(index-1))) :
+	    new TreePath(model.getRoot());
+	tree.setSelectionPath(treePath);
+	
 	return true;
     }
     
@@ -79,7 +87,7 @@ public class StreamTreeActions
 	
 	stream.removePath(path);
 	model.nodeRemoved(stream,index,path);
-
+	
 	return true;
     }
     

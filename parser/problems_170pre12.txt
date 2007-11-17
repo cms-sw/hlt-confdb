@@ -1,0 +1,66 @@
+
+Service MessageLogger FWCore MessageService
+MessageLogger.Parameter destinations vstring { "warnings", "errors", "infos", "debugs", "cout", "cerr" } untracked
+MessageLogger.Parameter categories vstring { "FwkJob", "FwkReport", "FwkSummary", "Root_NoDictionary" } untracked
+MessageLogger.Parameter statistics vstring { "cerr" } untracked
+MessageLogger.Parameter cerr PSet untracked
+MessageLogger.Parameter cout PSet untracked
+MessageLogger.Parameter errors PSet untracked
+MessageLogger.Parameter warnings PSet untracked
+MessageLogger.Parameter infos PSet untracked
+MessageLogger.Parameter debugs PSet untracked
+MessageLogger.Parameter default PSet untracked
+MessageLogger.Parameter fwkJobReports vstring { "FrameworkJobReport" } untracked
+MessageLogger.Parameter FrameworkJobReport PSet untracked
+MessageLogger.Parameter debugModules vstring {  } untracked
+MessageLogger.Parameter suppressDebug vstring {  } untracked
+MessageLogger.Parameter suppressInfo vstring {  } untracked
+MessageLogger.Parameter suppressWarning vstring {  } untracked
+
+Module EDProducer TrackProducer RecoTracker TrackProducer
+TrackProducer.Parameter Fitter string "KFFittingSmoother" tracked
+TrackProducer.Parameter Propagator string "PropagatorWithMaterial" tracked
+TrackProducer.Parameter TTRHBuilder string "WithTrackAngle" tracked
+
+Module EDProducer CandSelector PhysicsTools CandAlgos
+CandSelector.Parameter src InputTag allMuTracks tracked
+CandSelector.Parameter cut string "pt > 4." tracked
+CandSelector.Parameter filter bool false tracked
+
+Module EDProducer CandCombiner PhysicsTools CandAlgos
+CandCombiner.Parameter decay string "muTracks@+ muTracks@-" tracked
+CandCombiner.Parameter cut string "1.00 < mass < 6.00 & pt > 4.0" tracked
+
+Module EDProducer HcalRawToDigi EventFilter HcalRawToDigi
+HcalRawToDigi.Parameter firstSample int32 0 tracked
+HcalRawToDigi.Parameter lastSample int32 9 tracked
+HcalRawToDigi.Parameter FilterDataQuality bool true tracked
+HcalRawToDigi.Parameter ExceptionEmptyData bool false untracked
+
+Module EDProducer IsolatedTauJetsSelector RecoTauTag HLTProducers
+IsolatedTauJetsSelector.Parameter JetSrc VInputTag { coneIsolationL3SingleTauMET } tracked
+IsolatedTauJetsSelector.Parameter MatchingCone double 0.1 tracked
+IsolatedTauJetsSelector.Parameter SignalCone double 0.065 tracked
+IsolatedTauJetsSelector.Parameter IsolationCone double 0.4 tracked
+IsolatedTauJetsSelector.Parameter MinimumTransverseMomentumInIsolationRing double 1.0 tracked
+IsolatedTauJetsSelector.Parameter MinimumTransverseMomentumLeadingTrack double 15.0 tracked
+IsolatedTauJetsSelector.Parameter DeltaZetTrackVertex double 0.2 tracked
+IsolatedTauJetsSelector.Parameter MaximumNumberOfTracksIsolationRing int32 0 tracked
+IsolatedTauJetsSelector.Parameter VertexSrc InputTag pixelVertices tracked
+IsolatedTauJetsSelector.Parameter UseVertex bool false tracked
+
+Module EDProducer LargestEtCaloJetSelector PhysicsTools RecoSelectors
+LargestEtCaloJetSelector.Parameter src InputTag iterativeCone5CaloJets tracked
+LargestEtCaloJetSelector.Parameter filter bool false tracked
+LargestEtCaloJetSelector.Parameter maxNumber uint32 2 tracked
+
+Module EDProducer EtMinCaloJetSelector PhysicsTools RecoSelectors
+EtMinCaloJetSelector.Parameter src InputTag softmuonHighestEtJets tracked
+EtMinCaloJetSelector.Parameter filter bool false tracked
+EtMinCaloJetSelector.Parameter etMin double 20.0 tracked
+
+Module EDProducer L1GlobalTrigger L1Trigger GlobalTrigger
+L1GlobalTrigger.Parameter triggerMenu string "lumi1x1032" tracked
+L1GlobalTrigger.Parameter xmlConfig string "L1Menu2007.xml" tracked
+L1GlobalTrigger.Parameter xmlVME string "" tracked
+L1GlobalTrigger.Parameter inputMask vuint32 { 0, 0 } tracked

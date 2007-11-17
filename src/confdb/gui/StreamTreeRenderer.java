@@ -40,7 +40,7 @@ class StreamTreeRenderer extends DefaultTreeCellRenderer
     public StreamTreeRenderer()
     {
 	super();
-	streamIcon = new ImageIcon(getClass().getResource("/PathsDirIcon.png")); //!
+	streamIcon = new ImageIcon(getClass().getResource("/StreamIcon.png")); //!
 	pathIcon   = new ImageIcon(getClass().getResource("/PathIcon.png"));
 
     }

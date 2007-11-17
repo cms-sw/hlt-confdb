@@ -1,5 +1,6 @@
 package confdb.gui;
 
+
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
@@ -14,7 +15,7 @@ import java.util.concurrent.ExecutionException;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import confdb.gui.treetable.TreeTableTableModel;
+import confdb.gui.treetable.*;
 
 import confdb.db.ConfDB;
 import confdb.db.DatabaseException;
@@ -36,27 +37,25 @@ import confdb.data.*;
  * ---------
  * @author Philipp Schieferdecker
  *
- * Graphical User Interface to create and manipulate cmssw
- * configurations stored in the Configuration Database, ConfDB.
+ * Graphical User Interface to create and manipulate CMSSW job
+ * configurations stored in the relational configuration database,
+ * ConfDB.
  */
-public class ConfDbGUI implements TableModelListener
+public class ConfDbGUI
 {
     //
     // member data
     //
 
-    /** administrator accounts */
-    private ArrayList<String> admins = new ArrayList<String>();
+    /** current user */
+    private String userName = "";
     
-    /** name of the current user according to system env */
-    private String userName = null;
-
-    /** main frame of the application */
-    private JFrame frame = null; 
+    /** access to the ConfDB database */
+    private ConfDB database = null;
     
-    /** the current software release (collection of all templates) */
+    /** current software release (collection of all templates) */
     private SoftwareRelease currentRelease = null;
-
+    
     /** the current configuration */
     private Configuration currentConfig = null;
     
@@ -66,30 +65,81 @@ public class ConfDbGUI implements TableModelListener
     /** the import configuration */
     private Configuration importConfig = null;
     
-    /** handle access to the database */
-    private ConfDB database = null;
+    /** TREE- & TABLE-MODELS */
+    private ConfigurationTreeModel treeModelCurrentConfig;
+    private ConfigurationTreeModel treeModelImportConfig;
+    private StreamTreeModel        treeModelStreams;
+    //private PrescaleTreeModel    treeModelPrescales;
+    private ParameterTreeModel     treeModelParameters;
 
-    /** ConverterService */
-    private ConverterService converterService = null;
+    /** GUI COMPONENTS */
+    private JFrame        frame;
 
-    /** the menu bar of the application */
-    private ConfDBMenuBar menuBar = null;
+    private MenuBar       menuBar;
+    private ToolBar       toolBar;
+
+    private JPanel        jPanelContentPane         = new JPanel();
+    private JMenuBar      jMenuBar                  = new JMenuBar();
+    private JToolBar      jToolBar                  = new JToolBar();
+    private JPanel        jPanelDbConnection        = new JPanel();
+    private JSplitPane    jSplitPane                = new JSplitPane();
+    private JSplitPane    jSplitPaneRight           = new JSplitPane();
+
+    private JPanel        jPanelLeft                = new JPanel();
+    private JTextField    jTextFieldCurrentConfig   = new JTextField();
+    private JLabel        jLabelLock                = new JLabel();
+    private JTextField    jTextFieldProcess         = new JTextField();
+    private JButton       jButtonRelease            = new JButton();        // AL
+    private JTextField    jTextFieldCreated         = new JTextField();
+    private JTextField    jTextFieldCreator         = new JTextField();
+    private JTabbedPane   jTabbedPaneLeft           = new JTabbedPane();
+
+    private JPanel        jPanelCurrentConfig       = new JPanel();
+    private JLabel        jLabelSearch              = new JLabel();        // ML
+    private JPopupMenu    jPopupMenuSearch          = new JPopupMenu();
+    private JTextField    jTextFieldSearch          = new JTextField();    // KL
+    private JButton       jButtonCancelSearch       = new JButton();       // AL
+    private JToggleButton jToggleButtonImport       = new JToggleButton(); // AL
+    private JSplitPane    jSplitPaneCurrentConfig   = new JSplitPane();
+    private JScrollPane   jScrollPaneCurrentConfig  = new JScrollPane();
+    private JTree         jTreeCurrentConfig;                              //TML+TSL
+    private JScrollPane   jScrollPaneImportConfig   = new JScrollPane();
+    private JTree         jTreeImportConfig;                               //TML+TSL
+
+    private JPanel        jPanelStreams             = new JPanel();
+    private JComboBox     jComboBoxDefaultStream    = new JComboBox();     // AL
+    private JScrollPane   jScrollPaneStreams        = new JScrollPane();
+    private JTree         jTreeStreams;
+    private JButton       jButtonAddStream          = new JButton();       // AL
+    private JButton       jButtonDeleteStream       = new JButton();       // AL
+    private JTextField    jTextFieldUnassignedPaths = new JTextField();
+
+    private JPanel        jPanelPrescales           = new JPanel();
+    private JScrollPane   jScrollPanePrescales      = new JScrollPane();
+    private JTable        jTablePrescales           = new JTable();
     
-    /** tree models for both the current and the import tree */
-    private ConfigurationTreeModel currentTreeModel = null;
-    private ConfigurationTreeModel importTreeModel = null;
-    private StreamTreeModel        streamTreeModel = null;
-
-    /** GUI components */
-    private DatabaseInfoPanel  dbInfoPanel        = new DatabaseInfoPanel();
-    private ConfigurationPanel configurationPanel = null;
-    private InstancePanel      instancePanel      = null;
-    private JProgressBar       progressBar        = null;
-    private JTree              currentTree        = null;
-    private JTree              importTree         = null;
-    private JTree              streamTree         = null;
+    private JPanel        jPanelRightUpper          = new JPanel();
+    private JSplitPane    jSplitPaneRightUpper      = new JSplitPane();
+    private JPanel        jPanelPlugin              = new JPanel();
+    private JTextField    jTextFieldPackage         = new JTextField();
+    private JTextField    jTextFieldCVS             = new JTextField();
+    private JTextField    jTextFieldPlugin          = new JTextField();
+    private JTextField    jTextFieldLabel           = new JTextField();
+    private JComboBox     jComboBoxPaths            = new JComboBox();
+    private JScrollPane   jScrollPaneParameters     = new JScrollPane();
+    private TreeTable     jTreeTableParameters;
+    
+    private JPanel        jPanelRightLower          = new JPanel();
+    private JTabbedPane   jTabbedPaneRightLower     = new JTabbedPane();
+    private JScrollPane   jScrollPaneRightLower     = new JScrollPane();
+    private JEditorPane   jEditorPaneSnippet        = new JEditorPane();
 
     
+    private JProgressBar  jProgressBar              = new JProgressBar(); 
+    
+    
+    
+
     //
     // construction
     //
@@ -97,140 +147,123 @@ public class ConfDbGUI implements TableModelListener
     /** standard constructor */
     public ConfDbGUI(JFrame frame)
     {
-	this.userName         = System.getProperty("user.name");
-	this.frame            = frame;
+	this.userName = System.getProperty("user.name");
+	this.frame    = frame;
+	
+	this.database         = new ConfDB();
 	this.currentRelease   = new SoftwareRelease();
 	this.currentConfig    = new Configuration();
 	this.importRelease    = new SoftwareRelease();
 	this.importConfig     = new Configuration();
-	this.database         = new ConfDB();
-	this.converterService = new ConverterService(database);
-	this.instancePanel    = new InstancePanel(frame);
 	
-	this.admins.add("schiefer");
-	this.admins.add("meschi");
-	this.admins.add("mzanetti");
+	createTreesAndTables();
+	createContentPane();
+	hideImportTree();
 	
-	// current configuration tree
-	currentTreeModel = new ConfigurationTreeModel(currentConfig);
-	currentTree      = new JTree(currentTreeModel) {
-		public String getToolTipText(MouseEvent evt) {
-		    String text = null;
+	frame.setContentPane(jPanelContentPane);
+	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    
+	// initialize trees & tables
 
-		    ConfigurationTreeModel model =
-			(ConfigurationTreeModel)getModel();
-		    Configuration config = (Configuration)model.getRoot();
-		    
-		    if (getRowForLocation(evt.getX(),evt.getY()) == -1)
-			return text;
-
-		    TreePath tp = getPathForLocation(evt.getX(),evt.getY());
-		    Object selectedNode = tp.getLastPathComponent();
-		    if (selectedNode instanceof Path) {
-			Path path = (Path)selectedNode;
-			if (path.streamCount()>0) {
-			    text = path.name()+" assigned to stream(s): ";
-			    for (int i=0;i<path.streamCount();i++)
-				text += path.stream(i) + " ";
-			}
-		    }
-		    else if (selectedNode instanceof ESSourceInstance||
-			     selectedNode instanceof ESModuleInstance||
-			     selectedNode instanceof ModuleInstance) {
-			Instance instance = (Instance)selectedNode;
-			text = instance.template().name();
-		    }
-		    else if (selectedNode instanceof ModuleReference) {
-			ModuleReference reference=(ModuleReference)selectedNode;
-			ModuleInstance  instance =(ModuleInstance)reference.parent();
-			text = instance.template().name();
-		    }
-		    return text;
+	jButtonRelease.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonReleaseActionPerformed(e);
 		}
-	    };
-	currentTree.setToolTipText("");
-	currentTree.setRootVisible(false);
-	currentTree.setEditable(true);
-	currentTree.getSelectionModel()
-	    .setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-
-	ConfigurationTreeRenderer renderer = new ConfigurationTreeRenderer();
-	currentTree.setCellRenderer(renderer);
-	currentTree.setCellEditor(new ConfigurationTreeEditor(currentTree,
-							      renderer));
-	
-	ConfigurationTreeMouseListener mouseListener =
-	    new ConfigurationTreeMouseListener(currentTree,frame,
-					       currentRelease);
-	currentTree.addMouseListener(mouseListener);
-	
-	ConfigurationTreeTransferHandler currentDndHandler =
-	    new ConfigurationTreeTransferHandler(currentTree,currentRelease,
-						 instancePanel
-						 .parameterTreeModel());
-	currentTree.setTransferHandler(currentDndHandler);
-	currentTree.setDropTarget(new ConfigurationTreeDropTarget());
-	currentTree.setDragEnabled(true);
-	
-	// import tree
-	Color defaultTreeBackground = UIManager.getColor("Tree.textBackground");
-	Color importTreeBackground  = UIManager.getColor("Button.background");
-	UIManager.put("Tree.textBackground",importTreeBackground);
-	importTreeModel = new ConfigurationTreeModel(importConfig);
-	importTree      = new JTree(importTreeModel);
-        importTree.setBackground(importTreeBackground);
-
-	importTree.setRootVisible(false);
-	importTree.setEditable(false);
-	importTree.getSelectionModel().setSelectionMode(TreeSelectionModel
-							.SINGLE_TREE_SELECTION);
-	importTree.setCellRenderer(new ConfigurationTreeRenderer());
-	
-	
-	ConfigurationTreeTransferHandler importDndHandler =
-	    new ConfigurationTreeTransferHandler(importTree,null,null);
-	importTree.setTransferHandler(importDndHandler);
-	importTree.setDropTarget(new ConfigurationTreeDropTarget());
-	importTree.setDragEnabled(true);
-	
-	UIManager.put("Tree.textBackground",defaultTreeBackground);
-	
-	// stream tree TODO
-	streamTreeModel = new StreamTreeModel(currentConfig);
-	streamTree      = new JTree(streamTreeModel);
-	streamTree.setEditable(true);
-	streamTree.getSelectionModel().setSelectionMode(TreeSelectionModel
-							.SINGLE_TREE_SELECTION);
-	StreamTreeRenderer streamTreeRenderer = new StreamTreeRenderer();
-	streamTree.setCellRenderer(streamTreeRenderer);
-	streamTree.setCellEditor(new StreamTreeEditor(streamTree,streamTreeRenderer));
-	
-	StreamTreeMouseListener streamTreeMouseListener =
-	    new StreamTreeMouseListener(streamTree);
-	streamTree.addMouseListener(streamTreeMouseListener);
-	streamTreeModel.addTreeModelListener(streamTreeMouseListener);
-	
-	
-	// instance panel (right side), placed in createContentPane()
-	instancePanel.setConfigurationTreeModel(currentTreeModel);
-	instancePanel.addTableModelListener(this);
-	currentTree.addTreeSelectionListener(instancePanel);
-	  
-	// configuration panel (left side), placed in createContentPane()
-	configurationPanel = new ConfigurationPanel(this,
-						    currentTree,
-						    importTree,
-						    streamTree);
-
+	    });
+	jLabelSearch.addMouseListener(new MouseAdapter() {
+		public void mousePressed(MouseEvent e)  { maybeShowPopup(e); }
+		public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
+		public void maybeShowPopup(MouseEvent e) {
+		    if (e.isPopupTrigger())
+			jPopupMenuSearch.show(e.getComponent(),e.getX(),e.getY());
+		}
+	    });
+	jTextFieldSearch.addKeyListener(new KeyListener() {
+		public void keyTyped(KeyEvent e) {
+		    jTextFieldSearchKeyTyped(e);
+		}
+		public void keyPressed(KeyEvent e) {}
+		public void keyReleased(KeyEvent e) {}
+	    });
+	jButtonCancelSearch.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonCancelSearchActionPerformed(e);
+		}
+	    });
+	jToggleButtonImport.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jToggleButtonImportActionPerformed(e);
+		}
+	    });
+	jTreeCurrentConfig.
+	    getModel().addTreeModelListener(new TreeModelListener() {
+		    public void treeNodesChanged(TreeModelEvent e) {
+			jTreeCurrentConfigTreeNodesChanged(e);
+		    }
+		    public void treeNodesInserted(TreeModelEvent e) {
+			jTreeCurrentConfigTreeNodesInserted(e);
+		    }
+		    public void treeNodesRemoved(TreeModelEvent e) {
+			jTreeCurrentConfigTreeNodesRemoved(e);
+		    }
+		    public void treeStructureChanged(TreeModelEvent e) {
+			jTreeCurrentConfigTreeStructureChanged(e);
+		    }
+		});
+	jTreeCurrentConfig.addTreeSelectionListener(new TreeSelectionListener() {
+		public void valueChanged(TreeSelectionEvent e) {
+		    jTreeCurrentConfigValueChanged(e);
+		}
+	    });
+	jComboBoxDefaultStream.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jComboBoxDefaultStreamActionPerformed(e);
+		}
+	    });
+	jButtonAddStream.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonAddStreamActionPerformed(e);
+		}
+	    });
+	jButtonDeleteStream.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonDeleteStreamActionPerformed(e);
+		}
+	    });
+	jTreeStreams.
+	    getModel().addTreeModelListener(new TreeModelListener() {
+		    public void treeNodesChanged(TreeModelEvent e) {
+			jTreeStreamsTreeNodesChanged(e);
+		    }
+		    public void treeNodesInserted(TreeModelEvent e) {
+			jTreeStreamsTreeNodesInserted(e);
+		    }
+		    public void treeNodesRemoved(TreeModelEvent e) {
+			jTreeStreamsTreeNodesRemoved(e);
+		    }
+		    public void treeStructureChanged(TreeModelEvent e) {
+			jTreeStreamsTreeStructureChanged(e);
+		    }
+		});
+	jTreeStreams.addTreeSelectionListener(new TreeSelectionListener() {
+		public void valueChanged(TreeSelectionEvent e) {
+		    jTreeStreamsValueChanged(e);
+		}
+	    });
+	// jTablePrescales
+	jTreeTableParameters.
+	    getModel().addTableModelListener(new TableModelListener() {
+		    public void tableChanged(TableModelEvent e) {
+			jTreeTableParametersTableChanged(e);
+		    }
+		});
 	frame.addWindowListener(new WindowAdapter() {
 		public void windowClosing(WindowEvent e)
 		{
 		    closeConfiguration(false);
 		    disconnectFromDatabase();
 		}
-        });
-	
-	
+	    });
 	Runtime.getRuntime().addShutdownHook(new Thread() {
 		public void run()
 		{
@@ -242,124 +275,63 @@ public class ConfDbGUI implements TableModelListener
     
     
     //
+    // main
+    //
+    
+    /** main method, thread-safe call to createAndShowGUI */
+    public static void main(String[] args)
+    {
+	javax.swing.SwingUtilities.invokeLater(new Runnable() {
+		public void run() { createAndShowGUI(); }
+	    });
+    }
+    
+    /** create the GUI and show it */
+    private static void createAndShowGUI()
+    {
+	JFrame frame = new JFrame("ConfDbGUI");
+	ConfDbGUI gui = new ConfDbGUI(frame);
+	
+	int frameWidth  = (int)(0.75*frame.getToolkit().getScreenSize().getWidth());
+	int frameHeight = (int)(0.75*frame.getToolkit().getScreenSize().getHeight());
+	int frameX      = (int)(0.125*frame.getToolkit().getScreenSize().getWidth());
+	int frameY      = (int)(0.10*frame.getToolkit().getScreenSize().getHeight());
+
+	frame.pack();
+	frame.setSize(frameWidth,frameHeight);
+	frame.setLocation(frameX,frameY);
+	frame.setVisible(true);
+	
+	gui.connectToDatabase();
+    }
+    
+
+    //
     // member functions
     //
-
-    /** get the frame */
-    public JFrame getFrame() { return this.frame; }
-
-    /** TableModelListener: tableChanged() */
-    public void tableChanged(TableModelEvent e)
-    {
-	Object source = e.getSource();
-	if (source instanceof TreeTableTableModel) {
-	    TreeTableTableModel tableModel = (TreeTableTableModel)source;
-
-	    Parameter node         = (Parameter)tableModel.changedNode();
-	    Object    childNode    = tableModel.childNode();
-	    int       childIndex   = tableModel.childIndex();
-	    String    typeOfChange = tableModel.typeOfChange();
-
-	    if (node!=null) {
-		Object parent = node.parent();
-		while (parent instanceof Parameter) {
-		    Parameter p = (Parameter)parent;
-		    parent = p.parent();
-		}
-		
-		if (childNode==null)
-		    currentTreeModel.nodeChanged(node);
-		else if (typeOfChange.equals("REMOVE"))
-		    currentTreeModel.nodeRemoved(node,childIndex,childNode);
-		else if (typeOfChange.equals("INSERT"))
-		    currentTreeModel.nodeInserted(node,childIndex);
-		
-		if (parent instanceof ModuleInstance) currentTree.updateUI();
-		currentTreeModel.updateLevel1Nodes();
-		currentConfig.setHasChanged(true);
-	    }
-	}
-    }
     
-    /** connect to the database */
-    public void connectToDatabase()
-    {
-	// close currently open configuration
-	if (!closeConfiguration()) return;
-	
-	// query the database info from the user in a dialog
-	DatabaseConnectionDialog dbDialog = new DatabaseConnectionDialog(frame);
-	dbDialog.pack();
-	dbDialog.setLocationRelativeTo(frame);
-	dbDialog.setVisible(true);
-	
-	// retrieve the database parameters from the dialog
-	if (!dbDialog.validChoice()) return;
-	String dbType = dbDialog.getDbType();
-	String dbHost = dbDialog.getDbHost();
-	String dbPort = dbDialog.getDbPort();
-	String dbName = dbDialog.getDbName();
-	String dbUrl  = dbDialog.getDbUrl();
-	String dbUser = dbDialog.getDbUser();
-	String dbPwrd = dbDialog.getDbPassword();
-	
-	try {
-	    database.connect(dbType,dbUrl,dbUser,dbPwrd);
-	    dbInfoPanel.connectedToDatabase(dbType,dbHost,dbPort,dbName,dbUser);
-	}
-	catch (DatabaseException e) {
-	    String msg = "Failed to connect to DB: " + e.getMessage();
-	    JOptionPane.showMessageDialog(frame,msg,"",JOptionPane.ERROR_MESSAGE);
-	}
-	menuBar.dbConnectionIsEstablished();
-    }
-    
-    /** connect to the database */
-    public void disconnectFromDatabase()
-    {
-	if (!closeConfiguration()) return;
-	
-	try {
-	    database.disconnect();
-	    dbInfoPanel.disconnectedFromDatabase();
-	    currentRelease.clear("");
-	}
-	catch (DatabaseException e) {
-	    String msg = "Failed to disconnect from DB: " + e.getMessage();
-	    JOptionPane.showMessageDialog(frame,msg,"",JOptionPane.ERROR_MESSAGE);
-	}
-	menuBar.dbConnectionIsNotEstablished();
-    }
-    
-    /** migrate configuration to another database */
-    public void exportConfiguration()
-    {
-	if (!checkConfiguration()) return;
-	
-	ExportConfigurationDialog dialog =
-	    new ExportConfigurationDialog(frame,currentConfig.name());
+    /** get the main frame */
+    public JFrame getFrame() { return frame; }
 
+    /** show the 'about' dialog */
+    public void showAboutDialog()
+    {
+	AboutDialog dialog = new AboutDialog(frame);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-
-	if (dialog.validChoice()) {
-	    ConfDB targetDB   = dialog.targetDB();
-	    String      targetName = dialog.targetName();
-	    Directory   targetDir  = dialog.targetDir();
-	    
-	    ExportConfigurationThread worker =
-		new ExportConfigurationThread(targetDB,targetName,targetDir);
-	    worker.start();
-	    progressBar.setIndeterminate(true);
-	    progressBar.setVisible(true);
-	    progressBar.setString("Migrate Configuration to " +
-				  targetDB.dbUrl() + " ... ");
-	}
     }
     
+    /** quit the GUI application */
+    public void quitApplication()
+    {
+	if (closeConfiguration()) {
+	    disconnectFromDatabase();
+	    System.exit(0);
+	}
+    }
 
-    /** new configuration */
+    /** create a new configuration */
     public void newConfiguration()
     {
 	if (!closeConfiguration()) return;
@@ -377,15 +349,16 @@ public class ConfDbGUI implements TableModelListener
 	    NewConfigurationThread worker =
 		new NewConfigurationThread(name,process,releaseTag);
 	    worker.start();
-	    progressBar.setIndeterminate(true);
-	    progressBar.setVisible(true);
-	    progressBar.setString("Loading Templates for Release " +
+	    jProgressBar.setIndeterminate(true);
+	    jProgressBar.setVisible(true);
+	    jProgressBar.setString("Loading Templates for Release " +
 				  dialog.releaseTag() + " ... ");
 	    menuBar.configurationIsOpen();
+	    toolBar.configurationIsOpen();
 	}
     }
-    
-    /** parse configuration from *.py file */
+
+    /** parse a configuration from a *.py file */
     public void parseConfiguration()
     {
 	if (!closeConfiguration()) return;
@@ -403,15 +376,16 @@ public class ConfDbGUI implements TableModelListener
 	    ParseConfigurationThread worker =
 		new ParseConfigurationThread(fileName,releaseTag);
 	    worker.start();
-	    progressBar.setIndeterminate(true);
-	    progressBar.setVisible(true);
-	    progressBar.setString("Parsing '"+fileName+"' against Release " +
+	    jProgressBar.setIndeterminate(true);
+	    jProgressBar.setVisible(true);
+	    jProgressBar.setString("Parsing '"+fileName+"' against Release " +
 				  releaseTag + " ... ");
 	    menuBar.configurationIsOpen();
+	    toolBar.configurationIsOpen();
 	}
     }
-    
-    /** open configuration */
+
+    /** open an existing configuration */
     public void openConfiguration()
     {
 	if (database.dbUrl().equals(new String())) return;
@@ -427,45 +401,23 @@ public class ConfDbGUI implements TableModelListener
 	    OpenConfigurationThread worker =
 		new OpenConfigurationThread(dialog.configInfo());
 	    worker.start();
-	    progressBar.setIndeterminate(true);
-	    progressBar.setVisible(true);
-	    progressBar.setString("Loading Configuration ...");
+	    jProgressBar.setIndeterminate(true);
+	    jProgressBar.setVisible(true);
+	    jProgressBar.setString("Loading Configuration ...");
 	    menuBar.configurationIsOpen();
+	    toolBar.configurationIsOpen();
 	}
     }
 
-    /** import configuration */
-    public void importConfiguration()
-    {
-	ImportConfigurationDialog dialog =
-	    new ImportConfigurationDialog(frame,database,currentRelease.releaseTag());
-	dialog.pack();
-	dialog.setLocationRelativeTo(frame);
-	dialog.setVisible(true);
-	
-	if (dialog.validChoice()) {
-	    ImportConfigurationThread worker =
-		new ImportConfigurationThread(dialog.configInfo());
-	    worker.start();
-	    progressBar.setIndeterminate(true);
-	    progressBar.setVisible(true);
-	    progressBar.setString("Importing Configuration ...");
-	}
-    }
-    
-    /** close configuration */
+    /** close the current configuration */
     public boolean closeConfiguration()
     {
 	return closeConfiguration(true);
-    }
-    
-    /** close configuration */
+    } 
+
+    /** close the current configuration */
     public boolean closeConfiguration(boolean showDialog)
     {
-	importConfig.reset();
-	importTreeModel.setConfiguration(importConfig);
-	configurationPanel.setImportConfig(importConfig);
-	
 	if (currentConfig.isEmpty()) return true;
 	
 	if (currentConfig.hasChanged()&&showDialog) {
@@ -483,23 +435,17 @@ public class ConfDbGUI implements TableModelListener
 	
 	if (!currentConfig.isLocked()&&currentConfig.version()>0)
 	    database.unlockConfiguration(currentConfig);
-	currentRelease.clearInstances();
-	currentConfig.reset();
-	currentTreeModel.setConfiguration(currentConfig);
-	streamTreeModel.setConfiguration(currentConfig);
-	configurationPanel.setCurrentConfig(currentConfig);
-	instancePanel.clear();
-	menuBar.configurationIsNotOpen();
+
+	resetConfiguration();
+	
 	return true;
-    }
+    } 
     
-    /** save configuration */
+    /** save a new version of the current configuration */
     public void saveConfiguration(boolean askForComment)
     {
-	if (currentConfig.isEmpty()) return;
-	if (!currentConfig.hasChanged()) return;
-	if (currentConfig.isLocked()) return;
-	if (!checkConfiguration()) return;	
+	if (currentConfig.isEmpty()||!currentConfig.hasChanged()||
+	    currentConfig.isLocked()||!checkConfiguration()) return;	
 	
 	if (currentConfig.version()==0) {
 	    saveAsConfiguration();
@@ -507,7 +453,8 @@ public class ConfDbGUI implements TableModelListener
 	}
 	else database.unlockConfiguration(currentConfig);
 	
-	String processName = configurationPanel.processName();
+	// TODO String processName = configurationPanel.processName();
+	String processName = "";
 	String comment = "";
 
 	if (askForComment) {
@@ -523,12 +470,12 @@ public class ConfDbGUI implements TableModelListener
 	SaveConfigurationThread worker =
 	    new SaveConfigurationThread(processName,comment);
 	worker.start();
-	progressBar.setIndeterminate(true);
-	progressBar.setString("Save Configuration ...");
-	progressBar.setVisible(true);
+	jProgressBar.setIndeterminate(true);
+	jProgressBar.setString("Save Configuration ...");
+	jProgressBar.setVisible(true);
     }
     
-    /** saveAs configuration */
+    /** save the current configuration under a new name */
     public void saveAsConfiguration()
     {
 	if (!checkConfiguration()) return;
@@ -537,10 +484,10 @@ public class ConfDbGUI implements TableModelListener
 	if (currentConfig.version()!=0&&!isLocked)
 	    database.unlockConfiguration(currentConfig);
 	
-	String processName = configurationPanel.processName();
+	// TODO String processName = configurationPanel.processName();
+	String processName = "";
 	String comment = (currentConfig.version()==0) ?
-	    "first import" :
-	    "saveAs "+currentConfig+" ["+currentConfig.dbId()+"]";
+	    "first import" : "saveAs "+currentConfig+" ["+currentConfig.dbId()+"]";
 	
 	SaveConfigurationDialog dialog =
 	    new SaveConfigurationDialog(frame,database,currentConfig,comment);
@@ -552,15 +499,35 @@ public class ConfDbGUI implements TableModelListener
 	    SaveConfigurationThread worker =
 		new SaveConfigurationThread(processName,dialog.comment());
 	    worker.start();
-	    progressBar.setIndeterminate(true);
-	    progressBar.setString("Save Configuration ...");
-	    progressBar.setVisible(true);
+	    jProgressBar.setIndeterminate(true);
+	    jProgressBar.setString("Save Configuration ...");
+	    jProgressBar.setVisible(true);
 	}
 	else if (currentConfig.version()!=0&&!isLocked)
 	    database.lockConfiguration(currentConfig,userName);
     }
     
-    /** migrate configuration (to another release) */
+    /** one another configuration to import components */
+    public void importConfiguration()
+    {
+	ImportConfigurationDialog dialog =
+	    new ImportConfigurationDialog(frame,database,
+					  currentRelease.releaseTag());
+	dialog.pack();
+	dialog.setLocationRelativeTo(frame);
+	dialog.setVisible(true);
+	
+	if (dialog.validChoice()) {
+	    ImportConfigurationThread worker =
+		new ImportConfigurationThread(dialog.configInfo());
+	    worker.start();
+	    jProgressBar.setIndeterminate(true);
+	    jProgressBar.setVisible(true);
+	    jProgressBar.setString("Importing Configuration ...");
+	}	
+    }
+    
+    /** migrate the current configuration to a new release */
     public void migrateConfiguration()
     {
 	if (!checkConfiguration()) return;
@@ -577,15 +544,14 @@ public class ConfDbGUI implements TableModelListener
 	    MigrateConfigurationThread worker =
 		new MigrateConfigurationThread(releaseTag);
 	    worker.start();
-	    progressBar.setIndeterminate(true);
-	    progressBar.setVisible(true);
-	    progressBar.setString("Migrate configuration to release '" +
+	    jProgressBar.setIndeterminate(true);
+	    jProgressBar.setVisible(true);
+	    jProgressBar.setString("Migrate configuration to release '" +
 				  releaseTag + "' ... ");
 	}
     }
     
-
-    /** convert current Configuration */
+    /** convert the current configuration to a text file (ascii, python, or html) */
     public void convertConfiguration()
     {
 	if (!checkConfiguration()) return;
@@ -595,7 +561,7 @@ public class ConfDbGUI implements TableModelListener
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-
+	
 	if (!dialog.isCanceled()) {
 	    ConvertConfigurationThread worker = 
 		new ConvertConfigurationThread(dialog.configToConvert(),
@@ -603,182 +569,173 @@ public class ConfDbGUI implements TableModelListener
 					       dialog.format(),
 					       dialog.asFragment());
 	    worker.start();
-	    progressBar.setIndeterminate(true);
-	    progressBar.setVisible(true);
-	    progressBar.setString("Convert configuration '"+currentConfig.name()+
+	    jProgressBar.setIndeterminate(true);
+	    jProgressBar.setVisible(true);
+	    jProgressBar.setString("Convert configuration '"+currentConfig.name()+
 				  "' ... ");
 	}
     }
-
     
-    /** check if configuration is in a storable state */
-    public boolean checkConfiguration()
+    /** connect to the database */
+    public void connectToDatabase()
+    {
+	//if (!closeConfiguration()) return;
+	disconnectFromDatabase();
+	
+	DatabaseConnectionDialog dbDialog = new DatabaseConnectionDialog(frame);
+	dbDialog.pack();
+	dbDialog.setLocationRelativeTo(frame);
+	dbDialog.setVisible(true);
+	
+	if (!dbDialog.validChoice()) return;
+	String dbType = dbDialog.getDbType();
+	String dbHost = dbDialog.getDbHost();
+	String dbPort = dbDialog.getDbPort();
+	String dbName = dbDialog.getDbName();
+	String dbUrl  = dbDialog.getDbUrl();
+	String dbUser = dbDialog.getDbUser();
+	String dbPwrd = dbDialog.getDbPassword();
+	
+	try {
+	    database.connect(dbType,dbUrl,dbUser,dbPwrd);
+	    ((DatabaseInfoPanel)jPanelDbConnection).connectedToDatabase(dbType,
+									dbHost,
+									dbPort,
+									dbName,
+									dbUser);
+	}
+	catch (DatabaseException e) {
+	    String msg = "Failed to connect to DB: " + e.getMessage();
+	    JOptionPane.showMessageDialog(frame,msg,"",JOptionPane.ERROR_MESSAGE);
+	}
+	menuBar.dbConnectionIsEstablished();
+	toolBar.dbConnectionIsEstablished();
+    }
+
+    /** disconnect from the  database */
+    public void disconnectFromDatabase()
+    {
+	if (!closeConfiguration()) return;
+	
+	try {
+	    database.disconnect();
+	    ((DatabaseInfoPanel)jPanelDbConnection).disconnectedFromDatabase();
+	    currentRelease.clear("");
+	}
+	catch (DatabaseException e) {
+	    String msg = "Failed to disconnect from DB: " + e.getMessage();
+	    JOptionPane.showMessageDialog(frame,msg,"",JOptionPane.ERROR_MESSAGE);
+	}
+	menuBar.dbConnectionIsNotEstablished();
+	toolBar.dbConnectionIsNotEstablished();
+    }
+
+    /** export the current configuration to a new database */
+    public void exportConfiguration()
+    {
+	if (!checkConfiguration()) return;
+	
+	ExportConfigurationDialog dialog =
+	    new ExportConfigurationDialog(frame,currentConfig.name());
+	
+	dialog.pack();
+	dialog.setLocationRelativeTo(frame);
+	dialog.setVisible(true);
+	
+	if (dialog.validChoice()) {
+	    ConfDB targetDB   = dialog.targetDB();
+	    String      targetName = dialog.targetName();
+	    Directory   targetDir  = dialog.targetDir();
+	    
+	    ExportConfigurationThread worker =
+		new ExportConfigurationThread(targetDB,targetName,targetDir);
+	    worker.start();
+	    jProgressBar.setIndeterminate(true);
+	    jProgressBar.setVisible(true);
+	    jProgressBar.setString("Migrate Configuration to " +
+				  targetDB.dbUrl() + " ... ");
+	}
+    }
+    
+    
+    /** reset current and import configuration */
+    private void resetConfiguration()
+    {
+	currentRelease.clearInstances();
+
+	currentConfig.reset();
+	treeModelCurrentConfig.setConfiguration(currentConfig);
+	treeModelStreams.setConfiguration(currentConfig);
+
+	//TODO configurationPanel.setCurrentConfig(currentConfig);
+
+	//TODO instancePanel.clear();
+
+	menuBar.configurationIsNotOpen();
+	toolBar.configurationIsNotOpen();
+
+	importConfig.reset();
+	treeModelImportConfig.setConfiguration(importConfig);
+	// TODO configurationPanel.setImportConfig(importConfig);
+
+	jButtonAddStream.setEnabled(false);
+    }
+
+    /** check that the current configuration is in a valid state for save/convert*/
+    private boolean checkConfiguration()
     {
 	if (currentConfig.isEmpty()) return false;
-
+	
 	int unsetParamCount = currentConfig.unsetTrackedParameterCount();
 	if (unsetParamCount>0) {
 	    String msg =
 		"current configuration contains " + unsetParamCount +
-		" unset tracked parameters. They must be set before saving!";
+		" unset tracked parameters. They must be set before " +
+		"saving/converting!";
 	    JOptionPane.showMessageDialog(frame,msg,"",JOptionPane.ERROR_MESSAGE);
 	    return false;
 	}
 
-	ArrayList<String> emptyContainers = new ArrayList<String>();
-	Iterator itP = currentConfig.pathIterator();
-	while (itP.hasNext()) {
-	    Path p = (Path)itP.next();
-	    if (p.entryCount()==0) emptyContainers.add(p.name());
-	}
-	Iterator itS = currentConfig.sequenceIterator();
-	while (itS.hasNext()) {
-	    Sequence s = (Sequence)itS.next();
-	    if (s.entryCount()==0) emptyContainers.add(s.name());
-	}
-	if (emptyContainers.size()>0) {
+	int emptyContainerCount = currentConfig.emptyContainerCount();
+	if (emptyContainerCount>0) {
 	    String msg =
-		"current configuration contains the following " +
-		"empty containers (paths/sequences):";
-	    for (String s : emptyContainers) msg += "\n" + s;
-	    msg += "\nThey must be filled or removed before saving!";
+		"current configuration contains " + emptyContainerCount +
+		"empty containers (paths/sequences). They must be filled before " +
+		"saving/converting!";
 	    JOptionPane.showMessageDialog(frame,msg,"",JOptionPane.ERROR_MESSAGE);
 	    return false;
 	}
-
+	
 	return true;
     }
 
 
-    /** create the content pane */
-    private JPanel createContentPane()
-    {
-	JPanel contentPane = new JPanel(new GridBagLayout());
-	contentPane.setOpaque(true);
-	
-	GridBagConstraints c = new GridBagConstraints();
-	c.fill = GridBagConstraints.BOTH;
-	c.weightx = 0.5;
-	
-	c.gridx=0;c.gridy=0; c.weighty=0.01;
-	contentPane.add(dbInfoPanel,c);
-
-	JSplitPane  splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-					       configurationPanel,
-					       instancePanel);
-	splitPane.setOneTouchExpandable(true);
-	splitPane.setResizeWeight(0.4);
-	splitPane.setDividerLocation(0.4);
-	
-	c.gridx=0;c.gridy=1; c.weighty=0.98;
-	contentPane.add(splitPane,c);
-	
-	JPanel statusPanel = new JPanel(new GridLayout());
-	progressBar = new JProgressBar(0);
-	progressBar.setIndeterminate(true);
-	progressBar.setStringPainted(true);
-	progressBar.setVisible(false);
-	statusPanel.add(progressBar);
-
-	c.gridx=0;c.gridy=2; c.weighty=0.01;
-	contentPane.add(statusPanel,c);
-	
-	return contentPane;
-    }
-
-    /** create the menu bar */
-    private void createMenuBar()
-    {
-	menuBar = new ConfDBMenuBar(frame,this,admins.contains(userName));
-	menuBar.dbConnectionIsNotEstablished();
-    }
-    
-    
-    //
-    // static member functions
-    //
-    
-    /** create and show the ConfDbGUI */
-    private static void createAndShowGUI()
-    {
-	// create the application's main frame
-	JFrame frame = new JFrame("ConfDbGUI");
-	
-	// create the ConfDbGUI app and set it as the main frame's content pane
-	ConfDbGUI app = new ConfDbGUI(frame);
-	
-	// add the application's content pane to the main frame
-	frame.setContentPane(app.createContentPane());
-	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	
-	// add menu bar to the main frame
-	app.createMenuBar();
-	
-	// display the main frame
-	int frameWidth  = (int)(0.75*frame.getToolkit().getScreenSize().getWidth());
-	int frameHeight = (int)(0.75*frame.getToolkit().getScreenSize().getHeight());
-	int frameX      = (int)(0.125*frame.getToolkit().getScreenSize().getWidth());
-	int frameY      = (int)(0.10*frame.getToolkit().getScreenSize().getHeight());
-	frame.pack();
-	frame.setSize(frameWidth,frameHeight);
-	frame.setLocation(frameX,frameY);
-	frame.setVisible(true);
-		
-	// try to etablish a database connection
-	app.connectToDatabase();
-    }
-
-    //
-    // private member functions
-    //
-    
     /** set the current configuration */
     private void setCurrentConfig(Configuration config)
     {
 	currentConfig = config;
-	currentTreeModel.setConfiguration(currentConfig);
-	streamTreeModel.setConfiguration(currentConfig);
-	configurationPanel.setCurrentConfig(currentConfig);
+	treeModelCurrentConfig.setConfiguration(currentConfig);
+	treeModelStreams.setConfiguration(currentConfig);
+	// TODO configurationPanel.setCurrentConfig(currentConfig);
 	currentRelease = currentConfig.release();
+	
+	jButtonAddStream.setEnabled(true);
     }
     
     
     //
-    // main
+    // THREADS
     //
     
-    /** main: create and show GUI, thread-safe */
-    public static void main(String[] args)
-    {
-	javax.swing.SwingUtilities.invokeLater(new Runnable() {
-		public void run() {  createAndShowGUI(); }
-	    });
-    }
-    
-
-    //
-    // threads *not* to be executed on the EDT
-    //
-
-    /**
-     * migrate current configuration to another database
-     */
+    /** migrate current configuration to another database  */
     private class ExportConfigurationThread extends SwingWorker<String>
     {
-	/** target database */
-	private ConfDB targetDB = null;
-	
-	/** name of the configuration in the target DB */
-	private String targetName = null;
-	
-	/** target directory */
-	private Directory targetDir = null;
-	
-	/** database migrator */
-	DatabaseMigrator migrator = null;
-
-	/** start time */
-	private long startTime;
+	/** member data */
+	private ConfDB           targetDB   = null;
+	private String           targetName = null;
+	private Directory        targetDir  = null;
+	private DatabaseMigrator migrator   = null;
+	private long             startTime;
 	
 	/** standard constructor */
 	public ExportConfigurationThread(ConfDB targetDB,
@@ -804,7 +761,7 @@ public class ConfDbGUI implements TableModelListener
 	    try {
 		targetDB.disconnect();
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		progressBar.setString(progressBar.getString() +
+		jProgressBar.setString(jProgressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
 		MigrationReportDialog dialog =
 		    new MigrationReportDialog(frame,migrator.releaseMigrator());
@@ -816,29 +773,21 @@ public class ConfDbGUI implements TableModelListener
 	    catch (Exception e) {
 		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		progressBar.setString(progressBar.getString() + "FAILED!");	
+		jProgressBar.setString(jProgressBar.getString() + "FAILED!");	
 	    }
-	    progressBar.setIndeterminate(false);
+	    jProgressBar.setIndeterminate(false);
 	}
     }
     
-
-    /**
-     * load release templates from the database
-     */
+    
+    /** load release templates from the database */
     private class NewConfigurationThread extends SwingWorker<String>
     {
-	/** name of the new configuration */
-	private String name = null;
-	
-	/** process of the new configuration */
-	private String process = null;
-	
-	/** release to be loaded */
+	/** member data */
+	private String name       = null;
+	private String process    = null;
 	private String releaseTag = null;
-	
-	/** start time */
-	private long startTime;
+	private long   startTime;
 	
 	/** standard constructor */
 	public NewConfigurationThread(String name,String process,String releaseTag)
@@ -865,37 +814,31 @@ public class ConfDbGUI implements TableModelListener
 		config.initialize(new ConfigInfo(name,null,releaseTag),
 				  currentRelease);
 		setCurrentConfig(config);
-		configurationPanel.setProcessName(process);
+		// TODO configurationPanel.setProcessName(process);
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		progressBar.setString(progressBar.getString() +
+		jProgressBar.setString(jProgressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
 	    }
 	    catch (Exception e) {
 		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		progressBar.setString(progressBar.getString() + "FAILED!");	
+		jProgressBar.setString(jProgressBar.getString() + "FAILED!");	
 	    }
-	    progressBar.setIndeterminate(false);
+	    jProgressBar.setIndeterminate(false);
 
-	    currentTree.setEditable(true);
-	    instancePanel.setEditable(true);
+	    jTreeCurrentConfig.setEditable(true);
+	    // TODO instancePanel.setEditable(true);
 	}
     }
     
 
-    /**
-     * load release templates from the database and parse config from *.py
-     */
+    /** load release templates from the database and parse config from *.py */
     private class ParseConfigurationThread extends SwingWorker<String>
     {
-	/** name of the file to be parsed */
-	private String fileName = null;
-	
-	/** release to be loaded */
+	/** member data */
+	private String fileName   = null;
 	private String releaseTag = null;
-	
-	/** start time */
-	private long startTime;
+	private long   startTime;
 	
 	/** standard constructor */
 	public ParseConfigurationThread(String fileName,String releaseTag)
@@ -933,32 +876,28 @@ public class ConfDbGUI implements TableModelListener
 	{
 	    try {
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		progressBar.setString(progressBar.getString() +
+		jProgressBar.setString(jProgressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
 	    }
 	    catch (Exception e) {
 		System.err.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		progressBar.setString(progressBar.getString() + "FAILED!");	
+		jProgressBar.setString(jProgressBar.getString() + "FAILED!");	
 	    }
-	    progressBar.setIndeterminate(false);
+	    jProgressBar.setIndeterminate(false);
 
-	    currentTree.setEditable(true);
-	    instancePanel.setEditable(true);
+	    jTreeCurrentConfig.setEditable(true);
+	    // TODO instancePanel.setEditable(true);
 	}
     }
     
 
-    /**
-     * load a configuration from the database
-     */
+    /** load a configuration from the database  */
     private class OpenConfigurationThread extends SwingWorker<String>
     {
-	/** configuration info */
+	/** member data */
 	private ConfigInfo configInfo = null;
-	
-	/** start time */
-	private long startTime;
+	private long       startTime;
 	
 	/** standard constructor */
 	public OpenConfigurationThread(ConfigInfo configInfo)
@@ -979,7 +918,7 @@ public class ConfDbGUI implements TableModelListener
 	{
 	    try {
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		progressBar.setString(progressBar.getString() +
+		jProgressBar.setString(jProgressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
 	    
 	    }
@@ -990,14 +929,13 @@ public class ConfDbGUI implements TableModelListener
 	    catch (Exception e) {
 		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		progressBar.setString(progressBar.getString() + "FAILED!");
+		jProgressBar.setString(jProgressBar.getString() + "FAILED!");
 	    }
-	    progressBar.setIndeterminate(false);
+	    jProgressBar.setIndeterminate(false);
 
-	    // check if the loaded config is locked and thus read-only
 	    if (currentConfig.isLocked()) {
-		currentTree.setEditable(false);
-		instancePanel.setEditable(false);
+		jTreeCurrentConfig.setEditable(false);
+		// TODO instancePanel.setEditable(false);
 		String msg =
 		    "The configuration '" +
 		    currentConfig.parentDir().name() + "/" +
@@ -1010,23 +948,20 @@ public class ConfDbGUI implements TableModelListener
 					      null);
 	    }
 	    else {
-		currentTree.setEditable(true);
-		instancePanel.setEditable(true);
+		jTreeCurrentConfig.setEditable(true);
+		// TODO instancePanel.setEditable(true);
 		database.lockConfiguration(currentConfig,userName);
 	    }
 	}
     }
 
-    /**
-     * import a configuration from the database
-     */
+    
+    /** import a configuration from the database */
     private class ImportConfigurationThread extends SwingWorker<String>
     {
-	/** configuration info */
+	/** member data */
 	private ConfigInfo configInfo = null;
-	
-	/** start time */
-	private long startTime;
+	private long       startTime;
 	
 	/** standard constructor */
 	public ImportConfigurationThread(ConfigInfo configInfo)
@@ -1049,10 +984,10 @@ public class ConfDbGUI implements TableModelListener
 	protected void finished()
 	{
 	    try {
-		importTreeModel.setConfiguration(importConfig);
-		configurationPanel.setImportConfig(importConfig);
+		treeModelImportConfig.setConfiguration(importConfig);
+		// TODO configurationPanel.setImportConfig(importConfig);
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		progressBar.setString(progressBar.getString() +
+		jProgressBar.setString(jProgressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
 	    }
 	    catch (ExecutionException e) {
@@ -1062,24 +997,18 @@ public class ConfDbGUI implements TableModelListener
 	    catch (Exception e) {
 		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		progressBar.setString(progressBar.getString() + "FAILED!");
+		jProgressBar.setString(jProgressBar.getString() + "FAILED!");
 	    }
-	    progressBar.setIndeterminate(false);
+	    jProgressBar.setIndeterminate(false);
 	}
     }
     
-    /**
-     * save a configuration in the database
-     */
+    /** save a configuration in the database */
     private class SaveConfigurationThread extends SwingWorker<String>
     {
-	/** start time */
-	private long startTime;
-	
-	/** process name */
+	/** member data */
+	private long   startTime;
 	private String processName;
-
-	/** comment */
 	private String comment;
 	
 	/** standard constructor */
@@ -1105,33 +1034,27 @@ public class ConfDbGUI implements TableModelListener
 	{
 	    try {
 		currentConfig.setHasChanged(false);
-		configurationPanel.setCurrentConfig(currentConfig);
+		// TODO configurationPanel.setCurrentConfig(currentConfig);
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		progressBar.setString(progressBar.getString() +
+		jProgressBar.setString(jProgressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
 	    }
 	    catch (Exception e) {
 		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		progressBar.setString(progressBar.getString() + "FAILED!");
+		jProgressBar.setString(jProgressBar.getString() + "FAILED!");
 	    }
-	    progressBar.setIndeterminate(false);
+	    jProgressBar.setIndeterminate(false);
 	}
     }
 
-    /**
-     * migrate a configuration in the database to a new release
-     */
+    /** migrate a configuration in the database to a new release */
     private class MigrateConfigurationThread extends SwingWorker<String>
     {
-	/** the target release */
-	private String targetReleaseTag = null;
-	
-	/** release migrator */
-	private ReleaseMigrator migrator = null;
-	
-	/** start time */
-	private long startTime;
+	/** member data */
+	private String          targetReleaseTag = null;
+	private ReleaseMigrator migrator         = null;
+	private long            startTime;
 	
 	/** standard constructor */
 	public MigrateConfigurationThread(String targetReleaseTag)
@@ -1173,13 +1096,15 @@ public class ConfDbGUI implements TableModelListener
 	protected void finished()
 	{
 	    try {
-		currentConfig.setHasChanged(false);
-		currentTreeModel.setConfiguration(currentConfig);
-		streamTreeModel.setConfiguration(currentConfig);
-		configurationPanel.setCurrentConfig(currentConfig);
-		instancePanel.clear();
+		//currentConfig.setHasChanged(false);
+		//treeModelCurrentConfig.setConfiguration(currentConfig);
+		//treeModelStreams.setConfiguration(currentConfig);
+		//configurationPanel.setCurrentConfig(currentConfig);
+
+		// TODOinstancePanel.clear();
+		
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		progressBar.setString(progressBar.getString() +
+		jProgressBar.setString(jProgressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
 		MigrationReportDialog dialog =
 		    new MigrationReportDialog(frame,migrator);
@@ -1191,37 +1116,28 @@ public class ConfDbGUI implements TableModelListener
 	    catch (Exception e) {
 		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		progressBar.setString(progressBar.getString() + "FAILED!");
+		jProgressBar.setString(jProgressBar.getString() + "FAILED!");
 	    }
-	    progressBar.setIndeterminate(false);
+	    jProgressBar.setIndeterminate(false);
 	}
     }
 
-    /**
-     * convert configuration to a text file
-     */
+    /** convert configuration to a text file */
     private class ConvertConfigurationThread extends SwingWorker<String>
     {
-	/** configuration to convert */
-	private IConfiguration config = null;
-
-	/** name of the produced configuration file */
-	private String fileName = null;
-
-	/** conversion format */
-	private String format = null;
-	
-	/** convert a configuration fragment? */
-	private boolean asFragment = false;
-	
-	/** start time */
-	private long startTime;
+	/** member data */
+	private IConfiguration config     = null;
+	private String         fileName   = null;
+	private String         format     = null;
+	private boolean        asFragment = false;
+	private long           startTime;
 	
 	/** standard constructor */
 	public ConvertConfigurationThread(IConfiguration config,
 					  String  fileName,
 					  String  format,
-					  boolean asFragment) {
+					  boolean asFragment)
+	{
 	    this.config     = config;
 	    this.fileName   = fileName;
 	    this.format     = format;
@@ -1264,29 +1180,25 @@ public class ConfDbGUI implements TableModelListener
 	{
 	    try {
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		progressBar.setString(progressBar.getString() +
+		jProgressBar.setString(jProgressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
 	    }
 	    catch (Exception e) {
 		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		progressBar.setString(progressBar.getString() + "FAILED!");
+		jProgressBar.setString(jProgressBar.getString() + "FAILED!");
 	    }
-	    progressBar.setIndeterminate(false);
+	    jProgressBar.setIndeterminate(false);
 	}
     }
     
     
-    /**
-     * load release templates from the database
-     */
+    /** load release templates from the database */
     private class UpdateTemplatesThread extends SwingWorker<String>
     {
-	/** release to be loaded */
+	/** member data */
 	private String releaseTag = null;
-	
-	/** start time */
-	private long startTime;
+	private long   startTime;
 	
 	/** standard constructor */
 	public UpdateTemplatesThread(String releaseTag)
@@ -1308,17 +1220,950 @@ public class ConfDbGUI implements TableModelListener
 	{
 	    try {
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		progressBar.setString(progressBar.getString() +
+		jProgressBar.setString(jProgressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
 	    }
 	    catch (Exception e) {
 		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		progressBar.setString(progressBar.getString() + "FAILED!");	
+		jProgressBar.setString(jProgressBar.getString() + "FAILED!");	
 	    }
-	    progressBar.setIndeterminate(false);
+	    jProgressBar.setIndeterminate(false);
+	}
+    }
+    
+    
+    //------------------------------------------------------------------------------
+    //
+    // private member functions
+    //
+    //------------------------------------------------------------------------------
+    
+    /** create trees and tables, including models */
+    private void createTreesAndTables()
+    {
+	// current configuration tree
+	treeModelCurrentConfig = new ConfigurationTreeModel(currentConfig);
+	jTreeCurrentConfig     = new JTree(treeModelCurrentConfig) {
+		public String getToolTipText(MouseEvent evt) {
+		    String text = null;
+		    ConfigurationTreeModel model =
+			(ConfigurationTreeModel)getModel();
+		    Configuration config = (Configuration)model.getRoot();
+		    
+		    if (getRowForLocation(evt.getX(),evt.getY()) == -1) return text;
+		    
+		    TreePath tp = getPathForLocation(evt.getX(),evt.getY());
+		    Object selectedNode = tp.getLastPathComponent();
+		    if (selectedNode instanceof Path) {
+			Path path = (Path)selectedNode;
+			if (path.streamCount()>0) {
+			    text = path.name()+" assigned to stream(s): ";
+			    for (int i=0;i<path.streamCount();i++)
+				text += path.stream(i) + " ";
+			}
+		    }
+		    else if (selectedNode instanceof ESSourceInstance||
+			     selectedNode instanceof ESModuleInstance||
+			     selectedNode instanceof ModuleInstance) {
+			Instance instance = (Instance)selectedNode;
+			text = instance.template().name();
+		    }
+		    else if (selectedNode instanceof ModuleReference) {
+			ModuleReference reference=(ModuleReference)selectedNode;
+			ModuleInstance  instance =(ModuleInstance)reference.parent();
+			text = instance.template().name();
+		    }
+		    return text;
+		}
+	    };
+	jTreeCurrentConfig.setToolTipText("");
+	jTreeCurrentConfig.setRootVisible(false);
+	jTreeCurrentConfig.setEditable(true);
+	jTreeCurrentConfig.getSelectionModel()
+	    .setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+	
+	
+	jTreeCurrentConfig
+	    .setCellRenderer(new ConfigurationTreeRenderer());
+	jTreeCurrentConfig
+	    .setCellEditor(new ConfigurationTreeEditor(jTreeCurrentConfig,
+						       new ConfigurationTreeRenderer()));
+	
+	ConfigurationTreeMouseListener mouseListener =
+	    new ConfigurationTreeMouseListener(jTreeCurrentConfig,frame,
+					       currentRelease);
+	jTreeCurrentConfig.addMouseListener(mouseListener);
+	
+	ConfigurationTreeTransferHandler currentDndHandler =
+	    new ConfigurationTreeTransferHandler(jTreeCurrentConfig,currentRelease,
+						 treeModelParameters);
+	jTreeCurrentConfig.setTransferHandler(currentDndHandler);
+	jTreeCurrentConfig.setDropTarget(new ConfigurationTreeDropTarget());
+	jTreeCurrentConfig.setDragEnabled(true);
+	
+	// import tree
+	Color defaultTreeBackground = UIManager.getColor("Tree.textBackground");
+	Color importTreeBackground  = UIManager.getColor("Button.background");
+	UIManager.put("Tree.textBackground",importTreeBackground);
+	treeModelImportConfig = new ConfigurationTreeModel(importConfig);
+	jTreeImportConfig      = new JTree(treeModelImportConfig);
+        jTreeImportConfig.setBackground(importTreeBackground);
+
+	jTreeImportConfig.setRootVisible(false);
+	jTreeImportConfig.setEditable(false);
+	jTreeImportConfig.getSelectionModel()
+	    .setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+	jTreeImportConfig.setCellRenderer(new ConfigurationTreeRenderer());
+	
+	
+	ConfigurationTreeTransferHandler importDndHandler =
+	    new ConfigurationTreeTransferHandler(jTreeImportConfig,null,null);
+	jTreeImportConfig.setTransferHandler(importDndHandler);
+	jTreeImportConfig.setDropTarget(new ConfigurationTreeDropTarget());
+	jTreeImportConfig.setDragEnabled(true);
+	
+	UIManager.put("Tree.textBackground",defaultTreeBackground);
+	
+	// stream tree
+	treeModelStreams = new StreamTreeModel(currentConfig);
+	jTreeStreams     = new JTree(treeModelStreams);
+	jTreeStreams.setEditable(true);
+	jTreeStreams.setRootVisible(false);
+	jTreeStreams.getSelectionModel().setSelectionMode(TreeSelectionModel
+							  .SINGLE_TREE_SELECTION);
+
+	
+	jTreeStreams.setCellRenderer(new StreamTreeRenderer());
+	jTreeStreams.setCellEditor(new StreamTreeEditor(jTreeStreams,
+							new StreamTreeRenderer()));
+	
+	StreamTreeMouseListener streamTreeMouseListener =
+	    new StreamTreeMouseListener(jTreeStreams);
+	jTreeStreams.addMouseListener(streamTreeMouseListener);
+	treeModelStreams.addTreeModelListener(streamTreeMouseListener);
+	
+
+	// prescales table
+
+	// parameter table
+	treeModelParameters  = new ParameterTreeModel();
+	jTreeTableParameters = new TreeTable(treeModelParameters);
+	jTreeTableParameters.setTreeCellRenderer(new ParameterTreeCellRenderer());
+	
+	jTreeTableParameters.getColumnModel().getColumn(0).setPreferredWidth(120);
+	jTreeTableParameters.getColumnModel().getColumn(1).setPreferredWidth(90);
+	jTreeTableParameters.getColumnModel().getColumn(2).setPreferredWidth(180);
+	jTreeTableParameters.getColumnModel().getColumn(3).setPreferredWidth(30);
+	jTreeTableParameters.getColumnModel().getColumn(4).setPreferredWidth(30);
+
+	jTreeTableParameters
+	    .addMouseListener(new ParameterTableMouseListener(frame,
+							      jTreeTableParameters));
+    }
+    
+    /** show/hide the import-tree pane */
+    private void showImportTree()
+    {
+	jSplitPaneCurrentConfig.setRightComponent(jScrollPaneImportConfig);
+	jSplitPaneCurrentConfig.setDividerLocation(0.5);
+	jSplitPaneCurrentConfig.setDividerSize(8);
+    }
+    private void hideImportTree()
+    {
+	jSplitPaneCurrentConfig.setRightComponent(null);
+	jSplitPaneCurrentConfig.setDividerLocation(1);
+	jSplitPaneCurrentConfig.setDividerSize(1);
+    }
+    
+    /** display parameters of the instance in right upper area */
+    private void displayInstanceParameters(Instance instance)
+    {
+
+    }
+
+    /** display all global PSets in right-upper area */
+    private void displayGlobalPSets()
+    {
+
+    }
+
+    /** clear the right upper area */
+    private void clearInstanceParameters()
+    {
+
+    }
+    
+    /** update the default-stream combobox */
+    private void updateDefaultStreamComboBox()
+    {
+	jComboBoxDefaultStream.setEnabled(true);
+	DefaultComboBoxModel comboBoxModel =
+	    (DefaultComboBoxModel)jComboBoxDefaultStream.getModel();
+	comboBoxModel.removeAllElements();
+	comboBoxModel.addElement(new String());
+	Iterator<Stream> it = currentConfig.streamIterator();
+	while (it.hasNext()) comboBoxModel.addElement(it.next());
+	if (currentConfig.defaultStream()==null)
+	    jComboBoxDefaultStream.setSelectedIndex(0);
+	else {
+	    Stream defaultStream = currentConfig.defaultStream();
+	    int    index = currentConfig.indexOfStream(defaultStream);
+	    jComboBoxDefaultStream.setSelectedIndex(index+1);
+	}
+    }
+    
+    //
+    // ACTIONLISTENER CALLBACKS
+    //
+    
+    private void jButtonReleaseActionPerformed(ActionEvent e)
+    {
+	if (currentConfig.isEmpty()) return;
+	SoftwareReleaseDialog dialog = new SoftwareReleaseDialog(frame,
+								 currentRelease);
+	dialog.pack();
+	dialog.setLocationRelativeTo(frame);
+	dialog.setVisible(true);
+    }
+    private void jButtonCancelSearchActionPerformed(ActionEvent e)
+    {
+
+    }
+    private void jToggleButtonImportActionPerformed(ActionEvent e)
+    {
+	AbstractButton b = (AbstractButton)e.getSource();
+	if (b.isSelected()) showImportTree();
+	else hideImportTree();
+    }
+    private void jComboBoxDefaultStreamActionPerformed(ActionEvent e)
+    {
+	Object selectedItem = jComboBoxDefaultStream.getSelectedItem();
+	if (selectedItem instanceof Stream) {
+	    Stream stream = (Stream)selectedItem;
+	    currentConfig.setDefaultStream(stream);
+	}
+	else {
+	    currentConfig.setDefaultStream(null);
+	}
+    }
+    private void jButtonAddStreamActionPerformed(ActionEvent e)
+    {
+	StreamTreeActions.insertStream(jTreeStreams);
+    }
+    private void jButtonDeleteStreamActionPerformed(ActionEvent e)
+    {
+	StreamTreeActions.removeStream(jTreeStreams);
+    }
+
+    
+    //
+    // KEYLISTENER CALLBACKS
+    //
+    
+    /** if a character was entered into the search field */
+    private void jTextFieldSearchKeyTyped(KeyEvent e)
+    {
+	System.out.println(e.getKeyChar());
+    }
+    
+    //
+    // TREEMODELLISTENER CALLBACKS
+    //
+    
+    private void jTreeCurrentConfigTreeNodesChanged(TreeModelEvent e)
+    {
+	if (currentConfig==null||currentConfig.streamCount()==0) return;
+	
+	Object changedNode = e.getChildren()[0];
+	
+	if (changedNode instanceof Path) {
+	    Path path = (Path)changedNode;
+	    if (path.streamCount()>0) treeModelStreams.nodeChanged(path); // :(
+	}
+    }
+    private void jTreeCurrentConfigTreeNodesInserted(TreeModelEvent e)
+    {
+	if (currentConfig.streamCount()>0&&currentConfig.defaultStream()!=null) {
+	    TreePath treePath = e.getTreePath();
+	    Object parentNode = treePath.getLastPathComponent();
+	    if (parentNode==treeModelCurrentConfig.pathsNode())
+		treeModelStreams.nodeInserted(currentConfig.defaultStream(),
+					      currentConfig.defaultStream()
+					      .pathCount()-1);
+	}
+    }
+    private void jTreeCurrentConfigTreeNodesRemoved(TreeModelEvent e)
+    {
+	if (currentConfig.streamCount()>0) {
+	    Object removedNode = e.getChildren()[0];
+	    if (removedNode instanceof Path) {
+		Path             path = (Path)removedNode;
+		Iterator<Stream> it   = path.streamIterator();
+		while (it.hasNext()) {
+		    Stream stream = it.next();
+		    int    index  = stream.indexOfPath(path);
+		    treeModelStreams.nodeRemoved(stream,index,path);
+		    stream.removePath(path);
+		}
+	    }
+	}
+    }
+    private void jTreeCurrentConfigTreeStructureChanged(TreeModelEvent e)
+    {
+
+    }
+
+    private void jTreeStreamsTreeNodesChanged(TreeModelEvent e)
+    {
+	Object changedNode = e.getChildren()[0];
+	if (changedNode instanceof Stream) {
+	    updateDefaultStreamComboBox();
+	    currentConfig.setHasChanged(true);
+	}
+    }
+    private void jTreeStreamsTreeNodesInserted(TreeModelEvent e)
+    {
+	TreePath treePath   = e.getTreePath();
+	Object   parentNode = treePath.getLastPathComponent();
+	
+	if (parentNode == treeModelStreams.getRoot()) updateDefaultStreamComboBox();
+	
+	jTextFieldUnassignedPaths.setEnabled(true);
+	jTextFieldUnassignedPaths
+	    .setText(""+currentConfig.pathNotAssignedToStreamCount());
+	if (currentConfig.pathNotAssignedToStreamCount()>0)
+	    jTextFieldUnassignedPaths.setForeground(Color.RED);
+	else
+	    jTextFieldUnassignedPaths.setForeground(Color.GREEN);
+	
+	currentConfig.setHasChanged(true);
+    }
+    private void jTreeStreamsTreeNodesRemoved(TreeModelEvent e)
+    {
+	if (currentConfig.streamCount()==0) {
+	    jTextFieldUnassignedPaths.setEnabled(false);
+	    jComboBoxDefaultStream.setEnabled(false);
+	    jTextFieldUnassignedPaths.setText("0");
+	    jComboBoxDefaultStream.setSelectedIndex(0);
+	}
+	else {
+	    Object removedNode = e.getChildren()[0];
+	    if (removedNode instanceof Stream) updateDefaultStreamComboBox();
+	    
+	    jTextFieldUnassignedPaths
+		.setText(""+currentConfig.pathNotAssignedToStreamCount());
+	    if (currentConfig.pathNotAssignedToStreamCount()>0)
+		jTextFieldUnassignedPaths.setForeground(Color.RED);
+	    else
+		jTextFieldUnassignedPaths.setForeground(Color.GREEN);
+	}
+	currentConfig.setHasChanged(true);
+    }
+    private void jTreeStreamsTreeStructureChanged(TreeModelEvent e)
+    {
+
+    }
+    
+
+
+    //
+    // TREESELECTIONLISTENER CALLBACKS
+    //
+    
+    private void jTreeCurrentConfigValueChanged(TreeSelectionEvent e)
+    {
+	TreePath treePath=e.getNewLeadSelectionPath();
+	if (treePath==null) return;
+
+	Object node=treePath.getLastPathComponent();
+	if(node==null) {
+	    clearInstanceParameters();
+	    return;
+	}
+
+	while (node instanceof Parameter) {
+	    Parameter p = (Parameter)node;
+	    node = p.parent();
+	}
+	
+	if (node instanceof Instance) {
+	    Instance instance = (Instance)node;
+	    displayInstanceParameters(instance);
+	}
+	else if (node instanceof ModuleReference) {
+	    ModuleReference reference = (ModuleReference)node;
+	    ModuleInstance  instance = (ModuleInstance)reference.parent();
+	    displayInstanceParameters(instance);
+	}
+	else if (node == null || node==treeModelCurrentConfig.psetsNode()) {
+	    displayGlobalPSets();
+	}
+	else {
+	    clearInstanceParameters();
 	}
     }
 
+    private void jTreeStreamsValueChanged(TreeSelectionEvent e)
+    {
+	TreePath treePath = e.getNewLeadSelectionPath(); if (treePath==null) return;
+	Object   selectedNode = treePath.getLastPathComponent();
+	if (selectedNode instanceof Stream) {
+	    jButtonAddStream.setEnabled(true);
+	    jButtonDeleteStream.setEnabled(true);
+	}
+	else if (selectedNode instanceof Path) {
+	    jButtonAddStream.setEnabled(false);
+	    jButtonDeleteStream.setEnabled(false);
+	}
+	else {
+	    jButtonAddStream.setEnabled(true);
+	    jButtonDeleteStream.setEnabled(false);
+	}
+    }
+    
+    
+    //
+    // TABLEMODELLISTENER CALLBACKS
+    //
+    
+    private void jTreeTableParametersTableChanged(TableModelEvent e)
+    {
+	Object source = e.getSource();
+	if (source instanceof TreeTableTableModel) {
+	    TreeTableTableModel tableModel = (TreeTableTableModel)source;
 
+	    Parameter node         = (Parameter)tableModel.changedNode();
+	    Object    childNode    = tableModel.childNode();
+	    int       childIndex   = tableModel.childIndex();
+	    String    typeOfChange = tableModel.typeOfChange();
+	    
+	    if (node!=null) {
+		Object parent = node.parent();
+		while (parent instanceof Parameter) {
+		    Parameter p = (Parameter)parent;
+		    parent = p.parent();
+		}
+		
+		if (childNode==null)
+		    treeModelCurrentConfig.nodeChanged(node);
+		else if (typeOfChange.equals("REMOVE"))
+		    treeModelCurrentConfig.nodeRemoved(node,childIndex,childNode);
+		else if (typeOfChange.equals("INSERT"))
+		    treeModelCurrentConfig.nodeInserted(node,childIndex);
+		
+		if (parent instanceof ModuleInstance) jTreeCurrentConfig.updateUI();
+		treeModelCurrentConfig.updateLevel1Nodes();
+		currentConfig.setHasChanged(true);
+	    }
+	}
+    }
+    
+    
+    //
+    // CREATE GUI COMPONENTS
+    //
+    
+    /** create the  menubar */
+    private void createMenuBar()
+    {
+	ArrayList<String> admins = new ArrayList<String>();
+	admins.add("schiefer");
+	admins.add("meschi");
+	admins.add("mzanetti");
+	
+	menuBar = new MenuBar(jMenuBar,this,admins.contains(userName));
+	frame.setJMenuBar(jMenuBar);
+    }
+
+    /** create the toolbar */
+    private void createToolBar()
+    {
+	jToolBar.setFloatable(false);
+	jToolBar.setRollover(true);
+	toolBar = new ToolBar(jToolBar,this);
+    }
+
+    /** create the database connection panel */
+    private void createDbConnectionPanel()
+    {
+	jPanelDbConnection = new DatabaseInfoPanel();
+    }
+
+    /** create the left panel */
+    private void createLeftPanel()
+    {
+	createConfigurationPanel(); // -> tab 1
+	createStreamsPanel();       // -> tab 2
+	createPrescalesPanel();     // -> tab 3
+
+        JLabel jLabelConfig  = new javax.swing.JLabel();
+	JLabel jLabelProcess = new javax.swing.JLabel();
+        JLabel jLabelRelease = new javax.swing.JLabel();
+        JLabel jLabelCreated = new javax.swing.JLabel();
+        JLabel jLabelCreator = new javax.swing.JLabel();
+	
+        jLabelConfig.setText("Configuration:");
+
+        jTextFieldCurrentConfig.setBackground(new java.awt.Color(255, 255, 255));
+        jTextFieldCurrentConfig.setEditable(false);
+        jTextFieldCurrentConfig.setFont(new java.awt.Font("Dialog", 1, 12));
+        jTextFieldCurrentConfig.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+
+        jLabelProcess.setText("Process:");
+
+        jTextFieldProcess.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+
+        jLabelRelease.setText("Release:");
+
+        jButtonRelease.setBackground(new java.awt.Color(255, 255, 255));
+        jButtonRelease.setForeground(new java.awt.Color(0, 0, 204));
+        jButtonRelease.setText("-");
+        jButtonRelease.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+
+        jLabelCreated.setText("Created:");
+
+        jTextFieldCreated.setBackground(new java.awt.Color(255, 255, 255));
+        jTextFieldCreated.setEditable(false);
+        jTextFieldCreated.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+
+        jLabelCreator.setText("Creator:");
+
+        jTextFieldCreator.setBackground(new java.awt.Color(255, 255, 255));
+        jTextFieldCreator.setEditable(false);
+        jTextFieldCreator.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+
+	jTabbedPaneLeft.addTab("Configuration", jPanelCurrentConfig);
+        jTabbedPaneLeft.addTab("Streams",       jPanelStreams);
+        jTabbedPaneLeft.addTab("Prescales",     jPanelPrescales);
+
+        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelLeft);
+        jPanelLeft.setLayout(layout);
+        layout.setHorizontalGroup(
+				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				  .add(layout.createSequentialGroup()
+				       .addContainerGap()
+				       .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+					    .add(jTabbedPaneLeft, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
+					    .add(layout.createSequentialGroup()
+						 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+						      .add(jLabelConfig)
+						      .add(jLabelProcess)
+						      .add(jLabelCreated))
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+						      .add(layout.createSequentialGroup()
+							   .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+								.add(org.jdesktop.layout.GroupLayout.LEADING, jTextFieldCreated, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE)
+								.add(org.jdesktop.layout.GroupLayout.LEADING, jTextFieldProcess, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE))
+							   .add(22, 22, 22)
+							   .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+								.add(layout.createSequentialGroup()
+								     .add(jLabelRelease)
+								     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+								     .add(jButtonRelease, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE))
+								.add(layout.createSequentialGroup()
+								     .add(jLabelCreator)
+								     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+								     .add(jTextFieldCreator, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 117, Short.MAX_VALUE))))
+						      .add(layout.createSequentialGroup()
+							   .add(jTextFieldCurrentConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
+							   .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+							   .add(jLabelLock, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)))
+				       .addContainerGap())
+				  );
+        layout.setVerticalGroup(
+				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				.add(layout.createSequentialGroup()
+				     .addContainerGap()
+				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+					  .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+					       .add(jLabelConfig)
+					       .add(jTextFieldCurrentConfig, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+					  .add(jLabelLock, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 17, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+					  .add(jLabelProcess)
+					  .add(jLabelRelease)
+					  .add(jTextFieldProcess, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+					  .add(jButtonRelease, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 17, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+					  .add(jLabelCreated)
+					  .add(jTextFieldCreated, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+					  .add(jLabelCreator)
+					  .add(jTextFieldCreator, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+				     .add(jTabbedPaneLeft, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 508, Short.MAX_VALUE)
+				     .addContainerGap())
+				);
+
+        layout.linkSize(new java.awt.Component[] {jButtonRelease, jLabelRelease, jTextFieldProcess}, org.jdesktop.layout.GroupLayout.VERTICAL);
+        layout.linkSize(new java.awt.Component[] {jLabelLock, jTextFieldCurrentConfig}, org.jdesktop.layout.GroupLayout.VERTICAL);
+    }
+    
+    /** create the 'Configuration' panel (tab1 in left panel) */
+    private void createConfigurationPanel()
+    {
+
+	jLabelSearch.setText("Search:");
+
+	// TODO
+	createSearchPopupMenu();
+				       
+
+	jButtonCancelSearch.setIcon(new ImageIcon(getClass().getResource("/CancelSearchIcon.png")));
+	jToggleButtonImport.setIcon(new ImageIcon(getClass().getResource("/ImportToggleIcon.png")));
+	
+	jButtonCancelSearch.setBackground(new java.awt.Color(238,238,238));
+	jToggleButtonImport.setBackground(new java.awt.Color(238,238,238));
+	
+	jButtonCancelSearch.setBorder(null);
+	jToggleButtonImport.setBorder(null);
+
+	jSplitPaneCurrentConfig.setResizeWeight(0.5);
+        jScrollPaneCurrentConfig.setViewportView(jTreeCurrentConfig);
+
+        jSplitPaneCurrentConfig.setLeftComponent(jScrollPaneCurrentConfig);
+
+        jScrollPaneImportConfig.setViewportView(jTreeImportConfig);
+
+        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelCurrentConfig);
+        jPanelCurrentConfig.setLayout(layout);
+        layout.setHorizontalGroup(
+				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				  .add(layout.createSequentialGroup()
+				       .addContainerGap()
+				       .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+					    .add(jSplitPaneCurrentConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 363, Short.MAX_VALUE)
+					    .add(layout.createSequentialGroup()
+						 .add(jLabelSearch)
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(jTextFieldSearch, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 199, Short.MAX_VALUE)
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(jButtonCancelSearch, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+						 .add(63, 63, 63)
+						 .add(jToggleButtonImport, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+				       .addContainerGap())
+				  );
+        layout.setVerticalGroup(
+				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				.add(layout.createSequentialGroup()
+				     .addContainerGap()
+				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+					  .add(jToggleButtonImport, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 19, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+					  .add(jButtonCancelSearch)
+					  .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+					       .add(jLabelSearch)
+					       .add(jTextFieldSearch, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+				     .add(jSplitPaneCurrentConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 409, Short.MAX_VALUE)
+				     .addContainerGap())
+				);
+
+        layout.linkSize(new java.awt.Component[] {jButtonCancelSearch, jTextFieldSearch, jToggleButtonImport}, org.jdesktop.layout.GroupLayout.VERTICAL);
+    }
+
+    /** create the  'Streams' panel (tab2 in left panel) */
+    private void createStreamsPanel()
+    {
+        JLabel jLabelDefaultStream   = new javax.swing.JLabel();
+        JLabel jLabelUnassignedPaths = new javax.swing.JLabel();
+	
+	jButtonAddStream.setIcon(new ImageIcon(getClass().
+					       getResource("/AddIcon.png")));
+        jButtonDeleteStream.setIcon(new ImageIcon(getClass().
+						  getResource("/DeleteIcon.png")));
+	
+	jButtonAddStream.setToolTipText("create a new stream");
+	jButtonDeleteStream.setToolTipText("delete the currently selected stream");
+	
+        jScrollPaneStreams.setViewportView(jTreeStreams);
+	
+        jLabelDefaultStream.setText("Default Stream:");
+	jLabelDefaultStream.setToolTipText("new paths will be automatically " +
+					   "added to this stream");
+	
+        jComboBoxDefaultStream.setModel(new DefaultComboBoxModel());
+	
+        jLabelUnassignedPaths.setText("Unassigned Paths:");
+	
+	jTextFieldUnassignedPaths.setHorizontalAlignment(JTextField.RIGHT);
+	jTextFieldUnassignedPaths.setEditable(false);
+	jTextFieldUnassignedPaths.setBackground(new java.awt.Color(255,255,255));
+	
+        jButtonAddStream.setBackground(new java.awt.Color(238,238,238));
+        jButtonAddStream.setBorder(null);
+        jButtonAddStream.setEnabled(false);
+	
+        jButtonDeleteStream.setBackground(new java.awt.Color(238,238,238));
+        jButtonDeleteStream.setBorder(null);
+        jButtonDeleteStream.setEnabled(false);
+	
+        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelStreams);
+        jPanelStreams.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+                    .add(org.jdesktop.layout.GroupLayout.LEADING, jScrollPaneStreams, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 340, Short.MAX_VALUE)
+                    .add(layout.createSequentialGroup()
+                        .add(jLabelDefaultStream)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jComboBoxDefaultStream, 0, 232, Short.MAX_VALUE))
+                    .add(layout.createSequentialGroup()
+                        .add(jButtonAddStream, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jButtonDeleteStream, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 21, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 110, Short.MAX_VALUE)
+                        .add(jLabelUnassignedPaths)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jTextFieldUnassignedPaths, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 56, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+
+        layout.linkSize(new java.awt.Component[] {jButtonAddStream, jButtonDeleteStream}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
+
+        layout.setVerticalGroup(
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
+                .addContainerGap()
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jLabelDefaultStream)
+                    .add(jComboBoxDefaultStream, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jScrollPaneStreams, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+		     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+			 .add(jLabelUnassignedPaths)
+			 .add(jButtonAddStream)
+			 .add(jTextFieldUnassignedPaths, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+		     .add(jButtonDeleteStream))
+		 .addContainerGap())
+	    );
+	
+        layout.linkSize(new java.awt.Component[] {jButtonAddStream, jButtonDeleteStream, jTextFieldUnassignedPaths}, org.jdesktop.layout.GroupLayout.VERTICAL);
+	
+    }
+
+    /** create the 'Search:' popup menu */
+    private void createSearchPopupMenu()
+    {
+	jPopupMenuSearch.add(new JMenuItem("Option1"));
+	jPopupMenuSearch.add(new JMenuItem("Option2"));
+    }
+
+    /** create the 'Prescales' panel (tab3 in left panel) */
+    private void createPrescalesPanel()
+    {
+        jScrollPanePrescales.setBackground(new java.awt.Color(255, 255, 255));
+	
+        jScrollPanePrescales.setViewportView(jTablePrescales);
+	
+        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelPrescales);
+        jPanelPrescales.setLayout(layout);
+        layout.setHorizontalGroup(
+				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				  .add(layout.createSequentialGroup()
+				       .addContainerGap()
+				       .add(jScrollPanePrescales, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 372, Short.MAX_VALUE)
+				       .addContainerGap())
+				  );
+        layout.setVerticalGroup(
+				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				.add(layout.createSequentialGroup()
+				     .addContainerGap()
+				     .add(jScrollPanePrescales, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 433, Short.MAX_VALUE)
+				     .addContainerGap())
+				);
+    }
+
+    /** create the right upper panel */
+    private void createRightUpperPanel()
+    {
+        JLabel jLabelPackage = new javax.swing.JLabel();
+        JLabel jLabelCVS     = new javax.swing.JLabel();
+        JLabel jLabelPlugin  = new javax.swing.JLabel();
+        JLabel jLabelLabel   = new javax.swing.JLabel();
+        JLabel jLabelPaths   = new javax.swing.JLabel();
+	
+        jSplitPaneRightUpper.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        jLabelPackage.setFont(new java.awt.Font("Dialog", 0, 12));
+        jLabelPackage.setText("Package:");
+
+        jTextFieldPackage.setBackground(new java.awt.Color(250, 250, 250));
+        jTextFieldPackage.setEditable(false);
+        jTextFieldPackage.setFont(new java.awt.Font("Dialog", 0, 10));
+        jTextFieldPackage.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+
+        jLabelCVS.setFont(new java.awt.Font("Dialog", 0, 12));
+        jLabelCVS.setText("CVS:");
+
+        jTextFieldCVS.setBackground(new java.awt.Color(250, 250, 250));
+        jTextFieldCVS.setEditable(false);
+        jTextFieldCVS.setFont(new java.awt.Font("Dialog", 0, 10));
+        jTextFieldCVS.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+
+        jLabelPlugin.setFont(new java.awt.Font("Dialog", 0, 12));
+        jLabelPlugin.setText("Plugin:");
+
+        jTextFieldPlugin.setBackground(new java.awt.Color(250, 250, 250));
+        jTextFieldPlugin.setEditable(false);
+        jTextFieldPlugin.setFont(new java.awt.Font("Dialog", 0, 10));
+        jTextFieldPlugin.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+
+        jLabelLabel.setText("Label:");
+
+        jTextFieldLabel.setBackground(new java.awt.Color(255, 255, 255));
+        jTextFieldLabel.setEditable(false);
+        jTextFieldLabel.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+
+        jLabelPaths.setText("Paths:");
+
+        jComboBoxPaths.setBackground(new java.awt.Color(255, 255, 255));
+	
+        org.jdesktop.layout.GroupLayout jPanelPluginLayout = new org.jdesktop.layout.GroupLayout(jPanelPlugin);
+        jPanelPlugin.setLayout(jPanelPluginLayout);
+        jPanelPluginLayout.setHorizontalGroup(
+					      jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+					      .add(jPanelPluginLayout.createSequentialGroup()
+						   .addContainerGap()
+						   .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+							.add(jPanelPluginLayout.createSequentialGroup()
+							     .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+								  .add(org.jdesktop.layout.GroupLayout.LEADING, jTextFieldLabel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 243, Short.MAX_VALUE)
+								  .add(jPanelPluginLayout.createSequentialGroup()
+								       .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+									    .add(jLabelPackage)
+									    .add(jTextFieldPackage, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 161, Short.MAX_VALUE))
+								       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+								       .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+									    .add(jLabelCVS)
+									    .add(jTextFieldCVS, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 70, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))))
+							     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED))
+							.add(jPanelPluginLayout.createSequentialGroup()
+							     .add(jLabelLabel)
+							     .add(219, 219, 219)))
+						   .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+							.add(jComboBoxPaths, 0, 131, Short.MAX_VALUE)
+							.add(jLabelPaths)
+							.add(jTextFieldPlugin, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 131, Short.MAX_VALUE)
+							.add(jLabelPlugin))
+						   .addContainerGap())
+					      );
+        jPanelPluginLayout.setVerticalGroup(
+					    jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+					    .add(jPanelPluginLayout.createSequentialGroup()
+						 .addContainerGap()
+						 .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+						      .add(jLabelPackage)
+						      .add(jLabelCVS)
+						      .add(jLabelPlugin))
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+						      .add(jTextFieldPackage, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+						      .add(jTextFieldCVS, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+						      .add(jTextFieldPlugin, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+						      .add(jLabelLabel)
+						      .add(jLabelPaths))
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+						      .add(jTextFieldLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+						      .add(jComboBoxPaths, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 21, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+						 .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+					    );
+        jSplitPaneRightUpper.setTopComponent(jPanelPlugin);
+	
+	jScrollPaneParameters.setBackground(new java.awt.Color(255, 255, 255));
+        jScrollPaneParameters.setBorder(javax.swing.BorderFactory.createTitledBorder("Parameters"));
+	
+        jScrollPaneParameters.setViewportView(jTreeTableParameters);
+	
+        jSplitPaneRightUpper.setRightComponent(jScrollPaneParameters);
+
+        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelRightUpper);
+        jPanelRightUpper.setLayout(layout);
+        layout.setHorizontalGroup(
+				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				  .add(jSplitPaneRightUpper, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 412, Short.MAX_VALUE)
+				  );
+        layout.setVerticalGroup(
+				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				.add(jSplitPaneRightUpper, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 390, Short.MAX_VALUE)
+				);
+	
+	jTreeTableParameters.getParent().setBackground(new Color(255,255,255));//PS
+    }
+    
+    /** create the right lower panel */
+    private void createRightLowerPanel()
+    {
+	jEditorPaneSnippet.setEditable(false);
+        jScrollPaneRightLower.setViewportView(jEditorPaneSnippet);
+	
+        jTabbedPaneRightLower.addTab("Snippet", jScrollPaneRightLower);
+	
+        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelRightLower);
+        jPanelRightLower.setLayout(layout);
+        layout.setHorizontalGroup(
+				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				  .add(jTabbedPaneRightLower, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 436, Short.MAX_VALUE)
+				  );
+        layout.setVerticalGroup(
+				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				.add(jTabbedPaneRightLower, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 346, Short.MAX_VALUE)
+				);
+    }
+    
+    /** create the content pane */
+    private void createContentPane()
+    {
+	createMenuBar();
+	createToolBar();
+	createDbConnectionPanel();
+	createLeftPanel();
+	createRightUpperPanel();
+	createRightLowerPanel();
+	
+	
+	jSplitPane.setDividerLocation(0.5);
+        jSplitPane.setResizeWeight(0.5);
+	jSplitPaneRight.setDividerLocation(0.5);
+	jSplitPaneRight.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        jSplitPaneRight.setResizeWeight(0.5);
+        jSplitPane.setRightComponent(jSplitPaneRight);
+	
+	// PS
+	jSplitPane.setLeftComponent(jPanelLeft);
+	jSplitPaneRight.setLeftComponent(jPanelRightUpper);
+	jSplitPaneRight.setRightComponent(jPanelRightLower);
+	// END PS
+
+        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelContentPane);
+        jPanelContentPane.setLayout(layout);
+        layout.setHorizontalGroup(
+				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				  .add(jProgressBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 1019, Short.MAX_VALUE)
+				  .add(jSplitPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 1019, Short.MAX_VALUE)
+				  .add(jPanelDbConnection, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				  .add(jToolBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 1019, Short.MAX_VALUE)
+				  );
+        layout.setVerticalGroup(
+				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				.add(layout.createSequentialGroup()
+				     .add(jToolBar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+				     .add(jPanelDbConnection, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+				     .add(jSplitPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 628, Short.MAX_VALUE)
+				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+				     .add(jProgressBar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 22, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+				);
+    }
+    
 }

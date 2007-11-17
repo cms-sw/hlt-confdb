@@ -44,14 +44,12 @@ public class ParameterTableMouseListener extends MouseAdapter
     //
 
     public ParameterTableMouseListener(JFrame frame,
-				       TreeTable treeTable,
-				       TreeTableTableModel tableModel,
-				       ParameterTreeModel treeModel)
+				       TreeTable treeTable)
     {
 	this.frame      = frame;
 	this.treeTable  = treeTable;
-	this.tableModel = tableModel;
-	this.treeModel  = treeModel;
+	this.tableModel = (TreeTableTableModel)treeTable.getModel();
+	this.treeModel  = (ParameterTreeModel)treeTable.getTree().getModel();
     }
 
     //
