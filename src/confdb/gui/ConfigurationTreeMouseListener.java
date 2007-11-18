@@ -295,14 +295,19 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		    JMenu instanceMenu = new ScrollableMenu(t.name());
 		    menuItem = new JMenuItem("New Instance");
 		    menuItem.addActionListener(essourceListener);
-		    instanceMenu.add(menuItem);
 		    menuItem.setActionCommand(t.name());
-		    if (t.instanceCount()>0) instanceMenu.addSeparator();		    
+		    instanceMenu.add(menuItem);
+		    
+		    JMenu copyMenu = new ScrollableMenu("Copy");
+		    instanceMenu.add(copyMenu);
+
 		    for (int i=0;i<t.instanceCount();i++) {
 			Instance instance = t.instance(i);
 			menuItem = new JMenuItem(instance.name());
-			menuItem.setEnabled(false);
-			instanceMenu.add(menuItem);
+			menuItem.addActionListener(essourceListener);
+			menuItem.setActionCommand("copy:"+
+						  t.name()+":"+instance.name());
+			copyMenu.add(menuItem);
 		    }
 		    essourceMenu.add(instanceMenu);
 		}
@@ -361,12 +366,17 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		    menuItem.addActionListener(esmoduleListener);
 		    menuItem.setActionCommand(t.name());
 		    instanceMenu.add(menuItem);
-		    if (t.instanceCount()>0) instanceMenu.addSeparator();
+
+		    JMenu copyMenu = new ScrollableMenu("Copy");
+		    instanceMenu.add(copyMenu);
+		    
 		    for (int i=0;i<t.instanceCount();i++) {
 			Instance instance = t.instance(i);
 			menuItem = new JMenuItem(instance.name());
-			menuItem.setEnabled(false);
-			instanceMenu.add(menuItem);
+			menuItem.addActionListener(esmoduleListener);
+			menuItem.setActionCommand("copy:"+
+						  t.name()+":"+instance.name());
+			copyMenu.add(menuItem);
 		    }
 		    esmoduleMenu.add(instanceMenu);
 		}
@@ -624,7 +634,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	JMenu     addModuleMenu = new JMenu("Add Module");
 	JMenuItem menuItemAll;
 	JMenuItem menuItem;
-	
+	JMenuItem copyItemAll;
+	JMenuItem copyItem;
+
 	HashMap<String,JMenu> menuHashMap = new HashMap<String,JMenu>();
 	
 	Iterator<ModuleTemplate> it = release.moduleTemplateIterator();
@@ -665,32 +677,51 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		JMenu instanceMenuAll = new ScrollableMenu(t.name());
 		JMenu instanceMenu = new ScrollableMenu(t.name());
 		menuItemAll = new JMenuItem("New Instance");
-		menuItemAll.addActionListener(listener);
-		menuItemAll.setActionCommand(t.name());
-		instanceMenuAll.add(menuItemAll);
 		menuItem = new JMenuItem("New Instance");
+		menuItemAll.addActionListener(listener);
 		menuItem.addActionListener(listener);
+		menuItemAll.setActionCommand(t.name());
 		menuItem.setActionCommand(t.name());
+		instanceMenuAll.add(menuItemAll);
 		instanceMenu.add(menuItem);
+
+		JMenu copyMenuAll = new ScrollableMenu("Copy");
+		JMenu copyMenu = new ScrollableMenu("Copy");
+		instanceMenuAll.add(copyMenuAll);
+		instanceMenu.add(copyMenu);
+		
 		instanceMenuAll.addSeparator();
 		instanceMenu.addSeparator();
+		
 		for (int i=0;i<t.instanceCount();i++) {
 		    ModuleInstance instance = (ModuleInstance)t.instance(i);
 		    menuItemAll = new JMenuItem(instance.name());
+		    menuItem    = new JMenuItem(instance.name());
+		    copyItemAll = new JMenuItem(instance.name());
+		    copyItem    = new JMenuItem(instance.name());
 		    menuItemAll.addActionListener(listener);
-		    menuItemAll.setActionCommand(t.name());
-		    menuItem = new JMenuItem(instance.name());
 		    menuItem.addActionListener(listener);
-		    menuItem.setActionCommand(t.name());
+		    copyItemAll.addActionListener(listener);
+		    copyItem.addActionListener(listener);
+		    menuItemAll.setActionCommand(t.name()+":"+instance.name());
+		    menuItem.setActionCommand(t.name()+":"+instance.name());
+		    copyItemAll.setActionCommand("copy:"+
+						 t.name()+":"+instance.name());
+		    copyItem.setActionCommand("copy:"+
+					      t.name()+":"+instance.name());
 		    
 		    for (int j=0;j<container.entryCount();j++) {
 			Reference reference = container.entry(j);
 			if (instance.isReferencedBy(reference))
 			    menuItemAll.setEnabled(false);
 			    menuItem.setEnabled(false);
+			    copyItemAll.setEnabled(false);
+			    copyItem.setEnabled(false);
 		    }
 		    instanceMenuAll.add(menuItemAll);
 		    instanceMenu.add(menuItem);
+		    copyMenuAll.add(copyItemAll);
+		    copyMenu.add(copyItem);
 		}
 		moduleTypeAllMenu.add(instanceMenuAll);
 		moduleTypeAndLetterMenu.add(instanceMenu);
@@ -698,8 +729,8 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    else {
 		menuItemAll = new JMenuItem(t.name());
 		menuItem = new JMenuItem(t.name());
-		menuItemAll.setActionCommand("");
-		menuItem.setActionCommand("");
+		menuItemAll.setActionCommand(t.name());
+		menuItem.setActionCommand(t.name());
 		menuItemAll.addActionListener(listener);
 		menuItem.addActionListener(listener);
 		moduleTypeAllMenu.add(menuItemAll);
@@ -914,8 +945,7 @@ class ESSourceMenuListener implements ActionListener
 	    ConfigurationTreeActions.editNodeName(tree);
  	}
 	else {
-	    String templateName = 
-		(cmd.equals("New Instance")) ? source.getActionCommand() : cmd;
+	    String templateName = source.getActionCommand();
 	    ConfigurationTreeActions.insertESSource(tree,templateName);
 	}
     }
@@ -952,8 +982,7 @@ class ESModuleMenuListener implements ActionListener
 	    ConfigurationTreeActions.editNodeName(tree);
  	}
 	else {
-	    String templateName = (cmd.equals("New Instance")) ?
-		source.getActionCommand() : cmd;
+	    String templateName = source.getActionCommand();
 	    ConfigurationTreeActions.insertESModule(tree,templateName);
 	}
     }
@@ -1044,12 +1073,7 @@ class PathMenuListener implements ActionListener
 	}
  	// add a module(-reference) to the currently selected path
 	else {
-	    String name = cmd;
-	    if (action.length()>0) {
-		if (cmd.equals("New Instance")) name = action;
-		else name = action + ":" + cmd;
-	    }
-	    ConfigurationTreeActions.insertReference(tree,"Module",name);
+	    ConfigurationTreeActions.insertReference(tree,"Module",action);
 	}
     }
 
@@ -1102,12 +1126,7 @@ class SequenceMenuListener implements ActionListener
 	}
 	// add a module to the selected sequence
 	else {
-	    String name = cmd;
-	    if (action.length()>0) {
-		if (cmd.equals("New Instance")) name = action;
-		else name = action + ":" + cmd;
-	    }
-	    ConfigurationTreeActions.insertReference(tree,"Module",name);
+	    ConfigurationTreeActions.insertReference(tree,"Module",action);
 	}
     }
 

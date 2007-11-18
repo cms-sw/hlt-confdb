@@ -1341,6 +1341,7 @@ public class ConfDbGUI
 	    };
 	jTreeCurrentConfig.setToolTipText("");
 	jTreeCurrentConfig.setRootVisible(false);
+	jTreeCurrentConfig.setShowsRootHandles(true);
 	jTreeCurrentConfig.setEditable(true);
 	jTreeCurrentConfig.getSelectionModel()
 	    .setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -1666,14 +1667,18 @@ public class ConfDbGUI
     
     private void jTreeCurrentConfigTreeNodesChanged(TreeModelEvent e)
     {
-	if (currentConfig==null||currentConfig.streamCount()==0) return;
-	
-	Object changedNode = e.getChildren()[0];
-	
-	if (changedNode instanceof Path) {
-	    Path path = (Path)changedNode;
-	    if (path.streamCount()>0) treeModelStreams.nodeChanged(path); // :(
+	if (currentConfig==null) return;
+
+	if (currentConfig.streamCount()>0) {
+	    Object changedNode = e.getChildren()[0];
+	    if (changedNode instanceof Path) {
+		Path path = (Path)changedNode;
+		if (path.streamCount()>0) treeModelStreams.nodeChanged(path); // :(
+	    }
 	}
+	// TEST
+	displayParameters();
+	displaySnippet();
     }
     private void jTreeCurrentConfigTreeNodesInserted(TreeModelEvent e)
     {

@@ -5,6 +5,7 @@ import javax.swing.tree.*;
 import java.awt.*;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import confdb.data.*;
 
@@ -200,8 +201,24 @@ public class ConfigurationTreeActions
     {
 	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config = (Configuration)model.getRoot();
-	Template template = config.release().essourceTemplate(templateName);
-	return insertInstance(tree,template);
+
+	if (templateName.indexOf(':')>=0) {
+	    String[] s = templateName.split(":");
+	    Template template = config.release().essourceTemplate(s[1]);
+	    Instance original = null;
+	    try {
+		original = template.instance(s[2]);
+	    }
+	    catch (DataException e) {
+		System.err.println(e.getMessage());
+		return false;
+	    }
+	    return insertCopy(tree,original);
+	}
+	else {
+	    Template template = config.release().essourceTemplate(templateName);
+	    return insertInstance(tree,template);
+	}
     }
     
     /** import ESSource */
@@ -234,8 +251,24 @@ public class ConfigurationTreeActions
     {
 	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config   = (Configuration)model.getRoot();
-	Template  template = config.release().esmoduleTemplate(templateName);
-	return insertInstance(tree,template);
+	
+	if (templateName.indexOf(':')>0) {
+	    String[] s = templateName.split(":");
+	    Template template = config.release().esmoduleTemplate(s[1]);
+	    Instance original = null;
+	    try {
+		original = template.instance(s[2]);
+	    }
+	    catch (DataException e) {
+		System.err.println(e.getMessage());
+		return false;
+	    }
+	    return insertCopy(tree,original);
+	}
+	else {
+	    Template  template = config.release().esmoduleTemplate(templateName);
+	    return insertInstance(tree,template);
+	}
     }
     
     /** import ESModule */
@@ -526,44 +559,76 @@ public class ConfigurationTreeActions
 	Reference      reference    = null;
 	ModuleInstance module       = null;
 	
-	if (type.compareToIgnoreCase("Path")==0) {
+	if (type.equalsIgnoreCase("Path")) {
 	    Path referencedPath = config.path(name);
 	    if (referencedPath==null) return false;
 	    reference=config.insertPathReference(parent,index,referencedPath);
 	}
-	else if (type.compareToIgnoreCase("Sequence")==0) {
+	else if (type.equalsIgnoreCase("Sequence")) {
 	    Sequence referencedSequence = config.sequence(name);
 	    if (referencedSequence==null) return false;
 	    reference=config.insertSequenceReference(parent,index,referencedSequence);
 	}
-	else if (type.compareToIgnoreCase("Module")==0) {
-	    String templateName = name;
-	    String instanceName = "";
-	    int    pos          = templateName.indexOf(":");
-	    if (pos>0) {
-		instanceName = templateName.substring(pos+1);
-		templateName = templateName.substring(0,pos);
+	else if (type.equalsIgnoreCase("Module")) {
+	    String[] s = name.split(":");
+	    String   templateName="";
+	    String   instanceName="";
+	    boolean  copy = false;
+
+	    if (s.length==1) {
+		templateName = s[0];
+	    }
+	    else if (s.length==2) {
+		templateName = s[0];
+		instanceName = s[1];
+	    }
+	    else {
+		copy = true;
+		templateName = s[1];
+		instanceName = s[2];
 	    }
 	    
 	    ModuleTemplate template = config.release().moduleTemplate(templateName);
-	    if (template.hasInstance(instanceName)) {
+
+	    if (!copy) {
+		if (template.hasInstance(instanceName)) {
+		    try {
+			module = (ModuleInstance)template.instance(instanceName);
+		    }
+		    catch (DataException e) {
+			System.out.println(e.getMessage());
+			return false;
+		    }
+		    reference = config.insertModuleReference(parent,index,module);
+		}
+		else  {
+		    instanceName = templateName; int count=2;
+		    while (template.hasInstance(instanceName)) {
+			instanceName = templateName + count; ++count;
+		    }
+		    reference = config.insertModuleReference(parent,index,
+							     templateName,instanceName);
+		    module = (ModuleInstance)reference.parent();
+		}
+	    }
+	    else {
+		ModuleInstance original = null;
 		try {
-		    module = (ModuleInstance)template.instance(instanceName);
+		    original = (ModuleInstance)template.instance(instanceName);
 		}
 		catch (DataException e) {
 		    System.out.println(e.getMessage());
 		    return false;
 		}
-		reference = config.insertModuleReference(parent,index,module);
-	    }
-	    else  {
-		instanceName = templateName; int count=2;
-		while (template.hasInstance(instanceName)) {
-		    instanceName = templateName + count; ++count;
-		}
+		instanceName = "copy_of_" + instanceName;
 		reference = config.insertModuleReference(parent,index,
 							 templateName,instanceName);
 		module = (ModuleInstance)reference.parent();
+		Iterator<Parameter> itP = original.parameterIterator();
+		while (itP.hasNext()) {
+		    Parameter p = itP.next();
+		    module.updateParameter(p.name(),p.type(),p.valueAsString());
+		}
 	    }
 	}
 	
@@ -805,10 +870,10 @@ public class ConfigurationTreeActions
 	    count++;
 	}
 
-	int    index = (treePath.getPathCount()==2) ?
+	int index = (treePath.getPathCount()==2) ?
 	    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
 				    treePath.getLastPathComponent())+1;
-
+	
 	Instance instance = null;
 	Object   parent   = null;
 	
@@ -830,6 +895,65 @@ public class ConfigurationTreeActions
 	}
 	else return false;
 	
+	model.nodeInserted(parent,index);
+	model.updateLevel1Nodes();
+	
+	TreePath newTreePath =
+	    (index==0) ? treePath.pathByAddingChild(instance) :
+	    treePath.getParentPath().pathByAddingChild(instance);
+	tree.expandPath(newTreePath.getParentPath());
+	tree.setSelectionPath(newTreePath);
+	
+	if (instance instanceof ESSourceInstance ||
+	    instance instanceof ESModuleInstance) {
+	    editNodeName(tree);
+	}
+	
+	return true;
+    }
+
+    /** insert copy of an existing instance to configuration and tree */
+    private static boolean insertCopy(JTree tree,Instance original)
+    {
+	if (!(original instanceof ESSourceInstance)&&
+	    !(original instanceof ESModuleInstance)) return false;
+	
+	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config   = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	Template template     = original.template();
+	String   templateName = template.name();
+	String   instanceName = "copy_of_" + original.name();
+	int      count        = 2;
+	while (template.hasInstance(instanceName)) {
+	    instanceName = templateName + count;
+	    count++;
+	}
+
+	int index = (treePath.getPathCount()==2) ?
+	    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+				    treePath.getLastPathComponent())+1;
+	
+	Instance instance = null;
+	Object   parent   = null;
+	
+	if (template instanceof ESSourceTemplate) {
+	    instance = config.insertESSource(index,templateName,instanceName);
+	    parent   = model.essourcesNode();
+	}
+	else if (template instanceof ESModuleTemplate) {
+	    instance = config.insertESModule(index,templateName,instanceName);
+	    parent   = model.esmodulesNode();
+	}
+	else return false;
+	
+	Iterator<Parameter> itP = original.parameterIterator();
+	while (itP.hasNext()) {
+	    Parameter p = itP.next();
+	    instance.updateParameter(p.name(),p.type(),p.valueAsString());
+	}
+
 	model.nodeInserted(parent,index);
 	model.updateLevel1Nodes();
 	

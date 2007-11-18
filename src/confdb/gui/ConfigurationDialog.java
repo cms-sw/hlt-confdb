@@ -208,6 +208,10 @@ public class ConfigurationDialog extends JDialog
 	/** Directory to be edited */
 	private Directory dir = null;
 	
+	/** icon for locked configurations */
+	private ImageIcon lockedConfigIcon =
+	    new ImageIcon(getClass().getResource("/LockedConfigIcon.png"));
+
 	/** TreeCellRenderer interface, overwrite Default implementation */
 	public Component getTreeCellRendererComponent(JTree   tree,
 						      Object  value,
@@ -223,6 +227,7 @@ public class ConfigurationDialog extends JDialog
 	    if (value instanceof ConfigInfo) {
 		ConfigInfo configInfo = (ConfigInfo)value;
 		if (configInfo.isLocked()) {
+		    setIcon(lockedConfigIcon);
 		    setText("<html>"+getText() +
 			    " <font color=#ff0000>LOCKED</font></html>");
 		}

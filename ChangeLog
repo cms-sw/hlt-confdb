@@ -1,5 +1,10 @@
 2007-11-18  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-16-01
+	* gui: add ability to copy existing instances
+
+2007-11-18  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-16-00
 	* gui rewrite/cleanup
 	* Iterator cleanup
