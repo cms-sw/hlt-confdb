@@ -289,6 +289,12 @@ public class ConfigurationModifier implements IConfiguration
     public String comment() { return master.comment(); }
     
     
+    /** total number of components of a certain type */
+    public int componentCount(Class<?> c)
+    {
+	return master.componentCount(c);
+    }
+
     /** check if the configuration is empty */
     public boolean isEmpty() { return false; }
 

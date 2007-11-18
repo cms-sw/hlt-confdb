@@ -36,6 +36,9 @@ public interface IConfiguration
     /** comment */
     public String comment();
     
+
+    /** total number of components of a certain type */
+    public int componentCount(Class<?> c);
     
     /** check if the configuration is empty */
     public boolean isEmpty();

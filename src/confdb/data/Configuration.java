@@ -342,14 +342,14 @@ public class Configuration implements IConfiguration
     public int emptyContainerCount()
     {
 	int result = 0;
-	Iterator itP = paths.iterator();
+	Iterator<Path> itP = paths.iterator();
 	while (itP.hasNext()) {
-	    Path p = (Path)itP.next();
+	    Path p = itP.next();
 	    if (p.entryCount()==0) result++;
 	}
-	Iterator itS = sequences.iterator();
+	Iterator<Sequence> itS = sequences.iterator();
 	while (itS.hasNext()) {
-	    Sequence s = (Sequence)itS.next();
+	    Sequence s = itS.next();
 	    if (s.entryCount()==0) result++;
 	}
 	return result;

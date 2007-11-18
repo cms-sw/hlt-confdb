@@ -47,8 +47,8 @@ public class MigrationReportDialog extends JDialog // implements ActionListener
 	report.append(new String("mismatchParameterTypeCount: " +
 				 migrator.mismatchParameterTypeCount() + "\n\n"));
 
-	Iterator it = migrator.messageIterator();
-	while (it.hasNext()) report.append(new String((String)(it.next()) + "\n"));
+	Iterator<String> it = migrator.messageIterator();
+	while (it.hasNext()) report.append(new String(it.next() + "\n"));
 
 	jEditorPaneReport.setText(report.toString());
     }

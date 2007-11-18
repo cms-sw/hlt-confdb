@@ -43,13 +43,13 @@ public class ParameterTableMouseListener extends MouseAdapter
     // construction
     //
 
-    public ParameterTableMouseListener(JFrame frame,
-				       TreeTable treeTable)
+    public ParameterTableMouseListener(JFrame frame,TreeTable treeTable)
     {
 	this.frame      = frame;
 	this.treeTable  = treeTable;
-	this.tableModel = (TreeTableTableModel)treeTable.getModel();
 	this.treeModel  = (ParameterTreeModel)treeTable.getTree().getModel();
+	//this.treeModel  = treeModel;
+	this.tableModel = (TreeTableTableModel)treeTable.getModel();
     }
 
     //
@@ -72,7 +72,7 @@ public class ParameterTableMouseListener extends MouseAdapter
 	int       row = treeTable.rowAtPoint(pnt);
 	
 	parameter = (Parameter)tableModel.nodeForRow(row);
-	    
+	
 	if (col!=0) return;
 	    
 	JPopupMenu popup  = new JPopupMenu();	    

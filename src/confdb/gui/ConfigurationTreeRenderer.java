@@ -86,34 +86,34 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     {
 	super();
 
-	psetDirIcon  =
-	    new ImageIcon(getClass().getResource("/EDSourceDirIcon.png")); //!
-	edsourceDirIcon  =
-	    new ImageIcon(getClass().getResource("/EDSourceDirIcon.png"));
+	psetDirIcon  = null;
+	//new ImageIcon(getClass().getResource("/EDSourceDirIcon.png")); //!
+	edsourceDirIcon  = null;
+	//new ImageIcon(getClass().getResource("/EDSourceDirIcon.png"));
 	edsourceIcon     =
 	    new ImageIcon(getClass().getResource("/EDSourceIcon.png"));
-	essourcesDirIcon =
-	    new ImageIcon(getClass().getResource("/ESSourcesDirIcon.png"));
+	essourcesDirIcon = null;
+	//new ImageIcon(getClass().getResource("/ESSourcesDirIcon.png"));
 	essourceIcon     =
 	    new ImageIcon(getClass().getResource("/ESSourceIcon.png"));
-	esmodulesDirIcon =
-	    new ImageIcon(getClass().getResource("/ESSourcesDirIcon.png")); //!
+	esmodulesDirIcon = null;
+	//new ImageIcon(getClass().getResource("/ESSourcesDirIcon.png")); //!
 	esmoduleIcon     =
-	    new ImageIcon(getClass().getResource("/ESSourceIcon.png")); //!
-	servicesDirIcon  =
-	    new ImageIcon(getClass().getResource("/ServicesDirIcon.png"));
+	    new ImageIcon(getClass().getResource("/ESModuleIcon.png")); //!
+	servicesDirIcon  = null;
+	//new ImageIcon(getClass().getResource("/ServicesDirIcon.png"));
 	serviceIcon      =
 	    new ImageIcon(getClass().getResource("/ServiceIcon.png"));
-	pathsDirIcon     = 
-	    new ImageIcon(getClass().getResource("/PathsDirIcon.png"));
+	pathsDirIcon     = null;
+	//new ImageIcon(getClass().getResource("/PathsDirIcon.png"));
 	pathIcon         =
 	    new ImageIcon(getClass().getResource("/PathIcon.png"));
-	modulesDirIcon   =
-	    new ImageIcon(getClass().getResource("/ModulesDirIcon.png"));
+	modulesDirIcon   = null;
+	//new ImageIcon(getClass().getResource("/ModulesDirIcon.png"));
 	moduleIcon       =
 	    new ImageIcon(getClass().getResource("/ModuleIcon.png"));
-	sequencesDirIcon = 
-	    new ImageIcon(getClass().getResource("/SequencesDirIcon.png"));
+	sequencesDirIcon = null;
+	//new ImageIcon(getClass().getResource("/SequencesDirIcon.png"));
 	sequenceIcon     = 
 	    new ImageIcon(getClass().getResource("/SequenceIcon.png"));
 	psetIcon         =
@@ -152,7 +152,10 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 		 node instanceof PathReference)     return pathIcon;
 	else if (node instanceof Sequence||
 		 node instanceof SequenceReference) return sequenceIcon;
-	//else if (node instanceof PSetParameter)     return psetIcon;
+	else if (node instanceof PSetParameter) {
+	    Configuration config = (Configuration)treeModel.getRoot();
+	    if (config.indexOfPSet((PSetParameter)node)>=0) return psetIcon;
+	}
 	//else if (node instanceof VPSetParameter)    return vpsetIcon;
 
 	return null;
@@ -162,6 +165,9 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     public String prepareText()
     {
 	String result = getText();
+	if (node instanceof StringBuffer) {
+	    result = "<html><h3>"+result+"</h3></html>";
+	}
 	if (node instanceof Instance) {
 	    Instance instance      = (Instance)node;
 	    int      count         = instance.unsetTrackedParameterCount();
@@ -179,7 +185,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    Path path       = (Path)node;
 	    int  entryCount = path.entryCount();
 	    int  count      = path.unsetTrackedParameterCount();
-	    result = "<html><b>"+getText()+"</b> ";
+	    result = "<html>"+getText()+" ";
 	    result += (entryCount>0) ?
 		"("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";

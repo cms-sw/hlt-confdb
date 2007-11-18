@@ -11,7 +11,9 @@ import java.io.*;
 
 import confdb.data.*;
 import confdb.db.*;
-import confdb.converter.*;
+import confdb.converter.ConverterFactory;
+import confdb.converter.ConverterEngine;
+import confdb.converter.ConverterException;
 
 
 /**
@@ -381,9 +383,9 @@ public class PythonParser
 	ParseNode modulesNode = getChildNode(rootNode,"modules");
 	
 	// fill sequences
-	Iterator sequenceIt = sequenceToNodeMap.keySet().iterator();
+	Iterator<Sequence> sequenceIt = sequenceToNodeMap.keySet().iterator();
 	while (sequenceIt.hasNext()) {
-	    Sequence  sequence     = (Sequence)sequenceIt.next();
+	    Sequence  sequence     = sequenceIt.next();
 	    ParseNode sequenceNode = (ParseNode)sequenceToNodeMap.get(sequence);
 	    ArrayList<String> entries = parseContainerNode(sequenceNode);
 	    
@@ -432,9 +434,9 @@ public class PythonParser
 	
 
 	// fill paths
-	Iterator pathIt = pathToNodeMap.keySet().iterator();
+	Iterator<Path> pathIt = pathToNodeMap.keySet().iterator();
 	while (pathIt.hasNext()) {
-	    Path      path     = (Path)pathIt.next();
+	    Path      path     = pathIt.next();
 	    ParseNode pathNode = (ParseNode)pathToNodeMap.get(path);
 	    ArrayList<String> entries = parseContainerNode(pathNode);
 	    
@@ -895,8 +897,7 @@ public class PythonParser
 	    Configuration config = parser.createConfiguration();
 	    
 	    // convert the configuration to ascii
-	    //ConverterFactory factory = ConverterFactory.getFactory("default");
-	    Converter        cnv     = Converter.getConverter("ascii");
+	    ConverterEngine  cnv  = ConverterFactory.getConverterEngine("ascii");
 	    String configAsString = cnv.convert(config);
 
 	    boolean doPrintConfig = (new Boolean(printConfig)).booleanValue();

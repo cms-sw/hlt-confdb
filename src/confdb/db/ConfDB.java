@@ -1201,9 +1201,9 @@ public class ConfDB
 	}
 	loadTemplates(csLoadTemplate,release);
 	
-	Iterator it = release.templateIterator();
+	Iterator<Template> it = release.templateIterator();
 	
-	return (it.hasNext()) ? (Template)it.next() : null;
+	return (it.hasNext()) ? it.next() : null;
     }
 
     /** check if the release corresponding to 'releaseTag' is present */
@@ -1305,9 +1305,9 @@ public class ConfDB
 		
 		if (params!=null) {
 		    int missingCount = 0;
-		    Iterator it = params.iterator();
+		    Iterator<Parameter> it = params.iterator();
 		    while (it.hasNext()) {
-			Parameter p = (Parameter)it.next();
+			Parameter p = it.next();
 			if (p==null) missingCount++;
 		    }
 		    if (missingCount>0) {
@@ -1446,9 +1446,9 @@ public class ConfDB
 		    config.insertPSet(pset);
 		    ArrayList<Parameter> psetParams = idToParams.remove(id);
 		    if (psetParams!=null) {
-			Iterator it = psetParams.iterator();
+			Iterator<Parameter> it = psetParams.iterator();
 			while (it.hasNext()) {
-			    Parameter p = (Parameter)it.next();
+			    Parameter p = it.next();
 			    if (p!=null) pset.addParameter(p);
 			}
 		    }
@@ -2169,9 +2169,9 @@ public class ConfDB
 	    throw new DatabaseException("Batch insert of modules failed.");
 	}
 	
-	Iterator it=modulesToStore.iterator();
+	Iterator<IdInstancePair> it=modulesToStore.iterator();
 	while (it.hasNext()) {
-	    IdInstancePair pair     = (IdInstancePair)it.next();
+	    IdInstancePair pair     = it.next();
 	    int            moduleId = pair.id;
 	    ModuleInstance module   = (ModuleInstance)pair.instance;
 	    if (!insertInstanceParameters(moduleId,module))
@@ -2306,9 +2306,9 @@ public class ConfDB
     private void insertStreams(int configId,Configuration config)
 	throws DatabaseException
     {
-	Iterator it = config.streamIterator();
+	Iterator<Stream> it = config.streamIterator();
 	while (it.hasNext()) {
-	    Stream stream      = (Stream)it.next();
+	    Stream stream      = it.next();
 	    int    streamId    = -1;
 	    String streamLabel = stream.label();
 	    
@@ -2326,9 +2326,9 @@ public class ConfDB
 		throw new DatabaseException("could not insert streams.");
 	    }
 	    
-	    Iterator it2 = stream.pathIterator();
+	    Iterator<Path> it2 = stream.pathIterator();
 	    while (it2.hasNext()) {
-		Path path   = (Path)it2.next();
+		Path path   = it2.next();
 		int  pathId = path.databaseId();
 		try {
 		    psInsertStreamPathAssoc.setInt(1,streamId);
@@ -2650,17 +2650,17 @@ public class ConfDB
 		parameters.set(seqNb,p);
 	    }
 	    
-	    Iterator itPSet = psets.iterator();
+	    Iterator<IdPSetPair> itPSet = psets.iterator();
 	    while (itPSet.hasNext()) {
-		IdPSetPair    pair   = (IdPSetPair)itPSet.next();
+		IdPSetPair    pair   = itPSet.next();
 		int           psetId = pair.id;
 		PSetParameter pset   = pair.pset;
 		ArrayList<Parameter> parameters = idToParameters.remove(psetId);
 		if (parameters!=null) {
 		    int missingCount = 0;
-		    Iterator it = parameters.iterator();
+		    Iterator<Parameter> it = parameters.iterator();
 		    while (it.hasNext()) {
-			Parameter p = (Parameter)it.next();
+			Parameter p = it.next();
 			if (p==null) missingCount++;
 			else pset.addParameter(p);
 		    }
@@ -2670,17 +2670,17 @@ public class ConfDB
 		}
 	    }
 
-	    Iterator itVPSet = vpsets.iterator();
+	    Iterator<IdVPSetPair> itVPSet = vpsets.iterator();
 	    while (itVPSet.hasNext()) {
-		IdVPSetPair    pair    = (IdVPSetPair)itVPSet.next();
+		IdVPSetPair    pair    = itVPSet.next();
 		int            vpsetId = pair.id;
 		VPSetParameter vpset   = pair.vpset;
 		ArrayList<Parameter> parameters=idToParameters.remove(vpsetId);
 		if (parameters!=null) {
 		    int missingCount = 0;
-		    Iterator it = parameters.iterator();
+		    Iterator<Parameter> it = parameters.iterator();
 		    while (it.hasNext()) {
-			Parameter p = (Parameter)it.next();
+			Parameter p = it.next();
 			if (p==null||!(p instanceof PSetParameter)) missingCount++;
 			else vpset.addParameterSet((PSetParameter)p);
 		    }
@@ -2709,9 +2709,9 @@ public class ConfDB
     {
 	if (parameters==null) return;
 	int id = instance.databaseId();
-	Iterator it = parameters.iterator();
+	Iterator<Parameter> it = parameters.iterator();
 	while (it.hasNext()) {
-	    Parameter p = (Parameter)it.next();
+	    Parameter p = it.next();
 	    if (p==null) continue;
 	    instance.updateParameter(p.name(),p.type(),p.valueAsString());
 	}
@@ -3258,9 +3258,10 @@ public class ConfDB
 		else if (dopackages) {
 		    Configuration   config  = database.loadConfiguration(id);
 		    SoftwareRelease release = config.release();
-		    Iterator it = release.listOfReferencedPackages().iterator();
+		    Iterator<String> it = 
+			release.listOfReferencedPackages().iterator();
 		    while (it.hasNext()) {
-			String pkg = (String)it.next();
+			String pkg = it.next();
 			System.out.println(pkg);
 		    }
 		}

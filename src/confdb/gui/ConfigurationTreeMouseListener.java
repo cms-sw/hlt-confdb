@@ -253,9 +253,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    popupEDSources.add(edsourceMenu);
 	}
 	else {
-	    Iterator it = release.edsourceTemplateIterator();
+	    Iterator<EDSourceTemplate> it = release.edsourceTemplateIterator();
 	    while (it.hasNext()) {
-		EDSourceTemplate t = (EDSourceTemplate)it.next();
+		EDSourceTemplate t = it.next();
 		menuItem = new JMenuItem(t.name());
 		menuItem.addActionListener(edsourceListener);
 		edsourceMenu.add(menuItem);
@@ -288,9 +288,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	// 'ESSources' or specific event setup source
 	if (depth>=2&&depth<=3) {
 	    JMenu essourceMenu = new ScrollableMenu("Add ESSource");
-	    Iterator it = release.essourceTemplateIterator();
+	    Iterator<ESSourceTemplate> it = release.essourceTemplateIterator();
 	    while (it.hasNext()) {
-		ESSourceTemplate t = (ESSourceTemplate)it.next();
+		ESSourceTemplate t = it.next();
 		if (t.instanceCount()>0) {
 		    JMenu instanceMenu = new ScrollableMenu(t.name());
 		    menuItem = new JMenuItem("New Instance");
@@ -352,9 +352,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	// 'ESModules' or specific event setup module
 	if (depth>=2&&depth<=3) {
 	    JMenu esmoduleMenu = new ScrollableMenu("Add ESModule");
-	    Iterator it = release.esmoduleTemplateIterator();
+	    Iterator<ESModuleTemplate> it = release.esmoduleTemplateIterator();
 	    while (it.hasNext()) {
-		ESModuleTemplate t = (ESModuleTemplate)it.next();
+		ESModuleTemplate t = it.next();
 		if (t.instanceCount()>0) {
 		    JMenu instanceMenu = new ScrollableMenu(t.name());
 		    menuItem = new JMenuItem("New Instance");
@@ -411,9 +411,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	int depth = tree.getSelectionPath().getPathCount();
 	
 	JMenu serviceMenu = new ScrollableMenu("Add Service");
-	Iterator it = release.serviceTemplateIterator();
+	Iterator<ServiceTemplate> it = release.serviceTemplateIterator();
 	while (it.hasNext()) {
-	    ServiceTemplate t = (ServiceTemplate)it.next();
+	    ServiceTemplate t = it.next();
 	    menuItem = new JMenuItem(t.name());
 	    if (t.instanceCount()>0) menuItem.setEnabled(false);
 	    else menuItem.addActionListener(serviceListener);
@@ -627,9 +627,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	
 	HashMap<String,JMenu> menuHashMap = new HashMap<String,JMenu>();
 	
-	Iterator it = release.moduleTemplateIterator();
+	Iterator<ModuleTemplate> it = release.moduleTemplateIterator();
 	while (it.hasNext()) {
-	    ModuleTemplate t = (ModuleTemplate)it.next();
+	    ModuleTemplate t = it.next();
 	    
 	    JMenu moduleTypeMenu;
 	    JMenu moduleTypeAllMenu;

@@ -5,6 +5,8 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 import javax.swing.table.*;
+import javax.swing.border.*;
+import javax.swing.plaf.basic.*;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -26,6 +28,8 @@ import confdb.migrator.ReleaseMigrator;
 import confdb.parser.PythonParser;
 import confdb.parser.ParserException;
 
+import confdb.converter.ConverterFactory;
+import confdb.converter.ConverterEngine;
 import confdb.converter.OfflineConverter;
 import confdb.converter.ConverterException;
 
@@ -65,6 +69,14 @@ public class ConfDbGUI
     /** the import configuration */
     private Configuration importConfig = null;
     
+    /** current instance and respective list of parameters currently displayed */
+    private Object               currentInstance   = null;
+    private ArrayList<Parameter> currentParameters = new ArrayList<Parameter>(); 
+
+    /** ascii converter engine, to display configuration snippets (right-lower) */
+    private ConverterEngine cnvEngine = null;
+    
+
     /** TREE- & TABLE-MODELS */
     private ConfigurationTreeModel treeModelCurrentConfig;
     private ConfigurationTreeModel treeModelImportConfig;
@@ -88,7 +100,7 @@ public class ConfDbGUI
     private JPanel        jPanelLeft                = new JPanel();
     private JTextField    jTextFieldCurrentConfig   = new JTextField();
     private JLabel        jLabelLock                = new JLabel();
-    private JTextField    jTextFieldProcess         = new JTextField();
+    private JTextField    jTextFieldProcess         = new JTextField();     // AL
     private JButton       jButtonRelease            = new JButton();        // AL
     private JTextField    jTextFieldCreated         = new JTextField();
     private JTextField    jTextFieldCreator         = new JTextField();
@@ -123,6 +135,7 @@ public class ConfDbGUI
     private JPanel        jPanelPlugin              = new JPanel();
     private JTextField    jTextFieldPackage         = new JTextField();
     private JTextField    jTextFieldCVS             = new JTextField();
+    private JLabel        jLabelPlugin              = new JLabel();
     private JTextField    jTextFieldPlugin          = new JTextField();
     private JTextField    jTextFieldLabel           = new JTextField();
     private JComboBox     jComboBoxPaths            = new JComboBox();
@@ -155,6 +168,14 @@ public class ConfDbGUI
 	this.currentConfig    = new Configuration();
 	this.importRelease    = new SoftwareRelease();
 	this.importConfig     = new Configuration();
+
+	try {
+	    this.cnvEngine = ConverterFactory.getConverterEngine("ascii");
+	}
+	catch (Exception e) {
+	    System.out.println("failed to initialize converter engine: " +
+			       e.getMessage());
+	}
 	
 	createTreesAndTables();
 	createContentPane();
@@ -163,8 +184,11 @@ public class ConfDbGUI
 	frame.setContentPane(jPanelContentPane);
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     
-	// initialize trees & tables
-
+	jTextFieldProcess.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonProcessActionPerformed(e);
+		}
+	    });
 	jButtonRelease.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    jButtonReleaseActionPerformed(e);
@@ -257,7 +281,19 @@ public class ConfDbGUI
 			jTreeTableParametersTableChanged(e);
 		    }
 		});
-	frame.addWindowListener(new WindowAdapter() {
+	
+	((BasicSplitPaneDivider)((BasicSplitPaneUI)jSplitPaneRight.
+				 getUI()).getDivider()).
+	    addComponentListener(new ComponentListener() {
+		    public void componentHidden(ComponentEvent e) {}
+		    public void componentMoved(ComponentEvent e) {
+			jSplitPaneRightComponentMoved(e);
+		    }
+		    public void componentResized(ComponentEvent e) {}
+		    public void componentShown(ComponentEvent e) {}
+		});
+	    
+	    frame.addWindowListener(new WindowAdapter() {
 		public void windowClosing(WindowEvent e)
 		{
 		    closeConfiguration(false);
@@ -447,14 +483,15 @@ public class ConfDbGUI
 	if (currentConfig.isEmpty()||!currentConfig.hasChanged()||
 	    currentConfig.isLocked()||!checkConfiguration()) return;	
 	
+	System.out.println("BUH!");
+	
 	if (currentConfig.version()==0) {
 	    saveAsConfiguration();
 	    return;
 	}
 	else database.unlockConfiguration(currentConfig);
 	
-	// TODO String processName = configurationPanel.processName();
-	String processName = "";
+	String processName = jTextFieldProcess.getText();
 	String comment = "";
 
 	if (askForComment) {
@@ -484,8 +521,7 @@ public class ConfDbGUI
 	if (currentConfig.version()!=0&&!isLocked)
 	    database.unlockConfiguration(currentConfig);
 	
-	// TODO String processName = configurationPanel.processName();
-	String processName = "";
+	String processName = jTextFieldProcess.getText();
 	String comment = (currentConfig.version()==0) ?
 	    "first import" : "saveAs "+currentConfig+" ["+currentConfig.dbId()+"]";
 	
@@ -666,18 +702,24 @@ public class ConfDbGUI
 	currentConfig.reset();
 	treeModelCurrentConfig.setConfiguration(currentConfig);
 	treeModelStreams.setConfiguration(currentConfig);
+	
+	jTextFieldCurrentConfig.setText("");
+	jLabelLock.setIcon(null);
+	jTextFieldProcess.setText("");
+	jButtonRelease.setText("");
+	jTextFieldCreated.setText("");
+	jTextFieldCreator.setText("");
 
-	//TODO configurationPanel.setCurrentConfig(currentConfig);
-
-	//TODO instancePanel.clear();
+	clearParameters();
 
 	menuBar.configurationIsNotOpen();
 	toolBar.configurationIsNotOpen();
 
 	importConfig.reset();
 	treeModelImportConfig.setConfiguration(importConfig);
-	// TODO configurationPanel.setImportConfig(importConfig);
 
+	jTextFieldProcess.setEditable(false);
+	jToggleButtonImport.setEnabled(false);
 	jButtonAddStream.setEnabled(false);
     }
 
@@ -716,9 +758,29 @@ public class ConfDbGUI
 	currentConfig = config;
 	treeModelCurrentConfig.setConfiguration(currentConfig);
 	treeModelStreams.setConfiguration(currentConfig);
-	// TODO configurationPanel.setCurrentConfig(currentConfig);
 	currentRelease = currentConfig.release();
 	
+	jTextFieldCurrentConfig.setText(currentConfig.toString());
+	
+	if (currentConfig.isLocked()) {
+	    jLabelLock.setIcon(new ImageIcon(getClass().
+					     getResource("/LockedIcon.png")));
+	    jLabelLock.setToolTipText("locked by user " +
+				      currentConfig.lockedByUser());
+	}
+	else {
+	    jLabelLock.setIcon(new ImageIcon(getClass().
+					     getResource("/UnlockedIcon.png")));
+	    jLabelLock.setToolTipText("It's all yours, nobody else can "+
+				      "modify this configuration until closed!");
+	}
+	
+	jTextFieldProcess.setText(currentConfig.processName());
+	jButtonRelease.setText(currentRelease.releaseTag());
+	jTextFieldCreated.setText(currentConfig.created());
+	jTextFieldCreator.setText(currentConfig.creator());
+
+	jTextFieldProcess.setEditable(true);
 	jButtonAddStream.setEnabled(true);
     }
     
@@ -814,7 +876,6 @@ public class ConfDbGUI
 		config.initialize(new ConfigInfo(name,null,releaseTag),
 				  currentRelease);
 		setCurrentConfig(config);
-		// TODO configurationPanel.setProcessName(process);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		jProgressBar.setString(jProgressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
@@ -827,7 +888,7 @@ public class ConfDbGUI
 	    jProgressBar.setIndeterminate(false);
 
 	    jTreeCurrentConfig.setEditable(true);
-	    // TODO instancePanel.setEditable(true);
+	    jTreeTableParameters.getTree().setEditable(true);
 	}
     }
     
@@ -887,7 +948,7 @@ public class ConfDbGUI
 	    jProgressBar.setIndeterminate(false);
 
 	    jTreeCurrentConfig.setEditable(true);
-	    // TODO instancePanel.setEditable(true);
+	    jTreeTableParameters.getTree().setEditable(true);
 	}
     }
     
@@ -935,7 +996,7 @@ public class ConfDbGUI
 
 	    if (currentConfig.isLocked()) {
 		jTreeCurrentConfig.setEditable(false);
-		// TODO instancePanel.setEditable(false);
+		jTreeTableParameters.getTree().setEditable(false);
 		String msg =
 		    "The configuration '" +
 		    currentConfig.parentDir().name() + "/" +
@@ -949,7 +1010,7 @@ public class ConfDbGUI
 	    }
 	    else {
 		jTreeCurrentConfig.setEditable(true);
-		// TODO instancePanel.setEditable(true);
+		jTreeTableParameters.getTree().setEditable(true);
 		database.lockConfiguration(currentConfig,userName);
 	    }
 	}
@@ -985,7 +1046,8 @@ public class ConfDbGUI
 	{
 	    try {
 		treeModelImportConfig.setConfiguration(importConfig);
-		// TODO configurationPanel.setImportConfig(importConfig);
+		showImportTree();
+		jToggleButtonImport.setEnabled(true);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		jProgressBar.setString(jProgressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
@@ -1033,8 +1095,8 @@ public class ConfDbGUI
 	protected void finished()
 	{
 	    try {
+		setCurrentConfig(currentConfig);
 		currentConfig.setHasChanged(false);
-		// TODO configurationPanel.setCurrentConfig(currentConfig);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		jProgressBar.setString(jProgressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
@@ -1101,7 +1163,7 @@ public class ConfDbGUI
 		//treeModelStreams.setConfiguration(currentConfig);
 		//configurationPanel.setCurrentConfig(currentConfig);
 
-		// TODOinstancePanel.clear();
+		clearParameters();
 		
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		jProgressBar.setString(jProgressBar.getString() +
@@ -1310,7 +1372,7 @@ public class ConfDbGUI
 	jTreeImportConfig      = new JTree(treeModelImportConfig);
         jTreeImportConfig.setBackground(importTreeBackground);
 
-	jTreeImportConfig.setRootVisible(false);
+	jTreeImportConfig.setRootVisible(true);
 	jTreeImportConfig.setEditable(false);
 	jTreeImportConfig.getSelectionModel()
 	    .setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -1377,23 +1439,140 @@ public class ConfDbGUI
     }
     
     /** display parameters of the instance in right upper area */
-    private void displayInstanceParameters(Instance instance)
+    private void displayParameters()
     {
+	TitledBorder border = (TitledBorder)jScrollPaneParameters.getBorder();
 
-    }
+	if (currentInstance instanceof Instance) {
+	    jSplitPaneRightUpper.setDividerLocation(-1);
+	    jSplitPaneRightUpper.setDividerSize(8);
 
-    /** display all global PSets in right-upper area */
-    private void displayGlobalPSets()
-    {
+	    Instance inst = (Instance)currentInstance;
 
+	    String subName = inst.template().parentPackage().subsystem().name();
+	    String pkgName = inst.template().parentPackage().name();
+	    String cvsTag  = inst.template().cvsTag();
+	    String type    = inst.template().type();
+	    String plugin  = inst.template().name();
+	    String label   = inst.name();
+	    
+	    DefaultComboBoxModel cbModel =
+		(DefaultComboBoxModel)jComboBoxPaths.getModel();
+	    cbModel.removeAllElements();
+
+	    if (inst instanceof ModuleInstance) {
+		ModuleInstance module = (ModuleInstance)inst;
+		jComboBoxPaths.setEnabled(true);
+		Path[] paths = module.parentPaths();
+		for (Path p : paths) cbModel.addElement(p.name());
+	    }
+	    else {
+		jComboBoxPaths.setEnabled(false);
+	    }
+	    
+	    jTextFieldPackage.setText(subName+"/"+pkgName);
+	    jTextFieldCVS.setText(cvsTag);
+	    jLabelPlugin.setText(type + ":");
+	    jTextFieldPlugin.setText(plugin);
+	    jTextFieldLabel.setText(label);
+	    
+	    currentParameters.clear();
+	    Iterator<Parameter> itP = inst.parameterIterator();
+	    while (itP.hasNext()) currentParameters.add(itP.next());
+	    treeModelParameters.setParameters(currentParameters);
+
+	    border.setTitle(inst.name() + " Parameters");
+	}
+	else {
+	    clearParameters();
+	    currentParameters.clear();
+	    Iterator<PSetParameter> itPSet = currentConfig.psetIterator();
+	    while (itPSet.hasNext()) currentParameters.add(itPSet.next());
+	    treeModelParameters.setParameters(currentParameters);
+
+	    border.setTitle("Global PSets");
+	}
     }
 
     /** clear the right upper area */
-    private void clearInstanceParameters()
+    private void clearParameters()
     {
+	jSplitPaneRightUpper.setDividerLocation(0);
+	jSplitPaneRightUpper.setDividerSize(1);
 
+	jTextFieldPackage.setText("");
+	jTextFieldCVS.setText("");
+	jLabelPlugin.setText("Plugin:");
+	jTextFieldPlugin.setText("");
+	jTextFieldLabel.setText("");
+
+	((DefaultComboBoxModel)jComboBoxPaths.getModel()).removeAllElements();
+	jComboBoxPaths.setEnabled(false);
+
+	currentParameters.clear();
+	treeModelParameters.setParameters(currentParameters);
+
+	((TitledBorder)jScrollPaneParameters.getBorder()).setTitle("Parameters");
     }
     
+    /** display the configuration snippet for the currently selected component */
+    private void displaySnippet()
+    {
+	if (currentInstance==treeModelCurrentConfig.psetsNode()) {
+	    String s="";
+	    Iterator<PSetParameter> itPSet = currentConfig.psetIterator();
+	    while (itPSet.hasNext())
+		s+= cnvEngine.getParameterWriter().toString(itPSet.next(),
+							    cnvEngine,"");
+	    jEditorPaneSnippet.setText(s);
+	}
+	else if (currentInstance instanceof EDSourceInstance) {
+	    EDSourceInstance edsource = (EDSourceInstance)currentInstance;
+	    jEditorPaneSnippet.setText(cnvEngine.getEDSourceWriter().
+				       toString(edsource,cnvEngine,"  "));
+	}
+	else if (currentInstance instanceof ESSourceInstance) {
+	    ESSourceInstance essource = (ESSourceInstance)currentInstance;
+	    jEditorPaneSnippet.setText(cnvEngine.getESSourceWriter().
+				       toString(essource,cnvEngine,"  "));
+	}
+	else if (currentInstance instanceof ESModuleInstance) {
+	    ESModuleInstance esmodule = (ESModuleInstance)currentInstance;
+	    jEditorPaneSnippet.setText(cnvEngine.getESModuleWriter().
+				       toString(esmodule,cnvEngine,"  "));
+	}
+	else if (currentInstance instanceof ServiceInstance) {
+	    ServiceInstance service = (ServiceInstance)currentInstance;
+	    jEditorPaneSnippet.setText(cnvEngine.getServiceWriter().
+				       toString(service,cnvEngine,"  "));
+	}
+	else if (currentInstance instanceof ModuleInstance) {
+	    ModuleInstance module = (ModuleInstance)currentInstance;
+	    jEditorPaneSnippet.setText(cnvEngine.getModuleWriter().
+				       toString(module));
+	}
+	else if (currentInstance instanceof Path) {
+	    Path path = (Path)currentInstance;
+	    jEditorPaneSnippet.setText(cnvEngine.getPathWriter().
+				       toString(path,cnvEngine,"  "));
+	}
+	else if (currentInstance instanceof Sequence) {
+	    Sequence sequence = (Sequence)currentInstance;
+	    jEditorPaneSnippet.setText(cnvEngine.getSequenceWriter().
+				       toString(sequence,cnvEngine,"  "));
+	}
+	else {
+	    clearSnippet();
+	}
+	jEditorPaneSnippet.setCaretPosition(0);
+    }
+
+    /** clear snippet pane (right-lower) */
+    private void clearSnippet()
+    {
+	jEditorPaneSnippet.setText("");
+    }
+
     /** update the default-stream combobox */
     private void updateDefaultStreamComboBox()
     {
@@ -1416,7 +1595,15 @@ public class ConfDbGUI
     //
     // ACTIONLISTENER CALLBACKS
     //
-    
+
+    private void jButtonProcessActionPerformed(ActionEvent e)
+    {
+	String processName = jTextFieldProcess.getText();
+	if (processName.length()>0||processName.indexOf('_')>=0)
+	    jTextFieldProcess.setText(currentConfig.processName());
+	else
+	    currentConfig.setHasChanged(true);
+    }
     private void jButtonReleaseActionPerformed(ActionEvent e)
     {
 	if (currentConfig.isEmpty()) return;
@@ -1455,7 +1642,13 @@ public class ConfDbGUI
     {
 	StreamTreeActions.removeStream(jTreeStreams);
     }
-
+    private void jSplitPaneRightComponentMoved(ComponentEvent e)
+    {
+	if (!(currentInstance instanceof Instance)) {
+	    jSplitPaneRightUpper.setDividerLocation(0);
+	    jSplitPaneRightUpper.setDividerSize(1);
+	}
+    }
     
     //
     // KEYLISTENER CALLBACKS
@@ -1509,10 +1702,8 @@ public class ConfDbGUI
 	    }
 	}
     }
-    private void jTreeCurrentConfigTreeStructureChanged(TreeModelEvent e)
-    {
+    private void jTreeCurrentConfigTreeStructureChanged(TreeModelEvent e) {}
 
-    }
 
     private void jTreeStreamsTreeNodesChanged(TreeModelEvent e)
     {
@@ -1560,10 +1751,7 @@ public class ConfDbGUI
 	}
 	currentConfig.setHasChanged(true);
     }
-    private void jTreeStreamsTreeStructureChanged(TreeModelEvent e)
-    {
-
-    }
+    private void jTreeStreamsTreeStructureChanged(TreeModelEvent e) {}
     
 
 
@@ -1574,11 +1762,16 @@ public class ConfDbGUI
     private void jTreeCurrentConfigValueChanged(TreeSelectionEvent e)
     {
 	TreePath treePath=e.getNewLeadSelectionPath();
-	if (treePath==null) return;
+	if (treePath==null) {
+	    clearParameters();
+	    clearSnippet();
+	    return;
+	}
 
 	Object node=treePath.getLastPathComponent();
 	if(node==null) {
-	    clearInstanceParameters();
+	    clearParameters();
+	    clearSnippet();
 	    return;
 	}
 
@@ -1587,20 +1780,28 @@ public class ConfDbGUI
 	    node = p.parent();
 	}
 	
+	if (node instanceof Reference) {
+	    node = ((Reference)node).parent();
+	}
+	
 	if (node instanceof Instance) {
-	    Instance instance = (Instance)node;
-	    displayInstanceParameters(instance);
+	    currentInstance = node;
+	    displayParameters();
+	    displaySnippet();
 	}
-	else if (node instanceof ModuleReference) {
-	    ModuleReference reference = (ModuleReference)node;
-	    ModuleInstance  instance = (ModuleInstance)reference.parent();
-	    displayInstanceParameters(instance);
+	else if (node==null||node==treeModelCurrentConfig.psetsNode()) {
+	    currentInstance = treeModelCurrentConfig.psetsNode();
+	    displayParameters();
+	    displaySnippet();
 	}
-	else if (node == null || node==treeModelCurrentConfig.psetsNode()) {
-	    displayGlobalPSets();
+	else if (node instanceof ReferenceContainer) {
+	    currentInstance = node;
+	    clearParameters();
+	    displaySnippet();
 	}
 	else {
-	    clearInstanceParameters();
+	    clearParameters();
+	    clearSnippet();
 	}
     }
 
@@ -1718,7 +1919,7 @@ public class ConfDbGUI
 
         jButtonRelease.setBackground(new java.awt.Color(255, 255, 255));
         jButtonRelease.setForeground(new java.awt.Color(0, 0, 204));
-        jButtonRelease.setText("-");
+        //jButtonRelease.setText("-");
         jButtonRelease.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
         jLabelCreated.setText("Created:");
@@ -1822,6 +2023,8 @@ public class ConfDbGUI
 	jButtonCancelSearch.setBorder(null);
 	jToggleButtonImport.setBorder(null);
 
+	jToggleButtonImport.setEnabled(false);
+	
 	jSplitPaneCurrentConfig.setResizeWeight(0.5);
         jScrollPaneCurrentConfig.setViewportView(jTreeCurrentConfig);
 
@@ -1986,7 +2189,7 @@ public class ConfDbGUI
     {
         JLabel jLabelPackage = new javax.swing.JLabel();
         JLabel jLabelCVS     = new javax.swing.JLabel();
-        JLabel jLabelPlugin  = new javax.swing.JLabel();
+
         JLabel jLabelLabel   = new javax.swing.JLabel();
         JLabel jLabelPaths   = new javax.swing.JLabel();
 	
@@ -2023,6 +2226,7 @@ public class ConfDbGUI
 
         jLabelPaths.setText("Paths:");
 
+	jComboBoxPaths.setModel(new DefaultComboBoxModel());
         jComboBoxPaths.setBackground(new java.awt.Color(255, 255, 255));
 	
         org.jdesktop.layout.GroupLayout jPanelPluginLayout = new org.jdesktop.layout.GroupLayout(jPanelPlugin);
@@ -2131,7 +2335,7 @@ public class ConfDbGUI
 	createRightLowerPanel();
 	
 	
-	jSplitPane.setDividerLocation(0.5);
+	jSplitPane.setDividerLocation(0.55);
         jSplitPane.setResizeWeight(0.5);
 	jSplitPaneRight.setDividerLocation(0.5);
 	jSplitPaneRight.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);

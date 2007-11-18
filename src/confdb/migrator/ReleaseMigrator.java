@@ -180,9 +180,9 @@ public class ReleaseMigrator
 	for (int i=0;i<sourceConfig.streamCount();i++) {
 	    Stream source = sourceConfig.stream(i);
 	    Stream target = targetConfig.insertStream(i,source.label());
-	    Iterator it = source.pathIterator();
+	    Iterator<Path> it = source.pathIterator();
 	    while (it.hasNext()) {
-		Path sourcePath = (Path)it.next();
+		Path sourcePath = it.next();
 		Path targetPath = targetConfig.path(sourcePath.name());
 		if (targetPath!=null)
 		    target.insertPath(targetPath);
@@ -196,7 +196,7 @@ public class ReleaseMigrator
     }
     
     /** retrieve message iterator */
-    public Iterator messageIterator() { return messages.iterator(); }
+    public Iterator<String> messageIterator() { return messages.iterator(); }
     
     /** retrieve number of missing templates */
     public int missingTemplateCount() { return missingTemplateCount; }

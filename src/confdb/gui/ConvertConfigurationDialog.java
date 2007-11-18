@@ -468,7 +468,7 @@ class ConvertConfigTreeRenderer extends DefaultTreeCellRenderer
 	}
 
 	ConfigurationTreeModel treeModel = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config    = (Configuration)treeModel.getRoot();
+	IConfiguration         config    = (IConfiguration)treeModel.getRoot();
 	
 	if (value instanceof StringBuffer) {
 	    if (value==treeModel.psetsNode()) {
@@ -506,9 +506,9 @@ class ConvertConfigTreeRenderer extends DefaultTreeCellRenderer
 		if (modifications.requestedSequenceIterator().hasNext())
 		    isSelected = true;
 		else {
-		    Iterator it = config.sequenceIterator();
+		    Iterator<Sequence> it = config.sequenceIterator();
 		    while (!isSelected&&it.hasNext()) {
-			Sequence sequence = (Sequence)it.next();
+			Sequence sequence = it.next();
 			Path[] paths = sequence.parentPaths();
 			for (Path p : paths) {
 			    if (!modifications.isInBlackList(p)) {
@@ -526,9 +526,9 @@ class ConvertConfigTreeRenderer extends DefaultTreeCellRenderer
 		if (modifications.requestedModuleIterator().hasNext())
 		    isSelected = true;
 		else {
-		    Iterator it = config.moduleIterator();
+		    Iterator<ModuleInstance> it = config.moduleIterator();
 		    while (!isSelected&&it.hasNext()) {
-			ModuleInstance module = (ModuleInstance)it.next();
+			ModuleInstance module = it.next();
 			Path[] paths = module.parentPaths();
 			for (Path p : paths) {
 			    if (!modifications.isInBlackList(p)) {
@@ -604,31 +604,37 @@ class ConvertConfigTreeEditor extends AbstractCellEditor implements TreeCellEdit
     public Object getCellEditorValue()
     {
 	ConfigurationTreeModel treeModel = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config    = (Configuration)treeModel.getRoot();
+	IConfiguration         config    = (IConfiguration)treeModel.getRoot();
 	
 	if (value instanceof StringBuffer) {
 	    if (value==treeModel.psetsNode()) {
-		modifications.filterAllPSets(!modifications.doFilterAllPSets());
+		modifications.filterAllPSets(!modifications.doFilterAllPSets(),
+					     config);
 	    }
 	    else if (value==treeModel.edsourcesNode()) {
 		modifications
-		    .filterAllEDSources(!modifications.doFilterAllEDSources());
+		    .filterAllEDSources(!modifications.doFilterAllEDSources(),
+					config);
 	    }
 	    else if (value==treeModel.essourcesNode()) {
 		modifications
-		    .filterAllESSources(!modifications.doFilterAllESSources());
+		    .filterAllESSources(!modifications.doFilterAllESSources(),
+					config);
 	    }
 	    else if (value==treeModel.esmodulesNode()) {
 		modifications
-		    .filterAllESModules(!modifications.doFilterAllESModules());
+		    .filterAllESModules(!modifications.doFilterAllESModules(),
+					config);
 	    }
 	    else if (value==treeModel.servicesNode()) {
 		modifications
-		    .filterAllServices(!modifications.doFilterAllServices());
+		    .filterAllServices(!modifications.doFilterAllServices(),
+				       config);
 	    }
 	    else if (value==treeModel.pathsNode()) {
 		modifications
-		    .filterAllPaths(!modifications.doFilterAllPaths());
+		    .filterAllPaths(!modifications.doFilterAllPaths(),
+				    config);
 	    }
 	}
 	else if (value instanceof Sequence) {

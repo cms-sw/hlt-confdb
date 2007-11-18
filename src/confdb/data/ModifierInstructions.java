@@ -337,6 +337,17 @@ public class ModifierInstructions
     }
 
     /** check filter flags */
+    public boolean doFilterAll(Class<?> c)
+    {
+	if (c==PSetParameter.class)    return doFilterAllPSets();
+	if (c==EDSourceInstance.class) return doFilterAllEDSources();
+	if (c==ESSourceInstance.class) return doFilterAllESSources();
+	if (c==ESModuleInstance.class) return doFilterAllESModules();
+	if (c==ServiceInstance.class)  return doFilterAllServices();
+	if (c==Path.class)             return doFilterAllPaths();
+	if (c==ModuleInstance.class)   return doFilterAllOutputModules();
+	return false;
+    } 
     public boolean doFilterAllPSets()         { return filterAllPSets; }
     public boolean doFilterAllEDSources()     { return filterAllEDSources; }
     public boolean doFilterAllESSources()     { return filterAllESSources; }
@@ -478,6 +489,61 @@ public class ModifierInstructions
     public void filterAllOutputModules(boolean filter)
     {
 	filterAllOutputModules =filter;
+    }
+    
+    public void filterAllPSets(boolean filter,IConfiguration config)
+    {
+	filterAllPSets = filter;
+	psetBlackList.clear();
+	if (filter) {
+	    Iterator<PSetParameter> itPSet = config.psetIterator();
+	    while (itPSet.hasNext()) psetBlackList.add(itPSet.next().name());
+	}
+    }
+    public void filterAllEDSources(boolean filter,IConfiguration config)
+    {
+	filterAllEDSources = filter;
+	edsourceBlackList.clear();
+	if (filter) {
+	    Iterator<EDSourceInstance> itEDS = config.edsourceIterator();
+	    while (itEDS.hasNext()) edsourceBlackList.add(itEDS.next().name());
+	}
+    }
+    public void filterAllESSources(boolean filter,IConfiguration config)
+    {
+	filterAllESSources = filter;
+	essourceBlackList.clear();
+	if (filter) {
+	    Iterator<ESSourceInstance> itESS = config.essourceIterator();
+	    while (itESS.hasNext()) essourceBlackList.add(itESS.next().name());
+	}
+    }
+    public void filterAllESModules(boolean filter,IConfiguration config)
+    {
+	filterAllESModules = filter;
+	esmoduleBlackList.clear();
+	if (filter) {
+	    Iterator<ESModuleInstance> itESM = config.esmoduleIterator();
+	    while (itESM.hasNext()) esmoduleBlackList.add(itESM.next().name());
+	}
+    }
+    public void filterAllServices(boolean filter,IConfiguration config)
+    {
+	filterAllServices = filter;
+	serviceBlackList.clear();
+	if (filter) {
+	    Iterator<ServiceInstance> itSvc = config.serviceIterator();
+	    while (itSvc.hasNext()) serviceBlackList.add(itSvc.next().name());
+	}
+    }
+    public void filterAllPaths(boolean filter,IConfiguration config)
+    {
+	filterAllPaths = filter;
+	pathBlackList.clear();
+	if (filter) {
+	    Iterator<Path> itP = config.pathIterator();
+	    while (itP.hasNext()) pathBlackList.add(itP.next().name());
+	}
     }
     
     /** insert/remove components into the corresponding whitelist/blacklist */
