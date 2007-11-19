@@ -125,8 +125,9 @@ public class OnlineConverter extends ConverterBase
 					     epConfig.created(),
 					     epConfig.creator(),
 					     epConfig.releaseTag(),
-					     epConfig.comment(),
-					     "SM"),smRelease);
+					     "SM",
+					     epConfig.comment()),
+			      smRelease);
 	
 	
 	Path endpath  = smConfig.insertPath(0,"epstreams");
