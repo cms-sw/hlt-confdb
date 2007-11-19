@@ -153,7 +153,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	else if (node instanceof Sequence||
 		 node instanceof SequenceReference) return sequenceIcon;
 	else if (node instanceof PSetParameter) {
-	    Configuration config = (Configuration)treeModel.getRoot();
+	    IConfiguration config = (IConfiguration)treeModel.getRoot();
 	    if (config.indexOfPSet((PSetParameter)node)>=0) return psetIcon;
 	}
 	//else if (node instanceof VPSetParameter)    return vpsetIcon;

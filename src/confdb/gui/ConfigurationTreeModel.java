@@ -270,7 +270,6 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    return (instance.parameterCount()>0) ? false : true;
 	}
 	else {
-	    System.err.println("ConfigurationTreeModel.isLeaf: " + node);
 	    result = (node instanceof Parameter) ? true : false;
 	}
 

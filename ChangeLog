@@ -1,3 +1,11 @@
+2007-11-19  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-17-00
+	* add 'search' functionality to the GUI
+	* when a search is active, parameters of modules matching the
+	search can be modified; nothing can be inserted/removed from the
+	configuration though! Might be extended later.
+
 2007-11-18  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-16-01

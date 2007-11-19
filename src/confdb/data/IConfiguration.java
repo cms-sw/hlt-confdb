@@ -37,6 +37,13 @@ public interface IConfiguration
     public String comment();
     
 
+    /** has the configuration changed w.r.t. the last version in the DB? */
+    public boolean hasChanged();
+    
+    /** indicate that the configuration has changed in memory */
+    public void setHasChanged(boolean hasChanged);
+    
+
     /** total number of components of a certain type */
     public int componentCount(Class<?> c);
     

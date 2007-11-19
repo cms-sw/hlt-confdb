@@ -219,26 +219,19 @@ public class ConfigurationModifier implements IConfiguration
 
 	Iterator<String> itS = modifications.requestedSequenceIterator();
 	while (itS.hasNext()) {
-	    String   sequenceName = itS.next();
-	    Sequence sequence     = master.sequence(sequenceName);
+	    Sequence sequence  = master.sequence(itS.next());
 	    if (sequence!=null&&sequences.indexOf(sequence)<0)
 		sequences.add(sequence);
 	}
 	
-
-
 	Iterator<String> itM = modifications.requestedModuleIterator();
 	while (itM.hasNext()) {
-	    String         moduleLabel = itM.next();
-	    ModuleInstance module      = master.module(moduleLabel);
+	    ModuleInstance module = master.module(itM.next());
 	    if (module!=null&&modules.indexOf(module)<0)
 		modules.add(module);
 	}
 	
 	isModified = true;
-
-	System.out.println("sequenceCount = " + sequenceCount());
-	System.out.println("moduleCount   = " + moduleCount());
     }
 
     /** reset all modifications */
@@ -289,6 +282,16 @@ public class ConfigurationModifier implements IConfiguration
     public String comment() { return master.comment(); }
     
     
+    /** has the configuration changed w.r.t. the last version in the DB? */
+    public boolean hasChanged() { return master.hasChanged(); }
+    
+    /** indicate that the configuration has changed in memory */
+    public void setHasChanged(boolean hasChanged)
+    {
+	master.setHasChanged(hasChanged);
+    }
+    
+    
     /** total number of components of a certain type */
     public int componentCount(Class<?> c)
     {
@@ -296,7 +299,7 @@ public class ConfigurationModifier implements IConfiguration
     }
 
     /** check if the configuration is empty */
-    public boolean isEmpty() { return false; }
+    public boolean isEmpty() { return master.isEmpty(); }
 
     /** check if the provided string is already in use as a label */
     public boolean isUniqueQualifier(String qualifier)

@@ -60,7 +60,7 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 
 	if (toBeEdited == null) return null;
 	
-	Configuration config = (Configuration)treeModel.getRoot();
+	IConfiguration config = (IConfiguration)treeModel.getRoot();
 
 	if (toBeEdited instanceof Referencable) {
 	    Referencable referencable = (Referencable)toBeEdited;

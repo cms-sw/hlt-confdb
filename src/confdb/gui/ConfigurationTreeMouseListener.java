@@ -128,7 +128,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	
 	if (!tree.isEditable()) return;
 
-	Configuration config = (Configuration)treeModel.getRoot();
+	if (treeModel.getRoot() instanceof ConfigurationModifier) return;
+
+	IConfiguration config = (IConfiguration)treeModel.getRoot();
 	if (config.name().length()==0) return;
 	
 	tree = (JTree)e.getComponent();
@@ -456,7 +458,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	Object    node     = treePath.getPathComponent(depth-1);
 	Object    parent   = treePath.getPathComponent(depth-2);
 
-	Configuration config = (Configuration)treeModel.getRoot();
+	IConfiguration config = (IConfiguration)treeModel.getRoot();
 	
 	// 'Paths' selectd
 	if (depth==2) {
@@ -551,7 +553,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	Object   node     = treePath.getPathComponent(depth-1);
 	Object   parent   = treePath.getPathComponent(depth-2);
 	
-	Configuration config = (Configuration)treeModel.getRoot();
+	IConfiguration config = (IConfiguration)treeModel.getRoot();
 	
 	if (depth==2) {
 	    menuItem = new JMenuItem("Add Sequence");
@@ -771,7 +773,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		}
 	    }
 	}
-	Configuration config = (Configuration)treeModel.getRoot();
+	IConfiguration config = (IConfiguration)treeModel.getRoot();
 	for (int i=0;i<config.pathCount();i++) {
 	    Path path = config.path(i);
 	    menuItem = new JMenuItem(path.name());
@@ -813,7 +815,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    }
 	}
 	
-	Configuration config = (Configuration)treeModel.getRoot();
+	IConfiguration config = (IConfiguration)treeModel.getRoot();
 	for (int i=0;i<config.sequenceCount();i++) {
 	    Sequence sequence = config.sequence(i);
 	    menuItem = new JMenuItem(sequence.name());

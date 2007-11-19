@@ -109,6 +109,8 @@ public class ConfDbGUI
     private JPanel        jPanelCurrentConfig       = new JPanel();
     private JLabel        jLabelSearch              = new JLabel();        // ML
     private JPopupMenu    jPopupMenuSearch          = new JPopupMenu();
+    private ButtonGroup   buttonGroupSearch1;
+    private ButtonGroup   buttonGroupSearch2;
     private JTextField    jTextFieldSearch          = new JTextField();    // KL
     private JButton       jButtonCancelSearch       = new JButton();       // AL
     private JToggleButton jToggleButtonImport       = new JToggleButton(); // AL
@@ -168,7 +170,7 @@ public class ConfDbGUI
 	this.currentConfig    = new Configuration();
 	this.importRelease    = new SoftwareRelease();
 	this.importConfig     = new Configuration();
-
+	
 	try {
 	    this.cnvEngine = ConverterFactory.getConverterEngine("ascii");
 	}
@@ -202,12 +204,14 @@ public class ConfDbGUI
 			jPopupMenuSearch.show(e.getComponent(),e.getX(),e.getY());
 		}
 	    });
-	jTextFieldSearch.addKeyListener(new KeyListener() {
-		public void keyTyped(KeyEvent e) {
-		    jTextFieldSearchKeyTyped(e);
+	jTextFieldSearch.getDocument().addDocumentListener(new DocumentListener() {
+		public void insertUpdate(DocumentEvent e) {
+		    jTextFieldSearchInsertUpdate(e);
 		}
-		public void keyPressed(KeyEvent e) {}
-		public void keyReleased(KeyEvent e) {}
+		public void removeUpdate(DocumentEvent e) {
+		    jTextFieldSearchRemoveUpdate(e);
+		}
+		public void changedUpdate(DocumentEvent e) {}
 	    });
 	jButtonCancelSearch.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
@@ -1309,12 +1313,7 @@ public class ConfDbGUI
 	jTreeCurrentConfig     = new JTree(treeModelCurrentConfig) {
 		public String getToolTipText(MouseEvent evt) {
 		    String text = null;
-		    ConfigurationTreeModel model =
-			(ConfigurationTreeModel)getModel();
-		    Configuration config = (Configuration)model.getRoot();
-		    
 		    if (getRowForLocation(evt.getX(),evt.getY()) == -1) return text;
-		    
 		    TreePath tp = getPathForLocation(evt.getX(),evt.getY());
 		    Object selectedNode = tp.getLastPathComponent();
 		    if (selectedNode instanceof Path) {
@@ -1616,7 +1615,8 @@ public class ConfDbGUI
     }
     private void jButtonCancelSearchActionPerformed(ActionEvent e)
     {
-
+	jTextFieldSearch.setText("");
+	setCurrentConfig(currentConfig);
     }
     private void jToggleButtonImportActionPerformed(ActionEvent e)
     {
@@ -1651,16 +1651,82 @@ public class ConfDbGUI
 	}
     }
     
+
     //
-    // KEYLISTENER CALLBACKS
+    // DOCUMENTLISTENER CALLBACKS
     //
-    
-    /** if a character was entered into the search field */
-    private void jTextFieldSearchKeyTyped(KeyEvent e)
+    private void jTextFieldSearchInsertUpdate(DocumentEvent e)
     {
-	System.out.println(e.getKeyChar());
+	try {
+	    String search = e.getDocument().getText(0,e.getDocument().getLength());
+	    jTreeCurrentConfigUpdateSearch(search);
+	}
+	catch (Exception ex) {}
     }
-    
+    private void jTextFieldSearchRemoveUpdate(DocumentEvent e)
+    {
+	try {
+	    String search = e.getDocument().getText(0,e.getDocument().getLength());
+	    jTreeCurrentConfigUpdateSearch(search);
+	}
+	catch (Exception ex) {}
+    }
+    private void jTreeCurrentConfigUpdateSearch(String search)
+    {
+	if (search.length()>0) {
+	    String mode = 
+		buttonGroupSearch1.getSelection().getActionCommand()+":"+
+		buttonGroupSearch2.getSelection().getActionCommand();
+	    jButtonCancelSearch.setEnabled(true);
+	    ModifierInstructions modifications = new ModifierInstructions();
+	    modifications.interpretSearchString(search,mode,currentConfig);
+	    ConfigurationModifier modifier = 
+		new ConfigurationModifier(currentConfig);
+	    modifier.modify(modifications);
+	    treeModelCurrentConfig.setConfiguration(modifier);
+	    jTreeCurrentConfigExpandLevel1Nodes();
+	}
+	else {
+	    setCurrentConfig(currentConfig);
+	    jButtonCancelSearch.setEnabled(false);
+	}
+    }
+    private void jTreeCurrentConfigExpandLevel1Nodes()
+    {
+	TreePath tpPSets = new TreePath(treeModelCurrentConfig.getPathToRoot
+					(treeModelCurrentConfig.
+					 psetsNode()));
+	jTreeCurrentConfig.expandPath(tpPSets);
+	TreePath tpEDSources = new TreePath(treeModelCurrentConfig.getPathToRoot
+					    (treeModelCurrentConfig.
+					     edsourcesNode()));
+	jTreeCurrentConfig.expandPath(tpEDSources);
+	TreePath tpESSources = new TreePath(treeModelCurrentConfig.getPathToRoot
+					    (treeModelCurrentConfig.
+					     essourcesNode()));
+	jTreeCurrentConfig.expandPath(tpESSources);
+	TreePath tpESModules = new TreePath(treeModelCurrentConfig.getPathToRoot
+					    (treeModelCurrentConfig.
+					     esmodulesNode()));
+	jTreeCurrentConfig.expandPath(tpESModules);
+	TreePath tpServices = new TreePath(treeModelCurrentConfig.getPathToRoot
+					   (treeModelCurrentConfig.
+					    servicesNode()));
+	jTreeCurrentConfig.expandPath(tpESSources);
+	TreePath tpPaths = new TreePath(treeModelCurrentConfig.getPathToRoot
+					(treeModelCurrentConfig.
+					 pathsNode()));
+	jTreeCurrentConfig.expandPath(tpPaths);
+	TreePath tpSequences = new TreePath(treeModelCurrentConfig.getPathToRoot
+					    (treeModelCurrentConfig.
+					 sequencesNode()));
+	jTreeCurrentConfig.expandPath(tpSequences);
+	TreePath tpModules = new TreePath(treeModelCurrentConfig.getPathToRoot
+					  (treeModelCurrentConfig.
+					   modulesNode()));
+	jTreeCurrentConfig.expandPath(tpModules);
+    }
+
     //
     // TREEMODELLISTENER CALLBACKS
     //
@@ -2028,6 +2094,7 @@ public class ConfDbGUI
 	jButtonCancelSearch.setBorder(null);
 	jToggleButtonImport.setBorder(null);
 
+	jButtonCancelSearch.setEnabled(false);
 	jToggleButtonImport.setEnabled(false);
 	
 	jSplitPaneCurrentConfig.setResizeWeight(0.5);
@@ -2160,8 +2227,30 @@ public class ConfDbGUI
     /** create the 'Search:' popup menu */
     private void createSearchPopupMenu()
     {
-	jPopupMenuSearch.add(new JMenuItem("Option1"));
-	jPopupMenuSearch.add(new JMenuItem("Option2"));
+	buttonGroupSearch1 = new ButtonGroup();
+	buttonGroupSearch2 = new ButtonGroup();
+	
+	JRadioButtonMenuItem rbMenuItem;
+	
+	rbMenuItem = new JRadioButtonMenuItem("startsWith");
+	rbMenuItem.setActionCommand("startsWith");
+	rbMenuItem.setSelected(true);
+	buttonGroupSearch1.add(rbMenuItem);
+	jPopupMenuSearch.add(rbMenuItem);
+	rbMenuItem = new JRadioButtonMenuItem("contains");
+	rbMenuItem.setActionCommand("contains");
+	buttonGroupSearch1.add(rbMenuItem);
+	jPopupMenuSearch.add(rbMenuItem);
+	jPopupMenuSearch.addSeparator();
+	rbMenuItem = new JRadioButtonMenuItem("labels");
+	rbMenuItem.setActionCommand("matchLabels");
+	rbMenuItem.setSelected(true);
+	buttonGroupSearch2.add(rbMenuItem);
+	jPopupMenuSearch.add(rbMenuItem);
+	rbMenuItem = new JRadioButtonMenuItem("plugins");
+	rbMenuItem.setActionCommand("matchPlugins");
+	buttonGroupSearch2.add(rbMenuItem);
+	jPopupMenuSearch.add(rbMenuItem);
     }
 
     /** create the 'Prescales' panel (tab3 in left panel) */
@@ -2351,8 +2440,11 @@ public class ConfDbGUI
 	jSplitPane.setLeftComponent(jPanelLeft);
 	jSplitPaneRight.setLeftComponent(jPanelRightUpper);
 	jSplitPaneRight.setRightComponent(jPanelRightLower);
-	// END PS
 
+	jProgressBar.setStringPainted(true);
+	// END PS
+	
+	
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelContentPane);
         jPanelContentPane.setLayout(layout);
         layout.setHorizontalGroup(

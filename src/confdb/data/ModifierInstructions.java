@@ -226,6 +226,99 @@ public class ModifierInstructions
 				    "invalid arguments detected.");
     }
 
+    /** interpret a search string */
+    public void interpretSearchString(String search,String mode,
+				      IConfiguration config)
+    {
+	boolean startsWith  = true;
+	boolean matchLabels = true;
+
+	if (mode.length()>0) {
+	    String[] options = mode.split(":");
+	    if      (options[0].equals("startsWith")) startsWith = true;
+	    else if (options[0].equals("contains"))   startsWith = false;
+	    else return;
+	    if      (options[1].equals("matchLabels"))  matchLabels = true;
+	    else if (options[1].equals("matchPlugins")) matchLabels = false;
+	    else return;
+	}
+	
+	Iterator<PSetParameter> itPSet = config.psetIterator();
+	while (itPSet.hasNext()) {
+	    String  name    = itPSet.next().name();
+	    boolean isMatch = (startsWith) ? 
+		name.startsWith(search) : name.contains(search);
+	    if (isMatch) psetWhiteList.add(name);
+	}
+	if (psetWhiteList.size()==0) filterAllPSets(true);
+	
+	Iterator<EDSourceInstance> itEDS = config.edsourceIterator();
+	while (itEDS.hasNext()) {
+	    EDSourceInstance eds = itEDS.next();
+	    String name = (matchLabels) ?eds.name() : eds.template().name();
+	    boolean isMatch = (startsWith) ? 
+		name.startsWith(search) : name.contains(search);
+	    if (isMatch) edsourceWhiteList.add(eds.name());
+	}
+	if (edsourceWhiteList.size()==0) filterAllEDSources(true);
+	
+	Iterator<ESSourceInstance> itESS = config.essourceIterator();
+	while (itESS.hasNext()) {
+	    ESSourceInstance ess = itESS.next();
+	    String name = (matchLabels) ? ess.name() : ess.template().name();
+	    boolean isMatch = (startsWith) ? 
+		name.startsWith(search) : name.contains(search);
+	    if (isMatch) essourceWhiteList.add(ess.name());
+	}
+	if (essourceWhiteList.size()==0) filterAllESSources(true);
+	
+	Iterator<ESModuleInstance> itESM = config.esmoduleIterator();
+	while (itESM.hasNext()) {
+	    ESModuleInstance esm = itESM.next();
+	    String name = (matchLabels) ? esm.name() : esm.template().name();
+	    boolean isMatch = (startsWith) ? 
+		name.startsWith(search) : name.contains(search);
+	    if (isMatch) esmoduleWhiteList.add(esm.name());
+	}
+	if (esmoduleWhiteList.size()==0) filterAllESModules(true);
+	
+	Iterator<ServiceInstance> itSvc = config.serviceIterator();
+	while (itSvc.hasNext()) {
+	    ServiceInstance svc = itSvc.next();
+	    String name = (matchLabels) ? svc.name() : svc.template().name();
+	    boolean isMatch = (startsWith) ? 
+		name.startsWith(search) : name.contains(search);
+	    if (isMatch) serviceWhiteList.add(svc.name());
+	}
+	if (serviceWhiteList.size()==0) filterAllServices(true);
+	
+	Iterator<Path> itP = config.pathIterator();
+	while (itP.hasNext()) {
+	    String name = itP.next().name();
+	    boolean isMatch = (startsWith) ? 
+		name.startsWith(search) : name.contains(search);
+	    if (isMatch) pathWhiteList.add(name);
+	}
+	if (pathWhiteList.size()==0) filterAllPaths(true);
+	
+	Iterator<Sequence> itS = config.sequenceIterator();
+	while (itS.hasNext()) {
+	    String name = itS.next().name();
+	    boolean isMatch = (startsWith) ? 
+		name.startsWith(search) : name.contains(search);
+	    if (isMatch) requestSequence(name);
+	}
+	
+	Iterator<ModuleInstance> itM = config.moduleIterator();
+	while (itM.hasNext()) {
+	    ModuleInstance module = itM.next();
+	    String name = (matchLabels) ?module.name() : module.template().name();
+	    boolean isMatch = (startsWith) ? 
+		name.startsWith(search) : name.contains(search);
+	    if (isMatch) requestModule(module.name());
+	}
+    }
+    
     /** resolve white-lists based on a given configuration */
     public boolean resolve(IConfiguration config)
     {

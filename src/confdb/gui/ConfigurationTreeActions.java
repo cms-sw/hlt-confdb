@@ -29,7 +29,7 @@ public class ConfigurationTreeActions
 					  ParameterTreeModel parameterTreeModel)
     {
 	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config   = (Configuration)model.getRoot();
+	IConfiguration         config   = (IConfiguration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 	
 	Object target         = treePath.getLastPathComponent();
@@ -128,7 +128,7 @@ public class ConfigurationTreeActions
 	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config   = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
-	
+
 	config.insertPSet(pset);
 
 	model.nodeInserted(model.psetsNode(),config.psetCount()-1);
@@ -301,7 +301,7 @@ public class ConfigurationTreeActions
     public static void setPreferred(JTree tree,boolean isPreferred)
     {
 	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config   = (Configuration)model.getRoot();
+	IConfiguration         config   = (IConfiguration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 	
 	ESPreferable esp = (ESPreferable)treePath.getLastPathComponent();
@@ -354,7 +354,7 @@ public class ConfigurationTreeActions
     public static void setPathAsEndpath(JTree tree,boolean isEndPath)
     {
 	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config   = (Configuration)model.getRoot();
+	IConfiguration         config   = (IConfiguration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 
 	Path path = (Path)treePath.getLastPathComponent();
