@@ -290,6 +290,8 @@ private Insets autoscrollInsets = new Insets(30, 30, 30, 30);
 	ConfigurationTreeModel model =
 	    (ConfigurationTreeModel)targetTree.getModel();
 	
+	if (model.getRoot() instanceof ConfigurationModifier) return false;
+	
 	if ((sourceNode instanceof EDSourceInstance &&
 	     (targetNode == model.edsourcesNode()||
 	      targetNode instanceof EDSourceInstance)) ||

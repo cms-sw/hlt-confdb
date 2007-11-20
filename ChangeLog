@@ -1,5 +1,14 @@
 2007-11-20  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-17-03
+	* correctly propagate process name for new configurations
+	* fix bug where the context menu of the configuration tree would
+	still refer to the old release
+	* disallow the configuration tree as a drop target if a search is
+	active
+
+2007-11-20  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-17-02
 	* REALLY fix bug reported by MZ (tested)
 	* add 'Search' field to import configuration panel

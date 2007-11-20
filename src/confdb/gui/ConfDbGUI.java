@@ -762,6 +762,7 @@ public class ConfDbGUI
 
 	importConfig.reset();
 	treeModelImportConfig.setConfiguration(importConfig);
+	hideImportTree();
 
 	jTextFieldProcess.setEditable(false);
 	jToggleButtonImport.setEnabled(false);
@@ -921,6 +922,7 @@ public class ConfDbGUI
 		config.initialize(new ConfigInfo(name,null,releaseTag),
 				  currentRelease);
 		setCurrentConfig(config);
+		jTextFieldProcess.setText(process);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		jProgressBar.setString(jProgressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
@@ -1394,8 +1396,7 @@ public class ConfDbGUI
 						       new ConfigurationTreeRenderer()));
 	
 	ConfigurationTreeMouseListener mouseListener =
-	    new ConfigurationTreeMouseListener(jTreeCurrentConfig,frame,
-					       currentRelease);
+	    new ConfigurationTreeMouseListener(jTreeCurrentConfig,frame);
 	jTreeCurrentConfig.addMouseListener(mouseListener);
 	
 	ConfigurationTreeTransferHandler currentDndHandler =

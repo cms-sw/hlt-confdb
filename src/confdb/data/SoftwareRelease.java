@@ -419,10 +419,6 @@ public class SoftwareRelease
 	    Iterator<Template> templateIt = pkg.templateIterator();
 	    while (templateIt.hasNext()) {
 		Template t = templateIt.next();
-		//System.out.println("add template " +
-		//	   subsystem.name() + " / " +
-		//	   pkg.name() + " / " +
-		//	   t.name());
 		addTemplate(t);
 	    }
 	}

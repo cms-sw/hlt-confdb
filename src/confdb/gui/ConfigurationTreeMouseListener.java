@@ -33,9 +33,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
     /** reference to the configuration tree-model */
     private ConfigurationTreeModel treeModel = null;
     
-    /** current software release */
-    private SoftwareRelease release = null;
-    
     /** popup mneu associated with global psets */
     private JPopupMenu popupPSets = null;
 
@@ -93,12 +90,10 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
     //
     
     /** standard constructor */
-    public ConfigurationTreeMouseListener(JTree tree, JFrame frame,
-					  SoftwareRelease release)
+    public ConfigurationTreeMouseListener(JTree tree, JFrame frame)
     {
 	this.tree      = tree;
 	this.treeModel = (ConfigurationTreeModel)tree.getModel();
-	this.release   = release;
 	
 	psetListener     = new PSetMenuListener(tree,frame);
 	edsourceListener = new EDSourceMenuListener(tree);
@@ -255,6 +250,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    popupEDSources.add(edsourceMenu);
 	}
 	else {
+	    ConfigurationTreeModel model   = (ConfigurationTreeModel)tree.getModel();
+	    Configuration          config  = (Configuration)model.getRoot();
+	    SoftwareRelease        release = config.release();
 	    Iterator<EDSourceTemplate> it = release.edsourceTemplateIterator();
 	    while (it.hasNext()) {
 		EDSourceTemplate t = it.next();
@@ -290,7 +288,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	// 'ESSources' or specific event setup source
 	if (depth>=2&&depth<=3) {
 	    JMenu essourceMenu = new ScrollableMenu("Add ESSource");
+
+	    ConfigurationTreeModel model   = (ConfigurationTreeModel)tree.getModel();
+	    Configuration          config  = (Configuration)model.getRoot();
+	    SoftwareRelease        release = config.release();
 	    Iterator<ESSourceTemplate> it = release.essourceTemplateIterator();
+	    
 	    while (it.hasNext()) {
 		ESSourceTemplate t = it.next();
 		if (t.instanceCount()>0) {
@@ -359,7 +362,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	// 'ESModules' or specific event setup module
 	if (depth>=2&&depth<=3) {
 	    JMenu esmoduleMenu = new ScrollableMenu("Add ESModule");
-	    Iterator<ESModuleTemplate> it = release.esmoduleTemplateIterator();
+	    
+	    ConfigurationTreeModel model   = (ConfigurationTreeModel)tree.getModel();
+	    Configuration          config  = (Configuration)model.getRoot();
+	    SoftwareRelease        release = config.release();
+	    Iterator<ESModuleTemplate>  it = release.esmoduleTemplateIterator();
+
 	    while (it.hasNext()) {
 		ESModuleTemplate t = it.next();
 		if (t.instanceCount()>0) {
@@ -423,7 +431,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	int depth = tree.getSelectionPath().getPathCount();
 	
 	JMenu serviceMenu = new ScrollableMenu("Add Service");
+	
+	ConfigurationTreeModel model   = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config  = (Configuration)model.getRoot();
+	SoftwareRelease        release = config.release();
 	Iterator<ServiceTemplate> it = release.serviceTemplateIterator();
+	
 	while (it.hasNext()) {
 	    ServiceTemplate t = it.next();
 	    menuItem = new JMenuItem(t.name());
@@ -641,7 +654,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 
 	HashMap<String,JMenu> menuHashMap = new HashMap<String,JMenu>();
 	
-	Iterator<ModuleTemplate> it = release.moduleTemplateIterator();
+	ConfigurationTreeModel model   = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config  = (Configuration)model.getRoot();
+	SoftwareRelease        release = config.release();
+	Iterator<ModuleTemplate> it    = release.moduleTemplateIterator();
+	
 	while (it.hasNext()) {
 	    ModuleTemplate t = it.next();
 	    

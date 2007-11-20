@@ -142,7 +142,6 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
 	    // insert EDSource
 	    if (sourceNode instanceof EDSourceInstance &&
 		targetNode == targetModel.edsourcesNode()) {
-		//	||targetNode instanceof EDSourceInstance)) {
 		EDSourceInstance source = (EDSourceInstance)sourceNode;
 		return ConfigurationTreeActions.importEDSource(targetTree,source);
 	    }
