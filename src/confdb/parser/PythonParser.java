@@ -56,6 +56,9 @@ public class PythonParser
     
     /** output stream for problems.txt */
     private PrintWriter problemStream = null;
+
+
+    private boolean isBuildingString = false;
     
     
     //
@@ -114,7 +117,7 @@ public class PythonParser
 
 			if (subtok.equals(",")) continue;
 			
-			if (isOpeningBracket(subtok)>=0) {
+			if (!isBuildingString&&isOpeningBracket(subtok)>=0) {
 			    
 			    if (!openBrackets.empty()&&
 				openBrackets.peek().equals(":")) {
@@ -124,7 +127,7 @@ public class PythonParser
 			    makeNewLevel++;
 			    openBrackets.push(subtok);
 			}
-			else if (isClosingBracket(subtok)>=0) {
+			else if (!isBuildingString&&isClosingBracket(subtok)>=0) {
 			    
 			    if (openBrackets.empty())
 				throw new ParserException(lineCount,
@@ -529,6 +532,10 @@ public class PythonParser
 	    if (token.startsWith(oquotes[i])) {
 		token  = token.substring(oquotes[i].length());
 		index  = token.indexOf(cquotes[i]);
+
+		// TEST
+		isBuildingString = (index<0);
+
 		return (index>=0) ?
 		    oquotes[i]+token.substring(0,index+cquotes[i].length()) : 
 		    oquotes[i]+token;
@@ -542,8 +549,13 @@ public class PythonParser
 	
 	// a closing quote is in the token
 	for (int i=0;i<cquotes.length;i++) {
-	    if ((index=token.indexOf(cquotes[i]))>=0)
+	    if ((index=token.indexOf(cquotes[i]))>=0) {
+
+		// TEST
+		isBuildingString = false;
+
 		return token.substring(0,index+cquotes[i].length());
+	    }
 	}
 	
 	return token;
