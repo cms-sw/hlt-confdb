@@ -1529,7 +1529,6 @@ public class ConfDbGUI
 	    Iterator<Parameter> itP = inst.parameterIterator();
 	    while (itP.hasNext()) currentParameters.add(itP.next());
 	    treeModelParameters.setParameters(currentParameters);
-
 	    border.setTitle(inst.name() + " Parameters");
 	}
 	else {
@@ -1538,7 +1537,6 @@ public class ConfDbGUI
 	    Iterator<PSetParameter> itPSet = currentConfig.psetIterator();
 	    while (itPSet.hasNext()) currentParameters.add(itPSet.next());
 	    treeModelParameters.setParameters(currentParameters);
-
 	    border.setTitle("Global PSets");
 	}
     }
@@ -1665,10 +1663,10 @@ public class ConfDbGUI
     private void jButtonCancelSearchActionPerformed(ActionEvent e)
     {
 	TreePath tp = jTreeCurrentConfig.getSelectionPath();
-	Object   obj = tp.getLastPathComponent();
 	jTextFieldSearch.setText("");
 	setCurrentConfig(currentConfig);
 	if (tp!=null) {
+	    Object   obj  = tp.getLastPathComponent();
 	    Object[] objs = tp.getPath();
 	    objs[0]=currentConfig;
 	    tp = new TreePath(objs);
@@ -1837,7 +1835,6 @@ public class ConfDbGUI
 		if (path.streamCount()>0) treeModelStreams.nodeChanged(path); // :(
 	    }
 	}
-	// TEST
 	displayParameters();
 	displaySnippet();
     }

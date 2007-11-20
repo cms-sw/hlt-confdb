@@ -48,7 +48,6 @@ public class ParameterTableMouseListener extends MouseAdapter
 	this.frame      = frame;
 	this.treeTable  = treeTable;
 	this.treeModel  = (ParameterTreeModel)treeTable.getTree().getModel();
-	//this.treeModel  = treeModel;
 	this.tableModel = (TreeTableTableModel)treeTable.getModel();
     }
 
