@@ -14,10 +14,10 @@ def main(argv):
 
     input_cmsswrel = os.environ.get("CMSSW_VERSION")
     input_dbname = "hltdb1"
-    input_dbuser = "jjhollar"
-    input_dbpwd = "password"
+    input_dbuser = "hltdev"
+    input_dbpwd = "hltdev"
+    input_host = "HLTDEV"
     input_dbtype = "Oracle"
-    input_host = "localhost"
     input_problemfile = "myproblems.txt"
     input_verbose = 0;
     

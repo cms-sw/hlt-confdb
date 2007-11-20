@@ -580,6 +580,8 @@ class ConfdbOracleModuleLoader:
     # Associate a list of parameters with a component template (via superId)
     def ConfdbAttachParameters(self,thecursor,newsuperid,parameters,vecparameters):
 
+	self.globalseqcount = 0
+
 	# First the non-vectors
 	for paramtype, paramname, paramval, paramistracked, paramseq in parameters:
 
@@ -847,6 +849,8 @@ class ConfdbOracleModuleLoader:
 
     # Update a list of parameters if necessary
     def ConfdbUpdateParameters(self,thecursor,oldsuperid,newsuperid,parameters,vecparameters):
+
+	self.globalseqcount = 0
 	
 	# First the non-vectors
 	for paramtype, paramname, paramval, paramistracked, paramseq in parameters:
