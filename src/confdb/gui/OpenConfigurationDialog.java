@@ -152,7 +152,8 @@ public class OpenConfigurationDialog extends ConfigurationDialog
 	{
 	    ConfigInfo configInfo = OpenConfigurationDialog.this.configInfo();
 	    if (isSelected&&configInfo!=null)
-		setToolTipText("HLT_KEY = " + configInfo.dbId());
+		setToolTipText("id: "        + configInfo.dbId() +
+			       "  comment: " + configInfo.comment());
 	    return super.getTableCellRendererComponent(table,object,isSelected,
 						       hasFocus,row,column);
 	}

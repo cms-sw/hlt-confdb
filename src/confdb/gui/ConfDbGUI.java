@@ -748,6 +748,7 @@ public class ConfDbGUI
 	treeModelStreams.setConfiguration(currentConfig);
 	
 	jTextFieldCurrentConfig.setText("");
+	jTextFieldCurrentConfig.setToolTipText("");
 	jLabelLock.setIcon(null);
 	jTextFieldProcess.setText("");
 	jButtonRelease.setText("");
@@ -807,6 +808,11 @@ public class ConfDbGUI
 	currentRelease = currentConfig.release();
 	
 	jTextFieldCurrentConfig.setText(currentConfig.toString());
+	if (currentConfig.version()>0)
+	    jTextFieldCurrentConfig.setToolTipText("id:"+
+						   currentConfig.dbId()+
+						   "  comment:"+
+						   currentConfig.comment());
 	
 	if (currentConfig.isLocked()) {
 	    jLabelLock.setIcon(new ImageIcon(getClass().
@@ -1095,6 +1101,7 @@ public class ConfDbGUI
 		treeModelImportConfig.setConfiguration(importConfig);
 		showImportTree();
 		jToggleButtonImport.setEnabled(true);
+		jToggleButtonImport.setSelected(true);
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		jProgressBar.setString(jProgressBar.getString() +
 				      get() + " (" + elapsedTime + " ms)");
@@ -2215,7 +2222,9 @@ public class ConfDbGUI
 	jToggleButtonImport.
 	    setIcon(new ImageIcon(getClass().
 				  getResource("/ImportToggleIcon.png")));
-	
+
+	jButtonCancelSearch.setEnabled(false);
+	jToggleButtonImport.setEnabled(false);
 	
 	jLabelSearch.setText("Search:");
 

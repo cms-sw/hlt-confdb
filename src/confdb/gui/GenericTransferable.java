@@ -51,6 +51,7 @@ public class GenericTransferable implements Transferable
     {
 	super();
 	this.data = data;
+	System.out.println("mimeType = " + flavors[0].getMimeType());
     }
     
 
