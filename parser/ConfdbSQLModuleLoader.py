@@ -712,6 +712,7 @@ class ConfdbMySQLModuleLoader:
 
 	    else:
 		print '\tError: Unknown param type ' + paramtype + ' ' + paramname + ' - do nothing'
+                self.globalseqcount = self.globalseqcount - 1
 	    
 	# Now deal with any vectors
 	for vecptype, vecpname, vecpvals, vecpistracked, vecpseq in vecparameters:
