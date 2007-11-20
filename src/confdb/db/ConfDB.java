@@ -1213,7 +1213,7 @@ public class ConfDB
 	ResultSet rs = null;
 	try {
 	    psSelectReleaseId.setString(1,releaseTag);
-	    rs = psSelectReleaseTag.executeQuery();
+	    rs = psSelectReleaseId.executeQuery();
 	    rs.next();
 	}
 	catch (SQLException e) {
@@ -1761,6 +1761,10 @@ public class ConfDB
 	    result = true;
 	}
 	catch (SQLException e) {
+	    System.err.println("Failed to lock configuration " + config.toString());
+	    System.err.println("parentDirId = " + parentDirId);
+	    System.err.println("configName  = " + configName);
+	    System.err.println("userName    = " + userName);
 	    e.printStackTrace();
 	}
 	return result;

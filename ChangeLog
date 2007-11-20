@@ -1,5 +1,11 @@
 2007-11-20  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-17-02
+	* REALLY fix bug reported by MZ (tested)
+	* add 'Search' field to import configuration panel
+
+2007-11-20  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-17-01
 	* parser fixes (JH)
 	* fix bug reported by MZ which would prevent configuration exports

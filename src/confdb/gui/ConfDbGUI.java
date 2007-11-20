@@ -117,6 +117,14 @@ public class ConfDbGUI
     private JSplitPane    jSplitPaneCurrentConfig   = new JSplitPane();
     private JScrollPane   jScrollPaneCurrentConfig  = new JScrollPane();
     private JTree         jTreeCurrentConfig;                              //TML+TSL
+
+    private JPanel        jPanelImportConfig        = new JPanel();
+    private JLabel        jLabelImportSearch        = new JLabel();        // ML
+    private JPopupMenu    jPopupMenuImportSearch    = new JPopupMenu();
+    private ButtonGroup   buttonGroupImportSearch1;
+    private ButtonGroup   buttonGroupImportSearch2;
+    private JTextField    jTextFieldImportSearch    = new JTextField();    // KL
+    private JButton       jButtonImportCancelSearch = new JButton();       // AL
     private JScrollPane   jScrollPaneImportConfig   = new JScrollPane();
     private JTree         jTreeImportConfig;                               //TML+TSL
 
@@ -241,6 +249,28 @@ public class ConfDbGUI
 	jTreeCurrentConfig.addTreeSelectionListener(new TreeSelectionListener() {
 		public void valueChanged(TreeSelectionEvent e) {
 		    jTreeCurrentConfigValueChanged(e);
+		}
+	    });
+	jLabelImportSearch.addMouseListener(new MouseAdapter() {
+		public void mousePressed(MouseEvent e)  { maybeShowPopup(e); }
+		public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
+		public void maybeShowPopup(MouseEvent e) {
+		    if (e.isPopupTrigger())
+			jPopupMenuImportSearch.show(e.getComponent(),e.getX(),e.getY());
+		}
+	    });
+	jTextFieldImportSearch.getDocument().addDocumentListener(new DocumentListener() {
+		public void insertUpdate(DocumentEvent e) {
+		    jTextFieldImportSearchInsertUpdate(e);
+		}
+		public void removeUpdate(DocumentEvent e) {
+		    jTextFieldImportSearchRemoveUpdate(e);
+		}
+		public void changedUpdate(DocumentEvent e) {}
+	    });
+	jButtonImportCancelSearch.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonImportCancelSearchActionPerformed(e);
 		}
 	    });
 	jComboBoxDefaultStream.addActionListener(new ActionListener() {
@@ -1438,7 +1468,7 @@ public class ConfDbGUI
     /** show/hide the import-tree pane */
     private void showImportTree()
     {
-	jSplitPaneCurrentConfig.setRightComponent(jScrollPaneImportConfig);
+	jSplitPaneCurrentConfig.setRightComponent(jPanelImportConfig);
 	jSplitPaneCurrentConfig.setDividerLocation(0.5);
 	jSplitPaneCurrentConfig.setDividerSize(8);
     }
@@ -1644,6 +1674,20 @@ public class ConfDbGUI
 	if (b.isSelected()) showImportTree();
 	else hideImportTree();
     }
+    private void jButtonImportCancelSearchActionPerformed(ActionEvent e)
+    {
+	TreePath tp = jTreeImportConfig.getSelectionPath();
+	Object   obj = tp.getLastPathComponent();
+	jTextFieldImportSearch.setText("");
+	treeModelImportConfig.setConfiguration(importConfig);
+	if (tp!=null) {
+	    Object[] objs = tp.getPath();
+	    objs[0]=importConfig;
+	    tp = new TreePath(objs);
+	    jTreeImportConfig.scrollPathToVisible(tp);
+	    jTreeImportConfig.setSelectionPath(tp);
+	}
+    }
     private void jComboBoxDefaultStreamActionPerformed(ActionEvent e)
     {
 	Object selectedItem = jComboBoxDefaultStream.getSelectedItem();
@@ -1704,49 +1748,72 @@ public class ConfDbGUI
 		new ConfigurationModifier(currentConfig);
 	    modifier.modify(modifications);
 	    treeModelCurrentConfig.setConfiguration(modifier);
-	    jTreeCurrentConfigExpandLevel1Nodes();
+	    jTreeConfigExpandLevel1Nodes(jTreeCurrentConfig);
 	}
 	else {
 	    setCurrentConfig(currentConfig);
 	    jButtonCancelSearch.setEnabled(false);
 	}
     }
-    private void jTreeCurrentConfigExpandLevel1Nodes()
+    private void jTreeConfigExpandLevel1Nodes(JTree t)
     {
-	TreePath tpPSets = new TreePath(treeModelCurrentConfig.getPathToRoot
-					(treeModelCurrentConfig.
-					 psetsNode()));
-	jTreeCurrentConfig.expandPath(tpPSets);
-	TreePath tpEDSources = new TreePath(treeModelCurrentConfig.getPathToRoot
-					    (treeModelCurrentConfig.
-					     edsourcesNode()));
-	jTreeCurrentConfig.expandPath(tpEDSources);
-	TreePath tpESSources = new TreePath(treeModelCurrentConfig.getPathToRoot
-					    (treeModelCurrentConfig.
-					     essourcesNode()));
-	jTreeCurrentConfig.expandPath(tpESSources);
-	TreePath tpESModules = new TreePath(treeModelCurrentConfig.getPathToRoot
-					    (treeModelCurrentConfig.
-					     esmodulesNode()));
-	jTreeCurrentConfig.expandPath(tpESModules);
-	TreePath tpServices = new TreePath(treeModelCurrentConfig.getPathToRoot
-					   (treeModelCurrentConfig.
-					    servicesNode()));
-	jTreeCurrentConfig.expandPath(tpESSources);
-	TreePath tpPaths = new TreePath(treeModelCurrentConfig.getPathToRoot
-					(treeModelCurrentConfig.
-					 pathsNode()));
-	jTreeCurrentConfig.expandPath(tpPaths);
-	TreePath tpSequences = new TreePath(treeModelCurrentConfig.getPathToRoot
-					    (treeModelCurrentConfig.
-					 sequencesNode()));
-	jTreeCurrentConfig.expandPath(tpSequences);
-	TreePath tpModules = new TreePath(treeModelCurrentConfig.getPathToRoot
-					  (treeModelCurrentConfig.
-					   modulesNode()));
-	jTreeCurrentConfig.expandPath(tpModules);
+	ConfigurationTreeModel m = (ConfigurationTreeModel)t.getModel();
+	
+	TreePath tpPSets = new TreePath(m.getPathToRoot(m.psetsNode()));
+	t.expandPath(tpPSets);
+	TreePath tpEDSources = new TreePath(m.getPathToRoot(m.edsourcesNode()));
+	t.expandPath(tpEDSources);
+	TreePath tpESSources = new TreePath(m.getPathToRoot(m.essourcesNode()));
+	t.expandPath(tpESSources);
+	TreePath tpESModules = new TreePath(m.getPathToRoot(m.esmodulesNode()));
+	t.expandPath(tpESModules);
+	TreePath tpServices = new TreePath(m.getPathToRoot(m.servicesNode()));
+	t.expandPath(tpESSources);
+	TreePath tpPaths = new TreePath(m.getPathToRoot(m.pathsNode()));
+	t.expandPath(tpPaths);
+	TreePath tpSequences = new TreePath(m.getPathToRoot(m.sequencesNode()));
+	t.expandPath(tpSequences);
+	TreePath tpModules = new TreePath(m.getPathToRoot(m.modulesNode()));
+	t.expandPath(tpModules);
     }
 
+    private void jTextFieldImportSearchInsertUpdate(DocumentEvent e)
+    {
+	try {
+	    String search = e.getDocument().getText(0,e.getDocument().getLength());
+	    jTreeImportConfigUpdateSearch(search);
+	}
+	catch (Exception ex) {}
+    }
+    private void jTextFieldImportSearchRemoveUpdate(DocumentEvent e)
+    {
+	try {
+	    String search = e.getDocument().getText(0,e.getDocument().getLength());
+	    jTreeImportConfigUpdateSearch(search);
+	}
+	catch (Exception ex) {}
+    }
+    private void jTreeImportConfigUpdateSearch(String search)
+    {
+	if (search.length()>0) {
+	    String mode = 
+		buttonGroupImportSearch1.getSelection().getActionCommand()+":"+
+		buttonGroupImportSearch2.getSelection().getActionCommand();
+	    jButtonImportCancelSearch.setEnabled(true);
+	    ModifierInstructions modifications = new ModifierInstructions();
+	    modifications.interpretSearchString(search,mode,importConfig);
+	    ConfigurationModifier modifier = 
+		new ConfigurationModifier(importConfig);
+	    modifier.modify(modifications);
+	    treeModelImportConfig.setConfiguration(modifier);
+	    jTreeConfigExpandLevel1Nodes(jTreeImportConfig);
+	}
+	else {
+	    treeModelImportConfig.setConfiguration(importConfig);
+	    jButtonImportCancelSearch.setEnabled(false);
+	}
+    }
+    
     //
     // TREEMODELLISTENER CALLBACKS
     //
@@ -2095,34 +2162,68 @@ public class ConfDbGUI
         layout.linkSize(new java.awt.Component[] {jLabelLock, jTextFieldCurrentConfig}, org.jdesktop.layout.GroupLayout.VERTICAL);
     }
     
+    /** create the Import Configuration part of the configuration panel */
+    private void createImportConfigPanel()
+    {
+	createImportSearchPopupMenu();
+	jButtonImportCancelSearch.setIcon(new ImageIcon(getClass().
+							getResource("/CancelSearchIcon.png")));
+
+        jLabelImportSearch.setText("Search:");
+
+        jButtonImportCancelSearch.setBorder(null);
+
+        jScrollPaneImportConfig.setViewportView(jTreeImportConfig);
+
+        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelImportConfig);
+        jPanelImportConfig.setLayout(layout);
+        layout.setHorizontalGroup(
+				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				  .add(layout.createSequentialGroup()
+				       .add(jLabelImportSearch)
+				       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+				       .add(jTextFieldImportSearch, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE)
+				       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+				       .add(jButtonImportCancelSearch, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 17, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+				  .add(jScrollPaneImportConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE)
+				  );
+        layout.setVerticalGroup(
+				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				.add(layout.createSequentialGroup()
+				     .addContainerGap()
+				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+					  .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+					       .add(jLabelImportSearch)
+					       .add(jTextFieldImportSearch, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+					  .add(jButtonImportCancelSearch, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+				     .add(jScrollPaneImportConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 367, Short.MAX_VALUE))
+				);
+
+	layout.linkSize(new java.awt.Component[] {jButtonImportCancelSearch, jTextFieldImportSearch}, org.jdesktop.layout.GroupLayout.VERTICAL);
+    }
+    
     /** create the 'Configuration' panel (tab1 in left panel) */
     private void createConfigurationPanel()
     {
-
+	createImportConfigPanel();
+	createSearchPopupMenu();
+	jButtonCancelSearch.
+	    setIcon(new ImageIcon(getClass().
+				  getResource("/CancelSearchIcon.png")));
+	jToggleButtonImport.
+	    setIcon(new ImageIcon(getClass().
+				  getResource("/ImportToggleIcon.png")));
+	
+	
 	jLabelSearch.setText("Search:");
 
-	// TODO
-	createSearchPopupMenu();
-				       
-
-	jButtonCancelSearch.setIcon(new ImageIcon(getClass().getResource("/CancelSearchIcon.png")));
-	jToggleButtonImport.setIcon(new ImageIcon(getClass().getResource("/ImportToggleIcon.png")));
-	
-	jButtonCancelSearch.setBackground(new java.awt.Color(238,238,238));
-	jToggleButtonImport.setBackground(new java.awt.Color(238,238,238));
-	
-	jButtonCancelSearch.setBorder(null);
-	jToggleButtonImport.setBorder(null);
-
-	jButtonCancelSearch.setEnabled(false);
-	jToggleButtonImport.setEnabled(false);
-	
-	jSplitPaneCurrentConfig.setResizeWeight(0.5);
+        jSplitPaneCurrentConfig.setResizeWeight(0.5);
         jScrollPaneCurrentConfig.setViewportView(jTreeCurrentConfig);
-
+	
         jSplitPaneCurrentConfig.setLeftComponent(jScrollPaneCurrentConfig);
-
-        jScrollPaneImportConfig.setViewportView(jTreeImportConfig);
+	
+	jSplitPaneCurrentConfig.setRightComponent(jPanelImportConfig);
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelCurrentConfig);
         jPanelCurrentConfig.setLayout(layout);
@@ -2158,6 +2259,7 @@ public class ConfDbGUI
 				);
 
         layout.linkSize(new java.awt.Component[] {jButtonCancelSearch, jTextFieldSearch, jToggleButtonImport}, org.jdesktop.layout.GroupLayout.VERTICAL);
+
     }
 
     /** create the  'Streams' panel (tab2 in left panel) */
@@ -2271,6 +2373,35 @@ public class ConfDbGUI
 	rbMenuItem.setActionCommand("matchPlugins");
 	buttonGroupSearch2.add(rbMenuItem);
 	jPopupMenuSearch.add(rbMenuItem);
+    }
+
+    /** create the 'Search:' popup menu for the importConfig panel */
+    private void createImportSearchPopupMenu()
+    {
+	buttonGroupImportSearch1 = new ButtonGroup();
+	buttonGroupImportSearch2 = new ButtonGroup();
+	
+	JRadioButtonMenuItem rbMenuItem;
+	
+	rbMenuItem = new JRadioButtonMenuItem("startsWith");
+	rbMenuItem.setActionCommand("startsWith");
+	rbMenuItem.setSelected(true);
+	buttonGroupImportSearch1.add(rbMenuItem);
+	jPopupMenuImportSearch.add(rbMenuItem);
+	rbMenuItem = new JRadioButtonMenuItem("contains");
+	rbMenuItem.setActionCommand("contains");
+	buttonGroupImportSearch1.add(rbMenuItem);
+	jPopupMenuImportSearch.add(rbMenuItem);
+	jPopupMenuImportSearch.addSeparator();
+	rbMenuItem = new JRadioButtonMenuItem("labels");
+	rbMenuItem.setActionCommand("matchLabels");
+	rbMenuItem.setSelected(true);
+	buttonGroupImportSearch2.add(rbMenuItem);
+	jPopupMenuImportSearch.add(rbMenuItem);
+	rbMenuItem = new JRadioButtonMenuItem("plugins");
+	rbMenuItem.setActionCommand("matchPlugins");
+	buttonGroupImportSearch2.add(rbMenuItem);
+	jPopupMenuImportSearch.add(rbMenuItem);
     }
 
     /** create the 'Prescales' panel (tab3 in left panel) */
