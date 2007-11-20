@@ -25,6 +25,9 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     /** reference to the tree model */
     private ConfigurationTreeModel treeModel = null;
     
+    /** flag indicating if InputTags are to be tracked */
+    private boolean doDisplayUnresolvedInputTags = false;
+    
     /** pset dir icons */
     private ImageIcon psetDirIcon = null;
     
@@ -57,6 +60,9 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 
     /** path icon */
     private ImageIcon pathIcon = null;
+
+    /** endpath icon */
+    private ImageIcon endpathIcon = null;
 
     /** modules dir icon */
     private ImageIcon modulesDirIcon = null;
@@ -108,6 +114,8 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	//new ImageIcon(getClass().getResource("/PathsDirIcon.png"));
 	pathIcon         =
 	    new ImageIcon(getClass().getResource("/PathIcon.png"));
+	endpathIcon      =
+	    new ImageIcon(getClass().getResource("/EndpathIcon.png"));
 	modulesDirIcon   = null;
 	//new ImageIcon(getClass().getResource("/ModulesDirIcon.png"));
 	moduleIcon       =
@@ -127,6 +135,12 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     // member functions
     //
     
+    /** set flag indicating if InputTags are to be tracked */
+    public void displayUnresolvedInputTags(Boolean display)
+    {
+	this.doDisplayUnresolvedInputTags = display;
+    }
+
     /** prepare the appropriate icon */
     public Icon prepareIcon()
     {
@@ -148,8 +162,11 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	else if (node instanceof ServiceInstance)   return serviceIcon;
 	else if (node instanceof ModuleInstance||
 		 node instanceof ModuleReference)   return moduleIcon;
-	else if (node instanceof Path||
-		 node instanceof PathReference)     return pathIcon;
+	else if (node instanceof Path||node instanceof PathReference) {
+	    if (node instanceof PathReference) node = ((Reference)node).parent();
+	    Path path = (Path)node;
+	    return (path.isEndPath()) ? endpathIcon : pathIcon;
+	}
 	else if (node instanceof Sequence||
 		 node instanceof SequenceReference) return sequenceIcon;
 	else if (node instanceof PSetParameter) {
@@ -165,9 +182,6 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     public String prepareText()
     {
 	String result = getText();
-	if (node instanceof StringBuffer) {
-	    result = "<html><h3>"+result+"</h3></html>";
-	}
 	if (node instanceof Instance) {
 	    Instance instance      = (Instance)node;
 	    int      count         = instance.unsetTrackedParameterCount();
@@ -189,10 +203,10 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    result += (entryCount>0) ?
 		"("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
-	    // TEST
-	    //count = path.unresolvedInputTagCount();
-	    //if (count>0) result += " <font color=#0000ff>["+count+"]</font>";
-	    // END TEST
+	    if (doDisplayUnresolvedInputTags) {
+		count = path.unresolvedInputTagCount();
+		if (count>0) result += " <font color=#0000ff>["+count+"]</font>";
+	    }
 	    if (path.isEndPath()) result += " <font color=#ff11a9>[endpath]</font>";
 	    result += "</html>";
 	}
@@ -209,9 +223,11 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	}
 	else if (node instanceof Sequence) {
 	    Sequence sequence   = (Sequence)node;
+	    int      refCount   = sequence.parentPaths().length;
 	    int      entryCount = sequence.entryCount();
 	    int      count      = sequence.unsetTrackedParameterCount();
-	    result = "<html>"+getText();
+	    result = (refCount>0) ?
+		"<html>"+getText():"<html><font color=#808080>"+getText()+"</font>";
 	    result += (entryCount>0) ?
 		" ("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";

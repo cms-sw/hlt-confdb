@@ -120,7 +120,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	int psetCount = config.psetCount();
 	int unsetPSetCount = config.unsetTrackedPSetParameterCount();
 	psetsNode.delete(0,edsourcesNode.length());
-	psetsNode.append("<html>PSets (");
+	psetsNode.append("<html><b>PSets</b> (");
 	psetsNode.append(psetCount);
 	psetsNode.append(")");
 	if (unsetPSetCount>0) {
@@ -135,7 +135,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	int edsourceCount = config.edsourceCount();
 	int unsetEDSourceCount = config.unsetTrackedEDSourceParameterCount();
 	edsourcesNode.delete(0,edsourcesNode.length());
-	edsourcesNode.append("<html>EDSource (");
+	edsourcesNode.append("<html><b>EDSource</b> (");
 	edsourcesNode.append(edsourceCount);
 	edsourcesNode.append(")");
 	if (unsetEDSourceCount>0) {
@@ -150,7 +150,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	int essourceCount = config.essourceCount();
 	int unsetESSourceCount = config.unsetTrackedESSourceParameterCount();
 	essourcesNode.delete(0,essourcesNode.length());
-	essourcesNode.append("<html>ESSources (");
+	essourcesNode.append("<html><b>ESSources</b> (");
 	essourcesNode.append(essourceCount);
 	essourcesNode.append(")");
 	if (unsetESSourceCount>0) {
@@ -165,7 +165,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	int esmoduleCount = config.esmoduleCount();
 	int unsetESModuleCount = config.unsetTrackedESModuleParameterCount();
 	esmodulesNode.delete(0,esmodulesNode.length());
-	esmodulesNode.append("<html>ESModules (");
+	esmodulesNode.append("<html><b>ESModules</b> (");
 	esmodulesNode.append(esmoduleCount);
 	esmodulesNode.append(")");
 	if (unsetESModuleCount>0) {
@@ -180,7 +180,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	int serviceCount = config.serviceCount();
 	int unsetServiceCount = config.unsetTrackedServiceParameterCount();
 	servicesNode.delete(0,servicesNode.length());
-	servicesNode.append("<html>Services (");
+	servicesNode.append("<html><b>Services</b> (");
 	servicesNode.append(serviceCount);
 	servicesNode.append(")");
 	if (unsetServiceCount>0) {
@@ -190,12 +190,28 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	servicesNode.append("</html>");
 	nodeChanged(servicesNode);
+
+	// Paths node
+	int pathCount = config.pathCount();
+	pathsNode.delete(0,pathsNode.length());
+	pathsNode.append("<html><b>Paths</b> (");
+	pathsNode.append(pathCount);
+	pathsNode.append(")</html>");
+	nodeChanged(pathsNode);
+	
+	// Sequences node
+	int sequenceCount = config.sequenceCount();
+	sequencesNode.delete(0,sequencesNode.length());
+	sequencesNode.append("<html><b>Sequences</b> (");
+	sequencesNode.append(sequenceCount);
+	sequencesNode.append(")</html>");
+	nodeChanged(sequencesNode);
 	
 	// Module node
 	int moduleCount = config.moduleCount();
 	int unsetModuleCount = config.unsetTrackedModuleParameterCount();
 	modulesNode.delete(0,modulesNode.length());
-	modulesNode.append("<html>Modules (");
+	modulesNode.append("<html><b>Modules</b> (");
 	modulesNode.append(moduleCount);
 	modulesNode.append(")");
 	if (unsetModuleCount>0) {
@@ -205,22 +221,6 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	modulesNode.append("</html>");
 	nodeChanged(modulesNode);
-	
-	// Paths node
-	int pathCount = config.pathCount();
-	pathsNode.delete(0,pathsNode.length());
-	pathsNode.append("<html>Paths (");
-	pathsNode.append(pathCount);
-	pathsNode.append(")</html>");
-	nodeChanged(pathsNode);
-	
-	// Sequences node
-	int sequenceCount = config.sequenceCount();
-	sequencesNode.delete(0,sequencesNode.length());
-	sequencesNode.append("<html>Sequences (");
-	sequencesNode.append(sequenceCount);
-	sequencesNode.append(")</html>");
-	nodeChanged(sequencesNode);
     }
     
     /** get root directory */

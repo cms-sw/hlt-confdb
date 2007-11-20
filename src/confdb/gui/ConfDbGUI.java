@@ -487,8 +487,6 @@ public class ConfDbGUI
 	if (currentConfig.isEmpty()||!currentConfig.hasChanged()||
 	    currentConfig.isLocked()||!checkConfiguration()) return;	
 	
-	System.out.println("BUH!");
-	
 	if (currentConfig.version()==0) {
 	    saveAsConfiguration();
 	    return;
@@ -616,10 +614,22 @@ public class ConfDbGUI
 	}
     }
     
+    /** set option 'Track InputTags' */
+    public void setOptionTrackInputTags(boolean doTrack)
+    {
+	ConfigurationTreeRenderer renderer =
+	    (ConfigurationTreeRenderer)jTreeCurrentConfig.getCellRenderer();
+	renderer.displayUnresolvedInputTags(doTrack);
+	
+	int pathIndices[] = new int[currentConfig.pathCount()];
+	for (int i=0;i<currentConfig.pathCount();i++) pathIndices[i]=i;
+	treeModelCurrentConfig.childNodesChanged(treeModelCurrentConfig.pathsNode(),
+						 pathIndices);
+    }
+
     /** connect to the database */
     public void connectToDatabase()
     {
-	//if (!closeConfiguration()) return;
 	disconnectFromDatabase();
 	
 	DatabaseConnectionDialog dbDialog = new DatabaseConnectionDialog(frame);
@@ -683,7 +693,7 @@ public class ConfDbGUI
 	dialog.setVisible(true);
 	
 	if (dialog.validChoice()) {
-	    ConfDB targetDB   = dialog.targetDB();
+	    ConfDB      targetDB   = dialog.targetDB();
 	    String      targetName = dialog.targetName();
 	    Directory   targetDir  = dialog.targetDir();
 	    
@@ -702,7 +712,7 @@ public class ConfDbGUI
     private void resetConfiguration()
     {
 	currentRelease.clearInstances();
-
+	
 	currentConfig.reset();
 	treeModelCurrentConfig.setConfiguration(currentConfig);
 	treeModelStreams.setConfiguration(currentConfig);
@@ -713,9 +723,10 @@ public class ConfDbGUI
 	jButtonRelease.setText("");
 	jTextFieldCreated.setText("");
 	jTextFieldCreator.setText("");
-
+	
 	clearParameters();
-
+	clearSnippet();
+	
 	menuBar.configurationIsNotOpen();
 	toolBar.configurationIsNotOpen();
 
@@ -1615,8 +1626,17 @@ public class ConfDbGUI
     }
     private void jButtonCancelSearchActionPerformed(ActionEvent e)
     {
+	TreePath tp = jTreeCurrentConfig.getSelectionPath();
+	Object   obj = tp.getLastPathComponent();
 	jTextFieldSearch.setText("");
 	setCurrentConfig(currentConfig);
+	if (tp!=null) {
+	    Object[] objs = tp.getPath();
+	    objs[0]=currentConfig;
+	    tp = new TreePath(objs);
+	    jTreeCurrentConfig.scrollPathToVisible(tp);
+	    jTreeCurrentConfig.setSelectionPath(tp);
+	}
     }
     private void jToggleButtonImportActionPerformed(ActionEvent e)
     {

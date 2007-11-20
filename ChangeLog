@@ -1,3 +1,15 @@
+2007-11-20  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-17-01
+	* parser fixes (JH)
+	* fix bug reported by MZ which would prevent configuration exports
+	* fid PythonParser bug (handle parentheses within string values
+	correctly)
+	* reactivate the last selected node after canceling the search
+	* add Options meny and a checkbox to enable/disable InputTag
+	tracking (per path, count the number of InputTag values with no
+	matching upstream label within that path)
+
 2007-11-19  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-17-00

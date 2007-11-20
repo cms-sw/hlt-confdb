@@ -94,11 +94,11 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 	}
 	
 	// DEBUG
-	if (unresolved.size()>0) {
-	    System.out.println("Unresolved InputTags for path "+name()+":");
-	    for (String s : unresolved) System.out.println(s);
-	    System.out.println();
-	}
+	//if (unresolved.size()>0) {
+	//    System.out.println("Unresolved InputTags for path "+name()+":");
+	//    for (String s : unresolved) System.out.println(s);
+	//    System.out.println();
+	//}
 
 	return unresolved.size();
     }

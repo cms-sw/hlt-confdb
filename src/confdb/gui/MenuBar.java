@@ -35,6 +35,9 @@ public class MenuBar
     private static final String configMenuMigrate     = "Migrate";
     private static final String configMenuConvert     = "Convert";
 
+    /** menu bar item names: options */
+    private static final String optionsMenuTrack      = "Track InputTags";
+
     /** menu bar item names: dbMenu */
     private static final String dbMenuConnectToDB      = "Connect to DB";
     private static final String dbMenuDisconnectFromDB = "Disconnect from DB";
@@ -55,6 +58,8 @@ public class MenuBar
     private JMenuItem configMenuMigrateItem     = null;
     private JMenuItem configMenuConvertItem     = null;
     
+    private JCheckBoxMenuItem optionsMenuTrackItem = null;
+
     private JMenuItem dbMenuConnectItem         = null;
     private JMenuItem dbMenuDisconnectItem      = null;
     private JMenuItem dbMenuExportItem          = null;
@@ -89,6 +94,7 @@ public class MenuBar
 	configMenuImportItem.setEnabled(true);
 	configMenuMigrateItem.setEnabled(true);
 	configMenuConvertItem.setEnabled(true);
+	optionsMenuTrackItem.setEnabled(true);
 	dbMenuExportItem.setEnabled(true);
     }
 
@@ -102,6 +108,7 @@ public class MenuBar
 	configMenuImportItem.setEnabled(false);
 	configMenuMigrateItem.setEnabled(false);
 	configMenuConvertItem.setEnabled(false);
+	optionsMenuTrackItem.setEnabled(false);
 	dbMenuExportItem.setEnabled(false);
     }
     
@@ -129,7 +136,6 @@ public class MenuBar
     {
 	JMenuItem menuItem;
 	
-	// the 'ConfDbGUI' menu
 	JMenu confdbMenu = new JMenu("ConfDbGUI");
 	confdbMenu.setMnemonic(KeyEvent.VK_E);
 	jMenuBar.add(confdbMenu);
@@ -189,6 +195,13 @@ public class MenuBar
 	configMenuConvertItem.addActionListener(listener);
 	configMenu.add(configMenuConvertItem);
 	
+	JMenu optionsMenu = new JMenu("Options");
+	optionsMenu.setMnemonic(KeyEvent.VK_O);
+	jMenuBar.add(optionsMenu);
+	optionsMenuTrackItem = new JCheckBoxMenuItem(optionsMenuTrack);
+	optionsMenuTrackItem.addActionListener(listener);
+	optionsMenu.add(optionsMenuTrackItem);
+
 	JMenu dbMenu = new JMenu("Database");
 	dbMenu.setMnemonic(KeyEvent.VK_D);
 	jMenuBar.add(dbMenu);

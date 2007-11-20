@@ -30,6 +30,8 @@ public class ToolBar
     private static final String cmdImport      = "Import";
     private static final String cmdMigrate     = "Migrate";
     private static final String cmdConvert     = "Convert";
+
+    private static final String cmdTrack = "Track InputTags";
     
     private static final String cmdConnectToDB      = "Connect to DB";
     private static final String cmdDisconnectFromDB = "Disconnect from DB";
@@ -46,6 +48,8 @@ public class ToolBar
     private JButton jButtonImport      = new JButton();
     private JButton jButtonMigrate     = new JButton();
     private JButton jButtonConvert     = new JButton();
+    
+    private JToggleButton jButtonTrack = new JToggleButton();
     
     private JButton jButtonConnect     = new JButton();
     private JButton jButtonDisconnect  = new JButton();
@@ -82,6 +86,7 @@ public class ToolBar
 	jButtonMigrate.setEnabled(true);
 	jButtonConvert.setEnabled(true);
 	jButtonExport.setEnabled(true);
+	jButtonTrack.setEnabled(true);
     }
 
     /** no configuration is open */
@@ -94,6 +99,7 @@ public class ToolBar
 	jButtonMigrate.setEnabled(false);
 	jButtonConvert.setEnabled(false);
 	jButtonExport.setEnabled(false);
+	jButtonTrack.setEnabled(false);
     }
     
     /** database connection is established */
@@ -146,13 +152,6 @@ public class ToolBar
 					  getResource("/SaveIcon.png")));
 	jToolBar.add(jButtonSave);
 	
-	//jButtonSaveAs.setActionCommand(cmdSaveAs);
-	//jButtonSaveAs.addActionListener(listener);
-	//jButtonSaveAs.setToolTipText("save current configuration under a new name");
-	//jButtonSaveAs.setIcon(new ImageIcon(getClass().
-	//			    getResource("/SaveAsIcon.png")));
-	//jToolBar.add(jButtonSaveAs);
-	
 	jToolBar.addSeparator();
 	
 	jButtonImport.setActionCommand(cmdImport);
@@ -177,6 +176,17 @@ public class ToolBar
 	jToolBar.add(jButtonConvert);
 	
 	jToolBar.addSeparator();
+	
+	jButtonTrack.setActionCommand(cmdTrack);
+	jButtonTrack.addActionListener(listener);
+	jButtonTrack.setToolTipText("enable/disable tracking unresolved " +
+				    "InputTags per path");
+	jButtonTrack.setIcon(new ImageIcon(getClass().
+					   getResource("/TrackIcon.png")));
+	jToolBar.add(jButtonTrack);
+
+	jToolBar.addSeparator();
+
 	
 	jButtonConnect.setActionCommand(cmdConnectToDB);
 	jButtonConnect.addActionListener(listener);

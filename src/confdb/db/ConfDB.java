@@ -1212,7 +1212,7 @@ public class ConfDB
 	boolean result = true;
 	ResultSet rs = null;
 	try {
-	    psSelectReleaseTag.setString(1,releaseTag);
+	    psSelectReleaseId.setString(1,releaseTag);
 	    rs = psSelectReleaseTag.executeQuery();
 	    rs.next();
 	}
