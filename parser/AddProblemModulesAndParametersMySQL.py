@@ -179,10 +179,10 @@ def main(argv):
 		vartracked = False
 
 	    if(len(varline) == 2):		
-		print "\tComponent is " + varline[0] + ", parameter is " + vartype + " " + varname + " = " + varval + " (" + str(vartracked) +") " + "sequence nb is " + str(thenewseq)
+		print "\tComponent is " + varline[0] + ", parameter is " + vartype + " " + varname + " = " + str(varval) + " (" + str(vartracked) +") " + "sequence nb is " + str(thenewseq)
 
 	    if(len(varline) == 3):
-		print "\tComponent is " + varline[0] + ", parameter is " + " (in  (V)Pset " + varline[1] + ") " + vartype + " " + varname + " = " + varval + " (" + str(vartracked) +") " + "sequence nb is " + str(thenewseq)
+		print "\tComponent is " + varline[0] + ", parameter is " + " (in  (V)Pset " + varline[1] + ") " + vartype + " " + varname + " = " + str(varval) + " (" + str(vartracked) +") " + "sequence nb is " + str(thenewseq)
 
 	    if(vartype == "PSet"):
 		thenewpsets.append((varname,'','','',vartracked,0,'',thenewseq))
@@ -193,9 +193,13 @@ def main(argv):
 	    elif (vartype == "vstring" or vartype == "vint32" or vartype == "vdouble" or vartype == "vuint32" or vartype == "VInputTag"):
 		for vecval in vecvarvals:
 		    print '\tVector entry ' + vecval
+                if(vartracked == 'untracked'):
+                    vecvarvals = []
 		thenewvecparams.append((vartype, varname, vecvarvals, vartracked, thenewseq))
 		myFixer.ConfdbAttachParameters(cursor,componentsuperid,thenewparams,thenewvecparams)
 	    else:
+                if(vartracked == 'untracked'):
+                    varval = None
 		thenewparams.append((vartype,varname,varval,vartracked,thenewseq))
 		myFixer.ConfdbAttachParameters(cursor,componentsuperid,thenewparams,thenewvecparams)
 
