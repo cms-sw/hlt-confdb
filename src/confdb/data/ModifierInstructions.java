@@ -806,6 +806,13 @@ public class ModifierInstructions
     /** insert PoolSource [fileNames = comma-separated list!] */
     public void insertPoolSource(String fileNames)
     {
+	//String[] tmp = fileNames.split(",");
+	//fileNames = "";
+	//for (String s : tmp) {
+	//   if (fileNames.length()>0) fileNames += ",";
+	//   if (!s.contains(":")) s = "file:" + s;
+	//   fileNames += s;
+	//}
 	filterAllEDSources = true;
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
 	params.add(new VStringParameter("fileNames",fileNames,false,false));

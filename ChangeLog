@@ -1,5 +1,10 @@
 2007-11-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-17-05
+	* various fixes (parser[JH]/browser[UB]/gui)
+
+2007-11-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-17-04
 	* minor bug fixes to the GUI
 

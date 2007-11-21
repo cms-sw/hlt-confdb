@@ -802,11 +802,14 @@ public class ConfDbGUI
     /** set the current configuration */
     private void setCurrentConfig(Configuration config)
     {
+	TreePath tp = jTreeCurrentConfig.getSelectionPath();
 	currentConfig = config;
 	treeModelCurrentConfig.setConfiguration(currentConfig);
 	treeModelStreams.setConfiguration(currentConfig);
 	currentRelease = currentConfig.release();
-	
+	jTreeCurrentConfig.scrollPathToVisible(tp);
+	jTreeCurrentConfig.setSelectionPath(tp);
+
 	jTextFieldCurrentConfig.setText(currentConfig.toString());
 	if (currentConfig.version()>0)
 	    jTextFieldCurrentConfig.setToolTipText("id:"+
@@ -1556,6 +1559,7 @@ public class ConfDbGUI
 	((DefaultComboBoxModel)jComboBoxPaths.getModel()).removeAllElements();
 	jComboBoxPaths.setEnabled(false);
 
+	currentInstance = null;
 	currentParameters.clear();
 	treeModelParameters.setParameters(currentParameters);
 
