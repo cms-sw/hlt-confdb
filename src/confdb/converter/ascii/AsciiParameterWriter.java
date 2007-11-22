@@ -37,6 +37,8 @@ public class AsciiParameterWriter  implements IParameterWriter
 			str.append( "{ " + parameter.valueAsString() + " }" ); 
 		else if ( parameter instanceof VPSetParameter )
 			str.append( writeVPSetParameters( (VPSetParameter)parameter, indent ) );
+		else
+			str.append( parameter.valueAsString() + " // unidentified parameter class " + parameter.getClass().getSimpleName() );
 		
 		str.append( converterEngine.getNewline() );
 		return str.toString();
