@@ -71,12 +71,14 @@ public class ConverterBase
     	return database;
     }
 	
-    public IConfiguration getConfiguration( int key ) 
+    public IConfiguration getConfiguration( int key ) throws ConverterException 
     {
     	ConfWrapper conf = confCache.get( new Integer( key ) );
     	if ( conf != null )
     		return conf.getConfiguration();
     	IConfiguration configuration = database.loadConfiguration( key );
+    	if ( configuration == null )
+    		throw new ConverterException( "ERROR! no config stored for key " + key );
     	put( key, configuration );
     	return configuration;
     }
