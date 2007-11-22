@@ -1,3 +1,9 @@
+2007-11-22  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-17-06
+	* converter: have ConverterBase.getConfiguration(int key) throw a 
+	ConverterExcpetion if the key is not valid (UB)
+
 2007-11-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-17-05
