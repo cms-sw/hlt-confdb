@@ -1,3 +1,9 @@
+2007-11-23  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-17-07
+	* don't consider endpaths when it comes to streams
+	* update the search if options were changed
+
 2007-11-22  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-17-06

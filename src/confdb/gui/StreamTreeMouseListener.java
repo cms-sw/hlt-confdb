@@ -82,8 +82,10 @@ public class StreamTreeMouseListener extends    MouseAdapter
 	    menuItem.setActionCommand("ADDALLPATHS");
 	    menuItem.addActionListener(this);
 	    menu.add(menuItem);
-	    for (int i=0;i<config.pathCount();i++) {
-		Path path = config.path(i);
+	    Iterator<Path> itP = config.pathIterator();
+	    while (itP.hasNext()) {
+		Path path = itP.next();
+		if (path.isEndPath()) continue;
 		menuItem = new JMenuItem(path.name());
 		if (stream.indexOfPath(path)<0) {
 		    menuItem.setActionCommand("ADDPATH");

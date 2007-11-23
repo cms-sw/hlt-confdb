@@ -115,6 +115,7 @@ public class StreamTreeActions
 	Iterator<Path> it = config.pathIterator();
 	while (it.hasNext()) {
 	    Path path = it.next();
+	    if (path.isEndPath()) continue;
 	    if (stream.indexOfPath(path)<0) {
 		stream.insertPath(path);
 		model.nodeInserted(stream,stream.pathCount()-1);

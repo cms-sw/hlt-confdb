@@ -432,7 +432,10 @@ public class Configuration implements IConfiguration
     {
 	int result = 0;
 	if (streams.size()==0) return result;
-	for (Path p : paths) if (p.streamCount()==0) result++;
+	for (Path p : paths) {
+	    if (p.isEndPath()) continue;
+	    if (p.streamCount()==0) result++;
+	}
 	return result;
     }
 
