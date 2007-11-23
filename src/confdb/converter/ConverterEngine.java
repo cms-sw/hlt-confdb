@@ -5,6 +5,8 @@ import confdb.data.IConfiguration;
 
 public class ConverterEngine
 {
+	private String format = "?";
+	
 	private IConfigurationWriter configurationWriter = null;
 	private IParameterWriter parameterWriter = null;
 	private IEDSourceWriter edsourceWriter  = null;
@@ -22,8 +24,9 @@ public class ConverterEngine
         //final private String configurationHeader = "process FU = {" + newline;
 	final private String configurationTrailer = "}" + newline;
 
-	protected ConverterEngine()
+	protected ConverterEngine( String format )
 	{
+		this.format = format;
 	}
 	
 	public String convert( IConfiguration configuration )
@@ -142,6 +145,10 @@ public class ConverterEngine
 
 	public void setMaxLineLength(int maxLineLength) {
 		this.maxLineLength = maxLineLength;
+	}
+
+	public String getFormat() {
+		return format;
 	}
 	
 
