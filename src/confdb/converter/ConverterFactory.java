@@ -45,7 +45,7 @@ public class ConverterFactory
 	public ConverterEngine getConverterEngine() throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
 		writerPackage = thisPackage + "." + outputFormat.toLowerCase();
-		ConverterEngine converterEngine = new ConverterEngine();
+		ConverterEngine converterEngine = new ConverterEngine( outputFormat );
 		converterEngine.setConfigurationWriter( getConfigurationWriter() );
 		converterEngine.setParameterWriter( getParameterWriter() );
 
