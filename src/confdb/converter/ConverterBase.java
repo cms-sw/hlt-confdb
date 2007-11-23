@@ -99,6 +99,11 @@ public class ConverterBase
     	return converterEngine;
     }
 
+	public void setConverterEngine(ConverterEngine converterEngine) 
+	{
+		this.converterEngine = converterEngine;
+	}
+
 	
     private class ConfWrapper implements Comparable<ConfWrapper>
     {
@@ -130,6 +135,7 @@ public class ConverterBase
     		return key;
     	}
     }
+
 
 
 }
