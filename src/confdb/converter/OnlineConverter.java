@@ -42,7 +42,9 @@ public class OnlineConverter extends ConverterBase
     /** current hash map 'pathName' -> 'prescalerName' */
     private HashMap<String, String> pathToPrescaler = new HashMap<String, String>();
 
-
+    /** flag used in finalize to either disconnect from database or not */
+    private boolean disconnectOnFinalize = true;
+    
     //
     // construction
     //
@@ -63,14 +65,15 @@ public class OnlineConverter extends ConverterBase
     /** constructor based on Connection object */
     public OnlineConverter( Connection connection ) throws ConverterException 
     {
-	this( "ascii", connection );
+    	this( "ascii", connection );
     }
     
     /** constructor based on format & Connection object */
     public OnlineConverter(String format, Connection connection)
 	throws ConverterException 
     {
-	super(format, connection);
+    	super(format, connection);
+    	disconnectOnFinalize = false;
     }
 
     /** constructor based on explicit connection information */
@@ -80,6 +83,18 @@ public class OnlineConverter extends ConverterBase
 	super(format, dbType, dbUrl, dbUser, dbPwrd);
     }
 
+    
+    /** destructor  */
+	protected void finalize() throws Throwable
+	{
+		super.finalize();
+		ConfDB db = getDatabase();
+		if ( db != null && disconnectOnFinalize )
+			db.disconnect();
+	}
+	
+    
+    
     //
     // member functions
     //
@@ -302,7 +317,7 @@ public class OnlineConverter extends ConverterBase
 		ConfDB database = converter.getDatabase();
 		if ( database != null )
 		    try {
-			database.disconnect();
+		    	database.disconnect();
 		    }
 		    catch (DatabaseException e) {}
 	    }
