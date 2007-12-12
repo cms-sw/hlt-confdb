@@ -810,7 +810,7 @@ class SourceParser:
 					self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),None,"true",self.sequencenb))	   
 					self.sequencenb = self.sequencenb + 1
 				elif(isvector == False and paraminparamset != ''):
-				    if (not self.IsNewParameterSet(self.vecparamsetmemberlist,paraminparamset)):
+				    if (not self.IsNewParameter('',self.vecparamsetmemberlist,paraminparamset)):
 					if(self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,paraminparamset)):
 					    self.vecparamsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'None','true',0,self.sequencenb,self.psetsequencenb))
 				    elif (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):

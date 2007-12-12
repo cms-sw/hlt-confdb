@@ -22,9 +22,8 @@ body { background:#edf5ff }
 .yui-gd { margin-bottom:0px; }
 #doc3 { margin-bottom:0px; margin-top:5px; }
 #mainLeft { background:#edf5ff; border: 0px solid #B6CDE1; margin:0px; padding:0px }
-#mainRight { margin:0px; padding:0px; background-color:#FFF5DF; border: 0px; }
-.headerDiv { margin:0px; padding:0.4em; background:white; border: 1px solid #B6CDE1; border-bottom:0px; }
-#info { background:white; border: 1px solid #B6CDE1; border-top:0px; }
+#mainRight { margin:0px; padding:0px; background-color:#FFF5DF; border: 1px solid #B6CDE1; }
+.headerDiv { margin:0px; padding:0.4em; background:white }
 
 </style>
 
@@ -65,11 +64,10 @@ function init()
 	
 function labelClicked( node )
 {
+
   if ( !node.data.key )
   	return;
   configModule.hide();
-
-  document.getElementById( "mainRight" ).style.border = '1px solid #B6CDE1';
 
   configKey = node.data.key;
   dbIndex = node.data.dbIndex;
@@ -112,8 +110,7 @@ function iframeReady()
 	
 function treeReady()
 {
-  document.getElementById( "info" ).innerHTML = "";
-  document.getElementById( "info" ).style.border = '0px';
+  $('info').innerHTML = "";
 }
 	
 //When the DOM is done loading, we can initialize our TreeView
@@ -136,7 +133,6 @@ YAHOO.util.Event.onContentReady( "doc3", init );
             <a id="expand" href="#">Expand all</a>
             <a id="collapse" href="#">Collapse all</a>
       </div>
-      <div id="info"><img src="../img/loading.gif"></div>
 	  <iframe name="treeFrame" id="treeFrame" width="100%" frameborder="0" src="<%= treeUrl%>" ></iframe>
     </div>
   </div> 
@@ -147,5 +143,6 @@ YAHOO.util.Event.onContentReady( "doc3", init );
     </div>
   </div> 
 </div>
+<div id="info" align="left"><img src="../img/loading.gif"></div>
 </body>
 </html>
