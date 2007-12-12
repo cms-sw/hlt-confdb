@@ -81,39 +81,48 @@ public class ModuleInstance extends Instance implements Referencable
     public void setNameAndPropagate(String name) throws DataException
     {
 	String oldName = name();
-	super.setName(name); // Instance.setName()
+	super.setName(name);
 	Path[] paths = parentPaths();
+
 	for (Path path : paths) {
 	    boolean isDownstream = false;
 	    Iterator<ModuleInstance> itM = path.moduleIterator();
 	    while (itM.hasNext()) {
 		ModuleInstance module = itM.next();
-		if (module==this) {
-		    isDownstream = true;
+		if (!isDownstream) {
+		    if (module==this) isDownstream = true;
 		    continue;
 		}
-		if (!isDownstream) continue;
 		Iterator<Parameter> itP = module.parameterIterator();
 		while (itP.hasNext()) {
 		    Parameter p = itP.next();
+		    if (!p.isValueSet()) continue;
 		    if (p instanceof InputTagParameter) {
 			InputTagParameter inputTag = (InputTagParameter)p;
+
 			if (inputTag.label().equals(oldName)) {
-			    inputTag.setLabel(name());
-			    module.setHasChanged();
+			    InputTagParameter tmp =
+				(InputTagParameter)inputTag.clone(null);
+			    tmp.setLabel(name());
+			    module.updateParameter(inputTag.name(),inputTag.type(),
+						   tmp.valueAsString());
 			}
 		    }
 		    else if (p instanceof VInputTagParameter) {
 			VInputTagParameter vInputTag = (VInputTagParameter)p;
-			for (int i=0;i<vInputTag.vectorSize();i++) {
-			    InputTagParameter inputTag =
-				new InputTagParameter("",vInputTag.value(i).toString(),false,false);
+			VInputTagParameter tmp =
+			    (VInputTagParameter)vInputTag.clone(null);
+			for (int i=0;i<tmp.vectorSize();i++) {
+			    InputTagParameter inputTag = 
+				new InputTagParameter("",tmp.value(i).toString(),
+						      false,false);
 			    if (inputTag.label().equals(oldName)) {
 				inputTag.setLabel(name());
-				vInputTag.setValue(i,inputTag.valueAsString());
-				module.setHasChanged();
+				tmp.setValue(i,inputTag.valueAsString());
 			    }
 			}
+			module.updateParameter(vInputTag.name(),vInputTag.type(),
+					       tmp.valueAsString());
 		    }
 		}
 	    }

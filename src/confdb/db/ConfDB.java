@@ -2087,7 +2087,7 @@ public class ConfDB
 		String   sequenceName = sequence.name();
 		
 		if (sequenceId<=0) {
-		    
+
 		    psInsertSequence.setString(1,sequenceName);
 		    psInsertSequence.executeUpdate();
 		    

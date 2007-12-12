@@ -1,3 +1,9 @@
+2007-12-12  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-17-09
+	* fix (two) bugs regarding the propagation of label name changes
+	to downstream InputTag parameters
+
 2007-11-29  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-17-08
