@@ -40,22 +40,31 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 		else
 			indent = "";
 
-		str.append( object + ".sequences = (\n" );
-		ISequenceWriter sequenceWriter = converterEngine.getSequenceWriter();
-		for ( int i = 0; i < conf.sequenceCount(); i++ )
+		if ( conf.sequenceCount() > 0 )
 		{
-			Sequence sequence = conf.sequence(i);
-			str.append( sequenceWriter.toString(sequence, converterEngine, indent ) );
-		}
-		str.append( "\n)\n");
-
-		IPathWriter pathWriter = converterEngine.getPathWriter();
-		for ( int i = 0; i < conf.pathCount(); i++ )
-		{
-			Path path = conf.path(i);
-			str.append( pathWriter.toString( path, converterEngine, indent ) );
+			str.append( object + ".sequences = {\n" );
+			ISequenceWriter sequenceWriter = converterEngine.getSequenceWriter();
+			for ( int i = 0; i < conf.sequenceCount(); i++ )
+			{
+				Sequence sequence = conf.sequence(i);
+				str.append( sequenceWriter.toString(sequence, converterEngine, indent ) + ",\n" );
+			}
+			str.append( "}\n");
 		}
 
+		if ( conf.pathCount() > 0 )
+		{
+			str.append( object + ".paths = {\n" );
+			IPathWriter pathWriter = converterEngine.getPathWriter();
+			for ( int i = 0; i < conf.pathCount(); i++ )
+			{
+				Path path = conf.path(i);
+				str.append( pathWriter.toString( path, converterEngine, indent ) + ",\n" );
+			}
+			str.append( "}\n");
+		}
+
+		/*
 		IParameterWriter parameterWriter = converterEngine.getParameterWriter();
 		for ( int i = 0; i < conf.psetCount(); i++ )
 		{
@@ -100,9 +109,7 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			ModuleInstance module = conf.module(i);
 			str.append( moduleWriter.toString( module ) );
 		}
-
-		if ( writeProcess == WriteProcess.YES )
-			str.append( converterEngine.getConfigurationTrailer() );
+*/
 		return str.toString();
 	}
 
