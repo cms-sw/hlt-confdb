@@ -30,7 +30,19 @@ public class AsciiParameterWriter  implements IParameterWriter
 			 + parameter.type() + " " + parameter.name() + " = " );
 		
 		if ( parameter instanceof ScalarParameter )
-			str.append( parameter.valueAsString() );
+		{
+			// strange things happen here: from time to time the value is empty!
+			String value = parameter.valueAsString();
+			if ( value.length() == 0 )
+			{
+				Object doubleObject = ((ScalarParameter)parameter).value();
+				if ( doubleObject != null )
+					value = doubleObject.toString() + " // oops, method value() used";
+				else
+					value = " // oops, Double == null !! Don't know what to do";
+			}
+			str.append( value );
+		}
 		else if ( parameter instanceof PSetParameter )
 			str.append( writePSetParameters( (PSetParameter)parameter, indent, true ) );
 		else if ( parameter instanceof VectorParameter )
