@@ -299,7 +299,7 @@ public class OnlineConverter extends ConverterBase
 	
 	
 
-    public static OnlineConverter getConverter() throws ConverterException
+    public static synchronized OnlineConverter getConverter() throws ConverterException
     {
 	if ( converter == null ) {
 	    if ( dbConnection != null )
