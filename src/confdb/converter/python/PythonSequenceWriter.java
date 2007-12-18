@@ -9,15 +9,14 @@ public class PythonSequenceWriter implements ISequenceWriter
 
 	public String toString( Sequence sequence, ConverterEngine converterEngine, String indent ) 
 	{
-		String str = indent + "sequence " + decorateName( sequence.name()) 
-			       + " = { ";
+		String str = indent + "'"+ sequence.name() +  "' : ( "; 
 		for ( int i = 0; i < sequence.entryCount(); i++  )
 		{
 			str += decorate( sequence.entry(i).name() );
 			if ( i + 1 < sequence.entryCount() )
-				str += " & ";
+				str += ", ";
 		}
-		str += " }" + converterEngine.getNewline();
+		str += " )";
 		return str;
 	}
 	
@@ -28,7 +27,7 @@ public class PythonSequenceWriter implements ISequenceWriter
 
 	protected String decorate( String name )
 	{
-		return name;
+		return "'" + name + "'";
 	}
 
 }
