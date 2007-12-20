@@ -2,6 +2,8 @@ package confdb.converter.python;
 
 import confdb.converter.ConverterEngine;
 import confdb.converter.IParameterWriter;
+import confdb.converter.ascii.AsciiParameterWriter;
+import confdb.data.BoolParameter;
 import confdb.data.PSetParameter;
 import confdb.data.Parameter;
 import confdb.data.ScalarParameter;
@@ -23,13 +25,27 @@ public class PythonParameterWriter  implements IParameterWriter
 
 	protected String toString( Parameter parameter, String indent ) 
 	{
-		if ( skip( parameter ) )
+		return toString( parameter, indent, "\n" );
+	}
+		
+	private String toString( Parameter parameter, String indent, String appendix ) 
+	{
+		if ( AsciiParameterWriter.skip( parameter ) )
 			return "";
 
-		StringBuffer str = new StringBuffer( indent + (parameter.isTracked() ? "" : "untracked " )
-			 + parameter.type() + " " + parameter.name() + " = " );
+		StringBuffer str = new StringBuffer( indent + "'" + parameter.name() + "' : " 
+				+ (parameter.isTracked() ? "" : "Untracked" ) + "Parameter( " 
+				+ "'" + parameter.type() + "', " );
 		
-		if ( parameter instanceof ScalarParameter )
+		if ( parameter instanceof BoolParameter )
+		{
+			String trueFalse = parameter.valueAsString();
+			if ( trueFalse.equalsIgnoreCase( "true" ) )
+				str.append( "True" );
+			else
+				str.append( "False" );
+		}
+		else if ( parameter instanceof ScalarParameter )
 		{
 			// strange things happen here: from time to time the value is empty!
 			String value = parameter.valueAsString();
@@ -37,22 +53,22 @@ public class PythonParameterWriter  implements IParameterWriter
 			{
 				Object doubleObject = ((ScalarParameter)parameter).value();
 				if ( doubleObject != null )
-					value = doubleObject.toString() + " // method value() used";
+					value = doubleObject.toString() + " # method value() used";
 				else
-					value = " // Double == null !! Don't know what to do";
+					value = " # Double == null !! Don't know what to do";
 			}
 			str.append( value );
 		}
 		else if ( parameter instanceof PSetParameter )
 			str.append( writePSetParameters( (PSetParameter)parameter, indent, true ) );
 		else if ( parameter instanceof VectorParameter )
-			str.append( "{ " + parameter.valueAsString() + " }" ); 
+			str.append( "( " + parameter.valueAsString() + " )" ); 
 		else if ( parameter instanceof VPSetParameter )
 			str.append( writeVPSetParameters( (VPSetParameter)parameter, indent ) );
 		else
-			str.append( parameter.valueAsString() + " // unidentified parameter class " + parameter.getClass().getSimpleName() );
+			str.append( parameter.valueAsString() + " # unidentified parameter class " + parameter.getClass().getSimpleName() );
 		
-		str.append( converterEngine.getNewline() );
+		str.append( " )" + appendix );
 		return str.toString();
 	}
 
@@ -63,9 +79,9 @@ public class PythonParameterWriter  implements IParameterWriter
 			str.append( "{}" );
 		else if ( newline )
 		{
-			str.append( "{" + converterEngine.getNewline() ); 
+			str.append( "{\n" ); 
 			for ( int i = 0; i < pset.parameterCount(); i++ )
-				str.append( toString( (Parameter)pset.parameter(i), indent + "  " ) );
+				str.append( toString( (Parameter)pset.parameter(i), indent + "  ", ",\n" ) );
 			str.append( indent + "}" ); 
 		}
 		else
@@ -73,7 +89,7 @@ public class PythonParameterWriter  implements IParameterWriter
 			Parameter first = (Parameter)pset.parameter(0);
 			str.append( "{ " + toString( first, "" ) );
 			for ( int i = 1; i < pset.parameterCount(); i++ )
-				str.append( toString( (Parameter)pset.parameter(i), indent + "  " ) );
+				str.append( toString( (Parameter)pset.parameter(i), indent + "  ", ",\n" ) );
 			str = new StringBuffer( str.substring( 0, str.length() - 1 ) ); 
 			str.append( " }" ); 
 		}
@@ -83,7 +99,7 @@ public class PythonParameterWriter  implements IParameterWriter
 
 	protected String writeVPSetParameters( VPSetParameter vpset, String indent ) 	
 	{
-		StringBuffer str = new StringBuffer( "{" + converterEngine.getNewline() ); 
+		StringBuffer str = new StringBuffer( "(" + converterEngine.getNewline() ); 
 		for ( int i = 0; i < vpset.parameterSetCount() - 1; i++ )
 		{
 			PSetParameter pset = vpset.parameterSet(i);
@@ -101,56 +117,8 @@ public class PythonParameterWriter  implements IParameterWriter
 			else
 				str.append( indent + "  " + writePSetParameters(pset, indent + "  ", false ) + converterEngine.getNewline() );
 		}
-		str.append( indent + "}" ); 
+		str.append( indent + ")" ); 
 		return str.toString();
-	}
-	
-	static public boolean skipPSet( PSetParameter pset )
-	{
-		if ( pset.isTracked() )
-			return false;
-
-		if ( pset.parameterCount() == 0 )
-			return true;
-		for ( int i = 0; i < pset.parameterCount(); i++ )
-		{
-			Parameter p = pset.parameter(i);
-			if ( p.isTracked() ||  p.isValueSet() )
-				return false;
-		}
-		return true;
-	}
-
-
-	static public boolean skip( Parameter parameter )
-	{
-		if ( parameter.isTracked() )
-			return false;
-		
-		if (  parameter instanceof PSetParameter )
-		{
-			PSetParameter pset = (PSetParameter) parameter;
-			return skipPSet(pset);
-		}
-
-		if (  parameter instanceof VPSetParameter )
-		{
-			VPSetParameter vpset = (VPSetParameter) parameter;
-			if ( vpset.parameterSetCount() == 0 )
-				return true;
-			for ( int i = 0; i < vpset.parameterSetCount(); i++ )
-			{
-				PSetParameter pset = vpset.parameterSet(i);
-				if ( !skipPSet(pset) )
-					return false;
-			}
-			return true;
-		}
-
-		if ( parameter.isValueSet() )
-			return false;
-
-		return true;
 	}
 	
 	
