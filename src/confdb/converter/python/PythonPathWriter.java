@@ -8,8 +8,11 @@ public class PythonPathWriter implements IPathWriter
 {
 	public String toString( Path path, ConverterEngine converterEngine, String indent ) 
 	{
-		//if ( path.isEndPath() )
-		String str = indent + "'"+ path.name() +  "' : ( "; 
+		String str = "";
+		if ( path.isEndPath() )
+			str = indent + "'"+ path.name() +  "' : EndPath( "; 
+		else
+			str = indent + "'"+ path.name() +  "' : Path( "; 
 		for ( int i = 0; i < path.entryCount(); i++  )
 		{
 			str += decorate( path.entry(i).name() );
