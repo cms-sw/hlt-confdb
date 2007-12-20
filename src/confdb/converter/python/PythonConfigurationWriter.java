@@ -23,6 +23,26 @@ import confdb.data.ServiceInstance;
 public class PythonConfigurationWriter implements IConfigurationWriter 
 {
 	protected ConverterEngine converterEngine = null;
+	static public String myPythonClasses =  
+		"class Process:\n" +
+		"  pass\n" +
+		"class Path(tuple):\n" +
+		"  isEndPath = False\n" +
+		"  def __new__(cls,*args):\n" +
+		"    return tuple.__new__(cls,args)\n" +
+		"class EndPath(Path):\n" +
+		"  isEndPath = True\n" +
+		"class Sequence(tuple):\n" +
+		"  def __new__(cls,*args):\n" +
+		"    return tuple.__new__(cls,args)\n" +
+		"class Parameter:\n" +
+		"  isTracked = True\n" +
+		"  def __init__(self, type, value ):\n" +
+		"    self.type = type\n" +
+		"    self.value = value\n" +
+		"class UntrackedParameter( Parameter ):\n" +
+		"  isTracked = False\n" +
+		"\n";
 
 	public String toString( IConfiguration conf, WriteProcess writeProcess  )
 	{
@@ -35,7 +55,7 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 		if ( writeProcess == WriteProcess.YES )
 		{
 			object = conf.processName();
-			str.append( "class process:\n\tpass\n" + object + " = process()\n" );
+			str.append( myPythonClasses + object + " = Process()\n" );
 		}
 		else
 			indent = "";
@@ -64,15 +84,19 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			str.append( "}\n");
 		}
 
-		/*
-		IParameterWriter parameterWriter = converterEngine.getParameterWriter();
-		for ( int i = 0; i < conf.psetCount(); i++ )
+		if ( conf.psetCount() > 0 )
 		{
-			Parameter pset = conf.pset(i);
-			str.append( parameterWriter.toString( pset, converterEngine, indent ) );
+			str.append( object + ".psets = {\n" );
+			IParameterWriter parameterWriter = converterEngine.getParameterWriter();
+			for ( int i = 0; i < conf.psetCount(); i++ )
+			{
+				Parameter pset = conf.pset(i);
+				str.append( parameterWriter.toString( pset, converterEngine, indent ) + "," );
+			}
+			str.append( "}\n");
 		}
 
-
+		/*
 		IEDSourceWriter edsourceWriter = converterEngine.getEDSourceWriter();
 		for ( int i = 0; i < conf.edsourceCount(); i++ )
 		{
