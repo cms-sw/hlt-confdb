@@ -33,40 +33,52 @@ public class PythonParameterWriter  implements IParameterWriter
 		if ( AsciiParameterWriter.skip( parameter ) )
 			return "";
 
-		StringBuffer str = new StringBuffer( indent + "'" + parameter.name() + "' : " 
-				+ (parameter.isTracked() ? "" : "Untracked" ) + "Parameter( " 
-				+ "'" + parameter.type() + "', " );
 		
-		if ( parameter instanceof BoolParameter )
+		StringBuffer str = new StringBuffer( 1000 );
+		if ( parameter instanceof PSetParameter )
 		{
-			String trueFalse = parameter.valueAsString();
-			if ( trueFalse.equalsIgnoreCase( "true" ) )
-				str.append( "True" );
-			else
-				str.append( "False" );
+			str.append( indent + "'" + parameter.name() + "' : " 
+					+ (parameter.isTracked() ? "" : "Untracked" ) + "PSet( " );
+			PSetParameter pset = (PSetParameter)parameter;
+			boolean newline = false;
+			if ( pset.parameterCount() > 1 )
+				newline = true;
+			str.append( writePSetParameters( pset, indent, newline ) );
 		}
-		else if ( parameter instanceof ScalarParameter )
-		{
-			// strange things happen here: from time to time the value is empty!
-			String value = parameter.valueAsString();
-			if ( value.length() == 0 )
-			{
-				Object doubleObject = ((ScalarParameter)parameter).value();
-				if ( doubleObject != null )
-					value = doubleObject.toString() + " # method value() used";
-				else
-					value = " # Double == null !! Don't know what to do";
-			}
-			str.append( value );
-		}
-		else if ( parameter instanceof PSetParameter )
-			str.append( writePSetParameters( (PSetParameter)parameter, indent, true ) );
-		else if ( parameter instanceof VectorParameter )
-			str.append( "( " + parameter.valueAsString() + " )" ); 
-		else if ( parameter instanceof VPSetParameter )
-			str.append( writeVPSetParameters( (VPSetParameter)parameter, indent ) );
 		else
-			str.append( parameter.valueAsString() + " # unidentified parameter class " + parameter.getClass().getSimpleName() );
+		{
+			str.append( indent + "'" + parameter.name() + "' : " 
+					+ (parameter.isTracked() ? "" : "Untracked" ) + "Parameter( " 
+					+ "'" + parameter.type() + "', " );
+			if ( parameter instanceof BoolParameter )
+			{
+				String trueFalse = parameter.valueAsString();
+				if ( trueFalse.equalsIgnoreCase( "true" ) )
+					str.append( "True" );
+				else
+					str.append( "False" );
+			}
+			else if ( parameter instanceof ScalarParameter )
+			{
+				// strange things happen here: from time to time the value is empty!
+				String value = parameter.valueAsString();
+				if ( value.length() == 0 )
+				{
+					Object doubleObject = ((ScalarParameter)parameter).value();
+					if ( doubleObject != null )
+						value = doubleObject.toString() + " # method value() used";
+					else
+						value = " # Double == null !! Don't know what to do";
+				}
+				str.append( value );
+			}
+			else if ( parameter instanceof VectorParameter )
+				str.append( "( " + parameter.valueAsString() + " )" ); 
+			else if ( parameter instanceof VPSetParameter )
+				str.append( writeVPSetParameters( (VPSetParameter)parameter, indent ) );
+			else
+				str.append( parameter.valueAsString() + " # unidentified parameter class " + parameter.getClass().getSimpleName() );
+		}
 		
 		str.append( " )" + appendix );
 		return str.toString();
