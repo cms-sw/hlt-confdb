@@ -41,7 +41,16 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 		"    self.type = type\n" +
 		"    self.value = value\n" +
 		"class UntrackedParameter( Parameter ):\n" +
-		"  isTracked = False\n" +
+		"  def __init__(self, type, value ):\n" +
+		"    self.isTracked = False\n" +
+		"    Parameter.__init__(self, type, value )\n" +
+		"class PSet( Parameter, dict ):\n" +
+		"  def __init__(self, *args, **kw ):\n" +
+		"    dict.__init__(self, *args, **kw)\n" +
+		"class UntrackedPSet( PSet):\n" +
+		"  def __init__(self, *args, **kw ):\n" +
+		"    PSet.__init__(self, *args, **kw)\n" +
+		"    self.isTracked = False\n" +
 		"\n";
 
 	public String toString( IConfiguration conf, WriteProcess writeProcess  )
@@ -67,7 +76,8 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.sequenceCount(); i++ )
 			{
 				Sequence sequence = conf.sequence(i);
-				str.append( sequenceWriter.toString(sequence, converterEngine, indent ) + ",\n" );
+				str.append( sequenceWriter.toString(sequence, converterEngine, indent ) );
+				str.append( ",\n" );
 			}
 			str.append( "}\n");
 		}
@@ -79,7 +89,8 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.pathCount(); i++ )
 			{
 				Path path = conf.path(i);
-				str.append( pathWriter.toString( path, converterEngine, indent ) + ",\n" );
+				str.append( pathWriter.toString( path, converterEngine, indent ) );
+				str.append( ",\n" );
 			}
 			str.append( "}\n");
 		}
@@ -91,26 +102,38 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.psetCount(); i++ )
 			{
 				Parameter pset = conf.pset(i);
-				str.append( parameterWriter.toString( pset, converterEngine, indent ) + "," );
+				str.append( parameterWriter.toString( pset, converterEngine, indent ) );
+				str.append( ",\n" );
+			}
+			str.append( "}\n");
+		}
+
+		if ( conf.edsourceCount() > 0 )
+		{
+			str.append( object + ".sources = {\n" );
+			IEDSourceWriter edsourceWriter = converterEngine.getEDSourceWriter();
+			for ( int i = 0; i < conf.edsourceCount(); i++ )
+			{
+				EDSourceInstance edsource = conf.edsource(i);
+				str.append( edsourceWriter.toString(edsource, converterEngine, indent ) );
+				str.append( ",\n" );
 			}
 			str.append( "}\n");
 		}
 
 		/*
-		IEDSourceWriter edsourceWriter = converterEngine.getEDSourceWriter();
-		for ( int i = 0; i < conf.edsourceCount(); i++ )
+		if ( conf.essourceCount() > 0 )
 		{
-			EDSourceInstance edsource = conf.edsource(i);
-			str.append( edsourceWriter.toString(edsource, converterEngine, indent ) );
+			str.append( object + ".es_sources = {\n" );
+			IESSourceWriter essourceWriter = converterEngine.getESSourceWriter();
+			for ( int i = 0; i < conf.essourceCount(); i++ )
+			{
+				ESSourceInstance essource = conf.essource(i);
+				str.append( essourceWriter.toString(essource, converterEngine, indent ) );
+				str.append( ",\n" );
+			}
+			str.append( "}\n");
 		}
-
-		IESSourceWriter essourceWriter = converterEngine.getESSourceWriter();
-		for ( int i = 0; i < conf.essourceCount(); i++ )
-		{
-			ESSourceInstance essource = conf.essource(i);
-			str.append( essourceWriter.toString(essource, converterEngine, indent ) );
-		}
-
 
 		IESModuleWriter esmoduleWriter = converterEngine.getESModuleWriter();
 		for ( int i = 0; i < conf.esmoduleCount(); i++ )
@@ -118,15 +141,22 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			ESModuleInstance esmodule = conf.esmodule(i);
 			str.append( esmoduleWriter.toString( esmodule, converterEngine, indent ) );
 		}
+*/
 
-
-		IServiceWriter serviceWriter = converterEngine.getServiceWriter();
-		for ( int i = 0; i < conf.serviceCount(); i++ )
+		if ( conf.serviceCount() > 0 )
 		{
-			ServiceInstance service = conf.service(i);
-			str.append( serviceWriter.toString( service, converterEngine, indent ) );
+			str.append( object + ".services = {\n" );
+			IServiceWriter serviceWriter = converterEngine.getServiceWriter();
+			for ( int i = 0; i < conf.serviceCount(); i++ )
+			{
+				ServiceInstance service = conf.service(i);
+				str.append( serviceWriter.toString( service, converterEngine, indent ) );
+				str.append( ",\n" );
+			}
+			str.append( "}\n");
 		}
 
+/*
 		IModuleWriter moduleWriter = converterEngine.getModuleWriter();
 		for ( int i = 0; i < conf.moduleCount(); i++ )
 		{
