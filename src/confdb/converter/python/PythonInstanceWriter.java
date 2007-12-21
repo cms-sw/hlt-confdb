@@ -24,7 +24,7 @@ public class PythonInstanceWriter
 		    instance.name() + " = " +
 		    instance.template().name() + " {"
 		    :
-		    indent + type + " = " + instance.template().name() + " {" );
+		    indent + "'" + instance.template().name() + "' : {" );
 
 		
 		if ( instance.parameterCount() == 0 )
@@ -34,7 +34,12 @@ public class PythonInstanceWriter
 		for ( int i = 0; i < instance.parameterCount(); i++ )
 		{
 			Parameter parameter = instance.parameter(i);
-			str.append( parameterWriter.toString( parameter, converterEngine, indent + "  " ) );
+			String para = parameterWriter.toString( parameter, converterEngine, indent + "  " );
+			if ( para.length() > 0 )
+			{
+				str.append( para );
+				str.append( "," );
+			}
 		}
 		str.append( indent + "}" + converterEngine.getNewline() );
 
