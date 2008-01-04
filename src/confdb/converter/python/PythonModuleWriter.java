@@ -20,18 +20,26 @@ public class PythonModuleWriter implements IModuleWriter {
 		String name = module.name();
 		String type = module.template().name();
 		
-		String str = indent + "module " +  decorate( name ) + " = " + type + " {";
+		StringBuffer str = new StringBuffer( indent + "'" +  decorate( name ) + "' : Module( '" + type + "', {" );
 		if ( module.parameterCount() == 0 )
-			return str + "}" + converterEngine.getNewline();
+		{
+			str.append( "  })" );
+			return str.toString();
+		}
 			
-		str += converterEngine.getNewline();
+		str.append( "\n" );
 		for ( int i = 0; i < module.parameterCount(); i++ )
 		{
 			Parameter parameter = module.parameter(i);
-			str += parameterWriter.toString( parameter, converterEngine, indent + "  " );
+			String param = parameterWriter.toString( parameter, converterEngine, indent + "  " );
+			if ( param.length() > 0 )
+			{
+				str.append( param );
+				str.append( "," );
+			}
 		}
-		str += indent + "}" + converterEngine.getNewline();
-		return str;
+		str.append( indent + "  })" );
+		return str.toString();
 	}
 
 
