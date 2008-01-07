@@ -10,6 +10,7 @@ import confdb.converter.IParameterWriter;
 import confdb.converter.IPathWriter;
 import confdb.converter.ISequenceWriter;
 import confdb.converter.IServiceWriter;
+import confdb.data.ESPreferable;
 import confdb.data.IConfiguration;
 import confdb.data.EDSourceInstance;
 import confdb.data.ESSourceInstance;
@@ -51,6 +52,18 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 		"  def __init__(self, *args, **kw ):\n" +
 		"    PSet.__init__(self, *args, **kw)\n" +
 		"    self.isTracked = False\n" +
+		"class Module( dict ):\n" +
+		"  def __init__(self, type, *args, **kw ):\n" +
+		"    dict.__init__(self, *args, **kw)\n" +
+		"    self.type = type\n" +
+		"class ESSource( dict ):\n" +
+		"  def __init__(self, type, *args, **kw ):\n" +
+		"    dict.__init__(self, *args, **kw)\n" +
+		"    self.type = type\n" +
+		"class ESModule( dict ):\n" +
+		"  def __init__(self, type, *args, **kw ):\n" +
+		"    dict.__init__(self, *args, **kw)\n" +
+		"    self.type = type\n" +
 		"\n";
 
 	public String toString( IConfiguration conf, WriteProcess writeProcess  )
@@ -121,7 +134,6 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			str.append( "}\n");
 		}
 
-		/*
 		if ( conf.essourceCount() > 0 )
 		{
 			str.append( object + ".es_sources = {\n" );
@@ -133,15 +145,35 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 				str.append( ",\n" );
 			}
 			str.append( "}\n");
+
+			str.append( object + ".es_prefers = {\n" );
+			for ( int i = 0; i < conf.essourceCount(); i++ )
+			{
+				ESSourceInstance instance = conf.essource(i);
+				if ( instance instanceof ESPreferable) 
+				{
+					ESPreferable esp = (ESPreferable)instance;
+					if ( esp.isPreferred() ) 
+						str.append( indent + "'" + instance.name() 
+								+ "' : '" + instance.template().name() + ",\n" );
+				}
+			}
+			str.append( "}\n");
 		}
 
-		IESModuleWriter esmoduleWriter = converterEngine.getESModuleWriter();
-		for ( int i = 0; i < conf.esmoduleCount(); i++ )
+		if ( conf.esmoduleCount() > 0 )
 		{
-			ESModuleInstance esmodule = conf.esmodule(i);
-			str.append( esmoduleWriter.toString( esmodule, converterEngine, indent ) );
+			str.append( object + ".es_modules = {\n" );
+			IESModuleWriter esmoduleWriter = converterEngine.getESModuleWriter();
+			for ( int i = 0; i < conf.esmoduleCount(); i++ )
+			{
+				ESModuleInstance esmodule = conf.esmodule(i);
+				str.append( esmoduleWriter.toString( esmodule, converterEngine, indent ) );
+				str.append( ",\n" );
+			}
+			str.append( "}\n");
 		}
-*/
+
 
 		if ( conf.serviceCount() > 0 )
 		{
@@ -156,14 +188,19 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			str.append( "}\n");
 		}
 
-/*
-		IModuleWriter moduleWriter = converterEngine.getModuleWriter();
-		for ( int i = 0; i < conf.moduleCount(); i++ )
+		if ( conf.moduleCount() > 0 )
 		{
-			ModuleInstance module = conf.module(i);
-			str.append( moduleWriter.toString( module ) );
+			str.append( object + ".modules = {\n" );
+			IModuleWriter moduleWriter = converterEngine.getModuleWriter();
+			for ( int i = 0; i < conf.moduleCount(); i++ )
+			{
+				ModuleInstance module = conf.module(i);
+				str.append( moduleWriter.toString( module ) );
+				str.append( ",\n" );
+			}
+			str.append( "}\n");
 		}
-*/
+
 		return str.toString();
 	}
 
