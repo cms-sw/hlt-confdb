@@ -155,7 +155,7 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 					ESPreferable esp = (ESPreferable)instance;
 					if ( esp.isPreferred() ) 
 						str.append( indent + "'" + instance.name() 
-								+ "' : '" + instance.template().name() + ",\n" );
+								+ "' : '" + instance.template().name() + "',\n" );
 				}
 			}
 			str.append( "}\n");
