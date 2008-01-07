@@ -4,9 +4,11 @@ import confdb.converter.ConverterEngine;
 import confdb.converter.IParameterWriter;
 import confdb.converter.ascii.AsciiParameterWriter;
 import confdb.data.BoolParameter;
+import confdb.data.InputTagParameter;
 import confdb.data.PSetParameter;
 import confdb.data.Parameter;
 import confdb.data.ScalarParameter;
+import confdb.data.VInputTagParameter;
 import confdb.data.VPSetParameter;
 import confdb.data.VectorParameter;
 
@@ -58,6 +60,10 @@ public class PythonParameterWriter  implements IParameterWriter
 				else
 					str.append( "False" );
 			}
+			else if ( parameter instanceof InputTagParameter )
+				str.append( "'" + parameter.valueAsString() + "'" );
+			else if ( parameter instanceof VInputTagParameter )
+				str.append( "'(" + parameter.valueAsString() + ")'" );
 			else if ( parameter instanceof ScalarParameter )
 			{
 				// strange things happen here: from time to time the value is empty!
@@ -99,7 +105,7 @@ public class PythonParameterWriter  implements IParameterWriter
 		else
 		{
 			Parameter first = (Parameter)pset.parameter(0);
-			str.append( "{ " + toString( first, "" ) );
+			str.append( "{ " + toString( first, "", ",\n" ) );
 			for ( int i = 1; i < pset.parameterCount(); i++ )
 				str.append( toString( (Parameter)pset.parameter(i), indent + "  ", ",\n" ) );
 			str = new StringBuffer( str.substring( 0, str.length() - 1 ) ); 
