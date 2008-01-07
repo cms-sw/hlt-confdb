@@ -8,7 +8,7 @@ public class PythonESSourceWriter extends PythonInstanceWriter implements IESSou
 {
 	public String toString( ESSourceInstance essource, ConverterEngine converterEngine, String indent ) 
 	{
-		return toString( "es_source", essource, converterEngine, indent );
+		return toString( "ESSource", essource, converterEngine, indent );
 	}
 
 }
