@@ -3,7 +3,6 @@ package confdb.converter.python;
 import confdb.converter.ConverterEngine;
 import confdb.converter.IParameterWriter;
 import confdb.data.Instance;
-import confdb.data.ESPreferable;
 import confdb.data.Parameter;
 
 public class PythonInstanceWriter 
@@ -20,15 +19,11 @@ public class PythonInstanceWriter
 
 		StringBuffer str = new StringBuffer( (needInstanceLabel)
 		    ?
-		    indent + type + " " +
-		    instance.name() + " = " +
-		    instance.template().name() + " {"
+		    indent + "'" + instance.name() + "' : " + type + "( '"
+		    + instance.template().name() + "', {"
 		    :
 		    indent + "'" + instance.template().name() + "' : {" );
 
-		
-		if ( instance.parameterCount() == 0 )
-			return str + "}" + converterEngine.getNewline();
 			
 		str.append( converterEngine.getNewline() );
 		for ( int i = 0; i < instance.parameterCount(); i++ )
@@ -41,21 +36,14 @@ public class PythonInstanceWriter
 				str.append( "," );
 			}
 		}
-		str.append( indent + "}" + converterEngine.getNewline() );
 
+		if ( instance.parameterCount() > 0 )
+			str.append( indent );
+		
+		str.append( "}" );
+		if ( needInstanceLabel )
+			str.append( ")"  );
 
-		// quick fix by PS 11/02/07
-		if (instance instanceof ESPreferable) {
-		    ESPreferable esp = (ESPreferable)instance;
-		    if (esp.isPreferred()) {
-			str.append(indent + "es_prefer " +
-				   instance.name() + " = " +
-				   instance.template().name() + " {}" +
-				   converterEngine.getNewline());
-		    }
-		}
-		// end quick fix
-		    
 		return str.toString();
 	}
 
