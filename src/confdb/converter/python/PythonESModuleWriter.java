@@ -8,7 +8,7 @@ public class PythonESModuleWriter extends PythonInstanceWriter implements IESMod
 {
     public String toString(ESModuleInstance esmodule,ConverterEngine converterEngine, String indent) 
     {
-	return toString("es_module",esmodule,converterEngine, indent);
+	return toString("ESModule",esmodule,converterEngine, indent);
     }
     
 }
