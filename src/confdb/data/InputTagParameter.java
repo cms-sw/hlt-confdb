@@ -87,7 +87,8 @@ public class InputTagParameter extends ScalarParameter
     {
 	if (isValueSet) {
 	    String result = label;
-	    if (instance.length()>0) result += ":" + instance;
+	    if (instance.length()>0||process.length()>0)
+		result += ":" + instance;
 	    if (process.length()>0)  result += ":" + process;
 	    return result;
 	}

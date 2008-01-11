@@ -1,3 +1,9 @@
+2008-01-11  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-17-10
+	* bugfix to confdb.data.InputTagParameter: if an InputTag had a
+	process but no instance, the second colon would be omitted.
+
 2007-12-12  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-17-09
