@@ -3,7 +3,7 @@ package confdb.data;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Collections;
-
+import java.util.ConcurrentModificationException;
 
 /**
  * Configuration
@@ -875,6 +875,14 @@ public class Configuration implements IConfiguration
 		    modules.remove(index);
 		}
 	    }
+	}
+	
+	// remove this paths from all parent streams
+	Iterator<Stream> itS = path.streamIterator();
+	while (itS.hasNext()) {
+	    Stream s = itS.next();
+	    itS.remove();
+	    s.removePath(path);
 	}
 	
 	int index = paths.indexOf(path);

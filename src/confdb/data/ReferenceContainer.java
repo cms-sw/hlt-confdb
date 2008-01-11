@@ -195,7 +195,6 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 	return modules.iterator();
     }
     
-
     /** create a reference of this in a reference container (path/sequence) */
     abstract public Reference createReference(ReferenceContainer container,int i);
     
@@ -389,7 +388,5 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 	    }
 	}
     }
-    
 
 }
-

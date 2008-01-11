@@ -88,8 +88,8 @@ public class Stream implements Comparable<Stream>
 			       "' not associated with stream '"+label+"'");
 	    return false;
 	}
-	if (!path.removeFromStream(this)) return false;
 	paths.remove(index);
+	path.removeFromStream(this);
 	return true;
     }
     

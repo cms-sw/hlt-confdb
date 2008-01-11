@@ -149,7 +149,7 @@ public class ConvertConfigurationDialog extends JDialog
 	buttonGroupFormat.add(jRadioButtonPython);
 	buttonGroupFormat.add(jRadioButtonHtml);
 	jRadioButtonAscii.setSelected(true);
-	jRadioButtonPython.setEnabled(false);
+	//jRadioButtonPython.setEnabled(false);
 	
 	// ensure that the text field gets focus
 	addComponentListener(new ComponentAdapter()

@@ -148,7 +148,7 @@ public class ConfDbGUI
     private JLabel        jLabelPlugin              = new JLabel();
     private JTextField    jTextFieldPlugin          = new JTextField();
     private JTextField    jTextFieldLabel           = new JTextField();
-    private JComboBox     jComboBoxPaths            = new JComboBox();
+    private JComboBox     jComboBoxPaths            = new JComboBox();     // AL
     private JScrollPane   jScrollPaneParameters     = new JScrollPane();
     private TreeTable     jTreeTableParameters;
     
@@ -286,6 +286,11 @@ public class ConfDbGUI
 	jButtonDeleteStream.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    jButtonDeleteStreamActionPerformed(e);
+		}
+	    });
+	jComboBoxPaths.addItemListener(new ItemListener() {
+		public void itemStateChanged(ItemEvent e) {
+		    jComboBoxPathsItemStateChanged(e);
 		}
 	    });
 	jTreeStreams.
@@ -706,6 +711,9 @@ public class ConfDbGUI
 	    String msg = "Failed to disconnect from DB: " + e.getMessage();
 	    JOptionPane.showMessageDialog(frame,msg,"",JOptionPane.ERROR_MESSAGE);
 	}
+	catch (Exception e) {
+	    System.out.println("ERROR in disconnectFromDB(): " + e.getMessage());
+	}
 	menuBar.dbConnectionIsNotEstablished();
 	toolBar.dbConnectionIsNotEstablished();
     }
@@ -755,6 +763,11 @@ public class ConfDbGUI
 	jTextFieldCreated.setText("");
 	jTextFieldCreator.setText("");
 	
+	jTextFieldSearch.setText("");
+	jTextFieldImportSearch.setText("");
+	jButtonCancelSearch.setEnabled(false);
+	jButtonImportCancelSearch.setEnabled(false);
+
 	clearParameters();
 	clearSnippet();
 	
@@ -1502,10 +1515,11 @@ public class ConfDbGUI
 	    DefaultComboBoxModel cbModel =
 		(DefaultComboBoxModel)jComboBoxPaths.getModel();
 	    cbModel.removeAllElements();
-
+	    
 	    if (inst instanceof ModuleInstance) {
 		ModuleInstance module = (ModuleInstance)inst;
 		jComboBoxPaths.setEnabled(true);
+		cbModel.addElement("");
 		Path[] paths = module.parentPaths();
 		for (Path p : paths) cbModel.addElement(p.name());
 	    }
@@ -1708,6 +1722,21 @@ public class ConfDbGUI
     {
 	StreamTreeActions.removeStream(jTreeStreams);
     }
+    private void jComboBoxPathsItemStateChanged(ItemEvent e)
+    {
+	if (e.getStateChange() == ItemEvent.SELECTED) {
+	    String moduleLabel = jTextFieldLabel.getText();
+	    String pathName = e.getItem().toString();
+	    if (moduleLabel==""||pathName=="") return;
+	    Path path = currentConfig.path(pathName);
+	    TreePath tp =
+		new TreePath(treeModelCurrentConfig.getPathToRoot(path));
+	    jTreeCurrentConfig.expandPath(tp);
+	    jTreeCurrentConfig.setSelectionPath(tp);
+	    jTreeCurrentConfig.scrollPathToVisible(tp);
+	    
+	}
+    }
     private void jSplitPaneRightComponentMoved(ComponentEvent e)
     {
 	if (!(currentInstance instanceof Instance)) {
@@ -1848,16 +1877,8 @@ public class ConfDbGUI
     {
 	if (currentConfig.streamCount()>0) {
 	    Object removedNode = e.getChildren()[0];
-	    if (removedNode instanceof Path) {
-		Path             path = (Path)removedNode;
-		Iterator<Stream> it   = path.streamIterator();
-		while (it.hasNext()) {
-		    Stream stream = it.next();
-		    int    index  = stream.indexOfPath(path);
-		    treeModelStreams.nodeRemoved(stream,index,path);
-		    stream.removePath(path);
-		}
-	    }
+	    if (removedNode instanceof Path)
+		treeModelStreams.nodeStructureChanged(treeModelStreams.getRoot());
 	}
     }
     private void jTreeCurrentConfigTreeStructureChanged(TreeModelEvent e) {}
