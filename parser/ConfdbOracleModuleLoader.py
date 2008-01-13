@@ -3,7 +3,7 @@
 # ConfdbOracleModuleLoader.py
 # Interface for loading module templates to the Conf DB
 # (Oracle version). All Oracle specific code belongs here.
-# Jonathan Hollar LLNL Oct. 31, 2007
+# Jonathan Hollar LLNL Jan. 12, 2008
 
 import os, string, sys, posix, tokenize, array
 
@@ -13,7 +13,7 @@ import cx_Oracle
 
 class ConfdbOracleModuleLoader:
 
-    def __init__(self, verbosity, addtorelease):
+    def __init__(self, verbosity, addtorelease, comparetorelease):
 	self.data = []
 	self.changes = []
         self.paramtypedict = {}
@@ -21,6 +21,8 @@ class ConfdbOracleModuleLoader:
 	self.releasekey = -1
 	self.verbose = int(verbosity)
 	self.addtorel = int(addtorelease)
+	self.comparetorel = comparetorelease
+	self.comparetorelid = 0
 	self.connection = None
 	self.fwknew = 0
 	self.fwkunchanged = 0
@@ -47,6 +49,12 @@ class ConfdbOracleModuleLoader:
         temptuple = cursor.fetchall()
 	for temptype, tempname in temptuple:
 	    self.modtypedict[temptype] = tempname
+
+        if(self.comparetorel != ""):
+            print self.comparetorel
+            cursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (releaseTag = '" + self.comparetorel + "')")
+            tempid = cursor.fetchone()
+            self.comparetorelid = tempid[0]
  
 	return cursor
 
@@ -87,9 +95,12 @@ class ConfdbOracleModuleLoader:
 	modtypestr = str(self.modtypedict[modtype])
 
         # See if a module of this type, name, and CVS tag already exists
-	if(self.verbose > 2):
-	    print "SELECT ModuleTemplates.superId FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modname + "') AND (ModuleTemplates.typeId = " + modtypestr + ")"
-	thecursor.execute("SELECT ModuleTemplates.superId FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modname + "') AND (ModuleTemplates.typeId = '" + modtypestr + "')")
+	if(self.comparetorelid != ""):
+	    thecursor.execute("SELECT ModuleTemplates.superId, ModuleTemplates.name FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ModuleTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ") AND (ModuleTemplates.name = '" + modname + "') AND (ModuleTemplates.typeId = " + modtypestr + ")")
+	else:
+	    if(self.verbose > 2):
+		print "SELECT ModuleTemplates.superId FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modname + "') AND (ModuleTemplates.typeId = " + modtypestr + ")"
+	    thecursor.execute("SELECT ModuleTemplates.superId FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modname + "') AND (ModuleTemplates.typeId = '" + modtypestr + "')")
 
 	modsuperid = thecursor.fetchone()
 
@@ -105,9 +116,12 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("SELECT * FROM SuperIds")
 
         # See if a service of this name and CVS tag already exists
-	if(self.verbose > 2):
-	    print "SELECT ServiceTemplates.superId FROM ServiceTemplates WHERE (ServiceTemplates.name = '" + servname + "')"
-	thecursor.execute("SELECT ServiceTemplates.superId FROM ServiceTemplates WHERE (ServiceTemplates.name = '" + servname + "')")
+	if(self.comparetorelid != ""):
+	    thecursor.execute("SELECT ServiceTemplates.superId, ServiceTemplates.name FROM ServiceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ServiceTemplates.superId) WHERE (ServiceTemplates.name = '" + servname + "') AND (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	else:
+	    if(self.verbose > 2):
+		print "SELECT ServiceTemplates.superId FROM ServiceTemplates WHERE (ServiceTemplates.name = '" + servname + "')"
+	    thecursor.execute("SELECT ServiceTemplates.superId FROM ServiceTemplates WHERE (ServiceTemplates.name = '" + servname + "')")
 
 	servsuperid = thecursor.fetchone()
 
@@ -123,9 +137,13 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("SELECT * FROM SuperIds")
 
         # See if a service of this name and CVS tag already exists
-	if(self.verbose > 2):
-	    print "SELECT ESSourceTemplates.superId FROM ESSourceTemplates WHERE (ESSourceTemplates.name = '" + srcname + "')"
-	thecursor.execute("SELECT ESSourceTemplates.superId FROM ESSourceTemplates WHERE (ESSourceTemplates.name = '" + srcname + "')")
+        # See if a service of this name and CVS tag already exists
+	if(self.comparetorelid != ""):
+	    thecursor.execute("SELECT ESSourceTemplates.superId, ESSourceTemplates.name FROM ESSourceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ESSourceTemplates.superId) WHERE (ESSourceTemplates.name = '" + srcname + "') AND (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	else:
+	    if(self.verbose > 2):
+		print "SELECT ESSourceTemplates.superId FROM ESSourceTemplates WHERE (ESSourceTemplates.name = '" + srcname + "')"
+	    thecursor.execute("SELECT ESSourceTemplates.superId FROM ESSourceTemplates WHERE (ESSourceTemplates.name = '" + srcname + "')")
 
 	srcsuperid = thecursor.fetchone()
 
@@ -141,9 +159,12 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("SELECT * FROM SuperIds")
 
         # See if a service of this name and CVS tag already exists
-	if(self.verbose > 2):
-	    print "SELECT EDSourceTemplates.superId FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + srcname + "')"
-	thecursor.execute("SELECT EDSourceTemplates.superId FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + srcname + "')")
+	if(self.comparetorelid != ""):
+	    thecursor.execute("SELECT EDSourceTemplates.superId, EDSourceTemplates.name FROM EDSourceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = EDSourceTemplates.superId) WHERE (EDSourceTemplates.name = '" + srcname + "') AND (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	else:
+	    if(self.verbose > 2):
+		print "SELECT EDSourceTemplates.superId FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + srcname + "')"
+	    thecursor.execute("SELECT EDSourceTemplates.superId FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + srcname + "')")
 
 	srcsuperid = thecursor.fetchone()
 
@@ -159,9 +180,12 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("SELECT * FROM SuperIds")
 
         # See if a service of this name and CVS tag already exists
-	if(self.verbose > 2):
-	    print "SELECT ESModuleTemplates.superId FROM ESModuleTemplates WHERE (ESModuleTemplates.name = '" + srcname + "')"
-	thecursor.execute("SELECT ESModuleTemplates.superId FROM ESModuleTemplates WHERE (ESModuleTemplates.name = '" + srcname + "')")
+	if(self.comparetorelid != ""):
+	    thecursor.execute("SELECT ESModuleTemplates.superId, ESModuleTemplates.name FROM ESModuleTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ESModuleTemplates.superId) WHERE (ESModuleTemplates.name = '" + srcname + "') AND (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	else:
+	    if(self.verbose > 2):
+		print "SELECT ESModuleTemplates.superId FROM ESModuleTemplates WHERE (ESModuleTemplates.name = '" + srcname + "')"
+	    thecursor.execute("SELECT ESModuleTemplates.superId FROM ESModuleTemplates WHERE (ESModuleTemplates.name = '" + srcname + "')")
 
 	esmodsuperid = thecursor.fetchone()
 
@@ -342,7 +366,11 @@ class ConfdbOracleModuleLoader:
     def ConfdbUpdateModuleTemplate(self,thecursor,modclassname,modbaseclass,modcvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	# Get the SuperId of the previous version of this template
-	thecursor.execute("SELECT ModuleTemplates.superId, ModuleTemplates.cvstag FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modclassname + "') ORDER BY ModuleTemplates.superId DESC")
+	if(self.comparetorelid != ""):
+	    thecursor.execute("SELECT ModuleTemplates.superId, ModuleTemplates.cvstag FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ModuleTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ") AND (ModuleTemplates.name = '" + modclassname + "')")
+	else:
+	    thecursor.execute("SELECT ModuleTemplates.superId, ModuleTemplates.cvstag FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modclassname + "') ORDER BY ModuleTemplates.superId DESC")
+
 	oldmodule = thecursor.fetchone()
 	oldsuperid = oldmodule[0]
 	oldtag = oldmodule[1]
@@ -395,7 +423,11 @@ class ConfdbOracleModuleLoader:
     def ConfdbUpdateServiceTemplate(self,thecursor,servclassname,servcvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	# Get the SuperId of the previous version of this template
-	thecursor.execute("SELECT ServiceTemplates.superId, ServiceTemplates.cvstag FROM ServiceTemplates WHERE (ServiceTemplates.name = '" + servclassname + "') ORDER BY ServiceTemplates.superId DESC")
+	if(self.comparetorelid != ""):
+	    thecursor.execute("SELECT ServiceTemplates.superId, ServiceTemplates.cvstag FROM ServiceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ServiceTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	else:
+	    thecursor.execute("SELECT ServiceTemplates.superId, ServiceTemplates.cvstag FROM ServiceTemplates WHERE (ServiceTemplates.name = '" + servclassname + "') ORDER BY ServiceTemplates.superId DESC")
+
 	oldservice = thecursor.fetchone()
 	oldsuperid = oldservice[0]
 	oldtag = oldservice[1]
@@ -443,7 +475,11 @@ class ConfdbOracleModuleLoader:
     def ConfdbUpdateESSourceTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	# Get the SuperId of the previous version of this template
-	thecursor.execute("SELECT ESSourceTemplates.superId, ESSourceTemplates.cvstag FROM ESSourceTemplates WHERE (ESSourceTemplates.name = '" + sourceclassname + "') ORDER BY ESSourceTemplates.superId DESC")
+	if(self.comparetorelid != ""):
+	    thecursor.execute("SELECT ESSourceTemplates.superId, ESSourceTemplates.cvstag FROM ESSourceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ESSourceTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	else:
+	    thecursor.execute("SELECT ESSourceTemplates.superId, ESSourceTemplates.cvstag FROM ESSourceTemplates WHERE (ESSourceTemplates.name = '" + sourceclassname + "') ORDER BY ESSourceTemplates.superId DESC")
+
 	oldsource = thecursor.fetchone()
 	oldsuperid = oldsource[0]
 	oldtag = oldsource[1]
@@ -489,7 +525,11 @@ class ConfdbOracleModuleLoader:
     def ConfdbUpdateEDSourceTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	# Get the SuperId of the previous version of this template
-	thecursor.execute("SELECT EDSourceTemplates.superId, EDSourceTemplates.cvstag FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + sourceclassname + "') ORDER BY EDSourceTemplates.superId DESC")
+	if(self.comparetorelid != ""):
+	    thecursor.execute("SELECT EDSourceTemplates.superId, EDSourceTemplates.cvstag FROM EDSourceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = EDSourceTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	else:
+	    thecursor.execute("SELECT EDSourceTemplates.superId, EDSourceTemplates.cvstag FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + sourceclassname + "') ORDER BY EDSourceTemplates.superId DESC")
+
 	oldsource = thecursor.fetchone()
 	oldsuperid = oldsource[0]
 	oldtag = oldsource[1]
@@ -535,7 +575,11 @@ class ConfdbOracleModuleLoader:
     def ConfdbUpdateESModuleTemplate(self,thecursor,sourceclassname,sourcecvstag,parameters,vecparameters,paramsets,vecparamsets,softpackageid):
 
 	# Get the SuperId of the previous version of this template
-	thecursor.execute("SELECT ESModuleTemplates.superId, ESModuleTemplates.cvstag FROM ESModuleTemplates WHERE (ESModuleTemplates.name = '" + sourceclassname + "') ORDER BY ESModuleTemplates.superId DESC")
+	if(self.comparetorelid != ""):
+	    thecursor.execute("SELECT ESModuleTemplates.superId, ESModuleTemplates.cvstag FROM ESModuleTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ESModuleTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	else:
+	    thecursor.execute("SELECT ESModuleTemplates.superId, ESModuleTemplates.cvstag FROM ESModuleTemplates WHERE (ESModuleTemplates.name = '" + sourceclassname + "') ORDER BY ESModuleTemplates.superId DESC")
+
 	oldsource = thecursor.fetchone()
 	oldsuperid = oldsource[0]
 	oldtag = oldsource[1]
@@ -896,10 +940,6 @@ class ConfdbOracleModuleLoader:
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or 
 		       (oldparamval == None and paramval == None)):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
-			if(self.verbose > 0):
-			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
-
 			neednewparam = False
 
 			# Now check if the tracked/untracked status has changed
@@ -932,6 +972,10 @@ class ConfdbOracleModuleLoader:
 			    print "No default parameter value found"
 		    else:
 			thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
+		else:
+		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+		    if(self.verbose > 0):
+			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 	    # uint32
 	    if(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t" or paramtype == "uint"):
@@ -963,11 +1007,7 @@ class ConfdbOracleModuleLoader:
 
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or 
-		       (oldparamval == None and paramval == None)):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
-			if(self.verbose > 0):
-			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
-			
+		       (oldparamval == None and paramval == None)):			
 			neednewparam = False
 
 			# Now check if the tracked/untracked status has changed
@@ -1000,6 +1040,10 @@ class ConfdbOracleModuleLoader:
 			    print "No default parameter value found"
 		    else:
 			thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
+		else:
+		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+		    if(self.verbose > 0):
+			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 	    # bool
 	    if(paramtype == "bool"):
@@ -1026,11 +1070,7 @@ class ConfdbOracleModuleLoader:
 		    
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or 
-		       (oldparamval == None and paramval == None)):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
-			if(self.verbose > 0):
-			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
-			
+		       (oldparamval == None and paramval == None)):			
 			neednewparam = False
 
 			# Now check if the tracked/untracked status has changed
@@ -1062,7 +1102,15 @@ class ConfdbOracleModuleLoader:
 			if(self.verbose > 2):
 			    print "No default parameter value found"
 		    else:
+                        if(paramval == '"true"'):
+                            paramval = str(1)
+                        if(paramval == '"false"'):
+                            paramval = str(0)                                                                
 			thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+		else:
+		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+		    if(self.verbose > 0):
+			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 	    # double
 	    if(paramtype == "double"):
@@ -1090,10 +1138,6 @@ class ConfdbOracleModuleLoader:
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or 
 		       (oldparamval == None and paramval == None)):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
-			if(self.verbose > 0):
-			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
-			
 			neednewparam = False
 
 			# Now check if the tracked/untracked status has changed
@@ -1126,6 +1170,11 @@ class ConfdbOracleModuleLoader:
 			    print "No default parameter value found"
 		    else:
 			thecursor.execute("INSERT INTO DoubleParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
+		else:
+		    print "INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")"
+		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+		    if(self.verbose > 0):
+			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 	    # string
 	    if(paramtype == "string"):
@@ -1151,10 +1200,6 @@ class ConfdbOracleModuleLoader:
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or
 		       (oldparamval == None and paramval == None)):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
-			if(self.verbose > 0):
-			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
-
 			neednewparam = False
 
 			# Now check if the tracked/untracked status has changed
@@ -1198,6 +1243,10 @@ class ConfdbOracleModuleLoader:
 			    print "\tWarning: Attempted to load a non-string value to string table:"
 			    print "\t\tstring " + str(paramname) + " = " + str(paramval)
 			    print "\t\tLoading parameter with no default value"
+		else:
+		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+		    if(self.verbose > 0):
+			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 	    # FileInPath
 	    if(paramtype == "FileInPath"):
@@ -1223,10 +1272,6 @@ class ConfdbOracleModuleLoader:
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or
 		       (oldparamval == None and paramval == None)):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
-			if(self.verbose > 0):
-			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
-
 			neednewparam = False
 
 			# Now check if the tracked/untracked status has changed
@@ -1270,6 +1315,10 @@ class ConfdbOracleModuleLoader:
 			    print "\tWarning: Attempted to load a non-string value to FileInPath table:"
 			    print "\t\tstring " + str(paramname) + " = " + str(paramval)
 			    print "\t\tLoading parameter with no default value"
+		else:
+		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+		    if(self.verbose > 0):
+			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 	    # InputTag
 	    if(paramtype == "InputTag"):
@@ -1290,8 +1339,6 @@ class ConfdbOracleModuleLoader:
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or
 		       (oldparamval == None and paramval == None)):
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
-			
 			neednewparam = False
 
 			# Now check if the tracked/untracked status has changed
@@ -1327,6 +1374,8 @@ class ConfdbOracleModuleLoader:
 			    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
 			else:
 			    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
+		else:
+		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
 
 	# Now deal with any vectors
 	for vecptype, vecpname, vecpvals, vecpistracked, vecpseq in vecparameters:
