@@ -430,6 +430,28 @@ public class ModifierInstructions
 	    }
 	}
 	
+	
+	// make sure content of requested sequences is requested as well
+	ArrayList<Sequence> reqSequences = new ArrayList<Sequence>();
+	for (String sequenceName : requestedSequences)
+	    reqSequences.add(config.sequence(sequenceName));
+	
+	Iterator<Sequence> itReqSeq = reqSequences.iterator();
+	while (itReqSeq.hasNext()) {
+	    Sequence sequence = itReqSeq.next();
+	    Iterator<Reference> itR = sequence.recursiveReferenceIterator();
+	    while (itR.hasNext()) {
+		Reference    reference = itR.next();
+		Referencable parent    = reference.parent();
+		String       name      = parent.name();
+		if (isUndefined(parent)) continue;
+		if      (parent instanceof Sequence)       requestSequence(name);
+		else if (parent instanceof ModuleInstance) requestModule(name);
+	    }
+	}
+	
+	
+	// make sure content of undefined sequences is undefined as well
 	ArrayList<Sequence> undefSequences = new ArrayList<Sequence>();
 	for (String sequenceName : undefinedSequences)
 	    undefSequences.add(config.sequence(sequenceName));

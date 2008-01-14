@@ -237,6 +237,7 @@ public class SoftwareRelease
     /** sort templates alphabetically */
     public void sortTemplates()
     {
+	Collections.sort(templates);
 	Collections.sort(edsourceTemplates);
 	Collections.sort(essourceTemplates);
 	Collections.sort(esmoduleTemplates);

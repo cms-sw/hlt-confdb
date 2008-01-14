@@ -1,5 +1,15 @@
 2008-01-14  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-18-02
+	* data bugfix (ModifierIntructions): if unreferenced sequences are
+	requested via '--sequences', all daughter sequences and modules
+	are now being requested as well, *unless* they are explicitely
+	undefined (e.g. via --modules -myMod)
+	* data bugfix: order templates for alphabetical template lists in
+	search&replace
+
+2008-01-14  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-18-01
 	* data bugfix: correctly handle interpretation of '--sequences
 	-myseq' and '--modules -mymod' (the '-' needs to be removed before

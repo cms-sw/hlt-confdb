@@ -2,7 +2,7 @@ package confdb.data;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-
+import java.util.Collections;
 
 /**
  * Template
@@ -128,7 +128,11 @@ abstract public class Template extends DatabaseEntry implements Comparable<Templ
     public Instance instance(int i) { return instances.get(i); }
     
     /** get instance iterator */
-    public Iterator<Instance> instanceIterator() { return instances.iterator(); }
+    public Iterator<Instance> instanceIterator()
+    {
+	Collections.sort(instances);
+	return instances.iterator();
+    }
     
     /** check if instance with name 'instanceName' exists */
     public boolean hasInstance(String instanceName)
