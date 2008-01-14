@@ -1,5 +1,12 @@
 2008-01-14  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-18-01
+	* data bugfix: correctly handle interpretation of '--sequences
+	-myseq' and '--modules -mymod' (the '-' needs to be removed before
+	registering the sequence/module as to be undefined)
+
+2008-01-14  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-18-00
 	* parser feature: specify relative release with '-m' option
 	* data feature: allow for sequences and modules to be omitted in

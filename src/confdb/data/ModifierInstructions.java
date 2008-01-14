@@ -177,7 +177,7 @@ public class ModifierInstructions
 	    String[] sequenceNames = value.split(",");
 	    for (String s : sequenceNames) {
 		if (s.startsWith("-"))
-		    undefineSequence(s);
+		    undefineSequence(s.substring(1));
 		else
 		    requestSequence(s);
 	    }
@@ -188,7 +188,7 @@ public class ModifierInstructions
 	    String[] moduleNames = value.split(",");
 	    for (String s : moduleNames) {
 		if (s.startsWith("-"))
-		    undefineModule(s);
+		    undefineModule(s.substring(1));
 		else
 		    requestModule(s);
 	    }
@@ -431,7 +431,7 @@ public class ModifierInstructions
 	}
 	
 	ArrayList<Sequence> undefSequences = new ArrayList<Sequence>();
-	for (String sequenceName : undefinedSequences) 
+	for (String sequenceName : undefinedSequences)
 	    undefSequences.add(config.sequence(sequenceName));
 	
 	Iterator<Sequence> itUndefSeq = undefSequences.iterator();
