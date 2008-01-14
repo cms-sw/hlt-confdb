@@ -47,6 +47,10 @@ public class ESModuleInstance extends Instance implements ESPreferable
     public boolean isPreferred() { return isPreferred; }
     
     /** set if this source is preferred */
-    public void setPreferred(boolean isPreferred) { this.isPreferred=isPreferred; }
+    public void setPreferred(boolean isPreferred)
+    {
+	this.isPreferred=isPreferred;
+	setHasChanged();
+    }
 
 }

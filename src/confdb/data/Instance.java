@@ -60,21 +60,71 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
     /** get the template */
     public Template template() { return template; }
     
-    /** parameter iterator */
-    public Iterator<Parameter> parameterIterator() { return parameters.iterator(); }
-
+    /** get the configuration */
+    protected IConfiguration config() { return config; }
+    
     /** number of parameters */
     public int parameterCount() { return parameters.size(); }
     
     /** get i-th parameter */
     public Parameter parameter(int i) { return parameters.get(i); }
-
-    /** get parameter by name & type */
+    
+    /** get parameter by name and type */
+    public Parameter parameter(String name)
+    {
+	for (Parameter p : parameters)
+	    if (name.equals(p.name())) return p;
+	return null;
+    }
+    
+    /** get parameter by name and type */
     public Parameter parameter(String name,String type)
     {
 	for (Parameter p : parameters)
 	    if (name.equals(p.name())&&type.equals(p.type())) return p;
 	return null;
+    }
+    
+    /** parameter iterator */
+    public Iterator<Parameter> parameterIterator() { return parameters.iterator(); }
+
+    /** recursively retrieve parameters to all levels */
+    public Iterator<Parameter> recursiveParameterIterator()
+    {
+	ArrayList<Parameter> params = new ArrayList<Parameter>();
+	getParameters(parameterIterator(),params);
+	return params.iterator();
+    }
+
+    /** get all parameters (recursively) with specified name */
+    public Parameter[] findParameters(String name)
+    {
+	ArrayList<Parameter> params = new ArrayList<Parameter>();
+	Iterator<Parameter> itP = recursiveParameterIterator();
+	while (itP.hasNext()) {
+	    Parameter p = itP.next();
+	    String fullParamName = p.fullName();
+	    if (fullParamName.equals(name)||
+		(!fullParamName.equals(name)&&
+		 fullParamName.endsWith("::"+name))) params.add(p);
+	}
+	return params.toArray(new Parameter[params.size()]);
+    }
+    
+    /** get all parameters (recursively) with specified name *and* type */
+    public Parameter[] findParameters(String name,String type)
+    {
+	ArrayList<Parameter> params = new ArrayList<Parameter>();
+	Iterator<Parameter> itP = recursiveParameterIterator();
+	while (itP.hasNext()) {
+	    Parameter p = itP.next();
+	    String fullParamName = p.fullName();
+	    if ((fullParamName.equals(name)||
+		 (!fullParamName.equals(name)&&
+		  fullParamName.endsWith("::"+name)))&&
+		p.type().equals(type)) params.add(p);
+	}
+	return params.toArray(new Parameter[params.size()]);
     }
     
     /** get the index of a parameter */
@@ -104,19 +154,37 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 	parameter(index).setValue(valueAsString,defaultAsString);
 	setHasChanged();
     }
-
+    
     /** update a parameter when the value is changed */
     public boolean updateParameter(String name,String type,String valueAsString)
     {
-	for (int i=0;i<parameterCount();i++) {
-	    if (name.equals(parameter(i).name())&&
-		type.equals(parameter(i).type())) {
-		updateParameter(i,valueAsString);
+	Parameter[] params = findParameters(name,type);
+	if (params.length==1) {
+	    Parameter param = params[0];
+	    int       index = indexOfParameter(param);
+	    if (index>=0) {
+		updateParameter(index,valueAsString);
 		return true;
+	    }
+	    String a[] = param.fullName().split("::");
+	    if (a.length>1) {
+		String b[] = a[0].split("\\[");
+		Parameter parentParam = parameter(b[0]);
+		int parentIndex = indexOfParameter(parentParam);
+		if (parentIndex>=0) {
+		    param.setValue(valueAsString,"");
+		    String defaultAsString =
+			template.parameter(parentIndex).valueAsString();
+		    parentParam.setValue(parentParam.valueAsString(),
+					 defaultAsString);
+		    setHasChanged();
+		    return true;
+		}
 	    }
 	}
 	System.err.println("Instance.updateParameter ERROR: "+
-			   "no parameter '"+name+"' of type "+type);
+			   "no parameter '"+name+"' of type '"+type+"' "+
+			   "in "+template.name()+"."+name());
 	return false;
     }
     
@@ -170,5 +238,29 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 	}
 	return result;
     }
+    
+    //
+    // private member functions
+    //
+    
+    /** needed to retrieve parameters to all levels recursively */
+    private void getParameters(Iterator<Parameter> itParam,
+			       ArrayList<Parameter> params)
+    {
+	while (itParam.hasNext()) {
+	    Parameter param = itParam.next();
+	    params.add(param);
+	    if (param instanceof PSetParameter) {
+		PSetParameter pset = (PSetParameter)param;
+		getParameters(pset.parameterIterator(),params);
+	    }
+	    else if (param instanceof VPSetParameter) {
+		VPSetParameter vpset = (VPSetParameter)param;
+		getParameters(vpset.parameterIterator(),params);
+	    }
+	}
+    }
+    
+
 
 }

@@ -29,6 +29,8 @@ public class CommandActionListener implements ActionListener
     private static final String cmdMigrate          = "Migrate";
     private static final String cmdConvert          = "Convert";
     
+    private static final String cmdReplace          = "Search&Replace";
+
     private static final String cmdTrack            = "Track InputTags";
     
     private static final String cmdConnectToDB      = "Connect to DB";
@@ -60,6 +62,8 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdImport))           app.importConfiguration();
 	if (command.equals(cmdMigrate))          app.migrateConfiguration();
 	if (command.equals(cmdConvert))          app.convertConfiguration();
+	
+	if (command.equals(cmdReplace))          app.searchAndReplace();
 	
 	if (command.equals(cmdTrack)) app.setOptionTrackInputTags(source.
 								  isSelected());

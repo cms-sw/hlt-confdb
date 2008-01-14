@@ -46,9 +46,6 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     /** list of parameters to be displayed */
     private ArrayList<Parameter> parameterList = null;
     
-    /** for orphan parameters, a default template can be set */
-    private Template defaultTemplate = null;
-    
 
     //
     // construction
@@ -147,47 +144,19 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     /** TreeTableTreeModel: set the value of a parameter */
     public void setValueAt(Object value, Object node, int col) {
 	if (col!=2) return;
-
-	if (node instanceof Parameter) {
 	
-	    Parameter p = (Parameter)node;
-	    
-	    if (p.parent() == null) {
-		String defaultAsString = getDefaultFromTemplate(p);
-		p.setValue(value.toString(),defaultAsString);
-	    }
-	    else {
-		try {
-		    Object parent = p.parent();
-		    
-		    if (p.parent() instanceof PSetParameter) {
-			String defaultAsString = getDefaultFromTemplate(p);
-			p.setValue(value.toString(),defaultAsString);
-			
-			while (parent instanceof Parameter) {
-			    p      = (Parameter)parent;
-			    parent = p.parent();
-			}
-			value = p.valueAsString();
-		    }
-		    
-		    if (parent instanceof Instance) {
-			Instance instance = (Instance)p.parent();
-			Template template = instance.template();
-			instance.updateParameter(p.name(),p.type(),value.toString());
-			instance.setHasChanged();
-		    }
-
-		    nodeChanged(p);
-		    if (p!=node) nodeChanged(node);
-		}
-		catch (Exception e) {
-		    System.out.println("setValueAt failed: "+e.getMessage());
-		}
-	    }
+	if (node instanceof Parameter) {
+	    Parameter param    = (Parameter)node;
+	    Instance  instance = param.getParentInstance();
+	    if (instance!=null)
+		instance.updateParameter(param.fullName(),param.type(),
+					 value.toString());
+	    else
+		param.setValue(value.toString(),"");		
+	    nodeChanged(param);
 	}
     }
-
+    
     /** retrieve the children of a Parameter node */
     private Object[] getChildren(Object node)
     {
@@ -220,19 +189,5 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 	this.parameterList = parameterList;
 	nodeStructureChanged(root);
     }
-    
-    /** set a default template, only considered for orphan parameters */
-    public void setDefaultTemplate(Template template)
-    {
-	defaultTemplate = template;
-    }
 
-    /** get the default valueAsString from defaultTemplate */
-    private String getDefaultFromTemplate(Parameter p)
-    {
-	if (defaultTemplate==null) return p.valueAsString();
-	int index = parameterList.indexOf(p);
-	return defaultTemplate.parameter(index).valueAsString();
-    }
-    
 }

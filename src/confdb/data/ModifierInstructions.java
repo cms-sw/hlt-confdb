@@ -57,9 +57,15 @@ public class ModifierInstructions
     /** sequences requested regardless of being referenced in requested paths */
     private ArrayList<String> requestedSequences = new ArrayList<String>();
 
+    /** sequences to be properly referenced but *not* defined */
+    private ArrayList<String> undefinedSequences = new ArrayList<String>();
+
     /** modules reqested regardless of being referenced in requested path */
     private ArrayList<String> requestedModules = new ArrayList<String>();
     
+    /** modules to be properly referenced but *not* defined */
+    private ArrayList<String> undefinedModules = new ArrayList<String>();
+
     /** template for the EDSource to be substituted (if any) */
     private EDSourceTemplate edsourceT = null;
     
@@ -171,10 +177,9 @@ public class ModifierInstructions
 	    String[] sequenceNames = value.split(",");
 	    for (String s : sequenceNames) {
 		if (s.startsWith("-"))
-		    throw new DataException("ModifierInstructions.interpretArgs"+
-					    " ERROR: sequences can *not* be "+
-					    "blacklisted!");
-		else requestSequence(s);
+		    undefineSequence(s);
+		else
+		    requestSequence(s);
 	    }
 	}
 	
@@ -183,10 +188,9 @@ public class ModifierInstructions
 	    String[] moduleNames = value.split(",");
 	    for (String s : moduleNames) {
 		if (s.startsWith("-"))
-		    throw new DataException("ModifierInstructions.interpretArgs"+
-					    " ERROR: modules can *not* be "+
-					    "blacklisted!");
-		else requestModule(s);
+		    undefineModule(s);
+		else
+		    requestModule(s);
 	    }
 	}
 
@@ -426,6 +430,27 @@ public class ModifierInstructions
 	    }
 	}
 	
+	ArrayList<Sequence> undefSequences = new ArrayList<Sequence>();
+	for (String sequenceName : undefinedSequences) 
+	    undefSequences.add(config.sequence(sequenceName));
+	
+	Iterator<Sequence> itUndefSeq = undefSequences.iterator();
+	while (itUndefSeq.hasNext()) {
+	    Sequence sequence = itUndefSeq.next();
+	    Iterator<Sequence> itS = sequence.sequenceIterator();
+	    while (itS.hasNext()) {
+		String sequenceName = itS.next().name();
+		if (!undefinedSequences.contains(sequenceName))
+		    undefinedSequences.add(sequenceName);
+	    }
+	    Iterator<ModuleInstance> itM = sequence.moduleIterator();
+	    while (itM.hasNext()) {
+		String moduleName = itM.next().name();
+		if (!undefinedModules.contains(moduleName))
+		    undefinedModules.add(moduleName);
+	    }
+	}
+
 	return true;
     }
 
@@ -514,13 +539,23 @@ public class ModifierInstructions
 	return result;
     }
 
-    /** check if a sequence is specifically requested */
+    /** check if a sequence or module is specifically requested */
     public boolean isRequested(Referencable moduleOrSequence)
     {
 	if (moduleOrSequence instanceof Sequence)
-	    return (requestedSequences.indexOf(moduleOrSequence.name())>=0);
+	    return (requestedSequences.contains(moduleOrSequence.name()));
 	else if (moduleOrSequence instanceof ModuleInstance)
-	    return (requestedModules.indexOf(moduleOrSequence.name())>=0);
+	    return (requestedModules.contains(moduleOrSequence.name()));
+	return false;
+    }
+    
+    /** check if a sequence or module should be undefined */
+    public boolean isUndefined(Referencable moduleOrSequence)
+    {
+	if (moduleOrSequence instanceof Sequence)
+	    return (undefinedSequences.contains(moduleOrSequence.name()));
+	else if (moduleOrSequence instanceof ModuleInstance)
+	    return (undefinedModules.contains(moduleOrSequence.name()));
 	return false;
     }
     
@@ -642,7 +677,7 @@ public class ModifierInstructions
     /** insert/remove components into the corresponding whitelist/blacklist */
     public int insertIntoBlackList(Object o)
     {
-	String            name = null;
+	String name = null;
 	if      (o instanceof Referencable)  name = ((Referencable)o).name();
 	else if (o instanceof Instance)      name = ((Instance)o).name();
 	else if (o instanceof PSetParameter) name = ((Parameter)o).name();
@@ -777,8 +812,19 @@ public class ModifierInstructions
     /** unrequest a sequence regardless of it being referenced in path */
     public void unrequestSequence(String sequenceName)
     {
-	int index = requestedSequences.indexOf(sequenceName);
-	if (index>=0) requestedSequences.remove(index);
+	requestedSequences.remove(sequenceName);
+    }
+
+    /** sequence won't be defined but references remain; content removed! */
+    public void undefineSequence(String sequenceName)
+    {
+	undefinedSequences.add(sequenceName);
+    }
+
+    /** remove sequence from list of undefined sequences */
+    public void redefineSequence(String sequenceName)
+    {
+	undefinedSequences.remove(sequenceName);
     }
 
     /** request a module regardless of it being referenced in path */
@@ -790,8 +836,19 @@ public class ModifierInstructions
     /** unrequest a module regardless of it being referenced in path */
     public void unrequestModule(String moduleName)
     {
-	int index = requestedModules.indexOf(moduleName);
-	if (index>=0) requestedModules.remove(index);
+	requestedModules.remove(moduleName);
+    }
+    
+    /** module will not be defined, but references remain */
+    public void undefineModule(String moduleName)
+    {
+	undefinedModules.add(moduleName);
+    }
+    
+    /** remove a module from the list of undefined modules */
+    public void redefineModule(String moduleName)
+    {
+	undefinedModules.remove(moduleName);
     }
     
     /** insert a DaqSource */
@@ -806,13 +863,6 @@ public class ModifierInstructions
     /** insert PoolSource [fileNames = comma-separated list!] */
     public void insertPoolSource(String fileNames)
     {
-	//String[] tmp = fileNames.split(",");
-	//fileNames = "";
-	//for (String s : tmp) {
-	//   if (fileNames.length()>0) fileNames += ",";
-	//   if (!s.contains(":")) s = "file:" + s;
-	//   fileNames += s;
-	//}
 	filterAllEDSources = true;
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
 	params.add(new VStringParameter("fileNames",fileNames,false,false));

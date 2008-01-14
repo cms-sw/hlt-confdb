@@ -409,349 +409,384 @@ public class ConvertConfigurationDialog extends JDialog
 	return jPanel;
     }
     
-}
-
-
-//
-// private classes
-//
-
-/** ConvertConfigTreeRenderer */
-class ConvertConfigTreeRenderer extends DefaultTreeCellRenderer
-{
-    /** current modifications */
-    private ModifierInstructions modifications = null;
-
-    /** the check box */
-    private JCheckBox checkBox = new JCheckBox();
     
-    /** tree colors */
-    Color selectionForeground  = null;
-    Color selectionBackground  = null;
-    Color textForeground       = null;
-    Color textBackground       = null;
+    //
+    // innner classes
+    //
     
-    /** constructor */
-    public ConvertConfigTreeRenderer(ModifierInstructions modifications)
+    /** ConvertConfigTreeRenderer */
+    class ConvertConfigTreeRenderer extends DefaultTreeCellRenderer
     {
-	this.modifications = modifications;
+	/** current modifications */
+	private ModifierInstructions modifications = null;
 	
-	Font fontValue = UIManager.getFont("Tree.font");
-	if (fontValue != null) checkBox.setFont(fontValue);
-	Boolean bFocus = (Boolean)UIManager.get("Tree.drawsFocusBorderAroundIcon");
-	checkBox.setFocusPainted((bFocus != null)&&(bFocus.booleanValue()));
+	/** the check box */
+	private JCheckBox checkBox = new JCheckBox();
 	
-	selectionForeground = UIManager.getColor("Tree.selectionForeground");
-	selectionBackground = UIManager.getColor("Tree.selectionBackground");
-	textForeground = UIManager.getColor("Tree.textForeground");
-	textBackground = UIManager.getColor("Tree.textBackground");
-    }
-    
-    /** retrieve the checkbox */
-    public JCheckBox getCheckBox() { return checkBox; }
-    
-    /** DefaultTreeCellRenderer.getTreeCellRendererComponent */
-    public Component getTreeCellRendererComponent(JTree   tree,
-						  Object  value,
-						  boolean sel,
-						  boolean expanded,
-						  boolean leaf,
-						  int     row,
-						  boolean hasFocus)
-    {
-	if (selected) {
-	    checkBox.setForeground(selectionForeground);
-	    checkBox.setBackground(selectionBackground);
-	} else {
-	    checkBox.setForeground(textForeground);
-	    checkBox.setBackground(textBackground);
-	}
-
-	ConfigurationTreeModel treeModel = (ConfigurationTreeModel)tree.getModel();
-	IConfiguration         config    = (IConfiguration)treeModel.getRoot();
+	/** tree colors */
+	Color selectionForeground  = null;
+	Color selectionBackground  = null;
+	Color textForeground       = null;
+	Color textBackground       = null;
 	
-	if (value instanceof StringBuffer) {
-	    if (value==treeModel.psetsNode()) {
-		checkBox.setSelected(!modifications.doFilterAllPSets()&&
-				     (config.psetCount()>0));
-		checkBox.setEnabled(config.psetCount()>0);
-	    }
-	    else if (value==treeModel.edsourcesNode()) {
-		checkBox.setSelected(!modifications.doFilterAllEDSources()&&
-				     config.edsourceCount()>0);
-		checkBox.setEnabled(config.edsourceCount()>0);
-	    }
-	    else if (value==treeModel.essourcesNode()) {
-		checkBox.setSelected(!modifications.doFilterAllESSources()&&
-				     config.essourceCount()>0);
-		checkBox.setEnabled(config.essourceCount()>0);
-	    }
-	    else if (value==treeModel.esmodulesNode()) {
-		checkBox.setSelected(!modifications.doFilterAllESModules()&&
-				     config.esmoduleCount()>0);
-		checkBox.setEnabled(config.esmoduleCount()>0);
-	    }
-	    else if (value==treeModel.servicesNode()) {
-		checkBox.setSelected(!modifications.doFilterAllServices()&&
-				     config.serviceCount()>0);
-		checkBox.setEnabled(config.serviceCount()>0);
-	    }
-	    else if (value==treeModel.pathsNode()) {
-		checkBox.setSelected(!modifications.doFilterAllPaths()&&
-				     config.pathCount()>0);
-		checkBox.setEnabled(config.pathCount()>0);
-	    }
-	    else if (value==treeModel.sequencesNode()) {
-		boolean isSelected = false;
-		if (modifications.requestedSequenceIterator().hasNext())
-		    isSelected = true;
-		else {
-		    Iterator<Sequence> it = config.sequenceIterator();
-		    while (!isSelected&&it.hasNext()) {
-			Sequence sequence = it.next();
-			Path[] paths = sequence.parentPaths();
-			for (Path p : paths) {
-			    if (!modifications.isInBlackList(p)) {
-				isSelected = true;
-				break;
-			    }
-			}
-		    }
-		}
-		checkBox.setSelected(isSelected);
-		checkBox.setEnabled(false);
-	    }
-	    else if (value==treeModel.modulesNode()) {
-		boolean isSelected = false;
-		if (modifications.requestedModuleIterator().hasNext())
-		    isSelected = true;
-		else {
-		    Iterator<ModuleInstance> it = config.moduleIterator();
-		    while (!isSelected&&it.hasNext()) {
-			ModuleInstance module = it.next();
-			Path[] paths = module.parentPaths();
-			for (Path p : paths) {
-			    if (!modifications.isInBlackList(p)) {
-				isSelected = true;
-				break;
-			    }
-			}
-		    }
-		}
-		checkBox.setSelected(isSelected);
-		checkBox.setEnabled(false);
-	    }
-	}
-	else if (value instanceof Sequence||
-		 value instanceof ModuleInstance) {
-	    checkBox.setEnabled(true);
-	    Referencable moduleOrSequence = (Referencable)value;
-	    if (modifications.isRequested(moduleOrSequence))
-		checkBox.setSelected(true);
-	    else if (modifications.doFilterAllPaths())
-		checkBox.setSelected(false);
-	    else {
-		boolean isSelected = false;
-		Path[] parentPaths = moduleOrSequence.parentPaths();
-		for (Path p : parentPaths) {
-		    if (!modifications.isInBlackList(p)) {
-			isSelected = true;
-			break;
-		    }
-		}
-		checkBox.setSelected(isSelected);
-		if (isSelected) checkBox.setEnabled(false);
-	    }
-	}
-	else {
-	    checkBox.setEnabled(true);	
-	    checkBox.setSelected(!modifications.isInBlackList(value));
-	}
-	
-	checkBox.setText(value.toString());
-	
-	return checkBox;
-    }
-}
-
-
-/** ConvertConfigTreeEditor */
-class ConvertConfigTreeEditor extends AbstractCellEditor implements TreeCellEditor
-{
-    /** tree */
-    private JTree tree = null;
-    
-    /** modifications */
-    private ModifierInstructions modifications = null;
-    
-    /** renderer */
-    private ConvertConfigTreeRenderer renderer = null;
-    
-    /** current value */
-    private Object value = null;
-
-    /** standard constructor */
-    public ConvertConfigTreeEditor(JTree tree,
-				   ModifierInstructions modifications,
-				   ConvertConfigTreeRenderer renderer) 
-    {
-	this.tree          = tree;
-	this.modifications = modifications;
-	this.renderer      = renderer;
-    }
-    
-    /** getCellEditorValue */
-    public Object getCellEditorValue()
-    {
-	ConfigurationTreeModel treeModel = (ConfigurationTreeModel)tree.getModel();
-	IConfiguration         config    = (IConfiguration)treeModel.getRoot();
-	
-	if (value instanceof StringBuffer) {
-	    if (value==treeModel.psetsNode()) {
-		modifications.filterAllPSets(!modifications.doFilterAllPSets(),
-					     config);
-	    }
-	    else if (value==treeModel.edsourcesNode()) {
-		modifications
-		    .filterAllEDSources(!modifications.doFilterAllEDSources(),
-					config);
-	    }
-	    else if (value==treeModel.essourcesNode()) {
-		modifications
-		    .filterAllESSources(!modifications.doFilterAllESSources(),
-					config);
-	    }
-	    else if (value==treeModel.esmodulesNode()) {
-		modifications
-		    .filterAllESModules(!modifications.doFilterAllESModules(),
-					config);
-	    }
-	    else if (value==treeModel.servicesNode()) {
-		modifications
-		    .filterAllServices(!modifications.doFilterAllServices(),
-				       config);
-	    }
-	    else if (value==treeModel.pathsNode()) {
-		modifications
-		    .filterAllPaths(!modifications.doFilterAllPaths(),
-				    config);
-	    }
-	}
-	else if (value instanceof Sequence) {
-	    Sequence s = (Sequence)value;
-	    if (modifications.isRequested(s))
-		modifications.unrequestSequence(s.name());
-	    else
-		modifications.requestSequence(s.name());
-	}
-	else if (value instanceof ModuleInstance) {
-	    ModuleInstance m = (ModuleInstance)value;
-	    if (modifications.isRequested(m))
-		modifications.unrequestModule(m.name());
-	    else
-		modifications.requestModule(m.name());
-	}
-	else {
-	    boolean isFiltered = modifications.isInBlackList(value);
-	    if (isFiltered) {
-		modifications.removeFromBlackList(value);
-	    }
-	    else {
-		int n = modifications.insertIntoBlackList(value);
-		if (n==config.componentCount(value.getClass()))
-		    modifications.filterAll(value.getClass(),true);
-	    }
-	    treeModel.nodeChanged(treeModel.getParent(value));
-	}
-	
-	return value.toString();
-    }
-    
-    /** isCellEditable */
-    public boolean isCellEditable(EventObject event)
-    {
-	if (event instanceof MouseEvent) {
-	    MouseEvent mouseEvent = (MouseEvent)event;
-	    TreePath treePath = tree.getPathForLocation(mouseEvent.getX(),
-							mouseEvent.getY());
-	    if (treePath==null) return false;
+	/** constructor */
+	public ConvertConfigTreeRenderer(ModifierInstructions modifications)
+	{
+	    this.modifications = modifications;
 	    
-	    Object o = treePath.getLastPathComponent();
-	    if (o instanceof Sequence||o instanceof ModuleInstance) {
-		Referencable moduleOrSequence = (Referencable)o;
-		Path[] paths = moduleOrSequence.parentPaths();
-		for (Path p : paths) 
-		    if (!modifications.isInBlackList(p)) return false;
-	    }
+	    Font fontValue = UIManager.getFont("Tree.font");
+	    if (fontValue != null) checkBox.setFont(fontValue);
+	    Boolean bFocus =
+		(Boolean)UIManager.get("Tree.drawsFocusBorderAroundIcon");
+	    checkBox.setFocusPainted((bFocus != null)&&(bFocus.booleanValue()));
+	    
+	    selectionForeground = UIManager.getColor("Tree.selectionForeground");
+	    selectionBackground = UIManager.getColor("Tree.selectionBackground");
+	    textForeground = UIManager.getColor("Tree.textForeground");
+	    textBackground = UIManager.getColor("Tree.textBackground");
 	}
-	return true;
+	
+	/** retrieve the checkbox */
+	public JCheckBox getCheckBox() { return checkBox; }
+	
+	/** DefaultTreeCellRenderer.getTreeCellRendererComponent */
+	public Component getTreeCellRendererComponent(JTree   tree,
+						      Object  value,
+						      boolean sel,
+						      boolean expanded,
+						      boolean leaf,
+						      int     row,
+						      boolean hasFocus)
+	{
+	    if (selected) {
+		checkBox.setForeground(selectionForeground);
+		checkBox.setBackground(selectionBackground);
+	    } else {
+		checkBox.setForeground(textForeground);
+		checkBox.setBackground(textBackground);
+	    }
+	    
+	    ConfigurationTreeModel treeModel=(ConfigurationTreeModel)tree.getModel();
+	    IConfiguration         config   =(IConfiguration)treeModel.getRoot();
+	    
+	    if (value instanceof StringBuffer) {
+		if (value==treeModel.psetsNode()) {
+		    checkBox.setSelected(!modifications.doFilterAllPSets()&&
+					 (config.psetCount()>0));
+		    checkBox.setEnabled(config.psetCount()>0);
+		}
+		else if (value==treeModel.edsourcesNode()) {
+		    checkBox.setSelected(!modifications.doFilterAllEDSources()&&
+					 config.edsourceCount()>0);
+		    checkBox.setEnabled(config.edsourceCount()>0);
+		}
+		else if (value==treeModel.essourcesNode()) {
+		    checkBox.setSelected(!modifications.doFilterAllESSources()&&
+					 config.essourceCount()>0);
+		    checkBox.setEnabled(config.essourceCount()>0);
+		}
+		else if (value==treeModel.esmodulesNode()) {
+		    checkBox.setSelected(!modifications.doFilterAllESModules()&&
+					 config.esmoduleCount()>0);
+		    checkBox.setEnabled(config.esmoduleCount()>0);
+		}
+		else if (value==treeModel.servicesNode()) {
+		    checkBox.setSelected(!modifications.doFilterAllServices()&&
+					 config.serviceCount()>0);
+		    checkBox.setEnabled(config.serviceCount()>0);
+		}
+		else if (value==treeModel.pathsNode()) {
+		    checkBox.setSelected(!modifications.doFilterAllPaths()&&
+					 config.pathCount()>0);
+		    checkBox.setEnabled(config.pathCount()>0);
+		}
+		else if (value==treeModel.sequencesNode()) {
+		    boolean isSelected = false;
+		    if (modifications.requestedSequenceIterator().hasNext())
+			isSelected = true;
+		    else {
+			Iterator<Sequence> it = config.sequenceIterator();
+			while (!isSelected&&it.hasNext()) {
+			    Sequence sequence = it.next();
+			    Path[] paths = sequence.parentPaths();
+			    for (Path p : paths) {
+				if (!modifications.isInBlackList(p)) {
+				    isSelected = true;
+				    break;
+				}
+			    }
+			}
+		    }
+		    checkBox.setSelected(isSelected);
+		    checkBox.setEnabled(false);
+		}
+		else if (value==treeModel.modulesNode()) {
+		    boolean isSelected = false;
+		    if (modifications.requestedModuleIterator().hasNext())
+			isSelected = true;
+		    else {
+			Iterator<ModuleInstance> it = config.moduleIterator();
+			while (!isSelected&&it.hasNext()) {
+			    ModuleInstance module = it.next();
+			    Path[] paths = module.parentPaths();
+			    for (Path p : paths) {
+				if (!modifications.isInBlackList(p)) {
+				    isSelected = true;
+				    break;
+				}
+			    }
+			}
+		    }
+		    checkBox.setSelected(isSelected);
+		    checkBox.setEnabled(false);
+		}
+	    }
+	    else if (value instanceof Sequence||
+		     value instanceof ModuleInstance) {
+		checkBox.setEnabled(true);
+		Referencable moduleOrSequence = (Referencable)value;
+		if (modifications.isRequested(moduleOrSequence))
+		    checkBox.setSelected(true);
+		else if (modifications.doFilterAllPaths()||
+			 modifications.isUndefined(moduleOrSequence))
+		    checkBox.setSelected(false);
+		else {
+		    boolean isSelected = false;
+		    Path[] parentPaths = moduleOrSequence.parentPaths();
+		    for (Path p : parentPaths) {
+			if (!modifications.isInBlackList(p)) {
+			    isSelected = true;
+			    break;
+			}
+		    }
+		    checkBox.setSelected(isSelected);
+		    if (!ConvertConfigurationDialog.this.asFragment()&&isSelected)
+			checkBox.setEnabled(false);
+		}
+	    }
+	    else {
+		checkBox.setEnabled(true);	
+		checkBox.setSelected(!modifications.isInBlackList(value));
+	    }
+	    
+	    checkBox.setText(value.toString());
+	    
+	    return checkBox;
+	}
     }
     
-    public Component getTreeCellEditorComponent(JTree tree,
-						Object value,
-						boolean selected,
-						boolean expanded,
-						boolean leaf,
-						int row)
+    
+    
+    /** ConvertConfigTreeEditor */
+    class ConvertConfigTreeEditor extends AbstractCellEditor implements TreeCellEditor
     {
-	this.value = value;
+	/** tree */
+	private JTree tree = null;
 	
-	Component editor = renderer.getTreeCellRendererComponent(tree,
-								 value,
-								 true,
-								 expanded,
-								 leaf,
-								 row,
-								 true);
+	/** modifications */
+	private ModifierInstructions modifications = null;
+    
+	/** renderer */
+	private ConvertConfigTreeRenderer renderer = null;
+    
+	/** current value */
+	private Object value = null;
+    
+	/** standard constructor */
+	public ConvertConfigTreeEditor(JTree tree,
+				       ModifierInstructions modifications,
+				       ConvertConfigTreeRenderer renderer) 
+	{
+	    this.tree          = tree;
+	    this.modifications = modifications;
+	    this.renderer      = renderer;
+	}
+    
+	/** getCellEditorValue */
+	public Object getCellEditorValue()
+	{
+	    ConfigurationTreeModel treeModel=(ConfigurationTreeModel)tree.getModel();
+	    IConfiguration         config   =(IConfiguration)treeModel.getRoot();
 	
-	// editor always selected / focused
-	ItemListener itemListener = new ItemListener() {
-		public void itemStateChanged(ItemEvent itemEvent) {
-		    if (stopCellEditing()) {
-			fireEditingStopped();
+	    if (value instanceof StringBuffer) {
+		if (value==treeModel.psetsNode()) {
+		    modifications.filterAllPSets(!modifications.doFilterAllPSets(),
+						 config);
+		}
+		else if (value==treeModel.edsourcesNode()) {
+		    modifications
+			.filterAllEDSources(!modifications.doFilterAllEDSources(),
+					    config);
+		}
+		else if (value==treeModel.essourcesNode()) {
+		    modifications
+			.filterAllESSources(!modifications.doFilterAllESSources(),
+					    config);
+		}
+		else if (value==treeModel.esmodulesNode()) {
+		    modifications
+			.filterAllESModules(!modifications.doFilterAllESModules(),
+					    config);
+		}
+		else if (value==treeModel.servicesNode()) {
+		    modifications
+			.filterAllServices(!modifications.doFilterAllServices(),
+					   config);
+		}
+		else if (value==treeModel.pathsNode()) {
+		    modifications
+			.filterAllPaths(!modifications.doFilterAllPaths(),
+					config);
+		}
+	    }
+	    else if (value instanceof Sequence) {
+		Sequence s = (Sequence)value;
+	    
+		boolean isReferenced = false;
+		Path[] parentPaths = s.parentPaths();
+		for (Path p : parentPaths)
+		    if (!modifications.isInBlackList(p)) {isReferenced=true;break;}
+	    
+		if (isReferenced) {
+		    if (modifications.isUndefined(s))
+			modifications.redefineSequence(s.name());
+		    else
+			modifications.undefineSequence(s.name());
+		}
+		else {
+		    if (modifications.isRequested(s))
+			modifications.unrequestSequence(s.name());
+		    else
+			modifications.requestSequence(s.name());
+		}
+	    }
+	    else if (value instanceof ModuleInstance) {
+		ModuleInstance m = (ModuleInstance)value;
+	    
+		boolean isReferenced = false;
+		Path[] parentPaths = m.parentPaths();
+		for (Path p : parentPaths)
+		    if (!modifications.isInBlackList(p)) {isReferenced=true;break;}
+	
+		if (isReferenced) {
+		    if (modifications.isUndefined(m))
+			modifications.redefineModule(m.name());
+		    else
+			modifications.undefineModule(m.name());
+		}
+		else {
+		    if (modifications.isRequested(m))
+			modifications.unrequestModule(m.name());
+		    else
+			modifications.requestModule(m.name());
+		}
+	    }
+	    else {
+		boolean isFiltered = modifications.isInBlackList(value);
+		if (isFiltered) {
+		    modifications.removeFromBlackList(value);
+		}
+		else {
+		    int n = modifications.insertIntoBlackList(value);
+		    if (n==config.componentCount(value.getClass()))
+			modifications.filterAll(value.getClass(),true);
+		}
+		treeModel.nodeChanged(treeModel.getParent(value));
+	    }
+	
+	    return value.toString();
+	}
+    
+	/** isCellEditable */
+	public boolean isCellEditable(EventObject event)
+	{
+	    if (event instanceof MouseEvent) {
+		MouseEvent mouseEvent = (MouseEvent)event;
+		TreePath treePath = tree.getPathForLocation(mouseEvent.getX(),
+							    mouseEvent.getY());
+		if (treePath==null) return false;
+	    
+		if (!ConvertConfigurationDialog.this.asFragment()) {
+		    Object o = treePath.getLastPathComponent();
+		    if (o instanceof Sequence||o instanceof ModuleInstance) {
+			Referencable moduleOrSequence = (Referencable)o;
+			Path[] paths = moduleOrSequence.parentPaths();
+			for (Path p : paths) 
+			    if (!modifications.isInBlackList(p)) return false;
 		    }
 		}
-	    };
-	
-	if (editor instanceof JCheckBox) {
-	   ((JCheckBox)editor).addItemListener(itemListener);
+	    
+	    }
+	    return true;
 	}
-	
-	return editor;
-    }
-}
-
-
-/** ROOT file-filter */
-class RootFileFilter extends FileFilter
-{
-    /** FileFilter.accept() */
-    public boolean accept(File f)
-    {
-        if (f.isDirectory()) return true;
-	
-        String extension = getExtension(f);
-        if (extension != null) {
-            if (extension.equals("root") || extension.equals("list")) return true;
-	    else return false;
-	}
-        return false;
-    }
     
-    /* get description of this filter */
-    public String getDescription()
-    {
-	return "ROOT file or list of ROOT files (*.root, *.list)";
+	public Component getTreeCellEditorComponent(JTree tree,
+						    Object value,
+						    boolean selected,
+						    boolean expanded,
+						    boolean leaf,
+						    int row)
+	{
+	    this.value = value;
+	
+	    Component editor = renderer.getTreeCellRendererComponent(tree,
+								     value,
+								     true,
+								     expanded,
+								     leaf,
+								     row,
+								     true);
+	
+	    // editor always selected / focused
+	    ItemListener itemListener = new ItemListener() {
+		    public void itemStateChanged(ItemEvent itemEvent) {
+			if (stopCellEditing()) {
+			    fireEditingStopped();
+			}
+		    }
+		};
+	
+	    if (editor instanceof JCheckBox) {
+		((JCheckBox)editor).addItemListener(itemListener);
+	    }
+	
+	    return editor;
+	}
     }
 
-    /** get extension of a file name */
-    public String getExtension(File f)
+
+    /** ROOT file-filter */
+    class RootFileFilter extends FileFilter
     {
-        String ext = null;
-        String s = f.getName();
-        int i = s.lastIndexOf('.');
+	/** FileFilter.accept() */
+	public boolean accept(File f)
+	{
+	    if (f.isDirectory()) return true;
 	
-        if (i>0 && i<s.length()-1) ext = s.substring(i+1).toLowerCase();
-        return ext;
+	    String extension = getExtension(f);
+	    if (extension != null) {
+		if (extension.equals("root")||extension.equals("list")) return true;
+		else return false;
+	    }
+	    return false;
+	}
+    
+	/* get description of this filter */
+	public String getDescription()
+	{
+	    return "ROOT file or list of ROOT files (*.root, *.list)";
+	}
+
+	/** get extension of a file name */
+	public String getExtension(File f)
+	{
+	    String ext = null;
+	    String s = f.getName();
+	    int i = s.lastIndexOf('.');
+	
+	    if (i>0 && i<s.length()-1) ext = s.substring(i+1).toLowerCase();
+	    return ext;
+	}
     }
+
 }

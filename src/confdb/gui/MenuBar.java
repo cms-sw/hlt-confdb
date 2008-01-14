@@ -34,6 +34,7 @@ public class MenuBar
     private static final String configMenuImport      = "Import";
     private static final String configMenuMigrate     = "Migrate";
     private static final String configMenuConvert     = "Convert";
+    private static final String configMenuReplace     = "Search&Replace";
 
     /** menu bar item names: options */
     private static final String optionsMenuTrack      = "Track InputTags";
@@ -57,6 +58,7 @@ public class MenuBar
     private JMenuItem configMenuImportItem      = null;
     private JMenuItem configMenuMigrateItem     = null;
     private JMenuItem configMenuConvertItem     = null;
+    private JMenuItem configMenuReplaceItem     = null;
     
     private JCheckBoxMenuItem optionsMenuTrackItem = null;
 
@@ -94,6 +96,7 @@ public class MenuBar
 	configMenuImportItem.setEnabled(true);
 	configMenuMigrateItem.setEnabled(true);
 	configMenuConvertItem.setEnabled(true);
+	configMenuReplaceItem.setEnabled(true);
 	optionsMenuTrackItem.setEnabled(true);
 	dbMenuExportItem.setEnabled(true);
     }
@@ -108,6 +111,7 @@ public class MenuBar
 	configMenuImportItem.setEnabled(false);
 	configMenuMigrateItem.setEnabled(false);
 	configMenuConvertItem.setEnabled(false);
+	configMenuReplaceItem.setEnabled(false);
 	optionsMenuTrackItem.setEnabled(false);
 	dbMenuExportItem.setEnabled(false);
     }
@@ -194,7 +198,12 @@ public class MenuBar
 	configMenuConvertItem.setActionCommand(configMenuConvert);
 	configMenuConvertItem.addActionListener(listener);
 	configMenu.add(configMenuConvertItem);
-	
+	configMenu.addSeparator();
+	configMenuReplaceItem = new JMenuItem(configMenuReplace,KeyEvent.VK_E);
+	configMenuReplaceItem.setActionCommand(configMenuReplace);
+	configMenuReplaceItem.addActionListener(listener);
+	configMenu.add(configMenuReplaceItem);
+
 	JMenu optionsMenu = new JMenu("Options");
 	optionsMenu.setMnemonic(KeyEvent.VK_O);
 	jMenuBar.add(optionsMenu);

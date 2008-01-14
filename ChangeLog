@@ -1,9 +1,29 @@
+2008-01-14  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-18-00
+	* parser feature: specify relative release with '-m' option
+	* data feature: allow for sequences and modules to be omitted in
+	data.ModifierInstructions; this makes sense to provide
+	"inconsistent" fragments where some of the definitions come from
+	other fragments; should be available to edmConfigFromDB out of the
+	box
+	* gui feature: InputTag propagation also to all endpaths
+	* gui feature: search & replace
+	* gui bugfix: correctly display option in context menus to insert
+	modules into paths and modules (valid options were formerly
+	disabled)
+	* gui bugfix: keep the parameter treetable in its current state of
+	expansion during editing
+	* data bugfix: improve Configuration.hasChanged()
+	* db bugfix: make sure paths get databaseId!=0 right after loading
+	
+
 2008-01-11  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-17-11
 	* converter feature: release python conversion
 	* gui feature: integrate python conversion in dialog
-	* gui bugfix: no more exception when removong a path which is
+	* gui bugfix: no more exception when removing a path which is
 	assingned to a stream
 	* gui bugfix: reset search strings when config is reset
 

@@ -1,6 +1,7 @@
 package confdb.data;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 
 /**
@@ -151,6 +152,17 @@ public class VPSetParameter extends Parameter
 	for (PSetParameter pset : parameterSets)
 	    if (name.equals(pset.name())) return pset;
 	return null;
+    }
+
+    /** iterator over daughter psets */
+    public Iterator<PSetParameter> psetIterator() {return parameterSets.iterator();}
+
+    /** iterator over parameters */
+    public Iterator<Parameter> parameterIterator()
+    {
+	ArrayList<Parameter> params = new ArrayList<Parameter>();
+	for (PSetParameter pset : parameterSets) params.add(pset);
+	return params.iterator();
     }
 
     /** index of a certain parameter set */

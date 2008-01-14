@@ -192,19 +192,19 @@ public class ConfigurationModifier implements IConfiguration
 			}
 			path = copy;
 		    }
-
+		    
 		    paths.add(path);
 		    Iterator<Sequence> itS = path.sequenceIterator();
 		    while (itS.hasNext()) {
 			Sequence sequence = itS.next();
-			if (sequences.indexOf(sequence)<0)
-			    sequences.add(sequence);
+			if (!modifications.isUndefined(sequence)&&
+			    !sequences.contains(sequence)) sequences.add(sequence);
 		    }
 		    Iterator<ModuleInstance> itM = path.moduleIterator();
 		    while (itM.hasNext()) {
 			ModuleInstance module = itM.next();
-			if (modules.indexOf(module)<0)
-			    modules.add(module);
+			if (!modifications.isUndefined(module)&&
+			    !modules.contains(module)) modules.add(module);
 		    }
 		}
 	    }

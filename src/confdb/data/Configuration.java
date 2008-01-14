@@ -3,7 +3,7 @@ package confdb.data;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
+
 
 /**
  * Configuration
@@ -26,7 +26,6 @@ public class Configuration implements IConfiguration
     
     /** has the configuration changed since the last 'save' operation? */
     private boolean hasChanged = false;
-    
     
     /** list of globale parameter sets */
     private ArrayList<PSetParameter>    psets = null;
@@ -276,11 +275,20 @@ public class Configuration implements IConfiguration
     public SoftwareRelease release() { return release; }
 
     /** indicate if configuration must be saved */
-    public boolean hasChanged() { return hasChanged; }
+    public boolean hasChanged()
+    {
+	if (hasChanged) return true;
+	for (EDSourceInstance eds : edsources) if (eds.hasChanged()) return true;
+	for (ESSourceInstance ess : essources) if (ess.hasChanged()) return true;
+	for (ESModuleInstance esm : esmodules) if (esm.hasChanged()) return true;
+	for (ServiceInstance svc  : services)  if (svc.hasChanged()) return true;
+	for (Path pth             : paths)     if (pth.hasChanged()) return true;
+	for (Sequence seq         : sequences) if (seq.hasChanged()) return true;
+	return false;
+    }
     
     /** set the 'hasChanged' flag */
     public void setHasChanged(boolean hasChanged) { this.hasChanged = hasChanged; }
-
     
     /** check if a qualifier is unique */
     public boolean isUniqueQualifier(String qualifier)

@@ -72,7 +72,7 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 		else {
 		    referencable.setName(name);
 		}
-		config.setHasChanged(true);
+		//config.setHasChanged(true);
 		treeModel.nodeChanged(referencable);
 		for (int i=0;i<referencable.referenceCount();i++)
 		    treeModel.nodeChanged(referencable.reference(i));
@@ -86,7 +86,7 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 	    Template template = instance.template();
 	    try {
 		instance.setName(name);
-		config.setHasChanged(true);
+		//config.setHasChanged(true);
 		treeModel.nodeChanged(instance);
 	    }
 	    catch (DataException e) {
@@ -98,7 +98,7 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 	    ModuleInstance  instance  = (ModuleInstance)reference.parent();
 	    try {
 		instance.setName(name);
-		config.setHasChanged(true);
+		//config.setHasChanged(true);
 		treeModel.nodeChanged(instance);
 		for (int i=0;i<instance.referenceCount();i++)
 		    treeModel.nodeChanged(instance.reference(i));

@@ -1,6 +1,7 @@
 package confdb.data;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 
 /**
@@ -195,6 +196,9 @@ public class PSetParameter extends Parameter
 	    if (name.equals(p.name())) return p;
 	return null;
     }
+    
+    /** get iterator over all parameters */
+    public Iterator<Parameter> parameterIterator() { return parameters.iterator(); }
 
     /** index of a certain parameter */
     public int indexOfParameter(Parameter p) { return parameters.indexOf(p); }

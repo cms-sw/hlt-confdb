@@ -267,6 +267,12 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    }
 	    result = "<html><font size=-2><b>" + result + "</b></font></html>";
 	}
+	// DEBUG
+	else if (node instanceof Instance) {
+	    Instance inst = (Instance)node;
+	    result = inst.name()+"::"+inst.databaseId();
+	}
+	
 	return result;
     }
     

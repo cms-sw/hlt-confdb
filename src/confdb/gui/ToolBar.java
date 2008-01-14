@@ -30,6 +30,7 @@ public class ToolBar
     private static final String cmdImport      = "Import";
     private static final String cmdMigrate     = "Migrate";
     private static final String cmdConvert     = "Convert";
+    private static final String cmdReplace     = "Search&Replace";
 
     private static final String cmdTrack = "Track InputTags";
     
@@ -48,6 +49,7 @@ public class ToolBar
     private JButton jButtonImport      = new JButton();
     private JButton jButtonMigrate     = new JButton();
     private JButton jButtonConvert     = new JButton();
+    private JButton jButtonReplace     = new JButton();
     
     private JToggleButton jButtonTrack = new JToggleButton();
     
@@ -85,6 +87,7 @@ public class ToolBar
 	jButtonImport.setEnabled(true);
 	jButtonMigrate.setEnabled(true);
 	jButtonConvert.setEnabled(true);
+	jButtonReplace.setEnabled(true);
 	jButtonExport.setEnabled(true);
 	jButtonTrack.setEnabled(true);
     }
@@ -98,6 +101,7 @@ public class ToolBar
 	jButtonImport.setEnabled(false);
 	jButtonMigrate.setEnabled(false);
 	jButtonConvert.setEnabled(false);
+	jButtonReplace.setEnabled(false);
 	jButtonExport.setEnabled(false);
 	jButtonTrack.setEnabled(false);
     }
@@ -174,6 +178,13 @@ public class ToolBar
 	jButtonConvert.setIcon(new ImageIcon(getClass().
 					     getResource("/ConvertIcon.png")));
 	jToolBar.add(jButtonConvert);
+
+	jButtonReplace.setActionCommand(cmdReplace);
+	jButtonReplace.addActionListener(listener);
+	jButtonReplace.setToolTipText("search & replace parameter values");
+	jButtonReplace.setIcon(new ImageIcon(getClass().
+					     getResource("/SearchReplaceIcon.png")));
+	jToolBar.add(jButtonReplace);
 	
 	jToolBar.addSeparator();
 	

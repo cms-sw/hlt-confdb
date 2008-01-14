@@ -160,8 +160,6 @@ public class ConfDbGUI
     
     private JProgressBar  jProgressBar              = new JProgressBar(); 
     
-    
-    
 
     //
     // construction
@@ -539,6 +537,10 @@ public class ConfDbGUI
 				 fullConfigName+":","Enter comment",
 				 JOptionPane.PLAIN_MESSAGE,
 				 null,null,"");
+	    if (comment==null) {
+		database.lockConfiguration(currentConfig,userName);
+		return;
+	    }
 	}
 	
 	SaveConfigurationThread worker =
@@ -649,6 +651,16 @@ public class ConfDbGUI
 	}
     }
     
+    /** search/replace parameters in the current configuration */
+    public void searchAndReplace()
+    {
+	if (currentConfig.isEmpty()) return;
+	SearchAndReplaceDialog dlg = new SearchAndReplaceDialog(frame,currentConfig);
+	dlg.pack();
+	dlg.setLocationRelativeTo(frame);
+	dlg.setVisible(true);
+    }
+
     /** set option 'Track InputTags' */
     public void setOptionTrackInputTags(boolean doTrack)
     {
@@ -1504,7 +1516,7 @@ public class ConfDbGUI
 	    jSplitPaneRightUpper.setDividerSize(8);
 
 	    Instance inst = (Instance)currentInstance;
-
+	    
 	    String subName = inst.template().parentPackage().subsystem().name();
 	    String pkgName = inst.template().parentPackage().name();
 	    String cvsTag  = inst.template().cvsTag();
@@ -1655,7 +1667,7 @@ public class ConfDbGUI
     private void jButtonProcessActionPerformed(ActionEvent e)
     {
 	String processName = jTextFieldProcess.getText();
-	if (processName.length()>0||processName.indexOf('_')>=0)
+	if (processName.length()==0||processName.indexOf('_')>=0)
 	    jTextFieldProcess.setText(currentConfig.processName());
 	else
 	    currentConfig.setHasChanged(true);
@@ -1725,16 +1737,41 @@ public class ConfDbGUI
     private void jComboBoxPathsItemStateChanged(ItemEvent e)
     {
 	if (e.getStateChange() == ItemEvent.SELECTED) {
+	    
 	    String moduleLabel = jTextFieldLabel.getText();
 	    String pathName = e.getItem().toString();
 	    if (moduleLabel==""||pathName=="") return;
+	    
+	    // collapse complete tree
+	    int row = jTreeCurrentConfig.getRowCount() - 1;
+	    while (row >= 0) {
+		jTreeCurrentConfig.collapseRow(row);
+		row--;
+	    }
+	    
+	    // construct the treepath to the selected reference
 	    Path path = currentConfig.path(pathName);
+	    ArrayList<Reference> pathToNode = new ArrayList<Reference>();
+	    String name = moduleLabel;
+	    while (name!=pathName) {
+		Iterator<Reference> itR = path.recursiveReferenceIterator();
+		while (itR.hasNext()) {
+		    Reference r = itR.next();
+		    if (r.name().equals(name)) {
+			name = r.container().name();
+			pathToNode.add(r);
+			break;
+		    }
+		}
+	    }
+	
 	    TreePath tp =
 		new TreePath(treeModelCurrentConfig.getPathToRoot(path));
+	    for (int i=pathToNode.size()-1;i>=0;i--)
+		tp = tp.pathByAddingChild(pathToNode.get(i));
 	    jTreeCurrentConfig.expandPath(tp);
 	    jTreeCurrentConfig.setSelectionPath(tp);
 	    jTreeCurrentConfig.scrollPathToVisible(tp);
-	    
 	}
     }
     private void jSplitPaneRightComponentMoved(ComponentEvent e)
@@ -1859,7 +1896,7 @@ public class ConfDbGUI
 		if (path.streamCount()>0) treeModelStreams.nodeChanged(path); // :(
 	    }
 	}
-	displayParameters();
+	//displayParameters(); // don't if the selected instance did not change!
 	displaySnippet();
     }
     private void jTreeCurrentConfigTreeNodesInserted(TreeModelEvent e)
@@ -2034,7 +2071,7 @@ public class ConfDbGUI
 		
 		if (parent instanceof ModuleInstance) jTreeCurrentConfig.updateUI();
 		treeModelCurrentConfig.updateLevel1Nodes();
-		currentConfig.setHasChanged(true);
+		currentConfig.setHasChanged(true); // needed for global psets!
 	    }
 	}
     }

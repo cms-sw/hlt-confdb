@@ -731,11 +731,13 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		    
 		    for (int j=0;j<container.entryCount();j++) {
 			Reference reference = container.entry(j);
-			if (instance.isReferencedBy(reference))
+			if (instance.isReferencedBy(reference)) {
 			    menuItemAll.setEnabled(false);
 			    menuItem.setEnabled(false);
 			    copyItemAll.setEnabled(false);
 			    copyItem.setEnabled(false);
+			    break;
+			}
 		    }
 		    instanceMenuAll.add(menuItemAll);
 		    instanceMenu.add(menuItem);

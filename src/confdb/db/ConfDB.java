@@ -1499,8 +1499,8 @@ public class ConfDB
 		else if (type.equals("Path")) {
 		    int  insertIndex = config.pathCount();
 		    Path path = config.insertPath(insertIndex,instanceName);
-		    path.setDatabaseId(id);
 		    path.setAsEndPath(flag);
+		    path.setDatabaseId(id);
 		    idToPaths.put(id,path);
 		}
 		else if (type.equals("Sequence")) {
@@ -1578,6 +1578,8 @@ public class ConfDB
 		}
 		else
 		    System.err.println("Invalid entryType '"+entryType+"'");
+
+		path.setDatabaseId(pathId);
 	    }
 	    
 	    while (rsStreamEntries.next()) {

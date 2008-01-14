@@ -195,6 +195,16 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 	return modules.iterator();
     }
     
+    /** create iterator for all contained References */
+    public Iterator<Reference> recursiveReferenceIterator()
+    {
+	ArrayList<Reference> references = new ArrayList<Reference>();
+	getReferences(entryIterator(),references);
+	return references.iterator();
+    }
+    
+
+
     /** create a reference of this in a reference container (path/sequence) */
     abstract public Reference createReference(ReferenceContainer container,int i);
     
@@ -388,5 +398,22 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 	    }
 	}
     }
-
+    /** add all Module entries to 'modules' array (recursively) */
+    private void getReferences(Iterator<Reference> itEntry,
+			       ArrayList<Reference> references)
+    {
+	while (itEntry.hasNext()) {
+	    Reference entry = itEntry.next();
+	    references.add(entry);
+	    if (entry instanceof PathReference) {
+		Path          path = (Path)entry.parent();
+		getReferences(path.entryIterator(),references);
+	    }
+	    else if (entry instanceof SequenceReference) {
+		Sequence sequence = (Sequence)entry.parent();
+		getReferences(sequence.entryIterator(),references);
+	    }
+	}
+    }
+    
 }

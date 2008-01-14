@@ -73,7 +73,7 @@ public class ConfigurationTreeActions
 	}
 	
 	config.setHasChanged(true);
-
+	
 	model.nodeInserted(parent,index);
 	model.updateLevel1Nodes();
 	
@@ -84,7 +84,7 @@ public class ConfigurationTreeActions
 		model.nodeInserted(child,i);
 	    }
 	}
-
+	
 	if (child instanceof VPSetParameter) {
 	    VPSetParameter vpset = (VPSetParameter)child;
 	    for (int i=0;i<vpset.parameterSetCount();i++) {
@@ -306,7 +306,7 @@ public class ConfigurationTreeActions
 	
 	ESPreferable esp = (ESPreferable)treePath.getLastPathComponent();
 	esp.setPreferred(isPreferred);
-	config.setHasChanged(true);
+	//config.setHasChanged(true);
 	model.nodeChanged(esp);
 	model.updateLevel1Nodes();
     }
@@ -359,7 +359,7 @@ public class ConfigurationTreeActions
 
 	Path path = (Path)treePath.getLastPathComponent();
 	path.setAsEndPath(isEndPath);
-	config.setHasChanged(true);
+	//config.setHasChanged(true);
 	model.nodeChanged(path);
     }
 
@@ -672,7 +672,7 @@ public class ConfigurationTreeActions
 	model.nodeRemoved(container,sourceIndex,sourceReference);
 	if (sourceIndex<targetIndex) targetIndex--;
 	model.nodeInserted(container,targetIndex);
-	config.setHasChanged(true);
+	//config.setHasChanged(true);
 	return true;
     }
     
@@ -756,7 +756,7 @@ public class ConfigurationTreeActions
 	}
 	else {
 	    container.removeEntry(reference);
-	    config.setHasChanged(true);
+	    //config.setHasChanged(true);
 	}
 	
 	model.nodeRemoved(container,index,reference);

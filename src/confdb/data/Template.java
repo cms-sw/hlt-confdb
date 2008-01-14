@@ -127,6 +127,9 @@ abstract public class Template extends DatabaseEntry implements Comparable<Templ
     /** retrieve the i-th instance */
     public Instance instance(int i) { return instances.get(i); }
     
+    /** get instance iterator */
+    public Iterator<Instance> instanceIterator() { return instances.iterator(); }
+    
     /** check if instance with name 'instanceName' exists */
     public boolean hasInstance(String instanceName)
     {

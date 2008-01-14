@@ -1,6 +1,7 @@
 package confdb.data;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 
 
@@ -82,10 +83,22 @@ public class ModuleInstance extends Instance implements Referencable
     {
 	String oldName = name();
 	super.setName(name);
-	Path[] paths = parentPaths();
 
-	for (Path path : paths) {
-	    boolean isDownstream = false;
+	Path[] paths = parentPaths();
+	HashSet<Path> pathSet = new HashSet<Path>();
+	for (Path path : paths) pathSet.add(path);
+	if (config()!=null) {
+	    Iterator<Path> itP = config().pathIterator();
+	    while (itP.hasNext()) {
+		Path path = itP.next();
+		if (path.isEndPath()) pathSet.add(path);
+	    }
+	}
+
+	Iterator<Path> itPath = pathSet.iterator();
+	while (itPath.hasNext()) {
+	    Path path = itPath.next();
+	    boolean isDownstream = path.isEndPath();
 	    Iterator<ModuleInstance> itM = path.moduleIterator();
 	    while (itM.hasNext()) {
 		ModuleInstance module = itM.next();
@@ -99,7 +112,7 @@ public class ModuleInstance extends Instance implements Referencable
 		    if (!p.isValueSet()) continue;
 		    if (p instanceof InputTagParameter) {
 			InputTagParameter inputTag = (InputTagParameter)p;
-
+			
 			if (inputTag.label().equals(oldName)) {
 			    InputTagParameter tmp =
 				(InputTagParameter)inputTag.clone(null);

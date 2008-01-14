@@ -6,7 +6,7 @@ package confdb.data;
  * ---------
  * @author Philipp Schieferdecker
  *
- * a common parameter base class for scalar *and* vector type parameters.
+ * Common parameter base class for scalar and vector type parameters.
  */
 abstract public class Parameter implements Comparable<Parameter>
 {
@@ -98,4 +98,44 @@ abstract public class Parameter implements Comparable<Parameter>
     
     /** set isTracked */
     public void setTracked(boolean isTracked) { this.isTracked = isTracked; }
+
+    /** get the parent instance, if any (otherwise: global pset, most likley) */
+    public Instance getParentInstance()
+    {
+	Object p = parent();
+	while (p!=null) {
+	    if (p instanceof Instance) return (Instance)p;
+	    else if (p instanceof Parameter) {
+		Parameter param = (Parameter)p;
+		p = param.parent();
+	    }
+	    else p=null;
+	}
+	return null;
+    }
+    
+    /** get the full name of the parameter, including parent parameters */
+    public String fullName()
+    {
+	StringBuffer result = new StringBuffer(name());
+	Parameter param = this;
+	Object    p     = parent();
+	while (p != null) {
+	    if (p instanceof VPSetParameter) {
+		VPSetParameter vpset = (VPSetParameter)p;
+		PSetParameter  pset  = (PSetParameter)param;
+		int            index = vpset.indexOfParameterSet(pset);
+		result.insert(0,vpset.name()+"["+index+"]");
+		param = vpset;
+		p     = vpset.parent();
+	    }
+	    else if (p instanceof Parameter) {
+		param = (Parameter)p;
+		result.insert(0,param.name()+"::");
+		p = param.parent();
+	    }
+	    else p=null;
+	}
+	return result.toString();
+    }
 }
