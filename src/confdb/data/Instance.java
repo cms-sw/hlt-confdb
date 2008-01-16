@@ -159,9 +159,20 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
     public boolean updateParameter(String name,String type,String valueAsString)
     {
 	Parameter[] params = findParameters(name,type);
-	if (params.length==1) {
+	
+	if (params.length>0) {
+
 	    Parameter param = params[0];
-	    int       index = indexOfParameter(param);
+
+	    if (params.length>1) {
+		for (Parameter p : params) {
+		    String a[] = p.fullName().split("::");
+		    String b[] = param.fullName().split("::");
+		    if (a.length<b.length) param = p;
+		}
+	    }
+	    
+	    int index = indexOfParameter(param);
 	    if (index>=0) {
 		updateParameter(index,valueAsString);
 		return true;
