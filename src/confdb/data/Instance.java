@@ -114,6 +114,7 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
     /** get all parameters (recursively) with specified name *and* type */
     public Parameter[] findParameters(String name,String type)
     {
+	if (type==null) return findParameters(name);
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
 	Iterator<Parameter> itP = recursiveParameterIterator();
 	while (itP.hasNext()) {

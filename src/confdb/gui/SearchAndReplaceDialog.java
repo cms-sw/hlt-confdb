@@ -31,19 +31,17 @@ public class SearchAndReplaceDialog extends JDialog
     private Configuration config;
     
     /** GUI components */
-    private JComboBox    jComboBoxPluginType = new JComboBox();
-    private JComboBox    jComboBoxPlugin = new JComboBox();
-    private JComboBox    jComboBoxParameter = new JComboBox();
-    private ButtonGroup  buttonGroupParameter = new ButtonGroup();
-    private JRadioButton jRadioButtonFromList = new JRadioButton();
-    private JRadioButton jRadioButtonFromTextField = new JRadioButton();
-    private JTextField   jTextFieldParameter = new JTextField();
-    private JTextField   jTextFieldNewValue = new JTextField();
-    private JList        jListSearchResult = new JList();
-    private JButton      jButtonOk = new JButton();
-    private JButton      jButtonReplace = new JButton();
-    private JButton      jButtonSearch = new JButton();
-
+    private JComboBox    jComboBoxPluginType       = new JComboBox();
+    private JComboBox    jComboBoxPlugin           = new JComboBox();
+    private JComboBox    jComboBoxParameter        = new JComboBox();
+    private JTextField   jTextFieldNewValue        = new JTextField();
+    private JList        jListSearchResult         = new JList();
+    private JButton      jButtonOk                 = new JButton();
+    private JButton      jButtonReplace            = new JButton();
+    private JButton      jButtonSearch             = new JButton();
+    private JButton      jButtonSelect             = new JButton();
+    private JButton      jButtonDeselect           = new JButton();
+    
     
     //
     // construction
@@ -71,38 +69,40 @@ public class SearchAndReplaceDialog extends JDialog
 		    jComboBoxParameterActionPerformed(e);
 		}
 	    });
-	jRadioButtonFromList.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    jRadioButtonFromListActionPerformed(e);
-		}
-	    });
-	jRadioButtonFromTextField.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    jRadioButtonFromTextFieldActionPerformed(e);
-		}
-	    });
-	jTextFieldParameter.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    jTextFieldParameterActionPerformed(e);
-		}
-	    });
-	jTextFieldParameter.addFocusListener(new FocusListener() {
-		public void focusGained(FocusEvent e) {}
-		public void focusLost(FocusEvent e) {
-		    jTextFieldParameterActionPerformed
-			(new ActionEvent(jTextFieldParameter,0,""));
-		}
-	    });
+	((JTextField)jComboBoxParameter.getEditor().getEditorComponent())
+	    .getDocument()
+	    .addDocumentListener(new DocumentListener() {
+		    public void insertUpdate(DocumentEvent e) {
+			jComboBoxParameterInsertUpdate(e);
+		    }
+		    public void removeUpdate(DocumentEvent e) {
+			jComboBoxParameterRemoveUpdate(e);
+		    }
+		    public void changedUpdate(DocumentEvent e) {}
+		});
 	jTextFieldNewValue.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    jTextFieldNewValueActionPerformed(e);
 		}
 	    });
-	jTextFieldNewValue.addFocusListener(new FocusListener() {
-		public void focusGained(FocusEvent e) {}
-		public void focusLost(FocusEvent e) {
-		    jTextFieldNewValueActionPerformed
-			(new ActionEvent(jTextFieldNewValue,0,""));
+	jTextFieldNewValue.getDocument()
+	    .addDocumentListener(new DocumentListener() {
+		    public void insertUpdate(DocumentEvent e) {
+			jTextFieldNewValueInsertUpdate(e);
+		    }
+		    public void removeUpdate(DocumentEvent e) {
+			jTextFieldNewValueRemoveUpdate(e);
+		    }
+		    public void changedUpdate(DocumentEvent e) {}
+		});
+	jButtonSelect.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonSelectActionPerformed(e);
+		}
+	    });
+	jButtonDeselect.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonDeselectActionPerformed(e);
 		}
 	    });
 	jButtonSearch.addActionListener(new ActionListener() {
@@ -126,13 +126,6 @@ public class SearchAndReplaceDialog extends JDialog
 		}
 	    });
 	    
-	// initialize parameter button group
-	jRadioButtonFromList.setActionCommand("list");
-	jRadioButtonFromTextField.setActionCommand("text");
-	buttonGroupParameter.add(jRadioButtonFromList);
-	buttonGroupParameter.add(jRadioButtonFromTextField);
-	jRadioButtonFromList.setSelected(true);
-	
 	setTitle("Search & Replace");
 	setContentPane(initComponents());
 
@@ -142,31 +135,33 @@ public class SearchAndReplaceDialog extends JDialog
 	
 	DefaultComboBoxModel m=(DefaultComboBoxModel)jComboBoxPluginType.getModel();
 	m.addElement("All");
-	m.addElement("EDSource");
+
 	m.addElement("ESSource");
 	m.addElement("ESModule");
-	m.addElement("Service");
-	m.addElement("EDProducer");
-	m.addElement("EDAnalyzer");
-	m.addElement("EDFilter");
-	m.addElement("HLTProducer");
 	m.addElement("HLTFilter");
+	m.addElement("HLTProducer");
+	m.addElement("EDProducer");
+	m.addElement("EDFilter");
+	m.addElement("EDAnalyzer");
 	m.addElement("OutputModule");
-
-	jRadioButtonFromList.setEnabled(false);
-	jComboBoxParameter.setEnabled(false);
-	jRadioButtonFromTextField.setEnabled(false);
-	jTextFieldParameter.setEnabled(false);
+	m.addElement("EDSource");
+	m.addElement("Service");
+	
+	jComboBoxParameter.setEnabled(true);
 	jTextFieldNewValue.setEnabled(false);
+	jButtonSelect.setEnabled(false);
+	jButtonDeselect.setEnabled(false);
 	jButtonSearch.setEnabled(false);
 	jButtonReplace.setEnabled(false);
 
 	jListSearchResult.setCellRenderer(new CellRenderer());
+	
+	addComponentListener(new ComponentAdapter() {
+		public void componentShown(ComponentEvent e) {
+		    jComboBoxParameter.requestFocusInWindow();
+		}
+	    });
     }
-
-    //
-    // member functions
-    //
     
     
     //
@@ -195,7 +190,9 @@ public class SearchAndReplaceDialog extends JDialog
     {
 	DefaultComboBoxModel m=(DefaultComboBoxModel)jComboBoxParameter.getModel();
 	m.removeAllElements();
-	
+
+	if (pluginName.equals("")) return;
+
 	SoftwareRelease release    = config.release();
 	Template        template   = release.template(pluginName);
 	if (template==null) return;
@@ -210,28 +207,13 @@ public class SearchAndReplaceDialog extends JDialog
 	resetSearchResult();
     }
     
-    /** set the input method of the parameter (list or text), based on button grp */
-    private void setParameterInputField()
-    {
-	jTextFieldNewValue.setText("");
-	resetSearchResult();
-	if (buttonGroupParameter.getSelection().getActionCommand().equals("list")) {
-	    jComboBoxParameter.setEnabled(true);
-	    jTextFieldParameter.setEnabled(false);
-	}
-	else {
-	    jComboBoxParameter.setEnabled(false);
-	    jTextFieldParameter.setEnabled(true);
-	    if (jTextFieldParameter.getText().equals(""))
-		jTextFieldNewValue.setEnabled(false);
-	}
-    }
-
-    /** */
+    /** remove all elements from the list of search results */
     private void resetSearchResult()
     {
 	DefaultListModel m = (DefaultListModel)jListSearchResult.getModel();
 	m.removeAllElements();
+	jButtonSelect.setEnabled(false);
+	jButtonDeselect.setEnabled(false);
     }
 
     /** search according to current specifications */
@@ -239,75 +221,118 @@ public class SearchAndReplaceDialog extends JDialog
     {
 	DefaultListModel m = (DefaultListModel)jListSearchResult.getModel();
 	m.removeAllElements();
-	
-	String pluginName = (String)jComboBoxPlugin.getSelectedItem();
-	String paramName  = (jRadioButtonFromList.isSelected()) ?
-	    ((String)jComboBoxParameter.getSelectedItem()).split(" ")[0] :
-	    jTextFieldParameter.getText();
-	
-	SoftwareRelease release  = config.release();
-	Template        template = release.template(pluginName);
-	
-	if (template==null) {
-	    m.addElement("Invalid plugin name '"+pluginName+"'");
-	    return;   
-	}
 
-	Iterator<Instance> itI = template.instanceIterator();
-	while (itI.hasNext()) {
-	    Instance  instance  = itI.next();
-	    Parameter params[]  = instance.findParameters(paramName);
-	    if (params.length==0) continue;
-	    for (Parameter p : params) {
-		if (p instanceof PSetParameter) continue;
-		if (p instanceof VPSetParameter) continue;
-		String text =
-		    "<html>"+
-		    "<b>"+instance.name()+"</b> "+p.type()+" "+p.fullName()+" "+
-		    "(current value: "+p.valueAsString()+")"+
-		    "</html>";
-		m.addElement(new JCheckBox(text,true));
+	SoftwareRelease    release  = config.release();	
+	Iterator<Template> itT      = release.templateIterator();
+
+	String pluginType = (String)jComboBoxPluginType.getSelectedItem();
+	String pluginName = (String)jComboBoxPlugin.getSelectedItem();	
+	if (!pluginName.equals("")) {
+	    ArrayList<Template> templates = new ArrayList<Template>();
+	    templates.add(release.template(pluginName));
+	    itT = templates.iterator();
+	}
+	
+	String paramType = null;
+	String paramName = (String)jComboBoxParameter.getSelectedItem();
+	
+	if (paramName==null) return;
+	
+	String a[] = paramName.split(" ");
+	if (a.length>1) {
+	    paramName = a[0];
+	    paramType = a[1];
+	    if (paramType.startsWith("("))
+		paramType=paramType.substring(1);
+	    if (paramType.endsWith(")"))
+		paramType=paramType.substring(0,paramType.length()-1);
+	}
+	
+	while (itT.hasNext()) {
+	    Template template = itT.next();
+	    if (!pluginType.equals("All")&&!pluginType.equals(template.type()))
+		continue;
+	    
+	    Iterator<Instance> itI = template.instanceIterator();
+	    while (itI.hasNext()) {
+		Instance  instance  = itI.next();
+		Parameter params[]  = instance.findParameters(paramName,paramType);
+		if (params.length==0) continue;
+		for (Parameter p : params) {
+		    if (p instanceof PSetParameter) continue;
+		    if (p instanceof VPSetParameter) continue;
+		    String text =
+			"<html>"+
+			"<b>"+template.name()+"."+instance.name()+"</b> "+
+			"<font color=#0000ff>"+p.type()+"</font> "+
+			p.fullName()+" "+
+			"(current value: "+
+			"<font color=#ff0000>"+p.valueAsString()+"</font>)"+
+			"</html>";
+		    m.addElement(new JCheckBox(text,true));
+		}
 	    }
 	}
+	if (m.getSize()>0&&(m.firstElement() instanceof JCheckBox)) {
+	    jButtonSelect.setEnabled(true);
+	    jButtonDeselect.setEnabled(true);
+	}
     }
-
+    
     /** search and replace according to current specifications */
     private void searchAndReplace()
     {
 	DefaultListModel m = (DefaultListModel)jListSearchResult.getModel();
 	if (m.isEmpty()) search();
 	
-	SoftwareRelease release      = config.release();
-	String          templateName = (String)jComboBoxPlugin.getSelectedItem();
-	Template        template     = release.template(templateName);
-	String          paramName    = (jRadioButtonFromList.isSelected()) ?
-	    ((String)jComboBoxParameter.getSelectedItem()).split(" ")[0] :
-	    jTextFieldParameter.getText();
+	SoftwareRelease release    = config.release();
+	String          pluginName = (String)jComboBoxPlugin.getSelectedItem();
+	Template        template   = null;
+
+	if (!pluginName.equals(""))
+	    template = release.template(pluginName);
 	
 	String paramValue = jTextFieldNewValue.getText();
+	String paramName  = (String)jComboBoxParameter.getSelectedItem();
+	
+	paramName = paramName.split(" ")[0];
 	
 	for (int i=0;i<m.getSize();i++) {
 	    JCheckBox cb = (JCheckBox)m.get(i);
 	    if (!cb.isSelected()) continue;
+	
 	    String text = cb.getText();
 	    String a[] = text.split(" ");
-	    String instanceLabel = a[0];
-	    String paramType = a[1];
-	    String fullParamName = a[2];
-	    String b[] = instanceLabel.split("<b>");  instanceLabel = b[1];
-	    String c[] = instanceLabel.split("</b>"); instanceLabel = c[0];
-	    if (template.hasInstance(instanceLabel)) {
+	    String pluginDotLabel = a[0];
+	    String paramType = a[1]+" "+a[2];
+	    String fullParamName = a[3];
+	    String b[] = pluginDotLabel.split("<b>");  pluginDotLabel = b[1];
+	    String c[] = pluginDotLabel.split("</b>"); pluginDotLabel = c[0];
+	    String d[] = pluginDotLabel.split("\\.");
+	    String plugin = d[0];
+	    String label  = d[1];
+	    
+	    paramType = paramType.substring(20,paramType.length()-7);
+	    
+	    if (pluginName.equals("")) template = release.template(plugin);
+	    if (template.hasInstance(label)) {
 		try {
-		    Instance instance = template.instance(instanceLabel);
-		    instance.updateParameter(fullParamName,paramType,paramValue);
-		    String newText =
-			"<html>"+
-			"<b>"+instance.name()+"</b> "+paramType+" "+fullParamName+" "+
-			"(<font color=#00ff00>new value: "+paramValue+"</font>)"+
-			"</html>";
-		    m.set(i,new JCheckBox(newText,true));
+		    Instance instance = template.instance(label);
+		    if (instance.updateParameter(fullParamName,
+						 paramType,
+						 paramValue)) {
+			String newText =
+			    "<html>"+
+			    "<b>"+template.name()+"."+instance.name()+"</b> "+
+			    "<font color=#0000ff>"+paramType+"</font> "+
+			    fullParamName+" "+
+			    "(new value: "+
+			    "<font color=#00ff00>"+paramValue+"</font>)"+
+			    "</html>";
+			m.set(i,new JCheckBox(newText,true));
+		    }
 		}
-		catch (DataException e) {}
+		catch (DataException ex) {}
 	    }
 	}
     }
@@ -329,65 +354,88 @@ public class SearchAndReplaceDialog extends JDialog
 	if (pluginName==null) return;
 	
 	resetSearchResult();
-
 	updateParameterList(pluginName);
-	jTextFieldParameter.setText("");
 	jTextFieldNewValue.setText("");
+
 	if (!pluginName.equals("")) {
-	    jRadioButtonFromList.setEnabled(true);
-	    jRadioButtonFromTextField.setEnabled(true);
 	    jTextFieldNewValue.setEnabled(true);
 	    jButtonSearch.setEnabled(true);
-	    if (jRadioButtonFromList.isSelected())
-		jComboBoxParameter.setEnabled(true);
-	    else
-		jTextFieldParameter.setEnabled(true);
 	}
 	else {
-	    jRadioButtonFromList.setEnabled(false);
-	    jRadioButtonFromTextField.setEnabled(false);
-	    jComboBoxParameter.setEnabled(false);
-	    jTextFieldParameter.setEnabled(false);
 	    jTextFieldNewValue.setEnabled(false);
 	    jButtonSearch.setEnabled(false);
 	    jButtonReplace.setEnabled(false);
 	}
+	
+	jComboBoxParameter.requestFocusInWindow();
+	((JTextField)jComboBoxParameter.getEditor().getEditorComponent()).selectAll();
     }
     private void jComboBoxParameterActionPerformed(ActionEvent e)
     {
-	resetSearchResult();
+	search();
 	jTextFieldNewValue.setText("");
     }
-    private void jRadioButtonFromListActionPerformed(ActionEvent e)
-    {
-	setParameterInputField();
-    }
-    private void jRadioButtonFromTextFieldActionPerformed(ActionEvent e)
-    {
-	setParameterInputField();
-    }
-    private void jTextFieldParameterActionPerformed(ActionEvent e)
+    private void jComboBoxParameterInsertUpdate(DocumentEvent e)
     {
 	jTextFieldNewValue.setText("");
 	jButtonReplace.setEnabled(false);
+	if (!jTextFieldNewValue.isEnabled()) jTextFieldNewValue.setEnabled(true);
+	if (!jButtonSearch.isEnabled())      jButtonSearch.setEnabled(true);
 	resetSearchResult();
-	
-	JTextField jTextField    = (JTextField)e.getSource();
-	String     parameterName = jTextField.getText();
-	
-	if (parameterName.equals("")) {
-	    jTextFieldNewValue.setEnabled(false);
+    }
+    private void jComboBoxParameterRemoveUpdate(DocumentEvent e)
+    {
+	jTextFieldNewValue.setText("");
+	jButtonReplace.setEnabled(false);
+	try {
+	    String str = e.getDocument().getText(0,e.getDocument().getLength());
+	    if (str.equals("")) {
+		jTextFieldNewValue.setEnabled(false);
+		jButtonSearch.setEnabled(false);
+	    }
 	}
-	else {
-	    jTextFieldNewValue.setEnabled(true);
-	}
+	catch (Exception ex) {}
+	resetSearchResult();
     }
     private void jTextFieldNewValueActionPerformed(ActionEvent e)
     {
-	JTextField jTextField = (JTextField)e.getSource();
-	String     value      = jTextField.getText();
-	if (value.equals("")) jButtonReplace.setEnabled(false);
-	else   	              jButtonReplace.setEnabled(true);	    
+	searchAndReplace();
+    }
+    private void jTextFieldNewValueInsertUpdate(DocumentEvent e)
+    {
+	if (!jButtonReplace.isEnabled()) jButtonReplace.setEnabled(true);
+    }
+    private void jTextFieldNewValueRemoveUpdate(DocumentEvent e)
+    {
+	try {
+	    String str = e.getDocument().getText(0,e.getDocument().getLength());
+	    if (str.equals("")) jButtonReplace.setEnabled(false);
+	}
+	catch (Exception ex) {}
+    }
+    private void jButtonSelectActionPerformed(ActionEvent e)
+    {
+	DefaultListModel m = (DefaultListModel)jListSearchResult.getModel();
+	for (int i=0;i<m.getSize();i++) {
+	    Object elem = m.get(i);
+	    if (elem instanceof JCheckBox) {
+		JCheckBox cb = (JCheckBox)elem;
+		cb.setSelected(true);
+	    }
+	}
+	jListSearchResult.updateUI();
+    }
+    private void jButtonDeselectActionPerformed(ActionEvent e)
+    {
+	DefaultListModel m = (DefaultListModel)jListSearchResult.getModel();
+	for (int i=0;i<m.getSize();i++) {
+	    Object elem = m.get(i);
+	    if (elem instanceof JCheckBox) {
+		JCheckBox cb = (JCheckBox)elem;
+		cb.setSelected(false);
+	    }
+	}
+	jListSearchResult.updateUI();
     }
     private void jButtonSearchActionPerformed(ActionEvent e)
     {
@@ -415,136 +463,128 @@ public class SearchAndReplaceDialog extends JDialog
     }
     
     
-    private JPanel initComponents() {
-
+    /** initialize the GUI components of the dialog (generated with netbeans) */
+    private JPanel initComponents()
+    {
 	JPanel jPanel = new JPanel();
-        JPanel jPanelSpecs = new JPanel();
-        JLabel jLabelPluginType = new JLabel();
-        JLabel jLabelPlugin = new JLabel();
-        JLabel jLabelParameter = new JLabel();
-        JLabel jLabelNewValue = new JLabel();	
-        JScrollPane jScrollPaneSearchResult = new JScrollPane();
-	
 
-        jPanelSpecs.setBorder(BorderFactory.createTitledBorder("Search&Replace Specifications"));
+	JPanel      jPanelSpecs             = new JPanel();
+	JLabel      jLabelPluginType        = new JLabel();
+	JLabel      jLabelPlugin            = new JLabel();
+	JLabel      jLabelParameter         = new JLabel();
+	JLabel      jLabelNewValue          = new JLabel();	
+	JScrollPane jScrollPaneSearchResult = new JScrollPane();
+	
+        jPanelSpecs.setBorder(javax.swing.BorderFactory.createTitledBorder("Search&Replace Specifications"));
 
         jLabelPluginType.setText("Plugin Type:");
-	
-        jComboBoxPluginType.setModel(new DefaultComboBoxModel());
-
         jLabelPlugin.setText("Plugin:");
-
-        jComboBoxPlugin.setModel(new DefaultComboBoxModel());
-
         jLabelParameter.setText("Parameter:");
-
-        jComboBoxParameter.setModel(new DefaultComboBoxModel());
-
         jLabelNewValue.setText("New Value:");
+
+        jComboBoxPluginType.setModel(new javax.swing.DefaultComboBoxModel());
+        jComboBoxPlugin.setModel(new javax.swing.DefaultComboBoxModel());
+        jComboBoxParameter.setEditable(true);
+        jComboBoxParameter.setModel(new javax.swing.DefaultComboBoxModel());
 
         org.jdesktop.layout.GroupLayout jPanelSpecsLayout = new org.jdesktop.layout.GroupLayout(jPanelSpecs);
         jPanelSpecs.setLayout(jPanelSpecsLayout);
         jPanelSpecsLayout.setHorizontalGroup(
-					     jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-					     .add(jPanelSpecsLayout.createSequentialGroup()
-						  .add(jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-						       .add(jLabelPluginType)
-						       .add(jComboBoxPluginType, 0, 186, Short.MAX_VALUE))
-						  .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						  .add(jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-						       .add(jComboBoxPlugin, 0, 185, Short.MAX_VALUE)
-						       .add(jLabelPlugin))
-						  .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						  .add(jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-						       .add(jLabelParameter)
-						       .add(jPanelSpecsLayout.createSequentialGroup()
-							    .add(jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-								 .add(jRadioButtonFromList)
-								 .add(jRadioButtonFromTextField))
-							    .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-							    .add(jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-								 .add(jTextFieldParameter, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 179, Short.MAX_VALUE)
-								 .add(jComboBoxParameter, 0, 179, Short.MAX_VALUE))))
-						  .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						  .add(jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-						       .add(jLabelNewValue)
-						       .add(jTextFieldNewValue, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 189, Short.MAX_VALUE)))
-					     );
+            jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanelSpecsLayout.createSequentialGroup()
+                .add(jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jLabelPluginType)
+                    .add(jComboBoxPluginType, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 158, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .add(8, 8, 8)
+                .add(jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jLabelPlugin)
+                    .add(jComboBoxPlugin, 0, 312, Short.MAX_VALUE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jLabelParameter)
+                    .add(jComboBoxParameter, 0, 312, Short.MAX_VALUE)))
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanelSpecsLayout.createSequentialGroup()
+                .add(jLabelNewValue)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jTextFieldNewValue, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 716, Short.MAX_VALUE))
+        );
         jPanelSpecsLayout.setVerticalGroup(
-					   jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-					   .add(jPanelSpecsLayout.createSequentialGroup()
-						.add(20, 20, 20)
-						.add(jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-						     .add(jLabelPluginType)
-						     .add(jLabelPlugin)
-						     .add(jLabelParameter)
-						     .add(jLabelNewValue))
-						.add(8, 8, 8)
-						.add(jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE, false)
-						     .add(jComboBoxPlugin, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-						     .add(jPanelSpecsLayout.createSequentialGroup()
-							  .add(2, 2, 2)
-							  .add(jComboBoxParameter, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-						     .add(jRadioButtonFromList)
-						     .add(jPanelSpecsLayout.createSequentialGroup()
-							  .add(1, 1, 1)
-							  .add(jTextFieldNewValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-						     .add(jComboBoxPluginType, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-						.add(8, 8, 8)
-						.add(jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-						     .add(jRadioButtonFromTextField)
-						     .add(jTextFieldParameter, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-						.add(10, 10, 10))
-					   );
-	
-        jListSearchResult.setModel(new DefaultListModel());
+            jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanelSpecsLayout.createSequentialGroup()
+                .add(20, 20, 20)
+                .add(jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jLabelPluginType)
+                    .add(jLabelPlugin)
+                    .add(jLabelParameter))
+                .add(8, 8, 8)
+                .add(jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.CENTER)
+                    .add(jComboBoxPluginType, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(jComboBoxPlugin, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(jComboBoxParameter, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .add(8, 8, 8)
+                .add(jPanelSpecsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jTextFieldNewValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(jLabelNewValue))
+                .addContainerGap())
+        );
+
+        jPanelSpecsLayout.linkSize(new java.awt.Component[] {jComboBoxParameter, jComboBoxPlugin, jComboBoxPluginType, jTextFieldNewValue}, org.jdesktop.layout.GroupLayout.VERTICAL);
+
+        jListSearchResult.setModel(new javax.swing.DefaultListModel());
         jScrollPaneSearchResult.setViewportView(jListSearchResult);
-	
+
         jButtonOk.setText("OK");
         jButtonReplace.setText("Replace");
         jButtonSearch.setText("Search");
+        jButtonSelect.setText("Select All");
+        jButtonDeselect.setText("Deselect All");
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanel);
         jPanel.setLayout(layout);
         layout.setHorizontalGroup(
-				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				  .add(layout.createSequentialGroup()
-				       .addContainerGap()
-				       .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-					    .add(jPanelSpecs, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-						 .add(jScrollPaneSearchResult, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 701, Short.MAX_VALUE)
-						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-						      .add(jButtonSearch)
-						      .add(jButtonReplace)
-						      .add(jButtonOk))))
-				       .addContainerGap())
-				  );
-	
-        layout.linkSize(new java.awt.Component[] {jButtonOk, jButtonReplace, jButtonSearch}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
-	
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
+                .addContainerGap()
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(layout.createSequentialGroup()
+                        .add(jPanelSpecs, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .add(3, 3, 3))
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                        .add(jScrollPaneSearchResult, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 686, Short.MAX_VALUE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING, false)
+                            .add(jButtonSelect, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .add(org.jdesktop.layout.GroupLayout.LEADING, jButtonDeselect, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .add(org.jdesktop.layout.GroupLayout.LEADING, jButtonSearch, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .add(org.jdesktop.layout.GroupLayout.LEADING, jButtonReplace, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .add(org.jdesktop.layout.GroupLayout.LEADING, jButtonOk, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addContainerGap())
+        );
         layout.setVerticalGroup(
-				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				.add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-				     .add(20, 20, 20)
-				     .add(jPanelSpecs, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 147, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-				     .add(13, 13, 13)
-				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-					  .add(layout.createSequentialGroup()
-					       .add(jButtonSearch)
-					       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-					       .add(jButtonReplace)
-					       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-					       .add(jButtonOk))
-					  .add(jScrollPaneSearchResult, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 270, Short.MAX_VALUE))
-				     .addContainerGap())
-				);
-	
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                .add(20, 20, 20)
+                .add(jPanelSpecs, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .add(13, 13, 13)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+                    .add(layout.createSequentialGroup()
+                        .add(jButtonSelect)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jButtonDeselect)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 113, Short.MAX_VALUE)
+                        .add(jButtonSearch)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jButtonReplace)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jButtonOk))
+                    .add(jScrollPaneSearchResult, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 270, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+
 	return jPanel;
     }
- 
 
+    
     //
     // classes
     //
