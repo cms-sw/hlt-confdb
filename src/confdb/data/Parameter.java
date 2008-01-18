@@ -1,6 +1,10 @@
 package confdb.data;
 
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
+
 /**
  * Parameter
  * ---------
@@ -138,4 +142,28 @@ abstract public class Parameter implements Comparable<Parameter>
 	}
 	return result.toString();
     }
+
+    
+    //
+    // static member functions
+    //
+    
+    /** static function to retrieve parameters recursively, given an iterator */
+    public static void getParameters(Iterator<Parameter> itParam,
+				     ArrayList<Parameter> params)
+    {
+	while (itParam.hasNext()) {
+	    Parameter param = itParam.next();
+	    params.add(param);
+	    if (param instanceof PSetParameter) {
+		PSetParameter pset = (PSetParameter)param;
+		getParameters(pset.parameterIterator(),params);
+	    }
+	    else if (param instanceof VPSetParameter) {
+		VPSetParameter vpset = (VPSetParameter)param;
+		getParameters(vpset.parameterIterator(),params);
+	    }
+	}
+    }
+    
 }

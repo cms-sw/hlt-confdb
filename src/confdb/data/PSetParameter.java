@@ -200,6 +200,14 @@ public class PSetParameter extends Parameter
     /** get iterator over all parameters */
     public Iterator<Parameter> parameterIterator() { return parameters.iterator(); }
 
+    /** recursively retrieve parameters to all levels */
+    public Iterator<Parameter> recursiveParameterIterator()
+    {
+	ArrayList<Parameter> params = new ArrayList<Parameter>();
+	getParameters(parameterIterator(),params);
+	return params.iterator();
+    }
+    
     /** index of a certain parameter */
     public int indexOfParameter(Parameter p) { return parameters.indexOf(p); }
 

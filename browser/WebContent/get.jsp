@@ -7,7 +7,7 @@
 <%@page import="java.util.HashMap"%>
 <%@page contentType="text/plain"%>
 <%
-	out.clearBuffer();
+        out.clearBuffer();
 	Map<String,String[]> map = request.getParameterMap();
 	if ( map.isEmpty())
 	{

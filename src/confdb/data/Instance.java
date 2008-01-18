@@ -92,7 +92,7 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
     public Iterator<Parameter> recursiveParameterIterator()
     {
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
-	getParameters(parameterIterator(),params);
+	Parameter.getParameters(parameterIterator(),params);
 	return params.iterator();
     }
 
@@ -146,14 +146,17 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
     public void setConfiguration(IConfiguration config) { this.config = config; }
 
     /** update a parameter when the value is changed */
-    public void updateParameter(int index,String valueAsString)
+    public boolean updateParameter(int index,String valueAsString)
     {
 	String  oldValueAsString = parameter(index).valueAsString();
-	if (valueAsString.equals(oldValueAsString)) return;
+	if (valueAsString.equals(oldValueAsString)) return true;
 	
 	String  defaultAsString  = template.parameter(index).valueAsString();
-	parameter(index).setValue(valueAsString,defaultAsString);
-	setHasChanged();
+	if (parameter(index).setValue(valueAsString,defaultAsString)) {
+	    setHasChanged();
+	    return true;
+	}
+	return false;
     }
     
     /** update a parameter when the value is changed */
@@ -174,10 +177,8 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 	    }
 	    
 	    int index = indexOfParameter(param);
-	    if (index>=0) {
-		updateParameter(index,valueAsString);
-		return true;
-	    }
+	    if (index>=0) return updateParameter(index,valueAsString);
+	    
 	    String a[] = param.fullName().split("::");
 	    if (a.length>1) {
 		String b[] = a[0].split("\\[");
@@ -187,10 +188,12 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 		    param.setValue(valueAsString,"");
 		    String defaultAsString =
 			template.parameter(parentIndex).valueAsString();
-		    parentParam.setValue(parentParam.valueAsString(),
-					 defaultAsString);
-		    setHasChanged();
-		    return true;
+		    if (parentParam.setValue(parentParam.valueAsString(),
+					     defaultAsString)) {
+			setHasChanged();
+			return true;
+		    }
+		    return false;
 		}
 	    }
 	}
@@ -250,29 +253,5 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 	}
 	return result;
     }
-    
-    //
-    // private member functions
-    //
-    
-    /** needed to retrieve parameters to all levels recursively */
-    private void getParameters(Iterator<Parameter> itParam,
-			       ArrayList<Parameter> params)
-    {
-	while (itParam.hasNext()) {
-	    Parameter param = itParam.next();
-	    params.add(param);
-	    if (param instanceof PSetParameter) {
-		PSetParameter pset = (PSetParameter)param;
-		getParameters(pset.parameterIterator(),params);
-	    }
-	    else if (param instanceof VPSetParameter) {
-		VPSetParameter vpset = (VPSetParameter)param;
-		getParameters(vpset.parameterIterator(),params);
-	    }
-	}
-    }
-    
-
 
 }

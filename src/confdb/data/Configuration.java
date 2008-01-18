@@ -458,6 +458,14 @@ public class Configuration implements IConfiguration
     /** get i-th global PSet */
     public PSetParameter pset(int i) { return psets.get(i); }
 
+    /** get global pset by name */
+    public PSetParameter pset(String name)
+    {
+	for (PSetParameter pset : psets)
+	    if (pset.name().equals(name)) return pset;
+	return null;
+    }
+
     /** index of a certain global PSet */
     public int indexOfPSet(PSetParameter pset)
     {
@@ -494,6 +502,14 @@ public class Configuration implements IConfiguration
 
     /** get i-th EDSource */
     public EDSourceInstance edsource(int i) { return edsources.get(i); }
+
+    /** get EDSource by name */
+    public EDSourceInstance edsource(String name)
+    {
+	for (EDSourceInstance eds : edsources)
+	    if (eds.name().equals(name)) return eds;
+	return null;
+    }
 
     /** index of a certain EDSource */
     public int indexOfEDSource(EDSourceInstance edsource)
@@ -553,6 +569,14 @@ public class Configuration implements IConfiguration
     /** get i-th ESSource */
     public ESSourceInstance essource(int i) { return essources.get(i); }
 
+    /** get ESSource by name */
+    public ESSourceInstance essource(String name)
+    {
+	for (ESSourceInstance ess : essources)
+	    if (ess.name().equals(name)) return ess;
+	return null;
+    }
+
     /** index of a certain ESSource */
     public int indexOfESSource(ESSourceInstance essource)
     {
@@ -611,6 +635,14 @@ public class Configuration implements IConfiguration
     /** get i-th ESModule */
     public ESModuleInstance esmodule(int i) { return esmodules.get(i); }
     
+    /** get ESModule by name */
+    public ESModuleInstance esmodule(String name)
+    {
+	for (ESModuleInstance esm : esmodules)
+	    if (esm.name().equals(name)) return esm;
+	return null;
+    }
+
     /** index of a certain ESSource */
     public int indexOfESModule(ESModuleInstance esmodule)
     {
@@ -670,6 +702,14 @@ public class Configuration implements IConfiguration
     /** get i-th Service */
     public ServiceInstance service(int i) { return services.get(i); }
 
+    /** get Service by name */
+    public ServiceInstance service(String name)
+    {
+	for (ServiceInstance svc : services)
+	    if (svc.name().equals(name)) return svc;
+	return null;
+    }
+    
     /** index of a certain Service */
     public int indexOfService(ServiceInstance service)
     {
@@ -820,12 +860,8 @@ public class Configuration implements IConfiguration
     /** get Path by name*/
     public Path path(String pathName)
     {
-	Iterator<Path> it = paths.iterator();
-	while (it.hasNext()) {
-	    Path p = it.next();
+	for (Path p : paths)
 	    if (p.name().equals(pathName)) return p;
-	}
-	System.err.println("ERROR: path '"+pathName+"' not found.");
 	return null;
     }
 
@@ -924,12 +960,8 @@ public class Configuration implements IConfiguration
     /** get Sequence by name*/
     public Sequence sequence(String sequenceName)
     {
-	Iterator<Sequence> it = sequences.iterator();
-	while (it.hasNext()) {
-	    Sequence s = (Sequence)it.next();
+	for (Sequence s : sequences)
 	    if (s.name().equals(sequenceName)) return s;
-	}
-	System.err.println("ERROR: sequence '"+sequenceName+"' not found.");
 	return null;
     }
     
@@ -1022,7 +1054,6 @@ public class Configuration implements IConfiguration
     {
 	for (Stream s : streams)
 	    if (s.label().equals(streamLabel)) return s;
-	System.err.println("ERROR: stream '"+streamLabel+"' not found.");
 	return null;
     }
 

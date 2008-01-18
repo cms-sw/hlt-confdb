@@ -321,13 +321,16 @@ public class SearchAndReplaceDialog extends JDialog
 		    if (instance.updateParameter(fullParamName,
 						 paramType,
 						 paramValue)) {
+			String valueAsString =
+			    instance.findParameters(fullParamName,
+						    paramType)[0].valueAsString();
 			String newText =
 			    "<html>"+
 			    "<b>"+template.name()+"."+instance.name()+"</b> "+
 			    "<font color=#0000ff>"+paramType+"</font> "+
 			    fullParamName+" "+
 			    "(new value: "+
-			    "<font color=#00ff00>"+paramValue+"</font>)"+
+			    "<font color=#00ff00>"+valueAsString+"</font>)"+
 			    "</html>";
 			m.set(i,new JCheckBox(newText,true));
 		    }

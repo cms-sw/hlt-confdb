@@ -165,6 +165,14 @@ public class VPSetParameter extends Parameter
 	return params.iterator();
     }
 
+    /** recursively retrieve parameters to all levels */
+    public Iterator<Parameter> recursiveParameterIterator()
+    {
+	ArrayList<Parameter> params = new ArrayList<Parameter>();
+	getParameters(parameterIterator(),params);
+	return params.iterator();
+    }
+
     /** index of a certain parameter set */
     public int indexOfParameterSet(PSetParameter pset)
     {

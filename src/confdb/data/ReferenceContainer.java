@@ -137,6 +137,14 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     /** retrieve i-th entry*/
     public Reference entry(int i) { return entries.get(i); }
     
+    /** retrieve reference by name */
+    public Reference entry(String name)
+    {
+	for (Reference e : entries)
+	    if (e.name().equals(name)) return e;
+	return null;
+    }
+
     /** index of a certain entry */
     public int indexOfEntry(Reference reference)
     {
