@@ -24,18 +24,6 @@ public class TreeTableTableModel extends AbstractTableModel
     /** reference to that tree's TreeModel */
     private AbstractTreeTableTreeModel treeModel = null;
 
-    /** reference to the last node changed node */
-    private Object changedNode = null;
-    
-    /** reference to the last node removed/inserted (child of changedNode!) */
-    private Object childNode = null;
-    
-    /** >=0 if a child was removed from 'changedNode' */
-    private int childIndex = -1;
-
-    /** type of change: CHANGE, INSERT, REMOVE */
-    private String typeOfChange = "";
-
 
     //
     // construction
@@ -63,44 +51,21 @@ public class TreeTableTableModel extends AbstractTableModel
 	    {
 		public void treeNodesChanged(TreeModelEvent e)
 		{
-		    changedNode  = e.getChildren()[0];
-		    childNode    = null;
-		    typeOfChange = "CHANGE";
 		    delayedFireTableDataChanged();
 		}
 		
 		public void treeNodesInserted(TreeModelEvent e)
 		{
-		    if (TreeTableTableModel.this.treeModel.nextFromListener()) {
-			changedNode  = null;
-			childNode    = null;
-			childIndex   = -1;
-			typeOfChange = "";
-		    }
-		    else {
-			changedNode  = e.getTreePath().getLastPathComponent();
-			childNode    = e.getChildren()[0];
-			childIndex   =  e.getChildIndices()[0];
-			typeOfChange = "INSERT";
-		    }
 		    delayedFireTableDataChanged();
 		}
 		
 		public void treeNodesRemoved(TreeModelEvent e)
 		{
-		    changedNode  = e.getTreePath().getLastPathComponent();
-		    childNode    = e.getChildren()[0];
-		    childIndex   = e.getChildIndices()[0];
-		    typeOfChange = "REMOVE";
 		    delayedFireTableDataChanged();
 		}
 		
 		public void treeStructureChanged(TreeModelEvent e)
 		{
-		    changedNode = null;
-		    childNode   = null;
-		    childIndex  = -1;
-		    typeOfChange = "STRUCTURE";
 		    delayedFireTableDataChanged();
 		}
 	    });
@@ -113,18 +78,6 @@ public class TreeTableTableModel extends AbstractTableModel
     // member functions
     //
 
-    /** get last changed node */
-    public Object changedNode() { return changedNode; }
-
-    /** get last child node (child of changedNode, removed or inserted) */
-    public Object childNode() { return childNode; }
-
-    /** get index of the last child node */
-    public int childIndex() { return childIndex; }
-
-    /** get type of last change */
-    public String typeOfChange() { return typeOfChange; }
-
     /** convert the table row into the respective tree node */
     public Object nodeForRow(int row)
     {
@@ -132,47 +85,48 @@ public class TreeTableTableModel extends AbstractTableModel
 	return treePath.getLastPathComponent();
     }
     
-    /** TableModel interface */
+    /** TableModel::getColumnCount() */
     public int getColumnCount() { return treeModel.getColumnCount(); }
     
+    /** TableModel::getColumnName() */
     public String getColumnName(int column)
     {
 	return treeModel.getColumnName(column);
     }
     
-    public Class  getColumnClass(int column)
+    /** TableModel::getColumnClass() */
+    public Class getColumnClass(int column)
     {
 	return treeModel.getColumnClass(column);
     }
 
+    /** TableModel::getRowCount() */
     public int getRowCount() { return tree.getRowCount(); }
 
+    /** TableModel::getValueAt() */
     public Object getValueAt(int row,int column)
     {
 	return treeModel.getValueAt(nodeForRow(row),column);
     }
 
+    /** TableMode::isCellEditable() */
     public boolean isCellEditable(int row,int column)
     {
 	if (!tree.isEditable()) return false;
 	return treeModel.isCellEditable(nodeForRow(row),column);
     }
-
+    
+    /** TableModel::setValueAt() */
     public void setValueAt(Object value,int row,int column)
     {
 	treeModel.setValueAt(value, nodeForRow(row), column);
-	changedNode = nodeForRow(row);
     }
     
     /** notify table model of changes *after* pending events have been processed */
     protected void delayedFireTableDataChanged()
     {
-	SwingUtilities.invokeLater(new Runnable()
-	    { 
-		public void run()
-		{
-		    fireTableDataChanged();
-		}
+	SwingUtilities.invokeLater(new Runnable() { 
+		public void run() { fireTableDataChanged(); }
 	    });
     }
 

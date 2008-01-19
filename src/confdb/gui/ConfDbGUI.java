@@ -302,9 +302,7 @@ public class ConfDbGUI
 		    public void treeNodesRemoved(TreeModelEvent e) {
 			jTreeStreamsTreeNodesRemoved(e);
 		    }
-		    public void treeStructureChanged(TreeModelEvent e) {
-			jTreeStreamsTreeStructureChanged(e);
-		    }
+		    public void treeStructureChanged(TreeModelEvent e) {}
 		});
 	jTreeStreams.addTreeSelectionListener(new TreeSelectionListener() {
 		public void valueChanged(TreeSelectionEvent e) {
@@ -313,12 +311,18 @@ public class ConfDbGUI
 	    });
 	// jTablePrescales
 	jTreeTableParameters.
-	    getModel().addTableModelListener(new TableModelListener() {
-		    public void tableChanged(TableModelEvent e) {
-			jTreeTableParametersTableChanged(e);
+	    getTree().getModel().addTreeModelListener(new TreeModelListener() {
+		    public void treeNodesChanged(TreeModelEvent e) {
+			jTreeTableParametersTreeNodesChanged(e);
 		    }
+		    public void treeNodesInserted(TreeModelEvent e) {
+			jTreeTableParametersTreeNodesInserted(e);
+		    }
+		    public void treeNodesRemoved(TreeModelEvent e) {
+			jTreeTableParametersTreeNodesRemoved(e);
+		    }
+		    public void treeStructureChanged(TreeModelEvent e) {}
 		});
-	
 	((BasicSplitPaneDivider)((BasicSplitPaneUI)jSplitPaneRight.
 				 getUI()).getDivider()).
 	    addComponentListener(new ComponentListener() {
@@ -1967,9 +1971,45 @@ public class ConfDbGUI
 	}
 	currentConfig.setHasChanged(true);
     }
-    private void jTreeStreamsTreeStructureChanged(TreeModelEvent e) {}
+    private void jTreeTableParametersTreeNodesChanged(TreeModelEvent e)
+    {
+	//System.out.println("jTreeTableParametersTreeNodesChanged()");
+	Object changedNode = e.getChildren()[0];
+	if (changedNode instanceof Parameter) {
+	    Parameter p = (Parameter)changedNode;
+	    treeModelCurrentConfig.nodeChanged(p);
+	    treeModelCurrentConfig.updateLevel1Nodes();
+	    Instance parentInstance = p.getParentInstance();
+	    if (parentInstance==null) currentConfig.setHasChanged(true);
+	    else if (parentInstance instanceof ModuleInstance)
+		jTreeCurrentConfig.updateUI();
+	}
+    }
+    private void jTreeTableParametersTreeNodesInserted(TreeModelEvent e)
+    {
+	Object parentNode = e.getTreePath().getLastPathComponent();
+	int    childIndex = e.getChildIndices()[0];
+	treeModelCurrentConfig.nodeInserted(parentNode,childIndex);
+	treeModelCurrentConfig.updateLevel1Nodes();
+	Instance parentInstance = ((Parameter)parentNode).getParentInstance();
+	if (parentInstance==null) currentConfig.setHasChanged(true);
+	else if (parentInstance instanceof ModuleInstance)
+	    jTreeCurrentConfig.updateUI();
+    }
+    private void jTreeTableParametersTreeNodesRemoved(TreeModelEvent e)
+    {
+	Object parentNode = e.getTreePath().getLastPathComponent();
+	Object childNode  = e.getChildren()[0];
+	int    childIndex = e.getChildIndices()[0];
+	treeModelCurrentConfig.nodeRemoved(parentNode,childIndex,childNode);
+	treeModelCurrentConfig.updateLevel1Nodes();
+	Instance parentInstance = ((Parameter)parentNode).getParentInstance();
+	if (parentInstance==null) currentConfig.setHasChanged(true);
+	else if (parentInstance instanceof ModuleInstance)
+	    jTreeCurrentConfig.updateUI();
+    }
     
-
+    
 
     //
     // TREESELECTIONLISTENER CALLBACKS
@@ -2036,43 +2076,6 @@ public class ConfDbGUI
 	else {
 	    jButtonAddStream.setEnabled(true);
 	    jButtonDeleteStream.setEnabled(false);
-	}
-    }
-    
-    
-    //
-    // TABLEMODELLISTENER CALLBACKS
-    //
-    
-    private void jTreeTableParametersTableChanged(TableModelEvent e)
-    {
-	Object source = e.getSource();
-	if (source instanceof TreeTableTableModel) {
-	    TreeTableTableModel tableModel = (TreeTableTableModel)source;
-
-	    Parameter node         = (Parameter)tableModel.changedNode();
-	    Object    childNode    = tableModel.childNode();
-	    int       childIndex   = tableModel.childIndex();
-	    String    typeOfChange = tableModel.typeOfChange();
-	    
-	    if (node!=null) {
-		Object parent = node.parent();
-		while (parent instanceof Parameter) {
-		    Parameter p = (Parameter)parent;
-		    parent = p.parent();
-		}
-		
-		if (childNode==null)
-		    treeModelCurrentConfig.nodeChanged(node);
-		else if (typeOfChange.equals("REMOVE"))
-		    treeModelCurrentConfig.nodeRemoved(node,childIndex,childNode);
-		else if (typeOfChange.equals("INSERT"))
-		    treeModelCurrentConfig.nodeInserted(node,childIndex);
-		
-		if (parent instanceof ModuleInstance) jTreeCurrentConfig.updateUI();
-		treeModelCurrentConfig.updateLevel1Nodes();
-		currentConfig.setHasChanged(true); // needed for global psets!
-	    }
 	}
     }
     

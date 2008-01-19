@@ -93,10 +93,8 @@ public class ConfigurationTreeActions
 	}
 	
 	// notify the parameter tree model (parameter tree table)
-	if (parameterTreeModel!=null) {
-	    parameterTreeModel.setNextFromListener();
+	if (parameterTreeModel!=null)
 	    parameterTreeModel.nodeInserted(parent,index);
-	}
 	
 	// notify the parent component that is has changed
 	while (parentOfPSet != null) {
