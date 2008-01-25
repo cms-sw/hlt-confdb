@@ -66,7 +66,15 @@ public class ConfigurationModifier implements IConfiguration
     }
     
     /** replace current OutputModules with ShmStreamConsumer */
-    public void insertShmStreamConsumer() { modifications.insertShmStreamConsumer();}
+    public void insertShmStreamConsumer()
+    {
+	Iterator<ModuleInstance> itM = moduleIterator();
+	while (itM.hasNext()) {
+	    ModuleInstance module = itM.next();
+	    if (module.template().name().equals("ShmStreamConsumer")) return;
+	}
+	modifications.insertShmStreamConsumer();
+    }
 
     /** replace current OutputModules with PoolOutputModules */
     public void insertPoolOutputModule(String fileName)

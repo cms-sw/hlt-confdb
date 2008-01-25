@@ -1,7 +1,9 @@
 package confdb.migrator;
 
 import confdb.data.*;
+
 import confdb.db.ConfDB;
+import confdb.db.DatabaseException;
 
 
 /**
@@ -53,31 +55,35 @@ public class DatabaseMigrator
     //
     
     /** migrate the configuration from sourceDB to targetDB */
-    public boolean migrate(String targetName,Directory targetDir)
+    public void migrate(String targetName,Directory targetDir)
+	throws MigratorException
     {
 	SoftwareRelease sourceRelease = sourceConfig.release();
 	SoftwareRelease targetRelease = new SoftwareRelease();
 	String          releaseTag    = sourceRelease.releaseTag();
 	String          creator       = System.getProperty("user.name");
 	
-	if (!targetDB.hasSoftwareRelease(releaseTag)) return false;
-	targetDB.loadSoftwareRelease(releaseTag,targetRelease);
-	
-	ConfigInfo targetConfigInfo = new ConfigInfo(targetName,targetDir,releaseTag);
-	targetConfig = new Configuration(targetConfigInfo,targetRelease);
-	
-	releaseMigrator = new ReleaseMigrator(sourceConfig,targetConfig);
-	releaseMigrator.migrate();
-	
-	if (!targetDB.insertConfiguration(targetConfig,
-					  creator,
-					  sourceConfig.processName(),
-					  "imported from external database."))
-	    return false;
-	
-	return true;
+	try {
+	    targetDB.loadSoftwareRelease(releaseTag,targetRelease);
+	    ConfigInfo targetConfigInfo = new ConfigInfo(targetName,targetDir,
+							 releaseTag);
+	    targetConfig = new Configuration(targetConfigInfo,targetRelease);
+	    
+	    releaseMigrator = new ReleaseMigrator(sourceConfig,targetConfig);
+	    releaseMigrator.migrate();
+	    targetDB.insertConfiguration(targetConfig,
+					 creator,
+					 sourceConfig.processName(),
+					 "imported from external database.");
+	}
+	catch (DatabaseException e) {
+	    String errMsg =
+		"DatabaseMigrator::migrate(targetName="+targetName+
+		",targetDir="+targetDir.name()+") failed.";
+	    throw new MigratorException(errMsg,e);
+	}
     }
-
+    
     /** retrieve the release-migrator */
     public ReleaseMigrator releaseMigrator() { return releaseMigrator; }
     

@@ -24,6 +24,7 @@ import confdb.db.DatabaseException;
 
 import confdb.migrator.DatabaseMigrator;
 import confdb.migrator.ReleaseMigrator;
+import confdb.migrator.MigratorException;
 
 import confdb.parser.PythonParser;
 import confdb.parser.ParserException;
@@ -510,8 +511,10 @@ public class ConfDbGUI
 	    if (answer==1) return false;
 	}
 	
-	if (!currentConfig.isLocked()&&currentConfig.version()>0)
-	    database.unlockConfiguration(currentConfig);
+	if (!currentConfig.isLocked()&&currentConfig.version()>0) {
+	    try { database.unlockConfiguration(currentConfig); }
+	    catch (DatabaseException e) { System.err.println(e.getMessage()); }
+	}
 
 	resetConfiguration();
 	
@@ -528,7 +531,10 @@ public class ConfDbGUI
 	    saveAsConfiguration();
 	    return;
 	}
-	else database.unlockConfiguration(currentConfig);
+	else {
+	    try { database.unlockConfiguration(currentConfig); }
+	    catch (DatabaseException e) { System.err.println(e.getMessage()); }
+	}
 	
 	String processName = jTextFieldProcess.getText();
 	String comment = "";
@@ -542,7 +548,8 @@ public class ConfDbGUI
 				 JOptionPane.PLAIN_MESSAGE,
 				 null,null,"");
 	    if (comment==null) {
-		database.lockConfiguration(currentConfig,userName);
+		try { database.lockConfiguration(currentConfig,userName); }
+		catch (DatabaseException e) { System.err.println(e.getMessage()); }
 		return;
 	    }
 	}
@@ -561,8 +568,10 @@ public class ConfDbGUI
 	if (!checkConfiguration()) return;
 	
 	boolean isLocked = currentConfig.isLocked();
-	if (currentConfig.version()!=0&&!isLocked)
-	    database.unlockConfiguration(currentConfig);
+	if (currentConfig.version()!=0&&!isLocked) {
+	    try { database.unlockConfiguration(currentConfig); }
+	    catch (DatabaseException e) { System.err.println(e.getMessage()); }
+	}
 	
 	String processName = jTextFieldProcess.getText();
 	String comment = (currentConfig.version()==0) ?
@@ -582,8 +591,10 @@ public class ConfDbGUI
 	    jProgressBar.setString("Save Configuration ...");
 	    jProgressBar.setVisible(true);
 	}
-	else if (currentConfig.version()!=0&&!isLocked)
-	    database.lockConfiguration(currentConfig,userName);
+	else if (currentConfig.version()!=0&&!isLocked) {
+	    try { database.lockConfiguration(currentConfig,userName); }
+	    catch (DatabaseException e) { System.err.println(e.getMessage()); }
+	}
     }
     
     /** one another configuration to import components */
@@ -893,11 +904,12 @@ public class ConfDbGUI
 	}
 	
 	/** SwingWorker: construct() */
-	protected String construct() throws InterruptedException
+	protected String construct() throws DatabaseException, MigratorException
 	{
 	    startTime = System.currentTimeMillis();
 	    migrator = new DatabaseMigrator(currentConfig,database,targetDB);
 	    migrator.migrate(targetName,targetDir);
+	    targetDB.disconnect();
 	    return new String("Done!");
 	}
 	
@@ -905,10 +917,9 @@ public class ConfDbGUI
 	protected void finished()
 	{
 	    try {
-		targetDB.disconnect();
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		jProgressBar.setString(jProgressBar.getString() +
-				      get() + " (" + elapsedTime + " ms)");
+		jProgressBar.setString(jProgressBar.getString()+get()+" ("+
+				       elapsedTime+" ms)");
 		MigrationReportDialog dialog =
 		    new MigrationReportDialog(frame,migrator.releaseMigrator());
 		dialog.setTitle("Configuration Export Report");
@@ -916,8 +927,15 @@ public class ConfDbGUI
 		dialog.setLocationRelativeTo(frame);
 		dialog.setVisible(true);
 	    }
+	    catch (ExecutionException e) {
+		String errMsg =
+		    "Export Configuration FAILED:\n"+e.getCause().getMessage();
+		JOptionPane.showMessageDialog(frame,errMsg,
+					      "Export Configuration failed",
+					      JOptionPane.ERROR_MESSAGE,null);
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+	    }
 	    catch (Exception e) {
-		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
 		jProgressBar.setString(jProgressBar.getString() + "FAILED!");	
 	    }
@@ -944,14 +962,14 @@ public class ConfDbGUI
 	}
 	
 	/** SwingWorker: construct() */
-	protected String construct() throws InterruptedException
+	protected String construct() throws DatabaseException
 	{
 	    startTime = System.currentTimeMillis();
 	    if (!releaseTag.equals(currentRelease.releaseTag()))
 		database.loadSoftwareRelease(releaseTag,currentRelease);
 	    return new String("Done!");
 	}
-	
+	    
 	/** SwingWorker: finished */
 	protected void finished()
 	{
@@ -962,16 +980,22 @@ public class ConfDbGUI
 		setCurrentConfig(config);
 		jTextFieldProcess.setText(process);
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		jProgressBar.setString(jProgressBar.getString() +
-				      get() + " (" + elapsedTime + " ms)");
+		jProgressBar.setString(jProgressBar.getString()+get()+
+				       " ("+elapsedTime+" ms)");
 	    }
+	    catch (ExecutionException e) {
+		String errMsg =
+		    "New Configuration FAILED:\n"+e.getCause().getMessage();
+		JOptionPane.showMessageDialog(frame,errMsg,
+					      "New Configuration failed",
+					      JOptionPane.ERROR_MESSAGE,null);
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+	    } 
 	    catch (Exception e) {
-		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		jProgressBar.setString(jProgressBar.getString() + "FAILED!");	
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");	
 	    }
 	    jProgressBar.setIndeterminate(false);
-
 	    jTreeCurrentConfig.setEditable(true);
 	    jTreeTableParameters.getTree().setEditable(true);
 	}
@@ -994,26 +1018,17 @@ public class ConfDbGUI
 	}
 	
 	/** SwingWorker: construct() */
-	protected String construct() throws InterruptedException
+	protected String construct() throws DatabaseException,ParserException
 	{
 	    startTime = System.currentTimeMillis();
 	    if (!releaseTag.equals(currentRelease.releaseTag()))
 		database.loadSoftwareRelease(releaseTag,currentRelease);
-
-	    try {
-		PythonParser parser = new PythonParser(currentRelease);
-		parser.parseFile(fileName);
-		setCurrentConfig(parser.createConfiguration());
-		if (parser.closeProblemStream())
-		    System.out.println("problems encountered, " +
-				       "see problems.txt.");
-	    }
-	    catch (ParserException e) {
-		System.err.println("Error parsing "+fileName+": "+
-				   e.getMessage());
-		return new String("FAILED!");
-	    }
-	    
+	    PythonParser parser = new PythonParser(currentRelease);
+	    parser.parseFile(fileName);
+	    setCurrentConfig(parser.createConfiguration());
+	    if (parser.closeProblemStream())
+		System.out.println("problems encountered, " +
+				   "see problems.txt.");
 	    return new String("Done!");
 	}
 	
@@ -1022,16 +1037,22 @@ public class ConfDbGUI
 	{
 	    try {
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		jProgressBar.setString(jProgressBar.getString() +
-				      get() + " (" + elapsedTime + " ms)");
+		jProgressBar.setString(jProgressBar.getString()+get()+
+				       " ("+elapsedTime+" ms)");
 	    }
+	    catch (ExecutionException e) {
+		String errMsg =
+		    "Parse Configuration FAILED:\n"+e.getCause().getMessage();
+		JOptionPane.showMessageDialog(frame,errMsg,
+					      "Parse Configuration failed",
+					      JOptionPane.ERROR_MESSAGE,null);
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+	    } 
 	    catch (Exception e) {
-		System.err.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		jProgressBar.setString(jProgressBar.getString() + "FAILED!");	
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");	
 	    }
 	    jProgressBar.setIndeterminate(false);
-
 	    jTreeCurrentConfig.setEditable(true);
 	    jTreeTableParameters.getTree().setEditable(true);
 	}
@@ -1052,10 +1073,12 @@ public class ConfDbGUI
 	}
 	
 	/** SwingWorker: construct() */
-	protected String construct() throws InterruptedException
+	protected String construct() throws DatabaseException
 	{
 	    startTime = System.currentTimeMillis();
-	    setCurrentConfig(database.loadConfiguration(configInfo,currentRelease));
+	    Configuration config = database.loadConfiguration(configInfo,
+							      currentRelease);
+	    setCurrentConfig(config);
 	    return new String("Done!");
 	}
 	
@@ -1065,17 +1088,19 @@ public class ConfDbGUI
 	    try {
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		jProgressBar.setString(jProgressBar.getString() +
-				      get() + " (" + elapsedTime + " ms)");
-	    
+				       get() + " (" + elapsedTime + " ms)");
 	    }
 	    catch (ExecutionException e) {
-		System.out.println("EXECUTION-EXCEPTION: "+ e.getCause());
-		e.printStackTrace();
-	    }
+		String errMsg =
+		    "Open Configuration FAILED:\n"+e.getCause().getMessage();
+		JOptionPane.showMessageDialog(frame,errMsg,
+					      "Open Configuration failed",
+					      JOptionPane.ERROR_MESSAGE,null);
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+	    } 
 	    catch (Exception e) {
-		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		jProgressBar.setString(jProgressBar.getString() + "FAILED!");
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
 	    }
 	    jProgressBar.setIndeterminate(false);
 
@@ -1083,12 +1108,9 @@ public class ConfDbGUI
 		jTreeCurrentConfig.setEditable(false);
 		jTreeTableParameters.getTree().setEditable(false);
 		String msg =
-		    "The configuration '" +
-		    currentConfig.parentDir().name() + "/" +
-		    currentConfig.name() + " is locked by user '" +
-		    currentConfig.lockedByUser() + "'!\n" +
-		    "You can't manipulate any of its versions " +
-		    "until it is released.";
+		    "The configuration '"+currentConfig.toString()+
+		    " is locked by user '"+currentConfig.lockedByUser()+"'!\n"+
+		    "You can't manipulate it until it is released.";
 		JOptionPane.showMessageDialog(frame,msg,"READ ONLY!",
 					      JOptionPane.WARNING_MESSAGE,
 					      null);
@@ -1096,7 +1118,14 @@ public class ConfDbGUI
 	    else {
 		jTreeCurrentConfig.setEditable(true);
 		jTreeTableParameters.getTree().setEditable(true);
-		database.lockConfiguration(currentConfig,userName);
+		try {
+		    database.lockConfiguration(currentConfig,userName);
+		}
+		catch (DatabaseException e) {
+		    JOptionPane.showMessageDialog(frame,e.getMessage(),
+						  "Failed to lock configuration",
+						  JOptionPane.ERROR_MESSAGE,null);
+		}
 	    }
 	}
     }
@@ -1116,12 +1145,11 @@ public class ConfDbGUI
 	}
 	
 	/** SwingWorker: construct() */
-	protected String construct() throws InterruptedException
+	protected String construct() throws DatabaseException
 	{
 	    startTime = System.currentTimeMillis();
-	    if (importRelease.releaseTag()!=currentRelease.releaseTag()) {
+	    if (importRelease.releaseTag()!=currentRelease.releaseTag())
 		importRelease = new SoftwareRelease(currentRelease);
-	    }
 	    importConfig = database.loadConfiguration(configInfo,importRelease);
 	    return new String("Done!");
 	}
@@ -1135,17 +1163,20 @@ public class ConfDbGUI
 		jToggleButtonImport.setEnabled(true);
 		jToggleButtonImport.setSelected(true);
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		jProgressBar.setString(jProgressBar.getString() +
-				      get() + " (" + elapsedTime + " ms)");
+		jProgressBar.setString(jProgressBar.getString()+get()+
+				       " ("+elapsedTime+" ms)");
 	    }
 	    catch (ExecutionException e) {
-		System.out.println("EXECUTION-EXCEPTION: " + e.getCause());
-		e.printStackTrace();
-	    }
+		String errMsg =
+		    "Import Configuration FAILED:\n"+e.getCause().getMessage();
+		JOptionPane.showMessageDialog(frame,errMsg,
+					      "Import Configuration failed",
+					      JOptionPane.ERROR_MESSAGE,null);
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+	    } 
 	    catch (Exception e) {
-		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		jProgressBar.setString(jProgressBar.getString() + "FAILED!");
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
 	    }
 	    jProgressBar.setIndeterminate(false);
 	}
@@ -1167,7 +1198,7 @@ public class ConfDbGUI
 	}
 	
 	/** SwingWorker: construct() */
-	protected String construct() throws InterruptedException
+	protected String construct() throws DatabaseException
 	{
 	    startTime = System.currentTimeMillis();
 	    database.insertConfiguration(currentConfig,
@@ -1184,18 +1215,25 @@ public class ConfDbGUI
 		setCurrentConfig(currentConfig);
 		currentConfig.setHasChanged(false);
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		jProgressBar.setString(jProgressBar.getString() +
-				      get() + " (" + elapsedTime + " ms)");
+		jProgressBar.setString(jProgressBar.getString()+get()+
+				       " ("+elapsedTime+" ms)");
 	    }
+	    catch (ExecutionException e) {
+		String errMsg =
+		    "Save Configuration FAILED:\n"+e.getCause().getMessage();
+		JOptionPane.showMessageDialog(frame,errMsg,
+					      "Save Configuration failed",
+					      JOptionPane.ERROR_MESSAGE,null);
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+	    } 
 	    catch (Exception e) {
-		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		jProgressBar.setString(jProgressBar.getString() + "FAILED!");
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
 	    }
 	    jProgressBar.setIndeterminate(false);
 	}
     }
-
+    
     /** migrate a configuration in the database to a new release */
     private class MigrateConfigurationThread extends SwingWorker<String>
     {
@@ -1211,13 +1249,13 @@ public class ConfDbGUI
 	}
 	
 	/** SwingWorker: construct() */
-	protected String construct() throws InterruptedException
+	protected String construct() throws DatabaseException
 	{
 	    startTime = System.currentTimeMillis();
 	    
 	    SoftwareRelease targetRelease = new SoftwareRelease();
 	    database.loadSoftwareRelease(targetReleaseTag,targetRelease);
-
+	    
 	    String targetProcessName = currentConfig.processName();
 
 	    ConfigInfo targetConfigInfo =
@@ -1241,10 +1279,9 @@ public class ConfDbGUI
 	{
 	    try {
 		clearParameters();
-		
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		jProgressBar.setString(jProgressBar.getString() +
-				      get() + " (" + elapsedTime + " ms)");
+		jProgressBar.setString(jProgressBar.getString()+get()+
+				       " ("+elapsedTime+" ms)");
 		MigrationReportDialog dialog =
 		    new MigrationReportDialog(frame,migrator);
 		dialog.setTitle("Release-Migration Report");
@@ -1252,10 +1289,17 @@ public class ConfDbGUI
 		dialog.setLocationRelativeTo(frame);
 		dialog.setVisible(true);
 	    }
+	    catch (ExecutionException e) {
+		String errMsg =
+		    "Migrate Configuration FAILED:\n"+e.getCause().getMessage();
+		JOptionPane.showMessageDialog(frame,errMsg,
+					      "Migrate Configuration failed",
+					      JOptionPane.ERROR_MESSAGE,null);
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+	    } 
 	    catch (Exception e) {
-		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		jProgressBar.setString(jProgressBar.getString() + "FAILED!");
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
 	    }
 	    jProgressBar.setIndeterminate(false);
 	}
@@ -1284,32 +1328,17 @@ public class ConfDbGUI
 	}
 	
 	/** SwingWorker: construct() */
-	protected String construct() throws InterruptedException
+	protected String construct() throws ConverterException,IOException
 	{
 	    startTime = System.currentTimeMillis();
 	    String configAsString = "";
-	    try {
-		OfflineConverter cnv = new OfflineConverter(format);
-		configAsString = cnv.getConfigString(config,null,asFragment);
-	    }
-	    catch (ConverterException e) {
-		System.err.println("Conversion failed: " + e.getMessage());
-		return new String("FAILED");
-	    }
-	    
+	    OfflineConverter cnv = new OfflineConverter(format);
+	    configAsString = cnv.getConfigString(config,null,asFragment);
 	    if (configAsString.length()>0) {
 		FileWriter outputStream=null;
-		try {
-		    outputStream = new FileWriter(fileName);
-		    outputStream.write(configAsString,0,configAsString.length());
-		    outputStream.close();
-		}
-		catch (Exception e) {
-		    String msg =
-			"Failed to convert configuration: " + e.getMessage();
-		    System.err.println(msg);
-		    return new String("FAILED!");
-		}
+		outputStream = new FileWriter(fileName);
+		outputStream.write(configAsString,0,configAsString.length());
+		outputStream.close();
 	    }
 	    return new String("Done!");
 	}
@@ -1319,13 +1348,20 @@ public class ConfDbGUI
 	{
 	    try {
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		jProgressBar.setString(jProgressBar.getString() +
-				      get() + " (" + elapsedTime + " ms)");
+		jProgressBar.setString(jProgressBar.getString()+get()+
+				       " ("+elapsedTime+" ms)");
 	    }
+	    catch (ExecutionException e) {
+		String errMsg =
+		    "Convert Configuration FAILED:\n"+e.getCause().getMessage();
+		JOptionPane.showMessageDialog(frame,errMsg,
+					      "Convert Configuration failed",
+					      JOptionPane.ERROR_MESSAGE,null);
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+	    } 
 	    catch (Exception e) {
-		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		jProgressBar.setString(jProgressBar.getString() + "FAILED!");
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
 	    }
 	    jProgressBar.setIndeterminate(false);
 	}
@@ -1346,7 +1382,7 @@ public class ConfDbGUI
 	}
 	
 	/** SwingWorker: construct() */
-	protected String construct() throws InterruptedException
+	protected String construct() throws DatabaseException
 	{
 	    startTime = System.currentTimeMillis();
 	    if (!releaseTag.equals(currentRelease.releaseTag()))
@@ -1359,13 +1395,21 @@ public class ConfDbGUI
 	{
 	    try {
 		long elapsedTime = System.currentTimeMillis() - startTime;
-		jProgressBar.setString(jProgressBar.getString() +
-				      get() + " (" + elapsedTime + " ms)");
+		jProgressBar.setString(jProgressBar.getString()+get()+
+				       " ("+elapsedTime+" ms)");
 	    }
+	    catch (ExecutionException e) {
+		String errMsg =
+		    "Update Templates FAILED:\n"+e.getCause().getMessage();
+		JOptionPane.showMessageDialog(frame,errMsg,
+					      "Update Templates failed",
+					      JOptionPane.ERROR_MESSAGE,null);
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+	    } 
+	    
 	    catch (Exception e) {
-		System.out.println("EXCEPTION: "+ e.getMessage());
 		e.printStackTrace();
-		jProgressBar.setString(jProgressBar.getString() + "FAILED!");	
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");	
 	    }
 	    jProgressBar.setIndeterminate(false);
 	}

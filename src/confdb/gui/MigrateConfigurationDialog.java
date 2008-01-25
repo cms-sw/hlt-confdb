@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 import confdb.db.ConfDB;
+import confdb.db.DatabaseException;
 
 
 /**
@@ -58,11 +59,17 @@ public class MigrateConfigurationDialog extends JDialog implements ActionListene
 	c.insets = new Insets(3,3,3,3);
 	
 	JPanel contentPane = new JPanel(new GridBagLayout());
-	
-	comboBoxReleaseTag = new JComboBox(database.getReleaseTags());
-	comboBoxReleaseTag.setBackground(Color.WHITE);
-	comboBoxReleaseTag.setActionCommand("RELEASETAG");
-	comboBoxReleaseTag.addActionListener(this);
+
+	try {
+	    comboBoxReleaseTag = new JComboBox(database.getReleaseTags());
+	    comboBoxReleaseTag.setBackground(Color.WHITE);
+	    comboBoxReleaseTag.setActionCommand("RELEASETAG");
+	    comboBoxReleaseTag.addActionListener(this);
+	}
+	catch (DatabaseException e) {
+	    System.err.println(e.getMessage());
+	    comboBoxReleaseTag = new JComboBox();
+	}
 	comboBoxReleaseTag.setPreferredSize(new Dimension(300,20));
 	
 	okButton = new JButton("OK");

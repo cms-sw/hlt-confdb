@@ -63,7 +63,7 @@ public class ReleaseMigrator
     //
     
     /** migrate the configuration to the new release */
-    public boolean migrate()
+    public void migrate()
     {
 	// migrate PSets
 	for (int i=0;i<sourceConfig.psetCount();i++) {
@@ -191,8 +191,6 @@ public class ReleaseMigrator
 				       "' not found in target configuration!");
 	    }
 	}
-
-	return true;
     }
     
     /** retrieve message iterator */

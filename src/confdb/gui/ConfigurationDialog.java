@@ -14,6 +14,7 @@ import confdb.data.ConfigInfo;
 import confdb.data.ConfigVersion;
     
 import confdb.db.ConfDB;
+import confdb.db.DatabaseException;
 
 
 /**
@@ -83,9 +84,14 @@ public class ConfigurationDialog extends JDialog
     /** create the tree view */
     protected JScrollPane createTreeView(Dimension dim)
     {
-	rootDir = database.loadConfigurationTree();
-	dirTreeModel = new DirectoryTreeModel(rootDir);
-
+	try {
+	    rootDir = database.loadConfigurationTree();
+	    dirTreeModel = new DirectoryTreeModel(rootDir);
+	}
+	catch (DatabaseException e) {
+	    return new JScrollPane(new JLabel(e.getMessage()));
+	}
+	
 	dirTree = new JTree(dirTreeModel) {
 		public String getToolTipText(MouseEvent evt) {
 		    String text = "";
@@ -138,6 +144,7 @@ public class ConfigurationDialog extends JDialog
 	dirTreeModel.addTreeModelListener(l);
     }
 
+    
     //
     // classes
     //

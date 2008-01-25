@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 import confdb.db.ConfDB;
+import confdb.db.DatabaseException;
 
 
 /**
@@ -74,8 +75,15 @@ public class NewConfigurationDialog extends JDialog implements ActionListener,
 	
 	textFieldName = new JTextField(20);
 	textFieldProcess = new JTextField(20);
-	comboBoxReleaseTag = new JComboBox(database.getReleaseTags());
-	comboBoxReleaseTag.setBackground(Color.WHITE);
+
+	try {
+	    comboBoxReleaseTag = new JComboBox(database.getReleaseTags());
+	    comboBoxReleaseTag.setBackground(Color.WHITE);
+	}
+	catch (DatabaseException e) {
+	    System.err.println(e.getMessage());
+	    comboBoxReleaseTag = new JComboBox();
+	}
 	
 	Object[] components = { new JLabel("Name:"),textFieldName,
 				new JLabel("Process:"),textFieldProcess,

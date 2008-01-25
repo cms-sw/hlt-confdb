@@ -2,6 +2,7 @@ package confdb.converter;
 
 import java.util.HashMap;
 import confdb.data.*;
+import confdb.db.DatabaseException;
 
 import confdb.converter.IConfigurationWriter.WriteProcess;
 
@@ -46,11 +47,16 @@ public class OfflineConverter extends ConverterBase
 				  boolean asFragment)
 	throws ConverterException
     {
-	int configId = getDatabase().getConfigId(configName);
-	if (configId<=0)
-	    throw new ConverterException("ERROR: can't find configuration '"+
-					 configName+"'");
-	return getConfigString(configId,modifications,asFragment);
+	try {
+	    int configId = getDatabase().getConfigId(configName);
+	    return getConfigString(configId,modifications,asFragment);
+	}
+	catch (DatabaseException e) {
+	    String errMsg =
+		"OfflineConverter::getConfigString(configName="+configName+
+		",modifications,asFragment="+asFragment+") failed.";
+	    throw new ConverterException(errMsg,e);
+	}
     }
     
     /** retrieve the configuration string for the given configId */

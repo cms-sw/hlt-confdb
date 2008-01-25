@@ -8,6 +8,7 @@ import java.util.List;
 
 import confdb.data.IConfiguration;
 import confdb.db.ConfDB;
+import confdb.db.DatabaseException;
 
 public class ConverterBase 
 {
@@ -76,9 +77,15 @@ public class ConverterBase
     	ConfWrapper conf = confCache.get( new Integer( key ) );
     	if ( conf != null )
     		return conf.getConfiguration();
-    	IConfiguration configuration = database.loadConfiguration( key );
-    	if ( configuration == null )
-    		throw new ConverterException( "ERROR! no config stored for key " + key );
+    	IConfiguration configuration = null;
+	try {
+	    database.loadConfiguration( key );
+	}
+	catch (DatabaseException e) {
+	    String errMsg = "ConververBase::getConfiguration(key="+key+") failed.";
+	    throw new ConverterException(errMsg,e);
+	}
+	
     	put( key, configuration );
     	return configuration;
     }

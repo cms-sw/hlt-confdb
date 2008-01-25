@@ -11,6 +11,7 @@ import confdb.data.Configuration;
 import confdb.data.ConfigInfo;
     
 import confdb.db.ConfDB;
+import confdb.db.DatabaseException;
 
 
 /**
@@ -138,16 +139,17 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
 	Directory parentDir = (Directory)treePath.getLastPathComponent();
 	Directory childDir  = parentDir.childDir(index);
 	
-	if (!database.insertDirectory(childDir)) {
-	    System.out.println("NO Directory created in DB!");
+	try {
+	    database.insertDirectory(childDir);
+	}
+	catch (DatabaseException ex) {
 	    parentDir.removeChildDir(childDir);
 	    directoryTreeModel.nodeRemoved(parentDir,
 					   parentDir.childDirCount(),
 					   childDir);
+	    System.err.println(ex.getMessage());
 	}
-	else {
-	    System.out.println("Directory created in DB!");
-	}
+	
 	// want to fire a tree selection event here
 	TreeSelectionModel selModel=directoryTree.getSelectionModel();
 	TreePath newDirPath = selModel.getSelectionPath();
@@ -159,11 +161,12 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
     public void treeNodesRemoved(TreeModelEvent e)
     {
 	Directory dirToBeRemoved = (Directory)(e.getChildren()[0]);
-	if (database.removeDirectory(dirToBeRemoved))
-	    System.out.println("Directory '"+dirToBeRemoved.name()+"' removed.");
-	else
-	    System.out.println("ERROR: can't remove Directory '"+
-			       dirToBeRemoved.name()+"'");
+	try {
+	    database.removeDirectory(dirToBeRemoved);
+	}
+	catch (DatabaseException ex) {
+	    System.err.println(ex.getMessage());
+	}
     }
     
     /** TreeModelListener: treeNodesInserted() */

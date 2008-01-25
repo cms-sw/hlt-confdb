@@ -2,6 +2,7 @@
 <%@page import="java.io.ByteArrayOutputStream"%>
 <%@page import="confdb.db.ConfDB"%>
 <%@page import="confdb.db.ConfDBSetups"%>
+<%@page import="confdb.db.DatabaseException"%>
 <%@page import="confdb.converter.DbProperties"%>
 <%@page import="confdb.data.*"%>
 <%@page import="confdb.diff.*"%>
@@ -114,8 +115,16 @@
 	    out.println(diff.printInstanceComparisons(diff.moduleIterator()));
 	}
     }
+    catch (DiffException e) {
+	out.print(e.getMessage()+"\n");
+	ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+	PrintWriter writer = new PrintWriter(buffer);
+	e.getCause().printStackTrace(writer);
+	writer.close();
+	out.println(buffer.toString());
+    }
     catch (Exception e) {
-	out.print( "ERROR!\n\n" ); 
+	out.print(e.getMessage()+"\n\n");
 	ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 	PrintWriter writer = new PrintWriter(buffer);
 	e.printStackTrace(writer);

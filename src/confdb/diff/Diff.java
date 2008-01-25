@@ -69,12 +69,23 @@ public class Diff
     }
     
     /** destructor */
-    protected void finalize() throws Throwable
-    {
-	ConfDB db = getDatabase();
-	if (db!=null) db.disconnect();
-    }
-
+    /*
+      protected void finalize() throws Throwable
+      {
+      ConfDB db = getDatabase();
+      if (db!=null) {
+      try {
+      db.disconnect();
+      }
+      catch (DatabaseException e) {
+      System.err.println("Diff::finalize(): "+
+      "failed to disconnect from DB:"+e.getMessage());
+      }
+      }
+      }
+    */
+    
+    
     //
     // member functions
     //
@@ -459,43 +470,61 @@ public class Diff
     }
     
     /** initialize database */
-    public static void initDatabase() throws Exception
+    public static void initDatabase() throws DiffException
     {
 	if (database!=null) return;
 	database = new ConfDB();
 	String url =
 	    "jdbc:oracle:thin:@//"+
 	    "int2r1-v.cern.ch:10121/int2r_lb.cern.ch";
-	database.connect("oracle",url,"cms_hlt_reader","convertme!");
+	try {
+	    database.connect("oracle",url,"cms_hlt_reader","convertme!");
+	}
+	catch (DatabaseException e) {
+	    String errMsg = "Diff::initDatabase() failed.";
+	    throw new DiffException(errMsg,e);
+	}
     }
     
     /** get a configuration, given the id or name */
     public static Configuration getConfiguration(String configIdAsString)
-	throws Exception
+	throws DiffException
     {
 	int configId = -1;
 	try {
 	    configId = Integer.parseInt(configIdAsString);
 	}
-	catch (Exception e1) {
-	    configId = getDatabase().getConfigId(configIdAsString);
+	catch (NumberFormatException e1) {
+	    try {
+		configId = getDatabase().getConfigId(configIdAsString);
+	    }
+	    catch (DatabaseException e2) {
+		String errMsg =
+		    "Diff.getConfiguration(configIdAsString="+configIdAsString+
+		    ") failed.";
+		throw new DiffException(errMsg,e2);
+	    }
 	}
-
+	
 	for (int i=0;i<configIdCache.size();i++)
 	    if (configId==configIdCache.get(i)) return configCache.get(i);
 	
-	Configuration config = getDatabase().loadConfiguration(configId);
-
-	if (config!=null) {
+	try {
+	    Configuration config = getDatabase().loadConfiguration(configId);
 	    configIdCache.add(configId);
 	    configCache.add(config);
 	    if (configIdCache.size()>10) {
 		configIdCache.remove(0);
 		configCache.remove(0);
 	    }
+	    return config;
 	}
-	
-	return config;
+	catch (DatabaseException e) {
+	    String errMsg =
+		"Diff::getConfiguration(configIdAsString="+configIdAsString+
+		") failed.";
+	    throw new DiffException(errMsg,e);
+	}
     }
     
 
@@ -570,13 +599,19 @@ public class Diff
 	    System.err.println("Failed to connect to database: "+e.getMessage());
 	    System.exit(0);
 	}
+
+	Configuration config1 = null;
+	Configuration config2 = null;
+	try {
+	    config1 = database.loadConfiguration(configId1);
+	    config2 = database.loadConfiguration(configId2);
+	    System.out.println("config1: " + config1.toString());
+	    System.out.println("config2: " + config2.toString());}
+	catch (DatabaseException e) {
+	    System.err.println("Failed to load configurations: "+e.getMessage());
+	    System.exit(0);
+	}
 	
-	Configuration config1 = database.loadConfiguration(configId1);
-	Configuration config2 = database.loadConfiguration(configId2);
-	
-	System.out.println("");
-	System.out.println("config1: " + config1.toString());
-	System.out.println("config2: " + config2.toString());
 
 	Diff diff = new Diff(config1,config2);
 	diff.compare();

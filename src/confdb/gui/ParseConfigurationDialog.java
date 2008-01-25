@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 import confdb.db.ConfDB;
+import confdb.db.DatabaseException;
 
 import java.io.File;
 
@@ -174,8 +175,14 @@ public class ParseConfigurationDialog extends JDialog
         jLabel1.setText("File Name:");
         jLabel2.setText("Release Tag:");
 
-	jComboBoxReleaseTag = new JComboBox(database.getReleaseTags());
-        jComboBoxReleaseTag.setBackground(new java.awt.Color(255, 255, 255));
+	try {
+	    jComboBoxReleaseTag = new JComboBox(database.getReleaseTags());
+	    jComboBoxReleaseTag.setBackground(new java.awt.Color(255, 255, 255));
+	}
+	catch (DatabaseException e) {
+	    System.err.println(e.getMessage());
+	    jComboBoxReleaseTag = new JComboBox();
+	}
 
         jButtonBrowse.setText("Browse ...");
         jButtonOK.setText("OK");
