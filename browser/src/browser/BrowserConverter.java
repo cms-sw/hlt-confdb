@@ -19,28 +19,35 @@ import confdb.db.ConfDBSetups;
 
 public class BrowserConverter extends OfflineConverter
 {
-	static private HashMap<Integer,BrowserConverter> map = new HashMap<Integer,BrowserConverter>();
-
-	private BrowserConverter( String dbType, String dbUrl, String dbUser, String dbPwrd ) throws ConverterException
-	{
-		super( "HTML", dbType, dbUrl, dbUser, dbPwrd );	
-	}
-		
-    public String getConfigString(  int configId,
-				    String format,
-				    ModifierInstructions modifications,
-				    boolean asFragment )
-	throws ConverterException, ClassNotFoundException, InstantiationException, IllegalAccessException
+    static private HashMap<Integer,BrowserConverter> map = new HashMap<Integer,BrowserConverter>();
+    
+    private BrowserConverter(String dbType,String dbUrl,
+			     String dbUser,String dbPwrd)
+	throws ConverterException
+    {
+	super( "HTML", dbType, dbUrl, dbUser, dbPwrd );	
+    }
+    
+    public String getConfigString(int configId,
+				  String format,
+				  ModifierInstructions modifications,
+				  boolean asFragment)
+	throws ConverterException,
+	       ClassNotFoundException,
+	       InstantiationException,
+	       IllegalAccessException
     {
     	IConfiguration config = getConfiguration(configId);
     	ConfigurationModifier modifier = new ConfigurationModifier(config);
     	modifier.modify(modifications);
 	
     	ConverterEngine engine = ConverterFactory.getConverterEngine( format );
-    	if ( asFragment )
-    		return engine.getConfigurationWriter().toString(modifier,WriteProcess.NO);
+    	if (asFragment)
+	    return engine.getConfigurationWriter().toString(modifier,
+							    WriteProcess.NO);
     	else
-    		return engine.getConfigurationWriter().toString(modifier,WriteProcess.YES);
+	    return engine.getConfigurationWriter().toString(modifier,
+							    WriteProcess.YES);
     }
 
 	

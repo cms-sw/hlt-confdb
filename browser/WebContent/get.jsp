@@ -59,32 +59,34 @@
 
 	BrowserConverter converter = null;
 	try {
-		ModifierInstructions modifierInstructions = new ModifierInstructions();
-		modifierInstructions.interpretArgs( toModifier );
-
-		converter = BrowserConverter.getConverter( 1 );
+	    ModifierInstructions modifierInstructions = new ModifierInstructions();
+	    modifierInstructions.interpretArgs( toModifier );
+            converter = BrowserConverter.getConverter( 1 );
 	    int id = ( configId != null ) ?
-	    	Integer.parseInt(configId) : converter.getDatabase().getConfigId(configName);
-	    if ( id <= 0 ) 
-	    {
-	    	out.println( "ERROR: configuration not found!" );
-	    	return;
-	    }
+	    	Integer.parseInt(configId) :
+		converter.getDatabase().getConfigId(configName);
 
-		String result = converter.getConfigString( id, format,
-												   modifierInstructions, asFragment );
-		out.print( result );
-	  } catch ( Exception e ) {
-		  out.print( "ERROR!\n\n" ); 
-		  ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-		  PrintWriter writer = new PrintWriter( buffer );
-		  e.printStackTrace( writer );
-		  writer.close();
-		  out.println( buffer.toString() );
-		  if ( converter != null )
-			  BrowserConverter.deleteConverter( converter );
-	  }
+	    //if ( id <= 0 ) 
+	    //{
+	    //out.println( "ERROR: configuration not found!" );
+	    // 	return;
+	    //}
 
+	    String result = converter.getConfigString(id,format,
+						      modifierInstructions,
+						      asFragment);
+	    out.print(result);
+	}
+        catch (Exception e) {
+	    out.print(e.getMessage()+"\n\n"); 
+	    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+	    PrintWriter writer = new PrintWriter(buffer);
+	    e.printStackTrace(writer);
+	    writer.close();
+	    out.println(buffer.toString());
+	    if (converter!=null)
+	        BrowserConverter.deleteConverter( converter );
+	}
 		
 
 %>

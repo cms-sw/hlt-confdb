@@ -79,15 +79,14 @@ public class ConverterBase
     		return conf.getConfiguration();
     	IConfiguration configuration = null;
 	try {
-	    database.loadConfiguration( key );
+	    configuration = database.loadConfiguration(key);
+	    put( key, configuration );
+	    return configuration;
 	}
 	catch (DatabaseException e) {
 	    String errMsg = "ConververBase::getConfiguration(key="+key+") failed.";
 	    throw new ConverterException(errMsg,e);
 	}
-	
-    	put( key, configuration );
-    	return configuration;
     }
 		
     synchronized private void put( Integer key, IConfiguration conf )

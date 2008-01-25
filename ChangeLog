@@ -1,5 +1,10 @@
 2008-01-25  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-19-03
+	* converter: bugfix to ConverterBase::getConfiguration()
+
+2008-01-25  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-19-02
 	* db: introduce proper exception handling
 	* diff: introduce proper exception handling
