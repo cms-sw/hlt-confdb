@@ -5,6 +5,7 @@
 <%@page import="browser.BrowserConverter"%>
 <%@page import="confdb.converter.ConverterBase"%>
 <%@page import="confdb.converter.OnlineConverter"%>
+<%@page import="confdb.converter.ConversionException"%>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -61,14 +62,20 @@ function signalReady()
 	else
 	{
 		String confString = null;
-		long start = System.currentTimeMillis();
-		if ( converter instanceof OnlineConverter )
-			confString = ((OnlineConverter)converter).getEpConfigString( configKey );
-		else
-			confString = converter.getConverterEngine().convert( conf );
-		long dt = System.currentTimeMillis() - start;
+		try {
+			if ( converter instanceof OnlineConverter )
+				confString = ((OnlineConverter)converter).getEpConfigString( configKey );
+			else
+				confString = converter.getConverterEngine().convert( conf );
+		} catch ( ConversionException e1 ) {
+			converter.removeFromCache( configKey );
+			System.out.println( "reloading config " + configKey );
+			if ( converter instanceof OnlineConverter )
+				confString = ((OnlineConverter)converter).getEpConfigString( configKey );
+			else
+				confString = converter.getConverterEngine().convert( converter.getConfiguration( configKey ) );
+		}
 		out.println( confString );
-		out.println( "// conversion time: " + (dt /1000) + " secs" );
 	}
   } catch ( Exception e ) {
 	  out.print( "ERROR!\n\n" ); 
