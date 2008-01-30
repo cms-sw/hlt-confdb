@@ -99,27 +99,30 @@ public class OnlineConverter extends ConverterBase
     // member functions
     //
 
-    /** get the configuration string for FUEventProcessor */
+    /** get the configuration string for FUEventProcessor 
+     * @throws ConversionException */
     public String getEpConfigString(int configId)
-	throws ConverterException 
+	throws ConverterException, ConversionException 
     {
 	if (configId != this.configId)
 	    convertConfiguration(configId);
 	return epConfigString;
     }
 
-    /** get the configuration string for StorageManager */
+    /** get the configuration string for StorageManager 
+     * @throws ConversionException */
     public String getSmConfigString(int configId)
-	throws ConverterException 
+	throws ConverterException, ConversionException 
     {
 	if (configId != this.configId)
 	    convertConfiguration(configId);
 	return smConfigString;
     }
 
-    /** get the pathName -> prescalerName map */
+    /** get the pathName -> prescalerName map 
+     * @throws ConversionException */
     public HashMap<String, String> getPathToPrescalerMap(int configId)
-	throws ConverterException 
+	throws ConverterException, ConversionException 
     {
 	if (configId != this.configId)
 	    convertConfiguration(configId);
@@ -130,8 +133,9 @@ public class OnlineConverter extends ConverterBase
     // private member data
     //
 
-    /** convert configuration and cache ep and sm configuration string */
-    private void convertConfiguration(int configId) throws ConverterException 
+    /** convert configuration and cache ep and sm configuration string 
+     * @throws ConversionException */
+    private void convertConfiguration(int configId) throws ConverterException, ConversionException 
     {
 	IConfiguration epConfig = getConfiguration(configId);
 
@@ -288,11 +292,10 @@ public class OnlineConverter extends ConverterBase
 	try {
 	    OnlineConverter cnv = new OnlineConverter("Ascii", dbType, dbUrl,
 						      dbUser, dbPwrd);
-	    System.out.println(cnv
-			       .getEpConfigString(Integer.parseInt(configId)));
+	    System.out.println(cnv.getEpConfigString(Integer.parseInt(configId)));
 	    System.out.println(cnv
 			       .getSmConfigString(Integer.parseInt(configId)));
-	} catch (ConverterException e) {
+	} catch (Exception e) {
 	    System.out.println(e.getMessage());
 	}
     }

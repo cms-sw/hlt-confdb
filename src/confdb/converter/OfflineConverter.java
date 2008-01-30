@@ -41,11 +41,12 @@ public class OfflineConverter extends ConverterBase
     // member functions
     //
     
-    /** retrieve the configuration string for the given configId */
+    /** retrieve the configuration string for the given configId 
+     * @throws ConversionException */
     public String getConfigString(String configName,
 				  ModifierInstructions modifications,
 				  boolean asFragment)
-	throws ConverterException
+	throws ConverterException, ConversionException
     {
 	try {
 	    int configId = getDatabase().getConfigId(configName);
@@ -63,25 +64,25 @@ public class OfflineConverter extends ConverterBase
     public String getConfigString(int configId,
 				  ModifierInstructions modifications,
 				  boolean asFragment)
-	throws ConverterException
+	throws ConverterException, ConversionException
     {
 	IConfiguration config = getConfiguration(configId);
 	return getConfigString(config,modifications,asFragment);
     }
     
-    /** retrieve the configuration string for an IConfiguration object */
+    /** retrieve the configuration string for an IConfiguration object 
+     * @throws ConversionException */
     public String getConfigString(IConfiguration config,
 				  ModifierInstructions modifications,
 				  boolean asFragment)
-	throws ConverterException
+	throws ConverterException, ConversionException
     {
 	ConfigurationModifier modifier = new ConfigurationModifier(config);
 	
 	modifier.modify(modifications);
 	
 	if (asFragment)
-	    return getConverterEngine()
-		.getConfigurationWriter().toString(modifier,WriteProcess.NO);
+	    return getConverterEngine().getConfigurationWriter().toString(modifier,WriteProcess.NO);
 	else
 	    return getConverterEngine()
 		.getConfigurationWriter().toString(modifier,WriteProcess.YES);
@@ -207,13 +208,10 @@ public class OfflineConverter extends ConverterBase
 						       asFragment));
 	    
 	}
-	catch(DataException e) {
+	catch(Exception e) {
 	    System.err.println("ERROR: " + e.getMessage());
 	}
-	catch(ConverterException e) {
-	    System.out.println("ERROR: " + e.getMessage());
-	}
-	
+
     }
     
 }

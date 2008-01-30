@@ -65,6 +65,10 @@ public class ConverterBase
     	this.maxCacheEntries = maxCacheEntries;
     }
 
+    synchronized public void removeFromCache( Integer key )
+    {
+    	confCache.remove(key);
+    }
     
 	
     public ConfDB getDatabase() 
@@ -78,15 +82,15 @@ public class ConverterBase
     	if ( conf != null )
     		return conf.getConfiguration();
     	IConfiguration configuration = null;
-	try {
-	    configuration = database.loadConfiguration(key);
-	    put( key, configuration );
-	    return configuration;
-	}
-	catch (DatabaseException e) {
-	    String errMsg = "ConververBase::getConfiguration(key="+key+") failed.";
-	    throw new ConverterException(errMsg,e);
-	}
+    	try {
+    		configuration = database.loadConfiguration(key);
+    		put( key, configuration );
+    		return configuration;
+    	}
+    	catch (DatabaseException e) {
+    		String errMsg = "ConververBase::getConfiguration(key="+key+") failed.";
+    		throw new ConverterException(errMsg,e);
+    	}
     }
 		
     synchronized private void put( Integer key, IConfiguration conf )

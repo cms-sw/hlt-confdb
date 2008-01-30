@@ -4,6 +4,6 @@ import confdb.data.ModuleInstance;
 
 public interface IModuleWriter extends ConverterEngineSetter {
 	
-	public String toString( ModuleInstance module );
+	public String toString( ModuleInstance module ) throws ConversionException;
 
 }

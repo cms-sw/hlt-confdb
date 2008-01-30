@@ -6,6 +6,6 @@ public interface IConfigurationWriter extends ConverterEngineSetter
 {
 	static enum WriteProcess { YES, NO };
 	
-	public String toString( IConfiguration configuration, WriteProcess yesNo );
+	public String toString( IConfiguration configuration, WriteProcess yesNo ) throws ConversionException;
 	
 }
