@@ -1,5 +1,6 @@
 package confdb.converter.ascii;
 
+import confdb.converter.ConversionException;
 import confdb.converter.ConverterEngine;
 import confdb.converter.IParameterWriter;
 import confdb.data.PSetParameter;
@@ -12,7 +13,7 @@ public class AsciiParameterWriter  implements IParameterWriter
 {
 	private ConverterEngine converterEngine = null;
 
-	public String toString( Parameter parameter, ConverterEngine converterEngine, String indent ) 
+	public String toString( Parameter parameter, ConverterEngine converterEngine, String indent ) throws ConversionException 
 	{
 		this.converterEngine = converterEngine;
 		if ( !parameter.isTracked() && parameter.isDefault() )
@@ -21,7 +22,7 @@ public class AsciiParameterWriter  implements IParameterWriter
 		return toString( parameter, indent );
 	}
 
-	protected String toString( Parameter parameter, String indent ) 
+	protected String toString( Parameter parameter, String indent ) throws ConversionException 
 	{
 		if ( skip( parameter ) )
 			return "";
@@ -39,7 +40,7 @@ public class AsciiParameterWriter  implements IParameterWriter
 				if ( doubleObject != null )
 					value = doubleObject.toString() + " // oops, method value() used";
 				else
-					value = " // oops, Double == null !! Don't know what to do";
+					throw new ConversionException( "oops, Double == null !! Don't know what to do" );
 			}
 			str.append( value );
 		}
@@ -56,7 +57,7 @@ public class AsciiParameterWriter  implements IParameterWriter
 		return str.toString();
 	}
 
-	protected String writePSetParameters( PSetParameter pset, String indent, boolean newline ) 	
+	protected String writePSetParameters( PSetParameter pset, String indent, boolean newline ) throws ConversionException 	
 	{
 		StringBuffer str = new StringBuffer();
 		if ( pset.parameterCount() == 0 )
@@ -81,7 +82,7 @@ public class AsciiParameterWriter  implements IParameterWriter
 	}
 
 
-	protected String writeVPSetParameters( VPSetParameter vpset, String indent ) 	
+	protected String writeVPSetParameters( VPSetParameter vpset, String indent ) throws ConversionException 	
 	{
 		StringBuffer str = new StringBuffer( "{" + converterEngine.getNewline() ); 
 		for ( int i = 0; i < vpset.parameterSetCount() - 1; i++ )

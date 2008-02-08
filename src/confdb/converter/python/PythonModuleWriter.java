@@ -1,5 +1,6 @@
 package confdb.converter.python;
 
+import confdb.converter.ConversionException;
 import confdb.converter.ConverterEngine;
 import confdb.converter.IModuleWriter;
 import confdb.converter.IParameterWriter;
@@ -12,7 +13,7 @@ public class PythonModuleWriter implements IModuleWriter {
 	private ConverterEngine converterEngine = null;
 	private static final String indent = "  ";
 
-	public String toString( ModuleInstance module ) 
+	public String toString( ModuleInstance module ) throws ConversionException 
 	{
 		if ( parameterWriter == null )
 			parameterWriter = converterEngine.getParameterWriter();
