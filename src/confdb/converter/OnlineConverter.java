@@ -102,7 +102,7 @@ public class OnlineConverter extends ConverterBase
     /** get the configuration string for FUEventProcessor 
      * @throws ConversionException */
     public String getEpConfigString(int configId)
-	throws ConverterException, ConversionException 
+	throws ConverterException
     {
 	if (configId != this.configId)
 	    convertConfiguration(configId);
@@ -112,7 +112,7 @@ public class OnlineConverter extends ConverterBase
     /** get the configuration string for StorageManager 
      * @throws ConversionException */
     public String getSmConfigString(int configId)
-	throws ConverterException, ConversionException 
+	throws ConverterException
     {
 	if (configId != this.configId)
 	    convertConfiguration(configId);
@@ -122,7 +122,7 @@ public class OnlineConverter extends ConverterBase
     /** get the pathName -> prescalerName map 
      * @throws ConversionException */
     public HashMap<String, String> getPathToPrescalerMap(int configId)
-	throws ConverterException, ConversionException 
+	throws ConverterException 
     {
 	if (configId != this.configId)
 	    convertConfiguration(configId);
@@ -135,7 +135,7 @@ public class OnlineConverter extends ConverterBase
 
     /** convert configuration and cache ep and sm configuration string 
      * @throws ConversionException */
-    private void convertConfiguration(int configId) throws ConverterException, ConversionException 
+    private void convertConfiguration(int configId) throws ConverterException 
     {
 	IConfiguration epConfig = getConfiguration(configId);
 

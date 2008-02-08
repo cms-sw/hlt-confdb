@@ -29,7 +29,7 @@ public class ConverterEngine
 		this.format = format;
 	}
 	
-	public String convert( IConfiguration configuration ) throws ConversionException
+	public String convert( IConfiguration configuration ) throws ConverterException
 	{
 		return configurationWriter.toString( configuration, WriteProcess.YES );
 	}

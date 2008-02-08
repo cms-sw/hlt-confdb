@@ -46,7 +46,7 @@ public class OfflineConverter extends ConverterBase
     public String getConfigString(String configName,
 				  ModifierInstructions modifications,
 				  boolean asFragment)
-	throws ConverterException, ConversionException
+	throws ConverterException
     {
 	try {
 	    int configId = getDatabase().getConfigId(configName);
@@ -64,7 +64,7 @@ public class OfflineConverter extends ConverterBase
     public String getConfigString(int configId,
 				  ModifierInstructions modifications,
 				  boolean asFragment)
-	throws ConverterException, ConversionException
+	throws ConverterException
     {
 	IConfiguration config = getConfiguration(configId);
 	return getConfigString(config,modifications,asFragment);
@@ -75,7 +75,7 @@ public class OfflineConverter extends ConverterBase
     public String getConfigString(IConfiguration config,
 				  ModifierInstructions modifications,
 				  boolean asFragment)
-	throws ConverterException, ConversionException
+	throws ConverterException
     {
 	ConfigurationModifier modifier = new ConfigurationModifier(config);
 	
