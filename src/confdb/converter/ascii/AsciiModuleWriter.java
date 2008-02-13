@@ -1,7 +1,7 @@
 package confdb.converter.ascii;
 
-import confdb.converter.ConversionException;
 import confdb.converter.ConverterEngine;
+import confdb.converter.ConverterException;
 import confdb.converter.IModuleWriter;
 import confdb.converter.IParameterWriter;
 import confdb.data.ModuleInstance;
@@ -13,7 +13,7 @@ public class AsciiModuleWriter implements IModuleWriter {
 	private ConverterEngine converterEngine = null;
 	private static final String indent = "  ";
 
-	public String toString( ModuleInstance module ) throws ConversionException 
+	public String toString( ModuleInstance module ) throws ConverterException 
 	{
 		if ( parameterWriter == null )
 			parameterWriter = converterEngine.getParameterWriter();

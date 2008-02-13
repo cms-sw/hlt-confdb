@@ -1,7 +1,7 @@
 package confdb.converter.html;
 
-import confdb.converter.ConversionException;
 import confdb.converter.ConverterEngine;
+import confdb.converter.ConverterException;
 import confdb.converter.IConfigurationWriter;
 import confdb.converter.IEDSourceWriter;
 import confdb.converter.IESModuleWriter;
@@ -29,7 +29,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 	private static final String spaces = "                                                                       ";
 	private static final int maxSpaces = spaces.length();
 
-	public String toString( IConfiguration conf, WriteProcess writeProcess ) throws ConversionException
+	public String toString( IConfiguration conf, WriteProcess writeProcess ) throws ConverterException
 	{
 		StringBuffer str = new StringBuffer( 100000 );
 		if ( writeProcess == WriteProcess.YES )

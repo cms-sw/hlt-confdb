@@ -1,7 +1,7 @@
 package confdb.converter.python;
 
-import confdb.converter.ConversionException;
 import confdb.converter.ConverterEngine;
+import confdb.converter.ConverterException;
 import confdb.converter.IConfigurationWriter;
 import confdb.converter.IEDSourceWriter;
 import confdb.converter.IESSourceWriter;
@@ -67,7 +67,7 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 		"    self.type = type\n" +
 		"\n";
 
-	public String toString( IConfiguration conf, WriteProcess writeProcess  ) throws ConversionException
+	public String toString( IConfiguration conf, WriteProcess writeProcess  ) throws ConverterException
 	{
 		String indent = "  ";
 		String object = "";

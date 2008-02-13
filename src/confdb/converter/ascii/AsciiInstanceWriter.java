@@ -1,7 +1,7 @@
 package confdb.converter.ascii;
 
-import confdb.converter.ConversionException;
 import confdb.converter.ConverterEngine;
+import confdb.converter.ConverterException;
 import confdb.converter.IParameterWriter;
 import confdb.data.Instance;
 import confdb.data.ESPreferable;
@@ -11,7 +11,7 @@ public class AsciiInstanceWriter
 {
 	private IParameterWriter parameterWriter = null;
 	
-	protected String toString( String type, Instance instance, ConverterEngine converterEngine, String indent ) throws ConversionException
+	protected String toString( String type, Instance instance, ConverterEngine converterEngine, String indent ) throws ConverterException
 	{
 		if ( parameterWriter == null )
 			parameterWriter = converterEngine.getParameterWriter();

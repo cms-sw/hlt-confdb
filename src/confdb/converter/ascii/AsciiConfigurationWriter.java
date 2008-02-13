@@ -1,7 +1,7 @@
 package confdb.converter.ascii;
 
-import confdb.converter.ConversionException;
 import confdb.converter.ConverterEngine;
+import confdb.converter.ConverterException;
 import confdb.converter.IConfigurationWriter;
 import confdb.converter.IEDSourceWriter;
 import confdb.converter.IESSourceWriter;
@@ -25,7 +25,7 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 {
 	protected ConverterEngine converterEngine = null;
 
-	public String toString( IConfiguration conf, WriteProcess writeProcess  ) throws ConversionException
+	public String toString( IConfiguration conf, WriteProcess writeProcess  ) throws ConverterException
 	{
 		String indent = "  ";
 		StringBuffer str = new StringBuffer( 100000 );
