@@ -281,9 +281,9 @@ public class Configuration implements IConfiguration
 	for (EDSourceInstance eds : edsources) if (eds.hasChanged()) return true;
 	for (ESSourceInstance ess : essources) if (ess.hasChanged()) return true;
 	for (ESModuleInstance esm : esmodules) if (esm.hasChanged()) return true;
-	for (ServiceInstance svc  : services)  if (svc.hasChanged()) return true;
-	for (Path pth             : paths)     if (pth.hasChanged()) return true;
-	for (Sequence seq         : sequences) if (seq.hasChanged()) return true;
+	for (ServiceInstance  svc : services)  if (svc.hasChanged()) return true;
+	for (Path             pth : paths)     if (pth.hasChanged()) return true;
+	for (Sequence         seq : sequences) if (seq.hasChanged()) return true;
 	return false;
     }
     

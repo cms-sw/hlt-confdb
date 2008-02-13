@@ -267,7 +267,6 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    }
 	    result = "<html><font size=-2><b>" + result + "</b></font></html>";
 	}
-	
 	return result;
     }
     

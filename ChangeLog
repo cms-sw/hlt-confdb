@@ -1,3 +1,11 @@
+2008-02-13  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-19-04
+	* db: tough bug fixed by Ulf
+	* db: 'hasChanged' problem fixed
+	* data: correct treatment of '-cff' parameter for edmConfigFromDB
+	* converter: various fixes regardin exceptions and python (Ulf)
+
 2008-01-25  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-19-03

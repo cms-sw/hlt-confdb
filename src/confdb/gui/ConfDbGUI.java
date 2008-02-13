@@ -590,6 +590,7 @@ public class ConfDbGUI
 	    jProgressBar.setIndeterminate(true);
 	    jProgressBar.setString("Save Configuration ...");
 	    jProgressBar.setVisible(true);
+	    currentConfig.setHasChanged(false);
 	}
 	else if (currentConfig.version()!=0&&!isLocked) {
 	    try { database.lockConfiguration(currentConfig,userName); }
@@ -1637,35 +1638,65 @@ public class ConfDbGUI
 	if (currentInstance==treeModelCurrentConfig.psetsNode()) {
 	    String s="";
 	    Iterator<PSetParameter> itPSet = currentConfig.psetIterator();
-	    while (itPSet.hasNext())
-		s+= cnvEngine.getParameterWriter().toString(itPSet.next(),
-							    cnvEngine,"");
-	    jEditorPaneSnippet.setText(s);
+	    try {
+		while (itPSet.hasNext())
+		    s+= cnvEngine.getParameterWriter().toString(itPSet.next(),
+								cnvEngine,"");
+		jEditorPaneSnippet.setText(s);
+	    }
+	    catch (ConverterException e) {
+		jEditorPaneSnippet.setText(e.getMessage());
+	    }
 	}
 	else if (currentInstance instanceof EDSourceInstance) {
 	    EDSourceInstance edsource = (EDSourceInstance)currentInstance;
-	    jEditorPaneSnippet.setText(cnvEngine.getEDSourceWriter().
-				       toString(edsource,cnvEngine,"  "));
+	    try {
+		jEditorPaneSnippet.setText(cnvEngine.getEDSourceWriter().
+					   toString(edsource,cnvEngine,"  "));
+	    }
+	    catch (ConverterException e) {
+		jEditorPaneSnippet.setText(e.getMessage());
+	    }
 	}
 	else if (currentInstance instanceof ESSourceInstance) {
 	    ESSourceInstance essource = (ESSourceInstance)currentInstance;
-	    jEditorPaneSnippet.setText(cnvEngine.getESSourceWriter().
-				       toString(essource,cnvEngine,"  "));
+	    try {
+		jEditorPaneSnippet.setText(cnvEngine.getESSourceWriter().
+					   toString(essource,cnvEngine,"  "));
+	    }
+	    catch (ConverterException e) {
+		jEditorPaneSnippet.setText(e.getMessage());
+	    }
 	}
 	else if (currentInstance instanceof ESModuleInstance) {
 	    ESModuleInstance esmodule = (ESModuleInstance)currentInstance;
-	    jEditorPaneSnippet.setText(cnvEngine.getESModuleWriter().
-				       toString(esmodule,cnvEngine,"  "));
+	    try {
+		jEditorPaneSnippet.setText(cnvEngine.getESModuleWriter().
+					   toString(esmodule,cnvEngine,"  "));
+	    }
+	    catch (ConverterException e) {
+		jEditorPaneSnippet.setText(e.getMessage());
+	    }
 	}
 	else if (currentInstance instanceof ServiceInstance) {
 	    ServiceInstance service = (ServiceInstance)currentInstance;
-	    jEditorPaneSnippet.setText(cnvEngine.getServiceWriter().
-				       toString(service,cnvEngine,"  "));
+	    try {
+		jEditorPaneSnippet.setText(cnvEngine.getServiceWriter().
+					   toString(service,cnvEngine,"  "));
+	    }
+	    catch (ConverterException e) {
+		jEditorPaneSnippet.setText(e.getMessage());
+	    }
 	}
 	else if (currentInstance instanceof ModuleInstance) {
 	    ModuleInstance module = (ModuleInstance)currentInstance;
-	    jEditorPaneSnippet.setText(cnvEngine.getModuleWriter().
-				       toString(module));
+	    try {
+		jEditorPaneSnippet.setText(cnvEngine.getModuleWriter().
+					   toString(module));
+	    }
+	    catch (ConverterException e) {
+		jEditorPaneSnippet.setText(e.getMessage());
+	    }
 	}
 	else if (currentInstance instanceof Path) {
 	    Path path = (Path)currentInstance;
@@ -1682,7 +1713,7 @@ public class ConfDbGUI
 	}
 	jEditorPaneSnippet.setCaretPosition(0);
     }
-
+    
     /** clear snippet pane (right-lower) */
     private void clearSnippet()
     {

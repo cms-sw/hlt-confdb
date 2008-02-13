@@ -33,18 +33,24 @@
 		
 		String value = entry.getValue()[ 0 ];
 		String key = entry.getKey();
-		if ( key.equals( "configId" ) )
-			configId = value;
-		else if ( key.equals( "configName" ) )
-			configName = value;
-		else if ( key.equals( "cff" ) )
-			asFragment =true;
-		else if ( key.equals( "format" ) )
-			format = value;
-		else
-			toModifier.put( entry.getKey(), value );
+		if (key.equals("configId")) {
+		    configId = value;
+		}
+		else if (key.equals( "configName")) {  
+		    configName = value;
+		}
+		else if (key.equals( "cff")) {
+		    asFragment =true;
+		    toModifier.put( key, value );
+		}
+		else if (key.equals( "format")) {
+		    format = value;
+		}
+		else {
+		    toModifier.put(entry.getKey(),value);
+		}
 	}
-	
+
 	if ( configId == null  &&  configName == null )
 	{
 		out.println("ERROR: configId or configName must be specified!");

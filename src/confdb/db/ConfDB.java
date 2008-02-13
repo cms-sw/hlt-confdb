@@ -1016,6 +1016,7 @@ public class ConfDB
 		    throw new DatabaseException(errMsg,e);
 		}
 		insertInstanceParameters(edsourceId,edsource);
+		edsource.setDatabaseId(edsourceId);
 	    }
 	    
 	    try {
@@ -1058,6 +1059,7 @@ public class ConfDB
 		    throw new DatabaseException(errMsg,e);
 		}
 		insertInstanceParameters(essourceId,essource);
+		essource.setDatabaseId(essourceId);
 	    }
 	    
 	    try {
@@ -1101,6 +1103,7 @@ public class ConfDB
 		    throw new DatabaseException(errMsg,e);
 		}
 		insertInstanceParameters(esmoduleId,esmodule);
+		esmodule.setDatabaseId(esmoduleId);
 	    }
 	    
 	    try {
@@ -1142,6 +1145,7 @@ public class ConfDB
 		    throw new DatabaseException(errMsg,e);
 		}
 		insertInstanceParameters(serviceId,service);
+		service.setDatabaseId(serviceId);
 	    }
 	    
 	    try {
@@ -2576,12 +2580,14 @@ public class ConfDB
 		
 		if (name==null) name = "";
 		
-		String valueAsString = idToValueAsString.get(id);
+		String valueAsString = null;
+		if (type.indexOf("PSet")<0)
+		    valueAsString = idToValueAsString.remove(id);
 		if (valueAsString==null) valueAsString="";
 		
 		Parameter p = ParameterFactory.create(type,name,valueAsString,
 						      isTrkd,true);
-
+		
 		if (type.equals("PSet"))
 		    psets.add(new IdPSetPair(id,(PSetParameter)p));
 		if (type.equals("VPSet"))

@@ -90,6 +90,13 @@ public class ModifierInstructions
     {
 	String value;
 	
+	value = args.remove("cff");
+	if (value!=null) {
+	    filterAllEDSources(true);
+	    filterAllOutputModules(true);
+	    args.remove("input");
+	    args.remove("output");
+	}
 	value = args.remove("nopsets");
 	if (value!=null) filterAllPSets(true);
 	value = args.remove("noedsources");
@@ -117,7 +124,7 @@ public class ModifierInstructions
 	    filterAllOutputModules(true);
 	    args.remove("output");
 	}
-
+	
 	value = args.remove("psets");
 	if (value!=null) {
 	    String[] psetNames = value.split(",");
