@@ -2576,7 +2576,7 @@ public class ConfDB
 		
 		if (name==null) name = "";
 		
-		String valueAsString = idToValueAsString.remove(id);
+		String valueAsString = idToValueAsString.get(id);
 		if (valueAsString==null) valueAsString="";
 		
 		Parameter p = ParameterFactory.create(type,name,valueAsString,
