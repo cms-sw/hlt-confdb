@@ -1286,7 +1286,7 @@ public class ConfDB
 	catch (SQLException e) {
 	    String errMsg =
 		"ConfDB::insertSequences(configId="+configId+") failed "+
-		"(batch insert).";
+		"(batch insert)\n"+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	
@@ -2930,7 +2930,7 @@ public class ConfDB
     }
     
     /** get the release id for a release tag */
-    private int getReleaseId(String releaseTag) throws DatabaseException
+    public int getReleaseId(String releaseTag) throws DatabaseException
     {
 	int result = -1;
 	ResultSet rs = null;

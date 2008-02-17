@@ -13,6 +13,7 @@ import confdb.data.Configuration;
 import confdb.data.ConfigInfo;
     
 import confdb.db.ConfDB;
+import confdb.db.DatabaseException;
 
 
 /**
@@ -21,7 +22,7 @@ import confdb.db.ConfDB;
  * @author Philipp Schieferdecker
  *
  */
-public class SaveConfigurationDialog extends ConfigurationDialog
+public class SaveConfigurationDialog extends JDialog
 {
     //
     // member data
@@ -30,15 +31,24 @@ public class SaveConfigurationDialog extends ConfigurationDialog
     /** configuration to be saved */
     private Configuration config = null;
     
+    /** reference to the database */
+    private ConfDB database = null;
+    
     /** currently selected directory */
     private Directory selectedDir = null;
     
+    /** was a valid choice made? */
+    private boolean validChoice = false;
+    
+    /** directory tree model */
+    private DirectoryTreeModel treeModel = null;
+
     /** GUI components */
-    private JTree      jTreeDirectories     = null;
+    private JTree      jTreeDirectories;
     private JTextField jTextFieldConfigName = new JTextField();
     private JTextField jTextFieldComment    = new JTextField();
-    private JButton    okButton             = new JButton();
-    private JButton    cancelButton         = new JButton();
+    private JButton    jButtonOk            = new JButton();
+    private JButton    jButtonCancel        = new JButton();
     
     /** action commands */
     private static final String OK            = new String("OK");
@@ -55,14 +65,29 @@ public class SaveConfigurationDialog extends ConfigurationDialog
     public SaveConfigurationDialog(JFrame frame,ConfDB database,
 				   Configuration config,String comment)
     {
-	super(frame,database);
+	super(frame,true);
 	this.config = config;
+	this.database = database;
+
 	jTextFieldComment.setText(comment);
-	
 	setTitle("Save Configuration");
 	
-	createTreeView(new Dimension(200,200));
-	jTreeDirectories = this.dirTree;
+	// initialize tree
+	try {
+	    Directory rootDir = database.loadConfigurationTree();
+	    treeModel = new DirectoryTreeModel(rootDir);
+	    jTreeDirectories = new JTree(treeModel);
+	    jTreeDirectories.setEditable(true);
+	    jTreeDirectories
+		.setCellRenderer(new DirectoryTreeCellRenderer());
+	    jTreeDirectories
+		.setCellEditor(new DirectoryTreeCellEditor(jTreeDirectories,
+							   new DirectoryTreeCellRenderer()));
+	}
+	catch (DatabaseException e) {
+	    jTreeDirectories = new JTree();
+	}
+	
 	setContentPane(createContentPane());
 	
 	if (config.version()==0) {
@@ -70,37 +95,38 @@ public class SaveConfigurationDialog extends ConfigurationDialog
 	    jTextFieldConfigName.selectAll();
 	}
 	
-	jTextFieldConfigName.addActionListener(new ActionListener()
-	    {
-		public void actionPerformed(ActionEvent e)
-		{
-		    if (jTextFieldConfigName.getText().equals(new String()))
-			okButton.setEnabled(false);
-		    else if (selectedDir!=null)
-			okButton.setEnabled(true);
+	// register listener callbacks
+	jTreeDirectories
+	    .addMouseListener(new DirectoryTreeMouseListener(jTreeDirectories,
+							     database));
+	jTreeDirectories.addTreeSelectionListener(new TreeSelectionListener() {
+		public void valueChanged(TreeSelectionEvent e) {
+		    jTreeDirectoriesValueChanged(e);
 		}
 	    });
-
-	addMouseListener(new DirectoryTreeMouseListener(this.dirTree,database));
-	addTreeSelectionListener(new TreeSelectionListener()
-	    {
-		public void valueChanged(TreeSelectionEvent ev)
-		{
-		    JTree  dirTree = (JTree)ev.getSource();
-		    Object o       = dirTree.getLastSelectedPathComponent();
-		    if (o instanceof Directory) {
-			selectedDir = (Directory)o;
-			if (jTextFieldConfigName.getText().length()>0&&
-			    selectedDir.dbId()>0)
-			    okButton.setEnabled(true);
-			else
-			    okButton.setEnabled(false);
+	jTextFieldConfigName.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jTextFieldConfigNameActionPerformed(e);
+		}
+	    });
+	jTextFieldConfigName
+	    .getDocument().addDocumentListener(new DocumentListener() {
+		    public void insertUpdate(DocumentEvent e) {
+			jTextFieldConfigNameInsertUpdate(e);
 		    }
-		    else if (o instanceof ConfigInfo) {
-			selectedDir = null;
-			dirTree.getSelectionModel().clearSelection();
-			okButton.setEnabled(false);
+		    public void removeUpdate(DocumentEvent e) {
+			jTextFieldConfigNameRemoveUpdate(e);
 		    }
+		    public void changedUpdate(DocumentEvent e) {}
+		});
+	jButtonOk.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonOkActionPerformed(e);
+		}
+	    });
+	jButtonCancel.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonCancelActionPerformed(e);
 		}
 	    });
     }
@@ -110,11 +136,44 @@ public class SaveConfigurationDialog extends ConfigurationDialog
     // member functions
     //
     
+    /** indicate if valid choise was made */
+    public boolean validChoice() { return validChoice; }
+    
     /** retrieve comment */
     public String comment() { return jTextFieldComment.getText(); }
     
-    /** 'OK' button pressed */
-    public void okButtonActionPerformed(ActionEvent e)
+
+    
+    //
+    // private member functions
+    //
+
+    private void jTreeDirectoriesValueChanged(TreeSelectionEvent e)
+    {
+	Object o = jTreeDirectories.getLastSelectedPathComponent();
+	if (o instanceof Directory) {
+	    selectedDir = (Directory)o;
+	    updateOkButton();
+	}
+	else if (o==null||(o instanceof ConfigInfo)) {
+	    selectedDir = null;
+	    jTreeDirectories.getSelectionModel().clearSelection();
+	    jButtonOk.setEnabled(false);
+	}
+    }
+    private void jTextFieldConfigNameActionPerformed(ActionEvent e)
+    {
+	if (jButtonOk.isEnabled()) jButtonOkActionPerformed(e);
+    }
+    private void jTextFieldConfigNameInsertUpdate(DocumentEvent e)
+    {
+	updateOkButton();
+    }
+    private void jTextFieldConfigNameRemoveUpdate(DocumentEvent e)
+    {
+	updateOkButton();
+    }
+    private void jButtonOkActionPerformed(ActionEvent e)
     {
 	String    configName  = jTextFieldConfigName.getText();
 	Directory parentDir   = selectedDir;
@@ -127,18 +186,31 @@ public class SaveConfigurationDialog extends ConfigurationDialog
 	    setVisible(false);
 	}
     }
-    
-    /** 'Cancel' button pressed */
-    public void cancelButtonActionPerformed(ActionEvent e)
+    private void jButtonCancelActionPerformed(ActionEvent e)
     {
 	validChoice = false;
 	setVisible(false);
     }
     
-    
-    //
-    // private member functions
-    //
+    private void updateOkButton()
+    {
+	if (selectedDir==null) {
+	    jButtonOk.setEnabled(false);
+	    return;
+	}
+	String configName = jTextFieldConfigName.getText();
+	if (configName.length()==0) {
+	    jButtonOk.setEnabled(false);
+	    return;
+	}
+	for (int i=0;i<selectedDir.configInfoCount();i++) {
+	    if (selectedDir.configInfo(i).name().equals(configName)) {
+		jButtonOk.setEnabled(false);
+		return;
+	    }
+	}
+	jButtonOk.setEnabled(true);
+    }
     
     /** init GUI components [generated with NetBeans] */
     private JPanel createContentPane()
@@ -151,68 +223,58 @@ public class SaveConfigurationDialog extends ConfigurationDialog
 
         jLabel1.setText("Configuration Name:");
 
-        okButton.setText("OK");
-	okButton.setEnabled(false);
-	okButton.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    okButtonActionPerformed(e);
-		}
-	    });
-	
-        cancelButton.setText("Cancel");
-	cancelButton.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    cancelButtonActionPerformed(e);
-		}
-	    });
+        jButtonOk.setText("OK");
+	jButtonOk.setEnabled(false);
+        jButtonCancel.setText("Cancel");
 	
         GroupLayout layout = new GroupLayout(contentPane);
         contentPane.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .add(layout.createParallelGroup(GroupLayout.LEADING)
-                    .add(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .add(layout.createParallelGroup(GroupLayout.LEADING)
-                            .add(jScrollPane1,
-				 GroupLayout.DEFAULT_SIZE, 358, Short.MAX_VALUE)
-                            .add(layout.createSequentialGroup()
-                                .add(jLabel1)
-                                .addPreferredGap(LayoutStyle.RELATED)
-                                .add(jTextFieldConfigName,
-				     GroupLayout.DEFAULT_SIZE,
-				     217, Short.MAX_VALUE))))
-                    .add(layout.createSequentialGroup()
-                        .add(91, 91, 91)
-                        .add(okButton, GroupLayout.DEFAULT_SIZE, 88, Short.MAX_VALUE)
-                        .addPreferredGap(LayoutStyle.RELATED)
-                        .add(cancelButton,
-			     GroupLayout.DEFAULT_SIZE, 86, Short.MAX_VALUE)
-                        .add(99, 99, 99)))
-                .addContainerGap())
-        );
+        layout
+	    .setHorizontalGroup(
+				layout.createParallelGroup(GroupLayout.LEADING)
+				.add(layout.createSequentialGroup()
+				     .add(layout.createParallelGroup(GroupLayout.LEADING)
+					  .add(layout.createSequentialGroup()
+					       .addContainerGap()
+					       .add(layout.createParallelGroup(GroupLayout.LEADING)
+						    .add(jScrollPane1,
+							 GroupLayout.DEFAULT_SIZE, 358, Short.MAX_VALUE)
+						    .add(layout.createSequentialGroup()
+							 .add(jLabel1)
+							 .addPreferredGap(LayoutStyle.RELATED)
+							 .add(jTextFieldConfigName,
+							      GroupLayout.DEFAULT_SIZE,
+							      217, Short.MAX_VALUE))))
+					  .add(layout.createSequentialGroup()
+					       .add(91, 91, 91)
+					       .add(jButtonOk, GroupLayout.DEFAULT_SIZE, 88, Short.MAX_VALUE)
+					       .addPreferredGap(LayoutStyle.RELATED)
+					       .add(jButtonCancel,
+						    GroupLayout.DEFAULT_SIZE, 86, Short.MAX_VALUE)
+					       .add(99, 99, 99)))
+				     .addContainerGap())
+				);
         layout.setVerticalGroup(
-            layout.createParallelGroup(GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .addContainerGap()
-                .add(jScrollPane1,GroupLayout.DEFAULT_SIZE, 387, Short.MAX_VALUE)
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(jLabel1)
-                    .add(jTextFieldConfigName,
-			 GroupLayout.PREFERRED_SIZE,
-			 GroupLayout.DEFAULT_SIZE,
-			 GroupLayout.PREFERRED_SIZE))
-                .add(19, 19, 19)
-                .add(layout.createParallelGroup(GroupLayout.BASELINE)
-                    .add(okButton)
-                    .add(cancelButton))
-                .addContainerGap())
-        );
-
+				layout.createParallelGroup(GroupLayout.LEADING)
+				.add(layout.createSequentialGroup()
+				     .addContainerGap()
+				     .add(jScrollPane1,GroupLayout.DEFAULT_SIZE, 387, Short.MAX_VALUE)
+				     .addPreferredGap(LayoutStyle.RELATED)
+				     .add(layout.createParallelGroup(GroupLayout.BASELINE)
+					  .add(jLabel1)
+					  .add(jTextFieldConfigName,
+					       GroupLayout.PREFERRED_SIZE,
+					       GroupLayout.DEFAULT_SIZE,
+					       GroupLayout.PREFERRED_SIZE))
+				     .add(19, 19, 19)
+				     .add(layout.createParallelGroup(GroupLayout.BASELINE)
+					  .add(jButtonOk)
+					  .add(jButtonCancel))
+				     .addContainerGap())
+				);
+	
 	return contentPane;
     }
-
+    
 }
 

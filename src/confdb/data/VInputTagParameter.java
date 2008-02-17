@@ -168,6 +168,9 @@ class InputTag
     /** constructor from string */
     public InputTag(String valueAsString) throws DataException
     {
+	if ((valueAsString.startsWith("'") &&valueAsString.endsWith("'"))||
+	    (valueAsString.startsWith("\"")&&valueAsString.endsWith("\"")))
+	    valueAsString = valueAsString.substring(1,valueAsString.length()-1);
 	label    = "";
 	instance = "";
 	process  = "";

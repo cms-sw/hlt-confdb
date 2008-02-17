@@ -348,6 +348,31 @@ public class ConfigurationTreeActions
     // Paths & Sequences
     //
 
+    /** remove all unreferenced sequences */
+    public static void removeUnreferencedSequences(JTree tree)
+    {
+	ConfigurationTreeModel model =(ConfigurationTreeModel)tree.getModel();
+	Configuration          config=(Configuration)model.getRoot();
+	Object                 parent=model.sequencesNode();
+	
+	ArrayList<Sequence> toBeRemoved = new ArrayList<Sequence>();
+
+	Iterator<Sequence> itSeq = config.sequenceIterator();
+	while (itSeq.hasNext()) {
+	    Sequence sequence = itSeq.next();
+	    if (sequence.parentPaths().length==0) toBeRemoved.add(sequence);
+	}
+	
+	Iterator<Sequence> itRmv = toBeRemoved.iterator();
+	while (itRmv.hasNext()) {
+	    Sequence sequence = itRmv.next();
+	    int      index = config.indexOfSequence(sequence);
+	    config.removeSequence(sequence);
+	    model.nodeRemoved(parent,index,sequence);
+	}
+	model.updateLevel1Nodes();
+    }
+
     /** set a path as endpath */
     public static void setPathAsEndpath(JTree tree,boolean isEndPath)
     {
@@ -504,35 +529,40 @@ public class ConfigurationTreeActions
 		for (int j=0;j<target.parameterCount();j++)
 		    target.updateParameter(j,source.parameter(j).valueAsString());
 		treeModel.nodeInserted(targetContainer,i);
-		treeModel.nodeInserted(treeModel.modulesNode(),
-				       config.moduleCount()-1);
+		if (target.referenceCount()==1) {
+		    treeModel.nodeInserted(treeModel.modulesNode(),
+					   config.moduleCount()-1);
+		}
 		target.setDatabaseId(source.databaseId());
 	    }
 	    else if (entry instanceof PathReference) {
-		PathReference sourceRef = (PathReference)entry;
-		Path          source    = (Path)sourceRef.parent();
-		Path          target    = config.insertPath(config.pathCount(),
-							    sourceRef.name());
-		PathReference targetRef = config.insertPathReference(targetContainer,
-								     i,target);
+		PathReference sourceRef=(PathReference)entry;
+		Path source=(Path)sourceRef.parent();
+		Path target=config.path(sourceRef.name());
+		if (target==null) {
+		    target = config.insertPath(config.pathCount(),sourceRef.name());
+		    treeModel.nodeInserted(treeModel.pathsNode(),
+					   config.pathCount()-1);
+		}
+		PathReference targetRef=config.insertPathReference(targetContainer,
+								   i,target);
 		treeModel.nodeInserted(targetContainer,i);
-		treeModel.nodeInserted(treeModel.pathsNode(),
-				       config.pathCount()-1);
 		importContainerEntries(config,treeModel,source,target);
 		target.setDatabaseId(source.databaseId());
 	    }
 	    else if (entry instanceof SequenceReference) {
-		SequenceReference sourceRef = (SequenceReference)entry;
-		Sequence          source    = (Sequence)sourceRef.parent();
-		Sequence          target    = config.insertSequence(config
-								    .sequenceCount(),
-								    sourceRef
-								    .name());
+		SequenceReference sourceRef=(SequenceReference)entry;
+		Sequence source=(Sequence)sourceRef.parent();
+		Sequence target=config.sequence(sourceRef.name());
+		if (target==null) {
+		    target = config.insertSequence(config.sequenceCount(),
+						   sourceRef.name());
+		    treeModel.nodeInserted(treeModel.sequencesNode(),
+					   config.sequenceCount()-1);
+		}
 		SequenceReference targetRef =
 		    config.insertSequenceReference(targetContainer,i,target);
 		treeModel.nodeInserted(targetContainer,i);
-		treeModel.nodeInserted(treeModel.sequencesNode(),
-				       config.sequenceCount()-1);
 		importContainerEntries(config,treeModel,source,target);
 		target.setDatabaseId(source.databaseId());
 	    }

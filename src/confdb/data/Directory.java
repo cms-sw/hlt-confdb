@@ -1,6 +1,8 @@
 package confdb.data;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+
 
 /**
  * Directory
@@ -84,8 +86,15 @@ public class Directory
     /** set the name of the directory */
     public void setName(String name) { this.name = name; }
 
+    /** set the parent directory */
+    public void setParentDir(Directory parentDir) { this.parentDir = parentDir; }
+    
     /** add information about a configuration in this dir */
-    public void addConfigInfo(ConfigInfo configInfo) { configInfos.add(configInfo); }
+    public void addConfigInfo(ConfigInfo configInfo)
+    {
+	configInfo.setParentDir(this);
+	configInfos.add(configInfo);
+    }
     
     /** number of child directories */
     public int childDirCount() { return directories.size(); }
@@ -100,7 +109,11 @@ public class Directory
     }
     
     /** add a child directory */
-    public void addChildDir(Directory childDir) { directories.add(childDir); }
+    public void addChildDir(Directory childDir)
+    {
+	childDir.setParentDir(this);
+	directories.add(childDir);
+    }
 
     /** remove a child direcory */
     public boolean removeChildDir(Directory childDir)
@@ -127,6 +140,54 @@ public class Directory
 	ConfigInfo[] list = new ConfigInfo[configInfoCount()];
 	for (int i=0;i<configInfoCount();i++) list[i]=configInfo(i);
 	return list;
+    }
+
+    /** list all configurations recursively */
+    public ArrayList<ConfigInfo> listAllConfigurations()
+    {
+	ArrayList<ConfigInfo> result = new ArrayList<ConfigInfo>();
+	for (int i=0;i<configInfoCount();i++) result.add(configInfo(i));
+	for (int i=0;i<childDirCount();i++) {
+	    Iterator<ConfigInfo> it=childDir(i).listAllConfigurations().iterator();
+	    while (it.hasNext()) result.add(it.next());
+	}
+	return result;
+    }
+    
+    /** get directory with name/release filter(s) applied */
+    public Directory filter(String filterString,String releaseTag)
+    {
+	Directory result = new Directory(dbId,name,created,parentDir);
+	for (int i=0;i<childDirCount();i++) {
+	    Directory filteredChildDir=childDir(i).filter(filterString,releaseTag);
+	    if (filteredChildDir.childDirCount()>0||
+		filteredChildDir.configInfoCount()>0)
+		result.addChildDir(filteredChildDir);
+	}
+	boolean startsWith = filterString.startsWith("/");
+	for (int i=0;i<configInfoCount();i++) {
+	    ConfigInfo info = configInfo(i);
+	    if (releaseTag.length()>0) {
+		boolean hasReleaseTag = false;
+		for (int j=0;j<info.versionCount();j++) {
+		    if (info.version(j).releaseTag().equals(releaseTag)) {
+			hasReleaseTag = true;
+			break;
+		    }
+		}
+		if (!hasReleaseTag) continue;
+	    }
+	    if (filterString.length()==0) {
+		result.addConfigInfo(info);
+	    }
+	    else {
+		String fullName = info.parentDir().name()+"/"+info.name();
+		int    index    = fullName.indexOf(filterString);
+		if ((startsWith&&index==0)||(!startsWith&&index>=0))
+		    result.addConfigInfo(info);
+	    }
+	}
+	return result;
     }
 
 }

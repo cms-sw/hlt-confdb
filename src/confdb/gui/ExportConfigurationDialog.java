@@ -26,11 +26,17 @@ import confdb.db.DatabaseException;
  * @author Philipp Schieferdecker
  *
  */
-public class ExportConfigurationDialog extends ConfigurationDialog
+public class ExportConfigurationDialog extends JDialog
 {
     //
     // member data
     //
+
+    /** reference to application frame */
+    private JFrame jFrame = null;
+    
+    /** release tag of the configuration to be exported */
+    private String releaseTag = "";
 
     /** target database */
     private ConfDB targetDB = null;
@@ -40,6 +46,12 @@ public class ExportConfigurationDialog extends ConfigurationDialog
     
     /** predefined database setup */
     private ConfDBSetups dbSetups = new ConfDBSetups();
+
+    /** indiace if a valid choice was made */
+    private boolean validChoice = false;
+
+    /** directory tree model */
+    private DirectoryTreeModel treeModel = null;
 
     /** GUI components */
     private JPanel         jPanelLeft           = new JPanel();
@@ -57,10 +69,10 @@ public class ExportConfigurationDialog extends ConfigurationDialog
     private JPasswordField jTextFieldPwrd       = new JPasswordField();
     private JTextField     jTextFieldConfigName = new JTextField();
     private JScrollPane    jScrollPaneTree      = new JScrollPane();
-    private JTree          jTreeDirectories     = null;
-    private JButton        connectButton        = new JButton();
-    private JButton        exportButton         = new JButton();
-    private JButton        cancelButton         = new JButton();
+    private JTree          jTreeDirectories;
+    private JButton        jButtonConnect       = new JButton();
+    private JButton        jButtonExport        = new JButton();
+    private JButton        jButtonCancel        = new JButton();
     
 
     //
@@ -68,23 +80,58 @@ public class ExportConfigurationDialog extends ConfigurationDialog
     //
     
     /** standard constructor */
-    public ExportConfigurationDialog(JFrame frame,String targetName)
+    public ExportConfigurationDialog(JFrame jFrame,
+				     String releaseTag,String targetName)
     {
-	super(frame);
-	this.targetDB = new ConfDB();
+	super(jFrame,true);
+	this.jFrame = jFrame;
+	this.releaseTag = releaseTag;
+	targetDB = new ConfDB();
 	
 	setContentPane(createContentPane());
-
+	
 	jTextFieldConfigName.setText(targetName);
 	
 	setTitle("Export Configuration");
     
+	// register listener callbacks
 	addComponentListener(new ComponentAdapter() {
 		public void componentShown(ComponentEvent ce) {
 		    jTextFieldHost.requestFocusInWindow();
 		    jTextFieldHost.selectAll();
 		}
 	    });
+	jComboBoxSetup.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jComboBoxSetupActionPerformed(e);
+		}
+	    });
+	jTextFieldPwrd.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jTextFieldPwrdActionPerformed(e);
+		}
+	    });
+	jButtonConnect.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonConnectActionPerformed(e);
+		}
+	    });
+	jButtonCancel.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonCancelActionPerformed(e);
+		}
+	    });
+	jButtonExport.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonExportActionPerformed(e);
+		}
+	    });
+	jTextFieldConfigName.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jTextFieldConfigNameActionPerformed(e);
+		}
+	    });
+	
     }
     
     
@@ -101,8 +148,15 @@ public class ExportConfigurationDialog extends ConfigurationDialog
     /** retrieve configuration directory in target DB */
     public Directory targetDir() { return this.targetDir; }
 
-    /** type choosen from the combo box */
-    public void jComboBoxSetupActionPerformed(ActionEvent e)
+    /** indicate if a valid choice was made */
+    public boolean validChoice() { return this.validChoice; }
+
+
+    //
+    // private member functions
+    //
+    
+    private void jComboBoxSetupActionPerformed(ActionEvent e)
     {
 	int selectedIndex = jComboBoxSetup.getSelectedIndex();
 	jTextFieldHost.setText(dbSetups.host(selectedIndex));
@@ -117,9 +171,11 @@ public class ExportConfigurationDialog extends ConfigurationDialog
 	jTextFieldUser.requestFocusInWindow();
 	jTextFieldUser.selectAll();
     }
-    
-    /** 'Connect' button pressed */
-    public void connectButtonActionPerformed(ActionEvent e)
+    private void jTextFieldPwrdActionPerformed(ActionEvent e)
+    {
+	jButtonConnectActionPerformed(e);
+    }
+    private void jButtonConnectActionPerformed(ActionEvent e)
     {
 	try {
 	    String dbType = buttonGroup.getSelection().getActionCommand();
@@ -131,79 +187,105 @@ public class ExportConfigurationDialog extends ConfigurationDialog
 	    String dbPwrd = new String(jTextFieldPwrd.getPassword());
 	    
 	    targetDB.connect(dbType,dbUrl,dbUser,dbPwrd);
+	    targetDB.getReleaseId(releaseTag); // check
 	    
-	    this.setDatabase(targetDB);
-	    createTreeView(new Dimension(200,200));
-	    jTreeDirectories = this.dirTree;
-	    jScrollPaneTree.setViewportView(jTreeDirectories);
-
+	    Directory rootDir = targetDB.loadConfigurationTree();
+	    treeModel = new DirectoryTreeModel(rootDir);
+	    jTreeDirectories = new JTree(treeModel);
+	    jTreeDirectories.setEditable(true);
 	    jTreeDirectories
 		.addMouseListener(new DirectoryTreeMouseListener(jTreeDirectories,
 								 targetDB));
+	    jTreeDirectories
+		.setCellRenderer(new DirectoryTreeCellRenderer());
+	    jTreeDirectories
+		.setCellEditor(new DirectoryTreeCellEditor(jTreeDirectories,
+							   new DirectoryTreeCellRenderer()));
+	    
+	    // register additional listener callbacks
 	    jTreeDirectories.addTreeSelectionListener(new TreeSelectionListener() {
 		    public void valueChanged(TreeSelectionEvent e) {
 			jTreeDirectoriesValueChanged(e);
 		    }
 		});
-	    
-	    connectButton.setEnabled(false);
+	    jTextFieldConfigName.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+			jTextFieldConfigNameActionPerformed(e);
+		    }
+		});
+	    jTextFieldConfigName
+		.getDocument().addDocumentListener(new DocumentListener() {
+			public void insertUpdate(DocumentEvent e) {
+			    jTextFieldConfigNameInsertUpdate(e);
+			}
+			public void removeUpdate(DocumentEvent e) {
+			    jTextFieldConfigNameRemoveUpdate(e);
+			}
+			public void changedUpdate(DocumentEvent e) {}
+		    });
+	    jScrollPaneTree.setViewportView(jTreeDirectories);	    
+	    jButtonConnect.setEnabled(false);
 	}
 	catch (DatabaseException ex) {
-	    System.out.println("Failed to connect to DB: "+ex.getMessage());
+	    JOptionPane.showMessageDialog(jFrame,ex.getMessage(),"",
+					  JOptionPane.ERROR_MESSAGE);
 	}
     }
-    
-    /** 'Export' button pressed */
-    public void exportButtonActionPerformed(ActionEvent e)
+    private void jButtonExportActionPerformed(ActionEvent e)
     {
-	if (targetName().length()>0&&targetDir!=null) validChoice=true;
-	else {
-	    try { targetDB.disconnect(); } catch (DatabaseException ex) {}
-	}
+	validChoice=true;
 	setVisible(false);
     }
-
-    /** 'Cancel' button pressed */
-    public void cancelButtonActionPerformed(ActionEvent e)
+    private void jButtonCancelActionPerformed(ActionEvent e)
     {
 	validChoice = false;
+	try { targetDB.disconnect(); } catch (DatabaseException ex) {}
 	setVisible(false);
     }
-    
-    /** Target configuration name entered */
-    public void jTextFieldConfigNameActionPerformed(ActionEvent e)
+    private void jTextFieldConfigNameActionPerformed(ActionEvent e)
     {
-	if (targetName().length()>0&&targetDir!=null)
-	    exportButton.setEnabled(true);
-	else
-	    exportButton.setEnabled(false);
+	if (jButtonExport.isEnabled()) jButtonExportActionPerformed(e);
     }
-    
-    /** the selection in the directory tree has changed */
-    public void jTreeDirectoriesValueChanged(TreeSelectionEvent e)
+    private void jTextFieldConfigNameInsertUpdate(DocumentEvent e)
     {
-	JTree  dirTree = (JTree)e.getSource();
-	Object o       = dirTree.getLastSelectedPathComponent();
+	updateExportButton();
+    }
+    private void jTextFieldConfigNameRemoveUpdate(DocumentEvent e)
+    {
+	updateExportButton();
+    }
+    private void jTreeDirectoriesValueChanged(TreeSelectionEvent e)
+    {
+	Object o = jTreeDirectories.getLastSelectedPathComponent();
 	if (o instanceof Directory) {
-	    Directory d = (Directory)o;
-	    targetDir = d;
-	    if (jTextFieldConfigName.getText().length()>0&&
-		targetDir.dbId()>0)
-		exportButton.setEnabled(true);
-	    else
-		exportButton.setEnabled(false);
+	    targetDir = (Directory)o;
+	    updateExportButton();
 	}
-	else if (o instanceof ConfigInfo) {
-	    exportButton.setEnabled(false);
+	else if (o==null||(o instanceof ConfigInfo)) {
+	    jButtonExport.setEnabled(false);
 	    targetDir = null;
 	}
     }
     
-
-
-    //
-    // private member functions
-    //
+    private void updateExportButton()
+    {
+	if (targetDir==null) {
+	    jButtonExport.setEnabled(false);
+	    return;
+	}
+	String configName = jTextFieldConfigName.getText();
+	if (configName.length()==0) {
+	    jButtonExport.setEnabled(false);
+	    return;
+	}
+	for (int i=0;i<targetDir.configInfoCount();i++) {
+	    if (targetDir.configInfo(i).name().equals(configName)) {
+		jButtonExport.setEnabled(false);
+		return;
+	    }
+	}
+	jButtonExport.setEnabled(true);
+    }
 
     /** compute database url */
     private String url(String dbType,String dbHost,String dbPort,String dbName)
@@ -249,11 +331,6 @@ public class ExportConfigurationDialog extends ConfigurationDialog
 
 	jComboBoxSetup.setBackground(new java.awt.Color(255, 255, 255));
 	jComboBoxSetup.setSelectedIndex(0);
-	jComboBoxSetup.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent evt) {
-		jComboBoxSetupActionPerformed(evt);
-	    }
-	});
 	
 	buttonGroup.add(jRadioButtonMySQL);
 	buttonGroup.add(jRadioButtonOracle);
@@ -270,12 +347,7 @@ public class ExportConfigurationDialog extends ConfigurationDialog
         jRadioButtonOracle.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         jRadioButtonOracle.setMargin(new java.awt.Insets(0, 0, 0, 0));
 
-        connectButton.setText("Connect");
-	connectButton.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    connectButtonActionPerformed(e);
-		}
-	    });
+        jButtonConnect.setText("Connect");
 
 	org.jdesktop.layout.GroupLayout jPanelLeftLayout =
 	    new org.jdesktop.layout.GroupLayout(jPanelLeft);
@@ -377,7 +449,7 @@ public class ExportConfigurationDialog extends ConfigurationDialog
 						    .GroupLayout
 						    .DEFAULT_SIZE, 150,
 						    Short.MAX_VALUE))
-					  .add(connectButton,
+					  .add(jButtonConnect,
 					       org.jdesktop
 					       .layout
 					       .GroupLayout
@@ -508,7 +580,7 @@ public class ExportConfigurationDialog extends ConfigurationDialog
 				   .addPreferredGap(org.jdesktop
 						    .layout.LayoutStyle.RELATED, 29,
 						    Short.MAX_VALUE)
-				   .add(connectButton)
+				   .add(jButtonConnect)
 				   .addContainerGap())
 			      );
 
@@ -596,7 +668,7 @@ public class ExportConfigurationDialog extends ConfigurationDialog
 							       .TRAILING)
 					  .add(layout.createSequentialGroup()
 					       .add(184, 184, 184)
-					       .add(cancelButton,
+					       .add(jButtonCancel,
 						    org.jdesktop
 						    .layout.GroupLayout.DEFAULT_SIZE,
 						    81, Short.MAX_VALUE))
@@ -621,7 +693,7 @@ public class ExportConfigurationDialog extends ConfigurationDialog
 					       .layout.GroupLayout.DEFAULT_SIZE,
 					       Short.MAX_VALUE)
 					  .add(layout.createSequentialGroup()
-					       .add(exportButton,
+					       .add(jButtonExport,
 						    org.jdesktop
 						    .layout.GroupLayout.DEFAULT_SIZE,
 						    org.jdesktop
@@ -659,26 +731,15 @@ public class ExportConfigurationDialog extends ConfigurationDialog
 								   .layout
 								   .GroupLayout
 								   .BASELINE)
-					.add(cancelButton)
-					.add(exportButton))
+					.add(jButtonCancel)
+					.add(jButtonExport))
 				   .add(13, 13, 13))
 			      );
 
-        cancelButton.setText("Cancel");
-	cancelButton.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    cancelButtonActionPerformed(e);
-		}
-	    });
-	
-        exportButton.setText("Export");
-        exportButton.setEnabled(false);
-	exportButton.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    exportButtonActionPerformed(e);
-		}
-	    });
-	
+        jButtonCancel.setText("Cancel");
+        jButtonExport.setText("Export");
+        jButtonExport.setEnabled(false);
+
 	return contentPane;
     }
 }

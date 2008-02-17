@@ -31,8 +31,9 @@ public class InputTagParameter extends ScalarParameter
     //
 
     /** standard constructor */
-    public InputTagParameter(String name,String label,String instance,String process,
-			    boolean isTracked,boolean isDefault)
+    public InputTagParameter(String name,
+			     String label,String instance,String process,
+			     boolean isTracked,boolean isDefault)
     {
 	super(name,isTracked,isDefault);
 	isValueSet = (label!=null&&instance!=null&&process!=null);
@@ -105,6 +106,10 @@ public class InputTagParameter extends ScalarParameter
 	    process    = null;
 	}
 	else {
+	    if ((valueAsString.startsWith("'") &&valueAsString.endsWith("'"))||
+		(valueAsString.startsWith("\"")&&valueAsString.endsWith("\"")))
+		valueAsString=valueAsString.substring(1,valueAsString.length()-1);
+	    
 	    String[] strValues = valueAsString.split(":");
 	    if (strValues.length==0||strValues.length>3) return false;
 	    label = strValues[0];

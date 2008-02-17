@@ -106,7 +106,7 @@ public class ModuleInstance extends Instance implements Referencable
 		    if (module==this) isDownstream = true;
 		    continue;
 		}
-		Iterator<Parameter> itP = module.parameterIterator();
+		Iterator<Parameter> itP = module.recursiveParameterIterator();
 		while (itP.hasNext()) {
 		    Parameter p = itP.next();
 		    if (!p.isValueSet()) continue;

@@ -469,8 +469,10 @@ public class ConfDbGUI
 	if (database.dbUrl().equals(new String())) return;
 	if (!closeConfiguration()) return;
 	
-	OpenConfigurationDialog dialog =
-	    new OpenConfigurationDialog(frame,database);
+	//OpenConfigurationDialog dialog =
+	//    new OpenConfigurationDialog(frame,database);
+	PickConfigurationDialog dialog =
+	    new PickConfigurationDialog(frame,"Open Configuration",database);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
@@ -601,9 +603,12 @@ public class ConfDbGUI
     /** one another configuration to import components */
     public void importConfiguration()
     {
-	ImportConfigurationDialog dialog =
-	    new ImportConfigurationDialog(frame,database,
-					  currentRelease.releaseTag());
+	//ImportConfigurationDialog dialog =
+	//  new ImportConfigurationDialog(frame,database,
+	//			  currentRelease.releaseTag());
+	PickConfigurationDialog dialog =
+	    new PickConfigurationDialog(frame,"Import Configuration",database);
+	dialog.fixReleaseTag(currentRelease.releaseTag());
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
@@ -752,8 +757,9 @@ public class ConfDbGUI
 	if (!checkConfiguration()) return;
 	
 	ExportConfigurationDialog dialog =
-	    new ExportConfigurationDialog(frame,currentConfig.name());
-	
+	    new ExportConfigurationDialog(frame,
+					  currentConfig.releaseTag(),
+					  currentConfig.name());
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
@@ -769,7 +775,7 @@ public class ConfDbGUI
 	    jProgressBar.setIndeterminate(true);
 	    jProgressBar.setVisible(true);
 	    jProgressBar.setString("Migrate Configuration to " +
-				  targetDB.dbUrl() + " ... ");
+				   targetDB.dbUrl() + " ... ");
 	}
     }
     

@@ -11,7 +11,7 @@ import java.util.Collections;
  *
  * Information about a configuration.
  */
-public class ConfigInfo
+public class ConfigInfo implements Comparable<ConfigInfo>
 {
     //
     // member data
@@ -71,6 +71,14 @@ public class ConfigInfo
     /** toString overload */
     public String toString() { return name; }
     
+    /** Comparable::compareTo() */
+    public int compareTo(ConfigInfo ci)
+    {
+	String full1 = parentDir().name()+"/"+name();
+	String full2 = ci.parentDir().name()+"/"+ci.name();
+	return full1.compareTo(full2);
+    }
+
     /** get configuration name */
     public String name() { return name; }
 
@@ -177,4 +185,6 @@ public class ConfigInfo
 	return (versionCount()>0) ? versions.get(0).version()+1 : 1;
     }
     
+    /** set the parent directory */
+    public void setParentDir(Directory parentDir) { this.parentDir = parentDir; }
 }

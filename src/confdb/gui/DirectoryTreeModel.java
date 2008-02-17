@@ -43,6 +43,13 @@ public class DirectoryTreeModel extends AbstractTreeModel
     // member functions
     //
 
+    /** set root directory */
+    public void setRootDir(Directory rootDir)
+    {
+	this.rootDir = rootDir;
+	nodeStructureChanged(rootDir);
+    }
+    
     /** get root directory */
     public Object getRoot() { return rootDir; }
 
