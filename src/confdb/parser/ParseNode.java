@@ -120,7 +120,9 @@ public class ParseNode
 	if (content.indexOf(cquotes[iquote])>=0&&
 	    !content.endsWith(cquotes[iquote]))
 	    throw new ParserException("ParseNode.addContent: "+
-				      "characters found after closing quotes.");
+				      "characters found after closing quotes:\n"+
+				      "<"+this.content+">\n"+
+				      "<"+content+">");
 
 	this.content += " " + content;
     }

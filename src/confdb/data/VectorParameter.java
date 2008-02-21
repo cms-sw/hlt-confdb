@@ -32,4 +32,14 @@ abstract public class VectorParameter extends Parameter
     /** set i-th value of a vector-type parameter */
     abstract public boolean setValue(int i,String valueAsString);
 
+    
+    //
+    // member functions
+    //
+
+    /** override Parameter::isValueSet() */
+    public boolean isValueSet()
+    {
+	return (isTracked()) ? true : super.isValueSet();
+    }
 }

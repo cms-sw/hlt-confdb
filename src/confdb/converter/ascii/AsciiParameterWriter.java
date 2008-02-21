@@ -40,7 +40,7 @@ public class AsciiParameterWriter  implements IParameterWriter
 				if ( doubleObject != null )
 					value = doubleObject.toString() + " // oops, method value() used";
 				else
-					throw new ConverterException( "oops, Double == null !! Don't know what to do" );
+					throw new ConverterException( "oops, Double == null !! Don't know what to do ("+parameter.name()+")" );
 			}
 			str.append( value );
 		}

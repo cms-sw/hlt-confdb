@@ -98,7 +98,7 @@ public class PythonParser
 	    while (fileScan.hasNextLine()) {
 
 		lineCount++;
-
+		
 		String line  = fileScan.nextLine();
 		int    index = line.indexOf("#");
 		if (index>=0) line = line.substring(0,index);
@@ -523,35 +523,38 @@ public class PythonParser
     {
 	int    index      = -1;
 	String brackets[] = { ":", "{", "}", "[", "]", "(", ")" };
-	
+
 	// token starts with ','
 	if (token.startsWith(",")) return new String(",");
 	
 	// token starts with an opening quote
 	for (int i=0;i<oquotes.length;i++) {
+
+	    // ADDED 02/18/08
+	    if (isBuildingString) continue;
+	    
 	    if (token.startsWith(oquotes[i])) {
 		token  = token.substring(oquotes[i].length());
 		index  = token.indexOf(cquotes[i]);
 
-		// TEST
 		isBuildingString = (index<0);
-
+		
 		return (index>=0) ?
 		    oquotes[i]+token.substring(0,index+cquotes[i].length()) : 
 		    oquotes[i]+token;
 	    }
 	}
-	
+
 	// token starts with a bracket
 	for (int i=0;i<brackets.length;i++) {
 	    if (token.startsWith(brackets[i])) return brackets[i];
 	}
 	
+	
 	// a closing quote is in the token
 	for (int i=0;i<cquotes.length;i++) {
 	    if ((index=token.indexOf(cquotes[i]))>=0) {
 
-		// TEST
 		isBuildingString = false;
 
 		return token.substring(0,index+cquotes[i].length());

@@ -1,3 +1,8 @@
+2008-02-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-19-06
+	* data: improve VStringParameter::setValue()
+
 2008-02-17  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-19-05

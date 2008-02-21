@@ -84,16 +84,43 @@ public class VStringParameter extends VectorParameter
 	    isValueSet = false;
 	}
 	else {
-	    String[] strValues = valueAsString.split(",");
-	    for (int i=0;i<strValues.length;i++) {
-		String s = strValues[i];
-		while (s.startsWith(" ")) s = s.substring(1,s.length());
-		while (s.endsWith(" "))   s = s.substring(0,s.length()-1);
-		if ((s.startsWith("'")&&s.endsWith("'"))||
-		    (s.startsWith("\"")&&s.endsWith("\"")))
-		    s = s.substring(1,s.length()-1);
-		values.add(s);
+	    String delim = null;
+	    StringBuffer sb = new StringBuffer();
+	    for (int i=0;i<valueAsString.length();i++) {
+		String c =
+		    new StringBuffer().append(valueAsString.charAt(i)).toString();
+		if (c.equals(",")&&delim==null) {
+		    values.add(stripDelimiters(sb.toString()));
+		    sb = new StringBuffer();
+		}
+		else {
+		    sb.append(c);
+		    if (delim!=null&&c.equals(delim)) delim=null;
+		    else if (c.equals("\'")||c.equals("\"")) {
+			sb = new StringBuffer();
+			sb.append(c);
+			delim = c;
+		    }
+		}
 	    }
+	    if (delim!=null)
+		System.err.println("VStringParameter::setValue WARNING: "+
+				   "value incomplete (delim="+delim+")? "+
+				   sb.toString());
+	    if (sb.length()>0) values.add(stripDelimiters(sb.toString()));
+	    
+	    /*
+	      String[] strValues = valueAsString.split(",");
+	      for (int i=0;i<strValues.length;i++) {
+	      String s = strValues[i];
+	      while (s.startsWith(" ")) s = s.substring(1,s.length());
+	      while (s.endsWith(" "))   s = s.substring(0,s.length()-1);
+	      if ((s.startsWith("'")&&s.endsWith("'"))||
+	      (s.startsWith("\"")&&s.endsWith("\"")))
+	      s = s.substring(1,s.length()-1);
+	      values.add(s);
+	    */
+	    
 	    isValueSet = true;
 	}
 	return true;
@@ -116,4 +143,16 @@ public class VStringParameter extends VectorParameter
 	return true;
     }
     
+
+    /** strip string-delimiters and whitespaces */
+    private String stripDelimiters(String valueAsString)
+    {
+	String s = valueAsString;
+	while (s.startsWith(" ")) s = s.substring(1,s.length());
+	while (s.endsWith(" "))   s = s.substring(0,s.length()-1);
+	if ((s.startsWith("'")&&s.endsWith("'"))||
+	    (s.startsWith("\"")&&s.endsWith("\"")))
+	    s = s.substring(1,s.length()-1);
+	return s;
+    }
 }

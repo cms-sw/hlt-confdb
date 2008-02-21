@@ -59,3 +59,12 @@ Deployment to Web Server
 
     -> browse : select war to upload
     -> Upload file
+
+
+----------------------
+Producing problems.txt
+----------------------
+
+-> edmConfigToPython < RelVal_HLTFromRaw.cfg >  RelVal_HLTFromRaw.py
+
+-> java -cp ext/ojdbc14.jar:lib/cmssw-evf-confdb-gui.jar confdb.parser.PythonParser -t oracle -h int2r1-v.cern.ch -p 10121 -n int2r_lb.cern.ch -u cms_hlt -s ************** -r CMSSW_2_0_0_pre2 -c RelVal_HLTFromRaw.py
