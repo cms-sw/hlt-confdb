@@ -1,5 +1,10 @@
 2008-02-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-19-07
+	* data: bugfix to ModifierInstructions.resolve(). 
+
+2008-02-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-19-06
 	* data: improve VStringParameter::setValue()
 

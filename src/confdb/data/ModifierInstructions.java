@@ -460,8 +460,10 @@ public class ModifierInstructions
 	
 	// make sure content of undefined sequences is undefined as well
 	ArrayList<Sequence> undefSequences = new ArrayList<Sequence>();
-	for (String sequenceName : undefinedSequences)
-	    undefSequences.add(config.sequence(sequenceName));
+	for (String sequenceName : undefinedSequences) {
+	    Sequence sequence = config.sequence(sequenceName);
+	    if (sequence!=null) undefSequences.add(sequence); // TODO?!
+	}
 	
 	Iterator<Sequence> itUndefSeq = undefSequences.iterator();
 	while (itUndefSeq.hasNext()) {
