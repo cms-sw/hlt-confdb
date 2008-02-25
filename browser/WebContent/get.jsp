@@ -72,12 +72,6 @@
 	    	Integer.parseInt(configId) :
 		converter.getDatabase().getConfigId(configName);
 
-	    //if ( id <= 0 ) 
-	    //{
-	    //out.println( "ERROR: configuration not found!" );
-	    // 	return;
-	    //}
-
 	    String result = converter.getConfigString(id,format,
 						      modifierInstructions,
 						      asFragment);
@@ -93,7 +87,6 @@
 	    if (converter!=null)
 	        BrowserConverter.deleteConverter( converter );
 	}
-		
 
 %>
 

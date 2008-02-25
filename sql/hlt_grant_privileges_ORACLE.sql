@@ -2,6 +2,90 @@
 -- grant privileges to cms_hlt tablespace to users cms_hlt_writer/cms_hlt_reader
 --
 
+
+--
+-- cms_hlt_admin
+--
+
+-- SELECT
+GRANT SELECT ON SuperIdReleaseAssoc 		TO cms_hlt_admin;
+GRANT SELECT ON SoftwareReleases		TO cms_hlt_admin;
+GRANT SELECT ON SoftwareSubsystems		TO cms_hlt_admin;
+GRANT SELECT ON SoftwarePackages		TO cms_hlt_admin;
+GRANT SELECT ON ServiceTemplates 		TO cms_hlt_admin;
+GRANT SELECT ON EDSourceTemplates 		TO cms_hlt_admin;
+GRANT SELECT ON ESSourceTemplates 		TO cms_hlt_admin;
+GRANT SELECT ON ESModuleTemplates 		TO cms_hlt_admin;
+GRANT SELECT ON ModuleTemplates 		TO cms_hlt_admin;
+GRANT SELECT ON ModuleTypes 			TO cms_hlt_admin;
+GRANT SELECT ON Configurations 			TO cms_hlt_admin;
+GRANT SELECT ON Directories 			TO cms_hlt_admin;
+GRANT SELECT ON Int32ParamValues 		TO cms_hlt_admin;
+GRANT SELECT ON VInt32ParamValues 		TO cms_hlt_admin;
+GRANT SELECT ON UInt32ParamValues 		TO cms_hlt_admin;
+GRANT SELECT ON VUInt32ParamValues 		TO cms_hlt_admin;
+GRANT SELECT ON BoolParamValues 		TO cms_hlt_admin;
+GRANT SELECT ON DoubleParamValues 		TO cms_hlt_admin;
+GRANT SELECT ON VDoubleParamValues 		TO cms_hlt_admin;
+GRANT SELECT ON StringParamValues 		TO cms_hlt_admin;
+GRANT SELECT ON VStringParamValues 		TO cms_hlt_admin;
+GRANT SELECT ON InputTagParamValues 		TO cms_hlt_admin;
+GRANT SELECT ON VInputTagParamValues 		TO cms_hlt_admin;
+GRANT SELECT ON EventIDParamValues 		TO cms_hlt_admin;
+GRANT SELECT ON VEventIDParamValues 		TO cms_hlt_admin;
+GRANT SELECT ON FileInPathParamValues 		TO cms_hlt_admin;
+GRANT SELECT ON SuperIdParameterAssoc 		TO cms_hlt_admin;
+GRANT SELECT ON SuperIdParamSetAssoc 		TO cms_hlt_admin;
+GRANT SELECT ON SuperIdVecParamSetAssoc 	TO cms_hlt_admin;
+GRANT SELECT ON ParameterSets 			TO cms_hlt_admin;
+GRANT SELECT ON VecParameterSets 		TO cms_hlt_admin;
+GRANT SELECT ON Parameters 			TO cms_hlt_admin;
+GRANT SELECT ON SuperIds 			TO cms_hlt_admin;
+GRANT SELECT ON ParameterTypes 			TO cms_hlt_admin;
+
+GRANT SELECT ON ReleaseId_Sequence 		TO cms_hlt_admin;
+GRANT SELECT ON SubsysId_Sequence 		TO cms_hlt_admin;
+GRANT SELECT ON PackageId_Sequence 		TO cms_hlt_admin;
+GRANT SELECT ON DirId_Sequence 			TO cms_hlt_admin;
+GRANT SELECT ON ConfigId_Sequence 		TO cms_hlt_admin;
+GRANT SELECT ON StreamId_Sequence 		TO cms_hlt_admin;
+GRANT SELECT ON SuperId_Sequence 		TO cms_hlt_admin;
+GRANT SELECT ON PathId_Sequence 		TO cms_hlt_admin;
+GRANT SELECT ON SequenceId_Sequence 		TO cms_hlt_admin;
+GRANT SELECT ON ParamId_Sequence 		TO cms_hlt_admin;
+
+
+-- INSERT
+GRANT INSERT ON SuperIdReleaseAssoc 		TO cms_hlt_admin;
+GRANT INSERT ON ServiceTemplates		TO cms_hlt_admin;
+GRANT INSERT ON EDSourceTemplates		TO cms_hlt_admin;
+GRANT INSERT ON ESSourceTemplates		TO cms_hlt_admin;
+GRANT INSERT ON ESModuleTemplates		TO cms_hlt_admin;
+GRANT INSERT ON ModuleTemplates			TO cms_hlt_admin;
+GRANT INSERT ON Int32ParamValues 		TO cms_hlt_admin;
+GRANT INSERT ON VInt32ParamValues 		TO cms_hlt_admin;
+GRANT INSERT ON UInt32ParamValues 		TO cms_hlt_admin;
+GRANT INSERT ON VUInt32ParamValues 		TO cms_hlt_admin;
+GRANT INSERT ON BoolParamValues 		TO cms_hlt_admin;
+GRANT INSERT ON DoubleParamValues 		TO cms_hlt_admin;
+GRANT INSERT ON VDoubleParamValues 		TO cms_hlt_admin;
+GRANT INSERT ON StringParamValues 		TO cms_hlt_admin;
+GRANT INSERT ON VStringParamValues 		TO cms_hlt_admin;
+GRANT INSERT ON InputTagParamValues 		TO cms_hlt_admin;
+GRANT INSERT ON VInputTagParamValues 		TO cms_hlt_admin;
+GRANT INSERT ON EventIDParamValues 		TO cms_hlt_admin;
+GRANT INSERT ON VEventIDParamValues 		TO cms_hlt_admin;
+GRANT INSERT ON FileInPathParamValues 		TO cms_hlt_admin;
+GRANT INSERT ON SuperIdParameterAssoc 		TO cms_hlt_admin;
+GRANT INSERT ON SuperIdParamSetAssoc 		TO cms_hlt_admin;
+GRANT INSERT ON SuperIdVecParamSetAssoc 	TO cms_hlt_admin;
+GRANT INSERT ON ParameterSets 			TO cms_hlt_admin;
+GRANT INSERT ON VecParameterSets 		TO cms_hlt_admin;
+GRANT INSERT ON Parameters 			TO cms_hlt_admin;
+GRANT INSERT ON SuperIds 			TO cms_hlt_admin;
+
+
+
 --
 -- cms_hlt_writer
 --

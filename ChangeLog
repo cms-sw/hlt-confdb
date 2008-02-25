@@ -1,3 +1,10 @@
+2008-02-25  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-19-08
+	* conf: include db setting for new online database
+	* converter: set maxSize to 1024 for the configuration of the
+	StreamFileWriter, corresponding to 1024MB now
+
 2008-02-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-19-07
