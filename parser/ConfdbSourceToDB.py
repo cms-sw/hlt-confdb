@@ -538,12 +538,13 @@ class ConfdbSourceToDB:
 	print "\n\n*************************************************************************"
 	print "End of job report"
 	if(self.addtorelease != "none"):
-	    print "The add to release option was used." 
-	    print "A new release called " + self.addtorelease + " was created from the base release " + self.cmsswrel + "."
-	    print "The following " + str(len(self.addedtemplatenames)) + " components were updated/added from the test release area " + self.base_path + ":"
+	    print "The add to release option (-a) was used." 
+	    print "\tA new intermediate release named " + self.addtorelease + " was created from the base release " + self.cmsswrel + "."
+	    print "\tThe following " + str(len(self.addedtemplatenames)) + " components were updated/added from the test release area " + self.base_path + ":"
 	    i = 0
+            print "\n\t\tTemplate name" + "\t\tBase release" + "\t\tIntermediate release" 
 	    for myaddedtemplatename in self.addedtemplatenames:
-		print "\t" + myaddedtemplatename + "\t" + (self.addedtemplatetags[i])[0] + "\t-->\t" + (self.addedtemplatetags[i])[1]
+		print "\t\t" + myaddedtemplatename + "\t" + (self.addedtemplatetags[i])[0] + "\t-->\t" + (self.addedtemplatetags[i])[1]
 		i = i + 1
 	else:
 	    print "Scanned " + str(len(sealcomponenttuple)) + " fwk components for release " + self.cmsswrel 

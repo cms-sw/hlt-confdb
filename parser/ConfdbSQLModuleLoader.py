@@ -1956,7 +1956,8 @@ class ConfdbMySQLModuleLoader:
 
     # Now just attach all non-updated old templates to new release
     def ConfdbReassociateTemplates(self,thecursor,oldrelease,newrelease,modifiedtemplates):
-	oldrelid = thecursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (SoftwareReleases.releaseTag = '" + oldrelease + "')")
+	thecursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (SoftwareReleases.releaseTag = '" + oldrelease + "')")
+        oldrelid = (thecursor.fetchone())[0]
 	newrelid = self.releasekey
 	thecursor.execute("SELECT SuperIds.superId FROM SuperIds JOIN SuperIdReleaseAssoc ON (SuperIds.superId = SuperIdReleaseAssoc.superId) WHERE (SuperIdReleaseAssoc.releaseId = '" + str(oldrelid) + "')")
 	superidtuple = thecursor.fetchall()
