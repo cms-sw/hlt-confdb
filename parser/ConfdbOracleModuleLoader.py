@@ -34,7 +34,7 @@ class ConfdbOracleModuleLoader:
 #       self.connection = cx_Oracle.connect(host=userhost, 
 #                                    user=username, passwd=userpwd,
 #                                     db=dbname )
-#        self.connection = cx_Oracle.connect(username+"/"+userpwd+"@"+userhost)
+        self.connection = cx_Oracle.connect(username+"/"+userpwd+"@"+userhost)
         
         cursor = self.connection.cursor() 
 

@@ -29,14 +29,14 @@ def main(argv):
 
     input_verbose = 0
     input_dbname = "hltdb1"
-    input_dbuser = "jjhollar"
+#    input_dbuser = "jjhollar"
     input_dbpwd = "password"
-    input_dbtype = "MySQL"
-#    input_dbuser = "hltdev"
-#    input_dbpwd = "hltdev"
-#    input_host = "HLTDEV"
-#    input_dbtype = "Oracle"
-    input_host = "localhost"
+#    input_dbtype = "MySQL"
+    input_dbuser = "hltdev"
+    input_dbpwd = "hltdev"
+    input_host = "HLTDEV"
+    input_dbtype = "Oracle"
+#    input_host = "localhost"
     input_configfile = ""
     input_dotest = False
     input_noload = False
@@ -618,8 +618,8 @@ class ConfdbSourceToDB:
 		cvscotaglines = cvscotagfile.readlines()
 		for cvscotagline in cvscotaglines:
 		    tagline = cvscotagline
-		    if(tagline.startswith('T')): 
-			tagline = tagline.split('T')[1] 
+		    if(tagline.startswith('N')): 
+			tagline = tagline.split('N')[1] 
 		    if(self.verbose > 0):
 			print "Will enter component with CVS tag " + tagline
 
