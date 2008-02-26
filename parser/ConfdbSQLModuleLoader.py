@@ -20,7 +20,7 @@ class ConfdbMySQLModuleLoader:
         self.modtypedict = {}
 	self.releasekey = -1
 	self.verbose = int(verbosity)
-	self.addtorel = int(addtorelease)
+	self.addtorel = addtorelease
 	self.comparetorel = comparetorelease
 	self.comparetorelid = 0
 	self.connection = None
@@ -63,12 +63,6 @@ class ConfdbMySQLModuleLoader:
     def ConfdbAddNewRelease(self,thecursor,therelease):
 	thecursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (releaseTag = '" + therelease + "')")
 	therelnum =  thecursor.fetchone()
-
-        # The user wants to add/modify components for an existing release. Shortcut the
-        # usual safety checks and let them do whatever they want.
-        if(self.addtorel == 1):
-            self.releasekey = therelnum[0]
-            return therelnum
 
 	if(therelnum):
 	    print "\tThis release already exists in the DB!"
@@ -214,8 +208,8 @@ class ConfdbMySQLModuleLoader:
 	# Get the module type (base class)
 	modbaseclassid = self.modtypedict[modbaseclass]
 
-        if(self.addtorel == 1):
-            print 'This module does not exist in the release. Will ADD from the specified test release'
+        if(self.addtorel != "none"):
+            print 'This module appears in the base release with a different tag. Will ADD from the specified test release'
 
 	# Now create a new module
 	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')")
@@ -245,8 +239,8 @@ class ConfdbMySQLModuleLoader:
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
-        if(self.addtorel == 1):
-            print 'This service does not exist in the release. Will ADD from the specified test release'
+        if(self.addtorel != "none"):
+            print 'This service appears in the base release with a different tag. Will ADD from the specified test release'
 
 	# Now create a new service
 	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "', '" + str(softpackageid) + "')")
@@ -276,8 +270,8 @@ class ConfdbMySQLModuleLoader:
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
-        if(self.addtorel == 1):
-            print 'This es_source does not exist in the release. Will ADD from the specified test release'
+        if(self.addtorel != "none"):
+            print 'This es_source appears in the base release with a different tag. Will ADD from the specified test release'
 
 	# Now create a new es_source
 	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')")
@@ -307,8 +301,8 @@ class ConfdbMySQLModuleLoader:
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
-        if(self.addtorel == 1):
-            print 'This ed_source does not exist in the release. Will ADD from the specified test release'
+        if(self.addtorel != "none"):
+            print 'This ed_source appears in the base release with a different tag. Will ADD from the specified test release'
 
 	# Now create a new ed_source
 	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')")
@@ -338,8 +332,8 @@ class ConfdbMySQLModuleLoader:
 	# Attach this template to the currect release
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
-        if(self.addtorel == 1):
-            print 'This es_module does not exist in the release. Will ADD from the specified test release'
+        if(self.addtorel != "none"):
+            print 'This es_module appears in the base release with a different tag. Will ADD from the specified test release'
 
 	# Now create a new module
 	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')")
@@ -370,7 +364,7 @@ class ConfdbMySQLModuleLoader:
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
-	if((oldtag == modcvstag) and (self.addtorel != 1)):
+	if((oldtag == modcvstag) and (self.addtorel == "none")):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this module is unchanged - attach old template to new release'
 	    if(self.verbose > 0):
@@ -378,11 +372,11 @@ class ConfdbMySQLModuleLoader:
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
 	    return
 
-        if(self.addtorel == 1):
-            print 'This module already exists in the release. Will REPLACE it with the one from the specified test release'
-            if(self.verbose > 2):    
-                print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
-            thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
+#        if(self.addtorel != "none"):
+#            print 'This module already exists in the release. Will REPLACE it with the one from the specified test release'
+#            if(self.verbose > 2):    
+#                print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
+#            thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
 
 	self.fwkchanged = self.fwkchanged + 1
 
@@ -425,17 +419,17 @@ class ConfdbMySQLModuleLoader:
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
-	if((oldtag == servcvstag) and (self.addtorel != 1)):
+	if((oldtag == servcvstag) and (self.addtorel == "none")):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this service is unchanged - attach old template to new release'
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
 	    return
 
-        if(self.addtorel == 1):
-            print 'This service already exists in the release. Will REPLACE it with the one from the specified test release'
-            if(self.verbose > 2):
-                print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
-            thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
+#        if(self.addtorel != "none"):
+#            print 'This service already exists in the release. Will REPLACE it with the one from the specified test release'
+#            if(self.verbose > 2):
+#                print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
+#            thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
                                                                             
 	self.fwkchanged = self.fwkchanged + 1
 
@@ -476,17 +470,17 @@ class ConfdbMySQLModuleLoader:
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
-	if((oldtag == sourcecvstag) and (self.addtorel != 1)):
+	if((oldtag == sourcecvstag) and (self.addtorel == "none")):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this source is unchanged - attach old template to new release'
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
 	    return
 
-        if(self.addtorel == 1):
-            print 'This source already exists in the release. Will REPLACE it with the one from the specified test release'
-            if(self.verbose > 2):
-                print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
-            thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
+#        if(self.addtorel != "none"):
+#            print 'This source already exists in the release. Will REPLACE it with the one from the specified test release'
+#            if(self.verbose > 2):
+#                print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
+#            thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
                                                                             
 	self.fwkchanged = self.fwkchanged + 1
 
@@ -524,17 +518,17 @@ class ConfdbMySQLModuleLoader:
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
-	if((oldtag == sourcecvstag) and (self.addtorel != 1)):
+	if((oldtag == sourcecvstag) and (self.addtorel == "none")):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this source is unchanged - attach old template to new release'
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
 	    return
 
-        if(self.addtorel == 1):
-            print 'This source already exists in the release. Will REPLACE it with the one from the specified test release'
-            if(self.verbose > 2):
-                print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
-            thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
+#        if(self.addtorel != "none"):
+#            print 'This source already exists in the release. Will REPLACE it with the one from the specified test release'
+#            if(self.verbose > 2):
+#                print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
+#            thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
                                                                             
 	self.fwkchanged = self.fwkchanged + 1
 
@@ -572,17 +566,17 @@ class ConfdbMySQLModuleLoader:
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
-	if((oldtag == sourcecvstag) and (self.addtorel != 1)):
+	if((oldtag == sourcecvstag) and (self.addtorel == "none")):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this esmodule is unchanged - attach old template to new release'
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
 	    return
 
-        if(self.addtorel == 1):
-            print 'This esmodule already exists in the release. Will REPLACE it with the one from the specified test release'
-            if(self.verbose > 2):
-                print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
-            thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
+#        if(self.addtorel != "none"):
+#            print 'This esmodule already exists in the release. Will REPLACE it with the one from the specified test release'
+#            if(self.verbose > 2):
+#                print "DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid)
+#            thecursor.execute("DELETE FROM SuperIdReleaseAssoc WHERE SuperIdReleaseAssoc.superId = " + str(oldsuperid))
 
 	self.fwkchanged = self.fwkchanged + 1
 
@@ -1959,7 +1953,48 @@ class ConfdbMySQLModuleLoader:
 	        pack = pack[0]
 
 	return pack
-	    
+
+    # Now just attach all non-updated old templates to new release
+    def ConfdbReassociateTemplates(self,thecursor,oldrelease,newrelease,modifiedtemplates):
+	oldrelid = thecursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (SoftwareReleases.releaseTag = '" + oldrelease + "')")
+	newrelid = self.releasekey
+	thecursor.execute("SELECT SuperIds.superId FROM SuperIds JOIN SuperIdReleaseAssoc ON (SuperIds.superId = SuperIdReleaseAssoc.superId) WHERE (SuperIdReleaseAssoc.releaseId = '" + str(oldrelid) + "')")
+	superidtuple = thecursor.fetchall()
+	print "Remapping existing templates from release " + oldrelease + " to new intermediate release called " + newrelease
+	for superidentry in superidtuple:	    
+	    superid = superidentry[0]
+
+	    matches = ''
+	    thecursor.execute("SELECT ModuleTemplates.name FROM ModuleTemplates WHERE (ModuleTemplates.superId = '" + str(superid) + "')")
+	    tempname = thecursor.fetchone()
+	    if(tempname):
+		matches = tempname[0]
+
+	    thecursor.execute("SELECT ServiceTemplates.name FROM ServiceTemplates WHERE (ServiceTemplates.superId = '" + str(superid) + "')")
+	    tempname = thecursor.fetchone()
+	    if(tempname):
+		matches = tempname[0]
+
+	    thecursor.execute("SELECT ESSourceTemplates.name FROM ESSourceTemplates WHERE (ESSourceTemplates.superId = '" + str(superid) + "')")
+	    tempname = thecursor.fetchone()
+	    if(tempname):
+		matches = tempname[0]
+
+	    thecursor.execute("SELECT EDSourceTemplates.name FROM EDSourceTemplates WHERE (EDSourceTemplates.superId = '" + str(superid) + "')")
+	    tempname = thecursor.fetchone()
+	    if(tempname):
+		matches = tempname[0]
+
+	    thecursor.execute("SELECT ESModuleTemplates.name FROM ESModuleTemplates WHERE (ESModuleTemplates.superId = '" + str(superid) + "')")
+	    tempname = thecursor.fetchone()
+	    if(tempname):
+		matches = tempname[0]
+
+	    if(not (matches in modifiedtemplates)):
+		thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(superid) + ", " + str(newrelid) + ")")
+	    print ".",
+	print "\n"
+
     # Utility function for adding a new parameter 
     def AddNewParam(self,thecursor,sid,pname,ptype,ptracked,pseq):
 	if(self.verbose > 2):

@@ -16,6 +16,8 @@ def main(argv):
     # Get information from the environment
     input_base_path = os.environ.get("CMSSW_RELEASE_BASE")
     input_cmsswrel = os.environ.get("CMSSW_VERSION")
+    input_addfromreldir = os.environ.get("CMSSW_BASE")
+    input_baserelease_path = input_base_path
 
     # User can provide a list of packages to ignore...
     input_usingblacklist = False
@@ -38,7 +40,7 @@ def main(argv):
     input_configfile = ""
     input_dotest = False
     input_noload = False
-    input_addtorelease = False
+    input_addtorelease = "none"
     input_comparetorelease = ""
 
     # Parse command line options
@@ -102,11 +104,10 @@ def main(argv):
 		print "Will not parse test/ directories"
 		input_dotest = False
 	if o in ("-a","addtorelease="):
-	    if(int(a) == 1):
-		print "Will update using packages from testrelease"
-		input_addtorelease = True
-	    else:
-		input_addtorelease = False
+	    input_addtorelease = str(a)    
+	    input_baserelease_path = input_base_path
+	    input_base_path = input_addfromreldir
+	    print "Will create new release " + input_addtorelease + " using packages in " + input_addfromreldir
 	if o in ("-m","comparetorelease="):
 	    print "Will update releative to release " + str(a)
 	    input_comparetorelease = str(a)
@@ -140,11 +141,11 @@ def main(argv):
 
     print "Using release base: " + input_base_path
 
-    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype,input_dbpwd,input_host,input_configfile,input_dotest,input_noload,input_addtorelease,input_comparetorelease)
+    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype,input_dbpwd,input_host,input_configfile,input_dotest,input_noload,input_addtorelease,input_comparetorelease,input_baserelease_path)
     confdbjob.BeginJob()
 
 class ConfdbSourceToDB:
-    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype,clidbpwd,clihost,cliconfig,clidotest,clinoload,cliaddtorelease,clicomparetorelease):
+    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype,clidbpwd,clihost,cliconfig,clidotest,clinoload,cliaddtorelease,clicomparetorelease,clibasereleasepath):
 	self.data = []
 	self.dbname = clidbname
 	self.dbuser = clidbuser
@@ -164,6 +165,8 @@ class ConfdbSourceToDB:
 	self.parseerrors = []
 	self.baseclasserrors = []
 	self.unknownbaseclasses = []
+	self.addedtemplatenames = []
+	self.addedtemplatetags = []
 
 	# Get a Conf DB connection. Only need to do this once at the 
 	# beginning of a job.
@@ -176,8 +179,10 @@ class ConfdbSourceToDB:
 
 	# Deal with package tags for this release.
 	self.tagtuple = []
+	self.basereltagtuple = []
 	self.cmsswrel = clirel
 	self.base_path = clibasepath
+	self.baserelease_path = clibasereleasepath
 	self.whitelist = cliwhitelist
 	self.blacklist = cliblacklist
 	self.usingwhitelist = cliusingwhitelist
@@ -188,12 +193,21 @@ class ConfdbSourceToDB:
 	# CmsTCPackageList.pl script.
         #	os.system("CmsTCPackageList.pl --rel " + self.cmsswrel + " >& temptags.txt")
         #	tagfile = open("temptags.txt")
-        if(os.path.isfile(self.base_path + "//src/PackageList.cmssw")):
-            tagfile = open(self.base_path + "//src/PackageList.cmssw")
-            taglines = tagfile.readlines()
-            for tagline in taglines:
-                self.tagtuple.append(((tagline.split())[0], (tagline.split())[1]))
-                #	os.system("rm temptags.txt")
+
+	if(self.addtorelease != "none"):
+	    # If we're creating an intermediate release, get the list of tags from the *base* release
+	    if(os.path.isfile(self.baserelease_path + "//src/PackageList.cmssw")):
+		tagfile = open(self.baserelease_path + "//src/PackageList.cmssw")
+		taglines = tagfile.readlines()
+		for tagline in taglines:
+		    self.tagtuple.append(((tagline.split())[0], (tagline.split())[1]))
+	else:
+	    # Otherwise, get the list of tags from *this* release
+	    if(os.path.isfile(self.base_path + "//src/PackageList.cmssw")):
+		tagfile = open(self.base_path + "//src/PackageList.cmssw")
+		taglines = tagfile.readlines()
+		for tagline in taglines:
+		    self.tagtuple.append(((tagline.split())[0], (tagline.split())[1]))
 
 	# List of all available modules
 	sealcomponenttuple = []
@@ -217,7 +231,12 @@ class ConfdbSourceToDB:
 	print "Release is = " + self.cmsswrel
 	if(self.noload == False):
 	    addrelease = -1
-	    addrelease = self.dbloader.ConfdbAddNewRelease(self.dbcursor,self.cmsswrel)
+	    print "Add to release is " + self.addtorelease
+	    if(self.addtorelease == "none"):
+	        addrelease = self.dbloader.ConfdbAddNewRelease(self.dbcursor,self.cmsswrel)
+	    else:
+		addrelease = self.dbloader.ConfdbAddNewRelease(self.dbcursor,self.addtorelease)
+
 	    if(addrelease > 0):
 		print "Succesfully added release " + self.cmsswrel + " to the DB"
 	    else:
@@ -506,6 +525,10 @@ class ConfdbSourceToDB:
 					    foundcomponent = 1			
 
 
+	# Reassociate components that weren't changed
+        if(self.addtorelease != "none"):
+	    self.dbloader.ConfdbReassociateTemplates(self.dbcursor,self.cmsswrel,self.addtorelease,self.addedtemplatenames)
+
 	# Just print a list of all components found in the release
 	if(self.verbose > 0):					
 	    print "Scanned the following framework components:"
@@ -514,9 +537,18 @@ class ConfdbSourceToDB:
 	   
 	print "\n\n*************************************************************************"
 	print "End of job report"
-	print "Scanned " + str(len(sealcomponenttuple)) + " fwk components for release " + self.cmsswrel 
-	if(self.noload == False):
-	    self.dbloader.PrintStats()
+	if(self.addtorelease != "none"):
+	    print "The add to release option was used." 
+	    print "A new release called " + self.addtorelease + " was created from the base release " + self.cmsswrel + "."
+	    print "The following " + str(len(self.addedtemplatenames)) + " components were updated/added from the test release area " + self.base_path + ":"
+	    i = 0
+	    for myaddedtemplatename in self.addedtemplatenames:
+		print "\t" + myaddedtemplatename + "\t" + (self.addedtemplatetags[i])[0] + "\t-->\t" + (self.addedtemplatetags[i])[1]
+		i = i + 1
+	else:
+	    print "Scanned " + str(len(sealcomponenttuple)) + " fwk components for release " + self.cmsswrel 
+	    if(self.noload == False):
+		self.dbloader.PrintStats()
 	if(len(self.unknownbaseclasses) > 0):
 	    print "The following " + str(len(self.unknownbaseclasses)) + " components were not loaded because their base class" 
 	    print "does not appear to be one of"
@@ -535,6 +567,7 @@ class ConfdbSourceToDB:
 	    print "The following " + str(len(self.sqlerrors)) + " components had parameter type mismatch/SQL errors:"
 	    for mysqlerror in self.sqlerrors:
 		print "\t" + mysqlerror
+
 	if(self.doconfig != ""):
 	    confpkgfile = "configurationpackagesused.txt"
 	    confpkgfilehandle = open(confpkgfile,"wt")
@@ -563,8 +596,9 @@ class ConfdbSourceToDB:
 	pluginsdir = packagedir + "/plugins/"
 
 	tagline = ""
+	basetagline = ""
 
-#	tagfile = open("tags160_pre5.txt")
+#	tagfile = open("tags200_pre2.txt")
 #	taglines = tagfile.readlines()
 #
 #	for modtag in taglines:
@@ -574,22 +608,32 @@ class ConfdbSourceToDB:
         for modtag, cvstag in self.tagtuple:
 	    if(modtag.lstrip().rstrip() == packagename.lstrip().rstrip()):
 		tagline = cvstag
+		basetagline = cvstag
 
-        if(self.addtorelease == True):
-            if(tagline == ""):
-                print "No PackageList found - looking in CVS/Tag"
-                if(os.path.isfile(cvsdir + "/Tag")):
-                    cvscotagfile = open(cvsdir + "/Tag")
-                    cvscotaglines = cvscotagfile.readlines()
-                    for cvscotagline in cvscotaglines:
-                        tagline = cvscotagline
-                        if(tagline.startswith('N')): 
-                            tagline = tagline.split('N')[1] 
-                        print "Will enter component with CVS tag " + tagline
-                else:
-                    tagline = ""
-            else:
-                tagline = ""
+	# If making an intermediate psuedo-release, get the CVS tags from the 
+	# checked-out packages
+        if(self.addtorelease != "none"):
+	    if(os.path.isfile(cvsdir + "/Tag")):
+		cvscotagfile = open(cvsdir + "/Tag")
+		cvscotaglines = cvscotagfile.readlines()
+		for cvscotagline in cvscotaglines:
+		    tagline = cvscotagline
+		    if(tagline.startswith('T')): 
+			tagline = tagline.split('T')[1] 
+		    if(self.verbose > 0):
+			print "Will enter component with CVS tag " + tagline
+
+		#Now see if this tag is different from the one in the release
+		if(tagline.lstrip().rstrip() == basetagline.lstrip().rstrip()):
+		    if(self.verbose > 0):
+			print "Base release and test release tags are the same -  will reassociate."
+		    return
+		else:
+		    if(self.verbose > 0):
+			print "Base release and test release tags are not the same - will modify this template"
+			print "\t" + tagline.lstrip().rstrip() + " vs. " + basetagline.lstrip().rstrip()
+		    self.addedtemplatenames.append(modulename)
+		    self.addedtemplatetags.append((basetagline.lstrip().rstrip(),tagline.lstrip().rstrip()))
 
 	if(os.path.isdir(srcdir) or os.path.isdir(pluginsdir) or 
 	   (self.dotestdir == True and os.path.isdir(testdir))):        
