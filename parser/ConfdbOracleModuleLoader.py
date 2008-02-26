@@ -2028,12 +2028,9 @@ class ConfdbOracleModuleLoader:
 
     # Now just attach all non-updated old templates to new release
     def ConfdbReassociateTemplates(self,thecursor,oldrelease,newrelease,modifiedtemplates):
-        print "SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (SoftwareReleases.releaseTag = '" + oldrelease + "')"
 	thecursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (SoftwareReleases.releaseTag = '" + oldrelease + "')")
         oldrelid = (thecursor.fetchone())[0]
 	newrelid = self.releasekey
-        print str(oldrelid)
-        print "SELECT SuperIds.superId FROM SuperIds JOIN SuperIdReleaseAssoc ON (SuperIds.superId = SuperIdReleaseAssoc.superId) WHERE (SuperIdReleaseAssoc.releaseId = '" + str(oldrelid) + "')"
 	thecursor.execute("SELECT SuperIds.superId FROM SuperIds JOIN SuperIdReleaseAssoc ON (SuperIds.superId = SuperIdReleaseAssoc.superId) WHERE (SuperIdReleaseAssoc.releaseId = '" + str(oldrelid) + "')")
 	superidtuple = thecursor.fetchall()
 	print "Remapping existing templates from release " + oldrelease + " to new intermediate release called " + newrelease
