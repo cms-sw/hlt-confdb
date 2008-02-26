@@ -5,7 +5,7 @@
 <%@page import="browser.BrowserConverter"%>
 <%@page import="confdb.converter.ConverterBase"%>
 <%@page import="confdb.converter.OnlineConverter"%>
-<%@page import="confdb.converter.ConversionException"%>
+<%@page import="confdb.converter.ConverterException"%>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -67,7 +67,7 @@ function signalReady()
 				confString = ((OnlineConverter)converter).getEpConfigString( configKey );
 			else
 				confString = converter.getConverterEngine().convert( conf );
-		} catch ( ConversionException e1 ) {
+		} catch ( ConverterException e1 ) {
 			converter.removeFromCache( configKey );
 			System.out.println( "reloading config " + configKey );
 			if ( converter instanceof OnlineConverter )
