@@ -777,8 +777,12 @@ class SourceParser:
 				print '\t\tFailed to find a default value for the tracked parameter: ' + paramtype + ' ' + paramname + ' in module ' + themodulename
 
 			    if(not paramname.lstrip().startswith('@')):
+                                if(paramname in self.psetsequences and paraminparamset == ''):
+                                    # Don't allow top-level parameters to have the same name as top-level PSets
+                                    if(self.verbose > 0):
+                                        print 'Warning: this parameter named ' + paramname + ' was already found as a PSet'
 				# Special cases for typedef'd vectors
-				if(paramtype.lstrip().rstrip() == 'vtag'):
+				elif(paramtype.lstrip().rstrip() == 'vtag'):
 				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamlist,'None')):
 					self.vecparamlist.append(('VInputTag',paramname.lstrip().rstrip(),'',"true",self.sequencenb))
 					self.sequencenb = self.sequencenb + 1
