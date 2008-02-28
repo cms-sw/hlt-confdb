@@ -79,13 +79,6 @@ CREATE GLOBAL TEMPORARY TABLE tmp_sequence_entries
   entry_type        VARCHAR2(64)
 ) ON COMMIT PRESERVE ROWS;
 
-CREATE GLOBAL TEMPORARY TABLE tmp_stream_entries
-(
-  stream_id         NUMBER,
-  path_id           NUMBER
-) ON COMMIT PRESERVE ROWS;
-
-
 
 
 --
@@ -1047,14 +1040,6 @@ AS
     ON Sequences.sequenceId = ConfigurationSequenceAssoc.sequenceId
     WHERE ConfigurationSequenceAssoc.configId = config_id;
 
-  /* cursor for streams */
-  CURSOR cur_streams IS
-    SELECT
-      Streams.streamId,
-      Streams.streamLabel
-    FROM Streams
-    WHERE Streams.configId = config_id;
-
   /* cursor for path-path associations */
   CURSOR cur_path_path IS
     SELECT
@@ -1112,17 +1097,6 @@ AS
        ConfigurationSequenceAssoc.sequenceId
     WHERE ConfigurationSequenceAssoc.configId = config_id;
 
-  /* cursor for stream-path associations */
-  CURSOR cur_stream_path IS
-    SELECT
-      StreamPathAssoc.streamId,
-      StreamPathAssoc.pathId
-    FROM StreamPathAssoc
-    JOIN Streams
-    ON StreamPathAssoc.streamId = Streams.streamId
-    JOIN Paths
-    ON StreamPathAssoc.pathId = Paths.pathId
-    WHERE Streams.configId = config_id;
 
 BEGIN
 
@@ -1134,7 +1108,6 @@ BEGIN
   execute immediate 'DELETE FROM tmp_string_table';
   execute immediate 'DELETE FROM tmp_path_entries';
   execute immediate 'DELETE FROM tmp_sequence_entries';
-  execute immediate 'DELETE FROM tmp_stream_entries';
 
   /* load global psets */
   OPEN cur_global_psets;
@@ -1240,16 +1213,6 @@ BEGIN
   END LOOP;
   CLOSE cur_sequences;
 
-  /* load streams */
-  OPEN cur_streams;
-  LOOP
-    FETCH cur_streams INTO v_instance_id,v_instance_name;
-    EXIT WHEN cur_streams%NOTFOUND;
-    INSERT INTO tmp_instance_table
-      VALUES(v_instance_id,NULL,'Stream',v_instance_name,NULL,NULL);
-  END LOOP;
-  CLOSE cur_streams;
-  
   /* load path-path associations */
   OPEN cur_path_path;
   LOOP
@@ -1300,14 +1263,6 @@ BEGIN
   END LOOP;
   CLOSE cur_sequence_module;
 
-  /* load stream-path associations*/
-  OPEN cur_stream_path;
-  LOOP
-    FETCH cur_stream_path INTO v_parent_id,v_child_id;
-    EXIT WHEN cur_stream_path%NOTFOUND;
-    INSERT INTO tmp_stream_entries VALUES(v_parent_id,v_child_id);
-  END LOOP;
-  CLOSE cur_stream_path;
 
 END;  
 /

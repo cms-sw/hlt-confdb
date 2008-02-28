@@ -162,17 +162,10 @@ CREATE TABLE LockedConfigurations
 CREATE TABLE Streams
 (
 	streamId	NUMBER,
-	configId	NUMBER		NOT NULL,
-	streamLabel	VARCHAR2(128)	NOT NULL,
-	UNIQUE (streamId,configId),
-	UNIQUE (configId,streamLabel),
-	PRIMARY KEY(streamId),
-	FOREIGN KEY(configId) REFERENCES Configurations(configId)
+	streamLabel	VARCHAR2(128)	NOT NULL UNIQUE,
+	PRIMARY KEY(streamId)
 );
 
-
--- INDEX 'StreamsConfigId_idx'
-CREATE INDEX StreamsConfigId_idx ON Streams(configId);
 
 -- SEQUENCE 'StreamId_Sequence'
 CREATE SEQUENCE StreamId_Sequence START WITH 1 INCREMENT BY 1;
@@ -183,6 +176,30 @@ BEFORE INSERT ON Streams
 FOR EACH ROW
 BEGIN
 SELECT StreamId_Sequence.nextval INTO :NEW.streamId FROM dual;
+END;
+/
+
+
+--
+-- TABLE 'PrimaryDatasets'
+--
+CREATE TABLE PrimaryDatasets
+(
+	datasetId	NUMBER,
+	datasetLabel	VARCHAR2(128)	NOT NULL UNIQUE,
+	PRIMARY KEY(datasetId)
+);
+
+
+-- SEQUENCE 'PrimaryDatasetId_Sequence'
+CREATE SEQUENCE DatasetId_Sequence START WITH 1 INCREMENT BY 1;
+
+-- TRIGGER 'PrimaryDatasetId_Trigger'
+CREATE OR REPLACE TRIGGER DatasetId_Trigger
+BEFORE INSERT ON PrimaryDatasets
+FOR EACH ROW
+BEGIN
+SELECT DatasetId_Sequence.nextval INTO :NEW.datasetId FROM dual;
 END;
 /
 
@@ -303,6 +320,22 @@ CREATE TABLE StreamPathAssoc
 
 -- INDEX StreamPathAssocPathId_idx
 CREATE INDEX StreamPathAssocPathId_idx ON StreamPathAssoc(pathId);
+
+
+--
+-- TABLE 'PrimaryDatasetPathAssoc'
+--
+CREATE TABLE PrimaryDatasetPathAssoc
+(
+	datasetId	NUMBER	 	NOT NULL,
+	pathId		NUMBER    	NOT NULL,
+	PRIMARY KEY(datasetId,pathId),
+	FOREIGN KEY(datasetId) REFERENCES PrimaryDatasets(datasetId),
+	FOREIGN KEY(pathId)    REFERENCES Paths(pathId)
+);
+
+-- INDEX DatasetPathAssocPathId_idx
+CREATE INDEX DatasetPathAssocPathId_idx ON PrimaryDatasetPathAssoc(pathId);
 
 
 --

@@ -21,60 +21,6 @@ import confdb.data.*;
  */
 public class StreamTreeActions
 {
-    /** insert a new Stream */
-    public static void insertStream(JTree tree)
-    {
-	StreamTreeModel model    = (StreamTreeModel)tree.getModel();
-	Configuration   config   = model.getConfiguration();
-	TreePath        treePath = tree.getSelectionPath();
-	if (treePath==null) treePath = new TreePath(model.getRoot());
-	
-	int index = (treePath.getPathCount()==1) ?
-	    0 : model.getIndexOfChild(treePath.getParentPath().
-				      getLastPathComponent(),
-				      treePath.getLastPathComponent())+1;
-	
-	Stream stream = config.insertStream(index,"<ENTER STREAM LABEL>");
-	
-	model.nodeInserted(model.getRoot(),index);
-	
-	TreePath parentPath = (index==0) ? treePath : treePath.getParentPath();
-	TreePath newTreePath = parentPath.pathByAddingChild(stream);	
-	
-	tree.setSelectionPath(newTreePath);
-	editNodeName(tree);
-    }
-    
-    /** edit a stream label */
-    public static void editNodeName(JTree tree)
-    {
-	TreePath treePath = tree.getSelectionPath();
-	tree.expandPath(treePath);
-	tree.scrollPathToVisible(treePath);
-	tree.startEditingAtPath(treePath);
-    }
-
-    public static boolean removeStream(JTree tree)
-    {
-	StreamTreeModel model    = (StreamTreeModel)tree.getModel();
-	Configuration   config   = model.getConfiguration();
-	TreePath        treePath = tree.getSelectionPath();
-	
-	Stream stream = (Stream)treePath.getLastPathComponent();
-	int    index  = config.indexOfStream(stream);
-	
-	config.removeStream(stream);
-	model.nodeRemoved(model.getRoot(),index,stream);
-	
-	treePath = (config.streamCount()>0&&index>0) ?
-	    new TreePath(model.getPathToRoot(config.stream(index-1))) :
-	    new TreePath(model.getRoot());
-	tree.setSelectionPath(treePath);
-	
-	return true;
-    }
-    
-    
     public static boolean removePath(JTree tree)
     {
 	StreamTreeModel model    = (StreamTreeModel)tree.getModel();
@@ -121,7 +67,8 @@ public class StreamTreeActions
 		model.nodeInserted(stream,stream.pathCount()-1);
 	    }
 	}
-	
+	model.nodeChanged(stream);
+
 	return true;
     }
     

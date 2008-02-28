@@ -16,23 +16,23 @@ import confdb.data.*;
 
 
 /**
- * StreamTreeMouseListener
- * -----------------------
+ * PrimaryDatasetTreeMouseListener
+ * -------------------------------
  * @author Philipp Schieferdecker
  *
- * Listen to mouse events on the stream-tree, create and show popup
- * menus, execute corresponding actions.
+ * Listen to mouse events on the primary dataset tree, create and show
+ * popup menus, execute corresponding actions.
  */
-public class StreamTreeMouseListener extends    MouseAdapter
-                                     implements TreeModelListener,
-						ActionListener
+public class PrimaryDatasetTreeMouseListener extends    MouseAdapter
+                                             implements TreeModelListener,
+	                                                ActionListener
 {
     /** the tree being manipulated */
     private JTree tree = null;
-
+    
     /** standard constructor */
-    public StreamTreeMouseListener(JTree tree) { this.tree = tree; }
-
+    public PrimaryDatasetTreeMouseListener(JTree tree) { this.tree = tree; }
+    
     /** MouseAdapter: mousePressed() */
     public void mousePressed(MouseEvent e) { maybeShowPopup(e); }
     
@@ -42,14 +42,14 @@ public class StreamTreeMouseListener extends    MouseAdapter
     /** check if this event should really trigger the menu to be displayed */
     private void maybeShowPopup(MouseEvent e)
     {
-	StreamTreeModel treeModel = (StreamTreeModel)tree.getModel();
-	Configuration   config    = treeModel.getConfiguration();	
+	PrimaryDatasetTreeModel treeModel=(PrimaryDatasetTreeModel)tree.getModel();
+	Configuration config=treeModel.getConfiguration();	
 
 	if (!e.isPopupTrigger()) return;
 	if (!tree.isEditable()) return;
 	if (config.name().length()==0) return;
 
-	TreePath treePath = tree.getPathForLocation(e.getX(),e.getY());
+	TreePath treePath=tree.getPathForLocation(e.getX(),e.getY());
 	if (treePath==null) return;
 	tree.setSelectionPath(treePath);
 	
@@ -58,8 +58,8 @@ public class StreamTreeMouseListener extends    MouseAdapter
 	
 	Object selectedNode = treePath.getLastPathComponent();
 	
-	if (selectedNode instanceof Stream) {
-	    Stream stream = (Stream)selectedNode;
+	if (selectedNode instanceof PrimaryDataset) {
+	    PrimaryDataset dataset = (PrimaryDataset)selectedNode;
 	    
 	    JMenu menu = new ScrollableMenu("Add Path");
 	    menuItem = new JMenuItem("All");
@@ -71,7 +71,7 @@ public class StreamTreeMouseListener extends    MouseAdapter
 		Path path = itP.next();
 		if (path.isEndPath()) continue;
 		menuItem = new JMenuItem(path.name());
-		if (stream.indexOfPath(path)<0) {
+		if (dataset.indexOfPath(path)<0) {
 		    menuItem.setActionCommand("ADDPATH");
 		    menuItem.addActionListener(this);
 		    menu.add(menuItem);
@@ -110,13 +110,13 @@ public class StreamTreeMouseListener extends    MouseAdapter
 	String    action = src.getActionCommand();
 	
 	if (cmd.equals("Remove Path")) {
-	    StreamTreeActions.removePath(tree);
+	    PrimaryDatasetTreeActions.removePath(tree);
 	}
 	else if (action.equals("ADDPATH")) {
-	    StreamTreeActions.addPath(tree,cmd);
+	    PrimaryDatasetTreeActions.addPath(tree,cmd);
 	}
 	else if (action.equals("ADDALLPATHS")) {
-	    StreamTreeActions.addAllPaths(tree);
+	    PrimaryDatasetTreeActions.addAllPaths(tree);
 	}
     }
     

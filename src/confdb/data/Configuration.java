@@ -54,11 +54,10 @@ public class Configuration implements IConfiguration
     /** list of streams */
     private ArrayList<Stream>           streams = null;
 
+    /** list of primary datasets */
+    private ArrayList<PrimaryDataset>   datasets = null;
 
-    /** default stream, if any */
-    private Stream defaultStream = null;
-    
-    
+
     //
     // construction
     //
@@ -75,6 +74,7 @@ public class Configuration implements IConfiguration
 	paths         = new ArrayList<Path>();
 	sequences     = new ArrayList<Sequence>();
 	streams       = new ArrayList<Stream>();
+	datasets      = new ArrayList<PrimaryDataset>();
     }
     
     /** standard constructor */
@@ -89,6 +89,7 @@ public class Configuration implements IConfiguration
 	paths         = new ArrayList<Path>();
 	sequences     = new ArrayList<Sequence>();
 	streams       = new ArrayList<Stream>();
+	datasets      = new ArrayList<PrimaryDataset>();
 	
 	initialize(configInfo,release);
     }
@@ -114,6 +115,7 @@ public class Configuration implements IConfiguration
 	paths.clear();
 	sequences.clear();
 	streams.clear();
+	datasets.clear();
     }
 
     /** reset configuration */
@@ -131,6 +133,7 @@ public class Configuration implements IConfiguration
 	paths.clear();
 	sequences.clear();
 	streams.clear();
+	datasets.clear();
     }
     
     /** set the configuration info */
@@ -168,6 +171,7 @@ public class Configuration implements IConfiguration
 	else if (c == Sequence.class)         return sequenceCount();
 	else if (c == ModuleInstance.class)   return moduleCount();
 	else if (c == Stream.class)           return streamCount();
+	else if (c == PrimaryDataset.class)   return datasetCount();
 	System.err.println("ERROR: unknwon class " + c.getName());
 	return 0;
     }
@@ -179,7 +183,7 @@ public class Configuration implements IConfiguration
 		edsources.isEmpty()&&essources.isEmpty()&&
 		services.isEmpty()&&modules.isEmpty()&&
 		paths.isEmpty()&&sequences.isEmpty()&&
-		streams.isEmpty());
+		streams.isEmpty()&&datasets.isEmpty());
     }
 
     /** check if configuration and all its versions are locked */
@@ -443,6 +447,18 @@ public class Configuration implements IConfiguration
 	for (Path p : paths) {
 	    if (p.isEndPath()) continue;
 	    if (p.streamCount()==0) result++;
+	}
+	return result;
+    }
+
+    /** number of paths unassigned to any primary dataset */
+    public int pathNotAssignedToDatasetCount()
+    {
+	int result = 0;
+	if (datasets.size()==0) return result;
+	for (Path p : paths) {
+	    if (p.isEndPath()) continue;
+	    if (p.datasetCount()==0) result++;
 	}
 	return result;
     }
@@ -789,7 +805,7 @@ public class Configuration implements IConfiguration
 	    (ModuleTemplate)release.moduleTemplate(templateName);
 	if (template == null) {
 	    System.err.println("insertModule ERROR: unknown template '" +
-			       templateName+"'!");
+			       templateName+"' (instanceName="+instanceName+")!");
 	    return null;
 	}
 
@@ -877,7 +893,6 @@ public class Configuration implements IConfiguration
 	Path path = new Path(pathName);
 	paths.add(i,path);
 	path.setConfiguration(this);
-	if (defaultStream!=null) defaultStream.insertPath(path);
 	hasChanged = true;
 	return path;
     }
@@ -927,6 +942,14 @@ public class Configuration implements IConfiguration
 	    Stream s = itS.next();
 	    itS.remove();
 	    s.removePath(path);
+	}
+
+	// remove this paths from all parent primary datasets
+	Iterator<PrimaryDataset> itPD = path.datasetIterator();
+	while (itPD.hasNext()) {
+	    PrimaryDataset pd = itPD.next();
+	    itPD.remove();
+	    pd.removePath(path);
 	}
 	
 	int index = paths.indexOf(path);
@@ -1064,43 +1087,58 @@ public class Configuration implements IConfiguration
     public Iterator<Stream> streamIterator() { return streams.iterator(); }
     
     /** insert a new stream */
-    public Stream insertStream(int i,String streamLabel)
+    public Stream insertStream(String streamLabel)
     {
 	Stream stream = new Stream(streamLabel);
-	streams.add(i,stream);
+	streams.add(stream);
 	hasChanged=true;
 	return stream;
-    }
-
-    /** remove a stream */
-    public void removeStream(Stream stream)
-    {
-	int index = streams.indexOf(stream);
-	if (index<0) return;
-	Iterator<Path> it = stream.pathIterator();
-	while (it.hasNext()) {
-	    Path p = it.next();
-	    p.removeFromStream(stream);
-	}
-	streams.remove(index);
-	hasChanged=true;
-	if (defaultStream==stream) defaultStream=null;
     }
 
     /** sort Streams */
     public void sortStreams() { Collections.sort(streams); hasChanged=true;}
     
-    /** default stream*/
-    public Stream defaultStream() { return defaultStream; }
     
-    /** set the default stream */
-    public boolean setDefaultStream(Stream stream)
+    //
+    // Primary Datasets
+    //
+    
+    /** number of primary datasets */
+    public int datasetCount() { return datasets.size(); }
+    
+    /** retrieve i-th primary dataset */
+    public PrimaryDataset dataset(int i) { return datasets.get(i); }
+
+    /** retrieve primary dataset by label */
+    public PrimaryDataset dataset(String datasetLabel)
     {
-	if (streams.indexOf(stream)<0) return false;
-	defaultStream = stream;
-	return true;
+	for (PrimaryDataset pd : datasets)
+	    if (pd.label().equals(datasetLabel)) return pd;
+	return null;
     }
     
+    /** index of a certain primary dataset */
+    public int indexOfDataset(PrimaryDataset dataset)
+    {
+	return datasets.indexOf(dataset);
+    }
 
+    /** retrieve primary dataset iterator */
+    public Iterator<PrimaryDataset> datasetIterator()
+    {
+	return datasets.iterator();
+    }
+    
+    /** insert a new primary dataset */
+    public PrimaryDataset insertDataset(String datasetLabel)
+    {
+	PrimaryDataset dataset = new PrimaryDataset(datasetLabel);
+	datasets.add(dataset);
+	hasChanged=true;
+	return dataset;
+    }
+
+    /** sort primary datasets */
+    public void sortDatasets() { Collections.sort(datasets); hasChanged=true; }
     
 }

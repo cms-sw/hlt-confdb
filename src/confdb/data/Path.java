@@ -19,6 +19,9 @@ public class Path extends ReferenceContainer
 
     /** streams this path is associated with*/
     private ArrayList<Stream> streams = new ArrayList<Stream>();
+
+    /** primary datasets this path is associated with */
+    private ArrayList<PrimaryDataset> datasets = new ArrayList<PrimaryDataset>();
     
     /** flag indicating that the path was set to be an endpath */
     private boolean isSetAsEndPath = false;
@@ -128,6 +131,7 @@ public class Path extends ReferenceContainer
     {
 	if (streams.indexOf(stream)>=0) return false;
 	streams.add(stream);
+	setHasChanged();
 	return true;
     }
     
@@ -137,6 +141,39 @@ public class Path extends ReferenceContainer
 	int index = streams.indexOf(stream);
 	if (index<0) return false;
 	streams.remove(index);
+	setHasChanged();
+	return true;
+    }
+
+
+    /** number of primary datasets this path is associated with */
+    public int datasetCount() { return datasets.size(); }
+
+    /** retrieve the i-th primary dataset this path is associated with */
+    public PrimaryDataset dataset(int i) { return datasets.get(i); }
+
+    /** retrieve iterator over primary datasets this path is associated with */
+    public Iterator<PrimaryDataset> datasetIterator()
+    {
+	return datasets.iterator();
+    }
+
+    /** add this path to a primary dataset */
+    public boolean addToDataset(PrimaryDataset dataset)
+    {
+	if (datasets.indexOf(dataset)>=0) return false;
+	datasets.add(dataset);
+	setHasChanged();
+	return true;
+    }
+    
+    /** remove this path from a primary dataset */
+    public boolean removeFromDataset(PrimaryDataset dataset)
+    {
+	int index = datasets.indexOf(dataset);
+	if (index<0) return false;
+	datasets.remove(index);
+	setHasChanged();
 	return true;
     }
     

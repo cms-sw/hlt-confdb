@@ -1,0 +1,225 @@
+#!/usr/bin/perl
+
+################################################################################
+#
+# runParser
+# ---------
+#
+# run the CMSSW release parser and populate one of the three standard DBs
+# currently being used:
+#   - mysql   (local)
+#   - offline (oracle, IT) 
+#   - online  (oracle, DAQ online)
+#
+# NOTE: The current subsystem whitelist is also defined here!
+#
+#             02/22/2008 Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
+################################################################################
+
+
+my $usage =
+    "--offline|--online|--test|--local (Specification of Database)\n" .
+    "--dbpwrd <pwrd>                   (Database Password)\n" .
+    "--dbuser <user>    (optional)     (Database Username)\n" .
+    "--release <tag>    (optional)     (Default: \$CMSSW_VERSION)\n" .
+    "--relative <tag>   (optional)     (Update w.r.t. this release tag)\n" .
+    "--name <name>      (optional)     (Label of the new release in DB)\n" .
+    "--patch            (optional)     (Apply patches for known problems)\n" .
+    "--patchFile <file> (optional)     (Description file for known problems)\n" .
+    "--all              (optional)     (Disregard whitelist)\n";
+
+if (@ARGV==0) { print $usage . "\n"; exit(0); }
+
+
+my $dbType;
+my $dbHost;
+my $dbName;
+my $dbUser;
+my $dbPwrd;
+
+my $releaseTag;
+my $relativeTag;
+my $releaseName;
+
+my $cmssw_base    = get_env_variable("CMSSW_BASE");
+my $cmssw_version = get_env_variable("CMSSW_VERSION");
+
+my $parserPath = $cmssw_base . "/src/EventFilter/ConfigDB/parser";
+my $parserExe  = $parserPath . "/ConfdbSourceToDB.py";
+
+my $doAll     = 0;
+my @whiteList =
+    ("CalibCalorimetry",
+     "CalibMuon",
+     "CalibTracker",
+     "Calibration",
+     "CondCore",
+     "DQM",
+     "EventFilter",
+     "FWCore",
+     "Geometry",
+     "GeometryReaders",
+     "HLTrigger",
+     "IOPool",
+     "IORawData",
+     "JetMETCorrections",
+     "L1Trigger",
+     "L1TriggerConfig",
+     "MagneticField",
+     "PhysicsTools",
+     "RecoBTag",
+     "RecoBTau",
+     "RecoCaloTools",
+     "RecoEcal",
+     "RecoEgamma",
+     "RecoJets",
+     "RecoLocalCalo",
+     "RecoLocalMuon",
+     "RecoLocalTracker",
+     "RecoLuminosity",
+     "RecoMET",
+     "RecoMuon",
+     "RecoPixelVertexing",
+     "RecoTauTag",
+     "RecoTracker",
+     "RecoVertex",
+     "SimCalorimetry",
+     "SimGeneral",
+     "TrackPropagation",
+     "TrackingTools"
+     );
+
+my $doPatch   = 0;
+my $patchFile = $parserPath . "/problems.txt";
+my $patchExe;
+
+
+#
+# parameters
+#
+foreach $param (@ARGV)
+{
+    if ($param eq "--help") {
+	print $usage . "\n";
+	exit(0);
+    }
+    elsif ($param eq "--local") {
+	$dbType   = "MySQL";
+	$dbHost   = "localhost";
+	$dbName   = "hltdb";
+	$dbUser   = "schiefer";
+	$patchExe = $parserPath . "/AddProblemModulesAndParametersMySQL.py";
+    }
+    elsif ($param eq "--test") {
+	$dbType   = "Oracle";
+	$dbHost   = "HLTDEV";
+	$dbUser   = "HLTDEV";
+	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
+    }
+    elsif ($param eq "--offline") {
+	$dbType   = "Oracle";
+	$dbHost   = "CMS_ORCOFF_INT";
+	$dbUser   = "CMS_HLT_ADMIN";
+	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
+    }
+    elsif ($param eq "--online") {
+	$dbType   = "Oracle";
+	$dbHost   = "cms_rcms.cern.ch";
+	$dbUser   = "CMS_HLT";
+	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
+    }
+    elsif ($dbPwrd      eq "fillme")     { $dbPwrd      = $param;   }
+    elsif ($param       eq "--dbpwrd")   { $dbPwrd      = "fillme"; }
+    elsif ($dbUser      eq "fillme")     { $dbUser      = $param;   }
+    elsif ($param       eq "--dbuser")   { $dbUser      = "fillme"; }
+    elsif ($releaseTag  eq "fillme")     { $releaseTag  = $param;   }
+    elsif ($param       eq "--release")  { $releaseTag  = "fillme"; }
+    elsif ($relativeTag eq "fillme")     { $relativeTag = $param;   }
+    elsif ($param       eq "--relative") { $relativeTag = "fillme"; }
+    elsif ($releaseName eq "fillme")     { $releaseName = $param;   }
+    elsif ($param       eq "--name")     { $releaseName = "fillme"; }
+    elsif ($patchFile   eq "fillme")     { $patchFile   = $param; $doPatch=1; }
+    elsif ($param       eq "--patchfile"){ $patchFile   = "fillme"; }
+    elsif ($param       eq "--patch")    { $doPatch     = 1;        }
+    elsif ($param       eq "--all")      { $doAll       = 1;        }
+    else { die "Unknown option $param"; }
+}
+
+die "No scram project area setup!\n" if ($cmssw_base eq "");
+die "$parserExe doesn't exist!"      if (!(-e $parserExe));
+die "--dbpwrd MUST be specified!"    if ($dbPwrd eq "");
+die "No valid DB specified: --offline|--online|--test|--local" if ($dbHost eq "");
+#die "Please specify a relative release: --release!" if ($relativeTag eq "");
+die "$patchFile doesn't exist!" if ($doPatch && ! -e $patchFile);
+
+my $parserCmd = $parserExe . " -t $dbType -o $dbHost -u $dbUser -s $dbPwrd ";
+
+if ($dbType eq "MySQL")  { $parserCmd = $parserCmd . "-d $dbName "; }
+if (!$releaseTag eq "")  { $parserCmd = $parserCmd . "-r $releaseTag "; }
+if (!$relativeTag eq "") { $parserCmd = $parserCmd . "-m $relativeTag "; }
+if (!$releaseName eq "") { $parserCmd = $parserCmd . "-c $releaseName "; }
+if (!$doAll)
+{
+    $first = 1;
+    $parserCmd = $parserCmd . "-w ";
+    foreach (@whiteList) {
+	if ($first) { $first = 0; }
+	else { $parserCmd = $parserCmd . ","; }
+	$parserCmd = $parserCmd . $_;
+    }
+}
+
+if ($releaseTag  eq "") { $releaseTag  = $cmssw_version; }
+if ($releaseName eq "") { $releaseName = $releaseTag; }
+
+#
+# parse release
+#
+print
+    "\n--------------------------------------------------\n" .
+    "execute parser\n" .
+    "--------------------------------------------------\n" .
+    "$parserCmd\n\n";
+
+my $parserLog = "parser" . "." . $dbHost . "." . $releaseName . ".log";
+`$parserCmd > $parserLog`;
+print "DONE! (see $parserLog for details)\n\n"; 
+
+
+#
+# patch release
+#
+if (!$doPatch) { exit(0); }
+$patchCmd = $patchExe .
+    " -o $dbHost -u $dbUser -s $dbPwrd -r $releaseName -z $patchFile";
+if ($dbType eq "MySQL") { $patchCmd = $patchCmd . " -d $dbName"; }
+
+print 
+    "\n--------------------------------------------------\n" .
+    "patch release $releaseName\n" .
+    "--------------------------------------------------\n" .
+    "$patchCmd\n\n";
+
+my $patchLog = "patch" . "." . $dbHost . "." . $releaseName . ".log";
+`$patchCmd > $patchLog`;
+print "DONE! (see $patchLog for details)\n\n"; 
+
+
+
+#-------------------------------------------------------------------------------
+# subroutines
+#-------------------------------------------------------------------------------
+
+#_______________________________________________________________________________
+sub get_env_variable
+{
+    my ($varname) = @_;
+    my $result;
+    if (defined $ENV{$varname}) 
+    {
+	$result = $ENV{$varname};
+	print "\$" . $varname . " = $result\n";
+    }
+    else { print ("WARNING: \$" . $varname . " undefined!"); }
+    return $result;
+}

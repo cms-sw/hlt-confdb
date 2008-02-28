@@ -235,17 +235,11 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 	for (Parameter p : parameters) {
 	    if (p instanceof VPSetParameter) {
 		VPSetParameter vpset = (VPSetParameter)p;
-		//if (vpset.parameterSetCount()>0)
 		result += vpset.unsetTrackedParameterCount();
-		//else if (vpset.isTracked())
-		//result++;
 	    }
 	    else if (p instanceof PSetParameter) {
 		PSetParameter pset = (PSetParameter)p;
-		//if (pset.parameterCount()>0)
 		result += pset.unsetTrackedParameterCount();
-		//else if (pset.isTracked())
-		//result++;
 	    }
 	    else {
 		if (p.isTracked()&&!p.isValueSet()) result++;

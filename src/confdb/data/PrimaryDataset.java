@@ -5,15 +5,14 @@ import java.util.Iterator;
 
 
 /**
- * Stream
- * ------
+ * PrimaryDataset
+ * --------------
  * @author Philipp Schieferdecker
  *
- * For HLT configurations; paths can be assigned streams, where
- * streams have different priorities. The corresponding configuration
- * is passed to the StorageManager and Tier0.
+ * For HLT configurations; paths can be assigned to primary datasets,
+ * in order to organize events for anlyzers.
  */
-public class Stream extends DatabaseEntry implements Comparable<Stream>
+public class PrimaryDataset extends DatabaseEntry implements Comparable<PrimaryDataset>
 {
     //
     // member data
@@ -31,7 +30,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     //
     
     /** standard constructor */
-    public Stream(String label)
+    public PrimaryDataset(String label)
     {
 	this.label = label;
     }
@@ -51,7 +50,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     public String toString() { return label(); }
 
     /** Comparable: compareTo() */
-    public int compareTo(Stream s) { return toString().compareTo(s.toString()); }
+    public int compareTo(PrimaryDataset s) { return toString().compareTo(s.toString()); }
 
     /** number of paths */
     public int pathCount() { return paths.size(); }
@@ -69,11 +68,12 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     public boolean insertPath(Path path)
     {
 	if (paths.indexOf(path)>=0) {
-	    System.out.println("Stream.insertPath() WARNING: path '"+path.name()+
-			       "' already associated with stream '"+label+"'");
+	    System.out.println("PrimaryDataset.insertPath() WARNING: path '"+
+			       path.name()+"' already associated with stream '"+
+			       label+"'");
 	    return false;
 	}
-	if (!path.addToStream(this)) return false;
+	if (!path.addToDataset(this)) return false;
 	paths.add(path);
 	return true;
     }
@@ -83,12 +83,13 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     {
 	int index = paths.indexOf(path);
 	if (index<0) {
-	    System.out.println("Stream.removePath() WARNING: path '"+path.name()+
-			       "' not associated with stream '"+label+"'");
+	    System.out.println("PrimaryDataset.removePath() WARNING: path '"+
+			       path.name()+"' not associated with stream '"+
+			       label+"'");
 	    return false;
 	}
 	paths.remove(index);
-	path.removeFromStream(this);
+	path.removeFromDataset(this);
 	return true;
     }
     

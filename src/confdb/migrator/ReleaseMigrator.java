@@ -179,7 +179,23 @@ public class ReleaseMigrator
 	// migrate streams
 	for (int i=0;i<sourceConfig.streamCount();i++) {
 	    Stream source = sourceConfig.stream(i);
-	    Stream target = targetConfig.insertStream(i,source.label());
+	    Stream target = targetConfig.insertStream(source.label());
+	    Iterator<Path> it = source.pathIterator();
+	    while (it.hasNext()) {
+		Path sourcePath = it.next();
+		Path targetPath = targetConfig.path(sourcePath.name());
+		if (targetPath!=null)
+		    target.insertPath(targetPath);
+		else
+		    System.out.println("ERROR: path '"+sourcePath.name()+
+				       "' not found in target configuration!");
+	    }
+	}
+
+	// migrate primary datasets
+	for (int i=0;i<sourceConfig.datasetCount();i++) {
+	    PrimaryDataset source = sourceConfig.dataset(i);
+	    PrimaryDataset target = targetConfig.insertDataset(source.label());
 	    Iterator<Path> it = source.pathIterator();
 	    while (it.hasNext()) {
 		Path sourcePath = it.next();

@@ -80,12 +80,16 @@ CREATE TABLE LockedConfigurations
 CREATE Table Streams
 (
 	streamId	BIGINT UNSIGNED	  NOT NULL AUTO_INCREMENT UNIQUE,
-	configId	BIGINT UNSIGNED   NOT NULL,
-	streamLabel	VARCHAR(128)	  NOT NULL,
-	UNIQUE (configId,streamLabel),
-	UNIQUE (streamId,configId),
-	PRIMARY KEY(streamId),
-	FOREIGN KEY(configId) REFERENCES Configurations(configId)
+	streamLabel	VARCHAR(128)	  NOT NULL UNIQUE,
+	PRIMARY KEY(streamId)
+) ENGINE=INNODB;
+
+-- TABLE 'PrimaryDatasets'
+CREATE Table PrimaryDatasets
+(
+	datasetId	BIGINT UNSIGNED	  NOT NULL AUTO_INCREMENT UNIQUE,
+	datasetLabel	VARCHAR(128)	  NOT NULL UNIQUE,
+	PRIMARY KEY(datasetId)
 ) ENGINE=INNODB;
 
 -- TABLE 'SuperIds'
@@ -147,6 +151,16 @@ CREATE TABLE StreamPathAssoc
 	PRIMARY KEY(streamId,pathId),
 	FOREIGN KEY(streamId) REFERENCES Streams(streamId),
 	FOREIGN KEY(pathId)   REFERENCES Paths(pathId)
+) ENGINE=INNODB;
+
+-- TABLE 'PrimaryDatasetPathAssoc'
+CREATE TABLE PrimaryDatasetPathAssoc
+(
+	datasetId	BIGINT UNSIGNED	  NOT NULL,
+	pathId		BIGINT UNSIGNED   NOT NULL,
+	PRIMARY KEY(datasetId,pathId),
+	FOREIGN KEY(datasetId) REFERENCES PrimaryDatasets(datasetId),
+	FOREIGN KEY(pathId)    REFERENCES Paths(pathId)
 ) ENGINE=INNODB;
 
 -- TABLE 'Sequences'

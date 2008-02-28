@@ -1,3 +1,10 @@
+2008-02-28  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-20-00
+	* sql/data/gui: model primary datasets (like streams)
+	* parser: implement 'pre+tags' (-a option w/o UPDATE!)
+	* parser: add runParser (wrapper script)
+
 2008-02-25  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-19-08

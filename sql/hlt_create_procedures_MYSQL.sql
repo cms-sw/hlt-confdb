@@ -758,7 +758,6 @@ BEGIN
     DROP TABLE IF EXISTS tmp_string_table;
     DROP TABLE IF EXISTS tmp_path_entries;
     DROP TABLE IF EXISTS tmp_sequence_entries;
-    DROP TABLE IF EXISTS tmp_stream_entries;
   END;
   BEGIN
     /* variables */
@@ -883,14 +882,6 @@ BEGIN
       ON Sequences.sequenceId = ConfigurationSequenceAssoc.sequenceId
       WHERE ConfigurationSequenceAssoc.configId = config_id;
 
-    /* cursor for streams */
-    DECLARE cur_streams CURSOR FOR
-      SELECT
-        Streams.streamId,
-        Streams.streamLabel
-      FROM Streams
-      WHERE Streams.configId = config_id;
-
     /* cursor for path-path associations */
     DECLARE cur_path_path CURSOR FOR
       SELECT
@@ -947,17 +938,6 @@ BEGIN
       ON SequenceModuleAssoc.sequenceId = ConfigurationSequenceAssoc.sequenceId
       WHERE ConfigurationSequenceAssoc.configId = config_id;
 
-    /* cursor for stream-path associations */
-    DECLARE cur_stream_path CURSOR FOR
-      SELECT
-        StreamPathAssoc.streamId,
-        StreamPathAssoc.pathId
-      FROM StreamPathAssoc
-      JOIN Streams
-      ON StreamPathAssoc.streamId = Streams.streamId
-      JOIN Paths
-      ON StreamPathAssoc.pathId = Paths.pathId
-      WHERE Streams.configId = config_id;
 
     /* error handlers */
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
@@ -1033,13 +1013,6 @@ BEGIN
       entry_id          BIGINT UNSIGNED,
       sequence_nb       INT,
       entry_type        CHAR(64)
-    );
-
-    /* temporary stream entry table */
-    CREATE TEMPORARY TABLE tmp_stream_entries
-    (
-      stream_id         BIGINT UNSIGNED,
-      path_id           BIGINT UNSIGNED
     );
 
 
@@ -1162,17 +1135,6 @@ BEGIN
     CLOSE cur_sequences;
     SET done=FALSE;
 
-    /* load streams */
-    OPEN cur_streams;
-    FETCH cur_streams INTO v_instance_id,v_instance_name;
-    WHILE done=FALSE DO
-      INSERT INTO tmp_instance_table
-        VALUES(v_instance_id,NULL,'Stream',v_instance_name,NULL,NULL);
-      FETCH cur_streams INTO v_instance_id,v_instance_name;
-    END WHILE;
-    CLOSE cur_streams;
-    SET done=FALSE;
-  
     /* load path-path associations */
     OPEN cur_path_path;
     FETCH cur_path_path INTO v_parent_id,v_child_id,v_sequence_nb;
@@ -1226,16 +1188,6 @@ BEGIN
       FETCH cur_sequence_module INTO v_parent_id,v_child_id,v_sequence_nb;
     END WHILE;
     CLOSE cur_sequence_module;
-    SET done=FALSE;
-
-    /* load stream-path associations*/
-    OPEN cur_stream_path;
-    FETCH cur_stream_path INTO v_parent_id,v_child_id;
-    WHILE done=FALSE DO
-      INSERT INTO tmp_stream_entries VALUES(v_parent_id,v_child_id);
-      FETCH cur_stream_path INTO v_parent_id,v_child_id;
-    END WHILE;
-    CLOSE cur_stream_path;
     SET done=FALSE;
 
   END;  

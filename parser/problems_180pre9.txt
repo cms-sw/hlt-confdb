@@ -158,13 +158,14 @@ TrackProducer.Parameter Fitter string "KFFittingSmoother" tracked
 TrackProducer.Parameter Propagator string "PropagatorWithMaterial" tracked
 TrackProducer.Parameter TTRHBuilder string "WithTrackAngle" tracked
 TrackProducer.Parameter useHitsSplitting bool false tracked
+TrackProducer.Parameter alias string "ctfWithMaterialTracks" untracked
 
 Module EDProducer CaloTowersCreator RecoLocalCalo CaloTowersCreator
 CaloTowersCreator.Parameter UseHO bool true tracked
 
 Module EDProducer SeedGeneratorFromRegionHitsEDProducer RecoTracker TkSeedGenerator
 SeedGeneratorFromRegionHitsEDProducer.Parameter TTRHBuilder string "WithTrackAngle" tracked
-TrackProducer.Parameter alias string "ctfWithMaterialTracks" untracked
+
 
 Module HLTFilter HLTEcalPhiSymFilter HLTrigger special
 HLTEcalPhiSymFilter.Parameter VerbosityLevel string "ERROR" tracked

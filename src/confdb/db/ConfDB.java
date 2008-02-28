@@ -90,11 +90,16 @@ public class ConfDB
     private PreparedStatement psSelectServiceTemplate             = null;
     private PreparedStatement psSelectModuleTemplate              = null;
 
+    private PreparedStatement psSelectStreams                     = null;
+    private PreparedStatement psSelectPrimaryDatasets             = null;
+    private PreparedStatement psSelectStreamEntries               = null;
+    private PreparedStatement psSelectPrimaryDatasetEntries       = null;
     
     private PreparedStatement psInsertDirectory                   = null;
     private PreparedStatement psInsertConfiguration               = null;
     private PreparedStatement psInsertConfigurationLock           = null;
     private PreparedStatement psInsertStream                      = null;
+    private PreparedStatement psInsertPrimaryDataset              = null;
     private PreparedStatement psInsertSuperId                     = null;
     private PreparedStatement psInsertGlobalPSet                  = null;
     private PreparedStatement psInsertEDSource                    = null;
@@ -108,6 +113,7 @@ public class ConfDB
     private PreparedStatement psInsertPath                        = null;
     private PreparedStatement psInsertConfigPathAssoc             = null;
     private PreparedStatement psInsertStreamPathAssoc             = null;
+    private PreparedStatement psInsertPrimaryDatasetPathAssoc     = null;
     private PreparedStatement psInsertSequence                    = null;
     private PreparedStatement psInsertConfigSequenceAssoc         = null;
     private PreparedStatement psInsertModule                      = null;
@@ -160,7 +166,7 @@ public class ConfDB
     private PreparedStatement psSelectStringValues                = null;
     private PreparedStatement psSelectPathEntries                 = null;
     private PreparedStatement psSelectSequenceEntries             = null;
-    private PreparedStatement psSelectStreamEntries               = null;
+
 
     private ArrayList<PreparedStatement> preparedStatements =
 	new ArrayList<PreparedStatement>();
@@ -175,10 +181,10 @@ public class ConfDB
     {
 	// template table name hash map
 	templateTableNameHashMap = new HashMap<String,String>();
-	templateTableNameHashMap.put("Service",     tableServiceTemplates);
-	templateTableNameHashMap.put("EDSource",    tableEDSourceTemplates);
-	templateTableNameHashMap.put("ESSource",    tableESSourceTemplates);
-	templateTableNameHashMap.put("ESModule",    tableESModuleTemplates);
+	templateTableNameHashMap.put("Service", tableServiceTemplates);
+	templateTableNameHashMap.put("EDSource",tableEDSourceTemplates);
+	templateTableNameHashMap.put("ESSource",tableESSourceTemplates);
+	templateTableNameHashMap.put("ESModule",tableESModuleTemplates);
     }
     
     
@@ -568,9 +574,13 @@ public class ConfDB
 	int     configId = config.dbId();
 
 	ResultSet rsInstances       = null;
+	ResultSet rsStreams         = null;
+	ResultSet rsDatasets        = null;
+	
 	ResultSet rsPathEntries     = null;
 	ResultSet rsSequenceEntries = null;
 	ResultSet rsStreamEntries   = null;
+	ResultSet rsDatasetEntries  = null;
 	
 	SoftwareRelease release = config.release();
 
@@ -581,15 +591,41 @@ public class ConfDB
 	    rsInstances       = psSelectInstances.executeQuery();
 	    rsPathEntries     = psSelectPathEntries.executeQuery();
 	    rsSequenceEntries = psSelectSequenceEntries.executeQuery();
-	    rsStreamEntries   = psSelectStreamEntries.executeQuery();
 
+	    rsStreams         = psSelectStreams.executeQuery();
+	    rsDatasets        = psSelectPrimaryDatasets.executeQuery();
+
+	    psSelectStreamEntries.setInt(1,configId);
+	    rsStreamEntries   = psSelectStreamEntries.executeQuery();
+	    psSelectPrimaryDatasetEntries.setInt(1,configId);
+	    rsDatasetEntries  = psSelectPrimaryDatasetEntries.executeQuery();
+	    
+	    HashMap<Integer,Stream> idToStreams=new HashMap<Integer,Stream>();
+	    while (rsStreams.next()) {
+		int    streamId    = rsStreams.getInt(1);
+		String streamLabel = rsStreams.getString(2);
+		Stream stream      = config.insertStream(streamLabel);
+		stream.setDatabaseId(streamId);
+		idToStreams.put(streamId,stream);
+	    }
+
+	    HashMap<Integer,PrimaryDataset> idToDatasets=
+		new HashMap<Integer,PrimaryDataset>();
+	    while (rsDatasets.next()) {
+		int            datasetId    = rsDatasets.getInt(1);
+		String         datasetLabel = rsDatasets.getString(2);
+		PrimaryDataset dataset      = config.insertDataset(datasetLabel);
+		dataset.setDatabaseId(datasetId);
+		idToDatasets.put(datasetId,dataset);
+	    }
+	    
 	    HashMap<Integer,ArrayList<Parameter> > idToParams = getParameters();
 	    
 	    HashMap<Integer,ModuleInstance> idToModules=
 		new HashMap<Integer,ModuleInstance>();
 	    HashMap<Integer,Path>     idToPaths    =new HashMap<Integer,Path>();
 	    HashMap<Integer,Sequence> idToSequences=new HashMap<Integer,Sequence>();
-	    HashMap<Integer,Stream>   idToStreams  =new HashMap<Integer,Stream>();
+
 	    
 	    
 	    while (rsInstances.next()) {
@@ -671,12 +707,6 @@ public class ConfDB
 		    sequence.setDatabaseId(id);
 		    idToSequences.put(id,sequence);
 		}
-		else if (type.equals("Stream")) {
-		    int insertIndex = config.streamCount();
-		    Stream stream = config.insertStream(insertIndex,
-							instanceName);
-		    idToStreams.put(id,stream);
-		}
 	    }
  	    
 	    while (rsSequenceEntries.next()) {
@@ -712,6 +742,22 @@ public class ConfDB
 		sequence.setDatabaseId(sequenceId);
 	    }
 
+	    while (rsStreamEntries.next()) {
+		int    streamId = rsStreamEntries.getInt(1);
+		int    pathId   = rsStreamEntries.getInt(2);
+		Stream stream   = idToStreams.get(streamId);
+		Path   path     = idToPaths.get(pathId);
+		stream.insertPath(path);
+	    }
+	    
+	    while (rsDatasetEntries.next()) {
+		int            datasetId = rsDatasetEntries.getInt(1);
+		int            pathId    = rsDatasetEntries.getInt(2);
+		PrimaryDataset dataset   = idToDatasets.get(datasetId);
+		Path           path      = idToPaths.get(pathId);
+		dataset.insertPath(path);
+	    }
+	    
 	    while (rsPathEntries.next()) {
 		int    pathId     = rsPathEntries.getInt(1);
 		int    entryId    = rsPathEntries.getInt(2);
@@ -743,13 +789,7 @@ public class ConfDB
 		path.setDatabaseId(pathId);
 	    }
 	    
-	    while (rsStreamEntries.next()) {
-		int    streamId = rsStreamEntries.getInt(1);
-		int    pathId   = rsStreamEntries.getInt(2);
-		Stream stream   = idToStreams.get(streamId);
-		Path   path     = idToPaths.get(pathId);
-		stream.insertPath(path);
-	    }
+
 	    
 	}
 	catch (SQLException e) {
@@ -804,6 +844,48 @@ public class ConfDB
 	}
     }
     
+    /** insert a new Stream into the DB */
+    public int insertStream(String streamLabel) throws DatabaseException
+    {
+	int streamId = -1;
+	ResultSet rs = null;
+	try {
+	    psInsertStream.setString(1,streamLabel);
+	    psInsertStream.executeUpdate();
+	    rs = psInsertStream.getGeneratedKeys();
+	    rs.next();
+	    streamId = rs.getInt(1);
+	}
+	catch (SQLException e) {
+	    String errMsg =
+		"ConfDB::insertStream(streamLabel="+streamLabel+") failed: "+
+		e.getMessage();
+	    throw new DatabaseException(errMsg,e);
+	}
+	return streamId;
+    }
+
+    /** insert a new Primary Dataset into the DB */
+    public int insertDataset(String datasetLabel) throws DatabaseException
+    {
+	int datasetId = -1;
+	ResultSet rs = null;
+	try {
+	    psInsertPrimaryDataset.setString(1,datasetLabel);
+	    psInsertPrimaryDataset.executeUpdate();
+	    rs = psInsertPrimaryDataset.getGeneratedKeys();
+	    rs.next();
+	    datasetId = rs.getInt(1);
+	}
+	catch (SQLException e) {
+	    String errMsg =
+		"ConfDB::insertDataset(datasetLabel="+datasetLabel+") failed: "+
+		e.getMessage();
+	    throw new DatabaseException(errMsg,e);
+	}
+	return datasetId;
+    }
+
     /** insert a new configuration */
     public void insertConfiguration(Configuration config,
 				    String creator,String processName,String comment)
@@ -866,9 +948,6 @@ public class ConfDB
 	    // insert references regarding paths and sequences
 	    insertReferences(config,pathHashMap,sequenceHashMap,moduleHashMap);
 
-	    // insert streams
-	    insertStreams(configId,config);
-	    
 	    dbConnector.getConnection().commit();
 	}
 	catch (SQLException e) {
@@ -1190,6 +1269,22 @@ public class ConfDB
 		    pathId = rs.getInt(1);
 		    result.put(pathName,pathId);
 		    idToPath.put(pathId,path);
+
+		    Iterator<Stream> itS = path.streamIterator();
+		    while (itS.hasNext()) {
+			int streamId = itS.next().databaseId();
+			psInsertStreamPathAssoc.setInt(1,streamId);
+			psInsertStreamPathAssoc.setInt(2,pathId);
+			psInsertStreamPathAssoc.addBatch();
+		    }
+
+		    Iterator<PrimaryDataset> itPD = path.datasetIterator();
+		    while (itPD.hasNext()) {
+			int datasetId = itPD.next().databaseId();
+			psInsertPrimaryDatasetPathAssoc.setInt(1,datasetId);
+			psInsertPrimaryDatasetPathAssoc.setInt(2,pathId);
+			psInsertPrimaryDatasetPathAssoc.addBatch();
+		    }
 		}
 		else result.put(pathName,-pathId);
 		
@@ -1217,6 +1312,8 @@ public class ConfDB
 
 	try {
 	    psInsertConfigPathAssoc.executeBatch();
+	    psInsertStreamPathAssoc.executeBatch();
+	    psInsertPrimaryDatasetPathAssoc.executeBatch();
 	}
 	catch (SQLException e) {
 	    String errMsg =
@@ -1480,60 +1577,6 @@ public class ConfDB
 	}
     }
     
-    /** insert streams */
-    private void insertStreams(int configId,Configuration config)
-	throws DatabaseException
-    {
-	Iterator<Stream> it = config.streamIterator();
-	while (it.hasNext()) {
-	    Stream stream      = it.next();
-	    int    streamId    = -1;
-	    String streamLabel = stream.label();
-	    
-	    ResultSet rs = null;
-	    try {
-		psInsertStream.setInt(1,configId);
-		psInsertStream.setString(2,streamLabel);
-		psInsertStream.executeUpdate();
-		rs = psInsertStream.getGeneratedKeys();
-		rs.next();
-		streamId = rs.getInt(1);
-	    }
-	    catch (SQLException e) {
-		String errMsg =
-		    "ConfDB::insertStreams(config="+config.toString()+
-		    ") failed (streamLabel="+streamLabel+").";
-		throw new DatabaseException(errMsg,e);
-	    }
-	    
-	    Iterator<Path> it2 = stream.pathIterator();
-	    while (it2.hasNext()) {
-		Path path   = it2.next();
-		int  pathId = path.databaseId();
-		try {
-		    psInsertStreamPathAssoc.setInt(1,streamId);
-		    psInsertStreamPathAssoc.setInt(2,pathId);
-		    psInsertStreamPathAssoc.addBatch();
-		}
-		catch (SQLException e) {
-		    String errMsg =
-			"ConfDB::inesrtStreams(config="+config.toString()+
-			") failed (streamId="+streamId+", pathId="+pathId+").";
-		    throw new DatabaseException(errMsg,e);
-		}
-	    }
-	}
-	
-	try {
-	    psInsertStreamPathAssoc.executeBatch();	    
-	}
-	catch (SQLException e) {
-	    String errMsg =
-		"ConfDB::insertStreams(config="+config.toString()+") failed "+
-		"(batch insert).";
-	    throw new DatabaseException(errMsg,e);   
-	}
-    }
 
     /** insert all instance parameters */
     private void insertInstanceParameters(int superId,Instance instance)
@@ -1896,7 +1939,47 @@ public class ConfDB
 		 "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectModuleTemplate);
 
+	    psSelectStreams =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " Streams.streamId,"+
+		 " Streams.streamLabel "+
+		 "FROM Streams " +
+		 "ORDER BY Streams.streamLabel ASC");
 
+	    psSelectPrimaryDatasets =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " PrimaryDatasets.datasetId,"+
+		 " PrimaryDatasets.datasetLabel "+
+		 "FROM PrimaryDatasets " +
+		 "ORDER BY PrimaryDatasets.datasetLabel ASC");
+	    
+	    psSelectStreamEntries =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " StreamPathAssoc.streamId," +
+		 " StreamPathAssoc.pathId " +
+		 "FROM StreamPathAssoc "+
+		 "JOIN ConfigurationPathAssoc " +
+		 "ON ConfigurationPathAssoc.pathId=StreamPathAssoc.pathId " +
+		 "WHERE ConfigurationPathAssoc.configId=?");
+	    psSelectStreamEntries.setFetchSize(64);
+	    preparedStatements.add(psSelectStreamEntries);
+
+	    psSelectPrimaryDatasetEntries =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " PrimaryDatasetPathAssoc.datasetId," +
+		 " PrimaryDatasetPathAssoc.pathId " +
+		 "FROM PrimaryDatasetPathAssoc "+
+		 "JOIN ConfigurationPathAssoc " +
+		 "ON ConfigurationPathAssoc.pathId=PrimaryDatasetPathAssoc.pathId "+
+		 "WHERE ConfigurationPathAssoc.configId=?");
+	    psSelectStreamEntries.setFetchSize(64);
+	    preparedStatements.add(psSelectPrimaryDatasetEntries);
+	    	    
+	    
 	    //
 	    // INSERT
 	    //
@@ -1941,10 +2024,14 @@ public class ConfDB
 
 	    psInsertStream =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO Streams (configId,streamLabel)" +
-		 "VALUES(?, ?)",keyColumn);
+		("INSERT INTO Streams (streamLabel) VALUES(?)",keyColumn);
 	    preparedStatements.add(psInsertStream);
 
+	    psInsertPrimaryDataset =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO PrimaryDatasets (datasetLabel) VALUES(?)",keyColumn);
+	    preparedStatements.add(psInsertPrimaryDataset);
+	    
 	    if (dbType.equals(dbTypeMySQL))
 		psInsertSuperId = dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO SuperIds VALUES()",keyColumn);
@@ -2035,6 +2122,12 @@ public class ConfDB
 		("INSERT INTO " +
 		 "StreamPathAssoc (streamId,pathId) VALUES(?, ?)");
 	    preparedStatements.add(psInsertStreamPathAssoc);
+	    
+	    psInsertPrimaryDatasetPathAssoc =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO " +
+		 "PrimaryDatasetPathAssoc (datasetId,pathId) VALUES(?, ?)");
+	    preparedStatements.add(psInsertPrimaryDatasetPathAssoc);
 	    
 	    psInsertSequence =
 		dbConnector.getConnection().prepareStatement
@@ -2423,15 +2516,6 @@ public class ConfDB
 		 "ORDER BY sequence_id ASC, sequence_nb ASC");
 	    psSelectSequenceEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectSequenceEntries);
-	    
-	    psSelectStreamEntries =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " stream_id," +
-		 " path_id " +
-		 "FROM tmp_stream_entries");
-	    psSelectStreamEntries.setFetchSize(1024);
-	    preparedStatements.add(psSelectStreamEntries);
 	    
 	}
 	catch (SQLException e) {
