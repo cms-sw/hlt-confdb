@@ -182,7 +182,7 @@ print
     "$parserCmd\n\n";
 
 my $parserLog = "parser" . "." . $dbHost . "." . $releaseName . ".log";
-`$parserCmd > $parserLog`;
+system("rm -f $parserLog; $parserCmd >& $parserLog");
 print "DONE! (see $parserLog for details)\n\n"; 
 
 
@@ -201,7 +201,7 @@ print
     "$patchCmd\n\n";
 
 my $patchLog = "patch" . "." . $dbHost . "." . $releaseName . ".log";
-`$patchCmd > $patchLog`;
+system("rm -f $pathLog; $patchCmd >& $patchLog");
 print "DONE! (see $patchLog for details)\n\n"; 
 
 
