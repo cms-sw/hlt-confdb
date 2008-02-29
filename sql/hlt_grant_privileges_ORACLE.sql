@@ -58,6 +58,9 @@ GRANT SELECT ON ParamId_Sequence 		TO cms_hlt_admin;
 
 -- INSERT
 GRANT INSERT ON SuperIdReleaseAssoc 		TO cms_hlt_admin;
+GRANT INSERT ON SoftwareReleases		TO cms_hlt_admin;
+GRANT INSERT ON SoftwareSubsystems		TO cms_hlt_admin;
+GRANT INSERT ON SoftwarePackages		TO cms_hlt_admin;
 GRANT INSERT ON ServiceTemplates		TO cms_hlt_admin;
 GRANT INSERT ON EDSourceTemplates		TO cms_hlt_admin;
 GRANT INSERT ON ESSourceTemplates		TO cms_hlt_admin;
