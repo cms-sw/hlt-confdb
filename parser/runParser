@@ -18,15 +18,15 @@
 
 
 my $usage =
-    "--offline|--online|--test|--local (Specification of Database)\n" .
-    "--dbpwrd <pwrd>                   (Database Password)\n" .
-    "--dbuser <user>    (optional)     (Database Username)\n" .
-    "--release <tag>    (optional)     (Default: \$CMSSW_VERSION)\n" .
-    "--relative <tag>   (optional)     (Update w.r.t. this release tag)\n" .
-    "--name <name>      (optional)     (Label of the new release in DB)\n" .
-    "--patch            (optional)     (Apply patches for known problems)\n" .
-    "--patchFile <file> (optional)     (Description file for known problems)\n" .
-    "--all              (optional)     (Disregard whitelist)\n";
+    "--hltdev|--orcoff|--rcms|--test|--local (Specification of Database)\n" .
+    "--dbpwrd <pwrd>                         (Database Password)\n" .
+    "--dbuser <user>    (optional)           (Database Username)\n" .
+    "--release <tag>    (optional)           (Default: \$CMSSW_VERSION)\n" .
+    "--relative <tag>   (optional)           (Update w.r.t. this release tag)\n" .
+    "--name <name>      (optional)           (Label of the new release in DB)\n" .
+    "--patch            (optional)           (Apply patches for known problems)\n" .
+    "--patchFile <file> (optional)           (Description file for patches)\n" .
+    "--all              (optional)           (Disregard whitelist)\n";
 
 if (@ARGV==0) { print $usage . "\n"; exit(0); }
 
@@ -116,13 +116,19 @@ foreach $param (@ARGV)
 	$dbUser   = "HLTDEV";
 	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
     }
-    elsif ($param eq "--offline") {
+    elsif ($param eq "--hltdev") {
 	$dbType   = "Oracle";
 	$dbHost   = "CMS_ORCOFF_INT";
 	$dbUser   = "CMS_HLT_ADMIN";
 	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
     }
-    elsif ($param eq "--online") {
+    elsif ($param eq "--orcoff") {
+	$dbType   = "Oracle";
+	$dbHost   = "CMS_ORCOFF";
+	$dbUser   = "CMS_HLT";
+	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
+    }
+    elsif ($param eq "--rcms") {
 	$dbType   = "Oracle";
 	$dbHost   = "cms_rcms.cern.ch";
 	$dbUser   = "CMS_HLT";
