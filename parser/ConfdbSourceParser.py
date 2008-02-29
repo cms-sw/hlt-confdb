@@ -777,7 +777,7 @@ class SourceParser:
 				print '\t\tFailed to find a default value for the tracked parameter: ' + paramtype + ' ' + paramname + ' in module ' + themodulename
 
 			    if(not paramname.lstrip().startswith('@')):
-                                if(paramname in self.psetsequences and paraminparamset == ''):
+                                if(paramname in self.psetsequences and paraminparamset == '' and paramtype != 'PSet' and paramtype != 'VPSet'):
                                     # Don't allow top-level parameters to have the same name as top-level PSets
                                     if(self.verbose > 0):
                                         print 'Warning: this parameter named ' + paramname + ' was already found as a PSet'
