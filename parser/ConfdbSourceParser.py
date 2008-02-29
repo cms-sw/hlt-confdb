@@ -725,6 +725,9 @@ class SourceParser:
 
 			    # If this is a ParameterSet, figure out it's variable name 
 			    if(paramtype == 'ParameterSet' or paramtype == 'PSet' or paramtype == 'Parameters' or paramtype == 'VPSet'):
+                                if(paramtype == 'Parameters'):
+                                    paramtype = 'VPSet'
+
 				if(totalline.find('=') != -1):
 				    thisparamset = totalline.split('=')[0].rstrip().lstrip()
 				    if(thisparamset.find('vector<edm::ParameterSet>') != -1):
@@ -1123,6 +1126,9 @@ class SourceParser:
 
 			    # If this is a ParameterSet, figure out it's variable name 
 			    if(paramtype == 'ParameterSet' or paramtype == 'PSet' or paramtype == 'Parameters' or paramtype == 'VPSet'):
+                                if(paramtype == 'Parameters'):
+                                    paramtype = 'VPSet'
+                                                                        
 				if(totalline.find('=') != -1):
 				    thisparamset = totalline.split('=')[0].rstrip().lstrip()
 				
