@@ -888,15 +888,68 @@ public class ConfDB
 
     /** insert a new configuration */
     public void insertConfiguration(Configuration config,
-				    String creator,String processName,String comment)
+				    String creator,String processName,
+				    String comment)
 	throws DatabaseException
     {
 	String  releaseTag = config.releaseTag();
 	int     releaseId  = getReleaseId(releaseTag);
 	String  configDescriptor =
 	    config.parentDir().name()+"/"+config.name()+"/V"+config.nextVersion();
-	
+
 	ResultSet rs = null;
+	
+	// explicitely make sure that the stream/dataset labels are in this
+	// particular database, and create them if they are not
+	HashMap<String,Integer> streamToId  = new HashMap<String,Integer>();
+	HashMap<String,Integer> datasetToId = new HashMap<String,Integer>();
+	try {
+	    rs = psSelectStreams.executeQuery();
+	    while (rs.next()) {
+		int    streamId = rs.getInt(1);
+		String streamLabel = rs.getString(2);
+		streamToId.put(streamLabel,streamId);
+	    }
+	    rs = psSelectPrimaryDatasets.executeQuery();
+	    while (rs.next()) {
+		int    datasetId    = rs.getInt(1);
+		String datasetLabel = rs.getString(2);
+		datasetToId.put(datasetLabel,datasetId);
+	    }
+	    Iterator<Stream> itS = config.streamIterator();
+	    while (itS.hasNext()) {
+		Stream stream = itS.next();
+		if (!streamToId.containsKey(stream.label())) {
+		    try {
+			int streamId = insertStream(stream.label());
+			stream.setDatabaseId(streamId);
+		    }
+		    catch (DatabaseException e) {}
+		}
+		else {
+		    stream.setDatabaseId(streamToId.get(stream.label()));
+		}
+	    }
+	    Iterator<PrimaryDataset> itPD = config.datasetIterator();
+	    while (itPD.hasNext()) {
+		PrimaryDataset dataset = itPD.next();
+		if (!datasetToId.containsKey(dataset.label())) {
+		    try {
+			int datasetId = insertDataset(dataset.label());
+			dataset.setDatabaseId(datasetId);
+		    }
+		    catch (DatabaseException e) {}
+		}
+		else {
+		    dataset.setDatabaseId(datasetToId.get(dataset.label()));
+		}
+	    }
+	}
+	catch (SQLException e) {
+	    String errMsg = "ConfDB::insertConfiguration() failed: "+e.getMessage();
+	    throw new DatabaseException(errMsg,e);
+	}
+	
 	try {
 	    dbConnector.getConnection().setAutoCommit(false);
 	    

@@ -34,14 +34,16 @@ public class AsciiParameterWriter  implements IParameterWriter
 		{
 			// strange things happen here: from time to time the value is empty!
 			String value = parameter.valueAsString();
-			if ( value.length() == 0 )
-			{
-				Object doubleObject = ((ScalarParameter)parameter).value();
-				if ( doubleObject != null )
-					value = doubleObject.toString() + " // oops, method value() used";
-				else
-					throw new ConverterException( "oops, Double == null !! Don't know what to do ("+parameter.name()+")" );
-			}
+			/*
+			  if ( value.length() == 0 )
+			  {
+			  Object doubleObject = ((ScalarParameter)parameter).value();
+			  if ( doubleObject != null )
+			  value = doubleObject.toString() + " // oops, method value() used";
+			  else
+			  throw new ConverterException( "oops, Double == null !! Don't know what to do ("+parameter.name()+")" );
+			  }
+			*/
 			str.append( value );
 		}
 		else if ( parameter instanceof PSetParameter )

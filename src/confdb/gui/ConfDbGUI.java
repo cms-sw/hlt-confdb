@@ -822,7 +822,6 @@ public class ConfDbGUI
 
 	jTextFieldProcess.setEditable(false);
 	jToggleButtonImport.setEnabled(false);
-	jButtonAddStream.setEnabled(false);
     }
 
     /** check that the current configuration is in a valid state for save/convert*/
