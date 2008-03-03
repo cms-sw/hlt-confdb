@@ -61,7 +61,7 @@ public class BrowserConverter extends OfflineConverter
 	
 	static public BrowserConverter getConverter( int dbIndex ) throws ConverterException 
 	{
-		ConfDBSetups dbs = new ConfDBSetups();
+	    ConfDBSetups dbs = new ConfDBSetups();
 	    DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertme!" );
 	   	dbProperties.setDbUser( "cms_hlt_reader" );
 		BrowserConverter converter = map.get( new Integer( dbIndex ) );

@@ -476,7 +476,7 @@ public class Diff
 	database = new ConfDB();
 	String url =
 	    "jdbc:oracle:thin:@//"+
-	    "int2r1-v.cern.ch:10121/int2r_lb.cern.ch";
+	    "int9r2-v.cern.ch:10121/int9r_lb.cern.ch";
 	try {
 	    database.connect("oracle",url,"cms_hlt_reader","convertme!");
 	}

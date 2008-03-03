@@ -41,8 +41,7 @@ public class OfflineConverter extends ConverterBase
     // member functions
     //
     
-    /** retrieve the configuration string for the given configId 
-     * @throws ConversionException */
+    /** retrieve the configuration string for the given configId */
     public String getConfigString(String configName,
 				  ModifierInstructions modifications,
 				  boolean asFragment)
@@ -70,8 +69,7 @@ public class OfflineConverter extends ConverterBase
 	return getConfigString(config,modifications,asFragment);
     }
     
-    /** retrieve the configuration string for an IConfiguration object 
-     * @throws ConversionException */
+    /** retrieve the configuration string for an IConfiguration object */
     public String getConfigString(IConfiguration config,
 				  ModifierInstructions modifications,
 				  boolean asFragment)

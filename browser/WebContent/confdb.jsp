@@ -66,8 +66,8 @@
 	
     try {
 	converter = BrowserConverter.getConverter( 1 );
-    ConfDB database = converter.getDatabase();
-    
+	ConfDB database = converter.getDatabase();
+	
 	if (dolist) {
 	    String[] allConfigs = database.getConfigNames();
 	    for (String s : allConfigs)
@@ -86,47 +86,48 @@
 	}
 
 	int id = (configId.length()>0) ?
-	    		Integer.parseInt(configId) : database.getConfigId(configName);
-	    	    if (id<=0) {
-	    		out.println("ERROR: configuration not found!");
-	    		return;
-	    	    }
+	    Integer.parseInt(configId) : database.getConfigId(configName);
+	if (id<=0) {
+	    out.println("ERROR: configuration not found!");
+	    return;
+	}
 	    	    
 	if (dopackages) {
-		Configuration   cfg     = database.loadConfiguration(id);
-		SoftwareRelease release = cfg.release();
-		Iterator<String> it = release.listOfReferencedPackages().iterator();
-		while (it.hasNext()) {
-		    String pkg = it.next();
-		    out.println(pkg);
-		}
-		return;		
+	    Configuration   cfg     = database.loadConfiguration(id);
+	    SoftwareRelease release = cfg.release();
+	    Iterator<String> it = release.listOfReferencedPackages().iterator();
+	    while (it.hasNext()) {
+		String pkg = it.next();
+		out.println(pkg);
+	    }
+	    return;		
 	}
 	
 	if (doversions) {
-		ConfigInfo info = database.getConfigInfo(id);
-		System.out.println("name=" + info.parentDir().name() + "/" +
-				   info.name());
-		for (int i=0;i<info.versionCount();i++) {
-		    ConfigVersion version = info.version(i);
-		    out.println(version.version()+"\t"+
-		   	        version.dbId()+"\t"+
-				version.releaseTag()+"\t"+
-				version.created()+"\t"+
-				version.creator());
-		    if (version.comment().length()>0)
-			out.println("  -> " + version.comment());
-		}
+	    ConfigInfo info = database.getConfigInfo(id);
+	    System.out.println("name=" + info.parentDir().name() + "/" +
+			       info.name());
+	    for (int i=0;i<info.versionCount();i++) {
+		ConfigVersion version = info.version(i);
+		out.println(version.version()+"\t"+
+			    version.dbId()+"\t"+
+			    version.releaseTag()+"\t"+
+			    version.created()+"\t"+
+			    version.creator());
+		if (version.comment().length()>0)
+		    out.println("  -> " + version.comment());
+	    }
 	}
-    } catch ( Exception e ) {
-	  out.print( "ERROR!\n\n" ); 
-	  ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-	  PrintWriter writer = new PrintWriter( buffer );
-	  e.printStackTrace( writer );
-	  writer.close();
-	  out.println( buffer.toString() );
-	  if ( converter != null )
-		  BrowserConverter.deleteConverter( converter );
+    }
+    catch ( Exception e ) {
+	out.print( "ERROR!\n\n" ); 
+	ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+	PrintWriter writer = new PrintWriter( buffer );
+	e.printStackTrace( writer );
+	writer.close();
+	out.println( buffer.toString() );
+	if ( converter != null )
+	    BrowserConverter.deleteConverter( converter );
     }
 
 %>
