@@ -18,15 +18,16 @@
 
 
 my $usage =
-    "--hltdev|--orcoff|--rcms|--test|--local (Specification of Database)\n" .
-    "--dbpwrd <pwrd>                         (Database Password)\n" .
-    "--dbuser <user>    (optional)           (Database Username)\n" .
-    "--release <tag>    (optional)           (Default: \$CMSSW_VERSION)\n" .
-    "--relative <tag>   (optional)           (Update w.r.t. this release tag)\n" .
-    "--name <name>      (optional)           (Label of the new release in DB)\n" .
-    "--patch            (optional)           (Apply patches for known problems)\n" .
-    "--patchFile <file> (optional)           (Description file for patches)\n" .
-    "--all              (optional)           (Disregard whitelist)\n";
+    "--hltdev|--rcms|--test|--local (Specification of Database)\n" .
+    "--dbpwrd <pwrd>                (Database Password)\n" .
+    "--dbuser <user>    (optional)  (Database Username)\n" .
+    "--release <tag>    (optional)  (Default: \$CMSSW_VERSION)\n" .
+    "--relative <tag>   (optional)  (Update w.r.t. this release tag)\n" .
+    "--name <name>      (optional)  (Label of the new release in DB)\n" .
+    "--parse            (optional)  (Parse the specified release)\n" .
+    "--patch            (optional)  (Apply patches for known problems)\n" .
+    "--patchFile <file> (optional)  (Description file for patches)\n" .
+    "--all              (optional)  (Disregard whitelist)\n";
 
 if (@ARGV==0) { print $usage . "\n"; exit(0); }
 
@@ -89,6 +90,7 @@ my @whiteList =
      "TrackingTools"
      );
 
+my $doParse   = 0;
 my $doPatch   = 0;
 my $patchFile = $parserPath . "/problems.txt";
 my $patchExe;
@@ -122,15 +124,9 @@ foreach $param (@ARGV)
 	$dbUser   = "CMS_HLT_ADMIN";
 	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
     }
-    elsif ($param eq "--orcoff") {
-	$dbType   = "Oracle";
-	$dbHost   = "CMS_ORCOFF";
-	$dbUser   = "CMS_HLT";
-	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
-    }
     elsif ($param eq "--rcms") {
 	$dbType   = "Oracle";
-	$dbHost   = "cms_rcms.cern.ch";
+	$dbHost   = "CMS_RCMS_SSH";
 	$dbUser   = "CMS_HLT";
 	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
     }
@@ -146,16 +142,20 @@ foreach $param (@ARGV)
     elsif ($param       eq "--name")     { $releaseName = "fillme"; }
     elsif ($patchFile   eq "fillme")     { $patchFile   = $param; $doPatch=1; }
     elsif ($param       eq "--patchfile"){ $patchFile   = "fillme"; }
+    elsif ($param       eq "--parse")    { $doParse     = 1;        }
     elsif ($param       eq "--patch")    { $doPatch     = 1;        }
     elsif ($param       eq "--all")      { $doAll       = 1;        }
     else { die "Unknown option $param"; }
 }
 
+if ($releaseTag  eq "") { $releaseTag  = $cmssw_version; }
+if ($releaseName eq "") { $releaseName = $releaseTag; }
+
+
 die "No scram project area setup!\n" if ($cmssw_base eq "");
 die "$parserExe doesn't exist!"      if (!(-e $parserExe));
 die "--dbpwrd MUST be specified!"    if ($dbPwrd eq "");
 die "No valid DB specified: --offline|--online|--test|--local" if ($dbHost eq "");
-#die "Please specify a relative release: --release!" if ($relativeTag eq "");
 die "$patchFile doesn't exist!" if ($doPatch && ! -e $patchFile);
 
 my $parserCmd = $parserExe . " -t $dbType -o $dbHost -u $dbUser -s $dbPwrd ";
@@ -175,41 +175,51 @@ if (!$doAll)
     }
 }
 
-if ($releaseTag  eq "") { $releaseTag  = $cmssw_version; }
-if ($releaseName eq "") { $releaseName = $releaseTag; }
+my $tmp = validate_release($releaseTag);
+if (!$tmp eq "")
+{
+    $relativeTag = $tmp;
+    $parserCmd = $parserCmd . " -a 1";
+}
+
+
 
 #
 # parse release
 #
-print
-    "\n--------------------------------------------------\n" .
-    "execute parser\n" .
-    "--------------------------------------------------\n" .
-    "$parserCmd\n\n";
-
-my $parserLog = "parser" . "." . $dbHost . "." . $releaseName . ".log";
-system("rm -f $parserLog; $parserCmd >& $parserLog");
-print "DONE! (see $parserLog for details)\n\n"; 
+if ($doParse)
+{
+    print
+	"\n--------------------------------------------------\n" .
+	"execute parser\n" .
+	"--------------------------------------------------\n" .
+	"$parserCmd\n\n";
+    
+    my $parserLog = "parser" . "." . $dbHost . "." . $releaseName . ".log";
+    system("rm -f $parserLog; $parserCmd > $parserLog");
+    print "DONE! (see $parserLog for details)\n\n"; 
+}
 
 
 #
 # patch release
 #
-if (!$doPatch) { exit(0); }
-$patchCmd = $patchExe .
-    " -o $dbHost -u $dbUser -s $dbPwrd -r $releaseName -z $patchFile";
-if ($dbType eq "MySQL") { $patchCmd = $patchCmd . " -d $dbName"; }
-
-print 
-    "\n--------------------------------------------------\n" .
-    "patch release $releaseName\n" .
-    "--------------------------------------------------\n" .
-    "$patchCmd\n\n";
-
-my $patchLog = "patch" . "." . $dbHost . "." . $releaseName . ".log";
-system("rm -f $pathLog; $patchCmd >& $patchLog");
-print "DONE! (see $patchLog for details)\n\n"; 
-
+if ($doPatch)
+{
+    $patchCmd = $patchExe .
+	" -o $dbHost -u $dbUser -s $dbPwrd -r $releaseName -z $patchFile";
+    if ($dbType eq "MySQL") { $patchCmd = $patchCmd . " -d $dbName"; }
+    
+    print 
+	"\n--------------------------------------------------\n" .
+	"patch release $releaseName\n" .
+	"--------------------------------------------------\n" .
+	"$patchCmd\n\n";
+    
+    my $patchLog = "patch" . "." . $dbHost . "." . $releaseName . ".log";
+    system("rm -f $patchLog; $patchCmd > $patchLog");
+    print "DONE! (see $patchLog for details)\n\n"; 
+}
 
 
 #-------------------------------------------------------------------------------
@@ -227,5 +237,37 @@ sub get_env_variable
 	print "\$" . $varname . " = $result\n";
     }
     else { print ("WARNING: \$" . $varname . " undefined!"); }
+    return $result;
+}
+
+#_______________________________________________________________________________
+sub validate_release
+{
+    my ($input) = @_;
+    
+    my $prefix;
+    my $suffix;
+    my $result = "";
+    
+    if ($input =~ m/CMSSW_([\d]*)_([\d]*)_([\d]*)_pre([\d]*)([\S]*)/)
+    {
+	$prefix = "CMSSW_" . $1 . "_" . $2 . "_" . $3 . "_pre" . $4;
+	$suffix = $5;
+    }
+    elsif ($input =~ m/CMSSW_([\d]*)_([\d]*)_([\d]*)([\S]*)/)
+    {
+	$prefix = "CMSSW_" . $1 . "_" . $2 . "_" . $3;
+	$suffix = $4; 
+    } 
+    else {
+	die "the release apears to be invalid!";
+    }
+    
+    if ($suffix =~ m/_HLT([\d])/) {
+	$count = $1-1;
+	if ($count>0) {	$result = $prefix . "_HLT" . ($1-1); }
+	else { $result = $prefix; }
+    }
+    
     return $result;
 }
