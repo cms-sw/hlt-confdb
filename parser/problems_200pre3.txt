@@ -1,14 +1,15 @@
-
 EDSource PoolSource IOPool Input
 PoolSource.Parameter fileNames vstring { "file:RelVal_Pure_Raw.root" } untracked
 
 ESSource PoolDBESSource CondCore ESSources
+PoolDBESSource.Parameter DBParameters PSet tracked
+PoolDBESSource.Parameter timetype string "runnumber" tracked
 PoolDBESSource.Parameter authenticationMethod uint32 0 untracked
 PoolDBESSource.Parameter siteLocalConfig bool true untracked
+PoolDBESSource.Parameter messagelevel uint32 0 untracked
 
 ESSource HcalHardcodeCalibrations CalibCalorimetry HcalPlugins
 HcalHardcodeCalibrations.Parameter toGet vstring { "GainWidths", "channelQuality" } untracked
-PoolDBESSource.Parameter messagelevel uint32 0 untracked
 
 ESSource SimpleJetCorrectionService JetMETCorrections Modules
 SimpleJetCorrectionService.Parameter scale double 1.0 tracked
@@ -17,6 +18,11 @@ SimpleJetCorrectionService.Parameter label string "DummyCorrector" tracked
 ESSource MCJetCorrectionService JetMETCorrections Modules
 MCJetCorrectionService.Parameter tagName string "CMSSW_152_iterativeCone5" tracked
 MCJetCorrectionService.Parameter label string "MCJetCorrectorIcone5" tracked
+
+ESModule SiStripGainESProducer CalibTracker SiStripESProducers 
+SiStripGainESProducer.Parameter AutomaticNormalization bool false tracked
+SiStripGainESProducer.Parameter NormalizationFactor double 1.0 tracked
+SiStripGainESProducer.Parameter printDebug bool false untracked
 
 ESModule VolumeBasedMagneticFieldESProducer MagneticField GeomBuilder
 VolumeBasedMagneticFieldESProducer.Parameter findVolumeTolerance double 0.0 tracked
@@ -39,7 +45,6 @@ L1GctConfigProducers.Parameter PiecewiseCubicCoefficients PSet tracked
 L1GctConfigProducers.Parameter jetCounterSetup PSet tracked
 
 ESModule PixelCPEParmErrorESProducer RecoLocalTracker SiPixelRecHits
-PixelCPEParmErrorESProducer.Parameter TanLorentzAnglePerTesla double 0.106 tracked
 PixelCPEParmErrorESProducer.Parameter PixelErrorParametrization string "NOTcmsim" tracked
 PixelCPEParmErrorESProducer.Parameter Alpha2Order bool true tracked
 PixelCPEParmErrorESProducer.Parameter UseNewParametrization bool true tracked
@@ -144,17 +149,53 @@ MessageLogger.Parameter suppressDebug vstring {  } untracked
 MessageLogger.Parameter suppressInfo vstring {  } untracked
 MessageLogger.Parameter suppressWarning vstring {  } untracked
 
+Module EDProducer IterativeConeJetProducer RecoJets JetProducers
+IterativeConeJetProducer.Parameter verbose bool false untracked
+IterativeConeJetProducer.Parameter jetType string "CaloJet" untracked
+IterativeConeJetProducer.Parameter src InputTag caloTowers tracked
+IterativeConeJetProducer.Parameter inputEMin double 0.0 tracked
+IterativeConeJetProducer.Parameter inputEtMin double 0.5 tracked
+IterativeConeJetProducer.Parameter debugLevel int32 0 untracked
+IterativeConeJetProducer.Parameter alias string "IC5CaloJet" untracked
+
+Module EDProducer KtJetProducer RecoJets JetProducers
+KtJetProducer.Parameter verbose bool false untracked
+KtJetProducer.Parameter jetType string "CaloJet" untracked
+KtJetProducer.Parameter src InputTag caloTowers tracked
+KtJetProducer.Parameter inputEMin double 0.0 tracked
+KtJetProducer.Parameter inputEtMin double 0.5 tracked
+KtJetProducer.Parameter alias string "KT10CaloJet" untracked
+
+Module EDProducer MidpointJetProducer RecoJets JetProducers
+MidpointJetProducer.Parameter verbose bool false untracked
+MidpointJetProducer.Parameter jetType string "CaloJet" untracked
+MidpointJetProducer.Parameter src InputTag caloTowers tracked
+MidpointJetProducer.Parameter inputEMin double 0.0 tracked
+MidpointJetProducer.Parameter inputEtMin double 0.5 tracked
+MidpointJetProducer.Parameter alias string "MC5CaloJet" untracked
+
+Module EDProducer SISConeJetProducer RecoJets JetProducers
+SISConeJetProducer.Parameter verbose bool false untracked
+SISConeJetProducer.Parameter jetType string "CaloJet" untracked
+SISConeJetProducer.Parameter src InputTag caloTowers tracked
+SISConeJetProducer.Parameter inputEMin double 0.0 tracked
+SISConeJetProducer.Parameter inputEtMin double 0.5 tracked
+SISConeJetProducer.Parameter alias string "SISC5CaloJet" untracked
+
+Module EDProducer SiPixelClusterProducer RecoLocalTracker SiPixelClusterizer
+SiPixelClusterProducer.Parameter VerbosityLevel int32 1 untracked
+
 Module EDProducer ConeIsolation RecoTauTag ConeIsolation
 ConeIsolation.Parameter MinimumNumberOfPixelHits int32 2 tracked
-ConeIsolation.Parameter MinimumNumberOfHits int32 2 tracked
-ConeIsolation.Parameter MaximumTransverseImpactParameter double 100.0 tracked
+ConeIsolation.Parameter MinimumNumberOfHits int32 5 tracked
+ConeIsolation.Parameter MaximumTransverseImpactParameter double 0.03 tracked
 ConeIsolation.Parameter MinimumTransverseMomentum double 1.0 tracked
 ConeIsolation.Parameter MaximumChiSquared double 100.0 tracked
 ConeIsolation.Parameter MatchingCone double 0.1 tracked
 ConeIsolation.Parameter SignalCone double 0.07 tracked
 ConeIsolation.Parameter IsolationCone double 0.45 tracked
 ConeIsolation.Parameter MinimumTransverseMomentumInIsolationRing double 1.0 tracked
-ConeIsolation.Parameter MinimumTransverseMomentumLeadingTrack double 3.0 tracked
+ConeIsolation.Parameter MinimumTransverseMomentumLeadingTrack double 6.0 tracked
 ConeIsolation.Parameter DeltaZetTrackVertex double 0.2 tracked
 ConeIsolation.Parameter MaximumNumberOfTracksIsolationRing int32 0 tracked
 ConeIsolation.Parameter UseFixedSizeCone bool true tracked
@@ -163,17 +204,26 @@ ConeIsolation.Parameter VariableMaxCone double 0.17 tracked
 ConeIsolation.Parameter VariableMinCone double 0.05 tracked
 
 Module EDProducer IsolatedTauJetsSelector RecoTauTag HLTProducers
-IsolatedTauJetsSelector.Parameter JetSrc VInputTag { hltPixelTrackConeIsolationMuonTau } tracked
+IsolatedTauJetsSelector.Parameter JetSrc VInputTag { hltConeIsolationL25ElectronTau } tracked
 IsolatedTauJetsSelector.Parameter MatchingCone double 0.1 tracked
 IsolatedTauJetsSelector.Parameter SignalCone double 0.07 tracked
-IsolatedTauJetsSelector.Parameter IsolationCone double 0.3 tracked
+IsolatedTauJetsSelector.Parameter IsolationCone double 0.45 tracked
 IsolatedTauJetsSelector.Parameter MinimumTransverseMomentumInIsolationRing double 1.0 tracked
-IsolatedTauJetsSelector.Parameter MinimumTransverseMomentumLeadingTrack double 3.0 tracked
+IsolatedTauJetsSelector.Parameter MinimumTransverseMomentumLeadingTrack double 6.0 tracked
 IsolatedTauJetsSelector.Parameter DeltaZetTrackVertex double 0.2 tracked
 IsolatedTauJetsSelector.Parameter MaximumNumberOfTracksIsolationRing int32 0 tracked
 IsolatedTauJetsSelector.Parameter VertexSrc InputTag pixelVertices tracked
 IsolatedTauJetsSelector.Parameter UseVertex bool false tracked
 IsolatedTauJetsSelector.Parameter UseInHLTOpen bool false tracked
+
+Module EDProducer CkfTrackCandidateMaker RecoTracker CkfPattern
+CkfTrackCandidateMaker.Parameter SeedProducer string "l1IsoElectronPixelSeeds" tracked
+CkfTrackCandidateMaker.Parameter SeedLabel string "" tracked
+CkfTrackCandidateMaker.Parameter TrajectoryBuilder string "GroupedCkfTrajectoryBuilder" tracked
+CkfTrackCandidateMaker.Parameter TrajectoryCleaner string "TrajectoryCleanerBySharedHits" tracked
+CkfTrackCandidateMaker.Parameter NavigationSchool string "SimpleNavigationSchool" tracked
+CkfTrackCandidateMaker.Parameter RedundantSeedCleaner string "CachingSeedCleanerBySharedInput" tracked
+CkfTrackCandidateMaker.Parameter TransientInitialStateEstimatorParameters PSet tracked
 
 Module EDProducer TrackProducer RecoTracker TrackProducer
 TrackProducer.Parameter alias string "ctfWithMaterialTracks" untracked
@@ -181,19 +231,29 @@ TrackProducer.Parameter Fitter string "FittingSmootherRK" tracked
 TrackProducer.Parameter Propagator string "RungeKuttaTrackerPropagator" tracked
 TrackProducer.Parameter TTRHBuilder string "WithTrackAngle" tracked
 
-Module EDProducer LargestEtCaloJetSelector PhysicsTools RecoSelectors
-LargestEtCaloJetSelector.Parameter src InputTag iterativeCone5CaloJets tracked
-LargestEtCaloJetSelector.Parameter filter bool false tracked
-LargestEtCaloJetSelector.Parameter maxNumber uint32 4 tracked
+Module EDProducer EgammaHLTPixelMatchElectronProducers RecoEgamma EgammaHLTProducers
+EgammaHLTPixelMatchElectronProducers.Parameter TrackLabel string "ctfL1IsoWithMaterialTracks" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter TrackProducer string "" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter TrajectoryBuilder string "TrajectoryBuilderForPixelMatchElectronsL1Iso" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter TransientInitialStateEstimatorParameters PSet tracked
+EgammaHLTPixelMatchElectronProducers.Parameter propagatorAlong string "PropagatorWithMaterial" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter propagatorOpposite string "PropagatorWithMaterialOpposite" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter updator string "KFUpdator" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter estimator string "egammaHLTChi2" tracked
+EgammaHLTPixelMatchElectronProducers.Parameter BSProducer InputTag offlineBeamSpot tracked
 
-Module EDProducer EtMinCaloJetSelector PhysicsTools RecoSelectors
-EtMinCaloJetSelector.Parameter src InputTag hltBLifetimeHighestEtJets tracked
-EtMinCaloJetSelector.Parameter filter bool false tracked
-EtMinCaloJetSelector.Parameter etMin double 35.0 tracked
+Module EDProducer ConcreteChargedCandidateProducer PhysicsTools RecoCandAlgos
+ConcreteChargedCandidateProducer.Parameter src InputTag hltCtfWithMaterialTracksMumuk tracked
+ConcreteChargedCandidateProducer.Parameter particleType string "mu-" tracked
 
-Module EDProducer EgammaHLTRegionalPixelSeedGeneratorProducers RecoEgamma EgammaHLTProducers
-EgammaHLTRegionalPixelSeedGeneratorProducers.Parameter HitProducer string "siPixelRecHits" tracked
-EgammaHLTRegionalPixelSeedGeneratorProducers.Parameter TTRHBuilder string "WithTrackAngle" tracked
+Module EDProducer CSCRecHitBProducer RecoLocalMuon CSCRecHitB
+CSCRecHitBProducer.Parameter CSCuseLeftOverWireHits bool false untracked
+
+Module EDProducer HcalRawToDigi EventFilter HcalRawToDigi
+HcalRawToDigi.Parameter firstSample int32 0 tracked
+HcalRawToDigi.Parameter lastSample int32 9 tracked
+HcalRawToDigi.Parameter FilterDataQuality bool true tracked
+HcalRawToDigi.Parameter ExceptionEmptyData bool false untracked
 
 Module EDProducer EgammaHLTIslandClusterProducer RecoEgamma EgammaHLTProducers
 EgammaHLTIslandClusterProducer.Parameter clustershapecollectionEB string "islandBarrelShape" tracked
@@ -205,30 +265,50 @@ Module EDProducer EgammaHLTHybridClusterProducer RecoEgamma EgammaHLTProducers
 EgammaHLTHybridClusterProducer.Parameter clustershapecollection string "" tracked
 EgammaHLTHybridClusterProducer.Parameter shapeAssociation string "hybridShapeAssoc" tracked
 
-Module EDProducer ConcreteChargedCandidateProducer PhysicsTools RecoCandAlgos
-ConcreteChargedCandidateProducer.Parameter src InputTag pixelTracksForMinBias tracked
-ConcreteChargedCandidateProducer.Parameter particleType string "pi+" tracked
+Module EDProducer HcalSimpleReconstructor RecoLocalCalo HcalRecProducers
+HcalSimpleReconstructor.Parameter firstSample int32 4 tracked
+HcalSimpleReconstructor.Parameter samplesToAdd int32 4 tracked
+HcalSimpleReconstructor.Parameter correctForTimeslew bool true tracked
+HcalSimpleReconstructor.Parameter correctForPhaseContainment bool true tracked
+HcalSimpleReconstructor.Parameter correctionPhaseNS double 13.0 tracked
 
-Module HLTFilter HLTMuonDimuonFilter HLTrigger Muon
-HLTMuonDimuonFilter.Parameter SeedTag InputTag hltL2MuonSeeds tracked
-HLTMuonDimuonFilter.Parameter PreviousCandTag InputTag JpsiMML1Filtered tracked
-HLTMuonDimuonFilter.Parameter LinksTag InputTag hltL3Muons tracked
+Module EDProducer SiStripRawToClusters EventFilter SiStripRawToDigi
+SiStripRawToClusters.Parameter MaxHolesInCluster uint32 0 untracked
+SiStripRawToClusters.Parameter ClusterThreshold double 5.0 untracked
+SiStripRawToClusters.Parameter SeedThreshold double 3.0 untracked
+SiStripRawToClusters.Parameter ChannelThreshold double 2.0 untracked
+SiStripRawToClusters.Parameter ClusterizerAlgorithm string "ThreeThreshold" untracked
 
-Module EDProducer EgammaHLTPixelMatchElectronProducers RecoEgamma EgammaHLTProducers
-EgammaHLTPixelMatchElectronProducers.Parameter TrackLabel string "ctfL1NonIsoLargeWindowWithMaterialTracks" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter TrackProducer string "" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter TrajectoryBuilder string "TrajectoryBuilderForPixelMatchElectronsL1NonIsoLargeWindow" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter TransientInitialStateEstimatorParameters PSet tracked
-EgammaHLTPixelMatchElectronProducers.Parameter propagatorAlong string "PropagatorWithMaterial" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter propagatorOpposite string "PropagatorWithMaterialOpposite" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter updator string "KFUpdator" tracked
-EgammaHLTPixelMatchElectronProducers.Parameter estimator string "egammaHLTChi2" tracked
+Module EDProducer CaloTowersCreator RecoLocalCalo CaloTowersCreator
+CaloTowersCreator.Parameter UseHO bool true tracked
 
-Module EDProducer EcalRecHitProducer RecoLocalCalo EcalRecProducers
-EcalRecHitProducer.Parameter EBrechitCollection string "EcalRecHitsEB" tracked
-EcalRecHitProducer.Parameter EErechitCollection string "EcalRecHitsEE" tracked
+Module EDProducer JetTagProducer RecoBTau JetTagComputer
+JetTagProducer.Parameter tagInfo InputTag hltBLifetimeL25TagInfos tracked
+
+Module EDProducer SeedGeneratorFromRegionHitsEDProducer RecoTracker TkSeedGenerator
+SeedGeneratorFromRegionHitsEDProducer.Parameter TTRHBuilder string "WithTrackAngle" tracked
+
+Module EDProducer EgammaHLTRegionalPixelSeedGeneratorProducers RecoEgamma EgammaHLTProducers
+EgammaHLTRegionalPixelSeedGeneratorProducers.Parameter HitProducer string "siPixelRecHits" tracked
+EgammaHLTRegionalPixelSeedGeneratorProducers.Parameter TTRHBuilder string "WithTrackAngle" tracked
+
+Module EDProducer LargestEtCaloJetSelector PhysicsTools RecoSelectors
+LargestEtCaloJetSelector.Parameter src InputTag iterativeCone5CaloJets tracked
+LargestEtCaloJetSelector.Parameter filter bool false tracked
+LargestEtCaloJetSelector.Parameter maxNumber uint32 2 tracked
+
+Module EDProducer EtMinCaloJetSelector PhysicsTools RecoSelectors
+EtMinCaloJetSelector.Parameter src InputTag hltBSoftmuonHighestEtJets tracked
+EtMinCaloJetSelector.Parameter filter bool false tracked
+EtMinCaloJetSelector.Parameter etMin double 20.0 tracked
+
+Module HLTFilter HLTEcalPhiSymFilter HLTrigger special
+HLTEcalPhiSymFilter.Parameter VerbosityLevel string "ERROR" tracked
 
 Module HLTFilter HLTMuonPreFilter HLTrigger Muon
 HLTMuonPreFilter.Parameter SeedTag InputTag hltL2MuonSeeds tracked
 HLTMuonPreFilter.Parameter PreviousCandTag InputTag MuNoL2IsoJetsL1Filtered tracked
 HLTMuonPreFilter.Parameter LinksTag InputTag hltL3Muons tracked
+
+Module HLTFilter HLTPi0RecHitsFilter HLTrigger special
+HLTPi0RecHitsFilter.Parameter VerbosityLevel string "ERROR" tracked
