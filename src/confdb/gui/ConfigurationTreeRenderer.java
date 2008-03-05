@@ -191,7 +191,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 		if   (esp.isPreferred()) result += "<b>"+instance.name()+"</b>";
 		else                     result += instance.name();
 	    }
-	    else result += instance.name()+ " " + instance.databaseId();
+	    else result += instance.name();
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
 	    result+="</html>";
 	}
@@ -199,7 +199,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    Path path       = (Path)node;
 	    int  entryCount = path.entryCount();
 	    int  count      = path.unsetTrackedParameterCount();
-	    result = "<html>"+getText()+" "+path.databaseId()+" ";
+	    result = "<html>"+getText()+" ";
 	    result += (entryCount>0) ?
 		"("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
@@ -227,7 +227,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    int      entryCount = sequence.entryCount();
 	    int      count      = sequence.unsetTrackedParameterCount();
 	    result = (refCount>0) ?
-		"<html>"+getText()+" "+sequence.databaseId()+ " " + sequence.referenceCount():"<html><font color=#808080>"+getText()+"</font>";
+		"<html>"+getText():"<html><font color=#808080>"+getText()+"</font>";
 	    result += (entryCount>0) ?
 		" ("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
