@@ -13,10 +13,14 @@ import org.apache.log4j.SimpleLayout;
 import org.directwebremoting.WebContext;
 import org.directwebremoting.WebContextFactory;
 
+import rcms.fm.context.RCMSRuntimeInfo;
+
 import browser.BrowserConverter;
 
 import confdb.converter.ConverterBase;
 import confdb.converter.ConverterException;
+import confdb.converter.DbProperties;
+import confdb.converter.RcmsDbProperties;
 import confdb.data.IConfiguration;
 import confdb.db.ConfDBSetups;
 
@@ -48,6 +52,7 @@ public class AjaxInfo implements Runnable
 			return;
 		//currentPage = webContext.getCurrentPage();
 		ServletContext servletContext = webContext.getServletContext();
+		RCMSRuntimeInfo.servletContext = servletContext;
 		if ( servletContext == null )
 			return;
 		//ServerContext serverContext = ServerContextFactory.get( servletContext );
@@ -71,9 +76,12 @@ public class AjaxInfo implements Runnable
     		if ( name != null && name.length() > 0  )
     		{
     			String host = dbs.host(i);
-    			if ( host != null && !host.equalsIgnoreCase("localhost") )
-    				list.add( dbs.labelsAsArray()[i] );
-    			
+    			if (     host != null 
+       				 && !host.equalsIgnoreCase("localhost") 
+   				     && !host.endsWith( ".cms") )
+   				     {
+   				    	 list.add( dbs.labelsAsArray()[i] );
+   				     }
     		}
     	}
     	return list.toArray( new String[ list.size() ] );
@@ -113,6 +121,27 @@ public class AjaxInfo implements Runnable
 		return list.toArray( new String[ list.size() ] );
     }
     
+	public String getRcmsDbInfo()
+	{
+		DbProperties dbProperties;
+		try {
+			dbProperties = DbProperties.getDefaultDbProperties();
+		} catch (Exception e1) {
+			return e1.toString();
+		}
+		if ( !(dbProperties instanceof RcmsDbProperties) )
+		{
+			try {
+				new RcmsDbProperties();
+			} catch (Exception e) {
+				return e.toString();
+			}
+		}
+		
+		return dbProperties.getDbURL();
+	}
+	
+
     
 	public void run()
 	{
