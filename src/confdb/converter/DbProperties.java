@@ -15,17 +15,17 @@ public class DbProperties
 	String dbUser = null;
 	String dbPwrd = null;
 
-	public DbProperties( Properties properties )
+	public DbProperties( Properties properties ) throws ConverterException
 	{
 		init( properties );
 	}
 	
-	public DbProperties( InputStream stream ) throws IOException
+	public DbProperties( InputStream stream ) throws IOException, ConverterException
 	{
 		init( stream );
 	}
 
-	public DbProperties( String resource ) throws IOException
+	public DbProperties( String resource ) throws IOException, ConverterException
 	{
 		init( getClass().getResourceAsStream( resource ) );
 	}
@@ -41,31 +41,44 @@ public class DbProperties
 
 		initURL();
 	}
+
+	protected DbProperties()
+	{
+	}
 	
-	private void init( InputStream stream ) throws IOException
+	private void init( InputStream stream ) throws IOException, ConverterException
 	{
 		Properties properties = new Properties();
 		properties.load( stream );
 		init( properties );
 	}
 
-	private void init( Properties properties )
+	protected void init( Properties properties ) throws ConverterException
 	{
 		String property = properties.getProperty( "confdb.dbName" );
-		if ( property != null )
-			dbName = new String( property );
+		if ( property == null )
+			throw new ConverterException( "DbProperties: confdb.dbName not defined!" );
+		dbName = new String( property );
+		
 		property = properties.getProperty( "confdb.dbType" );
-		if ( property != null )
-			dbType = new String( property );
+		if ( property == null )
+			throw new ConverterException( "DbProperties: confdb.dbType not defined!" );
+		dbType = new String( property );
+		
 		property = properties.getProperty( "confdb.dbHost" );
-		if ( property != null )
-			dbHost = new String( property );
+		if ( property == null )
+			throw new ConverterException( "DbProperties: confdb.dbHost not defined!" );
+		dbHost = new String( property );
+		
 		property = properties.getProperty( "confdb.dbUser" );
-		if ( property != null )
-			dbUser = new String( property );
+		if ( property == null )
+			throw new ConverterException( "DbProperties: confdb.dbUser not defined!" );
+		dbUser = new String( property );
+		
 		property = properties.getProperty( "confdb.dbPwrd" );
-		if ( property != null )
-			dbPwrd = new String( property );
+		if ( property == null )
+			throw new ConverterException( "DbProperties: confdb.dbPwrd not defined!" );
+		dbPwrd = new String( property );
 		initURL();
 	}
 		
@@ -78,8 +91,12 @@ public class DbProperties
 		
 	}
 
-	static public DbProperties getDefaultDbProperties() throws IOException
+	static public DbProperties getDefaultDbProperties() throws IOException, ConverterException
 	{
+		try {
+			return new RcmsDbProperties();
+		} catch (Exception e) {
+		}
 		return new DbProperties( "/conf/confdb.properties" );
 	}
 
