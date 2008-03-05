@@ -52,6 +52,16 @@ public class ConfigurationModifier implements IConfiguration
     // member functions
     //
 
+    /** toString() */
+    public String toString()
+    {
+	String result=new String();
+	if (parentDir()!=null) result += parentDir().name();
+	if (result.length()!=1) result += "/";
+	result += name() + "/V" + version();
+	return result;
+    }
+
     /** replace the current EDSource with a PoolSource */
     public void insertPoolSource(String fileNames)
     {

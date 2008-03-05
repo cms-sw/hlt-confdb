@@ -91,6 +91,7 @@ public class InputTagParameter extends ScalarParameter
 	    if (instance.length()>0||process.length()>0)
 		result += ":" + instance;
 	    if (process.length()>0)  result += ":" + process;
+	    if (result.equals(new String())) result = "\"\"";
 	    return result;
 	}
 	return new String();

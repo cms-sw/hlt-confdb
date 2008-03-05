@@ -1,3 +1,10 @@
+2008-03-05  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-20-04
+	* turns out V00-20-01--V00-20-03 don't exist ...
+	* converter: add rcms properties
+	* gui: fine-tuning of import (missing: modules!)
+
 2008-03-04  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-20-03

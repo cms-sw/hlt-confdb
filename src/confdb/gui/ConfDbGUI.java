@@ -609,9 +609,6 @@ public class ConfDbGUI
     /** one another configuration to import components */
     public void importConfiguration()
     {
-	//ImportConfigurationDialog dialog =
-	//  new ImportConfigurationDialog(frame,database,
-	//			  currentRelease.releaseTag());
 	PickConfigurationDialog dialog =
 	    new PickConfigurationDialog(frame,"Import Configuration",database);
 	dialog.fixReleaseTag(currentRelease.releaseTag());
@@ -1093,6 +1090,7 @@ public class ConfDbGUI
 	    Configuration config = database.loadConfiguration(configInfo,
 							      currentRelease);
 	    setCurrentConfig(config);
+
 	    return new String("Done!");
 	}
 	
@@ -1503,6 +1501,10 @@ public class ConfDbGUI
 	jTreeImportConfig      = new JTree(treeModelImportConfig);
         jTreeImportConfig.setBackground(importTreeBackground);
 
+	ImportTreeMouseListener importMouseListener =
+	    new ImportTreeMouseListener(jTreeImportConfig,jTreeCurrentConfig);
+	jTreeImportConfig.addMouseListener(importMouseListener);
+	
 	jTreeImportConfig.setRootVisible(true);
 	jTreeImportConfig.setEditable(false);
 	jTreeImportConfig.getSelectionModel()

@@ -482,91 +482,156 @@ public class ConfigurationTreeActions
 	Configuration          config   = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 	
-	if (!config.hasUniqueQualifier(external)) return false;
-	if (!config.hasUniqueEntries(external)) return false;
-
-	int index = (treePath.getPathCount()==2) ?
+	int index = (treePath==null) ? config.pathCount() :
+	    (treePath.getPathCount()==2) ?
 	    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
 				    treePath.getLastPathComponent())+1;
 	
-	ReferenceContainer container = null;
-	Object             parent    = null;
-	if (external instanceof Path){
-	    container = config.insertPath(index,external.name());
+	ReferenceContainer   container = null;
+	Object               parent    = null;
+	int                  oldIndex  =   -1;
+	ReferenceContainer[] parents   = null;
+	int[]                indices   = null;
+	if (external instanceof Path) {
+	    container = config.path(external.name());
 	    parent    = model.pathsNode();
+	    oldIndex  = config.indexOfPath((Path)container);
+	}
+	else if (external instanceof Sequence) {
+	    container = config.sequence(external.name());
+	    parent    = model.sequencesNode();
+	    oldIndex  = config.indexOfSequence((Sequence)container);
+	}
+
+	if (container!=null) {
+	    if (container.referenceCount()>0) {
+		parents = new ReferenceContainer[container.referenceCount()];
+		indices = new int[container.referenceCount()];
+		for (int i=0;i<container.referenceCount();i++) {
+		    Reference reference = container.reference(i);
+		    parents[i] = reference.container();
+		    indices[i] = parents[i].indexOfEntry(reference);
+		}
+	    }
+	    tree.setSelectionPath(new TreePath(model.getPathToRoot(container)));
+	    removeReferenceContainer(tree);
+	    if (oldIndex<index) index--;
+	}
+	
+	if (!config.hasUniqueQualifier(external)) return false;
+	
+	if (external instanceof Path) {
+	    container = config.insertPath(index,external.name());
 	}
 	else if (external instanceof Sequence) {
 	    container = config.insertSequence(index,external.name());
-	    parent    = model.sequencesNode();
 	}
-	if (container==null) return false;
 	
+	if (parents!=null) {
+	    if (container instanceof Path) {
+		for (int i=0;i<parents.length;i++) {
+		    config.insertPathReference(parents[i],
+					       indices[i],
+					       (Path)container);
+		    model.nodeInserted(parents[i],indices[i]);
+		}
+	    }
+	    else if (container instanceof Sequence) {
+		for (int i=0;i<parents.length;i++) {
+		    config.insertSequenceReference(parents[i],
+						   indices[i],
+						   (Sequence)container);
+		    model.nodeInserted(parents[i],indices[i]);
+		}
+	    }
+	}
+
 	model.nodeInserted(parent,index);
-	importContainerEntries(config,model,external,container);
-	container.setDatabaseId(external.databaseId());
+	if (importContainerEntries(config,model,external,container))
+	    container.setDatabaseId(external.databaseId());
 	model.updateLevel1Nodes();
 	
 	return true;
     }
 
     /** insert entries of an external reference container into the local copy */
-    private static void importContainerEntries(Configuration        config,
-					       ConfigurationTreeModel treeModel,
-					       ReferenceContainer   sourceContainer,
-					       ReferenceContainer   targetContainer)
+    private static
+	boolean importContainerEntries(Configuration          config,
+				       ConfigurationTreeModel treeModel,
+				       ReferenceContainer     sourceContainer,
+				       ReferenceContainer     targetContainer)
     {
+	// result=true: import all daugthers unchangend
+	boolean result = true;
 	for (int i=0;i<sourceContainer.entryCount();i++) {
 	    Reference entry = sourceContainer.entry(i);
 	    
 	    if (entry instanceof ModuleReference) {
 		ModuleReference sourceRef = (ModuleReference)entry;
 		ModuleInstance  source    = (ModuleInstance)sourceRef.parent();
-		ModuleReference targetRef =
-		    config.insertModuleReference(targetContainer,i,
-						 source.template().name(),
-						 source.name());
-		ModuleInstance  target = (ModuleInstance)targetRef.parent();
-		for (int j=0;j<target.parameterCount();j++)
-		    target.updateParameter(j,source.parameter(j).valueAsString());
+		ModuleInstance  target    = config.module(source.name());
+		if (target!=null) {
+		    config.insertModuleReference(targetContainer,i,target);
+		    result = false;
+		}
+		else {
+		    ModuleReference targetRef =
+			config.insertModuleReference(targetContainer,i,
+						     source.template().name(),
+						     source.name());
+		    target = (ModuleInstance)targetRef.parent();
+		    for (int j=0;j<target.parameterCount();j++)
+			target.updateParameter(j,source.parameter(j)
+					       .valueAsString());
+		    target.setDatabaseId(source.databaseId());
+		}
+
 		treeModel.nodeInserted(targetContainer,i);
-		if (target.referenceCount()==1) {
+		if (target.referenceCount()==1)
 		    treeModel.nodeInserted(treeModel.modulesNode(),
 					   config.moduleCount()-1);
-		}
-		target.setDatabaseId(source.databaseId());
 	    }
 	    else if (entry instanceof PathReference) {
 		PathReference sourceRef=(PathReference)entry;
-		Path source=(Path)sourceRef.parent();
-		Path target=config.path(sourceRef.name());
-		if (target==null) {
+		Path          source   =(Path)sourceRef.parent();
+		Path          target   =config.path(source.name());
+		if (target!=null) {
+		    config.insertPathReference(targetContainer,i,target);
+		    result = false;
+		}
+		else {
 		    target = config.insertPath(config.pathCount(),sourceRef.name());
 		    treeModel.nodeInserted(treeModel.pathsNode(),
 					   config.pathCount()-1);
+		    config.insertPathReference(targetContainer,i,target);
+		    result = importContainerEntries(config,treeModel,source,target);
+		    if (result) target.setDatabaseId(source.databaseId());
 		}
-		PathReference targetRef=config.insertPathReference(targetContainer,
-								   i,target);
+		
 		treeModel.nodeInserted(targetContainer,i);
-		importContainerEntries(config,treeModel,source,target);
-		target.setDatabaseId(source.databaseId());
 	    }
 	    else if (entry instanceof SequenceReference) {
 		SequenceReference sourceRef=(SequenceReference)entry;
-		Sequence source=(Sequence)sourceRef.parent();
-		Sequence target=config.sequence(sourceRef.name());
-		if (target==null) {
+		Sequence          source=(Sequence)sourceRef.parent();
+		Sequence          target=config.sequence(sourceRef.name());
+		if (target!=null) {
+		    config.insertSequenceReference(targetContainer,i,target);
+		    result = false;
+		}
+		else {
 		    target = config.insertSequence(config.sequenceCount(),
 						   sourceRef.name());
 		    treeModel.nodeInserted(treeModel.sequencesNode(),
 					   config.sequenceCount()-1);
-		}
-		SequenceReference targetRef =
 		    config.insertSequenceReference(targetContainer,i,target);
+		    result = importContainerEntries(config,treeModel,source,target);
+		    if (result) target.setDatabaseId(source.databaseId());
+		}
+		
 		treeModel.nodeInserted(targetContainer,i);
-		importContainerEntries(config,treeModel,source,target);
-		target.setDatabaseId(source.databaseId());
 	    }
 	}
+	return result;
     }
         
     /** insert reference into currently selected reference container */
@@ -784,7 +849,6 @@ public class ConfigurationTreeActions
 	}
 	else {
 	    container.removeEntry(reference);
-	    //config.setHasChanged(true);
 	}
 	
 	model.nodeRemoved(container,index,reference);
