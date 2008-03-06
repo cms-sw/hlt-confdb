@@ -120,7 +120,7 @@ def main(argv):
 	    componentsuperid = myFixer.ConfdbCheckEDSourceExistence(cursor,currentcomponent,"")
 	    if(componentsuperid == 0):
 		print "Add EDSource"
-		componentsuperid = myFixer.ConfdbLoadEDSourceTemplate(cursor,currentcomponent,modcvstag,packageid)
+		componentsuperid = myFixer.ConfdbLoadNewEDSourceTemplate(cursor,currentcomponent,modcvstag,packageid)
 	    else:
 		print "EDSource exists"
 	elif(problemline.split()[0] == "ESModule"):
@@ -272,10 +272,10 @@ class AddProblemModulesAndParametersOracle:
 	    print "SELECT ServiceTemplates.superId FROM ServiceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ServiceTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.releasekey) + ") AND (ServiceTemplates.name = '" + servname + "')"
 	thecursor.execute("SELECT ServiceTemplates.superId FROM ServiceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ServiceTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.releasekey) + ") AND (ServiceTemplates.name = '" + servname + "')")
 
-	servsuperid = thecursor.fetchone()[0]
+	servsuperid = thecursor.fetchone()
 
         if(servsuperid):
-            return servsuperid
+            return servsuperid[0]
         else:
             return 0
         
