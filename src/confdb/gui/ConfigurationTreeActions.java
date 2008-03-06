@@ -373,6 +373,56 @@ public class ConfigurationTreeActions
 	model.updateLevel1Nodes();
     }
 
+    /** resolve unnecessary sequences (those referenced only once) */
+    public static void resolveUnnecessarySequences(JTree tree)
+    {
+	ConfigurationTreeModel model =(ConfigurationTreeModel)tree.getModel();
+	Configuration          config=(Configuration)model.getRoot();
+	
+	ArrayList<Sequence> sequences = new ArrayList<Sequence>();
+	Iterator<Sequence> itS = config.sequenceIterator();
+	while (itS.hasNext()) {
+	    Sequence sequence = itS.next();
+	    if (sequence.referenceCount()==1) sequences.add(sequence);
+	}
+	
+	itS = sequences.iterator();
+	while (itS.hasNext()) {
+	    Sequence           sequence  = itS.next();
+	    Reference          reference = sequence.reference(0);
+	    ReferenceContainer container = reference.container();
+	    int                index     = container.indexOfEntry(reference);
+	    
+	    Referencable[] instances = new Referencable[sequence.entryCount()];
+	    for (int i=0;i<sequence.entryCount();i++) {
+		instances[i] = sequence.entry(i).parent();
+		System.out.println(instances[i].name()+" "+
+				   instances[i].referenceCount());
+	    }
+	
+	    config.removeSequence(sequence);
+	    
+	    for (int i=0;i<instances.length;i++) {
+		if (instances[i] instanceof ModuleInstance) {
+		    ModuleInstance module = (ModuleInstance)instances[i];
+		    config.insertModule(module);
+		    config.insertModuleReference(container,index+i,module);
+		}
+		else if (instances[i] instanceof Sequence) {
+		    Sequence seq = (Sequence)instances[i];
+		    config.insertSequenceReference(container,index+i,seq);
+		}
+		else if (instances[i] instanceof Path) {
+		    Path path = (Path)instances[i];
+		    config.insertPathReference(container,index+i,path);
+		}
+	    }
+	}
+	
+	model.nodeStructureChanged(model.getRoot());
+	model.updateLevel1Nodes();
+    }
+
     /** set a path as endpath */
     public static void setPathAsEndpath(JTree tree,boolean isEndPath)
     {

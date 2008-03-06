@@ -577,6 +577,10 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem.addActionListener(sequenceListener);
 	    menuItem.setActionCommand("RMUNREF");
 	    popupSequences.add(menuItem);
+	    menuItem = new JMenuItem("Resolve Unnecessary Sequences");
+	    menuItem.addActionListener(sequenceListener);
+	    menuItem.setActionCommand("RESOLVE");
+	    popupSequences.add(menuItem);
 	}
 	else if (depth==3) {
 	    Sequence sequence = (Sequence)node;
@@ -1128,6 +1132,9 @@ class SequenceMenuListener implements ActionListener
 	
 	if (action.equals("RMUNREF")) {
 	    ConfigurationTreeActions.removeUnreferencedSequences(tree);
+	}
+	else if (action.equals("RESOLVE")) {
+	    ConfigurationTreeActions.resolveUnnecessarySequences(tree);
 	}
 	else if (action.equals("NEWSEQ")) {
 	    ConfigurationTreeActions.insertSequence(tree);

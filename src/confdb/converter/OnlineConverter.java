@@ -182,6 +182,9 @@ public class OnlineConverter extends ConverterBase
 
 	while (itStream.hasNext()) {
 	    Stream stream = itStream.next();
+	    
+	    if (stream.pathCount()==0) continue;
+	    
 	    ModuleReference streamWriterRef =
 		smConfig.insertModuleReference(endpath,
 					       endpath.entryCount(), 
@@ -234,7 +237,7 @@ public class OnlineConverter extends ConverterBase
     {
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
 	params.add(new StringParameter("streamLabel", "", true, false));
-	params.add(new Int32Parameter("maxSize", "1024", true, false));
+	params.add(new Int32Parameter("maxSize", "1073741824", true, false));
 	params.add(new PSetParameter("SelectEvents", "", false, false));
 	return new ModuleTemplate("EventStreamFileWriter", "UNKNOWN", -1,
 				  params, "OutputModule");

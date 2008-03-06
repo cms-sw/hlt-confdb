@@ -13,10 +13,10 @@ import java.util.ArrayList;
 public class ParseNode
 {
     /** valid opening quotes */
-    private static final String oquotes[] = {"r\"'", "r'\"", "'"};
+    private static final String oquotes[] = {"r\"'", "r'\"", "r'","'"};
 
     /** corresponing valid closing quotes */
-    private static final String cquotes[] = {"'\"",  "\"'",  "'"};
+    private static final String cquotes[] = {"'\"",  "\"'",  "'", "'"};
 
     /** the content string */
     private String content = "";
@@ -95,7 +95,8 @@ public class ParseNode
 	if (iquote<0)
 	    throw new ParserException("ParseNode.setContent: "+
 				      "missing opening quotes: <"+
-				      this.content+">");
+				      this.content+">"+
+				      " parent="+parent.content());
 
 	if (content.indexOf(cquotes[iquote])>0&&
 	    !content.endsWith(cquotes[iquote]))

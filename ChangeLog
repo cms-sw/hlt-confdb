@@ -1,3 +1,10 @@
+2008-03-06  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-20-06
+	* converter: don't pass empty streams to SM
+	* converter: revert back to maximum file size in bytes
+	* gui: resolve unnecessary sequences feature
+
 2008-03-05  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-20-05

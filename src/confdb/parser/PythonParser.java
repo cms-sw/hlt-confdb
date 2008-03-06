@@ -37,10 +37,10 @@ public class PythonParser
     private static final String cbrackets[] = { "}", "]", ")" };
 
     /** valid opening quotes */
-    private static final String oquotes[] = { "r\"'","r'\"","'" };
+    private static final String oquotes[] = { "r\"'","r'\"","r'","'" };
 
     /** corresponding valid closing quotes */
-    private static final String cquotes[] = { "'\"", "\"'", "'" };
+    private static final String cquotes[] = { "'\"", "\"'", "'","'" };
 
     /** the software release w.r.t. which the configuration is created */
     private SoftwareRelease release = null;
@@ -203,6 +203,7 @@ public class PythonParser
 	}
 	catch (Exception e) {
 	    e.printStackTrace();
+	    printParsedTree();
 	}
 	finally {
 	    if (fileScan!=null) fileScan.close();

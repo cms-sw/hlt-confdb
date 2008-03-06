@@ -823,6 +823,18 @@ public class Configuration implements IConfiguration
 	}
 	return instance;
     }
+
+    /** insert a pre-existing module */
+    public boolean insertModule(ModuleInstance module)
+    {
+	if (modules.indexOf(module)<0&&module.referenceCount()==0) {
+	    modules.add(module);
+	    module.setConfiguration(this);
+	    hasChanged = true;
+	    return true;
+	}
+	return false;
+    }
     
     /** remove a module reference */
     public void removeModuleReference(ModuleReference module)
