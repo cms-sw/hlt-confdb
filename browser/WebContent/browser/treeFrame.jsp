@@ -7,6 +7,7 @@
 <%@page import="confdb.data.Directory"%>
 <%@page import="confdb.data.ConfigInfo"%>
 <%@page import="confdb.converter.ConverterBase"%>
+<%@page import="confdb.converter.ConverterException"%>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -172,9 +173,10 @@ String prepareTree( String parentNode, Directory directory )
 <%
   String tree = "";
   ConverterBase converter = null;
+  int dbIndex = 1;
   try {
 	  	ConfDBSetups dbs = new ConfDBSetups();
-	  	int dbIndex = 1;
+	  	dbIndex = 1;
 	  	String db = request.getParameter( "db" );
 	  	if ( db != null )
 	  	{
@@ -204,15 +206,26 @@ String prepareTree( String parentNode, Directory directory )
         tree += prepareTree( "dir", root )
     		 + "}\n</script>\n";
   } catch (Exception e) {
+	String errorMessage = "\nERROR!\n";
+	if ( e instanceof ConverterException )
+	{
+	  errorMessage += e.toString();
+	  if ( e.getMessage().startsWith( "can't init database connection" )	)
+		  errorMessage += " (host = " + (new ConfDBSetups()).host( dbIndex ) + ")";
+	}
+	else
+	{
 	  ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 	  PrintWriter writer = new PrintWriter( buffer );
 	  e.printStackTrace( writer );
 	  writer.close();
-	  out.println( "<script>\nfunction buildTree(){}\n</script>\nERROR in '" + info + "'!\n"
-			  	+ buffer.toString() + "</body></html>" );
-	  if ( converter != null )
+	  errorMessage += buffer.toString();
+	}
+	out.println( "<script>\nfunction buildTree(){}\n</script>\n" 
+			  + errorMessage + "</body></html>" );
+	if ( converter != null )
 		  BrowserConverter.deleteConverter( converter );
-      return;
+    return;
   }
 %>
 
