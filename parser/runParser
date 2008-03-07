@@ -48,6 +48,8 @@ my $cmssw_version = get_env_variable("CMSSW_VERSION");
 my $parserPath = $cmssw_base . "/src/EventFilter/ConfigDB/parser";
 my $parserExe  = $parserPath . "/ConfdbSourceToDB.py";
 
+my $doVerbose = 0;
+
 my $doAll     = 0;
 my @whiteList =
     ("CalibCalorimetry",
@@ -114,8 +116,8 @@ foreach $param (@ARGV)
     }
     elsif ($param eq "--test") {
 	$dbType   = "Oracle";
-	$dbHost   = "HLTDEV";
-	$dbUser   = "HLTDEV";
+	$dbHost   = "CMS_ORCOFF_INT2R";
+	$dbUser   = "CMS_HLT_ADMIN";
 	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
     }
     elsif ($param eq "--hltdev") {
@@ -145,6 +147,7 @@ foreach $param (@ARGV)
     elsif ($param       eq "--parse")    { $doParse     = 1;        }
     elsif ($param       eq "--patch")    { $doPatch     = 1;        }
     elsif ($param       eq "--all")      { $doAll       = 1;        }
+    elsif ($param       eq "--verbose")  { $doVerbose   = 1;        }
     else { die "Unknown option $param"; }
 }
 
@@ -174,6 +177,7 @@ if (!$doAll)
 	$parserCmd = $parserCmd . $_;
     }
 }
+if ($doVerbose) { $parserCmd = $parserCmd . " -v 3" }
 
 my $tmp = validate_release($releaseTag);
 if (!$tmp eq "")
@@ -209,7 +213,7 @@ if ($doPatch)
     $patchCmd = $patchExe .
 	" -o $dbHost -u $dbUser -s $dbPwrd -r $releaseName -z $patchFile";
     if ($dbType eq "MySQL") { $patchCmd = $patchCmd . " -d $dbName"; }
-    
+    if ($doVerbose) { $patchCmd = $patchCmd . " -v 3" }
     print 
 	"\n--------------------------------------------------\n" .
 	"patch release $releaseName\n" .
