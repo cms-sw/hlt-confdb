@@ -1043,6 +1043,8 @@ class SourceParser:
 #			    elif(thetdefedmodule != "" and defaultincc == False):
 #				success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname,paraminparamset,None,None)
 
+                            success = False
+                            
 			    if(defaultincc == False and success == False):
 				if(self.verbose > 1):
 				    print '\t\tFailed to find a default value for the untracked parameter: ' + paramtype + ' ' + paramname + ' in module ' + themodulename

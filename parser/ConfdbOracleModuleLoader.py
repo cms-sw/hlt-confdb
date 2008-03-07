@@ -1783,7 +1783,8 @@ class ConfdbOracleModuleLoader:
                 if(boolval == "false"):
                     psetval = str(0)
 
-                print "INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")"
+                if(self.verbose > 2):
+                    print "INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")"
 
 		thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
 	    elif(psettype == "double"):
