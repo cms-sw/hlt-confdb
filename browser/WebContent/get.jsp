@@ -1,3 +1,4 @@
+<%@page import="confdb.db.ConfDBSetups"%>
 <%@page import="java.io.PrintWriter"%>
 <%@page import="java.io.ByteArrayOutputStream"%>
 <%@page import="browser.BrowserConverter"%>
@@ -21,6 +22,7 @@
 	String format = "ascii";
 	String configId = null;
 	String configName = null;
+	String dbIndexStr = "1";
 	HashMap<String,String> toModifier = new HashMap<String,String>();
 
 	for ( Map.Entry<String,String[]> entry : parameters )
@@ -46,6 +48,21 @@
 		else if (key.equals( "format")) {
 		    format = value;
 		}
+		else if ( key.equals( "dbName" ) )
+		{
+		  	ConfDBSetups dbs = new ConfDBSetups();
+	  		String[] labels = dbs.labelsAsArray();
+	  		for ( int i = 0; i < dbs.setupCount(); i++ )
+	  		{
+	  			if ( value.equalsIgnoreCase( labels[i] ) )
+	  			{
+	  				dbIndexStr = "" + i;
+	  				break;
+	  			}
+	  		}
+	  	}
+		else if ( key.equals( "dbIndex" ) )
+			dbIndexStr = value;
 		else {
 		    toModifier.put(entry.getKey(),value);
 		}
@@ -65,12 +82,13 @@
 
 	BrowserConverter converter = null;
 	try {
+	    int dbIndex = Integer.parseInt( dbIndexStr );
 	    ModifierInstructions modifierInstructions = new ModifierInstructions();
 	    modifierInstructions.interpretArgs( toModifier );
-            converter = BrowserConverter.getConverter( 1 );
-	    int id = ( configId != null ) ?
-	    	Integer.parseInt(configId) :
-		converter.getDatabase().getConfigId(configName);
+            converter = BrowserConverter.getConverter( dbIndex );
+    	    int id = ( configId != null ) ?
+    		    	Integer.parseInt(configId) :
+    			converter.getDatabase().getConfigId(configName);
 
 	    String result = converter.getConfigString(id,format,
 						      modifierInstructions,
