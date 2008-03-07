@@ -1,3 +1,4 @@
+<%@page import="confdb.db.ConfDBSetups"%>
 <%@page import="browser.BrowserConverter"%>
 <%@page import="java.io.PrintWriter"%>
 <%@page import="java.io.ByteArrayOutputStream"%>
@@ -29,6 +30,7 @@
 	
 	String  configId       =    "";
 	String  configName     =    "";
+	String  dbIndexStr     =    "1";
 	boolean dolist         = false;
 	boolean doversions     = false;
 	boolean dopackages     = false;
@@ -47,6 +49,24 @@
 		    configId = value;
 		else if ( entry.getKey().equals( "configName" ) )
 		    configName = value;
+		else if ( entry.getKey().equals( "dbName" ) )
+		{
+			if ( !value.equalsIgnoreCase( "hltdev" ) )
+			{
+			  	ConfDBSetups dbs = new ConfDBSetups();
+		  		String[] labels = dbs.labelsAsArray();
+	  			for ( int i = 0; i < dbs.setupCount(); i++ )
+	  			{
+	  				if ( value.equalsIgnoreCase( labels[i] ) )
+	  				{
+	  					dbIndexStr = "" + i;
+	  					break;
+	  				}
+	  			}
+	  		}
+	  	}
+		else if ( entry.getKey().equals( "dbIndex" ) )
+			dbIndexStr = value;
 		else if ( entry.getKey().equals( "list" ) ) {
 		    dolist = true;
 		    listBeginsWith = value;
@@ -65,7 +85,8 @@
 
 	
     try {
-	converter = BrowserConverter.getConverter( 1 );
+	int dbIndex = Integer.parseInt( dbIndexStr );
+	converter = BrowserConverter.getConverter( dbIndex );
 	ConfDB database = converter.getDatabase();
 	
 	if (dolist) {
