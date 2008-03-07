@@ -13,8 +13,6 @@ import org.apache.log4j.SimpleLayout;
 import org.directwebremoting.WebContext;
 import org.directwebremoting.WebContextFactory;
 
-import rcms.fm.context.RCMSRuntimeInfo;
-
 import browser.BrowserConverter;
 
 import confdb.converter.ConverterBase;
@@ -52,7 +50,6 @@ public class AjaxInfo implements Runnable
 			return;
 		//currentPage = webContext.getCurrentPage();
 		ServletContext servletContext = webContext.getServletContext();
-		RCMSRuntimeInfo.servletContext = servletContext;
 		if ( servletContext == null )
 			return;
 		//ServerContext serverContext = ServerContextFactory.get( servletContext );
