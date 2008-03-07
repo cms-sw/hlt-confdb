@@ -396,8 +396,8 @@ public class ConfigurationTreeActions
 	    Referencable[] instances = new Referencable[sequence.entryCount()];
 	    for (int i=0;i<sequence.entryCount();i++) {
 		instances[i] = sequence.entry(i).parent();
-		System.out.println(instances[i].name()+" "+
-				   instances[i].referenceCount());
+		//System.out.println(instances[i].name()+" "+
+		//	   instances[i].referenceCount());
 	    }
 	
 	    config.removeSequence(sequence);
@@ -405,7 +405,7 @@ public class ConfigurationTreeActions
 	    for (int i=0;i<instances.length;i++) {
 		if (instances[i] instanceof ModuleInstance) {
 		    ModuleInstance module = (ModuleInstance)instances[i];
-		    config.insertModule(module);
+		    config.insertModule(config.moduleCount(),module);
 		    config.insertModuleReference(container,index+i,module);
 		}
 		else if (instances[i] instanceof Sequence) {
@@ -920,16 +920,20 @@ public class ConfigurationTreeActions
     /** import a single module into path or sequence */
     public static boolean importModule(JTree tree,ModuleInstance external)
     {
-	ConfigurationTreeModel model     = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config    = (Configuration)model.getRoot();
-	TreePath               treePath  = tree.getSelectionPath();
-	Object                 targetNode= treePath.getLastPathComponent();
-	
-	if (!config.isUniqueQualifier(external.name())) return false;
+	ConfigurationTreeModel model     =(ConfigurationTreeModel)tree.getModel();
+	Configuration          config    =(Configuration)model.getRoot();
+	TreePath               treePath  =tree.getSelectionPath();
 	
 	ReferenceContainer parent        = null;
-	ModuleInstance     target        = null;
+	ModuleInstance     target        = config.module(external.name());
 	int                insertAtIndex = 0;
+	
+	if (target!=null) {
+	    return replaceModule(tree,external);
+	}
+	else if (treePath==null) return false;
+	
+	Object targetNode=treePath.getLastPathComponent();
 	
 	if (targetNode instanceof ReferenceContainer) {
 	    parent = (ReferenceContainer)targetNode;
@@ -1112,21 +1116,81 @@ public class ConfigurationTreeActions
 	
 	return true;
     }
-
     
+    /**
+     * replace a module with the external one
+     */
+    private static boolean replaceModule(JTree tree,ModuleInstance external)
+    {
+	ConfigurationTreeModel model     = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config    = (Configuration)model.getRoot();
+	ModuleInstance         oldModule = config.module(external.name());
+	if (oldModule==null) return false;
+
+	int index    = config.indexOfModule(oldModule);
+	int refCount = oldModule.referenceCount();
+	ReferenceContainer[] parents = new ReferenceContainer[refCount];
+	int[]                indices = new int[refCount];
+	for (int i=0;i<refCount;i++) {
+	    Reference reference = oldModule.reference(i);
+	    parents[i] = reference.container();
+	    indices[i] = parents[i].indexOfEntry(reference);
+	    config.removeModuleReference((ModuleReference)reference);
+	    model.nodeRemoved(parents[i],indices[i],reference);
+	}
+	
+	model.nodeRemoved(model.modulesNode(),index,oldModule);
+	
+	try {
+	    ModuleTemplate template = (ModuleTemplate)
+		config.release().moduleTemplate(external.template().name());
+	    ModuleInstance newModule = (ModuleInstance)
+		template.instance(external.name());
+	    for (int i=0;i<newModule.parameterCount();i++)
+		newModule.updateParameter(i,external.parameter(i).valueAsString());
+	    newModule.setDatabaseId(external.databaseId()); // dangerous?
+	    config.insertModule(index,newModule);
+	    model.nodeInserted(model.modulesNode(),index);
+	    
+	    for (int i=0;i<refCount;i++) {
+		config.insertModuleReference(parents[i],indices[i],newModule);
+		model.nodeInserted(parents[i],indices[i]);
+	    }
+	    model.updateLevel1Nodes();
+	    tree.expandPath(new TreePath(model.getPathToRoot(newModule)));
+	}
+	catch (DataException e) {
+	    System.out.println("replaceModule() FAILED: " + e.getMessage());
+	    return false;
+	}
+	return true;
+    }
+
+
     /**
      * import a node into the tree and add the respective component
      * to the configuration
      */
-    private static boolean importInstance(JTree tree,Instance external)
+    public static boolean importInstance(JTree tree,Instance external)
     {
 	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config   = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 	
+	if ((external instanceof EDSourceInstance)&&
+	    config.edsource(external.name())!=null||
+	    (external instanceof ESSourceInstance)&&
+	    config.essource(external.name())!=null||
+	    (external instanceof ESModuleInstance)&&
+	    config.esmodule(external.name())!=null||
+	    (external instanceof ServiceInstance)&&
+	    config.service(external.name())!=null) {
+	    return replaceInstance(tree,external);
+	}
+	
 	if (!config.isUniqueQualifier(external.name())) return false;
 
-	int index = (treePath.getPathCount()==2) ?
+	int index = (treePath==null) ? 0 : (treePath.getPathCount()==2) ?
 	    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
 				    treePath.getLastPathComponent())+1;
 	
@@ -1159,6 +1223,66 @@ public class ConfigurationTreeActions
 	
 	model.nodeInserted(parent,index);
 	model.updateLevel1Nodes();
+	
+	return true;
+    }
+
+    /*
+     * replace an existing instance with the external one
+     */
+    private static boolean replaceInstance(JTree tree,Instance external)
+    {
+	ConfigurationTreeModel model     = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config    = (Configuration)model.getRoot();
+	Object                 parent    = null;
+	Instance               oldInst   = null;
+	Instance               newInst   = null;
+	int                    index     = -1;
+
+	if (external instanceof EDSourceInstance) {
+	    parent  = model.edsourcesNode();
+	    oldInst = config.edsource(external.name());
+	    index   = 0;
+	    config.removeEDSource((EDSourceInstance)oldInst);
+	    model.nodeRemoved(parent,index,oldInst);
+	    newInst = config.insertEDSource(external.template().name());
+	}
+	else if (external instanceof ESSourceInstance) {
+	    parent  = model.essourcesNode();
+	    oldInst = config.essource(external.name());
+	    index   = config.indexOfESSource((ESSourceInstance)oldInst);
+	    config.removeESSource((ESSourceInstance)oldInst);
+	    model.nodeRemoved(parent,index,oldInst);
+	    newInst = config.insertESSource(index,
+					    external.template().name(),
+					    external.name());
+	}
+	else if (external instanceof ESModuleInstance) {
+	    parent  = model.esmodulesNode();
+	    oldInst = config.esmodule(external.name());
+	    index   = config.indexOfESModule((ESModuleInstance)oldInst);
+	    config.removeESModule((ESModuleInstance)oldInst);
+	    model.nodeRemoved(parent,index,oldInst);
+	    newInst = config.insertESModule(index,
+					    external.template().name(),
+					    external.name());
+	}
+	else if (external instanceof ServiceInstance) {
+	    parent  = model.servicesNode();
+	    oldInst = config.service(external.name());
+	    index   = config.indexOfService((ServiceInstance)oldInst);
+	    config.removeService((ServiceInstance)oldInst);
+	    model.nodeRemoved(parent,index,oldInst);
+	    newInst = config.insertService(index,external.template().name());
+	}
+	
+	for (int i=0;i<newInst.parameterCount();i++)
+	    newInst.updateParameter(i,external.parameter(i).valueAsString());
+	newInst.setDatabaseId(external.databaseId()); // dangerous?
+
+	model.nodeInserted(parent,index);
+	model.updateLevel1Nodes();
+	tree.expandPath(new TreePath(model.getPathToRoot(newInst)));
 	
 	return true;
     }

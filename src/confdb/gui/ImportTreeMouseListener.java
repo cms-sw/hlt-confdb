@@ -63,17 +63,31 @@ public class ImportTreeMouseListener extends MouseAdapter
 	TreePath               tp  = importTree.getPathForLocation(e.getX(),
 								   e.getY());
 	if(tp==null) return;
-	
 	importTree.setSelectionPath(tp);
-	currentTree.setSelectionPath(null);
-	
 	Object node = tp.getLastPathComponent();
 	
 	if (node instanceof ReferenceContainer) {
+	    currentTree.setSelectionPath(null);
 	    ReferenceContainer container = (ReferenceContainer)node;
 	    JPopupMenu popup = new JPopupMenu();
 	    JMenuItem  item = new JMenuItem("Import " + container.name());
 	    item.addActionListener(new AddContainerListener(currentTree,container));
+	    popup.add(item);
+	    popup.show(e.getComponent(),e.getX(),e.getY());
+	}
+	else if (node instanceof ModuleInstance) {
+	    ModuleInstance module = (ModuleInstance)node;
+	    JPopupMenu popup = new JPopupMenu();
+	    JMenuItem  item  = new JMenuItem("Import " + module.name());
+	    item.addActionListener(new AddModuleListener(currentTree,module));
+	    popup.add(item);
+	    popup.show(e.getComponent(),e.getX(),e.getY());
+	}
+	else if (node instanceof Instance) {
+	    Instance instance = (Instance)node;
+	    JPopupMenu popup = new JPopupMenu();
+	    JMenuItem  item  = new JMenuItem("Import " + instance.name());
+	    item.addActionListener(new AddInstanceListener(currentTree,instance));
 	    popup.add(item);
 	    popup.show(e.getComponent(),e.getX(),e.getY());
 	}
@@ -82,7 +96,7 @@ public class ImportTreeMouseListener extends MouseAdapter
 }
 
 
-// listener class
+// container listener class
 class AddContainerListener implements ActionListener
 {
     // member data
@@ -101,5 +115,47 @@ class AddContainerListener implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
 	ConfigurationTreeActions.importReferenceContainer(targetTree,container);
+    }
+}
+
+// module listener class
+class AddModuleListener implements ActionListener
+{
+    // member data
+    private JTree          targetTree;
+    private ModuleInstance module;
+
+    // construction
+    public AddModuleListener(JTree targetTree,ModuleInstance module)
+    {
+	this.targetTree = targetTree;
+	this.module     = module;
+    }
+
+    // member functions
+    public void actionPerformed(ActionEvent e)
+    {
+	ConfigurationTreeActions.importModule(targetTree,module);
+    }
+}
+
+// instance listener class
+class AddInstanceListener implements ActionListener
+{
+    // member data
+    private JTree    targetTree;
+    private Instance instance;
+
+    // construction
+    public AddInstanceListener(JTree targetTree,Instance instance)
+    {
+	this.targetTree = targetTree;
+	this.instance   = instance;
+    }
+    
+    // member functions
+    public void actionPerformed(ActionEvent e)
+    {
+	ConfigurationTreeActions.importInstance(targetTree,instance);
     }
 }

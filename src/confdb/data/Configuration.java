@@ -825,10 +825,10 @@ public class Configuration implements IConfiguration
     }
 
     /** insert a pre-existing module */
-    public boolean insertModule(ModuleInstance module)
+    public boolean insertModule(int i,ModuleInstance module)
     {
 	if (modules.indexOf(module)<0&&module.referenceCount()==0) {
-	    modules.add(module);
+	    modules.add(i,module);
 	    module.setConfiguration(this);
 	    hasChanged = true;
 	    return true;

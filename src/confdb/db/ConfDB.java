@@ -202,6 +202,10 @@ public class ConfDB
 	    try { ps.close(); }
 	    catch (SQLException e) {
 		throw new DatabaseException("ConfDB::closePreparedStatements() "+
+					    "failed (SQL)", e);
+	    }
+	    catch (Exception e) {
+		throw new DatabaseException("ConfDB::closePreparedStatements() "+
 					    "failed", e);
 	    }
 	}
