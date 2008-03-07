@@ -73,7 +73,8 @@ class ConfdbOracleModuleLoader:
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
-	thecursor.execute("SELECT releaseId FROM SoftwareReleases ORDER BY releaseId DESC")
+        thecursor.execute("SELECT ReleaseId_Sequence.currval from dual")
+#	thecursor.execute("SELECT releaseId FROM SoftwareReleases ORDER BY releaseId DESC")
 	therelnum = (thecursor.fetchone())[0]
 	print "New releasekey = " + str(therelnum)
 
@@ -201,7 +202,8 @@ class ConfdbOracleModuleLoader:
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
-	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC");
+#	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC");
+        thecursor.execute("SELECT SuperId_Sequence.currval from dual") 
 	newsuperid = (thecursor.fetchall()[0])[0]
 
 	# Attach this template to the currect release
@@ -238,7 +240,8 @@ class ConfdbOracleModuleLoader:
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
-	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+#	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+        thecursor.execute("SELECT SuperId_Sequence.currval from dual")
 	newsuperid = (thecursor.fetchall()[0])[0]
 
 	# Attach this template to the currect release
@@ -270,7 +273,8 @@ class ConfdbOracleModuleLoader:
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
-	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+#	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+        thecursor.execute("SELECT SuperId_Sequence.currval from dual")        
 	newsuperid = (thecursor.fetchall()[0])[0]
 
 	# Attach this template to the currect release
@@ -302,7 +306,8 @@ class ConfdbOracleModuleLoader:
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
-	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+#	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+        thecursor.execute("SELECT SuperId_Sequence.currval from dual")        
 	newsuperid = (thecursor.fetchall()[0])[0]
 
 	# Attach this template to the currect release
@@ -334,7 +339,8 @@ class ConfdbOracleModuleLoader:
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
-	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC");
+#	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC");
+        thecursor.execute("SELECT SuperId_Sequence.currval from dual")        
 	newsuperid = (thecursor.fetchall()[0])[0]
 
 	# Attach this template to the currect release
@@ -393,7 +399,8 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
-	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+#	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+        thecursor.execute("SELECT SuperId_Sequence.currval from dual")        
 	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
@@ -448,7 +455,8 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
-	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+#	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+        thecursor.execute("SELECT SuperId_Sequence.currval from dual")        
 	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
@@ -500,7 +508,8 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
-	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+#	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+        thecursor.execute("SELECT SuperId_Sequence.currval from dual")        
 	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
@@ -550,7 +559,8 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
-	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+#	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+        thecursor.execute("SELECT SuperId_Sequence.currval from dual")        
 	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
@@ -600,7 +610,8 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
-	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+#	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+        thecursor.execute("SELECT SuperId_Sequence.currval from dual")        
 	newsuperid = (thecursor.fetchall()[0])[0]
 	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
@@ -1676,7 +1687,8 @@ class ConfdbOracleModuleLoader:
 		thecursor.execute("INSERT INTO SuperIds VALUES('')")
 #		thecursor.execute("SELECT LAST_INSERT_ID()")
 
-		thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+#		thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+                thecursor.execute("SELECT SuperId_Sequence.currval from dual")        
 		newparamsetid = thecursor.fetchone()[0]	
 
 		# Add a new PSet
@@ -1873,7 +1885,8 @@ class ConfdbOracleModuleLoader:
 		thecursor.execute("INSERT INTO SuperIds VALUES('')")
 #		thecursor.execute("SELECT LAST_INSERT_ID()")
 
-		thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+#		thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
+                thecursor.execute("SELECT SuperId_Sequence.currval from dual")        
 		newvparamsetid = thecursor.fetchone()[0]	
 
 		# Add a new VPSet
@@ -2001,7 +2014,9 @@ class ConfdbOracleModuleLoader:
 
             thecursor.execute("INSERT INTO SoftwareSubsystems (name) VALUES ('" + str(thesubsystem) + "')")
 #            thecursor.execute("SELECT LAST_INSERT_ID()")
-	    thecursor.execute("SELECT subsysId FROM SoftwareSubsystems ORDER BY subsysId DESC")
+#	    thecursor.execute("SELECT subsysId FROM SoftwareSubsystems ORDER BY subsysId DESC")
+            thecursor.execute("SELECT SubsysId_Sequence.currval from dual")
+                
             subsys = thecursor.fetchone()
             if(subsys):
                 subsys = subsys[0]
@@ -2020,7 +2035,8 @@ class ConfdbOracleModuleLoader:
                 print "INSERT INTO SoftwarePackages (name,subsysId) VALUES ('" + str(thepackage) + "', " + str(subsys) + ")"
 
             thecursor.execute("INSERT INTO SoftwarePackages (name,subsysId) VALUES ('" + str(thepackage) + "', " + str(subsys) + ")")
-	    thecursor.execute("SELECT packageId FROM SoftwarePackages ORDER BY packageId DESC")
+#	    thecursor.execute("SELECT packageId FROM SoftwarePackages ORDER BY packageId DESC")
+            thecursor.execute("SELECT PackageId_Sequence.currval from dual")            
 	    pack = thecursor.fetchone()
 	    if(pack):
 	        pack = pack[0]
@@ -2083,7 +2099,8 @@ class ConfdbOracleModuleLoader:
 	
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
-	thecursor.execute("SELECT paramId FROM Parameters ORDER BY paramId DESC")
+#	thecursor.execute("SELECT paramId FROM Parameters ORDER BY paramId DESC")
+        thecursor.execute("SELECT ParamId_Sequence.currval from dual")            
 	newparamid = thecursor.fetchone()[0]
 
 	# Fill Parameter <-> Super ID table
