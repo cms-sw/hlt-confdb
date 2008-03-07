@@ -772,6 +772,7 @@ class AddProblemModulesAndParametersOracle:
 	psetcache = []
 	lastpsetseqdict = {}
 	localseqcount = 0
+        psetsuperiddict = {}
 
 	for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq in paramsets:
 	    # If this is the first entry in this PSet for this component, add it to the ParameterSets table
@@ -797,6 +798,8 @@ class AddProblemModulesAndParametersOracle:
 		    print "INSERT INTO ParameterSets (superId, name, tracked) VALUES (" + str(newparamsetid) + ", '" + pset + "', " + psettracked + ")"
 		thecursor.execute("INSERT INTO ParameterSets (superId, name, tracked) VALUES (" + str(newparamsetid) + ", '" + pset + "', " + psettracked + ")")
 
+                psetsuperiddict[pset+str(newsuperid)] = newparamsetid
+                
 		# Each new top level PSet points to the framework component
 		if(psetnesting == 'None' or psetnesting == ''):
 		    # Attach the PSet to a Fwk component via their superIds
@@ -806,13 +809,17 @@ class AddProblemModulesAndParametersOracle:
 
 		# Nested PSets point to the relevant top level PSet 
 		else:
-		    # Attach the PSet to another PSet component via their superIds
-		    if(self.verbose > 2):
-			print "SELECT ParameterSets.superId FROM ParameterSets WHERE (name = '" + psetnesting + "') ORDER BY ParameterSets.superId DESC"
-		    thecursor.execute("SELECT ParameterSets.superId FROM ParameterSets WHERE (name = '" + psetnesting + "') ORDER BY ParameterSets.superId DESC")
+                    # Attach the PSet to another PSet component via their superIds
+                    # We can't rely on Oracle to keep the ordering on 2-node machines, so get the parent association
+                    # from an internal dictionary instead...
+                    #		    if(self.verbose > 2):
+                    #			print "SELECT ParameterSets.superId FROM ParameterSets WHERE (name = '" + psetnesting + "') ORDER BY ParameterSets.superId DESC"
+                    #		    thecursor.execute("SELECT ParameterSets.superId FROM ParameterSets WHERE (name = '" + psetnesting + "') ORDER BY ParameterSets.superId DESC")
+                    #
+                    #		    toplevelid = thecursor.fetchone()[0]
 
-		    toplevelid = thecursor.fetchone()[0]
-
+                    toplevelid = psetsuperiddict[psetnesting + str(newsuperid)]
+                    
                     if(psetnesting in lastpsetseqdict):
                         psetpsetseq = lastpsetseqdict[psetnesting]
                     else:
