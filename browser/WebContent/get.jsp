@@ -50,14 +50,17 @@
 		}
 		else if ( key.equals( "dbName" ) )
 		{
-		  	ConfDBSetups dbs = new ConfDBSetups();
-	  		String[] labels = dbs.labelsAsArray();
-	  		for ( int i = 0; i < dbs.setupCount(); i++ )
-	  		{
-	  			if ( value.equalsIgnoreCase( labels[i] ) )
+			if ( !value.equalsIgnoreCase( "hltdev" ) )
+			{
+			  	ConfDBSetups dbs = new ConfDBSetups();
+		  		String[] labels = dbs.labelsAsArray();
+	  			for ( int i = 0; i < dbs.setupCount(); i++ )
 	  			{
-	  				dbIndexStr = "" + i;
-	  				break;
+	  				if ( value.equalsIgnoreCase( labels[i] ) )
+	  				{
+	  					dbIndexStr = "" + i;
+	  					break;
+	  				}
 	  			}
 	  		}
 	  	}
