@@ -276,12 +276,12 @@ HcalRawToDigi.Parameter lastSample int32 9 tracked
 HcalRawToDigi.Parameter FilterDataQuality bool true tracked
 HcalRawToDigi.Parameter ExceptionEmptyData bool false untracked
 
-Module EDProducer LargestEtCaloJetSelector PhysicsTools RecoSelectors
+Module EDProducer LargestEtCaloJetSelector PhysicsTools RecoAlgos
 LargestEtCaloJetSelector.Parameter src InputTag iterativeCone5CaloJets tracked
 LargestEtCaloJetSelector.Parameter filter bool false tracked
 LargestEtCaloJetSelector.Parameter maxNumber uint32 4 tracked
 
-Module EDProducer EtMinCaloJetSelector PhysicsTools RecoSelectors
+Module EDProducer EtMinCaloJetSelector PhysicsTools RecoAlgos
 EtMinCaloJetSelector.Parameter src InputTag hltBLifetimeHighestEtJets tracked
 EtMinCaloJetSelector.Parameter filter bool false tracked
 EtMinCaloJetSelector.Parameter etMin double 35.0 tracked

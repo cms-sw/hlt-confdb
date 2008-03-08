@@ -185,7 +185,10 @@ if (!$tmp eq "")
     $relativeTag = $tmp;
     $parserCmd = $parserCmd . " -a 1";
 }
-
+elsif ($dbUser eq "CMS_HLT_ADMIN")
+{
+    die "user $dbUser should only parse 'release+tags'!\n";
+}
 
 
 #
@@ -264,13 +267,14 @@ sub validate_release
 	$suffix = $4; 
     } 
     else {
-	die "the release apears to be invalid!";
+	die "invalid release '$input'!";
     }
     
     if ($suffix =~ m/_HLT([\d])/) {
 	$count = $1-1;
 	if ($count>0) {	$result = $prefix . "_HLT" . ($1-1); }
-	else { $result = $prefix; }
+	elsif ($count==0) { $result = $prefix; }
+	else { die "invalid release '$input'!"; }
     }
     
     return $result;

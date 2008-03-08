@@ -292,12 +292,12 @@ Module EDProducer EgammaHLTRegionalPixelSeedGeneratorProducers RecoEgamma Egamma
 EgammaHLTRegionalPixelSeedGeneratorProducers.Parameter HitProducer string "siPixelRecHits" tracked
 EgammaHLTRegionalPixelSeedGeneratorProducers.Parameter TTRHBuilder string "WithTrackAngle" tracked
 
-Module EDProducer LargestEtCaloJetSelector PhysicsTools RecoSelectors
+Module EDProducer LargestEtCaloJetSelector PhysicsTools RecoAlgos
 LargestEtCaloJetSelector.Parameter src InputTag iterativeCone5CaloJets tracked
 LargestEtCaloJetSelector.Parameter filter bool false tracked
 LargestEtCaloJetSelector.Parameter maxNumber uint32 2 tracked
 
-Module EDProducer EtMinCaloJetSelector PhysicsTools RecoSelectors
+Module EDProducer EtMinCaloJetSelector PhysicsTools RecoAlgos
 EtMinCaloJetSelector.Parameter src InputTag hltBSoftmuonHighestEtJets tracked
 EtMinCaloJetSelector.Parameter filter bool false tracked
 EtMinCaloJetSelector.Parameter etMin double 20.0 tracked
