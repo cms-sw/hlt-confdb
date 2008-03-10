@@ -138,6 +138,7 @@ MessageLogger.Parameter warnings PSet untracked
 MessageLogger.Parameter infos PSet untracked
 MessageLogger.Parameter debugs PSet untracked
 MessageLogger.Parameter default PSet untracked
+MessageLogger.Parameter log4cplus PSet untracked
 MessageLogger.Parameter fwkJobReports vstring { "FrameworkJobReport" } untracked
 MessageLogger.Parameter FrameworkJobReport PSet untracked
 MessageLogger.Parameter debugModules vstring {  } untracked
