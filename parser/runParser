@@ -23,10 +23,9 @@ my $usage =
     "--dbuser <user>    (optional)  (Database Username)\n" .
     "--release <tag>    (optional)  (Default: \$CMSSW_VERSION)\n" .
     "--relative <tag>   (optional)  (Update w.r.t. this release tag)\n" .
-    "--name <name>      (optional)  (Label of the new release in DB)\n" .
     "--parse            (optional)  (Parse the specified release)\n" .
     "--patch            (optional)  (Apply patches for known problems)\n" .
-    "--patchFile <file> (optional)  (Description file for patches)\n" .
+    "--patchfile <file> (optional)  (Description file for patches)\n" .
     "--all              (optional)  (Disregard whitelist)\n";
 
 if (@ARGV==0) { print $usage . "\n"; exit(0); }
@@ -40,7 +39,6 @@ my $dbPwrd;
 
 my $releaseTag;
 my $relativeTag;
-my $releaseName;
 
 my $cmssw_base    = get_env_variable("CMSSW_BASE");
 my $cmssw_version = get_env_variable("CMSSW_VERSION");
@@ -140,8 +138,6 @@ foreach $param (@ARGV)
     elsif ($param       eq "--release")  { $releaseTag  = "fillme"; }
     elsif ($relativeTag eq "fillme")     { $relativeTag = $param;   }
     elsif ($param       eq "--relative") { $relativeTag = "fillme"; }
-    elsif ($releaseName eq "fillme")     { $releaseName = $param;   }
-    elsif ($param       eq "--name")     { $releaseName = "fillme"; }
     elsif ($patchFile   eq "fillme")     { $patchFile   = $param; $doPatch=1; }
     elsif ($param       eq "--patchfile"){ $patchFile   = "fillme"; }
     elsif ($param       eq "--parse")    { $doParse     = 1;        }
@@ -151,8 +147,7 @@ foreach $param (@ARGV)
     else { die "Unknown option $param"; }
 }
 
-if ($releaseTag  eq "") { $releaseTag  = $cmssw_version; }
-if ($releaseName eq "") { $releaseName = $releaseTag; }
+if ($releaseTag  eq "") { $releaseTag = $cmssw_version; }
 
 
 die "No scram project area setup!\n" if ($cmssw_base eq "");
@@ -164,9 +159,29 @@ die "$patchFile doesn't exist!" if ($doPatch && ! -e $patchFile);
 my $parserCmd = $parserExe . " -t $dbType -o $dbHost -u $dbUser -s $dbPwrd ";
 
 if ($dbType eq "MySQL")  { $parserCmd = $parserCmd . "-d $dbName "; }
-if (!$releaseTag eq "")  { $parserCmd = $parserCmd . "-r $releaseTag "; }
-if (!$relativeTag eq "") { $parserCmd = $parserCmd . "-m $relativeTag "; }
-if (!$releaseName eq "") { $parserCmd = $parserCmd . "-c $releaseName "; }
+
+
+my $tmp = validate_release($releaseTag);
+# release+tags
+if (!$tmp eq "")
+{
+    $parserCmd = $parserCmd . " -a $releaseTag";
+    $releaseTag = $tmp;
+
+}
+# unauthorized user
+elsif ($dbUser eq "CMS_HLT_ADMIN")
+{
+    die "user $dbUser should only parse 'release+tags'!\n";
+}
+# if *NOT* release+tags, allow --relative option
+elsif (!$relativeTag eq "")
+{
+    $parserCmd = $parserCmd . "-m $relativeTag ";
+}
+
+$parserCmd = $parserCmd . "-r $releaseTag ";
+
 if (!$doAll)
 {
     $first = 1;
@@ -179,16 +194,6 @@ if (!$doAll)
 }
 if ($doVerbose) { $parserCmd = $parserCmd . " -v 3" }
 
-my $tmp = validate_release($releaseTag);
-if (!$tmp eq "")
-{
-    $relativeTag = $tmp;
-    $parserCmd = $parserCmd . " -a 1";
-}
-elsif ($dbUser eq "CMS_HLT_ADMIN")
-{
-    die "user $dbUser should only parse 'release+tags'!\n";
-}
 
 
 #
@@ -203,7 +208,7 @@ if ($doParse)
 	"$parserCmd\n\n";
     
     my $parserLog = "parser" . "." . $dbHost . "." . $releaseName . ".log";
-    system("rm -f $parserLog; $parserCmd > $parserLog");
+    #system("rm -f $parserLog; $parserCmd > $parserLog");
     print "DONE! (see $parserLog for details)\n\n"; 
 }
 
@@ -224,7 +229,7 @@ if ($doPatch)
 	"$patchCmd\n\n";
     
     my $patchLog = "patch" . "." . $dbHost . "." . $releaseName . ".log";
-    system("rm -f $patchLog; $patchCmd > $patchLog");
+    #system("rm -f $patchLog; $patchCmd > $patchLog");
     print "DONE! (see $patchLog for details)\n\n"; 
 }
 
