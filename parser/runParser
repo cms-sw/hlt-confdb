@@ -161,11 +161,13 @@ my $parserCmd = $parserExe . " -t $dbType -o $dbHost -u $dbUser -s $dbPwrd ";
 if ($dbType eq "MySQL")  { $parserCmd = $parserCmd . "-d $dbName "; }
 
 
+my $releaseName = $releaseTag;
 my $tmp = validate_release($releaseTag);
 # release+tags
 if (!$tmp eq "")
 {
-    $parserCmd = $parserCmd . " -a $releaseTag";
+    $releaseName = $releaseTag;
+    $parserCmd   = $parserCmd . "-a $releaseTag ";
     $releaseTag = $tmp;
 
 }
@@ -208,7 +210,7 @@ if ($doParse)
 	"$parserCmd\n\n";
     
     my $parserLog = "parser" . "." . $dbHost . "." . $releaseName . ".log";
-    #system("rm -f $parserLog; $parserCmd > $parserLog");
+    system("rm -f $parserLog; $parserCmd > $parserLog");
     print "DONE! (see $parserLog for details)\n\n"; 
 }
 
@@ -229,7 +231,7 @@ if ($doPatch)
 	"$patchCmd\n\n";
     
     my $patchLog = "patch" . "." . $dbHost . "." . $releaseName . ".log";
-    #system("rm -f $patchLog; $patchCmd > $patchLog");
+    system("rm -f $patchLog; $patchCmd > $patchLog");
     print "DONE! (see $patchLog for details)\n\n"; 
 }
 
@@ -277,8 +279,9 @@ sub validate_release
     
     if ($suffix =~ m/_HLT([\d])/) {
 	$count = $1-1;
-	if ($count>0) {	$result = $prefix . "_HLT" . ($1-1); }
-	elsif ($count==0) { $result = $prefix; }
+	##if ($count>0) {	$result = $prefix . "_HLT" . ($1-1); }
+	##elsif ($count==0) { $result = $prefix; }
+	if ($count>=0) { $result = $prefix; }
 	else { die "invalid release '$input'!"; }
     }
     
