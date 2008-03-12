@@ -87,22 +87,19 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     /** calculate the number of unresolved InputTags */
     public int unresolvedInputTagCount()
     {
-	ArrayList<String> unresolved = new ArrayList<String>();
-	HashSet<String> labels = new HashSet<String>();
-	for (Reference r : entries) {
-	    getUnresolvedInputTags(r,labels,unresolved);
-	}
-	
-	// DEBUG
-	//if (unresolved.size()>0) {
-	//    System.out.println("Unresolved InputTags for path "+name()+":");
-	//    for (String s : unresolved) System.out.println(s);
-	//    System.out.println();
-	//}
-
-	return unresolved.size();
+	return unresolvedInputTags().length;
     }
     
+    /** get unresolved InputTags */
+    public String[] unresolvedInputTags()
+    {
+	ArrayList<String> unresolved = new ArrayList<String>();
+	HashSet<String> labels = new HashSet<String>();
+	for (Reference r : entries)
+	    getUnresolvedInputTags(r,labels,unresolved);
+	return unresolved.toArray(new String[unresolved.size()]);
+    }
+
     /** does this container contain an OutputModule? */
     public boolean hasOutputModule() { return hasModuleOfType("OutputModule"); }
 
@@ -119,8 +116,8 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     public void setName(String name) throws DataException
     {
 	if (config!=null&&!config.isUniqueQualifier(name))
-	    throw new DataException("ReferenceContainer.setName ERROR: '" +
-				    name+"' is not a unique quailifer.");
+	    throw new DataException("ReferenceContainer.setName ERROR: '"+
+				    name+"' is not a unique qualifier.");
 	this.name = name;
 	setHasChanged();
     }
@@ -313,6 +310,11 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     {
 	if (p instanceof InputTagParameter) {
 	    InputTagParameter itp = (InputTagParameter)p;
+
+	    if (!itp.isValueSet()||
+		itp.label().equals(new String())||
+		itp.label().equals("rawDataCollector")) return;
+
 	    if (!labels.contains(itp.label())) {
 		Object parent = itp;
 		String s = ":"+itp.name()+"@"+itp.label();

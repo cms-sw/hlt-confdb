@@ -28,6 +28,12 @@ public class Comparison
 					     "REMOVED",
 					     "ADDED" };
     
+    /** reference to source object */
+    private Object source = null;
+    
+    /** parent object */
+    private Object parent = null;
+    
     /** type of the components being compared */
     private String type;
 
@@ -38,6 +44,9 @@ public class Comparison
     /** if the comparison regards a parameter which has changed, set old value */
     private String oldValue = null;
 
+    /** if the comparison regards a type change, set old type */
+    private String oldType = null;
+
     /** comparisons of daughter components */
     private ArrayList<Comparison> comparisons = new ArrayList<Comparison>();
     
@@ -47,11 +56,12 @@ public class Comparison
     //
 
     /** standard constructor */
-    public Comparison(String type,String name1,String name2)
+    public Comparison(Object source,String type,String name1,String name2)
     {
-	this.type  = type;
-	this.name1 = name1;
-	this.name2 = name2;
+	this.source = source;
+	this.type   = type;
+	this.name1  = name1;
+	this.name2  = name2;
     }
     
     
@@ -65,6 +75,12 @@ public class Comparison
 	String name = (name2==null) ? name1 : name2;
 	return name+" "+resultAsString();
     }
+
+    /** get the source object */
+    public Object source() { return this.source; }
+
+    /** get the parent object */
+    public Object parent() { return this.parent; }
     
     /** type of the components being compared */
     public String type() { return this.type; }
@@ -78,15 +94,19 @@ public class Comparison
     /** old value of changed parameter */
     public String oldValue() { return this.oldValue; }
     
+    /** old type of changed instance */
+    public String oldType() { return this.oldType; }
+    
     /** result of the comparison */
     public int result()
     {
 	if      (name1==null&&name2!=null) return RESULT_ADDED;
 	else if (name1!=null&&name2==null) return RESULT_REMOVED;
-	else if (comparisons.size()==0&&oldValue==null) return RESULT_IDENTICAL;
+	else if (comparisons.size()==0&&oldValue==null&&oldType==null)
+	    return RESULT_IDENTICAL;
 	else return RESULT_CHANGED;
     }
-
+    
     /** result of comparison as a string */
     public String resultAsString() { return RESULTS[result()]; }
 
@@ -108,6 +128,9 @@ public class Comparison
     /** get i-th child comparison */
     public Comparison comparison(int i) { return comparisons.get(i); }
 
+    /** get index of specified comparsion daughter */
+    public int indexOfComparison(Comparison c) { return comparisons.indexOf(c); }
+
     /** retrieve iterator over  child comparisons */
     public Iterator<Comparison> comparisonIterator()
     {
@@ -125,8 +148,17 @@ public class Comparison
     /** set old value (for parameters which are changed!) */
     public void setOldValue(String oldValue) { this.oldValue = oldValue; }
 
+    /** set old type (for instances with identical name but new type!) */
+    public void setOldType(String oldType) { this.oldType = oldType; }
+
     /** add a child comparison */
-    public void addComparison(Comparison c) { comparisons.add(c); }
+    public void addComparison(Comparison c)
+    {
+	c.setParent(this); comparisons.add(c);
+    }
+    
+    /** set the parent object of this comparison */
+    public void setParent(Object parent) { this.parent = parent; }
     
 
     //

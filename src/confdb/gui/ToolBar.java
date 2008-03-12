@@ -27,6 +27,7 @@ public class ToolBar
     private static final String cmdSave        = "Save";
     private static final String cmdCommentSave = "Comment&Save";
     private static final String cmdSaveAs      = "Save As";
+    private static final String cmdDiff        = "Diff";
     private static final String cmdImport      = "Import";
     private static final String cmdMigrate     = "Migrate";
     private static final String cmdConvert     = "Convert";
@@ -46,6 +47,7 @@ public class ToolBar
     private JButton jButtonSave        = new JButton();
     private JButton jButtonSaveAs      = new JButton();
     
+    private JButton jButtonDiff        = new JButton();
     private JButton jButtonImport      = new JButton();
     private JButton jButtonMigrate     = new JButton();
     private JButton jButtonConvert     = new JButton();
@@ -84,6 +86,7 @@ public class ToolBar
 	jButtonClose.setEnabled(true);
 	jButtonSave.setEnabled(true);
 	jButtonSaveAs.setEnabled(true);
+	jButtonDiff.setEnabled(true);
 	jButtonImport.setEnabled(true);
 	jButtonMigrate.setEnabled(true);
 	jButtonConvert.setEnabled(true);
@@ -98,6 +101,7 @@ public class ToolBar
 	jButtonClose.setEnabled(false);
 	jButtonSave.setEnabled(false);
 	jButtonSaveAs.setEnabled(false);
+	//jButtonDiff.setEnabled(false);
 	jButtonImport.setEnabled(false);
 	jButtonMigrate.setEnabled(false);
 	jButtonConvert.setEnabled(false);
@@ -111,6 +115,7 @@ public class ToolBar
     {
 	jButtonNew.setEnabled(true);
 	jButtonOpen.setEnabled(true);
+	jButtonDiff.setEnabled(true);
 	jButtonDisconnect.setEnabled(true);
     }
     
@@ -120,6 +125,7 @@ public class ToolBar
 	configurationIsNotOpen();
 	jButtonNew.setEnabled(false);
 	jButtonOpen.setEnabled(false);
+	jButtonDiff.setEnabled(false);
 	jButtonDisconnect.setEnabled(false);
     }
 
@@ -157,6 +163,13 @@ public class ToolBar
 	jToolBar.add(jButtonSave);
 	
 	jToolBar.addSeparator();
+	
+	jButtonDiff.setActionCommand(cmdDiff);
+	jButtonDiff.addActionListener(listener);
+	jButtonDiff.setToolTipText("compare two configurations");
+	jButtonDiff.setIcon(new ImageIcon(getClass().
+					    getResource("/DiffIcon.png")));
+	jToolBar.add(jButtonDiff);
 	
 	jButtonImport.setActionCommand(cmdImport);
 	jButtonImport.addActionListener(listener);

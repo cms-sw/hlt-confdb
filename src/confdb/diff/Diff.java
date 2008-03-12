@@ -187,61 +187,117 @@ public class Diff
     /** number of psets */
     public int psetCount() { return psets.size(); }
 
+    /** retrieve i-th pset comparison */
+    public Comparison pset(int i) { return psets.get(i); }
+    
+    /** get index of pset comparison */
+    public int indexOfPSet(Comparison pset) { return psets.indexOf(pset); }
+    
     /** iterator over all global psets */
     public Iterator<Comparison> psetIterator() { return psets.iterator(); }
+
 
     /** number of edsources */
     public int edsourceCount() { return edsources.size(); }
 
+    /** retrieve i-th edsource comparison */
+    public Comparison edsource(int i) { return edsources.get(i); }
+    
+    /** get index of edsource comparison */
+    public int indexOfEDSource(Comparison eds) { return edsources.indexOf(eds); }
+    
     /** iterator over all edsources */
     public Iterator<Comparison> edsourceIterator() { return edsources.iterator(); }
-
+    
+    
     /** number of essources */
     public int essourceCount() { return essources.size(); }
 
+    /** retrieve i-th essource comparison */
+    public Comparison essource(int i) { return essources.get(i); }
+    
+    /** get index of essource comparison */
+    public int indexOfESSource(Comparison ess){ return essources.indexOf(ess); }
+    
     /** iterator over all essources */
     public Iterator<Comparison> essourceIterator() { return essources.iterator(); }
+    
     
     /** number of esmodules */
     public int esmoduleCount() { return esmodules.size(); }
 
+    /** retrieve i-th esmodule comparison */
+    public Comparison esmodule(int i) { return esmodules.get(i); }
+    
+    /** get index of esmodule comparison */
+    public int indexOfESModule(Comparison esm) { return esmodules.indexOf(esm); }
+    
     /** iterator over all esmodules */
     public Iterator<Comparison> esmoduleIterator() { return esmodules.iterator(); }
 
+    
     /** number of services */
     public int serviceCount() { return services.size(); }
-
+    
+    /** retrieve i-th service comparison */
+    public Comparison service(int i) { return services.get(i); }
+    
+    /** get index of service comparison */
+    public int indexOfService(Comparison svc) { return services.indexOf(svc); }
+    
     /** iterator over all services */
     public Iterator<Comparison> serviceIterator() { return services.iterator(); }
 
+    
     /** number of paths */
     public int pathCount() { return paths.size(); }
 
+    /** retrieve i-th path comparison */
+    public Comparison path(int i) { return paths.get(i); }
+    
+    /** get index of path comparison */
+    public int indexOfPath(Comparison path) { return paths.indexOf(path); }
+    
     /** iterator over all paths */
     public Iterator<Comparison> pathIterator() { return paths.iterator(); }
 
+    
     /** number of sequences */
     public int sequenceCount() { return sequences.size(); }
 
+    /** retrieve i-th sequence comparison */
+    public Comparison sequence(int i) { return sequences.get(i); }
+    
+    /** get index of sequence comparison */
+    public int indexOfSequence(Comparison seq) { return sequences.indexOf(seq); }
+    
     /** iterator over all sequences */
     public Iterator<Comparison> sequenceIterator() { return sequences.iterator(); }
+    
     
     /** number of modules */
     public int moduleCount() { return modules.size(); }
 
+    /** retrieve i-th module comparison */
+    public Comparison module(int i) { return modules.get(i); }
+    
+    /** get index of module comparison */
+    public int indexOfModule(Comparison module) { return modules.indexOf(module); }
+    
     /** iterator over all modules */
     public Iterator<Comparison> moduleIterator() { return modules.iterator(); }
+    
     
     
     /** compare two (global) parameter sets */
     public Comparison comparePSets(PSetParameter pset1,PSetParameter pset2)
     {
 	if (pset1==null)
-	    return new Comparison("PSet",null,pset2.name());
+	    return new Comparison(pset2,"PSet",null,pset2.name());
 	else if (pset2==null)
-	    return new Comparison("PSet",pset1.name(),null);
+	    return new Comparison(pset1,"PSet",pset1.name(),null);
 	
-	Comparison result = new Comparison("PSet",pset1.name(),pset2.name());
+	Comparison result = new Comparison(pset2,"PSet",pset1.name(),pset2.name());
 	Comparison paramComparisons[] =
 	    compareParameterLists(pset1.parameterIterator(),
 				  pset2.parameterIterator());
@@ -254,17 +310,19 @@ public class Diff
     public Comparison compareInstances(Instance i1,Instance i2)
     {
 	if (i1==null)
-	    return new Comparison(i2.template().name(),null,i2.name());
+	    return new Comparison(i2,i2.template().name(),null,i2.name());
 	else if (i2==null)
-	    return new Comparison(i1.template().name(),i1.name(),null);
-	
-	if (!i1.template().name().equals(i2.template().name())) return null;
+	    return new Comparison(i1,i1.template().name(),i1.name(),null);
 	
 	Comparison result = instanceMap.get(i1.name()+"::"+i2.name());
 	if (result!=null) return result;
 	
-	result = new Comparison(i2.template().name(),i1.name(),i2.name());
+		
+	result = new Comparison(i2,i2.template().name(),i1.name(),i2.name());
 
+	if (!i1.template().name().equals(i2.template().name()))
+	    result.setOldType(i1.template().name());
+	
 	Comparison paramComparisons[] =
 	    compareParameterLists(i1.parameterIterator(),
 				  i2.parameterIterator());
@@ -283,9 +341,9 @@ public class Diff
 					ReferenceContainer rc2)
     {
 	if (rc1==null)
-	    return new Comparison(rc2.getClass().getName(),null,rc2.name());
+	    return new Comparison(rc2,rc2.getClass().getName(),null,rc2.name());
 	else if (rc2==null)
-	    return new Comparison(rc1.getClass().getName(),rc1.name(),null);
+	    return new Comparison(rc1,rc1.getClass().getName(),rc1.name(),null);
 
 	if (!rc1.getClass().getName().equals(rc2.getClass().getName())) {
 	    System.err.println("ERROR Can't compare containers of different type.");
@@ -295,7 +353,7 @@ public class Diff
 	Comparison result = containerMap.get(rc1.name()+"::"+rc2.name());
 	if (result!=null) return result;
 	
-	result = new Comparison(rc2.getClass().getName(),rc1.name(),rc2.name());
+	result = new Comparison(rc2,rc2.getClass().getName(),rc1.name(),rc2.name());
 	
 	Iterator<Reference> itRef2 = rc2.entryIterator();
 	while (itRef2.hasNext()) {
@@ -305,7 +363,8 @@ public class Diff
 	    if (parent2 instanceof ReferenceContainer) {
 		if (reference1==null)
 		    result
-			.addComparison(new Comparison(parent2.getClass().getName(),
+			.addComparison(new Comparison(parent2,
+						      parent2.getClass().getName(),
 						      null,parent2.name()));
 		else {
 		    Referencable parent1 = reference1.parent();
@@ -320,7 +379,7 @@ public class Diff
 	    else if (parent2 instanceof ModuleInstance) {
 		if (reference1==null) {
 		    String type = ((Instance)parent2).template().name();
-		    result.addComparison(new Comparison(type,
+		    result.addComparison(new Comparison(parent2,type,
 							null,parent2.name()));
 		}
 		else {
@@ -342,6 +401,78 @@ public class Diff
 	return result;
     }
     
+    /** print all comparisons */
+    public String printAll()
+    {
+	StringBuffer result = new StringBuffer();
+	// global psets
+	if (psetCount()>0) {
+	    result.append("\n---------------------------------------"+
+			  "----------------------------------------\n");
+	    result.append("Global PSets ("+psetCount()+"):\n");
+	    result.append(printInstanceComparisons(psetIterator()));
+	}
+	
+	
+	// edsources
+	if (edsourceCount()>0) {
+	    result.append("\n---------------------------------------"+
+			  "----------------------------------------\n");
+	    result.append("EDSources (" + edsourceCount() + "):\n");
+	    result.append(printInstanceComparisons(edsourceIterator()));
+	}
+	
+	// essources
+	if (essourceCount()>0) {
+	    result.append("\n---------------------------------------"+
+			  "----------------------------------------\n");
+	    result.append("ESSources (" + essourceCount() + "):\n");
+	    result.append(printInstanceComparisons(essourceIterator()));
+	}
+	
+	// esmodules
+	if (esmoduleCount()>0) {
+	    result.append("\n---------------------------------------"+
+			  "----------------------------------------\n");
+	    result.append("ESModules (" + esmoduleCount() + "):\n");
+	    result.append(printInstanceComparisons(esmoduleIterator()));
+	}
+	
+	// services
+	if (serviceCount()>0) {
+	    result.append("\n---------------------------------------"+
+			  "----------------------------------------\n");
+	    result.append("Services (" + serviceCount() + "):\n");
+	    result.append(printInstanceComparisons(serviceIterator()));
+	}
+	
+	// paths
+	if (pathCount()>0) {
+	    result.append("\n---------------------------------------"+
+			  "----------------------------------------\n");
+	    result.append("Paths (" + pathCount() + "):\n");
+	    result.append(printContainerComparisons(pathIterator()));
+	}
+	
+	// sequences
+	if (sequenceCount()>0) {
+	    result.append("\n---------------------------------------"+
+			  "----------------------------------------\n");
+	    result.append("Sequences (" + sequenceCount() + "):\n");
+	    result.append(printContainerComparisons(sequenceIterator()));
+	}
+	
+	// modules
+	if (moduleCount()>0) {
+	    result.append("\n---------------------------------------"+
+			  "----------------------------------------\n");
+	    result.append("Modules (" + moduleCount() + "):\n");
+	    result.append(printInstanceComparisons(moduleIterator()));
+	}
+	
+	return result.toString();
+    }
+
     /** print instance comparisons */
     public String printInstanceComparisons(Iterator<Comparison> itC)
     {
@@ -349,6 +480,9 @@ public class Diff
 	while (itC.hasNext()) {
 	    Comparison c = itC.next();
 	    result.append("  -> "+c.toString()+"\n");
+	    if (c.oldType()!=null)
+		result.append("       NEW TYPE:"+c.type()+" ["+c.oldType()+"]\n");
+	    
 	    Iterator<Comparison> it = c.recursiveComparisonIterator();
 	    while (it.hasNext()) {
 		Comparison cParam = it.next();
@@ -367,7 +501,7 @@ public class Diff
 		else if (cParam.isRemoved())
 		    result.append("       "+
 				  cParam.type()+" "+
-				  cParam.name1()+"[REMOVED]\n");
+				  cParam.name1()+" [REMOVED]\n");
 	    }
 	}
 	return result.toString();
@@ -420,9 +554,9 @@ public class Diff
     private Comparison compareParameters(Parameter p1,Parameter p2)
     {
 	if (p1==null)
-	    return new Comparison(p2.type(),null,p2.fullName());
+	    return new Comparison(p2,p2.type(),null,p2.fullName());
 	else if (p2==null)
-	    return new Comparison(p1.type(),p1.fullName(),null);
+	    return new Comparison(p1,p1.type(),p1.fullName(),null);
 
 	if (!p1.type().equals(p2.type())||
 	    !p1.name().equals(p1.name())) return null;
@@ -434,7 +568,7 @@ public class Diff
 	    Comparison[] paramComparisons =
 		compareParameterLists(pset1.parameterIterator(),
 				      pset2.parameterIterator());
-	    result = new Comparison(p2.type(),p2.name(),p2.name());
+	    result = new Comparison(p2,p2.type(),p2.name(),p2.name());
 	    for (Comparison c : paramComparisons)
 		if (!c.isIdentical()) result.addComparison(c);
 	}
@@ -444,12 +578,12 @@ public class Diff
 	    Comparison[] paramComparisons =
 		compareParameterLists(vpset1.parameterIterator(),
 				      vpset2.parameterIterator());
-	    result = new Comparison(p2.type(),p2.name(),p2.name());
+	    result = new Comparison(p2,p2.type(),p2.name(),p2.name());
 	    for (Comparison c : paramComparisons)
 		if (!c.isIdentical()) result.addComparison(c);
 	}
 	else {
-	    result = new Comparison(p2.type(),p2.fullName(),
+	    result = new Comparison(p2,p2.type(),p2.fullName(),
 				    p2.valueAsString());
 	    if (!p1.valueAsString().equals(p2.valueAsString()))
 		result.setOldValue(p1.valueAsString());
@@ -615,81 +749,7 @@ public class Diff
 
 	Diff diff = new Diff(config1,config2);
 	diff.compare();
-	
-	// global psets
-	if (diff.psetCount()>0) {
-	    System.out.println("\n---------------------------------------"+
-			       "----------------------------------------");
-	    System.out.println("Global PSets (" + diff.psetCount()+"):");
-	    System.out.println(diff
-			       .printInstanceComparisons(diff.psetIterator()));
-	}
-	
-	
-	// edsources
-	if (diff.edsourceCount()>0) {
-	    System.out.println("\n---------------------------------------"+
-			       "----------------------------------------");
-	    System.out.println("EDSources (" + diff.edsourceCount() + "):");
-	    System.out.println(diff
-			       .printInstanceComparisons(diff.edsourceIterator()));
-	}
-	
-	// essources
-	if (diff.essourceCount()>0) {
-	    System.out.println("\n---------------------------------------"+
-			       "----------------------------------------");
-	    System.out.println("ESSources (" + diff.essourceCount() + "):");
-	    System.out.println(diff
-			       .printInstanceComparisons(diff.essourceIterator()));
-	}
-	
-	// esmodules
-	if (diff.esmoduleCount()>0) {
-	    System.out.println("\n---------------------------------------"+
-			       "----------------------------------------");
-	    System.out.println("ESModules (" + diff.esmoduleCount() + "):");
-	    System.out.println(diff
-			       .printInstanceComparisons(diff.esmoduleIterator()));
-	}
-	
-	// services
-	if (diff.serviceCount()>0) {
-	    System.out.println("\n---------------------------------------"+
-			       "----------------------------------------");
-	    System.out.println("Services (" + diff.serviceCount() + "):");
-	    System.out.println(diff
-			       .printInstanceComparisons(diff.serviceIterator()));
-	}
-
-	// paths
-	if (diff.pathCount()>0) {
-	    System.out.println("\n---------------------------------------"+
-			       "----------------------------------------");
-	    System.out.println("Paths (" + diff.pathCount() + "):");
-	    System.out.println(diff
-			       .printContainerComparisons(diff.pathIterator()));
-	}
-
-	// sequences
-	if (diff.sequenceCount()>0) {
-	    System.out.println("\n---------------------------------------"+
-			       "----------------------------------------");
-	    System.out.println("Sequences (" + diff.sequenceCount() + "):");
-	    System.out.println(diff
-			       .printContainerComparisons(diff.sequenceIterator()));
-	}
-	
-	// modules
-	if (diff.moduleCount()>0) {
-	    System.out.println("\n---------------------------------------"+
-			       "----------------------------------------");
-	    System.out.println("Modules (" + diff.moduleCount() + "):");
-	    System.out.println(diff
-			       .printInstanceComparisons(diff.moduleIterator()));
-	}
-	
-
+	System.out.println(diff.printAll());
     }
     
 }

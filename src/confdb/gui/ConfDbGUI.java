@@ -606,6 +606,16 @@ public class ConfDbGUI
 	}
     }
     
+    /** compare current configuration to another one */
+    public void diffConfigurations()
+    {
+	DiffDialog dialog = new DiffDialog(frame,database);
+	dialog.pack();
+	dialog.setLocationRelativeTo(frame);
+	if (!currentConfig.isEmpty()) dialog.setNewConfig(currentConfig);
+	dialog.setVisible(true);
+    }
+
     /** one another configuration to import components */
     public void importConfiguration()
     {
@@ -692,8 +702,9 @@ public class ConfDbGUI
 	    (ConfigurationTreeRenderer)jTreeCurrentConfig.getCellRenderer();
 	renderer.displayUnresolvedInputTags(doTrack);
 	
-	int pathIndices[] = new int[currentConfig.pathCount()];
-	for (int i=0;i<currentConfig.pathCount();i++) pathIndices[i]=i;
+	IConfiguration config = (IConfiguration)treeModelCurrentConfig.getRoot();
+	int pathIndices[] = new int[config.pathCount()];
+	for (int i=0;i<config.pathCount();i++) pathIndices[i]=i;
 	treeModelCurrentConfig.childNodesChanged(treeModelCurrentConfig.pathsNode(),
 						 pathIndices);
     }
@@ -1449,10 +1460,18 @@ public class ConfDbGUI
 		    if (selectedNode instanceof Path) {
 			Path path = (Path)selectedNode;
 			if (path.streamCount()>0) {
-			    text = path.name()+" assigned to stream(s): ";
+			    text = "<html>"+path.name()+" assigned to stream(s): ";
 			    for (int i=0;i<path.streamCount();i++)
-				text += path.stream(i) + " ";
+				text += "<br>"+path.stream(i);
 			}
+			String[] unresolved = path.unresolvedInputTags();
+			if (unresolved.length>0) {
+			    if (text!=null) text += "<br>"; else text="<html>";
+			    text += "Unresolved InputTags in "+path.name()+":";
+			    for (int i=0;i<unresolved.length;i++)
+				text+="<br>"+unresolved[i];
+			}
+			if (text!=null) text +="</html>";
 		    }
 		    else if (selectedNode instanceof ESSourceInstance||
 			     selectedNode instanceof ESModuleInstance||
@@ -1462,7 +1481,7 @@ public class ConfDbGUI
 		    }
 		    else if (selectedNode instanceof ModuleReference) {
 			ModuleReference reference=(ModuleReference)selectedNode;
-			ModuleInstance  instance =(ModuleInstance)reference.parent();
+			ModuleInstance  instance=(ModuleInstance)reference.parent();
 			text = instance.template().name();
 		    }
 		    return text;

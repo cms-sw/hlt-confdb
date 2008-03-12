@@ -31,6 +31,7 @@ public class MenuBar
     private static final String configMenuSave        = "Save";
     private static final String configMenuCommentSave = "Comment&Save";
     private static final String configMenuSaveAs      = "Save As";
+    private static final String configMenuDiff        = "Diff";
     private static final String configMenuImport      = "Import";
     private static final String configMenuMigrate     = "Migrate";
     private static final String configMenuConvert     = "Convert";
@@ -55,6 +56,7 @@ public class MenuBar
     private JMenuItem configMenuCommentSaveItem = null;
     private JMenuItem configMenuSaveItem        = null;
     private JMenuItem configMenuSaveAsItem      = null;
+    private JMenuItem configMenuDiffItem        = null;
     private JMenuItem configMenuImportItem      = null;
     private JMenuItem configMenuMigrateItem     = null;
     private JMenuItem configMenuConvertItem     = null;
@@ -93,6 +95,7 @@ public class MenuBar
 	configMenuSaveItem.setEnabled(true);
 	configMenuCommentSaveItem.setEnabled(true);
 	configMenuSaveAsItem.setEnabled(true);
+	configMenuDiffItem.setEnabled(true);
 	configMenuImportItem.setEnabled(true);
 	configMenuMigrateItem.setEnabled(true);
 	configMenuConvertItem.setEnabled(true);
@@ -108,6 +111,7 @@ public class MenuBar
 	configMenuSaveItem.setEnabled(false);
 	configMenuCommentSaveItem.setEnabled(false);
 	configMenuSaveAsItem.setEnabled(false);
+	//configMenuDiffItem.setEnabled(false);
 	configMenuImportItem.setEnabled(false);
 	configMenuMigrateItem.setEnabled(false);
 	configMenuConvertItem.setEnabled(false);
@@ -122,6 +126,7 @@ public class MenuBar
 	configMenuNewItem.setEnabled(true);
 	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(true);
 	configMenuOpenItem.setEnabled(true);
+	configMenuDiffItem.setEnabled(true);
 	dbMenuDisconnectItem.setEnabled(true);
     }
     
@@ -132,6 +137,7 @@ public class MenuBar
 	configMenuNewItem.setEnabled(false);
 	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(false);
 	configMenuOpenItem.setEnabled(false);
+	configMenuDiffItem.setEnabled(false);
 	dbMenuDisconnectItem.setEnabled(false);
     }
 
@@ -186,6 +192,10 @@ public class MenuBar
 	configMenuSaveAsItem.addActionListener(listener);
 	configMenu.add(configMenuSaveAsItem);
 	configMenu.addSeparator();
+	configMenuDiffItem = new JMenuItem(configMenuDiff,KeyEvent.VK_I);
+	configMenuDiffItem.setActionCommand(configMenuDiff);
+	configMenuDiffItem.addActionListener(listener);
+	configMenu.add(configMenuDiffItem);
 	configMenuImportItem = new JMenuItem(configMenuImport,KeyEvent.VK_I);
 	configMenuImportItem.setActionCommand(configMenuImport);
 	configMenuImportItem.addActionListener(listener);

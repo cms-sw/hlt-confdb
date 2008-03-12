@@ -25,6 +25,7 @@ public class CommandActionListener implements ActionListener
     private static final String cmdSave             = "Save";
     private static final String cmdCommentSave      = "Comment&Save";
     private static final String cmdSaveAs           = "Save As";
+    private static final String cmdDiff             = "Diff";
     private static final String cmdImport           = "Import";
     private static final String cmdMigrate          = "Migrate";
     private static final String cmdConvert          = "Convert";
@@ -59,6 +60,7 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdSave))             app.saveConfiguration(false);
 	if (command.equals(cmdCommentSave))      app.saveConfiguration(true);
 	if (command.equals(cmdSaveAs))           app.saveAsConfiguration();
+	if (command.equals(cmdDiff))             app.diffConfigurations();
 	if (command.equals(cmdImport))           app.importConfiguration();
 	if (command.equals(cmdMigrate))          app.migrateConfiguration();
 	if (command.equals(cmdConvert))          app.convertConfiguration();

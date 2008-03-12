@@ -370,6 +370,7 @@ public class ConfigurationTreeActions
 	    config.removeSequence(sequence);
 	    model.nodeRemoved(parent,index,sequence);
 	}
+	model.nodeStructureChanged(model.modulesNode());
 	model.updateLevel1Nodes();
     }
 

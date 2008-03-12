@@ -614,9 +614,21 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 							  true);
 	    popupSequences.add(addSequenceMenu);
 	    
-	    menuItem = new JMenuItem("Remove Module");
-	    menuItem.addActionListener(sequenceListener);
-	    popupSequences.add(menuItem);
+	    if (node instanceof ModuleReference) {
+		menuItem = new JMenuItem("Remove Module");
+		menuItem.addActionListener(sequenceListener);
+		popupPaths.add(menuItem);
+	    }
+	    if (node instanceof PathReference) {
+		menuItem = new JMenuItem("Remove Path");
+		menuItem.addActionListener(sequenceListener);
+		popupPaths.add(menuItem);
+	    }
+	    if (node instanceof SequenceReference) {
+		menuItem = new JMenuItem("Remove Sequence");
+		menuItem.addActionListener(sequenceListener);
+		popupPaths.add(menuItem);
+	    }
 	}
 
 	if (depth==2&&enableSort) {

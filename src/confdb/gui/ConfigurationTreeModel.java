@@ -119,7 +119,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	// PSets node
 	int psetCount = config.psetCount();
 	int unsetPSetCount = config.unsetTrackedPSetParameterCount();
-	psetsNode.delete(0,edsourcesNode.length());
+	psetsNode.delete(0,psetsNode.length());
 	psetsNode.append("<html><b>PSets</b> (");
 	psetsNode.append(psetCount);
 	psetsNode.append(")");
