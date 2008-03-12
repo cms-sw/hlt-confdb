@@ -1680,6 +1680,7 @@ class ConfdbOracleModuleLoader:
 		self.globalseqcount = self.globalseqcount + 1
 		localseqcount = 0
 
+
                 if(psettracked == 'true'):
                     psettracked = str(1)
                 elif(psettracked == 'false'):

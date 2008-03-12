@@ -780,7 +780,7 @@ class SourceParser:
 				print '\t\tFailed to find a default value for the tracked parameter: ' + paramtype + ' ' + paramname + ' in module ' + themodulename
 
 			    if(not paramname.lstrip().startswith('@')):
-                                if(paramname in self.psetsequences and paraminparamset == '' and paramtype != 'PSet' and paramtype != 'VPSet'):
+                                if(paramname in self.psetsequences and paraminparamset == '' and paramtype != 'PSet' and paramtype != 'VPSet' and paramtype != 'ParameterSet'):
                                     # Don't allow top-level parameters to have the same name as top-level PSets
                                     if(self.verbose > 0):
                                         print 'Warning: this parameter named ' + paramname + ' was already found as a PSet'
@@ -804,14 +804,24 @@ class SourceParser:
 					self.sequencenb = self.psetsequencenb
 					self.vecparamsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",0,self.sequencenb,self.psetsequencenb))	
 					self.sequencenb = self.sequencenb + 1
-				elif(paramtype.lstrip().rstrip() == 'PSet' or 
-				     paramtype.lstrip().rstrip() == 'ParameterSet'):
+				elif((paramtype.lstrip().rstrip() == 'PSet' or 
+				     paramtype.lstrip().rstrip() == 'ParameterSet') and
+                                     paraminparamset != ''):
 				    if(self.verbose > 0):
 					print "Appending to paramsetlist with no values"
 				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
 					self.sequencenb = self.psetsequencenb
 					self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",self.sequencenb,paraminparamset,self.psetsequencenb))
 					self.sequencenb = self.sequencenb + 1
+                                elif((paramtype.lstrip().rstrip() == 'PSet' or
+                                      paramtype.lstrip().rstrip() == 'ParameterSet') and
+                                     paraminparamset == ''):
+                                    if(self.verbose > 0):
+                                        print "Appending to paramsetlist with no values"
+                                    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,'None')):
+                                        self.sequencenb = self.psetsequencenb
+                                        self.paramsetmemberlist.append((paramname.lstrip().rstrip(),'','','',"true",self.sequencenb,'None',self.psetsequencenb))
+                                        self.sequencenb = self.sequencenb + 1
 				elif(isvector == False and paraminparamset == ''):
 				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None')):
 					self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),None,"true",self.sequencenb))	   
