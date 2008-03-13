@@ -111,7 +111,7 @@ def main(argv):
 		componentsuperid = myFixer.ConfdbLoadNewESSourceTemplate(cursor,currentcomponent,modcvstag,packageid)
 #	    else:
 #		print "Source exists"
-	elif(problemline.split()[0] == "EDource"):
+	elif(problemline.split()[0] == "EDSource"):
 	    currentcomponent = problemline.split()[1]
 	    componenttable = "EDSourceTemplates"
 
