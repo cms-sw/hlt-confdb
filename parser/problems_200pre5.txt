@@ -318,3 +318,15 @@ L3MuonProducer.Parameter L3TrajBuilderParameters PSet tracked
 
 Module EDAnalyzer L1GtTrigReport L1Trigger GlobalTriggerAnalyzer
 L1GtTrigReport.Parameter L1GtDaqInputTag InputTag gtDigis tracked
+
+
+
+Module EDProducer EgammaHLTIslandClusterProducer RecoEgamma EgammaHLTProducers
+EgammaHLTIslandClusterProducer.Parameter clustershapecollectionEB string "islandBarrelShape" tracked
+EgammaHLTIslandClusterProducer.Parameter clustershapecollectionEE string "islandEndcapShape" tracked
+EgammaHLTIslandClusterProducer.Parameter barrelShapeAssociation string "islandBarrelShapeAssoc" tracked
+EgammaHLTIslandClusterProducer.Parameter endcapShapeAssociation string "islandEndcapShapeAssoc" tracked
+
+Module EDProducer EgammaHLTHybridClusterProducer RecoEgamma EgammaHLTProducers
+EgammaHLTHybridClusterProducer.Parameter clustershapecollection string "" tracked
+EgammaHLTHybridClusterProducer.Parameter shapeAssociation string "hybridShapeAssoc" tracked
