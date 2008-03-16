@@ -10,6 +10,7 @@ PoolDBESSource.Parameter messagelevel uint32 0 untracked
 ESSource HcalHardcodeCalibrations CalibCalorimetry HcalPlugins
 HcalHardcodeCalibrations.Parameter toGet vstring { "GainWidths", "ChannelQuality", "ZSThresholds", "RespCorrs" } untracked
 
+
 ESSource SimpleJetCorrectionService JetMETCorrections Modules
 SimpleJetCorrectionService.Parameter scale double 1.0 tracked
 SimpleJetCorrectionService.Parameter label string "DummyCorrector" tracked
@@ -315,16 +316,3 @@ SISConeJetProducer.Parameter alias string "SISC5CaloJet" untracked
 
 Module EDProducer L3MuonProducer RecoMuon L3MuonProducer
 L3MuonProducer.Parameter L3TrajBuilderParameters PSet tracked
-
-
-
-
-Module EDProducer EgammaHLTIslandClusterProducer RecoEgamma EgammaHLTProducers
-EgammaHLTIslandClusterProducer.Parameter clustershapecollectionEB string "islandBarrelShape" tracked
-EgammaHLTIslandClusterProducer.Parameter clustershapecollectionEE string "islandEndcapShape" tracked
-EgammaHLTIslandClusterProducer.Parameter barrelShapeAssociation string "islandBarrelShapeAssoc" tracked
-EgammaHLTIslandClusterProducer.Parameter endcapShapeAssociation string "islandEndcapShapeAssoc" tracked
-
-Module EDProducer EgammaHLTHybridClusterProducer RecoEgamma EgammaHLTProducers
-EgammaHLTHybridClusterProducer.Parameter clustershapecollection string "" tracked
-EgammaHLTHybridClusterProducer.Parameter shapeAssociation string "hybridShapeAssoc" tracked
