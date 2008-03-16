@@ -1,6 +1,7 @@
 package confdb.db;
 
 import java.sql.Connection;
+import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
@@ -151,6 +152,8 @@ public class ConfDB
 
     private PreparedStatement psDeleteDirectory                   = null;
     private PreparedStatement psDeleteLock                        = null;
+
+    
 
     private CallableStatement csLoadTemplate                      = null;
     private CallableStatement csLoadTemplates                     = null;
@@ -1007,7 +1010,14 @@ public class ConfDB
 
 	    dbConnector.getConnection().commit();
 	}
+	catch (DatabaseException e) {
+	    try { dbConnector.getConnection().rollback(); }
+	    catch (SQLException e2) { e2.printStackTrace(); }
+	    throw e;
+	}
 	catch (SQLException e) {
+	    try {dbConnector.getConnection().rollback(); }
+	    catch (SQLException e2) { e2.printStackTrace(); }
 	    String errMsg =
 		"ConfDB::insertConfiguration(config="+config.dbId()+
 		",creator="+creator+",processName="+processName+
@@ -1516,7 +1526,7 @@ public class ConfDB
 	    int  pathId = pathHashMap.get(path.name());
 	    
 	    if (pathId>0) {
-
+		
 		for (int sequenceNb=0;sequenceNb<path.entryCount();sequenceNb++) {
 		    Reference r = path.entry(sequenceNb);
 		    if (r instanceof PathReference) {
@@ -1579,7 +1589,7 @@ public class ConfDB
 	    int      sequenceId = sequenceHashMap.get(sequence.name());
 	    
 	    if (sequenceId>0) {
-
+		
 		for (int sequenceNb=0;sequenceNb<sequence.entryCount();sequenceNb++) {
 		    Reference r = sequence.entry(sequenceNb);
 		    if (r instanceof SequenceReference) {
@@ -1591,10 +1601,12 @@ public class ConfDB
 			    psInsertSequenceSequenceAssoc.addBatch();
 			}
 			catch (SQLException e) {
+			    e.printStackTrace();
 			    String errMsg = 
 				"ConfDB::insertReferences(config="+config.toString()+
-				") failed (sequenceId="+sequenceId+
-				",childSequenceId="+childSequenceId+
+				") failed "+
+				"(sequenceId="+sequenceId+" ("+sequence.name()+"), "+
+				"childSequenceId="+childSequenceId+" ("+r.name()+")"+
 				",sequenceNb="+sequenceNb+").";
 			    throw new DatabaseException(errMsg,e);
 			}
@@ -1764,6 +1776,468 @@ public class ConfDB
 	return result;
     }
 
+    //
+    // REMOVE CONFIGURATION
+    //
+
+    /** delete a configuration from the DB */
+    public void removeConfiguration(int configId) throws DatabaseException
+    {
+	ResultSet rs = null;
+	try {
+	    dbConnector.getConnection().setAutoCommit(false);
+
+	    removeGlobalPSets(configId);
+	    removeEDSources(configId);
+	    removeESSources(configId);
+	    removeESModules(configId);
+	    removeServices(configId);
+	    removeModules(configId);
+	    removeSequences(configId);
+	    removePaths(configId);
+
+	    Statement stmt = dbConnector.getConnection().createStatement();
+	    stmt.executeUpdate("DELETE FROM Configurations "+
+			       "WHERE configId="+configId);
+
+	    dbConnector.getConnection().commit();
+	}
+	catch (Exception e) {
+	    e.printStackTrace();
+	    try { dbConnector.getConnection().rollback(); }
+	    catch (SQLException e2) { e2.printStackTrace(); }
+	    throw new DatabaseException("remove Configuration FAILED",e);
+	}
+	finally {
+	    try { dbConnector.getConnection().setAutoCommit(true); }
+	    catch (SQLException e) {}
+	    dbConnector.release(rs);
+	}
+    }
+    /** remove global psets of a configuration */
+    public void removeGlobalPSets(int configId) throws SQLException
+    {
+	ResultSet rs1 = null;
+	ResultSet rs3 = null;
+	try {
+	    Statement stmt = dbConnector.getConnection().createStatement();
+	    rs1 = stmt.executeQuery("SELECT ParameterSets.superId "+
+				    "FROM ParameterSets " +
+				    "JOIN ConfigurationParamSetAssoc " +
+				    "ON ConfigurationParamSetAssoc.psetId="+
+				    "ParameterSets.superId " +
+				    "WHERE ConfigurationParamSetAssoc.configId="+
+				    configId);
+	    while (rs1.next()) {
+		int psetId = rs1.getInt(1);
+		Statement stmt2 = dbConnector.getConnection().createStatement();
+		stmt2.executeUpdate("DELETE FROM ConfigurationParamSetAssoc "+
+				    "WHERE "+
+				    "configId="+configId+" AND psetId="+psetId);
+		Statement stmt3 = dbConnector.getConnection().createStatement();
+		rs3 = stmt3.executeQuery("SELECT psetId "+
+					 "FROM ConfigurationParamSetAssoc "+
+					 "WHERE psetId="+psetId);
+		if (!rs3.next()) {
+		    removeParameters(psetId);
+		    Statement stmt4 = dbConnector.getConnection().createStatement();
+		    stmt4.executeUpdate("DELETE FROM SuperIds "+
+					"WHERE superId="+psetId);
+		}
+	    }
+	}
+	finally {
+	    dbConnector.release(rs1);
+	    dbConnector.release(rs3);
+	}
+    }
+    /** remove EDSources */
+    public void removeEDSources(int configId) throws SQLException
+    {
+	ResultSet rs1 = null;
+	ResultSet rs3 = null;
+	try {
+	    Statement stmt = dbConnector.getConnection().createStatement();
+	    rs1 = stmt.executeQuery("SELECT superId FROM EDSources " +
+				    "JOIN ConfigurationEDSourceAssoc " +
+				    "ON ConfigurationEDSourceAssoc.edsourceId="+
+				    "EDSources.superId " +
+				    "WHERE ConfigurationEDSourceAssoc.configId="+
+				    configId);
+	    while (rs1.next()) {
+		int edsId = rs1.getInt(1);
+		Statement stmt2 = dbConnector.getConnection().createStatement();
+		stmt2.executeUpdate("DELETE FROM ConfigurationEDSourceAssoc "+
+				    "WHERE "+
+				    "configId="+configId+" AND edsourceId="+edsId);
+		Statement stmt3 = dbConnector.getConnection().createStatement();
+		rs3 = stmt3.executeQuery("SELECT edsourceId "+
+					 "FROM ConfigurationEDSourceAssoc "+
+					 "WHERE edsourceId="+edsId);
+		if (!rs3.next()) {
+		    removeParameters(edsId);
+		    Statement stmt4 = dbConnector.getConnection().createStatement();
+		    stmt4.executeUpdate("DELETE FROM SuperIds "+
+					"WHERE superId="+edsId);
+		}
+	    }
+	}
+	finally {
+	    dbConnector.release(rs1);
+	    dbConnector.release(rs3);
+	}
+    }
+    /** remove ESSources */
+    public void removeESSources(int configId) throws SQLException
+    {
+	ResultSet rs1 = null;
+	ResultSet rs3 = null;
+	try {
+	    Statement stmt = dbConnector.getConnection().createStatement();
+	    rs1 = stmt.executeQuery("SELECT superId FROM ESSources " +
+				    "JOIN ConfigurationESSourceAssoc " +
+				    "ON ConfigurationESSourceAssoc.essourceId="+
+				    "ESSources.superId " +
+				    "WHERE ConfigurationESSourceAssoc.configId="+
+				    configId);
+	    while (rs1.next()) {
+		int essId = rs1.getInt(1);
+		Statement stmt2 = dbConnector.getConnection().createStatement();
+		stmt2.executeUpdate("DELETE FROM ConfigurationESSourceAssoc "+
+				    "WHERE "+
+				    "configId="+configId+" AND essourceId="+essId);
+		Statement stmt3 = dbConnector.getConnection().createStatement();
+		rs3 = stmt3.executeQuery("SELECT essourceId "+
+					 "FROM ConfigurationESSourceAssoc "+
+					 "WHERE essourceId="+essId);
+		if (!rs3.next()) {
+		    removeParameters(essId);
+		    Statement stmt4 = dbConnector.getConnection().createStatement();
+		    stmt4.executeUpdate("DELETE FROM SuperIds "+
+					"WHERE superId="+essId);
+		}
+	    }
+	}
+	finally {
+	    dbConnector.release(rs1);
+	    dbConnector.release(rs3);
+	}
+    }
+    /** remove ESModules */
+    public void removeESModules(int configId) throws SQLException
+    {
+	ResultSet rs1 = null;
+	ResultSet rs3 = null;
+	try {
+	    Statement stmt = dbConnector.getConnection().createStatement();
+	    rs1 = stmt.executeQuery("SELECT superId FROM ESModules " +
+				    "JOIN ConfigurationESModuleAssoc " +
+				    "ON ConfigurationESModuleAssoc.esmoduleId="+
+				    "ESModules.superId " +
+				    "WHERE ConfigurationESModuleAssoc.configId="+
+				    configId);
+	    while (rs1.next()) {
+		int esmId = rs1.getInt(1);
+		Statement stmt2 = dbConnector.getConnection().createStatement();
+		stmt2.executeUpdate("DELETE FROM ConfigurationESModuleAssoc "+
+				    "WHERE "+
+				    "configId="+configId+" AND esmoduleId="+esmId);
+		Statement stmt3 = dbConnector.getConnection().createStatement();
+		rs3 = stmt3.executeQuery("SELECT esmoduleId "+
+					 "FROM ConfigurationESModuleAssoc "+
+					 "WHERE esmoduleId="+esmId);
+		if (!rs3.next()) {
+		    removeParameters(esmId);
+		    Statement stmt4 = dbConnector.getConnection().createStatement();
+		    stmt4.executeUpdate("DELETE FROM SuperIds "+
+					"WHERE superId="+esmId);
+		}
+	    }
+	}
+	finally {
+	    dbConnector.release(rs1);
+	    dbConnector.release(rs3);
+	}
+    }
+    /** remove Services */
+    public void removeServices(int configId) throws SQLException
+    {
+	ResultSet rs1 = null;
+	ResultSet rs3 = null;
+	try {
+	    Statement stmt = dbConnector.getConnection().createStatement();
+	    rs1 = stmt.executeQuery("SELECT superId FROM Services " +
+				    "JOIN ConfigurationServiceAssoc " +
+				    "ON ConfigurationServiceAssoc.serviceId="+
+				    "Services.superId " +
+				    "WHERE ConfigurationServiceAssoc.configId="+
+				    configId);
+	    while (rs1.next()) {
+		int svcId = rs1.getInt(1);
+		Statement stmt2 = dbConnector.getConnection().createStatement();
+		stmt2.executeUpdate("DELETE FROM ConfigurationServiceAssoc "+
+				    "WHERE "+
+				    "configId="+configId+" AND serviceId="+svcId);
+		Statement stmt3 = dbConnector.getConnection().createStatement();
+		rs3 = stmt3.executeQuery("SELECT serviceId "+
+					 "FROM ConfigurationServiceAssoc "+
+					 "WHERE serviceId="+svcId);
+		if (!rs3.next()) {
+		    removeParameters(svcId);
+		    Statement stmt4 = dbConnector.getConnection().createStatement();
+		    stmt4.executeUpdate("DELETE FROM SuperIds "+
+					"WHERE superId="+svcId);
+		}
+	    }
+	}
+	finally {
+	    dbConnector.release(rs1);
+	    dbConnector.release(rs3);
+	}
+    }
+    /** remove Modules */
+    public void removeModules(int configId) throws SQLException
+    {
+	ResultSet rs1 = null;
+	ResultSet rs6 = null;
+	try {
+	    // modules in sequences
+	    Statement stmt1 = dbConnector.getConnection().createStatement();
+	    rs1 = stmt1.executeQuery("SELECT SequenceModuleAssoc.sequenceId,"+
+				     "SequenceModuleAssoc.moduleId "+
+				     "FROM SequenceModuleAssoc " +
+				     "JOIN ConfigurationSequenceAssoc " +
+				     "ON ConfigurationSequenceAssoc.sequenceId="+
+				     "SequenceModuleAssoc.sequenceId " +
+				     "WHERE ConfigurationSequenceAssoc.configId="+
+				     configId);
+	    while (rs1.next()) {
+		int seqId = rs1.getInt(1);
+		int modId = rs1.getInt(2);
+		Statement stmt2 = dbConnector.getConnection().createStatement();
+		stmt2.executeUpdate("DELETE FROM SequenceModuleAssoc "+
+				    "WHERE "+
+				    "sequenceId="+seqId+" AND moduleId="+modId);
+
+		ResultSet rs3 = null;
+		ResultSet rs4 = null;
+		try {
+		    Statement stmt3 = dbConnector.getConnection().createStatement();
+		    rs3 = stmt3.executeQuery("SELECT moduleId "+
+					     "FROM SequenceModuleAssoc "+
+					     "WHERE moduleId="+modId);
+		    Statement stmt4 = dbConnector.getConnection().createStatement();
+		    rs4 = stmt4.executeQuery("SELECT moduleId "+
+					     "FROM PathModuleAssoc "+
+					     "WHERE moduleId="+modId);
+		    if (!rs3.next()&&!rs4.next()) {
+			removeParameters(modId);
+			Statement stmt5 = dbConnector.getConnection().createStatement();
+			stmt5.executeUpdate("DELETE FROM SuperIds "+
+					    "WHERE superId="+modId);
+		    }
+		}
+		finally {
+		    dbConnector.release(rs3);
+		    dbConnector.release(rs4);
+		}
+	    }
+	    // modules in paths
+	    Statement stmt6 = dbConnector.getConnection().createStatement();
+	    rs6 = stmt6.executeQuery("SELECT PathModuleAssoc.pathId,"+
+				     "PathModuleAssoc.moduleId "+
+				     "FROM PathModuleAssoc " +
+				     "JOIN ConfigurationPathAssoc " +
+				     "ON PathModuleAssoc.pathId="+
+				     "ConfigurationPathAssoc.pathId " +
+				     "WHERE ConfigurationPathAssoc.configId="+
+				     configId);
+	    while (rs6.next()) {
+		int pathId = rs6.getInt(1);
+		int modId  = rs6.getInt(2);
+		Statement stmt7 = dbConnector.getConnection().createStatement();
+		stmt7.executeUpdate("DELETE FROM PathModuleAssoc "+
+				    "WHERE "+
+				    "pathId="+pathId+" AND moduleId="+modId);
+		ResultSet rs8 = null;
+		ResultSet rs9 = null;
+		try {
+		    Statement stmt8 = dbConnector.getConnection().createStatement();
+		    rs8 = stmt8.executeQuery("SELECT moduleId "+
+					     "FROM SequenceModuleAssoc "+
+					     "WHERE moduleId="+modId);
+		    Statement stmt9 = dbConnector.getConnection().createStatement();
+		    rs9 = stmt9.executeQuery("SELECT moduleId "+
+					     "FROM PathModuleAssoc "+
+					     "WHERE moduleId="+modId);
+		    if (!rs8.next()&&!rs9.next()) {
+			removeParameters(modId);
+			Statement stmt10=dbConnector.getConnection().createStatement();
+			stmt10.executeUpdate("DELETE FROM SuperIds "+
+					     "WHERE superId="+modId);
+		    }
+		}
+		finally {
+		    dbConnector.release(rs8);
+		    dbConnector.release(rs9);
+		}
+	    }
+	}
+	finally {
+	    dbConnector.release(rs1);
+	    dbConnector.release(rs6);
+	}
+    }
+    /** remove Sequences */
+    public void removeSequences(int configId) throws SQLException
+    {
+	ResultSet rs1 = null;
+	ResultSet rs3 = null;
+	try {
+	    Statement stmt = dbConnector.getConnection().createStatement();
+	    rs1 = stmt.executeQuery("SELECT Sequences.sequenceId FROM Sequences " +
+				    "JOIN ConfigurationSequenceAssoc " +
+				    "ON ConfigurationSequenceAssoc.sequenceId="+
+				    "Sequences.sequenceId " +
+				    "WHERE ConfigurationSequenceAssoc.configId="+
+				    configId);
+	    while (rs1.next()) {
+		int seqId = rs1.getInt(1);
+		Statement stmt2 = dbConnector.getConnection().createStatement();
+		stmt2.executeUpdate("DELETE FROM ConfigurationSequenceAssoc "+
+				    "WHERE "+
+				    "configId="+configId+" AND sequenceId="+seqId);
+		Statement stmt3 = dbConnector.getConnection().createStatement();
+		rs3 = stmt3.executeQuery("SELECT sequenceId "+
+					 "FROM ConfigurationSequenceAssoc "+
+					 "WHERE sequenceId="+seqId);
+		if (!rs3.next()) {
+		    Statement stmt4 = dbConnector.getConnection().createStatement();
+		    stmt4.executeUpdate("DELETE FROM SequenceInSequenceAssoc "+
+					"WHERE parentSequenceId="+seqId);
+		    Statement stmt5 = dbConnector.getConnection().createStatement();
+		    stmt5.executeUpdate("DELETE FROM SequenceInSequenceAssoc "+
+					"WHERE childSequenceId="+seqId);
+		    Statement stmt6 = dbConnector.getConnection().createStatement();
+		    stmt6.executeUpdate("DELETE FROM PathSequenceAssoc "+
+					"WHERE sequenceId="+seqId);
+		    Statement stmt7 = dbConnector.getConnection().createStatement();
+		    stmt4.executeUpdate("DELETE FROM Sequences "+
+					"WHERE sequenceId="+seqId);
+		}
+	    }
+	}
+	finally {
+	    dbConnector.release(rs1);
+	    dbConnector.release(rs3);
+	}
+    }
+    /** remove Paths */
+    public void removePaths(int configId) throws SQLException
+    {
+	ResultSet rs1 = null;
+	ResultSet rs3 = null;
+	try {
+	    Statement stmt = dbConnector.getConnection().createStatement();
+	    rs1 = stmt.executeQuery("SELECT Paths.pathId FROM Paths " +
+				    "JOIN ConfigurationPathAssoc " +
+				    "ON ConfigurationPathAssoc.pathId="+
+				    "Paths.pathId " +
+				    "WHERE ConfigurationPathAssoc.configId="+
+				    configId);
+	    while (rs1.next()) {
+		int pathId = rs1.getInt(1);
+		Statement stmt2 = dbConnector.getConnection().createStatement();
+		stmt2.executeUpdate("DELETE FROM ConfigurationPathAssoc "+
+				    "WHERE "+
+				    "configId="+configId+" AND pathId="+pathId);
+		Statement stmt3 = dbConnector.getConnection().createStatement();
+		rs3 = stmt3.executeQuery("SELECT pathId "+
+					 "FROM ConfigurationPathAssoc "+
+					 "WHERE pathId="+pathId);
+		if (!rs3.next()) {
+		    Statement stmt4 = dbConnector.getConnection().createStatement();
+		    stmt4.executeUpdate("DELETE FROM PathInPathAssoc "+
+					"WHERE parentPathId="+pathId);
+		    Statement stmt5 = dbConnector.getConnection().createStatement();
+		    stmt5.executeUpdate("DELETE FROM PathInPathAssoc "+
+					"WHERE childPathId="+pathId);
+		    Statement stmt6 = dbConnector.getConnection().createStatement();
+		    stmt6.executeUpdate("DELETE FROM PathSequenceAssoc "+
+					"WHERE pathId="+pathId);
+		    Statement stmt7 = dbConnector.getConnection().createStatement();
+		    stmt4.executeUpdate("DELETE FROM Paths WHERE pathId="+pathId);
+		}
+	    }
+	}
+	finally {
+	    dbConnector.release(rs1);
+	    dbConnector.release(rs3);
+	}
+    }
+    /** remove Parameters */
+    public void removeParameters(int parentId) throws SQLException
+    {
+	ResultSet rsParams = null;
+	ResultSet rsPSets  = null;
+	ResultSet rsVPSets = null;
+	try {
+	    // parameters
+	    Statement stmt1 = dbConnector.getConnection().createStatement();
+	    rsParams = stmt1.executeQuery("SELECT paramId "+
+					  "FROM SuperIdParameterAssoc "+
+					  "WHERE superId="+parentId);
+	    while (rsParams.next()) {
+		int paramId = rsParams.getInt(1);
+		Statement stmt2 = dbConnector.getConnection().createStatement();
+		stmt2.executeUpdate("DELETE FROM SuperIdParameterAssoc "+
+				    "WHERE "+
+				    "superId="+parentId+" AND paramId="+paramId);
+		Statement stmt3 = dbConnector.getConnection().createStatement();
+		stmt3.executeUpdate("DELETE FROM Parameters "+
+				    "WHERE paramId="+paramId);
+	    }
+
+	    // psets
+	    Statement stmt4 = dbConnector.getConnection().createStatement();
+	    rsPSets = stmt4.executeQuery("SELECT psetId "+
+					 "FROM SuperIdParamSetAssoc "+
+					 "WHERE superId="+parentId);
+	    while (rsPSets.next()) {
+		int psetId = rsPSets.getInt(1);
+		Statement stmt5 = dbConnector.getConnection().createStatement();
+		removeParameters(psetId);
+		stmt5.executeUpdate("DELETE FROM SuperIdParamSetAssoc "+
+				    "WHERE "+
+				    "superId="+parentId+" AND psetId="+psetId);
+		Statement stmt6 = dbConnector.getConnection().createStatement();
+		stmt6.executeUpdate("DELETE FROM SuperIds WHERE superId="+psetId);
+	    }
+
+	    // vpsets
+	    Statement stmt7 = dbConnector.getConnection().createStatement();
+	    rsVPSets = stmt7.executeQuery("SELECT vpsetId "+
+					  "FROM SuperIdVecParamSetAssoc "+
+					  "WHERE superId="+parentId);
+	    while (rsVPSets.next()) {
+		int vpsetId = rsVPSets.getInt(1);
+		Statement stmt8 = dbConnector.getConnection().createStatement();
+		removeParameters(vpsetId);
+		stmt8.executeUpdate("DELETE FROM SuperIdVecParamSetAssoc "+
+				    "WHERE "+
+				    "superId="+parentId+" AND vpsetId="+vpsetId);
+		Statement stmt9 = dbConnector.getConnection().createStatement();
+		stmt9.executeUpdate("DELETE FROM SuperIds WHERE superId="+vpsetId);
+	    }
+	}
+	finally {
+	    dbConnector.release(rsParams);
+	    dbConnector.release(rsPSets);
+	    dbConnector.release(rsVPSets);
+	}
+    }
+    
+    
 
     //
     // private member functions
@@ -3214,6 +3688,7 @@ public class ConfDB
 	boolean dopackages  =       false;
 	boolean dolist      =       false;
 	boolean doversions  =       false;
+	boolean doremove    =       false;
 	String  list        =          "";
 
 	String  dbType      =     "mysql";
@@ -3235,6 +3710,7 @@ public class ConfDB
 		configName = args[++iarg];
 	    }
 	    else if (arg.equals("--packages")) { dopackages = true; }
+	    else if (arg.equals("--remove")) { doremove = true; }
 	    else if (arg.equals("--list")) {
 		if (dopackages) {
 		    System.err.println("ERROR: can't specify " +
@@ -3281,7 +3757,7 @@ public class ConfDB
 	    System.exit(0);
 	}
 
-	if (!dopackages&&!dolist&&!doversions) System.exit(0);
+	if (!dopackages&&!dolist&&!doversions&&!doremove) System.exit(0);
 	
 	String dbUrl = "";
 	if (dbType.equalsIgnoreCase("mysql")) {
@@ -3337,6 +3813,18 @@ public class ConfDB
 					   version.creator());
 			if (version.comment().length()>0)
 			    System.out.println("  -> " + version.comment());
+		    }
+		}
+		else if (doremove) {
+		    ConfigInfo info = database.getConfigInfo(id);
+		    System.out.println("REMOVE " + info.parentDir().name() + "/" +
+				       info.name()+ "/V" + info.version());
+		    try {
+			database.removeConfiguration(info.dbId());
+		    }
+		    catch (DatabaseException e2) {
+			System.out.println("REMOVE FAILED!");
+			e2.printStackTrace();
 		    }
 		}
 	    }

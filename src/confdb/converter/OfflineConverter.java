@@ -187,9 +187,9 @@ public class OfflineConverter extends ConverterBase
 	    System.exit(0);
 	}
 	
-	System.out.println("dbURl  = " + dbUrl);
-	System.out.println("dbUser = " + dbUser);
-	System.out.println("dbPwrd = " + dbPwrd);
+	System.err.println("dbURl  = " + dbUrl);
+	System.err.println("dbUser = " + dbUser);
+	System.err.println("dbPwrd = " + dbPwrd);
 
 	try {
 	    ModifierInstructions modifications = new ModifierInstructions();

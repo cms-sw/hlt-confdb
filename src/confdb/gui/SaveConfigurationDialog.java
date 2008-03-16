@@ -53,8 +53,6 @@ public class SaveConfigurationDialog extends JDialog
     /** action commands */
     private static final String OK            = new String("OK");
     private static final String CANCEL        = new String("Cancel");
-    private static final String ADD_DIRECTORY = new String("Add Directory");
-    private static final String RMV_DIRECTORY = new String("Remove Directory");
     
     
     //

@@ -407,7 +407,7 @@ CREATE TABLE SequenceInSequenceAssoc
 	childSequenceId	 NUMBER		NOT NULL,
 	sequenceNb	 NUMBER(3)	NOT NULL,
 	operator	 NUMBER(3)	DEFAULT '0' NOT NULL,
-	UNIQUE(parentSequenceId,SequenceNb),
+	UNIQUE(parentSequenceId,sequenceNb),
 	PRIMARY KEY(parentSequenceId,childSequenceId),
 	FOREIGN KEY(parentSequenceId) REFERENCES Sequences(sequenceId),
 	FOREIGN KEY(childSequenceId)  REFERENCES Sequences(sequenceId)

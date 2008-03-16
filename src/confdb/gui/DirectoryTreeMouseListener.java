@@ -64,7 +64,7 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
     //
     // member functions
     //
-
+    
     /** MouseAdapter: mousePressed() */
     public void mousePressed(MouseEvent e) { maybeShowPopup(e); }
     
@@ -101,15 +101,19 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
 	    popup.show(e.getComponent(),e.getX(),e.getY());
 	}
     }
-
+    
     /** ActionListener: actionPerformed() */
     public void actionPerformed(ActionEvent e)
     {
+	System.out.println("actionPerformed()");
+	
 	String    actionCmd = e.getActionCommand();
 	TreePath  treePath  = directoryTree.getSelectionPath();
 	Directory selDir    = (Directory)treePath.getLastPathComponent();
+
 	
 	if (actionCmd.equals(ADD_DIRECTORY)) {
+	    System.out.println("ADD_DIRECTORY");
 	    Directory newDir    = new Directory(-1,"<ENTER DIR NAME>","",selDir);
 	    
 	    selDir.addChildDir(newDir);
@@ -117,6 +121,8 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
 	    
 	    directoryTree.expandPath(treePath);
 	    TreePath newTreePath = treePath.pathByAddingChild(newDir);
+	    
+	    System.out.println("newTreePath = " + newTreePath);
 	    
 	    directoryTree.expandPath(newTreePath);
 	    directoryTree.scrollPathToVisible(newTreePath);
@@ -134,13 +140,20 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
     /** TreeModelListener: treeNodesChanged() */
     public void treeNodesChanged(TreeModelEvent e)
     {
-	TreePath  treePath  = e.getTreePath(); if (treePath==null) return;
+	System.out.println("treeNodesChanged()");
+	TreePath  treePath  = e.getTreePath();
+	System.out.println("treePath = " + treePath);
+	if (treePath==null) return;
 	int       index     = e.getChildIndices()[0];
 	Directory parentDir = (Directory)treePath.getLastPathComponent();
 	Directory childDir  = parentDir.childDir(index);
 	
 	try {
+	    System.out.println("parentDir = " + parentDir.name());
+	    System.out.println("name = " + childDir.name());
 	    database.insertDirectory(childDir);
+	    System.out.println("Directory '" + childDir.name() + "' INSERTed!");
+	    System.out.println("dbId: " + childDir.dbId());
 	}
 	catch (DatabaseException ex) {
 	    parentDir.removeChildDir(childDir);
@@ -148,6 +161,7 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
 					   parentDir.childDirCount(),
 					   childDir);
 	    System.err.println(ex.getMessage());
+	    ex.printStackTrace();
 	}
 	
 	// want to fire a tree selection event here

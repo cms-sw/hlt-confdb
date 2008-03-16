@@ -272,7 +272,7 @@ CREATE TABLE EDSources
 	superId      	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	templateId     	BIGINT UNSIGNED   NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId)    REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(templateId) REFERENCES EDSourceTemplates(superId)
 ) ENGINE=INNODB;
 
@@ -313,7 +313,7 @@ CREATE TABLE ESSources
 	templateId     	BIGINT UNSIGNED   NOT NULL,
 	name       	VARCHAR(128)	  NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId)    REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(templateId) REFERENCES ESSourceTemplates(superId)
 ) ENGINE=INNODB;
 
@@ -354,7 +354,7 @@ CREATE TABLE ESModules
 	templateId     	BIGINT UNSIGNED   NOT NULL,
 	name       	VARCHAR(128)	  NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId)    REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(templateId) REFERENCES ESModuleTemplates(superId)
 ) ENGINE=INNODB;
 
@@ -406,7 +406,7 @@ CREATE TABLE Modules
 	templateId  	BIGINT UNSIGNED   NOT NULL,
 	name       	VARCHAR(128)      NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId) REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(templateId) REFERENCES ModuleTemplates(superId)
 ) ENGINE=INNODB;
 
@@ -448,7 +448,7 @@ CREATE TABLE ParameterSets
 	name		VARCHAR(128)	  NOT NULL,
 	tracked         BOOLEAN           NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
+	FOREIGN KEY(superId) REFERENCES SuperIds(superId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 --TABLE 'VecParameterSets'
@@ -458,7 +458,7 @@ CREATE TABLE VecParameterSets
 	name		VARCHAR(128)	  NOT NULL,
 	tracked         BOOLEAN           NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
+	FOREIGN KEY(superId) REFERENCES SuperIds(superId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 -- TABLE 'ConfigurationParamSetAssoc'
@@ -515,7 +515,7 @@ CREATE TABLE Parameters
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT UNIQUE,
 	paramTypeId    	BIGINT UNSIGNED   NOT NULL,
-	name       	VARCHAR(128)       NOT NULL,
+	name       	VARCHAR(128)      NOT NULL,
 	tracked         BOOLEAN           NOT NULL,
 	PRIMARY KEY(paramId),
 	FOREIGN KEY(paramTypeId) REFERENCES ParameterTypes(paramTypeId)
@@ -539,7 +539,7 @@ CREATE TABLE Int32ParamValues
 	paramId    	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	value      	BIGINT            NOT NULL,
 	hex		BOOLEAN           NOT NULL DEFAULT false,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 -- TABLE 'VInt32ParamValues'
@@ -550,7 +550,7 @@ CREATE TABLE VInt32ParamValues
 	value      	BIGINT            NOT NULL,
 	hex		BOOLEAN		  NOT NULL DEFAULT false,
 	UNIQUE(paramId,sequenceNb),
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 -- TABLE 'UInt32ParamValues'
@@ -559,7 +559,7 @@ CREATE TABLE UInt32ParamValues
 	paramId    	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	value      	BIGINT UNSIGNED   NOT NULL,
         hex		BOOLEAN		  NOT NULL DEFAULT false,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 -- TABLE 'VUInt32ParamValues'
@@ -570,7 +570,7 @@ CREATE TABLE VUInt32ParamValues
 	value      	BIGINT UNSIGNED   NOT NULL,
 	hex		BOOLEAN		  NOT NULL DEFAULT false,
 	UNIQUE(paramId,sequenceNb),
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 -- TABLE 'BoolParamValues'
@@ -578,7 +578,7 @@ CREATE TABLE BoolParamValues
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	value      	BOOLEAN           NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 -- TABLE 'DoubleParamValues'
@@ -586,7 +586,7 @@ CREATE TABLE DoubleParamValues
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	value      	REAL              NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 -- TABLE 'VDoubleParamValues'
@@ -596,7 +596,7 @@ CREATE TABLE VDoubleParamValues
 	sequenceNb 	SMALLINT UNSIGNED NOT NULL,
 	value      	REAL              NOT NULL,
 	UNIQUE(paramId,sequenceNb),
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 -- TABLE 'StringParamValues'
@@ -604,7 +604,7 @@ CREATE TABLE StringParamValues
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	value      	VARCHAR(512)     NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 -- TABLE 'VStringParamValues'
@@ -614,7 +614,7 @@ CREATE TABLE VStringParamValues
 	sequenceNb 	SMALLINT UNSIGNED NOT NULL,
 	value      	VARCHAR(512)     NOT NULL,
 	UNIQUE(paramId,sequenceNb),
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 -- TABLE 'InputTagParamValues'
@@ -622,7 +622,7 @@ CREATE TABLE InputTagParamValues
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL,
 	value      	VARCHAR(128)      NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 -- TABLE 'VInputTagParamValues'
@@ -631,7 +631,7 @@ CREATE TABLE VInputTagParamValues
 	paramId    	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb 	SMALLINT UNSIGNED NOT NULL,
 	value      	VARCHAR(128)      NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 -- TABLE 'EventIDParamValues'
@@ -639,7 +639,7 @@ CREATE TABLE EventIDParamValues
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL,
 	value      	VARCHAR(32)       NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 -- TABLE 'VEventIDParamValues'
@@ -648,7 +648,7 @@ CREATE TABLE VEventIDParamValues
 	paramId    	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb 	SMALLINT UNSIGNED NOT NULL,
 	value      	VARCHAR(32)       NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 -- TABLE 'FileInPathParamValues'
@@ -656,7 +656,7 @@ CREATE TABLE FileInPathParamValues
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL,
 	value      	VARCHAR(512)      NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 

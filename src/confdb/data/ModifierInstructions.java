@@ -913,10 +913,11 @@ public class ModifierInstructions
     /** insert/replace PoolOutputModule */
     public void insertPoolOutputModule(String fileName)
     {
+	if (fileName.split(":").length==1) fileName = "file:"+fileName;
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
-	params.add(new StringParameter("fileName",fileName,false,true));
-	params.add(new PSetParameter("SelectEvents","",false,true));
-	params.add(new VStringParameter("outputCommands","",false,true));
+	params.add(new StringParameter("fileName",fileName,false,false));
+	params.add(new PSetParameter("SelectEvents","",false,false));
+	params.add(new VStringParameter("outputCommands","",false,false));
 	outputT = new ModuleTemplate("PoolOutputModule",
 				     "UNKNOWN",-1,params,"OutputModule");
     }

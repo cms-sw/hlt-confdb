@@ -617,17 +617,17 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    if (node instanceof ModuleReference) {
 		menuItem = new JMenuItem("Remove Module");
 		menuItem.addActionListener(sequenceListener);
-		popupPaths.add(menuItem);
+		popupSequences.add(menuItem);
 	    }
 	    if (node instanceof PathReference) {
 		menuItem = new JMenuItem("Remove Path");
 		menuItem.addActionListener(sequenceListener);
-		popupPaths.add(menuItem);
+		popupSequences.add(menuItem);
 	    }
 	    if (node instanceof SequenceReference) {
 		menuItem = new JMenuItem("Remove Sequence");
 		menuItem.addActionListener(sequenceListener);
-		popupPaths.add(menuItem);
+		popupSequences.add(menuItem);
 	    }
 	}
 
