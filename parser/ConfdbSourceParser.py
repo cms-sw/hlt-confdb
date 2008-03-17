@@ -211,13 +211,17 @@ class SourceParser:
 					 and readingvpset == False and itsparamset == ''):
 					paramval = (line.split('=')[1]).strip('\n')
 
-                                        if(self.verbose > 1):
-                                            print '\t\t\t' + paramtype + '\t' + paramname + ' = ' + paramval
+                                        if len(line.split('=')[1]) == 0:
+                                            print 'Warning: Parameter appears in cfi file with no default!!!'
+                                            foundparam = False
+                                        else:
+                                            if(self.verbose > 1):
+                                                print '\t\t\t' + paramtype + '\t' + paramname + ' = ' + paramval
 					    
-					if((not paramname.lstrip().startswith('@')) 
-					   and ((self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None')))):
-					   self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),paramtracked,self.sequencenb))
-					   self.sequencenb = self.sequencenb + 1
+                                            if((not paramname.lstrip().startswith('@')) 
+                                               and ((self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None')))):
+                                                self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),paramtracked,self.sequencenb))
+                                                self.sequencenb = self.sequencenb + 1
 
 				# Fill vector values - account for vectors spread over several lines
 				if(startedvector == True):

@@ -1331,7 +1331,7 @@ class ConfdbOracleModuleLoader:
 
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,paramname,oldsuperid)
-		
+
 		# A previous version of this parameter exists. See if its 
 		# value has changed.
 		if(oldparamid):
@@ -1343,7 +1343,8 @@ class ConfdbOracleModuleLoader:
 		    
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or
-		       (oldparamval == None and paramval == None)):
+		       (oldparamval == None and paramval == None) or
+                       (oldparamval == None and paramval == '')):
 			neednewparam = False
 
 			# Now check if the tracked/untracked status has changed
@@ -1358,7 +1359,7 @@ class ConfdbOracleModuleLoader:
 		    # entry and attach it to the new template.
 		    else:
 			neednewparam = True
-		else:
+                else:
 		    neednewparam = True
 
 		# We need a new entry for this parameter, either because its 
@@ -1376,8 +1377,10 @@ class ConfdbOracleModuleLoader:
 			    print "No default parameter value found"
 		    else:
 			if(paramval.find("'") != -1):
+                            print "INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")"
 			    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
 			else:
+                            print "INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")"
 			    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
 		else:
 		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
