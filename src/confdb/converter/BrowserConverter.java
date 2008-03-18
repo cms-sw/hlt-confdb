@@ -94,7 +94,7 @@ public class BrowserConverter extends OfflineConverter
 		map = new HashMap<Integer,BrowserConverter>();
 	}
 	
-    public String[] listDBs()
+    static public String[] listDBs()
     {
     	ConfDBSetups dbs = new ConfDBSetups();
     	ArrayList<String> list = new ArrayList<String>();
