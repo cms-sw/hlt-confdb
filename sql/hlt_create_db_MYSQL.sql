@@ -406,7 +406,7 @@ CREATE TABLE Modules
 	templateId  	BIGINT UNSIGNED   NOT NULL,
 	name       	VARCHAR(128)      NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId) ON DELETE CASCADE,
+	FOREIGN KEY(superId)    REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(templateId) REFERENCES ModuleTemplates(superId)
 ) ENGINE=INNODB;
 

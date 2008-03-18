@@ -446,7 +446,7 @@ CREATE TABLE Services
 	superId      	NUMBER,
 	templateId     	NUMBER		NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId)    REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(templateId) REFERENCES ServiceTemplates(superId)
 );
 
@@ -488,7 +488,7 @@ CREATE TABLE EDSourceTemplates
 	cvstag       	VARCHAR2(32)	NOT NULL,
 	packageId	NUMBER		NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 );
 
@@ -557,7 +557,7 @@ CREATE TABLE ESSources
 	templateId     	NUMBER		NOT NULL,
 	name       	VARCHAR2(128)	NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId)    REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(templateId) REFERENCES ESSourceTemplates(superId)
 );
 
@@ -614,7 +614,7 @@ CREATE TABLE ESModules
 	templateId     	NUMBER		NOT NULL,
 	name       	VARCHAR2(128)	NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId)    REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(templateId) REFERENCES ESModuleTemplates(superId)
 );
 
@@ -687,7 +687,7 @@ CREATE TABLE Modules
 	templateId  	NUMBER		NOT NULL,
 	name       	VARCHAR2(128)	NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId)    REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(templateId) REFERENCES ModuleTemplates(superId)
 );
 
@@ -748,7 +748,7 @@ CREATE TABLE ParameterSets
 	name		VARCHAR2(128),
 	tracked         NUMBER(1)       NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
+	FOREIGN KEY(superId) REFERENCES SuperIds(superId) ON DELETE CASCADE
 );
 
 
@@ -761,7 +761,7 @@ CREATE TABLE VecParameterSets
 	name		VARCHAR2(128),
 	tracked         NUMBER(1)       NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId) REFERENCES SuperIds(superId)
+	FOREIGN KEY(superId) REFERENCES SuperIds(superId) ON DELETE CASCADE
 );
 
 
@@ -889,7 +889,7 @@ CREATE TABLE Int32ParamValues
 	paramId    	NUMBER		NOT NULL,
 	value      	NUMBER		NOT NULL,
 	hex		NUMBER(1)       DEFAULT '0' NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
 -- INDEX Int32ValuesParamId_idx
@@ -906,7 +906,7 @@ CREATE TABLE VInt32ParamValues
 	value      	NUMBER		NOT NULL,
 	hex		NUMBER(1)       DEFAULT '0' NOT NULL,
 	UNIQUE(paramId,sequenceNb),
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
 -- INDEX VInt32ValuesParamId_idx
@@ -921,7 +921,7 @@ CREATE TABLE UInt32ParamValues
 	paramId    	NUMBER		NOT NULL,
 	value      	NUMBER		NOT NULL,
 	hex		NUMBER(1)       DEFAULT '0' NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
 -- INDEX UInt32ValuesParamId_idx
@@ -938,7 +938,7 @@ CREATE TABLE VUInt32ParamValues
 	value      	NUMBER		NOT NULL,
 	hex		NUMBER(1)       DEFAULT '0' NOT NULL,
 	UNIQUE(paramId,sequenceNb),
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
 -- INDEX VUInt32ValuesParamId_idx
@@ -952,7 +952,7 @@ CREATE TABLE BoolParamValues
 (
 	paramId    	NUMBER		NOT NULL,
 	value      	NUMBER(1)	NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
 -- INDEX BoolValuesParamId_idx
@@ -966,7 +966,7 @@ CREATE TABLE DoubleParamValues
 (
 	paramId    	NUMBER		NOT NULL,
 	value      	FLOAT		NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
 -- INDEX DoubleValuesParamId_idx
@@ -982,7 +982,7 @@ CREATE TABLE VDoubleParamValues
 	sequenceNb 	NUMBER(6)	NOT NULL,
 	value      	FLOAT 		NOT NULL,
 	UNIQUE(paramId,sequenceNb),
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
 -- INDEX VDoubleValuesParamId_idx
@@ -996,7 +996,7 @@ CREATE TABLE StringParamValues
 (
 	paramId    	NUMBER		NOT NULL,
 	value      	VARCHAR2(512),
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
 -- INDEX StringValuesParamId_idx
@@ -1012,7 +1012,7 @@ CREATE TABLE VStringParamValues
 	sequenceNb 	NUMBER(6)	NOT NULL,
 	value      	VARCHAR2(512),
 	UNIQUE(paramId,sequenceNb),
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
 -- INDEX VStringValuesParamId_idx
@@ -1026,7 +1026,7 @@ CREATE TABLE InputTagParamValues
 (
 	paramId    	NUMBER		NOT NULL,
 	value      	VARCHAR2(128)   NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
 -- INDEX InputTagValuesParamId_idx
@@ -1041,7 +1041,7 @@ CREATE TABLE VInputTagParamValues
 	paramId    	NUMBER		NOT NULL,
 	sequenceNb 	NUMBER(6)	NOT NULL,
 	value      	VARCHAR2(128)	NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
 -- INDEX VInputTagValuesParamId_idx
@@ -1055,7 +1055,7 @@ CREATE TABLE EventIDParamValues
 (
 	paramId    	NUMBER		NOT NULL,
 	value      	VARCHAR2(32)	NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
 -- INDEX EventIDValuesParamId_idx
@@ -1070,7 +1070,7 @@ CREATE TABLE VEventIDParamValues
 	paramId    	NUMBER		NOT NULL,
 	sequenceNb 	NUMBER(6)	NOT NULL,
 	value      	VARCHAR2(32)	NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
 -- INDEX VEventIDValuesParamId_idx
@@ -1084,7 +1084,7 @@ CREATE TABLE FileInPathParamValues
 (
 	paramId    	NUMBER		NOT NULL,
 	value      	VARCHAR2(512)	NOT NULL,
-	FOREIGN KEY(paramId) REFERENCES Parameters(paramId)
+	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
 -- INDEX EventIDValuesParamId_idx
