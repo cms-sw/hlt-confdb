@@ -233,7 +233,7 @@ CREATE TABLE Services
 	superId      	BIGINT UNSIGNED   NOT NULL UNIQUE,
 	templateId     	BIGINT UNSIGNED   NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId)    REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(templateId) REFERENCES ServiceTemplates(superId)
 ) ENGINE=INNODB;
 
