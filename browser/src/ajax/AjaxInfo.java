@@ -13,8 +13,7 @@ import org.apache.log4j.SimpleLayout;
 import org.directwebremoting.WebContext;
 import org.directwebremoting.WebContextFactory;
 
-import browser.BrowserConverter;
-
+import confdb.converter.BrowserConverter;
 import confdb.converter.ConverterBase;
 import confdb.converter.ConverterException;
 import confdb.converter.DbProperties;
@@ -65,57 +64,12 @@ public class AjaxInfo implements Runnable
 
     public String[] listDBs()
     {
-    	ConfDBSetups dbs = new ConfDBSetups();
-    	ArrayList<String> list = new ArrayList<String>();
-     	for ( int i = 0; i < dbs.setupCount(); i++ )
-     	{
-    		String name = dbs.name(i);
-    		if ( name != null && name.length() > 0  )
-    		{
-    			String host = dbs.host(i);
-    			if (     host != null 
-       				 && !host.equalsIgnoreCase("localhost") 
-   				     && !host.endsWith( ".cms") )
-   				     {
-   				    	 list.add( dbs.labelsAsArray()[i] );
-   				     }
-    		}
-    	}
-    	return list.toArray( new String[ list.size() ] );
+    	return BrowserConverter.listDBs();
     }
     
     public String[] getAnchors( int dbIndex, int configKey )
     {
-		ArrayList<String> list = new ArrayList<String>();
-		ConverterBase converter = null;
-    	try {
-			converter = BrowserConverter.getConverter( dbIndex );
-			IConfiguration conf = converter.getConfiguration( configKey );
-			if ( conf == null )
-				list.add( "??" );
-			else
-			{
-				if ( conf.pathCount() > 0 )
-					list.add( "paths" );
-				if ( conf.sequenceCount() > 0 )
-					list.add( "sequences" );
-				if ( conf.moduleCount() > 0 )
-					list.add( "modules" );
-				if ( conf.edsourceCount() > 0 )
-					list.add( "ed_sources" );
-				if ( conf.essourceCount() > 0 )
-					list.add( "es_sources" );
-				if ( conf.esmoduleCount() > 0 )
-					list.add( "es_modules" );
-				if ( conf.serviceCount() > 0 )
-					list.add( "services" );
-			}
-		} catch (ConverterException e) {
-			list.add( e.toString() );
-			if ( converter != null )
-				BrowserConverter.deleteConverter( converter );
-		}
-		return list.toArray( new String[ list.size() ] );
+    	return BrowserConverter.getAnchors( dbIndex, configKey );
     }
     
 	public String getRcmsDbInfo()
