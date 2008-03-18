@@ -1770,6 +1770,7 @@ class SourceParser:
 	thelocalnewpsetvar = ''
 	totalline = ''
 	mainpassedpset = ''
+        theincfile = ''
 	foundlineend = False
 
 	srcfilehandle = open(thesrcfile)
@@ -1777,9 +1778,28 @@ class SourceParser:
         srcfilelines = srcfilehandle.readlines()
 
 	for srcline in srcfilelines:
-	    if(srcline.lstrip().startswith('#include') and 
-	       (srcline.find(theobjectclass + '.h') != -1)):
-		theincfile = srcline.lstrip('#include').lstrip().rstrip().lstrip('"').rstrip('"').lstrip('<').rstrip('>').replace('.h','.cc').replace('interface','src')
+            if(srcline.lstrip().startswith('#include') and 
+               (srcline.find(theobjectclass + '.h') != -1 or srcline.find(themodulename + '.h') != -1)):
+
+                # Redirection for cases like Tau ConeIsolation where the new class is only included through
+                # the .h file
+                if(srcline.find(themodulename + '.h') != -1):
+                    theredirectfile = srcline.lstrip('#include').lstrip().rstrip().lstrip('"').rstrip('"').lstrip('<').rstrip('>')
+                    if(self.verbose > 1):
+                        print 'Redirecting to the classes include file to look for the new objects class: ' + theredirectfile
+                    if(not os.path.isfile(self.sourcetree + theredirectfile)):
+                        print '\tCould not find file - bailing out'
+                        continue
+                    redirectfilehandle = open(self.sourcetree + theredirectfile)
+                    
+                    redirectfilelines = redirectfilehandle.readlines()
+                    
+                    for redirectline in redirectfilelines:
+                        if(redirectline.lstrip().startswith('#include') and
+                           redirectline.find(theobjectclass + '.h') != -1):
+                            theincfile = redirectline.lstrip('#include').lstrip().rstrip().lstrip('"').rstrip('"').lstrip('<').rstrip('>').replace('.h','.cc').replace('interface','src')
+                else:
+                    theincfile = srcline.lstrip('#include').lstrip().rstrip().lstrip('"').rstrip('"').lstrip('<').rstrip('>').replace('.h','.cc').replace('interface','src')
 
 		if(self.verbose > 1):
 		    print 'Look in file ' + self.sourcetree + theincfile
