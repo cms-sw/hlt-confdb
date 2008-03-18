@@ -324,6 +324,26 @@ Module EDAnalyzer L1GtTrigReport L1Trigger GlobalTriggerAnalyzer
 L1GtTrigReport.Parameter L1GtDaqInputTag InputTag gtDigis tracked
 
 
+Module EDProducer TSGFromL2Muon RecoMuon TrackerSeedGenerator
+TSGFromL2Muon.Parameter TSGFromMixedPairs PSet tracked
+TSGFromL2Muon.Parameter TSGFromPixelTriplets PSet tracked
+TSGFromL2Muon.Parameter TSGFromPixelPairs PSet tracked
+TSGFromL2Muon.Parameter TSGForRoadSearchOI PSet tracked
+TSGFromL2Muon.Parameter TSGForRoadSearchIOpxl PSet tracked
+TSGFromL2Muon.Parameter TSGFromPropagation PSet tracked
+TSGFromL2Muon.Parameter TSGFromCombinedHits PSet tracked
+
+Module EDProducer CkfTrajectoryMaker RecoTracker CkfPattern
+CkfTrajectoryMaker.Parameter SeedProducer string "hltL3TrajectorySeed" tracked
+CkfTrajectoryMaker.Parameter SeedLabel string "" tracked
+CkfTrajectoryMaker.Parameter TrajectoryBuilder string "muonCkfTrajectoryBuilder" tracked
+CkfTrajectoryMaker.Parameter TrajectoryCleaner string "TrajectoryCleanerBySharedHits" tracked
+CkfTrajectoryMaker.Parameter NavigationSchool string "SimpleNavigationSchool" tracked
+CkfTrajectoryMaker.Parameter RedundantSeedCleaner string "CachingSeedCleanerBySharedInput" tracked
+CkfTrajectoryMaker.Parameter TransientInitialStateEstimatorParameters PSet tracked
+CkfTrajectoryMaker.Parameter trackCandidateAlso bool false tracked
+
+
 
 Module EDProducer EgammaHLTIslandClusterProducer RecoEgamma EgammaHLTProducers
 EgammaHLTIslandClusterProducer.Parameter clustershapecollectionEB string "islandBarrelShape" tracked
