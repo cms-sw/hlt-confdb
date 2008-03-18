@@ -161,24 +161,6 @@ MessageLogger.Parameter suppressDebug vstring {  } untracked
 MessageLogger.Parameter suppressInfo vstring {  } untracked
 MessageLogger.Parameter suppressWarning vstring {  } untracked
 
-Module EDProducer ConeIsolation RecoTauTag ConeIsolation
-ConeIsolation.Parameter MinimumNumberOfPixelHits int32 2 tracked
-ConeIsolation.Parameter MinimumNumberOfHits int32 2 tracked
-ConeIsolation.Parameter MaximumTransverseImpactParameter double 1.0 tracked
-ConeIsolation.Parameter MinimumTransverseMomentum double 1.0 tracked
-ConeIsolation.Parameter MaximumChiSquared double 100.0 tracked
-ConeIsolation.Parameter MatchingCone double 0.1 tracked
-ConeIsolation.Parameter SignalCone double 0.07 tracked
-ConeIsolation.Parameter IsolationCone double 0.45 tracked
-ConeIsolation.Parameter MinimumTransverseMomentumInIsolationRing double 1.0 tracked
-ConeIsolation.Parameter MinimumTransverseMomentumLeadingTrack double 6.0 tracked
-ConeIsolation.Parameter DeltaZetTrackVertex double 0.2 tracked
-ConeIsolation.Parameter MaximumNumberOfTracksIsolationRing int32 0 tracked
-ConeIsolation.Parameter UseFixedSizeCone bool true tracked
-ConeIsolation.Parameter VariableConeParameter double 3.5 tracked
-ConeIsolation.Parameter VariableMaxCone double 0.17 tracked
-ConeIsolation.Parameter VariableMinCone double 0.05 tracked
-
 Module EDProducer IsolatedTauJetsSelector RecoTauTag HLTProducers
 IsolatedTauJetsSelector.Parameter JetSrc VInputTag { coneIsolationL25PixelTauIsolated } tracked
 IsolatedTauJetsSelector.Parameter MatchingCone double 0.1 tracked
