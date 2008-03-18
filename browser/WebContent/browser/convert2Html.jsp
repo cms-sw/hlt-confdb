@@ -2,10 +2,10 @@
 <%@page import="java.io.PrintWriter"%>
 <%@page import="java.io.ByteArrayOutputStream"%>
 <%@page import="confdb.data.IConfiguration"%>
-<%@page import="browser.BrowserConverter"%>
 <%@page import="confdb.converter.ConverterBase"%>
 <%@page import="confdb.converter.OnlineConverter"%>
 <%@page import="confdb.converter.ConverterException"%>
+<%@page import="confdb.converter.BrowserConverter"%>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">

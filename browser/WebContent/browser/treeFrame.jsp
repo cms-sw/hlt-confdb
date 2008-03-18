@@ -1,13 +1,13 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <%@page import="java.io.ByteArrayOutputStream"%>
 <%@page import="java.io.PrintWriter"%>
-<%@page import="browser.BrowserConverter"%>
 <%@page import="confdb.db.ConfDB"%>
 <%@page import="confdb.db.ConfDBSetups"%>
 <%@page import="confdb.data.Directory"%>
 <%@page import="confdb.data.ConfigInfo"%>
 <%@page import="confdb.converter.ConverterBase"%>
 <%@page import="confdb.converter.ConverterException"%>
+<%@page import="confdb.converter.BrowserConverter"%>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">

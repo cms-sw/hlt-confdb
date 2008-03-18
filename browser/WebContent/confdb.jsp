@@ -1,5 +1,5 @@
+<%@page import="confdb.converter.BrowserConverter"%>
 <%@page import="confdb.db.ConfDBSetups"%>
-<%@page import="browser.BrowserConverter"%>
 <%@page import="java.io.PrintWriter"%>
 <%@page import="java.io.ByteArrayOutputStream"%>
 <%@page import="confdb.db.ConfDB"%>

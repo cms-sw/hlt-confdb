@@ -1,6 +1,6 @@
+<%@page import="confdb.converter.BrowserConverter"%>
 <%@page import="java.io.PrintWriter"%>
 <%@page import="java.io.ByteArrayOutputStream"%>
-<%@page import="browser.BrowserConverter"%>
 <%@page import="confdb.data.ModifierInstructions"%>
 <%@page import="java.util.Set"%>
 <%@page import="java.util.Map"%>
