@@ -540,6 +540,7 @@ class SourceParser:
 	startedcomment = False
 
         for line in lines:
+
             # Tokenize the line
             vals = string.split(line)
 
@@ -571,7 +572,8 @@ class SourceParser:
 		       line.rstrip().endswith(');') or
 		       line.rstrip().endswith(') ,') or
 		       line.rstrip().endswith('{') or 
-		       line.rstrip().endswith('}')):
+		       line.rstrip().endswith('}') or
+                       line.find('//') != -1):
                         foundlineend = True
 			
                         totalline = totalline + line.lstrip().rstrip('\n')
@@ -1264,7 +1266,6 @@ class SourceParser:
 
                             startedmod = True
 			    startedconstructor = True				
-			    
 		elif(startedmod == False and line.find(' ' + themodulename + '(') != -1):
 		    theconstructor = themodulename
 		    startedmod = True
@@ -1430,7 +1431,7 @@ class SourceParser:
     def ParseInterfaceFile(self, thehfile, themodname):
         if os.path.isfile(thehfile):
             intfile = open(thehfile)
-            
+
             # Bookkeeping for dealing w. line breaks
             lines = intfile.readlines()
             totalline = ''
@@ -1448,12 +1449,14 @@ class SourceParser:
 
 		elif((line.lstrip()).startswith('template') and line.find('class') != -1 and line.find('public') != -1):
 		    classname = line.split(':')[0].split('>')[1].split('class')[1].lstrip().rstrip()
-		    print classname
+
                     if(classname != themodname):
                         continue
                     else:
+                        if(self.verbose > 1):
+                            print 'templated classname = ' + classname
 			startedclass = True
-			
+
 		if(startedclass == True):
                     if(line.rstrip().endswith('{') or line.rstrip().endswith(';')):
                         totalline = totalline + line.lstrip().rstrip()
@@ -1845,7 +1848,8 @@ class SourceParser:
  		       srcline.rstrip().endswith(');') or
  		       srcline.rstrip().endswith(') ,') or
  		       srcline.rstrip().endswith('{') or 
- 		       srcline.rstrip().endswith('}')):
+ 		       srcline.rstrip().endswith('}') or
+                       srcline.find('//') != -1):
                         foundlineend = True
 			
                         totalline = totalline + srcline.lstrip().rstrip('\n')
