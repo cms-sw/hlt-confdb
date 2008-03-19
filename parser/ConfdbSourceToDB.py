@@ -702,6 +702,15 @@ class ConfdbSourceToDB:
 			self.parseerrors.append(modulename + "\t(in " + packagename +")")
 			return
 
+            # But wait - there's more! If the class implementation is in the .h file, we get
+            # to do it all over again
+            if(os.path.isdir(interfacedir)):
+                interfacefiles = os.listdir(interfacedir)
+                for interfacefile in interfacefiles:
+                    if(os.path.isfile(interfacedir+interfacefile)):
+                        myParser.ParseInterfaceFile(interfacedir+interfacefile, modulename)
+                        myParser.ParseSrcFile(interfacedir + interfacefile, modulename, testdir, "")
+            
 	# Retrieve the relevant information to be loaded to the DB
 	hltparamlist = myParser.GetParams(modulename)
 	hltvecparamlist = myParser.GetVectorParams(modulename)
