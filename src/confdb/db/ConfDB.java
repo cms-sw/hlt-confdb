@@ -252,6 +252,48 @@ public class ConfDB
 	}
     }
     
+    /** reconnect to the database, if the connection appears to be down */
+    public void reconnect() throws DatabaseException
+    {
+	if (dbConnector==null) return;
+	ResultSet rs = null;
+	try {
+	    Statement stmt = dbConnector.getConnection().createStatement();
+	    rs = stmt.executeQuery("SELECT userName FROM LockedConfigurations");
+	    System.out.println("ConfDB::reconnect(): ALL IS GOOD!");
+	}
+	catch (SQLException e) {
+	    boolean connectionLost = false;
+	    if (dbConnector instanceof MySQLDatabaseConnector) {
+		if(e.getSQLState().equals("08S01")||
+		   e.getSQLState().equals("08003")) connectionLost = true;
+	    }
+	    else if (dbConnector instanceof OracleDatabaseConnector) {
+		if (e.getErrorCode() == 17430|| 
+		    e.getErrorCode() == 28   ||
+		    e.getErrorCode() == 17008|| 
+		    e.getErrorCode() == 17410||
+		    e.getErrorCode() == 17447) connectionLost = true;
+	    }
+	    else throw new DatabaseException("ConfDB::reconnect(): "+
+					     "unknown connector type!",e);
+	    
+	    if (connectionLost) {
+		System.out.println("ConfDB::reconnect(): "+
+				   "connection lost, reestablish ...");
+		closePreparedStatements();
+		dbConnector.closeConnection();
+		dbConnector.openConnection();
+		prepareStatements();
+		System.out.println("ConfDB::reconnect(): "+
+				   "connection reestablished!");		
+ 	    }
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+    }
+    
     /** load information about all stored configurations */
     public Directory loadConfigurationTree() throws DatabaseException
     {
