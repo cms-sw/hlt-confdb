@@ -48,13 +48,24 @@ function signalReady()
 <pre>
 <%
   try {
-	int configKey = Integer.parseInt( request.getParameter( "configKey" ) );
 	int dbIndex = -1;
 	String index = request.getParameter( "dbIndex" );
 	if ( index != null )
 		dbIndex = Integer.parseInt( index );
 
- 	ConverterBase converter = BrowserConverter.getConverter( dbIndex );
+	ConverterBase converter = BrowserConverter.getConverter( dbIndex );
+
+	String configName = request.getParameter( "configName" );
+	String configId = request.getParameter( "configKey" );
+	if ( configId == null  &&  configName == null )
+	{
+		out.print( "ERROR!\nconfigKey or configName must be specified!");
+		return;
+	}
+
+	int configKey = ( configId != null ) ?
+    	Integer.parseInt(configId) : converter.getDatabase().getConfigId(configName);
+
 	IConfiguration conf = converter.getConfiguration( configKey );
 
 	if ( conf == null )
