@@ -118,6 +118,12 @@ foreach $param (@ARGV)
 	$dbUser   = "CMS_HLT_ADMIN";
 	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
     }
+    elsif ($param eq "--test2") {
+	$dbType   = "Oracle";
+	$dbHost   = "HLTDEV";
+	$dbUser   = "HLTDEV";
+	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
+    }
     elsif ($param eq "--hltdev") {
 	$dbType   = "Oracle";
 	$dbHost   = "CMS_ORCOFF_INT";
