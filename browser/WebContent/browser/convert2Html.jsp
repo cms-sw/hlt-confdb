@@ -6,6 +6,7 @@
 <%@page import="confdb.converter.OnlineConverter"%>
 <%@page import="confdb.converter.ConverterException"%>
 <%@page import="confdb.converter.BrowserConverter"%>
+<%@page import="confdb.db.ConfDBSetups"%>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -48,10 +49,38 @@ function signalReady()
 <pre>
 <%
   try {
-	int dbIndex = -1;
 	String index = request.getParameter( "dbIndex" );
-	if ( index != null )
-		dbIndex = Integer.parseInt( index );
+	if ( index == null )
+	{
+		String dbName = request.getParameter( "dbName" );
+		if ( dbName == null ) 
+		{
+			out.print( "ERROR!\ndbIndex or dbName must be specified!");
+			return;
+		}
+		else	
+		{
+			if ( dbName.equalsIgnoreCase( "hltdev" ) )
+				dbName = "HLT Development";
+			ConfDBSetups dbs = new ConfDBSetups();
+		  	String[] labels = dbs.labelsAsArray();
+	  		for ( int i = 0; i < dbs.setupCount(); i++ )
+	  		{
+	  			if ( dbName.equalsIgnoreCase( labels[i] ) )
+	  			{
+	  				index = "" + i;
+	  				break;
+	  			}
+	  		}
+	  		if ( index == null  )
+	  		{
+	  			out.print( "ERROR!\ninvalid dbName!");
+	  			return;
+	  		}
+	  	}
+	}
+
+	int dbIndex = Integer.parseInt( index );
 
 	ConverterBase converter = BrowserConverter.getConverter( dbIndex );
 
