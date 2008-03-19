@@ -297,6 +297,8 @@ public class ConfDB
     /** load information about all stored configurations */
     public Directory loadConfigurationTree() throws DatabaseException
     {
+	reconnect();
+	
 	Directory rootDir = null;
 	ResultSet rs = null;
 	try {
@@ -509,6 +511,8 @@ public class ConfDB
     private void loadTemplates(CallableStatement cs,SoftwareRelease release)
 	throws DatabaseException
     {
+	reconnect();
+
 	ResultSet rsTemplates = null;
 	
 	HashMap<Integer,SoftwarePackage> idToPackage =
@@ -620,6 +624,8 @@ public class ConfDB
     /** fill an empty configuration *after* template hash maps were filled! */
     private void loadConfiguration(Configuration config) throws DatabaseException
     {
+	reconnect();
+	
 	int     configId = config.dbId();
 
 	ResultSet rsInstances       = null;
@@ -1077,6 +1083,8 @@ public class ConfDB
     public void lockConfiguration(Configuration config,String userName)
 	throws DatabaseException
     {
+	reconnect();
+	
 	int    parentDirId   = config.parentDir().dbId();
 	String parentDirName = config.parentDir().name();
 	String configName    = config.name();
@@ -1104,6 +1112,8 @@ public class ConfDB
     /** unlock a configuration and all its versions */
     public void unlockConfiguration(Configuration config) throws DatabaseException
     {
+	reconnect();
+
 	int        parentDirId   = config.parentDir().dbId();
 	String     parentDirName = config.parentDir().name();
 	String     configName    = config.name();
@@ -1734,6 +1744,8 @@ public class ConfDB
     /** get list of software release tags */
     public String[] getReleaseTags() throws DatabaseException
     {
+	reconnect();
+	
 	ArrayList<String> listOfTags = new ArrayList<String>();
 	listOfTags.add(new String());
 	ResultSet rs = null;
@@ -1754,7 +1766,9 @@ public class ConfDB
     /** get the configuration id for a configuration name */
     public int getConfigId(String fullConfigName) throws DatabaseException
     {
-	int    version    = 0;
+	reconnect();
+
+	int version = 0;
 	
 	int index = fullConfigName.lastIndexOf("/V");
 	if (index>=0) {
@@ -3558,6 +3572,8 @@ public class ConfDB
     /** get the release id for a release tag */
     public int getReleaseId(String releaseTag) throws DatabaseException
     {
+	reconnect();
+	
 	int result = -1;
 	ResultSet rs = null;
 	try {
@@ -3600,6 +3616,8 @@ public class ConfDB
     /** get the release id for a release tag */
     private String getReleaseTagForConfig(int configId) throws DatabaseException
     {
+	reconnect();
+
 	String result = new String();
 	ResultSet rs = null;
 	try {
