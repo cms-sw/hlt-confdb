@@ -90,7 +90,10 @@ public class DiffTreeRenderer extends DefaultTreeCellRenderer
 	String result = getText();
 	if (node instanceof Comparison) {
 	    Comparison c = (Comparison)node;
-	    if (c.source() instanceof Parameter) {
+	    if (c.source() instanceof PSetParameter||
+		c.source() instanceof VPSetParameter)
+		result = "<html>"+c.type()+" "+c.name1()+"</html>";
+	    else if (c.source() instanceof Parameter) {
 		result = "<html>"+c.type()+" "+c.name1()+" = "+
 		    "<font color=#009900>"+c.name2()+"</font> ["+
 		    "<font color=#ff0000>"+c.oldValue()+"</font>]</html>";

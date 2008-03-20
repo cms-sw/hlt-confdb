@@ -47,8 +47,8 @@ public class DiffDialog extends JDialog
     private DiffTreeModel treeModel;
     
     /** Diff object, which actually carries out the comparison */
-    private Configuration newConfig = null;
-    private Configuration oldConfig = null;
+    private IConfiguration newConfig = null;
+    private IConfiguration oldConfig = null;
 
     //
     // construction
@@ -66,7 +66,6 @@ public class DiffDialog extends JDialog
 	treeModel = new DiffTreeModel();
 	jTreeDiff = new JTree(treeModel);
 	jTreeDiff.setRootVisible(false);
-	//jTreeDiff.showRootHandles(true);
 	jTreeDiff.setEditable(false);
 	jTreeDiff.getSelectionModel()
 	    .setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -103,10 +102,22 @@ public class DiffDialog extends JDialog
     //
 
     /** set the new configuration */
-    public void setNewConfig(Configuration c)
+    public void setNewConfig(IConfiguration c)
     {
 	newConfig = c;
 	jTextFieldNewConfig.setText(c.toString());
+    }
+    
+    /** set both configurations and compare */
+    public void setConfigurations(IConfiguration oldCfg,IConfiguration newCfg)
+    {
+	newConfig = newCfg;
+	jTextFieldNewConfig.setText(newCfg.toString());
+	oldConfig = oldCfg;
+	DefaultComboBoxModel m=(DefaultComboBoxModel)jComboBoxOldConfig.getModel();
+	m.removeAllElements();
+	m.addElement(oldConfig.toString());
+	m.setSelectedItem(m.getElementAt(0));
     }
 
     //
@@ -302,13 +313,16 @@ public class DiffDialog extends JDialog
 		int newId=database.getConfigId(jTextFieldNewConfig.getText());
 		newConfig=database.loadConfiguration(newId);
 	    }
-	    String oldConfigName=(String)jComboBoxOldConfig.getSelectedItem();
-	    int oldId=database.getConfigId(oldConfigName);
-	    oldConfig=database.loadConfiguration(oldId);
+	    if (oldConfig==null) {
+		String oldConfigName=(String)jComboBoxOldConfig.getSelectedItem();
+		int oldId=database.getConfigId(oldConfigName);
+		oldConfig=database.loadConfiguration(oldId);
+	    }
 
-	    Diff diff = new Diff(newConfig,oldConfig);
+	    Diff diff = new Diff(oldConfig,newConfig);
 	    diff.compare();
 	    treeModel.setDiff(diff);
+	    for (int i=jTreeDiff.getRowCount()-1;i>=0;i--) jTreeDiff.expandRow(i);
 	    jEditorPaneDiff.setText(diff.printAll());
 	    return new String("Done!");
 	}

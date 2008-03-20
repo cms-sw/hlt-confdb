@@ -1,6 +1,7 @@
 package confdb.data;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 
@@ -100,7 +101,15 @@ public class PSetParameter extends Parameter
     /** set parameter values from string */
     public boolean setValue(String valueAsString)
     {
+	HashMap<String,Parameter> oldParams = new HashMap<String,Parameter>();
+	Iterator<Parameter> itP = parameterIterator();
+	while (itP.hasNext()) {
+	    Parameter p = itP.next();
+	    oldParams.put(p.type()+"::"+p.name(),p);
+	}
+	
 	parameters.clear();
+	
 	if (valueAsString.length()>0) {
 	    if (!valueAsString.startsWith("<PSet name="+name()))
 		valueAsString=
@@ -120,11 +129,15 @@ public class PSetParameter extends Parameter
 	    
 	    ParameterSetParser p2 = new ParameterSetParser(value);
 	    while (p2.parseNextParameter()) {
-		Parameter p = ParameterFactory.create(p2.type(),
-						      p2.name(),
-						      p2.value(),
-						      new Boolean(p2.isTracked()),
-						      new Boolean(p2.isDefault()));
+		Parameter p = oldParams.get(p2.type()+"::"+p2.name());
+		if (p!=null)
+		    p.setValue(p2.value(),"");
+		else
+		    p = ParameterFactory.create(p2.type(),
+						p2.name(),
+						p2.value(),
+						new Boolean(p2.isTracked()),
+						new Boolean(p2.isDefault()));
 		p.setParent(this);
 		parameters.add(p);
 	    }
@@ -164,17 +177,11 @@ public class PSetParameter extends Parameter
 	for (Parameter p : parameters) {
 	    if (p instanceof VPSetParameter) {
 		VPSetParameter vpset = (VPSetParameter)p;
-		//if (vpset.parameterSetCount()>0)
 		result += vpset.unsetTrackedParameterCount();
-		//else if (vpset.isTracked())
-		//result++;
 	    }
 	    else if (p instanceof PSetParameter) {
 		PSetParameter pset = (PSetParameter)p;
-		//if (pset.parameterCount()>0)
 		result += pset.unsetTrackedParameterCount();
-		//else if (pset.isTracked())
-		//    result++;
 	    }
 	    else {
 		if (p.isTracked()&&!p.isValueSet()) result++;
@@ -210,7 +217,7 @@ public class PSetParameter extends Parameter
     
     /** index of a certain parameter */
     public int indexOfParameter(Parameter p) { return parameters.indexOf(p); }
-
+    
     /** set i-th parameter of the pset */
     public boolean setParameterValue(int i,String valueAsString)
     {

@@ -85,6 +85,9 @@ public interface IConfiguration
     /** get i-th global PSet */
     public PSetParameter pset(int i);
     
+    /** get pset by label */
+    public PSetParameter pset(String name);
+    
     /** index of a certain global PSet */
     public int indexOfPSet(PSetParameter pset);
 
@@ -98,6 +101,9 @@ public interface IConfiguration
     /** get i-th EDSource */
     public EDSourceInstance edsource(int i);
 
+    /** get EDSource by label */
+    public EDSourceInstance edsource(String name);
+    
     /** index of a certain EDSource */
     public int indexOfEDSource(EDSourceInstance edsource);
 	
@@ -110,6 +116,9 @@ public interface IConfiguration
     
     /** get i-th ESSource */
     public ESSourceInstance essource(int i);
+
+    /** get ESSource by label */
+    public ESSourceInstance essource(String name);
 
     /** index of a certain ESSource */
     public int indexOfESSource(ESSourceInstance essource);
@@ -124,6 +133,9 @@ public interface IConfiguration
     /** get i-th ESModule */
     public ESModuleInstance esmodule(int i);
 
+    /** get ESModule by label */
+    public ESModuleInstance esmodule(String name);
+    
     /** index of a certain ESSource */
     public int indexOfESModule(ESModuleInstance esmodule);
     
@@ -137,6 +149,9 @@ public interface IConfiguration
     /** get i-th Service */
     public ServiceInstance service(int i);
 
+    /** get Service by label */
+    public ServiceInstance service(String name);
+    
     /** index of a certain Service */
     public int indexOfService(ServiceInstance service);
     

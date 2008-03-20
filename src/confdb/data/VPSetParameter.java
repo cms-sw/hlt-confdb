@@ -78,9 +78,13 @@ public class VPSetParameter extends Parameter
     /** set parameter values from string */
     public boolean setValue(String valueAsString)
     {
+	PSetParameter[] oldpsets =
+	    parameterSets.toArray(new PSetParameter[parameterSets.size()]);
+	
 	parameterSets.clear();
+	
 	if (valueAsString.length()>0) {
-
+	    
 	    if (!valueAsString.startsWith("<VPSet name="+name()))
 		valueAsString=
 		    "<VPSet" +
@@ -94,7 +98,14 @@ public class VPSetParameter extends Parameter
 		!parser.vpsetName().equals(name())||
 		!parser.vpsetIsTracked()==isTracked()) return false;
 	    while (parser.parseNextParameterSet()) {
-		PSetParameter pset = new PSetParameter(parser.psetString());
+		PSetParameter pset = null;
+		if (oldpsets.length>parameterSets.size()) {
+		    pset = oldpsets[parameterSets.size()];
+		    pset.setValue(parser.psetString());
+		}
+		else {
+		    pset = new PSetParameter(parser.psetString());
+		}
 		pset.setParent(this);
 		parameterSets.add(pset);
 	    }
@@ -132,10 +143,7 @@ public class VPSetParameter extends Parameter
     {
 	int result = 0;
 	for (PSetParameter pset : parameterSets) {
-	    //if (pset.parameterCount()>0)
 	    result += pset.unsetTrackedParameterCount();
-	    //else if (pset.isTracked())
-	    //result++;
 	}
 	return result;
     }

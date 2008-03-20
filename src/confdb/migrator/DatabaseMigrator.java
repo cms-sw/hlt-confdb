@@ -86,5 +86,10 @@ public class DatabaseMigrator
     
     /** retrieve the release-migrator */
     public ReleaseMigrator releaseMigrator() { return releaseMigrator; }
-    
+ 
+    /** get source configuration */
+    public Configuration sourceConfig() { return sourceConfig; }
+
+    /** get target configuration */
+    public Configuration targetConfig() { return targetConfig; }
 }

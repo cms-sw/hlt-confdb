@@ -75,6 +75,14 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     /** TreeModel: number of children of the node */
     public int getChildCount(Object node)
     {
+	if (node instanceof PSetParameter) {
+	    PSetParameter pset = (PSetParameter)node;
+	    return pset.parameterCount();
+	}
+	if (node instanceof VPSetParameter) {
+	    VPSetParameter vpset = (VPSetParameter)node;
+	    return vpset.parameterSetCount();
+	}
 	Object[] children = getChildren(node);
 	if (children!=null)
 	    return children.length;
@@ -84,6 +92,14 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     /** TreeModel; retreive the i-th child of the node */
     public Object getChild(Object node, int i)
     { 
+	if (node instanceof PSetParameter) {
+	    PSetParameter pset = (PSetParameter)node;
+	    return pset.parameter(i);
+	}
+	if (node instanceof VPSetParameter) {
+	    VPSetParameter vpset = (VPSetParameter)node;
+	    return vpset.parameterSet(i);
+	}
 	return getChildren(node)[i]; 
     }
     
@@ -153,6 +169,7 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 					 value.toString());
 	    else
 		param.setValue(value.toString(),"");		
+	    
 	    nodeChanged(param);
 	}
     }
@@ -170,14 +187,14 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 	    PSetParameter pset = (PSetParameter)node;
 	    Object[] children = new Parameter[pset.parameterCount()];
 	    for (int i=0;i<pset.parameterCount();i++)
-		children[i] = pset.parameter(i);
+	    children[i] = pset.parameter(i);
 	    return children;
 	}
 	else if (node instanceof VPSetParameter) {
 	    VPSetParameter vpset = (VPSetParameter)node;
 	    Object[] children = new PSetParameter[vpset.parameterSetCount()];
 	    for (int i=0;i<vpset.parameterSetCount();i++)
-		children[i] = vpset.parameterSet(i);
+	    children[i] = vpset.parameterSet(i);
 	    return children;
 	}
 	return null;

@@ -1,3 +1,12 @@
+2008-03-20  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-21-03
+	* fixed diff
+	* replace migration report with diff dialog
+	* ConfDB.reconnect()
+	* [V]PSetParameter.setValue()
+	
+
 2008-03-16  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-21-02

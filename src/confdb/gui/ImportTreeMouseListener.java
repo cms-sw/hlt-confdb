@@ -105,7 +105,7 @@ class AddContainerListener implements ActionListener
 
     // construction
     public AddContainerListener(JTree targetTree,
-				 ReferenceContainer container)
+				ReferenceContainer container)
     {
 	this.targetTree = targetTree;
 	this.container  = container;

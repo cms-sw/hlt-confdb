@@ -49,7 +49,7 @@ public abstract class AbstractTreeTableTreeModel extends    AbstractTreeModel
     public int getIndexOfChild(Object parent, Object child)
     {
 	for (int i=0;i<getChildCount(parent);i++) {
-	    if (getChild(parent,i).equals(child)) return i;
+	    if (getChild(parent,i)==child) return i;
 	}
 	return -1;
     }

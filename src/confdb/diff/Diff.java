@@ -38,8 +38,8 @@ public class Diff
     //
     
     /** configurations to be compared */
-    private Configuration config1;
-    private Configuration config2;
+    private IConfiguration config1;
+    private IConfiguration config2;
 
     /** comparisons of the various components */
     private ArrayList<Comparison> psets      = new ArrayList<Comparison>();
@@ -62,7 +62,7 @@ public class Diff
     //
     
     /** standard constructor */
-    public Diff(Configuration config1,Configuration config2)
+    public Diff(IConfiguration config1,IConfiguration config2)
     {
 	this.config1 = config1;
 	this.config2 = config2;
@@ -361,11 +361,21 @@ public class Diff
 	    Referencable parent2    = reference2.parent();
 	    Reference    reference1 = rc1.entry(reference2.name());
 	    if (parent2 instanceof ReferenceContainer) {
-		if (reference1==null)
-		    result
-			.addComparison(new Comparison(parent2,
-						      parent2.getClass().getName(),
-						      null,parent2.name()));
+		if (reference1==null) {
+		    result.addComparison(new Comparison(parent2,
+							parent2
+							.getClass().getName(),
+							null,parent2.name()));
+		    
+		    Referencable parent1 = config1.sequence(reference2.name());
+		    if (parent1!=null) {
+			ReferenceContainer container1=(ReferenceContainer)parent1;
+			ReferenceContainer container2=(ReferenceContainer)parent2;
+			Comparison c = containerMap.get(parent1.name()+"::"+
+							parent2.name());
+			if (c==null) compareContainers(container1,container2);
+		    }
+		}
 		else {
 		    Referencable parent1 = reference1.parent();
 		    ReferenceContainer container1 = (ReferenceContainer)parent1;
@@ -393,8 +403,24 @@ public class Diff
 		}
 	    }
 	}
+
+	Iterator<Reference> itRef1 = rc1.entryIterator();
+	while (itRef1.hasNext()) {
+	    Reference reference1 = itRef1.next();
+	    Referencable parent1 = reference1.parent();
+	    Reference reference2 = rc2.entry(reference1.name());
+	    if (reference2==null) {
+		String type = parent1.getClass().getName();
+		if (parent1 instanceof ModuleInstance) {
+		    type = ((ModuleInstance)parent1).template().name();
+		}
+		result.addComparison(new Comparison(parent1,type,
+						    reference1.name(),null));
+	    }
+	}
 	
 	containerMap.put(rc1.name()+"::"+rc2.name(),result);
+
 	if ((rc1 instanceof Sequence)&&
 	    !result.isIdentical()) sequences.add(result);
 	
@@ -554,9 +580,9 @@ public class Diff
     private Comparison compareParameters(Parameter p1,Parameter p2)
     {
 	if (p1==null)
-	    return new Comparison(p2,p2.type(),null,p2.fullName());
+	    return new Comparison(p2,p2.type(),p2.fullName(),p2.valueAsString());
 	else if (p2==null)
-	    return new Comparison(p1,p1.type(),p1.fullName(),null);
+	    return new Comparison(p1,p1.type(),p1.fullName(),p1.valueAsString());
 
 	if (!p1.type().equals(p2.type())||
 	    !p1.name().equals(p1.name())) return null;

@@ -543,18 +543,30 @@ public class ConfigurationTreeActions
 	int                  oldIndex  =   -1;
 	ReferenceContainer[] parents   = null;
 	int[]                indices   = null;
+	String               type      = null;
 	if (external instanceof Path) {
 	    container = config.path(external.name());
 	    parent    = model.pathsNode();
 	    oldIndex  = config.indexOfPath((Path)container);
+	    type      = "path";
 	}
 	else if (external instanceof Sequence) {
 	    container = config.sequence(external.name());
 	    parent    = model.sequencesNode();
 	    oldIndex  = config.indexOfSequence((Sequence)container);
+	    type      = "sequence";
 	}
 
 	if (container!=null) {
+	    
+	    int choice =
+		JOptionPane.showConfirmDialog(null,"The "+type+" '"+
+					      container.name()+"' exists, "+
+					      "do you want to overwrite it?",
+					      "Overwrite "+type,
+					      JOptionPane.OK_CANCEL_OPTION);
+	    if (choice==JOptionPane.CANCEL_OPTION) return false;
+	    
 	    if (container.referenceCount()>0) {
 		parents = new ReferenceContainer[container.referenceCount()];
 		indices = new int[container.referenceCount()];
@@ -930,7 +942,14 @@ public class ConfigurationTreeActions
 	int                insertAtIndex = 0;
 	
 	if (target!=null) {
-	    return replaceModule(tree,external);
+	    int choice =
+		JOptionPane.showConfirmDialog(null,"The module '"+
+					      target.name()+"' exists, "+
+					      "do you want to overwrite it?",
+					      "Overwrite module",
+					      JOptionPane.OK_CANCEL_OPTION);
+	    if (choice==JOptionPane.CANCEL_OPTION) return false;
+	    else return replaceModule(tree,external);
 	}
 	else if (treePath==null) return false;
 	

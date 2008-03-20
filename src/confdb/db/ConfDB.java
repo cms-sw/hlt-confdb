@@ -260,7 +260,7 @@ public class ConfDB
 	try {
 	    Statement stmt = dbConnector.getConnection().createStatement();
 	    rs = stmt.executeQuery("SELECT userName FROM LockedConfigurations");
-	    System.out.println("ConfDB::reconnect(): ALL IS GOOD!");
+	    //System.out.println("ConfDB::reconnect(): ALL IS GOOD!");
 	}
 	catch (SQLException e) {
 	    boolean connectionLost = false;
@@ -279,8 +279,8 @@ public class ConfDB
 					     "unknown connector type!",e);
 	    
 	    if (connectionLost) {
-		System.out.println("ConfDB::reconnect(): "+
-				   "connection lost, reestablish ...");
+		//System.out.println("ConfDB::reconnect(): "+
+		//"connection lost, reestablish ...");
 		closePreparedStatements();
 		dbConnector.closeConnection();
 		dbConnector.openConnection();
@@ -598,7 +598,12 @@ public class ConfDB
 	throws DatabaseException
     {
 	String releaseTag = configInfo.releaseTag();
-	if (!releaseTag.equals(release.releaseTag()))
+	
+	//if (releaseTag==null) System.out.println("releaseTag = " + releaseTag);
+	//if (release==null) System.out.println("release is null");
+	//else if (release.releaseTag()==null) System.out.println("WHAT?!");
+	
+	if (releaseTag!=null&&!releaseTag.equals(release.releaseTag()))
 	    loadSoftwareRelease(releaseTag,release);
 	Configuration config = new Configuration(configInfo,release);
 	loadConfiguration(config);

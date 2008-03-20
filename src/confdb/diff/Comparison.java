@@ -73,7 +73,7 @@ public class Comparison
     public String toString()
     {
 	String name = (name2==null) ? name1 : name2;
-	return name+" "+resultAsString();
+	return name+" ["+type+"] "+resultAsString();
     }
 
     /** get the source object */

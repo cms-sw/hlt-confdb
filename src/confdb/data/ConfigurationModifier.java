@@ -420,6 +420,15 @@ public class ConfigurationModifier implements IConfiguration
 	return (isModified) ? psets.get(i) : master.pset(i);
     }
     
+    /** get  global PSet by label */
+    public PSetParameter pset(String name)
+    {
+	if (!isModified) return master.pset(name);
+	for (PSetParameter pset : psets)
+	    if (pset.name().equals(name)) return pset;
+	return null;
+    }
+    
     /** index of a certain global PSet */
     public int indexOfPSet(PSetParameter pset)
     {
@@ -443,6 +452,15 @@ public class ConfigurationModifier implements IConfiguration
     public EDSourceInstance edsource(int i)
     {
 	return (isModified) ? edsources.get(i) : master.edsource(i);
+    }
+
+    /** get EDSource by label */
+    public EDSourceInstance edsource(String name)
+    {
+	if (!isModified) return master.edsource(name);
+	for (EDSourceInstance eds : edsources)
+	    if (eds.name().equals(name)) return eds;
+	return null;
     }
 
     /** index of a certain EDSource */
@@ -471,6 +489,15 @@ public class ConfigurationModifier implements IConfiguration
 	return (isModified) ? essources.get(i) : master.essource(i);
     }
 
+    /** get ESSource by label */
+    public ESSourceInstance essource(String name)
+    {
+	if (!isModified) return master.essource(name);
+	for (ESSourceInstance ess : essources)
+	    if (ess.name().equals(name)) return ess;
+	return null;
+    }
+
     /** index of a certain ESSource */
     public int indexOfESSource(ESSourceInstance essource)
     {
@@ -497,6 +524,15 @@ public class ConfigurationModifier implements IConfiguration
 	return (isModified) ? esmodules.get(i) : master.esmodule(i);
     }
 
+    /** get ESModule by label */
+    public ESModuleInstance esmodule(String name)
+    {
+	if (!isModified) return master.esmodule(name);
+	for (ESModuleInstance esm : esmodules)
+	    if (esm.name().equals(name)) return esm;
+	return null;
+    }
+
     /** index of a certain ESSource */
     public int indexOfESModule(ESModuleInstance esmodule)
     {
@@ -521,6 +557,15 @@ public class ConfigurationModifier implements IConfiguration
     public ServiceInstance service(int i)
     {
 	return (isModified) ? services.get(i) : master.service(i);
+    }
+
+    /** get Service by label */
+    public ServiceInstance service(String name)
+    {
+	if (!isModified) return master.service(name);
+	for (ServiceInstance svc : services)
+	    if (svc.name().equals(name)) return svc;
+	return null;
     }
 
     /** index of a certain Service */

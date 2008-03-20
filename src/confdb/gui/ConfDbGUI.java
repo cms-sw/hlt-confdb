@@ -942,11 +942,13 @@ public class ConfDbGUI
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		jProgressBar.setString(jProgressBar.getString()+get()+" ("+
 				       elapsedTime+" ms)");
-		MigrationReportDialog dialog =
-		    new MigrationReportDialog(frame,migrator.releaseMigrator());
+		DiffDialog dialog =  new DiffDialog(frame,database);
+		dialog.setConfigurations(migrator.sourceConfig(),
+					 migrator.targetConfig());
 		dialog.setTitle("Configuration Export Report");
 		dialog.pack();
 		dialog.setLocationRelativeTo(frame);
+		jProgressBar.setIndeterminate(false);
 		dialog.setVisible(true);
 	    }
 	    catch (ExecutionException e) {
@@ -956,12 +958,14 @@ public class ConfDbGUI
 					      "Export Configuration failed",
 					      JOptionPane.ERROR_MESSAGE,null);
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+		jProgressBar.setIndeterminate(false);
 	    }
 	    catch (Exception e) {
 		e.printStackTrace();
 		jProgressBar.setString(jProgressBar.getString() + "FAILED!");	
+		jProgressBar.setIndeterminate(false);
 	    }
-	    jProgressBar.setIndeterminate(false);
+
 	}
     }
     
@@ -1262,6 +1266,7 @@ public class ConfDbGUI
     private class MigrateConfigurationThread extends SwingWorker<String>
     {
 	/** member data */
+	private Configuration   targetConfig     = null;
 	private String          targetReleaseTag = null;
 	private ReleaseMigrator migrator         = null;
 	private long            startTime;
@@ -1286,15 +1291,13 @@ public class ConfDbGUI
 		new ConfigInfo(currentConfig.name(),currentConfig.parentDir(),
 			       -1,currentConfig.version(),"",userName,
 			       targetReleaseTag,targetProcessName,
-			       "migrated from external database");
+			       "migrated from "+currentRelease.releaseTag());
 
-	    Configuration targetConfig = new Configuration(targetConfigInfo,
-							   targetRelease);
+	    targetConfig = new Configuration(targetConfigInfo,targetRelease);
 	    
 	    migrator = new ReleaseMigrator(currentConfig,targetConfig);
 	    migrator.migrate();
-	    
-	    setCurrentConfig(targetConfig);
+
 	    return new String("Done!");
 	}
 	
@@ -1306,11 +1309,15 @@ public class ConfDbGUI
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		jProgressBar.setString(jProgressBar.getString()+get()+
 				       " ("+elapsedTime+" ms)");
-		MigrationReportDialog dialog =
-		    new MigrationReportDialog(frame,migrator);
+		//grationReportDialog dialog =
+		//  new MigrationReportDialog(frame,migrator);
+		DiffDialog dialog = new DiffDialog(frame,database);
 		dialog.setTitle("Release-Migration Report");
 		dialog.pack();
 		dialog.setLocationRelativeTo(frame);
+		dialog.setConfigurations(currentConfig,targetConfig);
+		setCurrentConfig(targetConfig);
+		jProgressBar.setIndeterminate(false);
 		dialog.setVisible(true);
 	    }
 	    catch (ExecutionException e) {
@@ -1320,12 +1327,13 @@ public class ConfDbGUI
 					      "Migrate Configuration failed",
 					      JOptionPane.ERROR_MESSAGE,null);
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+		jProgressBar.setIndeterminate(false);
 	    } 
 	    catch (Exception e) {
 		e.printStackTrace();
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+		jProgressBar.setIndeterminate(false);
 	    }
-	    jProgressBar.setIndeterminate(false);
 	}
     }
 
@@ -2077,6 +2085,7 @@ public class ConfDbGUI
     private void jTreeTableParametersTreeNodesChanged(TreeModelEvent e)
     {
 	Object changedNode = e.getChildren()[0];
+	
 	if (changedNode instanceof Parameter) {
 	    Parameter p = (Parameter)changedNode;
 	    treeModelCurrentConfig.nodeChanged(p);
