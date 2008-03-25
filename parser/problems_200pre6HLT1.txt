@@ -306,3 +306,4 @@ CkfTrajectoryMaker.Parameter NavigationSchool string "SimpleNavigationSchool" tr
 CkfTrajectoryMaker.Parameter RedundantSeedCleaner string "CachingSeedCleanerBySharedInput" tracked
 CkfTrajectoryMaker.Parameter TransientInitialStateEstimatorParameters PSet tracked
 CkfTrajectoryMaker.Parameter trackCandidateAlso bool false tracked
+CkfTrajectoryMaker.Parameter useHitsSplitting bool false tracked
