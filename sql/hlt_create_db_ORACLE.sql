@@ -90,7 +90,8 @@ CREATE TABLE Directories
 	parentDirId	NUMBER,
 	dirName		VARCHAR2(512)	NOT NULL UNIQUE,
 	created		TIMESTAMP	NOT NULL,
-	PRIMARY KEY(dirId)
+	PRIMARY KEY(dirId),
+	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
 );
 
 -- SEQUENCE 'DirId_Sequence'
@@ -307,6 +308,26 @@ CREATE INDEX PathPathAssocChildId_idx ON PathInPathAssoc(childPathId);
 
 
 --
+-- TABLE 'ConfigurationStreamAssoc'
+--
+CREATE TABLE ConfigurationStreamAssoc
+(
+	configId	NUMBER	NOT NULL,
+	streamId	NUMBER  NOT NULL,
+	datasetId       NUMBER  NOT NULL,
+	PRIMARY KEY(configId,streamId,datasetId),
+	FOREIGN KEY(configId) REFERENCES Configurations(configId),
+	FOREIGN KEY(streamId) REFERENCES Streams(streamId),
+	FOREIGN KEY(datasetId)REFERENCES PrimaryDatasets(datasetId)
+);
+
+-- INDEX ConfigStreamAssocStreamId_idx
+CREATE INDEX ConfigStreamAssocStreamId_idx ON ConfigurationStreamAssoc(streamId);
+-- INDEX ConfigStreamAssocPDId_idx
+CREATE INDEX ConfigStreamAssocPDId_idx ON ConfigurationStreamAssoc(datasetId);
+
+
+--
 -- TABLE 'StreamPathAssoc'
 --
 CREATE TABLE StreamPathAssoc
@@ -488,7 +509,7 @@ CREATE TABLE EDSourceTemplates
 	cvstag       	VARCHAR2(32)	NOT NULL,
 	packageId	NUMBER		NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)   REFERENCES SuperIds(superId) ON DELETE CASCADE,
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
 	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 );
 
@@ -501,7 +522,7 @@ CREATE TABLE EDSources
 	superId      	NUMBER,
 	templateId     	NUMBER		NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)    REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId)    REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(templateId) REFERENCES EDSourceTemplates(superId)
 );
 

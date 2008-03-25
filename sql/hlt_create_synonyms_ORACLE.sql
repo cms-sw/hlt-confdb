@@ -8,6 +8,7 @@ CREATE SYNONYM SoftwareSubsystems 		FOR CMS_HLT.SoftwareSubsystems;
 CREATE SYNONYM SoftwarePackages 		FOR CMS_HLT.SoftwarePackages;
 CREATE SYNONYM ConfigurationPathAssoc 		FOR CMS_HLT.ConfigurationPathAssoc; 	
 CREATE SYNONYM StreamPathAssoc	 		FOR CMS_HLT.StreamPathAssoc; 	
+CREATE SYNONYM ConfigurationStreamAssoc		FOR CMS_HLT.ConfigurationStreamAssoc;
 CREATE SYNONYM PrimaryDatasetPathAssoc		FOR CMS_HLT.PrimaryDatasetPathAssoc;
 CREATE SYNONYM PathInPathAssoc 			FOR CMS_HLT.PathInPathAssoc; 		
 CREATE SYNONYM PathModuleAssoc 			FOR CMS_HLT.PathModuleAssoc; 		 

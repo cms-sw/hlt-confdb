@@ -44,7 +44,8 @@ CREATE TABLE Directories
 	parentDirId     BIGINT UNSIGNED,
         dirName         VARCHAR(512)      NOT NULL UNIQUE,
 	created		TIMESTAMP         NOT NULL,
-	PRIMARY KEY(dirId)
+	PRIMARY KEY(dirId),
+	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
 ) ENGINE=INNODB;
 
 -- TABLE 'Configurations'
@@ -141,6 +142,18 @@ CREATE TABLE PathInPathAssoc
 	PRIMARY KEY(parentPathId,childPathId),
 	FOREIGN KEY(parentPathId) REFERENCES Paths(pathId),
 	FOREIGN KEY(childPathId)  REFERENCES Paths(pathId)
+) ENGINE=INNODB;
+
+-- TABLE 'ConfigurationStreamAssoc'
+CREATE TABLE ConfigurationStreamAssoc
+(
+	configId	BIGINT UNSIGNED   NOT NULL,
+	streamId	BIGINT UNSIGNED	  NOT NULL,
+	datasetId       BIGINT UNSIGNED   NOT NULL,
+	PRIMARY KEY(configId,streamId,datasetId),
+	FOREIGN KEY(configId) REFERENCES Configurations(configId),
+	FOREIGN KEY(streamId) REFERENCES Streams(streamId),
+	FOREIGN KEY(datasetId)REFERENCES PrimaryDatasets(datasetId)
 ) ENGINE=INNODB;
 
 -- TABLE 'StreamPathAssoc'
