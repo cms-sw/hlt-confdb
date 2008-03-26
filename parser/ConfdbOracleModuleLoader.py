@@ -1763,6 +1763,8 @@ class ConfdbOracleModuleLoader:
 	    localseqcount = localseqcount + 1
 	    lastpsetseqdict[pset] = localseqcount
 
+            newparamsetid = psetsuperiddict[pset+str(newsuperid)]
+
 	    # Fill Parameters table
 	    newparammemberid = self.AddNewParam(thecursor,newparamsetid,psetname,type,psettracked,psetseq)	    
 	    if(psetval == ''):
