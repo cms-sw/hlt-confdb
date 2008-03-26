@@ -328,7 +328,7 @@ CREATE INDEX ConfigStreamAssocPDId_idx ON ConfigurationStreamAssoc(datasetId);
 
 
 --
--- TABLE 'StreamPathAssoc'
+-- TABLE 'StreamPathAssoc' !!OBSOLETE!!
 --
 CREATE TABLE StreamPathAssoc
 (

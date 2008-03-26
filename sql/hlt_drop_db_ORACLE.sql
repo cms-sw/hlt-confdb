@@ -4,6 +4,7 @@
 
 DROP TABLE    SuperIdReleaseAssoc;
 DROP TABLE    ConfigurationPathAssoc;
+DROP TABLE    ConfigurationStreamAssoc;
 DROP TABLE    StreamPathAssoc;
 DROP TABLE    PrimaryDatasetPathAssoc;
 DROP TABLE    PathInPathAssoc;
