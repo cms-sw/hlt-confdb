@@ -33,8 +33,7 @@ public class ConfigurationModifier implements IConfiguration
     private ArrayList<ModuleInstance>   modules  =new ArrayList<ModuleInstance>();
     private ArrayList<Path>             paths    =new ArrayList<Path>();
     private ArrayList<Sequence>         sequences=new ArrayList<Sequence>();
-    private ArrayList<Stream>           streams  =new ArrayList<Stream>();
-
+    
     /** internal instructions */
     private ModifierInstructions modifications = new ModifierInstructions();
     
@@ -111,7 +110,6 @@ public class ConfigurationModifier implements IConfiguration
 	modules.clear();
 	paths.clear();
 	sequences.clear();
-	streams.clear();
 	
 	if (!modifications.resolve(master)) return;
 	
@@ -265,8 +263,7 @@ public class ConfigurationModifier implements IConfiguration
 	modules.clear();
 	paths.clear();
 	sequences.clear();
-	streams.clear();
-
+	
 	isModified = false;
     }
     
@@ -403,7 +400,7 @@ public class ConfigurationModifier implements IConfiguration
     {
 	if (!isModified) return master.pathNotAssignedToStreamCount();
 	int result = 0;
-	if (streams.size()==0) return result;
+	if (streamCount()==0) return result;
 	for (Path p : paths) if (p.streamCount()==0) result++;
 	return result;
     }
@@ -439,6 +436,12 @@ public class ConfigurationModifier implements IConfiguration
     public Iterator<PSetParameter> psetIterator()
     {
 	return (isModified) ? psets.iterator() : master.psetIterator();
+    }
+    
+    /** insert a global pset after modifications were applied! */
+    public void insertPSet(PSetParameter pset)
+    {
+	if (isModified) psets.add(pset);
     }
     
     
@@ -678,28 +681,34 @@ public class ConfigurationModifier implements IConfiguration
     
     
     /** number of streams */
-    public int streamCount()
-    {
-	return (isModified) ? streams.size() : master.streamCount();
-    }
+    public int streamCount() { return master.streamCount(); }
     
     /** retrieve i-th stream */
-    public Stream stream(int i)
-    {
-	return (isModified) ? streams.get(i) : master.stream(i);
-    }
+    public Stream stream(int i) { return master.stream(i); }
     
     /** index of a certain stream */
-    public int indexOfStream(Stream stream)
-    {
-	return (isModified) ?
-	    streams.indexOf(stream) : master.indexOfStream(stream);
-    }
+    public int indexOfStream(Stream stream) { return master.indexOfStream(stream); }
     
     /** retrieve stream iterator */
-    public Iterator<Stream> streamIterator()
+    public Iterator<Stream> streamIterator() { return master.streamIterator(); }
+
+    
+    /** number of primary datasets */
+    public int datasetCount() { return master.datasetCount(); }
+    
+    /** retrieve i-th primary dataset */
+    public PrimaryDataset dataset(int i) { return master.dataset(i); }
+    
+    /** index of a certain primary dataset */
+    public int indexOfDataset(PrimaryDataset dataset)
     {
-	return (isModified) ? streams.iterator() : master.streamIterator();
+	return master.indexOfDataset(dataset);
+    }
+    
+    /** retrieve primary dataset iterator */
+    public Iterator<PrimaryDataset> datasetIterator()
+    {
+	return master.datasetIterator();
     }
     
 }

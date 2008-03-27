@@ -75,9 +75,12 @@ public class StreamTreeModel extends AbstractTreeModel
 	}
 	else if (node instanceof Stream) {
 	    Stream stream = (Stream)node;
-	    return stream.pathCount();
+	    return stream.datasetCount();
 	}
-	
+	else if (node instanceof PrimaryDataset) {
+	    PrimaryDataset dataset = (PrimaryDataset)node;
+	    return dataset.pathCount();
+	}
 	return 0;
     }
     
@@ -89,7 +92,11 @@ public class StreamTreeModel extends AbstractTreeModel
 	}
 	else if (parent instanceof Stream) {
 	    Stream stream = (Stream)parent;
-	    return stream.path(i);
+	    return stream.dataset(i);
+	}
+	else if (parent instanceof PrimaryDataset) {
+	    PrimaryDataset dataset = (PrimaryDataset)parent;
+	    return dataset.path(i);
 	}
 	
 	return null;
@@ -103,9 +110,14 @@ public class StreamTreeModel extends AbstractTreeModel
 	    return config.indexOfStream(stream);
 	}
 	else if (parent instanceof Stream) {
-	    Stream stream = (Stream)parent;
-	    Path path = (Path)child;
-	    return stream.indexOfPath(path);
+	    Stream         stream  = (Stream)parent;
+	    PrimaryDataset dataset = (PrimaryDataset)child;
+	    return stream.indexOfDataset(dataset);
+	}
+	else if (parent instanceof PrimaryDataset) {
+	    PrimaryDataset dataset = (PrimaryDataset)parent;
+	    Path           path    = (Path)child;
+	    return dataset.indexOfPath(path);
 	}
 	
 	return -1;
@@ -115,14 +127,17 @@ public class StreamTreeModel extends AbstractTreeModel
     public Object getParent(Object node)
     {
 	if (node instanceof Path) {
-	    Path   path   = (Path)node;
-	    Stream stream = (Stream)path.stream(0);
-	    return stream;
+	    Path path = (Path)node;
+	    return path.dataset(0);
+	}
+	else if (node instanceof PrimaryDataset) {
+	    PrimaryDataset dataset = (PrimaryDataset)node;
+	    return dataset.parentStream();
 	}
 	else if (node instanceof Stream) {
 	    return rootNode;
 	}
-
+	
 	return null;
     }
     

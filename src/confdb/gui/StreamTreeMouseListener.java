@@ -13,6 +13,7 @@ import java.util.Iterator;
 import confdb.gui.menu.ScrollableMenu;
 
 import confdb.data.*;
+import confdb.db.*;
 
 
 /**
@@ -30,8 +31,15 @@ public class StreamTreeMouseListener extends    MouseAdapter
     /** the tree being manipulated */
     private JTree tree = null;
 
+    /** database instance, for list of valid stream labels */
+    private ConfDB database = null;
+
     /** standard constructor */
-    public StreamTreeMouseListener(JTree tree) { this.tree = tree; }
+    public StreamTreeMouseListener(JTree tree,ConfDB database)
+    {
+	this.tree = tree;
+	this.database = database;
+    }
 
     /** MouseAdapter: mousePressed() */
     public void mousePressed(MouseEvent e) { maybeShowPopup(e); }
@@ -46,7 +54,6 @@ public class StreamTreeMouseListener extends    MouseAdapter
 	Configuration   config    = treeModel.getConfiguration();	
 
 	if (!e.isPopupTrigger()) return;
-	if (!tree.isEditable()) return;
 	if (config.name().length()==0) return;
 
 	TreePath treePath = tree.getPathForLocation(e.getX(),e.getY());
@@ -58,30 +65,50 @@ public class StreamTreeMouseListener extends    MouseAdapter
 	
 	Object selectedNode = treePath.getLastPathComponent();
 	
-	if (selectedNode instanceof Stream) {
+	if (selectedNode==treeModel.getRoot()) {
+	    JMenu menu = new ScrollableMenu("Add Stream");
+	    try {
+		Iterator<String> itS = database.streamLabelIterator();
+		while (itS.hasNext()) {
+		    String streamLabel = itS.next();
+		    if (config.stream(streamLabel)==null) {
+			menuItem = new JMenuItem(streamLabel);
+			menuItem.setActionCommand("ADDSTREAM");
+			menuItem.addActionListener(this);
+			menu.add(menuItem);
+		    }
+		}
+		popup.add(menu);
+	    }
+	    catch (DatabaseException ex) {
+		System.err.println(ex.getMessage());
+	    }
+	}
+	else if (selectedNode instanceof Stream) {
 	    Stream stream = (Stream)selectedNode;
 	    
-	    JMenu menu = new ScrollableMenu("Add Path");
-	    menuItem = new JMenuItem("All");
-	    menuItem.setActionCommand("ADDALLPATHS");
-	    menuItem.addActionListener(this);
-	    menu.add(menuItem);
-	    Iterator<Path> itP = config.pathIterator();
-	    while (itP.hasNext()) {
-		Path path = itP.next();
-		if (path.isEndPath()) continue;
-		menuItem = new JMenuItem(path.name());
-		if (stream.indexOfPath(path)<0) {
-		    menuItem.setActionCommand("ADDPATH");
+	    JMenu menu = new ScrollableMenu("Add Primary Dataset");
+	    Iterator<PrimaryDataset> itD = config.datasetIterator();
+	    while (itD.hasNext()) {
+		PrimaryDataset dataset = itD.next();
+		if (stream.indexOfDataset(dataset)<0&&
+		    dataset.parentStream()==null) {
+		    menuItem = new JMenuItem(dataset.label());
+		    menuItem.setActionCommand("ADDDATASET");
 		    menuItem.addActionListener(this);
 		    menu.add(menuItem);
 		}
 	    }
 	    popup.add(menu);
+	    
+	    menuItem = new JMenuItem("Remove Stream");
+	    menuItem.setActionCommand("RMVSTREAM");
+	    menuItem.addActionListener(this);
+	    popup.add(menuItem);
 	}
-	
-	if (selectedNode instanceof Path) {
-	    menuItem = new JMenuItem("Remove Path");
+	else if (selectedNode instanceof PrimaryDataset) {
+	    menuItem = new JMenuItem("Remove Primary Dataset");
+	    menuItem.setActionCommand("RMVDATASET");
 	    menuItem.addActionListener(this);
 	    popup.add(menuItem);
 	}
@@ -109,14 +136,17 @@ public class StreamTreeMouseListener extends    MouseAdapter
 	String    cmd    = src.getText();
 	String    action = src.getActionCommand();
 	
-	if (cmd.equals("Remove Path")) {
-	    StreamTreeActions.removePath(tree);
+	if (action.equals("ADDSTREAM")) {
+	    StreamTreeActions.addStream(tree,cmd);
 	}
-	else if (action.equals("ADDPATH")) {
-	    StreamTreeActions.addPath(tree,cmd);
+	if (action.equals("RMVSTREAM")) {
+	    StreamTreeActions.removeStream(tree);
 	}
-	else if (action.equals("ADDALLPATHS")) {
-	    StreamTreeActions.addAllPaths(tree);
+	else if (action.equals("ADDDATASET")) {
+	    StreamTreeActions.addDataset(tree,cmd);
+	}
+	else if (action.equals("RMVDATASET")) {
+	    StreamTreeActions.removeDataset(tree);
 	}
     }
     

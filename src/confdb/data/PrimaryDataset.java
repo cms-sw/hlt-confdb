@@ -24,6 +24,9 @@ public class PrimaryDataset extends DatabaseEntry implements Comparable<PrimaryD
     /** collection of assigned paths */
     private ArrayList<Path> paths = new ArrayList<Path>();
     
+    /** parent stream */
+    private Stream parentStream = null;
+    
 
     //
     // construction
@@ -43,6 +46,9 @@ public class PrimaryDataset extends DatabaseEntry implements Comparable<PrimaryD
     /** label of this stream */
     public String label() { return label; }
     
+    /** get the parent stream */
+    public Stream parentStream() { return parentStream; }
+
     /** set label of this stream */
     public void setLabel(String label) { this.label = label; }
     
@@ -50,7 +56,10 @@ public class PrimaryDataset extends DatabaseEntry implements Comparable<PrimaryD
     public String toString() { return label(); }
 
     /** Comparable: compareTo() */
-    public int compareTo(PrimaryDataset s) { return toString().compareTo(s.toString()); }
+    public int compareTo(PrimaryDataset s)
+    {
+	return toString().compareTo(s.toString());
+    }
 
     /** number of paths */
     public int pathCount() { return paths.size(); }
@@ -69,12 +78,13 @@ public class PrimaryDataset extends DatabaseEntry implements Comparable<PrimaryD
     {
 	if (paths.indexOf(path)>=0) {
 	    System.out.println("PrimaryDataset.insertPath() WARNING: path '"+
-			       path.name()+"' already associated with stream '"+
-			       label+"'");
+			       path.name()+"' already associated with primary "+
+			       "dataset '"+label+"'");
 	    return false;
 	}
 	if (!path.addToDataset(this)) return false;
 	paths.add(path);
+	setHasChanged();
 	return true;
     }
     
@@ -84,14 +94,41 @@ public class PrimaryDataset extends DatabaseEntry implements Comparable<PrimaryD
 	int index = paths.indexOf(path);
 	if (index<0) {
 	    System.out.println("PrimaryDataset.removePath() WARNING: path '"+
-			       path.name()+"' not associated with stream '"+
-			       label+"'");
+			       path.name()+"' not associated with primary "+
+			       "dataset '"+label+"'");
 	    return false;
 	}
 	paths.remove(index);
 	path.removeFromDataset(this);
+	setHasChanged();
 	return true;
     }
     
+    /** add this dataset to a stream */
+    public boolean addToStream(Stream stream)
+    {
+	if (parentStream==null) {
+	    parentStream = stream;
+	    setHasChanged();
+	    return true;
+	}
+	System.out.println("PrimaryDataset::addToStream() WARNING: dataset '"+
+			   label+"' already assigned to stream '"+
+			   parentStream.label()+"'!");
+	return false;
+    }
+    
+    /** remove dataset from stream */
+    public boolean removeFromStream(Stream stream)
+    {
+	if (parentStream!=stream) {
+	    System.out.println("PrimaryDataset::removeFromStream() WARNING: "+
+			       "dataset '"+label+"' is not assinged to stream '"+
+			       stream.label()+"'!");
+	    return false;
+	}
+	parentStream = null;
+	return true;
+    }
     
 }

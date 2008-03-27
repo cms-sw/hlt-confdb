@@ -128,6 +128,7 @@ public class ParameterTableMouseListener extends MouseAdapter
 		if (cmd.equals("Remove Parameter")) {
 		    int index = pset.removeParameter(parameter);
 		    treeModel.nodeRemoved(pset,index,parameter);
+		    notifyParent(pset);
 		}
 	    }
 	}
@@ -143,6 +144,7 @@ public class ParameterTableMouseListener extends MouseAdapter
 		if (cmd.equals("Remove Parameter")) {
 		    int index = vpset.removeParameterSet(pset);
 		    treeModel.nodeRemoved(vpset,index,pset);
+		    notifyParent(vpset);
 		}
 	    }
 	    else if (parent instanceof PSetParameter) {
@@ -150,6 +152,7 @@ public class ParameterTableMouseListener extends MouseAdapter
 		if (cmd.equals("Remove Parameter")) {
 		    int index = pset.removeParameter(parameter);
 		    treeModel.nodeRemoved(pset,index,parameter);
+		    notifyParent(pset);
 		}
 	    }
 	}
@@ -159,6 +162,7 @@ public class ParameterTableMouseListener extends MouseAdapter
 	    if (cmd.equals("Remove Parameter")) {
 		int index = pset.removeParameter(parameter);
 		treeModel.nodeRemoved(pset,index,parameter);
+		notifyParent(pset);
 	    }
 	}
     }

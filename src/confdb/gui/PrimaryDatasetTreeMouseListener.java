@@ -13,6 +13,7 @@ import java.util.Iterator;
 import confdb.gui.menu.ScrollableMenu;
 
 import confdb.data.*;
+import confdb.db.*;
 
 
 /**
@@ -30,8 +31,15 @@ public class PrimaryDatasetTreeMouseListener extends    MouseAdapter
     /** the tree being manipulated */
     private JTree tree = null;
     
+    /** instance of the database, to get list of valid labels */
+    private ConfDB database = null;
+
     /** standard constructor */
-    public PrimaryDatasetTreeMouseListener(JTree tree) { this.tree = tree; }
+    public PrimaryDatasetTreeMouseListener(JTree tree,ConfDB database)
+    {
+	this.tree     = tree;
+	this.database = database;
+    }
     
     /** MouseAdapter: mousePressed() */
     public void mousePressed(MouseEvent e) { maybeShowPopup(e); }
@@ -43,10 +51,9 @@ public class PrimaryDatasetTreeMouseListener extends    MouseAdapter
     private void maybeShowPopup(MouseEvent e)
     {
 	PrimaryDatasetTreeModel treeModel=(PrimaryDatasetTreeModel)tree.getModel();
-	Configuration config=treeModel.getConfiguration();	
+	Configuration           config   =treeModel.getConfiguration();	
 
 	if (!e.isPopupTrigger()) return;
-	if (!tree.isEditable()) return;
 	if (config.name().length()==0) return;
 
 	TreePath treePath=tree.getPathForLocation(e.getX(),e.getY());
@@ -58,7 +65,26 @@ public class PrimaryDatasetTreeMouseListener extends    MouseAdapter
 	
 	Object selectedNode = treePath.getLastPathComponent();
 	
-	if (selectedNode instanceof PrimaryDataset) {
+	if (selectedNode==treeModel.getRoot()) {
+	    JMenu menu = new ScrollableMenu("Add Primary Dataset");
+	    try {
+		Iterator<String> itS = database.datasetLabelIterator();
+		while (itS.hasNext()) {
+		    String datasetLabel = itS.next();
+		    if (config.dataset(datasetLabel)==null) {
+			menuItem = new JMenuItem(datasetLabel);
+			menuItem.setActionCommand("ADDDATASET");
+			menuItem.addActionListener(this);
+			menu.add(menuItem);
+		    }
+		}
+		popup.add(menu);
+	    }
+	    catch (DatabaseException ex) {
+		System.err.println(ex.getMessage());
+	    }
+	}
+	else if (selectedNode instanceof PrimaryDataset) {
 	    PrimaryDataset dataset = (PrimaryDataset)selectedNode;
 	    
 	    JMenu menu = new ScrollableMenu("Add Path");
@@ -70,7 +96,7 @@ public class PrimaryDatasetTreeMouseListener extends    MouseAdapter
 	    while (itP.hasNext()) {
 		Path path = itP.next();
 		if (path.isEndPath()) continue;
-		menuItem = new JMenuItem(path.name());
+		menuItem = new JMenuItem(path.name()+" ("+path.datasetCount()+")");
 		if (dataset.indexOfPath(path)<0) {
 		    menuItem.setActionCommand("ADDPATH");
 		    menuItem.addActionListener(this);
@@ -78,10 +104,16 @@ public class PrimaryDatasetTreeMouseListener extends    MouseAdapter
 		}
 	    }
 	    popup.add(menu);
+
+	    menuItem = new JMenuItem("Remove Primary Dataset");
+	    menuItem.setActionCommand("RMVDATASET");
+	    menuItem.addActionListener(this);
+	    popup.add(menuItem);
 	}
 	
 	if (selectedNode instanceof Path) {
 	    menuItem = new JMenuItem("Remove Path");
+	    menuItem.setActionCommand("RMVPATH");
 	    menuItem.addActionListener(this);
 	    popup.add(menuItem);
 	}
@@ -109,11 +141,17 @@ public class PrimaryDatasetTreeMouseListener extends    MouseAdapter
 	String    cmd    = src.getText();
 	String    action = src.getActionCommand();
 	
-	if (cmd.equals("Remove Path")) {
+	if (action.equals("ADDDATASET")) {
+	    PrimaryDatasetTreeActions.addDataset(tree,cmd);
+	}
+	else if (action.equals("RMVDATASET")) {
+	    PrimaryDatasetTreeActions.removeDataset(tree);
+	}
+	else if (action.equals("RMVPATH")) {
 	    PrimaryDatasetTreeActions.removePath(tree);
 	}
 	else if (action.equals("ADDPATH")) {
-	    PrimaryDatasetTreeActions.addPath(tree,cmd);
+	    PrimaryDatasetTreeActions.addPath(tree,cmd.split(" ")[0]);
 	}
 	else if (action.equals("ADDALLPATHS")) {
 	    PrimaryDatasetTreeActions.addAllPaths(tree);

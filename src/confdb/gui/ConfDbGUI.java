@@ -132,10 +132,8 @@ public class ConfDbGUI
 
     private JPanel        jPanelStreamsAndDatasets  = new JPanel();
     private JTree         jTreeStreams;
-    private JButton       jButtonAddStream          = new JButton();       // AL
     private JTextField    jTextFieldStreamPathCount = new JTextField();
     private JTree         jTreeDatasets;
-    private JButton       jButtonAddDataset         = new JButton();       // AL
     private JTextField    jTextFieldDatasetPathCount= new JTextField();
     
     private JPanel        jPanelPrescales           = new JPanel();
@@ -271,16 +269,6 @@ public class ConfDbGUI
 	jButtonImportCancelSearch.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    jButtonImportCancelSearchActionPerformed(e);
-		}
-	    });
-	jButtonAddStream.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    jButtonAddStreamActionPerformed(e);
-		}
-	    });
-	jButtonAddDataset.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    jButtonAddDatasetActionPerformed(e);
 		}
 	    });
 	jComboBoxPaths.addItemListener(new ItemListener() {
@@ -859,7 +847,7 @@ public class ConfDbGUI
 	
 	return true;
     }
-
+    
 
     /** set the current configuration */
     private void setCurrentConfig(Configuration config)
@@ -1467,10 +1455,10 @@ public class ConfDbGUI
 		    Object selectedNode = tp.getLastPathComponent();
 		    if (selectedNode instanceof Path) {
 			Path path = (Path)selectedNode;
-			if (path.streamCount()>0) {
-			    text = "<html>"+path.name()+" assigned to stream(s): ";
-			    for (int i=0;i<path.streamCount();i++)
-				text += "<br>"+path.stream(i);
+			if (path.datasetCount()>0) {
+			    text = "<html>"+path.name()+" assigned to dataset(s): ";
+			    for (int i=0;i<path.datasetCount();i++)
+				text += "<br>"+path.dataset(i);
 			}
 			String[] unresolved = path.unresolvedInputTags();
 			if (unresolved.length>0) {
@@ -1550,7 +1538,7 @@ public class ConfDbGUI
 	// stream tree
 	treeModelStreams = new StreamTreeModel(currentConfig);
 	jTreeStreams     = new JTree(treeModelStreams);
-	jTreeStreams.setEditable(true);
+	jTreeStreams.setEditable(false);
 	jTreeStreams.setRootVisible(true);
 	jTreeStreams.getSelectionModel().setSelectionMode(TreeSelectionModel
 							  .SINGLE_TREE_SELECTION);
@@ -1558,14 +1546,14 @@ public class ConfDbGUI
 	jTreeStreams.setCellRenderer(new StreamTreeRenderer());
 	
 	StreamTreeMouseListener streamTreeMouseListener =
-	    new StreamTreeMouseListener(jTreeStreams);
+	    new StreamTreeMouseListener(jTreeStreams,database);
 	jTreeStreams.addMouseListener(streamTreeMouseListener);
 	treeModelStreams.addTreeModelListener(streamTreeMouseListener);
 	
 	// primary datasets tree
 	treeModelDatasets = new PrimaryDatasetTreeModel(currentConfig);
 	jTreeDatasets     = new JTree(treeModelDatasets);
-	jTreeDatasets.setEditable(true);
+	jTreeDatasets.setEditable(false);
 	jTreeDatasets.setRootVisible(true);
 	jTreeDatasets.getSelectionModel().setSelectionMode(TreeSelectionModel
 							   .SINGLE_TREE_SELECTION);
@@ -1573,7 +1561,7 @@ public class ConfDbGUI
 	jTreeDatasets.setCellRenderer(new PrimaryDatasetTreeRenderer());
 	
 	PrimaryDatasetTreeMouseListener datasetTreeMouseListener =
-	    new PrimaryDatasetTreeMouseListener(jTreeDatasets);
+	    new PrimaryDatasetTreeMouseListener(jTreeDatasets,database);
 	jTreeDatasets.addMouseListener(datasetTreeMouseListener);
 	treeModelDatasets.addTreeModelListener(datasetTreeMouseListener);
 	
@@ -1830,51 +1818,6 @@ public class ConfDbGUI
 	    jTreeImportConfig.setSelectionPath(tp);
 	}
     }
-    private void jButtonAddStreamActionPerformed(ActionEvent e)
-    {
-	InputLabelDialog dialog = new InputLabelDialog(frame,
-						       "Add Stream",
-						       "Stream Label:");
-	dialog.pack();
-	dialog.setLocationRelativeTo(frame);
-	dialog.setVisible(true);
-	if (dialog.validChoice()) {
-	    try {
-		String streamLabel = dialog.label();
-		int streamId = database.insertStream(streamLabel);
-		Stream stream = currentConfig.insertStream(streamLabel);
-		stream.setDatabaseId(streamId);
-		treeModelStreams.nodeInserted(treeModelStreams.getRoot(),
-					      currentConfig.streamCount()-1);
-	    }
-	    catch (DatabaseException ex) {
-		System.out.println("Failed to insert new Stream: "+ex.getMessage());
-	    }
-	}
-    }
-    private void jButtonAddDatasetActionPerformed(ActionEvent e)
-    {
-	InputLabelDialog dialog = new InputLabelDialog(frame,
-						       "Add Primary Dataset",
-						       "Dataset Label:");
-	dialog.pack();
-	dialog.setLocationRelativeTo(frame);
-	dialog.setVisible(true);
-	if (dialog.validChoice()) {
-	    try {
-		String datasetLabel = dialog.label();
-		int datasetId = database.insertDataset(datasetLabel);
-		PrimaryDataset dataset = currentConfig.insertDataset(datasetLabel);
-		dataset.setDatabaseId(datasetId);
-		treeModelDatasets.nodeInserted(treeModelDatasets.getRoot(),
-					       currentConfig.datasetCount()-1);
-	    }
-	    catch (DatabaseException ex) {
-		System.out.println("Failed to insert new Primary Dataset: "+
-				   ex.getMessage());
-	    }
-	}
-    }
     private void jComboBoxPathsItemStateChanged(ItemEvent e)
     {
 	if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -2034,7 +1977,8 @@ public class ConfDbGUI
 	    Object changedNode = e.getChildren()[0];
 	    if (changedNode instanceof Path) {
 		Path path = (Path)changedNode;
-		if (path.streamCount()>0) treeModelStreams.nodeChanged(path); // :(
+		treeModelStreams.nodeChanged(path); // :(
+		treeModelDatasets.nodeChanged(path); // :(
 	    }
 	}
 	//displayParameters(); // don't if the selected instance did not change!
@@ -2056,27 +2000,40 @@ public class ConfDbGUI
     {
 	jTextFieldStreamPathCount.setEnabled(true);
 	updateStreamPathCount();
-	currentConfig.setHasChanged(true);
     }
     private void jTreeStreamsTreeNodesRemoved(TreeModelEvent e)
     {
 	updateStreamPathCount();
-	currentConfig.setHasChanged(true);
     }
     private void jTreeStreamsTreeStructureChanged(TreeModelEvent e)
     {
 	updateStreamPathCount();
     }
-    private void jTreeDatasetsTreeNodesChanged(TreeModelEvent e) {}
+    private void jTreeDatasetsTreeNodesChanged(TreeModelEvent e)
+    {
+	Object changedNode = e.getChildren()[0];
+	treeModelStreams.nodeChanged(changedNode);
+    }
     private void jTreeDatasetsTreeNodesInserted(TreeModelEvent e)
     {
 	updateDatasetPathCount();
-	currentConfig.setHasChanged(true);
+	Object parentNode = e.getTreePath().getLastPathComponent();
+	int    childIndex = e.getChildIndices()[0];
+	treeModelStreams.nodeInserted(parentNode,childIndex);
     }
     private void jTreeDatasetsTreeNodesRemoved(TreeModelEvent e)
     {
 	updateDatasetPathCount();
-	currentConfig.setHasChanged(true);
+	Object parentNode = e.getTreePath().getLastPathComponent();
+	int    childIndex = e.getChildIndices()[0];
+	Object child      = e.getChildren()[0];
+	if (child instanceof PrimaryDataset) {
+	    PrimaryDataset dataset = (PrimaryDataset)child;
+	    Stream         stream  = dataset.parentStream();if(stream==null)return;
+	    parentNode = stream;
+	    childIndex = stream.indexOfDataset(dataset);
+	}
+	treeModelStreams.nodeRemoved(parentNode,childIndex,child);
     }
     private void jTreeDatasetsTreeStructureChanged(TreeModelEvent e)
     {
@@ -2128,6 +2085,8 @@ public class ConfDbGUI
 	    jTextFieldStreamPathCount.setForeground(Color.RED);
 	else
 	    jTextFieldStreamPathCount.setForeground(Color.GREEN);
+
+	
     }
     private void updateDatasetPathCount()
     {
@@ -2458,9 +2417,6 @@ public class ConfDbGUI
 
         jScrollPaneStreams.setViewportView(jTreeStreams);
 
-        jButtonAddStream.setToolTipText("Add Stream to the Database");
-        jButtonAddStream.setIcon(new ImageIcon(getClass().
-					       getResource("/AddIcon.png")));
         jLabel1.setText("Unassigned Paths:");
 	jTextFieldStreamPathCount.setEditable(false);
 	jTextFieldStreamPathCount.setBackground(Color.white);
@@ -2472,7 +2428,6 @@ public class ConfDbGUI
 					 .add(jScrollPaneStreams, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 269, Short.MAX_VALUE)
 					 .add(jPanel1Layout.createSequentialGroup()
 					      .add(12, 12, 12)
-					      .add(jButtonAddStream, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 16, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
 					      .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 44, Short.MAX_VALUE)
 					      .add(jLabel1)
 					      .add(4, 4, 4)
@@ -2485,7 +2440,6 @@ public class ConfDbGUI
 					    .add(jScrollPaneStreams, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 511, Short.MAX_VALUE)
 					    .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
 					    .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-						 .add(jButtonAddStream, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 18, Short.MAX_VALUE)
 						 .add(jLabel1)
 						 .add(jTextFieldStreamPathCount, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
 					    .addContainerGap())
@@ -2495,10 +2449,6 @@ public class ConfDbGUI
 	
         jScrollPaneDatasets.setViewportView(jTreeDatasets);
 	
-        jButtonAddDataset.setToolTipText("Add Primary Dataset to the Database");
-	jButtonAddDataset.setIcon(new ImageIcon(getClass().
-						getResource("/AddIcon.png")));
-        
         jLabel2.setText("Unassigned Paths:");
 	jTextFieldDatasetPathCount.setEditable(false);
 	jTextFieldDatasetPathCount.setBackground(Color.white);
@@ -2509,7 +2459,6 @@ public class ConfDbGUI
 					 jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
 					 .add(jPanel2Layout.createSequentialGroup()
 					      .addContainerGap()
-                .add(jButtonAddDataset, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 16, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
 					      .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 40, Short.MAX_VALUE)
 					      .add(jLabel2)
 					      .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
@@ -2523,7 +2472,6 @@ public class ConfDbGUI
 					    .add(jScrollPaneDatasets, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 510, Short.MAX_VALUE)
 					    .add(7, 7, 7)
 					    .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-						 .add(jButtonAddDataset, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 18, Short.MAX_VALUE)
 						 .add(jLabel2)
 						 .add(jTextFieldDatasetPathCount, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
 					    .addContainerGap())

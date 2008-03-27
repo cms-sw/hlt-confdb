@@ -99,8 +99,7 @@ public class OnlineConverter extends ConverterBase
     // member functions
     //
 
-    /** get the configuration string for FUEventProcessor 
-     * @throws ConversionException */
+    /** get the configuration string for FUEventProcessor */
     public String getEpConfigString(int configId)
 	throws ConverterException
     {
@@ -109,8 +108,7 @@ public class OnlineConverter extends ConverterBase
 	return epConfigString;
     }
 
-    /** get the configuration string for StorageManager 
-     * @throws ConversionException */
+    /** get the configuration string for StorageManager */
     public String getSmConfigString(int configId)
 	throws ConverterException
     {
@@ -119,8 +117,7 @@ public class OnlineConverter extends ConverterBase
 	return smConfigString;
     }
 
-    /** get the pathName -> prescalerName map 
-     * @throws ConversionException */
+    /** get the pathName -> prescalerName map */
     public HashMap<String, String> getPathToPrescalerMap(int configId)
 	throws ConverterException 
     {
@@ -133,12 +130,18 @@ public class OnlineConverter extends ConverterBase
     // private member data
     //
 
-    /** convert configuration and cache ep and sm configuration string 
-     * @throws ConversionException */
+    /** convert configuration and cache ep and sm configuration string */
     private void convertConfiguration(int configId) throws ConverterException 
     {
 	IConfiguration epConfig = getConfiguration(configId);
-
+	
+	if (epConfig.streamCount()==0) {
+	    String errMsg =
+		"OnlineConverter::convertConfiguration(configId="+configId+
+		") ERROR: no streams defined!";
+	    throw new ConverterException(errMsg);
+	}
+	
 	SoftwareSubsystem subsys = new SoftwareSubsystem("IOPool");
 	SoftwarePackage pkg = new SoftwarePackage("Streamer");
 	ModuleTemplate smStreamWriterT = makeSmStreamWriterT();
@@ -163,23 +166,8 @@ public class OnlineConverter extends ConverterBase
 	
 	Path endpath = smConfig.insertPath(0, "epstreams");
 
-	ArrayList<Stream> defaultStreams = new ArrayList<Stream>();
-	if (epConfig.streamCount() == 0) {
-	    Stream defaultStream = new Stream("default");
-	    defaultStreams.add(defaultStream);
-	    Iterator<Path> itP = epConfig.pathIterator();
-	    while (itP.hasNext()) {
-		Path path = itP.next();
-		if (path.isEndPath())
-		    continue;
-		defaultStream.insertPath(new Path(path.name()));
-	    }
-	}
-
-	Iterator<Stream> itStream =
-	    (defaultStreams.size() > 0) ?
-	    defaultStreams.iterator() : epConfig.streamIterator();
-
+	Iterator<Stream> itStream = epConfig.streamIterator();
+	
 	while (itStream.hasNext()) {
 	    Stream stream = itStream.next();
 	    
@@ -198,8 +186,7 @@ public class OnlineConverter extends ConverterBase
 	    Iterator<Path> itPath = stream.pathIterator();
 	    while (itPath.hasNext()) {
 		Path path = itPath.next();
-		if (valAsString.length() > 0)
-		    valAsString += ",";
+		if (valAsString.length()>0) valAsString += ",";
 		valAsString += path.name();
 	    }
 	    VStringParameter vstringSelectEvents =

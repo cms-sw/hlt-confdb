@@ -1,5 +1,6 @@
 package confdb.data;
 
+import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -9,9 +10,7 @@ import java.util.Iterator;
  * ------
  * @author Philipp Schieferdecker
  *
- * For HLT configurations; paths can be assigned streams, where
- * streams have different priorities. The corresponding configuration
- * is passed to the StorageManager and Tier0.
+ * streams contain primary datasets, and thereby implicitely a list of paths.
  */
 public class Stream extends DatabaseEntry implements Comparable<Stream>
 {
@@ -23,7 +22,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     private String label;
 
     /** collection of assigned paths */
-    private ArrayList<Path> paths = new ArrayList<Path>();
+    private ArrayList<PrimaryDataset> datasets = new ArrayList<PrimaryDataset>();
     
 
     //
@@ -53,44 +52,76 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** Comparable: compareTo() */
     public int compareTo(Stream s) { return toString().compareTo(s.toString()); }
 
+    /** number of primary datasets */
+    public int datasetCount() { return datasets.size(); }
+    
+    /** retrieve i-th primary dataset */
+    public PrimaryDataset dataset(int i) { return datasets.get(i); }
+
+    /** retrieve primary dataset iterator */
+    public Iterator<PrimaryDataset> datasetIterator() {return datasets.iterator();}
+
+    /** index of a given primary dataset */
+    public int indexOfDataset(PrimaryDataset ds) { return datasets.indexOf(ds); }
+    
+    /** insert and associate a primary dataset with this stream */
+    public boolean insertDataset(PrimaryDataset dataset)
+    {
+	if (datasets.indexOf(dataset)>=0) {
+	    System.out.println("Stream.insertDataset() WARNING: dataset '"+
+			       dataset.label()+"' already associated with stream '"+
+			       label+"'");
+	    return false;
+	}
+	if (!dataset.addToStream(this)) return false;
+	datasets.add(dataset);
+	setHasChanged();
+	return true;
+    }
+    
+    /** remove a dataset from this stream */
+    public boolean removeDataset(PrimaryDataset dataset)
+    {
+	int index = datasets.indexOf(dataset);
+	if (index<0) {
+	    System.out.println("Stream.removeDataset() WARNING: dataset '"+
+			       dataset.label()+"' not associated with stream '"+
+			       label+"'");
+	    return false;
+	}
+	datasets.remove(index);
+	dataset.removeFromStream(this);
+	setHasChanged();
+	return true;
+    }
+    
+    
+    /** retrieve array of assigned paths */
+    public Path[] listOfPaths()
+    {
+	HashSet<Path> setOfPaths = new HashSet<Path>();
+	for (PrimaryDataset ds : datasets) {
+	    Iterator<Path> itP = ds.pathIterator();
+	    while (itP.hasNext()) setOfPaths.add(itP.next());
+	}
+	return setOfPaths.toArray(new Path[setOfPaths.size()]);
+    }
+
     /** number of paths */
-    public int pathCount() { return paths.size(); }
+    public int pathCount() { return listOfPaths().length; }
 
     /** retrieve i-th path */
-    public Path path(int i) { return paths.get(i); }
+    public Path path(int i) { return listOfPaths()[i]; }
     
     /** retrieve iterator over paths */
-    public Iterator<Path> pathIterator() { return paths.iterator(); }
-    
-    /** index of a certain path */
-    public int indexOfPath(Path path) { return paths.indexOf(path); }
-
-    /** insert and associate a path with this stream */
-    public boolean insertPath(Path path)
+    public Iterator<Path> pathIterator()
     {
-	if (paths.indexOf(path)>=0) {
-	    System.out.println("Stream.insertPath() WARNING: path '"+path.name()+
-			       "' already associated with stream '"+label+"'");
-	    return false;
+	HashSet<Path> setOfPaths = new HashSet<Path>();
+	for (PrimaryDataset ds : datasets) {
+	    Iterator<Path> itP = ds.pathIterator();
+	    while (itP.hasNext()) setOfPaths.add(itP.next());
 	}
-	if (!path.addToStream(this)) return false;
-	paths.add(path);
-	return true;
+	return setOfPaths.iterator();
     }
-    
-    /** remove a path from this stream */
-    public boolean removePath(Path path)
-    {
-	int index = paths.indexOf(path);
-	if (index<0) {
-	    System.out.println("Stream.removePath() WARNING: path '"+path.name()+
-			       "' not associated with stream '"+label+"'");
-	    return false;
-	}
-	paths.remove(index);
-	path.removeFromStream(this);
-	return true;
-    }
-    
     
 }

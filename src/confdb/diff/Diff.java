@@ -68,23 +68,6 @@ public class Diff
 	this.config2 = config2;
     }
     
-    /** destructor */
-    /*
-      protected void finalize() throws Throwable
-      {
-      ConfDB db = getDatabase();
-      if (db!=null) {
-      try {
-      db.disconnect();
-      }
-      catch (DatabaseException e) {
-      System.err.println("Diff::finalize(): "+
-      "failed to disconnect from DB:"+e.getMessage());
-      }
-      }
-      }
-    */
-    
     
     //
     // member functions
@@ -355,6 +338,15 @@ public class Diff
 	
 	result = new Comparison(rc2,rc2.getClass().getName(),rc1.name(),rc2.name());
 	
+	if (rc1 instanceof Path) {
+	    Path p1 = (Path)rc1;
+	    Path p2 = (Path)rc2;
+	    if (p1.isEndPath()&&!p2.isEndPath())
+		result.setOldType("ENDPATH");
+	    else if (!p1.isEndPath()&&p2.isEndPath())
+		result.setOldType("PATH");
+	}
+	
 	Iterator<Reference> itRef2 = rc2.entryIterator();
 	while (itRef2.hasNext()) {
 	    Reference    reference2 = itRef2.next();
@@ -512,22 +504,32 @@ public class Diff
 	    Iterator<Comparison> it = c.recursiveComparisonIterator();
 	    while (it.hasNext()) {
 		Comparison cParam = it.next();
-		if (cParam.type().equals("PSet")||
-		    cParam.type().equals("VPSet")) continue;
-		if (cParam.isChanged())
+		if (cParam.isChanged()&&
+		    !cParam.type().equals("PSet")&&
+		    !cParam.type().equals("VPSet"))
 		    result.append("       "+
 				  cParam.type()+" "+
 				  cParam.name1()+" = "+
 				  cParam.name2()+ " ["+
 				  cParam.oldValue()+"]\n");
-		else if (cParam.isAdded())
+		else if (cParam.isAdded()) {
 		    result.append("       "+
 				  cParam.type()+" "+
-				  cParam.name2()+" [ADDED]\n");
-		else if (cParam.isRemoved())
+				  cParam.name2());
+		    if (!cParam.type().equals("PSet")&&
+			!cParam.type().equals("VPSet"))
+			result.append(" = "+cParam.oldValue());
+		    result.append(" [ADDED]\n");
+		}
+		else if (cParam.isRemoved()) {
 		    result.append("       "+
 				  cParam.type()+" "+
-				  cParam.name1()+" [REMOVED]\n");
+				  cParam.name1());
+		    if (!cParam.type().equals("PSet")&&
+			!cParam.type().equals("VPSet"))
+			result.append(" = "+cParam.oldValue());
+		    result.append(" [REMOVED]\n");
+		}
 	    }
 	}
 	return result.toString();
@@ -579,15 +581,22 @@ public class Diff
     /** compare two parameters */
     private Comparison compareParameters(Parameter p1,Parameter p2)
     {
-	if (p1==null)
-	    return new Comparison(p2,p2.type(),p2.fullName(),p2.valueAsString());
-	else if (p2==null)
-	    return new Comparison(p1,p1.type(),p1.fullName(),p1.valueAsString());
+	Comparison result = null;
+	if (p1==null) {
+	    result = new Comparison(p2,p2.type(),null,p2.fullName());
+	    result.setOldValue(p2.valueAsString());
+	    return result;
+	}
+	else if (p2==null) {
+	    result = new Comparison(p1,p1.type(),p1.fullName(),null);
+	    result.setOldValue(p1.valueAsString());
+	    return result;
+	}
 
 	if (!p1.type().equals(p2.type())||
-	    !p1.name().equals(p1.name())) return null;
+	    !p1.name().equals(p2.name())) return null;
 	
-	Comparison result = null;
+
 	if (p2 instanceof PSetParameter) {
 	    PSetParameter pset1 = (PSetParameter)p1;
 	    PSetParameter pset2 = (PSetParameter)p2;
@@ -702,12 +711,29 @@ public class Diff
 	String dbName     = "hltdb";
 	String dbUser     = "schiefer";
 	String dbPwrd     = "monopoles";
-	String dbSetup    = "";
 	
 	for (int iarg=0;iarg<args.length;iarg++) {
 	    String arg = args[iarg];
 	    if (arg.equals("--configs")) {
 		iarg++; configs = args[iarg];
+	    }
+	    else if (arg.equals("-t")) {
+		iarg++; dbType = args[iarg];
+	    }
+	    else if (arg.equals("-h")) {
+		iarg++; dbHost = args[iarg];
+	    }
+	    else if (arg.equals("-p")) {
+		iarg++; dbPort = args[iarg];
+	    }
+	    else if (arg.equals("-d")) {
+		iarg++; dbName = args[iarg];
+	    }
+	    else if (arg.equals("-u")) {
+		iarg++; dbUser = args[iarg];
+	    }
+	    else if (arg.equals("-s")) {
+		iarg++; dbPwrd = args[iarg];
 	    }
 	    else {
 		System.err.println("Invalid option '"+arg+".");
@@ -720,32 +746,20 @@ public class Diff
 	String a[] = configs.split(",");
 	int configId1 = -1;
 	int configId2 = -1;
+	String configName1 = "";
+	String configName2 = "";
 	try {
 	    configId1 = Integer.parseInt(a[0]);
 	    configId2 = Integer.parseInt(a[1]);
 	}
 	catch (Exception e) {
-	    System.out.println("Failed to decode configuration ids.");
-	    System.exit(0);
+	    configName1 = a[0];
+	    configName2 = a[1];
 	}
 	
 	// construct database url
 	String dbUrl = null;
-	if (dbSetup.length()>0) {
-	    try {
-		int isetup = (new Integer(dbSetup)).intValue();
-		ConfDBSetups setup = new ConfDBSetups();
-		dbUrl=(setup.type(isetup).equals("mysql")) ?
-		    "jdbc:mysql://" : "jdbc:oracle:thin:@//";
-		dbUrl+=setup.host(isetup)+":"+setup.port(isetup)+"/"+
-		    setup.name(isetup);
-	    }
-	    catch (Exception e) {
-		System.err.println("Invalid dbSetup '"+dbSetup+"'");
-		System.exit(0);
-	    }
-	}
-	else if (dbType.equals("mysql"))
+	if (dbType.equals("mysql"))
 	    dbUrl  = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+dbName;
 	else if (dbType.equals("oracle"))
 	    dbUrl = "jdbc:oracle:thin:@//"+dbHost+":"+dbPort+"/"+dbName;
@@ -759,14 +773,17 @@ public class Diff
 	    System.err.println("Failed to connect to database: "+e.getMessage());
 	    System.exit(0);
 	}
-
+	
 	Configuration config1 = null;
 	Configuration config2 = null;
 	try {
-	    config1 = database.loadConfiguration(configId1);
-	    config2 = database.loadConfiguration(configId2);
-	    System.out.println("config1: " + config1.toString());
-	    System.out.println("config2: " + config2.toString());}
+	    int id1 = (configId1>0) ? configId1 : database.getConfigId(configName1);
+	    int id2 = (configId2>0) ? configId2 : database.getConfigId(configName2);
+	    config1 = database.loadConfiguration(id1);
+	    config2 = database.loadConfiguration(id2);
+	    System.out.println("old: " + config1.toString());
+	    System.out.println("new: " + config2.toString());
+	}
 	catch (DatabaseException e) {
 	    System.err.println("Failed to load configurations: "+e.getMessage());
 	    System.exit(0);

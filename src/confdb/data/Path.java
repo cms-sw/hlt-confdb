@@ -1,5 +1,7 @@
 package confdb.data;
 
+
+import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -16,9 +18,6 @@ public class Path extends ReferenceContainer
     //
     // member data
     //
-
-    /** streams this path is associated with*/
-    private ArrayList<Stream> streams = new ArrayList<Stream>();
 
     /** primary datasets this path is associated with */
     private ArrayList<PrimaryDataset> datasets = new ArrayList<PrimaryDataset>();
@@ -117,35 +116,6 @@ public class Path extends ReferenceContainer
 	return reference;
     }
 
-    /** number of streams this path is associated with */
-    public int streamCount() { return streams.size(); }
-
-    /** retrieve the i=th stream this path is associated with */
-    public Stream stream(int i) { return streams.get(i); }
-
-    /** retrieve iterator over streams this path is associated with */
-    public Iterator<Stream> streamIterator() { return streams.iterator(); }
-
-    /** add this path to a stream */
-    public boolean addToStream(Stream stream)
-    {
-	if (streams.indexOf(stream)>=0) return false;
-	streams.add(stream);
-	setHasChanged();
-	return true;
-    }
-    
-    /** remove this path from a stream */
-    public boolean removeFromStream(Stream stream)
-    {
-	int index = streams.indexOf(stream);
-	if (index<0) return false;
-	streams.remove(index);
-	setHasChanged();
-	return true;
-    }
-
-
     /** number of primary datasets this path is associated with */
     public int datasetCount() { return datasets.size(); }
 
@@ -176,5 +146,19 @@ public class Path extends ReferenceContainer
 	setHasChanged();
 	return true;
     }
+    
+    /** retrieve list of streams this path is assigned to */
+    public Stream[] listOfStreams()
+    {
+	HashSet<Stream> setOfStreams = new HashSet<Stream>();
+	for (PrimaryDataset pd : datasets) {
+	    Stream s = pd.parentStream();
+	    if (s!=null) setOfStreams.add(s);
+	}
+	return setOfStreams.toArray(new Stream[setOfStreams.size()]);
+    }
+    
+    /** number of streams this path is assigned to */
+    public int streamCount() { return listOfStreams().length; }
     
 }

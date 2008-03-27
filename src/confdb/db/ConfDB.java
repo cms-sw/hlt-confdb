@@ -113,7 +113,7 @@ public class ConfDB
     private PreparedStatement psInsertConfigServiceAssoc          = null;
     private PreparedStatement psInsertPath                        = null;
     private PreparedStatement psInsertConfigPathAssoc             = null;
-    private PreparedStatement psInsertStreamPathAssoc             = null;
+    private PreparedStatement psInsertConfigStreamAssoc           = null;
     private PreparedStatement psInsertPrimaryDatasetPathAssoc     = null;
     private PreparedStatement psInsertSequence                    = null;
     private PreparedStatement psInsertConfigSequenceAssoc         = null;
@@ -260,7 +260,6 @@ public class ConfDB
 	try {
 	    Statement stmt = dbConnector.getConnection().createStatement();
 	    rs = stmt.executeQuery("SELECT userName FROM LockedConfigurations");
-	    //System.out.println("ConfDB::reconnect(): ALL IS GOOD!");
 	}
 	catch (SQLException e) {
 	    boolean connectionLost = false;
@@ -279,8 +278,6 @@ public class ConfDB
 					     "unknown connector type!",e);
 	    
 	    if (connectionLost) {
-		//System.out.println("ConfDB::reconnect(): "+
-		//"connection lost, reestablish ...");
 		closePreparedStatements();
 		dbConnector.closeConnection();
 		dbConnector.openConnection();
@@ -396,7 +393,7 @@ public class ConfDB
 		    catch(SQLException e) {
 			String errMsg =
 			    "ConfDB::loadConfigurationTree(): can't determine if "+
-			    configPathAndName+" is locked.";
+			    configPathAndName+" is locked: "+e.getMessage();
 			throw new DatabaseException(errMsg,e);
 		    }
 		    finally {
@@ -406,7 +403,8 @@ public class ConfDB
 	    }
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::loadConfigurationTree() failed.";
+	    String errMsg =
+		"ConfDB::loadConfigurationTree() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -436,7 +434,7 @@ public class ConfDB
 	catch (SQLException e) {
 	    String errMsg =
 		"ConfDB::loadTemplate(releaseTag="+releaseTag+
-		",templateName="+templateName+") failed.";
+		",templateName="+templateName+") failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	
@@ -465,7 +463,7 @@ public class ConfDB
 	catch (SQLException e) {
 	    String errMsg =
 		"ConfDB::loadSoftwareRelease(releaseId="+releaseId+
-		",release) failed.";
+		",release) failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	loadTemplates(csLoadTemplates,release);
@@ -492,7 +490,7 @@ public class ConfDB
 	catch (SQLException e) {
 	    String errMsg =
 		"ConfDB::loadPartialSoftwareRelease(configId="+configId+
-		",release) failed.";
+		",release) failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	loadTemplates(csLoadTemplatesForConfig,release);
@@ -572,7 +570,7 @@ public class ConfDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::loadTemplates() failed.";
+		"ConfDB::loadTemplates() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -599,11 +597,11 @@ public class ConfDB
     {
 	String releaseTag = configInfo.releaseTag();
 	
-	//if (releaseTag==null) System.out.println("releaseTag = " + releaseTag);
-	//if (release==null) System.out.println("release is null");
-	//else if (release.releaseTag()==null) System.out.println("WHAT?!");
+	if (releaseTag==null) System.out.println("releaseTag = " + releaseTag);
+	if (release==null) System.out.println("release is null");
+	else if (release.releaseTag()==null) System.out.println("WHAT?!");
 	
-	if (releaseTag!=null&&!releaseTag.equals(release.releaseTag()))
+	if (release==null||!releaseTag.equals(release.releaseTag()))
 	    loadSoftwareRelease(releaseTag,release);
 	Configuration config = new Configuration(configInfo,release);
 	loadConfiguration(config);
@@ -634,8 +632,6 @@ public class ConfDB
 	int     configId = config.dbId();
 
 	ResultSet rsInstances       = null;
-	ResultSet rsStreams         = null;
-	ResultSet rsDatasets        = null;
 	
 	ResultSet rsPathEntries     = null;
 	ResultSet rsSequenceEntries = null;
@@ -652,32 +648,10 @@ public class ConfDB
 	    rsPathEntries     = psSelectPathEntries.executeQuery();
 	    rsSequenceEntries = psSelectSequenceEntries.executeQuery();
 
-	    rsStreams         = psSelectStreams.executeQuery();
-	    rsDatasets        = psSelectPrimaryDatasets.executeQuery();
-
 	    psSelectStreamEntries.setInt(1,configId);
 	    rsStreamEntries   = psSelectStreamEntries.executeQuery();
 	    psSelectPrimaryDatasetEntries.setInt(1,configId);
 	    rsDatasetEntries  = psSelectPrimaryDatasetEntries.executeQuery();
-	    
-	    HashMap<Integer,Stream> idToStreams=new HashMap<Integer,Stream>();
-	    while (rsStreams.next()) {
-		int    streamId    = rsStreams.getInt(1);
-		String streamLabel = rsStreams.getString(2);
-		Stream stream      = config.insertStream(streamLabel);
-		stream.setDatabaseId(streamId);
-		idToStreams.put(streamId,stream);
-	    }
-
-	    HashMap<Integer,PrimaryDataset> idToDatasets=
-		new HashMap<Integer,PrimaryDataset>();
-	    while (rsDatasets.next()) {
-		int            datasetId    = rsDatasets.getInt(1);
-		String         datasetLabel = rsDatasets.getString(2);
-		PrimaryDataset dataset      = config.insertDataset(datasetLabel);
-		dataset.setDatabaseId(datasetId);
-		idToDatasets.put(datasetId,dataset);
-	    }
 	    
 	    HashMap<Integer,ArrayList<Parameter> > idToParams = getParameters();
 	    
@@ -685,7 +659,6 @@ public class ConfDB
 		new HashMap<Integer,ModuleInstance>();
 	    HashMap<Integer,Path>     idToPaths    =new HashMap<Integer,Path>();
 	    HashMap<Integer,Sequence> idToSequences=new HashMap<Integer,Sequence>();
-
 	    
 	    
 	    while (rsInstances.next()) {
@@ -802,20 +775,40 @@ public class ConfDB
 		sequence.setDatabaseId(sequenceId);
 	    }
 
-	    while (rsStreamEntries.next()) {
-		int    streamId = rsStreamEntries.getInt(1);
-		int    pathId   = rsStreamEntries.getInt(2);
-		Stream stream   = idToStreams.get(streamId);
-		Path   path     = idToPaths.get(pathId);
-		stream.insertPath(path);
-	    }
+	    
+	    HashMap<Integer,PrimaryDataset> idToDatasets =
+		new HashMap<Integer,PrimaryDataset>();
 	    
 	    while (rsDatasetEntries.next()) {
-		int            datasetId = rsDatasetEntries.getInt(1);
-		int            pathId    = rsDatasetEntries.getInt(2);
-		PrimaryDataset dataset   = idToDatasets.get(datasetId);
-		Path           path      = idToPaths.get(pathId);
+		int            datasetId    = rsDatasetEntries.getInt(1);
+		String         datasetLabel = rsDatasetEntries.getString(2);
+		int            pathId       = rsDatasetEntries.getInt(3);
+		PrimaryDataset dataset      = config.dataset(datasetLabel);
+		if (dataset==null) {
+		    dataset = config.insertDataset(datasetLabel);
+		    dataset.setDatabaseId(datasetId);
+		    idToDatasets.put(datasetId,dataset);
+		}
+		Path path = idToPaths.get(pathId);
 		dataset.insertPath(path);
+	    }
+	    
+	    while (rsStreamEntries.next()) {
+		int    streamId    = rsStreamEntries.getInt(1);
+		String streamLabel = rsStreamEntries.getString(2);
+		int    datasetId   = rsStreamEntries.getInt(3);
+		String datasetLabel= rsStreamEntries.getString(4);
+		Stream stream      = config.stream(streamLabel);
+		if (stream==null) {
+		    stream = config.insertStream(streamLabel);
+		    stream.setDatabaseId(streamId);
+		}
+		PrimaryDataset dataset = idToDatasets.get(datasetId);
+		if (dataset==null) {
+		    dataset = config.insertDataset(datasetLabel);
+		    dataset.setDatabaseId(datasetId);
+		}
+		stream.insertDataset(dataset);
 	    }
 	    
 	    while (rsPathEntries.next()) {
@@ -848,14 +841,11 @@ public class ConfDB
 
 		path.setDatabaseId(pathId);
 	    }
-	    
-
-	    
 	}
 	catch (SQLException e) {
 	    String errMsg =
 		"ConfDB::loadConfiguration(Configuration config) failed "+
-		"(configId="+configId+").";
+		"(configId="+configId+"): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -863,9 +853,50 @@ public class ConfDB
 	    dbConnector.release(rsPathEntries);
 	    dbConnector.release(rsSequenceEntries);
 	    dbConnector.release(rsStreamEntries);
+	    dbConnector.release(rsDatasetEntries);
 	}
     }
     
+    /** retrieve list of valid stream labels */
+    public Iterator<String> streamLabelIterator() throws DatabaseException
+    {
+	ResultSet rs = null;
+	ArrayList<String> streamLabels = new ArrayList<String>();
+	try {
+	    rs = psSelectStreams.executeQuery();
+	    while (rs.next()) streamLabels.add(rs.getString(2));
+	    return streamLabels.iterator();
+	}
+	catch (SQLException e) {
+	    String errMsg =
+		"ConfDB::streamLabelIterator() failed: "+e.getMessage();
+	    throw new DatabaseException(errMsg,e);
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+    }
+
+    /** retrieve list of valid primary dataset labels */
+    public Iterator<String> datasetLabelIterator() throws DatabaseException
+    {
+	ResultSet rs = null;
+	ArrayList<String> datasetLabels = new ArrayList<String>();
+	try {
+	    rs = psSelectPrimaryDatasets.executeQuery();
+	    while (rs.next()) datasetLabels.add(rs.getString(2));
+	    return datasetLabels.iterator();
+	}
+	catch (SQLException e) {
+	    String errMsg =
+		"ConfDB::datasetLabelIterator() failed: "+e.getMessage();
+	    throw new DatabaseException(errMsg,e);
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+    }
+
     /** insert a new directory */
     public void insertDirectory(Directory dir) throws DatabaseException
     {
@@ -881,7 +912,8 @@ public class ConfDB
 	catch (SQLException e) {
 	    String errMsg =
 		"ConfDB::insertDirectory(Directory dir) failed "+
-		"(parentDirId="+dir.parentDir().dbId()+",name="+dir.name()+")";
+		"(parentDirId="+dir.parentDir().dbId()+",name="+dir.name()+"): "+
+		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -899,7 +931,7 @@ public class ConfDB
 	catch (SQLException e) {
 	    String errMsg =
 		"ConfDB::removeDirectory(Directory dir) failed "+
-		"(name="+dir.name()+").";
+		"(name="+dir.name()+"): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
     }
@@ -980,11 +1012,8 @@ public class ConfDB
 	    while (itS.hasNext()) {
 		Stream stream = itS.next();
 		if (!streamToId.containsKey(stream.label())) {
-		    try {
-			int streamId = insertStream(stream.label());
-			stream.setDatabaseId(streamId);
-		    }
-		    catch (DatabaseException e) {}
+		    int streamId = insertStream(stream.label());
+		    stream.setDatabaseId(streamId);
 		}
 		else {
 		    stream.setDatabaseId(streamToId.get(stream.label()));
@@ -994,11 +1023,8 @@ public class ConfDB
 	    while (itPD.hasNext()) {
 		PrimaryDataset dataset = itPD.next();
 		if (!datasetToId.containsKey(dataset.label())) {
-		    try {
-			int datasetId = insertDataset(dataset.label());
-			dataset.setDatabaseId(datasetId);
-		    }
-		    catch (DatabaseException e) {}
+		    int datasetId = insertDataset(dataset.label());
+		    dataset.setDatabaseId(datasetId);
 		}
 		else {
 		    dataset.setDatabaseId(datasetToId.get(dataset.label()));
@@ -1061,6 +1087,9 @@ public class ConfDB
 	    // insert references regarding paths and sequences
 	    insertReferences(config,pathHashMap,sequenceHashMap,moduleHashMap);
 
+	    // insert streams
+	    insertStreams(configId,config);
+	    
 	    dbConnector.getConnection().commit();
 	}
 	catch (DatabaseException e) {
@@ -1074,7 +1103,7 @@ public class ConfDB
 	    String errMsg =
 		"ConfDB::insertConfiguration(config="+config.dbId()+
 		",creator="+creator+",processName="+processName+
-		",comment="+comment+") failed.";
+		",comment="+comment+") failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -1109,7 +1138,8 @@ public class ConfDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::lockConfiguration("+config.toString()+") failed.";
+		"ConfDB::lockConfiguration("+config.toString()+") failed: "+
+		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
     }
@@ -1131,7 +1161,8 @@ public class ConfDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		" ConfDB::unlockConfiguration("+config.toString()+" failed.";
+		" ConfDB::unlockConfiguration("+config.toString()+" failed: "+
+		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
     }
@@ -1147,7 +1178,7 @@ public class ConfDB
 	    return rs.getInt(1);
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::insertSuperId() failed.";
+	    String errMsg = "ConfDB::insertSuperId() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -1190,7 +1221,8 @@ public class ConfDB
 	    }
 	    catch (SQLException e) {
 		String errMsg =
-		    "ConfDB::insertGlobalPSets(configId="+configId+") failed.";
+		    "ConfDB::insertGlobalPSets(configId="+configId+") failed: "+
+		    e.getMessage();
 		throw new DatabaseException(errMsg,e);
 	    }
 	}
@@ -1215,7 +1247,8 @@ public class ConfDB
 		catch (SQLException e) {
 		    String errMsg =
 			"ConfDB::insertEDSources(configID="+configId+") failed "+
-			"(edsourceId="+edsourceId+" templateId="+templateId+").";
+			"(edsourceId="+edsourceId+" templateId="+templateId+"): "+
+			e.getMessage();
 		    throw new DatabaseException(errMsg,e);
 		}
 		insertInstanceParameters(edsourceId,edsource);
@@ -1231,7 +1264,8 @@ public class ConfDB
 	    catch (SQLException e) {
 		String errMsg =
 		    "ConfDB::insertEDSources(configID="+configId+") failed "+
-		    "(edsourceId="+edsourceId+", sequenceNb="+sequenceNb+").";
+		    "(edsourceId="+edsourceId+", sequenceNb="+sequenceNb+"): "+
+		    e.getMessage();
 		throw new DatabaseException(errMsg,e);   
 	    }
 	}
@@ -1258,7 +1292,8 @@ public class ConfDB
 		catch (SQLException e) {
 		    String errMsg =
 			"ConfDB::insertESSources(configID="+configId+") failed "+
-			"(essourceId="+essourceId+" templateId="+templateId+").";
+			"(essourceId="+essourceId+" templateId="+templateId+"): "+
+			e.getMessage();
 		    throw new DatabaseException(errMsg,e);
 		}
 		insertInstanceParameters(essourceId,essource);
@@ -1275,7 +1310,8 @@ public class ConfDB
 	    catch (SQLException e) {
 		String errMsg =
 		    "ConfDB::insertESSources(configID="+configId+") failed "+
-		    "(essourceId="+essourceId+", sequenceNb="+sequenceNb+").";
+		    "(essourceId="+essourceId+", sequenceNb="+sequenceNb+"):" +
+		    e.getMessage();
 		throw new DatabaseException(errMsg,e);  
 	    }
 	}
@@ -1302,7 +1338,8 @@ public class ConfDB
 		catch (SQLException e) {
 		    String errMsg =
 			"ConfDB::insertESModules(configID="+configId+") failed "+
-			"(esmoduleId="+esmoduleId+" templateId="+templateId+").";
+			"(esmoduleId="+esmoduleId+" templateId="+templateId+"): "+
+			e.getMessage();
 		    throw new DatabaseException(errMsg,e);
 		}
 		insertInstanceParameters(esmoduleId,esmodule);
@@ -1319,7 +1356,8 @@ public class ConfDB
 	    catch (SQLException e) {
 		String errMsg =
 		    "ConfDB::insertESModules(configID="+configId+") failed "+
-		    "(esmoduleId="+esmoduleId+", sequenceNb="+sequenceNb+").";
+		    "(esmoduleId="+esmoduleId+", sequenceNb="+sequenceNb+"): "+
+		    e.getMessage();
 		throw new DatabaseException(errMsg,e);
 	    }
 	}
@@ -1344,7 +1382,8 @@ public class ConfDB
 		catch (SQLException e) {
 		    String errMsg =
 			"ConfDB::insertServices(configID="+configId+") failed "+
-			"(serviceId="+serviceId+" templateId="+templateId+").";
+			"(serviceId="+serviceId+" templateId="+templateId+"): "+
+			e.getMessage();
 		    throw new DatabaseException(errMsg,e);
 		}
 		insertInstanceParameters(serviceId,service);
@@ -1360,7 +1399,8 @@ public class ConfDB
 	    catch (SQLException e) {
 		String errMsg =
 		    "ConfDB::insertServices(configID="+configId+") failed "+
-		    "(serviceId="+serviceId+", sequenceNb="+sequenceNb+").";
+		    "(serviceId="+serviceId+", sequenceNb="+sequenceNb+"): "+
+		    e.getMessage();
 		throw new DatabaseException(errMsg,e);
 	    }
 	}
@@ -1394,14 +1434,6 @@ public class ConfDB
 		    result.put(pathName,pathId);
 		    idToPath.put(pathId,path);
 
-		    Iterator<Stream> itS = path.streamIterator();
-		    while (itS.hasNext()) {
-			int streamId = itS.next().databaseId();
-			psInsertStreamPathAssoc.setInt(1,streamId);
-			psInsertStreamPathAssoc.setInt(2,pathId);
-			psInsertStreamPathAssoc.addBatch();
-		    }
-
 		    Iterator<PrimaryDataset> itPD = path.datasetIterator();
 		    while (itPD.hasNext()) {
 			int datasetId = itPD.next().databaseId();
@@ -1427,7 +1459,8 @@ public class ConfDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertPaths(configId="+configId+") failed.";
+		"ConfDB::insertPaths(configId="+configId+") failed: "+
+		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -1436,12 +1469,12 @@ public class ConfDB
 
 	try {
 	    psInsertConfigPathAssoc.executeBatch();
-	    psInsertStreamPathAssoc.executeBatch();
 	    psInsertPrimaryDatasetPathAssoc.executeBatch();
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertPaths(configId="+configId+") failed (batch insert).";
+		"ConfDB::insertPaths(configId="+configId+
+		") failed (batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	
@@ -1494,7 +1527,8 @@ public class ConfDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertSequences(configId="+configId+") failed.";
+		"ConfDB::insertSequences(configId="+configId+") failed: "+
+		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -1507,7 +1541,7 @@ public class ConfDB
 	catch (SQLException e) {
 	    String errMsg =
 		"ConfDB::insertSequences(configId="+configId+") failed "+
-		"(batch insert)\n"+e.getMessage();
+		"(batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	
@@ -1542,7 +1576,8 @@ public class ConfDB
 		catch (SQLException e) {
 		    String errMsg =
 			"ConfDB::insertModules(config="+config.toString()+
-			" failed (moduleId="+moduleId+" templateId="+templateId+").";
+			" failed (moduleId="+moduleId+" templateId="+templateId+
+			"): "+e.getMessage();
 		    throw new DatabaseException(errMsg,e);
 		}
 	    }
@@ -1554,7 +1589,7 @@ public class ConfDB
 	catch (SQLException e) {
 	    String errMsg =
 		"ConfDB::insertModules(configId="+config.toString()+") failed "+
-		"(batch insert).";
+		"(batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e); 
 	}
 	
@@ -1596,9 +1631,11 @@ public class ConfDB
 			}
 			catch (SQLException e) {
 			    String errMsg = 
-				"ConfDB::insertReferences(config="+config.toString()+
+				"ConfDB::insertReferences(config="+
+				config.toString()+
 				") failed (pathId="+pathId+",childPathId="+
-				childPathId+",sequenceNb="+sequenceNb+").";
+				childPathId+",sequenceNb="+sequenceNb+"): "+
+				e.getMessage();
 			    throw new DatabaseException(errMsg,e);
 			}
 		    }
@@ -1612,9 +1649,11 @@ public class ConfDB
 			}
 			catch (SQLException e) {
 			    String errMsg = 
-				"ConfDB::insertReferences(config="+config.toString()+
+				"ConfDB::insertReferences(config="+
+				config.toString()+
 				") failed (pathId="+pathId+",sequenceId="+
-				sequenceId+",sequenceNb="+sequenceNb+").";
+				sequenceId+",sequenceNb="+sequenceNb+"): "+
+				e.getMessage();
 			    throw new DatabaseException(errMsg,e);
 			}
 		    }
@@ -1628,9 +1667,11 @@ public class ConfDB
 			}
 			catch (SQLException e) {
 			    String errMsg = 
-				"ConfDB::insertReferences(config="+config.toString()+
+				"ConfDB::insertReferences(config="+
+				config.toString()+
 				") failed (pathId="+pathId+",moduleId="+
-				moduleId+",sequenceNb="+sequenceNb+").";
+				moduleId+",sequenceNb="+sequenceNb+"): "+
+				e.getMessage();
 			    throw new DatabaseException(errMsg,e);
 			}
 		    }
@@ -1660,11 +1701,12 @@ public class ConfDB
 			catch (SQLException e) {
 			    e.printStackTrace();
 			    String errMsg = 
-				"ConfDB::insertReferences(config="+config.toString()+
-				") failed "+
-				"(sequenceId="+sequenceId+" ("+sequence.name()+"), "+
-				"childSequenceId="+childSequenceId+" ("+r.name()+")"+
-				",sequenceNb="+sequenceNb+").";
+				"ConfDB::insertReferences(config="+
+				config.toString()+
+				") failed (sequenceId="+sequenceId+" ("+
+				sequence.name()+"), childSequenceId="+
+				childSequenceId+" ("+r.name()+")"+
+				",sequenceNb="+sequenceNb+"): "+e.getMessage();
 			    throw new DatabaseException(errMsg,e);
 			}
 		    }
@@ -1678,9 +1720,10 @@ public class ConfDB
 			}
 			catch (SQLException e) {
 			    String errMsg = 
-				"ConfDB::insertReferences(config="+config.toString()+
-				") failed (sequenceId="+sequenceId+
-				",moduleId="+moduleId+",sequenceNb="+sequenceNb+").";
+				"ConfDB::insertReferences(config="+
+				config.toString()+") failed (sequenceId="+
+				sequenceId+",moduleId="+moduleId+
+				",sequenceNb="+sequenceNb+"): "+e.getMessage();
 			    throw new DatabaseException(errMsg,e);
 			}
 		    }
@@ -1698,8 +1741,37 @@ public class ConfDB
 	catch (SQLException e) {
 	    String errMsg =
 		"ConfDB::insertReferences(config="+config.toString()+") failed "+
-		"(batch insert).";
+		"(batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e); 
+	}
+    }
+
+    /** insert configuration's streams */
+    private void insertStreams(int configId,Configuration config)
+    	throws DatabaseException
+    {
+	Iterator<Stream> itS = config.streamIterator();
+	while (itS.hasNext()) {
+	    Stream stream = itS.next();
+	    int    streamId = stream.databaseId();
+	    Iterator<PrimaryDataset> itD = stream.datasetIterator();
+	    while (itD.hasNext()) {
+		PrimaryDataset dataset   = itD.next();
+		int            datasetId = dataset.databaseId();
+		try {
+		    psInsertConfigStreamAssoc.setInt(1,configId);
+		    psInsertConfigStreamAssoc.setInt(2,streamId);
+		    psInsertConfigStreamAssoc.setInt(3,datasetId);
+		    psInsertConfigStreamAssoc.executeUpdate();
+		}
+		catch (SQLException e) {
+		    String errMsg =
+			"ConfDB::insertStreams(configId="+configId+
+			", streamId="+streamId+", datasetId="+datasetId+
+			") failed: "+e.getMessage();
+		    throw new DatabaseException(errMsg,e);
+		}
+	    }
 	}
     }
     
@@ -1737,7 +1809,7 @@ public class ConfDB
 	    while (rs.next()) listOfNames.add(rs.getString(1)+"/"+rs.getString(2));
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::getConfigNames() failed.";
+	    String errMsg = "ConfDB::getConfigNames() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -1762,7 +1834,7 @@ public class ConfDB
 	    }
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::getReleaseTags() failed.";
+	    String errMsg = "ConfDB::getReleaseTags() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	return listOfTags.toArray(new String[listOfTags.size()]);
@@ -1817,7 +1889,7 @@ public class ConfDB
 	    String errMsg =
 		"ConfDB::getConfigId(fullConfigName="+fullConfigName+
 		") failed (dirName="+dirName+", configName="+configName+
-		",version="+version+").";
+		",version="+version+"): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -1878,7 +1950,6 @@ public class ConfDB
     public void removeGlobalPSets(int configId) throws SQLException
     {
 	ResultSet rs1 = null;
-	ResultSet rs3 = null;
 	try {
 	    Statement stmt = dbConnector.getConnection().createStatement();
 	    rs1 = stmt.executeQuery("SELECT ParameterSets.superId "+
@@ -1888,34 +1959,40 @@ public class ConfDB
 				    "ParameterSets.superId " +
 				    "WHERE ConfigurationParamSetAssoc.configId="+
 				    configId);
+
+	    Statement stmt2 = dbConnector.getConnection().createStatement();
+	    Statement stmt3 = dbConnector.getConnection().createStatement();
+	    Statement stmt4 = dbConnector.getConnection().createStatement();
+	    
 	    while (rs1.next()) {
 		int psetId = rs1.getInt(1);
-		Statement stmt2 = dbConnector.getConnection().createStatement();
 		stmt2.executeUpdate("DELETE FROM ConfigurationParamSetAssoc "+
 				    "WHERE "+
 				    "configId="+configId+" AND psetId="+psetId);
-		Statement stmt3 = dbConnector.getConnection().createStatement();
-		rs3 = stmt3.executeQuery("SELECT psetId "+
-					 "FROM ConfigurationParamSetAssoc "+
-					 "WHERE psetId="+psetId);
-		if (!rs3.next()) {
-		    removeParameters(psetId);
-		    Statement stmt4 = dbConnector.getConnection().createStatement();
-		    stmt4.executeUpdate("DELETE FROM SuperIds "+
-					"WHERE superId="+psetId);
+		ResultSet rs3 = null;
+		try {
+		    rs3 = stmt3.executeQuery("SELECT psetId "+
+					     "FROM ConfigurationParamSetAssoc "+
+					     "WHERE psetId="+psetId);
+		    if (!rs3.next()) {
+			removeParameters(psetId);
+			stmt4.executeUpdate("DELETE FROM SuperIds "+
+					    "WHERE superId="+psetId);
+		    }
+		}
+		finally {
+		    dbConnector.release(rs3);
 		}
 	    }
 	}
 	finally {
 	    dbConnector.release(rs1);
-	    dbConnector.release(rs3);
 	}
     }
     /** remove EDSources */
     public void removeEDSources(int configId) throws SQLException
     {
 	ResultSet rs1 = null;
-	ResultSet rs3 = null;
 	try {
 	    Statement stmt = dbConnector.getConnection().createStatement();
 	    rs1 = stmt.executeQuery("SELECT superId FROM EDSources " +
@@ -1924,34 +2001,39 @@ public class ConfDB
 				    "EDSources.superId " +
 				    "WHERE ConfigurationEDSourceAssoc.configId="+
 				    configId);
+
+	    Statement stmt2 = dbConnector.getConnection().createStatement();
+	    Statement stmt3 = dbConnector.getConnection().createStatement();
+	    Statement stmt4 = dbConnector.getConnection().createStatement();
 	    while (rs1.next()) {
 		int edsId = rs1.getInt(1);
-		Statement stmt2 = dbConnector.getConnection().createStatement();
 		stmt2.executeUpdate("DELETE FROM ConfigurationEDSourceAssoc "+
 				    "WHERE "+
 				    "configId="+configId+" AND edsourceId="+edsId);
-		Statement stmt3 = dbConnector.getConnection().createStatement();
-		rs3 = stmt3.executeQuery("SELECT edsourceId "+
-					 "FROM ConfigurationEDSourceAssoc "+
-					 "WHERE edsourceId="+edsId);
-		if (!rs3.next()) {
-		    removeParameters(edsId);
-		    Statement stmt4 = dbConnector.getConnection().createStatement();
-		    stmt4.executeUpdate("DELETE FROM SuperIds "+
-					"WHERE superId="+edsId);
+		ResultSet rs3 = null;
+		try {
+		    rs3 = stmt3.executeQuery("SELECT edsourceId "+
+					     "FROM ConfigurationEDSourceAssoc "+
+					     "WHERE edsourceId="+edsId);
+		    if (!rs3.next()) {
+			removeParameters(edsId);
+			stmt4.executeUpdate("DELETE FROM SuperIds "+
+					    "WHERE superId="+edsId);
+		    }
+		}
+		finally {
+		    dbConnector.release(rs3);
 		}
 	    }
 	}
 	finally {
 	    dbConnector.release(rs1);
-	    dbConnector.release(rs3);
 	}
     }
     /** remove ESSources */
     public void removeESSources(int configId) throws SQLException
     {
 	ResultSet rs1 = null;
-	ResultSet rs3 = null;
 	try {
 	    Statement stmt = dbConnector.getConnection().createStatement();
 	    rs1 = stmt.executeQuery("SELECT superId FROM ESSources " +
@@ -1960,34 +2042,40 @@ public class ConfDB
 				    "ESSources.superId " +
 				    "WHERE ConfigurationESSourceAssoc.configId="+
 				    configId);
+	    
+	    Statement stmt2 = dbConnector.getConnection().createStatement();
+	    Statement stmt3 = dbConnector.getConnection().createStatement();
+	    Statement stmt4 = dbConnector.getConnection().createStatement();
+
 	    while (rs1.next()) {
 		int essId = rs1.getInt(1);
-		Statement stmt2 = dbConnector.getConnection().createStatement();
 		stmt2.executeUpdate("DELETE FROM ConfigurationESSourceAssoc "+
 				    "WHERE "+
 				    "configId="+configId+" AND essourceId="+essId);
-		Statement stmt3 = dbConnector.getConnection().createStatement();
-		rs3 = stmt3.executeQuery("SELECT essourceId "+
-					 "FROM ConfigurationESSourceAssoc "+
-					 "WHERE essourceId="+essId);
-		if (!rs3.next()) {
-		    removeParameters(essId);
-		    Statement stmt4 = dbConnector.getConnection().createStatement();
-		    stmt4.executeUpdate("DELETE FROM SuperIds "+
-					"WHERE superId="+essId);
+		ResultSet rs3 = null;
+		try {
+		    rs3 = stmt3.executeQuery("SELECT essourceId "+
+					     "FROM ConfigurationESSourceAssoc "+
+					     "WHERE essourceId="+essId);
+		    if (!rs3.next()) {
+			removeParameters(essId);
+			stmt4.executeUpdate("DELETE FROM SuperIds "+
+					    "WHERE superId="+essId);
+		    }
+		}
+		finally {
+		    dbConnector.release(rs3);
 		}
 	    }
 	}
 	finally {
 	    dbConnector.release(rs1);
-	    dbConnector.release(rs3);
 	}
     }
     /** remove ESModules */
     public void removeESModules(int configId) throws SQLException
     {
 	ResultSet rs1 = null;
-	ResultSet rs3 = null;
 	try {
 	    Statement stmt = dbConnector.getConnection().createStatement();
 	    rs1 = stmt.executeQuery("SELECT superId FROM ESModules " +
@@ -1996,34 +2084,39 @@ public class ConfDB
 				    "ESModules.superId " +
 				    "WHERE ConfigurationESModuleAssoc.configId="+
 				    configId);
+
+	    Statement stmt2 = dbConnector.getConnection().createStatement();
+	    Statement stmt3 = dbConnector.getConnection().createStatement();
+	    Statement stmt4 = dbConnector.getConnection().createStatement();
 	    while (rs1.next()) {
 		int esmId = rs1.getInt(1);
-		Statement stmt2 = dbConnector.getConnection().createStatement();
 		stmt2.executeUpdate("DELETE FROM ConfigurationESModuleAssoc "+
 				    "WHERE "+
 				    "configId="+configId+" AND esmoduleId="+esmId);
-		Statement stmt3 = dbConnector.getConnection().createStatement();
-		rs3 = stmt3.executeQuery("SELECT esmoduleId "+
-					 "FROM ConfigurationESModuleAssoc "+
-					 "WHERE esmoduleId="+esmId);
-		if (!rs3.next()) {
-		    removeParameters(esmId);
-		    Statement stmt4 = dbConnector.getConnection().createStatement();
-		    stmt4.executeUpdate("DELETE FROM SuperIds "+
-					"WHERE superId="+esmId);
+		ResultSet rs3 = null;
+		try {
+		    rs3 = stmt3.executeQuery("SELECT esmoduleId "+
+					     "FROM ConfigurationESModuleAssoc "+
+					     "WHERE esmoduleId="+esmId);
+		    if (!rs3.next()) {
+			removeParameters(esmId);
+			stmt4.executeUpdate("DELETE FROM SuperIds "+
+					    "WHERE superId="+esmId);
+		    }
+		}
+		finally {
+		    dbConnector.release(rs3);
 		}
 	    }
 	}
 	finally {
 	    dbConnector.release(rs1);
-	    dbConnector.release(rs3);
 	}
     }
     /** remove Services */
     public void removeServices(int configId) throws SQLException
     {
 	ResultSet rs1 = null;
-	ResultSet rs3 = null;
 	try {
 	    Statement stmt = dbConnector.getConnection().createStatement();
 	    rs1 = stmt.executeQuery("SELECT superId FROM Services " +
@@ -2032,34 +2125,40 @@ public class ConfDB
 				    "Services.superId " +
 				    "WHERE ConfigurationServiceAssoc.configId="+
 				    configId);
+
+	    Statement stmt2 = dbConnector.getConnection().createStatement();
+	    Statement stmt3 = dbConnector.getConnection().createStatement();
+	    Statement stmt4 = dbConnector.getConnection().createStatement();
+	    
 	    while (rs1.next()) {
 		int svcId = rs1.getInt(1);
-		Statement stmt2 = dbConnector.getConnection().createStatement();
 		stmt2.executeUpdate("DELETE FROM ConfigurationServiceAssoc "+
 				    "WHERE "+
 				    "configId="+configId+" AND serviceId="+svcId);
-		Statement stmt3 = dbConnector.getConnection().createStatement();
-		rs3 = stmt3.executeQuery("SELECT serviceId "+
-					 "FROM ConfigurationServiceAssoc "+
-					 "WHERE serviceId="+svcId);
-		if (!rs3.next()) {
-		    removeParameters(svcId);
-		    Statement stmt4 = dbConnector.getConnection().createStatement();
-		    stmt4.executeUpdate("DELETE FROM SuperIds "+
-					"WHERE superId="+svcId);
+		ResultSet rs3 = null;
+		try {
+		    rs3 = stmt3.executeQuery("SELECT serviceId "+
+					     "FROM ConfigurationServiceAssoc "+
+					     "WHERE serviceId="+svcId);
+		    if (!rs3.next()) {
+			removeParameters(svcId);
+			stmt4.executeUpdate("DELETE FROM SuperIds "+
+					    "WHERE superId="+svcId);
+		    }
+		}
+		finally {
+		    dbConnector.release(rs3);
 		}
 	    }
 	}
 	finally {
 	    dbConnector.release(rs1);
-	    dbConnector.release(rs3);
 	}
     }
     /** remove Sequences */
     public void removeSequences(int configId) throws SQLException
     {
 	ResultSet rs1 = null;
-	ResultSet rs3 = null;
 	try {
 	    Statement stmt = dbConnector.getConnection().createStatement();
 	    rs1 = stmt.executeQuery("SELECT Sequences.sequenceId FROM Sequences " +
@@ -2072,58 +2171,61 @@ public class ConfDB
 	    stmt2.executeUpdate("DELETE FROM ConfigurationSequenceAssoc "+
 				"WHERE configId="+configId);
 	    
+	    Statement stmt3 = dbConnector.getConnection().createStatement();
+	    Statement stmt4 = dbConnector.getConnection().createStatement();
+	    Statement stmt5 = dbConnector.getConnection().createStatement();
+	    Statement stmt6 = dbConnector.getConnection().createStatement();
+	    Statement stmt7 = dbConnector.getConnection().createStatement();
+	    Statement stmt8 = dbConnector.getConnection().createStatement();
+	    Statement stmt9 = dbConnector.getConnection().createStatement();
+	    
 	    while (rs1.next()) {
 		int seqId = rs1.getInt(1);
-		
-		Statement stmt3 = dbConnector.getConnection().createStatement();
-		rs3 = stmt3.executeQuery("SELECT sequenceId "+
-					 "FROM ConfigurationSequenceAssoc "+
-					 "WHERE sequenceId="+seqId);
-		if (!rs3.next()) {
-		    Statement stmt4 = dbConnector.getConnection().createStatement();
-		    stmt4.executeUpdate("DELETE FROM SequenceInSequenceAssoc "+
-					"WHERE parentSequenceId="+seqId);
-		    Statement stmt5 = dbConnector.getConnection().createStatement();
-		    stmt5.executeUpdate("DELETE FROM SequenceInSequenceAssoc "+
-					"WHERE childSequenceId="+seqId);
-		    Statement stmt6 = dbConnector.getConnection().createStatement();
-		    stmt6.executeUpdate("DELETE FROM PathSequenceAssoc "+
-					"WHERE sequenceId="+seqId);
-		    Statement stmt7 = dbConnector.getConnection().createStatement();
-		    ResultSet rs7 = null;
-		    try {
-			rs7 = stmt7.executeQuery("SELECT moduleId "+
-						 "FROM SequenceModuleAssoc "+
-						 "WHERE sequenceId="+seqId);
-			Statement stmt8=
-			    dbConnector.getConnection().createStatement();
-			stmt8.executeUpdate("DELETE FROM SequenceModuleAssoc "+
+		ResultSet rs3 = null;
+		try {
+		    rs3 = stmt3.executeQuery("SELECT sequenceId "+
+					     "FROM ConfigurationSequenceAssoc "+
+					     "WHERE sequenceId="+seqId);
+		    if (!rs3.next()) {
+			stmt4.executeUpdate("DELETE FROM SequenceInSequenceAssoc "+
+					    "WHERE parentSequenceId="+seqId);
+			stmt5.executeUpdate("DELETE FROM SequenceInSequenceAssoc "+
+					    "WHERE childSequenceId="+seqId);
+			stmt6.executeUpdate("DELETE FROM PathSequenceAssoc "+
 					    "WHERE sequenceId="+seqId);
-
-			while (rs7.next()) {
-			    int modId = rs7.getInt(1);
-			    removeModule(modId);
+			ResultSet rs7 = null;
+			try {
+			    rs7 = stmt7.executeQuery("SELECT moduleId "+
+						     "FROM SequenceModuleAssoc "+
+						     "WHERE sequenceId="+seqId);
+			    stmt8.executeUpdate("DELETE FROM SequenceModuleAssoc "+
+						"WHERE sequenceId="+seqId);
+			    
+			    while (rs7.next()) {
+				int modId = rs7.getInt(1);
+				removeModule(modId);
+			    }
 			}
+			finally {
+			    dbConnector.release(rs7);
+			}
+			stmt9.executeUpdate("DELETE FROM Sequences "+
+					    "WHERE sequenceId="+seqId);
 		    }
-		    finally {
-			dbConnector.release(rs7);
-		    }
-		    Statement stmt9=dbConnector.getConnection().createStatement();
-		    stmt9.executeUpdate("DELETE FROM Sequences "+
-					"WHERE sequenceId="+seqId);
+		}
+		finally {
+		    dbConnector.release(rs3);
 		}
 	    }
 	}
 	finally {
 	    dbConnector.release(rs1);
-	    dbConnector.release(rs3);
 	}
     }
     /** remove Paths */
     public void removePaths(int configId) throws SQLException
     {
 	ResultSet rs1 = null;
-	ResultSet rs3 = null;
 	try {
 	    Statement stmt = dbConnector.getConnection().createStatement();
 	    rs1 = stmt.executeQuery("SELECT Paths.pathId FROM Paths " +
@@ -2136,50 +2238,55 @@ public class ConfDB
 	    stmt2.executeUpdate("DELETE FROM ConfigurationPathAssoc "+
 				"WHERE configId="+configId);
 	    
+	    Statement stmt3 = dbConnector.getConnection().createStatement();
+	    Statement stmt4 = dbConnector.getConnection().createStatement();
+	    Statement stmt5 = dbConnector.getConnection().createStatement();
+	    Statement stmt6 = dbConnector.getConnection().createStatement();
+	    Statement stmt7 = dbConnector.getConnection().createStatement();
+	    Statement stmt8 = dbConnector.getConnection().createStatement();
+	    Statement stmt9 = dbConnector.getConnection().createStatement();
+
 	    while (rs1.next()) {
 		int pathId = rs1.getInt(1);
-		
-		Statement stmt3 = dbConnector.getConnection().createStatement();
-		rs3 = stmt3.executeQuery("SELECT pathId "+
-					 "FROM ConfigurationPathAssoc "+
-					 "WHERE pathId="+pathId);
-		if (!rs3.next()) {
-		    Statement stmt4 = dbConnector.getConnection().createStatement();
-		    stmt4.executeUpdate("DELETE FROM PathInPathAssoc "+
-					"WHERE parentPathId="+pathId);
-		    Statement stmt5 = dbConnector.getConnection().createStatement();
-		    stmt5.executeUpdate("DELETE FROM PathInPathAssoc "+
-					"WHERE childPathId="+pathId);
-		    Statement stmt6 = dbConnector.getConnection().createStatement();
-		    stmt6.executeUpdate("DELETE FROM PathSequenceAssoc "+
-					"WHERE pathId="+pathId);
-		    Statement stmt7 = dbConnector.getConnection().createStatement();
-		    ResultSet rs7 = null;
-		    try {
-			rs7 = stmt7.executeQuery("SELECT moduleId "+
-						 "FROM PathModuleAssoc "+
-						 "WHERE pathId="+pathId);
-			Statement stmt8=
-			    dbConnector.getConnection().createStatement();
-			stmt8.executeUpdate("DELETE FROM PathModuleAssoc "+
+		ResultSet rs3 = null;
+		try {
+		    rs3 = stmt3.executeQuery("SELECT pathId "+
+					     "FROM ConfigurationPathAssoc "+
+					     "WHERE pathId="+pathId);
+		    if (!rs3.next()) {
+			stmt4.executeUpdate("DELETE FROM PathInPathAssoc "+
+					    "WHERE parentPathId="+pathId);
+			stmt5.executeUpdate("DELETE FROM PathInPathAssoc "+
+					    "WHERE childPathId="+pathId);
+			stmt6.executeUpdate("DELETE FROM PathSequenceAssoc "+
 					    "WHERE pathId="+pathId);
-
-			while (rs7.next()) {
-			    int modId = rs7.getInt(1);
-			    removeModule(modId);
+			ResultSet rs7 = null;
+			try {
+			    rs7 = stmt7.executeQuery("SELECT moduleId "+
+						     "FROM PathModuleAssoc "+
+						     "WHERE pathId="+pathId);
+			    stmt8.executeUpdate("DELETE FROM PathModuleAssoc "+
+						"WHERE pathId="+pathId);
+			    
+			    while (rs7.next()) {
+				int modId = rs7.getInt(1);
+				removeModule(modId);
+			    }
 			}
+			finally {
+			    dbConnector.release(rs7);
+			}
+			stmt9.executeUpdate("DELETE FROM Paths "+
+					    "WHERE pathId="+pathId);
 		    }
-		    finally {
-			dbConnector.release(rs7);
-		    }
-		    Statement stmt9 = dbConnector.getConnection().createStatement();
-		    stmt9.executeUpdate("DELETE FROM Paths WHERE pathId="+pathId);
+		}
+		finally {
+		    dbConnector.release(rs3);
 		}
 	    }
 	}
 	finally {
 	    dbConnector.release(rs1);
-	    dbConnector.release(rs3);
 	}
     }
     /** remove Modules */
@@ -2211,60 +2318,68 @@ public class ConfDB
 	ResultSet rsParams = null;
 	ResultSet rsPSets  = null;
 	ResultSet rsVPSets = null;
+
+	Statement stmt1 = dbConnector.getConnection().createStatement();
+	Statement stmt2 = dbConnector.getConnection().createStatement();
+	Statement stmt3 = dbConnector.getConnection().createStatement();
+	
 	try {
 	    // parameters
-	    Statement stmt1 = dbConnector.getConnection().createStatement();
 	    rsParams = stmt1.executeQuery("SELECT paramId "+
 					  "FROM SuperIdParameterAssoc "+
 					  "WHERE superId="+parentId);
 	    while (rsParams.next()) {
 		int paramId = rsParams.getInt(1);
-		Statement stmt2 = dbConnector.getConnection().createStatement();
 		stmt2.executeUpdate("DELETE FROM SuperIdParameterAssoc "+
 				    "WHERE "+
 				    "superId="+parentId+" AND paramId="+paramId);
-		Statement stmt3 = dbConnector.getConnection().createStatement();
 		stmt3.executeUpdate("DELETE FROM Parameters "+
 				    "WHERE paramId="+paramId);
-	    }
-
-	    // psets
-	    Statement stmt4 = dbConnector.getConnection().createStatement();
-	    rsPSets = stmt4.executeQuery("SELECT psetId "+
-					 "FROM SuperIdParamSetAssoc "+
-					 "WHERE superId="+parentId);
-	    while (rsPSets.next()) {
-		int psetId = rsPSets.getInt(1);
-		Statement stmt5 = dbConnector.getConnection().createStatement();
-		removeParameters(psetId);
-		stmt5.executeUpdate("DELETE FROM SuperIdParamSetAssoc "+
-				    "WHERE "+
-				    "superId="+parentId+" AND psetId="+psetId);
-		Statement stmt6 = dbConnector.getConnection().createStatement();
-		stmt6.executeUpdate("DELETE FROM SuperIds WHERE superId="+psetId);
-	    }
-
-	    // vpsets
-	    Statement stmt7 = dbConnector.getConnection().createStatement();
-	    rsVPSets = stmt7.executeQuery("SELECT vpsetId "+
-					  "FROM SuperIdVecParamSetAssoc "+
-					  "WHERE superId="+parentId);
-	    while (rsVPSets.next()) {
-		int vpsetId = rsVPSets.getInt(1);
-		Statement stmt8 = dbConnector.getConnection().createStatement();
-		removeParameters(vpsetId);
-		stmt8.executeUpdate("DELETE FROM SuperIdVecParamSetAssoc "+
-				    "WHERE "+
-				    "superId="+parentId+" AND vpsetId="+vpsetId);
-		Statement stmt9 = dbConnector.getConnection().createStatement();
-		stmt9.executeUpdate("DELETE FROM SuperIds WHERE superId="+vpsetId);
 	    }
 	}
 	finally {
 	    dbConnector.release(rsParams);
+	}
+
+	try {
+	    // psets
+	    rsPSets = stmt1.executeQuery("SELECT psetId "+
+					 "FROM SuperIdParamSetAssoc "+
+					 "WHERE superId="+parentId);
+	    while (rsPSets.next()) {
+		int psetId = rsPSets.getInt(1);
+		removeParameters(psetId);
+		stmt2.executeUpdate("DELETE FROM SuperIdParamSetAssoc "+
+				    "WHERE "+
+				    "superId="+parentId+" AND psetId="+psetId);
+		stmt3.executeUpdate("DELETE FROM SuperIds WHERE superId="+psetId);
+	    }
+	}
+	finally {
 	    dbConnector.release(rsPSets);
+	}
+	
+	try {
+	    // vpsets
+	    rsVPSets = stmt1.executeQuery("SELECT vpsetId "+
+					  "FROM SuperIdVecParamSetAssoc "+
+					  "WHERE superId="+parentId);
+	    while (rsVPSets.next()) {
+		int vpsetId = rsVPSets.getInt(1);
+		removeParameters(vpsetId);
+		stmt2.executeUpdate("DELETE FROM SuperIdVecParamSetAssoc "+
+				    "WHERE "+
+				    "superId="+parentId+" AND vpsetId="+vpsetId);
+		stmt3.executeUpdate("DELETE FROM SuperIds WHERE superId="+vpsetId);
+	    }
+	}
+	finally {
 	    dbConnector.release(rsVPSets);
 	}
+
+	stmt1.close();
+	stmt2.close();
+	stmt3.close();
     }
     
     
@@ -2516,30 +2631,38 @@ public class ConfDB
 		 "FROM PrimaryDatasets " +
 		 "ORDER BY PrimaryDatasets.datasetLabel ASC");
 	    
-	    psSelectStreamEntries =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " StreamPathAssoc.streamId," +
-		 " StreamPathAssoc.pathId " +
-		 "FROM StreamPathAssoc "+
-		 "JOIN ConfigurationPathAssoc " +
-		 "ON ConfigurationPathAssoc.pathId=StreamPathAssoc.pathId " +
-		 "WHERE ConfigurationPathAssoc.configId=?");
-	    psSelectStreamEntries.setFetchSize(64);
-	    preparedStatements.add(psSelectStreamEntries);
-
 	    psSelectPrimaryDatasetEntries =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
 		 " PrimaryDatasetPathAssoc.datasetId," +
+		 " PrimaryDatasets.datasetLabel,"+
 		 " PrimaryDatasetPathAssoc.pathId " +
 		 "FROM PrimaryDatasetPathAssoc "+
+		 "JOIN PrimaryDatasets "+
+		 "ON PrimaryDatasets.datasetId=PrimaryDatasetPathAssoc.datasetId "+
 		 "JOIN ConfigurationPathAssoc " +
 		 "ON ConfigurationPathAssoc.pathId=PrimaryDatasetPathAssoc.pathId "+
 		 "WHERE ConfigurationPathAssoc.configId=?");
-	    psSelectStreamEntries.setFetchSize(64);
+	    psSelectPrimaryDatasetEntries.setFetchSize(64);
 	    preparedStatements.add(psSelectPrimaryDatasetEntries);
-	    	    
+	    
+	    psSelectStreamEntries =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " ConfigurationStreamAssoc.streamId,"+
+		 " Streams.streamLabel,"+
+		 " ConfigurationStreamAssoc.datasetId,"+
+		 " PrimaryDatasets.datasetLabel "+
+		 "FROM ConfigurationStreamAssoc "+
+		 "JOIN Streams "+
+		 "ON Streams.streamId=ConfigurationStreamAssoc.streamId "+
+		 "JOIN PrimaryDatasets "+
+		 "ON PrimaryDatasets.datasetId=ConfigurationStreamAssoc.datasetId "+
+		 "WHERE ConfigurationStreamAssoc.configId=?");
+	    psSelectStreamEntries.setFetchSize(64);
+	    preparedStatements.add(psSelectStreamEntries);
+
+
 	    
 	    //
 	    // INSERT
@@ -2678,11 +2801,12 @@ public class ConfDB
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigPathAssoc);
 	    
-	    psInsertStreamPathAssoc =
+	    psInsertConfigStreamAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
-		 "StreamPathAssoc (streamId,pathId) VALUES(?, ?)");
-	    preparedStatements.add(psInsertStreamPathAssoc);
+		 "ConfigurationStreamAssoc (configId,streamId,datasetId) "+
+		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertConfigStreamAssoc);
 	    
 	    psInsertPrimaryDatasetPathAssoc =
 		dbConnector.getConnection().prepareStatement
@@ -3080,7 +3204,7 @@ public class ConfDB
 	    
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::prepareStatements() failed.";
+	    String errMsg = "ConfDB::prepareStatements() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	
@@ -3127,7 +3251,7 @@ public class ConfDB
 	    }
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::prepareStatements() failed.";
+	    String errMsg = "ConfDB::prepareStatements() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -3291,7 +3415,7 @@ public class ConfDB
 	    
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::getParameters() failed.";
+	    String errMsg = "ConfDB::getParameters() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -3342,7 +3466,8 @@ public class ConfDB
 	catch (SQLException e) { 
 	    String errMsg =
 		"ConfDB::insertVecParameterSet(superId="+superId+
-		",sequenceNb="+sequenceNb+",vpset="+vpset.name()+") failed.";
+		",sequenceNb="+sequenceNb+",vpset="+vpset.name()+") failed: "+
+		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -3383,7 +3508,8 @@ public class ConfDB
 	catch (SQLException e) { 
 	    String errMsg =
 		"ConfDB::insertParameterSet(superId="+superId+
-		",sequenceNb="+sequenceNb+",pset="+pset.name()+") failed.";
+		",sequenceNb="+sequenceNb+",pset="+pset.name()+") failed: "+
+		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -3412,7 +3538,8 @@ public class ConfDB
 	catch (SQLException e) { 
 	    String errMsg =
 		"ConfDB::insertParameter(superId="+superId+",sequenceNb="+
-		sequenceNb+",parameter="+parameter.name()+") failed.";
+		sequenceNb+",parameter="+parameter.name()+") failed: "+
+		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -3436,7 +3563,8 @@ public class ConfDB
 	catch (SQLException e) {
 	    String errMsg =
 		"ConfDB::insertSuperIdParamAssoc(superId="+superId+
-		",paramId="+paramId+",sequenceNb="+sequenceNb+") failed.";
+		",paramId="+paramId+",sequenceNb="+sequenceNb+") failed: "+
+		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -3458,7 +3586,8 @@ public class ConfDB
 	catch (SQLException e) {
 	    String errMsg =
 		"ConfDB::inesrtSuperIdParamSetAssoc(superId="+superId+
-		",psetId="+psetId+",sequenceNb="+sequenceNb+") failed.";
+		",psetId="+psetId+",sequenceNb="+sequenceNb+") failed: "+
+		e.getMessage();
  	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -3480,7 +3609,8 @@ public class ConfDB
 	catch (SQLException e) {
 	    String errMsg =
 		"ConfDB::inesrtSuperIdVecParamSetAssoc(superId="+superId+
-		",vpsetId="+vpsetId+",sequenceNb="+sequenceNb+") failed.";
+		",vpsetId="+vpsetId+",sequenceNb="+sequenceNb+") failed: "+
+		e.getMessage();
  	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -3551,7 +3681,7 @@ public class ConfDB
 	catch (Exception e) {
 	    String errMsg =
 		"ConfDB::insertParameterValue(paramId="+paramId+
-		",parameter="+parameter.name()+") failed.";
+		",parameter="+parameter.name()+") failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
     }
@@ -3569,7 +3699,7 @@ public class ConfDB
 	catch (SQLException e) {
 	    String errMsg =
 		"ConfDB::insertSuperIdReleaseAssoc(superId="+superId+
-		",releaseTag="+releaseTag+") failed.";
+		",releaseTag="+releaseTag+") failed: "+e.getMessage();
  	    throw new DatabaseException(errMsg,e);
 	}
     }
@@ -3589,7 +3719,8 @@ public class ConfDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::getReleaseId(releaseTag="+releaseTag+") failed.";
+		"ConfDB::getReleaseId(releaseTag="+releaseTag+") failed: "+
+		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -3610,7 +3741,8 @@ public class ConfDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConbfDB::getReleaseTag(releaseId="+releaseId+") failed.";
+		"ConbfDB::getReleaseTag(releaseId="+releaseId+") failed: "+
+		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -3633,7 +3765,8 @@ public class ConfDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConbfDB::getReleaseTagForConfig(configId="+configId+") failed.";
+		"ConbfDB::getReleaseTagForConfig(configId="+configId+") failed: "+
+		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -3699,7 +3832,7 @@ public class ConfDB
 	    }
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::getSubsystems() failed.";
+	    String errMsg = "ConfDB::getSubsystems() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {

@@ -28,6 +28,9 @@ class StreamTreeRenderer extends DefaultTreeCellRenderer
     /** stream icon */
     private ImageIcon streamIcon = null;
     
+    /** primary dataset icon */
+    private ImageIcon datasetIcon = null;
+    
     /** path icon */
     private ImageIcon pathIcon = null;
     
@@ -40,8 +43,9 @@ class StreamTreeRenderer extends DefaultTreeCellRenderer
     public StreamTreeRenderer()
     {
 	super();
-	streamIcon = new ImageIcon(getClass().getResource("/StreamIcon.png")); //!
-	pathIcon   = new ImageIcon(getClass().getResource("/PathIcon.png"));
+	streamIcon =new ImageIcon(getClass().getResource("/StreamIcon.png"));
+	datasetIcon=new ImageIcon(getClass().getResource("/PrimaryDatasetIcon.png"));
+	pathIcon   =new ImageIcon(getClass().getResource("/PathIcon.png"));
 
     }
     
@@ -55,6 +59,7 @@ class StreamTreeRenderer extends DefaultTreeCellRenderer
     {
 	if (node==null||node.equals(treeModel.getRoot())) return null;
 	else if (node instanceof Stream) return streamIcon;
+	else if (node instanceof PrimaryDataset) return datasetIcon;
 	else if (node instanceof Path)   return pathIcon;
 	return null;
     }
@@ -68,10 +73,15 @@ class StreamTreeRenderer extends DefaultTreeCellRenderer
 	}
 	else if (node instanceof Stream) {
 	    Stream stream = (Stream)node;
-	    int    count  = stream.pathCount();
+	    int    count  = stream.datasetCount();
  	    result = (count>0) ?
 		"<html><b>"+stream+"</b> ("+count+")</html>":
 		"<html>"+stream+" ("+count+")</html>";
+	}
+	else if (node instanceof PrimaryDataset) {
+	    PrimaryDataset dataset = (PrimaryDataset)node;
+	    int    count  = dataset.pathCount();
+ 	    result = "<html>"+dataset+" ("+count+")</html>";
 	}
 	return result;
     }

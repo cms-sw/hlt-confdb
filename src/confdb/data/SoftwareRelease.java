@@ -22,7 +22,7 @@ public class SoftwareRelease
     //
     
     /** name of the release */
-    private String releaseTag;
+    private String releaseTag="";
     
     /** list of software subsystems */
     private ArrayList<SoftwareSubsystem> subsystems = null;

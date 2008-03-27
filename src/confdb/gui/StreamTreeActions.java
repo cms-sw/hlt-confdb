@@ -21,54 +21,59 @@ import confdb.data.*;
  */
 public class StreamTreeActions
 {
-    public static boolean removePath(JTree tree)
+    public static boolean addStream(JTree tree, String streamLabel)
     {
 	StreamTreeModel model    = (StreamTreeModel)tree.getModel();
 	Configuration   config   = model.getConfiguration();
 	TreePath        treePath = tree.getSelectionPath();
 	
-	Path   path   = (Path)treePath.getLastPathComponent();
-	Stream stream = (Stream)treePath.getParentPath().getLastPathComponent();
-	int    index  = stream.indexOfPath(path);
-	
-	stream.removePath(path);
-	model.nodeRemoved(stream,index,path);
-	
-	return true;
-    }
-    
-    public static boolean addPath(JTree tree,String cmd)
-    {
-	StreamTreeModel model    = (StreamTreeModel)tree.getModel();
-	Configuration   config   = model.getConfiguration();
-	TreePath        treePath = tree.getSelectionPath();
-	
-	Stream stream = (Stream)treePath.getLastPathComponent();
-	Path   path   = config.path(cmd);
-	stream.insertPath(path);
-	model.nodeInserted(stream,stream.pathCount()-1);
-	
-	return true;
-    }
-    
-    public static boolean addAllPaths(JTree tree)
-    {
-	StreamTreeModel model    = (StreamTreeModel)tree.getModel();
-	Configuration   config   = model.getConfiguration();
-	TreePath        treePath = tree.getSelectionPath();
-	
-	Stream stream = (Stream)treePath.getLastPathComponent();
-	Iterator<Path> it = config.pathIterator();
-	while (it.hasNext()) {
-	    Path path = it.next();
-	    if (path.isEndPath()) continue;
-	    if (stream.indexOfPath(path)<0) {
-		stream.insertPath(path);
-		model.nodeInserted(stream,stream.pathCount()-1);
-	    }
-	}
-	model.nodeChanged(stream);
+	Stream newStream = config.insertStream(streamLabel);
+	model.nodeInserted(model.getRoot(),config.streamCount()-1);
 
+	return true;
+    }
+
+    public static boolean removeStream(JTree tree)
+    {
+	StreamTreeModel model    = (StreamTreeModel)tree.getModel();
+	Configuration   config   = model.getConfiguration();
+	TreePath        treePath = tree.getSelectionPath();
+	Stream          stream   = (Stream)treePath.getLastPathComponent();
+	
+	int index = config.indexOfStream(stream);
+	config.removeStream(stream);
+	model.nodeRemoved(model.getRoot(),index,stream);
+
+	return true;
+    }
+
+    public static boolean removeDataset(JTree tree)
+    {
+	StreamTreeModel model    = (StreamTreeModel)tree.getModel();
+	Configuration   config   = model.getConfiguration();
+	TreePath        treePath = tree.getSelectionPath();
+	
+	PrimaryDataset dataset = (PrimaryDataset)treePath.getLastPathComponent();
+	Stream stream = (Stream)treePath.getParentPath().getLastPathComponent();
+	int index = stream.indexOfDataset(dataset);
+	
+	stream.removeDataset(dataset);
+	model.nodeRemoved(stream,index,dataset);
+	
+	return true;
+    }
+    
+    public static boolean addDataset(JTree tree,String cmd)
+    {
+	StreamTreeModel model    = (StreamTreeModel)tree.getModel();
+	Configuration   config   = model.getConfiguration();
+	TreePath        treePath = tree.getSelectionPath();
+	
+	Stream         stream  = (Stream)treePath.getLastPathComponent();
+	PrimaryDataset dataset = config.dataset(cmd);
+	stream.insertDataset(dataset);
+	model.nodeInserted(stream,stream.datasetCount()-1);
+	
 	return true;
     }
     

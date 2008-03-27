@@ -154,6 +154,8 @@ public class ReleaseMigrator
 	for (int i=0;i<sourceConfig.pathCount();i++) {
 	    Path source = sourceConfig.path(i);
 	    Path target = targetConfig.insertPath(i,source.name());
+	    if (source.isEndPath()&&!target.isEndPath())
+		target.setAsEndPath(true);
 	}
 
 	// migrate Sequences
@@ -176,13 +178,13 @@ public class ReleaseMigrator
 	    migrateReferences(source,target);
 	}
 	
-	// migrate streams
-	for (int i=0;i<sourceConfig.streamCount();i++) {
-	    Stream source = sourceConfig.stream(i);
-	    Stream target = targetConfig.insertStream(source.label());
-	    Iterator<Path> it = source.pathIterator();
-	    while (it.hasNext()) {
-		Path sourcePath = it.next();
+	// migrate primary datasets
+	for (int i=0;i<sourceConfig.datasetCount();i++) {
+	    PrimaryDataset source = sourceConfig.dataset(i);
+	    PrimaryDataset target = targetConfig.insertDataset(source.label());
+	    Iterator<Path> itP = source.pathIterator();
+	    while (itP.hasNext()) {
+		Path sourcePath = itP.next();
 		Path targetPath = targetConfig.path(sourcePath.name());
 		if (targetPath!=null)
 		    target.insertPath(targetPath);
@@ -191,19 +193,20 @@ public class ReleaseMigrator
 				       "' not found in target configuration!");
 	    }
 	}
-
-	// migrate primary datasets
-	for (int i=0;i<sourceConfig.datasetCount();i++) {
-	    PrimaryDataset source = sourceConfig.dataset(i);
-	    PrimaryDataset target = targetConfig.insertDataset(source.label());
-	    Iterator<Path> it = source.pathIterator();
-	    while (it.hasNext()) {
-		Path sourcePath = it.next();
-		Path targetPath = targetConfig.path(sourcePath.name());
-		if (targetPath!=null)
-		    target.insertPath(targetPath);
+	
+	// migrate streams
+	for (int i=0;i<sourceConfig.streamCount();i++) {
+	    Stream source = sourceConfig.stream(i);
+	    Stream target = targetConfig.insertStream(source.label());
+	    Iterator<PrimaryDataset> itD = source.datasetIterator();
+	    while (itD.hasNext()) {
+		PrimaryDataset sourceDataset = itD.next();
+		PrimaryDataset targetDataset =
+		    targetConfig.dataset(sourceDataset.label());
+		if (targetDataset!=null)
+		    target.insertDataset(targetDataset);
 		else
-		    System.out.println("ERROR: path '"+sourcePath.name()+
+		    System.out.println("ERROR: dataset '"+sourceDataset.label()+
 				       "' not found in target configuration!");
 	    }
 	}

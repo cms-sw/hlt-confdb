@@ -1,6 +1,8 @@
 package confdb.converter;
 
 import java.util.HashMap;
+import java.util.Iterator;
+
 import confdb.data.*;
 import confdb.db.DatabaseException;
 
@@ -78,14 +80,67 @@ public class OfflineConverter extends ConverterBase
 	ConfigurationModifier modifier = new ConfigurationModifier(config);
 	
 	modifier.modify(modifications);
+	addPSetForStreams(modifier);
+	addPSetForDatasets(modifier);
 	
 	if (asFragment)
-	    return getConverterEngine().getConfigurationWriter().toString(modifier,WriteProcess.NO);
+	    return getConverterEngine()
+		.getConfigurationWriter().toString(modifier,WriteProcess.NO);
 	else
 	    return getConverterEngine()
 		.getConfigurationWriter().toString(modifier,WriteProcess.YES);
     }
     
+    
+    //
+    // private memeber functions
+    //
+
+    /** create untracked pset with streams information */
+    private void addPSetForStreams(IConfiguration config)
+    {
+	if (config.streamCount()==0) return;
+	
+	PSetParameter pset = new PSetParameter("streams","",false,false);
+	Iterator<Stream> itS = config.streamIterator();
+	while (itS.hasNext()) {
+	    Stream stream = itS.next();
+	    StringBuffer valueAsString = new StringBuffer();
+	    Iterator<PrimaryDataset> itD = stream.datasetIterator();
+	    while (itD.hasNext()) {
+		if (valueAsString.length()>0) valueAsString.append(",");
+		valueAsString.append(itD.next().label());
+	    }
+	    pset.addParameter(new VStringParameter(stream.label(),
+						   valueAsString.toString(),
+						   false,false));
+	}
+	config.insertPSet(pset);
+    }
+
+    /** create untracked pset with streams information */
+    private void addPSetForDatasets(IConfiguration config)
+    {
+	if (config.datasetCount()==0) return;
+	
+	PSetParameter pset = new PSetParameter("datasets","",false,false);
+	Iterator<PrimaryDataset> itD = config.datasetIterator();
+	while (itD.hasNext()) {
+	    PrimaryDataset dataset = itD.next();
+	    StringBuffer valueAsString = new StringBuffer();
+	    Iterator<Path> itP = dataset.pathIterator();
+	    while (itP.hasNext()) {
+		if (valueAsString.length()>0) valueAsString.append(",");
+		valueAsString.append(itP.next().name());
+	    }
+	    pset.addParameter(new VStringParameter(dataset.label(),
+						   valueAsString.toString(),
+						   false,false));
+	}
+	config.insertPSet(pset);
+    }
+
+
 
     //
     // main method, for testing

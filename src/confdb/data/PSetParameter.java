@@ -327,11 +327,9 @@ class ParameterSetParser
 	
 	while (opos>=0&&opos<cpos) {
 	    opos = s.indexOf(otag,opos+1);
-	    //cpos = s.indexOf(ctag,opos+1);
 	    cpos = s.indexOf(ctag,cpos+1);
 	    skipCount++;
 	}
-	//for (int i=0;i<skipCount;i++) cpos = s.indexOf(ctag,cpos+1);
 
 	value       = s.substring(1,cpos);
 	parseString = s.substring(cpos+ctag.length());

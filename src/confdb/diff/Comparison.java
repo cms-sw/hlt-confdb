@@ -3,6 +3,10 @@ package confdb.diff;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import confdb.data.ModuleInstance;
+import confdb.data.Path;
+
+
 /**
  * Comparison
  * ----------
@@ -73,7 +77,11 @@ public class Comparison
     public String toString()
     {
 	String name = (name2==null) ? name1 : name2;
-	return name+" ["+type+"] "+resultAsString();
+	String result = name;
+	if (source instanceof ModuleInstance) result += " ["+type+"]";
+	result += " " +resultAsString();
+	if (source instanceof Path&&oldType!=null) result += " ["+oldType+"]";
+	return result;
     }
 
     /** get the source object */

@@ -20,6 +20,33 @@ import confdb.data.*;
  */
 public class PrimaryDatasetTreeActions
 {
+    public static boolean addDataset(JTree tree,String datasetLabel)
+    {
+	PrimaryDatasetTreeModel model    = (PrimaryDatasetTreeModel)tree.getModel();
+	Configuration           config   = model.getConfiguration();
+	TreePath                treePath = tree.getSelectionPath();
+	
+	PrimaryDataset dataset = config.insertDataset(datasetLabel);
+	model.nodeInserted(model.getRoot(),config.datasetCount()-1);
+
+	return true;
+    }
+
+    public static boolean removeDataset(JTree tree)
+    {
+	PrimaryDatasetTreeModel model    = (PrimaryDatasetTreeModel)tree.getModel();
+	Configuration           config   = model.getConfiguration();
+	TreePath                treePath = tree.getSelectionPath();
+	PrimaryDataset  dataset  = (PrimaryDataset)treePath.getLastPathComponent();
+	
+	int index = config.indexOfDataset(dataset);
+	config.removeDataset(dataset);
+	model.nodeRemoved(model.getRoot(),index,dataset);
+
+	return true;
+    }
+
+
     public static boolean removePath(JTree tree)
     {
 	PrimaryDatasetTreeModel model    = (PrimaryDatasetTreeModel)tree.getModel();

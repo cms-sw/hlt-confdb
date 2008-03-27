@@ -1,3 +1,10 @@
+2008-03-27  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-22-00
+	* fixes to diff, mostly regarding parameters (+endpath)
+	* new stream/dataset schema (-> OfflineConverter!)
+	* critical parser fix, regarding nested PSets
+
 2008-03-20  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-21-03

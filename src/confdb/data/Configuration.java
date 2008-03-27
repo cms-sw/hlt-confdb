@@ -288,6 +288,8 @@ public class Configuration implements IConfiguration
 	for (ServiceInstance  svc : services)  if (svc.hasChanged()) return true;
 	for (Path             pth : paths)     if (pth.hasChanged()) return true;
 	for (Sequence         seq : sequences) if (seq.hasChanged()) return true;
+	for (Stream           stm : streams)   if (stm.hasChanged()) return true;
+	for (PrimaryDataset   dat : datasets)  if (dat.hasChanged()) return true;
 	return false;
     }
     
@@ -948,14 +950,6 @@ public class Configuration implements IConfiguration
 	    }
 	}
 	
-	// remove this paths from all parent streams
-	Iterator<Stream> itS = path.streamIterator();
-	while (itS.hasNext()) {
-	    Stream s = itS.next();
-	    itS.remove();
-	    s.removePath(path);
-	}
-
 	// remove this paths from all parent primary datasets
 	Iterator<PrimaryDataset> itPD = path.datasetIterator();
 	while (itPD.hasNext()) {
@@ -1107,6 +1101,17 @@ public class Configuration implements IConfiguration
 	return stream;
     }
 
+    /** remove a stream */
+    public void removeStream(Stream stream)
+    {
+	if (streams.indexOf(stream)>=0) {
+	    Iterator<PrimaryDataset> itD = stream.datasetIterator();
+	    while (itD.hasNext()) itD.next().removeFromStream(stream);
+	    streams.remove(stream);
+	    hasChanged = true;
+	}
+    }
+
     /** sort Streams */
     public void sortStreams() { Collections.sort(streams); hasChanged=true;}
     
@@ -1150,6 +1155,16 @@ public class Configuration implements IConfiguration
 	return dataset;
     }
 
+    /** remove a dataset */
+    public void removeDataset(PrimaryDataset dataset)
+    {
+	if (datasets.indexOf(dataset)>=0) {
+	    while (dataset.pathCount()>0) dataset.removePath(dataset.path(0));
+	    datasets.remove(dataset);
+	    hasChanged = true;
+	}
+    }
+    
     /** sort primary datasets */
     public void sortDatasets() { Collections.sort(datasets); hasChanged=true; }
     

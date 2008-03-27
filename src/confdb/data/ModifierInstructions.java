@@ -22,7 +22,7 @@ public class ModifierInstructions
     //
     // member data
     //
-
+    
     /** global PSets */
     private boolean filterAllPSets = false;
     private ArrayList<String> psetBlackList = new ArrayList<String>();

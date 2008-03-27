@@ -76,7 +76,6 @@ public class DiffTreeRenderer extends DefaultTreeCellRenderer
 	if      (node instanceof StringBuffer) return null;
 	else if (node instanceof Comparison) {
 	    Comparison c = (Comparison)node;
-	    if (c.source() instanceof Parameter) return null;
 	    if (c.isChanged()) return changedIcon;
 	    if (c.isAdded())   return addedIcon;
 	    if (c.isRemoved()) return removedIcon;
@@ -90,15 +89,32 @@ public class DiffTreeRenderer extends DefaultTreeCellRenderer
 	String result = getText();
 	if (node instanceof Comparison) {
 	    Comparison c = (Comparison)node;
-	    if (c.source() instanceof PSetParameter||
-		c.source() instanceof VPSetParameter)
-		result = "<html>"+c.type()+" "+c.name1()+"</html>";
-	    else if (c.source() instanceof Parameter) {
-		result = "<html>"+c.type()+" "+c.name1()+" = "+
-		    "<font color=#009900>"+c.name2()+"</font> ["+
-		    "<font color=#ff0000>"+c.oldValue()+"</font>]</html>";
+	    if (c.source() instanceof Parameter) {
+
+		boolean isPSet = (c.source() instanceof PSetParameter||
+				  c.source() instanceof VPSetParameter);
+
+		if (c.isChanged()) {
+		    result = "<html>"+c.type()+" "+c.name1();
+		    if (!isPSet)
+			result += " = "+
+			    "<font color=#009900>"+c.name2()+"</font> ["+
+			    "<font color=#ff0000>"+c.oldValue()+"</font>]";
+		    result += "</html>";
+		}
+		else if (c.isAdded()) {
+		    result = "<html>"+c.type()+" "+c.name2();
+		    if (!isPSet) result += " = "+c.oldValue();
+		    result+="</html>";
+		}
+		else if (c.isRemoved()) {
+		    result = "<html>"+c.type()+" "+c.name1();
+		    if (!isPSet) result += " = "+c.oldValue();
+		    result+="</html>";
+		}
 	    }
 	}
+	
 	return result;
     }
     

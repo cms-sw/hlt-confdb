@@ -94,6 +94,8 @@ public interface IConfiguration
     /** retrieve pset iterator */
     public Iterator<PSetParameter> psetIterator();
     
+    /** insert a global pset */
+    public void insertPSet(PSetParameter pset);
     
     /**  number of EDSources */
     public int edsourceCount();
@@ -219,5 +221,17 @@ public interface IConfiguration
     /** retrieve stream iterator */
     public Iterator<Stream> streamIterator();
     
+
+    /** number of primary datasets */
+    public int datasetCount();
+    
+    /** retrieve i-th primary dataset */
+    public PrimaryDataset dataset(int i);
+    
+    /** index of a certain primary dataset */
+    public int indexOfDataset(PrimaryDataset dataset);
+    
+    /** retrieve primary dataset iterator */
+    public Iterator<PrimaryDataset> datasetIterator();
     
 }
