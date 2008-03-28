@@ -112,12 +112,12 @@ public class ModuleInstance extends Instance implements Referencable
 		    if (!p.isValueSet()) continue;
 		    if (p instanceof InputTagParameter) {
 			InputTagParameter inputTag = (InputTagParameter)p;
-			
 			if (inputTag.label().equals(oldName)) {
 			    InputTagParameter tmp =
 				(InputTagParameter)inputTag.clone(null);
 			    tmp.setLabel(name());
-			    module.updateParameter(inputTag.name(),inputTag.type(),
+			    module.updateParameter(inputTag.fullName(),
+						   inputTag.type(),
 						   tmp.valueAsString());
 			}
 		    }
@@ -134,7 +134,8 @@ public class ModuleInstance extends Instance implements Referencable
 				tmp.setValue(i,inputTag.valueAsString());
 			    }
 			}
-			module.updateParameter(vInputTag.name(),vInputTag.type(),
+			module.updateParameter(vInputTag.fullName(),
+					       vInputTag.type(),
 					       tmp.valueAsString());
 		    }
 		}

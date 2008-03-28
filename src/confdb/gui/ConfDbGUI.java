@@ -1020,9 +1020,10 @@ public class ConfDbGUI
     private class ParseConfigurationThread extends SwingWorker<String>
     {
 	/** member data */
-	private String fileName   = null;
-	private String releaseTag = null;
-	private long   startTime;
+	private PythonParser parser     = null;
+	private String       fileName   = null;
+	private String       releaseTag = null;
+	private long         startTime;
 	
 	/** standard constructor */
 	public ParseConfigurationThread(String fileName,String releaseTag)
@@ -1037,12 +1038,9 @@ public class ConfDbGUI
 	    startTime = System.currentTimeMillis();
 	    if (!releaseTag.equals(currentRelease.releaseTag()))
 		database.loadSoftwareRelease(releaseTag,currentRelease);
-	    PythonParser parser = new PythonParser(currentRelease);
+	    parser = new PythonParser(currentRelease);
 	    parser.parseFile(fileName);
 	    setCurrentConfig(parser.createConfiguration());
-	    if (parser.closeProblemStream())
-		System.out.println("problems encountered, " +
-				   "see problems.txt.");
 	    return new String("Done!");
 	}
 	
@@ -1069,6 +1067,15 @@ public class ConfDbGUI
 	    jProgressBar.setIndeterminate(false);
 	    jTreeCurrentConfig.setEditable(true);
 	    jTreeTableParameters.getTree().setEditable(true);
+
+	    if (parser.closeProblemStream()) {
+		System.out.println("problems encountered, see problems.txt.");
+		ParserProblemsDialog dialog=new ParserProblemsDialog(frame,parser);
+		dialog.pack();
+		dialog.setLocationRelativeTo(frame);
+		dialog.setVisible(true);
+	    }
+	    
 	}
     }
     
@@ -1297,8 +1304,6 @@ public class ConfDbGUI
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		jProgressBar.setString(jProgressBar.getString()+get()+
 				       " ("+elapsedTime+" ms)");
-		//grationReportDialog dialog =
-		//  new MigrationReportDialog(frame,migrator);
 		DiffDialog dialog = new DiffDialog(frame,database);
 		dialog.setTitle("Release-Migration Report");
 		dialog.pack();
@@ -2159,12 +2164,13 @@ public class ConfDbGUI
     /** create the  menubar */
     private void createMenuBar()
     {
-	ArrayList<String> admins = new ArrayList<String>();
-	admins.add("schiefer");
-	admins.add("meschi");
-	admins.add("mzanetti");
-	
-	menuBar = new MenuBar(jMenuBar,this,admins.contains(userName));
+	//ArrayList<String> admins = new ArrayList<String>();
+	//admins.add("schiefer");
+	//admins.add("meschi");
+	//admins.add("mzanetti");
+	//menuBar = new MenuBar(jMenuBar,this,admins.contains(userName));
+
+	menuBar = new MenuBar(jMenuBar,this,true);
 	frame.setJMenuBar(jMenuBar);
     }
 

@@ -55,8 +55,8 @@ public class PythonParser
     private HashSet<String> problemParameters = new HashSet<String>();
     
     /** output stream for problems.txt */
-    private PrintWriter problemStream = null;
-
+    private PrintWriter  problemStream = null;
+    private StringBuffer problemBuffer = new StringBuffer();
 
     private boolean isBuildingString = false;
     
@@ -76,6 +76,9 @@ public class PythonParser
     // member functions
     //
     
+    /** get problems as string */
+    public String problemsAsString() { return problemBuffer.toString(); }
+
     /** parse a file */
     public void parseFile(String fileName) throws ParserException
     {
@@ -763,18 +766,20 @@ public class PythonParser
 	if (problemStream==null) {
 	    try {
 		problemStream = new PrintWriter(new FileWriter("problems.txt"));
+		problemBuffer = new StringBuffer();
 	    }
 	    catch (IOException e) {
 		System.err.println("Can't open problems.txt: "+e.getMessage());
 		return;
 	    }
 	}
-
+	
 	if (!problemModules.contains(name)) {
 	    problemModules.add(name);
 	    String s = (type.startsWith("Module:")) ?
 		"Module " + type.substring(7) : type;
-	    problemStream.println("\n" + s + " " + name + " " + subsys + " " + pkg);
+	    problemStream.println("\n"+s+" "+name+" "+subsys+" "+pkg);
+	    problemBuffer.append("\n"+s+" "+name+" "+subsys+" "+pkg+"\n");
 	}
 	
 	String trkd = (p.isTracked()) ? "tracked" : "untracked";
@@ -789,6 +794,7 @@ public class PythonParser
 	    pline += p.valueAsString() + " " + trkd;
 	}
 	problemStream.println(pline);
+	problemBuffer.append(pline+"\n");
 	problemParameters.add(name + "." + p.name());
     }
 

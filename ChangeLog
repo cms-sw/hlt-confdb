@@ -1,3 +1,9 @@
+2008-03-28  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-22-01
+	* unlock parser for everybody, add problem dialog
+	* fix to InputTag propagation (ModuleInstance)
+
 2008-03-27  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-22-00

@@ -3,7 +3,7 @@ package confdb.diff;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import confdb.data.ModuleInstance;
+import confdb.data.Instance;
 import confdb.data.Path;
 
 
@@ -78,7 +78,7 @@ public class Comparison
     {
 	String name = (name2==null) ? name1 : name2;
 	String result = name;
-	if (source instanceof ModuleInstance) result += " ["+type+"]";
+	if (source instanceof Instance) result += " ["+type+"]";
 	result += " " +resultAsString();
 	if (source instanceof Path&&oldType!=null) result += " ["+oldType+"]";
 	return result;
