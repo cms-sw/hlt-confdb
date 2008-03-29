@@ -40,16 +40,27 @@ public class ParameterComparison extends Comparison
     //
     // member functions
     //
+
+    /** indicate if [V]Pset parameters are being compared */
+    public boolean isPSet()
+    {
+	Parameter p = (newParameter==null) ? oldParameter : newParameter;
+	if ((p instanceof PSetParameter)||(p instanceof VPSetParameter)) return true;
+	return false;
+    }
     
     /** determine the result of the comparison */
     public int result()
     {
 	if      (oldParameter==null&&newParameter!=null) return RESULT_ADDED;
 	else if (oldParameter!=null&&newParameter==null) return RESULT_REMOVED;
-	else if (comparisonCount()==0&&oldParameter.name()==newParameter.name()&&
-		 oldParameter.type()==newParameter.type())
+	else if (comparisonCount()==0&&
+		 oldParameter.name().equals(newParameter.name())&&
+		 oldParameter.type().equals(newParameter.type())&&
+		 oldParameter.valueAsString().equals(newParameter.valueAsString()))
 	    return RESULT_IDENTICAL;
-	else return RESULT_CHANGED;
+	else 
+	    return RESULT_CHANGED;
     }
     
     /** plain-text representation of the comparison */
@@ -57,17 +68,23 @@ public class ParameterComparison extends Comparison
     {
 	StringBuffer result = new StringBuffer();
 	Parameter p = (newParameter==null) ? oldParameter : newParameter;
-	result.append(p.type()).append(" ").append(p.name());
-	if ((!p instanceof PSetParameter)&&
+	result.append(p.type()).append(" ").append(p.fullName());
+	if (!(p instanceof PSetParameter)&&
 	    !(p instanceof VPSetParameter)) {
 	    result
 		.append(" = ")
 		.append(p.valueAsString());
-	    if (isChanged())
+	    if (isChanged()) {
+		if (!oldParameter.type().equals(newParameter.type()))
+		    result
+			.append(" {")
+			.append(oldParameter.type())
+			.append("}");
 		result
 		    .append(" [")
 		    .append(oldParameter.valueAsString())
 		    .append("]");
+	    }
 	    else
 		result
 		    .append(" [")
@@ -82,7 +99,7 @@ public class ParameterComparison extends Comparison
 	}
 	return result.toString();
     }
-
+    
     /** html representation of the comparison */
     public String toHtml()
     {
@@ -94,17 +111,23 @@ public class ParameterComparison extends Comparison
 	    .append(" <b>")
 	    .append(p.name())
 	    .append("</b>");
-	if ((!p instanceof PSetParameter)&&
+	if (!(p instanceof PSetParameter)&&
 	    !(p instanceof VPSetParameter)) {
 	    result
 		.append(" = <font color=#00ff00>")
 		.append(p.valueAsString())
 		.append("</font>");
-	    if (isChanged())
+	    if (isChanged()) {
+		if (!oldParameter.type().equals(newParameter.type()))
+		    result
+			.append(" {<font color=#0000ff>")
+			.append(oldParameter.type())
+			.append("</font>}");
 		result
 		    .append(" [<font color=#ff0000>")
 		    .append(oldParameter.valueAsString())
 		    .append("</font>]");
+	    }
 	}
 	result.append("</html>");
 	return result.toString();

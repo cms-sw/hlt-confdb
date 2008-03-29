@@ -50,6 +50,8 @@ public class Diff
     private ArrayList<Comparison> paths      = new ArrayList<Comparison>();
     private ArrayList<Comparison> sequences  = new ArrayList<Comparison>();
     private ArrayList<Comparison> modules    = new ArrayList<Comparison>();
+    private ArrayList<Comparison> streams    = new ArrayList<Comparison>();
+    private ArrayList<Comparison> datasets   = new ArrayList<Comparison>();
     
     private HashMap<String,Comparison> containerMap =
 	new HashMap<String,Comparison>();
@@ -151,6 +153,36 @@ public class Diff
 		services.add(compareInstances(svc1,null));
 	}
 
+	// Modules
+	Iterator<ModuleInstance> itMod2 = config2.moduleIterator();
+	while (itMod2.hasNext()) {
+	    ModuleInstance mod2 = itMod2.next();
+	    ModuleInstance mod1 = config1.module(mod2.name());
+	    Comparison c = compareInstances(mod1,mod2);
+	    if (!c.isIdentical()) modules.add(c);
+	}
+	Iterator<ModuleInstance> itMod1 = config1.moduleIterator();
+	while (itMod1.hasNext()) {
+	    ModuleInstance mod1 = itMod1.next();
+	    if (config2.module(mod1.name())==null)
+		modules.add(compareInstances(mod1,null));
+	}
+	
+	// Sequences
+	Iterator<Sequence> itSeq2 = config2.sequenceIterator();
+	while (itSeq2.hasNext()) {
+	    Sequence seq2 = itSeq2.next();
+	    Sequence seq1 = config1.sequence(seq2.name());
+	    Comparison c = compareContainers(seq1,seq2);
+	    if (!c.isIdentical()) sequences.add(c);
+	}
+	Iterator<Sequence> itSeq1 = config1.sequenceIterator();
+	while (itSeq1.hasNext()) {
+	    Sequence seq1 = itSeq1.next();
+	    if (config2.sequence(seq1.name())==null)
+		sequences.add(compareContainers(seq1,null));
+	}
+	
 	// Paths
 	Iterator<Path> itPath2 = config2.pathIterator();
 	while (itPath2.hasNext()) {
@@ -165,7 +197,38 @@ public class Diff
 	    if (config2.path(path1.name())==null)
 		paths.add(compareContainers(path1,null));
 	}
+	
+	// Streams
+	Iterator<Stream> itStream2 = config2.streamIterator();
+	while (itStream2.hasNext()) {
+	    Stream s2 = itStream2.next();
+	    Stream s1 = config1.stream(s2.label());
+	    Comparison c = compareStreams(s1,s2);
+	    if (!c.isIdentical()) streams.add(c);
+	}
+	Iterator<Stream> itStream1 = config1.streamIterator();
+	while (itStream1.hasNext()) {
+	    Stream s1 = itStream1.next();
+	    if (config2.stream(s1.label())==null)
+		streams.add(compareStreams(s1,null));
+	}
+	
+	// Datasets
+	Iterator<PrimaryDataset> itDataset2 = config2.datasetIterator();
+	while (itDataset2.hasNext()) {
+	    PrimaryDataset dataset2 = itDataset2.next();
+	    PrimaryDataset dataset1 = config1.dataset(dataset2.label());
+	    Comparison c = compareDatasets(dataset1,dataset2);
+	    if (!c.isIdentical()) datasets.add(c);
+	}
+	Iterator<PrimaryDataset> itDataset1 = config1.datasetIterator();
+	while (itDataset1.hasNext()) {
+	    PrimaryDataset dataset1 = itDataset1.next();
+	    if (config2.dataset(dataset1.label())==null)
+		datasets.add(compareDatasets(dataset1,null));
+	}
     }
+    
     
     /** number of psets */
     public int psetCount() { return psets.size(); }
@@ -270,155 +333,166 @@ public class Diff
     /** iterator over all modules */
     public Iterator<Comparison> moduleIterator() { return modules.iterator(); }
     
+
+    /** number of streams */
+    public int streamCount() { return streams.size(); }
+    
+    /** retrieve i-th stream comparison */
+    public Comparison stream(int i) { return streams.get(i); }
+    
+    /** get index of stream comparison */
+    public int indexOfStream(Comparison stream) { return streams.indexOf(stream); }
+    
+    /** iterator over all streams */
+    public Iterator<Comparison> streamIterator() { return streams.iterator(); }
+    
+    
+    /** number of datasets */
+    public int datasetCount() { return datasets.size(); }
+    
+    /** retrieve i-th dataset comparison */
+    public Comparison dataset(int i) { return datasets.get(i); }
+    
+    /** get index of dataset comparison */
+    public int indexOfDataset(Comparison dataset) { return datasets.indexOf(dataset); }
+    
+    /** iterator over all datasets */
+    public Iterator<Comparison> datasetIterator() { return datasets.iterator(); }
+    
     
     
     /** compare two (global) parameter sets */
     public Comparison comparePSets(PSetParameter pset1,PSetParameter pset2)
     {
-	if (pset1==null)
-	    return new Comparison(pset2,"PSet",null,pset2.name());
-	else if (pset2==null)
-	    return new Comparison(pset1,"PSet",pset1.name(),null);
-	
-	Comparison result = new Comparison(pset2,"PSet",pset1.name(),pset2.name());
-	Comparison paramComparisons[] =
-	    compareParameterLists(pset1.parameterIterator(),
-				  pset2.parameterIterator());
-	for (Comparison c : paramComparisons)
-	    if (!c.isIdentical()) result.addComparison(c);
+	Comparison result = new ParameterComparison(pset1,pset2);
+	if (!result.isAdded()&&!result.isRemoved()) {
+	    Comparison paramComparisons[] =
+		compareParameterLists(pset1.parameterIterator(),
+				      pset2.parameterIterator());
+	    for (Comparison c : paramComparisons)
+		if (!c.isIdentical()) result.addComparison(c);
+	}
 	return result;
     }
     
     /** compare two instances */
     public Comparison compareInstances(Instance i1,Instance i2)
     {
-	if (i1==null)
-	    return new Comparison(i2,i2.template().name(),null,i2.name());
-	else if (i2==null)
-	    return new Comparison(i1,i1.template().name(),i1.name(),null);
-	
-	Comparison result = instanceMap.get(i1.name()+"::"+i2.name());
-	if (result!=null) return result;
-	
-		
-	result = new Comparison(i2,i2.template().name(),i1.name(),i2.name());
+	if (i1!=null&&i2!=null&&instanceMap.containsKey(i1.name()+"::"+i2.name()))
+	    return instanceMap.get(i1.name()+"::"+i2.name());
 
-	if (!i1.template().name().equals(i2.template().name()))
-	    result.setOldType(i1.template().name());
+	Comparison result = new InstanceComparison(i1,i2);
 	
-	Comparison paramComparisons[] =
-	    compareParameterLists(i1.parameterIterator(),
-				  i2.parameterIterator());
-	for (Comparison c : paramComparisons)
-	    if (!c.isIdentical()) result.addComparison(c);
-
-	instanceMap.put(i1.name()+"::"+i2.name(),result);
-	if ((i1 instanceof ModuleInstance)&&
-	    !result.isIdentical()) modules.add(result);
-	
-	return result;
-    }
-
-    /** compare two reference containers (path/sequence) */
-    public Comparison compareContainers(ReferenceContainer rc1,
-					ReferenceContainer rc2)
-    {
-	if (rc1==null)
-	    return new Comparison(rc2,rc2.getClass().getName(),null,rc2.name());
-	else if (rc2==null)
-	    return new Comparison(rc1,rc1.getClass().getName(),rc1.name(),null);
-
-	if (!rc1.getClass().getName().equals(rc2.getClass().getName())) {
-	    System.err.println("ERROR Can't compare containers of different type.");
-	    return null;
+	if (!result.isAdded()&&!result.isRemoved()) {
+	    Comparison paramComparisons[] =
+		compareParameterLists(i1.parameterIterator(),
+				      i2.parameterIterator());
+	    for (Comparison c : paramComparisons)
+		if (!c.isIdentical()) result.addComparison(c);
+	    
+	    instanceMap.put(i1.name()+"::"+i2.name(),result);
 	}
-	
-	Comparison result = containerMap.get(rc1.name()+"::"+rc2.name());
-	if (result!=null) return result;
-	
-	result = new Comparison(rc2,rc2.getClass().getName(),rc1.name(),rc2.name());
-	
-	if (rc1 instanceof Path) {
-	    Path p1 = (Path)rc1;
-	    Path p2 = (Path)rc2;
-	    if (p1.isEndPath()&&!p2.isEndPath())
-		result.setOldType("ENDPATH");
-	    else if (!p1.isEndPath()&&p2.isEndPath())
-		result.setOldType("PATH");
-	}
-	
-	Iterator<Reference> itRef2 = rc2.entryIterator();
-	while (itRef2.hasNext()) {
-	    Reference    reference2 = itRef2.next();
-	    Referencable parent2    = reference2.parent();
-	    Reference    reference1 = rc1.entry(reference2.name());
-	    if (parent2 instanceof ReferenceContainer) {
-		if (reference1==null) {
-		    result.addComparison(new Comparison(parent2,
-							parent2
-							.getClass().getName(),
-							null,parent2.name()));
-		    
-		    Referencable parent1 = config1.sequence(reference2.name());
-		    if (parent1!=null) {
-			ReferenceContainer container1=(ReferenceContainer)parent1;
-			ReferenceContainer container2=(ReferenceContainer)parent2;
-			Comparison c = containerMap.get(parent1.name()+"::"+
-							parent2.name());
-			if (c==null) compareContainers(container1,container2);
-		    }
-		}
-		else {
-		    Referencable parent1 = reference1.parent();
-		    ReferenceContainer container1 = (ReferenceContainer)parent1;
-		    ReferenceContainer container2 = (ReferenceContainer)parent2;
-		    Comparison c = containerMap.get(container1.name()+"::"+
-						    container2.name());
-		    if(c==null) c = compareContainers(container1,container2);
-		    if (!c.isIdentical()) result.addComparison(c);
-		}
-	    }
-	    else if (parent2 instanceof ModuleInstance) {
-		if (reference1==null) {
-		    String type = ((Instance)parent2).template().name();
-		    result.addComparison(new Comparison(parent2,type,
-							null,parent2.name()));
-		}
-		else {
-		    Referencable parent1 = reference1.parent();
-		    Instance     inst1   = (Instance)parent1;
-		    Instance     inst2   = (Instance)parent2;
-		    Comparison   c = instanceMap.get(inst1.name()+"::"+
-						     inst2.name());
-		    if (c==null) c = compareInstances(inst1,inst2);
-		    if (!c.isIdentical()) result.addComparison(c);
-		}
-	    }
-	}
-
-	Iterator<Reference> itRef1 = rc1.entryIterator();
-	while (itRef1.hasNext()) {
-	    Reference reference1 = itRef1.next();
-	    Referencable parent1 = reference1.parent();
-	    Reference reference2 = rc2.entry(reference1.name());
-	    if (reference2==null) {
-		String type = parent1.getClass().getName();
-		if (parent1 instanceof ModuleInstance) {
-		    type = ((ModuleInstance)parent1).template().name();
-		}
-		result.addComparison(new Comparison(parent1,type,
-						    reference1.name(),null));
-	    }
-	}
-	
-	containerMap.put(rc1.name()+"::"+rc2.name(),result);
-
-	if ((rc1 instanceof Sequence)&&
-	    !result.isIdentical()) sequences.add(result);
 	
 	return result;
     }
     
+    /** compare two reference containers (path/sequence) */
+    public Comparison compareContainers(ReferenceContainer rc1,
+					ReferenceContainer rc2)
+    {
+	if (rc1!=null&&rc2!=null&&containerMap.containsKey(rc1.name()+"::"+rc2.name()))
+	    return containerMap.get(rc1.name()+"::"+rc2.name());
+	
+	Comparison result = new ContainerComparison(rc1,rc2);
+	
+	if (!result.isAdded()&&!result.isRemoved()) {
+	    Iterator<Reference> itRef2 = rc2.entryIterator();
+	    while (itRef2.hasNext()) {
+		Reference    reference2 = itRef2.next();
+		Reference    reference1 = rc1.entry(reference2.name());
+		Referencable parent2    = reference2.parent();
+		Referencable parent1    = (reference1==null)?null:reference1.parent();
+		if (parent2 instanceof ReferenceContainer) {
+		    Comparison c = compareContainers((ReferenceContainer)parent1,
+						     (ReferenceContainer)parent2);
+		    if (!c.isIdentical()) result.addComparison(c);
+		}
+		else if (parent2 instanceof ModuleInstance) {
+		    Comparison c = compareInstances((Instance)parent1,
+						    (Instance)parent2);
+		    if (!c.isIdentical()) result.addComparison(c);
+		}
+	    }
+	    
+	    Iterator<Reference> itRef1 = rc1.entryIterator();
+	    while (itRef1.hasNext()) {
+		Reference reference1 = itRef1.next();
+		Reference reference2 = rc2.entry(reference1.name());
+		if (reference2!=null) continue;
+		
+		Referencable parent1 = reference1.parent();
+		if (parent1 instanceof ReferenceContainer) {
+		    ReferenceContainer rc = (ReferenceContainer)parent1;
+		    result.addComparison(new ContainerComparison(rc,null));
+		}
+		else if (parent1 instanceof ModuleInstance) {
+		    Instance i = (Instance)parent1;
+		    result.addComparison(new InstanceComparison(i,null));
+		}
+		
+		containerMap.put(rc1.name()+"::"+rc2.name(),result);
+	    }
+	}
+	
+	return result;	
+    }
+
+    /** compare two streams */
+    public Comparison compareStreams(Stream s1,Stream s2)
+    {
+	Comparison result = new StreamComparison(s1,s2);
+	
+	if (!result.isAdded()&&!result.isRemoved()) {
+	    Iterator<PrimaryDataset> itDataset2 = s2.datasetIterator();
+	    while (itDataset2.hasNext()) {
+		PrimaryDataset d2 = itDataset2.next();
+		if (s1.dataset(s2.label())==null)
+		    result.addComparison(new DatasetComparison(null,d2));
+	    }
+	    Iterator<PrimaryDataset> itDataset1 = s1.datasetIterator();
+	    while (itDataset1.hasNext()) {
+		PrimaryDataset d1 = itDataset1.next();
+		if (s2.dataset(s1.label())==null)
+		    result.addComparison(new DatasetComparison(d1,null));
+	    }
+	}
+	return result;
+    }
+    
+
+    /** compare two datasets */
+    public Comparison compareDatasets(PrimaryDataset d1,PrimaryDataset d2)
+    {
+	Comparison result = new DatasetComparison(d1,d2);
+	
+	if (!result.isAdded()&&!result.isRemoved()) {
+	    Iterator<Path> itPath2 = d2.pathIterator();
+	    while (itPath2.hasNext()) {
+		Path p2 = itPath2.next();
+		if (d1.path(p2.name())==null)
+		    result.addComparison(new ContainerComparison(null,p2));
+	    }
+	    Iterator<Path> itPath1 = d1.pathIterator();
+	    while (itPath1.hasNext()) {
+		Path p1 = itPath1.next();
+		if (d2.path(p1.name())==null)
+		    result.addComparison(new ContainerComparison(p1,null));
+	    }
+	}
+	return result;
+    }
+    
+
     /** print all comparisons */
     public String printAll()
     {
@@ -488,6 +562,25 @@ public class Diff
 	    result.append(printInstanceComparisons(moduleIterator()));
 	}
 	
+	// streams
+	if (streamCount()>0) {
+	    result.append("\n---------------------------------------"+
+			  "----------------------------------------\n");
+	    result.append("Streams (" + streamCount() + "):\n");
+	    result.append(printInstanceComparisons(streamIterator()));
+	}
+	
+	// datasets
+	if (datasetCount()>0) {
+	    result.append("\n---------------------------------------"+
+			  "----------------------------------------\n");
+	    result.append("Datasets (" + datasetCount() + "):\n");
+	    result.append(printInstanceComparisons(datasetIterator()));
+	}
+	
+
+	
+
 	return result.toString();
     }
 
@@ -497,39 +590,12 @@ public class Diff
 	StringBuffer result = new StringBuffer();
 	while (itC.hasNext()) {
 	    Comparison c = itC.next();
-	    result.append("  -> "+c.toString()+"\n");
-	    if (c.oldType()!=null)
-		result.append("       NEW TYPE:"+c.type()+" ["+c.oldType()+"]\n");
-	    
+	    result.append("  -> ").append(c.toString()).append("\n");
 	    Iterator<Comparison> it = c.recursiveComparisonIterator();
 	    while (it.hasNext()) {
-		Comparison cParam = it.next();
-		if (cParam.isChanged()&&
-		    !cParam.type().equals("PSet")&&
-		    !cParam.type().equals("VPSet"))
-		    result.append("       "+
-				  cParam.type()+" "+
-				  cParam.name1()+" = "+
-				  cParam.name2()+ " ["+
-				  cParam.oldValue()+"]\n");
-		else if (cParam.isAdded()) {
-		    result.append("       "+
-				  cParam.type()+" "+
-				  cParam.name2());
-		    if (!cParam.type().equals("PSet")&&
-			!cParam.type().equals("VPSet"))
-			result.append(" = "+cParam.oldValue());
-		    result.append(" [ADDED]\n");
-		}
-		else if (cParam.isRemoved()) {
-		    result.append("       "+
-				  cParam.type()+" "+
-				  cParam.name1());
-		    if (!cParam.type().equals("PSet")&&
-			!cParam.type().equals("VPSet"))
-			result.append(" = "+cParam.oldValue());
-		    result.append(" [REMOVED]\n");
-		}
+		ParameterComparison cParam = (ParameterComparison)it.next();
+		if (cParam.isChanged()&&cParam.isPSet()) continue;
+		result.append("       ").append(cParam.toString()).append("\n");
 	    }
 	}
 	return result.toString();
@@ -541,10 +607,10 @@ public class Diff
 	StringBuffer result = new StringBuffer();
 	while (itC.hasNext()) {
 	    Comparison c = itC.next();
-	    result.append("  -> "+c.toString()+"\n");
+	    result.append("  -> ").append(c.toString()).append("\n");
 	    Iterator<Comparison> it = c.comparisonIterator();
 	    while (it.hasNext())
-		result.append("      -> " + it.next().toString()+"\n");
+		result.append("      -> ").append(it.next().toString()).append("\n");
 	}
 	return result.toString();
     }
@@ -553,7 +619,7 @@ public class Diff
     //
     // private member functions
     //
-
+    
     /** compare two lists of parameters */
     private Comparison[] compareParameterLists(Iterator<Parameter> it1,
 					       Iterator<Parameter> it2)
@@ -569,7 +635,8 @@ public class Diff
 	while (it2.hasNext()) {
 	    Parameter p2 = it2.next();
 	    Parameter p1 = map.remove(p2.type()+"::"+p2.fullName());
-	    result.add(compareParameters(p1,p2));
+	    Comparison c = compareParameters(p1,p2);
+	    if (!c.isIdentical()) result.add(c);
 	}
 	Iterator<Parameter> itRemoved = map.values().iterator();
 	while (itRemoved.hasNext())
@@ -581,49 +648,28 @@ public class Diff
     /** compare two parameters */
     private Comparison compareParameters(Parameter p1,Parameter p2)
     {
-	Comparison result = null;
-	if (p1==null) {
-	    result = new Comparison(p2,p2.type(),null,p2.fullName());
-	    result.setOldValue(p2.valueAsString());
-	    return result;
-	}
-	else if (p2==null) {
-	    result = new Comparison(p1,p1.type(),p1.fullName(),null);
-	    result.setOldValue(p1.valueAsString());
-	    return result;
-	}
-
-	if (!p1.type().equals(p2.type())||
-	    !p1.name().equals(p2.name())) return null;
+	Comparison result = new ParameterComparison(p1,p2);
 	
-
-	if (p2 instanceof PSetParameter) {
-	    PSetParameter pset1 = (PSetParameter)p1;
-	    PSetParameter pset2 = (PSetParameter)p2;
-	    Comparison[] paramComparisons =
-		compareParameterLists(pset1.parameterIterator(),
-				      pset2.parameterIterator());
-	    result = new Comparison(p2,p2.type(),p2.name(),p2.name());
-	    for (Comparison c : paramComparisons)
-		if (!c.isIdentical()) result.addComparison(c);
+	if (!result.isAdded()&&!result.isRemoved()) {
+	    if (p2 instanceof PSetParameter) {
+		PSetParameter pset1 = (PSetParameter)p1;
+		PSetParameter pset2 = (PSetParameter)p2;
+		Comparison[] paramComparisons =
+		    compareParameterLists(pset1.parameterIterator(),
+					  pset2.parameterIterator());
+		for (Comparison c : paramComparisons)
+		    if (!c.isIdentical()) result.addComparison(c);
+	    }
+	    else if (p2 instanceof VPSetParameter) {
+		VPSetParameter vpset1 = (VPSetParameter)p1;
+		VPSetParameter vpset2 = (VPSetParameter)p2;
+		Comparison[] paramComparisons =
+		    compareParameterLists(vpset1.parameterIterator(),
+					  vpset2.parameterIterator());
+		for (Comparison c : paramComparisons)
+		    if (!c.isIdentical()) result.addComparison(c);
+	    }
 	}
-	else if (p2 instanceof VPSetParameter) {
-	    VPSetParameter vpset1 = (VPSetParameter)p1;
-	    VPSetParameter vpset2 = (VPSetParameter)p2;
-	    Comparison[] paramComparisons =
-		compareParameterLists(vpset1.parameterIterator(),
-				      vpset2.parameterIterator());
-	    result = new Comparison(p2,p2.type(),p2.name(),p2.name());
-	    for (Comparison c : paramComparisons)
-		if (!c.isIdentical()) result.addComparison(c);
-	}
-	else {
-	    result = new Comparison(p2,p2.type(),p2.fullName(),
-				    p2.valueAsString());
-	    if (!p1.valueAsString().equals(p2.valueAsString()))
-		result.setOldValue(p1.valueAsString());
-	}
-	
 	return result;
     }
     
@@ -650,7 +696,7 @@ public class Diff
 	    database.connect("oracle",url,"cms_hlt_reader","convertme!");
 	}
 	catch (DatabaseException e) {
-	    String errMsg = "Diff::initDatabase() failed.";
+	    String errMsg = "Diff::initDatabase() failed: "+e.getMessage();
 	    throw new DiffException(errMsg,e);
 	}
     }
@@ -789,7 +835,7 @@ public class Diff
 	    System.exit(0);
 	}
 	
-
+	
 	Diff diff = new Diff(config1,config2);
 	diff.compare();
 	System.out.println(diff.printAll());

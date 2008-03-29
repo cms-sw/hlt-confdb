@@ -64,7 +64,8 @@ public class ContainerComparison extends Comparison
     {
 	if      (oldContainer==null&&newContainer!=null) return RESULT_ADDED;
 	else if (oldContainer!=null&&newContainer==null) return RESULT_REMOVED;
-	else if (comparisonCount()==0&&oldContainer.name()==newContainer.name()&&
+	else if (comparisonCount()==0&&
+		 oldContainer.name().equals(newContainer.name())&&
 		 pathQualifier.length()==0)
 	    return RESULT_IDENTICAL;
 	else return RESULT_CHANGED;
@@ -82,10 +83,8 @@ public class ContainerComparison extends Comparison
     public String toHtml()
     {
 	return (newContainer==null) ?
-	    "<html><b>"+oldContainer.name()+"</b> "+
-	    resultAsString()+" "+pathQualifier:
-	    "<html><b>"+newContainer.name()+"</b> "+
-	    resultAsString()+" "+pathQualifier;
+	    "<html><b>"+oldContainer.name()+"</b> "+" "+pathQualifier+"</html>":
+	    "<html><b>"+newContainer.name()+"</b> "+" "+pathQualifier+"</html>";
     }
     
 }

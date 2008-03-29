@@ -45,8 +45,9 @@ public class InstanceComparison extends Comparison
     {
 	if      (oldInstance==null&&newInstance!=null) return RESULT_ADDED;
 	else if (oldInstance!=null&&newInstance==null) return RESULT_REMOVED;
-	else if (comparisonCount()==0&&oldInstance.name()==newInstance.name()&&
-		 oldInstance.template().name()==newInstance.template().name())
+	else if (comparisonCount()==0&&
+		 oldInstance.name().equals(newInstance.name())&&
+		 oldInstance.template().name().equals(newInstance.template().name()))
 	    return RESULT_IDENTICAL;
 	else return RESULT_CHANGED;
     }

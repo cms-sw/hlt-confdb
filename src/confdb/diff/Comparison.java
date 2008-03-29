@@ -1,5 +1,7 @@
 package confdb.diff;
 
+import java.util.Iterator;
+import java.util.ArrayList;
 
 /**
  * Comparison
