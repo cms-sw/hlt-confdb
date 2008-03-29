@@ -1,3 +1,10 @@
+2008-03-30  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-22-02
+	* improved diff, added streams & datasets
+	* bug fix: 'OK' button disabled while editing new directory name
+	in tree
+
 2008-03-28  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-22-01

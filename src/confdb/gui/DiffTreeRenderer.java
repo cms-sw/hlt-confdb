@@ -89,30 +89,7 @@ public class DiffTreeRenderer extends DefaultTreeCellRenderer
 	String result = getText();
 	if (node instanceof Comparison) {
 	    Comparison c = (Comparison)node;
-	    if (c.source() instanceof Parameter) {
-
-		boolean isPSet = (c.source() instanceof PSetParameter||
-				  c.source() instanceof VPSetParameter);
-
-		if (c.isChanged()) {
-		    result = "<html>"+c.type()+" "+c.name1();
-		    if (!isPSet)
-			result += " = "+
-			    "<font color=#009900>"+c.name2()+"</font> ["+
-			    "<font color=#ff0000>"+c.oldValue()+"</font>]";
-		    result += "</html>";
-		}
-		else if (c.isAdded()) {
-		    result = "<html>"+c.type()+" "+c.name2();
-		    if (!isPSet) result += " = "+c.oldValue();
-		    result+="</html>";
-		}
-		else if (c.isRemoved()) {
-		    result = "<html>"+c.type()+" "+c.name1();
-		    if (!isPSet) result += " = "+c.oldValue();
-		    result+="</html>";
-		}
-	    }
+	    result = c.toHtml();
 	}
 	
 	return result;

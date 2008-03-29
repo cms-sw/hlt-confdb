@@ -67,6 +67,13 @@ public class PrimaryDataset extends DatabaseEntry implements Comparable<PrimaryD
     /** retrieve i-th path */
     public Path path(int i) { return paths.get(i); }
     
+    /** retrieve path by label */
+    public Path path(String pathName)
+    {
+	for (Path p : paths) if (p.name().equals(pathName)) return p;
+	return null;
+    }
+    
     /** retrieve iterator over paths */
     public Iterator<Path> pathIterator() { return paths.iterator(); }
     

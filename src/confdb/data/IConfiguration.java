@@ -215,6 +215,9 @@ public interface IConfiguration
     /** retrieve i-th stream */
     public Stream stream(int i);
     
+    /** retrieve stream by label */
+    public Stream stream(String streamLabel);
+    
     /** index of a certain stream */
     public int indexOfStream(Stream stream);
     
@@ -227,6 +230,9 @@ public interface IConfiguration
     
     /** retrieve i-th primary dataset */
     public PrimaryDataset dataset(int i);
+    
+    /** retrieve primary dataset by label */
+    public PrimaryDataset dataset(String datasetLabel);
     
     /** index of a certain primary dataset */
     public int indexOfDataset(PrimaryDataset dataset);

@@ -105,15 +105,12 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
     /** ActionListener: actionPerformed() */
     public void actionPerformed(ActionEvent e)
     {
-	System.out.println("actionPerformed()");
-	
 	String    actionCmd = e.getActionCommand();
 	TreePath  treePath  = directoryTree.getSelectionPath();
 	Directory selDir    = (Directory)treePath.getLastPathComponent();
 
 	
 	if (actionCmd.equals(ADD_DIRECTORY)) {
-	    System.out.println("ADD_DIRECTORY");
 	    Directory newDir    = new Directory(-1,"<ENTER DIR NAME>","",selDir);
 	    
 	    selDir.addChildDir(newDir);
@@ -121,8 +118,6 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
 	    
 	    directoryTree.expandPath(treePath);
 	    TreePath newTreePath = treePath.pathByAddingChild(newDir);
-	    
-	    System.out.println("newTreePath = " + newTreePath);
 	    
 	    directoryTree.expandPath(newTreePath);
 	    directoryTree.scrollPathToVisible(newTreePath);
@@ -140,27 +135,20 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
     /** TreeModelListener: treeNodesChanged() */
     public void treeNodesChanged(TreeModelEvent e)
     {
-	System.out.println("treeNodesChanged()");
 	TreePath  treePath  = e.getTreePath();
-	System.out.println("treePath = " + treePath);
 	if (treePath==null) return;
 	int       index     = e.getChildIndices()[0];
 	Directory parentDir = (Directory)treePath.getLastPathComponent();
 	Directory childDir  = parentDir.childDir(index);
 	
 	try {
-	    System.out.println("parentDir = " + parentDir.name());
-	    System.out.println("name = " + childDir.name());
 	    database.insertDirectory(childDir);
-	    System.out.println("Directory '" + childDir.name() + "' INSERTed!");
-	    System.out.println("dbId: " + childDir.dbId());
 	}
 	catch (DatabaseException ex) {
 	    parentDir.removeChildDir(childDir);
 	    directoryTreeModel.nodeRemoved(parentDir,
 					   parentDir.childDirCount(),
 					   childDir);
-	    System.err.println(ex.getMessage());
 	    ex.printStackTrace();
 	}
 	
@@ -179,7 +167,7 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
 	    database.removeDirectory(dirToBeRemoved);
 	}
 	catch (DatabaseException ex) {
-	    System.err.println(ex.getMessage());
+	    ex.printStackTrace();
 	}
     }
     

@@ -58,6 +58,14 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** retrieve i-th primary dataset */
     public PrimaryDataset dataset(int i) { return datasets.get(i); }
 
+    /** retrieve primary dataset by label */
+    public PrimaryDataset dataset(String datasetLabel)
+    {
+	for (PrimaryDataset pd : datasets)
+	    if (pd.label().equals(datasetLabel)) return pd;
+	return null;
+    }
+
     /** retrieve primary dataset iterator */
     public Iterator<PrimaryDataset> datasetIterator() {return datasets.iterator();}
 

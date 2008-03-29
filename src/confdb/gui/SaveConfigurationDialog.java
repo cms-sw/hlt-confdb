@@ -151,6 +151,7 @@ public class SaveConfigurationDialog extends JDialog
 	Object o = jTreeDirectories.getLastSelectedPathComponent();
 	if (o instanceof Directory) {
 	    selectedDir = (Directory)o;
+	    if (selectedDir.name().split(" ").length>1) selectedDir=null;
 	    updateOkButton();
 	}
 	else if (o==null||(o instanceof ConfigInfo)) {

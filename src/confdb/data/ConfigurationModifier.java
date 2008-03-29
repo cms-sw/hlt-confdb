@@ -686,6 +686,9 @@ public class ConfigurationModifier implements IConfiguration
     /** retrieve i-th stream */
     public Stream stream(int i) { return master.stream(i); }
     
+    /** retrieve stream by label */
+    public Stream stream(String streamLabel) { return master.stream(streamLabel); }
+    
     /** index of a certain stream */
     public int indexOfStream(Stream stream) { return master.indexOfStream(stream); }
     
@@ -698,6 +701,12 @@ public class ConfigurationModifier implements IConfiguration
     
     /** retrieve i-th primary dataset */
     public PrimaryDataset dataset(int i) { return master.dataset(i); }
+    
+    /** retrieve primary dataset by label */
+    public PrimaryDataset dataset(String datasetLabel)
+    {
+	return master.dataset(datasetLabel);
+    }
     
     /** index of a certain primary dataset */
     public int indexOfDataset(PrimaryDataset dataset)
