@@ -92,42 +92,24 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     {
 	super();
 
-	psetDirIcon  = null;
-	//new ImageIcon(getClass().getResource("/EDSourceDirIcon.png")); //!
-	edsourceDirIcon  = null;
-	//new ImageIcon(getClass().getResource("/EDSourceDirIcon.png"));
-	edsourceIcon     =
-	    new ImageIcon(getClass().getResource("/EDSourceIcon.png"));
+	psetDirIcon    = null;
+	edsourceDirIcon= null;
+	edsourceIcon   = new ImageIcon(getClass().getResource("/EDSourceIcon.png"));
 	essourcesDirIcon = null;
-	//new ImageIcon(getClass().getResource("/ESSourcesDirIcon.png"));
-	essourceIcon     =
-	    new ImageIcon(getClass().getResource("/ESSourceIcon.png"));
+	essourceIcon   = new ImageIcon(getClass().getResource("/ESSourceIcon.png"));
 	esmodulesDirIcon = null;
-	//new ImageIcon(getClass().getResource("/ESSourcesDirIcon.png")); //!
-	esmoduleIcon     =
-	    new ImageIcon(getClass().getResource("/ESModuleIcon.png")); //!
-	servicesDirIcon  = null;
-	//new ImageIcon(getClass().getResource("/ServicesDirIcon.png"));
-	serviceIcon      =
-	    new ImageIcon(getClass().getResource("/ServiceIcon.png"));
-	pathsDirIcon     = null;
-	//new ImageIcon(getClass().getResource("/PathsDirIcon.png"));
-	pathIcon         =
-	    new ImageIcon(getClass().getResource("/PathIcon.png"));
-	endpathIcon      =
-	    new ImageIcon(getClass().getResource("/EndpathIcon.png"));
-	modulesDirIcon   = null;
-	//new ImageIcon(getClass().getResource("/ModulesDirIcon.png"));
-	moduleIcon       =
-	    new ImageIcon(getClass().getResource("/ModuleIcon.png"));
+	esmoduleIcon   = new ImageIcon(getClass().getResource("/ESModuleIcon.png"));
+	servicesDirIcon= null;
+	serviceIcon    = new ImageIcon(getClass().getResource("/ServiceIcon.png"));
+	pathsDirIcon   = null;
+	pathIcon       =  new ImageIcon(getClass().getResource("/PathIcon.png"));
+	endpathIcon    = new ImageIcon(getClass().getResource("/EndpathIcon.png"));
+	modulesDirIcon = null;
+	moduleIcon     = new ImageIcon(getClass().getResource("/ModuleIcon.png"));
 	sequencesDirIcon = null;
-	//new ImageIcon(getClass().getResource("/SequencesDirIcon.png"));
-	sequenceIcon     = 
-	    new ImageIcon(getClass().getResource("/SequenceIcon.png"));
-	psetIcon         =
-	    new ImageIcon(getClass().getResource("/PSetIcon.png"));      
-	vpsetIcon        =
-	    new ImageIcon(getClass().getResource("/VPSetIcon.png"));      
+	sequenceIcon   = new ImageIcon(getClass().getResource("/SequenceIcon.png"));
+	psetIcon       = new ImageIcon(getClass().getResource("/PSetIcon.png"));
+	vpsetIcon      = new ImageIcon(getClass().getResource("/VPSetIcon.png"));
     }
     
     
@@ -191,7 +173,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 		if   (esp.isPreferred()) result += "<b>"+instance.name()+"</b>";
 		else                     result += instance.name();
 	    }
-	    else result += instance.name();
+	    else result += instance.name() + " ["+instance.databaseId()+"]";//DBG
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
 	    result+="</html>";
 	}
@@ -231,6 +213,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    result += (entryCount>0) ?
 		" ("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
+	    result += " ["+sequence.databaseId()+"]"; // DBG
 	    result += "</html>";
 	}
 	else if (node instanceof SequenceReference) {
@@ -242,6 +225,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    result += (entryCount>0) ?
 		" ("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
+	    result += " ["+sequence.databaseId()+"]"; // DBG
 	    result += "</html>";
 	}
 	if (node instanceof PSetParameter||
@@ -266,6 +250,11 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 		result+="<font color=#ff0000>"+p.valueAsString()+"</font>";
 	    }
 	    result = "<html><font size=-2><b>" + result + "</b></font></html>";
+	}
+	//DEBUG
+	else if (node instanceof ModuleReference) {
+	    ModuleReference ref = (ModuleReference)node;
+	    result += " [" +((ModuleInstance)ref.parent()).databaseId()+"]";
 	}
 	return result;
     }

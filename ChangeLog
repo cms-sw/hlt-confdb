@@ -1,3 +1,8 @@
+2008-03-30  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-22-03
+	* critical fix regarding the import of paths and sequences!
+		
 2008-03-30  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-22-02

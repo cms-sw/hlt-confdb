@@ -667,8 +667,10 @@ public class ConfigurationTreeActions
 		    treeModel.nodeInserted(treeModel.pathsNode(),
 					   config.pathCount()-1);
 		    config.insertPathReference(targetContainer,i,target);
-		    result = importContainerEntries(config,treeModel,source,target);
-		    if (result) target.setDatabaseId(source.databaseId());
+		    boolean tmp =
+			importContainerEntries(config,treeModel,source,target);
+		    if (tmp) target.setDatabaseId(source.databaseId());
+		    if (result) result = tmp;
 		}
 		
 		treeModel.nodeInserted(targetContainer,i);
@@ -687,8 +689,10 @@ public class ConfigurationTreeActions
 		    treeModel.nodeInserted(treeModel.sequencesNode(),
 					   config.sequenceCount()-1);
 		    config.insertSequenceReference(targetContainer,i,target);
-		    result = importContainerEntries(config,treeModel,source,target);
-		    if (result) target.setDatabaseId(source.databaseId());
+		    boolean tmp =
+			importContainerEntries(config,treeModel,source,target);
+		    if (tmp) target.setDatabaseId(source.databaseId());
+		    if (result) result = tmp;
 		}
 		
 		treeModel.nodeInserted(targetContainer,i);
