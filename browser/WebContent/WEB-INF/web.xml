@@ -42,4 +42,12 @@
 		<servlet-name>CfgServlet</servlet-name>
 		<url-pattern>*.cfg</url-pattern>
 	</servlet-mapping>
+	<servlet>
+		<servlet-name>PyServlet</servlet-name>
+		<servlet-class>PyServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>PyServlet</servlet-name>
+		<url-pattern>*.py</url-pattern>
+	</servlet-mapping>
 </web-app>
