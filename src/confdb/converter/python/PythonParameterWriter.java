@@ -1,6 +1,7 @@
 package confdb.converter.python;
 
 import confdb.converter.ConverterEngine;
+import confdb.converter.ConverterException;
 import confdb.converter.IParameterWriter;
 import confdb.converter.ascii.AsciiParameterWriter;
 import confdb.data.BoolParameter;
@@ -16,7 +17,7 @@ public class PythonParameterWriter  implements IParameterWriter
 {
 	private ConverterEngine converterEngine = null;
 
-	public String toString( Parameter parameter, ConverterEngine converterEngine, String indent ) 
+	public String toString( Parameter parameter, ConverterEngine converterEngine, String indent ) throws ConverterException 
 	{
 		this.converterEngine = converterEngine;
 		if ( !parameter.isTracked() && parameter.isDefault() )
@@ -25,22 +26,24 @@ public class PythonParameterWriter  implements IParameterWriter
 		return toString( parameter, indent );
 	}
 
-	protected String toString( Parameter parameter, String indent ) 
+	protected String toString( Parameter parameter, String indent ) throws ConverterException 
 	{
 		return toString( parameter, indent, "\n" );
 	}
 		
-	private String toString( Parameter parameter, String indent, String appendix ) 
+	private String toString( Parameter parameter, String indent, String appendix ) throws ConverterException 
 	{
 		if ( AsciiParameterWriter.skip( parameter ) )
 			return "";
 
 		
 		StringBuffer str = new StringBuffer( 1000 );
+		str.append( indent + parameter.name() + " = cms." 
+				+ (parameter.isTracked() ? "" : "untracked." ) );
+		str.append( parameter.type() );
+		str.append( "( " );
 		if ( parameter instanceof PSetParameter )
 		{
-			str.append( indent + "'" + parameter.name() + "' : " 
-					+ (parameter.isTracked() ? "" : "Untracked" ) + "PSet( " );
 			PSetParameter pset = (PSetParameter)parameter;
 			boolean newline = false;
 			if ( pset.parameterCount() > 1 )
@@ -49,73 +52,77 @@ public class PythonParameterWriter  implements IParameterWriter
 		}
 		else
 		{
-			str.append( indent + "'" + parameter.name() + "' : " 
-					+ (parameter.isTracked() ? "" : "Untracked" ) + "Parameter( " 
-					+ "'" + parameter.type() + "', " );
-			if ( parameter instanceof BoolParameter )
-			{
-				String trueFalse = parameter.valueAsString();
-				if ( trueFalse.equalsIgnoreCase( "true" ) )
-					str.append( "True" );
-				else
-					str.append( "False" );
-			}
-			else if ( parameter instanceof InputTagParameter )
-				str.append( "'" + parameter.valueAsString() + "'" );
+			if ( parameter instanceof InputTagParameter )
+				str.append( getInputTagString( parameter.valueAsString() ) );
 			else if ( parameter instanceof VInputTagParameter )
-				str.append( "'(" + parameter.valueAsString() + ")'" );
+			{
+				VInputTagParameter params = (VInputTagParameter) parameter;
+				for ( int i = 0; i < params.vectorSize(); i++ )
+				{
+					str.append( "(" + getInputTagString( (String)params.value(i) ) + ")" );
+					if ( i < params.vectorSize() - 1 )
+						str.append( "," );
+				}
+			}
 			else if ( parameter instanceof ScalarParameter )
 			{
 				// strange things happen here: from time to time the value is empty!
 				String value = parameter.valueAsString();
 				if ( value.length() == 0 )
+					throw new ConverterException( "oops, empty scalar parameter value! Don't know what to do");
+
+				if ( parameter instanceof BoolParameter )
 				{
-					Object doubleObject = ((ScalarParameter)parameter).value();
-					if ( doubleObject != null )
-						value = doubleObject.toString() + " # method value() used";
+					if ( value.equalsIgnoreCase( "true" ) )
+						value = "True";
 					else
-						value = " # Double == null !! Don't know what to do";
+						value = "False";
 				}
 				str.append( value );
 			}
 			else if ( parameter instanceof VectorParameter )
-				str.append( "( " + parameter.valueAsString() + " )" ); 
+				str.append( parameter.valueAsString() ); 
 			else if ( parameter instanceof VPSetParameter )
 				str.append( writeVPSetParameters( (VPSetParameter)parameter, indent ) );
 			else
-				str.append( parameter.valueAsString() + " # unidentified parameter class " + parameter.getClass().getSimpleName() );
+				throw new ConverterException( "oops, unidentified parameter class " + parameter.getClass().getSimpleName() );
 		}
 		
 		str.append( " )" + appendix );
 		return str.toString();
 	}
 
-	protected String writePSetParameters( PSetParameter pset, String indent, boolean newline ) 	
+	protected String writePSetParameters( PSetParameter pset, String indent, boolean newline ) throws ConverterException 	
 	{
 		StringBuffer str = new StringBuffer();
 		if ( pset.parameterCount() == 0 )
-			str.append( "{}" );
+			str.append( ")" );
 		else if ( newline )
 		{
-			str.append( "{\n" ); 
-			for ( int i = 0; i < pset.parameterCount(); i++ )
+			str.append( "\n" ); 
+			for ( int i = 0; i < pset.parameterCount() - 1; i++ )
 				str.append( toString( (Parameter)pset.parameter(i), indent + "  ", ",\n" ) );
-			str.append( indent + "}" ); 
+			str.append( toString( (Parameter)pset.parameter( pset.parameterCount() -1 ), indent + "  ", "\n" ) );
 		}
 		else
 		{
 			Parameter first = (Parameter)pset.parameter(0);
-			str.append( "{ " + toString( first, "", ",\n" ) );
-			for ( int i = 1; i < pset.parameterCount(); i++ )
-				str.append( toString( (Parameter)pset.parameter(i), indent + "  ", ",\n" ) );
-			str = new StringBuffer( str.substring( 0, str.length() - 1 ) ); 
-			str.append( " }" ); 
+			if ( pset.parameterCount() > 1 )
+			{
+				str.append( " " + toString( first, "", ",\n" ) );
+				for ( int i = 1; i < pset.parameterCount() - 1; i++ )
+					str.append( toString( (Parameter)pset.parameter(i), indent + "  ", ",\n" ) );
+				str.append( toString( (Parameter)pset.parameter( pset.parameterCount() - 1), indent + "  ", "\n" ) );
+				//str = new StringBuffer( str.substring( 0, str.length() - 1 ) ); 
+			}
+			else
+				str.append( " " + toString( first, "", "" ) );
 		}
 		return str.toString();
 	}
 
 
-	protected String writeVPSetParameters( VPSetParameter vpset, String indent ) 	
+	protected String writeVPSetParameters( VPSetParameter vpset, String indent ) throws ConverterException 	
 	{
 		StringBuffer str = new StringBuffer( "(" + converterEngine.getNewline() ); 
 		for ( int i = 0; i < vpset.parameterSetCount() - 1; i++ )
@@ -146,6 +153,19 @@ public class PythonParameterWriter  implements IParameterWriter
 		if ( !text.endsWith( converterEngine.getNewline() )  )
 			return text + ",";
 		return text.substring(0, text.length() - 1) + "," + converterEngine.getNewline(); 
+	}
+
+	protected String getInputTagString( String value )
+	{
+		StringBuffer str = new StringBuffer();
+		String[] values = value.split( ":" );
+		for ( int i = 0; i < values.length; i++ )
+		{
+			str.append( "\"" + values[i] + "\"" );
+			if ( i < values.length - 1 )
+			str.append( "," );
+		}
+		return str.toString();
 	}
 	
 }
