@@ -83,7 +83,8 @@ function labelClicked( node )
   loadingModule.render();
 
   var fileName = node.data.name.replace( '//s/g', '_' ) + "_V" + node.data.version;
-  header += '<a style="position:absolute; right:20px;" href="' + fileName + '.cfg?configId='+ node.data.key + '&dbIndex=' + node.data.dbIndex + '">download cfg</a>';
+  header += '<span style="position:absolute; right:20px;">download <a href="' + fileName + '.cfg?configId='+ node.data.key + '&dbIndex=' + node.data.dbIndex + '">cfg</a>';
+  header += '  <a href="' + fileName + '.py?format=python&configId='+ node.data.key + '&dbIndex=' + node.data.dbIndex + '">py</a></span>';
     
   var jumpTo = '<div id="jumpTo">'
  	+  '<a href="' + configFrameUrl + '#paths" target="configIFrame">paths</a>  ' 
