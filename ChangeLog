@@ -1,3 +1,10 @@
+2008-03-31  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-22-04
+	* gui: allow users to unlock their own configurations
+	* gui: add 'GOTO' command to reference-popups
+	* gui: remove databaseIds from configuration tree rendering
+
 2008-03-30  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-22-03

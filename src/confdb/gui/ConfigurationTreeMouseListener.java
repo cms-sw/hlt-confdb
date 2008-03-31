@@ -174,7 +174,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	}
 	
 	// show the 'Paths' popup?
-	if (isInTreePath(treePath,treeModel.pathsNode())&&depth<=4) {
+	if (isInTreePath(treePath,treeModel.pathsNode())/*&&depth<=4*/) {
 	    updatePathMenu();
 	    popupPaths.show(e.getComponent(),e.getX(),e.getY());
 	    return;
@@ -188,7 +188,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	}
 	
 	// show the 'Sequences' popup?
-	if (isInTreePath(treePath,treeModel.sequencesNode())&&depth<=4) {
+	if (isInTreePath(treePath,treeModel.sequencesNode())/*&&depth<=4*/) {
 	    updateSequenceMenu();
 	    popupSequences.show(e.getComponent(),e.getX(),e.getY());
 	    return;
@@ -552,6 +552,15 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem.addActionListener(pathListener);
 	    popupPaths.add(menuItem);
 	}
+
+	if (node instanceof Reference) {
+	    if (depth==4) popupPaths.addSeparator();
+	    Reference reference = (Reference)node;
+	    menuItem = new JMenuItem("GOTO "+reference.name());
+	    menuItem.setActionCommand("GOTO");
+	    menuItem.addActionListener(pathListener);
+	    popupPaths.add(menuItem);
+	}
 	
     }
     
@@ -637,6 +646,16 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem.addActionListener(sequenceListener);
 	    popupSequences.add(menuItem);
 	}
+
+	if (node instanceof Reference) {
+	    if (depth==4) popupSequences.addSeparator();
+	    Reference reference = (Reference)node;
+	    menuItem = new JMenuItem("GOTO "+reference.name());
+	    menuItem.setActionCommand("GOTO");
+	    menuItem.addActionListener(sequenceListener);
+	    popupSequences.add(menuItem);
+	}
+	
     }
     
     /** update 'Modules' Menu */
@@ -1095,6 +1114,9 @@ class PathMenuListener implements ActionListener
 	else if (action.equals("SEQREF")) {
 	    ConfigurationTreeActions.insertReference(tree,"Sequence",cmd);
 	}
+	else if (action.equals("GOTO")) {
+	    ConfigurationTreeActions.scrollToInstance(tree);
+	}
 	else if (cmd.equals("Sort")) {
 	    ConfigurationTreeActions.sortPaths(tree);
 	}
@@ -1153,6 +1175,9 @@ class SequenceMenuListener implements ActionListener
 	}
 	else if (action.equals("SEQREF")) {
 	    ConfigurationTreeActions.insertReference(tree,"Sequence",cmd);
+	}
+	else if (action.equals("GOTO")) {
+	    ConfigurationTreeActions.scrollToInstance(tree);
 	}
 	else if (cmd.equals("Sort")) {
 	    ConfigurationTreeActions.sortSequences(tree);

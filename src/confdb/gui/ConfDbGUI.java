@@ -467,6 +467,7 @@ public class ConfDbGUI
 	
 	PickConfigurationDialog dialog =
 	    new PickConfigurationDialog(frame,"Open Configuration",database);
+	dialog.allowUnlocking();
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);

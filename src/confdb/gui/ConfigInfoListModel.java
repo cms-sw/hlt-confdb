@@ -59,5 +59,12 @@ public class ConfigInfoListModel extends AbstractListModel
 
     /** ListModel::getElementAt() */
     public Object getElementAt(int i) {	return configs.get(i); }
+
+    /** indicate that an element has changed */
+    public void elementChanged(ConfigInfo element)
+    {
+	int index = configs.indexOf(element);
+	if (index>=0) fireContentsChanged(this,index,index);
+    }
     
 }

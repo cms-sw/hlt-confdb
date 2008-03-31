@@ -30,6 +30,9 @@ public class PickConfigurationDialog extends JDialog
     // member data
     //
     
+    /** parent frame */
+    private JFrame jFrame;
+
     /** configuration database */
     private ConfDB database;
     
@@ -63,6 +66,8 @@ public class PickConfigurationDialog extends JDialog
     private JButton       jButtonCancel     = new JButton();
     private JScrollPane   jScrollPaneTable  = new JScrollPane();
 
+    /** allow user to unlock his own configurations? */
+    private boolean allowUnlocking = false;
     
 
     //
@@ -73,6 +78,7 @@ public class PickConfigurationDialog extends JDialog
     public PickConfigurationDialog(JFrame jFrame,String title,ConfDB database)
     {
 	super(jFrame,true);
+	this.jFrame = jFrame;
 	this.database = database;
 	setTitle(title);
 	
@@ -165,9 +171,23 @@ public class PickConfigurationDialog extends JDialog
 		    jTreeValueChanged(e);
 		}
 	    });
+	jTree.addMouseListener(new MouseAdapter() {
+		public void mousePressed(MouseEvent e)  { maybeShowPopup(e); }
+		public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
+		public void maybeShowPopup(MouseEvent e) {
+		    if (e.isPopupTrigger()) jTreeMaybeShowPopup(e);
+		}
+	    });
 	jList.addListSelectionListener(new ListSelectionListener() {
 		public void valueChanged(ListSelectionEvent e) {
 		    jListValueChanged(e);
+		}
+	    });
+	jList.addMouseListener(new MouseAdapter() {
+		public void mousePressed(MouseEvent e)  { maybeShowPopup(e); }
+		public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
+		public void maybeShowPopup(MouseEvent e) {
+		    if (e.isPopupTrigger()) jListMaybeShowPopup(e);
 		}
 	    });
 	jTable.getSelectionModel()
@@ -237,6 +257,12 @@ public class PickConfigurationDialog extends JDialog
 	    }
 	}
 	return false;
+    }
+
+    /** allow unlocking */
+    public void allowUnlocking()
+    {
+	allowUnlocking = true;
     }
 
     //
@@ -321,7 +347,17 @@ public class PickConfigurationDialog extends JDialog
 	    jTable.getSelectionModel().setSelectionInterval(selectedIndex,
 							    selectedIndex);
 	    jButtonOk.setEnabled(true);
+
 	}
+    }
+    private void jTreeMaybeShowPopup(MouseEvent e)
+    {
+	TreePath treePath = jTree.getPathForLocation(e.getX(),e.getY());
+	if (treePath==null) return; jTree.setSelectionPath(treePath);
+	if (configInfo==null) return;
+	
+	if (allowUnlocking&&System.getProperty("user.name")
+	    .equalsIgnoreCase(configInfo.lockedByUser())) showPopup(e);
     }
     private void jListValueChanged(ListSelectionEvent e)
     {
@@ -354,6 +390,15 @@ public class PickConfigurationDialog extends JDialog
 	jTable.getSelectionModel().setSelectionInterval(selectedIndex,
 							selectedIndex);
 	jButtonOk.setEnabled(true);
+    }
+    private void jListMaybeShowPopup(MouseEvent e)
+    {
+	int index = jList.locationToIndex(new Point(e.getX(),e.getY()));
+	jList.setSelectedIndex(index);
+	if (configInfo==null) return;
+	
+	if (allowUnlocking&&System.getProperty("user.name")
+	    .equalsIgnoreCase(configInfo.lockedByUser())) showPopup(e);
     }
     private void jTableValueChanged(ListSelectionEvent e)
     {
@@ -438,6 +483,33 @@ public class PickConfigurationDialog extends JDialog
 	    jTree.expandRow(row);
 	    row++;
 	}
+    }
+    
+    /** show 'unlock' popup, both in jTree and jList */
+    private void showPopup(MouseEvent e) {
+	JPopupMenu popup    = new JPopupMenu();
+	JMenuItem  menuItem = new JMenuItem("Unlock");
+	menuItem.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    try {
+			Configuration c=new Configuration(configInfo,null);
+			database.unlockConfiguration(c);
+			configInfo.unlock();
+			treeModel.nodeChanged(configInfo);
+			listModel.elementChanged(configInfo);
+		    }
+		    catch (DatabaseException ex) {
+			String errMsg =
+			    "Failed to unlock configuration: "+ex.getMessage();
+			JOptionPane.showMessageDialog(jFrame,errMsg,
+						      "Failed to unlock",
+						      JOptionPane.ERROR_MESSAGE);
+			ex.printStackTrace();
+		    }
+		}
+	    });
+	popup.add(menuItem);
+	popup.show(e.getComponent(),e.getX(),e.getY());
     }
 
     /** initComponents(), generated with netbeans */

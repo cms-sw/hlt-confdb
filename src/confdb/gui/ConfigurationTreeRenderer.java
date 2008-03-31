@@ -173,7 +173,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 		if   (esp.isPreferred()) result += "<b>"+instance.name()+"</b>";
 		else                     result += instance.name();
 	    }
-	    else result += instance.name() + " ["+instance.databaseId()+"]";//DBG
+	    else result += instance.name();
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
 	    result+="</html>";
 	}
@@ -213,7 +213,6 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    result += (entryCount>0) ?
 		" ("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
-	    result += " ["+sequence.databaseId()+"]"; // DBG
 	    result += "</html>";
 	}
 	else if (node instanceof SequenceReference) {
@@ -225,7 +224,6 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    result += (entryCount>0) ?
 		" ("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
-	    result += " ["+sequence.databaseId()+"]"; // DBG
 	    result += "</html>";
 	}
 	if (node instanceof PSetParameter||
@@ -250,11 +248,6 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 		result+="<font color=#ff0000>"+p.valueAsString()+"</font>";
 	    }
 	    result = "<html><font size=-2><b>" + result + "</b></font></html>";
-	}
-	//DEBUG
-	else if (node instanceof ModuleReference) {
-	    ModuleReference ref = (ModuleReference)node;
-	    result += " [" +((ModuleInstance)ref.parent()).databaseId()+"]";
 	}
 	return result;
     }

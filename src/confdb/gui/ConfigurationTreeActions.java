@@ -395,12 +395,9 @@ public class ConfigurationTreeActions
 	    int                index     = container.indexOfEntry(reference);
 	    
 	    Referencable[] instances = new Referencable[sequence.entryCount()];
-	    for (int i=0;i<sequence.entryCount();i++) {
+	    for (int i=0;i<sequence.entryCount();i++)
 		instances[i] = sequence.entry(i).parent();
-		//System.out.println(instances[i].name()+" "+
-		//	   instances[i].referenceCount());
-	    }
-	
+	    
 	    config.removeSequence(sequence);
 	    
 	    for (int i=0;i<instances.length;i++) {
@@ -932,6 +929,23 @@ public class ConfigurationTreeActions
 				  .pathByAddingChild(model.getChild(parent,index-1)));
 
 	return true;
+    }
+
+    /** scroll to the instance of the currently selected reference */
+    public static void scrollToInstance(JTree tree)
+    {
+	ConfigurationTreeModel model   =(ConfigurationTreeModel)tree.getModel();
+	Configuration          config  =(Configuration)model.getRoot();
+	TreePath               treePath=tree.getSelectionPath();
+
+	Reference    reference = (Reference)treePath.getLastPathComponent();
+	Referencable instance  = reference.parent();
+	
+	TreePath instanceTreePath = new TreePath(model.getPathToRoot(instance));
+	tree.setSelectionPath(instanceTreePath);
+	tree.expandPath(instanceTreePath);
+	tree.scrollPathToVisible(instanceTreePath);
+
     }
 
     /** import a single module into path or sequence */
