@@ -157,6 +157,8 @@ public class PythonParameterWriter  implements IParameterWriter
 	protected String getInputTagString( String value )
 	{
 		String[] values = value.split( ":" );
+		if ( value.equals( "\"\"" ) )
+			return value;
 		if ( values.length == 1 )
 			return "\"" + value + "\"";
 		StringBuffer str = new StringBuffer();
