@@ -37,16 +37,19 @@ public class BrowserConverter extends OfflineConverter
 	       InstantiationException,
 	       IllegalAccessException
     {
-    	IConfiguration config = getConfiguration(configId);
-    	ConfigurationModifier modifier = new ConfigurationModifier(config);
-    	modifier.modify(modifications);
-	
+    	IConfiguration config = getConfiguration( configId );
+    	if ( modifications != null )
+    	{
+    		ConfigurationModifier modifier = new ConfigurationModifier(config);
+    		modifier.modify(modifications);
+    		config = modifier;
+    	}
     	ConverterEngine engine = ConverterFactory.getConverterEngine( format );
-    	if (asFragment)
-	    return engine.getConfigurationWriter().toString(modifier,
+    	if ( asFragment )
+    		return engine.getConfigurationWriter().toString( config,
 							    WriteProcess.NO);
     	else
-	    return engine.getConfigurationWriter().toString(modifier,
+    		return engine.getConfigurationWriter().toString( config,
 							    WriteProcess.YES);
     }
 
