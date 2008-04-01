@@ -6,28 +6,17 @@ import confdb.data.Sequence;
 
 public class PythonSequenceWriter implements ISequenceWriter 
 {
-
 	public String toString( Sequence sequence, ConverterEngine converterEngine, String indent ) 
 	{
-		String str = indent + "'"+ sequence.name() +  "' : Sequence( "; 
+		String str = "process." + sequence.name() +  " = cms.Sequence( "; 
 		for ( int i = 0; i < sequence.entryCount(); i++  )
 		{
-			str += decorate( sequence.entry(i).name() );
+			str += "process." + sequence.entry(i).name();
 			if ( i + 1 < sequence.entryCount() )
-				str += ", ";
+				str += " + ";
 		}
-		str += " )";
+		str += " )\n";
 		return str;
-	}
-	
-	protected String decorateName( String name )
-	{
-		return name;
-	}
-
-	protected String decorate( String name )
-	{
-		return "'" + name + "'";
 	}
 
 }

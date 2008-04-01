@@ -10,27 +10,18 @@ public class PythonPathWriter implements IPathWriter
 	{
 		String str = "";
 		if ( path.isEndPath() )
-			str = indent + "'"+ path.name() +  "' : EndPath( "; 
+			str = "process." + path.name() +  " = cms.EndPath( "; 
 		else
-			str = indent + "'"+ path.name() +  "' : Path( "; 
+			str = "process." + path.name() +  " = cms.Path( "; 
+
 		for ( int i = 0; i < path.entryCount(); i++  )
 		{
-			str += decorate( path.entry(i).name() );
+			str += "process." + path.entry(i).name();
 			if ( i + 1 < path.entryCount() )
-				str += ", ";
+				str += " + ";
 		}
-		str += " )";
+		str += " )\n";
 		return str;
-	}
-	
-	protected String decorateName( String name )
-	{
-		return name;
-	}
-
-	protected String decorate( String name )
-	{
-		return "'" + name + "'";
 	}
 
 }
