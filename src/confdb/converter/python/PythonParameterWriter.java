@@ -80,15 +80,20 @@ public class PythonParameterWriter  implements IParameterWriter
 				}
 				str.append( value );
 			}
-			else if ( parameter instanceof VectorParameter )
-				str.append( parameter.valueAsString() ); 
 			else if ( parameter instanceof VPSetParameter )
 				str.append( writeVPSetParameters( (VPSetParameter)parameter, indent ) );
+			else if ( parameter instanceof VectorParameter )
+				str.append( parameter.valueAsString() ); 
 			else
 				throw new ConverterException( "oops, unidentified parameter class " + parameter.getClass().getSimpleName() );
 		}
-		
-		str.append( " )" + appendix );
+
+		if ( str.charAt( str.length() - 1 ) == '\n' )
+			str.append( indent );
+		else
+			str.append( ' ' );
+		str.append( ')' );
+		str.append( appendix );
 		return str.toString();
 	}
 
@@ -96,8 +101,9 @@ public class PythonParameterWriter  implements IParameterWriter
 	{
 		StringBuffer str = new StringBuffer();
 		if ( pset.parameterCount() == 0 )
-			str.append( ")" );
-		else if ( newline )
+			return str.toString();
+		
+		if ( newline )
 		{
 			str.append( "\n" ); 
 			for ( int i = 0; i < pset.parameterCount() - 1; i++ )
@@ -124,15 +130,16 @@ public class PythonParameterWriter  implements IParameterWriter
 
 	protected String writeVPSetParameters( VPSetParameter vpset, String indent ) throws ConverterException 	
 	{
-		StringBuffer str = new StringBuffer( "(" + converterEngine.getNewline() ); 
+		StringBuffer str = new StringBuffer( 200 );
+		str.append( '\n' );
 		for ( int i = 0; i < vpset.parameterSetCount() - 1; i++ )
 		{
 			PSetParameter pset = vpset.parameterSet(i);
 			if ( pset.name().length() != 0 )
-				str.append( addComma( toString( pset, indent + "  " ) ) );
+				PythonFormatter.addComma( str, toString( pset, indent + "  " ) );
 			else
-				str.append( indent + "  " + writePSetParameters(pset, indent + "  ", false )
-					   + "," + converterEngine.getNewline() );
+				str.append( indent + "  cms.PSet( " + writePSetParameters(pset, indent + "  ", false )
+					   + " )," + converterEngine.getNewline() );
 		}
 		if ( vpset.parameterSetCount() >  0 )
 		{
@@ -140,30 +147,27 @@ public class PythonParameterWriter  implements IParameterWriter
 			if ( pset.name().length() != 0 )
 				str.append( toString( pset, indent + "  " ) );
 			else
-				str.append( indent + "  " + writePSetParameters(pset, indent + "  ", false ) + converterEngine.getNewline() );
+				str.append( indent + "  cms.PSet( " + writePSetParameters(pset, indent + "  ", false ) + " )" + converterEngine.getNewline() );
 		}
-		str.append( indent + ")" ); 
+		//str.append( indent + ")" ); 
 		return str.toString();
 	}
 	
 	
-	
-	protected String addComma( String text )
-	{
-		if ( !text.endsWith( converterEngine.getNewline() )  )
-			return text + ",";
-		return text.substring(0, text.length() - 1) + "," + converterEngine.getNewline(); 
-	}
-
 	protected String getInputTagString( String value )
 	{
-		StringBuffer str = new StringBuffer();
 		String[] values = value.split( ":" );
+		if ( values.length == 1 )
+			return "\"" + value + "\"";
+		StringBuffer str = new StringBuffer();
 		for ( int i = 0; i < values.length; i++ )
 		{
-			str.append( "\"" + values[i] + "\"" );
-			if ( i < values.length - 1 )
-			str.append( "," );
+			if ( values[i].length() > 0 )
+			{
+				str.append( "\"" + values[i] + "\"" );
+				if ( i < values.length - 1 )
+					str.append( "," );
+			}
 		}
 		return str.toString();
 	}

@@ -28,18 +28,7 @@ public class PythonServiceWriter implements IServiceWriter
 			if ( para.length() > 0 )
 			{
 				if ( i < instance.parameterCount() - 1 )
-				{
-					if ( para.endsWith( "\n" ) )
-					{
-						str.append( para, 0, para.length() - 1 );
-						str.append( ",\n" );
-					}
-					else
-					{
-						str.append( para );
-						str.append( "," );
-					}
-				}
+					PythonFormatter.addComma( str, para );
 				else
 					str.append( para );
 			}
