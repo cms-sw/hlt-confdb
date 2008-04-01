@@ -81,7 +81,7 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 				{
 					ESPreferable esp = (ESPreferable)instance;
 					if ( esp.isPreferred() ) 
-						str.append( "process.prefer( \"" + instance.name() + "\" )" ); 
+						str.append( "process.prefer( \"" + instance.name() + "\" )\n" ); 
 				}
 			}
 			str.append( "\n");
