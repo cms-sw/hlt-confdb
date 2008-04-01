@@ -62,8 +62,8 @@
 
 	BrowserConverter converter = null;
 	try {
-		ModifierInstructions modifierInstructions = new ModifierInstructions();
-		modifierInstructions.interpretArgs( toModifier );
+		//ModifierInstructions modifierInstructions = new ModifierInstructions();
+		//modifierInstructions.interpretArgs( toModifier );
 
 		converter = BrowserConverter.getConverter( Integer.parseInt(dbIndex) );
 	    int id = ( configId != null ) ?
@@ -75,7 +75,7 @@
 	    }
 
 		String result = converter.getConfigString( id, format,
-												   modifierInstructions, asFragment );
+												   null, asFragment );
 		out.print( result );
 	  } catch ( Exception e ) {
 		  out.print( "ERROR!\n\n" ); 
