@@ -15,9 +15,8 @@ public class PythonESSourceWriter implements IESSourceWriter
 		
 		String name = module.name();
 		String className = module.template().name();
-		//String type = module.template().type();
 		
-		StringBuffer str = new StringBuffer( "process." + name + " = cms.ESSource( \"" + className + "\"" );
+		StringBuffer str = new StringBuffer( name + " = cms.ESSource( \"" + className + "\"" );
 		if ( module.parameterCount() == 0 )
 		{
 			str.append( " )\n" );

@@ -17,7 +17,7 @@ public class PythonESModuleWriter extends PythonModuleWriter implements IESModul
 		String className = module.template().name();
 		//String type = module.template().type();
 		
-		StringBuffer str = new StringBuffer( "process." + name + " = cms.ESProducer( \"" + className + "\"" );
+		StringBuffer str = new StringBuffer( name + " = cms.ESProducer( \"" + className + "\"" );
 		if ( module.parameterCount() == 0 )
 		{
 			str.append( " )\n" );

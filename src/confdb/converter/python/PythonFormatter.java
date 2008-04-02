@@ -16,4 +16,16 @@ public class PythonFormatter
 		}
 	}
 
+	public static void removeComma( StringBuffer str )
+	{
+		if ( str.charAt( str.length() - 1 ) == ',' )
+			str.setLength( str.length() - 1 );
+		else if (    str.charAt( str.length() - 1 ) == '\n' 
+			      && str.charAt( str.length() - 2 ) == ','  )
+		{
+			str.setCharAt( str.length() - 2, '\n' );
+			str.setLength( str.length() - 1 );
+		}
+	}
+
 }

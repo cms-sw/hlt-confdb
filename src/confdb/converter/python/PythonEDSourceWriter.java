@@ -17,7 +17,7 @@ public class PythonEDSourceWriter implements IEDSourceWriter
 
 		IParameterWriter parameterWriter = converterEngine.getParameterWriter();
 			
-		StringBuffer str = new StringBuffer( "process.source = cms.Source( \""
+		StringBuffer str = new StringBuffer( "source = cms.Source( \""
 			    + instance.name() + "\"," );
 				
 		str.append( converterEngine.getNewline() );
@@ -26,24 +26,9 @@ public class PythonEDSourceWriter implements IEDSourceWriter
 			Parameter parameter = instance.parameter(i);
 			String para = parameterWriter.toString( parameter, converterEngine, indent + "  " );
 			if ( para.length() > 0 )
-			{
-				if ( i < instance.parameterCount() - 1 )
-				{
-					if ( para.endsWith( "\n" ) )
-					{
-						str.append( para, 0, para.length() - 1 );
-						str.append( ",\n" );
-					}
-					else
-					{
-						str.append( para );
-						str.append( "," );
-					}
-				}
-				else
-					str.append( para );
-			}
+				PythonFormatter.addComma( str, para );
 		}
+		PythonFormatter.removeComma( str );
 		str.append( ")\n" );
 
 		return str.toString();

@@ -24,7 +24,7 @@ public class PythonModuleWriter implements IModuleWriter
 		if ( type.equals( "HLTFilter" ) )
 			type = "EDFilter";
 		
-		StringBuffer str = new StringBuffer( "process." + name + " = cms." + type + "( \"" + className + "\"" );
+		StringBuffer str = new StringBuffer( name + " = cms." + type + "( \"" + className + "\"" );
 		if ( module.parameterCount() == 0 )
 		{
 			str.append( " )\n" );
@@ -36,9 +36,10 @@ public class PythonModuleWriter implements IModuleWriter
 		{
 			Parameter parameter = module.parameter(i);
 			String param = parameterWriter.toString( parameter, converterEngine, indent + "  " );
-			if ( param.length() > 0 )
+			if (  param.length() > 0 )
 				PythonFormatter.addComma( str, param );
 		}
+		PythonFormatter.removeComma( str );
 		str.append( ")\n" );
 		return str.toString();
 	}

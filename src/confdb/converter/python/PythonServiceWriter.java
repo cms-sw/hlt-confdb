@@ -17,7 +17,7 @@ public class PythonServiceWriter implements IServiceWriter
 
 		IParameterWriter parameterWriter = converterEngine.getParameterWriter();
 		
-		StringBuffer str = new StringBuffer( "process." + instance.name() + " = cms.Service( \""
+		StringBuffer str = new StringBuffer( instance.name() + " = cms.Service( \""
 		    + instance.name() + "\"," );
 			
 		str.append( converterEngine.getNewline() );

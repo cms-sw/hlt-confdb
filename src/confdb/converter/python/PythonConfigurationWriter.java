@@ -33,9 +33,12 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 		str.append( "# " + conf.name() + " V" + conf.version()
   		   + " (" + conf.releaseTag() + ")" + converterEngine.getNewline() + converterEngine.getNewline() );
 
+		str.append( "import FWCore.ParameterSet.Config as cms\n\n" );
+
+		String object = "";
 		if ( writeProcess == WriteProcess.YES )
 		{
-			str.append( "import FWCore.ParameterSet.Config as cms\n\n" );
+			object = "process.";
 			str.append( "process = cms.Process( \"" + 
 					conf.processName() + "\" )\n" );
 		}
@@ -48,7 +51,7 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.psetCount(); i++ )
 			{
 				Parameter pset = conf.pset(i);
-				str.append( "process." + parameterWriter.toString( pset, converterEngine, "" ) );
+				str.append( object + parameterWriter.toString( pset, converterEngine, "" ) );
 			}
 			str.append( "\n");
 		}
@@ -60,6 +63,7 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.edsourceCount(); i++ )
 			{
 				EDSourceInstance edsource = conf.edsource(i);
+				str.append( object );
 				str.append( edsourceWriter.toString(edsource, converterEngine, indent ) );
 			}
 			str.append( "\n" );
@@ -71,6 +75,7 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.essourceCount(); i++ )
 			{
 				ESSourceInstance essource = conf.essource(i);
+				str.append( object );
 				str.append( essourceWriter.toString(essource, converterEngine, indent ) );
 			}
 
@@ -93,6 +98,7 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.esmoduleCount(); i++ )
 			{
 				ESModuleInstance esmodule = conf.esmodule(i);
+				str.append( object );
 				str.append( esmoduleWriter.toString( esmodule, converterEngine, "" ) );
 			}
 			str.append( "\n");
@@ -105,6 +111,7 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.serviceCount(); i++ )
 			{
 				ServiceInstance service = conf.service(i);
+				str.append( object );
 				str.append( serviceWriter.toString( service, converterEngine, indent ) );
 			}
 			str.append( "\n");
@@ -117,6 +124,7 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.moduleCount(); i++ )
 			{
 				ModuleInstance module = conf.module(i);
+				str.append( object );
 				str.append( moduleWriter.toString( module ) );
 			}
 			str.append( "\n");
@@ -128,7 +136,7 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.sequenceCount(); i++ )
 			{
 				Sequence sequence = conf.sequence(i);
-				str.append( sequenceWriter.toString(sequence, converterEngine, indent ) );
+				str.append( sequenceWriter.toString(sequence, converterEngine, object ) );
 			}
 			str.append( "\n");
 		}
@@ -139,7 +147,7 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.pathCount(); i++ )
 			{
 				Path path = conf.path(i);
-				str.append( pathWriter.toString( path, converterEngine, indent ) );
+				str.append( pathWriter.toString( path, converterEngine, object ) );
 			}
 			str.append( "\n");
 		}
