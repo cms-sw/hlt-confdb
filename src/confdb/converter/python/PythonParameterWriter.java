@@ -11,6 +11,7 @@ import confdb.data.Parameter;
 import confdb.data.ScalarParameter;
 import confdb.data.VInputTagParameter;
 import confdb.data.VPSetParameter;
+import confdb.data.VStringParameter;
 import confdb.data.VectorParameter;
 
 public class PythonParameterWriter  implements IParameterWriter 
@@ -26,44 +27,37 @@ public class PythonParameterWriter  implements IParameterWriter
 		return toString( parameter, indent );
 	}
 
+	public String getPythonClass( Parameter parameter )
+	{
+		return "cms." + (parameter.isTracked() ? "" : "untracked." )
+			+ parameter.type();
+	}
+	
 	protected String toString( Parameter parameter, String indent ) throws ConverterException 
 	{
 		return toString( parameter, indent, "\n" );
 	}
 		
+	
+	
 	private String toString( Parameter parameter, String indent, String appendix ) throws ConverterException 
 	{
 		if ( AsciiParameterWriter.skip( parameter ) )
 			return "";
-
 		
 		StringBuffer str = new StringBuffer( 1000 );
-		str.append( indent + parameter.name() + " = cms." 
-				+ (parameter.isTracked() ? "" : "untracked." ) );
-		str.append( parameter.type() );
-		str.append( "( " );
-		if ( parameter instanceof PSetParameter )
-		{
-			PSetParameter pset = (PSetParameter)parameter;
-			boolean newline = false;
-			if ( pset.parameterCount() > 1 )
-				newline = true;
-			str.append( writePSetParameters( pset, indent, newline ) );
-		}
+		str.append( indent + parameter.name() + " = " );
+		
+		if ( parameter instanceof VectorParameter )
+			appendVector( str, (VectorParameter)parameter );
+		else if ( parameter instanceof PSetParameter )
+			appendPSet( str, (PSetParameter)parameter, indent );
 		else
 		{
+			str.append( getPythonClass( parameter ) );
+			str.append( "( " );
 			if ( parameter instanceof InputTagParameter )
 				str.append( getInputTagString( parameter.valueAsString() ) );
-			else if ( parameter instanceof VInputTagParameter )
-			{
-				VInputTagParameter params = (VInputTagParameter) parameter;
-				for ( int i = 0; i < params.vectorSize(); i++ )
-				{
-					str.append( "(" + getInputTagString( (String)params.value(i) ) + ")" );
-					if ( i < params.vectorSize() - 1 )
-						str.append( "," );
-				}
-			}
 			else if ( parameter instanceof ScalarParameter )
 			{
 				// strange things happen here: from time to time the value is empty!
@@ -82,8 +76,6 @@ public class PythonParameterWriter  implements IParameterWriter
 			}
 			else if ( parameter instanceof VPSetParameter )
 				str.append( writeVPSetParameters( (VPSetParameter)parameter, indent ) );
-			else if ( parameter instanceof VectorParameter )
-				str.append( parameter.valueAsString() ); 
 			else
 				throw new ConverterException( "oops, unidentified parameter class " + parameter.getClass().getSimpleName() );
 		}
@@ -165,13 +157,78 @@ public class PythonParameterWriter  implements IParameterWriter
 		for ( int i = 0; i < values.length; i++ )
 		{
 			if ( values[i].length() > 0 )
-			{
-				str.append( "\"" + values[i] + "\"" );
-				if ( i < values.length - 1 )
-					str.append( "," );
-			}
+				str.append( "'" + values[i] + "'," );
 		}
+		str.setLength( str.length() - 1 );
 		return str.toString();
 	}
+
 	
+	protected void appendPSet( StringBuffer str, PSetParameter pset, String indent ) throws ConverterException
+	{
+		str.append( getPythonClass( pset ) );
+		str.append( "( " );
+		boolean newline = false;
+		if ( pset.parameterCount() > 1 )
+			newline = true;
+		str.append( writePSetParameters( pset, indent, newline ) );
+	}
+
+	
+	protected void appendVector( StringBuffer str, VectorParameter vector )
+	{
+		if ( vector.vectorSize() < 256 )
+			appendSmallVector( str, vector, 0, vector.vectorSize() );
+		else
+		{
+			str.append( "( " );
+			for ( int i = 0; i < vector.vectorSize(); i += 255 )
+			{
+				appendSmallVector( str, vector, i, Math.min( i + 255, vector.vectorSize() ) );
+				str.append( ")+" );
+			}
+			if ( vector.vectorSize() > 0 )
+				str.setLength( str.length() - 1 );
+		}
+	}
+
+	protected void appendSmallVector( StringBuffer str, VectorParameter vector, int start, int stop )
+	{
+		str.append( getPythonClass( vector ) );
+		str.append( "( " );
+		if ( vector instanceof VInputTagParameter )
+		{
+			for ( int i = start; i < stop; i++ )
+				str.append( "(" + getInputTagString( (String)vector.value(i) ) + ")," );
+			if ( stop > start )
+				str.setLength( str.length() - 1 );
+		}
+		else if ( vector instanceof VStringParameter )
+		{
+			for ( int i = start; i < stop; i++ )
+			{
+				str.append( '\'' );
+				String value = (String)vector.value(i);
+				if ( value != null )
+					str.append( value );
+				str.append( "', " );
+
+			}
+			if ( stop > start )
+				str.setLength( str.length() - 2 );
+		}
+		else
+		{
+			for ( int i = start; i < stop; i++ )
+			{
+				Object value = vector.value(i);
+				if ( value != null )
+					str.append( value.toString() );
+				str.append( ", " );
+
+			}
+			if ( stop > start )
+				str.setLength( str.length() - 2 );
+		}
+	}
 }
