@@ -255,10 +255,8 @@ public class ConfigurationModifier implements IConfiguration
     {
 	ArrayList<Sequence> result = new ArrayList<Sequence>();
 	Iterator<Sequence> itS = sequenceIterator();
-	System.out.println("BEFORE:"); // DBG
 	while (itS.hasNext()) {
 	    Sequence sequence = itS.next();
-	    System.out.println(sequence.name()); // DBG
 	    int      indexS = result.indexOf(sequence);
 	    if (indexS<0) {
 		indexS = result.size();
@@ -285,10 +283,6 @@ public class ConfigurationModifier implements IConfiguration
 		}
 	    }
 	}
-	
-	System.out.println("\nAFTER:"); // DBG
-	for (Sequence s : result) System.out.println(s.name()); // DBG
-
 	return result.iterator();
     }
 
