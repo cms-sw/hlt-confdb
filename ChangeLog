@@ -1,3 +1,11 @@
+2008-04-02  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-22-05
+	* converter: python beta release
+	* add --search option to diff
+	* add orderedSequenceIterator() to ConfigurationModifier, to be
+	utilized by pythin converters
+
 2008-03-31  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-22-04

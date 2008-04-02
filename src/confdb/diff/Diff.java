@@ -229,6 +229,92 @@ public class Diff
 	}
     }
     
+    /** compare specific components */
+    public void compare(String search)
+    {
+	String   type    = search.split(":")[0];
+	String[] names   = search.split(":")[1].split(",");
+	String   oldName = names[0];
+	String   newName = (names.length>1) ? names[1] : oldName;
+	
+	if (type.equalsIgnoreCase("PSet")) {
+	    PSetParameter psetold = config1.pset(oldName);
+	    PSetParameter psetnew = config2.pset(newName);
+	    Comparison c = comparePSets(psetold,psetnew);
+	    if (!c.isIdentical()) psets.add(c);
+	}
+	else if (type.equalsIgnoreCase("EDSource")||type.equalsIgnoreCase("eds")) {
+	    EDSourceInstance edsold = config1.edsource(oldName);
+	    EDSourceInstance edsnew = config2.edsource(newName);
+	    Comparison c = compareInstances(edsold,edsnew);
+	    if (!c.isIdentical()) edsources.add(c);
+	}
+	else if (type.equalsIgnoreCase("ESSource")||type.equalsIgnoreCase("ess")) {
+	    ESSourceInstance essold = config1.essource(oldName);
+	    ESSourceInstance essnew = config2.essource(newName);
+	    Comparison c = compareInstances(essold,essnew);
+	    if (!c.isIdentical()) essources.add(c);
+	}
+	else if (type.equalsIgnoreCase("ESModule")||type.equalsIgnoreCase("esm")) {
+	    ESModuleInstance esmold = config1.esmodule(oldName);
+	    ESModuleInstance esmnew = config2.esmodule(newName);
+	    Comparison c = compareInstances(esmold,esmnew);
+	    if (!c.isIdentical()) esmodules.add(c);
+	}
+	else if (type.equalsIgnoreCase("Service")||type.equalsIgnoreCase("svc")) {
+	    ServiceInstance svcold = config1.service(oldName);
+	    ServiceInstance svcnew = config2.service(newName);
+	    Comparison c = compareInstances(svcold,svcnew);
+	    if (!c.isIdentical()) services.add(c);
+	}
+	else if (type.equalsIgnoreCase("Module")||type.equalsIgnoreCase("m")) {
+	    ModuleInstance mold = config1.module(oldName);
+	    ModuleInstance mnew = config2.module(newName);
+	    Comparison c = compareInstances(mold,mnew);
+	    if (!c.isIdentical()) modules.add(c);
+	}
+	else if (type.equalsIgnoreCase("Path")||type.equalsIgnoreCase("p")) {
+	    Path pold = config1.path(oldName);
+	    Path pnew = config2.path(newName);
+	    Comparison c = compareContainers(pold,pnew);
+	    if (!c.isIdentical()) {
+		paths.add(c);
+		Iterator<Comparison> it = c.comparisonIterator();
+		while (it.hasNext()) {
+		    Comparison cc = it.next();
+		    if (cc instanceof ContainerComparison) sequences.add(cc);
+		    else modules.add(cc);
+		}
+	    }
+	}
+	else if (type.equalsIgnoreCase("Sequence")||type.equalsIgnoreCase("s")) {
+	    Sequence sold = config1.sequence(oldName);
+	    Sequence snew = config2.sequence(newName);
+	    Comparison c = compareContainers(sold,snew);
+	    if (!c.isIdentical()) {
+		sequences.add(c);
+		Iterator<Comparison> it = c.comparisonIterator();
+		while (it.hasNext()) {
+		    Comparison cc = it.next();
+		    if (cc instanceof ContainerComparison) sequences.add(cc);
+		    else modules.add(cc);
+		}
+	    }
+	}
+	else if (type.equalsIgnoreCase("Stream")) {
+	    Stream sold = config1.stream(oldName);
+	    Stream snew = config2.stream(newName);
+	    Comparison c = compareStreams(sold,snew);
+	    if (!c.isIdentical()) streams.add(c);
+	}
+	else if (type.equalsIgnoreCase("Dataset")||type.equalsIgnoreCase("d")) {
+	    PrimaryDataset dold = config1.dataset(oldName);
+	    PrimaryDataset dnew = config2.dataset(newName);
+	    Comparison c = compareDatasets(dold,dnew);
+	    if (!c.isIdentical()) datasets.add(c);
+	}
+    }
+    
     
     /** number of psets */
     public int psetCount() { return psets.size(); }
@@ -750,39 +836,27 @@ public class Diff
     /** main method */
     public static void main(String[] args)
     {
-	String configs    = "";
-	String dbType     = "mysql";
-	String dbHost     = "localhost";
-	String dbPort     = "3306";
-	String dbName     = "hltdb";
-	String dbUser     = "schiefer";
-	String dbPwrd     = "monopoles";
+	String configs = "";
+	String search  = "";
+	String dbType  = "mysql";
+	String dbHost  = "localhost";
+	String dbPort  = "3306";
+	String dbName  = "hltdb";
+	String dbUser  = "schiefer";
+	String dbPwrd  = "monopoles";
 	
 	for (int iarg=0;iarg<args.length;iarg++) {
 	    String arg = args[iarg];
-	    if (arg.equals("--configs")) {
-		iarg++; configs = args[iarg];
-	    }
-	    else if (arg.equals("-t")) {
-		iarg++; dbType = args[iarg];
-	    }
-	    else if (arg.equals("-h")) {
-		iarg++; dbHost = args[iarg];
-	    }
-	    else if (arg.equals("-p")) {
-		iarg++; dbPort = args[iarg];
-	    }
-	    else if (arg.equals("-d")) {
-		iarg++; dbName = args[iarg];
-	    }
-	    else if (arg.equals("-u")) {
-		iarg++; dbUser = args[iarg];
-	    }
-	    else if (arg.equals("-s")) {
-		iarg++; dbPwrd = args[iarg];
-	    }
+	    if      (arg.equals("--configs")) { iarg++; configs= args[iarg]; }
+	    else if (arg.equals("--search"))  { iarg++; search = args[iarg]; }
+	    else if (arg.equals("-t"))        { iarg++; dbType = args[iarg]; }
+	    else if (arg.equals("-h"))        { iarg++; dbHost = args[iarg]; }
+	    else if (arg.equals("-p"))        { iarg++; dbPort = args[iarg]; }
+	    else if (arg.equals("-d"))        { iarg++; dbName = args[iarg]; }
+	    else if (arg.equals("-u"))        { iarg++; dbUser = args[iarg]; }
+	    else if (arg.equals("-s"))        { iarg++; dbPwrd = args[iarg]; }
 	    else {
-		System.err.println("Invalid option '"+arg+".");
+		System.err.println("Invalid option '"+arg+"'.");
 		System.exit(0);
 	    }
 	}
@@ -837,7 +911,7 @@ public class Diff
 	
 	
 	Diff diff = new Diff(config1,config2);
-	diff.compare();
+	if (search.length()>0) diff.compare(search); else diff.compare();
 	System.out.println(diff.printAll());
     }
     

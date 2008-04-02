@@ -250,6 +250,49 @@ public class ConfigurationModifier implements IConfiguration
 	isModified = true;
     }
 
+    /** order sequences such that each sequence is defined before being referenced*/
+    public Iterator<Sequence> orderedSequenceIterator()
+    {
+	ArrayList<Sequence> result = new ArrayList<Sequence>();
+	Iterator<Sequence> itS = sequenceIterator();
+	System.out.println("BEFORE:"); // DBG
+	while (itS.hasNext()) {
+	    Sequence sequence = itS.next();
+	    System.out.println(sequence.name()); // DBG
+	    int      indexS = result.indexOf(sequence);
+	    if (indexS<0) {
+		indexS = result.size();
+		result.add(sequence);
+	    }
+	    Iterator<Reference> itR = sequence.entryIterator();
+	    while (itR.hasNext()) {
+		Reference reference = itR.next();
+		Referencable parent = reference.parent();
+		if (parent instanceof Sequence) {
+		    Sequence s = (Sequence)parent;
+		    int indexR = result.indexOf(s);
+		    if (indexR<0) {
+			indexR=indexS;
+			indexS++;
+			result.add(indexR,s);
+		    }
+		    else if (indexR>indexS) {
+			result.remove(indexR);
+			indexR=indexS;
+			indexS++;
+			result.add(indexR,s);
+		    }
+		}
+	    }
+	}
+	
+	System.out.println("\nAFTER:"); // DBG
+	for (Sequence s : result) System.out.println(s.name()); // DBG
+
+	return result.iterator();
+    }
+
+
     /** reset all modifications */
     public void reset()
     {

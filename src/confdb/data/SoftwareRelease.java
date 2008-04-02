@@ -494,8 +494,8 @@ public class SoftwareRelease
 	    }
 	}
 	
-	System.out.println("addTemplate("+template.name()+
-			   ") FAILED ("+template.getClass().getName()+")");
+	//System.err.println("addTemplate("+template.name()+
+	//	   ") FAILED ("+template.getClass().getName()+")");
 	
 	return false;
     }
