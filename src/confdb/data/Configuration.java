@@ -1003,6 +1003,9 @@ public class Configuration implements IConfiguration
     /** retrieve sequence iterator */
     public Iterator<Sequence> sequenceIterator() { return sequences.iterator(); }
     
+    /** retrieve sequence iterator */
+    public Iterator<Sequence> orderedSequenceIterator() { return sequenceIterator(); }
+    
     /** insert sequence */
     public Sequence insertSequence(int i,String sequenceName)
     {
