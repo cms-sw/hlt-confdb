@@ -23,7 +23,7 @@ public class PythonESModuleWriter extends PythonModuleWriter implements IESModul
 			str.append( " )\n" );
 			return str.toString();
 		}
-			
+
 		str.append( ",\n" );
 		for ( int i = 0; i < module.parameterCount(); i++ )
 		{
@@ -32,6 +32,7 @@ public class PythonESModuleWriter extends PythonModuleWriter implements IESModul
 			if ( param.length() > 0 )
 				PythonFormatter.addComma( str, param );
 		}
+		PythonFormatter.removeComma( str );
 		str.append( ")\n" );
 		return str.toString();
 	}

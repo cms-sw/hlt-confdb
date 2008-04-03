@@ -58,6 +58,8 @@ public class PythonParameterWriter  implements IParameterWriter
 			str.append( "( " );
 			if ( parameter instanceof InputTagParameter )
 				str.append( getInputTagString( parameter.valueAsString() ) );
+			else if ( parameter instanceof VPSetParameter )
+				appendVPSetParameters( str, (VPSetParameter)parameter, indent );
 			else if ( parameter instanceof ScalarParameter )
 			{
 				// strange things happen here: from time to time the value is empty!
@@ -74,8 +76,6 @@ public class PythonParameterWriter  implements IParameterWriter
 				}
 				str.append( value );
 			}
-			else if ( parameter instanceof VPSetParameter )
-				str.append( writeVPSetParameters( (VPSetParameter)parameter, indent ) );
 			else
 				throw new ConverterException( "oops, unidentified parameter class " + parameter.getClass().getSimpleName() );
 		}
@@ -120,9 +120,8 @@ public class PythonParameterWriter  implements IParameterWriter
 	}
 
 
-	protected String writeVPSetParameters( VPSetParameter vpset, String indent ) throws ConverterException 	
+	protected void appendVPSetParameters( StringBuffer str, VPSetParameter vpset, String indent ) throws ConverterException 	
 	{
-		StringBuffer str = new StringBuffer( 200 );
 		str.append( '\n' );
 		for ( int i = 0; i < vpset.parameterSetCount() - 1; i++ )
 		{
@@ -131,7 +130,7 @@ public class PythonParameterWriter  implements IParameterWriter
 				PythonFormatter.addComma( str, toString( pset, indent + "  " ) );
 			else
 				str.append( indent + "  cms.PSet( " + writePSetParameters(pset, indent + "  ", false )
-					   + " )," + converterEngine.getNewline() );
+					   + indent + "  )," + converterEngine.getNewline() );
 		}
 		if ( vpset.parameterSetCount() >  0 )
 		{
@@ -139,10 +138,8 @@ public class PythonParameterWriter  implements IParameterWriter
 			if ( pset.name().length() != 0 )
 				str.append( toString( pset, indent + "  " ) );
 			else
-				str.append( indent + "  cms.PSet( " + writePSetParameters(pset, indent + "  ", false ) + " )" + converterEngine.getNewline() );
+				str.append( indent + "  cms.PSet( " + writePSetParameters(pset, indent + "  ", false ) + indent + "  )" + converterEngine.getNewline() );
 		}
-		//str.append( indent + ")" ); 
-		return str.toString();
 	}
 	
 	

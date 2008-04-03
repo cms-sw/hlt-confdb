@@ -31,6 +31,7 @@ public class PythonESSourceWriter implements IESSourceWriter
 			if ( param.length() > 0 )
 				PythonFormatter.addComma( str, param );
 		}
+		PythonFormatter.removeComma( str );
 		str.append( ")\n" );
 		return str.toString();
 	}
