@@ -211,6 +211,7 @@ public interface IConfiguration
     /** retrieve sequence iterator */
     public Iterator<Sequence> orderedSequenceIterator();
     
+    
     /** number of streams */
     public int streamCount();
     
