@@ -1,5 +1,7 @@
 package confdb.converter.python;
 
+import java.util.Iterator;
+
 import confdb.converter.ConverterEngine;
 import confdb.converter.ConverterException;
 import confdb.converter.IConfigurationWriter;
@@ -133,9 +135,10 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 		if ( conf.sequenceCount() > 0 )
 		{
 			ISequenceWriter sequenceWriter = converterEngine.getSequenceWriter();
-			for ( int i = 0; i < conf.sequenceCount(); i++ )
+			Iterator<Sequence> sequenceIterator = conf.orderedSequenceIterator();
+			while ( sequenceIterator.hasNext() )
 			{
-				Sequence sequence = conf.sequence(i);
+				Sequence sequence = sequenceIterator.next();
 				str.append( sequenceWriter.toString(sequence, converterEngine, object ) );
 			}
 			str.append( "\n");
