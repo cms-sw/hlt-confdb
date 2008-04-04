@@ -31,6 +31,7 @@ public class CommandActionListener implements ActionListener
     private static final String cmdConvert          = "Convert";
     
     private static final String cmdReplace          = "Search&Replace";
+    private static final String cmdOMEditor         = "Edit OutputModules";
 
     private static final String cmdTrack            = "Track InputTags";
     
@@ -66,6 +67,7 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdConvert))          app.convertConfiguration();
 	
 	if (command.equals(cmdReplace))          app.searchAndReplace();
+	if (command.equals(cmdOMEditor))         app.openOutputModuleEditor();
 	
 	if (command.equals(cmdTrack)) app.setOptionTrackInputTags(source.
 								  isSelected());

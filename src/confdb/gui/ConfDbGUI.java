@@ -1,6 +1,5 @@
 package confdb.gui;
 
-
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
@@ -602,6 +601,15 @@ public class ConfDbGUI
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	if (!currentConfig.isEmpty()) dialog.setNewConfig(currentConfig);
+	dialog.setVisible(true);
+    }
+
+    /** open output module editor */
+    public void openOutputModuleEditor()
+    {
+	OutputModuleDialog dialog = new OutputModuleDialog(frame,currentConfig);
+	dialog.pack();
+	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
     }
 

@@ -36,6 +36,7 @@ public class MenuBar
     private static final String configMenuMigrate     = "Migrate";
     private static final String configMenuConvert     = "Convert";
     private static final String configMenuReplace     = "Search&Replace";
+    private static final String configMenuOMEditor    = "Edit OutputModules";
 
     /** menu bar item names: options */
     private static final String optionsMenuTrack      = "Track InputTags";
@@ -61,6 +62,7 @@ public class MenuBar
     private JMenuItem configMenuMigrateItem     = null;
     private JMenuItem configMenuConvertItem     = null;
     private JMenuItem configMenuReplaceItem     = null;
+    private JMenuItem configMenuOMEditorItem    = null;
     
     private JCheckBoxMenuItem optionsMenuTrackItem = null;
 
@@ -100,6 +102,7 @@ public class MenuBar
 	configMenuMigrateItem.setEnabled(true);
 	configMenuConvertItem.setEnabled(true);
 	configMenuReplaceItem.setEnabled(true);
+	configMenuOMEditorItem.setEnabled(true);
 	optionsMenuTrackItem.setEnabled(true);
 	dbMenuExportItem.setEnabled(true);
     }
@@ -116,6 +119,7 @@ public class MenuBar
 	configMenuMigrateItem.setEnabled(false);
 	configMenuConvertItem.setEnabled(false);
 	configMenuReplaceItem.setEnabled(false);
+	configMenuOMEditorItem.setEnabled(false);
 	optionsMenuTrackItem.setEnabled(false);
 	dbMenuExportItem.setEnabled(false);
     }
@@ -192,7 +196,7 @@ public class MenuBar
 	configMenuSaveAsItem.addActionListener(listener);
 	configMenu.add(configMenuSaveAsItem);
 	configMenu.addSeparator();
-	configMenuDiffItem = new JMenuItem(configMenuDiff,KeyEvent.VK_I);
+	configMenuDiffItem = new JMenuItem(configMenuDiff,KeyEvent.VK_D);
 	configMenuDiffItem.setActionCommand(configMenuDiff);
 	configMenuDiffItem.addActionListener(listener);
 	configMenu.add(configMenuDiffItem);
@@ -213,7 +217,11 @@ public class MenuBar
 	configMenuReplaceItem.setActionCommand(configMenuReplace);
 	configMenuReplaceItem.addActionListener(listener);
 	configMenu.add(configMenuReplaceItem);
-
+	configMenuOMEditorItem = new JMenuItem(configMenuOMEditor,KeyEvent.VK_T);
+	configMenuOMEditorItem.setActionCommand(configMenuOMEditor);
+	configMenuOMEditorItem.addActionListener(listener);
+	configMenu.add(configMenuOMEditorItem);
+	
 	JMenu optionsMenu = new JMenu("Options");
 	optionsMenu.setMnemonic(KeyEvent.VK_O);
 	jMenuBar.add(optionsMenu);

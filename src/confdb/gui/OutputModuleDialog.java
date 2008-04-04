@@ -46,12 +46,24 @@ public class OutputModuleDialog extends JDialog
     //
     // construction
     //
-
+    
     /** standard constructor */
     public OutputModuleDialog(JFrame jFrame, Configuration config)
     {
 	super(jFrame,true);
 	this.config = config;
+
+	DefaultComboBoxModel m=(DefaultComboBoxModel)jComboBoxOutputModule.getModel();
+	m.removeAllElements();
+	m.addElement("");
+	Iterator<ModuleInstance> itM = config.moduleIterator();
+	while (itM.hasNext()) {
+	    ModuleInstance module = itM.next();
+	    if (module.template().type().equals("OutputModule"))
+		m.addElement(module.name());
+	}
+	
+	jListPaths.setModel(new DefaultListModel());
 	
 	// register action listeners
 	jComboBoxOutputModule.addActionListener(new ActionListener() {
@@ -112,11 +124,33 @@ public class OutputModuleDialog extends JDialog
     /** set the output module to be edited */
     public void setOutputModule(String label)
     {
-	// TODO!
 	outputModule = config.module(label);
+	DefaultListModel m = (DefaultListModel)jListPaths.getModel();
+	m.removeAllElements();
+	
+	if (outputModule==null) return;
+	
+	PSetParameter psetSelectEvents =
+	    (PSetParameter)outputModule.parameter("SelectEvents","PSet");
+	VStringParameter vsSelectEvents =
+	    (VStringParameter)psetSelectEvents.parameter("SelectEvents");
+	
+	if (vsSelectEvents==null||vsSelectEvents.vectorSize()==0) {
+	    Iterator<Path> itP=config.pathIterator();
+	    while (itP.hasNext()) m.addElement(itP.next().name());
+	}
+	else {
+	    for (int i=0;i<vsSelectEvents.vectorSize();i++) {
+		String pathName = (String)vsSelectEvents.value(i);
+		Path   path     = config.path(pathName);
+		if (path!=null&&!path.isEndPath()) m.addElement(pathName);
+		else System.err.println("invalid path '"+pathName+"'");
+	    }
+	}
+	
     }
     
-
+    
     //
     // private member functions
     //
@@ -124,7 +158,10 @@ public class OutputModuleDialog extends JDialog
     // listener callbacks
     public void jComboBoxOutputModuleActionPerformed(ActionEvent e)
     {
-	
+	JComboBox jComboBox  = (JComboBox)e.getSource();
+	String    name       = (String)jComboBox.getSelectedItem();
+	setOutputModule(name);
+
     }
     public void jButtonAddPathsActionPerformed(ActionEvent e)
     {
@@ -148,11 +185,11 @@ public class OutputModuleDialog extends JDialog
     }
     public void jButtonCancelActionPerformed(ActionEvent e)
     {
-
+	setVisible(false);
     }
     public void jButtonApplyActionPerformed(ActionEvent e)
     {
-
+	
     }
     public void jButtonOKActionPerformed(ActionEvent e)
     {
