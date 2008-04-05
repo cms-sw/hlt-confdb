@@ -246,9 +246,6 @@ HcalSimpleReconstructor.Parameter correctForTimeslew bool true tracked
 HcalSimpleReconstructor.Parameter correctForPhaseContainment bool true tracked
 HcalSimpleReconstructor.Parameter correctionPhaseNS double 13.0 tracked
 
-Module EDProducer CSCRecHitDProducer RecoLocalMuon CSCRecHitD
-CSCRecHitDProducer.Parameter readBadChannels bool false tracked
-
 Module EDProducer SiStripRawToClusters EventFilter SiStripRawToDigi
 SiStripRawToClusters.Parameter MaxHolesInCluster uint32 0 untracked
 SiStripRawToClusters.Parameter ClusterThreshold double 5.0 untracked

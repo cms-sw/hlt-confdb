@@ -186,12 +186,6 @@ Module EDProducer ConcreteChargedCandidateProducer PhysicsTools RecoCandAlgos
 ConcreteChargedCandidateProducer.Parameter src InputTag hltCtfWithMaterialTracksMumuk tracked
 ConcreteChargedCandidateProducer.Parameter particleType string "mu-" tracked
 
-Module EDProducer EgammaHLTRegionalPixelSeedGeneratorProducers RecoEgamma EgammaHLTProducers
-EgammaHLTRegionalPixelSeedGeneratorProducers.Parameter TTRHBuilder string "WithTrackAngle" tracked
-
-Module EDProducer CSCRecHitDProducer RecoLocalMuon CSCRecHitD
-CSCRecHitDProducer.Parameter readBadChannels bool false tracked
-
 Module EDProducer LargestEtCaloJetSelector PhysicsTools RecoAlgos
 LargestEtCaloJetSelector.Parameter src InputTag iterativeCone5CaloJets tracked
 LargestEtCaloJetSelector.Parameter filter bool false tracked
@@ -233,9 +227,6 @@ SiPixelRecHitConverter.Parameter eff_charge_cut_highY double 1.0 untracked
 SiPixelRecHitConverter.Parameter size_cutX double 3.0 untracked
 SiPixelRecHitConverter.Parameter size_cutY double 3.0 untracked
 
-Module EDProducer L2MuonProducer RecoMuon L2MuonProducer
-L2MuonProducer.Parameter L2TrajBuilderParameters PSet tracked
-
 Module EDProducer TSGFromL2Muon RecoMuon TrackerSeedGenerator
 TSGFromL2Muon.Parameter TSGFromMixedPairs PSet tracked
 TSGFromL2Muon.Parameter TSGFromPixelTriplets PSet tracked
@@ -257,15 +248,13 @@ CkfTrajectoryMaker.Parameter TransientInitialStateEstimatorParameters PSet track
 CkfTrajectoryMaker.Parameter trackCandidateAlso bool true tracked
 CkfTrajectoryMaker.Parameter doSeedingRegionRebuilding bool false tracked
 
-Module EDProducer L3MuonProducer RecoMuon L3MuonProducer
-L3MuonProducer.Parameter L3TrajBuilderParameters PSet tracked
-
 Module EDProducer SiStripRawToClusters EventFilter SiStripRawToDigi
 SiStripRawToClusters.Parameter MaxHolesInCluster uint32 0 untracked
 SiStripRawToClusters.Parameter ClusterThreshold double 5.0 untracked
 SiStripRawToClusters.Parameter SeedThreshold double 3.0 untracked
 SiStripRawToClusters.Parameter ChannelThreshold double 2.0 untracked
 SiStripRawToClusters.Parameter ClusterizerAlgorithm string "ThreeThreshold" untracked
+
 Module EDProducer HcalRawToDigi EventFilter HcalRawToDigi
 HcalRawToDigi.Parameter firstSample int32 0 tracked
 HcalRawToDigi.Parameter lastSample int32 9 tracked
