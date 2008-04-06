@@ -256,7 +256,7 @@ sub get_env_variable
 	$result = $ENV{$varname};
 	print "\$" . $varname . " = $result\n";
     }
-    else { print ("WARNING: \$" . $varname . " undefined!"); }
+    else { print ("WARNING: \$" . $varname . " undefined!\n"); }
     return $result;
 }
 
