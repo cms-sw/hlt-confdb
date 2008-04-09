@@ -1,8 +1,6 @@
 
 package ajax;
 
-import java.util.ArrayList;
-
 import javax.servlet.ServletContext;
 
 import org.apache.log4j.ConsoleAppender;
@@ -14,13 +12,8 @@ import org.directwebremoting.WebContext;
 import org.directwebremoting.WebContextFactory;
 
 import confdb.converter.BrowserConverter;
-import confdb.converter.ConverterBase;
-import confdb.converter.ConverterException;
 import confdb.converter.DbProperties;
 import confdb.converter.RcmsDbProperties;
-import confdb.data.IConfiguration;
-import confdb.db.ConfDBSetups;
-
 
 public class AjaxInfo implements Runnable
 {
@@ -90,6 +83,12 @@ public class AjaxInfo implements Runnable
 		}
 		
 		return dbProperties.getDbURL();
+	}
+	
+	
+	public void clearCache()
+	{
+		BrowserConverter.clearCache();
 	}
 	
 
