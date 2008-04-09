@@ -21,6 +21,7 @@
 <link rel="stylesheet" type="text/css" href="assets/css/folders/tree.css">
 <style type="text/css">
 
+html, body { background:#edf5ff }
 
 .icon-gen, .icon-gen:link, .icon-gen:visited, .icon-gen:hover  { padding-left: 20px; background: transparent url(../img/icons.png) 0 -108px no-repeat; 	text-decoration: none;
 }
@@ -122,7 +123,7 @@ function dummy( node )
 </script>
 
 </head>
-<body class="yui-skin-sam" style="background:#edf5ff" onload="signalReady()">
+<body class="yui-skin-sam" onload="signalReady()">
 
 <%!
 

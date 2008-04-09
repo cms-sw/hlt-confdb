@@ -15,7 +15,7 @@
 
 <style type="text/css">
 
-body { background:#edf5ff }
+html, body { background:#edf5ff }
 
 .yui-module { padding:0px; margin-left:5px; margin-right:5px; margin-bottom:0px; display:none; }
 .yui-module .hd { margin-bottom:10px; margin-top:5px; padding-left:5px; background-color:#FFE19A }
