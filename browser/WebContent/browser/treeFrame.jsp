@@ -138,9 +138,10 @@ String prepareTree( String parentNode, Directory directory )
  		confdb.data.ConfigVersion versionInfo = configs[i].version( 0 ); 
 		String name = configs[i].name();
 		int key = versionInfo.dbId();
+		String fullName = configs[i].parentDir().name() + "/" + name + "/V" + versionInfo.version();
 
 	  	String vx = "V" + versionInfo.version() + "  -  " + versionInfo.created();
-		str += "var nodeData = { version:\"" + versionInfo.version() + "\", versionInfo: \"" + vx + "\", label: \"" + name + "\", key:\"" + key + "\", name:\"" + name + "\", dbIndex:dbIndex };\n"
+		str += "var nodeData = { version:\"" + versionInfo.version() + "\", versionInfo: \"" + vx + "\", label: \"" + name + "\", key:\"" + key + "\", name:\"" + name + "\", fullName:\"" + fullName + "\", dbIndex:dbIndex };\n"
 			+ "configNode = new YAHOO.widget.ConfigNode( nodeData, " + parentNode + ", false );\n"
 			+ "configNode.labelStyle = \"icon-gen\";\n"
 			+ "configNode.href = \"javascript:dummy()\";\n";
