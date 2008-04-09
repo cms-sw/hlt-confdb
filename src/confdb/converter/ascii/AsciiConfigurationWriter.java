@@ -29,8 +29,9 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 	{
 		String indent = "  ";
 		StringBuffer str = new StringBuffer( 100000 );
-		str.append( "// " + conf.name() + " V" + conf.version()
-  		   + " (" + conf.releaseTag() + ")" + converterEngine.getNewline() + converterEngine.getNewline() );
+		String fullName = conf.parentDir().name() + "/" + conf.name() + "/V" + conf.version() ;		
+		str.append( "// " + fullName
+  		   + "  (" + conf.releaseTag() + ")" + converterEngine.getNewline() + converterEngine.getNewline() );
 
 		if ( writeProcess == WriteProcess.YES )
 			str.append( "process " + conf.processName() + " = {" + converterEngine.getNewline() );

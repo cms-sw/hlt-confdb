@@ -32,7 +32,8 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 	{
 		String indent = "  ";
 		StringBuffer str = new StringBuffer( 100000 );
-		str.append( "# " + conf.name() + " V" + conf.version()
+		String fullName = conf.parentDir().name() + "/" + conf.name() + "/V" + conf.version() ;		
+		str.append( "# " + fullName
   		   + " (" + conf.releaseTag() + ")" + converterEngine.getNewline() + converterEngine.getNewline() );
 
 		str.append( "import FWCore.ParameterSet.Config as cms\n\n" );

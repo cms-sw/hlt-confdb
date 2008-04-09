@@ -78,7 +78,7 @@ function labelClicked( node )
   configModule.setBody( '<iframe src="' + configFrameUrl + '" name="configIFrame" id="configFrame" width="100%" height="'+ height + '" frameborder="0"></iframe>');
   
   loadingModule.show();
-  var header = "<b>" + node.data.name + " " + node.data.versionInfo + "</b>";
+  var header = "<b>" + node.data.fullName + "</b>";
   loadingModule.setHeader( header );
   loadingModule.render();
 
