@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<title>tomcat mem usage</title>
+
+<style type="text/css">
+body {
+	margin:0;
+	padding:0;
+}
+</style>
+
+<link rel="stylesheet" type="text/css" href="yui/fonts/fonts-min.css" />
+<script type="text/javascript" src="js/yui/yahoo-dom-event/yahoo-dom-event.js"></script>
+<script type="text/javascript" src="js/yui/json/json-min.js"></script>
+<script type="text/javascript" src="js/yui/connection/connection-min.js"></script>
+<script type="text/javascript" src="js/dwr2JSON.js"></script>
+<script type="text/javascript" src="js/AjaxInfo.js"></script>
+
+
+<!--begin custom header content for this example-->
+
+<!--end custom header content for this example-->
+
+</head>
+
+<script type="text/javascript">
+
+function init()
+{
+  update();
+}
+
+
+function update()
+{
+  AjaxInfo.getFreeMemory( updateFree );
+  AjaxInfo.getMaxMemory( updateMax );
+  AjaxInfo.getTotalMemory( updateTotal );
+  window.setTimeout("update()", 1000);
+}
+
+function updateFree( data )
+{
+  document.getElementById("free").innerHTML = " " + data; 
+}
+
+function updateMax( data )
+{
+  document.getElementById("max").innerHTML = " " + data; 
+}
+
+function updateTotal( data )
+{
+  document.getElementById("total").innerHTML = " " + data; 
+}
+
+</script>
+
+
+<body class=" yui-skin-sam" onLoad="init()">
+
+<h1>tomcat memory usage</h1>
+
+<table>
+<tr><td>free:</td><td id="free"></td></tr>
+<tr><td>total:</td><td id="total"></td></tr>
+<tr><td>max:</td><td id="max"></td></tr>
+</table>
+
+
+</body>
+</html>
