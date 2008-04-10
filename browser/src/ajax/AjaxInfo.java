@@ -15,10 +15,8 @@ import confdb.converter.BrowserConverter;
 import confdb.converter.DbProperties;
 import confdb.converter.RcmsDbProperties;
 
-public class AjaxInfo implements Runnable
+public class AjaxInfo
 {
-	private Flag flag = new Flag();
-	static private Thread thread = null;
 	static private AjaxInfo instance = null;
 	
 	static {
@@ -46,11 +44,6 @@ public class AjaxInfo implements Runnable
 			return;
 		//ServerContext serverContext = ServerContextFactory.get( servletContext );
 		webContext.getScriptSessionsByPage( "" );  // have a look at publisher demo!
-    	if ( thread == null )
-    	{
-    		thread = new Thread( this );
-    		thread.start();
-    	}
     	if ( instance == null )
     		instance = this;
     }
@@ -92,30 +85,25 @@ public class AjaxInfo implements Runnable
 	}
 	
 
-    
-	public void run()
+	public int getFreeMemory()
 	{
-		while ( thread != null )
-		{
-			synchronized( flag )
-			{
-				try {
-					flag.wait( 30000 );
-				} catch (InterruptedException e) {
-				}
-				if ( !flag.set )
-				{
-				}
-				flag.set =false;
-			}
-		}
-		
+		return toMB( Runtime.getRuntime().freeMemory() ); 
 	}
 	
-    class Flag
-    {
-		private static final long serialVersionUID = 1L;
-		boolean set = false;
-    }
-
+	public int getMaxMemory()
+	{
+		return toMB( Runtime.getRuntime().maxMemory() );
+	}
+	
+	public int getTotalMemory()
+	{
+		return toMB( Runtime.getRuntime().totalMemory() );
+	}
+	
+	static private int toMB( long bytes )
+	{
+		int MB = 1024 * 1024;
+		return (int) (( bytes + MB / 2 ) / MB);
+	}
+    
 }
