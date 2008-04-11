@@ -84,20 +84,9 @@ public class AjaxInfo
 		BrowserConverter.clearCache();
 	}
 	
-
-	public int getFreeMemory()
+	public MemInfo getMemInfo()
 	{
-		return toMB( Runtime.getRuntime().freeMemory() ); 
-	}
-	
-	public int getMaxMemory()
-	{
-		return toMB( Runtime.getRuntime().maxMemory() );
-	}
-	
-	public int getTotalMemory()
-	{
-		return toMB( Runtime.getRuntime().totalMemory() );
+		return new MemInfo();
 	}
 	
 	static private int toMB( long bytes )
@@ -106,4 +95,27 @@ public class AjaxInfo
 		return (int) (( bytes + MB / 2 ) / MB);
 	}
     
+	public class MemInfo
+	{
+		public int getFreeMemory()
+		{
+			return toMB( Runtime.getRuntime().freeMemory() ); 
+		}
+		
+		public int getMaxMemory()
+		{
+			return toMB( Runtime.getRuntime().maxMemory() );
+		}
+		
+		public int getTotalMemory()
+		{
+			return toMB( Runtime.getRuntime().totalMemory() );
+		}
+
+		public int getCacheEntries()
+		{
+			return BrowserConverter.getCacheEntries();
+		}
+	}
+	
 }
