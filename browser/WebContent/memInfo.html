@@ -11,13 +11,19 @@ body {
 }
 </style>
 
-<link rel="stylesheet" type="text/css" href="yui/fonts/fonts-min.css" />
+<link rel="stylesheet" type="text/css" href="js/yui/reset-fonts-grids/reset-fonts-grids.css" />
+<link rel="stylesheet" type="text/css" href="js/yui/base/base-min.css" />
 <script type="text/javascript" src="js/yui/yahoo-dom-event/yahoo-dom-event.js"></script>
 <script type="text/javascript" src="js/yui/json/json-min.js"></script>
 <script type="text/javascript" src="js/yui/connection/connection-min.js"></script>
 <script type="text/javascript" src="js/dwr2JSON.js"></script>
 <script type="text/javascript" src="js/AjaxInfo.js"></script>
 
+<style type="text/css">
+th,td {
+	border:0px;
+}
+</style>
 
 <!--begin custom header content for this example-->
 
@@ -63,11 +69,13 @@ YAHOO.util.Event.on('clear_btn','click',function (e) {
 </script>
 
 
-<body class=" yui-skin-sam" onLoad="init()">
+<body onLoad="init()">
 
+<div id="doc">
+<div id="hd">
 <h1>tomcat memory usage</h1>
-
-<table>
+</div>
+<table border="0">
 <tr><td>free:</td><td id="free" align="right"></td><td>MB</td></tr>
 <tr><td>total:</td><td id="total" align="right"></td><td>MB</td></tr>
 <tr><td>max:</td><td id="max" align="right"></td><td>MB</td></tr>
@@ -77,6 +85,6 @@ YAHOO.util.Event.on('clear_btn','click',function (e) {
   <input type="button" id="clear_btn" value="clear cache">
 </div>
 
-
+</div>
 </body>
 </html>
