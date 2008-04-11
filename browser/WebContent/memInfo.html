@@ -35,26 +35,30 @@ function init()
 
 function update()
 {
-  AjaxInfo.getFreeMemory( updateFree );
-  AjaxInfo.getMaxMemory( updateMax );
-  AjaxInfo.getTotalMemory( updateTotal );
+  AjaxInfo.getMemInfo( updateMemInfo );
+}
+
+function updateMemInfo( data )
+{
+  document.getElementById("free").innerHTML = " " + data.freeMemory; 
+  document.getElementById("total").innerHTML = " " + data.totalMemory; 
+  document.getElementById("max").innerHTML = " " + data.maxMemory; 
+  document.getElementById("cache").innerHTML = " " + data.cacheEntries; 
   window.setTimeout("update()", 1000);
 }
 
-function updateFree( data )
+function showResponse( data )
 {
-  document.getElementById("free").innerHTML = " " + data; 
+  if ( data != null )
+	alert( data );
 }
 
-function updateMax( data )
-{
-  document.getElementById("max").innerHTML = " " + data; 
-}
+YAHOO.util.Event.on('clear_btn','click',function (e) {
+	var clear = confirm( "Do you really want to clear cache?" );
+	if ( clear == true )
+		AjaxInfo.clearCache( showResponse );
+});
 
-function updateTotal( data )
-{
-  document.getElementById("total").innerHTML = " " + data; 
-}
 
 </script>
 
@@ -64,10 +68,14 @@ function updateTotal( data )
 <h1>tomcat memory usage</h1>
 
 <table>
-<tr><td>free:</td><td id="free"></td></tr>
-<tr><td>total:</td><td id="total"></td></tr>
-<tr><td>max:</td><td id="max"></td></tr>
+<tr><td>free:</td><td id="free" align="right"></td><td>MB</td></tr>
+<tr><td>total:</td><td id="total" align="right"></td><td>MB</td></tr>
+<tr><td>max:</td><td id="max" align="right"></td><td>MB</td></tr>
+<tr><td>cache:</td><td id="cache" align="right"></td><td>entries</td></tr>
 </table>
+<div>
+  <input type="button" id="clear_btn" value="clear cache">
+</div>
 
 
 </body>
