@@ -15,15 +15,9 @@ AjaxInfo.getAnchors = function(p0, p1, callback) {
 AjaxInfo.getRcmsDbInfo = function(callback) {
   dwr.engine._execute(AjaxInfo._path, 'ajax.AjaxInfo', 'getRcmsDbInfo', callback);
 }
-AjaxInfo.getMaxMemory = function(callback) {
-  dwr.engine._execute(AjaxInfo._path, 'ajax.AjaxInfo', 'getMaxMemory', callback);
-}
 AjaxInfo.clearCache = function(callback) {
   dwr.engine._execute(AjaxInfo._path, 'ajax.AjaxInfo', 'clearCache', callback);
 }
-AjaxInfo.getFreeMemory = function(callback) {
-  dwr.engine._execute(AjaxInfo._path, 'ajax.AjaxInfo', 'getFreeMemory', callback);
-}
-AjaxInfo.getTotalMemory = function(callback) {
-  dwr.engine._execute(AjaxInfo._path, 'ajax.AjaxInfo', 'getTotalMemory', callback);
+AjaxInfo.getMemInfo = function(callback) {
+  dwr.engine._execute(AjaxInfo._path, 'ajax.AjaxInfo', 'getMemInfo', callback);
 }
