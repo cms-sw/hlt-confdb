@@ -55,6 +55,11 @@ public class ConverterBase
     }
   
     
+    public int getNumberCacheEntries() 
+    {
+    	return confCache.size();
+    }
+
     public int getMaxCacheEntries() 
     {
     	return maxCacheEntries;

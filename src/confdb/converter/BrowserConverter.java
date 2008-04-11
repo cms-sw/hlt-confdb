@@ -1,6 +1,7 @@
 package confdb.converter;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -152,6 +153,15 @@ public class BrowserConverter extends OfflineConverter
 		return list.toArray( new String[ list.size() ] );
     }
     
+    static public int getCacheEntries()
+    {
+    	int n = 0;
+    	Collection<BrowserConverter> list = map.values();
+    	for ( BrowserConverter converter : list )
+    		n += converter.getNumberCacheEntries();
+    	return n;
+    }
+
 
 	
 }
