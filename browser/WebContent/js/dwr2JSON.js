@@ -6,6 +6,9 @@ if (dwr.engine == null)
 if (DWREngine == null) 
   var DWREngine = dwr.engine;
 
+if ( getJsonPath == null )
+  var getJsonPath = "";
+
 dwr.engine.failureHandler = function( o ) 
 {
 	if ( !YAHOO.util.Connect.isCallInProgress(o) )
@@ -34,14 +37,12 @@ dwr.engine.successHandler = function( o )
   // Process the JSON data returned from the server
   try {
     var data = YAHOO.lang.JSON.parse(o.responseText);
-    //if ( typeof o.argument == "function" )
-  	(o.argument)( data );
-  	return;
   }
   catch (x) {
   	dwr.engine.jsonFailureHandler( o );
     return;
   }
+  (o.argument)( data );
 }
   
 
@@ -61,7 +62,7 @@ dwr.engine._execute = function(path, className, method, vararg_params )
 	  timeout : 10000,
 	  argument : callbackArg 
   }
-  YAHOO.util.Connect.asyncRequest( 'POST',"../getJSON.jsp", callbacks, postData);
+  YAHOO.util.Connect.asyncRequest( 'POST', getJsonPath + "getJSON.jsp", callbacks, postData);
 }
 
 
