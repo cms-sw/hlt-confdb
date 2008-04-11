@@ -150,9 +150,10 @@ String prepareTree( String parentNode, Directory directory )
 		for ( int ii = 0; ii < configs[i].versionCount(); ii++ )
     	{
 	  	  versionInfo = configs[i].version( ii );
+		  fullName = configs[i].parentDir().name() + "/" + name + "/V" + versionInfo.version();
 	  	  key = versionInfo.dbId();
 	  	  vx = "V" + versionInfo.version() + "  -  " + versionInfo.created();
-	  	  str += "var nodeData = { version:\"" + versionInfo.version() + "\", versionInfo: \"" + vx +"\", label: \"" + vx + "\", key:\"" + key + "\", name:\"" + name + "\", dbIndex:dbIndex };\n"
+	  	  str += "var nodeData = { version:\"" + versionInfo.version() + "\", versionInfo: \"" + vx +"\", label: \"" + vx + "\", key:\"" + key + "\", name:\"" + name + "\", fullName:\"" + fullName + "\", dbIndex:dbIndex };\n"
 			  + "versionNode = new YAHOO.widget.ConfigNode( nodeData, configNode, false);\n";
 	    }
 	}
