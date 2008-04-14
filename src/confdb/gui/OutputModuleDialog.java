@@ -67,9 +67,9 @@ public class OutputModuleDialog extends JDialog
 	jListPaths.setModel(new DefaultListModel());
 	jTableProducts.setModel(new ProductTableModel());
 
-	jTableProducts.getColumnModel().getColumn(0).setPreferredWidth(10);
-	jTableProducts.getColumnModel().getColumn(1).setPreferredWidth(60);
-	jTableProducts.getColumnModel().getColumn(2).setPreferredWidth(30);
+	jTableProducts.getColumnModel().getColumn(0).setPreferredWidth(50);
+	jTableProducts.getColumnModel().getColumn(1).setPreferredWidth(300);
+	jTableProducts.getColumnModel().getColumn(2).setPreferredWidth(180);
 
 	cbmOutputModules = (DefaultComboBoxModel)jComboBoxOutputModule.getModel();
 	lmPaths          = (DefaultListModel)jListPaths.getModel();
@@ -170,6 +170,7 @@ public class OutputModuleDialog extends JDialog
 	
 	products.clear();
 	updateProducts();
+	tmProducts.update(products);
 
 	jButtonApply.setEnabled(true);
 	jButtonOK.setEnabled(true);
@@ -296,6 +297,7 @@ public class OutputModuleDialog extends JDialog
 	cbmPaths.removeElement(pathName);
 	sortPathList();
 	updateProducts();
+	// TODO if (lmPaths.getSelected
     }
     
     /** remove a path from the list, add it to the combo box! */
@@ -319,7 +321,8 @@ public class OutputModuleDialog extends JDialog
 		ModuleInstance module = itM.next();
 		String         moduleName = module.name();
 		String         moduleType = module.template().type();
-		// TODO
+		if (!moduleType.equals("EDProducer")&&
+		    !moduleType.equals("HLTFilter"))  continue;
 		if (products.containsKey(moduleName)) continue;
 		if (oldproducts.containsKey(moduleName))
 		    products.put(moduleName,oldproducts.get(moduleName));
@@ -327,7 +330,7 @@ public class OutputModuleDialog extends JDialog
 		    products.put(moduleName,new Product(false,moduleName,""));
 	    }
 	}
-	tmProducts.update(products);
+	//tmProducts.update(products);
     }
 
     /** set the output module parameters according to the list/table */
