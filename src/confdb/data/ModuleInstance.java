@@ -91,7 +91,29 @@ public class ModuleInstance extends Instance implements Referencable
 	    Iterator<Path> itP = config().pathIterator();
 	    while (itP.hasNext()) {
 		Path path = itP.next();
-		if (path.isEndPath()) pathSet.add(path);
+		if (path.isEndPath()) {
+		    pathSet.add(path);
+		    Iterator<ModuleInstance> itM = path.moduleIterator();
+		    while (itM.hasNext()) {
+			ModuleInstance module = itM.next();
+			if (!module.template().type().equals("OutputModule"))
+			    continue;
+			VStringParameter outCom = (VStringParameter)
+			    module.parameter("outputCommands","vstring");
+			if (outCom==null) continue;
+			for (int i=0;i<outCom.vectorSize();i++) {
+			    String a[]=((String)outCom.value(i)).split(" ");
+			    if (!a[0].equals("keep")) continue;
+			    String b[] = a[1].split("_");
+			    if (b.length!=4) continue;
+			    if (b[1].equals(oldName)) {
+				outCom.setValue(i,"keep "+b[0]+"_"+name+
+						"_"+b[2]+"_"+b[3]);
+				module.setHasChanged();
+			    }
+			}
+		    }
+		}
 	    }
 	}
 

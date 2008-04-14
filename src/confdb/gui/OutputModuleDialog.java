@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+
+import confdb.gui.treetable.CheckBoxTableCellRenderer;
 import confdb.data.*;
 
 
@@ -48,10 +50,11 @@ public class OutputModuleDialog extends JDialog
     private JButton     jButtonOK             = new javax.swing.JButton();
 
     /** GUI models */
-    private DefaultComboBoxModel cbmOutputModules;
-    private DefaultListModel     lmPaths;
-    private DefaultComboBoxModel cbmPaths;
-    private ProductTableModel    tmProducts;
+    private DefaultComboBoxModel      cbmOutputModules;
+    private DefaultListModel          lmPaths;
+    private DefaultListSelectionModel lsmPaths;
+    private DefaultComboBoxModel      cbmPaths;
+    private ProductTableModel         tmProducts;
     
 
     //
@@ -64,17 +67,22 @@ public class OutputModuleDialog extends JDialog
 	super(jFrame,true);
 	this.config = config;
 	
+	jTableProducts.setDefaultRenderer(Boolean.class,
+					  new CheckBoxTableCellRenderer());
+
 	jListPaths.setModel(new DefaultListModel());
 	jTableProducts.setModel(new ProductTableModel());
 
 	jTableProducts.getColumnModel().getColumn(0).setPreferredWidth(50);
-	jTableProducts.getColumnModel().getColumn(1).setPreferredWidth(300);
-	jTableProducts.getColumnModel().getColumn(2).setPreferredWidth(180);
+	jTableProducts.getColumnModel().getColumn(1).setPreferredWidth(400);
+	jTableProducts.getColumnModel().getColumn(2).setPreferredWidth(150);
+	jTableProducts.getColumnModel().getColumn(3).setPreferredWidth(150);
 
-	cbmOutputModules = (DefaultComboBoxModel)jComboBoxOutputModule.getModel();
-	lmPaths          = (DefaultListModel)jListPaths.getModel();
-	cbmPaths         = (DefaultComboBoxModel)jComboBoxAddPaths.getModel();
-	tmProducts       = (ProductTableModel)jTableProducts.getModel();
+	cbmOutputModules=(DefaultComboBoxModel)jComboBoxOutputModule.getModel();
+	lmPaths         =(DefaultListModel)jListPaths.getModel();
+	lsmPaths        =(DefaultListSelectionModel)jListPaths.getSelectionModel();
+	cbmPaths        =(DefaultComboBoxModel)jComboBoxAddPaths.getModel();
+	tmProducts      =(ProductTableModel)jTableProducts.getModel();
 	
 	cbmOutputModules.removeAllElements();
 	cbmOutputModules.addElement("");
@@ -102,6 +110,11 @@ public class OutputModuleDialog extends JDialog
 		}
 		public void mouseReleased(MouseEvent e) {
 		    jListPathsShowPopup(e);
+		}
+	    });
+	jListPaths.addListSelectionListener(new ListSelectionListener() {
+		public void valueChanged(ListSelectionEvent e) {
+		    jListPathsValueChanged(e);
 		}
 	    });
 	jButtonCancel.addActionListener(new ActionListener() {
@@ -165,13 +178,15 @@ public class OutputModuleDialog extends JDialog
 		if (path.isEndPath()||lmPaths.contains(path.name())) continue;
 		cbmPaths.addElement(path.name());
 	    }
-	    sortPathComboBox();
 	}
-	
+	sortPathComboBox();
+	sortPathList();
+	    
 	products.clear();
 	updateProducts();
-	tmProducts.update(products);
-
+	parseOutputCommands();
+	updateProducts();
+	
 	jButtonApply.setEnabled(true);
 	jButtonOK.setEnabled(true);
     }
@@ -234,21 +249,35 @@ public class OutputModuleDialog extends JDialog
     {
 	if (!e.isPopupTrigger()) return;
 	int index = jListPaths.locationToIndex(e.getPoint());
-	jListPaths.setSelectedIndex(index);
+	jListPaths.addSelectionInterval(index,index);
 	
-	String selectedPath = (String)lmPaths.elementAt(index);
+	//String selectedPath = (String)lmPaths.elementAt(index);
 	
 	JPopupMenu popup = new JPopupMenu();
-	JMenuItem menuItem = new JMenuItem("Remove "+selectedPath);
+	JMenuItem menuItem = new JMenuItem("Remove");
+	StringBuffer actionCommand = new StringBuffer();
+	for (int i=lsmPaths.getMinSelectionIndex();
+	     i<=lsmPaths.getMaxSelectionIndex();i++) {
+	    if (lsmPaths.isSelectedIndex(i)) {
+		actionCommand.append((String)lmPaths.elementAt(i)).append(" ");
+		System.out.println(lmPaths.elementAt(i));
+	    }
+	}
+	menuItem.setActionCommand(actionCommand.toString());
 	menuItem.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    JMenuItem source = (JMenuItem)e.getSource();
-		    String pathName = source.getText().split(" ")[1];
-		    removePath(pathName);
+		    String    action = source.getActionCommand();
+		    String    paths[]=action.split(" "); 
+		    for (int i=0;i<paths.length;i++) removePath(paths[i]);
 		}
 	    });
 	popup.add(menuItem);
 	popup.show(e.getComponent(),e.getX(),e.getY());
+    }
+    private void jListPathsValueChanged(ListSelectionEvent e)
+    {
+	if (!e.getValueIsAdjusting()) updateProducts();
     }
     private void jButtonCancelActionPerformed(ActionEvent e)
     {
@@ -279,7 +308,6 @@ public class OutputModuleDialog extends JDialog
     /** sort add path combo box */
     private void sortPathComboBox()
     {
-	System.out.println("sortPathComboBox()");
 	ArrayList<String> sortedPaths = new ArrayList<String>();
 	for (int i=1;i<cbmPaths.getSize();i++)
 	    sortedPaths.add((String)cbmPaths.getElementAt(i));
@@ -297,7 +325,6 @@ public class OutputModuleDialog extends JDialog
 	cbmPaths.removeElement(pathName);
 	sortPathList();
 	updateProducts();
-	// TODO if (lmPaths.getSelected
     }
     
     /** remove a path from the list, add it to the combo box! */
@@ -314,8 +341,13 @@ public class OutputModuleDialog extends JDialog
     {
 	HashMap<String,Product> oldproducts =
 	    new HashMap<String,Product>(products);
+	products.clear();
+	HashMap<String,Product> selectedProducts = new HashMap<String,Product>();
 	for (int iPath=0;iPath<lmPaths.getSize();iPath++) {
 	    Path path = config.path((String)lmPaths.getElementAt(iPath));
+	    boolean isSelected =
+		lsmPaths.isSelectionEmpty()||
+		lsmPaths.isSelectedIndex(lmPaths.indexOf(path.name()));
 	    Iterator<ModuleInstance> itM = path.moduleIterator();
 	    while (itM.hasNext()) {
 		ModuleInstance module = itM.next();
@@ -324,20 +356,99 @@ public class OutputModuleDialog extends JDialog
 		if (!moduleType.equals("EDProducer")&&
 		    !moduleType.equals("HLTFilter"))  continue;
 		if (products.containsKey(moduleName)) continue;
-		if (oldproducts.containsKey(moduleName))
-		    products.put(moduleName,oldproducts.get(moduleName));
-		else 
-		    products.put(moduleName,new Product(false,moduleName,""));
+		if (oldproducts.containsKey(moduleName)) {
+		    Product prod = oldproducts.get(moduleName);
+		    products.put(moduleName,prod);
+		    if (isSelected) selectedProducts.put(moduleName,prod);
+		}
+		else {
+		    Product prod = new Product(moduleName);
+		    products.put(moduleName,prod);
+		    if (isSelected) selectedProducts.put(moduleName,prod);
+		}
 	    }
 	}
-	//tmProducts.update(products);
+	tmProducts.update(selectedProducts);
     }
+    
+    /** parse 'outputCommands' parameter and set 'keep'/'instances' values */
+    private void parseOutputCommands()
+    {
+	VStringParameter vOutputCommands =
+	    (VStringParameter)outputModule.parameter("outputCommands","vstring");
+	for (int i=0;i<vOutputCommands.vectorSize();i++) {
+	    String a[] = ((String)vOutputCommands.value(i)).split(" ");
+	    if (!a[0].equals("keep")) continue;
+	    String b[] = a[1].split("_");
+	    if (b.length!=4) continue;
 
+	    String className    = b[0];
+	    String moduleName   = b[1];
+	    String instanceName = b[2];
+	    //String processName  = b[3];
+	    
+	    Product prod = products.get(moduleName);
+	    if (prod==null) {
+		System.out.println("unknown product '"+moduleName+"'");
+	    }
+	    else {
+		prod.keep = true;
+		if (!className.equals("*")) {
+		    if (prod.classes.equals("")) prod.classes = className;
+		    else if (prod.classes.indexOf(className)<0)
+			prod.classes += ","+className;
+		}
+		if (!instanceName.equals("*")) {
+		    if (prod.instances.equals("")) prod.instances = instanceName;
+		    else if (prod.instances.indexOf(instanceName)<0)
+			prod.instances += ","+instanceName;
+		}
+	    }
+	}
+    }
+    
     /** set the output module parameters according to the list/table */
     private void setParameters()
     {
+	StringBuffer outputCommandsAsString = new StringBuffer();
+	outputCommandsAsString
+	    .append("drop *").append(",")
+	    .append("keep FEDRawDataCollection_*_*_*"); // TODO
+	Iterator<Product> itP = products.values().iterator();
+	while (itP.hasNext()) {
+	    Product p = itP.next();
+	    if (!p.keep) continue;
+	    if (p.classes.length()>0) {
+		String classNames[] = p.classes.split(",");
+		for (int i=0;i<classNames.length;i++)
+		    outputCommandsAsString
+			.append(",keep ").append(classNames[i]).append("_")
+			.append(p.label).append("_*_*");
+	    }
+	    if (p.instances.length()>0) {
+		String instanceNames[] = p.instances.split(",");
+		for (int i=0;i<instanceNames.length;i++)
+		    outputCommandsAsString
+			.append(",keep ").append("*_").append(p.label).append("_")
+			.append(instanceNames[i]).append("_*");
+	    }
+	    if (p.classes.length()==0&&p.instances.length()==0)
+		outputCommandsAsString
+		    .append(",keep ").append("*_").append(p.label).append("_*_*");
+	}
+	outputModule.updateParameter("outputCommands","vstring",
+				     outputCommandsAsString.toString());
 	
+	StringBuffer selectEventsAsString = new StringBuffer();
+	for (int i=0;i<lmPaths.getSize();i++) {
+	    if (i>0) selectEventsAsString.append(",");
+	    selectEventsAsString.append(lmPaths.getElementAt(i));
+	}
+	outputModule.updateParameter("SelectEvents::SelectEvents","vstring",
+				     selectEventsAsString.toString());
     }
+    
+
     
     /** init GUI components */
     private JPanel initComponents()
@@ -496,7 +607,7 @@ class ProductTableModel extends AbstractTableModel
     private ArrayList<Product> products = new ArrayList<Product>();
     
     /** column names */
-    private static String[] columnNames = {"keep","label","instances"};
+    private static String[] columnNames = {"keep","label","classes","instances"};
     
     
     
@@ -526,7 +637,8 @@ class ProductTableModel extends AbstractTableModel
 	switch (col) {
 	case 0 : return product.keep;
 	case 1 : return product.label;
-	case 2 : return product.instances;
+	case 2 : return product.classes;
+	case 3 : return product.instances;
 	}
 	return null;
     }
@@ -538,7 +650,18 @@ class ProductTableModel extends AbstractTableModel
     }
     
     /** is a cell editable or not? */
-    public boolean isCellEditable(int row, int col) { return (col==2); }
+    public boolean isCellEditable(int row, int col) { return (col!=1); }
+
+    /** set the value of a table cell */
+    public void setValueAt(Object value,int row, int col)
+    {
+	if (col==1) return;
+	Product product = products.get(row);
+	
+	if      (col==0) product.keep      = (Boolean)value;
+	else if (col==2) product.classes   = (String)value;
+	else if (col==3) product.instances = (String)value;
+    }
 }
 
 
@@ -549,11 +672,7 @@ class Product
 {
     public Boolean keep = false;
     public String  label;
-    public String  instances;
-    public Product(boolean keep,String label,String instances)
-    {
-	this.keep      = keep;
-	this.label     = label;
-	this.instances = instances;
-    }
+    public String  classes="";
+    public String  instances="";
+    public Product(String label) { this.label = label; }
 }
