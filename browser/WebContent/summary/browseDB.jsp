@@ -142,7 +142,7 @@ function prepareTable( height )
             }
         ];
 
-        myDataSource = new YAHOO.util.DataSource( "http://zenulf2:8080/browser/summary/getSummary.jsp?" );
+        myDataSource = new YAHOO.util.DataSource( "getSummary.jsp?" );
         myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSON;
         myDataSource.responseSchema = {
 	        resultsList: "rows",
