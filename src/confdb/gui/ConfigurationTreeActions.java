@@ -530,7 +530,10 @@ public class ConfigurationTreeActions
 	Configuration          config   = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 	
-	int index = (treePath==null) ? config.pathCount() :
+	int count =
+	    (external instanceof Path) ? config.pathCount():config.sequenceCount();
+
+	int index = (treePath==null) ? count :
 	    (treePath.getPathCount()==2) ?
 	    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
 				    treePath.getLastPathComponent())+1;
@@ -576,6 +579,7 @@ public class ConfigurationTreeActions
 	    tree.setSelectionPath(new TreePath(model.getPathToRoot(container)));
 	    removeReferenceContainer(tree);
 	    if (oldIndex<index) index--;
+	    if (oldIndex>=0) index = oldIndex;
 	}
 	
 	if (!config.hasUniqueQualifier(external)) return false;

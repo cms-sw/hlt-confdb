@@ -1189,8 +1189,22 @@ class SequenceMenuListener implements ActionListener
 	    ConfigurationTreeActions.editNodeName(tree);
 	}
 	else if (cmd.equals("Remove Sequence")) {
-	    if (node instanceof Sequence)
+	    if (node instanceof Sequence) {
+		Sequence sequence = (Sequence)node;
+		if (sequence.referenceCount()>0) {
+		    StringBuffer warning = new StringBuffer();
+		    warning
+			.append("Do you really want to remove '")
+			.append(sequence.name())
+			.append("', which is referenced ")
+			.append(sequence.referenceCount()).append(" times?");
+		    if (JOptionPane.CANCEL_OPTION==
+			JOptionPane.showConfirmDialog(null,warning.toString(),"",
+						      JOptionPane.OK_CANCEL_OPTION))
+			return;
+		}
 		ConfigurationTreeActions.removeReferenceContainer(tree);
+	    }
 	    else if (node instanceof SequenceReference)
 		ConfigurationTreeActions.removeReference(tree);
  	}
