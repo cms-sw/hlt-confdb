@@ -9,29 +9,89 @@
 <link rel="stylesheet" type="text/css" href="../js/yui/base/base-min.css" />
 <link rel="stylesheet" type="text/css" href="../js/yui/container/assets/skins/sam/container.css" />
 <link rel="stylesheet" type="text/css" href="../js/yui/datatable/assets/skins/sam/datatable.css">
-<script type="text/javascript" src="../js/yui/yahoo-dom-event/yahoo-dom-event.js"></script>
-<script type="text/javascript" src="../js/yui/dragdrop/dragdrop-min.js"></script>
-<script type="text/javascript" src="../js/yui/element/element-beta-min.js"></script>
+<link rel="stylesheet" type="text/css" href="../js/yui/resize/assets/skins/sam/resize.css"">
+<script type="text/javascript" src="../js/yui/utilities/utilities.js"></script>
 <script type="text/javascript" src="../js/yui/datasource/datasource-beta-min.js"></script>
 <script type="text/javascript" src="../js/yui/datatable/datatable-beta-min.js"></script>
+<script type="text/javascript" src="../js/yui/resize/resize-beta-min.js"></script>
+<!--
 <script type="text/javascript" src="../js/yui/json/json-min.js"></script>
-<script type="text/javascript" src="../js/yui/connection/connection-min.js"></script>
 <script type="text/javascript" src="../js/yui/container/container.js"></script>
+-->
 <script type="text/javascript" src="../js/dwr2JSON.js"></script>
 <script type="text/javascript" src="../js/AjaxInfo.js"></script>
 
-<style type="text/css">
+<style>
+html { 
+	background:#edf5ff;
+}
 
-html, body { background:#edf5ff }
+body { 
+	margin: 0;
+	padding: 0;
+	background:#edf5ff;
+    overflow: hidden;
+}
 
-.yui-module { padding:0px; margin-left:5px; margin-right:5px; margin-bottom:0px; display:none; }
-.yui-gd { margin-bottom:0px; }
-#doc3 { margin-bottom:0px; margin-top:5px; }
-#mainLeft { background:#edf5ff; border: 0px solid #B6CDE1; margin:0px; padding:0px }
-.headerDiv { margin:0px; padding:0.4em; background:white; border: 1px solid #B6CDE1; border-bottom:0px; }
-#info { background:white; border: 1px solid #B6CDE1; border-top:0px; }
+.topDiv {
+	height: 1.2em;
+}
+
+#doc3 { 
+	margin-bottom:0px; 
+	margin-top:5px; 
+	margin-left:5px;
+	margin-right:5px;
+    overflow: hidden;
+}
+
+#pg {
+    overflow: hidden;
+    border: 1px solid lightgray;
+}
+
+#pg .yui-g {
+    overflow: hidden;
+}
+
+#pg .yui-u {
+    overflow: hidden;
+}
+
+#mainLeft { 
+	background:#edf5ff; 
+	border: 0px solid #B6CDE1; 
+	margin:0px; 
+	padding-right:5px;
+	padding-left:1px; 
+	padding-top:1px; 
+}
+
+#summary { 
+	padding:1px; 
+    overflow: auto;
+}
+
+
+#info { 
+	background:white; 
+	border: 1px solid #B6CDE1; 
+	border-top:0px; 
+}
+
+
+
+#headerDiv { 
+	margin:0px; 
+	padding:0.4em; 
+	background:white; 
+	border: 1px solid #B6CDE1; 
+	border-bottom:0px; 
+}
+    
 
 </style>
+
 
 <script type="text/javascript">
 // Patch for width and/or minWidth Column values bug in non-scrolling DataTables
@@ -39,36 +99,77 @@ html, body { background:#edf5ff }
 // Patch for initial hidden Columns bug
 (function(){var A=YAHOO.util,B=YAHOO.env.ua,E=A.Event,C=A.Dom,D=YAHOO.widget.DataTable;D.prototype._initTheadEls=function(){var X,V,T,Z,I,M;if(!this._elThead){Z=this._elThead=document.createElement("thead");I=this._elA11yThead=document.createElement("thead");M=[Z,I];E.addListener(Z,"focus",this._onTheadFocus,this);E.addListener(Z,"keydown",this._onTheadKeydown,this);E.addListener(Z,"mouseover",this._onTableMouseover,this);E.addListener(Z,"mouseout",this._onTableMouseout,this);E.addListener(Z,"mousedown",this._onTableMousedown,this);E.addListener(Z,"mouseup",this._onTableMouseup,this);E.addListener(Z,"click",this._onTheadClick,this);E.addListener(Z.parentNode,"dblclick",this._onTableDblclick,this);this._elTheadContainer.firstChild.appendChild(I);this._elTbodyContainer.firstChild.appendChild(Z)}else{Z=this._elThead;I=this._elA11yThead;M=[Z,I];for(X=0;X<M.length;X++){for(V=M[X].rows.length-1;V>-1;V--){E.purgeElement(M[X].rows[V],true);M[X].removeChild(M[X].rows[V])}}}var N,d=this._oColumnSet;var H=d.tree;var L,P;for(T=0;T<M.length;T++){for(X=0;X<H.length;X++){var U=M[T].appendChild(document.createElement("tr"));P=(T===1)?this._sId+"-hdrow"+X+"-a11y":this._sId+"-hdrow"+X;U.id=P;for(V=0;V<H[X].length;V++){N=H[X][V];L=U.appendChild(document.createElement("th"));if(T===0){N._elTh=L}P=(T===1)?this._sId+"-th"+N.getId()+"-a11y":this._sId+"-th"+N.getId();L.id=P;L.yuiCellIndex=V;this._initThEl(L,N,X,V,(T===1))}if(T===0){if(X===0){C.addClass(U,D.CLASS_FIRST)}if(X===(H.length-1)){C.addClass(U,D.CLASS_LAST)}}}if(T===0){var R=d.headers[0];var J=d.headers[d.headers.length-1];for(X=0;X<R.length;X++){C.addClass(C.get(this._sId+"-th"+R[X]),D.CLASS_FIRST)}for(X=0;X<J.length;X++){C.addClass(C.get(this._sId+"-th"+J[X]),D.CLASS_LAST)}var Q=(A.DD)?true:false;var c=false;if(this._oConfigs.draggableColumns){for(X=0;X<this._oColumnSet.tree[0].length;X++){N=this._oColumnSet.tree[0][X];if(Q){L=N.getThEl();C.addClass(L,D.CLASS_DRAGGABLE);var O=D._initColumnDragTargetEl();N._dd=new YAHOO.widget.ColumnDD(this,N,L,O)}else{c=true}}}for(X=0;X<this._oColumnSet.keys.length;X++){N=this._oColumnSet.keys[X];if(N.resizeable){if(Q){L=N.getThEl();C.addClass(L,D.CLASS_RESIZEABLE);var G=L.firstChild;var F=G.appendChild(document.createElement("div"));F.id=this._sId+"-colresizer"+N.getId();N._elResizer=F;C.addClass(F,D.CLASS_RESIZER);var e=D._initColumnResizerProxyEl();N._ddResizer=new YAHOO.util.ColumnResizer(this,N,L,F.id,e);var W=function(f){E.stopPropagation(f)};E.addListener(F,"click",W)}else{c=true}}}if(c){}}else{}}for(var a=0,Y=this._oColumnSet.keys.length;a<Y;a++){if(this._oColumnSet.keys[a].hidden){var b=this._oColumnSet.keys[a];var S=b.getThEl();b._nLastWidth=S.offsetWidth-(parseInt(C.getStyle(S,"paddingLeft"),10)|0)-(parseInt(C.getStyle(S,"paddingRight"),10)|0);this._setColumnWidth(b.getKeyIndex(),"1px")}}if(B.webkit&&B.webkit<420){var K=this;setTimeout(function(){K._elThead.style.display=""},0);this._elThead.style.display="none"}}})();
 
-var configFrameUrl;
-var configKey;
-var dbIndex;
-var myDataSource;
-var myDataTable;
-var myCallback;	
+var configFrameUrl,
+	configKey,
+	dbIndex,
+	myDataSource,
+	myDataTable,
+	myCallback,	
+	Dom = YAHOO.util.Dom,
+    Event = YAHOO.util.Event,
+    col1 = null,
+    col2 = null,
+    displayHeight,
+    displayWidth,
+    resize,
+    oldWidth = "200px";
 	
 function init() 
 {
-  	//document.getElementById( "mainRight" ).style.visibility = 'collapse';
+    Dom.setStyle( 'expandDiv', 'visibility', 'collapse' );
+    Dom.setStyle( 'mainRight', 'visibility', 'collapse' );
 
+	displayWidth  = Dom.getViewportWidth() - 12;
+	displayHeight = Dom.getViewportHeight() - 10;
+
+
+    Dom.setStyle(  'pg', 'height',  displayHeight + 'px' );
+    Dom.setStyle(  'pg', 'width',  displayWidth + 'px' );
+    Dom.setStyle( "treeFrame", 'height',  (displayHeight - 30) + 'px' );
+    Dom.setStyle( "summary", 'height',  (displayHeight - 30) + 'px' );
+
+    col1 = Dom.get('mainLeft');
+    col2 = Dom.get('mainRight');
+    resize = new YAHOO.util.Resize('mainLeft', {
+            proxy: true,
+            handles: ['r'],
+            maxWidth: displayWidth
+        });
+    resize.on('resize', function(ev) {
+            var w = ev.width;
+            Dom.setStyle(col2, 'height', displayHeight + 'px' );
+            Dom.setStyle(col2, 'width', (displayWidth - w - 20) + 'px');
+            Dom.setStyle( 'summary', 'width', (displayWidth - w - 30) + 'px');
+        });
+
+    resize.resize(null, displayHeight, 200, 0, 0, true);
+    prepareTable();
 
 	//handler for expanding all nodes
-	YAHOO.util.Event.on("expand", "click", function(e) {
+	Event.on("expand", "click", function(e) {
 			treeFrame.tree.expandAll();
 			YAHOO.util.Event.preventDefault(e);
 		});
 		
 	//handler for collapsing all nodes
-	YAHOO.util.Event.on("collapse", "click", function(e) {
+	Event.on("collapse", "click", function(e) {
 			treeFrame.tree.collapseAll();
 			YAHOO.util.Event.preventDefault(e);
 		});
-		
-    var height = 700;
-    if ( parent.tabHeight )
-    	height = parent.tabHeight - 50;
-    document.getElementById( "treeFrame" ).height = height;
-    
-    prepareTable( height );
+
+	//handler for collapseDiv
+	Event.on("collapseDiv", "click", function(e) {
+			oldWidth = Dom.getStyle( col1, 'width' );
+	        resize.resize( null, displayHeight, 1, 0, 0, true);
+            Dom.setStyle( 'expandDiv', 'visibility', 'visible' );
+		});
+
+	//handler for expandDiv
+	Event.on( "expandDiv", "click", function(e) {
+            Dom.setStyle( 'expandDiv', 'visibility', 'collapse' );
+	        resize.resize( null, displayHeight, oldWidth, 0, 0, true);
+		});
+
 }
 	
 	
@@ -92,6 +193,7 @@ function labelClicked( node )
   header += '  <a href="' + fileName + '.py?format=python&configId='+ node.data.key + '&dbIndex=' + node.data.dbIndex + '">py</a></span>';
     
   myDataSource.sendRequest( "configName=" + node.data.fullName, myCallback );
+  Dom.setStyle( 'loadingDiv', 'visibility', 'visible' );
     
   treeReady();
 }
@@ -120,7 +222,7 @@ function showSummary( summary )
 	alert( str );
 }
 	
-function prepareTable( height ) 
+function prepareTable() 
 {
         var myColumnDefs = [
             {key:"trigger", sortable:true },
@@ -163,17 +265,16 @@ function prepareTable( height )
 			};
 		*/
 
-        myDataTable = new YAHOO.widget.DataTable("summary", myColumnDefs, this.myDataSource, {initialLoad:false, scrollable:true, height:"" + height + "px" } );
+        myDataTable = new YAHOO.widget.DataTable("summary", myColumnDefs, this.myDataSource, 
+        	{ renderLoopSize:50, initialLoad:false, scrollable:false, height:"" + (displayHeight - 80) + "px" } );
         
         myCallback = { 
-		    success: myDataTable.onDataReturnInitializeTable,
-		    /*
-		    success: function( oRequest, oResponse, oPayload ) { 
-		    	alert( oResponse.results.length + " rows\n" 
-		    			+ writeProps( oResponse.results[0] ) ); 
+		    //success: myDataTable.onDataReturnInitializeTable,
+		    success: function( oRequest, oResponse, oPayload ) {
+		    	Dom.setStyle( 'loadingDiv', 'visibility', 'collapse' );
 		    	myDataTable.onDataReturnInitializeTable( oRequest, oResponse, oPayload );
 			},
-			*/
+
 			failure: function( oRequest, oResponse, oPayload ) { 
 				alert( "failure:  " + oRequest +  " response = " + writeProps( oResponse ) ); 
 			}, 
@@ -205,23 +306,27 @@ YAHOO.util.Event.onContentReady( "doc3", init );
   String treeUrl = "treeFrame.jsp?db=" + request.getParameter( "db" );
 %>
 
-<div id="doc3" class="yui-gd">
-  <div class="yui-u first">
-    <div id="mainLeft"> 
-      <div class="headerDiv">
+<div id="doc3">
+  <div id="pg">
+    <div class="yui-g" id="pg-yui-g">
+	  <div class="yui-u first" id="mainLeft">
+    	 <div id="headerDiv" class="topDiv">
             <a id="expand" href="#">Expand all</a>
             <a id="collapse" href="#">Collapse all</a>
+         </div>
+         <div style="position:absolute; right:10px; top:2px; z-index:1; cursor:pointer" id="collapseDiv" > &lt; </div>
+         <div style="position:absolute; left2px; top:2px; z-index:2; cursor:pointer" id="expandDiv" > &gt; </div>
+    	 <div id="info"><img src="../img/loading.gif"></div>
+		 <iframe name="treeFrame" id="treeFrame" width="100%" frameborder="0" src="<%= treeUrl%>" ></iframe>
+   	  </div>
+
+      <div class="yui-u" id="mainRight">
+        <div style="position:absolute; right:30px; top:6px; background:white" id="loadingDiv" ><img src="../img/loading.gif"></div>
+        <div id="header" class="topDiv"></div>
+		<div id="summary"></div>
       </div>
-      <div id="info"><img src="../img/loading.gif"></div>
-	  <iframe name="treeFrame" id="treeFrame" width="100%" frameborder="0" src="<%= treeUrl%>" ></iframe>
     </div>
-  </div> 
-  <div class="yui-u">
-    <div id="mainRight">
-      <div id="header"></div>
-	  <div id="summary"></div>
-    </div>
-  </div> 
+  </div>
 </div>
 </body>
 </html>
