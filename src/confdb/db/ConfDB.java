@@ -1062,10 +1062,10 @@ public class ConfDB
 
 	    // insert global psets
 	    insertGlobalPSets(configId,config);
-	    
+
 	    // insert edsource
 	    insertEDSources(configId,config);
-	    
+
 	    // insert essources
 	    insertESSources(configId,config);
 	    
@@ -1089,6 +1089,16 @@ public class ConfDB
 
 	    // insert streams
 	    insertStreams(configId,config);
+
+	    // insert parameter bindings / values
+	    psInsertParameterSet.executeBatch();
+	    psInsertVecParameterSet.executeBatch();
+	    psInsertSuperIdParamAssoc.executeBatch();
+	    psInsertSuperIdParamSetAssoc.executeBatch();
+	    psInsertSuperIdVecParamSetAssoc.executeBatch();
+	    Iterator<PreparedStatement> itPS =
+		insertParameterHashMap.values().iterator();
+	    while (itPS.hasNext()) itPS.next().executeBatch();
 	    
 	    dbConnector.getConnection().commit();
 	}
@@ -1242,7 +1252,7 @@ public class ConfDB
 		try {
 		    psInsertEDSource.setInt(1,edsourceId);
 		    psInsertEDSource.setInt(2,templateId);
-		    psInsertEDSource.executeUpdate();
+		    psInsertEDSource.addBatch();
 		}
 		catch (SQLException e) {
 		    String errMsg =
@@ -1259,7 +1269,7 @@ public class ConfDB
 		psInsertConfigEDSourceAssoc.setInt(1,configId);
 		psInsertConfigEDSourceAssoc.setInt(2,edsourceId);
 		psInsertConfigEDSourceAssoc.setInt(3,sequenceNb);
-		psInsertConfigEDSourceAssoc.executeUpdate();
+		psInsertConfigEDSourceAssoc.addBatch();
 	    }
 	    catch (SQLException e) {
 		String errMsg =
@@ -1268,6 +1278,17 @@ public class ConfDB
 		    e.getMessage();
 		throw new DatabaseException(errMsg,e);   
 	    }
+	}
+	
+	try {
+	    psInsertEDSource.executeBatch();
+	    psInsertConfigEDSourceAssoc.executeBatch();
+	}
+	catch (SQLException e) {
+	    String errMsg =
+		"ConfDB::insertEDSources(configId="+configId+") failed "+
+		"(batch insert):" + e.getMessage();
+	    throw new DatabaseException(errMsg,e);
 	}
     }
     
@@ -1287,7 +1308,7 @@ public class ConfDB
 		    psInsertESSource.setInt(1,essourceId);
 		    psInsertESSource.setInt(2,templateId);
 		    psInsertESSource.setString(3,essource.name());
-		    psInsertESSource.executeUpdate();
+		    psInsertESSource.addBatch();
 		}
 		catch (SQLException e) {
 		    String errMsg =
@@ -1305,7 +1326,7 @@ public class ConfDB
 		psInsertConfigESSourceAssoc.setInt(2,essourceId);
 		psInsertConfigESSourceAssoc.setInt(3,sequenceNb);
 		psInsertConfigESSourceAssoc.setBoolean(4,isPreferred);
-		psInsertConfigESSourceAssoc.executeUpdate();
+		psInsertConfigESSourceAssoc.addBatch();
 	    }
 	    catch (SQLException e) {
 		String errMsg =
@@ -1314,6 +1335,17 @@ public class ConfDB
 		    e.getMessage();
 		throw new DatabaseException(errMsg,e);  
 	    }
+	}
+
+	try {
+	    psInsertESSource.executeBatch();
+	    psInsertConfigESSourceAssoc.executeBatch();
+	}
+	catch (SQLException e) {
+	    String errMsg =
+		"ConfDB::insertESSources(configId="+configId+") failed "+
+		"(batch insert):" + e.getMessage();
+	    throw new DatabaseException(errMsg,e);
 	}
     }
     
@@ -1333,7 +1365,7 @@ public class ConfDB
 		    psInsertESModule.setInt(1,esmoduleId);
 		    psInsertESModule.setInt(2,templateId);
 		    psInsertESModule.setString(3,esmodule.name());
-		    psInsertESModule.executeUpdate();
+		    psInsertESModule.addBatch();
 		}
 		catch (SQLException e) {
 		    String errMsg =
@@ -1351,7 +1383,7 @@ public class ConfDB
 		psInsertConfigESModuleAssoc.setInt(2,esmoduleId);
 		psInsertConfigESModuleAssoc.setInt(3,sequenceNb);
 		psInsertConfigESModuleAssoc.setBoolean(4,isPreferred);
-		psInsertConfigESModuleAssoc.executeUpdate();
+		psInsertConfigESModuleAssoc.addBatch();
 	    }
 	    catch (SQLException e) {
 		String errMsg =
@@ -1360,6 +1392,17 @@ public class ConfDB
 		    e.getMessage();
 		throw new DatabaseException(errMsg,e);
 	    }
+	}
+
+	try {
+	    psInsertESModule.executeBatch();
+	    psInsertConfigESModuleAssoc.executeBatch();
+	}
+	catch (SQLException e) {
+	    String errMsg =
+		"ConfDB::insertESModule(configId="+configId+") failed "+
+		"(batch insert):" + e.getMessage();
+	    throw new DatabaseException(errMsg,e);
 	}
     }
     
@@ -1377,7 +1420,7 @@ public class ConfDB
 		try {
 		    psInsertService.setInt(1,serviceId);
 		    psInsertService.setInt(2,templateId);
-		    psInsertService.executeUpdate();
+		    psInsertService.addBatch();
 		}
 		catch (SQLException e) {
 		    String errMsg =
@@ -1394,7 +1437,7 @@ public class ConfDB
 		psInsertConfigServiceAssoc.setInt(1,configId);
 		psInsertConfigServiceAssoc.setInt(2,serviceId);
 		psInsertConfigServiceAssoc.setInt(3,sequenceNb);
-		psInsertConfigServiceAssoc.executeUpdate();
+		psInsertConfigServiceAssoc.addBatch();
 	    }
 	    catch (SQLException e) {
 		String errMsg =
@@ -1403,6 +1446,17 @@ public class ConfDB
 		    e.getMessage();
 		throw new DatabaseException(errMsg,e);
 	    }
+	}
+
+	try {
+	    psInsertService.executeBatch();
+	    psInsertConfigServiceAssoc.executeBatch();
+	}
+	catch (SQLException e) {
+	    String errMsg =
+		"ConfDB::insertService(configId="+configId+") failed "+
+		"(batch insert):" + e.getMessage();
+	    throw new DatabaseException(errMsg,e);
 	}
     }
     
@@ -3456,7 +3510,7 @@ public class ConfDB
 	    psInsertVecParameterSet.setInt(1,vpsetId);
 	    psInsertVecParameterSet.setString(2,vpset.name());
 	    psInsertVecParameterSet.setBoolean(3,vpset.isTracked());
-	    psInsertVecParameterSet.executeUpdate();
+	    psInsertVecParameterSet.addBatch();
 	    
 	    for (int i=0;i<vpset.parameterSetCount();i++) {
 		PSetParameter pset = vpset.parameterSet(i);
@@ -3488,7 +3542,7 @@ public class ConfDB
 	    psInsertParameterSet.setInt(1,psetId);
 	    psInsertParameterSet.setString(2,pset.name());
 	    psInsertParameterSet.setBoolean(3,pset.isTracked());
-	    psInsertParameterSet.executeUpdate();
+	    psInsertParameterSet.addBatch();
 	    
 	    for (int i=0;i<pset.parameterCount();i++) {
 		Parameter p = pset.parameter(i);
@@ -3553,12 +3607,11 @@ public class ConfDB
     private void insertSuperIdParamAssoc(int superId,int paramId,int sequenceNb)
 	throws DatabaseException
     {
-	ResultSet rs = null;
 	try {
 	    psInsertSuperIdParamAssoc.setInt(1,superId);
 	    psInsertSuperIdParamAssoc.setInt(2,paramId);
 	    psInsertSuperIdParamAssoc.setInt(3,sequenceNb);
-	    psInsertSuperIdParamAssoc.executeUpdate();
+	    psInsertSuperIdParamAssoc.addBatch();
 	}
 	catch (SQLException e) {
 	    String errMsg =
@@ -3567,21 +3620,17 @@ public class ConfDB
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
-	finally {
-	    dbConnector.release(rs);
-	}
     }
     
-    /** associate parameterset with the service/module superid */
+    /** associate pset with the service/module superid */
     private void insertSuperIdParamSetAssoc(int superId,int psetId,int sequenceNb)
 	throws DatabaseException
     {
-	ResultSet rs = null;
 	try {
 	    psInsertSuperIdParamSetAssoc.setInt(1,superId);
 	    psInsertSuperIdParamSetAssoc.setInt(2,psetId);
 	    psInsertSuperIdParamSetAssoc.setInt(3,sequenceNb);
-	    psInsertSuperIdParamSetAssoc.executeUpdate();
+	    psInsertSuperIdParamSetAssoc.addBatch();
 	}
 	catch (SQLException e) {
 	    String errMsg =
@@ -3590,21 +3639,17 @@ public class ConfDB
 		e.getMessage();
  	    throw new DatabaseException(errMsg,e);
 	}
-	finally {
-	    dbConnector.release(rs);
-	}
     }
     
-    /** associate vector<parameterset> with the service/module superid */
+    /** associate vpset with the service/module superid */
     private void insertSuperIdVecParamSetAssoc(int superId,int vpsetId,int sequenceNb)
 	throws DatabaseException
     {
-	ResultSet rs = null;
 	try {
 	    psInsertSuperIdVecParamSetAssoc.setInt(1,superId);
 	    psInsertSuperIdVecParamSetAssoc.setInt(2,vpsetId);
 	    psInsertSuperIdVecParamSetAssoc.setInt(3,sequenceNb);
-	    psInsertSuperIdVecParamSetAssoc.executeUpdate();
+	    psInsertSuperIdVecParamSetAssoc.addBatch();
 	}
 	catch (SQLException e) {
 	    String errMsg =
@@ -3612,9 +3657,6 @@ public class ConfDB
 		",vpsetId="+vpsetId+",sequenceNb="+sequenceNb+") failed: "+
 		e.getMessage();
  	    throw new DatabaseException(errMsg,e);
-	}
-	finally {
-	    dbConnector.release(rs);
 	}
     }
     
@@ -3655,7 +3697,7 @@ public class ConfDB
 			VUInt32Parameter vuint32=(VUInt32Parameter)vp;
 			psInsertParameterValue.setBoolean(4,vuint32.isHex(i));
 		    }
-		    psInsertParameterValue.executeUpdate();
+		    psInsertParameterValue.addBatch();
 		}
 	    }
 	    else {
@@ -3675,7 +3717,7 @@ public class ConfDB
 		    UInt32Parameter uint32=(UInt32Parameter)sp;
 		    psInsertParameterValue.setBoolean(3,uint32.isHex());
 		}
-		psInsertParameterValue.executeUpdate();
+		psInsertParameterValue.addBatch();
 	    }
 	}
 	catch (Exception e) {
@@ -3694,7 +3736,7 @@ public class ConfDB
 	try {
 	    psInsertSuperIdReleaseAssoc.setInt(1,superId);
 	    psInsertSuperIdReleaseAssoc.setInt(2,releaseId);
-	    psInsertSuperIdReleaseAssoc.executeUpdate();;
+	    psInsertSuperIdReleaseAssoc.executeUpdate();
 	}
 	catch (SQLException e) {
 	    String errMsg =
