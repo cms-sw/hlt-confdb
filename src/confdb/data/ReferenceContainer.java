@@ -350,7 +350,8 @@ abstract public class ReferenceContainer extends    DatabaseEntry
  
 
     /** add all Path entries to 'paths' array (recursively) */
-    private void getPathsAmongEntries(Iterator<Reference> itEntry,ArrayList<Path> paths)
+    private void getPathsAmongEntries(Iterator<Reference> itEntry,
+				      ArrayList<Path> paths)
     {
 	while (itEntry.hasNext()) {
 	    Reference entry = itEntry.next();

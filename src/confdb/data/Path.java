@@ -41,6 +41,30 @@ public class Path extends ReferenceContainer
     // member functions
     //
 
+    /** set the name of the path; check 'SelectEvents' of OutputModules */
+    public void setName(String name) throws DataException
+    {
+	String oldName = name();
+	super.setName(name);
+	if (config!=null) {
+	    Iterator<ModuleInstance> itM = config.moduleIterator();
+	    while (itM.hasNext()) {
+		ModuleInstance module = itM.next();
+		if (!module.template().type().equals("OutputModule")) continue;
+		Parameter[] tmp=module.findParameters("SelectEvents::SelectEvents");
+		if (tmp.length!=1) continue;
+		VStringParameter selEvts = (VStringParameter)tmp[0];
+		for (int i=0;i<selEvts.vectorSize();i++) {
+		    String iAsString = (String)selEvts.value(i);
+		    if (iAsString.equals(oldName)) {
+			selEvts.setValue(i,name);
+			module.setHasChanged();
+		    }
+		}
+	    }
+	}
+    }
+
     /** chek if this path contains an output module */
     public boolean isEndPath()
     {

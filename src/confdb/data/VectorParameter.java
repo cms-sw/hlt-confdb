@@ -32,6 +32,9 @@ abstract public class VectorParameter extends Parameter
     /** set i-th value of a vector-type parameter */
     abstract public boolean setValue(int i,String valueAsString);
 
+    /** remove i-th value from vector type parameter */
+    abstract public Object removeValue(int i);
+    
     
     //
     // member functions

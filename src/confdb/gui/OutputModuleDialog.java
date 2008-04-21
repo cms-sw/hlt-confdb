@@ -43,6 +43,7 @@ public class OutputModuleDialog extends JDialog
     private JComboBox   jComboBoxOutputModule = new javax.swing.JComboBox();
     private JComboBox   jComboBoxAddPaths     = new javax.swing.JComboBox();
     private JList       jListPaths            = new javax.swing.JList();
+    private JCheckBox   jCheckBoxKeepRaw      = new javax.swing.JCheckBox();
     private JTextField  jTextFieldSearch      = new javax.swing.JTextField();
     private JTable      jTableProducts        = new javax.swing.JTable();
     private JButton     jButtonCancel         = new javax.swing.JButton();
@@ -163,7 +164,10 @@ public class OutputModuleDialog extends JDialog
 	
 	if (vsSelectEvents==null||vsSelectEvents.vectorSize()==0) {
 	    Iterator<Path> itP=config.pathIterator();
-	    while (itP.hasNext()) lmPaths.addElement(itP.next().name());
+	    while (itP.hasNext()) {
+		Path p = itP.next();
+		if (!p.isEndPath()) lmPaths.addElement(p.name());
+	    }
 	}
 	else {
 	    for (int i=0;i<vsSelectEvents.vectorSize();i++) {
@@ -260,7 +264,6 @@ public class OutputModuleDialog extends JDialog
 	     i<=lsmPaths.getMaxSelectionIndex();i++) {
 	    if (lsmPaths.isSelectedIndex(i)) {
 		actionCommand.append((String)lmPaths.elementAt(i)).append(" ");
-		System.out.println(lmPaths.elementAt(i));
 	    }
 	}
 	menuItem.setActionCommand(actionCommand.toString());
@@ -374,6 +377,8 @@ public class OutputModuleDialog extends JDialog
     /** parse 'outputCommands' parameter and set 'keep'/'instances' values */
     private void parseOutputCommands()
     {
+	jCheckBoxKeepRaw.setSelected(false);
+
 	VStringParameter vOutputCommands =
 	    (VStringParameter)outputModule.parameter("outputCommands","vstring");
 	for (int i=0;i<vOutputCommands.vectorSize();i++) {
@@ -387,9 +392,14 @@ public class OutputModuleDialog extends JDialog
 	    String instanceName = b[2];
 	    //String processName  = b[3];
 	    
+	    if (className.equals("FEDRawDataCollection")) {
+		jCheckBoxKeepRaw.setSelected(true);
+		continue;
+	    }
+	    
 	    Product prod = products.get(moduleName);
 	    if (prod==null) {
-		System.out.println("unknown product '"+moduleName+"'");
+		System.err.println("unknown product '"+moduleName+"'");
 	    }
 	    else {
 		prod.keep = true;
@@ -411,9 +421,12 @@ public class OutputModuleDialog extends JDialog
     private void setParameters()
     {
 	StringBuffer outputCommandsAsString = new StringBuffer();
-	outputCommandsAsString
-	    .append("drop *").append(",")
-	    .append("keep FEDRawDataCollection_*_*_*"); // TODO
+	outputCommandsAsString.append("drop *");
+
+	if (jCheckBoxKeepRaw.isSelected())
+	    outputCommandsAsString
+		.append(",").append("keep FEDRawDataCollection_*_*_*");
+
 	Iterator<Product> itP = products.values().iterator();
 	while (itP.hasNext()) {
 	    Product p = itP.next();
@@ -456,7 +469,7 @@ public class OutputModuleDialog extends JDialog
 	JPanel jPanel = new JPanel();
 	
         JLabel      jLabel1 = new javax.swing.JLabel();
-        JLabel      jLabel3 = new javax.swing.JLabel();
+        JButton     jLabel3 = new javax.swing.JButton();
         JLabel      jLabel4 = new javax.swing.JLabel();
         JLabel      jLabel5 = new javax.swing.JLabel();
         JLabel      jLabel6 = new javax.swing.JLabel();
@@ -476,29 +489,33 @@ public class OutputModuleDialog extends JDialog
         jLabel5.setFont(new java.awt.Font("Dialog", 1, 16));
         jLabel5.setText("Selected Paths:");
 
+        jCheckBoxKeepRaw.setFont(new java.awt.Font("Dialog", 1, 12));
+        jCheckBoxKeepRaw.setText("keep FEDRawDataCollection");
+	
+
         org.jdesktop.layout.GroupLayout jPanelPathsLayout = new org.jdesktop.layout.GroupLayout(jPanelPaths);
         jPanelPaths.setLayout(jPanelPathsLayout);
         jPanelPathsLayout.setHorizontalGroup(
-            jPanelPathsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jPanelPathsLayout.createSequentialGroup()
-                .add(jLabel5)
-                .addContainerGap())
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanelPathsLayout.createSequentialGroup()
-                .addContainerGap()
-                .add(jComboBoxAddPaths, 0, 255, Short.MAX_VALUE)
-                .addContainerGap())
-            .add(jScrollPanePaths, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 279, Short.MAX_VALUE)
-        );
+					     jPanelPathsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+					     .add(jPanelPathsLayout.createSequentialGroup()
+						  .add(jLabel5)
+						  .addContainerGap())
+					     .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanelPathsLayout.createSequentialGroup()
+						  .addContainerGap()
+						  .add(jComboBoxAddPaths, 0, 255, Short.MAX_VALUE)
+						  .addContainerGap())
+					     .add(jScrollPanePaths, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 279, Short.MAX_VALUE)
+					     );
         jPanelPathsLayout.setVerticalGroup(
-            jPanelPathsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jPanelPathsLayout.createSequentialGroup()
-                .add(12, 12, 12)
-                .add(jLabel5)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jComboBoxAddPaths, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jScrollPanePaths, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 523, Short.MAX_VALUE))
-        );
+					   jPanelPathsLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+					   .add(jPanelPathsLayout.createSequentialGroup()
+						.add(12, 12, 12)
+						.add(jLabel5)
+						.addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						.add(jComboBoxAddPaths, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+						.addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						.add(jScrollPanePaths, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 523, Short.MAX_VALUE))
+					   );
 
         jSplitPane.setLeftComponent(jPanelPaths);
 
@@ -515,84 +532,87 @@ public class OutputModuleDialog extends JDialog
         org.jdesktop.layout.GroupLayout jPanelModulesLayout = new org.jdesktop.layout.GroupLayout(jPanelModules);
         jPanelModules.setLayout(jPanelModulesLayout);
         jPanelModulesLayout.setHorizontalGroup(
-            jPanelModulesLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jPanelModulesLayout.createSequentialGroup()
-                .add(6, 6, 6)
-                .add(jLabel4)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
-                .add(jTextFieldSearch, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 363, Short.MAX_VALUE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jLabel3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 16, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-            .add(jScrollPaneModules, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 470, Short.MAX_VALUE)
-            .add(jPanelModulesLayout.createSequentialGroup()
-                .add(jLabel6)
-                .addContainerGap())
-        );
+					       jPanelModulesLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+					       .add(jLabel6)
+					       .add(jPanelModulesLayout.createSequentialGroup()
+						    .add(6, 6, 6)
+						    .add(jLabel4)
+						    .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
+						    .add(jTextFieldSearch, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 329, Short.MAX_VALUE)
+						    .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						    .add(jLabel3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 16, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+						    .add(40, 40, 40)
+						    .add(jCheckBoxKeepRaw))
+					       .add(jScrollPaneModules, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 665, Short.MAX_VALUE)
+					       );
         jPanelModulesLayout.setVerticalGroup(
-            jPanelModulesLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanelModulesLayout.createSequentialGroup()
-                .addContainerGap()
-                .add(jLabel6)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jPanelModulesLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jLabel4)
-                    .add(jTextFieldSearch, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 23, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(jLabel3))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jScrollPaneModules, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 523, Short.MAX_VALUE))
-        );
+					     jPanelModulesLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+					     .add(jPanelModulesLayout.createSequentialGroup()
+						  .addContainerGap()
+						  .add(jLabel6)
+						  .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						  .add(jPanelModulesLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+						       .add(jLabel4)
+						       .add(jCheckBoxKeepRaw)
+						       .add(jLabel3)
+						       .add(jTextFieldSearch, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 23, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+						  .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						  .add(jScrollPaneModules, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 553, Short.MAX_VALUE))
+					     );
+	
+	jSplitPane.setRightComponent(jPanelModules);
+	
+	jLabel1.setFont(new java.awt.Font("Dialog", 1, 12));
+	jLabel1.setText("OutputModule:");
+    
+	jComboBoxOutputModule.setBackground(new java.awt.Color(255, 255, 255));
+    
+	jButtonCancel.setText("Cancel");
+	jButtonOK.setText("OK");
+	jButtonApply.setText("Apply");
+    
+	org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanel);
+	jPanel.setLayout(layout);
+	layout.setHorizontalGroup(
+				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				  .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+				       .addContainerGap()
+				       .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+					    .add(org.jdesktop.layout.GroupLayout.LEADING, jSplitPane,
+						 org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 761, Short.MAX_VALUE)
+					    .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
+						 .add(jLabel1)
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(jComboBoxOutputModule, 0, 656, Short.MAX_VALUE))
+					    .add(layout.createSequentialGroup()
+						 .add(jButtonCancel)
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(jButtonApply)
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(jButtonOK)))
+				       .addContainerGap())
+				  );
+    
+	layout.linkSize(new java.awt.Component[] {jButtonApply, jButtonCancel, jButtonOK}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
 
-        jSplitPane.setRightComponent(jPanelModules);
-
-        jLabel1.setFont(new java.awt.Font("Dialog", 1, 12));
-        jLabel1.setText("OutputModule:");
-
-        jComboBoxOutputModule.setBackground(new java.awt.Color(255, 255, 255));
-
-        jButtonCancel.setText("Cancel");
-        jButtonOK.setText("OK");
-        jButtonApply.setText("Apply");
-
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanel);
-        jPanel.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, jSplitPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 761, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
-                        .add(jLabel1)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(jComboBoxOutputModule, 0, 656, Short.MAX_VALUE))
-                    .add(layout.createSequentialGroup()
-                        .add(jButtonCancel)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(jButtonApply)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(jButtonOK)))
-                .addContainerGap())
-        );
-
-        layout.linkSize(new java.awt.Component[] {jButtonApply, jButtonCancel, jButtonOK}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
-
-        layout.setVerticalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .addContainerGap()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jLabel1)
-                    .add(jComboBoxOutputModule, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jSplitPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 592, Short.MAX_VALUE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jButtonOK)
-                    .add(jButtonApply)
-                    .add(jButtonCancel))
-                .addContainerGap())
-	    );
+	layout.setVerticalGroup(
+				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				.add(layout.createSequentialGroup()
+				     .addContainerGap()
+				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+					  .add(jLabel1)
+					  .add(jComboBoxOutputModule, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE,
+					       org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,
+					       org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+				     .add(jSplitPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 592, Short.MAX_VALUE)
+				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+					  .add(jButtonOK)
+					  .add(jButtonApply)
+					  .add(jButtonCancel))
+				     .addContainerGap())
+				);
 	return jPanel;
     }
 }

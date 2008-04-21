@@ -109,18 +109,6 @@ public class VStringParameter extends VectorParameter
 				   sb.toString());
 	    if (sb.length()>0) values.add(stripDelimiters(sb.toString()));
 	    
-	    /*
-	      String[] strValues = valueAsString.split(",");
-	      for (int i=0;i<strValues.length;i++) {
-	      String s = strValues[i];
-	      while (s.startsWith(" ")) s = s.substring(1,s.length());
-	      while (s.endsWith(" "))   s = s.substring(0,s.length()-1);
-	      if ((s.startsWith("'")&&s.endsWith("'"))||
-	      (s.startsWith("\"")&&s.endsWith("\"")))
-	      s = s.substring(1,s.length()-1);
-	      values.add(s);
-	    */
-	    
 	    isValueSet = true;
 	}
 	return true;
@@ -142,7 +130,14 @@ public class VStringParameter extends VectorParameter
 	    values.set(i,new String(valueAsString));
 	return true;
     }
-    
+
+    /** remove i-th value from vector type parameter */
+    public Object removeValue(int i)
+    {
+	Object result = values.remove(i);
+	isValueSet = (values.size()>0);
+	return result;
+    }
 
     /** strip string-delimiters and whitespaces */
     private String stripDelimiters(String valueAsString)
@@ -155,4 +150,8 @@ public class VStringParameter extends VectorParameter
 	    s = s.substring(1,s.length()-1);
 	return s;
     }
+
+
+    
+
 }

@@ -1,3 +1,10 @@
+2008-04-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-22-08
+	* speed-up configuration saving (still minutes from offside
+	though)
+	* propagate path manipulations to OutputModules
+
 2008-04-16  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-22-07

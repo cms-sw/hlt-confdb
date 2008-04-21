@@ -153,5 +153,13 @@ public class VUInt32Parameter extends VectorParameter
 	}
 	return true;
     }
+
+    /** remove i-th value from vector type parameter */
+    public Object removeValue(int i)
+    {
+	Object result = values.remove(i);
+	isValueSet = (values.size()>0);
+	return result;
+    }
  
 }
