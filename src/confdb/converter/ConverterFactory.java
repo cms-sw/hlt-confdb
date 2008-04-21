@@ -6,24 +6,13 @@ public class ConverterFactory
 	static private final String thisPackage = ConverterFactory.class.getPackage().getName();
 
 	private String writerPackage = "";
-	private String outputFormat = "Ascii";
+	private String subPackage = "ascii";
+	private String classHeader = "Ascii";
 	
 
 	static public ConverterEngine getConverterEngine( String typeOfConverter ) throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
-		String outputFormat = "Ascii";
-		
-		if ( typeOfConverter != null )
-		{
-			char[] type = typeOfConverter.toLowerCase().toCharArray();
-			type[0] = Character.toUpperCase( type[0] );
-			outputFormat = new String( type );
-			if (    !outputFormat.equals( "Ascii") 
-				 && !outputFormat.equals( "Html")
-			     && !outputFormat.equals( "Python")  ) 
-				return null;
-		}
-		return new ConverterFactory( outputFormat ).getConverterEngine();
+		return new ConverterFactory( typeOfConverter ).getConverterEngine();
 	}
 	
 	
@@ -31,21 +20,19 @@ public class ConverterFactory
 	{
 		if ( typeOfConverter != null )
 		{
-			char[] type = typeOfConverter.toLowerCase().toCharArray();
-			type[0] = Character.toUpperCase( type[0] );
-			outputFormat = new String( type );
-			if (    !outputFormat.equals( "Ascii") 
-				 && !outputFormat.equals( "Html")
-			     && !outputFormat.equals( "Python")  ) 
-				return;
+			subPackage = typeOfConverter.toLowerCase();
+			classHeader = subPackage;
+			if ( typeOfConverter.indexOf( '.' ) != -1 )
+				classHeader = typeOfConverter.substring( typeOfConverter.lastIndexOf( '.' ) + 1 );
+			classHeader = classHeader.substring( 0, 1 ).toUpperCase() + classHeader.substring( 1 );
 		}
 	}
 	
 	
 	public ConverterEngine getConverterEngine() throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
-		writerPackage = thisPackage + "." + outputFormat.toLowerCase();
-		ConverterEngine converterEngine = new ConverterEngine( outputFormat );
+		writerPackage = thisPackage + "." + subPackage;
+		ConverterEngine converterEngine = new ConverterEngine( subPackage );
 		converterEngine.setConfigurationWriter( getConfigurationWriter() );
 		converterEngine.setParameterWriter( getParameterWriter() );
 
@@ -118,7 +105,7 @@ public class ConverterFactory
 	
 	private Object getWriter( String type ) throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
-		String className = writerPackage + "." + outputFormat + type;
+		String className = writerPackage + "." + classHeader + type;
 		Class<?> c = Class.forName( className );
 		return c.newInstance();
 	}
