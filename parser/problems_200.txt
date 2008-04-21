@@ -260,7 +260,7 @@ CkfTrajectoryMaker.Parameter trackCandidateAlso bool true tracked
 CkfTrajectoryMaker.Parameter doSeedingRegionRebuilding bool false tracked
 
 
-Module EDProducer EcalRawToRecHit EventFilter EcalRawToDigi
+Module EDProducer EcalRawToRecHitRoI EventFilter EcalRawToDigi
 EcalRawToRecHit.Parameter JetJobPSet VPSet tracked
 EcalRawToRecHit.Parameter EmJobPSet VPSet tracked
 EcalRawToRecHit.Parameter CandJobPSet VPSet tracked
