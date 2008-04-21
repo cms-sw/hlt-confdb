@@ -75,6 +75,12 @@ public class Diff
     // member functions
     //
     
+    /** get old configuration identifier */
+    public String configName1() { return config1.toString(); }
+    
+    /** get new configuration identifier */
+    public String configName2() { return config2.toString(); }
+
     /** compare the two configurations and store all non-identical comparisons */
     public void compare()
     {
@@ -279,11 +285,11 @@ public class Diff
 	    Comparison c = compareContainers(pold,pnew);
 	    if (!c.isIdentical()) {
 		paths.add(c);
-		Iterator<Comparison> it = c.comparisonIterator();
+		Iterator<Comparison> it = c.recursiveComparisonIterator();
 		while (it.hasNext()) {
 		    Comparison cc = it.next();
-		    if (cc instanceof ContainerComparison) sequences.add(cc);
-		    else modules.add(cc);
+		    if      (cc instanceof ContainerComparison) sequences.add(cc);
+		    else if (cc instanceof InstanceComparison)  modules.add(cc);
 		}
 	    }
 	}
@@ -293,11 +299,11 @@ public class Diff
 	    Comparison c = compareContainers(sold,snew);
 	    if (!c.isIdentical()) {
 		sequences.add(c);
-		Iterator<Comparison> it = c.comparisonIterator();
+		Iterator<Comparison> it = c.recursiveComparisonIterator();
 		while (it.hasNext()) {
 		    Comparison cc = it.next();
-		    if (cc instanceof ContainerComparison) sequences.add(cc);
-		    else modules.add(cc);
+		    if      (cc instanceof ContainerComparison) sequences.add(cc);
+		    else if (cc instanceof InstanceComparison)  modules.add(cc);
 		}
 	    }
 	}
@@ -315,6 +321,16 @@ public class Diff
 	}
     }
     
+    
+    /** check if there are any differences at all */
+    public boolean isIdentical()
+    {
+	return (psetCount()    ==0&&edsourceCount()==0&&essourceCount()==0&&
+		esmoduleCount()==0&&serviceCount() ==0&&pathCount()    ==0&&
+		sequenceCount()==0&&moduleCount()  ==0&&streamCount()  ==0&&
+		datasetCount() ==0);
+    }
+
     
     /** number of psets */
     public int psetCount() { return psets.size(); }

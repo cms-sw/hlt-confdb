@@ -70,6 +70,9 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     /** get the name of the container */
     public String name() { return name; }
     
+    /** get parent configuration */
+    public IConfiguration config() { return this.config; }
+
     /** override DatabaseEntry.hasChanged, check on entries! */
     public boolean hasChanged()
     {

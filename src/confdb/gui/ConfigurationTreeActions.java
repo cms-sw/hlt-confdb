@@ -7,6 +7,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import confdb.diff.Diff;
 import confdb.data.*;
 
 /**
@@ -614,6 +615,15 @@ public class ConfigurationTreeActions
 	if (importContainerEntries(config,model,external,container))
 	    container.setDatabaseId(external.databaseId());
 	model.updateLevel1Nodes();
+	
+	Diff diff = new Diff(external.config(),config);
+	String search = type+":"+container.name();
+	diff.compare(search);
+	if (!diff.isIdentical()) {
+	    DiffDialog dlg = new DiffDialog(diff);
+	    dlg.pack();
+	    dlg.setVisible(true);
+	}
 	
 	return true;
     }

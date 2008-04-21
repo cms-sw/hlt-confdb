@@ -1,5 +1,10 @@
 2008-04-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-22-09
+	* gui: provide diff of paths/sequences upon import.
+
+2008-04-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-22-08
 	* speed-up configuration saving (still minutes from offside
 	though)

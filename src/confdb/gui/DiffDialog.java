@@ -96,6 +96,43 @@ public class DiffDialog extends JDialog
 	    });
     }
     
+    /** constructor with diff object */
+    public DiffDialog(Diff diff)
+    {
+	//super(true);
+	setTitle("Compare Configurations");
+	
+	// initialize tree
+	treeModel = new DiffTreeModel();
+	jTreeDiff = new JTree(treeModel);
+	jTreeDiff.setRootVisible(false);
+	jTreeDiff.setEditable(false);
+	jTreeDiff.getSelectionModel()
+	    .setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+	jTreeDiff.setCellRenderer(new DiffTreeRenderer());
+	
+	setContentPane(initComponents());
+	
+	// register listeners
+	jButtonLoadNewConfig.setEnabled(false);
+	jButtonLoadOldConfig.setEnabled(false);
+	jComboBoxOldConfig.setEnabled(false);
+	jButtonClose.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonCloseActionPerformed(e);
+		}
+	    });
+	
+	treeModel.setDiff(diff);
+	for (int i=jTreeDiff.getRowCount()-1;i>=0;i--) jTreeDiff.expandRow(i);
+	jEditorPaneDiff.setText(diff.printAll());
+	
+	jTextFieldNewConfig.setText(diff.configName2());
+	DefaultComboBoxModel m=(DefaultComboBoxModel)jComboBoxOldConfig.getModel();
+	m.removeAllElements();
+	m.addElement(diff.configName1());
+    }
+    
 
     //
     // member functions
