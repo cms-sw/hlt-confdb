@@ -11,19 +11,19 @@ public class JsonWriter
 
 	protected void closeObject()
 	{
-		str.append( '}' );
+		str.append( "}," );
 	}
 
 	protected void add( String key, String value )
 	{
 		str.append( '"' + key + '"' + ':' );
-		str.append( '"' + value + '"' );
+		str.append( '"' + value + "\"," );
 	}
 
 	protected void add( String key, double value )
 	{
 		str.append( '"' + key + '"' + ':' );
-		str.append( value );
+		str.append( value + "," );
 	}
 
 	protected void startArray( String name )
