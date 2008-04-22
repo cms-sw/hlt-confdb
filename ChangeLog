@@ -1,5 +1,10 @@
 2008-04-22  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-22-13
+	* diff: fix to initDatabase()
+
+2008-04-22  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-22-12
 	* converter: fix to BrowserConverter
 

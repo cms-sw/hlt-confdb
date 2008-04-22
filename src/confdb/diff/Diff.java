@@ -793,9 +793,9 @@ public class Diff
 	database = new ConfDB();
 	String url =
 	    "jdbc:oracle:thin:@//"+
-	    "int9r2-v.cern.ch:10121/int9r_lb.cern.ch";
+	    "cmsr1-v.cern.ch:10121/cms_cond.cern.ch";
 	try {
-	    database.connect("oracle",url,"cms_hlt_reader","convertme!");
+	    database.connect("oracle",url,"cms_hltdev_reader","convertme!");
 	}
 	catch (DatabaseException e) {
 	    String errMsg = "Diff::initDatabase() failed: "+e.getMessage();
