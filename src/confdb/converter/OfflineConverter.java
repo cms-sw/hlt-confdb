@@ -73,24 +73,45 @@ public class OfflineConverter extends ConverterBase
     
     /** retrieve the configuration string for an IConfiguration object */
     public String getConfigString(IConfiguration config,
-				  ModifierInstructions modifications,
-				  boolean asFragment)
-	throws ConverterException
-    {
-	ConfigurationModifier modifier = new ConfigurationModifier(config);
-	
-	modifier.modify(modifications);
-	addPSetForStreams(modifier);
-	addPSetForDatasets(modifier);
-	
-	if (asFragment)
-	    return getConverterEngine()
-		.getConfigurationWriter().toString(modifier,WriteProcess.NO);
-	else
-	    return getConverterEngine()
-		.getConfigurationWriter().toString(modifier,WriteProcess.YES);
-    }
-    
+			  ModifierInstructions modifications,
+			  boolean asFragment) throws ConverterException
+	{
+    	return getConfigString(config, null, modifications, asFragment);
+	}
+
+    public String getConfigString(IConfiguration config,
+			  String format,
+			  ModifierInstructions modifications,
+			  boolean asFragment)  throws ConverterException
+	{
+    	ConfigurationModifier modifier = new ConfigurationModifier(config);
+
+    	modifier.modify(modifications);
+    	addPSetForStreams(modifier);
+    	addPSetForDatasets(modifier);
+
+    	ConverterEngine engine = getConverterEngine();
+    	if ( format != null )
+			try {
+				engine = ConverterFactory.getConverterEngine( format );
+			} catch (Exception e) {
+				throw new ConverterException( "can't get ConverterEngine", e );
+			}
+    	if (asFragment)
+    		return engine.getConfigurationWriter().toString(modifier,WriteProcess.NO);
+    	else
+    		return engine.getConfigurationWriter().toString(modifier,WriteProcess.YES);
+	}
+
+    public String getConfigString(int configId,
+			  String format,
+			  ModifierInstructions modifications,
+			  boolean asFragment) throws ConverterException
+	{
+    	IConfiguration config = getConfiguration( configId );
+    	return getConfigString( config, format, modifications, asFragment );
+	}
+
     
     //
     // private memeber functions
