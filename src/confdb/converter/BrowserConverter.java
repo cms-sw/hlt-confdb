@@ -7,15 +7,10 @@ import java.util.Map;
 import java.util.Set;
 
 import confdb.converter.ConverterBase;
-import confdb.converter.ConverterEngine;
 import confdb.converter.ConverterException;
-import confdb.converter.ConverterFactory;
 import confdb.converter.DbProperties;
 import confdb.converter.OfflineConverter;
-import confdb.converter.IConfigurationWriter.WriteProcess;
-import confdb.data.ConfigurationModifier;
 import confdb.data.IConfiguration;
-import confdb.data.ModifierInstructions;
 import confdb.db.ConfDB;
 import confdb.db.ConfDBSetups;
 
@@ -29,31 +24,6 @@ public class BrowserConverter extends OfflineConverter
     	super( "HTML", dbType, dbUrl, dbUser, dbPwrd );	
     }
     
-    public String getConfigString(int configId,
-				  String format,
-				  ModifierInstructions modifications,
-				  boolean asFragment)
-	throws ConverterException,
-	       ClassNotFoundException,
-	       InstantiationException,
-	       IllegalAccessException
-    {
-    	IConfiguration config = getConfiguration( configId );
-    	if ( modifications != null )
-    	{
-    		ConfigurationModifier modifier = new ConfigurationModifier(config);
-    		modifier.modify(modifications);
-    		config = modifier;
-    	}
-    	ConverterEngine engine = ConverterFactory.getConverterEngine( format );
-    	if ( asFragment )
-    		return engine.getConfigurationWriter().toString( config,
-							    WriteProcess.NO);
-    	else
-    		return engine.getConfigurationWriter().toString( config,
-							    WriteProcess.YES);
-    }
-
 	
 	protected void finalize() throws Throwable
 	{
