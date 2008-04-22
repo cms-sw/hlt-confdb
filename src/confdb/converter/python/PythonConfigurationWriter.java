@@ -13,6 +13,7 @@ import confdb.converter.IParameterWriter;
 import confdb.converter.IPathWriter;
 import confdb.converter.ISequenceWriter;
 import confdb.converter.IServiceWriter;
+import confdb.data.Block;
 import confdb.data.ESPreferable;
 import confdb.data.IConfiguration;
 import confdb.data.EDSourceInstance;
@@ -154,6 +155,20 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 				str.append( pathWriter.toString( path, converterEngine, object ) );
 			}
 			str.append( "\n");
+		}
+
+		IParameterWriter parameterWriter = converterEngine.getParameterWriter();
+		Iterator<Block> blockIterator = conf.blockIterator();
+		while ( blockIterator.hasNext() )
+		{
+			Block block = blockIterator.next();
+			str.append( block.name() + " = cms.PSet(\n" );
+			Iterator<Parameter> parameterIterator = block.parameterIterator();
+			while ( parameterIterator.hasNext() )
+			{
+				str.append( parameterWriter.toString( parameterIterator.next(), converterEngine, indent ) );
+			}
+			str.append( ")\n" );
 		}
 
 		return str.toString();
