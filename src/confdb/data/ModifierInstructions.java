@@ -53,7 +53,7 @@ public class ModifierInstructions
     private boolean filterAllOutputModules = false;
     private ArrayList<String> pathBlackList = new ArrayList<String>();
     private ArrayList<String> pathWhiteList = new ArrayList<String>();
-
+    
     /** sequences requested regardless of being referenced in requested paths */
     private ArrayList<String> requestedSequences = new ArrayList<String>();
 
@@ -65,6 +65,9 @@ public class ModifierInstructions
     
     /** modules to be properly referenced but *not* defined */
     private ArrayList<String> undefinedModules = new ArrayList<String>();
+
+    /** blocks to be defined, regardless of the instance being filtered! */
+    private ArrayList<String> blocks = new ArrayList<String>();
 
     /** template for the EDSource to be substituted (if any) */
     private EDSourceTemplate edsourceT = null;
@@ -230,6 +233,12 @@ public class ModifierInstructions
 	value = args.remove("output");
 	if (value!=null) {
 	    insertPoolOutputModule(value);
+	}
+	
+	value = args.remove("blocks");
+	if (value!=null) {
+	    String[] tmp = value.split(",");
+	    for (String s : tmp) blocks.add(s);
 	}
 	
 	if (args.size()>0)
@@ -601,6 +610,9 @@ public class ModifierInstructions
     {
 	return requestedModules.iterator();
     }
+    
+    /** get iterator over requested blocks */
+    public Iterator<String> blockIterator() { return blocks.iterator(); }
     
     /** filter all plugins of a certain type */
     public void filterAll(Class<?> c, boolean filter)

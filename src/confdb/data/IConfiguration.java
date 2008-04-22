@@ -78,6 +78,10 @@ public interface IConfiguration
     /** number of paths unassigned to any stream */
     public int pathNotAssignedToStreamCount();
     
+    
+    /** get instance by label, regardless of type */
+    public Instance instance(String label);
+
 
     /**  number of global PSets */
     public int psetCount();
@@ -242,5 +246,11 @@ public interface IConfiguration
     
     /** retrieve primary dataset iterator */
     public Iterator<PrimaryDataset> datasetIterator();
+
+
+    /** retrieve block iterator */
+    public Iterator<Block> blockIterator();
     
+
+
 }

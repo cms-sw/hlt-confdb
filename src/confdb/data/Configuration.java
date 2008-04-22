@@ -57,6 +57,9 @@ public class Configuration implements IConfiguration
     /** list of primary datasets */
     private ArrayList<PrimaryDataset>   datasets = null;
 
+    /** list of blocks (always empty for Configuration!) */
+    private ArrayList<Block>            blocks = new ArrayList<Block>();
+    
 
     //
     // construction
@@ -465,6 +468,24 @@ public class Configuration implements IConfiguration
 	return result;
     }
 
+
+    /** retrieve instance by label regardless of type */
+    public Instance instance(String label) {
+	Instance result = null;
+	result = edsource(label);
+	if (result!=null) return result;
+	result = essource(label);
+	if (result!=null) return result;
+	result = esmodule(label);
+	if (result!=null) return result;
+	result = service(label);
+	if (result!=null) return result;
+	result = module(label);
+	if (result!=null) return result;
+	System.err.println("Configuration::instance(): can't find '"+label+"'");
+	return null;
+    }
+    
 
     //
     // PSets
@@ -1188,4 +1209,11 @@ public class Configuration implements IConfiguration
     /** sort primary datasets */
     public void sortDatasets() { Collections.sort(datasets); hasChanged=true; }
     
+
+    //
+    // Blocks
+    //
+
+    /** retrieve block iterator */
+    public Iterator<Block> blockIterator() { return blocks.iterator(); }
 }

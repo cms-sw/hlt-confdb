@@ -33,6 +33,7 @@ public class ConfigurationModifier implements IConfiguration
     private ArrayList<ModuleInstance>   modules  =new ArrayList<ModuleInstance>();
     private ArrayList<Path>             paths    =new ArrayList<Path>();
     private ArrayList<Sequence>         sequences=new ArrayList<Sequence>();
+    private ArrayList<Block>            blocks   =new ArrayList<Block>();
     
     /** internal instructions */
     private ModifierInstructions modifications = new ModifierInstructions();
@@ -110,6 +111,7 @@ public class ConfigurationModifier implements IConfiguration
 	modules.clear();
 	paths.clear();
 	sequences.clear();
+	blocks.clear();
 	
 	if (!modifications.resolve(master)) return;
 	
@@ -247,6 +249,15 @@ public class ConfigurationModifier implements IConfiguration
 		modules.add(module);
 	}
 	
+	Iterator<String> itB = modifications.blockIterator();
+	while (itB.hasNext()) {
+	    String[] a = itB.next().split("::");
+	    String   instanceName = a[0];
+	    String[] paramNames = a[1].split(":");
+	    Instance instance = master.instance(instanceName);
+	    if (instance!=null) blocks.add(new Block(instance,paramNames));
+	}
+	
 	isModified = true;
     }
 
@@ -300,6 +311,7 @@ public class ConfigurationModifier implements IConfiguration
 	modules.clear();
 	paths.clear();
 	sequences.clear();
+	blocks.clear();
 	
 	isModified = false;
     }
@@ -440,6 +452,24 @@ public class ConfigurationModifier implements IConfiguration
 	if (streamCount()==0) return result;
 	for (Path p : paths) if (p.streamCount()==0) result++;
 	return result;
+    }
+
+    /** retrieve instance by label regardless of type */
+    public Instance instance(String label) {
+	Instance result = null;
+	result = edsource(label);
+	if (result!=null) return result;
+	result = essource(label);
+	if (result!=null) return result;
+	result = esmodule(label);
+	if (result!=null) return result;
+	result = service(label);
+	if (result!=null) return result;
+	result = module(label);
+	if (result!=null) return result;
+	System.err.println("ConfigurationModifier::instance(): can't find '"+
+			   label+"'");
+	return null;
     }
     
     /**  number of global PSets */
@@ -756,5 +786,11 @@ public class ConfigurationModifier implements IConfiguration
     {
 	return master.datasetIterator();
     }
-    
+ 
+
+    /** retrieve block iterator */
+    public Iterator<Block> blockIterator() { return blocks.iterator(); }   
+
+    /** add a block */
+    public void insertBlock(Block block) { blocks.add(block); }
 }
