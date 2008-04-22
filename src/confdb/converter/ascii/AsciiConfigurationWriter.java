@@ -104,13 +104,13 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 		while ( blockIterator.hasNext() )
 		{
 			Block block = blockIterator.next();
-			str.append( "block " + block.name() + " {\n" );
+			str.append( indent + "block " + block.name() + " {\n" );
 			Iterator<Parameter> parameterIterator = block.parameterIterator();
 			while ( parameterIterator.hasNext() )
 			{
-				str.append( parameterWriter.toString( parameterIterator.next(), converterEngine, indent ) );
+				str.append( parameterWriter.toString( parameterIterator.next(), converterEngine, indent + "  " ) );
 			}
-			str.append( "}\n" );
+			str.append( indent + "}\n" );
 		}
 
 		if ( writeProcess == WriteProcess.YES )
