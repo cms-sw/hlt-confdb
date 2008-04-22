@@ -37,11 +37,17 @@ public class BrowserConverter extends OfflineConverter
 	{
 	    ConfDBSetups dbs = new ConfDBSetups();
 	    DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertme!" );
-	    if ( dbProperties.getDbUser().endsWith( "_w" ) )
-		   	dbProperties.setDbUser( "cms_hlt_r" );
+	    String dbUser = dbProperties.getDbUser();
+	    if (dbUser.endsWith("_w"))
+ 		dbUser = dbUser.substring(0,dbUser.length()-1)+"r";
+	    else if (dbUser.endsWith("_writer"))
+		dbUser = dbUser.substring(0,dbUser.length()-6)+"reader";
 	    else
-	    	dbProperties.setDbUser( "cms_hlt_reader" );
-		BrowserConverter converter = map.get( new Integer( dbIndex ) );
+		dbUser = "cms_hlt_reader";
+
+	    dbProperties.setDbUser(dbUser);
+	    
+	    BrowserConverter converter = map.get( new Integer( dbIndex ) );
 		if ( converter == null )
 		{
 			converter = new BrowserConverter( dbs.type( dbIndex ), dbProperties.getDbURL(), dbProperties.getDbUser(), "convertme!" );		
