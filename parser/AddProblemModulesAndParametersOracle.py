@@ -1193,25 +1193,30 @@ class AddProblemModulesAndParametersOracle:
 	self.verbose = verbosity
 
     def GetNextSequenceNb(self,thecursor,componentname,componenttablename):
+
 	seqtuple = []
 
-#        print "SELECT " + componenttablename + ".superId FROM " + componenttablename + " JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.releaseId = " + str(self.releasekey) + " AND SuperIdReleaseAssoc.superId = " + componenttablename + ".superId) WHERE " + componenttablename + ".name = '" + componentname + "'";
+        if(self.verbose > 2):
+            print "SELECT " + componenttablename + ".superId FROM " + componenttablename + " JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.releaseId = " + str(self.releasekey) + " AND SuperIdReleaseAssoc.superId = " + componenttablename + ".superId) WHERE " + componenttablename + ".name = '" + componentname + "'";
         thecursor.execute("SELECT " + componenttablename + ".superId FROM " + componenttablename + " JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.releaseId = " + str(self.releasekey) + " AND SuperIdReleaseAssoc.superId = " + componenttablename + ".superId) WHERE " + componenttablename + ".name = '" + componentname + "'")
 	thesuperid = (thecursor.fetchall()[0])[0]
 
-#	print "SELECT sequenceNb FROM SuperIdParameterAssoc WHERE SuperIdParameterAssoc.superId = " + str(thesuperid)
+        if(self.verbose > 2):
+            print "SELECT sequenceNb FROM SuperIdParameterAssoc WHERE SuperIdParameterAssoc.superId = " + str(thesuperid)
 	thecursor.execute("SELECT sequenceNb FROM SuperIdParameterAssoc WHERE SuperIdParameterAssoc.superId = " + str(thesuperid))
 	seqs = thecursor.fetchall()
 	for seq in seqs:
 	    seqtuple.append(seq[0])
 
-#	print "SELECT sequenceNb FROM SuperIdParamSetAssoc WHERE SuperIdParamSetAssoc.superId = " + str(thesuperid)
+        if(self.verbose > 2):
+            print "SELECT sequenceNb FROM SuperIdParamSetAssoc WHERE SuperIdParamSetAssoc.superId = " + str(thesuperid)
 	thecursor.execute("SELECT sequenceNb FROM SuperIdParamSetAssoc WHERE SuperIdParamSetAssoc.superId = " + str(thesuperid))
 	seqs = thecursor.fetchall()
 	for seq in seqs:
 	    seqtuple.append(seq[0])
 
-#	print "SELECT sequenceNb FROM SuperIdVecParamAssoc WHERE SuperIdVecParamSetAssoc.superId = " + str(thesuperid)
+        if(self.verbose):
+            print "SELECT sequenceNb FROM SuperIdVecParamAssoc WHERE SuperIdVecParamSetAssoc.superId = " + str(thesuperid)
 	thecursor.execute("SELECT sequenceNb FROM SuperIdVecParamSetAssoc WHERE SuperIdVecParamSetAssoc.superId = " + str(thesuperid))
 	seqs = thecursor.fetchall()
 	for seq in seqs:

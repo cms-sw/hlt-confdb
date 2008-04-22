@@ -622,7 +622,7 @@ class SourceParser:
                     # First look at tracked parameters. No default value
                     # is specified in the .cc file                
                     if((foundlineend == True) and
-                       ((totalline.find('.getParameter') != -1) or (totalline.find('->getParameter') != -1) or (totalline.find(' getParameter') != -1)) and (totalline.find('"') != -1)):
+                       ((totalline.find('.getParameter') != -1) or (totalline.find('->getParameter') != -1) or (totalline.find(' getParameter') != -1)) and (totalline.find('"') != -1) and (totalline.find('getParameterNames') == -1)):
 
 			if(totalline.count('getParameter') > 1):
 			    totalline = ''

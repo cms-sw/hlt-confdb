@@ -30,11 +30,11 @@ def main(argv):
     input_verbose = 0
     input_dbname = "hltdb1"
 #    input_dbuser = "jjhollar"
-    input_dbpwd = "password"
+#    input_dbpwd = "password"
 #    input_dbtype = "MySQL"
-    input_dbuser = "hltdev"
-    input_dbpwd = "hltdev"
-    input_host = "HLTDEV"
+    input_dbuser = "CMS_HLT_TEST"
+    input_dbpwd = "hltdevtest1"
+    input_host = "CMS_ORCOFF_INT2R"
     input_dbtype = "Oracle"
 #    input_host = "localhost"
     input_configfile = ""
@@ -697,7 +697,7 @@ class ConfdbSourceToDB:
 			    if (os.path.isfile(testdir+srcfile)):
 				myParser.ParseSrcFile(testdir + srcfile, modulename, testdir, "")
 
-		    except:
+                    except:
 			print "Error: exception caught during parsing. The component " + modulename + " will not be loaded to the DB"
 			self.parseerrors.append(modulename + "\t(in " + packagename +")")
 			return
