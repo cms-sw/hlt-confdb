@@ -1,5 +1,11 @@
 2008-04-22  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-22-11
+	* point to new HLT Development DB at CMSR
+	(src/conf/conf.properties)
+
+2008-04-22  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-22-10
 	* parser: fixes
 	* data: add Block, add --blocks parameter for

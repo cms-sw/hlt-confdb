@@ -120,14 +120,14 @@ foreach $param (@ARGV)
     }
     elsif ($param eq "--test2") {
 	$dbType   = "Oracle";
-	$dbHost   = "HLTDEV";
-	$dbUser   = "HLTDEV";
+	$dbHost   = "CMS_ORCOFF_INT9R";
+	$dbUser   = "CMS_HLT_ADMIN";
 	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
     }
     elsif ($param eq "--hltdev") {
 	$dbType   = "Oracle";
-	$dbHost   = "CMS_ORCOFF_INT";
-	$dbUser   = "CMS_HLT_ADMIN";
+	$dbHost   = "CMS_ORCOFF_PROD";
+	$dbUser   = "CMS_HLTDEV_ADMIN";
 	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
     }
     elsif ($param eq "--rcms") {
