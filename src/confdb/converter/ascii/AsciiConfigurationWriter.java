@@ -1,5 +1,7 @@
 package confdb.converter.ascii;
 
+import java.util.Iterator;
+
 import confdb.converter.ConverterEngine;
 import confdb.converter.ConverterException;
 import confdb.converter.IConfigurationWriter;
@@ -11,6 +13,7 @@ import confdb.converter.IParameterWriter;
 import confdb.converter.IPathWriter;
 import confdb.converter.ISequenceWriter;
 import confdb.converter.IServiceWriter;
+import confdb.data.Block;
 import confdb.data.IConfiguration;
 import confdb.data.EDSourceInstance;
 import confdb.data.ESSourceInstance;
@@ -95,6 +98,19 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 		{
 			ModuleInstance module = conf.module(i);
 			str.append( moduleWriter.toString( module ) );
+		}
+
+		Iterator<Block> blockIterator = conf.blockIterator();
+		while ( blockIterator.hasNext() )
+		{
+			Block block = blockIterator.next();
+			str.append( "block " + block.name() + " {\n" );
+			Iterator<Parameter> parameterIterator = block.parameterIterator();
+			while ( parameterIterator.hasNext() )
+			{
+				str.append( parameterWriter.toString( parameterIterator.next(), converterEngine, indent ) );
+			}
+			str.append( "}\n" );
 		}
 
 		if ( writeProcess == WriteProcess.YES )
