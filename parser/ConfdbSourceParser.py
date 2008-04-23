@@ -563,7 +563,10 @@ class SourceParser:
                 # If we found a constructor, start reading the ParameterSet. The second condition is for
                 # dealing with the case where getParameter is used in the same line as the constructor. The 
 		# third is a hack for the 1 instance of getting a parameter using retrieve instead of getParameter. 
-                if(startedmod == True or (line.find(themodulename + '::' + themodulename) != -1 and (line.find('getParameter') != -1 or line.find('getUntrackedParameter') != -1)) or (line.find('.retrieve(') != -1 and theccfile.endswith('.h'))):
+                # If we found a constructor, start reading the ParameterSet. The second condition is for
+                # dealing with the case where getParameter is used in the same line as the constructor. The
+                # third is a hack for the 1 instance of getting a parameter using retrieve instead of getParameter.
+                if(startedmod == True or (line.find(themodulename + '::' + themodulename) != -1 and (line.find('getParameter') != -1 or line.find('getUntrackedParameter') != -1)) or (line.find(".retrieve(") != -1) or ((line.find('explicit ' + themodulename) != -1) and (theccfile.endswith('.h')))):
                     # Look for ends of parameter declarations 
                     if(line.rstrip().endswith('))') or
                        line.rstrip().endswith(')),') or
@@ -623,8 +626,7 @@ class SourceParser:
                     # is specified in the .cc file                
                     if((foundlineend == True) and
                        ((totalline.find('.getParameter') != -1) or (totalline.find('->getParameter') != -1) or (totalline.find(' getParameter') != -1)) and (totalline.find('"') != -1) and (totalline.find('getParameterNames') == -1)):
-
-			if(totalline.count('getParameter') > 1):
+ 			if(totalline.count('getParameter') > 1):
 			    totalline = ''
 			    continue
 
@@ -1266,9 +1268,14 @@ class SourceParser:
 
                             startedmod = True
 			    startedconstructor = True				
+
 		elif(startedmod == False and line.find(' ' + themodulename + '(') != -1):
 		    theconstructor = themodulename
 		    startedmod = True
+
+                if(startedmod == False and line.lstrip().startswith('explicit ' + themodulename) and (theccfile.endswith('.h'))):
+                    theconstructor = themodulename
+                    startedmod = True
 
 		if(startedconstructor == True and not (line.rstrip().endswith('{') or line.lstrip().startswith('{'))): 	    
 		    totalconstrline = totalconstrline + line

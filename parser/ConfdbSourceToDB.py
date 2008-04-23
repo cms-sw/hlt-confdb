@@ -689,6 +689,10 @@ class ConfdbSourceToDB:
 
 			    myParser.HandleTypedefs(pluginsdir + srcfile, modulename, pluginsdir, interfacedir, datadir, sourcetree)
 
+                        # JJH But wait - there's more! What if the class is implemented in a .h file?
+                        if(os.path.isdir(interfacedir) and os.path.isfile(interfacedir + interfacefile)):
+                            myParser.ParseSrcFile(interfacedir + interfacefile, modulename, datadir, "")
+
 			if(self.dotestdir == True): 
 			    if(os.path.isfile(testdir + interfacefile)):
 				myParser.ParseInterfaceFile(testdir + interfacefile, modulename)
