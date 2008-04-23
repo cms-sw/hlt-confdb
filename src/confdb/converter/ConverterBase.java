@@ -15,8 +15,8 @@ public class ConverterBase
     private ConfDB database = null;
     private ConverterEngine converterEngine = null;
 	
-    private HashMap<Integer, ConfWrapper> confCache = new HashMap<Integer, ConfWrapper>();
-    private int maxCacheEntries = 10;
+    static private HashMap<String, ConfWrapper> confCache = new HashMap<String, ConfWrapper>();
+    static private int maxCacheEntries = 10;
 	
     public ConverterBase( String format, Connection connection ) throws ConverterException
     {
@@ -55,26 +55,21 @@ public class ConverterBase
     }
   
     
-    public int getNumberCacheEntries() 
+    static public int getNumberCacheEntries() 
     {
     	return confCache.size();
     }
 
-    public int getMaxCacheEntries() 
+    static public int getMaxCacheEntries() 
     {
     	return maxCacheEntries;
     }
 
-    public void setMaxCacheEntries(int maxCacheEntries) 
+    static public void setMaxCacheEntries(int maxCacheEntries) 
     {
-    	this.maxCacheEntries = maxCacheEntries;
+    	ConverterBase.maxCacheEntries = maxCacheEntries;
     }
 
-    synchronized public void removeFromCache( Integer key )
-    {
-    	confCache.remove(key);
-    }
-    
 	
     public ConfDB getDatabase() 
     {
@@ -83,7 +78,7 @@ public class ConverterBase
 	
     public IConfiguration getConfiguration( int key ) throws ConverterException 
     {
-    	ConfWrapper conf = confCache.get( new Integer( key ) );
+    	ConfWrapper conf = confCache.get( getCacheKey( key ) );
     	if ( conf != null )
     		return conf.getConfiguration();
     	IConfiguration configuration = null;
@@ -98,15 +93,15 @@ public class ConverterBase
     	}
     }
 		
-    synchronized private void put( Integer key, IConfiguration conf )
+    synchronized private void put( int key, IConfiguration conf )
     {
     	if ( confCache.size() > maxCacheEntries )
 	    {
     		List<ConfWrapper> list = new ArrayList<ConfWrapper>( confCache.values() );
     		Collections.sort(list);
-    		confCache.remove( list.get(0).getKey() );
+    		confCache.remove( list.get(0).getCacheKey() );
 	    }
-    	confCache.put( key, new ConfWrapper( key, conf ) );
+    	confCache.put( getCacheKey( key ), new ConfWrapper( getCacheKey( key ), conf ) );
     }
 		
     public ConverterEngine getConverterEngine() 
@@ -120,15 +115,21 @@ public class ConverterBase
 	}
 
 	
+	private String getCacheKey( int key )
+	{
+		return "" + key + "@" + database.dbUrl();
+	}
+	
+	
     private class ConfWrapper implements Comparable<ConfWrapper>
     {
-    	private Integer key;
+    	private String cacheKey;
     	private IConfiguration configuration = null;
     	private long timestamp;
 		
-    	ConfWrapper( Integer key, IConfiguration conf ) 
+    	ConfWrapper( String key, IConfiguration conf ) 
     	{
-    		this.key = key;
+    		cacheKey = key;
     		configuration = conf;
     		timestamp = System.currentTimeMillis();
     	}
@@ -145,9 +146,9 @@ public class ConverterBase
     		return (int)(timestamp - o.timestamp);
     	}
 		
-    	public Integer getKey()
+    	public String getCacheKey()
     	{
-    		return key;
+    		return cacheKey;
     	}
     }
 
