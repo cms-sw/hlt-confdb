@@ -104,7 +104,7 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 		while ( blockIterator.hasNext() )
 		{
 			Block block = blockIterator.next();
-			str.append( indent + "block " + block.name() + " {\n" );
+			str.append( indent + "block " + block.name() + " = {\n" );
 			Iterator<Parameter> parameterIterator = block.parameterIterator();
 			while ( parameterIterator.hasNext() )
 			{
