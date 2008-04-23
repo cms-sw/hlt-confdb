@@ -97,9 +97,13 @@
 						      modifierInstructions,
 						      asFragment);
 	    out.print(result);
-	}
-        catch (Exception e) {
-	    out.print(e.getMessage()+"\n\n"); 
+	} catch (Exception e) {
+    	Throwable cause = e.getCause(); 
+	    out.print(e.getMessage()+"\n"); 
+	    if ( cause != null )
+		    out.print( "cause: " + cause.getMessage() + "\n\n");
+	    else
+	    	out.print( "\n" );
 	    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 	    PrintWriter writer = new PrintWriter(buffer);
 	    e.printStackTrace(writer);
