@@ -1,3 +1,8 @@
+2008-04-23  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-22-14
+	* converter: fix to block syntax (Ulf)
+
 2008-04-22  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-22-13
