@@ -1093,6 +1093,7 @@ public class ConfDB
 	    // insert parameter bindings / values
 	    psInsertParameterSet.executeBatch();
 	    psInsertVecParameterSet.executeBatch();
+	    psInsertGlobalPSet.executeBatch();
 	    psInsertSuperIdParamAssoc.executeBatch();
 	    psInsertSuperIdParamSetAssoc.executeBatch();
 	    psInsertSuperIdVecParamSetAssoc.executeBatch();
@@ -1208,7 +1209,7 @@ public class ConfDB
 		psInsertParameterSet.setInt(1,psetId);
 		psInsertParameterSet.setString(2,pset.name());
 		psInsertParameterSet.setBoolean(3,pset.isTracked());
-		psInsertParameterSet.executeUpdate();
+		psInsertParameterSet.addBatch();
 		
 		for (int i=0;i<pset.parameterCount();i++) {
 		    Parameter p = pset.parameter(i);
@@ -1227,7 +1228,7 @@ public class ConfDB
 		psInsertGlobalPSet.setInt(1,configId);
 		psInsertGlobalPSet.setInt(2,psetId);
 		psInsertGlobalPSet.setInt(3,sequenceNb);
-		psInsertGlobalPSet.executeUpdate();
+		psInsertGlobalPSet.addBatch();
 	    }
 	    catch (SQLException e) {
 		String errMsg =

@@ -1,3 +1,8 @@
+2008-04-24  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-22-15
+	* db: bug fix to 'insertConfiguration' regarding global psets
+
 2008-04-23  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-22-14
