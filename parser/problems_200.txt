@@ -236,7 +236,6 @@ Module EDProducer HcalRawToDigi EventFilter HcalRawToDigi
 HcalRawToDigi.Parameter firstSample int32 0 tracked
 HcalRawToDigi.Parameter lastSample int32 9 tracked
 HcalRawToDigi.Parameter FilterDataQuality bool true tracked
-HcalRawToDigi.Parameter ExceptionEmptyData bool false untracked
 
 Module EDProducer TSGFromL2Muon RecoMuon TrackerSeedGenerator
 TSGFromL2Muon.Parameter TSGFromMixedPairs PSet tracked
