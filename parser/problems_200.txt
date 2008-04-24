@@ -259,33 +259,7 @@ CkfTrajectoryMaker.Parameter TransientInitialStateEstimatorParameters PSet track
 CkfTrajectoryMaker.Parameter trackCandidateAlso bool true tracked
 CkfTrajectoryMaker.Parameter doSeedingRegionRebuilding bool false tracked
 
-
 Module EDProducer EcalRawToRecHitRoI EventFilter EcalRawToDigi
 EcalRawToRecHit.Parameter JetJobPSet VPSet tracked
 EcalRawToRecHit.Parameter EmJobPSet VPSet tracked
 EcalRawToRecHit.Parameter CandJobPSet VPSet tracked
-
-Module HLTFilter HLTCountNumberOfSingleRecHit HLTrigger special
-HLTCountNumberOfSingleRecHit.Parameter src InputTag INPUT tracked
-HLTCountNumberOfSingleRecHit.Parameter MinN int32 0 tracked
-HLTCountNumberOfSingleRecHit.Parameter MaxN int32 0 tracked
-
-Module HLTFilter HLTCountNumberOfMatchedRecHit HLTrigger special
-HLTCountNumberOfMatchedRecHit.Parameter src InputTag INPUT tracked
-HLTCountNumberOfMatchedRecHit.Parameter MinN int32 0 tracked
-HLTCountNumberOfMatchedRecHit.Parameter MaxN int32 0 tracked
-
-Module HLTFilter HLTCountNumberOfTrajectorySeed HLTrigger special
-HLTCountNumberOfTrajectorySeed.Parameter src InputTag INPUT tracked
-HLTCountNumberOfTrajectorySeed.Parameter MinN int32 0 tracked
-HLTCountNumberOfTrajectorySeed.Parameter MaxN int32 0 tracked
-
-Module HLTFilter HLTCountNumberOfRoadSearchSeed HLTrigger special
-HLTCountNumberOfRoadSearchSeed.Parameter src InputTag INPUT tracked
-HLTCountNumberOfRoadSearchSeed.Parameter MinN int32 0 tracked
-HLTCountNumberOfRoadSearchSeed.Parameter MaxN int32 0 tracked
-
-Module HLTFilter HLTCountNumberOfTrack HLTrigger special
-HLTCountNumberOfTrack.Parameter src InputTag INPUT tracked
-HLTCountNumberOfTrack.Parameter MinN int32 0 tracked
-HLTCountNumberOfTrack.Parameter MaxN int32 0 tracked
