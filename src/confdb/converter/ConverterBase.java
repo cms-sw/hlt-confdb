@@ -70,6 +70,10 @@ public class ConverterBase
     	ConverterBase.maxCacheEntries = maxCacheEntries;
     }
 
+    static public void clearCache()
+    {
+        confCache = new HashMap<String, ConfWrapper>();
+    }
 	
     public ConfDB getDatabase() 
     {
