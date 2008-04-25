@@ -108,7 +108,7 @@ function signalReady()
 			else
 				confString = converter.getConverterEngine().convert( conf );
 		} catch ( ConverterException e1 ) {
-			converter.removeFromCache( configKey );
+			BrowserConverter.clearCache();
 			System.out.println( "reloading config " + configKey );
 			if ( converter instanceof OnlineConverter )
 				confString = ((OnlineConverter)converter).getEpConfigString( configKey );
