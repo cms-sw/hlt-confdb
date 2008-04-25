@@ -7,7 +7,7 @@ if (DWREngine == null)
   var DWREngine = dwr.engine;
 
 if ( getJsonPath == null )
-  var getJsonPath = "";
+  var getJsonPath = "../json/";
 
 dwr.engine.failureHandler = function( o ) 
 {
@@ -39,6 +39,7 @@ dwr.engine.successHandler = function( o )
     var data = YAHOO.lang.JSON.parse(o.responseText);
   }
   catch (x) {
+  	alert( x );
   	dwr.engine.jsonFailureHandler( o );
     return;
   }
