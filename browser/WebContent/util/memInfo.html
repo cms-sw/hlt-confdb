@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<title>tomcat mem usage</title>
+
+<style type="text/css">
+body {
+	margin:0;
+	padding:0;
+}
+</style>
+
+<link rel="stylesheet" type="text/css" href="../js/yui/reset-fonts-grids/reset-fonts-grids.css" />
+<link rel="stylesheet" type="text/css" href="../js/yui/base/base-min.css" />
+<script type="text/javascript" src="../js/yui/yahoo-dom-event/yahoo-dom-event.js"></script>
+<script type="text/javascript" src="../js/yui/json/json-min.js"></script>
+<script type="text/javascript" src="../js/yui/connection/connection-min.js"></script>
+<script type="text/javascript" src="../js/dwr2JSON.js"></script>
+<script type="text/javascript" src="../js/AjaxInfo.js"></script>
+
+<style type="text/css">
+th,td {
+	border:0px;
+}
+</style>
+
+<!--begin custom header content for this example-->
+
+<!--end custom header content for this example-->
+
+</head>
+
+<script type="text/javascript">
+
+function init()
+{
+  update();
+}
+
+
+function update()
+{
+  AjaxInfo.getMemInfo( updateMemInfo );
+}
+
+function updateMemInfo( data )
+{
+  document.getElementById("free").innerHTML = " " + data.freeMemory; 
+  document.getElementById("total").innerHTML = " " + data.totalMemory; 
+  document.getElementById("used").innerHTML = " " + (data.totalMemory - data.freeMemory);  
+  document.getElementById("max").innerHTML = " " + data.maxMemory; 
+  document.getElementById("cache").innerHTML = " " + data.cacheEntries; 
+  window.setTimeout("update()", 1000);
+}
+
+function showResponse( data )
+{
+  if ( data != null )
+	alert( data );
+}
+
+YAHOO.util.Event.on('clear_btn','click',function (e) {
+	var clear = confirm( "Do you really want to clear the cache?" );
+	if ( clear == true )
+		AjaxInfo.clearCache( showResponse );
+});
+
+
+</script>
+
+
+<body onLoad="init()">
+
+<div id="doc">
+<div id="hd">
+<h1>tomcat memory usage</h1>
+</div>
+<table border="0">
+<tr><td>memory:</td><td id="used" align="right"></td><td>of</td><td id="max" align="right"></td><td align="left">MB used</td>
+<td>(used = total - free :</td>
+<td><span id="total"></span> - <span id="free"></span>)</td></tr>
+<tr><td>cache:</td><td id="cache" align="right"></td><td colspan="3">entries</td></tr>
+</table>
+<div>
+  <input type="button" id="clear_btn" value="clear cache">
+</div>
+
+</div>
+</body>
+</html>
