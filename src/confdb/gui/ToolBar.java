@@ -27,12 +27,17 @@ public class ToolBar
     private static final String cmdSave        = "Save";
     private static final String cmdCommentSave = "Comment&Save";
     private static final String cmdSaveAs      = "Save As";
-    private static final String cmdDiff        = "Diff";
+
     private static final String cmdImport      = "Import";
     private static final String cmdMigrate     = "Migrate";
     private static final String cmdConvert     = "Convert";
-    private static final String cmdReplace     = "Search&Replace";
 
+    private static final String cmdDiff        = "Compare (Diff)";
+    private static final String cmdReplace     = "Search&Replace";
+    private static final String cmdEditOM      = "Edit OutputModules";
+    private static final String cmdEditPS      = "Edit Prescales";
+    
+    
     private static final String cmdTrack = "Track InputTags";
     
     private static final String cmdConnectToDB      = "Connect to DB";
@@ -47,11 +52,16 @@ public class ToolBar
     private JButton jButtonSave        = new JButton();
     private JButton jButtonSaveAs      = new JButton();
     
-    private JButton jButtonDiff        = new JButton();
+
     private JButton jButtonImport      = new JButton();
     private JButton jButtonMigrate     = new JButton();
     private JButton jButtonConvert     = new JButton();
+
+
     private JButton jButtonReplace     = new JButton();
+    private JButton jButtonDiff        = new JButton();
+    private JButton jButtonEditOM      = new JButton();
+    private JButton jButtonEditPS      = new JButton();
     
     private JToggleButton jButtonTrack = new JToggleButton();
     
@@ -86,26 +96,31 @@ public class ToolBar
 	jButtonClose.setEnabled(true);
 	jButtonSave.setEnabled(true);
 	jButtonSaveAs.setEnabled(true);
-	jButtonDiff.setEnabled(true);
 	jButtonImport.setEnabled(true);
 	jButtonMigrate.setEnabled(true);
 	jButtonConvert.setEnabled(true);
 	jButtonReplace.setEnabled(true);
+	jButtonDiff.setEnabled(true);
+	jButtonEditOM.setEnabled(true);
+	jButtonEditPS.setEnabled(true);
 	jButtonExport.setEnabled(true);
 	jButtonTrack.setEnabled(true);
     }
-
+    
     /** no configuration is open */
     public void configurationIsNotOpen()
     {
 	jButtonClose.setEnabled(false);
 	jButtonSave.setEnabled(false);
 	jButtonSaveAs.setEnabled(false);
-	//jButtonDiff.setEnabled(false);
+
 	jButtonImport.setEnabled(false);
 	jButtonMigrate.setEnabled(false);
 	jButtonConvert.setEnabled(false);
 	jButtonReplace.setEnabled(false);
+	//jButtonDiff.setEnabled(false);
+	jButtonEditOM.setEnabled(false);
+	jButtonEditPS.setEnabled(false);
 	jButtonExport.setEnabled(false);
 	jButtonTrack.setEnabled(false);
     }
@@ -162,14 +177,9 @@ public class ToolBar
 					  getResource("/SaveIcon.png")));
 	jToolBar.add(jButtonSave);
 	
+
 	jToolBar.addSeparator();
-	
-	jButtonDiff.setActionCommand(cmdDiff);
-	jButtonDiff.addActionListener(listener);
-	jButtonDiff.setToolTipText("compare two configurations");
-	jButtonDiff.setIcon(new ImageIcon(getClass().
-					    getResource("/DiffIcon.png")));
-	jToolBar.add(jButtonDiff);
+
 	
 	jButtonImport.setActionCommand(cmdImport);
 	jButtonImport.addActionListener(listener);
@@ -192,6 +202,10 @@ public class ToolBar
 					     getResource("/ConvertIcon.png")));
 	jToolBar.add(jButtonConvert);
 
+
+	jToolBar.addSeparator();
+
+	
 	jButtonReplace.setActionCommand(cmdReplace);
 	jButtonReplace.addActionListener(listener);
 	jButtonReplace.setToolTipText("search & replace parameter values");
@@ -199,7 +213,30 @@ public class ToolBar
 					     getResource("/SearchReplaceIcon.png")));
 	jToolBar.add(jButtonReplace);
 	
+	jButtonDiff.setActionCommand(cmdDiff);
+	jButtonDiff.addActionListener(listener);
+	jButtonDiff.setToolTipText("compare two configurations");
+	jButtonDiff.setIcon(new ImageIcon(getClass().
+					    getResource("/DiffIcon.png")));
+	jToolBar.add(jButtonDiff);
+
+	jButtonEditOM.setActionCommand(cmdEditOM);
+	jButtonEditOM.addActionListener(listener);
+	jButtonEditOM.setToolTipText("edit output modules");
+	jButtonEditOM.setIcon(new ImageIcon(getClass().
+	 				    getResource("/EditOMIcon.png")));
+	jToolBar.add(jButtonEditOM);
+	
+	jButtonEditPS.setActionCommand(cmdEditPS);
+	jButtonEditPS.addActionListener(listener);
+	jButtonEditPS.setToolTipText("edit output modules");
+	jButtonEditPS.setIcon(new ImageIcon(getClass().
+					    getResource("/EditPSIcon.png")));
+	jToolBar.add(jButtonEditPS);
+	
+	
 	jToolBar.addSeparator();
+	
 	
 	jButtonTrack.setActionCommand(cmdTrack);
 	jButtonTrack.addActionListener(listener);
@@ -208,6 +245,7 @@ public class ToolBar
 	jButtonTrack.setIcon(new ImageIcon(getClass().
 					   getResource("/TrackIcon.png")));
 	jToolBar.add(jButtonTrack);
+
 
 	jToolBar.addSeparator();
 

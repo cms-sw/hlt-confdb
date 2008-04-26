@@ -31,12 +31,15 @@ public class MenuBar
     private static final String configMenuSave        = "Save";
     private static final String configMenuCommentSave = "Comment&Save";
     private static final String configMenuSaveAs      = "Save As";
-    private static final String configMenuDiff        = "Diff";
     private static final String configMenuImport      = "Import";
     private static final String configMenuMigrate     = "Migrate";
     private static final String configMenuConvert     = "Convert";
-    private static final String configMenuReplace     = "Search&Replace";
-    private static final String configMenuOMEditor    = "Edit OutputModules";
+    
+    /** menu bar item names: toolMenu */
+    private static final String toolMenuReplace       = "Search&Replace";
+    private static final String toolMenuDiff          = "Compare (Diff)";
+    private static final String toolMenuOMEditor      = "Edit OutputModules";
+    private static final String toolMenuPSEditor      = "Edit Prescales";
 
     /** menu bar item names: options */
     private static final String optionsMenuTrack      = "Track InputTags";
@@ -57,12 +60,15 @@ public class MenuBar
     private JMenuItem configMenuCommentSaveItem = null;
     private JMenuItem configMenuSaveItem        = null;
     private JMenuItem configMenuSaveAsItem      = null;
-    private JMenuItem configMenuDiffItem        = null;
+
     private JMenuItem configMenuImportItem      = null;
     private JMenuItem configMenuMigrateItem     = null;
     private JMenuItem configMenuConvertItem     = null;
-    private JMenuItem configMenuReplaceItem     = null;
-    private JMenuItem configMenuOMEditorItem    = null;
+
+    private JMenuItem toolMenuDiffItem          = null;
+    private JMenuItem toolMenuReplaceItem       = null;
+    private JMenuItem toolMenuOMEditorItem      = null;
+    private JMenuItem toolMenuPSEditorItem      = null;
     
     private JCheckBoxMenuItem optionsMenuTrackItem = null;
 
@@ -75,10 +81,10 @@ public class MenuBar
     //
     // construction
     //
-    public MenuBar(JMenuBar jMenuBar,ConfDbGUI app,boolean enableParse)
+    public MenuBar(JMenuBar jMenuBar,ConfDbGUI app)
     {
 	this.jMenuBar = jMenuBar;
-	populateMenuBar(new CommandActionListener(app),enableParse);
+	populateMenuBar(new CommandActionListener(app));
     }
     
     
@@ -97,12 +103,13 @@ public class MenuBar
 	configMenuSaveItem.setEnabled(true);
 	configMenuCommentSaveItem.setEnabled(true);
 	configMenuSaveAsItem.setEnabled(true);
-	configMenuDiffItem.setEnabled(true);
 	configMenuImportItem.setEnabled(true);
 	configMenuMigrateItem.setEnabled(true);
 	configMenuConvertItem.setEnabled(true);
-	configMenuReplaceItem.setEnabled(true);
-	configMenuOMEditorItem.setEnabled(true);
+	toolMenuReplaceItem.setEnabled(true);
+	toolMenuDiffItem.setEnabled(true);
+	toolMenuOMEditorItem.setEnabled(true);
+	toolMenuPSEditorItem.setEnabled(true);
 	optionsMenuTrackItem.setEnabled(true);
 	dbMenuExportItem.setEnabled(true);
     }
@@ -114,12 +121,13 @@ public class MenuBar
 	configMenuSaveItem.setEnabled(false);
 	configMenuCommentSaveItem.setEnabled(false);
 	configMenuSaveAsItem.setEnabled(false);
-	//configMenuDiffItem.setEnabled(false);
 	configMenuImportItem.setEnabled(false);
 	configMenuMigrateItem.setEnabled(false);
 	configMenuConvertItem.setEnabled(false);
-	configMenuReplaceItem.setEnabled(false);
-	configMenuOMEditorItem.setEnabled(false);
+	//toolMenuDiffItem.setEnabled(false);
+	toolMenuReplaceItem.setEnabled(false);
+	toolMenuOMEditorItem.setEnabled(false);
+	toolMenuPSEditorItem.setEnabled(false);
 	optionsMenuTrackItem.setEnabled(false);
 	dbMenuExportItem.setEnabled(false);
     }
@@ -130,7 +138,7 @@ public class MenuBar
 	configMenuNewItem.setEnabled(true);
 	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(true);
 	configMenuOpenItem.setEnabled(true);
-	configMenuDiffItem.setEnabled(true);
+	toolMenuDiffItem.setEnabled(true);
 	dbMenuDisconnectItem.setEnabled(true);
     }
     
@@ -141,12 +149,12 @@ public class MenuBar
 	configMenuNewItem.setEnabled(false);
 	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(false);
 	configMenuOpenItem.setEnabled(false);
-	configMenuDiffItem.setEnabled(false);
+	toolMenuDiffItem.setEnabled(false);
 	dbMenuDisconnectItem.setEnabled(false);
     }
 
     /** populate the menu bar with all menus and their items */
-    private void populateMenuBar(CommandActionListener listener,boolean enableParse)
+    private void populateMenuBar(CommandActionListener listener)
     {
 	JMenuItem menuItem;
 	
@@ -169,12 +177,10 @@ public class MenuBar
 	configMenuNewItem.setActionCommand(configMenuNew);
 	configMenuNewItem.addActionListener(listener);
 	configMenu.add(configMenuNewItem);
-	if (enableParse) {
-	    configMenuParseItem = new JMenuItem(configMenuParse,KeyEvent.VK_P);
-	    configMenuParseItem.setActionCommand(configMenuParse);
-	    configMenuParseItem.addActionListener(listener);
-	    configMenu.add(configMenuParseItem);
-	}
+	configMenuParseItem = new JMenuItem(configMenuParse,KeyEvent.VK_P);
+	configMenuParseItem.setActionCommand(configMenuParse);
+	configMenuParseItem.addActionListener(listener);
+	configMenu.add(configMenuParseItem);
 	configMenuOpenItem = new JMenuItem(configMenuOpen,KeyEvent.VK_O);
 	configMenuOpenItem.setActionCommand(configMenuOpen);
 	configMenuOpenItem.addActionListener(listener);
@@ -196,10 +202,6 @@ public class MenuBar
 	configMenuSaveAsItem.addActionListener(listener);
 	configMenu.add(configMenuSaveAsItem);
 	configMenu.addSeparator();
-	configMenuDiffItem = new JMenuItem(configMenuDiff,KeyEvent.VK_D);
-	configMenuDiffItem.setActionCommand(configMenuDiff);
-	configMenuDiffItem.addActionListener(listener);
-	configMenu.add(configMenuDiffItem);
 	configMenuImportItem = new JMenuItem(configMenuImport,KeyEvent.VK_I);
 	configMenuImportItem.setActionCommand(configMenuImport);
 	configMenuImportItem.addActionListener(listener);
@@ -213,14 +215,26 @@ public class MenuBar
 	configMenuConvertItem.addActionListener(listener);
 	configMenu.add(configMenuConvertItem);
 	configMenu.addSeparator();
-	configMenuReplaceItem = new JMenuItem(configMenuReplace,KeyEvent.VK_E);
-	configMenuReplaceItem.setActionCommand(configMenuReplace);
-	configMenuReplaceItem.addActionListener(listener);
-	configMenu.add(configMenuReplaceItem);
-	configMenuOMEditorItem = new JMenuItem(configMenuOMEditor,KeyEvent.VK_T);
-	configMenuOMEditorItem.setActionCommand(configMenuOMEditor);
-	configMenuOMEditorItem.addActionListener(listener);
-	configMenu.add(configMenuOMEditorItem);
+	
+	JMenu toolMenu = new JMenu("Tools");
+	toolMenu.setMnemonic(KeyEvent.VK_T);
+	jMenuBar.add(toolMenu);
+	toolMenuDiffItem = new JMenuItem(toolMenuDiff,KeyEvent.VK_D);
+	toolMenuDiffItem.setActionCommand(toolMenuDiff);
+	toolMenuDiffItem.addActionListener(listener);
+	toolMenu.add(toolMenuDiffItem);
+	toolMenuReplaceItem = new JMenuItem(toolMenuReplace,KeyEvent.VK_R);
+	toolMenuReplaceItem.setActionCommand(toolMenuReplace);
+	toolMenuReplaceItem.addActionListener(listener);
+	toolMenu.add(toolMenuReplaceItem);
+	toolMenuOMEditorItem = new JMenuItem(toolMenuOMEditor,KeyEvent.VK_O);
+	toolMenuOMEditorItem.setActionCommand(toolMenuOMEditor);
+	toolMenuOMEditorItem.addActionListener(listener);
+	toolMenu.add(toolMenuOMEditorItem);
+	toolMenuPSEditorItem = new JMenuItem(toolMenuPSEditor,KeyEvent.VK_P);
+	toolMenuPSEditorItem.setActionCommand(toolMenuPSEditor);
+	toolMenuPSEditorItem.addActionListener(listener);
+	toolMenu.add(toolMenuPSEditorItem);
 	
 	JMenu optionsMenu = new JMenu("Options");
 	optionsMenu.setMnemonic(KeyEvent.VK_O);

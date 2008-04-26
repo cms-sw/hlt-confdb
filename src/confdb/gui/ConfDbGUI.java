@@ -82,7 +82,6 @@ public class ConfDbGUI
     private ConfigurationTreeModel  treeModelImportConfig;
     private StreamTreeModel         treeModelStreams;
     private PrimaryDatasetTreeModel treeModelDatasets;
-    //private PrescaleTreeModel     treeModelPrescales;
     private ParameterTreeModel      treeModelParameters;
 
     /** GUI COMPONENTS */
@@ -134,10 +133,6 @@ public class ConfDbGUI
     private JTextField    jTextFieldStreamPathCount = new JTextField();
     private JTree         jTreeDatasets;
     private JTextField    jTextFieldDatasetPathCount= new JTextField();
-    
-    private JPanel        jPanelPrescales           = new JPanel();
-    private JScrollPane   jScrollPanePrescales      = new JScrollPane();
-    private JTable        jTablePrescales           = new JTable();
     
     private JPanel        jPanelRightUpper          = new JPanel();
     private JSplitPane    jSplitPaneRightUpper      = new JSplitPane();
@@ -305,7 +300,6 @@ public class ConfDbGUI
 			jTreeDatasetsTreeStructureChanged(e);
 		    }
 		});
-	// jTablePrescales
 	jTreeTableParameters.
 	    getTree().getModel().addTreeModelListener(new TreeModelListener() {
 		    public void treeNodesChanged(TreeModelEvent e) {
@@ -611,6 +605,15 @@ public class ConfDbGUI
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
+    }
+
+    /** open prescale editor */
+    public void openPrescaleEditor()
+    {
+	//PrescaleDialog dialog = new PrescaleDialog(frame,currentConfig);
+	//dialog.pack();
+	//dialog.setLocationRelativeTo(frame);
+	//dialog.setVisible(true);
     }
 
     /** one another configuration to import components */
@@ -1580,8 +1583,6 @@ public class ConfDbGUI
 	treeModelDatasets.addTreeModelListener(datasetTreeMouseListener);
 	
 
-	// prescales table
-
 	// parameter table
 	treeModelParameters  = new ParameterTreeModel();
 	jTreeTableParameters = new TreeTable(treeModelParameters);
@@ -2173,13 +2174,7 @@ public class ConfDbGUI
     /** create the  menubar */
     private void createMenuBar()
     {
-	//ArrayList<String> admins = new ArrayList<String>();
-	//admins.add("schiefer");
-	//admins.add("meschi");
-	//admins.add("mzanetti");
-	//menuBar = new MenuBar(jMenuBar,this,admins.contains(userName));
-
-	menuBar = new MenuBar(jMenuBar,this,true);
+	menuBar = new MenuBar(jMenuBar,this);
 	frame.setJMenuBar(jMenuBar);
     }
 
@@ -2202,7 +2197,6 @@ public class ConfDbGUI
     {
 	createConfigurationPanel();      // -> tab 1
 	createStreamsAndDatasetsPanel(); // -> tab 2
-	createPrescalesPanel();          // -> tab 3
 
         JLabel jLabelConfig  = new javax.swing.JLabel();
 	JLabel jLabelProcess = new javax.swing.JLabel();
@@ -2225,8 +2219,7 @@ public class ConfDbGUI
 
         jButtonRelease.setBackground(new java.awt.Color(255, 255, 255));
         jButtonRelease.setForeground(new java.awt.Color(0, 0, 204));
-        //jButtonRelease.setText("-");
-        jButtonRelease.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+	jButtonRelease.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
         jLabelCreated.setText("Created:");
 
@@ -2244,8 +2237,6 @@ public class ConfDbGUI
 			       jPanelCurrentConfig);
         jTabbedPaneLeft.addTab("Streams & Primary Datasets",
 			       jPanelStreamsAndDatasets);
-        jTabbedPaneLeft.addTab("Prescales",
-			       jPanelPrescales);
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelLeft);
         jPanelLeft.setLayout(layout);
@@ -2604,31 +2595,7 @@ public class ConfDbGUI
 	jPopupMenuImportSearch.add(rbMenuItem);
     }
 
-    /** create the 'Prescales' panel (tab3 in left panel) */
-    private void createPrescalesPanel()
-    {
-        jScrollPanePrescales.setBackground(new java.awt.Color(255, 255, 255));
-	
-        jScrollPanePrescales.setViewportView(jTablePrescales);
-	
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelPrescales);
-        jPanelPrescales.setLayout(layout);
-        layout.setHorizontalGroup(
-				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				  .add(layout.createSequentialGroup()
-				       .addContainerGap()
-				       .add(jScrollPanePrescales, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 372, Short.MAX_VALUE)
-				       .addContainerGap())
-				  );
-        layout.setVerticalGroup(
-				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				.add(layout.createSequentialGroup()
-				     .addContainerGap()
-				     .add(jScrollPanePrescales, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 433, Short.MAX_VALUE)
-				     .addContainerGap())
-				);
-    }
-
+    
     /** create the right upper panel */
     private void createRightUpperPanel()
     {
