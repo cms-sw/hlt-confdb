@@ -610,10 +610,10 @@ public class ConfDbGUI
     /** open prescale editor */
     public void openPrescaleEditor()
     {
-	//PrescaleDialog dialog = new PrescaleDialog(frame,currentConfig);
-	//dialog.pack();
-	//dialog.setLocationRelativeTo(frame);
-	//dialog.setVisible(true);
+	PrescaleDialog dialog = new PrescaleDialog(frame,currentConfig);
+	dialog.pack();
+	dialog.setLocationRelativeTo(frame);
+	dialog.setVisible(true);
     }
 
     /** one another configuration to import components */

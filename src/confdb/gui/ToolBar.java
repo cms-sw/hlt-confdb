@@ -223,15 +223,13 @@ public class ToolBar
 	jButtonEditOM.setActionCommand(cmdEditOM);
 	jButtonEditOM.addActionListener(listener);
 	jButtonEditOM.setToolTipText("edit output modules");
-	jButtonEditOM.setIcon(new ImageIcon(getClass().
-	 				    getResource("/EditOMIcon.png")));
+	jButtonEditOM.setIcon(new ImageIcon(getClass().getResource("/EditOMIcon.png")));
 	jToolBar.add(jButtonEditOM);
 	
 	jButtonEditPS.setActionCommand(cmdEditPS);
 	jButtonEditPS.addActionListener(listener);
-	jButtonEditPS.setToolTipText("edit output modules");
-	jButtonEditPS.setIcon(new ImageIcon(getClass().
-					    getResource("/EditPSIcon.png")));
+	jButtonEditPS.setToolTipText("edit prescales");
+	jButtonEditPS.setIcon(new ImageIcon(getClass().getResource("/EditPSIcon.png")));
 	jToolBar.add(jButtonEditPS);
 	
 	
