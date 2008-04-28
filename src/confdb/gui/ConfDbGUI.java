@@ -605,8 +605,15 @@ public class ConfDbGUI
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-    }
 
+	Iterator<ModuleInstance> itM = currentConfig.moduleIterator();
+	while (itM.hasNext()) {
+	    ModuleInstance module = itM.next();
+	    if (module.template().type().equals("OutputModule"))
+		treeModelCurrentConfig.nodeStructureChanged(module);
+	}
+    }
+    
     /** open prescale editor */
     public void openPrescaleEditor()
     {
@@ -614,6 +621,10 @@ public class ConfDbGUI
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
+	
+	ServiceInstance prescaleSvc = currentConfig.service("PrescaleService");
+	if (prescaleSvc!=null)
+	    treeModelCurrentConfig.nodeStructureChanged(prescaleSvc);
     }
 
     /** one another configuration to import components */

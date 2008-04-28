@@ -255,8 +255,6 @@ public class OutputModuleDialog extends JDialog
 	int index = jListPaths.locationToIndex(e.getPoint());
 	jListPaths.addSelectionInterval(index,index);
 	
-	//String selectedPath = (String)lmPaths.elementAt(index);
-	
 	JPopupMenu popup = new JPopupMenu();
 	JMenuItem menuItem = new JMenuItem("Remove");
 	StringBuffer actionCommand = new StringBuffer();

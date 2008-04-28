@@ -1,3 +1,9 @@
+2008-04-28  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-23-00
+	* gui: add menu 'Tools'
+	* gui: add editor for prescale table
+	
 2008-04-24  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-22-15
