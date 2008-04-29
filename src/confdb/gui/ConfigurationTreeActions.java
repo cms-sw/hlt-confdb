@@ -1183,12 +1183,14 @@ public class ConfigurationTreeActions
 	int refCount = oldModule.referenceCount();
 	ReferenceContainer[] parents = new ReferenceContainer[refCount];
 	int[]                indices = new int[refCount];
-	for (int i=0;i<refCount;i++) {
-	    Reference reference = oldModule.reference(i);
-	    parents[i] = reference.container();
-	    indices[i] = parents[i].indexOfEntry(reference);
+	int iRefCount=0;
+	while (oldModule.referenceCount()>0) {
+	    Reference reference = oldModule.reference(0);
+	    parents[iRefCount] = reference.container();
+	    indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
 	    config.removeModuleReference((ModuleReference)reference);
-	    model.nodeRemoved(parents[i],indices[i],reference);
+	    model.nodeRemoved(parents[iRefCount],indices[iRefCount],reference);
+	    iRefCount++;
 	}
 	
 	model.nodeRemoved(model.modulesNode(),index,oldModule);
@@ -1200,7 +1202,7 @@ public class ConfigurationTreeActions
 		template.instance(external.name());
 	    for (int i=0;i<newModule.parameterCount();i++)
 		newModule.updateParameter(i,external.parameter(i).valueAsString());
-	    newModule.setDatabaseId(external.databaseId()); // dangerous?
+	    newModule.setDatabaseId(external.databaseId());
 	    config.insertModule(index,newModule);
 	    model.nodeInserted(model.modulesNode(),index);
 	    
@@ -1212,7 +1214,7 @@ public class ConfigurationTreeActions
 	    tree.expandPath(new TreePath(model.getPathToRoot(newModule)));
 	}
 	catch (DataException e) {
-	    System.out.println("replaceModule() FAILED: " + e.getMessage());
+	    System.err.println("replaceModule() FAILED: " + e.getMessage());
 	    return false;
 	}
 	return true;
