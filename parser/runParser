@@ -56,7 +56,6 @@ my @whiteList =
      "Calibration",
      "CondCore",
      "DQM",
-     "DQMServices",
      "EventFilter",
      "FWCore",
      "Geometry",
