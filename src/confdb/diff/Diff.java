@@ -929,6 +929,13 @@ public class Diff
 	Diff diff = new Diff(config1,config2);
 	if (search.length()>0) diff.compare(search); else diff.compare();
 	System.out.println(diff.printAll());
+	try {
+	    database.disconnect();
+	}
+	catch (DatabaseException e) {
+	    System.err.println("Failed to disconnect from DB.");
+	    e.printStackTrace();
+	}
     }
     
 }

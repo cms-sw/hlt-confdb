@@ -57,9 +57,10 @@ public class ParameterComparison extends Comparison
 	else if (comparisonCount()==0&&
 		 oldParameter.name().equals(newParameter.name())&&
 		 oldParameter.type().equals(newParameter.type())&&
-		 oldParameter.valueAsString().equals(newParameter.valueAsString()))
+		 (isPSet()||oldParameter.valueAsString()
+		  .equals(newParameter.valueAsString())))
 	    return RESULT_IDENTICAL;
-	else 
+	else
 	    return RESULT_CHANGED;
     }
     

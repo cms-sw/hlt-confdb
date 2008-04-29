@@ -1,5 +1,10 @@
 2008-04-29  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-23-02
+	* fix to diff
+
+2008-04-29  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-23-01
 	* gui: bug fix for problem reported by Martin regarding import of
 	pre-existing modules: didn't work for modules referenced more than
