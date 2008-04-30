@@ -113,19 +113,19 @@ foreach $param (@ARGV)
 	$dbUser   = "schiefer";
 	$patchExe = $parserPath . "/AddProblemModulesAndParametersMySQL.py";
     }
-    elsif ($param eq "--tutorials") {
+    elsif ($param eq "--test9r") {
 	$dbType   = "Oracle";
 	$dbHost   = "CMS_ORCOFF_INT9R";
 	$dbUser   = "CMS_HLT";
 	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
     }
-    elsif ($param eq "--test") {
+    elsif ($param eq "--test2r") {
 	$dbType   = "Oracle";
 	$dbHost   = "CMS_ORCOFF_INT2R";
 	$dbUser   = "CMS_HLT";
 	$patchExe = $parserPath . "/AddProblemModulesAndParametersOracle.py";
     }
-    elsif ($param eq "--test3") {
+    elsif ($param eq "--test") {
 	$dbType   = "Oracle";
 	$dbHost   = "CMS_ORCOFF_INT2R";
 	$dbUser   = "CMS_HLT_TEST";
