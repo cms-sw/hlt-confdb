@@ -262,3 +262,8 @@ Module EDProducer EcalRawToRecHitRoI EventFilter EcalRawToDigi
 EcalRawToRecHit.Parameter JetJobPSet VPSet tracked
 EcalRawToRecHit.Parameter EmJobPSet VPSet tracked
 EcalRawToRecHit.Parameter CandJobPSet VPSet tracked
+
+Module EDProducer CSCRecHitDProducer RecoLocalMuon CSCRecHitD
+CSCRecHitDProducer.Parameter CSCStripClusterSize int32 3 untracked
+CSCRecHitDProducer.Parameter CSCDebug bool false untracked
+CSCRecHitDProducer.Parameter readBadChannels bool false tracked
