@@ -1,5 +1,11 @@
 2008-04-30  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-23-04
+	* changed my mind; use HLT DEVELOPMENT for the tutorial, Define
+	TEST2R & TEST9R
+	
+2008-04-30  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-23-03
 	* add db connection for TUTORIALS DB (int9r)
 	
