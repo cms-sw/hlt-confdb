@@ -527,7 +527,8 @@ class ConfdbSourceToDB:
 
 	# Reassociate components that weren't changed
         if(self.addtorelease != "none"):
-	    self.dbloader.ConfdbReassociateTemplates(self.dbcursor,self.cmsswrel,self.addtorelease,self.addedtemplatenames)
+            if(self.noload == False):
+                self.dbloader.ConfdbReassociateTemplates(self.dbcursor,self.cmsswrel,self.addtorelease,self.addedtemplatenames)
 
 	# Just print a list of all components found in the release
 	if(self.verbose > 0):					
@@ -857,7 +858,7 @@ class ConfdbSourceToDB:
 	    myParser.ShowParamFailures()
 	    myParser.ResetParams()
 
-	except:
+	except: 
 	    print "Error: SQL exception caught while loading the component " + modulename + " to DB. The template may be incomplete" 
 	    self.sqlerrors.append(modulename + "\t(in " + packagename +")")
 	    return

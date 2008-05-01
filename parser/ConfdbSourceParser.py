@@ -622,6 +622,15 @@ class SourceParser:
 				print "Iterates over VPSet var " + thevpsetvar + " of VPSet " + self.psetdict[thevpsetvar]
 			    self.psetdict[vpsetiter] = self.psetdict[thevpsetvar]
 
+                    # Reassingment of ParameterSet members of VPSets
+                    if(totalline.lstrip().startswith("ParameterSet") and totalline.find(" = ") != -1 and totalline.find("[") != -1):
+                        thevpset = totalline.split("=")[1].split("[")[0].lstrip().rstrip()
+                        thememberpset = totalline.split("=")[0].split("ParameterSet")[1].lstrip().rstrip()
+                        if(thevpset in self.psetdict):
+                            if(self.verbose > 1):
+                                print "Reassignment of VPSet " + thevpset + " to its entry PSet " + thememberpset
+                            self.psetdict[thememberpset] = self.psetdict[thevpset]
+
                     # First look at tracked parameters. No default value
                     # is specified in the .cc file                
                     if((foundlineend == True) and
@@ -708,7 +717,7 @@ class SourceParser:
 
 			    if(paramtype == 'int' or paramtype == 'int32'):
 				paramtype = 'vint32'
-			    elif(paramtype == 'unsigned'):
+			    elif(paramtype == 'unsigned' or paramtype == 'unsigned int'):
 				paramtype = 'vunsigned'
 			    elif(paramtype == 'double'):
 				paramtype = 'vdouble'
@@ -724,9 +733,13 @@ class SourceParser:
 				paramtype = 'VPSet'
 				if(totalline.find('=') != -1):
 				    thisparamset = totalline.split('=')[0].rstrip().lstrip()
-				    if(thisparamset.find('vector<edm::ParameterSet>') != -1):
+				    if(thisparamset.find('vector<edm::ParameterSet>') != -1 or thisparamset.find('vector<ParameterSet>') != -1):
 					thisparamset = thisparamset.split('>')[1].rstrip().lstrip()
 					self.psetdict[thisparamset] = paramname
+
+                        elif(paramtype.lstrip().rstrip() == 'Strings'):
+                            isvector = True
+                            paramtype = 'vstring'
 
                         else:
 			    isvector = False
@@ -738,7 +751,7 @@ class SourceParser:
 
 				if(totalline.find('=') != -1):
 				    thisparamset = totalline.split('=')[0].rstrip().lstrip()
-				    if(thisparamset.find('vector<edm::ParameterSet>') != -1):
+				    if(thisparamset.find('vector<edm::ParameterSet>') != -1 or thisparamset.find('vector<ParameterSet>') != -1):
 					thisparamset = thisparamset.split('>')[1].rstrip().lstrip()
 				    elif(thisparamset.find('PSet ') != -1):
 					thisparamset = thisparamset.split('PSet ')[1].rstrip().lstrip()
@@ -847,9 +860,13 @@ class SourceParser:
 					self.paramfailures.append((themodulename,paramtype,paramname.lstrip().rstrip(),"true",self.sequencenb))
 					self.sequencenb = self.sequencenb + 1
 				else:
-				    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
-					self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true",self.sequencenb,'None',self.psetsequencenb))
-					self.sequencenb = self.sequencenb + 1					    
+                                    if (not self.IsNewParameterSet(self.vecparamsetmemberlist,paraminparamset)):
+                                        if(self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,paraminparamset)):
+                                            self.vecparamsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'None','true',0,self.sequencenb,self.psetsequencenb))
+                                    elif (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
+                                        self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),'',"true",self.sequencenb,'None',self.psetsequencenb))
+                                        self.sequencenb = self.sequencenb + 1
+
 			elif(paramtype.lstrip().rstrip() == 'PSet' or 
 			     paramtype.lstrip().rstrip() == 'ParameterSet'):
 			    if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
@@ -926,7 +943,7 @@ class SourceParser:
 
 			    if(paramtype == 'int' or paramtype == 'int32'):
 				paramtype = 'vint32'
-			    elif(paramtype == 'unsigned'):
+			    elif(paramtype == 'unsigned' or paramtype == 'unsigned int'):
 				paramtype = 'vunsigned'
 			    elif(paramtype == 'double'):
 				paramtype = 'vdouble'
@@ -1929,7 +1946,7 @@ class SourceParser:
 
 			    if(paramtype == 'int' or paramtype == 'int32'):
 				paramtype = 'vint32'
-			    elif(paramtype == 'unsigned'):
+			    elif(paramtype == 'unsigned' or paramtype == 'unsigned int'):
 				paramtype = 'vunsigned'
 			    elif(paramtype == 'double'):
 				paramtype = 'vdouble'
@@ -1941,6 +1958,10 @@ class SourceParser:
 				paramtype = 'vstring'
 			    elif(paramtype == 'vString'):
 				paramtype = 'vstring'
+
+                        elif(paramtype.lstrip().rstrip() == 'Strings'):
+                            isvector = True
+                            paramtype = 'vstring'
 
                         else:
 			    isvector = False
@@ -2077,7 +2098,7 @@ class SourceParser:
 
 			    if(paramtype == 'int' or paramtype == 'int32'):
 				paramtype = 'vint32'
-			    elif(paramtype == 'unsigned'):
+			    elif(paramtype == 'unsigned' or paramtype == 'unsigned int'):
 				paramtype = 'vunsigned'
 			    elif(paramtype == 'double'):
 				paramtype = 'vdouble'
