@@ -6,9 +6,10 @@ import confdb.data.Path;
 
 public class AsciiPathWriter implements IPathWriter 
 {
-	public String toString( Path path, ConverterEngine converterEngine, String indent ) 
-	{
-		return "| " + path.name() + "\n";
-	}
-
+    public String toString(Path path, ConverterEngine converterEngine, String indent) 
+    {
+	StringBuffer result = new StringBuffer();
+	result.append(path.name()).append("\n");
+	return result.toString();
+    }
 }

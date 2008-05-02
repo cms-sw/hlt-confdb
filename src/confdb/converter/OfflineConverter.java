@@ -244,13 +244,14 @@ public class OfflineConverter extends ConverterBase
 	    }
 	}
 
-	if (!format.equals("Ascii")&&
-	    !format.equals("Python")&&
-	    !format.equals("Html")) {
+	if (!format.equals("ascii")&&
+	    !format.equals("python")&&
+	    !format.equals("summary.ascii")&&
+	    !format.equals("html")) {
 	    System.err.println("ERROR: Invalid format '"+format+"'");
 	    System.exit(0);
 	}
-    
+	
 	String dbUrl = "";
 	if (dbType.equalsIgnoreCase("mysql")) {
 	    dbUrl  = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+dbName;
@@ -284,6 +285,7 @@ public class OfflineConverter extends ConverterBase
 	}
 	catch(Exception e) {
 	    System.err.println("ERROR: " + e.getMessage());
+	    e.printStackTrace();
 	}
 
     }
