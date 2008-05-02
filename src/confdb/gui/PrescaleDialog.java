@@ -267,10 +267,10 @@ class PrescaleTableModel extends AbstractTableModel
 	    new HashMap<String,PrescaleTableRow>();
 	
 	for (int i=0;i<vpsetPrescaleTable.parameterSetCount();i++) {
-	    PSetParameter pset = vpsetPrescaleTable.parameterSet(i);
+	    PSetParameter    pset      =vpsetPrescaleTable.parameterSet(i);
 	    StringParameter  sPathName =(StringParameter)pset.parameter("pathName");
 	    VUInt32Parameter vPrescales=(VUInt32Parameter)pset.parameter("prescales");
-	    String pathName = (String)sPathName.value();
+	    String           pathName  =(String)sPathName.value();
 	    
 	    if (config.path(pathName)==null) {
 		System.out.println("invalid pathName '"+pathName+"'.");
@@ -280,7 +280,7 @@ class PrescaleTableModel extends AbstractTableModel
 		System.out.println("invalid size of vuint prescales.");
 		continue;
 	    }
-
+	    
 	    ArrayList<Integer> prescales = new ArrayList<Integer>();
 	    for (int ii=0;ii<vPrescales.vectorSize();ii++)
 		prescales.add((Integer)vPrescales.value(ii));
