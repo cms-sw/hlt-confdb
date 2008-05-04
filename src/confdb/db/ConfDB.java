@@ -2478,7 +2478,7 @@ public class ConfDB
 		 " Directories.created " +
 		 "FROM Directories " +
 		 "ORDER BY Directories.dirName ASC");
-	    psSelectDirectories.setFetchSize(32);
+	    psSelectDirectories.setFetchSize(128);
 	    preparedStatements.add(psSelectDirectories);
 	    
 	    psSelectConfigurations =
