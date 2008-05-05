@@ -5,11 +5,7 @@
 # runParser
 # ---------
 #
-# run the CMSSW release parser and populate one of the three standard DBs
-# currently being used:
-#   - mysql   (local)
-#   - offline (oracle, IT) 
-#   - online  (oracle, DAQ online)
+# run the CMSSW release parser and populate a ConfDB.
 #
 # NOTE: The current subsystem whitelist is also defined here!
 #
@@ -276,7 +272,11 @@ sub validate_release
     my $suffix;
     my $result = "";
     
-    if ($input =~ m/CMSSW_([\d]*)_([\d]*)_([\d]*)_pre([\d]*)([\S]*)/)
+    if ($input =~m/CMSSW_([\d]*)_([\d]*)_X_([\d]{4})-([\d]{2})-([\d]{2})-([\d]{4})/)
+    {
+	print "\$input = $input\n";
+    }
+    elsif ($input =~ m/CMSSW_([\d]*)_([\d]*)_([\d]*)_pre([\d]*)([\S]*)/)
     {
 	$prefix = "CMSSW_" . $1 . "_" . $2 . "_" . $3 . "_pre" . $4;
 	$suffix = $5;
@@ -292,8 +292,6 @@ sub validate_release
     
     if ($suffix =~ m/_HLT([\d])/) {
 	$count = $1-1;
-	##if ($count>0) {	$result = $prefix . "_HLT" . ($1-1); }
-	##elsif ($count==0) { $result = $prefix; }
 	if ($count>=0) { $result = $prefix; }
 	else { die "invalid release '$input'!"; }
     }
