@@ -47,13 +47,21 @@ def main(argv):
     opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:l:e:a:m:nh", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","configfile=","parsetestdir=","addtorelease=","comparetorelease=","noload=","help="])
     for o, a in opts:
 	if o in ("-r","release="):
-	    if(input_base_path and input_cmsswrel):
-		input_base_path = input_base_path.replace(input_cmsswrel,str(a))
-		input_cmsswrel = str(a)
-		print "Using release " + input_cmsswrel + " at path " + input_base_path
+            foundinscramlist = False
+            scramlisthandles = os.popen("scram list CMSSW | grep " + str(a)).readlines()
+            for scramlisthandle in scramlisthandles:
+                if(scramlisthandle.lstrip().startswith('-->')):
+                    scramlistpath = scramlisthandle.lstrip().rstrip().split('-->')[1]
+                    input_base_path = scramlistpath.lstrip().rstrip() + "/"
+                    foundinscramlist = True
+                    input_cmsswrel = str(a)
+                                                                                                                                
+            if(input_base_path and input_cmsswrel and foundinscramlist == True):                
+                input_cmsswrel = str(a)
+                print "Using release " + input_cmsswrel + " at path " + input_base_path
 	    else:
 		print "Could not resolve path to the release " + str(a)
-		print "Check that the CMSSW_RELEASE_BASE and CMSSW_VERSION envvars are set"
+		print "Check that the CMSSW_RELEASE_BASE and CMSSW_VERSION envvars are set, and that the release is appears in scram list"
 		return
         if o in ("-p","releasepath="):
             input_base_path = str(a)
