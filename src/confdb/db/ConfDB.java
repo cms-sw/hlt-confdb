@@ -3666,14 +3666,17 @@ public class ConfDB
 	throws DatabaseException
     {
 	if (!parameter.isValueSet()) {
-	    if (parameter.isTracked()) {
-		String errMsg =
-		    "ConfDB::insertParameterValue(paramId="+paramId+
-		    ",parameter="+parameter.name()+") failed: parameter is tracked"+
-		    " but not set.";
-		throw new DatabaseException(errMsg);
-	    }
-	    else return;
+	    // PS 05/06/08: allow unset tracked parameters to be saved
+	    // -------------------------------------------------------
+	    //if (parameter.isTracked()) {
+	    //String errMsg =
+	    //  "ConfDB::insertParameterValue(paramId="+paramId+
+	    //  ",parameter="+parameter.name()+") failed: parameter is tracked"+
+	    //  " but not set.";
+	    //throw new DatabaseException(errMsg);
+	    //}
+	    //else return;
+	    return;
 	}
 	
 	PreparedStatement psInsertParameterValue =

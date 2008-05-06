@@ -1,3 +1,9 @@
+2008-05-06  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-23-06
+	* allow for configurations to be saved even if unset tracked
+	parameters are in it.
+
 2008-05-02  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-23-05

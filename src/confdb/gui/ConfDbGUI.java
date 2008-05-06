@@ -852,12 +852,12 @@ public class ConfDbGUI
 	if (unsetParamCount>0) {
 	    String msg =
 		"current configuration contains " + unsetParamCount +
-		" unset tracked parameters. They must be set before " +
+		" unset tracked parameters. They *should* be set before " +
 		"saving/converting!";
-	    JOptionPane.showMessageDialog(frame,msg,"",JOptionPane.ERROR_MESSAGE);
-	    return false;
+	    JOptionPane.showMessageDialog(frame,msg,"",JOptionPane.WARNING_MESSAGE);
+	    //return false;
 	}
-
+	
 	int emptyContainerCount = currentConfig.emptyContainerCount();
 	if (emptyContainerCount>0) {
 	    String msg =
