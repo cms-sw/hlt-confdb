@@ -1,5 +1,12 @@
 2008-05-06  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-23-07
+	* 'fix' problem with configuration parser, where strings
+	containing '#' characters wouldn't be parsed correctly. It isn't
+	pretty though ...
+
+2008-05-06  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-23-06
 	* allow for configurations to be saved even if unset tracked
 	parameters are in it.

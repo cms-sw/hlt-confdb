@@ -104,7 +104,7 @@ public class PythonParser
 		
 		String line  = fileScan.nextLine();
 		int    index = line.indexOf("#");
-		if (index>=0) line = line.substring(0,index);
+		if (index>=0&&index<10) line = line.substring(0,index); // ?!@#
 		
 		Scanner lineScan = new Scanner(line);
 		lineScan.useDelimiter("[\\s]+");
@@ -206,7 +206,7 @@ public class PythonParser
 	}
 	catch (Exception e) {
 	    e.printStackTrace();
-	    printParsedTree();
+	    //printParsedTree();
 	}
 	finally {
 	    if (fileScan!=null) fileScan.close();
