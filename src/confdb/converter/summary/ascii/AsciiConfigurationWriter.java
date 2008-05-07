@@ -1,13 +1,12 @@
 package confdb.converter.summary.ascii;
 
 import java.util.Iterator;
-import java.util.ArrayList;
 
 import confdb.converter.ConverterEngine;
 import confdb.converter.ConverterException;
-import confdb.converter.IConfigurationWriter;
 import confdb.data.IConfiguration;
 
+import confdb.converter.summary.ISummaryWriter;
 import confdb.converter.summary.data.*;
 
 /**
@@ -28,7 +27,7 @@ import confdb.converter.summary.data.*;
  * |         |                | [p2/v2]   | [p2/v2]   |
  * ----------------------------------------------------
  */
-public class AsciiConfigurationWriter implements IConfigurationWriter 
+public class AsciiConfigurationWriter implements ISummaryWriter 
 {
     //
     // member data
