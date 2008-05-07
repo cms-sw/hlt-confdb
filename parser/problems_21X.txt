@@ -121,7 +121,7 @@ JetProbabilityESProducer.Parameter trackQualityClass string "any" tracked
 
 ESModule TrackCountingESProducer RecoBTag ImpactParameter
 TrackCountingESProducer.Parameter nthTrack int32 2 tracked
-TrackCountingESProducer.Parameter impactParamterType int32 0 tracked
+TrackCountingESProducer.Parameter impactParameterType int32 0 tracked
 TrackCountingESProducer.Parameter deltaR double -1.0 tracked
 TrackCountingESProducer.Parameter maximumDecayLength double 5.0 tracked
 TrackCountingESProducer.Parameter maximumDistanceToJetAxis double 0.07 tracked
