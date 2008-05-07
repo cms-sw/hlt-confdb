@@ -16,6 +16,7 @@ import confdb.db.ConfDBSetups;
 public class BrowserConverter extends OfflineConverter
 {
     static private HashMap<Integer,BrowserConverter> map = new HashMap<Integer,BrowserConverter>();
+    static private String[] dbNames = null;
     
     private BrowserConverter(String dbType,String dbUrl,
 			     String dbUser,String dbPwrd) throws ConverterException
@@ -31,6 +32,12 @@ public class BrowserConverter extends OfflineConverter
 		if ( db != null )
 			db.disconnect();
 	}
+
+	static public BrowserConverter getConverter( String dbName ) throws ConverterException 
+	{
+		return getConverter( getDbIndex(dbName) );
+	}
+	
 	
 	static public BrowserConverter getConverter( int dbIndex ) throws ConverterException 
 	{
@@ -68,14 +75,36 @@ public class BrowserConverter extends OfflineConverter
 		}
 	}
 	
-	static public void clearCache()
-	{
-		map = new HashMap<Integer,BrowserConverter>();
-	}
-	
+    static public String getDbName( int dbIndex )
+    {
+     	if ( dbNames == null )
+     	{
+     		ConfDBSetups dbs = new ConfDBSetups();
+     		dbNames = dbs.labelsAsArray();
+     	}
+     	return dbNames[ dbIndex ];
+    }
+
+    
+    static public int getDbIndex( String dbName )
+    {
+    	if ( dbName.equalsIgnoreCase( "hltdev" ) )
+    		dbName = "HLT Development";
+
+	  	int setupCount = new ConfDBSetups().setupCount();
+  		for ( int i = 0; i < setupCount; i++ )
+  		{
+  			if ( dbName.equalsIgnoreCase( getDbName( i ) ) )
+  				return i;
+		}
+  		return -1;
+    }
+    
     static public String[] listDBs()
     {
     	ConfDBSetups dbs = new ConfDBSetups();
+    	if ( dbNames == null )
+    		dbNames = dbs.labelsAsArray();
     	ArrayList<String> list = new ArrayList<String>();
      	for ( int i = 0; i < dbs.setupCount(); i++ )
      	{
@@ -87,7 +116,7 @@ public class BrowserConverter extends OfflineConverter
        				 && !host.equalsIgnoreCase("localhost") 
    				     && !host.endsWith( ".cms") )
    				     {
-   				    	 list.add( dbs.labelsAsArray()[i] );
+   				    	 list.add( getDbName(i) );
    				     }
     		}
     	}
@@ -133,6 +162,61 @@ public class BrowserConverter extends OfflineConverter
     	return ConverterBase.getNumberCacheEntries();
     }
 
+    static public class UrlParameter {
+    	public boolean asFragment = false;
+    	public String format = "ascii";
+    	public int configId = -1;
+    	public String configName = null;
+    	public String dbName = "";
+        public HashMap<String,String> toModifier = new HashMap<String,String>();
+        
+        UrlParameter() {}
+    }
+
+    static public UrlParameter getUrlParameter( Map<String,String[]> map ) throws ConverterException
+    {
+    	if ( map.isEmpty())
+    		throw new ConverterException( "ERROR: configId or configName must be specified!" );
+    		
+    	UrlParameter p = new UrlParameter();
+    	Set<Map.Entry<String,String[]>> parameters = map.entrySet(); 
+    	for ( Map.Entry<String,String[]> entry : parameters )
+    	{
+    		if ( entry.getValue().length > 1 )
+    			throw new ConverterException( "ERROR: Only one parameter '" + entry.getKey() + "' allowed!" );
+		
+    		String value = entry.getValue()[ 0 ];
+    		String key = entry.getKey();
+    		if ( key.equals("configId"))
+    			p.configId = Integer.parseInt( value );
+    		else if ( key.equals("configKey"))
+    			p.configId = Integer.parseInt( value );
+    		else if (key.equals( "configName")) {  
+    			p.configName = value;
+    		}
+    		else if (key.equals( "cff")) {
+    			p.asFragment =true;
+    			p.toModifier.put( key, value );
+    		}
+    		else if (key.equals( "format")) {
+    			p.format = value;
+    		}
+    		else if ( key.equals( "dbIndex" ) )
+    			p.dbName = BrowserConverter.getDbName( Integer.parseInt( value ) );
+    		else if ( key.equals( "dbName" ) ) 
+    			p.dbName = value;
+    		else {
+    			p.toModifier.put(entry.getKey(),value);
+    		}
+    	}
+
+    	if ( p.configId == -1  &&  p.configName == null )
+    		throw new ConverterException( "ERROR: configId or configName must be specified!" );
+
+    	if ( p.configId != -1  &&  p.configName != null )
+    		throw new ConverterException( "ERROR: configId *OR* configName must be specified!" );
+		return p;
+	}
 
 	
 }
