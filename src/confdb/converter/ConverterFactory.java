@@ -1,5 +1,7 @@
 package confdb.converter;
 
+import confdb.converter.summary.ISummaryWriter;
+
 
 public class ConverterFactory 
 {
@@ -33,9 +35,13 @@ public class ConverterFactory
 	{
 		writerPackage = thisPackage + "." + subPackage;
 		ConverterEngine converterEngine = new ConverterEngine( subPackage );
-		converterEngine.setConfigurationWriter( getConfigurationWriter() );
+		
+		IConfigurationWriter configurationWriter = getConfigurationWriter();
+		converterEngine.setConfigurationWriter( configurationWriter );
+		if ( configurationWriter instanceof ISummaryWriter )
+			return converterEngine;
+		
 		converterEngine.setParameterWriter( getParameterWriter() );
-
 		converterEngine.setEDSourceWriter( getEDSourceWriter() );
 		converterEngine.setESSourceWriter( getESSourceWriter() );
 		converterEngine.setESModuleWriter( getESModuleWriter() );
