@@ -700,6 +700,9 @@ class ConfdbOracleModuleLoader:
                     paramval = str(1)
                 if(boolval == "false"):
                     paramval = str(0)
+
+                if(paramval != "0" and paramval != "1"):
+                    paramval = None
                 
 		# Fill ParameterValues table
 		if(paramval == None):
@@ -1136,7 +1139,11 @@ class ConfdbOracleModuleLoader:
                         if(paramval == '"true"'):
                             paramval = str(1)
                         if(paramval == '"false"'):
-                            paramval = str(0)                                                                
+                            paramval = str(0)
+
+                        if(paramval != "0" and paramval != "1"):
+                            paramval = None
+
 			thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
 		else:
 #                    self.BindVars(thecursor,newsuperid,oldparamid,paramseq)                   
@@ -1860,6 +1867,9 @@ class ConfdbOracleModuleLoader:
                 if(boolval == "false"):
                     psetval = str(0)
 
+                if(psetval != "0" and psetval != "1"):
+                    psetval = None                                                    
+
                 if(self.verbose > 2):
                     print "INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")"
 
@@ -2039,7 +2049,10 @@ class ConfdbOracleModuleLoader:
                     vpsetval = str(1)
                 if(boolval == "false"):
                     vpsetval = str(0)
- 
+
+                if(vpsetval != "0" and vpsetval != "1"):
+                    vpsetval = None
+                                                    
 		thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
 	    elif(vpsettype == "double"):
 		if(vpsetval):
