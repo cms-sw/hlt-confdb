@@ -1829,6 +1829,10 @@ class SourceParser:
                 else:
                     theincfile = srcline.lstrip('#include').lstrip().rstrip().lstrip('"').rstrip('"').lstrip('<').rstrip('>').replace('.h','.cc').replace('interface','src')
 
+                # JJH - fixme
+                if(theobjectclass == 'TrackerSeedCleaner'):
+                    theincfile = "RecoMuon/TrackerSeedGenerator/interface/TrackerSeedCleaner.h"
+
 		if(self.verbose > 1):
 		    print 'Look in file ' + self.sourcetree + theincfile
 
@@ -1996,7 +2000,7 @@ class SourceParser:
 
 			    if(success == False):
 				if(thepsetname != "None"):
-				    if(success == False and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thenestedpsetname))):
+				    if(success == False and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thepsetname))):
 					self.paramsetmemberlist.append((thepsetname,paramtype,paramname,'',"true",self.sequencenb,thenestedpsetname,self.psetsequences[thepsetname]))
 					self.sequencenb = self.sequencenb + 1			    
 				elif(thevpsetname != ""):
