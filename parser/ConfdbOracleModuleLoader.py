@@ -655,7 +655,11 @@ class ConfdbOracleModuleLoader:
 		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
-		    thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+                    if(paramval.find("X") == -1 and paramval.find("x") == -1):
+                        thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+                    else:
+                        paramval = str(int(str(paramval), 16))
+                        thecursor.execute("INSERT INTO Int32ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + paramval + ", 1)") 
 
 	    # uint32
 	    elif(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t" or paramtype == "unsigned" or paramtype == "uint"):
@@ -678,7 +682,11 @@ class ConfdbOracleModuleLoader:
 		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
-		    thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+                    if(paramval.find("X") == -1 and paramval.find("x") == -1): 
+                        thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+                    else:
+                        paramval = str(int(str(paramval), 16))                        
+                        thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + paramval + ", 1)") 
 
 	    # bool
 	    elif(paramtype == "bool"):
@@ -812,7 +820,11 @@ class ConfdbOracleModuleLoader:
 			# Fill ParameterValues table
 			if(self.verbose > 2):
 			    print "INSERT INTO VInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")"
-			thecursor.execute("INSERT INTO VInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+                        if(vecpval.find("X") == -1 and vecpval.find("x") == -1):
+                            thecursor.execute("INSERT INTO VInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+                        else:
+                            vecpval = str(int(str(vecpval), 16))                            
+                            thecursor.execute("INSERT INTO VInt32ParamValues (paramId, sequenceNb, value, hex) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ", 1)")
 			sequencer = sequencer + 1
 
 	    # vector<uint32>
@@ -829,7 +841,11 @@ class ConfdbOracleModuleLoader:
 			# Fill ParameterValues table
 			if(self.verbose > 2):
 			    print "INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")"
-			thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+                        if(vecpval.find("X") == -1 and vecpval.find("x") == -1):
+                            thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+                        else:
+                            vecpval = str(int(str(vecpval), 16))                            
+                            thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value, hex) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ", 1)")
 			sequencer = sequencer + 1
 
 	    #vector<double>
@@ -976,7 +992,11 @@ class ConfdbOracleModuleLoader:
 			if(self.verbose > 2):
 			    print "No default parameter value found"
 		    else:
-			thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
+                        if(paramval.find("X") == -1 and paramval.find("x") == -1):  
+                            thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
+                        else:
+                            paramval = str(int(str(paramval), 16))                            
+                            thecursor.execute("INSERT INTO Int32ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + str(paramval) + ", 1)") 
 		else:                    
 #                    self.BindVars(thecursor,newsuperid,oldparamid,paramseq)
 		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
@@ -1045,7 +1065,11 @@ class ConfdbOracleModuleLoader:
 			if(self.verbose > 2):
 			    print "No default parameter value found"
 		    else:
-			thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
+                        if(paramval.find("X") == -1 and paramval.find("x") == -1):
+                            thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
+                        else:
+                            paramval = str(int(str(paramval), 16))                            
+                            thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + str(paramval) + ", 1)")
 		else:
 #                    self.BindVars(thecursor,newsuperid,oldparamid,paramseq)                                       
 		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
@@ -1455,7 +1479,11 @@ class ConfdbOracleModuleLoader:
 		    for vecpval in vecpvals:
 			if(vecpval):
 			    # Fill ParameterValues table
-			    thecursor.execute("INSERT INTO VInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+                            if(vecpval.find("X") == -1 and vecpval.find("x") == -1):
+                                thecursor.execute("INSERT INTO VInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+                            else:
+                                vecpval = str(int(str(vecpval), 16))                                
+                                thecursor.execute("INSERT INTO VInt32ParamValues (paramId, sequenceNb, value, hex) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ", 1)")
 			    sequencer = sequencer + 1
 
 	    # vector<uint32>
@@ -1506,7 +1534,11 @@ class ConfdbOracleModuleLoader:
 		    for vecpval in vecpvals:
 			if(vecpval):
 			    # Fill ParameterValues table
-			    thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+                            if(vecpval.find("X") == -1 and vecpval.find("x") == -1):
+                                thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+                            else:
+                                vecpval = str(int(str(vecpval), 16))                                
+                                thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value, hex) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ", 1)")
 			    sequencer = sequencer + 1
 
 	    # vector<double>
@@ -1794,7 +1826,11 @@ class ConfdbOracleModuleLoader:
 		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
-		    thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+                    if(paramval.find("X") == -1 and paramval.find("x") == -1):                        
+                        thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+                    else:
+                        paramval = str(int(str(paramval), 16))                       
+                        thecursor.execute("INSERT INTO Int32ParamValues (paramId, value, hex) VALUES (" + str(newparammemberid) + ", " + psetval + ", 1)") 
 	    elif(psettype == "uint32" or psettype == "unsigned int" or psettype == "uint32_t" or psettype == "uint"):
 		if(str(psetval).endswith("U")):
 		    psetval = (str(psetval).rstrip("U"))
@@ -1810,7 +1846,11 @@ class ConfdbOracleModuleLoader:
 		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
-		    thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+                    if(paramval.find("X") == -1 and paramval.find("x") == -1):
+                        thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+                    else:
+                        paramval = str(int(str(paramval), 16))                       
+                        thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value, hex) VALUES (" + str(newparammemberid) + ", " + psetval + ", 1)")
 
 	    elif(psettype == "bool"):
                 print "psetval = " + str(psetval)
@@ -1861,13 +1901,21 @@ class ConfdbOracleModuleLoader:
 		sequencer = 0
 		entries = psetval.lstrip().rstrip().lstrip('{').rstrip('}').split(',')
 		for entry in entries:
-		    thecursor.execute("INSERT INTO VInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ")")   
+                    if(entry.lstrip().rstrip().find("X") == -1 and entry.lstrip().rstrip().find("x") == -1): 
+                        thecursor.execute("INSERT INTO VInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ")")
+                    else:
+                        entry = str(int(entry.lstrip().rstrip(), 16))                        
+                        thecursor.execute("INSERT INTO VInt32ParamValues (paramId, sequenceNb, value, hex) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ", 1)")
 		    sequencer = sequencer + 1	
 	    elif(psettype == "vunsigned" or psettype == "vuint32"):
 		sequencer = 0
 		entries = psetval.lstrip().rstrip().lstrip('{').rstrip('}').split(',')
 		for entry in entries:
-		    thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ")")   
+                    if(entry.lstrip().rstrip().find("X") == -1 and entry.lstrip().rstrip().find("x") == -1):  
+                        thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ")")   
+                    else:
+                        entry = str(int(entry.lstrip().rstrip(), 16))                        
+                        thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value, hex) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ", 1)")
 		    sequencer = sequencer + 1	
 	    elif(psettype == "vdouble"):
 		sequencer = 0
@@ -1960,7 +2008,11 @@ class ConfdbOracleModuleLoader:
 		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
-		    thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
+                    if(vpsetval.find("X") == -1 and vpsetval.find("x") == -1):
+                        thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
+                    else:
+                        vpsetval = str(int(vpsetval, 16))                        
+                        thecursor.execute("INSERT INTO Int32ParamValues (paramId, value, hex) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ", 1)")
 	    elif(vpsettype == "uint32" or vpsettype == "unsigned int" or vpsettype == "uint32_t" or vpsettype == "uint"):
 		if(vpsetval):
 		    if(str(vpsetval).endswith("U")):
@@ -1976,7 +2028,11 @@ class ConfdbOracleModuleLoader:
 		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
-		    thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
+                    if(vpsetval.find("X") == -1 and vpsetval.find("x") == -1): 
+                        thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
+                    else:
+                        vpsetval = str(int(vpsetval, 16))                        
+                        thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value, hex) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ", 1)") 
 	    elif(vpsettype == "bool"):
                 boolval = str(vpsetval).strip('"').strip()
                 if(boolval == "true"):

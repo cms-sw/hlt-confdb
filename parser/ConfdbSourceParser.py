@@ -112,7 +112,8 @@ class SourceParser:
 
 				# Handle inline comments
 				if(line.find('#') != -1):
-				    line = line.split('#')[0]
+                                    if(line.split('#')[1].find('"') == -1):
+                                        line = line.split('#')[0]
 
 				# Handle inline C++ style comments. Argh.
 				if(line.find('//') != -1):

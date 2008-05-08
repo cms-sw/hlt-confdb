@@ -14,9 +14,9 @@ def main(argv):
 
     input_cmsswrel = os.environ.get("CMSSW_VERSION")
     input_dbname = "hltdb1"
-    input_dbuser = "hltdev"
-    input_dbpwd = "hltdev"
-    input_host = "HLTDEV"
+    input_dbuser = "CMS_HLT_TEST"
+    input_dbpwd = "hltdevtest1"
+    input_host = "CMS_ORCOFF_INT2R"
     input_dbtype = "Oracle"
     input_problemfile = "myproblems.txt"
     input_verbose = 0;
