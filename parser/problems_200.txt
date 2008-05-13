@@ -8,6 +8,8 @@ PoolDBESSource.Parameter authenticationMethod uint32 0 untracked
 PoolDBESSource.Parameter siteLocalConfig bool true untracked
 PoolDBESSource.Parameter messagelevel uint32 0 untracked
 
+ESSource SiStripQualityFakeESSource CalibTracker SiStripESProducers
+
 ESSource HcalHardcodeCalibrations CalibCalorimetry HcalPlugins
 HcalHardcodeCalibrations.Parameter toGet vstring { "GainWidths", "ChannelQuality", "ZSThresholds", "RespCorrs" } untracked
 
