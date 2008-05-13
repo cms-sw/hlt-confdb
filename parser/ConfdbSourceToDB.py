@@ -48,7 +48,7 @@ def main(argv):
     for o, a in opts:
 	if o in ("-r","release="):
             foundinscramlist = False
-            scramlisthandles = os.popen("scram list CMSSW | grep " + str(a)).readlines()
+            scramlisthandles = os.popen("scramv1 list CMSSW | grep " + str(a)).readlines()
             for scramlisthandle in scramlisthandles:
                 if(scramlisthandle.lstrip().startswith('-->')):
                     scramlistpath = scramlisthandle.lstrip().rstrip().split('-->')[1]
@@ -61,7 +61,7 @@ def main(argv):
                 print "Using release " + input_cmsswrel + " at path " + input_base_path
 	    else:
 		print "Could not resolve path to the release " + str(a)
-		print "Check that the CMSSW_RELEASE_BASE and CMSSW_VERSION envvars are set, and that the release is appears in scram list"
+		print "Check that the CMSSW_RELEASE_BASE and CMSSW_VERSION envvars are set, and that the release is appears in scramv1 list"
 		return
         if o in ("-p","releasepath="):
             input_base_path = str(a)
