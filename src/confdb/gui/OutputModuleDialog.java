@@ -419,12 +419,15 @@ public class OutputModuleDialog extends JDialog
     private void setParameters()
     {
 	StringBuffer outputCommandsAsString = new StringBuffer();
-	outputCommandsAsString.append("drop *");
+	outputCommandsAsString
+	    .append("drop *")
+	    .append(",").append("keep edmTriggerResults_*_*_*")
+	    .append(",").append("keep triggerTriggerEvent_*_*_*");
 
 	if (jCheckBoxKeepRaw.isSelected())
 	    outputCommandsAsString
 		.append(",").append("keep FEDRawDataCollection_*_*_*");
-
+	
 	Iterator<Product> itP = products.values().iterator();
 	while (itP.hasNext()) {
 	    Product p = itP.next();

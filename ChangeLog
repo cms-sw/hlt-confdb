@@ -1,3 +1,11 @@
+2008-05-14  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-23-08
+	* gui: make sure to always keep trigger information
+	  (OutputModuleEditor)
+	* data/converter: provide --nosequences and --nomodules options in
+	ModifierInstructions
+
 2008-05-06  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-23-07
