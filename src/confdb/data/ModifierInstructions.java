@@ -58,12 +58,14 @@ public class ModifierInstructions
     private ArrayList<String> requestedSequences = new ArrayList<String>();
 
     /** sequences to be properly referenced but *not* defined */
+    private boolean           undefineAllSequences = false;
     private ArrayList<String> undefinedSequences = new ArrayList<String>();
 
     /** modules reqested regardless of being referenced in requested path */
     private ArrayList<String> requestedModules = new ArrayList<String>();
     
     /** modules to be properly referenced but *not* defined */
+    private boolean           undefineAllModules = false;
     private ArrayList<String> undefinedModules = new ArrayList<String>();
 
     /** blocks to be defined, regardless of the instance being filtered! */
@@ -122,6 +124,10 @@ public class ModifierInstructions
 	if (value!=null) filterAllServices(true);
 	value = args.remove("nopaths");
 	if (value!=null) filterAllPaths(true);
+	value = args.remove("nosequences");
+	if (value!=null) undefineAllSequences();
+	value = args.remove("nomodules");
+	if (value!=null) undefineAllModules();
 	value = args.remove("nooutput");
 	if (value!=null) {
 	    filterAllOutputModules(true);
@@ -469,9 +475,15 @@ public class ModifierInstructions
 	
 	// make sure content of undefined sequences is undefined as well
 	ArrayList<Sequence> undefSequences = new ArrayList<Sequence>();
-	for (String sequenceName : undefinedSequences) {
-	    Sequence sequence = config.sequence(sequenceName);
-	    if (sequence!=null) undefSequences.add(sequence); // TODO?!
+	if (undefineAllSequences) {
+	    Iterator<Sequence> itS = config.sequenceIterator();
+	    while (itS.hasNext()) undefSequences.add(itS.next());
+	}
+	else {
+	    for (String sequenceName : undefinedSequences) {
+		Sequence sequence = config.sequence(sequenceName);
+		if (sequence!=null) undefSequences.add(sequence);
+	    }
 	}
 	
 	Iterator<Sequence> itUndefSeq = undefSequences.iterator();
@@ -479,18 +491,16 @@ public class ModifierInstructions
 	    Sequence sequence = itUndefSeq.next();
 	    Iterator<Sequence> itS = sequence.sequenceIterator();
 	    while (itS.hasNext()) {
-		String sequenceName = itS.next().name();
-		if (!undefinedSequences.contains(sequenceName))
-		    undefinedSequences.add(sequenceName);
+		Sequence s = itS.next();
+		if (!isUndefined(s)) undefineSequence(s.name());
 	    }
 	    Iterator<ModuleInstance> itM = sequence.moduleIterator();
 	    while (itM.hasNext()) {
-		String moduleName = itM.next().name();
-		if (!undefinedModules.contains(moduleName))
-		    undefinedModules.add(moduleName);
+		ModuleInstance m = itM.next();
+		if (!isUndefined(m)) undefineModule(m.name());
 	    }
 	}
-
+	
 	return true;
     }
 
@@ -593,9 +603,11 @@ public class ModifierInstructions
     public boolean isUndefined(Referencable moduleOrSequence)
     {
 	if (moduleOrSequence instanceof Sequence)
-	    return (undefinedSequences.contains(moduleOrSequence.name()));
+	    return (undefineAllSequences) ?
+		true : (undefinedSequences.contains(moduleOrSequence.name()));
 	else if (moduleOrSequence instanceof ModuleInstance)
-	    return (undefinedModules.contains(moduleOrSequence.name()));
+	    return (undefineAllModules) ?
+		true : (undefinedModules.contains(moduleOrSequence.name()));
 	return false;
     }
     
@@ -858,6 +870,9 @@ public class ModifierInstructions
 	requestedSequences.remove(sequenceName);
     }
 
+    /** no sequences will be defined */
+    public void undefineAllSequences() { undefineAllSequences = true; }
+
     /** sequence won't be defined but references remain; content removed! */
     public void undefineSequence(String sequenceName)
     {
@@ -882,6 +897,9 @@ public class ModifierInstructions
 	requestedModules.remove(moduleName);
     }
     
+    /** no modules will be defined */
+    public void undefineAllModules() { undefineAllModules = true; }
+
     /** module will not be defined, but references remain */
     public void undefineModule(String moduleName)
     {

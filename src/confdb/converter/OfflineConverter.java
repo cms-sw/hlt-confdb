@@ -170,7 +170,7 @@ public class OfflineConverter extends ConverterBase
     {
 	String  configId    =          "";
 	String  configName  =          "";
-	String  format      =     "Ascii";
+	String  format      =     "ascii";
 	boolean asFragment  =       false;
 
 	String  dbType      =     "mysql";
@@ -200,8 +200,6 @@ public class OfflineConverter extends ConverterBase
 	    }
 	    else if (arg.equals("--cff")) {
 		asFragment = true;
-		cnvArgs.put("noedsources","");
-		cnvArgs.put("nooutput","");
 	    }
 	    else if (arg.equals("-t")||arg.equals("--dbtype")) {
 		iarg++; dbType = args[iarg];
