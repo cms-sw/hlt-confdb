@@ -1,43 +1,51 @@
 #!/usr/bin/env python
 
  # ConfdbPyconfigParser.py
- # Parse cc files in a release, and identify the modules/parameters
- # that should be loaded as templates in the Conf DB
- # Jonathan Hollar LLNL Nov. 7, 2007
+ # Query python-configs in a release for the default
+ # values of parameters
+ # Jonathan Hollar LLNL May. 14, 2008
 
 import os, string, sys, posix, tokenize, array, getopt
 import FWCore.ParameterSet.Config as cms
 
 def main(argv):
     pyparser = ConfdbPyconfigParser()
-    pyparser.FindPythonConfigDefault() 
+    pyparser.SetThePythonVar("L3Muons","L3TrajBuilderParameters","SeedGeneratorParameters","ComponentName")
+    pyparser.FindPythonConfigDefault("RecoMuon","L3MuonProducer","L3Muons") 
 
 class ConfdbPyconfigParser:
     def __init__(self):
         self.value = ''
+        self.themodule = ''
+        self.thepset = ''
+        self.thenestedpset = ''
+        self.theparameter = ''
 
-    def FindPythonConfigDefault(self):
+    def SetThePythonVar(self,modname,psetname,nestedpsetname,paramname):
+        self.themodule = modname
+        self.thepset = psetname
+        self.thenestedpset = nestedpsetname
+        self.theparameter = paramname
 
-        #        thecfifile = "RecoMuon.L3MuonProducer.L3Muons_cfi"
-        #        __import__(str(thecfifile))
-        #        import RecoMuon.L3MuonProducer.L3Muons_cfi
-        exec "import " + "RecoMuon.L3MuonProducer.L3Muons_cfi"
+    def FindPythonConfigDefault(self,thesubsystem,thepackage,thecomponent):
+
+        exec "import " + thesubsystem + "." + thepackage + "." + thecomponent + "_cfi"
         
         process = cms.Process("MyProcess")
 
-        theextend = "process.extend(" + "RecoMuon.L3MuonProducer.L3Muons_cfi" + ")"
+        theextend = "process.extend(" + thesubsystem + "." + thepackage + "." + thecomponent + "_cfi)"
         eval(theextend)
 
-        print '\nJJH: the default value of variable is:\n'
+        print '\nJJH: the default value of variable ' + self.theparameter + ' is:\n'
 
-        jjhvar = "process."
-        jjhvar = jjhvar + "L3Muons" + "."
-        jjhvar = jjhvar + "L3TrajBuilderParameters" + "."
-        jjhvar = jjhvar + "SeedGeneratorParameters" + "."
-        jjhvar = jjhvar + "ComponentName" + "."
-        jjhvar = jjhvar + "value()"
-        
-        thedefault =  eval(jjhvar)
+        valvar = "process."
+        valvar = valvar + self.themodule + "."
+        valvar = valvar + self.thepset + "."
+        valvar = valvar + self.thenestedpset + "."
+        valvar = valvar + self.theparameter + "."
+        valvar = valvar + "value()"
+
+        thedefault =  eval(valvar)
         print thedefault
 
 if __name__ == "__main__":
