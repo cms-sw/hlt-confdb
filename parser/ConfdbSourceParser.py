@@ -1621,7 +1621,7 @@ class SourceParser:
 
 		if(thebaseclass):
 		    self.baseclass = thebaseclass
-
+                        
     # Find the base class for modules that have 2 levels of inheritance. This can be expensive, so
     # try to be smart and look at what files are being included.		    
     def FindOriginalBaseClass(self, classname, sourcetree, thedatadir):
