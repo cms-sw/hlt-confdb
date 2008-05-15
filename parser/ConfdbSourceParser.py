@@ -8,7 +8,7 @@
 import os, string, sys, posix, tokenize, array, re
 
 class SourceParser:
-    def __init__(self,verbosity,srctree):
+    def __init__(self,verbosity,srctree,configstyle):
         self.data = []
 
 	# Store parameters(sets) and their default values for this package
@@ -38,6 +38,7 @@ class SourceParser:
 	self.psetsequencenb = 0
 	self.mainpset = "None"
 	self.verbose = int(verbosity)
+        self.configstyle = configstyle
 
     # Parser for .cf* files. Look for default values of tracked parameters.
     # Anything specific to the .cf* file syntax nominally goes here.
@@ -787,10 +788,13 @@ class SourceParser:
                         # We have tracked parameters in this module. Get
                         # their default values from the corresponding .cfi
                         # file
-                        if(thetdefedmodule == ""):
-                            success = self.ParseCfFile(thedatadir,theconstructor,paramname,paraminparamset,None,None)
-                        else:
-                            success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname,paraminparamset,None,None)
+                        if(self.configstyle == "cfg"):
+                            if(thetdefedmodule == ""):
+                                success = self.ParseCfFile(thedatadir,theconstructor,paramname,paraminparamset,None,None)
+                            else:
+                                success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname,paraminparamset,None,None)
+                        elif(self.configstyle == "python"):
+                            print 'Reading of python configs is not enabled yet!'
 
                         totalline = ''
                         foundlineend = False
@@ -1995,9 +1999,11 @@ class SourceParser:
 				thenestedpsetname = thelocalnewpsetnesting
 				thelocalnewpsetnesting = ''			    
 
-
-			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
-
+                            if(self.configstyle == "cfg"):
+                                success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
+                            elif(self.configstyle == "python"):
+                                print 'Reading of python configs is not enabled yet!'
+                                                            
 			    if(success == False):
 				if(thepsetname != "None"):
 				    if(success == False and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thepsetname))):
@@ -2123,8 +2129,11 @@ class SourceParser:
 				print '\tPassed parameter ' + paramtype + '\t' + paramname + ' (untracked)'
 
 			if((paramtype != 'ParameterSet') and (paramtype != 'PSet')):
-			    success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
-
+                            if(self.configstyle == "cfg"):
+                                success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
+                            elif(self.configstyle == "python"):
+                                print 'Reading of python configs is not enabled yet!'
+                                                            
 			    if(success == False):
 
 				if(thepsetname != "None"):

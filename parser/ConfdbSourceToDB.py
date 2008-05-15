@@ -42,9 +42,10 @@ def main(argv):
     input_noload = False
     input_addtorelease = "none"
     input_comparetorelease = ""
+    input_configflavor = "cfg"
 
     # Parse command line options
-    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:l:e:a:m:nh", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","configfile=","parsetestdir=","addtorelease=","comparetorelease=","noload=","help="])
+    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:l:e:a:m:f:nh", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","configfile=","parsetestdir=","addtorelease=","comparetorelease=","configflavor=","noload=","help="])
     for o, a in opts:
 	if o in ("-r","release="):
             foundinscramlist = False
@@ -119,6 +120,9 @@ def main(argv):
 	if o in ("-m","comparetorelease="):
 	    print "Will update releative to release " + str(a)
 	    input_comparetorelease = str(a)
+        if o in ("-f","configflavor="):
+            print "Will use " + str(a) + "-language cfi files to find parameter defaults"
+            input_configflavor = str(a)
 	if o in ("-n","noload="):
 	    print "Will parse release without loading to the DB"
 	    input_noload = True
@@ -137,6 +141,7 @@ def main(argv):
 	    print "\t-o <Hostname>"
 	    print "\t-t <Type of database. Options are MySQL (default) or Oracle)>"
 	    print "\t-l <Name of config file>"
+            print "\t-f <Flavor of configuration file. Options are cfg (default) or python (not yet implemented)>"
 	    print "\t-e <Parse test/ directories. 1 = yes, 0/default = no>"
 	    print "\t-h Print this help menu"
 	    return
@@ -149,11 +154,11 @@ def main(argv):
 
     print "Using release base: " + input_base_path
 
-    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype,input_dbpwd,input_host,input_configfile,input_dotest,input_noload,input_addtorelease,input_comparetorelease,input_baserelease_path)
+    confdbjob = ConfdbSourceToDB(input_cmsswrel,input_base_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbname,input_dbuser,input_dbtype,input_dbpwd,input_host,input_configfile,input_dotest,input_noload,input_addtorelease,input_comparetorelease,input_baserelease_path,input_configflavor)
     confdbjob.BeginJob()
 
 class ConfdbSourceToDB:
-    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype,clidbpwd,clihost,cliconfig,clidotest,clinoload,cliaddtorelease,clicomparetorelease,clibasereleasepath):
+    def __init__(self,clirel,clibasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbname,clidbuser,clidbtype,clidbpwd,clihost,cliconfig,clidotest,clinoload,cliaddtorelease,clicomparetorelease,clibasereleasepath,cliconfigflavor):
 	self.data = []
 	self.dbname = clidbname
 	self.dbuser = clidbuser
@@ -166,6 +171,7 @@ class ConfdbSourceToDB:
 	self.noload = clinoload
 	self.addtorelease = cliaddtorelease
 	self.comparetorelease = clicomparetorelease
+        self.configflavor = cliconfigflavor
 	self.moduledefinedinfile = ""
 	self.needconfigcomponents = []
 	self.needconfigpackages = []
@@ -595,7 +601,7 @@ class ConfdbSourceToDB:
     def ScanComponent(self,modulename, packagedir, packagename, sourcetree, componenttype, componentrename):
 
 	# Get a parser object
-	myParser = ConfdbSourceParser.SourceParser(self.verbose,sourcetree)
+	myParser = ConfdbSourceParser.SourceParser(self.verbose,sourcetree,self.configflavor)
 	myParser.SetModuleDefFile(self.moduledefinedinfile)
 
 	srcdir = packagedir + "/src/"
