@@ -6,6 +6,7 @@
 # Jonathan Hollar LLNL Nov. 7, 2007
 
 import os, string, sys, posix, tokenize, array, re
+import ConfdbPyconfigParser
 
 class SourceParser:
     def __init__(self,verbosity,srctree,configstyle):
@@ -39,6 +40,8 @@ class SourceParser:
 	self.mainpset = "None"
 	self.verbose = int(verbosity)
         self.configstyle = configstyle
+
+        self.pyconfigparser = ConfdbPyconfigParser.ConfdbPyconfigParser()
 
     # Parser for .cf* files. Look for default values of tracked parameters.
     # Anything specific to the .cf* file syntax nominally goes here.
@@ -793,8 +796,10 @@ class SourceParser:
                                 success = self.ParseCfFile(thedatadir,theconstructor,paramname,paraminparamset,None,None)
                             else:
                                 success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname,paraminparamset,None,None)
-                        elif(self.configstyle == "python"):
+                        elif(self.configstyle == "python" and paramtype != 'PSet' and paramtype != 'VPSet' and paramtype != 'ParameterSet'):
                             print 'Reading of python configs is not enabled yet!'
+                            self.pyconfigparser.SetThePythonVar(themodulename,paraminparamset,paramname)
+                            self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)
 
                         totalline = ''
                         foundlineend = False
@@ -2001,8 +2006,10 @@ class SourceParser:
 
                             if(self.configstyle == "cfg"):
                                 success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
-                            elif(self.configstyle == "python"):
+                            elif(self.configstyle == "python" and paramtype != 'PSet' and paramtype != 'VPSet' and paramtype != 'ParameterSet'):
                                 print 'Reading of python configs is not enabled yet!'
+                                self.pyconfigparser.SetThePythonVar(themodulename,thepsetname,paramname)
+                                self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)                                                        
                                                             
 			    if(success == False):
 				if(thepsetname != "None"):
@@ -2131,9 +2138,11 @@ class SourceParser:
 			if((paramtype != 'ParameterSet') and (paramtype != 'PSet')):
                             if(self.configstyle == "cfg"):
                                 success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
-                            elif(self.configstyle == "python"):
+                            elif(self.configstyle == "python" and paramtype != 'PSet' and paramtype != 'VPSet' and paramtype != 'ParameterSet'):
                                 print 'Reading of python configs is not enabled yet!'
-                                                            
+                                self.pyconfigparser.SetThePythonVar(themodulename,thepsetname,paramname)
+                                self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)
+                                
 			    if(success == False):
 
 				if(thepsetname != "None"):
