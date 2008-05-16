@@ -872,7 +872,7 @@ class ConfdbSourceToDB:
 	    myParser.ShowParamFailures()
 	    myParser.ResetParams()
 
-	except: 
+	except:
 	    print "Error: SQL exception caught while loading the component " + modulename + " to DB. The template may be incomplete" 
 	    self.sqlerrors.append(modulename + "\t(in " + packagename +")")
 	    return

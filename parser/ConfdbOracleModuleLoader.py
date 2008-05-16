@@ -288,9 +288,14 @@ class ConfdbOracleModuleLoader:
 	if(self.verbose > 2):
 	    print "INSERT INTO ESSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')"
 	
+        # appendToDataLabel
+        print "\tMessage: appending string appendToDataLabel to this ESSource"
+        parameters.append(("string","appendToDataLabel","''","true",999))
+
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
 	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
+
 
 	self.globalseqcount = 0
     # End ConfdbLoadNewESSourceTemplate
@@ -354,6 +359,10 @@ class ConfdbOracleModuleLoader:
             print "INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')"
 	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')")
 	
+        # appendToDataLabel
+        print "\tMessage: appending string appendToDataLabel to this ESModule"        
+        parameters.append(("string","appendToDataLabel","''","true",999))
+
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
 	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
