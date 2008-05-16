@@ -58,6 +58,12 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
 	this.database           = database;
 
 	directoryTreeModel.addTreeModelListener(this);
+	directoryTree.addTreeSelectionListener(new TreeSelectionListener() {
+		public void valueChanged(TreeSelectionEvent e) {
+		    JTree t = DirectoryTreeMouseListener.this.directoryTree;
+		    System.err.println("isEditing: "+t.isEditing());
+		}
+	    });
     }
     
     
@@ -135,8 +141,13 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
     /** TreeModelListener: treeNodesChanged() */
     public void treeNodesChanged(TreeModelEvent e)
     {
+	System.err.println("DirectoryTreeMouseListener::treeNodesChanged()");
 	TreePath  treePath  = e.getTreePath();
-	if (treePath==null) return;
+	if (treePath==null) {
+	    System.err.println("treePath is null in "+
+			       "DirectoryTreeMouseListener::treeNodesChanged()");
+	    return;
+	}
 	int       index     = e.getChildIndices()[0];
 	Directory parentDir = (Directory)treePath.getLastPathComponent();
 	Directory childDir  = parentDir.childDir(index);

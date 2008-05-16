@@ -54,8 +54,15 @@ public class DirectoryTreeCellEditor extends DefaultTreeCellEditor
     /**  DefaultTreeCellEditor's 'getCellEditorValue' */
     public Object getCellEditorValue()
     {
+	System.out.println("DirectoryTreeCellEditor::getCellEditorValue()");
 	Object value = super.getCellEditorValue();
-	if (dir == null) return null;
+
+	if (dir == null) {
+	    System.err.println("return null from "+
+			       "DirectoryTreeCellEditor::getCellEditorValue()");
+	    return null;
+	}
+	
 	Directory parentDir = dir.parentDir();
 	String newDirName = parentDir.name();
 	if (!newDirName.equals("/")) newDirName+="/";
