@@ -28,6 +28,11 @@ public class SaveConfigurationDialog extends JDialog
     // member data
     //
     
+    /** define symbols which are forbidden in a dir/config name */
+    private static final char[] forbiddenSymbols = { ' ','/','*','\'','"',
+						     '[',']','{','}','(',')',
+						     '&','$','#',':',';','<','>' };
+    
     /** configuration to be saved */
     private Configuration config = null;
     
@@ -146,6 +151,14 @@ public class SaveConfigurationDialog extends JDialog
     // private member functions
     //
 
+    /** check if the string contains a forbidden symbol */
+    private boolean containsForbiddenSymbol(String s)
+    {
+	for (char symbol : forbiddenSymbols)
+	    if (s.indexOf(symbol)>=0) return true;
+	return false;
+    }
+
     private void jTreeDirectoriesValueChanged(TreeSelectionEvent e)
     {
 	Object o = jTreeDirectories.getLastSelectedPathComponent();
@@ -198,7 +211,7 @@ public class SaveConfigurationDialog extends JDialog
 	    return;
 	}
 	String configName = jTextFieldConfigName.getText();
-	if (configName.length()==0) {
+	if (configName.length()==0||containsForbiddenSymbol(configName)) {
 	    jButtonOk.setEnabled(false);
 	    return;
 	}
