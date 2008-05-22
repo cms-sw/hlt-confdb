@@ -1,4 +1,3 @@
-
 EDSource PoolSource IOPool Input
 PoolSource.Parameter fileNames vstring { "file:RelVal_Pure_Raw.root" } untracked
 
@@ -269,3 +268,7 @@ Module EDProducer CSCRecHitDProducer RecoLocalMuon CSCRecHitD
 CSCRecHitDProducer.Parameter CSCStripClusterSize int32 3 untracked
 CSCRecHitDProducer.Parameter CSCDebug bool false untracked
 CSCRecHitDProducer.Parameter readBadChannels bool false tracked
+
+Module EDProducer EgammaHLTPixelMatchElectronProducers RecoEgamma EgammaHLTProducers
+EgammaHLTPixelMatchElectronProducers.Parameter TrackProducer InputTag hltCtfL1NonIsoWithMaterialTracks tracked
+EgammaHLTPixelMatchElectronProducers.Parameter BSProducer InputTag hltOfflineBeamSpot tracked
