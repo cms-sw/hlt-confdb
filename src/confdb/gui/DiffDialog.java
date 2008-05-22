@@ -192,11 +192,13 @@ public class DiffDialog extends JDialog
     }
     public void jComboBoxOldConfigActionPerformed(ActionEvent e)
     {
-	
 	String snew = jTextFieldNewConfig.getText();
 	String sold = (String)jComboBoxOldConfig.getSelectedItem();
 	
-	if (snew.length()>0&&sold!=null&&sold.length()>0) compareConfigurations();
+	if (snew.length()>0&&sold!=null&&sold.length()>0) {
+	    oldConfig = null;
+	    compareConfigurations();
+	}
     }
     public void jButtonCloseActionPerformed(ActionEvent e)
     {
