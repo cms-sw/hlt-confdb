@@ -44,6 +44,7 @@ L1GctConfigProducers.Parameter PowerSeriesCoefficients PSet tracked
 L1GctConfigProducers.Parameter OrcaStyleCoefficients PSet tracked
 L1GctConfigProducers.Parameter PiecewiseCubicCoefficients PSet tracked
 L1GctConfigProducers.Parameter jetCounterSetup PSet tracked
+L1GctConfigProducers.Parameter ConvertEtValuesToEnergy bool false tracked
 
 ESModule PixelCPEInitialESProducer RecoLocalTracker SiPixelRecHits
 PixelCPEInitialESProducer.Parameter PixelErrorParametrization string "NOTcmsim" tracked
