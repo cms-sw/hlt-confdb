@@ -1418,7 +1418,7 @@ class ConfdbOracleModuleLoader:
 		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 		    
 		    # Fill ParameterValues table
-		    if(paramval == None):
+		    if(paramval == None or paramval == ''):
 			if(self.verbose > 2):
 			    print "No default parameter value found"
 		    else:
