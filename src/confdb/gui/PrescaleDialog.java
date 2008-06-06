@@ -228,74 +228,13 @@ public class PrescaleDialog extends JDialog
 //
 class PrescaleTableModel extends AbstractTableModel
 {
-    /** precale column labels */
-    private ArrayList<String> columnNames = new ArrayList<String>();
-    
-    /** paths and prescales */
-    private ArrayList<PrescaleTableRow> rows =new ArrayList<PrescaleTableRow>();
-    
+    /** the presacale table data structure */
+    private PrescaleTable prescaleTable;
+
     /** update the table model according to configuration's PrescaleService */
     public void initialize(IConfiguration config)
     {
-	columnNames.clear(); columnNames.add("Path");
-	rows.clear();
-	
-	ServiceInstance prescaleSvc = config.service("PrescaleService");
-	if (prescaleSvc==null) {
-	    System.err.println("No PrescaleService found.");
-	    return;
-	}
-	
-	VStringParameter vColumnNames =
-	    (VStringParameter)prescaleSvc.parameter("lvl1Labels","vstring");
-	if (vColumnNames==null) {
-	    System.err.println("No vstring lvl1Labels found.");
-	    return;
-	}
-	
-	VPSetParameter vpsetPrescaleTable =
-	    (VPSetParameter)prescaleSvc.parameter("prescaleTable","VPSet");
-	if (vpsetPrescaleTable==null) {
-	    System.err.println("No VPSet prescaleTable found.");
-	    return;
-	}
-
-	for (int i=0;i<vColumnNames.vectorSize();i++)
-	    columnNames.add((String)vColumnNames.value(i));
-	
-	HashMap<String,PrescaleTableRow> pathToRow =
-	    new HashMap<String,PrescaleTableRow>();
-	
-	for (int i=0;i<vpsetPrescaleTable.parameterSetCount();i++) {
-	    PSetParameter    pset      =vpsetPrescaleTable.parameterSet(i);
-	    StringParameter  sPathName =(StringParameter)pset.parameter("pathName");
-	    VUInt32Parameter vPrescales=(VUInt32Parameter)pset.parameter("prescales");
-	    String           pathName  =(String)sPathName.value();
-	    
-	    if (config.path(pathName)==null) {
-		System.out.println("invalid pathName '"+pathName+"'.");
-		continue;
-	    }
-	    if (vPrescales.vectorSize()!=columnNames.size()-1) {
-		System.out.println("invalid size of vuint prescales.");
-		continue;
-	    }
-	    
-	    ArrayList<Integer> prescales = new ArrayList<Integer>();
-	    for (int ii=0;ii<vPrescales.vectorSize();ii++)
-		prescales.add((Integer)vPrescales.value(ii));
-	    pathToRow.put(pathName,new PrescaleTableRow(pathName,prescales));
-	}
-	
-	Iterator<Path> itP = config.pathIterator();
-	while (itP.hasNext()) {
-	    Path path = itP.next();
-	    PrescaleTableRow row = pathToRow.remove(path.name());
-	    if (row==null)
-		rows.add(new PrescaleTableRow(path.name(),getColumnCount()-1));
-	    else
-		rows.add(row);
-	}
+	prescaleTable = new PrescaleTable(config);
 	fireTableDataChanged();
     }
 
@@ -309,9 +248,9 @@ class PrescaleTableModel extends AbstractTableModel
 	}
 	
 	StringBuffer labelsAsString = new StringBuffer();
-	for (int i=1;i<columnNames.size();i++) {
+	for (int i=0;i<prescaleTable.prescaleCount();i++) {
 	    if (labelsAsString.length()>0) labelsAsString.append(",");
-	    labelsAsString.append(columnNames.get(i));
+	    labelsAsString.append(prescaleTable.prescaleColumnName(i));
 	}
 	prescaleSvc.updateParameter("lvl1Labels","vstring",
 				    labelsAsString.toString());
@@ -325,26 +264,17 @@ class PrescaleTableModel extends AbstractTableModel
 	}
 	vpsetPrescaleTable.setValue("");
 	
-	Iterator<PrescaleTableRow> itR = rows.iterator();
-	while (itR.hasNext()) {
-	    PrescaleTableRow row = itR.next();
-	    StringBuffer prescalesAsString = new StringBuffer();
-	    boolean isPrescaled = false;
-	    Iterator<Integer> itI = row.prescales.iterator();
-	    while (itI.hasNext()) {
-		int prescale = itI.next();
-		if (prescale!=1) isPrescaled = true;
-		if (prescalesAsString.length()>0) prescalesAsString.append(",");
-		prescalesAsString.append(prescale);
-	    }
-	    if (!isPrescaled) continue;
-	    ArrayList<Parameter> params = new ArrayList<Parameter>();
-	    StringParameter sPathName = new StringParameter("pathName",row.pathName,
-							    true,false);
-	    VUInt32Parameter vPrescales = new VUInt32Parameter("prescales",
-							       prescalesAsString
-							       .toString(),
-							       true,false);
+	for (int iPath=0;iPath<prescaleTable.pathCount();iPath++) {
+	    if (!prescaleTable.isPrescaled(iPath)) continue;
+	    String pathName = prescaleTable.pathName(iPath);
+	    String prescalesAsString = prescaleTable.prescalesAsString(iPath);
+	    ArrayList<Parameter> params    =new ArrayList<Parameter>();
+	    StringParameter      sPathName =new StringParameter("pathName",
+								 pathName,
+								 true,false);
+	    VUInt32Parameter     vPrescales=new VUInt32Parameter("prescales",
+								 prescalesAsString,
+								 true,false);
 	    params.add(sPathName);
 	    params.add(vPrescales);
 	    vpsetPrescaleTable.addParameterSet(new PSetParameter("",params,
@@ -357,34 +287,32 @@ class PrescaleTableModel extends AbstractTableModel
     /** add an additional column (-> lvl1Label) */
     public void addColumn(int i,String lvl1Label)
     {
-	columnNames.add(i+1,lvl1Label);
-	Iterator<PrescaleTableRow> itR = rows.iterator();
-	while (itR.hasNext()) itR.next().prescales.add(i,1);
+	prescaleTable.addPrescaleColumn(i,lvl1Label);
 	fireTableStructureChanged();
     }
     
     /** remove a column of prescales */
     public void removeColumn(int i)
     {
-	columnNames.remove(i);
-	Iterator<PrescaleTableRow> itR = rows.iterator();
-	while (itR.hasNext()) itR.next().prescales.remove(i-1);
+	prescaleTable.removePrescaleColumn(i);
 	fireTableStructureChanged();
     }
 
     /** number of columns */
-    public int getColumnCount() { return columnNames.size(); }
+    public int getColumnCount() { return prescaleTable.prescaleCount()+1; }
     
     /** number of rows */
-    public int getRowCount() { return rows.size(); }
+    public int getRowCount() { return prescaleTable.pathCount(); }
     
     /** get column name for colimn 'col' */
-    public String getColumnName(int col) { return columnNames.get(col); }
+    public String getColumnName(int col)
+    { return (col==0) ? "Path" : prescaleTable.prescaleColumnName(col-1); }
     
     /** get the value for row,col */
     public Object getValueAt(int row, int col)
     {
-	return (col==0) ? rows.get(row).pathName:rows.get(row).prescales.get(col-1);
+	return (col==0) ?
+	    prescaleTable.pathName(row) : prescaleTable.prescale(row,col-1);
     }
     
     /** get the class of the column 'c' */
@@ -399,37 +327,16 @@ class PrescaleTableModel extends AbstractTableModel
     /** set the value of a table cell */
     public void setValueAt(Object value,int row, int col)
     {
-	rows.get(row).prescales.set(col-1,(Integer)value);
+	prescaleTable.setPrescale(row,col-1,(Integer)value);
     }
     
     
     /** check if a certain path is already in the list of rows */
     private boolean rowsContainPath(String pathName)
     {
-	Iterator<PrescaleTableRow> itR = rows.iterator();
-	while (itR.hasNext()) if (itR.next().pathName.equals(pathName)) return true;
+	for (int iPath=0;iPath<prescaleTable.pathCount();iPath++)
+	    if (pathName.equals(prescaleTable.pathName(iPath))) return true;
 	return false;
-    }
-}
-
-
-//
-// class to hold the data for one prescale table row
-//
-class PrescaleTableRow
-{
-    public String pathName;
-    public ArrayList<Integer> prescales;
-    public PrescaleTableRow(String pathName,ArrayList<Integer> prescales)
-    {
-	this.pathName = pathName;
-	this.prescales = prescales;
-    }
-    public PrescaleTableRow(String pathName, int prescaleCount)
-    {
-	this.pathName = pathName;
-	prescales = new ArrayList<Integer>();
-	for (int i=0;i<prescaleCount;i++) prescales.add(1);
     }
 }
 

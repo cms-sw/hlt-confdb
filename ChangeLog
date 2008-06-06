@@ -1,3 +1,13 @@
+2008-06-06  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-24-00
+	* add data.PrescaleTable
+	* use data.PrescaleTable in gui.PrescaleDialog
+	* make OnlineConverter return data.PrescaleTable
+	* NOTE: data.PrescaleTable only works with CMSSW_2_1_0_pre3 and
+	later!
+	* fix/improve gui.OutputModuleDialog
+
 2008-05-22  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-23-11

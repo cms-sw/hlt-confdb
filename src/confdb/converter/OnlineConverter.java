@@ -42,6 +42,9 @@ public class OnlineConverter extends ConverterBase
     /** current hash map 'pathName' -> 'prescalerName' */
     private HashMap<String, String> pathToPrescaler = new HashMap<String, String>();
 
+    /** current prescale table */
+    private PrescaleTable prescaleTable = null;
+    
     /** flag used in finalize to either disconnect from database or not */
     private boolean disconnectOnFinalize = true;
     
@@ -117,7 +120,7 @@ public class OnlineConverter extends ConverterBase
 	return smConfigString;
     }
 
-    /** get the pathName -> prescalerName map */
+    /** get the pathName -> prescalerName map  DEPRECTATED */ 
     public HashMap<String, String> getPathToPrescalerMap(int configId)
 	throws ConverterException 
     {
@@ -125,6 +128,16 @@ public class OnlineConverter extends ConverterBase
 	    convertConfiguration(configId);
 	return pathToPrescaler;
     }
+
+    /** get the prescale table */
+    public PrescaleTable getPrescaleTable(int configId)
+	throws ConverterException
+    {
+	if (configId != this.configId)
+	    convertConfiguration(configId);
+	return prescaleTable;
+    }
+    
 
     //
     // private member data
@@ -214,7 +227,9 @@ public class OnlineConverter extends ConverterBase
 		}
 	    }
 	}
-
+	
+	prescaleTable = new PrescaleTable(epModifier);
+	
 	epConfigString = getConverterEngine().convert(epModifier);
 	smConfigString = getConverterEngine().convert(smConfig);
     }
