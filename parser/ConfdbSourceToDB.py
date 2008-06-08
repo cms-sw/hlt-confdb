@@ -51,7 +51,7 @@ def main(argv):
             foundinscramlist = False
             scramlisthandles = os.popen("scramv1 list CMSSW | grep " + str(a)).readlines()
             for scramlisthandle in scramlisthandles:
-                if(scramlisthandle.lstrip().startswith('-->')):
+                if(scramlisthandle.lstrip().startswith('-->') and scramlisthandle.rstrip().endswith(str(a))):
                     scramlistpath = scramlisthandle.lstrip().rstrip().split('-->')[1]
                     input_base_path = scramlistpath.lstrip().rstrip() + "/"
                     foundinscramlist = True
