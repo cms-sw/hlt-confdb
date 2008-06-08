@@ -53,7 +53,8 @@ def main(argv):
             for scramlisthandle in scramlisthandles:
                 if(scramlisthandle.lstrip().startswith('-->') and scramlisthandle.rstrip().endswith(str(a))):
                     scramlistpath = scramlisthandle.lstrip().rstrip().split('-->')[1]
-                    input_base_path = scramlistpath.lstrip().rstrip() + "/"
+                    if(input_addtorelease == "none"):
+                        input_base_path = scramlistpath.lstrip().rstrip() + "/"
                     foundinscramlist = True
                     input_cmsswrel = str(a)
                                                                                                                                 
