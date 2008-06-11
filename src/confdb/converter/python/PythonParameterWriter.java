@@ -196,7 +196,13 @@ public class PythonParameterWriter  implements IParameterWriter
 		if ( vector instanceof VInputTagParameter )
 		{
 			for ( int i = start; i < stop; i++ )
-				str.append( "(" + getInputTagString( (String)vector.value(i) ) + ")," );
+			{
+				String inputTag = (String)vector.value(i);
+				if ( inputTag.indexOf(':') != -1 )
+					str.append( "'" + inputTag + "'," );
+				else
+					str.append( "(" + getInputTagString( (String)vector.value(i) ) + ")," );
+			}
 			if ( stop > start )
 				str.setLength( str.length() - 1 );
 		}
