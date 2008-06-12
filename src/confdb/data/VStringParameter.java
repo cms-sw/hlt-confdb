@@ -1,6 +1,7 @@
 package confdb.data;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 
 /**
@@ -76,6 +77,20 @@ public class VStringParameter extends VectorParameter
 	return result;
     }
     
+    /** return sorted values as a string */
+    public String valueAsSortedString()
+    {
+	String result = new String();
+	if (isValueSet) {
+	    ArrayList<String> sortedValues = new ArrayList<String>(values);
+	    Collections.sort(sortedValues);
+	    for (String v : sortedValues) result += "\"" + v + "\"" + ", ";
+	    result = result.substring(0,result.length()-2);
+	}
+	return result;
+    }
+    
+
     /** set parameter values from string */
     public boolean setValue(String valueAsString)
     {

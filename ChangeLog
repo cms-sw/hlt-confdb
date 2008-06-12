@@ -1,6 +1,13 @@
+2008-06-12  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-24-02
+	* OnlineConverter: add parameter 'SelectHLTOutput' to stream
+	writer, and infer its value from the SelectEvent statements of the
+	output modules in the configuration (temporary).
+
 2008-06-11  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
-	* tag V00-24-00
+	* tag V00-24-01
 	* converter: python fix by Ulf
 
 2008-06-06  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>

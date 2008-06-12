@@ -92,7 +92,7 @@ public class ConverterBase
     		return configuration;
     	}
     	catch (DatabaseException e) {
-    		String errMsg = "ConververBase::getConfiguration(key="+key+") failed.";
+    		String errMsg = "ConverterBase::getConfiguration(key="+key+") failed.";
     		throw new ConverterException(errMsg,e);
     	}
     }

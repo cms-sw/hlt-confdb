@@ -155,6 +155,8 @@ public class OnlineConverter extends ConverterBase
 	    throw new ConverterException(errMsg);
 	}
 	
+	ConfigurationModifier epModifier = new ConfigurationModifier(epConfig);
+	
 	SoftwareSubsystem subsys = new SoftwareSubsystem("IOPool");
 	SoftwarePackage pkg = new SoftwarePackage("Streamer");
 	ModuleTemplate smStreamWriterT = makeSmStreamWriterT();
@@ -207,9 +209,26 @@ public class OnlineConverter extends ConverterBase
 	    psetSelectEvents.addParameter(vstringSelectEvents);
 	    streamWriter.updateParameter("SelectEvents", "PSet",
 					 psetSelectEvents.valueAsString());
+
+	    // temporary hack
+	    Iterator<ModuleInstance> itM = epModifier.moduleIterator();
+	    while (itM.hasNext()) {
+		ModuleInstance module = itM.next();
+		if (!module.template().type().equals("OutputModule")) continue;
+		PSetParameter psetSelectOM =
+		    (PSetParameter)module.parameter("SelectEvents");
+		if (psetSelectOM==null) continue;
+		VStringParameter vstringSelectOM = 
+		    (VStringParameter)psetSelectOM.parameter("SelectEvents");
+		if (vstringSelectOM==null) continue;
+		if(vstringSelectOM.valueAsSortedString()
+		   .equals(vstringSelectEvents.valueAsSortedString())) {
+		    streamWriter.updateParameter("SelectHLTOutput",
+						 "string",module.name());
+		}
+	    }
 	}
 	
-	ConfigurationModifier epModifier = new ConfigurationModifier(epConfig);
 	epModifier.insertDaqSource();
 	epModifier.insertShmStreamConsumer();
 	epModifier.modify();
@@ -241,10 +260,12 @@ public class OnlineConverter extends ConverterBase
 	params.add(new StringParameter("streamLabel", "", true, false));
 	params.add(new Int32Parameter("maxSize", "1073741824", true, false));
 	params.add(new PSetParameter("SelectEvents", "", false, false));
-	return new ModuleTemplate("EventStreamFileWriter", "UNKNOWN", -1,
+	params.add(new StringParameter("SelectHLTOutput", "", false, false));
+        return new ModuleTemplate("EventStreamFileWriter", "UNKNOWN", -1,
 				  params, "OutputModule");
     }
 
+    
     //
     // main
     //
@@ -282,7 +303,14 @@ public class OnlineConverter extends ConverterBase
 		dbPwrd = args[iarg];
 	    }
 	}
-
+	
+	System.out.println("dbType="+dbType+"\n"+
+			   "dbHost="+dbHost+"\n"+
+			   "dbPort="+dbPort+"\n"+
+			   "dbName="+dbName+"\n"+
+			   "dbUser="+dbUser+"\n"+
+			   "dbPwrd="+dbPwrd);
+	
 	String dbUrl = "";
 	if (dbType.equalsIgnoreCase("mysql")) {
 	    dbUrl = "jdbc:mysql://" + dbHost + ":" + dbPort + "/" + dbName;
@@ -298,16 +326,17 @@ public class OnlineConverter extends ConverterBase
 	    OnlineConverter cnv = new OnlineConverter("Ascii", dbType, dbUrl,
 						      dbUser, dbPwrd);
 	    System.out.println(cnv.getEpConfigString(Integer.parseInt(configId)));
-	    System.out.println(cnv
-			       .getSmConfigString(Integer.parseInt(configId)));
+	    System.out.println(cnv.getSmConfigString(Integer.parseInt(configId)));
 	} catch (Exception e) {
-	    System.out.println(e.getMessage());
+	    System.out.println("Exception: "+e.getMessage());
+	    e.printStackTrace();
 	}
     }
 	
 	
-
-    public static synchronized OnlineConverter getConverter() throws ConverterException
+    
+    public static synchronized OnlineConverter getConverter()
+	throws ConverterException
     {
 	if ( converter == null ) {
 	    if ( dbConnection != null )
