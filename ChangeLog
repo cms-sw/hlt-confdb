@@ -1,5 +1,10 @@
 2008-06-13  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-24-04
+	* bugfix to python conversion of InputTag parameters (Ulf)
+
+2008-06-13  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-24-03
 	* fix ConfigurationModifer::orderedSequenceIterator() (relevant to
 	python conversion!)
