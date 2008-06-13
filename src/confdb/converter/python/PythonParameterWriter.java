@@ -152,10 +152,7 @@ public class PythonParameterWriter  implements IParameterWriter
 			return "\"" + value + "\"";
 		StringBuffer str = new StringBuffer();
 		for ( int i = 0; i < values.length; i++ )
-		{
-			if ( values[i].length() > 0 )
-				str.append( "'" + values[i] + "'," );
-		}
+			str.append( "'" + values[i] + "'," );
 		str.setLength( str.length() - 1 );
 		return str.toString();
 	}
@@ -198,10 +195,7 @@ public class PythonParameterWriter  implements IParameterWriter
 			for ( int i = start; i < stop; i++ )
 			{
 				String inputTag = (String)vector.value(i);
-				if ( inputTag.indexOf(':') != -1 )
-					str.append( "'" + inputTag + "'," );
-				else
-					str.append( "(" + getInputTagString( (String)vector.value(i) ) + ")," );
+				str.append( "'" + inputTag + "'," );
 			}
 			if ( stop > start )
 				str.setLength( str.length() - 1 );
