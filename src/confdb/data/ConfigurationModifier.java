@@ -279,6 +279,7 @@ public class ConfigurationModifier implements IConfiguration
 		Referencable parent = reference.parent();
 		if (parent instanceof Sequence) {
 		    Sequence s = (Sequence)parent;
+		    if (isModified && !sequences.contains(s)) continue;
 		    int indexR = result.indexOf(s);
 		    if (indexR<0) {
 			indexR=indexS;

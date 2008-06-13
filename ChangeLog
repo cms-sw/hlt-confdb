@@ -1,3 +1,9 @@
+2008-06-13  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-24-03
+	* fix ConfigurationModifer::orderedSequenceIterator() (relevant to
+	python conversion!)
+
 2008-06-12  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-24-02
