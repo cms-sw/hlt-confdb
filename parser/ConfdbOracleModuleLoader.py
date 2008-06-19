@@ -1010,8 +1010,8 @@ class ConfdbOracleModuleLoader:
                             paramval = str(int(str(paramval), 16))                            
                             thecursor.execute("INSERT INTO Int32ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + str(paramval) + ", 1)") 
 		else:                    
-#                    self.BindVars(thecursor,newsuperid,oldparamid,paramseq)
-		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+                    #		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=paramseq)
 		    if(self.verbose > 0):
 			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
@@ -1083,10 +1083,10 @@ class ConfdbOracleModuleLoader:
                             paramval = str(int(str(paramval), 16))                            
                             thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + str(paramval) + ", 1)")
 		else:
-#                    self.BindVars(thecursor,newsuperid,oldparamid,paramseq)                                       
-		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
-		    if(self.verbose > 0):
-			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
+                    #		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=paramseq)
+                    if(self.verbose > 0):
+                        print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 	    # bool
 	    if(paramtype == "bool"):
@@ -1155,8 +1155,8 @@ class ConfdbOracleModuleLoader:
 
 			thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
 		else:
-#                    self.BindVars(thecursor,newsuperid,oldparamid,paramseq)                   
-		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+                    #		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=paramseq)
 		    if(self.verbose > 0):
 			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
@@ -1219,9 +1219,9 @@ class ConfdbOracleModuleLoader:
 		    else:
 			thecursor.execute("INSERT INTO DoubleParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
 		else:
-#                    self.BindVars(thecursor,newsuperid,oldparamid,paramseq)                   
 		    print "INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")"
-		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=paramseq)
+                    #		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
 		    if(self.verbose > 0):
 			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
@@ -1293,8 +1293,8 @@ class ConfdbOracleModuleLoader:
 			    print "\t\tstring " + str(paramname) + " = " + str(paramval)
 			    print "\t\tLoading parameter with no default value"
 		else:
-#                    self.BindVars(thecursor,newsuperid,oldparamid,paramseq)                                       
-		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+                    #		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=paramseq)
 		    if(self.verbose > 0):
 			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
@@ -1366,9 +1366,9 @@ class ConfdbOracleModuleLoader:
 			    print "\t\tstring " + str(paramname) + " = " + str(paramval)
 			    print "\t\tLoading parameter with no default value"
 		else:
-#                    self.BindVars(thecursor,newsuperid,oldparamid,paramseq)                   
-		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
-		    if(self.verbose > 0):
+                    #		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=paramseq)
+                    if(self.verbose > 0):
 			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 	    # InputTag
@@ -1429,8 +1429,8 @@ class ConfdbOracleModuleLoader:
                             print "INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")"
 			    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
 		else:
-#                    self.BindVars(thecursor,newsuperid,oldparamid,paramseq)                   
-		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=paramseq)
+                    #		    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
 
 	# Now deal with any vectors
 	for vecptype, vecpname, vecpvals, vecpistracked, vecpseq in vecparameters:
@@ -1461,8 +1461,8 @@ class ConfdbOracleModuleLoader:
 
 		    # No changes. Attach parameter to new template.
 		    if(valssame):
-#                        self.BindVars(thecursor,newsuperid,oldparamid,vecpseq)                                           
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
+                        #			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
+                        thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=vecpseq)
 			if(self.verbose > 0):
 			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 			
@@ -1519,8 +1519,8 @@ class ConfdbOracleModuleLoader:
 
 		    # No changes. Attach parameter to new template.
 		    if(valssame):
-#                        self.BindVars(thecursor,newsuperid,oldparamid,vecpseq)                   
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
+                        thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=vecpseq)
+                        #			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
 			
 			neednewparam = False
 
@@ -1574,9 +1574,9 @@ class ConfdbOracleModuleLoader:
 
 		    # No changes. Attach parameter to new template.
 		    if(valssame):
-#                        self.BindVars(thecursor,newsuperid,oldparamid,vecpseq)                   
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
-			
+                        #			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
+                        thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=vecpseq)
+                   
 			print "vdouble is unchanged"
 			neednewparam = False
 
@@ -1628,8 +1628,8 @@ class ConfdbOracleModuleLoader:
 
 		    # No changes. Attach parameter to new template.
 		    if(valssame):
-#                        self.BindVars(thecursor,newsuperid,oldparamid,vecpseq)                   
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
+                        thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=vecpseq)
+                        #			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
 			
 			neednewparam = False
 
@@ -1689,8 +1689,8 @@ class ConfdbOracleModuleLoader:
 
 		    # No changes. Attach parameter to new template.
 		    if(valssame):
-#                        self.BindVars(thecursor,newsuperid,oldparamid,vecpseq)                   
-			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
+                        thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=vecpseq)
+                        #			thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
 			
 			neednewparam = False
 
@@ -1768,8 +1768,9 @@ class ConfdbOracleModuleLoader:
 		    # Attach the PSet to a Fwk component via their superIds
 		    if(self.verbose > 2):
 			print "INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")"
-		    thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")
-
+                        #		    thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")
+                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=newparamsetid,bindvar3=psetpsetseq)
+                   
 		# Nested PSets point to the relevant top level PSet 
 		else:
 		    # Attach the PSet to another PSet component via their superIds
@@ -1793,7 +1794,9 @@ class ConfdbOracleModuleLoader:
 
 		    if(self.verbose > 2):
 			print "INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")"
-		    thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")   
+                        #		    thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")   
+                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=toplevelid,bindvar2=newparamsetid,bindvar3=psetpsetseq)
+                   
 	    else:
 		if(pset in lastpsetseqdict):
 		    localseqcount = lastpsetseqdict[pset]
@@ -2209,9 +2212,9 @@ class ConfdbOracleModuleLoader:
 	# Fill Parameter <-> Super ID table
 	if(self.verbose > 2):
 	    print "INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(pseq) + ")"
-#        self.BindVars(thecursor,newsuperid,oldparamid,pseq)                   
-	thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(pseq) + ")")
-
+            #	thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(pseq) + ")")
+        thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=sid,bindvar2=newparamid,bindvar3=pseq)
+                   
 	return newparamid
 
     # Utility function for returning the paramId of a parameter
@@ -2252,16 +2255,6 @@ class ConfdbOracleModuleLoader:
 	    print vec1
 	    print vec2
 	return True
-
-#    def BindVars(self,thecursor,var1,var2,var3):
-#        print 'In BindVars'
-#        thecursor.execute('variable boundvar1 number')
-#        thecursor.execute('exec :boundvar1 := ' + str(var1))
-#        thecursor.execute('variable boundvar2 number')
-#        thecursor.execute('exec :boundvar2 := ' + str(var2))
-#        thecursor.execute('variable boundvar3 number')
-#        thecursor.execute('exec :boundvar3 := ' + str(var3))                        
-#        print 'Leaving BindVars'
 
     # Set the verbosity
     def SetVerbosity(self, verbosity):
