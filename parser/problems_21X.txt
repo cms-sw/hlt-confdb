@@ -268,3 +268,6 @@ CSCRecHitDProducer.Parameter readBadChannels bool false tracked
 Module EDProducer EgammaHLTPixelMatchElectronProducers RecoEgamma EgammaHLTProducers
 EgammaHLTPixelMatchElectronProducers.Parameter TrackProducer InputTag hltCtfL1NonIsoWithMaterialTracks tracked
 EgammaHLTPixelMatchElectronProducers.Parameter BSProducer InputTag hltOfflineBeamSpot tracked
+
+Module OutputModule PoolOutputModule IOPool Output
+PoolOutputModule.Parameter outputCommands vstring { } untracked
