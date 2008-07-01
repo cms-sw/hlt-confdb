@@ -811,8 +811,8 @@ class SourceParser:
                                         self.sequencenb = self.sequencenb + 1
                                 elif(isvector == False and paraminparamset != ''):
                                     if (not self.IsNewParameterSet(self.paramsetmemberlist,paraminparamset)):
-                                        if(self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,paraminparamset)):
-                                            self.vecparamsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),'true',0,self.sequencenb,self.psetsequencenb))
+                                        if(self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
+                                            self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,'None',self.psetsequencenb))
                                     elif (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
                                         self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,'None',self.psetsequencenb))
                                         self.sequencenb = self.sequencenb + 1
@@ -2032,16 +2032,16 @@ class SourceParser:
                                     paramval = self.pyconfigparser.RetrievePythonConfigDefault()
                                     paramval = str(paramval)
 
-                                    if(isvector == False and paraminparamset == ''):
+                                    if(isvector == False and thepsetname == ''):
                                         if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None')):
                                             self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb))
                                             self.sequencenb = self.sequencenb + 1
-                                    elif(isvector == False and paraminparamset != ''):
-                                        if (not self.IsNewParameterSet(self.paramsetmemberlist,paraminparamset)):
-                                            if(self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,paraminparamset)):
-                                                self.vecparamsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",0,self.sequencenb,self.psetsequencenb))
-                                        elif (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
-                                            self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,'None',self.psetsequencenb))
+                                    elif(isvector == False and thepsetname != ''):
+                                        if (not self.IsNewParameterSet(self.paramsetmemberlist,thepsetname)):
+                                            if(self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thepsetname)):
+                                                self.paramsetmemberlist.append((thepsetname,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,'None',self.psetsequencenb))
+                                        elif (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thepsetname)):
+                                            self.paramsetmemberlist.append((thepsetname,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,'None',self.psetsequencenb))
                                             self.sequencenb = self.sequencenb + 1
                                                                                                                                                                                                                
 			    if(success == False):
@@ -2179,16 +2179,17 @@ class SourceParser:
                                 if(success == True):
                                     paramval = self.pyconfigparser.RetrievePythonConfigDefault()
                                     paramval = str(paramval)
-                                    if(isvector == False and paraminparamset == ''):
+
+                                    if(isvector == False and thepsetname == ''):
                                         if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None')):
                                             self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb))
                                             self.sequencenb = self.sequencenb + 1
-                                    elif(isvector == False and paraminparamset != ''):
-                                        if (not self.IsNewParameterSet(self.paramsetmemberlist,paraminparamset)):
-                                            if(self.IsNewParameter(paramname.lstrip().rstrip(),self.vecparamsetmemberlist,paraminparamset)):
-                                                self.vecparamsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",0,self.sequencenb,self.psetsequencenb))
-                                        elif (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
-                                            self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,'None',self.psetsequencenb))
+                                    elif(isvector == False and thepsetname != ''):
+                                        if (not self.IsNewParameterSet(self.paramsetmemberlist,thepsetname)):
+                                            if(self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thepsetname)):
+                                                self.paramsetmemberlist.append((thepsetname,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,'None',self.psetsequencenb)) 
+                                        elif (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thepsetname)):
+                                            self.paramsetmemberlist.append((thepsetname,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,'None',self.psetsequencenb)) 
                                             self.sequencenb = self.sequencenb + 1
 
 			    if(success == False):
