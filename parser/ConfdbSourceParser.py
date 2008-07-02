@@ -581,6 +581,7 @@ class SourceParser:
 		       line.rstrip().endswith(') ,') or
 		       line.rstrip().endswith('{') or 
 		       line.rstrip().endswith('}') or
+                       line.rstrip().endswith(')\t,') or
                        line.find('//') != -1):
                         foundlineend = True
 			
@@ -1906,6 +1907,7 @@ class SourceParser:
  		       srcline.rstrip().endswith(') ,') or
  		       srcline.rstrip().endswith('{') or 
  		       srcline.rstrip().endswith('}') or
+                       srcline.rstrip().endswith(')\t,') or
                        srcline.find('//') != -1):
                         foundlineend = True
 			
