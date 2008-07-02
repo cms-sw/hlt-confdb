@@ -24,9 +24,10 @@ class ConfdbPyconfigParser:
         self.founddefault = False
         self.verbose = 0
 
-    def SetThePythonVar(self,modname,psetname,paramname):
+    def SetThePythonVar(self,modname,psetname,nestedpsetname,paramname):
         self.themodule = modname
         self.thepset = psetname
+        self.thenestedpset = nestedpsetname
         self.theparameter = paramname
 
     def FindPythonConfigDefault(self,thecomponent,thedirectory):
@@ -52,7 +53,7 @@ class ConfdbPyconfigParser:
                    importcommand = "import " + thesubsystem + "." + thepackage + "." + thecomponent
 
                    if(self.verbose > 2):
-                       print "PSet = " + self.thepset + ", " + self.theparameter
+                       print "PSet = " + self.thenestedpset + ", " + self.thepset + ", " + self.theparameter
 
                    if(self.verbose > 2):
                        print 'Starting python session'
@@ -73,6 +74,8 @@ class ConfdbPyconfigParser:
                        # Now construct the command to query the variable value
                        valvar = "process."
                        valvar = valvar + thebasecomponent + "."
+                       if(self.thenestedpset != None and self.thenestedpset != ''):
+                           valvar = valvar + self.thenestedpset + "."
                        if(self.thepset != None and self.thepset != ''):
                            valvar = valvar + self.thepset + "."
                        valvar = valvar + self.theparameter + "."

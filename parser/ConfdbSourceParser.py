@@ -798,7 +798,7 @@ class SourceParser:
                                 success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname,paraminparamset,None,None)
                         elif(self.configstyle == "python" and paramtype != 'PSet' and paramtype != 'VPSet' and paramtype != 'ParameterSet'):
                             print 'Warning: reading of python configs is not validated yet!'
-                            self.pyconfigparser.SetThePythonVar(themodulename,paraminparamset,paramname)
+                            self.pyconfigparser.SetThePythonVar(themodulename,paraminparamset,'',paramname)
                             self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)
                             success = self.pyconfigparser.RetrievePythonConfigSuccess()
                             if(success == True):
@@ -2025,7 +2025,7 @@ class SourceParser:
                                 success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
                             elif(self.configstyle == "python" and paramtype != 'PSet' and paramtype != 'VPSet' and paramtype != 'ParameterSet'):
                                 print 'Warning: Reading of python configs is not validated yet!'
-                                self.pyconfigparser.SetThePythonVar(themodulename,thepsetname,paramname)
+                                self.pyconfigparser.SetThePythonVar(themodulename,thepsetname,thenestedpsetname,paramname)
                                 self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)
                                 success = self.pyconfigparser.RetrievePythonConfigSuccess()
                                 if(success == True):
@@ -2039,9 +2039,9 @@ class SourceParser:
                                     elif(isvector == False and thepsetname != ''):
                                         if (not self.IsNewParameterSet(self.paramsetmemberlist,thepsetname)):
                                             if(self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thepsetname)):
-                                                self.paramsetmemberlist.append((thepsetname,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,'None',self.psetsequencenb))
+                                                self.paramsetmemberlist.append((thepsetname,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,thenestedpsetname,self.psetsequencenb))
                                         elif (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thepsetname)):
-                                            self.paramsetmemberlist.append((thepsetname,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,'None',self.psetsequencenb))
+                                            self.paramsetmemberlist.append((thepsetname,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,thenestedpsetname,self.psetsequencenb))
                                             self.sequencenb = self.sequencenb + 1
                                                                                                                                                                                                                
 			    if(success == False):
@@ -2173,7 +2173,7 @@ class SourceParser:
                                 success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
                             elif(self.configstyle == "python" and paramtype != 'PSet' and paramtype != 'VPSet' and paramtype != 'ParameterSet'):
                                 print 'Warning: reading of python configs is not validated yet!'
-                                self.pyconfigparser.SetThePythonVar(themodulename,thepsetname,paramname)
+                                self.pyconfigparser.SetThePythonVar(themodulename,thepsetname,thenestedpsetname,paramname)
                                 self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)
                                 success = self.pyconfigparser.RetrievePythonConfigSuccess() 
                                 if(success == True):
@@ -2187,9 +2187,9 @@ class SourceParser:
                                     elif(isvector == False and thepsetname != ''):
                                         if (not self.IsNewParameterSet(self.paramsetmemberlist,thepsetname)):
                                             if(self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thepsetname)):
-                                                self.paramsetmemberlist.append((thepsetname,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,'None',self.psetsequencenb)) 
+                                                self.paramsetmemberlist.append((thepsetname,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,thenestedpsetname,self.psetsequencenb)) 
                                         elif (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thepsetname)):
-                                            self.paramsetmemberlist.append((thepsetname,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,'None',self.psetsequencenb)) 
+                                            self.paramsetmemberlist.append((thepsetname,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,thenestedpsetname,self.psetsequencenb)) 
                                             self.sequencenb = self.sequencenb + 1
 
 			    if(success == False):
