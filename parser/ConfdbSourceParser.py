@@ -797,7 +797,7 @@ class SourceParser:
                             else:
                                 success = self.ParseCfFile(thedatadir,thetdefedmodule,paramname,paraminparamset,None,None)
                         elif(self.configstyle == "python" and paramtype != 'PSet' and paramtype != 'VPSet' and paramtype != 'ParameterSet'):
-                            print 'Warning: reading of python configs is not validated yet!'
+                            #                            print 'Warning: reading of python configs is not validated yet!'
                             self.pyconfigparser.SetThePythonVar(themodulename,paraminparamset,'',paramname)
                             self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)
                             success = self.pyconfigparser.RetrievePythonConfigSuccess()
@@ -816,6 +816,8 @@ class SourceParser:
                                     elif (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
                                         self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,'None',self.psetsequencenb))
                                         self.sequencenb = self.sequencenb + 1
+                                else:
+                                    success = False
                                                                                                                                                                             
                             
                         totalline = ''
@@ -2024,7 +2026,7 @@ class SourceParser:
                             if(self.configstyle == "cfg"):
                                 success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
                             elif(self.configstyle == "python" and paramtype != 'PSet' and paramtype != 'VPSet' and paramtype != 'ParameterSet'):
-                                print 'Warning: Reading of python configs is not validated yet!'
+                                #                                print 'Warning: Reading of python configs is not validated yet!'
                                 self.pyconfigparser.SetThePythonVar(themodulename,thepsetname,thenestedpsetname,paramname)
                                 self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)
                                 success = self.pyconfigparser.RetrievePythonConfigSuccess()
@@ -2043,7 +2045,9 @@ class SourceParser:
                                         elif (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thepsetname)):
                                             self.paramsetmemberlist.append((thepsetname,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,thenestedpsetname,self.psetsequencenb))
                                             self.sequencenb = self.sequencenb + 1
-                                                                                                                                                                                                               
+                                    else:
+                                        success = False
+
 			    if(success == False):
 				if(thepsetname != "None"):
 				    if(success == False and (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thepsetname))):
@@ -2172,7 +2176,7 @@ class SourceParser:
                             if(self.configstyle == "cfg"):
                                 success = self.ParseCfFile(thedatadir,themodulename,paramname,thepsetname,None,None)			
                             elif(self.configstyle == "python" and paramtype != 'PSet' and paramtype != 'VPSet' and paramtype != 'ParameterSet'):
-                                print 'Warning: reading of python configs is not validated yet!'
+                                #                                print 'Warning: reading of python configs is not validated yet!'
                                 self.pyconfigparser.SetThePythonVar(themodulename,thepsetname,thenestedpsetname,paramname)
                                 self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)
                                 success = self.pyconfigparser.RetrievePythonConfigSuccess() 
@@ -2191,6 +2195,8 @@ class SourceParser:
                                         elif (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,thepsetname)):
                                             self.paramsetmemberlist.append((thepsetname,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"true",self.sequencenb,thenestedpsetname,self.psetsequencenb)) 
                                             self.sequencenb = self.sequencenb + 1
+                                    else:
+                                        success = False
 
 			    if(success == False):
 
