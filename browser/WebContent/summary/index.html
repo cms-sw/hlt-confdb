@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>HLT config browser</title>
+
+<!-- css -->
+<link rel="stylesheet" type="text/css" href="../js/yui/reset-fonts-grids/reset-fonts-grids.css">
+<link rel="stylesheet" type="text/css" href="../js/yui/base/base-min.css">
+<link rel="stylesheet" type="text/css" href="../js/yui/fonts/fonts-min.css" />
+<link rel="stylesheet" type="text/css" href="../js/yui/tabview/assets/skins/sam/tabview.css" />
+<link rel="stylesheet" type="text/css" href="../assets/css/confdb.css" />
+
+<!-- js -->
+<script type="text/javascript" src="../js/yui/utilities/utilities.js"></script>
+<script type="text/javascript" src="../js/yui/datasource/datasource-beta-min.js"></script>
+<script type="text/javascript" src="../js/yui/tabview/tabview.js"></script>
+<script type="text/javascript" src="../js/yui/json/json-min.js"></script>
+<script type="text/javascript" src="../js/dwr2JSON.js"></script>
+<script type="text/javascript" src="../js/AjaxInfo.js"></script>
+
+
+<!--begin custom header content for this example-->
+<style type="text/css">
+}
+
+</style>
+
+<script type="text/javascript">
+
+var viewportHeight;
+var tabHeight;
+var tabView;
+
+function init()
+{
+	viewportHeight = YAHOO.util.Dom.getViewportHeight();
+	tabHeight = viewportHeight - 65; 
+	tabView = new YAHOO.widget.TabView();
+	AjaxInfo.listDBs( processDBList );	
+}
+
+
+function processDBList( dbList )
+{
+	tabView = new YAHOO.widget.TabView();
+	if ( dbList.length > 0 )
+		createTabs( dbList );
+	tabView.appendTo( 'tabMain' );
+}
+
+
+function createTabs( tabs )
+{
+	for ( var i = 0; i < tabs.length; i++ )
+	{    
+		if ( i == 0 )
+			createTab( tabs[i], true, "browseDB.jsp?db=" + escape( tabs[i] ) );
+	    else
+			createTab( tabs[i], false, "browseDB.jsp?db=" + escape( tabs[i] ) );
+	}
+}
+
+function createTab( name, active, tabSource )
+{
+    var tabContent = '<iframe name="' + name + '" height="' + tabHeight + '" width="100%" frameborder="0" marginheight="0" marginwidth="0" scrolling="no" src="' + tabSource + '"></iframe>';
+	if ( active )
+	  tabView.addTab(new YAHOO.widget.Tab({
+    	        	label: name,
+        	    	content: tabContent,
+        	    	active : true
+	    	    }));
+	else
+	  tabView.addTab(new YAHOO.widget.Tab({
+    	        	label: name,
+        	    	content: tabContent
+	        	}));
+}
+
+
+YAHOO.util.Event.onDOMReady(init);
+
+</script>
+
+</head>
+
+<body class="yui-skin-sam">
+<div id="doc3" style="border-color:red; border-width:10px;">
+<div id="tabMain" style="padding-top:10px"></div>
+</div>
+</body>
+
+</html>
+
