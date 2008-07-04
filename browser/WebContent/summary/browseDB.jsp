@@ -8,8 +8,10 @@
 <link rel="stylesheet" type="text/css" href="../js/yui/reset-fonts-grids/reset-fonts-grids.css" />
 <link rel="stylesheet" type="text/css" href="../js/yui/base/base-min.css" />
 <link rel="stylesheet" type="text/css" href="../js/yui/container/assets/skins/sam/container.css" />
-<link rel="stylesheet" type="text/css" href="../js/yui/datatable/assets/skins/sam/datatable.css">
-<link rel="stylesheet" type="text/css" href="../js/yui/resize/assets/skins/sam/resize.css"">
+<link rel="stylesheet" type="text/css" href="../js/yui/datatable/assets/skins/sam/datatable.css" />
+<link rel="stylesheet" type="text/css" href="../js/yui/resize/assets/skins/sam/resize.css"" />
+<link rel="stylesheet" type="text/css" href="../assets/css/confdb.css" />
+
 <script type="text/javascript" src="../js/yui/utilities/utilities.js"></script>
 <script type="text/javascript" src="../js/yui/datasource/datasource-beta-min.js"></script>
 <script type="text/javascript" src="../js/yui/datatable/datatable-beta-min.js"></script>
@@ -22,27 +24,17 @@
 <script type="text/javascript" src="../js/AjaxInfo.js"></script>
 
 <style>
-html { 
-	background:#edf5ff;
-}
 
-body { 
-	margin: 0;
-	padding: 0;
-	background:#edf5ff;
-    overflow: hidden;
-}
+body { padding:0px; }
 
 .topDiv {
 	height: 1.2em;
 }
 
 #doc3 { 
-	margin-bottom:0px; 
-	margin-top:5px; 
-	margin-left:5px;
-	margin-right:5px;
     overflow: hidden;
+    padding:0px; 
+    margin:0px; 
 }
 
 #pg {
@@ -59,7 +51,7 @@ body {
 }
 
 #mainLeft { 
-	background:#edf5ff; 
+	background:#e8e8e8; 
 	border: 0px solid #B6CDE1; 
 	margin:0px; 
 	padding-right:5px;
@@ -92,6 +84,20 @@ body {
 
 </style>
 
+<%
+  out.println( "<script type=\"text/javascript\">" );
+  String height = request.getParameter( "height" );
+  if ( height == null )
+	  out.println( "var displayHeight = 0;" );
+  else
+	  out.println( "var displayHeight = " + height + ";" );
+  String width = request.getParameter( "width" );
+  if ( width == null )
+	  out.println( "var displayWidth = 0;" );
+  else
+	  out.println( "var displaywidth = " + height + ";" );
+  out.println( "</script>" );
+%>
 
 <script type="text/javascript">
 // Patch for width and/or minWidth Column values bug in non-scrolling DataTables
@@ -109,7 +115,6 @@ var configFrameUrl,
     Event = YAHOO.util.Event,
     col1 = null,
     col2 = null,
-    displayHeight,
     displayWidth,
     resize,
     oldWidth = "200px";
@@ -119,10 +124,11 @@ function init()
     Dom.setStyle( 'expandDiv', 'visibility', 'collapse' );
     Dom.setStyle( 'mainRight', 'visibility', 'collapse' );
 
-	displayWidth  = Dom.getViewportWidth() - 12;
-	displayHeight = Dom.getViewportHeight() - 10;
-
-
+	if ( displayHeight == 0 )
+		displayHeight = Dom.getViewportHeight();
+	if ( displayWidth == 0 )
+		displayWidth = Dom.getViewportWidth();
+		
     Dom.setStyle(  'pg', 'height',  displayHeight + 'px' );
     Dom.setStyle(  'pg', 'width',  displayWidth + 'px' );
     Dom.setStyle( "treeFrame", 'height',  (displayHeight - 30) + 'px' );
@@ -244,7 +250,7 @@ function prepareTable()
             }
         ];
 
-        myDataSource = new YAHOO.util.DataSource( "getSummary.jsp?" );
+        myDataSource = new YAHOO.util.DataSource( "../get.jsp?format=summary.json&" );
         myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSON;
         myDataSource.responseSchema = {
 	        resultsList: "rows",
@@ -258,7 +264,7 @@ function prepareTable()
             ]
         };
 
-        /*
+		/*
 		myDataSource.doBeforeParseData = function  (oRequest, oResponse) {
 				alert( "doBefore...:  " + oRequest +  " response = " + oResponse );
 				return oResponse; 
@@ -276,7 +282,10 @@ function prepareTable()
 			},
 
 			failure: function( oRequest, oResponse, oPayload ) { 
-				alert( "failure:  " + oRequest +  " response = " + writeProps( oResponse ) ); 
+				alert( "failure:  " + oRequest +  "\nresponse:\n" 
+					   + " results: " + writeProps( oResponse.results )
+					   + " meta: " + writeProps( oResponse.meta )
+						 ); 
 			}, 
 			scope: myDataTable, 
 			//argument: 'not used'   // goes to oPayload 
@@ -300,7 +309,7 @@ YAHOO.util.Event.onContentReady( "doc3", init );
 </script>
 
 </head>
-<body class="yui-skin-sam" style="background:#edf5ff;">
+<body class="yui-skin-sam">
 
 <%
   String treeUrl = "treeFrame.jsp?db=" + request.getParameter( "db" );

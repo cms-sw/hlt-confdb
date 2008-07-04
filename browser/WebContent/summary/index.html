@@ -14,6 +14,7 @@
 <!-- js -->
 <script type="text/javascript" src="../js/yui/utilities/utilities.js"></script>
 <script type="text/javascript" src="../js/yui/datasource/datasource-beta-min.js"></script>
+<script type="text/javascript" src="../js/yui/element/element-beta-min.js"></script>
 <script type="text/javascript" src="../js/yui/tabview/tabview.js"></script>
 <script type="text/javascript" src="../js/yui/json/json-min.js"></script>
 <script type="text/javascript" src="../js/dwr2JSON.js"></script>
@@ -22,31 +23,32 @@
 
 <!--begin custom header content for this example-->
 <style type="text/css">
-}
-
 </style>
 
 <script type="text/javascript">
 
-var viewportHeight;
-var tabHeight;
-var tabView;
+var viewportHeight,
+	tabHeight,
+	tabWidth,
+	tabView,
+	Dom = YAHOO.util.Dom;
 
 function init()
 {
-	viewportHeight = YAHOO.util.Dom.getViewportHeight();
+	viewportHeight = Dom.getViewportHeight();
 	tabHeight = viewportHeight - 65; 
+	tabWidth = 	Dom.getStyle( 'tabMain', 'width' ) - 2;
 	tabView = new YAHOO.widget.TabView();
+	tabView = new YAHOO.widget.TabView();
+	tabView.appendTo( 'tabMain' );
 	AjaxInfo.listDBs( processDBList );	
 }
 
 
 function processDBList( dbList )
 {
-	tabView = new YAHOO.widget.TabView();
 	if ( dbList.length > 0 )
 		createTabs( dbList );
-	tabView.appendTo( 'tabMain' );
 }
 
 
@@ -57,7 +59,7 @@ function createTabs( tabs )
 		if ( i == 0 )
 			createTab( tabs[i], true, "browseDB.jsp?db=" + escape( tabs[i] ) );
 	    else
-			createTab( tabs[i], false, "browseDB.jsp?db=" + escape( tabs[i] ) );
+			createTab( tabs[i], false, "browseDB.jsp?db=" + escape( tabs[i] ) + "&height=" + tabHeight + "&width=" + tabWidth );
 	}
 }
 

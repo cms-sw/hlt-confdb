@@ -19,12 +19,9 @@
 <script type="text/javascript" src="../js/yui/treeview/treeview.js"></script>
 
 <link rel="stylesheet" type="text/css" href="../assets/css/folders/tree.css">
+<link rel="stylesheet" type="text/css" href="../assets/css/confdb.css">
 <style type="text/css">
 
-html, body { background:#edf5ff }
-
-.icon-gen, .icon-gen:link, .icon-gen:visited, .icon-gen:hover  { padding-left: 20px; background: transparent url(../img/icons.png) 0 -108px no-repeat; 	text-decoration: none;
-}
  
  
 /* via css class selector */
