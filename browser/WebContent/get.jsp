@@ -8,7 +8,7 @@
 <%@page import="java.util.HashMap"%>
 <%@page contentType="text/plain"%>
 <%
-        out.clearBuffer();
+    out.clearBuffer();
 	Map<String,String[]> map = request.getParameterMap();
 	if ( map.isEmpty())
 	{
@@ -97,6 +97,7 @@
 						      modifierInstructions,
 						      asFragment);
 	    out.print(result);
+	    out.close();
 	} catch (Exception e) {
     	Throwable cause = e.getCause(); 
 	    out.print(e.getMessage()+"\n"); 
@@ -112,7 +113,6 @@
 	    if (converter!=null)
 	        BrowserConverter.deleteConverter( converter );
 	}
-
 %>
 
 
