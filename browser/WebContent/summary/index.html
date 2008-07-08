@@ -37,8 +37,8 @@ function init()
 {
 	viewportHeight = Dom.getViewportHeight();
 	tabHeight = viewportHeight - 65; 
-	tabWidth = 	Dom.getStyle( 'tabMain', 'width' ) - 2;
-	tabView = new YAHOO.widget.TabView();
+	var widthpx = Dom.getStyle( 'tabMain', 'width' ).split( "px" );
+	tabWidth = widthpx[0] - 2;
 	tabView = new YAHOO.widget.TabView();
 	tabView.appendTo( 'tabMain' );
 	AjaxInfo.listDBs( processDBList );	
@@ -87,7 +87,7 @@ YAHOO.util.Event.onDOMReady(init);
 </head>
 
 <body class="yui-skin-sam">
-<div id="doc3" style="border-color:red; border-width:10px;">
+<div id="doc3">
 <div id="tabMain" style="padding-top:10px"></div>
 </div>
 </body>

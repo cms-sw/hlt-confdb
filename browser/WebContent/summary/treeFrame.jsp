@@ -20,23 +20,7 @@
 
 <link rel="stylesheet" type="text/css" href="../assets/css/folders/tree.css">
 <link rel="stylesheet" type="text/css" href="../assets/css/confdb.css">
-<style type="text/css">
 
- 
- 
-/* via css class selector */
-.xygtvtn {background: transparent;  width:1em; height:20px; }
-.xygtvtm { background: url(../img/tree/collapse.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvtmh { background: url(../img/tree/collapseh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvtp { background: url(../img/tree/expand.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvtph { background: url(../img/tree/expandh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvln { background: transparent; width:1em; height:20px; }
-.xygtvlm { background: url(../img/tree/collapse.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvlmh { background: url(../img/tree/collapseh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvlp { background: url(../img/tree/expand.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvlph { background: url(../img/tree/expandh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-
-</style>
 
 <script type="text/javascript">
 
