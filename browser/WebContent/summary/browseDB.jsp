@@ -25,7 +25,15 @@
 
 <style>
 
-body { padding:0px; }
+.blindTable {
+	margin:0px; 
+	padding:0px; 
+}
+
+.blindTable td {
+  border:0px;
+}
+
 
 .topDiv {
 	height: 1.2em;
@@ -39,7 +47,6 @@ body { padding:0px; }
 
 #pg {
     overflow: hidden;
-    border: 1px solid lightgray;
 }
 
 #pg .yui-g {
@@ -59,12 +66,6 @@ body { padding:0px; }
 	padding-top:1px; 
 }
 
-#summary { 
-	padding:1px; 
-    overflow: auto;
-}
-
-
 #info { 
 	background:white; 
 	border: 1px solid #B6CDE1; 
@@ -80,7 +81,26 @@ body { padding:0px; }
 	border: 1px solid #B6CDE1; 
 	border-bottom:0px; 
 }
-    
+
+#rightHeaderDiv {
+	background-color:#FFE19A;
+	border: 1px solid #B6CDE1; 
+	margin:0px; 
+	margin-top:1px; 
+	margin-bottom:3px; 
+	padding:1px; 
+}
+
+#configDiv {
+	border: 1px solid #B6CDE1; 
+}
+
+#loadingDiv {
+/*	position:absolute; right:4px; top:7px; */
+	margin:0px; 
+	padding:0px; 
+	background:white;
+}
 
 </style>
 
@@ -95,7 +115,7 @@ body { padding:0px; }
   if ( width == null )
 	  out.println( "var displayWidth = 0;" );
   else
-	  out.println( "var displaywidth = " + height + ";" );
+	  out.println( "var displayWidth = " + width + ";" );
   out.println( "</script>" );
 %>
 
@@ -113,29 +133,29 @@ var configFrameUrl,
 	myCallback,	
 	Dom = YAHOO.util.Dom,
     Event = YAHOO.util.Event,
-    col1 = null,
-    col2 = null,
+    mainLeft = null,
+    mainRight = null,
     displayWidth,
     resize,
-    oldWidth = "200px";
+    oldWidth = "200px",
+    detailsMode = true;
 	
 function init() 
 {
-    Dom.setStyle( 'expandDiv', 'visibility', 'collapse' );
-    Dom.setStyle( 'mainRight', 'visibility', 'collapse' );
+    mainLeft = Dom.get('mainLeft');
+    mainRight = Dom.get('mainRight');
 
 	if ( displayHeight == 0 )
 		displayHeight = Dom.getViewportHeight();
 	if ( displayWidth == 0 )
 		displayWidth = Dom.getViewportWidth();
 		
+    Dom.setStyle( 'expandDiv', 'visibility', 'collapse' );
+    Dom.setStyle( mainRight, 'visibility', 'collapse' );
     Dom.setStyle(  'pg', 'height',  displayHeight + 'px' );
     Dom.setStyle(  'pg', 'width',  displayWidth + 'px' );
-    Dom.setStyle( "treeFrame", 'height',  (displayHeight - 30) + 'px' );
-    Dom.setStyle( "summary", 'height',  (displayHeight - 30) + 'px' );
+    Dom.setStyle( 'treeFrame', 'height',  (displayHeight - 30) + 'px' );
 
-    col1 = Dom.get('mainLeft');
-    col2 = Dom.get('mainRight');
     resize = new YAHOO.util.Resize('mainLeft', {
             proxy: true,
             handles: ['r'],
@@ -143,13 +163,14 @@ function init()
         });
     resize.on('resize', function(ev) {
             var w = ev.width;
-            Dom.setStyle(col2, 'height', displayHeight + 'px' );
-            Dom.setStyle(col2, 'width', (displayWidth - w - 20) + 'px');
-            Dom.setStyle( 'summary', 'width', (displayWidth - w - 30) + 'px');
+            var width = displayWidth - w - 8;
+            Dom.setStyle( mainRight, 'height', displayHeight + 'px' );
+            Dom.setStyle( mainRight, 'width', width + 'px');
+            Dom.setStyle( 'configDiv', 'width', width + 'px');
         });
 
     resize.resize(null, displayHeight, 200, 0, 0, true);
-    prepareTable();
+
 
 	//handler for expanding all nodes
 	Event.on("expand", "click", function(e) {
@@ -165,7 +186,7 @@ function init()
 
 	//handler for collapseDiv
 	Event.on("collapseDiv", "click", function(e) {
-			oldWidth = Dom.getStyle( col1, 'width' );
+			oldWidth = Dom.getStyle( mainLeft, 'width' );
 	        resize.resize( null, displayHeight, 1, 0, 0, true);
             Dom.setStyle( 'expandDiv', 'visibility', 'visible' );
 		});
@@ -176,6 +197,8 @@ function init()
 	        resize.resize( null, displayHeight, oldWidth, 0, 0, true);
 		});
 
+  if ( detailsMode == true )
+    Dom.setStyle( 'detailsButton', 'backgroundImage', 'url(../assets/img/menubaritem_submenuindicator.png)' );
 }
 	
 	
@@ -184,29 +207,37 @@ function labelClicked( node )
   if ( !node.data.key )
   	return;
 
-  document.getElementById( "mainRight" ).style.visibility = 'visible';
+  //Dom.setStyle( 'configDiv', 'visibility', 'collapse' );
+  //Dom.setStyle( mainRight, 'border', '1px solid #B6CDE1' );
+  Dom.setStyle( mainRight, 'visibility', 'visible' );
 
   configKey = node.data.key;
   dbIndex = node.data.dbIndex;
-  configFrameUrl = "convert2Html.jsp?configKey=" + node.data.key + "&dbIndex=" + node.data.dbIndex + "&bgcolor=FFF5DF"; 
-  var height = YAHOO.util.Dom.getViewportHeight() - 75;
-  
-  var header = "<b>" + node.data.fullName + "</b>";
-  document.getElementById( "header" ).innerHTML = header;
-
+  configFrameUrl = "../details/convert2Html.jsp?configKey=" + node.data.key + "&dbIndex=" + node.data.dbIndex + "&bgcolor=FFF5DF"; 
+  Dom.get( 'fullNameTD' ).innerHTML = "<b>" + node.data.fullName + "</b>";
   var fileName = node.data.name.replace( '//s/g', '_' ) + "_V" + node.data.version;
-  header += '<span style="position:absolute; right:20px;">download <a href="' + fileName + '.cfg?configId='+ node.data.key + '&dbIndex=' + node.data.dbIndex + '">cfg</a>';
-  header += '  <a href="' + fileName + '.py?format=python&configId='+ node.data.key + '&dbIndex=' + node.data.dbIndex + '">py</a></span>';
+
+  Dom.get( 'downloadTD' ).innerHTML = 'download ' 
+    + '<a href="' + fileName + '.cfg?configId='+ node.data.key + '&dbIndex=' + node.data.dbIndex + '">cfg</a> '
+    + '<a href="' + fileName + '.py?format=python&configId='+ node.data.key + '&dbIndex=' + node.data.dbIndex + '">py</a>';
+
+  var heightpx = Dom.getStyle( "rightHeaderDiv", "height" ).split( 'px' );
+  var height = displayHeight - heightpx[0] - 10;
+  if ( detailsMode == true )
+    Dom.get( 'configDiv' ).innerHTML = '<iframe src="' + configFrameUrl + '" name="configIFrame" id="configFrame" width="100%" height="'+ height + '" frameborder="0"></iframe>';
+  Dom.setStyle( 'configDiv', 'visibility', 'visible' );
+  
     
-  myDataSource.sendRequest( "configName=" + node.data.fullName, myCallback );
-  Dom.setStyle( 'loadingDiv', 'visibility', 'visible' );
-    
+  var jumpTo = '<div id="jumpTo">'
+ 	+  '<a href="' + configFrameUrl + '#paths" target="configIFrame">paths</a>  ' 
+    + '</div>';
+
   treeReady();
 }
   
 function iframeReady()
 {
-  //loadingModule.hide();
+  Dom.setStyle( 'loadingDiv', 'visibility', 'collapse' );
 }
 	
 function treeReady()
@@ -228,70 +259,6 @@ function showSummary( summary )
 	alert( str );
 }
 	
-function prepareTable() 
-{
-        var myColumnDefs = [
-            {key:"trigger", sortable:true },
-            {key:"l1Seed", sortable:true },
-            {key:"prescale", formatter:YAHOO.widget.DataTable.formatNumber },
-            {label:"Filter1",
-              children: [
-                {key: "['filters'][0]['name']", label:"Name",sortable:true, resizeable:true},
-                {key:"['filters'][0]['PTmin']", label:"pTmin", sortable:true },
-                {key:"['filters'][0]['etaMax']", label:"etaMax", sortable:true }
-              ]
-            },
-            {label:"FilterN",
-              children: [
-                {key: "['filters'][1]['name']", label:"Name",sortable:true, resizeable:true},
-                {key:"['filters'][1]['PTmin']", label:"pTmin", sortable:true },
-                {key:"['filters'][1]['etaMax']", label:"etaMax", sortable:true }
-              ]
-            }
-        ];
-
-        myDataSource = new YAHOO.util.DataSource( "../get.jsp?format=summary.json&" );
-        myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSON;
-        myDataSource.responseSchema = {
-	        resultsList: "rows",
-            fields: [ "trigger", "l1Seed", "prescale", 
-            	{ key: "['filters'][0]['name']" }, 
-            	{ key: "['filters'][0]['PTmin']" },
-            	{ key: "['filters'][0]['etaMax']" }, 
-            	{ key: "['filters'][1]['name']" }, 
-            	{ key: "['filters'][1]['PTmin']" },
-            	{ key: "['filters'][1]['etaMax']" } 
-            ]
-        };
-
-		/*
-		myDataSource.doBeforeParseData = function  (oRequest, oResponse) {
-				alert( "doBefore...:  " + oRequest +  " response = " + oResponse );
-				return oResponse; 
-			};
-		*/
-
-        myDataTable = new YAHOO.widget.DataTable("summary", myColumnDefs, this.myDataSource, 
-        	{ renderLoopSize:50, initialLoad:false, scrollable:false, height:"" + (displayHeight - 80) + "px" } );
-        
-        myCallback = { 
-		    //success: myDataTable.onDataReturnInitializeTable,
-		    success: function( oRequest, oResponse, oPayload ) {
-		    	Dom.setStyle( 'loadingDiv', 'visibility', 'collapse' );
-		    	myDataTable.onDataReturnInitializeTable( oRequest, oResponse, oPayload );
-			},
-
-			failure: function( oRequest, oResponse, oPayload ) { 
-				alert( "failure:  " + oRequest +  "\nresponse:\n" 
-					   + " results: " + writeProps( oResponse.results )
-					   + " meta: " + writeProps( oResponse.meta )
-						 ); 
-			}, 
-			scope: myDataTable, 
-			//argument: 'not used'   // goes to oPayload 
-		} 
-}
-
 function writeProps( object )
 {
 	var str = '';
@@ -330,12 +297,22 @@ YAHOO.util.Event.onContentReady( "doc3", init );
    	  </div>
 
       <div class="yui-u" id="mainRight">
-        <div style="position:absolute; right:30px; top:6px; background:white" id="loadingDiv" ><img src="../img/loading.gif"></div>
-        <div id="header" class="topDiv"></div>
-		<div id="summary"></div>
+        <div id="rightHeaderDiv">
+  		  <table width='100%' class='blindTable'><tr>
+  		    <td id='fullNameTD'><b>/PATH/CONFIG/VERSION</b></td>
+  		    <td></td>
+  		    <td><div class="dropDownButton" id="detailsButton">details</div></td>
+  			<td><div class="dropDownButton" id="summaryButton">summary</div></td>
+  			<td align="right" id='downloadTD'> download cfg py</td>
+  			<td><div id="loadingDiv" ><img src="../img/loading.gif"></div></td>
+		  </tr></table>
+          <div id="rightHeaderBottomDiv"></div>
+        </div>
+		<div id="configDiv"></div>
       </div>
     </div>
   </div>
 </div>
 </body>
 </html>
+
