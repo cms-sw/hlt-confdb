@@ -176,9 +176,9 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 		}
 		else
 		{
-			str.append( "\nHLTSchedule = cms.Schedule( " );
 			if ( conf.pathCount() > 0 )
 			{
+				str.append( "\nHLTSchedule = cms.Schedule( " );
 				for ( int i = 0; i < conf.pathCount(); i++ )
 				{
 					Path path = conf.path(i);
@@ -187,8 +187,8 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 				int length = str.length();
 				str.setCharAt( length - 2, ' ' );
 				str.setLength( length - 1 );
+				str.append( ")\n" );
 			}
-			str.append( ")\n" );
 		}
 
 		return str.toString();
