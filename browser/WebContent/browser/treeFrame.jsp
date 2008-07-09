@@ -18,28 +18,9 @@
 <script type="text/javascript" src="../js/yui/yahoo-dom-event/yahoo-dom-event.js"></script>
 <script type="text/javascript" src="../js/yui/treeview/treeview.js"></script>
 
-<link rel="stylesheet" type="text/css" href="assets/css/folders/tree.css">
-<style type="text/css">
+<link rel="stylesheet" type="text/css" href="../assets/css/folders/tree.css">
+<link rel="stylesheet" type="text/css" href="../assets/css/confdb.css">
 
-html, body { background:#edf5ff }
-
-.icon-gen, .icon-gen:link, .icon-gen:visited, .icon-gen:hover  { padding-left: 20px; background: transparent url(../img/icons.png) 0 -108px no-repeat; 	text-decoration: none;
-}
- 
- 
-/* via css class selector */
-.xygtvtn {background: transparent;  width:1em; height:20px; }
-.xygtvtm { background: url(../img/tree/collapse.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvtmh { background: url(../img/tree/collapseh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvtp { background: url(../img/tree/expand.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvtph { background: url(../img/tree/expandh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvln { background: transparent; width:1em; height:20px; }
-.xygtvlm { background: url(../img/tree/collapse.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvlmh { background: url(../img/tree/collapseh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvlp { background: url(../img/tree/expand.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-.xygtvlph { background: url(../img/tree/expandh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
-
-</style>
 
 <script type="text/javascript">
 
