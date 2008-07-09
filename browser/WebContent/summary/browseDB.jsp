@@ -16,8 +16,8 @@
 <script type="text/javascript" src="../js/yui/datasource/datasource-beta-min.js"></script>
 <script type="text/javascript" src="../js/yui/datatable/datatable-beta-min.js"></script>
 <script type="text/javascript" src="../js/yui/resize/resize-beta-min.js"></script>
-<!--
 <script type="text/javascript" src="../js/yui/json/json-min.js"></script>
+<!--
 <script type="text/javascript" src="../js/yui/container/container.js"></script>
 -->
 <script type="text/javascript" src="../js/dwr2JSON.js"></script>
@@ -25,6 +25,12 @@
 
 <style>
 
+body {
+	margin:0px; 
+	padding:0px; 
+    overflow: hidden;
+    position: fixed;
+}
 .blindTable {
 	margin:0px; 
 	padding:0px; 
@@ -40,21 +46,19 @@
 }
 
 #doc3 { 
-    overflow: hidden;
     padding:0px; 
     margin:0px; 
 }
 
 #pg {
-    overflow: hidden;
+	margin:0px; 
+	padding:0px; 
 }
 
 #pg .yui-g {
-    overflow: hidden;
 }
 
 #pg .yui-u {
-    overflow: hidden;
 }
 
 #mainLeft { 
@@ -65,6 +69,10 @@
 	padding-left:1px; 
 	padding-top:1px; 
 }
+
+#mainRight { 
+}
+
 
 #info { 
 	background:white; 
@@ -89,17 +97,12 @@
 	margin-top:1px; 
 	margin-bottom:3px; 
 	padding:1px; 
+	height:3.5em;
 }
 
 #configDiv {
+    overflow: hidden;
 	border: 1px solid #B6CDE1; 
-}
-
-#loadingDiv {
-/*	position:absolute; right:4px; top:7px; */
-	margin:0px; 
-	padding:0px; 
-	background:white;
 }
 
 </style>
@@ -149,11 +152,15 @@ function init()
 		displayHeight = Dom.getViewportHeight();
 	if ( displayWidth == 0 )
 		displayWidth = Dom.getViewportWidth();
-		
+
+	//displayHeight -= 18;
+
     Dom.setStyle( 'expandDiv', 'visibility', 'collapse' );
-    Dom.setStyle( mainRight, 'visibility', 'collapse' );
+    Dom.setStyle( mainRight, 'visibility', 'hidden' );
+    Dom.setStyle(  'doc3', 'height',  displayHeight + 'px' );
     Dom.setStyle(  'pg', 'height',  displayHeight + 'px' );
     Dom.setStyle(  'pg', 'width',  displayWidth + 'px' );
+	//displayHeight -= 10;
     Dom.setStyle( 'treeFrame', 'height',  (displayHeight - 30) + 'px' );
 
     resize = new YAHOO.util.Resize('mainLeft', {
@@ -188,6 +195,7 @@ function init()
 	Event.on("collapseDiv", "click", function(e) {
 			oldWidth = Dom.getStyle( mainLeft, 'width' );
 	        resize.resize( null, displayHeight, 1, 0, 0, true);
+            Dom.setStyle( mainLeft, 'visibility', 'hidden' );
             Dom.setStyle( 'expandDiv', 'visibility', 'visible' );
 		});
 
@@ -195,6 +203,7 @@ function init()
 	Event.on( "expandDiv", "click", function(e) {
             Dom.setStyle( 'expandDiv', 'visibility', 'collapse' );
 	        resize.resize( null, displayHeight, oldWidth, 0, 0, true);
+            Dom.setStyle( mainLeft, 'visibility', 'visible' );
 		});
 
   if ( detailsMode == true )
@@ -207,8 +216,6 @@ function labelClicked( node )
   if ( !node.data.key )
   	return;
 
-  //Dom.setStyle( 'configDiv', 'visibility', 'collapse' );
-  //Dom.setStyle( mainRight, 'border', '1px solid #B6CDE1' );
   Dom.setStyle( mainRight, 'visibility', 'visible' );
 
   configKey = node.data.key;
@@ -222,51 +229,42 @@ function labelClicked( node )
     + '<a href="' + fileName + '.py?format=python&configId='+ node.data.key + '&dbIndex=' + node.data.dbIndex + '">py</a>';
 
   var heightpx = Dom.getStyle( "rightHeaderDiv", "height" ).split( 'px' );
-  var height = displayHeight - heightpx[0] - 10;
+  var height = displayHeight - heightpx[0] - 12;
   if ( detailsMode == true )
     Dom.get( 'configDiv' ).innerHTML = '<iframe src="' + configFrameUrl + '" name="configIFrame" id="configFrame" width="100%" height="'+ height + '" frameborder="0"></iframe>';
-  Dom.setStyle( 'configDiv', 'visibility', 'visible' );
-  
-    
-  var jumpTo = '<div id="jumpTo">'
- 	+  '<a href="' + configFrameUrl + '#paths" target="configIFrame">paths</a>  ' 
-    + '</div>';
+
+  Dom.get( 'rightHeaderBottomDiv' ).innerHTML = '<img src="../assets/img/wait.gif">';
+//  '<div id="jumpTo">'
+// 	+  '<a href="' + configFrameUrl + '#paths" target="configIFrame">paths</a>  ' 
+//    + '</div>';
 
   treeReady();
 }
   
+function updateJumpTo( list )
+{   
+  var html = "";
+  for ( var i = 0; i < list.length; i++ )
+  {
+    html += '<a href="' + configFrameUrl + '#' + list[i] + '" target="configIFrame">' + list[i] + '</a>  ';
+  }
+  Dom.get( 'rightHeaderBottomDiv' ).innerHTML = html;
+}
+	
+  
+  
 function iframeReady()
 {
-  Dom.setStyle( 'loadingDiv', 'visibility', 'collapse' );
+  if ( detailsMode == true )
+    AjaxInfo.getAnchors( dbIndex, configKey, updateJumpTo );
+  else
+	Dom.get( 'rightHeaderBottomDiv' ).innerHTML = "";
 }
 	
 function treeReady()
 {
   document.getElementById( "info" ).innerHTML = "";
   document.getElementById( "info" ).style.border = '0px';
-}
-	
-function showSummary( summary )
-{
-	var str = '';
-	for ( row in summary.rows )
-	{
-		for ( prop in row )
-		{
-			str += prop + ' value :' + row[prop] + '\n';
-		} 
-	} 
-	alert( str );
-}
-	
-function writeProps( object )
-{
-	var str = '';
-	for ( prop in object )
-	{
-		str += prop + ' value :' + object[prop] + '\n';
-	}		 
-	return str;
 }
 	
 //When the DOM is done loading, we can initialize our TreeView
@@ -291,8 +289,8 @@ YAHOO.util.Event.onContentReady( "doc3", init );
             <a id="collapse" href="#">Collapse all</a>
          </div>
          <div style="position:absolute; right:10px; top:2px; z-index:1; cursor:pointer" id="collapseDiv" > &lt; </div>
-         <div style="position:absolute; left2px; top:2px; z-index:2; cursor:pointer" id="expandDiv" > &gt; </div>
-    	 <div id="info"><img src="../img/loading.gif"></div>
+         <div style="position:absolute; left:2px; top:2px; z-index:2; cursor:pointer" id="expandDiv" > &gt; </div>
+    	 <div id="info"><img src="../assets/img/wait.gif"></div>
 		 <iframe name="treeFrame" id="treeFrame" width="100%" frameborder="0" src="<%= treeUrl%>" ></iframe>
    	  </div>
 
@@ -304,9 +302,8 @@ YAHOO.util.Event.onContentReady( "doc3", init );
   		    <td><div class="dropDownButton" id="detailsButton">details</div></td>
   			<td><div class="dropDownButton" id="summaryButton">summary</div></td>
   			<td align="right" id='downloadTD'> download cfg py</td>
-  			<td><div id="loadingDiv" ><img src="../img/loading.gif"></div></td>
 		  </tr></table>
-          <div id="rightHeaderBottomDiv"></div>
+          <div id="rightHeaderBottomDiv"><img src="../assets/img/wait.gif"></div>
         </div>
 		<div id="configDiv"></div>
       </div>
