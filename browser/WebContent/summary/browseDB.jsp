@@ -279,7 +279,7 @@ YAHOO.util.Event.onContentReady( "doc3", init );
 <body class="yui-skin-sam">
 
 <%
-  String treeUrl = "treeFrame.jsp?db=" + request.getParameter( "db" );
+  String treeUrl = "../browser/treeFrame.jsp?db=" + request.getParameter( "db" );
 %>
 
 <div id="doc3">
