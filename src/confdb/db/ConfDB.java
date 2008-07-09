@@ -786,11 +786,11 @@ public class ConfDB
 		PrimaryDataset dataset      = config.dataset(datasetLabel);
 		if (dataset==null) {
 		    dataset = config.insertDataset(datasetLabel);
-		    dataset.setDatabaseId(datasetId);
 		    idToDatasets.put(datasetId,dataset);
 		}
 		Path path = idToPaths.get(pathId);
 		dataset.insertPath(path);
+		dataset.setDatabaseId(datasetId);
 	    }
 	    
 	    while (rsStreamEntries.next()) {
@@ -799,16 +799,14 @@ public class ConfDB
 		int    datasetId   = rsStreamEntries.getInt(3);
 		String datasetLabel= rsStreamEntries.getString(4);
 		Stream stream      = config.stream(streamLabel);
-		if (stream==null) {
-		    stream = config.insertStream(streamLabel);
-		    stream.setDatabaseId(streamId);
-		}
+		if (stream==null) stream = config.insertStream(streamLabel);
 		PrimaryDataset dataset = idToDatasets.get(datasetId);
 		if (dataset==null) {
 		    dataset = config.insertDataset(datasetLabel);
 		    dataset.setDatabaseId(datasetId);
 		}
 		stream.insertDataset(dataset);
+		stream.setDatabaseId(streamId);
 	    }
 	    
 	    while (rsPathEntries.next()) {
