@@ -90,7 +90,7 @@ public class HtmlConfigurationWriter implements ISummaryWriter
     			result.append( "<td>" );
     			for ( int iLine = 0; iLine < row.lineCount(); iLine++ )
     				result.append( row.dataEntry( i, iLine ) ).append( "<br>" );
-    			result.append( "<td>" );
+    			result.append( "</td>" );
     		}
 			result.append( "</tr>\n" );
 		}
