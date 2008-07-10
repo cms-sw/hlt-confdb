@@ -3,69 +3,72 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>HLT config browser</title>
-<style type="text/css">
-/*margin and padding on body element
-  can introduce errors in determining
-  element position and are not recommended;
-  we turn them off as a foundation for YUI
-  CSS treatments. */
-body {
-	margin:0;
-	padding:0;
-}
-</style>
 
+<!-- css -->
+<link rel="stylesheet" type="text/css" href="../js/yui/reset-fonts-grids/reset-fonts-grids.css">
+<link rel="stylesheet" type="text/css" href="../js/yui/base/base-min.css">
 <link rel="stylesheet" type="text/css" href="../js/yui/fonts/fonts-min.css" />
 <link rel="stylesheet" type="text/css" href="../js/yui/tabview/assets/skins/sam/tabview.css" />
+<link rel="stylesheet" type="text/css" href="../assets/css/confdb.css" />
+
+<!-- js -->
 <script type="text/javascript" src="../js/yui/utilities/utilities.js"></script>
+<script type="text/javascript" src="../js/yui/cookie/cookie-beta-min.js"></script>
+<script type="text/javascript" src="../js/yui/datasource/datasource-beta-min.js"></script>
+<script type="text/javascript" src="../js/yui/element/element-beta-min.js"></script>
 <script type="text/javascript" src="../js/yui/tabview/tabview.js"></script>
-<script type='text/javascript' src='../dwr/interface/AjaxInfo.js'></script>
-<script type='text/javascript' src='../dwr/engine.js'></script>
-<script type='text/javascript' src='../dwr/util.js'></script>
+<script type="text/javascript" src="../js/yui/json/json-min.js"></script>
+<script type="text/javascript" src="../js/dwr2JSON.js"></script>
+<script type="text/javascript" src="../js/AjaxInfo.js"></script>
 
 
 <!--begin custom header content for this example-->
 <style type="text/css">
-.yui-navset div.loading div {
-    background:url(assets/loading.gif) no-repeat center center;
-    height:8em; /* hold some space while loading */
-.yui-content { border:1px solid red; }
-}
-
 </style>
 
 <script type="text/javascript">
 
-var viewportHeight;
-var tabHeight;
-var tabView;
+var viewportHeight,
+	tabHeight,
+	tabWidth,
+	tabView,
+	Dom = YAHOO.util.Dom;
 
 function init()
 {
-	viewportHeight = YAHOO.util.Dom.getViewportHeight();
-	tabHeight = viewportHeight - 65; 
-	tabView = new YAHOO.widget.TabView( 'tabMain' );
+	viewportHeight = Dom.getViewportHeight();
+	tabHeight = viewportHeight - 50; 
+	var widthpx = Dom.getStyle( 'tabMain', 'width' ).split( "px" );
+	tabWidth = widthpx[0] - 2;
+	tabView = new YAHOO.widget.TabView();
+	tabView.appendTo( 'tabMain' );
+	tabView.on( 'activeTabChange', function saveCookie( eventInfo ) {
+	  var expiresWhen = new Date();
+  	  expiresWhen.setFullYear( expiresWhen.getFullYear() + 1 ); 
+  	  YAHOO.util.Cookie.set( 'activeTab', tabView.get( 'activeIndex' ), { expires: expiresWhen } );
+	} );
 	AjaxInfo.listDBs( processDBList );	
 }
 
 
 function processDBList( dbList )
 {
-	tabView = new YAHOO.widget.TabView( 'tabMain' );
 	if ( dbList.length > 0 )
 		createTabs( dbList );
-//	dwr.engine.setActiveReverseAjax(true);
 }
 
 
 function createTabs( tabs )
 {
+    var activeTab = YAHOO.util.Cookie.get( 'activeTab', Number );
+    if ( !activeTab )
+    	activeTab = 0;
 	for ( var i = 0; i < tabs.length; i++ )
 	{    
-		if ( i == 0 )
+		if ( i == activeTab )
 			createTab( tabs[i], true, "browseDB.jsp?db=" + escape( tabs[i] ) );
 	    else
-			createTab( tabs[i], false, "browseDB.jsp?db=" + escape( tabs[i] ) );
+			createTab( tabs[i], false, "browseDB.jsp?db=" + escape( tabs[i] ) + "&height=" + tabHeight + "&width=" + tabWidth );
 	}
 }
 
@@ -92,11 +95,9 @@ YAHOO.util.Event.onDOMReady(init);
 
 </head>
 
-<body class=" yui-skin-sam">
-<div id="info" style="height:1em"></div>
-<div id="tabMain" class="yui-navset">
- <ul class="yui-nav"></ul>
- <div class="yui-content"></div>
+<body class="yui-skin-sam">
+<div id="doc3">
+<div id="tabMain" style="padding-top:10px"></div>
 </div>
 </body>
 

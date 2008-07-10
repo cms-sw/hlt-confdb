@@ -62,7 +62,6 @@ body {
 }
 
 #mainLeft { 
-	background:#e8e8e8; 
 	border: 0px solid #B6CDE1; 
 	margin:0px; 
 	padding-right:5px;
