@@ -21,6 +21,7 @@
 body {
 	margin:0;
 	padding:0;
+	border: 1px solid #B6CDE1; 
 <%
   String background = request.getParameter( "bgcolor" );
   if ( background != null )
