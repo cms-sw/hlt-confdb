@@ -760,9 +760,11 @@ class ConfdbOracleModuleLoader:
 		    elif(paramval.find('"') != -1):
 			thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
 		    else:
-			print "\tWarning: Attempted to load a non-string value to string table:"
-			print "\t\tstring " + str(paramname) + " = " + str(paramval)
-			print "\t\tLoading parameter with no default value"
+                        paramval = "'" + str(paramval) + "'"
+                        thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")") 
+                        #			print "\tWarning: Attempted to load a non-string value to string table:"
+                        #			print "\t\tstring " + str(paramname) + " = " + str(paramval)
+                        #			print "\t\tLoading parameter with no default value"
 
 	    #FileInPath
 	    elif(paramtype == "FileInPath"):
@@ -1289,9 +1291,11 @@ class ConfdbOracleModuleLoader:
 			    # Fill ParameterValues table
 			    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
 			else:
-			    print "\tWarning: Attempted to load a non-string value to string table:"
-			    print "\t\tstring " + str(paramname) + " = " + str(paramval)
-			    print "\t\tLoading parameter with no default value"
+                            paramval = "'" + str(paramval) + "'"
+                            thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")") 
+                            #			    print "\tWarning: Attempted to load a non-string value to string table:"
+                            #			    print "\t\tstring " + str(paramname) + " = " + str(paramval)
+                            #			    print "\t\tLoading parameter with no default value"
 		else:
                     thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
                     #                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=paramseq)
@@ -1902,9 +1906,11 @@ class ConfdbOracleModuleLoader:
 		elif(psetval.find('"') != -1):
 		    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", '" + psetval + "')")
 		else:
-		    print "\tWarning: Attempted to load a non-string value to string table:"
-		    print "\t\tstring " + str(psetname) + " = " + str(psetval)
-		    print "\t\tLoading parameter with no default value"
+                    psetval = "'" + str(psetval) + "'"
+                    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+                    #		    print "\tWarning: Attempted to load a non-string value to string table:"
+                    #		    print "\t\tstring " + str(psetname) + " = " + str(psetval)
+                    #		    print "\t\tLoading parameter with no default value"
 	    elif(psettype == "FileInPath"):
 		if(psetval.find("'") != -1):
 		    thecursor.execute("INSERT INTO FileInPathParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
@@ -2082,9 +2088,11 @@ class ConfdbOracleModuleLoader:
 		elif(vpsetval.find('"') != -1):
 		    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", '" + vpsetval + "')")
 		else:
-		    print "\tWarning: Attempted to load a non-string value to string table:"
-		    print "\t\tstring " + str(vpsetname) + " = " + str(vpsetval)
-		    print "\t\tLoading parameter with no default value" 
+                    vpsetval = "'" + str(vpsetval) + "'"
+                    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + vpsetval + ")")
+                    #		    print "\tWarning: Attempted to load a non-string value to string table:"
+                    #		    print "\t\tstring " + str(vpsetname) + " = " + str(vpsetval)
+                    #		    print "\t\tLoading parameter with no default value" 
 	    elif(vpsettype == "FileInPath"):
 		if(vpsetval.find("'") != -1):
 		    thecursor.execute("INSERT INTO FileInPathParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
