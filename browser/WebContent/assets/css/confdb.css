@@ -29,10 +29,10 @@ html, body { background:#ebebf0;}
 }
 
 div.dropDownButton {
-  background-image:url(../img/menuitem_submenuindicator.png); 
+  background-image:url(../img/tree/expand.gif); 
   background-repeat:no-repeat; 
   background-position:left center; 
-  padding-left:10px;
+  padding-left:12px;
   font-weight:bolder;
   cursor:pointer;
 }

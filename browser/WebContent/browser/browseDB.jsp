@@ -242,16 +242,20 @@ function showConfig()
   Dom.get( 'rightHeaderBottomDiv' ).innerHTML = '<img src="../assets/img/wait.gif">';
   if ( detailsMode == true )
   {
-    Dom.setStyle( 'detailsButton', 'backgroundImage', 'url(../assets/img/menubaritem_submenuindicator.png)' );
-    Dom.setStyle( 'summaryButton', 'backgroundImage', 'url(../assets/img/menuitem_submenuindicator.png)' );
+    Dom.setStyle( 'summaryButton', 'background-image', 'url(../assets/img/tree/expand.gif)' );
+    Dom.setStyle( 'detailsButton', 'background-image', 'url(../assets/img/tree/collapse.gif)' );
     configFrameUrl = "../details/convert2Html.jsp?configKey=" + configKey + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
   }
   else
   {
-    Dom.setStyle( 'summaryButton', 'backgroundImage', 'url(../assets/img/menubaritem_submenuindicator.png)' );
-    Dom.setStyle( 'detailsButton', 'backgroundImage', 'url(../assets/img/menuitem_submenuindicator.png)' );
+    Dom.setStyle( 'detailsButton', 'background-image', 'url(../assets/img/tree/expand.gif)' );
+    Dom.setStyle( 'summaryButton', 'background-image', 'url(../assets/img/tree/collapse.gif)' );
     configFrameUrl = "../summary/showSummary.jsp?configKey=" + configKey + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
   }
+  Dom.setStyle( 'detailsButton', 'background-repeat', 'no-repeat' );
+  Dom.setStyle( 'detailsButton', 'background-position', 'left' );
+  Dom.setStyle( 'summaryButton', 'background-repeat', 'no-repeat' );
+  Dom.setStyle( 'summaryButton', 'background-position', 'left' );
   var heightpx = Dom.getStyle( "rightHeaderDiv", "height" ).split( 'px' );
   var height = displayHeight - heightpx[0] - 12;
   Dom.get( 'configDiv' ).innerHTML = '<iframe src="' + configFrameUrl + '" name="configIFrame" id="configFrame" width="100%" height="'+ height + '" frameborder="0"></iframe>';
