@@ -191,7 +191,7 @@ elsif (!$relativeTag eq "")
     $parserCmd = $parserCmd . "-m $relativeTag ";
 }
 
-$parserCmd = $parserCmd . "-r $releaseTag ";
+$parserCmd = $parserCmd . "-r $releaseTag -f python ";
 
 if (!$doAll)
 {
