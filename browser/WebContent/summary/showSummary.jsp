@@ -98,11 +98,19 @@ body {
 						<col style="width: 20%;" />
 					</colgroup>
 <%
-	if ( result.startsWith( "<table>" ) )
-		out.println( result.substring( 7 ) );
-	else
+	int start = result.indexOf( "<table" );
+	if ( start < 0 )
 		out.println( result );
+	start = result.indexOf( '>', start );
+	if ( start < 0 )
+		out.println( result );
+	int stop = result.indexOf( "</table>" );
+	if ( stop < 0 )
+		out.println( result.substring( start + 1 ) );
+	else
+		out.println( result.substring( start + 1, stop ) );
 %>
+    </table>
   </div>
 </div>
 
