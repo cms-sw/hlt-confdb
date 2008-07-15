@@ -132,6 +132,15 @@ TrackCountingESProducer.Parameter trackQualityClass string "any" tracked
 ESModule LeptonTaggerByDistanceESProducer RecoBTag SoftLepton
 LeptonTaggerByDistanceESProducer.Parameter distance double 0.5 tracked
 
+ESModule SkippingLayerCosmicNavigationSchoolESProducer RecoTracker TkNavigation
+SkippingLayerCosmicNavigationSchoolESProducer.Parameter ComponentName string "NoPixelCosmicNavigationSchool" tracked
+SkippingLayerCosmicNavigationSchoolESProducer.Parameter noPXB bool true tracked
+SkippingLayerCosmicNavigationSchoolESProducer.Parameter noPXF bool true tracked
+SkippingLayerCosmicNavigationSchoolESProducer.Parameter noTIB bool false tracked
+SkippingLayerCosmicNavigationSchoolESProducer.Parameter noTID bool false tracked
+SkippingLayerCosmicNavigationSchoolESProducer.Parameter noTOB bool false tracked
+SkippingLayerCosmicNavigationSchoolESProducer.Parameter noTEC bool false tracked
+
 Service MessageLogger FWCore MessageService
 MessageLogger.Parameter destinations vstring { "warnings", "errors", "infos", "debugs", "cout", "cerr" } untracked
 MessageLogger.Parameter categories vstring { "FwkJob", "FwkReport", "FwkSummary", "Root_NoDictionary" } untracked
@@ -272,3 +281,4 @@ CSCRecHitDProducer.Parameter readBadChannels bool false tracked
 Module EDProducer EgammaHLTPixelMatchElectronProducers RecoEgamma EgammaHLTProducers
 EgammaHLTPixelMatchElectronProducers.Parameter TrackProducer InputTag hltCtfL1NonIsoWithMaterialTracks tracked
 EgammaHLTPixelMatchElectronProducers.Parameter BSProducer InputTag hltOfflineBeamSpot tracked
+
