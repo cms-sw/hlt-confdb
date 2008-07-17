@@ -142,6 +142,20 @@ SkippingLayerCosmicNavigationSchoolESProducer.Parameter noTID bool false tracked
 SkippingLayerCosmicNavigationSchoolESProducer.Parameter noTOB bool false tracked
 SkippingLayerCosmicNavigationSchoolESProducer.Parameter noTEC bool false tracked
 
+
+ESModule EcalBarrelGeometryEP Geometry EcalAlgo
+EcalBarrelGeometryEP.Parameter applyAlignment bool false tracked
+
+ESModule FakeAlignmentProducer Alignment CommonAlignmentProducer
+FakeAlignmentProducer.Parameter appendToDataLabel string "fakeForIdeal" tracked
+
+ESModule EcalPreshowerGeometryEP Geometry EcalAlgo
+EcalPreshowerGeometryEP.Parameter applyAlignment bool false tracked
+
+ESModule EcalEndcapGeometryEP Geometry EcalAlgo
+EcalEndcapGeometryEP.Parameter applyAlignment bool false tracked
+
+
 Service MessageLogger FWCore MessageService
 MessageLogger.Parameter destinations vstring { "warnings", "errors", "infos", "debugs", "cout", "cerr" } untracked
 MessageLogger.Parameter categories vstring { "FwkJob", "FwkReport", "FwkSummary", "Root_NoDictionary" } untracked

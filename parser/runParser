@@ -162,7 +162,7 @@ if ($releaseTag  eq "") { $releaseTag = $cmssw_version; }
 die "No scram project area setup!\n" if ($cmssw_base eq "");
 die "$parserExe doesn't exist!"      if (!(-e $parserExe));
 die "--dbpwrd MUST be specified!"    if ($dbPwrd eq "");
-die "No valid DB specified: --offline|--online|--test|--local" if ($dbHost eq "");
+die "No valid DB specified: --hltdev|--rcms|--test|--local" if ($dbHost eq "");
 die "$patchFile doesn't exist!" if ($doPatch && ! -e $patchFile);
 
 my $parserCmd = $parserExe . " -t $dbType -o $dbHost -u $dbUser -s $dbPwrd ";
