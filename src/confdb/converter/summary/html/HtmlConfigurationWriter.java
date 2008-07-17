@@ -89,7 +89,12 @@ public class HtmlConfigurationWriter implements ISummaryWriter
     		{
     			result.append( "<td>" );
     			for ( int iLine = 0; iLine < row.lineCount(); iLine++ )
-    				result.append( row.dataEntry( i, iLine ) ).append( "<br>" );
+    			{
+    				if ( i != 1  &&  iLine == 0 )
+    					result.append( "<span class=\"mayorInfo\">" + row.dataEntry( i, iLine ) + "</span>" ).append( "<br>" );
+    				else
+    					result.append( "<span class=\"minorInfo\">" + row.dataEntry( i, iLine ) + "</span>" ).append( "<br>" );
+    			}
     			result.append( "</td>" );
     		}
 			result.append( "</tr>\n" );
