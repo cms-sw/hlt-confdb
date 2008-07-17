@@ -1155,7 +1155,8 @@ class ConfdbOracleModuleLoader:
                         if(paramval != "0" and paramval != "1"):
                             paramval = None
 
-			thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+                        else:
+                            thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
 		else:
                     thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
                     #                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=paramseq)
@@ -1849,10 +1850,10 @@ class ConfdbOracleModuleLoader:
 		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
-                    if(paramval.find("X") == -1 and paramval.find("x") == -1):                        
+                    if(psetval.find("X") == -1 and psetval.find("x") == -1):                        
                         thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
                     else:
-                        paramval = str(int(str(paramval), 16))                       
+                        psetval = str(int(str(psetval), 16))                       
                         thecursor.execute("INSERT INTO Int32ParamValues (paramId, value, hex) VALUES (" + str(newparammemberid) + ", " + psetval + ", 1)") 
 	    elif(psettype == "uint32" or psettype == "unsigned int" or psettype == "uint32_t" or psettype == "uint"):
 		if(str(psetval).endswith("U")):
@@ -1869,10 +1870,10 @@ class ConfdbOracleModuleLoader:
 		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
-                    if(paramval.find("X") == -1 and paramval.find("x") == -1):
+                    if(psetval.find("X") == -1 and psetval.find("x") == -1):
                         thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
                     else:
-                        paramval = str(int(str(paramval), 16))                       
+                        psetval = str(int(str(psetval), 16))                       
                         thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value, hex) VALUES (" + str(newparammemberid) + ", " + psetval + ", 1)")
 
 	    elif(psettype == "bool"):
@@ -1886,10 +1887,12 @@ class ConfdbOracleModuleLoader:
                 if(psetval != "0" and psetval != "1"):
                     psetval = None                                                    
 
-                if(self.verbose > 2):
-                    print "INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")"
+                else:
+                    if(self.verbose > 2):
+                        print "INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")"
 
-		thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+                    thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+
 	    elif(psettype == "double"):
 		if(psetval):
 		    if(psetval.find('.') == -1 and (not psetval.isdigit())):
@@ -1899,7 +1902,10 @@ class ConfdbOracleModuleLoader:
 		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
-		    thecursor.execute("INSERT INTO DoubleParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+                    if(self.verbose > 2):
+                        print "INSERT INTO DoubleParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")" 
+                    if(isinstance(psetval, (int, long, float, complex))):
+                        thecursor.execute("INSERT INTO DoubleParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
 	    elif(psettype == "string"):
 		if(psetval.find("'") != -1):
 		    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
@@ -2070,8 +2076,10 @@ class ConfdbOracleModuleLoader:
 
                 if(vpsetval != "0" and vpsetval != "1"):
                     vpsetval = None
-                                                    
-		thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
+
+                else:
+                    thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
+
 	    elif(vpsettype == "double"):
 		if(vpsetval):
 		    if(vpsetval.find('.') == -1 and (not vpsetval.isdigit())):
@@ -2089,7 +2097,7 @@ class ConfdbOracleModuleLoader:
 		    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", '" + vpsetval + "')")
 		else:
                     vpsetval = "'" + str(vpsetval) + "'"
-                    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + vpsetval + ")")
+                    thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
                     #		    print "\tWarning: Attempted to load a non-string value to string table:"
                     #		    print "\t\tstring " + str(vpsetname) + " = " + str(vpsetval)
                     #		    print "\t\tLoading parameter with no default value" 
