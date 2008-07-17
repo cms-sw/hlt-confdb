@@ -18,14 +18,6 @@
 		<url-pattern>*.jnlp</url-pattern>
 	</servlet-mapping>
 	<servlet>
-		<servlet-name>dwr-invoker</servlet-name>
-		<servlet-class>org.directwebremoting.servlet.DwrServlet</servlet-class>
-		<init-param>
-			<param-name>debug</param-name>
-			<param-value>true</param-value>
-		</init-param>
-	</servlet>
-	<servlet>
 		<description>
 		</description>
 		<display-name>
@@ -34,10 +26,6 @@
 		<servlet-class>
 		CfgServlet</servlet-class>
 	</servlet>
-	<servlet-mapping>
-		<servlet-name>dwr-invoker</servlet-name>
-		<url-pattern>/dwr/*</url-pattern>
-	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>CfgServlet</servlet-name>
 		<url-pattern>*.cfg</url-pattern>
