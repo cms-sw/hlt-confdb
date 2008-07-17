@@ -33,7 +33,8 @@ var viewportHeight,
 	tabWidth,
 	tabView,
 	tabContent = new Array(),
-	Dom = YAHOO.util.Dom;
+	Dom = YAHOO.util.Dom,
+	cookie = true;
 
 function init()
 {
@@ -51,8 +52,9 @@ function init()
 		  tabContent[ activeTab ] = null;
 	  }
 	  var expiresWhen = new Date();
-  	  expiresWhen.setFullYear( expiresWhen.getFullYear() + 1 ); 
-  	  YAHOO.util.Cookie.set( 'activeTab', activeTab, { expires: expiresWhen } );
+  	  expiresWhen.setFullYear( expiresWhen.getFullYear() + 1 );
+  	  if ( cookie ) 	
+  	    YAHOO.util.Cookie.set( 'activeTab', activeTab, { expires: expiresWhen } );
 	} );
 	AjaxInfo.listDBs( processDBList );	
 }
@@ -67,7 +69,9 @@ function processDBList( dbList )
 
 function createTabs( tabs )
 {
-    var activeTab = YAHOO.util.Cookie.get( 'activeTab', Number );
+    var activeTab = 0;
+    if ( cookie ) 
+      activeTab = YAHOO.util.Cookie.get( 'activeTab', Number );
     if ( !activeTab )
     	activeTab = 0;
 	for ( var i = 0; i < tabs.length; i++ )
