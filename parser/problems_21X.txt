@@ -144,16 +144,16 @@ SkippingLayerCosmicNavigationSchoolESProducer.Parameter noTEC bool false tracked
 
 
 ESModule EcalBarrelGeometryEP Geometry EcalAlgo
-EcalBarrelGeometryEP.Parameter applyAlignment bool false tracked
+EcalBarrelGeometryEP.Parameter applyAlignment bool false untracked
 
 ESModule FakeAlignmentProducer Alignment CommonAlignmentProducer
 FakeAlignmentProducer.Parameter appendToDataLabel string "fakeForIdeal" tracked
 
 ESModule EcalPreshowerGeometryEP Geometry EcalAlgo
-EcalPreshowerGeometryEP.Parameter applyAlignment bool false tracked
+EcalPreshowerGeometryEP.Parameter applyAlignment bool false untracked
 
 ESModule EcalEndcapGeometryEP Geometry EcalAlgo
-EcalEndcapGeometryEP.Parameter applyAlignment bool false tracked
+EcalEndcapGeometryEP.Parameter applyAlignment bool false untracked
 
 
 Service MessageLogger FWCore MessageService
