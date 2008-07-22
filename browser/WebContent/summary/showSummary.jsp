@@ -12,6 +12,7 @@
 
 <!-- css -->
 <link type="text/css" rel="stylesheet" href="../assets/css/columnlist.css" />
+<link rel="stylesheet" type="text/css" href="../assets/css/confdb.css" />
 
 <!-- js -->
 <script type="text/javascript" src="../js/yui/yahoo/yahoo-min.js"></script> 
