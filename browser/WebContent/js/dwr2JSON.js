@@ -63,7 +63,7 @@ dwr.engine._execute = function(path, className, method, vararg_params )
 	  timeout : 10000,
 	  argument : callbackArg 
   }
-  YAHOO.util.Connect.asyncRequest( 'POST', getJsonPath + "getJSON.jsp", callbacks, postData);
+  YAHOO.util.Connect.asyncRequest( 'POST', getJsonPath + "AjaxInfo.jsp", callbacks, postData);
 }
 
 
