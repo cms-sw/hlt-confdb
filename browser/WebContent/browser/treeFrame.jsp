@@ -91,8 +91,51 @@ function init()
 	
 YAHOO.util.Event.onContentReady( "treeDiv1", init );
 	
+
+function findNode( node, config, subdirs )
+{
+  if ( !node.hasChildren() )
+    return;
+  if ( subdirs.length == 0 )
+    return;
+  var nodes = node.children;
+  for ( var i = 0;  i < nodes.length; i++ )
+  {
+    var fullName = nodes[i].data.fullName;
+    if ( fullName && fullName == config )
+      return;
+  }
+
+  var subdir = subdirs.shift();
+  for ( var i = 0;  i < nodes.length; i++ )
+  {
+    var label = nodes[i].label;
+    if ( label == subdir )
+    {
+      nodes[i].expand();
+      findNode( nodes[i], config, subdirs );
+    }
+  }
+}	
+	
+	
 function signalReady()
 {
+  if ( parent &&  parent.cookie )
+  {
+    var config = parent.cookie.selectedConfig;
+    if ( config != null )
+    { 
+      var node = tree.getRoot();
+      var subdirs = config.split( "/" );
+      if ( subdirs.length > 1 && subdirs[0] == "" )
+      {
+        subdirs.shift();
+        subdirs[0] = '/' + subdirs[0];
+      	findNode( node, config, subdirs );
+      }
+    }
+  }
   if ( parent &&  parent.treeReady )
     parent.treeReady();
 }
@@ -182,10 +225,10 @@ String prepareTree( String parentNode, Directory directory )
 	        + "var dbIndex = " + dbIndex + ";\n"
 	        + "function buildTree()\n"
 	    	+ "{\n"
-	    	+ "var parentNode\n"
-	    	+ "var configNode\n"
-	    	+ "var versionNode\n"
-	    	+ "var nodeData\n"
+	    	+ "var parentNode;\n"
+	    	+ "var configNode;\n"
+	    	+ "var versionNode;\n"
+	    	+ "var nodeData;\n"
 	    	+ "var dir = tree.getRoot();\n";
         tree += prepareTree( "dir", root )
     		 + "}\n</script>\n";
