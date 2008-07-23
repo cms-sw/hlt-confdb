@@ -366,6 +366,10 @@ class ConfdbSourceToDB:
 					    if(not (package+"/"+subdir) in self.needconfigpackages):
 						self.needconfigpackages.append(package+"/"+subdir)
 
+                                            if(sealmodule in sealcomponenttuple):
+                                                print "Warning: Component already found in this release. Ignoring second occurance."
+                                                continue
+                                            
 					    sealcomponenttuple.append(sealmodule)
 
 					    # If a new module definition was found, start parsing the source
@@ -397,6 +401,11 @@ class ConfdbSourceToDB:
 					    if(not (package+"/"+subdir) in self.needconfigpackages):
 						self.needconfigpackages.append(package+"/"+subdir)
 
+
+                                            if(sealservice in sealcomponenttuple):
+                                                print "Warning: Component already found in this release. Ignoring second occurance."
+                                                continue
+
 					    sealcomponenttuple.append(sealservice)
 
 					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,2,None)
@@ -422,6 +431,11 @@ class ConfdbSourceToDB:
                                         
 					    if(not (package+"/"+subdir) in self.needconfigpackages):
 						self.needconfigpackages.append(package+"/"+subdir)
+
+
+                                            if(sealservice in sealcomponenttuple):
+                                                print "Warning: Component already found in this release. Ignoring second occurance."
+                                                continue
 
 					    sealcomponenttuple.append(sealservice)
 
@@ -450,6 +464,10 @@ class ConfdbSourceToDB:
 					    if(not (package+"/"+subdir) in self.needconfigpackages):
 						self.needconfigpackages.append(package+"/"+subdir)
 
+                                            if(sealservice in sealcomponenttuple):
+                                                print "Warning: Component already found in this release. Ignoring second occurance."
+                                                continue
+
 					    sealcomponenttuple.append(sealservice)
 
 					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,3,sealname)
@@ -476,6 +494,10 @@ class ConfdbSourceToDB:
                                         
 					    if(not (package+"/"+subdir) in self.needconfigpackages):
 						self.needconfigpackages.append(package+"/"+subdir)
+
+                                            if(sealessource in sealcomponenttuple):
+                                                print "Warning: Component already found in this release. Ignoring second occurance."
+                                                continue
 
 					    sealcomponenttuple.append(sealessource)
 
@@ -504,6 +526,10 @@ class ConfdbSourceToDB:
 					    if(not (package+"/"+subdir) in self.needconfigpackages):
 						self.needconfigpackages.append(package+"/"+subdir)
 
+                                            if(sealessource in sealcomponenttuple):
+                                                print "Warning: Component already found in this release. Ignoring second occurance."
+                                                continue
+                                                                                                                                            
 					    sealcomponenttuple.append(sealessource)
 
 					    self.ScanComponent(sealclass, packagedir,package+"/"+subdir,source_tree,4,None)
@@ -530,6 +556,10 @@ class ConfdbSourceToDB:
                                         
 					    if(not (package+"/"+subdir) in self.needconfigpackages):
 						self.needconfigpackages.append(package+"/"+subdir)
+
+                                            if(sealessource in sealcomponenttuple):
+                                                print "Warning: Component already found in this release. Ignoring second occurance."
+                                                continue
 
 					    sealcomponenttuple.append(sealessource)
 
@@ -863,7 +893,7 @@ class ConfdbSourceToDB:
 		sourceid = self.dbloader.ConfdbCheckESModuleExistence(self.dbcursor,modulename,tagline)
 		if(sourceid):
 		    # If so, see if parameters need to be updated
-		    print "***UPDATING ESMODULE" + modulename + "***"
+		    print "***UPDATING ESMODULE " + modulename + "***"
 		    self.dbloader.ConfdbUpdateESModuleTemplate(self.dbcursor,modulename,tagline,hltparamlist,hltvecparamlist,hltparamsetlist,hltvecparamsetlist,packageid)
 		else:
 		    # If not, make a new template

@@ -377,13 +377,14 @@ class ConfdbOracleModuleLoader:
 	# Get the SuperId of the previous version of this template
 	if(self.comparetorelid != ""):
 	    thecursor.execute("SELECT ModuleTemplates.superId, ModuleTemplates.cvstag FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ModuleTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ") AND (ModuleTemplates.name = '" + modclassname + "')")
+            print "SELECT ModuleTemplates.superId, ModuleTemplates.cvstag FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ModuleTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ") AND (ModuleTemplates.name = '" + modclassname + "')"
 	else:
 	    thecursor.execute("SELECT ModuleTemplates.superId, ModuleTemplates.cvstag FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modclassname + "') ORDER BY ModuleTemplates.superId DESC")
 
 	oldmodule = thecursor.fetchone()
 	oldsuperid = oldmodule[0]
 	oldtag = oldmodule[1]
-	print '\tOld module had tag' + ' ' + oldtag + ', new module has tag ' + modcvstag
+	print '\tOld module had tag' + ' ' + oldtag + ' with superId = ' + str(oldsuperid) + ', new module has tag ' + modcvstag
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
@@ -392,6 +393,7 @@ class ConfdbOracleModuleLoader:
 	    print 'The CVS tag for this module is unchanged - attach old template to new release'
 	    if(self.verbose > 0):
 		print 'New releaseId = ' + str(self.releasekey)
+                print "INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")"
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
 	    return
 
@@ -434,7 +436,7 @@ class ConfdbOracleModuleLoader:
 
 	# Get the SuperId of the previous version of this template
 	if(self.comparetorelid != ""):
-	    thecursor.execute("SELECT ServiceTemplates.superId, ServiceTemplates.cvstag FROM ServiceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ServiceTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	    thecursor.execute("SELECT ServiceTemplates.superId, ServiceTemplates.cvstag FROM ServiceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ServiceTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ") AND (ServiceTemplates.name = '" + servclassname + "')") 
 	else:
 	    thecursor.execute("SELECT ServiceTemplates.superId, ServiceTemplates.cvstag FROM ServiceTemplates WHERE (ServiceTemplates.name = '" + servclassname + "') ORDER BY ServiceTemplates.superId DESC")
 
@@ -487,7 +489,7 @@ class ConfdbOracleModuleLoader:
 
 	# Get the SuperId of the previous version of this template
 	if(self.comparetorelid != ""):
-	    thecursor.execute("SELECT ESSourceTemplates.superId, ESSourceTemplates.cvstag FROM ESSourceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ESSourceTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	    thecursor.execute("SELECT ESSourceTemplates.superId, ESSourceTemplates.cvstag FROM ESSourceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ESSourceTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ") AND (ESSourceTemplates.name = '" + sourceclassname + "')") 
 	else:
 	    thecursor.execute("SELECT ESSourceTemplates.superId, ESSourceTemplates.cvstag FROM ESSourceTemplates WHERE (ESSourceTemplates.name = '" + sourceclassname + "') ORDER BY ESSourceTemplates.superId DESC")
 
@@ -538,7 +540,7 @@ class ConfdbOracleModuleLoader:
 
 	# Get the SuperId of the previous version of this template
 	if(self.comparetorelid != ""):
-	    thecursor.execute("SELECT EDSourceTemplates.superId, EDSourceTemplates.cvstag FROM EDSourceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = EDSourceTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	    thecursor.execute("SELECT EDSourceTemplates.superId, EDSourceTemplates.cvstag FROM EDSourceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = EDSourceTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ") AND (EDSourceTemplates.name = '" + sourceclassname + "')") 
 	else:
 	    thecursor.execute("SELECT EDSourceTemplates.superId, EDSourceTemplates.cvstag FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + sourceclassname + "') ORDER BY EDSourceTemplates.superId DESC")
 
@@ -589,20 +591,21 @@ class ConfdbOracleModuleLoader:
 
 	# Get the SuperId of the previous version of this template
 	if(self.comparetorelid != ""):
-	    thecursor.execute("SELECT ESModuleTemplates.superId, ESModuleTemplates.cvstag FROM ESModuleTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ESModuleTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	    thecursor.execute("SELECT ESModuleTemplates.superId, ESModuleTemplates.cvstag FROM ESModuleTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ESModuleTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ") AND (ESModuleTemplates.name = '" + sourceclassname + "')") 
 	else:
 	    thecursor.execute("SELECT ESModuleTemplates.superId, ESModuleTemplates.cvstag FROM ESModuleTemplates WHERE (ESModuleTemplates.name = '" + sourceclassname + "') ORDER BY ESModuleTemplates.superId DESC")
-
+            
 	oldsource = thecursor.fetchone()
 	oldsuperid = oldsource[0]
 	oldtag = oldsource[1]
-	print 'Old esmodule had ' + ' ' + oldtag + ', new esmodule has tag ' + sourcecvstag
+	print 'Old esmodule had ' + ' ' + oldtag + ' and superId = ' + str(oldsuperid) + ', new esmodule has tag ' + sourcecvstag
 
 	# If the template hasn't been updated (with a new CVS tag), 
 	# just attach the old template to the new release and exit
 	if((oldtag == sourcecvstag) and (self.addtorel == "none")):
 	    self.fwkunchanged = self.fwkunchanged + 1
 	    print 'The CVS tag for this esmodule is unchanged - attach old template to new release'
+            print "INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")"
 	    thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.releasekey) + ")")
 	    return
 
