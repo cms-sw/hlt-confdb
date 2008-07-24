@@ -1,3 +1,10 @@
+2008-07-24  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-24-06
+	* latest webserver developments from Ulf
+	* add 'runOnlineConverter' script, and some slight improvements to
+	OnlineConverter::main.
+
 2008-07-09  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-24-05

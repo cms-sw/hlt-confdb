@@ -17,8 +17,8 @@ import confdb.db.DatabaseException;
  * @author Ulf Behrens
  * @author Philipp Schieferdecker
  * 
- * Handle conversion of configurations stored in the database for deployment to
- * the online HLT filter farm.
+ * Handle conversion of configurations stored in the database for
+ * deployment to the online HLT filter farm.
  */
 public class OnlineConverter extends ConverterBase 
 {
@@ -47,6 +47,7 @@ public class OnlineConverter extends ConverterBase
     
     /** flag used in finalize to either disconnect from database or not */
     private boolean disconnectOnFinalize = true;
+    
     
     //
     // construction
@@ -270,19 +271,19 @@ public class OnlineConverter extends ConverterBase
     // main
     //
     public static void main(String[] args) {
-	String configId = "";
-	String dbType = "mysql";
-	String dbHost = "localhost";
-	String dbPort = "3306";
-	String dbName = "hltdb";
-	String dbUser = "";
-	String dbPwrd = "";
+	String config = "";
+	String dbType = "oracle";
+	String dbHost = "cmsr1-v.cern.ch";
+	String dbPort = "10121";
+	String dbName = "cms_cond.cern.ch";
+	String dbUser = "cms_hltdev_reader";
+	String dbPwrd = "convertme!";
 
 	for (int iarg = 0; iarg < args.length; iarg++) {
 	    String arg = args[iarg];
 	    if (arg.equals("-c")) {
 		iarg++;
-		configId = args[iarg];
+		config = args[iarg];
 	    } else if (arg.equals("-t")) {
 		iarg++;
 		dbType = args[iarg];
@@ -304,11 +305,11 @@ public class OnlineConverter extends ConverterBase
 	    }
 	}
 	
-	System.out.println("dbType="+dbType+"\n"+
-			   "dbHost="+dbHost+"\n"+
-			   "dbPort="+dbPort+"\n"+
+	System.out.println("dbType="+dbType+", "+
+			   "dbHost="+dbHost+", "+
+			   "dbPort="+dbPort+", "+
 			   "dbName="+dbName+"\n"+
-			   "dbUser="+dbUser+"\n"+
+			   "dbUser="+dbUser+", "+
 			   "dbPwrd="+dbPwrd);
 	
 	String dbUrl = "";
@@ -321,12 +322,15 @@ public class OnlineConverter extends ConverterBase
 	    System.err.println("Unknwown db type '" + dbType + "'");
 	    System.exit(0);
 	}
-
+	
 	try {
 	    OnlineConverter cnv = new OnlineConverter("Ascii", dbType, dbUrl,
 						      dbUser, dbPwrd);
-	    System.out.println(cnv.getEpConfigString(Integer.parseInt(configId)));
-	    System.out.println(cnv.getSmConfigString(Integer.parseInt(configId)));
+	    int configId = cnv.getDatabase().getConfigId(config);
+	    System.out.println("EP CONFIGURATION:\n\n"+
+			       cnv.getEpConfigString(configId));
+	    System.out.println("\n\nSM CONFIGURATION:\n\n"+
+			       cnv.getSmConfigString(configId));
 	} catch (Exception e) {
 	    System.out.println("Exception: "+e.getMessage());
 	    e.printStackTrace();
