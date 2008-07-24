@@ -258,20 +258,35 @@ WebFXColumnList.prototype.bind = function(eCont, eHead, eBody) {
  * Initializes column list, called by create and bind
 */
 WebFXColumnList.prototype._init = function(iWidth, iHeight) {
-	if (navigator.product == 'Gecko') {
-		/*
-		 * Mozilla does not allow the scroll* properties of containers with the
-		 * overflow property set to 'hidden' thus we'll have to set it to
-		 * '-moz-scrollbars-none' which is basically the same as 'hidden' in IE,
-		 * the container has overflow type 'scroll' but no scrollbars are shown.
-		*/
-		for (var n = 0; n < document.styleSheets.length; n++) {
-			if (document.styleSheets[n].href.indexOf('columnlist.css') == -1) { continue; }
-			var rules = document.styleSheets[n].cssRules;
-			for (var i = 0; i < rules.length; i++) {
-				if ((rules[i].type == CSSRule.STYLE_RULE) && (rules[i].selectorText == '.webfx-columnlist-head')) {
+	if ( navigator.product == 'Gecko' ) 
+	{
+		var ua = navigator.userAgent;
+		var firefox = ua.indexOf( 'Firefox' );
+		if ( firefox != -1 )
+		{
+		  var version = ua.substring( firefox + 8 ); 
+		  if ( version.charAt( 0 ) != '3' )
+		  {
+			/*
+		 	* Mozilla does not allow the scroll* properties of containers with the
+		 	* overflow property set to 'hidden' thus we'll have to set it to
+		 	* '-moz-scrollbars-none' which is basically the same as 'hidden' in IE,
+		 	* the container has overflow type 'scroll' but no scrollbars are shown.
+			*/
+			for (var n = 0; n < document.styleSheets.length; n++) 
+			{
+			  if (document.styleSheets[n].href.indexOf('columnlist.css') == -1) 
+			  	continue;
+			  var rules = document.styleSheets[n].cssRules;
+			  for (var i = 0; i < rules.length; i++) 
+			  {
+				if ((rules[i].type == CSSRule.STYLE_RULE) && (rules[i].selectorText == '.webfx-columnlist-head'))
 					rules[i].style.overflow = '-moz-scrollbars-none';
-	}	}	}	}
+			   }
+			}
+		  }
+		}	
+	}
 
 	/*
 	 * Set tab index to allow element to be focused using keyboard, also allows
@@ -943,7 +958,8 @@ WebFXColumnList.prototype._mouseMove = function(e) {
 		this._eHeadTable.style.width = tw + 'px';
 		if (w > 5) {
 			this._headerData[0].style.width = w + 'px';
-			if (this.bodyColResize) {
+			if (this.bodyColResize) 
+			{
 				this._eBodyTable.style.width = tw + 'px';
 				this._eBodyTable.getElementsByTagName('colgroup')[0].getElementsByTagName('col')[this._headerData[0].cellIndex].style.width = w + 'px';
 	}	}	}
@@ -1028,7 +1044,9 @@ WebFXColumnList.prototype._checkHeaderOperation = function(el, x) {
 	 * column resize, move and sort commands.
 	 */
 
-	if ((el.tagName == 'TD') && (el.parentNode.parentNode.parentNode.parentNode.className == 'webfx-columnlist-head')) {
+	if (    (el.tagName == 'TD') 
+	     && (el.parentNode.parentNode.parentNode.parentNode.className == 'webfx-columnlist-head') ) 
+	{
 		if (el.tagName == 'IMG') { el = el.parentNode; }
 
 		prev = el.previousSibling;
@@ -1039,6 +1057,11 @@ WebFXColumnList.prototype._checkHeaderOperation = function(el, x) {
 		r = right - x;
 
 		if ((l < 5) && (prev)) {
+			if ( prev.tagName != 'TD' )
+		    {			
+	          //infoWindow.document.getElementById( 'debugDiv' ).innerHTML = 'cellIndex= ' + el.cellIndex;
+	          prev = this._eHeadCols[ el.cellIndex - 1 ];
+	        }
 			this._eCont.style.cursor = 'e-resize';
 			this._headerOper         = COL_HEAD_EDGE;
 			this._headerData         = [prev, prev.offsetWidth - 5, x, this._eHeadTable.offsetWidth];
