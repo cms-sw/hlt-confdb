@@ -157,11 +157,12 @@ public class OnlineConverter extends ConverterBase
 	}
 	
 	ConfigurationModifier epModifier = new ConfigurationModifier(epConfig);
+
 	
 	SoftwareSubsystem subsys = new SoftwareSubsystem("IOPool");
-	SoftwarePackage pkg = new SoftwarePackage("Streamer");
-	ModuleTemplate smStreamWriterT = makeSmStreamWriterT();
-	SoftwareRelease smRelease = new SoftwareRelease();
+	SoftwarePackage   pkg = new SoftwarePackage("Streamer");
+	ModuleTemplate    smStreamWriterT = makeSmStreamWriterT();
+	SoftwareRelease   smRelease = new SoftwareRelease();
 
 	smRelease.clear(epConfig.releaseTag());
 	pkg.addTemplate(smStreamWriterT);
@@ -230,9 +231,17 @@ public class OnlineConverter extends ConverterBase
 	    }
 	}
 	
+	// apply necessary offline -> online modifications to HLT configuration
 	epModifier.insertDaqSource();
 	epModifier.insertShmStreamConsumer();
+	epModifier.removeMaxEvents();
 	epModifier.modify();
+	
+	addOnlineOptions(epModifier);
+	setOnlineMessageLoggerOptions(epModifier);
+	addDQMStore(epModifier);
+	addFUShmDQMOutputService(epModifier);
+	setRawDataInputTags(epModifier);
 	
 	pathToPrescaler.clear();
 	Iterator<Path> itP = epModifier.pathIterator();
@@ -266,6 +275,77 @@ public class OnlineConverter extends ConverterBase
 				  params, "OutputModule");
     }
 
+    /** add global pset 'options', suitable for online */
+    private void addOnlineOptions(IConfiguration config)
+    {
+	PSetParameter options=new PSetParameter("options",
+						new ArrayList<Parameter>(),
+						true,false);
+	options.addParameter(new VStringParameter("Rethrow",
+						  "ProductNotFound,"+
+						  "TooManyProducts,"+
+						  "TooFewProducts",true,false));
+	config.insertPSet(options);
+    }
+
+    /** set the parameters for the online message logger service */
+    private void setOnlineMessageLoggerOptions(IConfiguration config)
+    {
+	
+    }
+
+    /** add the DQMStore service */
+    private void addDQMStore(IConfiguration config)
+    {
+	
+    }
+	
+    /** add the FUShmDSQMOutputService service */
+    private void addFUShmDQMOutputService(IConfiguration config)
+    {
+
+    }
+    
+    /** convert InputTag/string params with value 'rawDataCollector' to 'source' */
+    private void setRawDataInputTags(IConfiguration config)
+    {
+	
+    }
+	
+    
+    //
+    // static member functions
+    //
+    
+    /** get the converter */
+    public static synchronized OnlineConverter getConverter()
+	throws ConverterException
+    {
+	if (converter == null) {
+	    if (dbConnection != null)
+		converter = new OnlineConverter(dbConnection);
+	    else
+		converter = new OnlineConverter();
+	}
+	return converter;
+    }
+    
+    /** set the datbase connection */
+    public static void setDbConnection(Connection dbConnection) {
+	if (OnlineConverter.dbConnection == null) {
+	    if (converter != null) {
+		ConfDB database = converter.getDatabase();
+		if (database != null)
+		    try {
+		    	database.disconnect();
+		    }
+		    catch (DatabaseException e) {}
+	    }
+	}
+	OnlineConverter.dbConnection = dbConnection;
+	converter = null;
+    }
+    
     
     //
     // main
@@ -305,7 +385,7 @@ public class OnlineConverter extends ConverterBase
 	    }
 	}
 	
-	System.out.println("dbType="+dbType+", "+
+	System.err.println("dbType="+dbType+", "+
 			   "dbHost="+dbHost+", "+
 			   "dbPort="+dbPort+", "+
 			   "dbName="+dbName+"\n"+
@@ -332,39 +412,10 @@ public class OnlineConverter extends ConverterBase
 	    System.out.println("\n\nSM CONFIGURATION:\n\n"+
 			       cnv.getSmConfigString(configId));
 	} catch (Exception e) {
-	    System.out.println("Exception: "+e.getMessage());
+	    System.err.println("Exception: "+e.getMessage());
 	    e.printStackTrace();
 	}
     }
-	
-	
     
-    public static synchronized OnlineConverter getConverter()
-	throws ConverterException
-    {
-	if ( converter == null ) {
-	    if ( dbConnection != null )
-		converter = new OnlineConverter( dbConnection );
-	    else
-		converter = new OnlineConverter();
-	}
-	return converter;
-    }
-    
-    public static void setDbConnection( Connection dbConnection )
-    {
-	if ( OnlineConverter.dbConnection == null ) {
-	    if ( converter != null ) {
-		ConfDB database = converter.getDatabase();
-		if ( database != null )
-		    try {
-		    	database.disconnect();
-		    }
-		    catch (DatabaseException e) {}
-	    }
-	}
-	OnlineConverter.dbConnection = dbConnection;
-	converter = null;
-    }
     
 }

@@ -68,6 +68,12 @@ public class ConfigurationModifier implements IConfiguration
 	modifications.insertPoolSource(fileNames);
     }
 
+    /** replace current OutputModules with PoolOutputModules */
+    public void insertPoolOutputModule(String fileName)
+    {
+	modifications.insertPoolOutputModule(fileName);
+    }
+
     /** replace the current EDSource with a DaqSource */
     public void insertDaqSource()
     {
@@ -86,12 +92,34 @@ public class ConfigurationModifier implements IConfiguration
 	modifications.insertShmStreamConsumer();
     }
 
-    /** replace current OutputModules with PoolOutputModules */
-    public void insertPoolOutputModule(String fileName)
+    /** insert global PSet after (!) modification */
+    public void insertPSet(PSetParameter pset)
     {
-	modifications.insertPoolOutputModule(fileName);
+	if (isModified) {
+	    Iterator<PSetParameter> it = psets.iterator();
+	    while (it.hasNext())
+		if (it.next().name().equals(pset.name())) it.remove();
+	    psets.add(pset);
+	}
     }
 
+    /** insert additional service after (!) modification */
+    public void insertService(ServiceInstance service)
+    {
+	if (isModified)  {
+	    Iterator<ServiceInstance> it = services.iterator();
+	    while (it.hasNext())
+		if (it.next().name().equals(service.name())) it.remove();
+	    services.add(service);
+	}
+    }
+    
+    /** remove global PSet 'maxEvents' */
+    public void removeMaxEvents()
+    {
+	modifications.insertPSetIntoBlackList("maxEvents");
+    }
+    
     /** apply modifications based on internal modifications */
     public void modify()
     {
@@ -234,7 +262,7 @@ public class ConfigurationModifier implements IConfiguration
 	    outputI.createReference(out,0);
 	    paths.add(out);
 	}
-
+	
 	Iterator<String> itS = modifications.requestedSequenceIterator();
 	while (itS.hasNext()) {
 	    Sequence sequence  = master.sequence(itS.next());
@@ -507,10 +535,10 @@ public class ConfigurationModifier implements IConfiguration
     }
     
     /** insert a global pset after modifications were applied! */
-    public void insertPSet(PSetParameter pset)
-    {
-	if (isModified) psets.add(pset);
-    }
+    //public void insertPSet(PSetParameter pset)
+    //{
+    //if (isModified) psets.add(pset);
+    //}
     
     
     /**  number of EDSources */

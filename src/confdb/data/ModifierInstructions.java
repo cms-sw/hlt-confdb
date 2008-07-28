@@ -37,7 +37,7 @@ public class ModifierInstructions
     private boolean filterAllESSources = false;
     private ArrayList<String> essourceBlackList = new ArrayList<String>();
     private ArrayList<String> essourceWhiteList = new ArrayList<String>();
-
+    
     /** ESModules */
     private boolean filterAllESModules = false;
     private ArrayList<String> esmoduleBlackList = new ArrayList<String>();
@@ -47,7 +47,7 @@ public class ModifierInstructions
     private boolean filterAllServices = false;
     private ArrayList<String> serviceBlackList = new ArrayList<String>();
     private ArrayList<String> serviceWhiteList = new ArrayList<String>();
-    
+
     /** Paths */
     private boolean filterAllPaths = false;
     private boolean filterAllOutputModules = false;
@@ -917,7 +917,8 @@ public class ModifierInstructions
     {
 	filterAllEDSources = true;
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
-	params.add(new StringParameter("readerPluginName","FUShmReader",false,false));
+	params.add(new StringParameter("readerPluginName",
+				       "FUShmReader",false,false));
 	edsourceT = new EDSourceTemplate("DaqSource","UNKNOWN",-1,params);
     }
     

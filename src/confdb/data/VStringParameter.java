@@ -45,7 +45,6 @@ public class VStringParameter extends VectorParameter
 			    boolean isTracked,boolean isDefault)
     {
 	super(name,isTracked,isDefault);
-	//if (valuesAsString!=null&&valuesAsString.length()==0) valuesAsString="''";
 	setValue(valuesAsString);
     }
     
