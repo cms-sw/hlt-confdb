@@ -534,13 +534,6 @@ public class ConfigurationModifier implements IConfiguration
 	return (isModified) ? psets.iterator() : master.psetIterator();
     }
     
-    /** insert a global pset after modifications were applied! */
-    //public void insertPSet(PSetParameter pset)
-    //{
-    //if (isModified) psets.add(pset);
-    //}
-    
-    
     /**  number of EDSources */
     public int edsourceCount()
     {

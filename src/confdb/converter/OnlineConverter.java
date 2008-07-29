@@ -156,6 +156,7 @@ public class OnlineConverter extends ConverterBase
 	    throw new ConverterException(errMsg);
 	}
 	
+	// This should go down, once the OM hack has been replaced!
 	ConfigurationModifier epModifier = new ConfigurationModifier(epConfig);
 
 	
@@ -237,12 +238,22 @@ public class OnlineConverter extends ConverterBase
 	epModifier.removeMaxEvents();
 	epModifier.modify();
 	
-	addOnlineOptions(epModifier);
 	setOnlineMessageLoggerOptions(epModifier);
-	addDQMStore(epModifier);
-	addFUShmDQMOutputService(epModifier);
+	addOnlineOptions(epModifier);
 	setRawDataInputTags(epModifier);
+
+	try {
+	    addDQMStore(epModifier);
+	    addFUShmDQMOutputService(epModifier);
+	}
+	catch (Exception e) {
+	    String errMsg =
+		"convertConfiguration(): failed to add Service: " + e.getMessage();
+	    throw new ConverterException(errMsg,e);
+	}
 	
+	
+	// obsolete, remove?
 	pathToPrescaler.clear();
 	Iterator<Path> itP = epModifier.pathIterator();
 	while (itP.hasNext()) {
@@ -291,25 +302,90 @@ public class OnlineConverter extends ConverterBase
     /** set the parameters for the online message logger service */
     private void setOnlineMessageLoggerOptions(IConfiguration config)
     {
-	
+	ServiceInstance msgLogger = config.service("MessageLogger");
+	if (msgLogger==null) {
+	    System.err.println("MessageLogger not found");
+	    return;
+	}
+	PSetParameter psetCout = new PSetParameter("cout",
+						   new ArrayList<Parameter>(),
+						   false,false);
+	psetCout.addParameter(new StringParameter("threshold","FATAL",
+						  false,false));
+	PSetParameter psetLog4C = new PSetParameter("log4cplus",
+						    new ArrayList<Parameter>(),
+						    false,false);
+	psetLog4C.addParameter(new StringParameter("threshold","WARNING",
+						   false,false));
+	msgLogger.updateParameter("destinations","vstring","cout,log4cplus");
+	msgLogger.updateParameter("cout",        "PSet",psetCout.valueAsString());
+	msgLogger.updateParameter("log4cplus",   "PSet",psetLog4C.valueAsString());
     }
 
     /** add the DQMStore service */
-    private void addDQMStore(IConfiguration config)
+    private void addDQMStore(ConfigurationModifier config)
+	throws DataException,DatabaseException
     {
-	
+	ServiceTemplate dqmStoreT = (ServiceTemplate)getDatabase()
+	    .loadTemplate(config.releaseTag(),"DQMStore");
+	ServiceInstance dqmStore = (ServiceInstance)dqmStoreT.instance();
+	config.insertService(dqmStore);
     }
-	
+    
     /** add the FUShmDSQMOutputService service */
-    private void addFUShmDQMOutputService(IConfiguration config)
+    private void addFUShmDQMOutputService(ConfigurationModifier config)
+	throws DataException,DatabaseException
     {
-
+	ServiceTemplate dqmOutT = (ServiceTemplate)getDatabase()
+	    .loadTemplate(config.releaseTag(),"FUShmDQMOutputService");
+	ServiceInstance dqmOut = (ServiceInstance)dqmOutT.instance();
+	dqmOut.updateParameter("lumiSectionsPerUpdate","double","1.0");
+	dqmOut.updateParameter("useCompression","bool","true");
+	dqmOut.updateParameter("compressionLevel","int32","1");
+	config.insertService(dqmOut);
     }
     
     /** convert InputTag/string params with value 'rawDataCollector' to 'source' */
     private void setRawDataInputTags(IConfiguration config)
     {
-	
+	Iterator<ModuleInstance> itM = config.moduleIterator();
+	while (itM.hasNext()) {
+	    ModuleInstance module = itM.next();
+	    Iterator<Parameter> itP = module.recursiveParameterIterator();
+	    while (itP.hasNext()) {
+		Parameter p = itP.next();
+		if (!p.isValueSet()) continue;
+		if (p instanceof InputTagParameter) {
+		    InputTagParameter itp = (InputTagParameter)p;
+		    if (itp.label().equals("rawDataCollector"))
+			itp.setLabel("source");
+		}
+		else if (p instanceof VInputTagParameter) {
+		    VInputTagParameter vitp = (VInputTagParameter)p;
+		    for (int i=0;i<vitp.vectorSize();i++) {
+			InputTagParameter itp =
+			    new InputTagParameter("",(String)vitp.value(i),
+						  false,false);
+			if (itp.label().equals("rawDataCollector")) {
+			    itp.setLabel("source");
+			    vitp.setValue(i,itp.valueAsString());
+			}
+		    }
+		}
+		else if (p instanceof StringParameter) {
+		    StringParameter sp = (StringParameter)p;
+		    if (sp.valueAsString().equals("rawDataCollector"))
+			sp.setValue("source");
+		}
+		else if (p instanceof VStringParameter) {
+		    VStringParameter vsp = (VStringParameter)p;
+		    for (int i=0;i<vsp.vectorSize();i++) {
+			String s = (String)vsp.value(i);
+			if (s.equals("rawDataCollector")) vsp.setValue(i,"source");
+		    }
+		}
+	    }
+	}
     }
 	
     

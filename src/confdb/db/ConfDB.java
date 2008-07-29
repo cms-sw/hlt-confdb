@@ -422,14 +422,8 @@ public class ConfDB
 	SoftwareRelease release   = new SoftwareRelease();
 	release.clear(releaseTag);
 	try {
-	    if (dbType.equals(dbTypeMySQL)) {
-		csLoadTemplate.setInt(1,releaseId);
-		csLoadTemplate.setString(2,templateName);
-	    }
-	    else {
-		csLoadTemplate.setInt(2,releaseId);
-		csLoadTemplate.setString(3,templateName);
-	    }
+	    csLoadTemplate.setInt(1,releaseId);
+	    csLoadTemplate.setString(2,templateName);
 	}
 	catch (SQLException e) {
 	    String errMsg =
