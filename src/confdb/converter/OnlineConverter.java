@@ -272,6 +272,8 @@ public class OnlineConverter extends ConverterBase
 	
 	epConfigString = getConverterEngine().convert(epModifier);
 	smConfigString = getConverterEngine().convert(smConfig);
+
+	this.configId = configId;
     }
 
     /** make a ep source template (-> DaqSource) */
@@ -320,8 +322,18 @@ public class OnlineConverter extends ConverterBase
 	msgLogger.updateParameter("destinations","vstring","cout,log4cplus");
 	msgLogger.updateParameter("cout",        "PSet",psetCout.valueAsString());
 	msgLogger.updateParameter("log4cplus",   "PSet",psetLog4C.valueAsString());
-    }
 
+	Iterator<Parameter> itP = msgLogger.parameterIterator();
+	while (itP.hasNext()) {
+	    Parameter p = itP.next();
+	    if (p.isTracked()) continue;
+	    if (p.name().equals("destinations")||
+		p.name().equals("cout")||
+		p.name().equals("log4cplus")) continue;
+	    p.setValue("");
+	}
+    }
+    
     /** add the DQMStore service */
     private void addDQMStore(ConfigurationModifier config)
 	throws DataException,DatabaseException
