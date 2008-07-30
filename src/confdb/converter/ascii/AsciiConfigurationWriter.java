@@ -32,7 +32,8 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 	{
 		String indent = "  ";
 		StringBuffer str = new StringBuffer( 100000 );
-		String fullName = conf.parentDir().name() + "/" + conf.name() + "/V" + conf.version() ;		
+		//String fullName = conf.parentDir().name() + "/" + conf.name() + "/V" + conf.version() ;		
+		String fullName = conf.toString();
 		str.append( "// " + fullName
   		   + "  (" + conf.releaseTag() + ")" + converterEngine.getNewline() + converterEngine.getNewline() );
 

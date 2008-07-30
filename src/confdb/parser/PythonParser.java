@@ -11,9 +11,10 @@ import java.io.*;
 
 import confdb.data.*;
 import confdb.db.*;
-import confdb.converter.ConverterFactory;
-import confdb.converter.ConverterEngine;
-import confdb.converter.ConverterException;
+//import confdb.converter.ConverterFactory;
+//import confdb.converter.ConverterEngine;
+//import confdb.converter.ConverterException;
+import confdb.converter.OfflineConverter;
 
 
 /**
@@ -821,16 +822,15 @@ public class PythonParser
 	String dbType      = "oracle";
 	String dbHost      = "cmsr1-v.cern.ch";
 	String dbPort      = "10121";
-	String dbName      = "";
+	String dbName      = "cms_cond.cern.ch";
 	String dbUser      = "cms_hltdev_reader";
 	String dbPwrd      = "convertme!";
-	String dbSetup     = "";
 	String printTree   = "false";
 	String printConfig = "true";
 
 	for (int iarg=0;iarg<args.length;iarg++) {
 	    String arg = args[iarg];
-	    if (arg.equals("-config")||arg.equals("-c")) {
+	    if (arg.equals("--config")||arg.equals("-c")) {
 		iarg++; configFile = args[iarg];
 	    }
 	    else if (arg.equals("--release")||arg.equals("-r")) {
@@ -854,9 +854,6 @@ public class PythonParser
 	    else if (arg.equals("--dbpwrd")||arg.equals("-s")) {
 		iarg++; dbPwrd=args[iarg];
 	    }
-	    else if (arg.equals("--dbsetup")||arg.equals("-x")) {
-		iarg++; dbSetup=args[iarg];
-	    }
 	    else if (arg.equals("--printtree")||arg.equals("-y")) {
 		iarg++; printTree=args[iarg];
 	    }
@@ -876,25 +873,11 @@ public class PythonParser
 	else System.out.println("Parse config file "+configFile);
 
 	String dbUrl = null;
-	if (dbSetup.length()>0) {
-	    try {
-		int isetup = (new Integer(dbSetup)).intValue();
-		ConfDBSetups setup = new ConfDBSetups();
-		dbUrl=(setup.type(isetup).equals("mysql")) ?
-		    "jdbc:mysql://" : "jdbc:oracle:thin:@//";
-		dbUrl+=setup.host(isetup)+":"+setup.port(isetup)+"/"+
-		    setup.name(isetup);
-	    }
-	    catch (Exception e) {
-		System.err.println("Invalid dbSetup '"+dbSetup+"'");
-		System.exit(1);
-	    }
-	}
-	else if (dbType.equals("mysql"))
+	if (dbType.equals("mysql"))
 	    dbUrl  = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+dbName;
 	else if (dbType.equals("oracle"))
 	    dbUrl = "jdbc:oracle:thin:@//"+dbHost+":"+dbPort+"/"+dbName;
-
+	
 	if (dbUrl==null) {
 	    System.err.println("invalid dbtype '"+dbType+"'");
 	    System.exit(1);
@@ -919,8 +902,9 @@ public class PythonParser
 	    Configuration config = parser.createConfiguration();
 	    
 	    // convert the configuration to ascii
-	    ConverterEngine  cnv  = ConverterFactory.getConverterEngine("ascii");
-	    String configAsString = cnv.convert(config);
+	    OfflineConverter cnv = new OfflineConverter("ascii");
+	    //ConverterEngine  cnv  = ConverterFactory.getConverterEngine("ascii");
+	    String configAsString = cnv.getConfigString(config,null,false);
 
 	    boolean doPrintConfig = (new Boolean(printConfig)).booleanValue();
 	    if (doPrintConfig) System.out.println(configAsString);

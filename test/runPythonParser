@@ -12,7 +12,7 @@
 
 my $cmd = 
     "java " .
-    "-cp ext/ojdbc14.jar:lib/cmssw-evf-confdb-gui.jar " .
+    "-cp ../ext/ojdbc14.jar:../lib/cmssw-evf-confdb-gui.jar " .
     "confdb.parser.PythonParser ";
 
 while (@ARGV)
