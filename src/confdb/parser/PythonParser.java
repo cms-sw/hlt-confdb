@@ -817,13 +817,13 @@ public class PythonParser
     public static void main(String[] args)
     {
 	String configFile  = "";
-	String releaseTag  = "CMSSW_1_6_0";
-	String dbType      = "mysql";
-	String dbHost      = "localhost";
-	String dbPort      = "3306";
-	String dbName      = "hltdb";
-	String dbUser      = "schiefer";
-	String dbPwrd      = "monopoles";
+	String releaseTag  = "";
+	String dbType      = "oracle";
+	String dbHost      = "cmsr1-v.cern.ch";
+	String dbPort      = "10121";
+	String dbName      = "";
+	String dbUser      = "cms_hltdev_reader";
+	String dbPwrd      = "convertme!";
 	String dbSetup     = "";
 	String printTree   = "false";
 	String printConfig = "true";
@@ -833,34 +833,34 @@ public class PythonParser
 	    if (arg.equals("-config")||arg.equals("-c")) {
 		iarg++; configFile = args[iarg];
 	    }
-	    else if (arg.equals("-release")||arg.equals("-r")) {
+	    else if (arg.equals("--release")||arg.equals("-r")) {
 		iarg++; releaseTag = args[iarg];
 	    }
-	    else if (arg.equals("-dbtype")||arg.equals("-t")) {
+	    else if (arg.equals("--dbtype")||arg.equals("-t")) {
 		iarg++; dbType=args[iarg];
 	    }
-	    else if (arg.equals("-dbhost")||arg.equals("-h")) {
+	    else if (arg.equals("--dbhost")||arg.equals("-h")) {
 		iarg++; dbHost=args[iarg];
 	    }
-	    else if (arg.equals("-dbport")||arg.equals("-p")) {
+	    else if (arg.equals("--dbport")||arg.equals("-p")) {
 		iarg++; dbPort=args[iarg];
 	    }
-	    else if (arg.equals("-dbname")||arg.equals("-n")) {
+	    else if (arg.equals("--dbname")||arg.equals("-n")) {
 		iarg++; dbName=args[iarg];
 	    }
-	    else if (arg.equals("-dbuser")||arg.equals("-u")) {
+	    else if (arg.equals("--dbuser")||arg.equals("-u")) {
 		iarg++; dbUser=args[iarg];
 	    }
-	    else if (arg.equals("-dbpwrd")||arg.equals("-s")) {
+	    else if (arg.equals("--dbpwrd")||arg.equals("-s")) {
 		iarg++; dbPwrd=args[iarg];
 	    }
-	    else if (arg.equals("-dbsetup")||arg.equals("-x")) {
+	    else if (arg.equals("--dbsetup")||arg.equals("-x")) {
 		iarg++; dbSetup=args[iarg];
 	    }
-	    else if (arg.equals("-printtree")||arg.equals("-y")) {
+	    else if (arg.equals("--printtree")||arg.equals("-y")) {
 		iarg++; printTree=args[iarg];
 	    }
-	    else if (arg.equals("-printconfig")||arg.equals("-z")) {
+	    else if (arg.equals("--printconfig")||arg.equals("-z")) {
 		iarg++; printConfig=args[iarg];
 	    }
 	    else {
