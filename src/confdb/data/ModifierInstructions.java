@@ -937,6 +937,9 @@ public class ModifierInstructions
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
 	params.add(new PSetParameter("SelectEvents","",false,true));
 	params.add(new VStringParameter("outputCommands","",false,true));
+	params.add(new BoolParameter("use_compression","true",false,false));
+	params.add(new UInt32Parameter("compression_level","1",false,false));
+	params.add(new UInt32Parameter("max_event_size","7000000",false,false));
 	outputT = new ModuleTemplate("ShmStreamConsumer",
 				     "UNKNOWN",-1,params,"OutputModule");
     }

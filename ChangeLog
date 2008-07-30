@@ -1,3 +1,21 @@
+2008-07-30  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-25-00
+	* add offline->online conversions to
+	OnlineConverter::convertConfiguration():
+	  - PoolSource to DAQSource (was there already)
+	  - PoolOutputModule to ShmStreamConsure (was there already)
+	  - set MessageLogger configuration for online
+	  - configure essource GlobalTag for online
+	  - configure global pset 'options' for online
+	  - remove global pset maxEvents for online
+	  - add services DQMStore and FUDQMOuputService for online
+	  - set all InputTag / string type parameters with value
+	    "rawDataCollector" to "source"
+	* add OnlineConverter::setMessageLoggerVerbosity()
+	* add OnlineConverter::setGlobalTag()
+	* add OnlineConverter::setConnect()
+
 2008-07-24  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-24-06

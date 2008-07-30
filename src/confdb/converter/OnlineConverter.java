@@ -39,12 +39,24 @@ public class OnlineConverter extends ConverterBase
     /** current configuration string for StorageManager */
     private String smConfigString = null;
 
-    /** current hash map 'pathName' -> 'prescalerName' */
+    /** current hash map 'pathName' -> 'prescalerName' OBSOLETE */
     private HashMap<String, String> pathToPrescaler = new HashMap<String, String>();
 
     /** current prescale table */
     private PrescaleTable prescaleTable = null;
     
+    /** MessageLogger verbosity levels for cout & log4cplus */
+    private String mlVerbosityCout = "FATAL";
+    private String mlVerbosityLog4 = "WARNING";
+
+    /** event setup configuration: globaltag & connect string */
+    private String esGlobalTag = "";
+    private String esConnect   =
+	"frontier://(proxyurl=http://localhost:3128)"+
+	"(serverurl=http://frontier1.cms:8000/FrontierOnProd)"+
+	"(serverurl=http://frontier2.cms:8000/FrontierOnProd)"+
+	"(retrieve-ziplevel=0)";
+
     /** flag used in finalize to either disconnect from database or not */
     private boolean disconnectOnFinalize = true;
     
@@ -138,6 +150,21 @@ public class OnlineConverter extends ConverterBase
 	    convertConfiguration(configId);
 	return prescaleTable;
     }
+    
+
+    /** set the GlobalTag global tag parameter */
+    public void setGlobalTag(String esGlobalTag) { this.esGlobalTag = esGlobalTag; }
+
+    /** set the GlobalTag connect parameter */
+    public void setConnect(String esConnect) { this.esConnect = esConnect; }
+    
+    /** set verbosity levels for message logger configuration */
+    public void setMessageLoggerVerbosity(String vCout, String vLog4)
+    {
+	mlVerbosityCout = vCout;
+	mlVerbosityLog4 = vLog4;
+    }
+
     
 
     //
@@ -238,6 +265,7 @@ public class OnlineConverter extends ConverterBase
 	epModifier.removeMaxEvents();
 	epModifier.modify();
 	
+	configureGlobalTag(epModifier);
 	setOnlineMessageLoggerOptions(epModifier);
 	addOnlineOptions(epModifier);
 	setRawDataInputTags(epModifier);
@@ -276,7 +304,7 @@ public class OnlineConverter extends ConverterBase
 	this.configId = configId;
     }
 
-    /** make a ep source template (-> DaqSource) */
+    /** make a sm stream writer template */
     private ModuleTemplate makeSmStreamWriterT() 
     {
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
@@ -288,6 +316,18 @@ public class OnlineConverter extends ConverterBase
 				  params, "OutputModule");
     }
 
+    /** configure the global tag event setup source */
+    private void configureGlobalTag(IConfiguration config)
+    {
+	ESSourceInstance globalTag = config.essource("GlobalTag");
+	if (esGlobalTag.length()>0)
+	    globalTag.updateParameter("globaltag","string",esGlobalTag);
+	String connect = globalTag.parameter("connect","string").valueAsString();
+	connect = connect.substring(connect.lastIndexOf('/'));
+	connect = esConnect + connect;
+	globalTag.updateParameter("connect","string",connect);
+    }
+    
     /** add global pset 'options', suitable for online */
     private void addOnlineOptions(IConfiguration config)
     {
@@ -312,16 +352,16 @@ public class OnlineConverter extends ConverterBase
 	PSetParameter psetCout = new PSetParameter("cout",
 						   new ArrayList<Parameter>(),
 						   false,false);
-	psetCout.addParameter(new StringParameter("threshold","FATAL",
+	psetCout.addParameter(new StringParameter("threshold",mlVerbosityCout,
 						  false,false));
-	PSetParameter psetLog4C = new PSetParameter("log4cplus",
-						    new ArrayList<Parameter>(),
-						    false,false);
-	psetLog4C.addParameter(new StringParameter("threshold","WARNING",
+	PSetParameter psetLog4 = new PSetParameter("log4cplus",
+						   new ArrayList<Parameter>(),
+						   false,false);
+	psetLog4.addParameter(new StringParameter("threshold",mlVerbosityLog4,
 						   false,false));
 	msgLogger.updateParameter("destinations","vstring","cout,log4cplus");
 	msgLogger.updateParameter("cout",        "PSet",psetCout.valueAsString());
-	msgLogger.updateParameter("log4cplus",   "PSet",psetLog4C.valueAsString());
+	msgLogger.updateParameter("log4cplus",   "PSet",psetLog4.valueAsString());
 
 	Iterator<Parameter> itP = msgLogger.parameterIterator();
 	while (itP.hasNext()) {
