@@ -42,7 +42,7 @@ def main(argv):
     input_noload = False
     input_addtorelease = "none"
     input_comparetorelease = ""
-    input_configflavor = "cfg"
+    input_configflavor = "python"
 
     # Parse command line options
     opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:l:e:a:m:f:nh", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","configfile=","parsetestdir=","addtorelease=","comparetorelease=","configflavor=","noload=","help="])
@@ -142,7 +142,7 @@ def main(argv):
 	    print "\t-o <Hostname>"
 	    print "\t-t <Type of database. Options are MySQL (default) or Oracle)>"
 	    print "\t-l <Name of config file>"
-            print "\t-f <Flavor of configuration file. Options are cfg (default) or python (not yet implemented)>"
+            print "\t-f <Flavor of configuration file. Options are python (default) or cfg>"
 	    print "\t-e <Parse test/ directories. 1 = yes, 0/default = no>"
 	    print "\t-h Print this help menu"
 	    return
