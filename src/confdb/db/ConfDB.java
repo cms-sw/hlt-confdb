@@ -1974,7 +1974,8 @@ public class ConfDB
 	    removeServices(configId);
 	    removeSequences(configId);
 	    removePaths(configId);
-
+	    removeStreamsAndDatasets(configId);
+	    
 	    Statement stmt = dbConnector.getConnection().createStatement();
 	    stmt.executeUpdate("DELETE FROM Configurations "+
 			       "WHERE configId="+configId);
@@ -2428,7 +2429,13 @@ public class ConfDB
 	stmt2.close();
 	stmt3.close();
     }
-    
+    /** remove Streams and Datasets */
+    public void removeStreamsAndDatasets(int configId) throws SQLException
+    {
+	Statement stmt = dbConnector.getConnection().createStatement();
+	stmt.executeUpdate("DELETE FROM ConfigurationStreamAssoc "+
+			   "WHERE configId="+configId);
+    }
     
 
     //
@@ -3896,12 +3903,12 @@ public class ConfDB
 	boolean doremove    =       false;
 	String  list        =          "";
 
-	String  dbType      =     "mysql";
-	String  dbHost      = "localhost";
-	String  dbPort      =      "3306";
-	String  dbName      =     "hltdb";
-	String  dbUser      =          "";
-	String  dbPwrd      =          "";
+	String  dbType      =           "oracle";
+	String  dbHost      =  "cmsr1-v.cern.ch";
+	String  dbPort      =            "10121";
+	String  dbName      = "cms_cond.cern.ch";
+	String  dbUser      =       "cms_hltdev";
+	String  dbPwrd      =                 "";
 
 	for (int iarg=0;iarg<args.length;iarg++) {
 	    String arg = args[iarg];
