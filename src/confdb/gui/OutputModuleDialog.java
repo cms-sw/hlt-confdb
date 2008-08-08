@@ -440,7 +440,8 @@ public class OutputModuleDialog extends JDialog
 	outputCommandsAsString
 	    .append("drop "+jTextFieldDrop.getText())
 	    .append(",").append("keep edmTriggerResults_*_*_*")
-	    .append(",").append("keep triggerTriggerEvent_*_*_*");
+	    .append(",").append("keep triggerTriggerEvent_*_*_*")
+	    .append(",").append("keep triggerTriggerEventWithRefs_*_*_*");
 
 	if (jCheckBoxKeepRaw.isSelected())
 	    outputCommandsAsString
