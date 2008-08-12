@@ -333,11 +333,11 @@ public class OnlineConverter extends ConverterBase
     {
 	PSetParameter options=new PSetParameter("options",
 						new ArrayList<Parameter>(),
-						true,false);
+						false,false);
 	options.addParameter(new VStringParameter("Rethrow",
 						  "ProductNotFound,"+
 						  "TooManyProducts,"+
-						  "TooFewProducts",true,false));
+						  "TooFewProducts",false,false));
 	config.insertPSet(options);
     }
 
