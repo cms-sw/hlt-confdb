@@ -627,6 +627,16 @@ class SourceParser:
 			    if(self.verbose > 0):
 				print "Iterates over VPSet var " + thevpsetvar + " of VPSet " + self.psetdict[thevpsetvar]
 			    self.psetdict[vpsetiter] = self.psetdict[thevpsetvar]
+                    if(totalline.find("vector<edm::ParameterSet>::const_iterator") != -1):
+                        vpsetiter = totalline.split("vector<edm::ParameterSet>::const_iterator")[1].split("=")[0].lstrip().rstrip()
+                        if(self.verbose > 0):
+                            print "VPSet iterator = " + vpsetiter + " in line " + totalline
+                        if(totalline.find(".begin") != -1):
+                            thevpsetvar = totalline.split(".begin")[0].split("=")[1].lstrip().rstrip()
+                            if(self.verbose > 0):
+                                print "Iterates over VPSet var " + thevpsetvar + " of VPSet " + self.psetdict[thevpsetvar]
+                            self.psetdict[vpsetiter] = self.psetdict[thevpsetvar]
+                                                                                                                                                                                
 
                     # Reassingment of ParameterSet members of VPSets
                     if(totalline.lstrip().startswith("ParameterSet") and totalline.find(" = ") != -1 and totalline.find("[") != -1):
