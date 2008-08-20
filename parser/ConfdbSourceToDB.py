@@ -234,6 +234,10 @@ class ConfdbSourceToDB:
 
 	print "The  source tree is: " + source_tree
 
+        if(not (os.path.isdir(self.base_path))):
+            print 'Fatal error: release source tree not found. Exiting now'
+            return
+
 	# Generate list of components needed for a particular configuration
 	# if requested
 	if(self.doconfig != ""):
@@ -264,6 +268,11 @@ class ConfdbSourceToDB:
 
 	# Start decending into the source tree
 	for package in packagelist:
+
+            if(not (os.path.isdir(self.base_path))):
+                print 'Fatal error: release source tree not found. Exiting now'
+                return
+                                
 	    foundcomponent = 0
 
 	    # Check if this is really a directory
