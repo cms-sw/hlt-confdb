@@ -321,12 +321,14 @@ public class OnlineConverter extends ConverterBase
     {
 	ESSourceInstance globalTag = config.essource("GlobalTag");
 	if (esGlobalTag.length()>0)
-	    globalTag.updateParameter("globaltag","string",esGlobalTag);
-	String connect = globalTag.parameter("connect","string").valueAsString();
-	connect = connect.substring(1,connect.length()-1);
-	connect = connect.substring(connect.lastIndexOf('/'));
-	connect = esConnect + connect;
-	globalTag.updateParameter("connect","string",connect);
+	    {
+		globalTag.updateParameter("globaltag","string",esGlobalTag);
+		String connect = globalTag.parameter("connect","string").valueAsString();
+		connect = connect.substring(1,connect.length()-1);
+		connect = connect.substring(connect.lastIndexOf('/'));
+		connect = esConnect + connect;
+		globalTag.updateParameter("connect","string",connect);
+	    }
     }
     
     /** add global pset 'options', suitable for online */
