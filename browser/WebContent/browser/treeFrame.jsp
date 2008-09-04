@@ -258,6 +258,6 @@ String prepareTree( String parentNode, Directory directory )
 
 <%= tree %>
 
-<div id="treeDiv1" style="background:white; border: 1px solid #B6CDE1; border-top:0px;"></div>
+<div align="left" id="treeDiv1" style="background:white; border: 1px solid #B6CDE1; border-top:0px;"></div>
 </body>
 </html>
