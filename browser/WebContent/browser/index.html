@@ -30,7 +30,6 @@
 
 var viewportHeight,
 	tabHeight,
-	tabWidth,
 	tabView,
 	tabContent = new Array(),
 	Dom = YAHOO.util.Dom,
@@ -40,8 +39,6 @@ function init()
 {
 	viewportHeight = Dom.getViewportHeight();
 	tabHeight = viewportHeight - 50; 
-	var widthpx = Dom.getStyle( 'tabMain', 'width' ).split( "px" );
-	tabWidth = widthpx[0] - 2;
 	tabView = new YAHOO.widget.TabView();
 	tabView.appendTo( 'tabMain' );
 	tabView.on( 'activeTabChange', function saveCookie( eventInfo ) {
@@ -78,7 +75,7 @@ function createTabs( tabs )
 	{    
 	    var name = tabs[i];
         var tabDiv = '<div id="Tab' + i + 'Div">not loaded</div>';
-	    var tabSource = "../browser/browseDB.jsp?db=" + escape( tabs[i] ) + "&height=" + tabHeight + "&width=" + tabWidth;
+	    var tabSource = "../browser/browseDB.jsp?db=" + escape( tabs[i] ) + "&height=" + tabHeight;
 	    tabContent[i] = '<iframe name="' + name + '" height="' + tabHeight + '" width="100%" frameborder="0" marginheight="0" marginwidth="5" scrolling="no" src="' + tabSource + '"></iframe>';
 	    if ( i == activeTab )
 	    {
