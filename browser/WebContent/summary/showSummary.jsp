@@ -119,7 +119,8 @@ body {
 <script type="text/javascript">
 
 var	Dom = YAHOO.util.Dom,
-	myTabel; 
+	myTabel,
+	infoWindow = null;
 	
   signalReady();
   window.onresize = resize;
@@ -128,8 +129,14 @@ var	Dom = YAHOO.util.Dom,
   var rc = myTable.bind( document.getElementById('container'), 
                          document.getElementById('head'), 
                          document.getElementById('body') );
-  myTable.setSortTypes([TYPE_STRING, TYPE_STRING, TYPE_STRING, TYPE_STRING, TYPE_STRING]);
-  myTable._setAlignment();
+  if ( myTable._rows > 0 )
+  {
+    myTable.setSortTypes([TYPE_STRING, TYPE_STRING, TYPE_STRING, TYPE_STRING, TYPE_STRING]);
+    myTable._setAlignment();
+  }
+  //infoWindow = window.open( "", "infoWindow", "width=300,height=200,left=100,top=200" );
+  //infoWindow.document.writeln( "<b>debug</b><br><div id='debugDiv'></div>" );
+  //infoWindow.document.close();
   //o.resize(640, 480);
   //o.sort(0);
 
