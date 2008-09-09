@@ -73,12 +73,6 @@ body {
 }
 
 
-#info { 
-	background:white; 
-	border: 1px solid #B6CDE1; 
-	border-top:0px; 
-}
-
 
 
 #headerDiv { 
@@ -86,7 +80,6 @@ body {
 	padding:0.4em; 
 	background:white; 
 	border: 1px solid #B6CDE1; 
-	border-bottom:0px; 
 }
 
 #rightHeaderDiv {
@@ -176,19 +169,28 @@ function init()
 	if ( displayWidth == 0 )
 		displayWidth = Dom.getViewportWidth();
 
-    Dom.setStyle( 'expandDiv', 'visibility', 'collapse' );
+    Dom.setStyle( 'collapseDiv', 'visibility', 'hidden' );
+    Dom.setStyle( 'expandDiv', 'visibility', 'hidden' );
     Dom.setStyle( mainRight, 'visibility', 'hidden' );
     Dom.setStyle(  'doc3', 'height',  displayHeight + 'px' );
     Dom.setStyle(  'pg', 'height',  displayHeight + 'px' );
     Dom.setStyle(  'pg', 'width',  displayWidth + 'px' );
 
-    Dom.setStyle( 'treeFrame', 'height',  (displayHeight - 30) + 'px' );
+	var treeHeight = displayHeight - 30;
+    Dom.setStyle( 'treeDiv', 'height',  treeHeight + 'px' );
 
     resize = new YAHOO.util.Resize('mainLeft', {
             proxy: true,
+            ghost: true,
             handles: ['r'],
-            maxWidth: displayWidth
+            maxWidth: displayWidth,
+            minWidth: 10
         });
+    resize.on('startResize', function(ev) {
+		if ( YAHOO.env.ua.ie > 0 ) 
+  		  Dom.setStyle( 'treeDiv', 'visibility', 'hidden' );
+        });
+
     resize.on('resize', function(ev) {
             var w = ev.width;
             if ( cookie )
@@ -200,6 +202,8 @@ function init()
             Dom.setStyle( mainRight, 'height', displayHeight + 'px' );
             Dom.setStyle( mainRight, 'width', width + 'px');
             Dom.setStyle( 'configDiv', 'width', width + 'px');
+			if ( YAHOO.env.ua.ie > 0 ) 
+  			  Dom.setStyle( 'treeDiv', 'visibility', 'visible' );
         });
 
   var treeWidth = 200;
@@ -230,7 +234,7 @@ function init()
 
   //handler for expandDiv
   Event.on( "expandDiv", "click", function(e) {
-            Dom.setStyle( 'expandDiv', 'visibility', 'collapse' );
+            Dom.setStyle( 'expandDiv', 'visibility', 'hidden' );
 	        resize.resize( null, displayHeight, oldWidth, 0, 0, true);
             Dom.setStyle( mainLeft, 'visibility', 'visible' );
 		});
@@ -238,6 +242,8 @@ function init()
   YAHOO.util.Event.on( "detailsButton", "click", selectView, "details" );
   YAHOO.util.Event.on( "summaryButton", "click", selectView, "summary" );
 
+  Dom.get( 'treeDiv' ).innerHTML = '<iframe name="treeFrame" id="treeFrame" width="100%" height="' + treeHeight + '" frameborder="0" src="<%= treeUrl%>" ></iframe>';
+  Dom.setStyle( 'treeDiv', 'visibility', 'hidden' );
 }
 	
 	
@@ -282,7 +288,7 @@ function showConfig()
   {
     Dom.setStyle( 'summaryButton', 'background-image', 'url(../assets/img/tree/expand.gif)' );
     Dom.setStyle( 'detailsButton', 'background-image', 'url(../assets/img/tree/collapse.gif)' );
-    configFrameUrl = "../details/convert2Html.jsp?configKey=" + configKey + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
+    configFrameUrl = "convert2Html.jsp?configKey=" + configKey + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
   }
   else
   {
@@ -294,9 +300,11 @@ function showConfig()
   Dom.setStyle( 'detailsButton', 'background-position', 'left' );
   Dom.setStyle( 'summaryButton', 'background-repeat', 'no-repeat' );
   Dom.setStyle( 'summaryButton', 'background-position', 'left' );
-  var heightpx = Dom.getStyle( "rightHeaderDiv", "height" ).split( 'px' );
-  var height = displayHeight - heightpx[0] - 12;
-  Dom.get( 'configDiv' ).innerHTML = '<iframe src="' + configFrameUrl + '" name="configIFrame" id="configFrame" width="100%" height="'+ height + '" frameborder="0"></iframe>';
+  var xy = Dom.getXY( 'configDiv' );
+  var height = displayHeight - xy[1] - 2;
+  var configDiv = Dom.get( 'configDiv' );
+  Dom.setStyle( configDiv, 'height', height + 'px' );
+  configDiv.innerHTML = '<iframe src="' + configFrameUrl + '" name="configIFrame" id="configFrame" width="100%" height="'+ height + '" frameborder="0" ' + (detailsMode ? '' : ' scrolling="no"') + '></iframe>';
 }
   
 function updateJumpTo( list )
@@ -321,8 +329,10 @@ function iframeReady()
 	
 function treeReady()
 {
-  document.getElementById( "info" ).innerHTML = "";
-  document.getElementById( "info" ).style.border = '0px';
+  Dom.get( 'headerDiv' ).innerHTML = '<a id="expand" href="#">Expand all</a> <a id="collapse" href="#">Collapse all</a>'; 
+  Dom.setStyle( 'headerDiv', 'border-bottom', '0px' ); 
+  Dom.setStyle( 'treeDiv', 'visibility', 'visible' );
+  Dom.setStyle( 'collapseDiv', 'visibility', 'visible' );
 }
 	
 function selectView( event, selected )
@@ -364,13 +374,11 @@ YAHOO.util.Event.onContentReady( "doc3", init );
     <div class="yui-g" id="pg-yui-g">
 	  <div class="yui-u first" id="mainLeft">
     	 <div id="headerDiv" class="topDiv">
-            <a id="expand" href="#">Expand all</a>
-            <a id="collapse" href="#">Collapse all</a>
+			<img src="../assets/img/wait.gif">
          </div>
-         <div style="position:absolute; right:10px; top:2px; z-index:1; cursor:pointer" id="collapseDiv" > &lt; </div>
-         <div style="position:absolute; left:2px; top:2px; z-index:2; cursor:pointer" id="expandDiv" > &gt; </div>
-    	 <div id="info"><img src="../assets/img/wait.gif"></div>
-		 <iframe name="treeFrame" id="treeFrame" width="100%" frameborder="0" src="<%= treeUrl%>" ></iframe>
+         <div style="position:absolute; right:10px; top:3px; z-index:1; cursor:pointer" id="collapseDiv" ><img src="../assets/img/collapse.gif"></div>
+         <div style="position:absolute; left:2px; top:2px; z-index:2; cursor:pointer" id="expandDiv" ><img src="../assets/img/tree/expand.gif"></div>
+    	 <div id="treeDiv"></div>
    	  </div>
 
       <div class="yui-u" id="mainRight">
