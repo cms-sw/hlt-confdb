@@ -66,27 +66,18 @@ YAHOO.extend(YAHOO.widget.ConfigNode, YAHOO.widget.TextNode, {
 });
 
 
-var tree; //will hold our TreeView instance
+var tree, //will hold our TreeView instance
+	Dom = YAHOO.util.Dom;
 	
 	
 function init() 
 {
 	//instantiate the tree:
 	tree = new YAHOO.widget.TreeView("treeDiv1");
-		
 	buildTree();
-		
 	tree.draw();
-
 	tree.subscribe( "labelClick", parent.labelClicked );
-	/*
-	tree.subscribe("expand", function(node) {
-	    if ( !node.configNode )
-	    	return true; 
-	   	alert(node.data.key); 
-		return true; // return false to cancel the expand 
-	       }); 
-	       */
+	signalReady();
 }
 	
 YAHOO.util.Event.onContentReady( "treeDiv1", init );
@@ -147,7 +138,7 @@ function dummy( node )
 </script>
 
 </head>
-<body class="yui-skin-sam" onload="signalReady()">
+<body class="yui-skin-sam">
 
 <%!
 
