@@ -77,6 +77,7 @@
 		String result = converter.getConfigString( id, format,
 												   modifierInstructions, asFragment );
 		out.print( result );
+		out.close();
 	  } catch ( Exception e ) {
 		  out.print( "ERROR!\n\n" ); 
 		  ByteArrayOutputStream buffer = new ByteArrayOutputStream();
