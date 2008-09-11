@@ -12,11 +12,9 @@ import confdb.data.VectorParameter;
 public class AsciiParameterWriter  implements IParameterWriter 
 {
 	private ConverterEngine converterEngine = null;
-	private String currentIndent = "";
 
 	public String toString( Parameter parameter, ConverterEngine converterEngine, String indent ) throws ConverterException 
 	{
-		currentIndent = indent;
 		this.converterEngine = converterEngine;
 		if ( !parameter.isTracked() && parameter.isDefault() )
 			return "";
@@ -51,7 +49,7 @@ public class AsciiParameterWriter  implements IParameterWriter
 		else if ( parameter instanceof PSetParameter )
 			str.append( writePSetParameters( (PSetParameter)parameter, indent, true ) );
 		else if ( parameter instanceof VectorParameter )
-			appendVector( str, (VectorParameter)parameter );
+			appendVector( str, (VectorParameter)parameter, indent );
 		else if ( parameter instanceof VPSetParameter )
 			str.append( writeVPSetParameters( (VPSetParameter)parameter, indent ) );
 		else
@@ -111,17 +109,12 @@ public class AsciiParameterWriter  implements IParameterWriter
 	}
 	
 	
-	protected void appendVector( StringBuffer str, VectorParameter vector )
+	protected void appendVector( StringBuffer str, VectorParameter vector, String indent )
 	{
 		str.append( "{ " + vector.valueAsString() + " }" ); 
 	}
 	
 	
-	protected String getIndent() 
-	{
-		return currentIndent;
-	}
-
 	static public boolean skipPSet( PSetParameter pset )
 	{
 		if ( pset.isTracked() )

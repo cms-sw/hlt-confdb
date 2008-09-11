@@ -8,7 +8,7 @@ import confdb.data.VectorParameter;
 public class HtmlParameterWriter extends AsciiParameterWriter implements IParameterWriter 
 {
 
-	protected void appendVector( StringBuffer str, VectorParameter vector )
+	protected void appendVector( StringBuffer str, VectorParameter vector, String indent )
 	{
 		if ( !(vector instanceof VStringParameter) || vector.vectorSize() < 2 )
 			str.append( "{ " + vector.valueAsString() + " }" ); 
@@ -18,7 +18,7 @@ public class HtmlParameterWriter extends AsciiParameterWriter implements IParame
 			for ( int i = 0; i < vector.vectorSize(); i++ )
 			{
 				Object para = vector.value(i);
-				str.append( "\"" + para.toString() + "\",\n" + getIndent() + "    " );
+				str.append( "\"" + para.toString() + "\",\n" + indent + "    " );
 			}
 			str.setLength( str.length() - 2 );
 			str.setCharAt( str.lastIndexOf( "," ), ' ' );
