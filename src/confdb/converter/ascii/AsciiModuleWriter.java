@@ -19,20 +19,21 @@ public class AsciiModuleWriter implements IModuleWriter {
 			parameterWriter = converterEngine.getParameterWriter();
 		
 		String name = module.name();
-		String type = module.template().name();
 		
-		String str = indent + "module " +  decorate( name ) + " = " + type + " {";
+		StringBuffer str = new StringBuffer( indent + "module " +  decorate( name ) + " = " );
+		appendType( str, module );
+		str.append( " {" );
 		if ( module.parameterCount() == 0 )
-			return str + "}" + converterEngine.getNewline();
+			return str.toString() + "}" + converterEngine.getNewline();
 			
-		str += converterEngine.getNewline();
+		str.append( converterEngine.getNewline() );
 		for ( int i = 0; i < module.parameterCount(); i++ )
 		{
 			Parameter parameter = module.parameter(i);
-			str += parameterWriter.toString( parameter, converterEngine, indent + "  " );
+			str.append( parameterWriter.toString( parameter, converterEngine, indent + "  " ) );
 		}
-		str += indent + "}" + converterEngine.getNewline();
-		return str;
+		str.append( indent + "}" + converterEngine.getNewline() );
+		return str.toString();
 	}
 
 
@@ -46,6 +47,9 @@ public class AsciiModuleWriter implements IModuleWriter {
 		return name;
 	}
 
-
+	protected void appendType( StringBuffer str, ModuleInstance module )
+	{
+		str.append( module.template().name() );
+	}
 	
 }
