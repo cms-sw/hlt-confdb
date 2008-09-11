@@ -193,7 +193,7 @@ function init()
 
     resize.on('resize', function(ev) {
             var w = ev.width;
-            if ( cookie )
+            if ( cookie && w > 10 )
             {
               cookie.treeWidth = w;
 		  	  YAHOO.util.Cookie.setSubs( pageId, cookie, { expires: cookieExpires } );
@@ -376,8 +376,8 @@ YAHOO.util.Event.onContentReady( "doc3", init );
     	 <div id="headerDiv" class="topDiv">
 			<img src="../assets/img/wait.gif">
          </div>
-         <div style="position:absolute; right:10px; top:3px; z-index:1; cursor:pointer" id="collapseDiv" ><img src="../assets/img/collapse.gif"></div>
-         <div style="position:absolute; left:2px; top:2px; z-index:2; cursor:pointer" id="expandDiv" ><img src="../assets/img/tree/expand.gif"></div>
+         <div style="position:absolute; right:8px; top:3px; z-index:1; cursor:pointer" id="collapseDiv" ><img src="../assets/img/collapse.gif"></div>
+         <div style="position:absolute; left:0px; top:2px; z-index:2; cursor:pointer;" id="expandDiv" ><img src="../assets/img/tree/expand.gif"></div>
     	 <div id="treeDiv"></div>
    	  </div>
 
