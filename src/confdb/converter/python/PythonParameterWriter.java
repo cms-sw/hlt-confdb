@@ -9,6 +9,7 @@ import confdb.data.InputTagParameter;
 import confdb.data.PSetParameter;
 import confdb.data.Parameter;
 import confdb.data.ScalarParameter;
+import confdb.data.StringParameter;
 import confdb.data.VInputTagParameter;
 import confdb.data.VPSetParameter;
 import confdb.data.VStringParameter;
@@ -66,6 +67,8 @@ public class PythonParameterWriter  implements IParameterWriter
 				String value = parameter.valueAsString();
 				if ( value.length() == 0 )
 					throw new ConverterException( "oops, empty scalar parameter value! Don't know what to do");
+				if ( parameter instanceof StringParameter && value.charAt(0) == '"' && value.indexOf( '"', 1 ) < value.length() - 1 )
+					value = "'" + value + "'";
 
 				if ( parameter instanceof BoolParameter )
 				{
