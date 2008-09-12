@@ -22,7 +22,7 @@ public class AsciiInstanceWriter
 		StringBuffer str = new StringBuffer( (needInstanceLabel)
 		    ?
 		    indent + type + " " +
-		    instance.name() + " = " +
+		    getName( instance ) + " = " +
 		    getTemplateName( instance ) + " {"
 		    :
 		    indent + type + " = " + getTemplateName( instance ) + " {" );
@@ -53,6 +53,11 @@ public class AsciiInstanceWriter
 		// end quick fix
 		    
 		return str.toString();
+	}
+
+	protected String getName( Instance instance )
+	{
+		return instance.name();
 	}
 
 	protected String getTemplateName( Instance instance )
