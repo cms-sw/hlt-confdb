@@ -61,7 +61,7 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
     public Template template() { return template; }
     
     /** get the configuration */
-    protected IConfiguration config() { return config; }
+    public IConfiguration config() { return config; }
     
     /** number of parameters */
     public int parameterCount() { return parameters.size(); }
