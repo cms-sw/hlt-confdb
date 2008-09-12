@@ -50,6 +50,8 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 		else
 			indent = "";
 
+		str.append( "\n" + object + "HLTConfigVersion = cms.PSet(\n  tableName = cms.string('" + fullName + "')\n)\n\n" );
+		
 		if ( conf.psetCount() > 0 )
 		{
 			IParameterWriter parameterWriter = converterEngine.getParameterWriter();
