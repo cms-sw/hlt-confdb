@@ -23,9 +23,9 @@ public class AsciiInstanceWriter
 		    ?
 		    indent + type + " " +
 		    instance.name() + " = " +
-		    instance.template().name() + " {"
+		    getTemplateName( instance ) + " {"
 		    :
-		    indent + type + " = " + instance.template().name() + " {" );
+		    indent + type + " = " + getTemplateName( instance ) + " {" );
 
 		
 		if ( instance.parameterCount() == 0 )
@@ -55,6 +55,10 @@ public class AsciiInstanceWriter
 		return str.toString();
 	}
 
+	protected String getTemplateName( Instance instance )
+	{
+		return instance.template().name();
+	}
 
 	
 }
