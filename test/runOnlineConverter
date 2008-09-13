@@ -18,13 +18,13 @@ my $cmd =
 while (@ARGV)
 {
     my $arg = shift @ARGV;
-    if    ($arg eq "--configName") { $cmd = $cmd . "-c " . shift @ARGV; }
-    elsif ($arg eq "--dType")      { $cmd = $cmd . "-t " . shift @ARGV; }
-    elsif ($arg eq "--dbHost")     { $cmd = $cmd . "-h " . shift @ARGV; }
-    elsif ($arg eq "--dbPort")     { $cmd = $cmd . "-p " . shift @ARGV; }
-    elsif ($arg eq "--dbName")     { $cmd = $cmd . "-d " . shift @ARGV; }
-    elsif ($arg eq "--dbUser")     { $cmd = $cmd . "-u " . shift @ARGV; }
-    elsif ($arg eq "--dbPwrd")     { $cmd = $cmd . "-s " . shift @ARGV; }
+    if    ($arg eq "--configName") { $cmd = $cmd . " -c " . shift @ARGV; }
+    elsif ($arg eq "--dbType")     { $cmd = $cmd . " -t " . shift @ARGV; }
+    elsif ($arg eq "--dbHost")     { $cmd = $cmd . " -h " . shift @ARGV; }
+    elsif ($arg eq "--dbPort")     { $cmd = $cmd . " -p " . shift @ARGV; }
+    elsif ($arg eq "--dbName")     { $cmd = $cmd . " -d " . shift @ARGV; }
+    elsif ($arg eq "--dbUser")     { $cmd = $cmd . " -u " . shift @ARGV; }
+    elsif ($arg eq "--dbPwrd")     { $cmd = $cmd . " -s " . shift @ARGV; }
 }
 
 print $cmd . "\n";
