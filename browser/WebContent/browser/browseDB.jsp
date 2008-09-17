@@ -2,14 +2,17 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Trigger Summary</title>
-
+<title>HLT config</title>
 
 <link rel="stylesheet" type="text/css" href="../js/yui/reset-fonts-grids/reset-fonts-grids.css" />
+<!-- 
 <link rel="stylesheet" type="text/css" href="../js/yui/base/base-min.css" />
-<link rel="stylesheet" type="text/css" href="../js/yui/container/assets/skins/sam/container.css" />
 <link rel="stylesheet" type="text/css" href="../js/yui/datatable/assets/skins/sam/datatable.css" />
+ -->
+<link rel="stylesheet" type="text/css" href="../js/yui/container/assets/skins/sam/container.css" />
 <link rel="stylesheet" type="text/css" href="../js/yui/resize/assets/skins/sam/resize.css"" />
+<link rel="stylesheet" type="text/css" href="../js/yui/treeview/assets/skins/sam/treeview.css" />
+<link rel="stylesheet" type="text/css" href="../assets/css/folders/tree.css">
 <link rel="stylesheet" type="text/css" href="../assets/css/confdb.css" />
 
 <script type="text/javascript" src="../js/yui/utilities/utilities.js"></script>
@@ -17,11 +20,13 @@
 <script type="text/javascript" src="../js/yui/datasource/datasource-beta-min.js"></script>
 <script type="text/javascript" src="../js/yui/resize/resize-beta-min.js"></script>
 <script type="text/javascript" src="../js/yui/json/json-min.js"></script>
-<!--
-<script type="text/javascript" src="../js/yui/container/container.js"></script>
--->
-<script type="text/javascript" src="../js/dwr2JSON.js"></script>
+<script type="text/javascript" src="../js/yui/treeview/treeview.js"></script>
+<script type="text/javascript" src="../js/yui/container/container-min.js"></script>
+<script type="text/javascript" src="../js/HLT.js"></script>
 <script type="text/javascript" src="../js/AjaxInfo.js"></script>
+
+
+
 
 <style>
 
@@ -80,6 +85,7 @@ body {
 	padding:0.4em; 
 	background:white; 
 	border: 1px solid #B6CDE1; 
+	border-bottom: 0px;
 }
 
 #rightHeaderDiv {
@@ -97,6 +103,10 @@ body {
 
 #configDiv {
     overflow: hidden;
+}
+
+#treeDiv {
+    overflow: auto;
 }
 
 </style>
@@ -126,9 +136,6 @@ body {
   else
 	  out.println( "var displayWidth = " + width + ";" );
   out.println( "</script>" );
-
-  String treeUrl = "../browser/treeFrame.jsp?db=" + db;
-
 %>
 
 <script type="text/javascript">
@@ -148,7 +155,10 @@ var configFrameUrl,
     oldWidth = "200px",
     detailsMode = true,
     cookie = null,
-    cookieExpires;
+    cookieExpires,
+    tree,
+  	tooltip, 
+  	tooltipElements = []; 
 	
 function init() 
 {
@@ -177,7 +187,7 @@ function init()
     Dom.setStyle(  'pg', 'width',  displayWidth + 'px' );
 
 	var treeHeight = displayHeight - 30;
-    Dom.setStyle( 'treeDiv', 'height',  treeHeight + 'px' );
+    Dom.setStyle( 'treeDiv', 'max-height',  treeHeight + 'px' );
 
     resize = new YAHOO.util.Resize('mainLeft', {
             proxy: true,
@@ -187,8 +197,8 @@ function init()
             minWidth: 10
         });
     resize.on('startResize', function(ev) {
-		if ( YAHOO.env.ua.ie > 0 ) 
-  		  Dom.setStyle( 'treeDiv', 'visibility', 'hidden' );
+//		if ( YAHOO.env.ua.ie > 0 ) 
+//  		  Dom.setStyle( 'treeDiv', 'visibility', 'hidden' );
         });
 
     resize.on('resize', function(ev) {
@@ -202,8 +212,8 @@ function init()
             Dom.setStyle( mainRight, 'height', displayHeight + 'px' );
             Dom.setStyle( mainRight, 'width', width + 'px');
             Dom.setStyle( 'configDiv', 'width', width + 'px');
-			if ( YAHOO.env.ua.ie > 0 ) 
-  			  Dom.setStyle( 'treeDiv', 'visibility', 'visible' );
+//			if ( YAHOO.env.ua.ie > 0 ) 
+//  			  Dom.setStyle( 'treeDiv', 'visibility', 'visible' );
         });
 
   var treeWidth = 200;
@@ -214,13 +224,13 @@ function init()
 
   //handler for expanding all nodes
   Event.on("expand", "click", function(e) {
-			treeFrame.tree.expandAll();
+			tree.expandAll();
 			YAHOO.util.Event.preventDefault(e);
 		});
 		
   //handler for collapsing all nodes
   Event.on("collapse", "click", function(e) {
-			treeFrame.tree.collapseAll();
+			tree.collapseAll();
 			YAHOO.util.Event.preventDefault(e);
 		});
 
@@ -242,9 +252,92 @@ function init()
   YAHOO.util.Event.on( "detailsButton", "click", selectView, "details" );
   YAHOO.util.Event.on( "summaryButton", "click", selectView, "summary" );
 
-  Dom.get( 'treeDiv' ).innerHTML = '<iframe name="treeFrame" id="treeFrame" width="100%" height="' + treeHeight + '" frameborder="0" src="<%= treeUrl%>" ></iframe>';
-  Dom.setStyle( 'treeDiv', 'visibility', 'hidden' );
+  //Dom.setStyle( 'treeDiv', 'visibility', 'hidden' );
+  AjaxInfo.getTree( dbName, createTree );	
 }
+	
+	
+function createTree( treeData )
+{
+	tree = new YAHOO.widget.TreeView("treeDiv");
+	var parentNode = tree.getRoot();
+	createTreeRecursiveLoop( parentNode, treeData );
+	tree.draw();
+	//treeReady();
+	tree.subscribe( "labelClick", labelClicked );
+  	Dom.get( 'headerDiv' ).innerHTML = '<a id="expand" href="#">Expand all</a> <a id="collapse" href="#">Collapse all</a>'; 
+  	//Dom.setStyle( 'headerDiv', 'border-bottom', '0px' ); 
+  	//Dom.setStyle( 'treeDiv', 'visibility', 'visible' );
+  	Dom.setStyle( 'collapseDiv', 'visibility', 'visible' );
+  	
+	tooltip = new YAHOO.widget.Tooltip( "tt", { context: tooltipElements } ); 
+
+	if ( cookie )
+  	{
+    	var config = cookie.selectedConfig;
+    	if ( config != null )
+    	{ 
+      	  var node = tree.getRoot();
+      	  var subdirs = config.split( "/" );
+      	  if ( subdirs.length > 1 && subdirs[0] == "" )
+      	  {
+        	subdirs.shift();
+        	subdirs[0] = '/' + subdirs[0];
+      		findNode( node, config, subdirs );
+      	  }
+    	}
+  	}
+}
+	
+
+function createTreeRecursiveLoop( parentNode, treeData )
+{
+	for ( var i = 0; i < treeData.configs.length; i++ )
+	{    
+		var config = treeData.configs[i];
+		var configNode = new YAHOO.widget.ConfigNode( config.nodeData, parentNode, false );
+		for ( var ii = 0; ii < config.subnodes.length; ii++ )
+		{    
+		  var subnode = new YAHOO.widget.ConfigNode( config.subnodes[ii].nodeData, configNode, false );
+		  if ( config.subnodes[ii].nodeData.title )
+		    tooltipElements.push( subnode.labelElId );
+		}
+	}
+
+	for ( var i = 0; i < treeData.dirs.length; i++ )
+	{    
+		var dir = treeData.dirs[i];
+	    var name = dir.name;
+		var dirNode = new YAHOO.widget.TextNode( name, parentNode, false );
+		createTreeRecursiveLoop( dirNode, dir );
+	}
+}
+
+function findNode( node, config, subdirs )
+{
+  if ( !node.hasChildren() )
+    return;
+  if ( subdirs.length == 0 )
+    return;
+  var nodes = node.children;
+  for ( var i = 0;  i < nodes.length; i++ )
+  {
+    var fullName = nodes[i].data.fullName;
+    if ( fullName && fullName == config )
+      return;
+  }
+
+  var subdir = subdirs.shift();
+  for ( var i = 0;  i < nodes.length; i++ )
+  {
+    var label = nodes[i].label;
+    if ( label == subdir )
+    {
+      nodes[i].expand();
+      findNode( nodes[i], config, subdirs );
+    }
+  }
+}	
 	
 	
 function labelClicked( node )
@@ -278,7 +371,7 @@ function labelClicked( node )
     cookie.selectedConfig = fullName;
     YAHOO.util.Cookie.setSubs( pageId, cookie, { expires: cookieExpires } );
   }
-  treeReady();
+  //treeReady();
 }
 
 function showConfig()
@@ -288,7 +381,7 @@ function showConfig()
   {
     Dom.setStyle( 'summaryButton', 'background-image', 'url(../assets/img/tree/expand.gif)' );
     Dom.setStyle( 'detailsButton', 'background-image', 'url(../assets/img/tree/collapse.gif)' );
-    configFrameUrl = "convert2Html.jsp?configKey=" + configKey + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
+    configFrameUrl = "../browser/convert2Html.jsp?configKey=" + configKey + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
   }
   else
   {
@@ -327,13 +420,6 @@ function iframeReady()
 	Dom.get( 'rightHeaderBottomDiv' ).innerHTML = "";
 }
 	
-function treeReady()
-{
-  Dom.get( 'headerDiv' ).innerHTML = '<a id="expand" href="#">Expand all</a> <a id="collapse" href="#">Collapse all</a>'; 
-  Dom.setStyle( 'headerDiv', 'border-bottom', '0px' ); 
-  Dom.setStyle( 'treeDiv', 'visibility', 'visible' );
-  Dom.setStyle( 'collapseDiv', 'visibility', 'visible' );
-}
 	
 function selectView( event, selected )
 {
@@ -357,6 +443,55 @@ function selectView( event, selected )
   showConfig();
 }
 
+YAHOO.widget.ConfigNode = function(oData, oParent, expanded) 
+{
+	this.labelStyle = "icon-gen";
+	this.href = "javascript:dummy()";
+	if (oData) { 
+		this.init(oData, oParent, expanded);
+		this.setUpLabel(oData);
+	}
+
+};
+
+YAHOO.extend(YAHOO.widget.ConfigNode, YAHOO.widget.TextNode, {
+
+	configNode: true,
+
+    /**
+     * Returns the css style name for the toggle
+     * @method getStyle
+     * @return {string} the css class for this node's toggle
+     */
+    getStyle: function() {
+        if (this.isLoading) {
+            return "ygtvloading";
+        } else {
+            // location top or bottom, middle nodes also get the top style
+            var loc = (this.nextSibling) ? "t" : "l";
+
+            // type p=plus(expand), m=minus(collapase), n=none(no children)
+            var type = "n";
+            if (this.hasChildren(true) || (this.isDynamic() && !this.getIconMode())) {
+            // if (this.hasChildren(true)) {
+                type = (this.expanded) ? "m" : "p";
+            }
+
+            return "xygtv" + loc + type;
+        }
+    },
+
+    toString: function() { 
+        return "ConfigNode (" + this.index + ") " + this.label;
+    }
+
+});
+
+
+function dummy( node )
+{
+}
+
 	
 	
 //When the DOM is done loading, we can initialize our TreeView
@@ -378,7 +513,8 @@ YAHOO.util.Event.onContentReady( "doc3", init );
          </div>
          <div style="position:absolute; right:8px; top:3px; z-index:1; cursor:pointer" id="collapseDiv" ><img src="../assets/img/collapse.gif"></div>
          <div style="position:absolute; left:0px; top:2px; z-index:2; cursor:pointer;" id="expandDiv" ><img src="../assets/img/tree/expand.gif"></div>
-    	 <div id="treeDiv"></div>
+         <div align="left" id="treeDiv" style="background:white; border: 1px solid #B6CDE1; border-top:0px;">
+         </div>
    	  </div>
 
       <div class="yui-u" id="mainRight">
