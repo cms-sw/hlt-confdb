@@ -23,7 +23,7 @@
 public class NodeData
 {
 	public int    version;
-	public String versionInfo;
+	//public String versionInfo;
 	public String label;
 	public int    key;
 	public String name;
@@ -192,41 +192,32 @@ private void buildTree( AjaxTree parentNode, Directory directory, int dbIndex )
 	ConfigInfo[] configs = directory.listOfConfigurations();
 	for ( int i = 0; i < configs.length; i++ )
 	{
-		ConfigVersion versionInfo = configs[i].version( 0 ); 
-		String name = configs[i].name();
-		int key = versionInfo.dbId();
-		String fullName = configs[i].parentDir().name() + "/" + name + "/V" + versionInfo.version();
-
-		String vx = "V" + versionInfo.version() + "  -  " + versionInfo.created();
+		ConfigInfo config = configs[i];
+		String name = config.name();
+		ConfigVersion versionInfo = config.version( 0 ); 
 		NodeData nodeData = new NodeData();		
 		nodeData.version = versionInfo.version();
-		nodeData.versionInfo = vx;
 		nodeData.label = name;
-		nodeData.key = key;
+		nodeData.key = versionInfo.dbId();
 		nodeData.name = name;
-		nodeData.fullName = fullName;
+		nodeData.fullName = config.parentDir().name() + "/" + name + "/V" + versionInfo.version();
 		nodeData.dbIndex = dbIndex;
+		nodeData.title = "V" + versionInfo.version() + "  -  " + versionInfo.created();
 		AjaxTreeNode node = new AjaxTreeNode( nodeData );
 		parentNode.addNode( node );
 		
-		for ( int ii = 0; ii < configs[i].versionCount(); ii++ )
+		for ( int ii = 0; ii < config.versionCount(); ii++ )
 	    {
-			versionInfo = configs[i].version( ii );
+			versionInfo = config.version( ii );
 			nodeData = new NodeData();		
 			nodeData.version = versionInfo.version();
-			nodeData.versionInfo = "V" + versionInfo.version() + "  -  " + versionInfo.created();
-			nodeData.label = nodeData.versionInfo;
+			nodeData.label = "V" + versionInfo.version() + "  -  " + versionInfo.created();
 			nodeData.key = versionInfo.dbId();
 			nodeData.name = name;
-			nodeData.fullName = configs[i].parentDir().name() + "/" + name + "/V" + versionInfo.version();
+			nodeData.fullName = config.parentDir().name() + "/" + name + "/V" + versionInfo.version();
 			nodeData.dbIndex = dbIndex;
 			nodeData.title = versionInfo.comment();
 			node.subnodes.add( new AjaxTreeNode( nodeData ) );
-			
-		  	/*
-		  	  str += "var nodeData = { version:\"" + versionInfo.version() + "\", versionInfo: \"" + vx +"\", label: \"" + vx + "\", key:\"" + key + "\", name:\"" + name + "\", fullName:\"" + fullName + "\", dbIndex:dbIndex };\n"
-				  + "versionNode = new YAHOO.widget.ConfigNode( nodeData, configNode, false);\n";
-				  */
 		}
 	}
 
