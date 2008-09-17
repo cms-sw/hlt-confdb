@@ -18,7 +18,7 @@
 <script type="text/javascript" src="../js/yui/element/element-beta-min.js"></script>
 <script type="text/javascript" src="../js/yui/tabview/tabview.js"></script>
 <script type="text/javascript" src="../js/yui/json/json-min.js"></script>
-<script type="text/javascript" src="../js/dwr2JSON.js"></script>
+<script type="text/javascript" src="../js/HLT.js"></script>
 <script type="text/javascript" src="../js/AjaxInfo.js"></script>
 
 
@@ -75,7 +75,7 @@ function createTabs( tabs )
 	{    
 	    var name = tabs[i];
         var tabDiv = '<div id="Tab' + i + 'Div">not loaded</div>';
-	    var tabSource = "../browser/browseDB.jsp?db=" + escape( tabs[i] ) + "&height=" + tabHeight;
+	    var tabSource = "browseDB.jsp?db=" + escape( tabs[i] ) + "&height=" + tabHeight;
 	    tabContent[i] = '<iframe name="' + name + '" height="' + tabHeight + '" width="100%" frameborder="0" marginheight="0" marginwidth="5" scrolling="no" src="' + tabSource + '"></iframe>';
 	    if ( i == activeTab )
 	    {

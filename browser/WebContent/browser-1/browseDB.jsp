@@ -20,7 +20,7 @@
 <!--
 <script type="text/javascript" src="../js/yui/container/container.js"></script>
 -->
-<script type="text/javascript" src="../js/dwr2JSON.js"></script>
+<script type="text/javascript" src="../js/HLT.js"></script>
 <script type="text/javascript" src="../js/AjaxInfo.js"></script>
 
 <style>
