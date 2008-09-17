@@ -50,7 +50,7 @@ public class PythonParameterWriter  implements IParameterWriter
 		str.append( indent + parameter.name() + " = " );
 		
 		if ( parameter instanceof VectorParameter )
-			appendVector( str, (VectorParameter)parameter );
+			appendVector( str, (VectorParameter)parameter, indent );
 		else if ( parameter instanceof PSetParameter )
 			appendPSet( str, (PSetParameter)parameter, indent );
 		else
@@ -172,16 +172,16 @@ public class PythonParameterWriter  implements IParameterWriter
 	}
 
 	
-	protected void appendVector( StringBuffer str, VectorParameter vector )
+	protected void appendVector( StringBuffer str, VectorParameter vector, String indent )
 	{
 		if ( vector.vectorSize() < 256 )
-			appendSmallVector( str, vector, 0, vector.vectorSize() );
+			appendSmallVector( str, vector, 0, vector.vectorSize(), indent );
 		else
 		{
 			str.append( "( " );
 			for ( int i = 0; i < vector.vectorSize(); i += 255 )
 			{
-				appendSmallVector( str, vector, i, Math.min( i + 255, vector.vectorSize() ) );
+				appendSmallVector( str, vector, i, Math.min( i + 255, vector.vectorSize() ), indent );
 				str.append( ")+" );
 			}
 			if ( vector.vectorSize() > 0 )
@@ -189,7 +189,7 @@ public class PythonParameterWriter  implements IParameterWriter
 		}
 	}
 
-	protected void appendSmallVector( StringBuffer str, VectorParameter vector, int start, int stop )
+	protected void appendSmallVector( StringBuffer str, VectorParameter vector, int start, int stop, String indent )
 	{
 		str.append( getPythonClass( vector ) );
 		str.append( "( " );
@@ -211,11 +211,11 @@ public class PythonParameterWriter  implements IParameterWriter
 				String value = (String)vector.value(i);
 				if ( value != null )
 					str.append( value );
-				str.append( "', " );
-
+				str.append( "',\n  " );
+				str.append( indent );
 			}
 			if ( stop > start )
-				str.setLength( str.length() - 2 );
+				str.setLength( str.length() - 4 - indent.length() );
 		}
 		else
 		{
