@@ -40,7 +40,13 @@ function signalReady()
     parent.iframeReady();
 }
 
-//YAHOO.util.Event.onDOMReady( signalReady );
+
+function showSource( release, type )
+{
+	var w = window.open( "http://cmslxr.fnal.gov/lxr/ident?v=" + release + ";i=" + type,  "_blank" );
+	w.focus();
+}
+
 
  </script>
 
