@@ -18,7 +18,7 @@ public class HtmlInstanceWriter extends AsciiInstanceWriter
 
 		String release = instance.config().releaseTag();
 
-		return "<a href=\"http://cmslxr.fnal.gov/lxr/ident?v=" + release + ";i=" + type + "\" target=\"_blank\">" + type + "</a>";
+		return "<a href=\"javascript:showSource('" + release + "','" + type + "')\">" + type + "</a>";
 	}
 	
 	

@@ -26,6 +26,6 @@ public class HtmlModuleWriter extends AsciiModuleWriter implements IModuleWriter
 			System.out.println( "release = " + release );
 		}
 
-		str.append( "<a href=\"http://cmslxr.fnal.gov/lxr/ident?v=" + release + ";i=" + type + "\" target=\"_blank\">" + type + "</a>" );
+		str.append( "<a href=\"javascript:showSource('" + release + "','" + type + "')\">" + type + "</a>" );
 	}
 }
