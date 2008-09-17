@@ -143,9 +143,6 @@ body {
 var configFrameUrl,
 	configKey,
 	dbIndex,
-	myDataSource,
-	myDataTable,
-	myCallback,	
 	Dom = YAHOO.util.Dom,
     Event = YAHOO.util.Event,
     mainLeft = null,
@@ -212,8 +209,6 @@ function init()
             Dom.setStyle( mainRight, 'height', displayHeight + 'px' );
             Dom.setStyle( mainRight, 'width', width + 'px');
             Dom.setStyle( 'configDiv', 'width', width + 'px');
-//			if ( YAHOO.env.ua.ie > 0 ) 
-//  			  Dom.setStyle( 'treeDiv', 'visibility', 'visible' );
         });
 
   var treeWidth = 200;
@@ -225,13 +220,13 @@ function init()
   //handler for expanding all nodes
   Event.on("expand", "click", function(e) {
 			tree.expandAll();
-			YAHOO.util.Event.preventDefault(e);
+			Event.preventDefault(e);
 		});
 		
   //handler for collapsing all nodes
   Event.on("collapse", "click", function(e) {
 			tree.collapseAll();
-			YAHOO.util.Event.preventDefault(e);
+			Event.preventDefault(e);
 		});
 
   //handler for collapseDiv
@@ -249,10 +244,9 @@ function init()
             Dom.setStyle( mainLeft, 'visibility', 'visible' );
 		});
 
-  YAHOO.util.Event.on( "detailsButton", "click", selectView, "details" );
-  YAHOO.util.Event.on( "summaryButton", "click", selectView, "summary" );
+  Event.on( "detailsButton", "click", selectView, "details" );
+  Event.on( "summaryButton", "click", selectView, "summary" );
 
-  //Dom.setStyle( 'treeDiv', 'visibility', 'hidden' );
   AjaxInfo.getTree( dbName, createTree );	
 }
 	
@@ -263,14 +257,12 @@ function createTree( treeData )
 	var parentNode = tree.getRoot();
 	createTreeRecursiveLoop( parentNode, treeData );
 	tree.draw();
-	//treeReady();
 	tree.subscribe( "labelClick", labelClicked );
   	Dom.get( 'headerDiv' ).innerHTML = '<a id="expand" href="#">Expand all</a> <a id="collapse" href="#">Collapse all</a>'; 
-  	//Dom.setStyle( 'headerDiv', 'border-bottom', '0px' ); 
-  	//Dom.setStyle( 'treeDiv', 'visibility', 'visible' );
   	Dom.setStyle( 'collapseDiv', 'visibility', 'visible' );
   	
-	tooltip = new YAHOO.widget.Tooltip( "tt", { context: tooltipElements } ); 
+  	// uses too much CPU power!
+	//tooltip = new YAHOO.widget.Tooltip( "tooltip", { context: tooltipElements } ); 
 
 	if ( cookie )
   	{
@@ -296,6 +288,8 @@ function createTreeRecursiveLoop( parentNode, treeData )
 	{    
 		var config = treeData.configs[i];
 		var configNode = new YAHOO.widget.ConfigNode( config.nodeData, parentNode, false );
+		if ( config.nodeData.title )
+		  tooltipElements.push( configNode.labelElId );
 		for ( var ii = 0; ii < config.subnodes.length; ii++ )
 		{    
 		  var subnode = new YAHOO.widget.ConfigNode( config.subnodes[ii].nodeData, configNode, false );
@@ -371,7 +365,6 @@ function labelClicked( node )
     cookie.selectedConfig = fullName;
     YAHOO.util.Cookie.setSubs( pageId, cookie, { expires: cookieExpires } );
   }
-  //treeReady();
 }
 
 function showConfig()
