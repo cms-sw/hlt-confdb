@@ -429,14 +429,20 @@ public class OnlineConverter extends ConverterBase
 		}
 		else if (p instanceof StringParameter) {
 		    StringParameter sp = (StringParameter)p;
-		    if (sp.valueAsString().equals("rawDataCollector"))
-			sp.setValue("source");
+		    String s = sp.valueAsString();
+		    if (s.indexOf("rawDataCollector")>=0) {
+			s = s.replaceAll("rawDataCollector","source");
+			sp.setValue(s);
+		    }
 		}
 		else if (p instanceof VStringParameter) {
 		    VStringParameter vsp = (VStringParameter)p;
 		    for (int i=0;i<vsp.vectorSize();i++) {
 			String s = (String)vsp.value(i);
-			if (s.equals("rawDataCollector")) vsp.setValue(i,"source");
+			if (s.indexOf("rawDataCollector")>=0) {
+			    s = s.replaceAll("rawDataCollector","source");
+			    vsp.setValue(i,s);
+			}
 		    }
 		}
 	    }
