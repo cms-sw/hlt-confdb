@@ -374,13 +374,13 @@ function showConfig()
   {
     Dom.setStyle( 'summaryButton', 'background-image', 'url(../assets/img/tree/expand.gif)' );
     Dom.setStyle( 'detailsButton', 'background-image', 'url(../assets/img/tree/collapse.gif)' );
-    configFrameUrl = "../browser/convert2Html.jsp?configKey=" + configKey + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
+    configFrameUrl = "convert2Html.jsp?configKey=" + configKey + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
   }
   else
   {
     Dom.setStyle( 'detailsButton', 'background-image', 'url(../assets/img/tree/expand.gif)' );
     Dom.setStyle( 'summaryButton', 'background-image', 'url(../assets/img/tree/collapse.gif)' );
-    configFrameUrl = "../summary/showSummary.jsp?configKey=" + configKey + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
+    configFrameUrl = "showSummary.jsp?configKey=" + configKey + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
   }
   Dom.setStyle( 'detailsButton', 'background-repeat', 'no-repeat' );
   Dom.setStyle( 'detailsButton', 'background-position', 'left' );
