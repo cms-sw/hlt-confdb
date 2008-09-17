@@ -1,23 +1,25 @@
-// Provide a default path to dwr.engine
-if (dwr == null) var dwr = {};
-if (dwr.engine == null) dwr.engine = {};
-if (DWREngine == null) var DWREngine = dwr.engine;
+
+if (HLTjs == null) var HLTjs = {};
+if (HLTjs.json == null) HLTjs.json = {};
 
 if (AjaxInfo == null) var AjaxInfo = {};
-AjaxInfo._path = '';
+AjaxInfo._path = '../json/AjaxInfo.jsp';
 
 AjaxInfo.listDBs = function(callback) {
-  dwr.engine._execute(AjaxInfo._path, 'confdb.converter.BrowserConverter', 'listDBs', callback);
+  HLTjs.json._execute(AjaxInfo._path, 'confdb.converter.BrowserConverter', 'listDBs', callback);
 }
 AjaxInfo.getAnchors = function(p0, p1, callback) {
-  dwr.engine._execute(AjaxInfo._path, 'confdb.converter.BrowserConverter', 'getAnchors', 'int:' + p0, 'int:' + p1, callback);
+  HLTjs.json._execute(AjaxInfo._path, 'confdb.converter.BrowserConverter', 'getAnchors', 'int:' + p0, 'int:' + p1, callback);
 }
 AjaxInfo.getRcmsDbInfo = function(callback) {
-  dwr.engine._execute(AjaxInfo._path, 'AjaxInfo', 'getRcmsDbInfo', callback);
+  HLTjs.json._execute(AjaxInfo._path, null, 'getRcmsDbInfo', callback);
 }
 AjaxInfo.clearCache = function(callback) {
-  dwr.engine._execute(AjaxInfo._path, 'confdb.converter.BrowserConverter', 'clearCache', callback);
+  HLTjs.json._execute(AjaxInfo._path, 'confdb.converter.BrowserConverter', 'clearCache', callback);
 }
 AjaxInfo.getMemInfo = function(callback) {
-  dwr.engine._execute(AjaxInfo._path, 'AjaxInfo', 'getMemInfo', callback);
+  HLTjs.json._execute(AjaxInfo._path, null, 'getMemInfo', callback);
+}
+AjaxInfo.getTree = function( p0, callback) {
+  HLTjs.json._execute(AjaxInfo._path, null, 'getTree', 'string:' + p0, callback);
 }
