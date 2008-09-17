@@ -1,3 +1,12 @@
+
+<%@page import="confdb.data.ConfigVersion"%>
+<%@page import="confdb.data.ConfigInfo"%>
+<%@page import="confdb.converter.ConverterException"%>
+<%@page import="confdb.data.Directory"%>
+<%@page import="confdb.db.ConfDB"%>
+<%@page import="confdb.db.ConfDBSetups"%>
+<%@page import="confdb.converter.ConverterBase"%>
+
 <%@page import="confdb.converter.BrowserConverter"%>
 <%@page import="confdb.converter.RcmsDbProperties"%>
 <%@page import="confdb.converter.DbProperties"%>
@@ -11,10 +20,154 @@
 <%@page contentType="text/plain"%>
 <%!
 
-public class AjaxInfo
+public class NodeData
 {
-	public String getRcmsDbInfo()
+	public int    version;
+	public String versionInfo;
+	public String label;
+	public int    key;
+	public String name;
+	public String fullName;
+	public int    dbIndex;
+	public String title;
+}
+
+public class AjaxTreeNode
+{
+	public NodeData nodeData;
+	public ArrayList<AjaxTreeNode> subnodes = new ArrayList<AjaxTreeNode>();
+	
+	AjaxTreeNode( NodeData nodeData )
 	{
+		this.nodeData = nodeData;;
+	}
+}
+
+public class AjaxTree
+{
+	String name = "";
+	ArrayList<AjaxTree> dirs = new ArrayList<AjaxTree>();
+	ArrayList<AjaxTreeNode> configs = new ArrayList<AjaxTreeNode>();
+	
+	public AjaxTree( String name )
+	{
+		this.name = name;
+	}
+	
+	public AjaxTree[] getDirs()
+	{
+		return dirs.toArray( new AjaxTree[ dirs.size() ] );
+	}
+	
+	public AjaxTreeNode[] getConfigs()
+	{
+		return configs.toArray( new AjaxTreeNode[ configs.size() ] );
+	}
+	
+	public String getName()
+	{
+		return name;
+	}
+	
+	public void addSubTree( AjaxTree tree )
+	{
+		dirs.add( tree );
+	}
+	
+	public void addNode( AjaxTreeNode node )
+	{
+		configs.add( node );
+	}
+	
+}
+
+public class MemInfo
+{
+	public int getFreeMemory()
+	{
+		return toMB( Runtime.getRuntime().freeMemory() ); 
+	}
+	
+	public int getMaxMemory()
+	{
+		return toMB( Runtime.getRuntime().maxMemory() );
+	}
+	
+	public int getTotalMemory()
+	{
+		return toMB( Runtime.getRuntime().totalMemory() );
+	}
+
+	public int getCacheEntries()
+	{
+		return BrowserConverter.getCacheEntries();
+	}
+	
+	private int toMB( long bytes )
+	{
+		int MB = 1024 * 1024;
+		return (int) (( bytes + MB / 2 ) / MB);
+	}
+}
+
+
+
+public MemInfo getMemInfo()
+{
+	return new MemInfo();
+}
+
+
+public String getTree( String dbName ) throws ConverterException
+{
+	int dbIndex = 1;
+	AjaxTree tree = new AjaxTree( "" );
+	ConverterBase converter = null;
+	try {
+		ConfDBSetups dbs = new ConfDBSetups();
+		if ( dbName != null && dbName.length() > 0 )
+		{
+		  String[] labels = dbs.labelsAsArray();
+		  for ( int i = 0; i < dbs.setupCount(); i++ )
+		  {
+		    if ( dbName.equalsIgnoreCase( labels[i] ) )
+		  	  {
+		  		dbIndex = i;
+		  		break;
+		  	  }
+		  }
+		}
+		converter = BrowserConverter.getConverter( dbIndex );
+		ConfDB confDB = converter.getDatabase();
+		Directory root = confDB.loadConfigurationTree();
+		buildTree( tree, root, dbIndex );
+		String result = new JSONSerializer().include( "dirs" ).include( "configs" ).exclude( "*.class" ).deepSerialize( tree );
+		//System.out.println( "sending result: " + result );
+		return result;
+	} catch (Exception e) {
+		String errorMessage = "ERROR!\n";
+		if ( e instanceof ConverterException )
+		{
+		  errorMessage += e.toString();
+		  if ( e.getMessage().startsWith( "can't init database connection" )	)
+			  errorMessage += " (host = " + (new ConfDBSetups()).host( dbIndex ) + ")";
+		}
+		else
+		{
+		  ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		  PrintWriter writer = new PrintWriter( buffer );
+		  e.printStackTrace( writer );
+		  writer.close();
+		  errorMessage += buffer.toString();
+		}
+		if ( converter != null )
+			  BrowserConverter.deleteConverter( converter );
+	    throw new ConverterException( errorMessage );
+	}
+}
+
+public String getRcmsDbInfo()
+{
 		DbProperties dbProperties;
 		try {
 			dbProperties = DbProperties.getDefaultDbProperties();
@@ -31,46 +184,66 @@ public class AjaxInfo
 		}
 		
 		return dbProperties.getDbURL();
-	}
-
-	public MemInfo getMemInfo()
-	{
-		return new MemInfo();
-	}
-	
-	private int toMB( long bytes )
-	{
-		int MB = 1024 * 1024;
-		return (int) (( bytes + MB / 2 ) / MB);
-	}
-    
-	public class MemInfo
-	{
-		public int getFreeMemory()
-		{
-			return toMB( Runtime.getRuntime().freeMemory() ); 
-		}
-		
-		public int getMaxMemory()
-		{
-			return toMB( Runtime.getRuntime().maxMemory() );
-		}
-		
-		public int getTotalMemory()
-		{
-			return toMB( Runtime.getRuntime().totalMemory() );
-		}
-
-		public int getCacheEntries()
-		{
-			return BrowserConverter.getCacheEntries();
-		}
-	}
-	
-	
-
 }
 
+	
+private void buildTree( AjaxTree parentNode, Directory directory, int dbIndex )
+{
+	ConfigInfo[] configs = directory.listOfConfigurations();
+	for ( int i = 0; i < configs.length; i++ )
+	{
+		ConfigVersion versionInfo = configs[i].version( 0 ); 
+		String name = configs[i].name();
+		int key = versionInfo.dbId();
+		String fullName = configs[i].parentDir().name() + "/" + name + "/V" + versionInfo.version();
+
+		String vx = "V" + versionInfo.version() + "  -  " + versionInfo.created();
+		NodeData nodeData = new NodeData();		
+		nodeData.version = versionInfo.version();
+		nodeData.versionInfo = vx;
+		nodeData.label = name;
+		nodeData.key = key;
+		nodeData.name = name;
+		nodeData.fullName = fullName;
+		nodeData.dbIndex = dbIndex;
+		AjaxTreeNode node = new AjaxTreeNode( nodeData );
+		parentNode.addNode( node );
+		
+		for ( int ii = 0; ii < configs[i].versionCount(); ii++ )
+	    {
+			versionInfo = configs[i].version( ii );
+			nodeData = new NodeData();		
+			nodeData.version = versionInfo.version();
+			nodeData.versionInfo = "V" + versionInfo.version() + "  -  " + versionInfo.created();
+			nodeData.label = nodeData.versionInfo;
+			nodeData.key = versionInfo.dbId();
+			nodeData.name = name;
+			nodeData.fullName = configs[i].parentDir().name() + "/" + name + "/V" + versionInfo.version();
+			nodeData.dbIndex = dbIndex;
+			nodeData.title = versionInfo.comment();
+			node.subnodes.add( new AjaxTreeNode( nodeData ) );
+			
+		  	/*
+		  	  str += "var nodeData = { version:\"" + versionInfo.version() + "\", versionInfo: \"" + vx +"\", label: \"" + vx + "\", key:\"" + key + "\", name:\"" + name + "\", fullName:\"" + fullName + "\", dbIndex:dbIndex };\n"
+				  + "versionNode = new YAHOO.widget.ConfigNode( nodeData, configNode, false);\n";
+				  */
+		}
+	}
+
+	Directory[] list = directory.listOfDirectories();
+	for ( int i = 0; i < list.length; i++ )
+	{
+		String name = list[i].name();
+		int start = name.lastIndexOf( '/' );
+		if ( start > 0 )
+			name = name.substring( start + 1 );
+		AjaxTree subtree = new AjaxTree( name );
+		parentNode.addSubTree( subtree );
+		buildTree( subtree, list[i], dbIndex );
+	}
+}
+
+	
 %>
 
 <% 	  	     
@@ -113,12 +286,6 @@ public class AjaxInfo
 		methodName = methodName.substring( split + 1 );
 	}
 	
-	if ( className == null )
-	{
-		out.println("ERROR: class name missing");
-		return;
-	}
-
 	ArrayList<String> paramList = new ArrayList<String>();
 	int paramN = 1;
 	boolean parameterFound = true;
@@ -138,7 +305,9 @@ public class AjaxInfo
 	}
 	
 	try {
-		Class<?> jsonClass = Class.forName( className );
+		Class<?> jsonClass = this.getClass();
+		if ( className != null )
+			jsonClass = Class.forName( className );
 		Class<?>[] paramClasses = new Class[ paramList.size() ];
 		Object[] params = new Object[ paramList.size() ];
 		for ( int i = 0; i < params.length; i++ )
@@ -152,6 +321,11 @@ public class AjaxInfo
 				{
 					paramClasses[i] = Integer.TYPE;
 					params[i] = new Integer( param.substring( split + 1 ) );
+				}
+				else if ( paramClass.equals( "string" ) )
+				{
+					paramClasses[i] = String.class;
+					params[i] = param.substring( split + 1 );
 				}
 			}
 		}
@@ -167,17 +341,22 @@ public class AjaxInfo
 				jsonObject = jsonClass.newInstance();
 			else
 			{
-				jsonObject = jsonSession.getAttribute( className );
+				jsonObject = jsonSession.getAttribute( jsonClass.getCanonicalName() );
+				if ( jsonObject != null  &&  jsonObject.getClass() != this.getClass() )
+					jsonObject = null;
 				if ( jsonObject == null )
 				{
 					jsonObject = jsonClass.newInstance();
-					jsonSession.setAttribute( className, jsonObject );
+					jsonSession.setAttribute( jsonClass.getCanonicalName(), jsonObject );
 					System.out.println( "new object for session " + jsonSession.getId() );
 				}
 			}
 			result = method.invoke( jsonObject, params );
 		}
-		out.println( new JSONSerializer().serialize( result ) );
+		if ( result instanceof String )
+			out.println( result );
+		else
+			out.println( new JSONSerializer().exclude( "*.class" ).serialize( result ) );
 	} catch (Exception e) {
 	   out.print( "EXCEPTION: " + e.getMessage()+"\n\n" ); 
 	   ByteArrayOutputStream buffer = new ByteArrayOutputStream();
