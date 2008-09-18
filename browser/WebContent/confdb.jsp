@@ -12,7 +12,7 @@
 <%@page import="java.util.Iterator"%>
 <%@page contentType="text/plain"%>
 <%
-    out.clearBuffer();
+        out.clearBuffer();
 	BrowserConverter converter = null;
 	Map<String,String[]> map = request.getParameterMap();
 	if ( map.isEmpty())

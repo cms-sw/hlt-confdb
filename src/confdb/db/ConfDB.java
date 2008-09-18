@@ -72,6 +72,7 @@ public class ConfDB
     private PreparedStatement psSelectLockedConfigurations        = null;
 
     private PreparedStatement psSelectConfigNames                 = null;
+    private PreparedStatement psSelectDirectoryId                 = null;
     private PreparedStatement psSelectConfigurationId             = null;
     private PreparedStatement psSelectConfigurationIdLatest       = null;
     private PreparedStatement psSelectConfigurationCreated        = null;
@@ -1887,6 +1888,79 @@ public class ConfDB
 	return listOfTags.toArray(new String[listOfTags.size()]);
     }
 
+    /** get the id of a directory, -1 if it does not exist */
+    public int getDirectoryId(String directoryName) throws DatabaseException
+    {
+	reconnect();
+	ResultSet rs = null;
+	try {
+	    psSelectDirectoryId.setString(1,directoryName);
+	    rs = psSelectDirectoryId.executeQuery();
+	    rs.next();
+	    return rs.getInt(1);
+	}
+	catch (SQLException e) {
+	    String errMsg = 
+		"ConfDB::getDirectoryId(directoryName="+directoryName+
+		") failed: "+e.getMessage();
+	    throw new DatabaseException(errMsg,e);
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+    }
+
+    /** get hash map with all directories */
+    public HashMap<Integer,Directory> getDirectoryHashMap() throws DatabaseException
+    {
+	reconnect();
+
+	HashMap<Integer,Directory> directoryHashMap =
+	    new HashMap<Integer,Directory>();
+	
+	Directory rootDir = null;
+	ResultSet rs = null;
+	try {
+	    
+	    rs = psSelectDirectories.executeQuery();
+	    while (rs.next()) {
+		int    dirId       = rs.getInt(1);
+		int    parentDirId = rs.getInt(2);
+		String dirName     = rs.getString(3);
+		String dirCreated  = rs.getTimestamp(4).toString();
+		
+		if (directoryHashMap.size()==0) {
+		    rootDir = new Directory(dirId,dirName,dirCreated,null);
+		    directoryHashMap.put(dirId,rootDir);
+		}
+		else {
+		    if (!directoryHashMap.containsKey(parentDirId))
+			throw new DatabaseException("parentDir not found in DB"+
+						    " (parentDirId="+parentDirId+
+						    ")");
+		    Directory parentDir = directoryHashMap.get(parentDirId);
+		    Directory newDir    = new Directory(dirId,
+							dirName,
+							dirCreated,
+							parentDir);
+		    parentDir.addChildDir(newDir);
+		    directoryHashMap.put(dirId,newDir);
+		}
+	    }
+	    
+	    return directoryHashMap;
+	}
+	catch (SQLException e) {
+	    String errMsg =
+		"ConfDB::getDirectoryHashMap() failed: "+e.getMessage();
+	    throw new DatabaseException(errMsg,e);
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+    }
+	
+
     /** get the configuration id for a configuration name */
     public int getConfigId(String fullConfigName) throws DatabaseException
     {
@@ -2521,6 +2595,14 @@ public class ConfDB
 		 "ORDER BY Directories.dirName ASC");
 	    psSelectConfigNames.setFetchSize(1024);
 	    preparedStatements.add(psSelectConfigNames);
+
+	    psSelectDirectoryId =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " Directories.dirId " +
+		 "FROM Directories "+
+		 "WHERE Directories.dirName = ?");
+	    preparedStatements.add(psSelectDirectoryId);
 	    
 	    psSelectConfigurationId =
 		dbConnector.getConnection().prepareStatement

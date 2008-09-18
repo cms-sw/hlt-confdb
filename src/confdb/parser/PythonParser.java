@@ -11,9 +11,6 @@ import java.io.*;
 
 import confdb.data.*;
 import confdb.db.*;
-//import confdb.converter.ConverterFactory;
-//import confdb.converter.ConverterEngine;
-//import confdb.converter.ConverterException;
 import confdb.converter.OfflineConverter;
 
 
