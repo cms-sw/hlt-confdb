@@ -190,10 +190,12 @@ public class OnlineConverter extends ConverterBase
 	SoftwareSubsystem subsys = new SoftwareSubsystem("IOPool");
 	SoftwarePackage   pkg = new SoftwarePackage("Streamer");
 	ModuleTemplate    smStreamWriterT = makeSmStreamWriterT();
+	ModuleTemplate    smErrorWriterT  = makeSmErrorWriterT();
 	SoftwareRelease   smRelease = new SoftwareRelease();
 
 	smRelease.clear(epConfig.releaseTag());
 	pkg.addTemplate(smStreamWriterT);
+	pkg.addTemplate(smErrorWriterT);
 	subsys.addPackage(pkg);
 	smRelease.addSubsystem(subsys);
 
@@ -259,6 +261,11 @@ public class OnlineConverter extends ConverterBase
 	    }
 	}
 	
+	// include error-stream configuration
+	smConfig.insertModuleReference(endpath,endpath.entryCount(), 
+				       smErrorWriterT.name(),"out4Error");
+	
+
 	// apply necessary offline -> online modifications to HLT configuration
 	epModifier.insertDaqSource();
 	epModifier.insertShmStreamConsumer();
@@ -313,6 +320,16 @@ public class OnlineConverter extends ConverterBase
 	params.add(new PSetParameter("SelectEvents", "", false, false));
 	params.add(new StringParameter("SelectHLTOutput", "", false, false));
         return new ModuleTemplate("EventStreamFileWriter", "UNKNOWN", -1,
+				  params, "OutputModule");
+    }
+
+    /** make a sm error stream writer template */
+    private ModuleTemplate makeSmErrorWriterT() 
+    {
+	ArrayList<Parameter> params = new ArrayList<Parameter>();
+	params.add(new StringParameter("streamLabel", "Error", true, false));
+	params.add(new Int32Parameter("maxSize", "32", true, false));
+        return new ModuleTemplate("ErrorStreamFileWriter", "UNKNOWN", -1,
 				  params, "OutputModule");
     }
 
