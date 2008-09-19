@@ -18,14 +18,15 @@ public class HtmlModuleWriter extends AsciiModuleWriter implements IModuleWriter
 	protected void appendType( StringBuffer str, ModuleInstance module )
 	{
 		String type = module.template().name();
+		String cmsPackage = module.template().parentPackage().name();
 
 		IConfiguration iconfig = module.config();
 		if ( !release.equals( iconfig.releaseTag() ) )
 		{
 			release = iconfig.releaseTag();
-			System.out.println( "release = " + release );
+			//System.out.println( "release = " + release );
 		}
 
-		str.append( "<a href=\"javascript:showSource('" + release + "','" + type + "')\">" + type + "</a>" );
+		str.append( "<a href=\"javascript:showSource('" + release + "','" + type + "','" + cmsPackage + "')\">" + type + "</a>" );
 	}
 }
