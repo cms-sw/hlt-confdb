@@ -159,6 +159,8 @@ var configFrameUrl,
 	
 function init() 
 {
+	AjaxInfo._path = '../browser/AjaxInfo.jsp';
+
     cookieExpires = new Date();
     cookieExpires.setFullYear( cookieExpires.getFullYear() + 1 );
     if ( parent && parent.cookie )
@@ -253,6 +255,12 @@ function init()
 	
 function createTree( treeData )
 {
+	if ( treeData.exceptionThrown )
+	{
+		alert( treeData.exception + ': ' + treeData.message );
+		return;
+	}
+
 	tree = new YAHOO.widget.TreeView("treeDiv");
 	var parentNode = tree.getRoot();
 	createTreeRecursiveLoop( parentNode, treeData );
