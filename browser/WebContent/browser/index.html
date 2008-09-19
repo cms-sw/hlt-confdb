@@ -9,7 +9,7 @@
 <link rel="stylesheet" type="text/css" href="../js/yui/base/base-min.css">
 <link rel="stylesheet" type="text/css" href="../js/yui/fonts/fonts-min.css" />
 <link rel="stylesheet" type="text/css" href="../js/yui/tabview/assets/skins/sam/tabview.css" />
-<link rel="stylesheet" type="text/css" href="../assets/css/confdb.css" />
+<link rel="stylesheet" type="text/css" href="../css/confdb.css" />
 
 <!-- js -->
 <script type="text/javascript" src="../js/yui/utilities/utilities.js"></script>
@@ -37,6 +37,8 @@ var viewportHeight,
 
 function init()
 {
+	AjaxInfo._path = '../browser/AjaxInfo.jsp';
+
 	viewportHeight = Dom.getViewportHeight();
 	tabHeight = viewportHeight - 50; 
 	tabView = new YAHOO.widget.TabView();
@@ -59,6 +61,11 @@ function init()
 
 function processDBList( dbList )
 {
+	if ( dbList.exceptionThrown )
+	{
+		alert( dbList.exception + ': ' + dbList.message );
+		return;
+	}
 	if ( dbList.length > 0 )
 		createTabs( dbList );
 }
