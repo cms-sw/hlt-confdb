@@ -12,8 +12,8 @@
 <link rel="stylesheet" type="text/css" href="../js/yui/container/assets/skins/sam/container.css" />
 <link rel="stylesheet" type="text/css" href="../js/yui/resize/assets/skins/sam/resize.css"" />
 <link rel="stylesheet" type="text/css" href="../js/yui/treeview/assets/skins/sam/treeview.css" />
-<link rel="stylesheet" type="text/css" href="../assets/css/folders/tree.css">
-<link rel="stylesheet" type="text/css" href="../assets/css/confdb.css" />
+<link rel="stylesheet" type="text/css" href="../css/folders/tree.css">
+<link rel="stylesheet" type="text/css" href="../css/confdb.css" />
 
 <script type="text/javascript" src="../js/yui/utilities/utilities.js"></script>
 <script type="text/javascript" src="../js/yui/cookie/cookie-beta-min.js"></script>
