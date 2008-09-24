@@ -377,17 +377,17 @@ function labelClicked( node )
 
 function showConfig()
 {  
-  Dom.get( 'rightHeaderBottomDiv' ).innerHTML = '<img src="../assets/img/wait.gif">';
+  Dom.get( 'rightHeaderBottomDiv' ).innerHTML = '<img src="../img/wait.gif">';
   if ( detailsMode == true )
   {
-    Dom.setStyle( 'summaryButton', 'background-image', 'url(../assets/img/tree/expand.gif)' );
-    Dom.setStyle( 'detailsButton', 'background-image', 'url(../assets/img/tree/collapse.gif)' );
+    Dom.setStyle( 'summaryButton', 'background-image', 'url(../img/tree/expand.gif)' );
+    Dom.setStyle( 'detailsButton', 'background-image', 'url(../img/tree/collapse.gif)' );
     configFrameUrl = "convert2Html.jsp?configKey=" + configKey + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
   }
   else
   {
-    Dom.setStyle( 'detailsButton', 'background-image', 'url(../assets/img/tree/expand.gif)' );
-    Dom.setStyle( 'summaryButton', 'background-image', 'url(../assets/img/tree/collapse.gif)' );
+    Dom.setStyle( 'detailsButton', 'background-image', 'url(../img/tree/expand.gif)' );
+    Dom.setStyle( 'summaryButton', 'background-image', 'url(../img/tree/collapse.gif)' );
     configFrameUrl = "showSummary.jsp?configKey=" + configKey + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
   }
   Dom.setStyle( 'detailsButton', 'background-repeat', 'no-repeat' );
@@ -510,10 +510,10 @@ YAHOO.util.Event.onContentReady( "doc3", init );
     <div class="yui-g" id="pg-yui-g">
 	  <div class="yui-u first" id="mainLeft">
     	 <div id="headerDiv" class="topDiv">
-			<img src="../assets/img/wait.gif">
+			<img src="../img/wait.gif">
          </div>
-         <div style="position:absolute; right:8px; top:3px; z-index:1; cursor:pointer" id="collapseDiv" ><img src="../assets/img/collapse.gif"></div>
-         <div style="position:absolute; left:0px; top:2px; z-index:2; cursor:pointer;" id="expandDiv" ><img src="../assets/img/tree/expand.gif"></div>
+         <div style="position:absolute; right:8px; top:3px; z-index:1; cursor:pointer" id="collapseDiv" ><img src="../img/collapse.gif"></div>
+         <div style="position:absolute; left:0px; top:2px; z-index:2; cursor:pointer;" id="expandDiv" ><img src="../img/tree/expand.gif"></div>
          <div align="left" id="treeDiv" style="background:white; border: 1px solid #B6CDE1; border-top:0px;">
          </div>
    	  </div>
