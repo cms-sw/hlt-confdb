@@ -13,6 +13,7 @@ public class ConfCache
 {
 	static private ConfCache cache = null;
     static private int maxCacheEntries = 10;
+    static private int minFreeMB = 20;
 	
     private HashMap<String, ConfWrapper> confCache = new HashMap<String, ConfWrapper>();
 
@@ -43,19 +44,28 @@ public class ConfCache
         getCache().confCache = new HashMap<String, ConfWrapper>();
     }
 	
-    public IConfiguration getConfiguration( int key, ConfDB database ) throws DatabaseException 
+    public IConfiguration getConfiguration( int key, ConfDB database ) throws ConverterException 
     {
-    	ConfWrapper conf = confCache.get( getCacheKey( key, database ) );
-    	if ( conf != null )
-    		return conf.getConfiguration();
-    	IConfiguration configuration = database.loadConfiguration(key);
-    	put( key, configuration, database );
-    	return configuration;
+		try {
+			ConfWrapper conf = confCache.get( getCacheKey( key, database ) );
+    		if ( conf != null )
+    			return conf.getConfiguration();
+    		IConfiguration configuration;
+			configuration = database.loadConfiguration(key);
+    		put( key, configuration, database );
+    		return configuration;
+		} catch (DatabaseException e) {
+			throw new ConverterException( "DatabaseException", e );
+
+		}
     }
 		
     synchronized private void put( int key, IConfiguration conf, ConfDB database )
     {
-    	if ( confCache.size() > maxCacheEntries )
+    	Runtime runtime = Runtime.getRuntime();
+    	float freeMemory = 
+    		( runtime.maxMemory() - runtime.totalMemory() + runtime.freeMemory() ) / 1024 /1024;
+    	if ( freeMemory < minFreeMB )
 	    {
     		List<ConfWrapper> list = new ArrayList<ConfWrapper>( confCache.values() );
     		Collections.sort(list);
