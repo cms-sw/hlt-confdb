@@ -17,9 +17,10 @@ public class HtmlInstanceWriter extends AsciiInstanceWriter
 		String type = instance.template().name();
 		String release = instance.config().releaseTag();
 		String cmsPackage = instance.template().parentPackage().name();
+		String subsystem = instance.template().parentPackage().subsystem().name();
 
 
-		return "<a href=\"javascript:showSource('" + release + "','" + type + "','" + cmsPackage + "')\">" + type + "</a>";
+		return "<a href=\"javascript:showSource('" + release + "','" + type + "','" + cmsPackage + "','" + subsystem + "')\">" + type + "</a>";
 	}
 	
 	

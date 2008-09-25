@@ -19,6 +19,7 @@ public class HtmlModuleWriter extends AsciiModuleWriter implements IModuleWriter
 	{
 		String type = module.template().name();
 		String cmsPackage = module.template().parentPackage().name();
+		String subsystem = module.template().parentPackage().subsystem().name();
 
 		IConfiguration iconfig = module.config();
 		if ( !release.equals( iconfig.releaseTag() ) )
@@ -27,6 +28,6 @@ public class HtmlModuleWriter extends AsciiModuleWriter implements IModuleWriter
 			//System.out.println( "release = " + release );
 		}
 
-		str.append( "<a href=\"javascript:showSource('" + release + "','" + type + "','" + cmsPackage + "')\">" + type + "</a>" );
+		str.append( "<a href=\"javascript:showSource('" + release + "','" + type + "','" + cmsPackage + "','" + subsystem + "')\">" + type + "</a>" );
 	}
 }
