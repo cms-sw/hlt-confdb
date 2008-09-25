@@ -13,6 +13,7 @@ import confdb.data.IConfiguration;
 import confdb.db.ConfDB;
 import confdb.db.ConfDBSetups;
 
+
 public class BrowserConverter extends OfflineConverter
 {
     static private HashMap<Integer,BrowserConverter> map = new HashMap<Integer,BrowserConverter>();
@@ -123,7 +124,7 @@ public class BrowserConverter extends OfflineConverter
     	return list.toArray( new String[ list.size() ] );
     }
     
-    static public String[] getAnchors( int dbIndex, int configKey )
+    static public String[] getAnchors( int dbIndex, int configKey ) throws ConverterException
     {
 		ArrayList<String> list = new ArrayList<String>();
 		ConverterBase converter = null;
@@ -150,16 +151,16 @@ public class BrowserConverter extends OfflineConverter
 					list.add( "services" );
 			}
 		} catch (ConverterException e) {
-			list.add( e.toString() );
 			if ( converter != null )
 				BrowserConverter.deleteConverter( converter );
+			throw e;
 		}
 		return list.toArray( new String[ list.size() ] );
     }
     
     static public int getCacheEntries()
     {
-    	return ConverterBase.getNumberCacheEntries();
+    	return ConfCache.getNumberCacheEntries();
     }
 
     static public class UrlParameter {

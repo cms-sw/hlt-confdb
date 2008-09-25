@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import confdb.converter.ConfCache;
+import confdb.converter.ConverterException;
 import confdb.data.*;
 import confdb.db.*;
 
@@ -26,13 +28,6 @@ public class Diff
     /** database instance */
     private static ConfDB database = null;
 
-    /** configuration cache */
-    private static ArrayList<Integer> configIdCache =
-	new ArrayList<Integer>();
-    private static ArrayList<Configuration> configCache =
-	new ArrayList<Configuration>();
-
-    
     //
     // member data
     //
@@ -804,7 +799,7 @@ public class Diff
     }
     
     /** get a configuration, given the id or name */
-    public static Configuration getConfiguration(String configIdAsString)
+    public static IConfiguration getConfiguration(String configIdAsString)
 	throws DiffException
     {
 	int configId = -1;
@@ -823,20 +818,10 @@ public class Diff
 	    }
 	}
 	
-	for (int i=0;i<configIdCache.size();i++)
-	    if (configId==configIdCache.get(i)) return configCache.get(i);
-	
 	try {
-	    Configuration config = getDatabase().loadConfiguration(configId);
-	    configIdCache.add(configId);
-	    configCache.add(config);
-	    if (configIdCache.size()>10) {
-		configIdCache.remove(0);
-		configCache.remove(0);
-	    }
-	    return config;
+		return ConfCache.getCache().getConfiguration( configId, getDatabase() );
 	}
-	catch (DatabaseException e) {
+	catch (ConverterException e) {
 	    String errMsg =
 		"Diff::getConfiguration(configIdAsString="+configIdAsString+
 		") failed.";
