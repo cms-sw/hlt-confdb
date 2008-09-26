@@ -11,8 +11,8 @@
 <title>config summary</title>
 
 <!-- css -->
-<link type="text/css" rel="stylesheet" href="../assets/css/columnlist.css" />
-<link rel="stylesheet" type="text/css" href="../assets/css/confdb.css" />
+<link type="text/css" rel="stylesheet" href="../css/columnlist.css" />
+<link rel="stylesheet" type="text/css" href="../css/confdb.css" />
 
 <!-- js -->
 <script type="text/javascript" src="../js/yui/yahoo/yahoo-min.js"></script> 
