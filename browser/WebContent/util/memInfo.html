@@ -18,6 +18,7 @@ body {
 <script type="text/javascript" src="../js/yui/connection/connection-min.js"></script>
 <script type="text/javascript" src="../js/HLT.js"></script>
 <script type="text/javascript" src="../js/AjaxInfo.js"></script>
+<script type="text/javascript" src="../js/graph/diagram.js"></script>
 
 <style type="text/css">
 th,td {
@@ -33,12 +34,15 @@ th,td {
 
 <script type="text/javascript">
 
+var Dom = YAHOO.util.Dom,
+    appendData = null,
+    first = true;
+
 function init()
 {
   AjaxInfo._path = '../browser/AjaxInfo.jsp';
   update();
 }
-
 
 function update()
 {
@@ -47,24 +51,50 @@ function update()
 
 function updateMemInfo( data )
 {
+  if ( data.exceptionThrown )
+  {
+	alert( data.exception + ': ' + data.message );
+	return;
+  }
+
+  if ( first )
+  {
+    first = false;  
+    var url = "graph.jsp?text=cacheInfo&height=200&width=500&max=" + data.maxMemory + "&dt=600";
+    var iframe = '<iframe src="' + url + '" name="graph1" frameborder=0 scrolling="no" width="550" height="250" ></iframe>';
+    Dom.get( 'graphDiv' ).innerHTML = iframe;
+  }
+  var used = data.totalMemory - data.freeMemory;
+  var graphdata = [];
+  graphdata[0] = used;
+  if ( appendData )
+    appendData( graphdata );
   document.getElementById("free").innerHTML = " " + data.freeMemory; 
   document.getElementById("total").innerHTML = " " + data.totalMemory; 
-  document.getElementById("used").innerHTML = " " + (data.totalMemory - data.freeMemory);  
+  document.getElementById("used").innerHTML = " " + used;  
   document.getElementById("max").innerHTML = " " + data.maxMemory; 
   document.getElementById("cache").innerHTML = " " + data.cacheEntries; 
   window.setTimeout("update()", 1000);
 }
 
-function showResponse( data )
+function showResponseCallback( data )
 {
-  if ( data != null )
-	alert( data );
+  if ( data && data.exceptionThrown )
+  {
+	alert( data.exception + ': ' + data.message );
+	return;
+  }
 }
+
 
 YAHOO.util.Event.on('clear_btn','click',function (e) {
 	var clear = confirm( "Do you really want to clear the cache?" );
 	if ( clear == true )
-		AjaxInfo.clearCache( showResponse );
+		AjaxInfo.clearCache( showResponseCallback );
+});
+
+YAHOO.util.Event.on('gc_btn','click',function (e) {
+  HLTjs.json._execute(AjaxInfo._path, 'java.lang.System', 'gc', showResponseCallback );
 });
 
 
@@ -85,8 +115,9 @@ YAHOO.util.Event.on('clear_btn','click',function (e) {
 </table>
 <div>
   <input type="button" id="clear_btn" value="clear cache">
+  <input type="button" id="gc_btn" value="garbage collection">
 </div>
-
+<div id="graphDiv"></div>
 </div>
 </body>
 </html>
