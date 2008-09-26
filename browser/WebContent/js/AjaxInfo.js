@@ -15,7 +15,7 @@ AjaxInfo.getRcmsDbInfo = function(callback) {
   HLTjs.json._execute(AjaxInfo._path, null, 'getRcmsDbInfo', callback);
 }
 AjaxInfo.clearCache = function(callback) {
-  HLTjs.json._execute(AjaxInfo._path, 'confdb.converter.BrowserConverter', 'clearCache', callback);
+  HLTjs.json._execute(AjaxInfo._path, 'confdb.converter.ConfCache', 'clearCache', callback);
 }
 AjaxInfo.getMemInfo = function(callback) {
   HLTjs.json._execute(AjaxInfo._path, null, 'getMemInfo', callback);
