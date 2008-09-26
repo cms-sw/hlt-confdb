@@ -79,11 +79,11 @@ body {
   <div id="head" class="webfx-columnlist-head">
     <table cellspacing="0" cellpadding="0" style="width:100%;">
 	  <tr>
-	    <td><b>trigger name</b><img src="images/asc.png"/></td>
-	    <td><b>L1 condition</b><img src="images/asc.png"/></td>
-	    <td><b>filter 1</b><img src="images/asc.png"/></td>
-	    <td><b>filter 2</b><img src="images/asc.png"/></td>
-	    <td><b>filter 3</b><img src="images/asc.png"/></td>
+	    <td><b>trigger name</b><img src="../img/asc.png"/></td>
+	    <td><b>L1 condition</b><img src="../img/asc.png"/></td>
+	    <td><b>filter 1</b><img src="../img/asc.png"/></td>
+	    <td><b>filter 2</b><img src="../img/asc.png"/></td>
+	    <td><b>filter 3</b><img src="../img/asc.png"/></td>
 	  </tr>
 	</table>
   </div>
