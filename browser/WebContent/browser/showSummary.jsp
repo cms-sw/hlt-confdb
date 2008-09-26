@@ -47,7 +47,8 @@ body {
 	String result = "";
 	BrowserConverter converter = null;
 	try {
-	    ModifierInstructions modifierInstructions = new ModifierInstructions();
+
+		ModifierInstructions modifierInstructions = new ModifierInstructions();
 	    //modifierInstructions.interpretArgs( paras.toModifier );
         converter = BrowserConverter.getConverter( paras.dbName );
         if ( paras.configId == -1 )
@@ -69,10 +70,7 @@ body {
 	    writer.close();
 	    out.println(buffer.toString());
 	    if ( converter != null )
-	    {
 	        BrowserConverter.deleteConverter( converter );
-	        BrowserConverter.clearCache();
-	    }
 	}
 %>
 
