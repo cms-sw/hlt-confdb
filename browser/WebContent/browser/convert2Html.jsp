@@ -44,9 +44,10 @@ var dialog,
     moduleName,
     configRelease,
     configPackage,
+    configSubsystem,
     Dom = YAHOO.util.Dom,
     lxrURL = 'http://cmslxr.fnal.gov/lxr/ident',
-    cvsURL = 'http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/HLTrigger/';
+    cvsURL = 'http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/';
 
 function init()
 {
@@ -69,7 +70,7 @@ function init()
             { width: "500px", 
               fixedcenter: true, 
               draggable: false, 
-              zindex:4,
+//              zindex:4,
               modal: true,
               visible: false,
               buttons : [ { text:"Submit", handler:handleSubmit, isDefault:true },
@@ -87,11 +88,12 @@ function signalReady()
 
 
 
-function showSource( release, type, cmspackage )
+function showSource( release, type, cmspackage, subsystem )
 {
   moduleName = type;
   configRelease = release;
   configPackage = cmspackage;
+  configSubsystem = subsystem;
   if ( release.match( /^CMSSW_\d+_\d+_\d+$/ ) )
   {
     var w = window.open( lxrURL + "?v=" + release + ";i=" + type,  "_blank" );
@@ -161,16 +163,17 @@ function getURL( release )
   var url = lxrURL + "?v=" + release + ";i=" + moduleName;
   if ( release == 'cvs' )
   {
+    url = cvsURL + configSubsystem + '/' + configPackage;
     if ( configPackage == 'HLTcore' )
-      url = cvsURL + configPackage + '/plugins/' + moduleName + '.cc?view=markup&pathrev=' + configRelease;
+      url += '/plugins/' + moduleName + '.cc?view=markup&pathrev=' + configRelease;
     else
-      url = cvsURL + configPackage + '/src/' + moduleName + '.cc?view=markup&pathrev=' + configRelease;
+      url += '/src/' + moduleName + '.cc?view=markup&pathrev=' + configRelease;
   }
   return url;
 }
 
-
 </script>
+
 
 </head>
 
@@ -237,7 +240,6 @@ function getURL( release )
 			else
 				confString = converter.getConverterEngine().convert( conf );
 		} catch ( ConverterException e1 ) {
-			BrowserConverter.clearCache();
 			System.out.println( "reloading config " + configKey );
 			if ( converter instanceof OnlineConverter )
 				confString = ((OnlineConverter)converter).getEpConfigString( configKey );
