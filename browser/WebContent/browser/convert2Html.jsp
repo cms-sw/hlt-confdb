@@ -143,8 +143,8 @@ function handleSubmit()
 	dialog.hide();
 	
 	var release = 'CMSSW_' + data.d1 + '_' + data.d2 + '_' + data.d3;
-	if ( data.lxrCheckbox == 'cvs' )
-	  release = 'cvs';
+	if ( data.lxrCheckbox != 'lxr' )
+	  release = data.lxrCheckbox;
 	
 	if ( parent )
 	{
@@ -155,19 +155,26 @@ function handleSubmit()
 
     var w = window.open( getURL( release ),  "_blank" );
     w.focus();
-  };
+}
 
 
 function getURL( release )
 {
   var url = lxrURL + "?v=" + release + ";i=" + moduleName;
-  if ( release == 'cvs' )
+  if ( release.match( /^cvs/ ) )
   {
     url = cvsURL + configSubsystem + '/' + configPackage;
-    if ( configPackage == 'HLTcore' )
-      url += '/plugins/' + moduleName + '.cc?view=markup&pathrev=' + configRelease;
+	if ( release == 'cvs-h' )
+      url += '/interface/' + moduleName + '.h?view=markup&pathrev=' + configRelease;
+	else if ( release == 'cvs' )
+      url += '?pathrev=' + configRelease;
     else
-      url += '/src/' + moduleName + '.cc?view=markup&pathrev=' + configRelease;
+    {
+      if ( configPackage == 'HLTcore' )
+        url += '/plugins/' + moduleName + '.cc?view=markup&pathrev=' + configRelease;
+      else
+        url += '/src/' + moduleName + '.cc?view=markup&pathrev=' + configRelease;
+    }
   }
   return url;
 }
@@ -277,7 +284,10 @@ function getURL( release )
      <td></td><td><input type="radio" name="lxrCheckbox" value="lxr"></td>
     </tr>
     <tr><td>or</td></tr>
-    <tr><td colspan="7">use CVS browser</td><td></td><td><input type="radio" name="lxrCheckbox" value="cvs"></td>
+    <tr><td colspan="7">use CVS browser and go to </td></tr>
+    <tr><td></td><td colspan="6">.cc</td><td></td><td><input type="radio" name="lxrCheckbox" value="cvs-cc"></td>
+    <tr><td></td><td colspan="6">.h</td><td></td><td><input type="radio" name="lxrCheckbox" value="cvs-h"></td>
+    <tr><td></td><td colspan="6">package</td><td></td><td><input type="radio" name="lxrCheckbox" value="cvs"></td>
     </tr>
    </table>
    <div class="clear"></div>
