@@ -51,6 +51,7 @@ public class ConfCache
     		if ( conf != null )
     			return conf.getConfiguration();
     		IConfiguration configuration;
+    		Runtime.getRuntime().gc();
 			configuration = database.loadConfiguration(key);
     		put( key, configuration, database );
     		return configuration;
