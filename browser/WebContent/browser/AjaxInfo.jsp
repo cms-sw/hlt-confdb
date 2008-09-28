@@ -136,6 +136,12 @@ public MemInfo getMemInfo()
 	return new MemInfo();
 }
 
+public void gc()
+{
+	Runtime.getRuntime().gc();
+	
+}
+
 
 public String getTree( String dbName ) throws ConverterException
 {
@@ -345,20 +351,23 @@ private void buildTree( AjaxTree parentNode, Directory directory, int dbIndex )
 			result = method.invoke( null, params );
 		else
 		{
-			Object jsonObject = null;
-			HttpSession jsonSession = request.getSession( false );
-			if ( jsonSession == null )
-				jsonObject = jsonClass.newInstance();
-			else
+			Object jsonObject = this;
+			if ( className != null )
 			{
-				jsonObject = jsonSession.getAttribute( jsonClass.getCanonicalName() );
-				if ( jsonObject != null  &&  jsonObject.getClass() != this.getClass() )
-					jsonObject = null;
-				if ( jsonObject == null )
-				{
+				HttpSession jsonSession = request.getSession( false );
+				if ( jsonSession == null )
 					jsonObject = jsonClass.newInstance();
-					jsonSession.setAttribute( jsonClass.getCanonicalName(), jsonObject );
-					System.out.println( "new object for session " + jsonSession.getId() );
+				else
+				{
+					jsonObject = jsonSession.getAttribute( jsonClass.getCanonicalName() );
+					if ( jsonObject != null  &&  jsonObject.getClass() != this.getClass() )
+						jsonObject = null;
+					if ( jsonObject == null )
+					{
+						jsonObject = jsonClass.newInstance();
+						jsonSession.setAttribute( jsonClass.getCanonicalName(), jsonObject );
+						System.out.println( "new object for session " + jsonSession.getId() );
+					}
 				}
 			}
 			result = method.invoke( jsonObject, params );

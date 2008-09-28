@@ -94,7 +94,7 @@ YAHOO.util.Event.on('clear_btn','click',function (e) {
 });
 
 YAHOO.util.Event.on('gc_btn','click',function (e) {
-  HLTjs.json._execute(AjaxInfo._path, 'java.lang.System', 'gc', showResponseCallback );
+  HLTjs.json._execute(AjaxInfo._path, null, 'gc', showResponseCallback );
 });
 
 
