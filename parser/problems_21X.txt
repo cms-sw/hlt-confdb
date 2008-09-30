@@ -295,3 +295,12 @@ EgammaHLTPixelMatchElectronProducers.Parameter BSProducer InputTag hltOfflineBea
 
 Module OutputModule PoolOutputModule IOPool Output
 PoolOutputModule.Parameter outputCommands vstring { } untracked
+
+Module OutputModule ShmStreamConsumer EventFilter Modules
+ShmStreamConsumer.Parameter SelectEvents PSet untracked
+ShmStreamConsumer.Parameter outputCommands vstring { } untracked
+ShmStreamConsumer.Parameter use_compression bool true untracked
+ShmStreamConsumer.Parameter compression_level int32 6  untracked
+ShmStreamConsumer.Parameter max_event_size int32 7000000 untracked
+ShmStreamConsumer.Parameter max_queue_depth  int32 5 untracked
+ShmStreamConsumer.Parameter lumiSection_interval int32 600 untracked
