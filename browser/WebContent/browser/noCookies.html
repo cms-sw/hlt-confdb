@@ -38,6 +38,8 @@ var viewportHeight,
 
 function init()
 {
+	AjaxInfo._path = '../browser/AjaxInfo.jsp';
+
 	viewportHeight = Dom.getViewportHeight();
 	tabHeight = viewportHeight - 50; 
 	var widthpx = Dom.getStyle( 'tabMain', 'width' ).split( "px" );
@@ -62,8 +64,23 @@ function init()
 
 function processDBList( dbList )
 {
-	if ( dbList.length > 0 )
-		createTabs( dbList );
+  if ( dbList.exceptionThrown )
+  {
+	alert( dbList.exception + ': ' + dbList.message );
+	return;
+  }
+	
+  if ( dbList.ajaxFailure )
+  {
+  	if ( dbList.ajaxFailure == 'timeout' )
+		AjaxInfo.listDBs( processDBList );	
+  	else
+		alert( 'Ajax failure: ' + data.ajaxFailure );
+	return;
+  }
+		
+  if ( dbList.length > 0 )
+	createTabs( dbList );
 }
 
 
