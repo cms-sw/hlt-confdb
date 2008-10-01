@@ -261,6 +261,12 @@ function createTree( treeData )
 		return;
 	}
 
+    if ( treeData.ajaxFailure )
+    {
+	  alert( 'Ajax failure: ' + treeData.ajaxFailure );
+	  return;
+    }
+
 	tree = new YAHOO.widget.TreeView("treeDiv");
 	var parentNode = tree.getRoot();
 	createTreeRecursiveLoop( parentNode, treeData );

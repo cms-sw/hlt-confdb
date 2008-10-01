@@ -61,13 +61,23 @@ function init()
 
 function processDBList( dbList )
 {
-	if ( dbList.exceptionThrown )
-	{
-		alert( dbList.exception + ': ' + dbList.message );
-		return;
-	}
-	if ( dbList.length > 0 )
-		createTabs( dbList );
+  if ( dbList.exceptionThrown )
+  {
+	alert( dbList.exception + ': ' + dbList.message );
+	return;
+  }
+	
+  if ( dbList.ajaxFailure )
+  {
+  	if ( dbList.ajaxFailure == 'timeout' )
+		AjaxInfo.listDBs( processDBList );	
+  	else
+		alert( 'Ajax failure: ' + data.ajaxFailure );
+	return;
+  }
+		
+  if ( dbList.length > 0 )
+	createTabs( dbList );
 }
 
 
