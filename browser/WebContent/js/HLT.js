@@ -8,17 +8,19 @@ HLTjs.json.failureHandler = function( o )
 {
 	if ( !YAHOO.util.Connect.isCallInProgress(o) )
 	{
-		if ( o.status == -1 )
-	    	alert("AJAX timeout!");
-	    else if ( o.status == 0 )
-	    	alert("AJAX failure: " + o.statusText );
-	    else
-	    {
-	    	var message = "AJAX failure!\nHTTP error " + o.status;
-	    	if ( o.status == 404 ) 
-	    		message += ": " + o.statusText + " is not available";
-	    	alert( message );
-	    }
+	  var failure = new Object();
+	  if ( o.status == -1 )
+	    failure.ajaxFailure = 'timeout'; 
+	  else if ( o.status == 0 )
+	    failure.ajaxFailure = o.statusText;
+	  else
+	  {
+	    var message = "HTTP error " + o.status;
+	    if ( o.status == 404 ) 
+	      message += ": " + o.statusText + " is not available";
+	    failure.ajaxFailure = message;
+	  }
+	  (o.argument)( failure );
     }
 }
 
@@ -61,4 +63,15 @@ HLTjs.json._execute = function(path, className, method, vararg_params )
   YAHOO.util.Connect.asyncRequest( 'POST', path, callbacks, postData);
 }
 
+HLTjs.setValue = function( ele, val ) 
+{
+  if ( val == null ) 
+  	val = "";
+  if ( typeof ele == "string" ) 
+    ele = YAHOO.util.Dom.get( ele );
+  if ( ele == null ) 
+    return;
+
+  ele.innerHTML = val;
+}
 
