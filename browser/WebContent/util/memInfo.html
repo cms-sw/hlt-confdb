@@ -36,7 +36,7 @@ th,td {
 
 var Dom = YAHOO.util.Dom,
     appendData = null,
-    first = true;
+    ajaxCounter = 0;
 
 function init()
 {
@@ -57,23 +57,42 @@ function updateMemInfo( data )
 	return;
   }
 
-  if ( first )
+  if ( data.ajaxFailure )
+  {
+  	if ( data.ajaxFailure == 'timeout' )
+  	{
+  	  HLTjs.setValue( 'ajaxInfo', data.ajaxFailure );
+	  window.setTimeout("update()", 1000);
+  	}
+  	else
+		alert( 'Ajax failure: ' + data.ajaxFailure );
+	return;
+  }
+
+  ajaxCounter += 1;
+  if ( ajaxCounter == 1 )
   {
     first = false;  
     var url = "graph.jsp?text=cacheInfo&height=200&width=500&max=" + data.maxMemory + "&dt=600";
     var iframe = '<iframe src="' + url + '" name="graph1" frameborder=0 scrolling="no" width="550" height="250" ></iframe>';
     Dom.get( 'graphDiv' ).innerHTML = iframe;
   }
+  
+  if ( ajaxCounter % 2 == 0 )
+    HLTjs.setValue( 'ajaxInfo', '.' );
+  else
+  	HLTjs.setValue( 'ajaxInfo', '' );
+  
   var used = data.totalMemory - data.freeMemory;
   var graphdata = [];
   graphdata[0] = used;
   if ( appendData )
     appendData( graphdata );
-  document.getElementById("free").innerHTML = " " + data.freeMemory; 
-  document.getElementById("total").innerHTML = " " + data.totalMemory; 
-  document.getElementById("used").innerHTML = " " + used;  
-  document.getElementById("max").innerHTML = " " + data.maxMemory; 
-  document.getElementById("cache").innerHTML = " " + data.cacheEntries; 
+  HLTjs.setValue( "free", " " + data.freeMemory ); 
+  HLTjs.setValue("total", " " + data.totalMemory ); 
+  HLTjs.setValue("used", " " + used );  
+  HLTjs.setValue("max", " " + data.maxMemory ); 
+  HLTjs.setValue("cache", " " + data.cacheEntries ); 
   window.setTimeout("update()", 1000);
 }
 
@@ -118,6 +137,7 @@ YAHOO.util.Event.on('gc_btn','click',function (e) {
   <input type="button" id="gc_btn" value="garbage collection">
 </div>
 <div id="graphDiv"></div>
+<div id="ajaxInfo"></div>
 </div>
 </body>
 </html>
