@@ -46,6 +46,8 @@ L1GctConfigProducers.Parameter OrcaStyleCoefficients PSet tracked
 L1GctConfigProducers.Parameter PiecewiseCubicCoefficients PSet tracked
 L1GctConfigProducers.Parameter jetCounterSetup PSet tracked
 L1GctConfigProducers.Parameter ConvertEtValuesToEnergy bool false tracked
+L1GctConfigProducers.Parameter HfLutEtSumThresholds vuint32 {8,12,16,24,200,800,2000} tracked
+L1GctConfigProducers.Parameter HfLutBitCountThresholds vuint32 {1,2,3,4,5,6,7} tracked
 
 ESModule PixelCPEInitialESProducer RecoLocalTracker SiPixelRecHits
 PixelCPEInitialESProducer.Parameter PixelErrorParametrization string "NOTcmsim" tracked
