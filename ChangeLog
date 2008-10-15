@@ -1,5 +1,10 @@
 2008-10-15  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-26-00
+	* udpate schema and code for new int64 parameters
+
+2008-10-15  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-25-11
 	* browser/WebContent/get.jsp: change default for 'format' to
 	'python' (was: 'ascii')

@@ -4,24 +4,24 @@ import java.util.ArrayList;
 
 
 /**
- * VUInt32Parameter
- * ----------------
+ * VInt64Parameter
+ * ---------------
  * @author Philipp Schieferdecker
  *
- * for parameters of type vector<uint32>.
+ * for parameters of type vector<int64>.
  */
-public class VUInt32Parameter extends VectorParameter
+public class VInt64Parameter extends VectorParameter
 {
     //
     // data members
     //
 
     /** parameter type string */
-    private static final String type = "vuint32";
-
+    private static final String type = "vint64";
+    
     /** parameter values */
     private ArrayList<Long> values = new ArrayList<Long>();
-    
+
     /** inidcate if values are in hex format */
     private ArrayList<Boolean> isHex  = new ArrayList<Boolean>();
     
@@ -31,8 +31,8 @@ public class VUInt32Parameter extends VectorParameter
     //
     
     /** standard constructor */
-    public VUInt32Parameter(String name,ArrayList<Long> values,
-			    boolean isTracked,boolean isDefault)
+    public VInt64Parameter(String name,ArrayList<Long> values,
+			   boolean isTracked,boolean isDefault)
     {
 	super(name,isTracked,isDefault);
 	for (Long i : values) {
@@ -43,14 +43,13 @@ public class VUInt32Parameter extends VectorParameter
     }
     
     /** constructor from a string */
-    public VUInt32Parameter(String name,String valuesAsString,
-			    boolean isTracked,boolean isDefault)
+    public VInt64Parameter(String name,String valuesAsString,
+			   boolean isTracked,boolean isDefault)
     {
 	super(name,isTracked,isDefault);
 	setValue(valuesAsString);
     }
 
-    
     //
     // member functions
     //
@@ -58,15 +57,15 @@ public class VUInt32Parameter extends VectorParameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	VUInt32Parameter result = new VUInt32Parameter(name,values,
-						       isTracked,isDefault);
+	VInt64Parameter result = new VInt64Parameter(name,values,
+						     isTracked,isDefault);
 	result.setParent(parent);
 	return result;
     }
     
     /** type of the parameter as a string */
     public String type() { return type; }
-    
+
     /** hex format? */
     public boolean isHex(int i) { return isHex.get(i); }
     
@@ -102,7 +101,6 @@ public class VUInt32Parameter extends VectorParameter
 		    while (s.startsWith(" ")) s = s.substring(1,s.length());
 		    while (s.endsWith(" ")) s = s.substring(0,s.length()-1);
 		    if (s.startsWith("+")) s = s.substring(1);
-		    if (s.startsWith("-")) s = s.substring(1);
 		    if (s.startsWith("0x")) {
 			s = s.substring(2);
 			this.values.add(new Long(Long.parseLong(s,16)));
@@ -116,7 +114,7 @@ public class VUInt32Parameter extends VectorParameter
 		isValueSet = true;
 	    }
 	    catch (NumberFormatException e) {
-		System.err.println("VUInt32Parameter.setValue " +
+		System.err.println("VInt64Parameter.setValue " +
 				   "NumberFormatException: "+
 				   e.getMessage());
 		return false;
@@ -153,7 +151,7 @@ public class VUInt32Parameter extends VectorParameter
 	}
 	return true;
     }
-
+    
     /** remove i-th value from vector type parameter */
     public Object removeValue(int i)
     {
@@ -161,5 +159,5 @@ public class VUInt32Parameter extends VectorParameter
 	isValueSet = (values.size()>0);
 	return result;
     }
- 
+    
 }

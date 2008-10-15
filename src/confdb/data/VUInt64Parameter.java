@@ -4,20 +4,20 @@ import java.util.ArrayList;
 
 
 /**
- * VUInt32Parameter
+ * VUInt64Parameter
  * ----------------
  * @author Philipp Schieferdecker
  *
- * for parameters of type vector<uint32>.
+ * for parameters of type vector<uint64>.
  */
-public class VUInt32Parameter extends VectorParameter
+public class VUInt64Parameter extends VectorParameter
 {
     //
     // data members
     //
 
     /** parameter type string */
-    private static final String type = "vuint32";
+    private static final String type = "vuint64";
 
     /** parameter values */
     private ArrayList<Long> values = new ArrayList<Long>();
@@ -31,7 +31,7 @@ public class VUInt32Parameter extends VectorParameter
     //
     
     /** standard constructor */
-    public VUInt32Parameter(String name,ArrayList<Long> values,
+    public VUInt64Parameter(String name,ArrayList<Long> values,
 			    boolean isTracked,boolean isDefault)
     {
 	super(name,isTracked,isDefault);
@@ -43,7 +43,7 @@ public class VUInt32Parameter extends VectorParameter
     }
     
     /** constructor from a string */
-    public VUInt32Parameter(String name,String valuesAsString,
+    public VUInt64Parameter(String name,String valuesAsString,
 			    boolean isTracked,boolean isDefault)
     {
 	super(name,isTracked,isDefault);
@@ -58,7 +58,7 @@ public class VUInt32Parameter extends VectorParameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	VUInt32Parameter result = new VUInt32Parameter(name,values,
+	VUInt64Parameter result = new VUInt64Parameter(name,values,
 						       isTracked,isDefault);
 	result.setParent(parent);
 	return result;
@@ -116,7 +116,7 @@ public class VUInt32Parameter extends VectorParameter
 		isValueSet = true;
 	    }
 	    catch (NumberFormatException e) {
-		System.err.println("VUInt32Parameter.setValue " +
+		System.err.println("VUInt64Parameter.setValue " +
 				   "NumberFormatException: "+
 				   e.getMessage());
 		return false;

@@ -21,6 +21,10 @@ public class ParameterFactory
 	    return new Int32Parameter(name,value,isTracked,isDefault);
 	if (type.equals("uint32"))
 	    return new UInt32Parameter(name,value,isTracked,isDefault);
+	if (type.equals("int64"))
+	    return new Int64Parameter(name,value,isTracked,isDefault);
+	if (type.equals("uint64"))
+	    return new UInt64Parameter(name,value,isTracked,isDefault);
 	if (type.equals("double"))
 	    return new DoubleParameter(name,value,isTracked,isDefault);
 	if (type.equals("string"))
@@ -35,6 +39,10 @@ public class ParameterFactory
 	    return new VInt32Parameter(name,value,isTracked,isDefault);
 	if (type.equals("vuint32"))
 	    return new VUInt32Parameter(name,value,isTracked,isDefault);
+	if (type.equals("vint64"))
+	    return new VInt64Parameter(name,value,isTracked,isDefault);
+	if (type.equals("vuint64"))
+	    return new VUInt64Parameter(name,value,isTracked,isDefault);
 	if (type.equals("vdouble"))
 	    return new VDoubleParameter(name,value,isTracked,isDefault);
 	if (type.equals("vstring"))

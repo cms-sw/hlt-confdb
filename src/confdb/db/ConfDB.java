@@ -139,6 +139,8 @@ public class ConfDB
     private PreparedStatement psInsertBoolParamValue              = null;
     private PreparedStatement psInsertInt32ParamValue             = null;
     private PreparedStatement psInsertUInt32ParamValue            = null;
+    private PreparedStatement psInsertInt64ParamValue             = null;
+    private PreparedStatement psInsertUInt64ParamValue            = null;
     private PreparedStatement psInsertDoubleParamValue            = null;
     private PreparedStatement psInsertStringParamValue            = null;
     private PreparedStatement psInsertEventIDParamValue           = null;
@@ -146,6 +148,8 @@ public class ConfDB
     private PreparedStatement psInsertFileInPathParamValue        = null;
     private PreparedStatement psInsertVInt32ParamValue            = null;
     private PreparedStatement psInsertVUInt32ParamValue           = null;
+    private PreparedStatement psInsertVInt64ParamValue            = null;
+    private PreparedStatement psInsertVUInt64ParamValue           = null;
     private PreparedStatement psInsertVDoubleParamValue           = null;
     private PreparedStatement psInsertVStringParamValue           = null;
     private PreparedStatement psInsertVEventIDParamValue          = null;
@@ -1052,10 +1056,11 @@ public class ConfDB
 	    String created = rs.getString(1);
 	    config.addNextVersion(configId,
 				  created,creator,releaseTag,processName,comment);
-
+	    
 	    // insert global psets
 	    insertGlobalPSets(configId,config);
-
+	    System.err.println("global PSets inserted!");
+	    
 	    // insert edsource
 	    insertEDSources(configId,config);
 
@@ -1097,12 +1102,24 @@ public class ConfDB
 	    dbConnector.getConnection().commit();
 	}
 	catch (DatabaseException e) {
+	    e.printStackTrace(); // DEBUG
 	    try { dbConnector.getConnection().rollback(); }
 	    catch (SQLException e2) { e2.printStackTrace(); }
 	    throw e;
 	}
 	catch (SQLException e) {
-	    try {dbConnector.getConnection().rollback(); }
+	    e.printStackTrace(); // DEBUG
+	    try { dbConnector.getConnection().rollback(); }
+	    catch (SQLException e2) { e2.printStackTrace(); }
+	    String errMsg =
+		"ConfDB::insertConfiguration(config="+config.dbId()+
+		",creator="+creator+",processName="+processName+
+		",comment="+comment+") failed: "+e.getMessage();
+	    throw new DatabaseException(errMsg,e);
+	}
+	catch (Exception e) {
+	    e.printStackTrace(); // DEBUG
+	    try { dbConnector.getConnection().rollback(); }
 	    catch (SQLException e2) { e2.printStackTrace(); }
 	    String errMsg =
 		"ConfDB::insertConfiguration(config="+config.dbId()+
@@ -3091,6 +3108,18 @@ public class ConfDB
 		 "VALUES (?, ?, ?)");
 	    preparedStatements.add(psInsertUInt32ParamValue);
 
+	    psInsertInt64ParamValue =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO Int64ParamValues (paramId,value,hex) " +
+		 "VALUES (?, ?, ?)");
+	    preparedStatements.add(psInsertInt64ParamValue);
+
+	    psInsertUInt64ParamValue =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO UInt64ParamValues (paramId,value,hex) " +
+		 "VALUES (?, ?, ?)");
+	    preparedStatements.add(psInsertUInt64ParamValue);
+
 	    psInsertDoubleParamValue =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO DoubleParamValues (paramId,value) " +
@@ -3134,6 +3163,20 @@ public class ConfDB
 		 "(paramId,sequenceNb,value,hex) " +
 		 "VALUES (?, ?, ?, ?)");
 	    preparedStatements.add(psInsertVUInt32ParamValue);
+
+	    psInsertVInt64ParamValue =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO VInt64ParamValues "+
+		 "(paramId,sequenceNb,value,hex) "+
+		 "VALUES (?, ?, ?, ?)");
+	    preparedStatements.add(psInsertVInt64ParamValue);
+
+	    psInsertVUInt64ParamValue
+		= dbConnector.getConnection().prepareStatement
+		("INSERT INTO VUInt64ParamValues "+
+		 "(paramId,sequenceNb,value,hex) " +
+		 "VALUES (?, ?, ?, ?)");
+	    preparedStatements.add(psInsertVUInt64ParamValue);
 
 	    psInsertVDoubleParamValue =
 		dbConnector.getConnection().prepareStatement
@@ -3355,6 +3398,10 @@ public class ConfDB
 	insertParameterHashMap.put("vint32",    psInsertVInt32ParamValue);
 	insertParameterHashMap.put("uint32",    psInsertUInt32ParamValue);
 	insertParameterHashMap.put("vuint32",   psInsertVUInt32ParamValue);
+	insertParameterHashMap.put("int64",     psInsertInt64ParamValue);
+	insertParameterHashMap.put("vint64",    psInsertVInt64ParamValue);
+	insertParameterHashMap.put("uint64",    psInsertUInt64ParamValue);
+	insertParameterHashMap.put("vuint64",   psInsertVUInt64ParamValue);
 	insertParameterHashMap.put("double",    psInsertDoubleParamValue);
 	insertParameterHashMap.put("vdouble",   psInsertVDoubleParamValue);
 	insertParameterHashMap.put("string",    psInsertStringParamValue);
@@ -3778,9 +3825,18 @@ public class ConfDB
 		    if (vp instanceof VInt32Parameter) {
 			VInt32Parameter vint32=(VInt32Parameter)vp;
 			psInsertParameterValue.setBoolean(4,vint32.isHex(i));
-		    } else if (vp instanceof VUInt32Parameter) {
+		    }
+		    else if (vp instanceof VUInt32Parameter) {
 			VUInt32Parameter vuint32=(VUInt32Parameter)vp;
 			psInsertParameterValue.setBoolean(4,vuint32.isHex(i));
+		    }
+		    else if (vp instanceof VInt64Parameter) {
+			VInt64Parameter vint64=(VInt64Parameter)vp;
+			psInsertParameterValue.setBoolean(4,vint64.isHex(i));
+		    }
+		    else if (vp instanceof VUInt64Parameter) {
+			VUInt64Parameter vuint64=(VUInt64Parameter)vp;
+			psInsertParameterValue.setBoolean(4,vuint64.isHex(i));
 		    }
 		    psInsertParameterValue.addBatch();
 		}
@@ -3798,9 +3854,18 @@ public class ConfDB
 		if (sp instanceof Int32Parameter) {
 		    Int32Parameter int32=(Int32Parameter)sp;
 		    psInsertParameterValue.setBoolean(3,int32.isHex());
-		} else if (sp instanceof UInt32Parameter) {
+		}
+		else if (sp instanceof UInt32Parameter) {
 		    UInt32Parameter uint32=(UInt32Parameter)sp;
 		    psInsertParameterValue.setBoolean(3,uint32.isHex());
+		}
+		else if (sp instanceof Int64Parameter) {
+		    Int64Parameter int64=(Int64Parameter)sp;
+		    psInsertParameterValue.setBoolean(3,int64.isHex());
+		}
+		else if (sp instanceof UInt64Parameter) {
+		    UInt64Parameter uint64=(UInt64Parameter)sp;
+		    psInsertParameterValue.setBoolean(3,uint64.isHex());
 		}
 		psInsertParameterValue.addBatch();
 	    }

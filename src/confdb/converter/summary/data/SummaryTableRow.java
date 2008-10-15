@@ -77,7 +77,8 @@ public class SummaryTableRow implements ITableRow
 	    Iterator<Parameter> itP = filter.parameterIterator();
 	    while (itP.hasNext()) {
 		Parameter p = itP.next();
-		if (p.type().equals("double")||p.type().equals("int32")) {
+		if (p.type().equals("double")||
+		    p.type().equals("int32")||p.type().equals("int64")) {
 		    if (sbParams.length()>0) sbParams.append("::");
 		    sbParams.append(p.name()).append("=").append(p.valueAsString());
 		}

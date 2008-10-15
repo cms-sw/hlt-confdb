@@ -31,9 +31,10 @@ public class AddParameterDialog extends JDialog
     private static final String[] types =
     {
 	"",
-	"int32","uint32","double","string","bool","EventID","InputTag",
-	"FileInPath","PSet",
-	"vint32","vuint32","vdouble","vstring","VEventID","VInputTag","VPSet"
+	"int32","uint32","int64","uint64","double","string","bool",
+	"EventID","InputTag","FileInPath","PSet",
+	"vint32","vuint32","vint64","vuint64","vdouble","vstring",
+	"VEventID","VInputTag","VPSet"
     };
     
     /** GUI components */
@@ -69,7 +70,7 @@ public class AddParameterDialog extends JDialog
     public void addParameterSet()
     {
 	psetMode = true;
-	jComboBoxType.setSelectedIndex(9);
+	jComboBoxType.setSelectedIndex(11);
 	jComboBoxType.setEnabled(false);
     }
 
