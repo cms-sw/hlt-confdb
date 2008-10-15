@@ -53,8 +53,8 @@ public class OnlineConverter extends ConverterBase
     private String esGlobalTag = "";
     private String esConnect   =
 	"frontier://(proxyurl=http://localhost:3128)"+
-	"(serverurl=http://frontier1.cms:8000/FrontierOnProd)"+
-	"(serverurl=http://frontier2.cms:8000/FrontierOnProd)"+
+	"(serverurl=http://localhost:8000/FrontierOnProd)"+
+	"(serverurl=http://localhost:8000/FrontierOnProd)"+
 	"(retrieve-ziplevel=0)";
 
     /** flag used in finalize to either disconnect from database or not */
