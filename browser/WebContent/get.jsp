@@ -19,7 +19,8 @@
 	Set<Map.Entry<String,String[]>> parameters = map.entrySet(); 
 
 	boolean asFragment = false;
-	String format = "ascii";
+        //String format = "ascii";
+        String format = "python";
 	String configId = null;
 	String configName = null;
 	String dbIndexStr = "1";
@@ -50,7 +51,10 @@
 		}
 		else if ( key.equals( "dbName" ) )
 		{
-			if ( !value.equalsIgnoreCase( "hltdev" ) )
+		        // TMP HACK
+		        if (value.equalsIgnoreCase("test")) value = "test2r";
+			
+                        if ( !value.equalsIgnoreCase( "hltdev" ) )
 			{
 			  	ConfDBSetups dbs = new ConfDBSetups();
 		  		String[] labels = dbs.labelsAsArray();

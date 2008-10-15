@@ -3580,7 +3580,7 @@ public class ConfDB
 	instance.setDatabaseId(id);
     }
     
-    /** insert parameter-set into ParameterSets table */
+    /** insert vpset into ParameterSets table */
     private void insertVecParameterSet(int            superId,
 				       int            sequenceNb,
 				       VPSetParameter vpset)
@@ -3612,7 +3612,7 @@ public class ConfDB
 	insertSuperIdVecParamSetAssoc(superId,vpsetId,sequenceNb);
     }
     
-    /** insert parameter-set into ParameterSets table */
+    /** insert pset into ParameterSets table */
     private void insertParameterSet(int           superId,
 				    int           sequenceNb,
 				    PSetParameter pset)
