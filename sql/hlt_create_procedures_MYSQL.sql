@@ -1315,6 +1315,8 @@ BEGIN
   DECLARE v_bool_value   BOOLEAN;
   DECLARE v_int32_value  BIGINT;
   DECLARE v_int32_hex    BOOLEAN;
+  DECLARE v_int64_value  BIGINT;
+  DECLARE v_int64_hex    BOOLEAN;
   DECLARE v_double_value REAL;
   DECLARE v_string_value VARCHAR(512);
   DECLARE v_sequence_nb  INT;
@@ -1336,6 +1338,20 @@ BEGIN
     WHERE paramId=parameter_id;
   DECLARE cur_vuint32 CURSOR FOR
     SELECT value,sequenceNb,hex FROM VUInt32ParamValues
+    WHERE paramId=parameter_id
+    ORDER BY sequenceNb ASC;
+  DECLARE cur_int64 CURSOR FOR
+    SELECT value,hex FROM Int64ParamValues
+    WHERE paramId=parameter_id;
+  DECLARE cur_vint64 CURSOR FOR
+    SELECT value,sequenceNb,hex FROM VInt64ParamValues
+    WHERE paramId=parameter_id
+    ORDER BY sequenceNb ASC;
+  DECLARE cur_uint64 CURSOR FOR
+    SELECT value,hex FROM UInt64ParamValues
+    WHERE paramId=parameter_id;
+  DECLARE cur_vuint64 CURSOR FOR
+    SELECT value,sequenceNb,hex FROM VUInt64ParamValues
     WHERE paramId=parameter_id
     ORDER BY sequenceNb ASC;
   DECLARE cur_double CURSOR FOR
@@ -1431,6 +1447,56 @@ BEGIN
       FETCH cur_vuint32 INTO v_int32_value,v_sequence_nb,v_int32_hex;
     END WHILE;
     CLOSE cur_vuint32;
+    LEAVE proc;
+  END IF;
+
+  /** load int64 values */
+  IF parameter_type='int64' THEN
+    OPEN cur_int64;
+    FETCH cur_int64 INTO v_int64_value,v_int64_hex;
+    IF done=FALSE THEN
+      INSERT INTO tmp_int_table
+        VALUES(parameter_id,v_int64_value,NULL,v_int64_hex);
+    END IF;
+    CLOSE cur_int64;
+    LEAVE proc;
+  END IF;
+
+  /** load vint64 values */
+  IF parameter_type='vint64' THEN
+    OPEN cur_vint64;
+    FETCH cur_vint64 INTO v_int64_value,v_sequence_nb,v_int64_hex;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_int_table
+        VALUES(parameter_id,v_int64_value,v_sequence_nb,v_int64_hex);
+      FETCH cur_vint64 INTO v_int64_value,v_sequence_nb,v_int64_hex;
+    END WHILE;
+    CLOSE cur_vint64;
+    LEAVE proc;
+  END IF;
+
+  /** load uint64 values */
+  IF parameter_type='uint64' THEN
+    OPEN cur_uint64;
+    FETCH cur_uint64 INTO v_int64_value,v_int64_hex;
+    IF done=FALSE THEN
+      INSERT INTO tmp_int_table
+        VALUES(parameter_id,v_int64_value,NULL,v_int64_hex);
+    END IF;
+    CLOSE cur_uint64;
+    LEAVE proc;
+  END IF;
+
+  /** load vuint64 values */
+  IF parameter_type='vuint64' THEN
+    OPEN cur_vuint64;
+    FETCH cur_vuint64 INTO v_int64_value,v_sequence_nb,v_int64_hex;
+    WHILE done=FALSE DO
+      INSERT INTO tmp_int_table
+        VALUES(parameter_id,v_int64_value,v_sequence_nb,v_int64_hex);
+      FETCH cur_vuint64 INTO v_int64_value,v_sequence_nb,v_int64_hex;
+    END WHILE;
+    CLOSE cur_vuint64;
     LEAVE proc;
   END IF;
 

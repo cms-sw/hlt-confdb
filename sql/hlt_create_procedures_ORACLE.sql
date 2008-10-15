@@ -90,6 +90,8 @@ AS
   v_bool_value   NUMBER(1);
   v_int32_value  NUMBER;
   v_int32_hex    NUMBER(1);
+  v_int64_value  NUMBER;
+  v_int64_hex    NUMBER(1);
   v_double_value FLOAT;
   v_string_value VARCHAR2(512);
   v_sequence_nb  PLS_INTEGER;
@@ -110,6 +112,20 @@ AS
     WHERE paramId=parameter_id;
   CURSOR cur_vuint32 IS
     SELECT value,sequenceNb,hex FROM VUInt32ParamValues
+    WHERE paramId=parameter_id
+    ORDER BY sequenceNb ASC;
+  CURSOR cur_int64 IS
+    SELECT value,hex FROM Int64ParamValues
+    WHERE paramId=parameter_id;
+  CURSOR cur_vint64 IS
+    SELECT value,sequenceNb,hex FROM VInt64ParamValues
+    WHERE paramId=parameter_id
+    ORDER BY sequenceNb ASC;
+  CURSOR cur_uint64 IS
+    SELECT value,hex FROM UInt64ParamValues
+    WHERE paramId=parameter_id;
+  CURSOR cur_vuint64 IS
+    SELECT value,sequenceNb,hex FROM VUInt64ParamValues
     WHERE paramId=parameter_id
     ORDER BY sequenceNb ASC;
   CURSOR cur_double IS
@@ -197,6 +213,48 @@ BEGIN
         VALUES(parameter_id,v_int32_value,v_sequence_nb,v_int32_hex);
     END LOOP;
     CLOSE cur_vuint32;
+  /** load int64 values */
+  ELSIF parameter_type='int64'
+  THEN
+    OPEN cur_int64;
+    FETCH cur_int64 INTO v_int64_value,v_int64_hex;
+    IF cur_int64%FOUND THEN
+      INSERT INTO tmp_int_table
+        VALUES(parameter_id,v_int64_value,NULL,v_int64_hex);
+    END IF;
+    CLOSE cur_int64;
+  /** load vint64 values */
+  ELSIF parameter_type='vint64'
+  THEN
+    OPEN cur_vint64;
+    LOOP 
+      FETCH cur_vint64 INTO v_int64_value,v_sequence_nb,v_int64_hex;
+      EXIT WHEN cur_vint64%NOTFOUND;
+      INSERT INTO tmp_int_table
+        VALUES(parameter_id,v_int64_value,v_sequence_nb,v_int64_hex);
+    END LOOP;
+    CLOSE cur_vint64;
+  /** load uint64 values */
+  ELSIF parameter_type='uint64'
+  THEN
+    OPEN cur_uint64;
+    FETCH cur_uint64 INTO v_int64_value,v_int64_hex;
+    IF cur_uint64%FOUND THEN
+      INSERT INTO tmp_int_table
+        VALUES(parameter_id,v_int64_value,NULL,v_int64_hex);
+    END IF;
+    CLOSE cur_uint64;
+  /** load vuint64 values */
+  ELSIF parameter_type='vuint64'
+  THEN
+    OPEN cur_vuint64;
+    LOOP
+      FETCH cur_vuint64 INTO v_int64_value,v_sequence_nb,v_int64_hex;
+      EXIT WHEN cur_vuint64%NOTFOUND;
+      INSERT INTO tmp_int_table
+        VALUES(parameter_id,v_int64_value,v_sequence_nb,v_int64_hex);
+    END LOOP;
+    CLOSE cur_vuint64;
   /** load double values */
   ELSIF parameter_type='double'
   THEN
