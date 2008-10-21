@@ -200,9 +200,6 @@ class ConfdbOracleModuleLoader:
 	newsuperid = -1
 	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 
-#	thecursor.execute("SELECT LAST_INSERT_ID()")
-
-#	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC");
         thecursor.execute("SELECT SuperId_Sequence.currval from dual") 
 	newsuperid = (thecursor.fetchall()[0])[0]
 
@@ -700,6 +697,59 @@ class ConfdbOracleModuleLoader:
                         paramval = str(int(str(paramval), 16))                        
                         thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + paramval + ", 1)") 
 
+
+	    # int64
+	    elif(paramtype == "int64" or paramtype == "long" or paramtype == "int64_t"):
+		type = self.paramtypedict['int64']
+
+		# Fill Parameters table
+		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
+
+		if(paramval):
+		    if(paramval.find('.') != -1):
+			paramval = str(int(float(paramval)))
+		    elif(not paramval.isdigit()):
+			paramval = None
+
+		# Fill ParameterValues table
+		if(paramval == None):
+		    if(self.verbose > 2):
+			print "No default parameter value found"
+		else:
+                    if(str(paramval).find("X") == -1 and str(paramval).find("x") == -1):
+                        thecursor.execute("INSERT INTO Int64ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+                    else:
+                        paramval = str(int(str(paramval), 16))
+                        thecursor.execute("INSERT INTO Int64ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + paramval + ", 1)") 
+
+	    # uint64
+	    elif(paramtype == "uint64" or paramtype == "unsigned long" or paramtype == "uint64_t"):
+		type = self.paramtypedict['uint64']
+
+		if(paramval):
+		    if(str(paramval).endswith("U")):
+			paramval = (str(paramval).rstrip("U"))
+
+		    if(paramval.find('.') != -1):
+			paramval = str(int(float(paramval)))
+		    elif(not paramval.isdigit()):
+			paramval = None
+
+		# Fill Parameters table
+		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)    
+
+		# Fill ParameterValues table
+		if(paramval == None):
+		    if(self.verbose > 2):
+			print "No default parameter value found"
+		else:
+                    if(str(paramval).find("X") == -1 and str(paramval).find("x") == -1): 
+                        thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+                    else:
+                        paramval = str(int(str(paramval), 16))                        
+                        thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + paramval + ", 1)") 
+
+
 	    # bool
 	    elif(paramtype == "bool"):
 		type = self.paramtypedict['bool']
@@ -863,6 +913,49 @@ class ConfdbOracleModuleLoader:
                         else:
                             vecpval = str(int(str(vecpval), 16))                            
                             thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value, hex) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ", 1)")
+			sequencer = sequencer + 1
+                        
+
+	    # vector<int64>
+	    elif(vecptype == "vint64" or vecptype == "int64" or vecptype == "vint64_t"):
+		type = self.paramtypedict['vint64']
+
+		# Fill Parameters table
+		newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
+
+		sequencer = 0
+
+		for vecpval in vecpvals:
+		    if(vecpval):
+			# Fill ParameterValues table
+			if(self.verbose > 2):
+			    print "INSERT INTO VInt64ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")"
+                        if(str(vecpval).find("X") == -1 and str(vecpval).find("x") == -1):
+                            thecursor.execute("INSERT INTO VInt64ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+                        else:
+                            vecpval = str(int(str(vecpval), 16))                            
+                            thecursor.execute("INSERT INTO VInt64ParamValues (paramId, sequenceNb, value, hex) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ", 1)")
+			sequencer = sequencer + 1
+
+	    # vector<uint64>
+	    elif(vecptype == "uint64" or vecptype == "unsigned int64" or vecptype == "uint64_t" or vecptype == "unsigned long" or vecptype == "vuint64"):
+		type = self.paramtypedict['vuint64']
+
+		# Fill Parameters table
+		newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
+
+		sequencer = 0
+
+		for vecpval in vecpvals:
+		    if(vecpval):
+			# Fill ParameterValues table
+			if(self.verbose > 2):
+			    print "INSERT INTO VUInt64ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")"
+                        if(str(vecpval).find("X") == -1 and str(vecpval).find("x") == -1):
+                            thecursor.execute("INSERT INTO VUInt64ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+                        else:
+                            vecpval = str(int(str(vecpval), 16))                            
+                            thecursor.execute("INSERT INTO VUInt64ParamValues (paramId, sequenceNb, value, hex) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ", 1)")
 			sequencer = sequencer + 1
 
 	    #vector<double>
@@ -1087,6 +1180,147 @@ class ConfdbOracleModuleLoader:
                         else:
                             paramval = str(int(str(paramval), 16))                            
                             thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + str(paramval) + ", 1)")
+		else:
+                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+                    #                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=paramseq)
+                    if(self.verbose > 0):
+                        print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
+
+	    elif(paramtype == "int64" or paramtype == "long" or paramtype == "int64_t"):
+		type = self.paramtypedict['int64']
+
+		# Get the old value of this parameter
+		oldparamid = self.RetrieveParamId(thecursor,paramname,oldsuperid)
+
+		# Protect against loading non-integer values. Also deal with implicit fp->int conversions and hex.
+		if(paramval):
+		    if(paramval.find('.') != -1):
+			paramval = str(int(float(paramval)))
+		    elif(not paramval.isdigit()):
+			paramval = None
+		
+		# A previous version of this parameter exists. See if its 
+		# value has changed.
+		if(oldparamid):
+		    thecursor.execute("SELECT Int64ParamValues.value FROM Int64ParamValues WHERE (Int64ParamValues.paramId = " + str(oldparamid) + ")")
+
+		    oldparamval = thecursor.fetchone()
+
+		    if(oldparamval):
+			oldparamval = oldparamval[0]
+
+		    # No changes. Attach parameter to new template.
+		    if((oldparamval == paramval) or 
+		       (oldparamval == None and paramval == None)):
+			neednewparam = False
+
+			# Now check if the tracked/untracked status has changed
+			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
+			oldparamstatus = thecursor.fetchone()[0]
+			if(str(bool(oldparamstatus)).lower() != paramistracked):
+			    if(self.verbose > 0):
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
+			    neednewparam = True
+
+		    # The parameter value has changed. Create a new parameter 
+		    # entry and attach it to the new template.
+		    else:
+			neednewparam = True
+		else:
+		    neednewparam = True
+
+		# We need a new entry for this parameter, either because its 
+		# value changed, or there is no previous version.
+		if(neednewparam == True):
+		    if(self.verbose > 0):
+			print "Parameter is changed (" + str(oldparamval) + ", " + str(paramval) + ")"
+
+		    # Fill Parameters table
+		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
+
+		    # Fill ParameterValues table
+		    if(paramval == None):
+			if(self.verbose > 2):
+			    print "No default parameter value found"
+		    else:
+                        if(str(paramval).find("X") == -1 and str(paramval).find("x") == -1):  
+                            thecursor.execute("INSERT INTO Int64ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
+                        else:
+                            paramval = str(int(str(paramval), 16))                            
+                            thecursor.execute("INSERT INTO Int64ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + str(paramval) + ", 1)") 
+		else:                    
+                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
+                    #                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=paramseq)
+		    if(self.verbose > 0):
+			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
+
+	    # uint64
+	    elif(paramtype == "uint64" or paramtype == "unsigned long" or paramtype == "uint64_t" or paramtype == "ulong"):
+		type = self.paramtypedict['uint64']
+
+		if(paramval):
+		    if(str(paramval).endswith("U")):
+			paramval = (str(paramval).rstrip("U"))
+
+		    if(paramval.find('.') != -1):
+			paramval = str(int(float(paramval)))
+		    elif(not paramval.isdigit()):
+			paramval = None
+
+		# Get the old value of this parameter
+		oldparamid = self.RetrieveParamId(thecursor,paramname,oldsuperid)
+		
+		# A previous version of this parameter exists. See if its 
+		# value has changed.
+		if(oldparamid):
+
+		    thecursor.execute("SELECT UInt64ParamValues.value FROM UInt64ParamValues WHERE (UInt64ParamValues.paramId = " + str(oldparamid) + ")")
+		    oldparamval = thecursor.fetchone()
+		    if(oldparamval):
+			oldparamval = oldparamval[0]
+
+		    if(paramval):
+			paramval = int(paramval)		    
+
+		    # No changes. Attach parameter to new template.
+		    if((oldparamval == paramval) or 
+		       (oldparamval == None and paramval == None)):			
+			neednewparam = False
+
+			# Now check if the tracked/untracked status has changed
+			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
+			oldparamstatus = thecursor.fetchone()[0]
+			if(str(bool(oldparamstatus)).lower() != paramistracked):
+			    if(self.verbose > 0):
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(paramistracked)
+			    neednewparam = True
+
+		    # The parameter value has changed. Create a new parameter 
+		    # entry and attach it to the new template.
+		    else:
+			neednewparam = True
+		else:
+		    neednewparam = True
+
+		# We need a new entry for this parameter, either because its 
+		# value changed, or there is no previous version.
+		if(neednewparam == True):
+		    if(self.verbose > 0):
+			print "Parameter is changed (" + str(oldparamval) + ", " + str(paramval) + ")"
+
+		    # Fill Parameters table
+		    newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
+		    
+		    # Fill ParameterValues table
+		    if(paramval == None):
+			if(self.verbose > 2):
+			    print "No default parameter value found"
+		    else:
+                        if(str(paramval).find("X") == -1 and str(paramval).find("x") == -1):
+                            thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
+                        else:
+                            paramval = str(int(str(paramval), 16))                            
+                            thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + str(paramval) + ", 1)")
 		else:
                     thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
                     #                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=paramseq)
@@ -1565,6 +1799,120 @@ class ConfdbOracleModuleLoader:
                                 thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value, hex) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ", 1)")
 			    sequencer = sequencer + 1
 
+	    # vector<int64>
+	    elif(vecptype == "vint64" or vecptype == "int64" or vecptype == "long" or vecptype == "int64_t"):
+		type = self.paramtypedict['vint64']
+
+		# Get the old value of this parameter
+		oldparamid = self.RetrieveParamId(thecursor,vecpname,oldsuperid)
+		
+		# A previous version of this parameter exists. See if its 
+		# value has changed.
+		if(oldparamid):
+
+		    thecursor.execute("SELECT VInt64ParamValues.value FROM VInt64ParamValues WHERE (VInt64ParamValues.paramId = " + str(oldparamid) + ")")
+		    oldparamval = thecursor.fetchall()
+		    
+		    valssame = self.CompareVectors(oldparamval,vecpvals)
+
+		    # No changes. Attach parameter to new template.
+		    if(valssame):
+                        thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
+                        #                        thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=vecpseq)
+			if(self.verbose > 0):
+			    print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
+			
+			neednewparam = False
+
+			# Now check if the tracked/untracked status has changed
+			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
+			oldparamstatus = thecursor.fetchone()[0]
+			if(str(bool(oldparamstatus)).lower() != vecpistracked):
+			    if(self.verbose > 0):
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(vecpistracked)
+			    neednewparam = True
+
+		    # The parameter value has changed. Create a new parameter 
+		    # entry and attach it to the new template.
+		    else:
+			neednewparam = True
+		else:
+		    neednewparam = True
+
+		# We need a new entry for this parameter, either because its 
+		# value changed, or there is no previous version.
+		if(neednewparam == True):
+	    
+		    # Fill Parameters table
+		    newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
+
+		    sequencer = 0
+
+		    for vecpval in vecpvals:
+			if(vecpval):
+			    # Fill ParameterValues table
+                            if(str(vecpval).find("X") == -1 and str(vecpval).find("x") == -1):
+                                thecursor.execute("INSERT INTO VInt64ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+                            else:
+                                vecpval = str(int(str(vecpval), 16))                                
+                                thecursor.execute("INSERT INTO VInt64ParamValues (paramId, sequenceNb, value, hex) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ", 1)")
+			    sequencer = sequencer + 1
+
+	    # vector<uint64>
+	    elif(vecptype == "uint64" or vecptypr == "unsigned int64" or vecptype == "unsigned long" or vecptype == "uint64_t" or vecptype == "vuint64"):
+		type = self.paramtypedict['vuint64']
+		# Get the old value of this parameter
+		oldparamid = self.RetrieveParamId(thecursor,vecpname,oldsuperid)
+		
+		# A previous version of this parameter exists. See if its 
+		# value has changed.
+		if(oldparamid):
+
+		    thecursor.execute("SELECT VUInt64ParamValues.value FROM VUInt64ParamValues WHERE (VUInt64ParamValues.paramId = " + str(oldparamid) + ")")
+		    oldparamval = thecursor.fetchall()
+		    
+		    valssame = self.CompareVectors(oldparamval,vecpvals)
+
+		    # No changes. Attach parameter to new template.
+		    if(valssame):
+                        #                        thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=vecpseq)
+                        thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(vecpseq) + ")")
+			
+			neednewparam = False
+
+			# Now check if the tracked/untracked status has changed
+			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
+			oldparamstatus = thecursor.fetchone()[0]
+			if(str(bool(oldparamstatus)).lower() != vecpistracked):
+			    if(self.verbose > 0):
+				print "Parameter status has changed from " + str(bool(oldparamstatus)).lower() + " to " + str(vecpistracked)
+			    neednewparam = True
+
+		    # The parameter value has changed. Create a new parameter 
+		    # entry and attach it to the new template.
+		    else:
+			neednewparam = True
+		else:
+		    neednewparam = True
+
+		# We need a new entry for this parameter, either because its 
+		# value changed, or there is no previous version.
+		if(neednewparam == True):
+		    # Fill Parameters table
+		    newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
+
+		    sequencer = 0
+
+		    for vecpval in vecpvals:
+			if(vecpval):
+			    # Fill ParameterValues table
+                            if(str(vecpval).find("X") == -1 and str(vecpval).find("x") == -1):
+                                thecursor.execute("INSERT INTO VUInt64ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ")")   
+                            else:
+                                vecpval = str(int(str(vecpval), 16))                                
+                                thecursor.execute("INSERT INTO VUInt64ParamValues (paramId, sequenceNb, value, hex) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", " + vecpval + ", 1)")
+			    sequencer = sequencer + 1
+
 	    # vector<double>
 	    elif(vecptype == "vdouble" or vecptype == "double"):
 		type = self.paramtypedict['vdouble']
@@ -1818,12 +2166,18 @@ class ConfdbOracleModuleLoader:
 
 	    if(psettype == "int" or psettype == "int32_t"):
 		psettype = "int32"
+            if(psettype == "long" or psettype == "int64_t"):
+                psettype = "int64"
 	    if(psettype == "uint32_t" or psettype == "unsigned int" or psettype == "uint"):
 		psettype = "uint32"
+            if(psettype == "uint64_t" or psettype == "unsigned long" or psettype == "ulong"):
+                psettype = "uint64"
 #	    if(psettype == "FileInPath"):
 #		psettype = "string"
 	    if(psettype == "vunsigned"):
 		psettype = "vuint32"
+            if(psettype == "vlong"):
+                psettype = "vint64"
 
 	    if(not (psettype in self.paramtypedict)):
 		continue
@@ -1878,6 +2232,44 @@ class ConfdbOracleModuleLoader:
                     else:
                         psetval = str(int(str(psetval), 16))                       
                         thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value, hex) VALUES (" + str(newparammemberid) + ", " + psetval + ", 1)")
+
+	    elif(psettype == "int64" or psettype == "long" or psettype == "int64_t"):
+		# Protect against loading non-integer values. Also deal with implicit fp->int conversions and hex.
+		if(psetval):
+		    if(psetval.find('.') != -1):
+			psetval = str(int(float(psetval)))
+		    elif(not psetval.isdigit()):
+			psetval = None
+
+		if(psetval == None):
+		    if(self.verbose > 2):
+			print "No default parameter value found"
+		else:
+                    if(str(psetval).find("X") == -1 and str(psetval).find("x") == -1):                        
+                        thecursor.execute("INSERT INTO Int64ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+                    else:
+                        psetval = str(int(str(psetval), 16))                       
+                        thecursor.execute("INSERT INTO Int64ParamValues (paramId, value, hex) VALUES (" + str(newparammemberid) + ", " + psetval + ", 1)") 
+	    elif(psettype == "uint64" or psettype == "unsigned long" or psettype == "uint64_t" or psettype == "ulong"):
+		if(str(psetval).endswith("U")):
+		    psetval = (str(psetval).rstrip("U"))
+
+		# Protect against loading non-integer values. Also deal with implicit fp->int conversions and hex.
+		if(psetval):
+		    if(psetval.find('.') != -1):
+			psetval = str(int(float(psetval)))
+		    elif(not psetval.isdigit()):
+			psetval = None
+
+		if(psetval == None):
+		    if(self.verbose > 2):
+			print "No default parameter value found"
+		else:
+                    if(str(psetval).find("X") == -1 and str(psetval).find("x") == -1):
+                        thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+                    else:
+                        psetval = str(int(str(psetval), 16))                       
+                        thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value, hex) VALUES (" + str(newparammemberid) + ", " + psetval + ", 1)")
 
 	    elif(psettype == "bool"):
                 print "psetval = " + str(psetval)
@@ -1953,7 +2345,27 @@ class ConfdbOracleModuleLoader:
                     else:
                         entry = str(int(entry.lstrip().rstrip(), 16))                        
                         thecursor.execute("INSERT INTO VUInt32ParamValues (paramId, sequenceNb, value, hex) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ", 1)")
+		    sequencer = sequencer + 1
+	    elif(psettype == "vint64" or psettype == "vlong"):
+		sequencer = 0
+		entries = psetval.lstrip().rstrip().lstrip('{').rstrip('}').split(',')
+		for entry in entries:
+                    if(entry.lstrip().rstrip().find("X") == -1 and entry.lstrip().rstrip().find("x") == -1): 
+                        thecursor.execute("INSERT INTO VInt64ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ")")
+                    else:
+                        entry = str(int(entry.lstrip().rstrip(), 16))                        
+                        thecursor.execute("INSERT INTO VInt64ParamValues (paramId, sequenceNb, value, hex) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ", 1)")
 		    sequencer = sequencer + 1	
+	    elif(psettype == "vuint64"):
+		sequencer = 0
+		entries = psetval.lstrip().rstrip().lstrip('{').rstrip('}').split(',')
+		for entry in entries:
+                    if(entry.lstrip().rstrip().find("X") == -1 and entry.lstrip().rstrip().find("x") == -1):  
+                        thecursor.execute("INSERT INTO VUInt64ParamValues (paramId, sequenceNb, value) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ")")   
+                    else:
+                        entry = str(int(entry.lstrip().rstrip(), 16))                        
+                        thecursor.execute("INSERT INTO VUInt64ParamValues (paramId, sequenceNb, value, hex) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", " + entry.lstrip().rstrip() + ", 1)")
+		    sequencer = sequencer + 1	                    
 	    elif(psettype == "vdouble"):
 		sequencer = 0
 		entries = psetval.lstrip().rstrip().lstrip('{').rstrip('}').split(',')
@@ -2023,6 +2435,12 @@ class ConfdbOracleModuleLoader:
 #		vpsettype = "string"
 	    if(vpsettype == "vunsigned"):
 		vpsettype = "vuint32"
+            if(vpsettype == "int64_t" or vpsettype == "long"):
+                vpsettype = "int64"
+            if(vpsettype == "uint64_t" or vpsettype == "unsigned long"):
+                vpsettype = "uint64"
+            if(vpsettype == "vlong"):
+                vpsettype = "vint64"
 
 	    type = self.paramtypedict[vpsettype]
 
@@ -2069,7 +2487,46 @@ class ConfdbOracleModuleLoader:
                         thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
                     else:
                         vpsetval = str(int(vpsetval, 16))                        
-                        thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value, hex) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ", 1)") 
+                        thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value, hex) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ", 1)")
+
+	    elif(vpsettype == "int64" or vpsettype == "long" or vpsettype == "int64_t"):
+		# Protect against loading non-integer values. Also deal with implicit fp->int conversions and hex.
+		if(vpsetval):
+		    if(vpsetval.find('.') != -1):
+			vpsetval = str(int(float(vpsetval)))
+		    elif(not vpsetval.isdigit()):
+			vpsetval = None
+
+		if(vpsetval == None):
+		    if(self.verbose > 2):
+			print "No default parameter value found"
+		else:
+                    if(str(vpsetval).find("X") == -1 and str(vpsetval).find("x") == -1):
+                        thecursor.execute("INSERT INTO Int64ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
+                    else:
+                        vpsetval = str(int(vpsetval, 16))                        
+                        thecursor.execute("INSERT INTO Int64ParamValues (paramId, value, hex) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ", 1)")
+	    elif(vpsettype == "uint64" or vpsettype == "unsigned long" or vpsettype == "uint64_t" or vpsettype == "ulong"):
+		if(vpsetval):
+		    if(str(vpsetval).endswith("U")):
+			vpsetval = (str(vpsetval).rstrip("U"))
+
+		    # Protect against loading non-integer values. Also deal with implicit fp->int conversions and hex.		
+		    if(vpsetval.find('.') != -1):
+			vpsetval = str(int(float(vpsetval)))
+		    elif(not vpsetval.isdigit()):
+			vpsetval = None
+
+		if(vpsetval == None):
+		    if(self.verbose > 2):
+			print "No default parameter value found"
+		else:
+                    if(str(vpsetval).find("X") == -1 and str(vpsetval).find("x") == -1): 
+                        thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
+                    else:
+                        vpsetval = str(int(vpsetval, 16))                        
+                        thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value, hex) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ", 1)") 
+                        
 	    elif(vpsettype == "bool"):
                 boolval = str(vpsetval).strip('"').strip()
                 if(boolval == "true"):
