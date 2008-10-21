@@ -1859,7 +1859,7 @@ class ConfdbOracleModuleLoader:
 			    sequencer = sequencer + 1
 
 	    # vector<uint64>
-	    elif(vecptype == "uint64" or vecptypr == "unsigned int64" or vecptype == "unsigned long" or vecptype == "uint64_t" or vecptype == "vuint64"):
+	    elif(vecptype == "uint64" or vecptype == "unsigned int64" or vecptype == "unsigned long" or vecptype == "uint64_t" or vecptype == "vuint64"):
 		type = self.paramtypedict['vuint64']
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,vecpname,oldsuperid)
