@@ -306,6 +306,3 @@ ShmStreamConsumer.Parameter compression_level int32 6  untracked
 ShmStreamConsumer.Parameter max_event_size int32 7000000 untracked
 ShmStreamConsumer.Parameter max_queue_depth  int32 5 untracked
 ShmStreamConsumer.Parameter lumiSection_interval int32 600 untracked
-
-Module EDProducer L2MuonProducer RecoMuon L2MuonProducer
-L2MuonProducer.Parameter DoSeedRefit bool false tracked
