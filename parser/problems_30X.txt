@@ -158,6 +158,9 @@ EcalPreshowerGeometryEP.Parameter applyAlignment bool false untracked
 ESModule EcalEndcapGeometryEP Geometry EcalAlgo
 EcalEndcapGeometryEP.Parameter applyAlignment bool false untracked
 
+ESModule TrajectoryCleanerESProducer TrackingTools Producers
+TrajectoryCleanerESProducer.Parameter fractionShared double 0.5 tracked
+
 
 Service MessageLogger FWCore MessageService
 MessageLogger.Parameter destinations vstring { "warnings", "errors", "infos", "debugs", "cout", "cerr" } untracked
@@ -188,6 +191,7 @@ CkfTrackCandidateMaker.Parameter RedundantSeedCleaner string "CachingSeedCleaner
 CkfTrackCandidateMaker.Parameter useHitsSplitting bool false tracked
 CkfTrackCandidateMaker.Parameter doSeedingRegionRebuilding bool false tracked
 CkfTrackCandidateMaker.Parameter TransientInitialStateEstimatorParameters PSet tracked
+CkfTrackCandidateMaker.Parameter cleanTrajectoryAfterInOut bool false tracked
 
 Module EDProducer TrackProducer RecoTracker TrackProducer
 TrackProducer.Parameter alias string "hltEgammaRegionalCTFFinalFitWithMaterial" untracked
@@ -282,6 +286,7 @@ CkfTrajectoryMaker.Parameter useHitsSplitting bool false tracked
 CkfTrajectoryMaker.Parameter TransientInitialStateEstimatorParameters PSet tracked
 CkfTrajectoryMaker.Parameter trackCandidateAlso bool true tracked
 CkfTrajectoryMaker.Parameter doSeedingRegionRebuilding bool false tracked
+CkfTrajectoryMaker.Parameter cleanTrajectoryAfterInOut bool false tracked
 
 Module EDProducer EcalRawToRecHitRoI EventFilter EcalRawToDigi
 EcalRawToRecHit.Parameter JetJobPSet VPSet tracked
