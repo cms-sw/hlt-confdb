@@ -68,6 +68,7 @@ ESModule PixelCPEGenericESProducer RecoLocalTracker SiPixelRecHits
 PixelCPEGenericESProducer.Parameter TanLorentzAnglePerTesla double 0.106 tracked
 PixelCPEGenericESProducer.Parameter PixelErrorParametrization string "NOTcmsim" tracked
 PixelCPEGenericESProducer.Parameter Alpha2Order bool true tracked
+PixelCPEGenericESProducer.Parameter ClusterProbComputationFlag int32 0 tracked
 
 ESModule MixedLayerPairsESProducer RecoTracker TkSeedingLayers
 MixedLayerPairsESProducer.Parameter ComponentName string "MixedLayerPairs" tracked
