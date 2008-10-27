@@ -523,6 +523,10 @@ class ConfdbOracleModuleLoader:
 
 	# Now create a new source
 	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "', '" + str(softpackageid) + "')")
+
+        # appendToDataLabel
+        print "\tMessage: appending string appendToDataLabel to this ESSource"
+        parameters.append(("string","appendToDataLabel","''","true",999))                        
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
@@ -626,6 +630,10 @@ class ConfdbOracleModuleLoader:
 
 	# Now create a new module
 	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "', '" + str(softpackageid) + "')")
+
+        # appendToDataLabel
+        print "\tMessage: appending string appendToDataLabel to this ESModule"
+        parameters.append(("string","appendToDataLabel","''","true",999))
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
