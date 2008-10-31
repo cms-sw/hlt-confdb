@@ -137,6 +137,9 @@ TrackCountingESProducer.Parameter trackQualityClass string "any" tracked
 ESModule LeptonTaggerByDistanceESProducer RecoBTag SoftLepton
 LeptonTaggerByDistanceESProducer.Parameter distance double 0.5 tracked
 
+ESModule LeptonTaggerByPtESProducer RecoBTag SoftLepton
+LeptonTaggerByPtESProducer.Parameter ipSign string "any" tracked
+
 ESModule SkippingLayerCosmicNavigationSchoolESProducer RecoTracker TkNavigation
 SkippingLayerCosmicNavigationSchoolESProducer.Parameter ComponentName string "NoPixelCosmicNavigationSchool" tracked
 SkippingLayerCosmicNavigationSchoolESProducer.Parameter noPXB bool true tracked
@@ -302,6 +305,7 @@ EcalRawToRecHit.Parameter CandJobPSet VPSet tracked
 
 Module EDProducer CSCRecHitDProducer RecoLocalMuon CSCRecHitD
 CSCRecHitDProducer.Parameter readBadChannels bool false tracked
+CSCRecHitDProducer.Parameter readBadChambers bool false tracked
 
 Module EDProducer EgammaHLTPixelMatchElectronProducers RecoEgamma EgammaHLTProducers
 EgammaHLTPixelMatchElectronProducers.Parameter TrackProducer InputTag hltCtfL1NonIsoWithMaterialTracks tracked
