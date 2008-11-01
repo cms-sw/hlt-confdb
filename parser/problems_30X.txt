@@ -322,3 +322,16 @@ ShmStreamConsumer.Parameter compression_level int32 6  untracked
 ShmStreamConsumer.Parameter max_event_size int32 7000000 untracked
 ShmStreamConsumer.Parameter max_queue_depth  int32 5 untracked
 ShmStreamConsumer.Parameter lumiSection_interval int32 600 untracked
+
+Module EDProducer PFJetCorrectionProducer JetMETCorrections Modules 
+PFJetCorrectionProducer.Parameter src InputTag hltIterativeCone5CaloJets tracked 
+PFJetCorrectionProducer.Parameter verbose bool false untracked 
+PFJetCorrectionProducer.Parameter alias string "MCJetCorJetIcone5" untracked 
+PFJetCorrectionProducer.Parameter correctors vstring {"MCJetCorrectorIcone5"} tracked 
+ 
+Module EDProducer CaloJetCorrectionProducer JetMETCorrections Modules 
+CaloJetCorrectionProducer.Parameter src InputTag hltIterativeCone5CaloJets tracked 
+CaloJetCorrectionProducer.Parameter verbose bool false untracked 
+CaloJetCorrectionProducer.Parameter alias string "MCJetCorJetIcone5" untracked 
+CaloJetCorrectionProducer.Parameter correctors vstring {"MCJetCorrectorIcone5"} tracked 
+
