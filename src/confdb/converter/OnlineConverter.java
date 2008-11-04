@@ -364,33 +364,42 @@ public class OnlineConverter extends ConverterBase
     /** set the parameters for the online message logger service */
     private void setOnlineMessageLoggerOptions(IConfiguration config)
     {
+	// find the message logger
 	ServiceInstance msgLogger = config.service("MessageLogger");
 	if (msgLogger==null) {
 	    System.err.println("MessageLogger not found");
 	    return;
 	}
-	PSetParameter psetCout = new PSetParameter("cout",
-						   new ArrayList<Parameter>(),
-						   false,false);
-	psetCout.addParameter(new StringParameter("threshold",mlVerbosityCout,
-						  false,false));
-	PSetParameter psetLog4 = new PSetParameter("log4cplus",
-						   new ArrayList<Parameter>(),
-						   false,false);
-	psetLog4.addParameter(new StringParameter("threshold",mlVerbosityLog4,
-						   false,false));
-	msgLogger.updateParameter("destinations","vstring","cout,log4cplus");
-	msgLogger.updateParameter("cout",        "PSet",psetCout.valueAsString());
-	msgLogger.updateParameter("log4cplus",   "PSet",psetLog4.valueAsString());
 
-	Iterator<Parameter> itP = msgLogger.parameterIterator();
-	while (itP.hasNext()) {
-	    Parameter p = itP.next();
-	    if (p.isTracked()) continue;
-	    if (p.name().equals("destinations")||
-		p.name().equals("cout")||
-		p.name().equals("log4cplus")) continue;
-	    p.setValue("");
+	// check if destinations contains 'log4cplus', if not add it
+	VStringParameter vstringDest =
+	    (VStringParameter)msgLogger.parameter("destinations");
+	if (vstringDest == null) {
+	    System.err.println("MessageLogger.destinations not found");
+	    return;
+	}
+	
+	String vstringDestAsString = vstringDest.valueAsString();
+	if (!vstringDestAsString.contains("log4cplus")) {
+	    String newValue = (vstringDestAsString.length()==0) ?
+		"log4cplus" : vstringDestAsString + ",\" log4cplus\"";
+	    msgLogger.updateParameter("destinations","vstring",newValue);
+	}
+	
+	// check if MessageLogger.log4cplus contains threshold, otherwise set
+	PSetParameter psetLog4 =
+	    (PSetParameter)msgLogger.parameter("log4cplus");
+	if (psetLog4==null) {
+	    System.err.println("MessageLogger.log4cplus not found");
+	    return;
+	}
+	
+	StringParameter stringThresh =
+	    (StringParameter)psetLog4.parameter("threshold");
+	if (stringThresh==null) {
+	    psetLog4.addParameter(new StringParameter("threshold",mlVerbosityLog4,
+						      false,false));
+	    msgLogger.updateParameter("log4cplus","PSet",psetLog4.valueAsString());
 	}
     }
     

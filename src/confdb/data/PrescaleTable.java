@@ -59,7 +59,7 @@ public class PrescaleTable
     }
     
     /** get the j-th prescale for i-th path */
-    public int prescale(int i,int j)
+    public long prescale(int i,int j)
     {
 	return rows.get(i).prescales.get(j);
     }
@@ -68,7 +68,7 @@ public class PrescaleTable
     public String prescalesAsString(int i)
     {
 	StringBuffer result = new StringBuffer();
-	Iterator<Integer> itI = rows.get(i).prescales.iterator();
+	Iterator<Long> itI = rows.get(i).prescales.iterator();
 	while (itI.hasNext()) {
 	    if (result.length()>0) result.append(",");
 	    result.append(itI.next());
@@ -79,13 +79,13 @@ public class PrescaleTable
     /** check if the i-th path is prescaled at all */
     public boolean isPrescaled(int i)
     {
-	Iterator<Integer> itI = rows.get(i).prescales.iterator();
+	Iterator<Long> itI = rows.get(i).prescales.iterator();
 	while (itI.hasNext()) if (itI.next()!=1) return true;
 	return false;
     }
 
     /** set a prescale */
-    public void setPrescale(int i,int j,int prescale)
+    public void setPrescale(int i,int j,long prescale)
     {
 	rows.get(i).prescales.set(j,prescale);
     }
@@ -96,7 +96,7 @@ public class PrescaleTable
 	if (i>=columnNames.size()) return;
 	columnNames.add(i+1,columnName);
 	Iterator<PrescaleTableRow> itR = rows.iterator();
-	while (itR.hasNext()) itR.next().prescales.add(i,1);
+	while (itR.hasNext()) itR.next().prescales.add(i,new Long(1));
     }
     
     /** remove a column at the i-th position */
@@ -162,9 +162,9 @@ public class PrescaleTable
 		continue;
 	    }
 	    
-	    ArrayList<Integer> prescales = new ArrayList<Integer>();
+	    ArrayList<Long> prescales = new ArrayList<Long>();
 	    for (int ii=0;ii<vPrescales.vectorSize();ii++)
-		prescales.add((Integer)vPrescales.value(ii));
+		prescales.add((Long)vPrescales.value(ii));
 	    pathToRow.put(pathName,new PrescaleTableRow(pathName,prescales));
 	}
 	
@@ -189,8 +189,8 @@ public class PrescaleTable
 class PrescaleTableRow
 {
     public String pathName;
-    public ArrayList<Integer> prescales;
-    public PrescaleTableRow(String pathName,ArrayList<Integer> prescales)
+    public ArrayList<Long> prescales;
+    public PrescaleTableRow(String pathName,ArrayList<Long> prescales)
     {
 	this.pathName = pathName;
 	this.prescales = prescales;
@@ -198,7 +198,7 @@ class PrescaleTableRow
     public PrescaleTableRow(String pathName, int prescaleCount)
     {
 	this.pathName = pathName;
-	prescales = new ArrayList<Integer>();
-	for (int i=0;i<prescaleCount;i++) prescales.add(1);
+	prescales = new ArrayList<Long>();
+	for (int i=0;i<prescaleCount;i++) prescales.add(new Long(1));
     }
 }

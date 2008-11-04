@@ -1,3 +1,14 @@
+2008-11-04  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-26-02
+	* fix bug in PrescaleTable (adjustment necessary to VUint32 being
+	modelled using Long now)
+	* OnlineConverter: only check that MessageLogger.destinations
+	contains 'log4cplus' at all, and that
+	MessageLogger.log4cplus.threshold exists
+	* pick up Jonathan's latest developments, which are still work in
+	progress
+
 2008-10-15  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-26-01
