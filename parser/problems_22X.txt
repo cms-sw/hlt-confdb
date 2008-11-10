@@ -299,6 +299,7 @@ EcalRawToRecHit.Parameter CandJobPSet VPSet tracked
 
 Module EDProducer CSCRecHitDProducer RecoLocalMuon CSCRecHitD
 CSCRecHitDProducer.Parameter readBadChannels bool false tracked
+CSCRecHitDProducer.Parameter readBadChambers bool false tracked
 
 Module EDProducer EgammaHLTPixelMatchElectronProducers RecoEgamma EgammaHLTProducers
 EgammaHLTPixelMatchElectronProducers.Parameter TrackProducer InputTag hltCtfL1NonIsoWithMaterialTracks tracked
