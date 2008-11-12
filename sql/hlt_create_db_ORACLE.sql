@@ -1080,7 +1080,7 @@ CREATE INDEX VDoubleValuesParamId_idx ON VDoubleParamValues(paramId);
 CREATE TABLE StringParamValues
 (
 	paramId    	NUMBER		NOT NULL,
-	value      	VARCHAR2(512),
+	value      	VARCHAR2(1024),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
@@ -1095,7 +1095,7 @@ CREATE TABLE VStringParamValues
 (
 	paramId    	NUMBER		NOT NULL,
 	sequenceNb 	NUMBER(6)	NOT NULL,
-	value      	VARCHAR2(512),
+	value      	VARCHAR2(1024),
 	UNIQUE(paramId,sequenceNb),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );

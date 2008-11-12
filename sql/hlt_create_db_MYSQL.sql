@@ -656,7 +656,7 @@ CREATE TABLE VDoubleParamValues
 CREATE TABLE StringParamValues
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL UNIQUE,
-	value      	VARCHAR(512)     NOT NULL,
+	value      	VARCHAR(1024)     NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
 
@@ -665,7 +665,7 @@ CREATE TABLE VStringParamValues
 (
 	paramId    	BIGINT UNSIGNED   NOT NULL,
 	sequenceNb 	SMALLINT UNSIGNED NOT NULL,
-	value      	VARCHAR(512)     NOT NULL,
+	value      	VARCHAR(1024)     NOT NULL,
 	UNIQUE(paramId,sequenceNb),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 ) ENGINE=INNODB;
