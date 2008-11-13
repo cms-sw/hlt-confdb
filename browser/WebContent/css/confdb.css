@@ -13,8 +13,11 @@
 .xygtvlmh { background: url(../img/tree/collapseh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
 .xygtvtmh { background: url(../img/tree/collapseh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
 
+.color0 { background:white; }
+.color1 { background:#EFEEEA;}
+.color2 { background-color:#FFE19A; }
 
-html, body { background:#ebebf0;}
+html, body { background:#e5e5e5;}
 
 
 .yui-skin-sam .yui-navset .yui-content { 
@@ -40,4 +43,3 @@ div.dropDownButton {
 .mayorInfo {
   color:green;
 }
-
