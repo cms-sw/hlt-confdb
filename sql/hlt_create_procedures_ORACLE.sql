@@ -59,7 +59,7 @@ CREATE GLOBAL TEMPORARY TABLE tmp_real_table
 CREATE GLOBAL TEMPORARY TABLE tmp_string_table
 (
   parameter_id	    NUMBER,
-  parameter_value   VARCHAR2(512),
+  parameter_value   VARCHAR2(1024),
   sequence_nb       NUMBER
 ) ON COMMIT PRESERVE ROWS;
 
@@ -93,7 +93,7 @@ AS
   v_int64_value  NUMBER;
   v_int64_hex    NUMBER(1);
   v_double_value FLOAT;
-  v_string_value VARCHAR2(512);
+  v_string_value VARCHAR2(1024);
   v_sequence_nb  PLS_INTEGER;
 
   /* declare cursors */

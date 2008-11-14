@@ -165,7 +165,7 @@ BEGIN
     CREATE TEMPORARY TABLE tmp_string_table
     (
       parameter_id	BIGINT UNSIGNED,
-      parameter_value   VARCHAR(512),
+      parameter_value   VARCHAR(1024),
       sequence_nb       INT
     );
 
@@ -383,7 +383,7 @@ BEGIN
     CREATE TEMPORARY TABLE tmp_string_table
     (
       parameter_id	BIGINT UNSIGNED,
-      parameter_value   VARCHAR(512),
+      parameter_value   VARCHAR(1024),
       sequence_nb       INT
     );
 
@@ -639,7 +639,7 @@ BEGIN
     CREATE TEMPORARY TABLE tmp_string_table
     (
       parameter_id	BIGINT UNSIGNED,
-      parameter_value   VARCHAR(512),
+      parameter_value   VARCHAR(1024),
       sequence_nb       INT
     );
 
@@ -993,7 +993,7 @@ BEGIN
     CREATE TEMPORARY TABLE tmp_string_table
     (
       parameter_id	BIGINT UNSIGNED,
-      parameter_value   VARCHAR(512),
+      parameter_value   VARCHAR(1024),
       sequence_nb       INT
     );
 
@@ -1318,7 +1318,7 @@ BEGIN
   DECLARE v_int64_value  BIGINT;
   DECLARE v_int64_hex    BOOLEAN;
   DECLARE v_double_value REAL;
-  DECLARE v_string_value VARCHAR(512);
+  DECLARE v_string_value VARCHAR(1024);
   DECLARE v_sequence_nb  INT;
   DECLARE done           BOOLEAN DEFAULT FALSE;
 
