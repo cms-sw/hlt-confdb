@@ -9,13 +9,13 @@
     zoom:1;
 }
 
-.yui-nav li.selected {
+.yui-navset .yui-nav li.selected {
 	margin-bottom: -1px;	/* hide bottom border on selected tab */
 }
 
 
 
-.yui-nav .selected a:hover {
+.yui-navset .yui-nav .selected a:hover {
 	border-color: #999;
 }
 
@@ -55,7 +55,7 @@
 
 .yui-navset .yui-nav .selected a,
 .yui-navset .yui-nav .selected a em {
-	border-color: #999;
+	border-color: #B6CDE1;
 	color: #555;
 	font-weight: bold;
 	background: #EFEEEA;
@@ -75,4 +75,10 @@
 .yui-navset .yui-nav .disabled a {
     border: 0px;
 }
+
+.yui-navset .yui-content {
+  border: 1px solid #B6CDE1;
+  padding: 10px;
+}
+
 
