@@ -4,41 +4,53 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>HLT config</title>
 
-<link rel="stylesheet" type="text/css" href="../js/yui/reset-fonts-grids/reset-fonts-grids.css" />
-<!-- 
-<link rel="stylesheet" type="text/css" href="../js/yui/base/base-min.css" />
-<link rel="stylesheet" type="text/css" href="../js/yui/datatable/assets/skins/sam/datatable.css" />
- -->
-<link rel="stylesheet" type="text/css" href="../js/yui/container/assets/skins/sam/container.css" />
-<link rel="stylesheet" type="text/css" href="../js/yui/resize/assets/skins/sam/resize.css"" />
-<link rel="stylesheet" type="text/css" href="../js/yui/treeview/assets/skins/sam/treeview.css" />
-<link rel="stylesheet" type="text/css" href="../css/folders/tree.css">
-<link rel="stylesheet" type="text/css" href="../css/confdb.css" />
+<%
+  String db = request.getParameter( "db" );
+  String yui = "../js/yui";
+  String css = "../css";
+  String js = "../js";
+  String img = "../img";
+  boolean online = false;
+  if ( db.equals( "online" ) )
+  {
+	online = true;
+  	yui = "../../../gui/yui";
+    css = "../../css";
+    js = "../../js";
+    img = "../../img";
+  }
+%>
 
-<script type="text/javascript" src="../js/yui/utilities/utilities.js"></script>
-<script type="text/javascript" src="../js/yui/cookie/cookie-beta-min.js"></script>
-<script type="text/javascript" src="../js/yui/datasource/datasource-beta-min.js"></script>
-<script type="text/javascript" src="../js/yui/resize/resize-beta-min.js"></script>
-<script type="text/javascript" src="../js/yui/json/json-min.js"></script>
-<script type="text/javascript" src="../js/yui/treeview/treeview.js"></script>
-<script type="text/javascript" src="../js/yui/container/container-min.js"></script>
-<script type="text/javascript" src="../js/HLT.js"></script>
-<script type="text/javascript" src="../js/AjaxInfo.js"></script>
+<link rel="stylesheet" type="text/css" href="<%=yui%>/reset-fonts-grids/reset-fonts-grids.css" />
+<link rel="stylesheet" type="text/css" href="<%=yui%>/container/assets/skins/sam/container.css" />
+<link rel="stylesheet" type="text/css" href="<%=yui%>/resize/assets/skins/sam/resize.css"" />
+<link rel="stylesheet" type="text/css" href="<%=yui%>/treeview/assets/skins/sam/treeview.css" />
+<link rel="stylesheet" type="text/css" href="<%=yui%>/tabview/assets/tabview-core.css" />
+<link rel="stylesheet" type="text/css" href="<%=css%>/folders/tree.css">
+<link rel="stylesheet" type="text/css" href="<%=css%>/confdb.css" />
+<link rel="stylesheet" type="text/css" href="<%=css%>/tabs.css" />
 
-
+<script type="text/javascript" src="<%=yui%>/utilities/utilities.js"></script>
+<script type="text/javascript" src="<%=yui%>/cookie/cookie-min.js"></script>
+<script type="text/javascript" src="<%=yui%>/datasource/datasource-beta-min.js"></script>
+<script type="text/javascript" src="<%=yui%>/resize/resize-min.js"></script>
+<script type="text/javascript" src="<%=yui%>/json/json-min.js"></script>
+<script type="text/javascript" src="<%=yui%>/treeview/treeview-min.js"></script>
+<script type="text/javascript" src="<%=yui%>/tabview/tabview.js"></script>
+<script type="text/javascript" src="<%=yui%>/container/container-min.js"></script>
+<script type="text/javascript" src="<%=js%>/HLT.js"></script>
 
 
 <style>
 
+body, #doc3, #pg, #mainRight, .blindTable { 
+    padding:0px; 
+    margin:0px; 
+}
+
 body {
-	margin:0px; 
-	padding:0px; 
     overflow: hidden;
     position: fixed;
-}
-.blindTable {
-	margin:0px; 
-	padding:0px; 
 }
 
 .blindTable td {
@@ -46,85 +58,46 @@ body {
 }
 
 
-.topDiv {
-	height: 1.2em;
-}
-
-#doc3 { 
-    padding:0px; 
-    margin:0px; 
-}
-
-#pg {
-	margin:0px; 
-	padding:0px; 
-}
-
-#pg .yui-g {
-}
-
-#pg .yui-u {
-}
-
 #mainLeft { 
 	border: 0px solid #B6CDE1; 
 	margin:0px; 
-	padding-right:5px;
-	padding-left:1px; 
-	padding-top:1px; 
-}
-
-#mainRight { 
+	padding: 1px 5px 0px 1px;
 }
 
 
-
-
-#headerDiv { 
+#leftHeaderDiv { 
 	margin:0px; 
 	padding:0.4em; 
 	background:white; 
 	border: 1px solid #B6CDE1; 
 	border-bottom: 0px;
+	height: 1.2em;
 }
 
 #rightHeaderDiv {
-	background-color:#FFE19A;
 	border: 1px solid #B6CDE1; 
+	border-bottom: 0px;
 	margin:0px; 
 	margin-top:1px; 
-	margin-bottom:3px; 
-	padding:1px; 
+	padding:2px; 
 }
 
-#rightHeaderBottomDiv {
-	height:20px;
+.yui-nav {
+	border-left: 1px solid #B6CDE1; 
+	border-right: 1px solid #B6CDE1; 
 }
 
-#configDiv {
-    overflow: hidden;
-}
 
 #treeDiv {
     overflow: auto;
 }
 
+
 </style>
 
+<script type="text/javascript">
+
 <%
-  String db = request.getParameter( "db" );
-  out.println( "<script type=\"text/javascript\">" );
-  if ( db != null )
-  {
-	  out.println( "var pageId = \"" + db + "\";" );
-	  out.println( "var dbName = \"" + db + "\";" );
-  }
-  else
-  {
-	  out.println( "var pageId = \"any\";" );
-	  out.println( "var dbName = null;" );
-  }
-	  
   String height = request.getParameter( "height" );
   if ( height == null )
 	  out.println( "var displayHeight = 0;" );
@@ -135,39 +108,65 @@ body {
 	  out.println( "var displayWidth = 0;" );
   else
 	  out.println( "var displayWidth = " + width + ";" );
-  out.println( "</script>" );
+
+  out.println( "var imgDir = '" + img + "';" );
+  
+  if ( db != null )
+  {
+	  out.println( "var dbName = '" + db + "';" );
+	  if ( online )
+	  {
+		out.println( "var onlineMode = true;" );
+	    out.println( "var pageId = 'test';" );
+		out.println( "AjaxInfo._path = '../../jsp/hlt/AjaxInfo.jsp';" );
+	  }
+	  else
+	  {
+		out.println( "var onlineMode = false;" );
+		out.println( "var pageId = '" + db + "';" );
+		out.println( "AjaxInfo._path = '../browser/AjaxInfo.jsp';" );
+	  }
+  }
+  else
+  {
+	  out.println( "var onlineMode = false;" );
+	  out.println( "var pageId = \"any\";" );
+	  out.println( "var dbName = null;" );
+	  out.println( "AjaxInfo._path = '../browser/AjaxInfo.jsp';" );
+  }
 %>
 
-<script type="text/javascript">
 
 var configFrameUrl,
 	configKey,
-	dbIndex,
+//	dbIndex,
 	Dom = YAHOO.util.Dom,
     Event = YAHOO.util.Event,
     mainLeft = null,
     mainRight = null,
+    activeMainDiv,
     displayWidth,
     resize,
     oldWidth = "200px",
     detailsMode = true,
-    cookie = null,
+    hltCookie = null,
     cookieExpires,
     tree,
   	tooltip, 
-  	tooltipElements = []; 
+  	tooltipElements = [],
+  	tabView, 
+  	tabReady = [],
+    activeTab = 1;
 	
 function init() 
 {
-	AjaxInfo._path = '../browser/AjaxInfo.jsp';
-
     cookieExpires = new Date();
     cookieExpires.setFullYear( cookieExpires.getFullYear() + 1 );
     if ( parent && parent.cookie )
     {
-      cookie = YAHOO.util.Cookie.getSubs( pageId );
-      if ( cookie == null )
-    	cookie = new Object();
+      hltCookie = YAHOO.util.Cookie.getSubs( pageId );
+      if ( hltCookie == null )
+    	hltCookie = new Object();
     }
 
     mainLeft = Dom.get('mainLeft');
@@ -202,20 +201,20 @@ function init()
 
     resize.on('resize', function(ev) {
             var w = ev.width;
-            if ( cookie && w > 10 )
+            if ( hltCookie && w > 10 )
             {
-              cookie.treeWidth = w;
-		  	  YAHOO.util.Cookie.setSubs( pageId, cookie, { expires: cookieExpires } );
+              hltCookie.treeWidth = w;
+		  	  YAHOO.util.Cookie.setSubs( pageId, hltCookie, { expires: cookieExpires } );
 		  	}
             var width = displayWidth - w - 8;
             Dom.setStyle( mainRight, 'height', displayHeight + 'px' );
             Dom.setStyle( mainRight, 'width', width + 'px');
-            Dom.setStyle( 'configDiv', 'width', width + 'px');
+//            Dom.setStyle( 'configDiv', 'width', width + 'px');
         });
 
   var treeWidth = 200;
-  if ( cookie && cookie.treeWidth )
-  	treeWidth = cookie.treeWidth;
+  if ( hltCookie && hltCookie.treeWidth )
+  	treeWidth = hltCookie.treeWidth;
   resize.resize(null, displayHeight, treeWidth, 0, 0, true);
 
 
@@ -246,10 +245,25 @@ function init()
             Dom.setStyle( mainLeft, 'visibility', 'visible' );
 		});
 
-  Event.on( "detailsButton", "click", selectView, "details" );
-  Event.on( "summaryButton", "click", selectView, "summary" );
+  if ( hltCookie && hltCookie.activeTab )
+    activeTab = hltCookie.activeTab;
+  if ( !activeTab )
+    activeTab = 1;
+  tabView = new YAHOO.widget.TabView( 'tabView', { activeIndex : activeTab } );
+  tabView.set( 'activeIndex', activeTab );
 
-  AjaxInfo.getTree( dbName, createTree );	
+  tabView.on( 'activeTabChange', function( eventInfo ) {
+	  activeTab = tabView.get( 'activeIndex' );
+	  if ( !tabReady[ activeTab ] )
+	    loadTab();
+      if ( hltCookie )
+      {
+        hltCookie.activeTab = activeTab;
+	    YAHOO.util.Cookie.setSubs( pageId, hltCookie, { expires: cookieExpires } );
+	  }
+	} );
+  
+  AjaxInfo.getTree( onlineMode ? 'orcoff' : dbName, createTree );	
 }
 	
 	
@@ -270,17 +284,17 @@ function createTree( treeData )
 	tree = new YAHOO.widget.TreeView("treeDiv");
 	var parentNode = tree.getRoot();
 	createTreeRecursiveLoop( parentNode, treeData );
-	tree.draw();
-	tree.subscribe( "labelClick", labelClicked );
-  	Dom.get( 'headerDiv' ).innerHTML = '<a id="expand" href="#">Expand all</a> <a id="collapse" href="#">Collapse all</a>'; 
+	tree.render();
+	tree.subscribe( "clickEvent", configSelected );
+  	Dom.get( 'leftHeaderDiv' ).innerHTML = '<a id="expand" href="#">Expand all</a> <a id="collapse" href="#">Collapse all</a>'; 
   	Dom.setStyle( 'collapseDiv', 'visibility', 'visible' );
   	
   	// uses too much CPU power!
 	//tooltip = new YAHOO.widget.Tooltip( "tooltip", { context: tooltipElements } ); 
 
-	if ( cookie )
+	if ( hltCookie )
   	{
-    	var config = cookie.selectedConfig;
+    	var config = hltCookie.selectedConfig;
     	if ( config != null )
     	{ 
       	  var node = tree.getRoot();
@@ -301,12 +315,14 @@ function createTreeRecursiveLoop( parentNode, treeData )
 	for ( var i = 0; i < treeData.configs.length; i++ )
 	{    
 		var config = treeData.configs[i];
-		var configNode = new YAHOO.widget.ConfigNode( config.nodeData, parentNode, false );
+		config.nodeData.expanded = false;
+		var configNode = new YAHOO.widget.ConfigNode( config.nodeData, parentNode );
 		if ( config.nodeData.title )
 		  tooltipElements.push( configNode.labelElId );
 		for ( var ii = 0; ii < config.subnodes.length; ii++ )
 		{    
-		  var subnode = new YAHOO.widget.ConfigNode( config.subnodes[ii].nodeData, configNode, false );
+		  config.subnodes[ii].nodeData.expanded = false;
+		  var subnode = new YAHOO.widget.ConfigNode( config.subnodes[ii].nodeData, configNode );
 		  if ( config.subnodes[ii].nodeData.title )
 		    tooltipElements.push( subnode.labelElId );
 		}
@@ -316,13 +332,15 @@ function createTreeRecursiveLoop( parentNode, treeData )
 	{    
 		var dir = treeData.dirs[i];
 	    var name = dir.name;
-		var dirNode = new YAHOO.widget.TextNode( name, parentNode, false );
+		var dirNode = new YAHOO.widget.TextNode( { label: name, expanded: false }, parentNode );
 		createTreeRecursiveLoop( dirNode, dir );
 	}
 }
 
+
+
 function findNode( node, config, subdirs )
-{
+{  
   if ( !node.hasChildren() )
     return;
   if ( subdirs.length == 0 )
@@ -348,150 +366,123 @@ function findNode( node, config, subdirs )
 }	
 	
 	
-function labelClicked( node )
+function configSelected( event )
 {
+  var node = event.node;
   if ( !node.data.key )
   	return;
-
-  var mode = 'details';
-  if ( cookie && cookie.mode )
-    mode = cookie.mode;
-  if ( mode == "summary" )
-  	detailsMode = false;
-  else
-  	detailsMode = true;
+  	
+  node.focus();
 
   Dom.setStyle( mainRight, 'visibility', 'visible' );
 
   configKey = node.data.key;
-  dbIndex = node.data.dbIndex;
+  //dbIndex = node.data.dbIndex;
   var fullName = node.data.fullName;
   Dom.get( 'fullNameTD' ).innerHTML = "<b>" + fullName + "</b>";
   var fileName = node.data.name.replace( '//s/g', '_' ) + "_V" + node.data.version;
 
-  Dom.get( 'downloadTD' ).innerHTML = 'download ' 
-    + '<a href="' + fileName + '.cfg?configId='+ configKey + '&dbIndex=' + dbIndex + '">cfg</a> '
-    + '<a href="' + fileName + '.py?format=python&configId='+ configKey + '&dbIndex=' + dbIndex + '">py</a>';
-
-  showConfig();
-  if ( cookie )
+  if ( !onlineMode )
   {
-    cookie.selectedConfig = fullName;
-    YAHOO.util.Cookie.setSubs( pageId, cookie, { expires: cookieExpires } );
+    Dom.get( 'downloadTD' ).innerHTML = 'download ' 
+      + '<a href="' + fileName + '.cfg?configId='+ configKey + '&dbName=' + dbName + '">cfg</a> '
+      + '<a href="' + fileName + '.py?format=python&configId='+ configKey + '&dbName=' + dbName + '">py</a>';
   }
+
+  tabReady = [];
+  loadTab();
+  if ( hltCookie )
+  {
+    hltCookie.selectedConfig = fullName;
+    YAHOO.util.Cookie.setSubs( pageId, hltCookie, { expires: cookieExpires } );
+  }
+  return false;
 }
 
-function showConfig()
+function loadTab()
 {  
-  Dom.get( 'rightHeaderBottomDiv' ).innerHTML = '<img src="../img/wait.gif">';
-  if ( detailsMode == true )
-  {
-    Dom.setStyle( 'summaryButton', 'background-image', 'url(../img/tree/expand.gif)' );
-    Dom.setStyle( 'detailsButton', 'background-image', 'url(../img/tree/collapse.gif)' );
-    configFrameUrl = "convert2Html.jsp?configKey=" + configKey + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
-  }
-  else
-  {
-    Dom.setStyle( 'detailsButton', 'background-image', 'url(../img/tree/expand.gif)' );
-    Dom.setStyle( 'summaryButton', 'background-image', 'url(../img/tree/collapse.gif)' );
-    configFrameUrl = "showSummary.jsp?configKey=" + configKey + "&dbIndex=" + dbIndex + "&bgcolor=FFF5DF"; 
-  }
-  Dom.setStyle( 'detailsButton', 'background-repeat', 'no-repeat' );
-  Dom.setStyle( 'detailsButton', 'background-position', 'left' );
-  Dom.setStyle( 'summaryButton', 'background-repeat', 'no-repeat' );
-  Dom.setStyle( 'summaryButton', 'background-position', 'left' );
-  var xy = Dom.getXY( 'configDiv' );
+  var tabDiv = 'tab' + activeTab + 'Div';
+  activeMainDiv = tabDiv + 'Main';
+  Dom.setStyle( activeMainDiv, 'visibility', 'hidden' );
+  Dom.get( 'rightHeaderBottomDiv' ).innerHTML = '<img src="' + imgDir + '/wait.gif">';
+  var xy = Dom.getXY( tabDiv );
   var height = displayHeight - xy[1] - 2;
-  var configDiv = Dom.get( 'configDiv' );
-  Dom.setStyle( configDiv, 'height', height + 'px' );
-  configDiv.innerHTML = '<iframe src="' + configFrameUrl + '" name="configIFrame" id="configFrame" width="100%" height="'+ height + '" frameborder="0" ' + (detailsMode ? '' : ' scrolling="no"') + '></iframe>';
+  Dom.setStyle( activeMainDiv, 'height', height + 'px' );
+  Dom.setStyle( tabDiv, 'height', height + 'px' );
+
+  var tabContent = '<iframe src="' + buildIFrameUrl() + '" name="configIFrame" id="configFrame" width="100%" height="'+ height + '" frameborder="0" ' + (detailsMode ? '' : ' scrolling="no"') + '></iframe>';
+  Dom.get( activeMainDiv ).innerHTML = tabContent;
+  tabReady[ activeTab ] = true;
 }
-  
-function updateJumpTo( list )
-{   
-  var html = "";
-  for ( var i = 0; i < list.length; i++ )
-  {
-    html += '<a href="' + configFrameUrl + '#' + list[i] + '" target="configIFrame">' + list[i] + '</a>  ';
-  }
-  Dom.get( 'rightHeaderBottomDiv' ).innerHTML = html;
-}
-	
+
+function buildIFrameUrl()
+{  
+  if ( activeTab == 1 )
+    return "convert2Html.jsp?configKey=" + configKey + "&dbName=" + dbName + "&bgcolor=FFF5DF"; 
+  if ( activeTab == 2 )
+    return "showSummary.jsp?configKey=" + configKey + "&dbName=" + dbName + "&bgcolor=FFF5DF";
+  return "";
+}     
+
   
   
 function iframeReady()
 {
-  if ( detailsMode == true )
-    AjaxInfo.getAnchors( dbIndex, configKey, updateJumpTo );
-  else
-	Dom.get( 'rightHeaderBottomDiv' ).innerHTML = "";
+  Dom.get( 'rightHeaderBottomDiv' ).innerHTML = "";
+  Dom.setStyle( activeMainDiv, 'visibility', 'visible' );
 }
 	
 	
-function selectView( event, selected )
+YAHOO.widget.ConfigNode = function(oData, oParent ) 
 {
-  YAHOO.util.Event.preventDefault(event);
-  if ( selected == "details"  &&  detailsMode == true )
-  	return;
-  if ( selected == "summary"  &&  detailsMode == false )
-  	return;
-
-  if ( selected == "details" )
-  	detailsMode = true;
-  else
-  	detailsMode = false;
-
-  if ( cookie )
-  {
-    cookie.mode = selected;
-	YAHOO.util.Cookie.setSubs( pageId, cookie, { expires: cookieExpires } );
-  }
-  
-  showConfig();
-}
-
-YAHOO.widget.ConfigNode = function(oData, oParent, expanded) 
-{
-	this.labelStyle = "icon-gen";
-	this.href = "javascript:dummy()";
-	if (oData) { 
-		this.init(oData, oParent, expanded);
-		this.setUpLabel(oData);
-	}
-
+  //this.labelStyle = "icon-gen";
+  //this.href = "javascript:dummy()";
+  //oData.href = "javascript:dummy()";
+  YAHOO.widget.ConfigNode.superclass.constructor.call( this, oData, oParent );
 };
 
-YAHOO.extend(YAHOO.widget.ConfigNode, YAHOO.widget.TextNode, {
+YAHOO.extend(YAHOO.widget.ConfigNode, YAHOO.widget.TextNode, 
+{
+  configNode: true,
 
-	configNode: true,
+  updateIcon: function() {
+        if (this.hasIcon) {
+            var el = this.getToggleEl();
+            if (el) {
+                el.className = this.getStyle();
+            }
+        }
+    },
+    
+   getDepthStyle: function(depth) {
+     if ( !this.hasChildren(false) && depth >= this.depth - 1 )
+       return "ygtvblankdepthcell";
+     else
+       return (this.getAncestor(depth).nextSibling) ? 
+            "ygtvdepthcell" : "ygtvblankdepthcell";
+    },
 
     /**
      * Returns the css style name for the toggle
      * @method getStyle
      * @return {string} the css class for this node's toggle
      */
-    getStyle: function() {
-        if (this.isLoading) {
-            return "ygtvloading";
-        } else {
-            // location top or bottom, middle nodes also get the top style
-            var loc = (this.nextSibling) ? "t" : "l";
+  getStyle: function() 
+  {
+     // location top or bottom, middle nodes also get the top style
+     var loc = (this.nextSibling) ? "t" : "l";
 
-            // type p=plus(expand), m=minus(collapase), n=none(no children)
-            var type = "n";
-            if (this.hasChildren(true) || (this.isDynamic() && !this.getIconMode())) {
-            // if (this.hasChildren(true)) {
-                type = (this.expanded) ? "m" : "p";
-            }
-
-            return "xygtv" + loc + type;
-        }
-    },
-
-    toString: function() { 
-        return "ConfigNode (" + this.index + ") " + this.label;
-    }
-
+     // type p=plus(expand), m=minus(collapase), n=none(no children)
+     var type = "n";
+     if ( this.hasChildren(false) )
+     {
+       if ( this.expanded )
+         return "xygtv" + loc + "m";
+       else
+         return "xygtv" + loc + "p";
+     }
+     return "ygtv" + loc + type;
+  }
 });
 
 
@@ -515,27 +506,37 @@ YAHOO.util.Event.onContentReady( "doc3", init );
   <div id="pg">
     <div class="yui-g" id="pg-yui-g">
 	  <div class="yui-u first" id="mainLeft">
-    	 <div id="headerDiv" class="topDiv">
-			<img src="../img/wait.gif">
-         </div>
-         <div style="position:absolute; right:8px; top:3px; z-index:1; cursor:pointer" id="collapseDiv" ><img src="../img/collapse.gif"></div>
-         <div style="position:absolute; left:0px; top:2px; z-index:2; cursor:pointer;" id="expandDiv" ><img src="../img/tree/expand.gif"></div>
-         <div align="left" id="treeDiv" style="background:white; border: 1px solid #B6CDE1; border-top:0px;">
-         </div>
+    	<div id="leftHeaderDiv"><img src="<%=img%>/wait.gif"></div>
+        <div style="position:absolute; right:8px; top:3px; z-index:1; cursor:pointer" id="collapseDiv" ><img src="<%=img%>/collapse.gif"></div>
+        <div style="position:absolute; left:0px; top:2px; z-index:2; cursor:pointer;" id="expandDiv" ><img src="<%=img%>/tree/expand.gif"></div>
+        <div align="left" id="treeDiv" style="background:white; border: 1px solid #B6CDE1; border-top:0px;"></div>
    	  </div>
 
       <div class="yui-u" id="mainRight">
-        <div id="rightHeaderDiv">
+        <div id="rightHeaderDiv" class="color2">
   		  <table width='100%' class='blindTable'><tr>
   		    <td id='fullNameTD'><b>/PATH/CONFIG/VERSION</b></td>
   		    <td></td>
-  		    <td><div class="dropDownButton" id="detailsButton">details</div></td>
-  			<td><div class="dropDownButton" id="summaryButton">summary</div></td>
-  			<td align="right" id='downloadTD'> download cfg py</td>
-		  </tr></table>
-          <div id="rightHeaderBottomDiv"></div>
+  			<td align="right" id='downloadTD'>download</td>
+		  </tr>
+		  </table>
         </div>
-		<div id="configDiv"></div>
+		<div id="tabView" class="yui-navset color2">
+		  <ul class="yui-nav">
+		    <li class="disabled" style="width:500px"><div id="rightHeaderBottomDiv"></div><a href="#tab0Div"></a></li>
+		    <li><a href="#tab1Div"><em>details</em></a></li>
+		    <li><a href="#tab2Div"><em>summary</em></a></li>
+		  </ul>            
+		  <div class="yui-content">
+			 <div id="tab0Div">tab not loaded</div>
+			 <div id="tab1Div" class="color1">
+			   <div id="tab1DivMain"></div>
+			 </div>
+			 <div id="tab2Div" class="color1">
+			   <div id="tab2DivMain"></div>
+			 </div>
+		  </div>
+		</div>
       </div>
     </div>
   </div>

@@ -12,28 +12,30 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>HLT config</title>
 
-<link rel="stylesheet" type="text/css" href="../js/yui/container/assets/skins/sam/container.css" />
-<link rel="stylesheet" type="text/css" href="../css/confdb.css" />
+<%
+  String db = request.getParameter( "dbName" );
+  String yui = "../js/yui";
+  String css = "../css";
+//  String js = "../js";
+//  String img = "../img";
+//  boolean online = false;
+  if ( db.equals( "online" ) )
+  {
+//	online = true;
+  	yui = "../../../gui/yui";
+    css = "../../css";
+//    js = "../../js";
+//    img = "../../img";
+  }
+%>
+
+
+<link rel="stylesheet" type="text/css" href="<%=yui%>/reset-fonts/reset-fonts.css" />
+<link rel="stylesheet" type="text/css" href="<%=yui%>/container/assets/skins/sam/container.css" />
+<link rel="stylesheet" type="text/css" href="<%=css%>/confdb.css" />
 
 <script type="text/javascript" src="../js/yui/yahoo-dom-event/yahoo-dom-event.js"></script>
 <script type="text/javascript" src="../js/yui/container/container-min.js"></script>
-<script type="text/javascript" src="../js/dragdrop/dragdrop-min.js"></script>
-
-
-<style type="text/css">
-
-body {
-	margin:0;
-	padding:0;
-	border: 1px solid #B6CDE1; 
-<%
-  String background = request.getParameter( "bgcolor" );
-  if ( background != null )
-	  out.println( "background:#" + background + ";" );
-%>
-}
-
-</style>
 
 
 <script type="text/javascript">
@@ -51,6 +53,11 @@ var dialog,
 
 function init()
 {
+  var displayHeight = Dom.getViewportHeight();
+  Dom.setStyle(  'headerDiv', 'height',  '30px' );
+  Dom.setStyle(  'mainDiv', 'max-height',  (displayHeight - 35) + 'px' );
+
+
   var handleCancel = function() {
 		this.cancel();
 		dialog.hide();
@@ -184,9 +191,10 @@ function getURL( release )
 
 </head>
 
-<body class=" yui-skin-sam" onload="signalReady()">
-<pre>
+<body class="yui-skin-sam color0" onload="signalReady()">
+<div id="headerDiv" class="color1" style="padding-left:10px; padding-top:5px;">
 <%
+  String confString = "";
   try {
 	String index = request.getParameter( "dbIndex" );
 	if ( index == null )
@@ -240,7 +248,22 @@ function getURL( release )
 		out.print( "ERROR!\nconfig " + configKey + " not found!" );
 	else
 	{
-		String confString = null;
+		String refs = " ";
+		if ( conf.pathCount() > 0 )
+			refs += "<a href=\"#paths\">paths</a> ";
+		if ( conf.sequenceCount() > 0 )
+			refs += "<a href=\"#sequences\">sequences</a> ";
+		if ( conf.moduleCount() > 0 )
+			refs += "<a href=\"#modules\">modules</a> ";
+		if ( conf.edsourceCount() > 0 )
+			refs += "<a href=\"#ed_sources\">ed_sources</a> ";
+		if ( conf.essourceCount() > 0 )
+			refs += "<a href=\"#es_sources\">es_sources</a> ";
+		if ( conf.esmoduleCount() > 0 )
+			refs += "<a href=\"#es_modules\">es_modules</a> ";
+		if ( conf.serviceCount() > 0 )
+			refs += "<a href=\"#services\">services</a> ";
+		out.println( refs );
 		try {
 			if ( converter instanceof OnlineConverter )
 				confString = ((OnlineConverter)converter).getEpConfigString( configKey );
@@ -253,7 +276,6 @@ function getURL( release )
 			else
 				confString = converter.getConverterEngine().convert( converter.getConfiguration( configKey ) );
 		}
-		out.println( confString );
 	}
   } catch ( Exception e ) {
 	  out.print( "ERROR!\n\n" );
@@ -268,7 +290,13 @@ function getURL( release )
 	  }
   }
 %>
+</div>
+<div id="mainDiv" style="overflow:auto; max-height:600px;">
+<pre style="line-height:140%">
+
+<%=confString%>
 </pre>
+</div>
 <div id="dialog1">
  <div class="hd">Release not in LXR!</div>
  <div class="bd">
