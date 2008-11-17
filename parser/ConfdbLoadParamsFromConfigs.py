@@ -23,51 +23,9 @@ def main(argv):
 
     # or a list of packages (and only these packages) to use
     input_usingwhitelist = False
-    #    input_whitelist = []
     input_whitelist = ["RecoMuon","RecoTracker","HLTrigger"]
-    input_tempwhitelise = [
-        "CalibCalorimetry",
-        "CalibMuon",
-        "CalibTracker",
-        "Calibration",
-        "CondCore",
-        "DQM",
-        "DQMServices",
-        "EventFilter",
-        "FWCore",
-        "Geometry",
-        "GeometryReaders",
-        "HLTrigger",
-        "IOPool",
-        "IORawData",
-        "JetMETCorrections",
-        "L1Trigger",
-        "L1TriggerConfig",
-        "MagneticField",
-        "PhysicsTools",
-        "RecoBTag",
-        "RecoBTau",
-        "RecoCaloTools",
-        "RecoEcal",
-        "RecoEgamma",
-        "RecoJets",
-        "RecoLocalCalo",
-        "RecoLocalMuon",
-        "RecoLocalTracker",
-        "RecoLuminosity",
-        "RecoMET",
-        "RecoMuon",
-        "RecoPixelVertexing",
-        "RecoTauTag",
-        "RecoTracker",
-        "RecoVertex",
-        "SimCalorimetry",
-        "SimGeneral",
-        "TrackPropagation",
-        "TrackingTools"
-        ]
 
-    input_verbose = 3
+    input_verbose = 0
     input_dbuser = "CMS_HLT_TEST"
     input_dbpwd = "hltdevtest1"
     input_host = "CMS_ORCOFF_INT2R"
@@ -76,6 +34,103 @@ def main(argv):
     input_noload = False
     
     print "Using release base: " + input_base_path
+
+    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:l:e:a:m:f:nh", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","configfile=","parsetestdir=","addtorelease=","comparetorelease=","configflavor=","noload=","help="])
+
+    for o, a in opts:
+        if o in ("-r","release="):
+            foundinscramlist = False
+            scramlisthandles = os.popen("scramv1 list CMSSW | grep " + str(a)).readlines()
+            for scramlisthandle in scramlisthandles:
+                if(scramlisthandle.lstrip().startswith('-->') and scramlisthandle.rstrip().endswith(str(a))):
+                    scramlistpath = scramlisthandle.lstrip().rstrip().split('-->')[1]
+                    if(input_addtorelease == "none"):
+                        input_base_path = scramlistpath.lstrip().rstrip() + "/"
+                        foundinscramlist = True
+                        input_cmsswrel = str(a)
+                        
+                        if(input_base_path and input_cmsswrel and foundinscramlist == True):
+                            input_cmsswrel = str(a)
+                            print "Using release " + input_cmsswrel + " at path " + input_base_path
+                        else:
+                            print "Could not resolve path to the release " + str(a)
+                            print "Check that the CMSSW_RELEASE_BASE and CMSSW_VERSION envvars are set, and that the release is appears in scramv1 list"
+                            return
+        if o in ("-c","releasename="):
+            input_cmsswrel = str(a)
+            print "Using release " + input_cmsswrel
+        if o in ("-b","blacklist="):
+            input_blacklist.append(a.split(","))
+            print 'Skip directories:'
+            input_usingblacklist = True
+        if o in ("-w","whitelist="):
+            input_whitelist.append(a.split(","))
+            print 'Use directories:'
+            print input_whitelist
+            input_usingwhitelist = True
+        if o in ("-v","verbose="):
+            input_verbose = int(a)
+            print "Verbosity = " + str(input_verbose)
+        if o in ("-d","dbname="):
+            input_dbname = str(a)
+            print "Using DB named " + input_dbname
+        if o in ("-u","user="):
+            input_dbuser = str(a)
+            print "Connecting as user " + input_dbuser
+        if o in ("-s","password="):
+            input_dbpwd = str(a)
+            print "Use DB password " + input_dbpwd
+        if o in ("-o","hostname="):
+            input_host = str(a)
+            print "Use hostname " + input_host
+        if o in ("-t","dbtype="):
+            input_dbtype = str(a)
+            if(input_dbtype == "MySQL"):
+                print "Using MySQL DB"
+            elif(input_dbtype == "Oracle"):
+                print "Using Oracle DB"
+            else:
+                print "Unknown DB type " + input_dbtype + ", exiting now"
+                return
+        if o in ("-l","config="):
+            input_configfile = str(a)
+            print "Parsing components for config: " + input_configfile
+        if o in ("-e","parsetestdir="):
+            if(int(a) == 1):
+                print "Will parse test/ directories"
+                input_dotest = True
+            else:
+                print "Will not parse test/ directories"
+                input_dotest = False
+        if o in ("-a","addtorelease="):
+            input_addtorelease = str(a)
+            input_baserelease_path = input_base_path
+            input_base_path = input_addfromreldir
+            print "Will create new release " + input_addtorelease + " using packages in " + input_addfromreldir
+        if o in ("-m","comparetorelease="):
+            print "Will update releative to release " + str(a)
+            input_comparetorelease = str(a)
+        if o in ("-f","configflavor="):
+            print "Will use " + str(a) + "-language cfi files to find parameter defaults"
+            input_configflavor = str(a)
+        if o in ("-n","noload="):
+            print "Will parse release without loading to the DB"
+            input_noload = True
+        if o in ("-h","help="):
+            print "Help menu for ConfdbSourceToDB"
+            print "\t-r <CMSSW release (default is the CMSSW_VERSION envvar)>"
+            print "\t-p <Absolute path to the release>"
+            print "\t-c <Manually set the name of the release>"
+            print "\t-m <Release to compare to when updating>"
+            print "\t-w <Comma-delimited list of packages to parse>"
+            print "\t-b <Comma-delimited list of packages to ignore>"
+            print "\t-v <Verbosity level (0-3)>"
+            print "\t-d <Name of the database to connect to>"
+            print "\t-u <User name to connect as>"
+            print "\t-s <Database password>"
+            print "\t-o <Hostname>"
+            print "\t-h Print this help menu"
+            return
 
     confdbjob = ConfdbLoadParamsfromConfigs(input_cmsswrel,input_baserelease_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbuser,input_dbpwd,input_host,input_noload,input_addtorelease,input_comparetorelease)
     confdbjob.BeginJob()
@@ -116,6 +171,9 @@ class ConfdbLoadParamsfromConfigs:
 	self.baserelease_path = clibasereleasepath
         self.base_path = clibasereleasepath
         self.whitelist = cliwhitelist
+        self.blacklist = cliblacklist
+        self.usingwhitelist = cliusingwhitelist
+        self.usingblacklist = cliusingblacklist
 
         # Global bookkeeping
         self.localseq = 0
@@ -184,7 +242,9 @@ class ConfdbLoadParamsfromConfigs:
                 print 'Fatal error: release source tree not found. Exiting now'
                 return
 
-            if(not package in self.whitelist):
+            if((self.usingwhitelist == True) and (not package in self.whitelist)):
+                continue
+            if((self.usingblacklist == True) and (package in self.blacklist)):
                 continue
 
 	    # Check if this is really a directory
