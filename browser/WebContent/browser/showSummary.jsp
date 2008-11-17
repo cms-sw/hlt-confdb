@@ -76,7 +76,7 @@ body {
 
 
 <div id="container" class="webfx-columnlist">
-  <div id="head" class="webfx-columnlist-head">
+  <div id="head" class="webfx-columnlist-head color1">
     <table cellspacing="0" cellpadding="0" style="width:100%;">
 	  <tr>
 	    <td><b>trigger name</b><img src="../img/asc.png"/></td>
