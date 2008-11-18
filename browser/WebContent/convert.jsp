@@ -1,13 +1,14 @@
 <%@page import="confdb.converter.BrowserConverter"%>
+<%@page import="confdb.db.ConfDBSetups"%>
 <%@page import="java.io.PrintWriter"%>
 <%@page import="java.io.ByteArrayOutputStream"%>
 <%@page import="confdb.data.ModifierInstructions"%>
 <%@page import="java.util.Set"%>
 <%@page import="java.util.Map"%>
 <%@page import="java.util.HashMap"%>
-<%@page contentType="application/octet-stream" %>
+<%@page contentType="text/plain"%>
 <%
-	out.clearBuffer();
+    out.clearBuffer();
 	Map<String,String[]> map = request.getParameterMap();
 	if ( map.isEmpty())
 	{
@@ -21,7 +22,7 @@
 	String format = "ascii";
 	String configId = null;
 	String configName = null;
-	String dbIndex = "1";
+	String dbIndexStr = "1";
 	HashMap<String,String> toModifier = new HashMap<String,String>();
 
 	for ( Map.Entry<String,String[]> entry : parameters )
@@ -34,20 +35,42 @@
 		
 		String value = entry.getValue()[ 0 ];
 		String key = entry.getKey();
-		if ( key.equals( "configId" ) )
-			configId = value;
+		if (key.equals("configId")) {
+		    configId = value;
+		}
+		else if (key.equals( "configName")) {  
+		    configName = value;
+		}
+		else if (key.equals( "cff")) {
+		    asFragment =true;
+		    toModifier.put( key, value );
+		}
+		else if (key.equals( "format")) {
+		    format = value;
+		}
+		else if ( key.equals( "dbName" ) )
+		{
+			if ( !value.equalsIgnoreCase( "hltdev" ) )
+			{
+			  	ConfDBSetups dbs = new ConfDBSetups();
+		  		String[] labels = dbs.labelsAsArray();
+	  			for ( int i = 0; i < dbs.setupCount(); i++ )
+	  			{
+	  				if ( value.equalsIgnoreCase( labels[i] ) )
+	  				{
+	  					dbIndexStr = "" + i;
+	  					break;
+	  				}
+	  			}
+	  		}
+	  	}
 		else if ( key.equals( "dbIndex" ) )
-			dbIndex = value;
-		else if ( key.equals( "configName" ) )
-			configName = value;
-		else if ( key.equals( "cff" ) )
-			asFragment =true;
-		else if ( key.equals( "format" ) )
-			format = value;
-		else
-			toModifier.put( entry.getKey(), value );
+			dbIndexStr = value;
+		else {
+		    toModifier.put(entry.getKey(),value);
+		}
 	}
-	
+
 	if ( configId == null  &&  configName == null )
 	{
 		out.println("ERROR: configId or configName must be specified!");
@@ -62,35 +85,34 @@
 
 	BrowserConverter converter = null;
 	try {
-		ModifierInstructions modifierInstructions = new ModifierInstructions();
-		modifierInstructions.interpretArgs( toModifier );
+	    int dbIndex = Integer.parseInt( dbIndexStr );
+	    ModifierInstructions modifierInstructions = new ModifierInstructions();
+	    modifierInstructions.interpretArgs( toModifier );
+            converter = BrowserConverter.getConverter( dbIndex );
+    	    int id = ( configId != null ) ?
+    		    	Integer.parseInt(configId) :
+    			converter.getDatabase().getConfigId(configName);
 
-		converter = BrowserConverter.getConverter( Integer.parseInt(dbIndex) );
-	    int id = ( configId != null ) ?
-	    		Integer.parseInt(configId) : converter.getDatabase().getConfigId(configName);
-	    if ( id <= 0 ) 
-	    {
-	    	out.println( "ERROR: configuration not found!" );
-	    	return;
-	    }
-
-		String result = converter.getConfigString( id, format,
-												   modifierInstructions, asFragment );
-		out.print( result );
-		out.close();
-	  } catch ( Exception e ) {
-		  out.print( "ERROR!\n\n" ); 
-		  ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-		  PrintWriter writer = new PrintWriter( buffer );
-		  e.printStackTrace( writer );
-		  writer.close();
-		  out.println( buffer.toString() );
-		  if ( converter != null )
-			  BrowserConverter.deleteConverter( converter );
-	  }
-
-		
-
+	    String result = converter.getConfigString(id,format,
+						      modifierInstructions,
+						      asFragment);
+	    out.print(result);
+	    out.close();
+	} catch (Exception e) {
+    	Throwable cause = e.getCause(); 
+	    out.print(e.getMessage()+"\n"); 
+	    if ( cause != null )
+		    out.print( "cause: " + cause.getMessage() + "\n\n");
+	    else
+	    	out.print( "\n" );
+	    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+	    PrintWriter writer = new PrintWriter(buffer);
+	    e.printStackTrace(writer);
+	    writer.close();
+	    out.println(buffer.toString());
+	    if (converter!=null)
+	        BrowserConverter.deleteConverter( converter );
+	}
 %>
 
 
