@@ -6,7 +6,7 @@
 <%@page import="java.util.Set"%>
 <%@page import="java.util.Map"%>
 <%@page import="java.util.HashMap"%>
-<%@page contentType="text/plain"%>
+<%@page contentType="application/octet-stream"%>
 <%
     out.clearBuffer();
 	Map<String,String[]> map = request.getParameterMap();
