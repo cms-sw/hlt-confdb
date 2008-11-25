@@ -345,9 +345,9 @@ class ConfdbLoadParamsfromConfigs:
                                 self.componenttable = "ESModuleTemplates"                                
                                 self.FindParamsFromPython(thesubsystem, thepackage, myesproducers,"ESModule") 
 
-#                            except NameError:
-#                                print "Name Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-#                                continue
+                            except NameError:
+                                print "Name Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                                continue
 
                             except TypeError:
                                 print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
@@ -373,9 +373,8 @@ class ConfdbLoadParamsfromConfigs:
             if(paramval.configTypeName() == "PSet" or paramval.configTypeName() == "untracked PSet"):
                 subobjectsuperid = self.LoadUpdatePSet(paramname,psetname,paramval,psetsid)
                 self.nesting.append(('PSet',paramname,subobjectsuperid))
-                predescentnesting = self.nesting
                 self.DoPsetRecursion(paramval,psetname+"."+paramname,subobjectsuperid)
-                self.nesting = predescentnesting
+                del self.nesting[-1]
 
             elif(paramval.configTypeName().find("VPSet") == -1):
                 self.VerbosePrint("\t\t" + str(psetname) + "." + str(paramname) + "\t" + str(paramval),1)
@@ -387,9 +386,8 @@ class ConfdbLoadParamsfromConfigs:
                 for vpsetentry in paramval:
                     subobjectsuperid = self.LoadUpdatePSet(paramname,psetname,paramval,psetsid)
                     self.nesting.append(('PSet',paramname,subobjectsuperid))
-                    predescentnesting = self.nesting
                     self.DoPsetRecursion(vpsetentry,psetname+'['+str(i)+']',subobjectsuperid)
-                    self.nesting = predescentnesting
+                    del self.nesting[-1]
                     i = i + 1
     
     def FindParamsFromPython(self, thesubsystem, thepackage, mycomponents, componenttype):
@@ -411,7 +409,7 @@ class ConfdbLoadParamsfromConfigs:
                     objectsuperid = self.LoadUpdatePSet(paramname,psetname,paramval,componentsuperid)
                     self.nesting.append(('PSet',paramname,objectsuperid))
                     self.DoPsetRecursion(paramval,paramname,objectsuperid)
-                    self.nesting = []
+                    del self.nesting[-1]
                     
                 elif(paramval.configTypeName().find("VPSet") == -1):
                     self.VerbosePrint("\t\t" + str(psetname) + "." + str(paramname) + "\t" + str(paramval), 1)
@@ -421,18 +419,16 @@ class ConfdbLoadParamsfromConfigs:
                     vobjectsuperid = self.LoadUpdateVPSet(paramname,psetname,paramval,componentsuperid)
                     vpsetname = paramname
                     self.nesting.append(('VPSet',paramname,objectsuperid))
-                    predescencnesting = self.nesting
                     self.VerbosePrint("\t\t" + str(paramname) + "\t" + str(paramval.configTypeName()) + "[" + str(len(paramval)) + "]", 1)
                     psetname = str(paramval.configTypeName()) + "[" + str(len(paramval)) + "]"
                     i = 1
                     for vpsetentry in paramval:
                         vobjectmembersuperid = self.LoadUpdatePSet(paramname,psetname,paramval,vobjectsuperid) 
                         self.nesting.append(('PSet','VPSet['+str(i)+']',vobjectmembersuperid))
-                        predescentnesting = self.nesting
                         self.DoPsetRecursion(vpsetentry,paramname+'['+str(i)+']',vobjectmembersuperid)
-                        self.nesting = predescentnesting
+                        del self.nesting[-1]
                         i = i + 1
-                    self.nesting = []
+                    del self.nesting[-1]
 
     def FindObjectSuperId(self):
         print "Not yet"
