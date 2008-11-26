@@ -69,6 +69,7 @@ public class HtmlConfigurationWriter implements ISummaryWriter
 	
     	StringBuffer result = new StringBuffer(10000);
 	
+    	result.append( "<!-- " + table.columnCount() + " columns -->\n" );
     	result.append( "<table>" );
 
     	/*
