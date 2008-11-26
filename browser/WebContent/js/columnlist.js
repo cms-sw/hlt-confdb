@@ -1210,7 +1210,10 @@ WebFXColumnList.prototype._setAlignment = function() {
 	else {
 		var ss = null, rules = null;
 		for (var n = 0; n < document.styleSheets.length; n++) {
-			if (document.styleSheets[n].href.indexOf('columnlist.css') == -1) { continue; }
+			if ( document.styleSheets[n].href == null )
+			 	continue;
+			if ( document.styleSheets[n].href.indexOf('columnlist.css') == -1) 
+			 	continue;
 			ss    = document.styleSheets[n];
 			rules = ss.cssRules;
 		}
