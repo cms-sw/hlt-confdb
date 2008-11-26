@@ -345,21 +345,24 @@ class ConfdbLoadParamsfromConfigs:
                                 self.componenttable = "ESModuleTemplates"                                
                                 self.FindParamsFromPython(thesubsystem, thepackage, myesproducers,"ESModule") 
 
+
+                            except FloatingPointError:
+                                print 'Dummy exception - this should never happen!!!'
 #                            except NameError:
 #                                print "Name Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
 #                                continue
-
-                            except TypeError:
-                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-                                continue
-
-                            except ImportError:
-                                print "Import Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-                                continue
-
-                            except SyntaxError:
-                                print "Syntax Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-                                continue
+#
+#                            except TypeError:
+#                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+#                                continue
+#
+#                            except ImportError:
+#                                print "Import Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+#                                continue
+#
+#                            except SyntaxError:
+#                                print "Syntax Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+#                                continue
 
         # Commit and disconnect to be compatible with either INNODB or MyISAM
         self.dbloader.ConfdbExitGracefully()
