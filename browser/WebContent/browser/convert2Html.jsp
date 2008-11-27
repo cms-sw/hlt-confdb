@@ -34,8 +34,8 @@
 <link rel="stylesheet" type="text/css" href="<%=yui%>/container/assets/skins/sam/container.css" />
 <link rel="stylesheet" type="text/css" href="<%=css%>/confdb.css" />
 
-<script type="text/javascript" src="../js/yui/yahoo-dom-event/yahoo-dom-event.js"></script>
-<script type="text/javascript" src="../js/yui/container/container-min.js"></script>
+<script type="text/javascript" src="<%=yui%>/yahoo-dom-event/yahoo-dom-event.js"></script>
+<script type="text/javascript" src="<%=yui%>/container/container-min.js"></script>
 
 
 <script type="text/javascript">
@@ -191,8 +191,8 @@ function getURL( release )
 
 </head>
 
-<body class="yui-skin-sam color0" onload="signalReady()">
-<div id="headerDiv" class="color1" style="padding-left:10px; padding-top:5px;">
+<body class="yui-skin-sam skin1" onload="signalReady()">
+<div id="headerDiv" class="tab1" style="padding-left:10px; padding-top:5px;">
 <%
   String confString = "";
   try {

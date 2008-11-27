@@ -13,12 +13,7 @@
 .xygtvlmh { background: url(../img/tree/collapseh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
 .xygtvtmh { background: url(../img/tree/collapseh.gif) 0 6px no-repeat; width:1em; height:22px; cursor:pointer }
 
-.color0 { background:white; }
-.color1 { background:#EFEEEA;}
-.color2 { background-color:#FFE19A; }
-
 html, body { background:#e5e5e5;}
-
 
 .yui-skin-sam .yui-navset .yui-content { 
 	background:#ebebf0; 
@@ -43,3 +38,35 @@ div.dropDownButton {
 .mayorInfo {
   color:green;
 }
+
+
+.skin1 {
+	background:white;
+}
+
+.skin1.tab1,
+.skin1 .tab1,
+.skin1 .webfx-columnlist-body tr.odd td {
+	background:   #EFEEEA;
+}
+
+
+.skin1 .webfx-columnlist {
+border: 0px;
+}
+
+.skin1 .webfx-columnlist-head {
+	background: #E5E5D0;
+}
+
+.skin1 .webfx-columnlist-body tr.selected td {
+	background: #E5E5CE;
+}
+	
+.skin1 .header1 {
+	background:   #F2D685;
+	backgroundold:   #D1D1BC;
+}
+
+
+
