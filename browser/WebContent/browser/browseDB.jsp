@@ -418,9 +418,9 @@ function loadTab()
 function buildIFrameUrl()
 {  
   if ( activeTab == 1 )
-    return "convert2Html.jsp?configKey=" + configKey + "&dbName=" + dbName + "&bgcolor=FFF5DF"; 
+    return "convert2Html.jsp?configKey=" + configKey + "&dbName=" + dbName; 
   if ( activeTab == 2 )
-    return "showSummary.jsp?configKey=" + configKey + "&dbName=" + dbName + "&bgcolor=FFF5DF";
+    return "showSummary.jsp?configKey=" + configKey + "&dbName=" + dbName;
   return "";
 }     
 
@@ -512,8 +512,8 @@ YAHOO.util.Event.onContentReady( "doc3", init );
         <div align="left" id="treeDiv" style="background:white; border: 1px solid #B6CDE1; border-top:0px;"></div>
    	  </div>
 
-      <div class="yui-u" id="mainRight">
-        <div id="rightHeaderDiv" class="color2">
+      <div class="yui-u skin1" id="mainRight">
+        <div id="rightHeaderDiv" class="header1">
   		  <table width='100%' class='blindTable'><tr>
   		    <td id='fullNameTD'><b>/PATH/CONFIG/VERSION</b></td>
   		    <td></td>
@@ -521,7 +521,7 @@ YAHOO.util.Event.onContentReady( "doc3", init );
 		  </tr>
 		  </table>
         </div>
-		<div id="tabView" class="yui-navset color2">
+		<div id="tabView" class="yui-navset header1">
 		  <ul class="yui-nav">
 		    <li class="disabled" style="width:500px"><div id="rightHeaderBottomDiv"></div><a href="#tab0Div"></a></li>
 		    <li><a href="#tab1Div"><em>details</em></a></li>
@@ -529,10 +529,10 @@ YAHOO.util.Event.onContentReady( "doc3", init );
 		  </ul>            
 		  <div class="yui-content">
 			 <div id="tab0Div">tab not loaded</div>
-			 <div id="tab1Div" class="color1">
+			 <div id="tab1Div" class="skin1">
 			   <div id="tab1DivMain"></div>
 			 </div>
-			 <div id="tab2Div" class="color1">
+			 <div id="tab2Div" class="skin1">
 			   <div id="tab2DivMain"></div>
 			 </div>
 		  </div>
