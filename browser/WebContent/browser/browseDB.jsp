@@ -529,10 +529,10 @@ YAHOO.util.Event.onContentReady( "doc3", init );
 		  </ul>            
 		  <div class="yui-content">
 			 <div id="tab0Div">tab not loaded</div>
-			 <div id="tab1Div" class="skin1">
+			 <div id="tab1Div" class="tab1">
 			   <div id="tab1DivMain"></div>
 			 </div>
-			 <div id="tab2Div" class="skin1">
+			 <div id="tab2Div" class="tab1">
 			   <div id="tab2DivMain"></div>
 			 </div>
 		  </div>
