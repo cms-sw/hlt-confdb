@@ -78,6 +78,18 @@ public class OnlineConverter extends ConverterBase
 	}
     }
     
+    public OnlineConverter( String format ) throws ConverterException 
+    {
+      super( format );
+      try {
+	    DbProperties dbProperties = DbProperties.getDefaultDbProperties();
+	    initDB(dbProperties.dbType, dbProperties.getDbURL(), dbProperties
+		   .getDbUser(), "convertme!");
+      } catch (IOException e) {
+	    throw new ConverterException("can't construct OnlineConverter", e);
+      }
+    }
+    
     /** constructor based on Connection object */
     public OnlineConverter( Connection connection ) throws ConverterException 
     {
