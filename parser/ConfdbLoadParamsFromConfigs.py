@@ -181,6 +181,7 @@ class ConfdbLoadParamsfromConfigs:
         # Global bookkeeping
         self.localseq = 0
         self.nesting = []
+        self.finishedtemplates = []
 
     def BeginJob(self):
 	# List of all available modules
@@ -399,6 +400,14 @@ class ConfdbLoadParamsfromConfigs:
         for name, value in mycomponents.iteritems():
             psetname = "TopLevel"
             self.VerbosePrint("(" + str(componenttype) + " " + value.type_() + ") " + thesubsystem + "." + thepackage + "." + name, 1)
+
+            template = thesubsystem+thepackage+(value.type_())
+            if(not template in self.finishedtemplates):
+                self.finishedtemplates.append(template)
+            else:
+                self.VerbosePrint("Skipping the cfi for " + name + " because a template was already loaded for " + value.type_(),1)
+                return
+            
             componentsuperid = self.LoadUpdateComponent(value.type_(),componenttype)
             objectsuperid = -1
             vobjectsuperid = -1
@@ -538,7 +547,7 @@ class ConfdbLoadParamsfromConfigs:
 
         paramid = self.dbcursor.fetchone()
 
-        self.VerbosePrint("ConfDB says: " + str(paramid), 3)
+        self.VerbosePrint("ConfDB says: " + str(paramid), 2)
 
         if(paramid):
             returnid = paramid[0]
@@ -564,10 +573,10 @@ class ConfdbLoadParamsfromConfigs:
 
             returnid = newparamid
                 
-            self.VerbosePrint('Added ' + str(parametername) + ' with paramId = ' + str(newparamid),3)                            
+            self.VerbosePrint('Added ' + str(parametername) + ' with paramId = ' + str(newparamid),2)                            
             if(self.nesting != []):
-                self.VerbosePrint('The nesting is:',1)
-                self.VerbosePrint(self.nesting,1)
+                self.VerbosePrint('The nesting is:',2)
+                self.VerbosePrint(self.nesting,2)
 
             self.localseq = self.localseq + 1
                 
