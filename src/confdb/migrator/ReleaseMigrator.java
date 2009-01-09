@@ -86,11 +86,14 @@ public class ReleaseMigrator
 	}
 
 	// migrate ESSources
+	int essourceCount = 0;
 	for (int i=0;i<sourceConfig.essourceCount();i++) {
 	    ESSourceInstance source = sourceConfig.essource(i);
 	    ESSourceInstance target =
-		targetConfig.insertESSource(i,source.template().name(),source.name());
+		targetConfig.insertESSource(essourceCount,
+					    source.template().name(),source.name());
 	    if (target!=null) {
+		essourceCount++;
 		target.setPreferred(source.isPreferred());
 		migrateParameters(source,target);
 	    }
@@ -103,11 +106,15 @@ public class ReleaseMigrator
 	}
 
 	// migrate ESModules
+	int esmoduleCount = 0;
 	for (int i=0;i<sourceConfig.esmoduleCount();i++) {
 	    ESModuleInstance source = sourceConfig.esmodule(i);
 	    ESModuleInstance target =
-		targetConfig.insertESModule(i,source.template().name(),source.name());
+		targetConfig.insertESModule(esmoduleCount,
+					    source.template().name(),source.name());
+
 	    if (target!=null) {
+		esmoduleCount++;
 		target.setPreferred(source.isPreferred());
 		migrateParameters(source,target);
 	    }
@@ -120,11 +127,13 @@ public class ReleaseMigrator
 	}
 
 	// migrate Services
+	int serviceCount = 0;
 	for (int i=0;i<sourceConfig.serviceCount();i++) {
 	    ServiceInstance source = sourceConfig.service(i);
 	    ServiceInstance target =
-		targetConfig.insertService(i,source.template().name());
+		targetConfig.insertService(serviceCount,source.template().name());
 	    if (target!=null) {
+		serviceCount++;
 		migrateParameters(source,target);
 	    }
 	    else {

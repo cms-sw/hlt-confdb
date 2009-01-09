@@ -1,3 +1,11 @@
+2009-01-09  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-26-04
+	* fix release migration, which couldn't handle removed esmodules,
+	services, etc.
+	* parser: add protection against duplicate addition of
+	appendToDataLabel parameter (Jonathan)
+
 2008-12-01  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-26-03
