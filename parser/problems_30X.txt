@@ -352,3 +352,26 @@ METProducer.Parameter EB_EtResPar vdouble { 0.2, 0.03, 0.0050 } tracked
 METProducer.Parameter HF_PhiResPar vdouble { 0.05022 } tracked
 METProducer.Parameter HE_EtResPar vdouble { 0.0, 1.3, 0.05 } tracked
 METProducer.Parameter HO_PhiResPar vdouble { 0.02511 } tracked
+
+
+ESSource L2RelativeCorrectionService JetMETCorrections Modules
+L2RelativeCorrectionService.Parameter tagName string "Summer08_L2Relative_IC5Calo" tracked
+L2RelativeCorrectionService.Parameter label string "L2RelativeJetCorrector" tracked
+
+ESSource L3AbsoluteCorrectionService JetMETCorrections Modules
+L3AbsoluteCorrectionService.Parameter tagName string "Summer08_L3Absolute_IC5Calo" tracked
+L3AbsoluteCorrectionService.Parameter label string "L3AbsoluteJetCorrector" tracked
+
+ESSource L4EMFCorrectionService JetMETCorrections Modules
+L4EMFCorrectionService.Parameter tagName string "Spring07_L4EMF_Iterative_Cone_05" tracked
+L4EMFCorrectionService.Parameter label string "L4EMFJetCorrector" tracked
+
+ESSource L5FlavorCorrectionService JetMETCorrections Modules
+L5FlavorCorrectionService.Parameter section string "uds" tracked
+L5FlavorCorrectionService.Parameter tagName string "L5Flavor_fromQCD_iterativeCone5" tracked
+L5FlavorCorrectionService.Parameter label string "L5FlavorJetCorrector" tracked
+
+ESSource L7PartonCorrectionService JetMETCorrections Modules
+L7PartonCorrectionService.Parameter section string "qJ" tracked
+L7PartonCorrectionService.Parameter tagName string "L7parton_IC5_080921" tracked
+L7PartonCorrectionService.Parameter label string "L7PartonJetCorrector" tracked
