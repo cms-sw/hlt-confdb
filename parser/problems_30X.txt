@@ -353,7 +353,6 @@ METProducer.Parameter HF_PhiResPar vdouble { 0.05022 } tracked
 METProducer.Parameter HE_EtResPar vdouble { 0.0, 1.3, 0.05 } tracked
 METProducer.Parameter HO_PhiResPar vdouble { 0.02511 } tracked
 
-
 ESSource L2RelativeCorrectionService JetMETCorrections Modules
 L2RelativeCorrectionService.Parameter tagName string "Summer08_L2Relative_IC5Calo" tracked
 L2RelativeCorrectionService.Parameter label string "L2RelativeJetCorrector" tracked
@@ -375,3 +374,11 @@ ESSource L7PartonCorrectionService JetMETCorrections Modules
 L7PartonCorrectionService.Parameter section string "qJ" tracked
 L7PartonCorrectionService.Parameter tagName string "L7parton_IC5_080921" tracked
 L7PartonCorrectionService.Parameter label string "L7PartonJetCorrector" tracked
+
+ESModule SiStripConnectivity CalibTracker SiStripESProducers 
+ 
+ESModule SiStripRegionConnectivity CalibTracker SiStripESProducers 
+SiStripRegionConnectivity.EtaDivisions uint32 20 untracked 
+SiStripRegionConnectivity.PhiDivisions uint32 20 untracked 
+SiStripRegionConnectivity.EtaMax double 2.5 untracked 
+
