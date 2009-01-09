@@ -306,3 +306,26 @@ ShmStreamConsumer.Parameter compression_level int32 6  untracked
 ShmStreamConsumer.Parameter max_event_size int32 7000000 untracked
 ShmStreamConsumer.Parameter max_queue_depth  int32 5 untracked
 ShmStreamConsumer.Parameter lumiSection_interval int32 600 untracked
+
+
+ESSource L2RelativeCorrectionService JetMETCorrections Modules
+L2RelativeCorrectionService.Parameter tagName string "Summer08_L2Relative_IC5Calo" tracked
+L2RelativeCorrectionService.Parameter label string "L2RelativeJetCorrector" tracked
+
+ESSource L3AbsoluteCorrectionService JetMETCorrections Modules
+L3AbsoluteCorrectionService.Parameter tagName string "Summer08_L3Absolute_IC5Calo" tracked
+L3AbsoluteCorrectionService.Parameter label string "L3AbsoluteJetCorrector" tracked
+
+ESSource L4EMFCorrectionService JetMETCorrections Modules
+L4EMFCorrectionService.Parameter tagName string "Spring07_L4EMF_Iterative_Cone_05" tracked
+L4EMFCorrectionService.Parameter label string "L4EMFJetCorrector" tracked
+
+ESSource L5FlavorCorrectionService JetMETCorrections Modules
+L5FlavorCorrectionService.Parameter section string "uds" tracked
+L5FlavorCorrectionService.Parameter tagName string "L5Flavor_fromQCD_iterativeCone5" tracked
+L5FlavorCorrectionService.Parameter label string "L5FlavorJetCorrector" tracked
+
+ESSource L7PartonCorrectionService JetMETCorrections Modules
+L7PartonCorrectionService.Parameter section string "qJ" tracked
+L7PartonCorrectionService.Parameter tagName string "L7parton_IC5_080921" tracked
+L7PartonCorrectionService.Parameter label string "L7PartonJetCorrector" tracked
