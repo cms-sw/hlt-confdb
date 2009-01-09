@@ -286,8 +286,13 @@ class ConfdbOracleModuleLoader:
 	    print "INSERT INTO ESSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')"
 	
         # appendToDataLabel
-        print "\tMessage: appending string appendToDataLabel to this ESSource"
-        parameters.append(("string","appendToDataLabel","''","true",999))
+        doAppend = False
+        for ptype, pname,pval,ptracked,pseq in parameters:
+            if pval == 'appendToDataLabel':
+                doAppend = True
+        if(doAppend == True):
+            print "\tMessage: appending string appendToDataLabel to this ESSource"
+            parameters.append(("string","appendToDataLabel","''","true",999))
 
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -357,8 +362,13 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')")
 	
         # appendToDataLabel
-        print "\tMessage: appending string appendToDataLabel to this ESModule"        
-        parameters.append(("string","appendToDataLabel","''","true",999))
+        doAppend = False
+        for ptype, pname,pval,ptracked,pseq in parameters:
+            if pval == 'appendToDataLabel':
+                doAppend = True
+        if(doAppend == True):
+            print "\tMessage: appending string appendToDataLabel to this ESSource"
+            parameters.append(("string","appendToDataLabel","''","true",999))
 
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -524,10 +534,16 @@ class ConfdbOracleModuleLoader:
 	# Now create a new source
 	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "', '" + str(softpackageid) + "')")
 
+
         # appendToDataLabel
-        print "\tMessage: appending string appendToDataLabel to this ESSource"
-        parameters.append(("string","appendToDataLabel","''","true",999))                        
-	
+        doAppend = False
+        for ptype, pname,pval,ptracked,pseq in parameters:
+            if pval == 'appendToDataLabel':
+                doAppend = True
+        if(doAppend == True):
+            print "\tMessage: appending string appendToDataLabel to this ESSource"
+            parameters.append(("string","appendToDataLabel","''","true",999))
+                                                                                                 
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
 	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
@@ -632,8 +648,13 @@ class ConfdbOracleModuleLoader:
 	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + sourceclassname + "', '" + sourcecvstag + "', '" + str(softpackageid) + "')")
 
         # appendToDataLabel
-        print "\tMessage: appending string appendToDataLabel to this ESModule"
-        parameters.append(("string","appendToDataLabel","''","true",999))
+        doAppend = False
+        for ptype, pname,pval,ptracked,pseq in parameters:
+            if pval == 'appendToDataLabel':
+                doAppend = True
+        if(doAppend == True):
+            print "\tMessage: appending string appendToDataLabel to this ESSource"
+            parameters.append(("string","appendToDataLabel","''","true",999))
 	
 	# Now deal with parameters
 	self.ConfdbUpdateParameters(thecursor,oldsuperid,newsuperid,parameters,vecparameters)
