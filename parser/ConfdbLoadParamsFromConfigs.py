@@ -24,7 +24,7 @@ def main(argv):
     # or a list of packages (and only these packages) to use
     #    input_usingwhitelist = False
     input_usingwhitelist = True
-    input_whitelist = ["RecoMuon","RecoTracker","HLTrigger"]
+    input_whitelist = []
 
     input_verbose = 0
     input_dbuser = "CMS_HLT_TEST"
@@ -149,6 +149,7 @@ class ConfdbLoadParamsfromConfigs:
         self.addtorelease = cliaddtorelease
         self.comparetorelease = clicomparetorelease
         self.componenttable = ''
+        self.componentname = ''
         self.softpackageid = ''
 
         # Track CVS tags
@@ -301,7 +302,7 @@ class ConfdbLoadParamsfromConfigs:
 
                     for pyfile in pyfiles:
                         if(pyfile.endswith("_cfi.py")):
-                            #                            print "the pyfile = " + str(pyfile)
+                            print "the pyfile = " + str(pyfile)
                             thecomponent = pyfile.split('.py')[0]
                             thebasecomponent = thecomponent.split('_cfi')[0]
 
@@ -331,6 +332,8 @@ class ConfdbLoadParamsfromConfigs:
                                 self.componenttable = "ServiceTemplates"                                
                                 self.FindParamsFromPython(thesubsystem, thepackage, myservices,"Service") 
 
+                                # JH - we probably don't need EDAnalyzers for the HLT configuration. Leave this commented out
+                                # just in case.
                                 #                                myanalyzers = process.analyzers_()
                                 #                                self.FindParamsFromPython(thesubsystem, thepackage, myanalyzers,"EDAnalyzer") 
                                 
@@ -407,7 +410,8 @@ class ConfdbLoadParamsfromConfigs:
             else:
                 self.VerbosePrint("Skipping the cfi for " + name + " because a template was already loaded for " + value.type_(),1)
                 return
-            
+
+            self.componentname = value.type_()
             componentsuperid = self.LoadUpdateComponent(value.type_(),componenttype)
             objectsuperid = -1
             vobjectsuperid = -1
@@ -459,7 +463,7 @@ class ConfdbLoadParamsfromConfigs:
 
         componentsuperid = self.dbcursor.fetchone()
 
-        self.VerbosePrint("ConfDB says: " + str(componentsuperid), 2)
+        #        self.VerbosePrint("ConfDB says: " + str(componentsuperid), 2)
 
         if(componentsuperid):
             # See if this template already exists for this release - if so, just return its superId
@@ -517,6 +521,7 @@ class ConfdbLoadParamsfromConfigs:
 
         returnid = 0
         paramistracked = 0
+        unmodifiedparamid = 0
 
         parametervalue = pval.value()
         parametertype = pval.configTypeName()
@@ -547,53 +552,64 @@ class ConfdbLoadParamsfromConfigs:
 
         paramid = self.dbcursor.fetchone()
 
-        self.VerbosePrint("ConfDB says: " + str(paramid), 2)
-
         if(paramid):
             returnid = paramid[0]
         else:
             parametertypeint = self.paramtypedict[parametertype]
             paramtable = self.paramtabledict[parametertype]
-            
-            insertstr1 = "INSERT INTO Parameters (paramTypeId, name, tracked) VALUES (" + str(parametertypeint) + ", '" + parametername + "', " + str(paramistracked) + ")"
-            self.VerbosePrint(insertstr1, 3)
-            self.dbcursor.execute(insertstr1)
-            
-            self.dbcursor.execute("SELECT ParamId_Sequence.currval from dual")
-            newparamid = self.dbcursor.fetchone()[0] 
-            
-            self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParameterAssoc WHERE superId = " + str(sid) + " ORDER BY sequenceNb DESC")
-            nextseqid = self.dbcursor.fetchone()
-            if(nextseqid):
-                self.localseq = nextseqid[0] + 1
-                    
-            insertstr2 = "INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(self.localseq) + ")"
-            self.VerbosePrint(insertstr2, 3)
-            self.dbcursor.execute(insertstr2)                                                
 
-            returnid = newparamid
+            # Check parameter value from old release here
+            if(self.comparetorelease != ""):                
+                unmodifiedparamid = self.CompareParamToOldRelease(parametername,parametervalue,parametertype)
+
+            # Add this parameter to the new release
+            if((unmodifiedparamid == 0) or (self.comparetorelease == "")):
+                insertstr1 = "INSERT INTO Parameters (paramTypeId, name, tracked) VALUES (" + str(parametertypeint) + ", '" + parametername + "', " + str(paramistracked) + ")"
+                self.VerbosePrint(insertstr1, 3)
+                self.dbcursor.execute(insertstr1)
                 
-            self.VerbosePrint('Added ' + str(parametername) + ' with paramId = ' + str(newparamid),2)                            
-            if(self.nesting != []):
-                self.VerbosePrint('The nesting is:',2)
-                self.VerbosePrint(self.nesting,2)
+                self.dbcursor.execute("SELECT ParamId_Sequence.currval from dual")
+                newparamid = self.dbcursor.fetchone()[0] 
+                
+                self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParameterAssoc WHERE superId = " + str(sid) + " ORDER BY sequenceNb DESC")
+                nextseqid = self.dbcursor.fetchone()
+                if(nextseqid):
+                    self.localseq = nextseqid[0] + 1
+                    
+                insertstr2 = "INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(self.localseq) + ")"
+                self.VerbosePrint(insertstr2, 3)
+                self.dbcursor.execute(insertstr2)                                                
 
-            self.localseq = self.localseq + 1
+                returnid = newparamid
+                
+                self.VerbosePrint('Added ' + str(parametername) + ' with paramId = ' + str(newparamid),2)                            
+                if(self.nesting != []):
+                    self.VerbosePrint('The nesting is:',2)
+                    self.VerbosePrint(self.nesting,2)
+
+                self.localseq = self.localseq + 1
                 
         
-            if((not parametertype.startswith('v')) and (not parametertype.startswith('V'))):
-                insertstr3 = "INSERT INTO " + str(paramtable) + " (paramId, value) VALUES (" + str(newparamid) + ", '" + str(parametervalue) + "')"
-                self.VerbosePrint(insertstr3, 3)
-                self.dbcursor.execute(insertstr3)
-                
-            else:
-                paramindex = 1
-                for parametervectorvalue in parametervalue:
-                    insertstr3 = "INSERT INTO " + str(paramtable) + " (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(paramindex) + ", '" + str(parametervectorvalue) + "')"
+                if((not parametertype.startswith('v')) and (not parametertype.startswith('V'))):
+                    insertstr3 = "INSERT INTO " + str(paramtable) + " (paramId, value) VALUES (" + str(newparamid) + ", '" + str(parametervalue) + "')"
                     self.VerbosePrint(insertstr3, 3)
                     self.dbcursor.execute(insertstr3)
-                    paramindex = paramindex + 1
+                    
+                else:
+                    paramindex = 1
+                    for parametervectorvalue in parametervalue:
+                        insertstr3 = "INSERT INTO " + str(paramtable) + " (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(paramindex) + ", '" + str(parametervectorvalue) + "')"
+                        self.VerbosePrint(insertstr3, 3)
+                        self.dbcursor.execute(insertstr3)
+                        paramindex = paramindex + 1
 
+            # Reassociate this parameter from the previous release
+            if((unmodifiedparamid > 0) and (self.comparetorelease != "")):
+                insertstr4 = "INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(sid) + ", " + str(unmodifiedparamid) + ", " + str(self.localseq) + ")"
+                nextseqid = self.dbcursor.fetchone()
+                if(nextseqid):
+                    self.localseq = nextseqid[0] + 1
+                                        
         return returnid
 
     def LoadUpdatePSet(self,parametername,psetname,pval,sid):
@@ -623,7 +639,7 @@ class ConfdbLoadParamsfromConfigs:
 
         paramid = self.dbcursor.fetchone()
         
-        self.VerbosePrint("ConfDB says PSet has: " + str(paramid), 2)
+        #        self.VerbosePrint("ConfDB says PSet has: " + str(paramid), 2)
 
         if(paramid):
             returnid = paramid[0]
@@ -678,7 +694,7 @@ class ConfdbLoadParamsfromConfigs:
 
         paramid = self.dbcursor.fetchone()
         
-        self.VerbosePrint("ConfDB says VPSet has: " + str(paramid), 2)
+        #        self.VerbosePrint("ConfDB says VPSet has: " + str(paramid), 2)
 
         if(paramid):
             returnid = paramid[0]
@@ -725,6 +741,78 @@ class ConfdbLoadParamsfromConfigs:
                 for tagline in taglines:
                     self.tagtuple.append(((tagline.split())[0], (tagline.split())[1]))
 
+
+    def CompareParamToOldRelease(self,parametername,parametervalue,parametertype):
+
+        componenttable = self.componenttable
+        modtypestr = ''
+        matchingparamid = 0
+
+        # First find the old module 
+        selectstr = "SELECT " + componenttable + ".superId, " + componenttable + ".name, " + componenttable + ".cvstag, " + componenttable + ".packageId FROM " + componenttable + " JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = " + componenttable + ".superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.oldcmsswrelid) + ") AND (" + componenttable + ".name = '" + self.componentname + "')"
+        self.VerbosePrint(selectstr, 3)
+        
+        self.dbcursor.execute(selectstr)
+
+        oldcomponentsuperid = ''
+        tmpoldcomponentsuperid = (self.dbcursor.fetchone())
+        if(tmpoldcomponentsuperid):
+            oldcomponentsuperid = tmpoldcomponentsuperid[0]
+
+        # Then work downwards through the PSet nesting to find the old parameter value to compare to
+
+        if(len(self.nesting) == 0):
+            oldcomponentsuperid = tmpoldcomponentsuperid[0]
+        else:
+            for fwkcomponenttype, fwkcomponentname, newsuperid in self.nesting:
+                if(fwkcomponenttype == 'PSet' and fwkcomponentname.find("VPSet") == -1):
+                    selectstr = "SELECT ParameterSets.superId FROM ParameterSets JOIN SuperIdParamSetAssoc ON (SuperIdParamSetAssoc.superId = " + str(oldcomponentsuperid) + ") WHERE (ParameterSets.name = '" + str(fwkcomponentname) + "') AND (ParameterSets.superId = SuperIdParamSetAssoc.psetId)"
+                
+                    self.VerbosePrint(selectstr,3)
+                    self.dbcursor.execute(selectstr)
+                
+                    tmpcomponentsuperid = self.dbcursor.fetchone()
+                    if(tmpcomponentsuperid):
+                        oldcomponentsuperid = tmpcomponentsuperid[0]
+
+        if(oldcomponentsuperid):
+            # The module and sub-PSet exists in the old release, now check if the parameter does too
+#            selectstr = "SELECT SuperIdParameterAssoc.paramId FROM SuperIdParameterAssoc JOIN Parameters ON (Parameters.name = '" + parametername + "') WHERE (SuperIdParameterAssoc.superId = " + str(oldcomponentsuperid) + ") AND (SuperIdParameterAssoc.paramId = Parameters.paramId)"
+
+            selectstr2 = "SELECT Parameters.paramId, Parameters.paramTypeId FROM Parameters JOIN SuperIdParameterAssoc ON (SuperIdParameterAssoc.superId = " + str(oldcomponentsuperid) + ") WHERE (Parameters.name = '" + str(parametername) + "') AND (Parameters.paramId = SuperIdParameterAssoc.paramId)"
+
+            self.VerbosePrint(selectstr2, 3)
+            self.dbcursor.execute(selectstr2)
+
+            oldparamid = ''
+            tmpoldparamid = self.dbcursor.fetchone()
+            if(tmpoldparamid):
+                oldparamid = tmpoldparamid[0]
+
+            parametertypeint = self.paramtypedict[parametertype]
+            paramtable = self.paramtabledict[parametertype]
+
+            if((not parametertype.startswith('v')) and (not parametertype.startswith('V')) and (oldparamid != '')):
+                selectstr3 = "SELECT  " + paramtable + ".value FROM " + paramtable + " WHERE " + paramtable + ".paramId = " + str(oldparamid)
+                
+                self.VerbosePrint(selectstr3, 3)
+                self.dbcursor.execute(selectstr3)
+                                                                
+                tmpoldparamval = self.dbcursor.fetchone()
+                if(tmpoldparamval):
+                    oldparamval = tmpoldparamval[0]
+
+                    if((str(oldparamval) != str(parametervalue)) or (str(parametervalue) == '' and str(oldparamval) == 'None')):
+                        self.VerbosePrint("\tParameter " + str(parametername) + " changed from " + str(oldparamval) + " to " + str(parametervalue),2)
+                        matchingparamid = oldparamid
+                    else:
+                        self.VerbosePrint("\tParameter " + str(parametername) + " is unchanged with value " + str(parametervalue),2)
+                else:
+                    self.VerbosePrint("\tParameter " + str(parametername) + " is new",2)                    
+                    matchingparamid = 0
+
+        return matchingparamid
+
     def GetOldReleaseCVSTag(self,componentname):
         oldcvstag = "none"
         
@@ -755,9 +843,6 @@ class ConfdbLoadParamsfromConfigs:
             insertstr = "INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.cmsswrelid) + ")"
             self.VerbosePrint(insertstr,3)
             self.dbcursor.execute(insertstr)
-
-    def CompareOldReleaseParameterValue(self,paramname):
-        print 'Not yet'
 
     def GetPackageID(self,subsystem,package):
 
