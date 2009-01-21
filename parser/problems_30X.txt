@@ -378,7 +378,7 @@ L7PartonCorrectionService.Parameter label string "L7PartonJetCorrector" tracked
 ESModule SiStripConnectivity CalibTracker SiStripESProducers 
  
 ESModule SiStripRegionConnectivity CalibTracker SiStripESProducers 
-SiStripRegionConnectivity.EtaDivisions uint32 20 untracked 
-SiStripRegionConnectivity.PhiDivisions uint32 20 untracked 
-SiStripRegionConnectivity.EtaMax double 2.5 untracked 
+SiStripRegionConnectivity.Parameter EtaDivisions uint32 20 untracked 
+SiStripRegionConnectivity.Parameter PhiDivisions uint32 20 untracked 
+SiStripRegionConnectivity.Parameter EtaMax double 2.5 untracked 
 
