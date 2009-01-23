@@ -382,3 +382,6 @@ SiStripRegionConnectivity.Parameter EtaDivisions uint32 20 untracked
 SiStripRegionConnectivity.Parameter PhiDivisions uint32 20 untracked 
 SiStripRegionConnectivity.Parameter EtaMax double 2.5 untracked 
 
+ESModule EcalUnpackerWorkerESProducer EventFilter EcalRawToDigi
+EcalUnpackerWorkerESProducer.Parameter UncalibRHAlgo PSet tracked
+EcalUnpackerWorkerESProducer.Parameter CalibRHAlgo PSet tracked
