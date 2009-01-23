@@ -290,7 +290,7 @@ class ConfdbOracleModuleLoader:
         for ptype, pname,pval,ptracked,pseq in parameters:
             if pval == 'appendToDataLabel':
                 doAppend = True
-        if(doAppend == True):
+        if(doAppend == False):
             print "\tMessage: appending string appendToDataLabel to this ESSource"
             parameters.append(("string","appendToDataLabel","''","true",999))
 
@@ -366,7 +366,7 @@ class ConfdbOracleModuleLoader:
         for ptype, pname,pval,ptracked,pseq in parameters:
             if pval == 'appendToDataLabel':
                 doAppend = True
-        if(doAppend == True):
+        if(doAppend == False):
             print "\tMessage: appending string appendToDataLabel to this ESSource"
             parameters.append(("string","appendToDataLabel","''","true",999))
 
@@ -540,7 +540,7 @@ class ConfdbOracleModuleLoader:
         for ptype, pname,pval,ptracked,pseq in parameters:
             if pval == 'appendToDataLabel':
                 doAppend = True
-        if(doAppend == True):
+        if(doAppend == False):
             print "\tMessage: appending string appendToDataLabel to this ESSource"
             parameters.append(("string","appendToDataLabel","''","true",999))
                                                                                                  
@@ -652,7 +652,7 @@ class ConfdbOracleModuleLoader:
         for ptype, pname,pval,ptracked,pseq in parameters:
             if pval == 'appendToDataLabel':
                 doAppend = True
-        if(doAppend == True):
+        if(doAppend == False):
             print "\tMessage: appending string appendToDataLabel to this ESSource"
             parameters.append(("string","appendToDataLabel","''","true",999))
 	
