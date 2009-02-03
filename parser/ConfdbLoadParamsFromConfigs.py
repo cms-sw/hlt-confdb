@@ -22,8 +22,8 @@ def main(argv):
     input_blacklist = []
 
     # or a list of packages (and only these packages) to use
-    #    input_usingwhitelist = False
-    input_usingwhitelist = True
+    input_usingwhitelist = False
+    #    input_usingwhitelist = True
     input_whitelist = []
 
     input_verbose = 0
@@ -261,10 +261,12 @@ class ConfdbLoadParamsfromConfigs:
             if(not (os.path.isdir(self.base_path))):
                 print 'Fatal error: release source tree not found. Exiting now'
                 return
-
-            if((self.usingwhitelist == True) and (not package in self.whitelist[0])):
+            
+            if(self.usingwhitelist == True):
+               if(not package in self.whitelist[0]):
                 continue
-            if((self.usingblacklist == True) and (package in self.blacklist[0])):
+            if(self.usingblacklist == True):
+               if(package in self.blacklist[0]):
                 continue
 
 	    # Check if this is really a directory
@@ -352,21 +354,21 @@ class ConfdbLoadParamsfromConfigs:
 
                             except FloatingPointError:
                                 print 'Dummy exception - this should never happen!!!'
-#                            except NameError:
-#                                print "Name Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-#                                continue
-#
-#                            except TypeError:
-#                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-#                                continue
-#
-#                            except ImportError:
-#                                print "Import Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-#                                continue
-#
-#                            except SyntaxError:
-#                                print "Syntax Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-#                                continue
+                                #                            except NameError:
+                                #                                print "Name Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                                #                                continue
+                                #
+                                #                            except TypeError:
+                                #                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                                #                                continue
+                                #
+                                #                            except ImportError:
+                                #                                print "Import Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                                #                                continue
+                                #
+                                #                            except SyntaxError:
+                                #                                print "Syntax Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                                #                                continue
 
         # Commit and disconnect to be compatible with either INNODB or MyISAM
         self.dbloader.ConfdbExitGracefully()
@@ -415,7 +417,7 @@ class ConfdbLoadParamsfromConfigs:
             componentsuperid = self.LoadUpdateComponent(value.type_(),componenttype)
             objectsuperid = -1
             vobjectsuperid = -1
-            self.localseq = 1
+            self.localseq = 0
             
             if(componentsuperid != -1):
                 params = value.parameters_()
