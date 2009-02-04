@@ -84,25 +84,9 @@ def main(argv):
         if o in ("-o","hostname="):
             input_host = str(a)
             print "Use hostname " + input_host
-        if o in ("-t","dbtype="):
-            input_dbtype = str(a)
-            if(input_dbtype == "MySQL"):
-                print "Using MySQL DB"
-            elif(input_dbtype == "Oracle"):
-                print "Using Oracle DB"
-            else:
-                print "Unknown DB type " + input_dbtype + ", exiting now"
-                return
         if o in ("-l","config="):
             input_configfile = str(a)
             print "Parsing components for config: " + input_configfile
-        if o in ("-e","parsetestdir="):
-            if(int(a) == 1):
-                print "Will parse test/ directories"
-                input_dotest = True
-            else:
-                print "Will not parse test/ directories"
-                input_dotest = False
         if o in ("-a","addtorelease="):
             input_addtorelease = str(a)
             input_baserelease_path = input_base_path
@@ -111,16 +95,12 @@ def main(argv):
         if o in ("-m","comparetorelease="):
             print "Will update releative to release " + str(a)
             input_comparetorelease = str(a)
-        if o in ("-f","configflavor="):
-            print "Will use " + str(a) + "-language cfi files to find parameter defaults"
-            input_configflavor = str(a)
         if o in ("-n","noload="):
             print "Will parse release without loading to the DB"
             input_noload = True
         if o in ("-h","help="):
             print "Help menu for ConfdbSourceToDB"
             print "\t-r <CMSSW release (default is the CMSSW_VERSION envvar)>"
-            print "\t-p <Absolute path to the release>"
             print "\t-c <Manually set the name of the release>"
             print "\t-m <Release to compare to when updating>"
             print "\t-w <Comma-delimited list of packages to parse>"
@@ -357,19 +337,16 @@ class ConfdbLoadParamsfromConfigs:
                                 #                            except NameError:
                                 #                                print "Name Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
                                 #                                continue
-                                #
                                 #                            except TypeError:
                                 #                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
                                 #                                continue
-                                #
                                 #                            except ImportError:
                                 #                                print "Import Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
                                 #                                continue
-                                #
                                 #                            except SyntaxError:
                                 #                                print "Syntax Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
                                 #                                continue
-
+                            
         # Commit and disconnect to be compatible with either INNODB or MyISAM
         self.dbloader.ConfdbExitGracefully()
                 
@@ -529,6 +506,10 @@ class ConfdbLoadParamsfromConfigs:
         parametertype = pval.configTypeName()
         parametertracked = pval.isTracked()
 
+        #For now, ignore the cms.SecSource type (used for mixing pileup in MC)
+        if(parametertype.find("secsource") != -1):
+            return
+
         if(parametertype.find("untracked") != -1):
             parametertype = parametertype.split("untracked")[1].lstrip().rstrip()
 
@@ -600,8 +581,8 @@ class ConfdbLoadParamsfromConfigs:
                 else:
                     paramindex = 1
                     for parametervectorvalue in parametervalue:
-                        insertstr3 = "INSERT INTO " + str(paramtable) + " (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(paramindex) + ", '" + str(parametervectorvalue) + "')"
                         self.VerbosePrint(insertstr3, 3)
+                        insertstr3 = "INSERT INTO " + str(paramtable) + " (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(paramindex) + ", '" + str(parametervectorvalue) + "')"
                         self.dbcursor.execute(insertstr3)
                         paramindex = paramindex + 1
 
