@@ -24,7 +24,47 @@ def main(argv):
     # or a list of packages (and only these packages) to use
     input_usingwhitelist = False
     #    input_usingwhitelist = True
-    input_whitelist = []
+    input_whitelist = [
+        "CalibCalorimetry",
+        "CalibMuon",
+        "CalibTracker",
+        "Calibration",
+        "CondCore",
+        "DQM",
+        "DQMServices",
+        "EventFilter",
+        "FWCore",
+        "Geometry",
+        "GeometryReaders",
+        "HLTrigger",
+        "IOPool",
+        "IORawData",
+        "JetMETCorrections",
+        "L1Trigger",
+        "L1TriggerConfig",
+        "MagneticField",
+        "PhysicsTools",
+        "RecoBTag",
+        "RecoBTau",
+        "RecoCaloTools",
+        "RecoEcal",
+        "RecoEgamma",
+        "RecoJets",
+        "RecoLocalCalo",
+        "RecoLocalMuon",
+        "RecoLocalTracker",
+        "RecoLuminosity",
+        "RecoMET",
+        "RecoMuon",
+        "RecoPixelVertexing",
+        "RecoTauTag",
+        "RecoTracker",
+        "RecoVertex",
+        "SimCalorimetry",
+        "SimGeneral",
+        "TrackPropagation",
+        "TrackingTools"
+        ]
 
     input_verbose = 0
     input_dbuser = "CMS_HLT_TEST"
@@ -331,21 +371,22 @@ class ConfdbLoadParamsfromConfigs:
                                 self.componenttable = "ESModuleTemplates"                                
                                 self.FindParamsFromPython(thesubsystem, thepackage, myesproducers,"ESModule") 
 
-
+                            # cfi files are not guaranteed to be valid :( If we find an invalid one, catch the
+                            # exception from the python config API and move on to the next
                             except FloatingPointError:
                                 print 'Dummy exception - this should never happen!!!'
-                                #                            except NameError:
-                                #                                print "Name Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-                                #                                continue
-                                #                            except TypeError:
-                                #                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-                                #                                continue
-                                #                            except ImportError:
-                                #                                print "Import Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-                                #                                continue
-                                #                            except SyntaxError:
-                                #                                print "Syntax Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-                                #                                continue
+                            except NameError:
+                                print "Name Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                                continue
+                            except TypeError:
+                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                                continue
+                            except ImportError:
+                                print "Import Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                                continue
+                            except SyntaxError:
+                                print "Syntax Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                                continue
                             
         # Commit and disconnect to be compatible with either INNODB or MyISAM
         self.dbloader.ConfdbExitGracefully()
@@ -576,15 +617,17 @@ class ConfdbLoadParamsfromConfigs:
                 if((not parametertype.startswith('v')) and (not parametertype.startswith('V'))):
                     insertstr3 = "INSERT INTO " + str(paramtable) + " (paramId, value) VALUES (" + str(newparamid) + ", '" + str(parametervalue) + "')"
                     self.VerbosePrint(insertstr3, 3)
-                    self.dbcursor.execute(insertstr3)
+                    if(str(parametervalue).find("'") == -1):                        
+                        self.dbcursor.execute(insertstr3)
                     
                 else:
                     paramindex = 1
                     for parametervectorvalue in parametervalue:
-                        self.VerbosePrint(insertstr3, 3)
                         insertstr3 = "INSERT INTO " + str(paramtable) + " (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(paramindex) + ", '" + str(parametervectorvalue) + "')"
-                        self.dbcursor.execute(insertstr3)
-                        paramindex = paramindex + 1
+                        self.VerbosePrint(insertstr3, 3)
+                        if(str(parametervectorvalue).find("'") == -1):
+                            self.dbcursor.execute(insertstr3)
+                            paramindex = paramindex + 1
 
             # Reassociate this parameter from the previous release
             if((unmodifiedparamid > 0) and (self.comparetorelease != "")):
