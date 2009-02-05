@@ -186,6 +186,7 @@ class ConfdbLoadParamsfromConfigs:
         self.modtypedict = {}
         self.paramtypedict = {}
         self.paramtabledict = {}
+        self.preferredcfilist = []
         
 	# Deal with package tags for this release.
 	self.cmsswrel = clirel
@@ -271,6 +272,8 @@ class ConfdbLoadParamsfromConfigs:
                                "EventID":"EventIDParamValues",
                                "VEventID":"VEventIDParamValues",
                                "FileInPath":"FileInPathParamValues"}
+
+        self.CreatePreferredCfiList()
                                
 	# Get package list for this release
 	packagelist = os.listdir(source_tree)
@@ -322,54 +325,46 @@ class ConfdbLoadParamsfromConfigs:
                             
                     pyfiles = os.listdir(pydir)
 
-                    for pyfile in pyfiles:
-                        if(pyfile.endswith("_cfi.py")):
-                            print "the pyfile = " + str(pyfile)
-                            thecomponent = pyfile.split('.py')[0]
-                            thebasecomponent = thecomponent.split('_cfi')[0]
+                    thesubsystempackage = pydir.split('src/')[1].split('/data/')[0].lstrip().rstrip()
+                    thesubsystempackagenopy = thesubsystempackage.split("/python")[0]
+                    thesubsystem = thesubsystempackage.split('/')[0]
+                    thepackage = thesubsystempackage.split('/')[1]
 
-                            # Construct the py-cfi to import
-                            thesubsystempackage = pydir.split('src/')[1].split('/data/')[0].lstrip().rstrip()
-                            thesubsystem = thesubsystempackage.split('/')[0]
-                            thepackage = thesubsystempackage.split('/')[1]
-                            importcommand = "import " + thesubsystem + "." + thepackage + "." + thecomponent
-                            #                            print importcommand
-                            process = cms.Process("MyProcess")
+                    # First check if there are any preferred cfi files to use for this Package/Subsystem.
+                    # If so, get the parameters from there.
+                    for preferredsubpackage, preferredcfi in self.preferredcfilist:
+                        if thesubsystempackagenopy == preferredsubpackage: 
+                            self.VerbosePrint("Using the preferred cfi.py: " + preferredcfi + " for " + thesubsystempackagenopy,0)
+                            pyfile = preferredcfi
+                            thecomponent = pyfile.split('.py')[0]
 
                             try:
-                                exec importcommand
-                                # Now create a process and construct the command to extend it with the py-cfi
-                                theextend = "process.extend(" + thesubsystem + "." + thepackage + "." + thecomponent + ")"
-                                eval(theextend)
+                                self.ExtendTheCfi(pyfile, pydir)
 
-                                myproducers = process.producers_()
-                                self.componenttable = "ModuleTemplates"
-                                self.FindParamsFromPython(thesubsystem, thepackage, myproducers,"EDProducer")
+                            # cfi files are not guaranteed to be valid :( If we find an invalid one, catch the
+                            # exception from the python config API and move on to the next
+                            except FloatingPointError:
+                                print 'Dummy exception - this should never happen!!!'
+                            except NameError:
+                                print "Name Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                                continue
+                            except TypeError:
+                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                                continue
+                            except ImportError:
+                                print "Import Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                                continue
+                            except SyntaxError:
+                                print "Syntax Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                                continue
+                             
+                    # Now look through all other cfi files.
+                    for pyfile in pyfiles:
+                        if(pyfile.endswith("_cfi.py")):
+                            thecomponent = pyfile.split('.py')[0]
 
-                                myfilters = process.filters_()
-                                self.componenttable = "ModuleTemplates"
-                                self.FindParamsFromPython(thesubsystem, thepackage, myfilters,"EDFilter") 
-
-                                myservices = process.services_()
-                                self.componenttable = "ServiceTemplates"                                
-                                self.FindParamsFromPython(thesubsystem, thepackage, myservices,"Service") 
-
-                                # JH - we probably don't need EDAnalyzers for the HLT configuration. Leave this commented out
-                                # just in case.
-                                #                                myanalyzers = process.analyzers_()
-                                #                                self.FindParamsFromPython(thesubsystem, thepackage, myanalyzers,"EDAnalyzer") 
-                                
-                                myoutputmodules = process.outputModules_()
-                                self.componenttable = "ModuleTemplates"
-                                self.FindParamsFromPython(thesubsystem, thepackage, myoutputmodules,"OutputModule")
-
-                                myessources = process.es_sources_()
-                                self.componenttable = "ESSourceTemplates"                                
-                                self.FindParamsFromPython(thesubsystem, thepackage, myessources,"ESSource") 
-                                            
-                                myesproducers = process.es_producers_()
-                                self.componenttable = "ESModuleTemplates"                                
-                                self.FindParamsFromPython(thesubsystem, thepackage, myesproducers,"ESModule") 
+                            try:
+                                self.ExtendTheCfi(pyfile, pydir)
 
                             # cfi files are not guaranteed to be valid :( If we find an invalid one, catch the
                             # exception from the python config API and move on to the next
@@ -390,7 +385,55 @@ class ConfdbLoadParamsfromConfigs:
                             
         # Commit and disconnect to be compatible with either INNODB or MyISAM
         self.dbloader.ConfdbExitGracefully()
-                
+
+    def ExtendTheCfi(self, pyfile, pydir):
+
+        self.VerbosePrint("Extending the python cfi file " + str(pyfile),0)
+        thecomponent = pyfile.split('.py')[0]
+        thebasecomponent = thecomponent.split('_cfi')[0]
+        
+        # Construct the py-cfi to import
+        thesubsystempackage = pydir.split('src/')[1].split('/data/')[0].lstrip().rstrip()
+        thesubsystem = thesubsystempackage.split('/')[0]
+        thepackage = thesubsystempackage.split('/')[1]
+        importcommand = "import " + thesubsystem + "." + thepackage + "." + thecomponent
+        #                            print importcommand
+        process = cms.Process("MyProcess")
+
+        exec importcommand
+        # Now create a process and construct the command to extend it with the py-cfi
+        theextend = "process.extend(" + thesubsystem + "." + thepackage + "." + thecomponent + ")"
+        eval(theextend)
+        
+        myproducers = process.producers_()
+        self.componenttable = "ModuleTemplates"
+        self.FindParamsFromPython(thesubsystem, thepackage, myproducers,"EDProducer")
+        
+        myfilters = process.filters_()
+        self.componenttable = "ModuleTemplates"
+        self.FindParamsFromPython(thesubsystem, thepackage, myfilters,"EDFilter") 
+        
+        myservices = process.services_()
+        self.componenttable = "ServiceTemplates"                                
+        self.FindParamsFromPython(thesubsystem, thepackage, myservices,"Service") 
+        
+        # JH - we probably don't need EDAnalyzers for the HLT configuration. Leave this commented out
+        # just in case.
+        #                                myanalyzers = process.analyzers_()
+        #                                self.FindParamsFromPython(thesubsystem, thepackage, myanalyzers,"EDAnalyzer") 
+        
+        myoutputmodules = process.outputModules_()
+        self.componenttable = "ModuleTemplates"
+        self.FindParamsFromPython(thesubsystem, thepackage, myoutputmodules,"OutputModule")
+        
+        myessources = process.es_sources_()
+        self.componenttable = "ESSourceTemplates"                                
+        self.FindParamsFromPython(thesubsystem, thepackage, myessources,"ESSource") 
+        
+        myesproducers = process.es_producers_()
+        self.componenttable = "ESModuleTemplates"                                
+        self.FindParamsFromPython(thesubsystem, thepackage, myesproducers,"ESModule") 
+            
     def DoPsetRecursion(self,psetval,psetname,psetsid):
 
         params = psetval.parameters_()
@@ -881,6 +924,12 @@ class ConfdbLoadParamsfromConfigs:
     def VerbosePrint(self,message,severity):
         if(self.verbose >= severity):
             print message
+
+    def CreatePreferredCfiList(self):
+        # If there is a preferred cfi.py for a give package, define it here.
+        # Need 1-to-many mapping, so just make a list instead of a dictionary...
+
+        self.preferredcfilist.append(('SomePackage/SomeSubsystem','mycfi_cfi.py'))
         
 if __name__ == "__main__":
     main(sys.argv[1:])
