@@ -73,10 +73,11 @@ def main(argv):
     input_addtorelease = "none"
     input_comparetorelease = ""
     input_noload = False
+    input_preferfile = ""
     
     print "Using release base: " + input_base_path
 
-    opts, args = getopt.getopt(sys.argv[1:], "r:p:b:w:c:v:d:u:s:t:o:l:e:a:m:f:nh", ["release=","sourcepath=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","configfile=","parsetestdir=","addtorelease=","comparetorelease=","configflavor=","noload=","help="])
+    opts, args = getopt.getopt(sys.argv[1:], "r:b:w:c:v:d:u:s:t:o:a:m:i:nh", ["release=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","addtorelease=","comparetorelease=","preferredcfis=","noload=","help="])
 
     for o, a in opts:
         if o in ("-r","release="):
@@ -105,6 +106,7 @@ def main(argv):
             print 'Skip directories:'
             input_usingblacklist = True
         if o in ("-w","whitelist="):
+            input_whitelist = []
             input_whitelist.append(a.split(","))
             print 'Use directories:'
             print input_whitelist
@@ -124,9 +126,6 @@ def main(argv):
         if o in ("-o","hostname="):
             input_host = str(a)
             print "Use hostname " + input_host
-        if o in ("-l","config="):
-            input_configfile = str(a)
-            print "Parsing components for config: " + input_configfile
         if o in ("-a","addtorelease="):
             input_addtorelease = str(a)
             input_baserelease_path = input_base_path
@@ -135,6 +134,8 @@ def main(argv):
         if o in ("-m","comparetorelease="):
             print "Will update releative to release " + str(a)
             input_comparetorelease = str(a)
+        if o in ("-i","preferredcfis="):
+            input_preferfile = str(a)
         if o in ("-n","noload="):
             print "Will parse release without loading to the DB"
             input_noload = True
@@ -145,6 +146,7 @@ def main(argv):
             print "\t-m <Release to compare to when updating>"
             print "\t-w <Comma-delimited list of packages to parse>"
             print "\t-b <Comma-delimited list of packages to ignore>"
+            print "\t-i <Text file containing list of preferred cfi.py files>"
             print "\t-v <Verbosity level (0-3)>"
             print "\t-d <Name of the database to connect to>"
             print "\t-u <User name to connect as>"
@@ -153,11 +155,11 @@ def main(argv):
             print "\t-h Print this help menu"
             return
 
-    confdbjob = ConfdbLoadParamsfromConfigs(input_cmsswrel,input_baserelease_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbuser,input_dbpwd,input_host,input_noload,input_addtorelease,input_comparetorelease)
+    confdbjob = ConfdbLoadParamsfromConfigs(input_cmsswrel,input_baserelease_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbuser,input_dbpwd,input_host,input_noload,input_addtorelease,input_comparetorelease,input_preferfile)
     confdbjob.BeginJob()
 
 class ConfdbLoadParamsfromConfigs:
-    def __init__(self,clirel,clibasereleasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbuser,clidbpwd,clihost,clinoload,cliaddtorelease,clicomparetorelease):
+    def __init__(self,clirel,clibasereleasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbuser,clidbpwd,clihost,clinoload,cliaddtorelease,clicomparetorelease,clipreferfile):
 
         self.dbname = ''
         self.dbuser = clidbuser
@@ -168,6 +170,7 @@ class ConfdbLoadParamsfromConfigs:
         self.noload = clinoload
         self.addtorelease = cliaddtorelease
         self.comparetorelease = clicomparetorelease
+        self.prefercfifile = clipreferfile
         self.componenttable = ''
         self.componentname = ''
         self.softpackageid = ''
@@ -273,7 +276,14 @@ class ConfdbLoadParamsfromConfigs:
                                "VEventID":"VEventIDParamValues",
                                "FileInPath":"FileInPathParamValues"}
 
-        self.CreatePreferredCfiList()
+        if(self.prefercfifile != ""):
+            self.CreatePreferredCfiList()
+
+        self.VerbosePrint("\n",0)
+        self.VerbosePrint("*********************",0)
+        self.VerbosePrint("* Beginning parsing *",0)
+        self.VerbosePrint("*********************",0) 
+        self.VerbosePrint("\n",0)
                                
 	# Get package list for this release
 	packagelist = os.listdir(source_tree)
@@ -926,10 +936,22 @@ class ConfdbLoadParamsfromConfigs:
             print message
 
     def CreatePreferredCfiList(self):
-        # If there is a preferred cfi.py for a give package, define it here.
-        # Need 1-to-many mapping, so just make a list instead of a dictionary...
 
-        self.preferredcfilist.append(('SomePackage/SomeSubsystem','mycfi_cfi.py'))
-        
+        # If there is a preferred cfi.py for a give package, define it here.
+        # Need 1-to-many mapping, so it's a list instead of a dictionary...
+
+        if(not os.path.isfile(self.prefercfifile)):
+            self.VerbosePrint("Preferred cfi.py file " + str(self.prefercfifile) + " not found. Will load parameters from the first valid cfi.py file encountered",0)
+            return
+            
+        preffile = open(self.prefercfifile)
+        preflines = preffile.readlines()
+        self.VerbosePrint("Reading list of preferred cfi.py files from " + str(self.prefercfifile),1)
+        for prefline in preflines:
+            prefpackage = str((prefline.split())[0])
+            prefcfi = str((prefline.split())[1])
+            self.preferredcfilist.append((prefpackage,prefcfi)) 
+            self.VerbosePrint("\t" + str(prefpackage) + " " + str(prefcfi),1)
+
 if __name__ == "__main__":
     main(sys.argv[1:])
