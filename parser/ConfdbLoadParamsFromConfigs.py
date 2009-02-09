@@ -208,6 +208,10 @@ class ConfdbLoadParamsfromConfigs:
         self.nesting = []
         self.finishedtemplates = []
 
+        # Logfile for parsing output
+        self.outputlogfile = "parse." + str(clirel) + "." + str(clihost) + ".log"
+        self.outputlogfilehandle = None
+
     def BeginJob(self):
 	# List of all available modules
 	sealcomponenttuple = []
@@ -217,6 +221,8 @@ class ConfdbLoadParamsfromConfigs:
 
 	source_tree = self.base_path + "//src/"
 
+        self.outputlogfilehandle = open(self.outputlogfile, 'w')
+        
 	print "The  source tree is: " + source_tree
 
         if(not (os.path.isdir(self.base_path))):
@@ -395,6 +401,7 @@ class ConfdbLoadParamsfromConfigs:
                             
         # Commit and disconnect to be compatible with either INNODB or MyISAM
         self.dbloader.ConfdbExitGracefully()
+        self.outputlogfilehandle.close()
 
     def ExtendTheCfi(self, pyfile, pydir):
 
@@ -934,6 +941,7 @@ class ConfdbLoadParamsfromConfigs:
     def VerbosePrint(self,message,severity):
         if(self.verbose >= severity):
             print message
+            self.outputlogfilehandle.write(message)
 
     def CreatePreferredCfiList(self):
 
