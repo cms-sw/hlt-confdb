@@ -1,3 +1,8 @@
+2009-02-11  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-26-05
+	* fix converter/summary/ascii/data, Integer -> Long for prescales
+
 2009-01-09  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-26-04

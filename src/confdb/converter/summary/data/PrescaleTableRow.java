@@ -22,7 +22,7 @@ public class PrescaleTableRow implements ITableRow
     private String triggerName;
     
     /** prescale values for each scenario */
-    private ArrayList<Integer> prescales;
+    private ArrayList<Long> prescales;
 
     
     //
@@ -30,7 +30,7 @@ public class PrescaleTableRow implements ITableRow
     //
     
     /** standard constructor */
-    public PrescaleTableRow(String triggerName, ArrayList<Integer> prescales)
+    public PrescaleTableRow(String triggerName, ArrayList<Long> prescales)
     {
 	this.triggerName = triggerName;
 	this.prescales   = prescales;

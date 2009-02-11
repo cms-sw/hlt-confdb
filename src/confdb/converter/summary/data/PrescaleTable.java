@@ -96,27 +96,27 @@ public class PrescaleTable implements ITable
 	    columnWidth.add(columnTitle.get(i+1).length()+1);
 	}
 	
-	HashMap<String,ArrayList<Integer>> pathToPrescales =
-	    new HashMap<String,ArrayList<Integer>>();
+	HashMap<String,ArrayList<Long>> pathToPrescales =
+	    new HashMap<String,ArrayList<Long>>();
 	
 	for (int i=0;i<vpsetPrescaleTable.parameterSetCount();i++) {
 	    PSetParameter    pset      =vpsetPrescaleTable.parameterSet(i);
 	    StringParameter  sPathName =(StringParameter)pset.parameter("pathName");
 	    VUInt32Parameter vPrescales=(VUInt32Parameter)pset.parameter("prescales");
 	    String           pathName  =(String)sPathName.value();
-	    ArrayList<Integer> prescales = new ArrayList<Integer>();
+	    ArrayList<Long>  prescales = new ArrayList<Long>();
 	    for (int ii=0;ii<vPrescales.vectorSize();ii++)
-		prescales.add((Integer)vPrescales.value(ii));
+		prescales.add((Long)vPrescales.value(ii));
 	    pathToPrescales.put(pathName,prescales);
 	}
 	
 	Iterator<Path> itP = config.pathIterator();
 	while (itP.hasNext()) {
 	    Path path = itP.next();
-	    ArrayList<Integer> prescales = pathToPrescales.remove(path.name());
+	    ArrayList<Long> prescales = pathToPrescales.remove(path.name());
 	    if (prescales==null) {
-		prescales = new ArrayList<Integer>();
-		for (int i=0;i<columnCount()-1;i++) prescales.add(1);
+		prescales = new ArrayList<Long>();
+		for (int i=0;i<columnCount()-1;i++) prescales.add(new Long(1));
 	    }
 	    PrescaleTableRow row = new PrescaleTableRow(path.name(),prescales);
 	    //if (row.isNoTrigger()) continue; TODO
