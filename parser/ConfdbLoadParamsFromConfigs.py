@@ -364,8 +364,8 @@ class ConfdbLoadParamsfromConfigs:
                             except NameError:
                                 print "Name Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
                                 continue
-                            except TypeError:
-                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+#                            except TypeError:
+#                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
                                 continue
                             except ImportError:
                                 print "Import Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
@@ -389,8 +389,8 @@ class ConfdbLoadParamsfromConfigs:
                             except NameError:
                                 print "Name Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
                                 continue
-                            except TypeError:
-                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+#                            except TypeError:
+#                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
                                 continue
                             except ImportError:
                                 print "Import Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
@@ -940,8 +940,8 @@ class ConfdbLoadParamsfromConfigs:
 
     def VerbosePrint(self,message,severity):
         if(self.verbose >= severity):
-            print message
-            self.outputlogfilehandle.write(message)
+            print str(message)
+            self.outputlogfilehandle.write(str(message) + "\n")
 
     def CreatePreferredCfiList(self):
 
