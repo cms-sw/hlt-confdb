@@ -22,8 +22,8 @@ def main(argv):
     input_blacklist = []
 
     # or a list of packages (and only these packages) to use
-    input_usingwhitelist = False
-    #    input_usingwhitelist = True
+    #    input_usingwhitelist = False
+    input_usingwhitelist = True
     input_whitelist = [
         "CalibCalorimetry",
         "CalibMuon",
@@ -294,19 +294,23 @@ class ConfdbLoadParamsfromConfigs:
 	# Get package list for this release
 	packagelist = os.listdir(source_tree)
 
+        self.VerbosePrint("Will parse packages in the whitelist",1)
+        for okpackage in self.whitelist:
+            self.VerbosePrint("\t" + str(okpackage),1)
+
 	# Start decending into the source tree
 	for package in packagelist:
-
+            
             if(not (os.path.isdir(self.base_path))):
                 print 'Fatal error: release source tree not found. Exiting now'
                 return
             
             if(self.usingwhitelist == True):
-               if(not package in self.whitelist[0]):
-                continue
+                if(not package in self.whitelist):
+                    continue
             if(self.usingblacklist == True):
-               if(package in self.blacklist[0]):
-                continue
+                if(package in self.blacklist):
+                    continue
 
 	    # Check if this is really a directory
 	    if(os.path.isdir(source_tree + package)):
@@ -364,8 +368,8 @@ class ConfdbLoadParamsfromConfigs:
                             except NameError:
                                 print "Name Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
                                 continue
-#                            except TypeError:
-#                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                            except TypeError:
+                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
                                 continue
                             except ImportError:
                                 print "Import Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
@@ -389,8 +393,8 @@ class ConfdbLoadParamsfromConfigs:
                             except NameError:
                                 print "Name Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
                                 continue
-#                            except TypeError:
-#                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                            except TypeError:
+                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
                                 continue
                             except ImportError:
                                 print "Import Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
@@ -414,7 +418,7 @@ class ConfdbLoadParamsfromConfigs:
         thesubsystem = thesubsystempackage.split('/')[0]
         thepackage = thesubsystempackage.split('/')[1]
         importcommand = "import " + thesubsystem + "." + thepackage + "." + thecomponent
-        #                            print importcommand
+        #        print importcommand
         process = cms.Process("MyProcess")
 
         exec importcommand
