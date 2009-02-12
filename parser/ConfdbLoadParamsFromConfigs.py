@@ -464,7 +464,9 @@ class ConfdbLoadParamsfromConfigs:
             if(paramval.configTypeName() == "PSet" or paramval.configTypeName() == "untracked PSet"):
                 subobjectsuperid = self.LoadUpdatePSet(paramname,psetname,paramval,psetsid)
                 self.nesting.append(('PSet',paramname,subobjectsuperid))
+                prerecursionseq = self.localseq
                 self.DoPsetRecursion(paramval,psetname+"."+paramname,subobjectsuperid)
+                self.localseq = prerecursionseq + 1
                 del self.nesting[-1]
 
             elif(paramval.configTypeName().find("VPSet") == -1):
@@ -477,7 +479,9 @@ class ConfdbLoadParamsfromConfigs:
                 for vpsetentry in paramval:
                     subobjectsuperid = self.LoadUpdatePSet(paramname,psetname,paramval,psetsid)
                     self.nesting.append(('PSet',paramname,subobjectsuperid))
+                    prerecursionseq = self.localseq
                     self.DoPsetRecursion(vpsetentry,psetname+'['+str(i)+']',subobjectsuperid)
+                    self.localseq = prerecursionseq + 1
                     del self.nesting[-1]
                     i = i + 1
     
@@ -509,7 +513,9 @@ class ConfdbLoadParamsfromConfigs:
                         psetname = paramname
                         objectsuperid = self.LoadUpdatePSet(paramname,psetname,paramval,componentsuperid)
                         self.nesting.append(('PSet',paramname,objectsuperid))
+                        prerecursionseq = self.localseq
                         self.DoPsetRecursion(paramval,paramname,objectsuperid)
+                        self.localseq = prerecursionseq + 1
                         del self.nesting[-1]
                     
                     elif(paramval.configTypeName().find("VPSet") == -1):
@@ -526,7 +532,9 @@ class ConfdbLoadParamsfromConfigs:
                         for vpsetentry in paramval:
                             vobjectmembersuperid = self.LoadUpdatePSet(paramname,psetname,paramval,vobjectsuperid) 
                             self.nesting.append(('PSet','VPSet['+str(i)+']',vobjectmembersuperid))
+                            prerecursionseq = self.localseq
                             self.DoPsetRecursion(vpsetentry,paramname+'['+str(i)+']',vobjectmembersuperid)
+                            self.localseq = prerecursionseq + 1
                             del self.nesting[-1]
                             i = i + 1
                         del self.nesting[-1]
@@ -676,7 +684,6 @@ class ConfdbLoadParamsfromConfigs:
                     self.VerbosePrint(self.nesting,2)
 
                 self.localseq = self.localseq + 1
-                
         
                 if((not parametertype.startswith('v')) and (not parametertype.startswith('V'))):
                     insertstr3 = "INSERT INTO " + str(paramtable) + " (paramId, value) VALUES (" + str(newparamid) + ", '" + str(parametervalue) + "')"
