@@ -306,10 +306,18 @@ class ConfdbLoadParamsfromConfigs:
                 return
             
             if(self.usingwhitelist == True):
-                if(not package in self.whitelist):
+                skip = True
+                for whitelists in self.whitelist:
+                    if str(whitelists) == str(package):
+                        skip = False
+                if(skip == True):
                     continue
             if(self.usingblacklist == True):
-                if(package in self.blacklist):
+                skip = False
+                for blacklists in self.blacklist:
+                    if str(blacklists) == str(package):
+                        skip = True
+                if(skip == True):
                     continue
 
 	    # Check if this is really a directory
@@ -460,13 +468,34 @@ class ConfdbLoadParamsfromConfigs:
         params = psetval.parameters_()
         subobjectsuperid = -1
 
+        nextseqid = -1
+        self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParameterAssoc WHERE superId = " + str(psetsid) + " ORDER BY sequenceNb DESC")
+        nextpseqid = self.dbcursor.fetchone()
+        if(nextpseqid):
+            nextseqid = nextpseqid[0]
+        self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParamSetAssoc WHERE superId = " + str(psetsid) + " ORDER BY sequenceNb DESC")
+        nextpsetseqid = self.dbcursor.fetchone()
+        if(nextpsetseqid):
+            if(nextpsetseqid[0] > nextseqid):
+                nextseqid = nextpsetseqid[0]
+        self.dbcursor.execute("SELECT sequenceNb FROM SuperIdVecParamSetAssoc WHERE superId = " + str(psetsid) + " ORDER BY sequenceNb DESC")
+        nextvpsetseqid = self.dbcursor.fetchone()
+        if(nextvpsetseqid):
+            if(nextvpsetseqid[0] > nextseqid):
+                nextseqid = nextvpsetseqid[0]
+                
+        self.VerbosePrint("The last inserted sequenceNb for PSet " + str(psetname) + " component was " + str(nextseqid),2)
+        self.localseq = 0
+        self.localseq = nextseqid + 1
+        self.VerbosePrint("The first parameter for PSet " + str(psetname) + " will be inserted with sequenceNb " + str(self.localseq),2)
+
         for paramname, paramval in params.iteritems():
             if(paramval.configTypeName() == "PSet" or paramval.configTypeName() == "untracked PSet"):
                 subobjectsuperid = self.LoadUpdatePSet(paramname,psetname,paramval,psetsid)
                 self.nesting.append(('PSet',paramname,subobjectsuperid))
                 prerecursionseq = self.localseq
                 self.DoPsetRecursion(paramval,psetname+"."+paramname,subobjectsuperid)
-                self.localseq = prerecursionseq + 1
+                self.localseq = prerecursionseq
                 del self.nesting[-1]
 
             elif(paramval.configTypeName().find("VPSet") == -1):
@@ -481,7 +510,7 @@ class ConfdbLoadParamsfromConfigs:
                     self.nesting.append(('PSet',paramname,subobjectsuperid))
                     prerecursionseq = self.localseq
                     self.DoPsetRecursion(vpsetentry,psetname+'['+str(i)+']',subobjectsuperid)
-                    self.localseq = prerecursionseq + 1
+                    self.localseq = prerecursionseq
                     del self.nesting[-1]
                     i = i + 1
     
@@ -503,7 +532,28 @@ class ConfdbLoadParamsfromConfigs:
             componentsuperid = self.LoadUpdateComponent(value.type_(),componenttype)
             objectsuperid = -1
             vobjectsuperid = -1
+
+
+            nextseqid = -1
+            self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParameterAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
+            nextpseqid = self.dbcursor.fetchone()
+            if(nextpseqid):
+                nextseqid = nextpseqid[0]
+            self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParamSetAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
+            nextpsetseqid = self.dbcursor.fetchone()
+            if(nextpsetseqid):
+                if(nextpsetseqid[0] > nextseqid):
+                    nextseqid = nextpsetseqid[0]
+            self.dbcursor.execute("SELECT sequenceNb FROM SuperIdVecParamSetAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
+            nextvpsetseqid = self.dbcursor.fetchone() 
+            if(nextvpsetseqid):
+                if(nextvpsetseqid[0] > nextseqid):
+                    nextseqid = nextvpsetseqid[0]
+
+            self.VerbosePrint("The last inserted sequenceNb for this component was " + str(nextseqid),2)
             self.localseq = 0
+            self.localseq = nextseqid + 1
+            self.VerbosePrint("The first parameter will be inserted with sequenceNb " + str(self.localseq),2)
             
             if(componentsuperid != -1):
                 params = value.parameters_()
@@ -515,7 +565,7 @@ class ConfdbLoadParamsfromConfigs:
                         self.nesting.append(('PSet',paramname,objectsuperid))
                         prerecursionseq = self.localseq
                         self.DoPsetRecursion(paramval,paramname,objectsuperid)
-                        self.localseq = prerecursionseq + 1
+                        self.localseq = prerecursionseq
                         del self.nesting[-1]
                     
                     elif(paramval.configTypeName().find("VPSet") == -1):
@@ -528,16 +578,23 @@ class ConfdbLoadParamsfromConfigs:
                         self.nesting.append(('VPSet',paramname,objectsuperid))
                         self.VerbosePrint("\t\t" + str(paramname) + "\t" + str(paramval.configTypeName()) + "[" + str(len(paramval)) + "]", 1)
                         psetname = str(paramval.configTypeName()) + "[" + str(len(paramval)) + "]"
-                        i = 1
-                        for vpsetentry in paramval:
-                            vobjectmembersuperid = self.LoadUpdatePSet(paramname,psetname,paramval,vobjectsuperid) 
-                            self.nesting.append(('PSet','VPSet['+str(i)+']',vobjectmembersuperid))
-                            prerecursionseq = self.localseq
-                            self.DoPsetRecursion(vpsetentry,paramname+'['+str(i)+']',vobjectmembersuperid)
-                            self.localseq = prerecursionseq + 1
+                        sizeofvpset = self.VPSetSize(vobjectsuperid)
+                        if(sizeofvpset == 0):
+                            i = 1
+                            prevpsetiterseq = self.localseq
+                            for vpsetentry in paramval:
+                                self.localseq = i-1
+                                vobjectmembersuperid = self.LoadUpdatePSet(paramname,psetname,paramval,vobjectsuperid) 
+                                self.nesting.append(('PSet','VPSet['+str(i)+']',vobjectmembersuperid))
+                                prerecursionseq = self.localseq
+                                self.DoPsetRecursion(vpsetentry,paramname+'['+str(i)+']',vobjectmembersuperid)
+                                self.localseq = prerecursionseq
+                                del self.nesting[-1]
+                                i = i + 1
+                            self.localseq = prevpsetiterseq
                             del self.nesting[-1]
-                            i = i + 1
-                        del self.nesting[-1]
+                        else:
+                            self.VerbosePrint("\t\t"  + str(paramname) + " already appears with " + str(sizeofvpset) + " entries. Will not add more entries",1)
 
     def FindObjectSuperId(self):
         print "Not yet"
@@ -554,8 +611,6 @@ class ConfdbLoadParamsfromConfigs:
         self.dbcursor.execute(selectstring)
 
         componentsuperid = self.dbcursor.fetchone()
-
-        #        self.VerbosePrint("ConfDB says: " + str(componentsuperid), 2)
 
         if(componentsuperid):
             # See if this template already exists for this release - if so, just return its superId
@@ -667,11 +722,6 @@ class ConfdbLoadParamsfromConfigs:
                 self.dbcursor.execute("SELECT ParamId_Sequence.currval from dual")
                 newparamid = self.dbcursor.fetchone()[0] 
                 
-                self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParameterAssoc WHERE superId = " + str(sid) + " ORDER BY sequenceNb DESC")
-                nextseqid = self.dbcursor.fetchone()
-                if(nextseqid):
-                    self.localseq = nextseqid[0] + 1
-                    
                 insertstr2 = "INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(self.localseq) + ")"
                 self.VerbosePrint(insertstr2, 3)
                 self.dbcursor.execute(insertstr2)                                                
@@ -736,8 +786,6 @@ class ConfdbLoadParamsfromConfigs:
 
         paramid = self.dbcursor.fetchone()
         
-        #        self.VerbosePrint("ConfDB says PSet has: " + str(paramid), 2)
-
         if(paramid):
             returnid = paramid[0]
         else:
@@ -750,11 +798,6 @@ class ConfdbLoadParamsfromConfigs:
             self.VerbosePrint(insertstr1, 3)
             self.dbcursor.execute(insertstr1)
                                                                                                  
-            self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParamSetAssoc WHERE superId = " + str(sid) + " ORDER BY sequenceNb DESC")
-            nextseqid = self.dbcursor.fetchone()
-            if(nextseqid):
-                self.localseq = nextseqid[0] + 1
-                
             insertstr2 = "INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(self.localseq) + ")"
             self.VerbosePrint(insertstr2, 3)
             self.dbcursor.execute(insertstr2)
@@ -791,8 +834,6 @@ class ConfdbLoadParamsfromConfigs:
 
         paramid = self.dbcursor.fetchone()
         
-        #        self.VerbosePrint("ConfDB says VPSet has: " + str(paramid), 2)
-
         if(paramid):
             returnid = paramid[0]
         else:
@@ -805,11 +846,6 @@ class ConfdbLoadParamsfromConfigs:
             self.VerbosePrint(insertstr1, 3)
             self.dbcursor.execute(insertstr1)
                                                                                                  
-            self.dbcursor.execute("SELECT sequenceNb FROM SuperIdVecParamSetAssoc WHERE superId = " + str(sid) + " ORDER BY sequenceNb DESC")
-            nextseqid = self.dbcursor.fetchone()
-            if(nextseqid):
-                self.localseq = nextseqid[0] + 1
-                
             insertstr2 = "INSERT INTO SuperIdVecParamSetAssoc (superId, vpsetId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(self.localseq) + ")"
             self.VerbosePrint(insertstr2, 3)
             self.dbcursor.execute(insertstr2)
@@ -822,6 +858,20 @@ class ConfdbLoadParamsfromConfigs:
 
         return returnid
 
+    def VPSetSize(self,vpsetsid): 
+
+        vpsetlen = 0
+
+        selectstr = "SELECT * FROM SuperIdParamSetAssoc WHERE superId = " + str(vpsetsid) + " ORDER BY psetId DESC"
+        self.VerbosePrint(selectstr, 3)
+        self.dbcursor.execute(selectstr)
+
+        tmppsetentries = (self.dbcursor.fetchone())
+        if(tmppsetentries):
+            vpsetlen = tmppsetentries[0]
+
+        return vpsetlen
+        
     def GetCVSTags(self):
         if(self.addtorelease != "none"):
             # If we're creating an intermediate release, get the list of tags from the *base* release
