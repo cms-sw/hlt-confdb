@@ -190,6 +190,9 @@ class ConfdbLoadParamsfromConfigs:
         self.paramtypedict = {}
         self.paramtabledict = {}
         self.preferredcfilist = []
+        self.usedcfilist = []
+        self.thepyfile = ''
+        self.usedcfifile = "listofusedcfis." + str(clirel) + ".log"
         
 	# Deal with package tags for this release.
 	self.cmsswrel = clirel
@@ -413,6 +416,7 @@ class ConfdbLoadParamsfromConfigs:
                             
         # Commit and disconnect to be compatible with either INNODB or MyISAM
         self.dbloader.ConfdbExitGracefully()
+        self.GenerateUsedCfiTable()
         self.outputlogfilehandle.close()
 
     def ExtendTheCfi(self, pyfile, pydir):
@@ -426,7 +430,9 @@ class ConfdbLoadParamsfromConfigs:
         thesubsystem = thesubsystempackage.split('/')[0]
         thepackage = thesubsystempackage.split('/')[1]
         importcommand = "import " + thesubsystem + "." + thepackage + "." + thecomponent
-        #        print importcommand
+        self.thepyfile = thesubsystem + "/" + thepackage + "/" + "python/" + pyfile
+
+
         process = cms.Process("MyProcess")
 
         exec importcommand
@@ -529,6 +535,7 @@ class ConfdbLoadParamsfromConfigs:
                 return
 
             self.componentname = value.type_()
+            self.usedcfilist.append((self.thepyfile,self.componentname))
             componentsuperid = self.LoadUpdateComponent(value.type_(),componenttype)
             objectsuperid = -1
             vobjectsuperid = -1
@@ -1022,5 +1029,14 @@ class ConfdbLoadParamsfromConfigs:
             self.preferredcfilist.append((prefpackage,prefcfi)) 
             self.VerbosePrint("\t" + str(prefpackage) + " " + str(prefcfi),1)
 
+
+    def GenerateUsedCfiTable(self):
+        usedcfihandle = open(self.usedcfifile, 'w')
+        
+        for thecfipy, thefwkcomponent in self.usedcfilist:
+            usedcfihandle.write(str(thefwkcomponent).ljust(50) + str(thecfipy).ljust(200) + "\n")
+
+        usedcfihandle.close()
+        
 if __name__ == "__main__":
     main(sys.argv[1:])
