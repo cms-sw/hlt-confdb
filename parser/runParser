@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 ################################################################################
 #
@@ -70,6 +70,8 @@ my @whiteList =
      "RecoCaloTools",
      "RecoEcal",
      "RecoEgamma",
+     "RecoHI",
+     "RecoHIMuon",
      "RecoJets",
      "RecoLocalCalo",
      "RecoLocalMuon",
@@ -77,6 +79,7 @@ my @whiteList =
      "RecoLuminosity",
      "RecoMET",
      "RecoMuon",
+     "RecoParticleFlow",
      "RecoPixelVertexing",
      "RecoTauTag",
      "RecoTracker",

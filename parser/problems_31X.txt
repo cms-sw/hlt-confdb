@@ -403,3 +403,7 @@ ConeIsolation.Parameter UseFixedSizeCone bool true tracked
 ConeIsolation.Parameter VariableConeParameter double 3.5 tracked
 ConeIsolation.Parameter VariableMaxCone double 0.17 tracked
 ConeIsolation.Parameter VariableMinCone double 0.05 tracked
+
+Module EDFilter PFTauSelector RecoTauTag TauTagTools
+PFTauSelector.Parameter src InputTag pfRecoTauProducer tracked
+PFTauSelector.Parameter discriminators VPSet tracked
