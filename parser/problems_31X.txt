@@ -186,8 +186,7 @@ MessageLogger.Parameter suppressInfo vstring {  } untracked
 MessageLogger.Parameter suppressWarning vstring {  } untracked
 
 Module EDProducer CkfTrackCandidateMaker RecoTracker CkfPattern
-CkfTrackCandidateMaker.Parameter SeedProducer string "l1NonIsoLargeWindowElectronsRegionalPixelSeedGenerator" tracked
-CkfTrackCandidateMaker.Parameter SeedLabel string "" tracked
+CkfTrackCandidateMaker.Parameter src InputTag globalMixedSeeds tracked
 CkfTrackCandidateMaker.Parameter TrajectoryBuilder string "CkfTrajectoryBuilder" tracked
 CkfTrackCandidateMaker.Parameter TrajectoryCleaner string "TrajectoryCleanerBySharedHits" tracked
 CkfTrackCandidateMaker.Parameter NavigationSchool string "SimpleNavigationSchool" tracked
@@ -286,8 +285,7 @@ TSGFromL2Muon.Parameter TSGFromPropagation PSet tracked
 TSGFromL2Muon.Parameter TSGFromCombinedHits PSet tracked
 
 Module EDProducer CkfTrajectoryMaker RecoTracker CkfPattern
-CkfTrajectoryMaker.Parameter SeedProducer string "hltL3TrajectorySeed" tracked
-CkfTrajectoryMaker.Parameter SeedLabel string "" tracked
+CkfTrajectoryMaker.Parameter src InputTag globalMixedSeeds tracked 
 CkfTrajectoryMaker.Parameter TrajectoryBuilder string "muonCkfTrajectoryBuilder" tracked
 CkfTrajectoryMaker.Parameter TrajectoryCleaner string "TrajectoryCleanerBySharedHits" tracked
 CkfTrajectoryMaker.Parameter NavigationSchool string "SimpleNavigationSchool" tracked
