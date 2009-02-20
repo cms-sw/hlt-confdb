@@ -596,7 +596,7 @@ class SourceParser:
 		    if((foundlineend == True) and (totalline.find('BranchDescription ') != -1) and (totalline.find('=') != -1)):
 			externalbranch = totalline.split('BranchDescription')[1].split('=')[0].lstrip().rstrip()
 			totalline = ''
-		    if((foundlineend == True) and (totalline.find('getParaeterSet') != -1) and externalbranch != ''):
+		    if((foundlineend == True) and (totalline.find('getParameterSet') != -1) and externalbranch != ''):
 		       if(totalline.split('getParameterSet')[1].split(')')[0].find(externalbranch) != -1):
 			   externalbranchpset = totalline.split('=')[0].split('ParameterSet')[1].lstrip().rstrip()
 			   totalline = ''
@@ -2342,10 +2342,16 @@ class SourceParser:
 	tempparamsetmemberlist = []
 		
 	for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq in self.paramsetmemberlist:
-	    if(psetnesting == 'None'):
+            if(psetnesting == 'None' and psetname == ''):
 		tempparamsetmemberlist.append((pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq))
+        for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq in self.paramsetmemberlist:
+            if(psetnesting != 'None' and psetname == ''):
+                tempparamsetmemberlist.append((pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq))
+        for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq in self.paramsetmemberlist:
+            if(psetnesting == 'None' and psetname != ''):
+                tempparamsetmemberlist.append((pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq))
 	for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq in self.paramsetmemberlist:
-	    if(psetnesting != 'None'):
+	    if(psetnesting != 'None' and psetname != ''):
 		tempparamsetmemberlist.append((pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq))	
 
 	return tempparamsetmemberlist

@@ -2120,6 +2120,7 @@ class ConfdbOracleModuleLoader:
         psetsuperiddict = {}
 
 	for pset, psettype, psetname, psetval, psettracked, psetseq, psetnesting, psetpsetseq in paramsets:
+
 	    # If this is the first entry in this PSet for this component, add it to the ParameterSets table
 	    if(not pset in psetcache):
 		psetcache.append(pset)
@@ -2153,8 +2154,8 @@ class ConfdbOracleModuleLoader:
 		    # Attach the PSet to a Fwk component via their superIds
 		    if(self.verbose > 2):
 			print "INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")"
-                        thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")
-                        #                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=newparamsetid,bindvar3=psetpsetseq)
+                    thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")
+                    #                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=newparamsetid,bindvar3=psetpsetseq)
                    
 		# Nested PSets point to the relevant top level PSet 
 		else:
@@ -2179,7 +2180,7 @@ class ConfdbOracleModuleLoader:
 
 		    if(self.verbose > 2):
 			print "INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")"
-                        thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")   
+                    thecursor.execute("INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(toplevelid) + ", " + str(newparamsetid) + ", " + str(psetpsetseq) + ")")   
                         #                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=toplevelid,bindvar2=newparamsetid,bindvar3=psetpsetseq)
                    
 	    else:
