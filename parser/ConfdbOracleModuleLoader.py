@@ -1143,7 +1143,7 @@ class ConfdbOracleModuleLoader:
 			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 	    # uint32
-	    if(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t" or paramtype == "uint"):
+	    if(paramtype == "uint32" or paramtype == "unsigned int" or paramtype == "uint32_t" or paramtype == "uint" or paramtype == "unsigned"):
 		type = self.paramtypedict['uint32']
 
 		if(paramval):
@@ -1568,7 +1568,8 @@ class ConfdbOracleModuleLoader:
                     #                    thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (:bindvar1, :bindvar2, :bindvar3)", bindvar1=newsuperid,bindvar2=oldparamid,bindvar3=paramseq)
 		    if(self.verbose > 0):
 			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
-
+                        if(self.verbose > 2):
+                            print "INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")"
 	    # FileInPath
 	    if(paramtype == "FileInPath"):
 		type = self.paramtypedict['FileInPath']
