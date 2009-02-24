@@ -405,3 +405,39 @@ ConeIsolation.Parameter VariableMinCone double 0.05 tracked
 Module EDFilter PFTauSelector RecoTauTag TauTagTools
 PFTauSelector.Parameter src InputTag pfRecoTauProducer tracked
 PFTauSelector.Parameter discriminators VPSet tracked
+
+Module EDProducer PFRecHitProducerECAL RecoParticleFlow PFClusterProducer
+PFRecHitProducerECAL.Parameter verbose bool false untracked
+PFRecHitProducerECAL.Parameter thresh_Barrel double 0.08 tracked
+PFRecHitProducerECAL.Parameter thresh_Endcap double 0.3 tracked
+
+Module EDProducer PFRecHitProducerHCAL RecoParticleFlow PFClusterProducer
+PFRecHitProducerHCAL.Parameter verbose bool false untracked
+PFRecHitProducerHCAL.Parameter thresh_Barrel double 0.8 tracked
+PFRecHitProducerHCAL.Parameter thresh_Endcap double 0.8 tracked
+
+Module EDProducer PFRecHitProducerPS RecoParticleFlow PFClusterProducer
+PFRecHitProducerPS.Parameter verbose bool false untracked
+PFRecHitProducerPS.Parameter thresh_Barrel double 7.0E-6 tracked
+PFRecHitProducerPS.Parameter thresh_Endcap double 7.0E-6 tracked
+
+Module EDProducer CkfTrackCandidateMaker RecoTracker CkfPattern
+CkfTrackCandidateMaker.Parameter SeedLabel string "" tracked
+CkfTrackCandidateMaker.Parameter SeedProducer string "hltL25TauPixelSeeds" tracked
+
+Module EDProducer PFBlockProducer RecoParticleFlow PFBlockProducer
+PFBlockProducer.Parameter useRecMuons bool false tracked
+PFBlockProducer.Parameter useGsfRecTracks bool false tracked
+
+Module EDProducer PFProducer RecoParticleFlow PFProducer
+PFProducer.Parameter pf_newCalib bool false tracked
+PFProducer.Parameter pf_clusterRecovery bool false tracked
+PFProducer.Parameter ecalHcalEcalEndcap vdouble { 0.46, 3.0, 1.1, 0.4, -0.02, 1.4 } tracked
+PFProducer.Parameter ecalHcalEcalBarrel vdouble { 0.67, 3.0, 1.15, 0.9, -0.06, 1.4 } tracked
+PFProducer.Parameter ecalHcalHcalBarrel vdouble { 0.46, 3.0, 1.15, 0.3, -0.02, 1.4 } tracked
+PFProducer.Parameter ecalHcalHcalEndcap vdouble { 0.46, 3.0, 1.1, 0.3, -0.02, 1.4 } tracked
+
+Module EDProducer PFRecoTauTagInfoProducer RecoTauTag RecoTau
+PFRecoTauTagInfoProducer.Parameter PVProducer InputTag hltPixelVertices tracked
+PFRecoTauTagInfoProducer.Parameter PFCandidateProducer InputTag hltParticleFlow tracked
+PFRecoTauTagInfoProducer.Parameter PFJetTracksAssociatorProducer InputTag hltIc5PFJetTracksAssociatorAtVertex tracked
