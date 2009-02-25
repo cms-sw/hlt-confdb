@@ -23,6 +23,9 @@ class SourceParser:
 	# List of parameters where we couldn't find a default value
 	self.paramfailures = []
 
+        # List of components that don't seem to have defaults
+        self.nocficomponents = []
+
 	# Hash table of parameter set variables
 	self.psetdict = {}
 	self.psetsequences = {}
@@ -811,6 +814,9 @@ class SourceParser:
                             #                            print 'Warning: reading of python configs is not validated yet!'
                             self.pyconfigparser.SetThePythonVar(themodulename,paraminparamset,'',paramname)
                             self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)
+                            foundcomponent = self.pyconfigparser.RetrievePythonConfigFoundComponent()
+                            if(foundcomponent == False):
+                                self.nocficomponents.append(themodulename)
                             success = self.pyconfigparser.RetrievePythonConfigSuccess()
                             if(success == True):
                                 paramval = self.pyconfigparser.RetrievePythonConfigDefault()
@@ -2041,6 +2047,9 @@ class SourceParser:
                                 #                                print 'Warning: Reading of python configs is not validated yet!'
                                 self.pyconfigparser.SetThePythonVar(themodulename,thepsetname,thenestedpsetname,paramname)
                                 self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)
+                                foundcomponent = self.pyconfigparser.RetrievePythonConfigFoundComponent()
+                                if(foundcomponent == False):
+                                    self.nocficomponents.append(themodulename)
                                 success = self.pyconfigparser.RetrievePythonConfigSuccess()
                                 if(success == True):
                                     paramval = self.pyconfigparser.RetrievePythonConfigDefault()
@@ -2191,6 +2200,9 @@ class SourceParser:
                                 #                                print 'Warning: reading of python configs is not validated yet!'
                                 self.pyconfigparser.SetThePythonVar(themodulename,thepsetname,thenestedpsetname,paramname)
                                 self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)
+                                foundcomponent = self.pyconfigparser.RetrievePythonConfigFoundComponent()
+                                if(foundcomponent == False):
+                                    self.nocficomponents.append(themodulename)
                                 success = self.pyconfigparser.RetrievePythonConfigSuccess() 
                                 if(success == True):
                                     paramval = self.pyconfigparser.RetrievePythonConfigDefault()
@@ -2367,6 +2379,10 @@ class SourceParser:
     
         return self.vecparamsetmemberlist	    
 
+    # Return any components where we found an implementation in the source but no cfi
+    def GetNoCfis(self): 
+        return self.nocficomponents
+    
     # Return the module base class
     def GetBaseClass(self):
         return self.baseclass

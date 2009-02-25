@@ -22,6 +22,7 @@ class ConfdbPyconfigParser:
         self.theparameter = ''
         self.theparamdefault = ''
         self.founddefault = False
+        self.foundcomponent = False
         self.verbose = 0
 
     def SetThePythonVar(self,modname,psetname,nestedpsetname,paramname):
@@ -35,6 +36,7 @@ class ConfdbPyconfigParser:
         self.theparamdefault = ''
 
         self.founddefault = False
+        self.foundcomponent = False
 
         # Look at what cfi_py configs are available
         thedirectory = thedirectory.split('data/')[0] + 'python/'
@@ -70,6 +72,8 @@ class ConfdbPyconfigParser:
                        if(self.verbose > 2):
                            print "\t\t" + theextend
                        eval(theextend)
+
+                       self.foundcomponent = True
                        
                        # Now construct the command to query the variable value
                        valvar = "process."
@@ -99,6 +103,9 @@ class ConfdbPyconfigParser:
                        if(self.verbose > 2):
                            print 'Could not get python-config information - no variable default found'
 
+
+    def RetrievePythonConfigFoundComponent(self):
+        return self.foundcomponent
 
     def RetrievePythonConfigSuccess(self):
         return self.founddefault

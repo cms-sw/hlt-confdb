@@ -182,6 +182,7 @@ class ConfdbSourceToDB:
 	self.unknownbaseclasses = []
 	self.addedtemplatenames = []
 	self.addedtemplatetags = []
+        self.nocficomponents = []
 
 	# Get a Conf DB connection. Only need to do this once at the 
 	# beginning of a job.
@@ -605,12 +606,16 @@ class ConfdbSourceToDB:
 	    print "Scanned " + str(len(sealcomponenttuple)) + " fwk components for release " + self.cmsswrel 
 	    if(self.noload == False):
 		self.dbloader.PrintStats()
+        if(len(self.nocficomponents) > 0):
+            print "The following " + str(len(self.nocficomponents)) + " components were located in the source code, but a cfi.py with the defaults was not found"
+            for nocficomponent in self.nocficomponents:
+                print "\t" + nocficomponent
 	if(len(self.unknownbaseclasses) > 0):
 	    print "The following " + str(len(self.unknownbaseclasses)) + " components were not loaded because their base class" 
 	    print "does not appear to be one of"
 	    print "EDProducer/EDFilter/ESProducer/OutputModule/EDAnalyzer/HLTProducer/HLTFilter:"
 	    for myunknownclass in self.unknownbaseclasses:
-		print "\t\t" + myunknownclass
+		print "\t" + myunknownclass
 	if(len(self.baseclasserrors) > 0):
 	    print "The parser was unable to determine the base class for the following " + str(len(self.baseclasserrors)) + " components:"
 	    for mybaseclasserror in self.baseclasserrors:
@@ -776,6 +781,11 @@ class ConfdbSourceToDB:
 	hltparamsetlist = myParser.GetParamSets(modulename)
 	hltvecparamsetlist = myParser.GetVecParamSets(modulename)
 	modulebaseclass = myParser.GetBaseClass()
+        componentswithoutcfis = myParser.GetNoCfis()
+
+        for componentwithoutcfi in componentswithoutcfis:
+            if(not ((packagename + "/" + componentwithoutcfi) in self.nocficomponents)): 
+                self.nocficomponents.append(packagename + "/" + componentwithoutcfi)
 
 	try:
 	    # OK, now we know the module, it's base class, it's parameters, and their
