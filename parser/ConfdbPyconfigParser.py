@@ -44,15 +44,15 @@ class ConfdbPyconfigParser:
             cfipyfiles = os.listdir(thedirectory)
             for cfipyfile in cfipyfiles:
                 if(cfipyfile.endswith('_cfi.py')):
-                    thecomponent = cfipyfile.split('.py')[0]
+                    thefilecomponent = cfipyfile.split('.py')[0]
                     
-                    thebasecomponent = thecomponent.split('_cfi')[0]        
+                    thebasefilecomponent = thefilecomponent.split('_cfi')[0]        
                     
                     # Construct the py-cfi to import
                     thesubsystempackage = thedirectory.split('src/')[1].split('/data/')[0].lstrip().rstrip()
                     thesubsystem = thesubsystempackage.split('/')[0]
                     thepackage = thesubsystempackage.split('/')[1]
-                    importcommand = "import " + thesubsystem + "." + thepackage + "." + thecomponent
+                    importcommand = "import " + thesubsystem + "." + thepackage + "." + thefilecomponent
                     
                     if(self.verbose > 2):
                         print "PSet = " + self.thenestedpset + ", " + self.thepset + ", " + self.theparameter
@@ -68,15 +68,46 @@ class ConfdbPyconfigParser:
 
                         # Now create a process and construct the command to extend it with the py-cfi
                         process = cms.Process("MyProcess")
-                        theextend = "process.extend(" + thesubsystem + "." + thepackage + "." + thecomponent + ")"
+                        theextend = "process.extend(" + thesubsystem + "." + thepackage + "." + thefilecomponent + ")"
                         if(self.verbose > 2):
                             print "\t\t" + theextend
                         eval(theextend)
 
+                        myproducers = process.producers_() 
+                        myfilters = process.filters_()
+                        myservices = process.services_()
+                        myoutputmodules = process.outputModules_()
+                        myessources = process.es_sources_()
+                        myesproducers = process.es_producers_()
+                        myanalyzers = process.analyzers_()
+
+                        # More complete than before - look at all components by baseclass instead of instance name.
+                        for name, value in myproducers.iteritems():
+                            if(value.type_() == thecomponent):
+                                thecomponent = str(name)
+                        for name, value in myfilters.iteritems():
+                            if(value.type_() == thecomponent):
+                                thecomponent = str(name)
+                        for name, value in myservices.iteritems():
+                            if(value.type_() == thecomponent):
+                                thecomponent = str(name)                                
+                        for name, value in myoutputmodules.iteritems():
+                            if(value.type_() == thecomponent):
+                                thecomponent = str(name)                                
+                        for name, value in myessources.iteritems():
+                            if(value.type_() == thecomponent):
+                                thecomponent = str(name)                                
+                        for name, value in myesproducers.iteritems():
+                            if(value.type_() == thecomponent):
+                                thecomponent = str(name)
+                        for name, value in myanalyzers.iteritems():
+                            if(value.type_() == thecomponent):
+                                thecomponent = str(name)
+
                         # Now construct the command to query the variable value
                         valvar = "process."
-                        valvar = valvar + thebasecomponent + "."
-                        valcomp = "process." + thebasecomponent
+                        valvar = valvar + thecomponent + "."
+                        valcomp = "process." + thecomponent
                         if(self.thenestedpset != None and self.thenestedpset != ''):
                             valvar = valvar + self.thenestedpset + "."
                         if(self.thepset != None and self.thepset != ''):
@@ -92,7 +123,7 @@ class ConfdbPyconfigParser:
 
                         if(self.verbose > 2):
                             print "\t\t" + valvar
-            
+
                         # OK, now get the default!
                         thedefault =  eval(valvar)
 
@@ -103,6 +134,8 @@ class ConfdbPyconfigParser:
                         self.theparamdefault = thedefault
 
                         self.founddefault = True
+
+                        return
                        
                     except:
                         if(self.verbose > 2):

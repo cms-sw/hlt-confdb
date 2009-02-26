@@ -23,7 +23,8 @@ class SourceParser:
 	# List of parameters where we couldn't find a default value
 	self.paramfailures = []
 
-        # List of components that don't seem to have defaults
+        # List of components that do or don't seem to have defaults
+        self.foundcficomponents = []
         self.nocficomponents = []
 
 	# Hash table of parameter set variables
@@ -815,8 +816,10 @@ class SourceParser:
                             self.pyconfigparser.SetThePythonVar(themodulename,paraminparamset,'',paramname)
                             self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)
                             foundcomponent = self.pyconfigparser.RetrievePythonConfigFoundComponent()
-                            if(foundcomponent == False):
+                            if(foundcomponent == False and not (themodulename in self.foundcficomponents)):
                                 self.nocficomponents.append(themodulename)
+                            else:
+                                self.foundcficomponents.append(themodulename)
                             success = self.pyconfigparser.RetrievePythonConfigSuccess()
                             if(success == True):
                                 paramval = self.pyconfigparser.RetrievePythonConfigDefault()
@@ -2048,8 +2051,10 @@ class SourceParser:
                                 self.pyconfigparser.SetThePythonVar(themodulename,thepsetname,thenestedpsetname,paramname)
                                 self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)
                                 foundcomponent = self.pyconfigparser.RetrievePythonConfigFoundComponent()
-                                if(foundcomponent == False):
+                                if(foundcomponent == False and not (themodulename in self.foundcficomponents)):
                                     self.nocficomponents.append(themodulename)
+                                else:
+                                    self.foundcficomponents.append(themodulename)
                                 success = self.pyconfigparser.RetrievePythonConfigSuccess()
                                 if(success == True):
                                     paramval = self.pyconfigparser.RetrievePythonConfigDefault()
@@ -2201,8 +2206,10 @@ class SourceParser:
                                 self.pyconfigparser.SetThePythonVar(themodulename,thepsetname,thenestedpsetname,paramname)
                                 self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)
                                 foundcomponent = self.pyconfigparser.RetrievePythonConfigFoundComponent()
-                                if(foundcomponent == False):
+                                if(foundcomponent == False and not (themodulename in self.foundcficomponents)):
                                     self.nocficomponents.append(themodulename)
+                                else:
+                                    self.foundcficomponents.append(themodulename)
                                 success = self.pyconfigparser.RetrievePythonConfigSuccess() 
                                 if(success == True):
                                     paramval = self.pyconfigparser.RetrievePythonConfigDefault()
