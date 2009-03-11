@@ -1216,7 +1216,7 @@ class AddProblemModulesAndParametersOracle:
 	    seqtuple.append(seq[0])
 
         if(self.verbose):
-            print "SELECT sequenceNb FROM SuperIdVecParamAssoc WHERE SuperIdVecParamSetAssoc.superId = " + str(thesuperid)
+            print "SELECT sequenceNb FROM SuperIdVecParamSetAssoc WHERE SuperIdVecParamSetAssoc.superId = " + str(thesuperid)
 	thecursor.execute("SELECT sequenceNb FROM SuperIdVecParamSetAssoc WHERE SuperIdVecParamSetAssoc.superId = " + str(thesuperid))
 	seqs = thecursor.fetchall()
 	for seq in seqs:

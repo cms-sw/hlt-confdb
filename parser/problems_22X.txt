@@ -347,3 +347,10 @@ TestMuL1L2Filter.Parameter PrimaryVertexTag InputTag hltHIpixelVertices tracked
 TestMuL1L2Filter.Parameter L2CandTag InputTag hltL2MuonCandidates tracked
 TestMuL1L2Filter.Parameter TTRHBuilder string "hltHITTRHBuilderWithoutRefit" tracked
 TestMuL1L2Filter.Parameter rphiRecHits InputTag siStripMatchedRecHits:rphiRecHit tracked
+
+Module EDProducer L2TauJetsProvider RecoTauTag HLTProducers
+L2TauJetsProvider.Parameter JetSrc VInputTag { hltIcone5Tau1Regional, hltIcone5Tau2Regional, hltIcone5Tau3Regional, hltIcone5Tau4Regional } tracked
+
+Module EDProducer L1GlobalTrigger L1Trigger GlobalTrigger
+L1GlobalTrigger.Parameter EmulateBxInEvent int32 3 tracked
+L1GlobalTrigger.Parameter BstLengthBytes int32 -1 tracked
