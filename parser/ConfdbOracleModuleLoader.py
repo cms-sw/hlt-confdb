@@ -1005,7 +1005,7 @@ class ConfdbOracleModuleLoader:
 			sequencer = sequencer + 1
 
 	    # vector<InputTag>
-	    elif(vecptype == "VInputTag" or vecptype == "InputTag"):
+	    elif(vecptype == "VInputTag" or vecptype == "InputTag" or vecptype == "vtag"):
 		type = self.paramtypedict['VInputTag']
 
 		# Fill Parameters table
@@ -2059,7 +2059,7 @@ class ConfdbOracleModuleLoader:
 			    sequencer = sequencer + 1
 
 	    # vector<InputTag>
-	    elif(vecptype == "VInputTag" or vecptype == "InputTag"):		
+	    elif(vecptype == "VInputTag" or vecptype == "InputTag" or vecptype == "vtag"):		
 		type = self.paramtypedict['VInputTag']
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,vecpname,oldsuperid)
@@ -2409,7 +2409,7 @@ class ConfdbOracleModuleLoader:
 		for entry in entries:
 		    thecursor.execute("INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", '" + entry.lstrip().rstrip() + "')")   
 		    sequencer = sequencer + 1		
-	    elif(psettype == "VInputTag"):
+	    elif(psettype == "VInputTag" or psettype == "vtag"):
 		sequencer = 0
 		entries = psetval.lstrip().rstrip().lstrip('{').rstrip('}').split(',')
 		for entry in entries:
