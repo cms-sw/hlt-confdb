@@ -4,6 +4,7 @@ import java.sql.Connection;
 
 import confdb.data.IConfiguration;
 import confdb.db.ConfDB;
+import confdb.db.DatabaseException;
 
 public class ConverterBase 
 {
@@ -65,7 +66,11 @@ public class ConverterBase
 
     public IConfiguration getConfiguration( int key ) throws ConverterException
     {
-    	return ConfCache.getCache().getConfiguration( key, getDatabase() );
+    	try {
+			return ConfCache.getCache().getConfiguration( key, getDatabase() );
+		} catch (DatabaseException e) {
+			throw new ConverterException( "DatabaseException", e );
+		}
     }
 
 	
