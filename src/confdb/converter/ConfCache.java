@@ -12,8 +12,8 @@ import confdb.db.DatabaseException;
 public class ConfCache 
 {
 	static private ConfCache cache = null;
-    static private int maxCacheEntries = 10;
-    static private int minFreeMB = 20;
+    static private int fillUpToMB = 40;
+    static private int clearLessThanMB = 30;
 	
     private HashMap<String, ConfWrapper> confCache = new HashMap<String, ConfWrapper>();
 
@@ -29,36 +29,32 @@ public class ConfCache
     	return getCache().confCache.size();
     }
 
-    static public int getMaxCacheEntries() 
-    {
-    	return maxCacheEntries;
-    }
-
-    static public void setMaxCacheEntries(int maxCacheEntries) 
-    {
-    	ConfCache.maxCacheEntries = maxCacheEntries;
-    }
-
     static public void clearCache()
     {
         getCache().confCache = new HashMap<String, ConfWrapper>();
     }
 	
-    public IConfiguration getConfiguration( int key, ConfDB database ) throws ConverterException 
+    public IConfiguration getConfiguration( int key, ConfDB database ) throws DatabaseException
     {
+		ConfWrapper conf = confCache.get( getCacheKey( key, database ) );
+		if ( conf != null )
+			return conf.getConfiguration();
+		IConfiguration configuration = null;
+		Runtime.getRuntime().gc();
 		try {
-			ConfWrapper conf = confCache.get( getCacheKey( key, database ) );
-    		if ( conf != null )
-    			return conf.getConfiguration();
-    		IConfiguration configuration;
-    		Runtime.getRuntime().gc();
 			configuration = database.loadConfiguration(key);
-    		put( key, configuration, database );
-    		return configuration;
 		} catch (DatabaseException e) {
-			throw new ConverterException( "DatabaseException", e );
-
+			// wait, reconnect and try again
+			database.disconnect();
+			try {
+				Thread.sleep( 2000 );
+			} catch (InterruptedException e1) {
+			}
+			database.connect();
+			configuration = database.loadConfiguration(key);
 		}
+		put( key, configuration, database );
+		return configuration;
     }
 		
     synchronized private void put( int key, IConfiguration conf, ConfDB database )
@@ -66,11 +62,16 @@ public class ConfCache
     	Runtime runtime = Runtime.getRuntime();
     	float freeMemory = 
     		( runtime.maxMemory() - runtime.totalMemory() + runtime.freeMemory() ) / 1024 /1024;
-    	if ( freeMemory < minFreeMB )
+    	if ( freeMemory < fillUpToMB )
 	    {
-    		List<ConfWrapper> list = new ArrayList<ConfWrapper>( confCache.values() );
-    		Collections.sort(list);
-    		confCache.remove( list.get(0).getCacheKey() );
+        	if ( freeMemory < clearLessThanMB )
+        		confCache.clear();
+        	else
+        	{
+        		List<ConfWrapper> list = new ArrayList<ConfWrapper>( confCache.values() );
+        		Collections.sort(list);
+        		confCache.remove( list.get(0).getCacheKey() );
+        	}
 	    }
     	confCache.put( getCacheKey( key,database ), new ConfWrapper( getCacheKey( key, database ), conf ) );
     }
