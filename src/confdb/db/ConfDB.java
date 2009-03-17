@@ -48,6 +48,12 @@ public class ConfDB
     /** database url */
     private String dbUrl = null;
     
+    /** database user */
+    private String dbUser = null;
+    
+    /** database password */
+    private String dbPwrd = null;
+    
     /** template table name hash map */
     private HashMap<String,String> templateTableNameHashMap = null;
     
@@ -225,14 +231,28 @@ public class ConfDB
     public void connect(String dbType,String dbUrl,String dbUser,String dbPwrd)
 	throws DatabaseException
     {
+    this.dbType = dbType;
+    this.dbUrl  = dbUrl;
+	this.dbUser = dbUser;
+	this.dbPwrd  = dbPwrd;
 	if (dbType.equals(dbTypeMySQL))
 	    dbConnector = new MySQLDatabaseConnector(dbUrl,dbUser,dbPwrd);
 	else if (dbType.equals(dbTypeOracle))
 	    dbConnector = new OracleDatabaseConnector(dbUrl,dbUser,dbPwrd);
 	
 	dbConnector.openConnection();
-	this.dbType = dbType;
-	this.dbUrl  = dbUrl;
+	prepareStatements();
+    }
+    
+    /** connect to the database */
+    public void connect() throws DatabaseException
+    {
+	if (dbType.equals(dbTypeMySQL))
+	    dbConnector = new MySQLDatabaseConnector(dbUrl,dbUser,dbPwrd);
+	else if (dbType.equals(dbTypeOracle))
+	    dbConnector = new OracleDatabaseConnector(dbUrl,dbUser,dbPwrd);
+	
+	dbConnector.openConnection();
 	prepareStatements();
     }
     
