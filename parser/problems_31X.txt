@@ -20,6 +20,9 @@ ESSource MCJetCorrectionService JetMETCorrections Modules
 MCJetCorrectionService.Parameter tagName string "CMSSW_152_iterativeCone5" tracked
 MCJetCorrectionService.Parameter label string "MCJetCorrectorIcone5" tracked
 
+ESSource XMLIdealGeometryESSource GeometryReaders XMLIdealGeometryESSource
+XMLIdealGeometryESSource.Parameter geomXMLFiles vstring {} tracked
+
 ESModule SiStripGainESProducer CalibTracker SiStripESProducers
 SiStripGainESProducer.Parameter AutomaticNormalization bool false tracked
 SiStripGainESProducer.Parameter NormalizationFactor double 1.0 tracked
@@ -441,3 +444,8 @@ Module EDProducer PFRecoTauTagInfoProducer RecoTauTag RecoTau
 PFRecoTauTagInfoProducer.Parameter PVProducer InputTag hltPixelVertices tracked
 PFRecoTauTagInfoProducer.Parameter PFCandidateProducer InputTag hltParticleFlow tracked
 PFRecoTauTagInfoProducer.Parameter PFJetTracksAssociatorProducer InputTag hltIc5PFJetTracksAssociatorAtVertex tracked
+
+Module EDProducer L1GlobalTrigger L1Trigger GlobalTrigger 
+L1GlobalTrigger.Parameter EmulateBxInEvent int32 3 tracked 
+L1GlobalTrigger.Parameter BstLengthBytes int32 -1 tracked 
+
