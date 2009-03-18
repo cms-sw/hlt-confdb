@@ -821,7 +821,7 @@ public class Diff
 	try {
 		return ConfCache.getCache().getConfiguration( configId, getDatabase() );
 	}
-	catch (ConverterException e) {
+	catch (DatabaseException e) {
 	    String errMsg =
 		"Diff::getConfiguration(configIdAsString="+configIdAsString+
 		") failed.";
