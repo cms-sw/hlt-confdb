@@ -251,7 +251,7 @@ public class ConfDB
 	    dbConnector = new MySQLDatabaseConnector(dbUrl,dbUser,dbPwrd);
 	else if (dbType.equals(dbTypeOracle))
 	    dbConnector = new OracleDatabaseConnector(dbUrl,dbUser,dbPwrd);
-	
+
 	dbConnector.openConnection();
 	prepareStatements();
     }
@@ -272,8 +272,6 @@ public class ConfDB
 	    closePreparedStatements();
 	    dbConnector.closeConnection();
 	    dbConnector = null;
-	    this.dbType = "";
-	    this.dbUrl = "";
 	}
     }
     
