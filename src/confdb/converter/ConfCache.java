@@ -83,7 +83,7 @@ public class ConfCache
     
 	private String getCacheKey( int key, ConfDB database )
 	{
-		return "" + key + "@" + database.dbUrl();
+		return "" + key + "@" + database.hashCode();
 	}
 	
 	
