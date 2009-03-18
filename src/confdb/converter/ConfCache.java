@@ -1,5 +1,6 @@
 package confdb.converter;
 
+import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,12 +35,17 @@ public class ConfCache
         getCache().confCache = new HashMap<String, ConfWrapper>();
     }
 	
-    public IConfiguration getConfiguration( int key, ConfDB database ) throws DatabaseException
+    public synchronized IConfiguration getConfiguration( int key, ConfDB database ) throws DatabaseException
     {
+		IConfiguration configuration = null;
 		ConfWrapper conf = confCache.get( getCacheKey( key, database ) );
 		if ( conf != null )
-			return conf.getConfiguration();
-		IConfiguration configuration = null;
+		{
+			configuration = conf.getConfiguration();
+			if ( configuration != null )
+				return configuration;
+			confCache.remove( conf.getCacheKey() );
+		}
 		Runtime.getRuntime().gc();
 		try {
 			configuration = database.loadConfiguration(key);
@@ -57,21 +63,19 @@ public class ConfCache
 		return configuration;
     }
 		
-    synchronized private void put( int key, IConfiguration conf, ConfDB database )
+    private void put( int key, IConfiguration conf, ConfDB database )
     {
     	Runtime runtime = Runtime.getRuntime();
     	float freeMemory = 
     		( runtime.maxMemory() - runtime.totalMemory() + runtime.freeMemory() ) / 1024 /1024;
     	if ( freeMemory < fillUpToMB )
 	    {
-        	if ( freeMemory < clearLessThanMB )
-        		confCache.clear();
-        	else
-        	{
-        		List<ConfWrapper> list = new ArrayList<ConfWrapper>( confCache.values() );
-        		Collections.sort(list);
-        		confCache.remove( list.get(0).getCacheKey() );
-        	}
+    		List<ConfWrapper> list = new ArrayList<ConfWrapper>( confCache.values() );
+    		Collections.sort(list);
+    		String key1 = list.get(0).getCacheKey();
+        	if ( freeMemory < clearLessThanMB  &&  list.size() > 1 )
+        		confCache.remove( list.get(1).getCacheKey() );
+    		confCache.remove( key1 );
 	    }
     	confCache.put( getCacheKey( key,database ), new ConfWrapper( getCacheKey( key, database ), conf ) );
     }
@@ -86,20 +90,20 @@ public class ConfCache
     private class ConfWrapper implements Comparable<ConfWrapper>
     {
     	private String cacheKey;
-    	private IConfiguration configuration = null;
+    	private SoftReference<IConfiguration> configuration = null;
     	private long timestamp;
 		
     	ConfWrapper( String key, IConfiguration conf ) 
     	{
     		cacheKey = key;
-    		configuration = conf;
+    		configuration = new SoftReference<IConfiguration>( conf );
     		timestamp = System.currentTimeMillis();
     	}
 
     	IConfiguration getConfiguration() 
     	{
     		timestamp = System.currentTimeMillis();
-    		return configuration;
+    		return configuration.get();
     	}
 
 
