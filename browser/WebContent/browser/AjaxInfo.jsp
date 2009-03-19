@@ -1,3 +1,4 @@
+<%@page import="java.lang.reflect.InvocationTargetException"%>
 
 <%@page import="confdb.data.ConfigVersion"%>
 <%@page import="confdb.data.ConfigInfo"%>
@@ -118,8 +119,11 @@ public class AjaxException
 	public String message = "";
 	public String stacktrace = "";
 
-	public AjaxException( Exception e )
+	public AjaxException( Exception ajaxE )
 	{
+	  Throwable e = ajaxE;
+	  if ( e instanceof InvocationTargetException && e.getCause() != null )
+		  e = e.getCause();
 	  message = e.getMessage();
 	  exception = e.getClass().getCanonicalName();	
 	  ByteArrayOutputStream buffer = new ByteArrayOutputStream();
