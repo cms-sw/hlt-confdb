@@ -92,8 +92,20 @@ function updateMemInfo( data )
   HLTjs.setValue("total", " " + data.totalMemory ); 
   HLTjs.setValue("used", " " + used );  
   HLTjs.setValue("max", " " + data.maxMemory ); 
-  HLTjs.setValue("cache", " " + data.cacheEntries ); 
+  HLTjs.setValue("cache", "<a href='javascript:AjaxInfo.checkSoftReferences(showDereferenced)'>" + data.cacheEntries + "</a>" ); 
   window.setTimeout("update()", 1000);
+}
+
+function showDereferenced( data )
+{
+  if ( data && data.exceptionThrown )
+  {
+	alert( data.exception + ': ' + data.message );
+	return;
+  }
+  if ( data == 0 )
+    return;
+  alert( "" + data + " configs dereferenced" );
 }
 
 function showResponseCallback( data )
@@ -105,6 +117,9 @@ function showResponseCallback( data )
   }
 }
 
+AjaxInfo.checkSoftReferences = function(callback) {
+  HLTjs.json._execute(AjaxInfo._path, 'confdb.converter.ConfCache', 'checkSoftReferences', callback);
+}
 
 YAHOO.util.Event.on('clear_btn','click',function (e) {
 	var clear = confirm( "Do you really want to clear the cache?" );
