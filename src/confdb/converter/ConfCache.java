@@ -2,9 +2,9 @@ package confdb.converter;
 
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import confdb.data.IConfiguration;
@@ -52,7 +52,7 @@ public class ConfCache
 				return configuration;
 			confCache.remove( conf.getCacheKey() );
 		}
-		Runtime.getRuntime().gc();
+		//Runtime.getRuntime().gc();
 		try {
 			configuration = database.loadConfiguration(key);
 		} catch (DatabaseException e) {
@@ -96,13 +96,12 @@ public class ConfCache
     private synchronized int checkMySoftReferences() 
     {
     	int dereferenced = 0;
-    	Collection<ConfWrapper> list = confCache.values();
-    	for ( ConfWrapper conf : list )
+    	for ( Iterator<ConfWrapper> i = confCache.values().iterator(); i.hasNext(); )
     	{
-    		if ( conf.getConfiguration() == null )
+    		if ( i.next().getConfiguration() == null )
     		{
     			dereferenced += 1;
-    			confCache.remove( conf.getCacheKey() );
+    			i.remove();
     		}
     	}
     	return dereferenced;
