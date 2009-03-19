@@ -38,19 +38,7 @@ public class ConfCache
 	
     static public int checkSoftReferences() 
     {
-    	int dereferenced = 0;
-    	Collection<ConfWrapper> list = getCache().confCache.values();
-    	for ( ConfWrapper conf : list )
-    	{
-    		if ( conf.getConfiguration() == null )
-    		{
-    			dereferenced += 1;
-    			synchronized (cache) {
-    				getCache().confCache.remove( conf.getCacheKey() );
-				}
-    		}
-    	}
-    	return dereferenced;
+    	return getCache().checkMySoftReferences();
     }
 
     public synchronized IConfiguration getConfiguration( int key, ConfDB database ) throws DatabaseException
@@ -105,6 +93,21 @@ public class ConfCache
 	}
 	
 	
+    private synchronized int checkMySoftReferences() 
+    {
+    	int dereferenced = 0;
+    	Collection<ConfWrapper> list = confCache.values();
+    	for ( ConfWrapper conf : list )
+    	{
+    		if ( conf.getConfiguration() == null )
+    		{
+    			dereferenced += 1;
+    			confCache.remove( conf.getCacheKey() );
+    		}
+    	}
+    	return dereferenced;
+    }
+
     private class ConfWrapper implements Comparable<ConfWrapper>
     {
     	private String cacheKey;
