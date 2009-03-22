@@ -100,6 +100,13 @@ PixelLayerTripletsESProducer.Parameter layerList vstring { "BPix1+BPix2+BPix3", 
 PixelLayerTripletsESProducer.Parameter BPix PSet tracked
 PixelLayerTripletsESProducer.Parameter FPix PSet tracked
 
+ESModule SeedingLayersESProducer RecoTracker TkSeedingLayers 
+SeedingLayersESProducer.Parameter ComponentName string "MixedLayerPairs" tracked 
+SeedingLayersESProducer.Parameter layerList vstring { "BPix1+BPix3", "BPix2+BPix3", "BPix1+FPix1_pos", "BPix1+FPix1_neg", "BPix1+FPix2_pos", "BPix1+FPix2_neg", "BPix2+FPix1_pos", "BPix2+FPix1_neg", "BPix2+FPix2_pos", "BPix2+FPix2_neg", "FPix1_pos+FPix2_pos", "FPix1_neg+FPix2_neg", "FPix2_pos+TEC1_pos", "FPix2_pos+TEC2_pos", "TEC1_pos+TEC2_pos", "TEC2_pos+TEC3_pos", "FPix2_neg+TEC1_neg", "FPix2_neg+TEC2_neg", "TEC1_neg+TEC2_neg", "TEC2_neg+TEC3_neg" } tracked 
+SeedingLayersESProducer.Parameter BPix PSet tracked 
+SeedingLayersESProducer.Parameter FPix PSet tracked 
+SeedingLayersESProducer.Parameter TEC PSet tracked 
+
 ESModule MuonCkfTrajectoryBuilderESProducer RecoMuon L3TrackFinder
 MuonCkfTrajectoryBuilderESProducer.Parameter maxCand int32 5 tracked
 MuonCkfTrajectoryBuilderESProducer.Parameter lostHitPenalty double 30.0 tracked
