@@ -362,3 +362,6 @@ L1GlobalTrigger.Parameter BstLengthBytes int32 -1 tracked
 
 Module EDAnalyzer HcalMonitorModule DQM HcalMonitorModule
 HcalMonitorModule.Parameter HotCells vstring { } untracked
+
+Module EDProducer CtfSpecialSeedGenerator RecoTracker SpecialSeedGenerators
+CtfSpecialSeedGenerator.Parameter OrderedHitsFactoryPSets VPSet tracked
