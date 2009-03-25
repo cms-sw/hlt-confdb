@@ -359,3 +359,6 @@ TestMuL1L2Filter.Parameter rphiRecHits InputTag siStripMatchedRecHits:rphiRecHit
 Module EDProducer L1GlobalTrigger L1Trigger GlobalTrigger
 L1GlobalTrigger.Parameter EmulateBxInEvent int32 3 tracked
 L1GlobalTrigger.Parameter BstLengthBytes int32 -1 tracked
+
+Module EDAnalyzer HcalMonitorModule DQM HcalMonitorModule
+HcalMonitorModule.Parameter HotCells vstring { } untracked
