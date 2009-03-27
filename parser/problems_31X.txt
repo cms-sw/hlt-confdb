@@ -431,10 +431,6 @@ PFRecHitProducerPS.Parameter verbose bool false untracked
 PFRecHitProducerPS.Parameter thresh_Barrel double 7.0E-6 tracked
 PFRecHitProducerPS.Parameter thresh_Endcap double 7.0E-6 tracked
 
-Module EDProducer CkfTrackCandidateMaker RecoTracker CkfPattern
-CkfTrackCandidateMaker.Parameter SeedLabel string "" tracked
-CkfTrackCandidateMaker.Parameter SeedProducer string "hltL25TauPixelSeeds" tracked
-
 Module EDProducer PFBlockProducer RecoParticleFlow PFBlockProducer
 PFBlockProducer.Parameter useRecMuons bool false tracked
 PFBlockProducer.Parameter useGsfRecTracks bool false tracked
