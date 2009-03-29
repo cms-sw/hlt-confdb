@@ -760,6 +760,10 @@ class SourceParser:
                         elif(paramtype.lstrip().rstrip() == 'Strings'):
                             isvector = True
                             paramtype = 'vstring'
+                            
+                        elif(paramtype.lstrip().rstrip() == 'vtag'):
+                            isvector = True
+                            paramtype = 'VInputTag'
 
                         else:
 			    isvector = False
@@ -2017,6 +2021,10 @@ class SourceParser:
                             isvector = True
                             paramtype = 'vstring'
 
+                        elif(paramtype.lstrip().rstrip() == 'vtag'):
+                            isvector = True
+                            paramtype = 'VInputTag'
+                                                                                    
                         else:
 			    isvector = False
 
