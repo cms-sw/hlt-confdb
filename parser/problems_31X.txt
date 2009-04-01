@@ -237,6 +237,12 @@ IterativeConeJetProducer.Parameter debugLevel int32 0 untracked
 IterativeConeJetProducer.Parameter alias string "IC5CaloJet" untracked
 IterativeConeJetProducer.Parameter correctInputToSignalVertex bool true tracked
 IterativeConeJetProducer.Parameter pvCollection InputTag offlinePrimaryVertices tracked
+IterativeConeJetProducer.Parameter maxBadEcalCells uint32 9999999 tracked
+IterativeConeJetProducer.Parameter maxRecoveredEcalCells uint32 9999999 tracked 
+IterativeConeJetProducer.Parameter maxProblematicEcalCells uint32 9999999 tracked 
+IterativeConeJetProducer.Parameter maxBadHcalCells uint32 9999999 tracked 
+IterativeConeJetProducer.Parameter maxRecoveredHcalCells uint32 9999999 tracked 
+IterativeConeJetProducer.Parameter maxProblematicHcalCells uint32 9999999 tracked 
 
 Module EDProducer SISConeJetProducer RecoJets JetProducers
 SISConeJetProducer.Parameter verbose bool false untracked
@@ -452,3 +458,5 @@ Module EDProducer L1GlobalTrigger L1Trigger GlobalTrigger
 L1GlobalTrigger.Parameter EmulateBxInEvent int32 3 tracked 
 L1GlobalTrigger.Parameter BstLengthBytes int32 -1 tracked 
 
+Module EDProducer L2TauJetsMerger RecoTauTag HLTProducers 
+L2TauJetsMerger.Parameter JetSrc VInputTag { } tracked
