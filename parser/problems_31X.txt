@@ -400,6 +400,9 @@ ESModule EcalUnpackerWorkerESProducer EventFilter EcalRawToDigi
 EcalUnpackerWorkerESProducer.Parameter UncalibRHAlgo PSet tracked
 EcalUnpackerWorkerESProducer.Parameter CalibRHAlgo PSet tracked
 
+ESModule HcalRecAlgoESProducer RecoLocalCalo HcalRecAlgos 
+HcalRecAlgoESProducer.Parameter SeverityLevels VPSet tracked 
+
 Module EDProducer ConeIsolation HLTrigger btau
 ConeIsolation.Parameter MinimumNumberOfPixelHits int32 2 tracked
 ConeIsolation.Parameter MinimumNumberOfHits int32 2 tracked
@@ -460,3 +463,4 @@ L1GlobalTrigger.Parameter BstLengthBytes int32 -1 tracked
 
 Module EDProducer L2TauJetsMerger RecoTauTag HLTProducers 
 L2TauJetsMerger.Parameter JetSrc VInputTag { } tracked
+
