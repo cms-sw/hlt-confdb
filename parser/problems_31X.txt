@@ -280,11 +280,9 @@ HcalSimpleReconstructor.Parameter correctForPhaseContainment bool true tracked
 HcalSimpleReconstructor.Parameter correctionPhaseNS double 13.0 tracked
 
 Module EDProducer SiStripRawToClusters EventFilter SiStripRawToDigi
-SiStripRawToClusters.Parameter MaxHolesInCluster uint32 0 untracked
-SiStripRawToClusters.Parameter ClusterThreshold double 5.0 untracked
-SiStripRawToClusters.Parameter SeedThreshold double 3.0 untracked
-SiStripRawToClusters.Parameter ChannelThreshold double 2.0 untracked
-SiStripRawToClusters.Parameter ClusterizerAlgorithm string "ThreeThreshold" untracked
+SiStripRawToClusters.Parameter ProductLabel InputTag rawDataCollector tracked
+SiStripRawToClusters.Parameter Clusterizer PSet tracked
+SiStripRawToClusters.Parameter Algorithms  PSet tracked
 
 Module EDProducer HcalRawToDigi EventFilter HcalRawToDigi
 HcalRawToDigi.Parameter firstSample int32 0 tracked
