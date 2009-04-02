@@ -668,8 +668,8 @@ class ConfdbSourceToDB:
 
         for modtag, cvstag in self.tagtuple:
 	    if(modtag.lstrip().rstrip() == packagename.lstrip().rstrip()):
-		tagline = cvstag
-		basetagline = cvstag
+		tagline = cvstag.lstrip().rstrip()
+		basetagline = cvstag.lstrip().rstrip()
 
 	# If making an intermediate psuedo-release, get the CVS tags from the 
 	# checked-out packages
@@ -678,7 +678,7 @@ class ConfdbSourceToDB:
 		cvscotagfile = open(cvsdir + "/Tag")
 		cvscotaglines = cvscotagfile.readlines()
 		for cvscotagline in cvscotaglines:
-		    tagline = cvscotagline
+		    tagline = cvscotagline.lstrip().rstrip()
 		    if(tagline.startswith('N')): 
 			tagline = tagline.split('N')[1] 
 		    if(self.verbose > 0):
