@@ -366,6 +366,3 @@ HcalMonitorModule.Parameter dfPrtLvl int32 0 untracked
 
 Module EDProducer CtfSpecialSeedGenerator RecoTracker SpecialSeedGenerators
 CtfSpecialSeedGenerator.Parameter OrderedHitsFactoryPSets VPSet tracked
-
-Module EDProducer SimpleCosmicBONSeeder RecoTracker SpecialSeedGenerators
-SimpleCosmicBONSeeder.Parameter pMin double 1.0 tracked
