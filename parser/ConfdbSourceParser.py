@@ -640,7 +640,14 @@ class SourceParser:
                             if(self.verbose > 0):
                                 print "Iterates over VPSet var " + thevpsetvar + " of VPSet " + self.psetdict[thevpsetvar]
                             self.psetdict[vpsetiter] = self.psetdict[thevpsetvar]
-                                                                                                                                                                                
+                    if(totalline.find("for") != -1 and totalline.find("iVPSet < vpsetPrescales_.size()") != -1):
+                        print self.psetdict
+                        vpsetiter = "iVPSet"
+                        thevpsetvar = "vpsetPrescales_"
+                        if(self.verbose > 0):
+                            print "VPSet iterator = " + vpsetiter + " in line " + totalline                     
+                            print "Iterates over VPSet var " + thevpsetvar + " of VPSet " + self.psetdict[thevpsetvar]
+                        self.psetdict[vpsetiter] = self.psetdict[thevpsetvar]
 
                     # Reassingment of ParameterSet members of VPSets
                     if(totalline.lstrip().startswith("ParameterSet") and totalline.find(" = ") != -1 and totalline.find("[") != -1):
@@ -756,6 +763,12 @@ class SourceParser:
 				    if(thisparamset.find('vector<edm::ParameterSet>') != -1 or thisparamset.find('vector<ParameterSet>') != -1):
 					thisparamset = thisparamset.split('>')[1].rstrip().lstrip()
 					self.psetdict[thisparamset] = paramname
+                                elif(totalline.find('.getParameter<std::vector<ParameterSet> >(') != -1 or totalline.find('.getParameter<std::vector<edm::ParameterSet> >(') != -1):
+                                    thisparamset = line.split('.getParameter<std::vector<ParameterSet> >(')[0].rstrip().lstrip()
+                                    thisparamset = thisparamset.split('(')[0]
+                                    if(thisparamset.find(',') != -1):
+                                        thisparamset = thisparamset.split(',')[1].lstrip().rstrip()
+                                        self.psetdict[thisparamset] = paramname
 
                         elif(paramtype.lstrip().rstrip() == 'Strings'):
                             isvector = True
