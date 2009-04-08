@@ -234,6 +234,7 @@ class ConfdbLoadParamsfromConfigs:
 
         # Find this release in the DB
         self.dbcursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (releaseTag = '" + self.cmsswrel + "')")
+        #        self.dbcursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (releaseTag = 'CMSSW_3_1_X_2009-04-07-0000_TEST')")
         tmprelid = self.dbcursor.fetchone()
 
         if(tmprelid):
@@ -356,6 +357,13 @@ class ConfdbLoadParamsfromConfigs:
                             
                     pyfiles = os.listdir(pydir)
 
+                    # Try to recursively add cfi's contained in subdirectories of python/.
+                    for pyfile in pyfiles:
+                        if(os.path.isdir(pydir + "/" + pyfile)):
+                            subpyfiles = os.listdir(pydir + "/" + pyfile)
+                            for subpyfile in subpyfiles:
+                                pyfiles.append(pyfile + "." + subpyfile)
+                                
                     thesubsystempackage = pydir.split('src/')[1].split('/data/')[0].lstrip().rstrip()
                     thesubsystempackagenopy = thesubsystempackage.split("/python")[0]
                     thesubsystem = thesubsystempackage.split('/')[0]
@@ -452,10 +460,9 @@ class ConfdbLoadParamsfromConfigs:
         self.componenttable = "ServiceTemplates"                                
         self.FindParamsFromPython(thesubsystem, thepackage, myservices,"Service") 
         
-        # JH - we probably don't need EDAnalyzers for the HLT configuration. Leave this commented out
-        # just in case.
-        #                                myanalyzers = process.analyzers_()
-        #                                self.FindParamsFromPython(thesubsystem, thepackage, myanalyzers,"EDAnalyzer") 
+        myanalyzers = process.analyzers_()
+        self.componenttable = "ModuleTemplates"
+        self.FindParamsFromPython(thesubsystem, thepackage, myanalyzers,"EDAnalyzer") 
         
         myoutputmodules = process.outputModules_()
         self.componenttable = "ModuleTemplates"
@@ -754,8 +761,10 @@ class ConfdbLoadParamsfromConfigs:
                         insertstr3 = "INSERT INTO " + str(paramtable) + " (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(paramindex) + ", '" + str(parametervectorvalue) + "')"
                         self.VerbosePrint(insertstr3, 3)
                         if(str(parametervectorvalue).find("'") == -1):
-                            self.dbcursor.execute(insertstr3)
-                            paramindex = paramindex + 1
+                            # Protect against loading empty VInputTags
+                            if(str(parametervectorvalue) != ''):
+                                self.dbcursor.execute(insertstr3)
+                                paramindex = paramindex + 1
 
             # Reassociate this parameter from the previous release
             if((unmodifiedparamid > 0) and (self.comparetorelease != "")):
@@ -1013,7 +1022,7 @@ class ConfdbLoadParamsfromConfigs:
 
     def CreatePreferredCfiList(self):
 
-        # If there is a preferred cfi.py for a give package, define it here.
+        # If there is a preferred cfi.py for a given package, define it here.
         # Need 1-to-many mapping, so it's a list instead of a dictionary...
 
         if(not os.path.isfile(self.prefercfifile)):
