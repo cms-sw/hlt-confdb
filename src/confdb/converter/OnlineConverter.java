@@ -279,25 +279,27 @@ public class OnlineConverter extends ConverterBase
 	
 
 	// apply necessary offline -> online modifications to HLT configuration
-	epModifier.insertDaqSource();
-	epModifier.insertShmStreamConsumer();
-	epModifier.removeMaxEvents();
-	epModifier.modify();
+	//BD epModifier.insertDaqSource();
+	//BD epModifier.insertShmStreamConsumer();
+	//BD epModifier.removeMaxEvents();
+	//BD epModifier.modify();
 	
-	configureGlobalTag(epModifier);
-	setOnlineMessageLoggerOptions(epModifier);
-	addOnlineOptions(epModifier);
-	setRawDataInputTags(epModifier);
+	//BD configureGlobalTag(epModifier);
+	//BD setOnlineMessageLoggerOptions(epModifier);
+	//BD addOnlineOptions(epModifier);
+	//BD setRawDataInputTags(epModifier);
 
-	try {
-	    addDQMStore(epModifier);
-	    addFUShmDQMOutputService(epModifier);
-	}
-	catch (Exception e) {
-	    String errMsg =
-		"convertConfiguration(): failed to add Service: " + e.getMessage();
-	    throw new ConverterException(errMsg,e);
-	}
+	/* BD
+	   try {
+	   addDQMStore(epModifier);
+	   addFUShmDQMOutputService(epModifier);
+	   }
+	   catch (Exception e) {
+	   String errMsg =
+	   "convertConfiguration(): failed to add Service: " + e.getMessage();
+	   throw new ConverterException(errMsg,e);
+	   }
+	*/
 	
 	
 	// obsolete, remove?
@@ -349,15 +351,15 @@ public class OnlineConverter extends ConverterBase
     private void configureGlobalTag(IConfiguration config)
     {
 	ESSourceInstance globalTag = config.essource("GlobalTag");
+
 	if (esGlobalTag.length()>0)
-	    {
-		globalTag.updateParameter("globaltag","string",esGlobalTag);
-		String connect = globalTag.parameter("connect","string").valueAsString();
-		connect = connect.substring(1,connect.length()-1);
-		connect = connect.substring(connect.lastIndexOf('/'));
-		connect = esConnect + connect;
-		globalTag.updateParameter("connect","string",connect);
-	    }
+	    globalTag.updateParameter("globaltag","string",esGlobalTag);
+	
+	String connect = globalTag.parameter("connect","string").valueAsString();
+	connect = connect.substring(1,connect.length()-1);
+	connect = connect.substring(connect.lastIndexOf('/'));
+	connect = esConnect + connect;
+	globalTag.updateParameter("connect","string",connect);
     }
     
     /** add global pset 'options', suitable for online */

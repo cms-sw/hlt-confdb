@@ -1,19 +1,17 @@
-#! /usr/bin/env perl
-
+#!/usr/bin/env perl
 
 ################################################################################
 #
-# runOnlineConverter
-# ------------------
+# getListOfReleases
+# -----------------
 #
-# 07/24/2008 Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
 ################################################################################
+
 
 my $db_host = "";
 my $db_name = "";
 my $db_user = "";
 my $db_pwrd = "";
-my $config_name = "";
 
 if (@ARGV==0) {
     print "provide one of: --hltdev, --rcms, --int2r, --int9r, or --test2r!\n";
@@ -53,20 +51,15 @@ while (@ARGV)
 	$db_user = "cms_hlt_test";
 	$db_pwrd = "hltdevtest1";
     }
-    elsif ($arg eq "--configName") {
-	$config_name - shift @ARGV;
-    }
     else { die "unknown parameter $arg"; }
 }
 
-my $cmd = 
+
+my $cmd =
     "java " .
-    "-cp ../ext/ojdbc14.jar:../lib/cmssw-evf-confdb-converter.jar " .
-    "confdb.converter.OnlineConverter " .
-    "-t oracle -h $db_host -d $db_name -u $db_user -s $db_pwrd " .
-    "-c $config_name";
+    "-cp ./ext/ojdbc14.jar:./lib/cmssw-evf-confdb-gui.jar confdb.db.ConfDB " . 
+    "-h $db_host -d $db_name -u $db_user -s $db_pwrd --listReleases";
 
 
 print $cmd . "\n";
 system($cmd);
-
