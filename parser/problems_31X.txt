@@ -349,7 +349,11 @@ CaloJetCorrectionProducer.Parameter correctors vstring {"MCJetCorrectorIcone5"} 
 
 
 Module EDProducer EcalRecHitProducer RecoLocalCalo EcalRecProducers
-EcalRecHItProducer.Parameter ChannelStatusToBeExcluded vint32 {} tracked
+EcalRecHitProducer.Parameter ChannelStatusToBeExcluded vint32 {} tracked
+EcalRecHitProducer.Parameter singleChannelRecoveryMethod string "NeuralNetworks" tracked
+EcalRecHitProducer.Parameter singleChannelRecoveryThreshold double 0 tracked
+EcalRecHitProducer.Parameter triggerPrimitiveDigiCollection InputTag "ecalDigis" tracked
+EcalRecHitProducer.Parameter flagsMapDBReco vint32 {} tracked
 
 Module EDProducer METProducer RecoMET METProducers
 METProducer.Parameter HO_EtResPar vdouble {0.0, 1.3, 0.0050 } tracked
