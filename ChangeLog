@@ -1,3 +1,13 @@
+2009-04-14  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-26-06
+	* fixes to gui/OutputModuleEditor requested by Bryan
+	* add FEDRawDataCollection kepp statements for both source and
+	rawDataCollector
+	* add the vstring parameter 'SelectEvents' within the PSet
+	parameter 'SelectEvents' for output modules being edited, if they
+	don't exist
+
 2009-02-11  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-26-05

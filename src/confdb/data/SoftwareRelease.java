@@ -226,7 +226,24 @@ public class SoftwareRelease
 		    result.add(subsys.name()+"/"+pkg.name());
 	    }
 	}
-	
+	return result;
+    }
+
+    /** get list of all all packages, including cvstag */
+    public ArrayList<String> listOfPackages()
+    {
+	ArrayList<String> result = new ArrayList<String>();
+	Iterator<SoftwareSubsystem> itS = subsystemIterator();
+	while (itS.hasNext()) {
+	    SoftwareSubsystem subsys = itS.next();
+	    Iterator<SoftwarePackage> itP = subsys.packageIterator();
+	    while (itP.hasNext()) {
+		SoftwarePackage pkg = itP.next();
+		if (pkg.templateCount()>0)
+		    result.add(pkg.template(0).cvsTag()+" "+
+			       subsys.name()+"/"+pkg.name());
+	    }
+	}
 	return result;
     }
 

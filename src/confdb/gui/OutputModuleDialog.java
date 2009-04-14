@@ -165,9 +165,17 @@ public class OutputModuleDialog extends JDialog
 	VStringParameter vsSelectEvents =
 	    (VStringParameter)psetSelectEvents.parameter("SelectEvents");
 	
+	if (vsSelectEvents==null) {
+	    vsSelectEvents = new VStringParameter("SelectEvents",
+						  new ArrayList<String>(),
+						  true,true);
+	    psetSelectEvents.addParameter(vsSelectEvents);
+	}
+	
 	String cbmElement0 = new String();
 
-	if (vsSelectEvents==null||vsSelectEvents.vectorSize()==0) {
+	if (/*vsSelectEvents==null||*/
+	    vsSelectEvents.vectorSize()==0) {
 	    Iterator<Path> itP=config.pathIterator();
 	    while (itP.hasNext()) {
 		Path p = itP.next();
@@ -468,7 +476,10 @@ public class OutputModuleDialog extends JDialog
 
 	if (jCheckBoxKeepRaw.isSelected())
 	    outputCommandsAsString
-		.append(",").append("keep FEDRawDataCollection_rawDataCollector_*_*");
+		.append(",")
+		.append("keep FEDRawDataCollection_source_*_*")
+		.append(",")
+		.append("keep FEDRawDataCollection_rawDataCollector_*_*");
 	
 	if (jCheckBoxKeepTriggerResults.isSelected())
 	    outputCommandsAsString
@@ -479,7 +490,6 @@ public class OutputModuleDialog extends JDialog
 		.append(",").append("keep triggerTriggerEvent_*_*_*");
 	
 	if (jCheckBoxKeepTriggerEventWithRefs.isSelected()) {
-	    System.out.println("DAHH!");
 	    outputCommandsAsString
 		.append(",").append("keep triggerTriggerEventWithRefs_*_*_*");
 	}
