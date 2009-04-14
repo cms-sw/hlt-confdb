@@ -155,11 +155,11 @@ def main(argv):
             print "\t-h Print this help menu"
             return
 
-    confdbjob = ConfdbLoadParamsfromConfigs(input_cmsswrel,input_baserelease_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbuser,input_dbpwd,input_host,input_noload,input_addtorelease,input_comparetorelease,input_preferfile)
+    confdbjob = ConfdbLoadParamsfromConfigs(input_cmsswrel,input_base_path,input_baserelease_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbuser,input_dbpwd,input_host,input_noload,input_addtorelease,input_comparetorelease,input_preferfile)
     confdbjob.BeginJob()
 
 class ConfdbLoadParamsfromConfigs:
-    def __init__(self,clirel,clibasereleasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbuser,clidbpwd,clihost,clinoload,cliaddtorelease,clicomparetorelease,clipreferfile):
+    def __init__(self,clirel,clibasepath,clibasereleasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbuser,clidbpwd,clihost,clinoload,cliaddtorelease,clicomparetorelease,clipreferfile):
 
         self.dbname = ''
         self.dbuser = clidbuser
@@ -179,7 +179,7 @@ class ConfdbLoadParamsfromConfigs:
         self.cvstag = ''
         self.packageid = ''
         self.tagtuple = []
-        self.basereltagtuple = []
+        self.addedtagtuple = []
 
 	# Get a Conf DB connection here. Only need to do this once at the 
 	# beginning of a job.
@@ -196,9 +196,10 @@ class ConfdbLoadParamsfromConfigs:
         
 	# Deal with package tags for this release.
 	self.cmsswrel = clirel
+        self.baseforaddedrel = clirel
         self.cmsswrelid = 0
 	self.baserelease_path = clibasereleasepath
-        self.base_path = clibasereleasepath
+        self.base_path = clibasepath
         self.whitelist = cliwhitelist
         self.blacklist = cliblacklist
         self.usingwhitelist = cliusingwhitelist
@@ -210,6 +211,7 @@ class ConfdbLoadParamsfromConfigs:
         self.localseq = 0
         self.nesting = []
         self.finishedtemplates = []
+        self.modifiedtemplates = []
 
         # Logfile for parsing output
         self.outputlogfile = "parse." + str(clirel) + "." + str(clihost) + ".log"
@@ -221,6 +223,11 @@ class ConfdbLoadParamsfromConfigs:
 
 	# Track all modules which will be modified
 	modifiedmodules = []
+
+        if(self.addtorelease != "none"):
+            self.cmsswrel = self.addtorelease
+            self.usedcfifile = "listofusedcfis." + str(self.addtorelease) + ".log"
+            self.outputlogfile = "parse." + str(self.addtorelease) + "." + str(self.dbhost) + ".log"
 
 	source_tree = self.base_path + "//src/"
 
@@ -234,7 +241,6 @@ class ConfdbLoadParamsfromConfigs:
 
         # Find this release in the DB
         self.dbcursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (releaseTag = '" + self.cmsswrel + "')")
-        #        self.dbcursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (releaseTag = 'CMSSW_3_1_X_2009-04-07-0000_TEST')")
         tmprelid = self.dbcursor.fetchone()
 
         if(tmprelid):
@@ -253,7 +259,9 @@ class ConfdbLoadParamsfromConfigs:
                 self.oldcmsswrelid = tmprelid[0]
 
         # Find CVS tags
-        self.GetCVSTags()
+        self.GetReleaseCVSTags()
+        if(self.addtorelease != "none"):
+            self.GetAddedCVSTags()
 
         # Do some one-time operations - get dictionaries of parameter, module,
         # and service type mappings so we don't have to do this every time
@@ -302,7 +310,7 @@ class ConfdbLoadParamsfromConfigs:
         for okpackage in self.whitelist:
             self.VerbosePrint("\t" + str(okpackage),1)
 
-	# Start decending into the source tree
+	# Start descending into the source tree
 	for package in packagelist:
             
             if(not (os.path.isdir(self.base_path))):
@@ -351,7 +359,13 @@ class ConfdbLoadParamsfromConfigs:
                     for modtag, cvstag in self.tagtuple:
                         if(modtag.lstrip().rstrip() == packagename.lstrip().rstrip()):
                             self.cvstag = cvstag
-                            self.VerbosePrint("\tCVS tag: " + cvstag,0)
+                            self.VerbosePrint("\tCVS tag from base release: " + cvstag,0)
+
+                    if(self.addtorelease != "none"):
+                        for modtag, cvstag in self.addedtagtuple:
+                            if(modtag.lstrip().rstrip() == packagename.lstrip().rstrip()):
+                                self.cvstag = cvstag
+                                self.VerbosePrint("\tCVS tag from test release: " + cvstag,0)
 
                     self.GetPackageID(package,subdir)
                             
@@ -422,6 +436,10 @@ class ConfdbLoadParamsfromConfigs:
                                 print "Syntax Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
                                 continue
                             
+        # For intermediate pseudo-release, migrate the unmodified templates from the base release
+        if(self.addtorelease != "none"):
+            self.RemapTemplates()
+
         # Commit and disconnect to be compatible with either INNODB or MyISAM
         self.dbloader.ConfdbExitGracefully()
         self.GenerateUsedCfiTable()
@@ -533,6 +551,8 @@ class ConfdbLoadParamsfromConfigs:
         for name, value in mycomponents.iteritems():
             psetname = "TopLevel"
             self.VerbosePrint("(" + str(componenttype) + " " + value.type_() + ") " + thesubsystem + "." + thepackage + "." + name, 1)
+
+            self.modifiedtemplates.append(str(value.type_()))
 
             template = thesubsystem+thepackage+(value.type_())
             if(not template in self.finishedtemplates):
@@ -887,8 +907,8 @@ class ConfdbLoadParamsfromConfigs:
             vpsetlen = tmppsetentries[0]
 
         return vpsetlen
-        
-    def GetCVSTags(self):
+
+    def GetReleaseCVSTags(self):
         if(self.addtorelease != "none"):
             # If we're creating an intermediate release, get the list of tags from the *base* release
             if(os.path.isfile(self.baserelease_path + "//src/PackageList.cmssw")):
@@ -904,6 +924,36 @@ class ConfdbLoadParamsfromConfigs:
                 for tagline in taglines:
                     self.tagtuple.append(((tagline.split())[0], (tagline.split())[1]))
 
+    def GetAddedCVSTags(self):
+        tagline = ""
+        basetagline = ""
+        
+        # If making an intermediate pseudo-release, get the CVS tags from the
+        # checked-out packages
+        cvsdir = ''
+	source_tree = self.base_path + "//src/"
+        packagelist = os.listdir(source_tree)
+
+        # Start descending into the source tree
+        for package in packagelist:
+            # Check if this is really a directory
+            if(os.path.isdir(source_tree + package)):
+                subdirlist = os.listdir(source_tree + package)
+                for subdir in subdirlist:
+                    if(subdir.startswith(".")):
+                        continue
+
+                    packagedir = source_tree + package + "/" + subdir
+                    cvsdir = packagedir + "/CVS/"
+                    
+                    if(os.path.isfile(cvsdir + "/Tag")):
+                        cvscotagfile = open(cvsdir + "/Tag")
+                        cvscotaglines = cvscotagfile.readlines()
+                        for cvscotagline in cvscotaglines:
+                            tagline = cvscotagline.lstrip().rstrip()
+                            if(tagline.startswith('N')):
+                                tagline = tagline.split('N')[1]
+                                self.addedtagtuple.append((package + "/" + subdir, tagline.lstrip().rstrip()))
 
     def CompareParamToOldRelease(self,parametername,parametervalue,parametertype):
 
@@ -1007,6 +1057,53 @@ class ConfdbLoadParamsfromConfigs:
             self.VerbosePrint(insertstr,3)
             self.dbcursor.execute(insertstr)
 
+    def RemapTemplates(self):
+	print "Remapping the following existing unmodified templates from release " + self.baseforaddedrel + " to new intermediate release called " + self.cmsswrel
+        print "Modified templates:"
+        print self.modifiedtemplates
+
+	self.dbcursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (SoftwareReleases.releaseTag = '" + self.baseforaddedrel + "')")
+        oldrelid = (self.dbcursor.fetchone())[0]
+	newrelid = self.cmsswrelid
+	self.dbcursor.execute("SELECT SuperIds.superId FROM SuperIds JOIN SuperIdReleaseAssoc ON (SuperIds.superId = SuperIdReleaseAssoc.superId) WHERE (SuperIdReleaseAssoc.releaseId = '" + str(oldrelid) + "')")
+	superidtuple = self.dbcursor.fetchall()
+
+	for superidentry in superidtuple:	    
+	    superid = superidentry[0]
+
+	    matches = ''
+	    self.dbcursor.execute("SELECT ModuleTemplates.name FROM ModuleTemplates WHERE (ModuleTemplates.superId = '" + str(superid) + "')")
+	    tempname = self.dbcursor.fetchone()
+	    if(tempname):
+		matches = tempname[0]
+
+	    self.dbcursor.execute("SELECT ServiceTemplates.name FROM ServiceTemplates WHERE (ServiceTemplates.superId = '" + str(superid) + "')")
+	    tempname = self.dbcursor.fetchone()
+	    if(tempname):
+		matches = tempname[0]
+
+	    self.dbcursor.execute("SELECT ESSourceTemplates.name FROM ESSourceTemplates WHERE (ESSourceTemplates.superId = '" + str(superid) + "')")
+	    tempname = self.dbcursor.fetchone()
+	    if(tempname):
+		matches = tempname[0]
+
+	    self.dbcursor.execute("SELECT EDSourceTemplates.name FROM EDSourceTemplates WHERE (EDSourceTemplates.superId = '" + str(superid) + "')")
+	    tempname = self.dbcursor.fetchone()
+	    if(tempname):
+		matches = tempname[0]
+
+	    self.dbcursor.execute("SELECT ESModuleTemplates.name FROM ESModuleTemplates WHERE (ESModuleTemplates.superId = '" + str(superid) + "')")
+	    tempname = self.dbcursor.fetchone()
+	    if(tempname):
+		matches = tempname[0]
+
+	    if(not (matches in self.modifiedtemplates)):
+		self.dbcursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(superid) + ", " + str(newrelid) + ")")
+                self.VerbosePrint(matches,0)
+
+	self.VerbosePrint("\n",0)
+                                    
+                                    
     def GetPackageID(self,subsystem,package):
 
         packageid = self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,subsystem,package)
