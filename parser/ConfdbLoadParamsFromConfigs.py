@@ -310,7 +310,56 @@ class ConfdbLoadParamsfromConfigs:
         for okpackage in self.whitelist:
             self.VerbosePrint("\t" + str(okpackage),1)
 
-	# Start descending into the source tree
+            
+        # First check if there are any preferred cfi files to use for this Package/Subsystem.
+        # If so, get the parameters from there.
+        for preferredsubpackage, preferredcfi in self.preferredcfilist:
+            self.VerbosePrint("Using the preferred cfi.py: " + preferredcfi + " for " + preferredsubpackage,0)
+            pyfile = preferredcfi
+            thecomponent = pyfile.split('.py')[0]
+
+            thesubsystem = (preferredsubpackage.split("/")[0]).lstrip().rstrip()
+            thepackage = (preferredsubpackage.split("/")[1]).lstrip().rstrip()
+            pydir = source_tree + preferredsubpackage + "/python/"
+
+            if(not os.path.isdir(pydir)):
+                continue
+
+            # Retrieve the CVS tag
+            for modtag, cvstag in self.tagtuple:
+                if(modtag.lstrip().rstrip() == preferredsubpackage.lstrip().rstrip()):
+                    self.cvstag = cvstag
+                    self.VerbosePrint("\tCVS tag from base release: " + cvstag,0)
+
+            if(self.addtorelease != "none"):
+                for modtag, cvstag in self.addedtagtuple:
+                    if(modtag.lstrip().rstrip() == preferredsubpackage.lstrip().rstrip()):
+                        self.cvstag = cvstag
+                        self.VerbosePrint("\tCVS tag from test release: " + cvstag,0)
+                        
+            self.GetPackageID(thesubsystem,thepackage)
+                
+            try:
+                self.ExtendTheCfi(pyfile, pydir)
+                    
+                # cfi files are not guaranteed to be valid :( If we find an invalid one, catch the
+                # exception from the python config API and move on to the next
+            except FloatingPointError:
+                print 'Dummy exception - this should never happen!!!'
+            except NameError:
+                print "Name Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                continue
+            except TypeError:
+                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                continue
+            except ImportError:
+                print "Import Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                continue
+            except SyntaxError:
+                print "Syntax Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                continue
+
+	# After doing the preferred cfi's, start descending into the source tree to look at all others
 	for package in packagelist:
             
             if(not (os.path.isdir(self.base_path))):
@@ -383,35 +432,7 @@ class ConfdbLoadParamsfromConfigs:
                     thesubsystem = thesubsystempackage.split('/')[0]
                     thepackage = thesubsystempackage.split('/')[1]
 
-                    # First check if there are any preferred cfi files to use for this Package/Subsystem.
-                    # If so, get the parameters from there.
-                    for preferredsubpackage, preferredcfi in self.preferredcfilist:
-                        if thesubsystempackagenopy == preferredsubpackage: 
-                            self.VerbosePrint("Using the preferred cfi.py: " + preferredcfi + " for " + thesubsystempackagenopy,0)
-                            pyfile = preferredcfi
-                            thecomponent = pyfile.split('.py')[0]
-
-                            try:
-                                self.ExtendTheCfi(pyfile, pydir)
-
-                            # cfi files are not guaranteed to be valid :( If we find an invalid one, catch the
-                            # exception from the python config API and move on to the next
-                            except FloatingPointError:
-                                print 'Dummy exception - this should never happen!!!'
-                            except NameError:
-                                print "Name Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-                                continue
-                            except TypeError:
-                                print "Type Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-                                continue
-                            except ImportError:
-                                print "Import Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-                                continue
-                            except SyntaxError:
-                                print "Syntax Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
-                                continue
-                             
-                    # Now look through all other cfi files.
+                    # Now look through all cfi files.
                     for pyfile in pyfiles:
                         if(pyfile.endswith("_cfi.py")):
                             thecomponent = pyfile.split('.py')[0]
@@ -554,7 +575,7 @@ class ConfdbLoadParamsfromConfigs:
 
             self.modifiedtemplates.append(str(value.type_()))
 
-            template = thesubsystem+thepackage+(value.type_())
+            template = value.type_()
             if(not template in self.finishedtemplates):
                 self.finishedtemplates.append(template)
             else:
