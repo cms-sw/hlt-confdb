@@ -1,11 +1,15 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<%@page import="confdb.converter.ConverterBase"%>
 <%@page import="confdb.converter.BrowserConverter"%>
+<%@page import="confdb.converter.OnlineConverter"%>
 <%@page import="confdb.data.ModifierInstructions"%>
 <%@page import="java.io.ByteArrayOutputStream"%>
 <%@page import="java.io.PrintWriter"%>
-<html>
+
+<%@page import="confdb.data.IConfiguration"%>
+<%@page import="confdb.converter.OfflineConverter"%><html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>config summary</title>
@@ -17,7 +21,7 @@
   String js = "../js";
   String img = "../img";
   boolean online = false;
-  if ( db.equals( "online" ) )
+  if ( request.getParameter( "online" ) != null )
   {
 	online = true;
   	yui = "../../../gui/yui";
@@ -64,16 +68,21 @@ body {
 
 	paras.format = "summary.html";
 	String result = "";
-	BrowserConverter converter = null;
+	ConverterBase converter = null;
 	try {
 
 		ModifierInstructions modifierInstructions = new ModifierInstructions();
 	    //modifierInstructions.interpretArgs( paras.toModifier );
-        converter = BrowserConverter.getConverter( paras.dbName );
+	    if ( paras.dbName.equals( "online" ) )
+	    	converter = OnlineConverter.getConverter();
+	    else
+	        converter = BrowserConverter.getConverter( paras.dbName );
         if ( paras.configId == -1 )
 			paras.configId = converter.getDatabase().getConfigId( paras.configName );
 
-	    result = converter.getConfigString( paras.configId, paras.format,
+        IConfiguration conf = converter.getConfiguration( paras.configId );
+        OfflineConverter helper = new OfflineConverter( "HTML" );
+	    result = helper.getConfigString( conf, paras.format,
 						      modifierInstructions,
 						      paras.asFragment);
 	} catch (Exception e) {
@@ -151,6 +160,7 @@ var	myTable,
 	columns  = <%=columns%>,
 	paddingY =  5,
 	Dom = YAHOO.util.Dom;
+	
 	
   signalReady();
   window.onresize = resize;

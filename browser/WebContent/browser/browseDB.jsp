@@ -26,9 +26,9 @@
 <link rel="stylesheet" type="text/css" href="<%=yui%>/resize/assets/skins/sam/resize.css"" />
 <link rel="stylesheet" type="text/css" href="<%=yui%>/treeview/assets/skins/sam/treeview.css" />
 <link rel="stylesheet" type="text/css" href="<%=yui%>/tabview/assets/tabview-core.css" />
+<link rel="stylesheet" type="text/css" href="<%=yui%>/button/assets/skins/sam/button.css">
 <link rel="stylesheet" type="text/css" href="<%=css%>/folders/tree.css">
 <link rel="stylesheet" type="text/css" href="<%=css%>/confdb.css" />
-<link rel="stylesheet" type="text/css" href="<%=css%>/tabs.css" />
 
 <script type="text/javascript" src="<%=yui%>/utilities/utilities.js"></script>
 <script type="text/javascript" src="<%=yui%>/cookie/cookie-min.js"></script>
@@ -38,12 +38,13 @@
 <script type="text/javascript" src="<%=yui%>/treeview/treeview-min.js"></script>
 <script type="text/javascript" src="<%=yui%>/tabview/tabview.js"></script>
 <script type="text/javascript" src="<%=yui%>/container/container-min.js"></script>
+<script type="text/javascript" src="<%=yui%>/button/button-min.js"></script>
 <script type="text/javascript" src="<%=js%>/HLT.js"></script>
 
 
 <style>
 
-body, #doc3, #pg, #mainRight, .blindTable { 
+body, #doc3, #pg, .blindTable { 
     padding:0px; 
     margin:0px; 
 }
@@ -59,39 +60,45 @@ body {
 
 
 #mainLeft { 
-	border: 0px solid #B6CDE1; 
 	margin:0px; 
-	padding: 1px 5px 0px 1px;
+	padding: 2px 5px 0px 1px;
+}
+
+#mainRight { 
+	margin:0px; 
+	padding: 2px 1px 0px 0px;
 }
 
 
 #leftHeaderDiv { 
 	margin:0px; 
 	padding:0.4em; 
-	background:white; 
-	border: 1px solid #B6CDE1; 
 	border-bottom: 0px;
 	height: 1.2em;
 }
 
 #rightHeaderDiv {
-	border: 1px solid #B6CDE1; 
+	border-width: 1px;
+	border-style: solid;
 	border-bottom: 0px;
-	margin:0px; 
-	margin-top:1px; 
 	padding:2px; 
 }
 
-.yui-nav {
-	border-left: 1px solid #B6CDE1; 
-	border-right: 1px solid #B6CDE1; 
+
+.yui-nav,
+.yui-content {
+	border-width: 1px; 
+	border-style: solid;
 }
 
+.yui-nav {
+	border-top: 0px; 
+	border-bottom: 0px; 
+}
 
 #treeDiv {
     overflow: auto;
 }
-
 
 </style>
 
@@ -113,15 +120,20 @@ body {
   
   if ( db != null )
   {
-	  out.println( "var dbName = '" + db + "';" );
 	  if ( online )
 	  {
+		out.println( "var dbName = 'online';" );
+		String tabId = request.getParameter( "tabId" );
+		if ( tabId == null )
+		      out.println( "var pageId = 'online';" );
+		else
+		      out.println( "var pageId = '" + tabId + "';" );
 		out.println( "var onlineMode = true;" );
-	    out.println( "var pageId = 'test';" );
 		out.println( "AjaxInfo._path = '../../jsp/hlt/AjaxInfo.jsp';" );
 	  }
 	  else
 	  {
+		out.println( "var dbName = '" + db + "';" );
 		out.println( "var onlineMode = false;" );
 		out.println( "var pageId = '" + db + "';" );
 		out.println( "AjaxInfo._path = '../browser/AjaxInfo.jsp';" );
@@ -139,7 +151,7 @@ body {
 
 var configFrameUrl,
 	configKey,
-//	dbIndex,
+	fullName,
 	Dom = YAHOO.util.Dom,
     Event = YAHOO.util.Event,
     mainLeft = null,
@@ -157,6 +169,7 @@ var configFrameUrl,
   	tabView, 
   	tabReady = [],
     activeTab = 1;
+var filter = '/cdaq/.*';
 	
 function init() 
 {
@@ -209,12 +222,12 @@ function init()
             var width = displayWidth - w - 8;
             Dom.setStyle( mainRight, 'height', displayHeight + 'px' );
             Dom.setStyle( mainRight, 'width', width + 'px');
-//            Dom.setStyle( 'configDiv', 'width', width + 'px');
-        });
+            Dom.setStyle( 'rightHeaderBottomDiv', 'width', (width - 200) + 'px' );
+    });
 
-  var treeWidth = 200;
+  var treeWidth = displayWidth / 3;
   if ( hltCookie && hltCookie.treeWidth )
-  	treeWidth = hltCookie.treeWidth;
+	  	treeWidth = hltCookie.treeWidth;
   resize.resize(null, displayHeight, treeWidth, 0, 0, true);
 
 
@@ -262,10 +275,32 @@ function init()
 	    YAHOO.util.Cookie.setSubs( pageId, hltCookie, { expires: cookieExpires } );
 	  }
 	} );
+
+
+  if ( onlineMode )
+  {
+    var submitButton = new YAHOO.widget.Button( { label: "Submit", id: "submitbutton", container: "buttonTD" });
+    submitButton.on("click", onSubmitClick ); 	
   
-  AjaxInfo.getTree( onlineMode ? 'orcoff' : dbName, createTree );	
+    Dom.setStyle( 'buttonTD', 'visibility', 'hidden' );
+    Dom.setStyle( 'downloadTD', 'visibility', 'hidden' );
+  }
+
+  if ( pageId == 'online' )
+	  filter = '';
+  if ( hltCookie && hltCookie.filter )
+	  	filter = hltCookie.filter;
+  AjaxInfo.getTree( dbName, filter, createTree );	
 }
 	
+
+function onSubmitClick( event ) 
+{ 
+  if ( parent && parent.submitConfig )
+    parent.submitConfig( configKey, fullName );
+} 
+	
+
 	
 function createTree( treeData )
 {
@@ -286,7 +321,11 @@ function createTree( treeData )
 	createTreeRecursiveLoop( parentNode, treeData );
 	tree.render();
 	tree.subscribe( "clickEvent", configSelected );
-  	Dom.get( 'leftHeaderDiv' ).innerHTML = '<a id="expand" href="#">Expand all</a> <a id="collapse" href="#">Collapse all</a>'; 
+	var header = '<table><tr>';
+	if ( filter != '' )
+		header += "<td><b>filter: "  + filter + "</b></td><td><div style='width:50px'></div></td>";
+	header += '<td><a id="expand" href="#">Expand all</a> <a id="collapse" href="#">Collapse all</a></td></tr></table>';
+  	Dom.get( 'leftHeaderDiv' ).innerHTML = header; 
   	Dom.setStyle( 'collapseDiv', 'visibility', 'visible' );
   	
   	// uses too much CPU power!
@@ -373,12 +412,14 @@ function configSelected( event )
   	return;
   	
   node.focus();
+  
+//  if ( parent &&  parent.configSelected )
+//    parent.configSelected( node.data );
 
   Dom.setStyle( mainRight, 'visibility', 'visible' );
 
   configKey = node.data.key;
-  //dbIndex = node.data.dbIndex;
-  var fullName = node.data.fullName;
+  fullName = node.data.fullName;
   Dom.get( 'fullNameTD' ).innerHTML = "<b>" + fullName + "</b>";
   var fileName = node.data.name.replace( '//s/g', '_' ) + "_V" + node.data.version;
 
@@ -387,6 +428,10 @@ function configSelected( event )
     Dom.get( 'downloadTD' ).innerHTML = 'download ' 
       + '<a href="' + fileName + '.cfg?configId='+ configKey + '&dbName=' + dbName + '">cfg</a> '
       + '<a href="' + fileName + '.py?format=python&configId='+ configKey + '&dbName=' + dbName + '">py</a>';
+  }
+  else
+  {
+    Dom.setStyle( 'buttonTD', 'visibility', 'visible' );
   }
 
   tabReady = [];
@@ -418,9 +463,9 @@ function loadTab()
 function buildIFrameUrl()
 {  
   if ( activeTab == 1 )
-    return "convert2Html.jsp?configKey=" + configKey + "&dbName=" + dbName; 
+    return "convert2Html.jsp?configKey=" + configKey + "&dbName=" + dbName + (onlineMode ? "&online=true" : ""); 
   if ( activeTab == 2 )
-    return "showSummary.jsp?configKey=" + configKey + "&dbName=" + dbName;
+    return "showSummary.jsp?configKey=" + configKey + "&dbName=" + dbName + (onlineMode ? "&online=true" : "");
   return "";
 }     
 
@@ -490,8 +535,6 @@ function dummy( node )
 {
 }
 
-	
-	
 //When the DOM is done loading, we can initialize our TreeView
 //instance:
 YAHOO.util.Event.onContentReady( "doc3", init );
@@ -503,27 +546,30 @@ YAHOO.util.Event.onContentReady( "doc3", init );
 
 
 <div id="doc3">
-  <div id="pg">
+  <div id="pg" class="skin1">
     <div class="yui-g" id="pg-yui-g">
 	  <div class="yui-u first" id="mainLeft">
-    	<div id="leftHeaderDiv"><img src="<%=img%>/wait.gif"></div>
+    	<div id="leftHeaderDiv" class="tree1"><img src="<%=img%>/wait.gif"></div>
         <div style="position:absolute; right:8px; top:3px; z-index:1; cursor:pointer" id="collapseDiv" ><img src="<%=img%>/collapse.gif"></div>
         <div style="position:absolute; left:0px; top:2px; z-index:2; cursor:pointer;" id="expandDiv" ><img src="<%=img%>/tree/expand.gif"></div>
-        <div align="left" id="treeDiv" style="background:white; border: 1px solid #B6CDE1; border-top:0px;"></div>
+        <div align="left" id="treeDiv" class="tree1" style="border-top:0px;"></div>
    	  </div>
 
       <div class="yui-u skin1" id="mainRight">
         <div id="rightHeaderDiv" class="header1">
-  		  <table width='100%' class='blindTable'><tr>
-  		    <td id='fullNameTD'><b>/PATH/CONFIG/VERSION</b></td>
-  		    <td></td>
+  		  <table width="100%" class='blindTable'>
+  		  <tr>
+  		    <td><table class='blindTable'><tr>
+  		     <td id='fullNameTD'><b>/PATH/CONFIG/VERSION</b></td>
+  		     <td align="right" id='buttonTD' style="padding-left:40px"></td>
+  		    </tr></table></td>
   			<td align="right" id='downloadTD'>download</td>
 		  </tr>
 		  </table>
         </div>
 		<div id="tabView" class="yui-navset header1">
-		  <ul class="yui-nav">
-		    <li class="disabled" style="width:500px"><div id="rightHeaderBottomDiv"></div><a href="#tab0Div"></a></li>
+		  <ul class="yui-nav" id="tabViewHeader">
+		    <li class="disabled"><div id="rightHeaderBottomDiv"></div><a href="#tab0Div"></a></li>
 		    <li><a href="#tab1Div"><em>details</em></a></li>
 		    <li><a href="#tab2Div"><em>summary</em></a></li>
 		  </ul>            

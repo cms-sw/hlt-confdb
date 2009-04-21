@@ -9,6 +9,7 @@
 <%@page import="confdb.converter.ConverterBase"%>
 
 <%@page import="confdb.converter.BrowserConverter"%>
+<%@page import="confdb.converter.OnlineConverter"%>
 <%@page import="confdb.converter.RcmsDbProperties"%>
 <%@page import="confdb.converter.DbProperties"%>
 <%@page import="java.util.ArrayList"%>
@@ -29,7 +30,6 @@ public class NodeData
 	public int    key;
 	public String name;
 	public String fullName;
-	public int    dbIndex;
 	public String title;
 }
 
@@ -40,7 +40,7 @@ public class AjaxTreeNode
 	
 	AjaxTreeNode( NodeData nodeData )
 	{
-		this.nodeData = nodeData;;
+		this.nodeData = nodeData;
 	}
 }
 
@@ -147,31 +147,36 @@ public void gc()
 }
 
 
-public String getTree( String dbName ) throws ConverterException
+public String getTree( String dbName, String filterStr ) throws ConverterException
 {
+	//System.out.println( "filter: " + filterStr );
 	int dbIndex = 1;
 	AjaxTree tree = new AjaxTree( "" );
 	ConverterBase converter = null;
 	try {
-		ConfDBSetups dbs = new ConfDBSetups();
-		if ( dbName != null && dbName.length() > 0 )
+		if ( dbName.equals( "online" ) )
+			converter = OnlineConverter.getConverter();
+		else
 		{
-		  String[] labels = dbs.labelsAsArray();
-		  for ( int i = 0; i < dbs.setupCount(); i++ )
-		  {
-		    if ( dbName.equalsIgnoreCase( labels[i] ) )
-		  	  {
-		  		dbIndex = i;
-		  		break;
-		  	  }
-		  }
+			ConfDBSetups dbs = new ConfDBSetups();
+			if ( dbName != null && dbName.length() > 0 )
+			{
+			  	String[] labels = dbs.labelsAsArray();
+		 		for ( int i = 0; i < dbs.setupCount(); i++ )
+		  		{
+		    		if ( dbName.equalsIgnoreCase( labels[i] ) )
+		  	  		{
+		  				dbIndex = i;
+		  				break;
+		  	  		}
+		  		}
+			}
+			converter = BrowserConverter.getConverter( dbIndex );
 		}
-		converter = BrowserConverter.getConverter( dbIndex );
 		ConfDB confDB = converter.getDatabase();
 		Directory root = confDB.loadConfigurationTree();
-		buildTree( tree, root, dbIndex );
+		buildTree( tree, root, filterStr );
 		String result = new JSONSerializer().include( "dirs" ).include( "configs" ).exclude( "*.class" ).deepSerialize( tree );
-		//System.out.println( "sending result: " + result );
 		return result;
 	} catch (Exception e) {
 		String errorMessage = "ERROR!\n";
@@ -216,8 +221,25 @@ public String getRcmsDbInfo()
 }
 
 	
-private void buildTree( AjaxTree parentNode, Directory directory, int dbIndex )
+private boolean buildTree( AjaxTree parentNode, Directory directory, String filter )
 {
+	boolean addDir = false;
+	Directory[] list = directory.listOfDirectories();
+	for ( int i = 0; i < list.length; i++ )
+	{
+		String name = list[i].name();
+		int start = name.lastIndexOf( '/' );
+		if ( start > 0 )
+			name = name.substring( start + 1 );
+		AjaxTree subtree = new AjaxTree( name );
+		boolean addSubTree = buildTree( subtree, list[i], filter );
+		if ( addSubTree )
+		{
+			parentNode.addSubTree( subtree );
+			addDir = true;
+		}
+	}
+
 	ConfigInfo[] configs = directory.listOfConfigurations();
 	for ( int i = 0; i < configs.length; i++ )
 	{
@@ -229,14 +251,17 @@ private void buildTree( AjaxTree parentNode, Directory directory, int dbIndex )
 		nodeData.label = name;
 		nodeData.key = versionInfo.dbId();
 		nodeData.name = name;
-		nodeData.fullName = config.parentDir().name() + "/" + name + "/V" + versionInfo.version();
-		nodeData.dbIndex = dbIndex;
+		String fullPath = config.parentDir().name() + "/" + name;
+		nodeData.fullName = fullPath + "/V" + versionInfo.version();
 		nodeData.title = "V" + versionInfo.version() + "  -  " + versionInfo.created();
-		AjaxTreeNode node = new AjaxTreeNode( nodeData );
-		parentNode.addNode( node );
+		if ( filter == null  || filter.length() == 0  || fullPath.matches( filter ) )
+		{
+		  addDir |= true;
+		  AjaxTreeNode node = new AjaxTreeNode( nodeData );
+		  parentNode.addNode( node );
 		
-		for ( int ii = 0; ii < config.versionCount(); ii++ )
-	    {
+		  for ( int ii = 0; ii < config.versionCount(); ii++ )
+	      {
 			versionInfo = config.version( ii );
 			nodeData = new NodeData();		
 			nodeData.version = versionInfo.version();
@@ -244,26 +269,69 @@ private void buildTree( AjaxTree parentNode, Directory directory, int dbIndex )
 			nodeData.key = versionInfo.dbId();
 			nodeData.name = name;
 			nodeData.fullName = config.parentDir().name() + "/" + name + "/V" + versionInfo.version();
-			nodeData.dbIndex = dbIndex;
 			nodeData.title = versionInfo.comment();
 			node.subnodes.add( new AjaxTreeNode( nodeData ) );
+	      }
 		}
 	}
-
-	Directory[] list = directory.listOfDirectories();
-	for ( int i = 0; i < list.length; i++ )
-	{
-		String name = list[i].name();
-		int start = name.lastIndexOf( '/' );
-		if ( start > 0 )
-			name = name.substring( start + 1 );
-		AjaxTree subtree = new AjaxTree( name );
-		parentNode.addSubTree( subtree );
-		buildTree( subtree, list[i], dbIndex );
-	}
+	return addDir;
 }
 
-	
+private Object exec( String className, String methodName, ArrayList<String> paramList, HttpSession session ) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException 
+{
+	Class<?> jsonClass = this.getClass();
+	if ( className != null )
+	  jsonClass = Class.forName( className );
+	Class<?>[] paramClasses = new Class[ paramList.size() ];
+	Object[] params = new Object[ paramList.size() ];
+	for ( int i = 0; i < params.length; i++ )
+	{
+		String param = paramList.get( i );
+		int split = param.indexOf( ':' );
+		if ( split != -1 )
+		{
+			String paramClass = param.substring( 0, split );
+			if ( paramClass.equals( "int" ) )
+			{
+				paramClasses[i] = Integer.TYPE;
+				params[i] = new Integer( param.substring( split + 1 ) );
+			}
+			else if ( paramClass.equals( "string" ) )
+			{
+				paramClasses[i] = String.class;
+				params[i] = param.substring( split + 1 );
+			}
+		}
+	}
+	Method method = jsonClass.getMethod( methodName, paramClasses );
+	Object result = null;
+	if ( Modifier.isStatic( method.getModifiers() ) )
+		result = method.invoke( null, params );
+	else
+	{
+		Object jsonObject = this;
+		if ( className != null )
+		{
+			if ( session == null )
+				jsonObject = jsonClass.newInstance();
+			else
+			{
+				jsonObject = session.getAttribute( jsonClass.getCanonicalName() );
+				if ( jsonObject != null  &&  jsonObject.getClass() != this.getClass() )
+					jsonObject = null;
+				if ( jsonObject == null )
+				{
+					jsonObject = jsonClass.newInstance();
+					session.setAttribute( jsonClass.getCanonicalName(), jsonObject );
+					System.out.println( "new object for session " + session.getId() );
+				}
+			}
+		}
+		result = method.invoke( jsonObject, params );
+	}
+	return result;
+}
+
 %>
 
 <% 	  	     

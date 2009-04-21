@@ -18,10 +18,9 @@
   String css = "../css";
 //  String js = "../js";
 //  String img = "../img";
-//  boolean online = false;
-  if ( db.equals( "online" ) )
+
+  if ( request.getParameter( "online" ) != null )
   {
-//	online = true;
   	yui = "../../../gui/yui";
     css = "../../css";
 //    js = "../../js";
@@ -191,13 +190,16 @@ function getURL( release )
 
 </head>
 
-<body class="yui-skin-sam skin1" onload="signalReady()">
+<body class="yui-skin-sam skin1" style="background:white" onload="signalReady()">
 <div id="headerDiv" class="tab1" style="padding-left:10px; padding-top:5px;">
 <%
   String confString = "";
   try {
 	String index = request.getParameter( "dbIndex" );
-	if ( index == null )
+	ConverterBase converter = null;
+	if ( index != null )
+		converter = BrowserConverter.getConverter( Integer.parseInt( index ) );
+	else
 	{
 		String dbName = request.getParameter( "dbName" );
 		if ( dbName == null ) 
@@ -205,6 +207,8 @@ function getURL( release )
 			out.print( "ERROR!\ndbIndex or dbName must be specified!");
 			return;
 		}
+		if ( dbName.equals( "online" ) )
+			converter = OnlineConverter.getConverter();
 		else	
 		{
 			if ( dbName.equalsIgnoreCase( "hltdev" ) )
@@ -224,12 +228,10 @@ function getURL( release )
 	  			out.print( "ERROR!\ninvalid dbName!");
 	  			return;
 	  		}
+	  		int dbIndex = Integer.parseInt( index );
+	  		converter = BrowserConverter.getConverter( dbIndex );
 	  	}
 	}
-
-	int dbIndex = Integer.parseInt( index );
-
-	ConverterBase converter = BrowserConverter.getConverter( dbIndex );
 
 	String configName = request.getParameter( "configName" );
 	String configId = request.getParameter( "configKey" );
@@ -265,9 +267,9 @@ function getURL( release )
 			refs += "<a href=\"#services\">services</a> ";
 		out.println( refs );
 		try {
-			if ( converter instanceof OnlineConverter )
-				confString = ((OnlineConverter)converter).getEpConfigString( configKey );
-			else
+//			if ( converter instanceof OnlineConverter )
+//				confString = ((OnlineConverter)converter).getEpConfigString( configKey );
+//			else
 				confString = converter.getConverterEngine().convert( conf );
 		} catch ( ConverterException e1 ) {
 			System.out.println( "reloading config " + configKey );

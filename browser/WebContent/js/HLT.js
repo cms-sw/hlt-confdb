@@ -75,6 +75,8 @@ HLTjs.setValue = function( ele, val )
   ele.innerHTML = val;
 }
 
+if (HLTjs == null) var HLTjs = {};
+if (HLTjs.json == null) HLTjs.json = {};
 
 if (AjaxInfo == null) var AjaxInfo = {};
 AjaxInfo._path = '../json/AjaxInfo.jsp';
@@ -94,8 +96,6 @@ AjaxInfo.clearCache = function(callback) {
 AjaxInfo.getMemInfo = function(callback) {
   HLTjs.json._execute(AjaxInfo._path, null, 'getMemInfo', callback);
 }
-AjaxInfo.getTree = function( p0, callback) {
-  HLTjs.json._execute(AjaxInfo._path, null, 'getTree', 'string:' + p0, callback);
+AjaxInfo.getTree = function( p0, p1, callback) {
+  HLTjs.json._execute(AjaxInfo._path, null, 'getTree', 'string:' + p0, 'string:' + p1, callback);
 }
-
-
