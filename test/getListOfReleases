@@ -30,7 +30,7 @@ while (@ARGV)
     elsif ($arg eq "--rcms") {
 	$db_host = "localhost";
 	$db_name = "cms_rcms.cern.ch";
-	$db_user = "cms_hltdev_r";
+	$db_user = "cms_hlt_r";
 	$db_pwrd = "convertme!";
     }
     elsif ($arg eq "--int2r") {
@@ -57,7 +57,7 @@ while (@ARGV)
 
 my $cmd =
     "java " .
-    "-cp ./ext/ojdbc14.jar:./lib/cmssw-evf-confdb-gui.jar confdb.db.ConfDB " . 
+    "-cp ../ext/ojdbc14.jar:../lib/cmssw-evf-confdb-gui.jar confdb.db.ConfDB " . 
     "-h $db_host -d $db_name -u $db_user -s $db_pwrd --listReleases";
 
 
