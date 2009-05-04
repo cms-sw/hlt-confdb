@@ -68,7 +68,7 @@ def main(argv):
 
     input_verbose = 0
     input_dbuser = "CMS_HLT_TEST"
-    input_dbpwd = "hltdevtest1"
+    input_dbpwd = ""
     input_host = "CMS_ORCOFF_INT2R"
     input_addtorelease = "none"
     input_comparetorelease = ""
@@ -175,6 +175,11 @@ class ConfdbLoadParamsfromConfigs:
         self.componentname = ''
         self.softpackageid = ''
 
+        # Some job summary statistics
+        self.totalloadedparams = 0
+        self.totalloadedcomponents = 0
+        self.totalremappedcomponents = 0
+        
         # Track CVS tags
         self.cvstag = ''
         self.packageid = ''
@@ -183,6 +188,9 @@ class ConfdbLoadParamsfromConfigs:
 
 	# Get a Conf DB connection here. Only need to do this once at the 
 	# beginning of a job.
+        #
+        # Reusing the connection method from the old parser - may want move this code here to
+        # keep the new one self-contained...
         self.dbloader = ConfdbOracleModuleLoader.ConfdbOracleModuleLoader(self.verbose,self.addtorelease,self.comparetorelease)
         self.dbcursor = self.dbloader.ConfdbOracleConnect(self.dbname,self.dbuser,self.dbpwd,self.dbhost)
 
@@ -461,6 +469,15 @@ class ConfdbLoadParamsfromConfigs:
         if(self.addtorelease != "none"):
             self.RemapTemplates()
 
+        # Print some summary statistics
+        self.VerbosePrint("********************************",0)
+        self.VerbosePrint("Job summary for " + str(self.cmsswrel),0)
+        self.VerbosePrint("Parsed and inserted " + str(self.totalloadedcomponents) + " new templates",0)
+        self.VerbosePrint("\tContaining " + str(self.totalloadedparams) + " parameters",0)
+        if(self.comparetorelease != ""):            
+            self.VerbosePrint("Reassociated " + str(self.totalremappedcomponents) + " templates from " + str(self.baseforaddedrel),0)
+        self.VerbosePrint("********************************",0)
+
         # Commit and disconnect to be compatible with either INNODB or MyISAM
         self.dbloader.ConfdbExitGracefully()
         self.GenerateUsedCfiTable()
@@ -715,6 +732,8 @@ class ConfdbLoadParamsfromConfigs:
                 self.VerbosePrint(insertstring, 3)
                 self.dbcursor.execute(insertstring)
 
+                self.totalloadedcomponents = self.totalloadedcomponents + 1
+
                 returnid = newsuperid
 
         return returnid
@@ -773,6 +792,7 @@ class ConfdbLoadParamsfromConfigs:
                 insertstr1 = "INSERT INTO Parameters (paramTypeId, name, tracked) VALUES (" + str(parametertypeint) + ", '" + parametername + "', " + str(paramistracked) + ")"
                 self.VerbosePrint(insertstr1, 3)
                 self.dbcursor.execute(insertstr1)
+                self.totalloadedparams = self.totalloadedparams+1
                 
                 self.dbcursor.execute("SELECT ParamId_Sequence.currval from dual")
                 newparamid = self.dbcursor.fetchone()[0] 
@@ -854,6 +874,7 @@ class ConfdbLoadParamsfromConfigs:
             insertstr1 = "INSERT INTO ParameterSets (superId, name, tracked) VALUES (" + str(newparamid) + ", '" + parametername + "', " + str(paramistracked) + ")"
             self.VerbosePrint(insertstr1, 3)
             self.dbcursor.execute(insertstr1)
+            self.totalloadedparams = self.totalloadedparams+1
                                                                                                  
             insertstr2 = "INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(self.localseq) + ")"
             self.VerbosePrint(insertstr2, 3)
@@ -902,6 +923,7 @@ class ConfdbLoadParamsfromConfigs:
             insertstr1 = "INSERT INTO VecParameterSets (superId, name, tracked) VALUES (" + str(newparamid) + ", '" + parametername + "', " + str(paramistracked) + ")"
             self.VerbosePrint(insertstr1, 3)
             self.dbcursor.execute(insertstr1)
+            self.totalloadedparams = self.totalloadedparams+1
                                                                                                  
             insertstr2 = "INSERT INTO SuperIdVecParamSetAssoc (superId, vpsetId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(self.localseq) + ")"
             self.VerbosePrint(insertstr2, 3)
@@ -1054,7 +1076,7 @@ class ConfdbLoadParamsfromConfigs:
 
         self.VerbosePrint(selectstring,3)
         self.dbcursor.execute(selectstring)
-        
+
         oldmodule = self.dbcursor.fetchone()
 
         if(oldmodule):
@@ -1077,6 +1099,8 @@ class ConfdbLoadParamsfromConfigs:
             insertstr = "INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.cmsswrelid) + ")"
             self.VerbosePrint(insertstr,3)
             self.dbcursor.execute(insertstr)
+
+            self.totalremappedcomponents = self.totalremappedcomponents + 1
 
     def RemapTemplates(self):
 	print "Remapping the following existing unmodified templates from release " + self.baseforaddedrel + " to new intermediate release called " + self.cmsswrel

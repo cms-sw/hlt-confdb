@@ -1,3 +1,9 @@
-Configuration/StandardSequences	FrontierConditions_GlobalTag_cfi.py
-FWCore/MessageLogger		MessageLogger_cfi.py
-
+Configuration/StandardSequences		FrontierConditions_GlobalTag_cfi.py
+FWCore/MessageLogger			MessageLogger_cfi.py
+RecoTracker/MeasurementDet		MeasurementTrackerESProducer_cfi.py
+RecoLocalCalo/CaloTowersCreator		calotowermaker_cfi.py
+RecoLocalTracker/SiPixelClusterizer	SiPixelClusterizer_cfi.py
+RecoMuon/L3MuonIsolationProducer	L3MuonIsolationProducer_cfi.py
+RecoJets/JetProducers			iterativeCone5CaloJets_cff.py
+EventFilter/EcalRawToDigi		EcalRawToRecHitRoI_cfi.py
+RecoMET/METProducers			CaloMET_cfi.py
