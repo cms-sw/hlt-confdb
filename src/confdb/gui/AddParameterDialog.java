@@ -184,72 +184,72 @@ public class AddParameterDialog extends JDialog
             }
         });
 
-	GroupLayout layout = new GroupLayout(contentPane);
+	org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(contentPane);
 	contentPane.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.LEADING)
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
-                .add(layout.createParallelGroup(GroupLayout.LEADING)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(layout.createSequentialGroup()
                         .add(12, 12, 12)
-                        .add(layout.createParallelGroup(GroupLayout.LEADING)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                             .add(layout.createSequentialGroup()
                                 .add(jLabel3,
-				     GroupLayout.DEFAULT_SIZE,
-				     GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				     org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,
+				     org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .add(223, 223, 223))
                             .add(layout.createSequentialGroup()
                                 .add(jTextFieldValue,
-				     GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
-                                .addPreferredGap(LayoutStyle.RELATED)))
+				     org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
+                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)))
                         .add(jCheckBoxTracked))
                     .add(layout.createSequentialGroup()
                         .addContainerGap()
-                        .add(layout.createParallelGroup(GroupLayout.LEADING)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                             .add(jLabel1)
                             .add(jTextFieldName,
-				 GroupLayout.PREFERRED_SIZE,
-				 149, GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(LayoutStyle.RELATED)
-                        .add(layout.createParallelGroup(GroupLayout.TRAILING)
+				 org.jdesktop.layout.GroupLayout.PREFERRED_SIZE,
+				 149, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
                             .add(jLabel2,
-				 GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE)
-                            .add(GroupLayout.LEADING,
+				 org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE)
+                            .add(org.jdesktop.layout.GroupLayout.LEADING,
 				 jComboBoxType, 0, 162, Short.MAX_VALUE)))
-                    .add(GroupLayout.TRAILING, layout.createSequentialGroup()
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
                         .addContainerGap()
                         .add(addButton,
-			     GroupLayout.PREFERRED_SIZE,
-			     84, GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(LayoutStyle.RELATED)
+			     org.jdesktop.layout.GroupLayout.PREFERRED_SIZE,
+			     84, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(cancelButton,
-			     GroupLayout.PREFERRED_SIZE,
-			     85, GroupLayout.PREFERRED_SIZE)))
+			     org.jdesktop.layout.GroupLayout.PREFERRED_SIZE,
+			     85, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(GroupLayout.LEADING)
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
                 .addContainerGap()
-                .add(layout.createParallelGroup(GroupLayout.BASELINE)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(jLabel1)
                     .add(jLabel2))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(GroupLayout.BASELINE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(jComboBoxType,
-			 GroupLayout.PREFERRED_SIZE,
-			 GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+			 org.jdesktop.layout.GroupLayout.PREFERRED_SIZE,
+			 org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                     .add(jTextFieldName,
-			 GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.RELATED)
+			 org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 23, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jLabel3)
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(GroupLayout.BASELINE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(jCheckBoxTracked)
                     .add(jTextFieldValue,
-			 GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.RELATED, 35, Short.MAX_VALUE)
-                .add(layout.createParallelGroup(GroupLayout.BASELINE)
+			 org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 35, Short.MAX_VALUE)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(addButton)
                     .add(cancelButton))
                 .addContainerGap())

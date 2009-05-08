@@ -106,38 +106,38 @@ public class AboutDialog extends JDialog
 
 	jEditorPaneAbout.setEditable(false);
         
-	GroupLayout layout = new GroupLayout(panel);
+	org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(panel);
         panel.setLayout(layout);
         layout
-	    .setHorizontalGroup(layout.createParallelGroup(GroupLayout.LEADING)
+	    .setHorizontalGroup(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
 				.add(layout.createSequentialGroup()
-				     .add(layout.createParallelGroup(GroupLayout
+				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout
 								     .LEADING)
 					  .add(layout.createSequentialGroup()
 					       .addContainerGap()
 					       .add(layout
-						    .createParallelGroup(GroupLayout
+						    .createParallelGroup(org.jdesktop.layout.GroupLayout
 									 .LEADING)
 						    .add(jScrollPane1,
-							 GroupLayout.DEFAULT_SIZE,
+							 org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,
 							 289, Short.MAX_VALUE)
 						    .add(layout
 							 .createSequentialGroup()
 							 .add(layout
-							      .createParallelGroup(GroupLayout.LEADING)
+							      .createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
 							      .add(jTextFieldApplication,
-								   GroupLayout
+								   org.jdesktop.layout.GroupLayout
 								   .PREFERRED_SIZE,
 								   145,
-								   GroupLayout
+								   org.jdesktop.layout.GroupLayout
 								   .PREFERRED_SIZE)
 							      .add(jLabel1))
 							 .add(4, 4, 4)
 							 .add(layout
-							      .createParallelGroup(GroupLayout.LEADING)
+							      .createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
 							      .add(jLabel2)
 							      .add(jTextFieldVersion,
-								   GroupLayout
+								   org.jdesktop.layout.GroupLayout
 								   .DEFAULT_SIZE,
 								   140,
 								   Short
@@ -145,36 +145,36 @@ public class AboutDialog extends JDialog
 					  .add(layout.createSequentialGroup()
 					       .add(106, 106, 106)
 					       .add(jButtonOk,
-						    GroupLayout.DEFAULT_SIZE,
+						    org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,
 						    101, Short.MAX_VALUE)
 					       .add(94, 94, 94)))
 				       .addContainerGap())
 				);
         layout
-	    .setVerticalGroup(layout.createParallelGroup(GroupLayout.LEADING)
+	    .setVerticalGroup(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
 			      .add(layout.createSequentialGroup()
 				   .addContainerGap()
 				   .add(layout
-					.createParallelGroup(GroupLayout.BASELINE)
+					.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
 					.add(jLabel1)
 					.add(jLabel2))
-				   .addPreferredGap(LayoutStyle.RELATED)
+				   .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
 				   .add(layout
-					.createParallelGroup(GroupLayout.BASELINE)
+					.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
 					.add(jTextFieldApplication,
-					     GroupLayout.PREFERRED_SIZE,
-					     GroupLayout.DEFAULT_SIZE,
-					     GroupLayout.PREFERRED_SIZE)
+					     org.jdesktop.layout.GroupLayout.PREFERRED_SIZE,
+					     org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,
+					     org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
 					.add(jTextFieldVersion,
-					     GroupLayout.PREFERRED_SIZE,
-					     GroupLayout.DEFAULT_SIZE,
-					     GroupLayout.PREFERRED_SIZE))
-				   .addPreferredGap(LayoutStyle.RELATED)
+					     org.jdesktop.layout.GroupLayout.PREFERRED_SIZE,
+					     org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,
+					     org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+				   .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
 				   .add(jScrollPane1,
-					GroupLayout.DEFAULT_SIZE,
+					org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,
 					300,
 					Short.MAX_VALUE)
-				   .addPreferredGap(LayoutStyle.RELATED)
+				   .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
 				   .add(jButtonOk)
 				   .addContainerGap())
 			      );
