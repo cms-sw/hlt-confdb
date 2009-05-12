@@ -466,3 +466,5 @@ L1GlobalTrigger.Parameter BstLengthBytes int32 -1 tracked
 Module EDProducer L2TauJetsMerger RecoTauTag HLTProducers 
 L2TauJetsMerger.Parameter JetSrc VInputTag { } tracked
 
+ESModule EcalRegionCablingESProducer EventFilter EcalRawToDigi
+EcalRegionCablingESProducer.Parameter esMapping PSet tracked
