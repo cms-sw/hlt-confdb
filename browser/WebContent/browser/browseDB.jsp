@@ -117,6 +117,11 @@ body {
 	  out.println( "var displayWidth = " + width + ";" );
 
   out.println( "var imgDir = '" + img + "';" );
+  String filter = request.getParameter( "filter" );
+  if ( filter == null )
+	  out.println( "var filter = '';" );
+  else
+	  out.println( "var filter = '" + filter + "';" );
   
   if ( db != null )
   {
@@ -169,7 +174,6 @@ var configFrameUrl,
   	tabView, 
   	tabReady = [],
     activeTab = 1;
-var filter = '/cdaq/.*';
 	
 function init() 
 {
@@ -286,10 +290,6 @@ function init()
     Dom.setStyle( 'downloadTD', 'visibility', 'hidden' );
   }
 
-  if ( pageId == 'online' )
-	  filter = '';
-  if ( hltCookie && hltCookie.filter )
-	  	filter = hltCookie.filter;
   AjaxInfo.getTree( dbName, filter, createTree );	
 }
 	
@@ -322,7 +322,7 @@ function createTree( treeData )
 	tree.render();
 	tree.subscribe( "clickEvent", configSelected );
 	var header = '<table><tr>';
-	if ( filter != '' )
+	if ( filter && filter.length > 0 )
 		header += "<td><b>filter: "  + filter + "</b></td><td><div style='width:50px'></div></td>";
 	header += '<td><a id="expand" href="#">Expand all</a> <a id="collapse" href="#">Collapse all</a></td></tr></table>';
   	Dom.get( 'leftHeaderDiv' ).innerHTML = header; 
