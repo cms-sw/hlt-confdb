@@ -98,9 +98,9 @@ public class ModifierInstructions
 	value = args.remove("cff");
 	if (value!=null) {
 	    filterAllEDSources(true);
-	    filterAllOutputModules(true);
 	    args.remove("input");
-	    args.remove("output");
+	    //filterAllOutputModules(true);
+	    //args.remove("output");
 	}
 	value = args.remove("nopsets");
 	if (value!=null) filterAllPSets(true);

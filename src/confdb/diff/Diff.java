@@ -553,13 +553,13 @@ public class Diff
 	    Iterator<PrimaryDataset> itDataset2 = s2.datasetIterator();
 	    while (itDataset2.hasNext()) {
 		PrimaryDataset d2 = itDataset2.next();
-		if (s1.dataset(s2.label())==null)
+		if (s1.dataset(d2.label())==null)
 		    result.addComparison(new DatasetComparison(null,d2));
 	    }
 	    Iterator<PrimaryDataset> itDataset1 = s1.datasetIterator();
 	    while (itDataset1.hasNext()) {
 		PrimaryDataset d1 = itDataset1.next();
-		if (s2.dataset(s1.label())==null)
+		if (s2.dataset(d1.label())==null)
 		    result.addComparison(new DatasetComparison(d1,null));
 	    }
 	}
@@ -664,7 +664,7 @@ public class Diff
 	    result.append("\n---------------------------------------"+
 			  "----------------------------------------\n");
 	    result.append("Streams (" + streamCount() + "):\n");
-	    result.append(printInstanceComparisons(streamIterator()));
+	    result.append(printStreamComparisons(streamIterator()));
 	}
 	
 	// datasets
@@ -672,7 +672,7 @@ public class Diff
 	    result.append("\n---------------------------------------"+
 			  "----------------------------------------\n");
 	    result.append("Datasets (" + datasetCount() + "):\n");
-	    result.append(printInstanceComparisons(datasetIterator()));
+	    result.append(printDatasetComparisons(datasetIterator()));
 	}
 	
 
@@ -711,6 +711,42 @@ public class Diff
 	}
 	return result.toString();
     }
+
+    /** print stream comparisons */
+    public String printStreamComparisons(Iterator<Comparison> itC)
+    {
+	StringBuffer result = new StringBuffer();
+	while (itC.hasNext()) {
+	    Comparison c = itC.next();
+	    result.append("  -> ").append(c.toString()).append("\n");
+	    Iterator<Comparison> it = c.recursiveComparisonIterator();
+	    while (it.hasNext()) {
+		DatasetComparison cDataset = (DatasetComparison)it.next();
+		//if (cDataset.isChanged()) continue;
+		result.append("       ").append(cDataset.toString()).append("\n");
+	    }
+	}
+	return result.toString();
+    }
+
+
+    /** print dataset comparisons */
+    public String printDatasetComparisons(Iterator<Comparison> itC)
+    {
+	StringBuffer result = new StringBuffer();
+	while (itC.hasNext()) {
+	    Comparison c = itC.next();
+	    result.append("  -> ").append(c.toString()).append("\n");
+	    Iterator<Comparison> it = c.recursiveComparisonIterator();
+	    while (it.hasNext()) {
+		ContainerComparison cPath = (ContainerComparison)it.next();
+		//if (cPath.isChanged()) continue;
+		result.append("       ").append(cPath.toString()).append("\n");
+	    }
+	}
+	return result.toString();
+    }
+
     
     
     //

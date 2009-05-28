@@ -57,6 +57,7 @@ public class ParameterComparison extends Comparison
 	else if (comparisonCount()==0&&
 		 oldParameter.name().equals(newParameter.name())&&
 		 oldParameter.type().equals(newParameter.type())&&
+		 oldParameter.isTracked()==newParameter.isTracked()&&
 		 (isPSet()||oldParameter.valueAsString()
 		  .equals(newParameter.valueAsString())))
 	    return RESULT_IDENTICAL;
@@ -76,15 +77,26 @@ public class ParameterComparison extends Comparison
 		.append(" = ")
 		.append(p.valueAsString());
 	    if (isChanged()) {
-		if (!oldParameter.type().equals(newParameter.type()))
+		if (!oldParameter.type().equals(newParameter.type())) {
 		    result
 			.append(" {")
 			.append(oldParameter.type())
 			.append("}");
-		result
-		    .append(" [")
-		    .append(oldParameter.valueAsString())
-		    .append("]");
+		}
+		if (oldParameter.isTracked()!=newParameter.isTracked()) {
+		    String s = (newParameter.isTracked()) ? "TRACKED" : "UNTRACKED";
+		    result
+			.append(" [")
+			.append(s)
+			.append("]");
+		}
+		if (!oldParameter.valueAsString().equals
+		    (newParameter.valueAsString())) {
+		    result
+			.append(" [")
+			.append(oldParameter.valueAsString())
+			.append("]");
+		}
 	    }
 	    else
 		result
@@ -93,6 +105,13 @@ public class ParameterComparison extends Comparison
 		    .append("]");
 	}
 	else {
+	    if (oldParameter.isTracked()!=newParameter.isTracked()) {
+		String s = (newParameter.isTracked()) ? "TRACKED" : "UNTRACKED";
+		result
+		    .append(" [")
+		    .append(s)
+		    .append("]");
+	    }
 	    result
 		.append(" [")
 		.append(resultAsString())

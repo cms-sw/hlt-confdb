@@ -172,7 +172,7 @@ public class ConfDbGUI
 	this.importConfig     = new Configuration();
 	
 	try {
-	    this.cnvEngine = ConverterFactory.getConverterEngine("ascii");
+	    this.cnvEngine = ConverterFactory.getConverterEngine("python");
 	}
 	catch (Exception e) {
 	    System.out.println("failed to initialize converter engine: " +
@@ -594,10 +594,18 @@ public class ConfDbGUI
 	DiffDialog dialog = new DiffDialog(frame,database);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
-	if (!currentConfig.isEmpty()) dialog.setNewConfig(currentConfig);
+	if (!currentConfig.isEmpty()) {
+	    dialog.setNewConfig(currentConfig);
+	    ConfigInfo oldConfigInfo = currentConfig.configInfo();
+	    try {
+		dialog.setOldConfig(database.loadConfiguration(oldConfigInfo,
+							       currentRelease));
+	    }
+	    catch (DatabaseException e) { System.err.println(e.getMessage()); }
+	}
 	dialog.setVisible(true);
     }
-
+    
     /** open output module editor */
     public void openOutputModuleEditor()
     {

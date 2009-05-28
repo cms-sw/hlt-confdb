@@ -356,8 +356,16 @@ public class PickConfigurationDialog extends JDialog
 	if (treePath==null) return; jTree.setSelectionPath(treePath);
 	if (configInfo==null) return;
 	
-	if (allowUnlocking&&System.getProperty("user.name")
-	    .equalsIgnoreCase(configInfo.lockedByUser())) showPopup(e);
+	String userName = System.getProperty("user.name");
+	ArrayList<String> admins = new ArrayList<String>();
+	admins.add("gruen");
+	admins.add("martin");
+	admins.add("fwyzard");
+	admins.add("schiefer");
+	
+	if (allowUnlocking&&
+	    (userName.equalsIgnoreCase(configInfo.lockedByUser())||
+	     admins.contains(userName))) showPopup(e);
     }
     private void jListValueChanged(ListSelectionEvent e)
     {

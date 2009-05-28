@@ -1,3 +1,16 @@
+2009-05-28  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-27-00
+	* gui: display configuration snippet in python
+	* gui: omit warning message when closing unchanged configurations
+	containing streams/datasets
+	* gui: improve default for 'Old Configuration' in diff dialog
+	* gui: allow admins to unlock all configurations
+	* cnv: include output-modules in --cff mode
+	* db: speed up ConfDB.loadConfigurationTree()
+	* diff: fix exception occuring for configs with streams/datasets
+	* diff: report parameter to be changed if trackiness changed
+
 2009-04-14  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-26-06

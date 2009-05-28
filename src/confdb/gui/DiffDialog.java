@@ -144,6 +144,13 @@ public class DiffDialog extends JDialog
 	newConfig = c;
 	jTextFieldNewConfig.setText(c.toString());
     }
+
+    /** set the old configuration */
+    public void setOldConfig(IConfiguration c)
+    {
+	oldConfig = c;
+	jComboBoxOldConfigUpdate(((Configuration)c).configInfo(),c.version(),-1);
+    }
     
     /** set both configurations and compare */
     public void setConfigurations(IConfiguration oldCfg,IConfiguration newCfg)
@@ -158,7 +165,7 @@ public class DiffDialog extends JDialog
     }
 
     //
-    // private memeber functions
+    // private member functions
     //
 
     // listeners

@@ -384,8 +384,15 @@ public class ConfDB
 	try {
 	    HashMap<Integer,Directory> directoryHashMap =
 		new HashMap<Integer,Directory>();
-	    
+
+	    // DEBUG
+	    long startTime = System.currentTimeMillis();
+
 	    rs = psSelectDirectories.executeQuery();
+
+	    // DEBUG
+	    long dir1Time = System.currentTimeMillis();
+	    
 	    while (rs.next()) {
 		int    dirId       = rs.getInt(1);
 		int    parentDirId = rs.getInt(2);
@@ -410,12 +417,19 @@ public class ConfDB
 		    directoryHashMap.put(dirId,newDir);
 		}
 	    }
+
+	    // DEBUG
+	    long dir2Time = System.currentTimeMillis();
 	    
 	    // retrieve list of configurations for all directories
 	    HashMap<String,ConfigInfo> configHashMap =
 		new HashMap<String,ConfigInfo>();
 
 	    rs = psSelectConfigurations.executeQuery();
+
+	    // DEBUG
+	    long config1Time = System.currentTimeMillis();
+	    
 	    while (rs.next()) {
 		int    configId          = rs.getInt(1);
 		int    parentDirId       = rs.getInt(2);
@@ -463,27 +477,60 @@ public class ConfDB
 		    dir.addConfigInfo(configInfo);
 		    
 		    // determine if these configurations are locked
-		    ResultSet rs2 = null;
-		    try {
-			psSelectLockedConfigurations.setInt(1,dir.dbId());
-			psSelectLockedConfigurations.setString(2,configName);
-			rs2 = psSelectLockedConfigurations.executeQuery();
-			if (rs2.next()) {
-			    String userName = rs2.getString(3);
-			    configInfo.lock(userName);
-			}
-		    }
-		    catch(SQLException e) {
-			String errMsg =
-			    "ConfDB::loadConfigurationTree(): can't determine if "+
-			    configPathAndName+" is locked: "+e.getMessage();
-			throw new DatabaseException(errMsg,e);
-		    }
-		    finally {
-			dbConnector.release(rs2);
-		    }
+		    /*
+		      ResultSet rs2 = null;
+		      try {
+		      psSelectLockedConfigurations.setInt(1,dir.dbId());
+		      psSelectLockedConfigurations.setString(2,configName);
+		      rs2 = psSelectLockedConfigurations.executeQuery();
+		      if (rs2.next()) {
+		      String userName = rs2.getString(3);
+		      configInfo.lock(userName);
+		      }
+		      }
+		      catch(SQLException e) {
+		      String errMsg =
+		      "ConfDB::loadConfigurationTree(): can't determine if "+
+		      configPathAndName+" is locked: "+e.getMessage();
+		      throw new DatabaseException(errMsg,e);
+		      }
+		      finally {
+		      dbConnector.release(rs2);
+		      }
+		    */
 		}
 	    }
+	    
+	    System.out.println("DBG1");
+	    
+	    rs = psSelectLockedConfigurations.executeQuery();
+	    
+	    System.out.println("DBG2");
+	    
+	    while (rs.next()) {
+		String dirName = rs.getString(1);
+		String configName = rs.getString(2);
+		String userName = rs.getString(3);
+		String configPathAndName = dirName +"/" + configName;
+		ConfigInfo configInfo = configHashMap.get(configPathAndName);
+		if (configInfo==null) {
+		    String errMsg =
+			"ConfDB::loadConfigurationTree(): can't find locked "+
+			"configuration '"+configPathAndName+"'.";
+		    throw new DatabaseException(errMsg);
+		}
+		configInfo.lock(userName);
+	    }
+	    
+	    
+	    // DEBUG
+	    long config2Time = System.currentTimeMillis();
+	    System.out.println("TIMING: "+
+			       (config2Time-startTime)+": "+
+			       (dir1Time-startTime)+" / "+
+			       (dir2Time-dir1Time)+" / "+
+			       (config1Time-dir2Time)+" / "+
+			       (config2Time-config1Time));
 	}
 	catch (SQLException e) {
 	    String errMsg =
@@ -884,6 +931,7 @@ public class ConfDB
 		}
 		stream.insertDataset(dataset);
 		stream.setDatabaseId(streamId);
+		dataset.setDatabaseId(datasetId);
 	    }
 	    
 	    while (rsPathEntries.next()) {
@@ -2610,7 +2658,7 @@ public class ConfDB
 		 " Directories.created " +
 		 "FROM Directories " +
 		 "ORDER BY Directories.dirName ASC");
-	    psSelectDirectories.setFetchSize(128);
+	    psSelectDirectories.setFetchSize(512);
 	    preparedStatements.add(psSelectDirectories);
 	    
 	    psSelectConfigurations =
@@ -2635,12 +2683,12 @@ public class ConfDB
 	    psSelectLockedConfigurations =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " LockedConfigurations.parentDirId," +
+		 " Directories.dirName," +
 		 " LockedConfigurations.config," +
 		 " LockedConfigurations.userName " +
 		 "FROM LockedConfigurations " +
-		 "WHERE LockedConfigurations.parentDirId = ? " +
-		 "AND   LockedConfigurations.config = ?");
+		 "JOIN Directories " +
+		 "ON LockedConfigurations.parentDirId = Directories.dirId");
 	    preparedStatements.add(psSelectLockedConfigurations);
 
 	    psSelectUsersForLockedConfigs =

@@ -1,5 +1,6 @@
 --
--- grant privileges to cms_hlt tablespace to users cms_hltdev_writer/cms_hltdev_reader
+-- grant privileges to cms_hltdev tablespace to users 
+-- cms_hltdev_admin / cms_hltdev_writer / cms_hltdev_reader
 --
 
 

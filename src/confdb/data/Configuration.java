@@ -188,6 +188,12 @@ public class Configuration implements IConfiguration
 		paths.isEmpty()&&sequences.isEmpty()&&
 		streams.isEmpty()&&datasets.isEmpty());
     }
+    
+    /** retrieve ConfigInfo object */
+    public ConfigInfo configInfo()
+    {
+	return configInfo;
+    }
 
     /** check if configuration and all its versions are locked */
     public boolean isLocked()
