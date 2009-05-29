@@ -244,6 +244,18 @@ IterativeConeJetProducer.Parameter maxBadHcalCells uint32 9999999 tracked
 IterativeConeJetProducer.Parameter maxRecoveredHcalCells uint32 9999999 tracked 
 IterativeConeJetProducer.Parameter maxProblematicHcalCells uint32 9999999 tracked 
 
+Module EDProducer IterativeConePilupSubtractionJetProducer RecoJets JetProducers
+IterativeConePilupSubtractionJetProducer.Parameter src InputTag hltTowerMakerForJets tracked
+IterativeConePilupSubtractionJetProducer.Parameter verbose bool false untracked
+IterativeConePilupSubtractionJetProducer.Parameter inputEtMin double 0.5 tracked
+IterativeConePilupSubtractionJetProducer.Parameter nSigmaPU double 1.0 tracked
+IterativeConePilupSubtractionJetProducer.Parameter radiusPU double 0.5 tracked
+IterativeConePilupSubtractionJetProducer.Parameter alias string "IC5Calo" untracked
+IterativeConePilupSubtractionJetProducer.Parameter debugLevel int32 0 untracked
+IterativeConePilupSubtractionJetProducer.Parameter jetType string "CaloJetPileupSubtraction" untracked
+IterativeConePilupSubtractionJetProducer.Parameter inputEMin double 0.0 tracked
+IterativeConePilupSubtractionJetProducer.Parameter inputEtJetMin double 10.0 tracked
+
 Module EDProducer SISConeJetProducer RecoJets JetProducers
 SISConeJetProducer.Parameter verbose bool false untracked
 SISConeJetProducer.Parameter jetType string "CaloJet" untracked
