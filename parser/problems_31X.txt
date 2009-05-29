@@ -255,6 +255,13 @@ IterativeConePilupSubtractionJetProducer.Parameter debugLevel int32 0 untracked
 IterativeConePilupSubtractionJetProducer.Parameter jetType string "CaloJetPileupSubtraction" untracked
 IterativeConePilupSubtractionJetProducer.Parameter inputEMin double 0.0 tracked
 IterativeConePilupSubtractionJetProducer.Parameter inputEtJetMin double 10.0 tracked
+IterativeConePilupSubtractionJetProducer.Parameter maxRecoveredHcalCells uint32 9999999 tracked
+IterativeConePilupSubtractionJetProducer.Parameter jetPtMin double 0.0 tracked
+IterativeConePilupSubtractionJetProducer.Parameter maxBadHcalCells uint32 9999999 tracked
+IterativeConePilupSubtractionJetProducer.Parameter maxBadEcalCells uint32 9999999 tracked
+IterativeConePilupSubtractionJetProducer.Parameter maxRecoveredEcalCells uint32 9999999 tracked
+IterativeConePilupSubtractionJetProducer.Parameter maxProblematicHcalCells uint32 9999999 tracked
+IterativeConePilupSubtractionJetProducer.Parameter maxProblematicEcalCells uint32 9999999 tracked
 
 Module EDProducer SISConeJetProducer RecoJets JetProducers
 SISConeJetProducer.Parameter verbose bool false untracked
@@ -332,6 +339,7 @@ CSCRecHitDProducer.Parameter readBadChannels bool false tracked
 CSCRecHitDProducer.Parameter readBadChambers bool false tracked
 CSCRecHitDProducer.Parameter UseAverageTime bool false tracked
 CSCRecHitDProducer.Parameter UseParabolaFit bool false tracked
+CSCRecHitDProducer.Parameter UseFourPoleFit bool true tracked
 CSCRecHitDProducer.Parameter UseFivePoleFit bool false tracked
 
 Module EDProducer EgammaHLTPixelMatchElectronProducers RecoEgamma EgammaHLTProducers
@@ -483,3 +491,10 @@ L2TauJetsMerger.Parameter JetSrc VInputTag { } tracked
 
 ESModule EcalRegionCablingESProducer EventFilter EcalRawToDigi
 EcalRegionCablingESProducer.Parameter esMapping PSet tracked
+
+Module EDFilter TestMuL1L2Filter RecoHIMuon HiMuTracking
+TestMuL1L2Filter.Parameter PrimaryVertexTag InputTag hltHIPixelVertices tracked
+TestMuL1L2Filter.Parameter NavigationPSet PSet tracked
+TestMuL1L2Filter.Parameter L2CandTag InputTag hltL2MuonCandidates tracked
+TestMuL1L2Filter.Parameter rphiRecHits InputTag siStripMatchedRecHits:rphiRecHit tracked
+TestMuL1L2Filter.Parameter TTRHBuilder string "HITTRHBuilderWithoutRefit" tracked

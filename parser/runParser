@@ -299,6 +299,11 @@ sub validate_release
 	if ($count>=0) { $result = $prefix; }
 	else { die "invalid release '$input'!"; }
     }
+
+    # 
+    # $result = "CMSSW_2_2_11_HLT";
+    #
+    
     print "\$result = $result\n";
 
     return $result;
