@@ -105,7 +105,7 @@ public class ParameterComparison extends Comparison
 		    .append("]");
 	}
 	else {
-	    if (oldParameter.isTracked()!=newParameter.isTracked()) {
+	    if (isChanged()&&oldParameter.isTracked()!=newParameter.isTracked()) {
 		String s = (newParameter.isTracked()) ? "TRACKED" : "UNTRACKED";
 		result
 		    .append(" [")

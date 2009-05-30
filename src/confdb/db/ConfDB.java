@@ -475,37 +475,10 @@ public class ConfDB
 							   configComment);
 		    configHashMap.put(configPathAndName,configInfo);
 		    dir.addConfigInfo(configInfo);
-		    
-		    // determine if these configurations are locked
-		    /*
-		      ResultSet rs2 = null;
-		      try {
-		      psSelectLockedConfigurations.setInt(1,dir.dbId());
-		      psSelectLockedConfigurations.setString(2,configName);
-		      rs2 = psSelectLockedConfigurations.executeQuery();
-		      if (rs2.next()) {
-		      String userName = rs2.getString(3);
-		      configInfo.lock(userName);
-		      }
-		      }
-		      catch(SQLException e) {
-		      String errMsg =
-		      "ConfDB::loadConfigurationTree(): can't determine if "+
-		      configPathAndName+" is locked: "+e.getMessage();
-		      throw new DatabaseException(errMsg,e);
-		      }
-		      finally {
-		      dbConnector.release(rs2);
-		      }
-		    */
 		}
 	    }
 	    
-	    System.out.println("DBG1");
-	    
 	    rs = psSelectLockedConfigurations.executeQuery();
-	    
-	    System.out.println("DBG2");
 	    
 	    while (rs.next()) {
 		String dirName = rs.getString(1);

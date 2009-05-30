@@ -1,3 +1,10 @@
+2009-05-30  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-27-01
+	* diff: fill 'Old Configuration' pull-down menu with current
+	configuration and all its past versions
+	* bugfix to ParameterComparison.toString()
+
 2009-05-28  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-27-00

@@ -596,12 +596,7 @@ public class ConfDbGUI
 	dialog.setLocationRelativeTo(frame);
 	if (!currentConfig.isEmpty()) {
 	    dialog.setNewConfig(currentConfig);
-	    ConfigInfo oldConfigInfo = currentConfig.configInfo();
-	    try {
-		dialog.setOldConfig(database.loadConfiguration(oldConfigInfo,
-							       currentRelease));
-	    }
-	    catch (DatabaseException e) { System.err.println(e.getMessage()); }
+	    dialog.setOldConfigs(currentConfig.configInfo());
 	}
 	dialog.setVisible(true);
     }

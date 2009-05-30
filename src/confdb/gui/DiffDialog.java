@@ -146,10 +146,9 @@ public class DiffDialog extends JDialog
     }
 
     /** set the old configuration */
-    public void setOldConfig(IConfiguration c)
+    public void setOldConfigs(ConfigInfo configInfo)
     {
-	oldConfig = c;
-	jComboBoxOldConfigUpdate(((Configuration)c).configInfo(),c.version(),-1);
+	jComboBoxOldConfigUpdate(configInfo,0,-1);
     }
     
     /** set both configurations and compare */
