@@ -279,27 +279,26 @@ public class OnlineConverter extends ConverterBase
 	
 
 	// apply necessary offline -> online modifications to HLT configuration
-	//BD epModifier.insertDaqSource();
-	//BD epModifier.insertShmStreamConsumer();
-	//BD epModifier.removeMaxEvents();
-	//BD epModifier.modify();
+	epModifier.insertDaqSource();
+	epModifier.insertShmStreamConsumer();
+	epModifier.removeMaxEvents();
+	epModifier.modify();
 	
-	//BD configureGlobalTag(epModifier);
-	//BD setOnlineMessageLoggerOptions(epModifier);
-	//BD addOnlineOptions(epModifier);
-	//BD setRawDataInputTags(epModifier);
+	configureGlobalTag(epModifier);
+	setOnlineMessageLoggerOptions(epModifier);
+	addOnlineOptions(epModifier);
+	setRawDataInputTags(epModifier);
 
-	/* BD
-	   try {
+	try {
 	   addDQMStore(epModifier);
 	   addFUShmDQMOutputService(epModifier);
-	   }
-	   catch (Exception e) {
+	}
+	catch (Exception e) {
 	   String errMsg =
 	   "convertConfiguration(): failed to add Service: " + e.getMessage();
 	   throw new ConverterException(errMsg,e);
-	   }
-	*/
+	}
+	
 	
 	
 	// obsolete, remove?
