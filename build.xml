@@ -82,6 +82,14 @@
     </war>
   </target>
 
+  <target depends="gui" description="Start the ConfDB GUI." name="run">
+    <java jar="${dir.lib}/cmssw-evf-confdb-gui.jar">
+      <classpath>
+        <fileset dir="${dir.ext}" includes="*.jar"/>
+      </classpath>
+    </java>
+  </target>
+
   <!-- delete all class files -->
   <target name="clean">
     <delete>
