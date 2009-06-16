@@ -157,7 +157,6 @@ body {
 <script type="text/javascript">
 
 var	myTable,
-	columns  = <%=columns%>,
 	paddingY =  5,
 	Dom = YAHOO.util.Dom;
 	
@@ -172,6 +171,12 @@ var	myTable,
   if ( rc != 0 )
     alert( myTable.error + "\n" + myTable._eHeadCols.length + '!=' + myTable._eBodyCols.length );                       
                          
+<%
+  out.println( "var columns  = " + columns + ";" );
+  out.println( "myTable.sortAscImage   = '" + img + "/asc.png';" );
+  out.println( "myTable.sortDescImage  = '" + img + "/desc.png'" );;
+%>
+
                          
   if ( myTable._rows > 0 )
   {
@@ -181,8 +186,6 @@ var	myTable,
     myTable.setSortTypes( sortTypes );
   }
 
-  myTable.sortAscImage   = '<%=img%>/asc.png';
-  myTable.sortDescImage  = '<%=img%>/desc.png';
 
   //infoWindow = window.open( "", "infoWindow", "width=300,height=200,left=100,top=200" );
   //infoWindow.document.writeln( "<b>debug</b><br><div id='debugDiv'></div>" );
