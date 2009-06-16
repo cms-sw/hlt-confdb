@@ -82,10 +82,14 @@
     </war>
   </target>
 
-  <target depends="gui" description="Start the ConfDB GUI." name="run">
-    <java jar="${dir.lib}/cmssw-evf-confdb-gui.jar">
+  <!-- run the ConfDB GUI -->
+  <target name="run" depends="gui" description="Start the ConfDB GUI.">
+    <java classname="confdb.gui.ConfDbGUI" fork="true">
       <classpath>
-        <fileset dir="${dir.ext}" includes="*.jar"/>
+        <pathelement location="${dir.lib}/cmssw-evf-confdb-gui.jar"/>
+        <pathelement location="${dir.ext}/ojdbc14.jar"/>
+        <pathelement location="${dir.ext}/swing-layout-1.0.jar"/>
+        <pathelement path="${java.class.path}"/>
       </classpath>
     </java>
   </target>
