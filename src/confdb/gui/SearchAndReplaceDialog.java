@@ -232,22 +232,54 @@ public class SearchAndReplaceDialog extends JDialog
 	    templates.add(release.template(pluginName));
 	    itT = templates.iterator();
 	}
-	
+
+	String paramValue = null;
 	String paramType = null;
 	String paramName = (String)jComboBoxParameter.getSelectedItem();
 	
 	if (paramName==null) return;
-	
-	String a[] = paramName.split(" ");
+
+	String a[] = paramName.split("=");
 	if (a.length>1) {
-	    paramName = a[0];
-	    paramType = a[1];
-	    if (paramType.startsWith("("))
-		paramType=paramType.substring(1);
-	    if (paramType.endsWith(")"))
-		paramType=paramType.substring(0,paramType.length()-1);
+		paramName = a[0];
+		paramValue = a[1];
+		while (paramValue.startsWith(" ")) paramValue = paramValue.substring(1);
+		if (paramValue.startsWith("\""))
+			paramValue = paramValue.substring(1);
+		if (paramValue.endsWith("\""))
+			paramValue = paramValue.substring(0,paramValue.length()-1);
 	}
-	
+
+	String b[] = paramName.split(" ");
+	if (b.length>1) {
+	    paramName = b[0];
+	    paramType = b[1];
+	}
+
+	if (paramName.equals("")) paramName=null;
+	else {
+		while (paramName.endsWith(" "))
+			paramName = paramName.substring(0, paramName.length()-1);
+		if (paramName.startsWith("(")) {
+			paramType = paramName;
+			paramName = null;
+		}
+	}
+
+	if (paramType!=null) {
+		while (paramType.endsWith(" "))
+			paramType = paramType.substring(0,paramType.length()-1);
+		if (paramType.startsWith("("))
+			paramType=paramType.substring(1);
+		if (paramType.endsWith(")"))
+			paramType=paramType.substring(0,paramType.length()-1);
+	}
+
+	// DEBUG
+	System.out.println("paramType="+paramType+
+					   " paramName="+paramName+
+					   " paramValue="+paramValue);
+
 	while (itT.hasNext()) {
 	    Template template = itT.next();
 	    if (!pluginType.equals("All")&&!pluginType.equals(template.type()))
@@ -256,7 +288,7 @@ public class SearchAndReplaceDialog extends JDialog
 	    Iterator<Instance> itI = template.instanceIterator();
 	    while (itI.hasNext()) {
 		Instance  instance  = itI.next();
-		Parameter params[]  = instance.findParameters(paramName,paramType);
+		Parameter params[]  = instance.findParameters(paramName,paramType,paramValue);
 		if (params.length==0) continue;
 		for (Parameter p : params) {
 		    if (p instanceof PSetParameter) continue;

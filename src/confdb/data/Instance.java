@@ -127,7 +127,29 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 	}
 	return params.toArray(new Parameter[params.size()]);
     }
-    
+
+	/** get all parameters (recursively) with specified name *and* type */
+    public Parameter[] findParameters(String name,String type,String value)
+    {
+	if (type==null&&value==null) return findParameters(name);
+	ArrayList<Parameter> params = new ArrayList<Parameter>();
+	Iterator<Parameter> itP = recursiveParameterIterator();
+	while (itP.hasNext()) {
+	    Parameter p = itP.next();
+		String paramType = p.type();
+	    String fullParamName = p.fullName();
+	    String paramValue = p.valueAsString();
+
+		boolean typeMatch = (type==null) ? true : paramType.equals(type);
+		boolean nameMatch = (name==null) ? true :
+			((fullParamName.equals(name))||
+			 (!fullParamName.equals(name)&&fullParamName.endsWith("::"+name)));
+		boolean valueMatch = (value==null) ? true : paramValue.equals(value);
+		if (typeMatch&&nameMatch&&valueMatch) params.add(p);
+	}
+	return params.toArray(new Parameter[params.size()]);
+    }
+
     /** get the index of a parameter */
     public int indexOfParameter(Parameter p) { return parameters.indexOf(p); }
     
