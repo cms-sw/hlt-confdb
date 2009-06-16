@@ -1,5 +1,14 @@
 2009-06-16  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
+	* tag V00-28-01
+	* gui: order instances in copy/reference context menus
+	alphapbetically
+	* gui: allow to search for values in the Search&Replace dialog,
+	via the syntax: 'name (type) = value'. Each information is
+	optional!
+
+2009-06-16  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
 	* tag V00-28-00
 	* converter: fixes for online (revert Bryan's changes)
 
