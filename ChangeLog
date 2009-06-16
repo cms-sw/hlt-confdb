@@ -1,3 +1,8 @@
+2009-06-16  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-28-00
+	* converter: fixes for online (revert Bryan's changes)
+
 2009-05-30  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-27-01

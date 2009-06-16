@@ -32,7 +32,7 @@ while (@ARGV)
     elsif ($arg eq "--rcms") {
 	$db_host = "localhost";
 	$db_name = "cms_rcms.cern.ch";
-	$db_user = "cms_hltdev_r";
+	$db_user = "cms_hlt_r";
 	$db_pwrd = "convertme!";
     }
     elsif ($arg eq "--int2r") {
@@ -54,7 +54,7 @@ while (@ARGV)
 	$db_pwrd = "hltdevtest1";
     }
     elsif ($arg eq "--configName") {
-	$config_name - shift @ARGV;
+	$config_name = shift @ARGV;
     }
     else { die "unknown parameter $arg"; }
 }

@@ -350,7 +350,8 @@ public class OnlineConverter extends ConverterBase
     private void configureGlobalTag(IConfiguration config)
     {
 	ESSourceInstance globalTag = config.essource("GlobalTag");
-
+	if (globalTag==null) return;
+	
 	if (esGlobalTag.length()>0) {
 	    globalTag.updateParameter("globaltag","string",esGlobalTag);
 	}
@@ -537,7 +538,7 @@ public class OnlineConverter extends ConverterBase
 	String dbName = "cms_cond.cern.ch";
 	String dbUser = "cms_hltdev_reader";
 	String dbPwrd = "convertme!";
-
+	
 	for (int iarg = 0; iarg < args.length; iarg++) {
 	    String arg = args[iarg];
 	    if (arg.equals("-c")) {
