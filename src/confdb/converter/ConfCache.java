@@ -22,7 +22,12 @@ public class ConfCache
     static public ConfCache getCache()
     {
     	if ( cache == null )
+    	{
     		cache = new ConfCache();
+    		long max = Runtime.getRuntime().maxMemory() / 1024 / 1024;
+    		clearLessThanMB = Math.min( 30, (int)max / 4 );
+    		fillUpToMB = clearLessThanMB + 10;
+    	}
     	return cache;
     }
 	
@@ -77,13 +82,18 @@ public class ConfCache
     	if ( freeMemory < fillUpToMB )
 	    {
     		List<ConfWrapper> list = new ArrayList<ConfWrapper>( confCache.values() );
-    		Collections.sort(list);
-    		String key1 = list.get(0).getCacheKey();
-        	if ( freeMemory < clearLessThanMB  &&  list.size() > 1 )
+    		if ( list.size() > 0 )
+    		{
+    		  Collections.sort(list);
+    		  String key1 = list.get(0).getCacheKey();
+        	  if ( freeMemory < clearLessThanMB  &&  list.size() > 1 )
         		confCache.remove( list.get(1).getCacheKey() );
-    		confCache.remove( key1 );
+    		  confCache.remove( key1 );
+    		}
 	    }
     	confCache.put( getCacheKey( key,database ), new ConfWrapper( getCacheKey( key, database ), conf ) );
+    	if ( confCache.size() > 20 )
+    		checkSoftReferences();
     }
 
     
