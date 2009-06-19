@@ -17,7 +17,7 @@ import confdb.data.VectorParameter;
 
 public class PythonParameterWriter  implements IParameterWriter 
 {
-	private ConverterEngine converterEngine = null;
+	protected ConverterEngine converterEngine = null;
 
 	public String toString( Parameter parameter, ConverterEngine converterEngine, String indent ) throws ConverterException 
 	{
