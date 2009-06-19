@@ -10,6 +10,7 @@ public class ConverterFactory
 	private String writerPackage = "";
 	private String subPackage = "ascii";
 	private String classHeader = "Ascii";
+	private boolean untrackedFlag = false;
 	
 
 	static public ConverterEngine getConverterEngine( String typeOfConverter ) throws ClassNotFoundException, InstantiationException, IllegalAccessException
@@ -22,6 +23,17 @@ public class ConverterFactory
 	{
 		if ( typeOfConverter != null )
 		{
+			if ( typeOfConverter.indexOf( ':' ) != -1 )
+			{
+				System.out.println( "found ':' in output format" );
+				int sep = typeOfConverter.indexOf( ':' );
+				String flag = typeOfConverter.substring(  sep + 1 );
+				typeOfConverter = typeOfConverter.substring( 0, sep );
+				if ( flag.equalsIgnoreCase( "untracked" ) ) 
+					untrackedFlag = true;
+				else
+					System.out.println( "bad output format flag: " + flag );
+			}
 			subPackage = typeOfConverter.toLowerCase();
 			classHeader = subPackage;
 			if ( typeOfConverter.indexOf( '.' ) != -1 )
@@ -75,6 +87,9 @@ public class ConverterFactory
 	public IParameterWriter getParameterWriter() 
 	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
+		if ( untrackedFlag )
+			return (IParameterWriter)getWriter( "UntrackedParameterWriter" );
+
 		return (IParameterWriter)getWriter( "ParameterWriter" );
 	}
 
