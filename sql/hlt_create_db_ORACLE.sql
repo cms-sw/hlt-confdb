@@ -454,7 +454,7 @@ CREATE TABLE ServiceTemplates
 	cvstag       	VARCHAR2(32)	NOT NULL,
 	packageId	NUMBER		NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 );
 
@@ -509,7 +509,7 @@ CREATE TABLE EDSourceTemplates
 	cvstag       	VARCHAR2(32)	NOT NULL,
 	packageId	NUMBER		NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 );
 
@@ -564,7 +564,7 @@ CREATE TABLE ESSourceTemplates
 	cvstag       	VARCHAR2(32)	NOT NULL,
 	packageId	NUMBER		NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 );
 
@@ -621,7 +621,7 @@ CREATE TABLE ESModuleTemplates
 	cvstag       	VARCHAR2(32)	NOT NULL,
 	packageId	NUMBER		NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 );
 
@@ -690,7 +690,7 @@ CREATE TABLE ModuleTemplates
 	cvstag       	VARCHAR2(32)	NOT NULL,
 	packageId	NUMBER		NOT NULL,
 	PRIMARY KEY(superId),
-	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	FOREIGN KEY(superId)   REFERENCES SuperIds(superId) ON DELETE CASCADE,
 	FOREIGN KEY(typeId)    REFERENCES ModuleTypes(typeId),
 	FOREIGN KEY(packageId) REFERENCES SoftwarePackages(packageId)
 );
