@@ -92,7 +92,6 @@ public class ConfDB
     private PreparedStatement psSelectReleaseId                   = null;
     private PreparedStatement psSelectReleaseTag                  = null;
     private PreparedStatement psSelectReleaseTagForConfig         = null;
-    private PreparedStatement psSelectSuperIdReleaseAssoc         = null;
     
     private PreparedStatement psSelectSoftwareSubsystems          = null;
     private PreparedStatement psSelectSoftwarePackages            = null;
@@ -119,6 +118,12 @@ public class ConfDB
     private PreparedStatement psSelectModulesForSeq               = null;
     private PreparedStatement psSelectModulesForPath              = null;
 
+    private PreparedStatement psSelectEDSourceTemplatesForRelease = null;
+    private PreparedStatement psSelectESSourceTemplatesForRelease = null;
+    private PreparedStatement psSelectESModuleTemplatesForRelease = null;
+    private PreparedStatement psSelectServiceTemplatesForRelease  = null;
+    private PreparedStatement psSelectModuleTemplatesForRelease   = null;
+
     private PreparedStatement psSelectParametersForSuperId        = null;
     private PreparedStatement psSelectPSetsForSuperId             = null;
     private PreparedStatement psSelectVPSetsForSuperId            = null;
@@ -133,6 +138,27 @@ public class ConfDB
     private PreparedStatement psSelectModuleIdBySeq               = null;
     private PreparedStatement psSelectModuleIdByPath              = null;
 
+    private PreparedStatement psSelectTemplateId                  = null;
+
+    private PreparedStatement psSelectReleaseCount                = null;
+    private PreparedStatement psSelectConfigurationCount          = null;
+    private PreparedStatement psSelectDirectoryCount              = null;
+    private PreparedStatement psSelectSuperIdCount                = null;
+    private PreparedStatement psSelectEDSourceTemplateCount       = null;
+    private PreparedStatement psSelectEDSourceCount               = null;
+    private PreparedStatement psSelectESSourceTemplateCount       = null;
+    private PreparedStatement psSelectESSourceCount               = null;
+    private PreparedStatement psSelectESModuleTemplateCount       = null;
+    private PreparedStatement psSelectESModuleCount               = null;
+    private PreparedStatement psSelectServiceTemplateCount        = null;
+    private PreparedStatement psSelectServiceCount                = null;
+    private PreparedStatement psSelectModuleTemplateCount         = null;
+    private PreparedStatement psSelectModuleCount                 = null;
+    private PreparedStatement psSelectSequenceCount               = null;
+    private PreparedStatement psSelectPathCount                   = null;
+    private PreparedStatement psSelectParameterCount              = null;
+    private PreparedStatement psSelectParameterSetCount           = null;
+    private PreparedStatement psSelectVecParameterSetCount        = null;
 
     private PreparedStatement psInsertDirectory                   = null;
     private PreparedStatement psInsertConfiguration               = null;
@@ -195,6 +221,7 @@ public class ConfDB
     private PreparedStatement psDeleteDirectory                   = null;
     private PreparedStatement psDeleteLock                        = null;
     private PreparedStatement psDeleteConfiguration               = null;
+    private PreparedStatement psDeleteSoftwareRelease             = null;
 
     private PreparedStatement psDeletePSetsFromConfig             = null;
     private PreparedStatement psDeleteEDSourcesFromConfig         = null;
@@ -204,7 +231,7 @@ public class ConfDB
     private PreparedStatement psDeleteSequencesFromConfig         = null;
     private PreparedStatement psDeletePathsFromConfig             = null;
     private PreparedStatement psDeleteStreamsAndDatasetsFromConfig= null;
-    
+
     private PreparedStatement psDeleteChildSeqsFromParentSeq      = null;
     private PreparedStatement psDeleteChildSeqFromParentSeqs      = null;
     private PreparedStatement psDeleteChildSeqsFromParentPath     = null;
@@ -215,6 +242,8 @@ public class ConfDB
     private PreparedStatement psDeleteModulesFromSeq              = null;
     private PreparedStatement psDeleteModulesFromPath             = null;    
 
+    private PreparedStatement psDeleteTemplateFromRelease         = null;
+    
     private PreparedStatement psDeleteParametersForSuperId        = null;
     private PreparedStatement psDeletePSetsForSuperId             = null;
     private PreparedStatement psDeleteVPSetsForSuperId            = null;
@@ -368,6 +397,83 @@ public class ConfDB
 		System.out.println("ConfDB::reconnect(): "+
 				   "connection reestablished!");		
  	    }
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+    }
+
+    /** list number of entries in (some) tables */
+    public void listCounts() throws DatabaseException
+    {
+	reconnect();
+	
+	ResultSet rs = null;
+	try {
+	    rs = psSelectReleaseCount.executeQuery();
+	    rs.next(); int releaseCount = rs.getInt(1);
+	    rs = psSelectConfigurationCount.executeQuery();
+	    rs.next(); int configurationCount = rs.getInt(1);
+	    rs = psSelectDirectoryCount.executeQuery();
+	    rs.next(); int directoryCount = rs.getInt(1);
+	    rs = psSelectSuperIdCount.executeQuery();
+	    rs.next(); int superIdCount = rs.getInt(1);
+	    rs = psSelectEDSourceTemplateCount.executeQuery();
+	    rs.next(); int edsourceTemplateCount = rs.getInt(1);
+	    rs = psSelectEDSourceCount.executeQuery();
+	    rs.next(); int edsourceCount = rs.getInt(1);
+	    rs = psSelectESSourceTemplateCount.executeQuery();
+	    rs.next(); int essourceTemplateCount = rs.getInt(1);
+	    rs = psSelectESSourceCount.executeQuery();
+	    rs.next(); int essourceCount = rs.getInt(1);
+	    rs = psSelectESModuleTemplateCount.executeQuery();
+	    rs.next(); int esmoduleTemplateCount = rs.getInt(1);
+	    rs = psSelectESModuleCount.executeQuery();
+	    rs.next(); int esmoduleCount = rs.getInt(1);
+	    rs = psSelectServiceTemplateCount.executeQuery();
+	    rs.next(); int serviceTemplateCount = rs.getInt(1);
+	    rs = psSelectServiceCount.executeQuery();
+	    rs.next(); int serviceCount = rs.getInt(1);
+	    rs = psSelectModuleTemplateCount.executeQuery();
+	    rs.next(); int moduleTemplateCount = rs.getInt(1);
+	    rs = psSelectModuleCount.executeQuery();
+	    rs.next(); int moduleCount = rs.getInt(1);
+	    rs = psSelectSequenceCount.executeQuery();
+	    rs.next(); int sequenceCount = rs.getInt(1);
+	    rs = psSelectPathCount.executeQuery();
+	    rs.next(); int pathCount = rs.getInt(1);
+	    rs = psSelectParameterCount.executeQuery();
+	    rs.next(); int parameterCount = rs.getInt(1);
+	    rs = psSelectParameterSetCount.executeQuery();
+	    rs.next(); int parameterSetCount = rs.getInt(1);
+	    rs = psSelectVecParameterSetCount.executeQuery();
+	    rs.next(); int vecParameterSetCount = rs.getInt(1);
+
+	    System.out.println("\n"+
+			       "\nConfigurations: "+configurationCount+
+			       "\nReleases:       "+releaseCount+
+			       "\nDirectories:    "+directoryCount+
+			       "\nSuperIds:       "+superIdCount+
+			       "\nEDSources (T):  "+edsourceCount+
+			       " ("+edsourceTemplateCount+")"+
+			       "\nESSources (T):  "+essourceCount+
+			       " ("+essourceTemplateCount+")"+
+			       "\nESModules (T):  "+esmoduleCount+
+			       " ("+esmoduleTemplateCount+")"+
+			       "\nServices (T):   "+serviceCount+
+			       " ("+serviceTemplateCount+")"+
+			       "\nModules (T):    "+moduleCount+
+			       " ("+moduleTemplateCount+")"+
+			       "\nSequences:      "+sequenceCount+
+			       "\nPaths:          "+pathCount+
+			       "\nParameters:     "+parameterCount+
+			       "\nPSets:          "+parameterSetCount+
+			       "\nVPSets:         "+vecParameterSetCount+
+			       "\n");
+	}
+	catch (SQLException e) {
+	    String errMsg = "ConfDB::listCounts() failed:"+e.getMessage();
+	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
 	    dbConnector.release(rs);
@@ -2258,7 +2364,7 @@ public class ConfDB
 	    dbConnector.release(rs1);
 	}
     }
-    /** remove EDSources */
+    /** remove EDSources from a configuration */
     public void removeEDSources(int configId) throws SQLException
     {
 	ResultSet rs1 = null;
@@ -2520,52 +2626,82 @@ public class ConfDB
 	    psDeleteParametersForSuperId.executeUpdate();
 	    while (rsParams.next()) {
 		int paramId = rsParams.getInt(1);
-		psDeleteParameter.setInt(1,paramId);
-		psDeleteParameter.executeUpdate();
+		try {
+		    psDeleteParameter.setInt(1,paramId);
+		    psDeleteParameter.executeUpdate();
+		}
+		// TEST
+		catch (SQLException e) {
+		    System.out.println("parentId="+parentId+", "+
+				       "paramId="+paramId+": "+
+				       "NOT REMOVED!");
+		}
+		// END TEST
 	    }
 	}
 	finally {
 	    dbConnector.release(rsParams);
 	}
-
+	
+	Statement stmt1 = null;
+	Statement stmt2 = null;
+	Statement stmt3 = null;
+	
 	try {
 	    // psets
-	    psSelectPSetsForSuperId.setInt(1,parentId);
-	    rsPSets = psSelectPSetsForSuperId.executeQuery();
-	    psDeletePSetsForSuperId.setInt(1,parentId);
-	    psDeletePSetsForSuperId.executeUpdate();
+	    stmt1 = dbConnector.getConnection().createStatement();
+	    stmt2 = dbConnector.getConnection().createStatement();
+	    stmt3 = dbConnector.getConnection().createStatement();
+
+	    rsPSets = stmt1.executeQuery("SELECT psetId "+
+					 "FROM SuperIdParamSetAssoc "+
+					 "WHERE superId="+parentId);
 	    while (rsPSets.next()) {
 		int psetId = rsPSets.getInt(1);
 		removeParameters(psetId);
-		psDeletePSet.setInt(1,psetId);
-		psDeletePSet.executeUpdate();
-		//ON DELETE CASCADE!?
-		//psDeleteSuperId.setInt(1,psetId);
-		//psDeleteSuperId.executeUpdate();
+		stmt2.executeUpdate("DELETE FROM SuperIdParamSetAssoc "+
+				    "WHERE "+
+				    "superId="+parentId+
+				    " AND psetId="+psetId);
+		stmt3.executeUpdate("DELETE FROM SuperIds WHERE superId="+
+				    psetId);
 	    }
 	}
 	finally {
 	    dbConnector.release(rsPSets);
+	    stmt1.close();
+	    stmt2.close();
+	    stmt3.close();
 	}
 	
 	try {
-	    psSelectVPSetsForSuperId.setInt(1,parentId);
-	    rsVPSets = psSelectVPSetsForSuperId.executeQuery();
-	    
+	    // vpsets
+	    stmt1 = dbConnector.getConnection().createStatement();
+	    stmt2 = dbConnector.getConnection().createStatement();
+	    stmt3 = dbConnector.getConnection().createStatement();
+
+	    rsVPSets = stmt1.executeQuery("SELECT vpsetId "+
+					  "FROM SuperIdVecParamSetAssoc "+
+					  "WHERE superId="+parentId);
 	    while (rsVPSets.next()) {
 		int vpsetId = rsVPSets.getInt(1);
 		removeParameters(vpsetId);
-		psDeleteVPSet.setInt(1,vpsetId);
-		psDeleteVPSet.executeUpdate();
-		// ON DELETE CASCADE?!
-		//psDeleteSuperId.setInt(1,vpsetId);
-		//psDeleteSuperId.executeUpdate();
+		stmt2.executeUpdate("DELETE FROM SuperIdVecParamSetAssoc "+
+				    "WHERE "+
+				    "superId="+parentId+
+				    " AND vpsetId="+vpsetId);
+		stmt3.executeUpdate("DELETE FROM SuperIds WHERE superId="+
+				    vpsetId);
 	    }
 	}
 	finally {
 	    dbConnector.release(rsVPSets);
+	    stmt1.close();
+	    stmt2.close();
+	    stmt3.close();
 	}
     }
+    
     /** remove Streams and Datasets */
     public void removeStreamsAndDatasets(int configId) throws SQLException
     {
@@ -2587,10 +2723,132 @@ public class ConfDB
 			       "configurations!)");
 	    return;
 	}
-	
-	
+
+	try {
+	    dbConnector.getConnection().setAutoCommit(false);
+	    
+	    removeEDSourceTemplates(releaseId);
+	    removeESSourceTemplates(releaseId);
+	    removeESModuleTemplates(releaseId);
+	    removeServiceTemplates(releaseId);
+	    removeModuleTemplates(releaseId);
+
+	    psDeleteSoftwareRelease.setInt(1,releaseId);
+	    psDeleteSoftwareRelease.executeUpdate();
+	}
+	catch (Exception e) {
+	    e.printStackTrace();
+	    try { dbConnector.getConnection().rollback(); }
+	    catch (SQLException e2) { e2.printStackTrace(); }
+	    throw new DatabaseException("removeSoftwareRelease FAILED",e); 
+	}
+	finally {
+	    try { dbConnector.getConnection().setAutoCommit(true); }
+	    catch (SQLException e) { e.printStackTrace(); }
+	}
     }
     
+    /** remove EDSourceTemplates from a release */
+    private void removeEDSourceTemplates(int releaseId) throws SQLException
+    {
+	ResultSet rs = null;
+	try {
+	    psSelectEDSourceTemplatesForRelease.setInt(1,releaseId);
+	    rs = psSelectEDSourceTemplatesForRelease.executeQuery();
+	    removeTemplates(rs,releaseId);
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+    }
+    /** remove ESSourceTemplates from a release */
+    private void removeESSourceTemplates(int releaseId) throws SQLException
+    {
+	ResultSet rs = null;
+	try {
+	    psSelectESSourceTemplatesForRelease.setInt(1,releaseId);
+	    rs = psSelectESSourceTemplatesForRelease.executeQuery();
+	    removeTemplates(rs,releaseId);
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+    }
+    /** remove ESModuleTemplates from a release */
+    private void removeESModuleTemplates(int releaseId) throws SQLException
+    {
+	ResultSet rs = null;
+	try {
+	    psSelectESModuleTemplatesForRelease.setInt(1,releaseId);
+	    rs = psSelectESModuleTemplatesForRelease.executeQuery();
+	    removeTemplates(rs,releaseId);
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+    }
+    /** remove ServiceTemplates from a release */
+    private void removeServiceTemplates(int releaseId) throws SQLException
+    {
+	ResultSet rs = null;
+	try {
+	    psSelectServiceTemplatesForRelease.setInt(1,releaseId);
+	    rs = psSelectServiceTemplatesForRelease.executeQuery();
+	    removeTemplates(rs,releaseId);
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+    }
+    /** remove ModuleTemplates from a release */
+    private void removeModuleTemplates(int releaseId) throws SQLException
+    {
+	ResultSet rs = null;
+	try {
+	    psSelectModuleTemplatesForRelease.setInt(1,releaseId);
+	    rs = psSelectModuleTemplatesForRelease.executeQuery();
+	    removeTemplates(rs,releaseId);
+	}
+	finally {
+	    dbConnector.release(rs);
+	}
+    }
+    /** remove templates of any kind from release, given the superIds */
+    private void removeTemplates(ResultSet rs,int releaseId) throws SQLException
+    {
+	while (rs.next()) {
+	    int superId = rs.getInt(1);
+	    
+	    psDeleteTemplateFromRelease.setInt(1,superId);
+	    psDeleteTemplateFromRelease.setInt(2,releaseId);
+	    psDeleteTemplateFromRelease.executeUpdate();
+	    
+	    ResultSet rs3 = null;
+	    try {
+		psSelectTemplateId.setInt(1,superId);
+		rs3 = psSelectTemplateId.executeQuery();
+		
+		if (!rs3.next()) {
+		    removeParameters(superId);
+		    psDeleteSuperId.setInt(1,superId);
+		    psDeleteSuperId.executeUpdate();
+		}
+	    }
+
+	    // DEBUG
+	    catch (SQLException e) {
+		System.out.println("releaseId="+releaseId+" "+
+				   "superId="  +superId  +"\n");
+		throw(e);
+	    }
+	    // END DEBUG
+	    
+	    finally {
+		dbConnector.release(rs3);
+	    }
+	}
+    }
+
 
     //
     // private member functions
@@ -2783,15 +3041,6 @@ public class ConfDB
 		 "WHERE Configurations.configId = ?");
 	    preparedStatements.add(psSelectReleaseTagForConfig);
 	    
-	    psSelectSuperIdReleaseAssoc =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" + 
-		 " SuperIdReleaseAssoc.superId," +
-		 " SuperIdReleaseAssoc.releaseId " +
-		 "FROM SuperIdReleaseAssoc " +
-		 "WHERE superId =? AND releaseId = ?");
-	    preparedStatements.add(psSelectSuperIdReleaseAssoc);
-	    
 	    psSelectSoftwareSubsystems =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -2977,9 +3226,9 @@ public class ConfDB
 		 "FROM Paths " +
 		 "JOIN ConfigurationPathAssoc " +
 		 "ON ConfigurationPathAssoc.pathId=Paths.pathId " +
-		 "WHERE ConfigurationPathAssoc.configId=");
+		 "WHERE ConfigurationPathAssoc.configId=?");
 	    preparedStatements.add(psSelectPathsForConfig);
-	    
+
 	    psSelectModulesForSeq =
 		dbConnector.getConnection().prepareStatement
 		("SELECT "+
@@ -2995,6 +3244,56 @@ public class ConfDB
 		 "FROM PathModuleAssoc "+
 		 "WHERE pathId=?");
 	    preparedStatements.add(psSelectModulesForPath);
+	    
+	    psSelectEDSourceTemplatesForRelease =
+		dbConnector.getConnection().prepareStatement
+		("SELECT"+
+		 " EDSourceTemplates.superId "+
+		 "FROM EDSourceTemplates "+
+		 "JOIN SuperIdReleaseAssoc " +
+		 "ON SuperIdReleaseAssoc.superId=EDSourceTemplates.superId " +
+		 "WHERE SuperIdReleaseAssoc.releaseId=?");
+ 	    preparedStatements.add(psSelectEDSourceTemplatesForRelease);
+	    
+	    psSelectESSourceTemplatesForRelease =
+		dbConnector.getConnection().prepareStatement
+		("SELECT"+
+		 " ESSourceTemplates.superId "+
+		 "FROM ESSourceTemplates "+
+		 "JOIN SuperIdReleaseAssoc " +
+		 "ON SuperIdReleaseAssoc.superId=ESSourceTemplates.superId " +
+		 "WHERE SuperIdReleaseAssoc.releaseId=?");
+ 	    preparedStatements.add(psSelectESSourceTemplatesForRelease);
+	    
+	    psSelectESModuleTemplatesForRelease =
+		dbConnector.getConnection().prepareStatement
+		("SELECT"+
+		 " ESModuleTemplates.superId "+
+		 "FROM ESModuleTemplates "+
+		 "JOIN SuperIdReleaseAssoc " +
+		 "ON SuperIdReleaseAssoc.superId=ESModuleTemplates.superId " +
+		 "WHERE SuperIdReleaseAssoc.releaseId=?");
+ 	    preparedStatements.add(psSelectESModuleTemplatesForRelease);
+	    
+	    psSelectServiceTemplatesForRelease =
+		dbConnector.getConnection().prepareStatement
+		("SELECT"+
+		 " ServiceTemplates.superId "+
+		 "FROM ServiceTemplates "+
+		 "JOIN SuperIdReleaseAssoc " +
+		 "ON SuperIdReleaseAssoc.superId=ServiceTemplates.superId " +
+		 "WHERE SuperIdReleaseAssoc.releaseId=?");
+ 	    preparedStatements.add(psSelectServiceTemplatesForRelease);
+	    
+	    psSelectModuleTemplatesForRelease =
+		dbConnector.getConnection().prepareStatement
+		("SELECT"+
+		 " ModuleTemplates.superId "+
+		 "FROM ModuleTemplates "+
+		 "JOIN SuperIdReleaseAssoc " +
+		 "ON SuperIdReleaseAssoc.superId=ModuleTemplates.superId " +
+		 "WHERE SuperIdReleaseAssoc.releaseId=?");
+ 	    preparedStatements.add(psSelectModuleTemplatesForRelease);
 	    
 	    psSelectParametersForSuperId =
 		dbConnector.getConnection().prepareStatement
@@ -3086,13 +3385,116 @@ public class ConfDB
 	    psSelectModuleIdByPath =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " SequenceModuleAssoc.moduleId "+
+		 " PathModuleAssoc.moduleId "+
 		 "FROM PathModuleAssoc "+
 		 "WHERE PathModuleAssoc.moduleId=?");
 	    preparedStatements.add(psSelectModuleIdByPath);
+
+	    psSelectTemplateId =
+		dbConnector.getConnection().prepareStatement
+		("SELECT"+
+		 " SuperIdReleaseAssoc.superId "+
+		 "FROM SuperIdReleaseAssoc "+
+		 "WHERE SuperIdReleaseAssoc.superId=?");
+	    preparedStatements.add(psSelectTemplateId);
+	    
+	    
+	    psSelectReleaseCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM SoftwareReleases");
+	    preparedStatements.add(psSelectReleaseCount);
+
+	    psSelectConfigurationCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM Configurations");
+	    preparedStatements.add(psSelectConfigurationCount);
+	    
+	    psSelectDirectoryCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM Directories");
+	    preparedStatements.add(psSelectDirectoryCount);
+
+	    psSelectSuperIdCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM SuperIds");
+	    preparedStatements.add(psSelectSuperIdCount);
+
+	    psSelectEDSourceTemplateCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM EDSourceTemplates");
+	    preparedStatements.add(psSelectEDSourceTemplateCount);
+	    
+	    psSelectEDSourceCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM EDSources");
+	    preparedStatements.add(psSelectEDSourceCount);
+
+	    psSelectESSourceTemplateCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM ESSourceTemplates");
+	    preparedStatements.add(psSelectESSourceTemplateCount);
+
+	    psSelectESSourceCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM ESSources");
+	    preparedStatements.add(psSelectESSourceCount);
+
+	    psSelectESModuleTemplateCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM ESModuleTemplates");
+	    preparedStatements.add(psSelectESModuleTemplateCount);
+
+	    psSelectESModuleCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM ESModules");
+	    preparedStatements.add(psSelectESModuleCount);
+
+	    psSelectServiceTemplateCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM ServiceTemplates");
+	    preparedStatements.add(psSelectServiceTemplateCount);
+
+	    psSelectServiceCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM Services");
+	    preparedStatements.add(psSelectServiceCount);
+	    
+	    psSelectModuleTemplateCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM ModuleTemplates");
+	    preparedStatements.add(psSelectModuleTemplateCount);
+	    
+	    psSelectModuleCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM Modules");
+	    preparedStatements.add(psSelectModuleCount);
+
+	    psSelectSequenceCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM Sequences");
+	    preparedStatements.add(psSelectSequenceCount);
+
+	    psSelectPathCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM Paths");
+	    preparedStatements.add(psSelectPathCount);
+	    
+	    psSelectParameterCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM Parameters");
+	    preparedStatements.add(psSelectParameterCount);
+
+	    psSelectParameterSetCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM ParameterSets");
+	    preparedStatements.add(psSelectParameterSetCount);
+
+	    psSelectVecParameterSetCount =
+		dbConnector.getConnection().prepareStatement
+		("SELECT COUNT(*) FROM VecParameterSets");
+	    preparedStatements.add(psSelectVecParameterSetCount);
 	    
 
-	    
 	    //
 	    // INSERT
 	    //
@@ -3497,8 +3899,14 @@ public class ConfDB
 	    psDeleteConfiguration =
 		dbConnector.getConnection().prepareStatement
 		("DELETE FROM CONFIGURATIONS " +
-		 "WHERE configID = ?");
+		 "WHERE configId = ?");
 	    preparedStatements.add(psDeleteConfiguration);
+	    
+	    psDeleteSoftwareRelease =
+		dbConnector.getConnection().prepareStatement
+		("DELETE FROM SOFTWARERELEASES " +
+		 "WHERE releaseId = ?");
+	    preparedStatements.add(psDeleteSoftwareRelease);
 	    
 	    psDeletePSetsFromConfig =
 		dbConnector.getConnection().prepareStatement
@@ -3532,7 +3940,7 @@ public class ConfDB
 	    
 	    psDeleteSequencesFromConfig =
 		dbConnector.getConnection().prepareStatement
-		("DELETE FROM ConfigurationSequencesAssoc "+
+		("DELETE FROM ConfigurationSequenceAssoc "+
 		 "WHERE configId=?");
 	    preparedStatements.add(psDeleteSequencesFromConfig);
 	    
@@ -3596,6 +4004,12 @@ public class ConfDB
 		 "WHERE pathId=?");
 	    preparedStatements.add(psDeleteModulesFromPath);
 
+	    psDeleteTemplateFromRelease =
+		dbConnector.getConnection().prepareStatement
+		("DELETE FROM SuperIdReleaseAssoc "+
+		 "WHERE superId=? AND releaseId=?");
+	    preparedStatements.add(psDeleteTemplateFromRelease);
+	    
 	    psDeleteParametersForSuperId =
 		dbConnector.getConnection().prepareStatement
 		("DELETE FROM SuperIdParameterAssoc "+
@@ -4474,6 +4888,7 @@ public class ConfDB
 	String  releaseId   =          "";
 	String  releaseName =          "";
 
+	boolean dolistcounts=       false;
 	boolean dolistconf  =       false;	
 	boolean dolistrel   =       false;	
 	String  list        =          "";
@@ -4496,13 +4911,15 @@ public class ConfDB
 	    else if (arg.equals("--configName")) { configName = args[++iarg]; }
 	    else if (arg.equals("--releaseId"))  { releaseId  = args[++iarg]; }
 	    else if (arg.equals("--releaseName")){ releaseName= args[++iarg]; }
+	    else if (arg.equals("--listCounts")){
+		dolistcounts=true;
+	    }
 	    else if (arg.equals("--listConfigs")){
 		dolistconf=true;
 		list=args[++iarg];
 	    }
 	    else if (arg.equals("--listReleases")){
 		dolistrel=true;
-		//list=args[++iarg];
 	    }
 	    else if (arg.equals("--packages"))   { dopackages = true; }
 	    else if (arg.equals("--remove"))     { doremove   = true; }
@@ -4537,7 +4954,7 @@ public class ConfDB
 	if (releaseId.length()>0)   check++;
 	if (releaseName.length()>0) check++;
 	
-	if (check==0&&!dolistconf&&!dolistrel) {
+	if (check==0&&!dolistcounts&&!dolistconf&&!dolistrel) {
 	    System.err.println("ERROR: specify config, release, ");
 	    System.exit(0);
 	}
@@ -4550,7 +4967,8 @@ public class ConfDB
 	    System.exit(0);
 	}
 	
-	if (!dolistconf&&!dolistrel&&!dopackages&&!doversions&&!doremove)
+	if (!dolistcounts&&!dolistconf&&!dolistrel&&
+	    !dopackages&&!doversions&&!doremove)
 	    System.exit(0);
 	
 	String dbUrl = "";
@@ -4574,7 +4992,10 @@ public class ConfDB
 	try {
 	    database.connect(dbType,dbUrl,dbUser,dbPwrd);
 	    // list configurations
-	    if (dolistconf) {
+	    if (dolistcounts) {
+		database.listCounts();
+	    }
+	    else if (dolistconf) {
 		String[] allConfigs = database.getConfigNames();
 		int count = 0;
 		for (String s : allConfigs)

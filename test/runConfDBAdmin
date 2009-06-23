@@ -52,6 +52,8 @@ while (@ARGV)
 	$db_user = "cms_hlt_test";
 	$db_pwrd = "hltdevtest1";
     }
+    elsif ($arg eq "--dbuser") { $db_user = shift @ARGV; }
+    elsif ($arg eq "--dbpwrd") { $db_pwrd = shift @ARGV; }
     else { $args = $args . " " . $arg; }
 }
 
