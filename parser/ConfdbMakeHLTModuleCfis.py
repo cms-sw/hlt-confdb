@@ -24,7 +24,7 @@ def main(argv):
     input_host = "CMS_ORCOFF_PROD" 
     
     input_addtorelease = "none"
-    input_release = "CMSSW_3_1_0_pre6"
+    input_release = "CMSSW_3_1_0"
 
     opts, args = getopt.getopt(sys.argv[1:], "r:v:d:u:s:oh", ["release=","verbose=","dbname=","user=","password=","dbtype=","hostname=",])
 
@@ -151,11 +151,11 @@ class ConfdbMakeHLTModuleCfis:
         usedtemplates = 0
 
         print '\n\n\n'
-        theconfig = '/dev/CMSSW_3_1_0/pre6/HLT/V51'
+        theconfig = '/dev/CMSSW_3_1_0/pre11/HLT/V1'
         for thecvstag, thepackagesubsysname, theplugin, theinst in sortedtagtuple:
             foundtemplates = foundtemplates + 1
             if(theinst != ''):
-                conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(theconfig) + ' --nopaths --nosequences --noservices --noes --nopsets --cff --modules ' + str(theinst) + ' > ' + str(theplugin) + '_cfi.py'
+                conffromdbstr = './edmConfigFromDB --hltdev --configName ' + str(theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules ' + str(theinst) + ' > /tmp/jjhollar/' + str(theplugin) + '_cfi.py'
                 print conffromdbstr
                 usedtemplates = usedtemplates + 1
 
