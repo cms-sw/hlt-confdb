@@ -111,7 +111,14 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 				ESModuleInstance esmodule = conf.esmodule(i);
 				str.append( object );
 				str.append( esmoduleWriter.toString( esmodule, converterEngine, "" ) );
+				if ( esmodule.isPreferred() ) 
+				{
+					str.append( object );
+					str.append( "es_prefer_" + esmodule.name() + " = cms.ESPrefer( \""
+							+ esmodule.template().name() + "\", \"" + esmodule.name() + "\" )\n" ); 
+				}
 			}
+			
 			str.append( "\n");
 		}
 		
