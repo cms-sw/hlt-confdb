@@ -49,6 +49,7 @@ def main(argv):
             print "Verbosity = " + str(input_verbose)
 
     confdbjob = ConfdbMakeHLTModuleCfis(input_release,input_verbose,input_dbuser,input_dbpwd,input_host)
+    confdbjob.MakeConfigAssociations()
     confdbjob.BeginJob()
 
 class ConfdbMakeHLTModuleCfis:
@@ -61,6 +62,8 @@ class ConfdbMakeHLTModuleCfis:
         self.dbhost = clihost
         self.verbose = cliverbose
         self.release = clirel
+        self.moduleconfigdict = {}
+        self.theconfig = '/dev/CMSSW_3_1_0/pre11/HLT/V2'        
         
         # Track CVS tags
         self.tagtuple = []
@@ -122,7 +125,18 @@ class ConfdbMakeHLTModuleCfis:
 
 
                 theinstance = ''
-                if(instancetype != "Services" and instancetype != "EDSources"):
+                if(instancetype == "Modules"):
+                    if(mod in self.moduleconfigdict):
+                        modinstanceid = self.moduleconfigdict[mod]                                
+                        instanceselstr = "SELECT " + str(instancetype) + ".name " + " FROM " + str(instancetype) + " WHERE " + str(instancetype) + ".templateId = " + str(templateid) + " AND " + str(instancetype) + ".superId = " + str(modinstanceid)
+                    else:
+                        instanceselstr = "SELECT " + str(instancetype) + ".name " + " FROM " + str(instancetype) + " WHERE " + str(instancetype) + ".templateId = " + str(templateid) 
+                    self.dbcursor.execute(instanceselstr)
+                    thetmpinstance = self.dbcursor.fetchone()
+                    if(thetmpinstance):
+                        theinstance = thetmpinstance[0]
+                                                                                        
+                elif(instancetype != "Services" and instancetype != "EDSources"):
                     instanceselstr = "SELECT " + str(instancetype) + ".name " + " FROM " + str(instancetype) + " WHERE " + str(instancetype) + ".templateId = " + str(templateid)
                     self.dbcursor.execute(instanceselstr)                
                     thetmpinstance = self.dbcursor.fetchone()
@@ -132,13 +146,13 @@ class ConfdbMakeHLTModuleCfis:
                 dirname = str(subsysname) + "/" + str(packname)
                 if(subsysname == 'HLTrigger' or
                    packname == 'EgammaHLTProducers' or
-                   packname == 'HLTProducers' or
-                   packname == 'L2MuonIsolationProducer' or
-                   packname == 'L2MuonProducer' or
-                   packname == 'L2MuonSeedGenerator' or
-                   packname == 'L3MuonIsolationProducer' or
-                   packname == 'L3MuonProducer' or
-                   packname == 'L3TrackFinder'):
+                   packname == 'HLTProducers'):
+#                   packname == 'L2MuonIsolationProducer' or
+#                   packname == 'L2MuonProducer' or
+#                   packname == 'L2MuonSeedGenerator' or
+#                   packname == 'L3MuonIsolationProducer' or
+#                   packname == 'L3MuonProducer' or
+#                   packname == 'L3TrackFinder'):
                     self.tagtuple.append((str(tag),str(dirname),str(mod),str(theinstance)))
                     self.alreadyadded.append(str(dirname))
 
@@ -150,19 +164,67 @@ class ConfdbMakeHLTModuleCfis:
         foundtemplates = 0
         usedtemplates = 0
 
+        movecommands = []
+
         print '\n\n\n'
-        theconfig = '/dev/CMSSW_3_1_0/pre11/HLT/V1'
+        #        self.theconfig = '/dev/CMSSW_3_1_0/pre11/HLT/V1'
         for thecvstag, thepackagesubsysname, theplugin, theinst in sortedtagtuple:
             foundtemplates = foundtemplates + 1
+            if(theplugin.startswith('HLT')):
+                theplugin = theplugin.replace('HLT','hlt')
             if(theinst != ''):
-                conffromdbstr = './edmConfigFromDB --hltdev --configName ' + str(theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules ' + str(theinst) + ' > /tmp/jjhollar/' + str(theplugin) + '_cfi.py'
+                conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules ' + str(theinst) + ' > /tmp/jjhollar/' + str(theplugin) + '_cfi.py'
                 print conffromdbstr
+                if(os.path.isdir('../../../' + str(thepackagesubsysname) + '/python/.')):
+                   movecommands.append('mv /tmp/jjhollar/' + str(theplugin) + '_cfi.py ../../../' + str(thepackagesubsysname) + '/python/.')
+                   os.system(conffromdbstr)
                 usedtemplates = usedtemplates + 1
 
+        print 'python ConfdbFixExtractedCfis.py'
+        os.system('python ConfdbFixExtractedCfis.py')
+        for movecommand in movecommands:
+            print movecommand
+            os.system(movecommand)
+                 
         print str(usedtemplates) + ' out of ' + str(foundtemplates) + ' were used in the configuration'
                 
         self.connection.commit() 
         self.connection.close() 
-            
+
+    def MakeConfigAssociations(self):
+        confselstr = "SELECT * FROM Configurations WHERE Configurations.configDescriptor = '" + str(self.theconfig) + "'"
+        print confselstr
+        self.dbcursor.execute(confselstr)
+        tmpconfid = self.dbcursor.fetchone()
+        if(tmpconfid):
+            tmpconfid = tmpconfid[0]
+                        
+        modseqselstr = "SELECT Modules.name, Modules.superId FROM Modules JOIN SequenceModuleAssoc ON (SequenceModuleAssoc.moduleId = Modules.superId) JOIN Sequences ON (Sequences.sequenceId = SequenceModuleAssoc.sequenceId) JOIN ConfigurationSequenceAssoc ON (ConfigurationSequenceAssoc.sequenceId = Sequences.sequenceId) WHERE ConfigurationSequenceAssoc.configId = " + str(tmpconfid)
+        self.dbcursor.execute(modseqselstr)
+        tmpmodules = self.dbcursor.fetchall() 
+
+        for tmpmodulename, tmpmodulesuperid in tmpmodules:
+            modtmpselstr = "SELECT ModuleTemplates.name FROM ModuleTemplates JOIN Modules ON (Modules.templateId = ModuleTemplates.superId) WHERE Modules.superId = " + str(tmpmodulesuperid)
+            self.dbcursor.execute(modtmpselstr)
+            templatename = self.dbcursor.fetchone()
+            if(templatename):
+                templatename = templatename[0]
+
+            self.moduleconfigdict[templatename] = tmpmodulesuperid
+        
+
+        modpathselstr = "SELECT Modules.name, Modules.superId FROM Modules JOIN PathModuleAssoc ON (PathModuleAssoc.moduleId = Modules.superId) JOIN Paths ON (Paths.pathId = PathModuleAssoc.pathId) JOIN ConfigurationPathAssoc ON (ConfigurationPathAssoc.pathId = Paths.pathId) WHERE ConfigurationPathAssoc.configId = " + str(tmpconfid)
+        self.dbcursor.execute(modpathselstr)
+        tmpmodules = self.dbcursor.fetchall()
+                
+        for tmpmodulename, tmpmodulesuperid in tmpmodules:
+            modtmpselstr = "SELECT ModuleTemplates.name FROM ModuleTemplates JOIN Modules ON (Modules.templateId = ModuleTemplates.superId) WHERE Modules.superId = " + str(tmpmodulesuperid)
+            self.dbcursor.execute(modtmpselstr)
+            templatename = self.dbcursor.fetchone()
+            if(templatename):
+                templatename = templatename[0]
+
+            self.moduleconfigdict[templatename] = tmpmodulesuperid
+        
 if __name__ == "__main__": 
     main(sys.argv[1:]) 
