@@ -180,11 +180,53 @@ class ConfdbMakeHLTModuleCfis:
                    os.system(conffromdbstr)
                 usedtemplates = usedtemplates + 1
 
+        # Special cases from other packages
+        conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltL25TauLeadingTrackPtCutSelector > /tmp/jjhollar/IsolatedTauJetsSelector_cfi.py'
+        print conffromdbstr
+        os.system(conffromdbstr)                   
+        conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltL1HLTDoubleLooseIsoTau15JetsMatch > /tmp/jjhollar/L1HLTJetsMatching_cfi.py'
+        print conffromdbstr        
+        os.system(conffromdbstr)                   
+        conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltIterativeCone5PileupSubtractionCaloJets  > /tmp/jjhollar/IterativeConePilupSubtractionJetProducer_cfi.py'        
+        print conffromdbstr        
+        os.system(conffromdbstr)                   
+        conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltHIMML3Filter > /tmp/jjhollar/TestMuL1L2Filter_cfi.py'
+        print conffromdbstr        
+        os.system(conffromdbstr)                   
+        conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltL3MuonsOI > /tmp/jjhollar/L3TkMuonProducer_cfi.py'
+        print conffromdbstr        
+        os.system(conffromdbstr)                   
+        conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltL2MuonIsolations > /tmp/jjhollar/L2MuonIsolationProducer_cfi.py'
+        print conffromdbstr
+        os.system(conffromdbstr)                   
+        # End special cases from other packages
+        
         print 'python ConfdbFixExtractedCfis.py'
         os.system('python ConfdbFixExtractedCfis.py')
         for movecommand in movecommands:
             print movecommand
             os.system(movecommand)
+
+        # Special cases from other packages        
+        movecommand = 'mv /tmp/jjhollar/IsolatedTauJetsSelector_cfi.py ../../../RecoTauTag/HLTProducers/python/.'
+        print movecommand
+        os.system(movecommand)        
+        movecommand = 'mv /tmp/jjhollar/L1HLTJetsMatching_cfi.py ../../../RecoTauTag/HLTProducers/python/.'
+        print movecommand
+        os.system(movecommand)
+        movecommand = 'mv /tmp/jjhollar/IterativeConePilupSubtractionJetProducer_cfi.py ../../../RecoJets/JetProducers/python/.'
+        print movecommand
+        os.system(movecommand)
+        movecommand = 'mv /tmp/jjhollar/TestMuL1L2Filter_cfi.py ../../../RecoMuon/L3MuonProducer/python/.'
+        print movecommand
+        os.system(movecommand)
+        movecommand = 'mv /tmp/jjhollar/L3TkMuonProducer_cfi.py ../../../RecoMuon/L3MuonProducer/python/.'
+        print movecommand
+        os.system(movecommand)
+        movecommand = 'mv /tmp/jjhollar/L2MuonIsolationProducer_cfi.py ../../../RecoMuon/L2MuonIsolationProducer/python/.'
+        print movecommand
+        os.system(movecommand)
+        # End special cases from other packages        
                  
         print str(usedtemplates) + ' out of ' + str(foundtemplates) + ' were used in the configuration'
                 

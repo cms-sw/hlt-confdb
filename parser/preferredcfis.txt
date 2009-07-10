@@ -7,3 +7,11 @@ RecoMuon/L3MuonIsolationProducer	L3MuonIsolationProducer_cfi.py
 RecoJets/JetProducers			iterativeCone5CaloJets_cff.py
 EventFilter/EcalRawToDigi		EcalRawToRecHitRoI_cfi.py
 RecoMET/METProducers			CaloMET_cfi.py
+HLTrigger/Egamma			hltPMMassFilter_cfi.py
+HLTrigger/Egamma			hltElectronOneOEMinusOneOPFilterRegional_cfi.py
+HLTrigger/special			hltPi0RecHitsFilter_cfi.py
+IORawData/SiStripInputSources		DaqSource_cfi.py
+FastSimulation/Configuration		TrackerRecoGeometryESProducer_cfi.py
+TrackingTools/TrajectoryCleaning	TrajectoryCleanerBySharedHits_cfi.py
+RecoHI/HiTracking			PixelVertices_cfi.py
+RecoEgamma/EgammaHLTProducers		EgammaHLTPhotonTrackIsolationProducersRegional_cfi.py
