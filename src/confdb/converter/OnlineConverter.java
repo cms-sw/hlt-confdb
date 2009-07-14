@@ -584,7 +584,7 @@ public class OnlineConverter extends ConverterBase
 	}
 	
 	try {
-	    OnlineConverter cnv = new OnlineConverter("Ascii", dbType, dbUrl,
+	    OnlineConverter cnv = new OnlineConverter("python", dbType, dbUrl,
 						      dbUser, dbPwrd);
 	    int configId = cnv.getDatabase().getConfigId(config);
 	    System.out.println("EP CONFIGURATION:\n\n"+
