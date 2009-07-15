@@ -2,10 +2,7 @@ package confdb.db;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.sql.SQLException;
-
-import java.util.ArrayList;
 
 
 /**
@@ -72,7 +69,7 @@ abstract public class DatabaseConnector implements IDatabaseConnector
     public abstract void openConnection() throws DatabaseException;
     
     /** close the connection to the database */
-    public void closeConnection() throws DatabaseException
+    public void closeConnection()
     {
 	try {
 	    if (connection!=null&&!connection.isClosed()) {
@@ -81,8 +78,9 @@ abstract public class DatabaseConnector implements IDatabaseConnector
 	    }
 	}
 	catch (SQLException e) {
-	    String msg = "Failed to close database connection: " + e.getMessage();
-	    throw new DatabaseException(msg);
+	    connection = null;
+	    //String msg = "Failed to close database connection: " + e.getMessage();
+	    //throw new DatabaseException(msg);
 	}
     }
 
@@ -122,9 +120,9 @@ abstract public class DatabaseConnector implements IDatabaseConnector
     public ResultSet release(ResultSet rs)
     {
 	if (rs != null) {
-	    Statement stmt = null;
+	    //Statement stmt = null;
 	    try {
-		stmt = rs.getStatement();
+		/*stmt = */ rs.getStatement();
 	    }
 	    catch (SQLException e) {
 		String msg =
