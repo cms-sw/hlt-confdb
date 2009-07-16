@@ -205,6 +205,7 @@ CkfTrackCandidateMaker.Parameter useHitsSplitting bool false tracked
 CkfTrackCandidateMaker.Parameter doSeedingRegionRebuilding bool false tracked
 CkfTrackCandidateMaker.Parameter TransientInitialStateEstimatorParameters PSet tracked
 CkfTrackCandidateMaker.Parameter cleanTrajectoryAfterInOut bool false tracked
+CkfTrackCandidateMaker.Parameter numberMeasurementsForFit int32 4 tracked
 
 Module EDProducer TrackProducer RecoTracker TrackProducer
 TrackProducer.Parameter alias string "hltEgammaRegionalCTFFinalFitWithMaterial" untracked
