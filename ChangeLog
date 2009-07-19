@@ -1,3 +1,9 @@
+2009-07-19  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-28-03
+	* improvement to db interaction stabilization by Ulf, to be
+	deployed with next version of RCMS.
+	
 2009-06-23  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-28-02
