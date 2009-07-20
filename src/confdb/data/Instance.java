@@ -111,6 +111,19 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 	return params.toArray(new Parameter[params.size()]);
     }
     
+    /** find  parameter (recursively) with specified name */
+    public Parameter findParameter(String name)
+    {
+
+	Iterator<Parameter> itP = recursiveParameterIterator();
+	while (itP.hasNext()) {
+	    Parameter p = itP.next();
+	    String fullParamName = p.fullName();
+	    if (fullParamName.equals(name)) return p ;
+	}
+	return null;
+    }
+
     /** get all parameters (recursively) with specified name *and* type */
     public Parameter[] findParameters(String name,String type)
     {
@@ -127,6 +140,23 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 	}
 	return params.toArray(new Parameter[params.size()]);
     }
+
+
+    /** get all parameter (recursively) with specified strict name *and* type */
+    public Parameter findParameter(String name,String type)
+    {
+	if (type==null) return findParameter(name);
+
+	Iterator<Parameter> itP = recursiveParameterIterator();
+	while (itP.hasNext()) {
+	    Parameter p = itP.next();
+	    String fullParamName = p.fullName();
+	    if ((fullParamName.equals(name))&&
+		p.type().equals(type)) return p;
+	}
+	return null;
+    }
+    
 
 	/** get all parameters (recursively) with specified name *and* type */
     public Parameter[] findParameters(String name,String type,String value)
@@ -173,7 +203,12 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 	String  oldValueAsString = parameter(index).valueAsString();
 	if (valueAsString.equals(oldValueAsString)) return true;
 	
-	String  defaultAsString  = template.parameter(index).valueAsString();
+	String  defaultAsString  = "";
+	if(index<template.parameterCount())
+	    defaultAsString = template.parameter(index).valueAsString();
+	else
+	    System.out.println("Setting the value of an untracked parameter with out any default value");
+
 	if (parameter(index).setValue(valueAsString,defaultAsString)) {
 	    setHasChanged();
 	    return true;
@@ -184,19 +219,9 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
     /** update a parameter when the value is changed */
     public boolean updateParameter(String name,String type,String valueAsString)
     {
-	Parameter[] params = findParameters(name,type);
+	Parameter param = findParameter(name,type);
 	
-	if (params.length>0) {
-
-	    Parameter param = params[0];
-
-	    if (params.length>1) {
-		for (Parameter p : params) {
-		    String a[] = p.fullName().split("::");
-		    String b[] = param.fullName().split("::");
-		    if (a.length<b.length) param = p;
-		}
-	    }
+	if (param!=null) {
 	    
 	    int index = indexOfParameter(param);
 	    if (index>=0) return updateParameter(index,valueAsString);
@@ -206,18 +231,28 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 		String b[] = a[0].split("\\[");
 		Parameter parentParam = parameter(b[0]);
 		int parentIndex = indexOfParameter(parentParam);
-		if (parentIndex>=0) {
+		if (parentIndex>=0&&parentIndex<template.parameterCount()) {
 		    param.setValue(valueAsString,"");
-		    String defaultAsString =
-			template.parameter(parentIndex).valueAsString();
+		    String defaultAsString = template.parameter(parentIndex).valueAsString();
 		    if (parentParam.setValue(parentParam.valueAsString(),
 					     defaultAsString)) {
 			setHasChanged();
 			return true;
 		    }
 		    return false;
+		}else if(parentIndex>=template.parameterCount()){
+		    param.setValue(valueAsString,"");
+		    setHasChanged();
+		    return true;
 		}
+		
 	    }
+	}else{
+	    Parameter parameterNew = ParameterFactory.create(type, name,valueAsString,false,false);
+	    System.out.println("Adding an untracked parameter with out any default value");
+	    parameters.add(parameterNew);
+	    setHasChanged();
+	    return true;
 	}
 	System.err.println("Instance.updateParameter ERROR: "+
 			   "no parameter '"+name+"' of type '"+type+"' "+
@@ -269,5 +304,21 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 	}
 	return result;
     }
+
+    public boolean removeUntrackedParameter(Parameter paramRemove)
+    {
+ 	try{
+	    
+	    int iRemoveIndex=parameters.indexOf(paramRemove);
+	    if(iRemoveIndex<template.parameterCount())
+		return false;
+	    parameters.remove(iRemoveIndex);
+	    return true;
+	    
+ 	}catch(Exception e){
+ 	    return false;
+ 	}
+    } 
+
 
 }
