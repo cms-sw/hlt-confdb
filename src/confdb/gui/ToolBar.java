@@ -36,7 +36,7 @@ public class ToolBar
     private static final String cmdReplace     = "Search&Replace";
     private static final String cmdEditOM      = "Edit OutputModules";
     private static final String cmdEditPS      = "Edit Prescales";
-    
+    private static final String cmdEditML      = "Edit MessageLogger";
     
     private static final String cmdTrack = "Track InputTags";
     
@@ -62,6 +62,7 @@ public class ToolBar
     private JButton jButtonDiff        = new JButton();
     private JButton jButtonEditOM      = new JButton();
     private JButton jButtonEditPS      = new JButton();
+    private JButton jButtonEditML      = new JButton();
     
     private JToggleButton jButtonTrack = new JToggleButton();
     
@@ -103,6 +104,7 @@ public class ToolBar
 	jButtonDiff.setEnabled(true);
 	jButtonEditOM.setEnabled(true);
 	jButtonEditPS.setEnabled(true);
+	jButtonEditML.setEnabled(true);
 	jButtonExport.setEnabled(true);
 	jButtonTrack.setEnabled(true);
     }
@@ -121,6 +123,7 @@ public class ToolBar
 	//jButtonDiff.setEnabled(false);
 	jButtonEditOM.setEnabled(false);
 	jButtonEditPS.setEnabled(false);
+	jButtonEditML.setEnabled(false);
 	jButtonExport.setEnabled(false);
 	jButtonTrack.setEnabled(false);
     }
@@ -232,7 +235,14 @@ public class ToolBar
 	jButtonEditPS.setIcon(new ImageIcon(getClass().getResource("/EditPSIcon.png")));
 	jToolBar.add(jButtonEditPS);
 	
+	jButtonEditML.setActionCommand(cmdEditML);
+	jButtonEditML.addActionListener(listener);
+	jButtonEditML.setToolTipText("edit messagelogger");
+	jButtonEditML.setIcon(new ImageIcon(getClass().getResource("/EditPSIcon.png")));
+	jToolBar.add(jButtonEditML);
 	
+	
+
 	jToolBar.addSeparator();
 	
 	

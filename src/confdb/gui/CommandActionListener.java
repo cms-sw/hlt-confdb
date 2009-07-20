@@ -34,6 +34,8 @@ public class CommandActionListener implements ActionListener
     private static final String cmdDiff             = "Compare (Diff)";
     private static final String cmdOMEditor         = "Edit OutputModules";
     private static final String cmdPSEditor         = "Edit Prescales";
+    private static final String cmdMLEditor         = "Edit MessageLogger";
+
 
     private static final String cmdTrack            = "Track InputTags";
     
@@ -53,6 +55,8 @@ public class CommandActionListener implements ActionListener
 	AbstractButton source  = (AbstractButton)(e.getSource());
 	String         command = source.getActionCommand();
 	
+	System.out.println("In comand action listener");
+
 	if (command.equals(cmdAbout))            app.showAboutDialog();
 	if (command.equals(cmdQuit))             app.quitApplication();
 
@@ -72,6 +76,7 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdDiff))             app.diffConfigurations();
 	if (command.equals(cmdOMEditor))         app.openOutputModuleEditor();
 	if (command.equals(cmdPSEditor))         app.openPrescaleEditor();
+	if (command.equals(cmdMLEditor))         app.openMessageLoggerEditor();
 	
 	if (command.equals(cmdTrack)) app.setOptionTrackInputTags(source.
 								  isSelected());

@@ -40,6 +40,7 @@ public class MenuBar
     private static final String toolMenuDiff          = "Compare (Diff)";
     private static final String toolMenuOMEditor      = "Edit OutputModules";
     private static final String toolMenuPSEditor      = "Edit Prescales";
+    private static final String toolMenuMLEditor      = "Edit MessageLogger";
 
     /** menu bar item names: options */
     private static final String optionsMenuTrack      = "Track InputTags";
@@ -69,6 +70,7 @@ public class MenuBar
     private JMenuItem toolMenuReplaceItem       = null;
     private JMenuItem toolMenuOMEditorItem      = null;
     private JMenuItem toolMenuPSEditorItem      = null;
+    private JMenuItem toolMenuMLEditorItem      = null;
     
     private JCheckBoxMenuItem optionsMenuTrackItem = null;
 
@@ -110,6 +112,7 @@ public class MenuBar
 	toolMenuDiffItem.setEnabled(true);
 	toolMenuOMEditorItem.setEnabled(true);
 	toolMenuPSEditorItem.setEnabled(true);
+	toolMenuMLEditorItem.setEnabled(true);
 	optionsMenuTrackItem.setEnabled(true);
 	dbMenuExportItem.setEnabled(true);
     }
@@ -128,6 +131,7 @@ public class MenuBar
 	toolMenuReplaceItem.setEnabled(false);
 	toolMenuOMEditorItem.setEnabled(false);
 	toolMenuPSEditorItem.setEnabled(false);
+	toolMenuMLEditorItem.setEnabled(false);
 	optionsMenuTrackItem.setEnabled(false);
 	dbMenuExportItem.setEnabled(false);
     }
@@ -235,7 +239,13 @@ public class MenuBar
 	toolMenuPSEditorItem.setActionCommand(toolMenuPSEditor);
 	toolMenuPSEditorItem.addActionListener(listener);
 	toolMenu.add(toolMenuPSEditorItem);
+	toolMenuMLEditorItem = new JMenuItem(toolMenuMLEditor,KeyEvent.VK_Q);
+	toolMenuMLEditorItem.setActionCommand(toolMenuMLEditor);
+	toolMenuMLEditorItem.addActionListener(listener);
+	toolMenu.add(toolMenuMLEditorItem);
 	
+
+
 	JMenu optionsMenu = new JMenu("Options");
 	optionsMenu.setMnemonic(KeyEvent.VK_O);
 	jMenuBar.add(optionsMenu);

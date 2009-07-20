@@ -630,6 +630,21 @@ public class ConfDbGUI
 	    treeModelCurrentConfig.nodeStructureChanged(prescaleSvc);
     }
 
+
+            
+    /** open message logger */
+    public void openMessageLoggerEditor()
+    {
+ 	MessageLoggerDialog dialog = new MessageLoggerDialog(frame,currentConfig);
+ 	dialog.pack();
+ 	dialog.setLocationRelativeTo(frame);
+ 	dialog.setVisible(true);
+ 	
+ 	ServiceInstance messageLoggerSvc = currentConfig.service("MessageLoggerService");
+ 	if (messageLoggerSvc!=null)
+ 	    treeModelCurrentConfig.nodeStructureChanged(messageLoggerSvc);
+     }
+
     /** one another configuration to import components */
     public void importConfiguration()
     {
