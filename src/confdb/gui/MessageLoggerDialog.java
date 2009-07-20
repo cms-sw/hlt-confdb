@@ -125,6 +125,11 @@ public class MessageLoggerDialog extends JDialog
     {
        	int iTemp=jTabbedPaneMessageOutStreams.getSelectedIndex();
 	MessageLoggerPanel messageLoggerPanelRemove=(MessageLoggerPanel)jTabbedPaneMessageOutStreams.getSelectedComponent();
+	
+	if(!serviceMessage.removeUntrackedParameter(messageLoggerPanelRemove.pSetDestination))
+            return;
+
+	
 	jTabbedPaneMessageOutStreams.setSelectedIndex(iTemp-1);
 
 	int iDestVestorSize=parameterDestination.vectorSize();
@@ -137,7 +142,6 @@ public class MessageLoggerDialog extends JDialog
 	}
 	jTabbedPaneMessageOutStreams.removeTabAt(iTemp);
 	messageLoggerPanels.remove(iTemp);
-	serviceMessage.removeUntrackedParameter(messageLoggerPanelRemove.pSetDestination);
 	if(messageLoggerPanels.size()>1)
 	    jButtonRemoveCurrent.setVisible(true);
 	else
