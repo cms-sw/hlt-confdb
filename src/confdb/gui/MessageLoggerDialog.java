@@ -177,12 +177,13 @@ public class MessageLoggerDialog extends JDialog
 
     private void initMessageLogger(){
 	Iterator<ServiceInstance> itS = config.serviceIterator();
+	
 	while (itS.hasNext()){
 	    ServiceInstance service = itS.next();
 	    String         serviceName = service.name();
 	    if(serviceName.equals("MessageLogger")){
 		serviceMessage=service;
-		AddMessageLoggerDestination("Default",false);
+		AddMessageLoggerDestination("",false);
 		Iterator<Parameter> itP=service.parameterIterator();
 		ArrayList<Parameter> alP=new ArrayList<Parameter>();
 		Parameter.getParameters(itP,alP);
@@ -193,6 +194,8 @@ public class MessageLoggerDialog extends JDialog
 			parameterDestination=(VStringParameter)parameter;
 		       for(int i=0;i<parameterDestination.vectorSize();i++){
 			   String strDestination=(String)parameterDestination.value(i);
+			   if(strDestination.equals(""))
+			       continue;
 			   AddMessageLoggerDestination(strDestination,false);
 		       }
 		       return;
@@ -354,7 +357,7 @@ class MessageLoggerPanel extends JPanel
 	    
 	}else{
 
-	    if(strDestination.equals("Default")){
+	    if(strDestination.equals("")){
 		parameterDestination=serviceMessageLogger.parameterIterator();
 	    }else{
 		pSetDestination=(PSetParameter)serviceMessageLogger.parameter(strDestination);
@@ -433,7 +436,7 @@ class MessageLoggerPanel extends JPanel
 
 
 	if(parameterThreshold==null){
-	    if(strDestination.equals("Default")){
+	    if(strDestination.equals("")){
 		serviceMessageLogger.updateParameter("threshold","string","Info");
 		parameterThreshold=(StringParameter)serviceMessageLogger.parameter("threshold");
 	    }else{
@@ -446,7 +449,7 @@ class MessageLoggerPanel extends JPanel
 
 	
 	if(parameterLimit==null){
-	    if(strDestination.equals("Default")){
+	    if(strDestination.equals("")){
 		serviceMessageLogger.updateParameter("limit","string","");
 		parameterLimit=(StringParameter)serviceMessageLogger.parameter("limit");
 	    }else{
@@ -458,7 +461,7 @@ class MessageLoggerPanel extends JPanel
 
 
 	if(parameterSpan==null){
-	    if(strDestination.equals("Default")){
+	    if(strDestination.equals("")){
 		serviceMessageLogger.updateParameter("timespan","string","");
 		parameterSpan=(StringParameter)serviceMessageLogger.parameter("timespan");
 	    }else{
@@ -469,10 +472,9 @@ class MessageLoggerPanel extends JPanel
 	}
 
 	if(parameterSupressInfo==null){
-	    if(strDestination.equals("Default")){
+	    if(strDestination.equals("")){
 		serviceMessageLogger.updateParameter("suppressInfo","vstring","");
 		parameterSupressInfo=(VStringParameter)serviceMessageLogger.parameter("suppressInfo");
-		System.out.println("In threshold "+parameterSupressInfo.fullName());
 	    }else{
 		parameterSupressInfo=new VStringParameter("suppressInfo","",false,false);
 		pSetDestination.addParameter(parameterSupressInfo);
@@ -482,7 +484,7 @@ class MessageLoggerPanel extends JPanel
 	
 	if(parameterSupressWarning==null){
 	   
-	    if(strDestination.equals("Default")){
+	    if(strDestination.equals("")){
 		serviceMessageLogger.updateParameter("suppressWarning","vstring","");
 		parameterSupressWarning=(VStringParameter)serviceMessageLogger.parameter("suppressWarning");
 	    }else{
@@ -492,7 +494,7 @@ class MessageLoggerPanel extends JPanel
 	}
 	if(parameterSupressDebug==null){
 	   
-	    if(strDestination.equals("Default")){
+	    if(strDestination.equals("")){
 		serviceMessageLogger.updateParameter("suppressDebug","vstring","");
 		parameterSupressDebug=(VStringParameter)serviceMessageLogger.parameter("suppressDebug");
 	    }else{
