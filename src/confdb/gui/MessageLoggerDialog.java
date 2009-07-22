@@ -79,7 +79,8 @@ public class MessageLoggerDialog extends JDialog
 	    });
 	
 	setContentPane(initComponents());
-	initMessageLogger();
+	if(!initMessageLogger())
+	    setVisible(false);
     }
 
 
@@ -108,8 +109,18 @@ public class MessageLoggerDialog extends JDialog
     private void jButtonAddActionPerformed(ActionEvent e)
     {
 	
-	
-	String stringMesLogDestinationName = JOptionPane.showInputDialog("Enter destination "); 
+	String stringMesLogDestinationName;
+	while(true){
+	    stringMesLogDestinationName = JOptionPane.showInputDialog("Enter destination "); 
+	    System.out.println(stringMesLogDestinationName);
+	    if(stringMesLogDestinationName==null)
+		return;
+	    if(stringMesLogDestinationName.matches("[a-zA-Z0-9]+"))
+		break;
+	    else
+		JOptionPane.showMessageDialog(null,"Please enter alpha-numeric charecters for the destination name.","Warning",JOptionPane.ERROR_MESSAGE); 
+	       
+	}
 	
 	if(stringMesLogDestinationName.equals("")||stringMesLogDestinationName.equals("MessageLogger"))
 	    return;
@@ -175,36 +186,32 @@ public class MessageLoggerDialog extends JDialog
     }
 
 
-    private void initMessageLogger(){
-	Iterator<ServiceInstance> itS = config.serviceIterator();
-	
-	while (itS.hasNext()){
-	    ServiceInstance service = itS.next();
-	    String         serviceName = service.name();
-	    if(serviceName.equals("MessageLogger")){
-		serviceMessage=service;
-		AddMessageLoggerDestination("",false);
-		Iterator<Parameter> itP=service.parameterIterator();
-		ArrayList<Parameter> alP=new ArrayList<Parameter>();
-		Parameter.getParameters(itP,alP);
-		for(Parameter parameter : alP){
-		    String    parameterName = parameter.name();
-		    String    parameterType = parameter.type();
-		    if(parameterName.equals("destinations")){
-			parameterDestination=(VStringParameter)parameter;
-		       for(int i=0;i<parameterDestination.vectorSize();i++){
-			   String strDestination=(String)parameterDestination.value(i);
-			   if(strDestination.equals(""))
-			       continue;
-			   AddMessageLoggerDestination(strDestination,false);
-		       }
-		       return;
-		    }
+    private boolean initMessageLogger(){
+
+	serviceMessage=config.service("MessageLogger");
+	if(serviceMessage==null)
+	    return false;
+	AddMessageLoggerDestination("",false);
+	Iterator<Parameter> itP=serviceMessage.parameterIterator();
+	ArrayList<Parameter> alP=new ArrayList<Parameter>();
+	Parameter.getParameters(itP,alP);
+	for(Parameter parameter : alP){
+	    String    parameterName = parameter.name();
+	    String    parameterType = parameter.type();
+	    if(parameterName.equals("destinations")){
+		parameterDestination=(VStringParameter)parameter;
+		for(int i=0;i<parameterDestination.vectorSize();i++){
+		    String strDestination=(String)parameterDestination.value(i);
+		    if(strDestination.equals(""))
+			continue;
+		    AddMessageLoggerDestination(strDestination,false);
 		}
-		
-		return;
+		return true;
 	    }
 	}
+	
+	/*instantiate destinations parameter here*/
+	return true;
     }
 
 

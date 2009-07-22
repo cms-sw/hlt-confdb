@@ -635,14 +635,24 @@ public class ConfDbGUI
     /** open message logger */
     public void openMessageLoggerEditor()
     {
+
+	ServiceInstance messageLoggerSvc = currentConfig.service("MessageLogger");
+
+	if (messageLoggerSvc==null){
+	    return;
+	}
+
  	MessageLoggerDialog dialog = new MessageLoggerDialog(frame,currentConfig);
  	dialog.pack();
  	dialog.setLocationRelativeTo(frame);
- 	dialog.setVisible(true);
+	dialog.setVisible(true);
+
+	
+ 	if (messageLoggerSvc!=null){
+     	    treeModelCurrentConfig.nodeStructureChanged(messageLoggerSvc);   
+	}
  	
- 	ServiceInstance messageLoggerSvc = currentConfig.service("MessageLoggerService");
- 	if (messageLoggerSvc!=null)
- 	    treeModelCurrentConfig.nodeStructureChanged(messageLoggerSvc);
+ 
      }
 
     /** one another configuration to import components */
