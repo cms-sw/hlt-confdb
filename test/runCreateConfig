@@ -1,4 +1,4 @@
-#! /usr/bin/perl
+#! /usr/bin/env perl
 
 
 ################################################################################
@@ -10,9 +10,7 @@
 ################################################################################
 
 
-my $dbType;
 my $dbHost;
-my $dbPort;
 my $dbName;
 my $dbUser;
 my $dbPwrd;
@@ -23,8 +21,7 @@ my $newName;
 
 my $cmd = 
     "java " .
-    "-cp ../ext/ojdbc14.jar:../ext/mysql-connector-java-5.0.5-bin.jar:" .
-    "../lib/cmssw-evf-confdb-gui.jar " .
+    "-cp ../ext/ojdbc14.jar:../lib/cmssw-evf-confdb-gui.jar " .
     "confdb.db.ConfDBCreateConfig ";
 
 
@@ -34,27 +31,33 @@ while (@ARGV)
     my $arg = shift @ARGV;
     if ($arg eq "--hltdev")
     {
-	$dbType = "oracle";
 	$dbHost = "cmsr1-v.cern.ch";
-	$dbPort = "10121";
 	$dbName = "cms_cond.cern.ch";
 	$dbUser = "cms_hltdev_writer";
     }
     elsif ($arg eq "--rcms")
     {
-	$dbType = "oracle";
 	$dbHost = "cmsonr1-v.cms";
-	$dbPort = "10121";
 	$dbName = "cms_rcms.cern.ch";
 	$dbUser = "cms_hlt_w";
     }
     elsif ($arg eq "--rcms_ssh")
     {
-	$dbType = "oracle";
 	$dbHost = "localhost";
-	$dbPort = "10121";
 	$dbName = "cms_rcms.cern.ch";
 	$dbUser = "cms_hlt_w";
+    }
+    elsif ($arg eq "--int2r")
+    {
+	$dbHost = "int2r1-v.cern.ch";
+	$dbName = "int2r_nolb.cern.ch";
+	$dbUser = "cms_hlt_writer";
+    }
+    elsif ($arg eq "--int9r")
+    {
+	$dbHost = "int9r1-v.cern.ch";
+	$dbName = "int9r_nolb.cern.ch";
+	$dbUser = "cms_hlt_writer";
     }
     elsif ($arg eq "--dbpwrd") { $dbPwrd     = shift @ARGV; }
     elsif ($arg eq "--master") { $masterName = shift @ARGV; }
@@ -62,14 +65,14 @@ while (@ARGV)
     elsif ($arg eq "--name")   { $newName    = shift @ARGV; }
 }
 
-die "no db specified (--hltdev / --rcms / --rcms_ssh)" if ($dbType eq "");
+die "no db specified (--hltdev / --rcms / --rcms_ssh)" if ($dbHost eq "");
 die "no password specified (--dbpwrd)"                 if ($dbPwrd eq "");
 die "no master specified (--master)"                   if ($masterName eq "");
 die "no path-list specified (--paths)"                 if ($pathList eq "");
 die "no name specified (--name)"                       if ($newName eq "");
 
 $cmd = $cmd .
-    "-t $dbType -h $dbHost -p $dbPort -d $dbName -u $dbUser -s $dbPwrd " .
+    "-h $dbHost -d $dbName -u $dbUser -s $dbPwrd " .
     "-m $masterName --paths $pathList -n $newName";
     
 print $cmd . "\n";

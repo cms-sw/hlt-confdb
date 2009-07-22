@@ -98,7 +98,7 @@ public class ConfDBCreateConfig
 
 	    // check that master configuration exists
 	    int configId = database.getConfigId(masterConfigName);
-	    System.out.println("GOOD, found master config "+masterConfigName+".");
+	    System.out.println("GOOD, found master config "+masterConfigName);
 
 	    // check that directory of new configuration exists
 	    String dirName
@@ -106,24 +106,13 @@ public class ConfDBCreateConfig
 	    int dirId = database.getDirectoryId(dirName);
 	    System.out.println("GOOD, directory "+dirName+" does exist.");
 	    Directory dir = database.getDirectoryHashMap().get(dirId);
-	    
-	    // check that new configuration does *not* exist
-	    int checkId=-1;
-	    try {
-		checkId = database.getConfigId(newConfigName);
-	    }
-	    catch (DatabaseException e) {
-		System.out.println("GOOD, "+newConfigName+" does not yet exist.");
-	    }
-	    if (checkId>=0) {
-		String errmsg = newConfigName + " exists already!";
-		throw new Exception(errmsg);
-	    }
+
 	    
 	    // load master configuration
 	    Configuration masterConfig = database.loadConfiguration(configId);
 	    System.out.println("GOOD, "+masterConfigName+" loaded.");
 
+	    
 	    // decode path list
 	    HashSet<String> pathsToInclude = new HashSet<String>();
 	    if (pathList.endsWith(".txt")) {
@@ -132,7 +121,11 @@ public class ConfDBCreateConfig
 		try {
 		    String line = null;
 		    while (( line = input.readLine()) != null) {
-			pathsToInclude.add(line);
+			int index = line.indexOf('#');
+			if (index>=0) line = line.substring(0,index);
+			String[] paths = line.split(" ");
+			for (String path : paths)
+			    if (path.length()>0) pathsToInclude.add(path);
 		    }
 		}
 		finally {
@@ -141,7 +134,7 @@ public class ConfDBCreateConfig
 	    }
 	    else {
 		String[] paths = pathList.split(",");
-		for (String s : paths) pathsToInclude.add(s);
+		for (String path : paths) pathsToInclude.add(path);
 	    }
 	    if (pathsToInclude.size()==0) {
 		String errmsg = "No paths specified to be included!";
@@ -150,6 +143,30 @@ public class ConfDBCreateConfig
 	    System.out.println("GOOD, the following paths will be included:");
 	    Iterator<String> it = pathsToInclude.iterator();
 	    while (it.hasNext()) System.out.println(it.next());
+	    
+	    // remove paths from PrescaleService which are not in the list
+	    ServiceInstance pss = masterConfig.service("PrescaleService");
+	    if (pss!=null) {
+		VPSetParameter psTable =
+		    (VPSetParameter)pss.parameter("prescaleTable");
+		if (psTable!=null) {
+		    ArrayList<PSetParameter> psetsToRemove
+			= new ArrayList<PSetParameter>();
+		    Iterator<PSetParameter> itPSet = psTable.psetIterator();
+		    while (itPSet.hasNext()) {
+			PSetParameter pset = itPSet.next();
+			StringParameter pPathName = 
+			    (StringParameter)pset.parameter("pathName");
+			String pathName = (String)pPathName.value();
+			if (pathName!=null&&!pathsToInclude.contains(pathName))
+			    psetsToRemove.add(pset);
+		    }
+		    Iterator<PSetParameter> itRmv = psetsToRemove.iterator();
+		    while (itRmv.hasNext())
+			psTable.removeParameterSet(itRmv.next());
+		}
+		pss.setHasChanged();
+	    }
 	    
 	    // remove paths which are not in the list
 	    ArrayList<String> pathNames = new ArrayList<String>();
@@ -166,6 +183,7 @@ public class ConfDBCreateConfig
 		else pathsToInclude.remove(pathName);
 	    }
 	    
+
 	    // check that all specified paths were found
 	    if (pathsToInclude.size()!=0) {
 		StringBuffer sberrmsg = new StringBuffer();
@@ -175,23 +193,44 @@ public class ConfDBCreateConfig
 		throw new Exception(sberrmsg.toString());
 	    }
 
+	    
+	    // remove unreferenced sequences
+	    ArrayList<Sequence> toBeRemoved = new ArrayList<Sequence>();
+	    Iterator<Sequence> itSeq = masterConfig.sequenceIterator();
+	    while (itSeq.hasNext()) {
+		Sequence sequence = itSeq.next();
+		if (sequence.parentPaths().length==0)
+		    toBeRemoved.add(sequence);
+	    }
+	    Iterator<Sequence> itRmv = toBeRemoved.iterator();
+	    while (itRmv.hasNext()) masterConfig.removeSequence(itRmv.next());
+	    
+	    
 	    // save the configuration under the new name
 	    String configName  = newConfigName.substring(dirName.length()+1);
 	    String userName    = System.getProperty("user.name");
 	    String processName = masterConfig.processName();
 	    String releaseTag  = masterConfig.releaseTag();
-	    String comment     = "Created using ConfDBCreateConfig.";
+	    String comment     = "Created by ConfDBCreateConfig " +
+		"from master "+masterConfig+".";
 	    
-	    ConfigInfo ci = new ConfigInfo(configName,dir,releaseTag);
-	    masterConfig.setConfigInfo(ci);
-
-	    System.out.println("configName = " + configName);
+	    try {
+		int newConfigId = database.getConfigId(newConfigName);
+		ConfigInfo ci = database.getConfigInfo(newConfigId);
+		masterConfig.setConfigInfo(ci);
+	    }
+	    catch (DatabaseException e) {
+		ConfigInfo ci = new ConfigInfo(configName,dir,releaseTag);
+		masterConfig.setConfigInfo(ci);
+	    }
 	    
 	    System.out.println("Store new configuration ...");
 	    long startTime = System.currentTimeMillis();
-	    database.insertConfiguration(masterConfig,userName,processName,comment);
+	    database.insertConfiguration(masterConfig,
+					 userName,processName,comment);
 	    long elapsedTime = System.currentTimeMillis() - startTime;
-	    System.out.println(newConfigName+" STORED (" + elapsedTime + ")");
+	    System.out.println("... stored as "+masterConfig+
+			       " (" + elapsedTime + " seconds)");
 	}
 	catch (DatabaseException e) {
 	    System.err.println("Failed to connet to DB: " + e.getMessage());

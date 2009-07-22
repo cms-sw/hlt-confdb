@@ -1264,7 +1264,6 @@ public class ConfDB
 	    
 	    // insert global psets
 	    insertGlobalPSets(configId,config);
-	    System.err.println("global PSets inserted!");
 	    
 	    // insert edsource
 	    insertEDSources(configId,config);
