@@ -1,0 +1,34 @@
+Module EDProducer EcalRawToRecHitProducer EventFilter EcalRawToDigi
+EcalRawToRecHitProducer.Parameter rechitCollection string "NotNeededsplitOutputTrue" tracked
+
+Module EDFilter SeedCombiner RecoTracker TkSeedGenerator
+SeedCombiner.Parameter clusterRemovalInfos VInputTag {} tracked
+
+Module EDFilter EgammaSCCorrectionMaker RecoEcal EgammaClusterProducers
+EgammaSCCorrectionMaker.Parameter dyn_fCorrPset PSet tracked
+EgammaSCCorrectionMaker.Parameter hyb_fCorrPset PSet tracked
+EgammaSCCorrectionMaker.Parameter isl_fCorrPset PSet tracked
+
+Module EDFilter EcalRawToRecHitRoI EventFilter EcalRawToDigi
+EcalRawToRecHitRoI.Parameter sourceTag_es InputTag hltESRawToRecHitFacility tracked
+EcalRawToRecHitRoI.Parameter doES bool true tracked
+EcalRawToRecHitRoI.Parameter esInstance string "es" tracked
+EcalRawToRecHitRoI.Parameter MuJobPSet PSet tracked 
+
+Module EDFilter CkfTrajectoryMaker RecoTracker CkfPattern
+CkfTrajectoryMaker.Parameter cleanTrajectoryAfterInOut bool false tracked
+
+Module EDFilter IsolatedPixelTrackCandidateProducer Calibration HcalIsolatedTrackReco
+IsolatedPixelTrackCandidateProducer.Parameter VertexLabel InputTag hltPixelVertices tracked
+IsolatedPixelTrackCandidateProducer.Parameter PixelIsolationConeSizeHE double 0.5 tracked 
+IsolatedPixelTrackCandidateProducer.Parameter maxPtTrackForIsolation double 5.0 tracked 
+IsolatedPixelTrackCandidateProducer.Parameter MaxVtxDXYIsol double 10.0 tracked 
+IsolatedPixelTrackCandidateProducer.Parameter PixelIsolationConeSizeHB double 0.3 tracked 
+IsolatedPixelTrackCandidateProducer.Parameter minPtTrack double 2.0 tracked 
+IsolatedPixelTrackCandidateProducer.Parameter MaxVtxDXYSeed double 0.05 tracked 
+
+Module EDFilter IPTCorrector Calibration HcalIsolatedTrackReco
+HcalIsolatedTrackReco.Parameter corrIsolMaxP double 0.9 tracked
+HcalIsolatedTrackReco.Parameter corrIsolRadiusHE double 0.3 tracked 
+HcalIsolatedTrackReco.Parameter corrIsolRadiusHB double 0.3 tracked  
+

@@ -11,6 +11,7 @@ def main(argv):
         if(thefile.endswith("_cfi.py")):
             oldfilename = curdir + "/" + thefile
             newfilename = curdir + "/" + thefile + "_temp"
+            truncatedfilename = thefile.split("_cfi.py")[0]
             oldfile = open(oldfilename)
             newfile = open(newfilename, 'w')
             
@@ -18,6 +19,16 @@ def main(argv):
             linenum = 1
 
             for line in lines:
+                if(line.find(' = cms.ED') != -1):
+                    instancename = line.split('= cms.ED')[0]
+                    line = line.replace(instancename,truncatedfilename)
+                if(line.find(' = cms.ES') != -1):
+                    instancename = line.split('= cms.ES')[0]
+                    line = line.replace(instancename,truncatedfilename)
+                if(line.find(' = cms.Service') != -1):
+                    instancename = line.split('= cms.Service')[0]
+                    line = line.replace(instancename,truncatedfilename)                                        
+                    
                 if((linenum < 3) or (linenum > 3 and linenum < 9)):
                     print line
                 else:

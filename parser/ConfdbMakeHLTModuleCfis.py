@@ -24,7 +24,7 @@ def main(argv):
     input_host = "CMS_ORCOFF_PROD" 
     
     input_addtorelease = "none"
-    input_release = "CMSSW_3_1_0"
+    input_release = "CMSSW_3_2_0"
 
     opts, args = getopt.getopt(sys.argv[1:], "r:v:d:u:s:oh", ["release=","verbose=","dbname=","user=","password=","dbtype=","hostname=",])
 
@@ -63,7 +63,7 @@ class ConfdbMakeHLTModuleCfis:
         self.verbose = cliverbose
         self.release = clirel
         self.moduleconfigdict = {}
-        self.theconfig = '/dev/CMSSW_3_1_0/pre11/HLT/V2'        
+        self.theconfig = '/dev/CMSSW_3_2_0/HLT/V2'        
         
         # Track CVS tags
         self.tagtuple = []
@@ -167,7 +167,7 @@ class ConfdbMakeHLTModuleCfis:
         movecommands = []
 
         print '\n\n\n'
-        #        self.theconfig = '/dev/CMSSW_3_1_0/pre11/HLT/V1'
+        #        self.theconfig = '/dev/CMSSW_3_2_0/pre11/HLT/V1'
         for thecvstag, thepackagesubsysname, theplugin, theinst in sortedtagtuple:
             foundtemplates = foundtemplates + 1
             if(theplugin.startswith('HLT')):
