@@ -1,3 +1,5 @@
+
+
 package confdb.data;
 
 import java.util.ArrayList;
@@ -251,6 +253,7 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 	    Parameter parameterNew = ParameterFactory.create(type, name,valueAsString,false,false);
 	    System.out.println("Adding an untracked parameter with out any default value");
 	    parameters.add(parameterNew);
+	    parameterNew.setParent(this);
 	    setHasChanged();
 	    return true;
 	}
