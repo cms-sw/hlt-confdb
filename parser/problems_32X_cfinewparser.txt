@@ -18,7 +18,7 @@ EcalRawToRecHitRoI.Parameter MuJobPSet PSet tracked
 Module EDFilter CkfTrajectoryMaker RecoTracker CkfPattern
 CkfTrajectoryMaker.Parameter cleanTrajectoryAfterInOut bool false tracked
 
-Module EDFilter IsolatedPixelTrackCandidateProducer Calibration HcalIsolatedTrackReco
+Module EDProducer IsolatedPixelTrackCandidateProducer Calibration HcalIsolatedTrackReco
 IsolatedPixelTrackCandidateProducer.Parameter VertexLabel InputTag hltPixelVertices tracked
 IsolatedPixelTrackCandidateProducer.Parameter PixelIsolationConeSizeHE double 0.5 tracked 
 IsolatedPixelTrackCandidateProducer.Parameter maxPtTrackForIsolation double 5.0 tracked 
