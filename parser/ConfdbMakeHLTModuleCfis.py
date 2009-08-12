@@ -24,7 +24,7 @@ def main(argv):
     input_host = "CMS_ORCOFF_PROD" 
     
     input_addtorelease = "none"
-    input_release = "CMSSW_3_2_1"
+    input_release = "CMSSW_3_2_4"
 
     opts, args = getopt.getopt(sys.argv[1:], "r:v:d:u:s:oh", ["release=","verbose=","dbname=","user=","password=","dbtype=","hostname=",])
 
@@ -64,7 +64,8 @@ class ConfdbMakeHLTModuleCfis:
         self.release = clirel
         self.moduleconfigdict = {}
         #        self.theconfig = '/dev/CMSSW_3_2_0/HLT/V2'        
-        self.theconfig = '/user/fwyzard/test/tool_test2/HLT/V1'
+        #        self.theconfig = '/user/fwyzard/test/tool_test2/HLT/V1'
+        self.theconfig = '/dev/CMSSW_3_2_4/HLT/V2'
         
         # Track CVS tags
         self.tagtuple = []
@@ -168,7 +169,6 @@ class ConfdbMakeHLTModuleCfis:
         movecommands = []
 
         print '\n\n\n'
-        #        self.theconfig = '/dev/CMSSW_3_2_0/pre11/HLT/V1'
         for thecvstag, thepackagesubsysname, theplugin, theinst in sortedtagtuple:
             foundtemplates = foundtemplates + 1
             if(theplugin.startswith('HLT')):
@@ -200,6 +200,9 @@ class ConfdbMakeHLTModuleCfis:
         conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltL2MuonIsolations > /tmp/jjhollar/L2MuonIsolationProducer_cfi.py'
         print conffromdbstr
         os.system(conffromdbstr)                   
+        conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltMuonPointingFilter > /tmp/jjhollar/HLTMuonPointingFilter_cfi.py'
+        print conffromdbstr
+        os.system(conffromdbstr)                   
         # End special cases from other packages
         
         print 'python ConfdbFixExtractedCfis.py'
@@ -225,6 +228,9 @@ class ConfdbMakeHLTModuleCfis:
         print movecommand
         os.system(movecommand)
         movecommand = 'mv /tmp/jjhollar/L2MuonIsolationProducer_cfi.py ../../../RecoMuon/L2MuonIsolationProducer/python/.'
+        print movecommand
+        os.system(movecommand)
+        movecommand = 'mv /tmp/jjhollar/HLTMuonPointingFilter_cfi.py ../../../EventFilter/Cosmics/python/.'
         print movecommand
         os.system(movecommand)
         # End special cases from other packages        

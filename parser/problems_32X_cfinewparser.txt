@@ -18,17 +18,12 @@ EcalRawToRecHitRoI.Parameter MuJobPSet PSet tracked
 Module EDFilter CkfTrajectoryMaker RecoTracker CkfPattern
 CkfTrajectoryMaker.Parameter cleanTrajectoryAfterInOut bool false tracked
 
-Module EDProducer IsolatedPixelTrackCandidateProducer Calibration HcalIsolatedTrackReco
-IsolatedPixelTrackCandidateProducer.Parameter VertexLabel InputTag hltPixelVertices tracked
-IsolatedPixelTrackCandidateProducer.Parameter PixelIsolationConeSizeHE double 0.5 tracked 
-IsolatedPixelTrackCandidateProducer.Parameter maxPtTrackForIsolation double 5.0 tracked 
-IsolatedPixelTrackCandidateProducer.Parameter MaxVtxDXYIsol double 10.0 tracked 
-IsolatedPixelTrackCandidateProducer.Parameter PixelIsolationConeSizeHB double 0.3 tracked 
-IsolatedPixelTrackCandidateProducer.Parameter minPtTrack double 2.0 tracked 
-IsolatedPixelTrackCandidateProducer.Parameter MaxVtxDXYSeed double 0.05 tracked 
+Module EDProducer LargestEtCaloJetSelector CommonTools RecoAlgos
+LargestEtCaloJetSelector.Parameter src InputTag hltMCJetCorJetIcone5HF07 tracked
+LargestEtCaloJetSelector.Parameter filter bool false tracked
+LargestEtCaloJetSelector.Parameter maxNumber uint32 4 tracked
 
-Module EDFilter IPTCorrector Calibration HcalIsolatedTrackReco
-HcalIsolatedTrackReco.Parameter corrIsolMaxP double 0.9 tracked
-HcalIsolatedTrackReco.Parameter corrIsolRadiusHE double 0.3 tracked 
-HcalIsolatedTrackReco.Parameter corrIsolRadiusHB double 0.3 tracked  
-
+Module EDProducer EtMinCaloJetSelector CommonTools RecoAlgos 
+EtMinCaloJetSelector.Parameter src InputTag hltSelector4JetsU tracked 
+EtMinCaloJetSelector.Parameter filter bool false tracked 
+EtMinCaloJetSelector.Parameter etMin double 10.0 tracked
