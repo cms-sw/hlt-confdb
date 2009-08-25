@@ -238,7 +238,7 @@ public class ToolBar
 	jButtonEditML.setActionCommand(cmdEditML);
 	jButtonEditML.addActionListener(listener);
 	jButtonEditML.setToolTipText("edit messagelogger");
-	jButtonEditML.setIcon(new ImageIcon(getClass().getResource("/EditPSIcon.png")));
+	jButtonEditML.setIcon(new ImageIcon(getClass().getResource("/MessageIcon.png")));
 	jToolBar.add(jButtonEditML);
 	
 	
