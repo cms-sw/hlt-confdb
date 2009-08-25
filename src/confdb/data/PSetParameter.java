@@ -153,7 +153,10 @@ public class PSetParameter extends Parameter
 	    Instance instance = (Instance)parent();
 	    Template template = instance.template();
 	    String defaultAsString = template.parameter(name()).valueAsString();
-	    isDefault = defaultAsString.equals(valueAsString());
+	    if(defaultAsString==null)
+		isDefault=false;
+            else 
+	    	isDefault = defaultAsString.equals(valueAsString());
 	}
 	else{
 	    isDefault = false;
