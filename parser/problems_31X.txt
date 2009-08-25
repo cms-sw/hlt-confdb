@@ -213,6 +213,7 @@ TrackProducer.Parameter src InputTag l1NonIsoLargeWindowElectronsRegionalCkfTrac
 TrackProducer.Parameter beamSpot InputTag offlineBeamSpot tracked
 TrackProducer.Parameter TTRHBuilder string "WithTrackAngle" tracked
 TrackProducer.Parameter AlgorithmName string "undefAlgorithm" tracked
+TrackProducer.Parameter NavigationSchool string "" tracked
 
 Module EDProducer KtJetProducer RecoJets JetProducers
 KtJetProducer.Parameter verbose bool false untracked
