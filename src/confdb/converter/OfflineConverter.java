@@ -62,6 +62,25 @@ public class OfflineConverter extends ConverterBase
     }
     
     /** retrieve the configuration string for the given configId */
+    public String getConfigString(String configName,
+				  String format,
+				  ModifierInstructions modifications,
+				  boolean asFragment)
+	throws ConverterException
+    {
+	try {
+	    int configId = getDatabase().getConfigId(configName);
+	    return getConfigString(configId,format,modifications,asFragment);
+	}
+	catch (DatabaseException e) {
+	    String errMsg =
+		"OfflineConverter::getConfigString(configName="+configName+
+		",modifications,asFragment="+asFragment+") failed.";
+	    throw new ConverterException(errMsg,e);
+	}
+    }
+    
+    /** retrieve the configuration string for the given configId */
     public String getConfigString(int configId,
 				  ModifierInstructions modifications,
 				  boolean asFragment)
@@ -71,14 +90,16 @@ public class OfflineConverter extends ConverterBase
 	return getConfigString(config,modifications,asFragment);
     }
     
+    
     /** retrieve the configuration string for an IConfiguration object */
     public String getConfigString(IConfiguration config,
 			  ModifierInstructions modifications,
 			  boolean asFragment) throws ConverterException
-	{
+    {
     	return getConfigString(config, null, modifications, asFragment);
-	}
-
+    }
+    
+    /** retrieve the configuration string for an IConfiguration object */
     public String getConfigString(IConfiguration config,
 				  String format,
 				  ModifierInstructions modifications,
@@ -103,6 +124,7 @@ public class OfflineConverter extends ConverterBase
 	    return engine.getConfigurationWriter().toString(modifier,WriteProcess.YES);
     }
     
+    /** retrieve the configuration string for the given configId */
     public String getConfigString(int configId,
 				  String format,
 				  ModifierInstructions modifications,
@@ -168,17 +190,17 @@ public class OfflineConverter extends ConverterBase
     //
     public static void main(String[] args)
     {
-	String  configId    =          "";
-	String  configName  =          "";
-	String  format      =     "ascii";
-	boolean asFragment  =       false;
+	String  configId    =                  "";
+	String  configName  =                  "";
+	String  format      =            "python";
+	boolean asFragment  =               false;
 
-	String  dbType      =     "mysql";
-	String  dbHost      = "localhost";
-	String  dbPort      =      "3306";
-	String  dbName      =     "hltdb";
-	String  dbUser      =          "";
-	String  dbPwrd      =          "";
+	String  dbType      =            "oracle";
+	String  dbHost      =   "cmsr1-v.cern.ch";
+	String  dbPort      =             "10121";
+	String  dbName      =  "cms_cond.cern.ch";
+	String  dbUser      = "cms_hltdev_reader";
+	String  dbPwrd      =                  "";
 
 	HashMap<String,String> cnvArgs = new HashMap<String,String>();
 	
@@ -273,10 +295,12 @@ public class OfflineConverter extends ConverterBase
 		new OfflineConverter(format,dbType,dbUrl,dbUser,dbPwrd);
 	    if (configId.length()>0)
 		System.out.println(cnv.getConfigString(Integer.parseInt(configId),
+						       format,
 						       modifications,
 						       asFragment));
 	    else
 		System.out.println(cnv.getConfigString(configName,
+						       format,
 						       modifications,
 						       asFragment));
 	    
