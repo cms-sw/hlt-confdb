@@ -186,5 +186,8 @@ public class ConfigInfo implements Comparable<ConfigInfo>
     }
     
     /** set the parent directory */
-    public void setParentDir(Directory parentDir) { this.parentDir = parentDir; }
+    public void setParentDir(Directory parentDir){this.parentDir=parentDir;}
+
+    /** set the release tag */
+    public void setReleaseTag(String releaseTag){this.releaseTag=releaseTag;}
 }

@@ -142,13 +142,18 @@ public class Configuration implements IConfiguration
     /** set the configuration info */
     public void setConfigInfo(ConfigInfo configInfo)
     {
-	if (!configInfo.releaseTag().equals(releaseTag())) {
-	    System.err.println("Configuration.setConfigInfo ERROR: "+
-			       "releaseTag mismatch (" +
-			       releaseTag() + " / " +
-			       configInfo.releaseTag() + ")");
-	}
+	if (!configInfo.releaseTag().equals(releaseTag()))
+	    configInfo.setReleaseTag(releaseTag());
 	this.configInfo = configInfo;
+	
+	/*
+	  if (!configInfo.releaseTag().equals(releaseTag())) {
+	  System.err.println("Configuration.setConfigInfo ERROR: "+
+	  "releaseTag mismatch (" +
+	  releaseTag() + " / " +
+	  configInfo.releaseTag() + ")");
+	  }
+	*/
     }
     
     /** overlaod toString() */
