@@ -24,7 +24,8 @@ def main(argv):
     input_host = "CMS_ORCOFF_PROD" 
     
     input_addtorelease = "none"
-    input_release = "CMSSW_3_2_4"
+    input_release = "CMSSW_3_3_X_2009-08-24-1300_HLT3"
+    #    CMSSW_3_3_0_pre1"
 
     opts, args = getopt.getopt(sys.argv[1:], "r:v:d:u:s:oh", ["release=","verbose=","dbname=","user=","password=","dbtype=","hostname=",])
 
@@ -65,11 +66,12 @@ class ConfdbMakeHLTModuleCfis:
         self.moduleconfigdict = {}
         #        self.theconfig = '/dev/CMSSW_3_2_0/HLT/V2'        
         #        self.theconfig = '/user/fwyzard/test/tool_test2/HLT/V1'
-        self.theconfig = '/dev/CMSSW_3_2_4/HLT/V2'
+        self.theconfig = '/dev/CMSSW_3_3_0/pre1/HLT/V10'
         
         # Track CVS tags
         self.tagtuple = []
         self.alreadyadded = []
+        self.changelog = []
         
         # Get a Conf DB connection here. Only need to do this once at the
         # beginning of a job.
@@ -179,18 +181,19 @@ class ConfdbMakeHLTModuleCfis:
                 if(os.path.isdir('../../../' + str(thepackagesubsysname) + '/python/.')):
                    movecommands.append('mv /tmp/jjhollar/' + str(theplugin) + '_cfi.py ../../../' + str(thepackagesubsysname) + '/python/.')
                    os.system(conffromdbstr)
+                   self.changelog.append(str(thepackagesubsysname) + '/python/' + str(theplugin) + '_cfi.py')
                 usedtemplates = usedtemplates + 1
 
         # Special cases from other packages
-        conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltL25TauLeadingTrackPtCutSelector > /tmp/jjhollar/IsolatedTauJetsSelector_cfi.py'
-        print conffromdbstr
-        os.system(conffromdbstr)                   
-        conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltL1HLTDoubleLooseIsoTau15JetsMatch > /tmp/jjhollar/L1HLTJetsMatching_cfi.py'
-        print conffromdbstr        
-        os.system(conffromdbstr)                   
-        conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltIterativeCone5PileupSubtractionCaloJets  > /tmp/jjhollar/IterativeConePilupSubtractionJetProducer_cfi.py'        
-        print conffromdbstr        
-        os.system(conffromdbstr)                   
+#        conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltL25TauLeadingTrackPtCutSelector > /tmp/jjhollar/IsolatedTauJetsSelector_cfi.py'
+#        print conffromdbstr
+#        os.system(conffromdbstr)                   
+#        conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltL1HLTDoubleLooseIsoTau15JetsMatch > /tmp/jjhollar/L1HLTJetsMatching_cfi.py'
+#        print conffromdbstr        
+#        os.system(conffromdbstr)                   
+#        conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltIterativeCone5PileupSubtractionCaloJets  > /tmp/jjhollar/IterativeConePilupSubtractionJetProducer_cfi.py'        
+#        print conffromdbstr        
+#        os.system(conffromdbstr)                   
         conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltHIMML3Filter > /tmp/jjhollar/TestMuL1L2Filter_cfi.py'
         print conffromdbstr        
         os.system(conffromdbstr)                   
@@ -212,28 +215,36 @@ class ConfdbMakeHLTModuleCfis:
             os.system(movecommand)
 
         # Special cases from other packages        
-        movecommand = 'mv /tmp/jjhollar/IsolatedTauJetsSelector_cfi.py ../../../RecoTauTag/HLTProducers/python/.'
-        print movecommand
-        os.system(movecommand)        
-        movecommand = 'mv /tmp/jjhollar/L1HLTJetsMatching_cfi.py ../../../RecoTauTag/HLTProducers/python/.'
-        print movecommand
-        os.system(movecommand)
-        movecommand = 'mv /tmp/jjhollar/IterativeConePilupSubtractionJetProducer_cfi.py ../../../RecoJets/JetProducers/python/.'
-        print movecommand
-        os.system(movecommand)
+#        movecommand = 'mv /tmp/jjhollar/IsolatedTauJetsSelector_cfi.py ../../../RecoTauTag/HLTProducers/python/.'
+#        print movecommand
+#        os.system(movecommand)        
+#        movecommand = 'mv /tmp/jjhollar/L1HLTJetsMatching_cfi.py ../../../RecoTauTag/HLTProducers/python/.'
+#        print movecommand
+#        os.system(movecommand)
+#        movecommand = 'mv /tmp/jjhollar/IterativeConePilupSubtractionJetProducer_cfi.py ../../../RecoJets/JetProducers/python/.'
+#        print movecommand
+#        os.system(movecommand)
         movecommand = 'mv /tmp/jjhollar/TestMuL1L2Filter_cfi.py ../../../RecoMuon/L3MuonProducer/python/.'
+        self.changelog.append('RecoMuon/L3MuonProducer/python/TestMuL1L2Filter_cfi.py')
         print movecommand
         os.system(movecommand)
         movecommand = 'mv /tmp/jjhollar/L3TkMuonProducer_cfi.py ../../../RecoMuon/L3MuonProducer/python/.'
+        self.changelog.append('RecoMuon/L3MuonProducer/python/L3TkMuonProducer_cfi.py')
         print movecommand
         os.system(movecommand)
         movecommand = 'mv /tmp/jjhollar/L2MuonIsolationProducer_cfi.py ../../../RecoMuon/L2MuonIsolationProducer/python/.'
+        self.changelog.append('RecoMuon/L2MuonIsolationProducer/python/L2MuonIsolationProducer_cfi.py')
         print movecommand
         os.system(movecommand)
         movecommand = 'mv /tmp/jjhollar/HLTMuonPointingFilter_cfi.py ../../../EventFilter/Cosmics/python/.'
+        self.changelog.append('EventFilter/Cosmics/python/HLTMuonPointingFilter_cfi.py')
         print movecommand
         os.system(movecommand)
         # End special cases from other packages        
+
+        print('\n')
+        for changeentry in self.changelog:
+            print changeentry
                  
         print str(usedtemplates) + ' out of ' + str(foundtemplates) + ' were used in the configuration'
                 

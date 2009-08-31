@@ -14,6 +14,7 @@ def main(argv):
             truncatedfilename = thefile.split("_cfi.py")[0]
             oldfile = open(oldfilename)
             newfile = open(newfilename, 'w')
+            dummy = ''
             
             lines = oldfile.readlines()
             linenum = 1
@@ -29,16 +30,18 @@ def main(argv):
                     instancename = line.split('= cms.Service')[0]
                     line = line.replace(instancename,truncatedfilename)                                        
                     
-                if((linenum < 3) or (linenum > 3 and linenum < 9)):
-                    print line
+                    #                if((linenum < 3) or (linenum > 3 and linenum < 9)):
+                if((linenum < 3) or (linenum > 3 and linenum < 200)):
+                    dummy = 'OK'
+                    #                    print line
                 else:
                     newfile.write(line)
                    
                 linenum = linenum + 1
 
-        newfile.close()
-        os.system('mv ' + str(newfilename) + ' ' + str(oldfilename))
-        print 'mv ' + str(newfilename) + ' ' + str(oldfilename)
+            newfile.close()
+            os.system('mv ' + str(newfilename) + ' ' + str(oldfilename))
+            print 'mv ' + str(newfilename) + ' ' + str(oldfilename)
         
 if __name__ == "__main__":
     main(sys.argv[1:])
