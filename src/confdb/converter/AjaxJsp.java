@@ -7,11 +7,15 @@ import java.util.ArrayList;
 import confdb.data.ConfigInfo;
 import confdb.data.ConfigVersion;
 import confdb.data.Directory;
+import confdb.data.IConfiguration;
 import confdb.db.ConfDB;
 import confdb.db.ConfDBSetups;
+import confdb.db.DatabaseException;
 
 public class AjaxJsp 
 {
+	private ConverterBase converter = null;
+	private IConfiguration conf = null;
 
     public class NodeData
     {
@@ -126,6 +130,78 @@ public class AjaxJsp
     	}
     }
 
+    
+    public String loadConfig( String dbIndex, String dbName, String configName, String configId ) throws ConverterException, NumberFormatException, DatabaseException
+    {
+    	if ( dbIndex != null )
+    		converter = BrowserConverter.getConverter(  dbIndex );
+    	else
+    	{
+    		if ( dbName == null ) 
+    			return "ERROR!\ndbIndex or dbName must be specified!";
+    		if ( dbName.equals( "online" ) )
+    			converter = OnlineConverter.getConverter();
+    		else	
+    		{
+    			if ( dbName.equalsIgnoreCase( "hltdev" ) )
+    				dbName = "HLT Development";
+    			ConfDBSetups dbs = new ConfDBSetups();
+    		  	String[] labels = dbs.labelsAsArray();
+    	  		for ( int i = 0; i < dbs.setupCount(); i++ )
+    	  		{
+    	  			if ( dbName.equalsIgnoreCase( labels[i] ) )
+    	  			{
+    	  				dbIndex = "" + i;
+    	  				break;
+    	  			}
+    	  		}
+    	  		if ( dbIndex == null  )
+    	  			return "ERROR!\ninvalid dbName!";
+    	  		converter = BrowserConverter.getConverter( Integer.parseInt( dbIndex ) );
+    	  	}
+    	}
+
+    	if ( configId == null  &&  configName == null )
+    		return "ERROR!\nconfigKey or configName must be specified!";
+
+    	int configKey = ( configId != null ) ?
+        	Integer.parseInt(configId) : converter.getDatabase().getConfigId(configName);
+
+        conf = converter.getConfiguration( configKey );
+
+        if ( conf == null )
+    		return "ERROR!\nconfig " + configKey + " not found!";
+
+        return null;
+    }
+    
+    public String getHRefs()
+    {
+    	if ( conf == null )
+    		return "ERROR!\nno config found!";
+		String refs = " ";
+		if ( conf.pathCount() > 0 )
+			refs += "<a href=\"#paths\">paths</a> ";
+		if ( conf.sequenceCount() > 0 )
+			refs += "<a href=\"#sequences\">sequences</a> ";
+		if ( conf.moduleCount() > 0 )
+			refs += "<a href=\"#modules\">modules</a> ";
+		if ( conf.edsourceCount() > 0 )
+			refs += "<a href=\"#ed_sources\">ed_sources</a> ";
+		if ( conf.essourceCount() > 0 )
+			refs += "<a href=\"#es_sources\">es_sources</a> ";
+		if ( conf.esmoduleCount() > 0 )
+			refs += "<a href=\"#es_modules\">es_modules</a> ";
+		if ( conf.serviceCount() > 0 )
+			refs += "<a href=\"#services\">services</a> ";
+		return refs;
+    }
+    
+    public String getConfString() throws ConverterException
+    {
+    	return converter.getConverterEngine().convert( conf );
+    }
+
     static public String getRcmsDbInfo()
     {
     		DbProperties dbProperties;
@@ -146,7 +222,6 @@ public class AjaxJsp
     		return dbProperties.getDbURL();
     }
 
-    	
     private boolean buildTree( AjaxTree parentNode, Directory directory, String filter )
     {
     	boolean addDir = false;
