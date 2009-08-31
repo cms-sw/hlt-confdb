@@ -1,3 +1,13 @@
+2009-08-31  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-29-00
+	* fixes by Ulf to the conversion of empty global psets
+	* fixes by Jonathan to the parser (new problems file, updates to
+	scripts extracting hlt cfi files, etc.)
+	* first release of new message logger dialog by Vasu
+	* improvements to the subtable creation tool
+	(test/runCreateConfig)
+
 2009-07-19  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-28-03

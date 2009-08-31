@@ -603,13 +603,13 @@ public class ConfDB
 	    
 	    
 	    // DEBUG
-	    long config2Time = System.currentTimeMillis();
-	    System.out.println("TIMING: "+
-			       (config2Time-startTime)+": "+
-			       (dir1Time-startTime)+" / "+
-			       (dir2Time-dir1Time)+" / "+
-			       (config1Time-dir2Time)+" / "+
-			       (config2Time-config1Time));
+	    //long config2Time = System.currentTimeMillis();
+	    //System.err.println("TIMING: "+
+	    //	       (config2Time-startTime)+": "+
+	    //	       (dir1Time-startTime)+" / "+
+	    //	       (dir2Time-dir1Time)+" / "+
+	    //	       (config1Time-dir2Time)+" / "+
+	    //	       (config2Time-config1Time));
 	}
 	catch (SQLException e) {
 	    String errMsg =
