@@ -58,7 +58,9 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			for ( int i = 0; i < conf.psetCount(); i++ )
 			{
 				Parameter pset = conf.pset(i);
-				str.append( object + parameterWriter.toString( pset, converterEngine, "" ) );
+				String psetStr = parameterWriter.toString( pset, converterEngine, "" );
+				if ( psetStr != null && psetStr.length() > 0 )
+					str.append( object +  psetStr );
 			}
 			str.append( "\n");
 		}
