@@ -1,19 +1,17 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <%@page import="java.io.PrintWriter"%>
 <%@page import="java.io.ByteArrayOutputStream"%>
-<%@page import="confdb.data.IConfiguration"%>
-<%@page import="confdb.converter.ConverterBase"%>
-<%@page import="confdb.converter.OnlineConverter"%>
-<%@page import="confdb.converter.ConverterException"%>
-<%@page import="confdb.converter.BrowserConverter"%>
-<%@page import="confdb.db.ConfDBSetups"%>
+<%@page import="java.lang.reflect.Method"%>
+<%@page import="java.lang.reflect.Modifier"%>
+<%@page import="java.lang.reflect.InvocationTargetException"%>
+
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>HLT config</title>
 
 <%
-  String db = request.getParameter( "dbName" );
+//  String db = request.getParameter( "dbName" );
   String yui = "../js/yui";
   String css = "../css";
 //  String js = "../js";
@@ -26,6 +24,94 @@
 //    js = "../../js";
 //    img = "../../img";
   }
+%>  
+  
+<%!
+
+class MethodParams {
+	public Class<?>[] paramClasses;
+    public Object[] params;
+}
+
+private MethodParams getMethodParams( String[] paramList )
+{
+	MethodParams methodParams = new MethodParams();
+	methodParams.paramClasses = new Class[ paramList.length ];
+	methodParams.params = new Object[ paramList.length ];
+    for ( int i = 0; i < methodParams.params.length; i++ )
+    {
+    	String param = paramList[ i ];
+    	String paramClass = param;
+    	int split = param.indexOf( ':' );
+    	if ( split != -1 )
+    		paramClass = param.substring( 0, split );
+    	else
+			methodParams.params[i] = null;
+		if ( paramClass.equals( "int" ) )
+		{
+			methodParams.paramClasses[i] = Integer.TYPE;
+			if ( split != -1 )
+				methodParams.params[i] = new Integer( param.substring( split + 1 ) );
+		}
+		else if ( paramClass.equals( "string" ) )
+		{
+			methodParams.paramClasses[i] = String.class;
+			if ( split != -1 )
+				methodParams.params[i] = param.substring( split + 1 );
+		}
+   	}
+    return methodParams;
+}
+
+private Object exec( Object object, String methodName, String[] paramList ) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException
+{
+	MethodParams methodParams = getMethodParams( paramList );
+    Method method = object.getClass().getMethod( methodName, methodParams.paramClasses );
+    Object result = null;
+    if ( Modifier.isStatic( method.getModifiers() ) )
+    	result = method.invoke( null, methodParams.params );
+    else
+    	result = method.invoke( object, methodParams.params );
+    return result;
+}
+    
+private Object execStatic( String className, String methodName, String[] paramList ) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException
+{
+	Class<?> execClass = Class.forName( className );
+	MethodParams methodParams = getMethodParams( paramList );
+    Method method = execClass.getMethod( methodName, methodParams.paramClasses );
+    return method.invoke( null, methodParams.params );
+}
+    
+private Object getObject( String className, HttpSession session ) throws ClassNotFoundException, InstantiationException, IllegalAccessException
+{
+	Class<?> jsonClass = Class.forName( className );
+	Object jsonObject = this;
+	if ( session == null )
+		jsonObject = jsonClass.newInstance();
+	else
+	{
+		jsonObject = session.getAttribute( jsonClass.getCanonicalName() );
+		if ( jsonObject != null  &&  jsonObject.getClass() != this.getClass() )
+			jsonObject = null;
+		if ( jsonObject == null )
+		{
+			jsonObject = jsonClass.newInstance();
+			session.setAttribute( jsonClass.getCanonicalName(), jsonObject );
+			System.out.println( "new object for session " + session.getId() );
+		}
+	}
+	return jsonObject;
+}
+
+  
+private Object exec( String className, String methodName, String[] paramList, HttpSession session ) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException 
+{
+	Object jsonObject = getObject( className, session );
+	return exec( jsonObject, methodName, paramList );
+}
+
+  
 %>
 
 
@@ -195,89 +281,38 @@ function getURL( release )
 <%
   String confString = "";
   try {
-	String index = request.getParameter( "dbIndex" );
-	ConverterBase converter = null;
-	if ( index != null )
-		converter = BrowserConverter.getConverter( Integer.parseInt( index ) );
-	else
-	{
-		String dbName = request.getParameter( "dbName" );
-		if ( dbName == null ) 
-		{
-			out.print( "ERROR!\ndbIndex or dbName must be specified!");
-			return;
-		}
-		if ( dbName.equals( "online" ) )
-			converter = OnlineConverter.getConverter();
-		else	
-		{
-			if ( dbName.equalsIgnoreCase( "hltdev" ) )
-				dbName = "HLT Development";
-			ConfDBSetups dbs = new ConfDBSetups();
-		  	String[] labels = dbs.labelsAsArray();
-	  		for ( int i = 0; i < dbs.setupCount(); i++ )
-	  		{
-	  			if ( dbName.equalsIgnoreCase( labels[i] ) )
-	  			{
-	  				index = "" + i;
-	  				break;
-	  			}
-	  		}
-	  		if ( index == null  )
-	  		{
-	  			out.print( "ERROR!\ninvalid dbName!");
-	  			return;
-	  		}
-	  		int dbIndex = Integer.parseInt( index );
-	  		converter = BrowserConverter.getConverter( dbIndex );
-	  	}
-	}
-
+	String dbIndex = request.getParameter( "dbIndex" );
+	String dbName = request.getParameter( "dbName" );
 	String configName = request.getParameter( "configName" );
 	String configId = request.getParameter( "configKey" );
-	if ( configId == null  &&  configName == null )
-	{
-		out.print( "ERROR!\nconfigKey or configName must be specified!");
-		return;
-	}
-
-	int configKey = ( configId != null ) ?
-    	Integer.parseInt(configId) : converter.getDatabase().getConfigId(configName);
-
-	IConfiguration conf = converter.getConfiguration( configKey );
-
-	if ( conf == null )
-		out.print( "ERROR!\nconfig " + configKey + " not found!" );
+	String[] params = new String[4];
+	params[0] = dbIndex != null ? ("string:" + dbIndex) : "string";
+	params[1] = dbName != null ? ("string:" + dbName) : "string";
+	params[2] = configName != null ? ("string:" + configName) : "string";
+	params[3] = configId != null ? ("string:" + configId) : "string";
+	Object proxy = getObject( "confdb.converter.AjaxJsp", session );
+	Object result = exec( proxy, "loadConfig", params );
+	if ( result != null && result instanceof String )
+		out.print( result );
 	else
 	{
-		String refs = " ";
-		if ( conf.pathCount() > 0 )
-			refs += "<a href=\"#paths\">paths</a> ";
-		if ( conf.sequenceCount() > 0 )
-			refs += "<a href=\"#sequences\">sequences</a> ";
-		if ( conf.moduleCount() > 0 )
-			refs += "<a href=\"#modules\">modules</a> ";
-		if ( conf.edsourceCount() > 0 )
-			refs += "<a href=\"#ed_sources\">ed_sources</a> ";
-		if ( conf.essourceCount() > 0 )
-			refs += "<a href=\"#es_sources\">es_sources</a> ";
-		if ( conf.esmoduleCount() > 0 )
-			refs += "<a href=\"#es_modules\">es_modules</a> ";
-		if ( conf.serviceCount() > 0 )
-			refs += "<a href=\"#services\">services</a> ";
-		out.println( refs );
-		try {
+		result = exec( proxy, "getHRefs", new String[0] );
+		if ( result != null && result instanceof String )
+			out.println( result );
+//		try {
 //			if ( converter instanceof OnlineConverter )
 //				confString = ((OnlineConverter)converter).getEpConfigString( configKey );
 //			else
-				confString = converter.getConverterEngine().convert( conf );
-		} catch ( ConverterException e1 ) {
-			System.out.println( "reloading config " + configKey );
-			if ( converter instanceof OnlineConverter )
-				confString = ((OnlineConverter)converter).getEpConfigString( configKey );
-			else
-				confString = converter.getConverterEngine().convert( converter.getConfiguration( configKey ) );
-		}
+		result = exec( proxy, "getConfString", new String[0] );
+		if ( result != null && result instanceof String )
+				confString = (String)result;
+//		} catch ( ConverterException e1 ) {
+//			System.out.println( "reloading config " + configKey );
+//			if ( converter instanceof OnlineConverter )
+//				confString = ((OnlineConverter)converter).getEpConfigString( configKey );
+//			else
+//				confString = converter.getConverterEngine().convert( converter.getConfiguration( configKey ) );
+//		}
 	}
   } catch ( Exception e ) {
 	  out.print( "ERROR!\n\n" );
