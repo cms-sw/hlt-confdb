@@ -133,8 +133,8 @@ class ConfdbMakeHLTModuleCfis:
                     if(mod in self.moduleconfigdict):
                         modinstanceid = self.moduleconfigdict[mod]                                
                         instanceselstr = "SELECT " + str(instancetype) + ".name " + " FROM " + str(instancetype) + " WHERE " + str(instancetype) + ".templateId = " + str(templateid) + " AND " + str(instancetype) + ".superId = " + str(modinstanceid)
-                    else:
-                        instanceselstr = "SELECT " + str(instancetype) + ".name " + " FROM " + str(instancetype) + " WHERE " + str(instancetype) + ".templateId = " + str(templateid) 
+#                    else:
+#                        instanceselstr = "SELECT " + str(instancetype) + ".name " + " FROM " + str(instancetype) + " WHERE " + str(instancetype) + ".templateId = " + str(templateid) 
                     self.dbcursor.execute(instanceselstr)
                     thetmpinstance = self.dbcursor.fetchone()
                     if(thetmpinstance):
@@ -173,15 +173,19 @@ class ConfdbMakeHLTModuleCfis:
         print '\n\n\n'
         for thecvstag, thepackagesubsysname, theplugin, theinst in sortedtagtuple:
             foundtemplates = foundtemplates + 1
-            if(theplugin.startswith('HLT')):
+            if(theplugin.startswith('EgammaHLT')):
+                theplugin = theplugin.replace('EgammaHLT','hltEgamma')                                
+            elif(theplugin.startswith('HLT')):
                 theplugin = theplugin.replace('HLT','hlt')
+
             if(theinst != ''):
                 conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules ' + str(theinst) + ' > /tmp/jjhollar/' + str(theplugin) + '_cfi.py'
                 print conffromdbstr
                 if(os.path.isdir('../../../' + str(thepackagesubsysname) + '/python/.')):
-                   movecommands.append('mv /tmp/jjhollar/' + str(theplugin) + '_cfi.py ../../../' + str(thepackagesubsysname) + '/python/.')
-                   os.system(conffromdbstr)
-                   self.changelog.append(str(thepackagesubsysname) + '/python/' + str(theplugin) + '_cfi.py')
+                    if(str(theplugin) != 'hltJetTag'):
+                        movecommands.append('mv /tmp/jjhollar/' + str(theplugin) + '_cfi.py ../../../' + str(thepackagesubsysname) + '/python/.')
+                        os.system(conffromdbstr)
+                        self.changelog.append(str(thepackagesubsysname) + '/python/' + str(theplugin) + '_cfi.py')
                 usedtemplates = usedtemplates + 1
 
         # Special cases from other packages
@@ -203,7 +207,7 @@ class ConfdbMakeHLTModuleCfis:
         conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltL2MuonIsolations > /tmp/jjhollar/L2MuonIsolationProducer_cfi.py'
         print conffromdbstr
         os.system(conffromdbstr)                   
-        conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltMuonPointingFilter > /tmp/jjhollar/HLTMuonPointingFilter_cfi.py'
+        conffromdbstr = 'edmConfigFromDB --hltdev --configName ' + str(self.theconfig) + ' --format python:untracked --nopaths --nosequences --noservices --noes --nopsets --cff --modules hltMuonPointingFilter > /tmp/jjhollar/hltMuonPointingFilter_cfi.py'
         print conffromdbstr
         os.system(conffromdbstr)                   
         # End special cases from other packages
@@ -236,8 +240,8 @@ class ConfdbMakeHLTModuleCfis:
         self.changelog.append('RecoMuon/L2MuonIsolationProducer/python/L2MuonIsolationProducer_cfi.py')
         print movecommand
         os.system(movecommand)
-        movecommand = 'mv /tmp/jjhollar/HLTMuonPointingFilter_cfi.py ../../../EventFilter/Cosmics/python/.'
-        self.changelog.append('EventFilter/Cosmics/python/HLTMuonPointingFilter_cfi.py')
+        movecommand = 'mv /tmp/jjhollar/hltMuonPointingFilter_cfi.py ../../../EventFilter/Cosmics/python/.'
+        self.changelog.append('EventFilter/Cosmics/python/hltMuonPointingFilter_cfi.py')
         print movecommand
         os.system(movecommand)
         # End special cases from other packages        
