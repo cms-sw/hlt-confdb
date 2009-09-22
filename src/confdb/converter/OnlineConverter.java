@@ -399,7 +399,7 @@ public class OnlineConverter extends ConverterBase
 	String vstringDestAsString = vstringDest.valueAsString();
 	if (!vstringDestAsString.contains("log4cplus")) {
 	    String newValue = (vstringDestAsString.length()==0) ?
-		"log4cplus" : vstringDestAsString + ",\" log4cplus\"";
+		"log4cplus" : vstringDestAsString + ",\"log4cplus\"";
 	    msgLogger.updateParameter("destinations","vstring",newValue);
 	}
 	
