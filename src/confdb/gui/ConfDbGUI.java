@@ -1861,7 +1861,6 @@ public class ConfDbGUI
     private void jButtonImportCancelSearchActionPerformed(ActionEvent e)
     {
 	TreePath tp = jTreeImportConfig.getSelectionPath();
-	Object   obj = tp.getLastPathComponent();
 	jTextFieldImportSearch.setText("");
 	treeModelImportConfig.setConfiguration(importConfig);
 	if (tp!=null) {
