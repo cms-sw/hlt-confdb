@@ -55,8 +55,6 @@ public class CommandActionListener implements ActionListener
 	AbstractButton source  = (AbstractButton)(e.getSource());
 	String         command = source.getActionCommand();
 	
-	System.out.println("In comand action listener");
-
 	if (command.equals(cmdAbout))            app.showAboutDialog();
 	if (command.equals(cmdQuit))             app.quitApplication();
 
