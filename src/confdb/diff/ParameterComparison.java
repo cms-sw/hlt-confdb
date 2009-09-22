@@ -70,6 +70,7 @@ public class ParameterComparison extends Comparison
     {
 	StringBuffer result = new StringBuffer();
 	Parameter p = (newParameter==null) ? oldParameter : newParameter;
+	if (!p.isTracked()) result.append("untracked ");
 	result.append(p.type()).append(" ").append(p.fullName());
 	if (!(p instanceof PSetParameter)&&
 	    !(p instanceof VPSetParameter)) {
@@ -125,8 +126,9 @@ public class ParameterComparison extends Comparison
     {
 	StringBuffer result = new StringBuffer();
 	Parameter p = (newParameter==null) ? oldParameter : newParameter;
+	result.append("<html>");
+	if (!p.isTracked()) result.append("untracked ");
 	result
-	    .append("<html>")
 	    .append(p.type())
 	    .append(" <b>")
 	    .append(p.name())
