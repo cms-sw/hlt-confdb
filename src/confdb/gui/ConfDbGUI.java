@@ -73,7 +73,7 @@ public class ConfDbGUI
     private Object               currentInstance   = null;
     private ArrayList<Parameter> currentParameters = new ArrayList<Parameter>(); 
 
-    /** ascii converter engine, to display configuration snippets (right-lower) */
+    /** ascii converter engine, to display config snippets (right-lower) */
     private ConverterEngine cnvEngine = null;
     
 
@@ -2193,8 +2193,8 @@ public class ConfDbGUI
 	    displaySnippet();
 	}
 	else if (node instanceof ReferenceContainer) {
-	    currentInstance = node;
 	    clearParameters();
+	    currentInstance = node;
 	    displaySnippet();
 	}
 	else {
