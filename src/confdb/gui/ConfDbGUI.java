@@ -2352,6 +2352,7 @@ public class ConfDbGUI
 
         jLabelImportSearch.setText("Search:");
 
+        jButtonImportCancelSearch.setEnabled(false);
         jButtonImportCancelSearch.setBorder(null);
 
         jScrollPaneImportConfig.setViewportView(jTreeImportConfig);
