@@ -1,5 +1,11 @@
 2009-09-23  Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
 
+	* tag V01-00-00
+	* diff: change diff symbol for unchagned values in vector-type
+	parameter arrays from '>' to '=', requested my Martin.
+
+2009-09-23  Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
+
 	* tag V00-30-00
 	* gui: display python snippets for paths and sequences
 	* gui: disable 'F2' key to edit (configuration) tree nodes
