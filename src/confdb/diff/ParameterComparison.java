@@ -194,7 +194,7 @@ public class ParameterComparison extends Comparison
 	    }
 	    else {
 		String vold = oldValues.get(i);
-		if (vnew.equals(vold)) result.append(">  ").append(vnew);
+		if (vnew.equals(vold)) result.append("=  ").append(vnew);
 		else if (iold<0) result.append("+  ").append(vnew);
 		else if (iold<i) result.append("\\/ ").append(vnew);
 		else if (iold>i) result.append("^  ").append(vnew);

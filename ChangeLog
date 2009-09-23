@@ -1,5 +1,12 @@
 2009-09-23  Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
 
+	* tag V00-30-02
+	* branch: B00-30-X
+	* diff: change symbol for vector type parameter values which
+	didn't change from '>' to '=' (requested by Martin)
+
+2009-09-23  Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
+
 	* tag V00-30-00
 	* gui: display python snippets for paths and sequences
 	* gui: disable 'F2' key to edit (configuration) tree nodes
