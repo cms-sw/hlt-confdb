@@ -176,7 +176,6 @@ public class OnlineConverter extends ConverterBase
 	mlVerbosityCout = vCout;
 	mlVerbosityLog4 = vLog4;
     }
-
     
 
     //

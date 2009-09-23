@@ -367,7 +367,8 @@ public class DiffDialog extends JDialog
 	    Diff diff = new Diff(oldConfig,newConfig);
 	    diff.compare();
 	    treeModel.setDiff(diff);
-	    for (int i=jTreeDiff.getRowCount()-1;i>=0;i--) jTreeDiff.expandRow(i);
+	    for (int i=jTreeDiff.getRowCount()-1;i>=0;i--)
+		jTreeDiff.expandRow(i);
 	    jEditorPaneDiff.setText(diff.printAll());
 	    return new String("Done!");
 	}

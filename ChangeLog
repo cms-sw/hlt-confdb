@@ -1,3 +1,12 @@
+2009-09-23  Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
+
+	* tag V00-30-00
+	* gui: display python snippets for paths and sequences
+	* gui: disable 'F2' key to edit (configuration) tree nodes
+	* diff: add trackiness information to output
+	* diff: improve representation of vector parameter types in diff
+	output
+
 2009-08-31  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-29-00

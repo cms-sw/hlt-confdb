@@ -223,8 +223,8 @@ public class ConfDbGUI
 		    jToggleButtonImportActionPerformed(e);
 		}
 	    });
-	jTreeCurrentConfig.
-	    getModel().addTreeModelListener(new TreeModelListener() {
+	jTreeCurrentConfig
+	    .getModel().addTreeModelListener(new TreeModelListener() {
 		    public void treeNodesChanged(TreeModelEvent e) {
 			jTreeCurrentConfigTreeNodesChanged(e);
 		    }
@@ -243,23 +243,30 @@ public class ConfDbGUI
 		    jTreeCurrentConfigValueChanged(e);
 		}
 	    });
+	
+	KeyStroke ks_F2  = KeyStroke.getKeyStroke("F2");
+	Object    key_F2 = jTreeCurrentConfig.getInputMap().get(ks_F2);
+	if (key_F2!=null) jTreeCurrentConfig.getInputMap().put(ks_F2,"none");
+
 	jLabelImportSearch.addMouseListener(new MouseAdapter() {
 		public void mousePressed(MouseEvent e)  { maybeShowPopup(e); }
 		public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
 		public void maybeShowPopup(MouseEvent e) {
 		    if (e.isPopupTrigger())
-			jPopupMenuImportSearch.show(e.getComponent(),e.getX(),e.getY());
+			jPopupMenuImportSearch.show(e.getComponent(),
+						    e.getX(),e.getY());
 		}
 	    });
-	jTextFieldImportSearch.getDocument().addDocumentListener(new DocumentListener() {
-		public void insertUpdate(DocumentEvent e) {
-		    jTextFieldImportSearchInsertUpdate(e);
-		}
-		public void removeUpdate(DocumentEvent e) {
-		    jTextFieldImportSearchRemoveUpdate(e);
-		}
-		public void changedUpdate(DocumentEvent e) {}
-	    });
+	jTextFieldImportSearch
+	    .getDocument().addDocumentListener(new DocumentListener() {
+		    public void insertUpdate(DocumentEvent e) {
+			jTextFieldImportSearchInsertUpdate(e);
+		    }
+		    public void removeUpdate(DocumentEvent e) {
+			jTextFieldImportSearchRemoveUpdate(e);
+		    }
+		    public void changedUpdate(DocumentEvent e) {}
+		});
 	jButtonImportCancelSearch.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    jButtonImportCancelSearchActionPerformed(e);
