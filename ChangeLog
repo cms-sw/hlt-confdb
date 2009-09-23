@@ -1,5 +1,10 @@
 2009-09-23  Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
 
+	* tag V01-00-01
+	* adjust src/confdb/gui/AboutDialog.java
+
+2009-09-23  Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
+
 	* tag V01-00-00
 	* diff: change diff symbol for unchagned values in vector-type
 	parameter arrays from '>' to '=', requested my Martin.
