@@ -80,8 +80,9 @@ public class ConfDbGUI
     /** TREE- & TABLE-MODELS */
     private ConfigurationTreeModel  treeModelCurrentConfig;
     private ConfigurationTreeModel  treeModelImportConfig;
-    private StreamTreeModel         treeModelStreams;
-    private PrimaryDatasetTreeModel treeModelDatasets;
+    // PS@28/09/2009
+    //private StreamTreeModel         treeModelStreams;
+    //private PrimaryDatasetTreeModel treeModelDatasets;
     private ParameterTreeModel      treeModelParameters;
 
     /** GUI COMPONENTS */
@@ -128,11 +129,12 @@ public class ConfDbGUI
     private JScrollPane   jScrollPaneImportConfig   = new JScrollPane();
     private JTree         jTreeImportConfig;                               //TML+TSL
 
-    private JPanel        jPanelStreamsAndDatasets  = new JPanel();
-    private JTree         jTreeStreams;
-    private JTextField    jTextFieldStreamPathCount = new JTextField();
-    private JTree         jTreeDatasets;
-    private JTextField    jTextFieldDatasetPathCount= new JTextField();
+    // PS@28/09/2009
+    //private JPanel        jPanelStreamsAndDatasets  = new JPanel();
+    //private JTree         jTreeStreams;
+    //private JTextField    jTextFieldStreamPathCount = new JTextField();
+    //private JTree         jTreeDatasets;
+    //private JTextField    jTextFieldDatasetPathCount= new JTextField();
     
     private JPanel        jPanelRightUpper          = new JPanel();
     private JSplitPane    jSplitPaneRightUpper      = new JSplitPane();
@@ -277,36 +279,42 @@ public class ConfDbGUI
 		    jComboBoxPathsItemStateChanged(e);
 		}
 	    });
-	jTreeStreams.
-	    getModel().addTreeModelListener(new TreeModelListener() {
-		    public void treeNodesChanged(TreeModelEvent e) {
-			jTreeStreamsTreeNodesChanged(e);
-		    }
-		    public void treeNodesInserted(TreeModelEvent e) {
-			jTreeStreamsTreeNodesInserted(e);
-		    }
-		    public void treeNodesRemoved(TreeModelEvent e) {
-			jTreeStreamsTreeNodesRemoved(e);
-		    }
-		    public void treeStructureChanged(TreeModelEvent e) {
-			jTreeStreamsTreeStructureChanged(e);
-		    }
-		});
-	jTreeDatasets.
-	    getModel().addTreeModelListener(new TreeModelListener() {
-		    public void treeNodesChanged(TreeModelEvent e) {
-			jTreeDatasetsTreeNodesChanged(e);
-		    }
-		    public void treeNodesInserted(TreeModelEvent e) {
-			jTreeDatasetsTreeNodesInserted(e);
-		    }
-		    public void treeNodesRemoved(TreeModelEvent e) {
-			jTreeDatasetsTreeNodesRemoved(e);
-		    }
-		    public void treeStructureChanged(TreeModelEvent e) {
-			jTreeDatasetsTreeStructureChanged(e);
-		    }
-		});
+	/* PS@28/09/2009
+	   jTreeStreams.
+	   getModel().addTreeModelListener(new TreeModelListener() {
+	   public void treeNodesChanged(TreeModelEvent e) {
+	   jTreeStreamsTreeNodesChanged(e);
+	   }
+	   public void treeNodesInserted(TreeModelEvent e) {
+	   jTreeStreamsTreeNodesInserted(e);
+	   }
+	   public void treeNodesRemoved(TreeModelEvent e) {
+	   jTreeStreamsTreeNodesRemoved(e);
+	   }
+	   public void treeStructureChanged(TreeModelEvent e) {
+	   jTreeStreamsTreeStructureChanged(e);
+	   }
+	   });
+	*/
+	
+	/* PS@28/09/2009
+	   jTreeDatasets.
+	   getModel().addTreeModelListener(new TreeModelListener() {
+	   public void treeNodesChanged(TreeModelEvent e) {
+	   jTreeDatasetsTreeNodesChanged(e);
+	   }
+	   public void treeNodesInserted(TreeModelEvent e) {
+	   jTreeDatasetsTreeNodesInserted(e);
+	   }
+	   public void treeNodesRemoved(TreeModelEvent e) {
+	   jTreeDatasetsTreeNodesRemoved(e);
+	   }
+	   public void treeStructureChanged(TreeModelEvent e) {
+	   jTreeDatasetsTreeStructureChanged(e);
+	   }
+	   });
+	*/
+	
 	jTreeTableParameters.
 	    getTree().getModel().addTreeModelListener(new TreeModelListener() {
 		    public void treeNodesChanged(TreeModelEvent e) {
@@ -847,9 +855,10 @@ public class ConfDbGUI
 	
 	currentConfig.reset();
 	treeModelCurrentConfig.setConfiguration(currentConfig);
-	treeModelStreams.setConfiguration(currentConfig);
-	treeModelDatasets.setConfiguration(currentConfig);
-	treeModelDatasets.setConfiguration(currentConfig);
+
+	// PS@28/09/2009
+	// treeModelStreams.setConfiguration(currentConfig);
+	// treeModelDatasets.setConfiguration(currentConfig);
 	
 	jTextFieldCurrentConfig.setText("");
 	jTextFieldCurrentConfig.setToolTipText("");
@@ -913,8 +922,11 @@ public class ConfDbGUI
 	TreePath tp = jTreeCurrentConfig.getSelectionPath();
 	currentConfig = config;
 	treeModelCurrentConfig.setConfiguration(currentConfig);
-	treeModelStreams.setConfiguration(currentConfig);
-	treeModelDatasets.setConfiguration(currentConfig);
+	
+	// PS@28/09/2009
+	//treeModelStreams.setConfiguration(currentConfig);
+	//treeModelDatasets.setConfiguration(currentConfig);
+
 	currentRelease = currentConfig.release();
 	jTreeCurrentConfig.scrollPathToVisible(tp);
 	jTreeCurrentConfig.setSelectionPath(tp);
@@ -1599,35 +1611,38 @@ public class ConfDbGUI
 	UIManager.put("Tree.textBackground",defaultTreeBackground);
 	
 	// stream tree
-	treeModelStreams = new StreamTreeModel(currentConfig);
-	jTreeStreams     = new JTree(treeModelStreams);
-	jTreeStreams.setEditable(false);
-	jTreeStreams.setRootVisible(true);
-	jTreeStreams.getSelectionModel().setSelectionMode(TreeSelectionModel
-							  .SINGLE_TREE_SELECTION);
-
-	jTreeStreams.setCellRenderer(new StreamTreeRenderer());
-	
-	StreamTreeMouseListener streamTreeMouseListener =
-	    new StreamTreeMouseListener(jTreeStreams,database);
-	jTreeStreams.addMouseListener(streamTreeMouseListener);
-	treeModelStreams.addTreeModelListener(streamTreeMouseListener);
+	/* PS@28/09/2009
+	   treeModelStreams = new StreamTreeModel(currentConfig);
+	   jTreeStreams     = new JTree(treeModelStreams);
+	   jTreeStreams.setEditable(false);
+	   jTreeStreams.setRootVisible(true);
+	   jTreeStreams.getSelectionModel().setSelectionMode(TreeSelectionModel
+	   .SINGLE_TREE_SELECTION);
+	   
+	   jTreeStreams.setCellRenderer(new StreamTreeRenderer());
+	   
+	   StreamTreeMouseListener streamTreeMouseListener =
+	   new StreamTreeMouseListener(jTreeStreams,database);
+	   jTreeStreams.addMouseListener(streamTreeMouseListener);
+	   treeModelStreams.addTreeModelListener(streamTreeMouseListener);
+	*/
 	
 	// primary datasets tree
-	treeModelDatasets = new PrimaryDatasetTreeModel(currentConfig);
-	jTreeDatasets     = new JTree(treeModelDatasets);
-	jTreeDatasets.setEditable(false);
-	jTreeDatasets.setRootVisible(true);
-	jTreeDatasets.getSelectionModel().setSelectionMode(TreeSelectionModel
-							   .SINGLE_TREE_SELECTION);
-
-	jTreeDatasets.setCellRenderer(new PrimaryDatasetTreeRenderer());
-	
-	PrimaryDatasetTreeMouseListener datasetTreeMouseListener =
-	    new PrimaryDatasetTreeMouseListener(jTreeDatasets,database);
-	jTreeDatasets.addMouseListener(datasetTreeMouseListener);
-	treeModelDatasets.addTreeModelListener(datasetTreeMouseListener);
-	
+	/* PS@28/09/2009
+	   treeModelDatasets = new PrimaryDatasetTreeModel(currentConfig);
+	   jTreeDatasets     = new JTree(treeModelDatasets);
+	   jTreeDatasets.setEditable(false);
+	   jTreeDatasets.setRootVisible(true);
+	   jTreeDatasets.getSelectionModel().setSelectionMode(TreeSelectionModel
+	   .SINGLE_TREE_SELECTION);
+	   
+	   jTreeDatasets.setCellRenderer(new PrimaryDatasetTreeRenderer());
+	   
+	   PrimaryDatasetTreeMouseListener datasetTreeMouseListener =
+	   new PrimaryDatasetTreeMouseListener(jTreeDatasets,database);
+	   jTreeDatasets.addMouseListener(datasetTreeMouseListener);
+	   treeModelDatasets.addTreeModelListener(datasetTreeMouseListener);
+	*/
 
 	// parameter table
 	treeModelParameters  = new ParameterTreeModel();
@@ -2033,72 +2048,77 @@ public class ConfDbGUI
     {
 	if (currentConfig==null) return;
 
-	if (currentConfig.streamCount()>0) {
-	    Object changedNode = e.getChildren()[0];
-	    if (changedNode instanceof Path) {
-		Path path = (Path)changedNode;
-		treeModelStreams.nodeChanged(path); // :(
-		treeModelDatasets.nodeChanged(path); // :(
-	    }
-	}
+	// PS@28/09/2009
+	//if (currentConfig.streamCount()>0) {
+	//  Object changedNode = e.getChildren()[0];
+	//  if (changedNode instanceof Path) {
+	//Path path = (Path)changedNode;
+	//
+	//treeModelStreams.nodeChanged(path); // :(
+	//treeModelDatasets.nodeChanged(path); // :(
+	//}
+	//}
 	//displayParameters(); // don't if the selected instance did not change!
+
 	displaySnippet();
     }
     private void jTreeCurrentConfigTreeNodesInserted(TreeModelEvent e) {}
     private void jTreeCurrentConfigTreeNodesRemoved(TreeModelEvent e)
     {
-	if (currentConfig.streamCount()>0) {
-	    Object removedNode = e.getChildren()[0];
-	    if (removedNode instanceof Path)
-		treeModelStreams.nodeStructureChanged(treeModelStreams.getRoot());
-	}
+	// PS@28/09/2009
+	//if (currentConfig.streamCount()>0) {
+	//  Object removedNode = e.getChildren()[0];
+	//  if (removedNode instanceof Path)
+	//treeModelStreams.nodeStructureChanged(treeModelStreams.getRoot());
+	//}
     }
     private void jTreeCurrentConfigTreeStructureChanged(TreeModelEvent e) {}
 
-    private void jTreeStreamsTreeNodesChanged(TreeModelEvent e) {}
-    private void jTreeStreamsTreeNodesInserted(TreeModelEvent e)
-    {
-	jTextFieldStreamPathCount.setEnabled(true);
-	updateStreamPathCount();
-    }
-    private void jTreeStreamsTreeNodesRemoved(TreeModelEvent e)
-    {
-	updateStreamPathCount();
-    }
-    private void jTreeStreamsTreeStructureChanged(TreeModelEvent e)
-    {
-	updateStreamPathCount();
-    }
-    private void jTreeDatasetsTreeNodesChanged(TreeModelEvent e)
-    {
-	Object changedNode = e.getChildren()[0];
-	treeModelStreams.nodeChanged(changedNode);
-    }
-    private void jTreeDatasetsTreeNodesInserted(TreeModelEvent e)
-    {
-	updateDatasetPathCount();
-	Object parentNode = e.getTreePath().getLastPathComponent();
-	int    childIndex = e.getChildIndices()[0];
-	treeModelStreams.nodeInserted(parentNode,childIndex);
-    }
-    private void jTreeDatasetsTreeNodesRemoved(TreeModelEvent e)
-    {
-	updateDatasetPathCount();
-	Object parentNode = e.getTreePath().getLastPathComponent();
-	int    childIndex = e.getChildIndices()[0];
-	Object child      = e.getChildren()[0];
-	if (child instanceof PrimaryDataset) {
-	    PrimaryDataset dataset = (PrimaryDataset)child;
-	    Stream         stream  = dataset.parentStream();if(stream==null)return;
-	    parentNode = stream;
-	    childIndex = stream.indexOfDataset(dataset);
-	}
-	treeModelStreams.nodeRemoved(parentNode,childIndex,child);
-    }
-    private void jTreeDatasetsTreeStructureChanged(TreeModelEvent e)
-    {
-	updateDatasetPathCount();
-    }
+    // PS@28/09/2009
+    //private void jTreeStreamsTreeNodesChanged(TreeModelEvent e) {}
+    //private void jTreeStreamsTreeNodesInserted(TreeModelEvent e)
+    //{
+    //jTextFieldStreamPathCount.setEnabled(true);
+    //updateStreamPathCount();
+    //}
+    //private void jTreeStreamsTreeNodesRemoved(TreeModelEvent e)
+    //{
+    //updateStreamPathCount();
+    //}
+    //private void jTreeStreamsTreeStructureChanged(TreeModelEvent e)
+    //{
+    //updateStreamPathCount();
+    //}
+    //private void jTreeDatasetsTreeNodesChanged(TreeModelEvent e)
+    //{
+    //Object changedNode = e.getChildren()[0];
+    //treeModelStreams.nodeChanged(changedNode);
+    //}
+    //private void jTreeDatasetsTreeNodesInserted(TreeModelEvent e)
+    //{
+    //updateDatasetPathCount();
+    //Object parentNode = e.getTreePath().getLastPathComponent();
+    //int    childIndex = e.getChildIndices()[0];
+    //treeModelStreams.nodeInserted(parentNode,childIndex);
+    //}
+    //private void jTreeDatasetsTreeNodesRemoved(TreeModelEvent e)
+    //{
+    //updateDatasetPathCount();
+    //Object parentNode = e.getTreePath().getLastPathComponent();
+    //int    childIndex = e.getChildIndices()[0];
+    //Object child      = e.getChildren()[0];
+    //if (child instanceof PrimaryDataset) {
+    //    PrimaryDataset dataset = (PrimaryDataset)child;
+    //    Stream         stream  = dataset.parentStream();if(stream==null)return;
+    //    parentNode = stream;
+    //    childIndex = stream.indexOfDataset(dataset);
+    //}
+    //treeModelStreams.nodeRemoved(parentNode,childIndex,child);
+    //}
+    //private void jTreeDatasetsTreeStructureChanged(TreeModelEvent e)
+    //{
+    //updateDatasetPathCount();
+    //}
     private void jTreeTableParametersTreeNodesChanged(TreeModelEvent e)
     {
 	Object changedNode = e.getChildren()[0];
@@ -2137,27 +2157,29 @@ public class ConfDbGUI
 	    jTreeCurrentConfig.updateUI();
     }
     
-    private void updateStreamPathCount()
-    {
-	jTextFieldStreamPathCount
-	    .setText(""+currentConfig.pathNotAssignedToStreamCount());
-	if (currentConfig.pathNotAssignedToStreamCount()>0)
-	    jTextFieldStreamPathCount.setForeground(Color.RED);
-	else
-	    jTextFieldStreamPathCount.setForeground(Color.GREEN);
+    /* PS@28/09/2009
+       private void updateStreamPathCount()
+       {
+       jTextFieldStreamPathCount
+       .setText(""+currentConfig.pathNotAssignedToStreamCount());
+       if (currentConfig.pathNotAssignedToStreamCount()>0)
+       jTextFieldStreamPathCount.setForeground(Color.RED);
+       else
+       jTextFieldStreamPathCount.setForeground(Color.GREEN);
+       }
+    */
 
-	
-    }
-    private void updateDatasetPathCount()
-    {
-	jTextFieldDatasetPathCount
-	    .setText(""+currentConfig.pathNotAssignedToDatasetCount());
-	if (currentConfig.pathNotAssignedToDatasetCount()>0)
-	    jTextFieldDatasetPathCount.setForeground(Color.RED);
-	else
-	    jTextFieldDatasetPathCount.setForeground(Color.GREEN);
-    }
-
+    /* PS@28/09/2009
+       private void updateDatasetPathCount()
+       {
+       jTextFieldDatasetPathCount
+       .setText(""+currentConfig.pathNotAssignedToDatasetCount());
+       if (currentConfig.pathNotAssignedToDatasetCount()>0)
+       jTextFieldDatasetPathCount.setForeground(Color.RED);
+       else
+       jTextFieldDatasetPathCount.setForeground(Color.GREEN);
+       }
+    */
     
 
     //
@@ -2241,7 +2263,7 @@ public class ConfDbGUI
     private void createLeftPanel()
     {
 	createConfigurationPanel();      // -> tab 1
-	createStreamsAndDatasetsPanel(); // -> tab 2
+	//createStreamsAndDatasetsPanel(); // -> tab 2
 
         JLabel jLabelConfig  = new javax.swing.JLabel();
 	JLabel jLabelProcess = new javax.swing.JLabel();
@@ -2280,8 +2302,9 @@ public class ConfDbGUI
 
 	jTabbedPaneLeft.addTab("Configuration",
 			       jPanelCurrentConfig);
-        jTabbedPaneLeft.addTab("Streams & Primary Datasets",
-			       jPanelStreamsAndDatasets);
+	// PS@28/09/2009
+        //jTabbedPaneLeft.addTab("Streams & Primary Datasets",
+	//jPanelStreamsAndDatasets);
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelLeft);
         jPanelLeft.setLayout(layout);
@@ -2454,95 +2477,97 @@ public class ConfDbGUI
 
 
     /** create Streams & Primary Datasets panel */
-    private void createStreamsAndDatasetsPanel()
-    {
-	JSplitPane  jSplitPane1         = new JSplitPane();
-        JPanel      jPanel1             = new JPanel();
-        JScrollPane jScrollPaneStreams  = new JScrollPane();
-        JLabel      jLabel1             = new JLabel();
-        JPanel      jPanel2             = new JPanel();
-        JScrollPane jScrollPaneDatasets = new JScrollPane();
-        JLabel      jLabel2             = new JLabel();
-
-        jSplitPane1.setDividerLocation(0.5);
-        jSplitPane1.setResizeWeight(0.5);
-
-        jScrollPaneStreams.setViewportView(jTreeStreams);
-
-        jLabel1.setText("Unassigned Paths:");
-	jTextFieldStreamPathCount.setEditable(false);
-	jTextFieldStreamPathCount.setBackground(Color.white);
-	
-        org.jdesktop.layout.GroupLayout jPanel1Layout = new org.jdesktop.layout.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-					 jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-					 .add(jScrollPaneStreams, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 269, Short.MAX_VALUE)
-					 .add(jPanel1Layout.createSequentialGroup()
-					      .add(12, 12, 12)
-					      .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 44, Short.MAX_VALUE)
-					      .add(jLabel1)
-					      .add(4, 4, 4)
-					      .add(jTextFieldStreamPathCount, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 83, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-					      .addContainerGap())
-					 );
-        jPanel1Layout.setVerticalGroup(
-				       jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				       .add(jPanel1Layout.createSequentialGroup()
-					    .add(jScrollPaneStreams, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 511, Short.MAX_VALUE)
-					    .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-					    .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-						 .add(jLabel1)
-						 .add(jTextFieldStreamPathCount, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-					    .addContainerGap())
-				       );
-	
-        jSplitPane1.setLeftComponent(jPanel1);
-	
-        jScrollPaneDatasets.setViewportView(jTreeDatasets);
-	
-        jLabel2.setText("Unassigned Paths:");
-	jTextFieldDatasetPathCount.setEditable(false);
-	jTextFieldDatasetPathCount.setBackground(Color.white);
-		
-        org.jdesktop.layout.GroupLayout jPanel2Layout = new org.jdesktop.layout.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-					 jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-					 .add(jPanel2Layout.createSequentialGroup()
-					      .addContainerGap()
-					      .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 40, Short.MAX_VALUE)
-					      .add(jLabel2)
-					      .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-					      .add(jTextFieldDatasetPathCount, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 83, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-					      .addContainerGap())
-					 .add(jScrollPaneDatasets, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 273, Short.MAX_VALUE)
-					 );
-        jPanel2Layout.setVerticalGroup(
-				       jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				       .add(jPanel2Layout.createSequentialGroup()
-					    .add(jScrollPaneDatasets, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 510, Short.MAX_VALUE)
-					    .add(7, 7, 7)
-					    .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-						 .add(jLabel2)
-						 .add(jTextFieldDatasetPathCount, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-					    .addContainerGap())
-				       );
-	
-        jSplitPane1.setRightComponent(jPanel2);
-	
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelStreamsAndDatasets);
-        jPanelStreamsAndDatasets.setLayout(layout);
-        layout.setHorizontalGroup(
-				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				  .add(org.jdesktop.layout.GroupLayout.TRAILING, jSplitPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 554, Short.MAX_VALUE)
-				  );
-        layout.setVerticalGroup(
-				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				.add(jSplitPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 549, Short.MAX_VALUE)
-				);
-    }
-
+    /* PS@28/09/2009
+       private void createStreamsAndDatasetsPanel()
+       {
+       JSplitPane  jSplitPane1         = new JSplitPane();
+       JPanel      jPanel1             = new JPanel();
+       JScrollPane jScrollPaneStreams  = new JScrollPane();
+       JLabel      jLabel1             = new JLabel();
+       JPanel      jPanel2             = new JPanel();
+       JScrollPane jScrollPaneDatasets = new JScrollPane();
+       JLabel      jLabel2             = new JLabel();
+       
+       jSplitPane1.setDividerLocation(0.5);
+       jSplitPane1.setResizeWeight(0.5);
+       
+       jScrollPaneStreams.setViewportView(jTreeStreams);
+       
+       jLabel1.setText("Unassigned Paths:");
+       jTextFieldStreamPathCount.setEditable(false);
+       jTextFieldStreamPathCount.setBackground(Color.white);
+       
+       org.jdesktop.layout.GroupLayout jPanel1Layout = new org.jdesktop.layout.GroupLayout(jPanel1);
+       jPanel1.setLayout(jPanel1Layout);
+       jPanel1Layout.setHorizontalGroup(
+       jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+       .add(jScrollPaneStreams, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 269, Short.MAX_VALUE)
+       .add(jPanel1Layout.createSequentialGroup()
+       .add(12, 12, 12)
+       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 44, Short.MAX_VALUE)
+       .add(jLabel1)
+       .add(4, 4, 4)
+       .add(jTextFieldStreamPathCount, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 83, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+       .addContainerGap())
+       );
+       jPanel1Layout.setVerticalGroup(
+       jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+       .add(jPanel1Layout.createSequentialGroup()
+       .add(jScrollPaneStreams, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 511, Short.MAX_VALUE)
+       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+       .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+       .add(jLabel1)
+       .add(jTextFieldStreamPathCount, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+       .addContainerGap())
+       );
+       
+       jSplitPane1.setLeftComponent(jPanel1);
+       
+       jScrollPaneDatasets.setViewportView(jTreeDatasets);
+       
+       jLabel2.setText("Unassigned Paths:");
+       jTextFieldDatasetPathCount.setEditable(false);
+       jTextFieldDatasetPathCount.setBackground(Color.white);
+       
+       org.jdesktop.layout.GroupLayout jPanel2Layout = new org.jdesktop.layout.GroupLayout(jPanel2);
+       jPanel2.setLayout(jPanel2Layout);
+       jPanel2Layout.setHorizontalGroup(
+       jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+       .add(jPanel2Layout.createSequentialGroup()
+       .addContainerGap()
+       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 40, Short.MAX_VALUE)
+       .add(jLabel2)
+       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+       .add(jTextFieldDatasetPathCount, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 83, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+       .addContainerGap())
+       .add(jScrollPaneDatasets, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 273, Short.MAX_VALUE)
+       );
+       jPanel2Layout.setVerticalGroup(
+       jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+       .add(jPanel2Layout.createSequentialGroup()
+       .add(jScrollPaneDatasets, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 510, Short.MAX_VALUE)
+       .add(7, 7, 7)
+       .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+       .add(jLabel2)
+       .add(jTextFieldDatasetPathCount, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+       .addContainerGap())
+       );
+       
+       jSplitPane1.setRightComponent(jPanel2);
+       
+       org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelStreamsAndDatasets);
+       jPanelStreamsAndDatasets.setLayout(layout);
+       layout.setHorizontalGroup(
+       layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+       .add(org.jdesktop.layout.GroupLayout.TRAILING, jSplitPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 554, Short.MAX_VALUE)
+       );
+       layout.setVerticalGroup(
+       layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+       .add(jSplitPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 549, Short.MAX_VALUE)
+       );
+       }
+    */
+    
     /** create the 'Search:' popup menu */
     private void createSearchPopupMenu()
     {

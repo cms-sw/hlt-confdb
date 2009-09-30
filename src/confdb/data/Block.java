@@ -46,6 +46,9 @@ public class Block
     public String name() { return this.name; }
     
     /** get parameter iterator */
-    public Iterator<Parameter> parameterIterator() { return parameters.iterator(); }
+    public Iterator<Parameter> parameterIterator()
+    {
+	return parameters.iterator();
+    }
     
 }
