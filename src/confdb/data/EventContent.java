@@ -1,5 +1,7 @@
 package confdb.data;
 
+import java.util.ArrayList;
+
 /**
  * EventContent
  * ------------
@@ -8,8 +10,8 @@ package confdb.data;
  * Manage different CMSSW file formats, which Streams are based on.
  *
  */
-public class EventContent extends    DatabaseEntry
-                          implements Comparable<EventContent>
+public class EventContent extends DatabaseEntry
+    implements Comparable<EventContent>
 {
     //
     // member data
