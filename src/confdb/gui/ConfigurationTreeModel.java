@@ -39,6 +39,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     private StringBuffer pathsNode     = new StringBuffer();
     private StringBuffer sequencesNode = new StringBuffer();
     private StringBuffer modulesNode   = new StringBuffer();
+    private StringBuffer contentsNode  = new StringBuffer();
+    private StringBuffer streamsNode   = new StringBuffer();
+    private StringBuffer datasetsNode  = new StringBuffer();
 
     private ArrayList<StringBuffer> level1Nodes = new ArrayList<StringBuffer>();
     
@@ -54,7 +57,8 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     }
 
     /** constructor which allows to set displayParameter flag */
-    public ConfigurationTreeModel(IConfiguration config,boolean displayParameters)
+    public ConfigurationTreeModel(IConfiguration config,
+				  boolean displayParameters)
     {
 	this.displayParameters = displayParameters;
 	setConfiguration(config);
@@ -76,17 +80,26 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     /** get the ESModules root node */
     public StringBuffer esmodulesNode() { return esmodulesNode; }
     
-    /** get the EDSource root node */
+    /** get the services root node */
     public StringBuffer servicesNode() { return servicesNode; }
     
-    /** get the EDSource root node */
+    /** get the paths root node */
     public StringBuffer pathsNode() { return pathsNode; }
     
-    /** get the EDSource root node */
+    /** get the sequences root node */
     public StringBuffer sequencesNode() { return sequencesNode; }
     
-    /** get the EDSource root node */
+    /** get the modules root node */
     public StringBuffer modulesNode() { return modulesNode; }
+    
+    /** get the contents root node */
+    public StringBuffer contentsNode() { return contentsNode; }
+    
+    /** get the streams root node */
+    public StringBuffer streamsNode() { return streamsNode; }
+    
+    /** get the datasets root node */
+    public StringBuffer datasetsNode() { return datasetsNode; }
     
     /** set the configuration to be displayed */
     public void setConfiguration(IConfiguration config)
@@ -105,6 +118,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 		level1Nodes.add(pathsNode);
 		level1Nodes.add(sequencesNode);
 		level1Nodes.add(modulesNode);
+		level1Nodes.add(contentsNode);
+		level1Nodes.add(streamsNode);
+		level1Nodes.add(datasetsNode);
 	    }
 	    updateLevel1Nodes();
 	}
@@ -221,6 +237,34 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	modulesNode.append("</html>");
 	nodeChanged(modulesNode);
+
+	// Content node
+	int contentCount = config.contentCount();
+	contentsNode.delete(0,contentsNode.length());
+	contentsNode.append("<html><b>EventContents</b> (");
+	contentsNode.append(contentCount);
+	contentsNode.append(")");
+	contentsNode.append("</html>");
+	nodeChanged(contentsNode);
+
+	// Stream node
+	int streamCount = config.streamCount();
+	streamsNode.delete(0,streamsNode.length());
+	streamsNode.append("<html><b>Streams</b> (");
+	streamsNode.append(streamCount);
+	streamsNode.append(")");
+	streamsNode.append("</html>");
+	nodeChanged(streamsNode);
+
+	// Dataset node
+	int datasetCount = config.datasetCount();
+	datasetsNode.delete(0,datasetsNode.length());
+	datasetsNode.append("<html><b>PrimaryDatasets</b> (");
+	datasetsNode.append(datasetCount);
+	datasetsNode.append(")");
+	datasetsNode.append("</html>");
+	nodeChanged(datasetsNode);
+	
     }
     
     /** get root directory */
@@ -240,6 +284,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    if (node==pathsNode)     return (config.pathCount()==0);
 	    if (node==sequencesNode) return (config.sequenceCount()==0);
 	    if (node==modulesNode)   return (config.moduleCount()==0);
+	    if (node==contentsNode)  return (config.contentCount()==0);
+	    if (node==streamsNode)   return (config.streamCount()==0);
+	    if (node==datasetsNode)  return (config.datasetCount()==0);
 	}
 
 	if (!displayParameters) return true;
@@ -289,8 +336,11 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    if (node.equals(esmodulesNode)) return config.esmoduleCount();
 	    if (node.equals(servicesNode))  return config.serviceCount();
 	    if (node.equals(pathsNode))     return config.pathCount();
-	    if (node.equals(modulesNode))   return config.moduleCount();
 	    if (node.equals(sequencesNode)) return config.sequenceCount();
+	    if (node.equals(modulesNode))   return config.moduleCount();
+	    if (node.equals(contentsNode))  return config.contentCount();
+	    if (node.equals(streamsNode))   return config.streamCount();
+	    if (node.equals(datasetsNode))  return config.datasetCount();
 	}
 	else if (!displayParameters) {
 	    return 0;
@@ -298,6 +348,18 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	else if (node instanceof Instance) {
 	    Instance instance = (Instance)node;
 	    return instance.parameterCount();
+	}
+	else if (node instanceof EventContent) {
+	    EventContent content = (EventContent)node;
+	    return content.streamCount();
+	}
+	else if (node instanceof Stream) {
+	    Stream stream = (Stream)node;
+	    return stream.datasetCount();
+	}
+	else if (node instanceof PrimaryDataset) {
+	    PrimaryDataset dataset = (PrimaryDataset)node;
+	    return dataset.pathCount();
 	}
 	else if (node instanceof ReferenceContainer) {
 	    ReferenceContainer refContainer = (ReferenceContainer)node;
@@ -348,6 +410,18 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	else if (parent instanceof Instance) {
 	    Instance instance = (Instance)parent;
 	    return instance.parameter(i);
+	}
+	else if (parent instanceof EventContent) {
+	    EventContent content = (EventContent)parent;
+	    return content.stream(i);
+	}
+	else if (parent instanceof Stream) {
+	    Stream stream = (Stream)parent;
+	    return stream.dataset(i);
+	}
+	else if (parent instanceof PrimaryDataset) {
+	    PrimaryDataset dataset = (PrimaryDataset)parent;
+	    return dataset.path(i);
 	}
 	else if (parent instanceof ReferenceContainer) {
 	    ReferenceContainer refContainer = (ReferenceContainer)parent;
@@ -410,19 +484,46 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 		Path path = (Path)child;
 		return config.indexOfPath(path);
 	    }
+	    if (parent.equals(sequencesNode)) {
+		Sequence sequence = (Sequence)child;
+		return config.indexOfSequence(sequence);
+	    }
 	    if (parent.equals(modulesNode)) {
 		ModuleInstance module = (ModuleInstance)child;
 		return config.indexOfModule(module);
 	    }
-	    if (parent.equals(sequencesNode)) {
-		Sequence sequence = (Sequence)child;
-		return config.indexOfSequence(sequence);
+	    if (parent.equals(contentsNode)) {
+		EventContent content = (EventContent)child;
+		return config.indexOfContent(content);
+	    }
+	    if (parent.equals(streamsNode)) {
+		Stream stream = (Stream)child;
+		return config.indexOfStream(stream);
+	    }
+	    if (parent.equals(datasetsNode)) {
+		PrimaryDataset dataset = (PrimaryDataset)child;
+		return config.indexOfDataset(dataset);
 	    }
 	}
 	else if (parent instanceof Instance) {
 	    Instance instance = (Instance)parent;
 	    Parameter parameter = (Parameter)child;
 	    return instance.indexOfParameter(parameter);
+	}
+	else if (parent instanceof EventContent) {
+	    EventContent content = (EventContent)parent;
+	    Stream stream = (Stream)child;
+	    return content.indexOfStream(stream);
+	}
+	else if (parent instanceof Stream) {
+	    Stream stream = (Stream)parent;
+	    PrimaryDataset dataset = (PrimaryDataset)child;
+	    return stream.indexOfDataset(dataset);
+	}
+	else if (parent instanceof PrimaryDataset) {
+	    PrimaryDataset dataset = (PrimaryDataset)parent;
+	    Path path = (Path)child;
+	    return dataset.indexOfPath(path);
 	}
 	else if (parent instanceof ReferenceContainer) {
 	    ReferenceContainer refContainer = (ReferenceContainer)parent;
@@ -472,30 +573,17 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    Reference r = (Reference)node;
 	    return r.container();
 	}
-	else if (node instanceof EDSourceInstance) {
-	    return edsourcesNode;
-	}
-	else if (node instanceof ESSourceInstance) {
-	    return essourcesNode;
-	}
-	else if (node instanceof ESModuleInstance) {
-	    return esmodulesNode;
-	}
-	else if (node instanceof ServiceInstance) {
-	    return servicesNode;
-	}
-	else if (node instanceof ModuleInstance) {
-	    return modulesNode;
-	}
-	else if (node instanceof Path) {
-	    return pathsNode;
-	}
-	else if (node instanceof Sequence) {
-	    return sequencesNode;
-	}
-	else if (node instanceof StringBuffer) {
-	    return getRoot();
-	}
+	else if (node instanceof EDSourceInstance) return edsourcesNode;
+	else if (node instanceof ESSourceInstance) return essourcesNode;
+	else if (node instanceof ESModuleInstance) return esmodulesNode;
+	else if (node instanceof ServiceInstance)  return servicesNode;
+	else if (node instanceof ModuleInstance)   return modulesNode;
+	else if (node instanceof Path) 	           return pathsNode;
+	else if (node instanceof Sequence)         return sequencesNode;
+	else if (node instanceof EventContent)     return contentsNode;
+	else if (node instanceof Stream)           return streamsNode;
+	else if (node instanceof PrimaryDataset)   return datasetsNode;
+	else if (node instanceof StringBuffer)     return getRoot();
 	return null;
     }
     

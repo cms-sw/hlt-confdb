@@ -19,8 +19,8 @@ public class Path extends ReferenceContainer
     // member data
     //
 
-    /** primary datasets this path is associated with */
-    private ArrayList<PrimaryDataset> datasets = new ArrayList<PrimaryDataset>();
+    /** collection of event contents this path is associated with */
+    private ArrayList<EventContent> contents=new ArrayList<EventContent>();
     
     /** flag indicating that the path was set to be an endpath */
     private boolean isSetAsEndPath = false;
@@ -42,28 +42,30 @@ public class Path extends ReferenceContainer
     //
 
     /** set the name of the path; check 'SelectEvents' of OutputModules */
-    public void setName(String name) throws DataException
-    {
-	String oldName = name();
-	super.setName(name);
-	if (config!=null) {
-	    Iterator<ModuleInstance> itM = config.moduleIterator();
-	    while (itM.hasNext()) {
-		ModuleInstance module = itM.next();
-		if (!module.template().type().equals("OutputModule")) continue;
-		Parameter[] tmp=module.findParameters("SelectEvents::SelectEvents");
-		if (tmp.length!=1) continue;
-		VStringParameter selEvts = (VStringParameter)tmp[0];
-		for (int i=0;i<selEvts.vectorSize();i++) {
-		    String iAsString = (String)selEvts.value(i);
-		    if (iAsString.equals(oldName)) {
-			selEvts.setValue(i,name);
-			module.setHasChanged();
-		    }
-		}
-	    }
-	}
-    }
+    /*
+      public void setName(String name) throws DataException
+      {
+      String oldName = name();
+      super.setName(name);
+      if (config!=null) {
+      Iterator<ModuleInstance> itM = config.moduleIterator();
+      while (itM.hasNext()) {
+      ModuleInstance module = itM.next();
+      if (!module.template().type().equals("OutputModule")) continue;
+      Parameter[] tmp=module.findParameters("SelectEvents::SelectEvents");
+      if (tmp.length!=1) continue;
+      VStringParameter selEvts = (VStringParameter)tmp[0];
+      for (int i=0;i<selEvts.vectorSize();i++) {
+      String iAsString = (String)selEvts.value(i);
+      if (iAsString.equals(oldName)) {
+      selEvts.setValue(i,name);
+      module.setHasChanged();
+      }
+      }
+      }
+      }
+      }
+    */
 
     /** chek if this path contains an output module */
     public boolean isEndPath()
@@ -111,7 +113,6 @@ public class Path extends ReferenceContainer
 	    setHasChanged();
 	}
 	else System.out.println("Path.insertEntry FAILED.");
-	
     }
     
     /** check if path contains a specific entry */
@@ -140,49 +141,74 @@ public class Path extends ReferenceContainer
 	return reference;
     }
 
-    /** number of primary datasets this path is associated with */
-    public int datasetCount() { return datasets.size(); }
 
-    /** retrieve the i-th primary dataset this path is associated with */
-    public PrimaryDataset dataset(int i) { return datasets.get(i); }
+    /** number of event contents this path is associated with */
+    public int contentCount() { return contents.size(); }
+    
+    /** retrieve i-th event content */
+    public EventContent content(int i) { return contents.get(i); }
 
-    /** retrieve iterator over primary datasets this path is associated with */
-    public Iterator<PrimaryDataset> datasetIterator()
+    /** retrieve event content iterator */
+    public Iterator<EventContent> contentIterator()
     {
-	return datasets.iterator();
+	return contents.iterator();
     }
-
-    /** add this path to a primary dataset */
-    public boolean addToDataset(PrimaryDataset dataset)
+    
+    /** add this path to an event content */
+    public boolean addToContent(EventContent content)
     {
-	if (datasets.indexOf(dataset)>=0) return false;
-	datasets.add(dataset);
-	setHasChanged();
+	if (contents.indexOf(content)>=0) return false;
+	contents.add(content);
+	// DON'T CALL setHasChanged()!?!
 	return true;
     }
     
-    /** remove this path from a primary dataset */
-    public boolean removeFromDataset(PrimaryDataset dataset)
+    /** remove this path from an event content */
+    public boolean removeFromContent(EventContent content)
     {
-	int index = datasets.indexOf(dataset);
+	int index = contents.indexOf(content);
 	if (index<0) return false;
-	datasets.remove(index);
-	setHasChanged();
+	contents.remove(index);
+	// DON'T CALL setHasChanged()!?!
 	return true;
     }
+
     
-    /** retrieve list of streams this path is assigned to */
-    public Stream[] listOfStreams()
+    /** number of streams this path is assiged to */
+    public int streamCount() { return listOfStreams().size(); }
+    
+    /** retrieve a list of streams this path is associated with */
+    public ArrayList<Stream> listOfStreams()
     {
-	HashSet<Stream> setOfStreams = new HashSet<Stream>();
-	for (PrimaryDataset pd : datasets) {
-	    Stream s = pd.parentStream();
-	    if (s!=null) setOfStreams.add(s);
+	ArrayList<Stream> result = new ArrayList<Stream>();
+	Iterator<EventContent> itC = contentIterator();
+	while (itC.hasNext()) {
+	    Iterator<Stream> itS = itC.next().streamIterator();
+	    while (itS.hasNext()) {
+		Stream stream = itS.next();
+		if (stream.indexOfPath(this)>=0) result.add(stream);
+	    }
 	}
-	return setOfStreams.toArray(new Stream[setOfStreams.size()]);
+	return result;
     }
+
     
-    /** number of streams this path is assigned to */
-    public int streamCount() { return listOfStreams().length; }
+    /** number of datasets this path is assigned to */
+    public int datasetCount() { return listOfDatasets().size(); }
+    
+    /** retrieve list of primary datasets this path is associated with */
+    public ArrayList<PrimaryDataset> listOfDatasets()
+    {
+	ArrayList<PrimaryDataset> result = new ArrayList<PrimaryDataset>();
+	Iterator<Stream> itS = listOfStreams().iterator();
+	while (itS.hasNext()) {
+	    Iterator<PrimaryDataset> itPD = itS.next().datasetIterator();
+	    while (itPD.hasNext()) {
+		PrimaryDataset dataset = itPD.next();
+		if (dataset.indexOfPath(this)>=0) result.add(dataset);
+	    }
+	}
+	return result;
+    }
     
 }

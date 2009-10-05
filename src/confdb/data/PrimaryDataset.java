@@ -9,18 +9,20 @@ import java.util.Iterator;
  * --------------
  * @author Philipp Schieferdecker
  *
- * For HLT configurations; paths can be assigned to primary datasets,
- * in order to organize events for anlyzers.
+ * PrimaryDatasets are a set (!) of paths assigned with the parent
+ * stream. Each path can only be assigned to one of the PDs assigned
+ * with a single stream.
  */
-public class PrimaryDataset extends DatabaseEntry implements Comparable<PrimaryDataset>
+public class PrimaryDataset extends DatabaseEntry
+                            implements Comparable<PrimaryDataset>
 {
     //
     // member data
     //
     
-    /** label of the stream */
+    /** label of the stream */ 
     private String label;
-
+    
     /** collection of assigned paths */
     private ArrayList<Path> paths = new ArrayList<Path>();
     
@@ -33,9 +35,10 @@ public class PrimaryDataset extends DatabaseEntry implements Comparable<PrimaryD
     //
     
     /** standard constructor */
-    public PrimaryDataset(String label)
+    public PrimaryDataset(String label,Stream parentStream)
     {
-	this.label = label;
+	this.label        = label;
+	this.parentStream = parentStream;
     }
     
     
@@ -54,7 +57,7 @@ public class PrimaryDataset extends DatabaseEntry implements Comparable<PrimaryD
     
     /** overload 'toString()' */
     public String toString() { return label(); }
-
+    
     /** Comparable: compareTo() */
     public int compareTo(PrimaryDataset s)
     {
@@ -83,13 +86,8 @@ public class PrimaryDataset extends DatabaseEntry implements Comparable<PrimaryD
     /** insert and associate a path with this stream */
     public boolean insertPath(Path path)
     {
-	if (paths.indexOf(path)>=0) {
-	    System.out.println("PrimaryDataset.insertPath() WARNING: path '"+
-			       path.name()+"' already associated with primary "+
-			       "dataset '"+label+"'");
-	    return false;
-	}
-	if (!path.addToDataset(this)) return false;
+	if (paths.indexOf(path)>=0) return false;
+	if (parentStream.listOfAssignedPaths().indexOf(path)>=0) return false;
 	paths.add(path);
 	setHasChanged();
 	return true;
@@ -99,42 +97,9 @@ public class PrimaryDataset extends DatabaseEntry implements Comparable<PrimaryD
     public boolean removePath(Path path)
     {
 	int index = paths.indexOf(path);
-	if (index<0) {
-	    System.out.println("PrimaryDataset.removePath() WARNING: path '"+
-			       path.name()+"' not associated with primary "+
-			       "dataset '"+label+"'");
-	    return false;
-	}
+	if (index<0) return false;
 	paths.remove(index);
-	path.removeFromDataset(this);
 	setHasChanged();
-	return true;
-    }
-    
-    /** add this dataset to a stream */
-    public boolean addToStream(Stream stream)
-    {
-	if (parentStream==null) {
-	    parentStream = stream;
-	    setHasChanged();
-	    return true;
-	}
-	System.out.println("PrimaryDataset::addToStream() WARNING: dataset '"+
-			   label+"' already assigned to stream '"+
-			   parentStream.label()+"'!");
-	return false;
-    }
-    
-    /** remove dataset from stream */
-    public boolean removeFromStream(Stream stream)
-    {
-	if (parentStream!=stream) {
-	    System.out.println("PrimaryDataset::removeFromStream() WARNING: "+
-			       "dataset '"+label+"' is not assinged to stream '"+
-			       stream.label()+"'!");
-	    return false;
-	}
-	parentStream = null;
 	return true;
     }
     

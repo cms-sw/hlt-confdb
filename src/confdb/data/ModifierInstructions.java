@@ -919,7 +919,7 @@ public class ModifierInstructions
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
 	params.add(new StringParameter("readerPluginName",
 				       "FUShmReader",false,false));
-	edsourceT = new EDSourceTemplate("DaqSource","UNKNOWN",-1,params);
+	edsourceT = new EDSourceTemplate("DaqSource","UNKNOWN",params);
     }
     
     /** insert PoolSource [fileNames = comma-separated list!] */
@@ -928,7 +928,7 @@ public class ModifierInstructions
 	filterAllEDSources = true;
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
 	params.add(new VStringParameter("fileNames",fileNames,false,false));
-	edsourceT = new EDSourceTemplate("PoolSource","UNKNOWN",-1,params);
+	edsourceT = new EDSourceTemplate("PoolSource","UNKNOWN",params);
     }
     
     /** insert/replace FUShmStreamConsumer */
@@ -941,7 +941,7 @@ public class ModifierInstructions
 	params.add(new Int32Parameter("compression_level","1",false,false));
 	params.add(new Int32Parameter("max_event_size","7000000",false,false));
 	outputT = new ModuleTemplate("ShmStreamConsumer",
-				     "UNKNOWN",-1,params,"OutputModule");
+				     "UNKNOWN",params,"OutputModule");
     }
 
     /** insert/replace PoolOutputModule */
@@ -953,7 +953,7 @@ public class ModifierInstructions
 	params.add(new PSetParameter("SelectEvents","",false,false));
 	params.add(new VStringParameter("outputCommands","",false,false));
 	outputT = new ModuleTemplate("PoolOutputModule",
-				     "UNKNOWN",-1,params,"OutputModule");
+				     "UNKNOWN",params,"OutputModule");
     }
     
 }

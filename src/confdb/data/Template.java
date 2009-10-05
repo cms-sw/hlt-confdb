@@ -11,7 +11,8 @@ import java.util.Collections;
  *
  * abstract base-class for Service, EDSource, ESSource, and Module Templates.
  */
-abstract public class Template extends DatabaseEntry implements Comparable<Template>
+abstract public class Template extends DatabaseEntry
+                               implements Comparable<Template>
 {
     //
     // member data
@@ -38,10 +39,8 @@ abstract public class Template extends DatabaseEntry implements Comparable<Templ
     //
     
     /** standard constructor */
-    public Template(String name,String cvsTag,int dbId,
-		    ArrayList<Parameter> parameters)
+    public Template(String name,String cvsTag,ArrayList<Parameter> parameters)
     {
-	super(dbId);
 	this.name       = name;
 	this.cvsTag     = cvsTag;
 	this.parameters = (parameters==null) ?
@@ -90,7 +89,10 @@ abstract public class Template extends DatabaseEntry implements Comparable<Templ
     public SoftwarePackage parentPackage() { return parentPackage; }
 
     /** parameter iterator */
-    public Iterator<Parameter> parameterIterator() { return parameters.iterator(); }
+    public Iterator<Parameter> parameterIterator()
+    {
+	return parameters.iterator();
+    }
 
     /** number of parameters */
     public int parameterCount() { return parameters.size(); }
@@ -121,7 +123,7 @@ abstract public class Template extends DatabaseEntry implements Comparable<Templ
 	}
     }
 
-    /** number of instance */
+    /** number of instances */
     public int instanceCount() { return instances.size(); }
 
     /** retrieve the i-th instance */

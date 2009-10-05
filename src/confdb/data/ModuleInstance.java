@@ -18,8 +18,12 @@ public class ModuleInstance extends Instance implements Referencable
     // data members
     //
     
+    /** database ID */
+    private int databaseId = 0;
+    
     /** list of references */
-    private ArrayList<ModuleReference> references = new ArrayList<ModuleReference>();
+    private ArrayList<ModuleReference> references =
+	new ArrayList<ModuleReference>();
     
     
     //
@@ -37,7 +41,7 @@ public class ModuleInstance extends Instance implements Referencable
     //
     // member functions
     //
-    
+
     /** create a reference of this instance */
     public Reference createReference(ReferenceContainer container,int i)
     {
@@ -149,7 +153,9 @@ public class ModuleInstance extends Instance implements Referencable
 			    (VInputTagParameter)vInputTag.clone(null);
 			for (int i=0;i<tmp.vectorSize();i++) {
 			    InputTagParameter inputTag = 
-				new InputTagParameter("",tmp.value(i).toString(),
+				new InputTagParameter("",
+						      tmp.value(i)
+						      .toString(),
 						      false,false);
 			    if (inputTag.label().equals(oldName)) {
 				inputTag.setLabel(name());
@@ -164,5 +170,5 @@ public class ModuleInstance extends Instance implements Referencable
 	    }
 	}
     }
-
+    
 }

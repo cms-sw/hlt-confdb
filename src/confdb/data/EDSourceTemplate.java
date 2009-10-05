@@ -24,10 +24,10 @@ public class EDSourceTemplate extends Template
     //
     
     /** standard constructor */
-    public EDSourceTemplate(String name,String cvsTag,int dbId,
+    public EDSourceTemplate(String name,String cvsTag,
 			    ArrayList<Parameter> parameters)
     {
-	super(name,cvsTag,dbId,parameters);
+	super(name,cvsTag,parameters);
     }
 
     

@@ -61,7 +61,8 @@ public class PSetParameter extends Parameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	PSetParameter result=new PSetParameter(name,parameters,isTracked,isDefault);
+	PSetParameter result=new PSetParameter(name,parameters,
+					       isTracked,isDefault);
 	result.setParent(parent);
 	return result;
     }

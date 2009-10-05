@@ -102,12 +102,6 @@ public class ConfDB
     private PreparedStatement psSelectServiceTemplate             = null;
     private PreparedStatement psSelectModuleTemplate              = null;
 
-    // PS@28/09/2009
-    //private PreparedStatement psSelectStreams                     = null;
-    //private PreparedStatement psSelectPrimaryDatasets             = null;
-    //private PreparedStatement psSelectStreamEntries               = null;
-    //private PreparedStatement psSelectPrimaryDatasetEntries       = null;
-    
     private PreparedStatement psSelectPSetsForConfig              = null;
     private PreparedStatement psSelectEDSourcesForConfig          = null;
     private PreparedStatement psSelectESSourcesForConfig          = null;
@@ -164,9 +158,6 @@ public class ConfDB
     private PreparedStatement psInsertDirectory                   = null;
     private PreparedStatement psInsertConfiguration               = null;
     private PreparedStatement psInsertConfigurationLock           = null;
-    // PS@28/09/2009
-    //private PreparedStatement psInsertStream                      = null;
-    //private PreparedStatement psInsertPrimaryDataset              = null;
     private PreparedStatement psInsertSuperId                     = null;
     private PreparedStatement psInsertGlobalPSet                  = null;
     private PreparedStatement psInsertEDSource                    = null;
@@ -179,9 +170,6 @@ public class ConfDB
     private PreparedStatement psInsertConfigServiceAssoc          = null;
     private PreparedStatement psInsertPath                        = null;
     private PreparedStatement psInsertConfigPathAssoc             = null;
-    // PS@28/09/2009
-    //private PreparedStatement psInsertConfigStreamAssoc           = null;
-    //private PreparedStatement psInsertPrimaryDatasetPathAssoc     = null;
     private PreparedStatement psInsertSequence                    = null;
     private PreparedStatement psInsertConfigSequenceAssoc         = null;
     private PreparedStatement psInsertModule                      = null;
@@ -233,8 +221,6 @@ public class ConfDB
     private PreparedStatement psDeleteServicesFromConfig          = null;
     private PreparedStatement psDeleteSequencesFromConfig         = null;
     private PreparedStatement psDeletePathsFromConfig             = null;
-    // PS@28/09/2009
-    //private PreparedStatement psDeleteStreamsAndDatasetsFromConfig= null;
 
     private PreparedStatement psDeleteChildSeqsFromParentSeq      = null;
     private PreparedStatement psDeleteChildSeqFromParentSeqs      = null;
@@ -325,8 +311,8 @@ public class ConfDB
     public void connect(String dbType,String dbUrl,String dbUser,String dbPwrd)
 	throws DatabaseException
     {
-    this.dbType = dbType;
-    this.dbUrl  = dbUrl;
+	this.dbType = dbType;
+	this.dbUrl  = dbUrl;
 	this.dbUser = dbUser;
 	this.dbPwrd  = dbPwrd;
 	if (dbType.equals(dbTypeMySQL))
@@ -496,16 +482,16 @@ public class ConfDB
 		new HashMap<Integer,Directory>();
 
 	    // DEBUG
-	    long startTime = System.currentTimeMillis();
+	    //long startTime = System.currentTimeMillis();
 
 	    rs = psSelectDirectories.executeQuery();
 
 	    // DEBUG
-	    long dir1Time = System.currentTimeMillis();
+	    //long dir1Time = System.currentTimeMillis();
 	    
 	    while (rs.next()) {
-		int    dirId       = rs.getInt(1);
-		int    parentDirId = rs.getInt(2);
+		int   dirId        = rs.getInt(1);
+		int   parentDirId  = rs.getInt(2);
 		String dirName     = rs.getString(3);
 		String dirCreated  = rs.getTimestamp(4).toString();
 		
@@ -529,7 +515,7 @@ public class ConfDB
 	    }
 
 	    // DEBUG
-	    long dir2Time = System.currentTimeMillis();
+	    //long dir2Time = System.currentTimeMillis();
 	    
 	    // retrieve list of configurations for all directories
 	    HashMap<String,ConfigInfo> configHashMap =
@@ -538,7 +524,7 @@ public class ConfDB
 	    rs = psSelectConfigurations.executeQuery();
 
 	    // DEBUG
-	    long config1Time = System.currentTimeMillis();
+	    //long config1Time = System.currentTimeMillis();
 	    
 	    while (rs.next()) {
 		int    configId          = rs.getInt(1);
@@ -607,7 +593,7 @@ public class ConfDB
 	    
 	    
 	    // DEBUG
-	    //long config2Time = System.currentTimeMillis();
+	    //int config2Time = System.currentTimeMillis();
 	    //System.err.println("TIMING: "+
 	    //	       (config2Time-startTime)+": "+
 	    //	       (dir1Time-startTime)+" / "+
@@ -685,7 +671,8 @@ public class ConfDB
     }
 
     /** load a partial software release */
-    public void loadPartialSoftwareRelease(int configId,SoftwareRelease release)
+    public void loadPartialSoftwareRelease(int configId,
+					   SoftwareRelease release)
 	throws DatabaseException
     {
 	String releaseTag = getReleaseTagForConfig(configId);
@@ -739,7 +726,9 @@ public class ConfDB
 		
 		SoftwarePackage pkg = idToPackage.get(pkgId);
 
-		Template template = TemplateFactory.create(type,name,cvstag,id,null);
+		Template template =
+		    TemplateFactory.create(type,name,cvstag,null);
+		template.setDatabaseId(id);
 		
 		ArrayList<Parameter> params = templateParams.remove(id);
 		
@@ -789,7 +778,8 @@ public class ConfDB
     }
 
     /** load a configuration & *all* release templates from the database */
-    public Configuration loadConfiguration(int configId,SoftwareRelease release)
+    public Configuration loadConfiguration(int configId,
+					   SoftwareRelease release)
 	throws DatabaseException
     {
 	ConfigInfo configInfo  = getConfigInfo(configId);
@@ -817,8 +807,9 @@ public class ConfDB
     }
     
     
-    /** load a configuration & *necessary* release templates from the database */
-    public Configuration loadConfiguration(int configId) throws DatabaseException
+    /** load configuration & *necessary* release templates from the database */
+    public Configuration loadConfiguration(int configId)
+	throws DatabaseException
     {
 	ConfigInfo      configInfo = getConfigInfo(configId);
 	String          releaseTag = configInfo.releaseTag();
@@ -832,20 +823,17 @@ public class ConfDB
     }
     
     /** fill an empty configuration *after* template hash maps were filled! */
-    private void loadConfiguration(Configuration config) throws DatabaseException
+    private void loadConfiguration(Configuration config)
+	throws DatabaseException
     {
 	reconnect();
 	
-	int     configId = config.dbId();
+	int       configId = config.dbId();
 
 	ResultSet rsInstances       = null;
 	
 	ResultSet rsPathEntries     = null;
 	ResultSet rsSequenceEntries = null;
-	
-	// PS@28/09/2009
-	// ResultSet rsStreamEntries   = null;
-	// ResultSet rsDatasetEntries  = null;
 	
 	SoftwareRelease release = config.release();
 
@@ -857,18 +845,12 @@ public class ConfDB
 	    rsPathEntries     = psSelectPathEntries.executeQuery();
 	    rsSequenceEntries = psSelectSequenceEntries.executeQuery();
 
-	    // PS@28/09/2009
-	    //psSelectStreamEntries.setInt(1,configId);
-	    //rsStreamEntries   = psSelectStreamEntries.executeQuery();
-	    //psSelectPrimaryDatasetEntries.setInt(1,configId);
-	    //rsDatasetEntries  = psSelectPrimaryDatasetEntries.executeQuery();
-	    
 	    HashMap<Integer,ArrayList<Parameter> > idToParams = getParameters();
 	    
 	    HashMap<Integer,ModuleInstance> idToModules=
 		new HashMap<Integer,ModuleInstance>();
-	    HashMap<Integer,Path>     idToPaths    =new HashMap<Integer,Path>();
-	    HashMap<Integer,Sequence> idToSequences=new HashMap<Integer,Sequence>();
+	    HashMap<Integer,Path>    idToPaths    =new HashMap<Integer,Path>();
+	    HashMap<Integer,Sequence>idToSequences=new HashMap<Integer,Sequence>();
 	    
 	    
 	    while (rsInstances.next()) {
@@ -962,14 +944,15 @@ public class ConfDB
 		int      index    = sequence.entryCount();
 		
 		if (index!=sequenceNb)
-		    System.err.println("ERROR in sequence "+sequence.name()+": "+
-				       "index="+index+" sequenceNb="+sequenceNb);
+		    System.err.println("ERROR in sequence "+sequence.name()+
+				       ": index="+index+" sequenceNb="
+				       +sequenceNb);
 		
 		if (entryType.equals("Sequence")) {
 		    Sequence entry = idToSequences.get(entryId);
 		    if (entry==null) {
-			System.err.println("ERROR: can't find sequence for id=" +
-					   entryId +
+			System.err.println("ERROR: can't find sequence for "+
+					   "id=" + entryId +
 					   " expected as daughter " + index +
 					   " of sequence " + sequence.name());
 		    }
@@ -985,50 +968,6 @@ public class ConfDB
 		sequence.setDatabaseId(sequenceId);
 	    }
 
-	   
-	    // PS@28/09/2009
-	    //HashMap<Integer,PrimaryDataset> idToDatasets =
-	    //new HashMap<Integer,PrimaryDataset>();
-	    
-	    
-	    // PS@28/09/2009
-	    /*
-	      while (rsDatasetEntries.next()) {
-	      int            datasetId    = rsDatasetEntries.getInt(1);
-	      String         datasetLabel = rsDatasetEntries.getString(2);
-	      int            pathId       = rsDatasetEntries.getInt(3);
-	      PrimaryDataset dataset      = config.dataset(datasetLabel);
-	      if (dataset==null) {
-	      dataset = config.insertDataset(datasetLabel);
-	      idToDatasets.put(datasetId,dataset);
-	      }
-	      Path path = idToPaths.get(pathId);
-	      dataset.insertPath(path);
-	      dataset.setDatabaseId(datasetId);
-	      }
-	    */
-	    
-	    
-	    // PS@28/09/2009
-	    /*
-	      while (rsStreamEntries.next()) {
-	      int    streamId    = rsStreamEntries.getInt(1);
-	      String streamLabel = rsStreamEntries.getString(2);
-	      int    datasetId   = rsStreamEntries.getInt(3);
-	      String datasetLabel= rsStreamEntries.getString(4);
-	      Stream stream      = config.stream(streamLabel);
-	      if (stream==null) stream = config.insertStream(streamLabel);
-	      PrimaryDataset dataset = idToDatasets.get(datasetId);
-	      if (dataset==null) {
-	      dataset = config.insertDataset(datasetLabel);
-	      dataset.setDatabaseId(datasetId);
-	      }
-	      stream.insertDataset(dataset);
-	      stream.setDatabaseId(streamId);
-	      dataset.setDatabaseId(datasetId);
-	      }
-	    */
-	    
 	    while (rsPathEntries.next()) {
 		int    pathId     = rsPathEntries.getInt(1);
 		int    entryId    = rsPathEntries.getInt(2);
@@ -1070,59 +1009,10 @@ public class ConfDB
 	    dbConnector.release(rsInstances);
 	    dbConnector.release(rsPathEntries);
 	    dbConnector.release(rsSequenceEntries);
-	    
-	    // PS@28/09/2009
-	    // dbConnector.release(rsStreamEntries);
-	    // dbConnector.release(rsDatasetEntries);
 	}
     }
     
-    /** retrieve list of valid stream labels */
-    /* PS@28/09/2009
 
-       public Iterator<String> streamLabelIterator() throws DatabaseException
-       {
-       ResultSet rs = null;
-       ArrayList<String> streamLabels = new ArrayList<String>();
-       try {
-       rs = psSelectStreams.executeQuery();
-       while (rs.next()) streamLabels.add(rs.getString(2));
-       return streamLabels.iterator();
-       }
-       catch (SQLException e) {
-       String errMsg =
-       "ConfDB::streamLabelIterator() failed: "+e.getMessage();
-       throw new DatabaseException(errMsg,e);
-       }
-       finally {
-       dbConnector.release(rs);
-       }
-       }
-    */
-
-    /** retrieve list of valid primary dataset labels */
-    /* PS@28/09/2009
-       
-       public Iterator<String> datasetLabelIterator() throws DatabaseException
-       {
-       ResultSet rs = null;
-       ArrayList<String> datasetLabels = new ArrayList<String>();
-       try {
-       rs = psSelectPrimaryDatasets.executeQuery();
-       while (rs.next()) datasetLabels.add(rs.getString(2));
-       return datasetLabels.iterator();
-       }
-       catch (SQLException e) {
-       String errMsg =
-       "ConfDB::datasetLabelIterator() failed: "+e.getMessage();
-       throw new DatabaseException(errMsg,e);
-       }
-       finally {
-       dbConnector.release(rs);
-       }
-       }
-    */
-    
     /** insert a new directory */
     public void insertDirectory(Directory dir) throws DatabaseException
     {
@@ -1162,54 +1052,6 @@ public class ConfDB
 	}
     }
     
-    /** insert a new Stream into the DB */
-    /* PS@28/09/2009
-    
-       public int insertStream(String streamLabel) throws DatabaseException
-       {
-       int streamId = -1;
-       ResultSet rs = null;
-       try {
-       psInsertStream.setString(1,streamLabel);
-       psInsertStream.executeUpdate();
-       rs = psInsertStream.getGeneratedKeys();
-       rs.next();
-       streamId = rs.getInt(1);
-       }
-       catch (SQLException e) {
-       String errMsg =
-       "ConfDB::insertStream(streamLabel="+streamLabel+") failed: "+
-       e.getMessage();
-       throw new DatabaseException(errMsg,e);
-       }
-       return streamId;
-       }
-    */
-
-    /** insert a new Primary Dataset into the DB */
-    /* PS@28/09/2009
-
-       public int insertDataset(String datasetLabel) throws DatabaseException
-       {
-       int datasetId = -1;
-       ResultSet rs = null;
-       try {
-       psInsertPrimaryDataset.setString(1,datasetLabel);
-       psInsertPrimaryDataset.executeUpdate();
-       rs = psInsertPrimaryDataset.getGeneratedKeys();
-       rs.next();
-       datasetId = rs.getInt(1);
-       }
-       catch (SQLException e) {
-       String errMsg =
-       "ConfDB::insertDataset(datasetLabel="+datasetLabel+") failed: "+
-       e.getMessage();
-       throw new DatabaseException(errMsg,e);
-       }
-       return datasetId;
-       }
-    */
-    
 
     /** insert a new configuration */
     public void insertConfiguration(Configuration config,
@@ -1223,55 +1065,6 @@ public class ConfDB
 	    config.parentDir().name()+"/"+config.name()+"/V"+config.nextVersion();
 
 	ResultSet rs = null;
-	
-	// explicitely make sure that the stream/dataset labels are in this
-	// particular database, and create them if they are not
-
-	/* REMOVED PS@28/09/2009
-	
-	   HashMap<String,Integer> streamToId  = new HashMap<String,Integer>();
-	   HashMap<String,Integer> datasetToId = new HashMap<String,Integer>();
-	   try {
-	   rs = psSelectStreams.executeQuery();
-	   while (rs.next()) {
-	   int    streamId = rs.getInt(1);
-	   String streamLabel = rs.getString(2);
-	   streamToId.put(streamLabel,streamId);
-	   }
-	   rs = psSelectPrimaryDatasets.executeQuery();
-	   while (rs.next()) {
-	   int    datasetId    = rs.getInt(1);
-	   String datasetLabel = rs.getString(2);
-	   datasetToId.put(datasetLabel,datasetId);
-	   }
-	   Iterator<Stream> itS = config.streamIterator();
-	   while (itS.hasNext()) {
-	   Stream stream = itS.next();
-	   if (!streamToId.containsKey(stream.label())) {
-	   int streamId = insertStream(stream.label());
-	   stream.setDatabaseId(streamId);
-	   }
-	   else {
-	   stream.setDatabaseId(streamToId.get(stream.label()));
-	   }
-	   }
-	   Iterator<PrimaryDataset> itPD = config.datasetIterator();
-	   while (itPD.hasNext()) {
-	   PrimaryDataset dataset = itPD.next();
-	   if (!datasetToId.containsKey(dataset.label())) {
-	   int datasetId = insertDataset(dataset.label());
-	   dataset.setDatabaseId(datasetId);
-	   }
-	   else {
-	   dataset.setDatabaseId(datasetToId.get(dataset.label()));
-	   }
-	   }
-	   }
-	   catch (SQLException e) {
-	   String errMsg = "ConfDB::insertConfiguration() failed: "+e.getMessage();
-	   throw new DatabaseException(errMsg,e);
-	   }
-	*/
 	
 	try {
 	    dbConnector.getConnection().setAutoCommit(false);
@@ -1316,7 +1109,8 @@ public class ConfDB
 	    HashMap<String,Integer> pathHashMap=insertPaths(configId,config);
 	    
 	    // insert sequences
-	    HashMap<String,Integer> sequenceHashMap=insertSequences(configId,config);
+	    HashMap<String,Integer> sequenceHashMap=insertSequences(configId,
+								    config);
 	    
 	    // insert modules
 	    HashMap<String,Integer> moduleHashMap=insertModules(config);
@@ -1410,10 +1204,10 @@ public class ConfDB
     {
 	reconnect();
 
-	int        parentDirId   = config.parentDir().dbId();
-	String     parentDirName = config.parentDir().name();
-	String     configName    = config.name();
-	String     userName      = config.lockedByUser();
+	int     parentDirId   = config.parentDir().dbId();
+	String  parentDirName = config.parentDir().name();
+	String  configName    = config.name();
+	String  userName      = config.lockedByUser();
 
 	try {
 	    psDeleteLock.setInt(1,parentDirId);
@@ -1507,9 +1301,9 @@ public class ConfDB
 		}
 		catch (SQLException e) {
 		    String errMsg =
-			"ConfDB::insertEDSources(configID="+configId+") failed "+
-			"(edsourceId="+edsourceId+" templateId="+templateId+"): "+
-			e.getMessage();
+			"ConfDB::insertEDSources(configID="+configId+
+			") failed (edsourceId="+edsourceId+
+			" templateId="+templateId+"): "+e.getMessage();
 		    throw new DatabaseException(errMsg,e);
 		}
 		insertInstanceParameters(edsourceId,edsource);
@@ -1724,8 +1518,8 @@ public class ConfDB
 	    for (int sequenceNb=0;sequenceNb<config.pathCount();sequenceNb++) {
 		Path   path     = config.path(sequenceNb);
 		path.hasChanged();
-		String pathName       = path.name();
-		int    pathId         = path.databaseId();
+		String  pathName       = path.name();
+		int     pathId        = path.databaseId();
 		boolean pathIsEndPath = path.isSetAsEndPath();
 		
 		if (pathId<=0) {
@@ -1739,15 +1533,6 @@ public class ConfDB
 		    pathId = rs.getInt(1);
 		    result.put(pathName,pathId);
 		    idToPath.put(pathId,path);
-
-		    // PS@28/09/2009
-		    //Iterator<PrimaryDataset> itPD = path.datasetIterator();
-		    //while (itPD.hasNext()) {
-		    //int datasetId = itPD.next().databaseId();
-		    //psInsertPrimaryDatasetPathAssoc.setInt(1,datasetId);
-		    //psInsertPrimaryDatasetPathAssoc.setInt(2,pathId);
-		    //psInsertPrimaryDatasetPathAssoc.addBatch();
-		    //}
 		}
 		else result.put(pathName,-pathId);
 		
@@ -1776,8 +1561,6 @@ public class ConfDB
 
 	try {
 	    psInsertConfigPathAssoc.executeBatch();
-	    // PS@28/09/2009
-	    //psInsertPrimaryDatasetPathAssoc.executeBatch();
 	}
 	catch (SQLException e) {
 	    String errMsg =
@@ -1794,8 +1577,8 @@ public class ConfDB
 						    Configuration config)
 	throws DatabaseException
     {
-	HashMap<String,Integer>   result       = new HashMap<String,Integer>();
-	HashMap<Integer,Sequence> idToSequence = new HashMap<Integer,Sequence>();
+	HashMap<String,Integer>   result      =new HashMap<String,Integer>();
+	HashMap<Integer,Sequence> idToSequence=new HashMap<Integer,Sequence>();
 	
 	ResultSet rs = null;
 	try {
@@ -1862,7 +1645,8 @@ public class ConfDB
     {
 	HashMap<String,Integer> result = new HashMap<String,Integer>();
 
-	ArrayList<IdInstancePair> modulesToStore =  new ArrayList<IdInstancePair>();
+	ArrayList<IdInstancePair> modulesToStore =
+	    new ArrayList<IdInstancePair>();
 	
 	for (int i=0;i<config.moduleCount();i++) {
 	    ModuleInstance module     = config.module(i);
@@ -1927,7 +1711,7 @@ public class ConfDB
 	    
 	    if (pathId>0) {
 		
-		for (int sequenceNb=0;sequenceNb<path.entryCount();sequenceNb++) {
+		for(int sequenceNb=0;sequenceNb<path.entryCount();sequenceNb++){
 		    Reference r = path.entry(sequenceNb);
 		    if (r instanceof PathReference) {
 			int childPathId = Math.abs(pathHashMap.get(r.name()));
@@ -1948,7 +1732,7 @@ public class ConfDB
 			}
 		    }
 		    else if (r instanceof SequenceReference) {
-			int sequenceId = Math.abs(sequenceHashMap.get(r.name()));
+			int sequenceId=Math.abs(sequenceHashMap.get(r.name()));
 			try {
 			    psInsertPathSequenceAssoc.setInt(1,pathId);
 			    psInsertPathSequenceAssoc.setInt(2,sequenceId);
@@ -1996,10 +1780,12 @@ public class ConfDB
 	    
 	    if (sequenceId>0) {
 		
-		for (int sequenceNb=0;sequenceNb<sequence.entryCount();sequenceNb++) {
+		for (int sequenceNb=0;sequenceNb<sequence.entryCount();
+		     sequenceNb++) {
 		    Reference r = sequence.entry(sequenceNb);
 		    if (r instanceof SequenceReference) {
-			int childSequenceId=Math.abs(sequenceHashMap.get(r.name()));
+			int childSequenceId=Math.abs(sequenceHashMap
+						     .get(r.name()));
 			try {
 			    psInsertSequenceSequenceAssoc.setInt(1,sequenceId);
 			    psInsertSequenceSequenceAssoc.setInt(2,childSequenceId);
@@ -2054,43 +1840,12 @@ public class ConfDB
 	}
     }
 
-    /** insert configuration's streams */
-    /* PS@28/09/2009
-       
-       private void insertStreams(int configId,Configuration config)
-       throws DatabaseException
-       {
-       Iterator<Stream> itS = config.streamIterator();
-       while (itS.hasNext()) {
-       Stream stream = itS.next();
-       int    streamId = stream.databaseId();
-       Iterator<PrimaryDataset> itD = stream.datasetIterator();
-       while (itD.hasNext()) {
-       PrimaryDataset dataset   = itD.next();
-       int            datasetId = dataset.databaseId();
-       try {
-       psInsertConfigStreamAssoc.setInt(1,configId);
-       psInsertConfigStreamAssoc.setInt(2,streamId);
-       psInsertConfigStreamAssoc.setInt(3,datasetId);
-       psInsertConfigStreamAssoc.executeUpdate();
-       }
-       catch (SQLException e) {
-       String errMsg =
-       "ConfDB::insertStreams(configId="+configId+
-       ", streamId="+streamId+", datasetId="+datasetId+
-       ") failed: "+e.getMessage();
-       throw new DatabaseException(errMsg,e);
-       }
-       }
-       }
-       }
-    */
 
     /** insert all instance parameters */
     private void insertInstanceParameters(int superId,Instance instance)
 	throws DatabaseException
     {
-	for (int sequenceNb=0;sequenceNb<instance.parameterCount();sequenceNb++) {
+	for(int sequenceNb=0;sequenceNb<instance.parameterCount();sequenceNb++){
 	    Parameter p = instance.parameter(sequenceNb);
 	    
 	    if (!p.isDefault()) {
@@ -2129,7 +1884,8 @@ public class ConfDB
     }
 
     /** get all configuration names associated to a given release */
-    public String[] getConfigNamesByRelease(int releaseId) throws DatabaseException
+    public String[] getConfigNamesByRelease(int releaseId)
+	throws DatabaseException
     {
 	ArrayList<String> listOfNames = new ArrayList<String>();
 	ResultSet rs = null;
@@ -2217,10 +1973,11 @@ public class ConfDB
     }
 
     /** get hash map with all directories */
-    public HashMap<Integer,Directory> getDirectoryHashMap() throws DatabaseException
+    public HashMap<Integer,Directory> getDirectoryHashMap()
+	throws DatabaseException
     {
 	reconnect();
-
+	
 	HashMap<Integer,Directory> directoryHashMap =
 	    new HashMap<Integer,Directory>();
 	
@@ -2354,8 +2111,6 @@ public class ConfDB
 	    removeServices(configId);
 	    removeSequences(configId);
 	    removePaths(configId);
-	    // PS@28/09/2009
-	    //removeStreamsAndDatasets(configId);
 	    
 	    psDeleteConfiguration.setInt(1,configId);
 	    psDeleteConfiguration.executeUpdate();
@@ -2743,15 +2498,6 @@ public class ConfDB
 	}
     }
     
-    /** remove Streams and Datasets */
-    /* PS@28/09/2009
-       public void removeStreamsAndDatasets(int configId) throws SQLException
-       {
-       psDeleteStreamsAndDatasetsFromConfig.setInt(1,configId);
-       psDeleteStreamsAndDatasetsFromConfig.executeUpdate();
-       }
-    */
-    
 
     //
     // REMOVE SOFTWARE-RELEASE
@@ -2857,7 +2603,8 @@ public class ConfDB
 	}
     }
     /** remove templates of any kind from release, given the superIds */
-    private void removeTemplates(ResultSet rs,int releaseId) throws SQLException
+    private void removeTemplates(ResultSet rs,int releaseId)
+	throws SQLException
     {
 	while (rs.next()) {
 	    int superId = rs.getInt(1);
@@ -3154,61 +2901,6 @@ public class ConfDB
 		 "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectModuleTemplate);
 
-	    /* PS@28/09/2009
-	       psSelectStreams =
-	       dbConnector.getConnection().prepareStatement
-	       ("SELECT" +
-	       " Streams.streamId,"+
-	       " Streams.streamLabel "+
-	       "FROM Streams " +
-	       "ORDER BY Streams.streamLabel ASC");
-	    */
-
-	    /* PS@28/09/2009
-	       psSelectPrimaryDatasets =
-	       dbConnector.getConnection().prepareStatement
-	       ("SELECT" +
-	       " PrimaryDatasets.datasetId,"+
-	       " PrimaryDatasets.datasetLabel "+
-	       "FROM PrimaryDatasets " +
-	       "ORDER BY PrimaryDatasets.datasetLabel ASC");
-	    */
-	    
-	    /* PS@28/09/2009
-	       psSelectPrimaryDatasetEntries =
-	       dbConnector.getConnection().prepareStatement
-	       ("SELECT" +
-	       " PrimaryDatasetPathAssoc.datasetId," +
-	       " PrimaryDatasets.datasetLabel,"+
-	       " PrimaryDatasetPathAssoc.pathId " +
-	       "FROM PrimaryDatasetPathAssoc "+
-	       "JOIN PrimaryDatasets "+
-	       "ON PrimaryDatasets.datasetId=PrimaryDatasetPathAssoc.datasetId "+
-	       "JOIN ConfigurationPathAssoc " +
-	       "ON ConfigurationPathAssoc.pathId=PrimaryDatasetPathAssoc.pathId "+
-	       "WHERE ConfigurationPathAssoc.configId=?");
-	       psSelectPrimaryDatasetEntries.setFetchSize(64);
-	       preparedStatements.add(psSelectPrimaryDatasetEntries);
-	    */
-
-	    /* PS@28/09/2009
-	       psSelectStreamEntries =
-	       dbConnector.getConnection().prepareStatement
-	       ("SELECT" +
-	       " ConfigurationStreamAssoc.streamId,"+
-	       " Streams.streamLabel,"+
-	       " ConfigurationStreamAssoc.datasetId,"+
-	       " PrimaryDatasets.datasetLabel "+
-	       "FROM ConfigurationStreamAssoc "+
-	       "JOIN Streams "+
-	       "ON Streams.streamId=ConfigurationStreamAssoc.streamId "+
-	       "JOIN PrimaryDatasets "+
-	       "ON PrimaryDatasets.datasetId=ConfigurationStreamAssoc.datasetId "+
-	       "WHERE ConfigurationStreamAssoc.configId=?");
-	       psSelectStreamEntries.setFetchSize(64);
-	       preparedStatements.add(psSelectStreamEntries);
-	    */
-	    
 	    psSelectPSetsForConfig =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
@@ -3588,20 +3280,6 @@ public class ConfDB
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigurationLock);
 
-	    /* PS@28/09/2009
-	       psInsertStream =
-	       dbConnector.getConnection().prepareStatement
-	       ("INSERT INTO Streams (streamLabel) VALUES(?)",keyColumn);
-	       preparedStatements.add(psInsertStream);
-	    */
-	    
-	    /* PS@28/09/2009
-	       psInsertPrimaryDataset =
-	       dbConnector.getConnection().prepareStatement
-	       ("INSERT INTO PrimaryDatasets (datasetLabel) VALUES(?)",keyColumn);
-	       preparedStatements.add(psInsertPrimaryDataset);
-	    */
-	    
 	    if (dbType.equals(dbTypeMySQL))
 		psInsertSuperId = dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO SuperIds VALUES()",keyColumn);
@@ -3686,23 +3364,6 @@ public class ConfDB
 		 "ConfigurationPathAssoc (configId,pathId,sequenceNb) " +
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigPathAssoc);
-	    
-	    /* PS@28/09/2009
-	       psInsertConfigStreamAssoc =
-	       dbConnector.getConnection().prepareStatement
-	       ("INSERT INTO " +
-	       "ConfigurationStreamAssoc (configId,streamId,datasetId) "+
-	       "VALUES(?, ?, ?)");
-	       preparedStatements.add(psInsertConfigStreamAssoc);
-	    */
-	    
-	    /* PS@28/09/2009
-	       psInsertPrimaryDatasetPathAssoc =
-	       dbConnector.getConnection().prepareStatement
-	       ("INSERT INTO " +
-	       "PrimaryDatasetPathAssoc (datasetId,pathId) VALUES(?, ?)");
-	       preparedStatements.add(psInsertPrimaryDatasetPathAssoc);
-	    */
 	    
 	    psInsertSequence =
 		dbConnector.getConnection().prepareStatement
@@ -4368,34 +4029,34 @@ public class ConfDB
 		new HashMap<Integer,String>();
 	    
 	    while (rsBooleanValues.next()) {
-		int    parameterId   = rsBooleanValues.getInt(1);
+		int   parameterId   = rsBooleanValues.getInt(1);
 		String valueAsString =
 		    (new Boolean(rsBooleanValues.getBoolean(2))).toString();
 		idToValueAsString.put(parameterId,valueAsString);
 	    }
 	    
 	    while (rsIntValues.next()) {
-	    int     parameterId   = rsIntValues.getInt(1);
-	    long    value         = rsIntValues.getLong(2);
-	    Integer sequenceNb    = new Integer(rsIntValues.getInt(3));
-	    boolean isHex         = rsIntValues.getBoolean(4);
-	    
-	    String valueAsString = (isHex) ?
-		"0x"+Long.toHexString(value) : Long.toString(value);
-	    
-	    if (sequenceNb!=null&&
-		idToValueAsString.containsKey(parameterId))
-		idToValueAsString.put(parameterId,
-				      idToValueAsString.get(parameterId) +
-				      ", "+valueAsString);
-	    else
-		idToValueAsString.put(parameterId,valueAsString);
+		int    parameterId   = rsIntValues.getInt(1);
+		int    value         = rsIntValues.getInt(2);
+		Integer sequenceNb    = new Integer(rsIntValues.getInt(3));
+		boolean isHex         = rsIntValues.getBoolean(4);
+		
+		String valueAsString = (isHex) ?
+		    "0x"+Integer.toHexString(value) : Integer.toString(value);
+		
+		if (sequenceNb!=null&&
+		    idToValueAsString.containsKey(parameterId))
+		    idToValueAsString.put(parameterId,
+					  idToValueAsString.get(parameterId) +
+					  ", "+valueAsString);
+		else
+		    idToValueAsString.put(parameterId,valueAsString);
 	    }
 	    
 	    while (rsRealValues.next()) {
 		int     parameterId   = rsRealValues.getInt(1);
 		String  valueAsString =
-		(new Double(rsRealValues.getDouble(2))).toString();
+		    (new Double(rsRealValues.getDouble(2))).toString();
 		Integer sequenceNb    = new Integer(rsRealValues.getInt(3));
 		if (sequenceNb!=null&&
 		    idToValueAsString.containsKey(parameterId))
@@ -4407,7 +4068,7 @@ public class ConfDB
 	    }
 	    
 	    while (rsStringValues.next()) {
-		int     parameterId   = rsStringValues.getInt(1);
+		int    parameterId   = rsStringValues.getInt(1);
 		String  valueAsString = rsStringValues.getString(2);
 		Integer sequenceNb    = new Integer(rsStringValues.getInt(3));
 		
@@ -4424,12 +4085,12 @@ public class ConfDB
 	    ArrayList<IdVPSetPair> vpsets = new ArrayList<IdVPSetPair>();
 
 	    while (rsParameters.next()) {
-		int     id       = rsParameters.getInt(1);
+		int    id       = rsParameters.getInt(1);
 		String  type     = rsParameters.getString(2);
 		String  name     = rsParameters.getString(3);
 		boolean isTrkd   = rsParameters.getBoolean(4);
 		int     seqNb    = rsParameters.getInt(5);
-		int     parentId = rsParameters.getInt(6);
+		int    parentId = rsParameters.getInt(6);
 		
 		if (name==null) name = "";
 		
@@ -4460,7 +4121,7 @@ public class ConfDB
 	    Iterator<IdPSetPair> itPSet = psets.iterator();
 	    while (itPSet.hasNext()) {
 		IdPSetPair    pair   = itPSet.next();
-		int           psetId = pair.id;
+		int          psetId = pair.id;
 		PSetParameter pset   = pair.pset;
 		ArrayList<Parameter> parameters = idToParameters.remove(psetId);
 		if (parameters!=null) {
@@ -4480,7 +4141,7 @@ public class ConfDB
 	    Iterator<IdVPSetPair> itVPSet = vpsets.iterator();
 	    while (itVPSet.hasNext()) {
 		IdVPSetPair    pair    = itVPSet.next();
-		int            vpsetId = pair.id;
+		int           vpsetId = pair.id;
 		VPSetParameter vpset   = pair.vpset;
 		ArrayList<Parameter> parameters=idToParameters.remove(vpsetId);
 		if (parameters!=null) {
@@ -4529,12 +4190,12 @@ public class ConfDB
     }
     
     /** insert vpset into ParameterSets table */
-    private void insertVecParameterSet(int            superId,
+    private void insertVecParameterSet(int           superId,
 				       int            sequenceNb,
 				       VPSetParameter vpset)
 	throws DatabaseException
     {
-	int       vpsetId = insertSuperId();
+	int      vpsetId = insertSuperId();
 	ResultSet rs      = null;
 	try {
 	    psInsertVecParameterSet.setInt(1,vpsetId);
@@ -4561,12 +4222,12 @@ public class ConfDB
     }
     
     /** insert pset into ParameterSets table */
-    private void insertParameterSet(int           superId,
+    private void insertParameterSet(int          superId,
 				    int           sequenceNb,
 				    PSetParameter pset)
 	throws DatabaseException
     {
-	int       psetId = insertSuperId();
+	int      psetId = insertSuperId();
 	ResultSet rs = null;
 	try {
 	    psInsertParameterSet.setInt(1,psetId);
@@ -4603,15 +4264,16 @@ public class ConfDB
     }
     
     /** insert parameter into Parameters table */
-    private void insertParameter(int       superId,
+    private void insertParameter(int      superId,
 				 int       sequenceNb,
 				 Parameter parameter)
 	throws DatabaseException
     {
-	int       paramId = 0;
+	int      paramId = 0;
 	ResultSet rs      = null;
 	try {
-	    psInsertParameter.setInt(1,paramTypeIdHashMap.get(parameter.type()));
+	    psInsertParameter.setInt(1,paramTypeIdHashMap
+				     .get(parameter.type()));
 	    psInsertParameter.setString(2,parameter.name());
 	    psInsertParameter.setBoolean(3,parameter.isTracked());
 	    psInsertParameter.executeUpdate();
@@ -4634,7 +4296,8 @@ public class ConfDB
     }
     
     /** associate parameter with the service/module superid */
-    private void insertSuperIdParamAssoc(int superId,int paramId,int sequenceNb)
+    private void insertSuperIdParamAssoc(int superId,int paramId,
+					 int sequenceNb)
 	throws DatabaseException
     {
 	try {
@@ -4653,7 +4316,8 @@ public class ConfDB
     }
     
     /** associate pset with the service/module superid */
-    private void insertSuperIdParamSetAssoc(int superId,int psetId,int sequenceNb)
+    private void insertSuperIdParamSetAssoc(int superId,int psetId,
+					    int sequenceNb)
 	throws DatabaseException
     {
 	try {
@@ -4672,7 +4336,8 @@ public class ConfDB
     }
     
     /** associate vpset with the service/module superid */
-    private void insertSuperIdVecParamSetAssoc(int superId,int vpsetId,int sequenceNb)
+    private void insertSuperIdVecParamSetAssoc(int superId,int vpsetId,
+					       int sequenceNb)
 	throws DatabaseException
     {
 	try {
@@ -4844,7 +4509,8 @@ public class ConfDB
     }
 
     /** get the release id for a release tag */
-    private String getReleaseTagForConfig(int configId) throws DatabaseException
+    private String getReleaseTagForConfig(int configId)
+	throws DatabaseException
     {
 	reconnect();
 
@@ -5167,7 +4833,7 @@ public class ConfDB
 /** define class holding a pair of id and associated instance */
 class IdInstancePair
 {
-    public int      id;
+    public int     id;
     public Instance instance;
     IdInstancePair(int id, Instance instance)
     {
@@ -5179,7 +4845,7 @@ class IdInstancePair
 /** define class holding a pair of id and associated PSet */
 class IdPSetPair
 {
-    public int           id;
+    public int          id;
     public PSetParameter pset;
     IdPSetPair(int id, PSetParameter pset)
     {
@@ -5191,7 +4857,7 @@ class IdPSetPair
 /** define class holding a pair of id and associated VPSet */
 class IdVPSetPair
 {
-    public int            id;
+    public int           id;
     public VPSetParameter vpset;
     IdVPSetPair(int id, VPSetParameter vpset)
     {

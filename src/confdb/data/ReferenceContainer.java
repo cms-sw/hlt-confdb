@@ -12,7 +12,7 @@ import java.util.Iterator;
    
    Common base class of Path and Sequence.
 */
-abstract public class ReferenceContainer extends    DatabaseEntry
+abstract public class ReferenceContainer extends DatabaseEntry
                                          implements Comparable<ReferenceContainer>,
 						    Referencable
 {
@@ -53,6 +53,10 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     /** check if container contains the specified reference */
     abstract public boolean containsEntry(Reference reference);
 
+    /** create a reference of this in a reference container (path/sequence) */
+    abstract public Reference createReference(ReferenceContainer container,
+					      int i);
+    
     
     //
     // member functions
@@ -60,21 +64,9 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     
     /** overload toString() */
     public String toString() { return name(); }
-    
-    /* Comparable: compareTo() */
-    public int compareTo(ReferenceContainer rc)
-    {
-	return toString().compareTo(rc.toString());
-    }
 
-    /** get the name of the container */
-    public String name() { return name; }
-    
-    /** get parent configuration */
-    public IConfiguration config() { return this.config; }
-
-    /** override DatabaseEntry.hasChanged, check on entries! */
-    public boolean hasChanged()
+    /** DatabaseEntry:indicate wether in the DB or changed */
+    public boolean hasChanged() 
     {
 	if (databaseId()==0) return true;
 	for (Reference r : entries) {
@@ -87,6 +79,18 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 	return false;
     }
     
+    /** Comparable: compareTo() */
+    public int compareTo(ReferenceContainer rc)
+    {
+	return toString().compareTo(rc.toString());
+    }
+    
+    /** get the name of the container */
+    public String name() { return name; }
+    
+    /** get parent configuration */
+    public IConfiguration config() { return this.config; }
+
     /** calculate the number of unresolved InputTags */
     public int unresolvedInputTagCount()
     {
@@ -213,8 +217,6 @@ abstract public class ReferenceContainer extends    DatabaseEntry
     
 
 
-    /** create a reference of this in a reference container (path/sequence) */
-    abstract public Reference createReference(ReferenceContainer container,int i);
     
     /** number of references */
     public int referenceCount() { return references.size(); }
@@ -412,7 +414,7 @@ abstract public class ReferenceContainer extends    DatabaseEntry
 	    }
 	}
     }
-    /** add all Module entries to 'modules' array (recursively) */
+    /** add all entries to 'references' array (recursively) */
     private void getReferences(Iterator<Reference> itEntry,
 			       ArrayList<Reference> references)
     {

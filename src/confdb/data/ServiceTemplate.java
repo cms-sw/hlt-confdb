@@ -24,10 +24,10 @@ public class ServiceTemplate extends Template
     //
     
     /** standard constructor */
-    public ServiceTemplate(String name,String cvsTag,int dbId,
+    public ServiceTemplate(String name,String cvsTag,
 			   ArrayList<Parameter> parameters)
     {
-	super(name,cvsTag,dbId,parameters);
+	super(name,cvsTag,parameters);
     }
 
     //

@@ -216,6 +216,22 @@ public interface IConfiguration
     public Iterator<Sequence> orderedSequenceIterator();
     
     
+    /** number of event contents */
+    public int contentCount();
+    
+    /** retrieve i-th event contents */
+    public EventContent content(int i);
+    
+    /** retrieve event content by label */
+    public EventContent content(String eventContentLabel);
+    
+    /** index of a certain event content */
+    public int indexOfContent(EventContent eventContent);
+    
+    /** retrieve event content iterator */
+    public Iterator<EventContent> contentIterator();
+    
+    
     /** number of streams */
     public int streamCount();
     

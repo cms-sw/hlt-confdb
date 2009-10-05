@@ -23,11 +23,11 @@ public class ModuleTemplate extends Template
     //
     
     /** standard constructor */
-    public ModuleTemplate(String name,String cvsTag,int dbId,
+    public ModuleTemplate(String name,String cvsTag,
 			  ArrayList<Parameter> parameters,
 			  String type)
     {
-	super(name,cvsTag,dbId,parameters);
+	super(name,cvsTag,parameters);
 	this.type = type;
     }
 

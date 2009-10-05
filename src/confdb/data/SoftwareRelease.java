@@ -159,32 +159,47 @@ public class SoftwareRelease
 			Parameter p = parameterIt.next();
 			parameters.add(p.clone(null));
 		    }
-		    if (template instanceof EDSourceTemplate)
-			pkg.addTemplate(new EDSourceTemplate(template.name(),
-							     template.cvsTag(),
-							     template.databaseId(),
-							     parameters));
-		    else if (template instanceof ESSourceTemplate)
-			pkg.addTemplate(new ESSourceTemplate(template.name(),
-							     template.cvsTag(),
-							     template.databaseId(),
-							     parameters));
-		    else if (template instanceof ESModuleTemplate)
-			pkg.addTemplate(new ESModuleTemplate(template.name(),
-							     template.cvsTag(),
-							     template.databaseId(),
-							     parameters));
-		    else if (template instanceof ServiceTemplate)
-			pkg.addTemplate(new ServiceTemplate(template.name(),
-							    template.cvsTag(),
-							    template.databaseId(),
-							    parameters));
-		    else if (template instanceof ModuleTemplate)
-			pkg.addTemplate(new ModuleTemplate(template.name(),
-							   template.cvsTag(),
-							   template.databaseId(),
-							   parameters,
-							   template.type()));
+		    if (template instanceof EDSourceTemplate) {
+			EDSourceTemplate newTemplate = 
+			    new EDSourceTemplate(template.name(),
+						 template.cvsTag(),
+						 parameters);
+			newTemplate.setDatabaseId(template.databaseId());
+			pkg.addTemplate(newTemplate);
+		    }
+		    else if (template instanceof ESSourceTemplate) {
+			ESSourceTemplate newTemplate =
+			    new ESSourceTemplate(template.name(),
+						 template.cvsTag(),
+						 parameters);
+			newTemplate.setDatabaseId(template.databaseId());
+			pkg.addTemplate(newTemplate);
+		    }
+		    else if (template instanceof ESModuleTemplate) {
+			ESModuleTemplate newTemplate =
+			    new ESModuleTemplate(template.name(),
+						 template.cvsTag(),
+						 parameters);
+			newTemplate.setDatabaseId(template.databaseId());
+			pkg.addTemplate(newTemplate);
+		    }
+		    else if (template instanceof ServiceTemplate) {
+			ServiceTemplate newTemplate =
+			    new ServiceTemplate(template.name(),
+						template.cvsTag(),
+						parameters);
+			newTemplate.setDatabaseId(template.databaseId());
+			pkg.addTemplate(newTemplate);
+		    }
+		    else if (template instanceof ModuleTemplate) {
+			ModuleTemplate newTemplate =
+			    new ModuleTemplate(template.name(),
+					       template.cvsTag(),
+					       parameters,
+					       template.type());
+			newTemplate.setDatabaseId(template.databaseId());
+			pkg.addTemplate(newTemplate);
+		    }
 		}
 	    }
 	    addSubsystem(subsys);

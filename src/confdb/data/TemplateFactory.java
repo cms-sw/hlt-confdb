@@ -21,20 +21,19 @@ public class TemplateFactory
     }
     
     /** parametrizez factory method to create a specific template type */
-    public static Template create(String type,
-				  String name,String cvsTag,int dbId,
+    public static Template create(String type,String name,String cvsTag,
 				  ArrayList<Parameter> parameters)
     {
 	if (type.equals("Service"))
-	    return new ServiceTemplate(name,cvsTag,dbId,parameters);
+	    return new ServiceTemplate(name,cvsTag,parameters);
 	else if (type.equals("EDSource"))
-	    return new EDSourceTemplate(name,cvsTag,dbId,parameters);
+	    return new EDSourceTemplate(name,cvsTag,parameters);
 	else if (type.equals("ESSource"))
-	    return new ESSourceTemplate(name,cvsTag,dbId,parameters);
+	    return new ESSourceTemplate(name,cvsTag,parameters);
 	else if (type.equals("ESModule"))
-	    return new ESModuleTemplate(name,cvsTag,dbId,parameters);
+	    return new ESModuleTemplate(name,cvsTag,parameters);
 	else if (isValidModuleType(type))
-	    return new ModuleTemplate(name,cvsTag,dbId,parameters,type);
+	    return new ModuleTemplate(name,cvsTag,parameters,type);
 	
 	System.out.println("TemplateFactory: unknown type '"+type+"'");
 	return null;
