@@ -331,7 +331,7 @@ public class OnlineConverter extends ConverterBase
 	params.add(new Int32Parameter("maxSize", "1073741824", true, false));
 	params.add(new PSetParameter("SelectEvents", "", false, false));
 	params.add(new StringParameter("SelectHLTOutput", "", false, false));
-        return new ModuleTemplate("EventStreamFileWriter", "UNKNOWN", -1,
+        return new ModuleTemplate("EventStreamFileWriter", "UNKNOWN",
 				  params, "OutputModule");
     }
 
@@ -341,7 +341,7 @@ public class OnlineConverter extends ConverterBase
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
 	params.add(new StringParameter("streamLabel", "Error", true, false));
 	params.add(new Int32Parameter("maxSize", "32", true, false));
-        return new ModuleTemplate("ErrorStreamFileWriter", "UNKNOWN", -1,
+        return new ModuleTemplate("ErrorStreamFileWriter", "UNKNOWN",
 				  params, "OutputModule");
     }
 

@@ -51,12 +51,9 @@ public class Configuration implements IConfiguration
     /** list of Sequences */
     private ArrayList<Sequence>         sequences = null;
     
-    /** list of streams */
-    private ArrayList<Stream>           streams = null;
-
-    /** list of primary datasets */
-    private ArrayList<PrimaryDataset>   datasets = null;
-
+    /** list of EventContents */
+    private ArrayList<EventContent>     contents = null;
+    
     /** list of blocks (always empty for Configuration!) */
     private ArrayList<Block>            blocks = new ArrayList<Block>();
     
@@ -76,8 +73,7 @@ public class Configuration implements IConfiguration
 	modules       = new ArrayList<ModuleInstance>();
 	paths         = new ArrayList<Path>();
 	sequences     = new ArrayList<Sequence>();
-	streams       = new ArrayList<Stream>();
-	datasets      = new ArrayList<PrimaryDataset>();
+	contents      = new ArrayList<EventContent>();
     }
     
     /** standard constructor */
@@ -91,8 +87,7 @@ public class Configuration implements IConfiguration
 	modules       = new ArrayList<ModuleInstance>();
 	paths         = new ArrayList<Path>();
 	sequences     = new ArrayList<Sequence>();
-	streams       = new ArrayList<Stream>();
-	datasets      = new ArrayList<PrimaryDataset>();
+	contents      = new ArrayList<EventContent>();
 	
 	initialize(configInfo,release);
     }
@@ -117,8 +112,7 @@ public class Configuration implements IConfiguration
 	modules.clear();
 	paths.clear();
 	sequences.clear();
-	streams.clear();
-	datasets.clear();
+	contents.clear();
     }
 
     /** reset configuration */
@@ -135,8 +129,7 @@ public class Configuration implements IConfiguration
 	modules.clear();
 	paths.clear();
 	sequences.clear();
-	streams.clear();
-	datasets.clear();
+	contents.clear();
     }
     
     /** set the configuration info */
@@ -145,15 +138,6 @@ public class Configuration implements IConfiguration
 	if (!configInfo.releaseTag().equals(releaseTag()))
 	    configInfo.setReleaseTag(releaseTag());
 	this.configInfo = configInfo;
-	
-	/*
-	  if (!configInfo.releaseTag().equals(releaseTag())) {
-	  System.err.println("Configuration.setConfigInfo ERROR: "+
-	  "releaseTag mismatch (" +
-	  releaseTag() + " / " +
-	  configInfo.releaseTag() + ")");
-	  }
-	*/
     }
     
     /** overlaod toString() */
@@ -178,6 +162,7 @@ public class Configuration implements IConfiguration
 	else if (c == Path.class)             return pathCount(); 
 	else if (c == Sequence.class)         return sequenceCount();
 	else if (c == ModuleInstance.class)   return moduleCount();
+	else if (c == EventContent.class)     return contentCount();
 	else if (c == Stream.class)           return streamCount();
 	else if (c == PrimaryDataset.class)   return datasetCount();
 	System.err.println("ERROR: unknwon class " + c.getName());
@@ -191,14 +176,11 @@ public class Configuration implements IConfiguration
 		edsources.isEmpty()&&essources.isEmpty()&&
 		services.isEmpty()&&modules.isEmpty()&&
 		paths.isEmpty()&&sequences.isEmpty()&&
-		streams.isEmpty()&&datasets.isEmpty());
+		contents.isEmpty());
     }
     
     /** retrieve ConfigInfo object */
-    public ConfigInfo configInfo()
-    {
-	return configInfo;
-    }
+    public ConfigInfo configInfo() { return configInfo; }
 
     /** check if configuration and all its versions are locked */
     public boolean isLocked()
@@ -213,25 +195,19 @@ public class Configuration implements IConfiguration
     }
 
     /** database identifier */
-    public int dbId()
-    {
-	return (configInfo!=null) ? configInfo.dbId() : -1;
-    }
+    public int dbId() { return (configInfo!=null) ? configInfo.dbId() : -1; }
 
     /** get configuration name */
-    public String name()
-    {
-	return (configInfo!=null) ? configInfo.name() : "";
-    }
+    public String name() { return (configInfo!=null) ? configInfo.name() : "";}
     
     /** get parent directory */
-    public Directory parentDir()
+    public Directory parentDir() 
     {
 	return (configInfo!=null) ? configInfo.parentDir() : null;
     }
 
     /** get parent directory database id */
-    public int parentDirId() 
+    public int parentDirId()
     {
 	return (parentDir()!=null) ? parentDir().dbId() : 0;
     }
@@ -302,13 +278,16 @@ public class Configuration implements IConfiguration
 	for (ServiceInstance  svc : services)  if(svc.hasChanged()) return true;
 	for (Path             pth : paths)     if(pth.hasChanged()) return true;
 	for (Sequence         seq : sequences) if(seq.hasChanged()) return true;
-	for (Stream           stm : streams)   if(stm.hasChanged()) return true;
-	for (PrimaryDataset   dat : datasets)  if(dat.hasChanged()) return true;
+	for (EventContent     evc : contents)  if(evc.hasChanged()) return true;
+	Iterator<Stream> itS = streamIterator();
+	while (itS.hasNext()) if (itS.next().hasChanged()) return true;
+	Iterator<PrimaryDataset> itD = datasetIterator();
+	while (itD.hasNext()) if (itD.next().hasChanged()) return true;
 	return false;
     }
     
     /** set the 'hasChanged' flag */
-    public void setHasChanged(boolean hasChanged) { this.hasChanged = hasChanged; }
+    public void setHasChanged(boolean hasChanged){this.hasChanged=hasChanged;}
     
     /** check if a qualifier is unique */
     public boolean isUniqueQualifier(String qualifier)
@@ -459,27 +438,27 @@ public class Configuration implements IConfiguration
     public int pathNotAssignedToStreamCount()
     {
 	int result = 0;
-	if (streams.size()==0) return result;
+	if (streamCount()==0) return result;
 	for (Path p : paths) {
 	    if (p.isEndPath()) continue;
 	    if (p.streamCount()==0) result++;
 	}
 	return result;
     }
-
+    
     /** number of paths unassigned to any primary dataset */
     public int pathNotAssignedToDatasetCount()
     {
 	int result = 0;
-	if (datasets.size()==0) return result;
+	if (datasetCount()==0) return result;
 	for (Path p : paths) {
 	    if (p.isEndPath()) continue;
 	    if (p.datasetCount()==0) result++;
 	}
 	return result;
     }
-
-
+    
+    
     /** retrieve instance by label regardless of type */
     public Instance instance(String label) {
 	Instance result = null;
@@ -982,30 +961,28 @@ public class Configuration implements IConfiguration
 	    }
 	}
 	
-	// remove this paths from all parent primary datasets
-	Iterator<PrimaryDataset> itPD = path.datasetIterator();
-	while (itPD.hasNext()) {
-	    PrimaryDataset pd = itPD.next();
-	    itPD.remove();
-	    pd.removePath(path);
-	}
+	// remove this paths from all event content
+	Iterator<EventContent> itC = path.contentIterator();
+	while (itC.hasNext()) itC.next().removePath(path);
 	
 	// remove path from all OutputModule::SelectEvents::SelectEvents
-	Iterator<ModuleInstance> itM = moduleIterator();
-	while (itM.hasNext()) {
-	    ModuleInstance module = itM.next();
-	    if (!module.template().type().equals("OutputModule")) continue;
-	    Parameter[] tmp=module.findParameters("SelectEvents::SelectEvents");
-	    if (tmp.length!=1) continue;
-	    VStringParameter selEvts = (VStringParameter)tmp[0];
-	    for (int i=0;i<selEvts.vectorSize();i++) {
-		String iAsString = (String)selEvts.value(i);
-		if (iAsString.equals(path.name())) {
-		    selEvts.removeValue(i);
-		    module.setHasChanged();
-		}
-	    }
-	}
+	/*
+	  Iterator<ModuleInstance> itM = moduleIterator();
+	  while (itM.hasNext()) {
+	  ModuleInstance module = itM.next();
+	  if (!module.template().type().equals("OutputModule")) continue;
+	  Parameter[] tmp=module.findParameters("SelectEvents::SelectEvents");
+	  if (tmp.length!=1) continue;
+	  VStringParameter selEvts = (VStringParameter)tmp[0];
+	  for (int i=0;i<selEvts.vectorSize();i++) {
+	  String iAsString = (String)selEvts.value(i);
+	  if (iAsString.equals(path.name())) {
+	  selEvts.removeValue(i);
+	  module.setHasChanged();
+	  }
+	  }
+	  }
+	*/
 	
 	int index = paths.indexOf(path);
 	paths.remove(index);
@@ -1117,108 +1094,178 @@ public class Configuration implements IConfiguration
     }
 
     /** sort Sequences */
-    public void sortSequences() { Collections.sort(sequences); hasChanged=true; }
+    public void sortSequences() {Collections.sort(sequences); hasChanged=true;}
     
 
+    //
+    // EventContents
+    //
+
+    /** number of event contents */
+    public int contentCount() { return contents.size(); }
+    
+    /** retrieve i-th event content */
+    public EventContent content(int i) { return contents.get(i); }
+    
+    /** retrieve content by label */
+    public EventContent content(String contentLabel)
+    {
+	for (EventContent ec : contents)
+	    if (ec.label().equals(contentLabel)) return ec;
+	return null;
+    }
+
+    /** index of a certain event content */
+    public int indexOfContent(EventContent ec) { return contents.indexOf(ec); }
+
+    /** retrieve event content iterator */
+    public Iterator<EventContent> contentIterator(){return contents.iterator();}
+    
+    /** insert new event content */
+    public EventContent insertContent(String contentLabel)
+    {
+	for (EventContent ec : contents)
+	    if (ec.label().equals(contentLabel)) return ec;
+	EventContent content = new EventContent(contentLabel);
+	contents.add(content);
+	hasChanged = true;
+	return content;
+    }
+
+    /** remove event content */
+    public void removeContent(EventContent ec)
+    {
+	int index = contents.indexOf(ec);
+	if (index<0) return;
+	contents.remove(index);
+	hasChanged = true;
+    }
+    
+    
     //
     // Streams
     //
     
     /** number of streams */
-    public int streamCount() { return streams.size(); }
+    public int streamCount()
+    {
+	int result = 0;
+	Iterator<EventContent> itC = contentIterator();
+	while (itC.hasNext()) result += itC.next().streamCount();
+	return result;
+    }
     
     /** retrieve i-th stream */
-    public Stream stream(int i) { return streams.get(i); }
-
+    public Stream stream(int i)
+    {
+	int offset = 0;
+	Iterator<EventContent> itC = contentIterator();
+	while (itC.hasNext()) {
+	    EventContent ec = itC.next();
+	    if (offset+ec.streamCount()>=i) offset += ec.streamCount();
+	    else return ec.stream(i-offset);
+	}
+	return null;
+    }
+    
     /** retrieve stream by label */
     public Stream stream(String streamLabel)
     {
-	for (Stream s : streams)
-	    if (s.label().equals(streamLabel)) return s;
+	Iterator<Stream> itS = streamIterator();
+	while (itS.hasNext()) {
+	    Stream stream = itS.next();
+	    if (stream.label().equals(streamLabel)) return stream;
+	}
 	return null;
     }
-
+    
     /** index of a certain stream */
-    public int indexOfStream(Stream stream) { return streams.indexOf(stream); }
+    public int indexOfStream(Stream stream)
+    {
+	int offset = 0;
+	Iterator<EventContent> itC = contentIterator();
+	while (itC.hasNext()) {
+	    EventContent ec = itC.next();
+	    if (ec.indexOfStream(stream)<0) offset += ec.streamCount();
+	    else return offset + ec.indexOfStream(stream);
+	}
+	return -1;
+    }
 
     /** retrieve stream iterator */
-    public Iterator<Stream> streamIterator() { return streams.iterator(); }
-    
-    /** insert a new stream */
-    public Stream insertStream(String streamLabel)
+    public Iterator<Stream> streamIterator()
     {
-	Stream stream = new Stream(streamLabel);
-	streams.add(stream);
-	hasChanged=true;
-	return stream;
-    }
-
-    /** remove a stream */
-    public void removeStream(Stream stream)
-    {
-	if (streams.indexOf(stream)>=0) {
-	    Iterator<PrimaryDataset> itD = stream.datasetIterator();
-	    while (itD.hasNext()) itD.next().removeFromStream(stream);
-	    streams.remove(stream);
-	    hasChanged = true;
+	ArrayList<Stream> streams = new ArrayList<Stream>();
+	Iterator<EventContent> itC = contentIterator();
+	while (itC.hasNext()) {
+	    Iterator<Stream> itS = itC.next().streamIterator();
+	    while (itS.hasNext()) streams.add(itS.next());
 	}
+	return streams.iterator();
     }
 
-    /** sort Streams */
-    public void sortStreams() { Collections.sort(streams); hasChanged=true;}
-    
     
     //
     // Primary Datasets
     //
     
     /** number of primary datasets */
-    public int datasetCount() { return datasets.size(); }
+    public int datasetCount()
+    {
+	int result = 0;
+	Iterator<Stream> itS = streamIterator();
+	while (itS.hasNext()) result += itS.next().datasetCount();
+	return result;
+    }
     
     /** retrieve i-th primary dataset */
-    public PrimaryDataset dataset(int i) { return datasets.get(i); }
-
+    public PrimaryDataset dataset(int i)
+    {
+	int offset = 0;
+	Iterator<Stream> itS = streamIterator();
+	while (itS.hasNext()) {
+	    Stream s = itS.next();
+	    if (offset+s.datasetCount()>=i) offset += s.datasetCount();
+	    else return s.dataset(i-offset);
+	}
+	return null;
+    }
+    
     /** retrieve primary dataset by label */
     public PrimaryDataset dataset(String datasetLabel)
     {
-	for (PrimaryDataset pd : datasets)
-	    if (pd.label().equals(datasetLabel)) return pd;
+	Iterator<PrimaryDataset> itD = datasetIterator();
+	while (itD.hasNext()) {
+	    PrimaryDataset dataset = itD.next();
+	    if (dataset.label().equals(datasetLabel)) return dataset;
+	}
 	return null;
     }
     
     /** index of a certain primary dataset */
     public int indexOfDataset(PrimaryDataset dataset)
     {
-	return datasets.indexOf(dataset);
+	int offset = 0;
+	Iterator<Stream> itS = streamIterator();
+	while (itS.hasNext()) {
+	    Stream stream = itS.next();
+	    if (stream.indexOfDataset(dataset)<0) offset+=stream.datasetCount();
+	    else return offset + stream.indexOfDataset(dataset);
+	}
+	return -1;
     }
 
     /** retrieve primary dataset iterator */
     public Iterator<PrimaryDataset> datasetIterator()
     {
+	ArrayList<PrimaryDataset> datasets = new ArrayList<PrimaryDataset>();
+	Iterator<Stream> itS = streamIterator();
+	while (itS.hasNext()) {
+	    Iterator<PrimaryDataset> itD = itS.next().datasetIterator();
+	    while (itD.hasNext()) datasets.add(itD.next());
+	}
 	return datasets.iterator();
     }
-    
-    /** insert a new primary dataset */
-    public PrimaryDataset insertDataset(String datasetLabel)
-    {
-	PrimaryDataset dataset = new PrimaryDataset(datasetLabel);
-	datasets.add(dataset);
-	hasChanged=true;
-	return dataset;
-    }
-
-    /** remove a dataset */
-    public void removeDataset(PrimaryDataset dataset)
-    {
-	if (datasets.indexOf(dataset)>=0) {
-	    while (dataset.pathCount()>0) dataset.removePath(dataset.path(0));
-	    datasets.remove(dataset);
-	    hasChanged = true;
-	}
-    }
-    
-    /** sort primary datasets */
-    public void sortDatasets() { Collections.sort(datasets); hasChanged=true; }
     
 
     //

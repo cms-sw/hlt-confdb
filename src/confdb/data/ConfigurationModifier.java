@@ -769,6 +769,31 @@ public class ConfigurationModifier implements IConfiguration
     }
     
     
+    /** number of event contents */
+    public int contentCount() { return master.contentCount(); }
+    
+    /** retrieve i-th event content */
+    public EventContent content(int i) { return master.content(i); }
+    
+    /** retrieve event content by label */
+    public EventContent content(String contentLabel)
+    {
+	return master.content(contentLabel);
+    }
+    
+    /** index of a certain event content */
+    public int indexOfContent(EventContent content)
+    {
+	return master.indexOfContent(content);
+    }
+    
+    /** retrieve event content iterator */
+    public Iterator<EventContent> contentIterator()
+    {
+	return master.contentIterator();
+    }
+
+    
     /** number of streams */
     public int streamCount() { return master.streamCount(); }
     
@@ -776,10 +801,16 @@ public class ConfigurationModifier implements IConfiguration
     public Stream stream(int i) { return master.stream(i); }
     
     /** retrieve stream by label */
-    public Stream stream(String streamLabel) { return master.stream(streamLabel); }
+    public Stream stream(String streamLabel)
+    {
+	return master.stream(streamLabel);
+    }
     
     /** index of a certain stream */
-    public int indexOfStream(Stream stream) { return master.indexOfStream(stream); }
+    public int indexOfStream(Stream stream)
+    {
+	return master.indexOfStream(stream);
+    }
     
     /** retrieve stream iterator */
     public Iterator<Stream> streamIterator() { return master.streamIterator(); }
