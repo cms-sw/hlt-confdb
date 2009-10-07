@@ -154,6 +154,13 @@ public class ParameterTableMouseListener extends MouseAdapter
 		    notifyParent(pset);
 		}
 	    }
+	    else if (parent instanceof Instance) {
+		Instance instance = (Instance)parent;
+		if (cmd.equals("Remove Parameter")) {
+		    instance.removeUntrackedParameter(parameter);
+		    confDbGUI.refreshParameters();
+		}
+	    }
 	}
 	// pset
 	else if (parameter instanceof PSetParameter) {
@@ -178,6 +185,14 @@ public class ParameterTableMouseListener extends MouseAdapter
 		    notifyParent(pset);
 		}
 	    }
+	    else  if (parent instanceof Instance) {
+		Instance instance = (Instance)parent;
+		if (cmd.equals("Remove Parameter")) {
+		    instance.removeUntrackedParameter(parameter);
+		    confDbGUI.refreshParameters();
+		}
+	    }
+	    
 	}
 	// regular parameter with PSet parent
 	else if (parent instanceof PSetParameter) {
