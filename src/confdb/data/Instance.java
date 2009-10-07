@@ -316,6 +316,7 @@ abstract public class Instance extends DatabaseEntry implements Comparable<Insta
 	    if(iRemoveIndex<template.parameterCount())
 		return false;
 	    parameters.remove(iRemoveIndex);
+	    setHasChanged();
 	    return true;
 	    
  	}catch(Exception e){
