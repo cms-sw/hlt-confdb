@@ -69,9 +69,8 @@ public class ConfDbGUI
     /** the import configuration */
     private Configuration importConfig = null;
     
-    /** current instance and respective list of parameters currently displayed */
-    private Object               currentInstance   = null;
-    private ArrayList<Parameter> currentParameters = new ArrayList<Parameter>(); 
+    /** current parameter container (Instance | OuputModule) */
+    private Object currentParameterContainer = null;
 
     /** ascii converter engine, to display config snippets (right-lower) */
     private ConverterEngine cnvEngine = null;
@@ -636,19 +635,20 @@ public class ConfDbGUI
  	dlg.setLocationRelativeTo(frame);
  	dlg.setVisible(true);
  	if (dlg.validChoice()) {
- 	    if (currentInstance instanceof Instance) {
- 		Instance inst = (Instance)currentInstance;
- 		Parameter p = inst.parameter(dlg.name());
+ 	    if (currentParameterContainer instanceof ParameterContainer) {
+ 		ParameterContainer container =
+		    (ParameterContainer)currentParameterContainer;
+ 		Parameter p = container.parameter(dlg.name());
  		if(p!=null) {
  		    //JOptionPane.showMessageDialog(null,
 		    //"Parameter already exists",JOptionPane.ERROR_MESSAGE); 
  		    return;
  		}
  		if(dlg.valueAsString()==null)
- 		    inst.updateParameter(dlg.name(),dlg.type(),
-					 dlg.valueAsString());
+ 		    container.updateParameter(dlg.name(),dlg.type(),
+					      dlg.valueAsString());
  		else
- 		    inst.updateParameter(dlg.name(),dlg.type(),"");
+ 		    container.updateParameter(dlg.name(),dlg.type(),"");
  		displayParameters();
  	    }	
  	}
@@ -1599,18 +1599,24 @@ public class ConfDbGUI
 	// parameter table
 	treeModelParameters  = new ParameterTreeModel();
 	jTreeTableParameters = new TreeTable(treeModelParameters);
-	jTreeTableParameters.setTreeCellRenderer(new ParameterTreeCellRenderer());
+	jTreeTableParameters
+	    .setTreeCellRenderer(new ParameterTreeCellRenderer());
 	
-	jTreeTableParameters.getColumnModel().getColumn(0).setPreferredWidth(120);
-	jTreeTableParameters.getColumnModel().getColumn(1).setPreferredWidth(90);
-	jTreeTableParameters.getColumnModel().getColumn(2).setPreferredWidth(180);
-	jTreeTableParameters.getColumnModel().getColumn(3).setPreferredWidth(30);
-	jTreeTableParameters.getColumnModel().getColumn(4).setPreferredWidth(30);
+	jTreeTableParameters.getColumnModel().getColumn(0)
+	    .setPreferredWidth(120);
+	jTreeTableParameters.getColumnModel().getColumn(1)
+	    .setPreferredWidth(90);
+	jTreeTableParameters.getColumnModel().getColumn(2)
+	    .setPreferredWidth(180);
+	jTreeTableParameters.getColumnModel().getColumn(3)
+	    .setPreferredWidth(30);
+	jTreeTableParameters.getColumnModel().getColumn(4)
+	    .setPreferredWidth(30);
 
 	jTreeTableParameters
-	    .addMouseListener(new ParameterTableMouseListener(frame,
-							  jTreeTableParameters,
-							  this));
+	    .addMouseListener
+	    (new ParameterTableMouseListener(frame,
+					     jTreeTableParameters));
     }
     
     /** show/hide the import-tree pane */
@@ -1641,26 +1647,46 @@ public class ConfDbGUI
 
 	toolBar.disableAddUntrackedParameter();
 	
-	if (currentInstance instanceof Instance) {
+	if (currentParameterContainer instanceof ParameterContainer) {
 	    toolBar.enableAddUntrackedParameter();
 	    jSplitPaneRightUpper.setDividerLocation(-1);
 	    jSplitPaneRightUpper.setDividerSize(8);
 
-	    Instance inst = (Instance)currentInstance;
+	    ParameterContainer container =
+		(ParameterContainer)currentParameterContainer;
 	    
-	    String subName = inst.template().parentPackage().subsystem().name();
-	    String pkgName = inst.template().parentPackage().name();
-	    String cvsTag  = inst.template().cvsTag();
-	    String type    = inst.template().type();
-	    String plugin  = inst.template().name();
-	    String label   = inst.name();
+	    if (container instanceof Instance) {
+		Instance i = (Instance)container;
+		String subName=i.template().parentPackage().subsystem().name();
+		String pkgName=i.template().parentPackage().name();
+		String cvsTag =i.template().cvsTag();
+		String type   =i.template().type();
+		String plugin =i.template().name();
+		
+		jTextFieldPackage.setText(subName+"/"+pkgName);
+		jTextFieldCVS.setText(cvsTag);
+		jLabelPlugin.setText(type + ":");
+		jTextFieldPlugin.setText(plugin);
+
+	    }
+	    else {
+		jTextFieldPackage.setText(new String());
+		jTextFieldCVS.setText(new String());
+		jLabelPlugin.setText(new String());
+		jTextFieldPlugin.setText(new String());
+		jTextFieldLabel.setText(new String());
+	    }
+
+
 	    
 	    DefaultComboBoxModel cbModel =
 		(DefaultComboBoxModel)jComboBoxPaths.getModel();
 	    cbModel.removeAllElements();
 	    
-	    if (inst instanceof ModuleInstance) {
-		ModuleInstance module = (ModuleInstance)inst;
+	    if (container instanceof Referencable) {
+		Referencable module = (Referencable)container;
+		jTextFieldLabel.setText(module.name());
+		border.setTitle(module.name() + " Parameters");
 		jComboBoxPaths.setEnabled(true);
 		cbModel.addElement("");
 		Path[] paths = module.parentPaths();
@@ -1670,24 +1696,11 @@ public class ConfDbGUI
 		jComboBoxPaths.setEnabled(false);
 	    }
 	    
-	    jTextFieldPackage.setText(subName+"/"+pkgName);
-	    jTextFieldCVS.setText(cvsTag);
-	    jLabelPlugin.setText(type + ":");
-	    jTextFieldPlugin.setText(plugin);
-	    jTextFieldLabel.setText(label);
-	    
-	    currentParameters.clear();
-	    Iterator<Parameter> itP = inst.parameterIterator();
-	    while (itP.hasNext()) currentParameters.add(itP.next());
-	    treeModelParameters.setParameters(currentParameters);
-	    border.setTitle(inst.name() + " Parameters");
+	    treeModelParameters.setParameterContainer(container);
 	}
 	else {
 	    clearParameters();
-	    currentParameters.clear();
-	    Iterator<PSetParameter> itPSet = currentConfig.psetIterator();
-	    while (itPSet.hasNext()) currentParameters.add(itPSet.next());
-	    treeModelParameters.setParameters(currentParameters);
+	    treeModelParameters.setParameterContainer(currentConfig.psets());
 	    border.setTitle("Global PSets");
 	}
     }
@@ -1709,17 +1722,17 @@ public class ConfDbGUI
 	((DefaultComboBoxModel)jComboBoxPaths.getModel()).removeAllElements();
 	jComboBoxPaths.setEnabled(false);
 
-	currentInstance = null;
-	currentParameters.clear();
-	treeModelParameters.setParameters(currentParameters);
-
-	((TitledBorder)jScrollPaneParameters.getBorder()).setTitle("Parameters");
+	currentParameterContainer = null;
+	treeModelParameters.setParameterContainer(currentParameterContainer);
+	
+	((TitledBorder)jScrollPaneParameters
+	 .getBorder()).setTitle("Parameters");
     }
     
-    /** display the configuration snippet for the currently selected component */
+    /** display the configuration snippet for currently selected component */
     private void displaySnippet()
     {
-	if (currentInstance==treeModelCurrentConfig.psetsNode()) {
+	if (currentParameterContainer==treeModelCurrentConfig.psetsNode()) {
 	    String s="";
 	    Iterator<PSetParameter> itPSet = currentConfig.psetIterator();
 	    try {
@@ -1732,8 +1745,8 @@ public class ConfDbGUI
 		jEditorPaneSnippet.setText(e.getMessage());
 	    }
 	}
-	else if (currentInstance instanceof EDSourceInstance) {
-	    EDSourceInstance edsource = (EDSourceInstance)currentInstance;
+	else if (currentParameterContainer instanceof EDSourceInstance) {
+	    EDSourceInstance edsource = (EDSourceInstance)currentParameterContainer;
 	    try {
 		jEditorPaneSnippet.setText(cnvEngine.getEDSourceWriter().
 					   toString(edsource,cnvEngine,"  "));
@@ -1742,8 +1755,8 @@ public class ConfDbGUI
 		jEditorPaneSnippet.setText(e.getMessage());
 	    }
 	}
-	else if (currentInstance instanceof ESSourceInstance) {
-	    ESSourceInstance essource = (ESSourceInstance)currentInstance;
+	else if (currentParameterContainer instanceof ESSourceInstance) {
+	    ESSourceInstance essource = (ESSourceInstance)currentParameterContainer;
 	    try {
 		jEditorPaneSnippet.setText(cnvEngine.getESSourceWriter().
 					   toString(essource,cnvEngine,"  "));
@@ -1752,8 +1765,8 @@ public class ConfDbGUI
 		jEditorPaneSnippet.setText(e.getMessage());
 	    }
 	}
-	else if (currentInstance instanceof ESModuleInstance) {
-	    ESModuleInstance esmodule = (ESModuleInstance)currentInstance;
+	else if (currentParameterContainer instanceof ESModuleInstance) {
+	    ESModuleInstance esmodule = (ESModuleInstance)currentParameterContainer;
 	    try {
 		jEditorPaneSnippet.setText(cnvEngine.getESModuleWriter().
 					   toString(esmodule,cnvEngine,"  "));
@@ -1762,8 +1775,8 @@ public class ConfDbGUI
 		jEditorPaneSnippet.setText(e.getMessage());
 	    }
 	}
-	else if (currentInstance instanceof ServiceInstance) {
-	    ServiceInstance service = (ServiceInstance)currentInstance;
+	else if (currentParameterContainer instanceof ServiceInstance) {
+	    ServiceInstance service = (ServiceInstance)currentParameterContainer;
 	    try {
 		jEditorPaneSnippet.setText(cnvEngine.getServiceWriter().
 					   toString(service,cnvEngine,"  "));
@@ -1772,8 +1785,8 @@ public class ConfDbGUI
 		jEditorPaneSnippet.setText(e.getMessage());
 	    }
 	}
-	else if (currentInstance instanceof ModuleInstance) {
-	    ModuleInstance module = (ModuleInstance)currentInstance;
+	else if (currentParameterContainer instanceof ModuleInstance) {
+	    ModuleInstance module = (ModuleInstance)currentParameterContainer;
 	    try {
 		jEditorPaneSnippet.setText(cnvEngine.getModuleWriter().
 					   toString(module));
@@ -1782,13 +1795,13 @@ public class ConfDbGUI
 		jEditorPaneSnippet.setText(e.getMessage());
 	    }
 	}
-	else if (currentInstance instanceof Path) {
-	    Path path = (Path)currentInstance;
+	else if (currentParameterContainer instanceof Path) {
+	    Path path = (Path)currentParameterContainer;
 	    jEditorPaneSnippet.setText(cnvEngine.getPathWriter().
 				       toString(path,cnvEngine,"  "));
 	}
-	else if (currentInstance instanceof Sequence) {
-	    Sequence sequence = (Sequence)currentInstance;
+	else if (currentParameterContainer instanceof Sequence) {
+	    Sequence sequence = (Sequence)currentParameterContainer;
 	    jEditorPaneSnippet.setText(cnvEngine.getSequenceWriter().
 				       toString(sequence,cnvEngine,"  "));
 	}
@@ -1900,7 +1913,7 @@ public class ConfDbGUI
     }
     private void jSplitPaneRightComponentMoved(ComponentEvent e)
     {
-	if (!(currentInstance instanceof Instance)) {
+	if (!(currentParameterContainer instanceof Instance)) {
 	    jSplitPaneRightUpper.setDividerLocation(0);
 	    jSplitPaneRightUpper.setDividerSize(1);
 	}
@@ -2026,9 +2039,9 @@ public class ConfDbGUI
 	    Parameter p = (Parameter)changedNode;
 	    treeModelCurrentConfig.nodeChanged(p);
 	    treeModelCurrentConfig.updateLevel1Nodes();
-	    Instance parentInstance = p.getParentInstance();
-	    if (parentInstance==null) currentConfig.setHasChanged(true);
-	    else if (parentInstance instanceof ModuleInstance)
+	    ParameterContainer parentContainer = p.getParentContainer();
+	    if (parentContainer==null) currentConfig.setHasChanged(true);
+	    else if (parentContainer instanceof Referencable)
 		jTreeCurrentConfig.updateUI();
 	}
     }
@@ -2038,10 +2051,14 @@ public class ConfDbGUI
 	int    childIndex = e.getChildIndices()[0];
 	treeModelCurrentConfig.nodeInserted(parentNode,childIndex);
 	treeModelCurrentConfig.updateLevel1Nodes();
-	Instance parentInstance = ((Parameter)parentNode).getParentInstance();
-	if (parentInstance==null) currentConfig.setHasChanged(true);
-	else if (parentInstance instanceof ModuleInstance)
-	    jTreeCurrentConfig.updateUI();
+	if (parentNode instanceof Parameter) {
+	    ParameterContainer parentContainer =
+		((Parameter)parentNode).getParentContainer();
+	    if (parentContainer==null) currentConfig.setHasChanged(true);
+	}
+	//else if (parentNode instanceof Referencable) {
+	//jTreeCurrentConfig.updateUI();
+	//}
     }
     private void jTreeTableParametersTreeNodesRemoved(TreeModelEvent e)
     {
@@ -2050,10 +2067,15 @@ public class ConfDbGUI
 	int    childIndex = e.getChildIndices()[0];
 	treeModelCurrentConfig.nodeRemoved(parentNode,childIndex,childNode);
 	treeModelCurrentConfig.updateLevel1Nodes();
-	Instance parentInstance = ((Parameter)parentNode).getParentInstance();
-	if (parentInstance==null) currentConfig.setHasChanged(true);
-	else if (parentInstance instanceof ModuleInstance)
-	    jTreeCurrentConfig.updateUI();
+	if (parentNode instanceof Parameter) {
+	    ParameterContainer parentContainer =
+		((Parameter)parentNode).getParentContainer();
+	    if (parentContainer==null) currentConfig.setHasChanged(true);
+	}
+	//else if (parentNode instanceof Referencable) {
+	//System.out.println("updateUI()");
+	//jTreeCurrentConfig.updateUI();
+	//}
     }
     
 
@@ -2086,19 +2108,19 @@ public class ConfDbGUI
 	    node = ((Reference)node).parent();
 	}
 	
-	if (node instanceof Instance) {
-	    currentInstance = node;
+	if (node instanceof ParameterContainer) {
+	    currentParameterContainer = node;
 	    displayParameters();
 	    displaySnippet();
 	}
 	else if (node==null||node==treeModelCurrentConfig.psetsNode()) {
-	    currentInstance = treeModelCurrentConfig.psetsNode();
+	    currentParameterContainer = currentConfig.psets();
 	    displayParameters();
 	    displaySnippet();
 	}
 	else if (node instanceof ReferenceContainer) {
 	    clearParameters();
-	    currentInstance = node;
+	    currentParameterContainer = node;
 	    displaySnippet();
 	}
 	else {
@@ -2176,7 +2198,7 @@ public class ConfDbGUI
         jTextFieldCreator.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
 	// TODO: REMOVE?!
-	jTabbedPaneLeft.addTab("Configuration",jPanelCurrentConfig);
+	//jTabbedPaneLeft.addTab("Configuration",jPanelCurrentConfig);
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelLeft);
         jPanelLeft.setLayout(layout);
@@ -2185,7 +2207,9 @@ public class ConfDbGUI
 				  .add(layout.createSequentialGroup()
 				       .addContainerGap()
 				       .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-					    .add(jTabbedPaneLeft, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
+					    //.add(jTabbedPaneLeft, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
+					    
+					    .add(jPanelCurrentConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
 					    .add(layout.createSequentialGroup()
 						 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
 						      .add(jLabelConfig)
@@ -2236,7 +2260,8 @@ public class ConfDbGUI
 					  .add(jLabelCreator)
 					  .add(jTextFieldCreator, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
 				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-				     .add(jTabbedPaneLeft, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 508, Short.MAX_VALUE)
+				     //.add(jTabbedPaneLeft, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 508, Short.MAX_VALUE)
+				     .add(jPanelCurrentConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 508, Short.MAX_VALUE)
 				     .addContainerGap())
 				);
 

@@ -226,12 +226,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    popupPSets.add(menuItem);
 	}
 	
-	if (depth==2&&enableSort) {
-	    popupPSets.addSeparator();
-	    menuItem = new JMenuItem("Sort");
-	    menuItem.addActionListener(psetListener);
-	    popupPSets.add(menuItem);
-	}
+	//if (depth==2&&enableSort) {
+	//popupPSets.addSeparator();
+	//menuItem = new JMenuItem("Sort");
+	//menuItem.addActionListener(psetListener);
+	//popupPSets.add(menuItem);
+	//}
     }
     
     /** update 'EDSource' menu */
@@ -926,10 +926,11 @@ class PSetMenuListener implements ActionListener
 	JMenuItem source = (JMenuItem)(e.getSource());
 	String    cmd    = source.getText();
 	
-	if (cmd.equals("Sort")) {
+	/*if (cmd.equals("Sort")) {
 	    ConfigurationTreeActions.sortPSets(tree);
 	}
-	else if (cmd.equals("Remove PSet")) {
+	else */
+	if (cmd.equals("Remove PSet")) {
 	    PSetParameter pset =
 		(PSetParameter)tree.getSelectionPath().getLastPathComponent();
 	    ConfigurationTreeActions.removePSet(tree,pset);

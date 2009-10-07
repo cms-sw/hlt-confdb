@@ -16,11 +16,10 @@ abstract public class ParameterContainer extends DatabaseEntry
     //
     // member data
     //
-    
-    /** collection of parameters */
-    protected ArrayList<Parameter> parameters = new ArrayList<Parameter>();
 
-    
+    /** collection of parameters */
+    private ArrayList<Parameter> parameters = new ArrayList<Parameter>();
+
 
     //
     // abstract member functions
@@ -43,6 +42,16 @@ abstract public class ParameterContainer extends DatabaseEntry
 	parameter.setParent(this);
     }
 
+    /** remove a given parameter */
+    public void removeParameter(Parameter parameter)
+    {
+	parameters.remove(parameter);
+	parameter.setParent(null);
+    }
+
+    /** remove all parameters */
+    public void clear() { parameters.clear(); }
+    
     /** number of parameters */
     public int parameterCount() { return parameters.size(); }
 
@@ -63,6 +72,7 @@ abstract public class ParameterContainer extends DatabaseEntry
     {
 	if (isRemovable(p)) {
 	    parameters.remove(p);
+	    setHasChanged();
 	    return true;
 	}
 	return false;

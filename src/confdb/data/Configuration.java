@@ -28,8 +28,9 @@ public class Configuration implements IConfiguration
     private boolean hasChanged = false;
     
     /** list of globale parameter sets */
-    private ArrayList<PSetParameter>    psets = null;
-
+    //private ArrayList<PSetParameter>    psets = null;
+    private ParameterContainer          psets     = null;
+    
     /** list of EDSources */
     private ArrayList<EDSourceInstance> edsources = null;
 
@@ -68,7 +69,17 @@ public class Configuration implements IConfiguration
     /** empty constructor */
     public Configuration()
     {
-	psets         = new ArrayList<PSetParameter>();
+	//psets         = new ArrayList<PSetParameter>();
+	psets         = new ParameterContainer() {
+		public String parameterDefaultValueAsString(Parameter p)
+		{
+		    return new String();
+		}
+		public boolean isRemovable(Parameter p)
+		{
+		    return true;
+		}
+	    };
 	edsources     = new ArrayList<EDSourceInstance>();
 	essources     = new ArrayList<ESSourceInstance>();
 	esmodules     = new ArrayList<ESModuleInstance>();
@@ -83,7 +94,17 @@ public class Configuration implements IConfiguration
     /** standard constructor */
     public Configuration(ConfigInfo configInfo,SoftwareRelease release)
     {
-	psets         = new ArrayList<PSetParameter>();
+	//psets         = new ArrayList<PSetParameter>();
+	psets         = new ParameterContainer() {
+		public String parameterDefaultValueAsString(Parameter p)
+		{
+		    return new String();
+		}
+		public boolean isRemovable(Parameter p)
+		{
+		    return true;
+		}
+	    };
 	edsources     = new ArrayList<EDSourceInstance>();
 	essources     = new ArrayList<ESSourceInstance>();
 	esmodules     = new ArrayList<ESModuleInstance>();
@@ -180,7 +201,8 @@ public class Configuration implements IConfiguration
     /** isEmpty() */
     public boolean isEmpty()
     {
-	return (name().length()==0&&psets.isEmpty()&&
+	return (name().length()==0&&//psets.isEmpty()&&
+		psets.parameterCount()==0&&
 		edsources.isEmpty()&&essources.isEmpty()&&services.isEmpty()&&
 		modules.isEmpty()&&outputs.isEmpty()&&
 		paths.isEmpty()&&sequences.isEmpty()&&
@@ -398,8 +420,9 @@ public class Configuration implements IConfiguration
     public int unsetTrackedPSetParameterCount()
     {
 	int result = 0;
-	for (PSetParameter pset : psets)
-	    result += pset.unsetTrackedParameterCount();
+	Iterator<Parameter> itP = psets.parameterIterator();
+	while (itP.hasNext())
+	    result += ((PSetParameter)itP.next()).unsetTrackedParameterCount();
 	return result;
     }
     
@@ -495,45 +518,58 @@ public class Configuration implements IConfiguration
     // PSets
     //
     
+    /** retrieve the ParameterContainer 'psets' */
+    public ParameterContainer psets() { return psets; }
+    
     /**  number of global PSets */
-    public int psetCount() { return psets.size(); }
+    public int psetCount() { return psets.parameterCount(); }
 
     /** get i-th global PSet */
-    public PSetParameter pset(int i) { return psets.get(i); }
+    public PSetParameter pset(int i)
+    {
+	return (PSetParameter)psets.parameter(i);
+    }
 
     /** get global pset by name */
     public PSetParameter pset(String name)
     {
-	for (PSetParameter pset : psets)
+	Iterator<Parameter> itP = psets.parameterIterator();
+	while (itP.hasNext()) {
+	    PSetParameter pset = (PSetParameter)itP.next();
 	    if (pset.name().equals(name)) return pset;
+	}
 	return null;
     }
 
     /** index of a certain global PSet */
     public int indexOfPSet(PSetParameter pset)
     {
-	return psets.indexOf(pset);
+	return psets.indexOfParameter(pset);
     }
-
+    
     /** retrieve pset iterator */
-    public Iterator<PSetParameter> psetIterator() { return psets.iterator(); }
+    public Iterator<PSetParameter> psetIterator() {
+	ArrayList<PSetParameter> list = new ArrayList<PSetParameter>();
+	Iterator<Parameter> itP = psets.parameterIterator();
+	while (itP.hasNext()) list.add((PSetParameter)itP.next());
+	return list.iterator();
+    }
     
     /** insert global pset at i-th position */
     public void insertPSet(PSetParameter pset)
     {
-	psets.add(pset);
+	psets.addParameter(pset);
 	hasChanged = true;
     }
     
     /** remove a global PSet */
     public void removePSet(PSetParameter pset)
     {
-	psets.remove(pset);
+	psets.removeParameter(pset);
 	hasChanged = true;
     }
     
-    /** sort global PSets*/
-    public void sortPSets() { Collections.sort(psets); hasChanged=true; }
+    //public void sortPSets() { Collections.sort(psets); hasChanged=true; }
     
 
     //

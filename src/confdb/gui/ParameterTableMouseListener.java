@@ -39,9 +39,6 @@ public class ParameterTableMouseListener extends MouseAdapter
     private Parameter parameter = null;
     
 
-    /**Temporary solution to fix display problems for untracked parameter removal*/
-    ConfDbGUI confDbGUI;
-
     //
     // construction
     //
@@ -52,13 +49,6 @@ public class ParameterTableMouseListener extends MouseAdapter
 	this.treeTable  = treeTable;
 	this.treeModel  = (ParameterTreeModel)treeTable.getTree().getModel();
 	this.tableModel = (TreeTableTableModel)treeTable.getModel();
-    }
-
-
-    public ParameterTableMouseListener(JFrame frame,TreeTable treeTable,ConfDbGUI confDbGUI)
-    {
-	this(frame,treeTable);
-	this.confDbGUI = confDbGUI;
     }
 
 
@@ -90,14 +80,19 @@ public class ParameterTableMouseListener extends MouseAdapter
 	Boolean    bRemoveParam = false;
 	
 
-	if(parent instanceof Instance){
-	    Template template =  ((Instance)parent).template();
-	    Parameter pExists = template.parameter(parameter.name());
-	    if(pExists==null){
-		bRemoveParam = true;
-	    }
+	//if(parent instanceof Instance){
+	//Template template =  ((Instance)parent).template();
+	//Parameter pExists = template.parameter(parameter.name());
+	//if(pExists==null){
+	//bRemoveParam = true;
+	//}
+	//}
+	
+	if (parent instanceof ParameterContainer) {
+	    ParameterContainer container = (ParameterContainer)parent;
+	    bRemoveParam = container.isRemovable(parameter);
 	}
-	    
+	
 	if (parameter instanceof VPSetParameter) {
 	    JMenuItem  menuItem = new JMenuItem("Add PSet");
 	    menuItem.addActionListener(this);
@@ -154,11 +149,13 @@ public class ParameterTableMouseListener extends MouseAdapter
 		    notifyParent(pset);
 		}
 	    }
-	    else if (parent instanceof Instance) {
-		Instance instance = (Instance)parent;
+	    else if (parent instanceof ParameterContainer) {
+		ParameterContainer container = (ParameterContainer)parent;
 		if (cmd.equals("Remove Parameter")) {
-		    instance.removeUntrackedParameter(parameter);
-		    confDbGUI.refreshParameters();
+		    treeModel.nodeRemoved(container,
+					  container.indexOfParameter(parameter),
+					  parameter);
+		    container.removeUntrackedParameter(parameter);
 		}
 	    }
 	}
@@ -185,11 +182,13 @@ public class ParameterTableMouseListener extends MouseAdapter
 		    notifyParent(pset);
 		}
 	    }
-	    else  if (parent instanceof Instance) {
-		Instance instance = (Instance)parent;
+	    else  if (parent instanceof ParameterContainer) {
+		ParameterContainer container = (ParameterContainer)parent;
 		if (cmd.equals("Remove Parameter")) {
-		    instance.removeUntrackedParameter(parameter);
-		    confDbGUI.refreshParameters();
+		    treeModel.nodeRemoved(container,
+					  container.indexOfParameter(parameter),
+					  parameter);
+		    container.removeUntrackedParameter(parameter);
 		}
 	    }
 	    
@@ -204,11 +203,13 @@ public class ParameterTableMouseListener extends MouseAdapter
 	    }
 	}
 	//untracked parameter
-	else if (parent instanceof Instance) {
-	    Instance instance = (Instance)parent;
+	else if (parent instanceof ParameterContainer) {
+	    ParameterContainer container = (ParameterContainer)parent;
 	    if (cmd.equals("Remove Parameter")) {
-		instance.removeUntrackedParameter(parameter);
-		confDbGUI.refreshParameters();
+		treeModel.nodeRemoved(container,
+				      container.indexOfParameter(parameter),
+				      parameter);
+		container.removeUntrackedParameter(parameter);
 	    }
 	}
     }

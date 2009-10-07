@@ -147,13 +147,15 @@ public class ConfigurationTreeActions
     }
      
     /** sort global psets */
-    public static void sortPSets(JTree tree)
-    {
-	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config = (Configuration)model.getRoot();
-	config.sortPSets();
-	model.nodeStructureChanged(model.psetsNode());
-    }
+    /*
+      public static void sortPSets(JTree tree)
+      {
+      ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+      Configuration          config = (Configuration)model.getRoot();
+      config.sortPSets();
+      model.nodeStructureChanged(model.psetsNode());
+      }
+    */
     
 
     //

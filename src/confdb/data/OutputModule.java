@@ -25,8 +25,8 @@ public class OutputModule extends ParameterContainer implements Referencable
     /** name of the class */
     private String className = "FUShmStreamConsumer";
 
-    /** label of the output module */
-    private String name;
+    /** label of this OutputModule */
+    private String name = "";
 
     /** reference to the parent stream */
     private Stream parentStream = null;
@@ -65,8 +65,8 @@ public class OutputModule extends ParameterContainer implements Referencable
 	vstringOutputCommands =
 	    new VStringParameter("outputCommands","",false,false);
 
-	parameters.add(psetSelectEvents);
-	parameters.add(vstringOutputCommands);
+	addParameter(psetSelectEvents);
+	addParameter(vstringOutputCommands);
 
 	updateSelectEvents();
 	updateOutputCommands();
