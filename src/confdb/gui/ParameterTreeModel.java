@@ -72,7 +72,7 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 	return getRoot();
     }
 
-    /** TreeModel: number of children of the node */
+    /** Treemodel: number of children of the node */
     public int getChildCount(Object node)
     {
 	if (node instanceof PSetParameter) {

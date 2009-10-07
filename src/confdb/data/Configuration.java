@@ -45,6 +45,9 @@ public class Configuration implements IConfiguration
     /** list of Modules */
     private ArrayList<ModuleInstance>   modules = null;
     
+    /** list of OutputModules */
+    private ArrayList<OutputModule>     outputs = null;
+    
     /** list of Paths */
     private ArrayList<Path>             paths = null;
     
@@ -71,6 +74,7 @@ public class Configuration implements IConfiguration
 	esmodules     = new ArrayList<ESModuleInstance>();
 	services      = new ArrayList<ServiceInstance>();
 	modules       = new ArrayList<ModuleInstance>();
+	outputs       = new ArrayList<OutputModule>();
 	paths         = new ArrayList<Path>();
 	sequences     = new ArrayList<Sequence>();
 	contents      = new ArrayList<EventContent>();
@@ -85,6 +89,7 @@ public class Configuration implements IConfiguration
 	esmodules     = new ArrayList<ESModuleInstance>();
 	services      = new ArrayList<ServiceInstance>();
 	modules       = new ArrayList<ModuleInstance>();
+	outputs       = new ArrayList<OutputModule>();
 	paths         = new ArrayList<Path>();
 	sequences     = new ArrayList<Sequence>();
 	contents      = new ArrayList<EventContent>();
@@ -110,6 +115,7 @@ public class Configuration implements IConfiguration
 	essources.clear();
 	services.clear();
 	modules.clear();
+	outputs.clear();
 	paths.clear();
 	sequences.clear();
 	contents.clear();
@@ -127,6 +133,7 @@ public class Configuration implements IConfiguration
 	essources.clear();
 	services.clear();
 	modules.clear();
+	outputs.clear();
 	paths.clear();
 	sequences.clear();
 	contents.clear();
@@ -162,6 +169,7 @@ public class Configuration implements IConfiguration
 	else if (c == Path.class)             return pathCount(); 
 	else if (c == Sequence.class)         return sequenceCount();
 	else if (c == ModuleInstance.class)   return moduleCount();
+	else if (c == OutputModule.class)     return outputCount();
 	else if (c == EventContent.class)     return contentCount();
 	else if (c == Stream.class)           return streamCount();
 	else if (c == PrimaryDataset.class)   return datasetCount();
@@ -173,8 +181,8 @@ public class Configuration implements IConfiguration
     public boolean isEmpty()
     {
 	return (name().length()==0&&psets.isEmpty()&&
-		edsources.isEmpty()&&essources.isEmpty()&&
-		services.isEmpty()&&modules.isEmpty()&&
+		edsources.isEmpty()&&essources.isEmpty()&&services.isEmpty()&&
+		modules.isEmpty()&&outputs.isEmpty()&&
 		paths.isEmpty()&&sequences.isEmpty()&&
 		contents.isEmpty());
     }
@@ -299,6 +307,8 @@ public class Configuration implements IConfiguration
 	    if (esm.name().equals(qualifier)) return false;
 	for (ModuleInstance m : modules)
 	    if (m.name().equals(qualifier)) return false;
+	for (OutputModule om : outputs)
+	    if (om.name().equals(qualifier)) return false;
 	for (Path p : paths)
 	    if (p.name().equals(qualifier)) return false;
 	for (Sequence s : sequences)
@@ -317,6 +327,10 @@ public class Configuration implements IConfiguration
 	for (ModuleInstance m : modules) {
 	    if (m==referencable) continue;
 	    if (m.name().equals(referencable.name())) return false;
+	}
+	for (OutputModule om : outputs) {
+	    if (om==referencable) continue;
+	    if (om.name().equals(referencable.name())) return false;
 	}
 	for (Path p : paths) {
 	    if (p==referencable) continue;
@@ -887,6 +901,49 @@ public class Configuration implements IConfiguration
     /** sort  Modules */
     public void sortModules() { Collections.sort(modules); }
 
+    
+    //
+    // OutputModules 
+    //
+    
+    /**  number of OutputModules */
+    public int outputCount() { return outputs.size(); }
+
+    /** get i-th OutputModule */
+    public OutputModule output(int i) { return outputs.get(i); }
+    
+    /** get OutputModule by name */
+    public OutputModule output(String outputName)
+    {
+	for (OutputModule om : outputs)
+	    if (om.name().equals(outputName)) return om;
+	return null;
+    }
+    
+    /** index of a certain OutputModule */
+    public int indexOfOutput(OutputModule output)
+    {
+	return outputs.indexOf(output);
+    }
+    
+    /** retrieve OutputModule iterator */
+    public Iterator<OutputModule> outputIterator()
+    {
+	return outputs.iterator();
+    }
+    
+    /** insert a pre-existing OutputModule */
+    public boolean insertOutput(int i,OutputModule output)
+    {
+	if (outputs.indexOf(output)<0&&output.referenceCount()==0) {
+	    outputs.add(i,output);
+	    output.setConfiguration(this);
+	    hasChanged = true;
+	    return true;
+	}
+	return false;
+    }
+    
     
     //
     // Paths

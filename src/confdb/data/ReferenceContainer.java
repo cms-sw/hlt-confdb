@@ -207,6 +207,14 @@ abstract public class ReferenceContainer extends DatabaseEntry
 	return modules.iterator();
     }
     
+    /** create iterator for all contained OutputModules */
+    public Iterator<OutputModule> outputIterator()
+    {
+	ArrayList<OutputModule> outputs = new ArrayList<OutputModule>();
+	getOutputsAmongEntries(entryIterator(),outputs);
+	return outputs.iterator();
+    }
+    
     /** create iterator for all contained References */
     public Iterator<Reference> recursiveReferenceIterator()
     {
@@ -414,6 +422,32 @@ abstract public class ReferenceContainer extends DatabaseEntry
 	    }
 	}
     }
+
+
+    /** add all OutputModule entries to 'outputs' array (recursively) */
+    private void getOutputsAmongEntries(Iterator<Reference> itEntry,
+					ArrayList<OutputModule> outputs)
+    {
+	while (itEntry.hasNext()) {
+	    Reference entry = itEntry.next();
+	    if (entry instanceof OutputModuleReference) {
+		OutputModuleReference ref    = (OutputModuleReference)entry;
+		OutputModule          output = (OutputModule)ref.parent();
+		outputs.add(output);
+	    }
+	    else if (entry instanceof PathReference) {
+		PathReference ref  = (PathReference)entry;
+		Path          path = (Path)ref.parent();
+		getOutputsAmongEntries(path.entryIterator(),outputs);
+	    }
+	    else if (entry instanceof SequenceReference) {
+		Sequence          sequence = (Sequence)entry.parent();
+		getOutputsAmongEntries(sequence.entryIterator(),outputs);
+	    }
+	}
+    }
+
+
     /** add all entries to 'references' array (recursively) */
     private void getReferences(Iterator<Reference> itEntry,
 			       ArrayList<Reference> references)

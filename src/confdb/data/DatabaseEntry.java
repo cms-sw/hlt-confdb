@@ -28,7 +28,7 @@ public class DatabaseEntry
     public int databaseId() { return databaseId; }
 
     /** indicate wether this object is not in the DB or has changed */
-    public boolean hasChanged() { return databaseId!=0; }
+    public boolean hasChanged() { return databaseId==0; }
 
     /** set the database id */
     public void setDatabaseId(int databaseId)

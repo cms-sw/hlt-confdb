@@ -23,9 +23,6 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
     /** reference to the template of this instance */
     private Template template = null;
 
-    /** list of parameters */
-    private ArrayList<Parameter> parameters = new ArrayList<Parameter>();
-
     /** parent configuration of instance */
     private IConfiguration config = null;
     
@@ -40,7 +37,7 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
 	this.template = template;
 	setName(name);
 	for (int i=0;i<template.parameterCount();i++)
-	    parameters.add(template.parameter(i).clone(this));
+	    addParameter(template.parameter(i).clone(this));
     }
     
     

@@ -36,6 +36,13 @@ abstract public class ParameterContainer extends DatabaseEntry
     // non-abstract member functions
     //
 
+    /** add a parameter */
+    public void addParameter(Parameter parameter)
+    {
+	parameters.add(parameter);
+	parameter.setParent(this);
+    }
+
     /** number of parameters */
     public int parameterCount() { return parameters.size(); }
 
@@ -231,7 +238,7 @@ abstract public class ParameterContainer extends DatabaseEntry
 	    Parameter parameterNew =
 		ParameterFactory.create(type,name,valueAsString,false,false);
 	    System.out.println("Adding an untracked parameter without "+
-			       "any default value");
+			       "any default value: " + parameterNew);
 	    parameters.add(parameterNew);
 	    parameterNew.setParent(this);
 	    setHasChanged();

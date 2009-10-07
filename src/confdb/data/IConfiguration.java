@@ -181,6 +181,22 @@ public interface IConfiguration
     public Iterator<ModuleInstance> moduleIterator();
     
 
+    /**  number of OutputModules */
+    public int outputCount();
+
+    /** get i-th OutputModule */
+    public OutputModule output(int i);
+    
+    /** get output by name (label) */
+    public OutputModule output(String outputName);
+    
+    /** index of a certain OutputModule */
+    public int indexOfOutput(OutputModule output);
+    
+    /** retrieve output iterator */
+    public Iterator<OutputModule> outputIterator();
+    
+
     /** number of Paths */
     public int pathCount();
     

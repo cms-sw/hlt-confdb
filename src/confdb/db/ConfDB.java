@@ -885,9 +885,9 @@ public class ConfDB
 		else if (type.equals("ESSource")) {
 		    int insertIndex = config.essourceCount();
 		    templateName = release.essourceTemplateName(templateId);
-		    ESSourceInstance essource = config.insertESSource(insertIndex,
-								      templateName,
-								      instanceName);
+		    ESSourceInstance essource =
+			config.insertESSource(insertIndex,templateName,
+					      instanceName);
 		    essource.setPreferred(flag);
 		    essource.setDatabaseId(id);
 		    updateInstanceParameters(essource,idToParams.remove(id));
@@ -895,9 +895,9 @@ public class ConfDB
 		else if (type.equals("ESModule")) {
 		    int insertIndex = config.esmoduleCount();
 		    templateName = release.esmoduleTemplateName(templateId);
-		    ESModuleInstance esmodule = config.insertESModule(insertIndex,
-								      templateName,
-								      instanceName);
+		    ESModuleInstance esmodule =
+			config.insertESModule(insertIndex,templateName,
+					      instanceName);
 		    esmodule.setPreferred(flag);
 		    esmodule.setDatabaseId(id);
 		    updateInstanceParameters(esmodule,idToParams.remove(id));

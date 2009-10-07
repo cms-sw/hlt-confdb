@@ -41,6 +41,9 @@ public class OutputModule extends ParameterContainer implements Referencable
     private ArrayList<OutputModuleReference> references =
 	new ArrayList<OutputModuleReference>();
     
+    /** parent configuration of OutputModule */
+    private IConfiguration parentConfig = null;
+
 
     //
     // construction
@@ -137,6 +140,12 @@ public class OutputModule extends ParameterContainer implements Referencable
 	}
 	return list.toArray(new Path[list.size()]);
     }
+
+    public void setConfiguration(IConfiguration parentConfig)
+    {
+	this.parentConfig = parentConfig;
+    }
+    
     
     //
     // private member functions

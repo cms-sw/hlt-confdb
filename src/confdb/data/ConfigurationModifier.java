@@ -25,15 +25,16 @@ public class ConfigurationModifier implements IConfiguration
     private boolean isModified = false;
     
     /** filtered components */
-    private ArrayList<PSetParameter>    psets    =new ArrayList<PSetParameter>();
-    private ArrayList<EDSourceInstance> edsources=new ArrayList<EDSourceInstance>();
-    private ArrayList<ESSourceInstance> essources=new ArrayList<ESSourceInstance>();
-    private ArrayList<ESModuleInstance> esmodules=new ArrayList<ESModuleInstance>();
-    private ArrayList<ServiceInstance>  services =new ArrayList<ServiceInstance>();
-    private ArrayList<ModuleInstance>   modules  =new ArrayList<ModuleInstance>();
-    private ArrayList<Path>             paths    =new ArrayList<Path>();
-    private ArrayList<Sequence>         sequences=new ArrayList<Sequence>();
-    private ArrayList<Block>            blocks   =new ArrayList<Block>();
+    private ArrayList<PSetParameter>   psets  =new ArrayList<PSetParameter>();
+    private ArrayList<EDSourceInstance>edsources=new ArrayList<EDSourceInstance>();
+    private ArrayList<ESSourceInstance>essources=new ArrayList<ESSourceInstance>();
+    private ArrayList<ESModuleInstance>esmodules=new ArrayList<ESModuleInstance>();
+    private ArrayList<ServiceInstance>services=new ArrayList<ServiceInstance>();
+    private ArrayList<ModuleInstance> modules =new ArrayList<ModuleInstance>();
+    private ArrayList<OutputModule>   outputs =new ArrayList<OutputModule>();
+    private ArrayList<Path>           paths   =new ArrayList<Path>();
+    private ArrayList<Sequence>       sequences=new ArrayList<Sequence>();
+    private ArrayList<Block>          blocks  =new ArrayList<Block>();
     
     /** internal instructions */
     private ModifierInstructions modifications = new ModifierInstructions();
@@ -137,6 +138,7 @@ public class ConfigurationModifier implements IConfiguration
 	esmodules.clear();
 	services.clear();
 	modules.clear();
+	outputs.clear();
 	paths.clear();
 	sequences.clear();
 	blocks.clear();
@@ -252,6 +254,12 @@ public class ConfigurationModifier implements IConfiguration
 			if (!modifications.isUndefined(module)&&
 			    !modules.contains(module)) modules.add(module);
 		    }
+		    Iterator<OutputModule> itOM = path.outputIterator();
+		    while (itOM.hasNext()) {
+			OutputModule output = itOM.next();
+			if (!modifications.isUndefined(output)&&
+			    !outputs.contains(output)) outputs.add(output);
+		    }
 		}
 	    }
 	}
@@ -338,6 +346,7 @@ public class ConfigurationModifier implements IConfiguration
 	esmodules.clear();
 	services.clear();
 	modules.clear();
+	outputs.clear();
 	paths.clear();
 	sequences.clear();
 	blocks.clear();
@@ -706,6 +715,38 @@ public class ConfigurationModifier implements IConfiguration
     }
     
 
+    /**  number of OutputModules */
+    public int outputCount()
+    {
+	return (isModified) ? outputs.size() : master.outputCount();
+    }
+
+    /** get i-th OutputModule */
+    public OutputModule output(int i)
+    {
+	return (isModified) ? outputs.get(i) : master.output(i);
+    }
+    
+    /** get OutputModule by name */
+    public OutputModule output(String outputName)
+    {
+	return master.output(outputName);
+    }
+    
+    /** index of a certain OutputModule */
+    public int indexOfOutput(OutputModule output)
+    {
+	return (isModified) ?
+	    outputs.indexOf(output) : master.indexOfOutput(output);
+    }
+    
+    /** retrieve output iterator */
+    public Iterator<OutputModule> outputIterator()
+    {
+	return (isModified) ? outputs.iterator() : master.outputIterator();
+    }
+    
+    
     /** number of Paths */
     public int pathCount()
     {

@@ -39,11 +39,12 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     private StringBuffer pathsNode     = new StringBuffer();
     private StringBuffer sequencesNode = new StringBuffer();
     private StringBuffer modulesNode   = new StringBuffer();
+    private StringBuffer outputsNode   = new StringBuffer();
     private StringBuffer contentsNode  = new StringBuffer();
     private StringBuffer streamsNode   = new StringBuffer();
     private StringBuffer datasetsNode  = new StringBuffer();
 
-    private ArrayList<StringBuffer> level1Nodes = new ArrayList<StringBuffer>();
+    private ArrayList<StringBuffer> level1Nodes=new ArrayList<StringBuffer>();
     
     
     //
@@ -92,6 +93,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     /** get the modules root node */
     public StringBuffer modulesNode() { return modulesNode; }
     
+    /** get the output modules root node */
+    public StringBuffer outputsNode() { return outputsNode; }
+    
     /** get the contents root node */
     public StringBuffer contentsNode() { return contentsNode; }
     
@@ -118,6 +122,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 		level1Nodes.add(pathsNode);
 		level1Nodes.add(sequencesNode);
 		level1Nodes.add(modulesNode);
+		level1Nodes.add(outputsNode);
 		level1Nodes.add(contentsNode);
 		level1Nodes.add(streamsNode);
 		level1Nodes.add(datasetsNode);
@@ -238,6 +243,14 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	modulesNode.append("</html>");
 	nodeChanged(modulesNode);
 
+	// OutputModule node
+	int outputCount = config.outputCount();
+	outputsNode.delete(0,outputsNode.length());
+	outputsNode.append("<html><b>OutputModules</b> (");
+	outputsNode.append(outputCount);
+	outputsNode.append(")</html>");
+	nodeChanged(outputsNode);
+
 	// Content node
 	int contentCount = config.contentCount();
 	contentsNode.delete(0,contentsNode.length());
@@ -284,11 +297,12 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    if (node==pathsNode)     return (config.pathCount()==0);
 	    if (node==sequencesNode) return (config.sequenceCount()==0);
 	    if (node==modulesNode)   return (config.moduleCount()==0);
+	    if (node==outputsNode)   return (config.outputCount()==0);
 	    if (node==contentsNode)  return (config.contentCount()==0);
 	    if (node==streamsNode)   return (config.streamCount()==0);
 	    if (node==datasetsNode)  return (config.datasetCount()==0);
 	}
-
+	
 	if (!displayParameters) return true;
 	
 	if (node instanceof Reference) {
@@ -297,6 +311,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	
 	boolean result;
+
 	if (node instanceof PSetParameter) {
 	    PSetParameter pset = (PSetParameter)node;
 	    result = (pset.parameterCount()>0) ? false : true;
@@ -338,6 +353,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    if (node.equals(pathsNode))     return config.pathCount();
 	    if (node.equals(sequencesNode)) return config.sequenceCount();
 	    if (node.equals(modulesNode))   return config.moduleCount();
+	    if (node.equals(outputsNode))   return config.outputCount();
 	    if (node.equals(contentsNode))  return config.contentCount();
 	    if (node.equals(streamsNode))   return config.streamCount();
 	    if (node.equals(datasetsNode))  return config.datasetCount();
@@ -367,6 +383,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	else if (node instanceof ModuleReference) {
 	    ModuleReference reference = (ModuleReference)node;
+	    return reference.parameterCount();
+	}
+	else if (node instanceof OutputModuleReference) {
+	    OutputModuleReference reference = (OutputModuleReference)node;
 	    return reference.parameterCount();
 	}
 	else if (node instanceof PathReference) {
@@ -405,11 +425,12 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    if (parent.equals(servicesNode))  return config.service(i);
 	    if (parent.equals(pathsNode))     return config.path(i);
 	    if (parent.equals(modulesNode))   return config.module(i);
+	    if (parent.equals(outputsNode))   return config.output(i);
 	    if (parent.equals(sequencesNode)) return config.sequence(i);
 	}
-	else if (parent instanceof Instance) {
-	    Instance instance = (Instance)parent;
-	    return instance.parameter(i);
+	else if (parent instanceof ParameterContainer) {
+	    ParameterContainer container = (ParameterContainer)parent;
+	    return container.parameter(i);
 	}
 	else if (parent instanceof EventContent) {
 	    EventContent content = (EventContent)parent;
@@ -429,6 +450,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	else if (parent instanceof ModuleReference) {
 	    ModuleReference reference = (ModuleReference)parent;
+	    return reference.parameter(i);
+	}
+	else if (parent instanceof OutputModuleReference) {
+	    OutputModuleReference reference = (OutputModuleReference)parent;
 	    return reference.parameter(i);
 	}
 	else if (parent instanceof PathReference) {
@@ -492,6 +517,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 		ModuleInstance module = (ModuleInstance)child;
 		return config.indexOfModule(module);
 	    }
+	    if (parent.equals(outputsNode)) {
+		OutputModule output = (OutputModule)child;
+		return config.indexOfOutput(output);
+	    }
 	    if (parent.equals(contentsNode)) {
 		EventContent content = (EventContent)child;
 		return config.indexOfContent(content);
@@ -505,10 +534,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 		return config.indexOfDataset(dataset);
 	    }
 	}
-	else if (parent instanceof Instance) {
-	    Instance instance = (Instance)parent;
+	else if (parent instanceof ParameterContainer) {
+	    ParameterContainer container = (ParameterContainer)parent;
 	    Parameter parameter = (Parameter)child;
-	    return instance.indexOfParameter(parameter);
+	    return container.indexOfParameter(parameter);
 	}
 	else if (parent instanceof EventContent) {
 	    EventContent content = (EventContent)parent;
@@ -532,6 +561,11 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	else if (parent instanceof ModuleReference) {
 	    ModuleReference reference = (ModuleReference)parent;
+	    Parameter parameter = (Parameter)child;
+	    return reference.indexOfParameter(parameter);
+	}
+	else if (parent instanceof OutputModuleReference) {
+	    OutputModuleReference reference = (OutputModuleReference)parent;
 	    Parameter parameter = (Parameter)child;
 	    return reference.indexOfParameter(parameter);
 	}
@@ -578,6 +612,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	else if (node instanceof ESModuleInstance) return esmodulesNode;
 	else if (node instanceof ServiceInstance)  return servicesNode;
 	else if (node instanceof ModuleInstance)   return modulesNode;
+	else if (node instanceof OutputModule)     return outputsNode;
 	else if (node instanceof Path) 	           return pathsNode;
 	else if (node instanceof Sequence)         return sequencesNode;
 	else if (node instanceof EventContent)     return contentsNode;
