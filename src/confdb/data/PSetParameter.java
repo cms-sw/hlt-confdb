@@ -61,8 +61,7 @@ public class PSetParameter extends Parameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	PSetParameter result=new PSetParameter(name,parameters,
-					       isTracked,isDefault);
+	PSetParameter result=new PSetParameter(name,parameters,isTracked,isDefault);
 	result.setParent(parent);
 	return result;
     }
@@ -153,11 +152,13 @@ public class PSetParameter extends Parameter
 	    isDefault = true;
 	    Instance instance = (Instance)parent();
 	    Template template = instance.template();
-	    String defaultAsString = template.parameter(name()).valueAsString();
-	    if(defaultAsString==null)
+	  
+	    if(template.parameter(name())==null)
 		isDefault=false;
-            else 
+            else {
+		String defaultAsString = template.parameter(name()).valueAsString();
 	    	isDefault = defaultAsString.equals(valueAsString());
+	    }
 	}
 	else{
 	    isDefault = false;

@@ -27,6 +27,9 @@ public class AddParameterDialog extends JDialog
     /** inidcate if only PSet is allowed as type (for adding to VPSet) */
     private boolean psetMode = false;
     
+    /** inidcate if tracked is an option */
+    private boolean isTrackedOption = true;
+
     /** array of valid parameter types */
     private static final String[] types =
     {
@@ -61,6 +64,15 @@ public class AddParameterDialog extends JDialog
 	setTitle("Add Parameter");
     }
     
+
+    /** Overloaded constructor*/
+    public AddParameterDialog(JFrame frame)
+    {
+	this(frame,false);
+	isTrackedOption = false;
+	if(!isTrackedOption)
+	    jCheckBoxTracked.setEnabled(false); 
+    }
 
     //
     // member functions

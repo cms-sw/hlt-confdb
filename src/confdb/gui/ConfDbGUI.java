@@ -613,24 +613,47 @@ public class ConfDbGUI
     public void openMessageLoggerEditor()
     {
 
-	ServiceInstance messageLoggerSvc = currentConfig.service("MessageLogger");
-
-	if (messageLoggerSvc==null){
-	    return;
-	}
-
- 	MessageLoggerDialog dialog = new MessageLoggerDialog(frame,currentConfig);
+	ServiceInstance messageLoggerSvc=currentConfig.service("MessageLogger");
+	if (messageLoggerSvc==null) return;
+	
+ 	MessageLoggerDialog dialog = new MessageLoggerDialog(frame,
+							     currentConfig);
  	dialog.pack();
  	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-
 	
- 	if (messageLoggerSvc!=null){
+ 	if (messageLoggerSvc!=null) {
      	    treeModelCurrentConfig.nodeStructureChanged(messageLoggerSvc);   
 	}
+    }
+
  	
- 
-     }
+    /** add untracked parameter to the currently active component */
+    public void addUntrackedParameter()
+    {
+ 	AddParameterDialog dlg = new AddParameterDialog(frame);
+ 	dlg.pack();
+ 	dlg.setLocationRelativeTo(frame);
+ 	dlg.setVisible(true);
+ 	if (dlg.validChoice()) {
+ 	    if (currentInstance instanceof Instance) {
+ 		Instance inst = (Instance)currentInstance;
+ 		Parameter p = inst.parameter(dlg.name());
+ 		if(p!=null) {
+ 		    //JOptionPane.showMessageDialog(null,
+		    //"Parameter already exists",JOptionPane.ERROR_MESSAGE); 
+ 		    return;
+ 		}
+ 		if(dlg.valueAsString()==null)
+ 		    inst.updateParameter(dlg.name(),dlg.type(),
+					 dlg.valueAsString());
+ 		else
+ 		    inst.updateParameter(dlg.name(),dlg.type(),"");
+ 		displayParameters();
+ 	    }	
+ 	}
+    }
+    
 
     /** one another configuration to import components */
     public void importConfiguration()
@@ -1586,7 +1609,8 @@ public class ConfDbGUI
 
 	jTreeTableParameters
 	    .addMouseListener(new ParameterTableMouseListener(frame,
-							      jTreeTableParameters));
+							  jTreeTableParameters,
+							  this));
     }
     
     /** show/hide the import-tree pane */
@@ -1603,12 +1627,22 @@ public class ConfDbGUI
 	jSplitPaneCurrentConfig.setDividerSize(1);
     }
     
+    /** TEMPORARY! */
+    public void refreshParameters()
+    {
+	displayParameters();
+    }
+    
+
     /** display parameters of the instance in right upper area */
     private void displayParameters()
     {
 	TitledBorder border = (TitledBorder)jScrollPaneParameters.getBorder();
 
+	toolBar.disableAddUntrackedParameter();
+	
 	if (currentInstance instanceof Instance) {
+	    toolBar.enableAddUntrackedParameter();
 	    jSplitPaneRightUpper.setDividerLocation(-1);
 	    jSplitPaneRightUpper.setDividerSize(8);
 
@@ -1669,6 +1703,8 @@ public class ConfDbGUI
 	jLabelPlugin.setText("Plugin:");
 	jTextFieldPlugin.setText("");
 	jTextFieldLabel.setText("");
+
+	toolBar.disableAddUntrackedParameter();
 
 	((DefaultComboBoxModel)jComboBoxPaths.getModel()).removeAllElements();
 	jComboBoxPaths.setEnabled(false);

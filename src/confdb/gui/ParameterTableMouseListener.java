@@ -39,6 +39,9 @@ public class ParameterTableMouseListener extends MouseAdapter
     private Parameter parameter = null;
     
 
+    /**Temporary solution to fix display problems for untracked parameter removal*/
+    ConfDbGUI confDbGUI;
+
     //
     // construction
     //
@@ -50,6 +53,14 @@ public class ParameterTableMouseListener extends MouseAdapter
 	this.treeModel  = (ParameterTreeModel)treeTable.getTree().getModel();
 	this.tableModel = (TreeTableTableModel)treeTable.getModel();
     }
+
+
+    public ParameterTableMouseListener(JFrame frame,TreeTable treeTable,ConfDbGUI confDbGUI)
+    {
+	this(frame,treeTable);
+	this.confDbGUI = confDbGUI;
+    }
+
 
     //
     // member functions
@@ -76,12 +87,22 @@ public class ParameterTableMouseListener extends MouseAdapter
 	    
 	JPopupMenu popup  = new JPopupMenu();	    
 	Object     parent = parameter.parent();
+	Boolean    bRemoveParam = false;
+	
+
+	if(parent instanceof Instance){
+	    Template template =  ((Instance)parent).template();
+	    Parameter pExists = template.parameter(parameter.name());
+	    if(pExists==null){
+		bRemoveParam = true;
+	    }
+	}
 	    
 	if (parameter instanceof VPSetParameter) {
 	    JMenuItem  menuItem = new JMenuItem("Add PSet");
 	    menuItem.addActionListener(this);
 	    popup.add(menuItem);
-	    if (parent instanceof PSetParameter) {
+	    if (parent instanceof PSetParameter || bRemoveParam) {
 		popup.addSeparator();
 		menuItem = new JMenuItem("Remove Parameter");
 		menuItem.addActionListener(this);
@@ -94,7 +115,7 @@ public class ParameterTableMouseListener extends MouseAdapter
 	    menuItem.addActionListener(this);
 	    popup.add(menuItem);
 	    if (parent instanceof VPSetParameter||
-		parent instanceof PSetParameter) {
+		parent instanceof PSetParameter || bRemoveParam) {
 		popup.addSeparator();
 		menuItem = new JMenuItem("Remove Parameter");
 		menuItem.addActionListener(this);
@@ -102,12 +123,14 @@ public class ParameterTableMouseListener extends MouseAdapter
 	    }
 	    popup.show(e.getComponent(),e.getX(),e.getY());
 	}
-	else if (parent instanceof PSetParameter) {
+	else if (parent instanceof PSetParameter || bRemoveParam) {
 	    JMenuItem  menuItem = new JMenuItem("Remove Parameter");
 	    menuItem.addActionListener(this);
 	    popup.add(menuItem);
 	    popup.show(e.getComponent(),e.getX(),e.getY());
 	}
+
+
     }
 	
     /** ActionListener: actionPerformed() */
@@ -129,6 +152,13 @@ public class ParameterTableMouseListener extends MouseAdapter
 		    int index = pset.removeParameter(parameter);
 		    treeModel.nodeRemoved(pset,index,parameter);
 		    notifyParent(pset);
+		}
+	    }
+	    else if (parent instanceof Instance) {
+		Instance instance = (Instance)parent;
+		if (cmd.equals("Remove Parameter")) {
+		    instance.removeUntrackedParameter(parameter);
+		    confDbGUI.refreshParameters();
 		}
 	    }
 	}
@@ -155,8 +185,16 @@ public class ParameterTableMouseListener extends MouseAdapter
 		    notifyParent(pset);
 		}
 	    }
+	    else  if (parent instanceof Instance) {
+		Instance instance = (Instance)parent;
+		if (cmd.equals("Remove Parameter")) {
+		    instance.removeUntrackedParameter(parameter);
+		    confDbGUI.refreshParameters();
+		}
+	    }
+	    
 	}
-	// regular parameter
+	// regular parameter with PSet parent
 	else if (parent instanceof PSetParameter) {
 	    PSetParameter pset = (PSetParameter)parent;
 	    if (cmd.equals("Remove Parameter")) {
@@ -165,12 +203,20 @@ public class ParameterTableMouseListener extends MouseAdapter
 		notifyParent(pset);
 	    }
 	}
+	//untracked parameter
+	else if (parent instanceof Instance) {
+	    Instance instance = (Instance)parent;
+	    if (cmd.equals("Remove Parameter")) {
+		instance.removeUntrackedParameter(parameter);
+		confDbGUI.refreshParameters();
+	    }
+	}
     }
 	
     /** show dialog to add parameter to pset */
     private void addParameter(PSetParameter pset)
     {
-	AddParameterDialog dlg = new AddParameterDialog(frame,pset.isTracked());
+       	AddParameterDialog dlg = new AddParameterDialog(frame,pset.isTracked());
 	dlg.pack();
 	dlg.setLocationRelativeTo(frame);
 	dlg.setVisible(true);
