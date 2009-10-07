@@ -11,7 +11,7 @@ import java.util.Collections;
  *
  * abstract base-class for Service, EDSource, ESSource, and Module Templates.
  */
-abstract public class Template extends DatabaseEntry
+abstract public class Template extends    ParameterContainer
                                implements Comparable<Template>
 {
     //
@@ -27,9 +27,6 @@ abstract public class Template extends DatabaseEntry
     /** parent software package */
     private SoftwarePackage parentPackage = null;
 
-    /** parameters of this template */
-    private ArrayList<Parameter> parameters = null;
-    
     /** list of instances of this template */
     protected ArrayList<Instance> instances = new ArrayList<Instance>();
     
@@ -41,11 +38,9 @@ abstract public class Template extends DatabaseEntry
     /** standard constructor */
     public Template(String name,String cvsTag,ArrayList<Parameter> parameters)
     {
-	this.name       = name;
-	this.cvsTag     = cvsTag;
-	this.parameters = (parameters==null) ?
-	    new ArrayList<Parameter>() : parameters;
-	for (Parameter p : this.parameters) p.setParent(this);
+	this.name   = name;
+	this.cvsTag = cvsTag;
+	if (parameters!=null) for (Parameter p : parameters) addParameter(p);
     }
 
 
@@ -76,6 +71,17 @@ abstract public class Template extends DatabaseEntry
     /** toString conversion */
     public String toString() { return name; }
 
+    /** ParameterContainer: get the default value as a string */
+    public String parameterDefaultValueAsString(Parameter p)
+    {
+	if (containsParameter(p)) return p.valueAsString();
+	System.err.println("Template ERROR: unknown parameter: "+p);
+	return new String();
+    }
+    
+    /** ParameterContainer: indicate wether a parameter is removable */
+    public boolean isRemovable(Parameter p) { return false; }
+
     /** Comparable: compareTo */
     public int compareTo(Template t) { return name().compareTo(t.name()); }
     
@@ -88,40 +94,14 @@ abstract public class Template extends DatabaseEntry
     /** parent software package of the template */
     public SoftwarePackage parentPackage() { return parentPackage; }
 
-    /** parameter iterator */
-    public Iterator<Parameter> parameterIterator()
-    {
-	return parameters.iterator();
-    }
-
-    /** number of parameters */
-    public int parameterCount() { return parameters.size(); }
-    
-    /** get the i-th parameter */
-    public Parameter parameter(int i) { return parameters.get(i); }
-     
-    /** get parameter by name */
-    public Parameter parameter(String name)
-    {
-	for (Parameter p : parameters)
-	    if (name.equals(p.name())) return p;
-	System.err.println("ERROR: template '"+name()+
-			   "' has no parameter '"+name+"'.");
-	return null;
-    }
-     
-    /** get the index of a parameter */
-    public int parameterIndex(Parameter p) { return parameters.indexOf(p); }
 
     /** set parameters */
     public void setParameters(ArrayList<Parameter> params)
     {
-	parameters.clear();
-	for (Parameter p : params) {
-	    p.setParent(this);
-	    parameters.add(p);
-	}
+	clear();
+	for (Parameter p : params) addParameter(p);
     }
+    
 
     /** number of instances */
     public int instanceCount() { return instances.size(); }
