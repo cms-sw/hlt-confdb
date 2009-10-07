@@ -37,7 +37,8 @@ public class ToolBar
     private static final String cmdEditOM      = "Edit OutputModules";
     private static final String cmdEditPS      = "Edit Prescales";
     private static final String cmdEditML      = "Edit MessageLogger";
-    
+    private static final String cmdEditUP      = "Add Untracked Parameter";
+
     private static final String cmdTrack = "Track InputTags";
     
     private static final String cmdConnectToDB      = "Connect to DB";
@@ -63,6 +64,7 @@ public class ToolBar
     private JButton jButtonEditOM      = new JButton();
     private JButton jButtonEditPS      = new JButton();
     private JButton jButtonEditML      = new JButton();
+    private JButton jButtonEditUP      = new JButton();
     
     private JToggleButton jButtonTrack = new JToggleButton();
     
@@ -105,6 +107,7 @@ public class ToolBar
 	jButtonEditOM.setEnabled(true);
 	jButtonEditPS.setEnabled(true);
 	jButtonEditML.setEnabled(true);
+	jButtonEditUP.setEnabled(false);
 	jButtonExport.setEnabled(true);
 	jButtonTrack.setEnabled(true);
     }
@@ -124,6 +127,7 @@ public class ToolBar
 	jButtonEditOM.setEnabled(false);
 	jButtonEditPS.setEnabled(false);
 	jButtonEditML.setEnabled(false);
+	jButtonEditUP.setEnabled(false);
 	jButtonExport.setEnabled(false);
 	jButtonTrack.setEnabled(false);
     }
@@ -146,6 +150,20 @@ public class ToolBar
 	jButtonDiff.setEnabled(false);
 	jButtonDisconnect.setEnabled(false);
     }
+
+
+    /** no database connection is established */
+    public void enableAddUntrackedParameter()
+    {
+	jButtonEditUP.setEnabled(true);
+    }
+
+    /** no database connection is established */
+    public void disableAddUntrackedParameter()
+    {
+	jButtonEditUP.setEnabled(false);
+    }
+
 
     /** populate the menu bar with all menus and their items */
     private void populateToolBar(CommandActionListener listener)
@@ -240,6 +258,12 @@ public class ToolBar
 	jButtonEditML.setToolTipText("edit messagelogger");
 	jButtonEditML.setIcon(new ImageIcon(getClass().getResource("/MessageIcon.png")));
 	jToolBar.add(jButtonEditML);
+
+	jButtonEditUP.setActionCommand(cmdEditUP);
+	jButtonEditUP.addActionListener(listener);
+	jButtonEditUP.setToolTipText("Add Untracked Parameter");
+	jButtonEditUP.setIcon(new ImageIcon(getClass().getResource("/EditPSIcon.png")));
+	jToolBar.add(jButtonEditUP);
 	
 	
 
