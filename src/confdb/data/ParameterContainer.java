@@ -67,6 +67,12 @@ abstract public class ParameterContainer extends DatabaseEntry
 	return parameters.iterator();
     }
     
+    /**check wether this container contains a given parameter */
+    public boolean containsParameter(Parameter p)
+    {
+	return parameters.contains(p);
+    }
+
     /** remove untracked parameter */
     public boolean removeUntrackedParameter(Parameter p)
     {
@@ -86,6 +92,8 @@ abstract public class ParameterContainer extends DatabaseEntry
 	    Parameter p = itP.next();
 	    if (p.name().equals(name)) return p;
 	}
+	System.err.println("ERROR: ParameterContainer nas no parameter '"+
+			   name+"'!");
 	return null;
     }
     

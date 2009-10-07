@@ -93,18 +93,21 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
     }
     
     /** set parameters */
-    public boolean setParameters(ArrayList<Parameter> newParameters)
-    {
-	for (int i=0;i<newParameters.size();i++) {
-	    Parameter parameter     = newParameters.get(i);
-	    String    parameterName = parameter.name();
-	    String    parameterType = parameter.type();
-	    String    valueAsString = parameter.valueAsString();
-	    if (!updateParameter(parameterName,parameterType,valueAsString))
-		return false;
-	}
-	return true;
-    }
+    /*
+      public boolean setParameters(ArrayList<Parameter> newParameters)
+      {
+      for (int i=0;i<newParameters.size();i++) {
+      Parameter parameter     = newParameters.get(i);
+      String    parameterName = parameter.name();
+      String    parameterType = parameter.type();
+      String    valueAsString = parameter.valueAsString();
+      if (!updateParameter(parameterName,parameterType,valueAsString))
+      return false;
+      }
+      return true;
+      }
+    */
+    
 
     /** remove this instance */
     public void remove()
