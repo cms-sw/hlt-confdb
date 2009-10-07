@@ -259,14 +259,6 @@ public class ToolBar
 	jButtonEditML.setIcon(new ImageIcon(getClass().getResource("/MessageIcon.png")));
 	jToolBar.add(jButtonEditML);
 
-	jButtonEditUP.setActionCommand(cmdEditUP);
-	jButtonEditUP.addActionListener(listener);
-	jButtonEditUP.setToolTipText("Add Untracked Parameter");
-	jButtonEditUP.setIcon(new ImageIcon(getClass().getResource("/EditPSIcon.png")));
-	jToolBar.add(jButtonEditUP);
-	
-	
-
 	jToolBar.addSeparator();
 	
 	
@@ -303,6 +295,19 @@ public class ToolBar
 	jButtonExport.setIcon(new ImageIcon(getClass().
 					    getResource("/ExportIcon.png")));
 	jToolBar.add(jButtonExport);
+
+		
+	jToolBar.addSeparator();
+	jToolBar.addSeparator();
+
+	jButtonEditUP.setActionCommand(cmdEditUP);
+	jButtonEditUP.addActionListener(listener);
+	jButtonEditUP.setToolTipText("Add Untracked Parameter");
+	jButtonEditUP.setIcon(new ImageIcon(getClass().getResource("/UnTrackedParamIcon.png")));
+	jToolBar.add(jButtonEditUP);
+
+	
+
     }
     
 
