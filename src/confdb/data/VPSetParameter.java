@@ -120,8 +120,13 @@ public class VPSetParameter extends Parameter
 	    isDefault = true;
 	    Instance instance = (Instance)parent();
 	    Template template = instance.template();
-	    String defaultAsString = template.parameter(name()).valueAsString();
-	    isDefault = defaultAsString.equals(valueAsString());
+
+	    if(template.parameter(name())==null)
+		isDefault=false;
+            else {
+		String defaultAsString = template.parameter(name()).valueAsString();
+	    	isDefault = defaultAsString.equals(valueAsString());
+	    }
 	}
 	else {
 	    isDefault = false;
