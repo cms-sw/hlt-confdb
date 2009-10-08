@@ -1,3 +1,10 @@
+2009-10-08  Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
+
+	* tag V00-30-03
+	* datamodel & gui extended by Vasu to allow for the addition and
+	removal of untracked parameters at the top-level of (module,
+	service, etc.) instances
+
 2009-09-23  Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
 
 	* tag V00-30-02
