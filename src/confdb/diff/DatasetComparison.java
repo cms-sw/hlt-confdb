@@ -30,7 +30,8 @@ public class DatasetComparison extends Comparison
     //
     
     /** standard constructor */
-    public DatasetComparison(PrimaryDataset oldDataset,PrimaryDataset newDataset)
+    public DatasetComparison(PrimaryDataset oldDataset,
+			     PrimaryDataset newDataset)
     {
 	this.oldDataset = oldDataset;
 	this.newDataset = newDataset;
@@ -46,7 +47,8 @@ public class DatasetComparison extends Comparison
     {
 	if      (oldDataset==null&&newDataset!=null) return RESULT_ADDED;
 	else if (oldDataset!=null&&newDataset==null) return RESULT_REMOVED;
-	else if (comparisonCount()==0&&oldDataset.label().equals(newDataset.label()))
+	else if (comparisonCount()==0&&
+		 oldDataset.label().equals(newDataset.label()))
 	    return RESULT_IDENTICAL;
 	else return RESULT_CHANGED;
     }

@@ -46,7 +46,8 @@ public class StreamComparison extends Comparison
     {
 	if      (oldStream==null&&newStream!=null) return RESULT_ADDED;
 	else if (oldStream!=null&&newStream==null) return RESULT_REMOVED;
-	else if (comparisonCount()==0&&oldStream.label().equals(newStream.label()))
+	else if (comparisonCount()==0&&
+		 oldStream.label().equals(newStream.label()))
 	    return RESULT_IDENTICAL;
 	else return RESULT_CHANGED;
     }

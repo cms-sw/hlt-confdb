@@ -39,7 +39,9 @@ public class ContainerComparison extends Comparison
     {
 	this.oldContainer = oldContainer;
 	this.newContainer = newContainer;
-	ReferenceContainer rc = (newContainer==null) ? oldContainer : newContainer;
+	ReferenceContainer rc =
+	    (newContainer==null) ? oldContainer : newContainer;
+
 	if (rc instanceof Sequence) {
 	    containerType = "Sequence";
 	}
@@ -49,7 +51,8 @@ public class ContainerComparison extends Comparison
 		Path oldPath = (Path)oldContainer;
 		Path newPath = (Path)newContainer;
 		if (oldPath.isEndPath()!=newPath.isEndPath())
-		    pathQualifier = (newPath.isEndPath()) ? "[ENDPATH]" : "[PATH]";
+		    pathQualifier =
+			(newPath.isEndPath()) ? "[ENDPATH]" : "[PATH]";
 	    }
 	}
     }

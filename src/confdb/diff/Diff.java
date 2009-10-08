@@ -45,6 +45,8 @@ public class Diff
     private ArrayList<Comparison> paths      = new ArrayList<Comparison>();
     private ArrayList<Comparison> sequences  = new ArrayList<Comparison>();
     private ArrayList<Comparison> modules    = new ArrayList<Comparison>();
+    private ArrayList<Comparison> outputs    = new ArrayList<Comparison>();
+    private ArrayList<Comparison> contents   = new ArrayList<Comparison>();
     private ArrayList<Comparison> streams    = new ArrayList<Comparison>();
     private ArrayList<Comparison> datasets   = new ArrayList<Comparison>();
     
@@ -169,6 +171,21 @@ public class Diff
 		modules.add(compareInstances(mod1,null));
 	}
 	
+	// Outputs
+	Iterator<OutputModule> itOut2 = config2.outputIterator();
+	while (itOut2.hasNext()) {
+	    OutputModule out2 = itOut2.next();
+	    OutputModule out1 = config1.output(out2.name());
+	    Comparison c = compareOutputModules(out1,out2);
+	    if (!c.isIdentical()) outputs.add(c);
+	}
+	Iterator<OutputModule> itOut1 = config1.outputIterator();
+	while (itOut1.hasNext()) {
+	    OutputModule out1 = itOut1.next();
+	    if (config2.output(out1.name())==null)
+		outputs.add(compareOutputModules(out1,null));
+	}
+	
 	// Sequences
 	Iterator<Sequence> itSeq2 = config2.sequenceIterator();
 	while (itSeq2.hasNext()) {
@@ -197,6 +214,21 @@ public class Diff
 	    Path path1 = itPath1.next();
 	    if (config2.path(path1.name())==null)
 		paths.add(compareContainers(path1,null));
+	}
+	
+	// EventContents
+	Iterator<EventContent> itEventContent2 = config2.contentIterator();
+	while (itEventContent2.hasNext()) {
+	    EventContent ec2 = itEventContent2.next();
+	    EventContent ec1 = config1.content(ec2.label());
+	    Comparison c = compareEventContents(ec1,ec2);
+	    if (!c.isIdentical()) contents.add(c);
+	}
+	Iterator<EventContent> itEventContent1 = config1.contentIterator();
+	while (itEventContent1.hasNext()) {
+	    EventContent ec1 = itEventContent1.next();
+	    if (config2.content(ec1.label())==null)
+		contents.add(compareEventContents(ec1,null));
 	}
 	
 	// Streams
@@ -244,37 +276,43 @@ public class Diff
 	    Comparison c = comparePSets(psetold,psetnew);
 	    if (!c.isIdentical()) psets.add(c);
 	}
-	else if (type.equalsIgnoreCase("EDSource")||type.equalsIgnoreCase("eds")) {
+	else if (type.equalsIgnoreCase("EDSource")||
+		 type.equalsIgnoreCase("eds")) {
 	    EDSourceInstance edsold = config1.edsource(oldName);
 	    EDSourceInstance edsnew = config2.edsource(newName);
 	    Comparison c = compareInstances(edsold,edsnew);
 	    if (!c.isIdentical()) edsources.add(c);
 	}
-	else if (type.equalsIgnoreCase("ESSource")||type.equalsIgnoreCase("ess")) {
+	else if (type.equalsIgnoreCase("ESSource")||
+		 type.equalsIgnoreCase("ess")) {
 	    ESSourceInstance essold = config1.essource(oldName);
 	    ESSourceInstance essnew = config2.essource(newName);
 	    Comparison c = compareInstances(essold,essnew);
 	    if (!c.isIdentical()) essources.add(c);
 	}
-	else if (type.equalsIgnoreCase("ESModule")||type.equalsIgnoreCase("esm")) {
+	else if (type.equalsIgnoreCase("ESModule")||
+		 type.equalsIgnoreCase("esm")) {
 	    ESModuleInstance esmold = config1.esmodule(oldName);
 	    ESModuleInstance esmnew = config2.esmodule(newName);
 	    Comparison c = compareInstances(esmold,esmnew);
 	    if (!c.isIdentical()) esmodules.add(c);
 	}
-	else if (type.equalsIgnoreCase("Service")||type.equalsIgnoreCase("svc")) {
+	else if (type.equalsIgnoreCase("Service")||
+		 type.equalsIgnoreCase("svc")) {
 	    ServiceInstance svcold = config1.service(oldName);
 	    ServiceInstance svcnew = config2.service(newName);
 	    Comparison c = compareInstances(svcold,svcnew);
 	    if (!c.isIdentical()) services.add(c);
 	}
-	else if (type.equalsIgnoreCase("Module")||type.equalsIgnoreCase("m")) {
+	else if (type.equalsIgnoreCase("Module")||
+		 type.equalsIgnoreCase("m")) {
 	    ModuleInstance mold = config1.module(oldName);
 	    ModuleInstance mnew = config2.module(newName);
 	    Comparison c = compareInstances(mold,mnew);
 	    if (!c.isIdentical()) modules.add(c);
 	}
-	else if (type.equalsIgnoreCase("Path")||type.equalsIgnoreCase("p")) {
+	else if (type.equalsIgnoreCase("Path")||
+		 type.equalsIgnoreCase("p")) {
 	    Path pold = config1.path(oldName);
 	    Path pnew = config2.path(newName);
 	    Comparison c = compareContainers(pold,pnew);
@@ -283,12 +321,13 @@ public class Diff
 		Iterator<Comparison> it = c.recursiveComparisonIterator();
 		while (it.hasNext()) {
 		    Comparison cc = it.next();
-		    if      (cc instanceof ContainerComparison) sequences.add(cc);
-		    else if (cc instanceof InstanceComparison)  modules.add(cc);
+		    if (cc instanceof ContainerComparison) sequences.add(cc);
+		    else if (cc instanceof InstanceComparison) modules.add(cc);
 		}
 	    }
 	}
-	else if (type.equalsIgnoreCase("Sequence")||type.equalsIgnoreCase("s")) {
+	else if (type.equalsIgnoreCase("Sequence")||
+		 type.equalsIgnoreCase("s")) {
 	    Sequence sold = config1.sequence(oldName);
 	    Sequence snew = config2.sequence(newName);
 	    Comparison c = compareContainers(sold,snew);
@@ -297,7 +336,7 @@ public class Diff
 		Iterator<Comparison> it = c.recursiveComparisonIterator();
 		while (it.hasNext()) {
 		    Comparison cc = it.next();
-		    if      (cc instanceof ContainerComparison) sequences.add(cc);
+		    if (cc instanceof ContainerComparison) sequences.add(cc);
 		    else if (cc instanceof InstanceComparison)  modules.add(cc);
 		}
 	    }
@@ -308,7 +347,8 @@ public class Diff
 	    Comparison c = compareStreams(sold,snew);
 	    if (!c.isIdentical()) streams.add(c);
 	}
-	else if (type.equalsIgnoreCase("Dataset")||type.equalsIgnoreCase("d")) {
+	else if (type.equalsIgnoreCase("Dataset")||
+		 type.equalsIgnoreCase("d")) {
 	    PrimaryDataset dold = config1.dataset(oldName);
 	    PrimaryDataset dnew = config2.dataset(newName);
 	    Comparison c = compareDatasets(dold,dnew);
@@ -322,8 +362,8 @@ public class Diff
     {
 	return (psetCount()    ==0&&edsourceCount()==0&&essourceCount()==0&&
 		esmoduleCount()==0&&serviceCount() ==0&&pathCount()    ==0&&
-		sequenceCount()==0&&moduleCount()  ==0&&streamCount()  ==0&&
-		datasetCount() ==0);
+		sequenceCount()==0&&moduleCount()  ==0&&outputCount()  ==0&&
+		contentCount() ==0&&streamCount()  ==0&&datasetCount() ==0);
     }
 
     
@@ -431,6 +471,32 @@ public class Diff
     public Iterator<Comparison> moduleIterator() { return modules.iterator(); }
     
 
+    /** number of outputs */
+    public int outputCount() { return outputs.size(); }
+
+    /** retrieve i-th output comparison */
+    public Comparison output(int i) { return outputs.get(i); }
+    
+    /** get index of output comparison */
+    public int indexOfOutput(Comparison output) { return outputs.indexOf(output); }
+    
+    /** iterator over all outputs */
+    public Iterator<Comparison> outputIterator() { return outputs.iterator(); }
+    
+
+    /** number of contents */
+    public int contentCount() { return contents.size(); }
+
+    /** retrieve i-th content comparison */
+    public Comparison content(int i) { return contents.get(i); }
+    
+    /** get index of content comparison */
+    public int indexOfContent(Comparison content) { return contents.indexOf(content); }
+    
+    /** iterator over all contents */
+    public Iterator<Comparison> contentIterator() { return contents.iterator(); }
+    
+
     /** number of streams */
     public int streamCount() { return streams.size(); }
     
@@ -475,9 +541,10 @@ public class Diff
     /** compare two instances */
     public Comparison compareInstances(Instance i1,Instance i2)
     {
-	if (i1!=null&&i2!=null&&instanceMap.containsKey(i1.name()+"::"+i2.name()))
+	if (i1!=null&&i2!=null&&
+	    instanceMap.containsKey(i1.name()+"::"+i2.name()))
 	    return instanceMap.get(i1.name()+"::"+i2.name());
-
+	
 	Comparison result = new InstanceComparison(i1,i2);
 	
 	if (!result.isAdded()&&!result.isRemoved()) {
@@ -490,6 +557,32 @@ public class Diff
 	    instanceMap.put(i1.name()+"::"+i2.name(),result);
 	}
 	
+	return result;
+    }
+    
+    /** compare two output modules */
+    public Comparison compareOutputModules(OutputModule om1,
+					   OutputModule om2)
+    {
+	Comparison result = new OutputModuleComparison(om1,om2);
+	
+	if (!result.isAdded()&&!result.isRemoved()) {
+	    Comparison paramComparisons[] =
+		compareParameterLists(om1.parameterIterator(),
+				      om2.parameterIterator());
+	    for (Comparison c : paramComparisons)
+		if (!c.isIdentical()) result.addComparison(c);
+	}
+	
+	return result;
+    }
+    
+    /** compare two event contents */
+    public Comparison compareEventContents(EventContent ec1,
+					   EventContent ec2)
+    {
+	Comparison result = new EventContentComparison(ec1,ec2);
+	// TODO!
 	return result;
     }
     
@@ -508,10 +601,13 @@ public class Diff
 		Reference    reference2 = itRef2.next();
 		Reference    reference1 = rc1.entry(reference2.name());
 		Referencable parent2    = reference2.parent();
-		Referencable parent1    = (reference1==null)?null:reference1.parent();
+		Referencable parent1    =
+		    (reference1==null) ? null : reference1.parent();
+		
 		if (parent2 instanceof ReferenceContainer) {
-		    Comparison c = compareContainers((ReferenceContainer)parent1,
-						     (ReferenceContainer)parent2);
+		    Comparison c =
+			compareContainers((ReferenceContainer)parent1,
+					  (ReferenceContainer)parent2);
 		    if (!c.isIdentical()) result.addComparison(c);
 		}
 		else if (parent2 instanceof ModuleInstance) {
@@ -601,8 +697,7 @@ public class Diff
 	    result.append("Global PSets ("+psetCount()+"):\n");
 	    result.append(printInstanceComparisons(psetIterator()));
 	}
-	
-	
+		
 	// edsources
 	if (edsourceCount()>0) {
 	    result.append("\n---------------------------------------"+
@@ -875,12 +970,12 @@ public class Diff
     {
 	String configs = "";
 	String search  = "";
-	String dbType  = "mysql";
-	String dbHost  = "localhost";
-	String dbPort  = "3306";
-	String dbName  = "hltdb";
-	String dbUser  = "schiefer";
-	String dbPwrd  = "monopoles";
+	String dbType  = "oracle";
+	String dbHost  = "cmsr1-v.cern.ch";
+	String dbPort  = "10121";
+	String dbName  = "cms_cond.cern.ch";
+	String dbUser  = "cms_hltdev_reader";
+	String dbPwrd  = "convertme!";
 	
 	for (int iarg=0;iarg<args.length;iarg++) {
 	    String arg = args[iarg];
@@ -927,22 +1022,27 @@ public class Diff
 	    database.connect(dbType,dbUrl,dbUser,dbPwrd);
 	}
 	catch (DatabaseException e) {
-	    System.err.println("Failed to connect to database: "+e.getMessage());
+	    System.err.println("Failed to connect to database: "+
+			       e.getMessage());
 	    System.exit(0);
 	}
 	
 	Configuration config1 = null;
 	Configuration config2 = null;
 	try {
-	    int id1 = (configId1>0) ? configId1 : database.getConfigId(configName1);
-	    int id2 = (configId2>0) ? configId2 : database.getConfigId(configName2);
+	    int id1 =
+		(configId1>0) ? configId1 : database.getConfigId(configName1);
+	    int id2 =
+		(configId2>0) ? configId2 : database.getConfigId(configName2);
+
 	    config1 = database.loadConfiguration(id1);
 	    config2 = database.loadConfiguration(id2);
 	    System.out.println("old: " + config1.toString());
 	    System.out.println("new: " + config2.toString());
 	}
 	catch (DatabaseException e) {
-	    System.err.println("Failed to load configurations: "+e.getMessage());
+	    System.err.println("Failed to load configurations: "+
+			       e.getMessage());
 	    System.exit(0);
 	}
 	

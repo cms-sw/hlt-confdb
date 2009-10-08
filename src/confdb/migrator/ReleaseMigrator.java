@@ -49,7 +49,8 @@ public class ReleaseMigrator
     //
     
     /** standard constructor */
-    public ReleaseMigrator(Configuration sourceConfig,Configuration targetConfig)
+    public ReleaseMigrator(Configuration sourceConfig,
+			   Configuration targetConfig)
     {
 	this.sourceConfig  = sourceConfig;
 	this.targetConfig  = targetConfig;
@@ -73,25 +74,27 @@ public class ReleaseMigrator
 
 	// migrate EDSources
 	for (int i=0;i<sourceConfig.edsourceCount();i++) {
-	    EDSourceInstance source = sourceConfig.edsource(i);
-	    EDSourceInstance target = targetConfig.insertEDSource(source.name());
+	    EDSourceInstance source=sourceConfig.edsource(i);
+	    EDSourceInstance target=targetConfig.insertEDSource(source.name());
 	    if (target!=null) {
 		migrateParameters(source,target);
 	    }
 	    else {
-		String msg = "TEMPLATE NOT FOUND: EDSource '"+source.name()+"'.";
+		String msg =
+		    "TEMPLATE NOT FOUND: EDSource '" + source.name()+"'.";
 		messages.add(msg);
 		missingTemplateCount++;
 	    }
 	}
-
+	
 	// migrate ESSources
 	int essourceCount = 0;
 	for (int i=0;i<sourceConfig.essourceCount();i++) {
 	    ESSourceInstance source = sourceConfig.essource(i);
 	    ESSourceInstance target =
 		targetConfig.insertESSource(essourceCount,
-					    source.template().name(),source.name());
+					    source.template().name(),
+					    source.name());
 	    if (target!=null) {
 		essourceCount++;
 		target.setPreferred(source.isPreferred());
@@ -111,8 +114,9 @@ public class ReleaseMigrator
 	    ESModuleInstance source = sourceConfig.esmodule(i);
 	    ESModuleInstance target =
 		targetConfig.insertESModule(esmoduleCount,
-					    source.template().name(),source.name());
-
+					    source.template().name(),
+					    source.name());
+	    
 	    if (target!=null) {
 		esmoduleCount++;
 		target.setPreferred(source.isPreferred());
@@ -131,13 +135,15 @@ public class ReleaseMigrator
 	for (int i=0;i<sourceConfig.serviceCount();i++) {
 	    ServiceInstance source = sourceConfig.service(i);
 	    ServiceInstance target =
-		targetConfig.insertService(serviceCount,source.template().name());
+		targetConfig.insertService(serviceCount,
+					   source.template().name());
 	    if (target!=null) {
 		serviceCount++;
 		migrateParameters(source,target);
 	    }
 	    else {
-		String msg = "TEMPLATE NOT FOUND: Service '"+source.name()+"'.";
+		String msg =
+		    "TEMPLATE NOT FOUND: Service '"+source.name()+"'.";
 		messages.add(msg);
 		missingTemplateCount++;
 	    }
@@ -147,7 +153,8 @@ public class ReleaseMigrator
 	for (int i=0;i<sourceConfig.moduleCount();i++) {
 	    ModuleInstance source = sourceConfig.module(i);
 	    ModuleInstance target =
-		targetConfig.insertModule(source.template().name(),source.name());
+		targetConfig.insertModule(source.template().name(),
+					  source.name());
 	    if (target!=null) {
 		migrateParameters(source,target);
 	    }
@@ -221,16 +228,19 @@ public class ReleaseMigrator
 	    Parameter targetParameter = target.parameter(i);
 	    String    parameterName   = targetParameter.name();
 	    String    parameterType   = targetParameter.type();
-	    Parameter sourceParameter = source.parameter(parameterName,parameterType);
+	    Parameter sourceParameter = source.parameter(parameterName,
+							 parameterType);
 	    if (sourceParameter!=null) {
 		if (sourceParameter.type().equals(parameterType)) {
 		    String valueAsString=sourceParameter.valueAsString();
-		    target.updateParameter(parameterName,parameterType,valueAsString);
+		    target.updateParameter(parameterName,parameterType,
+					   valueAsString);
 		}
 		else {
 		    String msg =
 			"PARAMETER TYPE MISMATCH: " +
-			source.template().type()+" '"+source.template().name()+"' : "+
+			source.template().type()+" '"+
+			source.template().name()+"' : "+
 			"source="+sourceParameter.type() + " " +
 			"target="+parameterType;
 		    messages.add(msg);
@@ -240,7 +250,8 @@ public class ReleaseMigrator
 	    else {
 		String msg =
 		    "MISSING SOURCE PARAMETER: " +
-		    source.template().type()+" '"+source.template().name()+"' : "+
+		    source.template().type()+" '"+
+		    source.template().name()+"' : "+
 		    parameterName;
 		messages.add(msg);
 		missingParameterCount++;
@@ -260,24 +271,29 @@ public class ReleaseMigrator
 		Path targetPath = targetConfig
 		    .path(sourceConfig.indexOfPath(sourcePath));
 		Path parentPath = (Path)target;
-		targetConfig.insertPathReference(parentPath,iTarget++,targetPath);
+		targetConfig.insertPathReference(parentPath,iTarget++,
+						 targetPath);
 	    }
 	    else if (reference instanceof SequenceReference) {
 		Sequence sourceSequence = (Sequence)reference.parent();
 		Sequence targetSequence = targetConfig
 		    .sequence(sourceConfig.indexOfSequence(sourceSequence));
-		targetConfig.insertSequenceReference(target,iTarget++,targetSequence);
+		targetConfig.insertSequenceReference(target,iTarget++,
+						     targetSequence);
 	    }
 	    else if (reference instanceof ModuleReference) {
 		ModuleInstance sourceModule=(ModuleInstance)reference.parent();
-		ModuleInstance targetModule=targetConfig.module(sourceModule.name());
+		ModuleInstance targetModule=targetConfig.module(sourceModule
+								.name());
 		if (targetModule!=null) {
-		    targetConfig.insertModuleReference(target,iTarget++,targetModule);
+		    targetConfig.insertModuleReference(target,iTarget++,
+						       targetModule);
 		}
 		else {
 		    String msg =
 			"MODULE MISSING FROM PATH/SEQUENCE: " +
-			sourceModule.template().type() + " '" + sourceModule.name() +
+			sourceModule.template().type() + " '" +
+			sourceModule.name() +
 			"' / " + sourceModule.template().name() +
 			" missing from "+source.name();
 		    messages.add(msg);

@@ -88,6 +88,12 @@ public class OutputModule extends ParameterContainer implements Referencable
 	return true;
     }
     
+    /** retrieve the class name of the output module */
+    public String className() { return className; }
+
+    /** retrieve the parent stream of the output module */
+    public Stream parentStream() { return parentStream; }
+    
     /** Referencable: name() */
     public String name() { return name; }
     
