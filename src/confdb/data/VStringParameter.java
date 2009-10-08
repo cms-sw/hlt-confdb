@@ -30,9 +30,9 @@ public class VStringParameter extends VectorParameter
     
     /** standard constructor */
     public VStringParameter(String name,ArrayList<String> values,
-			    boolean isTracked,boolean isDefault)
+			    boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	for (String s : values) {
 	    if (s!=null) this.values.add(new String(s));
 	    else         this.values.add(new String());
@@ -41,10 +41,9 @@ public class VStringParameter extends VectorParameter
     }
     
     /** constructor from a string */
-    public VStringParameter(String name,String valuesAsString,
-			    boolean isTracked,boolean isDefault)
+    public VStringParameter(String name,String valuesAsString,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(valuesAsString);
     }
     
@@ -56,8 +55,7 @@ public class VStringParameter extends VectorParameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	VStringParameter result = new VStringParameter(name,values,
-						       isTracked,isDefault);
+	VStringParameter result = new VStringParameter(name,values,isTracked);
 	result.setParent(parent);
 	return result;
     }

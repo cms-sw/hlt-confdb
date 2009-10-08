@@ -28,19 +28,17 @@ public class UInt64Parameter extends ScalarParameter
     //
 
     /** standard constructor */
-    public UInt64Parameter(String name,Long value,
-			   boolean isTracked,boolean isDefault)
+    public UInt64Parameter(String name,Long value,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	isValueSet = (value!=null);
 	if (isValueSet)	this.value = new Long(value.longValue());
     }
     
     /** constructor from string */
-    public UInt64Parameter(String name,String valueAsString,
-			   boolean isTracked,boolean isDefault)
+    public UInt64Parameter(String name,String valueAsString,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(valueAsString);
     }
     
@@ -51,7 +49,7 @@ public class UInt64Parameter extends ScalarParameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	UInt64Parameter result = new UInt64Parameter(name,value,isTracked,isDefault);
+	UInt64Parameter result = new UInt64Parameter(name,value,isTracked);
 	result.setParent(parent);
 	return result;
     }

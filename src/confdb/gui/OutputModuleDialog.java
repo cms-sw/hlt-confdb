@@ -167,8 +167,7 @@ public class OutputModuleDialog extends JDialog
 	
 	if (vsSelectEvents==null) {
 	    vsSelectEvents = new VStringParameter("SelectEvents",
-						  new ArrayList<String>(),
-						  true,true);
+						  new ArrayList<String>(),true);
 	    psetSelectEvents.addParameter(vsSelectEvents);
 	}
 	
@@ -413,7 +412,9 @@ public class OutputModuleDialog extends JDialog
 	jCheckBoxKeepTriggerEventWithRefs.setSelected(false);
 
 	VStringParameter vOutputCommands =
-	    (VStringParameter)outputModule.parameter("outputCommands","vstring");
+	    (VStringParameter)outputModule
+	    .parameter("outputCommands","vstring");
+
 	for (int i=0;i<vOutputCommands.vectorSize();i++) {
 	    String a[] = ((String)vOutputCommands.value(i)).split(" ");
 	    if (a[0].equals("drop")) jTextFieldDrop.setText(a[1]);

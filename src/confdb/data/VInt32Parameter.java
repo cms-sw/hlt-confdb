@@ -32,9 +32,9 @@ public class VInt32Parameter extends VectorParameter
     
     /** standard constructor */
     public VInt32Parameter(String name,ArrayList<Integer> values,
-			   boolean isTracked,boolean isDefault)
+			   boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	for (Integer i : values) {
 	    this.values.add(new Integer(i));
 	    this.isHex.add(new Boolean(false));
@@ -43,10 +43,9 @@ public class VInt32Parameter extends VectorParameter
     }
     
     /** constructor from a string */
-    public VInt32Parameter(String name,String valuesAsString,
-			   boolean isTracked,boolean isDefault)
+    public VInt32Parameter(String name,String valuesAsString,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(valuesAsString);
     }
 
@@ -57,8 +56,7 @@ public class VInt32Parameter extends VectorParameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	VInt32Parameter result = new VInt32Parameter(name,values,
-						     isTracked,isDefault);
+	VInt32Parameter result = new VInt32Parameter(name,values,isTracked);
 	result.setParent(parent);
 	return result;
     }

@@ -946,8 +946,7 @@ class PSetMenuListener implements ActionListener
 		    (PSetParameter)ParameterFactory.create(dlg.type(),
 							   dlg.name(),
 							   dlg.valueAsString(),
-							   dlg.isTracked(),
-							   false);
+							   dlg.isTracked());
 		ConfigurationTreeActions.insertPSet(tree,pset);
 	    }
 	}

@@ -268,17 +268,15 @@ class PrescaleTableModel extends AbstractTableModel
 	    if (!prescaleTable.isPrescaled(iPath)) continue;
 	    String pathName = prescaleTable.pathName(iPath);
 	    String prescalesAsString = prescaleTable.prescalesAsString(iPath);
-	    ArrayList<Parameter> params    =new ArrayList<Parameter>();
-	    StringParameter      sPathName =new StringParameter("pathName",
-								 pathName,
-								 true,false);
-	    VUInt32Parameter     vPrescales=new VUInt32Parameter("prescales",
-								 prescalesAsString,
-								 true,false);
+	    ArrayList<Parameter> params = new ArrayList<Parameter>();
+	    StringParameter  sPathName =
+		new StringParameter("pathName",pathName,true);
+	    VUInt32Parameter vPrescales =
+		new VUInt32Parameter("prescales",prescalesAsString,true);
 	    params.add(sPathName);
 	    params.add(vPrescales);
-	    vpsetPrescaleTable.addParameterSet(new PSetParameter("",params,
-								 true,false));
+	    vpsetPrescaleTable
+		.addParameterSet(new PSetParameter("",params,true));
 	}
 	prescaleSvc.setHasChanged();
     }

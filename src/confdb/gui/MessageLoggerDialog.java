@@ -28,24 +28,35 @@ import confdb.data.*;
 public class MessageLoggerDialog extends JDialog
 {
 
-
-
-    private ArrayList<MessageLoggerPanel>messageLoggerPanels = new ArrayList<MessageLoggerPanel>();
+    //
+    // member data
+    //
     
-    private Configuration config;
-    private ServiceInstance serviceMessage;
+    private ArrayList<MessageLoggerPanel> messageLoggerPanels =
+	new ArrayList<MessageLoggerPanel>();
+    
+    private Configuration    config;
+    private ServiceInstance  serviceMessage;
     private VStringParameter parameterDestination;
-    private JButton     jButtonCancel                     = new JButton();
-    private JButton     jButtonApply                      = new JButton();
-    private JButton     jButtonOK                         = new JButton();
+    
+    private JButton          jButtonCancel                = new JButton();
+    private JButton          jButtonApply                 = new JButton();
+    private JButton          jButtonOK                    = new JButton();
 
-    private JButton     jButtonAdd                        = new JButton();
-    private JButton     jButtonRemoveCurrent              = new JButton();
+    private JButton          jButtonAdd                   = new JButton();
+    private JButton          jButtonRemoveCurrent         = new JButton();
 
-    private JTabbedPane   jTabbedPaneMessageOutStreams           = new JTabbedPane();
+    private JTabbedPane      jTabbedPaneMessageOutStreams = new JTabbedPane();
 
     // private  MessageLoggerPanel []MessageLoggerPanelOutStreams=new  MessageLoggerPanel[100];
-    private int iMessageLoggerCount;
+    private int              iMessageLoggerCount;
+
+
+    //
+    // construction
+    //
+    
+    /** constructor */
     public MessageLoggerDialog(JFrame jFrame, Configuration config)
     {
 	super(jFrame,true);
@@ -279,6 +290,9 @@ public class MessageLoggerDialog extends JDialog
     
 
 }
+
+
+
 class MessageLoggerPanel extends JPanel
 {
 
@@ -307,7 +321,8 @@ class MessageLoggerPanel extends JPanel
     private ModuleInstance outputModule = null;
 
     /** products */
-    private HashMap<String,ProductLogger> products = new HashMap<String,ProductLogger>();
+    private HashMap<String,ProductLogger> products =
+	new HashMap<String,ProductLogger>();
 
     ArrayList<String> thresholdsArrayList=new ArrayList<String>();
     ArrayList<String> limitArrayList=new ArrayList<String>();
@@ -443,15 +458,21 @@ class MessageLoggerPanel extends JPanel
 
 
 	if(parameterThreshold==null){
-	    if(strDestination.equals("")){
-		serviceMessageLogger.updateParameter("threshold","string","Info");
-		parameterThreshold=(StringParameter)serviceMessageLogger.parameter("threshold");
-	    }else{
-		parameterThreshold=new StringParameter("threshold","INFO",false,false);
+	    if(strDestination.equals("")) {
+		serviceMessageLogger.updateParameter("threshold",
+						     "string",
+						     "Info");
+		parameterThreshold =
+		    (StringParameter)serviceMessageLogger
+		    .parameter("threshold");
+	    }
+	    else {
+		parameterThreshold =
+		    new StringParameter("threshold","INFO",false);
 		pSetDestination.addParameter(parameterThreshold);
 	    }
 	    jComboBoxThreshold.setSelectedIndex(1);
-		    
+	    
 	}
 
 	
@@ -460,7 +481,7 @@ class MessageLoggerPanel extends JPanel
 		serviceMessageLogger.updateParameter("limit","string","");
 		parameterLimit=(StringParameter)serviceMessageLogger.parameter("limit");
 	    }else{
-		parameterLimit=new StringParameter("limit","",false,false);
+		parameterLimit=new StringParameter("limit","",false);
 		pSetDestination.addParameter(parameterLimit);
 	    }
 		    
@@ -472,7 +493,7 @@ class MessageLoggerPanel extends JPanel
 		serviceMessageLogger.updateParameter("timespan","string","");
 		parameterSpan=(StringParameter)serviceMessageLogger.parameter("timespan");
 	    }else{
-		parameterSpan=new StringParameter("timespan","",false,false);
+		parameterSpan=new StringParameter("timespan","",false);
 		pSetDestination.addParameter(parameterSpan);
 	    }
 		    
@@ -483,29 +504,38 @@ class MessageLoggerPanel extends JPanel
 		serviceMessageLogger.updateParameter("suppressInfo","vstring","");
 		parameterSupressInfo=(VStringParameter)serviceMessageLogger.parameter("suppressInfo");
 	    }else{
-		parameterSupressInfo=new VStringParameter("suppressInfo","",false,false);
+		parameterSupressInfo =
+		    new VStringParameter("suppressInfo","",false);
 		pSetDestination.addParameter(parameterSupressInfo);
 	    }
 		    
 	}
 	
-	if(parameterSupressWarning==null){
+	if(parameterSupressWarning==null) {
 	   
-	    if(strDestination.equals("")){
-		serviceMessageLogger.updateParameter("suppressWarning","vstring","");
-		parameterSupressWarning=(VStringParameter)serviceMessageLogger.parameter("suppressWarning");
+	    if(strDestination.equals("")) {
+		serviceMessageLogger.updateParameter("suppressWarning",
+						     "vstring","");
+		parameterSupressWarning =
+		    (VStringParameter)serviceMessageLogger
+		    .parameter("suppressWarning");
 	    }else{
-		parameterSupressWarning=new VStringParameter("suppressWarning","",false,false);
+		parameterSupressWarning =
+		    new VStringParameter("suppressWarning","",false);
 		pSetDestination.addParameter(parameterSupressWarning);
 	    }
 	}
-	if(parameterSupressDebug==null){
+	if (parameterSupressDebug==null) {
 	   
-	    if(strDestination.equals("")){
-		serviceMessageLogger.updateParameter("suppressDebug","vstring","");
-		parameterSupressDebug=(VStringParameter)serviceMessageLogger.parameter("suppressDebug");
+	    if (strDestination.equals("")) {
+		serviceMessageLogger.updateParameter("suppressDebug",
+						     "vstring","");
+		parameterSupressDebug =
+		    (VStringParameter)serviceMessageLogger
+		    .parameter("suppressDebug");
 	    }else{
-		parameterSupressDebug=new VStringParameter("suppressDebug","",false,false);
+		parameterSupressDebug =
+		    new VStringParameter("suppressDebug","",false);
 		pSetDestination.addParameter(parameterSupressDebug);
 	    }
 	}	

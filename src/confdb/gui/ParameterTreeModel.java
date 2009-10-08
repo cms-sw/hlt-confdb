@@ -164,10 +164,11 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 	    Parameter parameter = (Parameter)node;
 	    ParameterContainer container = parameter.getParentContainer();
 	    if (container!=null)
-		container.updateParameter(parameter.fullName(),parameter.type(),
+		container.updateParameter(parameter.fullName(),
+					  parameter.type(),
 					  value.toString());
 	    else
-		parameter.setValue(value.toString(),"");		
+		parameter.setValue(value.toString());		
 	    
 	    nodeChanged(parameter);
 	}
@@ -207,14 +208,5 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 	this.root = (container==null) ? new String() : container;
 	nodeStructureChanged(root);
     }
-
-    /** display a new set of parameters */
-    /**
-       public void setParameters(ArrayList<Parameter> parameterList)
-       {
-       this.parameterList = parameterList;
-       nodeStructureChanged(root);
-       }
-    */
 
 }

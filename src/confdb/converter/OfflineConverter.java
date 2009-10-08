@@ -144,7 +144,7 @@ public class OfflineConverter extends ConverterBase
     {
 	if (config.streamCount()==0) return;
 	
-	PSetParameter pset = new PSetParameter("streams","",false,false);
+	PSetParameter pset = new PSetParameter("streams","",false);
 	Iterator<Stream> itS = config.streamIterator();
 	while (itS.hasNext()) {
 	    Stream stream = itS.next();
@@ -156,7 +156,7 @@ public class OfflineConverter extends ConverterBase
 	    }
 	    pset.addParameter(new VStringParameter(stream.label(),
 						   valueAsString.toString(),
-						   false,false));
+						   false));
 	}
 	config.insertPSet(pset);
     }
@@ -166,7 +166,7 @@ public class OfflineConverter extends ConverterBase
     {
 	if (config.datasetCount()==0) return;
 	
-	PSetParameter pset = new PSetParameter("datasets","",false,false);
+	PSetParameter pset = new PSetParameter("datasets","",false);
 	Iterator<PrimaryDataset> itD = config.datasetIterator();
 	while (itD.hasNext()) {
 	    PrimaryDataset dataset = itD.next();
@@ -178,7 +178,7 @@ public class OfflineConverter extends ConverterBase
 	    }
 	    pset.addParameter(new VStringParameter(dataset.label(),
 						   valueAsString.toString(),
-						   false,false));
+						   false));
 	}
 	config.insertPSet(pset);
     }

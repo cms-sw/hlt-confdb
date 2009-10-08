@@ -31,17 +31,16 @@ public class PSetParameter extends Parameter
     
     /** standard constructor */
     public PSetParameter(String name,ArrayList<Parameter> parameters,
-			 boolean isTracked,boolean isDefault)
+			 boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	for (Parameter p : parameters) this.parameters.add(p.clone(this));
     }
     
     /** constructor from a string */
-    public PSetParameter(String name,String valueAsString,
-			 boolean isTracked,boolean isDefault)
+    public PSetParameter(String name,String valueAsString,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(valueAsString);
     }
     
@@ -49,7 +48,7 @@ public class PSetParameter extends Parameter
     /** constructor from a string which contains all the info */
     public PSetParameter(String valueAsString)
     {
-	super("",false,false);
+	super("",false);
 	setValue(valueAsString);
     }
     
@@ -61,7 +60,7 @@ public class PSetParameter extends Parameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	PSetParameter result=new PSetParameter(name,parameters,isTracked,isDefault);
+	PSetParameter result=new PSetParameter(name,parameters,isTracked);
 	result.setParent(parent);
 	return result;
     }
@@ -75,7 +74,6 @@ public class PSetParameter extends Parameter
 	String result =
 	    "<" + type() +
 	    " name="     + name() +
-	    " default="  + Boolean.toString(isDefault) +
 	    " tracked="  + Boolean.toString(isTracked()) +
 	    ">";
 	for (Parameter p : parameters) {
@@ -87,7 +85,6 @@ public class PSetParameter extends Parameter
 		result +=
 		    "<" + p.type() +
 		    " name=" + p.name() +
-		    " default=" + Boolean.toString(p.isDefault()) +
 		    " tracked=" + Boolean.toString(p.isTracked()) +
 		    ">" + p.valueAsString() + "</" + 
 		    p.type() +
@@ -115,14 +112,12 @@ public class PSetParameter extends Parameter
 		valueAsString=
 		    "<PSet" +
 		    " name=" + name() +
-		    " default=" + Boolean.toString(isDefault()) +
 		    " tracked=" + Boolean.toString(isTracked()) +
 		    ">" + valueAsString + "</PSet>";
 	    
 	    ParameterSetParser p1 = new ParameterSetParser(valueAsString);
 	    if (!p1.parseNextParameter()) return false;
 	    this.name = p1.name();
-	    this.isDefault = p1.isDefault();
 	    this.isTracked = p1.isTracked();
 	    String value = p1.value();
 	    if (p1.parseNextParameter()) return false;
@@ -131,39 +126,17 @@ public class PSetParameter extends Parameter
 	    while (p2.parseNextParameter()) {
 		Parameter p = oldParams.get(p2.type()+"::"+p2.name());
 		if (p!=null)
-		    p.setValue(p2.value(),"");
+		    p.setValue(p2.value());
 		else
 		    p = ParameterFactory.create(p2.type(),
 						p2.name(),
 						p2.value(),
-						new Boolean(p2.isTracked()),
-						new Boolean(p2.isDefault()));
+						new Boolean(p2.isTracked()));
 		p.setParent(this);
 		parameters.add(p);
 	    }
 	}
 	return true;
-    }
-    
-    /** a pset is default if its string-rep matches the template */
-    public boolean isDefault()
-    {
-	if (parent() instanceof Instance) {
-	    isDefault = true;
-	    Instance instance = (Instance)parent();
-	    Template template = instance.template();
-	  
-	    if(template.parameter(name())==null)
-		isDefault=false;
-            else {
-		String defaultAsString = template.parameter(name()).valueAsString();
-	    	isDefault = defaultAsString.equals(valueAsString());
-	    }
-	}
-	else{
-	    isDefault = false;
-	}
-	return isDefault;
     }
     
     /** a pset is set if all of its children are, or if it is empty (?!) */
@@ -210,7 +183,10 @@ public class PSetParameter extends Parameter
     }
     
     /** get iterator over all parameters */
-    public Iterator<Parameter> parameterIterator() { return parameters.iterator(); }
+    public Iterator<Parameter> parameterIterator()
+    {
+	return parameters.iterator(); 
+    }
 
     /** recursively retrieve parameters to all levels */
     public Iterator<Parameter> recursiveParameterIterator()
@@ -227,9 +203,7 @@ public class PSetParameter extends Parameter
     public boolean setParameterValue(int i,String valueAsString)
     {
 	Parameter p = parameter(i);
-	if (!p.setValue(valueAsString)) return false;
-	this.isDefault = false;
-	return true;
+	return p.setValue(valueAsString);
     }
     
     /** add a parameter */
@@ -276,7 +250,6 @@ class ParameterSetParser
     private String  type;
     private String  name;
     private String  value;
-    private boolean isDefault = false;
     private boolean isTracked = false;
     
 
@@ -317,9 +290,9 @@ class ParameterSetParser
 	    pos = atts[i].indexOf("=");
 	    String attName = atts[i].substring(0,pos);
 	    String attVal  = atts[i].substring(pos+1);
-	    if      (attName.equals("name"))    name     =attVal;
-	    else if (attName.equals("default"))	isDefault=Boolean.valueOf(attVal);
-	    else if (attName.equals("tracked")) isTracked=Boolean.valueOf(attVal);
+	    if      (attName.equals("name"))    name     = attVal;
+	    else if (attName.equals("tracked")) isTracked= Boolean
+						    .valueOf(attVal);
 	    else return false;
 	}
 	
@@ -351,9 +324,6 @@ class ParameterSetParser
     
     /** get last parsed parameter value */
     public String value() { return value; }
-    
-    /** get last parsed paramter default flag */
-    public boolean isDefault() { return isDefault; }
     
     /** get last parsed parameter tracked flag */
     public boolean isTracked() { return isTracked; }

@@ -32,9 +32,9 @@ public class VInt64Parameter extends VectorParameter
     
     /** standard constructor */
     public VInt64Parameter(String name,ArrayList<Long> values,
-			   boolean isTracked,boolean isDefault)
+			   boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	for (Long i : values) {
 	    this.values.add(new Long(i));
 	    this.isHex.add(new Boolean(false));
@@ -43,10 +43,9 @@ public class VInt64Parameter extends VectorParameter
     }
     
     /** constructor from a string */
-    public VInt64Parameter(String name,String valuesAsString,
-			   boolean isTracked,boolean isDefault)
+    public VInt64Parameter(String name,String valuesAsString,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(valuesAsString);
     }
 
@@ -57,8 +56,7 @@ public class VInt64Parameter extends VectorParameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	VInt64Parameter result = new VInt64Parameter(name,values,
-						     isTracked,isDefault);
+	VInt64Parameter result = new VInt64Parameter(name,values,isTracked);
 	result.setParent(parent);
 	return result;
     }

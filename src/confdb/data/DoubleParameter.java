@@ -25,19 +25,17 @@ public class DoubleParameter extends ScalarParameter
     //
 
     /** standard constructor */
-    public DoubleParameter(String name,Double value,
-			   boolean isTracked,boolean isDefault)
+    public DoubleParameter(String name,Double value,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	isValueSet = (value!=null);
 	if (isValueSet) this.value = new Double(value.doubleValue());
     }
     
     /** constructor from string */
-    public DoubleParameter(String name,String valueAsString,
-			   boolean isTracked,boolean isDefault)
+    public DoubleParameter(String name,String valueAsString,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(valueAsString);
     }
     
@@ -49,7 +47,7 @@ public class DoubleParameter extends ScalarParameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	DoubleParameter result = new DoubleParameter(name,value,isTracked,isDefault);
+	DoubleParameter result = new DoubleParameter(name,value,isTracked);
 	result.setParent(parent);
 	return result;
     }

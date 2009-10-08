@@ -90,7 +90,7 @@ public class ParameterTableMouseListener extends MouseAdapter
 	
 	if (parent instanceof ParameterContainer) {
 	    ParameterContainer container = (ParameterContainer)parent;
-	    bRemoveParam = container.isRemovable(parameter);
+	    bRemoveParam = container.isParameterRemovable(parameter);
 	}
 	
 	if (parameter instanceof VPSetParameter) {
@@ -226,8 +226,7 @@ public class ParameterTableMouseListener extends MouseAdapter
 		ParameterFactory.create(dlg.type(),
 					dlg.name(),
 					dlg.valueAsString(),
-					dlg.isTracked(),
-					false);
+					dlg.isTracked());
 	    pset.addParameter(p);
 	    treeModel.nodeInserted(pset,pset.parameterCount()-1);
 	    notifyParent(pset);
@@ -241,11 +240,9 @@ public class ParameterTableMouseListener extends MouseAdapter
     private void addParameterSet(VPSetParameter vpset)
     {
 	PSetParameter pset =
-	    (PSetParameter)ParameterFactory.create("PSet",
-						   "",
-						   "",
-						   vpset.isTracked(),
-						   false);
+	    (PSetParameter)ParameterFactory
+	    .create("PSet","","",vpset.isTracked());
+
 	vpset.addParameterSet(pset);
 	treeModel.nodeInserted(vpset,vpset.parameterSetCount()-1);
 	notifyParent(vpset);

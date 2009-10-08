@@ -156,7 +156,7 @@ public class ModuleInstance extends Instance implements Referencable
 				new InputTagParameter("",
 						      tmp.value(i)
 						      .toString(),
-						      false,false);
+						      false);
 			    if (inputTag.label().equals(oldName)) {
 				inputTag.setLabel(name());
 				tmp.setValue(i,inputTag.valueAsString());

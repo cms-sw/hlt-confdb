@@ -77,15 +77,17 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
     /** set the parent configuration of the instance */
     public void setConfiguration(IConfiguration config) { this.config=config; }
 
-    /** ParameterContainer: retrieve default value of a given parameter */
-    public String parameterDefaultValueAsString(Parameter p)
+    /** ParameterContainer: indicate wether parameter is at its default */
+    public boolean isParameterAtItsDefault(Parameter p)
     {
-	if (isRemovable(p)) return new String();
-	return template.parameter(indexOfParameter(p)).valueAsString();
+	Parameter templateParameter =
+	    template.findParameter(p.fullName(),p.type());
+	if (templateParameter==null) return false;
+	return p.valueAsString().equals(templateParameter.valueAsString());
     }
     
     /** ParameterContainer: indicate wether a parameter can be removed */
-    public boolean isRemovable(Parameter p)
+    public boolean isParameterRemovable(Parameter p)
     {
 	int index = indexOfParameter(p);
 	if (index<template.parameterCount()) return false;

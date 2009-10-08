@@ -14,9 +14,9 @@ abstract public class ScalarParameter extends Parameter
     //
     
     /** standard constructor */
-    public ScalarParameter(String name,boolean isTracked,boolean isDefault)
+    public ScalarParameter(String name,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
     }
 
     //

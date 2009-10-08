@@ -71,16 +71,14 @@ abstract public class Template extends    ParameterContainer
     /** toString conversion */
     public String toString() { return name; }
 
-    /** ParameterContainer: get the default value as a string */
-    public String parameterDefaultValueAsString(Parameter p)
+    /** ParameterContainer: indicate wether parameter is at its default */
+    public boolean isParameterAtItsDefault(Parameter p)
     {
-	if (containsParameter(p)) return p.valueAsString();
-	System.err.println("Template ERROR: unknown parameter: "+p);
-	return new String();
+	return containsParameter(p);
     }
-    
+
     /** ParameterContainer: indicate wether a parameter is removable */
-    public boolean isRemovable(Parameter p) { return false; }
+    public boolean isParameterRemovable(Parameter p) { return false; }
 
     /** Comparable: compareTo */
     public int compareTo(Template t) { return name().compareTo(t.name()); }

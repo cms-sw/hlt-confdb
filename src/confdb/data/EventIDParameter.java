@@ -29,9 +29,9 @@ public class EventIDParameter extends ScalarParameter
 
     /** standard constructor */
     public EventIDParameter(String name,Integer runNumber,Integer evtNumber,
-			    boolean isTracked,boolean isDefault)
+			    boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	isValueSet = (runNumber!=null&&evtNumber!=null);
 	if (isValueSet) {
 	    this.runNumber = new Integer(runNumber.intValue());
@@ -41,9 +41,9 @@ public class EventIDParameter extends ScalarParameter
     
     /** constructor from string */
     public EventIDParameter(String name,String valueAsString,
-			    boolean isTracked,boolean isDefault)
+			    boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(valueAsString);
     }
     
@@ -55,7 +55,7 @@ public class EventIDParameter extends ScalarParameter
     public Parameter clone(Object parent)
     {
 	EventIDParameter result =
-	    new EventIDParameter(name,runNumber,evtNumber,isTracked,isDefault);
+	    new EventIDParameter(name,runNumber,evtNumber,isTracked);
 	result.setParent(parent);
 	return result;
     }

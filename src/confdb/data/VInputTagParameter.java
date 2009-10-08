@@ -29,9 +29,9 @@ public class VInputTagParameter extends VectorParameter
     
     /** standard constructor */
     public VInputTagParameter(String name,ArrayList<String> values,
-			      boolean isTracked,boolean isDefault)
+			      boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	for (String v : values) {
 	    try {
 		this.values.add(new InputTag(v));
@@ -46,9 +46,9 @@ public class VInputTagParameter extends VectorParameter
     
     /** constructor from a string */
     public VInputTagParameter(String name,String valuesAsString,
-			      boolean isTracked,boolean isDefault)
+			      boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(valuesAsString);
     }
 
@@ -62,7 +62,7 @@ public class VInputTagParameter extends VectorParameter
 	ArrayList<String> strValues = new ArrayList<String>();
 	for (InputTag tag : values) strValues.add(tag.toString());
 	VInputTagParameter result = new VInputTagParameter(name,strValues,
-							   isTracked,isDefault);
+							   isTracked);
 	result.setParent(parent);
 	return result;
     }

@@ -728,7 +728,6 @@ public class ConfDB
 
 		Template template =
 		    TemplateFactory.create(type,name,cvstag,null);
-		template.setDatabaseId(id);
 		
 		ArrayList<Parameter> params = templateParams.remove(id);
 		
@@ -754,6 +753,7 @@ public class ConfDB
 		    if (pkg.templateCount()==0) pkg.subsystem().addPackage(pkg);
 		    pkg.addTemplate(template);
 		}
+		template.setDatabaseId(id);
 	    }
 
 	    for (SoftwareSubsystem s : subsystems) {
@@ -864,7 +864,7 @@ public class ConfDB
 		
 		if (type.equals("PSet")) {
 		    PSetParameter pset = (PSetParameter)ParameterFactory
-			.create("PSet",instanceName,"",flag,false);
+			.create("PSet",instanceName,"",flag);
 		    config.insertPSet(pset);
 		    ArrayList<Parameter> psetParams = idToParams.remove(id);
 		    if (psetParams!=null) {
@@ -4085,12 +4085,12 @@ public class ConfDB
 	    ArrayList<IdVPSetPair> vpsets = new ArrayList<IdVPSetPair>();
 
 	    while (rsParameters.next()) {
-		int    id       = rsParameters.getInt(1);
+		int     id       = rsParameters.getInt(1);
 		String  type     = rsParameters.getString(2);
 		String  name     = rsParameters.getString(3);
 		boolean isTrkd   = rsParameters.getBoolean(4);
 		int     seqNb    = rsParameters.getInt(5);
-		int    parentId = rsParameters.getInt(6);
+		int     parentId = rsParameters.getInt(6);
 		
 		if (name==null) name = "";
 		
@@ -4100,7 +4100,7 @@ public class ConfDB
 		if (valueAsString==null) valueAsString="";
 		
 		Parameter p = ParameterFactory.create(type,name,valueAsString,
-						      isTrkd,true);
+						      isTrkd);
 		
 		if (type.equals("PSet"))
 		    psets.add(new IdPSetPair(id,(PSetParameter)p));

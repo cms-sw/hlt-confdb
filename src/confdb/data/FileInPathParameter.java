@@ -25,10 +25,9 @@ public class FileInPathParameter extends ScalarParameter
     //
     
     /** standard constructor */
-    public FileInPathParameter(String name,String value,
-			       boolean isTracked,boolean isDefault)
+    public FileInPathParameter(String name,String value,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	if (value!=null&&value.length()==0) value="''";
 	setValue(value);
     }
@@ -42,7 +41,7 @@ public class FileInPathParameter extends ScalarParameter
     public Parameter clone(Object parent)
     {
 	FileInPathParameter result =
-	    new FileInPathParameter(name,value,isTracked,isDefault);
+	    new FileInPathParameter(name,value,isTracked);
 	result.setParent(parent);
 	return result;
     }

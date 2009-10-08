@@ -54,8 +54,11 @@ public class ParseNode
 	    System.err.println("ParseNode.unquoted ERROR: "+
 			       "missing closing quotes: <"+content+">");
 
-	int olength = (oquotes[iquote].length()==1) ? 1 : oquotes[iquote].length()-1;
-	int clength = (cquotes[iquote].length()==1) ? 1 : cquotes[iquote].length()-1;
+	int olength =
+	    (oquotes[iquote].length()==1) ? 1 : oquotes[iquote].length()-1;
+	int clength =
+	    (cquotes[iquote].length()==1) ? 1 : cquotes[iquote].length()-1;
+
 	return content.substring(olength,content.length()-clength);
     }
     
@@ -101,7 +104,8 @@ public class ParseNode
 	if (content.indexOf(cquotes[iquote])>0&&
 	    !content.endsWith(cquotes[iquote]))
 	    throw new ParserException("ParseNode.setContent: "+
-				      "characters found after closing quotes: <"+
+				      "characters found after "+
+				      "closing quotes: <"+
 				      this.content+">");
 
 	this.content = content;
@@ -121,7 +125,8 @@ public class ParseNode
 	if (content.indexOf(cquotes[iquote])>=0&&
 	    !content.endsWith(cquotes[iquote]))
 	    throw new ParserException("ParseNode.addContent: "+
-				      "characters found after closing quotes:\n"+
+				      "characters found after "+
+				      "closing quotes:\n"+
 				      "<"+this.content+">\n"+
 				      "<"+content+">");
 

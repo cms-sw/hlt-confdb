@@ -14,9 +14,9 @@ abstract public class VectorParameter extends Parameter
     //
 
     /** standard constructor */
-    public VectorParameter(String name,boolean isTracked,boolean isDefault)
+    public VectorParameter(String name,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
     }
 
     //

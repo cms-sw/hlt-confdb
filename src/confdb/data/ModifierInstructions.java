@@ -917,8 +917,7 @@ public class ModifierInstructions
     {
 	filterAllEDSources = true;
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
-	params.add(new StringParameter("readerPluginName",
-				       "FUShmReader",false,false));
+	params.add(new StringParameter("readerPluginName","FUShmReader",false));
 	edsourceT = new EDSourceTemplate("DaqSource","UNKNOWN",params);
     }
     
@@ -927,7 +926,7 @@ public class ModifierInstructions
     {
 	filterAllEDSources = true;
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
-	params.add(new VStringParameter("fileNames",fileNames,false,false));
+	params.add(new VStringParameter("fileNames",fileNames,false));
 	edsourceT = new EDSourceTemplate("PoolSource","UNKNOWN",params);
     }
     
@@ -935,11 +934,11 @@ public class ModifierInstructions
     public void insertShmStreamConsumer()
     {
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
-	params.add(new PSetParameter("SelectEvents","",false,true));
-	params.add(new VStringParameter("outputCommands","",false,true));
-	params.add(new BoolParameter("use_compression","true",false,false));
-	params.add(new Int32Parameter("compression_level","1",false,false));
-	params.add(new Int32Parameter("max_event_size","7000000",false,false));
+	params.add(new PSetParameter("SelectEvents","",false));
+	params.add(new VStringParameter("outputCommands","",false));
+	params.add(new BoolParameter("use_compression","true",false));
+	params.add(new Int32Parameter("compression_level","1",false));
+	params.add(new Int32Parameter("max_event_size","7000000",false));
 	outputT = new ModuleTemplate("ShmStreamConsumer",
 				     "UNKNOWN",params,"OutputModule");
     }
@@ -949,9 +948,9 @@ public class ModifierInstructions
     {
 	if (fileName.split(":").length==1) fileName = "file:"+fileName;
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
-	params.add(new StringParameter("fileName",fileName,false,false));
-	params.add(new PSetParameter("SelectEvents","",false,false));
-	params.add(new VStringParameter("outputCommands","",false,false));
+	params.add(new StringParameter("fileName",fileName,false));
+	params.add(new PSetParameter("SelectEvents","",false));
+	params.add(new VStringParameter("outputCommands","",false));
 	outputT = new ModuleTemplate("PoolOutputModule",
 				     "UNKNOWN",params,"OutputModule");
     }

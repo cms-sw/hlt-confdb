@@ -25,10 +25,9 @@ public class StringParameter extends ScalarParameter
     //
     
     /** standard constructor */
-    public StringParameter(String name,String value,
-			   boolean isTracked,boolean isDefault)
+    public StringParameter(String name,String value,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(value);
     }
 
@@ -41,7 +40,7 @@ public class StringParameter extends ScalarParameter
     public Parameter clone(Object parent)
     {
 	StringParameter result = new StringParameter(name,valueAsString(),
-						     isTracked,isDefault);
+						     isTracked);
 	result.setParent(parent);
 	return result;
     }

@@ -40,7 +40,8 @@ public class OnlineConverter extends ConverterBase
     private String smConfigString = null;
 
     /** current hash map 'pathName' -> 'prescalerName' OBSOLETE */
-    private HashMap<String, String> pathToPrescaler = new HashMap<String, String>();
+    private HashMap<String, String> pathToPrescaler =
+	new HashMap<String, String>();
 
     /** current prescale table */
     private PrescaleTable prescaleTable = null;
@@ -236,10 +237,11 @@ public class OnlineConverter extends ConverterBase
 					       endpath.entryCount(), 
 					       smStreamWriterT.name(),
 					       stream.label());
-	    ModuleInstance streamWriter = (ModuleInstance)streamWriterRef.parent();
-	    streamWriter.updateParameter("streamLabel", "string", stream.label());
-	    PSetParameter psetSelectEvents = new PSetParameter("SelectEvents",
-							       "", false, true);
+	    ModuleInstance streamWriter =
+		(ModuleInstance)streamWriterRef.parent();
+	    streamWriter.updateParameter("streamLabel","string",stream.label());
+	    PSetParameter psetSelectEvents =
+		new PSetParameter("SelectEvents","",false);
 	    String valAsString = "";
 	    Iterator<Path> itPath = stream.pathIterator();
 	    while (itPath.hasNext()) {
@@ -248,7 +250,7 @@ public class OnlineConverter extends ConverterBase
 		valAsString += path.name();
 	    }
 	    VStringParameter vstringSelectEvents =
-		new VStringParameter("SelectEvents", valAsString, true, false);
+		new VStringParameter("SelectEvents", valAsString, true);
 	    psetSelectEvents.addParameter(vstringSelectEvents);
 	    streamWriter.updateParameter("SelectEvents", "PSet",
 					 psetSelectEvents.valueAsString());
@@ -327,10 +329,10 @@ public class OnlineConverter extends ConverterBase
     private ModuleTemplate makeSmStreamWriterT() 
     {
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
-	params.add(new StringParameter("streamLabel", "", true, false));
-	params.add(new Int32Parameter("maxSize", "1073741824", true, false));
-	params.add(new PSetParameter("SelectEvents", "", false, false));
-	params.add(new StringParameter("SelectHLTOutput", "", false, false));
+	params.add(new StringParameter("streamLabel", "", true));
+	params.add(new Int32Parameter("maxSize", "1073741824", true));
+	params.add(new PSetParameter("SelectEvents", "", false));
+	params.add(new StringParameter("SelectHLTOutput", "", false));
         return new ModuleTemplate("EventStreamFileWriter", "UNKNOWN",
 				  params, "OutputModule");
     }
@@ -339,8 +341,8 @@ public class OnlineConverter extends ConverterBase
     private ModuleTemplate makeSmErrorWriterT() 
     {
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
-	params.add(new StringParameter("streamLabel", "Error", true, false));
-	params.add(new Int32Parameter("maxSize", "32", true, false));
+	params.add(new StringParameter("streamLabel", "Error", true));
+	params.add(new Int32Parameter("maxSize", "32", true));
         return new ModuleTemplate("ErrorStreamFileWriter", "UNKNOWN",
 				  params, "OutputModule");
     }
@@ -369,11 +371,11 @@ public class OnlineConverter extends ConverterBase
     {
 	PSetParameter options=new PSetParameter("options",
 						new ArrayList<Parameter>(),
-						false,false);
+						false);
 	options.addParameter(new VStringParameter("Rethrow",
 						  "ProductNotFound,"+
 						  "TooManyProducts,"+
-						  "TooFewProducts",false,false));
+						  "TooFewProducts",false));
 	config.insertPSet(options);
     }
 
@@ -413,9 +415,10 @@ public class OnlineConverter extends ConverterBase
 	StringParameter stringThresh =
 	    (StringParameter)psetLog4.parameter("threshold");
 	if (stringThresh==null) {
-	    psetLog4.addParameter(new StringParameter("threshold",mlVerbosityLog4,
-						      false,false));
-	    msgLogger.updateParameter("log4cplus","PSet",psetLog4.valueAsString());
+	    psetLog4.addParameter(new StringParameter("threshold",
+						      mlVerbosityLog4,false));
+	    msgLogger.updateParameter("log4cplus","PSet",
+				      psetLog4.valueAsString());
 	}
     }
     
@@ -462,7 +465,7 @@ public class OnlineConverter extends ConverterBase
 		    for (int i=0;i<vitp.vectorSize();i++) {
 			InputTagParameter itp =
 			    new InputTagParameter("",(String)vitp.value(i),
-						  false,false);
+						  false);
 			if (itp.label().equals("rawDataCollector")) {
 			    itp.setLabel("source");
 			    vitp.setValue(i,itp.valueAsString());

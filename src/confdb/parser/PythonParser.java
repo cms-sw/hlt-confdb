@@ -646,13 +646,12 @@ public class PythonParser
 	throws ParserException
     {
 	String  name,type;
-	boolean istracked,isdefault;
+	boolean istracked;
 
 	if (paramNode.unquoted().equals("PSet")) {
 	    name = "";
 	    type = "PSet";
 	    istracked = false;
-	    isdefault = true;
 	}
 	else {
 
@@ -660,11 +659,10 @@ public class PythonParser
 	    type = paramNode.child(0).unquoted();
 	    String qual = paramNode.child(1).unquoted();
 	    istracked = qual.equals("tracked");
-	    isdefault = true;
 	}
 	
 	Parameter parameter =
-	    ParameterFactory.create(type,name,"",istracked,isdefault);
+	    ParameterFactory.create(type,name,"",istracked);
 	
 	if (parameter instanceof PSetParameter) {
 	    PSetParameter pset = (PSetParameter)parameter;

@@ -1,3 +1,23 @@
+2009-10-08  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-01-00
+	* data: Stream and PrimaryDataset reimplemented
+	* data: OutputModule defined, not yet fully implemented
+	* data: EventContent and EventContentStatement defined, not yet
+	fully implemented
+	* Configuration: added contents and outputs, re-coded accessors to
+	streams and dataset to lead via the event contents.
+	* data: ParameterContainer added
+	* data: Parameter.isDefault field removed, adjusted code all over
+	the place. Simplifies e.g. ParameterContainer.updateParameter()
+	methods (formerly Instance.updateParameter())
+	* gui: functionality to add untracked parameters ported from V0
+	(implemented by Vasu)
+	* gui: redesigned ParameterTreeModel
+	* gui: first adjustments to ConfigurationTreeModel, which now
+	contains new nodes OutputModules, EventContents, Streams, and
+	PrimaryDatasets
+
 2009-09-23  Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
 
 	* tag V01-00-01

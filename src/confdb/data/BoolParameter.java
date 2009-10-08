@@ -25,19 +25,17 @@ public class BoolParameter extends ScalarParameter
     //
 
     /** standard constructor */
-    public BoolParameter(String name,Boolean value,
-			 boolean isTracked,boolean isDefault)
+    public BoolParameter(String name,Boolean value,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	isValueSet = (value!=null);
 	if (isValueSet) this.value = new Boolean(value.booleanValue());
     }
     
     /** constructor from string */
-    public BoolParameter(String name,String valueAsString,
-			 boolean isTracked,boolean isDefault)
+    public BoolParameter(String name,String valueAsString,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(valueAsString);
     }
     
@@ -48,7 +46,7 @@ public class BoolParameter extends ScalarParameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	BoolParameter result = new BoolParameter(name,value,isTracked,isDefault);
+	BoolParameter result = new BoolParameter(name,value,isTracked);
 	result.setParent(parent);
 	return result;
     }

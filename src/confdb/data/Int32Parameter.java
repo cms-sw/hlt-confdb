@@ -28,19 +28,17 @@ public class Int32Parameter extends ScalarParameter
     //
 
     /** standard constructor */
-    public Int32Parameter(String name,Integer value,
-			  boolean isTracked,boolean isDefault)
+    public Int32Parameter(String name,Integer value,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	isValueSet = (value!=null);
 	if (isValueSet) this.value = new Integer(value.intValue());
     }
     
     /** constructor from string */
-    public Int32Parameter(String name,String valueAsString,
-			  boolean isTracked,boolean isDefault)
+    public Int32Parameter(String name,String valueAsString,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(valueAsString);
     }
     
@@ -51,8 +49,7 @@ public class Int32Parameter extends ScalarParameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	Int32Parameter result =
-	    new Int32Parameter(name,value,isTracked,isDefault);
+	Int32Parameter result = new Int32Parameter(name,value,isTracked);
 	result.setParent(parent);
 	return result;
     }

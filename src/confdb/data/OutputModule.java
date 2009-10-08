@@ -56,14 +56,14 @@ public class OutputModule extends ParameterContainer implements Referencable
 	this.parentStream = parentStream;
 
 	PSetParameter psetSelectEvents =
-	    new PSetParameter("SelectEvents","",false,false);
+	    new PSetParameter("SelectEvents","",false);
 	
 	vstringSelectEvents =
-	    new VStringParameter("SelectEvents","",true,false);
+	    new VStringParameter("SelectEvents","",true);
 	psetSelectEvents.addParameter(vstringSelectEvents);
 	
 	vstringOutputCommands =
-	    new VStringParameter("outputCommands","",false,false);
+	    new VStringParameter("outputCommands","",false);
 
 	addParameter(psetSelectEvents);
 	addParameter(vstringOutputCommands);
@@ -77,14 +77,11 @@ public class OutputModule extends ParameterContainer implements Referencable
     // member functions
     //
 
-    /** ParameterContainer: retrieve default value of a given parameter */
-    public String parameterDefaultValueAsString(Parameter p)
-    {
-	return new String();
-    }
+    /** ParameterContainer: indicate wether parameter is at its default */
+    public boolean isParameterAtItsDefault(Parameter p)  { return false; }
     
     /** ParameterContainer: indicate wether a parameter can be removed */
-    public boolean isRemovable(Parameter p)
+    public boolean isParameterRemovable(Parameter p)
     {
 	int index = indexOfParameter(p);
 	if (index<2) return false; // protect SelectEvents & outputCommands!

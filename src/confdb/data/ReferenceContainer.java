@@ -344,7 +344,7 @@ abstract public class ReferenceContainer extends DatabaseEntry
 	    for (int i=0;i<vitp.vectorSize();i++) {
 		InputTagParameter itp =
 		    new InputTagParameter((new Integer(i)).toString(),
-					  vitp.value(i).toString(),false,false);
+					  vitp.value(i).toString(),false);
 		itp.setParent(vitp);
 		getUnresolvedInputTags(itp,labels,unresolved);
 	    }

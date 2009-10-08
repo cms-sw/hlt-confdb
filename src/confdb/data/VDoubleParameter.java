@@ -29,18 +29,17 @@ public class VDoubleParameter extends VectorParameter
     
     /** standard constructor */
     public VDoubleParameter(String name,ArrayList<Double> values,
-			    boolean isTracked,boolean isDefault)
+			    boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	for (Double d : values) this.values.add(new Double(d));
 	isValueSet = (values.size()>0);
     }
     
     /** constructor from a string */
-    public VDoubleParameter(String name,String valuesAsString,
-			    boolean isTracked,boolean isDefault)
+    public VDoubleParameter(String name,String valuesAsString,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(valuesAsString);
     }
 
@@ -52,8 +51,7 @@ public class VDoubleParameter extends VectorParameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	VDoubleParameter result = new VDoubleParameter(name,values,
-						       isTracked,isDefault);
+	VDoubleParameter result = new VDoubleParameter(name,values,isTracked);
 	result.setParent(parent);
 	return result;
     }

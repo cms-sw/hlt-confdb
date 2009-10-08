@@ -20,7 +20,8 @@ public class VPSetParameter extends Parameter
     private static final String type = "VPSet";
 
     /** parameter sets */
-    private ArrayList<PSetParameter> parameterSets = new ArrayList<PSetParameter>();
+    private ArrayList<PSetParameter> parameterSets =
+	new ArrayList<PSetParameter>();
     
     
     //
@@ -29,18 +30,17 @@ public class VPSetParameter extends Parameter
     
     /** standard constructor */
     public VPSetParameter(String name,ArrayList<PSetParameter> parameterSets,
-			  boolean isTracked,boolean isDefault)
+			  boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	for (PSetParameter p : parameterSets)
 	    this.parameterSets.add((PSetParameter)p.clone(this));
     }
     
     /** constructor from a string */
-    public VPSetParameter(String name,String valueAsString,
-			  boolean isTracked,boolean isDefault)
+    public VPSetParameter(String name,String valueAsString,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(valueAsString);
     }
     
@@ -53,7 +53,7 @@ public class VPSetParameter extends Parameter
     public Parameter clone(Object parent)
     {
 	VPSetParameter result =
-	    new VPSetParameter(name,parameterSets,isTracked,isDefault);
+	    new VPSetParameter(name,parameterSets,isTracked);
 	result.setParent(parent);
 	return result;
     }
@@ -67,7 +67,6 @@ public class VPSetParameter extends Parameter
 	String result =
 	    "<" + type() +
 	    " name="     + name() +
-	    " default="  + Boolean.toString(isDefault) +
 	    " tracked="  + Boolean.toString(isTracked()) +
 	    ">";
 	for (PSetParameter pset : parameterSets) result += pset.valueAsString();
@@ -89,7 +88,6 @@ public class VPSetParameter extends Parameter
 		valueAsString=
 		    "<VPSet" +
 		    " name=" + name() +
-		    " default=" + Boolean.toString(isDefault()) +
 		    " tracked=" + Boolean.toString(isTracked()) +
 		    ">" + valueAsString + "</VPSet>";
 	    
@@ -113,28 +111,7 @@ public class VPSetParameter extends Parameter
 	return true;
     }
     
-    /** a vpset is default if its string-rep matches the template */
-    public boolean isDefault()
-    {
-	if (parent() instanceof Instance) {
-	    isDefault = true;
-	    Instance instance = (Instance)parent();
-	    Template template = instance.template();
-
-	    if(template.parameter(name())==null)
-		isDefault=false;
-            else {
-		String defaultAsString = template.parameter(name()).valueAsString();
-	    	isDefault = defaultAsString.equals(valueAsString());
-	    }
-	}
-	else {
-	    isDefault = false;
-	}
-	return isDefault;
-    }
-    
-     /** a vpset is set if all of its children are, or if it is empty (?!) */
+    /** a vpset is set if all of its children are, or if it is empty (?!) */
     public boolean isValueSet()
     {
 	for (PSetParameter pset : parameterSets)
@@ -196,9 +173,7 @@ public class VPSetParameter extends Parameter
     public boolean setParameterSetValue(int i,String valueAsString)
     {
 	PSetParameter p = parameterSet(i);
-	if (!p.setValue(valueAsString)) return false;
-	this.isDefault = false;
-	return true;
+	return p.setValue(valueAsString);
     }
     
     /** add a parameter-set */
@@ -242,7 +217,6 @@ class VParameterSetParser
     private String  parseString = null;
     private String  psetString  = null;
     private String  name        = null;
-    private boolean isDefault   = false;
     private boolean isTracked   = false;
 
     
@@ -277,9 +251,9 @@ class VParameterSetParser
 	    pos = atts[i].indexOf("=");
 	    String attName = atts[i].substring(0,pos);
 	    String attVal  = atts[i].substring(pos+1);
-	    if      (attName.equals("name"))    name=attVal;
-	    else if (attName.equals("default"))	isDefault=Boolean.valueOf(attVal);
-	    else if (attName.equals("tracked")) isTracked=Boolean.valueOf(attVal);
+	    if      (attName.equals("name"))    name      = attVal;
+	    else if (attName.equals("tracked")) isTracked = Boolean
+						    .valueOf(attVal);
 	    else return false;
 	}
 	
@@ -302,11 +276,9 @@ class VParameterSetParser
 	int    skipCount = 0;
 	while (opos>=0&&opos<cpos) {
 	    opos = s.indexOf(otag,opos+1);
-	    //cpos = s.indexOf(ctag,opos+1);
 	    cpos = s.indexOf(ctag,cpos+1);
 	    skipCount++;
 	}
-	//for (int i=0;i<skipCount;i++) cpos = s.indexOf(ctag,cpos+1);
 	
 	psetString  = s.substring(0,cpos+ctag.length());
 	parseString = s.substring(cpos+ctag.length());
@@ -318,9 +290,6 @@ class VParameterSetParser
     /** get parsed vectro<parameterset> name */
     public String vpsetName() { return name; }
 
-    /** get last parsed paramter default flag */
-    public boolean vpsetIsDefault() { return isDefault; }
-    
     /** get last parsed parameter tracked flag */
     public boolean vpsetIsTracked() { return isTracked; }
     

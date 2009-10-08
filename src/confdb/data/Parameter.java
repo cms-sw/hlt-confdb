@@ -24,9 +24,6 @@ abstract public class Parameter implements Comparable<Parameter>
     /** name of the parameter */
     protected String  name = null;
     
-    /** flag indicating if this is a default parameter or not */
-    protected boolean isDefault = true;
-    
     /** flag indicating if the parameter is tracked/untracked */
     protected boolean isTracked = true;
     
@@ -39,11 +36,10 @@ abstract public class Parameter implements Comparable<Parameter>
     //
     
     /** default constructor */
-    public Parameter(String name,boolean isTracked,boolean isDefault)
+    public Parameter(String name,boolean isTracked)
     {
 	this.name      = name;
 	this.isTracked = isTracked;
-	this.isDefault = isDefault;
     }
     
     //
@@ -79,27 +75,23 @@ abstract public class Parameter implements Comparable<Parameter>
     /** retrieve the name of the parameter */
     public String name() { return name; }
 
-    /** retrieve the flag indicating if the parameter is a default parameter */
-    public boolean isDefault() { return isDefault; }
-    
     /** retrieve the flag indication ig the parameter is tracked/untracked */
     public boolean isTracked() { return isTracked; }
 
     /** retrieve the flag indication ig the parameter value is set */
     public boolean isValueSet() { return isValueSet; }
 
+    /** retrieve status indicating if the parameter is at its default */
+    public boolean isDefault()
+    {
+	ParameterContainer container = getParentContainer();
+	if (container==null) return false;
+	return container.isParameterAtItsDefault(this);
+    }
+    
     /** set the parent object */
     public void setParent(Object parent) { this.parent = parent; }
 
-    /** set the value  the parameter from string, provide default as string */
-    public boolean setValue(String valueAsString,String defaultAsString)
-    {
-	if (!setValue(valueAsString)) return false;
-	isDefault = false;
-	if (this.valueAsString().equals(defaultAsString)) isDefault = true;
-	return true;
-    }
-    
     /** set isTracked */
     public void setTracked(boolean isTracked) { this.isTracked = isTracked; }
 

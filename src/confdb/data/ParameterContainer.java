@@ -25,11 +25,11 @@ abstract public class ParameterContainer extends DatabaseEntry
     // abstract member functions
     //
     
-    /** retrieve default value of a given parameter */
-    abstract public String parameterDefaultValueAsString(Parameter p);
-    
+    /** indicate wether parameter is at its default */
+    abstract public boolean isParameterAtItsDefault(Parameter p);
+
     /** indicate wether a parameter can be removed or not */
-    abstract public boolean isRemovable(Parameter p);
+    abstract public boolean isParameterRemovable(Parameter p);
 
     //
     // non-abstract member functions
@@ -40,6 +40,7 @@ abstract public class ParameterContainer extends DatabaseEntry
     {
 	parameters.add(parameter);
 	parameter.setParent(this);
+	setHasChanged();
     }
 
     /** remove a given parameter */
@@ -47,10 +48,11 @@ abstract public class ParameterContainer extends DatabaseEntry
     {
 	parameters.remove(parameter);
 	parameter.setParent(null);
+	setHasChanged();
     }
-
+    
     /** remove all parameters */
-    public void clear() { parameters.clear(); }
+    public void clear() { parameters.clear(); setHasChanged(); }
     
     /** number of parameters */
     public int parameterCount() { return parameters.size(); }
@@ -76,7 +78,7 @@ abstract public class ParameterContainer extends DatabaseEntry
     /** remove untracked parameter */
     public boolean removeUntrackedParameter(Parameter p)
     {
-	if (isRemovable(p)) {
+	if (isParameterRemovable(p)) {
 	    parameters.remove(p);
 	    setHasChanged();
 	    return true;
@@ -206,67 +208,34 @@ abstract public class ParameterContainer extends DatabaseEntry
 	Parameter p = parameter(index);
 	String  oldValueAsString = p.valueAsString();
 	if (valueAsString.equals(oldValueAsString)) return true;
-	
-	String  defaultAsString = parameterDefaultValueAsString(p);
-	if (p.setValue(valueAsString,defaultAsString)) {
-	    setHasChanged();
-	    return true;
-	}
-	return false;
+	boolean result = p.setValue(valueAsString);
+	if (result) setHasChanged();
+	return result;
     }
     
     /** update a parameter when the value is changed */
     public boolean updateParameter(String name,String type,String valueAsString)
     {
-	Parameter param = findParameter(name,type);
-	
-	// change the value of an existing parameter (top-level or not)
-	if (param!=null) {
-	    
-	    // handle top-level parameter
-	    int index = indexOfParameter(param);
-	    if (index>=0) return updateParameter(index,valueAsString);
-	    
-	    // handle parameter within a top-level [V]PSet
-	    String a[] = param.fullName().split("::");
-	    if (a.length>1) {
-		String b[] = a[0].split("\\[");
-		Parameter parentParam = parameter(b[0]);
-		if (parentParam==null) return false;
-		if (isRemovable(parentParam)) {
-		    param.setValue(valueAsString,"");
-		    setHasChanged();
-		    return true;
-		}
-		else {
-		    param.setValue(valueAsString,"");
-		    String defaultAsString =
-			parameterDefaultValueAsString(parentParam);
-		    if (parentParam.setValue(parentParam.valueAsString(),
-					     defaultAsString)) {
-			setHasChanged();
-			return true;
-		    }
-		    return false;
-		}
-	    }
+	Parameter p = findParameter(name,type);
+	// handle existing parameter, top-level or not
+	if (p!=null) {
+	    String oldValueAsString = p.valueAsString();
+	    if (valueAsString.equals(oldValueAsString)) return true;
+	    boolean result = p.setValue(valueAsString);
+	    if (result) setHasChanged();
+	    return result;
 	}
 	// add an untracked parameter to the top-level
 	else {
 	    Parameter parameterNew =
-		ParameterFactory.create(type,name,valueAsString,false,false);
-	    System.out.println("Adding an untracked parameter without "+
-			       "any default value: " + parameterNew);
-	    parameters.add(parameterNew);
-	    parameterNew.setParent(this);
-	    setHasChanged();
+		ParameterFactory.create(type,name,valueAsString,false);
+	    System.out.println("ParameterContainer INFO: "+
+			       "Adding untracked parameter to top-level: "+
+			       parameterNew);
+	    addParameter(parameterNew);
 	    return true;
 	}
-	System.err.println("Instance.updateParameter ERROR! "+
-			   "No parameter '"+name+"' of type '"+type+"' found.");
-	return false;
     }
-    
 
     /** number of unset tracked parameters */
     public int unsetTrackedParameterCount()

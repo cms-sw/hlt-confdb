@@ -33,9 +33,9 @@ public class InputTagParameter extends ScalarParameter
     /** standard constructor */
     public InputTagParameter(String name,
 			     String label,String instance,String process,
-			     boolean isTracked,boolean isDefault)
+			     boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	isValueSet = (label!=null&&instance!=null&&process!=null);
 	if (isValueSet) {
 	    this.label    = new String(label);
@@ -46,9 +46,9 @@ public class InputTagParameter extends ScalarParameter
     
     /** constructor from string */
     public InputTagParameter(String name,String valueAsString,
-			     boolean isTracked,boolean isDefault)
+			     boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(valueAsString);
     }
     
@@ -60,7 +60,7 @@ public class InputTagParameter extends ScalarParameter
     public Parameter clone(Object parent)
     {
 	InputTagParameter result =
-	    new InputTagParameter(name,label,instance,process,isTracked,isDefault);
+	    new InputTagParameter(name,label,instance,process,isTracked);
 	result.setParent(parent);
 	return result;
     }

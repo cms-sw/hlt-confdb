@@ -29,9 +29,9 @@ public class VEventIDParameter extends VectorParameter
     
     /** standard constructor */
     public VEventIDParameter(String name,ArrayList<String> values,
-			     boolean isTracked,boolean isDefault)
+			     boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	for (String v : values) {
 	    try {
 		this.values.add(new EventID(v));
@@ -46,9 +46,9 @@ public class VEventIDParameter extends VectorParameter
     
     /** constructor from a string */
     public VEventIDParameter(String name,String valuesAsString,
-			     boolean isTracked,boolean isDefault)
+			     boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(valuesAsString);
     }
 
@@ -62,7 +62,7 @@ public class VEventIDParameter extends VectorParameter
 	ArrayList<String> strValues = new ArrayList<String>();
 	for (EventID id : values) strValues.add(id.toString());
 	VEventIDParameter result = new VEventIDParameter(name,strValues,
-							 isTracked,isDefault);
+							 isTracked);
 	result.setParent(parent);
 	return result;
     }

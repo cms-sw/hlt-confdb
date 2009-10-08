@@ -28,8 +28,7 @@ public class Configuration implements IConfiguration
     private boolean hasChanged = false;
     
     /** list of globale parameter sets */
-    //private ArrayList<PSetParameter>    psets = null;
-    private ParameterContainer          psets     = null;
+    private GlobalPSetContainer         psets     = null;
     
     /** list of EDSources */
     private ArrayList<EDSourceInstance> edsources = null;
@@ -69,17 +68,7 @@ public class Configuration implements IConfiguration
     /** empty constructor */
     public Configuration()
     {
-	//psets         = new ArrayList<PSetParameter>();
-	psets         = new ParameterContainer() {
-		public String parameterDefaultValueAsString(Parameter p)
-		{
-		    return new String();
-		}
-		public boolean isRemovable(Parameter p)
-		{
-		    return true;
-		}
-	    };
+	psets         = new GlobalPSetContainer();
 	edsources     = new ArrayList<EDSourceInstance>();
 	essources     = new ArrayList<ESSourceInstance>();
 	esmodules     = new ArrayList<ESModuleInstance>();
@@ -94,17 +83,7 @@ public class Configuration implements IConfiguration
     /** standard constructor */
     public Configuration(ConfigInfo configInfo,SoftwareRelease release)
     {
-	//psets         = new ArrayList<PSetParameter>();
-	psets         = new ParameterContainer() {
-		public String parameterDefaultValueAsString(Parameter p)
-		{
-		    return new String();
-		}
-		public boolean isRemovable(Parameter p)
-		{
-		    return true;
-		}
-	    };
+	psets         = new GlobalPSetContainer();
 	edsources     = new ArrayList<EDSourceInstance>();
 	essources     = new ArrayList<ESSourceInstance>();
 	esmodules     = new ArrayList<ESModuleInstance>();

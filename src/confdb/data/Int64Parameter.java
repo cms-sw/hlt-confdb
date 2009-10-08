@@ -28,19 +28,17 @@ public class Int64Parameter extends ScalarParameter
     //
 
     /** standard constructor */
-    public Int64Parameter(String name,Long value,
-			  boolean isTracked,boolean isDefault)
+    public Int64Parameter(String name,Long value,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	isValueSet = (value!=null);
 	if (isValueSet) this.value = new Long(value.intValue());
     }
     
     /** constructor from string */
-    public Int64Parameter(String name,String valueAsString,
-			  boolean isTracked,boolean isDefault)
+    public Int64Parameter(String name,String valueAsString,boolean isTracked)
     {
-	super(name,isTracked,isDefault);
+	super(name,isTracked);
 	setValue(valueAsString);
     }
     
@@ -51,8 +49,7 @@ public class Int64Parameter extends ScalarParameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	Int64Parameter result =
-	    new Int64Parameter(name,value,isTracked,isDefault);
+	Int64Parameter result = new Int64Parameter(name,value,isTracked);
 	result.setParent(parent);
 	return result;
     }
