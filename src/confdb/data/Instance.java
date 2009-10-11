@@ -57,26 +57,26 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
     /** name of the instance */
     public String name() { return name; }
     
-    /** get the template */
-    public Template template() { return template; }
-    
-    /** get the configuration */
-    public IConfiguration config() { return config; }
-    
     /** set the name of this instance */
     public void setName(String name) throws DataException
     {
-	if (template().hasInstance(name)||
-	    (config!=null&&!config.isUniqueQualifier(name)))
+	if (template().hasInstance(name)
+	    ||(config!=null&&!config.isUniqueQualifier(name)))
 	    throw new DataException("Instance.setName() ERROR: " +
 				    "name '"+name+"' is not unique!");
 	this.name = name;
 	setHasChanged();
     }
     
+    /** get the configuration */
+    public IConfiguration config() { return config; }
+    
     /** set the parent configuration of the instance */
-    public void setConfiguration(IConfiguration config) { this.config=config; }
+    public void setConfig(IConfiguration config) { this.config=config; }
 
+    /** get the template */
+    public Template template() { return template; }
+    
     /** ParameterContainer: indicate wether parameter is at its default */
     public boolean isParameterAtItsDefault(Parameter p)
     {

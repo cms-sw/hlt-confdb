@@ -94,22 +94,33 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 
 	psetDirIcon    = null;
 	edsourceDirIcon= null;
-	edsourceIcon   = new ImageIcon(getClass().getResource("/EDSourceIcon.png"));
+	edsourceIcon   =
+	    new ImageIcon(getClass().getResource("/EDSourceIcon.png"));
 	essourcesDirIcon = null;
-	essourceIcon   = new ImageIcon(getClass().getResource("/ESSourceIcon.png"));
-	esmodulesDirIcon = null;
-	esmoduleIcon   = new ImageIcon(getClass().getResource("/ESModuleIcon.png"));
+	essourceIcon   = 
+	    new ImageIcon(getClass().getResource("/ESSourceIcon.png"));
+	esmodulesDirIcon =
+	    null;
+	esmoduleIcon   =
+	    new ImageIcon(getClass().getResource("/ESModuleIcon.png"));
 	servicesDirIcon= null;
-	serviceIcon    = new ImageIcon(getClass().getResource("/ServiceIcon.png"));
+	serviceIcon    =
+	    new ImageIcon(getClass().getResource("/ServiceIcon.png"));
 	pathsDirIcon   = null;
-	pathIcon       =  new ImageIcon(getClass().getResource("/PathIcon.png"));
-	endpathIcon    = new ImageIcon(getClass().getResource("/EndpathIcon.png"));
+	pathIcon       =
+	    new ImageIcon(getClass().getResource("/PathIcon.png"));
+	endpathIcon    =
+	    new ImageIcon(getClass().getResource("/EndpathIcon.png"));
 	modulesDirIcon = null;
-	moduleIcon     = new ImageIcon(getClass().getResource("/ModuleIcon.png"));
+	moduleIcon     =
+	    new ImageIcon(getClass().getResource("/ModuleIcon.png"));
 	sequencesDirIcon = null;
-	sequenceIcon   = new ImageIcon(getClass().getResource("/SequenceIcon.png"));
-	psetIcon       = new ImageIcon(getClass().getResource("/PSetIcon.png"));
-	vpsetIcon      = new ImageIcon(getClass().getResource("/VPSetIcon.png"));
+	sequenceIcon   =
+	    new ImageIcon(getClass().getResource("/SequenceIcon.png"));
+	psetIcon       =
+	    new ImageIcon(getClass().getResource("/PSetIcon.png"));
+	vpsetIcon      =
+	    new ImageIcon(getClass().getResource("/VPSetIcon.png"));
     }
     
     

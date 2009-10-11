@@ -29,7 +29,9 @@ public class EventContent extends DatabaseEntry
     
     /** collection of assigned streams */
     private ArrayList<Stream> streams = new ArrayList<Stream>();
-    
+
+    /** parent configuration */
+    private IConfiguration config = null;
     
     //
     // construction
@@ -55,6 +57,12 @@ public class EventContent extends DatabaseEntry
     /** retrieve string representation of this event content */
     public String toString() { return label(); }
     
+    /** get the parent configuration */
+    public IConfiguration config() { return config; }
+
+    /** set the parent configuration */
+    public void setConfig(IConfiguration config) { this.config = config; }
+
 
     /** number of paths */
     public int pathCount() { return paths.size(); }
@@ -158,12 +166,15 @@ public class EventContent extends DatabaseEntry
     public int indexOfStream(Stream stream) { return streams.indexOf(stream); }
 
     /** associate an existing stream with this event content */
-    public boolean insertStream(Stream stream)
+    public Stream insertStream(String streamLabel)
     {
-	if (streams.indexOf(stream)>=0) return false;
+	Iterator<Stream> itS = streamIterator();
+	while (itS.hasNext())
+	    if (itS.next().label().equals(streamLabel)) return null;
+	Stream stream = new Stream(streamLabel,this);
 	streams.add(stream);
 	setHasChanged();
-	return true;
+	return stream;
     }
     
     /** remove a stream from the event content */

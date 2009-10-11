@@ -61,7 +61,7 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 	if (toBeEdited == null) return null;
 	
 	IConfiguration config = (IConfiguration)treeModel.getRoot();
-
+	
 	if (toBeEdited instanceof Referencable) {
 	    Referencable referencable = (Referencable)toBeEdited;
 	    try {
@@ -82,10 +82,19 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 	}
 	else if (toBeEdited instanceof Instance) {
 	    Instance instance = (Instance)toBeEdited;
-	    Template template = instance.template();
 	    try {
 		instance.setName(name);
 		treeModel.nodeChanged(instance);
+	    }
+	    catch (DataException e) {
+		System.err.println(e.getMessage());
+	    }
+	}
+	else if (toBeEdited instanceof OutputModule) {
+	    OutputModule output = (OutputModule)toBeEdited;
+	    try {
+		output.setName(name);
+		treeModel.nodeChanged(output);
 	    }
 	    catch (DataException e) {
 		System.err.println(e.getMessage());
@@ -104,7 +113,22 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 		System.err.println(e.getMessage());
 	    }
 	}
-	
+	else if (toBeEdited instanceof EventContent) {
+	    EventContent content = (EventContent)toBeEdited;
+	    content.setLabel(name);
+	    treeModel.nodeChanged(content);
+	}
+	else if (toBeEdited instanceof Stream) {
+	    Stream stream = (Stream)toBeEdited;
+	    stream.setLabel(name);
+	    treeModel.nodeChanged(stream);
+	}
+	else if (toBeEdited instanceof PrimaryDataset) {
+	    PrimaryDataset dataset = (PrimaryDataset)toBeEdited;
+	    dataset.setLabel(name);
+	    treeModel.nodeChanged(dataset);
+	}
+
 	return toBeEdited;
     }
     
@@ -139,8 +163,12 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 						int     row)
     {
 	if (value instanceof Referencable||
+	    value instanceof Reference||
 	    value instanceof Instance||
-	    value instanceof Reference) toBeEdited = value;
+	    value instanceof OutputModule||
+	    value instanceof EventContent||
+	    value instanceof Stream||
+	    value instanceof PrimaryDataset) toBeEdited = value;
 	return super.getTreeCellEditorComponent(tree,value,
 						isSelected,expanded,
 						leaf,row);

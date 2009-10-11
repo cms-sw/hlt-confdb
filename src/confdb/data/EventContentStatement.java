@@ -48,7 +48,8 @@ public class EventContentStatement
     }
 
     /** constructor from path & reference */
-    public EventContentStatement(Path parentPath,Reference parentReference) {
+    public EventContentStatement(Path parentPath,Reference parentReference)
+    {
 	this.parentPath      = parentPath;
 	this.parentReference = parentReference;
     }

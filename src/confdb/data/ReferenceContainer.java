@@ -30,7 +30,7 @@ abstract public class ReferenceContainer extends DatabaseEntry
     protected ArrayList<Reference> references = new ArrayList<Reference>();
 
     /** the parent configuration of the container*/
-    protected IConfiguration config = null;
+    private IConfiguration config = null;
     
 
     //
@@ -88,8 +88,21 @@ abstract public class ReferenceContainer extends DatabaseEntry
     /** get the name of the container */
     public String name() { return name; }
     
-    /** get parent configuration */
+    /** set the name of the container */
+    public void setName(String name) throws DataException
+    {
+	if (config!=null&&!config.isUniqueQualifier(name))
+	    throw new DataException("ReferenceContainer.setName ERROR: '"+
+				    name+"' is not a unique qualifier.");
+	this.name = name;
+	setHasChanged();
+    }
+    
+     /** get parent configuration */
     public IConfiguration config() { return this.config; }
+
+    /** set the configuration of this container */
+    public void setConfig(IConfiguration config) { this.config = config; }
 
     /** calculate the number of unresolved InputTags */
     public int unresolvedInputTagCount()
@@ -119,20 +132,7 @@ abstract public class ReferenceContainer extends DatabaseEntry
     /** does this container contain an HLTFilter? */
     public boolean hasHLTFilter() { return hasModuleOfType("HLTFilter"); }
     
-    /** set the name of the container */
-    public void setName(String name) throws DataException
-    {
-	if (config!=null&&!config.isUniqueQualifier(name))
-	    throw new DataException("ReferenceContainer.setName ERROR: '"+
-				    name+"' is not a unique qualifier.");
-	this.name = name;
-	setHasChanged();
-    }
-    
-    /** set the configuration of this container */
-    public void setConfiguration(IConfiguration config) { this.config = config; }
-
-    /** get entry iterator */
+   /** get entry iterator */
     public Iterator<Reference> entryIterator() { return entries.iterator(); }
 
     /** number of entries */

@@ -30,7 +30,7 @@ public class OutputModule extends ParameterContainer implements Referencable
 
     /** reference to the parent stream */
     private Stream parentStream = null;
-    
+
     /** vstring SelectEvents parameter, which contains the paths */
     private VStringParameter vstringSelectEvents = null;
 
@@ -41,9 +41,6 @@ public class OutputModule extends ParameterContainer implements Referencable
     private ArrayList<OutputModuleReference> references =
 	new ArrayList<OutputModuleReference>();
     
-    /** parent configuration of OutputModule */
-    private IConfiguration parentConfig = null;
-
 
     //
     // construction
@@ -67,9 +64,6 @@ public class OutputModule extends ParameterContainer implements Referencable
 
 	addParameter(psetSelectEvents);
 	addParameter(vstringOutputCommands);
-
-	updateSelectEvents();
-	updateOutputCommands();
     }
     
     
@@ -87,27 +81,89 @@ public class OutputModule extends ParameterContainer implements Referencable
 	if (index<2) return false; // protect SelectEvents & outputCommands!
 	return true;
     }
+
+    /** ParameterContainer: remove a parameter */
+    public void removeParameter(Parameter parameter)
+    {
+	if (parameter.name().equals("SelectEvents")||
+	    parameter.name().equals("outputCommands")) return;
+	super.removeParameter(parameter);
+    }
+
+    /** ParameterContainer: clear() */
+    public void clear()
+    {
+	System.err.println("OutputModule ERROR: don't you dare to clear()!");
+    }
     
+    /** ParameterContainer: retrieve i-th parameter */
+    public Parameter parameter(int i)
+    {
+	updateSelectEvents();
+	updateOutputCommands();
+	return super.parameter(i);
+    }
+
+    /** ParameterContainer: retrieve parameter iterator */
+    public Iterator<Parameter> parameterIterator()
+    {
+	updateSelectEvents();
+	updateOutputCommands();
+	return super.parameterIterator();
+    }
+
+    /** ParameterContainer: get parameter by name */
+    public Parameter parameter(String name)
+    {
+	updateSelectEvents();
+	updateOutputCommands();
+	return super.parameter(name);
+    }
+    
+    /** ParameterContainer: get parameter by name AND type */
+    public Parameter parameter(String name,String type)
+    {
+	updateSelectEvents();
+	updateOutputCommands();
+	return super.parameter(name,type);
+    }
+
+    /** ParameterContainer: update a parameter with a new value */
+    public boolean updateParameter(int index,String valueAsString)
+    {
+	if (index<2) return false;
+	return super.updateParameter(index,valueAsString);
+    }
+    
+    /** update a parameter when the value is changed */
+    public boolean updateParameter(String name,String type,String valueAsString)
+    {
+	if (name.equals("SelectEvents")||name.equals("outputCommands"))
+	    return false;
+	return super.updateParameter(name,type,valueAsString);
+    }
+    
+
     /** retrieve the class name of the output module */
     public String className() { return className; }
 
     /** retrieve the parent stream of the output module */
     public Stream parentStream() { return parentStream; }
-    
+
     /** Referencable: name() */
     public String name() { return name; }
     
     /** Referenable: setName() */
-    public void setName(String name) throws DataException
-    { 
-	this.name = name;
-    }
+    public void setName(String name) throws DataException { this.name = name; }
+    
+    /** Referencable: retrieve the parent configuration */
+    public IConfiguration config() { return parentStream().config(); }
     
     /** Referencable: create a reference of this output module */
     public Reference createReference(ReferenceContainer container, int i)
     {
-	OutputModuleReference reference = new OutputModuleReference(container,
-								    this);
+	OutputModuleReference reference =
+	    new OutputModuleReference(container,this);
 	references.add(reference);
 	container.insertEntry(i,reference);
 	return reference;
@@ -144,11 +200,6 @@ public class OutputModule extends ParameterContainer implements Referencable
 	return list.toArray(new Path[list.size()]);
     }
 
-    public void setConfiguration(IConfiguration parentConfig)
-    {
-	this.parentConfig = parentConfig;
-    }
-    
     
     //
     // private member functions
@@ -157,13 +208,26 @@ public class OutputModule extends ParameterContainer implements Referencable
     /** update value of 'SelectEvents' parameter */
     private void updateSelectEvents()
     {
-	
+	StringBuffer valueAsString = new StringBuffer();
+	Iterator<Path> itP = parentStream().pathIterator();
+	while (itP.hasNext()) {
+	    if (valueAsString.length()>0) valueAsString.append(",");
+	    valueAsString.append(itP.next().name());
+	}
+	vstringSelectEvents.setValue(valueAsString.toString());
     }
-   
+    
     /** update value of 'outputCommands' parameter */
     private void updateOutputCommands()
     {
-	
+	StringBuffer valueAsString = new StringBuffer();
+	Iterator<EventContentStatement> itECS =
+	    parentStream().parentContent().statementIterator();
+	while (itECS.hasNext()) {
+	    if (valueAsString.length()>0) valueAsString.append(",");
+	    valueAsString.append(itECS.next().toString());
+	}
+	vstringOutputCommands.setValue(valueAsString.toString());
     }
     
 }

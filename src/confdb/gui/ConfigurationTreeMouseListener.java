@@ -52,11 +52,20 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
     /** popup menu associated with paths */
     private JPopupMenu popupPaths = null;
     
+    /** popup menu associated with sequences */
+    private JPopupMenu popupSequences = null;
+    
     /** popup menu associated with modules */
     private JPopupMenu popupModules = null;
     
-    /** popup menu associated with sequences */
-    private JPopupMenu popupSequences = null;
+    /** popup menu associated with event contents */
+    private JPopupMenu popupContents = null;
+    
+    /** popup menu associated with streams */
+    private JPopupMenu popupStreams = null;
+    
+    /** popup menu associated with datasets */
+    private JPopupMenu popupDatasets = null;
     
     /** action listener for psets-menu actions */
     private PSetMenuListener psetListener = null;
@@ -76,11 +85,20 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
     /** action listener for paths-menu actions */
     private PathMenuListener pathListener = null;
 
+    /** action listener for sequences-menu actions */
+    private SequenceMenuListener sequenceListener = null;
+
     /** action listener for modules-menu actions */
     private ModuleMenuListener moduleListener = null;
 
-    /** action listener for sequences-menu actions */
-    private SequenceMenuListener sequenceListener = null;
+    /** action listern for contents-menu actions */
+    private ContentMenuListener contentListener = null;
+
+    /** action listern for streams-menu actions */
+    private StreamMenuListener streamListener = null;
+
+    /** action listern for datasets-menu actions */
+    private DatasetMenuListener datasetListener = null;
 
     /** enable the ability to sort components */
     private boolean enableSort = true;
@@ -102,8 +120,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	esmoduleListener = new ESModuleMenuListener(tree);
 	serviceListener  = new ServiceMenuListener(tree);
 	pathListener     = new PathMenuListener(tree);
-	moduleListener   = new ModuleMenuListener(tree);
 	sequenceListener = new SequenceMenuListener(tree);
+	moduleListener   = new ModuleMenuListener(tree);
+	contentListener  = new ContentMenuListener(tree);
+	streamListener   = new StreamMenuListener(tree);
+	datasetListener  = new DatasetMenuListener(tree);
     }
     
     
@@ -181,13 +202,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    return;
 	}
 	
-	// show the 'Modules' popup?
-	if (isInTreePath(treePath,treeModel.modulesNode())&&depth<=3) {
-	    updateModuleMenu();
-	    popupModules.show(e.getComponent(),e.getX(),e.getY());
-	    return;
-	}
-	
 	// show the 'Sequences' popup?
 	if (isInTreePath(treePath,treeModel.sequencesNode())/*&&depth<=4*/) {
 	    updateSequenceMenu();
@@ -195,6 +209,32 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    return;
 	}
 	
+	// show the 'Modules' popup?
+	if (isInTreePath(treePath,treeModel.modulesNode())&&depth<=3) {
+	    updateModuleMenu();
+	    popupModules.show(e.getComponent(),e.getX(),e.getY());
+	    return;
+	}
+
+	// show 'Contents' popup?
+	if (isInTreePath(treePath,treeModel.contentsNode())) {
+	    updateContentMenu();
+	    popupContents.show(e.getComponent(),e.getX(),e.getY());
+	}
+
+	// show 'Streams' popup?
+	if (isInTreePath(treePath,treeModel.streamsNode())) {
+	    updateStreamMenu();
+	    popupStreams.show(e.getComponent(),e.getX(),e.getY());
+	}
+
+	// show 'Datasets' popup?
+	if (isInTreePath(treePath,treeModel.datasetsNode())) {
+	    updateDatasetMenu();
+	    popupDatasets.show(e.getComponent(),e.getX(),e.getY());
+	}
+
+
     }
     
     /** check if a node is in a tree path */
@@ -251,9 +291,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    popupEDSources.add(edsourceMenu);
 	}
 	else {
-	    ConfigurationTreeModel model   = (ConfigurationTreeModel)tree.getModel();
-	    Configuration          config  = (Configuration)model.getRoot();
-	    SoftwareRelease        release = config.release();
+	    TreeModel       model   = tree.getModel();
+	    Configuration   config  = (Configuration)model.getRoot();
+	    SoftwareRelease release = config.release();
 	    Iterator<EDSourceTemplate> it = release.edsourceTemplateIterator();
 	    while (it.hasNext()) {
 		EDSourceTemplate t = it.next();
@@ -290,9 +330,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	if (depth>=2&&depth<=3) {
 	    JMenu essourceMenu = new ScrollableMenu("Add ESSource");
 
-	    ConfigurationTreeModel model   = (ConfigurationTreeModel)tree.getModel();
-	    Configuration          config  = (Configuration)model.getRoot();
-	    SoftwareRelease        release = config.release();
+	    TreeModel       model   = tree.getModel();
+	    Configuration   config  = (Configuration)model.getRoot();
+	    SoftwareRelease release = config.release();
 	    Iterator<ESSourceTemplate> it = release.essourceTemplateIterator();
 	    
 	    while (it.hasNext()) {
@@ -364,9 +404,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	if (depth>=2&&depth<=3) {
 	    JMenu esmoduleMenu = new ScrollableMenu("Add ESModule");
 	    
-	    ConfigurationTreeModel model   = (ConfigurationTreeModel)tree.getModel();
-	    Configuration          config  = (Configuration)model.getRoot();
-	    SoftwareRelease        release = config.release();
+	    TreeModel       model   = tree.getModel();
+	    Configuration   config  = (Configuration)model.getRoot();
+	    SoftwareRelease release = config.release();
 	    Iterator<ESModuleTemplate>  it = release.esmoduleTemplateIterator();
 
 	    while (it.hasNext()) {
@@ -433,9 +473,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	
 	JMenu serviceMenu = new ScrollableMenu("Add Service");
 	
-	ConfigurationTreeModel model   = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config  = (Configuration)model.getRoot();
-	SoftwareRelease        release = config.release();
+	TreeModel       model   = tree.getModel();
+	Configuration   config  = (Configuration)model.getRoot();
+	SoftwareRelease release = config.release();
 	Iterator<ServiceTemplate> it = release.serviceTemplateIterator();
 	
 	while (it.hasNext()) {
@@ -682,6 +722,175 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    popupModules.add(menuItem);
 	}
     }
+
+    /** update 'EventContents' menu */
+    public void updateContentMenu()
+    {
+	JMenuItem menuItem;
+	popupContents = new JPopupMenu();
+	
+	TreePath treePath = tree.getSelectionPath();
+	int      depth    = treePath.getPathCount();
+	Object   node     = treePath.getLastPathComponent();
+	
+	if (depth>3) return;
+	
+	menuItem = new JMenuItem("Add EventContent");
+	menuItem.addActionListener(contentListener);
+	popupContents.add(menuItem);
+	
+	if (depth==3) {
+	    EventContent content = (EventContent)node;
+
+	    menuItem = new JMenuItem("Add Stream");
+	    menuItem.addActionListener(contentListener);
+	    popupContents.add(menuItem);
+	    
+	    JMenu addPathMenu = new ScrollableMenu("Add Path");
+	    popupContents.add(addPathMenu);
+
+	    menuItem = new JMenuItem("Rename " + content.label());
+	    menuItem.addActionListener(contentListener);
+	    popupContents.add(menuItem);
+	    
+	    menuItem = new JMenuItem("Remove " + content.label());
+	    menuItem.addActionListener(contentListener);
+	    popupContents.add(menuItem);
+	    
+	    popupContents.addSeparator();
+	    
+	    menuItem = new JMenuItem("Edit " + content.label());
+	    menuItem.addActionListener(contentListener);
+	    popupContents.add(menuItem);
+	    
+	    TreeModel      model  = tree.getModel();
+	    IConfiguration config = (IConfiguration)model.getRoot();
+	    ArrayList<Path> paths = new ArrayList<Path>();
+	    Iterator<Path> itP = config.pathIterator();
+	    while (itP.hasNext()) {
+		Path path = itP.next();
+		if (content.indexOfPath(path)<0) paths.add(path);
+	    }
+	    Collections.sort(paths);
+	    itP = paths.iterator();
+	    while (itP.hasNext()) {
+		menuItem = new JMenuItem(itP.next().name());
+		menuItem.addActionListener(contentListener);
+		addPathMenu.add(menuItem);
+	    }
+	}
+    }
+    
+    /** update 'Streams' menu */
+    public void updateStreamMenu()
+    {
+	JMenuItem menuItem;
+	popupStreams = new JPopupMenu();
+	
+	TreePath treePath = tree.getSelectionPath();
+	int      depth    = treePath.getPathCount();
+	Object   node     = treePath.getLastPathComponent();
+	
+	if (depth>3) return;
+	
+	menuItem = new JMenuItem("Add Stream");
+	menuItem.addActionListener(streamListener);
+	menuItem.setActionCommand("NEWSTREAM");
+	popupStreams.add(menuItem);
+	
+	if (depth==3) {
+	    Stream stream = (Stream)node;
+
+	    menuItem = new JMenuItem("Add Dataset");
+	    menuItem.addActionListener(streamListener);
+	    popupStreams.add(menuItem);
+	    
+	    JMenu addPathMenu = new ScrollableMenu("Add Path");
+	    popupStreams.add(addPathMenu);
+
+	    menuItem = new JMenuItem("Rename " + stream.label());
+	    menuItem.addActionListener(streamListener);
+	    popupStreams.add(menuItem);
+	    
+	    menuItem = new JMenuItem("Remove " + stream.label());
+	    menuItem.addActionListener(streamListener);
+	    popupStreams.add(menuItem);
+	    
+	    popupStreams.addSeparator();
+	    
+	    TreeModel      model  = tree.getModel();
+	    IConfiguration config = (IConfiguration)model.getRoot();
+	    ArrayList<Path> paths = new ArrayList<Path>();
+	    Iterator<Path> itP = config.pathIterator();
+	    while (itP.hasNext()) {
+		Path path = itP.next();
+		if (stream.indexOfPath(path)<0) paths.add(path);
+	    }
+	    Collections.sort(paths);
+	    itP = paths.iterator();
+	    while (itP.hasNext()) {
+		menuItem = new JMenuItem(itP.next().name());
+		menuItem.addActionListener(streamListener);
+		addPathMenu.add(menuItem);
+	    }
+	}
+    }
+    
+    /** update 'PrimaryDatasets' menu */
+    public void updateDatasetMenu()
+    {
+	JMenuItem menuItem;
+	popupDatasets = new JPopupMenu();
+	
+	TreePath treePath = tree.getSelectionPath();
+	int      depth    = treePath.getPathCount();
+	Object   node     = treePath.getLastPathComponent();
+	
+	if (depth>3) return;
+	
+	menuItem = new JMenuItem("Add Primary Dataset");
+	menuItem.addActionListener(datasetListener);
+	menuItem.setActionCommand("NEWDATASET");
+	popupDatasets.add(menuItem);
+	
+	if (depth==3) {
+	    PrimaryDataset dataset = (PrimaryDataset)node;
+
+	    menuItem = new JMenuItem("Add Path");
+	    menuItem.addActionListener(datasetListener);
+	    popupDatasets.add(menuItem);
+	    
+	    JMenu addPathMenu = new ScrollableMenu("Add Path");
+	    popupDatasets.add(addPathMenu);
+	    
+	    menuItem = new JMenuItem("Rename " + dataset.label());
+	    menuItem.addActionListener(datasetListener);
+	    popupDatasets.add(menuItem);
+	    
+	    menuItem = new JMenuItem("Remove " + dataset.label());
+	    menuItem.addActionListener(datasetListener);
+	    popupDatasets.add(menuItem);
+	    
+	    popupDatasets.addSeparator();
+	    
+	    TreeModel      model  = tree.getModel();
+	    IConfiguration config = (IConfiguration)model.getRoot();
+	    ArrayList<Path> paths =
+		dataset.parentStream().listOfUnassignedPaths();
+	    Collections.sort(paths);
+	    Iterator<Path> itP = paths.iterator();
+	    while (itP.hasNext()) {
+		menuItem = new JMenuItem(itP.next().name());
+		menuItem.addActionListener(datasetListener);
+		addPathMenu.add(menuItem);
+	    }
+	}	
+    }
+    
+    
+    //
+    // private member functions
+    //
     
     /** create the 'Add Module' submenu */
     private JMenu createAddModuleMenu(ReferenceContainer container,
@@ -695,9 +904,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 
 	HashMap<String,JMenu> menuHashMap = new HashMap<String,JMenu>();
 	
-	ConfigurationTreeModel model   = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config  = (Configuration)model.getRoot();
-	SoftwareRelease        release = config.release();
+	TreeModel       model   = tree.getModel();
+	Configuration   config  = (Configuration)model.getRoot();
+	SoftwareRelease release = config.release();
 	Iterator<ModuleTemplate> it    = release.moduleTemplateIterator();
 	
 	while (it.hasNext()) {
@@ -1259,8 +1468,78 @@ class ModuleMenuListener implements ActionListener
     }
 }
 
+/**
+ * listen to actions from the 'Contents' popup menu
+ */
+class ContentMenuListener implements ActionListener
+{
+    /** reference to the tree to be manipulated */
+    private JTree tree = null;
 
-/*
+    /** standard constructor */
+    public ContentMenuListener(JTree tree) { this.tree = tree; }
+
+    /** ActionListener: actionPerformed() */
+    public void actionPerformed(ActionEvent e)
+    {
+	JMenuItem source   = (JMenuItem)(e.getSource());
+	String    cmd      = source.getText();
+	String    action   = source.getActionCommand();
+	TreePath  treePath = tree.getSelectionPath();
+	Object    node     = treePath.getLastPathComponent();
+
+	if (cmd.equals("Add EventContent")) {
+	    ConfigurationTreeActions.insertContent(tree);
+	}
+    }
+}
+
+/**
+ * listen to actions from the 'Streams' popup menu
+ */
+class StreamMenuListener implements ActionListener
+{
+    /** reference to the tree to be manipulated */
+    private JTree tree = null;
+
+    /** standard constructor */
+    public StreamMenuListener(JTree tree) { this.tree = tree; }
+
+    /** ActionListener: actionPerformed() */
+    public void actionPerformed(ActionEvent e)
+    {
+	JMenuItem source   = (JMenuItem)(e.getSource());
+	String    cmd      = source.getText();
+	String    action   = source.getActionCommand();
+	TreePath  treePath = tree.getSelectionPath();
+	Object    node     = treePath.getLastPathComponent();
+    }
+}
+
+/**
+ * listen to actions from the 'PrimaryDatasets' popup menu
+ */
+class DatasetMenuListener implements ActionListener
+{
+    /** reference to the tree to be manipulated */
+    private JTree tree = null;
+
+    /** standard constructor */
+    public DatasetMenuListener(JTree tree) { this.tree = tree; }
+
+    /** ActionListener: actionPerformed() */
+    public void actionPerformed(ActionEvent e)
+    {
+	JMenuItem source   = (JMenuItem)(e.getSource());
+	String    cmd      = source.getText();
+	String    action   = source.getActionCommand();
+	TreePath  treePath = tree.getSelectionPath();
+	Object    node     = treePath.getLastPathComponent();
+    }
+}
+
+
+/**
  * listen to item events from the ESSource / ESModule menus
  */
 class ESPreferableItemListener implements ItemListener

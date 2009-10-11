@@ -45,9 +45,6 @@ public class Configuration implements IConfiguration
     /** list of Modules */
     private ArrayList<ModuleInstance>   modules = null;
     
-    /** list of OutputModules */
-    private ArrayList<OutputModule>     outputs = null;
-    
     /** list of Paths */
     private ArrayList<Path>             paths = null;
     
@@ -74,7 +71,6 @@ public class Configuration implements IConfiguration
 	esmodules     = new ArrayList<ESModuleInstance>();
 	services      = new ArrayList<ServiceInstance>();
 	modules       = new ArrayList<ModuleInstance>();
-	outputs       = new ArrayList<OutputModule>();
 	paths         = new ArrayList<Path>();
 	sequences     = new ArrayList<Sequence>();
 	contents      = new ArrayList<EventContent>();
@@ -89,7 +85,6 @@ public class Configuration implements IConfiguration
 	esmodules     = new ArrayList<ESModuleInstance>();
 	services      = new ArrayList<ServiceInstance>();
 	modules       = new ArrayList<ModuleInstance>();
-	outputs       = new ArrayList<OutputModule>();
 	paths         = new ArrayList<Path>();
 	sequences     = new ArrayList<Sequence>();
 	contents      = new ArrayList<EventContent>();
@@ -115,7 +110,6 @@ public class Configuration implements IConfiguration
 	essources.clear();
 	services.clear();
 	modules.clear();
-	outputs.clear();
 	paths.clear();
 	sequences.clear();
 	contents.clear();
@@ -133,7 +127,6 @@ public class Configuration implements IConfiguration
 	essources.clear();
 	services.clear();
 	modules.clear();
-	outputs.clear();
 	paths.clear();
 	sequences.clear();
 	contents.clear();
@@ -182,8 +175,8 @@ public class Configuration implements IConfiguration
     {
 	return (name().length()==0&&//psets.isEmpty()&&
 		psets.parameterCount()==0&&
-		edsources.isEmpty()&&essources.isEmpty()&&services.isEmpty()&&
-		modules.isEmpty()&&outputs.isEmpty()&&
+		edsources.isEmpty()&&essources.isEmpty()&&
+		services.isEmpty()&&modules.isEmpty()&&
 		paths.isEmpty()&&sequences.isEmpty()&&
 		contents.isEmpty());
     }
@@ -308,12 +301,15 @@ public class Configuration implements IConfiguration
 	    if (esm.name().equals(qualifier)) return false;
 	for (ModuleInstance m : modules)
 	    if (m.name().equals(qualifier)) return false;
-	for (OutputModule om : outputs)
-	    if (om.name().equals(qualifier)) return false;
 	for (Path p : paths)
 	    if (p.name().equals(qualifier)) return false;
 	for (Sequence s : sequences)
 	    if (s.name().equals(qualifier)) return false;
+
+	Iterator<OutputModule> itOM = outputIterator();
+	while (itOM.hasNext())
+	    if (itOM.next().name().equals(qualifier)) return false;
+
 	return true;
     }
     
@@ -329,7 +325,9 @@ public class Configuration implements IConfiguration
 	    if (m==referencable) continue;
 	    if (m.name().equals(referencable.name())) return false;
 	}
-	for (OutputModule om : outputs) {
+	Iterator<OutputModule> itOM = outputIterator();
+	while (itOM.hasNext()) {
+	    OutputModule om = itOM.next();
 	    if (om==referencable) continue;
 	    if (om.name().equals(referencable.name())) return false;
 	}
@@ -595,7 +593,7 @@ public class Configuration implements IConfiguration
 	try {
 	    instance = (EDSourceInstance)template.instance();
 	    edsources.add(instance);
-	    instance.setConfiguration(this);
+	    instance.setConfig(this);
 	    hasChanged = true;
 	}
 	catch (Exception e) {
@@ -614,7 +612,7 @@ public class Configuration implements IConfiguration
     }
     
     /** sort  EDSources */
-    public void sortEDSources() { Collections.sort(edsources); hasChanged=true; }
+    public void sortEDSources() {Collections.sort(edsources);hasChanged=true;}
     
 
     //
@@ -642,7 +640,10 @@ public class Configuration implements IConfiguration
     }
     
     /** retrieve essource iterator */
-    public Iterator<ESSourceInstance> essourceIterator() { return essources.iterator(); }
+    public Iterator<ESSourceInstance> essourceIterator()
+    {
+	return essources.iterator();
+    }
 
     /** insert ESSource at i=th position */
     public ESSourceInstance insertESSource(int i,
@@ -661,7 +662,7 @@ public class Configuration implements IConfiguration
 	try {
 	    instance = (ESSourceInstance)template.instance(instanceName);
 	    essources.add(i,instance);
-	    instance.setConfiguration(this);
+	    instance.setConfig(this);
 	    hasChanged = true;
 	}
 	catch (Exception e) {
@@ -680,7 +681,7 @@ public class Configuration implements IConfiguration
     }
 
     /** sort  ESSources */
-    public void sortESSources() { Collections.sort(essources); hasChanged=true; }
+    public void sortESSources() {Collections.sort(essources); hasChanged=true;}
     
     
     //
@@ -708,7 +709,10 @@ public class Configuration implements IConfiguration
     }
    
     /** retrieve esmodule iterator */
-    public Iterator<ESModuleInstance> esmoduleIterator() { return esmodules.iterator(); }
+    public Iterator<ESModuleInstance> esmoduleIterator()
+    {
+	return esmodules.iterator();
+    }
 
 
     /** insert ESModule at i-th position */
@@ -728,7 +732,7 @@ public class Configuration implements IConfiguration
 	try {
 	    instance = (ESModuleInstance)template.instance(instanceName);
 	    esmodules.add(i,instance);
-	    instance.setConfiguration(this);
+	    instance.setConfig(this);
 	    hasChanged = true;
 	}
 	catch (Exception e) {
@@ -747,7 +751,7 @@ public class Configuration implements IConfiguration
     }
     
     /** sort  ESModules */
-    public void sortESModules() { Collections.sort(esmodules); hasChanged=true; }
+    public void sortESModules() {Collections.sort(esmodules); hasChanged=true;}
     
     
     //
@@ -775,7 +779,10 @@ public class Configuration implements IConfiguration
     }
 
     /** retrieve service iterator */
-    public Iterator<ServiceInstance> serviceIterator() { return services.iterator(); }
+    public Iterator<ServiceInstance> serviceIterator()
+    {
+	return services.iterator();
+    }
     
     /** insert Service at i=th position */
     public ServiceInstance insertService(int i,String templateName)
@@ -792,7 +799,7 @@ public class Configuration implements IConfiguration
 	try {
 	    instance = (ServiceInstance)template.instance();
 	    services.add(i,instance);
-	    instance.setConfiguration(this);
+	    instance.setConfig(this);
 	    hasChanged = true;
 	}
 	catch (Exception e) {
@@ -827,7 +834,8 @@ public class Configuration implements IConfiguration
     /** get Module by name */
     public ModuleInstance module(String moduleName)
     {
-	for (ModuleInstance m : modules) if (m.name().equals(moduleName)) return m;
+	for (ModuleInstance m : modules)
+	    if (m.name().equals(moduleName)) return m;
 	return null;
     }
     
@@ -838,7 +846,10 @@ public class Configuration implements IConfiguration
     }
     
     /** retrieve module iterator */
-    public Iterator<ModuleInstance> moduleIterator() { return modules.iterator(); }
+    public Iterator<ModuleInstance> moduleIterator()
+    {
+	return modules.iterator();
+    }
     
     /** insert a module */
     public ModuleInstance insertModule(String templateName,String instanceName)
@@ -847,7 +858,8 @@ public class Configuration implements IConfiguration
 	    (ModuleTemplate)release.moduleTemplate(templateName);
 	if (template == null) {
 	    System.err.println("insertModule ERROR: unknown template '" +
-			       templateName+"' (instanceName="+instanceName+")!");
+			       templateName+"' (instanceName=" +
+			       instanceName+")!");
 	    return null;
 	}
 
@@ -856,7 +868,7 @@ public class Configuration implements IConfiguration
 	    instance = (ModuleInstance)template.instance(instanceName);
 	    if (instance.referenceCount()==0) {
 		modules.add(instance);
-		instance.setConfiguration(this);
+		instance.setConfig(this);
 		hasChanged = true;
 	    }
 	}
@@ -871,7 +883,7 @@ public class Configuration implements IConfiguration
     {
 	if (modules.indexOf(module)<0&&module.referenceCount()==0) {
 	    modules.add(i,module);
-	    module.setConfiguration(this);
+	    module.setConfig(this);
 	    hasChanged = true;
 	    return true;
 	}
@@ -922,41 +934,41 @@ public class Configuration implements IConfiguration
     //
     
     /**  number of OutputModules */
-    public int outputCount() { return outputs.size(); }
+    public int outputCount() { return streamCount(); }
 
     /** get i-th OutputModule */
-    public OutputModule output(int i) { return outputs.get(i); }
+    public OutputModule output(int i) { return stream(i).outputModule(); }
     
     /** get OutputModule by name */
     public OutputModule output(String outputName)
     {
-	for (OutputModule om : outputs)
+	Iterator<Stream> itS = streamIterator();
+	while (itS.hasNext()) {
+	    OutputModule om = itS.next().outputModule();
 	    if (om.name().equals(outputName)) return om;
+	}
 	return null;
     }
     
     /** index of a certain OutputModule */
     public int indexOfOutput(OutputModule output)
     {
-	return outputs.indexOf(output);
+	int index = 0;
+	Iterator<Stream> itS = streamIterator();
+	while (itS.hasNext()) {
+	    if (itS.next().outputModule()==output) return index;
+	    index++;
+	}
+	return -1;
     }
     
     /** retrieve OutputModule iterator */
     public Iterator<OutputModule> outputIterator()
     {
+	ArrayList<OutputModule> outputs = new ArrayList<OutputModule>();
+	Iterator<Stream> itS = streamIterator();
+	while (itS.hasNext()) outputs.add(itS.next().outputModule());
 	return outputs.iterator();
-    }
-    
-    /** insert a pre-existing OutputModule */
-    public boolean insertOutput(int i,OutputModule output)
-    {
-	if (outputs.indexOf(output)<0&&output.referenceCount()==0) {
-	    outputs.add(i,output);
-	    output.setConfiguration(this);
-	    hasChanged = true;
-	    return true;
-	}
-	return false;
     }
     
     
@@ -989,7 +1001,7 @@ public class Configuration implements IConfiguration
     {
 	Path path = new Path(pathName);
 	paths.add(i,path);
-	path.setConfiguration(this);
+	path.setConfig(this);
 	hasChanged = true;
 	return path;
     }
@@ -1065,7 +1077,8 @@ public class Configuration implements IConfiguration
     public PathReference insertPathReference(ReferenceContainer parentPath,
 					     int i,Path path)
     {
-	PathReference reference = (PathReference)path.createReference(parentPath,i);
+	PathReference reference =
+	    (PathReference)path.createReference(parentPath,i);
 	hasChanged = true;
 	return reference;
     }
@@ -1099,17 +1112,23 @@ public class Configuration implements IConfiguration
     }
     
     /** retrieve sequence iterator */
-    public Iterator<Sequence> sequenceIterator() { return sequences.iterator(); }
+    public Iterator<Sequence> sequenceIterator()
+    {
+	return sequences.iterator();
+    }
     
     /** retrieve sequence iterator */
-    public Iterator<Sequence> orderedSequenceIterator() { return sequenceIterator(); }
+    public Iterator<Sequence> orderedSequenceIterator()
+    {
+	return sequenceIterator();
+    }
     
     /** insert sequence */
     public Sequence insertSequence(int i,String sequenceName)
     {
 	Sequence sequence = new Sequence(sequenceName);
 	sequences.add(i,sequence);
-	sequence.setConfiguration(this);
+	sequence.setConfig(this);
 	hasChanged = true;
 	return sequence;
     }
@@ -1132,7 +1151,8 @@ public class Configuration implements IConfiguration
     public void removeSequence(Sequence sequence)
     {
 	while (sequence.referenceCount()>0) {
-	    SequenceReference reference = (SequenceReference)sequence.reference(0);
+	    SequenceReference reference
+		= (SequenceReference)sequence.reference(0);
 	    reference.remove();
 	}
 	
@@ -1156,8 +1176,8 @@ public class Configuration implements IConfiguration
     }
     
     /** insert a sequence reference into another path */
-    public SequenceReference insertSequenceReference(ReferenceContainer parent,int i,
-						     Sequence sequence)
+    public SequenceReference insertSequenceReference(ReferenceContainer parent,
+						     int i, Sequence sequence)
     {
 	SequenceReference reference =
 	    (SequenceReference)sequence.createReference(parent,i);
@@ -1194,12 +1214,12 @@ public class Configuration implements IConfiguration
     public Iterator<EventContent> contentIterator(){return contents.iterator();}
     
     /** insert new event content */
-    public EventContent insertContent(String contentLabel)
+    public EventContent insertContent(int i,String contentLabel)
     {
 	for (EventContent ec : contents)
 	    if (ec.label().equals(contentLabel)) return ec;
 	EventContent content = new EventContent(contentLabel);
-	contents.add(content);
+	contents.add(i,content);
 	hasChanged = true;
 	return content;
     }
@@ -1276,7 +1296,7 @@ public class Configuration implements IConfiguration
 	return streams.iterator();
     }
 
-    
+
     //
     // Primary Datasets
     //

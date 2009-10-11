@@ -206,7 +206,7 @@ public class ReleaseMigrator
     public int missingParameterCount() { return missingParameterCount; }
     
     /** retrieve number of missing templates */
-    public int mismatchParameterTypeCount() { return mismatchParameterTypeCount; }
+    public int mismatchParameterTypeCount(){return mismatchParameterTypeCount;}
 
     
     //
@@ -230,11 +230,21 @@ public class ReleaseMigrator
 	    String    parameterType   = targetParameter.type();
 	    Parameter sourceParameter = source.parameter(parameterName,
 							 parameterType);
+
 	    if (sourceParameter!=null) {
 		if (sourceParameter.type().equals(parameterType)) {
-		    String valueAsString=sourceParameter.valueAsString();
-		    target.updateParameter(parameterName,parameterType,
-					   valueAsString);
+		    if (sourceParameter.isDefault()) {// THIS IS NEW! 8/10/2009
+			String msg =
+			    "PARAMETER REMAINS AT DEFAULT: "+
+			    "source="+sourceParameter+" -> "+
+			    "target="+targetParameter;
+			messages.add(msg);
+		    }
+		    else {
+			String valueAsString=sourceParameter.valueAsString();
+			target.updateParameter(parameterName,parameterType,
+					       valueAsString);
+		    }
 		}
 		else {
 		    String msg =
@@ -256,7 +266,22 @@ public class ReleaseMigrator
 		messages.add(msg);
 		missingParameterCount++;
 	    }
-	}	
+	}
+	
+	// consider added untracked top-level parameters!
+	for (int i=source.template().parameterCount();
+	     i<source.parameterCount();i++) {
+	    Parameter sourceParameter = source.parameter(i);
+	    if (source.isParameterRemovable(sourceParameter)) {
+		target.updateParameter(sourceParameter.name(),
+				       sourceParameter.type(),
+				       sourceParameter.valueAsString());
+	    }
+	    else {
+		System.err.println("ERROR: this is not a removable parameter:"+
+				   sourceParameter+", WHAT THE F!@# !?");
+	    }
+	}
     }
     
     /** migrate references from source Path/Sequence to target Path/Sequence */

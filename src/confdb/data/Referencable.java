@@ -17,6 +17,9 @@ public interface Referencable
     /** set name of this referencable */
     public void setName(String name) throws DataException;
 
+    /** parent configuration of this referencable */
+    public IConfiguration config();
+
     /** create a reference of this in a reference container (path/sequence) */
     public Reference createReference(ReferenceContainer container,int i);
 

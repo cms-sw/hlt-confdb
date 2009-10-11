@@ -424,9 +424,12 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    if (parent.equals(esmodulesNode)) return config.esmodule(i);
 	    if (parent.equals(servicesNode))  return config.service(i);
 	    if (parent.equals(pathsNode))     return config.path(i);
+	    if (parent.equals(sequencesNode)) return config.sequence(i);
 	    if (parent.equals(modulesNode))   return config.module(i);
 	    if (parent.equals(outputsNode))   return config.output(i);
-	    if (parent.equals(sequencesNode)) return config.sequence(i);
+	    if (parent.equals(contentsNode))  return config.content(i);
+	    if (parent.equals(streamsNode))   return config.stream(i);
+	    if (parent.equals(datasetsNode))  return config.dataset(i);
 	}
 	else if (parent instanceof ParameterContainer) {
 	    ParameterContainer container = (ParameterContainer)parent;

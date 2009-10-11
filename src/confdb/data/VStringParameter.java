@@ -100,7 +100,8 @@ public class VStringParameter extends VectorParameter
 	    StringBuffer sb = new StringBuffer();
 	    for (int i=0;i<valueAsString.length();i++) {
 		String c =
-		    new StringBuffer().append(valueAsString.charAt(i)).toString();
+		    new StringBuffer()
+		    .append(valueAsString.charAt(i)).toString();
 		if (c.equals(",")&&delim==null) {
 		    values.add(stripDelimiters(sb.toString()));
 		    sb = new StringBuffer();
@@ -150,6 +151,10 @@ public class VStringParameter extends VectorParameter
 	isValueSet = (values.size()>0);
 	return result;
     }
+
+    //
+    // private member functions
+    //
 
     /** strip string-delimiters and whitespaces */
     private String stripDelimiters(String valueAsString)

@@ -41,7 +41,8 @@ public class ConfigurationTreeActions
 	int    index  = -1;
 	Object parentOfPSet = null;
 	
-	if (target instanceof VPSetParameter && parameter instanceof PSetParameter) {
+	if (target instanceof VPSetParameter&&
+	    parameter instanceof PSetParameter) {
 	    PSetParameter  pset  = (PSetParameter)parameter.clone(null);
 	    VPSetParameter vpset = (VPSetParameter)target;
 	    vpset.addParameterSet(pset);
@@ -440,8 +441,8 @@ public class ConfigurationTreeActions
     /** insert a new path */
     public static boolean insertPath(JTree tree)
     {
-	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config   = (Configuration)model.getRoot();
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 	
 	int index = (treePath.getPathCount()==2) ?
@@ -766,13 +767,15 @@ public class ConfigurationTreeActions
 	    if (!copy) {
 		if (template.hasInstance(instanceName)) {
 		    try {
-			module = (ModuleInstance)template.instance(instanceName);
+			module =
+			    (ModuleInstance)template.instance(instanceName);
 		    }
 		    catch (DataException e) {
 			System.out.println(e.getMessage());
 			return false;
 		    }
-		    reference = config.insertModuleReference(parent,index,module);
+		    reference =
+			config.insertModuleReference(parent,index,module);
 		}
 		else  {
 		    instanceName = templateName; int count=2;
@@ -780,7 +783,8 @@ public class ConfigurationTreeActions
 			instanceName = templateName + count; ++count;
 		    }
 		    reference = config.insertModuleReference(parent,index,
-							     templateName,instanceName);
+							     templateName,
+							     instanceName);
 		    module = (ModuleInstance)reference.parent();
 		}
 	    }
@@ -795,7 +799,8 @@ public class ConfigurationTreeActions
 		}
 		instanceName = "copy_of_" + instanceName;
 		reference = config.insertModuleReference(parent,index,
-							 templateName,instanceName);
+							 templateName,
+							 instanceName);
 		module = (ModuleInstance)reference.parent();
 		Iterator<Parameter> itP = original.parameterIterator();
 		while (itP.hasNext()) {
@@ -825,7 +830,7 @@ public class ConfigurationTreeActions
     /** move a reference within its container */
     public static boolean moveReference(JTree tree,Reference sourceReference)
     {
-	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config   = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 	
@@ -838,7 +843,8 @@ public class ConfigurationTreeActions
 	
 	int sourceIndex = container.indexOfEntry(sourceReference);
 	int targetIndex = (treePath.getPathCount()==3) ?
-	    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+	    0:model.getIndexOfChild(treePath.getParentPath()
+				    .getLastPathComponent(),
 				    treePath.getLastPathComponent())+1;
 	
 	container.moveEntry(sourceReference,targetIndex);
@@ -852,10 +858,10 @@ public class ConfigurationTreeActions
     /** remove a reference container */
     public static boolean removeReferenceContainer(JTree tree)
     {
-	ConfigurationTreeModel model     = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config    = (Configuration)model.getRoot();
-	TreePath               treePath  = tree.getSelectionPath();
-	ReferenceContainer     container =
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config   = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	ReferenceContainer     container=
 	    (ReferenceContainer)treePath.getLastPathComponent();
 	
 	ArrayList<Integer> unreferencedIndices = new ArrayList<Integer>();
@@ -905,7 +911,8 @@ public class ConfigurationTreeActions
 	else
 	    tree.setSelectionPath(parentTreePath
 				  .pathByAddingChild(model
-						     .getChild(parent,index-1)));
+						     .getChild(parent,
+							       index-1)));
 	
 	return true;
     }
@@ -913,10 +920,10 @@ public class ConfigurationTreeActions
     /** remove reference from currently selected reference container */
     public static boolean removeReference(JTree tree)
     {
-	ConfigurationTreeModel model     = (ConfigurationTreeModel)tree.getModel();
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config    = (Configuration)model.getRoot();
 	TreePath               treePath  = tree.getSelectionPath();
-	Reference              reference = (Reference)treePath.getLastPathComponent();
+	Reference       reference = (Reference)treePath.getLastPathComponent();
 	ReferenceContainer     container = reference.container();
 	int                    index     = container.indexOfEntry(reference);
 	ModuleInstance         module    = null;
@@ -942,7 +949,8 @@ public class ConfigurationTreeActions
 	    tree.setSelectionPath(parentTreePath);
 	else
 	    tree.setSelectionPath(parentTreePath
-				  .pathByAddingChild(model.getChild(parent,index-1)));
+				  .pathByAddingChild(model.getChild(parent,
+								    index-1)));
 
 	return true;
     }
@@ -967,9 +975,9 @@ public class ConfigurationTreeActions
     /** import a single module into path or sequence */
     public static boolean importModule(JTree tree,ModuleInstance external)
     {
-	ConfigurationTreeModel model     =(ConfigurationTreeModel)tree.getModel();
-	Configuration          config    =(Configuration)model.getRoot();
-	TreePath               treePath  =tree.getSelectionPath();
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config   = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
 	
 	ReferenceContainer parent        = null;
 	ModuleInstance     target        = config.module(external.name());
@@ -1045,6 +1053,111 @@ public class ConfigurationTreeActions
 	Configuration          config = (Configuration)model.getRoot();
 	config.sortModules();
 	model.nodeStructureChanged(model.modulesNode());
+    }
+    
+
+    //
+    // EventContents
+    //
+
+    /** insert a new event content */
+    public static boolean insertContent(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	int index = (treePath.getPathCount()==2) ?
+	    0 : model.getIndexOfChild(treePath.getParentPath()
+				      .getLastPathComponent(),
+				      treePath.getLastPathComponent())+1;
+	
+	EventContent content =
+	    config.insertContent(index,"<ENTER EVENTCONTENT LABEL>");
+	
+	
+	model.nodeInserted(model.contentsNode(),index);
+	model.updateLevel1Nodes();
+	
+	TreePath parentPath = (index==0) ? treePath : treePath.getParentPath();
+	TreePath newTreePath = parentPath.pathByAddingChild(content);
+
+	tree.setSelectionPath(newTreePath);
+	editNodeName(tree);
+	
+	return true;
+    }
+    
+
+    //
+    // Streams
+    //
+    
+    /** insert a new stream */
+    public static boolean insertStream(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	int index = (treePath.getPathCount()==2) ?
+	    0 : model.getIndexOfChild(treePath.getParentPath()
+				      .getLastPathComponent(),
+				      treePath.getLastPathComponent())+1;
+	
+	CreateStreamDialog dlg = new CreateStreamDialog(config);
+	dlg.pack();
+	dlg.setVisible(true);
+	if (!dlg.isValid()) return false;
+	
+	Stream stream = dlg.getStream();
+		
+	model.nodeInserted(model.streamsNode(),index);
+	model.nodeInserted(stream.parentContent(),
+			   stream.parentContent().indexOfStream(stream));
+	model.updateLevel1Nodes();
+	
+	TreePath parentPath = (index==0) ? treePath : treePath.getParentPath();
+	TreePath newTreePath = parentPath.pathByAddingChild(stream);
+	tree.setSelectionPath(newTreePath);
+	
+	return true;
+    }
+    
+    
+    //
+    // PrimaryDatasets
+    //
+        /** insert a new event content */
+    public static boolean insertPrimaryDataset(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	int index = (treePath.getPathCount()==2) ?
+	    0 : model.getIndexOfChild(treePath.getParentPath()
+				      .getLastPathComponent(),
+				      treePath.getLastPathComponent())+1;
+	
+	CreateDatasetDialog dlg = new CreateDatasetDialog(config);
+	dlg.pack();
+	dlg.setVisible(true);
+	if (!dlg.isValid()) return false;
+	
+	PrimaryDataset dataset = dlg.getDataset();
+	
+	
+	model.nodeInserted(model.datasetsNode(),index);
+	model.nodeInserter(dataset.parentStream(),
+			   dataset.parentStream().indexOfDataset(dataset));
+	model.updateLevel1Nodes();
+	
+	TreePath parentPath = (index==0) ? treePath : treePath.getParentPath();
+	TreePath newTreePath = parentPath.pathByAddingChild(content);
+	tree.setSelectionPath(newTreePath);
+	
+	return true;
     }
     
 

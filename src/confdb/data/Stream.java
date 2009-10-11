@@ -24,6 +24,9 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 
     /** reference to parent event content */
     private EventContent parentContent = null;
+    
+    /** associated output module */
+    private OutputModule outputModule = null;
 
     /** collection of assigned paths */
     private ArrayList<Path> paths = new ArrayList<Path>();
@@ -41,6 +44,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     {
 	this.label = label;
 	this.parentContent = parentContent;
+	this.outputModule = new OutputModule("hltOutput"+label,this);
     }
     
     
@@ -56,7 +60,16 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     
     /** overload 'toString()' */
     public String toString() { return label(); }
+
+    /** get parent event content */
+    public EventContent parentContent() { return parentContent; }
+
+    /** get associated output module */
+    public OutputModule outputModule() { return outputModule; }
    
+    /** get the parent configuration */
+    public IConfiguration config() { return parentContent.config(); }
+
     /** Comparable: compareTo() */
     public int compareTo(Stream s) {return toString().compareTo(s.toString());}
     
