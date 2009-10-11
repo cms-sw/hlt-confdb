@@ -2,8 +2,6 @@ package confdb.gui;
 
 import javax.swing.*;
 import javax.swing.filechooser.*;
-import java.beans.*;
-import java.awt.*;
 import java.awt.event.*;
 
 import confdb.db.ConfDB;

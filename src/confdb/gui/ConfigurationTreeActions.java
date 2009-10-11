@@ -1105,12 +1105,12 @@ public class ConfigurationTreeActions
 				      .getLastPathComponent(),
 				      treePath.getLastPathComponent())+1;
 	
-	CreateStreamDialog dlg = new CreateStreamDialog(config);
-	dlg.pack();
+        CreateStreamDialog dlg = new CreateStreamDialog(config);
+//dlg.pack();
 	dlg.setVisible(true);
-	if (!dlg.isValid()) return false;
+	if (!dlg.isSuccess()) return false;
 	
-	Stream stream = dlg.getStream();
+	Stream stream = dlg.stream();
 		
 	model.nodeInserted(model.streamsNode(),index);
 	model.nodeInserted(stream.parentContent(),
@@ -1141,20 +1141,19 @@ public class ConfigurationTreeActions
 				      treePath.getLastPathComponent())+1;
 	
 	CreateDatasetDialog dlg = new CreateDatasetDialog(config);
-	dlg.pack();
+	//dlg.pack();
 	dlg.setVisible(true);
-	if (!dlg.isValid()) return false;
+	if (!dlg.isSuccess()) return false;
 	
-	PrimaryDataset dataset = dlg.getDataset();
-	
-	
+	PrimaryDataset dataset = dlg.dataset();
+
 	model.nodeInserted(model.datasetsNode(),index);
-	model.nodeInserter(dataset.parentStream(),
+	model.nodeInserted(dataset.parentStream(),
 			   dataset.parentStream().indexOfDataset(dataset));
 	model.updateLevel1Nodes();
 	
 	TreePath parentPath = (index==0) ? treePath : treePath.getParentPath();
-	TreePath newTreePath = parentPath.pathByAddingChild(content);
+	TreePath newTreePath = parentPath.pathByAddingChild(dataset);
 	tree.setSelectionPath(newTreePath);
 	
 	return true;

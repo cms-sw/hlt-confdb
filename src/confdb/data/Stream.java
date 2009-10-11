@@ -1,6 +1,5 @@
 package confdb.data;
 
-import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -51,7 +50,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     //
     // member functions
     //
-    
+
     /** label of this stream */
     public String label() { return label; }
     
@@ -173,13 +172,16 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     public int indexOfDataset(PrimaryDataset ds) {return datasets.indexOf(ds);}
     
     /** insert and associate a primary dataset with this stream */
-    public boolean insertDataset(String datasetLabel)
+    public PrimaryDataset insertDataset(String datasetLabel)
     {
-	for (PrimaryDataset pd : datasets)
-	    if (pd.label().equals(datasetLabel)) return false;
-	datasets.add(new PrimaryDataset(datasetLabel,this));
-	setHasChanged();
-	return true;
+        for (PrimaryDataset pd : datasets)
+            if (pd.label().equals(datasetLabel)) {
+                return null;
+            }
+        PrimaryDataset result = new PrimaryDataset(datasetLabel, this);
+        datasets.add(result);
+        setHasChanged();
+        return result;
     }
     
     /** remove a dataset from this stream */
