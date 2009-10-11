@@ -1088,6 +1088,45 @@ public class ConfigurationTreeActions
 	return true;
     }
     
+    /** remove an existing event content */
+    public static boolean removeContent(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	EventContent content = (EventContent)treePath.getLastPathComponent();
+	int          index   = config.indexOfContent(content);
+	
+	int streamCount = 0;
+	Iterator<Stream> itS = content.streamIterator();
+	while (itS.hasNext()) {
+	    Stream stream = itS.next();
+	    int datasetCount = 0;
+	    Iterator<PrimaryDataset> itPD = stream.datasetIterator();
+	    while (itPD.hasNext()) {
+		PrimaryDataset dataset = itPD.next();
+		model.nodeRemoved(model.datasetsNode(),
+				  config.indexOfDataset(dataset)-datasetCount,
+				  dataset);
+		datasetCount++;
+	    }
+	    OutputModule output = stream.outputModule();
+	    model.nodeRemoved(model.streamsNode(),
+			      config.indexOfStream(stream)-streamCount,
+			      stream);
+	    model.nodeRemoved(model.outputsNode(),
+			      config.indexOfOutput(output)-streamCount,
+			      output);
+	    streamCount++;
+	}
+	
+	config.removeContent(content);
+	model.nodeRemoved(model.contentsNode(),index,content);
+	model.updateLevel1Nodes();
+	
+	return true;
+    }
 
     //
     // Streams
@@ -1104,20 +1143,33 @@ public class ConfigurationTreeActions
 	model.nodeInserted(model.streamsNode(),index);
 	model.nodeInserted(stream.parentContent(),
 			   stream.parentContent().indexOfStream(stream));
+	model.nodeInserted(model.outputsNode(),
+			   config.indexOfOutput(stream.outputModule()));
 	model.updateLevel1Nodes();
 	
-	//TreePath parentPath = model.streamsNode();
-	//TreePath newTreePath = parentPath.pathByAddingChild(stream);
-	//tree.setSelectionPath(newTreePath);
+	
+	TreePath newTreePath = treePath.pathByAddingChild(stream);
+	tree.setSelectionPath(newTreePath);
 	
 	return true;
     }
     
+    /** remove an existing stream */
+    public static boolean removeStream(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+
+	Stream stream = (Stream)treePath.getLastPathComponent();
+
+	return true;
+    }
     
     //
     // PrimaryDatasets
     //
-    /** insert a new event content */
+    /** insert a newly created primary dataset */
     public static boolean insertPrimaryDataset(JTree tree,
 					       PrimaryDataset dataset)
     {
@@ -1129,11 +1181,24 @@ public class ConfigurationTreeActions
 	model.nodeInserted(model.datasetsNode(),index);
 	model.nodeInserted(dataset.parentStream(),
 			   dataset.parentStream().indexOfDataset(dataset));
+	model.nodeStructureChanged(model.contentsNode());
 	model.updateLevel1Nodes();
 	
-	//TreePath parentPath  = model.datasetsNode();
-	//TreePath newTreePath = parentPath.pathByAddingChild(dataset);
-	//tree.setSelectionPath(newTreePath);
+	TreePath newTreePath = treePath.pathByAddingChild(dataset);
+	tree.setSelectionPath(newTreePath);
+	
+	return true;
+    }
+    
+    /** remove an existing primary dataset */
+    public static boolean removePrimaryDataset(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+
+	PrimaryDataset dataset =
+	    (PrimaryDataset)treePath.getLastPathComponent();
 	
 	return true;
     }
@@ -1440,9 +1505,9 @@ public class ConfigurationTreeActions
      */
     private static boolean removeNode(JTree tree,Object node)
     {
-	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config   = (Configuration)model.getRoot();
-	TreePath               treePath = tree.getSelectionPath().getParentPath();
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration        config   = (Configuration)model.getRoot();
+	TreePath             treePath = tree.getSelectionPath().getParentPath();
 	
 	int    index  =   -1;
 	Object parent = null;

@@ -3,6 +3,7 @@ package confdb.gui;
 import java.util.Iterator;
 
 import javax.swing.*;
+import javax.swing.event.*;
 import java.awt.event.*;
 
 import confdb.data.EventContent;
@@ -80,6 +81,43 @@ public class CreateStreamDialog extends JDialog
         }
     }
 
+    //
+    // ACTIONLISTENER CALLBACKS
+    //
+    private void jButtonOKActionPerformed(ActionEvent evt)
+    {
+        String streamLabel = jTextFieldStreamLabel.getText();
+        String contentLabel = (String)jComboBoxEventContent.getSelectedItem();
+        EventContent content = config.content(contentLabel);
+        if (content==null) {
+            content = config.insertContent(config.contentCount(),
+                                           "hltEventContent" + streamLabel);
+        }
+        stream = content.insertStream(streamLabel);
+        setVisible(false);
+    }
+    private void jButtonCancelActionPerformed(ActionEvent evt)
+    {
+        setVisible(false);
+    }
+
+    //
+    // DOCUMENTLISTENER CALLBACKS
+    //
+    private void jTextFieldStreamLabelInsertUpdate(DocumentEvent e)
+    {
+	String streamLabel = jTextFieldStreamLabel.getText();
+	if (config.stream(streamLabel)==null) jButtonOK.setEnabled(true);
+	else jButtonOK.setEnabled(false);
+    }
+    public void jTextFieldStreamLabelRemoveUpdate(DocumentEvent e)
+    {
+	String streamLabel = jTextFieldStreamLabel.getText();
+	if (config.stream(streamLabel)==null) jButtonOK.setEnabled(true);
+	else jButtonOK.setEnabled(false);
+    }
+    
+
     /** generate the graphical components */
     private JPanel initComponents()
     {
@@ -93,17 +131,23 @@ public class CreateStreamDialog extends JDialog
         jButtonOK = new JButton();
         jButtonCancel = new JButton();
 	
-        jTextFieldStreamLabel.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent evt) {
-		    jTextFieldStreamLabelActionPerformed(evt);
-		}
-	    });
+        jTextFieldStreamLabel.getDocument()
+	    .addDocumentListener(new DocumentListener() {
+		    public void insertUpdate(DocumentEvent e) {
+			jTextFieldStreamLabelInsertUpdate(e);
+		    }
+		    public void removeUpdate(DocumentEvent e) {
+			jTextFieldStreamLabelRemoveUpdate(e);
+		    }
+		    public void changedUpdate(DocumentEvent e) {}
+		});
 	
         jLabelStreamLabel.setText("Stream Name:");
 	
         jLabelEventContent.setText("Event Content:");
 
-        jComboBoxEventContent.setModel(new DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jComboBoxEventContent
+	    .setModel(new DefaultComboBoxModel(new String[] {} ));
 
         jButtonOK.setText("OK");
         jButtonOK.addActionListener(new ActionListener() {
@@ -169,28 +213,6 @@ public class CreateStreamDialog extends JDialog
 	return jPanel;
     }
 
-    private void jButtonOKActionPerformed(ActionEvent evt)
-    {
-        String streamLabel = jTextFieldStreamLabel.getText();
-        String contentLabel = (String)jComboBoxEventContent.getSelectedItem();
-        EventContent content = config.content(contentLabel);
-        if (content==null) {
-            content = config.insertContent(config.contentCount(),
-                                           "hltEventContent" + streamLabel);
-        }
-        stream = content.insertStream(streamLabel);
-        setVisible(false);
-    }
-    private void jButtonCancelActionPerformed(ActionEvent evt)
-    {
-        setVisible(false);
-    }
-    private void jTextFieldStreamLabelActionPerformed(ActionEvent evt)
-    {
-        String streamLabel = jTextFieldStreamLabel.getText();
-        if (config.stream(streamLabel)==null) jButtonOK.setEnabled(false);
-        else jButtonOK.setEnabled(true);
-    }
 
 
 

@@ -71,6 +71,9 @@ public class OutputModule extends ParameterContainer implements Referencable
     // member functions
     //
 
+    /** Object: toString() */
+    public String toString() { return name(); }
+
     /** ParameterContainer: indicate wether parameter is at its default */
     public boolean isParameterAtItsDefault(Parameter p)  { return false; }
     

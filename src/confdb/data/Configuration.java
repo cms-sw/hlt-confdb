@@ -1254,8 +1254,12 @@ public class Configuration implements IConfiguration
 	Iterator<EventContent> itC = contentIterator();
 	while (itC.hasNext()) {
 	    EventContent ec = itC.next();
-	    if (offset+ec.streamCount()>=i) offset += ec.streamCount();
-	    else return ec.stream(i-offset);
+	    if (i>=(offset+ec.streamCount())) {
+		offset += ec.streamCount();
+	    }
+	    else {
+		return ec.stream(i-offset);
+	    }
 	}
 	return null;
     }
@@ -1317,8 +1321,12 @@ public class Configuration implements IConfiguration
 	Iterator<Stream> itS = streamIterator();
 	while (itS.hasNext()) {
 	    Stream s = itS.next();
-	    if (offset+s.datasetCount()>=i) offset += s.datasetCount();
-	    else return s.dataset(i-offset);
+	    if (i>=(offset+s.datasetCount())) {
+		offset += s.datasetCount();
+	    }
+	    else {
+		return s.dataset(i-offset);
+	    }
 	}
 	return null;
     }

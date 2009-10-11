@@ -3,6 +3,7 @@ package confdb.gui;
 import java.util.Iterator;
 
 import javax.swing.*;
+import javax.swing.event.*;
 import java.awt.event.*;
 
 import confdb.data.Configuration;
@@ -81,7 +82,40 @@ public class CreateDatasetDialog extends JDialog
         }
     }
 
+    //
+    // ACTIONLISTENER CALLBACKS
+    //
+    private void jButtonOKActionPerformed(ActionEvent evt)
+    {
+        String datasetLabel = jTextFieldDatasetLabel.getText();
+        String streamLabel  = (String)jComboBoxStreamLabel.getSelectedItem();
+        Stream stream = config.stream(streamLabel);
+        dataset = stream.insertDataset(datasetLabel);
+	setVisible(false);
+    }
 
+    private void jButtonCancelActionPerformed(ActionEvent evt) 
+    {
+	setVisible(false);
+    }
+
+
+    //
+    // DOCUMENTLISTENER CALLBACKS
+    //
+    private void jTextFieldDatasetLabelInsertUpdate(DocumentEvent e)
+    {
+	String datasetLabel = jTextFieldDatasetLabel.getText();
+	if (config.dataset(datasetLabel)==null) jButtonOK.setEnabled(true);
+	else jButtonOK.setEnabled(false);
+    }
+    public void jTextFieldDatasetLabelRemoveUpdate(DocumentEvent e)
+    {
+	String datasetLabel = jTextFieldDatasetLabel.getText();
+	if (config.dataset(datasetLabel)==null) jButtonOK.setEnabled(true);
+	else jButtonOK.setEnabled(false);
+    }
+    
     /** init graphical components */
     private JPanel initComponents()
     {
@@ -96,13 +130,19 @@ public class CreateDatasetDialog extends JDialog
 
         jLabel1.setText("Primary Dataset Name:");
 
-        jTextFieldDatasetLabel.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent evt) {
-		    jTextFieldDatasetLabelActionPerformed(evt);
-		}
-	    });
+        jTextFieldDatasetLabel.getDocument()
+	    .addDocumentListener(new DocumentListener() {
+		    public void insertUpdate(DocumentEvent e) {
+			jTextFieldDatasetLabelInsertUpdate(e);
+		    }
+		    public void removeUpdate(DocumentEvent e) {
+			jTextFieldDatasetLabelRemoveUpdate(e);
+		    }
+		    public void changedUpdate(DocumentEvent e) {}
+		});
 
-        jComboBoxStreamLabel.setModel(new DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jComboBoxStreamLabel
+	    .setModel(new DefaultComboBoxModel(new String[] {} ));
 
         jLabel2.setText("Stream:");
 
@@ -162,25 +202,6 @@ public class CreateDatasetDialog extends JDialog
 					  .addContainerGap())
 				);
 	return jPanel;
-    }
-
-    private void jTextFieldDatasetLabelActionPerformed(ActionEvent evt)
-    {
-        String datasetLabel = jTextFieldDatasetLabel.getText();
-        if (config.dataset(datasetLabel)==null) jButtonOK.setEnabled(true);
-        else jButtonOK.setEnabled(false);
-    }
-    private void jButtonOKActionPerformed(ActionEvent evt)
-    {
-        String datasetLabel = jTextFieldDatasetLabel.getText();
-        String streamLabel  = (String)jComboBoxStreamLabel.getSelectedItem();
-        Stream stream = config.stream(streamLabel);
-        dataset = stream.insertDataset(datasetLabel);
-    }
-
-    private void jButtonCancelActionPerformed(ActionEvent evt)
-    {
-        setVisible(false);
     }
 
 }

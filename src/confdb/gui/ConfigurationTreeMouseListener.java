@@ -737,47 +737,52 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	
 	menuItem = new JMenuItem("Add EventContent");
 	menuItem.addActionListener(contentListener);
+	menuItem.setActionCommand("ADD");
 	popupContents.add(menuItem);
 	
 	if (depth==3) {
 	    EventContent content = (EventContent)node;
 
-	    menuItem = new JMenuItem("Add Stream");
-	    menuItem.addActionListener(contentListener);
-	    popupContents.add(menuItem);
+	    //menuItem = new JMenuItem("Add Stream");
+	    //menuItem.addActionListener(contentListener);
+	    //popupContents.add(menuItem);
 	    
-	    JMenu addPathMenu = new ScrollableMenu("Add Path");
-	    popupContents.add(addPathMenu);
+	    //JMenu addPathMenu = new ScrollableMenu("Add Path");
+	    //popupContents.add(addPathMenu);
 
-	    menuItem = new JMenuItem("Rename " + content.label());
+	    menuItem = new JMenuItem("<html>Rename <i>" + content.label() +
+				     "</i></html>");
 	    menuItem.addActionListener(contentListener);
+	    menuItem.setActionCommand("RENAME");
 	    popupContents.add(menuItem);
 	    
-	    menuItem = new JMenuItem("Remove " + content.label());
+	    menuItem = new JMenuItem("<html>Remove <i>" + content.label()
+				     + "</i></html>");
 	    menuItem.addActionListener(contentListener);
+	    menuItem.setActionCommand("REMOVE");
 	    popupContents.add(menuItem);
 	    
 	    popupContents.addSeparator();
 	    
-	    menuItem = new JMenuItem("Edit " + content.label());
-	    menuItem.addActionListener(contentListener);
-	    popupContents.add(menuItem);
+	    //menuItem = new JMenuItem("Edit " + content.label());
+	    //menuItem.addActionListener(contentListener);
+	    //popupContents.add(menuItem);
 	    
-	    TreeModel      model  = tree.getModel();
-	    IConfiguration config = (IConfiguration)model.getRoot();
-	    ArrayList<Path> paths = new ArrayList<Path>();
-	    Iterator<Path> itP = config.pathIterator();
-	    while (itP.hasNext()) {
-		Path path = itP.next();
-		if (content.indexOfPath(path)<0) paths.add(path);
-	    }
-	    Collections.sort(paths);
-	    itP = paths.iterator();
-	    while (itP.hasNext()) {
-		menuItem = new JMenuItem(itP.next().name());
-		menuItem.addActionListener(contentListener);
-		addPathMenu.add(menuItem);
-	    }
+	    //TreeModel      model  = tree.getModel();
+	    //IConfiguration config = (IConfiguration)model.getRoot();
+	    //ArrayList<Path> paths = new ArrayList<Path>();
+	    //Iterator<Path> itP = config.pathIterator();
+	    //while (itP.hasNext()) {
+	    //Path path = itP.next();
+	    //if (content.indexOfPath(path)<0) paths.add(path);
+	    //}
+	    //Collections.sort(paths);
+	    //itP = paths.iterator();
+	    //while (itP.hasNext()) {
+	    //menuItem = new JMenuItem(itP.next().name());
+	    //menuItem.addActionListener(contentListener);
+	    //addPathMenu.add(menuItem);
+	    //}
 	}
     }
     
@@ -793,46 +798,51 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	
 	if (depth>3) return;
 	
-	menuItem = new JMenuItem("Add Stream");
-	menuItem.addActionListener(streamListener);
-	menuItem.setActionCommand("NEWSTREAM");
-	popupStreams.add(menuItem);
-	
-	if (depth==3) {
+	if (depth==2) {
+	    menuItem = new JMenuItem("Add Stream");
+	    menuItem.addActionListener(streamListener);
+	    menuItem.setActionCommand("ADD");
+	    popupStreams.add(menuItem);
+	}
+	else if (depth==3) {
 	    Stream stream = (Stream)node;
 
-	    menuItem = new JMenuItem("Add Dataset");
-	    menuItem.addActionListener(streamListener);
-	    popupStreams.add(menuItem);
+	    //menuItem = new JMenuItem("Add Dataset");
+	    //menuItem.addActionListener(streamListener);
+	    //popupStreams.add(menuItem);
 	    
-	    JMenu addPathMenu = new ScrollableMenu("Add Path");
-	    popupStreams.add(addPathMenu);
+	    //JMenu addPathMenu = new ScrollableMenu("Add Path");
+	    //popupStreams.add(addPathMenu);
 
-	    menuItem = new JMenuItem("Rename " + stream.label());
+	    menuItem = new JMenuItem("<html>Rename <i>" + stream.label() +
+				     "</i></html>");
 	    menuItem.addActionListener(streamListener);
+	    menuItem.setActionCommand("RENAME");
 	    popupStreams.add(menuItem);
 	    
-	    menuItem = new JMenuItem("Remove " + stream.label());
+	    menuItem = new JMenuItem("<html>Remove <i>" + stream.label() +
+				     "</i></html>");
 	    menuItem.addActionListener(streamListener);
+	    menuItem.setActionCommand("RENAME");
 	    popupStreams.add(menuItem);
 	    
-	    popupStreams.addSeparator();
+	    //popupStreams.addSeparator();
 	    
-	    TreeModel      model  = tree.getModel();
-	    IConfiguration config = (IConfiguration)model.getRoot();
-	    ArrayList<Path> paths = new ArrayList<Path>();
-	    Iterator<Path> itP = config.pathIterator();
-	    while (itP.hasNext()) {
-		Path path = itP.next();
-		if (stream.indexOfPath(path)<0) paths.add(path);
-	    }
-	    Collections.sort(paths);
-	    itP = paths.iterator();
-	    while (itP.hasNext()) {
-		menuItem = new JMenuItem(itP.next().name());
-		menuItem.addActionListener(streamListener);
-		addPathMenu.add(menuItem);
-	    }
+	    //TreeModel      model  = tree.getModel();
+	    //IConfiguration config = (IConfiguration)model.getRoot();
+	    //ArrayList<Path> paths = new ArrayList<Path>();
+	    //Iterator<Path> itP = config.pathIterator();
+	    //while (itP.hasNext()) {
+	    //Path path = itP.next();
+	    //if (stream.indexOfPath(path)<0) paths.add(path);
+	    //}
+	    //Collections.sort(paths);
+	    //itP = paths.iterator();
+	    //while (itP.hasNext()) {
+	    //menuItem = new JMenuItem(itP.next().name());
+	    //	menuItem.addActionListener(streamListener);
+	    //	addPathMenu.add(menuItem);
+	    //}
 	}
     }
     
@@ -848,43 +858,48 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	
 	if (depth>3) return;
 	
-	menuItem = new JMenuItem("Add Primary Dataset");
-	menuItem.addActionListener(datasetListener);
-	menuItem.setActionCommand("NEWDATASET");
-	popupDatasets.add(menuItem);
-	
-	if (depth==3) {
+	if (depth==2) {
+	    menuItem = new JMenuItem("Add Primary Dataset");
+	    menuItem.addActionListener(datasetListener);
+	    menuItem.setActionCommand("ADD");
+	    popupDatasets.add(menuItem);
+	}
+	else if (depth==3) {
 	    PrimaryDataset dataset = (PrimaryDataset)node;
 
-	    menuItem = new JMenuItem("Add Path");
+	    //menuItem = new JMenuItem("Add Path");
+	    //menuItem.addActionListener(datasetListener);
+	    //popupDatasets.add(menuItem);
+	    
+	    //JMenu addPathMenu = new ScrollableMenu("Add Path");
+	    //popupDatasets.add(addPathMenu);
+	    
+	    menuItem = new JMenuItem("<html>Rename <i>" + dataset.label() +
+				     "</i></html>");
 	    menuItem.addActionListener(datasetListener);
+	    menuItem.setActionCommand("RENAME");
 	    popupDatasets.add(menuItem);
 	    
-	    JMenu addPathMenu = new ScrollableMenu("Add Path");
-	    popupDatasets.add(addPathMenu);
-	    
-	    menuItem = new JMenuItem("Rename " + dataset.label());
+	    menuItem = new JMenuItem("<html>Remove <i>" + dataset.label() +
+				     "</i></html>");
 	    menuItem.addActionListener(datasetListener);
+	    menuItem.setActionCommand("REMOVE");
 	    popupDatasets.add(menuItem);
 	    
-	    menuItem = new JMenuItem("Remove " + dataset.label());
-	    menuItem.addActionListener(datasetListener);
-	    popupDatasets.add(menuItem);
+	    //popupDatasets.addSeparator();
 	    
-	    popupDatasets.addSeparator();
-	    
-	    TreeModel      model  = tree.getModel();
-	    IConfiguration config = (IConfiguration)model.getRoot();
-	    ArrayList<Path> paths =
-		dataset.parentStream().listOfUnassignedPaths();
-	    Collections.sort(paths);
-	    Iterator<Path> itP = paths.iterator();
-	    while (itP.hasNext()) {
-		menuItem = new JMenuItem(itP.next().name());
-		menuItem.addActionListener(datasetListener);
-		addPathMenu.add(menuItem);
-	    }
-	}	
+	    //TreeModel      model  = tree.getModel();
+	    //IConfiguration config = (IConfiguration)model.getRoot();
+	    //ArrayList<Path> paths =
+	    //dataset.parentStream().listOfUnassignedPaths();
+	    //Collections.sort(paths);
+	    //Iterator<Path> itP = paths.iterator();
+	    //while (itP.hasNext()) {
+	    //menuItem = new JMenuItem(itP.next().name());
+	    //menuItem.addActionListener(datasetListener);
+	    //addPathMenu.add(menuItem);
+	    //}
+	}
     }
     
     
@@ -1488,8 +1503,14 @@ class ContentMenuListener implements ActionListener
 	TreePath  treePath = tree.getSelectionPath();
 	Object    node     = treePath.getLastPathComponent();
 
-	if (cmd.equals("Add EventContent")) {
+	if (action.equals("ADD")) {
 	    ConfigurationTreeActions.insertContent(tree);
+	}
+	else if (action.equals("REMOVE")) {
+	    ConfigurationTreeActions.removeContent(tree);
+	}
+	else if (action.equals("RENAME")) {
+	    ConfigurationTreeActions.editNodeName(tree);
 	}
     }
 }
@@ -1521,7 +1542,7 @@ class StreamMenuListener implements ActionListener
 	TreePath  treePath = tree.getSelectionPath();
 	Object    node     = treePath.getLastPathComponent();
 
-    	if (cmd.equals("Add Stream")) {
+    	if (action.equals("ADD")) {
 	    ConfigurationTreeModel model =
 		(ConfigurationTreeModel)tree.getModel();
 	    Configuration config = (Configuration)model.getRoot();
@@ -1530,6 +1551,12 @@ class StreamMenuListener implements ActionListener
 	    dlg.setVisible(true);
 	    if (dlg.isSuccess())
 		ConfigurationTreeActions.insertStream(tree,dlg.stream());
+	}
+	else if (action.equals("REMOVE")) {
+	    ConfigurationTreeActions.removeStream(tree);
+	}
+	else if (action.equals("RENAME")) {
+	    ConfigurationTreeActions.editNodeName(tree);
 	}
     }
 }
@@ -1561,7 +1588,7 @@ class DatasetMenuListener implements ActionListener
 	TreePath  treePath = tree.getSelectionPath();
 	Object    node     = treePath.getLastPathComponent();
 	
-    	if (cmd.equals("Add Primary Dataset")) {
+    	if (action.equals("ADD")) {
 	    ConfigurationTreeModel model =
 		(ConfigurationTreeModel)tree.getModel();
 	    Configuration config = (Configuration)model.getRoot();
@@ -1571,6 +1598,12 @@ class DatasetMenuListener implements ActionListener
 	    if (dlg.isSuccess())
 		ConfigurationTreeActions.insertPrimaryDataset(tree,
 							      dlg.dataset());
+	}
+	else if (action.equals("REMOVE")) {
+	    ConfigurationTreeActions.removePrimaryDataset(tree);
+	}
+	else if (action.equals("RENAME")) {
+	    ConfigurationTreeActions.editNodeName(tree);
 	}
     }
 }
