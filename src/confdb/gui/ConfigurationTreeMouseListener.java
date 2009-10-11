@@ -123,8 +123,8 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	sequenceListener = new SequenceMenuListener(tree);
 	moduleListener   = new ModuleMenuListener(tree);
 	contentListener  = new ContentMenuListener(tree);
-	streamListener   = new StreamMenuListener(tree);
-	datasetListener  = new DatasetMenuListener(tree);
+	streamListener   = new StreamMenuListener(tree,frame);
+	datasetListener  = new DatasetMenuListener(tree,frame);
     }
     
     
@@ -1502,8 +1502,15 @@ class StreamMenuListener implements ActionListener
     /** reference to the tree to be manipulated */
     private JTree tree = null;
 
+    /** frame */
+    private JFrame frame = null;
+    
     /** standard constructor */
-    public StreamMenuListener(JTree tree) { this.tree = tree; }
+    public StreamMenuListener(JTree tree,JFrame frame)
+    {
+	this.tree = tree;
+	this.frame = frame;
+    }
 
     /** ActionListener: actionPerformed() */
     public void actionPerformed(ActionEvent e)
@@ -1513,6 +1520,17 @@ class StreamMenuListener implements ActionListener
 	String    action   = source.getActionCommand();
 	TreePath  treePath = tree.getSelectionPath();
 	Object    node     = treePath.getLastPathComponent();
+
+    	if (cmd.equals("Add Stream")) {
+	    ConfigurationTreeModel model =
+		(ConfigurationTreeModel)tree.getModel();
+	    Configuration config = (Configuration)model.getRoot();
+	    CreateStreamDialog dlg = new CreateStreamDialog(frame,config);
+	    dlg.pack(); dlg.setLocationRelativeTo(frame);
+	    dlg.setVisible(true);
+	    if (dlg.isSuccess())
+		ConfigurationTreeActions.insertStream(tree,dlg.stream());
+	}
     }
 }
 
@@ -1524,8 +1542,15 @@ class DatasetMenuListener implements ActionListener
     /** reference to the tree to be manipulated */
     private JTree tree = null;
 
+    /** frame */
+    private JFrame frame = null;
+
     /** standard constructor */
-    public DatasetMenuListener(JTree tree) { this.tree = tree; }
+    public DatasetMenuListener(JTree tree,JFrame frame)
+    {
+	this.tree = tree;
+	this.frame = frame;
+    }
 
     /** ActionListener: actionPerformed() */
     public void actionPerformed(ActionEvent e)
@@ -1535,6 +1560,18 @@ class DatasetMenuListener implements ActionListener
 	String    action   = source.getActionCommand();
 	TreePath  treePath = tree.getSelectionPath();
 	Object    node     = treePath.getLastPathComponent();
+	
+    	if (cmd.equals("Add Primary Dataset")) {
+	    ConfigurationTreeModel model =
+		(ConfigurationTreeModel)tree.getModel();
+	    Configuration config = (Configuration)model.getRoot();
+	    CreateDatasetDialog dlg = new CreateDatasetDialog(frame,config);
+	    dlg.pack(); dlg.setLocationRelativeTo(frame);
+	    dlg.setVisible(true);
+	    if (dlg.isSuccess())
+		ConfigurationTreeActions.insertPrimaryDataset(tree,
+							      dlg.dataset());
+	}
     }
 }
 

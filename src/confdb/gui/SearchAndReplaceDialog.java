@@ -171,7 +171,8 @@ public class SearchAndReplaceDialog extends JDialog
     /** update the plugin list based on the plugin type filter settings */
     public void updatePluginList(String pluginType)
     {
-	DefaultComboBoxModel model=(DefaultComboBoxModel)jComboBoxPlugin.getModel();
+	DefaultComboBoxModel model =
+	    (DefaultComboBoxModel)jComboBoxPlugin.getModel();
 	model.removeAllElements();
 	model.addElement("");
 	SoftwareRelease release = config.release();
@@ -188,7 +189,8 @@ public class SearchAndReplaceDialog extends JDialog
     /** update the list of parameters based on the selected plugin */
     private void updateParameterList(String pluginName)
     {
-	DefaultComboBoxModel m=(DefaultComboBoxModel)jComboBoxParameter.getModel();
+	DefaultComboBoxModel m =
+	    (DefaultComboBoxModel)jComboBoxParameter.getModel();
 	m.removeAllElements();
 
 	if (pluginName.equals("")) return;

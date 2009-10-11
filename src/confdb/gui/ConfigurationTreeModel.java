@@ -418,6 +418,13 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    return level1Nodes.get(i);
 	}
 	else if (parent instanceof StringBuffer) {
+	    
+	    // DEBUG
+	    System.out.println("[DEBUG]: ConfigurationDataModel.getChild("+
+			       "parent="+parent+",i="+i);
+	    System.out.println("config.stream("+i+") = "+config.stream(i));
+	    // END DEBUG
+	    
 	    if (parent.equals(psetsNode))     return config.pset(i);
 	    if (parent.equals(edsourcesNode)) return config.edsource(i);
 	    if (parent.equals(essourcesNode)) return config.essource(i);

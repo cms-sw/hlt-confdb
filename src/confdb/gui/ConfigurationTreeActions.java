@@ -1094,32 +1094,21 @@ public class ConfigurationTreeActions
     //
     
     /** insert a new stream */
-    public static boolean insertStream(JTree tree)
+    public static boolean insertStream(JTree tree,Stream stream)
     {
 	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 	
-	int index = (treePath.getPathCount()==2) ?
-	    0 : model.getIndexOfChild(treePath.getParentPath()
-				      .getLastPathComponent(),
-				      treePath.getLastPathComponent())+1;
-	
-        CreateStreamDialog dlg = new CreateStreamDialog(config);
-//dlg.pack();
-	dlg.setVisible(true);
-	if (!dlg.isSuccess()) return false;
-	
-	Stream stream = dlg.stream();
-		
+	int index = config.indexOfStream(stream);
 	model.nodeInserted(model.streamsNode(),index);
 	model.nodeInserted(stream.parentContent(),
 			   stream.parentContent().indexOfStream(stream));
 	model.updateLevel1Nodes();
 	
-	TreePath parentPath = (index==0) ? treePath : treePath.getParentPath();
-	TreePath newTreePath = parentPath.pathByAddingChild(stream);
-	tree.setSelectionPath(newTreePath);
+	//TreePath parentPath = model.streamsNode();
+	//TreePath newTreePath = parentPath.pathByAddingChild(stream);
+	//tree.setSelectionPath(newTreePath);
 	
 	return true;
     }
@@ -1128,33 +1117,23 @@ public class ConfigurationTreeActions
     //
     // PrimaryDatasets
     //
-        /** insert a new event content */
-    public static boolean insertPrimaryDataset(JTree tree)
+    /** insert a new event content */
+    public static boolean insertPrimaryDataset(JTree tree,
+					       PrimaryDataset dataset)
     {
 	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 	
-	int index = (treePath.getPathCount()==2) ?
-	    0 : model.getIndexOfChild(treePath.getParentPath()
-				      .getLastPathComponent(),
-				      treePath.getLastPathComponent())+1;
-	
-	CreateDatasetDialog dlg = new CreateDatasetDialog(config);
-	//dlg.pack();
-	dlg.setVisible(true);
-	if (!dlg.isSuccess()) return false;
-	
-	PrimaryDataset dataset = dlg.dataset();
-
+	int index = config.indexOfDataset(dataset);
 	model.nodeInserted(model.datasetsNode(),index);
 	model.nodeInserted(dataset.parentStream(),
 			   dataset.parentStream().indexOfDataset(dataset));
 	model.updateLevel1Nodes();
 	
-	TreePath parentPath = (index==0) ? treePath : treePath.getParentPath();
-	TreePath newTreePath = parentPath.pathByAddingChild(dataset);
-	tree.setSelectionPath(newTreePath);
+	//TreePath parentPath  = model.datasetsNode();
+	//TreePath newTreePath = parentPath.pathByAddingChild(dataset);
+	//tree.setSelectionPath(newTreePath);
 	
 	return true;
     }
