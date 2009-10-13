@@ -286,56 +286,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     /** indicate if a node is a leaf node */
     public boolean isLeaf(Object node)
     {
-	if (node==getRoot()) return config.isEmpty();
-	
-	if (node instanceof StringBuffer) {
-	    if (node==psetsNode)     return (config.psetCount()==0);
-	    if (node==edsourcesNode) return (config.edsourceCount()==0);
-	    if (node==essourcesNode) return (config.essourceCount()==0);
-	    if (node==esmodulesNode) return (config.esmoduleCount()==0);
-	    if (node==servicesNode)  return (config.serviceCount()==0);
-	    if (node==pathsNode)     return (config.pathCount()==0);
-	    if (node==sequencesNode) return (config.sequenceCount()==0);
-	    if (node==modulesNode)   return (config.moduleCount()==0);
-	    if (node==outputsNode)   return (config.outputCount()==0);
-	    if (node==contentsNode)  return (config.contentCount()==0);
-	    if (node==streamsNode)   return (config.streamCount()==0);
-	    if (node==datasetsNode)  return (config.datasetCount()==0);
-	}
-	
-	if (!displayParameters) return true;
-	
-	if (node instanceof Reference) {
-	    Reference ref = (Reference)node;
-	    node = ref.parent();
-	}
-	
-	boolean result;
-
-	if (node instanceof PSetParameter) {
-	    PSetParameter pset = (PSetParameter)node;
-	    result = (pset.parameterCount()>0) ? false : true;
-	}
-	else if (node instanceof VPSetParameter) {
-	    VPSetParameter vpset = (VPSetParameter)node;
-	    result = (vpset.parameterSetCount()>0) ? false : true;
-	}
-	else if (node instanceof Parameter) {
-	    result = true;
-	}
-	else if (node instanceof ReferenceContainer) {
-	    ReferenceContainer container = (ReferenceContainer)node;
-	    result = (container.entryCount()>0) ? false : true;
-	}
-	else if (node instanceof Instance) {
-	    Instance instance = (Instance)node;
-	    return (instance.parameterCount()>0) ? false : true;
-	}
-	else {
-	    result = (node instanceof Parameter) ? true : false;
-	}
-
-	return result;
+	return (getChildCount(node)==0);
     }
     
     /** number of child nodes */

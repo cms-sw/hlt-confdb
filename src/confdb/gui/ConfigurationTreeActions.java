@@ -29,7 +29,7 @@ public class ConfigurationTreeActions
 					  Parameter          parameter,
 					  ParameterTreeModel parameterTreeModel)
     {
-	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
 	IConfiguration         config   = (IConfiguration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 	
@@ -718,7 +718,7 @@ public class ConfigurationTreeActions
     /** insert reference into currently selected reference container */
     public static boolean insertReference(JTree tree,String type,String name)
     {
-	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config   = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 	int                    depth    = treePath.getPathCount();
@@ -736,19 +736,28 @@ public class ConfigurationTreeActions
 	if (type.equalsIgnoreCase("Path")) {
 	    Path referencedPath = config.path(name);
 	    if (referencedPath==null) return false;
-	    reference=config.insertPathReference(parent,index,referencedPath);
+	    reference =
+		config.insertPathReference(parent,index,referencedPath);
 	}
 	else if (type.equalsIgnoreCase("Sequence")) {
 	    Sequence referencedSequence = config.sequence(name);
 	    if (referencedSequence==null) return false;
-	    reference=config.insertSequenceReference(parent,index,referencedSequence);
+	    reference =
+		config.insertSequenceReference(parent,index,referencedSequence);
+	}
+	else if (type.equalsIgnoreCase("OutputModule")) {
+	    OutputModule referencedOutput = config.output(name);
+	    if (referencedOutput==null) return false;
+	    reference =
+		config.insertOutputModuleReference(parent,index,
+						   referencedOutput);
 	}
 	else if (type.equalsIgnoreCase("Module")) {
 	    String[] s = name.split(":");
 	    String   templateName="";
 	    String   instanceName="";
 	    boolean  copy = false;
-
+	    
 	    if (s.length==1) {
 		templateName = s[0];
 	    }
@@ -762,7 +771,8 @@ public class ConfigurationTreeActions
 		instanceName = s[2];
 	    }
 	    
-	    ModuleTemplate template = config.release().moduleTemplate(templateName);
+	    ModuleTemplate template
+		= config.release().moduleTemplate(templateName);
 
 	    if (!copy) {
 		if (template.hasInstance(instanceName)) {
@@ -933,6 +943,10 @@ public class ConfigurationTreeActions
 	    module = (ModuleInstance)reference.parent();
 	    indexOfModule = config.indexOfModule(module);
 	    config.removeModuleReference((ModuleReference)reference);
+	}
+	else if (reference instanceof OutputModuleReference) {
+	    OutputModuleReference omr = (OutputModuleReference)reference;
+	    config.removeOutputModuleReference(omr);
 	}
 	else {
 	    container.removeEntry(reference);
@@ -1161,8 +1175,33 @@ public class ConfigurationTreeActions
 	Configuration          config = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 
-	Stream stream = (Stream)treePath.getLastPathComponent();
+	Stream       stream       = (Stream)treePath.getLastPathComponent();
+	OutputModule output       = stream.outputModule();
+	EventContent content      = stream.parentContent();
+	int          index        = config.indexOfStream(stream);
+	int          indexOutput  = config.indexOfOutput(output);
+	int          indexContent = content.indexOfStream(stream);
 
+
+	// remove dataset nodes
+	int datasetCount = 0;
+	Iterator<PrimaryDataset> itPD = stream.datasetIterator();
+	while (itPD.hasNext()) {
+	    PrimaryDataset dataset = itPD.next();
+	    model.nodeRemoved(model.datasetsNode(),
+			      config.indexOfDataset(dataset)-datasetCount,
+			      dataset);
+	    datasetCount++;
+	}
+	
+	content.removeStream(stream);
+	model.nodeRemoved(model.streamsNode(),index,stream);
+	model.nodeRemoved(model.outputsNode(),index,output);
+	model.nodeRemoved(content,indexContent,stream);
+	model.nodeStructureChanged(model.pathsNode());
+	model.nodeStructureChanged(model.sequencesNode());
+	model.updateLevel1Nodes();
+	
 	return true;
     }
     
@@ -1199,6 +1238,15 @@ public class ConfigurationTreeActions
 
 	PrimaryDataset dataset =
 	    (PrimaryDataset)treePath.getLastPathComponent();
+	Stream         stream = dataset.parentStream();
+	int index = config.indexOfDataset(dataset);
+	int indexStream = stream.indexOfDataset(dataset);
+
+	stream.removeDataset(dataset);
+	model.nodeRemoved(model.datasetsNode(),index,dataset);
+	model.nodeRemoved(stream,indexStream,dataset);
+	model.nodeStructureChanged(model.contentsNode());
+	model.updateLevel1Nodes();
 	
 	return true;
     }

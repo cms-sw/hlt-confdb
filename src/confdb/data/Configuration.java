@@ -971,6 +971,32 @@ public class Configuration implements IConfiguration
 	return outputs.iterator();
     }
     
+    /** insert output module reference at i-th position into a path/sequence */
+    public OutputModuleReference insertOutputModuleReference
+	(ReferenceContainer container,
+	 int                i,
+	 OutputModule       output)
+    {
+	OutputModuleReference reference =
+	    (OutputModuleReference)output.createReference(container,i);
+	hasChanged = true;
+
+	// DEBUG
+	System.out.println(output.name() + ".referenceCount() = "+
+			   output.referenceCount());
+	
+	return reference;
+    }
+
+    
+    /** remove an output module reference */
+    public void removeOutputModuleReference(OutputModuleReference reference)
+    {
+	OutputModule output = (OutputModule)reference.parent();
+	reference.remove();
+	hasChanged = true;
+    }
+    
     
     //
     // Paths

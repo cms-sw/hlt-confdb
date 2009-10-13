@@ -23,7 +23,7 @@ public class OutputModule extends ParameterContainer implements Referencable
     // 
     
     /** name of the class */
-    private String className = "FUShmStreamConsumer";
+    private String className = "ShmStreamConsumer";
 
     /** label of this OutputModule */
     private String name = "";

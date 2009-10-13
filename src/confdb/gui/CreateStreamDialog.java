@@ -119,19 +119,20 @@ public class CreateStreamDialog extends JDialog
     
 
     /** generate the graphical components */
-    private JPanel initComponents()
-    {
-	
+    private JPanel initComponents() {
+
 	JPanel jPanel = new JPanel();
 	
-        jTextFieldStreamLabel = new JTextField();
-        jLabelStreamLabel = new JLabel();
-        jLabelEventContent = new JLabel();
-        jComboBoxEventContent = new JComboBox();
-        jButtonOK = new JButton();
-        jButtonCancel = new JButton();
-	
-        jTextFieldStreamLabel.getDocument()
+        jLabelStreamLabel = new javax.swing.JLabel();
+        jTextFieldStreamLabel = new javax.swing.JTextField();
+        jComboBoxEventContent = new javax.swing.JComboBox();
+        jLabelEventContent = new javax.swing.JLabel();
+        jButtonOK = new javax.swing.JButton();
+        jButtonCancel = new javax.swing.JButton();
+
+        jLabelStreamLabel.setText("Stream Name:");
+
+	jTextFieldStreamLabel.getDocument()
 	    .addDocumentListener(new DocumentListener() {
 		    public void insertUpdate(DocumentEvent e) {
 			jTextFieldStreamLabelInsertUpdate(e);
@@ -141,80 +142,63 @@ public class CreateStreamDialog extends JDialog
 		    }
 		    public void changedUpdate(DocumentEvent e) {}
 		});
-	
-        jLabelStreamLabel.setText("Stream Name:");
-	
+
+        jComboBoxEventContent.setModel(new javax.swing.DefaultComboBoxModel(new String[] { }));
+
         jLabelEventContent.setText("Event Content:");
 
-        jComboBoxEventContent
-	    .setModel(new DefaultComboBoxModel(new String[] {} ));
-
         jButtonOK.setText("OK");
-        jButtonOK.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        jButtonOK.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonOKActionPerformed(evt);
             }
         });
 
         jButtonCancel.setText("Cancel");
-        jButtonCancel.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                jButtonCancelActionPerformed(evt);
-            }
-        });
 
-        GroupLayout layout = new GroupLayout(jPanel);
+        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanel);
         jPanel.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jTextFieldStreamLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 384, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(jLabelStreamLabel)))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jComboBoxEventContent, 0, 377, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(14, 14, 14)
-                                .addComponent(jLabelEventContent))))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addContainerGap(589, Short.MAX_VALUE)
-                        .addComponent(jButtonCancel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonOK)))
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
+                .addContainerGap()
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(layout.createSequentialGroup()
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(jTextFieldStreamLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 338, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                            .add(jLabelStreamLabel))
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(jLabelEventContent)
+                            .add(jComboBoxEventContent, 0, 324, Short.MAX_VALUE)))
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                        .add(jButtonCancel)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jButtonOK)))
                 .addContainerGap())
         );
 
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jButtonCancel, jButtonOK});
+        layout.linkSize(new java.awt.Component[] {jButtonCancel, jButtonOK}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
 
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabelStreamLabel)
-                    .addComponent(jLabelEventContent))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextFieldStreamLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jComboBoxEventContent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButtonOK)
-                    .addComponent(jButtonCancel))
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jLabelStreamLabel)
+                    .add(jLabelEventContent))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jTextFieldStreamLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(jComboBoxEventContent, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jButtonOK)
+                    .add(jButtonCancel))
                 .addContainerGap())
         );
-
+	
 	return jPanel;
     }
-
-
-
-
 
 }

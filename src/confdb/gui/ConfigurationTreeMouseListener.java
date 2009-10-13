@@ -625,7 +625,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    popupSequences.addSeparator();
 	    menuItem = new JMenuItem("Remove Unreferenced Sequences");
 	    menuItem.addActionListener(sequenceListener);
-	    menuItem.setActionCommand("RMUNREF");
+	    menuItem.setActionCommand("UNREF");
 	    popupSequences.add(menuItem);
 	    menuItem = new JMenuItem("Resolve Unnecessary Sequences");
 	    menuItem.addActionListener(sequenceListener);
@@ -635,7 +635,8 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	else if (depth==3) {
 	    Sequence sequence = (Sequence)node;
 
-	    JMenu addModuleMenu = createAddModuleMenu(sequence,sequenceListener);
+	    JMenu addModuleMenu = createAddModuleMenu(sequence,
+						      sequenceListener);
 	    popupSequences.add(addModuleMenu);
 	    
 	    JMenu addSequenceMenu = createAddSequenceMenu(sequence,
@@ -656,7 +657,8 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	else if (depth==4) {
 	    Sequence sequence = (Sequence)parent;
 
-	    JMenu addModuleMenu = createAddModuleMenu(sequence,sequenceListener);
+	    JMenu addModuleMenu = createAddModuleMenu(sequence,
+						      sequenceListener);
 	    popupSequences.add(addModuleMenu);
 
 	    JMenu addSequenceMenu = createAddSequenceMenu(sequence,
@@ -823,7 +825,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem = new JMenuItem("<html>Remove <i>" + stream.label() +
 				     "</i></html>");
 	    menuItem.addActionListener(streamListener);
-	    menuItem.setActionCommand("RENAME");
+	    menuItem.setActionCommand("REMOVE");
 	    popupStreams.add(menuItem);
 	    
 	    //popupStreams.addSeparator();
@@ -856,17 +858,21 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	int      depth    = treePath.getPathCount();
 	Object   node     = treePath.getLastPathComponent();
 	
+	TreeModel      model  = tree.getModel();
+	IConfiguration config = (IConfiguration)model.getRoot();
+
 	if (depth>3) return;
 	
 	if (depth==2) {
 	    menuItem = new JMenuItem("Add Primary Dataset");
 	    menuItem.addActionListener(datasetListener);
 	    menuItem.setActionCommand("ADD");
+	    if (config.streamCount()==0) menuItem.setEnabled(false);
 	    popupDatasets.add(menuItem);
 	}
 	else if (depth==3) {
 	    PrimaryDataset dataset = (PrimaryDataset)node;
-
+	    
 	    //menuItem = new JMenuItem("Add Path");
 	    //menuItem.addActionListener(datasetListener);
 	    //popupDatasets.add(menuItem);
@@ -917,13 +923,25 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	JMenuItem copyItemAll;
 	JMenuItem copyItem;
 
-	HashMap<String,JMenu> menuHashMap = new HashMap<String,JMenu>();
-	
 	TreeModel       model   = tree.getModel();
 	Configuration   config  = (Configuration)model.getRoot();
 	SoftwareRelease release = config.release();
-	Iterator<ModuleTemplate> it    = release.moduleTemplateIterator();
+
+	// explicitely add OutputModule menu
+	JMenu outputMenu = new ScrollableMenu("OutputModule");
+	addModuleMenu.add(outputMenu);
+	Iterator<OutputModule> itOM = config.outputIterator();
+	while (itOM.hasNext()) {
+	    OutputModule om = itOM.next();
+	    menuItem = new JMenuItem(om.name());
+	    menuItem.addActionListener(listener);
+	    menuItem.setActionCommand("OutputModule");
+	    outputMenu.add(menuItem);
+	}
 	
+	// dynamically fill menus to add remaining module types
+	HashMap<String,JMenu> menuHashMap = new HashMap<String,JMenu>();
+	Iterator<ModuleTemplate> it = release.moduleTemplateIterator();
 	while (it.hasNext()) {
 	    ModuleTemplate t = it.next();
 	    
@@ -932,6 +950,8 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    JMenu moduleTypeAndLetterMenu;
 	    
 	    String moduleType = t.type();
+	    if (moduleType.equals("OutputModule")) continue;
+	    
 	    String moduleTypeAll = moduleType + "All";
 	    if (!menuHashMap.containsKey(moduleType)) {
 		moduleTypeMenu = new ScrollableMenu(moduleType);
@@ -1372,6 +1392,9 @@ class PathMenuListener implements ActionListener
 	else if (cmd.equals("Remove Sequence")) {
 	    ConfigurationTreeActions.removeReference(tree);
 	}
+	else if (action.equals("OutputModule")) {
+	    ConfigurationTreeActions.insertReference(tree,"OutputModule",cmd);
+	}
  	// add a module(-reference) to the currently selected path
 	else {
 	    ConfigurationTreeActions.insertReference(tree,"Module",action);
@@ -1447,6 +1470,9 @@ class SequenceMenuListener implements ActionListener
  	}
 	else if (cmd.equals("Remove Module")) {
 	    ConfigurationTreeActions.removeReference(tree);
+	}
+	else if (action.equals("OutputModule")) {
+	    ConfigurationTreeActions.insertReference(tree,"OutputModule",cmd);
 	}
 	// add a module to the selected sequence
 	else {

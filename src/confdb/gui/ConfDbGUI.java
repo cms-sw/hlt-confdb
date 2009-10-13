@@ -1795,6 +1795,16 @@ public class ConfDbGUI
 		jEditorPaneSnippet.setText(e.getMessage());
 	    }
 	}
+	else if (currentParameterContainer instanceof OutputModule) {
+	    OutputModule output = (OutputModule)currentParameterContainer;
+	    try {
+		jEditorPaneSnippet.setText(cnvEngine.getOutputWriter()
+					   .toString(output));
+	    }
+	    catch (ConverterException e) {
+		jEditorPaneSnippet.setText(e.getMessage());
+	    }
+	}
 	else if (currentParameterContainer instanceof Path) {
 	    Path path = (Path)currentParameterContainer;
 	    jEditorPaneSnippet.setText(cnvEngine.getPathWriter().

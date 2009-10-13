@@ -33,9 +33,9 @@ public class CreateDatasetDialog extends JDialog
     /** GUI components */
     private JButton jButtonCancel;
     private JButton jButtonOK;
-    private JComboBox jComboBoxStreamLabel;
-    private JLabel jLabel1;
-    private JLabel jLabel2;
+    private JComboBox jComboBoxStream;
+    private JLabel jLabelDatasetLabel;
+    private JLabel jLabelStream;
     private JTextField jTextFieldDatasetLabel;
 
 
@@ -73,7 +73,7 @@ public class CreateDatasetDialog extends JDialog
     private void updateStreamList()
     {
         DefaultComboBoxModel cbm =
-	    (DefaultComboBoxModel)jComboBoxStreamLabel.getModel();
+	    (DefaultComboBoxModel)jComboBoxStream.getModel();
         cbm.removeAllElements();
         Iterator<Stream> itS = config.streamIterator();
         while (itS.hasNext()) {
@@ -88,7 +88,7 @@ public class CreateDatasetDialog extends JDialog
     private void jButtonOKActionPerformed(ActionEvent evt)
     {
         String datasetLabel = jTextFieldDatasetLabel.getText();
-        String streamLabel  = (String)jComboBoxStreamLabel.getSelectedItem();
+        String streamLabel  = (String)jComboBoxStream.getSelectedItem();
         Stream stream = config.stream(streamLabel);
         dataset = stream.insertDataset(datasetLabel);
 	setVisible(false);
@@ -121,14 +121,16 @@ public class CreateDatasetDialog extends JDialog
     {
 	JPanel jPanel = new JPanel();
 	
-        jLabel1 = new JLabel();
-        jTextFieldDatasetLabel = new JTextField();
-        jComboBoxStreamLabel = new JComboBox();
-        jLabel2 = new JLabel();
-        jButtonOK = new JButton();
-        jButtonCancel = new JButton();
+        jLabelDatasetLabel = new javax.swing.JLabel();
+        jTextFieldDatasetLabel = new javax.swing.JTextField();
+        jLabelStream = new javax.swing.JLabel();
+        jComboBoxStream = new javax.swing.JComboBox();
+        jButtonOK = new javax.swing.JButton();
+        jButtonCancel = new javax.swing.JButton();
 
-        jLabel1.setText("Primary Dataset Name:");
+        jLabelDatasetLabel.setText("Primary Dataset Name:");
+
+        jLabelStream.setText("Stream:");
 
         jTextFieldDatasetLabel.getDocument()
 	    .addDocumentListener(new DocumentListener() {
@@ -141,67 +143,66 @@ public class CreateDatasetDialog extends JDialog
 		    public void changedUpdate(DocumentEvent e) {}
 		});
 
-        jComboBoxStreamLabel
-	    .setModel(new DefaultComboBoxModel(new String[] {} ));
-
-        jLabel2.setText("Stream:");
+        jComboBoxStream.setModel(new javax.swing.DefaultComboBoxModel(new String[] {  }));
 
         jButtonOK.setText("OK");
-        jButtonOK.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent evt) {
-		    jButtonOKActionPerformed(evt);
-		}
-	    });
+        jButtonOK.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonOKActionPerformed(evt);
+            }
+        });
 
         jButtonCancel.setText("Cancel");
-        jButtonCancel.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent evt) {
-		    jButtonCancelActionPerformed(evt);
-		}
-	    });
+        jButtonCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonCancelActionPerformed(evt);
+            }
+        });
 
-        GroupLayout layout = new GroupLayout(jPanel);
+        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanel);
         jPanel.setLayout(layout);
         layout.setHorizontalGroup(
-				  layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				  .addGroup(layout.createSequentialGroup()
-					    .addContainerGap()
-					    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						      .addGroup(layout.createSequentialGroup()
-								.addComponent(jTextFieldDatasetLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 386, javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-								.addComponent(jComboBoxStreamLabel, 0, 350, Short.MAX_VALUE))
-						      .addGroup(layout.createSequentialGroup()
-								.addComponent(jLabel1)
-								.addGap(258, 258, 258)
-								.addComponent(jLabel2))
-						      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-								.addComponent(jButtonCancel)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-								.addComponent(jButtonOK)))
-					    .addContainerGap())
-				  );
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
+                .addContainerGap()
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(layout.createSequentialGroup()
+                        .add(jTextFieldDatasetLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 327, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jComboBoxStream, 0, 316, Short.MAX_VALUE))
+                    .add(layout.createSequentialGroup()
+                        .add(jLabelDatasetLabel)
+                        .add(199, 199, 199)
+                        .add(jLabelStream))
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                        .add(jButtonCancel)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jButtonOK)))
+                .addContainerGap())
+        );
 
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jButtonCancel, jButtonOK});
+        layout.linkSize(new java.awt.Component[] {jButtonCancel, jButtonOK}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
 
         layout.setVerticalGroup(
-				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup()
-					  .addContainerGap()
-					  .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						    .addComponent(jLabel1)
-						    .addComponent(jLabel2))
-					  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-					  .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						    .addComponent(jTextFieldDatasetLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-						    .addComponent(jComboBoxStreamLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-					  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					  .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						    .addComponent(jButtonOK)
-						    .addComponent(jButtonCancel))
-					  .addContainerGap())
-				);
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
+                .addContainerGap()
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jLabelDatasetLabel)
+                    .add(jLabelStream))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jTextFieldDatasetLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(jComboBoxStream, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jButtonOK)
+                    .add(jButtonCancel))
+                .addContainerGap())
+        );
+
 	return jPanel;
     }
+
 
 }
