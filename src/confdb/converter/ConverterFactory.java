@@ -59,6 +59,7 @@ public class ConverterFactory
 		converterEngine.setESModuleWriter( getESModuleWriter() );
 		converterEngine.setServiceWriter( getServiceWriter() );
 		converterEngine.setModuleWriter( getModuleWriter() );
+		converterEngine.setOutputWriter( getOutputWriter() );
 		converterEngine.setPathWriter( getPathWriter() );
 		converterEngine.setSequenceWriter( getSequenceWriter() );
 		
@@ -115,6 +116,12 @@ public class ConverterFactory
 	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
 		return (IModuleWriter)getWriter( "ModuleWriter" );
+	}
+	
+	public IOutputWriter getOutputWriter()
+	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
+	{
+		return (IOutputWriter)getWriter( "OutputWriter" );
 	}
 	
 	public ISequenceWriter getSequenceWriter()

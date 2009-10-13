@@ -9,6 +9,7 @@ import confdb.converter.IEDSourceWriter;
 import confdb.converter.IESSourceWriter;
 import confdb.converter.IESModuleWriter;
 import confdb.converter.IModuleWriter;
+import confdb.converter.IOutputWriter;
 import confdb.converter.IParameterWriter;
 import confdb.converter.IPathWriter;
 import confdb.converter.ISequenceWriter;
@@ -20,6 +21,7 @@ import confdb.data.EDSourceInstance;
 import confdb.data.ESSourceInstance;
 import confdb.data.ESModuleInstance;
 import confdb.data.ModuleInstance;
+import confdb.data.OutputModule;
 import confdb.data.Parameter;
 import confdb.data.Path;
 import confdb.data.Sequence;
@@ -146,6 +148,18 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 				ModuleInstance module = conf.module(i);
 				str.append( object );
 				str.append( moduleWriter.toString( module ) );
+			}
+			str.append( "\n");
+		}
+
+		if ( conf.outputCount() > 0 )
+		{
+			IOutputWriter outputWriter = converterEngine.getOutputWriter();
+			for ( int i = 0; i < conf.outputCount(); i++ )
+			{
+			        OutputModule output = conf.output(i);
+				str.append( object );
+				str.append( outputWriter.toString( output ) );
 			}
 			str.append( "\n");
 		}

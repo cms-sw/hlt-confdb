@@ -14,6 +14,7 @@ public class ConverterEngine
 	private IESModuleWriter esmoduleWriter = null;
 	private IServiceWriter serviceWriter = null;
 	private IModuleWriter moduleWriter = null;
+        private IOutputWriter outputWriter = null;
 	private IPathWriter pathWriter = null;
 	private ISequenceWriter sequenceWriter = null;
 
@@ -117,6 +118,17 @@ public class ConverterEngine
 	protected void setModuleWriter(IModuleWriter moduleWriter) {
 		this.moduleWriter = moduleWriter;
 		this.moduleWriter.setConverterEngine(this);
+	}
+
+
+	public IOutputWriter getOutputWriter() {
+		return outputWriter;
+	}
+
+
+	protected void setOutputWriter(IOutputWriter outputWriter) {
+		this.outputWriter = outputWriter;
+		this.outputWriter.setConverterEngine(this);
 	}
 
 

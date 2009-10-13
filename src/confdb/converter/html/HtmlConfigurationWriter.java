@@ -7,6 +7,7 @@ import confdb.converter.IEDSourceWriter;
 import confdb.converter.IESModuleWriter;
 import confdb.converter.IESSourceWriter;
 import confdb.converter.IModuleWriter;
+import confdb.converter.IOutputWriter;
 import confdb.converter.IParameterWriter;
 import confdb.converter.IPathWriter;
 import confdb.converter.ISequenceWriter;
@@ -16,6 +17,7 @@ import confdb.data.EDSourceInstance;
 import confdb.data.ESModuleInstance;
 import confdb.data.ESSourceInstance;
 import confdb.data.ModuleInstance;
+import confdb.data.OutputModule;
 import confdb.data.Parameter;
 import confdb.data.Path;
 import confdb.data.Sequence;
@@ -86,6 +88,18 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 			{
 				ModuleInstance module = conf.module(i);
 				str.append( moduleWriter.toString( module ) );
+			}
+			str.append( converterEngine.getNewline() ); 
+		}
+
+		if ( conf.outputCount() > 0 )
+		{
+			str.append( "<a name=\"outputs\"></a>" ); 
+			IOutputWriter outputWriter = converterEngine.getOutputWriter();
+			for ( int i = 0; i < conf.outputCount(); i++ )
+			{
+				OutputModule output = conf.output(i);
+				str.append( outputWriter.toString( output ) );
 			}
 			str.append( converterEngine.getNewline() ); 
 		}
