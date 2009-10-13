@@ -28,35 +28,17 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     /** flag indicating if InputTags are to be tracked */
     private boolean doDisplayUnresolvedInputTags = false;
     
-    /** pset dir icons */
-    private ImageIcon psetDirIcon = null;
-    
-    /** edsource dir icons */
-    private ImageIcon edsourceDirIcon = null;
-    
     /** edsource icons */
     private ImageIcon edsourceIcon = null;
     
-    /** essources dir icon */
-    private ImageIcon essourcesDirIcon = null;
-
     /** essource icon */
     private ImageIcon essourceIcon = null;
-
-    /** esmodules dir icon */
-    private ImageIcon esmodulesDirIcon = null;
 
     /** esmodule icon */
     private ImageIcon esmoduleIcon = null;
 
-    /** service dir icon */
-    private ImageIcon servicesDirIcon = null;
-
     /** service icon */
     private ImageIcon serviceIcon = null;
-
-    /** paths dir icon */
-    private ImageIcon pathsDirIcon = null;
 
     /** path icon */
     private ImageIcon pathIcon = null;
@@ -64,14 +46,11 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     /** endpath icon */
     private ImageIcon endpathIcon = null;
 
-    /** modules dir icon */
-    private ImageIcon modulesDirIcon = null;
-
     /** module icon */
     private ImageIcon moduleIcon = null;
 
-    /** sequences dir icon */
-    private ImageIcon sequencesDirIcon = null;
+    /** output module icon */
+    private ImageIcon outputIcon = null;
     
     /** sequence icon */
     private ImageIcon sequenceIcon = null;
@@ -81,6 +60,15 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 
     /** vector<ParameterSet> icon */
     private ImageIcon vpsetIcon = null;
+    
+    /** event content icon */
+    private ImageIcon contentIcon = null;
+
+    /** stream icon */
+    private ImageIcon streamIcon = null;
+
+    /** primary dataset icon */
+    private ImageIcon datasetIcon = null;
     
 
     //
@@ -92,35 +80,34 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     {
 	super();
 
-	psetDirIcon    = null;
-	edsourceDirIcon= null;
 	edsourceIcon   =
 	    new ImageIcon(getClass().getResource("/EDSourceIcon.png"));
-	essourcesDirIcon = null;
 	essourceIcon   = 
 	    new ImageIcon(getClass().getResource("/ESSourceIcon.png"));
-	esmodulesDirIcon =
-	    null;
 	esmoduleIcon   =
 	    new ImageIcon(getClass().getResource("/ESModuleIcon.png"));
-	servicesDirIcon= null;
 	serviceIcon    =
 	    new ImageIcon(getClass().getResource("/ServiceIcon.png"));
-	pathsDirIcon   = null;
 	pathIcon       =
 	    new ImageIcon(getClass().getResource("/PathIcon.png"));
 	endpathIcon    =
 	    new ImageIcon(getClass().getResource("/EndpathIcon.png"));
-	modulesDirIcon = null;
 	moduleIcon     =
 	    new ImageIcon(getClass().getResource("/ModuleIcon.png"));
-	sequencesDirIcon = null;
+	outputIcon     =
+	    new ImageIcon(getClass().getResource("/OutputIcon.png"));
 	sequenceIcon   =
 	    new ImageIcon(getClass().getResource("/SequenceIcon.png"));
 	psetIcon       =
 	    new ImageIcon(getClass().getResource("/PSetIcon.png"));
 	vpsetIcon      =
 	    new ImageIcon(getClass().getResource("/VPSetIcon.png"));
+	contentIcon      =
+	    new ImageIcon(getClass().getResource("/ContentIcon.png"));
+	streamIcon      =
+	    new ImageIcon(getClass().getResource("/StreamIcon.png"));
+	datasetIcon      =
+	    new ImageIcon(getClass().getResource("/DatasetIcon.png"));
     }
     
     
@@ -138,16 +125,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     public Icon prepareIcon()
     {
 	if (node==null||node.equals(treeModel.getRoot())) return null;
-	if (node instanceof StringBuffer) {
-	    if (node.equals(treeModel.psetsNode()))     return psetDirIcon;
-	    if (node.equals(treeModel.edsourcesNode())) return edsourceDirIcon;
-	    if (node.equals(treeModel.essourcesNode())) return essourcesDirIcon;
-	    if (node.equals(treeModel.esmodulesNode())) return esmodulesDirIcon;
-	    if (node.equals(treeModel.servicesNode()))  return servicesDirIcon;
-	    if (node.equals(treeModel.pathsNode()))     return pathsDirIcon;
-	    if (node.equals(treeModel.sequencesNode())) return sequencesDirIcon;
-	    if (node.equals(treeModel.modulesNode()))   return modulesDirIcon;
-	}
+	if (node instanceof StringBuffer) return null;
 	
 	else if (node instanceof EDSourceInstance)  return edsourceIcon;
 	else if (node instanceof ESSourceInstance)  return essourceIcon;
@@ -166,8 +144,16 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    IConfiguration config = (IConfiguration)treeModel.getRoot();
 	    if (config.indexOfPSet((PSetParameter)node)>=0) return psetIcon;
 	}
-	//else if (node instanceof VPSetParameter)    return vpsetIcon;
-
+	else if (node instanceof VPSetParameter) return vpsetIcon;
+	else if (node instanceof EventContent) return contentIcon;
+	else if (node instanceof Stream) return streamIcon;
+	else if (node instanceof PrimaryDataset) return datasetIcon;
+	else if (node instanceof ConfigurationTreeNode) {
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
+	    if (treeNode.object() instanceof Path) return pathIcon;
+	    if (treeNode.object() instanceof Stream) return streamIcon;
+	    if (treeNode.object() instanceof PrimaryDataset) return datasetIcon;
+	}
 	return null;
     }
     

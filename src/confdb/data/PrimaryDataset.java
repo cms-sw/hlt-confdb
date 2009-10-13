@@ -86,8 +86,17 @@ public class PrimaryDataset extends DatabaseEntry
     /** insert and associate a path with this stream */
     public boolean insertPath(Path path)
     {
-	if (paths.indexOf(path)>=0) return false;
-	if (parentStream.listOfAssignedPaths().indexOf(path)>=0) return false;
+	if (paths.indexOf(path)>=0) {
+	    System.err.println("PrimaryDataset.insertPath() ERROR: "+
+			       "path already associated!");
+	    return false;
+	}
+	if (parentStream.listOfAssignedPaths().indexOf(path)>=0) {
+	    System.err.println("PrimaryDataset.insertPath() ERROR: "+
+			       "path already associated with another dataset "+
+			       "in the parent stream!");
+	    return false;
+	}
 	paths.add(path);
 	setHasChanged();
 	return true;

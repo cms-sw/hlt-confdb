@@ -358,6 +358,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    VPSetParameter vpset = (VPSetParameter)node;
 	    return vpset.parameterSetCount();
 	}
+	else if (node instanceof ConfigurationTreeNode) {
+	    return 0;
+	}
 	
 	return 0;
     }
@@ -396,7 +399,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	else if (parent instanceof PrimaryDataset) {
 	    PrimaryDataset dataset = (PrimaryDataset)parent;
-	    return dataset.path(i);
+	    return new ConfigurationTreeNode(dataset,dataset.path(i));
 	}
 	else if (parent instanceof ReferenceContainer) {
 	    ReferenceContainer refContainer = (ReferenceContainer)parent;
@@ -505,7 +508,8 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	else if (parent instanceof PrimaryDataset) {
 	    PrimaryDataset dataset = (PrimaryDataset)parent;
-	    Path path = (Path)child;
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)child;
+	    Path path = (Path)treeNode.object();
 	    return dataset.indexOfPath(path);
 	}
 	else if (parent instanceof ReferenceContainer) {
@@ -561,6 +565,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    Reference r = (Reference)node;
 	    return r.container();
 	}
+	else if (node instanceof StringBuffer)     return getRoot();
 	else if (node instanceof EDSourceInstance) return edsourcesNode;
 	else if (node instanceof ESSourceInstance) return essourcesNode;
 	else if (node instanceof ESModuleInstance) return esmodulesNode;
@@ -572,7 +577,11 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	else if (node instanceof EventContent)     return contentsNode;
 	else if (node instanceof Stream)           return streamsNode;
 	else if (node instanceof PrimaryDataset)   return datasetsNode;
-	else if (node instanceof StringBuffer)     return getRoot();
+	else if (node instanceof ConfigurationTreeNode) {
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
+	    return treeNode.parent();
+	}
+	
 	return null;
     }
     

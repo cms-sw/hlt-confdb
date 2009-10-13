@@ -809,12 +809,10 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	else if (depth==3) {
 	    Stream stream = (Stream)node;
 
-	    //menuItem = new JMenuItem("Add Dataset");
-	    //menuItem.addActionListener(streamListener);
-	    //popupStreams.add(menuItem);
-	    
-	    //JMenu addPathMenu = new ScrollableMenu("Add Path");
-	    //popupStreams.add(addPathMenu);
+	    JMenu addPathMenu = new ScrollableMenu("Add Path");
+	    popupStreams.add(addPathMenu);
+
+	    popupStreams.addSeparator();
 
 	    menuItem = new JMenuItem("<html>Rename <i>" + stream.label() +
 				     "</i></html>");
@@ -828,23 +826,23 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem.setActionCommand("REMOVE");
 	    popupStreams.add(menuItem);
 	    
-	    //popupStreams.addSeparator();
+	    TreeModel      model  = tree.getModel();
+	    IConfiguration config = (IConfiguration)model.getRoot();
 	    
-	    //TreeModel      model  = tree.getModel();
-	    //IConfiguration config = (IConfiguration)model.getRoot();
-	    //ArrayList<Path> paths = new ArrayList<Path>();
-	    //Iterator<Path> itP = config.pathIterator();
-	    //while (itP.hasNext()) {
-	    //Path path = itP.next();
-	    //if (stream.indexOfPath(path)<0) paths.add(path);
-	    //}
-	    //Collections.sort(paths);
-	    //itP = paths.iterator();
-	    //while (itP.hasNext()) {
-	    //menuItem = new JMenuItem(itP.next().name());
-	    //	menuItem.addActionListener(streamListener);
-	    //	addPathMenu.add(menuItem);
-	    //}
+	    ArrayList<Path> paths = new ArrayList<Path>();
+	    Iterator<Path> itP = config.pathIterator();
+	    while (itP.hasNext()) {
+		Path path = itP.next();
+		if (stream.indexOfPath(path)<0) paths.add(path);
+	    }
+	    Collections.sort(paths);
+	    itP = paths.iterator();
+	    while (itP.hasNext()) {
+		menuItem = new JMenuItem(itP.next().name());
+		menuItem.addActionListener(streamListener);
+		menuItem.setActionCommand("ADDPATH");
+	    	addPathMenu.add(menuItem);
+	    }
 	}
     }
     
@@ -873,12 +871,10 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	else if (depth==3) {
 	    PrimaryDataset dataset = (PrimaryDataset)node;
 	    
-	    //menuItem = new JMenuItem("Add Path");
-	    //menuItem.addActionListener(datasetListener);
-	    //popupDatasets.add(menuItem);
+	    JMenu addPathMenu = new ScrollableMenu("Add Path");
+	    popupDatasets.add(addPathMenu);
 	    
-	    //JMenu addPathMenu = new ScrollableMenu("Add Path");
-	    //popupDatasets.add(addPathMenu);
+	    popupDatasets.addSeparator();
 	    
 	    menuItem = new JMenuItem("<html>Rename <i>" + dataset.label() +
 				     "</i></html>");
@@ -891,20 +887,18 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem.addActionListener(datasetListener);
 	    menuItem.setActionCommand("REMOVE");
 	    popupDatasets.add(menuItem);
-	    
-	    //popupDatasets.addSeparator();
-	    
-	    //TreeModel      model  = tree.getModel();
-	    //IConfiguration config = (IConfiguration)model.getRoot();
-	    //ArrayList<Path> paths =
-	    //dataset.parentStream().listOfUnassignedPaths();
-	    //Collections.sort(paths);
-	    //Iterator<Path> itP = paths.iterator();
-	    //while (itP.hasNext()) {
-	    //menuItem = new JMenuItem(itP.next().name());
-	    //menuItem.addActionListener(datasetListener);
-	    //addPathMenu.add(menuItem);
-	    //}
+
+	    ArrayList<Path> paths =
+		dataset.parentStream().listOfUnassignedPaths();
+
+	    Collections.sort(paths);
+	    Iterator<Path> itP = paths.iterator();
+	    while (itP.hasNext()) {
+		menuItem = new JMenuItem(itP.next().name());
+		menuItem.addActionListener(datasetListener);
+		menuItem.setActionCommand("ADDPATH");
+		addPathMenu.add(menuItem);
+	    }
 	}
     }
     
@@ -1578,6 +1572,9 @@ class StreamMenuListener implements ActionListener
 	    if (dlg.isSuccess())
 		ConfigurationTreeActions.insertStream(tree,dlg.stream());
 	}
+	else if (action.equals("ADDPATH")) {
+	    ConfigurationTreeActions.addPathToStream(tree,cmd);
+	}
 	else if (action.equals("REMOVE")) {
 	    ConfigurationTreeActions.removeStream(tree);
 	}
@@ -1624,6 +1621,9 @@ class DatasetMenuListener implements ActionListener
 	    if (dlg.isSuccess())
 		ConfigurationTreeActions.insertPrimaryDataset(tree,
 							      dlg.dataset());
+	}
+	else if (action.equals("ADDPATH")) {
+	    ConfigurationTreeActions.addPathToDataset(tree,cmd);
 	}
 	else if (action.equals("REMOVE")) {
 	    ConfigurationTreeActions.removePrimaryDataset(tree);
