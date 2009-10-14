@@ -20,9 +20,6 @@ public class EventContent extends DatabaseEntry
     /** name of this event content */
     private String name;
     
-    /** collection of assigned paths */
-    private ArrayList<Path> paths = new ArrayList<Path>();
-    
     /** collection of event content statements */
     private ArrayList<EventContentStatement> statements
 	= new ArrayList<EventContentStatement>();
@@ -65,47 +62,35 @@ public class EventContent extends DatabaseEntry
 
 
     /** number of paths */
-    public int pathCount() { return paths.size(); }
+    public int pathCount() { return paths().size(); }
 
     /** retrieve i-th path */
-    public Path path(int i) { return paths.get(i); }
+    public Path path(int i) { return paths().get(i); }
 
     /** retrieve path by name */
     public Path path(String pathName)
     {
-	for (Path p : paths) if (p.name().equals(pathName)) return p;
+	Iterator<Path> itP = pathIterator();
+	while (itP.hasNext()) {
+	    Path path = itP.next();
+	    if (path.name().equals(pathName)) return path;
+	}
 	return null;
     }
     
     /** retrieve path iterator */
-    public Iterator<Path> pathIterator() { return paths.iterator(); }
+    public Iterator<Path> pathIterator() { return paths().iterator(); }
 
     /** retrieve index of a given path */
-    public int indexOfPath(Path path) { return paths.indexOf(path); }
+    public int indexOfPath(Path path) { return paths().indexOf(path); }
 
-    /** insert a path into this event content */
-    public boolean insertPath(Path path)
+    public void removePath(Path path)
     {
-	if (indexOfPath(path)>=0) return false;
-	paths.add(path);
-	path.addToContent(this);
-	setHasChanged();
-	return true;
-    }
-    
-    /** remove a path from this event content */
-    public boolean removePath(Path path)
-    {
-	int index = paths.indexOf(path);
-	if (index < 0) return false;
-	paths.remove(index);
+	if (paths().indexOf(path)>=0) return;
 	Iterator<EventContentStatement> itEC = statementIterator();
 	while (itEC.hasNext()) if(itEC.next().parentPath()==path) itEC.remove();
-	Iterator<Stream> itS = streamIterator();
-	while (itS.hasNext()) itS.next().removePath(path);
 	path.removeFromContent(this);
 	setHasChanged();
-	return true;
     }
     
     
@@ -132,7 +117,7 @@ public class EventContent extends DatabaseEntry
     {
 	if (statements.indexOf(ecs)>=0) return false;
 	if (ecs.parentPath()!=null&&
-	    paths.indexOf(ecs.parentPath())<0) return false;
+	    indexOfPath(ecs.parentPath())<0) return false;
 	statements.add(ecs);
 	setHasChanged();
 	return true;
@@ -187,4 +172,64 @@ public class EventContent extends DatabaseEntry
 	return true;
     }
 
+    /** retrieve number of associated primary dataset */
+    public int datasetCount() { return datasets().size(); }
+    
+    /** retrieve i-th primary dataset */
+    public PrimaryDataset dataset(int i) { return datasets().get(i); }
+
+    /** retireve primary dataset by name */
+    public PrimaryDataset dataset(String datasetName)
+    {
+	Iterator<PrimaryDataset> itPD = datasetIterator();
+	while (itPD.hasNext()) {
+	    PrimaryDataset dataset = itPD.next();
+	    if (dataset.name().equals(datasetName)) return dataset;
+	}
+	return null;
+    }
+
+    /** retrieve dataset iterator */
+    public Iterator<PrimaryDataset> datasetIterator()
+    {
+	return datasets().iterator();
+    }
+    
+    /** retrieve index of a given dataset */
+    public int indexOfDataset(PrimaryDataset dataset)
+    {
+	return datasets().indexOf(dataset);
+    }
+
+    //
+    // private memeber functions
+    //
+
+    /** retrieve list of paths from associated streams */
+    private ArrayList<Path> paths()
+    {
+	ArrayList<Path> result = new ArrayList<Path>();
+	Iterator<Stream> itS = streamIterator();
+	while (itS.hasNext()) {
+	    Iterator<Path> itP = itS.next().pathIterator();
+	    while (itP.hasNext()) {
+		Path path = itP.next();
+		if (result.indexOf(path)<0) result.add(path);
+	    }
+	}
+	return result;
+    }
+
+
+    /** retrieve list of datasets from associated streams */
+    private ArrayList<PrimaryDataset> datasets()
+    {
+	ArrayList<PrimaryDataset> result = new ArrayList<PrimaryDataset>();
+	Iterator<Stream> itS = streamIterator();
+	while (itS.hasNext()) {
+	    Iterator<PrimaryDataset> itPD = itS.next().datasetIterator();
+	    while (itPD.hasNext()) result.add(itPD.next());
+	}
+	return result;
+    }
 }

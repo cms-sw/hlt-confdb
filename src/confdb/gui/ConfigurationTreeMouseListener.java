@@ -737,20 +737,47 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	
 	if (depth>3) return;
 	
-	menuItem = new JMenuItem("Add EventContent");
-	menuItem.addActionListener(contentListener);
-	menuItem.setActionCommand("ADD");
-	popupContents.add(menuItem);
-	
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	IConfiguration         config = (IConfiguration)model.getRoot();
+		
+	if (depth==2) {
+	    menuItem = new JMenuItem("Add EventContent");
+	    menuItem.addActionListener(contentListener);
+	    menuItem.setActionCommand("ADD");
+	    popupContents.add(menuItem);
+	    
+	    popupContents.addSeparator();
+
+	    ButtonGroup bg = new ButtonGroup();
+	    JRadioButtonMenuItem jrbMenuItem;
+
+	    jrbMenuItem = new JRadioButtonMenuItem("show streams");
+	    jrbMenuItem.setActionCommand("SHOW:streams");
+	    jrbMenuItem.addActionListener(contentListener);
+	    popupContents.add(jrbMenuItem);
+	    if (model.contentMode().equals("datasets"))
+		jrbMenuItem.setSelected(true);
+	    bg.add(jrbMenuItem);
+	    
+	    jrbMenuItem = new JRadioButtonMenuItem("show paths");
+	    jrbMenuItem.setActionCommand("SHOW:paths");
+	    jrbMenuItem.addActionListener(contentListener);
+	    popupContents.add(jrbMenuItem);
+	    if (model.contentMode().equals("paths"))
+		jrbMenuItem.setSelected(true);
+	    bg.add(jrbMenuItem);
+
+	    jrbMenuItem = new JRadioButtonMenuItem("show datasets");
+	    jrbMenuItem.setActionCommand("SHOW:datasets");
+	    jrbMenuItem.addActionListener(contentListener);
+	    popupContents.add(jrbMenuItem);
+	    if (model.contentMode().equals("datasets"))
+		jrbMenuItem.setSelected(true);
+	    bg.add(jrbMenuItem);
+	}
+
 	if (depth==3) {
 	    EventContent content = (EventContent)node;
-
-	    //menuItem = new JMenuItem("Add Stream");
-	    //menuItem.addActionListener(contentListener);
-	    //popupContents.add(menuItem);
-	    
-	    //JMenu addPathMenu = new ScrollableMenu("Add Path");
-	    //popupContents.add(addPathMenu);
 
 	    menuItem = new JMenuItem("<html>Rename <i>" + content.name() +
 				     "</i></html>");
@@ -765,26 +792,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    popupContents.add(menuItem);
 	    
 	    popupContents.addSeparator();
-	    
-	    //menuItem = new JMenuItem("Edit " + content.name());
-	    //menuItem.addActionListener(contentListener);
-	    //popupContents.add(menuItem);
-	    
-	    //TreeModel      model  = tree.getModel();
-	    //IConfiguration config = (IConfiguration)model.getRoot();
-	    //ArrayList<Path> paths = new ArrayList<Path>();
-	    //Iterator<Path> itP = config.pathIterator();
-	    //while (itP.hasNext()) {
-	    //Path path = itP.next();
-	    //if (content.indexOfPath(path)<0) paths.add(path);
-	    //}
-	    //Collections.sort(paths);
-	    //itP = paths.iterator();
-	    //while (itP.hasNext()) {
-	    //menuItem = new JMenuItem(itP.next().name());
-	    //menuItem.addActionListener(contentListener);
-	    //addPathMenu.add(menuItem);
-	    //}
 	}
     }
     
@@ -798,13 +805,37 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	int      depth    = treePath.getPathCount();
 	Object   node     = treePath.getLastPathComponent();
 	
-	if (depth>3) return;
+	if (depth>4) return;
+	
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	IConfiguration         config = (IConfiguration)model.getRoot();
 	
 	if (depth==2) {
 	    menuItem = new JMenuItem("Add Stream");
 	    menuItem.addActionListener(streamListener);
 	    menuItem.setActionCommand("ADD");
 	    popupStreams.add(menuItem);
+	    
+	    popupStreams.addSeparator();
+	    ButtonGroup bg = new ButtonGroup();
+	    JRadioButtonMenuItem jrbMenuItem;
+
+	    jrbMenuItem = new JRadioButtonMenuItem("show datasets");
+	    jrbMenuItem.setActionCommand("SHOW:datasets");
+	    jrbMenuItem.addActionListener(streamListener);
+	    popupStreams.add(jrbMenuItem);
+	    if (model.streamMode().equals("datasets"))
+		jrbMenuItem.setSelected(true);
+	    bg.add(jrbMenuItem);
+	    
+	    jrbMenuItem = new JRadioButtonMenuItem("show paths");
+	    jrbMenuItem.setActionCommand("SHOW:paths");
+	    jrbMenuItem.addActionListener(streamListener);
+	    popupStreams.add(jrbMenuItem);
+	    if (model.streamMode().equals("paths"))
+		jrbMenuItem.setSelected(true);
+	    bg.add(jrbMenuItem);
+
 	}
 	else if (depth==3) {
 	    Stream stream = (Stream)node;
@@ -826,9 +857,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem.setActionCommand("REMOVE");
 	    popupStreams.add(menuItem);
 	    
-	    TreeModel      model  = tree.getModel();
-	    IConfiguration config = (IConfiguration)model.getRoot();
-	    
 	    ArrayList<Path> paths = new ArrayList<Path>();
 	    Iterator<Path> itP = config.pathIterator();
 	    while (itP.hasNext()) {
@@ -843,6 +871,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		menuItem.setActionCommand("ADDPATH");
 	    	addPathMenu.add(menuItem);
 	    }
+	}
+	else if (depth==4) {
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
 	}
     }
     
@@ -902,8 +933,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	}
 	else if (depth==4) {
 	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
-	    PrimaryDataset dataset = (PrimaryDataset)treeNode.parent();
-	    Path           path    = (Path)treeNode.object();
+	    Path path = (Path)treeNode.object();
 
 	    menuItem = new JMenuItem("<html>Remove <i>"+path.name()+
 				     "</i?</html>");
@@ -1534,6 +1564,10 @@ class ContentMenuListener implements ActionListener
 	TreePath  treePath = tree.getSelectionPath();
 	Object    node     = treePath.getLastPathComponent();
 
+	ConfigurationTreeModel model =
+	    (ConfigurationTreeModel)tree.getModel();
+	Configuration config = (Configuration)model.getRoot();
+	
 	if (action.equals("ADD")) {
 	    ConfigurationTreeActions.insertContent(tree);
 	}
@@ -1542,6 +1576,11 @@ class ContentMenuListener implements ActionListener
 	}
 	else if (action.equals("RENAME")) {
 	    ConfigurationTreeActions.editNodeName(tree);
+	}
+    	else if (action.startsWith("SHOW:")) {
+	    model.setContentMode(action.split(":")[1]);
+	    Iterator<EventContent> itC = config.contentIterator();
+	    while (itC.hasNext()) model.nodeStructureChanged(itC.next());
 	}
     }
 }
@@ -1573,10 +1612,12 @@ class StreamMenuListener implements ActionListener
 	TreePath  treePath = tree.getSelectionPath();
 	Object    node     = treePath.getLastPathComponent();
 
+	ConfigurationTreeModel model =
+	    (ConfigurationTreeModel)tree.getModel();
+	Configuration config = (Configuration)model.getRoot();
+	
     	if (action.equals("ADD")) {
-	    ConfigurationTreeModel model =
-		(ConfigurationTreeModel)tree.getModel();
-	    Configuration config = (Configuration)model.getRoot();
+	    
 	    CreateStreamDialog dlg = new CreateStreamDialog(frame,config);
 	    dlg.pack(); dlg.setLocationRelativeTo(frame);
 	    dlg.setVisible(true);
@@ -1591,6 +1632,11 @@ class StreamMenuListener implements ActionListener
 	}
 	else if (action.equals("RENAME")) {
 	    ConfigurationTreeActions.editNodeName(tree);
+	}
+	else if (action.startsWith("SHOW:")) {
+	    model.setStreamMode(action.split(":")[1]);
+	    Iterator<Stream> itS = config.streamIterator();
+	    while (itS.hasNext()) model.nodeStructureChanged(itS.next());
 	}
     }
 }

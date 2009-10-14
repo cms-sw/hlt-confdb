@@ -900,9 +900,32 @@ public class ConfigurationTreeActions
 	int    index  = -1;
 	Object parent = null;
 	if (container instanceof Path) {
-	    index  = config.indexOfPath((Path)container);
+	    Path path = (Path)container;
+	    index  = config.indexOfPath(path);
 	    parent = model.pathsNode();
-	    config.removePath((Path)container);
+
+	    if (model.contentMode().equals("paths")) {
+		Iterator<EventContent> itC = path.contentIterator();
+		while (itC.hasNext()) {
+		    EventContent content = itC.next();
+		    model.nodeRemoved(content,content.indexOfPath(path),path);
+		}
+	    }
+	    
+	    if (model.streamMode().equals("paths")) {
+		Iterator<Stream> itS = path.streamIterator();
+		while (itS.hasNext()) {
+		    Stream stream = itS.next();
+		    model.nodeRemoved(stream,stream.indexOfPath(path),path);
+		}
+	    }
+
+	    Iterator<PrimaryDataset> itD = path.datasetIterator();
+	    while (itD.hasNext()) {
+		PrimaryDataset dataset = itD.next();
+		model.nodeRemoved(dataset,dataset.indexOfPath(path),path);
+	    }
+	    config.removePath(path);
 	}
 	else if (container instanceof Sequence) {
 	    index = config.indexOfSequence((Sequence)container);
@@ -1113,10 +1136,10 @@ public class ConfigurationTreeActions
 	int          index   = config.indexOfContent(content);
 	
 	int streamCount = 0;
+	int datasetCount = 0;
 	Iterator<Stream> itS = content.streamIterator();
 	while (itS.hasNext()) {
 	    Stream stream = itS.next();
-	    int datasetCount = 0;
 	    Iterator<PrimaryDataset> itPD = stream.datasetIterator();
 	    while (itPD.hasNext()) {
 		PrimaryDataset dataset = itPD.next();
@@ -1213,10 +1236,8 @@ public class ConfigurationTreeActions
 	TreePath               treePath = tree.getSelectionPath();
 
 	Stream       stream  = (Stream)treePath.getLastPathComponent();
-	EventContent content = stream.parentContent();
 	Path         path    = config.path(pathName);
 	
-	if (content.indexOfPath(path)<0) content.insertPath(path);
 	stream.insertPath(path);
 	model.updateLevel1Nodes();
 	
@@ -1279,10 +1300,8 @@ public class ConfigurationTreeActions
 	
 	PrimaryDataset dataset=(PrimaryDataset)treePath.getLastPathComponent();
 	Stream         stream = dataset.parentStream();
-	EventContent   content= stream.parentContent();
 	Path           path   = config.path(pathName);
 	
-	if (content.indexOfPath(path)<0) content.insertPath(path);
 	if (stream.indexOfPath(path)<0)  stream.insertPath(path);
 	dataset.insertPath(path);
 	

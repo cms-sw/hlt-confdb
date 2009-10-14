@@ -6,15 +6,16 @@ import java.util.Iterator;
 
 
 /**
-   ReferenceContainer
-   ------------------
-   @author Philipp Schieferdecker
-   
-   Common base class of Path and Sequence.
+ * ReferenceContainer
+ * ------------------
+ * @author Philipp Schieferdecker
+ *  
+ * Common base class of Path and Sequence.
 */
-abstract public class ReferenceContainer extends DatabaseEntry
-                                         implements Comparable<ReferenceContainer>,
-						    Referencable
+abstract
+    public class ReferenceContainer extends    DatabaseEntry
+                                    implements Comparable<ReferenceContainer>,
+					       Referencable
 {
     //
     // member data
@@ -121,8 +122,19 @@ abstract public class ReferenceContainer extends DatabaseEntry
     }
 
     /** does this container contain an OutputModule? */
-    public boolean hasOutputModule() { return hasModuleOfType("OutputModule"); }
-
+    public boolean hasOutputModule()
+    {
+	for (Reference r : entries) {
+	    Referencable parent = r.parent();
+	    if (parent instanceof OutputModule) return true;
+	    else if (parent instanceof ReferenceContainer) {
+		ReferenceContainer container = (ReferenceContainer)parent;
+		if (container.hasOutputModule()) return true;
+	    }
+	}
+	return false;
+    }
+    
     /** does this container contain an EDProducer? */
     public boolean hasEDProducer()   { return hasModuleOfType("EDProducer"); }
 

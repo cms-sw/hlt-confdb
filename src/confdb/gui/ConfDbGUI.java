@@ -1517,7 +1517,7 @@ public class ConfDbGUI
 			    text = "<html>"+path.name()+
 				" assigned to dataset(s): ";
 			    Iterator<PrimaryDataset> itPD =
-				path.listOfDatasets().iterator();
+				path.datasetIterator();
 			    while (itPD.hasNext())
 				text += "<br>"+itPD.next().name();
 			}

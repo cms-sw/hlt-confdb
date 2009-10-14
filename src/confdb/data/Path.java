@@ -175,10 +175,29 @@ public class Path extends ReferenceContainer
 
     
     /** number of streams this path is assiged to */
-    public int streamCount() { return listOfStreams().size(); }
+    public int streamCount() { return streams().size(); }
     
+    /** retrieve stream iterator */
+    public Iterator<Stream> streamIterator()
+    {
+	return streams().iterator();
+    }
+
+    /** number of datasets this path is assigned to */
+    public int datasetCount() { return datasets().size(); }
+    
+    /** retrieve dataset iterator */
+    public Iterator<PrimaryDataset> datasetIterator()
+    {
+	return datasets().iterator();
+    }
+    
+    //
+    // private member functions
+    //
+
     /** retrieve a list of streams this path is associated with */
-    public ArrayList<Stream> listOfStreams()
+    private ArrayList<Stream> streams()
     {
 	ArrayList<Stream> result = new ArrayList<Stream>();
 	Iterator<EventContent> itC = contentIterator();
@@ -193,14 +212,11 @@ public class Path extends ReferenceContainer
     }
 
     
-    /** number of datasets this path is assigned to */
-    public int datasetCount() { return listOfDatasets().size(); }
-    
     /** retrieve list of primary datasets this path is associated with */
-    public ArrayList<PrimaryDataset> listOfDatasets()
+    public ArrayList<PrimaryDataset> datasets()
     {
 	ArrayList<PrimaryDataset> result = new ArrayList<PrimaryDataset>();
-	Iterator<Stream> itS = listOfStreams().iterator();
+	Iterator<Stream> itS = streams().iterator();
 	while (itS.hasNext()) {
 	    Iterator<PrimaryDataset> itPD = itS.next().datasetIterator();
 	    while (itPD.hasNext()) {
@@ -211,4 +227,5 @@ public class Path extends ReferenceContainer
 	return result;
     }
     
+
 }

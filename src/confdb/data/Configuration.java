@@ -1071,28 +1071,9 @@ public class Configuration implements IConfiguration
 	    }
 	}
 	
-	// remove this paths from all event content
-	Iterator<EventContent> itC = path.contentIterator();
-	while (itC.hasNext()) itC.next().removePath(path);
-	
-	// remove path from all OutputModule::SelectEvents::SelectEvents
-	/*
-	  Iterator<ModuleInstance> itM = moduleIterator();
-	  while (itM.hasNext()) {
-	  ModuleInstance module = itM.next();
-	  if (!module.template().type().equals("OutputModule")) continue;
-	  Parameter[] tmp=module.findParameters("SelectEvents::SelectEvents");
-	  if (tmp.length!=1) continue;
-	  VStringParameter selEvts = (VStringParameter)tmp[0];
-	  for (int i=0;i<selEvts.vectorSize();i++) {
-	  String iAsString = (String)selEvts.value(i);
-	  if (iAsString.equals(path.name())) {
-	  selEvts.removeValue(i);
-	  module.setHasChanged();
-	  }
-	  }
-	  }
-	*/
+	// remove this paths from all streams
+	Iterator<Stream> itS = path.streamIterator();
+	while (itS.hasNext()) itS.next().removePath(path);
 	
 	int index = paths.indexOf(path);
 	paths.remove(index);

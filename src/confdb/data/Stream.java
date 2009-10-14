@@ -91,22 +91,23 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** retrieve iterator over paths */
     public Iterator<Path> pathIterator() { return paths.iterator(); }
     
-    /** associate another path with this event content */
+    /** associate another path with this stream */
     public boolean insertPath(Path path)
     {
 	if (paths.indexOf(path)>=0) return false;
-	if (parentContent.indexOfPath(path)<0) return false;
+	path.addToContent(parentContent);
 	paths.add(path);
 	setHasChanged();
 	return true;
     }
     
-    /** remove a path from this event content */
+    /** remove a path from this stream */
     public boolean removePath(Path path)
     {
 	int index = paths.indexOf(path);
 	if (index<0) return false;
 	paths.remove(index);
+	parentContent.removePath(path);
 	Iterator<PrimaryDataset> itPD = datasetIterator();
 	while (itPD.hasNext()) {
 	    PrimaryDataset dataset = itPD.next();

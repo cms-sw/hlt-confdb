@@ -27,6 +27,12 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     /** root of the tree = configuration */
     private IConfiguration config = null;
 
+    /** mode indicating which type of children are shown for contents */
+    private String contentMode = "streams";
+
+    /** mode indicating which type of childen are shown for streams */
+    private String streamMode = "datasets";
+
     /** flag indicating if parameters are displayed or not */
     private boolean displayParameters = true;
     
@@ -68,6 +74,12 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     //
     // member functions
     //
+
+    /** retrieve content mode */
+    public String contentMode() { return contentMode; }
+    
+    /** retrieve stream mode */
+    public String streamMode() { return streamMode; }
 
     /** get the PSets root node */
     public StringBuffer psetsNode() { return psetsNode; }
@@ -131,7 +143,33 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	nodeStructureChanged(config);
     }
+
+    /** set the content mode, indicating what children are displayed */
+    public boolean setContentMode(String contentMode)
+    {
+	if (contentMode.equals("streams")||
+	    contentMode.equals("paths")||
+	    contentMode.equals("datasets")) {
+	    this.contentMode = contentMode;
+	    return true;
+	}
+	System.err.println("ConfigurationTreeModel.setContentMode() ERROR: "+
+			   "invalid mode '" + contentMode +"'");
+	return false;
+    }
     
+    /** set the stream mode, indicating what children are displayed */
+    public boolean setStreamMode(String streamMode)
+    {
+	if (streamMode.equals("paths")||streamMode.equals("datasets")) {
+	    this.streamMode = streamMode;
+	    return true;
+	}
+	System.err.println("ConfigurationTreeModel.setStreamMode() ERROR: "+
+			   "invalid mode '" + streamMode +"'");
+	return false;
+    }
+
     /** update information of level1 nodes */
     public void updateLevel1Nodes()
     {
@@ -318,11 +356,14 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	else if (node instanceof EventContent) {
 	    EventContent content = (EventContent)node;
-	    return content.streamCount();
+	    if (contentMode.equals("streams"))  return content.streamCount();
+	    if (contentMode.equals("paths"))    return content.pathCount();
+	    if (contentMode.equals("datasets")) return content.datasetCount();
 	}
 	else if (node instanceof Stream) {
 	    Stream stream = (Stream)node;
-	    return stream.datasetCount();
+	    if (streamMode.equals("datasets")) return stream.datasetCount();
+	    if (streamMode.equals("paths"))    return stream.pathCount();
 	}
 	else if (node instanceof PrimaryDataset) {
 	    PrimaryDataset dataset = (PrimaryDataset)node;
@@ -391,11 +432,19 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	else if (parent instanceof EventContent) {
 	    EventContent content = (EventContent)parent;
-	    return content.stream(i);
+	    if (contentMode.equals("streams"))
+		return new ConfigurationTreeNode(content,content.stream(i));
+	    if (contentMode.equals("paths"))
+		return new ConfigurationTreeNode(content,content.path(i));
+	    if (contentMode.equals("datasets"))
+		return new ConfigurationTreeNode(content,content.dataset(i));
 	}
 	else if (parent instanceof Stream) {
 	    Stream stream = (Stream)parent;
-	    return stream.dataset(i);
+	    if (streamMode.equals("datasets"))
+		return new ConfigurationTreeNode(stream,stream.dataset(i));
+	    if (streamMode.equals("paths"))
+		return new ConfigurationTreeNode(stream,stream.path(i));
 	}
 	else if (parent instanceof PrimaryDataset) {
 	    PrimaryDataset dataset = (PrimaryDataset)parent;
