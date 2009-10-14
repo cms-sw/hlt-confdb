@@ -473,20 +473,20 @@ public class Configuration implements IConfiguration
     }
     
     
-    /** retrieve instance by label regardless of type */
-    public Instance instance(String label) {
+    /** retrieve instance by name regardless of type */
+    public Instance instance(String name) {
 	Instance result = null;
-	result = edsource(label);
+	result = edsource(name);
 	if (result!=null) return result;
-	result = essource(label);
+	result = essource(name);
 	if (result!=null) return result;
-	result = esmodule(label);
+	result = esmodule(name);
 	if (result!=null) return result;
-	result = service(label);
+	result = service(name);
 	if (result!=null) return result;
-	result = module(label);
+	result = module(name);
 	if (result!=null) return result;
-	System.err.println("Configuration::instance(): can't find '"+label+"'");
+	System.err.println("Configuration::instance(): can't find '"+name+"'");
 	return null;
     }
     
@@ -1225,11 +1225,11 @@ public class Configuration implements IConfiguration
     /** retrieve i-th event content */
     public EventContent content(int i) { return contents.get(i); }
     
-    /** retrieve content by label */
-    public EventContent content(String contentLabel)
+    /** retrieve content by name */
+    public EventContent content(String contentName)
     {
 	for (EventContent ec : contents)
-	    if (ec.label().equals(contentLabel)) return ec;
+	    if (ec.name().equals(contentName)) return ec;
 	return null;
     }
 
@@ -1240,11 +1240,11 @@ public class Configuration implements IConfiguration
     public Iterator<EventContent> contentIterator(){return contents.iterator();}
     
     /** insert new event content */
-    public EventContent insertContent(int i,String contentLabel)
+    public EventContent insertContent(int i,String contentName)
     {
 	for (EventContent ec : contents)
-	    if (ec.label().equals(contentLabel)) return ec;
-	EventContent content = new EventContent(contentLabel);
+	    if (ec.name().equals(contentName)) return ec;
+	EventContent content = new EventContent(contentName);
 	contents.add(i,content);
 	hasChanged = true;
 	return content;
@@ -1290,13 +1290,13 @@ public class Configuration implements IConfiguration
 	return null;
     }
     
-    /** retrieve stream by label */
-    public Stream stream(String streamLabel)
+    /** retrieve stream by name */
+    public Stream stream(String streamName)
     {
 	Iterator<Stream> itS = streamIterator();
 	while (itS.hasNext()) {
 	    Stream stream = itS.next();
-	    if (stream.label().equals(streamLabel)) return stream;
+	    if (stream.name().equals(streamName)) return stream;
 	}
 	return null;
     }
@@ -1357,13 +1357,13 @@ public class Configuration implements IConfiguration
 	return null;
     }
     
-    /** retrieve primary dataset by label */
-    public PrimaryDataset dataset(String datasetLabel)
+    /** retrieve primary dataset by name */
+    public PrimaryDataset dataset(String datasetName)
     {
 	Iterator<PrimaryDataset> itD = datasetIterator();
 	while (itD.hasNext()) {
 	    PrimaryDataset dataset = itD.next();
-	    if (dataset.label().equals(datasetLabel)) return dataset;
+	    if (dataset.name().equals(datasetName)) return dataset;
 	}
 	return null;
     }

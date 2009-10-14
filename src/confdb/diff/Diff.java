@@ -220,14 +220,14 @@ public class Diff
 	Iterator<EventContent> itEventContent2 = config2.contentIterator();
 	while (itEventContent2.hasNext()) {
 	    EventContent ec2 = itEventContent2.next();
-	    EventContent ec1 = config1.content(ec2.label());
+	    EventContent ec1 = config1.content(ec2.name());
 	    Comparison c = compareEventContents(ec1,ec2);
 	    if (!c.isIdentical()) contents.add(c);
 	}
 	Iterator<EventContent> itEventContent1 = config1.contentIterator();
 	while (itEventContent1.hasNext()) {
 	    EventContent ec1 = itEventContent1.next();
-	    if (config2.content(ec1.label())==null)
+	    if (config2.content(ec1.name())==null)
 		contents.add(compareEventContents(ec1,null));
 	}
 	
@@ -235,14 +235,14 @@ public class Diff
 	Iterator<Stream> itStream2 = config2.streamIterator();
 	while (itStream2.hasNext()) {
 	    Stream s2 = itStream2.next();
-	    Stream s1 = config1.stream(s2.label());
+	    Stream s1 = config1.stream(s2.name());
 	    Comparison c = compareStreams(s1,s2);
 	    if (!c.isIdentical()) streams.add(c);
 	}
 	Iterator<Stream> itStream1 = config1.streamIterator();
 	while (itStream1.hasNext()) {
 	    Stream s1 = itStream1.next();
-	    if (config2.stream(s1.label())==null)
+	    if (config2.stream(s1.name())==null)
 		streams.add(compareStreams(s1,null));
 	}
 	
@@ -250,14 +250,14 @@ public class Diff
 	Iterator<PrimaryDataset> itDataset2 = config2.datasetIterator();
 	while (itDataset2.hasNext()) {
 	    PrimaryDataset dataset2 = itDataset2.next();
-	    PrimaryDataset dataset1 = config1.dataset(dataset2.label());
+	    PrimaryDataset dataset1 = config1.dataset(dataset2.name());
 	    Comparison c = compareDatasets(dataset1,dataset2);
 	    if (!c.isIdentical()) datasets.add(c);
 	}
 	Iterator<PrimaryDataset> itDataset1 = config1.datasetIterator();
 	while (itDataset1.hasNext()) {
 	    PrimaryDataset dataset1 = itDataset1.next();
-	    if (config2.dataset(dataset1.label())==null)
+	    if (config2.dataset(dataset1.name())==null)
 		datasets.add(compareDatasets(dataset1,null));
 	}
     }
@@ -649,13 +649,13 @@ public class Diff
 	    Iterator<PrimaryDataset> itDataset2 = s2.datasetIterator();
 	    while (itDataset2.hasNext()) {
 		PrimaryDataset d2 = itDataset2.next();
-		if (s1.dataset(d2.label())==null)
+		if (s1.dataset(d2.name())==null)
 		    result.addComparison(new DatasetComparison(null,d2));
 	    }
 	    Iterator<PrimaryDataset> itDataset1 = s1.datasetIterator();
 	    while (itDataset1.hasNext()) {
 		PrimaryDataset d1 = itDataset1.next();
-		if (s2.dataset(d1.label())==null)
+		if (s2.dataset(d1.name())==null)
 		    result.addComparison(new DatasetComparison(d1,null));
 	    }
 	}

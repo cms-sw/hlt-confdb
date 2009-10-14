@@ -18,8 +18,8 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     // member data
     //
 
-    /** label of the stream */
-    private String label;
+    /** name of the stream */
+    private String name;
 
     /** reference to parent event content */
     private EventContent parentContent = null;
@@ -39,11 +39,11 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     //
     
     /** standard constructor */
-    public Stream(String label,EventContent parentContent)
+    public Stream(String name,EventContent parentContent)
     {
-	this.label = label;
+	this.name = name;
 	this.parentContent = parentContent;
-	this.outputModule = new OutputModule("hltOutput"+label,this);
+	this.outputModule = new OutputModule("hltOutput"+name,this);
     }
     
     
@@ -51,14 +51,14 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     // member functions
     //
 
-    /** label of this stream */
-    public String label() { return label; }
+    /** name of this stream */
+    public String name() { return name; }
     
-    /** set label of this stream */
-    public void setLabel(String label) { this.label = label; }
+    /** set name of this stream */
+    public void setName(String name) { this.name = name; }
     
     /** overload 'toString()' */
-    public String toString() { return label(); }
+    public String toString() { return name(); }
 
     /** get parent event content */
     public EventContent parentContent() { return parentContent; }
@@ -154,11 +154,11 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** retrieve i-th primary dataset */
     public PrimaryDataset dataset(int i) { return datasets.get(i); }
 
-    /** retrieve primary dataset by label */
-    public PrimaryDataset dataset(String datasetLabel)
+    /** retrieve primary dataset by name */
+    public PrimaryDataset dataset(String datasetName)
     {
 	for (PrimaryDataset pd : datasets)
-	    if (pd.label().equals(datasetLabel)) return pd;
+	    if (pd.name().equals(datasetName)) return pd;
 	return null;
     }
 
@@ -172,13 +172,13 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     public int indexOfDataset(PrimaryDataset ds) {return datasets.indexOf(ds);}
     
     /** insert and associate a primary dataset with this stream */
-    public PrimaryDataset insertDataset(String datasetLabel)
+    public PrimaryDataset insertDataset(String datasetName)
     {
         for (PrimaryDataset pd : datasets)
-            if (pd.label().equals(datasetLabel)) {
+            if (pd.name().equals(datasetName)) {
                 return null;
             }
-        PrimaryDataset result = new PrimaryDataset(datasetLabel, this);
+        PrimaryDataset result = new PrimaryDataset(datasetName, this);
         datasets.add(result);
         setHasChanged();
         return result;

@@ -1519,7 +1519,7 @@ public class ConfDbGUI
 			    Iterator<PrimaryDataset> itPD =
 				path.listOfDatasets().iterator();
 			    while (itPD.hasNext())
-				text += "<br>"+itPD.next().label();
+				text += "<br>"+itPD.next().name();
 			}
 			String[] unresolved = path.unresolvedInputTags();
 			if (unresolved.length>0) {

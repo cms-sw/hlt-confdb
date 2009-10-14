@@ -1292,6 +1292,25 @@ public class ConfigurationTreeActions
 	return true;
     }
     
+    /** remove a path from its parent dataset */
+    public static boolean removePathFromDataset(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	ConfigurationTreeNode treeNode =
+	    (ConfigurationTreeNode)treePath.getLastPathComponent();
+	PrimaryDataset dataset = (PrimaryDataset)treeNode.parent();
+	Path           path    = (Path)treeNode.object();
+	int            index   = dataset.indexOfPath(path);
+	dataset.removePath(path);
+	
+	model.nodeRemoved(dataset,index,treeNode);
+	model.updateLevel1Nodes();
+
+	return true;
+    }
 
     //
     // generic functions

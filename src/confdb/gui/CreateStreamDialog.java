@@ -35,8 +35,8 @@ public class CreateStreamDialog extends JDialog
     private JButton    jButtonOK;
     private JComboBox  jComboBoxEventContent;
     private JLabel     jLabelEventContent;
-    private JLabel     jLabelStreamLabel;
-    private JTextField jTextFieldStreamLabel;
+    private JLabel     jLabelStreamName;
+    private JTextField jTextFieldStreamName;
 
     //
     // construction
@@ -77,7 +77,7 @@ public class CreateStreamDialog extends JDialog
         Iterator<EventContent> itC = config.contentIterator();
         while (itC.hasNext()) {
             EventContent content = itC.next();
-            cbm.addElement(content.label());
+            cbm.addElement(content.name());
         }
     }
 
@@ -86,14 +86,14 @@ public class CreateStreamDialog extends JDialog
     //
     private void jButtonOKActionPerformed(ActionEvent evt)
     {
-        String streamLabel = jTextFieldStreamLabel.getText();
-        String contentLabel = (String)jComboBoxEventContent.getSelectedItem();
-        EventContent content = config.content(contentLabel);
+        String streamName = jTextFieldStreamName.getText();
+        String contentName = (String)jComboBoxEventContent.getSelectedItem();
+        EventContent content = config.content(contentName);
         if (content==null) {
             content = config.insertContent(config.contentCount(),
-                                           "hltEventContent" + streamLabel);
+                                           "hltEventContent" + streamName);
         }
-        stream = content.insertStream(streamLabel);
+        stream = content.insertStream(streamName);
         setVisible(false);
     }
     private void jButtonCancelActionPerformed(ActionEvent evt)
@@ -104,16 +104,16 @@ public class CreateStreamDialog extends JDialog
     //
     // DOCUMENTLISTENER CALLBACKS
     //
-    private void jTextFieldStreamLabelInsertUpdate(DocumentEvent e)
+    private void jTextFieldStreamNameInsertUpdate(DocumentEvent e)
     {
-	String streamLabel = jTextFieldStreamLabel.getText();
-	if (config.stream(streamLabel)==null) jButtonOK.setEnabled(true);
+	String streamName = jTextFieldStreamName.getText();
+	if (config.stream(streamName)==null) jButtonOK.setEnabled(true);
 	else jButtonOK.setEnabled(false);
     }
-    public void jTextFieldStreamLabelRemoveUpdate(DocumentEvent e)
+    public void jTextFieldStreamNameRemoveUpdate(DocumentEvent e)
     {
-	String streamLabel = jTextFieldStreamLabel.getText();
-	if (config.stream(streamLabel)==null) jButtonOK.setEnabled(true);
+	String streamName = jTextFieldStreamName.getText();
+	if (config.stream(streamName)==null) jButtonOK.setEnabled(true);
 	else jButtonOK.setEnabled(false);
     }
     
@@ -123,22 +123,22 @@ public class CreateStreamDialog extends JDialog
 
 	JPanel jPanel = new JPanel();
 	
-        jLabelStreamLabel = new javax.swing.JLabel();
-        jTextFieldStreamLabel = new javax.swing.JTextField();
+        jLabelStreamName = new javax.swing.JLabel();
+        jTextFieldStreamName = new javax.swing.JTextField();
         jComboBoxEventContent = new javax.swing.JComboBox();
         jLabelEventContent = new javax.swing.JLabel();
         jButtonOK = new javax.swing.JButton();
         jButtonCancel = new javax.swing.JButton();
 
-        jLabelStreamLabel.setText("Stream Name:");
+        jLabelStreamName.setText("Stream Name:");
 
-	jTextFieldStreamLabel.getDocument()
+	jTextFieldStreamName.getDocument()
 	    .addDocumentListener(new DocumentListener() {
 		    public void insertUpdate(DocumentEvent e) {
-			jTextFieldStreamLabelInsertUpdate(e);
+			jTextFieldStreamNameInsertUpdate(e);
 		    }
 		    public void removeUpdate(DocumentEvent e) {
-			jTextFieldStreamLabelRemoveUpdate(e);
+			jTextFieldStreamNameRemoveUpdate(e);
 		    }
 		    public void changedUpdate(DocumentEvent e) {}
 		});
@@ -165,8 +165,8 @@ public class CreateStreamDialog extends JDialog
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(layout.createSequentialGroup()
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(jTextFieldStreamLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 338, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                            .add(jLabelStreamLabel))
+                            .add(jTextFieldStreamName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 338, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                            .add(jLabelStreamName))
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                             .add(jLabelEventContent)
@@ -185,11 +185,11 @@ public class CreateStreamDialog extends JDialog
             .add(layout.createSequentialGroup()
                 .addContainerGap()
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jLabelStreamLabel)
+                    .add(jLabelStreamName)
                     .add(jLabelEventContent))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jTextFieldStreamLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(jTextFieldStreamName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                     .add(jComboBoxEventContent, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)

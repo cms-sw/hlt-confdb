@@ -50,8 +50,8 @@ public class EventContentComparison extends Comparison
 	else if (oldEventContent!=null&&newEventContent==null)
 	    return RESULT_REMOVED;
 	else if (comparisonCount()==0&&
-		 oldEventContent.label()
-		 .equals(newEventContent.label()))
+		 oldEventContent.name()
+		 .equals(newEventContent.name()))
 	    return RESULT_IDENTICAL;
 	else return RESULT_CHANGED;
     }
@@ -60,16 +60,16 @@ public class EventContentComparison extends Comparison
     public String toString()
     {
 	return (newEventContent==null) ?
-	    "EventContent "+oldEventContent.label()+" "+resultAsString():
-	    "EventContent "+newEventContent.label()+" "+resultAsString();
+	    "EventContent "+oldEventContent.name()+" "+resultAsString():
+	    "EventContent "+newEventContent.name()+" "+resultAsString();
     }
     
     /** html representation of the comparison */
     public String toHtml()
     {
 	return (newEventContent==null) ?
-	    "<html>EventContent <b>"+oldEventContent.label()+"</b></html>" :
-	    "<html>EventContent <b>"+newEventContent.label()+"</b></html>";
+	    "<html>EventContent <b>"+oldEventContent.name()+"</b></html>" :
+	    "<html>EventContent <b>"+newEventContent.name()+"</b></html>";
     }
     
 }

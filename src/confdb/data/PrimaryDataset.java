@@ -20,8 +20,8 @@ public class PrimaryDataset extends DatabaseEntry
     // member data
     //
     
-    /** label of the stream */ 
-    private String label;
+    /** name of the stream */ 
+    private String name;
     
     /** collection of assigned paths */
     private ArrayList<Path> paths = new ArrayList<Path>();
@@ -35,9 +35,9 @@ public class PrimaryDataset extends DatabaseEntry
     //
     
     /** standard constructor */
-    public PrimaryDataset(String label,Stream parentStream)
+    public PrimaryDataset(String name,Stream parentStream)
     {
-	this.label        = label;
+	this.name        = name;
 	this.parentStream = parentStream;
     }
     
@@ -46,17 +46,17 @@ public class PrimaryDataset extends DatabaseEntry
     // member functions
     //
     
-    /** label of this stream */
-    public String label() { return label; }
+    /** name of this stream */
+    public String name() { return name; }
     
     /** get the parent stream */
     public Stream parentStream() { return parentStream; }
 
-    /** set label of this stream */
-    public void setLabel(String label) { this.label = label; }
+    /** set name of this stream */
+    public void setName(String name) { this.name = name; }
     
     /** overload 'toString()' */
-    public String toString() { return label(); }
+    public String toString() { return name(); }
     
     /** Comparable: compareTo() */
     public int compareTo(PrimaryDataset s)
@@ -70,7 +70,7 @@ public class PrimaryDataset extends DatabaseEntry
     /** retrieve i-th path */
     public Path path(int i) { return paths.get(i); }
     
-    /** retrieve path by label */
+    /** retrieve path by name */
     public Path path(String pathName)
     {
 	for (Path p : paths) if (p.name().equals(pathName)) return p;

@@ -50,7 +50,7 @@ public interface IConfiguration
     /** check if the configuration is empty */
     public boolean isEmpty();
 
-    /** check if the provided string is already in use as a label */
+    /** check if the provided string is already in use as a name */
     public boolean isUniqueQualifier(String qualifier);
 
     
@@ -79,8 +79,8 @@ public interface IConfiguration
     public int pathNotAssignedToStreamCount();
     
     
-    /** get instance by label, regardless of type */
-    public Instance instance(String label);
+    /** get instance by name, regardless of type */
+    public Instance instance(String name);
 
 
     /**  number of global PSets */
@@ -89,7 +89,7 @@ public interface IConfiguration
     /** get i-th global PSet */
     public PSetParameter pset(int i);
     
-    /** get pset by label */
+    /** get pset by name */
     public PSetParameter pset(String name);
     
     /** index of a certain global PSet */
@@ -107,7 +107,7 @@ public interface IConfiguration
     /** get i-th EDSource */
     public EDSourceInstance edsource(int i);
 
-    /** get EDSource by label */
+    /** get EDSource by name */
     public EDSourceInstance edsource(String name);
     
     /** index of a certain EDSource */
@@ -123,7 +123,7 @@ public interface IConfiguration
     /** get i-th ESSource */
     public ESSourceInstance essource(int i);
 
-    /** get ESSource by label */
+    /** get ESSource by name */
     public ESSourceInstance essource(String name);
 
     /** index of a certain ESSource */
@@ -139,7 +139,7 @@ public interface IConfiguration
     /** get i-th ESModule */
     public ESModuleInstance esmodule(int i);
 
-    /** get ESModule by label */
+    /** get ESModule by name */
     public ESModuleInstance esmodule(String name);
     
     /** index of a certain ESSource */
@@ -155,7 +155,7 @@ public interface IConfiguration
     /** get i-th Service */
     public ServiceInstance service(int i);
 
-    /** get Service by label */
+    /** get Service by name */
     public ServiceInstance service(String name);
     
     /** index of a certain Service */
@@ -171,7 +171,7 @@ public interface IConfiguration
     /** get i-th Module */
     public ModuleInstance module(int i);
     
-    /** get module by name (label) */
+    /** get module by name (name) */
     public ModuleInstance module(String moduleName);
     
     /** index of a certain Module */
@@ -187,7 +187,7 @@ public interface IConfiguration
     /** get i-th OutputModule */
     public OutputModule output(int i);
     
-    /** get output by name (label) */
+    /** get output by name (name) */
     public OutputModule output(String outputName);
     
     /** index of a certain OutputModule */
@@ -238,8 +238,8 @@ public interface IConfiguration
     /** retrieve i-th event contents */
     public EventContent content(int i);
     
-    /** retrieve event content by label */
-    public EventContent content(String eventContentLabel);
+    /** retrieve event content by name */
+    public EventContent content(String eventContentName);
     
     /** index of a certain event content */
     public int indexOfContent(EventContent eventContent);
@@ -254,8 +254,8 @@ public interface IConfiguration
     /** retrieve i-th stream */
     public Stream stream(int i);
     
-    /** retrieve stream by label */
-    public Stream stream(String streamLabel);
+    /** retrieve stream by name */
+    public Stream stream(String streamName);
     
     /** index of a certain stream */
     public int indexOfStream(Stream stream);
@@ -270,8 +270,8 @@ public interface IConfiguration
     /** retrieve i-th primary dataset */
     public PrimaryDataset dataset(int i);
     
-    /** retrieve primary dataset by label */
-    public PrimaryDataset dataset(String datasetLabel);
+    /** retrieve primary dataset by name */
+    public PrimaryDataset dataset(String datasetName);
     
     /** index of a certain primary dataset */
     public int indexOfDataset(PrimaryDataset dataset);

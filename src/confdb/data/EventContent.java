@@ -17,8 +17,8 @@ public class EventContent extends DatabaseEntry
     // member data
     //
 
-    /** label of this event content */
-    private String label;
+    /** name of this event content */
+    private String name;
     
     /** collection of assigned paths */
     private ArrayList<Path> paths = new ArrayList<Path>();
@@ -38,9 +38,9 @@ public class EventContent extends DatabaseEntry
     //
     
     /** standard constructor */
-    public EventContent(String label)
+    public EventContent(String name)
     {
-	this.label = label;
+	this.name = name;
     }
     
     
@@ -48,14 +48,14 @@ public class EventContent extends DatabaseEntry
     // member functions
     //
     
-    /** label of the event content */
-    public String label() { return label; }
+    /** name of the event content */
+    public String name() { return name; }
     
-    /** set the label of this event content */
-    public void setLabel(String label) { this.label = label; }
+    /** set the name of this event content */
+    public void setName(String name) { this.name = name; }
     
     /** retrieve string representation of this event content */
-    public String toString() { return label(); }
+    public String toString() { return name(); }
     
     /** get the parent configuration */
     public IConfiguration config() { return config; }
@@ -153,9 +153,9 @@ public class EventContent extends DatabaseEntry
     /** retrieve i-th stream associated with event content */
     public Stream stream(int i) { return streams.get(i); }
 
-    /** retrieve stream with specific label from event content */
-    public Stream stream(String streamLabel) {
-	for (Stream s : streams) if (s.label().equals(streamLabel)) return s;
+    /** retrieve stream with specific name from event content */
+    public Stream stream(String streamName) {
+	for (Stream s : streams) if (s.name().equals(streamName)) return s;
 	return null;
     }
     
@@ -166,12 +166,12 @@ public class EventContent extends DatabaseEntry
     public int indexOfStream(Stream stream) { return streams.indexOf(stream); }
 
     /** associate an existing stream with this event content */
-    public Stream insertStream(String streamLabel)
+    public Stream insertStream(String streamName)
     {
 	Iterator<Stream> itS = streamIterator();
 	while (itS.hasNext())
-	    if (itS.next().label().equals(streamLabel)) return null;
-	Stream stream = new Stream(streamLabel,this);
+	    if (itS.next().name().equals(streamName)) return null;
+	Stream stream = new Stream(streamName,this);
 	streams.add(stream);
 	setHasChanged();
 	return stream;

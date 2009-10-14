@@ -27,11 +27,11 @@ public class EventContentStatement
     /** friendly class name*/
     private String className = "*";
     
-    /** module label */
-    private String moduleLabel = "*";
+    /** module name */
+    private String moduleName = "*";
 
-    /** extra label */
-    private String extraLabel = "*";
+    /** extra name */
+    private String extraName = "*";
 
     /** process name */
     private String processName = "*";
@@ -74,14 +74,14 @@ public class EventContentStatement
     /** retrieve class name part of the statement */
     public String className() { return className; }
 
-    /** retrieve module label part of the statement */
-    public String moduleLabel()
+    /** retrieve module name part of the statement */
+    public String moduleName()
     {
-	return (parentReference==null) ? moduleLabel : parentReference.name();
+	return (parentReference==null) ? moduleName : parentReference.name();
     }
 
-    /** retrieve extra label part of the statement */
-    public String extraLabel() { return extraLabel; }
+    /** retrieve extra name part of the statement */
+    public String extraName() { return extraName; }
 
     /** retrieve process name part of the statement */
     public String processName() { return processName; }
@@ -94,8 +94,8 @@ public class EventContentStatement
 	result
 	    .append(dropOrKeep)
 	    .append(className()).append("_")
-	    .append(moduleLabel()).append("_")
-	    .append(extraLabel()).append("_")
+	    .append(moduleName()).append("_")
+	    .append(extraName()).append("_")
 	    .append(processName());
 	return result.toString();
     }
@@ -109,22 +109,22 @@ public class EventContentStatement
     /** set the class name */
     public void setClassName(String className) { this.className = className; }
 
-    /** set the module label */
-    public boolean setModuleLabel(String moduleLabel)
+    /** set the module name */
+    public boolean setModuleName(String moduleName)
     {
 	if (parentReference != null) {
-	    System.err.println("EventContentStatement.setModuleLabel() ERROR:"+
+	    System.err.println("EventContentStatement.setModuleName() ERROR:"+
 			       " statement has a parent reference!");
 	    return false;
 	}
-	this.moduleLabel = moduleLabel;
+	this.moduleName = moduleName;
 	return true;
     }
 
-    /** set the extra label */
-    public void setExtraLabel(String extraLabel)
+    /** set the extra name */
+    public void setExtraName(String extraName)
     {
-	this.extraLabel = extraLabel;
+	this.extraName = extraName;
     }
 
     /** set the process name */

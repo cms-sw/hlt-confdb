@@ -403,7 +403,7 @@ public class ConfigurationModifier implements IConfiguration
     /** check if the configuration is empty */
     public boolean isEmpty() { return master.isEmpty(); }
 
-    /** check if the provided string is already in use as a label */
+    /** check if the provided string is already in use as a name */
     public boolean isUniqueQualifier(String qualifier)
     {
 	return master.isUniqueQualifier(qualifier);
@@ -492,21 +492,21 @@ public class ConfigurationModifier implements IConfiguration
 	return result;
     }
 
-    /** retrieve instance by label regardless of type */
-    public Instance instance(String label) {
+    /** retrieve instance by name regardless of type */
+    public Instance instance(String name) {
 	Instance result = null;
-	result = edsource(label);
+	result = edsource(name);
 	if (result!=null) return result;
-	result = essource(label);
+	result = essource(name);
 	if (result!=null) return result;
-	result = esmodule(label);
+	result = esmodule(name);
 	if (result!=null) return result;
-	result = service(label);
+	result = service(name);
 	if (result!=null) return result;
-	result = module(label);
+	result = module(name);
 	if (result!=null) return result;
 	System.err.println("ConfigurationModifier::instance(): can't find '"+
-			   label+"'");
+			   name+"'");
 	return null;
     }
     
@@ -522,7 +522,7 @@ public class ConfigurationModifier implements IConfiguration
 	return (isModified) ? psets.get(i) : master.pset(i);
     }
     
-    /** get  global PSet by label */
+    /** get  global PSet by name */
     public PSetParameter pset(String name)
     {
 	if (!isModified) return master.pset(name);
@@ -555,7 +555,7 @@ public class ConfigurationModifier implements IConfiguration
 	return (isModified) ? edsources.get(i) : master.edsource(i);
     }
 
-    /** get EDSource by label */
+    /** get EDSource by name */
     public EDSourceInstance edsource(String name)
     {
 	if (!isModified) return master.edsource(name);
@@ -590,7 +590,7 @@ public class ConfigurationModifier implements IConfiguration
 	return (isModified) ? essources.get(i) : master.essource(i);
     }
 
-    /** get ESSource by label */
+    /** get ESSource by name */
     public ESSourceInstance essource(String name)
     {
 	if (!isModified) return master.essource(name);
@@ -625,7 +625,7 @@ public class ConfigurationModifier implements IConfiguration
 	return (isModified) ? esmodules.get(i) : master.esmodule(i);
     }
 
-    /** get ESModule by label */
+    /** get ESModule by name */
     public ESModuleInstance esmodule(String name)
     {
 	if (!isModified) return master.esmodule(name);
@@ -660,7 +660,7 @@ public class ConfigurationModifier implements IConfiguration
 	return (isModified) ? services.get(i) : master.service(i);
     }
 
-    /** get Service by label */
+    /** get Service by name */
     public ServiceInstance service(String name)
     {
 	if (!isModified) return master.service(name);
@@ -816,10 +816,10 @@ public class ConfigurationModifier implements IConfiguration
     /** retrieve i-th event content */
     public EventContent content(int i) { return master.content(i); }
     
-    /** retrieve event content by label */
-    public EventContent content(String contentLabel)
+    /** retrieve event content by name */
+    public EventContent content(String contentName)
     {
-	return master.content(contentLabel);
+	return master.content(contentName);
     }
     
     /** index of a certain event content */
@@ -841,10 +841,10 @@ public class ConfigurationModifier implements IConfiguration
     /** retrieve i-th stream */
     public Stream stream(int i) { return master.stream(i); }
     
-    /** retrieve stream by label */
-    public Stream stream(String streamLabel)
+    /** retrieve stream by name */
+    public Stream stream(String streamName)
     {
-	return master.stream(streamLabel);
+	return master.stream(streamName);
     }
     
     /** index of a certain stream */
@@ -863,10 +863,10 @@ public class ConfigurationModifier implements IConfiguration
     /** retrieve i-th primary dataset */
     public PrimaryDataset dataset(int i) { return master.dataset(i); }
     
-    /** retrieve primary dataset by label */
-    public PrimaryDataset dataset(String datasetLabel)
+    /** retrieve primary dataset by name */
+    public PrimaryDataset dataset(String datasetName)
     {
-	return master.dataset(datasetLabel);
+	return master.dataset(datasetName);
     }
     
     /** index of a certain primary dataset */

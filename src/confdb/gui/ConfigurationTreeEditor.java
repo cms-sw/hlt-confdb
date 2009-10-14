@@ -115,17 +115,17 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 	}
 	else if (toBeEdited instanceof EventContent) {
 	    EventContent content = (EventContent)toBeEdited;
-	    content.setLabel(name);
+	    content.setName(name);
 	    treeModel.nodeChanged(content);
 	}
 	else if (toBeEdited instanceof Stream) {
 	    Stream stream = (Stream)toBeEdited;
-	    stream.setLabel(name);
+	    stream.setName(name);
 	    treeModel.nodeChanged(stream);
 	}
 	else if (toBeEdited instanceof PrimaryDataset) {
 	    PrimaryDataset dataset = (PrimaryDataset)toBeEdited;
-	    dataset.setLabel(name);
+	    dataset.setName(name);
 	    treeModel.nodeChanged(dataset);
 	}
 

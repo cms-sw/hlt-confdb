@@ -48,7 +48,7 @@ public class DatasetComparison extends Comparison
 	if      (oldDataset==null&&newDataset!=null) return RESULT_ADDED;
 	else if (oldDataset!=null&&newDataset==null) return RESULT_REMOVED;
 	else if (comparisonCount()==0&&
-		 oldDataset.label().equals(newDataset.label()))
+		 oldDataset.name().equals(newDataset.name()))
 	    return RESULT_IDENTICAL;
 	else return RESULT_CHANGED;
     }
@@ -57,16 +57,16 @@ public class DatasetComparison extends Comparison
     public String toString()
     {
 	return (newDataset==null) ?
-	    "Dataset "+oldDataset.label()+" "+resultAsString():
-	    "Dataset "+newDataset.label()+" "+resultAsString();
+	    "Dataset "+oldDataset.name()+" "+resultAsString():
+	    "Dataset "+newDataset.name()+" "+resultAsString();
     }
     
     /** html representation of the comparison */
     public String toHtml()
     {
 	return (newDataset==null) ?
-	    "<html>Dataset <b>"+oldDataset.label()+"</b></html>" :
-	    "<html>Dataset <b>"+newDataset.label()+"</b></html>";
+	    "<html>Dataset <b>"+oldDataset.name()+"</b></html>" :
+	    "<html>Dataset <b>"+newDataset.name()+"</b></html>";
     }
     
 }

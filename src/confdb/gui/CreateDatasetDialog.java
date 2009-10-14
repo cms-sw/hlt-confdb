@@ -34,9 +34,9 @@ public class CreateDatasetDialog extends JDialog
     private JButton jButtonCancel;
     private JButton jButtonOK;
     private JComboBox jComboBoxStream;
-    private JLabel jLabelDatasetLabel;
+    private JLabel jLabelDatasetName;
     private JLabel jLabelStream;
-    private JTextField jTextFieldDatasetLabel;
+    private JTextField jTextFieldDatasetName;
 
 
     //
@@ -78,7 +78,7 @@ public class CreateDatasetDialog extends JDialog
         Iterator<Stream> itS = config.streamIterator();
         while (itS.hasNext()) {
             Stream stream = itS.next();
-            cbm.addElement(stream.label());
+            cbm.addElement(stream.name());
         }
     }
 
@@ -87,10 +87,10 @@ public class CreateDatasetDialog extends JDialog
     //
     private void jButtonOKActionPerformed(ActionEvent evt)
     {
-        String datasetLabel = jTextFieldDatasetLabel.getText();
-        String streamLabel  = (String)jComboBoxStream.getSelectedItem();
-        Stream stream = config.stream(streamLabel);
-        dataset = stream.insertDataset(datasetLabel);
+        String datasetName = jTextFieldDatasetName.getText();
+        String streamName  = (String)jComboBoxStream.getSelectedItem();
+        Stream stream = config.stream(streamName);
+        dataset = stream.insertDataset(datasetName);
 	setVisible(false);
     }
 
@@ -103,16 +103,16 @@ public class CreateDatasetDialog extends JDialog
     //
     // DOCUMENTLISTENER CALLBACKS
     //
-    private void jTextFieldDatasetLabelInsertUpdate(DocumentEvent e)
+    private void jTextFieldDatasetNameInsertUpdate(DocumentEvent e)
     {
-	String datasetLabel = jTextFieldDatasetLabel.getText();
-	if (config.dataset(datasetLabel)==null) jButtonOK.setEnabled(true);
+	String datasetName = jTextFieldDatasetName.getText();
+	if (config.dataset(datasetName)==null) jButtonOK.setEnabled(true);
 	else jButtonOK.setEnabled(false);
     }
-    public void jTextFieldDatasetLabelRemoveUpdate(DocumentEvent e)
+    public void jTextFieldDatasetNameRemoveUpdate(DocumentEvent e)
     {
-	String datasetLabel = jTextFieldDatasetLabel.getText();
-	if (config.dataset(datasetLabel)==null) jButtonOK.setEnabled(true);
+	String datasetName = jTextFieldDatasetName.getText();
+	if (config.dataset(datasetName)==null) jButtonOK.setEnabled(true);
 	else jButtonOK.setEnabled(false);
     }
     
@@ -121,24 +121,24 @@ public class CreateDatasetDialog extends JDialog
     {
 	JPanel jPanel = new JPanel();
 	
-        jLabelDatasetLabel = new javax.swing.JLabel();
-        jTextFieldDatasetLabel = new javax.swing.JTextField();
+        jLabelDatasetName = new javax.swing.JLabel();
+        jTextFieldDatasetName = new javax.swing.JTextField();
         jLabelStream = new javax.swing.JLabel();
         jComboBoxStream = new javax.swing.JComboBox();
         jButtonOK = new javax.swing.JButton();
         jButtonCancel = new javax.swing.JButton();
 
-        jLabelDatasetLabel.setText("Primary Dataset Name:");
+        jLabelDatasetName.setText("Primary Dataset Name:");
 
         jLabelStream.setText("Stream:");
 
-        jTextFieldDatasetLabel.getDocument()
+        jTextFieldDatasetName.getDocument()
 	    .addDocumentListener(new DocumentListener() {
 		    public void insertUpdate(DocumentEvent e) {
-			jTextFieldDatasetLabelInsertUpdate(e);
+			jTextFieldDatasetNameInsertUpdate(e);
 		    }
 		    public void removeUpdate(DocumentEvent e) {
-			jTextFieldDatasetLabelRemoveUpdate(e);
+			jTextFieldDatasetNameRemoveUpdate(e);
 		    }
 		    public void changedUpdate(DocumentEvent e) {}
 		});
@@ -167,11 +167,11 @@ public class CreateDatasetDialog extends JDialog
                 .addContainerGap()
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(layout.createSequentialGroup()
-                        .add(jTextFieldDatasetLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 327, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .add(jTextFieldDatasetName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 327, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(jComboBoxStream, 0, 316, Short.MAX_VALUE))
                     .add(layout.createSequentialGroup()
-                        .add(jLabelDatasetLabel)
+                        .add(jLabelDatasetName)
                         .add(199, 199, 199)
                         .add(jLabelStream))
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
@@ -188,11 +188,11 @@ public class CreateDatasetDialog extends JDialog
             .add(layout.createSequentialGroup()
                 .addContainerGap()
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jLabelDatasetLabel)
+                    .add(jLabelDatasetName)
                     .add(jLabelStream))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jTextFieldDatasetLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(jTextFieldDatasetName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                     .add(jComboBoxStream, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)

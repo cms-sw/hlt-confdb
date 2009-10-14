@@ -236,10 +236,10 @@ public class OnlineConverter extends ConverterBase
 		smConfig.insertModuleReference(endpath,
 					       endpath.entryCount(), 
 					       smStreamWriterT.name(),
-					       stream.label());
+					       stream.name());
 	    ModuleInstance streamWriter =
 		(ModuleInstance)streamWriterRef.parent();
-	    streamWriter.updateParameter("streamLabel","string",stream.label());
+	    streamWriter.updateParameter("streamLabel","string",stream.name());
 	    PSetParameter psetSelectEvents =
 		new PSetParameter("SelectEvents","",false);
 	    String valAsString = "";

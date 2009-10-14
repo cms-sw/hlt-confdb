@@ -752,13 +752,13 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    //JMenu addPathMenu = new ScrollableMenu("Add Path");
 	    //popupContents.add(addPathMenu);
 
-	    menuItem = new JMenuItem("<html>Rename <i>" + content.label() +
+	    menuItem = new JMenuItem("<html>Rename <i>" + content.name() +
 				     "</i></html>");
 	    menuItem.addActionListener(contentListener);
 	    menuItem.setActionCommand("RENAME");
 	    popupContents.add(menuItem);
 	    
-	    menuItem = new JMenuItem("<html>Remove <i>" + content.label()
+	    menuItem = new JMenuItem("<html>Remove <i>" + content.name()
 				     + "</i></html>");
 	    menuItem.addActionListener(contentListener);
 	    menuItem.setActionCommand("REMOVE");
@@ -766,7 +766,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    
 	    popupContents.addSeparator();
 	    
-	    //menuItem = new JMenuItem("Edit " + content.label());
+	    //menuItem = new JMenuItem("Edit " + content.name());
 	    //menuItem.addActionListener(contentListener);
 	    //popupContents.add(menuItem);
 	    
@@ -814,13 +814,13 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 
 	    popupStreams.addSeparator();
 
-	    menuItem = new JMenuItem("<html>Rename <i>" + stream.label() +
+	    menuItem = new JMenuItem("<html>Rename <i>" + stream.name() +
 				     "</i></html>");
 	    menuItem.addActionListener(streamListener);
 	    menuItem.setActionCommand("RENAME");
 	    popupStreams.add(menuItem);
 	    
-	    menuItem = new JMenuItem("<html>Remove <i>" + stream.label() +
+	    menuItem = new JMenuItem("<html>Remove <i>" + stream.name() +
 				     "</i></html>");
 	    menuItem.addActionListener(streamListener);
 	    menuItem.setActionCommand("REMOVE");
@@ -859,7 +859,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	TreeModel      model  = tree.getModel();
 	IConfiguration config = (IConfiguration)model.getRoot();
 
-	if (depth>3) return;
+	if (depth>4) return;
 	
 	if (depth==2) {
 	    menuItem = new JMenuItem("Add Primary Dataset");
@@ -876,13 +876,13 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    
 	    popupDatasets.addSeparator();
 	    
-	    menuItem = new JMenuItem("<html>Rename <i>" + dataset.label() +
+	    menuItem = new JMenuItem("<html>Rename <i>" + dataset.name() +
 				     "</i></html>");
 	    menuItem.addActionListener(datasetListener);
 	    menuItem.setActionCommand("RENAME");
 	    popupDatasets.add(menuItem);
 	    
-	    menuItem = new JMenuItem("<html>Remove <i>" + dataset.label() +
+	    menuItem = new JMenuItem("<html>Remove <i>" + dataset.name() +
 				     "</i></html>");
 	    menuItem.addActionListener(datasetListener);
 	    menuItem.setActionCommand("REMOVE");
@@ -899,6 +899,17 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		menuItem.setActionCommand("ADDPATH");
 		addPathMenu.add(menuItem);
 	    }
+	}
+	else if (depth==4) {
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
+	    PrimaryDataset dataset = (PrimaryDataset)treeNode.parent();
+	    Path           path    = (Path)treeNode.object();
+
+	    menuItem = new JMenuItem("<html>Remove <i>"+path.name()+
+				     "</i?</html>");
+	    menuItem.addActionListener(datasetListener);
+	    menuItem.setActionCommand("REMOVEPATH");
+	    popupDatasets.add(menuItem);
 	}
     }
     
@@ -1630,6 +1641,9 @@ class DatasetMenuListener implements ActionListener
 	}
 	else if (action.equals("RENAME")) {
 	    ConfigurationTreeActions.editNodeName(tree);
+	}
+	else if (action.equals("REMOVEPATH")) {
+	    ConfigurationTreeActions.removePathFromDataset(tree);
 	}
     }
 }

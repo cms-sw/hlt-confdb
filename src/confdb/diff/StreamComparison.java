@@ -47,7 +47,7 @@ public class StreamComparison extends Comparison
 	if      (oldStream==null&&newStream!=null) return RESULT_ADDED;
 	else if (oldStream!=null&&newStream==null) return RESULT_REMOVED;
 	else if (comparisonCount()==0&&
-		 oldStream.label().equals(newStream.label()))
+		 oldStream.name().equals(newStream.name()))
 	    return RESULT_IDENTICAL;
 	else return RESULT_CHANGED;
     }
@@ -56,16 +56,16 @@ public class StreamComparison extends Comparison
     public String toString()
     {
 	return (newStream==null) ?
-	    "Stream "+oldStream.label()+" "+resultAsString():
-	    "Stream "+newStream.label()+" "+resultAsString();
+	    "Stream "+oldStream.name()+" "+resultAsString():
+	    "Stream "+newStream.name()+" "+resultAsString();
     }
     
     /** html representation of the comparison */
     public String toHtml()
     {
 	return (newStream==null) ?
-	    "<html>Stream <b>"+oldStream.label()+"</b></html>" :
-	    "<html>Stream <b>"+newStream.label()+"</b></html>";
+	    "<html>Stream <b>"+oldStream.name()+"</b></html>" :
+	    "<html>Stream <b>"+newStream.name()+"</b></html>";
     }
     
 }

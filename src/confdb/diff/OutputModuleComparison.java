@@ -53,8 +53,8 @@ public class OutputModuleComparison extends Comparison
 		 .equals(newOutputModule.name())&&
 		 oldOutputModule.className()
 		 .equals(newOutputModule.className())&&
-		 oldOutputModule.parentStream().label()
-		 .equals(newOutputModule.parentStream().label()))
+		 oldOutputModule.parentStream().name()
+		 .equals(newOutputModule.parentStream().name()))
 	    return RESULT_IDENTICAL;
 	else return RESULT_CHANGED;
     }

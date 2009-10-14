@@ -32,7 +32,8 @@ public class OfflineConverter extends ConverterBase
     
     /** constructor based on explicit connection information */
     public OfflineConverter(String format,
-			    String dbType,String dbUrl,String dbUser,String dbPwrd)
+			    String dbType,String dbUrl,
+			    String dbUser,String dbPwrd)
 	throws ConverterException
     {
 	super(format,dbType,dbUrl,dbUser,dbPwrd);
@@ -152,9 +153,9 @@ public class OfflineConverter extends ConverterBase
 	    Iterator<PrimaryDataset> itD = stream.datasetIterator();
 	    while (itD.hasNext()) {
 		if (valueAsString.length()>0) valueAsString.append(",");
-		valueAsString.append(itD.next().label());
+		valueAsString.append(itD.next().name());
 	    }
-	    pset.addParameter(new VStringParameter(stream.label(),
+	    pset.addParameter(new VStringParameter(stream.name(),
 						   valueAsString.toString(),
 						   false));
 	}
@@ -176,7 +177,7 @@ public class OfflineConverter extends ConverterBase
 		if (valueAsString.length()>0) valueAsString.append(",");
 		valueAsString.append(itP.next().name());
 	    }
-	    pset.addParameter(new VStringParameter(dataset.label(),
+	    pset.addParameter(new VStringParameter(dataset.name(),
 						   valueAsString.toString(),
 						   false));
 	}

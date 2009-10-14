@@ -25,7 +25,7 @@ public class OutputModule extends ParameterContainer implements Referencable
     /** name of the class */
     private String className = "ShmStreamConsumer";
 
-    /** label of this OutputModule */
+    /** name of this OutputModule */
     private String name = "";
 
     /** reference to the parent stream */
