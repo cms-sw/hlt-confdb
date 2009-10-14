@@ -161,6 +161,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     public String prepareText()
     {
 	String result = getText();
+
 	if (node instanceof Instance) {
 	    Instance instance      = (Instance)node;
 	    int      count         = instance.unsetTrackedParameterCount();
@@ -177,16 +178,25 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	else if (node instanceof Path) {
 	    Path path       = (Path)node;
 	    int  entryCount = path.entryCount();
-	    int  count      = path.unsetTrackedParameterCount();
-	    result = "<html>"+getText()+" ";
+	    int  unsetCount = path.unsetTrackedParameterCount();
+	    result = "<html>";
+	    if (!path.isEndPath()&&path.datasetCount()==0)
+		result += "<font color=#ff0000>"+getText()+"</font>";
+	    else 
+		result += getText();
+	    result+=" ";
 	    result += (entryCount>0) ?
-		"("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
-	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
+		"("+entryCount+")":
+		"<font color=#ff0000>("+entryCount+")</font>";
+	    if (unsetCount>0)
+		result += " <font color=#ff0000>["+unsetCount+"]</font>";
 	    if (doDisplayUnresolvedInputTags) {
-		count = path.unresolvedInputTagCount();
-		if (count>0) result += " <font color=#0000ff>["+count+"]</font>";
+		int unresolvedCount = path.unresolvedInputTagCount();
+		if (unresolvedCount>0)
+		    result+=" <font color=#0000ff>["+unresolvedCount+"]</font>";
 	    }
-	    if (path.isEndPath()) result += " <font color=#ff11a9>[endpath]</font>";
+	    if (path.isEndPath())
+		result += " <font color=#ff11a9>[endpath]</font>";
 	    result += "</html>";
 	}
 	else if (node instanceof PathReference) {

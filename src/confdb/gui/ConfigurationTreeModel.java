@@ -252,10 +252,23 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 
 	// Paths node
 	int pathCount = config.pathCount();
+	int unassignedCount = ((Configuration)config)
+	    .pathNotAssignedToDatasetCount();
 	pathsNode.delete(0,pathsNode.length());
 	pathsNode.append("<html><b>Paths</b> (");
 	pathsNode.append(pathCount);
-	pathsNode.append(")</html>");
+	pathsNode.append(")");
+	if (unassignedCount==0)
+	    pathsNode
+		.append(" <font color=#00ff00>[")
+		.append(unassignedCount)
+		.append("]</font>");
+	else
+	    pathsNode
+		.append(" <font color=#ff0000>[")
+		.append(unassignedCount)
+		.append("]</font>");
+	pathsNode.append("</html>");
 	nodeChanged(pathsNode);
 	
 	// Sequences node

@@ -1220,7 +1220,8 @@ public class ConfigurationTreeActions
 	content.removeStream(stream);
 	model.nodeRemoved(model.streamsNode(),index,stream);
 	model.nodeRemoved(model.outputsNode(),index,output);
-	model.nodeRemoved(content,indexContent,stream);
+	if (model.contentMode().equals("streams"))
+	    model.nodeRemoved(content,indexContent,stream);
 	model.nodeStructureChanged(model.pathsNode());
 	model.nodeStructureChanged(model.sequencesNode());
 	model.updateLevel1Nodes();
@@ -1236,10 +1237,16 @@ public class ConfigurationTreeActions
 	TreePath               treePath = tree.getSelectionPath();
 
 	Stream       stream  = (Stream)treePath.getLastPathComponent();
+	EventContent content = stream.parentContent();
 	Path         path    = config.path(pathName);
 	
 	stream.insertPath(path);
+
 	model.updateLevel1Nodes();
+	if (model.contentMode().equals("paths"))
+	    model.nodeInserted(content,content.indexOfPath(path));
+	if (model.streamMode().equals("paths"))
+	    model.nodeInserted(stream,stream.indexOfPath(path));
 	
 	return true;
     }
@@ -1306,6 +1313,7 @@ public class ConfigurationTreeActions
 	dataset.insertPath(path);
 	
 	model.nodeInserted(dataset,dataset.indexOfPath(path));
+	model.nodeChanged(path);
 	model.updateLevel1Nodes();
 	
 	return true;
