@@ -2,14 +2,14 @@ package confdb.data;
 
 
 /**
- * EventContentStatement
+ * OutputCommand
  * ---------------------
  * @author Philipp Schieferdecker
  *
  * manage a single drop / keep statement, representing an entry in the
  * vstring outputCommands parameter of an OutputModule.
  */
-public class EventContentStatement
+public class OutputCommand
 {
     //
     // member data
@@ -42,13 +42,13 @@ public class EventContentStatement
     //
 
     /** standard constructor */
-    public EventContentStatement()
+    public OutputCommand()
     {
 
     }
 
     /** constructor from path & reference */
-    public EventContentStatement(Path parentPath,Reference parentReference)
+    public OutputCommand(Path parentPath,Reference parentReference)
     {
 	this.parentPath      = parentPath;
 	this.parentReference = parentReference;
@@ -113,8 +113,8 @@ public class EventContentStatement
     public boolean setModuleName(String moduleName)
     {
 	if (parentReference != null) {
-	    System.err.println("EventContentStatement.setModuleName() ERROR:"+
-			       " statement has a parent reference!");
+	    System.err.println("OutputCommand.setModuleName() ERROR: "+
+			       "output command has a parent reference!");
 	    return false;
 	}
 	this.moduleName = moduleName;
@@ -122,10 +122,7 @@ public class EventContentStatement
     }
 
     /** set the extra name */
-    public void setExtraName(String extraName)
-    {
-	this.extraName = extraName;
-    }
+    public void setExtraName(String extraName) { this.extraName = extraName; }
 
     /** set the process name */
     public void setProcessName(String processName)

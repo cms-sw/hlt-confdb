@@ -224,11 +224,11 @@ public class OutputModule extends ParameterContainer implements Referencable
     private void updateOutputCommands()
     {
 	StringBuffer valueAsString = new StringBuffer();
-	Iterator<EventContentStatement> itECS =
-	    parentStream().parentContent().statementIterator();
-	while (itECS.hasNext()) {
+	Iterator<OutputCommand> itOC =
+	    parentStream().parentContent().commandIterator();
+	while (itOC.hasNext()) {
 	    if (valueAsString.length()>0) valueAsString.append(",");
-	    valueAsString.append(itECS.next().toString());
+	    valueAsString.append(itOC.next().toString());
 	}
 	vstringOutputCommands.setValue(valueAsString.toString());
     }

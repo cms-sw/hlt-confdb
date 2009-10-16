@@ -20,9 +20,8 @@ public class EventContent extends DatabaseEntry
     /** name of this event content */
     private String name;
     
-    /** collection of event content statements */
-    private ArrayList<EventContentStatement> statements
-	= new ArrayList<EventContentStatement>();
+    /** collection of output commands */
+    private ArrayList<OutputCommand> commands = new ArrayList<OutputCommand>();
     
     /** collection of assigned streams */
     private ArrayList<Stream> streams = new ArrayList<Stream>();
@@ -87,51 +86,51 @@ public class EventContent extends DatabaseEntry
     public void removePath(Path path)
     {
 	if (paths().indexOf(path)>=0) return;
-	Iterator<EventContentStatement> itEC = statementIterator();
-	while (itEC.hasNext()) if(itEC.next().parentPath()==path) itEC.remove();
+	Iterator<OutputCommand> itOC = commandIterator();
+	while (itOC.hasNext()) if(itOC.next().parentPath()==path) itOC.remove();
 	path.removeFromContent(this);
 	setHasChanged();
     }
     
     
     /** number of statements */
-    public int statementCount() { return statements.size(); }
+    public int commandCount() { return commands.size(); }
 
-    /** retrieve i-th statement */
-    public EventContentStatement statement(int i) { return statements.get(i); }
+    /** retrieve i-th output command */
+    public OutputCommand command(int i) { return commands.get(i); }
     
-    /** retrieve statement iterator */
-    public Iterator<EventContentStatement> statementIterator()
+    /** retrieve output command iterator */
+    public Iterator<OutputCommand> commandIterator()
     {
-	return statements.iterator();
+	return commands.iterator();
     }
     
-    /** retrieve index of a given statement */
-    public int indexOfStatement(EventContentStatement ecs)
+    /** retrieve index of a given output command */
+    public int indexOfCommand(OutputCommand command)
     {
-	return statements.indexOf(ecs);
+	return commands.indexOf(command);
     }
 
-    /** insert a statement into event content */
-    public boolean insertStatement(EventContentStatement ecs)
+    /** insert a output command into event content */
+    public boolean insertCommand(OutputCommand command)
     {
-	if (statements.indexOf(ecs)>=0) return false;
-	if (ecs.parentPath()!=null&&
-	    indexOfPath(ecs.parentPath())<0) return false;
-	statements.add(ecs);
+	if (commands.indexOf(command)>=0) return false;
+	if (command.parentPath()!=null&&
+	    indexOfPath(command.parentPath())<0) return false;
+	commands.add(command);
 	setHasChanged();
 	return true;
     }
 
-    /** remove a statement from this event content */
-    public boolean removeStatement(EventContentStatement ecs)
+    /** remove an output command from this event content */
+    public boolean removeCommand(OutputCommand command)
     {
-	int index = statements.indexOf(ecs);
+	int index = commands.indexOf(command);
 	if (index<0) return false;
-	statements.remove(ecs);
+	commands.remove(command);
 	return true;
     }
-
+    
     /** number of streams associated with this event content */
     public int streamCount() { return streams.size(); }
 

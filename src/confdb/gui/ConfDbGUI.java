@@ -93,7 +93,9 @@ public class ConfDbGUI
     private JPanel        jPanelDbConnection        = new JPanel();
     private JSplitPane    jSplitPane                = new JSplitPane();
     private JSplitPane    jSplitPaneRight           = new JSplitPane();
-
+    
+    private JPanel        jPanelContentEditor       = new JPanel();
+    
     private JPanel        jPanelLeft                = new JPanel();
     private JTextField    jTextFieldCurrentConfig   = new JTextField();
     private JLabel        jLabelLock                = new JLabel();
@@ -2109,6 +2111,16 @@ public class ConfDbGUI
 	    return;
 	}
 
+	// TEST
+	//if (node instanceof EventContent) {
+	//JPanel jPanelContentEditor = new JPanel();
+	//jSplitPane.setRightComponent(jPanelContentEditor);
+	//}
+	//else {
+	//jSplitPane.setRightComponent(jSplitPaneRight);
+	//}
+	// END TEST
+
 	while (node instanceof Parameter) {
 	    Parameter p = (Parameter)node;
 	    node = p.parent();
@@ -2621,7 +2633,18 @@ public class ConfDbGUI
 				.add(jTabbedPaneRightLower, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 346, Short.MAX_VALUE)
 				);
     }
+
+
+
+    /** create event content editor panel */
+    private void createContentEditorPanel()
+    {
+
+    }
     
+    
+
+
     /** create the content pane */
     private void createContentPane()
     {
@@ -2632,6 +2655,7 @@ public class ConfDbGUI
 	createRightUpperPanel();
 	createRightLowerPanel();
 	
+	createContentEditorPanel();
 	
 	jSplitPane.setDividerLocation(0.55);
         jSplitPane.setResizeWeight(0.5);
