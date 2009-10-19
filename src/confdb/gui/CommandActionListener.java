@@ -32,7 +32,6 @@ public class CommandActionListener implements ActionListener
     
     private static final String cmdReplace          = "Search&Replace";
     private static final String cmdDiff             = "Compare (Diff)";
-    private static final String cmdOMEditor         = "Edit OutputModules";
     private static final String cmdPSEditor         = "Edit Prescales";
     private static final String cmdMLEditor         = "Edit MessageLogger";
     private static final String cmdUPEditor           = "Add Untracked Parameter";
@@ -72,7 +71,6 @@ public class CommandActionListener implements ActionListener
 	
 	if (command.equals(cmdReplace))          app.searchAndReplace();
 	if (command.equals(cmdDiff))             app.diffConfigurations();
-	if (command.equals(cmdOMEditor))         app.openOutputModuleEditor();
 	if (command.equals(cmdPSEditor))         app.openPrescaleEditor();
 	if (command.equals(cmdMLEditor))         app.openMessageLoggerEditor();
 	if (command.equals(cmdUPEditor))         app.addUntrackedParameter();

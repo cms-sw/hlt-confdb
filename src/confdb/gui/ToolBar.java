@@ -34,7 +34,6 @@ public class ToolBar
 
     private static final String cmdDiff        = "Compare (Diff)";
     private static final String cmdReplace     = "Search&Replace";
-    private static final String cmdEditOM      = "Edit OutputModules";
     private static final String cmdEditPS      = "Edit Prescales";
     private static final String cmdEditML      = "Edit MessageLogger";
     private static final String cmdEditUP      = "Add Untracked Parameter";
@@ -61,7 +60,6 @@ public class ToolBar
 
     private JButton jButtonReplace     = new JButton();
     private JButton jButtonDiff        = new JButton();
-    private JButton jButtonEditOM      = new JButton();
     private JButton jButtonEditPS      = new JButton();
     private JButton jButtonEditML      = new JButton();
     private JButton jButtonEditUP      = new JButton();
@@ -104,7 +102,6 @@ public class ToolBar
 	jButtonConvert.setEnabled(true);
 	jButtonReplace.setEnabled(true);
 	jButtonDiff.setEnabled(true);
-	jButtonEditOM.setEnabled(true);
 	jButtonEditPS.setEnabled(true);
 	jButtonEditML.setEnabled(true);
 	jButtonEditUP.setEnabled(false);
@@ -124,7 +121,6 @@ public class ToolBar
 	jButtonConvert.setEnabled(false);
 	jButtonReplace.setEnabled(false);
 	//jButtonDiff.setEnabled(false);
-	jButtonEditOM.setEnabled(false);
 	jButtonEditPS.setEnabled(false);
 	jButtonEditML.setEnabled(false);
 	jButtonEditUP.setEnabled(false);
@@ -241,12 +237,6 @@ public class ToolBar
 					    getResource("/DiffIcon.png")));
 	jToolBar.add(jButtonDiff);
 
-	jButtonEditOM.setActionCommand(cmdEditOM);
-	jButtonEditOM.addActionListener(listener);
-	jButtonEditOM.setToolTipText("edit output modules");
-	jButtonEditOM.setIcon(new ImageIcon(getClass().getResource("/EditOMIcon.png")));
-	jToolBar.add(jButtonEditOM);
-	
 	jButtonEditPS.setActionCommand(cmdEditPS);
 	jButtonEditPS.addActionListener(listener);
 	jButtonEditPS.setToolTipText("edit prescales");

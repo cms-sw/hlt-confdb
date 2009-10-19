@@ -144,6 +144,14 @@ public class ConfDbGUI
     private JScrollPane   jScrollPaneRightLower     = new JScrollPane();
     private JEditorPane   jEditorPaneSnippet        = new JEditorPane();
 
+    private JComboBox jComboBoxEventContent = new JComboBox();
+    private JList     jListStreams          = new JList();
+    private JList     jListDatasets         = new JList();
+    private JList     jListPaths            = new JList();
+    private JComboBox jComboBoxCommands     = new JComboBox();
+    private JTextArea jTextAreaOutputModule = new JTextArea();
+    private JTable    jTableCommands        = new JTable();
+
     
     private JProgressBar  jProgressBar              = new JProgressBar(); 
     
@@ -168,7 +176,7 @@ public class ConfDbGUI
 	    this.cnvEngine = ConverterFactory.getConverterEngine("python");
 	}
 	catch (Exception e) {
-	    System.out.println("failed to initialize converter engine: " +
+	    System.err.println("failed to initialize converter engine: " +
 			       e.getMessage());
 	}
 	
@@ -579,22 +587,6 @@ public class ConfDbGUI
 	dialog.setVisible(true);
     }
     
-    /** open output module editor */
-    public void openOutputModuleEditor()
-    {
-	OutputModuleDialog dialog = new OutputModuleDialog(frame,currentConfig);
-	dialog.pack();
-	dialog.setLocationRelativeTo(frame);
-	dialog.setVisible(true);
-
-	Iterator<ModuleInstance> itM = currentConfig.moduleIterator();
-	while (itM.hasNext()) {
-	    ModuleInstance module = itM.next();
-	    if (module.template().type().equals("OutputModule"))
-		treeModelCurrentConfig.nodeStructureChanged(module);
-	}
-    }
-    
     /** open prescale editor */
     public void openPrescaleEditor()
     {
@@ -803,7 +795,7 @@ public class ConfDbGUI
 					  JOptionPane.ERROR_MESSAGE);
 	}
 	catch (Exception e) {
-	    System.out.println("ERROR in disconnectFromDB(): "+e.getMessage());
+	    System.err.println("ERROR in disconnectFromDB(): "+e.getMessage());
 	}
 	menuBar.dbConnectionIsNotEstablished();
 	toolBar.dbConnectionIsNotEstablished();
@@ -867,9 +859,11 @@ public class ConfDbGUI
 	importConfig.reset();
 	treeModelImportConfig.setConfiguration(importConfig);
 	hideImportTree();
-
+	
 	jTextFieldProcess.setEditable(false);
 	jToggleButtonImport.setEnabled(false);
+
+	jSplitPane.setRightComponent(jSplitPaneRight);
     }
 
     /** check if current configuration is in a valid state for save/convert */
@@ -1122,7 +1116,7 @@ public class ConfDbGUI
 	    jTreeTableParameters.getTree().setEditable(true);
 
 	    if (parser.closeProblemStream()) {
-		System.out.println("problems encountered, see problems.txt.");
+		System.err.println("problems encountered, see problems.txt.");
 		ParserProblemsDialog dialog=new ParserProblemsDialog(frame,
 								     parser);
 		dialog.pack();
@@ -1829,6 +1823,19 @@ public class ConfDbGUI
 	jEditorPaneSnippet.setText("");
     }
 
+
+    /** display the event content editor, fill all fields */
+    private void fillEventContents()
+    {
+	// fill combo box with all event contents
+	DefaultComboBoxModel cbm =
+	    (DefaultComboBoxModel)jComboBoxEventContent.getModel();
+	cbm.removeAllElements();
+	Iterator<EventContent> itEC = currentConfig.contentIterator();
+	while (itEC.hasNext()) cbm.addElement(itEC.next().name());
+    }
+
+
     //
     // ACTIONLISTENER CALLBACKS
     //
@@ -2037,7 +2044,11 @@ public class ConfDbGUI
     private void jTreeCurrentConfigTreeNodesChanged(TreeModelEvent e)
     {
 	if (currentConfig==null) return;
-	displaySnippet();
+	Object node = e.getChildren()[0];
+	if (node instanceof EventContent)
+	    fillEventContents();
+	else
+	    displaySnippet();
     }
     private void jTreeCurrentConfigTreeNodesInserted(TreeModelEvent e) {}
     private void jTreeCurrentConfigTreeNodesRemoved(TreeModelEvent e) {}
@@ -2068,9 +2079,6 @@ public class ConfDbGUI
 		((Parameter)parentNode).getParentContainer();
 	    if (parentContainer==null) currentConfig.setHasChanged(true);
 	}
-	//else if (parentNode instanceof Referencable) {
-	//jTreeCurrentConfig.updateUI();
-	//}
     }
     private void jTreeTableParametersTreeNodesRemoved(TreeModelEvent e)
     {
@@ -2084,10 +2092,6 @@ public class ConfDbGUI
 		((Parameter)parentNode).getParentContainer();
 	    if (parentContainer==null) currentConfig.setHasChanged(true);
 	}
-	//else if (parentNode instanceof Referencable) {
-	//System.out.println("updateUI()");
-	//jTreeCurrentConfig.updateUI();
-	//}
     }
     
 
@@ -2111,16 +2115,17 @@ public class ConfDbGUI
 	    return;
 	}
 
-	// TEST
-	//if (node instanceof EventContent) {
-	//JPanel jPanelContentEditor = new JPanel();
-	//jSplitPane.setRightComponent(jPanelContentEditor);
-	//}
-	//else {
-	//jSplitPane.setRightComponent(jSplitPaneRight);
-	//}
-	// END TEST
 
+	if (node instanceof EventContent) {
+	    jSplitPane.setRightComponent(jPanelContentEditor);
+	    fillEventContents();
+	    jComboBoxEventContent.getModel().setSelectedItem(node.toString());
+	    return;
+	}
+	
+	
+	jSplitPane.setRightComponent(jSplitPaneRight);
+	
 	while (node instanceof Parameter) {
 	    Parameter p = (Parameter)node;
 	    node = p.parent();
@@ -2150,6 +2155,76 @@ public class ConfDbGUI
 	    clearSnippet();
 	}
     }
+
+
+    //
+    // CONTENT EDITOR CALLBACKS
+    //
+    private void jComboBoxEventContentActionPerformed(ActionEvent evt)
+    {
+	// set selected event content, in combobox *and* tree!
+	Object selectedItem = jComboBoxEventContent.getSelectedItem();
+	if (selectedItem==null) return;
+	String contentName = selectedItem.toString();
+	EventContent content = currentConfig.content(contentName);
+	jTreeCurrentConfig
+	    .setSelectionPath(new TreePath(treeModelCurrentConfig
+					   .getPathToRoot(content)));
+	
+	// fill streams
+	DefaultListModel slm = (DefaultListModel)jListStreams.getModel();
+	slm.clear();
+	Iterator<Stream> itS = content.streamIterator();
+	while (itS.hasNext()) slm.addElement(itS.next().name());
+
+	// fill datasets
+	DefaultListModel dlm = (DefaultListModel)jListDatasets.getModel();
+	dlm.clear();
+	Iterator<PrimaryDataset> itPD = content.datasetIterator();
+	while (itPD.hasNext()) dlm.addElement(itPD.next().name());
+
+	// fill paths
+	DefaultListModel plm = (DefaultListModel)jListPaths.getModel();
+	plm.clear();
+	Iterator<Path> itP = content.pathIterator();
+	while (itP.hasNext()) plm.addElement(itP.next().name());
+	
+	// clear output module text area
+	jTextAreaOutputModule.setText("");
+    }
+    private void jListStreamsValueChanged(ListSelectionEvent evt)
+    {
+        // TODO add your handling code here:
+    }
+    private void jListDatasetsValueChanged(ListSelectionEvent evt)
+    {
+        // TODO add your handling code here:
+    }
+    private void jListPathsValueChanged(ListSelectionEvent evt)
+    {
+        // TODO add your handling code here:
+    }
+    private void jComboBoxCommandsActionPerformed(ActionEvent evt)
+    {
+        // TODO add your handling code here:
+    }
+    private void jTableCommandsMousePressed(MouseEvent evt)
+    {
+        // TODO add your handling code here:
+    }
+    private void jTableCommandsMouseReleased(MouseEvent evt)
+    {
+        // TODO add your handling code here:
+    }
+    private void jListPathsMousePressed(MouseEvent evt)
+    {
+        // TODO add your handling code here:
+    }
+    private void jListPathsMouseReleased(MouseEvent evt)
+    {
+        // TODO add your handling code here:
+    }
+
 
 
     
@@ -2219,8 +2294,6 @@ public class ConfDbGUI
         jTextFieldCreator.setEditable(false);
         jTextFieldCreator.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
-	// TODO: REMOVE?!
-	//jTabbedPaneLeft.addTab("Configuration",jPanelCurrentConfig);
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelLeft);
         jPanelLeft.setLayout(layout);
@@ -2229,7 +2302,6 @@ public class ConfDbGUI
 				  .add(layout.createSequentialGroup()
 				       .addContainerGap()
 				       .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-					    //.add(jTabbedPaneLeft, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
 					    
 					    .add(jPanelCurrentConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
 					    .add(layout.createSequentialGroup()
@@ -2282,7 +2354,6 @@ public class ConfDbGUI
 					  .add(jLabelCreator)
 					  .add(jTextFieldCreator, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
 				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-				     //.add(jTabbedPaneLeft, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 508, Short.MAX_VALUE)
 				     .add(jPanelCurrentConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 508, Short.MAX_VALUE)
 				     .addContainerGap())
 				);
@@ -2636,10 +2707,203 @@ public class ConfDbGUI
 
 
 
+
+    
     /** create event content editor panel */
     private void createContentEditorPanel()
     {
+        JPanel      jPanelScrollPane         = new JPanel();
+	JScrollPane jScrollPaneContentEditor = new JScrollPane();
+        JScrollPane jScrollPaneStreams       = new JScrollPane();
+        JScrollPane jScrollPaneDatasets      = new JScrollPane();
+        JScrollPane jScrollPanePaths         = new JScrollPane();
+        JScrollPane jScrollPaneOutputModule  = new JScrollPane();
+        JScrollPane jScrollPaneCommands      = new JScrollPane();
+        JLabel      jLabelEventContent       = new JLabel();
+        JLabel      jLabelStreams            = new JLabel();
+        JLabel      jLabelDatasets           = new JLabel();
+        JLabel      jLabelPaths              = new JLabel();
+        JLabel      jLabelCommands           = new JLabel();	
+        JLabel      jLabelOutputModule       = new JLabel();
 
+
+	
+        jScrollPaneContentEditor.setBorder(javax.swing.BorderFactory.createTitledBorder("Event Content Editor"));
+
+        jPanelScrollPane.setPreferredSize(new java.awt.Dimension(400, 600));
+
+        jLabelEventContent.setText("Event Content:");
+
+        jComboBoxEventContent.setModel(new DefaultComboBoxModel(new String[]{}));
+        jComboBoxEventContent.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                jComboBoxEventContentActionPerformed(evt);
+            }
+        });
+
+        jLabelStreams.setText("Streams:");
+
+        jListStreams.setModel(new DefaultListModel());
+        jListStreams.addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent evt) {
+                jListStreamsValueChanged(evt);
+            }
+        });
+        jScrollPaneStreams.setViewportView(jListStreams);
+
+        jListDatasets.setModel(new DefaultListModel());
+        jListDatasets.addListSelectionListener(new ListSelectionListener() {
+		public void valueChanged(ListSelectionEvent evt) {
+                jListDatasetsValueChanged(evt);
+            }
+        });
+        jScrollPaneDatasets.setViewportView(jListDatasets);
+
+        jLabelDatasets.setText("Primary Datasets:");
+
+        jLabelPaths.setText("Paths:");
+
+        jListPaths.setModel(new DefaultListModel());
+        jListPaths.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent evt) {
+                jListPathsMousePressed(evt);
+            }
+            public void mouseReleased(MouseEvent evt) {
+                jListPathsMouseReleased(evt);
+            }
+        });
+        jListPaths.addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent evt) {
+                jListPathsValueChanged(evt);
+            }
+        });
+        jScrollPanePaths.setViewportView(jListPaths);
+
+        jComboBoxCommands.setEditable(true);
+        jComboBoxCommands.setModel(new DefaultComboBoxModel(new String[] {}));
+        jComboBoxCommands.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                jComboBoxCommandsActionPerformed(evt);
+            }
+        });
+
+        jLabelCommands.setText("Output Commands:");
+
+        jLabelOutputModule.setText("OutputModule:");
+
+        jTextAreaOutputModule.setColumns(20);
+        jTextAreaOutputModule.setEditable(false);
+        jTextAreaOutputModule.setRows(5);
+        jScrollPaneOutputModule.setViewportView(jTextAreaOutputModule);
+
+        jTableCommands
+	    .setModel(new DefaultTableModel(
+					    new Object [][] {
+						{null, null, null, null},
+						{null, null, null, null},
+						{null, null, null, null},
+						{null, null, null, null}
+					    },
+					    new String [] {
+						"Title 1", "Title 2",
+						"Title 3", "Title 4"
+					    }
+					    ));
+        jTableCommands.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent evt) {
+                jTableCommandsMousePressed(evt);
+            }
+            public void mouseReleased(MouseEvent evt) {
+                jTableCommandsMouseReleased(evt);
+            }
+        });
+        jScrollPaneCommands.setViewportView(jTableCommands);
+
+        org.jdesktop.layout.GroupLayout jPanelScrollPaneLayout = new org.jdesktop.layout.GroupLayout(jPanelScrollPane);
+        jPanelScrollPane.setLayout(jPanelScrollPaneLayout);
+        jPanelScrollPaneLayout.setHorizontalGroup(
+            jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanelScrollPaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jPanelScrollPaneLayout.createSequentialGroup()
+                        .add(jScrollPaneOutputModule, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 512, Short.MAX_VALUE)
+                        .addContainerGap())
+                    .add(jPanelScrollPaneLayout.createSequentialGroup()
+                        .add(jLabelEventContent)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jComboBoxEventContent, 0, 420, Short.MAX_VALUE))
+                    .add(jPanelScrollPaneLayout.createSequentialGroup()
+                        .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(jScrollPaneStreams, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 251, Short.MAX_VALUE)
+                            .add(jLabelStreams))
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(jLabelDatasets)
+                            .add(jScrollPaneDatasets, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE))
+                        .addContainerGap())
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanelScrollPaneLayout.createSequentialGroup()
+                        .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(jLabelPaths)
+                            .add(jScrollPanePaths, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE))
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(jPanelScrollPaneLayout.createSequentialGroup()
+                                .add(jLabelCommands)
+                                .addContainerGap(224, Short.MAX_VALUE))
+                            .add(org.jdesktop.layout.GroupLayout.TRAILING, jComboBoxCommands, 0, 347, Short.MAX_VALUE)
+                            .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanelScrollPaneLayout.createSequentialGroup()
+                                .add(jScrollPaneCommands, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 341, Short.MAX_VALUE)
+                                .addContainerGap())))
+                    .add(jPanelScrollPaneLayout.createSequentialGroup()
+                        .add(jLabelOutputModule)
+                        .addContainerGap(424, Short.MAX_VALUE))))
+        );
+        jPanelScrollPaneLayout.setVerticalGroup(
+            jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanelScrollPaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jLabelEventContent)
+                    .add(jComboBoxEventContent, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .add(18, 18, 18)
+                .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+                    .add(jLabelDatasets)
+                    .add(jLabelStreams))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
+                    .add(jScrollPaneDatasets, 0, 0, Short.MAX_VALUE)
+                    .add(jScrollPaneStreams, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 107, Short.MAX_VALUE))
+                .add(26, 26, 26)
+                .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jLabelCommands)
+                    .add(jLabelPaths))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+                    .add(jPanelScrollPaneLayout.createSequentialGroup()
+                        .add(jComboBoxCommands, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .add(1, 1, 1)
+                        .add(jScrollPaneCommands, 0, 0, Short.MAX_VALUE))
+                    .add(jScrollPanePaths, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 258, Short.MAX_VALUE))
+                .add(18, 18, 18)
+                .add(jLabelOutputModule)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jScrollPaneOutputModule, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        jScrollPaneContentEditor.setViewportView(jPanelScrollPane);
+
+        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelContentEditor);
+        jPanelContentEditor.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jScrollPaneContentEditor, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jScrollPaneContentEditor, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 686, Short.MAX_VALUE)
+        );
     }
     
     
@@ -2669,7 +2933,6 @@ public class ConfDbGUI
 	jSplitPaneRight.setRightComponent(jPanelRightLower);
 	jProgressBar.setStringPainted(true);
 
-	
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelContentPane);
         jPanelContentPane.setLayout(layout);
         layout.setHorizontalGroup(

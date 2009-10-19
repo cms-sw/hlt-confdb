@@ -1265,8 +1265,9 @@ public class ConfigurationTreeActions
 	
 	int index = config.indexOfDataset(dataset);
 	model.nodeInserted(model.datasetsNode(),index);
-	model.nodeInserted(dataset.parentStream(),
-			   dataset.parentStream().indexOfDataset(dataset));
+	if (model.streamMode().equals("datasets"))
+	    model.nodeInserted(dataset.parentStream(),
+			       dataset.parentStream().indexOfDataset(dataset));
 	model.nodeStructureChanged(model.contentsNode());
 	model.updateLevel1Nodes();
 	

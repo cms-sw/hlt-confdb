@@ -38,7 +38,6 @@ public class MenuBar
     /** menu bar item names: toolMenu */
     private static final String toolMenuReplace       = "Search&Replace";
     private static final String toolMenuDiff          = "Compare (Diff)";
-    private static final String toolMenuOMEditor      = "Edit OutputModules";
     private static final String toolMenuPSEditor      = "Edit Prescales";
     private static final String toolMenuMLEditor      = "Edit MessageLogger";
 
@@ -68,7 +67,6 @@ public class MenuBar
 
     private JMenuItem toolMenuDiffItem          = null;
     private JMenuItem toolMenuReplaceItem       = null;
-    private JMenuItem toolMenuOMEditorItem      = null;
     private JMenuItem toolMenuPSEditorItem      = null;
     private JMenuItem toolMenuMLEditorItem      = null;
     
@@ -110,7 +108,6 @@ public class MenuBar
 	configMenuConvertItem.setEnabled(true);
 	toolMenuReplaceItem.setEnabled(true);
 	toolMenuDiffItem.setEnabled(true);
-	toolMenuOMEditorItem.setEnabled(true);
 	toolMenuPSEditorItem.setEnabled(true);
 	toolMenuMLEditorItem.setEnabled(true);
 	optionsMenuTrackItem.setEnabled(true);
@@ -129,7 +126,6 @@ public class MenuBar
 	configMenuConvertItem.setEnabled(false);
 	//toolMenuDiffItem.setEnabled(false);
 	toolMenuReplaceItem.setEnabled(false);
-	toolMenuOMEditorItem.setEnabled(false);
 	toolMenuPSEditorItem.setEnabled(false);
 	toolMenuMLEditorItem.setEnabled(false);
 	optionsMenuTrackItem.setEnabled(false);
@@ -231,10 +227,6 @@ public class MenuBar
 	toolMenuReplaceItem.setActionCommand(toolMenuReplace);
 	toolMenuReplaceItem.addActionListener(listener);
 	toolMenu.add(toolMenuReplaceItem);
-	toolMenuOMEditorItem = new JMenuItem(toolMenuOMEditor,KeyEvent.VK_O);
-	toolMenuOMEditorItem.setActionCommand(toolMenuOMEditor);
-	toolMenuOMEditorItem.addActionListener(listener);
-	toolMenu.add(toolMenuOMEditorItem);
 	toolMenuPSEditorItem = new JMenuItem(toolMenuPSEditor,KeyEvent.VK_P);
 	toolMenuPSEditorItem.setActionCommand(toolMenuPSEditor);
 	toolMenuPSEditorItem.addActionListener(listener);
