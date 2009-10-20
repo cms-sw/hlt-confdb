@@ -1036,7 +1036,7 @@ public class Configuration implements IConfiguration
 	int currentIndex = paths.indexOf(path);
 	if (currentIndex<0) return false;
 	if (currentIndex==targetIndex) return true;
-	if (targetIndex>paths.size()) return false;
+	if (targetIndex>=paths.size()) return false;
 	if (currentIndex<targetIndex) targetIndex--;
 	paths.remove(currentIndex);
 	paths.add(targetIndex,path);

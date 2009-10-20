@@ -560,13 +560,31 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	else if (parent instanceof EventContent) {
 	    EventContent content = (EventContent)parent;
-	    Stream stream = (Stream)child;
-	    return content.indexOfStream(stream);
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)child;
+	    if (treeNode.object() instanceof Path) {
+		Path path = (Path)treeNode.object();
+		return content.indexOfPath(path);
+	    }
+	    else if (treeNode.object() instanceof Stream) {
+		Stream stream = (Stream)treeNode.object();
+		return content.indexOfStream(stream);
+	    }
+	    else if (treeNode.object() instanceof PrimaryDataset) {
+		PrimaryDataset dataset = (PrimaryDataset)treeNode.object();
+		return content.indexOfDataset(dataset);
+	    }
 	}
 	else if (parent instanceof Stream) {
 	    Stream stream = (Stream)parent;
-	    PrimaryDataset dataset = (PrimaryDataset)child;
-	    return stream.indexOfDataset(dataset);
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)child;
+	    if (treeNode.object() instanceof Path) {
+		Path path = (Path)treeNode.object();
+		return stream.indexOfPath(path);
+	    }
+	    else if (treeNode.object() instanceof PrimaryDataset) {
+		PrimaryDataset dataset = (PrimaryDataset)treeNode.object();
+		return stream.indexOfDataset(dataset);
+	    }
 	}
 	else if (parent instanceof PrimaryDataset) {
 	    PrimaryDataset dataset = (PrimaryDataset)parent;

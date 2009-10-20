@@ -1,9 +1,11 @@
 package confdb.data;
 
+import java.util.Iterator;
+
 
 /**
  * OutputCommand
- * ---------------------
+ * -------------
  * @author Philipp Schieferdecker
  *
  * manage a single drop / keep statement, representing an entry in the
@@ -46,7 +48,7 @@ public class OutputCommand
     {
 
     }
-
+    
     /** constructor from path & reference */
     public OutputCommand(Path parentPath,Reference parentReference)
     {
@@ -55,9 +57,31 @@ public class OutputCommand
     }
     
     
+
     //
     // member functions
     //
+    
+    /** Object: equals() */
+    public boolean equals(Object o)
+    {
+	if (o==null) return false;
+	if (!(o instanceof OutputCommand)) return false;
+	OutputCommand command = (OutputCommand)o;
+	if (parentPath!=command.parentPath()) return false;
+	return (toString().equals(command.toString()));
+    }
+
+    /** Object: hashCode() */
+    public int hashCode()
+    {
+	int result = 12;
+	int pathHashCode = (parentPath==null) ? 0:parentPath.name().hashCode();
+	result = 31*result+pathHashCode;
+	result = 31*result+toString().hashCode();
+	System.out.println("toString():"+toString()+", hashCode = "+result);
+	return result;
+    }
     
     /** indicate if this statement is global */
     public boolean isGlobal() { return (parentPath==null); }
@@ -89,8 +113,13 @@ public class OutputCommand
     /** provide string represenation of the statement */
     public String toString()
     {
-	StringBuffer result = new StringBuffer();
 	String dropOrKeep = (isDrop()) ? "drop " : "keep ";
+
+	if (className().equals("*")&&moduleName().equals("*")&&
+	    extraName().equals("*")&&processName().equals("*"))
+	    return (dropOrKeep+"*");
+	
+	StringBuffer result = new StringBuffer();
 	result
 	    .append(dropOrKeep)
 	    .append(className()).append("_")
@@ -100,6 +129,18 @@ public class OutputCommand
 	return result.toString();
     }
     
+    /** set all values according to a given output command (essentialy copy) */
+    public void set(OutputCommand command)
+    {
+	this.isDrop = command.isDrop();
+	this.parentPath = command.parentPath();
+	this.parentReference = command.parentReference();
+	this.className = command.className();
+	this.moduleName = command.moduleName();
+	this.extraName = command.extraName();
+	this.processName = command.processName();
+    }
+
     /** make this a 'drop' statement */
     public void setDrop() { isDrop = true; }
     
@@ -107,7 +148,24 @@ public class OutputCommand
     public void setKeep() { isDrop = false; }
 
     /** set the class name */
-    public void setClassName(String className) { this.className = className; }
+    public void setClassName(String className)
+    {
+	this.className = className.split(" ")[0];
+	this.className = className.split("_")[0];
+	if (className().length()==0) this.className = "*";
+    }
+
+    /** set module reference */
+    public boolean setModuleReference(Reference reference)
+    {
+	if (parentPath()==null) return false;
+	Iterator<Reference> itR = parentPath().recursiveReferenceIterator();
+	boolean found = false;
+	while (itR.hasNext()&&!found) if (itR.next()==reference) found=true;
+	if (!found) return false;
+	this.parentReference = reference;
+	return true;
+    }
 
     /** set the module name */
     public boolean setModuleName(String moduleName)
@@ -117,17 +175,60 @@ public class OutputCommand
 			       "output command has a parent reference!");
 	    return false;
 	}
-	this.moduleName = moduleName;
+	this.moduleName = moduleName.split(" ")[0];
+	this.moduleName = moduleName.split("_")[0];
+	if (moduleName().length()==0) this.moduleName = "*";
 	return true;
     }
-
+    
     /** set the extra name */
-    public void setExtraName(String extraName) { this.extraName = extraName; }
-
+    public void setExtraName(String extraName)
+    {
+	this.extraName = extraName.split(" ")[0];
+	this.extraName = extraName.split("_")[0];
+	if (extraName().length()==0) this.extraName = "*";
+    }
+    
     /** set the process name */
     public void setProcessName(String processName)
     {
-	this.processName=processName;
+	this.processName=processName.split(" ")[0];
+	this.processName=processName.split("_")[0];
+	if (processName().length()==0) this.processName = "*";
+    }
+    
+    /** initialize from string */
+    public boolean initializeFromString(String contentAsString)
+    {
+	String s[] = contentAsString.split(" ");
+	if (s.length!=2) return false;
+	String type = s[0];
+	String names = s[1];
+	
+	if      (type.equals("drop")) isDrop = true;
+	else if (type.equals("keep")) isDrop = false;
+	else return false;
+
+	if (names.equals("*")) {
+	    this.parentPath = null;
+	    this.parentReference = null;
+	    setClassName("*");
+	    setModuleName("*");
+	    setExtraName("*");
+	    setProcessName("*");
+	    return true;
+	}
+	
+	String s2[] = names.split("_");
+	if (s2.length!=4) return false;
+
+	this.parentPath = null;
+	this.parentReference = null;
+	setClassName(s2[0]);
+	setModuleName(s2[1]);
+	setExtraName(s2[2]);
+	setProcessName(s2[3]);
+	return true;
     }
     
 }

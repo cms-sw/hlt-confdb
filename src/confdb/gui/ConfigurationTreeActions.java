@@ -1251,7 +1251,36 @@ public class ConfigurationTreeActions
 	return true;
     }
     
-    
+    /** remove a path from a stream */
+    public static boolean removePathFromStream(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	ConfigurationTreeNode treeNode =
+	    (ConfigurationTreeNode)treePath.getLastPathComponent();
+	Stream stream = (Stream)treeNode.parent();
+	Path   path   = (Path)treeNode.object();
+	int    index  = stream.indexOfPath(path);
+
+	EventContent content = stream.parentContent();
+	int contentIndex = content.indexOfPath(path);
+	
+	PrimaryDataset dataset = stream.dataset(path);
+	model.nodeRemoved(dataset,dataset.indexOfPath(path),path);
+	
+	stream.removePath(path);
+
+	if (model.contentMode().equals("paths")&&content.indexOfPath(path)<0) {
+	    model.nodeRemoved(content,content.indexOfPath(path),path);
+	}
+	
+	model.nodeRemoved(stream,index,treeNode);
+	model.updateLevel1Nodes();
+	
+	return true;
+    }
     //
     // PrimaryDatasets
     //
@@ -1332,6 +1361,7 @@ public class ConfigurationTreeActions
 	PrimaryDataset dataset = (PrimaryDataset)treeNode.parent();
 	Path           path    = (Path)treeNode.object();
 	int            index   = dataset.indexOfPath(path);
+	
 	dataset.removePath(path);
 	
 	model.nodeRemoved(dataset,index,treeNode);

@@ -328,7 +328,7 @@ abstract
 	}
     }
 
-    /** get unresolved InputTags from a parameter, given the labels to this point */
+    /** get unresolved InputTags from a parameter, given labels to this point */
     private void getUnresolvedInputTags(Parameter p,
 					HashSet<String> labels,
 					ArrayList<String> unresolved)

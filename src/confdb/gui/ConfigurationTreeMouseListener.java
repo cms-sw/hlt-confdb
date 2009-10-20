@@ -530,7 +530,8 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    JMenu addPathMenu = createAddPathMenu(path);
 	    popupPaths.add(addPathMenu);
 	    
-	    JMenu addSequenceMenu = createAddSequenceMenu(path,pathListener,false);
+	    JMenu addSequenceMenu = createAddSequenceMenu(path,pathListener,
+							  false);
 	    popupPaths.add(addSequenceMenu);
 	    
 	    popupPaths.addSeparator();
@@ -753,7 +754,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    jrbMenuItem.setActionCommand("SHOW:streams");
 	    jrbMenuItem.addActionListener(contentListener);
 	    popupContents.add(jrbMenuItem);
-	    if (model.contentMode().equals("datasets"))
+	    if (model.contentMode().equals("streams"))
 		jrbMenuItem.setSelected(true);
 	    bg.add(jrbMenuItem);
 	    
@@ -871,7 +872,15 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    }
 	}
 	else if (depth==4) {
-	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
+	    if (model.streamMode().equals("paths")) {
+		ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
+		Path path = (Path)treeNode.object();
+		menuItem = new JMenuItem("<html>Remove <i>"+path.name()+
+					 "</i></html>");
+		menuItem.addActionListener(streamListener);
+		menuItem.setActionCommand("REMOVEPATH");
+		popupStreams.add(menuItem);
+	    }
 	}
     }
     
@@ -934,7 +943,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    Path path = (Path)treeNode.object();
 
 	    menuItem = new JMenuItem("<html>Remove <i>"+path.name()+
-				     "</i?</html>");
+				     "</i></html>");
 	    menuItem.addActionListener(datasetListener);
 	    menuItem.setActionCommand("REMOVEPATH");
 	    popupDatasets.add(menuItem);
@@ -1630,6 +1639,9 @@ class StreamMenuListener implements ActionListener
 	}
 	else if (action.equals("RENAME")) {
 	    ConfigurationTreeActions.editNodeName(tree);
+	}
+	else if (action.equals("REMOVEPATH")) {
+	    ConfigurationTreeActions.removePathFromStream(tree);
 	}
 	else if (action.startsWith("SHOW:")) {
 	    model.setStreamMode(action.split(":")[1]);

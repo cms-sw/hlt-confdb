@@ -12,6 +12,7 @@ import org.jdesktop.layout.*;
 
 import confdb.data.EventContent;
 import confdb.data.Path;
+import confdb.data.Reference;
 import confdb.data.ModuleInstance;
 import confdb.data.OutputCommand;
 
@@ -73,7 +74,8 @@ public class OutputCommandEditorDialog extends JDialog
     {
 	super(jFrame,true);
 	this.content = content;
-	this.command = command;
+	this.command = new OutputCommand();
+	this.command.set(command);
 	setContentPane(createContentPane());
 	setTitle("Edit Output Command");
 	initialize();
@@ -109,12 +111,25 @@ public class OutputCommandEditorDialog extends JDialog
 	DefaultComboBoxModel cbm =
 	    (DefaultComboBoxModel)jComboBoxModuleName.getModel();
 	cbm.removeAllElements();
+
 	if (!command.isGlobal()) {
+	    String selectedModuleName = command.moduleName();
+	    jComboBoxModuleName.setEditable(false);
 	    Iterator<ModuleInstance> itM =
 		command.parentPath().moduleIterator();
-	    while (itM.hasNext()) cbm.addElement(itM.next().name());
+	    while (itM.hasNext()) {
+		ModuleInstance module = itM.next();
+		String moduleName = module.name();
+		cbm.addElement(moduleName);
+		if (moduleName.equals(selectedModuleName))
+		    cbm.setSelectedItem(moduleName);
+	    }
 	}
-	cbm.setSelectedItem(cbm.getElementAt(0));
+	else {
+	    jComboBoxModuleName.setEditable(true);
+	    cbm.addElement(command.moduleName());
+	    cbm.setSelectedItem(cbm.getElementAt(0));
+	}
 	
 	jTextPanePreview.setText(command.toString());
     }
@@ -145,7 +160,22 @@ public class OutputCommandEditorDialog extends JDialog
     }
     private void jComboBoxModuleNameActionPerformed(ActionEvent evt)
     {
-	command.setModuleName(jComboBoxModuleName.getSelectedItem().toString());
+	String moduleName = jComboBoxModuleName.getSelectedItem().toString();
+	if (command.parentReference()==null) {
+	    command.setModuleName(moduleName);
+	}
+	else {
+	    boolean found = false;
+	    Iterator<Reference> itR =
+		command.parentPath().recursiveReferenceIterator();
+	    while (itR.hasNext()&&!found) {
+		Reference reference = itR.next();
+		if (reference.name().equals(moduleName)) {
+		    command.setModuleReference(reference);
+		    found = true;
+		}
+	    }
+	}
 	updatePreview();
     }
     private void jButtonOKActionPerformed(ActionEvent evt)
@@ -171,6 +201,7 @@ public class OutputCommandEditorDialog extends JDialog
     }
     private void jComboBoxModuleNameRemoveUpdate(DocumentEvent e)
     {
+	
 	command.setModuleName(jComboBoxModuleName
 			      .getEditor().getItem().toString());
 	updatePreview();

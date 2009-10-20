@@ -162,7 +162,15 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	    if (pd.name().equals(datasetName)) return pd;
 	return null;
     }
-
+    
+    /** retrieve primary dataset which contains specified path */
+    public PrimaryDataset dataset(Path path)
+    {
+	for (PrimaryDataset pd : datasets)
+	    if (pd.indexOfPath(path)>=0) return pd;
+	return null;
+    }
+    
     /** retrieve primary dataset iterator */
     public Iterator<PrimaryDataset> datasetIterator()
     {

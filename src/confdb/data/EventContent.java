@@ -122,6 +122,19 @@ public class EventContent extends DatabaseEntry
 	return true;
     }
 
+    /** move command to a different position within the array */
+    public boolean moveCommand(OutputCommand command, int targetIndex)
+    {
+	int currentIndex = indexOfCommand(command);
+	if (currentIndex<0) return false;
+	if (currentIndex==targetIndex) return true;
+	if (targetIndex>=commandCount()) return false;
+	commands.remove(currentIndex);
+	commands.add(targetIndex,command);
+	setHasChanged();
+	return true;
+    }
+
     /** remove an output command from this event content */
     public boolean removeCommand(OutputCommand command)
     {
@@ -130,7 +143,64 @@ public class EventContent extends DatabaseEntry
 	commands.remove(command);
 	return true;
     }
+
+    /** get number of commands for a given *stream* */
+    public int commandCount(Stream stream)
+    {
+	return commands(stream).size();
+    }
     
+    /** retrive i-th output command for a given *stream* */
+    public OutputCommand command(Stream stream, int i)
+    {
+	return commands(stream).get(i);
+    }
+    
+    /** retrieve iterator over output commands for a given *stream* */
+    public Iterator<OutputCommand> commandIterator(Stream stream)
+    {
+	return commands(stream).iterator();
+    }
+
+
+    /** get number of commands for a given *dataset* */
+    public int commandCount(PrimaryDataset dataset)
+    {
+	return commands(dataset).size();
+    }
+    
+    /** retrive i-th output command for a given *dataset* */
+    public OutputCommand command(PrimaryDataset dataset, int i)
+    {
+	return commands(dataset).get(i);
+    }
+    
+    /** retrieve iterator over output commands for a given *dataset* */
+    public Iterator<OutputCommand> commandIterator(PrimaryDataset dataset)
+    {
+	return commands(dataset).iterator();
+    }
+
+
+    /** get number of commands for a given *path* */
+    public int commandCount(Path path)
+    {
+	return commands(path).size();
+    }
+    
+    /** retrive i-th output command for a given *path* */
+    public OutputCommand command(Path path, int i)
+    {
+	return commands(path).get(i);
+    }
+    
+    /** retrieve iterator over output commands for a given *path* */
+    public Iterator<OutputCommand> commandIterator(Path path)
+    {
+	return commands(path).iterator();
+    }
+
+
     /** number of streams associated with this event content */
     public int streamCount() { return streams.size(); }
 
@@ -231,4 +301,43 @@ public class EventContent extends DatabaseEntry
 	}
 	return result;
     }
+
+    /** retrieve list of output commands associated with given stream */
+    private ArrayList<OutputCommand> commands(Stream stream)
+    {
+	ArrayList<OutputCommand> result = new ArrayList<OutputCommand>();
+	Iterator<OutputCommand> itOC = commandIterator();
+	while (itOC.hasNext()) {
+	    OutputCommand command = itOC.next();
+	    Path          path = command.parentPath();
+	    if (path==null||stream.indexOfPath(path)>=0) result.add(command);
+	}
+	return result;
+    }
+
+    /** retrieve list of output commands associated with given dataset */
+    private ArrayList<OutputCommand> commands(PrimaryDataset dataset)
+    {
+	ArrayList<OutputCommand> result = new ArrayList<OutputCommand>();
+	Iterator<OutputCommand> itOC = commandIterator();
+	while (itOC.hasNext()) {
+	    OutputCommand command = itOC.next();
+	    Path          path    = command.parentPath();
+	    if (path==null||dataset.indexOfPath(path)>=0) result.add(command);
+	}
+	return result;
+    }
+    
+    /** retrieve list of output commands associated with given path */
+    private ArrayList<OutputCommand> commands(Path path)
+    {
+	ArrayList<OutputCommand> result = new ArrayList<OutputCommand>();
+	Iterator<OutputCommand> itOC = commandIterator();
+	while (itOC.hasNext()) {
+	    OutputCommand command = itOC.next();
+	    if (command.parentPath()==path) result.add(command);
+	}
+	return result;
+    }
+
 }

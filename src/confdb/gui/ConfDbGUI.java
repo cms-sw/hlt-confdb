@@ -144,14 +144,13 @@ public class ConfDbGUI
     private JScrollPane   jScrollPaneRightLower     = new JScrollPane();
     private JEditorPane   jEditorPaneSnippet        = new JEditorPane();
 
-    private JComboBox jComboBoxEventContent = new JComboBox();
-    private JList     jListStreams          = new JList();
-    private JList     jListDatasets         = new JList();
-    private JList     jListPaths            = new JList();
-    private JComboBox jComboBoxCommands     = new JComboBox();
-    private JTextArea jTextAreaOutputModule = new JTextArea();
-    private JTable    jTableCommands        = new JTable();
-
+    private JComboBox     jComboBoxEventContent     = new JComboBox();
+    private JList         jListStreams              = new JList();
+    private JList         jListDatasets             = new JList();
+    private JList         jListPaths                = new JList();
+    private JComboBox     jComboBoxCommands         = new JComboBox();
+    private JTextArea     jTextAreaOutputModule     = new JTextArea();
+    private JTable        jTableCommands            = new JTable();
     
     private JProgressBar  jProgressBar              = new JProgressBar(); 
     
@@ -202,7 +201,8 @@ public class ConfDbGUI
 		public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
 		public void maybeShowPopup(MouseEvent e) {
 		    if (e.isPopupTrigger())
-			jPopupMenuSearch.show(e.getComponent(),e.getX(),e.getY());
+			jPopupMenuSearch
+			    .show(e.getComponent(),e.getX(),e.getY());
 		}
 	    });
 	jTextFieldSearch.getDocument().addDocumentListener(new DocumentListener() {
@@ -2160,6 +2160,7 @@ public class ConfDbGUI
     //
     // CONTENT EDITOR CALLBACKS
     //
+
     private void jComboBoxEventContentActionPerformed(ActionEvent evt)
     {
 	// set selected event content, in combobox *and* tree!
@@ -2189,44 +2190,388 @@ public class ConfDbGUI
 	Iterator<Path> itP = content.pathIterator();
 	while (itP.hasNext()) plm.addElement(itP.next().name());
 	
+	// fill output command combobox menu
+	fillComboBoxCommandsMenu(null);
+	
+	// fill output commands
+	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+	ctm.setContent(content);
+	
 	// clear output module text area
 	jTextAreaOutputModule.setText("");
     }
     private void jListStreamsValueChanged(ListSelectionEvent evt)
     {
-        // TODO add your handling code here:
+	ListSelectionModel lsmS = jListStreams.getSelectionModel();
+	if (lsmS.getValueIsAdjusting()) return;
+	
+	String contentName = jComboBoxEventContent.getSelectedItem().toString();
+	EventContent content = currentConfig.content(contentName);
+	
+	Stream stream = (lsmS.isSelectionEmpty()) ?
+	    null : content.stream(lsmS.getMinSelectionIndex());
+
+	// fill datasets
+	DefaultListModel dlm = (DefaultListModel)jListDatasets.getModel();
+	dlm.clear();
+	Iterator<PrimaryDataset> itPD = (stream==null) ?
+	    content.datasetIterator() : stream.datasetIterator();
+	while (itPD.hasNext()) dlm.addElement(itPD.next().name());
+	
+	// fill paths
+	DefaultListModel plm = (DefaultListModel)jListPaths.getModel();
+	plm.clear();
+	Iterator<Path> itP = (stream==null) ?
+	    content.pathIterator() : stream.pathIterator();
+	while (itP.hasNext()) plm.addElement(itP.next().name());
+
+	// fill output command combobox menu
+	fillComboBoxCommandsMenu(null);
+	
+	// fill output commands
+	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+	ctm.setStream(stream);
+	
+	// clear output module text area
+	jTextAreaOutputModule.setText("");
+	if (stream!=null) {
+	    try {
+		jTextAreaOutputModule
+		    .setText(cnvEngine.getOutputWriter()
+			     .toString(stream.outputModule()));
+	    }
+	    catch (ConverterException e) {
+		jTextAreaOutputModule.setText(e.getMessage());
+	    }
+	}
     }
     private void jListDatasetsValueChanged(ListSelectionEvent evt)
     {
-        // TODO add your handling code here:
+	ListSelectionModel lsmS = jListStreams.getSelectionModel();
+	ListSelectionModel lsmD = jListDatasets.getSelectionModel();
+
+	if (lsmD.getValueIsAdjusting()) return;
+	
+	String contentName = jComboBoxEventContent.getSelectedItem().toString();
+	EventContent content = currentConfig.content(contentName);
+	
+	Stream stream = (lsmS.isSelectionEmpty()) ?
+	    null : content.stream(lsmS.getMinSelectionIndex());
+	
+	PrimaryDataset dataset = (lsmD.isSelectionEmpty()) ?
+	    null : content.dataset(lsmD.getMinSelectionIndex());
+	
+	// fill paths
+	DefaultListModel plm = (DefaultListModel)jListPaths.getModel();
+	plm.clear();
+	Iterator<Path> itP = (dataset==null) ?
+	    (stream==null) ? content.pathIterator() : stream.pathIterator() :
+	    dataset.pathIterator();
+	while (itP.hasNext()) plm.addElement(itP.next().name());
+
+	// fill output command combobox menu
+	fillComboBoxCommandsMenu(null);
+	
+	// fill output commands
+	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+	ctm.setDataset(dataset);
     }
     private void jListPathsValueChanged(ListSelectionEvent evt)
     {
-        // TODO add your handling code here:
+	ListSelectionModel lsmP = jListPaths.getSelectionModel();
+
+	if (lsmP.getValueIsAdjusting()) return;
+
+	Path path = null;
+	if (!lsmP.isSelectionEmpty()) {
+	    String pathName = jListPaths.getSelectedValue().toString();
+	    path = currentConfig.path(pathName);
+	}
+	if (path==null) jComboBoxCommands.setEditable(true);
+	else            jComboBoxCommands.setEditable(false);
+	
+	// fill output command combobox menu
+	fillComboBoxCommandsMenu(path);
+	
+	// fill output commands
+	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+	ctm.setPath(path);
     }
     private void jComboBoxCommandsActionPerformed(ActionEvent evt)
     {
-        // TODO add your handling code here:
+	Object selectedItem = jComboBoxCommands.getSelectedItem();
+	if (selectedItem==null) return;
+	
+	String contentName = jComboBoxEventContent.getSelectedItem().toString();
+	EventContent content = currentConfig.content(contentName);
+	
+	if (selectedItem instanceof String) {
+	    String commandAsString = (String)selectedItem;
+	    OutputCommand command = new OutputCommand();
+	    if (command.initializeFromString(commandAsString)) {
+		content.insertCommand(command);
+		fillComboBoxCommandsMenu(null);
+	    }
+	}
+	else if (selectedItem instanceof OutputCommand) {
+	    OutputCommand command = (OutputCommand)selectedItem;
+	    content.insertCommand(command);
+	    fillComboBoxCommandsMenu(command.parentPath());
+	}
+
+	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+	ctm.fireTableDataChanged();
+	jComboBoxCommands.setSelectedIndex(0);
     }
     private void jTableCommandsMousePressed(MouseEvent evt)
     {
-        // TODO add your handling code here:
+	if (evt.isPopupTrigger()) jTableCommandsShowPopup(evt);
     }
     private void jTableCommandsMouseReleased(MouseEvent evt)
     {
-        // TODO add your handling code here:
+	if (evt.isPopupTrigger()) jTableCommandsShowPopup(evt);
     }
-    private void jListPathsMousePressed(MouseEvent evt)
+
+    /** fill the combo box menu for output commands to be added */
+    private void fillComboBoxCommandsMenu(Path path)
     {
-        // TODO add your handling code here:
+	String contentName = jComboBoxEventContent.getSelectedItem().toString();
+	EventContent content = currentConfig.content(contentName);
+	
+	DefaultComboBoxModel cbm =
+	    (DefaultComboBoxModel)jComboBoxCommands.getModel();
+	cbm.removeAllElements();
+	cbm.addElement(null);
+	
+	if (path==null) {
+	    OutputCommand ocDropAll = new OutputCommand();
+	    ocDropAll.setDrop();
+	    if (content.indexOfCommand(ocDropAll)<0) cbm.addElement(ocDropAll);
+	    OutputCommand ocDropHLT = new OutputCommand();
+	    ocDropHLT.setDrop();
+	    ocDropHLT.setModuleName("hlt*");
+	    if (content.indexOfCommand(ocDropHLT)<0) cbm.addElement(ocDropHLT);
+	    OutputCommand ocRawOnl = new OutputCommand();
+	    ocRawOnl.setClassName("FEDRawDataCollection");
+	    ocRawOnl.setModuleName("source");
+	    if (content.indexOfCommand(ocRawOnl)<0) cbm.addElement(ocRawOnl);
+	    OutputCommand ocRawOff = new OutputCommand();
+	    ocRawOff.setClassName("FEDRawDataCollection");
+	    ocRawOff.setModuleName("rawDataCollector");
+	    if (content.indexOfCommand(ocRawOff)<0) cbm.addElement(ocRawOff);
+	    OutputCommand ocTrgRes = new OutputCommand();
+	    ocTrgRes.setClassName("edmTriggerResults");
+	    if (content.indexOfCommand(ocTrgRes)<0) cbm.addElement(ocTrgRes);
+	    OutputCommand ocTrgEvt = new OutputCommand();
+	    ocTrgEvt.setClassName("triggerTriggerEvent");
+	    if (content.indexOfCommand(ocTrgEvt)<0) cbm.addElement(ocTrgEvt);
+	    return;
+	}
+	
+	// path is not null
+	Iterator<Reference> itR = path.recursiveReferenceIterator();
+	while (itR.hasNext()) {
+	    Reference reference = itR.next();
+	    if (reference instanceof ModuleReference) {
+		ModuleReference module = (ModuleReference)reference;
+		String moduleType =
+		    ((ModuleInstance)module.parent()).template().type();
+		if (moduleType.equals("EDProducer")) {
+		    OutputCommand command = new OutputCommand(path,reference);
+		    if (content.indexOfCommand(command)<0)
+			cbm.addElement(command);
+		}
+	    }
+	}
     }
-    private void jListPathsMouseReleased(MouseEvent evt)
+    
+    /** show popup menu for command in table being right-clicked */
+    private void jTableCommandsShowPopup(MouseEvent e)
     {
-        // TODO add your handling code here:
+	int row = jTableCommands.rowAtPoint(new Point(e.getX(),e.getY()));
+	jTableCommands.getSelectionModel().setSelectionInterval(row,row);
+	if (row<0) return;
+	
+	String contentName = jComboBoxEventContent.getSelectedItem().toString();
+	EventContent content = currentConfig.content(contentName);
+	
+	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+	OutputCommand command = (OutputCommand)ctm.getValueAt(row,1);
+	int           index   = content.indexOfCommand(command);
+
+	ListSelectionModel lsm = jListPaths.getSelectionModel();
+	
+	JMenuItem  item = null;
+
+	// Edit
+	JPopupMenu menu = new JPopupMenu();
+	item = new JMenuItem("Edit"); menu.add(item);
+	item.setActionCommand(content.name()+":"+
+			      content.indexOfCommand(command));
+	item.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jTableCommandsPopupEdit(e);
+		}
+	    });
+	
+	menu.addSeparator();
+
+	if (lsm.isSelectionEmpty()) {
+	    
+	    // Top
+	    item = new JMenuItem("Top"); menu.add(item);
+	    item.setActionCommand(content.name()+":"+index);
+	    item.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+			jTableCommandsPopupTop(e);
+		    }
+		});
+	    if (index==0) item.setEnabled(false);
+	    
+	    // Up
+	    item = new JMenuItem("Up");     menu.add(item);
+	    item.setActionCommand(content.name()+":"+
+				  content.indexOfCommand(command));
+	    item.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+			jTableCommandsPopupUp(e);
+		    }
+		});
+	    if (index==0) item.setEnabled(false);
+	    
+	    // Down
+	    item = new JMenuItem("Down");   menu.add(item);
+	    item.setActionCommand(content.name()+":"+
+				  content.indexOfCommand(command));
+	    item.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jTableCommandsPopupDown(e);
+		}
+		});
+	    if (index==content.commandCount()-1) item.setEnabled(false);
+	    
+	    // Bottom
+	    item = new JMenuItem("Bottom"); menu.add(item);
+	    item.setActionCommand(content.name()+":"+
+				  content.indexOfCommand(command));
+	    item.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+			jTableCommandsPopupBottom(e);
+		    }
+	    });
+	    if (index==content.commandCount()-1) item.setEnabled(false);
+	    
+	    menu.addSeparator();
+	}
+	
+	// Remove
+	item = new JMenuItem("Remove"); menu.add(item);
+	item.setActionCommand(content.name()+":"+
+			      content.indexOfCommand(command));
+	item.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jTableCommandsPopupRemove(e);
+		}
+	    });
+
+	menu.show(e.getComponent(),e.getX(),e.getY());
     }
+   
+    /** jTableCommands: popup action 'Edit' */
+    private void jTableCommandsPopupEdit(ActionEvent e)
+    {
+	String s[] = ((JMenuItem)e.getSource()).getActionCommand().split(":");
+	String contentName = s[0];
+	int    commandIndex = (new Integer(s[1])).intValue();
+	EventContent  content = currentConfig.content(contentName);
+	OutputCommand command = content.command(commandIndex);
 
+	OutputCommandEditorDialog dlg =
+	    new OutputCommandEditorDialog(frame,content,command);
+	dlg.pack();
+	dlg.setLocationRelativeTo(frame);
+	dlg.setVisible(true);
+	if (dlg.command()!=null) command.set(dlg.command());
 
+	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+	ctm.fireTableDataChanged();
+    }
+    /** jTableCommands: popup action 'Top' */
+    private void jTableCommandsPopupTop(ActionEvent e)
+    {
+	String s[] = ((JMenuItem)e.getSource()).getActionCommand().split(":");
+	String contentName = s[0];
+	int    commandIndex = (new Integer(s[1])).intValue();
+	EventContent  content = currentConfig.content(contentName);
+	OutputCommand command = content.command(commandIndex);
 
+	int targetIndex = 0;
+	content.moveCommand(command,targetIndex);
+
+	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+	ctm.fireTableDataChanged();
+    }
+    /** jTableCommands: popup action 'Up' */
+    private void jTableCommandsPopupUp(ActionEvent e)
+    {
+	String s[] = ((JMenuItem)e.getSource()).getActionCommand().split(":");
+	String contentName = s[0];
+	int    commandIndex = (new Integer(s[1])).intValue();
+	EventContent  content = currentConfig.content(contentName);
+	OutputCommand command = content.command(commandIndex);
+
+	int targetIndex = commandIndex-1;
+	content.moveCommand(command,targetIndex);
+
+	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+	ctm.fireTableDataChanged();
+    }
+    /** jTableCommands: popup action 'Down' */
+    private void jTableCommandsPopupDown(ActionEvent e)
+    {
+	String s[] = ((JMenuItem)e.getSource()).getActionCommand().split(":");
+	String contentName = s[0];
+	int    commandIndex = (new Integer(s[1])).intValue();
+	EventContent  content = currentConfig.content(contentName);
+	OutputCommand command = content.command(commandIndex);
+	
+	int targetIndex = commandIndex+1;
+	content.moveCommand(command,targetIndex);
+	
+	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+	ctm.fireTableDataChanged();
+    }
+    /** jTableCommands: popup action 'Bottom' */
+    private void jTableCommandsPopupBottom(ActionEvent e)
+    {
+	String s[] = ((JMenuItem)e.getSource()).getActionCommand().split(":");
+	String contentName = s[0];
+	int    commandIndex = (new Integer(s[1])).intValue();
+	EventContent  content = currentConfig.content(contentName);
+	OutputCommand command = content.command(commandIndex);
+	
+	int targetIndex = content.commandCount()-1;
+	content.moveCommand(command,targetIndex);
+	
+	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+	ctm.fireTableDataChanged();
+    }
+    /** jTableCommands: popup action 'Remove' */
+    private void jTableCommandsPopupRemove(ActionEvent e)
+    {
+	String s[] = ((JMenuItem)e.getSource()).getActionCommand().split(":");
+	String contentName = s[0];
+	int    commandIndex = (new Integer(s[1])).intValue();
+	EventContent  content = currentConfig.content(contentName);
+	OutputCommand command = content.command(commandIndex);
+	
+	content.removeCommand(command);
+	
+	fillComboBoxCommandsMenu(command.parentPath());
+	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+	ctm.fireTableDataChanged();
+    }
+    
     
     //
     // CREATE GUI COMPONENTS
@@ -2744,6 +3089,7 @@ public class ConfDbGUI
         jLabelStreams.setText("Streams:");
 
         jListStreams.setModel(new DefaultListModel());
+	jListStreams.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jListStreams.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent evt) {
                 jListStreamsValueChanged(evt);
@@ -2752,6 +3098,7 @@ public class ConfDbGUI
         jScrollPaneStreams.setViewportView(jListStreams);
 
         jListDatasets.setModel(new DefaultListModel());
+	jListDatasets.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jListDatasets.addListSelectionListener(new ListSelectionListener() {
 		public void valueChanged(ListSelectionEvent evt) {
                 jListDatasetsValueChanged(evt);
@@ -2764,14 +3111,7 @@ public class ConfDbGUI
         jLabelPaths.setText("Paths:");
 
         jListPaths.setModel(new DefaultListModel());
-        jListPaths.addMouseListener(new MouseAdapter() {
-            public void mousePressed(MouseEvent evt) {
-                jListPathsMousePressed(evt);
-            }
-            public void mouseReleased(MouseEvent evt) {
-                jListPathsMouseReleased(evt);
-            }
-        });
+	jListPaths.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jListPaths.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent evt) {
                 jListPathsValueChanged(evt);
@@ -2796,19 +3136,7 @@ public class ConfDbGUI
         jTextAreaOutputModule.setRows(5);
         jScrollPaneOutputModule.setViewportView(jTextAreaOutputModule);
 
-        jTableCommands
-	    .setModel(new DefaultTableModel(
-					    new Object [][] {
-						{null, null, null, null},
-						{null, null, null, null},
-						{null, null, null, null},
-						{null, null, null, null}
-					    },
-					    new String [] {
-						"Title 1", "Title 2",
-						"Title 3", "Title 4"
-					    }
-					    ));
+        jTableCommands.setModel(new CommandTableModel());
         jTableCommands.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
                 jTableCommandsMousePressed(evt);
@@ -2817,6 +3145,9 @@ public class ConfDbGUI
                 jTableCommandsMouseReleased(evt);
             }
         });
+	jTableCommands.getColumnModel().getColumn(0).setPreferredWidth(30);
+	jTableCommands.getColumnModel().getColumn(1).setPreferredWidth(330);
+	jTableCommands.getColumnModel().getColumn(2).setPreferredWidth(90);
         jScrollPaneCommands.setViewportView(jTableCommands);
 
         org.jdesktop.layout.GroupLayout jPanelScrollPaneLayout = new org.jdesktop.layout.GroupLayout(jPanelScrollPane);
@@ -2905,8 +3236,6 @@ public class ConfDbGUI
             .add(jScrollPaneContentEditor, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 686, Short.MAX_VALUE)
         );
     }
-    
-    
 
 
     /** create the content pane */
@@ -2956,3 +3285,164 @@ public class ConfDbGUI
     }
     
 }
+
+
+
+//
+// CommandTableModel
+//
+class CommandTableModel extends AbstractTableModel
+{
+    /** event content */
+    private EventContent content = null;
+    
+    /** selected stream within content */
+    private Stream stream = null;
+
+    /** selected dataset within stream */
+    private PrimaryDataset dataset = null;
+
+    /** selected path */
+    private Path path = null;
+
+    /** construction */
+    public CommandTableModel()
+    {
+
+    }
+
+    /** set new event content */
+    public void setContent(EventContent content)
+    {
+	this.content = content;
+	this.stream = null;
+	this.dataset = null;
+	this.path = null;
+	fireTableDataChanged();
+    }
+    
+    /** set selected stream */
+    public void setStream(Stream stream)
+    {
+	if (stream==null) {
+	    this.stream = null;
+	    fireTableDataChanged();
+	    return;
+	}
+	
+	if (content==null||content.indexOfStream(stream)<0) {
+	    System.err.println("CommandTableModel.setStream() ERROR: "+
+			       "stream not in currently set content: "+
+			       content+"!");
+	    return;
+	}
+	this.stream = stream;
+	this.dataset = null;
+	this.path = null;
+	fireTableDataChanged();
+    }
+
+    /** set selected dataset */
+    public void setDataset(PrimaryDataset dataset)
+    {
+	if (dataset==null) {
+	    this.dataset = null;
+	    fireTableDataChanged();
+	    return;
+	}
+	
+	if (content==null||content.indexOfDataset(dataset)<0) {
+	    System.err.println("CommandTableModel.setDataset() ERROR: "+
+			       "dataset not in currently set content: "+
+			       content+"!");
+	    return;
+	}
+	if (stream!=null&&stream.indexOfDataset(dataset)<0) {
+	    System.err.println("CommandTableModel.setDataset() ERROR: "+
+			       "dataset not in currently set stream: "+
+			       stream+"!");
+	    return;
+	}
+	this.dataset = dataset;
+	this.path = null;
+	fireTableDataChanged();
+    }
+
+    /** set the selected path */
+    public void setPath(Path path)
+    {
+	if (path==null) {
+	    this.path = null;
+	    fireTableDataChanged();
+	    return;
+	}
+
+	if (content==null||content.indexOfPath(path)<0) {
+	    System.err.println("CommandTableModel.setPath() ERROR: "+
+			       "path not in currently set content: "+
+			       content+"!");
+	    return;
+	}
+	if (stream!=null&&stream.indexOfPath(path)<0) {
+	    System.err.println("CommandTableModel.setPath() ERROR: "+
+			       "path not in currently set stream: "+
+			       stream+"!");
+	    return;
+	}
+	if (dataset!=null&&dataset.indexOfPath(path)<0) {
+	    System.err.println("CommandTableModel.setPath() ERROR: "+
+			       "path not in currently set dataset: "+
+			       dataset+"!");
+	    return;
+	}
+	this.path = path;
+	fireTableDataChanged();
+    }
+    
+    /** AbstractTableModel: number of columns */
+    public int getColumnCount() { return 3; }
+    
+    /** AbstractTableModel: number of rows */
+    public int getRowCount()
+    {
+	if      (path!=null)    return content.commandCount(path);
+	else if (dataset!=null) return content.commandCount(dataset);
+	else if (stream!=null)  return content.commandCount(stream);
+	else if (content!=null) return content.commandCount();
+	else return 0;
+    }
+    
+    /** AbstractTableModel: get column names */
+    public String getColumnName( int iColumn)
+    {
+	if (iColumn==0) return "i";
+	if (iColumn==1) return "Output Command";
+	if (iColumn==2) return "Path";
+	return new String();
+    }
+
+    /** AbstractTableModel: get value from table cell */
+    public Object getValueAt(int iRow,int iColumn)
+    {
+	OutputCommand command = null;
+	if      (path!=null)    command = content.command(path,iRow);
+	else if (dataset!=null) command = content.command(dataset,iRow);
+	else if (stream!=null)  command = content.command(stream,iRow);
+	else if (content!=null) command = content.command(iRow);
+	else return new String("ERROR");
+	
+	Path path = command.parentPath();
+
+	if (iColumn==0) return new Integer(content.indexOfCommand(command));
+	if (iColumn==1) return command;
+	if (iColumn==2) return (path==null) ? "<GLOBAL>" : path;
+	return new Object();
+    }
+    
+    /** AbstractTableModel: get class for column index */
+    public Class getColumnClass(int iColumn)
+    {
+	return getValueAt(0,iColumn).getClass();
+    }
+}
+

@@ -1,3 +1,31 @@
+2009-10-20  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-02-00
+	* fairly complete datamodel introducing EventContent and
+	OutputModule and changing Stream and PrimaryDataset
+	* fairly complete GUI interface to new datamodel, see below
+	* CAUTION: no DB interface to new (parts of) datamodel yet, open
+	existing configuration with care!!
+	* gui: the number of paths not assigned to any dataset appears in
+	square brackets behind the 'Paths' tree node
+	* gui: paths not assigned to any dataset appear red
+	* gui: streams can now be added via context menu, corresponding
+	event content will be created automatically (or existing
+	associated). An OutputModule is created automatically with each
+	new stream, must be assigned with a path!
+	* gui: paths can be added to (and removed from) a stream via the
+	context of each stream node, will be automatically associated with
+	parent event content (by design)
+	* gui: datasets can be added to (or removed from) streams, and
+	each path associated with a stream can be assigned to exactly one
+	of its associated datasets
+	* gui: selecting an EventContent in the configuration tree will
+	display the event content editor in the right part of the
+	GUI. OutputCommands can be added / removed. If a specific path is
+	selected, commands associated with these paths can be added. If no
+	specific path is selected, free-formed (but validated) commands
+	can be entered in the then editable combo box field.
+	
 2009-10-08  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-01-00
