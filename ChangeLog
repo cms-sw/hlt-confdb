@@ -1,3 +1,13 @@
+2009-10-21  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-02-01
+	* data: fix syncronization of outputCommands parameter in
+	OutpuModule class, avoid duplicate entries
+	* gui: correctly notify parameter nodes below output modules of
+	changes
+	* gui: display the number of output modules not yet assigned to
+	any paths in parentheses, draw them red.
+
 2009-10-20  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-02-00

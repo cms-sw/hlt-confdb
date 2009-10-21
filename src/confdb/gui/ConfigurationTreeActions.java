@@ -1242,11 +1242,24 @@ public class ConfigurationTreeActions
 	
 	stream.insertPath(path);
 
-	model.updateLevel1Nodes();
+
 	if (model.contentMode().equals("paths"))
 	    model.nodeInserted(content,content.indexOfPath(path));
+
 	if (model.streamMode().equals("paths"))
 	    model.nodeInserted(stream,stream.indexOfPath(path));
+
+	Iterator<Stream> itS = content.streamIterator();
+	while (itS.hasNext()) {
+	    OutputModule output = itS.next().outputModule();
+	    PSetParameter psetSelectEvents =
+		(PSetParameter)output.parameter(0);
+	    model.nodeChanged(psetSelectEvents.parameter(0));
+	    if (output.referenceCount()>0)
+		model.nodeStructureChanged(output.reference(0));
+	}
+	
+	model.updateLevel1Nodes();
 	
 	return true;
     }
@@ -1268,12 +1281,23 @@ public class ConfigurationTreeActions
 	int contentIndex = content.indexOfPath(path);
 	
 	PrimaryDataset dataset = stream.dataset(path);
-	model.nodeRemoved(dataset,dataset.indexOfPath(path),path);
+	if (dataset!=null)
+	    model.nodeRemoved(dataset,dataset.indexOfPath(path),path);
 	
 	stream.removePath(path);
 
 	if (model.contentMode().equals("paths")&&content.indexOfPath(path)<0) {
 	    model.nodeRemoved(content,content.indexOfPath(path),path);
+	}
+	
+	Iterator<Stream> itS = content.streamIterator();
+	while (itS.hasNext()) {
+	    OutputModule output = itS.next().outputModule();
+	    PSetParameter psetSelectEvents =
+		(PSetParameter)output.parameter(0);
+	    model.nodeChanged(psetSelectEvents.parameter(0));
+	    if (output.referenceCount()>0)
+		model.nodeStructureChanged(output.reference(0));
 	}
 	
 	model.nodeRemoved(stream,index,treeNode);

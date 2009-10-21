@@ -448,6 +448,15 @@ public class Configuration implements IConfiguration
 	return result;
     }
 
+    /** number of output modules not assigned to any path */
+    public int unassignedOutputModuleCount()
+    {
+	int result = 0;
+	Iterator<OutputModule> itOM = outputIterator();
+	while (itOM.hasNext()) if (itOM.next().referenceCount()==0) result++;
+	return result;
+    }
+
     /** number of paths unassigned to any stream */
     public int pathNotAssignedToStreamCount()
     {
@@ -979,10 +988,6 @@ public class Configuration implements IConfiguration
 	    (OutputModuleReference)output.createReference(container,i);
 	hasChanged = true;
 
-	// DEBUG
-	System.out.println(output.name() + ".referenceCount() = "+
-			   output.referenceCount());
-	
 	return reference;
     }
 

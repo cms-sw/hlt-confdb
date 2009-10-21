@@ -252,8 +252,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 
 	// Paths node
 	int pathCount = config.pathCount();
-	int unassignedCount = ((Configuration)config)
-	    .pathNotAssignedToDatasetCount();
+	int unassignedCount = config.pathNotAssignedToDatasetCount();
 	pathsNode.delete(0,pathsNode.length());
 	pathsNode.append("<html><b>Paths</b> (");
 	pathsNode.append(pathCount);
@@ -296,10 +295,21 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 
 	// OutputModule node
 	int outputCount = config.outputCount();
+	int unassignedOMCount = config.unassignedOutputModuleCount();
 	outputsNode.delete(0,outputsNode.length());
 	outputsNode.append("<html><b>OutputModules</b> (");
 	outputsNode.append(outputCount);
-	outputsNode.append(")</html>");
+	outputsNode.append(")");
+	if (unassignedOMCount>0) {
+	    outputsNode.append(" <font color=#ff0000>[");
+	    outputsNode.append(unassignedOMCount);
+	    outputsNode.append("]</font></html>");
+	}
+	else {
+	    outputsNode.append(" <font color=#00ff00>[");
+	    outputsNode.append(unassignedOMCount);
+	    outputsNode.append("]</font></html>");
+	}
 	nodeChanged(outputsNode);
 
 	// Content node

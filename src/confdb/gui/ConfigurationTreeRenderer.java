@@ -12,6 +12,8 @@ import confdb.data.*;
  * -------------------------
  * @author Philipp Schieferdecker
  *
+ * Define how each node in the configuration tree view is being
+ * displayed.
  */
 public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 {
@@ -205,8 +207,8 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    int           entryCount = path.entryCount();
 	    int           count      = path.unsetTrackedParameterCount();
 	    result = "<html>"+getText();
-	    result += (entryCount>0) ?
-		"("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
+	    result += (entryCount>0) ? "("+entryCount+")":
+		"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
 	    result += "</html>";
 	}
@@ -216,7 +218,8 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    int      entryCount = sequence.entryCount();
 	    int      count      = sequence.unsetTrackedParameterCount();
 	    result = (refCount>0) ?
-		"<html>"+getText():"<html><font color=#808080>"+getText()+"</font>";
+		"<html>"+getText():
+		"<html><font color=#808080>"+getText()+"</font>";
 	    result += (entryCount>0) ?
 		" ("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
@@ -229,7 +232,8 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    int               count      = sequence.unsetTrackedParameterCount();
 	    result = "<html>"+getText();
 	    result += (entryCount>0) ?
-		" ("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
+		" ("+entryCount+")":
+		"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
 	    result += "</html>";
 	}

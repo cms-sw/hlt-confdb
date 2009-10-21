@@ -75,9 +75,14 @@ public interface IConfiguration
     /** number of unsert tracked module parameters */
     public int unsetTrackedModuleParameterCount();
 
+    /** number of output modules not assigned to any path */
+    public int unassignedOutputModuleCount();
+    
     /** number of paths unassigned to any stream */
     public int pathNotAssignedToStreamCount();
     
+    /** number of paths unassigned to any dataset */
+    public int pathNotAssignedToDatasetCount();
     
     /** get instance by name, regardless of type */
     public Instance instance(String name);

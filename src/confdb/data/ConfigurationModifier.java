@@ -481,6 +481,16 @@ public class ConfigurationModifier implements IConfiguration
 	    result+=mod.unsetTrackedParameterCount();
 	return result;
     }
+    
+    /** number of output modules not assigned to any path */
+    public int unassignedOutputModuleCount()
+    {
+	if (!isModified) return master.unassignedOutputModuleCount();
+	int result = 0;
+	Iterator<OutputModule> itOM = outputIterator();
+	while (itOM.hasNext()) if (itOM.next().referenceCount()==0) result++;
+	return result;
+    }
 
     /** number of paths unassigned to any stream */
     public int pathNotAssignedToStreamCount()
@@ -489,6 +499,20 @@ public class ConfigurationModifier implements IConfiguration
 	int result = 0;
 	if (streamCount()==0) return result;
 	for (Path p : paths) if (p.streamCount()==0) result++;
+	return result;
+    }
+
+    /** number of paths unassigned to any dataset */
+    public int pathNotAssignedToDatasetCount()
+    {
+	if (!isModified) return master.pathNotAssignedToDatasetCount();
+	int result = 0;
+	Iterator<Path> itP = pathIterator();
+	while (itP.hasNext()) {
+	    Path path = itP.next();
+	    if (path.isEndPath()) continue;
+	    if (path.datasetCount()==0) result++;
+	}
 	return result;
     }
 

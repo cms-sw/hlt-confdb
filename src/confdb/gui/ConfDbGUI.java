@@ -2322,6 +2322,15 @@ public class ConfDbGUI
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
 	jComboBoxCommands.setSelectedIndex(0);
+
+	Iterator<Stream> itS = content.streamIterator();
+	while (itS.hasNext()) {
+	    OutputModule output = itS.next().outputModule();
+	    treeModelCurrentConfig.nodeChanged(output.parameter(1));
+	    if (output.referenceCount()>0)
+		treeModelCurrentConfig
+		    .nodeStructureChanged(output.reference(0));
+	}
     }
     private void jTableCommandsMousePressed(MouseEvent evt)
     {
@@ -2495,6 +2504,15 @@ public class ConfDbGUI
 
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
+
+	Iterator<Stream> itS = content.streamIterator();
+	while (itS.hasNext()) {
+	    OutputModule output = itS.next().outputModule();
+	    treeModelCurrentConfig.nodeChanged(output.parameter(1));
+	    if (output.referenceCount()>0)
+		treeModelCurrentConfig
+		    .nodeStructureChanged(output.reference(0));
+	}
     }
     /** jTableCommands: popup action 'Top' */
     private void jTableCommandsPopupTop(ActionEvent e)
@@ -2510,6 +2528,15 @@ public class ConfDbGUI
 
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
+
+	Iterator<Stream> itS = content.streamIterator();
+	while (itS.hasNext()) {
+	    OutputModule output = itS.next().outputModule();
+	    treeModelCurrentConfig.nodeChanged(output.parameter(1));
+	    if (output.referenceCount()>0)
+		treeModelCurrentConfig
+		    .nodeStructureChanged(output.reference(0));
+	}
     }
     /** jTableCommands: popup action 'Up' */
     private void jTableCommandsPopupUp(ActionEvent e)
@@ -2525,6 +2552,15 @@ public class ConfDbGUI
 
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
+
+	Iterator<Stream> itS = content.streamIterator();
+	while (itS.hasNext()) {
+	    OutputModule output = itS.next().outputModule();
+	    treeModelCurrentConfig.nodeChanged(output.parameter(1));
+	    if (output.referenceCount()>0)
+		treeModelCurrentConfig
+		    .nodeStructureChanged(output.reference(0));
+	}
     }
     /** jTableCommands: popup action 'Down' */
     private void jTableCommandsPopupDown(ActionEvent e)
@@ -2540,6 +2576,15 @@ public class ConfDbGUI
 	
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
+
+	Iterator<Stream> itS = content.streamIterator();
+	while (itS.hasNext()) {
+	    OutputModule output = itS.next().outputModule();
+	    treeModelCurrentConfig.nodeChanged(output.parameter(1));
+	    if (output.referenceCount()>0)
+		treeModelCurrentConfig
+		    .nodeStructureChanged(output.reference(0));
+	}
     }
     /** jTableCommands: popup action 'Bottom' */
     private void jTableCommandsPopupBottom(ActionEvent e)
@@ -2555,6 +2600,15 @@ public class ConfDbGUI
 	
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
+
+	Iterator<Stream> itS = content.streamIterator();
+	while (itS.hasNext()) {
+	    OutputModule output = itS.next().outputModule();
+	    treeModelCurrentConfig.nodeChanged(output.parameter(1));
+	    if (output.referenceCount()>0)
+		treeModelCurrentConfig
+		    .nodeStructureChanged(output.reference(0));
+	}
     }
     /** jTableCommands: popup action 'Remove' */
     private void jTableCommandsPopupRemove(ActionEvent e)
@@ -2570,6 +2624,15 @@ public class ConfDbGUI
 	fillComboBoxCommandsMenu(command.parentPath());
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
+
+	Iterator<Stream> itS = content.streamIterator();
+	while (itS.hasNext()) {
+	    OutputModule output = itS.next().outputModule();
+	    treeModelCurrentConfig.nodeChanged(output.parameter(1));
+	    if (output.referenceCount()>0)
+		treeModelCurrentConfig
+		    .nodeStructureChanged(output.reference(0));
+	}
     }
     
     

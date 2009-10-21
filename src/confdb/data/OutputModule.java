@@ -84,7 +84,7 @@ public class OutputModule extends ParameterContainer implements Referencable
 	if (index<2) return false; // protect SelectEvents & outputCommands!
 	return true;
     }
-
+    
     /** ParameterContainer: remove a parameter */
     public void removeParameter(Parameter parameter)
     {
@@ -92,7 +92,7 @@ public class OutputModule extends ParameterContainer implements Referencable
 	    parameter.name().equals("outputCommands")) return;
 	super.removeParameter(parameter);
     }
-
+    
     /** ParameterContainer: clear() */
     public void clear()
     {
@@ -223,12 +223,22 @@ public class OutputModule extends ParameterContainer implements Referencable
     /** update value of 'outputCommands' parameter */
     private void updateOutputCommands()
     {
-	StringBuffer valueAsString = new StringBuffer();
+	// first collect all commands as strings, remove duplicates
+	ArrayList<String> listOfCommands = new ArrayList<String>();
 	Iterator<OutputCommand> itOC =
 	    parentStream().parentContent().commandIterator();
 	while (itOC.hasNext()) {
+	    String commandAsString = itOC.next().toString();
+	    if (listOfCommands.indexOf(commandAsString)<0)
+		listOfCommands.add(commandAsString);
+	}
+	
+	// now reformat them according to vstring requirements
+	StringBuffer valueAsString = new StringBuffer();
+	Iterator<String> itS = listOfCommands.iterator();
+	while (itS.hasNext()) {
 	    if (valueAsString.length()>0) valueAsString.append(",");
-	    valueAsString.append(itOC.next().toString());
+	    valueAsString.append(itS.next());
 	}
 	vstringOutputCommands.setValue(valueAsString.toString());
     }
