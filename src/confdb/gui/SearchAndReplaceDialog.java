@@ -279,8 +279,8 @@ public class SearchAndReplaceDialog extends JDialog
 
 	// DEBUG
 	System.out.println("paramType="+paramType+
-					   " paramName="+paramName+
-					   " paramValue="+paramValue);
+			   " paramName="+paramName+
+			   " paramValue="+paramValue);
 
 	while (itT.hasNext()) {
 	    Template template = itT.next();

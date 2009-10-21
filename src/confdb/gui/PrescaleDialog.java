@@ -351,11 +351,11 @@ class PrescaleTableCellRenderer extends DefaultTableCellRenderer
 						   int row,int column)
     {
 	setText(value.toString());
-	if (value instanceof Integer) {
+	if (value instanceof Long) {
 	    setHorizontalAlignment(SwingConstants.CENTER);
-	    int valueAsInt = (Integer)value;
-	    if (valueAsInt==0) setBackground(Color.RED);
-	    else if (valueAsInt==1) setBackground(Color.GREEN);
+	    long valueAsLong = (Long)value;
+	    if (valueAsLong==0) setBackground(Color.RED);
+	    else if (valueAsLong==1) setBackground(Color.GREEN);
 	    else setBackground(Color.ORANGE);
 	}
 	return this;

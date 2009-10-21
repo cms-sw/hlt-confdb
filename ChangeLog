@@ -1,5 +1,10 @@
 2009-10-21  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
+	* tag V01-02-02
+	* gui: fix background colors of cells in prescale table
+
+2009-10-21  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
 	* tag V01-02-01
 	* data: fix syncronization of outputCommands parameter in
 	OutpuModule class, avoid duplicate entries
