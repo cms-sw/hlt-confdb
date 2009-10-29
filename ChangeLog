@@ -1,3 +1,9 @@
+2009-10-29  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-30-04
+	* converter: change connect string in OnlineConverter as per
+	request by Dave Dykstra
+
 2009-10-08  Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
 
 	* tag V00-30-03

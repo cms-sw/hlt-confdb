@@ -55,8 +55,8 @@ public class OnlineConverter extends ConverterBase
 	"frontier://(proxyurl=http://localhost:3128)"+
 	"(serverurl=http://localhost:8000/FrontierOnProd)"+
 	"(serverurl=http://localhost:8000/FrontierOnProd)"+
-	"(retrieve-ziplevel=0)";
-
+	"(retrieve-ziplevel=0)(failovertoserver=no)";
+    
     /** flag used in finalize to either disconnect from database or not */
     private boolean disconnectOnFinalize = true;
     
