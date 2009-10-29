@@ -1,3 +1,17 @@
+2009-10-29  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-02-03
+	* converter: adjust connect string as per request by Dave Dykstra
+	* converter: OnlineConverter doesn't modify configuration anymore,
+	as per TSG request
+	* data: Stream contains a field 'fractionToDisk' now
+	* gui: allow for the above field to be set
+	* gui: OutputModule preview (text area at the bottom) properly
+	updated
+	* gui: don't allow OutputModules to be added to paths if the
+	reference count is already larger than one (should probably be
+	enforced in the datamodel of OutputModule)
+
 2009-10-21  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-02-02

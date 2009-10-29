@@ -260,6 +260,13 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    }
 	    result = "<html><font size=-2><b>" + result + "</b></font></html>";
 	}
+	else if (node instanceof Stream) {
+	    Stream stream = (Stream)node;
+	    if (stream.fractionToDisk()<1.0)
+		result = "<html>"+stream.toString()+
+		    "  [<i><font color=#ff0000>"+stream.fractionToDisk()*100.+
+		    " %</font> written to disk</i>]</html>";
+	}
 	return result;
     }
     

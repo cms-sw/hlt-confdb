@@ -2233,17 +2233,7 @@ public class ConfDbGUI
 	ctm.setStream(stream);
 	
 	// clear output module text area
-	jTextAreaOutputModule.setText("");
-	if (stream!=null) {
-	    try {
-		jTextAreaOutputModule
-		    .setText(cnvEngine.getOutputWriter()
-			     .toString(stream.outputModule()));
-	    }
-	    catch (ConverterException e) {
-		jTextAreaOutputModule.setText(e.getMessage());
-	    }
-	}
+	updateOutputModulePreview();
     }
     private void jListDatasetsValueChanged(ListSelectionEvent evt)
     {
@@ -2331,6 +2321,8 @@ public class ConfDbGUI
 		treeModelCurrentConfig
 		    .nodeStructureChanged(output.reference(0));
 	}
+
+	updateOutputModulePreview();
     }
     private void jTableCommandsMousePressed(MouseEvent evt)
     {
@@ -2341,6 +2333,30 @@ public class ConfDbGUI
 	if (evt.isPopupTrigger()) jTableCommandsShowPopup(evt);
     }
 
+    /** update the contents of the OutputModule config area at the bottom */
+    private void updateOutputModulePreview()
+    {
+	jTextAreaOutputModule.setText("");
+
+	ListSelectionModel lsmS = jListStreams.getSelectionModel();
+	String             contentName =
+	    jComboBoxEventContent.getSelectedItem().toString();
+	EventContent       content = currentConfig.content(contentName);
+	Stream             stream = (lsmS.isSelectionEmpty()) ?
+	    null : content.stream(lsmS.getMinSelectionIndex());
+	
+	if (stream!=null) {
+	    try {
+		jTextAreaOutputModule
+		    .setText(cnvEngine.getOutputWriter()
+			     .toString(stream.outputModule()));
+	    }
+	    catch (ConverterException e) {
+		jTextAreaOutputModule.setText(e.getMessage());
+	    }
+	}
+    }
+    
     /** fill the combo box menu for output commands to be added */
     private void fillComboBoxCommandsMenu(Path path)
     {
@@ -2505,6 +2521,8 @@ public class ConfDbGUI
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
 
+	updateOutputModulePreview();
+	
 	Iterator<Stream> itS = content.streamIterator();
 	while (itS.hasNext()) {
 	    OutputModule output = itS.next().outputModule();
@@ -2528,6 +2546,8 @@ public class ConfDbGUI
 
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
+
+	updateOutputModulePreview();
 
 	Iterator<Stream> itS = content.streamIterator();
 	while (itS.hasNext()) {
@@ -2553,6 +2573,8 @@ public class ConfDbGUI
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
 
+	updateOutputModulePreview();
+
 	Iterator<Stream> itS = content.streamIterator();
 	while (itS.hasNext()) {
 	    OutputModule output = itS.next().outputModule();
@@ -2576,6 +2598,8 @@ public class ConfDbGUI
 	
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
+
+	updateOutputModulePreview();
 
 	Iterator<Stream> itS = content.streamIterator();
 	while (itS.hasNext()) {
@@ -2601,6 +2625,8 @@ public class ConfDbGUI
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
 
+	updateOutputModulePreview();
+
 	Iterator<Stream> itS = content.streamIterator();
 	while (itS.hasNext()) {
 	    OutputModule output = itS.next().outputModule();
@@ -2625,6 +2651,8 @@ public class ConfDbGUI
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
 
+	updateOutputModulePreview();
+	
 	Iterator<Stream> itS = content.streamIterator();
 	while (itS.hasNext()) {
 	    OutputModule output = itS.next().outputModule();

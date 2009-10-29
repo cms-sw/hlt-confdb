@@ -844,6 +844,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 
 	    popupStreams.addSeparator();
 
+	    menuItem = new JMenuItem("Set Fraction-to-Disk");
+	    menuItem.addActionListener(streamListener);
+	    menuItem.setActionCommand("FRACTION");
+	    popupStreams.add(menuItem);
+	    
 	    menuItem = new JMenuItem("<html>Rename <i>" + stream.name() +
 				     "</i></html>");
 	    menuItem.addActionListener(streamListener);
@@ -978,6 +983,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem = new JMenuItem(om.name());
 	    menuItem.addActionListener(listener);
 	    menuItem.setActionCommand("OutputModule");
+	    if (om.referenceCount()>0) menuItem.setEnabled(false);
 	    outputMenu.add(menuItem);
 	}
 	
@@ -1633,6 +1639,23 @@ class StreamMenuListener implements ActionListener
 	}
 	else if (action.equals("ADDPATH")) {
 	    ConfigurationTreeActions.addPathToStream(tree,cmd);
+	}
+	else if (action.equals("FRACTION")) {
+	    Stream stream = (Stream)node;
+	    String fractionAsString =
+		JOptionPane.showInputDialog(null,
+					    "Enter fraction-to-disk "+
+					    "for Stream "+stream.name()+
+					    " ["+stream.fractionToDisk()+"]",
+					    "",JOptionPane.QUESTION_MESSAGE);
+	    try {
+		double fraction = Double.parseDouble(fractionAsString);
+		stream.setFractionToDisk(fraction);
+		model.nodeChanged(stream);
+	    }
+	    catch (NumberFormatException ex) {
+		System.err.println(ex.getMessage());
+	    }
 	}
 	else if (action.equals("REMOVE")) {
 	    ConfigurationTreeActions.removeStream(tree);

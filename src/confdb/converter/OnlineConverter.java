@@ -56,7 +56,7 @@ public class OnlineConverter extends ConverterBase
 	"frontier://(proxyurl=http://localhost:3128)"+
 	"(serverurl=http://localhost:8000/FrontierOnProd)"+
 	"(serverurl=http://localhost:8000/FrontierOnProd)"+
-	"(retrieve-ziplevel=0)";
+	"(retrieve-ziplevel=0)(failovertoserver=no)";
 
     /** flag used in finalize to either disconnect from database or not */
     private boolean disconnectOnFinalize = true;
@@ -107,20 +107,21 @@ public class OnlineConverter extends ConverterBase
 
     /** constructor based on explicit connection information */
     public OnlineConverter( String format, String dbType, String dbUrl,
-			    String dbUser, String dbPwrd) throws ConverterException 
+			    String dbUser, String dbPwrd)
+	throws ConverterException 
     {
 	super(format, dbType, dbUrl, dbUser, dbPwrd);
     }
 
     
     /** destructor  */
-	protected void finalize() throws Throwable
-	{
-		super.finalize();
-		ConfDB db = getDatabase();
-		if ( db != null && disconnectOnFinalize )
-			db.disconnect();
-	}
+    protected void finalize() throws Throwable
+    {
+	super.finalize();
+	ConfDB db = getDatabase();
+	if ( db != null && disconnectOnFinalize )
+	    db.disconnect();
+    }
 	
     
     
@@ -148,11 +149,11 @@ public class OnlineConverter extends ConverterBase
 
     /** get the pathName -> prescalerName map  DEPRECTATED */ 
     public HashMap<String, String> getPathToPrescalerMap(int configId)
-	throws ConverterException 
+    throws ConverterException 
     {
-	if (configId != this.configId)
-	    convertConfiguration(configId);
-	return pathToPrescaler;
+    if (configId != this.configId)
+        convertConfiguration(configId);
+    return pathToPrescaler;
     }
 
     /** get the prescale table */
@@ -171,13 +172,6 @@ public class OnlineConverter extends ConverterBase
     /** set the GlobalTag connect parameter */
     public void setConnect(String esConnect) { this.esConnect = esConnect; }
     
-    /** set verbosity levels for message logger configuration */
-    public void setMessageLoggerVerbosity(String vCout, String vLog4)
-    {
-	mlVerbosityCout = vCout;
-	mlVerbosityLog4 = vLog4;
-    }
-    
 
     //
     // private member data
@@ -194,10 +188,6 @@ public class OnlineConverter extends ConverterBase
 		") ERROR: no streams defined!";
 	    throw new ConverterException(errMsg);
 	}
-	
-	// This should go down, once the OM hack has been replaced!
-	ConfigurationModifier epModifier = new ConfigurationModifier(epConfig);
-
 	
 	SoftwareSubsystem subsys = new SoftwareSubsystem("IOPool");
 	SoftwarePackage   pkg = new SoftwarePackage("Streamer");
@@ -254,24 +244,11 @@ public class OnlineConverter extends ConverterBase
 	    psetSelectEvents.addParameter(vstringSelectEvents);
 	    streamWriter.updateParameter("SelectEvents", "PSet",
 					 psetSelectEvents.valueAsString());
-
-	    // temporary hack
-	    Iterator<ModuleInstance> itM = epModifier.moduleIterator();
-	    while (itM.hasNext()) {
-		ModuleInstance module = itM.next();
-		if (!module.template().type().equals("OutputModule")) continue;
-		PSetParameter psetSelectOM =
-		    (PSetParameter)module.parameter("SelectEvents");
-		if (psetSelectOM==null) continue;
-		VStringParameter vstringSelectOM = 
-		    (VStringParameter)psetSelectOM.parameter("SelectEvents");
-		if (vstringSelectOM==null) continue;
-		if(vstringSelectOM.valueAsSortedString()
-		   .equals(vstringSelectEvents.valueAsSortedString())) {
-		    streamWriter.updateParameter("SelectHLTOutput",
-						 "string",module.name());
-		}
-	    }
+	    streamWriter.updateParameter("SelectHLTOutput","string",
+					 stream.outputModule().name());
+	    streamWriter.updateParameter("fractionToDisk","double",
+					 Double.toString(stream
+							 .fractionToDisk()));
 	}
 	
 	// include error-stream configuration
@@ -279,32 +256,10 @@ public class OnlineConverter extends ConverterBase
 				       smErrorWriterT.name(),"out4Error");
 	
 
-	// apply necessary offline -> online modifications to HLT configuration
-	epModifier.insertDaqSource();
-	epModifier.insertShmStreamConsumer();
-	epModifier.removeMaxEvents();
-	epModifier.modify();
+	configureGlobalTag(epConfig);
 	
-	configureGlobalTag(epModifier);
-	setOnlineMessageLoggerOptions(epModifier);
-	addOnlineOptions(epModifier);
-	setRawDataInputTags(epModifier);
-
-	try {
-	   addDQMStore(epModifier);
-	   addFUShmDQMOutputService(epModifier);
-	}
-	catch (Exception e) {
-	   String errMsg =
-	   "convertConfiguration(): failed to add Service: " + e.getMessage();
-	   throw new ConverterException(errMsg,e);
-	}
-	
-	
-	
-	// obsolete, remove?
 	pathToPrescaler.clear();
-	Iterator<Path> itP = epModifier.pathIterator();
+	Iterator<Path> itP = epConfig.pathIterator();
 	while (itP.hasNext()) {
 	    Path path = itP.next();
 	    Iterator<ModuleInstance> itM = path.moduleIterator();
@@ -317,9 +272,11 @@ public class OnlineConverter extends ConverterBase
 	    }
 	}
 	
-	prescaleTable = new PrescaleTable(epModifier);
 	
-	epConfigString = getConverterEngine().convert(epModifier);
+	//prescaleTable = new PrescaleTable(epModifier);
+	prescaleTable = new PrescaleTable(epConfig);
+	
+	epConfigString = getConverterEngine().convert(epConfig);
 	smConfigString = getConverterEngine().convert(smConfig);
 
 	this.configId = configId;
@@ -358,7 +315,8 @@ public class OnlineConverter extends ConverterBase
 	}
 	
 	if (esConnect.length()>0) {
-	    String connect=globalTag.parameter("connect","string").valueAsString();
+	    String connect =
+		globalTag.parameter("connect","string").valueAsString();
 	    connect = connect.substring(1,connect.length()-1);
 	    connect = connect.substring(connect.lastIndexOf('/'));
 	    connect = esConnect + connect;
@@ -366,134 +324,6 @@ public class OnlineConverter extends ConverterBase
 	}
     }
     
-    /** add global pset 'options', suitable for online */
-    private void addOnlineOptions(IConfiguration config)
-    {
-	PSetParameter options=new PSetParameter("options",
-						new ArrayList<Parameter>(),
-						false);
-	options.addParameter(new VStringParameter("Rethrow",
-						  "ProductNotFound,"+
-						  "TooManyProducts,"+
-						  "TooFewProducts",false));
-	config.insertPSet(options);
-    }
-
-    /** set the parameters for the online message logger service */
-    private void setOnlineMessageLoggerOptions(IConfiguration config)
-    {
-	// find the message logger
-	ServiceInstance msgLogger = config.service("MessageLogger");
-	if (msgLogger==null) {
-	    System.err.println("MessageLogger not found");
-	    return;
-	}
-
-	// check if destinations contains 'log4cplus', if not add it
-	VStringParameter vstringDest =
-	    (VStringParameter)msgLogger.parameter("destinations");
-	if (vstringDest == null) {
-	    System.err.println("MessageLogger.destinations not found");
-	    return;
-	}
-	
-	String vstringDestAsString = vstringDest.valueAsString();
-	if (!vstringDestAsString.contains("log4cplus")) {
-	    String newValue = (vstringDestAsString.length()==0) ?
-		"log4cplus" : vstringDestAsString + ",\"log4cplus\"";
-	    msgLogger.updateParameter("destinations","vstring",newValue);
-	}
-	
-	// check if MessageLogger.log4cplus contains threshold, otherwise set
-	PSetParameter psetLog4 =
-	    (PSetParameter)msgLogger.parameter("log4cplus");
-	if (psetLog4==null) {
-	    System.err.println("MessageLogger.log4cplus not found");
-	    return;
-	}
-	
-	StringParameter stringThresh =
-	    (StringParameter)psetLog4.parameter("threshold");
-	if (stringThresh==null) {
-	    psetLog4.addParameter(new StringParameter("threshold",
-						      mlVerbosityLog4,false));
-	    msgLogger.updateParameter("log4cplus","PSet",
-				      psetLog4.valueAsString());
-	}
-    }
-    
-    /** add the DQMStore service */
-    private void addDQMStore(ConfigurationModifier config)
-	throws DataException,DatabaseException
-    {
-	ServiceTemplate dqmStoreT = (ServiceTemplate)getDatabase()
-	    .loadTemplate(config.releaseTag(),"DQMStore");
-	ServiceInstance dqmStore = (ServiceInstance)dqmStoreT.instance();
-	config.insertService(dqmStore);
-    }
-    
-    /** add the FUShmDSQMOutputService service */
-    private void addFUShmDQMOutputService(ConfigurationModifier config)
-	throws DataException,DatabaseException
-    {
-	ServiceTemplate dqmOutT = (ServiceTemplate)getDatabase()
-	    .loadTemplate(config.releaseTag(),"FUShmDQMOutputService");
-	ServiceInstance dqmOut = (ServiceInstance)dqmOutT.instance();
-	dqmOut.updateParameter("lumiSectionsPerUpdate","double","1.0");
-	dqmOut.updateParameter("useCompression","bool","true");
-	dqmOut.updateParameter("compressionLevel","int32","1");
-	config.insertService(dqmOut);
-    }
-    
-    /** convert InputTag/string params with value 'rawDataCollector' to 'source' */
-    private void setRawDataInputTags(IConfiguration config)
-    {
-	Iterator<ModuleInstance> itM = config.moduleIterator();
-	while (itM.hasNext()) {
-	    ModuleInstance module = itM.next();
-	    Iterator<Parameter> itP = module.recursiveParameterIterator();
-	    while (itP.hasNext()) {
-		Parameter p = itP.next();
-		if (!p.isValueSet()) continue;
-		if (p instanceof InputTagParameter) {
-		    InputTagParameter itp = (InputTagParameter)p;
-		    if (itp.label().equals("rawDataCollector"))
-			itp.setLabel("source");
-		}
-		else if (p instanceof VInputTagParameter) {
-		    VInputTagParameter vitp = (VInputTagParameter)p;
-		    for (int i=0;i<vitp.vectorSize();i++) {
-			InputTagParameter itp =
-			    new InputTagParameter("",(String)vitp.value(i),
-						  false);
-			if (itp.label().equals("rawDataCollector")) {
-			    itp.setLabel("source");
-			    vitp.setValue(i,itp.valueAsString());
-			}
-		    }
-		}
-		else if (p instanceof StringParameter) {
-		    StringParameter sp = (StringParameter)p;
-		    String s = sp.valueAsString();
-		    if (s.indexOf("rawDataCollector")>=0) {
-			s = s.replaceAll("rawDataCollector","source");
-			sp.setValue(s);
-		    }
-		}
-		else if (p instanceof VStringParameter) {
-		    VStringParameter vsp = (VStringParameter)p;
-		    for (int i=0;i<vsp.vectorSize();i++) {
-			String s = (String)vsp.value(i);
-			if (s.indexOf("rawDataCollector")>=0) {
-			    s = s.replaceAll("rawDataCollector","source");
-			    vsp.setValue(i,s);
-			}
-		    }
-		}
-	    }
-	}
-    }
-	
     
     //
     // static member functions

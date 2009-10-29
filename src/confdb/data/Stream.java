@@ -21,6 +21,9 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** name of the stream */
     private String name;
 
+    /** fraction of events to be writte to local disk by SM */
+    private double fractionToDisk = 1.0;
+    
     /** reference to parent event content */
     private EventContent parentContent = null;
     
@@ -54,8 +57,21 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** name of this stream */
     public String name() { return name; }
     
+    /** retrieve fraction of events to be written to local disc by SM */
+    public double fractionToDisk() { return fractionToDisk; }
+    
     /** set name of this stream */
     public void setName(String name) { this.name = name; }
+    
+    /** set the fraction of events to be writte to local disk by SM */
+    public void setFractionToDisk(double fractionToDisk)
+    {
+	if (fractionToDisk>=0.0&&fractionToDisk<=1.0)
+	    this.fractionToDisk = fractionToDisk;
+	else System.err.println("Stream.setFractionToDisk() ERROR: "+
+				"fraction = " + fractionToDisk +
+				" not in [0,1]!");
+    }
     
     /** overload 'toString()' */
     public String toString() { return name(); }
