@@ -463,3 +463,11 @@ FastjetJetProducer.Parameter maxProblematicEcalCells uint32 9999999 tracked
 FastjetJetProducer.Parameter maxBadHcalCells uint32 9999999 tracked 
 FastjetJetProducer.Parameter maxRecoveredHcalCells uint32 9999999 tracked   
 FastjetJetProducer.Parameter maxProblematicHcalCells uint32 9999999 tracked  
+
+ESModule SiStripQualityESProducer CalibTracker SiStripESProducers
+SiStripQualityESProducer.Parameter appendToDataLabel string "" tracked
+SiStripQualityESProducer.Parameter PrintDebugOutput bool false tracked
+SiStripQualityESProducer.Parameter ThresholdForReducedGranularity double 0.3 tracked
+SiStripQualityESProducer.Parameter UseEmptyRunInfo bool false tracked
+SiStripQualityESProducer.Parameter ReduceGranularity bool false tracked
+SiStripQualityESProducer.Parameter ListOfRecordToMerge VPSet tracked
