@@ -22,7 +22,7 @@ public class PrescaleTable
     private ArrayList<String> columnNames = new ArrayList<String>();
 
     /** prescale table rows */
-    private ArrayList<PrescaleTableRow> rows = new ArrayList<PrescaleTableRow>();
+    private ArrayList<PrescaleTableRow> rows=new ArrayList<PrescaleTableRow>();
     
 
     //
@@ -48,7 +48,7 @@ public class PrescaleTable
     {
 	return columnNames.get(i+1);
     }
-    
+
     /** number of prescaled paths */
     public int pathCount() { return rows.size(); }
 
@@ -84,6 +84,21 @@ public class PrescaleTable
 	return false;
     }
 
+    /** get prescales for a given path name */
+    public ArrayList<Long> prescales(String pathName)
+    {
+	ArrayList<Long> result = new ArrayList<Long>();
+	Iterator<PrescaleTableRow> itR = rows.iterator();
+	while (itR.hasNext()) {
+	    PrescaleTableRow row = itR.next();
+	    if (row.pathName.equals(pathName)) {
+		for (Long l : row.prescales) result.add(l);
+		return result;
+	    }
+	}
+	return result;
+    }
+    
     /** set a prescale */
     public void setPrescale(int i,int j,long prescale)
     {
@@ -149,8 +164,10 @@ public class PrescaleTable
 	
 	for (int i=0;i<vpsetPrescaleTable.parameterSetCount();i++) {
 	    PSetParameter    pset      =vpsetPrescaleTable.parameterSet(i);
-	    StringParameter  sPathName =(StringParameter)pset.parameter("pathName");
-	    VUInt32Parameter vPrescales=(VUInt32Parameter)pset.parameter("prescales");
+	    StringParameter  sPathName =
+		(StringParameter)pset.parameter("pathName");
+	    VUInt32Parameter vPrescales=
+		(VUInt32Parameter)pset.parameter("prescales");
 	    String           pathName  =(String)sPathName.value();
 	    
 	    if (config.path(pathName)==null) {
