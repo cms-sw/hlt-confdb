@@ -411,7 +411,6 @@ PFBlockProducer.Parameter useRecMuons bool false tracked
 PFBlockProducer.Parameter useGsfRecTracks bool false tracked
 
 Module EDProducer PFProducer RecoParticleFlow PFProducer
-PFProducer.Parameter pf_newCalib bool false tracked
 PFProducer.Parameter pf_clusterRecovery bool false tracked
 PFProducer.Parameter ecalHcalEcalEndcap vdouble { 0.46, 3.0, 1.1, 0.4, -0.02, 1.4 } tracked
 PFProducer.Parameter ecalHcalEcalBarrel vdouble { 0.67, 3.0, 1.15, 0.9, -0.06, 1.4 } tracked
@@ -422,6 +421,69 @@ Module EDProducer PFRecoTauTagInfoProducer RecoTauTag RecoTau
 PFRecoTauTagInfoProducer.Parameter PVProducer InputTag hltPixelVertices tracked
 PFRecoTauTagInfoProducer.Parameter PFCandidateProducer InputTag hltParticleFlow tracked
 PFRecoTauTagInfoProducer.Parameter PFJetTracksAssociatorProducer InputTag hltIc5PFJetTracksAssociatorAtVertex tracked
+PFRecoTauTagInfoProducer.Parameter ChargedHadrCand_AssociationCone double 0.8 tracked
+PFRecoTauTagInfoProducer.Parameter ChargedHadrCand_tkminPt double 0.5 tracked
+PFRecoTauTagInfoProducer.Parameter tkminPt double 0.5 tracked  
+PFRecoTauTagInfoProducer.Parameter NeutrHadrCand_HcalclusMinEt double 1.0 tracked
+PFRecoTauTagInfoProducer.Parameter GammaCand_EcalclusMinEt double 0.5 tracked
+PFRecoTauTagInfoProducer.Parameter tkminTrackerHitsn int32 3 tracked
+PFRecoTauTagInfoProducer.Parameter tkmaxChi2 double 100.0 tracked
+PFRecoTauTagInfoProducer.Parameter tkPVmaxDZ double 0.2 tracked 
+PFRecoTauTagInfoProducer.Parameter tkminPixelHitsn int32 0 tracked
+PFRecoTauTagInfoProducer.Parameter tkmaxipt double 0.03 tracked
+PFRecoTauTagInfoProducer.Parameter UsePVconstraint bool False tracked
+PFRecoTauTagInfoProducer.Parameter ChargedHadrCand_tkminTrackerHitsn int32 3 tracked
+PFRecoTauTagInfoProducer.Parameter ChargedHadrCand_tkmaxChi2 double 100.0 tracked
+PFRecoTauTagInfoProducer.Parameter ChargedHadrCand_tkmaxipt  double 0.03 tracked
+PFRecoTauTagInfoProducer.Parameter ChargedHadrCand_tkminPixelHitsn int32 0 tracked
+PFRecoTauTagInfoProducer.Parameter ChargedHadrCand_tkPVmaxDZ double 0.2 tracked
+
+Module EDProducer PFRecoTauProducer RecoTauTag RecoTau
+PFRecoTauProducer.Parameter LeadPFCand_minPt    double 5.0 tracked  
+PFRecoTauProducer.Parameter TrackerSignalConeMetric string 'DR' tracked
+PFRecoTauProducer.Parameter TrackerSignalConeSizeFormula string '0.15' tracked
+PFRecoTauProducer.Parameter TrackerSignalConeSize_min double 0.0 tracked
+PFRecoTauProducer.Parameter TrackerSignalConeSize_max double 0.15 tracked
+PFRecoTauProducer.Parameter ECALSignalConeMetric string 'DR' tracked
+PFRecoTauProducer.Parameter ECALSignalConeSizeFormulastring '0.15' tracked
+PFRecoTauProducer.Parameter ECALSignalConeSize_min double 0.0 tracked
+PFRecoTauProducer.Parameter ECALSignalConeSize_max double 0.6 tracked
+PFRecoTauProducer.Parameter HCALSignalConeMetric string 'DR' tracked
+PFRecoTauProducer.Parameter HCALSignalConeSizeFormula string '0.10' tracked
+PFRecoTauProducer.Parameter HCALSignalConeSize_min double 0.0 tracked
+PFRecoTauProducer.Parameter HCALSignalConeSize_max double 0.6 tracked
+PFRecoTauProducer.Parameter TrackerIsolConeMetric string 'DR' tracked
+PFRecoTauProducer.Parameter TrackerIsolConeSizeFormula string '0.50' tracked
+PFRecoTauProducer.Parameter TrackerIsolConeSize_min double 0.0 tracked
+PFRecoTauProducer.Parameter TrackerIsolConeSize_max double 0.6 tracked
+PFRecoTauProducer.Parameter ECALIsolConeMetric string 'DR' tracked
+PFRecoTauProducer.Parameter ECALIsolConeSizeFormula string '0.50' tracked
+PFRecoTauProducer.Parameter ECALIsolConeSize_min double 0.0 tracked
+PFRecoTauProducer.Parameter ECALIsolConeSize_max double 0.6 tracked
+PFRecoTauProducer.Parameter HCALIsolConeMetric string 'DR' tracked
+PFRecoTauProducer.Parameter HCALIsolConeSizeFormula string '0.50' tracked
+PFRecoTauProducer.Parameter HCALIsolConeSize_min double 0.0 tracked
+PFRecoTauProducer.Parameter HCALIsolConeSize_max double 0.6 tracked
+PFRecoTauProducer.Parameter ChargedHadrCand_IsolAnnulus_minNhits uint32 3 tracked
+PFRecoTauProducer.Parameter EcalStripSumE_deltaPhiOverQ_minValue double -0.1 tracked
+PFRecoTauProducer.Parameter EcalStripSumE_deltaPhiOverQ_maxValue double 0.5 tracked
+PFRecoTauProducer.Parameter EcalStripSumE_minClusEnergy double 0.1 tracked
+PFRecoTauProducer.Parameter EcalStripSumE_deltaEta double 0.03 tracked
+PFRecoTauProducer.Parameter ElecPreIDLeadTkMatch_maxDR double 0.01 tracked
+PFRecoTauProducer.Parameter maximumForElectrionPreIDOutput double -0.1 tracked
+PFRecoTauProducer.Parameter MatchingConeMetric string 'DR' tracked
+PFRecoTauProducer.Parameter MatchingConeSizeFormulastring '0.1' tracked
+PFRecoTauProducer.Parameter MatchingConeSize_min double 0.0 tracked 
+PFRecoTauProducer.Parameter MatchingConeSize_max double 0.6 tracked 
+PFRecoTauProducer.Parameter UseChargedHadrCandLeadChargedHadrCand_tksDZconstraint bool true tracked
+PFRecoTauProducer.Parameter ChargedHadrCandLeadChargedHadrCand_tksmaxDZ double 0.2 tracked
+PFRecoTauProducer.Parameter LeadTrack_minPt double 0.5 tracked
+PFRecoTauProducer.Parameter TrackLeadTrack_maxDZ double 0.2 tracked
+PFRecoTauProducer.Parameter UseTrackLeadTrackDZconstraintbool true tracked
+PFRecoTauProducer.Parameter Track_IsolAnnulus_minNhits uint32 3 tracked
+PFRecoTauProducer.Parameter AddEllipseGammas bool false tracked     
+PFRecoTauProducer.Parameter Rphi double 2.0 tracked 
+PFRecoTauProducer.Parameter MaxEtInEllipse double 2.0 tracked
 
 Module EDProducer L1GlobalTrigger L1Trigger GlobalTrigger 
 L1GlobalTrigger.Parameter EmulateBxInEvent int32 3 tracked 
