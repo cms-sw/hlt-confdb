@@ -471,3 +471,6 @@ SiStripQualityESProducer.Parameter ThresholdForReducedGranularity double 0.3 tra
 SiStripQualityESProducer.Parameter UseEmptyRunInfo bool false tracked
 SiStripQualityESProducer.Parameter ReduceGranularity bool false tracked
 SiStripQualityESProducer.Parameter ListOfRecordToMerge VPSet tracked
+
+Module HLTFilter HLTLogMonitorFilter HLTrigger special
+HLTLogMonitorFilter.Parameter categories VPSet tracked
