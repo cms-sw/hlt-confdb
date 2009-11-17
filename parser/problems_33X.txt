@@ -474,3 +474,13 @@ SiStripQualityESProducer.Parameter ListOfRecordToMerge VPSet tracked
 
 Module HLTFilter HLTLogMonitorFilter HLTrigger special
 HLTLogMonitorFilter.Parameter categories VPSet tracked
+
+Module EDProducer EcalUncalibRecHitProducer RecoLocalCalo EcalRecProducers
+EcalUncalibRecHitProducer.Parameter betaEB double 1.7 tracked
+EcalUncalibRecHitProducer.Parameter betaEE double 1.37 tracked
+EcalUncalibRecHitProducer.Parameter AlphaBetaFilename string "NOFILE" untracked
+EcalUncalibRecHitProducer.Parameter MinAmplEndcap double 14.0 tracked
+EcalUncalibRecHitProducer.Parameter MinAmplBarrel double 8.0 tracked
+EcalUncalibRecHitProducer.Parameter UseDynamicPedestal bool true tracked
+EcalUncalibRecHitProducer.Parameter alphaEB double 1.2 tracked
+EcalUncalibRecHitProducer.Parameter alphaEE double 1.63 tracked
