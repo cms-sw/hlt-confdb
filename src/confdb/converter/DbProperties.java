@@ -8,12 +8,12 @@ import confdb.db.ConfDBSetups;
 
 public class DbProperties 
 {
-	String dbURL = null;
-	String dbName = null;
 	String dbType = null;
-	String dbHost = null;
-	String dbUser = null;
-	String dbPwrd = null;
+	private String dbURL = null;
+	private String dbName = null;
+	private String dbHost = null;
+	private String dbUser = null;
+	private String dbPwrd = null;
 
 	public DbProperties( Properties properties ) throws ConverterException
 	{
@@ -55,20 +55,10 @@ public class DbProperties
 
 	protected void init( Properties properties ) throws ConverterException
 	{
-		String property = properties.getProperty( "confdb.dbName" );
-		if ( property == null )
-			throw new ConverterException( "DbProperties: confdb.dbName not defined!" );
-		dbName = new String( property );
-		
-		property = properties.getProperty( "confdb.dbType" );
+		String property = properties.getProperty( "confdb.dbType" );
 		if ( property == null )
 			throw new ConverterException( "DbProperties: confdb.dbType not defined!" );
 		dbType = new String( property );
-		
-		property = properties.getProperty( "confdb.dbHost" );
-		if ( property == null )
-			throw new ConverterException( "DbProperties: confdb.dbHost not defined!" );
-		dbHost = new String( property );
 		
 		property = properties.getProperty( "confdb.dbUser" );
 		if ( property == null )
@@ -79,7 +69,24 @@ public class DbProperties
 		if ( property == null )
 			throw new ConverterException( "DbProperties: confdb.dbPwrd not defined!" );
 		dbPwrd = new String( property );
-		initURL();
+
+		property = properties.getProperty( "confdb.dbURL" );
+		if ( property != null )
+			dbURL = property;
+		else
+		{
+			property = properties.getProperty( "confdb.dbName" );
+			if ( property == null )
+				throw new ConverterException( "DbProperties: confdb.dbName not defined!" );
+			dbName = new String( property );
+			
+			property = properties.getProperty( "confdb.dbHost" );
+			if ( property == null )
+				throw new ConverterException( "DbProperties: confdb.dbHost not defined!" );
+			dbHost = new String( property );
+			
+			initURL();
+		}
 	}
 		
 
@@ -112,12 +119,8 @@ public class DbProperties
 		return dbURL;
 	}
 
-	public String getDbName() {
-		return dbName;
-	}
-
-	public String getDbHost() {
-		return dbHost;
+	public String getDbPwrd() {
+		return dbPwrd;
 	}
 
 }
