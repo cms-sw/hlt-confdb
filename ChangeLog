@@ -1,3 +1,10 @@
+2009-11-20  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-30-05
+	* enable DBProperties.java to read a fail-over compliant url
+	instead of the standard set of parameters in order to create the
+	DB connection (UB)
+
 2009-10-29  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-30-04
