@@ -8,7 +8,7 @@
 
 import os, string, sys, posix, tokenize, array, getopt
 import ConfdbSourceParser
-import ConfdbSQLModuleLoader
+#import ConfdbSQLModuleLoader
 import ConfdbOracleModuleLoader
 import ConfdbConfigurationComponentParser
 
