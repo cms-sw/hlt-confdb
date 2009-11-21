@@ -552,6 +552,29 @@ class AddProblemModulesAndParametersOracle:
 		else:
 		    thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
 
+            # uint64
+            elif(paramtype == "uint64" or paramtype == "uint64_t" or paramtype == "unsigned long long"):
+                type = self.paramtypedict['uint64']
+                
+                if(paramval):
+                    if(str(paramval).endswith("U")):
+                        paramval = (str(paramval).rstrip("U"))
+                        
+                    if(paramval.find('.') != -1):
+                        paramval = str(int(float(paramval)))
+                    elif(not paramval.isdigit()):
+                        paramval = None
+                                
+                # Fill Parameters table
+                newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
+                
+                # Fill ParameterValues table
+                if(paramval == None):
+                    if(self.verbose > 2):
+                        print "No default parameter value found"
+                else:
+                    thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+                    
 	    # bool
 	    elif(paramtype == "bool"):
 		type = self.paramtypedict['bool']
