@@ -485,6 +485,7 @@ PFRecoTauProducer.Parameter AddEllipseGammas bool false tracked
 PFRecoTauProducer.Parameter Rphi double 2.0 tracked 
 PFRecoTauProducer.Parameter MaxEtInEllipse double 2.0 tracked
 PFRecoTauProducer.Parameter AreaMetric_recoElements_maxabsEta double 2.5 tracked
+PFRecoTauProducer.Parameter DataType string 'AOD' tracked
 
 Module EDProducer L1GlobalTrigger L1Trigger GlobalTrigger 
 L1GlobalTrigger.Parameter EmulateBxInEvent int32 3 tracked 
@@ -544,3 +545,9 @@ EcalUncalibRecHitProducer.Parameter MinAmplBarrel double 8.0 tracked
 EcalUncalibRecHitProducer.Parameter UseDynamicPedestal bool true tracked
 EcalUncalibRecHitProducer.Parameter alphaEB double 1.2 tracked
 EcalUncalibRecHitProducer.Parameter alphaEE double 1.63 tracked
+
+Module HLTFilter HLTLevel1Activity HLTrigger HLTfilters
+HLTLevel1Activity.Parameter physicsLoBits uint64 0 tracked
+HLTLevel1Activity.Parameter physicsHiBits uint64 0 tracked
+HLTLevel1Activity.Parameter technicalBits uint64 0 tracked
+
