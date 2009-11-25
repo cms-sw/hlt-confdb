@@ -140,7 +140,7 @@ def main(argv):
 	    print "\t-u <User name to connect as>" 
 	    print "\t-s <Database password>"
 	    print "\t-o <Hostname>"
-	    print "\t-t <Type of database. Options are MySQL (default) or Oracle)>"
+	    print "\t-t <Type of database. Options are MySQL (deprecated!) or Oracle)>"
 	    print "\t-l <Name of config file>"
             print "\t-f <Flavor of configuration file. Options are python (default) or cfg>"
 	    print "\t-e <Parse test/ directories. 1 = yes, 0/default = no>"
@@ -801,6 +801,9 @@ class ConfdbSourceToDB:
                 packageid = self.dbloader.ConfdbInsertPackageSubsystem(self.dbcursor,packagename.split('/')[0].lstrip().rstrip(),packagename.split('/')[1].lstrip().rstrip())
 
 	    if(componenttype == 1):
+                if(modulebaseclass == "PFTauDiscriminationProducerBase" or
+                   modulebaseclass == "CaloTauDiscriminationProducerBase"):
+                    modulebaseclass = "EDProducer"
 		
 		# Make sure we recognize the base class of this module
 		if(modulebaseclass == "EDProducer" or
