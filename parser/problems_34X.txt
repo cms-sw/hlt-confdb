@@ -318,6 +318,7 @@ EcalRecHitProducer.Parameter singleChannelRecoveryMethod string "NeuralNetworks"
 EcalRecHitProducer.Parameter singleChannelRecoveryThreshold double 0 tracked
 EcalRecHitProducer.Parameter triggerPrimitiveDigiCollection InputTag "ecalDigis" tracked
 EcalRecHitProducer.Parameter flagsMapDBReco vint32 {} tracked
+EcalRecHitProducer.Parameter laserCorrection bool false tracked
 
 Module EDProducer METProducer RecoMET METProducers
 METProducer.Parameter HO_EtResPar vdouble {0.0, 1.3, 0.0050 } tracked
@@ -551,3 +552,5 @@ HLTLevel1Activity.Parameter physicsLoBits uint64 0 tracked
 HLTLevel1Activity.Parameter physicsHiBits uint64 0 tracked
 HLTLevel1Activity.Parameter technicalBits uint64 0 tracked
 
+Module HLTFilter HLTLogMonitorFilter HLTrigger special
+HLTLogMonitorFilter.Parameter categories VPSet tracked
