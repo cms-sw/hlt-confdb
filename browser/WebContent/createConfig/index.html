@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ConfDBCreateConfig</title>
+<script type="text/javascript" src="../js/jquery-1.3.2.min.js"></script>
+<script type="text/javascript" src="../js/jquery.cookie.js"></script>
+<script type="text/javascript" src="../js/json2.js"></script>
+
+<script type="text/javascript">
+
+var COOKIE_NAME = 'createConfigParas';
+var params = {};
+var rows = 0;
+
+function setCookie( cookie )
+{
+	var cookieStr = JSON.stringify( cookie );
+	$.cookie( COOKIE_NAME, cookieStr );
+//	alert( cookieStr );
+}
+
+function doIt()
+{
+	params.dbhost = $( "#dbhost" ).val();
+	params.dbname = $( "#dbname" ).val();
+	params.dbuser = $( "#dbuser" ).val();
+	params.user = $( "#user" ).val();
+	params.master = $( "#master" ).val();
+	params.target = $( "#target" ).val();
+
+	var tables =[];
+	$("#tables input:text").each( function (i) {
+		var table = {};
+		table.name = this.value;
+		tables.push( table );
+	} );
+		
+	$("#tables input:file").each( function (i) {
+		tables[i].file = this.value;
+	} );
+
+	params.tables = [];
+	for ( var i in tables )
+	{
+		if ( tables[i].name.length > 0 )
+		{
+			var table = {};
+			table.name = tables[i].name;
+			params.tables.push( table );
+		}
+	}
+	
+	setCookie( params );
+	document.paras.submit();
+}
+
+function addRow()
+{
+    $("#tables").append( '<tr><td><input type="text" size="20" name="table' + rows + '">' 
+    	    + '</td><td><input type="file" name="file' + rows + '" size="50" maxlength="100000" accept="text/*"></td>' 
+    	    + '<td><input type="checkbox" checked name="checked' + rows + '" value="on"></input></td></tr>' );
+}
+
+
+$(function(){
+
+	var cookieStr = $.cookie( COOKIE_NAME );
+	if ( cookieStr != null )
+		params = eval('(' + cookieStr + ')');
+	else
+		params = {  dbhost: "cmsr1-v.cern.ch", 
+		    		dbname: "cms_cond.cern.ch",  
+		    		dbuser: "cms_hltdev_writer", 
+		    		master: "/dev/CMSSW_3_4_0/pre6/HLT", 
+		    		target: "/dev/CMSSW_3_4_0/pre6", 
+		    		tables: [ { name: "1E31" }, { name: "8E29" } ] };
+	
+	$( "#dbhost" ).val( params.dbhost );
+	$( "#dbname" ).val( params.dbname );
+	$( "#dbuser" ).val( params.dbuser );
+	$( "#user" ).val( params.user );
+	$( "#master" ).val( params.master );
+	$( "#target" ).val( params.target );
+
+    $("#submitButton").click( doIt ); 
+
+    for ( var i in params.tables )
+    {
+        $("#tables").append( '<tr><td><input type="text" size="20" value="' 
+                + params.tables[i].name + '" name="table' + i + '"></td>"'
+                + '<td><input type="file" name="file' + i + '" size="50" maxlength="100000" accept="text/*"></td>'
+                + '<td><input type="checkbox" name="checked' + i + '" checked value="on"></input></td></tr>' );
+    }
+	rows = params.tables;
+    
+});
+
+</script>
+
+
+</head>
+<body>
+<h2>ConfDBCreateConfig</h2>
+<form name="paras" action="doIt.jsp" method="post" enctype="multipart/form-data">
+<table>
+<tr><td>your user name:</td><td><input name="user" id="user" type="text" size="30" maxlength="30"></td></tr>
+<tr style="height:50px"></tr>
+<tr><td colspan="2">
+<table border="1" rules="groups">
+<tr><th colspan="2">database</th></tr>
+<tr><td>host:</td><td><input name="dbhost" id="dbhost" type="text" size="30" maxlength="30"></td></tr>
+<tr><td>name:</td><td><input name="dbname" id="dbname" type="text" size="30" maxlength="30"></td></tr>
+<tr><td>user:</td><td><input name="dbuser" id="dbuser" type="text" size="30" maxlength="30"></td></tr>
+<tr><td>password:</td><td><input name="dbpwrd" type="password" size="30" maxlength="30"></td></tr>
+</table>
+</td>
+</tr>
+<tr style="height:50px"></tr>
+<tr><td>master:</td><td><input name="master" id="master" type="text" size="30" maxlength="30"></td></tr>
+<tr><td>target:</td><td><input name="target" id="target" type="text" size="30" maxlength="30"></td></tr>
+<tr><td colspan="2">
+<table border="1" rules="groups" id="tables" width="100%">
+<tr><th colspan="2">tables</th><th><input type="button" value="+" onclick="addRow()">
+</th></tr>
+</table>
+</td>
+</tr>
+<tr style="height:50px"></tr>
+<tr><td></td><td align="right"><input type="button" value="submit" id="submitButton"></td></tr>
+</table>
+</form>
+</body>
+</html>
+
+
+
