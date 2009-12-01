@@ -2,7 +2,6 @@ package confdb.db;
 
 import java.util.Iterator;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 
 import java.io.*;
@@ -77,18 +76,39 @@ public class ConfDBCreateConfig
 	    System.exit(0);
 	}
 	
-	String dbUrl = "";
-	if (dbType.equalsIgnoreCase("mysql")) {
-	    dbUrl  = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+dbName;
+    String dbUrl = buildUrl( dbHost, dbName, dbType, dbPort );
+    if ( dbUrl == null )
+	{
+		System.err.println("ERROR: Unknwown db type '"+dbType+"'");
+		System.exit(0);
 	}
-	else if (dbType.equalsIgnoreCase("oracle")) {
-	    dbUrl = "jdbc:oracle:thin:@//"+dbHost+":"+dbPort+"/"+dbName;
+	try {
+	    HashSet<String> pathsToInclude = new HashSet<String>();
+	    if (pathList.endsWith(".txt")) 
+	    	pathsToInclude = decodePathList( new FileReader(new File(pathList) ), System.out );
+	    else {
+	    	String[] paths = pathList.split(",");
+	    	for (String path : paths) 
+	    		pathsToInclude.add(path);
+	    }
+
+		doIt( dbType, dbUrl, dbUser, dbPwrd, 
+				  masterConfigName, newConfigName, pathsToInclude, System.out, System.getProperty("user.name") );
 	}
-	else {
-	    System.err.println("ERROR: Unknwown db type '"+dbType+"'");
-	    System.exit(0);
+	catch (DatabaseException e) {
+		    System.err.println("Failed to connet to DB: " + e.getMessage());
 	}
-	
+	catch (Exception e) {
+		    e.printStackTrace();
+	}
+
+    }
+    
+    
+    static public void doIt( String dbType, String dbUrl, String dbUser, String dbPwrd,
+			String masterConfigName, String newConfigName, HashSet<String> pathsToInclude,
+			PrintStream out, String userName ) throws Exception
+    {
 	
 	ConfDB database = new ConfDB();
 	
@@ -98,51 +118,20 @@ public class ConfDBCreateConfig
 
 	    // check that master configuration exists
 	    int configId = database.getConfigId(masterConfigName);
-	    System.out.println("GOOD, found master config "+masterConfigName);
+	    out.println("GOOD, found master config "+masterConfigName);
 
 	    // check that directory of new configuration exists
 	    String dirName
 		=newConfigName.substring(0,newConfigName.lastIndexOf('/'));
 	    int dirId = database.getDirectoryId(dirName);
-	    System.out.println("GOOD, directory "+dirName+" does exist.");
+	    out.println("GOOD, directory "+dirName+" does exist.");
 	    Directory dir = database.getDirectoryHashMap().get(dirId);
 
 	    
 	    // load master configuration
 	    Configuration masterConfig = database.loadConfiguration(configId);
-	    System.out.println("GOOD, "+masterConfigName+" loaded.");
+	    out.println("GOOD, "+masterConfigName+" loaded.");
 
-	    
-	    // decode path list
-	    HashSet<String> pathsToInclude = new HashSet<String>();
-	    if (pathList.endsWith(".txt")) {
-		BufferedReader input =
-		    new BufferedReader(new FileReader(new File(pathList)));
-		try {
-		    String line = null;
-		    while (( line = input.readLine()) != null) {
-			int index = line.indexOf('#');
-			if (index>=0) line = line.substring(0,index);
-			String[] paths = line.split(" ");
-			for (String path : paths)
-			    if (path.length()>0) pathsToInclude.add(path);
-		    }
-		}
-		finally {
-		    input.close();
-		}
-	    }
-	    else {
-		String[] paths = pathList.split(",");
-		for (String path : paths) pathsToInclude.add(path);
-	    }
-	    if (pathsToInclude.size()==0) {
-		String errmsg = "No paths specified to be included!";
-		throw new Exception(errmsg);
-	    }
-	    System.out.println("GOOD, the following paths will be included:");
-	    Iterator<String> it = pathsToInclude.iterator();
-	    while (it.hasNext()) System.out.println(it.next());
 	    
 	    // remove paths from PrescaleService which are not in the list
 	    ServiceInstance pss = masterConfig.service("PrescaleService");
@@ -172,11 +161,11 @@ public class ConfDBCreateConfig
 	    ArrayList<String> pathNames = new ArrayList<String>();
 	    Iterator<Path> itP = masterConfig.pathIterator();
 	    while (itP.hasNext()) pathNames.add(itP.next().name());
-	    it = pathNames.iterator();
+	    Iterator<String> it = pathNames.iterator();
 	    while (it.hasNext()) {
 		String pathName = it.next();
 		if (!pathsToInclude.contains(pathName)) {
-		    System.out.println(" REMOVE "+pathName);
+		    out.println(" REMOVE "+pathName);
 		    Path path = masterConfig.path(pathName);
 		    masterConfig.removePath(path);
 		}
@@ -208,7 +197,6 @@ public class ConfDBCreateConfig
 	    
 	    // save the configuration under the new name
 	    String configName  = newConfigName.substring(dirName.length()+1);
-	    String userName    = System.getProperty("user.name");
 	    String processName = masterConfig.processName();
 	    String releaseTag  = masterConfig.releaseTag();
 	    String comment     = "Created by ConfDBCreateConfig " +
@@ -224,19 +212,13 @@ public class ConfDBCreateConfig
 		masterConfig.setConfigInfo(ci);
 	    }
 	    
-	    System.out.println("Store new configuration ...");
+	    out.println("Store new configuration ...");
 	    long startTime = System.currentTimeMillis();
 	    database.insertConfiguration(masterConfig,
 					 userName,processName,comment);
 	    long elapsedTime = System.currentTimeMillis() - startTime;
-	    System.out.println("... stored as "+masterConfig+
+	    out.println("... stored as "+masterConfig+
 			       " (" + elapsedTime + " seconds)");
-	}
-	catch (DatabaseException e) {
-	    System.err.println("Failed to connet to DB: " + e.getMessage());
-	}
-	catch (Exception e) {
-	    e.printStackTrace();
 	}
 	finally {
 	    try { database.disconnect(); }
@@ -244,4 +226,48 @@ public class ConfDBCreateConfig
 	}
     }
     
+    
+    // decode path list
+    static public HashSet<String> decodePathList( Reader file, PrintStream out ) throws Exception
+    {
+        HashSet<String> pathsToInclude = new HashSet<String>();
+    	BufferedReader input = new BufferedReader( file );
+    	try {
+    	    String line = null;
+    	    while (( line = input.readLine()) != null) {
+    		int index = line.indexOf('#');
+    		if (index>=0) line = line.substring(0,index);
+    		String[] paths = line.split(" ");
+    		for (String path : paths)
+    		    if (path.length()>0) pathsToInclude.add(path);
+    	    }
+    	}
+    	finally {
+    	    input.close();
+    	}
+    	if (pathsToInclude.size()==0) {
+    		String errmsg = "No paths specified to be included!";
+    		throw new Exception(errmsg);
+    	}
+    	out.println("GOOD, the following paths will be included:");
+    	Iterator<String> it = pathsToInclude.iterator();
+    	while (it.hasNext()) 
+    		out.println(it.next());
+    	return pathsToInclude;
+    }
+    
+    static public String buildUrl( String dbHost, String dbName, String dbType, String dbPort )
+    {
+    	String dbUrl = null;
+    	if (dbType.equalsIgnoreCase("mysql")) {
+    		dbUrl  = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+dbName;
+    	}
+    	else if (dbType.equalsIgnoreCase("oracle")) {
+    		dbUrl = "jdbc:oracle:thin:@//"+dbHost+":"+dbPort+"/"+dbName;
+    	}
+    	return dbUrl;
+    }
+	
+
+
 }
