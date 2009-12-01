@@ -118,6 +118,7 @@
 						{
 							out.println( "name=" + newConfigName + ", file=" + fileName );
 							String dbUrl = ConfDBCreateConfig.buildUrl( dbHost, dbName, "oracle", "10121" );
+							out.println( "dbURL=" + dbUrl );
 							HashSet<String> pathsToInclude = ConfDBCreateConfig.decodePathList( new InputStreamReader( item.getInputStream() ), outStream );
 							ConfDBCreateConfig.doIt( "oracle", dbUrl, dbUser, dbPwrd, 
 								  masterConfigName, newConfigName, pathsToInclude, outStream, user );
@@ -131,6 +132,11 @@
 	}
 	outStream.close();
 	out.println( buffer.toString() );
+	out.println();
+	out.println();
+	out.println();
+	out.println();
+	out.println();
 %>
 
 
