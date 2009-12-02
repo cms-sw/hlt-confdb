@@ -3,8 +3,11 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>ConfDBCreateConfig</title>
+<link rel="stylesheet" type="text/css" href="../css/jquery.treeTable.css" />
+
 <script type="text/javascript" src="../js/jquery-1.3.2.min.js"></script>
 <script type="text/javascript" src="../js/jquery.cookie.js"></script>
+<script type="text/javascript" src="../js/jquery.treeTable.min.js"></script>
 <script type="text/javascript" src="../js/json2.js"></script>
 
 <script type="text/javascript">
@@ -69,7 +72,7 @@ $(function(){
 	if ( cookieStr != null )
 	{
 		params = eval('(' + cookieStr + ')');
-		$("#doc").hide();
+		//$("#doc").hide();
 	}
 	else
 		params = {  dbhost: "cmsr1-v.cern.ch", 
@@ -87,8 +90,6 @@ $(function(){
 	$( "#target" ).val( params.target );
 
     $("#submitButton").click( doIt ); 
-    $("a.hideButton").click( function() { $("a.docButton").show(); $("#doc").slideUp( 'slow' ); return false; } );
-    $("a.docButton").click( function() { $("a.docButton").hide(); $("#doc").slideDown( 'slow' ); return false; } );
 
     for ( var i in params.tables )
     {
@@ -98,7 +99,8 @@ $(function(){
                 + '<td><input type="checkbox" name="checked' + i + '" checked value="on"></input></td></tr>' );
     }
 	rows = params.tables;
-    
+
+    $("#doc").treeTable( { clickableNodeNames: true } );
 });
 
 </script>
@@ -107,8 +109,11 @@ $(function(){
 </head>
 <body>
 <h2>ConfDBCreateConfig</h2>
-<a href="#" class="docButton">doc</a>
-<div id="doc">
+<table id="doc" style="padding-left:10px" width="70%">
+<tbody>
+<tr id="row-1"><td>doc</td></tr>
+<tr id="row-2" class="child-of-row-1">
+<td></td><td>
 This is the web gui for Philipp's ConfDBCreateConfig Java command line tool. 
 The functionality is similar to the makeSubTables script. 
 If you are familiar with these tools this gui should be easy to use.<br>
@@ -121,12 +126,14 @@ New sub-tables are generated on submit for all rows in the table where
 <li>a file is specified</li>
 <li>the check box is checked</li>
 </ul>
-<a href="#" class="hideButton">hide</a>
-</div>
-<div style="height:100px"></div>
+</td>
+</tr>
+</tbody>
+</table>
 <form name="paras" action="doIt.jsp" method="post" enctype="multipart/form-data">
 <table>
-<tr><td>your user name:</td><td><input name="user" id="user" type="text" size="30" maxlength="30"></td></tr>
+<tr style="height:100px"></tr>
+<tr><td>your user name:</td><td><input name="user" id="user" type="text" size="30" maxlength="30"></td><td></td></tr>
 <tr style="height:50px"></tr>
 <tr><td colspan="2">
 <table border="1" rules="groups">
