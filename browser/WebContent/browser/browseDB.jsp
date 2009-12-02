@@ -455,6 +455,7 @@ function loadTab()
   Dom.setStyle( activeMainDiv, 'height', height + 'px' );
   Dom.setStyle( tabDiv, 'height', height + 'px' );
 
+  var url = buildIFrameUrl();
   var tabContent = '<iframe src="' + buildIFrameUrl() + '" name="configIFrame" id="configFrame" width="100%" height="'+ height + '" frameborder="0" ' + (detailsMode ? '' : ' scrolling="no"') + '></iframe>';
   Dom.get( activeMainDiv ).innerHTML = tabContent;
   tabReady[ activeTab ] = true;
@@ -465,7 +466,9 @@ function buildIFrameUrl()
   if ( activeTab == 1 )
     return "convert2Html.jsp?configKey=" + configKey + "&dbName=" + dbName + (onlineMode ? "&online=true" : ""); 
   if ( activeTab == 2 )
-    return "showSummary.jsp?configKey=" + configKey + "&dbName=" + dbName + (onlineMode ? "&online=true" : "");
+	    return "showSummary.jsp?configKey=" + configKey + "&dbName=" + dbName + (onlineMode ? "&online=true" : "");
+  if ( activeTab == 3 )
+	    return "showStreams.jsp?configKey=" + configKey + "&dbName=" + dbName + (onlineMode ? "&online=true" : "");
   return "";
 }     
 
@@ -572,6 +575,7 @@ YAHOO.util.Event.onContentReady( "doc3", init );
 		    <li class="disabled"><div id="rightHeaderBottomDiv"></div><a href="#tab0Div"></a></li>
 		    <li><a href="#tab1Div"><em>details</em></a></li>
 		    <li><a href="#tab2Div"><em>summary</em></a></li>
+		    <li><a href="#tab3Div"><em>streams</em></a></li>
 		  </ul>            
 		  <div class="yui-content">
 			 <div id="tab0Div">tab not loaded</div>
@@ -580,6 +584,9 @@ YAHOO.util.Event.onContentReady( "doc3", init );
 			 </div>
 			 <div id="tab2Div" class="tab1">
 			   <div id="tab2DivMain"></div>
+			 </div>
+			 <div id="tab3Div" class="tab1">
+			   <div id="tab3DivMain"></div>
 			 </div>
 		  </div>
 		</div>
