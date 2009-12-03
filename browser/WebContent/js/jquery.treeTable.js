@@ -9,7 +9,7 @@
   $.fn.treeTable = function(opts) {
     options = $.extend({}, $.fn.treeTable.defaults, opts);
     
-    return this.each(function() {
+    this.each(function() {
       $(this).addClass("treeTable").find("tbody tr").each(function() {
         // Initialize root nodes only if possible
         if(!options.expandable || $(this)[0].className.search("child-of-") == -1) {
@@ -26,6 +26,7 @@
         }
       });
     });
+    stripe();
   };
   
   $.fn.treeTable.defaults = {
@@ -109,11 +110,17 @@
     } else {
       $(this).removeClass("expanded").collapse();
     }
-    
+    stripe();
     return this;
   };
   
   // === Private functions
+  
+  function stripe() {
+    $("table.treeTable tbody tr:visible").filter(":even").removeClass("odd").addClass("even").end().filter(":odd").removeClass("even").addClass("odd");
+  };
+
+
   
   function ancestorsOf(node) {
     var ancestors = [];

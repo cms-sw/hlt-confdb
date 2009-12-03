@@ -47,10 +47,18 @@
 <script type="text/javascript" src="../js/jquery.treeTable.js"></script>
 <script type="text/javascript" src="../js/json2.js"></script>
 
-<!-- 
+
 <style>
 
+.even {
+	background: #ffffff;
+}
 
+.odd {
+	background: #edf4f9;
+}
+
+/*
 body {
 	margin:0px; 
 	padding:0px; 
@@ -63,11 +71,11 @@ body {
   padding:0px;
   width:100%;
 }
-
+*/
 
 
 </style>
- -->
+
 
 
 <script type="text/javascript">
@@ -230,12 +238,12 @@ public String getL1Seed( Path path )
 	while ( it.hasNext() )
 	{
 		Stream stream = it.next();
-		out.println( "<tr id='s-" + stream.label() + "'><td style='padding-left:20px;'>" + stream.label() + "</td></tr>" );
+		out.println( "<tr id='s-" + stream.label() + "'><td style='padding-left:20px;'>" + stream.label() + "</td><td></td><td></td><td></td></tr>" );
 		Iterator<PrimaryDataset> datasets = stream.datasetIterator();
 		while ( datasets.hasNext() )
 		{
 			PrimaryDataset dataset = datasets.next();
-			out.println( "<tr id='pd-" + dataset.label() + "' class='child-of-s-" + stream.label() + "'><td align='right'></td><td>" + dataset.label() + "</td></tr>" );
+			out.println( "<tr id='pd-" + dataset.label() + "' class='child-of-s-" + stream.label() + "'><td align='right'></td><td>" + dataset.label() + "</td><td></td><td></td></tr>" );
 			Iterator<Path> paths = dataset.pathIterator();
 			while ( paths.hasNext() )
 			{
