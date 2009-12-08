@@ -1,8 +1,8 @@
 package confdb.converter.summary;
 
-import confdb.converter.IConfigurationWriter;
+import confdb.converter.ITableWriter;
 
-public interface ISummaryWriter extends IConfigurationWriter
+public interface ISummaryWriter extends ITableWriter
 {
 
 }
