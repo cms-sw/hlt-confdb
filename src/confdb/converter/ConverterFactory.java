@@ -1,6 +1,5 @@
 package confdb.converter;
 
-import confdb.converter.summary.ISummaryWriter;
 
 
 public class ConverterFactory 
@@ -50,7 +49,7 @@ public class ConverterFactory
 		
 		IConfigurationWriter configurationWriter = getConfigurationWriter();
 		converterEngine.setConfigurationWriter( configurationWriter );
-		if ( configurationWriter instanceof ISummaryWriter )
+		if ( configurationWriter instanceof ITableWriter )
 			return converterEngine;
 		
 		converterEngine.setParameterWriter( getParameterWriter() );
