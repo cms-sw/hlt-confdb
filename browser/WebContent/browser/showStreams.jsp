@@ -238,12 +238,12 @@ public String getL1Seed( Path path )
 	while ( it.hasNext() )
 	{
 		Stream stream = it.next();
-		out.println( "<tr id='s-" + stream.label() + "'><td style='padding-left:20px;'>" + stream.label() + "</td><td></td><td></td><td></td></tr>" );
+		out.println( "<tr id='s-" + stream.label() + "'><td class='treeColumn'>" + stream.label() + "</td><td></td><td></td><td></td></tr>" );
 		Iterator<PrimaryDataset> datasets = stream.datasetIterator();
 		while ( datasets.hasNext() )
 		{
 			PrimaryDataset dataset = datasets.next();
-			out.println( "<tr id='pd-" + dataset.label() + "' class='child-of-s-" + stream.label() + "'><td align='right'></td><td>" + dataset.label() + "</td><td></td><td></td></tr>" );
+			out.println( "<tr id='pd-" + dataset.label() + "' class='child-of-s-" + stream.label() + "'><td></td><td  class='treeColumn' >" + dataset.label() + "</td><td></td><td></td></tr>" );
 			Iterator<Path> paths = dataset.pathIterator();
 			while ( paths.hasNext() )
 			{
