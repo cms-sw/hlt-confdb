@@ -35,7 +35,8 @@
     expandable: true,
     indent: 19,
     initialState: "collapsed",
-    treeColumn: 0
+    treeColumn: 0,
+    floatingTreeColumn: true
   };
   
   // Recursively hide all node's children in a tree
@@ -159,7 +160,11 @@
       }
       
       if(node.hasClass("parent")) {
-        var cell = $(node.children("td")[options.treeColumn]);
+    	var cell;
+    	if ( options.floatingTreeColumn )
+            cell = $(node.find("> .treeColumn")[0]);
+    	else
+    		cell = $(node.children("td")[options.treeColumn]);
         var padding = getPaddingLeft(cell) + options.indent;
         
         childNodes.each(function() {
@@ -167,7 +172,10 @@
         });
         
         if(options.expandable) {
-          cell.prepend('<span style="margin-left: -' + options.indent + 'px; padding-left: ' + options.indent + 'px" class="expander"></span>');
+          if ( options.floatingTreeColumn )
+              cell.prepend('<span style="px; padding-left: ' + options.indent + 'px" class="expander"></span>');
+          else
+        	  cell.prepend('<span style="margin-left: -' + options.indent + 'px; padding-left: ' + options.indent + 'px" class="expander"></span>');
           $(cell[0].firstChild).click(function() { node.toggleBranch(); });
           
           if(options.clickableNodeNames) {
