@@ -1,3 +1,9 @@
+2009-12-10  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
+
+	* tag V00-30-06
+	* new features to get information about streams and datasets both
+	on the webserver and via the commandline tool edmConfigFromDB
+
 2009-11-20  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-30-05
