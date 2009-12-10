@@ -1,6 +1,5 @@
 package confdb.converter;
 
-import confdb.converter.summary.ISummaryWriter;
 
 
 public class ConverterFactory 
@@ -11,6 +10,7 @@ public class ConverterFactory
 	private String subPackage = "ascii";
 	private String classHeader = "Ascii";
 	private boolean untrackedFlag = false;
+	private String additionalParameter4ConfigurationWriter = null;
 	
 
 	static public ConverterEngine getConverterEngine( String typeOfConverter ) throws ClassNotFoundException, InstantiationException, IllegalAccessException
@@ -25,14 +25,13 @@ public class ConverterFactory
 		{
 			if ( typeOfConverter.indexOf( ':' ) != -1 )
 			{
-				System.out.println( "found ':' in output format" );
 				int sep = typeOfConverter.indexOf( ':' );
-				String flag = typeOfConverter.substring(  sep + 1 );
+				String parameter = typeOfConverter.substring(  sep + 1 );
 				typeOfConverter = typeOfConverter.substring( 0, sep );
-				if ( flag.equalsIgnoreCase( "untracked" ) ) 
+				if ( parameter.equalsIgnoreCase( "untracked" ) ) 
 					untrackedFlag = true;
 				else
-					System.out.println( "bad output format flag: " + flag );
+					additionalParameter4ConfigurationWriter = parameter;
 			}
 			subPackage = typeOfConverter.toLowerCase();
 			classHeader = subPackage;
@@ -50,7 +49,11 @@ public class ConverterFactory
 		
 		IConfigurationWriter configurationWriter = getConfigurationWriter();
 		converterEngine.setConfigurationWriter( configurationWriter );
-		if ( configurationWriter instanceof ISummaryWriter )
+		
+		if ( additionalParameter4ConfigurationWriter != null  &&  configurationWriter instanceof IParameterSetter )
+			((IParameterSetter)configurationWriter).setParameter( additionalParameter4ConfigurationWriter );
+		
+		if ( configurationWriter instanceof ITableWriter  ||  configurationWriter instanceof IListWriter )
 			return converterEngine;
 		
 		converterEngine.setParameterWriter( getParameterWriter() );
@@ -59,7 +62,6 @@ public class ConverterFactory
 		converterEngine.setESModuleWriter( getESModuleWriter() );
 		converterEngine.setServiceWriter( getServiceWriter() );
 		converterEngine.setModuleWriter( getModuleWriter() );
-		converterEngine.setOutputWriter( getOutputWriter() );
 		converterEngine.setPathWriter( getPathWriter() );
 		converterEngine.setSequenceWriter( getSequenceWriter() );
 		
@@ -116,12 +118,6 @@ public class ConverterFactory
 	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
 	{
 		return (IModuleWriter)getWriter( "ModuleWriter" );
-	}
-	
-	public IOutputWriter getOutputWriter()
-	  throws ClassNotFoundException, InstantiationException, IllegalAccessException
-	{
-		return (IOutputWriter)getWriter( "OutputWriter" );
 	}
 	
 	public ISequenceWriter getSequenceWriter()
