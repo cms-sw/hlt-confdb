@@ -39,9 +39,43 @@ public class StreamsTable implements ITable
     /** standard constructor */
     public StreamsTable( IConfiguration config )
     {
-    	// this is a dummy!!!
-    }
-
+    	columnTitle.add("Stream");
+    	columnTitle.add("Primary Dataset");
+    	columnTitle.add("HLT Path");
+    	columnTitle.add("L1 seed");
+    	columnWidth.add(columnTitle.get(0).length()+1);
+    	columnWidth.add(columnTitle.get(1).length()+1);
+    	columnWidth.add(columnTitle.get(2).length()+1);
+    	columnWidth.add(columnTitle.get(3).length()+1);
+	
+    	Iterator<Stream> it = config.streamIterator();
+    	while ( it.hasNext() )
+    	{
+    		Stream stream = it.next();
+    		String streamName = stream.name();
+        	Iterator<PrimaryDataset> datasets = stream.datasetIterator();
+        	while ( datasets.hasNext() )
+        	{
+        		PrimaryDataset dataset = datasets.next();
+        		String datasetName = dataset.name();
+        		Iterator<Path> paths = dataset.pathIterator();
+        		while ( paths.hasNext() )
+        		{
+        			Path path = paths.next();
+        			StreamsTableRow row = new StreamsTableRow( streamName, datasetName, path );
+        			streamName = "";
+        			datasetName = "";
+            		for ( int iColumn=0; iColumn < row.columnCount(); iColumn++ ) 
+            		{
+            			int width = row.columnWidth(iColumn);
+            			if ( width > columnWidth.get(iColumn) ) 
+            				columnWidth.set( iColumn, width );
+            		}
+            		rows.add(row);
+        		}
+    		}
+    	}
+	}
     
     //
     // member functions
