@@ -238,17 +238,17 @@ public String getL1Seed( Path path )
 	while ( it.hasNext() )
 	{
 		Stream stream = it.next();
-		out.println( "<tr id='s-" + stream.label() + "'><td class='treeColumn'>" + stream.label() + "</td><td></td><td></td><td></td></tr>" );
+		out.println( "<tr id='s-" + stream.name() + "'><td class='treeColumn'>" + stream.name() + "</td><td></td><td></td><td></td></tr>" );
 		Iterator<PrimaryDataset> datasets = stream.datasetIterator();
 		while ( datasets.hasNext() )
 		{
 			PrimaryDataset dataset = datasets.next();
-			out.println( "<tr id='pd-" + dataset.label() + "' class='child-of-s-" + stream.label() + "'><td></td><td  class='treeColumn' >" + dataset.label() + "</td><td></td><td></td></tr>" );
+			out.println( "<tr id='pd-" + dataset.name() + "' class='child-of-s-" + stream.name() + "'><td></td><td  class='treeColumn' >" + dataset.name() + "</td><td></td><td></td></tr>" );
 			Iterator<Path> paths = dataset.pathIterator();
 			while ( paths.hasNext() )
 			{
 				Path path = paths.next();
-				out.println( "<tr id='p-" + path.name() + "' class='child-of-pd-" + dataset.label() + "'>" 
+				out.println( "<tr id='p-" + path.name() + "' class='child-of-pd-" + dataset.name() + "'>" 
 						+ "<td></td><td></td>" 
 						+ "<td>" + path.name() + "</td>" 
 						+ "<td>" + getL1Seed(path) + "</td>" 
