@@ -204,6 +204,7 @@ CkfTrackCandidateMaker.Parameter useHitsSplitting bool false tracked
 CkfTrackCandidateMaker.Parameter doSeedingRegionRebuilding bool false tracked
 CkfTrackCandidateMaker.Parameter TransientInitialStateEstimatorParameters PSet tracked
 CkfTrackCandidateMaker.Parameter cleanTrajectoryAfterInOut bool false tracked
+CkfTrackCandidateMaker.Parameter maxNSeeds uint32 100000 tracked
 
 Module EDProducer TrackProducer RecoTracker TrackProducer
 TrackProducer.Parameter alias string "hltEgammaRegionalCTFFinalFitWithMaterial" untracked
@@ -269,6 +270,7 @@ CkfTrajectoryMaker.Parameter TransientInitialStateEstimatorParameters PSet track
 CkfTrajectoryMaker.Parameter trackCandidateAlso bool true tracked
 CkfTrajectoryMaker.Parameter doSeedingRegionRebuilding bool false tracked
 CkfTrajectoryMaker.Parameter cleanTrajectoryAfterInOut bool false tracked
+CkfTrajectoryMaker.Parameter maxNSeeds uint32 100000 tracked
 
 Module EDProducer EcalRawToRecHitRoI EventFilter EcalRawToDigi
 EcalRawToRecHit.Parameter JetJobPSet VPSet tracked
@@ -518,7 +520,6 @@ FastjetJetProducer.Parameter doPVCorrection bool false tracked
 FastjetJetProducer.Parameter doPUOffsetCorr bool false tracked 
 FastjetJetProducer.Parameter nSigmaPU double 1.0 tracked  
 FastjetJetProducer.Parameter radiusPU double 0.5 tracked 
-FastjetJetProducer.Parameter doPUFastjet bool false tracked 
 FastjetJetProducer.Parameter Active_Area_Repeats int32 5 tracked 
 FastjetJetProducer.Parameter GhostArea double 0.01 tracked 
 FastjetJetProducer.Parameter Ghost_EtaMax double 6.0 tracked 
@@ -528,6 +529,8 @@ FastjetJetProducer.Parameter maxProblematicEcalCells uint32 9999999 tracked
 FastjetJetProducer.Parameter maxBadHcalCells uint32 9999999 tracked 
 FastjetJetProducer.Parameter maxRecoveredHcalCells uint32 9999999 tracked   
 FastjetJetProducer.Parameter maxProblematicHcalCells uint32 9999999 tracked  
+FastjetJetProducer.Parameter doAreaFastjet bool false tracked
+FastjetJetProducer.Parameter doRhoFastjet book false tracked
 
 ESModule SiStripQualityESProducer CalibTracker SiStripESProducers
 SiStripQualityESProducer.Parameter appendToDataLabel string "" tracked
