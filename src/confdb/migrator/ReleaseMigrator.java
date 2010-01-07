@@ -193,7 +193,43 @@ public class ReleaseMigrator
 	    Sequence target = targetConfig.sequence(i);
 	    migrateReferences(source,target);
 	}
+
 	
+	// migrate eventcontent
+	for (int i=0;i<sourceConfig.contentCount();i++) {
+	    EventContent source = sourceConfig.content(i);
+	    EventContent target = targetConfig.insertContent(i,source.name());
+	    	 
+	    Iterator<Stream> itS = source.streamIterator();
+	    while (itS.hasNext()) {
+		Stream sourceStream = itS.next();
+		Stream targetStream = target.insertStream(sourceStream.name());
+	    
+		 
+		Iterator<Path> itPas = sourceStream.pathIterator();
+		while (itPas.hasNext()) {
+		    Path sourcePath = itPas.next();
+		    if(!targetStream.insertPath(targetConfig.path(sourcePath.name())))
+			System.out.println("There is a problem inserting a path in stream");
+		    
+		}    
+
+		Iterator<PrimaryDataset> itP = sourceStream.datasetIterator();
+		while (itP.hasNext()) {
+		    PrimaryDataset sourceDataset = itP.next();
+		    PrimaryDataset targetDataset = targetStream.insertDataset(sourceDataset.name());
+		    
+		    Iterator<Path> itPad = sourceDataset.pathIterator();
+		    while (itPad.hasNext()) {
+			Path sourcePath = itPad.next();
+			if(!targetDataset.insertPath(targetConfig.path(sourcePath.name())))
+			    System.out.println("There is a problem inserting a path in dataset");
+						
+		    }    
+		}
+	    }
+	}
+
     }
     
     /** retrieve message iterator */
