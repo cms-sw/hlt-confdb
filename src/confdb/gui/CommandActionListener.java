@@ -21,6 +21,7 @@ public class CommandActionListener implements ActionListener
     private static final String cmdNew              = "New";
     private static final String cmdParse            = "Parse";
     private static final String cmdOpen             = "Open";
+    private static final String cmdOpenOldScehma    = "Open Old Schema";
     private static final String cmdClose            = "Close";
     private static final String cmdSave             = "Save";
     private static final String cmdCommentSave      = "Comment&Save";
@@ -41,6 +42,7 @@ public class CommandActionListener implements ActionListener
     private static final String cmdConnectToDB      = "Connect to DB";
     private static final String cmdDisconnectFromDB = "Disconnect from DB";
     private static final String cmdExportConfig     = "Export Configuration";
+  
     
     /** standard constructor */
     public CommandActionListener(ConfDbGUI app)
@@ -81,6 +83,7 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdConnectToDB))      app.connectToDatabase();
 	if (command.equals(cmdDisconnectFromDB)) app.disconnectFromDatabase();
 	if (command.equals(cmdExportConfig))     app.exportConfiguration();
+	if (command.equals(cmdOpenOldScehma))  app.importConfigurationFromDBV1();
     }
 
 }
