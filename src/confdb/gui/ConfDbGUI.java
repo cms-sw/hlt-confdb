@@ -19,6 +19,7 @@ import java.io.IOException;
 import confdb.gui.treetable.*;
 
 import confdb.db.ConfDB;
+import confdb.db.ConfOldDB;
 import confdb.db.DatabaseException;
 
 import confdb.migrator.DatabaseMigrator;
@@ -830,6 +831,83 @@ public class ConfDbGUI
     }
     
     
+    /** export the current configuration to a new database */
+    public void importConfigurationFromDBV1()
+    {
+
+	if (database.dbUrl().equals(new String())) return;
+	if (!closeConfiguration()) return;
+       
+
+	ConfOldDB databaseOld = new ConfOldDB();
+	
+	System.out.println("In import from OldDBV1 function 1");
+
+	DatabaseConnectionDialog dbDialog = new DatabaseConnectionDialog(frame);
+	dbDialog.pack();
+	dbDialog.setLocationRelativeTo(frame);
+	dbDialog.setVisible(true);
+	
+	if (!dbDialog.validChoice()) return;
+	String dbType = dbDialog.getDbType();
+	String dbHost = dbDialog.getDbHost();
+	String dbPort = dbDialog.getDbPort();
+	String dbName = dbDialog.getDbName();
+	String dbUrl  = dbDialog.getDbUrl();
+	String dbUser = dbDialog.getDbUser();
+	String dbPwrd = dbDialog.getDbPassword();
+	
+	try {
+	    databaseOld.connect(dbType,dbUrl,dbUser,dbPwrd);
+	    ((DatabaseInfoPanel)jPanelDbConnection).connectedToDatabase(dbType,
+									dbHost,
+									dbPort,
+									dbName,
+									dbUser);
+	}
+	catch (DatabaseException e) {
+	    String msg = "Failed to connect to DB: " + e.getMessage();
+	    JOptionPane.showMessageDialog(frame,msg,"",
+					  JOptionPane.ERROR_MESSAGE);
+	}
+
+	PickOldConfigurationDialog dialog =
+	    new PickOldConfigurationDialog(frame,"Open Configuration",databaseOld);
+
+	dialog.allowUnlocking();
+	dialog.pack();
+	dialog.setLocationRelativeTo(frame);
+	dialog.setVisible(true);
+
+
+	if (dialog.validChoice()) {
+	    OpenOldConfigurationThread worker =
+		new OpenOldConfigurationThread(dialog.configInfo(),databaseOld,database);
+	    worker.start();
+	    jProgressBar.setIndeterminate(true);
+	    jProgressBar.setVisible(true);
+	    jProgressBar.setString("Loading Configuration ...");
+	    menuBar.configurationIsOpen();
+	    toolBar.configurationIsOpen();
+	 
+	}
+
+	/*	try {
+	    //   databaseOld.disconnect();
+	    //	    ((DatabaseInfoPanel)jPanelDbConnection).disconnectedFromDatabase();
+	    //currentRelease.clear("");
+	}
+	catch (DatabaseException e) {
+	    String msg = "Failed to disconnect from DB: " + e.getMessage();
+	    JOptionPane.showMessageDialog(frame,msg,"",
+					  JOptionPane.ERROR_MESSAGE);
+	}
+	catch (Exception e) {
+	    System.err.println("ERROR in disconnectFromDB(): "+e.getMessage());
+	    }*/
+
+    }
+
     /** reset current and import configuration */
     private void resetConfiguration()
     {
@@ -1145,8 +1223,8 @@ public class ConfDbGUI
 	protected String construct() throws DatabaseException
 	{
 	    startTime = System.currentTimeMillis();
-	    Configuration config = database.loadConfiguration(configInfo,
-							      currentRelease);
+	    Configuration config = database.loadConfiguration(configInfo,currentRelease);
+							      
 	    setCurrentConfig(config);
 
 	    return new String("Done!");
@@ -1189,6 +1267,101 @@ public class ConfDbGUI
 	    else {
 		jTreeCurrentConfig.setEditable(true);
 		jTreeTableParameters.getTree().setEditable(true);
+		/*	try {
+		    database.lockConfiguration(currentConfig,userName);
+		}
+		catch (DatabaseException e) {
+		    JOptionPane.showMessageDialog(frame,e.getMessage(),
+						  "Failed to lock configuration",
+						  JOptionPane.ERROR_MESSAGE,null);
+						  }*/
+	    }
+	}
+    }
+
+
+    /** load a configuration from the old database  version*/
+    private class OpenOldConfigurationThread extends SwingWorker<String>
+    {
+	/** member data */
+	private ConfigInfo configInfo = null;
+	private long       startTime;
+	
+	private ConfOldDB databaseOld;
+	private ConfDB    database;
+
+	/** standard constructor */
+	public OpenOldConfigurationThread(ConfigInfo configInfo,ConfOldDB databaseOld,ConfDB database)
+	{
+	    this.configInfo = configInfo;
+	    this.databaseOld = databaseOld;
+	    this.database = database;
+	}
+	
+	/** SwingWorker: construct() */
+	protected String construct() throws DatabaseException
+	{
+	    startTime = System.currentTimeMillis();
+	    
+ 
+	    currentRelease = new SoftwareRelease();
+	    Configuration configOld = databaseOld.loadConfiguration(configInfo,currentRelease);
+	    databaseOld.disconnect();
+
+      
+	    Configuration config = new Configuration();
+	    database.insertRelease(configInfo.releaseTag(),currentRelease);
+	    database.loadSoftwareRelease(configInfo.releaseTag(),currentRelease);
+	  
+  
+	    config.initialize(new ConfigInfo(configInfo.name(),null,configInfo.releaseTag()),currentRelease);	    
+	    ReleaseMigrator releaseMigrator = new ReleaseMigrator(configOld,config);
+	    releaseMigrator.migrate();
+	   
+	    setCurrentConfig(config);
+	    
+	    jTextFieldProcess.setText(configOld.processName());
+
+	    return new String("Done!");	    
+	}
+	
+	/** SwingWorker: finished */
+	protected void finished()
+	{
+	    try {
+		long elapsedTime = System.currentTimeMillis() - startTime;
+		jProgressBar.setString(jProgressBar.getString() +
+				       get() + " (" + elapsedTime + " ms)");
+	    }
+	    catch (ExecutionException e) {
+		String errMsg =
+		    "Open Configuration FAILED:\n"+e.getCause().getMessage();
+		JOptionPane.showMessageDialog(frame,errMsg,
+					      "Open Configuration failed",
+					      JOptionPane.ERROR_MESSAGE,null);
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+		e.printStackTrace();
+	    } 
+	    catch (Exception e) {
+		e.printStackTrace();
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+	    }
+	    jProgressBar.setIndeterminate(false);
+
+	    /*	    if (currentConfig.isLocked()) {
+		jTreeCurrentConfig.setEditable(false);
+		jTreeTableParameters.getTree().setEditable(false);
+		String msg =
+		    "The configuration '"+currentConfig.toString()+
+		    " is locked by user '"+currentConfig.lockedByUser()+"'!\n"+
+		    "You can't manipulate it until it is released.";
+		JOptionPane.showMessageDialog(frame,msg,"READ ONLY!",
+					      JOptionPane.WARNING_MESSAGE,
+					      null);
+	    }
+	    else {
+		jTreeCurrentConfig.setEditable(true);
+		jTreeTableParameters.getTree().setEditable(true);
 		try {
 		    database.lockConfiguration(currentConfig,userName);
 		}
@@ -1197,7 +1370,7 @@ public class ConfDbGUI
 						  "Failed to lock configuration",
 						  JOptionPane.ERROR_MESSAGE,null);
 		}
-	    }
+		}*/
 	}
     }
 
@@ -1793,6 +1966,8 @@ public class ConfDbGUI
 	}
 	else if (currentParameterContainer instanceof OutputModule) {
 	    OutputModule output = (OutputModule)currentParameterContainer;
+	    if(output==null)
+		System.out.println("Its a null");
 	    try {
 		jEditorPaneSnippet.setText(cnvEngine.getOutputWriter()
 					   .toString(output));
@@ -2202,6 +2377,8 @@ public class ConfDbGUI
     }
     private void jListStreamsValueChanged(ListSelectionEvent evt)
     {
+	System.out.println("List Stream Value Changed");
+
 	ListSelectionModel lsmS = jListStreams.getSelectionModel();
 	if (lsmS.getValueIsAdjusting()) return;
 	
