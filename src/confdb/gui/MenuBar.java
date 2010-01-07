@@ -27,6 +27,7 @@ public class MenuBar
     private static final String configMenuNew         = "New";
     private static final String configMenuParse       = "Parse";
     private static final String configMenuOpen        = "Open";
+    private static final String configMenuOpenOld     = "Open Old Schema";
     private static final String configMenuClose       = "Close";
     private static final String configMenuSave        = "Save";
     private static final String configMenuCommentSave = "Comment&Save";
@@ -56,6 +57,7 @@ public class MenuBar
     private JMenuItem configMenuNewItem         = null;
     private JMenuItem configMenuParseItem       = null;
     private JMenuItem configMenuOpenItem        = null;
+    private JMenuItem configMenuOpenOldItem     = null;
     private JMenuItem configMenuCloseItem       = null;
     private JMenuItem configMenuCommentSaveItem = null;
     private JMenuItem configMenuSaveItem        = null;
@@ -138,6 +140,7 @@ public class MenuBar
 	configMenuNewItem.setEnabled(true);
 	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(true);
 	configMenuOpenItem.setEnabled(true);
+	configMenuOpenOldItem.setEnabled(true);
 	toolMenuDiffItem.setEnabled(true);
 	dbMenuDisconnectItem.setEnabled(true);
     }
@@ -147,6 +150,7 @@ public class MenuBar
     {
 	configurationIsNotOpen();
 	configMenuNewItem.setEnabled(false);
+	configMenuOpenOldItem.setEnabled(false);
 	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(false);
 	configMenuOpenItem.setEnabled(false);
 	toolMenuDiffItem.setEnabled(false);
@@ -185,6 +189,10 @@ public class MenuBar
 	configMenuOpenItem.setActionCommand(configMenuOpen);
 	configMenuOpenItem.addActionListener(listener);
 	configMenu.add(configMenuOpenItem);
+	configMenuOpenOldItem = new JMenuItem(configMenuOpenOld,KeyEvent.VK_Q);
+	configMenuOpenOldItem.setActionCommand(configMenuOpenOld);
+	configMenuOpenOldItem.addActionListener(listener);
+	configMenu.add(configMenuOpenOldItem);
 	configMenuCloseItem = new JMenuItem(configMenuClose,KeyEvent.VK_C);
 	configMenuCloseItem.setActionCommand(configMenuClose);
 	configMenuCloseItem.addActionListener(listener);
