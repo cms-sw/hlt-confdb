@@ -40,7 +40,7 @@ public class ConfDB
     public static final String tableESModuleTemplates = "ESModuleTemplates";
     public static final String tableServiceTemplates  = "ServiceTemplates";
     public static final String tableModuleTemplates   = "ModuleTemplates";
-    
+   
     /** database connector object, handles access to various DBMSs */
     private IDatabaseConnector dbConnector = null;
 
@@ -102,6 +102,12 @@ public class ConfDB
     private PreparedStatement psSelectServiceTemplate             = null;
     private PreparedStatement psSelectModuleTemplate              = null;
 
+    private PreparedStatement psSelectStreams                     = null;
+    private PreparedStatement psSelectPrimaryDatasets             = null;
+    //    private PreparedStatement psSelectStreamEntries               = null;
+    private PreparedStatement psSelectPrimaryDatasetEntries       = null;
+
+
     private PreparedStatement psSelectPSetsForConfig              = null;
     private PreparedStatement psSelectEDSourcesForConfig          = null;
     private PreparedStatement psSelectESSourcesForConfig          = null;
@@ -155,9 +161,30 @@ public class ConfDB
     private PreparedStatement psSelectParameterSetCount           = null;
     private PreparedStatement psSelectVecParameterSetCount        = null;
 
+    private PreparedStatement psSelectEventContentEntries         = null;
+    private PreparedStatement psSelectStreamEntries               = null;
+    private PreparedStatement psSelectEventContentStatements      = null; 
+
+
     private PreparedStatement psInsertDirectory                   = null;
     private PreparedStatement psInsertConfiguration               = null;
     private PreparedStatement psInsertConfigurationLock           = null;
+    //Insert Event Content
+    private PreparedStatement psInsertContents                    = null;
+    private PreparedStatement psInsertContentsConfigAssoc         = null;
+    private PreparedStatement psInsertEventContentStatements      = null;
+    private PreparedStatement psInsertStreams                     = null;
+    private PreparedStatement psInsertPrimaryDatasets             = null;
+    private PreparedStatement psInsertECStreamAssoc               = null;
+    private PreparedStatement psInsertPathStreamPDAssoc           = null;
+    private PreparedStatement psInsertStreamDatasetAssoc          = null;
+    private PreparedStatement psSelectStatementId                 = null;
+    private PreparedStatement psSelectDatasetEntries              = null;
+    private PreparedStatement psInsertECStatementAssoc            = null;
+    private PreparedStatement psSelectPathStreamDatasetEntries    = null;
+
+    //Work on going
+
     private PreparedStatement psInsertSuperId                     = null;
     private PreparedStatement psInsertGlobalPSet                  = null;
     private PreparedStatement psInsertEDSource                    = null;
@@ -261,6 +288,19 @@ public class ConfDB
     private PreparedStatement psSelectSequenceEntries             = null;
 
 
+    private  PreparedStatement psSelectSoftwarePackageId           = null;
+    private  PreparedStatement psInsertSoftwarePackage             = null;
+    
+    
+    private  PreparedStatement psInsertReleaseTag                  = null;
+    private  PreparedStatement psSelectSoftwareSubsystemId         = null;
+    private  PreparedStatement psInsertSoftwareSubsystem           = null;
+    private  PreparedStatement psInsertEDSourceTemplateRelease     = null;
+    private  PreparedStatement psInsertESSourceTemplateRelease     = null;
+    private  PreparedStatement psInsertESModuleTemplateRelease     = null;
+    private  PreparedStatement psInsertServiceTemplateRelease     = null;
+    private  PreparedStatement psInsertModuleTemplateRelease     = null;
+    
 
     private ArrayList<PreparedStatement> preparedStatements =
 	new ArrayList<PreparedStatement>();
@@ -834,7 +874,13 @@ public class ConfDB
 	
 	ResultSet rsPathEntries     = null;
 	ResultSet rsSequenceEntries = null;
-	
+     
+        ResultSet rsEventContentEntries = null;
+	ResultSet rsStreamEntries = null;
+	ResultSet rsEventContentStatements = null;
+	ResultSet rsDatasetEntries = null;
+	ResultSet rsPathStreamDataset = null;
+
 	SoftwareRelease release = config.release();
 
 	try {
@@ -844,6 +890,22 @@ public class ConfDB
 	    rsInstances       = psSelectInstances.executeQuery();
 	    rsPathEntries     = psSelectPathEntries.executeQuery();
 	    rsSequenceEntries = psSelectSequenceEntries.executeQuery();
+	    
+	    psSelectEventContentEntries.setInt(1,configId);
+	    rsEventContentEntries = psSelectEventContentEntries.executeQuery();
+	    psSelectStreamEntries.setInt(1,configId);
+	    rsStreamEntries = psSelectStreamEntries.executeQuery();
+	    psSelectDatasetEntries.setInt(1,configId);
+	    rsDatasetEntries = psSelectDatasetEntries.executeQuery();
+	    psSelectPathStreamDatasetEntries.setInt(1,configId);
+	    rsPathStreamDataset = psSelectPathStreamDatasetEntries.executeQuery();
+
+	    psSelectEventContentStatements.setInt(1,configId);
+	    rsEventContentStatements = psSelectEventContentStatements.executeQuery();
+	   
+	    HashMap<Integer,Stream> idToStream = new HashMap<Integer,Stream>();
+	    HashMap<Integer,PrimaryDataset> idToDataset = new HashMap<Integer,PrimaryDataset>();  
+
 
 	    HashMap<Integer,ArrayList<Parameter> > idToParams = getParameters();
 	    
@@ -998,6 +1060,97 @@ public class ConfDB
 
 		path.setDatabaseId(pathId);
 	    }
+	    
+	    
+	    int iContents = 0;
+	    while (rsEventContentEntries.next()) {
+		int  eventContentId = rsEventContentEntries.getInt(1);
+		String name =  rsEventContentEntries.getString(2);
+		EventContent eventContent = config.insertContent(iContents,name);
+		if(eventContent==null)
+		    continue;
+		iContents++;
+		eventContent.setDatabaseId(eventContentId);
+	    }
+
+	    while(rsEventContentStatements.next()){
+		int statementId = rsEventContentStatements.getInt(1);
+		String classN = rsEventContentStatements.getString(2);
+		String module = rsEventContentStatements.getString(3);
+		String extra = rsEventContentStatements.getString(4);
+		String process = rsEventContentStatements.getString(5);
+		int statementType = rsEventContentStatements.getInt(6);
+		int eventContentId = rsEventContentStatements.getInt(7);
+		int statementRank = rsEventContentStatements.getInt(8);
+		String name =  rsEventContentStatements.getString(9);
+		EventContent eventContent = config.content(name);
+		
+		OutputCommand outputCommand = new OutputCommand();
+		String commandToString = classN + "_" + module + "_" + extra + "_" + process; 
+		if(statementType == 0){
+		    commandToString = "drop "+commandToString;
+		}else{
+		    commandToString = "keep " + commandToString;
+		}
+		outputCommand.initializeFromString(commandToString);
+		
+		eventContent.insertCommand(outputCommand);
+	    }
+
+	    while (rsStreamEntries.next()) {
+		int  streamId = rsStreamEntries.getInt(1);
+		String streamLabel =  rsStreamEntries.getString(2);
+		Double fracToDisk  =  rsStreamEntries.getDouble(3);
+		int  eventContentId = rsStreamEntries.getInt(4);
+		String name =  rsStreamEntries.getString(5);
+		EventContent eventContent = config.content(name);
+		if(eventContent==null)
+		    continue;
+		Stream stream = eventContent.insertStream(streamLabel);
+		stream.setFractionToDisk(fracToDisk);
+		stream.setDatabaseId(streamId);
+		idToStream.put(streamId,stream);
+	    }
+
+	    while (rsDatasetEntries.next()) {
+		int  datasetId = rsDatasetEntries.getInt(1);
+		String datasetLabel =  rsDatasetEntries.getString(2);
+		int  streamId = rsDatasetEntries.getInt(3);
+		String streamLabel =  rsDatasetEntries.getString(4);
+		
+		Stream stream = idToStream.get(streamId);
+		if(stream == null)
+		    continue;
+
+		PrimaryDataset primaryDataset = stream.insertDataset(datasetLabel);
+		primaryDataset.setDatabaseId(datasetId);
+		idToDataset.put(datasetId,primaryDataset);
+	    }
+
+	    while (rsPathStreamDataset.next()) {	    
+		int  pathId = rsPathStreamDataset.getInt(1);
+		int  streamId = rsPathStreamDataset.getInt(2);
+		int  datasetId = rsPathStreamDataset.getInt(3);
+
+		Path path = idToPaths.get(pathId);
+		Stream stream = idToStream.get(streamId);
+		PrimaryDataset primaryDataset = idToDataset.get(datasetId); 
+		
+		if(path==null)
+		    continue;
+		
+		if(stream == null){
+		    continue;
+		}
+		EventContent eventContent = stream.parentContent();
+		stream.insertPath(path);
+		path.addToContent(eventContent);
+	       
+
+		if(primaryDataset==null)
+		    continue;		
+		primaryDataset.insertPath(path);
+	    }
 	}
 	catch (SQLException e) {
 	    String errMsg =
@@ -1036,7 +1189,8 @@ public class ConfDB
 	    dbConnector.release(rs);
 	}
     }
-    
+
+
     /** remove an (empty!) directory */
     public void removeDirectory(Directory dir) throws DatabaseException
     {
@@ -1051,7 +1205,7 @@ public class ConfDB
 	    throw new DatabaseException(errMsg,e);
 	}
     }
-    
+
 
     /** insert a new configuration */
     public void insertConfiguration(Configuration config,
@@ -1061,11 +1215,11 @@ public class ConfDB
     {
 	String  releaseTag = config.releaseTag();
 	int     releaseId  = getReleaseId(releaseTag);
-	String  configDescriptor =
-	    config.parentDir().name()+"/"+config.name()+"/V"+config.nextVersion();
+	String  configDescriptor = config.parentDir().name()+"/"+config.name()+"/V"+config.nextVersion();
 
 	ResultSet rs = null;
-	
+
+		
 	try {
 	    dbConnector.getConnection().setAutoCommit(false);
 	    
@@ -1121,6 +1275,19 @@ public class ConfDB
 	    // insert streams
 	    // PS@28/09/2009
 	    //insertStreams(configId,config);
+
+	 
+	    HashMap<String,Integer> eventContentHashMap = insertEventContents(configId,config);
+	    HashMap<String,Integer> streamHashMap = insertStreams(configId,config);
+	    HashMap<String,Integer> primaryDatasetHashMap =  insertPrimaryDatasets(configId,config);
+	    
+	    // insertOutputModules(streamHashMap,configId,config);
+
+	    insertEventContentStreamAssoc(eventContentHashMap,streamHashMap,config);
+	    insertStreamDatasetAssoc(streamHashMap,primaryDatasetHashMap,config);
+	    insertPathStreamPDAssoc(pathHashMap,streamHashMap,primaryDatasetHashMap,config,configId);
+	 
+	    
 
 	    // insert parameter bindings / values
 	    psInsertParameterSet.executeBatch();
@@ -1839,7 +2006,301 @@ public class ConfDB
 	    throw new DatabaseException(errMsg,e); 
 	}
     }
+   
 
+    /** insert configuration's Event Content */
+    private HashMap<String,Integer> insertEventContents(int configId,Configuration config) throws DatabaseException
+    {
+	HashMap<String,Integer> result = new HashMap<String,Integer>();
+
+       	Iterator<EventContent> itC = config.contentIterator();
+	
+	ResultSet rse;
+	
+	while (itC.hasNext()) {
+	    EventContent eventContent = itC.next();
+	    int eventContentId = eventContent.databaseId();
+	    if(eventContentId>0){
+		result.put(eventContent.name(),-1*eventContentId);
+		continue;
+	    }
+	    try {
+		psInsertContents.setString(1,eventContent.name());
+		psInsertContents.executeUpdate();
+		rse = psInsertContents.getGeneratedKeys();
+		rse.next();
+		eventContentId = rse.getInt(1);
+		result.put(eventContent.name(),eventContentId);
+	    }
+	    catch (SQLException e) {
+		String errMsg =
+		    "ConfDB::Event Content(config="+config.toString()+") failed "+
+		    "(batch insert): "+e.getMessage();
+		throw new DatabaseException(errMsg,e); 
+	    }
+	    eventContent.setDatabaseId(eventContentId);
+	}
+	
+	itC = config.contentIterator();
+	
+	while (itC.hasNext()) {
+	    EventContent eventContent = itC.next();
+	    int eventContentId = eventContent.databaseId();
+	    try {
+		psInsertContentsConfigAssoc.setInt(1,eventContentId);
+		psInsertContentsConfigAssoc.setInt(2,configId);
+		psInsertContentsConfigAssoc.addBatch();
+	    }
+	    catch (SQLException e) {
+		String errMsg =
+		    "ConfDB::Event Content Config Association(config="+config.toString()+") failed "+
+		    "(batch insert): "+e.getMessage();
+		throw new DatabaseException(errMsg,e); 
+	    }
+	    
+	}
+	try{
+	    psInsertContentsConfigAssoc.executeBatch();
+	}
+	catch (SQLException e) {
+	    String errMsg =
+		"ConfDB::Event Content Config Association(config="+config.toString()+") failed "+
+		"(batch insert): "+e.getMessage();
+	    throw new DatabaseException(errMsg,e); 
+	}
+
+	for (int i=0;i<config.contentCount();i++) {
+	    EventContent eventContent = config.content(i);
+	    int  contentId = result.get(eventContent.name());
+	    if(contentId<0){
+		continue;
+	    }
+	    for(int j=0;j<eventContent.commandCount();j++){
+		OutputCommand command = eventContent.command(j);
+		String className = command.className();
+		String moduleName = command.moduleName();
+		String extraName = command.extraName();
+		String processName = command.processName();
+		try {
+		    psSelectStatementId.setString(1,className);
+		    psSelectStatementId.setString(2,moduleName);
+		    psSelectStatementId.setString(3,extraName);
+		    psSelectStatementId.setString(4,processName);
+		    ResultSet rsStatementId = psSelectStatementId.executeQuery();
+		    int statementId = -1;
+		    while(rsStatementId.next()){
+			statementId = rsStatementId.getInt(1);
+		    }
+		    
+		    if(statementId<0){
+			psInsertEventContentStatements.setString(1,className);
+			psInsertEventContentStatements.setString(2,moduleName);
+			psInsertEventContentStatements.setString(3,extraName);
+			psInsertEventContentStatements.setString(4,processName);
+			int iDrop = 1;
+			if(command.isDrop()){
+			    iDrop = 0;
+			}
+			psInsertEventContentStatements.setInt(5,iDrop);
+			psInsertEventContentStatements.executeUpdate();
+			ResultSet rsNewStatementId = psInsertEventContentStatements.getGeneratedKeys();
+			rsNewStatementId.next();
+			statementId = rsNewStatementId.getInt(1);
+		    }
+		    psInsertECStatementAssoc.setInt(1,j);
+		    psInsertECStatementAssoc.setInt(2,statementId);
+		    psInsertECStatementAssoc.setInt(3,contentId);
+		    psInsertECStatementAssoc.addBatch();
+		}
+		catch (SQLException e) {
+		    String errMsg =
+			"ConfDB::StatementID Update(config="+config.toString()+") failed "+
+			"(batch insert): "+e.getMessage();
+		    throw new DatabaseException(errMsg,e); 
+		}
+		
+	    }
+	}
+	try{
+	    psInsertECStatementAssoc.executeBatch();
+	}
+	catch (SQLException e) {
+	    String errMsg =
+		"ConfDB::StatementID Update(config="+config.toString()+") failed "+
+		"(batch insert): "+e.getMessage();
+	    throw new DatabaseException(errMsg,e); 
+	}
+	return result;
+    }
+    
+    /** insert configuration's Streams */
+    private HashMap<String,Integer> insertStreams(int configId,Configuration config) throws DatabaseException
+    {
+	HashMap<String,Integer> result = new HashMap<String,Integer>();
+       	Iterator<Stream> itS = config.streamIterator();
+
+	ResultSet rs = null;
+
+	while (itS.hasNext()) {
+	    Stream stream = itS.next();
+	    int streamId = stream.databaseId();
+	    if(streamId>0){
+		result.put(stream.name(),-1*streamId);
+		continue;
+	    }
+	    try {
+		psInsertStreams.setString(1,stream.name());
+		psInsertStreams.setDouble(2,stream.fractionToDisk());
+		psInsertStreams.executeUpdate();
+		rs = psInsertStreams.getGeneratedKeys();
+		rs.next();
+		streamId = rs.getInt(1);
+		result.put(stream.name(),streamId);
+		stream.setDatabaseId(streamId);
+	    }
+	    catch (SQLException e) {
+		String errMsg =
+		    "ConfDB::Streams(config="+config.toString()+") failed "+
+		    "(batch insert): "+e.getMessage();
+		throw new DatabaseException(errMsg,e); 
+	    }
+	}
+	
+	return result;
+    }
+
+    /** insert configuration's Primary Datasets */
+    private HashMap<String,Integer> insertPrimaryDatasets(int configId,Configuration config) throws DatabaseException
+    {
+	HashMap<String,Integer> result = new HashMap<String,Integer>();
+       	Iterator<PrimaryDataset> itP = config.datasetIterator();
+
+	ResultSet rs = null;
+
+	while (itP.hasNext()) {
+	    PrimaryDataset primaryDataset = itP.next();
+	    int datasetId = primaryDataset.databaseId();
+	    if(datasetId>0){
+		result.put(primaryDataset.name(),-1*datasetId);
+		continue;
+	    }
+	    try {
+		psInsertPrimaryDatasets.setString(1,primaryDataset.name());
+		psInsertPrimaryDatasets.executeUpdate();
+		rs = psInsertPrimaryDatasets.getGeneratedKeys();
+		rs.next();
+		datasetId = rs.getInt(1);
+		result.put(primaryDataset.name(),datasetId);
+		primaryDataset.setDatabaseId(datasetId);
+	    }
+	    catch (SQLException e) {
+		String errMsg =
+		    "ConfDB::Primary Dataset (config="+config.toString()+") failed "+
+		    "(batch insert): "+e.getMessage();
+		throw new DatabaseException(errMsg,e); 
+	    }
+	}
+	return result;
+    }
+
+
+    private void insertEventContentStreamAssoc(HashMap<String,Integer> eventContentHashMap,HashMap<String,Integer> streamHashMap,Configuration config) throws DatabaseException
+    {
+	for (int i=0;i<config.contentCount();i++) {
+	    EventContent eventContent  = config.content(i);
+	    int  contentId = eventContentHashMap.get(eventContent.name());
+	    
+	    for (int j=0;j<eventContent.streamCount();j++) {
+	        Stream stream  = eventContent.stream(j);
+		int  streamId = streamHashMap.get(stream.name());
+		if(contentId<0&&streamId<0)
+		    continue;
+		try {
+		    psInsertECStreamAssoc.setInt(1,eventContent.databaseId());
+		    psInsertECStreamAssoc.setInt(2,stream.databaseId());
+		    psInsertECStreamAssoc.executeUpdate();
+		    
+		}
+		catch (SQLException e) {
+		    String errMsg =
+			"ConfDB::Event Content(config="+config.toString()+") failed "+
+			"(batch insert): "+e.getMessage();
+		    throw new DatabaseException(errMsg,e); 
+		}
+	    }
+	}
+    }
+
+
+    private void insertStreamDatasetAssoc(HashMap<String,Integer> streamHashMap,HashMap<String,Integer> primaryDatasetHashMap,Configuration config) throws DatabaseException
+    {
+	for (int i=0;i<config.streamCount();i++) {
+	    Stream stream  = config.stream(i);
+	    int  streamId = streamHashMap.get(stream.name());
+	    for (int j=0;j<stream.datasetCount();j++) {
+		PrimaryDataset primaryDataset = stream.dataset(j);
+		int  datasetId = primaryDatasetHashMap.get(primaryDataset.name());
+		if(datasetId < 0 && streamId < 0)
+		    continue;
+		try {
+		    psInsertStreamDatasetAssoc.setInt(1,stream.databaseId());
+		    psInsertStreamDatasetAssoc.setInt(2,primaryDataset.databaseId());
+		    psInsertStreamDatasetAssoc.addBatch();
+		}
+		catch (SQLException e) {
+		    String errMsg =
+			"ConfDB::Stream Primary dataset association(config="+config.toString()+") failed "+
+			"(batch insert): "+e.getMessage();
+		    throw new DatabaseException(errMsg,e); 
+		}
+	    }
+	}
+	   
+	try {
+	    psInsertStreamDatasetAssoc.executeBatch();
+	}
+	catch (SQLException e) {
+	    String errMsg =
+		"ConfDB::Stream Primary dataset association(config="+config.toString()+") failed "+
+		"(batch insert): "+e.getMessage();
+	    throw new DatabaseException(errMsg,e); 
+	}
+    }
+
+    private void insertPathStreamPDAssoc(HashMap<String,Integer> pathHashMap,HashMap<String,Integer> streamHashMap,HashMap<String,Integer> primaryDatasetHashMap,Configuration config,int configId) throws DatabaseException
+    {
+	for (int i=0;i<config.streamCount();i++) {
+	    Stream stream  = config.stream(i);
+	    int  streamId = streamHashMap.get(stream.name());
+	    for (int j=0;j<stream.pathCount();j++) {
+		Path path  = stream.path(j);
+		int  pathId = pathHashMap.get(path.name());
+
+		PrimaryDataset primaryDataset = stream.dataset(path);
+		int datasetId = -1;
+
+		if(primaryDataset!=null){
+		    datasetId = primaryDataset.databaseId();
+		}
+
+	        try {
+		    psInsertPathStreamPDAssoc.setInt(1,path.databaseId());
+		    psInsertPathStreamPDAssoc.setInt(2,stream.databaseId());
+		    psInsertPathStreamPDAssoc.setInt(3,datasetId);
+		    psInsertPathStreamPDAssoc.setInt(4,configId);
+		    psInsertPathStreamPDAssoc.executeUpdate();
+		
+		}
+		catch (SQLException e) {
+		    String errMsg =
+			"ConfDB::Event Content(config="+config.toString()+") failed "+
+			"(batch insert): "+e.getMessage();
+		    throw new DatabaseException(errMsg,e); 
+		}
+	    }
+	}
+    }
+    
 
     /** insert all instance parameters */
     private void insertInstanceParameters(int superId,Instance instance)
@@ -1863,6 +2324,7 @@ public class ConfDB
 	    }
 	}
     }
+
 
     /** get all configuration names */
     public String[] getConfigNames() throws DatabaseException
@@ -2498,6 +2960,176 @@ public class ConfDB
 	}
     }
     
+    //
+    //INSERT SOFTWARE RELEASE
+    //
+    public void insertRelease(String releaseTag,SoftwareRelease newRelease) throws DatabaseException
+    {
+	try{
+	    psSelectReleaseId.setString(1,releaseTag);
+	    ResultSet rs = psSelectReleaseId.executeQuery();
+	    if(rs.next())
+		return;
+	    psInsertReleaseTag.setString(1,releaseTag);
+	    psInsertReleaseTag.executeUpdate();
+	    ResultSet rsInsertReleaseTag = psInsertReleaseTag.getGeneratedKeys();
+	    rsInsertReleaseTag.next();
+	    int releaseId = rsInsertReleaseTag.getInt(1);
+	    insertSoftwareSubsystem(newRelease,releaseId);
+	}
+	catch (Exception e) {
+	    e.printStackTrace();
+	    try { dbConnector.getConnection().rollback(); }
+	    catch (SQLException e2) { e2.printStackTrace(); }
+	    throw new DatabaseException("removeSoftwareRelease FAILED",e); 
+	}
+	finally {
+	    try { dbConnector.getConnection().setAutoCommit(true); }
+	    catch (SQLException e) { e.printStackTrace(); }
+	}
+    }
+
+    public void insertSoftwareSubsystem(SoftwareRelease newRelease,int releaseId) throws SQLException
+    {
+	Iterator<SoftwareSubsystem> subsysIt = newRelease.subsystemIterator();
+	while (subsysIt.hasNext()) {
+	    SoftwareSubsystem subsys = subsysIt.next();
+	    
+	    ResultSet rsSelectSoftwareSubsystemId;
+	    psSelectSoftwareSubsystemId.setString(1,subsys.name());
+	    rsSelectSoftwareSubsystemId=psSelectSoftwareSubsystemId.executeQuery();
+	    
+	    int subsysId;
+	    if(rsSelectSoftwareSubsystemId.next()){
+		subsysId = rsSelectSoftwareSubsystemId.getInt(1);
+	    }else{
+		psInsertSoftwareSubsystem.setString(1,subsys.name());
+		psInsertSoftwareSubsystem.executeUpdate();
+		ResultSet rsInsertSoftwareSubsystem = psInsertSoftwareSubsystem.getGeneratedKeys();
+		rsInsertSoftwareSubsystem.next();
+		subsysId = rsInsertSoftwareSubsystem.getInt(1);
+	    }
+	    insertSoftwarePackages(subsys,subsysId,releaseId);
+	}
+    }
+    
+    public void insertSoftwarePackages(SoftwareSubsystem subsys,int subsysId,int releaseId) throws SQLException
+    {
+       
+	Iterator<SoftwarePackage> pkgIt = subsys.packageIterator();
+	while (pkgIt.hasNext()) {
+	    SoftwarePackage pkg = pkgIt.next();
+	    
+	    ResultSet rsSelectSoftwarePackageId;
+	    psSelectSoftwarePackageId.setInt(1,subsysId);
+	    psSelectSoftwarePackageId.setString(2,pkg.name());
+	    rsSelectSoftwarePackageId=psSelectSoftwarePackageId.executeQuery();
+	    
+	    int pkgId;
+	    if(rsSelectSoftwarePackageId.next()){
+		pkgId = rsSelectSoftwarePackageId.getInt(1);
+	    }else{
+		psInsertSoftwarePackage.setInt(1,subsysId);
+		psInsertSoftwarePackage.setString(2,pkg.name());
+		psInsertSoftwarePackage.executeUpdate();
+		ResultSet rsInsertSoftwarePackage = psInsertSoftwarePackage.getGeneratedKeys();
+		rsInsertSoftwarePackage.next();
+		pkgId = rsInsertSoftwarePackage.getInt(1);
+	    }
+	    insertTemplateIntoRelease(pkg,pkgId,releaseId);
+	}
+    }
+
+    public void insertTemplateIntoRelease(SoftwarePackage softwarePackage,int pkgId,int releaseId) throws SQLException
+    {
+	Iterator<Template> templateIt = softwarePackage.templateIterator();
+	while (templateIt.hasNext()) {
+
+	 
+	    Template template = templateIt.next();
+	    int templateId = -1;
+	    try{
+		templateId = insertSuperId();
+		insertSuperIdReleaseAssoc(templateId,releaseId);
+		insertTemplateParameters(templateId,template);
+	
+	    }catch (DatabaseException  e2) { 
+		e2.printStackTrace(); 
+	    } 
+
+	    template.setDatabaseId(templateId);
+
+	    if (template instanceof EDSourceTemplate) {
+		psInsertEDSourceTemplateRelease.setInt(1,templateId);
+		psInsertEDSourceTemplateRelease.setString(2,template.name());
+		psInsertEDSourceTemplateRelease.setString(3,template.cvsTag());
+		psInsertEDSourceTemplateRelease.setInt(4,pkgId);
+		psInsertEDSourceTemplateRelease.executeUpdate();
+	    }
+	    else if (template instanceof ESSourceTemplate) {
+	
+		psInsertESSourceTemplateRelease.setInt(1,templateId);
+		psInsertESSourceTemplateRelease.setString(2,template.name());
+		psInsertESSourceTemplateRelease.setString(3,template.cvsTag());
+		psInsertESSourceTemplateRelease.setInt(4,pkgId);
+		psInsertESSourceTemplateRelease.executeUpdate();
+	    }
+	    else if (template instanceof ESModuleTemplate) {
+		psInsertESModuleTemplateRelease.setInt(1,templateId);
+		psInsertESModuleTemplateRelease.setString(2,template.name());
+		psInsertESModuleTemplateRelease.setString(3,template.cvsTag());
+		psInsertESModuleTemplateRelease.setInt(4,pkgId);
+		psInsertESModuleTemplateRelease.executeUpdate();
+	
+	    }
+	    else if (template instanceof ServiceTemplate) {
+	
+		psInsertServiceTemplateRelease.setInt(1,templateId);
+		psInsertServiceTemplateRelease.setString(2,template.name());
+		psInsertServiceTemplateRelease.setString(3,template.cvsTag());
+		psInsertServiceTemplateRelease.setInt(4,pkgId);
+		psInsertServiceTemplateRelease.executeUpdate();
+	    }
+	    else if (template instanceof ModuleTemplate) {
+		int moduleType = moduleTypeIdHashMap.get(template.type());
+		psInsertModuleTemplateRelease.setInt(1,templateId);
+		psInsertModuleTemplateRelease.setInt(2,moduleType);
+		psInsertModuleTemplateRelease.setString(3,template.name());
+		psInsertModuleTemplateRelease.setString(4,template.cvsTag());
+		psInsertModuleTemplateRelease.setInt(5,pkgId);
+		psInsertModuleTemplateRelease.executeUpdate();
+	    }	  
+	}
+	/*
+	 psInsertEDSourceTemplate.executeBatch();
+	 psInsertESSourceTemplate.executeBatch();
+	 psInsertESModuleTemplate.executeBatch();
+	 psInsertServiceTemplate.executeBatch();
+	 psInsertModuleTemplate.executeBatch();
+	*/
+    }
+    
+    
+    /** insert all instance parameters */
+    private void insertTemplateParameters(int superId,Template template)
+	throws DatabaseException
+    {
+	for(int sequenceNb=0;sequenceNb<template.parameterCount();sequenceNb++){
+	    Parameter p = template.parameter(sequenceNb);
+	    
+	    if (p instanceof VPSetParameter) {
+		VPSetParameter vpset = (VPSetParameter)p;
+		insertVecParameterSet(superId,sequenceNb,vpset);
+	    }
+	    else if (p instanceof PSetParameter) {
+		PSetParameter pset = (PSetParameter)p;
+		insertParameterSet(superId,sequenceNb,pset);
+	    }
+	    else {
+		insertParameter(superId,sequenceNb,p);
+	    }
+	}
+    }
 
     //
     // REMOVE SOFTWARE-RELEASE
@@ -2901,6 +3533,54 @@ public class ConfDB
 		 "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectModuleTemplate);
 
+	        psSelectStreams =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " Streams.streamId,"+
+		 " Streams.streamLabel "+
+		 "FROM Streams " +
+		 "ORDER BY Streams.streamLabel ASC");
+
+	    psSelectPrimaryDatasets =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " PrimaryDatasets.datasetId,"+
+		 " PrimaryDatasets.datasetLabel "+
+		 "FROM PrimaryDatasets " +
+		 "ORDER BY PrimaryDatasets.datasetLabel ASC");
+	    
+	    psSelectPrimaryDatasetEntries =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " PrimaryDatasetPathAssoc.datasetId," +
+		 " PrimaryDatasets.datasetLabel,"+
+		 " PrimaryDatasetPathAssoc.pathId " +
+		 "FROM PrimaryDatasetPathAssoc "+
+		 "JOIN PrimaryDatasets "+
+		 "ON PrimaryDatasets.datasetId=PrimaryDatasetPathAssoc.datasetId "+
+		 "JOIN ConfigurationPathAssoc " +
+		 "ON ConfigurationPathAssoc.pathId=PrimaryDatasetPathAssoc.pathId "+
+		 "WHERE ConfigurationPathAssoc.configId=?");
+	    psSelectPrimaryDatasetEntries.setFetchSize(64);
+	    preparedStatements.add(psSelectPrimaryDatasetEntries);
+	    /*
+	    psSelectStreamEntries =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " ConfigurationStreamAssoc.streamId,"+
+		 " Streams.streamLabel,"+
+		 " ConfigurationStreamAssoc.datasetId,"+
+		 " PrimaryDatasets.datasetLabel "+
+		 "FROM ConfigurationStreamAssoc "+
+		 "JOIN Streams "+
+		 "ON Streams.streamId=ConfigurationStreamAssoc.streamId "+
+		 "JOIN PrimaryDatasets "+
+		 "ON PrimaryDatasets.datasetId=ConfigurationStreamAssoc.datasetId "+
+		 "WHERE ConfigurationStreamAssoc.configId=?");
+	    psSelectStreamEntries.setFetchSize(64);
+	    preparedStatements.add(psSelectStreamEntries);
+	    */
+
 	    psSelectPSetsForConfig =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
@@ -3141,6 +3821,91 @@ public class ConfDB
 		 "WHERE SuperIdReleaseAssoc.superId=?");
 	    preparedStatements.add(psSelectTemplateId);
 	    
+	    //Event Content, Streams and Primary Datsets
+
+	    psSelectEventContentEntries =
+		dbConnector.getConnection().prepareStatement
+		("SELECT ConfigurationContentAssoc.eventContentId,  EventContents.Name "+ 
+		 "FROM ConfigurationContentAssoc JOIN EventContents ON " + 
+		 " EventContents.eventContentId = ConfigurationContentAssoc.eventContentId " +
+                 " WHERE ConfigurationContentAssoc.configId = ?" );
+
+	    // psSelectEventContentEntries.setFetchSize(64);
+	    preparedStatements.add(psSelectEventContentEntries);
+
+		
+	    psSelectStreamEntries =
+		dbConnector.getConnection().prepareStatement
+		( "SELECT streams.streamid, Streams.streamLabel,Streams.fracToDisk, " +
+		  "ECSTREAMASSOC.EVENTCONTENTID, EventContents.name FROM Streams JOIN ECStreamAssoc ON " +
+		  "ECSTREAMASSOC.STREAMID = streams.streamid " +
+		  "JOIN EventContents ON EventContents.eventContentId = " +
+		  "ECStreamAssoc.eventContentId  JOIN ConfigurationContentAssoc ON " +
+		  "EventContents.eventContentId = " +
+		  "ConfigurationContentAssoc.eventContentId WHERE " +
+		  "ConfigurationContentAssoc.CONFIGID = ? ");
+	    //psSelectStreamEntries.setFetchSize(64);
+	    preparedStatements.add(psSelectStreamEntries);
+	    
+	    psSelectDatasetEntries =
+		dbConnector.getConnection().prepareStatement
+		( "SELECT PrimaryDatasets.datasetId, PrimaryDatasets.datasetLabel," +
+		  "Streams.streamid, Streams.streamLabel FROM PrimaryDatasets "+
+		  "JOIN StreamDatasetAssoc ON "+
+		  "PrimaryDatasets.datasetId = StreamDatasetAssoc.datasetId "+
+		  "JOIN Streams ON "+
+		  "Streams.streamId = StreamDatasetAssoc.StreamId " +
+                  "JOIN ECStreamAssoc ON " +
+		  "ECStreamAssoc.StreamId = Streams.streamId " +
+		  "JOIN EventContents ON " +
+		  "EventContents.eventContentId = ECStreamAssoc.eventContentId "+
+		  "JOIN ConfigurationContentAssoc ON " +
+		  "EventContents.eventContentId = ConfigurationContentAssoc.eventContentId " +
+		  "WHERE ConfigurationContentAssoc.CONFIGID = ? ");
+	    //psSelectDatasetEntries.setFetchSize(64);
+	    preparedStatements.add(psSelectPrimaryDatasetEntries);
+	    
+	    psSelectPathStreamDatasetEntries =
+		dbConnector.getConnection().prepareStatement
+		( "SELECT PathStreamDatasetAssoc.pathId, PathStreamDatasetAssoc.streamId," +
+		  "PathStreamDatasetAssoc.datasetId FROM PathStreamDatasetAssoc "+
+		  "JOIN Streams ON "+
+		  "Streams.streamId = PathStreamDatasetAssoc.StreamId " +
+                  "JOIN ECStreamAssoc ON " +
+		  "ECStreamAssoc.StreamId = Streams.streamId " +
+		  "JOIN EventContents ON " +
+		  "EventContents.eventContentId = ECStreamAssoc.eventContentId "+
+		  "JOIN ConfigurationContentAssoc ON " +
+		  "EventContents.eventContentId = ConfigurationContentAssoc.eventContentId " +
+		  "WHERE ConfigurationContentAssoc.CONFIGID = ? ");
+	    //psSelectPathStreamDatasetEntries.setFetchSize(64);
+	    preparedStatements.add(psSelectPathStreamDatasetEntries);
+
+	    psSelectStatementId = 
+		dbConnector.getConnection().prepareStatement
+		("SELECT statementId from EventContentStatements WHERE classN = ? " +
+		 " AND moduleL = ? AND extraN = ? AND processN = ? ");
+	    preparedStatements.add(psSelectStatementId);
+	    
+	    psSelectEventContentStatements =  
+		dbConnector.getConnection().prepareStatement
+		("Select EventContentStatements.statementId, " +
+		 "EventContentStatements.classN, EventContentStatements.moduleL, "+
+		 "EventContentStatements.ExtraN,EventContentStatements.processN, "+
+		 "EventContentStatements.statementType,ECStatementAssoc.eventContentId, "+
+		 "ECStatementAssoc.statementRank, EventContents.name FROM  EventContentStatements "+
+		 "JOIN ECStatementAssoc ON ECStatementAssoc.statementId = "+
+		 "EventContentStatements.statementId " +
+		 "JOIN EventContents ON EventContents.eventContentId = " +
+		 "ECStatementAssoc.eventContentId " +
+		 "JOIN ConfigurationContentAssoc ON EventContents.eventContentId = " +
+		 "ConfigurationContentAssoc.eventContentId " +
+		 "WHERE ConfigurationContentAssoc.configId = ? " +
+		 " ORDER BY ECStatementAssoc.eventContentId, ECStatementAssoc.statementRank ASC"
+		 );
+	    preparedStatements.add(psSelectEventContentStatements);
+
+	    //work going on 
 	    
 	    psSelectReleaseCount =
 		dbConnector.getConnection().prepareStatement
@@ -3280,6 +4045,64 @@ public class ConfDB
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigurationLock);
 
+	    //Insert Event Content	       
+	    psInsertContents =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO EventContents (name)" +
+		 "VALUES(?)",keyColumn);
+	    preparedStatements.add(psInsertContents);
+
+	    psInsertContentsConfigAssoc =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO ConfigurationContentAssoc (eventContentId,configId)" +
+		 "VALUES(?,?)");
+	    preparedStatements.add(psInsertContentsConfigAssoc);
+
+	    psInsertEventContentStatements =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO EventContentStatements (classN,moduleL,extraN,processN,statementType)" +
+		 "VALUES(?,?,?,?,?)",keyColumn);
+	    preparedStatements.add(psInsertEventContentStatements);
+
+	     psInsertStreams =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO Streams (streamLabel,fracToDisk)" +
+		 "VALUES(?,?)",keyColumn);
+	    preparedStatements.add(psInsertStreams);
+    
+	    psInsertPrimaryDatasets =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO PrimaryDatasets (datasetLabel)" +
+		 "VALUES(?)",keyColumn);
+	    preparedStatements.add(psInsertPrimaryDatasets);
+
+	    psInsertECStreamAssoc =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO ECStreamAssoc (eventContentId, streamId)" +
+		 "VALUES(?,?)");
+	    preparedStatements.add(psInsertECStreamAssoc);
+	    
+	    psInsertPathStreamPDAssoc =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO PathStreamDatasetAssoc (pathId, streamId, datasetId, configId)" +
+		 "VALUES(?,?,?,?)");
+	    preparedStatements.add(psInsertPathStreamPDAssoc);
+
+	    psInsertECStatementAssoc = 
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO ECStatementAssoc (statementRank,statementId,eventContentId)" +
+		 "VALUES(?,?,?)");
+	    preparedStatements.add(psInsertECStatementAssoc);
+	    
+	    psInsertStreamDatasetAssoc =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO StreamDatasetAssoc (streamId, datasetId)" +
+		 "VALUES(?,?)");
+	    preparedStatements.add(psInsertStreamDatasetAssoc);
+
+
+	    //work on going
+
 	    if (dbType.equals(dbTypeMySQL))
 		psInsertSuperId = dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO SuperIds VALUES()",keyColumn);
@@ -3287,7 +4110,7 @@ public class ConfDB
 		psInsertSuperId = dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO SuperIds VALUES('')",keyColumn);
 	    preparedStatements.add(psInsertSuperId);
-	    
+
 	    psInsertGlobalPSet =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO ConfigurationParamSetAssoc " +
@@ -3942,6 +4765,75 @@ public class ConfDB
 		 "ORDER BY sequence_id ASC, sequence_nb ASC");
 	    psSelectSequenceEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectSequenceEntries);
+
+
+
+	    //Insert a new relesase
+	    psInsertReleaseTag = 
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO SoftwareReleases " +
+		  " (releaseTag)  VALUES (?)",keyColumn);
+	     psInsertReleaseTag .setFetchSize(1024);
+	    preparedStatements.add( psInsertReleaseTag );
+
+	    psSelectSoftwareSubsystemId = 	
+		dbConnector.getConnection().prepareStatement
+		("SELECT subsysId " +
+		 "FROM SoftwareSubsystems "+
+		 "WHERE name = ?");
+	    psSelectSoftwareSubsystemId.setFetchSize(1024);
+	    preparedStatements.add(psSelectSoftwareSubsystemId);
+
+	    psInsertSoftwareSubsystem = 	
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO SoftwareSubsystems "+
+		 " (name) VALUES (?)",keyColumn);
+	    preparedStatements.add(psInsertSoftwareSubsystem);
+	    
+	    psSelectSoftwarePackageId = 	
+		dbConnector.getConnection().prepareStatement
+		("SELECT packageId " +
+		 "FROM SoftwarePackages "+
+		 "WHERE subsysId = ? AND name = ? ");
+	    psSelectSoftwarePackageId.setFetchSize(1024);
+	    preparedStatements.add(psSelectSoftwarePackageId);
+	    
+	    psInsertSoftwarePackage = 	
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO SoftwarePackages "+
+		 " (subsysId, name) VALUES (?,?)",keyColumn);
+	    preparedStatements.add(psInsertSoftwarePackage);
+
+	    psInsertEDSourceTemplateRelease = 
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO EDSourceTemplates "+
+		 " (superId, name, CVSTAG,packageId) VALUES (?,?,?,?)");
+	    preparedStatements.add(psInsertEDSourceTemplateRelease);
+
+	    psInsertESSourceTemplateRelease = 
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO ESSourceTemplates "+
+		 " (superId, name, CVSTAG,packageId) VALUES (?,?,?,?)");
+	    preparedStatements.add(psInsertESSourceTemplateRelease);
+
+	    
+	    psInsertESModuleTemplateRelease = 
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO ESModuleTemplates "+
+		 " (superId, name, CVSTAG,packageId) VALUES (?,?,?,?)");
+	    preparedStatements.add(psInsertESModuleTemplateRelease);
+
+	    psInsertServiceTemplateRelease = 
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO ServiceTemplates "+
+		 " (superId, name, CVSTAG,packageId) VALUES (?,?,?,?)");
+	    preparedStatements.add(psInsertServiceTemplateRelease);
+	    
+	    psInsertModuleTemplateRelease = 
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO ModuleTemplates "+
+		 " (superId, typeId, name, CVSTAG,packageId) VALUES (?,?,?,?,?)");
+	    preparedStatements.add(psInsertModuleTemplateRelease);
 	    
 	}
 	catch (SQLException e) {
@@ -4462,6 +5354,24 @@ public class ConfDB
 	}
     }
     
+    /** associate a template super id with a software release */
+    private void insertSuperIdReleaseAssoc(int superId, int releaseId)
+	throws DatabaseException
+    {
+	try {
+	    psInsertSuperIdReleaseAssoc.setInt(1,superId);
+	    psInsertSuperIdReleaseAssoc.setInt(2,releaseId);
+	    psInsertSuperIdReleaseAssoc.executeUpdate();
+	}
+	catch (SQLException e) {
+	    String errMsg =
+		"ConfDB::insertSuperIdReleaseAssoc(superId="+superId+
+		",releaseId="+releaseId+") failed: "+e.getMessage();
+ 	    throw new DatabaseException(errMsg,e);
+	}
+    }
+    
+
     /** get the release id for a release tag */
     public int getReleaseId(String releaseTag) throws DatabaseException
     {
