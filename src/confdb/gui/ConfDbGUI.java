@@ -838,10 +838,7 @@ public class ConfDbGUI
 	if (database.dbUrl().equals(new String())) return;
 	if (!closeConfiguration()) return;
        
-
 	ConfOldDB databaseOld = new ConfOldDB();
-	
-	System.out.println("In import from OldDBV1 function 1");
 
 	DatabaseConnectionDialog dbDialog = new DatabaseConnectionDialog(frame);
 	dbDialog.pack();
@@ -859,11 +856,8 @@ public class ConfDbGUI
 	
 	try {
 	    databaseOld.connect(dbType,dbUrl,dbUser,dbPwrd);
-	    ((DatabaseInfoPanel)jPanelDbConnection).connectedToDatabase(dbType,
-									dbHost,
-									dbPort,
-									dbName,
-									dbUser);
+	    //  ((DatabaseInfoPanel)jPanelDbConnection).connectedToDatabase(dbType,
+	    //		dbHost,	dbPort,dbName,dbUser);
 	}
 	catch (DatabaseException e) {
 	    String msg = "Failed to connect to DB: " + e.getMessage();
@@ -872,7 +866,7 @@ public class ConfDbGUI
 	}
 
 	PickOldConfigurationDialog dialog =
-	    new PickOldConfigurationDialog(frame,"Open Configuration",databaseOld);
+	    new PickOldConfigurationDialog(frame,"Open Configuration from old Schema",databaseOld);
 
 	dialog.allowUnlocking();
 	dialog.pack();
@@ -891,20 +885,6 @@ public class ConfDbGUI
 	    toolBar.configurationIsOpen();
 	 
 	}
-
-	/*	try {
-	    //   databaseOld.disconnect();
-	    //	    ((DatabaseInfoPanel)jPanelDbConnection).disconnectedFromDatabase();
-	    //currentRelease.clear("");
-	}
-	catch (DatabaseException e) {
-	    String msg = "Failed to disconnect from DB: " + e.getMessage();
-	    JOptionPane.showMessageDialog(frame,msg,"",
-					  JOptionPane.ERROR_MESSAGE);
-	}
-	catch (Exception e) {
-	    System.err.println("ERROR in disconnectFromDB(): "+e.getMessage());
-	    }*/
 
     }
 
@@ -1966,8 +1946,6 @@ public class ConfDbGUI
 	}
 	else if (currentParameterContainer instanceof OutputModule) {
 	    OutputModule output = (OutputModule)currentParameterContainer;
-	    if(output==null)
-		System.out.println("Its a null");
 	    try {
 		jEditorPaneSnippet.setText(cnvEngine.getOutputWriter()
 					   .toString(output));
@@ -2377,8 +2355,6 @@ public class ConfDbGUI
     }
     private void jListStreamsValueChanged(ListSelectionEvent evt)
     {
-	System.out.println("List Stream Value Changed");
-
 	ListSelectionModel lsmS = jListStreams.getSelectionModel();
 	if (lsmS.getValueIsAdjusting()) return;
 	
