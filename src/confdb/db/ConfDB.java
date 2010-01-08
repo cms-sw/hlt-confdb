@@ -2976,6 +2976,25 @@ public class ConfDB
 	    rsInsertReleaseTag.next();
 	    int releaseId = rsInsertReleaseTag.getInt(1);
 	    insertSoftwareSubsystem(newRelease,releaseId);
+
+	      // insert parameter bindings / values
+ 	    psInsertParameterSet.executeBatch();
+ 	    psInsertVecParameterSet.executeBatch();
+ 	    psInsertGlobalPSet.executeBatch();
+ 	    psInsertSuperIdParamAssoc.executeBatch();
+ 	    psInsertSuperIdParamSetAssoc.executeBatch();
+ 	    psInsertSuperIdVecParamSetAssoc.executeBatch();
+ 	    Iterator<PreparedStatement> itPS =
+ 		insertParameterHashMap.values().iterator();
+ 	    while (itPS.hasNext()) {
+ 		PreparedStatement itP = itPS.next();
+ 		if(itP!=null)
+ 		    itP.executeBatch();
+ 	    }
+ 	    
+ 	    dbConnector.getConnection().commit();
+
+	    
 	}
 	catch (Exception e) {
 	    e.printStackTrace();
@@ -3051,6 +3070,19 @@ public class ConfDB
 	    try{
 		templateId = insertSuperId();
 		insertSuperIdReleaseAssoc(templateId,releaseId);
+		
+		Iterator<Parameter> parameterIt = template.parameterIterator();
+		while (parameterIt.hasNext()) {
+		    Parameter p = parameterIt.next();
+		    if(p instanceof FileInPathParameter){
+			FileInPathParameter fileInPathParameter = (FileInPathParameter)p;
+			if(fileInPathParameter.value().equals("")){
+ 			    fileInPathParameter.setValue("");
+ 			}
+ 		    }
+ 		}
+
+
 		insertTemplateParameters(templateId,template);
 	
 	    }catch (DatabaseException  e2) { 
