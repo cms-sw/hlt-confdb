@@ -114,6 +114,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	path.addToContent(parentContent);
 	paths.add(path);
 	setHasChanged();
+	parentContent.setHasChanged();
 	return true;
     }
     
@@ -123,6 +124,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	int index = paths.indexOf(path);
 	if (index<0) return false;
 	paths.remove(index);
+	setHasChanged();
 	parentContent.removePath(path);
 	Iterator<PrimaryDataset> itPD = datasetIterator();
 	while (itPD.hasNext()) {
@@ -138,10 +140,13 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** retrieve collection paths assigned to datasets */
     public ArrayList<Path> listOfAssignedPaths()
     {
+
+	System.out.println("In the List of Assigned Paths");
 	ArrayList<Path> result = new ArrayList<Path>();
 	Iterator<PrimaryDataset> itPD = datasetIterator();
 	while (itPD.hasNext()) {
-	    Iterator<Path> itP = itPD.next().pathIterator();
+	    PrimaryDataset PD = itPD.next();
+	    Iterator<Path> itP = PD.pathIterator();
 	    while (itP.hasNext()) result.add(itP.next());
 	}
 	return result;
@@ -206,6 +211,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
         PrimaryDataset result = new PrimaryDataset(datasetName, this);
         datasets.add(result);
         setHasChanged();
+	parentContent.setHasChanged();
         return result;
     }
     
@@ -216,7 +222,9 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	if (index<0) return false;
 	datasets.remove(index);
 	setHasChanged();
+	parentContent.setHasChanged();
 	return true;
+
     }
     
 }
