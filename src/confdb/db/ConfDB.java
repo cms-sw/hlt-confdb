@@ -1060,8 +1060,9 @@ public class ConfDB
 
 		path.setDatabaseId(pathId);
 	    }
-	    
-	    
+	   
+	    // HashMap<String,Integer> eventContentIdHash = new HashMap<String,Integer>();
+	  
 	    int iContents = 0;
 	    while (rsEventContentEntries.next()) {
 		int  eventContentId = rsEventContentEntries.getInt(1);
@@ -1071,6 +1072,8 @@ public class ConfDB
 		    continue;
 		iContents++;
 		eventContent.setDatabaseId(eventContentId);
+		//    	eventContentIdHash.put(name,eventContentId);
+		
 	    }
 
 	    while(rsEventContentStatements.next()){
@@ -1104,12 +1107,13 @@ public class ConfDB
 		int  eventContentId = rsStreamEntries.getInt(4);
 		String name =  rsStreamEntries.getString(5);
 		EventContent eventContent = config.content(name);
-		if(eventContent==null)
+		if(eventContent==null){
 		    continue;
+		}
 		Stream stream = eventContent.insertStream(streamLabel);
-		eventContent.setDatabaseId(eventContentId);
 		stream.setFractionToDisk(fracToDisk);
 		stream.setDatabaseId(streamId);
+		eventContent.setDatabaseId(eventContentId);
 		idToStream.put(streamId,stream);
 	    }
 
@@ -1118,7 +1122,6 @@ public class ConfDB
 		String datasetLabel =  rsDatasetEntries.getString(2);
 		int  streamId = rsDatasetEntries.getInt(3);
 		String streamLabel =  rsDatasetEntries.getString(4);
-		
 		Stream stream = idToStream.get(streamId);
 		if(stream == null)
 		    continue;
@@ -1157,6 +1160,7 @@ public class ConfDB
 		primaryDataset.setDatabaseId(datasetId);
 		
 	    }
+	
 	}
 	catch (SQLException e) {
 	    String errMsg =
@@ -3314,8 +3318,6 @@ public class ConfDB
 	    //
 	    // SELECT
 	    //
-
-	    System.out.println("1");
 	    
 	    psSelectModuleTypes =
 		dbConnector.getConnection().prepareStatement
@@ -3325,7 +3327,6 @@ public class ConfDB
 		 "FROM ModuleTypes");
 	    preparedStatements.add(psSelectModuleTypes);
 	    
-	    System.out.println("2");
 
 	    psSelectParameterTypes =
 		dbConnector.getConnection().prepareStatement
@@ -3335,7 +3336,6 @@ public class ConfDB
 		 "FROM ParameterTypes");
 	    preparedStatements.add(psSelectParameterTypes);
 	    
-	    System.out.println("4");
 
 	    psSelectDirectories =
 		dbConnector.getConnection().prepareStatement
@@ -3925,8 +3925,6 @@ public class ConfDB
 
 	    //work going on 
 
-
-	    System.out.println("Work done");
 	    
 	    psSelectReleaseCount =
 		dbConnector.getConnection().prepareStatement
@@ -4024,16 +4022,9 @@ public class ConfDB
 	    preparedStatements.add(psSelectVecParameterSetCount);
 	    
 
-
-	    System.out.println("before insert");
 	    //
 	    // INSERT
 	    //
-
-	    int i=0;
-	    System.out.println("Insert " +i);
-	    i++;
-	    
 	   
 	    psInsertDirectory =
 		dbConnector.getConnection().prepareStatement
@@ -4043,8 +4034,6 @@ public class ConfDB
 		 keyColumn);
 	    preparedStatements.add(psInsertDirectory);
 
-	    System.out.println("Insert " +i);
-	    i++;
 
 	    if (dbType.equals(dbTypeMySQL))
 		psInsertConfiguration =
@@ -4063,9 +4052,7 @@ public class ConfDB
 		     keyColumn);
 	    preparedStatements.add(psInsertConfiguration);
 	    
-	    System.out.println("Insert " +i);
-	    i++;
-
+	  
 	    psInsertConfigurationLock =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO LockedConfigurations (parentDirId,config,userName)" +
@@ -4073,26 +4060,18 @@ public class ConfDB
 	    preparedStatements.add(psInsertConfigurationLock);
 
 
-	    System.out.println("Insert " +i);
-	    i++;
 	    //Insert Event Content	       
 	    psInsertContents =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO EventContents (name)" +
 		 "VALUES(?)",keyColumn);
 	    preparedStatements.add(psInsertContents);
-	    
-	    System.out.println("Insert " +i);
-	    i++;
-
+	  
 	    psInsertContentsConfigAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO ConfigurationContentAssoc (eventContentId,configId)" +
 		 "VALUES(?,?)");
 	    preparedStatements.add(psInsertContentsConfigAssoc);
-
-	    System.out.println("Insert " +i);
-	    i++;
 
 	    psInsertEventContentStatements =
 		dbConnector.getConnection().prepareStatement
@@ -4100,33 +4079,26 @@ public class ConfDB
 		 "VALUES(?,?,?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertEventContentStatements);
 
-	    System.out.println("Insert " +i);
-	    i++;
+	   
 	     psInsertStreams =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO Streams (streamLabel,fracToDisk)" +
 		 "VALUES(?,?)",keyColumn);
 	    preparedStatements.add(psInsertStreams);
     
-	    System.out.println("Insert " +i);
-	    i++;
+	  
 	    psInsertPrimaryDatasets =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO PrimaryDatasets (datasetLabel)" +
 		 "VALUES(?)",keyColumn);
 	    preparedStatements.add(psInsertPrimaryDatasets);
 
-	    System.out.println("Insert " +i);
-	    i++;
-
 	    psInsertECStreamAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO ECStreamAssoc (eventContentId, streamId)" +
 		 "VALUES(?,?)");
 	    preparedStatements.add(psInsertECStreamAssoc);
-	    
-	    System.out.println("Insert " +i);
-	    i++;
+	   
 	    
 	    psInsertPathStreamPDAssoc =
 		dbConnector.getConnection().prepareStatement
@@ -4134,17 +4106,13 @@ public class ConfDB
 		 "VALUES(?,?,?)");
 	    preparedStatements.add(psInsertPathStreamPDAssoc);
 	    
-	    System.out.println("Insert " +i);
-	    i++;
-
+	  
 	    psInsertECStatementAssoc = 
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO ECStatementAssoc (statementRank,statementId,eventContentId)" +
 		 "VALUES(?,?,?)");
 	    preparedStatements.add(psInsertECStatementAssoc);
 	    
-	    System.out.println("Insert " +i);
-	    i++;
 
 	    psInsertStreamDatasetAssoc =
 		dbConnector.getConnection().prepareStatement
@@ -4152,10 +4120,7 @@ public class ConfDB
 		 "VALUES(?,?)");
 	    preparedStatements.add(psInsertStreamDatasetAssoc);
 
-	    System.out.println("Insert " +i);
-	    i++;
-
-	    //work on going
+	
 
 	    if (dbType.equals(dbTypeMySQL))
 		psInsertSuperId = dbConnector.getConnection().prepareStatement
@@ -4165,9 +4130,7 @@ public class ConfDB
 		    ("INSERT INTO SuperIds VALUES('')",keyColumn);
 	    preparedStatements.add(psInsertSuperId);
 
-	    System.out.println("Insert " +i);
-	    i++;
-
+	 
 	    psInsertGlobalPSet =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO ConfigurationParamSetAssoc " +
@@ -4175,18 +4138,14 @@ public class ConfDB
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertGlobalPSet);
 	    
-	    System.out.println("Insert " +i);
-	    i++;
+	 
 
 	    psInsertEDSource =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO EDSources (superId,templateId) " +
 		 "VALUES(?, ?)");
 	    preparedStatements.add(psInsertEDSource);
-	    
-	    System.out.println("Insert " +i);
-	    i++;
-	    
+	 
 	    psInsertConfigEDSourceAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
@@ -4195,9 +4154,6 @@ public class ConfDB
 	    preparedStatements.add(psInsertConfigEDSourceAssoc);
 	    
 
-	    System.out.println("Insert " +i);
-	    i++;
-
 	    psInsertESSource =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
@@ -4205,8 +4161,7 @@ public class ConfDB
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertESSource);
 	    
-	    System.out.println("Insert " +i);
-	    i++;
+
 
 	    psInsertConfigESSourceAssoc =
 		dbConnector.getConnection().prepareStatement
@@ -4216,9 +4171,6 @@ public class ConfDB
 		 "VALUES(?, ?, ?, ?)");
 	    preparedStatements.add(psInsertConfigESSourceAssoc);
 
-	    System.out.println("Insert " +i);
-	    i++;
-	    
 	    psInsertESModule =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
@@ -4226,8 +4178,6 @@ public class ConfDB
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertESModule);
 
-	    System.out.println("Insert " +i);
-	    i++;
 
 	    psInsertConfigESModuleAssoc =
 		dbConnector.getConnection().prepareStatement
@@ -4237,8 +4187,7 @@ public class ConfDB
 		 "VALUES(?, ?, ?, ?)");
 	    preparedStatements.add(psInsertConfigESModuleAssoc);
 	    
-	    System.out.println("Insert " +i);
-	    i++;
+	
 	    
 	    psInsertService =
 		dbConnector.getConnection().prepareStatement
@@ -4247,9 +4196,6 @@ public class ConfDB
 		 "VALUES(?, ?)");
 	    preparedStatements.add(psInsertService);
 
-	    System.out.println("Insert " +i);
-	    i++;
-
 	    psInsertConfigServiceAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
@@ -4257,37 +4203,28 @@ public class ConfDB
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigServiceAssoc);
 
-	    System.out.println("Insert " +i);
-	    i++;
+	
 
 	    psInsertPath =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO Paths (name,isEndPath) " +
 		 "VALUES(?, ?)",keyColumn);
 	    preparedStatements.add(psInsertPath);
-	    
-	    System.out.println("Insert " +i);
-	    i++;
-	    
+	  
 	    psInsertConfigPathAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
 		 "ConfigurationPathAssoc (configId,pathId,sequenceNb) " +
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigPathAssoc);
-	    
-	    System.out.println("Insert " +i);
-	    i++;
-
+	 
 	    psInsertSequence =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO Sequences (name) " +
 		 "VALUES(?)",keyColumn);
 	    preparedStatements.add(psInsertSequence);
 	    
-	    System.out.println("Insert " +i);
-	    i++;
-
+	
 	    psInsertConfigSequenceAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
@@ -4295,8 +4232,7 @@ public class ConfDB
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigSequenceAssoc);
 	    
-	    System.out.println("Insert " +i);
-	    i++;
+	
 	    
 	    psInsertModule =
 		dbConnector.getConnection().prepareStatement
@@ -4520,9 +4456,6 @@ public class ConfDB
 		 "VALUES (?, ?, ?)");
 	    preparedStatements.add(psInsertVInputTagParamValue);
 
-
-	    System.out.println("Before delete");
-
 	    //
 	    // DELETE
 	    //
@@ -4701,9 +4634,6 @@ public class ConfDB
 		dbConnector.getConnection().prepareStatement
 		("DELETE FROM Paths WHERE pathId = ?");
 	    preparedStatements.add(psDeletePath);
-
-
-	    System.out.println("before stored procedures");
 	    
 	    
 	    //
@@ -4757,8 +4687,6 @@ public class ConfDB
 		preparedStatements.add(csLoadConfiguration);
 
 	    }
-
-	    System.out.println("before temporaray tables procedures");
 	    
 
 	    //
@@ -4870,8 +4798,6 @@ public class ConfDB
 	    psSelectSequenceEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectSequenceEntries);
 
-	    
-	    System.out.println("before insert release");
 
 
 	    //Insert a new relesase
