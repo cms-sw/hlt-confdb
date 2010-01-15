@@ -201,10 +201,12 @@ public class ConfDB
     private PreparedStatement psInsertConfigSequenceAssoc         = null;
     private PreparedStatement psInsertModule                      = null;
     private PreparedStatement psInsertSequenceModuleAssoc         = null;
+    private PreparedStatement psInsertSequenceOutputModuleAssoc   = null;
     private PreparedStatement psInsertPathPathAssoc               = null;
     private PreparedStatement psInsertPathSequenceAssoc           = null;
     private PreparedStatement psInsertSequenceSequenceAssoc       = null;
     private PreparedStatement psInsertPathModuleAssoc             = null;
+    private PreparedStatement psInsertPathOutputModuleAssoc       = null;
     private PreparedStatement psInsertSuperIdReleaseAssoc         = null;
     private PreparedStatement psInsertServiceTemplate             = null;
     private PreparedStatement psInsertEDSourceTemplate            = null;
@@ -995,75 +997,8 @@ public class ConfDB
 		    idToSequences.put(id,sequence);
 		}
 	    }
- 	    
-	    while (rsSequenceEntries.next()) {
-		int    sequenceId = rsSequenceEntries.getInt(1);
-		int    entryId    = rsSequenceEntries.getInt(2);
-		int    sequenceNb = rsSequenceEntries.getInt(3);
-		String entryType  = rsSequenceEntries.getString(4);
-		
-		Sequence sequence = idToSequences.get(sequenceId);
-		int      index    = sequence.entryCount();
-		
-		if (index!=sequenceNb)
-		    System.err.println("ERROR in sequence "+sequence.name()+
-				       ": index="+index+" sequenceNb="
-				       +sequenceNb);
-		
-		if (entryType.equals("Sequence")) {
-		    Sequence entry = idToSequences.get(entryId);
-		    if (entry==null) {
-			System.err.println("ERROR: can't find sequence for "+
-					   "id=" + entryId +
-					   " expected as daughter " + index +
-					   " of sequence " + sequence.name());
-		    }
-		    config.insertSequenceReference(sequence,index,entry);
-		}
-		else if (entryType.equals("Module")) {
-		    ModuleInstance entry = (ModuleInstance)idToModules.get(entryId);
-		    config.insertModuleReference(sequence,index,entry);
-		}
-		else
-		    System.err.println("Invalid entryType '"+entryType+"'");
-		
-		sequence.setDatabaseId(sequenceId);
-	    }
 
-	    while (rsPathEntries.next()) {
-		int    pathId     = rsPathEntries.getInt(1);
-		int    entryId    = rsPathEntries.getInt(2);
-		int    sequenceNb = rsPathEntries.getInt(3);
-		String entryType  = rsPathEntries.getString(4);
-		
-		Path path  = idToPaths.get(pathId);
-		int  index = path.entryCount();
-
-		if (index!=sequenceNb)
-		    System.err.println("ERROR in path "+path.name()+": "+
-				       "index="+index+" sequenceNb="+sequenceNb);
-		
-		if (entryType.equals("Path")) {
-		    Path entry = idToPaths.get(entryId);
-		    config.insertPathReference(path,index,entry);
-		}
-		else if (entryType.equals("Sequence")) {
-		    Sequence entry = idToSequences.get(entryId);
-		    config.insertSequenceReference(path,index,entry);
-		}
-		else if (entryType.equals("Module")) {
-		    ModuleInstance entry = (ModuleInstance)idToModules.get(entryId);
-		    config.insertModuleReference(path,index,entry);
-		}
-		else
-		    System.err.println("Invalid entryType '"+entryType+"'");
-
-		path.setDatabaseId(pathId);
-	    }
-	   
-	    // HashMap<String,Integer> eventContentIdHash = new HashMap<String,Integer>();
-	  
-	    int iContents = 0;
+	      int iContents = 0;
 	    while (rsEventContentEntries.next()) {
 		int  eventContentId = rsEventContentEntries.getInt(1);
 		String name =  rsEventContentEntries.getString(2);
@@ -1115,6 +1050,86 @@ public class ConfDB
 		stream.setDatabaseId(streamId);
 		eventContent.setDatabaseId(eventContentId);
 		idToStream.put(streamId,stream);
+	    }
+	    
+ 	    
+	    while (rsSequenceEntries.next()) {
+		int    sequenceId = rsSequenceEntries.getInt(1);
+		int    entryId    = rsSequenceEntries.getInt(2);
+		int    sequenceNb = rsSequenceEntries.getInt(3);
+		String entryType  = rsSequenceEntries.getString(4);
+		
+		Sequence sequence = idToSequences.get(sequenceId);
+		int      index    = sequence.entryCount();
+		
+		if (index!=sequenceNb)
+		    System.err.println("ERROR in sequence "+sequence.name()+
+				       ": index="+index+" sequenceNb="
+				       +sequenceNb);
+		
+		if (entryType.equals("Sequence")) {
+		    Sequence entry = idToSequences.get(entryId);
+		    if (entry==null) {
+			System.err.println("ERROR: can't find sequence for "+
+					   "id=" + entryId +
+					   " expected as daughter " + index +
+					   " of sequence " + sequence.name());
+		    }
+		    config.insertSequenceReference(sequence,index,entry);
+		}
+		else if (entryType.equals("Module")) {
+		    ModuleInstance entry = (ModuleInstance)idToModules.get(entryId);
+		    config.insertModuleReference(sequence,index,entry);
+		}
+		else if (entryType.equals("OutputModule")) {
+		    Stream entry = (Stream)idToStream.get(entryId);
+		    if(entry==null) continue;
+		    OutputModule referencedOutput = entry.outputModule();
+		    if (referencedOutput==null) continue;
+		    config.insertOutputModuleReference(sequence,index,referencedOutput);
+		}
+		else
+		    System.err.println("Invalid entryType '"+entryType+"'");
+		
+		sequence.setDatabaseId(sequenceId);
+	    }
+
+	    while (rsPathEntries.next()) {
+		int    pathId     = rsPathEntries.getInt(1);
+		int    entryId    = rsPathEntries.getInt(2);
+		int    sequenceNb = rsPathEntries.getInt(3);
+		String entryType  = rsPathEntries.getString(4);
+		
+		Path path  = idToPaths.get(pathId);
+		int  index = path.entryCount();
+
+		if (index!=sequenceNb)
+		    System.err.println("ERROR in path "+path.name()+": "+
+				       "index="+index+" sequenceNb="+sequenceNb);
+		
+		if (entryType.equals("Path")) {
+		    Path entry = idToPaths.get(entryId);
+		    config.insertPathReference(path,index,entry);
+		}
+		else if (entryType.equals("Sequence")) {
+		    Sequence entry = idToSequences.get(entryId);
+		    config.insertSequenceReference(path,index,entry);
+		}
+		else if (entryType.equals("Module")) {
+		    ModuleInstance entry = (ModuleInstance)idToModules.get(entryId);
+		    config.insertModuleReference(path,index,entry);
+		}	
+		else if (entryType.equals("OutputModule")) {
+		    Stream entry = (Stream)idToStream.get(entryId);
+		    if(entry==null) continue;
+		    OutputModule referencedOutput = entry.outputModule();
+		    if (referencedOutput==null) continue;
+		    config.insertOutputModuleReference(path,index,referencedOutput);
+		}
+		else
+		    System.err.println("Invalid entryType '"+entryType+"'");
+
+		path.setDatabaseId(pathId);
 	    }
 
 	    while (rsDatasetEntries.next()) {
@@ -1278,9 +1293,7 @@ public class ConfDB
 	    
 	    // insert modules
 	    HashMap<String,Integer> moduleHashMap=insertModules(config);
-	    
-	    // insert references regarding paths and sequences
-	    insertReferences(config,pathHashMap,sequenceHashMap,moduleHashMap);
+	   
 
 	    // insert streams
 	    // PS@28/09/2009
@@ -1296,8 +1309,7 @@ public class ConfDB
 	    insertEventContentStreamAssoc(eventContentHashMap,streamHashMap,config);
 	    insertStreamDatasetAssoc(streamHashMap,primaryDatasetHashMap,config);
 	    insertPathStreamPDAssoc(pathHashMap,streamHashMap,primaryDatasetHashMap,config,configId);
-	 
-	    
+	
 
 	    // insert parameter bindings / values
 	    psInsertParameterSet.executeBatch();
@@ -1309,7 +1321,12 @@ public class ConfDB
 	    Iterator<PreparedStatement> itPS =
 		insertParameterHashMap.values().iterator();
 	    while (itPS.hasNext()) itPS.next().executeBatch();
+	
+
+	    // insert references regarding paths and sequences
+	    insertReferences(config,pathHashMap,sequenceHashMap,moduleHashMap,streamHashMap);
 	    
+    
 	    dbConnector.getConnection().commit();
 	}
 	catch (DatabaseException e) {
@@ -1878,7 +1895,8 @@ public class ConfDB
     private void insertReferences(Configuration config,
 				  HashMap<String,Integer> pathHashMap,
 				  HashMap<String,Integer> sequenceHashMap,
-				  HashMap<String,Integer> moduleHashMap)
+				  HashMap<String,Integer> moduleHashMap,
+				  HashMap<String,Integer> streamHashMap)
 	throws DatabaseException
     {
 	// paths
@@ -1944,6 +1962,27 @@ public class ConfDB
 			    throw new DatabaseException(errMsg,e);
 			}
 		    }
+		    else if (r instanceof OutputModuleReference) {
+			String streamName = r.name().replaceFirst("hltOutput","");
+			int outputModuleId = streamHashMap.get(streamName);
+			if(outputModuleId<0)
+			    outputModuleId = -1 * outputModuleId;
+			try {
+			    psInsertPathOutputModuleAssoc.setInt(1,pathId);
+			    psInsertPathOutputModuleAssoc.setInt(2,outputModuleId);
+			    psInsertPathOutputModuleAssoc.setInt(3,sequenceNb);
+			    psInsertPathOutputModuleAssoc.addBatch();
+			}
+			catch (SQLException e) {
+			    String errMsg = 
+				"ConfDB::insertReferences(config="+
+				config.toString()+
+				") failed (pathId="+pathId+",moduleId="+
+				outputModuleId+",sequenceNb="+sequenceNb+"): "+
+				e.getMessage();
+			    throw new DatabaseException(errMsg,e);
+			    }
+		    }
 		}
 	    }
 	}
@@ -1998,6 +2037,27 @@ public class ConfDB
 			    throw new DatabaseException(errMsg,e);
 			}
 		    }
+		    else if (r instanceof OutputModuleReference) {
+			String streamName = r.name().replaceFirst("hltOutput","");
+			int outputModuleId = streamHashMap.get(streamName);
+			if(outputModuleId<0)
+			    outputModuleId = -1 * outputModuleId;
+			try {
+			    psInsertSequenceOutputModuleAssoc.setInt(1,sequenceId);
+			    psInsertSequenceOutputModuleAssoc.setInt(2,outputModuleId);
+			    psInsertSequenceOutputModuleAssoc.setInt(3,sequenceNb);
+			    psInsertSequenceOutputModuleAssoc.addBatch();
+			}
+			catch (SQLException e) {
+			    String errMsg = 
+				"ConfDB::insertReferences(config="+
+				config.toString()+
+				") failed (sequenceId="+sequenceId+",outputmoduleId="+
+				outputModuleId+",sequenceNb="+sequenceNb+"): "+
+				e.getMessage();
+			    throw new DatabaseException(errMsg,e);
+			    }
+		     }
 		}
 	    }
 	}
@@ -2006,8 +2066,10 @@ public class ConfDB
 	    psInsertPathPathAssoc.executeBatch();
 	    psInsertPathSequenceAssoc.executeBatch();
 	    psInsertPathModuleAssoc.executeBatch();
+	    psInsertPathOutputModuleAssoc.executeBatch();
 	    psInsertSequenceSequenceAssoc.executeBatch();
 	    psInsertSequenceModuleAssoc.executeBatch();
+	    psInsertSequenceOutputModuleAssoc.executeBatch();
 	}
 	catch (SQLException e) {
 	    String errMsg =
@@ -2159,8 +2221,10 @@ public class ConfDB
 		continue;
 	    }
 	    try {
-		psInsertStreams.setString(1,stream.name());
-		psInsertStreams.setDouble(2,stream.fractionToDisk());
+		streamId = insertSuperId();
+		psInsertStreams.setInt(1,streamId);
+		psInsertStreams.setString(2,stream.name());
+		psInsertStreams.setDouble(3,stream.fractionToDisk());
 		psInsertStreams.executeUpdate();
 		rs = psInsertStreams.getGeneratedKeys();
 		rs.next();
@@ -4082,8 +4146,8 @@ public class ConfDB
 	   
 	     psInsertStreams =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO Streams (streamLabel,fracToDisk)" +
-		 "VALUES(?,?)",keyColumn);
+		("INSERT INTO Streams (streamId,streamLabel,fracToDisk)" +
+		 "VALUES(?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertStreams);
     
 	  
@@ -4246,6 +4310,12 @@ public class ConfDB
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertSequenceModuleAssoc);
 	    
+	     psInsertSequenceOutputModuleAssoc =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO SequenceOutputModAssoc (sequenceId,outputModuleId,sequenceNb) "+
+		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertSequenceOutputModuleAssoc);
+
 	    psInsertPathPathAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO PathInPathAssoc(parentPathId,childPathId,sequenceNb) "+
@@ -4271,6 +4341,12 @@ public class ConfDB
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertPathModuleAssoc);
 	    
+	    psInsertPathOutputModuleAssoc =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO PathOutputModAssoc (pathId,outputModuleId,sequenceNb) " +
+		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertPathOutputModuleAssoc);
+
 	    psInsertSuperIdReleaseAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO SuperIdReleaseAssoc (superId,releaseId) " +

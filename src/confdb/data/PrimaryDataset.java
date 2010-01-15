@@ -99,6 +99,7 @@ public class PrimaryDataset extends DatabaseEntry
 	}
 	paths.add(path);
 	setHasChanged();
+	parentStream.setHasChanged();
 	return true;
     }
     
