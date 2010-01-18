@@ -2089,12 +2089,12 @@ public class ConfOldDB
 	    
 	    while (rsIntValues.next()) {
 		int    parameterId   = rsIntValues.getInt(1);
-		int    value         = rsIntValues.getInt(2);
+		Long    value         = new Long(rsIntValues.getLong(2));
 		Integer sequenceNb    = new Integer(rsIntValues.getInt(3));
 		boolean isHex         = rsIntValues.getBoolean(4);
 		
 		String valueAsString = (isHex) ?
-		    "0x"+Integer.toHexString(value) : Integer.toString(value);
+		    "0x"+Long.toHexString(value) : Long.toString(value);
 		
 		if (sequenceNb!=null&&
 		    idToValueAsString.containsKey(parameterId))
