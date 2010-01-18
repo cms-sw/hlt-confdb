@@ -140,8 +140,6 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** retrieve collection paths assigned to datasets */
     public ArrayList<Path> listOfAssignedPaths()
     {
-
-	System.out.println("In the List of Assigned Paths");
 	ArrayList<Path> result = new ArrayList<Path>();
 	Iterator<PrimaryDataset> itPD = datasetIterator();
 	while (itPD.hasNext()) {
