@@ -180,37 +180,35 @@ public class ReleaseMigrator
 	    Sequence target = targetConfig.insertSequence(i,source.name());
 	}
 	
-	// migrate References within Paths
-	for (int i=0;i<sourceConfig.pathCount();i++) {
-	    Path source = sourceConfig.path(i);
-	    Path target = targetConfig.path(i);
-	    migrateReferences(source,target);
-	}
-
-	// migrate References within Sequences
-	for (int i=0;i<sourceConfig.sequenceCount();i++) {
-	    Sequence source = sourceConfig.sequence(i);
-	    Sequence target = targetConfig.sequence(i);
-	    migrateReferences(source,target);
-	}
 
 	
 	// migrate eventcontent
 	for (int i=0;i<sourceConfig.contentCount();i++) {
 	    EventContent source = sourceConfig.content(i);
 	    EventContent target = targetConfig.insertContent(i,source.name());
-	    	 
+	 
 	    Iterator<Stream> itS = source.streamIterator();
 	    while (itS.hasNext()) {
 		Stream sourceStream = itS.next();
 		Stream targetStream = target.insertStream(sourceStream.name());
+
+		OutputModule sourceOutputModule = sourceStream.outputModule();
+		OutputModule targetOutputModule = targetStream.outputModule();
+
+		Iterator<Parameter> itOPar = sourceOutputModule.parameterIterator();
+		while (itOPar.hasNext()) {
+		    Parameter p = itOPar.next();
+		    if (p==null) continue;
+		    targetOutputModule.updateParameter(p.name(),p.type(),p.valueAsString());
+		}
+		
 	    
 		 
 		Iterator<Path> itPas = sourceStream.pathIterator();
 		while (itPas.hasNext()) {
 		    Path sourcePath = itPas.next();
 		    if(!targetStream.insertPath(targetConfig.path(sourcePath.name())))
-			System.out.println("There is a problem inserting a path in stream");
+			System.out.println("There is a problem inserting a path in stream while migration");
 		    
 		}    
 
@@ -223,12 +221,58 @@ public class ReleaseMigrator
 		    while (itPad.hasNext()) {
 			Path sourcePath = itPad.next();
 			if(!targetDataset.insertPath(targetConfig.path(sourcePath.name())))
-			    System.out.println("There is a problem inserting a path in dataset");
+			    System.out.println("There is a problem inserting a path in dataset while migration");
 						
 		    }    
 		}
 	    }
+
 	}
+
+
+	// migrate References within Paths
+	for (int i=0;i<sourceConfig.pathCount();i++) {
+	    Path source = sourceConfig.path(i);
+	    Path target = targetConfig.path(i);
+	    migrateReferences(source,target);
+	}
+
+
+	// migrate References within Sequences
+	for (int i=0;i<sourceConfig.sequenceCount();i++) {
+	    Sequence source = sourceConfig.sequence(i);
+	    Sequence target = targetConfig.sequence(i);
+	    migrateReferences(source,target);
+	}
+
+
+		
+	// migrate eventcontent
+	for (int i=0;i<sourceConfig.contentCount();i++) {
+	    EventContent source = sourceConfig.content(i);
+	    EventContent target = targetConfig.insertContent(i,source.name());
+
+	    Iterator<OutputCommand> outComIter = source.commandIterator();
+	    while(outComIter.hasNext()){
+		OutputCommand sourcetOutputCommand = outComIter.next();
+		Path sourcePath = sourcetOutputCommand.parentPath();
+		if(sourcePath==null){
+		    target.insertCommand(sourcetOutputCommand);
+		    continue;
+		}
+		Path targetPath = targetConfig.path(sourcePath.name());
+
+		Reference sourceReference = sourcetOutputCommand.parentReference();
+		if(sourceReference==null)
+		    continue;
+		Reference targetReference = targetPath.entry(sourcePath.name());
+		if(targetReference==null)
+		    continue;
+
+		target.insertCommand(new OutputCommand(targetPath,targetReference));
+	    }
+	}
+
 
     }
     
@@ -356,6 +400,23 @@ public class ReleaseMigrator
 			sourceModule.template().type() + " '" +
 			sourceModule.name() +
 			"' / " + sourceModule.template().name() +
+			" missing from "+source.name();
+		    messages.add(msg);
+		}
+	    }
+	    else if (reference instanceof OutputModuleReference) {
+		
+		OutputModule sourceOutputModule=(OutputModule)reference.parent();
+		OutputModule targetOutputModule=targetConfig.output(sourceOutputModule.name());
+
+		if (targetOutputModule!=null) {
+		    targetConfig.insertOutputModuleReference(target,iTarget++,targetOutputModule);
+		}
+		else {
+		    String msg =
+			"MODULE MISSING FROM PATH/SEQUENCE: " + " '" +
+			sourceOutputModule.name() +
+			"' / " +
 			" missing from "+source.name();
 		    messages.add(msg);
 		}
