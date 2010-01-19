@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Arrays;
 
 import java.io.*;
 
@@ -774,6 +775,16 @@ public class ConfOldDB
 		new HashMap<Integer,ModuleInstance>();
 	    HashMap<Integer,Path>    idToPaths    =new HashMap<Integer,Path>();
 	    HashMap<Integer,Sequence>idToSequences=new HashMap<Integer,Sequence>();
+
+	    HashMap<String,ModuleInstance> nameToOutputModules =  new HashMap<String,ModuleInstance>();
+	    String[] strOutputModNames = new String[100];
+	    
+	    int iCountOutputModules = 0;
+
+	    
+	     HashMap<Integer,PrimaryDataset> idToDatasets =
+		new HashMap<Integer,PrimaryDataset>();
+	    
 	    
 	    
 	    while (rsInstances.next()) {
@@ -834,12 +845,22 @@ public class ConfOldDB
 		    updateInstanceParameters(service,idToParams.remove(id));
 		}
 		else if (type.equals("Module")) {
+		    
 		    templateName = release.moduleTemplateName(templateId);
 		    ModuleInstance module = config.insertModule(templateName,
 								instanceName);
 		    module.setDatabaseId(id);
 		    updateInstanceParameters(module,idToParams.remove(id));
 		    idToModules.put(id,module);
+		   
+		    if(module.template().type().equals("OutputModule")){
+			strOutputModNames[iCountOutputModules]= new String(module.name());
+			iCountOutputModules++;
+			nameToOutputModules.put(module.name(),module);
+			
+		    }
+		    
+		    
 		}
 		else if (type.equals("Path")) {
 		    int  insertIndex = config.pathCount();
@@ -922,17 +943,14 @@ public class ConfOldDB
 		path.setDatabaseId(pathId);
 	    }
 	    
-	     
-	    HashMap<Integer,PrimaryDataset> idToDatasets =
-		new HashMap<Integer,PrimaryDataset>();
+
 	    
-	    
-	    while (rsStreamEntries.next()) {
+	     while (rsStreamEntries.next()) {
 		int    streamId    = rsStreamEntries.getInt(1);
 		String streamLabel = rsStreamEntries.getString(2);
 		int    datasetId   = rsStreamEntries.getInt(3);
 		String datasetLabel= rsStreamEntries.getString(4);
-
+		
 		Stream stream      = config.stream(streamLabel);
 		if (stream==null){
 		    EventContent content = config.insertContent(config.contentCount(),"hltEventContent"+streamLabel);
@@ -946,6 +964,9 @@ public class ConfOldDB
 		    idToDatasets.put(datasetId,dataset);
 		}
 	    }
+
+	     
+	   
 	  
 	    while (rsDatasetEntries.next()) {
 		int            datasetId    = rsDatasetEntries.getInt(1);
@@ -962,7 +983,105 @@ public class ConfOldDB
 		dataset.insertPath(path);
 		dataset.parentStream().insertPath(path);
 	    }
+	    
+	    
+	    String [] tempArray =  new String[iCountOutputModules];
+	    for(int i=0;i<iCountOutputModules;i++){
+		tempArray[i]=strOutputModNames[i];
+	    }
+	    strOutputModNames=tempArray;
+	    
+	   
+	    String[] strStreamNames = new String[config.streamCount()];
+	    int iSmallestStream = 999;
+	    for(int i=0;i<config.streamCount();i++){
+		strStreamNames[i]=config.stream(i).name();
+		if(strStreamNames[i].length()<iSmallestStream)
+		    iSmallestStream=strStreamNames[i].length(); 
+	    }
+	    java.util.Arrays.sort(strOutputModNames);
+	    java.util.Arrays.sort(strStreamNames);
+	  
+	    
+	    int iSmallestOM = 999;
+	    for(int i=0;i<iCountOutputModules;i++){
+		System.out.println(strOutputModNames[i]);
+		if(strOutputModNames[i].length()<iSmallestOM){
+		    iSmallestOM=strOutputModNames[i].length();
+		}
+	    }
+	    
+	    String strHeader = null;
+	    boolean bCheckHeader = true;
+	    if(iSmallestOM>=iSmallestStream){
+		for(int i=0;i<strOutputModNames.length;i++){
+		    if(i==0){
+			strHeader = strOutputModNames[i].substring(0,iSmallestOM-iSmallestStream);
+		    }else{
+			if(!(strOutputModNames[i].indexOf(strHeader)==0)){
+			    bCheckHeader = false;
+			}
+		    }
+		}
+	    }
+	    
+	    if(strHeader==null || !bCheckHeader ){
+		System.out.println("OutputModuleMigration Failed");
+		return;
+	    }
+	    		
+	    for(int i=0;i<iCountOutputModules;i++){
+		ModuleInstance outputModuleOld = nameToOutputModules.get(strOutputModNames[i]); 
+       		Stream stream = config.stream(strOutputModNames[i].substring(strHeader.length()));
+			
+		if(stream==null)
+		    continue;
+			
+	        OutputModule outputModule  = stream.outputModule();
+		EventContent content       = stream.parentContent();
+	
+		Iterator<Parameter> it = outputModuleOld.parameterIterator();
+		while (it.hasNext()) {
+		    Parameter p = it.next();
+		    if (p==null) continue;
+		    outputModule.updateParameter(p.name(),p.type(),p.valueAsString());
+		    if(p.name().equals("outputCommands")){
+			String strOutCommands[] =  p.valueAsString().split(",");
+			for(int k=0;k<strOutCommands.length;k++){
+			    OutputCommand outputCommand = new OutputCommand();
+			    strOutCommands[k]=strOutCommands[k].replace("\"","").trim();
+			    outputCommand.initializeFromString(strOutCommands[k]);
+			    boolean kFoundAPath = false;
+			    for(int l=0;l<content.pathCount();l++){
+				Path path = content.path(l);
+				Iterator<Reference>entryIterator = path.entryIterator() ;
+				while(entryIterator.hasNext()){
+				    Reference refEntry = entryIterator.next();
+				    if(outputCommand.moduleName().equals(refEntry.name())){
+					content.insertCommand(new OutputCommand(path,refEntry));
+					kFoundAPath = true;
+				    }
+				}  
+			    }
+			    if(!kFoundAPath){
+				content.insertCommand(outputCommand);
+			    }
+			}
+		    }
+		}
+		
+		int iRefCount = outputModuleOld.referenceCount();
+		for(int j=iRefCount-1;j>=0;j--){
+		    Reference reference = outputModuleOld.reference(j);
+		    ReferenceContainer container = reference.container();
+		    
+		    String strTemp = reference.name();
+		    ModuleReference mr = (ModuleReference)reference;
+		    config.removeModuleReference(mr);
+		    config.insertOutputModuleReference(container,container.entryCount(),outputModule);
+		}
 
+	    }
 	    
 	}
 	catch (SQLException e) {
@@ -977,6 +1096,7 @@ public class ConfOldDB
 	    dbConnector.release(rsSequenceEntries);
 	}
     }
+    
 
     /** get all configuration names */
     public String[] getConfigNames() throws DatabaseException

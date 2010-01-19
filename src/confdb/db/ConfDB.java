@@ -1050,6 +1050,16 @@ public class ConfDB
 		stream.setDatabaseId(streamId);
 		eventContent.setDatabaseId(eventContentId);
 		idToStream.put(streamId,stream);
+		ArrayList<Parameter> parameters = idToParams.remove(streamId);
+		if(parameters==null)
+		    continue;
+		Iterator<Parameter> it = parameters.iterator();
+		OutputModule outputModule = stream.outputModule();
+		while (it.hasNext()) {
+		    Parameter p = it.next();
+		    if (p==null) continue;
+		    outputModule.updateParameter(p.name(),p.type(),p.valueAsString());
+		}
 	    }
 	    
  	    
@@ -2238,6 +2248,27 @@ public class ConfDB
 		    "(batch insert): "+e.getMessage();
 		throw new DatabaseException(errMsg,e); 
 	    }
+	    
+	    
+	    OutputModule outputModule = stream.outputModule();
+
+	    for(int sequenceNb=0;sequenceNb<outputModule.parameterCount();sequenceNb++){
+	    Parameter p = outputModule.parameter(sequenceNb);
+	    
+	    if (!p.isDefault()) {
+		if (p instanceof VPSetParameter) {
+		    VPSetParameter vpset = (VPSetParameter)p;
+		    insertVecParameterSet(streamId,sequenceNb,vpset);
+		}
+		else if (p instanceof PSetParameter) {
+		    PSetParameter pset = (PSetParameter)p;
+		    insertParameterSet(streamId,sequenceNb,pset);
+		}
+		else {
+		    insertParameter(streamId,sequenceNb,p);
+		}
+	    }
+	}
 	}
 	
 	return result;
