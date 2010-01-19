@@ -5303,6 +5303,13 @@ public class ConfDB
 	int      paramId = 0;
 	ResultSet rs      = null;
 	try {
+	    /* Fix for File in Path Error*/
+	    if(parameter instanceof FileInPathParameter){
+		FileInPathParameter fileInPathParameter = (FileInPathParameter)parameter;
+		if(fileInPathParameter.valueAsString()==0)
+		    fileInPathParameter.setValue("' '");
+	    }
+
 	    psInsertParameter.setInt(1,paramTypeIdHashMap
 				     .get(parameter.type()));
 	    psInsertParameter.setString(2,parameter.name());
