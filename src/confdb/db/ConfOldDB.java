@@ -1034,11 +1034,17 @@ public class ConfOldDB
 		ModuleInstance outputModuleOld = nameToOutputModules.get(strOutputModNames[i]); 
        		Stream stream = config.stream(strOutputModNames[i].substring(strHeader.length()));
 			
-		if(stream==null)
-		    continue;
-			
+		EventContent content;
+	  
+		if(stream==null){
+		    String streamLabel = strOutputModNames[i].substring(strHeader.length());
+		    content = config.insertContent(config.contentCount(),"hltEventContent"+streamLabel);
+		    stream = content.insertStream(streamLabel);
+		}else{
+		    content       = stream.parentContent();
+		}
+
 	        OutputModule outputModule  = stream.outputModule();
-		EventContent content       = stream.parentContent();
 	
 		Iterator<Parameter> it = outputModuleOld.parameterIterator();
 		while (it.hasNext()) {
@@ -1074,11 +1080,11 @@ public class ConfOldDB
 		for(int j=iRefCount-1;j>=0;j--){
 		    Reference reference = outputModuleOld.reference(j);
 		    ReferenceContainer container = reference.container();
-		    
+		    int iEntryIndex = container.indexOfEntry(reference);
 		    String strTemp = reference.name();
 		    ModuleReference mr = (ModuleReference)reference;
 		    config.removeModuleReference(mr);
-		    config.insertOutputModuleReference(container,container.entryCount(),outputModule);
+		    config.insertOutputModuleReference(container,iEntryIndex,outputModule);
 		}
 
 	    }
