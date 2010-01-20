@@ -1011,29 +1011,6 @@ public class ConfDB
 		
 	    }
 
-	    while(rsEventContentStatements.next()){
-		int statementId = rsEventContentStatements.getInt(1);
-		String classN = rsEventContentStatements.getString(2);
-		String module = rsEventContentStatements.getString(3);
-		String extra = rsEventContentStatements.getString(4);
-		String process = rsEventContentStatements.getString(5);
-		int statementType = rsEventContentStatements.getInt(6);
-		int eventContentId = rsEventContentStatements.getInt(7);
-		int statementRank = rsEventContentStatements.getInt(8);
-		String name =  rsEventContentStatements.getString(9);
-		EventContent eventContent = config.content(name);
-		
-		OutputCommand outputCommand = new OutputCommand();
-		String commandToString = classN + "_" + module + "_" + extra + "_" + process; 
-		if(statementType == 0){
-		    commandToString = "drop "+commandToString;
-		}else{
-		    commandToString = "keep " + commandToString;
-		}
-		outputCommand.initializeFromString(commandToString);
-		
-		eventContent.insertCommand(outputCommand);
-	    }
 
 	    while (rsStreamEntries.next()) {
 		int  streamId = rsStreamEntries.getInt(1);
@@ -1142,6 +1119,55 @@ public class ConfDB
 		path.setDatabaseId(pathId);
 	    }
 
+	    while(rsEventContentStatements.next()){
+		int statementId = rsEventContentStatements.getInt(1);
+		String classN = rsEventContentStatements.getString(2);
+		String module = rsEventContentStatements.getString(3);
+		String extra = rsEventContentStatements.getString(4);
+		String process = rsEventContentStatements.getString(5);
+		int statementType = rsEventContentStatements.getInt(6);
+		int eventContentId = rsEventContentStatements.getInt(7);
+		int statementRank = rsEventContentStatements.getInt(8);
+		String name =  rsEventContentStatements.getString(9);
+		int parentPathId = rsEventContentStatements.getInt(10);
+	       
+		EventContent eventContent = config.content(name);
+		
+		OutputCommand outputCommand = new OutputCommand();
+		String commandToString = classN + "_" + module + "_" + extra + "_" + process; 
+		if(statementType == 0){
+		    commandToString = "drop "+commandToString;
+		}else{
+		    commandToString = "keep " + commandToString;
+		}
+		outputCommand.initializeFromString(commandToString);
+		
+		if( parentPathId>0){
+		    
+		    Path parentPath = idToPaths.get(parentPathId);
+		    if(parentPath==null)
+			continue;
+		    Iterator<Reference> itR = parentPath.recursiveReferenceIterator();
+		    boolean found = false;
+		    Reference parentReference = null;
+		    while (itR.hasNext()&&!found){ 
+			parentReference = itR.next();
+			if (parentReference.name().equals(module)) 
+			    found=true;
+		    }
+		 
+		    if (found){
+			outputCommand = new OutputCommand(parentPath,parentReference);
+			//	outputCommand.initializeFromString(commandToString);
+		    }
+
+		}
+		
+		eventContent.insertCommand(outputCommand);
+	    }
+
+
+
 	    while (rsDatasetEntries.next()) {
 		int  datasetId = rsDatasetEntries.getInt(1);
 		String datasetLabel =  rsDatasetEntries.getString(2);
@@ -1197,6 +1223,10 @@ public class ConfDB
 	    dbConnector.release(rsInstances);
 	    dbConnector.release(rsPathEntries);
 	    dbConnector.release(rsSequenceEntries);
+	    dbConnector.release(rsEventContentEntries);
+	    dbConnector.release(rsStreamEntries);
+	    dbConnector.release(rsDatasetEntries);
+	    dbConnector.release(rsPathStreamDataset);
 	}
     }
     
@@ -1336,7 +1366,7 @@ public class ConfDB
 	    // insert references regarding paths and sequences
 	    insertReferences(config,pathHashMap,sequenceHashMap,moduleHashMap,streamHashMap);
 	    
-    
+	
 	    dbConnector.getConnection().commit();
 	}
 	catch (DatabaseException e) {
@@ -2163,11 +2193,16 @@ public class ConfDB
 		String moduleName = command.moduleName();
 		String extraName = command.extraName();
 		String processName = command.processName();
+		int iDrop = 1;
+		if(command.isDrop()){
+		    iDrop = 0;
+		}
 		try {
 		    psSelectStatementId.setString(1,className);
 		    psSelectStatementId.setString(2,moduleName);
 		    psSelectStatementId.setString(3,extraName);
 		    psSelectStatementId.setString(4,processName);
+		    psSelectStatementId.setInt(5,iDrop);
 		    ResultSet rsStatementId = psSelectStatementId.executeQuery();
 		    int statementId = -1;
 		    while(rsStatementId.next()){
@@ -2179,7 +2214,7 @@ public class ConfDB
 			psInsertEventContentStatements.setString(2,moduleName);
 			psInsertEventContentStatements.setString(3,extraName);
 			psInsertEventContentStatements.setString(4,processName);
-			int iDrop = 1;
+			iDrop = 1;
 			if(command.isDrop()){
 			    iDrop = 0;
 			}
@@ -2192,6 +2227,11 @@ public class ConfDB
 		    psInsertECStatementAssoc.setInt(1,j);
 		    psInsertECStatementAssoc.setInt(2,statementId);
 		    psInsertECStatementAssoc.setInt(3,contentId);
+		    Path parentPath = command.parentPath();
+		    if(parentPath!=null)
+			psInsertECStatementAssoc.setInt(4,parentPath.databaseId());
+		    else
+			psInsertECStatementAssoc.setInt(4,-1);
 		    psInsertECStatementAssoc.addBatch();
 		}
 		catch (SQLException e) {
@@ -3070,6 +3110,8 @@ public class ConfDB
     public void insertRelease(String releaseTag,SoftwareRelease newRelease) throws DatabaseException
     {
 	try{
+	    dbConnector.getConnection().setAutoCommit(false);
+	    
 	    psSelectReleaseId.setString(1,releaseTag);
 	    ResultSet rs = psSelectReleaseId.executeQuery();
 	    if(rs.next())
@@ -3178,16 +3220,6 @@ public class ConfDB
 	    try{
 		templateId = insertSuperId();
 		insertSuperIdReleaseAssoc(templateId,releaseId);
-		Iterator<Parameter> parameterIt = template.parameterIterator();
-		while (parameterIt.hasNext()) {
-		    Parameter p = parameterIt.next();
-		    if(p instanceof FileInPathParameter){
-			FileInPathParameter fileInPathParameter = (FileInPathParameter)p;
-			if(fileInPathParameter.value().equals("")){
-			    fileInPathParameter.setValue("");
-			}
-		    }
-		}
 		insertTemplateParameters(templateId,template);
 	    }catch (DatabaseException  e2) { 
 		e2.printStackTrace(); 
@@ -3997,7 +4029,7 @@ public class ConfDB
 	    psSelectStatementId = 
 		dbConnector.getConnection().prepareStatement
 		("SELECT statementId from EventContentStatements WHERE classN = ? " +
-		 " AND moduleL = ? AND extraN = ? AND processN = ? ");
+		 " AND moduleL = ? AND extraN = ? AND processN = ? AND statementType = ? ");
 	    preparedStatements.add(psSelectStatementId);
 	    
 	    psSelectEventContentStatements =  
@@ -4006,7 +4038,8 @@ public class ConfDB
 		 "EventContentStatements.classN, EventContentStatements.moduleL, "+
 		 "EventContentStatements.ExtraN,EventContentStatements.processN, "+
 		 "EventContentStatements.statementType,ECStatementAssoc.eventContentId, "+
-		 "ECStatementAssoc.statementRank, EventContents.name FROM  EventContentStatements "+
+		 "ECStatementAssoc.statementRank, EventContents.name, ECStatementAssoc.pathId "+
+		 "FROM  EventContentStatements "+
 		 "JOIN ECStatementAssoc ON ECStatementAssoc.statementId = "+
 		 "EventContentStatements.statementId " +
 		 "JOIN EventContents ON EventContents.eventContentId = " +
@@ -4170,7 +4203,7 @@ public class ConfDB
 
 	    psInsertEventContentStatements =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO EventContentStatements (classN,moduleL,extraN,processN,statementType)" +
+		("INSERT INTO EventContentStatements (classN,moduleL,extraN,processN,statementType) " +
 		 "VALUES(?,?,?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertEventContentStatements);
 
@@ -4204,8 +4237,8 @@ public class ConfDB
 	  
 	    psInsertECStatementAssoc = 
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO ECStatementAssoc (statementRank,statementId,eventContentId)" +
-		 "VALUES(?,?,?)");
+		("INSERT INTO ECStatementAssoc (statementRank,statementId,eventContentId,pathId) " +
+		 "VALUES(?,?,?,?) ");
 	    preparedStatements.add(psInsertECStatementAssoc);
 	    
 
@@ -5304,11 +5337,11 @@ public class ConfDB
 	ResultSet rs      = null;
 	try {
 	    /* Fix for File in Path Error*/
-	    if(parameter instanceof FileInPathParameter){
+	    /*    if(parameter instanceof FileInPathParameter){
 		FileInPathParameter fileInPathParameter = (FileInPathParameter)parameter;
-		if(fileInPathParameter.valueAsString()==0)
-		    fileInPathParameter.setValue("' '");
-	    }
+		//	if(fileInPathParameter.valueAsString().length()==0||fileInPathParameter.valueAsString()==null)
+		fileInPathParameter.setValue("' '");
+		}*/
 
 	    psInsertParameter.setInt(1,paramTypeIdHashMap
 				     .get(parameter.type()));
@@ -5453,8 +5486,10 @@ public class ConfDB
 		if (sp instanceof StringParameter) {
 		    StringParameter string = (StringParameter)sp;
 		    psInsertParameterValue.setString(2,string.valueAsString());
-		}
-		else {
+		}else if (sp instanceof FileInPathParameter) {
+		    FileInPathParameter fileInPathParameter = (FileInPathParameter)sp;
+		    psInsertParameterValue.setString(2,fileInPathParameter.valueAsString());
+		}else{
 		    psInsertParameterValue.setObject(2,sp.value());
 		}
 		if (sp instanceof Int32Parameter) {
