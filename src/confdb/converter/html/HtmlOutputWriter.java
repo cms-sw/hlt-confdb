@@ -22,12 +22,16 @@ public class HtmlOutputWriter extends AsciiOutputWriter implements IOutputWriter
 		String subsystem = "EventFilter";
 
 		IConfiguration iconfig = output.config();
-		if ( !release.equals( iconfig.releaseTag() ) )
+		if ( iconfig == null )
+			System.out.println( "iconfig null!!!" );
+		else
 		{
-			release = iconfig.releaseTag();
-			//System.out.println( "release = " + release );
+			if ( iconfig.releaseTag() != null && !release.equals( iconfig.releaseTag() ) )
+			{
+				release = iconfig.releaseTag();
+				System.out.println( "release = " + release );
+			}
+			str.append( "<a href=\"javascript:showSource('" + release + "','" + type + "','" + cmsPackage + "','" + subsystem + "')\">" + type + "</a>" );
 		}
-
-		str.append( "<a href=\"javascript:showSource('" + release + "','" + type + "','" + cmsPackage + "','" + subsystem + "')\">" + type + "</a>" );
 	}
 }
