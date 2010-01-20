@@ -1247,14 +1247,14 @@ public class ConfDbGUI
 	    else {
 		jTreeCurrentConfig.setEditable(true);
 		jTreeTableParameters.getTree().setEditable(true);
-		/*	try {
+		try {
 		    database.lockConfiguration(currentConfig,userName);
 		}
 		catch (DatabaseException e) {
 		    JOptionPane.showMessageDialog(frame,e.getMessage(),
 						  "Failed to lock configuration",
 						  JOptionPane.ERROR_MESSAGE,null);
-						  }*/
+		}
 	    }
 	}
     }
