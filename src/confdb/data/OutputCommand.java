@@ -54,6 +54,7 @@ public class OutputCommand
     {
 	this.parentPath      = parentPath;
 	this.parentReference = parentReference;
+	moduleName = parentReference.name();
     }
     
     
