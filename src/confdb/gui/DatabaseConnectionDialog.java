@@ -63,6 +63,126 @@ public class DatabaseConnectionDialog
     //
     // member functions
     //
+
+      /** constructor */
+    public DatabaseConnectionDialog(JFrame frame,String strProperties)
+    {
+	super(frame,"Establish Database connection",true);
+	
+	System.out.println(strProperties);
+
+	dbSetups = new ConfDBSetups(strProperties);
+
+	validChoice = false;
+
+	comboBoxDbSetup = new JComboBox(dbSetups.labelsAsArray());
+	comboBoxDbSetup.setEditable(false);
+	comboBoxDbSetup.setSelectedIndex(0);
+	comboBoxDbSetup.setBackground(new Color(255, 255, 255));
+	comboBoxDbSetup.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent evt) {
+		    comboBoxDbSetupActionPerformed(evt);
+		}
+	    });
+	
+	mysqlButton = new JRadioButton("MySQL");
+	mysqlButton.setMnemonic(KeyEvent.VK_M);
+        mysqlButton.setActionCommand(dbTypeMySQL);
+        mysqlButton.setSelected(true);
+
+	oracleButton = new JRadioButton("Oracle");
+	oracleButton.setMnemonic(KeyEvent.VK_O);
+        oracleButton.setActionCommand(dbTypeOracle);
+	
+	noneButton = new JRadioButton("NONE");
+	
+	buttonGroupDbType = new ButtonGroup();
+	buttonGroupDbType.add(mysqlButton);
+	buttonGroupDbType.add(oracleButton);
+	buttonGroupDbType.add(noneButton);
+
+	noneButton.setSelected(true);
+	
+	textFieldDbHost = new JTextField(15);
+	textFieldDbPort = new JTextField(6);
+	textFieldDbName = new JTextField(15);
+	textFieldDbUser = new JTextField(15);
+	textFieldDbPwrd = new JPasswordField(15);
+	
+	JPanel panelDbType = new JPanel(new FlowLayout());
+	panelDbType.add(mysqlButton);
+	panelDbType.add(oracleButton);
+	
+	// create the option pane
+	String labelDbStup = "Setup:";
+	String labelDbHost = "Host:";
+	String labelDbPort = "Port:";
+	String labelDbName = "DB Name:";
+	String labelDbUser = "User:";
+	String labelDbPwrd = "Password:";
+	
+	Object[] inputs = { labelDbStup,comboBoxDbSetup,
+	                    panelDbType,
+			    labelDbHost,textFieldDbHost,
+			    labelDbPort,textFieldDbPort,
+			    labelDbName,textFieldDbName,
+			    labelDbUser,textFieldDbUser,
+			    labelDbPwrd,textFieldDbPwrd };
+
+	ImageIcon icon = new ImageIcon(getClass().getResource("/dbicon.gif"));
+
+	Object[] options = { okString,cancelString };
+	
+	optionPane = new JOptionPane(inputs,
+				     JOptionPane.QUESTION_MESSAGE,
+				     JOptionPane.YES_NO_OPTION,
+				     icon, //null,
+				     options,
+				     options[0]);
+	
+	// make this dialog display the created content pane
+	setContentPane(optionPane);
+	
+	//handle window closing correctly
+	setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+	addWindowListener(new WindowAdapter()
+	    {
+		public void windowClosing(WindowEvent we)
+		{
+		    optionPane.setValue(new Integer(JOptionPane.CLOSED_OPTION));
+		}
+	    });
+	
+	// ensure the database user field always get the first focus
+	addComponentListener(new ComponentAdapter()
+	    {
+		public void componentShown(ComponentEvent ce)
+		{
+		    textFieldDbHost.requestFocusInWindow();
+		    textFieldDbHost.selectAll();
+		}
+	    });
+	
+	// register event handlers to put text into the fields
+	textFieldDbHost.addActionListener(this);
+	textFieldDbHost.addFocusListener(this);
+	
+	textFieldDbPort.addActionListener(this);
+	textFieldDbPort.addFocusListener(this);
+	
+	textFieldDbName.addActionListener(this);
+	textFieldDbName.addFocusListener(this);
+	
+	textFieldDbUser.addActionListener(this);
+	textFieldDbUser.addFocusListener(this);
+	
+	textFieldDbPwrd.addActionListener(this);
+	textFieldDbPwrd.addFocusListener(this);
+	
+	// register an event handler to react to option pane state changes
+	optionPane.addPropertyChangeListener(this);
+    }
+
     
     /** constructor */
     public DatabaseConnectionDialog(JFrame frame)
