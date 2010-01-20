@@ -839,8 +839,11 @@ public class ConfDbGUI
 	if (!closeConfiguration()) return;
        
 	ConfOldDB databaseOld = new ConfOldDB();
+	
+	System.out.println();
 
-	DatabaseConnectionDialog dbDialog = new DatabaseConnectionDialog(frame);
+
+	DatabaseConnectionDialog dbDialog = new DatabaseConnectionDialog(frame,"/conf/confdbv0.properties");
 	dbDialog.pack();
 	dbDialog.setLocationRelativeTo(frame);
 	dbDialog.setVisible(true);
