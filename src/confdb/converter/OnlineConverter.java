@@ -214,7 +214,8 @@ public class OnlineConverter extends ConverterBase
 			      smRelease);
 	
 	Path endpath = smConfig.insertPath(0, "epstreams");
-
+	endpath.setAsEndPath(true);
+	
 	Iterator<Stream> itStream = epConfig.streamIterator();
 	
 	while (itStream.hasNext()) {

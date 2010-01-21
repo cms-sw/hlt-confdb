@@ -1,3 +1,11 @@
+2010-01-21  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-03-01
+	* temporary fix to HtmlOutputWriter by Ulf
+	* fix OnlineConverter: properly set the path to be an endpath, as
+	the automatic detection won't work anymore
+	* add --orcoff option to test/runOnlineConverter
+
 2010-01-20  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-03-00

@@ -16,7 +16,7 @@ my $db_pwrd = "";
 my $config_name = "";
 
 if (@ARGV==0) {
-    print "provide one of: --hltdev, --rcms, --int2r, --int9r, or --test2r!\n";
+    print "provide one of: --hltdev, --orcoff, --rcms, --int2r, --int9r, or --test2r!\n";
     exit(0);
 }
 
@@ -27,6 +27,12 @@ while (@ARGV)
 	$db_host = "cmsr1-v.cern.ch";
 	$db_name = "cms_cond.cern.ch";
 	$db_user = "cms_hltdev_reader";
+	$db_pwrd = "convertme!";
+    }
+    if ($arg eq "--orcoff") {
+	$db_host = "cmsr1-v.cern.ch";
+	$db_name = "cms_cond.cern.ch";
+	$db_user = "cms_hlt_r";
 	$db_pwrd = "convertme!";
     }
     elsif ($arg eq "--rcms") {
