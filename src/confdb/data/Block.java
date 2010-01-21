@@ -37,6 +37,16 @@ public class Block
 	}
     }
     
+    /** constructor with OutputModule */
+    public Block(OutputModule output,String[] paramNames)
+    {
+	name = "block_"+output.name();
+	for (String paramName : paramNames) {
+	    Parameter param = output.parameter(paramName);
+	    if (param!=null) parameters.add(param);
+	}
+    }
+    
     
     //
     // member functions

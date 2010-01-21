@@ -343,6 +343,14 @@ public class ModifierInstructions
 		name.startsWith(search) : name.contains(search);
 	    if (isMatch) requestModule(module.name());
 	}
+	Iterator<OutputModule> itOM = config.outputIterator();
+	while (itOM.hasNext()) {
+	    OutputModule output = itOM.next();
+	    String name = (matchLabels) ? output.name() : output.className();
+	    boolean isMatch = (startsWith) ?
+		name.startsWith(search) : name.contains(search);
+	    if (isMatch) requestModule(output.name());
+	}
     }
     
     /** resolve white-lists based on a given configuration */
@@ -588,7 +596,7 @@ public class ModifierInstructions
 	}
 	return result;
     }
-
+    
     /** check if a sequence or module is specifically requested */
     public boolean isRequested(Referencable moduleOrSequence)
     {
@@ -605,7 +613,8 @@ public class ModifierInstructions
 	if (moduleOrSequence instanceof Sequence)
 	    return (undefineAllSequences) ?
 		true : (undefinedSequences.contains(moduleOrSequence.name()));
-	else if (moduleOrSequence instanceof ModuleInstance)
+	else if ((moduleOrSequence instanceof ModuleInstance)||
+		 (moduleOrSequence instanceof OutputModule))
 	    return (undefineAllModules) ?
 		true : (undefinedModules.contains(moduleOrSequence.name()));
 	return false;
@@ -735,6 +744,7 @@ public class ModifierInstructions
 	String name = null;
 	if      (o instanceof Referencable)  name = ((Referencable)o).name();
 	else if (o instanceof Instance)      name = ((Instance)o).name();
+	else if (o instanceof OutputModule)  name = ((OutputModule)o).name();
 	else if (o instanceof PSetParameter) name = ((Parameter)o).name();
 	
 	ArrayList<String> blacklist = null;
@@ -756,6 +766,7 @@ public class ModifierInstructions
 	String            name = null;
 	if      (o instanceof Referencable)  name = ((Referencable)o).name();
 	else if (o instanceof Instance)      name = ((Instance)o).name();
+	else if (o instanceof OutputModule)  name = ((OutputModule)o).name();
 	else if (o instanceof PSetParameter) name = ((Parameter)o).name();
 	
 	if (o instanceof PSetParameter) {

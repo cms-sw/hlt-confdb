@@ -268,6 +268,7 @@ public class ConfigurationModifier implements IConfiguration
 	    Path out = new Path("output");
 	    ModuleInstance outputI = modifications.outputModuleToBeAdded("out");
 	    outputI.createReference(out,0);
+	    out.setAsEndPath(true);
 	    paths.add(out);
 	}
 	
@@ -288,10 +289,11 @@ public class ConfigurationModifier implements IConfiguration
 	Iterator<String> itB = modifications.blockIterator();
 	while (itB.hasNext()) {
 	    String[] a = itB.next().split("::");
-	    String   instanceName = a[0];
+	    String   outputName = a[0];
 	    String[] paramNames = a[1].split(":");
-	    Instance instance = master.instance(instanceName);
-	    if (instance!=null) blocks.add(new Block(instance,paramNames));
+	    //Instance instance = master.instance(instanceName);
+	    OutputModule output = master.output(outputName);
+	    if (output!=null) blocks.add(new Block(output,paramNames));
 	}
 	
 	isModified = true;

@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 
 # get environment variables
@@ -11,7 +11,7 @@ my $classpath      = $confdb_gui_jar;
 if (!-e $confdb_gui_jar)
 {
     print "\nBuilding $confdb_gui_jar ...\n";
-    `classic-ant`;
+    `ant`;
 
     if (-e $confdb_gui_jar)
     {
