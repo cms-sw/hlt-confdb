@@ -4,20 +4,25 @@
 
 DROP TABLE    SuperIdReleaseAssoc;
 DROP TABLE    ConfigurationPathAssoc;
-DROP TABLE    ConfigurationStreamAssoc;
-DROP TABLE    StreamPathAssoc;
-DROP TABLE    PrimaryDatasetPathAssoc;
+DROP TABLE    PathStreamDatasetAssoc;
+DROP TABLE    StreamDatasetAssoc;
 DROP TABLE    PathInPathAssoc;
 DROP TABLE    PathModuleAssoc;
+DROP TABLE    PathOutputModAssoc;
 DROP TABLE    ConfigurationSequenceAssoc;
 DROP TABLE    PathSequenceAssoc;
 DROP TABLE    SequenceInSequenceAssoc;
 DROP TABLE    SequenceModuleAssoc;
+DROP TABLE    SequenceOutputModAssoc;
 DROP TABLE    ConfigurationServiceAssoc;
 DROP TABLE    ConfigurationEDSourceAssoc;
 DROP TABLE    ConfigurationESSourceAssoc;
 DROP TABLE    ConfigurationESModuleAssoc;
 DROP TABLE    ConfigurationParamSetAssoc;
+DROP TABLE    ConfigurationContentAssoc;
+DROP TABLE    ECStatementAssoc;
+DROP TABLE    EventContentStatements;
+DROP TABLE    ECStreamAssoc;
 DROP TABLE    Paths;
 DROP TABLE    Sequences;
 DROP TABLE    Services;
@@ -31,6 +36,7 @@ DROP TABLE    ESModuleTemplates;
 DROP TABLE    Modules;
 DROP TABLE    ModuleTemplates;
 DROP TABLE    ModuleTypes;
+DROP TABLE    EventContents;
 DROP TABLE    Streams;
 DROP TABLE    PrimaryDatasets;
 DROP TABLE    Configurations;
@@ -66,11 +72,14 @@ DROP TABLE    Parameters;
 DROP TABLE    SuperIds;
 DROP TABLE    ParameterTypes;
 
+
+DROP SEQUENCE StatementId_Sequence;
+DROP SEQUENCE EventContentId_Sequence;
 DROP SEQUENCE ReleaseId_Sequence;
 DROP SEQUENCE SubsysId_Sequence;
 DROP SEQUENCE PackageId_Sequence;
 DROP SEQUENCE DirId_Sequence;
-DROP SEQUENCE StreamId_Sequence;
+--DROP SEQUENCE StreamId_Sequence;
 DROP SEQUENCE DatasetId_Sequence;
 DROP SEQUENCE ConfigId_Sequence;
 DROP SEQUENCE SuperId_Sequence;
@@ -79,7 +88,4 @@ DROP SEQUENCE SequenceId_Sequence;
 DROP SEQUENCE ParamId_Sequence;
 
 
---
--- DROP STORED PROCEDURES & FUNCTIONS
---
-@hlt_drop_procedures_ORACLE.sql
+

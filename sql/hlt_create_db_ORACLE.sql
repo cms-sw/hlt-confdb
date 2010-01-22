@@ -4,8 +4,9 @@
 --
 -- CREATED:
 -- 01/12/2007 Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
---
-
+-- 
+-- Modified : 
+-- 01/05/2009 ConfDBV1 Schema 
 --
 -- TABLE 'SoftwareReleases'
 --
@@ -13,7 +14,7 @@ CREATE TABLE SoftwareReleases
 (
 	releaseId 	NUMBER,
 	releaseTag 	VARCHAR2(32)	NOT NULL UNIQUE,
-	PRIMARY KEY(releaseId)
+	CONSTRAINT pk_softwareRelease PRIMARY KEY(releaseId)
 );
 
 -- SEQUENCE 'ReleaseId_Sequence'
@@ -36,7 +37,7 @@ CREATE TABLE SoftwareSubsystems
 (
 	subsysId	NUMBER,
 	name	 	VARCHAR2(64)	NOT NULL,
-	PRIMARY KEY(subsysId)
+	CONSTRAINT pk_softwareSubsystem PRIMARY KEY(subsysId)
 );
 
 -- SEQUENCE 'SubsysId_Sequence'
@@ -60,8 +61,8 @@ CREATE TABLE SoftwarePackages
 	packageId 	NUMBER,
 	subsysId	NUMBER 		NOT NULL,
 	name	 	VARCHAR2(64)	NOT NULL,
-	PRIMARY KEY(packageId),
-	FOREIGN KEY(subsysId) REFERENCES SoftwareSubsystems(subsysId)
+	CONSTRAINT pk_softwarePackages PRIMARY KEY(packageId),
+	CONSTRAINT fk_softwarePackages FOREIGN KEY(subsysId) REFERENCES SoftwareSubsystems(subsysId)
 );
 
 -- SEQUENCE 'PackageId_Sequence'
@@ -90,8 +91,8 @@ CREATE TABLE Directories
 	parentDirId	NUMBER,
 	dirName		VARCHAR2(512)	NOT NULL UNIQUE,
 	created		TIMESTAMP	NOT NULL,
-	PRIMARY KEY(dirId),
-	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
+	CONSTRAINT pk_directories PRIMARY KEY(dirId),
+	CONSTRAINT fk_directories FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
 );
 
 -- SEQUENCE 'DirId_Sequence'
@@ -122,10 +123,10 @@ CREATE TABLE Configurations
 	creator		VARCHAR2(128)	NOT NULL,
 	processName	VARCHAR2(32)	NOT NULL,
 	description     VARCHAR2(1024)  DEFAULT NULL,
-	UNIQUE (parentDirId,config,version),
-	PRIMARY KEY(configId),
-	FOREIGN KEY(releaseId)   REFERENCES SoftwareReleases(releaseId),
-	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
+	CONSTRAINT uk_Configurations UNIQUE (parentDirId,config,version),
+	CONSTRAINT pk_Configurations PRIMARY KEY(configId),
+	CONSTRAINT fk_Configurations_sr FOREIGN KEY(releaseId)   REFERENCES SoftwareReleases(releaseId),
+	CONSTRAINT fk_Configurations_re FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
 );
 
 -- INDEX ConfigParentDirId_idx
@@ -152,58 +153,48 @@ CREATE TABLE LockedConfigurations
 	parentDirId	NUMBER	  	NOT NULL,
 	config		VARCHAR2(128)	NOT NULL,
 	userName        VARCHAR2(128)	NOT NULL,
-	UNIQUE (parentDirId,config),
-	FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
+	CONSTRAINT uk_lockedConfigurations UNIQUE (parentDirId,config),
+	CONSTRAINT fk_lockedConfigurations FOREIGN KEY(parentDirId) REFERENCES Directories(dirId)
 );
 
 
 --
--- TABLE 'Streams'
+-- new tables to manage streams, output modules, and primary datasets
 --
-CREATE TABLE Streams
+
+--
+-- TABLE 'EventContents'
+--
+CREATE TABLE EventContents
 (
-	streamId	NUMBER,
-	streamLabel	VARCHAR2(128)	NOT NULL UNIQUE,
-	PRIMARY KEY(streamId)
+	eventContentId	NUMBER,
+  name       	VARCHAR2(128)    NOT NULL,
+  CONSTRAINT pk_eventContents PRIMARY KEY(eventContentId)
 );
 
+-- SEQUENCE 'ReleaseId_Sequence'
+CREATE SEQUENCE EventContentId_Sequence START WITH 1 INCREMENT BY 1;
 
--- SEQUENCE 'StreamId_Sequence'
-CREATE SEQUENCE StreamId_Sequence START WITH 1 INCREMENT BY 1;
-
--- TRIGGER 'StreamId_Trigger'
-CREATE OR REPLACE TRIGGER StreamId_Trigger
-BEFORE INSERT ON Streams
+-- TRIGGER 'ReleaseId_Trigger'
+CREATE OR REPLACE TRIGGER EventContenId_Trigger
+BEFORE INSERT ON EventContents
 FOR EACH ROW
 BEGIN
-SELECT StreamId_Sequence.nextval INTO :NEW.streamId FROM dual;
+SELECT EventContentId_Sequence.nextval INTO :NEW.eventContentId FROM dual;
 END;
 /
 
-
 --
--- TABLE 'PrimaryDatasets'
+-- TABLE 'ConfigurationContentAssoc'
 --
-CREATE TABLE PrimaryDatasets
+CREATE TABLE ConfigurationContentAssoc
 (
-	datasetId	NUMBER,
-	datasetLabel	VARCHAR2(128)	NOT NULL UNIQUE,
-	PRIMARY KEY(datasetId)
+	configId	NUMBER		NOT NULL, 
+	eventContentId		NUMBER		NOT NULL,
+	CONSTRAINT pk_configContentAssoc PRIMARY KEY(configId,eventContentId),
+	CONSTRAINT fk_configContentAssoc_ci FOREIGN KEY(configId) REFERENCES Configurations(configId),
+	CONSTRAINT fk_configContentAssoc_ei FOREIGN KEY(eventContentId)   REFERENCES EventContents(eventContentId)
 );
-
-
--- SEQUENCE 'PrimaryDatasetId_Sequence'
-CREATE SEQUENCE DatasetId_Sequence START WITH 1 INCREMENT BY 1;
-
--- TRIGGER 'PrimaryDatasetId_Trigger'
-CREATE OR REPLACE TRIGGER DatasetId_Trigger
-BEFORE INSERT ON PrimaryDatasets
-FOR EACH ROW
-BEGIN
-SELECT DatasetId_Sequence.nextval INTO :NEW.datasetId FROM dual;
-END;
-/
-
 
 --
 -- TABLE 'SuperIds'
@@ -211,7 +202,7 @@ END;
 CREATE TABLE SuperIds
 (
 	superId    	NUMBER,
-	PRIMARY KEY(superId)
+	CONSTRAINT pk_superIds PRIMARY KEY(superId)
 );
 
 -- SEQUENCE 'SuperId_Sequence'
@@ -234,9 +225,9 @@ CREATE TABLE SuperIdReleaseAssoc
 (
 	superId    	NUMBER          NOT NULL,
 	releaseId   	NUMBER 		NOT NULL,
-	PRIMARY KEY(superId,releaseId),
-	FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
-	FOREIGN KEY(releaseId) REFERENCES SoftwareReleases(releaseId)
+	CONSTRAINT pk_superIdReleaseAssoc PRIMARY KEY(superId,releaseId),
+	CONSTRAINT fk_superIdReleaseAssoc_si FOREIGN KEY(superId)   REFERENCES SuperIds(superId),
+	CONSTRAINT fk_superIdReleaseAssoc_sr FOREIGN KEY(releaseId) REFERENCES SoftwareReleases(releaseId)
 );
 
 -- INDEX SuperIdRelAssocSuperId_idx
@@ -252,9 +243,9 @@ CREATE INDEX SuperIdRelAssocReleaseId_idx ON SuperIdReleaseAssoc(releaseId);
 CREATE TABLE Paths
 (
 	pathId     	NUMBER,
-	name       	VARCHAR2(128)    NOT NULL,
-	isEndPath       NUMBER(1)       DEFAULT '0' NOT NULL,
-	PRIMARY KEY(pathId)
+	name       	VARCHAR2(128)  NOT NULL,
+	isEndPath       NUMBER(1)  DEFAULT '0' NOT NULL,
+	CONSTRAINT pk_paths PRIMARY KEY(pathId)
 );
 
 -- SEQUENCE 'PathId_Sequence'
@@ -278,10 +269,10 @@ CREATE TABLE ConfigurationPathAssoc
 	configId	NUMBER		NOT NULL,
 	pathId		NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
-	UNIQUE(configId,sequenceNb),
-	PRIMARY KEY(configId,pathId),
-	FOREIGN KEY(configId) REFERENCES Configurations(configId),
-	FOREIGN KEY(pathId)   REFERENCES Paths(pathId)
+	CONSTRAINT uk_ConfigurationPathAssoc UNIQUE(configId,sequenceNb),
+	CONSTRAINT pk_ConfigurationPathAssoc PRIMARY KEY(configId,pathId),
+	CONSTRAINT fk_ConfigurationPathAssoc_re FOREIGN KEY(configId) REFERENCES Configurations(configId),
+	CONSTRAINT fk_ConfigurationPathAssoc_pa FOREIGN KEY(pathId)   REFERENCES Paths(pathId)
 );
 
 -- INDEX ConfigPathAssocPathId_idx
@@ -297,67 +288,96 @@ CREATE TABLE PathInPathAssoc
 	childPathId	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
 	operator	NUMBER(3)	DEFAULT '0' NOT NULL,
-	UNIQUE(parentPathId,sequenceNb),
-	PRIMARY KEY(parentPathId,childPathId),
-	FOREIGN KEY(parentPathId) REFERENCES Paths(pathId),
-	FOREIGN KEY(childPathId)  REFERENCES Paths(pathId)
+	CONSTRAINT uk_PathInPathAssoc UNIQUE(parentPathId,sequenceNb),
+	CONSTRAINT pk_PathInPathAssoc PRIMARY KEY(parentPathId,childPathId),
+	CONSTRAINT fk_PathInPathAssoc_pp FOREIGN KEY(parentPathId) REFERENCES Paths(pathId),
+	CONSTRAINT fk_PathInPathAssoc_pc FOREIGN KEY(childPathId)  REFERENCES Paths(pathId)
 );
 
 -- INDEX PathPathAssocChildId_idx
 CREATE INDEX PathPathAssocChildId_idx ON PathInPathAssoc(childPathId);
 
+--
+-- TABLE 'Streams'
+--
+CREATE TABLE Streams
+(
+	streamId	NUMBER,
+	streamLabel	VARCHAR2(128)	NOT NULL,
+  fracToDisk  FLOAT  DEFAULT '1' NOT NULL,
+	CONSTRAINT pk_streams PRIMARY KEY(streamId),
+  CONSTRAINT fk_streams FOREIGN KEY(streamId) REFERENCES SuperIds(superId) 
+);
+
 
 --
--- TABLE 'ConfigurationStreamAssoc'
+-- TABLE 'EventContentStreamAssoc'
 --
-CREATE TABLE ConfigurationStreamAssoc
+CREATE TABLE ECStreamAssoc
 (
-	configId	NUMBER	NOT NULL,
+	eventContentId	NUMBER		NOT NULL,
+	streamId		NUMBER		NOT NULL,
+	CONSTRAINT pk_ECStreamsAssoc PRIMARY KEY(eventContentId,streamId),
+	CONSTRAINT fk_ECStreamsAssoc_ei FOREIGN KEY(eventContentId) REFERENCES EventContents(eventContentId),
+	CONSTRAINT fk_ECStreamsAssoc_si  FOREIGN KEY(streamId)   REFERENCES Streams(streamId)
+);
+
+-- INDEX EventContentStreamAssocStreamId_idx
+CREATE INDEX ECStreamAssocStreamId_idx ON ECStreamAssoc(streamId);
+
+
+--
+-- TABLE 'PrimaryDatasets'
+--
+CREATE TABLE PrimaryDatasets
+(
+	datasetId	NUMBER,
+	datasetLabel	VARCHAR2(128)	NOT NULL,
+	CONSTRAINT pk_primaryDatasets PRIMARY KEY(datasetId)
+);
+
+-- SEQUENCE 'PrimaryDatasetId_Sequence'
+CREATE SEQUENCE DatasetId_Sequence START WITH 1 INCREMENT BY 1;
+
+-- TRIGGER 'PrimaryDatasetId_Trigger'
+CREATE OR REPLACE TRIGGER DatasetId_Trigger
+BEFORE INSERT ON PrimaryDatasets
+FOR EACH ROW
+BEGIN
+SELECT DatasetId_Sequence.nextval INTO :NEW.datasetId FROM dual;
+END;
+/
+
+
+CREATE TABLE StreamDatasetAssoc
+(
+	datasetId	NUMBER		NOT NULL,
+	streamId		NUMBER		NOT NULL,
+	CONSTRAINT pk_streamDatasetAssoc PRIMARY KEY(datasetId,streamId),
+	CONSTRAINT fk_streamDatasetAssoc_di FOREIGN KEY(datasetId) REFERENCES PrimaryDataSets(datasetId),
+	CONSTRAINT fk_streamDatasetAssoc_si FOREIGN KEY(streamId)   REFERENCES Streams(streamId)
+);
+
+-- INDEX StreamOutputModuleAssocPathId_idx
+CREATE INDEX StreamDatsetAssocStreamId_idx ON StreamDatasetAssoc(streamId);
+
+
+--
+-- TABLE 'PathStreamDataSetAssoc'
+--
+CREATE TABLE PathStreamDatasetAssoc
+(
+  --configId Number Not Null,
+	pathId	NUMBER	NOT NULL,
 	streamId	NUMBER  NOT NULL,
-	datasetId       NUMBER  NOT NULL,
-	PRIMARY KEY(configId,streamId,datasetId),
-	FOREIGN KEY(configId) REFERENCES Configurations(configId),
-	FOREIGN KEY(streamId) REFERENCES Streams(streamId),
-	FOREIGN KEY(datasetId)REFERENCES PrimaryDatasets(datasetId)
+	datasetId  NUMBER,
+  CONSTRAINT pk_pathStreamDatasetAssoc PRIMARY KEY(pathId,streamId),
+	CONSTRAINT pk_pathStreamDatasetAssoc_pi FOREIGN KEY(pathId) REFERENCES Paths(pathId),
+	CONSTRAINT pk_pathStreamDatasetAssoc_si FOREIGN KEY(streamId) REFERENCES Streams(streamId)
 );
 
--- INDEX ConfigStreamAssocStreamId_idx
-CREATE INDEX ConfigStreamAssocStreamId_idx ON ConfigurationStreamAssoc(streamId);
--- INDEX ConfigStreamAssocPDId_idx
-CREATE INDEX ConfigStreamAssocPDId_idx ON ConfigurationStreamAssoc(datasetId);
-
-
---
--- TABLE 'StreamPathAssoc' !!OBSOLETE!!
---
-CREATE TABLE StreamPathAssoc
-(
-	streamId	NUMBER	 	NOT NULL,
-	pathId		NUMBER    	NOT NULL,
-	PRIMARY KEY(streamId,pathId),
-	FOREIGN KEY(streamId) REFERENCES Streams(streamId),
-	FOREIGN KEY(pathId)   REFERENCES Paths(pathId)
-);
-
--- INDEX StreamPathAssocPathId_idx
-CREATE INDEX StreamPathAssocPathId_idx ON StreamPathAssoc(pathId);
-
-
---
--- TABLE 'PrimaryDatasetPathAssoc'
---
-CREATE TABLE PrimaryDatasetPathAssoc
-(
-	datasetId	NUMBER	 	NOT NULL,
-	pathId		NUMBER    	NOT NULL,
-	PRIMARY KEY(datasetId,pathId),
-	FOREIGN KEY(datasetId) REFERENCES PrimaryDatasets(datasetId),
-	FOREIGN KEY(pathId)    REFERENCES Paths(pathId)
-);
-
--- INDEX DatasetPathAssocPathId_idx
-CREATE INDEX DatasetPathAssocPathId_idx ON PrimaryDatasetPathAssoc(pathId);
-
+-- INDEX PathStreamAssocStreamId_idx
+CREATE INDEX PathStreamDSAssocStreamId_idx ON PathStreamDatasetAssoc(streamId);
 
 --
 -- TABLE 'Sequences'
@@ -390,10 +410,10 @@ CREATE TABLE ConfigurationSequenceAssoc
 	configId	NUMBER		NOT NULL,
 	sequenceId	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
-	UNIQUE(configId,sequenceNb),
-	PRIMARY KEY(configId,sequenceId),
-	FOREIGN KEY(configId)   REFERENCES Configurations(configId),
-	FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId)
+	CONSTRAINT uk_configSequenceAssoc UNIQUE(configId,sequenceNb),
+	CONSTRAINT pk_configSequenceAssoc PRIMARY KEY(configId,sequenceId),
+	CONSTRAINT fk_configSequenceAssoc_ci FOREIGN KEY(configId)   REFERENCES Configurations(configId),
+	CONSTRAINT fk_configSequenceAssoc_si FOREIGN KEY(sequenceId) REFERENCES Sequences(sequenceId)
 );
 
 -- INDEX ConfigSeqAssocSequenceId_idx
@@ -719,6 +739,24 @@ CREATE INDEX ModulesTemplateId_idx ON Modules(templateId);
 --
 -- TABLE 'PathModuleAssoc'
 --
+CREATE TABLE PathOutputModAssoc
+(
+	pathId     	NUMBER		NOT NULL,
+  outputModuleId   	NUMBER		NOT NULL,
+	sequenceNb	NUMBER(4)	NOT NULL,
+	operator	NUMBER(3)	DEFAULT '0' NOT NULL,
+	UNIQUE(pathId,sequenceNb),
+	PRIMARY KEY(pathId,outputModuleId),
+	FOREIGN KEY(pathId)   REFERENCES Paths(pathId),
+	FOREIGN KEY(outputModuleId) REFERENCES Streams(streamId)
+);
+
+-- INDEX PathOutModAssocModuleId_idx
+CREATE INDEX PathOutModAssocModId_idx ON PathOutputModAssoc(outputModuleId);
+
+--
+-- TABLE 'PathModuleAssoc'
+--
 CREATE TABLE PathModuleAssoc
 (
 	pathId     	NUMBER		NOT NULL,
@@ -734,14 +772,13 @@ CREATE TABLE PathModuleAssoc
 -- INDEX PathModAssocModuleId_idx
 CREATE INDEX PathModAssocModuleId_idx ON PathModuleAssoc(moduleId);
 
-
 --
 -- TABLE 'SequenceModuleAssoc'
 --
 CREATE TABLE SequenceModuleAssoc
 (
 	sequenceId     	NUMBER		NOT NULL,
-        moduleId   	NUMBER		NOT NULL,
+  moduleId   	NUMBER		NOT NULL,
 	sequenceNb	NUMBER(3)	NOT NULL,
 	operator	NUMBER(3)	DEFAULT '0' NOT NULL,
 	UNIQUE(sequenceId,sequenceNb),
@@ -753,6 +790,66 @@ CREATE TABLE SequenceModuleAssoc
 -- INDEX SeqModAssocModuleId_idx
 CREATE INDEX SeqModAssocModuleId_idx ON SequenceModuleAssoc(moduleId);
 
+--
+-- TABLE 'SequenceModuleAssoc'
+--
+CREATE TABLE SequenceOutputModAssoc
+(
+	sequenceId     	NUMBER		NOT NULL,
+  outputModuleId   	NUMBER		NOT NULL,
+	sequenceNb	NUMBER(4)	NOT NULL,
+	operator	NUMBER(3)	DEFAULT '0' NOT NULL,
+	UNIQUE(sequenceId,sequenceNb),
+	PRIMARY KEY(sequenceId,outputModuleId),
+	FOREIGN KEY(sequenceId)   REFERENCES Sequences(sequenceId),
+	FOREIGN KEY(outputModuleId) REFERENCES Streams(streamId)
+);
+
+-- INDEX SequenceOutModAssocModuleId_idx
+CREATE INDEX SequenceOutModAssocModId_idx ON SequenceOutputModAssoc(outputModuleId);
+
+
+--
+-- TABLE 'EventContentStatements'
+--
+CREATE TABLE EventContentStatements
+(
+  statementId Number,
+  classN  VARCHAR2(256) DEFAULT '*',
+  moduleL  VARCHAR2(256) DEFAULT '*',
+  extraN  VARCHAR2(256) DEFAULT '*',
+  processN  VARCHAR2(256) DEFAULT '*',
+  statementType  NUMBER(1) DEFAULT '1' NOT NULL,
+  PRIMARY KEY(statementId)
+);
+
+
+-- SEQUENCE 'StatementId_Sequence'
+CREATE SEQUENCE StatementId_Sequence START WITH 1 INCREMENT BY 1;
+
+-- TRIGGER 'StatementId_Trigger'
+CREATE OR REPLACE TRIGGER StatementId_Trigger
+BEFORE INSERT ON EventContentStatements
+FOR EACH ROW
+BEGIN
+SELECT StatementId_Sequence.nextval INTO :NEW.statementId FROM dual;
+END;
+/
+
+--
+-- TABLE 'StreamECStatementAssoc'
+--
+
+CREATE TABLE ECStatementAssoc
+(
+  statementRank  Number,
+  statementId  NUMBER    NOT NULL,
+  eventContentId  NUMBER    NOT NULL,
+  pathId  NUMBER, 
+  UNIQUE(statementId,eventContentId),
+  FOREIGN KEY(statementId) REFERENCES EventContentStatements(statementId),
+  FOREIGN KEY(eventContentId)   REFERENCES EventContents(eventContentId)
+);
 
 --
 --
@@ -1224,12 +1321,6 @@ INSERT INTO ParameterTypes VALUES (15,'int64');
 INSERT INTO ParameterTypes VALUES (16,'vint64');
 INSERT INTO ParameterTypes VALUES (17,'uint64');
 INSERT INTO ParameterTypes VALUES (18,'vuint64');
-
-
-COMMIT;
-
-
-@hlt_create_procedures_ORACLE.sql
 
 
 COMMIT;

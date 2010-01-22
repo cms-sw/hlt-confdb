@@ -1131,6 +1131,18 @@ AS
     ON PathModuleAssoc.pathId = ConfigurationPathAssoc.pathId
     WHERE ConfigurationPathAssoc.configId = config_id;
 
+/* cursor for path-outputmodule associations */
+  CURSOR cur_path_outputmod IS
+    SELECT
+      PathOutputModAssoc.pathId,
+      PathOutputModAssoc.outputModuleId,
+      PathOutputModAssoc.sequenceNb
+    FROM PathOutputModAssoc
+    JOIN ConfigurationPathAssoc
+    ON PathOutputModAssoc.pathId = ConfigurationPathAssoc.pathId
+    WHERE ConfigurationPathAssoc.configId = config_id;
+
+
   /* cursor for sequence-sequence associations */
   CURSOR cur_sequence_sequence IS
     SELECT
@@ -1155,6 +1167,18 @@ AS
        ConfigurationSequenceAssoc.sequenceId
     WHERE ConfigurationSequenceAssoc.configId = config_id;
 
+
+ /* cursor for sequence-outputmod associations */
+  CURSOR cur_sequence_outputmod IS
+    SELECT
+      SequenceOutputModAssoc.sequenceId,
+      SequenceOutputModAssoc.outputModuleId,
+      SequenceOutputModAssoc.sequenceNb
+    FROM SequenceOutputModAssoc
+    JOIN ConfigurationSequenceAssoc
+    ON SequenceOutputModAssoc.sequenceId =
+       ConfigurationSequenceAssoc.sequenceId
+    WHERE ConfigurationSequenceAssoc.configId = config_id;
 
 BEGIN
 
@@ -1291,7 +1315,18 @@ BEGIN
   END LOOP;
   CLOSE cur_path_sequence;
 
-  /* load path-module associations */
+  /* load path-outputmodule associations */
+  OPEN cur_path_outputmod;
+  LOOP
+    FETCH cur_path_outputmod INTO v_parent_id,v_child_id,v_sequence_nb;
+    EXIT WHEN cur_path_outputmod%NOTFOUND;
+    INSERT INTO tmp_path_entries
+      VALUES(v_parent_id,v_child_id,v_sequence_nb,'OutputModule');
+      load_parameters(v_child_id);
+  END LOOP;
+  CLOSE cur_path_outputmod;
+  
+   /* load path-module associations */
   OPEN cur_path_module;
   LOOP
     FETCH cur_path_module INTO v_parent_id,v_child_id,v_sequence_nb;
@@ -1321,6 +1356,16 @@ BEGIN
   END LOOP;
   CLOSE cur_sequence_module;
 
+ /* load sequence-module associations */
+  OPEN cur_sequence_outputmod;
+  LOOP
+    FETCH cur_sequence_outputmod INTO v_parent_id,v_child_id,v_sequence_nb;
+    EXIT WHEN cur_sequence_outputmod%NOTFOUND;
+    INSERT INTO tmp_sequence_entries
+      VALUES(v_parent_id,v_child_id,v_sequence_nb,'OutputModule');
+      load_parameters(v_child_id);
+  END LOOP;
+  CLOSE cur_sequence_outputmod;
 
 END;  
 /
