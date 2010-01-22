@@ -35,7 +35,7 @@ ESModule SiStripGainESProducer CalibTracker SiStripESProducers
 SiStripGainESProducer.Parameter AutomaticNormalization bool false tracked
 SiStripGainESProducer.Parameter NormalizationFactor double 1.0 tracked
 SiStripGainESProducer.Parameter printDebug bool false untracked
-SiStripGainESProducer.Parameter APVGain string "" tracked
+SiStripGainESProducer.Parameter APVGain VPSet tracked
 
 ESModule VolumeBasedMagneticFieldESProducer MagneticField GeomBuilder
 VolumeBasedMagneticFieldESProducer.Parameter findVolumeTolerance double 0.0 tracked
