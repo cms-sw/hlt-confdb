@@ -1119,53 +1119,7 @@ public class ConfDB
 		path.setDatabaseId(pathId);
 	    }
 
-	    while(rsEventContentStatements.next()){
-		int statementId = rsEventContentStatements.getInt(1);
-		String classN = rsEventContentStatements.getString(2);
-		String module = rsEventContentStatements.getString(3);
-		String extra = rsEventContentStatements.getString(4);
-		String process = rsEventContentStatements.getString(5);
-		int statementType = rsEventContentStatements.getInt(6);
-		int eventContentId = rsEventContentStatements.getInt(7);
-		int statementRank = rsEventContentStatements.getInt(8);
-		String name =  rsEventContentStatements.getString(9);
-		int parentPathId = rsEventContentStatements.getInt(10);
-	       
-		EventContent eventContent = config.content(name);
-		
-		OutputCommand outputCommand = new OutputCommand();
-		String commandToString = classN + "_" + module + "_" + extra + "_" + process; 
-		if(statementType == 0){
-		    commandToString = "drop "+commandToString;
-		}else{
-		    commandToString = "keep " + commandToString;
-		}
-		outputCommand.initializeFromString(commandToString);
-		
-		if( parentPathId>0){
-		    
-		    Path parentPath = idToPaths.get(parentPathId);
-		    if(parentPath==null)
-			continue;
-		    Iterator<Reference> itR = parentPath.recursiveReferenceIterator();
-		    boolean found = false;
-		    Reference parentReference = null;
-		    while (itR.hasNext()&&!found){ 
-			parentReference = itR.next();
-			if (parentReference.name().equals(module)) 
-			    found=true;
-		    }
-		 
-		    if (found){
-			outputCommand = new OutputCommand(parentPath,parentReference);
-			//	outputCommand.initializeFromString(commandToString);
-		    }
-
-		}
-		
-		eventContent.insertCommand(outputCommand);
-	    }
-
+	  
 
 
 	    while (rsDatasetEntries.next()) {
@@ -1210,6 +1164,52 @@ public class ConfDB
 		stream.setDatabaseId(streamId);
 		primaryDataset.setDatabaseId(datasetId);
 		
+	    }
+
+	    while(rsEventContentStatements.next()){
+		int statementId = rsEventContentStatements.getInt(1);
+		String classN = rsEventContentStatements.getString(2);
+		String module = rsEventContentStatements.getString(3);
+		String extra = rsEventContentStatements.getString(4);
+		String process = rsEventContentStatements.getString(5);
+		int statementType = rsEventContentStatements.getInt(6);
+		int eventContentId = rsEventContentStatements.getInt(7);
+		int statementRank = rsEventContentStatements.getInt(8);
+		String name =  rsEventContentStatements.getString(9);
+		int parentPathId = rsEventContentStatements.getInt(10);
+	       
+		EventContent eventContent = config.content(name);
+		
+		OutputCommand outputCommand = new OutputCommand();
+		String commandToString = classN + "_" + module + "_" + extra + "_" + process; 
+		if(statementType == 0){
+		    commandToString = "drop "+commandToString;
+		}else{
+		    commandToString = "keep " + commandToString;
+		}
+		outputCommand.initializeFromString(commandToString);
+		
+		if( parentPathId>0){
+		    
+		    Path parentPath = idToPaths.get(parentPathId);
+		    if(parentPath==null)
+			continue;
+		    Iterator<Reference> itR = parentPath.recursiveReferenceIterator();
+		    boolean found = false;
+		    Reference parentReference = null;
+		    while (itR.hasNext()&&!found){ 
+			parentReference = itR.next();
+			if (parentReference.name().equals(module)) 
+			    found=true;
+		    }
+		 
+		    if (found){
+			outputCommand = new OutputCommand(parentPath,parentReference);
+		    }
+
+		}
+		
+		eventContent.insertCommand(outputCommand);
 	    }
 	
 	}
