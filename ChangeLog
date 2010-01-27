@@ -1,3 +1,18 @@
+2010-01-27  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-03-03
+	* gui: fix for problem with ECs associated with Paths not being saved
+	properly (by Vasu)
+	* gui: search extended to contents, streams, PDs, OMs
+	* gui: contents can be reorderd (affectring stream/PD/OM order as
+	well!)
+	* gui: unreferenced OMs appear red now
+	* gui: OMs can now be removed from Pats / Sequences
+	* data: fix in ReferenceContainer.unresolvedInputTags: consider
+	OMs
+
+	
+
 2010-01-21  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-03-02
