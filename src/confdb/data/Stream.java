@@ -63,13 +63,18 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** set name of this stream */
     public void setName(String name) { this.name = name; }
     
+    
+    public void setHasChanged(){
+	super.setHasChanged();
+	parentContent.setHasChanged();
+    }
+
     /** set the fraction of events to be writte to local disk by SM */
     public void setFractionToDisk(double fractionToDisk)
     {
 	if (fractionToDisk>=0.0&&fractionToDisk<=1.0){
 	    this.fractionToDisk = fractionToDisk;
 	    setHasChanged();
-	    parentContent.setHasChanged();
 	}
 	else System.err.println("Stream.setFractionToDisk() ERROR: "+
 				"fraction = " + fractionToDisk +
@@ -117,7 +122,6 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	path.addToContent(parentContent);
 	paths.add(path);
 	setHasChanged();
-	parentContent.setHasChanged();
 	return true;
     }
     
@@ -212,7 +216,6 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
         PrimaryDataset result = new PrimaryDataset(datasetName, this);
         datasets.add(result);
         setHasChanged();
-	parentContent.setHasChanged();
         return result;
     }
     
@@ -223,7 +226,6 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	if (index<0) return false;
 	datasets.remove(index);
 	setHasChanged();
-	parentContent.setHasChanged();
 	return true;
 
     }
