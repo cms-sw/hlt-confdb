@@ -1,3 +1,9 @@
+2010-01-28  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-03-04
+	* bugfix: mark Stream properly as changed if the fractioToDisc
+	parameter was changed.
+
 2010-01-27  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-03-03
