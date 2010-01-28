@@ -66,8 +66,11 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** set the fraction of events to be writte to local disk by SM */
     public void setFractionToDisk(double fractionToDisk)
     {
-	if (fractionToDisk>=0.0&&fractionToDisk<=1.0)
+	if (fractionToDisk>=0.0&&fractionToDisk<=1.0){
 	    this.fractionToDisk = fractionToDisk;
+	    setHasChanged();
+	    parentContent.setHasChanged();
+	}
 	else System.err.println("Stream.setFractionToDisk() ERROR: "+
 				"fraction = " + fractionToDisk +
 				" not in [0,1]!");
