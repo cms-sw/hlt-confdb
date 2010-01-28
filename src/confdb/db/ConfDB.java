@@ -916,6 +916,12 @@ public class ConfDB
 	    HashMap<Integer,Path>    idToPaths    =new HashMap<Integer,Path>();
 	    HashMap<Integer,Sequence>idToSequences=new HashMap<Integer,Sequence>();
 	    
+
+	    HashMap<EventContent,Integer> eventContentToId  =new HashMap<EventContent,Integer>();
+	    HashMap<Stream,Integer> streamToId  =new HashMap<Stream,Integer>();
+	    HashMap<PrimaryDataset,Integer> primaryDatasetToId  =new HashMap<PrimaryDataset,Integer>();
+	    HashMap<Path,Integer> pathToId  =new HashMap<Path,Integer>();
+	    HashMap<Sequence,Integer> sequenceToId  =new HashMap<Sequence,Integer>();
 	    
 	    while (rsInstances.next()) {
 		int     id           = rsInstances.getInt(1);
@@ -1007,7 +1013,7 @@ public class ConfDB
 		    continue;
 		iContents++;
 		eventContent.setDatabaseId(eventContentId);
-		//    	eventContentIdHash.put(name,eventContentId);
+		eventContentToId.put(eventContent,eventContentId);
 		
 	    }
 
@@ -1025,18 +1031,21 @@ public class ConfDB
 		Stream stream = eventContent.insertStream(streamLabel);
 		stream.setFractionToDisk(fracToDisk);
 		stream.setDatabaseId(streamId);
-		eventContent.setDatabaseId(eventContentId);
+		//		eventContent.setDatabaseId(eventContentId)
+		streamToId.put(stream,streamId);
 		idToStream.put(streamId,stream);
 		ArrayList<Parameter> parameters = idToParams.remove(streamId);
 		if(parameters==null)
 		    continue;
 		Iterator<Parameter> it = parameters.iterator();
 		OutputModule outputModule = stream.outputModule();
+		
 		while (it.hasNext()) {
 		    Parameter p = it.next();
 		    if (p==null) continue;
 		    outputModule.updateParameter(p.name(),p.type(),p.valueAsString());
 		}
+		outputModule.setDatabaseId(streamId);
 	    }
 	    
  	    
@@ -1079,6 +1088,7 @@ public class ConfDB
 		    System.err.println("Invalid entryType '"+entryType+"'");
 		
 		sequence.setDatabaseId(sequenceId);
+		sequenceToId.put(sequence,sequenceId);
 	    }
 
 	    while (rsPathEntries.next()) {
@@ -1117,53 +1127,7 @@ public class ConfDB
 		    System.err.println("Invalid entryType '"+entryType+"'");
 
 		path.setDatabaseId(pathId);
-	    }
-
-	  
-
-
-	    while (rsDatasetEntries.next()) {
-		int  datasetId = rsDatasetEntries.getInt(1);
-		String datasetLabel =  rsDatasetEntries.getString(2);
-		int  streamId = rsDatasetEntries.getInt(3);
-		String streamLabel =  rsDatasetEntries.getString(4);
-		Stream stream = idToStream.get(streamId);
-		if(stream == null)
-		    continue;
-
-		PrimaryDataset primaryDataset = stream.insertDataset(datasetLabel);
-		primaryDataset.setDatabaseId(datasetId);
-		idToDataset.put(datasetId,primaryDataset);
-	    }
-
-	    while (rsPathStreamDataset.next()) {	    
-		int  pathId = rsPathStreamDataset.getInt(1);
-		int  streamId = rsPathStreamDataset.getInt(2);
-		int  datasetId = rsPathStreamDataset.getInt(3);
-
-		Path path = idToPaths.get(pathId);
-		Stream stream = idToStream.get(streamId);
-		PrimaryDataset primaryDataset = idToDataset.get(datasetId); 
-		
-		if(path==null)
-		    continue;
-		
-		if(stream == null){
-		    continue;
-		}
-		EventContent eventContent = stream.parentContent();
-		stream.insertPath(path);
-		path.addToContent(eventContent);
-	       
-
-		if(primaryDataset==null)
-		    continue;		
-		primaryDataset.insertPath(path);
-
-		
-		stream.setDatabaseId(streamId);
-		primaryDataset.setDatabaseId(datasetId);
-		
+		pathToId.put(path,pathId);
 	    }
 
 	    while(rsEventContentStatements.next()){
@@ -1211,7 +1175,89 @@ public class ConfDB
 		
 		eventContent.insertCommand(outputCommand);
 	    }
+
+
+
+	    while (rsDatasetEntries.next()) {
+		int  datasetId = rsDatasetEntries.getInt(1);
+		String datasetLabel =  rsDatasetEntries.getString(2);
+		int  streamId = rsDatasetEntries.getInt(3);
+		String streamLabel =  rsDatasetEntries.getString(4);
+		Stream stream = idToStream.get(streamId);
+		if(stream == null)
+		    continue;
+
+		PrimaryDataset primaryDataset = stream.insertDataset(datasetLabel);
+		primaryDataset.setDatabaseId(datasetId);
+		idToDataset.put(datasetId,primaryDataset);
+		primaryDatasetToId.put(primaryDataset,datasetId);
+	    }
+
+	    while (rsPathStreamDataset.next()) {	    
+		int  pathId = rsPathStreamDataset.getInt(1);
+		int  streamId = rsPathStreamDataset.getInt(2);
+		int  datasetId = rsPathStreamDataset.getInt(3);
+
+		Path path = idToPaths.get(pathId);
+		Stream stream = idToStream.get(streamId);
+		PrimaryDataset primaryDataset = idToDataset.get(datasetId); 
+		
+		if(path==null)
+		    continue;
+		
+		if(stream == null){
+		    continue;
+		}
+		EventContent eventContent = stream.parentContent();
+		stream.insertPath(path);
+		path.addToContent(eventContent);
+	       
+
+		if(primaryDataset==null)
+		    continue;		
+		primaryDataset.insertPath(path);
+
+		
+		stream.setDatabaseId(streamId);
+		primaryDataset.setDatabaseId(datasetId);
+		
+	    }
+
+	    Iterator<EventContent> contentIt = config.contentIterator();
+	    while(contentIt.hasNext()){
+		EventContent eventContent = contentIt.next();
+		int databaseId = eventContentToId.get(eventContent);
+		eventContent.setDatabaseId(databaseId);
+	    }
 	
+	    Iterator<Stream> streamIt = config.streamIterator();
+	    while(streamIt.hasNext()){
+		Stream stream = streamIt.next();
+		int databaseId = streamToId.get(stream);
+		stream.setDatabaseId(databaseId);
+	    }
+	    
+	    Iterator<PrimaryDataset> datasetIt = config.datasetIterator();
+	    while(datasetIt.hasNext()){
+		PrimaryDataset primaryDataset = datasetIt.next();
+		int databaseId = primaryDatasetToId.get(primaryDataset);
+		primaryDataset.setDatabaseId(databaseId);
+	    }
+
+	    
+	    Iterator<Sequence> sequenceIt = config.sequenceIterator();
+	    while(sequenceIt.hasNext()){
+		Sequence sequence = sequenceIt.next();
+		int databaseId = sequenceToId.get(sequence);
+		sequence.setDatabaseId(databaseId);
+	    }
+	    
+	    Iterator<Path> pathIt = config.pathIterator();
+	    while(pathIt.hasNext()){
+		Path path = pathIt.next();
+		int databaseId = pathToId.get(path);
+		path.setDatabaseId(databaseId);
+	    }
 	}
 	catch (SQLException e) {
 	    String errMsg =
@@ -1333,11 +1379,6 @@ public class ConfDB
 	    
 	    // insert modules
 	    HashMap<String,Integer> moduleHashMap=insertModules(config);
-	   
-
-	    // insert streams
-	    // PS@28/09/2009
-	    //insertStreams(configId,config);
 
 	 
 	    HashMap<String,Integer> eventContentHashMap = insertEventContents(configId,config);
