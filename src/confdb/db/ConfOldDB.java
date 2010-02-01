@@ -1005,7 +1005,6 @@ public class ConfOldDB
 	    
 	    int iSmallestOM = 999;
 	    for(int i=0;i<iCountOutputModules;i++){
-		System.out.println(strOutputModNames[i]);
 		if(strOutputModNames[i].length()<iSmallestOM){
 		    iSmallestOM=strOutputModNames[i].length();
 		}
@@ -1040,6 +1039,30 @@ public class ConfOldDB
 		    String streamLabel = strOutputModNames[i].substring(strHeader.length());
 		    content = config.insertContent(config.contentCount(),"hltEventContent"+streamLabel);
 		    stream = content.insertStream(streamLabel);
+		    Path []parentPath = outputModuleOld.parentPaths();
+		    Iterator<Parameter> it = outputModuleOld.parameterIterator();
+		    while (it.hasNext()) {
+			Parameter p = it.next();
+			if (p==null) continue;
+			if(p.name().equals("SelectEvents")){
+			    PSetParameter pSelectEvents = (PSetParameter)p;
+			    Iterator<Parameter> itP = pSelectEvents.parameterIterator();
+			    while (itP.hasNext()) {
+				Parameter pString = itP.next();
+				if(pString instanceof VStringParameter){
+				    VStringParameter pStringV  = (VStringParameter)pString;
+				    for(int iV = 0; iV < pStringV.vectorSize(); iV++){
+					String strPath = (String)pStringV.value(iV);
+					Path path = config.path(strPath);
+					if(path!=null)
+					    stream.insertPath(path);
+				    }
+				}
+			    }
+			    
+			}
+		    }
+		    stream.setFractionToDisk(0.0);
 		}else{
 		    content       = stream.parentContent();
 		}
