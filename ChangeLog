@@ -1,5 +1,8 @@
 2010-02-01  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
+	* tag V01-03-06
+	* fix the Edgar bug ;)
+
 	* tag V01-03-05
 	* gui: fix 'do you want to save' popup if nothing changed (Vasu)
 	* gui: search extended to contents, streams, PDs, OMs
