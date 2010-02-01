@@ -187,7 +187,7 @@ public class ExportConfigurationDialog extends JDialog
 	    String dbPwrd = new String(jTextFieldPwrd.getPassword());
 	    
 	    targetDB.connect(dbType,dbUrl,dbUser,dbPwrd);
-	    targetDB.getReleaseId(releaseTag); // check
+	 //   targetDB.getReleaseId(releaseTag); // check
 	    
 	    Directory rootDir = targetDB.loadConfigurationTree();
 	    treeModel = new DirectoryTreeModel(rootDir);
