@@ -318,6 +318,8 @@ abstract
 		getUnresolvedInputTags(p,labels,unresolved);
 	    }
 	}
+	else if (r instanceof OutputModuleReference) {
+	}
 	else {
 	    ReferenceContainer container = (ReferenceContainer)r.parent();
 	    Iterator<Reference> it = container.entryIterator();

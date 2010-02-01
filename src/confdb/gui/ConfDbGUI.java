@@ -2154,6 +2154,14 @@ public class ConfDbGUI
 	t.expandPath(tpSequences);
 	TreePath tpModules = new TreePath(m.getPathToRoot(m.modulesNode()));
 	t.expandPath(tpModules);
+	TreePath tpOutputs = new TreePath(m.getPathToRoot(m.outputsNode()));
+	t.expandPath(tpOutputs);
+	TreePath tpContents = new TreePath(m.getPathToRoot(m.contentsNode()));
+	t.expandPath(tpContents);
+	TreePath tpStreams = new TreePath(m.getPathToRoot(m.streamsNode()));
+	t.expandPath(tpStreams);
+	TreePath tpDatasets = new TreePath(m.getPathToRoot(m.datasetsNode()));
+	t.expandPath(tpDatasets);
     }
 
     private void jTextFieldImportSearchInsertUpdate(DocumentEvent e)

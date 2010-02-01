@@ -307,6 +307,7 @@ public class SearchAndReplaceDialog extends JDialog
 		}
 	    }
 	}
+	// OutputModule search could go here?
 	if (m.getSize()>0&&(m.firstElement() instanceof JCheckBox)) {
 	    jButtonSelect.setEnabled(true);
 	    jButtonDeselect.setEnabled(true);

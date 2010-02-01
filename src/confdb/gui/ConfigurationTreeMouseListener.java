@@ -574,6 +574,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		menuItem.addActionListener(pathListener);
 		popupPaths.add(menuItem);
 	    }
+	    if (node instanceof OutputModuleReference) {
+		menuItem = new JMenuItem("Remove OutputModule");
+		menuItem.addActionListener(pathListener);
+		popupPaths.add(menuItem);
+	    }
 	    if (node instanceof PathReference) {
 		menuItem = new JMenuItem("Remove Path");
 		menuItem.addActionListener(pathListener);
@@ -667,6 +672,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    
 	    if (node instanceof ModuleReference) {
 		menuItem = new JMenuItem("Remove Module");
+		menuItem.addActionListener(sequenceListener);
+		popupSequences.add(menuItem);
+	    }
+	    if (node instanceof OutputModuleReference) {
+		menuItem = new JMenuItem("Remove OutputModule");
 		menuItem.addActionListener(sequenceListener);
 		popupSequences.add(menuItem);
 	    }
@@ -1437,6 +1447,9 @@ class PathMenuListener implements ActionListener
 	else if (cmd.equals("Remove Module")) {
 	    ConfigurationTreeActions.removeReference(tree);
 	}
+	else if (cmd.equals("Remove OutputModule")) {
+	    ConfigurationTreeActions.removeReference(tree);
+	}
 	else if (cmd.equals("Remove Sequence")) {
 	    ConfigurationTreeActions.removeReference(tree);
 	}
@@ -1517,6 +1530,9 @@ class SequenceMenuListener implements ActionListener
 		ConfigurationTreeActions.removeReference(tree);
  	}
 	else if (cmd.equals("Remove Module")) {
+	    ConfigurationTreeActions.removeReference(tree);
+	}
+	else if (cmd.equals("Remove OutputModule")) {
 	    ConfigurationTreeActions.removeReference(tree);
 	}
 	else if (action.equals("OutputModule")) {

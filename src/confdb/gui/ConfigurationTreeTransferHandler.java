@@ -91,6 +91,7 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
 	    if (sourceNode instanceof ReferenceContainer ||
 		sourceNode instanceof Reference ||
 		sourceNode instanceof Instance ||
+		sourceNode instanceof EventContent ||
 		sourceNode instanceof Parameter) {
 		ConfigurationTreeTransferHandler.setDragImage();
 		t = new GenericTransferable(sourceNode);
@@ -213,6 +214,13 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
 		 targetNode instanceof ReferenceContainer)) {
 		Reference source = (Reference)sourceNode;
 		return ConfigurationTreeActions.moveReference(targetTree,source);
+	    }
+	    // move a content within its parent container
+	    if (sourceNode instanceof EventContent &&
+		(targetNode instanceof EventContent ||
+		 targetNode==targetModel.contentsNode())) {
+		EventContent source = (EventContent)sourceNode;
+		return ConfigurationTreeActions.moveContent(targetTree,source);
 	    }
 	}
 	

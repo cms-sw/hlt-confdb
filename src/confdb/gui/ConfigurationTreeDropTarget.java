@@ -276,6 +276,8 @@ private Insets autoscrollInsets = new Insets(30, 30, 30, 30);
 	      selectedNode == model.sequencesNode())) ||
 	    ((sourceNode instanceof Path) &&
 	     (selectedNode == model.pathsNode())) ||
+	    ((sourceNode instanceof EventContent) &&
+	     (selectedNode == model.contentsNode())) ||
 	    (sourceNode instanceof Parameter)) return true;
 	return false;
     }
@@ -311,6 +313,9 @@ private Insets autoscrollInsets = new Insets(30, 30, 30, 30);
 	      targetNode instanceof Reference ||
 	      targetNode == model.pathsNode() ||
 	      targetNode == model.sequencesNode())) ||
+	    (sourceNode instanceof EventContent &&
+	     (targetNode == model.contentsNode()||
+	      targetNode instanceof EventContent)) ||
 	    (sourceNode instanceof Parameter &&
 	     targetNode instanceof Parameter)) return true;
 	return false;

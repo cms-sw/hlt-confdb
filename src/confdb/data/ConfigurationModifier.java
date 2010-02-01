@@ -25,16 +25,19 @@ public class ConfigurationModifier implements IConfiguration
     private boolean isModified = false;
     
     /** filtered components */
-    private ArrayList<PSetParameter>   psets  =new ArrayList<PSetParameter>();
+    private ArrayList<PSetParameter>   psets    =new ArrayList<PSetParameter>();
     private ArrayList<EDSourceInstance>edsources=new ArrayList<EDSourceInstance>();
     private ArrayList<ESSourceInstance>essources=new ArrayList<ESSourceInstance>();
     private ArrayList<ESModuleInstance>esmodules=new ArrayList<ESModuleInstance>();
-    private ArrayList<ServiceInstance>services=new ArrayList<ServiceInstance>();
-    private ArrayList<ModuleInstance> modules =new ArrayList<ModuleInstance>();
-    private ArrayList<OutputModule>   outputs =new ArrayList<OutputModule>();
-    private ArrayList<Path>           paths   =new ArrayList<Path>();
-    private ArrayList<Sequence>       sequences=new ArrayList<Sequence>();
-    private ArrayList<Block>          blocks  =new ArrayList<Block>();
+    private ArrayList<ServiceInstance> services =new ArrayList<ServiceInstance>();
+    private ArrayList<ModuleInstance>  modules  =new ArrayList<ModuleInstance>();
+    private ArrayList<OutputModule>    outputs  =new ArrayList<OutputModule>();
+    private ArrayList<Path>            paths    =new ArrayList<Path>();
+    private ArrayList<Sequence>        sequences=new ArrayList<Sequence>();
+    private ArrayList<EventContent>    contents =new ArrayList<EventContent>();
+    private ArrayList<Stream>          streams  =new ArrayList<Stream>();
+    private ArrayList<PrimaryDataset>  datasets =new ArrayList<PrimaryDataset>();
+    private ArrayList<Block>           blocks   =new ArrayList<Block>();
     
     /** internal instructions */
     private ModifierInstructions modifications = new ModifierInstructions();
@@ -141,6 +144,9 @@ public class ConfigurationModifier implements IConfiguration
 	outputs.clear();
 	paths.clear();
 	sequences.clear();
+	contents.clear();
+	streams.clear();
+	datasets.clear();
 	blocks.clear();
 	
 	if (!modifications.resolve(master)) return;
@@ -286,12 +292,39 @@ public class ConfigurationModifier implements IConfiguration
 		modules.add(module);
 	}
 	
+	Iterator<String> itOM = modifications.requestedOutputIterator();
+	while (itOM.hasNext()) {
+	    OutputModule output = master.output(itOM.next());
+	    if (output!=null&&outputs.indexOf(output)<0)
+		outputs.add(output);
+	}
+	
+	Iterator<String> itEC = modifications.requestedContentIterator();
+	while (itEC.hasNext()) {
+	    EventContent content = master.content(itEC.next());
+	    if (content!=null&&contents.indexOf(content)<0)
+		contents.add(content);
+	}
+	
+	Iterator<String> itST = modifications.requestedStreamIterator();
+	while (itST.hasNext()) {
+	    Stream stream = master.stream(itST.next());
+	    if (stream!=null&&streams.indexOf(stream)<0)
+		streams.add(stream);
+	}
+	
+	Iterator<String> itPD = modifications.requestedDatasetIterator();
+	while (itPD.hasNext()) {
+	    PrimaryDataset dataset = master.dataset(itPD.next());
+	    if (dataset!=null&&datasets.indexOf(dataset)<0)
+		datasets.add(dataset);
+	}
+	
 	Iterator<String> itB = modifications.blockIterator();
 	while (itB.hasNext()) {
 	    String[] a = itB.next().split("::");
 	    String   outputName = a[0];
 	    String[] paramNames = a[1].split(":");
-	    //Instance instance = master.instance(instanceName);
 	    OutputModule output = master.output(outputName);
 	    if (output!=null) blocks.add(new Block(output,paramNames));
 	}
@@ -351,6 +384,9 @@ public class ConfigurationModifier implements IConfiguration
 	outputs.clear();
 	paths.clear();
 	sequences.clear();
+	contents.clear();
+	streams.clear();
+	datasets.clear();
 	blocks.clear();
 	
 	isModified = false;
@@ -837,10 +873,16 @@ public class ConfigurationModifier implements IConfiguration
     
     
     /** number of event contents */
-    public int contentCount() { return master.contentCount(); }
+    public int contentCount()
+    {
+	return (isModified) ? contents.size() : master.contentCount();
+    }
     
     /** retrieve i-th event content */
-    public EventContent content(int i) { return master.content(i); }
+    public EventContent content(int i)
+    {
+	return (isModified) ? contents.get(i) : master.content(i);
+    }
     
     /** retrieve event content by name */
     public EventContent content(String contentName)
@@ -851,21 +893,27 @@ public class ConfigurationModifier implements IConfiguration
     /** index of a certain event content */
     public int indexOfContent(EventContent content)
     {
-	return master.indexOfContent(content);
+	return (isModified) ? contents.indexOf(content) : master.indexOfContent(content);
     }
     
     /** retrieve event content iterator */
     public Iterator<EventContent> contentIterator()
     {
-	return master.contentIterator();
+	return (isModified) ? contents.iterator() : master.contentIterator();
     }
 
     
     /** number of streams */
-    public int streamCount() { return master.streamCount(); }
+    public int streamCount()
+    {
+	return (isModified) ? streams.size() : master.streamCount();
+    }
     
     /** retrieve i-th stream */
-    public Stream stream(int i) { return master.stream(i); }
+    public Stream stream(int i)
+    {
+	return (isModified) ? streams.get(i) : master.stream(i);
+    }
     
     /** retrieve stream by name */
     public Stream stream(String streamName)
@@ -876,18 +924,27 @@ public class ConfigurationModifier implements IConfiguration
     /** index of a certain stream */
     public int indexOfStream(Stream stream)
     {
-	return master.indexOfStream(stream);
+	return (isModified) ? streams.indexOf(stream) : master.indexOfStream(stream);
     }
     
     /** retrieve stream iterator */
-    public Iterator<Stream> streamIterator() { return master.streamIterator(); }
+    public Iterator<Stream> streamIterator() 
+    {
+	return (isModified) ? streams.iterator() : master.streamIterator();
+    }
 
     
     /** number of primary datasets */
-    public int datasetCount() { return master.datasetCount(); }
+    public int datasetCount()
+    {
+	return (isModified) ? datasets.size() : master.datasetCount();
+    }
     
     /** retrieve i-th primary dataset */
-    public PrimaryDataset dataset(int i) { return master.dataset(i); }
+    public PrimaryDataset dataset(int i)
+    {
+	return (isModified) ? datasets.get(i) : master.dataset(i);
+    }
     
     /** retrieve primary dataset by name */
     public PrimaryDataset dataset(String datasetName)
@@ -898,13 +955,13 @@ public class ConfigurationModifier implements IConfiguration
     /** index of a certain primary dataset */
     public int indexOfDataset(PrimaryDataset dataset)
     {
-	return master.indexOfDataset(dataset);
+	return (isModified) ? datasets.indexOf(dataset) : master.indexOfDataset(dataset);
     }
     
     /** retrieve primary dataset iterator */
     public Iterator<PrimaryDataset> datasetIterator()
     {
-	return master.datasetIterator();
+	return (isModified) ? datasets.iterator() : master.datasetIterator();
     }
  
 

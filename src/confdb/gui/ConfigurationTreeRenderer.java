@@ -260,6 +260,11 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    }
 	    result = "<html><font size=-2><b>" + result + "</b></font></html>";
 	}
+	else if (node instanceof OutputModule) {
+	    OutputModule output = (OutputModule)node;
+	    if (output.referenceCount()==0)
+		result = "<html><font color=#ff0000>"+getText()+"</font><html>";	
+	}
 	else if (node instanceof Stream) {
 	    Stream stream = (Stream)node;
 	    if (stream.fractionToDisk()<1.0)

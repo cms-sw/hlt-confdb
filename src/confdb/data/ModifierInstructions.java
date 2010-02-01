@@ -63,10 +63,17 @@ public class ModifierInstructions
 
     /** modules reqested regardless of being referenced in requested path */
     private ArrayList<String> requestedModules = new ArrayList<String>();
+    private ArrayList<String> requestedOutputs = new ArrayList<String>();
     
     /** modules to be properly referenced but *not* defined */
     private boolean           undefineAllModules = false;
     private ArrayList<String> undefinedModules = new ArrayList<String>();
+
+    /** contents, streams, & datasets reqested */
+    private ArrayList<String> requestedContents = new ArrayList<String>();
+    private ArrayList<String> requestedStreams  = new ArrayList<String>();
+    private ArrayList<String> requestedDatasets = new ArrayList<String>();
+    
 
     /** blocks to be defined, regardless of the instance being filtered! */
     private ArrayList<String> blocks = new ArrayList<String>();
@@ -225,7 +232,7 @@ public class ModifierInstructions
 		    }
 		}
 		catch (IOException e) {
-		    System.out.println("Error parsing '"+listFileName+"':"
+		    System.err.println("Error parsing '"+listFileName+"':"
 				       +e.getMessage());
 		}
 		finally {
@@ -338,19 +345,48 @@ public class ModifierInstructions
 	Iterator<ModuleInstance> itM = config.moduleIterator();
 	while (itM.hasNext()) {
 	    ModuleInstance module = itM.next();
-	    String name = (matchLabels) ?module.name() : module.template().name();
+	    String name = (matchLabels) ? module.name() : module.template().name();
 	    boolean isMatch = (startsWith) ? 
 		name.startsWith(search) : name.contains(search);
 	    if (isMatch) requestModule(module.name());
 	}
+
 	Iterator<OutputModule> itOM = config.outputIterator();
 	while (itOM.hasNext()) {
 	    OutputModule output = itOM.next();
 	    String name = (matchLabels) ? output.name() : output.className();
 	    boolean isMatch = (startsWith) ?
 		name.startsWith(search) : name.contains(search);
-	    if (isMatch) requestModule(output.name());
+	    if (isMatch) requestOutput(output.name());
 	}
+
+	Iterator<EventContent> itEC = config.contentIterator();
+	while (itEC.hasNext()) {
+	    EventContent content = itEC.next();
+	    String name = content.name();
+	    boolean isMatch = (startsWith) ?
+		name.startsWith(search) : name.contains(search);
+	    if (isMatch) requestContent(content.name());
+	}
+	
+	Iterator<Stream> itST = config.streamIterator();
+	while (itST.hasNext()) {
+	    Stream stream = itST.next();
+	    String name = stream.name();
+	    boolean isMatch = (startsWith) ?
+		name.startsWith(search) : name.contains(search);
+	    if (isMatch) requestStream(stream.name());
+	}
+	
+	Iterator<PrimaryDataset> itPD = config.datasetIterator();
+	while (itPD.hasNext()) {
+	    PrimaryDataset dataset = itPD.next();
+	    String name = dataset.name();
+	    boolean isMatch = (startsWith) ?
+		name.startsWith(search) : name.contains(search);
+	    if (isMatch) requestDataset(dataset.name());
+	}
+	
     }
     
     /** resolve white-lists based on a given configuration */
@@ -604,6 +640,8 @@ public class ModifierInstructions
 	    return (requestedSequences.contains(moduleOrSequence.name()));
 	else if (moduleOrSequence instanceof ModuleInstance)
 	    return (requestedModules.contains(moduleOrSequence.name()));
+	else if (moduleOrSequence instanceof OutputModule)
+	    return (requestedOutputs.contains(moduleOrSequence.name()));
 	return false;
     }
     
@@ -630,6 +668,30 @@ public class ModifierInstructions
     public Iterator<String> requestedModuleIterator()
     {
 	return requestedModules.iterator();
+    }
+    
+    /** get iterator for requested outputs */
+    public Iterator<String> requestedOutputIterator()
+    {
+	return requestedOutputs.iterator();
+    }
+    
+    /** get iterator for requested contents */
+    public Iterator<String> requestedContentIterator()
+    {
+	return requestedContents.iterator();
+    }
+    
+    /** get iterator for requested streams */
+    public Iterator<String> requestedStreamIterator()
+    {
+	return requestedStreams.iterator();
+    }
+    
+    /** get iterator for requested datasets */
+    public Iterator<String> requestedDatasetIterator()
+    {
+	return requestedDatasets.iterator();
     }
     
     /** get iterator over requested blocks */
@@ -755,8 +817,8 @@ public class ModifierInstructions
 	else if (o instanceof ServiceInstance)  blacklist = serviceBlackList;
 	else if (o instanceof Path)             blacklist = pathBlackList;
 	
-	if (name     ==null) System.out.println("ERROR: name is null");
-	if (blacklist==null) System.out.println("ERROR: blacklist is null");
+	if (name     ==null) System.err.println("ERROR: name is null");
+	if (blacklist==null) System.err.println("ERROR: blacklist is null");
 
 	blacklist.add(name);
 	return blacklist.size();
@@ -908,6 +970,36 @@ public class ModifierInstructions
 	requestedModules.remove(moduleName);
     }
     
+    /** request a output regardless of it being referenced in path */
+    public void requestOutput(String outputName)
+    {
+	requestedOutputs.add(outputName);
+    }
+
+    /** unrequest a output regardless of it being referenced in path */
+    public void unrequestOutput(String outputName)
+    {
+	requestedOutputs.remove(outputName);
+    }
+    
+    /** request a content regardless of it being referenced in path */
+    public void requestContent(String contentName)
+    {
+	requestedContents.add(contentName);
+    }
+
+    /** request a stream regardless of it being referenced in path */
+    public void requestStream(String streamName)
+    {
+	requestedStreams.add(streamName);
+    }
+
+    /** request a dataset regardless of it being referenced in path */
+    public void requestDataset(String datasetName)
+    {
+	requestedDatasets.add(datasetName);
+    }
+
     /** no modules will be defined */
     public void undefineAllModules() { undefineAllModules = true; }
 

@@ -604,7 +604,7 @@ public class Configuration implements IConfiguration
 	    hasChanged = true;
 	}
 	catch (Exception e) {
-	    System.out.println(e.getMessage());
+	    System.err.println(e.getMessage());
 	}
 	return instance;
     }
@@ -673,7 +673,7 @@ public class Configuration implements IConfiguration
 	    hasChanged = true;
 	}
 	catch (Exception e) {
-	    System.out.println(e.getMessage());
+	    System.err.println(e.getMessage());
 	}
 	return instance;
     }
@@ -743,7 +743,7 @@ public class Configuration implements IConfiguration
 	    hasChanged = true;
 	}
 	catch (Exception e) {
-	    System.out.println(e.getMessage());
+	    System.err.println(e.getMessage());
 	}
 	return instance;
     }
@@ -810,7 +810,7 @@ public class Configuration implements IConfiguration
 	    hasChanged = true;
 	}
 	catch (Exception e) {
-	    System.out.println(e.getMessage());
+	    System.err.println(e.getMessage());
 	}
 	return instance;
     }
@@ -880,7 +880,7 @@ public class Configuration implements IConfiguration
 	    }
 	}
 	catch (Exception e) {
-	    System.out.println(e.getMessage());
+	    System.err.println(e.getMessage());
 	}
 	return instance;
     }
@@ -1243,6 +1243,20 @@ public class Configuration implements IConfiguration
 	hasChanged = true;
     }
     
+    /** move a content to another position within contents */
+    public boolean moveContent(EventContent content,int targetIndex)
+    {
+	int currentIndex = contents.indexOf(content);
+	if (currentIndex<0) return false;
+	if (currentIndex==targetIndex) return true;
+	if (targetIndex>=contents.size()) return false;
+	if (currentIndex<targetIndex) targetIndex--;
+	contents.remove(currentIndex);
+	contents.add(targetIndex,content);
+	hasChanged = true;
+	return true;
+    }
+
     
     //
     // Streams
@@ -1309,7 +1323,7 @@ public class Configuration implements IConfiguration
 	}
 	return streams.iterator();
     }
-
+    
 
     //
     // Primary Datasets

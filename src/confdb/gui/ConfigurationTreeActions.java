@@ -781,7 +781,7 @@ public class ConfigurationTreeActions
 			    (ModuleInstance)template.instance(instanceName);
 		    }
 		    catch (DataException e) {
-			System.out.println(e.getMessage());
+			System.err.println(e.getMessage());
 			return false;
 		    }
 		    reference =
@@ -804,7 +804,7 @@ public class ConfigurationTreeActions
 		    original = (ModuleInstance)template.instance(instanceName);
 		}
 		catch (DataException e) {
-		    System.out.println(e.getMessage());
+		    System.err.println(e.getMessage());
 		    return false;
 		}
 		instanceName = "copy_of_" + instanceName;
@@ -937,6 +937,7 @@ public class ConfigurationTreeActions
 	if (childIndices!=null)
 	    model.nodesRemoved(model.modulesNode(),childIndices,children);
 	model.updateLevel1Nodes();
+	model.nodeStructureChanged(model.outputsNode());
 	
 	TreePath parentTreePath = treePath.getParentPath();
 	if (index==0)
@@ -1165,6 +1166,30 @@ public class ConfigurationTreeActions
 	return true;
     }
 
+
+    /** move an existing content within the list of contents */
+    public static boolean moveContent(JTree tree,EventContent sourceContent)
+    {
+	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config   = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	int sourceIndex = config.indexOfContent(sourceContent);
+	int targetIndex = (treePath.getPathCount()==2) ?
+	    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+				    treePath.getLastPathComponent())+1;
+	
+	config.moveContent(sourceContent,targetIndex);
+	model.nodeRemoved(model.contentsNode(),sourceIndex,sourceContent);
+	if (sourceIndex<targetIndex) targetIndex--;
+	model.nodeInserted(model.contentsNode(),targetIndex);
+	model.nodeStructureChanged(model.outputsNode());
+	model.nodeStructureChanged(model.streamsNode());
+	model.nodeStructureChanged(model.datasetsNode());
+	return true;
+    }
+
+
     //
     // Streams
     //
@@ -1305,6 +1330,8 @@ public class ConfigurationTreeActions
 	
 	return true;
     }
+
+
     //
     // PrimaryDatasets
     //
