@@ -15,4 +15,6 @@ RecoEgamma/EgammaHLTProducers		EgammaHLTPhotonTrackIsolationProducersRegional_cf
 Geometry/CaloEventSetup			CaloGeometryBuilder_cfi.py
 Geometry/EcalAlgo			EcalBarrelGeometry_cfi.py
 RecoTracker/TkSeedingLayers		PixelAndStripLayerPairs_cfi.py
-
+RecoJets/JetProducers			ak5CaloJets_cfi.py
+RecoLocalCalo/EcalRecProducers		ecalFixedAlphaBetaFitUncalibRecHit_cfi.py
+RecoLocalCalo/EcalRecProducers		ecalRecHit_cfi.py
