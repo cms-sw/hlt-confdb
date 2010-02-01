@@ -1252,12 +1252,12 @@ public class ConfDB
 		sequence.setDatabaseId(databaseId);
 	    }
 	    
-	    Iterator<Path> pathIt = config.pathIterator();
-	    while(pathIt.hasNext()){
+	    /* Iterator<Path> pathIt = config.pathIterator();
+	   	    while(pathIt.hasNext()){
 		Path path = pathIt.next();
 		int databaseId = pathToId.get(path);
 		path.setDatabaseId(databaseId);
-	    }
+		}*/
 	}
 	catch (SQLException e) {
 	    String errMsg =
