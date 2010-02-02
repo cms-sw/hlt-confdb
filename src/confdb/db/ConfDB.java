@@ -44,7 +44,7 @@ public class ConfDB
     /** database connector object, handles access to various DBMSs */
     private IDatabaseConnector dbConnector = null;
 
-    /** database type */
+	/** database type */
     private String dbType = null;
     
     /** database url */
@@ -435,6 +435,12 @@ public class ConfDB
 	}
     }
 
+
+    public IDatabaseConnector getDbConnector() {
+		return dbConnector;
+	}
+
+    
     /** list number of entries in (some) tables */
     public void listCounts() throws DatabaseException
     {
