@@ -299,6 +299,13 @@ public class ConfDB
     /** retrieve db url */
     public String dbUrl() { return this.dbUrl; }
     
+
+    /** retrieve db connector */
+    public IDatabaseConnector getDbConnector() {
+		return dbConnector;
+	}
+
+    
     /** close all prepared statements */
     void closePreparedStatements() throws DatabaseException
     {
