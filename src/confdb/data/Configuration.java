@@ -1239,6 +1239,7 @@ public class Configuration implements IConfiguration
     {
 	int index = contents.indexOf(ec);
 	if (index<0) return;
+	ec.removeStreams();
 	contents.remove(index);
 	hasChanged = true;
     }
