@@ -1,5 +1,8 @@
 package confdb.converter;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +21,22 @@ public class BrowserConverter extends OfflineConverter
 {
     static private HashMap<Integer,BrowserConverter> map = new HashMap<Integer,BrowserConverter>();
     static private String[] dbNames = null;
+    
+    private PreparedStatement psSelectHltKeyFromRunSummary = null;
+    
+	public int getKeyFromRunSummary( int runnumber ) throws SQLException
+	{
+		if ( psSelectHltKeyFromRunSummary == null )
+			psSelectHltKeyFromRunSummary = getDatabase().getDbConnector().getConnection().prepareStatement( "SELECT HLTKEY FROM CMS_WBM.RUNSUMMARY WHERE RUNNUMBER=?" );
+		psSelectHltKeyFromRunSummary.setInt( 1, runnumber );
+		ResultSet rs = psSelectHltKeyFromRunSummary.executeQuery();
+		int key = -1;
+		if ( rs.next() )
+			key = rs.getInt(1);
+		return key;
+	}
+    
+	
     
     private BrowserConverter(String dbType,String dbUrl,
 			     String dbUser,String dbPwrd) throws ConverterException
