@@ -1149,6 +1149,7 @@ public class ConfigurationTreeActions
 				  dataset);
 		datasetCount++;
 	    }
+	    stream.removeOutputModuleReferences();
 	    OutputModule output = stream.outputModule();
 	    model.nodeRemoved(model.streamsNode(),
 			      config.indexOfStream(stream)-streamCount,

@@ -69,6 +69,12 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	parentContent.setHasChanged();
     }
 
+    public void setDatabaseId(int databaseId){
+	super.setDatabaseId(databaseId);
+	outputModule.setDatabaseId(databaseId);
+    }
+
+
     /** set the fraction of events to be writte to local disk by SM */
     public void setFractionToDisk(double fractionToDisk)
     {
@@ -228,6 +234,13 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	setHasChanged();
 	return true;
 
+    }
+
+
+    public void removeOutputModuleReferences(){
+	for (int i=outputModule.referenceCount()-1;i>=0;i--) {
+	    outputModule.reference(i).remove();
+	}
     }
     
 }

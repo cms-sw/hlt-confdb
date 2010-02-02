@@ -236,9 +236,22 @@ public class EventContent extends DatabaseEntry
     {
 	int index = streams.indexOf(stream);
 	if (index<0) return false;
+	stream.removeOutputModuleReferences();
 	streams.remove(index);
 	setHasChanged();
 	return true;
+    }
+
+
+    /** remove all stream from the event content */
+    public void removeStreams()
+    {
+
+	for(int i = streamCount()-1;i>=0;i--){
+	    Stream stream = stream(i);
+	    if(stream!=null)
+		removeStream(stream);
+	}
     }
 
     /** retrieve number of associated primary dataset */

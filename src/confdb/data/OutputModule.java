@@ -191,6 +191,7 @@ public class OutputModule extends ParameterContainer implements Referencable
 	references.remove(index);
 	//if (referenceCount()==0) remove();
     }
+   
     
     /** Referencable: get list of parent paths */
     public Path[] parentPaths()
@@ -242,6 +243,14 @@ public class OutputModule extends ParameterContainer implements Referencable
 	}
 	vstringOutputCommands.setValue(valueAsString.toString());
     }
+
     
+    public boolean hasChanged(){
+	return parentStream.hasChanged();
+    }
+
+    public int databaseId(){
+	return parentStream.databaseId();
+    }    
 }
 
