@@ -74,6 +74,17 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	outputModule.setDatabaseId(databaseId);
     }
 
+    public boolean hasChanged(){
+	for (Path p : paths){
+	    if(p.hasChanged()){
+		setHasChanged();
+		break;
+	    }
+	}
+	
+	return super.hasChanged();
+    }
+
 
     /** set the fraction of events to be writte to local disk by SM */
     public void setFractionToDisk(double fractionToDisk)
