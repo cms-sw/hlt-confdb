@@ -78,7 +78,13 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	for (Path p : paths){
 	    if(p.hasChanged()){
 		setHasChanged();
-		break;
+		return super.hasChanged();
+	    }
+	}
+	for (PrimaryDataset pd : datasets){
+	    if(pd.hasChanged()){
+		setHasChanged();
+	       	return super.hasChanged();
 	    }
 	}
 	

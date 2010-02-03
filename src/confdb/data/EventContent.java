@@ -48,7 +48,9 @@ public class EventContent extends DatabaseEntry
     public String name() { return name; }
     
     /** set the name of this event content */
-    public void setName(String name) { this.name = name; }
+    public void setName(String name) { this.name = name; 
+	setHasChanged();
+    }
     
     /** retrieve string representation of this event content */
     public String toString() { return name(); }
@@ -58,6 +60,16 @@ public class EventContent extends DatabaseEntry
 
     /** set the parent configuration */
     public void setConfig(IConfiguration config) { this.config = config; }
+
+    public boolean hasChanged(){
+	for (Stream s : streams){
+	    if(s.hasChanged()){
+		setHasChanged();
+		break;
+	    }  
+	}
+	return super.hasChanged();
+    }
 
 
     /** number of paths */
