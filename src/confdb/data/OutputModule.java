@@ -249,6 +249,10 @@ public class OutputModule extends ParameterContainer implements Referencable
 	return parentStream.hasChanged();
     }
 
+    public void setHasChanged(){
+        parentStream.setHasChanged();
+    }
+
     public int databaseId(){
 	return parentStream.databaseId();
     }    
