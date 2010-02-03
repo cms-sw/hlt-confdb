@@ -48,12 +48,25 @@ public class PrimaryDataset extends DatabaseEntry
     
     /** name of this stream */
     public String name() { return name; }
+
+   public boolean hasChanged(){
+	for (Path p : paths){
+	    if(p.hasChanged()){
+		setHasChanged();
+		break;
+	    }
+	}
+	return super.hasChanged();
+    }
     
     /** get the parent stream */
     public Stream parentStream() { return parentStream; }
 
     /** set name of this stream */
-    public void setName(String name) { this.name = name; }
+    public void setName(String name) { this.name = name;
+	setHasChanged();
+
+    }
     
     /** overload 'toString()' */
     public String toString() { return name(); }
