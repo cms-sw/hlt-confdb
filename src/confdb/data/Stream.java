@@ -63,15 +63,10 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** set name of this stream */
     public void setName(String name) { this.name = name; }
     
-    
-    public void setHasChanged(){
-	super.setHasChanged();
-	parentContent.setHasChanged();
-    }
 
-    public void setDatabaseId(int databaseId){
-	super.setDatabaseId(databaseId);
-	outputModule.setDatabaseId(databaseId);
+    public int databaseId(){
+	hasChanged();
+	return super.databaseId();
     }
 
     public boolean hasChanged(){

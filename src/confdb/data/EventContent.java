@@ -61,6 +61,12 @@ public class EventContent extends DatabaseEntry
     /** set the parent configuration */
     public void setConfig(IConfiguration config) { this.config = config; }
 
+
+    public int databaseId(){
+	hasChanged();
+	return super.databaseId();
+    }
+
     public boolean hasChanged(){
 	for (Stream s : streams){
 	    if(s.hasChanged()){
