@@ -1375,7 +1375,14 @@ public class ConfDB
 	    
 	    // insert services
 	    insertServices(configId,config);
-	    
+	  
+	    HashMap<String,Integer> primaryDatasetHashMap =  insertPrimaryDatasets(configId,config);
+	    HashMap<String,Integer> eventContentHashMap = insertEventContents(configId,config);
+	    HashMap<String,Integer> streamHashMap = insertStreams(configId,config);
+	  
+	    insertEventContentStreamAssoc(eventContentHashMap,streamHashMap,config);
+	    insertStreamDatasetAssoc(streamHashMap,primaryDatasetHashMap,config);
+ 
 	    // insert paths
 	    HashMap<String,Integer> pathHashMap=insertPaths(configId,config);
 	    
@@ -1387,14 +1394,7 @@ public class ConfDB
 	    HashMap<String,Integer> moduleHashMap=insertModules(config);
 
 	 
-	    HashMap<String,Integer> eventContentHashMap = insertEventContents(configId,config);
-	    HashMap<String,Integer> streamHashMap = insertStreams(configId,config);
-	    HashMap<String,Integer> primaryDatasetHashMap =  insertPrimaryDatasets(configId,config);
-	    
-	    // insertOutputModules(streamHashMap,configId,config);
-
-	    insertEventContentStreamAssoc(eventContentHashMap,streamHashMap,config);
-	    insertStreamDatasetAssoc(streamHashMap,primaryDatasetHashMap,config);
+	    insertEventContentStatements(configId,config,eventContentHashMap);	  
 	    insertPathStreamPDAssoc(pathHashMap,streamHashMap,primaryDatasetHashMap,config,configId);
 	
 
@@ -2179,7 +2179,8 @@ public class ConfDB
 	while (itC.hasNext()) {
 	    EventContent eventContent = itC.next();
 	    int eventContentId = eventContent.databaseId();
-	    if(eventContentId>0){
+	    System.out.println(eventContent.name());
+	    if(!eventContent.hasChanged()){
 		result.put(eventContent.name(),-1*eventContentId);
 		continue;
 	    }
@@ -2190,6 +2191,7 @@ public class ConfDB
 		rse.next();
 		eventContentId = rse.getInt(1);
 		result.put(eventContent.name(),eventContentId);
+		eventContent.setDatabaseId(eventContentId);
 	    }
 	    catch (SQLException e) {
 		String errMsg =
@@ -2227,10 +2229,12 @@ public class ConfDB
 		"(batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e); 
 	}
-
+	return result;
+    }
+    private void insertEventContentStatements(int configId,Configuration config,HashMap<String,Integer> eventContentHashMap) throws DatabaseException{
 	for (int i=0;i<config.contentCount();i++) {
 	    EventContent eventContent = config.content(i);
-	    int  contentId = result.get(eventContent.name());
+	    int  contentId =  eventContentHashMap.get(eventContent.name());
 	    if(contentId<0){
 		continue;
 	    }
@@ -2299,7 +2303,6 @@ public class ConfDB
 		"(batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e); 
 	}
-	return result;
     }
     
     /** insert configuration's Streams */
@@ -2372,7 +2375,7 @@ public class ConfDB
 	while (itP.hasNext()) {
 	    PrimaryDataset primaryDataset = itP.next();
 	    int datasetId = primaryDataset.databaseId();
-	    if(datasetId>0){
+	    if(!primaryDataset.hasChanged()){
 		result.put(primaryDataset.name(),-1*datasetId);
 		continue;
 	    }
@@ -2478,7 +2481,7 @@ public class ConfDB
 		
 	        try {
 		    psInsertPathStreamPDAssoc.setInt(1,path.databaseId());
-		    psInsertPathStreamPDAssoc.setInt(2,stream.databaseId());
+		    psInsertPathStreamPDAssoc.setInt(2,streamId);
 		    psInsertPathStreamPDAssoc.setInt(3,datasetId);
 		    psInsertPathStreamPDAssoc.executeUpdate();
 		}
