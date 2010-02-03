@@ -1080,6 +1080,19 @@ public class Configuration implements IConfiguration
 	
 	int index = paths.indexOf(path);
 	paths.remove(index);
+
+	for (int i=0;i<pathCount();i++) {
+	    Path p   = path(i);
+	    for(int sequenceNb=0;sequenceNb<p.entryCount();sequenceNb++){
+		Reference r = p.entry(sequenceNb);
+		if (r instanceof OutputModuleReference) {
+		    OutputModule om = (OutputModule)r.parent();
+		    if(om.hasChanged()){
+			p.setHasChanged();
+		    }
+		}
+	    }
+	}
 	hasChanged = true;
     }
     
