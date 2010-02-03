@@ -168,8 +168,13 @@ public class ConfigurationModifier implements IConfiguration
 		    edsources.add(edsource);
 	    }
 	}
-	if (modifications.doInsertEDSource())
-	    edsources.add(modifications.edsourceToBeAdded());
+	if (modifications.doInsertEDSource()) {
+	    EDSourceInstance eds = modifications.edsourceToBeAdded();
+	    eds.updateParameter("fileNames",
+				"vstring",
+				modifications.edsourceFileNames());
+	    edsources.add(eds);
+	}
 	
 	if (!modifications.doFilterAllESSources()) {
 	    Iterator<ESSourceInstance> it=master.essourceIterator();

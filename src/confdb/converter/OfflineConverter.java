@@ -145,7 +145,7 @@ public class OfflineConverter extends ConverterBase
     {
 	if (config.streamCount()==0) return;
 	
-	PSetParameter pset = new PSetParameter("streams","",false);
+	PSetParameter pset = new PSetParameter("streams","",true);
 	Iterator<Stream> itS = config.streamIterator();
 	while (itS.hasNext()) {
 	    Stream stream = itS.next();
@@ -157,7 +157,7 @@ public class OfflineConverter extends ConverterBase
 	    }
 	    pset.addParameter(new VStringParameter(stream.name(),
 						   valueAsString.toString(),
-						   false));
+						   true));
 	}
 	config.insertPSet(pset);
     }
@@ -167,7 +167,7 @@ public class OfflineConverter extends ConverterBase
     {
 	if (config.datasetCount()==0) return;
 	
-	PSetParameter pset = new PSetParameter("datasets","",false);
+	PSetParameter pset = new PSetParameter("datasets","",true);
 	Iterator<PrimaryDataset> itD = config.datasetIterator();
 	while (itD.hasNext()) {
 	    PrimaryDataset dataset = itD.next();
@@ -179,7 +179,7 @@ public class OfflineConverter extends ConverterBase
 	    }
 	    pset.addParameter(new VStringParameter(dataset.name(),
 						   valueAsString.toString(),
-						   false));
+						   true));
 	}
 	config.insertPSet(pset);
     }
@@ -201,7 +201,7 @@ public class OfflineConverter extends ConverterBase
 	String  dbPort      =             "10121";
 	String  dbName      =  "cms_cond.cern.ch";
 	String  dbUser      = "cms_hltdev_reader";
-	String  dbPwrd      =                  "";
+	String  dbPwrd      =        "convertme!";
 
 	HashMap<String,String> cnvArgs = new HashMap<String,String>();
 	

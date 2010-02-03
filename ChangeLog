@@ -1,3 +1,11 @@
+2010-02-03  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-03-08
+	* further Edgar bug activities
+	* fix --input file:dummy.root functionality (OfflineConverter)
+	* make streams and datasets PSets (and contained parameters)
+	tracked
+
 2010-02-02  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-03-07

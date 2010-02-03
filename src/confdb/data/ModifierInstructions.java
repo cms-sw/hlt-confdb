@@ -80,7 +80,8 @@ public class ModifierInstructions
 
     /** template for the EDSource to be substituted (if any) */
     private EDSourceTemplate edsourceT = null;
-    
+    private String           edsourceFileNames = new String();
+
     /** template for the OutputModule to be substituted (if any) */
     private ModuleTemplate   outputT = null;
 
@@ -616,6 +617,10 @@ public class ModifierInstructions
 	return result;
     }
 
+
+    /** retrieve the value of the fileNames parameter for [Pool]Source to be added */
+    public String edsourceFileNames() { return edsourceFileNames; }
+
     /** check if an OutputModule is to be added */
     public boolean doInsertOutputModule() { return (outputT!=null); }
 
@@ -1029,8 +1034,9 @@ public class ModifierInstructions
     {
 	filterAllEDSources = true;
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
-	params.add(new VStringParameter("fileNames",fileNames,false));
+	params.add(new VStringParameter("fileNames","",false));
 	edsourceT = new EDSourceTemplate("PoolSource","UNKNOWN",params);
+	edsourceFileNames = fileNames;
     }
     
     /** insert/replace FUShmStreamConsumer */
