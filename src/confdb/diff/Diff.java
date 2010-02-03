@@ -311,6 +311,13 @@ public class Diff
 	    Comparison c = compareInstances(mold,mnew);
 	    if (!c.isIdentical()) modules.add(c);
 	}
+	else if (type.equalsIgnoreCase("OutputModule")||
+		 type.equalsIgnoreCase("om")) {
+	    OutputModule omold = config1.output(oldName);
+	    OutputModule omnew = config2.output(newName);
+	    Comparison c = compareOutputModules(omold,omnew);
+	    if (!c.isIdentical()) modules.add(c);
+	}
 	else if (type.equalsIgnoreCase("Path")||
 		 type.equalsIgnoreCase("p")) {
 	    Path pold = config1.path(oldName);
@@ -615,6 +622,11 @@ public class Diff
 						    (Instance)parent2);
 		    if (!c.isIdentical()) result.addComparison(c);
 		}
+		else if (parent2 instanceof OutputModule) {
+		    Comparison c = compareOutputModules((OutputModule)parent1,
+							(OutputModule)parent2);
+		    if (!c.isIdentical()) result.addComparison(c);
+		}
 	    }
 	    
 	    Iterator<Reference> itRef1 = rc1.entryIterator();
@@ -631,6 +643,10 @@ public class Diff
 		else if (parent1 instanceof ModuleInstance) {
 		    Instance i = (Instance)parent1;
 		    result.addComparison(new InstanceComparison(i,null));
+		}
+		else if (parent1 instanceof OutputModule) {
+		    OutputModule om = (OutputModule)parent1;
+		    result.addComparison(new OutputModuleComparison(om,null));
 		}
 		
 		containerMap.put(rc1.name()+"::"+rc2.name(),result);

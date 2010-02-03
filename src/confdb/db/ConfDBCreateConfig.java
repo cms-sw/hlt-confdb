@@ -76,12 +76,12 @@ public class ConfDBCreateConfig
 	    System.exit(0);
 	}
 	
-    String dbUrl = buildUrl( dbHost, dbName, dbType, dbPort );
-    if ( dbUrl == null )
-	{
+	String dbUrl = buildUrl( dbHost, dbName, dbType, dbPort );
+	if ( dbUrl == null )
+	    {
 		System.err.println("ERROR: Unknwown db type '"+dbType+"'");
 		System.exit(0);
-	}
+	    }
 	try {
 	    HashSet<String> pathsToInclude = new HashSet<String>();
 	    if (pathList.endsWith(".txt")) 
@@ -89,25 +89,25 @@ public class ConfDBCreateConfig
 	    else {
 	    	String[] paths = pathList.split(",");
 	    	for (String path : paths) 
-	    		pathsToInclude.add(path);
+		    pathsToInclude.add(path);
 	    }
 
-		doIt( dbType, dbUrl, dbUser, dbPwrd, 
-				  masterConfigName, newConfigName, pathsToInclude, System.out, System.getProperty("user.name") );
+	    doIt( dbType, dbUrl, dbUser, dbPwrd, 
+		  masterConfigName, newConfigName, pathsToInclude, System.out, System.getProperty("user.name") );
 	}
 	catch (DatabaseException e) {
-		    System.err.println("Failed to connet to DB: " + e.getMessage());
+	    System.err.println("Failed to connet to DB: " + e.getMessage());
 	}
 	catch (Exception e) {
-		    e.printStackTrace();
+	    e.printStackTrace();
 	}
 
     }
     
     
     static public void doIt( String dbType, String dbUrl, String dbUser, String dbPwrd,
-			String masterConfigName, String newConfigName, HashSet<String> pathsToInclude,
-			PrintStream out, String userName ) throws Exception
+			     String masterConfigName, String newConfigName, HashSet<String> pathsToInclude,
+			     PrintStream out, String userName ) throws Exception
     {
 	
 	ConfDB database = new ConfDB();
@@ -218,7 +218,7 @@ public class ConfDBCreateConfig
 					 userName,processName,comment);
 	    long elapsedTime = System.currentTimeMillis() - startTime;
 	    out.println("... stored as "+masterConfig+
-			       " (" + elapsedTime + " seconds)");
+			" (" + elapsedTime + " seconds)");
 	}
 	finally {
 	    try { database.disconnect(); }
@@ -246,13 +246,13 @@ public class ConfDBCreateConfig
     	    input.close();
     	}
     	if (pathsToInclude.size()==0) {
-    		String errmsg = "No paths specified to be included!";
-    		throw new Exception(errmsg);
+	    String errmsg = "No paths specified to be included!";
+	    throw new Exception(errmsg);
     	}
     	out.println("GOOD, the following paths will be included:");
     	Iterator<String> it = pathsToInclude.iterator();
     	while (it.hasNext()) 
-    		out.println(it.next());
+	    out.println(it.next());
     	return pathsToInclude;
     }
     
@@ -260,10 +260,10 @@ public class ConfDBCreateConfig
     {
     	String dbUrl = null;
     	if (dbType.equalsIgnoreCase("mysql")) {
-    		dbUrl  = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+dbName;
+	    dbUrl  = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+dbName;
     	}
     	else if (dbType.equalsIgnoreCase("oracle")) {
-    		dbUrl = "jdbc:oracle:thin:@//"+dbHost+":"+dbPort+"/"+dbName;
+	    dbUrl = "jdbc:oracle:thin:@//"+dbHost+":"+dbPort+"/"+dbName;
     	}
     	return dbUrl;
     }
