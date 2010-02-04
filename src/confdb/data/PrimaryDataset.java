@@ -49,6 +49,12 @@ public class PrimaryDataset extends DatabaseEntry
     /** name of this stream */
     public String name() { return name; }
 
+
+    public int databaseId(){
+	hasChanged();
+	return super.databaseId();
+    }
+
    public boolean hasChanged(){
 	for (Path p : paths){
 	    if(p.hasChanged()){
