@@ -65,7 +65,6 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     
 
     public int databaseId(){
-	hasChanged();
 	return super.databaseId();
     }
 

@@ -1,4 +1,4 @@
-package confdb.data;
+ package confdb.data;
 
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -63,7 +63,6 @@ public class EventContent extends DatabaseEntry
 
 
     public int databaseId(){
-	hasChanged();
 	return super.databaseId();
     }
 
