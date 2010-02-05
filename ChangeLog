@@ -1,3 +1,12 @@
+2010-02-05  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-03-10
+	* fix Configuration.orderedSequenceIterator(). Without this fix,
+	the OnlineConverter will fail to properly order the sequences, as
+	reported by Maurizio
+	* modify, save & corrupt problems (aka Edgar bug) fixed, small
+	remaining issue regardin hasChanged(), yet to be addressed
+
 2010-02-03  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-03-09

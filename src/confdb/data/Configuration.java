@@ -1143,7 +1143,37 @@ public class Configuration implements IConfiguration
     /** retrieve sequence iterator */
     public Iterator<Sequence> orderedSequenceIterator()
     {
-	return sequenceIterator();
+	ArrayList<Sequence> result = new ArrayList<Sequence>();
+	Iterator<Sequence> itS = sequenceIterator();
+	while (itS.hasNext()) {
+	    Sequence sequence = itS.next();
+	    int      indexS   = result.indexOf(sequence);
+	    if (indexS<0) {
+		indexS = result.size();
+		result.add(sequence);
+	    }
+	    Iterator<Reference> itR = sequence.entryIterator();
+	    while (itR.hasNext()) {
+		Reference reference = itR.next();
+		Referencable parent = reference.parent();
+		if (parent instanceof Sequence) {
+		    Sequence s = (Sequence)parent;
+		    int indexR = result.indexOf(s);
+		    if (indexR<0) {
+			indexR=indexS;
+			indexS++;
+			result.add(indexR,s);
+		    }
+		    else if (indexR>indexS) {
+			result.remove(indexR);
+			indexR=indexS;
+			indexS++;
+			result.add(indexR,s);
+		    }
+		}
+	    }
+	}
+	return result.iterator();
     }
     
     /** insert sequence */
