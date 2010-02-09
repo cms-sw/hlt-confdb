@@ -1,3 +1,8 @@
+2010-02-09  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-03-11
+	* bugfix to GUI (Vasu, 'Bug 25')
+
 2010-02-05  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-03-10
