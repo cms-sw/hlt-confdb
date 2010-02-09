@@ -1360,6 +1360,9 @@ public class ConfDB
 	    String created = rs.getString(1);
 	    config.addNextVersion(configId,
 				  created,creator,releaseTag,processName,comment);
+
+
+	    config.updatePathReferences();
 	    
 	    // insert global psets
 	    insertGlobalPSets(configId,config);
