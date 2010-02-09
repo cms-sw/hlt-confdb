@@ -348,7 +348,8 @@ class ConfdbLoadParamsfromConfigs:
             self.GetPackageID(thesubsystem,thepackage)
                 
             try:
-                self.ExtendTheCfi(pyfile, pydir)
+                allowmultiplecfis = True
+                self.ExtendTheCfi(pyfile, pydir, allowmultiplecfis)
                     
                 # cfi files are not guaranteed to be valid :( If we find an invalid one, catch the
                 # exception from the python config API and move on to the next
@@ -446,7 +447,8 @@ class ConfdbLoadParamsfromConfigs:
                             thecomponent = pyfile.split('.py')[0]
 
                             try:
-                                self.ExtendTheCfi(pyfile, pydir)
+                                allowmultiplecfis = False
+                                self.ExtendTheCfi(pyfile, pydir, allowmultiplecfis)
 
                             # cfi files are not guaranteed to be valid :( If we find an invalid one, catch the
                             # exception from the python config API and move on to the next
@@ -483,7 +485,7 @@ class ConfdbLoadParamsfromConfigs:
         self.GenerateUsedCfiTable()
         self.outputlogfilehandle.close()
 
-    def ExtendTheCfi(self, pyfile, pydir):
+    def ExtendTheCfi(self, pyfile, pydir, allowmultiplecfis):
 
         self.VerbosePrint("Extending the python cfi file " + str(pyfile),0)
         thecomponent = pyfile.split('.py')[0]
@@ -506,31 +508,31 @@ class ConfdbLoadParamsfromConfigs:
         
         myproducers = process.producers_()
         self.componenttable = "ModuleTemplates"
-        self.FindParamsFromPython(thesubsystem, thepackage, myproducers,"EDProducer")
+        self.FindParamsFromPython(thesubsystem, thepackage, myproducers,"EDProducer", allowmultiplecfis)
         
         myfilters = process.filters_()
         self.componenttable = "ModuleTemplates"
-        self.FindParamsFromPython(thesubsystem, thepackage, myfilters,"EDFilter") 
+        self.FindParamsFromPython(thesubsystem, thepackage, myfilters,"EDFilter", allowmultiplecfis)
         
         myservices = process.services_()
         self.componenttable = "ServiceTemplates"                                
-        self.FindParamsFromPython(thesubsystem, thepackage, myservices,"Service") 
+        self.FindParamsFromPython(thesubsystem, thepackage, myservices,"Service", allowmultiplecfis) 
         
         myanalyzers = process.analyzers_()
         self.componenttable = "ModuleTemplates"
-        self.FindParamsFromPython(thesubsystem, thepackage, myanalyzers,"EDAnalyzer") 
+        self.FindParamsFromPython(thesubsystem, thepackage, myanalyzers,"EDAnalyzer", allowmultiplecfis) 
         
         myoutputmodules = process.outputModules_()
         self.componenttable = "ModuleTemplates"
-        self.FindParamsFromPython(thesubsystem, thepackage, myoutputmodules,"OutputModule")
+        self.FindParamsFromPython(thesubsystem, thepackage, myoutputmodules,"OutputModule", allowmultiplecfis)
         
         myessources = process.es_sources_()
         self.componenttable = "ESSourceTemplates"                                
-        self.FindParamsFromPython(thesubsystem, thepackage, myessources,"ESSource") 
+        self.FindParamsFromPython(thesubsystem, thepackage, myessources,"ESSource", allowmultiplecfis) 
         
         myesproducers = process.es_producers_()
         self.componenttable = "ESModuleTemplates"                                
-        self.FindParamsFromPython(thesubsystem, thepackage, myesproducers,"ESModule") 
+        self.FindParamsFromPython(thesubsystem, thepackage, myesproducers,"ESModule", allowmultiplecfis) 
             
     def DoPsetRecursion(self,psetval,psetname,psetsid):
 
@@ -583,7 +585,7 @@ class ConfdbLoadParamsfromConfigs:
                     del self.nesting[-1]
                     i = i + 1
     
-    def FindParamsFromPython(self, thesubsystem, thepackage, mycomponents, componenttype):
+    def FindParamsFromPython(self, thesubsystem, thepackage, mycomponents, componenttype, allowmultiplecfis):
 
         self.nesting = []
         for name, value in mycomponents.iteritems():
@@ -596,8 +598,11 @@ class ConfdbLoadParamsfromConfigs:
             if(not template in self.finishedtemplates):
                 self.finishedtemplates.append(template)
             else:
-                self.VerbosePrint("Skipping the cfi for " + name + " because a template was already loaded for " + value.type_(),1)
-                return
+                if(allowmultiplecfis == True):
+                    self.VerbosePrint("Loading another cfi for " + name + " even though a template was already loaded for " + value.type_(),1)
+                else:                        
+                    self.VerbosePrint("Skipping the cfi for " + name + " because a template was already loaded for " + value.type_(),1)
+                    return
 
             self.componentname = value.type_()
             self.usedcfilist.append((self.thepyfile,self.componentname))
@@ -770,6 +775,12 @@ class ConfdbLoadParamsfromConfigs:
             if(parametervalue == False):
                 parametervalue = str(0)
 
+        # JH - deal with photon ID cuts of 1E+308 (!)
+        if(parametertype == "double"):
+            if(parametervalue > 1e+125):
+                parametervalue = 1e+125 
+        # end JH
+
         selectstr = "SELECT SuperIdParameterAssoc.paramId FROM SuperIdParameterAssoc JOIN Parameters ON (Parameters.name = '" + parametername + "') WHERE (SuperIdParameterAssoc.superId = " + str(sid) + ") AND (SuperIdParameterAssoc.paramId = Parameters.paramId)"
 
         self.VerbosePrint(selectstr, 3)
@@ -780,6 +791,11 @@ class ConfdbLoadParamsfromConfigs:
         if(paramid):
             returnid = paramid[0]
         else:
+            #JH
+            if(parametertype == "ESInputTag"):
+                parametertype = "InputTag"
+            #end JH
+            
             parametertypeint = self.paramtypedict[parametertype]
             paramtable = self.paramtabledict[parametertype]
 
