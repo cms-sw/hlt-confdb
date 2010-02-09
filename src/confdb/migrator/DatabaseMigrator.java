@@ -64,6 +64,9 @@ public class DatabaseMigrator
 	String          creator       = System.getProperty("user.name");
 	
 	try {
+	    
+	    targetDB.insertRelease(releaseTag,sourceRelease);
+
 	    targetDB.loadSoftwareRelease(releaseTag,targetRelease);
 	    ConfigInfo targetConfigInfo = new ConfigInfo(targetName,targetDir,
 							 releaseTag);
