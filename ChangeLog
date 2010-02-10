@@ -1,3 +1,8 @@
+2010-02-10  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-03-12
+	* bugfix to DatabaseMigrator (Vasu, 'Bug 26')
+
 2010-02-09  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-03-11
