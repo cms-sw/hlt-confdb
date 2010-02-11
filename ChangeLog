@@ -1,5 +1,8 @@
 2010-02-11  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
+	* tag V01-04-01
+	* add EditDatasetDialog.java to cvs
+
 	* tag V01-04-00
 	* gui: paths appear as daughter nodes to PDs under Streams
 	* gui: paths can be added directly to PDs (and thereby to stream)
