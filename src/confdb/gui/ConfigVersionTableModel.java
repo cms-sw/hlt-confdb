@@ -25,6 +25,9 @@ public class ConfigVersionTableModel extends AbstractTableModel
     
     /** configuration info object to be displayed */
     private ConfigInfo configInfo = null;
+
+    /** fix releaseTag */
+    private String releaseTag = new String();
     
 
     //
@@ -38,24 +41,31 @@ public class ConfigVersionTableModel extends AbstractTableModel
 	fireTableDataChanged();
     }
 
+    /** fix releaseTag */
+    public void fixReleaseTag(String releaseTag)
+    {
+	this.releaseTag = releaseTag;
+	fireTableDataChanged();
+    }
+    
     /** number of columns */
     public int getColumnCount() { return columnNames.length; }
     
     /** number of rows */
     public int getRowCount()
     {
-	return (configInfo!=null) ? configInfo.versionCount() : 0;
+	return (configInfo!=null) ? configInfo.versionCount(releaseTag) : 0;
     }
 
     /** get column name for colimn 'col' */
-    public String getColumnName(int col) { return columnNames[col]; }
+    public String getColumnName(int col)  { return columnNames[col]; }
     
     /** get the value for row,col */
     public Object getValueAt(int row, int col)
     {
 	if (configInfo==null) return null;
 
-	ConfigVersion cVersion = configInfo.version(row);
+	ConfigVersion cVersion = configInfo.version(releaseTag,row);
 	switch (col) {
 	case 0: return new Integer(cVersion.version());
 	case 1: return cVersion.created();
@@ -73,6 +83,5 @@ public class ConfigVersionTableModel extends AbstractTableModel
     
     /** is a cell editable or not? */
     public boolean isCellEditable(int row, int col) { return false; }
-
 }
 

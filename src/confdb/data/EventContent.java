@@ -1,7 +1,10 @@
  package confdb.data;
 
+
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Collections;
+
 
 /**
  * EventContent
@@ -96,6 +99,14 @@ public class EventContent extends DatabaseEntry
     
     /** retrieve path iterator */
     public Iterator<Path> pathIterator() { return paths().iterator(); }
+
+    /** retrieve path iterator (alphabetical order) */
+    public Iterator<Path> orderedPathIterator()
+    {
+	ArrayList<Path> orderedPaths = new ArrayList<Path>(paths());
+	Collections.sort(orderedPaths);
+	return orderedPaths.iterator();
+    }
 
     /** retrieve index of a given path */
     public int indexOfPath(Path path) { return paths().indexOf(path); }

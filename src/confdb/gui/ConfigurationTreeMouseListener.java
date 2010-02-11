@@ -924,6 +924,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	else if (depth==3) {
 	    PrimaryDataset dataset = (PrimaryDataset)node;
 	    
+	    menuItem = new JMenuItem("<html>Edit <i>" + dataset.name() +
+				     "</i></html>");
+	    menuItem.addActionListener(datasetListener);
+	    menuItem.setActionCommand("EDIT "+dataset.name());
+	    popupDatasets.add(menuItem);
+	    
 	    JMenu addPathMenu = new ScrollableMenu("Add Path");
 	    popupDatasets.add(addPathMenu);
 	    
@@ -941,11 +947,16 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem.setActionCommand("REMOVE");
 	    popupDatasets.add(menuItem);
 
-	    ArrayList<Path> paths =
-		dataset.parentStream().listOfUnassignedPaths();
-
+	    ArrayList<Path> paths = new ArrayList<Path>();
+	    Iterator<Path> itP = config.pathIterator();
+	    while (itP.hasNext()) {
+		Path path = itP.next();
+		if (dataset.parentStream().indexOfPath(path)<0)
+		    paths.add(path);
+	    }
+	    
 	    Collections.sort(paths);
-	    Iterator<Path> itP = paths.iterator();
+	    itP = paths.iterator();
 	    while (itP.hasNext()) {
 		menuItem = new JMenuItem(itP.next().name());
 		menuItem.addActionListener(datasetListener);
@@ -1717,10 +1728,23 @@ class DatasetMenuListener implements ActionListener
 	TreePath  treePath = tree.getSelectionPath();
 	Object    node     = treePath.getLastPathComponent();
 	
-    	if (action.equals("ADD")) {
-	    ConfigurationTreeModel model =
-		(ConfigurationTreeModel)tree.getModel();
-	    Configuration config = (Configuration)model.getRoot();
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+
+	if (action.startsWith("EDIT")) {
+	    String datasetName = action.split(" ")[1];
+	    PrimaryDataset dataset = config.dataset(datasetName);
+	    EditDatasetDialog dlg = new EditDatasetDialog(frame,config,dataset);
+	    dlg.pack();
+	    dlg.setLocationRelativeTo(frame);
+	    dlg.setVisible(true);
+	    if (dataset.hasChanged()) {
+		model.nodeStructureChanged(dataset);
+		model.nodeStructureChanged(dataset.parentStream());
+		model.updateLevel1Nodes();
+	    }
+	}
+    	else if (action.equals("ADD")) {
 	    CreateDatasetDialog dlg = new CreateDatasetDialog(frame,config);
 	    dlg.pack(); dlg.setLocationRelativeTo(frame);
 	    dlg.setVisible(true);

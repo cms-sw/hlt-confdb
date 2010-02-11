@@ -415,9 +415,10 @@ public class PickConfigurationDialog extends JDialog
 	ListSelectionModel lsm = (ListSelectionModel)e.getSource();
 	if (!lsm.isSelectionEmpty()) {
 	    int selectedIndex = lsm.getMinSelectionIndex();
-	    if (releaseTag.equals(new String())||
-		releaseTag.equals(configInfo.version(selectedIndex).releaseTag()))
-		configInfo.setVersionIndex(selectedIndex);
+	    configInfo.setVersionIndex(releaseTag,selectedIndex);
+	    //if (releaseTag.equals(new String())||
+	    //	releaseTag.equals(configInfo.version(selectedIndex).releaseTag()))
+	    //	configInfo.setVersionIndex(selectedIndex);
 	}
     }
     private void jTextFieldFilterInsertUpdate(DocumentEvent e)
@@ -481,6 +482,7 @@ public class PickConfigurationDialog extends JDialog
 	treeModel.setRootDir(filteredRootDir);
 	if (filterString.length()>0) expandTree();
 	listModel.setDirectory(filteredRootDir);	
+	tableModel.fixReleaseTag(releaseTag);
     }
     
     /** expand the whole tree */

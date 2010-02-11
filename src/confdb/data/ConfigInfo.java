@@ -1,5 +1,6 @@
 package confdb.data;
 
+import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -130,6 +131,35 @@ public class ConfigInfo implements Comparable<ConfigInfo>
     /** get the i-th version */
     public ConfigVersion version(int i) { return versions.get(i); }
     
+    /** number of versions with specified releaseTag */
+    public int versionCount(String releaseTag)
+    {
+	int result = 0;
+	Iterator<ConfigVersion> itCV = versions.iterator();
+	while (itCV.hasNext()) {
+	    ConfigVersion version = itCV.next();
+	    if (releaseTag.equals("")||
+		releaseTag.equals(version.releaseTag())) result++;
+	}
+	return result;
+    }
+    
+    /** get the i-th version */
+    public ConfigVersion version(String releaseTag, int i)
+    {
+	if (releaseTag.equals("")) return versions.get(i);
+	int index = 0;
+	Iterator<ConfigVersion> itCV = versions.iterator();
+	while (itCV.hasNext()) {
+	    ConfigVersion version = itCV.next();
+	    if (releaseTag.equals(version.releaseTag())) {
+		if (index==i) return version;
+		index++;
+	    }
+	}
+	return null;
+    }
+    
     /** check if configuration and all versions are locked */
     public boolean isLocked() { return (lockedByUser.length()>0); }
     
@@ -177,6 +207,21 @@ public class ConfigInfo implements Comparable<ConfigInfo>
     {
 	versionIndex = index;
 	releaseTag   = versions.get(versionIndex).releaseTag();
+    }
+    
+    /** the the index of the selected version w.r.t. to specified release tag */
+    public void setVersionIndex(String releaseTag, int index)
+    {
+	if (releaseTag.equals("")) { versionIndex = index; }
+	else {
+	    int i = -1; int j = 0;
+	    while (j<versions.size()&&i<index) {
+		if (versions.get(j).releaseTag().equals(releaseTag)) i++;
+		j++;
+	    }
+	    versionIndex = i;
+	}
+	this.releaseTag = versions.get(versionIndex).releaseTag();
     }
     
     /** move to the next available version number */

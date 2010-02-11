@@ -423,6 +423,11 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    return vpset.parameterSetCount();
 	}
 	else if (node instanceof ConfigurationTreeNode) {
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
+	    if (treeNode.object() instanceof PrimaryDataset) {
+		PrimaryDataset dataset = (PrimaryDataset)treeNode.object();
+		return dataset.pathCount();
+	    }
 	    return 0;
 	}
 	
@@ -503,7 +508,13 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    VPSetParameter vpset = (VPSetParameter)parent;
 	    return vpset.parameterSet(i);
 	}
-	
+	else if (parent instanceof ConfigurationTreeNode) {
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)parent;
+	    if (treeNode.object() instanceof PrimaryDataset) {
+		PrimaryDataset dataset = (PrimaryDataset)treeNode.object();
+		return new ConfigurationTreeNode(dataset,dataset.path(i));
+	    }
+	}
 	return null;
     }
     
@@ -639,7 +650,14 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    PSetParameter pset = (PSetParameter)child;
 	    return vpset.indexOfParameterSet(pset);
 	}
-	
+	else if (parent instanceof ConfigurationTreeNode) {
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)parent;
+	    if (treeNode.object() instanceof PrimaryDataset) {
+		PrimaryDataset dataset = (PrimaryDataset)treeNode.object();
+		Path           path    = (Path)child;
+		return dataset.indexOfPath(path);
+	    }
+	}
 	return -1;
     }
     

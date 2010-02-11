@@ -1,3 +1,17 @@
+2010-02-11  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-04-00
+	* gui: paths appear as daughter nodes to PDs under Streams
+	* gui: paths can be added directly to PDs (and thereby to stream)
+	* gui: PD editor
+	* gui: pick configuration dialog really enforces selected
+	releaseTag now
+	* gui: order paths alphabetically in EC editor
+	* gui: show parent stream in PD tooltip
+	* gui: show parent EC in Stream tooltip
+	* gui: display number of unassigned paths behind stream
+	* gui: display output module icon;)
+
 2010-02-10  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-03-12

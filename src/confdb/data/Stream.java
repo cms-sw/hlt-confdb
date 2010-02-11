@@ -1,7 +1,9 @@
 package confdb.data;
 
-import java.util.ArrayList;
+
 import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.Collections;
 
 
 /**
@@ -63,20 +65,20 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** set name of this stream */
     public void setName(String name) { this.name = name; }
     
-
-    public int databaseId(){
-	return super.databaseId();
-    }
-
-    public boolean hasChanged(){
-	for (Path p : paths){
-	    if(p.hasChanged()){
+    /** DatabaseEntry: databaseId() */
+    public int databaseId() { return super.databaseId(); }
+    
+    /** DatabaseEntry: hasChanged() */
+    public boolean hasChanged()
+    {
+	for (Path p : paths) {
+	    if(p.hasChanged()) {
 		setHasChanged();
 		return super.hasChanged();
 	    }
 	}
-	for (PrimaryDataset pd : datasets){
-	    if(pd.hasChanged()){
+	for (PrimaryDataset pd : datasets) {
+	    if(pd.hasChanged()) {
 		setHasChanged();
 	       	return super.hasChanged();
 	    }
@@ -84,8 +86,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	
 	return super.hasChanged();
     }
-
-
+    
     /** set the fraction of events to be writte to local disk by SM */
     public void setFractionToDisk(double fractionToDisk)
     {
@@ -132,6 +133,14 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** retrieve iterator over paths */
     public Iterator<Path> pathIterator() { return paths.iterator(); }
     
+    /** retrieve path iterator (alphabetical order) */
+    public Iterator<Path> orderedPathIterator()
+    {
+	ArrayList<Path> orderedPaths = new ArrayList<Path>(paths);
+	Collections.sort(orderedPaths);
+	return orderedPaths.iterator();
+    }
+    
     /** associate another path with this stream */
     public boolean insertPath(Path path)
     {
@@ -161,7 +170,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** number of paths assigned to a dataset */
     public int assignedPathCount() { return listOfAssignedPaths().size(); }
     
-    /** retrieve collection paths assigned to datasets */
+    /** retrieve collection of paths assigned to datasets */
     public ArrayList<Path> listOfAssignedPaths()
     {
 	ArrayList<Path> result = new ArrayList<Path>();
@@ -247,8 +256,9 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 
     }
 
-
-    public void removeOutputModuleReferences(){
+    /** remove reference to this stream's outputmodule */
+    public void removeOutputModuleReferences()
+    {
 	for (int i=outputModule.referenceCount()-1;i>=0;i--) {
 	    outputModule.reference(i).remove();
 	}

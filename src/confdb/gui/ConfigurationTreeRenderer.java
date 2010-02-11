@@ -135,6 +135,8 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	else if (node instanceof ServiceInstance)   return serviceIcon;
 	else if (node instanceof ModuleInstance||
 		 node instanceof ModuleReference)   return moduleIcon;
+	else if (node instanceof OutputModule||
+		 node instanceof OutputModuleReference) return outputIcon;
 	else if (node instanceof Path||node instanceof PathReference) {
 	    if (node instanceof PathReference) node = ((Reference)node).parent();
 	    Path path = (Path)node;
@@ -267,10 +269,18 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	}
 	else if (node instanceof Stream) {
 	    Stream stream = (Stream)node;
+	    result = "<html>"+stream.toString();
+	    if (stream.unassignedPathCount()>0)
+		result +=
+		    " <font color=#ff0000>("+stream.unassignedPathCount()+")</font>";
+	    else
+		result +=
+		    " <font color=#00ff00>("+stream.unassignedPathCount()+")</font>";
 	    if (stream.fractionToDisk()<1.0)
-		result = "<html>"+stream.toString()+
+		result += 
 		    "  [<i><font color=#ff0000>"+stream.fractionToDisk()*100.+
-		    " %</font> written to disk</i>]</html>";
+		    " %</font> written to disk</i>]";
+	    result += "</html>";
 	}
 	return result;
     }

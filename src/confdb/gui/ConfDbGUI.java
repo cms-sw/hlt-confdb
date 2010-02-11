@@ -1693,6 +1693,15 @@ public class ConfDbGUI
 			ModuleInstance  instance=(ModuleInstance)reference.parent();
 			text = instance.template().name();
 		    }
+		    else if (selectedNode instanceof Stream) {
+			Stream stream = (Stream)selectedNode;
+			text = "Event Content: " + stream.parentContent().name();
+		    }
+		    else if (selectedNode instanceof PrimaryDataset) {
+			PrimaryDataset dataset = (PrimaryDataset)selectedNode;
+			Stream         stream  = dataset.parentStream();
+			text = "Stream: " + stream.name();
+		    }
 		    return text;
 		}
 	    };
@@ -2351,7 +2360,8 @@ public class ConfDbGUI
 	// fill paths
 	DefaultListModel plm = (DefaultListModel)jListPaths.getModel();
 	plm.clear();
-	Iterator<Path> itP = content.pathIterator();
+	//Iterator<Path> itP = content.pathIterator();
+	Iterator<Path> itP = content.orderedPathIterator();
 	while (itP.hasNext()) plm.addElement(itP.next().name());
 	
 	// fill output command combobox menu
@@ -2386,9 +2396,9 @@ public class ConfDbGUI
 	DefaultListModel plm = (DefaultListModel)jListPaths.getModel();
 	plm.clear();
 	Iterator<Path> itP = (stream==null) ?
-	    content.pathIterator() : stream.pathIterator();
+	    content.orderedPathIterator() : stream.orderedPathIterator();
 	while (itP.hasNext()) plm.addElement(itP.next().name());
-
+	
 	// fill output command combobox menu
 	fillComboBoxCommandsMenu(null);
 	
@@ -2419,8 +2429,9 @@ public class ConfDbGUI
 	DefaultListModel plm = (DefaultListModel)jListPaths.getModel();
 	plm.clear();
 	Iterator<Path> itP = (dataset==null) ?
-	    (stream==null) ? content.pathIterator() : stream.pathIterator() :
-	    dataset.pathIterator();
+	    (stream==null) ?
+	    content.orderedPathIterator() : stream.orderedPathIterator() :
+	    dataset.orderedPathIterator();
 	while (itP.hasNext()) plm.addElement(itP.next().name());
 
 	// fill output command combobox menu
@@ -2565,7 +2576,9 @@ public class ConfDbGUI
 		ModuleReference module = (ModuleReference)reference;
 		String moduleType =
 		    ((ModuleInstance)module.parent()).template().type();
-		if (moduleType.equals("EDProducer")) {
+		if (moduleType.equals("EDProducer")||
+		    moduleType.equals("EDFilter")||
+		    moduleType.equals("HLTFilter")) {
 		    OutputCommand command = new OutputCommand(path,reference);
 		    if (content.indexOfCommand(command)<0)
 			cbm.addElement(command);

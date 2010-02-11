@@ -1,8 +1,9 @@
 package confdb.data;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 
+import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * PrimaryDataset
@@ -93,6 +94,14 @@ public class PrimaryDataset extends DatabaseEntry
     /** retrieve iterator over paths */
     public Iterator<Path> pathIterator() { return paths.iterator(); }
     
+    /** retrieve path iterator (alphabetical order) */
+    public Iterator<Path> orderedPathIterator()
+    {
+	ArrayList<Path> orderedPaths = new ArrayList<Path>(paths);
+	Collections.sort(orderedPaths);
+	return orderedPaths.iterator();
+    }    
+    
     /** index of a certain path */
     public int indexOfPath(Path path) { return paths.indexOf(path); }
 
@@ -110,9 +119,11 @@ public class PrimaryDataset extends DatabaseEntry
 			       "in the parent stream!");
 	    return false;
 	}
+	if (parentStream.indexOfPath(path)<0) parentStream.insertPath(path);
+	//else parentStream.setHasChanged();
 	paths.add(path);
 	setHasChanged();
-	parentStream.setHasChanged();
+
 	return true;
     }
     
@@ -122,8 +133,14 @@ public class PrimaryDataset extends DatabaseEntry
 	int index = paths.indexOf(path);
 	if (index<0) return false;
 	paths.remove(index);
-	setHasChanged();
+	//setHasChanged();
 	return true;
     }
     
+    /** remove all paths */
+    public void clear()
+    {
+	paths.clear();
+	setHasChanged();
+    }
 }
