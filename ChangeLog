@@ -1,5 +1,8 @@
 2010-02-11  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
+	* tag V01-04-02
+	* gui: make EditDatasetDialog compatible with java 5.0
+
 	* tag V01-04-01
 	* add EditDatasetDialog.java to cvs
 

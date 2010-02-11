@@ -157,37 +157,39 @@ public class EditDatasetDialog extends JDialog
         jScrollPaneList.setViewportView(jListPaths);
 
 
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jPanel);
-        jPanel.setLayout(layout);
+	org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanel);
+	jPanel.setLayout(layout);
         layout.setHorizontalGroup(
-				  layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				  .addGroup(layout.createSequentialGroup()
-					    .addComponent(jScrollPaneList, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-					    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-					    .addComponent(jScrollPanePaths, javax.swing.GroupLayout.DEFAULT_SIZE, (int)(size.getWidth()-205), Short.MAX_VALUE))
-				  .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-					    .addContainerGap(407, Short.MAX_VALUE)
-					    .addComponent(jButtonCancel)
-					    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-					    .addComponent(jButtonOk)
-					    .addContainerGap())
+				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				  .add(layout.createSequentialGroup()
+				       .addContainerGap()
+				       .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+					    .add(layout.createSequentialGroup()
+						 .add(jScrollPaneList, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 200, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(jScrollPanePaths, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, (int)(size.getWidth()-205), Short.MAX_VALUE)
+						 .addContainerGap())
+					    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+						 .add(jButtonCancel)
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(jButtonOk))))
 				  );
 	
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jButtonCancel, jButtonOk});
+        layout.linkSize(new java.awt.Component[] {jButtonCancel, jButtonOk}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
 	
         layout.setVerticalGroup(
-				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-					  .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-						    .addComponent(jScrollPanePaths, javax.swing.GroupLayout.DEFAULT_SIZE, 458, Short.MAX_VALUE)
-						    .addComponent(jScrollPaneList, javax.swing.GroupLayout.DEFAULT_SIZE, 458, Short.MAX_VALUE))
-					  .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-					  .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						    .addComponent(jButtonOk)
-						    .addComponent(jButtonCancel)))
+				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				.add(layout.createSequentialGroup()
+				     .addContainerGap()
+				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+					  .add(org.jdesktop.layout.GroupLayout.LEADING, jScrollPanePaths, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 460, Short.MAX_VALUE)
+					  .add(org.jdesktop.layout.GroupLayout.LEADING, jScrollPaneList, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 460, Short.MAX_VALUE))
+				     .add(8, 8, 8)
+				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+					  .add(jButtonOk)
+					  .add(jButtonCancel)))
 				);
 	
 	return jPanel;
     }
-}	
+}
