@@ -545,7 +545,15 @@ public class ModifierInstructions
 		if (!isUndefined(m)) undefineModule(m.name());
 	    }
 	}
-	
+
+	// no filtering on content, streams, datasets yet (necessary?)
+	Iterator<EventContent> itEC = config.contentIterator();
+	while (itEC.hasNext()) requestedContents.add(itEC.next().name());
+	Iterator<Stream> itS = config.streamIterator();
+	while (itS.hasNext()) requestedStreams.add(itS.next().name());
+	Iterator<PrimaryDataset> itPD = config.datasetIterator();
+	while (itPD.hasNext()) requestedDatasets.add(itPD.next().name());
+
 	return true;
     }
 

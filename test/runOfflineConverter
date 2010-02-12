@@ -3,17 +3,17 @@
 
 ################################################################################
 #
-# runOnlineConverter
+# runOfflineConverter
 # ------------------
 #
-# 07/24/2008 Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
+#             07/24/2008 Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
 ################################################################################
 
 my $db_host = "";
 my $db_name = "";
 my $db_user = "";
 my $db_pwrd = "";
-my $config_name = "";
+my $args    = "";
 
 if (@ARGV==0) {
     print "provide one of: --hltdev, --orcoff, --rcms, --int2r, --int9r, or --test2r!\n";
@@ -59,18 +59,14 @@ while (@ARGV)
 	$db_user = "cms_hlt_test";
 	$db_pwrd = "hltdevtest1";
     }
-    elsif ($arg eq "--configName") {
-	$config_name = shift @ARGV;
-    }
-    else { die "unknown parameter $arg"; }
+    else { $args = $args . " " . $arg; }
 }
 
 my $cmd = 
     "java " .
     "-cp ../ext/ojdbc14.jar:../lib/cmssw-evf-confdb-converter.jar " .
-    "confdb.converter.OnlineConverter " .
-    "-t oracle -h $db_host -d $db_name -u $db_user -s $db_pwrd " .
-    "-c $config_name";
+    "confdb.converter.OfflineConverter " .
+    "-t oracle -h $db_host -d $db_name -u $db_user -s $db_pwrd $args";
 
 
 print $cmd . "\n";

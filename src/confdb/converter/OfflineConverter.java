@@ -260,7 +260,7 @@ public class OfflineConverter extends ConverterBase
 	
 	if (configId.length()==0) {
 	    if (configName.length()==0) {
-		System.out.println("ERROR: no configuration specified!");
+		System.err.println("ERROR: no configuration specified!");
 		System.exit(0);
 	    }
 	}

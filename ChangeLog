@@ -1,3 +1,8 @@
+2010-02-12  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-04-03
+	* converter: OfflineConverter properly add stream/PD psets 
+
 2010-02-11  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-04-02
