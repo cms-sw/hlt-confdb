@@ -571,3 +571,10 @@ HLTHIMuL1L2L3Filter.Parameter NavigationPSet PSet tracked
 HLTHIMuL1L2L3Filter.Parameter L2CandTag InputTag hltL2MuonCandidates tracked
 HLTHIMuL1L2L3Filter.Parameter rphiRecHits InputTag siStripMatchedRecHits tracked
 HLTHIMuL1L2L3Filter.Parameter TTRHBuilder string "HITTRHBuilderWithoutRefit" tracked
+
+Module HLTFilter TriggerResultsFilter HLTrigger HLTfilters
+TriggerResultsFilter.Parameter hltResults InputTag TriggerResults tracked
+TriggerResultsFilter.Parameter l1tResults InputTag hltGtDigis tracked
+TriggerResultsFilter.Parameter l1tIgnoreMask bool false tracked
+TriggerResultsFilter.Parameter daqPartitions uint32 1 tracked
+TriggerResultsFilter.Parameter throw bool true tracked
