@@ -7,6 +7,7 @@
 # Jonathan Hollar LLNL Nov. 3, 2008
 
 import os, string, sys, posix, tokenize, array, getopt
+from pkgutil import extend_path
 import ConfdbOracleModuleLoader
 import FWCore.ParameterSet.Config as cms
 
@@ -15,6 +16,7 @@ def main(argv):
     input_base_path = os.environ.get("CMSSW_RELEASE_BASE")
     input_cmsswrel = os.environ.get("CMSSW_VERSION")
     input_addfromreldir = os.environ.get("CMSSW_BASE")
+    input_arch = os.environ.get("SCRAM_ARCH")
     input_baserelease_path = input_base_path
 
     # User can provide a list of packages to ignore...
@@ -56,6 +58,7 @@ def main(argv):
         "RecoLuminosity",
         "RecoMET",
         "RecoMuon",
+        "RecoParticleFlow",
         "RecoPixelVertexing",
         "RecoTauTag",
         "RecoTracker",
@@ -155,11 +158,11 @@ def main(argv):
             print "\t-h Print this help menu"
             return
 
-    confdbjob = ConfdbLoadParamsfromConfigs(input_cmsswrel,input_base_path,input_baserelease_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbuser,input_dbpwd,input_host,input_noload,input_addtorelease,input_comparetorelease,input_preferfile)
+    confdbjob = ConfdbLoadParamsfromConfigs(input_cmsswrel,input_base_path,input_baserelease_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbuser,input_dbpwd,input_host,input_noload,input_addtorelease,input_comparetorelease,input_preferfile,input_arch)
     confdbjob.BeginJob()
 
 class ConfdbLoadParamsfromConfigs:
-    def __init__(self,clirel,clibasepath,clibasereleasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbuser,clidbpwd,clihost,clinoload,cliaddtorelease,clicomparetorelease,clipreferfile):
+    def __init__(self,clirel,clibasepath,clibasereleasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbuser,clidbpwd,clihost,clinoload,cliaddtorelease,clicomparetorelease,clipreferfile,cliarch):
 
         self.dbname = ''
         self.dbuser = clidbuser
@@ -174,6 +177,7 @@ class ConfdbLoadParamsfromConfigs:
         self.componenttable = ''
         self.componentname = ''
         self.softpackageid = ''
+        self.arch = cliarch
 
         # Some job summary statistics
         self.totalloadedparams = 0
@@ -238,6 +242,9 @@ class ConfdbLoadParamsfromConfigs:
             self.outputlogfile = "parse." + str(self.addtorelease) + "." + str(self.dbhost) + ".log"
 
 	source_tree = self.base_path + "//src/"
+
+        # Set up the source tree for auto-generated cfi's
+        validatedcfisource_tree = self.base_path + "//cfipython/" + str(self.arch) + "/"
 
         self.outputlogfilehandle = open(self.outputlogfile, 'w')
         
@@ -314,15 +321,81 @@ class ConfdbLoadParamsfromConfigs:
 	# Get package list for this release
 	packagelist = os.listdir(source_tree)
 
+        # Get package list of auto-generated cfi's for this release
+        validatedcfipackagelist = os.listdir(validatedcfisource_tree)
+
         self.VerbosePrint("Will parse packages in the whitelist",1)
         for okpackage in self.whitelist:
             self.VerbosePrint("\t" + str(okpackage),1)
 
-            
-        # First check if there are any preferred cfi files to use for this Package/Subsystem.
+        # First, check the auto-genearated validated cfi's in the release 
+        for validatedcfipackage in validatedcfipackagelist:
+           # Check if this is really a directory
+           if(os.path.isdir(validatedcfisource_tree + validatedcfipackage)):
+
+               subdirlist = os.listdir(validatedcfisource_tree + validatedcfipackage)
+               
+               for subdir in subdirlist:
+                   if(subdir.startswith(".")):
+                       continue
+                   # Check if the user really wants to use this package
+                   
+                   validatedcfipackagedir = validatedcfisource_tree + validatedcfipackage + "/" + subdir
+                   
+                   self.VerbosePrint("Scanning package: " + validatedcfipackage + "/" + subdir, 0)
+                   
+                   validatedtestdir = validatedcfipackagedir + "/test/"
+                   validatedpydir = validatedcfipackagedir + "/"
+                   
+                   if(not os.path.isdir(validatedpydir)):
+                       continue
+                   
+                   # Retrieve the CVS tag
+                   validatedcfipackagename = validatedcfipackage+"/"+subdir
+                   for modtag, cvstag in self.tagtuple:
+                       if(modtag.lstrip().rstrip() == validatedcfipackagename.lstrip().rstrip()):
+                           self.cvstag = cvstag
+                           self.VerbosePrint("\tCVS tag from base release: " + cvstag,0)
+
+                   if(self.addtorelease != "none"):
+                       for modtag, cvstag in self.addedtagtuple:
+                           if(modtag.lstrip().rstrip() == validatedcfipackage.lstrip().rstrip()):
+                               self.cvstag = cvstag
+                               self.VerbosePrint("\tCVS tag from test release: " + cvstag,0)
+                               
+                   self.GetPackageID(validatedcfipackage,subdir)
+
+                   validatedpyfiles = os.listdir(validatedpydir)
+                   
+                   # Try to recursively add cfi's contained in subdirectories of python/.
+                   for validatedpyfile in validatedpyfiles:
+                       if(os.path.isdir(validatedpydir + "/" + validatedpyfile)):
+                           subvalidatedpyfiles = os.listdir(validatedpydir + "/" + validatedpyfile)
+                           for subvalidatedpyfile in subvalidatedpyfiles:
+                               validatedpyfiles.append(validatedpyfile + "." + subvalidatedpyfile)
+
+                   thevalidatedsubsystempackage = validatedpydir.split(self.arch)[1].lstrip().rstrip()
+                   thevalidatedsubsystem = thevalidatedsubsystempackage.split('/')[0]
+                   thevalidatedpackage = thevalidatedsubsystempackage.split('/')[1]
+
+                   # Now look through cfi files. Note - all cfi's in cfipython should be valid.
+                   # So in this case we *don't* catch any exceptions that happen when extending
+                   # the cfi
+                   for validatedpyfile in validatedpyfiles:
+                       if(validatedpyfile.find("testProducerWithPsetDesc_cfi") != -1):
+                           continue
+                       if(validatedpyfile.endswith("_cfi.py")):
+                           thecomponent = validatedpyfile.split('.py')[0]
+                           # The logic is that *all* cfi's in cfipython/ should be valid, so
+                           # we allow for more than 1 per package in case of dynamic etc. parameters
+                           allowmultiplecfis = True
+                           usepythonsubdir = False
+                           self.ExtendTheCfi(validatedpyfile, validatedpydir, allowmultiplecfis, usepythonsubdir)
+
+        # Next, check if there are any preferred cfi files to use for this Package/Subsystem.
         # If so, get the parameters from there.
         for preferredsubpackage, preferredcfi in self.preferredcfilist:
-            self.VerbosePrint("Using the preferred cfi.py: " + preferredcfi + " for " + preferredsubpackage,0)
+            self.VerbosePrint("Using the preferred cfi.py: " + preferredcfi + " for " + preferredsubpackage,1)
             pyfile = preferredcfi
             thecomponent = pyfile.split('.py')[0]
 
@@ -349,7 +422,8 @@ class ConfdbLoadParamsfromConfigs:
                 
             try:
                 allowmultiplecfis = True
-                self.ExtendTheCfi(pyfile, pydir, allowmultiplecfis)
+                usepythonsubdir = True
+                self.ExtendTheCfi(pyfile, pydir, allowmultiplecfis, usepythonsubdir)
                     
                 # cfi files are not guaranteed to be valid :( If we find an invalid one, catch the
                 # exception from the python config API and move on to the next
@@ -437,7 +511,6 @@ class ConfdbLoadParamsfromConfigs:
                                 pyfiles.append(pyfile + "." + subpyfile)
                                 
                     thesubsystempackage = pydir.split('src/')[1].split('/data/')[0].lstrip().rstrip()
-                    thesubsystempackagenopy = thesubsystempackage.split("/python")[0]
                     thesubsystem = thesubsystempackage.split('/')[0]
                     thepackage = thesubsystempackage.split('/')[1]
 
@@ -448,7 +521,8 @@ class ConfdbLoadParamsfromConfigs:
 
                             try:
                                 allowmultiplecfis = False
-                                self.ExtendTheCfi(pyfile, pydir, allowmultiplecfis)
+                                usepythonsubdir = True
+                                self.ExtendTheCfi(pyfile, pydir, allowmultiplecfis, usepythonsubdir)
 
                             # cfi files are not guaranteed to be valid :( If we find an invalid one, catch the
                             # exception from the python config API and move on to the next
@@ -485,25 +559,44 @@ class ConfdbLoadParamsfromConfigs:
         self.GenerateUsedCfiTable()
         self.outputlogfilehandle.close()
 
-    def ExtendTheCfi(self, pyfile, pydir, allowmultiplecfis):
+    def ExtendTheCfi(self, pyfile, pydir, allowmultiplecfis, usepythonsubdir):
 
-        self.VerbosePrint("Extending the python cfi file " + str(pyfile),0)
+        self.VerbosePrint("Extending the python cfi file " + str(pyfile),1)
         thecomponent = pyfile.split('.py')[0]
         thebasecomponent = thecomponent.split('_cfi')[0]
-        
+
         # Construct the py-cfi to import
-        thesubsystempackage = pydir.split('src/')[1].split('/data/')[0].lstrip().rstrip()
+        thesubsystempackage = ""
+        if(usepythonsubdir == True):
+            thesubsystempackage = pydir.split('src/')[1].split('/data/')[0].lstrip().rstrip()
+        else:
+            thesubsystempackage = pydir.split("cfipython/")[1].lstrip().rstrip()
+            thesubsystempackage = thesubsystempackage.split(self.arch+"/")[1].rstrip("/").lstrip().rstrip()
+            
         thesubsystem = thesubsystempackage.split('/')[0]
         thepackage = thesubsystempackage.split('/')[1]
-        importcommand = "import " + thesubsystem + "." + thepackage + "." + thecomponent
-        self.thepyfile = thesubsystem + "/" + thepackage + "/" + "python/" + pyfile
 
+        importcommand = ""
+        if(usepythonsubdir == True):
+            importcommand = "import " + thesubsystem + "." + thepackage + "." + thecomponent
+        else:    
+            importcommand = "import " + thecomponent 
+            sys.path.append(pydir)
+                    
+        if(usepythonsubdir == True):
+            self.thepyfile = thesubsystem + "/" + thepackage + "/" + "python/" + pyfile
+        else:
+            self.thepyfile = thesubsystem + "/" + thepackage + "/" + pyfile
 
         process = cms.Process("MyProcess")
 
         exec importcommand
         # Now create a process and construct the command to extend it with the py-cfi
-        theextend = "process.extend(" + thesubsystem + "." + thepackage + "." + thecomponent + ")"
+        theextend = ""
+        if(usepythonsubdir == True):
+            theextend = "process.extend(" + thesubsystem + "." + thepackage + "." + thecomponent + ")"
+        else:
+            theextend = "process.extend(" + thecomponent + ")"
         eval(theextend)
         
         myproducers = process.producers_()
@@ -749,16 +842,20 @@ class ConfdbLoadParamsfromConfigs:
         paramistracked = 0
         unmodifiedparamid = 0
 
-        parametervalue = pval.value()
         parametertype = pval.configTypeName()
         parametertracked = pval.isTracked()
+        if(parametertype.find("untracked") != -1):
+            parametertype = parametertype.split("untracked")[1].lstrip().rstrip()
 
+        if(not parametertype in self.paramtypedict):
+            self.VerbosePrint("Ignoring unknown parameter type " + str(parametertype),0)
+            return
+        
         #For now, ignore the cms.SecSource type (used for mixing pileup in MC)
         if(parametertype.find("secsource") != -1):
             return
 
-        if(parametertype.find("untracked") != -1):
-            parametertype = parametertype.split("untracked")[1].lstrip().rstrip()
+        parametervalue = pval.value()
 
         # Reformat representations of Booleans for python -> Oracle
 
@@ -775,11 +872,10 @@ class ConfdbLoadParamsfromConfigs:
             if(parametervalue == False):
                 parametervalue = str(0)
 
-        # JH - deal with photon ID cuts of 1E+308 (!)
+        # Protect against numerical overflows
         if(parametertype == "double"):
             if(parametervalue > 1e+125):
                 parametervalue = 1e+125 
-        # end JH
 
         selectstr = "SELECT SuperIdParameterAssoc.paramId FROM SuperIdParameterAssoc JOIN Parameters ON (Parameters.name = '" + parametername + "') WHERE (SuperIdParameterAssoc.superId = " + str(sid) + ") AND (SuperIdParameterAssoc.paramId = Parameters.paramId)"
 
@@ -835,6 +931,12 @@ class ConfdbLoadParamsfromConfigs:
                 else:
                     paramindex = 1
                     for parametervectorvalue in parametervalue:
+
+                        # Protect against numerical overflows
+                        if(parametertype == "vdouble"):
+                            if(parametervectorvalue > 1e+125):
+                                parametervectorvalue = 1e+125
+                                                                
                         insertstr3 = "INSERT INTO " + str(paramtable) + " (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(paramindex) + ", '" + str(parametervectorvalue) + "')"
                         self.VerbosePrint(insertstr3, 3)
                         if(str(parametervectorvalue).find("'") == -1):
