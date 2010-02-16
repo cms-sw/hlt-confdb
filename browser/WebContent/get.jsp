@@ -19,11 +19,12 @@
 	Set<Map.Entry<String,String[]>> parameters = map.entrySet(); 
 
 	boolean asFragment = false;
-        //String format = "ascii";
-        String format = "python";
+  	String format = "python";
 	String configId = null;
 	String configName = null;
+	String dbName = null;
 	String dbIndexStr = "1";
+	String runNumber = null;
 	HashMap<String,String> toModifier = new HashMap<String,String>();
 
 	for ( Map.Entry<String,String[]> entry : parameters )
@@ -50,54 +51,72 @@
 		    format = value;
 		}
 		else if ( key.equals( "dbName" ) )
-		{
-		        // TMP HACK
-		        if (value.equalsIgnoreCase("test")) value = "test2r";
-			
-                        if ( !value.equalsIgnoreCase( "hltdev" ) )
-			{
-			  	ConfDBSetups dbs = new ConfDBSetups();
-		  		String[] labels = dbs.labelsAsArray();
-	  			for ( int i = 0; i < dbs.setupCount(); i++ )
-	  			{
-	  				if ( value.equalsIgnoreCase( labels[i] ) )
-	  				{
-	  					dbIndexStr = "" + i;
-	  					break;
-	  				}
-	  			}
-	  		}
-	  	}
+			dbName = value;
 		else if ( key.equals( "dbIndex" ) )
 			dbIndexStr = value;
-		else {
+		else if ( key.equalsIgnoreCase( "runNumber" ) )
+			runNumber = value;
+		else 
 		    toModifier.put(entry.getKey(),value);
-		}
 	}
 
-	if ( configId == null  &&  configName == null )
+	if ( configId == null  &&  configName == null  && runNumber == null )
 	{
-		out.println("ERROR: configId or configName must be specified!");
+		out.println("ERROR: configId or configName or runNumber must be specified!");
 		return;
 	}
 
-	if ( configId != null  &&  configName != null )
+	int moreThanOne = ( configId != null ? 1 : 0 ) 
+		+  ( configName != null ? 1 : 0 )
+		+  ( runNumber != null ? 1 : 0 );
+	if ( moreThanOne > 1 ) 
 	{
-		out.println("ERROR: configId *OR* configName must be specified!");
+		out.println("ERROR: configId *OR* configName *OR* runNumber must be specified!");
 		return;
 	}
 
 	BrowserConverter converter = null;
 	try {
+		if ( runNumber != null )
+			dbName = "ORCOFF";
+		if ( dbName != null )
+		{
+	        // TMP HACK
+	        if ( dbName.equalsIgnoreCase("test") ) 
+	        	dbName = "test2r";
+		
+			if ( !dbName.equalsIgnoreCase( "hltdev" ) )
+			{
+		  		ConfDBSetups dbs = new ConfDBSetups();
+	  			String[] labels = dbs.labelsAsArray();
+  				for ( int i = 0; i < dbs.setupCount(); i++ )
+  				{
+  					if ( dbName.equalsIgnoreCase( labels[i] ) )
+  					{
+  						dbIndexStr = "" + i;
+  						break;
+  					}
+  				}
+  			}
+  		}
+
 	    int dbIndex = Integer.parseInt( dbIndexStr );
 	    ModifierInstructions modifierInstructions = new ModifierInstructions();
 	    modifierInstructions.interpretArgs( toModifier );
-            converter = BrowserConverter.getConverter( dbIndex );
-    	    int id = ( configId != null ) ?
+        converter = BrowserConverter.getConverter( dbIndex );
+        int id = -1;
+        if ( runNumber != null )
+        	id = converter.getKeyFromRunSummary( Integer.parseInt( runNumber ) );
+        else        
+    	    id = ( configId != null ) ?
     		    	Integer.parseInt(configId) :
-    			converter.getDatabase().getConfigId(configName);
+    			    converter.getDatabase().getConfigId(configName);
 
-	    String result = converter.getConfigString(id,format,
+    	String result = "";
+    	if ( id <= 0 )
+    		result = "ERROR: CONFIG_NOT_FOUND";
+    	else
+    		result = converter.getConfigString(id,format,
 						      modifierInstructions,
 						      asFragment);
 	    out.print(result);
