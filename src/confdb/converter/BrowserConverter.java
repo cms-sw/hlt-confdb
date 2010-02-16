@@ -1,5 +1,8 @@
 package confdb.converter;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,13 +22,26 @@ public class BrowserConverter extends OfflineConverter
     static private HashMap<Integer,BrowserConverter> map = new HashMap<Integer,BrowserConverter>();
     static private String[] dbNames = null;
     
+    private PreparedStatement psSelectHltKeyFromRunSummary = null;
+    
     private BrowserConverter(String dbType,String dbUrl,
 			     String dbUser,String dbPwrd) throws ConverterException
     {
     	super( "HTML", dbType, dbUrl, dbUser, dbPwrd );	
     }
     
-	
+	public int getKeyFromRunSummary( int runnumber ) throws SQLException
+	{
+		if ( psSelectHltKeyFromRunSummary == null )
+			psSelectHltKeyFromRunSummary = getDatabase().getDbConnector().getConnection().prepareStatement( "SELECT HLTKEY FROM CMS_WBM.RUNSUMMARY WHERE RUNNUMBER=?" );
+		psSelectHltKeyFromRunSummary.setInt( 1, runnumber );
+		ResultSet rs = psSelectHltKeyFromRunSummary.executeQuery();
+		int key = -1;
+		if ( rs.next() )
+			key = rs.getInt(1);
+		return key;
+	}
+    
 	protected void finalize() throws Throwable
 	{
 		super.finalize();
@@ -46,11 +62,11 @@ public class BrowserConverter extends OfflineConverter
 	    DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertme!" );
 	    String dbUser = dbProperties.getDbUser();
 	    if (dbUser.endsWith("_w"))
- 		dbUser = dbUser.substring(0,dbUser.length()-1)+"r";
+	    	dbUser = dbUser.substring(0,dbUser.length()-1)+"r";
 	    else if (dbUser.endsWith("_writer"))
-		dbUser = dbUser.substring(0,dbUser.length()-6)+"reader";
+	    	dbUser = dbUser.substring(0,dbUser.length()-6)+"reader";
 	    else
-		dbUser = "cms_hlt_reader";
+	    	dbUser = "cms_hlt_reader";
 
 	    dbProperties.setDbUser(dbUser);
 	    
