@@ -27,46 +27,46 @@ def main(argv):
     #    input_usingwhitelist = False
     input_usingwhitelist = True
     input_whitelist = [
-        "CalibCalorimetry",
-        "CalibMuon",
-        "CalibTracker",
-        "Calibration",
-        "CondCore",
-        "DQM",
-        "DQMServices",
-        "EventFilter",
-        "FWCore",
-        "Geometry",
-        "GeometryReaders",
-        "HLTrigger",
-        "IOPool",
-        "IORawData",
-        "JetMETCorrections",
-        "L1Trigger",
-        "L1TriggerConfig",
-        "MagneticField",
-        "PhysicsTools",
-        "RecoBTag",
-        "RecoBTau",
-        "RecoCaloTools",
-        "RecoEcal",
-        "RecoEgamma",
-        "RecoJets",
-        "RecoLocalCalo",
-        "RecoLocalMuon",
-        "RecoLocalTracker",
-        "RecoLuminosity",
-        "RecoMET",
-        "RecoMuon",
-        "RecoParticleFlow",
-        "RecoPixelVertexing",
-        "RecoTauTag",
-        "RecoTracker",
-        "RecoVertex",
-        "SimCalorimetry",
-        "SimGeneral",
-        "TrackPropagation",
-        "TrackingTools"
+       "CalibCalorimetry",
+       "CalibMuon",
+       "CalibTracker",
+       "Calibration",
+       "CondCore",
+       "DQM",
+       "DQMServices",
+       "EventFilter",
+       "FWCore",
+       "Geometry",
+       "GeometryReaders",
+       "HLTrigger",
+       "IOPool",
+       "IORawData",
+       "JetMETCorrections",
+       "L1Trigger",
+       "L1TriggerConfig",
+       "MagneticField",
+       "PhysicsTools",
+       "RecoBTag",
+       "RecoBTau",
+       "RecoCaloTools",
+       "RecoEcal",
+       "RecoEgamma",
+       "RecoJets",
+       "RecoLocalCalo",
+       "RecoLocalMuon",
+       "RecoLocalTracker",
+       "RecoLuminosity",
+       "RecoMET",
+       "RecoMuon",
+       "RecoParticleFlow",
+       "RecoPixelVertexing",
+       "RecoTauTag",
+       "RecoTracker",
+       "RecoVertex",
+       "SimCalorimetry",
+       "SimGeneral",
+       "TrackPropagation",
+       "TrackingTools"
         ]
 
     input_verbose = 0
@@ -330,9 +330,26 @@ class ConfdbLoadParamsfromConfigs:
 
         # First, check the auto-genearated validated cfi's in the release 
         for validatedcfipackage in validatedcfipackagelist:
-           # Check if this is really a directory
-           if(os.path.isdir(validatedcfisource_tree + validatedcfipackage)):
+            # Apply whitelisting/blacklisting also to pacakges with validated cfi's
+            if(self.usingwhitelist == True):
+                skip = True
+                for whitelists in self.whitelist:
+                    if str(whitelists) == str(validatedcfipackage):
+                        skip = False
+                        if(skip == True):
+                            continue
 
+            if(self.usingblacklist == True):
+                skip = False
+                for blacklists in self.blacklist:
+                    if str(blacklists) == str(validatedpackage):
+                        skip = True
+                        if(skip == True):
+                            continue
+                        
+            # Check if this is really a directory
+            if(os.path.isdir(validatedcfisource_tree + validatedcfipackage)):
+               
                subdirlist = os.listdir(validatedcfisource_tree + validatedcfipackage)
                
                for subdir in subdirlist:
@@ -355,13 +372,13 @@ class ConfdbLoadParamsfromConfigs:
                    for modtag, cvstag in self.tagtuple:
                        if(modtag.lstrip().rstrip() == validatedcfipackagename.lstrip().rstrip()):
                            self.cvstag = cvstag
-                           self.VerbosePrint("\tCVS tag from base release: " + cvstag,0)
+                           self.VerbosePrint("\tCVS tag from base release: " + cvstag,1)
 
                    if(self.addtorelease != "none"):
                        for modtag, cvstag in self.addedtagtuple:
                            if(modtag.lstrip().rstrip() == validatedcfipackage.lstrip().rstrip()):
                                self.cvstag = cvstag
-                               self.VerbosePrint("\tCVS tag from test release: " + cvstag,0)
+                               self.VerbosePrint("\tCVS tag from test release: " + cvstag,1)
                                
                    self.GetPackageID(validatedcfipackage,subdir)
 
@@ -410,13 +427,13 @@ class ConfdbLoadParamsfromConfigs:
             for modtag, cvstag in self.tagtuple:
                 if(modtag.lstrip().rstrip() == preferredsubpackage.lstrip().rstrip()):
                     self.cvstag = cvstag
-                    self.VerbosePrint("\tCVS tag from base release: " + cvstag,0)
+                    self.VerbosePrint("\tCVS tag from base release: " + cvstag,1)
 
             if(self.addtorelease != "none"):
                 for modtag, cvstag in self.addedtagtuple:
                     if(modtag.lstrip().rstrip() == preferredsubpackage.lstrip().rstrip()):
                         self.cvstag = cvstag
-                        self.VerbosePrint("\tCVS tag from test release: " + cvstag,0)
+                        self.VerbosePrint("\tCVS tag from test release: " + cvstag,1)
                         
             self.GetPackageID(thesubsystem,thepackage)
                 
@@ -491,13 +508,13 @@ class ConfdbLoadParamsfromConfigs:
                     for modtag, cvstag in self.tagtuple:
                         if(modtag.lstrip().rstrip() == packagename.lstrip().rstrip()):
                             self.cvstag = cvstag
-                            self.VerbosePrint("\tCVS tag from base release: " + cvstag,0)
+                            self.VerbosePrint("\tCVS tag from base release: " + cvstag,1)
 
                     if(self.addtorelease != "none"):
                         for modtag, cvstag in self.addedtagtuple:
                             if(modtag.lstrip().rstrip() == packagename.lstrip().rstrip()):
                                 self.cvstag = cvstag
-                                self.VerbosePrint("\tCVS tag from test release: " + cvstag,0)
+                                self.VerbosePrint("\tCVS tag from test release: " + cvstag,1)
 
                     self.GetPackageID(package,subdir)
                             
@@ -626,6 +643,11 @@ class ConfdbLoadParamsfromConfigs:
         myesproducers = process.es_producers_()
         self.componenttable = "ESModuleTemplates"                                
         self.FindParamsFromPython(thesubsystem, thepackage, myesproducers,"ESModule", allowmultiplecfis) 
+
+        myedsources = process.source_()
+        self.componenttable = "EDSourceTemplates"
+        if(myedsources):
+            self.FindSingleComponentParamsFromPython(thesubsystem, thepackage, myedsources, "Source", allowmultiplecfis)
             
     def DoPsetRecursion(self,psetval,psetname,psetsid):
 
@@ -766,6 +788,95 @@ class ConfdbLoadParamsfromConfigs:
                         else:
                             self.VerbosePrint("\t\t"  + str(paramname) + " already appears with " + str(sizeofvpset) + " entries. Will not add more entries",1)
 
+    def FindSingleComponentParamsFromPython(self, thesubsystem, thepackage, mycomponents, componenttype, allowmultiplecfis):
+        self.nesting = []
+
+        psetname = "TopLevel"
+        name = mycomponents.type_()
+        
+        self.VerbosePrint("(" + str(componenttype) + " " + name + ") " + thesubsystem + "." + thepackage + "." + name, 1)
+        
+        self.modifiedtemplates.append(str(mycomponents.type_()))
+        
+        template = mycomponents.type_()
+        if(not template in self.finishedtemplates):
+            self.finishedtemplates.append(template)
+        else:
+            if(allowmultiplecfis == True):
+                self.VerbosePrint("Loading another cfi for " + name + " even though a template was already loaded for " + mycomponents.type_(),1)
+            else:                        
+                self.VerbosePrint("Skipping the cfi for " + name + " because a template was already loaded for " + mycomponents.type_(),1)
+                return
+
+        self.componentname = mycomponents.type_()
+        self.usedcfilist.append((self.thepyfile,self.componentname))
+        componentsuperid = self.LoadUpdateComponent(mycomponents.type_(),componenttype)
+        objectsuperid = -1
+        vobjectsuperid = -1
+        
+        
+        nextseqid = -1
+        self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParameterAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
+        nextpseqid = self.dbcursor.fetchone()
+        if(nextpseqid):
+            nextseqid = nextpseqid[0]
+        self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParamSetAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
+        nextpsetseqid = self.dbcursor.fetchone()
+        if(nextpsetseqid):
+            if(nextpsetseqid[0] > nextseqid):
+                nextseqid = nextpsetseqid[0]
+        self.dbcursor.execute("SELECT sequenceNb FROM SuperIdVecParamSetAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
+        nextvpsetseqid = self.dbcursor.fetchone() 
+        if(nextvpsetseqid):
+            if(nextvpsetseqid[0] > nextseqid):
+                nextseqid = nextvpsetseqid[0]
+
+        self.VerbosePrint("The last inserted sequenceNb for this component was " + str(nextseqid),2)
+        self.localseq = 0
+        self.localseq = nextseqid + 1
+        self.VerbosePrint("The first parameter will be inserted with sequenceNb " + str(self.localseq),2)
+            
+        if(componentsuperid != -1):
+            params = mycomponents.parameters_()
+
+            for paramname, paramval in params.iteritems():
+                if(paramval.configTypeName() == "PSet" or paramval.configTypeName() == "untracked PSet"):
+                    psetname = paramname
+                    objectsuperid = self.LoadUpdatePSet(paramname,psetname,paramval,componentsuperid)
+                    self.nesting.append(('PSet',paramname,objectsuperid))
+                    prerecursionseq = self.localseq
+                    self.DoPsetRecursion(paramval,paramname,objectsuperid)
+                    self.localseq = prerecursionseq
+                    del self.nesting[-1]
+                    
+                elif(paramval.configTypeName().find("VPSet") == -1):
+                    self.VerbosePrint("\t\t" + str(psetname) + "." + str(paramname) + "\t" + str(paramval), 1)
+                    self.LoadUpdateParam(paramname,psetname,paramval,componentsuperid)
+
+                else:
+                    vobjectsuperid = self.LoadUpdateVPSet(paramname,psetname,paramval,componentsuperid)
+                    vpsetname = paramname
+                    self.nesting.append(('VPSet',paramname,objectsuperid))
+                    self.VerbosePrint("\t\t" + str(paramname) + "\t" + str(paramval.configTypeName()) + "[" + str(len(paramval)) + "]", 1)
+                    psetname = str(paramval.configTypeName()) + "[" + str(len(paramval)) + "]"
+                    sizeofvpset = self.VPSetSize(vobjectsuperid)
+                    if(sizeofvpset == 0):
+                        i = 1
+                        prevpsetiterseq = self.localseq
+                        for vpsetentry in paramval:
+                            self.localseq = i-1
+                            vobjectmembersuperid = self.LoadUpdatePSet(paramname,psetname,paramval,vobjectsuperid) 
+                            self.nesting.append(('PSet','VPSet['+str(i)+']',vobjectmembersuperid))
+                            prerecursionseq = self.localseq
+                            self.DoPsetRecursion(vpsetentry,paramname+'['+str(i)+']',vobjectmembersuperid)
+                            self.localseq = prerecursionseq
+                            del self.nesting[-1]
+                            i = i + 1
+                        self.localseq = prevpsetiterseq
+                        del self.nesting[-1]
+                    else:
+                        self.VerbosePrint("\t\t"  + str(paramname) + " already appears with " + str(sizeofvpset) + " entries. Will not add more entries",1)        
+
     def FindObjectSuperId(self):
         print "Not yet"
         
@@ -848,11 +959,7 @@ class ConfdbLoadParamsfromConfigs:
             parametertype = parametertype.split("untracked")[1].lstrip().rstrip()
 
         if(not parametertype in self.paramtypedict):
-            self.VerbosePrint("Ignoring unknown parameter type " + str(parametertype),0)
-            return
-        
-        #For now, ignore the cms.SecSource type (used for mixing pileup in MC)
-        if(parametertype.find("secsource") != -1):
+            self.VerbosePrint("\tIgnoring unknown parameter type " + str(parametertype),0)
             return
 
         parametervalue = pval.value()
