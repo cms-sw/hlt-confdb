@@ -565,10 +565,10 @@ class ConfdbLoadParamsfromConfigs:
         # Print some summary statistics
         self.VerbosePrint("********************************",0)
         self.VerbosePrint("Job summary for " + str(self.cmsswrel),0)
-        self.VerbosePrint("Parsed and inserted " + str(self.totalloadedcomponents) + " new templates",0)
+        self.VerbosePrint("Scanned and inserted " + str(self.totalloadedcomponents) + " new or modified templates",0)
         self.VerbosePrint("\tContaining " + str(self.totalloadedparams) + " parameters",0)
         if(self.comparetorelease != ""):            
-            self.VerbosePrint("Reassociated " + str(self.totalremappedcomponents) + " templates from " + str(self.baseforaddedrel),0)
+            self.VerbosePrint("Reassociated " + str(self.totalremappedcomponents) + " templates from " + str(self.comparetorelease),0)
         self.VerbosePrint("********************************",0)
 
         # Commit and disconnect to be compatible with either INNODB or MyISAM
