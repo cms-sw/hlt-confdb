@@ -2705,6 +2705,9 @@ class ConfdbOracleModuleLoader:
         elif(ptracked == 'false'):
             ptracked = str(0)
 
+        if(pname == '' or pname == "" or pname == None):
+            pname = "None"
+
 	if(self.verbose > 2):
 	    print "INSERT INTO Parameters (paramTypeId, name, tracked) VALUES (" + str(ptype) + ", '" + pname + "', " + ptracked + ")"
 
