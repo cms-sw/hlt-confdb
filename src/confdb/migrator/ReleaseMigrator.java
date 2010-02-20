@@ -192,6 +192,8 @@ public class ReleaseMigrator
 		Stream sourceStream = itS.next();
 		Stream targetStream = target.insertStream(sourceStream.name());
 
+		targetStream.setFractionToDisk(sourceStream.fractionToDisk());
+		
 		OutputModule sourceOutputModule = sourceStream.outputModule();
 		OutputModule targetOutputModule = targetStream.outputModule();
 
