@@ -565,12 +565,12 @@ HLTLevel1Activity.Parameter technicalBits uint64 0 tracked
 Module HLTFilter HLTLogMonitorFilter HLTrigger special
 HLTLogMonitorFilter.Parameter categories VPSet tracked
 
-Module EDFilter HLTHIMuL1L2L3Filter RecoHI HiMuonAlgos
+Module HLTFilter HLTHIMuL1L2L3Filter RecoHI HiMuonAlgos
+HLTHIMuL1L2L3Filter.Parameter TTRHBuilder string "HITTRHBuilderWithoutRefit" tracked
 HLTHIMuL1L2L3Filter.Parameter PrimaryVertexTag InputTag hltHIPixelVertices tracked
-HLTHIMuL1L2L3Filter.Parameter NavigationPSet PSet tracked
 HLTHIMuL1L2L3Filter.Parameter L2CandTag InputTag hltL2MuonCandidates tracked
 HLTHIMuL1L2L3Filter.Parameter rphiRecHits InputTag siStripMatchedRecHits tracked
-HLTHIMuL1L2L3Filter.Parameter TTRHBuilder string "HITTRHBuilderWithoutRefit" tracked
+HLTHIMuL1L2L3Filter.Parameter NavigationPSet PSet tracked
 
 Module HLTFilter TriggerResultsFilter HLTrigger HLTfilters
 TriggerResultsFilter.Parameter hltResults InputTag TriggerResults tracked
