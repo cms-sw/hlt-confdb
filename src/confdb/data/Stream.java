@@ -65,6 +65,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** set name of this stream */
     public void setName(String name) { 
 	this.name = name;
+        setHasChanged();
 	for (Path p : paths) {
 	    p.setHasChanged();
 	}
