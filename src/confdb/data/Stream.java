@@ -1,4 +1,4 @@
-package confdb.data;
+ package confdb.data;
 
 
 import java.util.Iterator;
@@ -63,7 +63,12 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     public double fractionToDisk() { return fractionToDisk; }
     
     /** set name of this stream */
-    public void setName(String name) { this.name = name; }
+    public void setName(String name) { 
+	this.name = name;
+	for (Path p : paths) {
+	    p.setHasChanged();
+	}
+    }
     
     /** DatabaseEntry: databaseId() */
     public int databaseId() { return super.databaseId(); }
