@@ -85,7 +85,7 @@ public class EditDatasetDialog extends JDialog
 	while (itCB.hasNext()) {
 	    JCheckBox cb = itCB.next();
 	    if (cb.isSelected()) {
-		String pathName = cb.getText();
+		String pathName = cb.getActionCommand();
 		if (dataset.path(pathName)==null)
 		    pathName="<html><font color=#ff0000>" + pathName + "</font></html>";
 		lm.addElement(pathName);
@@ -106,7 +106,7 @@ public class EditDatasetDialog extends JDialog
 	Iterator<JCheckBox> itCB = pathCheckBoxes.iterator();
 	while (itCB.hasNext()) {
 	    JCheckBox cb = itCB.next();
-	    if (cb.isSelected()) pathNames.add(cb.getText());
+	    if (cb.isSelected()) pathNames.add(cb.getActionCommand());
 	}
 	dataset.clear();
 	Iterator<String> itS = pathNames.iterator();
@@ -135,10 +135,15 @@ public class EditDatasetDialog extends JDialog
 	Collections.sort(paths);
 	itP = paths.iterator();
 	while (itP.hasNext()) {
-	    Path path = itP.next();
-	    JCheckBox cb = new JCheckBox(path.name());
+	    Path   path    = itP.next();
+	    Stream stream = dataset.parentStream();
+	    String cbText = path.name();
+	    if (stream.listOfUnassignedPaths().indexOf(path)>=0)
+		cbText = "<html><b>"+cbText+"</b></html>";
+	    JCheckBox cb = new JCheckBox(cbText);
+	    cb.setActionCommand(path.name());
 	    if (dataset.indexOfPath(path)>=0) cb.setSelected(true);
-	    else if (dataset.parentStream().listOfAssignedPaths().indexOf(path)>=0)
+	    else if (stream.listOfAssignedPaths().indexOf(path)>=0)
 		cb.setEnabled(false);
 	    cb.addItemListener(new ItemListener() {
 		    public void itemStateChanged(ItemEvent e) {

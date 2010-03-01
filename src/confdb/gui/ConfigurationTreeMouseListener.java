@@ -959,6 +959,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    itP = paths.iterator();
 	    while (itP.hasNext()) {
 		Path path = itP.next();
+		if (path.isEndPath()) continue;
 		Stream stream = dataset.parentStream();
 		menuItem = (stream.listOfUnassignedPaths().indexOf(path)>=0) ?
 		    new JMenuItem("<html><b>"+path.name()+"</b></html>") :

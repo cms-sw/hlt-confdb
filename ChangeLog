@@ -1,5 +1,10 @@
 2010-03-01  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
+	* tag V01-04-06
+	* filter endpaths from dataset 'Add Path' context menu
+	* unassigned paths of the parent stream appear now bold in dataset
+	editor dialog
+
 	* tag V01-04-05
 	* gui: fix path import, where upon import of an existing path its
 	information would disappear from streams / datasets / OMs / etc.
