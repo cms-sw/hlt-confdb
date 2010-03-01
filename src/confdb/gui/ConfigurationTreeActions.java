@@ -545,7 +545,6 @@ public class ConfigurationTreeActions
 	ReferenceContainer   container = null;
 	Object               parent    = null;
 	int                  oldIndex  =   -1;
-	ReferenceContainer[] parents   = null;
 	int[]                indices   = null;
 	String               type      = null;
 	if (external instanceof Path) {
@@ -571,50 +570,17 @@ public class ConfigurationTreeActions
 					      JOptionPane.OK_CANCEL_OPTION);
 	    if (choice==JOptionPane.CANCEL_OPTION) return false;
 	    
-	    if (container.referenceCount()>0) {
-		parents = new ReferenceContainer[container.referenceCount()];
-		indices = new int[container.referenceCount()];
-		for (int i=0;i<container.referenceCount();i++) {
-		    Reference reference = container.reference(i);
-		    parents[i] = reference.container();
-		    indices[i] = parents[i].indexOfEntry(reference);
-		}
+	    while (container.entryCount()>0) {
+		Reference entry = (Reference)container.entry(0);
+		tree.setSelectionPath(new TreePath(model.getPathToRoot(entry)));
+		removeReference(tree);
 	    }
-	    tree.setSelectionPath(new TreePath(model.getPathToRoot(container)));
-	    removeReferenceContainer(tree);
-	    if (oldIndex<index) index--;
-	    if (oldIndex>=0) index = oldIndex;
 	}
-	
-	if (!config.hasUniqueQualifier(external)) return false;
-	
-	if (external instanceof Path) {
-	    container = config.insertPath(index,external.name());
-	}
-	else if (external instanceof Sequence) {
-	    container = config.insertSequence(index,external.name());
-	}
-	
-	if (parents!=null) {
-	    if (container instanceof Path) {
-		for (int i=0;i<parents.length;i++) {
-		    config.insertPathReference(parents[i],
-					       indices[i],
-					       (Path)container);
-		    model.nodeInserted(parents[i],indices[i]);
-		}
-	    }
-	    else if (container instanceof Sequence) {
-		for (int i=0;i<parents.length;i++) {
-		    config.insertSequenceReference(parents[i],
-						   indices[i],
-						   (Sequence)container);
-		    model.nodeInserted(parents[i],indices[i]);
-		}
-	    }
+	else {
+	    if (!config.hasUniqueQualifier(external)) return false;	
+	    model.nodeInserted(parent,index);
 	}
 
-	model.nodeInserted(parent,index);
 	if (importContainerEntries(config,model,external,container))
 	    container.setDatabaseId(external.databaseId());
 	model.updateLevel1Nodes();

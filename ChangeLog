@@ -1,5 +1,9 @@
 2010-03-01  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
+	* tag V01-04-05
+	* gui: fix path import, where upon import of an existing path its
+	information would disappear from streams / datasets / OMs / etc.
+
 	* tag V01-04-04
 	* gui/db: fix for bug 28 (Vasu)
 	* db: add stream/dataset psets to online converter as well (moved
