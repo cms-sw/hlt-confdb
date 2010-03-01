@@ -282,6 +282,17 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 		    " %</font> written to disk</i>]";
 	    result += "</html>";
 	}
+	else if (node instanceof ConfigurationTreeNode) {
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
+	    if ((treeNode.object() instanceof Path)&&
+		(treeNode.parent() instanceof Stream)) {
+		Path   path   = (Path)treeNode.object();
+		Stream stream = (Stream)treeNode.parent();
+		if (stream.listOfUnassignedPaths().indexOf(path)>=0)
+		    result =
+			"<html><font color=#ff0000>"+result+"</font></html>";
+	    }
+	}
 	return result;
     }
     

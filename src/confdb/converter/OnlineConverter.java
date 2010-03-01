@@ -277,6 +277,9 @@ public class OnlineConverter extends ConverterBase
 	//prescaleTable = new PrescaleTable(epModifier);
 	prescaleTable = new PrescaleTable(epConfig);
 	
+	addPSetForStreams(epConfig);
+	addPSetForDatasets(epConfig);
+
 	epConfigString = getConverterEngine().convert(epConfig);
 	smConfigString = getConverterEngine().convert(smConfig);
 

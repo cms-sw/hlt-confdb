@@ -951,14 +951,18 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    Iterator<Path> itP = config.pathIterator();
 	    while (itP.hasNext()) {
 		Path path = itP.next();
-		if (dataset.parentStream().indexOfPath(path)<0)
+		if (dataset.parentStream().listOfAssignedPaths().indexOf(path)<0)
 		    paths.add(path);
 	    }
 	    
 	    Collections.sort(paths);
 	    itP = paths.iterator();
 	    while (itP.hasNext()) {
-		menuItem = new JMenuItem(itP.next().name());
+		Path path = itP.next();
+		Stream stream = dataset.parentStream();
+		menuItem = (stream.listOfUnassignedPaths().indexOf(path)>=0) ?
+		    new JMenuItem("<html><b>"+path.name()+"</b></html>") :
+		    new JMenuItem(path.name());
 		menuItem.addActionListener(datasetListener);
 		menuItem.setActionCommand("ADDPATH");
 		addPathMenu.add(menuItem);
@@ -1753,6 +1757,8 @@ class DatasetMenuListener implements ActionListener
 							      dlg.dataset());
 	}
 	else if (action.equals("ADDPATH")) {
+	    if (cmd.startsWith("<html><b>")) cmd = cmd.substring(9);
+	    if (cmd.endsWith("</b></html>")) cmd = cmd.substring(0,cmd.length()-11);
 	    ConfigurationTreeActions.addPathToDataset(tree,cmd);
 	}
 	else if (action.equals("REMOVE")) {

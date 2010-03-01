@@ -1,3 +1,16 @@
+2010-03-01  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-04-04
+	* gui/db: fix for bug 28 (Vasu)
+	* db: add stream/dataset psets to online converter as well (moved
+	the methods to ConverterBase)
+	* gui: fix bug such that paths can now be assigned to PDs if they
+	are already associated with the parent stream
+	* gui: indicate unassigned paths of the parent stream as bold in
+	the 'Add Path' context menu of datasets
+	* gui: indicate paths in a stream not yet assigned to any dataset
+	as red in the tree view
+
 2010-02-12  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-04-03
