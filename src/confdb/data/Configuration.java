@@ -1,4 +1,4 @@
- package confdb.data;
+package confdb.data;
 
 import java.util.ArrayList;
 import java.util.Iterator;

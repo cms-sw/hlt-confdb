@@ -91,6 +91,30 @@ public class ImportTreeMouseListener extends MouseAdapter
 	    popup.add(item);
 	    popup.show(e.getComponent(),e.getX(),e.getY());
 	}
+	else if (node instanceof EventContent) {
+	    EventContent content = (EventContent)node;
+	    JPopupMenu popup = new JPopupMenu();
+	    JMenuItem  item = new JMenuItem("Import " + content.name());
+	    item.addActionListener(new AddContentListener(currentTree,content));
+	    popup.add(item);
+	    popup.show(e.getComponent(),e.getX(),e.getY());
+	}
+	else if (node instanceof Stream) {
+	    Stream     stream = (Stream)node;
+	    JPopupMenu popup  = new JPopupMenu();
+	    JMenuItem  item   = new JMenuItem("Import " + stream.name());
+	    item.addActionListener(new AddStreamListener(currentTree,stream));
+	    popup.add(item); 
+	    popup.show(e.getComponent(),e.getX(),e.getY());
+	} 
+	else if (node instanceof PrimaryDataset) {
+	    PrimaryDataset dataset = (PrimaryDataset)node;
+	    JPopupMenu     popup   = new JPopupMenu();
+	    JMenuItem      item    = new JMenuItem("Import " + dataset.name());
+	    item.addActionListener(new AddDatasetListener(currentTree,dataset));
+	    popup.add(item);
+	    popup.show(e.getComponent(),e.getX(),e.getY());
+	}
     }
     
 }
@@ -157,5 +181,71 @@ class AddInstanceListener implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
 	ConfigurationTreeActions.importInstance(targetTree,instance);
+    }
+}
+
+
+// event content listener class
+class AddContentListener implements ActionListener
+{
+    // member data
+    private JTree        targetTree;
+    private EventContent content;
+
+    // construction
+    public AddContentListener(JTree targetTree,EventContent content)
+    {
+	this.targetTree = targetTree;
+	this.content    = content;
+    }
+    
+    // member functions
+    public void actionPerformed(ActionEvent e)
+    {
+	ConfigurationTreeActions.importContent(targetTree,content);
+    }
+}
+
+
+// event stream listener class
+class AddStreamListener implements ActionListener
+{
+    // member data
+    private JTree  targetTree;
+    private Stream stream;
+
+    // construction
+    public AddStreamListener(JTree targetTree,Stream stream)
+    {
+	this.targetTree = targetTree;
+	this.stream     = stream;
+    }
+    
+    // member functions
+    public void actionPerformed(ActionEvent e)
+    {
+	ConfigurationTreeActions.importStream(targetTree,"",stream);
+    }
+}
+
+
+// event dataset listener class
+class AddDatasetListener implements ActionListener
+{
+    // member data
+    private JTree          targetTree;
+    private PrimaryDataset dataset;
+
+    // construction
+    public AddDatasetListener(JTree targetTree,PrimaryDataset dataset)
+    {
+	this.targetTree = targetTree;
+	this.dataset    = dataset;
+    }
+    
+    // member functions
+    public void actionPerformed(ActionEvent e)
+    {
+	ConfigurationTreeActions.importPrimaryDataset(targetTree,"",dataset);
     }
 }

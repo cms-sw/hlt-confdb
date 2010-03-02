@@ -544,19 +544,16 @@ public class ConfigurationTreeActions
 	
 	ReferenceContainer   container = null;
 	Object               parent    = null;
-	int                  oldIndex  =   -1;
-	int[]                indices   = null;
 	String               type      = null;
+
 	if (external instanceof Path) {
 	    container = config.path(external.name());
 	    parent    = model.pathsNode();
-	    oldIndex  = config.indexOfPath((Path)container);
 	    type      = "path";
 	}
 	else if (external instanceof Sequence) {
 	    container = config.sequence(external.name());
 	    parent    = model.sequencesNode();
-	    oldIndex  = config.indexOfSequence((Sequence)container);
 	    type      = "sequence";
 	}
 
@@ -577,12 +574,16 @@ public class ConfigurationTreeActions
 	    }
 	}
 	else {
-	    if (!config.hasUniqueQualifier(external)) return false;	
-	    model.nodeInserted(parent,index);
+	    if (!config.hasUniqueQualifier(external)) return false;
+	    container = (type.equals("path")) ?
+		config.insertPath(index,external.name()) :
+		config.insertSequence(index,external.name());
 	}
-
+	
 	if (importContainerEntries(config,model,external,container))
 	    container.setDatabaseId(external.databaseId());
+	
+	model.nodeInserted(parent,index);
 	model.updateLevel1Nodes();
 	
 	Diff diff = new Diff(external.config(),config);
@@ -1092,6 +1093,46 @@ public class ConfigurationTreeActions
 	return true;
     }
     
+    /** import event content */
+    public static boolean importContent(JTree tree, EventContent external)
+    {
+	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config   = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	EventContent content = config.content(external.name());
+	int          index   = config.contentCount();
+	if (content==null)  content = config.insertContent(index,external.name());
+	model.nodeInserted(model.contentsNode(),index);
+	
+	Iterator<Stream> itS = external.streamIterator();
+	while (itS.hasNext()) {
+	    Stream stream = itS.next();
+	    importStream(tree,content.name(),stream);
+	}
+	
+	Iterator<OutputCommand> itOC = external.commandIterator();
+	while (itOC.hasNext()) {
+	    OutputCommand command = itOC.next();
+	    content.insertCommand(command);
+	}
+
+	itS = content.streamIterator();
+	while (itS.hasNext()) {
+	    OutputModule output = itS.next().outputModule();
+	    PSetParameter psetSelectEvents =
+		(PSetParameter)output.parameter(0);
+	    model.nodeChanged(psetSelectEvents.parameter(0));
+	    if (output.referenceCount()>0)
+		model.nodeStructureChanged(output.reference(0));
+	}
+	
+	model.updateLevel1Nodes();
+	
+	return true;
+    }
+					
+    
     /** remove an existing event content */
     public static boolean removeContent(JTree tree)
     {
@@ -1179,6 +1220,59 @@ public class ConfigurationTreeActions
 	
 	TreePath newTreePath = treePath.pathByAddingChild(stream);
 	tree.setSelectionPath(newTreePath);
+	
+	return true;
+    }
+    
+    /** import stream */
+    public static boolean importStream(JTree tree,String contentName,Stream external)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+
+	EventContent content = null;
+	
+	if (contentName.equals("")) {
+	   Object targetNode=treePath.getLastPathComponent();
+	   if (targetNode instanceof EventContent)
+	       content = (EventContent)targetNode;
+	   else return false;
+	}
+	else {
+	    content = config.content(contentName);
+	}
+	
+	if (content==null) {
+	    System.err.println("stream must be added to existing event content!");
+	    return false;
+	}
+	
+	Stream stream = content.stream(external.name());
+	if (stream==null) {
+	    stream = content.insertStream(external.name());
+	    stream.setFractionToDisk(external.fractionToDisk());
+	}
+	
+	Iterator<Path> itP = external.pathIterator();
+	while (itP.hasNext()) {
+	    String pathName = itP.next().name();
+	    Path path = config.path(pathName);
+	    if (path==null) {
+		System.out.println("importStream: skip path "+pathName);
+		continue;
+	    }
+	    stream.insertPath(path);
+	}
+	
+	Iterator<PrimaryDataset> itPD = external.datasetIterator();
+	while (itPD.hasNext()) {
+	    PrimaryDataset dataset = itPD.next();
+	    importPrimaryDataset(tree,stream.name(),dataset);
+	}
+	
+	model.nodeInserted(model.streamsNode(),config.indexOfStream(stream));
+	model.updateLevel1Nodes();
 	
 	return true;
     }
@@ -1324,6 +1418,54 @@ public class ConfigurationTreeActions
 	return true;
     }
     
+    /** import primary dataset */
+    public static boolean importPrimaryDataset(JTree tree,
+					       String streamName,
+					       PrimaryDataset external)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	Stream stream = null;
+	
+	if (streamName.equals("")) {
+	    Object targetNode=treePath.getLastPathComponent();
+	    if (targetNode instanceof Stream)
+		stream = (Stream)targetNode;
+	    else return false;
+	}
+	else {
+	    stream = config.stream(streamName);
+	}
+	
+	if (stream==null) {
+	    System.err.println("dataset must be added to existing stream!");
+	    return false;
+	}
+	
+	PrimaryDataset dataset = stream.insertDataset(external.name());
+	if (dataset==null) {
+	    if (config.dataset(external.name())!=null) return false; // TODO?
+	    dataset = stream.dataset(external.name());
+	}
+	
+	Iterator<Path> itP = external.pathIterator();
+	while (itP.hasNext()) {
+	    String pathName = itP.next().name();
+	    Path path = config.path(pathName);
+	    if (path==null) {
+		System.out.println("importPrimaryDataset: skip path " + pathName);
+		continue;
+	    }
+	    dataset.insertPath(path);
+	}
+	
+	model.nodeInserted(model.datasetsNode(),config.indexOfDataset(dataset));
+	
+	return true;
+    }
+
     /** remove an existing primary dataset */
     public static boolean removePrimaryDataset(JTree tree)
     {

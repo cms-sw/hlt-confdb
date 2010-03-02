@@ -1,3 +1,9 @@
+2010-03-02  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-04-07
+	* fix import of (non-existing) reference containers
+	* add import of contents, streams, and datasets
+
 2010-03-01  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-04-06
