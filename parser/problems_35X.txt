@@ -227,12 +227,12 @@ TrackProducer.Parameter NavigationSchool string "" tracked
 Module EDProducer SeedGeneratorFromRegionHitsEDProducer RecoTracker TkSeedGenerator
 SeedGeneratorFromRegionHitsEDProducer.Parameter TTRHBuilder string "WithTrackAngle" tracked
 
-Module EDProducer LargestEtCaloJetSelector PhysicsTools RecoAlgos
+Module EDFilter LargestEtCaloJetSelector PhysicsTools RecoAlgos
 LargestEtCaloJetSelector.Parameter src InputTag iterativeCone5CaloJets tracked
 LargestEtCaloJetSelector.Parameter filter bool false tracked
 LargestEtCaloJetSelector.Parameter maxNumber uint32 4 tracked
 
-Module EDProducer EtMinCaloJetSelector PhysicsTools RecoAlgos
+Module EDFilter EtMinCaloJetSelector PhysicsTools RecoAlgos
 EtMinCaloJetSelector.Parameter src InputTag hltBLifetimeHighestEtJets tracked
 EtMinCaloJetSelector.Parameter filter bool false tracked
 EtMinCaloJetSelector.Parameter etMin double 35.0 tracked
