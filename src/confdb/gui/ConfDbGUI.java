@@ -660,7 +660,8 @@ public class ConfDbGUI
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
 	
-	if (dialog.validChoice()) {
+	if (dialog.validChoice()&&
+	    dialog.configInfo().releaseTag().equals(currentRelease.releaseTag())) {
 	    ImportConfigurationThread worker =
 		new ImportConfigurationThread(dialog.configInfo());
 	    worker.start();

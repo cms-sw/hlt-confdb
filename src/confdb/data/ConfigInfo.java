@@ -72,6 +72,9 @@ public class ConfigInfo implements Comparable<ConfigInfo>
     /** toString overload */
     public String toString() { return name; }
     
+    /** full qualifier */
+    public String fullName() { return parentDir().name()+"/"+name()+"/V"+version(); }
+    
     /** Comparable::compareTo() */
     public int compareTo(ConfigInfo ci)
     {
@@ -219,7 +222,7 @@ public class ConfigInfo implements Comparable<ConfigInfo>
 		if (versions.get(j).releaseTag().equals(releaseTag)) i++;
 		j++;
 	    }
-	    versionIndex = i;
+	    versionIndex = j-1;
 	}
 	this.releaseTag = versions.get(versionIndex).releaseTag();
     }

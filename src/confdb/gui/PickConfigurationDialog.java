@@ -383,12 +383,16 @@ public class PickConfigurationDialog extends JDialog
 	
 	int selectedIndex = -1;
 	int iVersion=0;
-	while (selectedIndex<0&&iVersion<configInfo.versionCount()) {
+	while (selectedIndex<0&&iVersion<configInfo.versionCount(releaseTag)) {
 	    if (releaseTag.equals(new String())||
 		releaseTag.equals(configInfo.version(iVersion).releaseTag()))
 		selectedIndex=iVersion;
 	    ++iVersion;
 	}
+	
+	// Good enough?
+	//int selectedIndex = (configInfo.versionCount(releaseTag)>0) ? 0 : -1;
+	
 	if (selectedIndex<0) {
 	    configInfo = null;
 	    jButtonOk.setEnabled(false);

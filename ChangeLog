@@ -1,3 +1,10 @@
+2010-03-10  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-04-08
+	* gui: bugfix, correctly set the version of the chosen
+	configuration in PickConfigurationDialog when the release is being
+	fixed.
+
 2010-03-02  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-04-07
