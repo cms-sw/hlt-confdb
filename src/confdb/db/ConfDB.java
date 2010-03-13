@@ -987,10 +987,7 @@ public class ConfDB
 		    updateInstanceParameters(service,idToParams.remove(id));
 		}
 		else if (type.equals("Module")) {
-		    if(instanceName.equals("hltBSoftMuonL25JetsU")|| instanceName.equals("hltBLifetimeL25JetsStartupU"))
-			templateName = "EtMinCaloJetSelector";
-			else
-			templateName = release.moduleTemplateName(templateId);
+		    templateName = release.moduleTemplateName(templateId);
 		    
 		    ModuleInstance module = config.insertModule(templateName,
 								instanceName);
