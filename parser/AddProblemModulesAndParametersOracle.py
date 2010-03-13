@@ -204,6 +204,7 @@ def main(argv):
 	    thenewvpsets = []
 	    vecvarvals = []
 
+    myFixer.CheckForDuplicates(cursor,input_cmsswrel)
     connection.commit()
     connection.close()
 
@@ -212,6 +213,7 @@ class AddProblemModulesAndParametersOracle:
     def __init__(self, verbosity, addtorelease):
 	self.data = []
 	self.changes = []
+        self.allmodules = []
         self.paramtypedict = {}
         self.modtypedict = {}
 	self.releasekey = -1
@@ -231,7 +233,7 @@ class AddProblemModulesAndParametersOracle:
 	for temptype, tempname in temptuple:
 	    self.paramtypedict[temptype] = tempname
             
-            thecursor.execute("SELECT ModuleTypes.type, ModuleTypes.typeId FROM ModuleTypes")
+        thecursor.execute("SELECT ModuleTypes.type, ModuleTypes.typeId FROM ModuleTypes")
         temptuple = thecursor.fetchall()
 	for temptype, tempname in temptuple:
 	    self.modtypedict[temptype] = tempname
@@ -361,6 +363,13 @@ class AddProblemModulesAndParametersOracle:
 	if(self.verbose > 2):
 	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag +  "', '" + str(softpackageid) + "')"
             
+        #JH - checking for duplicates
+        print "SELECT * FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ModuleTemplates.superId) JOIN SoftwareReleases ON (SuperIdReleaseAssoc.releaseId = " + str(self.releasekey) + ") WHERE ModuleTemplates.name = '" + str(modclassname) + "'"
+        thecursor.execute("SELECT * FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ModuleTemplates.superId) JOIN SoftwareReleases ON (SuperIdReleaseAssoc.releaseId = " + str(self.releasekey) + ") WHERE ModuleTemplates.name = '" + str(modclassname) + "'")
+        thematch = thecursor.fetchall()
+        print 'DISASTER! - inserting a duplicate ModuleTemplate!'
+        print thematch
+        
 	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag +  "', '" + str(softpackageid) + "')")
 
 	
@@ -1299,6 +1308,20 @@ class AddProblemModulesAndParametersOracle:
 		return 1
 	    else:
 		return 0
+
+    # Connect to the Confdb db
+    def CheckForDuplicates(self,thecursor,therelease):
+
+        print "SELECT ModuleTemplates.name, ModuleTemplates.superId, ModuleTemplates.typeId, ModuleTemplates.cvstag FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (ModuleTemplates.superId = SuperIdReleaseAssoc.superId) JOIN SoftwareReleases ON (SuperIdReleaseAssoc.releaseId = SoftwareReleases.releaseId) WHERE SoftwareReleases.releaseTag = '" + str(therelease) + "'"
+
+        thecursor.execute("SELECT ModuleTemplates.name, ModuleTemplates.superId, ModuleTemplates.typeId, ModuleTemplates.cvstag FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (ModuleTemplates.superId = SuperIdReleaseAssoc.superId) JOIN SoftwareReleases ON (SuperIdReleaseAssoc.releaseId = SoftwareReleases.releaseId) WHERE SoftwareReleases.releaseTag = '" + str(therelease) + "'")
+
+        themodules = thecursor.fetchall()
+        for themodule in themodules:
+            print "\t" + str(themodule[0]) + " " + str(themodule[1]) + " " + str(themodule[2]) + " " + str(themodule[3])
+            if(str(themodule[0]) in self.allmodules):
+                print '****FAIL!!! two modules named ' + str(themodule[0]) + '****'
+            self.allmodules.append(str(themodule[0]))
 
 if __name__ == "__main__":
     main(sys.argv[1:])
