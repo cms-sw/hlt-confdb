@@ -367,8 +367,9 @@ class AddProblemModulesAndParametersOracle:
         print "SELECT * FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ModuleTemplates.superId) JOIN SoftwareReleases ON (SuperIdReleaseAssoc.releaseId = " + str(self.releasekey) + ") WHERE ModuleTemplates.name = '" + str(modclassname) + "'"
         thecursor.execute("SELECT * FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ModuleTemplates.superId) JOIN SoftwareReleases ON (SuperIdReleaseAssoc.releaseId = " + str(self.releasekey) + ") WHERE ModuleTemplates.name = '" + str(modclassname) + "'")
         thematch = thecursor.fetchall()
-        print 'DISASTER! - inserting a duplicate ModuleTemplate!'
-        print thematch
+        if(thematch):
+            print 'DISASTER! - inserting a duplicate ModuleTemplate!'
+            print thematch
         
 	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag +  "', '" + str(softpackageid) + "')")
 
@@ -1312,13 +1313,13 @@ class AddProblemModulesAndParametersOracle:
     # Connect to the Confdb db
     def CheckForDuplicates(self,thecursor,therelease):
 
-        print "SELECT ModuleTemplates.name, ModuleTemplates.superId, ModuleTemplates.typeId, ModuleTemplates.cvstag FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (ModuleTemplates.superId = SuperIdReleaseAssoc.superId) JOIN SoftwareReleases ON (SuperIdReleaseAssoc.releaseId = SoftwareReleases.releaseId) WHERE SoftwareReleases.releaseTag = '" + str(therelease) + "'"
+        print "SELECT ModuleTemplates.name, ModuleTemplates.superId, ModuleTemplates.typeId, ModuleTemplates.cvstag, SoftwarePackages.name, SoftwareSubsystems.name FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (ModuleTemplates.superId = SuperIdReleaseAssoc.superId) JOIN SoftwareReleases ON (SuperIdReleaseAssoc.releaseId = SoftwareReleases.releaseId) JOIN SoftwarePackages ON (SoftwarePackages.packageId = ModuleTemplates.packageId) JOIN SoftwareSubsystems ON (SoftwarePackages.subsysId = SoftwareSubsystems.subsysId) WHERE SoftwareReleases.releaseTag = '" + str(therelease) + "'"
 
-        thecursor.execute("SELECT ModuleTemplates.name, ModuleTemplates.superId, ModuleTemplates.typeId, ModuleTemplates.cvstag FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (ModuleTemplates.superId = SuperIdReleaseAssoc.superId) JOIN SoftwareReleases ON (SuperIdReleaseAssoc.releaseId = SoftwareReleases.releaseId) WHERE SoftwareReleases.releaseTag = '" + str(therelease) + "'")
+        thecursor.execute("SELECT ModuleTemplates.name, ModuleTemplates.superId, ModuleTemplates.typeId, ModuleTemplates.cvstag, SoftwarePackages.name, SoftwareSubsystems.name FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (ModuleTemplates.superId = SuperIdReleaseAssoc.superId) JOIN SoftwareReleases ON (SuperIdReleaseAssoc.releaseId = SoftwareReleases.releaseId) JOIN SoftwarePackages ON (SoftwarePackages.packageId = ModuleTemplates.packageId) JOIN SoftwareSubsystems ON (SoftwarePackages.subsysId = SoftwareSubsystems.subsysId) WHERE SoftwareReleases.releaseTag = '" + str(therelease) + "'")
 
         themodules = thecursor.fetchall()
         for themodule in themodules:
-            print "\t" + str(themodule[0]) + " " + str(themodule[1]) + " " + str(themodule[2]) + " " + str(themodule[3])
+            print "\t" + str(themodule[0]) + " " + str(themodule[4]) + " " + str(themodule[5]) + " " + str(themodule[1]) + " " + str(themodule[2]) + " " + str(themodule[3])
             if(str(themodule[0]) in self.allmodules):
                 print '****FAIL!!! two modules named ' + str(themodule[0]) + '****'
             self.allmodules.append(str(themodule[0]))
