@@ -6,6 +6,7 @@ RecoLocalCalo/CaloTowersCreator		calotowermaker_cfi.py
 RecoLocalCalo/EcalRecProducers          ecalFixedAlphaBetaFitUncalibRecHit_cfi.py
 RecoLocalCalo/EcalRecProducers          ecalRecHit_cfi.py
 RecoLocalTracker/SiPixelClusterizer	SiPixelClusterizer_cfi.py
+RecoLocalTracker/SiStripRecHitConverter StripCPEgeometric_cfi.py
 RecoMuon/L3MuonIsolationProducer	L3MuonIsolationProducer_cfi.py
 RecoJets/JetProducers			ic5CaloJets_cfi.py
 RecoJets/JetProducers                   ak5CaloJets_cfi.py
@@ -20,6 +21,7 @@ RecoEcal/EgammaClusterProducers         correctedDynamicHybridSuperClusters_cfi.
 RecoEcal/EgammaClusterProducers         correctedHybridSuperClusters_cfi.py
 RecoHI/HiTracking                       HIPixelMedianVertex_cfi.py
 RecoHI/HiMuonAlgos			HiMuL3_cfi.py
+HLTrigger/Egamma			hltPMMassFilter_cfi.py
 EventFilter/EcalRawToDigi		EcalRawToRecHitRoI_cfi.py
 EventFilter/EcalRawToDigi               ecalRegionalMuonsFEDs_cfi.py
 IORawData/SiStripInputSources		DaqSource_cfi.py
