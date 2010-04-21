@@ -15,7 +15,14 @@
 <%@page import="confdb.data.PrimaryDataset"%>
 <%@page import="confdb.data.Path"%>
 <%@page import="confdb.data.ModuleInstance"%>
-<%@page import="java.util.ArrayList"%><html>
+<%@page import="java.util.ArrayList"%>
+<%@page import="confdb.data.ServiceInstance"%>
+<%@page import="java.util.HashMap"%>
+<%@page import="confdb.data.Parameter"%>
+<%@page import="confdb.data.VPSetParameter"%>
+<%@page import="confdb.data.PSetParameter"%>
+<%@page import="confdb.data.VStringParameter"%>
+<%@page import="confdb.data.StringParameter"%><html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Streams </title>
@@ -146,6 +153,54 @@ $(function(){
 </head>
 <body>
 <%!
+
+private HashMap<String,String> prescale = null;
+private String staticInfo = null;
+
+private void getStaticPrescaler( Path pat, IConfiguration conf )
+{
+	prescale = new HashMap<String,String>();
+	ServiceInstance service = conf.service( "PrescaleService" );
+	if ( service == null )
+		staticInfo = "no PrescaleService";
+	else
+	{
+		Parameter table = service.parameter( "prescaleTable" );
+		if ( table == null || !(table instanceof VPSetParameter) )
+		{
+			staticInfo = "no prescaleTable";
+			return;
+		}
+		VPSetParameter set = (VPSetParameter)table;
+		for ( int i = 0 ; i < set.parameterSetCount(); i++ )
+		{
+			PSetParameter p = set.parameterSet(i);
+			Parameter p1 = p.parameter( "pathName" );
+			if ( p1 instanceof StringParameter )
+			{
+				StringParameter name = (StringParameter)p1;
+				prescale.put( name.value().toString(),
+					  p.parameter( "prescales" ).valueAsString() );
+//				System.out.println( name.value().toString() + ": " +
+//					  p.parameter( "prescales" ).valueAsString() );
+			}
+		}
+	}
+}
+
+public String getPrescales( Path path, IConfiguration conf )
+{
+	if ( prescale == null )
+		getStaticPrescaler( path, conf );
+	String prescaler = prescale.get( path.name() );
+	if ( prescaler != null )
+		return prescaler;
+	if ( staticInfo != null )
+		return staticInfo;
+	
+	return "";
+}
+
 private static final String l1TemplateName    = "HLTLevel1GTSeed";
 private static final String l1CondParamName   = "L1SeedsLogicalExpression";
 
@@ -226,24 +281,26 @@ public String getL1Seed( Path path )
 <colgroup>
     <col width="15%">
     <col width="15%">
-    <col width="30%">
+    <col width="25%">
+    <col width="15%">
     <col width="30%">
   </colgroup>
 <thead>
-<tr><th align='left'>Stream</th><th align='left'>Primary Dataset</th><th align='left'>HLT path</th><th align='left'>L1 seed</th></tr>
+<tr><th align='left'>Stream</th><th align='left'>Primary Dataset</th><th align='left'>HLT path</th><th align='center'>Prescaler</th><th align='left'>L1 seed</th></tr>
 </thead>
 <tbody>
 <%
+	prescale = null;
 	Iterator<Stream> it = conf.streamIterator();
 	while ( it.hasNext() )
 	{
 		Stream stream = it.next();
-		out.println( "<tr id='s-" + stream.name() + "'><td class='treeColumn'>" + stream.name() + "</td><td></td><td></td><td></td></tr>" );
+		out.println( "<tr id='s-" + stream.name() + "'><td class='treeColumn'>" + stream.name() + "</td><td></td><td></td><td></td><td></td></tr>" );
 		Iterator<PrimaryDataset> datasets = stream.datasetIterator();
 		while ( datasets.hasNext() )
 		{
 			PrimaryDataset dataset = datasets.next();
-			out.println( "<tr id='pd-" + dataset.name() + "' class='child-of-s-" + stream.name() + "'><td></td><td  class='treeColumn' >" + dataset.name() + "</td><td></td><td></td></tr>" );
+			out.println( "<tr id='pd-" + dataset.name() + "' class='child-of-s-" + stream.name() + "'><td></td><td  class='treeColumn' >" + dataset.name() + "</td><td></td><td></td><td></td></tr>" );
 			Iterator<Path> paths = dataset.pathIterator();
 			while ( paths.hasNext() )
 			{
@@ -251,6 +308,7 @@ public String getL1Seed( Path path )
 				out.println( "<tr id='p-" + path.name() + "' class='child-of-pd-" + dataset.name() + "'>" 
 						+ "<td></td><td></td>" 
 						+ "<td>" + path.name() + "</td>" 
+						+ "<td align='center'>" + getPrescales(path, conf ) + "</td>" 
 						+ "<td>" + getL1Seed(path) + "</td>" 
 						+ "</tr>" );
 			}
