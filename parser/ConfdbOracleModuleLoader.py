@@ -7,7 +7,9 @@
 
 import os, string, sys, posix, tokenize, array
 
-sys.path.append(os.environ.get("CMS_PATH") + "/sw/slc4_ia32_gcc345/external/py2-cx-oracle/4.2/lib/python2.4/site-packages/")
+#sys.path.append(os.environ.get("CMS_PATH") + "/sw/slc4_ia32_gcc345/external/py2-cx-oracle/4.2/lib/python2.4/site-packages/")
+
+sys.path.append("/afs/cern.ch/user/j/jjhollar/private/")
 
 import cx_Oracle
 
@@ -1082,7 +1084,7 @@ class ConfdbOracleModuleLoader:
 
 		# Protect against loading non-integer values. Also deal with implicit fp->int conversions and hex.
 		if(paramval):
-		    if(paramval.find('.') != -1):
+		    if(paramval.find('.') != -1 and paramval.find('get') == -1):
 			paramval = str(int(float(paramval)))
 		    elif(not paramval.isdigit()):
 			paramval = None
