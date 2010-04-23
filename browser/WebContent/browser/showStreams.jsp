@@ -164,7 +164,7 @@ $(function(){
 </head>
 <body>
 <%!
-
+int verbose = 0;
 int columns = 0;
 String prescalerType = "";
 
@@ -246,7 +246,7 @@ class SearchModuleByName extends SearchModule
 			  	found.add( node );
 		  	  }
 		  }
-		  else
+		  else if (verbose > 0 )
 			  System.out.println( node.getClass() + " " + node  + " != module" );
 	  }
 	  
@@ -296,7 +296,7 @@ class SearchModuleByType extends SearchModule
 			  	//System.out.println( module.name() + " instanceof " + target );
 		  	  }
 		  }
-		  else if (  !(node instanceof OutputModuleReference) )
+		  else if (  !(node instanceof OutputModuleReference)  &&  verbose > 0 )
 			  System.out.println( node.getClass() + " " + node  + " != module" );
 	  }
 	  
@@ -386,7 +386,8 @@ Path getEndPath( String output, IConfiguration conf )
 			}
 		}
 	}
-	System.out.println( "endpath for " + output + " not found" );
+	if ( verbose > 0 )
+		System.out.println( "endpath for " + output + " not found" );
 	return null;
 }
 
@@ -487,7 +488,7 @@ int[] getPrescales( String name, String out, Path endp )
 						VUInt32Parameter vint = (VUInt32Parameter)p;
 						scale1 = Integer.parseInt( vint.value(index).toString() );
 					}
-					else
+					else if ( verbose > 0 )
 						System.out.println( "HLTPathsPrescales not found " + p.getClass() );
 					scale2 = Integer.parseInt( module.parameter( "HLTOverallPrescale" ).valueAsString() );
 					for ( int i = 0; i < pre.length; i++ )
@@ -575,6 +576,7 @@ def getPrescalesDescription(name, out, end):
 */
 String getPrescalesDescription( String name, String out, Path endp )
 {
+	prescalerType = "";
 	int[] pre = getPrescales( name, out, endp );
 	if ( prescalerType.isEmpty() )
 		return "";
@@ -592,15 +594,19 @@ private HashMap<String,String> prescale = null;
 
 private void initPrescalerStuff( IConfiguration conf )
 {
-	System.out.println();
-	System.out.println( "----------------------------------------------------------" );
-	System.out.println();
+	if ( verbose > 0 )
+	{
+		System.out.println();
+		System.out.println( "----------------------------------------------------------" );
+		System.out.println();
+	}
 	columns = 0;
 	prescalerType = "";
 	ServiceInstance service = conf.service( "PrescaleService" );
 	if ( service == null )
 	{
-		System.out.println( "no PrescaleService" );
+		if ( verbose > 0 )
+			System.out.println( "no PrescaleService" );
 		return;
 	}
 
@@ -610,15 +616,17 @@ private void initPrescalerStuff( IConfiguration conf )
 		VStringParameter vstring = (VStringParameter)p;
 		columns = vstring.vectorSize();
 	}
-	else
+	else if ( verbose > 0 )
 		System.out.println( "lvl1Labels not found " + p.getClass() );
-	System.out.println( columns + " columns" );
+	if ( verbose > 0 )
+		System.out.println( columns + " columns" );
 	  
 	prescale = new HashMap<String,String>();
 	Parameter table = service.parameter( "prescaleTable" );
 	if ( !(table instanceof VPSetParameter) )
 	{
-		System.out.println( "no prescaleTable" );
+		if ( verbose > 0 )
+			System.out.println( "no prescaleTable" );
 		return;
 	}
 	VPSetParameter set = (VPSetParameter)table;
@@ -722,10 +730,12 @@ public String getL1Seed( Path path )
     <col width="30%">
   </colgroup>
 <thead>
-<tr><th align='left'>Stream</th><th align='left'>Primary Dataset</th><th align='left'>HLT path</th><th align='right'>Prescaler</th><th></th><th align='left'>L1 seed</th></tr>
+<tr><th align='left'>Stream</th><th align='left'>Primary Dataset</th><th align='left'>HLT path</th><th align='right'>Prescaler</th><th style="min-width:3em"></th><th align='left'>L1 seed</th></tr>
 </thead>
 <tbody>
 <%
+	if ( request.getParameter( "verbose" ) != null )
+		verbose = Integer.parseInt( request.getParameter( "verbose" ) );
 	initPrescalerStuff( conf );
 	Iterator<Stream> it = conf.streamIterator();
 	while ( it.hasNext() )
@@ -749,7 +759,7 @@ public String getL1Seed( Path path )
 						+ "<td></td><td></td>" 
 						+ "<td>" + path.name() + "</td>" 
 						+ "<td align='right'>" + getPrescalesDescription( path.name(), hltOut, endp ) + "</td>" 
-						+ "<td align='center'>" + (prescalerType.equals("g") ? "" : prescalerType) + "</td>" 
+						+ "<td align='center'>" + ( verbose > 0  &&  !prescalerType.equals("g") ? prescalerType : "" ) + "</td>" 
 						+ "<td>" + getL1Seed(path) + "</td>" 
 						+ "</tr>" );
 			}
