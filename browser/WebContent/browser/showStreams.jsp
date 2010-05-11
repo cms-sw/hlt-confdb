@@ -578,8 +578,6 @@ String getPrescalesDescription( String name, String out, Path endp )
 {
 	prescalerType = "";
 	int[] pre = getPrescales( name, out, endp );
-	if ( prescalerType.isEmpty() )
-		return "";
 	
 	StringBuffer str = new StringBuffer();
 	for ( int p : pre )
