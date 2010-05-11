@@ -407,8 +407,7 @@ int[] getPrescales( String name, String out, Path endp ) throws NumberFormatExce
     int[] pre = null;
     if ( prescale.get( name ) != null )
     {
-		pre = new int[1];
-		pre[0] = Integer.parseInt( prescale.get( name ) );
+		pre = prescale.get( name );
 		prescalerType = "g";
     }
     else
@@ -437,9 +436,9 @@ int[] getPrescales( String name, String out, Path endp ) throws NumberFormatExce
 	  ( new VisitedPath( endp ) ).visit( dumb );
 	  if ( dumb.found != null  &&  prescale.get( endp.name() ) != null )
 	  {
-		  int factor = Integer.parseInt( prescale.get( endp.name() ) );
+		  int[] factor = prescale.get( endp.name() );
 		  for ( int i = 0; i < pre.length; i++ )
-			  pre[i] = pre[i] * factor;
+			  pre[i] = pre[i] * factor[i];
 		  prescalerType += "d";
 	  }
       
@@ -581,14 +580,14 @@ String getPrescalesDescription( String name, String out, Path endp ) throws Numb
 	
 	StringBuffer str = new StringBuffer();
 	for ( int p : pre )
-		str.append( String.format( "%6d", p ) );
+		str.append( String.format( " %d", p ) );
 	return str.toString();	
 }
 
 
 
 
-private HashMap<String,String> prescale = null;
+private HashMap<String,int[]> prescale = null;
 
 private void initPrescalerStuff( IConfiguration conf )
 {
@@ -619,7 +618,7 @@ private void initPrescalerStuff( IConfiguration conf )
 	if ( verbose > 0 )
 		System.out.println( columns + " columns" );
 	  
-	prescale = new HashMap<String,String>();
+	prescale = new HashMap<String,int[]>();
 	Parameter table = service.parameter( "prescaleTable" );
 	if ( !(table instanceof VPSetParameter) )
 	{
@@ -634,10 +633,17 @@ private void initPrescalerStuff( IConfiguration conf )
 		Parameter name = pset.parameter( "pathName" );
 		if ( name instanceof StringParameter  &&  pset.parameter( "prescales" ) != null )
 		{
-			prescale.put( ((StringParameter)name).value().toString(),
-					pset.parameter( "prescales" ).valueAsString() );
-//			System.out.println( name.value().toString() + ": " +
-//					  p.parameter( "prescales" ).valueAsString() );
+			Object o = pset.parameter( "prescales" );
+			if ( o instanceof VUInt32Parameter )
+			{
+				VUInt32Parameter vint = (VUInt32Parameter)o;
+				int[] v = new int[ vint.vectorSize() ];
+				for ( int ii = 0; ii < v.length; ii++ )
+					v[ii] = ((Long)vint.value(ii)).intValue();
+				prescale.put( ((StringParameter)name).value().toString(), v );
+//				System.out.println( name.value().toString() + ": " +
+//						  p.parameter( "prescales" ).valueAsString() );
+			}
 		}
 	}
 }
