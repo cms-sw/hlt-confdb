@@ -394,7 +394,7 @@ Path getEndPath( String output, IConfiguration conf )
 // get a tuple with the prescale factors for a path in a given endpath
 
 //  def getPrescales(name, out, end):
-int[] getPrescales( String name, String out, Path endp )
+int[] getPrescales( String name, String out, Path endp ) throws NumberFormatException
 {
 	/*
     # look for a gobal prescale for the given path
@@ -574,7 +574,7 @@ def getPrescalesDescription(name, out, end):
   pre = getPrescales(name, out, end)
   return ''.join(['  %6d' % p for p in pre])
 */
-String getPrescalesDescription( String name, String out, Path endp )
+String getPrescalesDescription( String name, String out, Path endp ) throws NumberFormatException
 {
 	prescalerType = "";
 	int[] pre = getPrescales( name, out, endp );
@@ -732,36 +732,49 @@ public String getL1Seed( Path path )
 </thead>
 <tbody>
 <%
-	if ( request.getParameter( "verbose" ) != null )
-		verbose = Integer.parseInt( request.getParameter( "verbose" ) );
-	initPrescalerStuff( conf );
-	Iterator<Stream> it = conf.streamIterator();
-	while ( it.hasNext() )
-	{
-		Stream stream = it.next();
-		String hltOut = "hltOutput" + stream.name();
-	    Path endp = getEndPath( hltOut, conf );
-		 	
-		
-		out.println( "<tr id='s-" + stream.name() + "'><td class='treeColumn'>" + stream.name() + "</td><td></td><td></td><td></td><td></td><td></td></tr>" );
-		Iterator<PrimaryDataset> datasets = stream.datasetIterator();
-		while ( datasets.hasNext() )
+	try {
+		if ( request.getParameter( "verbose" ) != null )
+			verbose = Integer.parseInt( request.getParameter( "verbose" ) );
+		initPrescalerStuff( conf );
+		Iterator<Stream> it = conf.streamIterator();
+		while ( it.hasNext() )
 		{
-			PrimaryDataset dataset = datasets.next();
-			out.println( "<tr id='pd-" + dataset.name() + "' class='child-of-s-" + stream.name() + "'><td></td><td  class='treeColumn' >" + dataset.name() + "</td><td></td><td></td><td></td><td></td></tr>" );
-			Iterator<Path> paths = dataset.pathIterator();
-			while ( paths.hasNext() )
+			Stream stream = it.next();
+			String hltOut = "hltOutput" + stream.name();
+	    	Path endp = getEndPath( hltOut, conf );
+		 	
+			out.println( "<tr id='s-" + stream.name() + "'><td class='treeColumn'>" + stream.name() + "</td><td></td><td></td><td></td><td></td><td></td></tr>" );
+			Iterator<PrimaryDataset> datasets = stream.datasetIterator();
+			while ( datasets.hasNext() )
 			{
-				Path path = paths.next();
-				out.println( "<tr id='p-" + path.name() + "' class='child-of-pd-" + dataset.name() + "'>" 
+				PrimaryDataset dataset = datasets.next();
+				out.println( "<tr id='pd-" + dataset.name() + "' class='child-of-s-" + stream.name() + "'><td></td><td  class='treeColumn' >" + dataset.name() + "</td><td></td><td></td><td></td><td></td></tr>" );
+				Iterator<Path> paths = dataset.pathIterator();
+				while ( paths.hasNext() )
+				{
+					Path path = paths.next();
+					out.println( "<tr id='p-" + path.name() + "' class='child-of-pd-" + dataset.name() + "'>" 
 						+ "<td></td><td></td>" 
 						+ "<td>" + path.name() + "</td>" 
 						+ "<td align='right'>" + getPrescalesDescription( path.name(), hltOut, endp ) + "</td>" 
 						+ "<td align='center'>" + ( verbose > 0  &&  !prescalerType.equals("g") ? prescalerType : "" ) + "</td>" 
 						+ "<td>" + getL1Seed(path) + "</td>" 
 						+ "</tr>" );
+				}
 			}
 		}
+	} catch (Exception e) {
+    	Throwable cause = e.getCause(); 
+	    out.print(e.getMessage()+"\n"); 
+	    if ( cause != null )
+		    out.print( "cause: " + cause.getMessage() + "\n\n");
+	    else
+	    	out.print( "\n" );
+	    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+	    PrintWriter writer = new PrintWriter(buffer);
+	    e.printStackTrace(writer);
+	    writer.close();
+	    out.println(buffer.toString());
 	}
 %>
 
