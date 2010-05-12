@@ -585,9 +585,10 @@ String getPrescalesDescription( String name, String out, Path endp ) throws Numb
 	
 	StringBuffer str = new StringBuffer();
 	for ( int p : pre )
-		str.append( String.format( " %d", p ) );
+		str.append( "<td align='right'>" + p + "</td>" );
 	return str.toString();	
 }
+
 
 
 private void initPrescalerStuff( IConfiguration conf )
@@ -599,7 +600,7 @@ private void initPrescalerStuff( IConfiguration conf )
 		System.out.println( "----------------------------------------------------------" );
 		System.out.println();
 	}
-	columns = 0;
+	columns = 1;
 	prescalerType = "";
 	ServiceInstance service = conf.service( "PrescaleService" );
 	if ( service == null )
@@ -755,23 +756,28 @@ void verbose1( String message )
 <center>
 
 <table id="main" rules="groups" border="1" style="padding-left:10px" width="100%">
-<colgroup>
-    <col width="15%">
-    <col width="15%">
-    <col width="25%">
-    <col width="10%">
-    <col width="5%">
-    <col width="30%">
-  </colgroup>
 <thead>
-<tr><th align='left'>Stream</th><th align='left'>Primary Dataset</th><th align='left'>HLT path</th><th align='right'>Prescaler</th><th style="min-width:3em"></th><th align='left'>L1 seed</th></tr>
-</thead>
-<tbody>
+<tr><th align='left'>Stream</th><th align='left'>Primary Dataset</th><th align='left'>HLT path</th>
 <%
 	try {
 		if ( request.getParameter( "verbose" ) != null )
 			verbose = Integer.parseInt( request.getParameter( "verbose" ) );
 		initPrescalerStuff( conf );
+		
+		out.println( "<th " + ( columns > 1 ? ("colspan=" + columns) : "align='right'" ) + ">Prescaler</th>" );
+
+%>		
+
+		<th style="min-width:3em"></th><th align='left'>L1 seed</th></tr>
+		</thead>
+		<tbody>
+
+<%
+
+		String emptyTDs = "<td></td><td></td><td></td><td></td>";
+		for ( int i = 1; i < columns; i++ )
+			emptyTDs += "<td></td>";
+
 		Iterator<Stream> it = conf.streamIterator();
 		while ( it.hasNext() )
 		{
@@ -781,12 +787,12 @@ void verbose1( String message )
 	    	
 	    	SortedSet<String> unassigned = getSelectEvents( hltOut, conf );
 	    	
-			out.println( "<tr id='s-" + stream.name() + "'><td class='treeColumn'>" + stream.name() + "</td><td></td><td></td><td></td><td></td><td></td></tr>" );
+			out.println( "<tr id='s-" + stream.name() + "'><td class='treeColumn'>" + stream.name() + "</td><td></td>" + emptyTDs + "</tr>" );
 			Iterator<PrimaryDataset> datasets = stream.datasetIterator();
 			while ( datasets.hasNext() )
 			{
 				PrimaryDataset dataset = datasets.next();
-				out.println( "<tr id='pd-" + dataset.name() + "' class='child-of-s-" + stream.name() + "'><td></td><td  class='treeColumn' >" + dataset.name() + "</td><td></td><td></td><td></td><td></td></tr>" );
+				out.println( "<tr id='pd-" + dataset.name() + "' class='child-of-s-" + stream.name() + "'><td></td><td  class='treeColumn' >" + dataset.name() + "</td>" + emptyTDs + "</tr>" );
 				Iterator<Path> paths = dataset.pathIterator();
 				while ( paths.hasNext() )
 				{
@@ -794,7 +800,7 @@ void verbose1( String message )
 					out.println( "<tr id='p-" + path.name() + "' class='child-of-pd-" + dataset.name() + "'>" 
 							+ "<td></td><td></td>" 
 							+ "<td>" + path.name() + "</td>" 
-							+ "<td align='right'>" + getPrescalesDescription( path.name(), hltOut, endp ) + "</td>" 
+							+ getPrescalesDescription( path.name(), hltOut, endp )
 							+ "<td align='center'>" + ( verbose > 0 ? prescalerType : "" ) + "</td>" 
 							+ "<td>" + getL1Seed(path) + "</td>" 
 							+ "</tr>" );
@@ -803,14 +809,14 @@ void verbose1( String message )
 			}
 			if ( !unassigned.isEmpty() )
 			{
-				out.println( "<tr id='pd-unassigned-" + stream.name() + "' class='child-of-s-" + stream.name() + "'><td></td><td  class='treeColumn' >unassigned</td><td></td><td></td><td></td><td></td></tr>" );
+				out.println( "<tr id='pd-unassigned-" + stream.name() + "' class='child-of-s-" + stream.name() + "'><td></td><td  class='treeColumn' >unassigned</td>" + emptyTDs + "</tr>" );
 				for ( String pathName : unassigned )
 				{
 					Path path = conf.path( pathName );
 					out.println( "<tr id='p-" + path.name() + "' class='child-of-pd-unassigned-" + stream.name() + "'>" 
 							+ "<td></td><td></td>" 
 							+ "<td>" + path.name() + "</td>" 
-							+ "<td align='right'>" + getPrescalesDescription( path.name(), hltOut, endp ) + "</td>" 
+							+ getPrescalesDescription( path.name(), hltOut, endp ) 
 							+ "<td align='center'>" + ( verbose > 0  &&  !prescalerType.equals("g") ? prescalerType : "" ) + "</td>" 
 							+ "<td>" + getL1Seed(path) + "</td>" 
 							+ "</tr>" );
