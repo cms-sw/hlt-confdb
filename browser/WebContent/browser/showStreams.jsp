@@ -79,6 +79,15 @@
 	background: #edf4f9;
 }
 
+.prescaleTH {
+	font-weight: normal;
+	padding-left: 1em;
+}
+
+.prescaleTD {
+	padding-left: 1em;
+}
+
 /*
 body {
 	margin:0px; 
@@ -586,7 +595,7 @@ String getPrescalesDescription( String name, String out, Path endp ) throws Numb
 	
 	StringBuffer str = new StringBuffer();
 	for ( int p : pre )
-		str.append( "<td align='right'>" + p + "</td>" );
+		str.append( "<td align='right' class='prescaleTD'>" + p + "</td>" );
 	return str.toString();	
 }
 
@@ -776,7 +785,7 @@ void verbose1( String message )
 		{
 			out.println( "<tr>" );
 			for ( String name : columnName )
-				out.println( "<th align='right'>" + name + "</th>" );
+				out.println( "<th class='prescaleTH'>" + name + "</th>" );
 			out.println( "</tr>" );
 		}
 		out.println( "</thead><tbody>" );
