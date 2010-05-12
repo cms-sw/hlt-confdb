@@ -33,7 +33,10 @@
 <%@page import="confdb.data.VUInt32Parameter"%>
 
 <%@page import="java.util.regex.Pattern"%>
-<%@page import="java.util.regex.Matcher"%><html>
+<%@page import="java.util.regex.Matcher"%>
+<%@page import="java.util.HashSet"%>
+<%@page import="java.util.SortedSet"%>
+<%@page import="java.util.TreeSet"%><html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Streams </title>
@@ -167,6 +170,8 @@ $(function(){
 int verbose = 0;
 int columns = 0;
 String prescalerType = "";
+HashMap<String,int[]> prescale = null;
+
 
 class VisitedPath
 {
@@ -407,7 +412,7 @@ int[] getPrescales( String name, String out, Path endp ) throws NumberFormatExce
     int[] pre = null;
     if ( prescale.get( name ) != null )
     {
-		pre = prescale.get( name );
+		pre = prescale.get( name ).clone();
 		prescalerType = "g";
     }
     else
@@ -585,12 +590,9 @@ String getPrescalesDescription( String name, String out, Path endp ) throws Numb
 }
 
 
-
-
-private HashMap<String,int[]> prescale = null;
-
 private void initPrescalerStuff( IConfiguration conf )
 {
+	prescale = new HashMap<String,int[]>();
 	if ( verbose > 0 )
 	{
 		System.out.println();
@@ -618,7 +620,6 @@ private void initPrescalerStuff( IConfiguration conf )
 	if ( verbose > 0 )
 		System.out.println( columns + " columns" );
 	  
-	prescale = new HashMap<String,int[]>();
 	Parameter table = service.parameter( "prescaleTable" );
 	if ( !(table instanceof VPSetParameter) )
 	{
@@ -677,6 +678,35 @@ public String getL1Seed( Path path )
 	if (l1Condition.endsWith("\""))
     	l1Condition = l1Condition.substring(0,l1Condition.length()-1);
 	return l1Condition;
+}
+
+SortedSet<String> getSelectEvents( String hltOut, IConfiguration conf )
+{
+	TreeSet<String> set = new TreeSet<String>();
+	OutputModule module = conf.output( hltOut );
+	if ( module != null )
+	{
+		Parameter p = module.findParameter( "SelectEvents" );
+		if ( p instanceof PSetParameter )
+		{
+			PSetParameter pset = (PSetParameter)p;
+			p = pset.parameter( "SelectEvents" );
+			if ( p instanceof VStringParameter )
+			{
+				VStringParameter v = (VStringParameter)p;
+				for ( int i = 0; i < v.vectorSize(); i++ )
+					set.add( v.value(i).toString() );
+			}
+		}
+	}
+	return set;
+}
+
+
+void verbose1( String message )
+{
+	if ( verbose > 0 )
+		System.out.println(  message );
 }
 
 %>
@@ -748,7 +778,9 @@ public String getL1Seed( Path path )
 			Stream stream = it.next();
 			String hltOut = "hltOutput" + stream.name();
 	    	Path endp = getEndPath( hltOut, conf );
-		 	
+	    	
+	    	SortedSet<String> unassigned = getSelectEvents( hltOut, conf );
+	    	
 			out.println( "<tr id='s-" + stream.name() + "'><td class='treeColumn'>" + stream.name() + "</td><td></td><td></td><td></td><td></td><td></td></tr>" );
 			Iterator<PrimaryDataset> datasets = stream.datasetIterator();
 			while ( datasets.hasNext() )
@@ -760,12 +792,28 @@ public String getL1Seed( Path path )
 				{
 					Path path = paths.next();
 					out.println( "<tr id='p-" + path.name() + "' class='child-of-pd-" + dataset.name() + "'>" 
-						+ "<td></td><td></td>" 
-						+ "<td>" + path.name() + "</td>" 
-						+ "<td align='right'>" + getPrescalesDescription( path.name(), hltOut, endp ) + "</td>" 
-						+ "<td align='center'>" + ( verbose > 0  &&  !prescalerType.equals("g") ? prescalerType : "" ) + "</td>" 
-						+ "<td>" + getL1Seed(path) + "</td>" 
-						+ "</tr>" );
+							+ "<td></td><td></td>" 
+							+ "<td>" + path.name() + "</td>" 
+							+ "<td align='right'>" + getPrescalesDescription( path.name(), hltOut, endp ) + "</td>" 
+							+ "<td align='center'>" + ( verbose > 0 ? prescalerType : "" ) + "</td>" 
+							+ "<td>" + getL1Seed(path) + "</td>" 
+							+ "</tr>" );
+					unassigned.remove( path.name() );
+				}
+			}
+			if ( !unassigned.isEmpty() )
+			{
+				out.println( "<tr id='pd-unassigned-" + stream.name() + "' class='child-of-s-" + stream.name() + "'><td></td><td  class='treeColumn' >unassigned</td><td></td><td></td><td></td><td></td></tr>" );
+				for ( String pathName : unassigned )
+				{
+					Path path = conf.path( pathName );
+					out.println( "<tr id='p-" + path.name() + "' class='child-of-pd-unassigned-" + stream.name() + "'>" 
+							+ "<td></td><td></td>" 
+							+ "<td>" + path.name() + "</td>" 
+							+ "<td align='right'>" + getPrescalesDescription( path.name(), hltOut, endp ) + "</td>" 
+							+ "<td align='center'>" + ( verbose > 0  &&  !prescalerType.equals("g") ? prescalerType : "" ) + "</td>" 
+							+ "<td>" + getL1Seed(path) + "</td>" 
+							+ "</tr>" );
 				}
 			}
 		}
