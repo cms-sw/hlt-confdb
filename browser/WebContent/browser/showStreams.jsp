@@ -169,6 +169,7 @@ $(function(){
 <%!
 int verbose = 0;
 int columns = 0;
+String[] columnName = {};
 String prescalerType = "";
 HashMap<String,int[]> prescale = null;
 
@@ -615,6 +616,9 @@ private void initPrescalerStuff( IConfiguration conf )
 	{
 		VStringParameter vstring = (VStringParameter)p;
 		columns = vstring.vectorSize();
+		columnName = new String[ columns ];
+		for ( int i = 0; i < columns; i++ )
+			columnName[i] = vstring.value(i).toString();
 	}
 	else if ( verbose > 0 )
 		System.out.println( "lvl1Labels not found " + p.getClass() );
@@ -757,23 +761,27 @@ void verbose1( String message )
 
 <table id="main" rules="groups" border="1" style="padding-left:10px" width="100%">
 <thead>
-<tr><th align='left'>Stream</th><th align='left'>Primary Dataset</th><th align='left'>HLT path</th>
 <%
 	try {
 		if ( request.getParameter( "verbose" ) != null )
 			verbose = Integer.parseInt( request.getParameter( "verbose" ) );
 		initPrescalerStuff( conf );
-		
-		out.println( "<th " + ( columns > 1 ? ("colspan=" + columns) : "align='right'" ) + ">Prescaler</th>" );
+	
+		// header
+		String rowspan = columns > 1 ? "rowspan='2'" : "";
+		out.println( "<tr><th align='left' " + rowspan + ">Stream</th><th align='left' " + rowspan + ">Primary Dataset</th><th align='left' " + rowspan + ">HLT path</th>"
+			+ "<th " + ( columns > 1 ? ("colspan=" + columns) : "align='right'" ) + ">Prescaler</th>"
+		    + "<th style='min-width:3em'></th><th align='left' " + rowspan + ">L1 seed</th></tr>" );
+		if ( columns > 1 )
+		{
+			out.println( "<tr>" );
+			for ( String name : columnName )
+				out.println( "<th align='right'>" + name + "</th>" );
+			out.println( "</tr>" );
+		}
+		out.println( "</thead><tbody>" );
 
-%>		
-
-		<th style="min-width:3em"></th><th align='left'>L1 seed</th></tr>
-		</thead>
-		<tbody>
-
-<%
-
+		// body
 		String emptyTDs = "<td></td><td></td><td></td><td></td>";
 		for ( int i = 1; i < columns; i++ )
 			emptyTDs += "<td></td>";
