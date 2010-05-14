@@ -185,7 +185,7 @@ EcalEndcapGeometryEP.Parameter applyAlignment bool false tracked
 
 ESModule TrajectoryCleanerESProducer TrackingTools Producers
 TrajectoryCleanerESProducer.Parameter fractionShared double 0.5 tracked
-
+TrajectoryCleanerESProducer.Parameter allowSharedFirstHit bool true tracked
 
 Service MessageLogger FWCore MessageService
 MessageLogger.Parameter destinations vstring { "warnings", "errors", "infos", "debugs", "cout", "cerr" } untracked
