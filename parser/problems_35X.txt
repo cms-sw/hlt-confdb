@@ -296,6 +296,9 @@ Module EDProducer EgammaHLTPixelMatchElectronProducers RecoEgamma EgammaHLTProdu
 EgammaHLTPixelMatchElectronProducers.Parameter TrackProducer InputTag hltCtfL1NonIsoWithMaterialTracks tracked
 EgammaHLTPixelMatchElectronProducers.Parameter BSProducer InputTag hltOfflineBeamSpot tracked
 
+Module EDProducer SiStripElectronSeedProducer RecoEgamma EgammaElectronProducers
+SiStripElectronSeedProducer.Parameter SeedConfiguration PSet tracked
+
 Module OutputModule PoolOutputModule IOPool Output
 PoolOutputModule.Parameter outputCommands vstring { } untracked
 
