@@ -184,6 +184,7 @@ public class BrowserConverter extends OfflineConverter
     	public String format = "ascii";
     	public int configId = -1;
     	public String configName = null;
+    	public int runNumber = -1;
     	public String dbName = "";
         public HashMap<String,String> toModifier = new HashMap<String,String>();
         
@@ -193,7 +194,7 @@ public class BrowserConverter extends OfflineConverter
     static public UrlParameter getUrlParameter( Map<String,String[]> map ) throws ConverterException
     {
     	if ( map.isEmpty())
-    		throw new ConverterException( "ERROR: configId or configName must be specified!" );
+    		throw new ConverterException( "ERROR: configId or configName or runNumber must be specified!" );
     		
     	UrlParameter p = new UrlParameter();
     	Set<Map.Entry<String,String[]>> parameters = map.entrySet(); 
@@ -208,6 +209,8 @@ public class BrowserConverter extends OfflineConverter
     			p.configId = Integer.parseInt( value );
     		else if ( key.equals("configKey"))
     			p.configId = Integer.parseInt( value );
+    		else if ( key.equals("runNumber"))
+    			p.runNumber = Integer.parseInt( value );
     		else if (key.equals( "configName")) {  
     			p.configName = value;
     		}
@@ -227,11 +230,14 @@ public class BrowserConverter extends OfflineConverter
     		}
     	}
 
-    	if ( p.configId == -1  &&  p.configName == null )
-    		throw new ConverterException( "ERROR: configId or configName must be specified!" );
+    	if ( p.configId == -1  &&  p.configName == null && p.runNumber == -1 )
+    		throw new ConverterException( "ERROR: configId or configName or runNumber must be specified!" );
 
-    	if ( p.configId != -1  &&  p.configName != null )
-    		throw new ConverterException( "ERROR: configId *OR* configName must be specified!" );
+    	int moreThanOne = ( p.configId != -1 ? 1 : 0 ) 
+			+  ( p.configName != null ? 1 : 0 )
+			+  ( p.runNumber != -1 ? 1 : 0 );
+    	if ( moreThanOne > 1 ) 
+    		throw new ConverterException( "ERROR: configId *OR* configName *OR* runNumber must be specified!" );
 		return p;
 	}
 
