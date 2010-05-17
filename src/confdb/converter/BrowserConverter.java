@@ -181,7 +181,7 @@ public class BrowserConverter extends OfflineConverter
 
     static public class UrlParameter {
     	public boolean asFragment = false;
-    	public String format = "ascii";
+    	public String format = "python";
     	public int configId = -1;
     	public String configName = null;
     	public int runNumber = -1;
