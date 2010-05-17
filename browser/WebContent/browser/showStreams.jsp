@@ -737,13 +737,26 @@ void verbose1( String message )
 
 		ModifierInstructions modifierInstructions = new ModifierInstructions();
 	    //modifierInstructions.interpretArgs( paras.toModifier );
+        if ( paras.runNumber != -1 )
+        {
+        	paras.dbName = "ORCOFF";
+        	paras.configName = null;
+	        BrowserConverter c = BrowserConverter.getConverter( paras.dbName );
+        	paras.configId = c.getKeyFromRunSummary( paras.runNumber );
+        	if ( paras.configId <= 0 )
+        	{
+        		out.println( "ERROR: no config found for runNumber " + paras.runNumber + "!<br>" );
+        		return;
+        	}
+        	converter = c;
+        }
+
 	    if ( paras.dbName.equals( "online" ) )
 	    	converter = OnlineConverter.getConverter();
 	    else
 	        converter = BrowserConverter.getConverter( paras.dbName );
-        if ( paras.configId == -1 )
+        if ( paras.configName != null )
 			paras.configId = converter.getDatabase().getConfigId( paras.configName );
-
         conf = converter.getConfiguration( paras.configId );
         //OfflineConverter helper = new OfflineConverter( "HTML" );
 	    //result = helper.getConfigString( conf, paras.format,
