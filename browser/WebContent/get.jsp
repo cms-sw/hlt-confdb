@@ -9,97 +9,32 @@
 <%@page contentType="text/plain"%>
 <%
     out.clearBuffer();
-	Map<String,String[]> map = request.getParameterMap();
-	if ( map.isEmpty())
-	{
-		out.println("ERROR: configId or configName must be specified!");
-		return;
-	}
-		
-	Set<Map.Entry<String,String[]>> parameters = map.entrySet(); 
-
-	boolean asFragment = false;
-        //String format = "ascii";
-        String format = "python";
-	String configId = null;
-	String configName = null;
-	String dbIndexStr = "1";
-	HashMap<String,String> toModifier = new HashMap<String,String>();
-
-	for ( Map.Entry<String,String[]> entry : parameters )
-	{
-		if ( entry.getValue().length > 1 )
-		{
-			out.println( "ERROR: Only one parameter '" + entry.getKey() + "' allowed!" );
-			return;
-		}
-		
-		String value = entry.getValue()[ 0 ];
-		String key = entry.getKey();
-		if (key.equals("configId")) {
-		    configId = value;
-		}
-		else if (key.equals( "configName")) {  
-		    configName = value;
-		}
-		else if (key.equals( "cff")) {
-		    asFragment =true;
-		    toModifier.put( key, value );
-		}
-		else if (key.equals( "format")) {
-		    format = value;
-		}
-		else if ( key.equals( "dbName" ) )
-		{
-		        // TMP HACK
-		        if (value.equalsIgnoreCase("test")) value = "test2r";
-			
-                        if ( !value.equalsIgnoreCase( "hltdev" ) )
-			{
-			  	ConfDBSetups dbs = new ConfDBSetups();
-		  		String[] labels = dbs.labelsAsArray();
-	  			for ( int i = 0; i < dbs.setupCount(); i++ )
-	  			{
-	  				if ( value.equalsIgnoreCase( labels[i] ) )
-	  				{
-	  					dbIndexStr = "" + i;
-	  					break;
-	  				}
-	  			}
-	  		}
-	  	}
-		else if ( key.equals( "dbIndex" ) )
-			dbIndexStr = value;
-		else {
-		    toModifier.put(entry.getKey(),value);
-		}
-	}
-
-	if ( configId == null  &&  configName == null )
-	{
-		out.println("ERROR: configId or configName must be specified!");
-		return;
-	}
-
-	if ( configId != null  &&  configName != null )
-	{
-		out.println("ERROR: configId *OR* configName must be specified!");
-		return;
-	}
-
 	BrowserConverter converter = null;
 	try {
-	    int dbIndex = Integer.parseInt( dbIndexStr );
-	    ModifierInstructions modifierInstructions = new ModifierInstructions();
-	    modifierInstructions.interpretArgs( toModifier );
-            converter = BrowserConverter.getConverter( dbIndex );
-    	    int id = ( configId != null ) ?
-    		    	Integer.parseInt(configId) :
-    			converter.getDatabase().getConfigId(configName);
+		BrowserConverter.UrlParameter paras = BrowserConverter.getUrlParameter( request.getParameterMap() );
 
-	    String result = converter.getConfigString(id,format,
-						      modifierInstructions,
-						      asFragment);
+	    ModifierInstructions modifierInstructions = new ModifierInstructions();
+	    modifierInstructions.interpretArgs( paras.toModifier );
+	    
+	    if ( paras.runNumber != -1 )
+	    	paras.dbName = "ORCOFF";
+	    
+	   	converter = BrowserConverter.getConverter( paras.dbName );
+	    if ( paras.runNumber != -1 )
+	    {
+	    	paras.configName = null;
+	    	paras.configId = converter.getKeyFromRunSummary( paras.runNumber );
+	    	if ( paras.configId <= 0 )
+            {
+            	out.println( "ERROR: CONFIG_NOT_FOUND" );
+                return;
+            }
+	    }
+
+	    if ( paras.configName != null )
+	    	paras.configId = converter.getDatabase().getConfigId( paras.configName );
+
+	    String result = converter.getConfigString( paras.configId, paras.format, modifierInstructions, paras.asFragment);
 	    out.print(result);
 	    out.close();
 	} catch (Exception e) {
