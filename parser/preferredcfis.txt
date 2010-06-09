@@ -33,3 +33,4 @@ Configuration/StandardSequences		FrontierConditions_GlobalTag_cfi.py
 MagneticField/Engine			autoMagneticFieldProducer_cfi
 CommonTools/RecoAlgos			LargestEtCaloJetSelector_cfi.py
 CommonTools/RecoAlgos			EtMinCaloJetSelector_cfi.py
+JetMETCorrections/Configuration		JetCorrectionServices_cff.py
