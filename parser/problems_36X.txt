@@ -606,3 +606,9 @@ ZdcGeometryFromDBEP.Parameter applyAlignment bool false tracked
 
 ESModule CastorGeometryFromDBEP Geometry ForwardGeometry
 CastorGeometryFromDBEP.Parameter applyAlignment bool false tracked
+
+ESModule DetIdAssociatorESProducer TrackingTools TrackAssociator
+DetIdAssociatorESProducer.Parameter etaBinSize double 0.02 tracked
+DetIdAssociatorESProducer.Parameter nEta int32 300 tracked
+DetIdAssociatorESProducer.Parameter nPhi int32 360 tracked
+DetIdAssociatorESProducer.Parameter includeBadChambers bool false tracked
