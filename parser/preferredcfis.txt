@@ -2,12 +2,15 @@ FWCore/MessageLogger			MessageLogger_cfi.py
 RecoBTag/TrackProbability               trackProbabilityFakeCond_cfi.py
 RecoTracker/MeasurementDet		MeasurementTrackerESProducer_cfi.py
 RecoTracker/TkSeedingLayers             PixelAndStripLayerPairs_cfi.py
+RecoTracker/TrackProducer		TrackProducer_cfi.py
 RecoLocalCalo/CaloTowersCreator		calotowermaker_cfi.py
 RecoLocalCalo/EcalRecProducers          ecalFixedAlphaBetaFitUncalibRecHit_cfi.py
 RecoLocalCalo/EcalRecProducers          ecalRecHit_cfi.py
 RecoLocalTracker/SiPixelClusterizer	SiPixelClusterizer_cfi.py
 RecoLocalTracker/SiStripRecHitConverter StripCPEgeometric_cfi.py
 RecoMuon/L3MuonIsolationProducer	L3MuonIsolationProducer_cfi.py
+RecoMuon/TrackerSeedGenerator		TSGFromL2_cfi.py
+RecoMuon/MuonIdentification		muons_cfi.py
 RecoJets/JetProducers			ic5CaloJets_cfi.py
 RecoJets/JetProducers                   ak5CaloJets_cfi.py
 RecoJets/JetProducers                   ca4TrackJets_cfi.py
@@ -24,6 +27,7 @@ RecoHI/HiMuonAlgos			HiMuL3_cfi.py
 HLTrigger/Egamma			hltPMMassFilter_cfi.py
 EventFilter/EcalRawToDigi		EcalRawToRecHitRoI_cfi.py
 EventFilter/EcalRawToDigi               ecalRegionalMuonsFEDs_cfi.py
+EventFilter/DTRawToDigi			dtunpacker_cfi.py
 IORawData/SiStripInputSources		DaqSource_cfi.py
 FastSimulation/Configuration		TrackerRecoGeometryESProducer_cfi.py
 TrackingTools/TrajectoryCleaning	TrajectoryCleanerBySharedHits_cfi.py
