@@ -3,6 +3,7 @@ RecoBTag/TrackProbability               trackProbabilityFakeCond_cfi.py
 RecoTracker/MeasurementDet		MeasurementTrackerESProducer_cfi.py
 RecoTracker/TkSeedingLayers             PixelAndStripLayerPairs_cfi.py
 RecoTracker/TrackProducer		TrackProducer_cfi.py
+RecoTracker/TkSeedGenerator		SeedGeneratorFromRegionHitsEDProducer_cfi.py
 RecoLocalCalo/CaloTowersCreator		calotowermaker_cfi.py
 RecoLocalCalo/EcalRecProducers          ecalFixedAlphaBetaFitUncalibRecHit_cfi.py
 RecoLocalCalo/EcalRecProducers          ecalRecHit_cfi.py
@@ -22,6 +23,7 @@ RecoEcal/EgammaClusterProducers         correctedIslandBarrelSuperClusters_cfi.p
 RecoEcal/EgammaClusterProducers         correctedFixedMatrixSuperClustersWithPreshower_cfi.py
 RecoEcal/EgammaClusterProducers         correctedDynamicHybridSuperClusters_cfi.py
 RecoEcal/EgammaClusterProducers         correctedHybridSuperClusters_cfi.py
+RecoEcal/ EgammaClusterProducers	hybridSuperClusters_cfi.py
 RecoHI/HiTracking                       HIPixelMedianVertex_cfi.py
 RecoHI/HiMuonAlgos			HiMuL3_cfi.py
 HLTrigger/Egamma			hltPMMassFilter_cfi.py
@@ -38,4 +40,5 @@ MagneticField/Engine			autoMagneticFieldProducer_cfi
 CommonTools/RecoAlgos			LargestEtCaloJetSelector_cfi.py
 CommonTools/RecoAlgos			EtMinCaloJetSelector_cfi.py
 JetMETCorrections/Configuration		JetCorrectionServices_cff.py
+JetMETCorrections/Modules		JetCorrectionServiceChain_cfi.py
 GeometryReaders/XMLIdealGeometryESSource	cmsGeometryDB_cff.py
