@@ -9,7 +9,6 @@ RecoLocalCalo/EcalRecProducers          ecalRecHit_cfi.py
 RecoLocalTracker/SiPixelClusterizer	SiPixelClusterizer_cfi.py
 RecoLocalTracker/SiStripRecHitConverter StripCPEgeometric_cfi.py
 RecoMuon/L3MuonIsolationProducer	L3MuonIsolationProducer_cfi.py
-RecoMuon/TrackerSeedGenerator		TSGFromL2_cfi.py
 RecoMuon/MuonIdentification		muons_cfi.py
 RecoJets/JetProducers			ic5CaloJets_cfi.py
 RecoJets/JetProducers                   ak5CaloJets_cfi.py
@@ -18,6 +17,7 @@ RecoMET/METProducers                    CaloMET_cfi.py
 RecoMET/METProducers                    genMetCalo_cfi.py
 RecoMET/METProducers			TCMET_cfi.py
 RecoEgamma/EgammaHLTProducers           hltPhotonTrackIsol_cfi.py
+RecoEgamma/EgammaPhotonProducers	conversionTrackCandidates_cfi.py
 RecoEcal/EgammaClusterProducers         correctedIslandBarrelSuperClusters_cfi.py
 RecoEcal/EgammaClusterProducers         correctedFixedMatrixSuperClustersWithPreshower_cfi.py
 RecoEcal/EgammaClusterProducers         correctedDynamicHybridSuperClusters_cfi.py
@@ -38,3 +38,4 @@ MagneticField/Engine			autoMagneticFieldProducer_cfi
 CommonTools/RecoAlgos			LargestEtCaloJetSelector_cfi.py
 CommonTools/RecoAlgos			EtMinCaloJetSelector_cfi.py
 JetMETCorrections/Configuration		JetCorrectionServices_cff.py
+GeometryReaders/XMLIdealGeometryESSource	cmsGeometryDB_cff.py
