@@ -125,7 +125,10 @@ public class PythonParameterWriter  implements IParameterWriter
 
 	protected void appendVPSetParameters( StringBuffer str, VPSetParameter vpset, String indent ) throws ConverterException 	
 	{
-		str.append( '\n' );
+		if ( vpset.parameterSetCount() < 256 )
+			str.append( '\n' );
+		else
+			str.append( " *(\n" );
 		for ( int i = 0; i < vpset.parameterSetCount() - 1; i++ )
 		{
 			PSetParameter pset = vpset.parameterSet(i);
@@ -143,6 +146,8 @@ public class PythonParameterWriter  implements IParameterWriter
 			else
 				str.append( indent + "  cms.PSet( " + writePSetParameters(pset, indent + "  ", false ) + indent + "  )" + converterEngine.getNewline() );
 		}
+		if ( vpset.parameterSetCount() >= 256 )
+			str.append(')' );
 	}
 	
 	
