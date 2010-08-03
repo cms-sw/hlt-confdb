@@ -33,6 +33,7 @@ EventFilter/DTRawToDigi			dtunpacker_cfi.py
 IORawData/SiStripInputSources		DaqSource_cfi.py
 FastSimulation/Configuration		TrackerRecoGeometryESProducer_cfi.py
 TrackingTools/TrajectoryCleaning	TrajectoryCleanerBySharedHits_cfi.py
+TrackingTools/TrackAssociator		DetIdAssociatorESProducer_cff.py
 Geometry/CaloEventSetup			CaloGeometryBuilder_cfi.py
 Geometry/EcalAlgo			EcalBarrelGeometry_cfi.py
 Configuration/StandardSequences		FrontierConditions_GlobalTag_cfi.py
