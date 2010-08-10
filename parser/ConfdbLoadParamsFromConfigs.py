@@ -983,7 +983,14 @@ class ConfdbLoadParamsfromConfigs:
         if(parametertype == "double"):
             if(parametervalue > 1e+125):
                 parametervalue = 1e+125 
+                self.VerbosePrint("\tDefault value too large for parameter " + parametername + ". Setting default to 1e+125",0) 
 
+        # Protect against Vasile
+        if(parametertype == "string"):
+            if(len(parametervalue) > 1024):
+                parametervalue = ""
+                self.VerbosePrint("\tDefault value for string parameter " + parametername + " has >1024 characters. Setting default to an empty string.",0)
+                
         selectstr = "SELECT SuperIdParameterAssoc.paramId FROM SuperIdParameterAssoc JOIN Parameters ON (Parameters.name = '" + parametername + "') WHERE (SuperIdParameterAssoc.superId = " + str(sid) + ") AND (SuperIdParameterAssoc.paramId = Parameters.paramId)"
 
         self.VerbosePrint(selectstr, 3)
