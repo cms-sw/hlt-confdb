@@ -623,9 +623,11 @@ public class Diff
 		    if (!c.isIdentical()) result.addComparison(c);
 		}
 		else if (parent2 instanceof OutputModule) {
-		    Comparison c = compareOutputModules((OutputModule)parent1,
-							(OutputModule)parent2);
-		    if (!c.isIdentical()) result.addComparison(c);
+		    if (parent1==null||(parent1 instanceof OutputModule)) {
+			Comparison c = compareOutputModules((OutputModule)parent1,
+							    (OutputModule)parent2);
+			if (!c.isIdentical()) result.addComparison(c);
+		    }
 		}
 	    }
 	    

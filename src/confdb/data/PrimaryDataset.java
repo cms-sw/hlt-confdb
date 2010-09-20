@@ -89,7 +89,11 @@ public class PrimaryDataset extends DatabaseEntry
     public int pathCount() { return paths.size(); }
 
     /** retrieve i-th path */
-    public Path path(int i) { return paths.get(i); }
+    public Path path(int i)
+    {
+	Collections.sort(paths);
+	return paths.get(i);
+    }
     
     /** retrieve path by name */
     public Path path(String pathName)
@@ -99,7 +103,11 @@ public class PrimaryDataset extends DatabaseEntry
     }
     
     /** retrieve iterator over paths */
-    public Iterator<Path> pathIterator() { return paths.iterator(); }
+    public Iterator<Path> pathIterator()
+    {
+	Collections.sort(paths);
+	return paths.iterator();
+    }
     
     /** retrieve path iterator (alphabetical order) */
     public Iterator<Path> orderedPathIterator()
@@ -110,7 +118,11 @@ public class PrimaryDataset extends DatabaseEntry
     }    
     
     /** index of a certain path */
-    public int indexOfPath(Path path) { return paths.indexOf(path); }
+    public int indexOfPath(Path path)
+    {
+	Collections.sort(paths);
+	return paths.indexOf(path);
+    }
 
     /** insert and associate a path with this stream */
     public boolean insertPath(Path path)
@@ -129,6 +141,7 @@ public class PrimaryDataset extends DatabaseEntry
 	if (parentStream.indexOfPath(path)<0) parentStream.insertPath(path);
 	//else parentStream.setHasChanged();
 	paths.add(path);
+	Collections.sort(paths);
 	setHasChanged();
 
 	return true;
@@ -150,4 +163,5 @@ public class PrimaryDataset extends DatabaseEntry
 	paths.clear();
 	setHasChanged();
     }
+
 }

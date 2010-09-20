@@ -912,7 +912,8 @@ public class ConfDB
 	    rsEventContentStatements = psSelectEventContentStatements.executeQuery();
 	   
 	    HashMap<Integer,Stream> idToStream = new HashMap<Integer,Stream>();
-	    HashMap<Integer,PrimaryDataset> idToDataset = new HashMap<Integer,PrimaryDataset>();  
+	    HashMap<Integer,PrimaryDataset> idToDataset =
+		new HashMap<Integer,PrimaryDataset>();  
 
 
 	    HashMap<Integer,ArrayList<Parameter> > idToParams = getParameters();
@@ -923,9 +924,11 @@ public class ConfDB
 	    HashMap<Integer,Sequence>idToSequences=new HashMap<Integer,Sequence>();
 	    
 
-	    HashMap<EventContent,Integer> eventContentToId  =new HashMap<EventContent,Integer>();
+	    HashMap<EventContent,Integer> eventContentToId =
+		new HashMap<EventContent,Integer>();
 	    HashMap<Stream,Integer> streamToId  =new HashMap<Stream,Integer>();
-	    HashMap<PrimaryDataset,Integer> primaryDatasetToId  =new HashMap<PrimaryDataset,Integer>();
+	    HashMap<PrimaryDataset,Integer> primaryDatasetToId =
+		new HashMap<PrimaryDataset,Integer>();
 	    HashMap<Path,Integer> pathToId  =new HashMap<Path,Integer>();
 	    HashMap<Sequence,Integer> sequenceToId  =new HashMap<Sequence,Integer>();
 	    
@@ -1011,14 +1014,11 @@ public class ConfDB
 		}
 	    }
 
-	      int iContents = 0;
 	    while (rsEventContentEntries.next()) {
 		int  eventContentId = rsEventContentEntries.getInt(1);
 		String name =  rsEventContentEntries.getString(2);
-		EventContent eventContent = config.insertContent(iContents,name);
-		if(eventContent==null)
-		    continue;
-		iContents++;
+		EventContent eventContent = config.insertContent(name);
+		if(eventContent==null) continue;
 		eventContent.setDatabaseId(eventContentId);
 		eventContentToId.put(eventContent,eventContentId);
 		
@@ -1032,18 +1032,16 @@ public class ConfDB
 		int  eventContentId = rsStreamEntries.getInt(4);
 		String name =  rsStreamEntries.getString(5);
 		EventContent eventContent = config.content(name);
-		if(eventContent==null){
-		    continue;
-		}
+		if(eventContent==null) continue;
+
 		Stream stream = eventContent.insertStream(streamLabel);
 		stream.setFractionToDisk(fracToDisk);
 		stream.setDatabaseId(streamId);
-		//		eventContent.setDatabaseId(eventContentId)
+		// eventContent.setDatabaseId(eventContentId)
 		streamToId.put(stream,streamId);
 		idToStream.put(streamId,stream);
 		ArrayList<Parameter> parameters = idToParams.remove(streamId);
-		if(parameters==null)
-		    continue;
+		if(parameters==null) continue;
 		Iterator<Parameter> it = parameters.iterator();
 		OutputModule outputModule = stream.outputModule();
 		
@@ -1137,52 +1135,6 @@ public class ConfDB
 		pathToId.put(path,pathId);
 	    }
 
-	    while(rsEventContentStatements.next()){
-		int statementId = rsEventContentStatements.getInt(1);
-		String classN = rsEventContentStatements.getString(2);
-		String module = rsEventContentStatements.getString(3);
-		String extra = rsEventContentStatements.getString(4);
-		String process = rsEventContentStatements.getString(5);
-		int statementType = rsEventContentStatements.getInt(6);
-		int eventContentId = rsEventContentStatements.getInt(7);
-		int statementRank = rsEventContentStatements.getInt(8);
-		String name =  rsEventContentStatements.getString(9);
-		int parentPathId = rsEventContentStatements.getInt(10);
-	       
-		EventContent eventContent = config.content(name);
-		
-		OutputCommand outputCommand = new OutputCommand();
-		String commandToString = classN + "_" + module + "_" + extra + "_" + process; 
-		if(statementType == 0){
-		    commandToString = "drop "+commandToString;
-		}else{
-		    commandToString = "keep " + commandToString;
-		}
-		outputCommand.initializeFromString(commandToString);
-		
-		if( parentPathId>0){
-		    
-		    Path parentPath = idToPaths.get(parentPathId);
-		    if(parentPath==null)
-			continue;
-		    Iterator<Reference> itR = parentPath.recursiveReferenceIterator();
-		    boolean found = false;
-		    Reference parentReference = null;
-		    while (itR.hasNext()&&!found){ 
-			parentReference = itR.next();
-			if (parentReference.name().equals(module)) 
-			    found=true;
-		    }
-		 
-		    if (found){
-			outputCommand = new OutputCommand(parentPath,parentReference);
-		    }
-
-		}
-		
-		eventContent.insertCommand(outputCommand);
-	    }
-
 
 
 	    while (rsDatasetEntries.next()) {
@@ -1209,26 +1161,73 @@ public class ConfDB
 		Stream stream = idToStream.get(streamId);
 		PrimaryDataset primaryDataset = idToDataset.get(datasetId); 
 		
-		if(path==null)
-		    continue;
+		if(path==null) continue;
 		
-		if(stream == null){
-		    continue;
-		}
+		if(stream == null) continue;
+		
 		EventContent eventContent = stream.parentContent();
 		stream.insertPath(path);
 		path.addToContent(eventContent);
-	       
-
+		
+		
 		if(primaryDataset==null)
 		    continue;		
 		primaryDataset.insertPath(path);
-
 		
 		stream.setDatabaseId(streamId);
 		primaryDataset.setDatabaseId(datasetId);
 		
 	    }
+
+	    // read content statements last since paths need to be registered!
+	    while(rsEventContentStatements.next()) {
+		int statementId = rsEventContentStatements.getInt(1);
+		String classN = rsEventContentStatements.getString(2);
+		String module = rsEventContentStatements.getString(3);
+		String extra = rsEventContentStatements.getString(4);
+		String process = rsEventContentStatements.getString(5);
+		int statementType = rsEventContentStatements.getInt(6);
+		int eventContentId = rsEventContentStatements.getInt(7);
+		int statementRank = rsEventContentStatements.getInt(8);
+		String name =  rsEventContentStatements.getString(9);
+		int parentPathId = rsEventContentStatements.getInt(10);
+	       
+		EventContent eventContent = config.content(name);
+		
+
+		OutputCommand outputCommand = new OutputCommand();
+		String commandToString = classN+"_"+module+"_"+extra+"_"+process; 
+
+		if(statementType == 0){
+		    commandToString = "drop "+commandToString;
+		}else{
+		    commandToString = "keep " + commandToString;
+		}
+		outputCommand.initializeFromString(commandToString);
+		
+		if( parentPathId>0){
+		    
+		    Path parentPath = idToPaths.get(parentPathId);
+		    if(parentPath==null)
+			continue;
+		    Iterator<Reference> itR = parentPath.recursiveReferenceIterator();
+		    boolean found = false;
+		    Reference parentReference = null;
+		    while (itR.hasNext()&&!found){ 
+			parentReference = itR.next();
+			if (parentReference.name().equals(module)) 
+			    found=true;
+		    }
+		    
+		    if (found){
+			outputCommand = new OutputCommand(parentPath,parentReference);
+		    }
+
+		}
+		
+		eventContent.insertCommand(outputCommand);
+	    }
+
 
 	    Iterator<EventContent> contentIt = config.contentIterator();
 	    while(contentIt.hasNext()){
@@ -1259,12 +1258,15 @@ public class ConfDB
 		sequence.setDatabaseId(databaseId);
 	    }
 	    
-	    /* Iterator<Path> pathIt = config.pathIterator();
-	   	    while(pathIt.hasNext()){
-		Path path = pathIt.next();
-		int databaseId = pathToId.get(path);
-		path.setDatabaseId(databaseId);
-		}*/
+	    /*
+	      Iterator<Path> pathIt = config.pathIterator();
+	      while(pathIt.hasNext()){
+	      Path path = pathIt.next();
+	      int databaseId = pathToId.get(path);
+	      path.setDatabaseId(databaseId);
+	      }
+	    */
+
 	}
 	catch (SQLException e) {
 	    String errMsg =
@@ -1333,7 +1335,10 @@ public class ConfDB
     {
 	String  releaseTag = config.releaseTag();
 	int     releaseId  = getReleaseId(releaseTag);
-	String  configDescriptor = config.parentDir().name()+"/"+config.name()+"/V"+config.nextVersion();
+	String  configDescriptor =
+	    config.parentDir().name()+"/"+
+	    config.name()+"/"+
+	    "V"+config.nextVersion();
 
 	ResultSet rs = null;
 
@@ -1380,9 +1385,12 @@ public class ConfDB
 	    // insert services
 	    insertServices(configId,config);
 	  
-	    HashMap<String,Integer> primaryDatasetHashMap =  insertPrimaryDatasets(configId,config);
-	    HashMap<String,Integer> eventContentHashMap = insertEventContents(configId,config);
-	    HashMap<String,Integer> streamHashMap = insertStreams(configId,config);
+	    HashMap<String,Integer> primaryDatasetHashMap =
+		insertPrimaryDatasets(configId,config);
+	    HashMap<String,Integer> eventContentHashMap =
+		insertEventContents(configId,config);
+	    HashMap<String,Integer> streamHashMap =
+		insertStreams(configId,config);
 	  
 	    insertEventContentStreamAssoc(eventContentHashMap,streamHashMap,config);
 	    insertStreamDatasetAssoc(streamHashMap,primaryDatasetHashMap,config);
@@ -1399,7 +1407,8 @@ public class ConfDB
 
 	 
 	    insertEventContentStatements(configId,config,eventContentHashMap);	  
-	    insertPathStreamPDAssoc(pathHashMap,streamHashMap,primaryDatasetHashMap,config,configId);
+	    insertPathStreamPDAssoc(pathHashMap,streamHashMap,primaryDatasetHashMap,
+				    config,configId);
 	
 
 	    // insert parameter bindings / values
@@ -1415,7 +1424,8 @@ public class ConfDB
 	
 
 	    // insert references regarding paths and sequences
-	    insertReferences(config,pathHashMap,sequenceHashMap,moduleHashMap,streamHashMap);
+	    insertReferences(config,pathHashMap,sequenceHashMap,
+			     moduleHashMap,streamHashMap);
 	    
 	
 	    dbConnector.getConnection().commit();
@@ -2183,7 +2193,6 @@ public class ConfDB
 	while (itC.hasNext()) {
 	    EventContent eventContent = itC.next();
 	    int eventContentId = eventContent.databaseId();
-	    System.out.println(eventContent.name());
 	    if(!eventContent.hasChanged()){
 		result.put(eventContent.name(),-1*eventContentId);
 		continue;
@@ -2218,8 +2227,8 @@ public class ConfDB
 	    }
 	    catch (SQLException e) {
 		String errMsg =
-		    "ConfDB::Event Content Config Association(config="+config.toString()+") failed "+
-		    "(batch insert): "+e.getMessage();
+		    "ConfDB::Event Content Config Association (config="+
+		    config.toString()+") failed (batch insert): "+e.getMessage();
 		throw new DatabaseException(errMsg,e); 
 	    }
 	    
@@ -2229,19 +2238,26 @@ public class ConfDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::Event Content Config Association(config="+config.toString()+") failed "+
-		"(batch insert): "+e.getMessage();
+		"ConfDB::Event Content Config Association(config="+
+		config.toString()+") failed (batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e); 
 	}
 	return result;
     }
-    private void insertEventContentStatements(int configId,Configuration config,HashMap<String,Integer> eventContentHashMap) throws DatabaseException{
+
+    /** insert event content statements */
+    private void insertEventContentStatements(int configId,
+					      Configuration config,
+					      HashMap<String,Integer>eventContentHashMap)
+	throws DatabaseException
+    {
 	for (int i=0;i<config.contentCount();i++) {
 	    EventContent eventContent = config.content(i);
 	    int  contentId =  eventContentHashMap.get(eventContent.name());
 	    if(contentId<0){
 		continue;
 	    }
+	    
 	    for(int j=0;j<eventContent.commandCount();j++){
 		OutputCommand command = eventContent.command(j);
 		String className = command.className();
@@ -2249,7 +2265,7 @@ public class ConfDB
 		String extraName = command.extraName();
 		String processName = command.processName();
 		int iDrop = 1;
-		if(command.isDrop()){
+		if(command.isDrop()) {
 		    iDrop = 0;
 		}
 		try {
@@ -2260,7 +2276,7 @@ public class ConfDB
 		    psSelectStatementId.setInt(5,iDrop);
 		    ResultSet rsStatementId = psSelectStatementId.executeQuery();
 		    int statementId = -1;
-		    while(rsStatementId.next()){
+		    while(rsStatementId.next()) {
 			statementId = rsStatementId.getInt(1);
 		    }
 		    
@@ -2275,7 +2291,8 @@ public class ConfDB
 			}
 			psInsertEventContentStatements.setInt(5,iDrop);
 			psInsertEventContentStatements.executeUpdate();
-			ResultSet rsNewStatementId = psInsertEventContentStatements.getGeneratedKeys();
+			ResultSet rsNewStatementId =
+			    psInsertEventContentStatements.getGeneratedKeys();
 			rsNewStatementId.next();
 			statementId = rsNewStatementId.getInt(1);
 		    }
@@ -2291,8 +2308,8 @@ public class ConfDB
 		}
 		catch (SQLException e) {
 		    String errMsg =
-			"ConfDB::StatementID Update(config="+config.toString()+") failed "+
-			"(batch insert): "+e.getMessage();
+			"ConfDB::StatementID Update(config="+config.toString()+
+			") failed (batch insert): "+e.getMessage();
 		    throw new DatabaseException(errMsg,e); 
 		}
 		

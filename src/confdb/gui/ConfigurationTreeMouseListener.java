@@ -629,7 +629,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    popupSequences.addSeparator();
 	    menuItem = new JMenuItem("Remove Unreferenced Sequences");
 	    menuItem.addActionListener(sequenceListener);
-	    menuItem.setActionCommand("UNREF");
+	    menuItem.setActionCommand("RMUNREF");
 	    popupSequences.add(menuItem);
 	    menuItem = new JMenuItem("Resolve Unnecessary Sequences");
 	    menuItem.addActionListener(sequenceListener);

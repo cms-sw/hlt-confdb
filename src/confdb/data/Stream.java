@@ -124,7 +124,11 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     public int pathCount() { return paths.size(); }
     
     /** retrieve i-th path */
-    public Path path(int i) { return paths.get(i); }
+    public Path path(int i)
+    {
+	Collections.sort(paths);
+	return paths.get(i);
+    }
     
     /** retrieve path by name */
     public Path path(String pathName)
@@ -134,10 +138,18 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     }
     
     /** retrieve index of a given path */
-    public int indexOfPath(Path path) { return paths.indexOf(path); }
+    public int indexOfPath(Path path)
+    {
+	Collections.sort(paths);
+	return paths.indexOf(path);
+    }
     
     /** retrieve iterator over paths */
-    public Iterator<Path> pathIterator() { return paths.iterator(); }
+    public Iterator<Path> pathIterator()
+    {
+	Collections.sort(paths);
+	return paths.iterator();
+    }
     
     /** retrieve path iterator (alphabetical order) */
     public Iterator<Path> orderedPathIterator()
@@ -153,6 +165,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	if (paths.indexOf(path)>=0) return false;
 	path.addToContent(parentContent);
 	paths.add(path);
+	Collections.sort(paths);
 	setHasChanged();
 	return true;
     }
@@ -211,7 +224,11 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     public int datasetCount() { return datasets.size(); }
     
     /** retrieve i-th primary dataset */
-    public PrimaryDataset dataset(int i) { return datasets.get(i); }
+    public PrimaryDataset dataset(int i)
+    {
+	Collections.sort(datasets);
+	return datasets.get(i);
+    }
 
     /** retrieve primary dataset by name */
     public PrimaryDataset dataset(String datasetName)
@@ -232,11 +249,16 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** retrieve primary dataset iterator */
     public Iterator<PrimaryDataset> datasetIterator()
     {
+	Collections.sort(datasets);
 	return datasets.iterator();
     }
-
+    
     /** index of a given primary dataset */
-    public int indexOfDataset(PrimaryDataset ds) {return datasets.indexOf(ds);}
+    public int indexOfDataset(PrimaryDataset ds)
+    {
+	Collections.sort(datasets);
+	return datasets.indexOf(ds);
+    }
     
     /** insert and associate a primary dataset with this stream */
     public PrimaryDataset insertDataset(String datasetName)
@@ -247,6 +269,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
             }
         PrimaryDataset result = new PrimaryDataset(datasetName, this);
         datasets.add(result);
+	Collections.sort(datasets);
         setHasChanged();
         return result;
     }

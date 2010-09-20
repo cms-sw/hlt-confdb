@@ -11,7 +11,7 @@ import java.util.Iterator;
  * manage a single drop / keep statement, representing an entry in the
  * vstring outputCommands parameter of an OutputModule.
  */
-public class OutputCommand
+public class OutputCommand implements Comparable<OutputCommand>
 {
     //
     // member data
@@ -62,7 +62,10 @@ public class OutputCommand
     //
     // member functions
     //
-    
+
+    /** Comparable: compareTo() */
+    public int compareTo(OutputCommand oc) {return toString().compareTo(oc.toString());}
+
     /** Object: equals() */
     public boolean equals(Object o)
     {

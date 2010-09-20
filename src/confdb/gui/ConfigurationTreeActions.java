@@ -1072,15 +1072,9 @@ public class ConfigurationTreeActions
 	Configuration          config = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 	
-	int index = (treePath.getPathCount()==2) ?
-	    0 : model.getIndexOfChild(treePath.getParentPath()
-				      .getLastPathComponent(),
-				      treePath.getLastPathComponent())+1;
+	EventContent content = config.insertContent("<ENTER EVENTCONTENT LABEL>");
 	
-	EventContent content =
-	    config.insertContent(index,"<ENTER EVENTCONTENT LABEL>");
-	
-	
+	int index = config.indexOfContent(content);
 	model.nodeInserted(model.contentsNode(),index);
 	model.updateLevel1Nodes();
 	
@@ -1089,7 +1083,7 @@ public class ConfigurationTreeActions
 
 	tree.setSelectionPath(newTreePath);
 	editNodeName(tree);
-	
+
 	return true;
     }
     
@@ -1101,9 +1095,8 @@ public class ConfigurationTreeActions
 	TreePath               treePath = tree.getSelectionPath();
 	
 	EventContent content = config.content(external.name());
-	int          index   = config.contentCount();
-	if (content==null)  content = config.insertContent(index,external.name());
-	model.nodeInserted(model.contentsNode(),index);
+	if (content==null)  content = config.insertContent(external.name());
+	model.nodeInserted(model.contentsNode(),config.indexOfContent(content));
 	
 	Iterator<Stream> itS = external.streamIterator();
 	while (itS.hasNext()) {
@@ -1171,29 +1164,6 @@ public class ConfigurationTreeActions
 	model.nodeRemoved(model.contentsNode(),index,content);
 	model.updateLevel1Nodes();
 	
-	return true;
-    }
-
-
-    /** move an existing content within the list of contents */
-    public static boolean moveContent(JTree tree,EventContent sourceContent)
-    {
-	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config   = (Configuration)model.getRoot();
-	TreePath               treePath = tree.getSelectionPath();
-	
-	int sourceIndex = config.indexOfContent(sourceContent);
-	int targetIndex = (treePath.getPathCount()==2) ?
-	    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
-				    treePath.getLastPathComponent())+1;
-	
-	config.moveContent(sourceContent,targetIndex);
-	model.nodeRemoved(model.contentsNode(),sourceIndex,sourceContent);
-	if (sourceIndex<targetIndex) targetIndex--;
-	model.nodeInserted(model.contentsNode(),targetIndex);
-	model.nodeStructureChanged(model.outputsNode());
-	model.nodeStructureChanged(model.streamsNode());
-	model.nodeStructureChanged(model.datasetsNode());
 	return true;
     }
 

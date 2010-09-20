@@ -172,6 +172,8 @@ public class ConfDbGUI
 	this.importRelease    = new SoftwareRelease();
 	this.importConfig     = new Configuration();
 	
+	this.jTableCommands.setAutoCreateRowSorter(true);
+	
 	try {
 	    this.cnvEngine = ConverterFactory.getConverterEngine("python");
 	}
@@ -2480,8 +2482,11 @@ public class ConfDbGUI
 	    }
 	}
 	else if (selectedItem instanceof OutputCommand) {
+	    System.out.println("It's an OutputCommand!");
 	    OutputCommand command = (OutputCommand)selectedItem;
+	    System.out.println("content.hasChanged = " + content.hasChanged());
 	    content.insertCommand(command);
+	    System.out.println("content.hasChanged = " + content.hasChanged());
 	    fillComboBoxCommandsMenu(command.parentPath());
 	}
 
@@ -2619,53 +2624,56 @@ public class ConfDbGUI
 	
 	menu.addSeparator();
 
-	if (lsm.isSelectionEmpty()) {
-	    
-	    // Top
-	    item = new JMenuItem("Top"); menu.add(item);
+	/*
+
+	  if (lsm.isSelectionEmpty()) {
+	  
+	  // Top
+	  item = new JMenuItem("Top"); menu.add(item);
 	    item.setActionCommand(content.name()+":"+index);
 	    item.addActionListener(new ActionListener() {
-		    public void actionPerformed(ActionEvent e) {
-			jTableCommandsPopupTop(e);
-		    }
-		});
+	    public void actionPerformed(ActionEvent e) {
+	    jTableCommandsPopupTop(e);
+	    }
+	    });
 	    if (index==0) item.setEnabled(false);
 	    
 	    // Up
 	    item = new JMenuItem("Up");     menu.add(item);
 	    item.setActionCommand(content.name()+":"+
-				  content.indexOfCommand(command));
+	    content.indexOfCommand(command));
 	    item.addActionListener(new ActionListener() {
-		    public void actionPerformed(ActionEvent e) {
-			jTableCommandsPopupUp(e);
-		    }
-		});
+	    public void actionPerformed(ActionEvent e) {
+	    jTableCommandsPopupUp(e);
+	    }
+	    });
 	    if (index==0) item.setEnabled(false);
 	    
 	    // Down
 	    item = new JMenuItem("Down");   menu.add(item);
 	    item.setActionCommand(content.name()+":"+
-				  content.indexOfCommand(command));
+	    content.indexOfCommand(command));
 	    item.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    jTableCommandsPopupDown(e);
-		}
-		});
+	    public void actionPerformed(ActionEvent e) {
+	    jTableCommandsPopupDown(e);
+	    }
+	    });
 	    if (index==content.commandCount()-1) item.setEnabled(false);
 	    
 	    // Bottom
 	    item = new JMenuItem("Bottom"); menu.add(item);
 	    item.setActionCommand(content.name()+":"+
-				  content.indexOfCommand(command));
+	    content.indexOfCommand(command));
 	    item.addActionListener(new ActionListener() {
-		    public void actionPerformed(ActionEvent e) {
-			jTableCommandsPopupBottom(e);
-		    }
+	    public void actionPerformed(ActionEvent e) {
+	    jTableCommandsPopupBottom(e);
+	    }
 	    });
 	    if (index==content.commandCount()-1) item.setEnabled(false);
 	    
 	    menu.addSeparator();
-	}
+	    }
+	*/
 	
 	// Remove
 	item = new JMenuItem("Remove"); menu.add(item);
@@ -2711,109 +2719,121 @@ public class ConfDbGUI
 	}
     }
     /** jTableCommands: popup action 'Top' */
-    private void jTableCommandsPopupTop(ActionEvent e)
-    {
-	String s[] = ((JMenuItem)e.getSource()).getActionCommand().split(":");
-	String contentName = s[0];
-	int    commandIndex = (new Integer(s[1])).intValue();
-	EventContent  content = currentConfig.content(contentName);
-	OutputCommand command = content.command(commandIndex);
-
-	int targetIndex = 0;
-	content.moveCommand(command,targetIndex);
-
-	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
-	ctm.fireTableDataChanged();
-
-	updateOutputModulePreview();
-
-	Iterator<Stream> itS = content.streamIterator();
-	while (itS.hasNext()) {
-	    OutputModule output = itS.next().outputModule();
-	    treeModelCurrentConfig.nodeChanged(output.parameter(1));
-	    if (output.referenceCount()>0)
-		treeModelCurrentConfig
-		    .nodeStructureChanged(output.reference(0));
-	}
-    }
+    /*
+      private void jTableCommandsPopupTop(ActionEvent e)
+      {
+      String s[] = ((JMenuItem)e.getSource()).getActionCommand().split(":");
+      String contentName = s[0];
+      int    commandIndex = (new Integer(s[1])).intValue();
+      EventContent  content = currentConfig.content(contentName);
+      OutputCommand command = content.command(commandIndex);
+      
+      int targetIndex = 0;
+      content.moveCommand(command,targetIndex);
+      
+      CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+      ctm.fireTableDataChanged();
+      
+      updateOutputModulePreview();
+      
+      Iterator<Stream> itS = content.streamIterator();
+      while (itS.hasNext()) {
+      OutputModule output = itS.next().outputModule();
+      treeModelCurrentConfig.nodeChanged(output.parameter(1));
+      if (output.referenceCount()>0)
+      treeModelCurrentConfig
+      .nodeStructureChanged(output.reference(0));
+      }
+      }
+    */
+    
     /** jTableCommands: popup action 'Up' */
-    private void jTableCommandsPopupUp(ActionEvent e)
-    {
-	String s[] = ((JMenuItem)e.getSource()).getActionCommand().split(":");
-	String contentName = s[0];
-	int    commandIndex = (new Integer(s[1])).intValue();
-	EventContent  content = currentConfig.content(contentName);
-	OutputCommand command = content.command(commandIndex);
-
-	int targetIndex = commandIndex-1;
-	content.moveCommand(command,targetIndex);
-
-	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
-	ctm.fireTableDataChanged();
-
-	updateOutputModulePreview();
-
-	Iterator<Stream> itS = content.streamIterator();
-	while (itS.hasNext()) {
-	    OutputModule output = itS.next().outputModule();
-	    treeModelCurrentConfig.nodeChanged(output.parameter(1));
-	    if (output.referenceCount()>0)
-		treeModelCurrentConfig
-		    .nodeStructureChanged(output.reference(0));
-	}
-    }
+    /*
+      private void jTableCommandsPopupUp(ActionEvent e)
+      {
+      String s[] = ((JMenuItem)e.getSource()).getActionCommand().split(":");
+      String contentName = s[0];
+      int    commandIndex = (new Integer(s[1])).intValue();
+      EventContent  content = currentConfig.content(contentName);
+      OutputCommand command = content.command(commandIndex);
+      
+      int targetIndex = commandIndex-1;
+      content.moveCommand(command,targetIndex);
+      
+      CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+      ctm.fireTableDataChanged();
+      
+      updateOutputModulePreview();
+      
+      Iterator<Stream> itS = content.streamIterator();
+      while (itS.hasNext()) {
+      OutputModule output = itS.next().outputModule();
+      treeModelCurrentConfig.nodeChanged(output.parameter(1));
+      if (output.referenceCount()>0)
+      treeModelCurrentConfig
+      .nodeStructureChanged(output.reference(0));
+      }
+      }
+    */
+    
     /** jTableCommands: popup action 'Down' */
-    private void jTableCommandsPopupDown(ActionEvent e)
-    {
-	String s[] = ((JMenuItem)e.getSource()).getActionCommand().split(":");
-	String contentName = s[0];
-	int    commandIndex = (new Integer(s[1])).intValue();
-	EventContent  content = currentConfig.content(contentName);
-	OutputCommand command = content.command(commandIndex);
-	
-	int targetIndex = commandIndex+1;
-	content.moveCommand(command,targetIndex);
-	
-	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
-	ctm.fireTableDataChanged();
-
-	updateOutputModulePreview();
-
-	Iterator<Stream> itS = content.streamIterator();
-	while (itS.hasNext()) {
-	    OutputModule output = itS.next().outputModule();
-	    treeModelCurrentConfig.nodeChanged(output.parameter(1));
-	    if (output.referenceCount()>0)
-		treeModelCurrentConfig
-		    .nodeStructureChanged(output.reference(0));
-	}
-    }
+    /*
+      private void jTableCommandsPopupDown(ActionEvent e)
+      {
+      String s[] = ((JMenuItem)e.getSource()).getActionCommand().split(":");
+      String contentName = s[0];
+      int    commandIndex = (new Integer(s[1])).intValue();
+      EventContent  content = currentConfig.content(contentName);
+      OutputCommand command = content.command(commandIndex);
+      
+      int targetIndex = commandIndex+1;
+      content.moveCommand(command,targetIndex);
+      
+      CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+      ctm.fireTableDataChanged();
+      
+      updateOutputModulePreview();
+      
+      Iterator<Stream> itS = content.streamIterator();
+      while (itS.hasNext()) {
+      OutputModule output = itS.next().outputModule();
+      treeModelCurrentConfig.nodeChanged(output.parameter(1));
+      if (output.referenceCount()>0)
+      treeModelCurrentConfig
+      .nodeStructureChanged(output.reference(0));
+      }
+      }
+    */
+    
     /** jTableCommands: popup action 'Bottom' */
-    private void jTableCommandsPopupBottom(ActionEvent e)
-    {
-	String s[] = ((JMenuItem)e.getSource()).getActionCommand().split(":");
-	String contentName = s[0];
-	int    commandIndex = (new Integer(s[1])).intValue();
-	EventContent  content = currentConfig.content(contentName);
-	OutputCommand command = content.command(commandIndex);
-	
-	int targetIndex = content.commandCount()-1;
-	content.moveCommand(command,targetIndex);
-	
-	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
-	ctm.fireTableDataChanged();
-
-	updateOutputModulePreview();
-
-	Iterator<Stream> itS = content.streamIterator();
-	while (itS.hasNext()) {
-	    OutputModule output = itS.next().outputModule();
-	    treeModelCurrentConfig.nodeChanged(output.parameter(1));
-	    if (output.referenceCount()>0)
-		treeModelCurrentConfig
-		    .nodeStructureChanged(output.reference(0));
-	}
+    /*
+      private void jTableCommandsPopupBottom(ActionEvent e)
+      {
+      String s[] = ((JMenuItem)e.getSource()).getActionCommand().split(":");
+      String contentName = s[0];
+      int    commandIndex = (new Integer(s[1])).intValue();
+      EventContent  content = currentConfig.content(contentName);
+      OutputCommand command = content.command(commandIndex);
+      
+      int targetIndex = content.commandCount()-1;
+      content.moveCommand(command,targetIndex);
+      
+      CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+      ctm.fireTableDataChanged();
+      
+      updateOutputModulePreview();
+      
+      Iterator<Stream> itS = content.streamIterator();
+      while (itS.hasNext()) {
+      OutputModule output = itS.next().outputModule();
+      treeModelCurrentConfig.nodeChanged(output.parameter(1));
+      if (output.referenceCount()>0)
+      treeModelCurrentConfig
+      .nodeStructureChanged(output.reference(0));
+      }
     }
+    */
+    
     /** jTableCommands: popup action 'Remove' */
     private void jTableCommandsPopupRemove(ActionEvent e)
     {
@@ -3704,14 +3724,17 @@ class CommandTableModel extends AbstractTableModel
 
 	if (iColumn==0) return new Integer(content.indexOfCommand(command));
 	if (iColumn==1) return command;
-	if (iColumn==2) return (path==null) ? "<GLOBAL>" : path;
+	if (iColumn==2) return (path==null) ? "<GLOBAL>" : path.toString();
 	return new Object();
     }
     
     /** AbstractTableModel: get class for column index */
     public Class getColumnClass(int iColumn)
     {
-	return getValueAt(0,iColumn).getClass();
+	if      (iColumn==0) return Integer.class;
+	else if (iColumn==1) return OutputCommand.class;
+	else                 return String.class;
+	// return getValueAt(0,iColumn).getClass();
     }
 }
 

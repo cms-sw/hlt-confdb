@@ -215,13 +215,7 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
 		Reference source = (Reference)sourceNode;
 		return ConfigurationTreeActions.moveReference(targetTree,source);
 	    }
-	    // move a content within its parent container
-	    if (sourceNode instanceof EventContent &&
-		(targetNode instanceof EventContent ||
-		 targetNode==targetModel.contentsNode())) {
-		EventContent source = (EventContent)sourceNode;
-		return ConfigurationTreeActions.moveContent(targetTree,source);
-	    }
+
 	}
 	
 	return false;

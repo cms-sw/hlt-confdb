@@ -1,4 +1,4 @@
- package confdb.data;
+package confdb.data;
 
 
 import java.util.Iterator;
@@ -14,7 +14,7 @@ import java.util.Collections;
  * Manage different CMSSW file formats, which Streams & OutputModules
  * are based on.
  */
-public class EventContent extends DatabaseEntry
+public class EventContent extends DatabaseEntry implements Comparable<EventContent>
 {
     //
     // member data
@@ -58,6 +58,9 @@ public class EventContent extends DatabaseEntry
     /** retrieve string representation of this event content */
     public String toString() { return name(); }
     
+    /** Comparable: compareTo() */
+    public int compareTo(EventContent ec) {return toString().compareTo(ec.toString());}
+
     /** get the parent configuration */
     public IConfiguration config() { return config; }
 
@@ -125,40 +128,41 @@ public class EventContent extends DatabaseEntry
     public int commandCount() { return commands.size(); }
 
     /** retrieve i-th output command */
-    public OutputCommand command(int i) { return commands.get(i); }
+    public OutputCommand command(int i)
+    {
+	Collections.sort(commands);
+	return commands.get(i);
+    }
     
     /** retrieve output command iterator */
     public Iterator<OutputCommand> commandIterator()
     {
+	Collections.sort(commands);
 	return commands.iterator();
     }
     
     /** retrieve index of a given output command */
     public int indexOfCommand(OutputCommand command)
     {
+	Collections.sort(commands);
 	return commands.indexOf(command);
     }
 
     /** insert a output command into event content */
     public boolean insertCommand(OutputCommand command)
     {
-	if (commands.indexOf(command)>=0) return false;
-	if (command.parentPath()!=null&&
-	    indexOfPath(command.parentPath())<0) return false;
+	if (commands.indexOf(command)>=0) {
+	    System.err.println("EventContent.insertCommand WARNING: command '"+
+			       command+"' already in content "+toString()+", skip!");
+	    return false;
+	}
+	if (command.parentPath()!=null&&indexOfPath(command.parentPath())<0) {
+	    System.err.println("EventContent.insertCommand ERROR: path of command '"+
+			       command+"' not in content "+toString()+", skip!");
+	    return false;
+	}
 	commands.add(command);
-	setHasChanged();
-	return true;
-    }
-
-    /** move command to a different position within the array */
-    public boolean moveCommand(OutputCommand command, int targetIndex)
-    {
-	int currentIndex = indexOfCommand(command);
-	if (currentIndex<0) return false;
-	if (currentIndex==targetIndex) return true;
-	if (targetIndex>=commandCount()) return false;
-	commands.remove(currentIndex);
-	commands.add(targetIndex,command);
+	Collections.sort(commands);
 	setHasChanged();
 	return true;
     }
@@ -311,6 +315,7 @@ public class EventContent extends DatabaseEntry
 	return datasets().indexOf(dataset);
     }
 
+
     //
     // private memeber functions
     //
@@ -380,5 +385,6 @@ public class EventContent extends DatabaseEntry
 	}
 	return result;
     }
+
 
 }

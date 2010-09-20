@@ -1269,7 +1269,11 @@ public class Configuration implements IConfiguration
     public int contentCount() { return contents.size(); }
     
     /** retrieve i-th event content */
-    public EventContent content(int i) { return contents.get(i); }
+    public EventContent content(int i)
+    {
+	Collections.sort(contents);
+	return contents.get(i);
+    }
     
     /** retrieve content by name */
     public EventContent content(String contentName)
@@ -1280,18 +1284,27 @@ public class Configuration implements IConfiguration
     }
 
     /** index of a certain event content */
-    public int indexOfContent(EventContent ec) { return contents.indexOf(ec); }
+    public int indexOfContent(EventContent ec)
+    {
+	Collections.sort(contents);
+	return contents.indexOf(ec);
+    }
 
     /** retrieve event content iterator */
-    public Iterator<EventContent> contentIterator(){return contents.iterator();}
+    public Iterator<EventContent> contentIterator()
+    {
+	Collections.sort(contents);
+	return contents.iterator();
+    }
     
     /** insert new event content */
-    public EventContent insertContent(int i,String contentName)
+    public EventContent insertContent(String contentName)
     {
 	for (EventContent ec : contents)
 	    if (ec.name().equals(contentName)) return ec;
 	EventContent content = new EventContent(contentName);
-	contents.add(i,content);
+	contents.add(content);
+	Collections.sort(contents);
 	hasChanged = true;
 	return content;
     }
@@ -1307,20 +1320,22 @@ public class Configuration implements IConfiguration
     }
     
     /** move a content to another position within contents */
-    public boolean moveContent(EventContent content,int targetIndex)
-    {
-	int currentIndex = contents.indexOf(content);
-	if (currentIndex<0) return false;
-	if (currentIndex==targetIndex) return true;
-	if (targetIndex>=contents.size()) return false;
-	if (currentIndex<targetIndex) targetIndex--;
-	contents.remove(currentIndex);
-	contents.add(targetIndex,content);
-	hasChanged = true;
-	return true;
-    }
+    /*
+      public boolean moveContent(EventContent content,int targetIndex)
+      {
+      int currentIndex = contents.indexOf(content);
+      if (currentIndex<0) return false;
+      if (currentIndex==targetIndex) return true;
+      if (targetIndex>=contents.size()) return false;
+      if (currentIndex<targetIndex) targetIndex--;
+      contents.remove(currentIndex);
+      contents.add(targetIndex,content);
+      hasChanged = true;
+      return true;
+      }
+    */
 
-    
+
     //
     // Streams
     //
@@ -1337,18 +1352,10 @@ public class Configuration implements IConfiguration
     /** retrieve i-th stream */
     public Stream stream(int i)
     {
-	int offset = 0;
-	Iterator<EventContent> itC = contentIterator();
-	while (itC.hasNext()) {
-	    EventContent ec = itC.next();
-	    if (i>=(offset+ec.streamCount())) {
-		offset += ec.streamCount();
-	    }
-	    else {
-		return ec.stream(i-offset);
-	    }
-	}
-	return null;
+	ArrayList<Stream> streams = new ArrayList<Stream>();
+	Iterator<Stream> itS = streamIterator();
+	while (itS.hasNext()) streams.add(itS.next());
+	return streams.get(i);
     }
     
     /** retrieve stream by name */
@@ -1365,14 +1372,10 @@ public class Configuration implements IConfiguration
     /** index of a certain stream */
     public int indexOfStream(Stream stream)
     {
-	int offset = 0;
-	Iterator<EventContent> itC = contentIterator();
-	while (itC.hasNext()) {
-	    EventContent ec = itC.next();
-	    if (ec.indexOfStream(stream)<0) offset += ec.streamCount();
-	    else return offset + ec.indexOfStream(stream);
-	}
-	return -1;
+	ArrayList<Stream> streams = new ArrayList<Stream>();
+	Iterator<Stream> itS = streamIterator();
+	while (itS.hasNext()) streams.add(itS.next());
+	return streams.indexOf(stream);
     }
 
     /** retrieve stream iterator */
@@ -1384,10 +1387,11 @@ public class Configuration implements IConfiguration
 	    Iterator<Stream> itS = itC.next().streamIterator();
 	    while (itS.hasNext()) streams.add(itS.next());
 	}
+	Collections.sort(streams);
 	return streams.iterator();
     }
     
-
+    
     //
     // Primary Datasets
     //
@@ -1404,18 +1408,10 @@ public class Configuration implements IConfiguration
     /** retrieve i-th primary dataset */
     public PrimaryDataset dataset(int i)
     {
-	int offset = 0;
-	Iterator<Stream> itS = streamIterator();
-	while (itS.hasNext()) {
-	    Stream s = itS.next();
-	    if (i>=(offset+s.datasetCount())) {
-		offset += s.datasetCount();
-	    }
-	    else {
-		return s.dataset(i-offset);
-	    }
-	}
-	return null;
+	ArrayList<PrimaryDataset> datasets = new ArrayList<PrimaryDataset>();
+	Iterator<PrimaryDataset> itD = datasetIterator();
+	while (itD.hasNext()) datasets.add(itD.next());
+	return datasets.get(i);
     }
     
     /** retrieve primary dataset by name */
@@ -1432,14 +1428,10 @@ public class Configuration implements IConfiguration
     /** index of a certain primary dataset */
     public int indexOfDataset(PrimaryDataset dataset)
     {
-	int offset = 0;
-	Iterator<Stream> itS = streamIterator();
-	while (itS.hasNext()) {
-	    Stream stream = itS.next();
-	    if (stream.indexOfDataset(dataset)<0) offset+=stream.datasetCount();
-	    else return offset + stream.indexOfDataset(dataset);
-	}
-	return -1;
+	ArrayList<PrimaryDataset> datasets = new ArrayList<PrimaryDataset>();
+	Iterator<PrimaryDataset> itD = datasetIterator();
+	while (itD.hasNext()) datasets.add(itD.next());
+	return datasets.indexOf(dataset);
     }
 
     /** retrieve primary dataset iterator */
@@ -1451,6 +1443,7 @@ public class Configuration implements IConfiguration
 	    Iterator<PrimaryDataset> itD = itS.next().datasetIterator();
 	    while (itD.hasNext()) datasets.add(itD.next());
 	}
+	Collections.sort(datasets);
 	return datasets.iterator();
     }
     

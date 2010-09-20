@@ -90,8 +90,7 @@ public class CreateStreamDialog extends JDialog
         String contentName = (String)jComboBoxEventContent.getSelectedItem();
         EventContent content = config.content(contentName);
         if (content==null) {
-            content = config.insertContent(config.contentCount(),
-                                           "hltEventContent" + streamName);
+            content = config.insertContent("hltEventContent" + streamName);
         }
         stream = content.insertStream(streamName);
         setVisible(false);

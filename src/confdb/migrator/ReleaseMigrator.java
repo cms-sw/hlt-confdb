@@ -185,7 +185,7 @@ public class ReleaseMigrator
 	// migrate eventcontent
 	for (int i=0;i<sourceConfig.contentCount();i++) {
 	    EventContent source = sourceConfig.content(i);
-	    EventContent target = targetConfig.insertContent(i,source.name());
+	    EventContent target = targetConfig.insertContent(source.name());
 	 
 	    Iterator<Stream> itS = source.streamIterator();
 	    while (itS.hasNext()) {
@@ -252,7 +252,7 @@ public class ReleaseMigrator
 	// migrate eventcontent
 	for (int i=0;i<sourceConfig.contentCount();i++) {
 	    EventContent source = sourceConfig.content(i);
-	    EventContent target = targetConfig.insertContent(i,source.name());
+	    EventContent target = targetConfig.insertContent(source.name());
 
 	    Iterator<OutputCommand> outComIter = source.commandIterator();
 	    while(outComIter.hasNext()){

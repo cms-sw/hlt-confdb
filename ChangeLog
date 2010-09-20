@@ -1,3 +1,14 @@
+2010-09-16  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-05-00
+	* 'remove unreference sequences' fixed
+	* fixed bung in Diff regarding OutputModules
+	* event contents are now fully sorted after loading:
+	contents, streams, datasets, paths and statements are ordered
+	alphabetically
+	* content statements in the editor can be ordered by path now
+	* statements associated with a path are properly loaded
+	
 2010-03-18  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-04-09

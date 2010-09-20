@@ -5,6 +5,7 @@ import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
 
+import java.util.Iterator;
 import java.util.EventObject;
 
 import confdb.data.*;
@@ -117,6 +118,8 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 	    EventContent content = (EventContent)toBeEdited;
 	    content.setName(name);
 	    treeModel.nodeChanged(content);
+	    Iterator<EventContent> itC = config.contentIterator();
+	    while (itC.hasNext()) treeModel.nodeChanged(itC.next());
 	}
 	else if (toBeEdited instanceof Stream) {
 	    Stream stream = (Stream)toBeEdited;

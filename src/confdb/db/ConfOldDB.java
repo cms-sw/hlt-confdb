@@ -953,7 +953,8 @@ public class ConfOldDB
 		
 		Stream stream      = config.stream(streamLabel);
 		if (stream==null){
-		    EventContent content = config.insertContent(config.contentCount(),"hltEventContent"+streamLabel);
+		    EventContent content = config.insertContent("hltEventContent"+
+								streamLabel);
 		    stream = content.insertStream(streamLabel);
 		}
 		
@@ -1037,7 +1038,7 @@ public class ConfOldDB
 	  
 		if(stream==null){
 		    String streamLabel = strOutputModNames[i].substring(strHeader.length());
-		    content = config.insertContent(config.contentCount(),"hltEventContent"+streamLabel);
+		    content = config.insertContent("hltEventContent"+streamLabel);
 		    stream = content.insertStream(streamLabel);
 		    Path []parentPath = outputModuleOld.parentPaths();
 		    Iterator<Parameter> it = outputModuleOld.parameterIterator();
