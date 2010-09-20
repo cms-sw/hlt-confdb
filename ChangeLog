@@ -1,3 +1,10 @@
+2010-09-20  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-05-01
+	* back out of jTable.setAutoCreateRowSorter, which is a JDK 6
+	feature
+	* fix visualization of paths under datasets under streams
+
 2010-09-16  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-05-00

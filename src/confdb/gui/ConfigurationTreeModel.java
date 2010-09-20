@@ -653,8 +653,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	else if (parent instanceof ConfigurationTreeNode) {
 	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)parent;
 	    if (treeNode.object() instanceof PrimaryDataset) {
-		PrimaryDataset dataset = (PrimaryDataset)treeNode.object();
-		Path           path    = (Path)child;
+		PrimaryDataset        dataset  = (PrimaryDataset)treeNode.object();
+		ConfigurationTreeNode pathNode = (ConfigurationTreeNode)child;
+		Path                  path     = (Path)pathNode.object();
 		return dataset.indexOfPath(path);
 	    }
 	}

@@ -172,7 +172,7 @@ public class ConfDbGUI
 	this.importRelease    = new SoftwareRelease();
 	this.importConfig     = new Configuration();
 	
-	this.jTableCommands.setAutoCreateRowSorter(true);
+	//this.jTableCommands.setAutoCreateRowSorter(true);
 	
 	try {
 	    this.cnvEngine = ConverterFactory.getConverterEngine("python");
