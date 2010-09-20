@@ -1,5 +1,10 @@
 2010-09-20  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
+	* tag V01-05-02
+	* 'ChangedIcon' in Diff changed to yellow flag
+	* Implement 'move path to ...' context menu command, to move paths
+	from one dataset to another within a stream
+
 	* tag V01-05-01
 	* back out of jTable.setAutoCreateRowSorter, which is a JDK 6
 	feature

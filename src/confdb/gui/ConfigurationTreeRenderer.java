@@ -157,6 +157,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    if (treeNode.object() instanceof Path) return pathIcon;
 	    if (treeNode.object() instanceof Stream) return streamIcon;
 	    if (treeNode.object() instanceof PrimaryDataset) return datasetIcon;
+	    if (treeNode.object() instanceof String) return datasetIcon;
 	}
 	return null;
     }

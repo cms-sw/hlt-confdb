@@ -385,6 +385,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	else if (node instanceof Stream) {
 	    Stream stream = (Stream)node;
+	    //if (streamMode.equals("datasets")) return stream.datasetCount()+1;
 	    if (streamMode.equals("datasets")) return stream.datasetCount();
 	    if (streamMode.equals("paths"))    return stream.pathCount();
 	}
@@ -428,6 +429,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 		PrimaryDataset dataset = (PrimaryDataset)treeNode.object();
 		return dataset.pathCount();
 	    }
+	    else if (treeNode.object() instanceof String) {
+		Stream stream = (Stream)treeNode.parent();
+		return stream.unassignedPathCount();
+	    }
 	    return 0;
 	}
 	
@@ -466,11 +471,17 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 		return new ConfigurationTreeNode(content,content.path(i));
 	    if (contentMode.equals("datasets"))
 		return new ConfigurationTreeNode(content,content.dataset(i));
+
 	}
 	else if (parent instanceof Stream) {
 	    Stream stream = (Stream)parent;
-	    if (streamMode.equals("datasets"))
+	    if (streamMode.equals("datasets")) 
 		return new ConfigurationTreeNode(stream,stream.dataset(i));
+	    //return (i<stream.datasetCount()) ?
+	    //new ConfigurationTreeNode(stream,stream.dataset(i)) :
+	    //    new ConfigurationTreeNode(stream,
+	    //			      new String("<html><i>Unassigned Paths"+
+	    //					 "</i></html>"));
 	    if (streamMode.equals("paths"))
 		return new ConfigurationTreeNode(stream,stream.path(i));
 	}
@@ -514,6 +525,11 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 		PrimaryDataset dataset = (PrimaryDataset)treeNode.object();
 		return new ConfigurationTreeNode(dataset,dataset.path(i));
 	    }
+	    //else if (treeNode.object() instanceof String) {
+	    //Stream stream = (Stream)treeNode.parent();
+	    //return new ConfigurationTreeNode(stream,
+	    //				 stream.listOfUnassignedPaths().get(i));
+	    //}
 	}
 	return null;
     }
@@ -658,6 +674,12 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 		Path                  path     = (Path)pathNode.object();
 		return dataset.indexOfPath(path);
 	    }
+	    //else if (treeNode.object() instanceof String) {
+	    //Stream stream = (Stream)treeNode.parent();
+	    //Path   path   = (Path)child;
+	    //int index = stream.listOfUnassignedPaths().indexOf(path);
+	    //return index;
+	    //}
 	}
 	return -1;
     }

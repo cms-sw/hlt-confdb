@@ -147,7 +147,7 @@ public class PrimaryDataset extends DatabaseEntry
 	return true;
     }
     
-    /** remove a path from this stream */
+    /** remove a path from this dataset */
     public boolean removePath(Path path)
     {
 	int index = paths.indexOf(path);

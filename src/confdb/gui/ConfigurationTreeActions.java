@@ -1489,16 +1489,60 @@ public class ConfigurationTreeActions
 	ConfigurationTreeNode treeNode =
 	    (ConfigurationTreeNode)treePath.getLastPathComponent();
 	PrimaryDataset dataset = (PrimaryDataset)treeNode.parent();
+	Stream         stream  = dataset.parentStream();
 	Path           path    = (Path)treeNode.object();
 	int            index   = dataset.indexOfPath(path);
 	
 	dataset.removePath(path);
 	
+	// DEBUG
+	//System.out.println(model.getChild(stream,stream.datasetCount()));
+	//System.out.println(stream.listOfUnassignedPaths().indexOf(path));
+
 	model.nodeRemoved(dataset,index,treeNode);
+	//model.nodeInserted(model.getChild(stream,stream.datasetCount()),
+	//		   stream.listOfUnassignedPaths().indexOf(path));
+	model.updateLevel1Nodes();
+	
+	// DEBUG
+	//System.out.println(model.getChildCount(model.getChild(stream,
+	//						      stream.datasetCount())));
+			   
+	return true;
+    }
+
+    /** move a path from one dataset to another within the same stream */
+    public static boolean movePathToDataset(JTree tree,
+					    String targetDatasetName)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	ConfigurationTreeNode treeNode =
+	    (ConfigurationTreeNode)treePath.getLastPathComponent();
+	PrimaryDataset sourceDataset = (PrimaryDataset)treeNode.parent();
+	Stream         parentStream  = sourceDataset.parentStream();
+	PrimaryDataset targetDataset = parentStream.dataset(targetDatasetName);
+	if (targetDataset==null) {
+	    System.err.println("ConfigurationTreeActions.movePathToDataset ERROR: "+
+			       targetDatasetName+" dataset not found in stream "+
+			       parentStream);
+	}
+
+	Path path        = (Path)treeNode.object();
+	int  sourceIndex = sourceDataset.indexOfPath(path);
+	sourceDataset.removePath(path);
+	targetDataset.insertPath(path);
+	int targetIndex = targetDataset.indexOfPath(path);
+	
+	model.nodeRemoved(sourceDataset,sourceIndex,treeNode);
+	model.nodeInserted(targetDataset,targetIndex);
 	model.updateLevel1Nodes();
 
 	return true;
     }
+
 
     //
     // generic functions

@@ -978,6 +978,23 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem.addActionListener(datasetListener);
 	    menuItem.setActionCommand("REMOVEPATH");
 	    popupDatasets.add(menuItem);
+	    
+	    PrimaryDataset parentDataset = (PrimaryDataset)treeNode.parent();
+	    Stream parentStream = parentDataset.parentStream();
+	    if (parentStream.datasetCount()>1) {
+		JMenu movePathMenu = new ScrollableMenu("<html>Move <i>"+path.name()+
+							"</i> to ...</html>");
+		popupDatasets.add(movePathMenu);
+		Iterator<PrimaryDataset> itPD = parentStream.datasetIterator();
+		while (itPD.hasNext()) {
+		    PrimaryDataset dataset = itPD.next();
+		    if (dataset.name().equals(parentDataset.name())) continue;
+		    menuItem = new JMenuItem(dataset.name());
+		    menuItem.addActionListener(datasetListener);
+		    menuItem.setActionCommand("MOVEPATH:"+dataset.name());
+		    movePathMenu.add(menuItem);
+		}
+	    }
 	}
     }
     
@@ -1770,6 +1787,10 @@ class DatasetMenuListener implements ActionListener
 	}
 	else if (action.equals("REMOVEPATH")) {
 	    ConfigurationTreeActions.removePathFromDataset(tree);
+	}
+	else if (action.startsWith("MOVEPATH:")) {
+	    String targetDatasetName = action.split(":")[1];
+	    ConfigurationTreeActions.movePathToDataset(tree,targetDatasetName);
 	}
     }
 }
