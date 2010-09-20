@@ -583,6 +583,7 @@ TriggerResultsFilter.Parameter l1tResults InputTag hltGtDigis tracked
 TriggerResultsFilter.Parameter l1tIgnoreMask bool false tracked
 TriggerResultsFilter.Parameter daqPartitions uint32 1 tracked
 TriggerResultsFilter.Parameter throw bool true tracked
+TriggerResultsFilter.Parameter l1techIgnorePrescales bool false tracked
 
 Module EDAnalyzer RPCFEDIntegrity DQM RPCMonitorClient
 RPCFEDIntegrity.Parameter RPCRawCountsInputTag InputTag rpcunpacker untracked
