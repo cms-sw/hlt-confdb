@@ -30,6 +30,9 @@ public class CreateDatasetDialog extends JDialog
     /** created dataset */
     private PrimaryDataset dataset = null;
 
+    /** streamName (fixed if set!) */
+    private String streamName = null;
+    
     /** GUI components */
     private JButton jButtonCancel;
     private JButton jButtonOK;
@@ -61,6 +64,13 @@ public class CreateDatasetDialog extends JDialog
     /** indicate wether dataset was successfully created */
     public boolean isSuccess() { return dataset!=null; }
 
+    /** fix the name of the stream */
+    public void fixStreamName(String streamName) {
+	this.streamName = streamName;
+	updateStreamList();
+	jComboBoxStream.setEnabled(false);
+    }
+    
     /** retrieve the created primary dataset */
     public PrimaryDataset dataset() { return dataset; }
 
@@ -78,7 +88,10 @@ public class CreateDatasetDialog extends JDialog
         Iterator<Stream> itS = config.streamIterator();
         while (itS.hasNext()) {
             Stream stream = itS.next();
-            cbm.addElement(stream.name());
+            //cbm.addElement(stream.name());
+	    cbm.addElement(stream);
+	    if (stream.name().equals(streamName)) cbm.setSelectedItem(stream);
+	    
         }
     }
 
@@ -88,9 +101,8 @@ public class CreateDatasetDialog extends JDialog
     private void jButtonOKActionPerformed(ActionEvent evt)
     {
         String datasetName = jTextFieldDatasetName.getText();
-        String streamName  = (String)jComboBoxStream.getSelectedItem();
-        Stream stream = config.stream(streamName);
-        dataset = stream.insertDataset(datasetName);
+        Stream stream      = (Stream)jComboBoxStream.getSelectedItem();
+        dataset            = stream.insertDataset(datasetName);
 	setVisible(false);
     }
 

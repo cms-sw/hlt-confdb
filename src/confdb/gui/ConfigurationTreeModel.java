@@ -50,6 +50,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel
     private StringBuffer streamsNode   = new StringBuffer();
     private StringBuffer datasetsNode  = new StringBuffer();
 
+    private StringBuffer unassignedPathsNode = new StringBuffer("<html><i>Unassigned "+
+								"Paths</i></html>");
+    
     private ArrayList<StringBuffer> level1Nodes=new ArrayList<StringBuffer>();
     
     
@@ -385,8 +388,8 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	}
 	else if (node instanceof Stream) {
 	    Stream stream = (Stream)node;
-	    //if (streamMode.equals("datasets")) return stream.datasetCount()+1;
-	    if (streamMode.equals("datasets")) return stream.datasetCount();
+	    if (streamMode.equals("datasets")) return stream.datasetCount()+1;
+	    //if (streamMode.equals("datasets")) return stream.datasetCount();
 	    if (streamMode.equals("paths"))    return stream.pathCount();
 	}
 	else if (node instanceof PrimaryDataset) {
@@ -429,13 +432,13 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 		PrimaryDataset dataset = (PrimaryDataset)treeNode.object();
 		return dataset.pathCount();
 	    }
-	    else if (treeNode.object() instanceof String) {
+	    else if (treeNode.object() instanceof StringBuffer) {
 		Stream stream = (Stream)treeNode.parent();
 		return stream.unassignedPathCount();
 	    }
 	    return 0;
 	}
-	
+	System.out.println("getChildCount("+node+") = 0!");
 	return 0;
     }
     
@@ -476,12 +479,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	else if (parent instanceof Stream) {
 	    Stream stream = (Stream)parent;
 	    if (streamMode.equals("datasets")) 
-		return new ConfigurationTreeNode(stream,stream.dataset(i));
-	    //return (i<stream.datasetCount()) ?
-	    //new ConfigurationTreeNode(stream,stream.dataset(i)) :
-	    //    new ConfigurationTreeNode(stream,
-	    //			      new String("<html><i>Unassigned Paths"+
-	    //					 "</i></html>"));
+		//return new ConfigurationTreeNode(stream,stream.dataset(i));
+		return (i<stream.datasetCount()) ?
+		    new ConfigurationTreeNode(stream,stream.dataset(i)) :
+		    new ConfigurationTreeNode(stream,unassignedPathsNode);
 	    if (streamMode.equals("paths"))
 		return new ConfigurationTreeNode(stream,stream.path(i));
 	}
@@ -525,12 +526,13 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 		PrimaryDataset dataset = (PrimaryDataset)treeNode.object();
 		return new ConfigurationTreeNode(dataset,dataset.path(i));
 	    }
-	    //else if (treeNode.object() instanceof String) {
-	    //Stream stream = (Stream)treeNode.parent();
-	    //return new ConfigurationTreeNode(stream,
-	    //				 stream.listOfUnassignedPaths().get(i));
-	    //}
+	    else if (treeNode.object() instanceof StringBuffer) {
+		Stream stream = (Stream)treeNode.parent();
+		return new ConfigurationTreeNode(treeNode,
+						 stream.listOfUnassignedPaths().get(i));
+	    }
 	}
+	System.out.println("getChild("+parent+","+i+") = null!");
 	return null;
     }
     
@@ -622,6 +624,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 		PrimaryDataset dataset = (PrimaryDataset)treeNode.object();
 		return stream.indexOfDataset(dataset);
 	    }
+	    else if (treeNode.object() instanceof StringBuffer) {
+		return stream.datasetCount();
+	    }
 	}
 	else if (parent instanceof PrimaryDataset) {
 	    PrimaryDataset dataset = (PrimaryDataset)parent;
@@ -674,13 +679,17 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 		Path                  path     = (Path)pathNode.object();
 		return dataset.indexOfPath(path);
 	    }
-	    //else if (treeNode.object() instanceof String) {
-	    //Stream stream = (Stream)treeNode.parent();
-	    //Path   path   = (Path)child;
-	    //int index = stream.listOfUnassignedPaths().indexOf(path);
-	    //return index;
-	    //}
+	    else if (treeNode.object() instanceof StringBuffer) {
+		ConfigurationTreeNode parentTreeNode =
+		    (ConfigurationTreeNode)treeNode.parent();
+		Stream stream = (Stream)parentTreeNode.parent();
+		Path   path   = (Path)child;
+		int index = stream.listOfUnassignedPaths().indexOf(path);
+		return index;
+	    }
+	    //else if (treeNode.object() instanceof Stream
 	}
+	System.out.println("getIndexOfChild("+parent+","+child+")= -1!!");
 	return -1;
     }
     
@@ -712,7 +721,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
 	    return treeNode.parent();
 	}
-	
+	System.out.println("getParent("+node+") = null!");
 	return null;
     }
     

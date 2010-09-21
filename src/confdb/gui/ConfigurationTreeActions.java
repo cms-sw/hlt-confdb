@@ -1373,6 +1373,7 @@ public class ConfigurationTreeActions
 	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
+	Object                 node     = treePath.getLastPathComponent();
 	
 	int index = config.indexOfDataset(dataset);
 	model.nodeInserted(model.datasetsNode(),index);
@@ -1382,8 +1383,10 @@ public class ConfigurationTreeActions
 	model.nodeStructureChanged(model.contentsNode());
 	model.updateLevel1Nodes();
 	
-	TreePath newTreePath = treePath.pathByAddingChild(dataset);
-	tree.setSelectionPath(newTreePath);
+	if (node == model.datasetsNode()) {
+	    TreePath newTreePath = treePath.pathByAddingChild(dataset);
+	    tree.setSelectionPath(newTreePath);
+	}
 	
 	return true;
     }
@@ -1439,40 +1442,77 @@ public class ConfigurationTreeActions
     /** remove an existing primary dataset */
     public static boolean removePrimaryDataset(JTree tree)
     {
-	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config = (Configuration)model.getRoot();
+	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config   = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
+	Object                 node     = treePath.getLastPathComponent();
+	PrimaryDataset dataset = null;
+	Stream         stream  = null;
 
-	PrimaryDataset dataset =
-	    (PrimaryDataset)treePath.getLastPathComponent();
-	Stream         stream = dataset.parentStream();
-	int index = config.indexOfDataset(dataset);
+	if (node instanceof PrimaryDataset) {
+	    dataset = (PrimaryDataset)node;
+	    stream  = dataset.parentStream();
+	}
+	else if (node instanceof ConfigurationTreeNode) {
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
+	    dataset = (PrimaryDataset)treeNode.object();
+	    stream  = (Stream)treeNode.parent();
+	    tree.setSelectionPath(treePath.getParentPath());
+	}
+
+	int index       = config.indexOfDataset(dataset);
 	int indexStream = stream.indexOfDataset(dataset);
 
 	stream.removeDataset(dataset);
 	model.nodeRemoved(model.datasetsNode(),index,dataset);
 	model.nodeRemoved(stream,indexStream,dataset);
 	model.nodeStructureChanged(model.contentsNode());
+	Iterator<Path> itP = dataset.pathIterator();
+	while (itP.hasNext())
+	    model.nodeInserted(model.getChild(stream,stream.datasetCount()),
+			       stream.listOfUnassignedPaths().indexOf(itP.next()));
 	model.updateLevel1Nodes();
 	
 	return true;
     }
     
     /** add a path to a primary dataset */
-    public static boolean addPathToDataset(JTree tree,String pathName)
+    public static boolean addPathToDataset(JTree tree,String name)
     {
 	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
+	Object                 node     = treePath.getLastPathComponent();
 	
-	PrimaryDataset dataset=(PrimaryDataset)treePath.getLastPathComponent();
-	Stream         stream = dataset.parentStream();
-	Path           path   = config.path(pathName);
+	PrimaryDataset dataset = null;
+	Stream         stream  = null;
+	Path           path    = null;
 	
-	if (stream.indexOfPath(path)<0)  stream.insertPath(path);
+	if (node instanceof PrimaryDataset) {
+	    dataset = (PrimaryDataset)node;
+	    stream  = dataset.parentStream();
+	    path    = config.path(name);
+	}
+	else if (node instanceof ConfigurationTreeNode) {
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
+	    ConfigurationTreeNode parentNode = (ConfigurationTreeNode)treeNode.parent();
+	    path    = (Path)treeNode.object();
+	    stream  = (Stream)parentNode.parent();
+	    dataset = stream.dataset(name);
+	    tree.setSelectionPath(treePath.getParentPath());
+	}
+	
+	int index = -1;
+	if (stream.indexOfPath(path)<0) stream.insertPath(path);
+	else index = stream.listOfUnassignedPaths().indexOf(path);
 	dataset.insertPath(path);
 	
 	model.nodeInserted(dataset,dataset.indexOfPath(path));
+	if (model.streamMode().equals("datasets")) {
+	    model.nodeInserted(model.getChild(stream,stream.indexOfDataset(dataset)),
+			       dataset.indexOfPath(path));
+	    model.nodeRemoved(model.getChild(stream,stream.datasetCount()),index,path);
+	}
 	model.nodeChanged(path);
 	model.updateLevel1Nodes();
 	
@@ -1495,19 +1535,14 @@ public class ConfigurationTreeActions
 	
 	dataset.removePath(path);
 	
-	// DEBUG
-	//System.out.println(model.getChild(stream,stream.datasetCount()));
-	//System.out.println(stream.listOfUnassignedPaths().indexOf(path));
-
 	model.nodeRemoved(dataset,index,treeNode);
-	//model.nodeInserted(model.getChild(stream,stream.datasetCount()),
-	//		   stream.listOfUnassignedPaths().indexOf(path));
+	if (model.streamMode().equals("datasets"))
+	    model.nodeRemoved(model.getChild(stream,stream.indexOfDataset(dataset)),
+			      index,treeNode);
+	model.nodeInserted(model.getChild(stream,stream.datasetCount()),
+			   stream.listOfUnassignedPaths().indexOf(path));
 	model.updateLevel1Nodes();
 	
-	// DEBUG
-	//System.out.println(model.getChildCount(model.getChild(stream,
-	//						      stream.datasetCount())));
-			   
 	return true;
     }
 

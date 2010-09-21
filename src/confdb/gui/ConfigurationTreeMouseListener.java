@@ -814,8 +814,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	int      depth    = treePath.getPathCount();
 	Object   node     = treePath.getLastPathComponent();
 	
-	if (depth>4) return;
-	
 	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
 	IConfiguration         config = (IConfiguration)model.getRoot();
 	
@@ -852,6 +850,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    JMenu addPathMenu = new ScrollableMenu("Add Path");
 	    popupStreams.add(addPathMenu);
 
+	    menuItem = new JMenuItem("Add Primary Dataset");
+	    menuItem.addActionListener(streamListener);
+	    menuItem.setActionCommand("ADDDATASETTO:"+stream.name());
+	    popupStreams.add(menuItem);
+
 	    popupStreams.addSeparator();
 
 	    menuItem = new JMenuItem("Set Fraction-to-Disk");
@@ -887,14 +890,44 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    }
 	}
 	else if (depth==4) {
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
 	    if (model.streamMode().equals("paths")) {
-		ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
 		Path path = (Path)treeNode.object();
 		menuItem = new JMenuItem("<html>Remove <i>"+path.name()+
 					 "</i></html>");
 		menuItem.addActionListener(streamListener);
 		menuItem.setActionCommand("REMOVEPATH");
 		popupStreams.add(menuItem);
+	    }
+	    else if (model.streamMode().equals("datasets")) {
+		if (treeNode.object() instanceof PrimaryDataset) {
+		    PrimaryDataset dataset = (PrimaryDataset)treeNode.object();
+		    menuItem = new JMenuItem("<html>Remove <i>"+dataset.name()+
+					     "</i></html>");
+		    menuItem.addActionListener(streamListener);
+		    menuItem.setActionCommand("REMOVEDATASET");
+		    popupStreams.add(menuItem);
+		}
+	    }
+	}
+	else if (depth==5) {
+	    ConfigurationTreeNode treeNode=(ConfigurationTreeNode)node;
+	    if (treeNode.parent() instanceof ConfigurationTreeNode) {
+		ConfigurationTreeNode parentNode=(ConfigurationTreeNode)treeNode.parent();
+		if (parentNode.object() instanceof StringBuffer) {
+		    Stream stream = (Stream)parentNode.parent();
+		    Path  path    = (Path)treeNode.object();
+		    JMenu assignPathMenu=new ScrollableMenu("Assign "+path.name()+" to");
+		    popupStreams.add(assignPathMenu);
+		    Iterator<PrimaryDataset> itPD = stream.datasetIterator();
+		    while (itPD.hasNext()) {
+			PrimaryDataset dataset = itPD.next();
+			menuItem = new JMenuItem(dataset.name());
+			menuItem.addActionListener(streamListener);
+			menuItem.setActionCommand("ADDPATHTO:"+dataset.name());
+			assignPathMenu.add(menuItem);
+		    }
+		}
 	    }
 	}
     }
@@ -1689,6 +1722,16 @@ class StreamMenuListener implements ActionListener
 	else if (action.equals("ADDPATH")) {
 	    ConfigurationTreeActions.addPathToStream(tree,cmd);
 	}
+	else if (action.startsWith("ADDDATASETTO:")) {
+	    String streamName = action.split(":")[1];
+	    CreateDatasetDialog dlg = new CreateDatasetDialog(frame,config);
+	    dlg.fixStreamName(streamName);
+	    dlg.pack(); dlg.setLocationRelativeTo(frame);
+	    dlg.setVisible(true);
+	    if (dlg.isSuccess())
+		ConfigurationTreeActions.insertPrimaryDataset(tree,
+							      dlg.dataset());
+	}
 	else if (action.equals("FRACTION")) {
 	    Stream stream = (Stream)node;
 	    String fractionAsString =
@@ -1715,10 +1758,17 @@ class StreamMenuListener implements ActionListener
 	else if (action.equals("REMOVEPATH")) {
 	    ConfigurationTreeActions.removePathFromStream(tree);
 	}
+	else if (action.equals("REMOVEDATASET")) {
+	    ConfigurationTreeActions.removePrimaryDataset(tree);
+	}
 	else if (action.startsWith("SHOW:")) {
 	    model.setStreamMode(action.split(":")[1]);
 	    Iterator<Stream> itS = config.streamIterator();
 	    while (itS.hasNext()) model.nodeStructureChanged(itS.next());
+	}
+	else if (action.startsWith("ADDPATHTO:")) {
+	    String datasetName = action.split(":")[1];
+	    ConfigurationTreeActions.addPathToDataset(tree,datasetName);
 	}
     }
 }
