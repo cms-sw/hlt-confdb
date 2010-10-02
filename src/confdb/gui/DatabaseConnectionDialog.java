@@ -355,8 +355,10 @@ public class DatabaseConnectionDialog
 	else if (dbType.equals("oracle")) oracleButton.setSelected(true);
 	else                              noneButton.setSelected(true);
 	
-	textFieldDbUser.requestFocusInWindow();
-	textFieldDbUser.selectAll();
+	//textFieldDbUser.requestFocusInWindow();
+	//textFieldDbUser.selectAll();
+	textFieldDbPwrd.requestFocusInWindow();
+	textFieldDbPwrd.selectAll();
     }
     
 

@@ -303,7 +303,7 @@ abstract
 	return false;
     }
 
-    /** get unresolved InputTags from a reference, given the labels to this point */
+    /** get unresolved InputTags from a reference, given labels to this point */
     private void getUnresolvedInputTags(Reference r,
 					HashSet<String> labels,
 					ArrayList<String> unresolved)
@@ -340,8 +340,9 @@ abstract
 
 	    if (!itp.isValueSet()||
 		itp.label().equals(new String())||
-		itp.label().equals("rawDataCollector")) return;
-
+		itp.label().equals("rawDataCollector")||
+		itp.label().equals("source")) return;
+	    
 	    if (!labels.contains(itp.label())) {
 		Object parent = itp;
 		String s = ":"+itp.name()+"@"+itp.label();
