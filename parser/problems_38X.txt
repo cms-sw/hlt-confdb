@@ -251,6 +251,9 @@ HcalSimpleReconstructor.Parameter correctForTimeslew bool true tracked
 HcalSimpleReconstructor.Parameter correctForPhaseContainment bool true tracked
 HcalSimpleReconstructor.Parameter correctionPhaseNS double 13.0 tracked
 
+Module EDProducer HcalHitReconstructor RecoLocalCalo HcalRecProducers 
+HcalHitReconstructor.Parameter firstAuxOffset int32 0 tracked
+
 Module EDProducer SiStripRawToClusters EventFilter SiStripRawToDigi
 SiStripRawToClusters.Parameter ProductLabel InputTag rawDataCollector tracked
 SiStripRawToClusters.Parameter Clusterizer PSet tracked
@@ -635,3 +638,34 @@ L3TrackCandCombiner.Parameter labels VInputTag { } tracked
 
 Module EDProducer L3TrackLinksCombiner RecoMuon TrackerSeedGenerator     
 L3TrackLinksCombiner.Parameter labels VInputTag { } tracked     
+
+Module EDFilter CaloJetSelector CommonTools RecoAlgos 
+CaloJetSelector.Parameter src InputTag iterativeCone5CaloJets tracked
+CaloJetSelector.Parameter filter bool false tracked 
+CaloJetSelector.Parameter cut string "" tracked
+
+Module EDFilter RecoTrackRefSelector CommonTools RecoAlgos
+RecoTrackRefSelector.Parameter src InputTag generalTracks tracked
+RecoTrackRefSelector.Parameter maxChi2 double 10000.0 tracked
+RecoTrackRefSelector.Parameter tip double 120.0 tracked
+RecoTrackRefSelector.Parameter minRapidity double -5.0 tracked
+RecoTrackRefSelector.Parameter lip double 300.0 tracked
+RecoTrackRefSelector.Parameter ptMin double 0.1 tracked
+RecoTrackRefSelector.Parameter maxRapidity double 5.0 tracked
+RecoTrackRefSelector.Parameter quality vstring { "loose" } tracked
+RecoTrackRefSelector.Parameter algorithm vstring {} tracked
+RecoTrackRefSelector.Parameter minHit int32 3 tracked
+RecoTrackRefSelector.Parameter min3DHit int32 0 tracked
+RecoTrackRefSelector.Parameter beamSpot InputTag offlineBeamSpot tracked
+
+Module EDProducer PFRecoTauDiscriminationByIsolation RecoTauTag RecoTau 
+PFRecoTauDiscriminationByIsolation.Parameter PFTauProducer InputTag pfRecoTauProducer tracked 
+PFRecoTauDiscriminationByIsolation.Parameter Prediscriminants PSet tracked 
+ 
+Module EDProducer CaloRecoTauDiscriminationByLeadingTrackPtCut RecoTauTag RecoTau 
+CaloRecoTauDiscriminationByLeadingTrackPtCut.Parameter CaloTauProducer InputTag caloRecoTauProducer tracked 
+CaloRecoTauDiscriminationByLeadingTrackPtCut.Parameter Prediscriminants PSet tracked 
+  
+Module EDProducer PFRecoTauDiscriminationByLeadingObjectPtCut RecoTauTag RecoTau 
+PFRecoTauDiscriminationByLeadingObjectPtCut.Parameter PFTauProducer InputTag pfRecoTauProducer tracked 
+PFRecoTauDiscriminationByLeadingObjectPtCut.Parameter Prediscriminants PSet tracked 

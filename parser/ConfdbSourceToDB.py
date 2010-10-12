@@ -354,6 +354,10 @@ class ConfdbSourceToDB:
 					if(sealcomponentline.rstrip().endswith("*/")):
 					    startedccomment = False
 
+                                        if(sealcomponentline.find("*/") != -1):
+                                            if((sealcomponentline.split("*/"))[1].find("//") != -1):
+                                                startedccomment = False
+
 					if(startedccomment == True):
 					    continue
 
