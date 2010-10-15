@@ -153,7 +153,7 @@ public class PrimaryDataset extends DatabaseEntry
 	int index = paths.indexOf(path);
 	if (index<0) return false;
 	paths.remove(index);
-	//setHasChanged();
+	setHasChanged();
 	return true;
     }
     
