@@ -1,3 +1,8 @@
+2010-10-15  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-05-05
+	* fix to PrimaryDataset class (by Vasu), regarding path removal
+
 2010-10-02  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* taqg V01-05-04
