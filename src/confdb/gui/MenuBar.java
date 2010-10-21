@@ -40,6 +40,7 @@ public class MenuBar
     private static final String toolMenuReplace       = "Search&Replace";
     private static final String toolMenuDiff          = "Compare (Diff)";
     private static final String toolMenuPSEditor      = "Edit Prescales";
+    private static final String toolMenuSPSEditor      = "Edit SmartPrescales";
     private static final String toolMenuMLEditor      = "Edit MessageLogger";
 
     /** menu bar item names: options */
@@ -70,6 +71,7 @@ public class MenuBar
     private JMenuItem toolMenuDiffItem          = null;
     private JMenuItem toolMenuReplaceItem       = null;
     private JMenuItem toolMenuPSEditorItem      = null;
+    private JMenuItem toolMenuSPSEditorItem      = null;
     private JMenuItem toolMenuMLEditorItem      = null;
     
     private JCheckBoxMenuItem optionsMenuTrackItem = null;
@@ -111,6 +113,7 @@ public class MenuBar
 	toolMenuReplaceItem.setEnabled(true);
 	toolMenuDiffItem.setEnabled(true);
 	toolMenuPSEditorItem.setEnabled(true);
+	toolMenuSPSEditorItem.setEnabled(true);
 	toolMenuMLEditorItem.setEnabled(true);
 	optionsMenuTrackItem.setEnabled(true);
 	dbMenuExportItem.setEnabled(true);
@@ -129,6 +132,7 @@ public class MenuBar
 	//toolMenuDiffItem.setEnabled(false);
 	toolMenuReplaceItem.setEnabled(false);
 	toolMenuPSEditorItem.setEnabled(false);
+	toolMenuSPSEditorItem.setEnabled(false);
 	toolMenuMLEditorItem.setEnabled(false);
 	optionsMenuTrackItem.setEnabled(false);
 	dbMenuExportItem.setEnabled(false);
@@ -239,6 +243,10 @@ public class MenuBar
 	toolMenuPSEditorItem.setActionCommand(toolMenuPSEditor);
 	toolMenuPSEditorItem.addActionListener(listener);
 	toolMenu.add(toolMenuPSEditorItem);
+	toolMenuSPSEditorItem = new JMenuItem(toolMenuSPSEditor,KeyEvent.VK_P);
+	toolMenuSPSEditorItem.setActionCommand(toolMenuSPSEditor);
+	toolMenuSPSEditorItem.addActionListener(listener);
+	toolMenu.add(toolMenuSPSEditorItem);
 	toolMenuMLEditorItem = new JMenuItem(toolMenuMLEditor,KeyEvent.VK_Q);
 	toolMenuMLEditorItem.setActionCommand(toolMenuMLEditor);
 	toolMenuMLEditorItem.addActionListener(listener);

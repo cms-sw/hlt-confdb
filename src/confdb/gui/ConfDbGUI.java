@@ -603,6 +603,20 @@ public class ConfDbGUI
 	    treeModelCurrentConfig.nodeStructureChanged(prescaleSvc);
     }
 
+    /** open prescale editor */
+    public void openSmartPrescaleEditor()
+    {
+      
+	SmartPrescaleDialog dialog = new SmartPrescaleDialog(frame,currentConfig);
+	dialog.pack();
+	dialog.setLocationRelativeTo(frame);
+	dialog.setVisible(true);
+	
+	ServiceInstance smartPrescaleSvc = currentConfig.service("SmartPrescaleService");
+	if (smartPrescaleSvc!=null)
+	    treeModelCurrentConfig.nodeStructureChanged(smartPrescaleSvc);
+    }
+
 
             
     /** open message logger */

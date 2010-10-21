@@ -144,6 +144,18 @@ public class VStringParameter extends VectorParameter
 	return true;
     }
 
+    /** add value value of a vector-type parameter */
+    public boolean addValue(String valueAsString)
+    {
+	if ((valueAsString.startsWith("'")&&valueAsString.endsWith("'"))||
+	    (valueAsString.startsWith("\"")&&valueAsString.endsWith("\"")))
+	    values.add(valueAsString.substring(1,valueAsString.length()-1));
+	else
+	    values.add(new String(valueAsString));
+	isValueSet = (values.size()>0);
+	return true;
+    }
+
     /** remove i-th value from vector type parameter */
     public Object removeValue(int i)
     {
