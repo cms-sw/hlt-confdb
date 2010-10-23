@@ -267,7 +267,7 @@ public class ReleaseMigrator
 		Reference sourceReference = sourcetOutputCommand.parentReference();
 		if(sourceReference==null)
 		    continue;
-		Reference targetReference = targetPath.entry(sourcePath.name());
+		Reference targetReference = targetPath.entry(sourceReference.name());
 		if(targetReference==null)
 		    continue;
 
