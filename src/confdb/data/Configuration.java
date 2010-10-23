@@ -1164,31 +1164,26 @@ public class Configuration implements IConfiguration
     {
 	ArrayList<Sequence> result = new ArrayList<Sequence>();
 	Iterator<Sequence> itS = sequenceIterator();
-	while (itS.hasNext()) {
-	    Sequence sequence = itS.next();
-	    int      indexS   = result.indexOf(sequence);
-	    if (indexS<0) {
-		indexS = result.size();
-		result.add(sequence);
-	    }
-	    Iterator<Reference> itR = sequence.entryIterator();
-	    while (itR.hasNext()) {
-		Reference reference = itR.next();
-		Referencable parent = reference.parent();
-		if (parent instanceof Sequence) {
-		    Sequence s = (Sequence)parent;
-		    int indexR = result.indexOf(s);
-		    if (indexR<0) {
-			indexR=indexS;
-			indexS++;
-			result.add(indexR,s);
-		    }
-		    else if (indexR>indexS) {
-			result.remove(indexR);
-			indexR=indexS;
-			indexS++;
-			result.add(indexR,s);
-		    }
+	while (itS.hasNext()) result.add(itS.next());
+	boolean isOrdered = false;
+	while (!isOrdered) {
+	    isOrdered = true;
+	    int indexS = 0;
+	    while (indexS<result.size()) {
+		Sequence sequence = result.get(indexS);
+		int      indexMax = -1;
+		itS = sequence.sequenceIterator();
+		while (itS.hasNext()) {
+		    int  index = result.indexOf(itS.next());
+		    if (index>indexMax) indexMax = index;
+		}
+		if (indexMax>indexS) {
+		    isOrdered = false;
+		    result.remove(indexS);
+		    result.add(indexMax,sequence);
+		}
+		else {
+		    indexS++;
 		}
 	    }
 	}
@@ -1454,4 +1449,5 @@ public class Configuration implements IConfiguration
 
     /** retrieve block iterator */
     public Iterator<Block> blockIterator() { return blocks.iterator(); }
+
 }

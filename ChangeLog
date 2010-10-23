@@ -1,3 +1,17 @@
+2010-10-23  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-05-06
+	* fix sequence order bug (reported by Bryan), which so far only
+	appeared online (which still remains a big fat mystery!!): rewrite
+	of Configuration.orderedSequenceIterator(), which is in charge of
+	the ordering for OnlineConverter; for OfflineConverter, the
+	ordering is done in
+	ConfigurationModifier.orderedSequenceIterator(), where the same 
+	problem should be observed, but as long as it isn't it remains
+	unchanged.
+	* first prototype of SmartPrescaleEditor (Vasu)
+	* fix to ReleaseMigrator (bug reported by Martin, fixed by Vasu).
+
 2010-10-15  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-05-05
