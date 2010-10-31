@@ -173,6 +173,7 @@ public class EventContent extends DatabaseEntry implements Comparable<EventConte
 	int index = commands.indexOf(command);
 	if (index<0) return false;
 	commands.remove(command);
+	setHasChanged();
 	return true;
     }
 
