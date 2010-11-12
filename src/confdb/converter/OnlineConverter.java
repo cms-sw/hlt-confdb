@@ -43,6 +43,14 @@ public class OnlineConverter extends ConverterBase
     private HashMap<String, String> pathToPrescaler =
 	new HashMap<String, String>();
 
+    /** current hash map 'pathName' -> 'pathId' */
+    private HashMap<String,Integer> pathToPathId =
+	new HashMap<String,Integer>();
+
+    /** current hash map 'moduleName' -> 'moduleId' */
+    private HashMap<String,Integer> moduleToModuleId =
+	new HashMap<String,Integer>();
+
     /** current prescale table */
     private PrescaleTable prescaleTable = null;
     
@@ -164,6 +172,24 @@ public class OnlineConverter extends ConverterBase
 	    convertConfiguration(configId);
 	return prescaleTable;
     }
+
+    /** get pathname to pathid map */
+    public HashMap<String,Integer> getPathToPathIdMap(int configId)
+	throws ConverterException
+    {
+	if (configId !=this.configId)
+	    convertConfiguration(configId);
+	return pathToPathId;
+    }
+
+    /** get modulename to moduleid map */
+    public HashMap<String,Integer> getModuleToModuleIdMap(int configId)
+	throws ConverterException
+    {
+	if (configId !=this.configId)
+	    convertConfiguration(configId);
+	return moduleToModuleId;
+    }
     
 
     /** set the GlobalTag global tag parameter */
@@ -260,9 +286,12 @@ public class OnlineConverter extends ConverterBase
 	configureGlobalTag(epConfig);
 	
 	pathToPrescaler.clear();
+	pathToPathId.clear();
 	Iterator<Path> itP = epConfig.pathIterator();
 	while (itP.hasNext()) {
 	    Path path = itP.next();
+	    int  pathId = path.databaseId();
+	    pathToPathId.put(path.name(),new Integer(pathId));
 	    Iterator<ModuleInstance> itM = path.moduleIterator();
 	    while (itM.hasNext()) {
 		ModuleInstance module = itM.next();
@@ -271,6 +300,14 @@ public class OnlineConverter extends ConverterBase
 		    break;
 		}
 	    }
+	}
+	
+	moduleToModuleId.clear();
+	Iterator<ModuleInstance> itM = epConfig.moduleIterator();
+	while (itM.hasNext()) {
+	    ModuleInstance module = itM.next();
+	    int            moduleId = module.databaseId();
+	    moduleToModuleId.put(module.name(),new Integer(moduleId));
 	}
 	
 	

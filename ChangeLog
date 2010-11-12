@@ -1,3 +1,10 @@
+2010-11-12  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-05-08
+	* add OnlineConverter.getPathToPathIdMap() and
+	OnlineConverter.getModuleToModuleIdMap() as per request of Bill et
+	al
+
 2010-11-04  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-05-07
