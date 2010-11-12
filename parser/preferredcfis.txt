@@ -4,10 +4,12 @@ RecoTracker/MeasurementDet		MeasurementTrackerESProducer_cfi.py
 RecoTracker/TkSeedingLayers             PixelAndStripLayerPairs_cfi.py
 RecoTracker/TrackProducer		TrackProducer_cfi.py
 RecoTracker/TkSeedGenerator		SeedGeneratorFromRegionHitsEDProducer_cfi.py
+RecoTauTag/RecoTau			PFRecoTauProducer_cfi.py
 RecoLocalCalo/CaloTowersCreator		calotowermaker_cfi.py
 RecoLocalCalo/EcalRecProducers          ecalFixedAlphaBetaFitUncalibRecHit_cfi.py
 RecoLocalCalo/EcalRecProducers          ecalRecHit_cfi.py
 RecoLocalCalo/HcalRecProducers		HcalHitReconstructor_hf_cfi.py
+RecoLocalCalo/HcalRecProducers		HcalHitReconstructor_hbhe_cfi.py
 RecoLocalTracker/SiPixelClusterizer	SiPixelClusterizer_cfi.py
 RecoLocalTracker/SiStripRecHitConverter StripCPEgeometric_cfi.py
 RecoMuon/L3MuonIsolationProducer	L3MuonIsolationProducer_cfi.py
