@@ -412,6 +412,9 @@ public class OnlineConverter extends ConverterBase
 	String dbUser = "cms_hltdev_reader";
 	String dbPwrd = "convertme!";
 	
+	boolean doEPConfig = false;
+	boolean doSMConfig = false;
+
 	for (int iarg = 0; iarg < args.length; iarg++) {
 	    String arg = args[iarg];
 	    if (arg.equals("-c")) {
@@ -435,6 +438,10 @@ public class OnlineConverter extends ConverterBase
 	    } else if (arg.equals("-s")) {
 		iarg++;
 		dbPwrd = args[iarg];
+	    } else if (arg.equals("--ep")) {
+		doEPConfig = true;
+	    } else if (arg.equals("--sm")) {
+		doSMConfig = true;
 	    }
 	}
 	
@@ -460,10 +467,8 @@ public class OnlineConverter extends ConverterBase
 	    OnlineConverter cnv = new OnlineConverter("python", dbType, dbUrl,
 						      dbUser, dbPwrd);
 	    int configId = cnv.getDatabase().getConfigId(config);
-	    System.out.println("EP CONFIGURATION:\n\n"+
-			       cnv.getEpConfigString(configId));
-	    System.out.println("\n\nSM CONFIGURATION:\n\n"+
-			       cnv.getSmConfigString(configId));
+	    if(doEPConfig)System.out.println(cnv.getEpConfigString(configId));
+	    if(doSMConfig)System.out.println(cnv.getSmConfigString(configId));
 	} catch (Exception e) {
 	    System.err.println("Exception: "+e.getMessage());
 	    e.printStackTrace();
