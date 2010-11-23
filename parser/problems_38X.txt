@@ -546,6 +546,7 @@ FastjetJetProducer.Parameter maxProblematicHcalCells uint32 9999999 tracked
 FastjetJetProducer.Parameter doAreaFastjet bool false tracked
 FastjetJetProducer.Parameter doRhoFastjet bool false tracked
 FastjetJetProducer.Parameter subtractorName string "" tracked
+FastjetJetProducer.Parameter sumRecHits bool false tracked
 
 ESModule SiStripQualityESProducer CalibTracker SiStripESProducers
 SiStripQualityESProducer.Parameter appendToDataLabel string "" tracked
