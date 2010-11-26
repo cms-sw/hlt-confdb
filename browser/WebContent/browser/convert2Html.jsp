@@ -24,6 +24,11 @@
 //    js = "../../js";
 //    img = "../../img";
   }
+
+  out.println( "<script type='text/javascript'>" );
+  out.println( "var scrollDiv = " + ( request.getParameter( "scrollDiv" ) != null ? request.getParameter( "scrollDiv" ) : "true" ) + ";" ); 
+  out.println( "</script>" );
+
 %>  
   
 <%!
@@ -139,8 +144,14 @@ var dialog,
 function init()
 {
   var displayHeight = Dom.getViewportHeight();
-  Dom.setStyle(  'headerDiv', 'height',  '30px' );
-  Dom.setStyle(  'mainDiv', 'max-height',  (displayHeight - 35) + 'px' );
+  if ( scrollDiv )
+  {
+	Dom.setStyle(  'mainDiv', 'max-height',  (displayHeight - 35) + 'px' );
+	Dom.setStyle(  'mainDiv', 'overflow',  'auto' );
+	Dom.setStyle(  'headerDiv', 'height',  '30px' );
+  }
+  else
+	Dom.setStyle(  'headerDiv', 'visibility',  'collapse' );
 
 
   var handleCancel = function() {
@@ -276,7 +287,7 @@ function getURL( release )
 
 </head>
 
-<body class="yui-skin-sam skin1" style="background:white" onload="signalReady()">
+<body class="yui-skin-sam skin1" onload="signalReady()">
 <div id="headerDiv" class="tab1" style="padding-left:10px; padding-top:5px;">
 <%
   String confString = "";
@@ -328,7 +339,7 @@ function getURL( release )
   }
 %>
 </div>
-<div id="mainDiv" style="overflow:auto; max-height:600px;">
+<div id="mainDiv">
 <pre style="line-height:140%">
 
 <%=confString%>
