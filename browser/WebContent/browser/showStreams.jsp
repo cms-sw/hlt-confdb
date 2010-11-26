@@ -3,7 +3,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
 <%@page import="confdb.converter.BrowserConverter"%>
-<%@page import="confdb.converter.ConverterBase"%>
+<%@page import="confdb.converter.streams.L1Seed"%>
 <%@page import="confdb.data.ModifierInstructions"%>
 <%@page import="confdb.converter.OnlineConverter"%>
 <%@page import="confdb.data.IConfiguration"%>
@@ -36,7 +36,8 @@
 <%@page import="java.util.regex.Matcher"%>
 <%@page import="java.util.HashSet"%>
 <%@page import="java.util.SortedSet"%>
-<%@page import="java.util.TreeSet"%><html>
+<%@page import="java.util.TreeSet"%>
+<%@page import="confdb.converter.ConverterBase"%><html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Streams </title>
@@ -60,16 +61,19 @@
 
 
 <!-- css -->
+<link rel="stylesheet" type="text/css" href="../css/smoothness/jquery-ui-1.8.6.custom.css" rel="stylesheet" />	
 <link rel="stylesheet" type="text/css" href="../css/jquery.treeTable.css" />
+<link rel="stylesheet" type="text/css" href="../css/confdb-jq.css" />
 
 <!-- js -->
-<script type="text/javascript" src="../js/jquery-1.3.2.min.js"></script>
+<script type="text/javascript" src="../js/jquery-1.4.4.min.js"></script>
 <script type="text/javascript" src="../js/jquery.cookie.js"></script>
 <script type="text/javascript" src="../js/jquery.treeTable.js"></script>
 <script type="text/javascript" src="../js/json2.js"></script>
 
 
 <style>
+
 
 .even {
 	background: #ffffff;
@@ -88,20 +92,44 @@
 	padding-left: 1em;
 }
 
-/*
-body {
-	margin:0px; 
-	padding:0px; 
-	padding-top:5px;
-	overflow:hidden;
+
+.pathCell {
+	cursor: pointer;
 }
 
-#container {
-  margin:0px; 
-  padding:0px;
-  width:100%;
+.pathCell:hover {
+	text-decoration: underline;
+}
+
+/*
+.seedCell {
+	cursor: pointer;
+}
+
+.seedCell:hover {
+	text-decoration: underline;
 }
 */
+
+.seedCell a:hover {
+	text-decoration: underline;
+}
+
+.seedCell a {
+	color: black;
+	text-decoration: none;
+}
+
+body {
+	padding-left:3px; 
+	padding-right:3px; 
+	padding-top:3px;
+}
+
+tbody {
+border: 1px solid #aaaaaa;
+
+}
 
 
 </style>
@@ -123,10 +151,21 @@ function setCookie( cookie )
 
 function signalReady()
 {
-  if ( parent &&  parent.iframeReady )
-    parent.iframeReady();
+	  if ( parent &&  parent.iframeReady )
+		    parent.iframeReady();
 }
 
+function showPath( path )
+{
+	if ( parent &&  parent.scrollTo )
+		parent.scrollTo( path, "details" );
+}
+
+function showSeed( path )
+{
+	if ( parent &&  parent.scrollTo )
+		parent.scrollTo( path, "details" );
+}
 
 
 
@@ -167,6 +206,15 @@ $(function(){
 	*/
 
     $("#main").treeTable( { clickableNodeNames: true } );
+    $(".pathCell").click( function () {
+    	showPath( $(this).html() );
+    } );
+
+    /*
+    $(".seedCell").click( function () {
+    	showSeed( $(this).html() );
+    } );
+    */
     signalReady();
 });
 
@@ -663,35 +711,30 @@ private void initPrescalerStuff( IConfiguration conf )
 	}
 }
 
-private static final String l1TemplateName    = "HLTLevel1GTSeed";
-private static final String l1CondParamName   = "L1SeedsLogicalExpression";
-
 public String getL1Seed( Path path )
 {
 	ModuleInstance l1Module = null;
 	ArrayList<ModuleInstance> filters = new ArrayList<ModuleInstance>();
-	Iterator<ModuleInstance> itM = path.moduleIterator();
-	while (itM.hasNext()) 
+	Iterator<ModuleInstance> moduleList = path.moduleIterator();
+	int seedCounter = 0;
+	String allSeeds = new String();
+	while ( moduleList.hasNext() ) 
 	{
-    	ModuleInstance module = itM.next();
-    	String templateName = module.template().name();
-    	String templateType = module.template().type();
-    	if ( templateName.equals( l1TemplateName ) )
+    	ModuleInstance module = moduleList.next();
+    	String seed = L1Seed.getL1Seed( module );
+    	if ( seed != null )
     	{
-    		l1Module = module;
-    		break;
+    		if ( ++seedCounter > 1 )
+    			allSeeds += ") <br> AND ("; 
+			allSeeds += "<a href=javascript:showSeed(\"" + module.name() + "\")>" + (L1Seed.isL1TechnicalTriggerSeed( module ) ? "technical bits: " : "" ) + seed + "</a>";
     	}
 	}
-
-	boolean	isNoTrigger = (l1Module==null);
-
-	String l1Condition = isNoTrigger ?
-    	"-" : l1Module.parameter(l1CondParamName,"string").valueAsString();
-	if (l1Condition.startsWith("\""))
-    	l1Condition = l1Condition.substring(1);
-	if (l1Condition.endsWith("\""))
-    	l1Condition = l1Condition.substring(0,l1Condition.length()-1);
-	return l1Condition;
+	if ( seedCounter == 0 )
+		return "-";
+	if ( seedCounter == 1 )
+		return allSeeds;
+	
+	return "(" + allSeeds + ")";
 }
 
 SortedSet<String> getSelectEvents( String hltOut, IConfiguration conf )
@@ -781,8 +824,8 @@ void verbose1( String message )
 %>
 <center>
 
-<table id="main" rules="groups" border="1" style="padding-left:10px" width="100%">
-<thead>
+<table class='ui-widget' id="main" rules="groups" border="1" style="padding-left:10px" width="100%">
+<thead class='ui-widget-header'>
 <%
 	try {
 		if ( request.getParameter( "verbose" ) != null )
@@ -793,7 +836,7 @@ void verbose1( String message )
 		String rowspan = columns > 1 ? "rowspan='2'" : "";
 		out.println( "<tr><th align='left' " + rowspan + ">Stream</th><th align='left' " + rowspan + ">Primary Dataset</th><th align='left' " + rowspan + ">HLT path</th>"
 			+ "<th " + ( columns > 1 ? ("colspan=" + columns) : "align='right'" ) + ">Prescaler</th>"
-		    + "<th style='min-width:3em'></th><th align='left' " + rowspan + ">L1 seed</th></tr>" );
+		    + "<th " + rowspan + " style='min-width:3em'></th><th align='left' " + rowspan + ">L1 seed</th></tr>" );
 		if ( columns > 1 )
 		{
 			out.println( "<tr>" );
@@ -801,7 +844,7 @@ void verbose1( String message )
 				out.println( "<th class='prescaleTH'>" + name + "</th>" );
 			out.println( "</tr>" );
 		}
-		out.println( "</thead><tbody>" );
+		out.println( "</thead><tbody class='ui-widget'>" );
 
 		// body
 		String emptyTDs = "<td></td><td></td><td></td><td></td>";
@@ -829,10 +872,10 @@ void verbose1( String message )
 					Path path = paths.next();
 					out.println( "<tr id='p-" + path.name() + "' class='child-of-pd-" + dataset.name() + "'>" 
 							+ "<td></td><td></td>" 
-							+ "<td>" + path.name() + "</td>" 
+							+ "<td class='pathCell'>" + path.name() + "</td>" 
 							+ getPrescalesDescription( path.name(), hltOut, endp )
 							+ "<td align='center'>" + ( verbose > 0 ? prescalerType : "" ) + "</td>" 
-							+ "<td>" + getL1Seed(path) + "</td>" 
+							+ "<td class='seedCell'>" + getL1Seed(path) + "</td>" 
 							+ "</tr>" );
 					unassigned.remove( path.name() );
 				}
