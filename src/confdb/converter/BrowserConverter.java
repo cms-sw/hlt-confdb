@@ -185,7 +185,7 @@ public class BrowserConverter extends OfflineConverter
     	public int configId = -1;
     	public String configName = null;
     	public int runNumber = -1;
-    	public String dbName = "";
+    	public String dbName = "orcoff";
         public HashMap<String,String> toModifier = new HashMap<String,String>();
         
         UrlParameter() {}
