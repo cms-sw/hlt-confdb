@@ -13,7 +13,7 @@ public class HtmlPathWriter extends AsciiPathWriter implements IPathWriter
 
 	protected String decorateName( String pathName )
 	{
-		return "<b>" + pathName + "</b>";
+		return "<a name=\"" + pathName + "\"><b>" + pathName + "</b></a>";
 	}
 	
 }
