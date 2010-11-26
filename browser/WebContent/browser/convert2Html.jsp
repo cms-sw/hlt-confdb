@@ -123,6 +123,7 @@ private Object exec( String className, String methodName, String[] paramList, Ht
 <link rel="stylesheet" type="text/css" href="<%=yui%>/reset-fonts/reset-fonts.css" />
 <link rel="stylesheet" type="text/css" href="<%=yui%>/container/assets/skins/sam/container.css" />
 <link rel="stylesheet" type="text/css" href="<%=css%>/confdb.css" />
+<link rel="stylesheet" type="text/css" href="<%=css%>/confdb-jq.css" />
 
 <script type="text/javascript" src="<%=yui%>/yahoo-dom-event/yahoo-dom-event.js"></script>
 <script type="text/javascript" src="<%=yui%>/container/container-min.js"></script>
