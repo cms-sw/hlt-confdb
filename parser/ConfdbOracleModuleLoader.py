@@ -835,7 +835,11 @@ class ConfdbOracleModuleLoader:
 		if(paramval == None):
 		    if(self.verbose > 2):
 			print "No default parameter value found"
+
 		else:
+                    if(len(paramval) > 1024):
+                        paramval = ""
+                                        
 		    # Stupid special case for string variables defined in 
 		    # single quotes in .cf* files
 		    if(paramval.find("'") != -1):
@@ -845,6 +849,7 @@ class ConfdbOracleModuleLoader:
 			thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
 		    else:
                         paramval = "'" + str(paramval) + "'"
+
                         thecursor.execute("INSERT INTO StringParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")") 
                         #			print "\tWarning: Attempted to load a non-string value to string table:"
                         #			print "\t\tstring " + str(paramname) + " = " + str(paramval)
