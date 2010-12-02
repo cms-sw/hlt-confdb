@@ -33,7 +33,6 @@ body {
 
 .ui-tabs .ui-tabs-nav li a {
 	padding:3px;
-	font-size: 14px;
 }
 
 .ui-tabs {
@@ -66,23 +65,44 @@ body {
 }
 
 
+
+#dialog-form select {
+	border: 0px;
+}
+
 #main {
 	width: 800px;
 }
 
 #header {
+	width: 600px;
 	z-index: 1000;
 	background: #F2D685;
 	position: relative;
 	top: 10px;
 	left: 10px;
-	width: 600px;
-	padding: 10px;
+	padding: 1px 10px 1px 10px;
 	border: 1px solid #606060;
 	-moz-border-radius: 5px;
 	-webkit-border-radius: 5px;
 	border-radius: 5px;
 }
+
+#fullName {
+	font-size: 1.4em;
+	float: left;
+	min-width: 400px;
+}
+
+#fullName:hover {
+	cursor: pointer;
+}
+
+
+#secondaryInfo {
+	color: grey;
+}
+
 
 #streamsDiv {
   padding-top: 2px;
@@ -94,7 +114,7 @@ body {
 
 .detailsHeaderTD {
 	padding: 5px 10px 5px 10px;
-	font-size: 12px;
+	font-size: 0.9em;
 }
 
 </style>
@@ -102,38 +122,55 @@ body {
 <%
 	BrowserConverter.UrlParameter paras = null;
 	BrowserConverter converter = null;
-	try {
-		paras = BrowserConverter.getUrlParameter( request.getParameterMap() );
-
-	    if ( paras.runNumber != -1 )
-	    	paras.dbName = "ORCOFF";
-	    
-	   	converter = BrowserConverter.getConverter( paras.dbName );
-	    if ( paras.runNumber != -1 )
-	    {
-	    	paras.configName = null;
-	    	paras.configId = converter.getKeyFromRunSummary( paras.runNumber );
-	    	if ( paras.configId <= 0 )
-	    		throw new Exception( "CONFIG_NOT_FOUND" );
-	    }
-
-	    if ( paras.configName != null )
-	    	paras.configId = converter.getDatabase().getConfigId( paras.configName );
-	    else
-	    {
-	    	ConfigInfo info = converter.getDatabase().getConfigInfo( paras.configId );
-			paras.configName = info.parentDir().name() + "/" + info.name() + "/V" + info.version();
-	    }
-	  
+	
+	String comment = "";
+	String created = "";
+	
+	if ( request.getParameterMap().isEmpty() )
+	{
 	    out.println( "<script type=\"text/javascript\">" );
-	    out.println( "var config = { id: " + paras.configId + ",dbName: \"" + paras.dbName + "\" };" );
+	    out.println( "var config = { name: \"\" };" );
 	    out.println( "</script>" );
+	}
+	else
+	{
+		try {
+			paras = BrowserConverter.getUrlParameter( request.getParameterMap() );
+
+	    	if ( paras.runNumber != -1 )
+	    		paras.dbName = "ORCOFF";
 	    
-	} catch (Exception e) {
-		out.println( "</head><body>ERROR" );
-		out.println( e.toString() );
-		out.println( "</body></html>" );
-		return;
+	   		converter = BrowserConverter.getConverter( paras.dbName );
+	    	if ( paras.runNumber != -1 )
+	    	{
+	    		paras.configName = null;
+	    		paras.configId = converter.getKeyFromRunSummary( paras.runNumber );
+	    		if ( paras.configId <= 0 )
+	    			throw new Exception( "CONFIG_NOT_FOUND" );
+	    	}
+
+	    	if ( paras.configName != null )
+	    		paras.configId = converter.getDatabase().getConfigId( paras.configName );
+		    ConfigInfo info = converter.getDatabase().getConfigInfo( paras.configId );
+		    if ( paras.configName == null )
+				paras.configName = info.parentDir().name() + "/" + info.name() + "/V" + info.version();
+			if ( info.version() != 1 )
+				comment = info.comment();
+			String date = info.created();
+			created = date.substring( 0, date.length() - 2 );
+		    
+	    	out.println( "<script type=\"text/javascript\">" );
+	    	out.println( "var config = { id: " + paras.configId + "," ); 
+	    	out.println( "               name: \"" + paras.configName + "\"," );
+	    	out.println( "               dbName: \"" + paras.dbName + "\" };" );
+	    	out.println( "</script>" );
+	    
+		} catch (Exception e) {
+			out.println( "</head><body>ERROR" );
+			out.println( e.toString() );
+			out.println( "</body></html>" );
+			return;
+		}
 	}
 	
 %>
@@ -175,19 +212,67 @@ function scrollTo( anchor, page )
 	//frames[ "detailsFrame" ].location.href = frames[ "detailsFrame" ].location.href + "#HLTBeginSequence";
 }
 
+function showNew()
+{
+	$( '#dialog-form' ).dialog( "close" );
+	var configXX = $( '#configXX' ).val();
+	window.location.href = "show.jsp?dbName=" + $('#dbName').val() + "&" + configXX + '=' + $('#configName').val(); 
+	return false;
+}
+
 $(function()
 {
   var width = $(window).width();
   $( "#main" ).width( width );
 
+  $( "#dialog-form" ).dialog( {
+	  		position: [ 10, 10 ],
+			autoOpen: false,
+			height: 200,
+			width: 700,
+			modal: true,
+			buttons: {
+				"show": showNew,
+				Cancel: function() {
+					$( this ).dialog( "close" );
+				}
+			},
+			close: function() {
+			}
+		});
+
+  if ( config.name.length == 0 )
+  {
+  	$('#dialog-form').dialog( 'open' );
+  	return;
+  }
+  
+  $( "#fullName" ).click(function() {
+	    $('#configName').val( config.name );
+		$('#dialog-form').dialog( "open" );
+		$('#configName').focus();
+	});
+
   // Tabs
   tabs = $('#tabs').tabs( { cache: true } );
 
+  var gap = $( '#detailsTab' ).offset().left - 650; 
+  if ( gap < 0 )
+  {
+	  $( '#tabs' ).css( 'top', '20px' );
+	  $('#header').width( width - 50 );
+  }
+  else
+  {
+	  if ( $('#secondaryInfo').offset().left < 430 )
+		  $('#header').width( $('#header').width() + gap );
+  }
+  
   var y1 = $('#streams').offset().top;
   var y2 = $(window).height();
   tabsHeight = Math.floor( y2 - y1 - 10 );
-  //tabsWidth = $(window).width() - 36;
-
+  
+  
   $("#streamsDiv").html( '<iframe src="browser/showStreams.jsp?configKey=' + config.id + '&dbName=' + config.dbName +'" name="streamsFrame" id="streamsFrame" width="100%" height="' + tabsHeight + '" frameborder="0"></iframe>' );    
   
 });
@@ -198,13 +283,20 @@ $(function()
 <body>
 <div id="main">
 <div id="header">
-<div id="fullName"><b><%=paras.configName%></b></div>
+ <table width='100%'><tr>
+  <td align='left'><div id="fullName"><b><%=(paras != null ? paras.configName : "")%></b></div></td>
+  <td align='right'><table id='secondaryInfo'>
+    <tr><td colspan='2'><%=comment%></td></tr>
+    <tr><td>created:</td><td><%=created%></td></tr>
+  </table>
+  </td>
+ </tr></table>
 </div>
 <div id="tabs">
   <ul>
     <li><a href="#streams">streams</a></li>
     <li><a href="#summary">summary</a></li>
-    <li><a href="#details">details</a></li>
+    <li id='detailsTab'><a href="#details">details</a></li>
   </ul>
   <div id="details">
   	<div class='ui-widget-header' id="detailsHeader">
@@ -228,6 +320,31 @@ $(function()
   </div>
 </div>
 </div>
+
+<div id="dialog-form" title="select config">
+  <form onsubmit='return showNew()'>
+    <table width='100%'>
+     <tr>
+      <td><select id='configXX'><option selected>configName</option><option>configID</option><option>runNumber</option></select></td>
+      <td align='left'>:</td>
+	  <td><input type="text" id="configName" size="50"></td>
+	 </tr>
+	 <tr>
+	  <td><label for="db">database</label></td>
+      <td align='left'>:</td>
+	  <td><select name='dbName' id='dbName'>
+<%
+	   	String[] list = BrowserConverter.listDBs();
+		String thisDB = paras != null ? paras.dbName : "";
+		for ( String db : list )
+			out.println( "<option" + (db.equalsIgnoreCase( thisDB ) ? " selected" : "" ) + ">" + db + "</option>" );
+%>
+	   </select></td>
+      </tr>
+    </table>
+  </form>
+</div>
+
 </body>
 </html>
 
