@@ -104,6 +104,12 @@ body {
 }
 
 
+#waiting {
+	position: absolute;
+	top:    5px;
+	right: 10px;
+}
+
 #streamsDiv {
   padding-top: 2px;
 }
@@ -197,6 +203,8 @@ function iframeReady()
 	var html = '<iframe src="' + next.src + '" name="' + next.name + 'Frame" id="' + next.name + 'Frame" frameborder="0" width="100%" height="' + tabsHeight + '"></iframe>';
 	$( '#' + next.name + 'Div' ).html( html );
   }
+  else
+	  $('#waiting').hide();
 }
 
 var tabNames = { details : 2, summary : 1, streams : 0 };
@@ -285,10 +293,11 @@ $(function()
 <div id="header">
  <table width='100%'><tr>
   <td align='left'><div id="fullName"><b><%=(paras != null ? paras.configName : "")%></b></div></td>
-  <td align='right'><table id='secondaryInfo'>
-    <tr><td colspan='2'><%=comment%></td></tr>
-    <tr><td>created:</td><td><%=created%></td></tr>
-  </table>
+  <td align='right'>
+    <table id='secondaryInfo'>
+      <tr><td colspan='2'><%=comment%></td></tr>
+      <tr><td>created:</td><td><%=created%></td></tr>
+    </table>
   </td>
  </tr></table>
 </div>
@@ -319,6 +328,7 @@ $(function()
     <div id="streamsDiv"></div>
   </div>
 </div>
+<div id="waiting"><img src="img/wait.gif"></div>
 </div>
 
 <div id="dialog-form" title="select config">
