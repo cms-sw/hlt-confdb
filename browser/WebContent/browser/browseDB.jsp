@@ -25,8 +25,6 @@
 <link rel="stylesheet" type="text/css" href="<%=yui%>/container/assets/skins/sam/container.css" />
 <link rel="stylesheet" type="text/css" href="<%=yui%>/resize/assets/skins/sam/resize.css"" />
 <link rel="stylesheet" type="text/css" href="<%=yui%>/treeview/assets/skins/sam/treeview.css" />
-<link rel="stylesheet" type="text/css" href="<%=yui%>/tabview/assets/tabview-core.css" />
-<link rel="stylesheet" type="text/css" href="<%=yui%>/button/assets/skins/sam/button.css">
 <link rel="stylesheet" type="text/css" href="<%=css%>/folders/tree.css">
 <link rel="stylesheet" type="text/css" href="<%=css%>/confdb.css" />
 
@@ -44,7 +42,7 @@
 
 <style>
 
-body, #doc3, #pg, .blindTable { 
+body, #pg, .blindTable { 
     padding:0px; 
     margin:0px; 
 }
@@ -60,6 +58,8 @@ body {
 
 
 #mainLeft { 
+	float: left;
+	width: 33%;
 	margin:0px; 
 	padding: 2px 5px 0px 1px;
 }
@@ -67,6 +67,7 @@ body {
 #mainRight { 
 	margin:0px; 
 	padding: 2px 1px 0px 0px;
+	float: right;
 }
 
 
@@ -161,19 +162,15 @@ var configFrameUrl,
     Event = YAHOO.util.Event,
     mainLeft = null,
     mainRight = null,
-    activeMainDiv,
     displayWidth,
     resize,
     oldWidth = "200px",
-    detailsMode = true,
     hltCookie = null,
     cookieExpires,
     tree,
-  	tooltip, 
-  	tooltipElements = [],
-  	tabView, 
-  	tabReady = [],
-    activeTab = 1;
+  	iframe = "", 
+  	tooltipElements = [];
+
 	
 function init() 
 {
@@ -196,10 +193,7 @@ function init()
 
     Dom.setStyle( 'collapseDiv', 'visibility', 'hidden' );
     Dom.setStyle( 'expandDiv', 'visibility', 'hidden' );
-    Dom.setStyle( mainRight, 'visibility', 'hidden' );
-    Dom.setStyle(  'doc3', 'height',  displayHeight + 'px' );
-    Dom.setStyle(  'pg', 'height',  displayHeight + 'px' );
-    Dom.setStyle(  'pg', 'width',  displayWidth + 'px' );
+    Dom.setStyle(  'allDiv', 'height',  displayHeight + 'px' );
 
 	var treeHeight = displayHeight - 30;
     Dom.setStyle( 'treeDiv', 'max-height',  treeHeight + 'px' );
@@ -226,7 +220,8 @@ function init()
             var width = displayWidth - w - 8;
             Dom.setStyle( mainRight, 'height', displayHeight + 'px' );
             Dom.setStyle( mainRight, 'width', width + 'px');
-            Dom.setStyle( 'rightHeaderBottomDiv', 'width', (width - 200) + 'px' );
+            if ( iframe.length > 0 )
+	            Dom.get( mainRight ).innerHTML = iframe;
     });
 
   var treeWidth = displayWidth / 3;
@@ -261,24 +256,6 @@ function init()
 	        resize.resize( null, displayHeight, oldWidth, 0, 0, true);
             Dom.setStyle( mainLeft, 'visibility', 'visible' );
 		});
-
-  if ( hltCookie && hltCookie.activeTab )
-    activeTab = hltCookie.activeTab;
-  if ( !activeTab )
-    activeTab = 1;
-  tabView = new YAHOO.widget.TabView( 'tabView', { activeIndex : activeTab } );
-  tabView.set( 'activeIndex', activeTab );
-
-  tabView.on( 'activeTabChange', function( eventInfo ) {
-	  activeTab = tabView.get( 'activeIndex' );
-	  if ( !tabReady[ activeTab ] )
-	    loadTab();
-      if ( hltCookie )
-      {
-        hltCookie.activeTab = activeTab;
-	    YAHOO.util.Cookie.setSubs( pageId, hltCookie, { expires: cookieExpires } );
-	  }
-	} );
 
 
   if ( onlineMode )
@@ -413,16 +390,15 @@ function configSelected( event )
   	
   node.focus();
   
-//  if ( parent &&  parent.configSelected )
-//    parent.configSelected( node.data );
-
-  Dom.setStyle( mainRight, 'visibility', 'visible' );
-
   configKey = node.data.key;
   fullName = node.data.fullName;
-  Dom.get( 'fullNameTD' ).innerHTML = "<b>" + fullName + "</b>";
+
   var fileName = node.data.name.replace( '//s/g', '_' ) + "_V" + node.data.version;
 
+  iframe = '<iframe src="../show.jsp?dbName=' + dbName + '&configName=' + fullName + '" name="configIFrame" id="configFrame" width="100%" height="' + displayHeight + '" frameborder="0"></iframe>';
+  Dom.get( mainRight ).innerHTML = iframe;
+
+/*
   if ( !onlineMode )
   {
     Dom.get( 'downloadTD' ).innerHTML = 'download ' 
@@ -433,9 +409,8 @@ function configSelected( event )
   {
     Dom.setStyle( 'buttonTD', 'visibility', 'visible' );
   }
+*/
 
-  tabReady = [];
-  loadTab();
   if ( hltCookie )
   {
     hltCookie.selectedConfig = fullName;
@@ -444,42 +419,6 @@ function configSelected( event )
   return false;
 }
 
-function loadTab()
-{  
-  var tabDiv = 'tab' + activeTab + 'Div';
-  activeMainDiv = tabDiv + 'Main';
-  Dom.setStyle( activeMainDiv, 'visibility', 'hidden' );
-  Dom.get( 'rightHeaderBottomDiv' ).innerHTML = '<img src="' + imgDir + '/wait.gif">';
-  var xy = Dom.getXY( tabDiv );
-  var height = displayHeight - xy[1] - 2;
-  Dom.setStyle( activeMainDiv, 'height', height + 'px' );
-  Dom.setStyle( tabDiv, 'height', height + 'px' );
-
-  var url = buildIFrameUrl();
-  var tabContent = '<iframe src="' + buildIFrameUrl() + '" name="configIFrame" id="configFrame" width="100%" height="'+ height + '" frameborder="0" ' + (detailsMode ? '' : ' scrolling="no"') + '></iframe>';
-  Dom.get( activeMainDiv ).innerHTML = tabContent;
-  tabReady[ activeTab ] = true;
-}
-
-function buildIFrameUrl()
-{  
-  if ( activeTab == 1 )
-    return "convert2Html.jsp?configKey=" + configKey + "&dbName=" + dbName + (onlineMode ? "&online=true" : ""); 
-  if ( activeTab == 2 )
-	    return "showSummary.jsp?configKey=" + configKey + "&dbName=" + dbName + (onlineMode ? "&online=true" : "");
-  if ( activeTab == 3 )
-	    return "showStreams.jsp?configKey=" + configKey + "&dbName=" + dbName + (onlineMode ? "&online=true" : "");
-  return "";
-}     
-
-  
-  
-function iframeReady()
-{
-  Dom.get( 'rightHeaderBottomDiv' ).innerHTML = "";
-  Dom.setStyle( activeMainDiv, 'visibility', 'visible' );
-}
-	
 	
 YAHOO.widget.ConfigNode = function(oData, oParent ) 
 {
@@ -540,59 +479,20 @@ function dummy( node )
 
 //When the DOM is done loading, we can initialize our TreeView
 //instance:
-YAHOO.util.Event.onContentReady( "doc3", init );
+YAHOO.util.Event.onContentReady( "allDiv", init );
 	
 </script>
 
 </head>
 <body class="yui-skin-sam">
-
-
-<div id="doc3">
-  <div id="pg" class="skin1">
-    <div class="yui-g" id="pg-yui-g">
-	  <div class="yui-u first" id="mainLeft">
+<div id="allDiv">
+  <div class="skin1" id="mainLeft">
     	<div id="leftHeaderDiv" class="tree1"><img src="<%=img%>/wait.gif"></div>
         <div style="position:absolute; right:8px; top:3px; z-index:1; cursor:pointer" id="collapseDiv" ><img src="<%=img%>/collapse.gif"></div>
         <div style="position:absolute; left:0px; top:2px; z-index:2; cursor:pointer;" id="expandDiv" ><img src="<%=img%>/tree/expand.gif"></div>
         <div align="left" id="treeDiv" class="tree1" style="border-top:0px;"></div>
-   	  </div>
-
-      <div class="yui-u skin1" id="mainRight">
-        <div id="rightHeaderDiv" class="header1">
-  		  <table width="100%" class='blindTable'>
-  		  <tr>
-  		    <td><table class='blindTable'><tr>
-  		     <td id='fullNameTD'><b>/PATH/CONFIG/VERSION</b></td>
-  		     <td align="right" id='buttonTD' style="padding-left:40px"></td>
-  		    </tr></table></td>
-  			<td align="right" id='downloadTD'>download</td>
-		  </tr>
-		  </table>
-        </div>
-		<div id="tabView" class="yui-navset header1">
-		  <ul class="yui-nav" id="tabViewHeader">
-		    <li class="disabled"><div id="rightHeaderBottomDiv"></div><a href="#tab0Div"></a></li>
-		    <li><a href="#tab1Div"><em>details</em></a></li>
-		    <li><a href="#tab2Div"><em>summary</em></a></li>
-		    <li><a href="#tab3Div"><em>streams</em></a></li>
-		  </ul>            
-		  <div class="yui-content">
-			 <div id="tab0Div">tab not loaded</div>
-			 <div id="tab1Div" class="tab1">
-			   <div id="tab1DivMain"></div>
-			 </div>
-			 <div id="tab2Div" class="tab1">
-			   <div id="tab2DivMain"></div>
-			 </div>
-			 <div id="tab3Div" class="tab1">
-			   <div id="tab3DivMain"></div>
-			 </div>
-		  </div>
-		</div>
-      </div>
-    </div>
   </div>
+  <div id="mainRight"></div>
 </div>
 </body>
 </html>
