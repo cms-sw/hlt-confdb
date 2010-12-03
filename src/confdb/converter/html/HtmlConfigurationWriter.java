@@ -53,7 +53,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 
 		if ( conf.pathCount() > 0 )
 		{
-			str.append( "<a name=\"paths\"></a>" );
+			str.append( "<a name=\"paths\"><hr noshade></a>" );
 			IPathWriter pathWriter = converterEngine.getPathWriter();
 			for ( int i = 0; i < conf.pathCount(); i++ )
 			{
@@ -68,7 +68,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 		
 		if ( conf.sequenceCount() > 0 )
 		{
-			str.append( "<a name=\"sequences\"></a>" + converterEngine.getNewline() ); 
+			str.append( "<a name=\"sequences\"><hr noshade></a>" + converterEngine.getNewline() ); 
 			ISequenceWriter sequenceWriter = converterEngine.getSequenceWriter();
 			for ( int i = 0; i < conf.sequenceCount(); i++ )
 			{
@@ -82,7 +82,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 		
 		if ( conf.moduleCount() > 0 )
 		{
-			str.append( "<a name=\"modules\"></a>" ); 
+			str.append( "<a name=\"modules\"><hr noshade></a>" ); 
 			IModuleWriter moduleWriter = converterEngine.getModuleWriter();
 			for ( int i = 0; i < conf.moduleCount(); i++ )
 			{
@@ -94,7 +94,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 
 		if ( conf.outputCount() > 0 )
 		{
-			str.append( "<a name=\"outputs\"></a>" ); 
+			str.append( "<a name=\"outputs\"><hr noshade></a>" ); 
 			IOutputWriter outputWriter = converterEngine.getOutputWriter();
 			for ( int i = 0; i < conf.outputCount(); i++ )
 			{
@@ -105,7 +105,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 		}
 
 		if ( conf.edsourceCount() > 0 )
-			str.append( "<a name=\"ed_sources\"></a>" ); 
+			str.append( "<a name=\"ed_sources\"><hr noshade></a>" ); 
 		IEDSourceWriter edsourceWriter = converterEngine.getEDSourceWriter();
 		for ( int i = 0; i < conf.edsourceCount(); i++ )
 		{
@@ -120,7 +120,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 
 		if ( conf.essourceCount() > 0 )
 		{
-			str.append( "<a name=\"es_sources\"></a>" ); 
+			str.append( "<a name=\"es_sources\"><hr noshade></a>" ); 
 			IESSourceWriter essourceWriter = converterEngine.getESSourceWriter();
 			for ( int i = 0; i < conf.essourceCount(); i++ )
 			{
@@ -133,7 +133,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 
 		if ( conf.esmoduleCount() > 0 )
 		{
-			str.append( "<a name=\"es_modules\"></a>" ); 
+			str.append( "<a name=\"es_modules\"><hr noshade></a>" ); 
 			IESModuleWriter esmoduleWriter = converterEngine.getESModuleWriter();
 			for ( int i = 0; i < conf.esmoduleCount(); i++ )
 			{
@@ -145,7 +145,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter
 
 		if ( conf.serviceCount() > 0 )
 		{
-			str.append( "<a name=\"services\"></a>" ); 
+			str.append( "<a name=\"services\"><hr noshade></a>" ); 
 			IServiceWriter serviceWriter = converterEngine.getServiceWriter();
 			for ( int i = 0; i < conf.serviceCount(); i++ )
 			{
