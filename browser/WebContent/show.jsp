@@ -104,10 +104,14 @@ body {
 }
 
 
-#waiting {
+#download {
 	position: absolute;
 	top:    5px;
 	right: 10px;
+}
+
+#download a:link {
+	color: grey;
 }
 
 #streamsDiv {
@@ -204,7 +208,7 @@ function iframeReady()
 	$( '#' + next.name + 'Div' ).html( html );
   }
   else
-	  $('#waiting').hide();
+	  $('#download').html( '<a href="' + config.name.replace( /\//g, '-' ) + '.py?format=python&configId=' + config.id + '&dbName=' + config.dbName + '">download .py</a>' );
 }
 
 var tabNames = { details : 2, summary : 1, streams : 0 };
@@ -268,7 +272,7 @@ $(function()
   if ( gap < 0 )
   {
 	  $( '#tabs' ).css( 'top', '20px' );
-	  $('#header').width( width - 50 );
+	  $('#header').width( width - 150 );
   }
   else
   {
@@ -328,7 +332,7 @@ $(function()
     <div id="streamsDiv"></div>
   </div>
 </div>
-<div id="waiting"><img src="img/wait.gif"></div>
+<div id="download"><img src="img/wait.gif"></div>
 </div>
 
 <div id="dialog-form" title="select config">
