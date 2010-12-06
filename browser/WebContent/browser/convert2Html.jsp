@@ -11,25 +11,39 @@
 <title>HLT config</title>
 
 <%
-//  String db = request.getParameter( "dbName" );
   String yui = "../js/yui";
   String css = "../css";
-//  String js = "../js";
-//  String img = "../img";
-
   if ( request.getParameter( "online" ) != null )
   {
   	yui = "../../../gui/yui";
     css = "../../css";
-//    js = "../../js";
-//    img = "../../img";
   }
 
   out.println( "<script type='text/javascript'>" );
   out.println( "var scrollDiv = " + ( request.getParameter( "scrollDiv" ) != null ? request.getParameter( "scrollDiv" ) : "true" ) + ";" ); 
   out.println( "</script>" );
-
 %>  
+
+<link rel="stylesheet" type="text/css" href="<%=yui%>/reset-fonts/reset-fonts.css" />
+<link rel="stylesheet" type="text/css" href="<%=yui%>/container/assets/skins/sam/container.css" />
+<link rel="stylesheet" type="text/css" href="<%=css%>/confdb.css" />
+<link rel="stylesheet" type="text/css" href="<%=css%>/confdb-jq.css" />
+
+<script type="text/javascript" src="<%=yui%>/yahoo-dom-event/yahoo-dom-event.js"></script>
+<script type="text/javascript" src="<%=yui%>/container/container-min.js"></script>
+
+
+<style type="text/css">
+
+hr {
+	color: lightgrey;
+	background-color: white;
+	height: 3px;
+	margin: 2em;
+	border: 1px solid lightgrey;
+}
+
+</style>
   
 <%!
 
@@ -118,16 +132,6 @@ private Object exec( String className, String methodName, String[] paramList, Ht
 
   
 %>
-
-
-<link rel="stylesheet" type="text/css" href="<%=yui%>/reset-fonts/reset-fonts.css" />
-<link rel="stylesheet" type="text/css" href="<%=yui%>/container/assets/skins/sam/container.css" />
-<link rel="stylesheet" type="text/css" href="<%=css%>/confdb.css" />
-<link rel="stylesheet" type="text/css" href="<%=css%>/confdb-jq.css" />
-
-<script type="text/javascript" src="<%=yui%>/yahoo-dom-event/yahoo-dom-event.js"></script>
-<script type="text/javascript" src="<%=yui%>/container/container-min.js"></script>
-
 
 <script type="text/javascript">
 
