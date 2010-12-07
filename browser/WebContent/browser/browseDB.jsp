@@ -37,6 +37,7 @@
 <script type="text/javascript" src="<%=yui%>/tabview/tabview.js"></script>
 <script type="text/javascript" src="<%=yui%>/container/container-min.js"></script>
 <script type="text/javascript" src="<%=yui%>/button/button-min.js"></script>
+<script type="text/javascript" src="<%=js%>/jquery-1.4.4.min.js"></script>
 <script type="text/javascript" src="<%=js%>/HLT.js"></script>
 
 
@@ -73,9 +74,11 @@ body {
 
 #leftHeaderDiv { 
 	margin:0px; 
-	padding:0.4em; 
+	padding-top: 1px;
+	padding-left: 1px;
+	padding-bottom: 2px;
 	border-bottom: 0px;
-	height: 1.2em;
+	overflow: auto;
 }
 
 #rightHeaderDiv {
@@ -165,6 +168,7 @@ var configFrameUrl,
     displayWidth,
     resize,
     oldWidth = "200px",
+    treeWidth,
     hltCookie = null,
     cookieExpires,
     tree,
@@ -191,11 +195,11 @@ function init()
 	if ( displayWidth == 0 )
 		displayWidth = Dom.getViewportWidth();
 
-    Dom.setStyle( 'collapseDiv', 'visibility', 'hidden' );
+//    Dom.setStyle( 'collapseDiv', 'visibility', 'hidden' );
     Dom.setStyle( 'expandDiv', 'visibility', 'hidden' );
     Dom.setStyle(  'allDiv', 'height',  displayHeight + 'px' );
 
-	var treeHeight = displayHeight - 30;
+	var treeHeight = displayHeight - 50;
     Dom.setStyle( 'treeDiv', 'max-height',  treeHeight + 'px' );
 
     resize = new YAHOO.util.Resize('mainLeft', {
@@ -220,11 +224,12 @@ function init()
             var width = displayWidth - w - 8;
             Dom.setStyle( mainRight, 'height', displayHeight + 'px' );
             Dom.setStyle( mainRight, 'width', width + 'px');
+            Dom.setStyle( 'configInput', 'width', (w - 50)+ 'px');
             if ( iframe.length > 0 )
 	            Dom.get( mainRight ).innerHTML = iframe;
     });
 
-  var treeWidth = displayWidth / 3;
+  treeWidth = displayWidth / 3;
   if ( hltCookie && hltCookie.treeWidth )
 	  	treeWidth = hltCookie.treeWidth;
   resize.resize(null, displayHeight, treeWidth, 0, 0, true);
@@ -277,7 +282,20 @@ function onSubmitClick( event )
     parent.submitConfig( configKey, fullName );
 } 
 	
-
+function showNew()
+{
+	var config = $('#configInput').val();
+	var node = tree.getRoot();
+  	var subdirs = config.split( "/" );
+  	if ( subdirs.length > 1 && subdirs[0] == "" )
+  	{
+    	subdirs.shift();
+    	subdirs[0] = '/' + subdirs[0];
+  		findNode( node, config, subdirs, true );
+  	}
+	showConfig( config );
+	return false;
+}
 	
 function createTree( treeData )
 {
@@ -298,10 +316,13 @@ function createTree( treeData )
 	createTreeRecursiveLoop( parentNode, treeData );
 	tree.render();
 	tree.subscribe( "clickEvent", configSelected );
-	var header = '<table><tr>';
+	var header = '<table width="100%"><tr>';
 	if ( filter && filter.length > 0 )
 		header += "<td><b>filter: "  + filter + "</b></td><td><div style='width:50px'></div></td>";
-	header += '<td><a id="expand" href="#">Expand all</a> <a id="collapse" href="#">Collapse all</a></td></tr></table>';
+	else
+		header += "<td align='left'colspan='2'><form onsubmit='return showNew()'><input id='configInput' type='text' value='enter config name here' style='color:lightgrey; width:" 
+			+ (treeWidth - 50) + "px'></form></td><td align='right'><div id='collapseDiv'><img src='<%=img%>/collapse.gif'></div></td></tr><tr>";
+	header += '<td align="center"><a id="expand" href="#">Expand all</a></td><td><a id="collapse" href="#">Collapse all</a></td></tr></table>';
   	Dom.get( 'leftHeaderDiv' ).innerHTML = header; 
   	Dom.setStyle( 'collapseDiv', 'visibility', 'visible' );
   	
@@ -313,15 +334,15 @@ function createTree( treeData )
     	var config = hltCookie.selectedConfig;
     	if ( config != null )
     	{ 
-      	  var node = tree.getRoot();
-      	  var subdirs = config.split( "/" );
-      	  if ( subdirs.length > 1 && subdirs[0] == "" )
-      	  {
-        	subdirs.shift();
-        	subdirs[0] = '/' + subdirs[0];
-      		findNode( node, config, subdirs );
-      	  }
-    	}
+        	  var node = tree.getRoot();
+          	  var subdirs = config.split( "/" );
+          	  if ( subdirs.length > 1 && subdirs[0] == "" )
+          	  {
+            	subdirs.shift();
+            	subdirs[0] = '/' + subdirs[0];
+          		findNode( node, config, subdirs, false );
+          	  }
+        	}
   	}
 }
 	
@@ -355,7 +376,7 @@ function createTreeRecursiveLoop( parentNode, treeData )
 
 
 
-function findNode( node, config, subdirs )
+function findNode( node, config, subdirs, focus )
 {  
   if ( !node.hasChildren() )
     return;
@@ -366,7 +387,11 @@ function findNode( node, config, subdirs )
   {
     var fullName = nodes[i].data.fullName;
     if ( fullName && fullName == config )
-      return;
+    {
+        if ( focus )
+	        nodes[i].focus();
+	    return;
+    }
   }
 
   var subdir = subdirs.shift();
@@ -376,7 +401,7 @@ function findNode( node, config, subdirs )
     if ( label == subdir )
     {
       nodes[i].expand();
-      findNode( nodes[i], config, subdirs );
+      findNode( nodes[i], config, subdirs, focus );
     }
   }
 }	
@@ -392,28 +417,17 @@ function configSelected( event )
   
   configKey = node.data.key;
   fullName = node.data.fullName;
+  return showConfig( fullName );
+}
 
-  var fileName = node.data.name.replace( '//s/g', '_' ) + "_V" + node.data.version;
-
-  iframe = '<iframe src="../show.jsp?dbName=' + dbName + '&configName=' + fullName + '" name="configIFrame" id="configFrame" width="100%" height="' + displayHeight + '" frameborder="0"></iframe>';
+function showConfig( configName )
+{
+  iframe = '<iframe src="../show.jsp?dbName=' + dbName + '&configName=' + configName + '" name="configIFrame" id="configFrame" width="100%" height="' + displayHeight + '" frameborder="0"></iframe>';
   Dom.get( mainRight ).innerHTML = iframe;
-
-/*
-  if ( !onlineMode )
-  {
-    Dom.get( 'downloadTD' ).innerHTML = 'download ' 
-      + '<a href="' + fileName + '.cfg?configId='+ configKey + '&dbName=' + dbName + '">cfg</a> '
-      + '<a href="' + fileName + '.py?format=python&configId='+ configKey + '&dbName=' + dbName + '">py</a>';
-  }
-  else
-  {
-    Dom.setStyle( 'buttonTD', 'visibility', 'visible' );
-  }
-*/
 
   if ( hltCookie )
   {
-    hltCookie.selectedConfig = fullName;
+    hltCookie.selectedConfig = configName;
     YAHOO.util.Cookie.setSubs( pageId, hltCookie, { expires: cookieExpires } );
   }
   return false;
@@ -487,10 +501,9 @@ YAHOO.util.Event.onContentReady( "allDiv", init );
 <body class="yui-skin-sam">
 <div id="allDiv">
   <div class="skin1" id="mainLeft">
-    	<div id="leftHeaderDiv" class="tree1"><img src="<%=img%>/wait.gif"></div>
-        <div style="position:absolute; right:8px; top:3px; z-index:1; cursor:pointer" id="collapseDiv" ><img src="<%=img%>/collapse.gif"></div>
-        <div style="position:absolute; left:0px; top:2px; z-index:2; cursor:pointer;" id="expandDiv" ><img src="<%=img%>/tree/expand.gif"></div>
-        <div align="left" id="treeDiv" class="tree1" style="border-top:0px;"></div>
+    <div id="leftHeaderDiv" class='tree1'><img src="<%=img%>/wait.gif"></div>
+    <div style="position:absolute; left:0px; top:2px; z-index:2; cursor:pointer;" id="expandDiv" ><img src="<%=img%>/tree/expand.gif"></div>
+    <div align="left" id="treeDiv" class="tree1"></div>
   </div>
   <div id="mainRight"></div>
 </div>
