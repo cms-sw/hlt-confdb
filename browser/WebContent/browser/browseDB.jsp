@@ -273,6 +273,7 @@ function init()
   }
 
   AjaxInfo.getTree( dbName, filter, createTree );	
+	  
 }
 	
 
@@ -320,8 +321,7 @@ function createTree( treeData )
 	if ( filter && filter.length > 0 )
 		header += "<td><b>filter: "  + filter + "</b></td><td><div style='width:50px'></div></td>";
 	else
-		header += "<td align='left'colspan='2'><form onsubmit='return showNew()'><input id='configInput' type='text' value='enter config name here' style='color:lightgrey; width:" 
-			+ (treeWidth - 50) + "px'></form></td><td align='right'><div id='collapseDiv'><img src='<%=img%>/collapse.gif'></div></td></tr><tr>";
+		header += "<td align='left'colspan='2'><form onsubmit='return showNew()'><input id='configInput' type='text'></form></td><td align='right'><div id='collapseDiv'><img src='<%=img%>/collapse.gif'></div></td></tr><tr>";
 	header += '<td align="center"><a id="expand" href="#">Expand all</a></td><td><a id="collapse" href="#">Collapse all</a></td></tr></table>';
   	Dom.get( 'leftHeaderDiv' ).innerHTML = header; 
   	Dom.setStyle( 'collapseDiv', 'visibility', 'visible' );
@@ -344,6 +344,17 @@ function createTree( treeData )
           	  }
         	}
   	}
+	$('#configInput').width( treeWidth - 50 );
+	$('#configInput').css( 'color', 'lightgrey' );
+	$('#configInput').val( 'enter config name here' );
+	$('#configInput').focus( function() {
+		if ( $(this).val() == 'enter config name here' )
+		{
+			$(this).val( '' );
+			$(this).css( 'color', 'black' );
+		}
+	});
+				
 }
 	
 
@@ -432,6 +443,8 @@ function showConfig( configName )
   }
   return false;
 }
+
+
 
 	
 YAHOO.widget.ConfigNode = function(oData, oParent ) 
