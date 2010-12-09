@@ -286,15 +286,13 @@ function onSubmitClick( event )
 function showNew()
 {
 	var config = $('#configInput').val();
-	var node = tree.getRoot();
-  	var subdirs = config.split( "/" );
-  	if ( subdirs.length > 1 && subdirs[0] == "" )
-  	{
-    	subdirs.shift();
-    	subdirs[0] = '/' + subdirs[0];
-  		findNode( node, config, subdirs, true );
-  	}
-	showConfig( config );
+	if ( !isNaN( config ) )
+		showConfigForRun( config );
+	else
+	{		
+		expandTree( config, true );
+		showConfig( config );
+	}
 	return false;
 }
 	
@@ -333,22 +331,16 @@ function createTree( treeData )
   	{
     	var config = hltCookie.selectedConfig;
     	if ( config != null )
-    	{ 
-        	  var node = tree.getRoot();
-          	  var subdirs = config.split( "/" );
-          	  if ( subdirs.length > 1 && subdirs[0] == "" )
-          	  {
-            	subdirs.shift();
-            	subdirs[0] = '/' + subdirs[0];
-          		findNode( node, config, subdirs, false );
-          	  }
-        	}
+        	expandTree( config, false );
   	}
 	$('#configInput').width( treeWidth - 50 );
 	$('#configInput').css( 'color', 'lightgrey' );
-	$('#configInput').val( 'enter config name here' );
+	if ( dbName == 'ORCOFF' )
+		$('#configInput').val( 'enter config name or run number here' );
+	else
+		$('#configInput').val( 'enter config name here' );
 	$('#configInput').focus( function() {
-		if ( $(this).val() == 'enter config name here' )
+		if ( $(this).val().search( /^enter/ ) != -1 )
 		{
 			$(this).val( '' );
 			$(this).css( 'color', 'black' );
@@ -385,6 +377,18 @@ function createTreeRecursiveLoop( parentNode, treeData )
 	}
 }
 
+
+function expandTree( config, focus )
+{
+	var node = tree.getRoot();
+	var subdirs = config.split( "/" );
+	if ( subdirs.length > 1 && subdirs[0] == "" )
+	{
+		subdirs.shift();
+		subdirs[0] = '/' + subdirs[0];
+		findNode( node, config, subdirs, focus );
+	}
+}
 
 
 function findNode( node, config, subdirs, focus )
@@ -428,7 +432,8 @@ function configSelected( event )
   
   configKey = node.data.key;
   fullName = node.data.fullName;
-  return showConfig( fullName );
+  showConfig( fullName );
+  return false;
 }
 
 function showConfig( configName )
@@ -441,7 +446,13 @@ function showConfig( configName )
     hltCookie.selectedConfig = configName;
     YAHOO.util.Cookie.setSubs( pageId, hltCookie, { expires: cookieExpires } );
   }
-  return false;
+}
+
+
+function showConfigForRun( runNumber )
+{
+  iframe = '<iframe src="../show.jsp?runNumber=' + runNumber + '" name="configIFrame" id="configFrame" width="100%" height="' + displayHeight + '" frameborder="0"></iframe>';
+  Dom.get( mainRight ).innerHTML = iframe;
 }
 
 
