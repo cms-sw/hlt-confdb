@@ -14,6 +14,7 @@
 <script type="text/javascript" src="js/jquery-1.4.4.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.8.6.custom.min.js"></script>
 <script type="text/javascript" src="js/jquery.scrollTo-1.4.2-min.js"></script>
+<script type="text/javascript" src="js/jquery.cookie.js"></script>
 
 <style type="text/css">
 
@@ -172,7 +173,8 @@ body {
 	    	out.println( "<script type=\"text/javascript\">" );
 	    	out.println( "var config = { id: " + paras.configId + "," ); 
 	    	out.println( "               name: \"" + paras.configName + "\"," );
-	    	out.println( "               dbName: \"" + paras.dbName + "\" };" );
+	    	out.println( "               dbName: \"" + paras.dbName + "\"," );
+	    	out.println( "               runNumber: \"" + paras.runNumber + "\" };" );
 	    	out.println( "</script>" );
 	    
 		} catch (Exception e) {
@@ -286,6 +288,9 @@ $(function()
   
   
   $("#streamsDiv").html( '<iframe src="browser/showStreams.jsp?configKey=' + config.id + '&dbName=' + config.dbName +'" name="streamsFrame" id="streamsFrame" width="100%" height="' + tabsHeight + '" frameborder="0"></iframe>' );    
+
+  if ( config.runNumber != -1 && parent && parent.expandTree )
+	  parent.expandTree( config.name, true );
   
 });
 
