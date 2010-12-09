@@ -15,6 +15,7 @@
 <script type="text/javascript" src="js/jquery-ui-1.8.6.custom.min.js"></script>
 <script type="text/javascript" src="js/jquery.scrollTo-1.4.2-min.js"></script>
 <script type="text/javascript" src="js/jquery.cookie.js"></script>
+<script type="text/javascript" src="js/json2.js"></script>
 
 <style type="text/css">
 
@@ -192,7 +193,8 @@ body {
 <script type="text/javascript">
 
 var tabsHeight = 200;
-var tabs;
+var tabs,
+	cookie = null;
 
 var tabList = [ 
   { src: 'browser/showSummary.jsp?configKey=' + config.id + '&dbName=' + config.dbName,
@@ -210,7 +212,15 @@ function iframeReady()
 	$( '#' + next.name + 'Div' ).html( html );
   }
   else
+  {
 	  $('#download').html( '<a href="' + config.name.replace( /\//g, '-' ) + '.py?format=python&configId=' + config.id + '&dbName=' + config.dbName + '">download .py</a>' );
+	  if ( cookie ) 
+	  {
+		  if ( cookie.activeTab )
+			tabs.tabs( "select", cookie.activeTab );
+	  	$('#tabs').bind( 'tabsshow', saveCookie );
+	  }
+  }
 }
 
 var tabNames = { details : 2, summary : 1, streams : 0 };
@@ -232,6 +242,21 @@ function showNew()
 	var configXX = $( '#configXX' ).val();
 	window.location.href = "show.jsp?dbName=" + $('#dbName').val() + "&" + configXX + '=' + $('#configName').val(); 
 	return false;
+}
+
+function saveCookie()
+{
+	var active = tabs.tabs( 'option', 'selected' ); 
+	if ( cookie )
+	{
+		cookie.activeTab = active;
+		$.cookie( getCookieName(), JSON.stringify( cookie ) );
+	}
+}
+
+function getCookieName()
+{
+	return encodeURIComponent( "show.jsp4" + config.dbName );
 }
 
 $(function()
@@ -291,6 +316,15 @@ $(function()
 
   if ( config.runNumber != -1 && parent && parent.expandTree )
 	  parent.expandTree( config.name, true );
+
+  if ( document.cookie )
+  {
+	  var cookieStr = $.cookie( getCookieName() );
+	  if ( !cookieStr )
+		  cookie = {};
+	  else
+		  cookie = JSON.parse( cookieStr );
+  }
   
 });
 
