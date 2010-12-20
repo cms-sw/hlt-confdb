@@ -85,7 +85,7 @@ def main(argv):
     
     print "Using release base: " + input_base_path
 
-    opts, args = getopt.getopt(sys.argv[1:], "r:b:w:c:v:d:u:s:t:o:a:m:i:p:nh", ["release=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","addtorelease=","comparetorelease=","preferredcfis=","patch=","noload=","help="])
+    opts, args = getopt.getopt(sys.argv[1:], "r:b:w:c:v:d:u:s:t:o:a:m:i:p:n:h", ["release=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","addtorelease=","comparetorelease=","preferredcfis=","patch=","noload=","help="])
 
     for o, a in opts:
         if o in ("-r","release="):
@@ -158,6 +158,8 @@ def main(argv):
             print "\t-w <Comma-delimited list of packages to parse>"
             print "\t-b <Comma-delimited list of packages to ignore>"
             print "\t-i <Text file containing list of preferred cfi.py files>"
+            print "\t-n <1 = No inserts - parse the release without making changes to the DB>"
+            print "\t-p <1 = Patch the release if it already exists in the DB>"
             print "\t-v <Verbosity level (0-3)>"
             print "\t-d <Name of the database to connect to>"
             print "\t-u <User name to connect as>"
@@ -274,10 +276,11 @@ class ConfdbLoadParamsfromConfigs:
                 print 'To patch this release, use the -p option'
                 return
         else:
-            self.dbcursor.execute("INSERT INTO SoftwareReleases (releaseTag) VALUES ('" + str(self.cmsswrel) + "')")
-            self.dbcursor.execute("SELECT ReleaseId_Sequence.currval from dual")
-            self.cmsswrelid = self.dbcursor.fetchone()[0]
-            print "Inserted new release " + str(self.cmsswrel) + " with key = " + str(self.cmsswrelid)
+            if(self.noload == False):
+                self.dbcursor.execute("INSERT INTO SoftwareReleases (releaseTag) VALUES ('" + str(self.cmsswrel) + "')")
+                self.dbcursor.execute("SELECT ReleaseId_Sequence.currval from dual")
+                self.cmsswrelid = self.dbcursor.fetchone()[0]
+                print "Inserted new release " + str(self.cmsswrel) + " with key = " + str(self.cmsswrelid)
 
         if(self.comparetorelease != ""):
             self.dbcursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (releaseTag = '" + self.comparetorelease + "')") 
@@ -576,9 +579,13 @@ class ConfdbLoadParamsfromConfigs:
             self.RemapTemplates()
 
         # Print some summary statistics
+        operation = "Scanned and inserted "
+        if self.noload == True:
+            operation = "Scanned "
+
         self.VerbosePrint("********************************",0)
         self.VerbosePrint("Job summary for " + str(self.cmsswrel),0)
-        self.VerbosePrint("Scanned and inserted " + str(self.totalloadedcomponents) + " new or modified templates",0)
+        self.VerbosePrint(str(operation) + str(self.totalloadedcomponents) + " new or modified templates",0)
         self.VerbosePrint("\tContaining " + str(self.totalloadedparams) + " parameters",0)
         if(self.comparetorelease != ""):            
             self.VerbosePrint("Reassociated " + str(self.totalremappedcomponents) + " templates from " + str(self.comparetorelease),0)
@@ -935,13 +942,14 @@ class ConfdbLoadParamsfromConfigs:
             if(doloadupdate == True):
                 # Let's add it.
                 newsuperid = -1
-                self.dbcursor.execute("INSERT INTO SuperIds VALUES('')")
-
-                self.dbcursor.execute("SELECT SuperId_Sequence.currval from dual")
-                newsuperid = (self.dbcursor.fetchall()[0])[0]
+                if(self.noload == False):
+                    self.dbcursor.execute("INSERT INTO SuperIds VALUES('')")
+                    self.dbcursor.execute("SELECT SuperId_Sequence.currval from dual")
+                    newsuperid = (self.dbcursor.fetchall()[0])[0]
 
                 # Attach this template to the currect release
-                self.dbcursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.cmsswrelid) + ")")
+                if(self.noload == False):
+                    self.dbcursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.cmsswrelid) + ")")
             
                 # Now create a new module
                 insertstring = ''
@@ -952,7 +960,8 @@ class ConfdbLoadParamsfromConfigs:
                     insertstring = "INSERT INTO " + self.componenttable + "(superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + componentname + "', '" + self.cvstag  + "', '" + str(self.softpackageid) + "')"
 
                 self.VerbosePrint(insertstring, 3)
-                self.dbcursor.execute(insertstring)
+                if(self.noload == False):
+                    self.dbcursor.execute(insertstring)
 
                 self.totalloadedcomponents = self.totalloadedcomponents + 1
 
@@ -1014,10 +1023,8 @@ class ConfdbLoadParamsfromConfigs:
         if(paramid):
             returnid = paramid[0]
         else:
-            #JH
             if(parametertype == "ESInputTag"):
                 parametertype = "InputTag"
-            #end JH
             
             parametertypeint = self.paramtypedict[parametertype]
             paramtable = self.paramtabledict[parametertype]
@@ -1030,15 +1037,18 @@ class ConfdbLoadParamsfromConfigs:
             if((unmodifiedparamid == 0) or (self.comparetorelease == "")):
                 insertstr1 = "INSERT INTO Parameters (paramTypeId, name, tracked) VALUES (" + str(parametertypeint) + ", '" + parametername + "', " + str(paramistracked) + ")"
                 self.VerbosePrint(insertstr1, 3)
-                self.dbcursor.execute(insertstr1)
+
+                if(self.noload == False):
+                    self.dbcursor.execute(insertstr1)
+                    self.dbcursor.execute("SELECT ParamId_Sequence.currval from dual")
+                    newparamid = self.dbcursor.fetchone()[0] 
+
                 self.totalloadedparams = self.totalloadedparams+1
-                
-                self.dbcursor.execute("SELECT ParamId_Sequence.currval from dual")
-                newparamid = self.dbcursor.fetchone()[0] 
                 
                 insertstr2 = "INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(self.localseq) + ")"
                 self.VerbosePrint(insertstr2, 3)
-                self.dbcursor.execute(insertstr2)                                                
+                if(self.noload == False):
+                    self.dbcursor.execute(insertstr2)                                                
 
                 returnid = newparamid
                 
@@ -1053,7 +1063,8 @@ class ConfdbLoadParamsfromConfigs:
                     insertstr3 = "INSERT INTO " + str(paramtable) + " (paramId, value) VALUES (" + str(newparamid) + ", '" + str(parametervalue) + "')"
                     self.VerbosePrint(insertstr3, 3)
                     if(str(parametervalue).find("'") == -1):                        
-                        self.dbcursor.execute(insertstr3)
+                        if(self.noload == False):
+                            self.dbcursor.execute(insertstr3)
                     
                 else:
                     paramindex = 1
@@ -1069,7 +1080,8 @@ class ConfdbLoadParamsfromConfigs:
                         if(str(parametervectorvalue).find("'") == -1):
                             # Protect against loading empty VInputTags
                             if(str(parametervectorvalue) != ''):
-                                self.dbcursor.execute(insertstr3)
+                                if(self.noload == False):
+                                    self.dbcursor.execute(insertstr3)
                                 paramindex = paramindex + 1
 
             # Reassociate this parameter from the previous release
@@ -1111,19 +1123,23 @@ class ConfdbLoadParamsfromConfigs:
         if(paramid):
             returnid = paramid[0]
         else:
-            self.dbcursor.execute("INSERT INTO SuperIds VALUES('')")
-
-            self.dbcursor.execute("SELECT SuperId_Sequence.currval from dual")
-            newparamid = self.dbcursor.fetchone()[0]
+            if(self.noload == False):
+                self.dbcursor.execute("INSERT INTO SuperIds VALUES('')")
+                self.dbcursor.execute("SELECT SuperId_Sequence.currval from dual")
+                newparamid = self.dbcursor.fetchone()[0]
 
             insertstr1 = "INSERT INTO ParameterSets (superId, name, tracked) VALUES (" + str(newparamid) + ", '" + parametername + "', " + str(paramistracked) + ")"
             self.VerbosePrint(insertstr1, 3)
-            self.dbcursor.execute(insertstr1)
+
+            if(self.noload == False):
+                self.dbcursor.execute(insertstr1)
+
             self.totalloadedparams = self.totalloadedparams+1
                                                                                                  
             insertstr2 = "INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(self.localseq) + ")"
             self.VerbosePrint(insertstr2, 3)
-            self.dbcursor.execute(insertstr2)
+            if(self.noload == False):
+                self.dbcursor.execute(insertstr2)
 
             self.localseq = self.localseq + 1
             
@@ -1160,19 +1176,23 @@ class ConfdbLoadParamsfromConfigs:
         if(paramid):
             returnid = paramid[0]
         else:
-            self.dbcursor.execute("INSERT INTO SuperIds VALUES('')")
-
-            self.dbcursor.execute("SELECT SuperId_Sequence.currval from dual")
-            newparamid = self.dbcursor.fetchone()[0]
+            if(self.noload == False):
+                self.dbcursor.execute("INSERT INTO SuperIds VALUES('')")
+                self.dbcursor.execute("SELECT SuperId_Sequence.currval from dual")
+                newparamid = self.dbcursor.fetchone()[0]
 
             insertstr1 = "INSERT INTO VecParameterSets (superId, name, tracked) VALUES (" + str(newparamid) + ", '" + parametername + "', " + str(paramistracked) + ")"
             self.VerbosePrint(insertstr1, 3)
-            self.dbcursor.execute(insertstr1)
+
+            if(self.noload == False):
+                self.dbcursor.execute(insertstr1)
+
             self.totalloadedparams = self.totalloadedparams+1
                                                                                                  
             insertstr2 = "INSERT INTO SuperIdVecParamSetAssoc (superId, vpsetId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(self.localseq) + ")"
             self.VerbosePrint(insertstr2, 3)
-            self.dbcursor.execute(insertstr2)
+            if(self.noload == False):
+                self.dbcursor.execute(insertstr2)
 
             self.localseq = self.localseq + 1
             
@@ -1343,7 +1363,8 @@ class ConfdbLoadParamsfromConfigs:
             oldsuperid = oldmodule[0]
             insertstr = "INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.cmsswrelid) + ")"
             self.VerbosePrint(insertstr,3)
-            self.dbcursor.execute(insertstr)
+            if(self.noload == False):
+                self.dbcursor.execute(insertstr)
 
             self.totalremappedcomponents = self.totalremappedcomponents + 1
 
@@ -1388,7 +1409,8 @@ class ConfdbLoadParamsfromConfigs:
 		matches = tempname[0]
 
 	    if(not (matches in self.modifiedtemplates)):
-		self.dbcursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(superid) + ", " + str(newrelid) + ")")
+                if(self.noload == False):
+                    self.dbcursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(superid) + ", " + str(newrelid) + ")")
                 self.VerbosePrint(matches,0)
 
 	self.VerbosePrint("\n",0)
