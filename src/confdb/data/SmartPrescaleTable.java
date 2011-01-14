@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import java.util.StringTokenizer;
 
 /**
  * SmartPrescaleTable
@@ -21,8 +22,10 @@ public class SmartPrescaleTable
 
     /** prescale table rows */
     private ArrayList<SmartPrescaleTableRow> rows=new ArrayList<SmartPrescaleTableRow>();
+    private ArrayList<Stream> streams=new ArrayList<Stream>();
+    public ModuleInstance module;
+    private IConfiguration config;
     
-
     //
     // construction
     //
@@ -30,7 +33,9 @@ public class SmartPrescaleTable
     /** standard constructor */
     public SmartPrescaleTable(IConfiguration config, ModuleInstance module)
     {
-	initialize(config,module);
+	this.config = config;
+	this.module = module;
+	initialize();
     }
 
     
@@ -63,13 +68,29 @@ public class SmartPrescaleTable
     {
 	//need to implement the code
 	if(prescaleConditionCount()==1){
-	    if(prescaleCondition(i).equals(""))
+	    if(prescaleCondition(i).equals("")){
 		rows.remove(i); 
+		module.setHasChanged();
+	    }
 	}
 	rows.add(i,new SmartPrescaleTableRow(strCondition)); 
+	module.setHasChanged();
 	return true;
     }
 
+    /**check path in the streams **/
+    public Path checkPathExists(String strPath){
+	if(streams.size()>0){
+	    for(int j=0;j<streams.size();j++){
+		Path path =streams.get(j).path(strPath);
+		if(path!=null)
+		    return path;
+	    }
+	}else{
+	    return config.path(strPath);
+	}
+	return null;
+    }
     
     /** check if the i-th path is prescaled at all */
     public boolean removeRow(int i)
@@ -78,6 +99,7 @@ public class SmartPrescaleTable
 	if(prescaleConditionCount()==0){
 	    rows.add(new SmartPrescaleTableRow("")); 
 	}
+	module.setHasChanged();
 	return true;
     }
 
@@ -87,12 +109,25 @@ public class SmartPrescaleTable
     //
     
     /** initialize the prescale table from a given configuration */
-    private void initialize(IConfiguration config,ModuleInstance module)
+    private void initialize()
     {
-	update(config,module);
+	
+	Path[] paths = module.parentPaths();
+	
+	for (Path p : paths){
+	    if(p.isEndPath()&&p.hasOutputModule()){		
+		Iterator<OutputModule> outputIterator = p.outputIterator();
+		while(outputIterator.hasNext()){
+		    OutputModule outputModule = outputIterator.next(); 
+		    Stream stream = outputModule.parentStream();
+		    streams.add(stream);
+		}
+	    }
+	}
+	update();
     }
 
-    public void update(IConfiguration config,ModuleInstance module){
+    public void update(){
 	rows.clear();
       
 	VStringParameter parameterTriggerConditions =  (VStringParameter)module.parameter("triggerConditions");
@@ -102,11 +137,41 @@ public class SmartPrescaleTable
 	    return;
 	}
 	
-	for(int i=0;i<parameterTriggerConditions.vectorSize();i++){
-	    String strValue = (String)parameterTriggerConditions.value(i);
-	    rows.add(new SmartPrescaleTableRow(strValue)); 
+	
+	if(streams.size()>0){
+	    for(int i=0;i<parameterTriggerConditions.vectorSize();i++){
+		String strValue = (String)parameterTriggerConditions.value(i);
+		
+		StringTokenizer pathTokens = new StringTokenizer(strValue,"+-/&* ");
+		
+		while ( pathTokens.hasMoreTokens()) {
+		    String strPath = pathTokens.nextToken();
+		    int g = -10000;
+		    try { 
+			g = Integer.parseInt(strPath); 
+		    }catch (NumberFormatException e) { 
+			g = -10000;
+		    }
+		    if(g>0||strPath.equals("FALSE"))
+			continue;
+		    Path pathT = null;
+		    for(int j=0;j<streams.size();j++){
+			pathT = streams.get(j).path(strPath);
+		    }
+		    if(pathT==null){
+			strValue = strValue.replaceAll(strPath,"FALSE");
+			module.setHasChanged();
+		    };
+		}
+		rows.add(new SmartPrescaleTableRow(strValue));   
+	    } 
+	}else{
+		for(int i=0;i<parameterTriggerConditions.vectorSize();i++){
+		    String strValue = (String)parameterTriggerConditions.value(i);
+		    rows.add(new SmartPrescaleTableRow(strValue)); 
+		}
 	}
-
+  
     }
     
 }
