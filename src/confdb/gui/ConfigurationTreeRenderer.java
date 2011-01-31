@@ -221,7 +221,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    int      entryCount = sequence.entryCount();
 	    int      count      = sequence.unsetTrackedParameterCount();
 	    result = (refCount>0) ?
-		"<html>"+getText():
+		"<html>"+getText() :
 		"<html><font color=#808080>"+getText()+"</font>";
 	    result += (entryCount>0) ?
 		" ("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";

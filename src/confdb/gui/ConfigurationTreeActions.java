@@ -556,9 +556,13 @@ public class ConfigurationTreeActions
 	    parent    = model.sequencesNode();
 	    type      = "sequence";
 	}
-
+	
+	boolean update = false;
 	if (container!=null) {
-	    
+	
+	    index = (type.equals("path")) ? config.indexOfPath((Path)container) 
+		                          : config.indexOfSequence((Sequence)container);
+    
 	    int choice =
 		JOptionPane.showConfirmDialog(null,"The "+type+" '"+
 					      container.name()+"' exists, "+
@@ -566,6 +570,8 @@ public class ConfigurationTreeActions
 					      "Overwrite "+type,
 					      JOptionPane.OK_CANCEL_OPTION);
 	    if (choice==JOptionPane.CANCEL_OPTION) return false;
+	    
+	    update = true;
 	    
 	    while (container.entryCount()>0) {
 		Reference entry = (Reference)container.entry(0);
@@ -583,7 +589,8 @@ public class ConfigurationTreeActions
 	if (importContainerEntries(config,model,external,container))
 	    container.setDatabaseId(external.databaseId());
 	
-	model.nodeInserted(parent,index);
+	if (update) model.nodeChanged(container);
+	else	    model.nodeInserted(parent,index);
 	model.updateLevel1Nodes();
 	
 	Diff diff = new Diff(external.config(),config);
@@ -593,6 +600,13 @@ public class ConfigurationTreeActions
 	    DiffDialog dlg = new DiffDialog(diff);
 	    dlg.pack();
 	    dlg.setVisible(true);
+	}
+	
+	// PS 31/01/2011: fixes bug reported by Andrea B.
+	for (int i=0;i<container.referenceCount();i++) {
+	    Reference reference = container.reference(i);
+	    ReferenceContainer parentContainer = reference.container();
+	    parentContainer.setHasChanged();
 	}
 	
 	return true;

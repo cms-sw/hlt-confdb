@@ -1879,7 +1879,6 @@ public class ConfDB
 	try {
 	    for (int sequenceNb=0;sequenceNb<config.sequenceCount();sequenceNb++) {
 		Sequence sequence     = config.sequence(sequenceNb);
-		sequence.hasChanged();
 		int      sequenceId   = sequence.databaseId();
 		String   sequenceName = sequence.name();
 		
