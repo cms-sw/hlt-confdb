@@ -798,8 +798,12 @@ class SourceParser:
 					thisparamset = thisparamset.split('ParameterSet ')[1].rstrip().lstrip()
 				    elif(thisparamset.find('ParameterSet& ') != -1):
 					thisparamset = thisparamset.split('ParameterSet& ')[1].rstrip().lstrip()
+                                    elif(thisparamset.find('ParameterSet &') != -1):
+                                        thisparamset = thisparamset.split('ParameterSet &')[1].rstrip().lstrip()
 				    elif(thisparamset.find('Parameters ') != -1):
 					thisparamset = thisparamset.split('Parameters ')[1].rstrip().lstrip()
+                                    if(thisparamset.find('&psPulseShape') != -1):
+                                        thisparamset = 'psPulseShape'
 
 				elif(totalline.split('.getParameter')[0].find('(') != -1):
 				    thisparamset = totalline.split('.getParameter')[0].split('(')[0]
@@ -1057,6 +1061,8 @@ class SourceParser:
 					thisparamset = thisparamset.split('ParameterSet ')[1].rstrip().lstrip()
 				    elif(thisparamset.find('ParameterSet& ') != -1):
 					thisparamset = thisparamset.split('ParameterSet& ')[1].rstrip().lstrip()
+                                    elif(thisparamset.find('ParameterSet &') != -1):
+                                        thisparamset = thisparamset.split('ParameterSet &')[1].rstrip().lstrip()
 				elif(totalline.split('.getUntrackedParameter')[0].find('(') != -1):
 				    thisparamset = totalline.split('.getUntrackedParameter')[0].split('(')[0]
 
@@ -1245,6 +1251,8 @@ class SourceParser:
 					thisparamset = thisparamset.split('ParameterSet ')[1].rstrip().lstrip()
 				    elif(thisparamset.find('ParameterSet& ') != -1):
 					thisparamset = thisparamset.split('ParameterSet& ')[1].rstrip().lstrip()
+                                    elif(thisparamset.find('ParameterSet &') != -1):
+                                        thisparamset = thisparamset.split('ParameterSet &')[1].rstrip().lstrip()
 				elif(totalline.split('.getUntrackedParameter')[0].find('(') != -1):
 				    thisparamset = totalline.split('.getUntrackedParameter')[0].split('(')[0]
 
@@ -1379,6 +1387,9 @@ class SourceParser:
 			if(totalconstrline.find('ParameterSet&') != -1):
 			    thepsetline = totalconstrline.split('ParameterSet&')[1]
 			    thepsetname = totalconstrline.split('ParameterSet&')[1].split(')')[0].lstrip().rstrip()
+                        elif(totalconstrline.find('ParameterSet &') != -1):
+                            thepsetline = totalconstrline.split('ParameterSet &')[1]
+                            thepsetname = totalconstrline.split('ParameterSet &')[1].split(')')[0].lstrip().rstrip()
 			elif(totalconstrline.find('ParameterSet const&') != -1):
 			    thepsetline = totalconstrline.split('ParameterSet const&')[1]
 			    thepsetname = totalconstrline.split('ParameterSet const&')[1].split(')')[0].lstrip().rstrip()
@@ -1959,6 +1970,9 @@ class SourceParser:
 			if(totalline.find('ParameterSet&') != -1):
 			    thenewpsetline = totalline.split('ParameterSet&')[1]
 			    thenewpsetname = totalline.split('ParameterSet&')[1].split(')')[0].lstrip().rstrip()
+                        elif(totalline.find('ParameterSet &') != -1):
+                            thenewpsetline = totalline.split('ParameterSet &')[1]
+                            thenewpsetname = totalline.split('ParameterSet &')[1].split(')')[0].lstrip().rstrip()
 			elif(totalline.find('ParameterSet const&') != -1):
 			    thenewpsetline = totalline.split('ParameterSet const&')[1]
 			    thenewpsetname = totalline.split('ParameterSet const&')[1].split(')')[0].lstrip().rstrip()
@@ -2127,7 +2141,9 @@ class SourceParser:
 				    thisparamset = thisparamset.split('ParameterSet ')[1].rstrip().lstrip()
 				elif(thisparamset.find('ParameterSet& ') != -1):
 				    thisparamset = thisparamset.split('ParameterSet& ')[1].rstrip().lstrip()
-
+                                elif(thisparamset.find('ParameterSet &') != -1):
+                                    thisparamset = thisparamset.split('ParameterSet &')[1].rstrip().lstrip()
+                                                                        
 				if(len(re.split('\W+',thisparamset)) == 1):
 				    self.psetdict[thisparamset] = paramname
 				    if(paramname in self.psetsequences):
