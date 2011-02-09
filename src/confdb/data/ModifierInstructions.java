@@ -54,6 +54,14 @@ public class ModifierInstructions
     private ArrayList<String> pathBlackList = new ArrayList<String>();
     private ArrayList<String> pathWhiteList = new ArrayList<String>();
     
+    /** Datasets */
+    private ArrayList<String> datasetBlackList = new ArrayList<String>();
+    private ArrayList<String> datasetWhiteList = new ArrayList<String>();
+    
+    /** Streams */
+    private ArrayList<String> streamBlackList = new ArrayList<String>();
+    private ArrayList<String> streamWhiteList = new ArrayList<String>();
+    
     /** sequences requested regardless of being referenced in requested paths */
     private ArrayList<String> requestedSequences = new ArrayList<String>();
 
@@ -193,6 +201,24 @@ public class ModifierInstructions
 	    for (String s : pathNames) {
 		if (s.startsWith("-")) insertPathIntoBlackList(s.substring(1));
 		else insertPathIntoWhiteList(s);
+	    }
+	}
+	
+	value = args.remove("datasets");
+	if (value!=null) {
+	    String[] datasets = value.split(",");
+	    for (String s : datasets) {
+		if (s.startsWith("-")) insertDatasetIntoBlackList(s.substring(1));
+		else insertDatasetIntoWhiteList(s);
+	    }
+	}
+	
+	value = args.remove("streams");
+	if (value!=null) {
+	    String[] streams = value.split(",");
+	    for (String s : streams) {
+		if (s.startsWith("-")) insertStreamIntoBlackList(s.substring(1));
+		else insertStreamIntoWhiteList(s);
 	    }
 	}
 	
@@ -393,11 +419,44 @@ public class ModifierInstructions
     /** resolve white-lists based on a given configuration */
     public boolean resolve(IConfiguration config)
     {
+    	// stream filtering
+    	if ( streamWhiteList.size() > 0  && streamBlackList.size() > 0 )
+    	{
+    		System.err.println("ModifierInstructions.resolve ERROR: " +
+			   "white&black lists provided for streams.");
+    		return false;
+    	}
+    	else if ( streamWhiteList.size() == 0  && streamBlackList.size() == 0 )
+    	{
+        	Iterator<Stream> itStream = config.streamIterator();
+        	while ( itStream.hasNext() ) 
+        		requestedStreams.add( itStream.next().name() );
+    	}
+    	else
+    		applyStreamFiltering(config);
+
+    	// dataset filtering
+    	if ( datasetWhiteList.size() > 0  && datasetBlackList.size() > 0 )
+    	{
+    		System.err.println("ModifierInstructions.resolve ERROR: " +
+			   "white&black lists provided for datasets.");
+    		return false;
+    	}
+    	else if ( datasetWhiteList.size() == 0  && datasetBlackList.size() == 0 )
+    	{
+        	Iterator<PrimaryDataset> itPD = config.datasetIterator();
+        	while ( itPD.hasNext() ) 
+        		requestedDatasets.add( itPD.next().name() );
+    	}
+    	else
+    		applyDatasetFiltering(config);
+
+
 	if (!filterAllPSets&&psetWhiteList.size()>0) {
 	    if (psetBlackList.size()>0) {
-		System.err.println("ModifierInstructions.resolve ERROR: " +
-				   "white&black lists provided for global psets.");
-		return false;
+			System.err.println("ModifierInstructions.resolve ERROR: " +
+			   "white&black lists provided for global psets.");
+			return false;
 	    }
 	    else {
 		Iterator<PSetParameter> it = config.psetIterator();
@@ -546,13 +605,9 @@ public class ModifierInstructions
 	    }
 	}
 
-	// no filtering on content, streams, datasets yet (necessary?)
+	// no filtering on content 
 	Iterator<EventContent> itEC = config.contentIterator();
 	while (itEC.hasNext()) requestedContents.add(itEC.next().name());
-	Iterator<Stream> itS = config.streamIterator();
-	while (itS.hasNext()) requestedStreams.add(itS.next().name());
-	Iterator<PrimaryDataset> itPD = config.datasetIterator();
-	while (itPD.hasNext()) requestedDatasets.add(itPD.next().name());
 
 	return true;
     }
@@ -943,6 +998,22 @@ public class ModifierInstructions
     {
 	pathWhiteList.add(pathName);
     }
+    public void insertDatasetIntoBlackList(String dataset)
+    {
+	datasetBlackList.add(dataset);
+    }
+    public void insertDatasetIntoWhiteList(String dataset)
+    {
+	datasetWhiteList.add(dataset);
+    }
+    public void insertStreamIntoBlackList(String stream)
+    {
+	streamBlackList.add(stream);
+    }
+    public void insertStreamIntoWhiteList(String stream)
+    {
+	streamWhiteList.add(stream);
+    }
     
     /** request a sequence regardless of it being referenced in path */
     public void requestSequence(String sequenceName)
@@ -1070,6 +1141,91 @@ public class ModifierInstructions
 	params.add(new VStringParameter("outputCommands","",false));
 	outputT = new ModuleTemplate("PoolOutputModule",
 				     "UNKNOWN",params,"OutputModule");
+    }
+ 
+
+    /**
+     * method to filter config according to streams specified in white/black list
+     * streams in streamWhitelist are     added to requestedStreams, all datasets of these streams are added to datasetWhiteList
+     * streams in streamBlacklist are NOT added to requestedStreams, all datasets of these streams are added to datasetBlackList
+     * 
+     * @param config  original config to be modified
+     */
+    protected void applyStreamFiltering( IConfiguration config )
+    {
+    	if ( streamWhiteList.size() > 0 )
+    	{
+        	Iterator<Stream> streamIT = config.streamIterator();
+        	while ( streamIT.hasNext() ) 
+        	{
+        		Stream stream = streamIT.next();
+        		if ( streamWhiteList.contains( stream.name() ) )
+        		{
+            		requestedStreams.add( stream.name() );
+            		Iterator<PrimaryDataset> datasetIT = stream.datasetIterator();
+            		while ( datasetIT.hasNext() )
+            			datasetWhiteList.add( datasetIT.next().name() );
+        		}
+        	}
+    	}
+    	else if ( streamBlackList.size() > 0 )
+        {
+    		Iterator<Stream> streamIT = config.streamIterator();
+    		while ( streamIT.hasNext() ) 
+    		{
+    			Stream stream = streamIT.next();
+    			if ( streamBlackList.contains( stream.name() ) )
+    			{
+    				Iterator<PrimaryDataset> datasetIT = stream.datasetIterator();
+    				while ( datasetIT.hasNext() )
+    					datasetBlackList.add( datasetIT.next().name() );
+            	}
+    			else
+    				requestedStreams.add( stream.name() );
+            }
+        }
+    }
+    
+    /**
+     * method to filter config according to datasets specified in white/black list
+     * datasets in datasetWhitelist are     added to requestedDatasets, all paths of these datasets are added to pathWhiteList
+     * datasets in datasetBlacklist are NOT added to requestedDatasets, all paths of these datasets are added to pathBlackList
+     * 
+     * @param config  original config to be modified
+     */
+    protected void applyDatasetFiltering( IConfiguration config )
+    {
+    	if ( datasetWhiteList.size() > 0 )
+    	{
+        	Iterator<PrimaryDataset> itPD = config.datasetIterator();
+        	while ( itPD.hasNext() ) 
+        	{
+        		PrimaryDataset dataset = itPD.next();
+        		if ( datasetWhiteList.contains( dataset.name() ) )
+        		{
+            		requestedDatasets.add( dataset.name() );
+            		Iterator<Path> pathList = dataset.orderedPathIterator();
+            		while ( pathList.hasNext() )
+            			pathWhiteList.add( pathList.next().name() );
+        		}
+        	}
+    	}
+    	else if ( datasetBlackList.size() > 0 )
+    	{
+        	Iterator<PrimaryDataset> itPD = config.datasetIterator();
+        	while ( itPD.hasNext() ) 
+        	{
+        		PrimaryDataset dataset = itPD.next();
+        		if ( datasetBlackList.contains( dataset.name() ) )
+        		{
+            		Iterator<Path> pathList = dataset.orderedPathIterator();
+            		while ( pathList.hasNext() )
+            			pathBlackList.add( pathList.next().name() );
+        		}
+        		else
+        			requestedDatasets.add( dataset.name() );
+        	}
+    	}
     }
     
 }
