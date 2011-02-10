@@ -715,3 +715,9 @@ Module EDProducer HFRecoEcalCandidateProducer RecoEgamma EgammaHFProducers
 HFRecoEcalCandidateProducer.Parameter e9e25Cut double 0.90 tracked
 HFRecoEcalCandidateProducer.Parameter intercept2DCut double 0.2 tracked
 HFRecoEcalCandidateProducer.Parameter Correct bool true tracked
+
+Service PrescaleService FWCore PrescaleService 
+PrescaleService.Parameter lvl1DefaultLabel string "" untracked 
+PrescaleService.Parameter lvl1Labels vstring { } tracked 
+PrescaleService.Parameter prescaleTable VPSet tracked 
+
