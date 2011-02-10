@@ -27,6 +27,7 @@ def main(argv):
     #    input_usingwhitelist = False
     input_usingwhitelist = True
     input_whitelist = [
+        "Alignment",
         "CalibCalorimetry",
         "CalibMuon",
         "CalibTracker",

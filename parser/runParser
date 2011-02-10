@@ -46,7 +46,8 @@ my $doVerbose = 0;
 
 my $doAll     = 0;
 my @whiteList =
-    ("CalibCalorimetry",
+    ("Alignment",
+     "CalibCalorimetry",
      "CalibMuon",
      "CalibTracker",
      "Calibration",
