@@ -1,8 +1,11 @@
 package confdb.converter.python;
 
+import java.util.Iterator;
+
 import confdb.converter.ConverterEngine;
 import confdb.converter.IPathWriter;
 import confdb.data.Path;
+import confdb.data.Reference;
 
 public class PythonPathWriter implements IPathWriter 
 {
@@ -14,12 +17,18 @@ public class PythonPathWriter implements IPathWriter
 		else
 			str = object + path.name() +  " = cms.Path( "; 
 
-		for ( int i = 0; i < path.entryCount(); i++  )
+		if ( path.entryCount() > 0 )
 		{
-			str += object + path.entry(i).name();
-			if ( i + 1 < path.entryCount() )
-				str += " + ";
+			Iterator<Reference> list = path.entryIterator();
+			Reference entry = list.next();
+			str += object + entry.name();
+			while ( list.hasNext() )
+			{
+				entry = list.next();
+				str += entry.getOperator().getPythonHeader() + object + entry.name() + entry.getOperator().getPythonTrailer();
+			}
 		}
+		
 		str += " )\n";
 		return str;
 	}
