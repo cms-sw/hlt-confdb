@@ -510,8 +510,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	Object    node     = treePath.getPathComponent(depth-1);
 	Object    parent   = treePath.getPathComponent(depth-2);
 
-	IConfiguration config = (IConfiguration)treeModel.getRoot();
-	
 	// 'Paths' selectd
 	if (depth==2) {
 	    menuItem = new JMenuItem("Add Path");
@@ -588,6 +586,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		menuItem = new JMenuItem("Remove Sequence");
 		menuItem.addActionListener(pathListener);
 		popupPaths.add(menuItem);
+	    }
+	    if ( node instanceof Reference )
+	    {
+	    	popupPaths.addSeparator();
+	    	popupPaths.add( createSetOperatorMenu( (Reference)node, pathListener ) );
 	    }
 	}
 
@@ -1267,6 +1270,25 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	return addSequenceMenu;
     }
 
+
+
+    /** create 'Set Operator' Menu */
+    private JMenu createSetOperatorMenu( Reference reference,  ActionListener listener )
+    {
+    	JMenu menu = new ScrollableMenu("Set Operator");
+    	for ( Operator op : Operator.values() )
+    	{
+    		if ( reference.getOperator() != op )
+    		{
+    	    	JMenuItem menuItem = new JMenuItem( op.toString() );
+    	    	menuItem.addActionListener( listener );
+    	    	menuItem.setActionCommand( "Set Operator" );
+    	    	menu.add(menuItem);
+    		}
+    	}
+    	return menu;
+    }
+
 }
 
 
@@ -1521,6 +1543,9 @@ class PathMenuListener implements ActionListener
 	}
 	else if (action.equals("OutputModule")) {
 	    ConfigurationTreeActions.insertReference(tree,"OutputModule",cmd);
+	}
+	else if (action.equals("Set Operator")) {
+	    ConfigurationTreeActions.setOperator( tree, cmd );
 	}
  	// add a module(-reference) to the currently selected path
 	else {
