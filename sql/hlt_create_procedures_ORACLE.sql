@@ -68,7 +68,8 @@ CREATE GLOBAL TEMPORARY TABLE tmp_path_entries
   path_id           NUMBER,
   entry_id          NUMBER,
   sequence_nb       NUMBER,
-  entry_type        VARCHAR2(64)
+  entry_type        VARCHAR2(64),
+  operator          NUMBER
 ) ON COMMIT PRESERVE ROWS;
 
 CREATE GLOBAL TEMPORARY TABLE tmp_sequence_entries
@@ -988,6 +989,7 @@ AS
   v_parent_id       NUMBER;
   v_child_id        NUMBER;
   v_sequence_nb     NUMBER;
+  v_operator        NUMBER;
 
   /* cursor for global psets */
   CURSOR cur_global_psets IS
@@ -1103,7 +1105,8 @@ AS
     SELECT
       PathInPathAssoc.parentPathId,
       PathInPathAssoc.childPathId,
-      PathInPathAssoc.sequenceNb
+      PathInPathAssoc.sequenceNb,
+      PathInPathAssoc.operator
     FROM PathInPathAssoc
     JOIN ConfigurationPathAssoc
     ON PathInPathAssoc.parentPathId = ConfigurationPathAssoc.pathId
@@ -1114,7 +1117,8 @@ AS
     SELECT
       PathSequenceAssoc.pathId,
       PathSequenceAssoc.sequenceId,
-      PathSequenceAssoc.sequenceNb
+      PathSequenceAssoc.sequenceNb,
+      PathSequenceAssoc.operator
     FROM PathSequenceAssoc
     JOIN ConfigurationPathAssoc
     ON PathSequenceAssoc.pathId = ConfigurationPathAssoc.pathId
@@ -1125,7 +1129,8 @@ AS
     SELECT
       PathModuleAssoc.pathId,
       PathModuleAssoc.moduleId,
-      PathModuleAssoc.sequenceNb
+      PathModuleAssoc.sequenceNb,
+      PathModuleAssoc.operator
     FROM PathModuleAssoc
     JOIN ConfigurationPathAssoc
     ON PathModuleAssoc.pathId = ConfigurationPathAssoc.pathId
@@ -1136,7 +1141,8 @@ AS
     SELECT
       PathOutputModAssoc.pathId,
       PathOutputModAssoc.outputModuleId,
-      PathOutputModAssoc.sequenceNb
+      PathOutputModAssoc.sequenceNb,
+      PathOutputModAssoc.operator
     FROM PathOutputModAssoc
     JOIN ConfigurationPathAssoc
     ON PathOutputModAssoc.pathId = ConfigurationPathAssoc.pathId
@@ -1298,30 +1304,30 @@ BEGIN
   /* load path-path associations */
   OPEN cur_path_path;
   LOOP
-    FETCH cur_path_path INTO v_parent_id,v_child_id,v_sequence_nb;
+    FETCH cur_path_path INTO v_parent_id,v_child_id,v_sequence_nb,v_operator;
     EXIT WHEN cur_path_path%NOTFOUND;
     INSERT INTO tmp_path_entries
-      VALUES(v_parent_id,v_child_id,v_sequence_nb,'Path');
+      VALUES(v_parent_id,v_child_id,v_sequence_nb,'Path',v_operator);
   END LOOP;
   CLOSE cur_path_path;
 
   /* load path-sequence associations */
   OPEN cur_path_sequence;
   LOOP
-    FETCH cur_path_sequence INTO v_parent_id,v_child_id,v_sequence_nb;
+    FETCH cur_path_sequence INTO v_parent_id,v_child_id,v_sequence_nb,v_operator;
     EXIT WHEN cur_path_sequence%NOTFOUND;
     INSERT INTO tmp_path_entries
-      VALUES(v_parent_id,v_child_id,v_sequence_nb,'Sequence');
+      VALUES(v_parent_id,v_child_id,v_sequence_nb,'Sequence',v_operator);
   END LOOP;
   CLOSE cur_path_sequence;
 
   /* load path-outputmodule associations */
   OPEN cur_path_outputmod;
   LOOP
-    FETCH cur_path_outputmod INTO v_parent_id,v_child_id,v_sequence_nb;
+    FETCH cur_path_outputmod INTO v_parent_id,v_child_id,v_sequence_nb,v_operator;
     EXIT WHEN cur_path_outputmod%NOTFOUND;
     INSERT INTO tmp_path_entries
-      VALUES(v_parent_id,v_child_id,v_sequence_nb,'OutputModule');
+      VALUES(v_parent_id,v_child_id,v_sequence_nb,'OutputModule',v_operator);
       load_parameters(v_child_id);
   END LOOP;
   CLOSE cur_path_outputmod;
@@ -1329,10 +1335,10 @@ BEGIN
    /* load path-module associations */
   OPEN cur_path_module;
   LOOP
-    FETCH cur_path_module INTO v_parent_id,v_child_id,v_sequence_nb;
+    FETCH cur_path_module INTO v_parent_id,v_child_id,v_sequence_nb,v_operator;
     EXIT WHEN cur_path_module%NOTFOUND;
     INSERT INTO tmp_path_entries
-      VALUES(v_parent_id,v_child_id,v_sequence_nb,'Module');
+      VALUES(v_parent_id,v_child_id,v_sequence_nb,'Module',v_operator);
   END LOOP;
   CLOSE cur_path_module;
 
