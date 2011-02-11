@@ -2,7 +2,6 @@ package confdb.gui;
 
 import javax.swing.*;
 import javax.swing.tree.*;
-import java.awt.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -974,7 +973,21 @@ public class ConfigurationTreeActions
 	return true;
     }
 
-    /** scroll to the instance of the currently selected reference */
+    /** set operator  */
+    public static boolean setOperator( JTree tree, String newOperator )
+    {
+    	ConfigurationTreeModel 	model  = (ConfigurationTreeModel)tree.getModel();
+    	Configuration          	config    = (Configuration)model.getRoot();
+    	TreePath               	treePath  = tree.getSelectionPath();
+    	Reference       		reference = (Reference)treePath.getLastPathComponent();
+    	Operator op = Operator.valueOf( newOperator );
+    	reference.setOperator( op );
+    	System.out.println( op.toString() );
+    	return true;
+    }
+
+	
+	/** scroll to the instance of the currently selected reference */
     public static void scrollToInstance(JTree tree)
     {
 	ConfigurationTreeModel model   =(ConfigurationTreeModel)tree.getModel();
