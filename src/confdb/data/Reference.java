@@ -22,13 +22,16 @@ public class Reference
     /** parent object */
     private Referencable parent = null;
 
+    /** flag to ignore / negate outcome in path/sequence containing this item */
+    private Operator operator = Operator.DEFAULT;
+    
     
     //
     // construction
     //
     
     /** standard constructor */
-    public Reference(ReferenceContainer container, Referencable parent)
+    protected Reference(ReferenceContainer container, Referencable parent)
     {
 	this.container = container;
 	this.parent    = parent;
@@ -77,5 +80,17 @@ public class Reference
 	    }
 	}
     }
+
+	public Operator getOperator() {
+		return operator;
+	}
+
+	public void setOperator( Operator newValue ) 
+	{
+		if ( newValue != operator )
+			container.setHasChanged();
+		operator = newValue;
+	}
+        
     
 }
