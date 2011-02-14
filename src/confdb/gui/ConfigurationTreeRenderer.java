@@ -209,7 +209,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    Path          path       = (Path)reference.parent();
 	    int           entryCount = path.entryCount();
 	    int           count      = path.unsetTrackedParameterCount();
-	    result = "<html>"+getText();
+	    result = "<html>" + addOperator(reference);
 	    result += (entryCount>0) ? "("+entryCount+")":
 		"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
@@ -233,13 +233,16 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    Sequence          sequence   = (Sequence)reference.parent();
 	    int               entryCount = sequence.entryCount();
 	    int               count      = sequence.unsetTrackedParameterCount();
-	    result = "<html>"+getText();
+	    result = "<html>" + addOperator(reference);
 	    result += (entryCount>0) ?
 		" ("+entryCount+")":
 		"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
 	    result += "</html>";
 	}
+	else if ( node instanceof Reference )
+		result = addOperator( (Reference)node );
+	
 	if (node instanceof PSetParameter||
 	    node instanceof VPSetParameter) {
 	    Parameter p = (Parameter)node;
@@ -327,4 +330,19 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	return this;
     }
 	
+    
+    private String addOperator( Reference reference ) 
+    { 
+    	Operator op = reference.getOperator();
+    	switch ( op ) 
+    	{
+    		case IGNORE:
+    			return "ignore( " + reference.name() + " )"; 
+    		case NEGATE:
+    			return "~" + reference.name(); 
+    	}
+    	return reference.name(); 
+    }
+    
+
 }
