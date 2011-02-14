@@ -982,7 +982,7 @@ public class ConfigurationTreeActions
     	Reference       		reference = (Reference)treePath.getLastPathComponent();
     	Operator op = Operator.valueOf( newOperator );
     	reference.setOperator( op );
-    	System.out.println( op.toString() );
+    	model.nodeChanged( reference );
     	return true;
     }
 
