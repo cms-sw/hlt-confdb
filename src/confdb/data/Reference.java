@@ -43,6 +43,33 @@ public class Reference
     
     /** overload toString() */
     public String toString() { return name(); }
+
+    
+    /** get name + operator flags */
+    public String getOperatorAndName()
+    {
+    	switch ( operator )
+    	{
+    		case NEGATE:
+    			return "~" + name();
+    		case IGNORE:
+    			return "ignore( " + name() + " )";
+    	}
+    	return name();
+    }
+    
+    /** get name + operator flags */
+    public String getPythonCode( String object )
+    {
+    	switch ( operator )
+    	{
+    		case NEGATE:
+    			return "~" + object + name();
+    		case IGNORE:
+    			return "cms.ignore(" + object + name() + ")";
+    	}
+    	return object + name();
+    }
     
     /** remove the reference, both from the container and the parent */
     public void remove()
