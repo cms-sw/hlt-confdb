@@ -2014,6 +2014,7 @@ public class ConfDB
 			    psInsertPathPathAssoc.setInt(1,pathId);
 			    psInsertPathPathAssoc.setInt(2,childPathId);
 			    psInsertPathPathAssoc.setInt(3,sequenceNb);
+			    psInsertPathPathAssoc.setInt(4,r.getOperator().ordinal());
 			    psInsertPathPathAssoc.addBatch();
 			}
 			catch (SQLException e) {
@@ -2032,6 +2033,7 @@ public class ConfDB
 			    psInsertPathSequenceAssoc.setInt(1,pathId);
 			    psInsertPathSequenceAssoc.setInt(2,sequenceId);
 			    psInsertPathSequenceAssoc.setInt(3,sequenceNb);
+			    psInsertPathSequenceAssoc.setInt(4,r.getOperator().ordinal());
 			    psInsertPathSequenceAssoc.addBatch();
 			}
 			catch (SQLException e) {
@@ -2050,6 +2052,7 @@ public class ConfDB
 			    psInsertPathModuleAssoc.setInt(1,pathId);
 			    psInsertPathModuleAssoc.setInt(2,moduleId);
 			    psInsertPathModuleAssoc.setInt(3,sequenceNb);
+			    psInsertPathModuleAssoc.setInt(4,r.getOperator().ordinal());
 			    psInsertPathModuleAssoc.addBatch();
 			}
 			catch (SQLException e) {
@@ -2071,6 +2074,7 @@ public class ConfDB
 			    psInsertPathOutputModuleAssoc.setInt(1,pathId);
 			    psInsertPathOutputModuleAssoc.setInt(2,outputModuleId);
 			    psInsertPathOutputModuleAssoc.setInt(3,sequenceNb);
+			    psInsertPathOutputModuleAssoc.setInt(4,r.getOperator().ordinal());
 			    psInsertPathOutputModuleAssoc.addBatch();
 			}
 			catch (SQLException e) {
@@ -4452,14 +4456,14 @@ public class ConfDB
 
 	    psInsertPathPathAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO PathInPathAssoc(parentPathId,childPathId,sequenceNb) "+
-		 "VALUES(?, ?, ?)");
+		("INSERT INTO PathInPathAssoc(parentPathId,childPathId,sequenceNb,operator) "+
+		 "VALUES(?, ?, ?, ?)");
 	    preparedStatements.add(psInsertPathPathAssoc);
 	    
 	    psInsertPathSequenceAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO PathSequenceAssoc (pathId,sequenceId,sequenceNb) " +
-		 "VALUES(?, ?, ?)");
+		("INSERT INTO PathSequenceAssoc (pathId,sequenceId,sequenceNb,operator) " +
+		 "VALUES(?, ?, ?, ?)");
 	    preparedStatements.add(psInsertPathSequenceAssoc);
 	    
 	    psInsertSequenceSequenceAssoc =
@@ -4471,14 +4475,14 @@ public class ConfDB
 	    
 	    psInsertPathModuleAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO PathModuleAssoc (pathId,moduleId,sequenceNb) " +
-		 "VALUES(?, ?, ?)");
+		("INSERT INTO PathModuleAssoc (pathId,moduleId,sequenceNb,operator) " +
+		 "VALUES(?, ?, ?, ?)");
 	    preparedStatements.add(psInsertPathModuleAssoc);
 	    
 	    psInsertPathOutputModuleAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO PathOutputModAssoc (pathId,outputModuleId,sequenceNb) " +
-		 "VALUES(?, ?, ?)");
+		("INSERT INTO PathOutputModAssoc (pathId,outputModuleId,sequenceNb,operator) " +
+		 "VALUES(?, ?, ?, ?)");
 	    preparedStatements.add(psInsertPathOutputModuleAssoc);
 
 	    psInsertSuperIdReleaseAssoc =
