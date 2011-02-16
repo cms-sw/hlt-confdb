@@ -15,6 +15,7 @@ import confdb.data.*;
  * Define how each node in the configuration tree view is being
  * displayed.
  */
+@SuppressWarnings("serial")
 public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 {
     //
@@ -209,7 +210,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    Path          path       = (Path)reference.parent();
 	    int           entryCount = path.entryCount();
 	    int           count      = path.unsetTrackedParameterCount();
-	    result = "<html>" + addOperator(reference);
+	    result = "<html>" + reference.getOperatorAndName();
 	    result += (entryCount>0) ? "("+entryCount+")":
 		"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
@@ -233,7 +234,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    Sequence          sequence   = (Sequence)reference.parent();
 	    int               entryCount = sequence.entryCount();
 	    int               count      = sequence.unsetTrackedParameterCount();
-	    result = "<html>" + addOperator(reference);
+	    result = "<html>" + reference.getOperatorAndName();
 	    result += (entryCount>0) ?
 		" ("+entryCount+")":
 		"<font color=#ff0000>("+entryCount+")</font>";
@@ -241,7 +242,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    result += "</html>";
 	}
 	else if ( node instanceof Reference )
-		result = addOperator( (Reference)node );
+		result = ((Reference)node).getOperatorAndName();
 	
 	if (node instanceof PSetParameter||
 	    node instanceof VPSetParameter) {
@@ -330,19 +331,6 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	return this;
     }
 	
-    
-    private String addOperator( Reference reference ) 
-    { 
-    	Operator op = reference.getOperator();
-    	switch ( op ) 
-    	{
-    		case IGNORE:
-    			return "ignore( " + reference.name() + " )"; 
-    		case NEGATE:
-    			return "~" + reference.name(); 
-    	}
-    	return reference.name(); 
-    }
     
 
 }
