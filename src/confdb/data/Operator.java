@@ -11,23 +11,4 @@ package confdb.data;
 public enum Operator {
 	DEFAULT, NEGATE, IGNORE;
 	
-	public String getPythonHeader()
-	{
-		if ( this == NEGATE )
-			return " + ~";
-		
-		if ( this == IGNORE )
-			return " + cms.ignore(";
-		
-		return " + ";
-	}
-	
-	public String getPythonTrailer()
-	{
-		if ( this == IGNORE )
-			return ")";
-		return "";
-	}
-	
-	
 }
