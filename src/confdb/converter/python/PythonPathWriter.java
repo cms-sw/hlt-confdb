@@ -19,14 +19,11 @@ public class PythonPathWriter implements IPathWriter
 
 		if ( path.entryCount() > 0 )
 		{
+			String sep =  " + ";
 			Iterator<Reference> list = path.entryIterator();
-			Reference entry = list.next();
-			str += object + entry.name();
+			str += list.next().getPythonCode(object);
 			while ( list.hasNext() )
-			{
-				entry = list.next();
-				str += entry.getOperator().getPythonHeader() + object + entry.name() + entry.getOperator().getPythonTrailer();
-			}
+				str += sep + list.next().getPythonCode(object);
 		}
 		
 		str += " )\n";
