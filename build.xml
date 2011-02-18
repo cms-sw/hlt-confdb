@@ -39,6 +39,22 @@
     </jar>
   </target>
 
+	
+  <!-- create executable jar file -->
+  <target name="gui-all-inclusive" depends="compile">
+	<jar jarfile="${dir.lib}/confdb-gui-all-inclusive.jar">
+		<fileset dir="${dir.build}"/>
+		<fileset dir="${dir.icons}"/>
+		<fileset dir="${dir.src}"><include name="conf/*"/></fileset>
+		<zipfileset excludes="META-INF/**/*" src="${dir.ext}/ojdbc14.jar"/>
+		<zipfileset excludes="META-INF/**/*" src="${dir.ext}/swing-layout-1.0.jar"/>
+		<manifest>
+			<attribute name="Main-Class" value="confdb.gui.ConfDbGUI" />    
+	  	</manifest>
+	</jar>
+  </target>
+	
+	
   <!-- combine converter-relevant classes into jar file -->
   <target name="converter" depends="compile">
     <jar jarfile="${dir.lib}/cmssw-evf-confdb-converter.jar">
@@ -77,7 +93,8 @@
       <lib file="${dir.lib}/cmssw-evf-confdb-browser.jar"/>
       <lib file="${dir.ext}/mysql-connector-java-5.0.5-bin.jar"/>
       <fileset dir="browser/WebContent"/>
-      <zipfileset dir="${dir.lib}" includes="cmssw-evf-confdb-gui.jar" prefix="gui"/>
+        <zipfileset dir="${dir.lib}" includes="cmssw-evf-confdb-gui.jar" prefix="gui"/>
+        <zipfileset dir="${dir.lib}" includes="confdb-gui-all-inclusive.jar" prefix="gui"/>
       <zipfileset dir="${dir.ext}" prefix="gui"/>
     </war>
   </target>
