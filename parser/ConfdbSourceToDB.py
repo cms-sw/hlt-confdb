@@ -689,7 +689,8 @@ class ConfdbSourceToDB:
 			print "Will enter component with CVS tag " + tagline
 
 		#Now see if this tag is different from the one in the release
-		if(tagline.lstrip().rstrip() == basetagline.lstrip().rstrip()):
+                #		if((tagline.lstrip().rstrip() == basetagline.lstrip().rstrip()) and (packagedir.find("Alignment/") == -1)):
+                if(tagline.lstrip().rstrip() == basetagline.lstrip().rstrip()):
 		    if(self.verbose > 0):
 			print "Base release and test release tags are the same -  will reassociate."
 		    return
@@ -699,6 +700,7 @@ class ConfdbSourceToDB:
 			print "\t" + tagline.lstrip().rstrip() + " vs. " + basetagline.lstrip().rstrip()
 		    self.addedtemplatenames.append(modulename)
 		    self.addedtemplatetags.append((basetagline.lstrip().rstrip(),tagline.lstrip().rstrip()))
+                    
 
 	if(os.path.isdir(srcdir) or os.path.isdir(pluginsdir) or 
 	   (self.dotestdir == True and os.path.isdir(testdir))):        
