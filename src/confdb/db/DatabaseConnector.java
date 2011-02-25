@@ -72,9 +72,11 @@ abstract public class DatabaseConnector implements IDatabaseConnector
     public void closeConnection()
     {
 	try {
-	    if (connection!=null&&!connection.isClosed()) {
-		if (!dbURL.equals("UNKNOWN")) connection.close();
-		connection = null;
+	    if ( connection != null )  
+	    {
+	    	if ( !connection.isClosed()  &&  !dbURL.equals("UNKNOWN") ) 
+	    		connection.close();
+	    	connection = null;
 	    }
 	}
 	catch (SQLException e) {
