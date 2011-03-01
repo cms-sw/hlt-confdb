@@ -1101,6 +1101,7 @@ public class ConfDB
 		int    entryId    = rsPathEntries.getInt(2);
 		int    sequenceNb = rsPathEntries.getInt(3);
 		String entryType  = rsPathEntries.getString(4);
+		Operator operator = Operator.getOperator( rsPathEntries.getInt(5) );
 		
 		Path path  = idToPaths.get(pathId);
 		int  index = path.entryCount();
@@ -1111,22 +1112,22 @@ public class ConfDB
 		
 		if (entryType.equals("Path")) {
 		    Path entry = idToPaths.get(entryId);
-		    config.insertPathReference(path,index,entry);
+		    config.insertPathReference(path,index,entry).setOperator( operator );
 		}
 		else if (entryType.equals("Sequence")) {
 		    Sequence entry = idToSequences.get(entryId);
-		    config.insertSequenceReference(path,index,entry);
+		    config.insertSequenceReference(path,index,entry).setOperator( operator );
 		}
 		else if (entryType.equals("Module")) {
 		    ModuleInstance entry = (ModuleInstance)idToModules.get(entryId);
-		    config.insertModuleReference(path,index,entry);
+		    config.insertModuleReference(path,index,entry).setOperator(operator);
 		}	
 		else if (entryType.equals("OutputModule")) {
 		    Stream entry = (Stream)idToStream.get(entryId);
 		    if(entry==null) continue;
 		    OutputModule referencedOutput = entry.outputModule();
 		    if (referencedOutput==null) continue;
-		    config.insertOutputModuleReference(path,index,referencedOutput);
+		    config.insertOutputModuleReference(path,index,referencedOutput).setOperator(operator);
 		}
 		else
 		    System.err.println("Invalid entryType '"+entryType+"'");
@@ -4994,7 +4995,8 @@ public class ConfDB
 		 " path_id," +
 		 " entry_id," +
 		 " sequence_nb," +
-		 " entry_type " +
+		 " entry_type, " +
+		 " operator " +
 		 "FROM tmp_path_entries "+
 		 "ORDER BY path_id ASC, sequence_nb ASC");
 	    psSelectPathEntries.setFetchSize(1024);
