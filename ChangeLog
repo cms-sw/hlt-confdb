@@ -1,3 +1,8 @@
+2011-03-02  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-05-12
+	* remove option to apply operators to sequences & paths (Ulf)
+
 2011-03-01  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-05-11
