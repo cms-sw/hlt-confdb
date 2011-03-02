@@ -568,9 +568,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    popupPaths.addSeparator();
 	    
 	    if (node instanceof ModuleReference) {
-		menuItem = new JMenuItem("Remove Module");
-		menuItem.addActionListener(pathListener);
-		popupPaths.add(menuItem);
+	    	menuItem = new JMenuItem("Remove Module");
+	    	menuItem.addActionListener(pathListener);
+	    	popupPaths.add(menuItem);
+	    	popupPaths.addSeparator();
+	    	popupPaths.add( createSetOperatorMenu( (Reference)node, pathListener ) );
 	    }
 	    if (node instanceof OutputModuleReference) {
 		menuItem = new JMenuItem("Remove OutputModule");
@@ -586,11 +588,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		menuItem = new JMenuItem("Remove Sequence");
 		menuItem.addActionListener(pathListener);
 		popupPaths.add(menuItem);
-	    }
-	    if ( node instanceof Reference )
-	    {
-	    	popupPaths.addSeparator();
-	    	popupPaths.add( createSetOperatorMenu( (Reference)node, pathListener ) );
 	    }
 	}
 
