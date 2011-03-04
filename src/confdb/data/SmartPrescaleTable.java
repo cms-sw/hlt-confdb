@@ -78,6 +78,13 @@ public class SmartPrescaleTable
 	return true;
     }
 
+    public boolean modRow(int i,String strCondition)
+    {
+	rows.set(i,new SmartPrescaleTableRow(strCondition));
+	module.setHasChanged();
+	return true;
+    }
+
     /**check path in the streams **/
     public Path checkPathExists(String strPath){
 	if(streams.size()>0){

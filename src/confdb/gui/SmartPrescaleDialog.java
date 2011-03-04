@@ -150,18 +150,18 @@ public class SmartPrescaleDialog extends JDialog
 
 	iRow = jTable.rowAtPoint(e.getPoint());
 	JPopupMenu popup = new JPopupMenu();
-	JMenuItem menuItem = new JMenuItem("Add Row");	
-	menuItem.addActionListener(new ActionListener() {
+
+	JMenuItem menuItemAdd = new JMenuItem("Add Row");	
+	menuItemAdd.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae)
 		{
-		    tableModel.addRow(iRow,
+		    tableModel.addRow(iRow+1, //+1 for insert after
 					 JOptionPane
 					 .showInputDialog("Enter the condition: "));
 		}
 	    });
-	popup.add(menuItem);
+	popup.add(menuItemAdd);
 
-    
 	JMenuItem menuItemRemove = new JMenuItem("Remove Row");	
 	menuItemRemove.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae)
@@ -213,7 +213,7 @@ public class SmartPrescaleDialog extends JDialog
         JScrollPane jScrollPane = new javax.swing.JScrollPane();
 	
         jLabel1.setText("HLT:");
-        jLabel2.setText("Level1:");
+        jLabel2.setText("Instance:");
 	
         jTextFieldHLT.setEditable(false);
         jTextFieldHLT.setBorder(BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
@@ -316,11 +316,30 @@ class SmartPrescaleTableModel extends AbstractTableModel
    
    
     /** is a cell editable or not? */
-    public boolean isCellEditable(int row, int col) { return col>0; }
+    public boolean isCellEditable(int row, int col) { return col>=0; }
     
     /** set the value of a table cell */
     public void setValueAt(Object value,int row, int col)
     {
+	String strCondition = (String)value;
+	StringTokenizer pathTokens = new StringTokenizer(strCondition, "+-/ &*");
+
+	while ( pathTokens.hasMoreTokens()) {
+	    String strPath = pathTokens.nextToken();
+	    int g = -10000;
+	    try { 
+		g = Integer.parseInt(strPath); 
+	    }catch (NumberFormatException e) { 
+		g = -10000;
+	    }
+	    if(g>0)
+		continue;
+	    Path path = prescaleTable.checkPathExists(strPath);
+	    if(path==null)
+		return;
+	};
+	prescaleTable.modRow(row,strCondition);
+
     }
     
     
