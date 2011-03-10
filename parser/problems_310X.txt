@@ -721,3 +721,12 @@ PrescaleService.Parameter lvl1DefaultLabel string "" untracked
 PrescaleService.Parameter lvl1Labels vstring { } tracked 
 PrescaleService.Parameter prescaleTable VPSet tracked 
 
+ESModule PromptTrackCountingESProducer RecoBTag ImpactParameter
+PromptTrackCountingESProducer.Parameter impactParameterType int32 0 tracked 
+PromptTrackCountingESProducer.Parameter maximumDistanceToJetAxis double 999999.0 tracked
+PromptTrackCountingESProducer.Parameter deltaR double -1.0 tracked
+PromptTrackCountingESProducer.Parameter maximumDecayLength double 999999.0 tracked
+PromptTrackCountingESProducer.Parameter maxImpactParameterSig double 999999.0 tracked
+PromptTrackCountingESProducer.Parameter trackQualityClass string "any" tracked
+PromptTrackCountingESProducer.Parameter nthTrack int32 -1 tracked
+
