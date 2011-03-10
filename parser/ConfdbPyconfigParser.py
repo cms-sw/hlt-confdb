@@ -23,7 +23,7 @@ class ConfdbPyconfigParser:
         self.theparamdefault = ''
         self.founddefault = False
         self.foundcomponent = False
-        self.verbose = 0
+        self.verbose = 5
 
     def SetThePythonVar(self,modname,psetname,nestedpsetname,paramname):
         self.themodule = modname
@@ -39,20 +39,50 @@ class ConfdbPyconfigParser:
         self.foundcomponent = False
 
         # Look at what cfi_py configs are available
+        thearch = os.environ.get("SCRAM_ARCH")
+        therelbase = os.environ.get("CMSSW_BASE")
+        thevalidatedpackdirectory = thedirectory.split('data/')[0]
+        thevalidatedpackdirectory = thevalidatedpackdirectory.split('src/')[1]
+        thevalidateddirectory = therelbase + '/cfipython/' + thearch + '/' + thevalidatedpackdirectory + '/'
+        validcfipyfiles = []
+        cfipyfiles = [] 
+
+        if(os.path.isdir(thevalidateddirectory)):
+            validcfipyfiles = os.listdir(thevalidateddirectory)
+        
         thedirectory = thedirectory.split('data/')[0] + 'python/'
+
         if(os.path.isdir(thedirectory)):
-            cfipyfiles = os.listdir(thedirectory)
-            for cfipyfile in cfipyfiles:
+            tmpcfipyfiles = os.listdir(thedirectory)
+            for tmpcfipyfile in tmpcfipyfiles:
+                cfipyfiles.append((tmpcfipyfile,0))
+                                        
+            for validcfipyfile in validcfipyfiles:
+                if(os.path.isdir(thevalidateddirectory)):
+                    cfipyfiles.append((validcfipyfile,1))
+                
+            for cfipyfile, validstatus in cfipyfiles:
                 if(cfipyfile.endswith('_cfi.py')):
                     thefilecomponent = cfipyfile.split('.py')[0]
                     
                     thebasefilecomponent = thefilecomponent.split('_cfi')[0]        
                     
                     # Construct the py-cfi to import
-                    thesubsystempackage = thedirectory.split('src/')[1].split('/data/')[0].lstrip().rstrip()
-                    thesubsystem = thesubsystempackage.split('/')[0]
-                    thepackage = thesubsystempackage.split('/')[1]
-                    importcommand = "import " + thesubsystem + "." + thepackage + "." + thefilecomponent
+                    thesubsystempackage = ''
+                    thesubsystem = ''
+                    thepackage = ''
+                    importcommand = ''
+
+                    if(validstatus == 0):
+                        thesubsystempackage = thedirectory.split('src/')[1].split('/data/')[0].lstrip().rstrip()
+                        thesubsystem = thesubsystempackage.split('/')[0]
+                        thepackage = thesubsystempackage.split('/')[1]
+                        importcommand = "import " + thesubsystem + "." + thepackage + "." + thefilecomponent
+                    if(validstatus == 1):
+                        thesubsystempackage = thedirectory.split('src/')[1].split('/data/')[0].lstrip().rstrip()
+                        thesubsystem = thesubsystempackage.split('/')[0]
+                        thepackage = thesubsystempackage.split('/')[1]
+                        importcommand = "import " + thesubsystem + "." + thepackage + "." + thefilecomponent
                     
                     if(self.verbose > 2):
                         print "PSet = " + self.thenestedpset + ", " + self.thepset + ", " + self.theparameter
