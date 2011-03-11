@@ -23,7 +23,7 @@ class ConfdbPyconfigParser:
         self.theparamdefault = ''
         self.founddefault = False
         self.foundcomponent = False
-        self.verbose = 5
+        self.verbose = 0
 
     def SetThePythonVar(self,modname,psetname,nestedpsetname,paramname):
         self.themodule = modname

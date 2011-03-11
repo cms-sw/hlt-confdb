@@ -789,9 +789,9 @@ class ConfdbOracleModuleLoader:
 		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)   
 
                 boolval = str(paramval).strip('"').strip()
-                if(boolval == "true"):
+                if((boolval == "true") or (boolval == "True")):
                     paramval = str(1)
-                if(boolval == "false"):
+                if((boolval == "false") or (boolval == "False")):
                     paramval = str(0)
 
                 if(paramval != "0" and paramval != "1"):
