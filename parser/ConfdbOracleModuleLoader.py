@@ -815,7 +815,7 @@ class ConfdbOracleModuleLoader:
 		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 
 		if(paramval):
-		    if(paramval.find('.') == -1 and (not paramval.isdigit())):
+                    if(paramval.find('.') == -1 and (not paramval.isdigit()) and (paramval[0].find("-") == -1)): 
 			paramval = None
 
 		# Fill ParameterValues table
@@ -1444,7 +1444,7 @@ class ConfdbOracleModuleLoader:
 		oldparamid = self.RetrieveParamId(thecursor,paramname,oldsuperid)
 		
 		if(paramval):
-		    if(paramval.find('.') == -1 and (not paramval.isdigit())):
+                    if(paramval.find('.') == -1 and (not paramval.isdigit()) and (paramval[0].find("-") == -1)): 
 			paramval = None
 
 		# A previous version of this parameter exists. See if its 
@@ -2328,7 +2328,7 @@ class ConfdbOracleModuleLoader:
 
 	    elif(psettype == "double"):
 		if(psetval):
-		    if(psetval.find('.') == -1 and (not psetval.isdigit())):
+                    if(psetval.find('.') == -1 and (not psetval.isdigit()) and (psetval != -1) and (psetval[0].find("-") == -1)): 
 			psetval = None
 
 		if(psetval == None):
@@ -2580,7 +2580,7 @@ class ConfdbOracleModuleLoader:
 
 	    elif(vpsettype == "double"):
 		if(vpsetval):
-		    if(vpsetval.find('.') == -1 and (not vpsetval.isdigit())):
+                    if(vpsetval.find('.') == -1 and (not vpsetval.isdigit()) and (vpsetval[0].find("-") == -1)): 
 			vpsetval = None
 
 		if(vpsetval == None):
