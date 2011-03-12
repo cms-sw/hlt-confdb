@@ -580,7 +580,7 @@ public class Diff
 	    for (Comparison c : paramComparisons)
 		if (!c.isIdentical()) result.addComparison(c);
 	}
-	
+
 	return result;
     }
     
@@ -589,7 +589,25 @@ public class Diff
 					   EventContent ec2)
     {
 	Comparison result = new EventContentComparison(ec1,ec2);
-	// TODO!
+
+	VStringParameter oc1 = new VStringParameter("outputCommands","",false);
+	VStringParameter oc2 = new VStringParameter("outputCommands","",false);
+
+	if (!result.isAdded()&&!result.isRemoved()) {
+	    Iterator<OutputCommand> itOC1 = ec1.commandIterator();
+	    while (itOC1.hasNext()) {
+		OutputCommand OC1 = itOC1.next();
+		oc1.addValue(OC1.toString());
+	    }
+	    Iterator<OutputCommand> itOC2 = ec2.commandIterator();
+	    while (itOC2.hasNext()) {
+		OutputCommand OC2 = itOC2.next();
+		oc2.addValue(OC2.toString());
+	    }
+	    Comparison c = compareParameters(oc1,oc2);
+	    if (!c.isIdentical()) result.addComparison(c);
+	}
+
 	return result;
     }
     
@@ -772,6 +790,22 @@ public class Diff
 	    result.append(printInstanceComparisons(moduleIterator()));
 	}
 	
+	// outputs
+	if (outputCount()>0) {
+	    result.append("\n---------------------------------------"+
+			  "----------------------------------------\n");
+	    result.append("OutputModules (" + outputCount() + "):\n");
+	    result.append(printInstanceComparisons(outputIterator()));
+	}
+	
+	// contents
+	if (contentCount()>0) {
+	    result.append("\n---------------------------------------"+
+			  "----------------------------------------\n");
+	    result.append("EventContents (" + contentCount() + "):\n");
+	    result.append(printInstanceComparisons(contentIterator()));
+	}
+	
 	// streams
 	if (streamCount()>0) {
 	    result.append("\n---------------------------------------"+
@@ -919,7 +953,7 @@ public class Diff
 	return result;
     }
     
-    
+
     //
     // static member functions
     //
