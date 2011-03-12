@@ -227,5 +227,48 @@ public class Path extends ReferenceContainer
 	return result;
     }
     
+    /** set the name and propagate it to all relevant modules */
+    public void setNameAndPropagate(String name) throws DataException
+    {
+	String oldName = name();
+	super.setName(name);
+
+	/* propagate path name change to all TriggerResultsFilter instances */
+	Iterator<ModuleInstance> itM = config().moduleIterator();
+	while (itM.hasNext()) {
+	    ModuleInstance module = itM.next();
+	    if (module.template().toString().equals("TriggerResultsFilter")) {
+		VStringParameter vStr = (VStringParameter)module.parameter("triggerConditions","vstring");
+		int n=0;
+		for (int i=0;i<vStr.vectorSize();i++) {
+		    String str = (String)vStr.value(i);
+		    if (str.indexOf(oldName)>=0) {
+			n++;
+			vStr.setValue(i,str.replaceAll(oldName,name));
+		    }
+		}
+		if (n>0) module.setHasChanged();
+	    }
+	    
+	}
+
+	/* propagate path name change to PrescaleService */
+	ServiceInstance prescaleSvc = config().service("PrescaleService");
+	if (prescaleSvc==null) return;
+	VPSetParameter vpsetPrescaleTable = (VPSetParameter)prescaleSvc.parameter("prescaleTable","VPSet");
+	if (vpsetPrescaleTable==null) return;
+	int n=0;
+	for (int i=0;i<vpsetPrescaleTable.parameterSetCount();i++) {
+	    PSetParameter pset = vpsetPrescaleTable.parameterSet(i);
+	    StringParameter Str = (StringParameter)pset.parameter("pathName");
+	    String str = (String)Str.value();
+	    if (str.indexOf(oldName)>=0) {
+		n++;
+		Str.setValue(str.replaceAll(oldName,name));
+	    }
+	}
+	if (n>0) prescaleSvc.setHasChanged();
+
+    }
 
 }

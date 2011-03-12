@@ -70,6 +70,10 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 		    ModuleInstance module = (ModuleInstance)referencable;
 		    module.setNameAndPropagate(name);
 		}
+		else if (referencable instanceof Path) {
+		    Path path = (Path)referencable;
+		    path.setNameAndPropagate(name);
+		}
 		else {
 		    referencable.setName(name);
 		}
