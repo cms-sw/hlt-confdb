@@ -36,6 +36,8 @@ public class DiffTreeModel extends AbstractTreeModel
     private StringBuffer pathsNode     = new StringBuffer();
     private StringBuffer sequencesNode = new StringBuffer();
     private StringBuffer modulesNode   = new StringBuffer();
+    private StringBuffer outputsNode   = new StringBuffer();
+    private StringBuffer contentsNode  = new StringBuffer();
     private StringBuffer streamsNode   = new StringBuffer();
     private StringBuffer datasetsNode  = new StringBuffer();
     
@@ -156,6 +158,28 @@ public class DiffTreeModel extends AbstractTreeModel
 	    while (it.hasNext()) it.next().setParent(modulesNode);
 	}
 
+	// OutputModule node
+	int outputCount = diff.outputCount();
+	if (outputCount>0) {
+	    outputsNode.delete(0,outputsNode.length());
+	    outputsNode.append("<html><b>OutputModules</b> (").append(outputCount)
+		.append(")</html>");
+	    topNodes.add(outputsNode);
+	    Iterator<Comparison> it = diff.outputIterator();
+	    while (it.hasNext()) it.next().setParent(outputsNode);
+	}
+
+	// EventContent node
+	int contentCount = diff.contentCount();
+	if (contentCount>0) {
+	    contentsNode.delete(0,contentsNode.length());
+	    contentsNode.append("<html><b>EventContents</b> (").append(contentCount)
+		.append(")</html>");
+	    topNodes.add(contentsNode);
+	    Iterator<Comparison> it = diff.contentIterator();
+	    while (it.hasNext()) it.next().setParent(contentsNode);
+	}
+
 	// Stream node
 	int streamCount = diff.streamCount();
 	if (streamCount>0) {
@@ -208,8 +232,10 @@ public class DiffTreeModel extends AbstractTreeModel
 	    if (node.equals(pathsNode))     return diff.pathCount();
 	    if (node.equals(sequencesNode)) return diff.sequenceCount();
 	    if (node.equals(modulesNode))   return diff.moduleCount();
+	    if (node.equals(outputsNode))   return diff.outputCount();
+	    if (node.equals(contentsNode))  return diff.contentCount();
 	    if (node.equals(streamsNode))   return diff.streamCount();
-	    if (node.equals(datasetsNode))   return diff.datasetCount();
+	    if (node.equals(datasetsNode))  return diff.datasetCount();
 	}
 	else if (node instanceof Comparison)
 	    return ((Comparison)node).comparisonCount();
@@ -230,6 +256,8 @@ public class DiffTreeModel extends AbstractTreeModel
 	    if (parent.equals(pathsNode))     return diff.path(i);
 	    if (parent.equals(sequencesNode)) return diff.sequence(i);
 	    if (parent.equals(modulesNode))   return diff.module(i);
+	    if (parent.equals(outputsNode))   return diff.output(i);
+	    if (parent.equals(contentsNode))  return diff.content(i);
 	    if (parent.equals(streamsNode))   return diff.stream(i);
 	    if (parent.equals(datasetsNode))  return diff.dataset(i);
 
@@ -261,6 +289,10 @@ public class DiffTreeModel extends AbstractTreeModel
 		return diff.indexOfSequence((Comparison)child);
 	    if (parent.equals(modulesNode))
 		return diff.indexOfModule((Comparison)child);
+	    if (parent.equals(outputsNode))
+		return diff.indexOfOutput((Comparison)child);
+	    if (parent.equals(contentsNode))
+		return diff.indexOfContent((Comparison)child);
 	    if (parent.equals(streamsNode))
 		return diff.indexOfStream((Comparison)child);
 	    if (parent.equals(datasetsNode))

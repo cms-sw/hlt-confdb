@@ -318,6 +318,13 @@ public class Diff
 	    Comparison c = compareOutputModules(omold,omnew);
 	    if (!c.isIdentical()) modules.add(c);
 	}
+	else if (type.equalsIgnoreCase("EventContent")||
+		 type.equalsIgnoreCase("ec")) {
+	    EventContent ecold = config1.content(oldName);
+	    EventContent ecnew = config2.content(newName);
+	    Comparison c = compareEventContents(ecold,ecnew);
+	    if (!c.isIdentical()) contents.add(c);
+	}
 	else if (type.equalsIgnoreCase("Path")||
 		 type.equalsIgnoreCase("p")) {
 	    Path pold = config1.path(oldName);
