@@ -99,6 +99,11 @@ public class SmartPrescaleTable
 	return null;
     }
     
+    /**provide list of associated streams */
+    public ArrayList<Stream> associatedStreams() {
+	return streams;
+    }
+
     /** check if the i-th path is prescaled at all */
     public boolean removeRow(int i)
     {
@@ -189,6 +194,8 @@ public class SmartPrescaleTable
 	work = work.replaceAll("\\("," \\( "); // regex escape
         work = work.replaceAll("\\)"," \\) "); // regex escape
 	while (work.indexOf("  ")>=0) { work=work.replaceAll("  "," "); }
+	work = " "+work+" ";
+	work = work.replaceAll(" / 1 "," ");   // no /1!
 	work = work.trim();
 	return work;
     }

@@ -88,7 +88,7 @@ public class SmartPrescaleDialog extends JDialog
 	tableModel = new SmartPrescaleTableModel();
 	tableModel.initialize(config,module,prescaleTable.get(0));
 	jTable.setModel(tableModel);
-	jTable.setDefaultRenderer(Integer.class,new SmartPrescaleTableCellRenderer());
+	jTable.setDefaultRenderer(String.class,new SmartPrescaleTableCellRenderer());
 	jTextFieldHLT.setText(config.toString());
 	
 	jButtonCancel.addActionListener(new ActionListener() {
@@ -295,6 +295,7 @@ class SmartPrescaleTableModel extends AbstractTableModel
 	this.config = config;
 	this.module = module;
 	this.prescaleTable = prescaleTable;
+	fireTableStructureChanged();
 	fireTableDataChanged();
     }
 
@@ -303,6 +304,7 @@ class SmartPrescaleTableModel extends AbstractTableModel
     {
 	this.module = module;
 	this.prescaleTable = prescaleTable;
+	fireTableStructureChanged();
 	fireTableDataChanged();
     }
     
@@ -313,11 +315,25 @@ class SmartPrescaleTableModel extends AbstractTableModel
     
     public int getColumnCount() { return 1; }
     
-   
+    /** get column name for colimn 'col' */
+    public String getColumnName(int col) {
+	ArrayList<Stream> streams = prescaleTable.associatedStreams();
+	String work = streams.size() +  " associated stream";
+	if (streams.size()!=1) work  += "s";
+	if (streams.size()> 0) work  += ":";
+	for (int i=0; i<streams.size(); ++i) work += " "+streams.get(i).name();
+	return work;
+    }
    
     /** is a cell editable or not? */
     public boolean isCellEditable(int row, int col) { return col>=0; }
     
+    /** get the class of the column 'c' */
+    public Class getColumnClass(int c)
+    {
+	return String.class;
+    }
+
     /** set the value of a table cell */
     public void setValueAt(Object value,int row, int col)
     {
@@ -429,6 +445,15 @@ class SmartPrescaleTableCellRenderer extends DefaultTableCellRenderer
 	    if (valueAsLong==0) setBackground(Color.RED);
 	    else if (valueAsLong==1) setBackground(Color.GREEN);
 	    else setBackground(Color.ORANGE);
+	} else if (value instanceof String) {
+	    String valueAsString=(String)value;
+	    if (valueAsString.indexOf("/")==-1) {
+		setBackground(Color.GREEN);
+	    } else if (valueAsString.indexOf("/ 0")>=0) {
+		setBackground(Color.RED);
+	    } else {
+		setBackground(Color.ORANGE);
+	    }
 	}
 	return this;
     }
