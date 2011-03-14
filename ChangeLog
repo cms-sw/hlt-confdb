@@ -1,3 +1,12 @@
+2011-03-14  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
+
+	* tag V01-05-14
+	* renamed paths propagated to PrescaleService config (Martin)
+	* extend ascii diff report to cover event content and output
+	module changes (Martin)
+	* more improvements to html diff report (Martin)
+	* improvements to SmartPrescale handling (Martin)
+
 2011-03-04  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-05-13
