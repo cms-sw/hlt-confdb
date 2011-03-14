@@ -321,25 +321,34 @@ class SmartPrescaleTableModel extends AbstractTableModel
     /** set the value of a table cell */
     public void setValueAt(Object value,int row, int col)
     {
-	String strCondition = (String)value;
-	StringTokenizer pathTokens = new StringTokenizer(strCondition, "+-/ &*");
+	String strCondition = SmartPrescaleTable.regularise((String)value);
+	if(strCondition.equals("")) return;
+
+	StringTokenizer pathTokens = new StringTokenizer(strCondition,"/ ");
 
 	while ( pathTokens.hasMoreTokens()) {
-	    String strPath = pathTokens.nextToken();
+	    String strPath = pathTokens.nextToken().trim();
+	    if (strPath.length()<5) continue;
 	    int g = -10000;
 	    try { 
 		g = Integer.parseInt(strPath); 
 	    }catch (NumberFormatException e) { 
 		g = -10000;
 	    }
-	    if(g>0)
-		continue;
-	    Path path = prescaleTable.checkPathExists(strPath);
-	    if(path==null)
+	    if ( (g<0)
+		 && (!strPath.equals("FALSE"))
+		 && (!strPath.substring(0,2).equals("L1"))
+		 && (prescaleTable.checkPathExists(strPath)==null) ) {
 		return;
-	};
-	prescaleTable.modRow(row,strCondition);
+	    }
+	}
 
+	// replace conditions containing only FALSE by empty conditions
+	strCondition = SmartPrescaleTable.simplify(strCondition);
+
+	if (!strCondition.equals("")) {
+	    prescaleTable.modRow(row,strCondition);
+	}
     }
     
     
@@ -358,30 +367,37 @@ class SmartPrescaleTableModel extends AbstractTableModel
     }
 
     /** add an additional row  */
-    public void addRow(int i,String strCondition)
+    public void addRow(int i, String value)
     {
-	if(strCondition.equals(""))
-	    return;
+	String strCondition = SmartPrescaleTable.regularise((String)value);
+	if(strCondition.equals("")) return;
 	
-	StringTokenizer pathTokens = new StringTokenizer(strCondition, "+-/ &*");
+	StringTokenizer pathTokens = new StringTokenizer(strCondition,"/ ");
 
 	while ( pathTokens.hasMoreTokens()) {
-	    String strPath = pathTokens.nextToken();
+	    String strPath = pathTokens.nextToken().trim();
+	    if (strPath.length()<5) continue;
 	    int g = -10000;
 	    try { 
 		g = Integer.parseInt(strPath); 
 	    }catch (NumberFormatException e) { 
 		g = -10000;
 	    }
-	    if(g>0)
-		continue;
-	    Path path = prescaleTable.checkPathExists(strPath);
-	    if(path==null)
+	    if ( (g<0)
+		 && (!strPath.equals("FALSE"))
+		 && (!strPath.substring(0,2).equals("L1"))
+		 && (prescaleTable.checkPathExists(strPath)==null) ) {
 		return;
-	};
+	    }
+	}
 
-	prescaleTable.addRow(i,strCondition);
-	fireTableStructureChanged();
+	// replace conditions containing only FALSE by empty conditions
+	strCondition = SmartPrescaleTable.simplify(strCondition);
+
+	if (!strCondition.equals("")) {
+	    prescaleTable.addRow(i,strCondition);
+	    fireTableStructureChanged();
+	}
     }
 
    /** remove row  */

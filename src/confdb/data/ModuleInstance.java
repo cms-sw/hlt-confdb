@@ -170,5 +170,30 @@ public class ModuleInstance extends Instance implements Referencable
 	    }
 	}
     }
+
+    public boolean squeeze() {
+
+	boolean result = false;
+
+	if (template().toString().equals("TriggerResultsFilter")) {
+	    VStringParameter parameterTriggerConditions = (VStringParameter)parameter("triggerConditions","vstring");
+	    boolean check = true;
+	    while (check) {
+		check=false;
+		for (int i=0;i<parameterTriggerConditions.vectorSize();i++) {
+		    if (parameterTriggerConditions.value(i).equals("")) {
+			parameterTriggerConditions.removeValue(i);
+			result = true;
+			check = true;
+			break;
+		    }
+		}
+	    }	    
+	}
+
+	return result;
+
+    }
+    
     
 }

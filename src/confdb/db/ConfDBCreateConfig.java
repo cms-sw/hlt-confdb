@@ -4,6 +4,8 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import java.util.StringTokenizer;
+
 import java.io.*;
 
 import confdb.data.*;
@@ -155,6 +157,48 @@ public class ConfDBCreateConfig
 			psTable.removeParameterSet(itRmv.next());
 		}
 		pss.setHasChanged();
+	    }
+
+	    // remove paths from TriggerResultsFilters which are not in the list
+	    Iterator<ModuleInstance> itM = masterConfig.moduleIterator();
+	    while (itM.hasNext()) {
+		ModuleInstance module = itM.next();
+		if (module.template().toString().equals("TriggerResultsFilter")) {
+		    VStringParameter parameterTriggerConditions = (VStringParameter)module.parameter("triggerConditions","vstring");
+		    for (int i=0;i<parameterTriggerConditions.vectorSize();i++) {
+			String trgCondition = (String)parameterTriggerConditions.value(i);
+			String strCondition = SmartPrescaleTable.regularise(trgCondition);
+
+			// replace unknown paths by FALSE
+			StringTokenizer pathTokens = new StringTokenizer(strCondition,"/ ");
+			while ( pathTokens.hasMoreTokens()) {
+			    String strPath = pathTokens.nextToken().trim();
+			    if (strPath.length()<5) continue;
+			    int g = -10000;
+			    try { 
+				g = Integer.parseInt(strPath); 
+			    }catch (NumberFormatException e) { 
+				g = -10000;
+			    }
+			    if ( (g<0)
+				 && (!strPath.equals("FALSE"))
+				 && (!strPath.substring(0,2).equals("L1"))
+				 && (!pathsToInclude.contains(strPath)) ) {
+				strCondition = strCondition.replaceAll(strPath,"FALSE");
+			    }
+			}
+			
+			// replace conditions containing only FALSE by empty conditions
+			strCondition = SmartPrescaleTable.simplify(strCondition);
+
+			if (!strCondition.equals(trgCondition)) {
+			    module.setHasChanged();
+			    parameterTriggerConditions.setValue(i,strCondition);
+			}
+		    }
+		    // remove empty conditions
+		    if (module.squeeze()) module.setHasChanged();
+		}
 	    }
 	    
 	    // remove paths which are not in the list

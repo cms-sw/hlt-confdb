@@ -52,7 +52,7 @@ public class SmartPrescaleTable
     /** get i-th path name */
     public String  prescaleCondition(int i)
     {
-	return rows.get(i).pathName;
+	return rows.get(i).triggerCondition;
     }
 
     
@@ -135,6 +135,7 @@ public class SmartPrescaleTable
     }
 
     public void update(){
+
 	rows.clear();
       
 	VStringParameter parameterTriggerConditions =  (VStringParameter)module.parameter("triggerConditions");
@@ -143,59 +144,88 @@ public class SmartPrescaleTable
 	    rows.add(new SmartPrescaleTableRow("")); 
 	    return;
 	}
-	
-	
-	if(streams.size()>0){
-	    for(int i=0;i<parameterTriggerConditions.vectorSize();i++){
-		String strValue = (String)parameterTriggerConditions.value(i);
-		
-		StringTokenizer pathTokens = new StringTokenizer(strValue,"+-/&* ");
-		
-		while ( pathTokens.hasMoreTokens()) {
-		    String strPath = pathTokens.nextToken();
-		    int g = -10000;
-		    try { 
-			g = Integer.parseInt(strPath); 
-		    }catch (NumberFormatException e) { 
-			g = -10000;
-		    }
-		    if(g>0||strPath.equals("FALSE"))
-			continue;
-		    Path pathT = null;
-		    for(int j=0;j<streams.size();j++){
-			pathT = streams.get(j).path(strPath);
-		    }
-		    if(pathT==null){
-			strValue = strValue.replaceAll(strPath,"FALSE");
-			module.setHasChanged();
-		    };
+
+	for(int i=0;i<parameterTriggerConditions.vectorSize();i++){
+	    String trgCondition = (String)parameterTriggerConditions.value(i);
+	    String strCondition = SmartPrescaleTable.regularise(trgCondition);
+
+	    // replace unknown paths by FALSE
+	    StringTokenizer pathTokens = new StringTokenizer(strCondition,"/ ");
+	    while ( pathTokens.hasMoreTokens()) {
+		String strPath = pathTokens.nextToken().trim();
+		if (strPath.length()<5) continue;
+		int g = -10000;
+		try { 
+		    g = Integer.parseInt(strPath); 
+		}catch (NumberFormatException e) { 
+		    g = -10000;
 		}
-		rows.add(new SmartPrescaleTableRow(strValue));   
-	    } 
-	}else{
-		for(int i=0;i<parameterTriggerConditions.vectorSize();i++){
-		    String strValue = (String)parameterTriggerConditions.value(i);
-		    rows.add(new SmartPrescaleTableRow(strValue)); 
+		if ( (g<0)
+		     && (!strPath.equals("FALSE"))
+		     && (!strPath.substring(0,2).equals("L1"))
+		     && (checkPathExists(strPath)==null) ) {
+		    strCondition = strCondition.replaceAll(strPath,"FALSE");
 		}
+	    }
+
+	    // replace conditions containing only FALSE by empty conditions
+	    strCondition = SmartPrescaleTable.simplify(strCondition);
+
+	    if (!strCondition.equals(trgCondition)) {
+		module.setHasChanged();
+		parameterTriggerConditions.setValue(i,strCondition);
+	    }
+	    if (!strCondition.equals("")) {
+		rows.add(new SmartPrescaleTableRow(strCondition));   
+	    }
 	}
-  
+	// remove empty conditions
+	if (module.squeeze()) module.setHasChanged();	
     }
-    
+
+    public static String regularise(String input) {
+	String work = new String (input);
+	work = work.replaceAll("/"," / ");
+	work = work.replaceAll("\\("," \\( "); // regex escape
+        work = work.replaceAll("\\)"," \\) "); // regex escape
+	while (work.indexOf("  ")>=0) { work=work.replaceAll("  "," "); }
+	work = work.trim();
+	return work;
+    }
+
+    public static String simplify(String input) {
+	String work = new String(input);
+	work=regularise(work);
+
+	/* replace conditions containing only FALSE by empty conditions */
+	StringTokenizer moreTokens = new StringTokenizer(work,"/ ");
+	int n=0;
+	while ( moreTokens.hasMoreTokens()) {
+	    String strPath = moreTokens.nextToken().trim();
+	    if (strPath.length()<5) continue;
+	    int g = -10000;
+	    try { 
+		g = Integer.parseInt(strPath); 
+	    }catch (NumberFormatException e) { 
+		g = -10000;
+	    }
+	    if ( (g<0) && (!strPath.equals("FALSE"))) n++;
+	}
+	if (n==0) work="";
+	return work;
+    }
+
 }
 
 
 //
-// class to hold the data for one prescale table row
+// class to hold the data for one smart prescale table row
 //
 class SmartPrescaleTableRow
 {
-    public String pathName;
-    public SmartPrescaleTableRow(String pathName)
+    public String triggerCondition;
+    public SmartPrescaleTableRow(String triggerCondition)
     {
-	this.pathName = pathName;
-    }
-    public SmartPrescaleTableRow(String pathName, int prescaleCount)
-    {
-	this.pathName = pathName;
+	this.triggerCondition = triggerCondition;
     }
 }

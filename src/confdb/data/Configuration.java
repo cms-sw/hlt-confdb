@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Collections;
 
+import java.util.StringTokenizer;
 
 /**
  * Configuration
@@ -1074,7 +1075,7 @@ public class Configuration implements IConfiguration
 	    }
 	}
 	
-	// remove this paths from all streams
+	// remove this paths from all streams (includes datasets)
 	Iterator<Stream> itS = path.streamIterator();
 	while (itS.hasNext()) itS.next().removePath(path);
 	
@@ -1093,6 +1094,55 @@ public class Configuration implements IConfiguration
 		}
 	    }
 	}
+
+	/* remove path from PrescaleService */
+	ServiceInstance pss = service("PrescaleService");
+	if (pss!=null) {
+	    VPSetParameter psTable =
+		(VPSetParameter)pss.parameter("prescaleTable");
+	    if (psTable!=null) {
+		ArrayList<PSetParameter> psetsToRemove
+		    = new ArrayList<PSetParameter>();
+		Iterator<PSetParameter> itPSet = psTable.psetIterator();
+		while (itPSet.hasNext()) {
+		    PSetParameter pset = itPSet.next();
+		    StringParameter pPathName = 
+			(StringParameter)pset.parameter("pathName");
+		    String pathName = (String)pPathName.value();
+		    if (pathName.equals(path.name()))
+			psetsToRemove.add(pset);
+		}
+		Iterator<PSetParameter> itRmv = psetsToRemove.iterator();
+		while (itRmv.hasNext())
+		    psTable.removeParameterSet(itRmv.next());
+	    }
+	    pss.setHasChanged();
+	}
+
+	/* remove path from TriggerResultsFilters */
+	Iterator<ModuleInstance> itM = moduleIterator();
+	while (itM.hasNext()) {
+	    ModuleInstance module = itM.next();
+	    if (module.template().toString().equals("TriggerResultsFilter")) {
+		VStringParameter parameterTriggerConditions = (VStringParameter)module.parameter("triggerConditions","vstring");
+		for (int i=0;i<parameterTriggerConditions.vectorSize();i++) {
+		    String trgCondition = (String)parameterTriggerConditions.value(i);
+		    String strCondition = SmartPrescaleTable.regularise(trgCondition);
+		    // replace removed path by FALSE
+		    strCondition = strCondition.replaceAll(path.name(),"FALSE");
+		    // replace conditions containing only FALSE by empty conditions
+		    strCondition = SmartPrescaleTable.simplify(strCondition);
+		    // update needed?
+		    if (!strCondition.equals(trgCondition)) {
+			module.setHasChanged();
+			parameterTriggerConditions.setValue(i,strCondition);
+		    }
+		}
+		// remove empty conditions
+		if (module.squeeze()) module.setHasChanged();		
+	    }
+	}
+	
 	hasChanged = true;
     }
     
