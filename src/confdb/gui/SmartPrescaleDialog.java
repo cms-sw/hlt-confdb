@@ -156,7 +156,7 @@ public class SmartPrescaleDialog extends JDialog
 	menuItemAdd.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae)
 		{
-		    smartTableModel.addRow(iRow+1, //+1 for insert after
+		    smartTableModel.addRow(iRow,
 					   JOptionPane
 					   .showInputDialog("Enter the condition: "));
 		}
