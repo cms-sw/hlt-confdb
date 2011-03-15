@@ -196,8 +196,14 @@ public class SmartPrescaleDialog extends JDialog
 	    VStringParameter parameterTriggerConditions =  (VStringParameter)prescaleTable.get(i).module.parameter("triggerConditions");
 	    parameterTriggerConditions.setValue("");
 	    for(int j=0;j<prescaleTable.get(i).prescaleConditionCount();j++){
-		if(!prescaleTable.get(i).prescaleCondition(j).equals(""))
-		    parameterTriggerConditions.addValue(prescaleTable.get(i).prescaleCondition(j));
+		String condition = prescaleTable.get(i).prescaleCondition(j);
+		if(!condition.equals("")) {
+		    if ( (!prescaleTable.get(i).simple(j))
+			 || (prescaleTable.get(i).prescale(j) != 0)
+			 || (condition.substring(0,2).equals("L1")) ) {
+			parameterTriggerConditions.addValue(prescaleTable.get(i).prescaleCondition(j));
+		    }
+		}
 	    }
 	}
     }

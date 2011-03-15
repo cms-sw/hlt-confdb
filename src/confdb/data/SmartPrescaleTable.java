@@ -49,7 +49,7 @@ public class SmartPrescaleTable
     /** number of prescaled paths */
     public int prescaleConditionCount() { return rows.size(); }
 
-    /** get i-th path name */
+    /** get i-th trigger condition */
     public String  prescaleCondition(int i)
     {
 	return rows.get(i).triggerCondition;
@@ -93,10 +93,12 @@ public class SmartPrescaleTable
 		if(path!=null)
 		    return path;
 	    }
+	    return null;
 	}else{
+	    Path path = config.path(strPath);
+	    if ((path==null)||(path.isSetAsEndPath())) return null;
 	    return config.path(strPath);
 	}
-	return null;
     }
     
     /**provide list of associated streams */
@@ -150,6 +152,9 @@ public class SmartPrescaleTable
 	    return;
 	}
 
+	HashMap<String,SmartPrescaleTableRow> pathToRow =
+	    new HashMap<String,SmartPrescaleTableRow>();
+
 	for(int i=0;i<parameterTriggerConditions.vectorSize();i++){
 	    String trgCondition = (String)parameterTriggerConditions.value(i);
 	    String strCondition = SmartPrescaleTable.regularise(trgCondition);
@@ -181,11 +186,31 @@ public class SmartPrescaleTable
 		parameterTriggerConditions.setValue(i,strCondition);
 	    }
 	    if (!strCondition.equals("")) {
-		rows.add(new SmartPrescaleTableRow(strCondition));   
+		SmartPrescaleTableRow row 
+		    = new SmartPrescaleTableRow(strCondition);
+		if (row.simple() && (checkPathExists(row.pathName) != null)) {
+		    pathToRow.put(row.pathName,row);
+		} else {
+		    rows.add(new SmartPrescaleTableRow(strCondition));   
+		}
 	    }
 	}
 	// remove empty conditions
 	if (module.squeeze()) module.setHasChanged();	
+
+	Iterator<Path> itP = config.pathIterator();
+	while (itP.hasNext()) {
+	    Path path = itP.next();
+	    SmartPrescaleTableRow row = pathToRow.remove(path.name());
+	    if (row==null) {
+		if (checkPathExists(path.name()) != null) {
+		    rows.add(new SmartPrescaleTableRow(path.name(), new Long(0)));
+		}
+	    } else {
+		rows.add(row);
+	    }
+	}
+
     }
 
     public static String regularise(String input) {
@@ -222,6 +247,13 @@ public class SmartPrescaleTable
 	return work;
     }
 
+    public boolean simple(int row) {
+	return rows.get(row).simple();
+    }
+
+    public Long prescale(int row) {
+	return rows.get(row).prescale;
+    }
 }
 
 
@@ -231,8 +263,54 @@ public class SmartPrescaleTable
 class SmartPrescaleTableRow
 {
     public String triggerCondition;
+    public String pathName;
+    public Long   prescale;
+
     public SmartPrescaleTableRow(String triggerCondition)
     {
-	this.triggerCondition = triggerCondition;
+	this.pathName = null;
+	this.prescale = null;
+	this.triggerCondition = SmartPrescaleTable.regularise(triggerCondition);
+	//
+	if (this.triggerCondition.indexOf(" ")==-1) {
+	    this.pathName = this.triggerCondition;
+	    this.prescale = new Long(1);
+	} else if (this.triggerCondition.indexOf(" / ")==-1) {
+	    this.pathName = null;
+	    this.prescale = null;
+	} else {
+	    int index   = this.triggerCondition.indexOf(" / ");
+	    String path = SmartPrescaleTable.regularise(this.triggerCondition.substring(0,index));
+	    String pres = SmartPrescaleTable.regularise(this.triggerCondition.substring(index+3));
+	    if ( (path.indexOf(" ")>=0) || (pres.indexOf(" ")>=0) ) {
+		this.pathName = null;
+		this.prescale = null;
+	    } else {
+		try {
+		    this.pathName = path;
+		    this.prescale = Long.parseLong(pres);
+		}catch (NumberFormatException e) {
+		    this.pathName = null;
+		    this.prescale = null;
+		}
+	    }
+	}
     }
+
+    public SmartPrescaleTableRow(String pathName, Long prescale)
+    {
+	this.pathName = SmartPrescaleTable.regularise(pathName);
+	this.prescale = prescale;
+	if (prescale==1) {
+	    this.triggerCondition = pathName;
+	} else {
+	    this.triggerCondition = pathName+" / "+prescale;
+	}	    
+    }
+
+    public boolean simple()
+    {
+	return ((pathName!=null) && (prescale!=null));
+    }
+
 }
