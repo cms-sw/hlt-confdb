@@ -251,6 +251,9 @@ public class SmartPrescaleTable
 	return rows.get(row).simple();
     }
 
+    public String pathName(int row) {
+	return rows.get(row).pathName;
+    }
     public Long prescale(int row) {
 	return rows.get(row).prescale;
     }

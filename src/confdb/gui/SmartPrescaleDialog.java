@@ -40,10 +40,10 @@ public class SmartPrescaleDialog extends JDialog
     private JTable     jTable           = new javax.swing.JTable();
     private DefaultComboBoxModel cmbModule;
     
-    /** model for the prescale table */
-    private SmartPrescaleTableModel tableModel;
+    /** model for the smart prescale table */
+    private SmartPrescaleTableModel smartTableModel;
 
-    private ArrayList<SmartPrescaleTable> prescaleTable;
+    private ArrayList<SmartPrescaleTable> smartPrescaleTable;
 
     /** index of the selected column */
     private int iRow = 0;
@@ -65,13 +65,13 @@ public class SmartPrescaleDialog extends JDialog
 	cmbModule.removeAllElements();
       
 	
-	prescaleTable= new ArrayList<SmartPrescaleTable>();
+	smartPrescaleTable= new ArrayList<SmartPrescaleTable>();
 	Iterator<ModuleInstance> itM = config.moduleIterator();
 	while (itM.hasNext()) {
 	    ModuleInstance moduleT = itM.next();
 	    if(moduleT.template().name().equals("TriggerResultsFilter")){
 		cmbModule.addElement(moduleT.name());
-		prescaleTable.add(new SmartPrescaleTable(config,moduleT));
+		smartPrescaleTable.add(new SmartPrescaleTable(config,moduleT));
 	    }
 	}
 
@@ -85,10 +85,11 @@ public class SmartPrescaleDialog extends JDialog
 	    });
 					   
 	
-	tableModel = new SmartPrescaleTableModel();
-	tableModel.initialize(config,module,prescaleTable.get(0));
-	jTable.setModel(tableModel);
-	jTable.setDefaultRenderer(String.class,new SmartPrescaleTableCellRenderer());
+	smartTableModel = new SmartPrescaleTableModel();
+	smartTableModel.initialize(config,module,smartPrescaleTable.get(0));
+	jTable.setModel(smartTableModel);
+	jTable.setDefaultRenderer(String.class, new SmartPrescaleTableCellRenderer());
+	jTable.setDefaultRenderer(Integer.class,new SmartPrescaleTableCellRenderer());
 	jTextFieldHLT.setText(config.toString());
 	
 	jButtonCancel.addActionListener(new ActionListener() {
@@ -155,9 +156,9 @@ public class SmartPrescaleDialog extends JDialog
 	menuItemAdd.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae)
 		{
-		    tableModel.addRow(iRow+1, //+1 for insert after
-					 JOptionPane
-					 .showInputDialog("Enter the condition: "));
+		    smartTableModel.addRow(iRow+1, //+1 for insert after
+					   JOptionPane
+					   .showInputDialog("Enter the condition: "));
 		}
 	    });
 	popup.add(menuItemAdd);
@@ -166,7 +167,7 @@ public class SmartPrescaleDialog extends JDialog
 	menuItemRemove.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae)
 		{
-		    tableModel.removeRow(iRow);
+		    smartTableModel.removeRow(iRow);
 		}
 	    });
 	popup.add(menuItemRemove);
@@ -183,8 +184,8 @@ public class SmartPrescaleDialog extends JDialog
     private void updateMainPanel(){
 	module=config.module((String)jComboBoxModule.getSelectedItem());
 	int i =jComboBoxModule.getSelectedIndex();
-	System.out.println(module.name()+ " "+prescaleTable.get(i).module.name()+" "+i);
-	tableModel.updateSmartPrescaleWindow(module,prescaleTable.get(i));
+	System.out.println(module.name()+ " "+smartPrescaleTable.get(i).module.name()+" "+i);
+	smartTableModel.updateSmartPrescaleWindow(module,smartPrescaleTable.get(i));
     }
 
 
@@ -192,16 +193,16 @@ public class SmartPrescaleDialog extends JDialog
     /** update the SmartPrescaleService in configuration according to table data Apply changes*/
     public void applySmartPrescale()
     {
-	for(int i=0;i<prescaleTable.size();i++){
-	    VStringParameter parameterTriggerConditions =  (VStringParameter)prescaleTable.get(i).module.parameter("triggerConditions");
+	for(int i=0;i<smartPrescaleTable.size();i++){
+	    VStringParameter parameterTriggerConditions =  (VStringParameter)smartPrescaleTable.get(i).module.parameter("triggerConditions");
 	    parameterTriggerConditions.setValue("");
-	    for(int j=0;j<prescaleTable.get(i).prescaleConditionCount();j++){
-		String condition = prescaleTable.get(i).prescaleCondition(j);
+	    for(int j=0;j<smartPrescaleTable.get(i).prescaleConditionCount();j++){
+		String condition = smartPrescaleTable.get(i).prescaleCondition(j);
 		if(!condition.equals("")) {
-		    if ( (!prescaleTable.get(i).simple(j))
-			 || (prescaleTable.get(i).prescale(j) != 0)
+		    if ( (!smartPrescaleTable.get(i).simple(j))
+			 || (smartPrescaleTable.get(i).prescale(j) != 0)
 			 || (condition.substring(0,2).equals("L1")) ) {
-			parameterTriggerConditions.addValue(prescaleTable.get(i).prescaleCondition(j));
+			parameterTriggerConditions.addValue(smartPrescaleTable.get(i).prescaleCondition(j));
 		    }
 		}
 	    }
@@ -291,25 +292,28 @@ public class SmartPrescaleDialog extends JDialog
 class SmartPrescaleTableModel extends AbstractTableModel
 {
     /** the presacale table data structure */
-    private SmartPrescaleTable prescaleTable;
+    private PrescaleTable prescaleTable;
+    private SmartPrescaleTable smartPrescaleTable;
     private IConfiguration config;
     private ModuleInstance module;
 
     /** update the table model according to configuration's SmartPrescaleService */
-    public void initialize(IConfiguration config,ModuleInstance module,SmartPrescaleTable prescaleTable)
+    public void initialize(IConfiguration config,ModuleInstance module,SmartPrescaleTable smartPrescaleTable)
     {
 	this.config = config;
 	this.module = module;
-	this.prescaleTable = prescaleTable;
+	prescaleTable = new PrescaleTable(config);
+	this.smartPrescaleTable = smartPrescaleTable;
 	fireTableStructureChanged();
 	fireTableDataChanged();
     }
 
     /** update the SmartPrescale Window */
-    public void updateSmartPrescaleWindow(ModuleInstance module,SmartPrescaleTable prescaleTable)
+    public void updateSmartPrescaleWindow(ModuleInstance module,SmartPrescaleTable smartPrescaleTable)
     {
 	this.module = module;
-	this.prescaleTable = prescaleTable;
+	this.smartPrescaleTable = smartPrescaleTable;
+	prescaleTable = new PrescaleTable(config);
 	fireTableStructureChanged();
 	fireTableDataChanged();
     }
@@ -317,27 +321,42 @@ class SmartPrescaleTableModel extends AbstractTableModel
 
     
     /** number of rows */
-    public int getRowCount() { return prescaleTable.prescaleConditionCount(); }
+    public int getRowCount() { return smartPrescaleTable.prescaleConditionCount(); }
     
-    public int getColumnCount() { return 1; }
+    public int getColumnCount() { return prescaleTable.prescaleCount()+2; }
     
     /** get column name for colimn 'col' */
     public String getColumnName(int col) {
-	ArrayList<Stream> streams = prescaleTable.associatedStreams();
-	String work = streams.size() +  " associated stream";
-	if (streams.size()!=1) work  += "s";
-	if (streams.size()> 0) work  += ":";
-	for (int i=0; i<streams.size(); ++i) work += " "+streams.get(i).name();
-	return work;
+	if (col==0) {
+	    ArrayList<Stream> streams = smartPrescaleTable.associatedStreams();
+	    String work;
+	    if (streams.size()==0) {
+		work="No stream";
+	    } else if (streams.size()==1) {
+		work="Stream: "+streams.get(0).name();
+	    } else {
+		work="Streams: "+streams.get(0).name();
+		for (int i=1; i<streams.size(); ++i) work += ","+streams.get(i).name();
+	    }
+	    return work;
+	} else if (col==1) {
+	    return "SMART";
+	} else {
+	    return prescaleTable.prescaleColumnName(col-2);
+	}
     }
    
     /** is a cell editable or not? */
-    public boolean isCellEditable(int row, int col) { return col>=0; }
+    public boolean isCellEditable(int row, int col) { return col==0; }
     
     /** get the class of the column 'c' */
     public Class getColumnClass(int c)
     {
-	return String.class;
+	if (c==0) {
+	    return String.class;
+	} else {
+	    return Integer.class;
+	}
     }
 
     /** set the value of a table cell */
@@ -360,7 +379,7 @@ class SmartPrescaleTableModel extends AbstractTableModel
 	    if ( (g<0)
 		 && (!strPath.equals("FALSE"))
 		 && (!strPath.substring(0,2).equals("L1"))
-		 && (prescaleTable.checkPathExists(strPath)==null) ) {
+		 && (smartPrescaleTable.checkPathExists(strPath)==null) ) {
 		return;
 	    }
 	}
@@ -369,7 +388,7 @@ class SmartPrescaleTableModel extends AbstractTableModel
 	strCondition = SmartPrescaleTable.simplify(strCondition);
 
 	if (!strCondition.equals("")) {
-	    prescaleTable.modRow(row,strCondition);
+	    smartPrescaleTable.modRow(row,strCondition);
 	}
     }
     
@@ -377,15 +396,35 @@ class SmartPrescaleTableModel extends AbstractTableModel
     /** check if a certain path is already in the list of rows */
     private boolean rowsContainPath(String pathName)
     {
-	for (int iPath=0;iPath<prescaleTable.prescaleConditionCount();iPath++)
-	    if (pathName.equals(prescaleTable.prescaleCondition(iPath))) return true;
+	for (int iPath=0;iPath<smartPrescaleTable.prescaleConditionCount();iPath++)
+	    if (smartPrescaleTable.prescaleCondition(iPath).indexOf(pathName)>=0) return true;
 	return false;
     }
 
     /** get the value for row,col */
     public Object getValueAt(int row, int col)
     {
-	return  prescaleTable.prescaleCondition(row);
+	if (col==0) {
+	    return smartPrescaleTable.prescaleCondition(row);
+	} else if (col==1) {
+	    if (smartPrescaleTable.simple(row)) {
+		return smartPrescaleTable.prescale(row);
+	    } else {
+		return new Long(-1);
+	    }
+	} else {
+	    if (smartPrescaleTable.simple(row)) {
+		String pathName=smartPrescaleTable.pathName(row);
+		if (smartPrescaleTable.checkPathExists(pathName)!=null) {
+		    return smartPrescaleTable.prescale(row)
+			*prescaleTable.prescales(pathName).get(col-2);
+		} else {
+		    return new Long(-1);
+		}
+	    } else {
+		return new Long(-1);
+	    }
+	}
     }
 
     /** add an additional row  */
@@ -408,7 +447,7 @@ class SmartPrescaleTableModel extends AbstractTableModel
 	    if ( (g<0)
 		 && (!strPath.equals("FALSE"))
 		 && (!strPath.substring(0,2).equals("L1"))
-		 && (prescaleTable.checkPathExists(strPath)==null) ) {
+		 && (smartPrescaleTable.checkPathExists(strPath)==null) ) {
 		return;
 	    }
 	}
@@ -417,7 +456,7 @@ class SmartPrescaleTableModel extends AbstractTableModel
 	strCondition = SmartPrescaleTable.simplify(strCondition);
 
 	if (!strCondition.equals("")) {
-	    prescaleTable.addRow(i,strCondition);
+	    smartPrescaleTable.addRow(i,strCondition);
 	    fireTableStructureChanged();
 	}
     }
@@ -425,7 +464,7 @@ class SmartPrescaleTableModel extends AbstractTableModel
    /** remove row  */
     public void removeRow(int i)
     {
-	prescaleTable.removeRow(i);
+	smartPrescaleTable.removeRow(i);
 	fireTableStructureChanged();
     }
     
@@ -450,7 +489,8 @@ class SmartPrescaleTableCellRenderer extends DefaultTableCellRenderer
 	    long valueAsLong = (Long)value;
 	    if (valueAsLong==0) setBackground(Color.RED);
 	    else if (valueAsLong==1) setBackground(Color.GREEN);
-	    else setBackground(Color.ORANGE);
+	    else if (valueAsLong >1) setBackground(Color.ORANGE);
+	    else setBackground(Color.BLUE);
 	} else if (value instanceof String) {
 	    String valueAsString=(String)value;
 	    if (valueAsString.indexOf("/")==-1) {
