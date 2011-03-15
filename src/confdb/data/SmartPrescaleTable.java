@@ -19,11 +19,11 @@ public class SmartPrescaleTable
     // member data
     //
     
-
     /** prescale table rows */
     private ArrayList<SmartPrescaleTableRow> rows=new ArrayList<SmartPrescaleTableRow>();
     private ArrayList<Stream> streams=new ArrayList<Stream>();
-    public ModuleInstance module;
+    private boolean hasAccessToTriggerResults;
+    public  ModuleInstance module;
     private IConfiguration config;
     
     //
@@ -94,10 +94,12 @@ public class SmartPrescaleTable
 		    return path;
 	    }
 	    return null;
-	}else{
+	} else if (hasAccessToTriggerResults) {
 	    Path path = config.path(strPath);
 	    if ((path==null)||(path.isSetAsEndPath())) return null;
 	    return config.path(strPath);
+	} else {
+	    return null;
 	}
     }
     
@@ -128,16 +130,24 @@ public class SmartPrescaleTable
 	
 	Path[] paths = module.parentPaths();
 	
+	hasAccessToTriggerResults = false;
+
 	for (Path p : paths){
-	    if(p.isEndPath()&&p.hasOutputModule()){		
-		Iterator<OutputModule> outputIterator = p.outputIterator();
-		while(outputIterator.hasNext()){
-		    OutputModule outputModule = outputIterator.next(); 
-		    Stream stream = outputModule.parentStream();
-		    streams.add(stream);
+	    if (p.isSetAsEndPath()) {
+		hasAccessToTriggerResults=true;
+		if(p.hasOutputModule()){		
+		    Iterator<OutputModule> outputIterator = p.outputIterator();
+		    while(outputIterator.hasNext()){
+			OutputModule outputModule = outputIterator.next(); 
+			Stream stream = outputModule.parentStream();
+			streams.add(stream);
+		    }
 		}
 	    }
 	}
+	
+	if (((InputTagParameter)module.parameter("hltResults")).valueAsString().length()<=2) hasAccessToTriggerResults = false;
+
 	update();
     }
 
