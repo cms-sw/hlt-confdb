@@ -87,20 +87,22 @@ public class SmartPrescaleTable
 
     /**check path in the streams **/
     public Path checkPathExists(String strPath){
-	if(streams.size()>0){
-	    for(int j=0;j<streams.size();j++){
-		Path path =streams.get(j).path(strPath);
-		if(path!=null)
-		    return path;
+	if (hasAccessToTriggerResults) {
+	    if (streams.size()>0) {
+		for (int j=0;j<streams.size();j++) {
+		    Path path =streams.get(j).path(strPath);
+		    if (path!=null) return path;
+		}
+		return null;
+	    } else  {
+		Path path = config.path(strPath);
+		if ((path==null)||(path.isSetAsEndPath())) return null;
+		return config.path(strPath);
 	    }
-	    return null;
-	} else if (hasAccessToTriggerResults) {
-	    Path path = config.path(strPath);
-	    if ((path==null)||(path.isSetAsEndPath())) return null;
-	    return config.path(strPath);
 	} else {
 	    return null;
 	}
+
     }
     
     /**provide list of associated streams */
@@ -145,7 +147,7 @@ public class SmartPrescaleTable
 		}
 	    }
 	}
-	
+
 	if (((InputTagParameter)module.parameter("hltResults")).valueAsString().length()<=2) hasAccessToTriggerResults = false;
 
 	update();
