@@ -22,7 +22,8 @@ public class SmartPrescaleTable
     /** prescale table rows */
     private ArrayList<SmartPrescaleTableRow> rows=new ArrayList<SmartPrescaleTableRow>();
     private ArrayList<Stream> streams=new ArrayList<Stream>();
-    private boolean hasAccessToTriggerResults;
+    private boolean hasAccessToL1TResults;
+    private boolean hasAccessToHLTResults;
     public  ModuleInstance module;
     private IConfiguration config;
     
@@ -86,23 +87,25 @@ public class SmartPrescaleTable
     }
 
     /**check path in the streams **/
-    public Path checkPathExists(String strPath){
-	if (hasAccessToTriggerResults) {
+    public boolean checkHLTPathExists(String strPath){
+	Path path=null;
+	if (hasAccessToHLTResults) {
 	    if (streams.size()>0) {
 		for (int j=0;j<streams.size();j++) {
-		    Path path =streams.get(j).path(strPath);
-		    if (path!=null) return path;
+		    path = streams.get(j).path(strPath);
+		    if (path!=null) break;
 		}
-		return null;
 	    } else  {
-		Path path = config.path(strPath);
-		if ((path==null)||(path.isSetAsEndPath())) return null;
-		return config.path(strPath);
+		path = config.path(strPath);
+		if ((path!=null)&&(path.isSetAsEndPath())) path = null;
 	    }
-	} else {
-	    return null;
 	}
-
+	return (path!=null);
+    }
+    
+    /**check l1 **/
+    public boolean checkL1TCondExists(String strCond){
+	return ((hasAccessToL1TResults) && strCond.substring(0,2).equals("L1"));
     }
     
     /**provide list of associated streams */
@@ -132,11 +135,11 @@ public class SmartPrescaleTable
 	
 	Path[] paths = module.parentPaths();
 	
-	hasAccessToTriggerResults = false;
+	hasAccessToHLTResults = false;
 
 	for (Path p : paths){
 	    if (p.isSetAsEndPath()) {
-		hasAccessToTriggerResults=true;
+		hasAccessToHLTResults=true;
 		if(p.hasOutputModule()){		
 		    Iterator<OutputModule> outputIterator = p.outputIterator();
 		    while(outputIterator.hasNext()){
@@ -148,7 +151,9 @@ public class SmartPrescaleTable
 	    }
 	}
 
-	if (((InputTagParameter)module.parameter("hltResults")).valueAsString().length()<=2) hasAccessToTriggerResults = false;
+	if (((InputTagParameter)module.parameter("hltResults")).valueAsString().length()<=2) hasAccessToHLTResults = false;
+
+	hasAccessToL1TResults = (((InputTagParameter)module.parameter("l1tResults")).valueAsString().length()>2);
 
 	update();
     }
@@ -182,10 +187,9 @@ public class SmartPrescaleTable
 		}catch (NumberFormatException e) { 
 		    g = -10000;
 		}
-		if ( (g<0)
-		     && (!strPath.equals("FALSE"))
-		     && (!strPath.substring(0,2).equals("L1"))
-		     && (checkPathExists(strPath)==null) ) {
+		if ( (g<0) && (!strPath.equals("FALSE"))
+		     && (!checkL1TCondExists(strPath))
+		     && (!checkHLTPathExists(strPath)) ) {
 		    strCondition = strCondition.replaceAll(strPath,"FALSE");
 		}
 	    }
@@ -200,7 +204,7 @@ public class SmartPrescaleTable
 	    if (!strCondition.equals("")) {
 		SmartPrescaleTableRow row 
 		    = new SmartPrescaleTableRow(strCondition);
-		if (row.simple() && (checkPathExists(row.pathName) != null)) {
+		if (row.simple() && (checkHLTPathExists(row.pathName))) {
 		    pathToRow.put(row.pathName,row);
 		} else {
 		    rows.add(new SmartPrescaleTableRow(strCondition));   
@@ -215,13 +219,15 @@ public class SmartPrescaleTable
 	    Path path = itP.next();
 	    SmartPrescaleTableRow row = pathToRow.remove(path.name());
 	    if (row==null) {
-		if (checkPathExists(path.name()) != null) {
+		if (checkHLTPathExists(path.name())) {
 		    rows.add(new SmartPrescaleTableRow(path.name(), new Long(0)));
 		}
 	    } else {
 		rows.add(row);
 	    }
 	}
+
+	if (rows.size()==0) rows.add(new SmartPrescaleTableRow("")); 
 
     }
 

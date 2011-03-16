@@ -200,8 +200,7 @@ public class SmartPrescaleDialog extends JDialog
 		String condition = smartPrescaleTable.get(i).prescaleCondition(j);
 		if(!condition.equals("")) {
 		    if ( (!smartPrescaleTable.get(i).simple(j))
-			 || (smartPrescaleTable.get(i).prescale(j) != 0)
-			 || (condition.substring(0,2).equals("L1")) ) {
+			 || (smartPrescaleTable.get(i).prescale(j) != 0) ) {
 			parameterTriggerConditions.addValue(smartPrescaleTable.get(i).prescaleCondition(j));
 		    }
 		}
@@ -378,8 +377,8 @@ class SmartPrescaleTableModel extends AbstractTableModel
 	    }
 	    if ( (g<0)
 		 && (!strPath.equals("FALSE"))
-		 && (!strPath.substring(0,2).equals("L1"))
-		 && (smartPrescaleTable.checkPathExists(strPath)==null) ) {
+		 && (!smartPrescaleTable.checkL1TCondExists(strPath))
+		 && (!smartPrescaleTable.checkHLTPathExists(strPath)) ) {
 		return;
 	    }
 	}
@@ -415,7 +414,7 @@ class SmartPrescaleTableModel extends AbstractTableModel
 	} else {
 	    if (smartPrescaleTable.simple(row)) {
 		String pathName=smartPrescaleTable.pathName(row);
-		if (smartPrescaleTable.checkPathExists(pathName)!=null) {
+		if (smartPrescaleTable.checkHLTPathExists(pathName)) {
 		    return smartPrescaleTable.prescale(row)
 			*prescaleTable.prescales(pathName).get(col-2);
 		} else {
@@ -446,8 +445,8 @@ class SmartPrescaleTableModel extends AbstractTableModel
 	    }
 	    if ( (g<0)
 		 && (!strPath.equals("FALSE"))
-		 && (!strPath.substring(0,2).equals("L1"))
-		 && (smartPrescaleTable.checkPathExists(strPath)==null) ) {
+		 && (!smartPrescaleTable.checkL1TCondExists(strPath))
+		 && (!smartPrescaleTable.checkHLTPathExists(strPath)) ) {
 		return;
 	    }
 	}
