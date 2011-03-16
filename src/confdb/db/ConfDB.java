@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.io.*;
 
 import confdb.data.*;
+import java.math.BigInteger;
 
 
 /**
@@ -5530,13 +5531,18 @@ public class ConfDB
 		for (int i=0;i<vp.vectorSize();i++) {
 		    psInsertParameterValue.setInt(1,paramId);
 		    psInsertParameterValue.setInt(2,i);
+
 		    if (vp instanceof VStringParameter) {
 			String value = "\"" + (String)vp.value(i) + "\"";
 			psInsertParameterValue.setString(3,value);
 		    }
+		    else if (vp instanceof VUInt64Parameter) {
+			psInsertParameterValue.setObject(3,((BigInteger)vp.value(i)).longValue());
+		    }
 		    else {
 			psInsertParameterValue.setObject(3,vp.value(i));
 		    }
+
 		    if (vp instanceof VInt32Parameter) {
 			VInt32Parameter vint32=(VInt32Parameter)vp;
 			psInsertParameterValue.setBoolean(4,vint32.isHex(i));
@@ -5559,15 +5565,22 @@ public class ConfDB
 	    else {
 		ScalarParameter sp = (ScalarParameter)parameter;
 		psInsertParameterValue.setInt(1,paramId);
+
 		if (sp instanceof StringParameter) {
 		    StringParameter string = (StringParameter)sp;
 		    psInsertParameterValue.setString(2,string.valueAsString());
-		}else if (sp instanceof FileInPathParameter) {
+		}
+		else if (sp instanceof FileInPathParameter) {
 		    FileInPathParameter fileInPathParameter = (FileInPathParameter)sp;
 		    psInsertParameterValue.setString(2,fileInPathParameter.valueAsString());
-		}else{
+		}
+		else if (sp instanceof UInt64Parameter) {
+		    psInsertParameterValue.setObject(2,((BigInteger)sp.value()).longValue());
+		}
+		else{
 		    psInsertParameterValue.setObject(2,sp.value());
 		}
+
 		if (sp instanceof Int32Parameter) {
 		    Int32Parameter int32=(Int32Parameter)sp;
 		    psInsertParameterValue.setBoolean(3,int32.isHex());

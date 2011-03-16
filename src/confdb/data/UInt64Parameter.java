@@ -1,11 +1,16 @@
 package confdb.data;
 
+import java.math.BigInteger;
+
 /**
  * UInt64Parameter
  * ---------------
  * @author Philipp Schieferdecker
  *
  * parameter base class for scalar parameters of type uint64.
+ *
+ * java's long is signed, so need to use BigInteger
+ *
  */
 public class UInt64Parameter extends ScalarParameter
 {
@@ -17,7 +22,7 @@ public class UInt64Parameter extends ScalarParameter
     private static final String type = "uint64";
     
     /** parameter values */
-    private Long value = null;
+    private BigInteger value = null;
          
     /** flag to indicate that this integer is given in hex format */
     private boolean isHex = false;
@@ -32,7 +37,13 @@ public class UInt64Parameter extends ScalarParameter
     {
 	super(name,isTracked);
 	isValueSet = (value!=null);
-	if (isValueSet)	this.value = new Long(value.longValue());
+	if (isValueSet)	this.value = new BigInteger(Long.toHexString(value),16);
+    }
+    public UInt64Parameter(String name,BigInteger value,boolean isTracked)
+    {
+	super(name,isTracked);
+	isValueSet = (value!=null);
+	if (isValueSet)	this.value = value.abs().mod((BigInteger.ONE.add(BigInteger.ONE)).pow(64));;
     }
     
     /** constructor from string */
@@ -67,39 +78,45 @@ public class UInt64Parameter extends ScalarParameter
     public String valueAsString()
     {
 	if (!isValueSet) return new String();
-	return (isHex) ? "0x"+Long.toHexString(value) : value.toString();
+	return (isHex) ? "0x"+value.toString(16) : value.toString();
     }
 
     /** set the value  the parameter, indicate if default */
     public boolean setValue(String valueAsString)
     {
-	if (valueAsString==null||valueAsString.length()==0) {
-	    isValueSet = false;
-	    value      = null;
-	}
-	else {
-	    if (valueAsString.startsWith("+"))
-		valueAsString = valueAsString.substring(1);
+	isValueSet = false;
+	value      = null;
+	
+	if (valueAsString==null) return true;
+	valueAsString=valueAsString.replace(" ","");
+	if (valueAsString.length()==0) return true;
+
+	if (valueAsString.startsWith("+"))
+	    valueAsString = valueAsString.substring(1);
+	if (valueAsString.startsWith("-"))
+	    valueAsString = valueAsString.substring(1);
 	    
-	    isHex = false;
-	    if (valueAsString.startsWith("0x")) {
-		isHex = true;
-		valueAsString = valueAsString.substring(2);
-	    }
-	    
-	    try {
-		this.value = (isHex) ?
-		    new Long(Long.parseLong(valueAsString,16)) :
-		    new Long(valueAsString);
-		isValueSet = true;
-	    }
-	    catch (NumberFormatException e) {
-		System.err.println("UInt64Parameter.setValue " +
-				   "NumberFormatException: "+
-				   e.getMessage());
-		return false;
-	    }
+	isHex = false;
+	if (valueAsString.startsWith("0x")) {
+	    isHex = true;
+	    valueAsString = valueAsString.substring(2);
 	}
+
+	try {
+	    this.value = (isHex) ?
+		new BigInteger(valueAsString,16) :
+		new BigInteger(valueAsString);
+	    isValueSet = true;
+	}
+	catch (NumberFormatException e) {
+	    System.err.println("UInt64Parameter.setValue " +
+			       "NumberFormatException: "+
+			       e.getMessage());
+	    return false;
+	}
+
+	value=value.abs().mod((BigInteger.ONE.add(BigInteger.ONE)).pow(64));
+
 	return true;
     }
 

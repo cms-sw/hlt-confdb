@@ -1,5 +1,6 @@
 package confdb.data;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 
 
@@ -9,6 +10,9 @@ import java.util.ArrayList;
  * @author Philipp Schieferdecker
  *
  * for parameters of type vector<uint64>.
+ *
+ * java's long is signed, so need to use BigInteger
+ *
  */
 public class VUInt64Parameter extends VectorParameter
 {
@@ -20,7 +24,7 @@ public class VUInt64Parameter extends VectorParameter
     private static final String type = "vuint64";
 
     /** parameter values */
-    private ArrayList<Long> values = new ArrayList<Long>();
+    private ArrayList<BigInteger> values = new ArrayList<BigInteger>();
     
     /** inidcate if values are in hex format */
     private ArrayList<Boolean> isHex  = new ArrayList<Boolean>();
@@ -31,17 +35,31 @@ public class VUInt64Parameter extends VectorParameter
     //
     
     /** standard constructor */
+
     public VUInt64Parameter(String name,ArrayList<Long> values,
 			    boolean isTracked)
     {
 	super(name,isTracked);
 	for (Long i : values) {
-	    this.values.add(new Long(i));
+	    this.values.add(new BigInteger(Long.toHexString(i),16));
 	    this.isHex.add(new Boolean(false));
 	}
 	isValueSet = (values.size()>0);
     }
-    
+
+    /* need to avoid "have the same erasure"
+    public VUInt64Parameter(String name,ArrayList<BigInteger> values,
+			    boolean isTracked)
+    {
+	super(name,isTracked);
+	for (BigInteger i : values) {
+	    this.values.add(i.abs().mod((BigInteger.ONE.add(BigInteger.ONE)).pow(64)));
+	    this.isHex.add(new Boolean(false));
+	}
+	isValueSet = (values.size()>0);
+    }
+    */
+
     /** constructor from a string */
     public VUInt64Parameter(String name,String valuesAsString,boolean isTracked)
     {
@@ -57,7 +75,12 @@ public class VUInt64Parameter extends VectorParameter
     /** make a clone of the parameter */
     public Parameter clone(Object parent)
     {
-	VUInt64Parameter result = new VUInt64Parameter(name,values,isTracked);
+	ArrayList<Long> temp = new ArrayList<Long>();
+	for (int i=0;i<values.size();i++) {
+	    temp.add(values.get(i).longValue());
+	}
+
+	VUInt64Parameter result = new VUInt64Parameter(name,temp,isTracked);
 	result.setParent(parent);
 	return result;
     }
@@ -75,7 +98,7 @@ public class VUInt64Parameter extends VectorParameter
 	if (isValueSet) {
 	    for (int i=0;i<values.size();i++) {
 		result += (isHex.get(i)) ?
-		    "0x"+Long.toHexString(values.get(i)) :
+		    "0x"+values.get(i).toString(16) :
 		    values.get(i).toString();
 		result += ", ";
 	    }
@@ -87,31 +110,31 @@ public class VUInt64Parameter extends VectorParameter
     /** set the parameter values from string */
     public boolean setValue(String valueAsString)
     {
+	isValueSet = false;
 	values.clear();
 	isHex.clear();
-	if (valueAsString==null||valueAsString.length()==0) {
-	    isValueSet = false;
-	}
-	else {
+
+	if (valueAsString==null) return true;
+	valueAsString=valueAsString.replace(" ","");
+	if (valueAsString.length()==0) return true;
+
+	boolean ishex;
+	String[] strValues = valueAsString.split(",");
+	for (int i=0;i<strValues.length;i++) {
+	    String value = strValues[i].replace(" ","");
+	    if (value.startsWith("+")) value = value.substring(1,value.length());
+	    if (value.startsWith("-")) value = value.substring(1,value.length());
+	    ishex = false;
+	    if (value.startsWith("0x")) {
+		ishex = true;
+		value = value.substring(2);
+	    }
+
+	    BigInteger big;
 	    try {
-		String[] strValues = valueAsString.split(",");
-		for (int i=0;i<strValues.length;i++) {
-		    String s = strValues[i];
-		    while (s.startsWith(" ")) s = s.substring(1,s.length());
-		    while (s.endsWith(" ")) s = s.substring(0,s.length()-1);
-		    if (s.startsWith("+")) s = s.substring(1);
-		    if (s.startsWith("-")) s = s.substring(1);
-		    if (s.startsWith("0x")) {
-			s = s.substring(2);
-			this.values.add(new Long(Long.parseLong(s,16)));
-			this.isHex.add(new Boolean(true));
-		    }
-		    else {
-			this.values.add(new Long(s));
-			this.isHex.add(new Boolean(false));
-		    }
-		}
-		isValueSet = true;
+		big = (ishex) ?
+		    new BigInteger(value,16) :
+		    new BigInteger(value);
 	    }
 	    catch (NumberFormatException e) {
 		System.err.println("VUInt64Parameter.setValue " +
@@ -119,6 +142,10 @@ public class VUInt64Parameter extends VectorParameter
 				   e.getMessage());
 		return false;
 	    }
+
+	    big = big.abs().mod((BigInteger.ONE.add(BigInteger.ONE)).pow(64));
+	    this.values.add(big);
+	    this.isHex.add(ishex);
 	}
     	return true;
     }
@@ -132,23 +159,38 @@ public class VUInt64Parameter extends VectorParameter
     /** set i-th value of a vector-type parameter */
     public boolean setValue(int i,String valueAsString)
     {
+	if (valueAsString==null) return true;
+	valueAsString=valueAsString.replace(" ","");
+	if (valueAsString.length()==0) return true;
+
+	if (valueAsString.startsWith("+"))
+	    valueAsString = valueAsString.substring(1);
+	if (valueAsString.startsWith("-"))
+	    valueAsString = valueAsString.substring(1);
+
+	boolean ishex=false;
+	if (valueAsString.startsWith("0x")) {
+	    ishex = true;
+	    valueAsString = valueAsString.substring(2);
+	}
+
+	BigInteger big;
 	try {
-	    String s = valueAsString;
-	    if (s.startsWith("+")) s = s.substring(1);
-	    if (s.startsWith("0x")) {
-		s = s.substring(2);
-		values.set(i,new Long(Long.parseLong(s,16)));
-		isHex.set(i,new Boolean(true));
-	    }
-	    else {
-		values.set(i,new Long(s));
-		isHex.set(i,new Boolean(false));
-	    }
+	    big = (ishex) ?
+		new BigInteger(valueAsString,16) :
+		new BigInteger(valueAsString);
 	}
 	catch (NumberFormatException e) {
-	    System.err.println(e.getMessage());
+	    System.err.println("VUInt64Parameter.setValue " +
+			       "NumberFormatException: "+
+			       e.getMessage());
 	    return false;
 	}
+
+	big = big.abs().mod((BigInteger.ONE.add(BigInteger.ONE)).pow(64));
+	values.set(i,big);
+	isHex.set(i,ishex);
+
 	return true;
     }
 
