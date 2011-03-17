@@ -244,7 +244,7 @@ public class ConfDbGUI
 		});
 	jTreeCurrentConfig.addTreeSelectionListener(new TreeSelectionListener() {
 		public void valueChanged(TreeSelectionEvent e) {
-		    jTreeCurrentConfigValueChanged(e);
+			jTreeCurrentConfigValueChanged(e);
 		}
 	    });
 	
@@ -538,6 +538,7 @@ public class ConfDbGUI
 	jProgressBar.setIndeterminate(true);
 	jProgressBar.setString("Save Configuration ...");
 	jProgressBar.setVisible(true);
+	
     }
     
     /** save the current configuration under a new name */
@@ -550,26 +551,29 @@ public class ConfDbGUI
 	    try { database.unlockConfiguration(currentConfig); }
 	    catch (DatabaseException e) { System.err.println(e.getMessage()); }
 	}
-	
+		
 	String processName = jTextFieldProcess.getText();
 	String comment = (currentConfig.version()==0) ?
 	    "first import" :
 	    "saveAs "+currentConfig+" ["+currentConfig.dbId()+"]";
 	
+	
 	SaveConfigurationDialog dialog =
 	    new SaveConfigurationDialog(frame,database,currentConfig,comment);
+	
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-	
 	if (dialog.validChoice()) {
 	    SaveConfigurationThread worker =
 		new SaveConfigurationThread(processName,dialog.comment());
 	    worker.start();
+	    
 	    jProgressBar.setIndeterminate(true);
 	    jProgressBar.setString("Save Configuration ...");
 	    jProgressBar.setVisible(true);
 	    currentConfig.setHasChanged(false);
+	    
 	}
 	else if (currentConfig.version()!=0&&!isLocked) {
 	    try { database.lockConfiguration(currentConfig,userName); }
@@ -1445,10 +1449,12 @@ public class ConfDbGUI
 	protected String construct() throws DatabaseException
 	{
 	    startTime = System.currentTimeMillis();
+	    
 	    database.insertConfiguration(currentConfig,
 					 userName,processName,comment);
 	    if (!currentConfig.isLocked())
 		database.lockConfiguration(currentConfig,userName);
+	    
 	    return new String("Done!");
 	}
 	

@@ -75,6 +75,7 @@ public class SaveConfigurationDialog extends JDialog
 	jTextFieldComment.setText(comment);
 	setTitle("Save Configuration");
 	
+	
 	// initialize tree
 	try {
 	    Directory rootDir = database.loadConfigurationTree();
@@ -97,11 +98,17 @@ public class SaveConfigurationDialog extends JDialog
 	    jTextFieldConfigName.setText(config.name());
 	    jTextFieldConfigName.selectAll();
 	}
-	
+    
 	// register listener callbacks
 	jTreeDirectories
 	    .addMouseListener(new DirectoryTreeMouseListener(jTreeDirectories,
 							     database));
+
+	// register focus listener to save current edit by clicking elsewhere.
+	// See: TreeDirectoryFocusListener.java
+	jTreeDirectories.addFocusListener(new TreeDirectoryFocusListener(jTreeDirectories, database));
+	
+	
 	jTreeDirectories.addTreeSelectionListener(new TreeSelectionListener() {
 		public void valueChanged(TreeSelectionEvent e) {
 		    jTreeDirectoriesValueChanged(e);
@@ -164,8 +171,16 @@ public class SaveConfigurationDialog extends JDialog
 	Object o = jTreeDirectories.getLastSelectedPathComponent();
 	if (o instanceof Directory) {
 	    selectedDir = (Directory)o;
-	    if (selectedDir.name().split(" ").length>1) selectedDir=null;
+	    
+	    // Next line was commented since the focus listener is introduced.
+	    // raul.jimenez.estupinan@cern.ch
+	    //if (selectedDir.name().split(" ").length>1) selectedDir=null;
+	    // Instead of returning a null Directory it is returned using underscores. 
+	    if(selectedDir.name().split(" ").length>1) selectedDir.setName(selectedDir.name().replace(" ", "_"));
+	    
+	    
 	    updateOkButton();
+	    
 	}
 	else if (o==null||(o instanceof ConfigInfo)) {
 	    selectedDir = null;
@@ -173,18 +188,22 @@ public class SaveConfigurationDialog extends JDialog
 	    jButtonOk.setEnabled(false);
 	}
     }
+    
     private void jTextFieldConfigNameActionPerformed(ActionEvent e)
     {
 	if (jButtonOk.isEnabled()) jButtonOkActionPerformed(e);
     }
+    
     private void jTextFieldConfigNameInsertUpdate(DocumentEvent e)
     {
 	updateOkButton();
     }
+    
     private void jTextFieldConfigNameRemoveUpdate(DocumentEvent e)
     {
 	updateOkButton();
     }
+    
     private void jButtonOkActionPerformed(ActionEvent e)
     {
 	String    configName  = jTextFieldConfigName.getText();
@@ -215,6 +234,10 @@ public class SaveConfigurationDialog extends JDialog
 	    jButtonOk.setEnabled(false);
 	    return;
 	}
+	
+	
+	
+	
 	for (int i=0;i<selectedDir.configInfoCount();i++) {
 	    if (selectedDir.configInfo(i).name().equals(configName)) {
 		jButtonOk.setEnabled(false);

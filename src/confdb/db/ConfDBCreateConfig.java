@@ -260,6 +260,7 @@ public class ConfDBCreateConfig
 	    long startTime = System.currentTimeMillis();
 	    database.insertConfiguration(masterConfig,
 					 userName,processName,comment);
+	    
 	    long elapsedTime = System.currentTimeMillis() - startTime;
 	    out.println("... stored as "+masterConfig+
 			" (" + elapsedTime + " seconds)");

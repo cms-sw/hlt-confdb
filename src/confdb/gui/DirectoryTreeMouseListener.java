@@ -45,6 +45,7 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
     private static final String RMV_DIRECTORY = new String("Remove Directory");
     
     
+    
     //
     // construction
     //
@@ -74,6 +75,7 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
     /** show the popup meny */
     private void maybeShowPopup(MouseEvent e)
     {
+    	
 	if (!e.isPopupTrigger()) return;
 	JTree    tree     = (JTree)e.getComponent();
 	TreePath treePath = tree.getPathForLocation(e.getX(),e.getY());
@@ -97,7 +99,6 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
 		menuItem.setActionCommand(RMV_DIRECTORY);
 		popup.add(menuItem);
 	    }
-	    
 	    popup.show(e.getComponent(),e.getX(),e.getY());
 	}
     }
@@ -141,6 +142,8 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
 			       "DirectoryTreeMouseListener::treeNodesChanged()");
 	    return;
 	}
+	
+	
 	int       index     = e.getChildIndices()[0];
 	Directory parentDir = (Directory)treePath.getLastPathComponent();
 	Directory childDir  = parentDir.childDir(index);
@@ -176,10 +179,10 @@ public class DirectoryTreeMouseListener extends    MouseAdapter
     }
     
     /** TreeModelListener: treeNodesInserted() */
-    public void treeNodesInserted(TreeModelEvent e) {}
+    public void treeNodesInserted(TreeModelEvent e) { }
     
     /** TreeModelListener: treeStructureChanged() */
-    public void treeStructureChanged(TreeModelEvent e) {}
+    public void treeStructureChanged(TreeModelEvent e) { }
     
 }
 

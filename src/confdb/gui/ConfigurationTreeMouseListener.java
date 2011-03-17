@@ -109,6 +109,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
     /** standard constructor */
     public ConfigurationTreeMouseListener(JTree tree, JFrame frame)
     {
+
 	this.tree      = tree;
 	this.treeModel = (ConfigurationTreeModel)tree.getModel();
 	

@@ -37,6 +37,7 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
     /** standard constructor */
     public ConfigurationTreeEditor(JTree tree,DefaultTreeCellRenderer renderer)
     {
+    	
 	super(tree,renderer);
 	treeModel = (ConfigurationTreeModel)tree.getModel();
     }
@@ -56,6 +57,8 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
     /**  DefaultTreeCellEditor's 'getCellEditorValue' */
     public Object getCellEditorValue()
     {
+    	
+    	
 	Object value = super.getCellEditorValue();
 	String name  = value.toString();
 
