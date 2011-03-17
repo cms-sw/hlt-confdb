@@ -162,7 +162,7 @@ public class ConfDBCreateConfig
 
 
 	    // clean out empty datasets/streams/contents/outputs
-	    //	    masterConfig.cleanup();
+	    masterConfig.cleanup();
 
 
 	    // remove unreferenced sequences

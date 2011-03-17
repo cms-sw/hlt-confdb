@@ -1507,38 +1507,49 @@ public class Configuration implements IConfiguration
     /** cleanup of empty datsets/streams/contents/outputs */
 
     public int cleanup() {
+
+	ArrayList<EventContent>   cList = new ArrayList<EventContent>();
+	ArrayList<Stream>         sList = new ArrayList<Stream>();
+	ArrayList<PrimaryDataset> dList = new ArrayList<PrimaryDataset>();
+
+	cList.clear();
 	int contentCount=0;
 	Iterator<EventContent> itC = contentIterator();
 	while (itC.hasNext()) {
 	    EventContent c = itC.next();
+	    sList.clear();
 	    int streamCount=0;
 	    Iterator<Stream> itS = c.streamIterator();
 	    while (itS.hasNext()) {
 		Stream s = itS.next();
+		dList.clear();
 		int pathCount=0;
 		Iterator<PrimaryDataset> itD = s.datasetIterator();
 		while (itD.hasNext()) {
 		    PrimaryDataset d = itD.next();
 		    if (d.pathCount()==0) {
-			s.removeDataset(d);
+			dList.add(d);
 		    } else{
 			pathCount += d.pathCount();
 		    }
 		}
+		for (PrimaryDataset id : dList) s.removeDataset(id);
 		pathCount += s.pathCount();
 		if (pathCount==0) {
-		    c.removeStream(s);
+		    sList.add(s);
 		} else {
 		    streamCount += pathCount;
 		}
 	    }
-	    streamCount += c.commandCount();
-	    if (streamCount==0) {
-		removeContent(c);
+	    for (Stream is : sList) c.removeStream(is);
+	    if (streamCount==0 || c.commandCount()==0) {
+		cList.add(c);
 	    } else {
 		contentCount += streamCount;
 	    }
 	}
+	for (EventContent ic : cList) removeContent(ic);
+	
 	return contentCount;
     }
     
