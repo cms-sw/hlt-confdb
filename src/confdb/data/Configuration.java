@@ -1075,7 +1075,7 @@ public class Configuration implements IConfiguration
 	    }
 	}
 	
-	// remove this paths from all streams (includes datasets)
+	// remove this paths from all streams (includes datasets & contents)
 	Iterator<Stream> itS = path.streamIterator();
 	while (itS.hasNext()) itS.next().removePath(path);
 	
@@ -1500,4 +1500,43 @@ public class Configuration implements IConfiguration
     /** retrieve block iterator */
     public Iterator<Block> blockIterator() { return blocks.iterator(); }
 
+    //
+    //
+    //
+
+    /** cleanup of empty datsets/streams/contents/outputs */
+
+    public int cleanup() {
+	int contentCount=0;
+	Iterator<EventContent> itC = contentIterator();
+	while (itC.hasNext()) {
+	    int streamCount=0;
+	    Iterator<Stream> itS = itC.next().streamIterator();
+	    while (itS.hasNext()) {
+		int pathCount=0;
+		Iterator<PrimaryDataset> itD = itS.next().datasetIterator();
+		while (itD.hasNext()) {
+		    if (itD.next().pathCount()==0) {
+			itS.next().removeDataset(itD.next());
+		    } else{
+			pathCount += itD.next().pathCount();
+		    }
+		}
+		pathCount += itS.next().pathCount();
+		if (pathCount==0) {
+		    itC.next().removeStream(itS.next());
+		} else {
+		    streamCount += pathCount;
+		}
+	    }
+	    streamCount += itC.next().commandCount();
+	    if (streamCount==0) {
+		removeContent(itC.next());
+	    } else {
+		contentCount += streamCount;
+	    }
+	}
+	return contentCount;
+    }
+    
 }
