@@ -161,7 +161,7 @@ public class ConfDBCreateConfig
 	    }
 
 
-	    // clean out empty datsets/streams/contents/outputs
+	    // clean out empty datasets/streams/contents/outputs
 	    masterConfig.cleanup();
 
 
