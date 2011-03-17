@@ -1510,28 +1510,31 @@ public class Configuration implements IConfiguration
 	int contentCount=0;
 	Iterator<EventContent> itC = contentIterator();
 	while (itC.hasNext()) {
+	    EventContent c = itC.next();
 	    int streamCount=0;
-	    Iterator<Stream> itS = itC.next().streamIterator();
+	    Iterator<Stream> itS = c.streamIterator();
 	    while (itS.hasNext()) {
+		Stream s = itS.next();
 		int pathCount=0;
-		Iterator<PrimaryDataset> itD = itS.next().datasetIterator();
+		Iterator<PrimaryDataset> itD = s.datasetIterator();
 		while (itD.hasNext()) {
-		    if (itD.next().pathCount()==0) {
-			itS.next().removeDataset(itD.next());
+		    PrimaryDataset d = itD.next();
+		    if (d.pathCount()==0) {
+			s.removeDataset(d);
 		    } else{
-			pathCount += itD.next().pathCount();
+			pathCount += d.pathCount();
 		    }
 		}
-		pathCount += itS.next().pathCount();
+		pathCount += s.pathCount();
 		if (pathCount==0) {
-		    itC.next().removeStream(itS.next());
+		    c.removeStream(s);
 		} else {
 		    streamCount += pathCount;
 		}
 	    }
-	    streamCount += itC.next().commandCount();
+	    streamCount += c.commandCount();
 	    if (streamCount==0) {
-		removeContent(itC.next());
+		removeContent(c);
 	    } else {
 		contentCount += streamCount;
 	    }
