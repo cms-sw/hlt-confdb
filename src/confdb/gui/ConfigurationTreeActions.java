@@ -580,9 +580,12 @@ public class ConfigurationTreeActions
 	}
 	else {
 	    if (!config.hasUniqueQualifier(external)) return false;
-	    container = (type.equals("path")) ?
-		config.insertPath(index,external.name()) :
-		config.insertSequence(index,external.name());
+	    if (type.equals("path")) {
+		container = config.insertPath(index,external.name());
+		((Path)container).setAsEndPath(((Path)external).isSetAsEndPath());
+	    } else {
+		container = config.insertSequence(index,external.name());
+	    }
 	}
 	
 	if (importContainerEntries(config,model,external,container))
