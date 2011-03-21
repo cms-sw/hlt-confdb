@@ -1,3 +1,8 @@
+2011-03-21  Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-16
+	* modify, save & corrupt problems fixed (Vasu)
+	* folders creation bug fixed - bug#77084 (Raul)
+
 2011-03-16  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-05-15

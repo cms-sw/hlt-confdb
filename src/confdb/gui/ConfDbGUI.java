@@ -1227,8 +1227,10 @@ public class ConfDbGUI
 	protected String construct() throws DatabaseException
 	{
 	    startTime = System.currentTimeMillis();
+	    
+	    if(currentRelease == null) currentRelease = new SoftwareRelease();
+	    
 	    Configuration config = database.loadConfiguration(configInfo,currentRelease);
-							      
 	    setCurrentConfig(config);
 
 	    return new String("Done!");
