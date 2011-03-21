@@ -875,6 +875,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem.setActionCommand("REMOVE");
 	    popupStreams.add(menuItem);
 	    
+	    menuItem = new JMenuItem("<html>Remove Unassigned Paths from <i>" + stream.name() +
+				     "</i></html>");
+	    menuItem.addActionListener(streamListener);
+	    menuItem.setActionCommand("REMOVEUNASSIGNED");
+	    popupStreams.add(menuItem);
+	    
 	    ArrayList<Path> paths = new ArrayList<Path>();
 	    Iterator<Path> itP = config.pathIterator();
 	    while (itP.hasNext()) {
@@ -908,6 +914,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		    menuItem.addActionListener(streamListener);
 		    menuItem.setActionCommand("REMOVEDATASET");
 		    popupStreams.add(menuItem);
+		} else if (treeNode.object() instanceof StringBuffer) {
+		    StringBuffer unassigned = (StringBuffer)treeNode.object();
+		    menuItem = new JMenuItem("<html>Remove Unassigned Paths</i></html>");
+		    menuItem.addActionListener(streamListener);
+		    menuItem.setActionCommand("REMOVEUNASSIGNED");
+		    popupStreams.add(menuItem);		    
 		}
 	    }
 	}
@@ -1774,6 +1786,9 @@ class StreamMenuListener implements ActionListener
 	}
 	else if (action.equals("REMOVE")) {
 	    ConfigurationTreeActions.removeStream(tree);
+	}
+	else if (action.equals("REMOVEUNASSIGNED")) {
+	    ConfigurationTreeActions.removeUnassignedPathsFromStream(tree);
 	}
 	else if (action.equals("RENAME")) {
 	    ConfigurationTreeActions.editNodeName(tree);

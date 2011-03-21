@@ -219,6 +219,19 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	return result;
     }
 
+    /** remove all paths NOT assigned to any dataset */
+    public boolean removeUnassignedPaths()
+    {
+	int count = 0;
+	ArrayList<Path> unassigned = listOfUnassignedPaths();
+	Iterator<Path> itP = unassigned.iterator();
+	while (itP.hasNext()) {
+	    Path path = itP.next();
+	    if (removePath(path)) count ++;
+	}
+	return count>0;
+    }
+
 
     /** number of primary datasets */
     public int datasetCount() { return datasets.size(); }

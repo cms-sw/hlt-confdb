@@ -1392,7 +1392,59 @@ public class ConfigurationTreeActions
 	return true;
     }
 
+    /** remove unassigned paths from an existing stream */
+    public static boolean removeUnassignedPathsFromStream(JTree tree)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	Object                 node   = treePath.getLastPathComponent();
+	Stream stream = null;
 
+	if (node instanceof Stream) {
+	    stream = (Stream)node;
+	} else if (node instanceof ConfigurationTreeNode) {
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
+	    stream = (Stream)treeNode.parent();
+	    tree.setSelectionPath(treePath.getParentPath());
+	}
+
+	EventContent content = stream.parentContent();
+
+	ArrayList<Path> unassigned = stream.listOfUnassignedPaths();
+	Iterator<Path> itP = unassigned.iterator();
+	while (itP.hasNext()) {
+	    Path path = itP.next();
+	    int index = stream.indexOfPath(path);
+
+	    int contentIndex = content.indexOfPath(path);
+	    
+	    PrimaryDataset dataset = stream.dataset(path);
+	    if (dataset!=null)
+		model.nodeRemoved(dataset,dataset.indexOfPath(path),path);
+	    
+	    stream.removePath(path);
+	    
+	    if (model.contentMode().equals("paths")&&content.indexOfPath(path)<0) {
+		model.nodeRemoved(content,content.indexOfPath(path),path);
+	    }
+	    
+	    Iterator<Stream> itS = content.streamIterator();
+	    while (itS.hasNext()) {
+		OutputModule output = itS.next().outputModule();
+		PSetParameter psetSelectEvents =
+		    (PSetParameter)output.parameter(0);
+		model.nodeChanged(psetSelectEvents.parameter(0));
+		if (output.referenceCount()>0)
+		    model.nodeStructureChanged(output.reference(0));
+	    }
+	
+	    model.updateLevel1Nodes();
+	    
+	}
+	return true;
+    }
+    
     //
     // PrimaryDatasets
     //
