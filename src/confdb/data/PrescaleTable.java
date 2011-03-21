@@ -19,6 +19,7 @@ public class PrescaleTable
     //
     
     /** column names */
+    private String defaultName = new String();
     private ArrayList<String> columnNames = new ArrayList<String>();
 
     /** prescale table rows */
@@ -40,6 +41,16 @@ public class PrescaleTable
     // member functions
     //
     
+    public String defaultName()
+    {
+	return defaultName;
+    }
+    public void setDefaultName(String name)
+    {
+	defaultName = name;
+    }
+    
+
     /** number of prescale columns */
     public int prescaleCount() { return columnNames.size()-1; }
     
@@ -112,6 +123,25 @@ public class PrescaleTable
 	columnNames.add(i+1,columnName);
 	Iterator<PrescaleTableRow> itR = rows.iterator();
 	while (itR.hasNext()) itR.next().prescales.add(i,new Long(1));
+
+    }
+    public void duplicatePrescaleColumn(int i,String columnName)
+    {
+	if (i>=columnNames.size()) return;
+	int index = columnNames.indexOf(columnName);
+	if (index==-1) return;
+	columnNames.add(i+1,"Copy_of_"+columnName);
+	Iterator<PrescaleTableRow> itR = rows.iterator();
+	while (itR.hasNext()) {
+	    PrescaleTableRow r = itR.next();
+	    Long p = r.prescales.get(index-1);
+	    r.prescales.add(i,p);
+	}
+    }
+    public void renamePrescaleColumn(int i,String columnName)
+    {
+	if (i>=columnNames.size()) return;
+	columnNames.set(i,columnName);
     }
     
     /** remove a column at the i-th position */
@@ -131,6 +161,7 @@ public class PrescaleTable
     /** initialize the prescale table from a given configuration */
     private void initialize(IConfiguration config)
     {
+	defaultName="";
 	columnNames.clear();
 	rows.clear();
 	
@@ -142,6 +173,9 @@ public class PrescaleTable
 	    return;
 	}
 	
+	StringParameter vDefaultName =
+	    (StringParameter)prescaleSvc.parameter("lvl1DefaultLabel","string");
+ 
 	VStringParameter vColumnNames =
 	    (VStringParameter)prescaleSvc.parameter("lvl1Labels","vstring");
 	if (vColumnNames==null) {
@@ -155,6 +189,8 @@ public class PrescaleTable
 	    System.err.println("No VPSet prescaleTable found.");
 	    return;
 	}
+
+	defaultName = (String)vDefaultName.value();
 
 	for (int i=0;i<vColumnNames.vectorSize();i++)
 	    columnNames.add((String)vColumnNames.value(i));

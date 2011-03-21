@@ -31,12 +31,13 @@ public class PrescaleDialog extends JDialog
     
     /** GUI components */
     private JTextField jTextFieldHLT    = new javax.swing.JTextField();
-    private JTextField jTextFieldLevel1 = new javax.swing.JTextField();
+    private JComboBox  jComboBoxModule  = new javax.swing.JComboBox();
     private JButton    jButtonOK        = new javax.swing.JButton();
     private JButton    jButtonApply     = new javax.swing.JButton();
     private JButton    jButtonCancel    = new javax.swing.JButton();
     private JTable     jTable           = new javax.swing.JTable();
-    
+    private DefaultComboBoxModel cmbModule;
+
     /** model for the prescale table */
     private PrescaleTableModel tableModel;
 
@@ -56,9 +57,27 @@ public class PrescaleDialog extends JDialog
 
 	tableModel = new PrescaleTableModel();
 	tableModel.initialize(config);
+
 	jTable.setModel(tableModel);
 	jTable.setDefaultRenderer(Integer.class,new PrescaleTableCellRenderer());
 	jTextFieldHLT.setText(config.toString());
+
+	cmbModule=(DefaultComboBoxModel)jComboBoxModule.getModel();
+	cmbModule.removeAllElements();
+	cmbModule.addElement(tableModel.defaultName());
+	cmbModule.addElement("");
+	for (int i=1; i<tableModel.getColumnCount(); ++i) {
+	    cmbModule.addElement(tableModel.getColumnName(i));
+	}
+	jComboBoxModule.setSelectedIndex(0);
+	tableModel.setDefaultName((String)jComboBoxModule.getSelectedItem());
+
+	jComboBoxModule.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jComboBoxModelActionPerformed(e);
+		}
+	    });
+
 	
 	jButtonCancel.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
@@ -117,6 +136,7 @@ public class PrescaleDialog extends JDialog
 	if (!e.isPopupTrigger()) return;
 	iColumn = jTable.columnAtPoint(e.getPoint());
 	JPopupMenu popup = new JPopupMenu();
+
 	JMenuItem menuItem = new JMenuItem("Add Column");
 	menuItem.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae)
@@ -130,6 +150,21 @@ public class PrescaleDialog extends JDialog
 		}
 	    });
 	popup.add(menuItem);
+
+	menuItem = new JMenuItem("Duplicate Column");
+	menuItem.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent ae)
+		{
+		    tableModel.duplicateColumn(iColumn,
+					 JOptionPane
+					 .showInputDialog("Enter the level1 "+
+							  "label for the column "+
+							  " to be duplicated:"));
+		    adjustTableColumnWidths();
+		}
+	    });
+	popup.add(menuItem);
+
 	if (iColumn>0) {
 	    menuItem = new JMenuItem("Remove Column");
 	    menuItem.addActionListener(new ActionListener() {
@@ -140,8 +175,33 @@ public class PrescaleDialog extends JDialog
 		    }
 		});
 	    popup.add(menuItem);
+
+	    menuItem = new JMenuItem("Rename Column");
+	    menuItem.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ae)
+		    {
+			tableModel.renameColumn(iColumn,
+						JOptionPane
+						.showInputDialog("Enter the new level1 "+
+								 "label for the column "+tableModel.getColumnName(iColumn)+":"));
+			adjustTableColumnWidths();
+		    }
+		});
+	    popup.add(menuItem);
 	}
 	popup.show(e.getComponent(),e.getX(),e.getY());
+    }
+
+    private void jComboBoxModelActionPerformed(ActionEvent e)
+    {
+	tableModel.setDefaultName((String)jComboBoxModule.getSelectedItem());
+
+	cmbModule.removeAllElements();
+	cmbModule.addElement(tableModel.defaultName());
+	cmbModule.addElement("");
+	for (int i=1; i<tableModel.getColumnCount(); ++i) {
+	    cmbModule.addElement(tableModel.getColumnName(i));
+	}
     }
     
     /** initialize GUI components */
@@ -154,16 +214,13 @@ public class PrescaleDialog extends JDialog
         JScrollPane jScrollPane = new javax.swing.JScrollPane();
 	
         jLabel1.setText("HLT:");
-        jLabel2.setText("Level1:");
+        jLabel2.setText("Default:");
 	
         jTextFieldHLT.setEditable(false);
         jTextFieldHLT.setBorder(BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
-        jTextFieldLevel1.setEditable(false);
-        jTextFieldLevel1.setBorder(BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
-	
-
-	
+        jComboBoxModule.setEditable(false);
+        jComboBoxModule.setBorder(BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));	
 
 
         jScrollPane.setViewportView(jTable);
@@ -187,7 +244,7 @@ public class PrescaleDialog extends JDialog
 						 .add(18, 18, 18)
 						 .add(jLabel2)
 						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						 .add(jTextFieldLevel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 298, Short.MAX_VALUE))
+						 .add(jComboBoxModule, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 298, Short.MAX_VALUE))
 					    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
 						 .add(jButtonCancel)
 						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
@@ -207,7 +264,7 @@ public class PrescaleDialog extends JDialog
 					  .add(jLabel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 					  .add(jTextFieldHLT, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
 					  .add(jLabel2, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					  .add(jTextFieldLevel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+					  .add(jComboBoxModule, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
 				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
 				     .add(jScrollPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 570, Short.MAX_VALUE)
 				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
@@ -231,6 +288,17 @@ class PrescaleTableModel extends AbstractTableModel
     /** the presacale table data structure */
     private PrescaleTable prescaleTable;
 
+    public String defaultName()
+    {
+	return prescaleTable.defaultName();
+    }
+
+    public void setDefaultName(String name)
+    {
+	prescaleTable.setDefaultName(name);
+	fireTableDataChanged();
+    }
+
     /** update the table model according to configuration's PrescaleService */
     public void initialize(IConfiguration config)
     {
@@ -246,7 +314,9 @@ class PrescaleTableModel extends AbstractTableModel
 	    System.err.println("No PrescaleService found.");
 	    return;
 	}
-	
+
+	prescaleSvc.updateParameter("lvl1DefaultLabel","string",prescaleTable.defaultName());
+
 	StringBuffer labelsAsString = new StringBuffer();
 	for (int i=0;i<prescaleTable.prescaleCount();i++) {
 	    if (labelsAsString.length()>0) labelsAsString.append(",");
@@ -287,6 +357,18 @@ class PrescaleTableModel extends AbstractTableModel
     {
 	prescaleTable.addPrescaleColumn(i,lvl1Label);
 	fireTableStructureChanged();
+    }
+    public void renameColumn(int i,String lvl1Label)
+    {
+	prescaleTable.renamePrescaleColumn(i,lvl1Label);
+	fireTableStructureChanged();
+	fireTableDataChanged();
+    }
+    public void duplicateColumn(int i,String lvl1Label)
+    {
+	prescaleTable.duplicatePrescaleColumn(i,lvl1Label);
+	fireTableStructureChanged();
+	fireTableDataChanged();
     }
     
     /** remove a column of prescales */
