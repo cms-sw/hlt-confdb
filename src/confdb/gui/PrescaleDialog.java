@@ -373,11 +373,9 @@ class PrescaleTableModel extends AbstractTableModel
     }
     public void reorderColumns(int i,String lvl1Labels)
     {
-	System.out.println("X: "+lvl1Labels);
 	String[] split = lvl1Labels.replace(" ","").split(",");
 	ArrayList<String> newOrder = new ArrayList<String>();
 	for (int il=0; il<split.length; il++) {
-	    System.out.println("X: "+il+":"+split[il]);
 	    newOrder.add(split[il]);
 	}
 	prescaleTable.reorderPrescaleColumns(newOrder);

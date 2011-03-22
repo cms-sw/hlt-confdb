@@ -145,21 +145,17 @@ public class PrescaleTable
     }
     public void reorderPrescaleColumns(ArrayList<String> newColumns)
     {
-	System.out.println("A: "+newColumns.size()+" "+prescaleCount());
 	if (newColumns.size()!=prescaleCount()) return;
 	ArrayList<Integer> newIndices = new ArrayList<Integer>();
 	for (int i=0; i<newColumns.size(); i++) {
 	    String column = newColumns.get(i);
-	    System.out.println("B:"+column+":"+newColumns.lastIndexOf(column)+" "+i);
 	    if (newColumns.lastIndexOf(column)!=i) return; // duplicate entry on newColumns
 	    int    ind = columnNames.indexOf(column)-1;
-	    System.out.println("C: "+ind);
 	    if (ind<0) return; // label not found (or "Path" which is invalid)
 	    newIndices.add(ind);
 	}
 	for (int i=0; i<prescaleCount(); i++) {
 	    renamePrescaleColumn(i+1,newColumns.get(i));
-	    System.out.println("D: "+i+":"+newColumns.get(i)+":"+newIndices.get(i));
 	}
 	ArrayList<Long> temp = new ArrayList<Long>();
 	Iterator<PrescaleTableRow> itR = rows.iterator();
