@@ -1,3 +1,7 @@
+2011-03-22  Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-05-17
+	* add possibility to re-order prescale columns
+
 2011-03-21  Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-16
 	* modify, save & corrupt problems fixed (Vasu)
