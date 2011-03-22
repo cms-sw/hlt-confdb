@@ -99,11 +99,7 @@ public class SmartPrescaleTable
     	if(col==0) return true;
 
     	// only in certain cases col==1 can be edited.
-    	if((col ==1)&&(rows.get(row).pathName != null)) {
-	    	String pathName = rows.get(row).pathName;
-	    	StringTokenizer pathTokens = new StringTokenizer(pathName,"/ ");
-	    	if(pathTokens.countTokens() == 1) return true;
-    	}
+    	if((col==1)&&(rows.get(row).simple())) return true;
     	
     	// the rest of the columns cannot be edited.
     	return false;

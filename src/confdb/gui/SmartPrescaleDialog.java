@@ -346,12 +346,17 @@ class SmartPrescaleTableModel extends AbstractTableModel
     }
    
     /** is a cell editable or not? */
-    //public boolean isCellEditable(int row, int col) { return (col==0); }
     public boolean isCellEditable(int row, int col) {
-    	return smartPrescaleTable.isCellEditable(row, col);
+    	// first column can be always edited.
+    	if(col==0) return true;
+
+    	// only in certain cases col==1 can be edited.
+    	if((col==1)&&(smartPrescaleTable.simple(row))) return true;
+    	
+    	// the rest of the columns cannot be edited.
+    	return false;
     }
-    
-    
+
     /** get the class of the column 'c' */
     public Class getColumnClass(int c)
     {
@@ -365,17 +370,19 @@ class SmartPrescaleTableModel extends AbstractTableModel
     /** set the value of a table cell */
     public void setValueAt(Object value,int row, int col)
     {
-    long scale = 1;   	
-	if((col==1)&&(smartPrescaleTable.isCellEditable(row, col))) {
-		// Column value is being directly edited.
-		String strValue = value.toString();
-	      try {
-	          scale = Long.parseLong(strValue.trim());
-	       } catch (NumberFormatException nfe) {
-	          System.out.println("NumberFormatException: " + nfe.getMessage());
-	       }
-		smartPrescaleTable.modRowSetScale(row, scale);
-		return;
+	long scale = 1;
+	if (col==1) {
+	    // Column value is being directly edited.
+	    String strValue = value.toString();
+	    try {
+		scale = Long.parseLong(strValue.trim());
+	    } catch (NumberFormatException nfe) {
+		System.out.println("NumberFormatException: "+nfe.getMessage());
+	    }
+	    smartPrescaleTable.modRowSetScale(row, scale);
+	    fireTableStructureChanged();
+	    fireTableDataChanged();
+	    return;
 	}
 	
 	String strCondition = SmartPrescaleTable.regularise((String)value);
@@ -405,6 +412,8 @@ class SmartPrescaleTableModel extends AbstractTableModel
 
 	if (!strCondition.equals("")) {
 	    smartPrescaleTable.modRow(row,strCondition);
+	    fireTableStructureChanged();
+	    fireTableDataChanged();
 	}
     }
     
