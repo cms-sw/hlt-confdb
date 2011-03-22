@@ -143,6 +143,38 @@ public class PrescaleTable
 	if (i>=columnNames.size()) return;
 	columnNames.set(i,columnName);
     }
+    public void reorderPrescaleColumns(ArrayList<String> newColumns)
+    {
+	System.out.println("A: "+newColumns.size()+" "+prescaleCount());
+	if (newColumns.size()!=prescaleCount()) return;
+	ArrayList<Integer> newIndices = new ArrayList<Integer>();
+	for (int i=0; i<newColumns.size(); i++) {
+	    String column = newColumns.get(i);
+	    System.out.println("B:"+column+":"+newColumns.lastIndexOf(column)+" "+i);
+	    if (newColumns.lastIndexOf(column)!=i) return; // duplicate entry on newColumns
+	    int    ind = columnNames.indexOf(column)-1;
+	    System.out.println("C: "+ind);
+	    if (ind<0) return; // label not found (or "Path" which is invalid)
+	    newIndices.add(ind);
+	}
+	for (int i=0; i<prescaleCount(); i++) {
+	    renamePrescaleColumn(i+1,newColumns.get(i));
+	    System.out.println("D: "+i+":"+newColumns.get(i)+":"+newIndices.get(i));
+	}
+	ArrayList<Long> temp = new ArrayList<Long>();
+	Iterator<PrescaleTableRow> itR = rows.iterator();
+	while (itR.hasNext()) {
+	    PrescaleTableRow r = itR.next();
+	    temp.clear();
+	    for (int i=0; i<prescaleCount(); i++) {
+		temp.add(r.prescales.get(i));
+	    }
+	    for (int i=0; i<prescaleCount(); i++) {
+		int  j = newIndices.get(i).intValue();
+		r.prescales.set(i,temp.get(j));
+	    }
+	}
+    }
     
     /** remove a column at the i-th position */
     public void removePrescaleColumn(int i)
@@ -175,6 +207,10 @@ public class PrescaleTable
 	
 	StringParameter vDefaultName =
 	    (StringParameter)prescaleSvc.parameter("lvl1DefaultLabel","string");
+	if (vDefaultName==null) {
+	    System.err.println("No string lvl1DefaultLabel found.");
+	    // return;
+	}
  
 	VStringParameter vColumnNames =
 	    (VStringParameter)prescaleSvc.parameter("lvl1Labels","vstring");
@@ -190,7 +226,11 @@ public class PrescaleTable
 	    return;
 	}
 
-	defaultName = (String)vDefaultName.value();
+	if (vDefaultName==null || vDefaultName.value()==null) {
+	    defaultName = "";
+	} else {
+	    defaultName = (String)vDefaultName.value();
+	}
 
 	for (int i=0;i<vColumnNames.vectorSize();i++)
 	    columnNames.add((String)vColumnNames.value(i));

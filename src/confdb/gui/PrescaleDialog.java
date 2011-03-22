@@ -65,12 +65,12 @@ public class PrescaleDialog extends JDialog
 	cmbModule=(DefaultComboBoxModel)jComboBoxModule.getModel();
 	cmbModule.removeAllElements();
 	cmbModule.addElement(tableModel.defaultName());
-	cmbModule.addElement("");
+	if (tableModel.defaultName()!="") cmbModule.addElement("");
 	for (int i=1; i<tableModel.getColumnCount(); ++i) {
 	    cmbModule.addElement(tableModel.getColumnName(i));
 	}
 	jComboBoxModule.setSelectedIndex(0);
-	tableModel.setDefaultName((String)jComboBoxModule.getSelectedItem());
+	//tableModel.setDefaultName((String)jComboBoxModule.getSelectedItem());
 
 	jComboBoxModule.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
@@ -165,6 +165,19 @@ public class PrescaleDialog extends JDialog
 	    });
 	popup.add(menuItem);
 
+	menuItem = new JMenuItem("Reorder Columns");
+	menuItem.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent ae)
+		{
+		    tableModel.reorderColumns(iColumn,
+					 JOptionPane
+					 .showInputDialog("Enter the new order of level1 "+
+							  "labels as , separated list "));
+		    adjustTableColumnWidths();
+		}
+	    });
+	popup.add(menuItem);
+
 	if (iColumn>0) {
 	    menuItem = new JMenuItem("Remove Column");
 	    menuItem.addActionListener(new ActionListener() {
@@ -198,7 +211,7 @@ public class PrescaleDialog extends JDialog
 
 	cmbModule.removeAllElements();
 	cmbModule.addElement(tableModel.defaultName());
-	cmbModule.addElement("");
+	if (tableModel.defaultName()!="") cmbModule.addElement("");
 	for (int i=1; i<tableModel.getColumnCount(); ++i) {
 	    cmbModule.addElement(tableModel.getColumnName(i));
 	}
@@ -357,6 +370,19 @@ class PrescaleTableModel extends AbstractTableModel
     {
 	prescaleTable.addPrescaleColumn(i,lvl1Label);
 	fireTableStructureChanged();
+    }
+    public void reorderColumns(int i,String lvl1Labels)
+    {
+	System.out.println("X: "+lvl1Labels);
+	String[] split = lvl1Labels.replace(" ","").split(",");
+	ArrayList<String> newOrder = new ArrayList<String>();
+	for (int il=0; il<split.length; il++) {
+	    System.out.println("X: "+il+":"+split[il]);
+	    newOrder.add(split[il]);
+	}
+	prescaleTable.reorderPrescaleColumns(newOrder);
+	fireTableStructureChanged();
+	fireTableDataChanged();
     }
     public void renameColumn(int i,String lvl1Label)
     {

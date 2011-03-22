@@ -233,6 +233,7 @@ abstract public class ParameterContainer extends DatabaseEntry
 			       "Adding untracked parameter to top-level: "+
 			       parameterNew);
 	    addParameter(parameterNew);
+	    setHasChanged();
 	    return true;
 	}
     }
