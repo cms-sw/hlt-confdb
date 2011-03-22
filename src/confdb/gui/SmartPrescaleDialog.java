@@ -89,7 +89,7 @@ public class SmartPrescaleDialog extends JDialog
 	smartTableModel.initialize(config,module,smartPrescaleTable.get(0));
 	jTable.setModel(smartTableModel);
 	jTable.setDefaultRenderer(String.class, new SmartPrescaleTableCellRenderer());
-	jTable.setDefaultRenderer(Integer.class,new SmartPrescaleTableCellRenderer());
+	jTable.setDefaultRenderer(Long.class,new SmartPrescaleTableCellRenderer());
 	jTextFieldHLT.setText(config.toString());
 	
 	jButtonCancel.addActionListener(new ActionListener() {
@@ -363,23 +363,15 @@ class SmartPrescaleTableModel extends AbstractTableModel
 	if (c==0) {
 	    return String.class;
 	} else {
-	    return Integer.class;
+	    return Long.class;
 	}
     }
 
     /** set the value of a table cell */
     public void setValueAt(Object value,int row, int col)
     {
-	long scale = 1;
 	if (col==1) {
-	    // Column value is being directly edited.
-	    String strValue = value.toString();
-	    try {
-		scale = Long.parseLong(strValue.trim());
-	    } catch (NumberFormatException nfe) {
-		System.out.println("NumberFormatException: "+nfe.getMessage());
-	    }
-	    smartPrescaleTable.modRowSetScale(row, scale);
+	    smartPrescaleTable.modRowSetScale(row, (Long)value);
 	    fireTableStructureChanged();
 	    fireTableDataChanged();
 	    return;
