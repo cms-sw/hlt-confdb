@@ -346,7 +346,11 @@ class SmartPrescaleTableModel extends AbstractTableModel
     }
    
     /** is a cell editable or not? */
-    public boolean isCellEditable(int row, int col) { return col==0; }
+    //public boolean isCellEditable(int row, int col) { return (col==0); }
+    public boolean isCellEditable(int row, int col) {
+    	return smartPrescaleTable.isCellEditable(row, col);
+    }
+    
     
     /** get the class of the column 'c' */
     public Class getColumnClass(int c)
@@ -361,6 +365,19 @@ class SmartPrescaleTableModel extends AbstractTableModel
     /** set the value of a table cell */
     public void setValueAt(Object value,int row, int col)
     {
+    long scale = 1;   	
+	if((col==1)&&(smartPrescaleTable.isCellEditable(row, col))) {
+		// Column value is being directly edited.
+		String strValue = value.toString();
+	      try {
+	          scale = Long.parseLong(strValue.trim());
+	       } catch (NumberFormatException nfe) {
+	          System.out.println("NumberFormatException: " + nfe.getMessage());
+	       }
+		smartPrescaleTable.modRowSetScale(row, scale);
+		return;
+	}
+	
 	String strCondition = SmartPrescaleTable.regularise((String)value);
 	if(strCondition.equals("")) return;
 
