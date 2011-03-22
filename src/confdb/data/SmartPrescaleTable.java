@@ -93,18 +93,6 @@ public class SmartPrescaleTable
     	return true;
     }
     
-    /** check if a cell can be edited */
-    public boolean isCellEditable(int row, int col) {
-    	// first column can be always edited.
-    	if(col==0) return true;
-
-    	// only in certain cases col==1 can be edited.
-    	if((col==1)&&(rows.get(row).simple())) return true;
-    	
-    	// the rest of the columns cannot be edited.
-    	return false;
-    }
-
     /**check path in the streams **/
     public boolean checkHLTPathExists(String strPath){
 	Path path=null;
