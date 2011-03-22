@@ -373,6 +373,7 @@ class PrescaleTableModel extends AbstractTableModel
     }
     public void reorderColumns(int i,String lvl1Labels)
     {
+	if (lvl1Labels==null) return;
 	String[] split = lvl1Labels.replace(" ","").split(",");
 	ArrayList<String> newOrder = new ArrayList<String>();
 	for (int il=0; il<split.length; il++) {
