@@ -1,3 +1,8 @@
+2011-03-23  Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	*   Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-05-18
+	* add possibility to edit SMART column
+
 2011-03-22  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-17
 	* add possibility to re-order prescale columns
