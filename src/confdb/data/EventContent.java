@@ -177,6 +177,15 @@ public class EventContent extends DatabaseEntry implements Comparable<EventConte
 	return true;
     }
 
+    /** remove all output commands from this event content */
+    public boolean removeAllCommands()
+    {
+	if (commands.size()==0) return false;
+	commands.clear();
+	setHasChanged();
+	return true;
+    }
+
     /** get number of commands for a given *stream* */
     public int commandCount(Stream stream)
     {

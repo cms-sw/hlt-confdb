@@ -2707,6 +2707,16 @@ public class ConfDbGUI
 		}
 	    });
 
+	// Remove All
+	item = new JMenuItem("Remove All"); menu.add(item);
+	item.setActionCommand(content.name()+":"+
+			      content.indexOfCommand(command));
+	item.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jTableCommandsPopupRemoveAll(e);
+		}
+	    });
+
 	menu.show(e.getComponent(),e.getX(),e.getY());
     }
    
@@ -2868,6 +2878,34 @@ public class ConfDbGUI
 	content.removeCommand(command);
 	
 	fillComboBoxCommandsMenu(command.parentPath());
+	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
+	ctm.fireTableDataChanged();
+
+	updateOutputModulePreview();
+	
+	Iterator<Stream> itS = content.streamIterator();
+	while (itS.hasNext()) {
+	    OutputModule output = itS.next().outputModule();
+	    treeModelCurrentConfig.nodeChanged(output.parameter(1));
+	    if (output.referenceCount()>0)
+		treeModelCurrentConfig
+		    .nodeStructureChanged(output.reference(0));
+	}
+    }
+    
+    
+    /** jTableCommands: popup action 'Remove All' */
+    private void jTableCommandsPopupRemoveAll(ActionEvent e)
+    {
+	String s[] = ((JMenuItem)e.getSource()).getActionCommand().split(":");
+	String contentName = s[0];
+	int    commandIndex = (new Integer(s[1])).intValue();
+	EventContent  content = currentConfig.content(contentName);
+	OutputCommand command = content.command(commandIndex);
+	
+	content.removeAllCommands();
+	
+	fillComboBoxCommandsMenu(null);
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
 
