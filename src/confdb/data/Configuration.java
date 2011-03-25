@@ -1349,6 +1349,7 @@ public class Configuration implements IConfiguration
 	    if (ec.name().equals(contentName)) return ec;
 	EventContent content = new EventContent(contentName);
 	contents.add(content);
+	content.setConfig(this);
 	Collections.sort(contents);
 	hasChanged = true;
 	return content;

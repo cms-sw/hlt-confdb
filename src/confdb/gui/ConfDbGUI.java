@@ -2379,6 +2379,7 @@ public class ConfDbGUI
 	// fill datasets
 	DefaultListModel dlm = (DefaultListModel)jListDatasets.getModel();
 	dlm.clear();
+	dlm.addElement("<ALL>");
 	Iterator<PrimaryDataset> itPD = content.datasetIterator();
 	while (itPD.hasNext()) dlm.addElement(itPD.next().name());
 
@@ -2413,6 +2414,7 @@ public class ConfDbGUI
 	// fill datasets
 	DefaultListModel dlm = (DefaultListModel)jListDatasets.getModel();
 	dlm.clear();
+	dlm.addElement("<ALL>");
 	Iterator<PrimaryDataset> itPD = (stream==null) ?
 	    content.datasetIterator() : stream.datasetIterator();
 	while (itPD.hasNext()) dlm.addElement(itPD.next().name());
@@ -2447,8 +2449,8 @@ public class ConfDbGUI
 	Stream stream = (lsmS.isSelectionEmpty()) ?
 	    null : content.stream(lsmS.getMinSelectionIndex());
 	
-	PrimaryDataset dataset = (lsmD.isSelectionEmpty()) ?
-	    null : content.dataset(lsmD.getMinSelectionIndex());
+	PrimaryDataset dataset = (lsmD.isSelectionEmpty() || lsmD.getMinSelectionIndex()==0 ) ?
+	    null : content.dataset(lsmD.getMinSelectionIndex()-1);
 	
 	// fill paths
 	DefaultListModel plm = (DefaultListModel)jListPaths.getModel();
@@ -3486,6 +3488,9 @@ public class ConfDbGUI
         jScrollPaneOutputModule.setViewportView(jTextAreaOutputModule);
 
         jTableCommands.setModel(new CommandTableModel());
+	jTableCommands.setDefaultRenderer(Integer.class, new CommandTableCellRenderer());
+	jTableCommands.setDefaultRenderer(OutputCommand.class, new CommandTableCellRenderer());
+	jTableCommands.setDefaultRenderer(String.class, new CommandTableCellRenderer());
         jTableCommands.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
                 jTableCommandsMousePressed(evt);
@@ -3747,7 +3752,13 @@ class CommandTableModel extends AbstractTableModel
 	this.path = path;
 	fireTableDataChanged();
     }
-    
+
+    /** Getters */
+    public EventContent   getContent(){return content;}
+    public Stream         getStream(){return stream;}
+    public PrimaryDataset getDataset(){return dataset;}
+    public Path           getPath(){return path;}
+
     /** AbstractTableModel: number of columns */
     public int getColumnCount() { return 3; }
     
@@ -3796,5 +3807,83 @@ class CommandTableModel extends AbstractTableModel
 	else                 return String.class;
 	// return getValueAt(0,iColumn).getClass();
     }
+
 }
 
+//
+// CommandTableCellRenderer
+//
+class CommandTableCellRenderer extends DefaultTableCellRenderer
+{
+    public Component getTableCellRendererComponent(JTable table,
+						   Object value,
+						   boolean isSelected,
+						   boolean hasFocus,
+						   int row,int column)
+    {
+	setText(value.toString());
+	if ((value instanceof Integer) || (value instanceof OutputCommand) || (value instanceof String)) {
+
+	    setBackground(Color.RED);
+
+	    CommandTableModel ctm = (CommandTableModel)table.getModel();
+
+	    Path           path    = ctm.getPath();
+	    PrimaryDataset dataset = ctm.getDataset();
+	    Stream         stream  = ctm.getStream();
+	    EventContent   content = ctm.getContent();
+	    IConfiguration config  = content.config();
+	    if (config==null) return this;
+
+	    OutputCommand oc = (OutputCommand)table.getValueAt(row,1);
+	    String label = oc.moduleName();
+	    ModuleInstance instance = config.module(label);
+	    if (instance==null) return this;
+	    
+	    ArrayList<Path> paths = new ArrayList<Path>();
+	    paths.clear();
+	    for (Path p : instance.parentPaths()) {
+		paths.add(p);
+	    }
+	    boolean ok = false;
+
+	    if (path!=null) {
+		ok = (paths.indexOf(path)>=0);
+	    } else if (dataset!=null) {
+		for (Path p : paths) {
+		    ok = (dataset.indexOfPath(p)>=0);
+		    if (ok) break;
+		}
+	    } else if (stream!=null) {
+		ArrayList<Path>   assigned = new ArrayList<Path>(stream.listOfAssignedPaths());
+		ArrayList<Path> unassigned = new ArrayList<Path>(stream.listOfUnassignedPaths());
+		for (Path p : paths) {
+		    ok = (assigned.indexOf(p)>=0 || unassigned.indexOf(p)>=0);
+		    if (ok) break;
+		}
+	    } else if (content!=null) {
+		ArrayList<Path>   assigned = new ArrayList<Path>();
+		ArrayList<Path> unassigned = new ArrayList<Path>();
+		Iterator<Stream> itS = content.streamIterator();
+		while (itS.hasNext()) {
+		    Stream s = itS.next();
+		    assigned.clear();
+		    assigned = s.listOfAssignedPaths();
+		    unassigned.clear();
+		    unassigned = s.listOfUnassignedPaths();
+		    for (Path p : paths) {
+			ok = (assigned.indexOf(p)>=0 || unassigned.indexOf(p)>=0);
+			if (ok) break;
+		    }
+		    if (ok) break;
+		}
+	    } else {
+	    }
+
+	    if (ok) setBackground(Color.GREEN);
+
+	}
+	return this;
+    }
+
+}
