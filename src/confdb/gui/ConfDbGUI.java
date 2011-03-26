@@ -2373,6 +2373,7 @@ public class ConfDbGUI
 	// fill streams
 	DefaultListModel slm = (DefaultListModel)jListStreams.getModel();
 	slm.clear();
+	slm.addElement("<ALL>");
 	Iterator<Stream> itS = content.streamIterator();
 	while (itS.hasNext()) slm.addElement(itS.next().name());
 
@@ -2408,8 +2409,8 @@ public class ConfDbGUI
 	String contentName = jComboBoxEventContent.getSelectedItem().toString();
 	EventContent content = currentConfig.content(contentName);
 	
-	Stream stream = (lsmS.isSelectionEmpty()) ?
-	    null : content.stream(lsmS.getMinSelectionIndex());
+	Stream stream = (lsmS.isSelectionEmpty() || lsmS.getMinSelectionIndex()==0 ) ?
+	    null : content.stream(lsmS.getMinSelectionIndex()-1);
 
 	// fill datasets
 	DefaultListModel dlm = (DefaultListModel)jListDatasets.getModel();
@@ -2446,8 +2447,8 @@ public class ConfDbGUI
 	String contentName = jComboBoxEventContent.getSelectedItem().toString();
 	EventContent content = currentConfig.content(contentName);
 	
-	Stream stream = (lsmS.isSelectionEmpty()) ?
-	    null : content.stream(lsmS.getMinSelectionIndex());
+	Stream stream = (lsmS.isSelectionEmpty() || lsmS.getMinSelectionIndex()==0 ) ?
+	    null : content.stream(lsmS.getMinSelectionIndex()-1);
 	
 	PrimaryDataset dataset = (lsmD.isSelectionEmpty() || lsmD.getMinSelectionIndex()==0 ) ?
 	    null : content.dataset(lsmD.getMinSelectionIndex()-1);
@@ -2547,8 +2548,8 @@ public class ConfDbGUI
 	String             contentName =
 	    jComboBoxEventContent.getSelectedItem().toString();
 	EventContent       content = currentConfig.content(contentName);
-	Stream             stream = (lsmS.isSelectionEmpty()) ?
-	    null : content.stream(lsmS.getMinSelectionIndex());
+	Stream             stream = (lsmS.isSelectionEmpty() || lsmS.getMinSelectionIndex()==0 ) ?
+	    null : content.stream(lsmS.getMinSelectionIndex()-1);
 	
 	if (stream!=null) {
 	    try {
@@ -3824,6 +3825,51 @@ class CommandTableCellRenderer extends DefaultTableCellRenderer
 	setText(value.toString());
 	if ((value instanceof Integer) || (value instanceof OutputCommand) || (value instanceof String)) {
 
+	    OutputCommand oc = (OutputCommand)table.getValueAt(row,1);
+	    String       soc = oc.toString();
+	    
+	    setBackground(Color.LIGHT_GRAY);
+
+	    OutputCommand ocDropAll = new OutputCommand();
+	    ocDropAll.setDrop();
+	    System.out.println("X1 "+soc+" "+ocDropAll.toString());
+	    if (soc.equals(ocDropAll.toString())) {
+		return this;
+	    }
+	    OutputCommand ocDropHLT = new OutputCommand();
+	    ocDropHLT.setDrop();
+	    ocDropHLT.setModuleName("hlt*");
+	    System.out.println("X2 "+soc+" "+ocDropHLT.toString());
+	    if (soc.equals(ocDropHLT.toString())) {
+		return this;
+	    }
+	    OutputCommand ocRawOnl = new OutputCommand();
+	    ocRawOnl.setClassName("FEDRawDataCollection");
+	    ocRawOnl.setModuleName("source");
+	    System.out.println("X3 "+soc+" "+ocRawOnl.toString());
+	    if (soc.equals(ocRawOnl.toString())) {
+		return this;
+	    }
+	    OutputCommand ocRawOff = new OutputCommand();
+	    ocRawOff.setClassName("FEDRawDataCollection");
+	    ocRawOff.setModuleName("rawDataCollector");
+	    System.out.println("X4 "+soc+" "+ocRawOff.toString());
+	    if (soc.equals(ocRawOff.toString())) {
+		return this;
+	    }
+	    OutputCommand ocTrgRes = new OutputCommand();
+	    ocTrgRes.setClassName("edmTriggerResults");
+	    System.out.println("X5 "+soc+" "+ocTrgRes.toString());
+	    if (soc.equals(ocTrgRes.toString())) {
+		return this;
+	    }
+	    OutputCommand ocTrgEvt = new OutputCommand();
+	    ocTrgEvt.setClassName("triggerTriggerEvent");
+	    System.out.println("X6 "+soc+" "+ocTrgEvt.toString());
+	    if (soc.equals(ocTrgEvt.toString())) {
+		return this;
+	    }
+
 	    setBackground(Color.RED);
 
 	    CommandTableModel ctm = (CommandTableModel)table.getModel();
@@ -3832,14 +3878,14 @@ class CommandTableCellRenderer extends DefaultTableCellRenderer
 	    PrimaryDataset dataset = ctm.getDataset();
 	    Stream         stream  = ctm.getStream();
 	    EventContent   content = ctm.getContent();
+
 	    IConfiguration config  = content.config();
 	    if (config==null) return this;
 
-	    OutputCommand oc = (OutputCommand)table.getValueAt(row,1);
 	    String label = oc.moduleName();
 	    ModuleInstance instance = config.module(label);
 	    if (instance==null) return this;
-	    
+
 	    ArrayList<Path> paths = new ArrayList<Path>();
 	    paths.clear();
 	    for (Path p : instance.parentPaths()) {
