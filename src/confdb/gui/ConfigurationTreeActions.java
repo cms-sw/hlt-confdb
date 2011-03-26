@@ -630,13 +630,13 @@ public class ConfigurationTreeActions
 		ModuleReference sourceRef = (ModuleReference)entry;
 		ModuleInstance  source    = (ModuleInstance)sourceRef.parent();
 		ModuleInstance  target    = config.module(source.name());
+		ModuleReference targetRef = null;
 		if (target!=null) {
-		    config.insertModuleReference(targetContainer,i,target);
+		    targetRef = config.insertModuleReference(targetContainer,i,target);
 		    result = false;
 		}
 		else {
-		    ModuleReference targetRef =
-			config.insertModuleReference(targetContainer,i,
+		    targetRef = config.insertModuleReference(targetContainer,i,
 						     source.template().name(),
 						     source.name());
 		    target = (ModuleInstance)targetRef.parent();
@@ -645,6 +645,7 @@ public class ConfigurationTreeActions
 					       .valueAsString());
 		    target.setDatabaseId(source.databaseId());
 		}
+		targetRef.setOperator(sourceRef.getOperator());
 
 		treeModel.nodeInserted(targetContainer,i);
 		if (target.referenceCount()==1)
