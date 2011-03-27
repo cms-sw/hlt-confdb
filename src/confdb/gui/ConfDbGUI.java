@@ -3908,7 +3908,6 @@ class CommandTableCellRenderer extends DefaultTableCellRenderer
 		    ok = (path.equals(p));
 		    if (ok) break;
 		}
-		//		ok = (paths.indexOf(path)>=0);
 	    } else if (dataset!=null) {
 		for (Path p : paths) {
 		    ok = (dataset.indexOfPath(p)>=0);
