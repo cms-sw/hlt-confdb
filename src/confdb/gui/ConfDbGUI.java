@@ -1717,6 +1717,13 @@ public class ConfDbGUI
 			ModuleReference reference=(ModuleReference)selectedNode;
 			ModuleInstance  instance=(ModuleInstance)reference.parent();
 			text = instance.template().name();
+
+			Path path = (Path)(tp.getPathComponent(2));
+			String[] unresolved = path.unresolvedInputTags();
+			for (String un : unresolved) {
+			    if (un.indexOf(instance.name())>=0) text += " "+un;
+			}
+			text = text.replaceAll(instance.name(),"");
 		    }
 		    else if (selectedNode instanceof Stream) {
 			Stream stream = (Stream)selectedNode;
@@ -3886,15 +3893,22 @@ class CommandTableCellRenderer extends DefaultTableCellRenderer
 	    ModuleInstance instance = config.module(label);
 	    if (instance==null) return this;
 
+	    Path[] paths = instance.parentPaths();
+	    /*
 	    ArrayList<Path> paths = new ArrayList<Path>();
 	    paths.clear();
 	    for (Path p : instance.parentPaths()) {
 		paths.add(p);
 	    }
+	    */
 	    boolean ok = false;
 
 	    if (path!=null) {
-		ok = (paths.indexOf(path)>=0);
+		for (Path p : paths) {
+		    ok = (path.equals(p));
+		    if (ok) break;
+		}
+		//		ok = (paths.indexOf(path)>=0);
 	    } else if (dataset!=null) {
 		for (Path p : paths) {
 		    ok = (dataset.indexOfPath(p)>=0);

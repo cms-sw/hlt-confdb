@@ -27,6 +27,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
     
     /** reference to the tree model */
     private ConfigurationTreeModel treeModel = null;
+    private Path xpath = null;
     
     /** flag indicating if InputTags are to be tracked */
     private boolean doDisplayUnresolvedInputTags = false;
@@ -241,6 +242,31 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
 	    result += "</html>";
 	}
+	else if (node instanceof ModuleReference) {
+	    result="<html>";
+	    result += ((Reference)node).getOperatorAndName();
+	    if (xpath != null) {
+		int n=0;
+		String label = ((Reference)node).name();
+		String[] unresolved = xpath.unresolvedInputTags();
+		for (String un : unresolved) if (un.indexOf(label)>=0) n++;
+		if (n>0) result += " <font color=#0000ff>["+n+"]</font>";
+	    }
+	    result += "</html>";
+	}
+	else if (node instanceof Instance) {
+	    Instance instance      = (Instance)node;
+	    int      count         = instance.unsetTrackedParameterCount();
+	    result="<html>";
+	    if (instance instanceof ESPreferable) {
+		ESPreferable esp = (ESPreferable)instance;
+		if   (esp.isPreferred()) result += "<b>"+instance.name()+"</b>";
+		else                     result += instance.name();
+	    }
+	    else result += instance.name();
+	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
+	    result+="</html>";
+	}
 	else if ( node instanceof Reference )
 		result = ((Reference)node).getOperatorAndName();
 	
@@ -298,6 +324,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 			"<html><font color=#ff0000>"+result+"</font></html>";
 	    }
 	}
+
 	return result;
     }
     
@@ -326,11 +353,17 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 					   expanded,leaf,row,
 					   hasFocus);
 	node = value;
+
+	TreePath tp = tree.getPathForRow(row);
+	if ( (tp!=null) && (tp.getPathCount()>2) && (tp.getPathComponent(2) instanceof Path)) {
+	    xpath = (Path)(tp.getPathComponent(2));
+	} else {
+	    xpath = null;
+	}
+
 	setIcon(prepareIcon());
 	setText(prepareText());
 	return this;
     }
-	
-    
 
 }
