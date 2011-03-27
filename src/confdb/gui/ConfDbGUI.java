@@ -2267,8 +2267,6 @@ public class ConfDbGUI
 	    fillEventContents();
 	else
 	    displaySnippet();
-
-	System.out.println("A "+e.toString());
     }
     private void jTreeCurrentConfigTreeNodesInserted(TreeModelEvent e) {}
     private void jTreeCurrentConfigTreeNodesRemoved(TreeModelEvent e) {}
@@ -3854,40 +3852,34 @@ class CommandTableCellRenderer extends DefaultTableCellRenderer
 
 	    OutputCommand ocDropAll = new OutputCommand();
 	    ocDropAll.setDrop();
-	    System.out.println("X1 "+soc+" "+ocDropAll.toString());
 	    if (soc.equals(ocDropAll.toString())) {
 		return this;
 	    }
 	    OutputCommand ocDropHLT = new OutputCommand();
 	    ocDropHLT.setDrop();
 	    ocDropHLT.setModuleName("hlt*");
-	    System.out.println("X2 "+soc+" "+ocDropHLT.toString());
 	    if (soc.equals(ocDropHLT.toString())) {
 		return this;
 	    }
 	    OutputCommand ocRawOnl = new OutputCommand();
 	    ocRawOnl.setClassName("FEDRawDataCollection");
 	    ocRawOnl.setModuleName("source");
-	    System.out.println("X3 "+soc+" "+ocRawOnl.toString());
 	    if (soc.equals(ocRawOnl.toString())) {
 		return this;
 	    }
 	    OutputCommand ocRawOff = new OutputCommand();
 	    ocRawOff.setClassName("FEDRawDataCollection");
 	    ocRawOff.setModuleName("rawDataCollector");
-	    System.out.println("X4 "+soc+" "+ocRawOff.toString());
 	    if (soc.equals(ocRawOff.toString())) {
 		return this;
 	    }
 	    OutputCommand ocTrgRes = new OutputCommand();
 	    ocTrgRes.setClassName("edmTriggerResults");
-	    System.out.println("X5 "+soc+" "+ocTrgRes.toString());
 	    if (soc.equals(ocTrgRes.toString())) {
 		return this;
 	    }
 	    OutputCommand ocTrgEvt = new OutputCommand();
 	    ocTrgEvt.setClassName("triggerTriggerEvent");
-	    System.out.println("X6 "+soc+" "+ocTrgEvt.toString());
 	    if (soc.equals(ocTrgEvt.toString())) {
 		return this;
 	    }

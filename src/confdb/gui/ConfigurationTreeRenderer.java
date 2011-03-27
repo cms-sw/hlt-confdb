@@ -245,7 +245,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	else if (node instanceof ModuleReference) {
 	    result="<html>";
 	    result += ((Reference)node).getOperatorAndName();
-	    if (xpath != null) {
+	    if (doDisplayUnresolvedInputTags && (xpath != null)) {
 		int n=0;
 		String label = ((Reference)node).name();
 		String[] unresolved = xpath.unresolvedInputTags();
@@ -340,19 +340,22 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 					   expanded,leaf,row,
 					   hasFocus);
 	node = value;
-
 	setIcon(prepareIcon());
 
+	xpath = null;
 	TreePath tp = tree.getPathForRow(row);
-
-	if ((tp==null)||(!tp.getLastPathComponent().toString().equals(value.toString()))) {
-	    setText(value.toString()+"XXXX");
+	if (tp==null) {
+	    setText(prepareText());
+	} else if ( (node instanceof ModuleReference)
+		 && (tp.getPathCount()==3)
+		 && (tp.getLastPathComponent() instanceof Path)
+		 && (!tp.getLastPathComponent().toString().equals(node.toString())) ) {
+	    // workaround for TreeCellRenderer + getPathForRow bug: see
+	    // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4433885
+	    // just need to provide a sufficiently long string...
+	    setText(prepareText().replaceAll("</html>","XXXX</html>"));
 	} else {
-	    if ( (tp.getPathCount()>2) && (tp.getPathComponent(2) instanceof Path)) {
-		xpath = (Path)(tp.getPathComponent(2));
-	    } else {
-		xpath = null;
-	    }
+	    if ((tp.getPathCount()>2) && (tp.getPathComponent(2) instanceof Path)) xpath = (Path)(tp.getPathComponent(2));
 	    setText(prepareText());
 	}
 
