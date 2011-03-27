@@ -763,6 +763,19 @@ public class ConfDbGUI
 	for (int i=0;i<config.pathCount();i++) pathIndices[i]=i;
 	treeModelCurrentConfig.childNodesChanged(treeModelCurrentConfig
 						 .pathsNode(),pathIndices);
+
+	Path[] children = new Path[config.pathCount()];	
+	for (int i=0; i<config.pathCount(); i++) {
+	    children[i]=(Path)treeModelCurrentConfig.getChild(treeModelCurrentConfig.pathsNode(),i);
+	    
+	    Path newParent = children[i];
+	    int newIndices[] = new int[newParent.entryCount()];
+		for (int j=0; j<newParent.entryCount(); j++) {
+		newIndices[j]=j;
+	    }
+	    treeModelCurrentConfig.childNodesChanged(newParent,newIndices);
+	}
+	
     }
 
     /** connect to the database */
@@ -1779,7 +1792,7 @@ public class ConfDbGUI
 	jTreeImportConfig.getSelectionModel()
 	    .setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 	jTreeImportConfig.setCellRenderer(new ConfigurationTreeRenderer());
-	
+
 	
 	ConfigurationTreeTransferHandler importDndHandler =
 	    new ConfigurationTreeTransferHandler(jTreeImportConfig,null,null);
@@ -2254,6 +2267,8 @@ public class ConfDbGUI
 	    fillEventContents();
 	else
 	    displaySnippet();
+
+	System.out.println("A "+e.toString());
     }
     private void jTreeCurrentConfigTreeNodesInserted(TreeModelEvent e) {}
     private void jTreeCurrentConfigTreeNodesRemoved(TreeModelEvent e) {}

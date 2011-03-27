@@ -341,15 +341,21 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 					   hasFocus);
 	node = value;
 
+	setIcon(prepareIcon());
+
 	TreePath tp = tree.getPathForRow(row);
-	if ( (tp!=null) && (tp.getPathCount()>2) && (tp.getPathComponent(2) instanceof Path)) {
-	    xpath = (Path)(tp.getPathComponent(2));
+
+	if ((tp==null)||(!tp.getLastPathComponent().toString().equals(value.toString()))) {
+	    setText(value.toString()+"XXXX");
 	} else {
-	    xpath = null;
+	    if ( (tp.getPathCount()>2) && (tp.getPathComponent(2) instanceof Path)) {
+		xpath = (Path)(tp.getPathComponent(2));
+	    } else {
+		xpath = null;
+	    }
+	    setText(prepareText());
 	}
 
-	setIcon(prepareIcon());
-	setText(prepareText());
 	return this;
     }
 
