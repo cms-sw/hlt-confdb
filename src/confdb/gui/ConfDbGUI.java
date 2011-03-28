@@ -1928,13 +1928,12 @@ public class ConfDbGUI
 		cbModel.addElement("");
 		Path[] paths = module.parentPaths();
 		for (Path p : paths) cbModel.addElement(p.name());
-		treeModelParameters.setParameterContainer(container);
 	    }
 	    else {
 		jComboBoxPaths.setEnabled(false);
-		treeModelParameters.setParameterContainer(container);
 	    }
-	    
+
+	    treeModelParameters.setParameterContainer(container);	    
 	}
 	else {
 	    clearParameters();
