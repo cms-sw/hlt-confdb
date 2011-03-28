@@ -1733,6 +1733,7 @@ public class ConfDbGUI
 
 			Path path = (Path)(tp.getPathComponent(2));
 			String[] unresolved = path.unresolvedInputTags();
+			if (unresolved.length>0) text+="<br>Unresolved InputTags out of the "+unresolved.length+" in the current path:";
 			for (String un : unresolved) {
 			    if (un.indexOf(instance.name())>=0) text += "<br>"+un;
 			}
@@ -1745,6 +1746,7 @@ public class ConfDbGUI
 
 			Path path = (Path)(tp.getPathComponent(2));
 			String[] unresolved = path.unresolvedInputTags();
+			if (unresolved.length>0) text+="<br>Unresolved InputTags out of the "+unresolved.length+" in the current path:";
 			for (String un : unresolved) {
 			    if (un.indexOf(instance.name())>=0) text += "<br>"+un;
 			}
