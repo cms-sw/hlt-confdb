@@ -1551,7 +1551,10 @@ public class ConfDbGUI
 		dialog.pack();
 		dialog.setLocationRelativeTo(frame);
 		dialog.setConfigurations(currentConfig,targetConfig);
+		targetConfig.setConfigInfo(currentConfig.configInfo());
+		targetConfig.setReleaseTag(currentConfig.releaseTag());
 		setCurrentConfig(targetConfig);
+		currentConfig.setHasChanged(true);
 		jProgressBar.setIndeterminate(false);
 		dialog.setVisible(true);
 	    }

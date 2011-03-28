@@ -255,6 +255,10 @@ public class Configuration implements IConfiguration
     {
 	return (configInfo!=null) ? configInfo.releaseTag() : "";
     }
+    public void setReleaseTag(String releaseTag)
+    {
+	if (configInfo!=null) configInfo.setReleaseTag(releaseTag);
+    }
 
     /** get the process name */
     public String processName()
