@@ -117,7 +117,7 @@ abstract
 	ArrayList<String> unresolved = new ArrayList<String>();
 	HashSet<String> labels = new HashSet<String>();
 	for (Reference r : entries)
-	    getUnresolvedInputTags(r,labels,unresolved);
+	    getUnresolvedInputTags(r,labels,unresolved,name());
 	return unresolved.toArray(new String[unresolved.size()]);
     }
 
@@ -306,7 +306,8 @@ abstract
     /** get unresolved InputTags from a reference, given labels to this point */
     private void getUnresolvedInputTags(Reference r,
 					HashSet<String> labels,
-					ArrayList<String> unresolved)
+					ArrayList<String> unresolved,
+					String prefix)
     {
 	if (r instanceof ModuleReference) {
 	    ModuleReference modref = (ModuleReference)r;
@@ -315,7 +316,7 @@ abstract
 	    Iterator<Parameter> it = module.parameterIterator();
 	    while (it.hasNext()) {
 		Parameter p = it.next();
-		getUnresolvedInputTags(p,labels,unresolved);
+		getUnresolvedInputTags(p,labels,unresolved,prefix+"/"+module.name());
 	    }
 	}
 	else if (r instanceof OutputModuleReference) {
@@ -325,7 +326,7 @@ abstract
 	    Iterator<Reference> it = container.entryIterator();
 	    while (it.hasNext()) {
 		Reference entry = it.next();
-		getUnresolvedInputTags(entry,labels,unresolved);
+		getUnresolvedInputTags(entry,labels,unresolved,prefix+"/"+r.name());
 	    }
 	}
     }
@@ -333,7 +334,8 @@ abstract
     /** get unresolved InputTags from a parameter, given labels to this point */
     private void getUnresolvedInputTags(Parameter p,
 					HashSet<String> labels,
-					ArrayList<String> unresolved)
+					ArrayList<String> unresolved,
+					String prefix)
     {
 	if (p instanceof InputTagParameter) {
 	    InputTagParameter itp = (InputTagParameter)p;
@@ -344,35 +346,28 @@ abstract
 		itp.label().equals("source")) return;
 	    
 	    if (!labels.contains(itp.label())) {
-		Object parent = itp;
-		String s = ":"+itp.name()+"@"+itp.label();
-		do {
-		    parent = ((Parameter)parent).parent();
-		    s = "/"+parent+s;
-		}
-		while (parent instanceof Parameter);
-		unresolved.add(s);
+		unresolved.add(prefix+"::"+itp.name()+"="+itp.valueAsString());
 	    }
 	}
 	else if (p instanceof VInputTagParameter) {
 	    VInputTagParameter vitp = (VInputTagParameter)p;
 	    for (int i=0;i<vitp.vectorSize();i++) {
 		InputTagParameter itp =
-		    new InputTagParameter((new Integer(i)).toString(),
+		    new InputTagParameter("["+(new Integer(i)).toString()+"]",
 					  vitp.value(i).toString(),false);
 		itp.setParent(vitp);
-		getUnresolvedInputTags(itp,labels,unresolved);
+		getUnresolvedInputTags(itp,labels,unresolved,prefix+"::"+vitp.name());
 	    }
 	}
 	else if (p instanceof PSetParameter) {
 	    PSetParameter pset = (PSetParameter)p;
 	    for (int i=0;i<pset.parameterCount();i++)
-		getUnresolvedInputTags(pset.parameter(i),labels,unresolved);
+		getUnresolvedInputTags(pset.parameter(i),labels,unresolved,prefix+"::"+pset.name());
 	}
 	else if (p instanceof VPSetParameter) {
 	    VPSetParameter vpset = (VPSetParameter)p;
 	    for (int i=0;i<vpset.parameterSetCount();i++)
-		getUnresolvedInputTags(vpset.parameterSet(i),labels,unresolved);
+		getUnresolvedInputTags(vpset.parameterSet(i),labels,unresolved,prefix+"::"+vpset.name());
 	}
     }
  

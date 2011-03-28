@@ -1729,14 +1729,26 @@ public class ConfDbGUI
 		    else if (selectedNode instanceof ModuleReference) {
 			ModuleReference reference=(ModuleReference)selectedNode;
 			ModuleInstance  instance=(ModuleInstance)reference.parent();
-			text = instance.template().name();
+			text = "<html>"+instance.template().name();
 
 			Path path = (Path)(tp.getPathComponent(2));
 			String[] unresolved = path.unresolvedInputTags();
 			for (String un : unresolved) {
-			    if (un.indexOf(instance.name())>=0) text += " "+un;
+			    if (un.indexOf(instance.name())>=0) text += "<br>"+un;
 			}
-			text = text.replaceAll(instance.name(),"");
+			text +="<html>";
+		    }
+		    else if (selectedNode instanceof SequenceReference) {
+			SequenceReference reference=(SequenceReference)selectedNode;
+			Sequence instance=(Sequence)reference.parent();
+			text = "<html>"+instance.name();
+
+			Path path = (Path)(tp.getPathComponent(2));
+			String[] unresolved = path.unresolvedInputTags();
+			for (String un : unresolved) {
+			    if (un.indexOf(instance.name())>=0) text += "<br>"+un;
+			}
+			text += "<html>";
 		    }
 		    else if (selectedNode instanceof Stream) {
 			Stream stream = (Stream)selectedNode;
