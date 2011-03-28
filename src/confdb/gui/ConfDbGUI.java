@@ -1735,7 +1735,13 @@ public class ConfDbGUI
 			String[] unresolved = path.unresolvedInputTags();
 			if (unresolved.length>0) text+="<br>Unresolved InputTags out of the "+unresolved.length+" in the current path:";
 			for (String un : unresolved) {
-			    if (un.indexOf(instance.name())>=0) text += "<br>"+un;
+			    String[] tokens = un.split("[/:]");
+			    for (int i=0; i<tokens.length; i++) {
+				if (instance.name().equals(tokens[i])) {
+				    text += "<br>"+un;
+				    break;
+				}
+			    }
 			}
 			text +="<html>";
 		    }
@@ -1748,7 +1754,13 @@ public class ConfDbGUI
 			String[] unresolved = path.unresolvedInputTags();
 			if (unresolved.length>0) text+="<br>Unresolved InputTags out of the "+unresolved.length+" in the current path:";
 			for (String un : unresolved) {
-			    if (un.indexOf(instance.name())>=0) text += "<br>"+un;
+			    String[] tokens = un.split("[/:]");
+			    for (int i=0; i<tokens.length; i++) {
+				if (instance.name().equals(tokens[i])) {
+				    text += "<br>"+un;
+				    break;
+				}
+			    }
 			}
 			text += "<html>";
 		    }

@@ -244,7 +244,15 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 		int n=0;
 		String label = ((Reference)node).name();
 		String[] unresolved = xpath.unresolvedInputTags();
-		for (String un : unresolved) if (un.indexOf(label)>=0) n++;
+		for (String un : unresolved) {
+		    String[] tokens = un.split("[/:]");
+		    for (int i=0; i<tokens.length; i++) {
+			if (label.equals(tokens[i])) {
+			    n++;
+			    break;
+			}
+		    }
+		}
 		if (n>0) result += " <font color=#0000ff>["+n+"]</font>";
 	    }
 	    result += "</html>";
@@ -256,7 +264,15 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 		int n=0;
 		String label = ((Reference)node).name();
 		String[] unresolved = xpath.unresolvedInputTags();
-		for (String un : unresolved) if (un.indexOf(label)>=0) n++;
+		for (String un : unresolved) {
+		    String[] tokens = un.split("[/:]");
+		    for (int i=0; i<tokens.length; i++) {
+			if (label.equals(tokens[i])) {
+			    n++;
+			    break;
+			}
+		    }
+		}
 		if (n>0) result += " <font color=#0000ff>["+n+"]</font>";
 	    }
 	    result += "</html>";
