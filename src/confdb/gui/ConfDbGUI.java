@@ -1832,7 +1832,7 @@ public class ConfDbGUI
 	UIManager.put("Tree.textBackground",defaultTreeBackground);
 
 	// parameter table
-	treeModelParameters  = new ParameterTreeModel();
+	treeModelParameters  = new ParameterTreeModel(currentConfig);
 	jTreeTableParameters = new TreeTable(treeModelParameters);
 	jTreeTableParameters
 	    .setTreeCellRenderer(new ParameterTreeCellRenderer());
@@ -1881,7 +1881,9 @@ public class ConfDbGUI
 	TitledBorder border = (TitledBorder)jScrollPaneParameters.getBorder();
 
 	toolBar.disableAddUntrackedParameter();
-	
+
+	treeModelParameters.setConfiguration(currentConfig);
+
 	if (currentParameterContainer instanceof ParameterContainer) {
 	    toolBar.enableAddUntrackedParameter();
 	    jSplitPaneRightUpper.setDividerLocation(-1);
@@ -1926,12 +1928,13 @@ public class ConfDbGUI
 		cbModel.addElement("");
 		Path[] paths = module.parentPaths();
 		for (Path p : paths) cbModel.addElement(p.name());
+		treeModelParameters.setParameterContainer(container);
 	    }
 	    else {
 		jComboBoxPaths.setEnabled(false);
+		treeModelParameters.setParameterContainer(container);
 	    }
 	    
-	    treeModelParameters.setParameterContainer(container);
 	}
 	else {
 	    clearParameters();

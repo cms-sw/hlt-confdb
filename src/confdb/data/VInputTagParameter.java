@@ -114,6 +114,10 @@ public class VInputTagParameter extends VectorParameter
     /** i-th value of a vector type parameter */
     public Object value(int i) { return values.get(i).toString(); }
 
+    public String label(int i) { return values.get(i).label(); }
+    public String instance(int i) { return values.get(i).instance(); }
+    public String process(int i) { return values.get(i).process(); }
+
     /** set i-th value of a vector-type parameter */
     public boolean setValue(int i,String valueAsString)
     {
@@ -196,6 +200,10 @@ class InputTag
     //
     // member functions
     //
+
+    public String label() {return label;}
+    public String instance() {return instance;}
+    public String process() {return process;}
 
     /** overload toString() */
     public String toString()

@@ -15,6 +15,10 @@ import confdb.data.ParameterContainer;
 import confdb.data.VectorParameter;
 import confdb.data.PSetParameter;
 import confdb.data.VPSetParameter;
+import confdb.data.InputTagParameter;
+import confdb.data.VInputTagParameter;
+import confdb.data.IConfiguration;
+import confdb.data.*;
 
 /**
  * ParameterTreeModel
@@ -28,6 +32,9 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     //
     // member data
     //
+
+    /** root of the tree = configuration */
+    private IConfiguration config = null;
     
     /** column names */
     private static String[] columnNames = { "name",
@@ -55,6 +62,12 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     ParameterTreeModel()
     {
 	super(null);
+	this.config = null;
+    }
+    ParameterTreeModel(IConfiguration config)
+    {
+	super(null);
+	this.config = config;
     }
     
     
@@ -62,6 +75,11 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
     // member functions
     //
     
+    public void setConfiguration(IConfiguration config)
+    {
+	this.config=config;
+    }
+
     /** AbstractTreeTableTreeModel: getParent() */
     public Object getParent(Object node)
     {
@@ -144,13 +162,37 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 	Parameter p      = (Parameter)node;
 	boolean   isPSet = (p instanceof PSetParameter||
 			    p instanceof VPSetParameter);
+
+
+	boolean unresolved = false;
+	if (p.type().equals("InputTag")) {
+	    InputTagParameter it = (InputTagParameter)p;
+	    unresolved = (config.module(it.label())==null);
+	} else if (p.type().equals("VInputTag")) {
+	    VInputTagParameter vit = (VInputTagParameter)p;
+	    for (int i=0; i<vit.vectorSize(); i++) {
+		unresolved = (config.module(vit.label(i))==null);
+		if (unresolved) break;
+	    }
+	}
 	
-	switch (column) {
-	case 0: return p.name();
-	case 1: return p.type();
-	case 2: return (isPSet) ? "" : p.valueAsString();
-	case 3: return new Boolean(p.isDefault());
-	case 4: return new Boolean(p.isTracked());
+	String result = new String();
+	if (column==0) {
+	    result = p.name();
+	    if (unresolved) result = "<html><font color=#ff0000>"+result+"</font></html>";
+	    return result;
+	} else if (column==1) {
+	    result = p.type();
+	    if (unresolved) result = "<html><font color=#ff0000>"+result+"</font></html>";
+	    return result;
+	} else if (column==2) {
+	    result = (isPSet) ? "" : p.valueAsString();
+	    if (unresolved) result = "<html><font color=#ff0000>"+result+"</font></html>";
+	    return result;
+	} else if (column==3) {
+	    return new Boolean(p.isDefault());
+	} else if (column==4) {
+	    return new Boolean(p.isTracked());
 	}
 	return null;
     }
