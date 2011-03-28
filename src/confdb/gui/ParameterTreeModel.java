@@ -163,31 +163,27 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 	boolean   isPSet = (p instanceof PSetParameter||
 			    p instanceof VPSetParameter);
 
-
-	boolean unresolved = false;
-	if (p.type().equals("InputTag")) {
-	    InputTagParameter it = (InputTagParameter)p;
-	    unresolved = (config.module(it.label())==null);
-	} else if (p.type().equals("VInputTag")) {
-	    VInputTagParameter vit = (VInputTagParameter)p;
-	    for (int i=0; i<vit.vectorSize(); i++) {
-		unresolved = (config.module(vit.label(i))==null);
-		if (unresolved) break;
-	    }
-	}
-	
 	String result = new String();
 	if (column==0) {
 	    result = p.name();
-	    if (unresolved) result = "<html><font color=#ff0000>"+result+"</font></html>";
 	    return result;
 	} else if (column==1) {
+	    boolean unresolved = false;
+	    if (p.type().equals("InputTag")) {
+		InputTagParameter it = (InputTagParameter)p;
+		unresolved = (config.module(it.label())==null);
+	    } else if (p.type().equals("VInputTag")) {
+		VInputTagParameter vit = (VInputTagParameter)p;
+		for (int i=0; i<vit.vectorSize(); i++) {
+		    unresolved = (config.module(vit.label(i))==null);
+		    if (unresolved) break;
+		}
+	    }
 	    result = p.type();
 	    if (unresolved) result = "<html><font color=#ff0000>"+result+"</font></html>";
 	    return result;
 	} else if (column==2) {
 	    result = (isPSet) ? "" : p.valueAsString();
-	    if (unresolved) result = "<html><font color=#ff0000>"+result+"</font></html>";
 	    return result;
 	} else if (column==3) {
 	    return new Boolean(p.isDefault());

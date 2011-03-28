@@ -240,7 +240,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 		" ("+entryCount+")":
 		"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
-	    if (doDisplayUnresolvedInputTags) {
+	    if (doDisplayUnresolvedInputTags && (xpath != null)) {
 		int n=0;
 		String label = ((Reference)node).name();
 		String[] unresolved = xpath.unresolvedInputTags();
