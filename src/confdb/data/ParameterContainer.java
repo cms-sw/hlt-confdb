@@ -186,18 +186,42 @@ abstract public class ParameterContainer extends DatabaseEntry
 	Iterator<Parameter> itP = recursiveParameterIterator();
 	while (itP.hasNext()) {
 	    Parameter p = itP.next();
-		String paramType = p.type();
+	    String paramType = p.type();
 	    String fullParamName = p.fullName();
 	    String paramValue = p.valueAsString();
+	    
+	    boolean typeMatch=(type==null) ? true : paramType.equals(type);
+	    boolean nameMatch=(name==null) ? true :
+		((fullParamName.equals(name))||
+		 (!fullParamName.equals(name)&&
+		  fullParamName.endsWith("::"+name)));
+	    boolean valueMatch =
+		(value==null) ? true : paramValue.equals(value);
+	    if (typeMatch&&nameMatch&&valueMatch) params.add(p);
+	}
+	return params.toArray(new Parameter[params.size()]);
+    }
 
-		boolean typeMatch=(type==null) ? true : paramType.equals(type);
-		boolean nameMatch=(name==null) ? true :
-			((fullParamName.equals(name))||
-			 (!fullParamName.equals(name)&&
-			  fullParamName.endsWith("::"+name)));
-		boolean valueMatch =
-		    (value==null) ? true : paramValue.equals(value);
-		if (typeMatch&&nameMatch&&valueMatch) params.add(p);
+    /** get all parameters (recursively) with specified name *and* type */
+    public Parameter[] findParameters(String name,String type,String value,boolean startsWith)
+    {
+	ArrayList<Parameter> params = new ArrayList<Parameter>();
+	Iterator<Parameter> itP = recursiveParameterIterator();
+	while (itP.hasNext()) {
+	    Parameter p = itP.next();
+	    String paramType = p.type();
+	    String paramName = p.name();
+	    String paramValue = p.valueAsString();
+	    
+	    boolean typeMatch = (type==null);
+	    if (!typeMatch) typeMatch = startsWith ? paramType.startsWith(type) : paramType.contains(type);
+	    
+	    boolean nameMatch = (name==null);
+	    if (!nameMatch) nameMatch = startsWith ? paramName.startsWith(name) : paramName.contains(name);
+	    
+	    boolean valueMatch = (value==null);
+	    if (!valueMatch) valueMatch = startsWith ? paramValue.startsWith(value) : paramValue.contains(value);
+	    if (typeMatch&&nameMatch&&valueMatch) params.add(p);
 	}
 	return params.toArray(new Parameter[params.size()]);
     }

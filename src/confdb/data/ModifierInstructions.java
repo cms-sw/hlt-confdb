@@ -375,7 +375,13 @@ public class ModifierInstructions
 	    String name = (matchLabels) ? module.name() : module.template().name();
 	    boolean isMatch = (startsWith) ? 
 		name.startsWith(search) : name.contains(search);
-	    if (isMatch) requestModule(module.name());
+	    if (isMatch) {
+		requestModule(module.name());
+	    } else {
+		String Name = (matchLabels) ? search : null;
+		String Type = (matchLabels) ? null : search;
+		if (module.findParameters(Name,Type,null,startsWith).length>0 || module.findParameters(null,null,search,startsWith).length>0) requestModule(module.name());
+	    }
 	}
 
 	Iterator<OutputModule> itOM = config.outputIterator();
@@ -384,7 +390,13 @@ public class ModifierInstructions
 	    String name = (matchLabels) ? output.name() : output.className();
 	    boolean isMatch = (startsWith) ?
 		name.startsWith(search) : name.contains(search);
-	    if (isMatch) requestOutput(output.name());
+	    if (isMatch) {
+		requestOutput(output.name());
+	    } else {
+		String Name = (matchLabels) ? search : null;
+		String Type = (matchLabels) ? null : search;
+		if (output.findParameters(Name,Type,null,startsWith).length>0 || output.findParameters(null,null,search,startsWith).length>0) requestOutput(output.name());
+	    }
 	}
 
 	Iterator<EventContent> itEC = config.contentIterator();

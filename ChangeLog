@@ -1,3 +1,7 @@
+2011-03-29  Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-05-21
+	* extend module searches to include matches in parameter names/types and values
+
 2011-03-28  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-20
 	* improved tracking/displaying unresolved InputTags
