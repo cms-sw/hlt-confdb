@@ -1411,8 +1411,11 @@ public class ConfDbGUI
 	protected String construct() throws DatabaseException
 	{
 	    startTime = System.currentTimeMillis();
-	    if (importRelease.releaseTag()!=currentRelease.releaseTag())
+	    
+	    // fix bug76148
+	    // if (importRelease.releaseTag()!=currentRelease.releaseTag())
 		importRelease = new SoftwareRelease(currentRelease);
+	    
 	    importConfig = database.loadConfiguration(configInfo,importRelease);
 	    return new String("Done!");
 	}
