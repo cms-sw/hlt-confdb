@@ -35,6 +35,7 @@ public class SaveConfigurationDialog extends JDialog
     
     /** configuration to be saved */
     private Configuration config = null;
+    private ConfigInfo configInfo = null;
     
     /** reference to the database */
     private ConfDB database = null;
@@ -168,6 +169,7 @@ public class SaveConfigurationDialog extends JDialog
 
     private void jTreeDirectoriesValueChanged(TreeSelectionEvent e)
     {
+	configInfo = null;
 	Object o = jTreeDirectories.getLastSelectedPathComponent();
 	if (o instanceof Directory) {
 	    selectedDir = (Directory)o;
@@ -182,7 +184,12 @@ public class SaveConfigurationDialog extends JDialog
 	    updateOkButton();
 	    
 	}
-	else if (o==null||(o instanceof ConfigInfo)) {
+	else if (o instanceof ConfigInfo) {
+	    configInfo = (ConfigInfo)o;
+	    selectedDir = configInfo.parentDir();
+	    updateOkButton();
+	}
+	else if (o==null) {
 	    selectedDir = null;
 	    jTreeDirectories.getSelectionModel().clearSelection();
 	    jButtonOk.setEnabled(false);
@@ -211,7 +218,8 @@ public class SaveConfigurationDialog extends JDialog
 	String    releaseTag  = config.releaseTag();
 	
 	if (configName.length()>0&&parentDir!=null) {
-	    ConfigInfo configInfo = new ConfigInfo(configName,parentDir,releaseTag);
+
+	    if (configInfo==null) configInfo = new ConfigInfo(configName,parentDir,releaseTag);
 	    config.setConfigInfo(configInfo);
 	    validChoice = true;
 	    setVisible(false);
@@ -234,16 +242,16 @@ public class SaveConfigurationDialog extends JDialog
 	    jButtonOk.setEnabled(false);
 	    return;
 	}
-	
-	
-	
-	
+
+	/* commented out to allow for insertion into existing dir/config as a new version
 	for (int i=0;i<selectedDir.configInfoCount();i++) {
 	    if (selectedDir.configInfo(i).name().equals(configName)) {
 		jButtonOk.setEnabled(false);
 		return;
 	    }
 	}
+	*/
+
 	jButtonOk.setEnabled(true);
     }
     
