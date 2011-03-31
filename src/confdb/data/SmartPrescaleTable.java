@@ -197,7 +197,7 @@ public class SmartPrescaleTable
 		if ( (g<0) && (!strPath.equals("FALSE"))
 		     && (!checkL1TCondExists(strPath))
 		     && (!checkHLTPathExists(strPath)) ) {
-		    strCondition = strCondition.replaceAll(strPath,"FALSE");
+		    strCondition = SmartPrescaleTable.rename(strCondition,strPath,"FALSE");
 		}
 	    }
 
@@ -239,15 +239,31 @@ public class SmartPrescaleTable
     }
 
     public static String regularise(String input) {
-	String work = new String (input);
-	work = work.replaceAll("/"," / ");
-	work = work.replaceAll("\\("," \\( "); // regex escape
-        work = work.replaceAll("\\)"," \\) "); // regex escape
-	while (work.indexOf("  ")>=0) { work=work.replaceAll("  "," "); }
+	String work = new String(input);
+	work = work.replace("/"," / ");
+	work = work.replace("("," ( ");
+        work = work.replace(")"," ) ");
+	while (work.indexOf("  ")>=0) { work=work.replace("  "," "); }
 	work = " "+work+" ";
-	work = work.replaceAll(" / 1 "," ");   // no /1!
+	work = work.replace(" / 1 "," ");   // no /1!
 	work = work.trim();
 	return work;
+    }
+
+    public static String rename(String input, String oldToken, String newToken) {
+	String work    = new String(input);
+	String oldName = new String(oldToken);
+	String newName = new String(newToken);
+
+	work    = " "+regularise(work   )+" ";
+	oldName = " "+regularise(oldName)+" ";
+	newName = " "+regularise(newName)+" ";
+
+	work = work.replace(oldName,newName);
+	work = regularise(work);
+
+	return work;
+
     }
 
     public static String simplify(String input) {

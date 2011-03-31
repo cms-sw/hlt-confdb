@@ -242,9 +242,10 @@ public class Path extends ReferenceContainer
 		int n=0;
 		for (int i=0;i<vStr.vectorSize();i++) {
 		    String str = (String)vStr.value(i);
-		    if (str.indexOf(oldName)>=0) {
+		    String upd = SmartPrescaleTable.rename(str,oldName,name);
+		    if (!str.equals(upd)) {
 			n++;
-			vStr.setValue(i,str.replaceAll(oldName,name));
+			vStr.setValue(i,upd);
 		    }
 		}
 		if (n>0) module.setHasChanged();
@@ -262,9 +263,9 @@ public class Path extends ReferenceContainer
 	    PSetParameter pset = vpsetPrescaleTable.parameterSet(i);
 	    StringParameter Str = (StringParameter)pset.parameter("pathName");
 	    String str = (String)Str.value();
-	    if (str.indexOf(oldName)>=0) {
+	    if (str.equals(oldName)) {
 		n++;
-		Str.setValue(str.replaceAll(oldName,name));
+		Str.setValue(name);
 	    }
 	}
 	if (n>0) prescaleSvc.setHasChanged();

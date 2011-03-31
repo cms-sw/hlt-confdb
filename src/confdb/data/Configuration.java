@@ -1131,9 +1131,8 @@ public class Configuration implements IConfiguration
 		VStringParameter parameterTriggerConditions = (VStringParameter)module.parameter("triggerConditions","vstring");
 		for (int i=0;i<parameterTriggerConditions.vectorSize();i++) {
 		    String trgCondition = (String)parameterTriggerConditions.value(i);
-		    String strCondition = SmartPrescaleTable.regularise(trgCondition);
 		    // replace removed path by FALSE
-		    strCondition = strCondition.replaceAll(path.name(),"FALSE");
+		    String strCondition = SmartPrescaleTable.rename(trgCondition,path.name(),"FALSE");
 		    // replace conditions containing only FALSE by empty conditions
 		    strCondition = SmartPrescaleTable.simplify(strCondition);
 		    // update needed?
