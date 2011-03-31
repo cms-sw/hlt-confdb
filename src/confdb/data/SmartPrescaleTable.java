@@ -179,6 +179,7 @@ public class SmartPrescaleTable
 	HashMap<String,SmartPrescaleTableRow> pathToRow =
 	    new HashMap<String,SmartPrescaleTableRow>();
 
+	int n=0;
 	for(int i=0;i<parameterTriggerConditions.vectorSize();i++){
 	    String trgCondition = (String)parameterTriggerConditions.value(i);
 	    String strCondition = SmartPrescaleTable.regularise(trgCondition);
@@ -205,7 +206,7 @@ public class SmartPrescaleTable
 	    strCondition = SmartPrescaleTable.simplify(strCondition);
 
 	    if (!strCondition.equals(trgCondition)) {
-		module.setHasChanged();
+		n++
 		parameterTriggerConditions.setValue(i,strCondition);
 	    }
 	    if (!strCondition.equals("")) {
@@ -219,7 +220,8 @@ public class SmartPrescaleTable
 	    }
 	}
 	// remove empty conditions
-	if (module.squeeze()) module.setHasChanged();	
+	if (module.squeeze()) n++;
+	if (n>0) module.setHasChanged();	
 
 	Iterator<Path> itP = config.pathIterator();
 	while (itP.hasNext()) {

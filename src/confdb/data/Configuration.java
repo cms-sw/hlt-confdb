@@ -1119,8 +1119,8 @@ public class Configuration implements IConfiguration
 		Iterator<PSetParameter> itRmv = psetsToRemove.iterator();
 		while (itRmv.hasNext())
 		    psTable.removeParameterSet(itRmv.next());
+		if (psetsToRemove.size()>0) pss.setHasChanged();
 	    }
-	    pss.setHasChanged();
 	}
 
 	/* remove path from TriggerResultsFilters */
@@ -1129,6 +1129,7 @@ public class Configuration implements IConfiguration
 	    ModuleInstance module = itM.next();
 	    if (module.template().toString().equals("TriggerResultsFilter")) {
 		VStringParameter parameterTriggerConditions = (VStringParameter)module.parameter("triggerConditions","vstring");
+		int n=0;
 		for (int i=0;i<parameterTriggerConditions.vectorSize();i++) {
 		    String trgCondition = (String)parameterTriggerConditions.value(i);
 		    // replace removed path by FALSE
@@ -1137,12 +1138,13 @@ public class Configuration implements IConfiguration
 		    strCondition = SmartPrescaleTable.simplify(strCondition);
 		    // update needed?
 		    if (!strCondition.equals(trgCondition)) {
-			module.setHasChanged();
+			n++;
 			parameterTriggerConditions.setValue(i,strCondition);
 		    }
 		}
 		// remove empty conditions
-		if (module.squeeze()) module.setHasChanged();		
+		if (module.squeeze()) n++;
+		if (n>0) module.setHasChanged();
 	    }
 	}
 	
