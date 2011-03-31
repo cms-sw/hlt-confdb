@@ -206,7 +206,7 @@ public class SmartPrescaleTable
 	    strCondition = SmartPrescaleTable.simplify(strCondition);
 
 	    if (!strCondition.equals(trgCondition)) {
-		n++
+		n++;
 		parameterTriggerConditions.setValue(i,strCondition);
 	    }
 	    if (!strCondition.equals("")) {
