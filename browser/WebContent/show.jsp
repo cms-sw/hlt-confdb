@@ -378,7 +378,7 @@ $(function()
   <form onsubmit='return showNew()'>
     <table width='100%'>
      <tr>
-      <td><select id='configXX'><option selected>configName</option><option>configID</option><option>runNumber</option></select></td>
+      <td><select id='configXX'><option selected>configName</option><option>configId</option><option>runNumber</option></select></td>
       <td align='left'>:</td>
 	  <td><input type="text" id="configName" size="50"></td>
 	 </tr>
