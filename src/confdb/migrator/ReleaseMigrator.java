@@ -378,23 +378,30 @@ public class ReleaseMigrator
 		Path targetPath = targetConfig
 		    .path(sourceConfig.indexOfPath(sourcePath));
 		Path parentPath = (Path)target;
+		PathReference targetReference =
 		targetConfig.insertPathReference(parentPath,iTarget++,
 						 targetPath);
+		targetReference.setOperator(reference.getOperator());
+		
 	    }
 	    else if (reference instanceof SequenceReference) {
 		Sequence sourceSequence = (Sequence)reference.parent();
 		Sequence targetSequence = targetConfig
 		    .sequence(sourceConfig.indexOfSequence(sourceSequence));
+		SequenceReference targetReference =
 		targetConfig.insertSequenceReference(target,iTarget++,
 						     targetSequence);
+		targetReference.setOperator(reference.getOperator());
 	    }
 	    else if (reference instanceof ModuleReference) {
 		ModuleInstance sourceModule=(ModuleInstance)reference.parent();
 		ModuleInstance targetModule=targetConfig.module(sourceModule
 								.name());
 		if (targetModule!=null) {
+		    ModuleReference targetReference =
 		    targetConfig.insertModuleReference(target,iTarget++,
 						       targetModule);
+		    targetReference.setOperator(reference.getOperator());
 		}
 		else {
 		    String msg =
@@ -412,7 +419,10 @@ public class ReleaseMigrator
 		OutputModule targetOutputModule=targetConfig.output(sourceOutputModule.name());
 
 		if (targetOutputModule!=null) {
+		    OutputModuleReference targetReference = 
 		    targetConfig.insertOutputModuleReference(target,iTarget++,targetOutputModule);
+		    targetReference.setOperator(reference.getOperator());
+
 		}
 		else {
 		    String msg =
