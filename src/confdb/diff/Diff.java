@@ -574,6 +574,15 @@ public class Diff
 	return result;
     }
     
+    /** compare two references */
+    public Comparison compareReferences(Reference r1,Reference r2)
+    {
+
+	Comparison result = new ReferenceComparison(r1,r2);
+	
+	return result;
+    }
+    
     /** compare two output modules */
     public Comparison compareOutputModules(OutputModule om1,
 					   OutputModule om2)
@@ -636,6 +645,8 @@ public class Diff
 		Referencable parent1    =
 		    (reference1==null) ? null : reference1.parent();
 		
+		Comparison r = compareReferences(reference1,reference2);
+		if (!r.isIdentical()) result.addComparison(r);
 		if (parent2 instanceof ReferenceContainer) {
 		    Comparison c =
 			compareContainers((ReferenceContainer)parent1,
@@ -663,6 +674,9 @@ public class Diff
 		if (reference2!=null) continue;
 		
 		Referencable parent1 = reference1.parent();
+
+		Comparison r = compareReferences(reference1,reference2);
+		if (!r.isIdentical()) result.addComparison(r);
 		if (parent1 instanceof ReferenceContainer) {
 		    ReferenceContainer rc = (ReferenceContainer)parent1;
 		    result.addComparison(new ContainerComparison(rc,null));
