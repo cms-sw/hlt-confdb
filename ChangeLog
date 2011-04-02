@@ -1,4 +1,8 @@
 2011-04-02  Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-05-25
+	* Make Diff report more concise
+
+2011-04-02  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-24
 	* Migrate/Diff no longer ignore/forget Reference status NEGATE/IGNORE/DEFAULT
 	

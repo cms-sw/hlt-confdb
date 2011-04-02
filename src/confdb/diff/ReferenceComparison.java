@@ -46,8 +46,6 @@ public class ReferenceComparison extends Comparison
 	if      (oldReference==null&&newReference!=null) return RESULT_ADDED;
 	else if (oldReference!=null&&newReference==null) return RESULT_REMOVED;
 	else if (comparisonCount()==0&&
-		 oldReference.name().equals(newReference.name())&&
-		 oldReference.parent().name().equals(newReference.parent().name())&&
 		 oldReference.getOperatorAndName().equals(newReference.getOperatorAndName()) ) 
 	    return RESULT_IDENTICAL;
 	else return RESULT_CHANGED;
