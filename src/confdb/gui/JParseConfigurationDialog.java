@@ -131,7 +131,7 @@ public class JParseConfigurationDialog extends JDialog
     public void jButtonBrowseActionPerformed(ActionEvent e)
     {
 	JFileChooser fileChooser = new JFileChooser();
-	fileChooser.addChoosableFileFilter(new PythonFileFilter());
+	fileChooser.addChoosableFileFilter(new JPythonFileFilter());
 	fileChooser.setAcceptAllFileFilterUsed(false);
 	
 	int result = fileChooser.showOpenDialog(this);
@@ -354,11 +354,11 @@ public class JParseConfigurationDialog extends JDialog
 
 
 /**
- * PythonFileFilter
+ * JPythonFileFilter
  * ----------------
  * @author Philipp Schieferdecker
  */
-class PythonFileFilter extends FileFilter
+class JPythonFileFilter extends FileFilter
 {
     /** FileFilter.accept() */
     public boolean accept(File f)
