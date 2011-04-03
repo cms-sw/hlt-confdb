@@ -28,6 +28,8 @@ import confdb.migrator.MigratorException;
 
 import confdb.parser.PythonParser;
 import confdb.parser.ParserException;
+import confdb.parser.JPythonParser;
+import confdb.parser.JParserException;
 
 import confdb.converter.ConverterFactory;
 import confdb.converter.ConverterEngine;
@@ -428,6 +430,33 @@ public class ConfDbGUI
 	    
 	    ParseConfigurationThread worker =
 		new ParseConfigurationThread(fileName,releaseTag);
+	    worker.start();
+	    jProgressBar.setIndeterminate(true);
+	    jProgressBar.setVisible(true);
+	    jProgressBar.setString("Parsing '"+fileName+"' against Release " +
+				  releaseTag + " ... ");
+	    menuBar.configurationIsOpen();
+	    toolBar.configurationIsOpen();
+	}
+    }
+
+    /** parse a configuration from a *.py file */
+    public void jparseConfiguration()
+    {
+	if (!closeConfiguration()) return;
+	
+	JParseConfigurationDialog dialog =
+	    new JParseConfigurationDialog(frame,database);
+	dialog.pack();
+	dialog.setLocationRelativeTo(frame);
+	dialog.setVisible(true);
+	
+	if (dialog.validChoice()) {
+	    String fileName   = dialog.fileName();
+	    String releaseTag = dialog.releaseTag();
+	    
+	    JParseConfigurationThread worker =
+		new JParseConfigurationThread(fileName,releaseTag);
 	    worker.start();
 	    jProgressBar.setIndeterminate(true);
 	    jProgressBar.setVisible(true);
@@ -1214,6 +1243,71 @@ public class ConfDbGUI
 		System.err.println("problems encountered, see problems.txt.");
 		ParserProblemsDialog dialog=new ParserProblemsDialog(frame,
 								     parser);
+		dialog.pack();
+		dialog.setLocationRelativeTo(frame);
+		dialog.setVisible(true);
+	    }
+	    
+	}
+    }
+    
+
+    /** load release templates from the database and parse config from *.py */
+    private class JParseConfigurationThread extends SwingWorker<String>
+    {
+	/** member data */
+	private JPythonParser parser     = null;
+	private String        fileName   = null;
+	private String        releaseTag = null;
+	private long          startTime;
+	
+	/** standard constructor */
+	public JParseConfigurationThread(String fileName,String releaseTag)
+	{
+	    this.fileName   = fileName;
+	    this.releaseTag = releaseTag;
+	}
+	
+	/** SwingWorker: construct() */
+	protected String construct() throws DatabaseException,JParserException
+	{
+	    startTime = System.currentTimeMillis();
+	    if (!releaseTag.equals(currentRelease.releaseTag()))
+		database.loadSoftwareRelease(releaseTag,currentRelease);
+	    parser = new JPythonParser(currentRelease);
+	    parser.parseFile(fileName);
+	    setCurrentConfig(parser.createConfiguration());
+	    return new String("Done!");
+	}
+	
+	/** SwingWorker: finished */
+	protected void finished()
+	{
+	    try {
+		long elapsedTime = System.currentTimeMillis() - startTime;
+		jProgressBar.setString(jProgressBar.getString()+get()+
+				       " ("+elapsedTime+" ms)");
+	    }
+	    catch (ExecutionException e) {
+		String errMsg =
+		    "Parse Configuration FAILED:\n"+e.getCause().getMessage();
+		JOptionPane.showMessageDialog(frame,errMsg,
+					      "Parse Configuration failed",
+					      JOptionPane.ERROR_MESSAGE,null);
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+	    } 
+	    catch (Exception e) {
+		e.printStackTrace();
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");	
+	    }
+	    jProgressBar.setIndeterminate(false);
+	    jTreeCurrentConfig.setEditable(true);
+	    jTreeTableParameters.getTree().setEditable(true);
+
+	    if (parser.closeProblemStream()) {
+		System.err.println("problems encountered, see problems.txt.");
+		JParserProblemsDialog dialog=new JParserProblemsDialog(frame,
+								       parser);
 		dialog.pack();
 		dialog.setLocationRelativeTo(frame);
 		dialog.setVisible(true);

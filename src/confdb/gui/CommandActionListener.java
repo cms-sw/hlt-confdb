@@ -20,6 +20,7 @@ public class CommandActionListener implements ActionListener
 
     private static final String cmdNew              = "New";
     private static final String cmdParse            = "Parse";
+    private static final String cmdJParse           = "JParse";
     private static final String cmdOpen             = "Open";
     private static final String cmdOpenOldScehma    = "Open Old Schema";
     private static final String cmdClose            = "Close";
@@ -62,6 +63,7 @@ public class CommandActionListener implements ActionListener
 
 	if (command.equals(cmdNew))              app.newConfiguration();
 	if (command.equals(cmdParse))            app.parseConfiguration();
+	if (command.equals(cmdJParse))           app.jparseConfiguration();
 	if (command.equals(cmdOpen))             app.openConfiguration();
 	if (command.equals(cmdClose))            app.closeConfiguration();
 	if (command.equals(cmdSave))             app.saveConfiguration(false);

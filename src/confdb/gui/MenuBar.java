@@ -26,6 +26,7 @@ public class MenuBar
     /** menu bar item names: configMenu */
     private static final String configMenuNew         = "New";
     private static final String configMenuParse       = "Parse";
+    private static final String configMenuJParse      = "JParse";
     private static final String configMenuOpen        = "Open";
     private static final String configMenuOpenOld     = "Open Old Schema";
     private static final String configMenuClose       = "Close";
@@ -57,6 +58,7 @@ public class MenuBar
     
     private JMenuItem configMenuNewItem         = null;
     private JMenuItem configMenuParseItem       = null;
+    private JMenuItem configMenuJParseItem      = null;
     private JMenuItem configMenuOpenItem        = null;
     private JMenuItem configMenuOpenOldItem     = null;
     private JMenuItem configMenuCloseItem       = null;
@@ -102,6 +104,7 @@ public class MenuBar
 	dbConnectionIsEstablished();
 	configMenuNewItem.setEnabled(true);
 	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(true);
+	if (configMenuJParseItem!=null) configMenuJParseItem.setEnabled(true);
 	configMenuOpenItem.setEnabled(true);
 	configMenuCloseItem.setEnabled(true);
 	configMenuSaveItem.setEnabled(true);
@@ -143,6 +146,7 @@ public class MenuBar
     {
 	configMenuNewItem.setEnabled(true);
 	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(true);
+	if (configMenuJParseItem!=null) configMenuJParseItem.setEnabled(true);
 	configMenuOpenItem.setEnabled(true);
 	configMenuOpenOldItem.setEnabled(true);
 	toolMenuDiffItem.setEnabled(true);
@@ -156,6 +160,7 @@ public class MenuBar
 	configMenuNewItem.setEnabled(false);
 	configMenuOpenOldItem.setEnabled(false);
 	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(false);
+	if (configMenuJParseItem!=null) configMenuJParseItem.setEnabled(false);
 	configMenuOpenItem.setEnabled(false);
 	toolMenuDiffItem.setEnabled(false);
 	dbMenuDisconnectItem.setEnabled(false);
@@ -189,6 +194,12 @@ public class MenuBar
 	configMenuParseItem.setActionCommand(configMenuParse);
 	configMenuParseItem.addActionListener(listener);
 	configMenu.add(configMenuParseItem);
+	/*
+	configMenuJParseItem = new JMenuItem(configMenuJParse,KeyEvent.VK_J);
+	configMenuJParseItem.setActionCommand(configMenuJParse);
+	configMenuJParseItem.addActionListener(listener);
+	configMenu.add(configMenuJParseItem);
+	*/
 	configMenuOpenItem = new JMenuItem(configMenuOpen,KeyEvent.VK_O);
 	configMenuOpenItem.setActionCommand(configMenuOpen);
 	configMenuOpenItem.addActionListener(listener);
@@ -243,7 +254,7 @@ public class MenuBar
 	toolMenuPSEditorItem.setActionCommand(toolMenuPSEditor);
 	toolMenuPSEditorItem.addActionListener(listener);
 	toolMenu.add(toolMenuPSEditorItem);
-	toolMenuSPSEditorItem = new JMenuItem(toolMenuSPSEditor,KeyEvent.VK_P);
+	toolMenuSPSEditorItem = new JMenuItem(toolMenuSPSEditor,KeyEvent.VK_S);
 	toolMenuSPSEditorItem.setActionCommand(toolMenuSPSEditor);
 	toolMenuSPSEditorItem.addActionListener(listener);
 	toolMenu.add(toolMenuSPSEditorItem);
