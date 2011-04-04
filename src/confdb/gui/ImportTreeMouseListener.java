@@ -66,6 +66,21 @@ public class ImportTreeMouseListener extends MouseAdapter
 	importTree.setSelectionPath(tp);
 	Object node = tp.getLastPathComponent();
 	
+	if(node instanceof StringBuffer) {
+		if(tm.getChildCount(node) != 0) {
+			
+			Object child = tm.getChild(node, 0);
+			if (child instanceof Path) 	{
+			    JPopupMenu popup = new JPopupMenu();
+			    JMenuItem  item = new JMenuItem("Import All Paths");
+			    item.addActionListener(new AddAllRereferenceContainerListener(currentTree, importTree, node));
+			    popup.add(item);
+			    popup.show(e.getComponent(),e.getX(),e.getY());
+			}
+			
+		}
+	}
+	
 	if (node instanceof ReferenceContainer) {
 	    currentTree.setSelectionPath(null);
 	    ReferenceContainer container = (ReferenceContainer)node;
@@ -141,6 +156,27 @@ class AddContainerListener implements ActionListener
 	ConfigurationTreeActions.importReferenceContainer(targetTree,container);
     }
 }
+
+// AllPaths listener class
+class AddAllRereferenceContainerListener  implements ActionListener {
+	private JTree	targetTree	;
+	private JTree	sourceTree	;
+	private Object 	container	;
+	
+	public AddAllRereferenceContainerListener(JTree targetTree, JTree sourceTree, Object parentPathNode) {
+		this.targetTree = targetTree		;
+		this.sourceTree = sourceTree		;
+		this.container	= parentPathNode	;
+	}
+	
+	public void actionPerformed(ActionEvent e) {
+		// execute an action.
+		ConfigurationTreeActions.importAllReferenceContainers(targetTree, sourceTree, container);
+	}
+	
+}
+
+
 
 // module listener class
 class AddModuleListener implements ActionListener

@@ -525,6 +525,29 @@ public class ConfigurationTreeActions
 	return true;
     }
 
+    
+    /** import All paths */
+    public static boolean importAllReferenceContainers(JTree tree, JTree sourceTree, Object external) {
+    	ConfigurationTreeModel sm  		= (ConfigurationTreeModel)sourceTree.getModel();
+		ConfigurationTreeModel tm    	= (ConfigurationTreeModel)tree.getModel();
+		Configuration          config   = (Configuration)tm.getRoot();
+		Configuration	importConfig	= (Configuration)sm.getRoot();
+		
+    	if(sm.getChildCount(external) == 0) return false;
+		for(int i = 0; i < sm.getChildCount(external); i++) {
+			tree.setSelectionPath(null);
+			ReferenceContainer container = (ReferenceContainer) sm.getChild(external, i);
+			importReferenceContainerNoDiff(tree, container);
+		}
+		
+		Diff diff = new Diff(importConfig, config);
+	    DiffDialog dlg = new DiffDialog(diff);
+	    dlg.pack();
+	    dlg.setVisible(true);
+
+    	return true;
+    }
+    
     /** import Path / Sequence */
     public static boolean importReferenceContainer(JTree tree,
 						   ReferenceContainer external)
@@ -612,6 +635,92 @@ public class ConfigurationTreeActions
 	}
 	
 	return true;
+    }
+    
+    
+    /** import Paths / Sequences without making a diff */
+    public static boolean importReferenceContainerNoDiff(JTree tree,
+						   ReferenceContainer external)
+    {
+	
+		ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+		Configuration          config   = (Configuration)model.getRoot();
+		TreePath               treePath = tree.getSelectionPath();
+		
+		int count =
+		    (external instanceof Path) ? config.pathCount():config.sequenceCount();
+		    
+		int index = (treePath==null) ? count :
+		    (treePath.getPathCount()==2) ?
+		    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+					    treePath.getLastPathComponent())+1;
+	
+		ReferenceContainer   container = null;
+		Object               parent    = null;
+		String               type      = null;
+		if (external instanceof Path) {
+		    container = config.path(external.name());
+		    parent    = model.pathsNode();
+		    type      = "path";
+		}
+		else if (external instanceof Sequence) {
+		    container = config.sequence(external.name());
+		    parent    = model.sequencesNode();
+		    type      = "sequence";
+		}
+		
+		boolean update = false;
+		if (container!=null) {
+		
+		    index = (type.equals("path")) ? config.indexOfPath((Path)container) 
+			                          : config.indexOfSequence((Sequence)container);
+	    
+		    int choice =
+			JOptionPane.showConfirmDialog(null,"The "+type+" '"+
+						      container.name()+"' exists, "+
+						      "do you want to overwrite it?",
+						      "Overwrite "+type,
+						      JOptionPane.OK_CANCEL_OPTION);
+		    if (choice==JOptionPane.CANCEL_OPTION) return false;
+		    
+		    update = true;
+		    
+		    while (container.entryCount()>0) {
+			Reference entry = (Reference)container.entry(0);
+			tree.setSelectionPath(new TreePath(model.getPathToRoot(entry)));
+			removeReference(tree);
+		    }
+		}
+		else {
+		    if (!config.hasUniqueQualifier(external)) return false;
+		    if (type.equals("path")) {
+			container = config.insertPath(index,external.name());
+			((Path)container).setAsEndPath(((Path)external).isSetAsEndPath());
+		    } else {
+			container = config.insertSequence(index,external.name());
+		    }
+		}
+		
+		if (importContainerEntries(config,model,external,container)) {
+		    container.setDatabaseId(external.databaseId());
+		}
+		
+		// Sometimes I got an error:
+		// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4275976
+
+		if (update) model.nodeChanged(container);
+		else	    model.nodeInserted(parent,index);
+
+		
+		model.updateLevel1Nodes();
+		
+		for (int i=0;i<container.referenceCount();i++) {
+		    Reference reference = container.reference(i);
+		    ReferenceContainer parentContainer = reference.container();
+		    parentContainer.setHasChanged();
+		}
+
+		return update;
     }
 
     /** insert entries of an external reference container into the local copy */

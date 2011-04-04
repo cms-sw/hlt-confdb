@@ -1,3 +1,7 @@
+2011-04-04  Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-28
+	* Import All paths menu.
+
 2011-04-04  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-27
 	* More work in progress on py import: jython jar
