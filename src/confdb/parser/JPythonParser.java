@@ -19,7 +19,6 @@ import java.io.*;
 
 import confdb.data.*;
 import confdb.db.*;
-import confdb.converter.OfflineConverter;
 
 
 /**
@@ -42,9 +41,12 @@ public class JPythonParser
     private SoftwareRelease release = null;
     
     /** Create an instance of the PythonInterpreter */
-    private PythonInterpreter python = new PythonInterpreter();
+    private PythonInterpreter pythonInterpreter = null;
     
+    /** Python Configuration object */
     private PyObject process = null;
+
+    /** ConfDB Configuration object */
     private Configuration configuration = null;
     
     /** set with all problem components */
@@ -68,7 +70,6 @@ public class JPythonParser
 	this.release = release;
     }
     
-
     static private <T> T convert(PyObject object, Class<T> c) {
         T value = (T) object.__tojava__(c);
         return value;
@@ -84,21 +85,33 @@ public class JPythonParser
     /** parse a file */
     public void parseFile(String fileName) throws JParserException
     {
+	System.out.println("JPythonParser: "+fileName);
 	String name = fileName;
 	while (name.indexOf("/")>=0) name=name.substring(name.indexOf("/")+1);
 	if    (name.indexOf(".py")>0)name=name.substring(0,name.indexOf(".py"));
+	System.out.println("JPythonParser: "+name);
+
 	String processName = null;
 	try {
-	    python.exec("import sys");
-	    python.exec("sys.path.append('python')");
-	    python.exec("sys.path.append('jython')");
-	    python.exec("import pycimport");
+
+	    System.out.println("JPythonParser: parse 1");
+
+	    pythonInterpreter = new org.python.util.PythonInterpreter();
+	    System.out.println("JPythonParser: parse 2");
+	    pythonInterpreter.exec("import sys");
+	    System.out.println("A2:");
+	    pythonInterpreter.exec("import FWCore.ParameterSet.Config as cms");
+	    System.out.println("A2:");
+	    pythonInterpreter.exec("from FWCore.ParameterSet import DictTypes");
+	    System.out.println("A3:");
+	    pythonInterpreter.exec("import sys, os, os.path");
+	    System.out.println("A4:");
 
 	    System.out.println("loading HLT configuration from "+fileName);
-	    python.exec("from full import process");
+	    pythonInterpreter.exec("from full import process");
 	    System.out.println("...done");
 
-	    process = python.get("process");
+	    process = pythonInterpreter.get("process");
 	    processName = convert(process.invoke("name_"),String.class);
 
 	}
@@ -129,6 +142,7 @@ public class JPythonParser
     public Configuration createConfiguration() throws JParserException
     {
 
+	System.out.println("JPythonParser::createConfiguration() called!");
 	
 	// add global psets
 	
