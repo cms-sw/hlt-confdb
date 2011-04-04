@@ -628,6 +628,7 @@ class ConfdbLoadParamsfromConfigs:
 
         process = cms.Process("MyProcess")
 
+        self.VerbosePrint(importcommand,1)
         exec importcommand
         # Now create a process and construct the command to extend it with the py-cfi
         theextend = ""
@@ -635,6 +636,7 @@ class ConfdbLoadParamsfromConfigs:
             theextend = "process.extend(" + thesubsystem + "." + thepackage + "." + thecomponent + ")"
         else:
             theextend = "process.extend(" + thecomponent + ")"
+        self.VerbosePrint(theextend,1)
         eval(theextend)
         
         myproducers = process.producers_()

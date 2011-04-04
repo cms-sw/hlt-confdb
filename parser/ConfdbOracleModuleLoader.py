@@ -685,7 +685,7 @@ class ConfdbOracleModuleLoader:
 		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
 
 		if(paramval):
-		    if(paramval.find('.') != -1):
+		    if(paramval.find('.') != -1 and paramval.find('get') == -1):
 			paramval = str(int(float(paramval)))
 		    elif(not paramval.isdigit()):
 			paramval = None
@@ -1556,6 +1556,9 @@ class ConfdbOracleModuleLoader:
 			if(self.verbose > 2):
 			    print "No default parameter value found"
 		    else:
+                        if(len(paramval) > 1024):
+                            paramval = ""
+     
 			# Special case for string variables defined in 
 			# single quotes in .cf* files
 			if(paramval.find("'") != -1):
