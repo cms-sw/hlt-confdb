@@ -1,3 +1,7 @@
+2011-04-04  Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-05-27
+	* More work in progress on py import: jython jar
+
 2011-04-03  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-26
 	* Work in progress on py import
