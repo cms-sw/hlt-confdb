@@ -39,6 +39,7 @@ public class JPythonParser
     
     /** the software release w.r.t. which the configuration is created */
     private SoftwareRelease release = null;
+    private String cmsswTag = null;
     
     /** Create an instance of the PythonInterpreter */
     private PythonInterpreter pythonInterpreter = null;
@@ -68,6 +69,9 @@ public class JPythonParser
     public JPythonParser(SoftwareRelease release)
     {
 	this.release = release;
+	cmsswTag = release.releaseTag();
+	int index=cmsswTag.indexOf("_HLT");
+	if (index>=0) cmsswTag = cmsswTag.substring(0,index);
     }
     
     static private <T> T convert(PyObject object, Class<T> c) {
@@ -82,38 +86,86 @@ public class JPythonParser
     /** get problems as string */
     public String problemsAsString() { return problemBuffer.toString(); }
 
+    /** exec py cmd */
+    public void pyCmd(String pycmd) {
+	System.out.println("pycmd="+pycmd);
+	pythonInterpreter.exec(pycmd);
+    }
+
     /** parse a file */
     public void parseFile(String fileName) throws JParserException
     {
-	System.out.println("JPythonParser: "+fileName);
-	String name = fileName;
-	while (name.indexOf("/")>=0) name=name.substring(name.indexOf("/")+1);
-	if    (name.indexOf(".py")>0)name=name.substring(0,name.indexOf(".py"));
-	System.out.println("JPythonParser: "+name);
 
-	String processName = null;
+	// path to file without trailing /
+	String path = new String(fileName);
+	path=path.substring(0,path.lastIndexOf("/")+1);
+	if (path.lastIndexOf("/")>=0) path=path.substring(0,path.lastIndexOf("/"));
+
+	// name of file including extension
+	String name = new String(fileName);
+	name=name.substring(name.lastIndexOf("/")+1);
+
+	// name of file excluding extension
+	String leaf = new String(name);
+	if (leaf.indexOf(".py")>=0) leaf=leaf.substring(0,leaf.indexOf(".py"));
+
+	System.out.println("JPythonParser: ");
+	System.out.println("  ReleaseTag: "+release.releaseTag());
+	System.out.println("  CMSSW  Tag: "+cmsswTag);
+	System.out.println("  Full File : "+fileName);
+	System.out.println("  File Path : "+path);
+	System.out.println("  File Name : "+name);
+	System.out.println("  Leaf Name : "+leaf);
+
+	String pyCmd = null;
+
 	try {
 
-	    System.out.println("JPythonParser: parse 1");
+	    pythonInterpreter = new PythonInterpreter();
 
-	    pythonInterpreter = new org.python.util.PythonInterpreter();
-	    System.out.println("JPythonParser: parse 2");
-	    pythonInterpreter.exec("import sys");
-	    System.out.println("A2:");
-	    pythonInterpreter.exec("import FWCore.ParameterSet.Config as cms");
-	    System.out.println("A2:");
-	    pythonInterpreter.exec("from FWCore.ParameterSet import DictTypes");
-	    System.out.println("A3:");
-	    pythonInterpreter.exec("import sys, os, os.path");
-	    System.out.println("A4:");
+	    // for large py files, would need pyc compiled files but this does not work
+	    //      pyCmd("import commands");
+	    //      pyCmd("print commands.getstatusoutput('python -m py_compile "+fileName+"')");
+	    //      pyCmd("print commands.getstatusoutput('python -m compileall -f "+path+"/FWCore')");
 
-	    System.out.println("loading HLT configuration from "+fileName);
-	    pythonInterpreter.exec("from full import process");
-	    System.out.println("...done");
+	    // need to set up search path
+	    pyCmd("import sys");
+	    pyCmd("sys.path.append('"+path+"')");
+	    //	    pyCmd("sys.path.append('"+path+"/FWCore')");
+	    //	    pyCmd("sys.path.append('"+path+"/FWCore/ParameterSet')");
+	    pyCmd("print sys.path");
 
+	    // now import pyc file and its process
+	    //      pyCmd("import pycimport");
+	    //	    pyCmd("from FWCore.ParameterSet.Options import Options");
+	    //	    pyCmd("import Config as cms");
+	    //	    pyCmd("import FWCore.ParameterSet.Config as cms");
+	    //	    pyCmd("theProcess = cms.Process('HIGGS')");
+	    //	    pyCmd("theProcess = __import__('"+leaf+"')");
+	    //	    pyCmd("import FWCore.ParameterSet.Config as cms");
+
+	    // now import process object from (uncompiled) py file
+	    pyCmd("from "+leaf+" import process");
+	    pyCmd("print process");
+
+	    // get process object
 	    process = pythonInterpreter.get("process");
-	    processName = convert(process.invoke("name_"),String.class);
+	    System.out.println("Process object found: "+(process!=null));
 
+	    // get its process name
+	    String processName = convert(process.invoke("name_"),String.class);
+	    System.out.println("Process  name  found: "+processName);
+
+	    // configinfo of new configuration
+	    ConfigInfo configInfo =
+		new ConfigInfo(name,null,-1,0,"","",
+			       release.releaseTag(),processName,
+			       "parsed from "+fileName);
+
+	    // new configuration
+	    configuration = new Configuration();
+	    configuration.initialize(configInfo,release);
+	    
 	}
 	/*
 	catch (IOException e) {
@@ -126,24 +178,18 @@ public class JPythonParser
 	    //printParsedTree();
 	}
 
-	System.out.println("XXX: "+processName);
-
-	ConfigInfo configInfo =
-	    new ConfigInfo(name,null,-1,0,"","",
-			   release.releaseTag(),processName,
-			   "parsed from "+fileName);
-
-	configuration = new Configuration();
-	configuration.initialize(configInfo,release);
-
     }
     
-    /** turn parsed tree into configuration */
+    /** turn process object into configuration */
     public Configuration createConfiguration() throws JParserException
     {
 
-	System.out.println("JPythonParser::createConfiguration() called!");
+	System.out.println("JPythonParser::createConfiguration() 0 called!");
+
+	if (release==null || process==null ) return null;
 	
+	System.out.println("JPythonParser::createConfiguration() 1 called!");
+
 	// add global psets
 	
 	// add primary data source (edsource)
