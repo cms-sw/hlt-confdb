@@ -116,6 +116,7 @@ public class ConfDB
     private PreparedStatement psSelectServicesForConfig           = null;
     private PreparedStatement psSelectSequencesForConfig          = null;
     private PreparedStatement psSelectPathsForConfig              = null;
+    private PreparedStatement psSelectContentForConfig			  = null;
 
     private PreparedStatement psSelectModulesForSeq               = null;
     private PreparedStatement psSelectModulesForPath              = null;
@@ -139,6 +140,11 @@ public class ConfDB
     private PreparedStatement psSelectPathId                      = null;
     private PreparedStatement psSelectModuleIdBySeq               = null;
     private PreparedStatement psSelectModuleIdByPath              = null;
+    
+    private PreparedStatement psSelectStreamByEventContent		  = null;
+    private PreparedStatement psSelectStreamAssocByStream		  = null;
+    private PreparedStatement psSelectECStatementByEventContent	  = null;
+    private PreparedStatement psSelectECStatementByECStatement	  = null;
 
     private PreparedStatement psSelectTemplateId                  = null;
 
@@ -251,6 +257,7 @@ public class ConfDB
     private PreparedStatement psDeleteServicesFromConfig          = null;
     private PreparedStatement psDeleteSequencesFromConfig         = null;
     private PreparedStatement psDeletePathsFromConfig             = null;
+    private PreparedStatement psDeleteContentFromConfig			  = null;
 
     private PreparedStatement psDeleteChildSeqsFromParentSeq      = null;
     private PreparedStatement psDeleteChildSeqFromParentSeqs      = null;
@@ -258,6 +265,13 @@ public class ConfDB
     private PreparedStatement psDeleteChildSeqFromParentPaths     = null;
     private PreparedStatement psDeleteChildPathsFromParentPath    = null;
     private PreparedStatement psDeleteChildPathFromParentPaths    = null;
+    
+    private PreparedStatement psDeletePathStreamDataSetAssoc	  = null;
+    private PreparedStatement psDeletePathOutputModAssoc		  = null;
+    
+    private PreparedStatement psDeleteECStreamFromEventCont	  	  = null;
+    private PreparedStatement psDeleteECStatementFromEventCont	  = null;
+    private PreparedStatement psDeleteEventContentStatement		  = null;
     
     private PreparedStatement psDeleteModulesFromSeq              = null;
     private PreparedStatement psDeleteModulesFromPath             = null;    
@@ -2794,7 +2808,8 @@ public class ConfDB
 	    removeServices(configId);
 	    removeSequences(configId);
 	    removePaths(configId);
-	    
+	    removeContent(configId);
+    
 	    psDeleteConfiguration.setInt(1,configId);
 	    psDeleteConfiguration.executeUpdate();
 	    
@@ -2812,6 +2827,91 @@ public class ConfDB
 	    dbConnector.release(rs);
 	}
     }
+    
+    /** remove Content */
+    public void removeContent(int configId) throws SQLException {
+    	ResultSet rs1 = null;
+    	try {
+    		
+    		psSelectContentForConfig.setInt(1,configId);
+    		rs1 = psSelectContentForConfig.executeQuery();	// select Ids from EventContent.
+    		
+    		psDeleteContentFromConfig.setInt(1, configId);
+    		psDeleteContentFromConfig.executeUpdate();		// delete from ConfigurationContentAssoc.
+    		
+    		while(rs1.next()) {
+    			// for each EventContentId:
+    			int pEventId 	= rs1.getInt(1);
+    			ResultSet rs2 = null;
+
+				// Delete Streams
+				try {
+					psSelectStreamByEventContent.setInt(1, pEventId);
+					rs2 = psSelectStreamByEventContent.executeQuery();
+    				// delete ECStreamAssoc
+    				psDeleteECStreamFromEventCont.setInt(1, pEventId);
+    				psDeleteECStreamFromEventCont.executeUpdate();
+
+    				/*
+					while(rs2.next()) {
+						int pStreamId = rs2.getInt(1);
+						ResultSet rs3 = null;
+						try {
+    						psSelectStreamAssocByStream.setInt(1, pStreamId);
+    						rs3 = psSelectStreamAssocByStream.executeQuery();
+    						
+    						// do not delete Streams but SuperIds.
+    						if(!rs3.next()) {
+								removeParameters(pStreamId);
+								psDeleteSuperId.setInt(1,pStreamId);
+								psDeleteSuperId.executeUpdate();
+    						}
+							
+						} finally {
+							dbConnector.release(rs3);
+						}
+					}
+					*/
+				} finally {
+					dbConnector.release(rs2);
+				}
+    				
+				rs2 = null;
+    			// Delete EventContentStatements
+				try {
+					psSelectECStatementByEventContent.setInt(1, pEventId);
+					rs2 = psSelectECStatementByEventContent.executeQuery();
+					// Delete ECStatementAssoc
+    				psDeleteECStatementFromEventCont.setInt(1, pEventId);
+    				psDeleteECStatementFromEventCont.executeUpdate();
+    				
+					while(rs2.next()) {
+						int pECStatId = rs2.getInt(1);
+						ResultSet rs3 = null;
+						try {
+							psSelectECStatementByECStatement.setInt(1, pECStatId);
+							rs3 = psSelectECStatementByECStatement.executeQuery();
+							
+							if(!rs3.next()) {
+								// delete eventContentStatement
+								psDeleteEventContentStatement.setInt(1, pECStatId);
+							}							
+						} finally {
+							dbConnector.release(rs3);
+						}
+					}
+				} finally {
+					dbConnector.release(rs2);
+				}
+
+    		} // end while
+    	} finally {
+    		dbConnector.release(rs1);
+    	}
+    }
+    
+    
+    
     /** remove global psets of a configuration */
     public void removeGlobalPSets(int configId) throws SQLException
     {
@@ -3041,6 +3141,13 @@ public class ConfDB
 			psDeleteChildPathFromParentPaths.executeUpdate();
 			psDeleteChildSeqsFromParentPath.setInt(1,pathId);
 			psDeleteChildSeqsFromParentPath.executeUpdate();
+			
+			psDeletePathStreamDataSetAssoc.setInt(1, pathId);
+			psDeletePathStreamDataSetAssoc.executeUpdate();
+		    psDeletePathOutputModAssoc.setInt(1, pathId);
+		    psDeletePathOutputModAssoc.executeUpdate();
+
+			
 			ResultSet rs3 = null;
 			try {
 			    psSelectModulesForPath.setInt(1,pathId);
@@ -3814,6 +3921,17 @@ public class ConfDB
 		 "WHERE ConfigurationParamSetAssoc.configId=?");
 	    preparedStatements.add(psSelectPSetsForConfig);
 	    
+	    psSelectContentForConfig =
+	    	dbConnector.getConnection().prepareStatement(
+	    			"SELECT "											+
+	    			"EventContents.eventContentId "						+
+	    			"FROM	EventContents "								+
+	    			"JOIN	ConfigurationContentAssoc "					+
+	    			"ON		ConfigurationContentAssoc.eventContentId "	+
+	    			"	= 	EventContents.eventContentId "				+
+	    			"WHERE	ConfigurationContentAssoc.configId = ?"		);
+	    preparedStatements.add(psSelectContentForConfig);
+	    	
 	    psSelectEDSourcesForConfig =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
@@ -4018,7 +4136,35 @@ public class ConfDB
 		 "FROM ConfigurationPathAssoc "+
 		 "WHERE ConfigurationPathAssoc.pathId=?");
 	    preparedStatements.add(psSelectPathId);
+	    
+	    psSelectStreamByEventContent = 
+	    	dbConnector.getConnection().prepareStatement(
+	    			"SELECT  ECS.STREAMID "				+
+	    			"FROM    ECSTREAMASSOC   ECS "		+
+	    			"WHERE   ECS.EVENTCONTENTID  = ?"	);
+	    preparedStatements.add(psSelectStreamByEventContent);
+	    
+	    psSelectStreamAssocByStream = 
+	    	dbConnector.getConnection().prepareStatement(
+	    			"SELECT ECS.STREAMID "				+
+	    			"FROM	ECSTREAMASSOC	ECS "		+
+	    			"WHERE	ECS.STREAMID = ?"			);
+	    preparedStatements.add(psSelectStreamAssocByStream);
 
+	    psSelectECStatementByEventContent =
+	    	dbConnector.getConnection().prepareStatement(
+	    			"SELECT ECSTAT.STATEMENTID "		+
+	    			"FROM	ECSTATEMENTASSOC	ECSTAT "+
+	    			"WHERE	ECSTAT.EVENTCONTENTID = ?"	);
+	    preparedStatements.add(psSelectECStatementByEventContent);
+	    
+	    psSelectECStatementByECStatement = 
+	    	dbConnector.getConnection().prepareStatement(
+	    			"SELECT ECSTAT.STATEMENTID "		+
+	    			"FROM	ECSTATMENTASSOC	ECSTAT "	+
+	    			"WHERE	ECSTAT.STATEMENTID = ? "	);
+	    preparedStatements.add(psSelectECStatementByECStatement);
+	    
 	    psSelectModuleIdBySeq =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
@@ -4706,6 +4852,12 @@ public class ConfDB
 		 "WHERE configId=?");
 	    preparedStatements.add(psDeletePSetsFromConfig);
 	    
+	    psDeleteContentFromConfig = 
+	    	dbConnector.getConnection().prepareStatement(
+	    			"DELETE FROM	ConfigurationContentAssoc	"	+
+	    			"WHERE configId = ?"							);
+	    preparedStatements.add(psDeleteContentFromConfig);
+	    
 	    psDeleteEDSourcesFromConfig =
 		dbConnector.getConnection().prepareStatement
 		("DELETE FROM ConfigurationEDSourceAssoc "+
@@ -4773,6 +4925,34 @@ public class ConfDB
 		("DELETE FROM PathSequenceAssoc "+
 		 "WHERE sequenceId=?");
 	    preparedStatements.add(psDeleteChildSeqFromParentPaths);
+	    
+	    psDeletePathStreamDataSetAssoc = 
+	    	dbConnector.getConnection().prepareStatement(
+	    			"DELETE FROM	PathStreamDataSetAssoc "+
+	    			"WHERE			pathId = ?"				);
+	    preparedStatements.add(psDeletePathStreamDataSetAssoc);
+	    
+	    psDeletePathOutputModAssoc =
+	    	dbConnector.getConnection().prepareStatement(
+	    			"DELETE FROM 	PathOutputModAssoc "	+
+	    			"WHERE			pathId = ?"				);
+	    preparedStatements.add(psDeletePathOutputModAssoc);
+	    
+	    psDeleteECStreamFromEventCont =
+	    	dbConnector.getConnection().prepareStatement(
+	    			"DELETE FROM	ECStreamAssoc "			+
+	    			"WHERE			eventContentId = ?"		);
+	    preparedStatements.add(psDeleteECStreamFromEventCont);
+	    
+	    psDeleteECStatementFromEventCont = 
+	    	dbConnector.getConnection().prepareStatement(
+	    			"DELETE FROM	ECStatementAssoc "		+
+	    			"WHERE			eventContentId = ?"		);
+	    
+	    psDeleteEventContentStatement = 
+	    	dbConnector.getConnection().prepareStatement(
+	    			"DELETE FROM 	eventcontentstatements "+
+	    			"WHERE			statementid = ?"		);
 
 	    psDeleteChildPathsFromParentPath =
 		dbConnector.getConnection().prepareStatement
