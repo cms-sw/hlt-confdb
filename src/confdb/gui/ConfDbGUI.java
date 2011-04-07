@@ -3977,7 +3977,6 @@ class CommandTableCellRenderer extends DefaultTableCellRenderer
 	    String       soc = oc.toString();
 	    
 	    setBackground(Color.LIGHT_GRAY);
-
 	    OutputCommand ocDropAll = new OutputCommand();
 	    ocDropAll.setDrop();
 	    if (soc.equals(ocDropAll.toString())) {
@@ -4013,31 +4012,24 @@ class CommandTableCellRenderer extends DefaultTableCellRenderer
 	    }
 
 	    setBackground(Color.RED);
-
 	    CommandTableModel ctm = (CommandTableModel)table.getModel();
-
 	    Path           path    = ctm.getPath();
 	    PrimaryDataset dataset = ctm.getDataset();
 	    Stream         stream  = ctm.getStream();
 	    EventContent   content = ctm.getContent();
-
 	    IConfiguration config  = content.config();
 	    if (config==null) return this;
 
+	    setBackground(Color.ORANGE);
 	    String label = oc.moduleName();
+	    if (label.equals("*")) return this;
+
+	    setBackground(Color.RED);
 	    ModuleInstance instance = config.module(label);
 	    if (instance==null) return this;
 
 	    Path[] paths = instance.parentPaths();
-	    /*
-	    ArrayList<Path> paths = new ArrayList<Path>();
-	    paths.clear();
-	    for (Path p : instance.parentPaths()) {
-		paths.add(p);
-	    }
-	    */
 	    boolean ok = false;
-
 	    if (path!=null) {
 		for (Path p : paths) {
 		    ok = (path.equals(p));
