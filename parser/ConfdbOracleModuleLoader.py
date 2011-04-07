@@ -691,12 +691,14 @@ class ConfdbOracleModuleLoader:
 			paramval = None
 
 		# Fill ParameterValues table
-		if(paramval == None):
+		if(paramval == None ): 
 		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
                     if(str(paramval).find("X") == -1 and str(paramval).find("x") == -1):
-                        thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+                        if(paramval != ""):
+                            print "INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")"
+                            thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
                     else:
                         paramval = str(int(str(paramval), 16))
                         thecursor.execute("INSERT INTO Int32ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + paramval + ", 1)") 
@@ -723,7 +725,8 @@ class ConfdbOracleModuleLoader:
 			print "No default parameter value found"
 		else:
                     if(str(paramval).find("X") == -1 and str(paramval).find("x") == -1): 
-                        thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+                        if(paramval != ""):
+                            thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
                     else:
                         paramval = str(int(str(paramval), 16))                        
                         thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + paramval + ", 1)") 
@@ -748,7 +751,8 @@ class ConfdbOracleModuleLoader:
 			print "No default parameter value found"
 		else:
                     if(str(paramval).find("X") == -1 and str(paramval).find("x") == -1):
-                        thecursor.execute("INSERT INTO Int64ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+                        if(paramval != ""):
+                            thecursor.execute("INSERT INTO Int64ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
                     else:
                         paramval = str(int(str(paramval), 16))
                         thecursor.execute("INSERT INTO Int64ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + paramval + ", 1)") 
@@ -775,7 +779,8 @@ class ConfdbOracleModuleLoader:
 			print "No default parameter value found"
 		else:
                     if(str(paramval).find("X") == -1 and str(paramval).find("x") == -1): 
-                        thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+                        if(paramval != ""):
+                            thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
                     else:
                         paramval = str(int(str(paramval), 16))                        
                         thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + paramval + ", 1)") 
@@ -789,9 +794,9 @@ class ConfdbOracleModuleLoader:
 		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)   
 
                 boolval = str(paramval).strip('"').strip()
-                if((boolval == "true") or (boolval == "True")):
+                if((boolval == "true") or (boolval == "True") or (boolval == True)):
                     paramval = str(1)
-                if((boolval == "false") or (boolval == "False")):
+                if((boolval == "false") or (boolval == "False") or (boolval == False)):
                     paramval = str(0)
 
                 if(paramval != "0" and paramval != "1"):
@@ -823,7 +828,8 @@ class ConfdbOracleModuleLoader:
 		    if(self.verbose > 2):
 			print "No default parameter value found"
 		else:
-		    thecursor.execute("INSERT INTO DoubleParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+                    if(paramval != ""):
+                        thecursor.execute("INSERT INTO DoubleParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
 
 	    #string
 	    elif(paramtype == "string"):
@@ -1139,7 +1145,8 @@ class ConfdbOracleModuleLoader:
 			    print "No default parameter value found"
 		    else:
                         if(str(paramval).find("X") == -1 and str(paramval).find("x") == -1):  
-                            thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
+                            if(paramval != ""):
+                                thecursor.execute("INSERT INTO Int32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
                         else:
                             paramval = str(int(str(paramval), 16))                            
                             thecursor.execute("INSERT INTO Int32ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + str(paramval) + ", 1)") 
@@ -1212,7 +1219,8 @@ class ConfdbOracleModuleLoader:
 			    print "No default parameter value found"
 		    else:
                         if(str(paramval).find("X") == -1 and str(paramval).find("x") == -1):
-                            thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
+                            if(paramval != ""):
+                                thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
                         else:
                             paramval = str(int(str(paramval), 16))                            
                             thecursor.execute("INSERT INTO UInt32ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + str(paramval) + ", 1)")
@@ -1280,7 +1288,8 @@ class ConfdbOracleModuleLoader:
 			    print "No default parameter value found"
 		    else:
                         if(str(paramval).find("X") == -1 and str(paramval).find("x") == -1):  
-                            thecursor.execute("INSERT INTO Int64ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
+                            if(paramval != ""):
+                                thecursor.execute("INSERT INTO Int64ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
                         else:
                             paramval = str(int(str(paramval), 16))                            
                             thecursor.execute("INSERT INTO Int64ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + str(paramval) + ", 1)") 
@@ -1353,7 +1362,8 @@ class ConfdbOracleModuleLoader:
 			    print "No default parameter value found"
 		    else:
                         if(str(paramval).find("X") == -1 and str(paramval).find("x") == -1):
-                            thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
+                            if(paramval != ""):
+                                thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + str(paramval) + ")")
                         else:
                             paramval = str(int(str(paramval), 16))                            
                             thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value, hex) VALUES (" + str(newparamid) + ", " + str(paramval) + ", 1)")
@@ -1369,6 +1379,8 @@ class ConfdbOracleModuleLoader:
 
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,paramname,oldsuperid)
+
+                print "Updating param " + str(paramname) + " of type bool" 
 		
 		# A previous version of this parameter exists. See if its 
 		# value has changed.
@@ -1388,8 +1400,8 @@ class ConfdbOracleModuleLoader:
 		    
 		    # No changes. Attach parameter to new template.
 		    if((oldparamval == paramval) or 
-		       (oldparamval == None and paramval == None)):			
-			neednewparam = False
+		       ((oldparamval == None) and (paramval == None))):			
+                        neednewparam = False
 
 			# Now check if the tracked/untracked status has changed
 			thecursor.execute("SELECT tracked FROM Parameters WHERE paramId = " + str(oldparamid))
@@ -1420,15 +1432,17 @@ class ConfdbOracleModuleLoader:
 			if(self.verbose > 2):
 			    print "No default parameter value found"
 		    else:
-                        if(paramval == '"true"'):
+                        if(paramval == '"true"' or paramval == '"True"' or paramval == True or (str(paramval) == "True")):
                             paramval = str(1)
-                        if(paramval == '"false"'):
+                        if(paramval == '"false"' or paramval == '"False"' or paramval == False or (str(paramval) == "False")):
                             paramval = str(0)
 
+                        print "\tAfter Oracle conversion the paramval is = " + str(paramval)
                         if(paramval != "0" and paramval != "1"):
                             paramval = None
 
                         else:
+                            print "INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")"
                             thecursor.execute("INSERT INTO BoolParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
 		else:
                     thecursor.execute("INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(newsuperid) + ", " + str(oldparamid) + ", " + str(paramseq) + ")")
@@ -2287,7 +2301,8 @@ class ConfdbOracleModuleLoader:
 			print "No default parameter value found"
 		else:
                     if(str(psetval).find("X") == -1 and str(psetval).find("x") == -1):                        
-                        thecursor.execute("INSERT INTO Int64ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+                        if(paramval != ""):
+                            thecursor.execute("INSERT INTO Int64ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
                     else:
                         psetval = str(int(str(psetval), 16))                       
                         thecursor.execute("INSERT INTO Int64ParamValues (paramId, value, hex) VALUES (" + str(newparammemberid) + ", " + psetval + ", 1)") 
@@ -2307,7 +2322,8 @@ class ConfdbOracleModuleLoader:
 			print "No default parameter value found"
 		else:
                     if(str(psetval).find("X") == -1 and str(psetval).find("x") == -1):
-                        thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
+                        if(paramval != ""):
+                            thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
                     else:
                         psetval = str(int(str(psetval), 16))                       
                         thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value, hex) VALUES (" + str(newparammemberid) + ", " + psetval + ", 1)")
@@ -2315,9 +2331,10 @@ class ConfdbOracleModuleLoader:
 	    elif(psettype == "bool"):
                 print "psetval = " + str(psetval)
                 boolval = str(psetval).strip('"').strip()
-                if(boolval == "true"):
+
+                if(boolval == "true" or boolval == "True" or (boolval == True)):
                     psetval = str(1)
-                if(boolval == "false"):
+                if(boolval == "false" or boolval == "False" or (boolval == False)):
                     psetval = str(0)
 
                 if(psetval != "0" and psetval != "1"):
@@ -2569,10 +2586,11 @@ class ConfdbOracleModuleLoader:
                         thecursor.execute("INSERT INTO UInt64ParamValues (paramId, value, hex) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ", 1)") 
                         
 	    elif(vpsettype == "bool"):
+                
                 boolval = str(vpsetval).strip('"').strip()
-                if(boolval == "true"):
+                if(boolval == "true" or boolval == "True" or boolval == True):
                     vpsetval = str(1)
-                if(boolval == "false"):
+                if(boolval == "false" or boolval == "False" or boolval == False):
                     vpsetval = str(0)
 
                 if(vpsetval != "0" and vpsetval != "1"):

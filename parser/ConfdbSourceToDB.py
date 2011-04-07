@@ -690,7 +690,9 @@ class ConfdbSourceToDB:
 
 		#Now see if this tag is different from the one in the release
                 #		if((tagline.lstrip().rstrip() == basetagline.lstrip().rstrip()) and (packagedir.find("Alignment/") == -1)):
-                if(tagline.lstrip().rstrip() == basetagline.lstrip().rstrip()):
+                #                if(tagline.lstrip().rstrip() == basetagline.lstrip().rstrip() and packagedir.find("HLTrigger") == -1):
+                #                if(modulename.find("HcalRecAlgoESProducer") != -1 or modulename.find("EcalSeverityLevelESProducer") != -1 or modulename.find("MuonIdProducer") != -1 or modulename.find("HcalHitReconstructor") != -1 or modulename.find("HLTLogMonitorFilter") != -1): 
+                if((tagline.lstrip().rstrip() == basetagline.lstrip().rstrip()) and (packagedir.find("Alignment/") == -1)):
 		    if(self.verbose > 0):
 			print "Base release and test release tags are the same -  will reassociate."
 		    return

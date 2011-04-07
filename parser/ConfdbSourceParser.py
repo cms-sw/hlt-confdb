@@ -845,6 +845,7 @@ class SourceParser:
                             if(success == True):
                                 paramval = self.pyconfigparser.RetrievePythonConfigDefault()
                                 paramval = str(paramval)
+                                print "\tFound default value in python config " + str(paramname) + " = " + paramval
                                 
                                 if(isvector == False and paraminparamset == ''):
                                     if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None')):
@@ -1144,6 +1145,35 @@ class SourceParser:
 			    # We have untracked parameters in this module. If we didn't 
 			    # find their default values in the .cc file, look in 
 			    # .cfi files
+                            if(defaultincc == False):
+                                if(self.configstyle == "python" and paramtype != 'PSet' and paramtype != 'VPSet' and paramtype != 'ParameterSet'):
+                                    self.pyconfigparser.SetThePythonVar(themodulename,paraminparamset,'',paramname)
+                                    self.pyconfigparser.FindPythonConfigDefault(themodulename,thedatadir)
+                                    foundcomponent = self.pyconfigparser.RetrievePythonConfigFoundComponent()
+                                    if(foundcomponent == False and not (themodulename in self.foundcficomponents)):
+                                        self.nocficomponents.append(themodulename)
+                                    else:
+                                        self.foundcficomponents.append(themodulename)
+                                    success = self.pyconfigparser.RetrievePythonConfigSuccess()
+                                    paramval = ""
+                                    if(success == True):
+                                        paramval = self.pyconfigparser.RetrievePythonConfigDefault()
+                                        paramval = str(paramval)
+                                
+                                    if(isvector == False and paraminparamset == ''):
+                                        if (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramlist,'None')):
+                                            self.paramlist.append((paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"false",self.sequencenb))
+                                            self.sequencenb = self.sequencenb + 1
+                                    elif(isvector == False and paraminparamset != ''):
+                                        if (not self.IsNewParameterSet(self.paramsetmemberlist,paraminparamset)):
+                                            if(self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
+                                                self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"false",self.sequencenb,'None',self.psetsequencenb))
+                                        elif (self.IsNewParameter(paramname.lstrip().rstrip(),self.paramsetmemberlist,paraminparamset)):
+                                            self.paramsetmemberlist.append((paraminparamset,paramtype.lstrip().rstrip(),paramname.lstrip().rstrip(),paramval.lstrip().rstrip(),"false",self.sequencenb,'None',self.psetsequencenb))
+                                            self.sequencenb = self.sequencenb + 1
+                                    else:
+                                        success = False
+
 #			    if(thetdefedmodule == "" and defaultincc == False):
 #				success = self.ParseCfFile(thedatadir,theconstructor,paramname,paraminparamset,None,None)
 #

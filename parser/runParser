@@ -294,12 +294,14 @@ sub validate_release
     else {
 	die "invalid release '$input'!";
     }
-    
-    if ($suffix =~ m/_HLT([\d])/) {
-	$count = $1-1;
-	if ($count>=0) { $result = $prefix; }
-	else { die "invalid release '$input'!"; }
-    }
+
+# JH    
+#    if ($suffix =~ m/_HLT([\d])/) {
+#	$count = $1-1;
+#	if ($count>=0) { $result = $prefix; }
+#	else { die "invalid release '$input'!"; }
+#    }
+# end JH
 
     # 
     # $result = "CMSSW_2_2_11_HLT";

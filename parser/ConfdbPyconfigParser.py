@@ -24,7 +24,7 @@ class ConfdbPyconfigParser:
         self.theparamdefault = ''
         self.founddefault = False
         self.foundcomponent = False
-        self.verbose = 5
+        self.verbose = 2
 
     def SetThePythonVar(self,modname,psetname,nestedpsetname,paramname):
         self.themodule = modname
@@ -42,6 +42,7 @@ class ConfdbPyconfigParser:
         # Look at what cfi_py configs are available
         thearch = os.environ.get("SCRAM_ARCH")
         therelbase = os.environ.get("CMSSW_RELEASE_BASE")
+        #        therelbase = os.environ.get("CMSSW_BASE")
         thevalidatedpackdirectory = thedirectory.split('data/')[0]
         thevalidatedpackdirectory = thevalidatedpackdirectory.split('src/')[1]
         thevalidateddirectory = therelbase + '/cfipython/' + thearch + '/' + thevalidatedpackdirectory + '/'
@@ -97,7 +98,7 @@ class ConfdbPyconfigParser:
                         print 'Starting python session'
         
                     try:
-                        if(self.verbose > 2):
+                        if(self.verbose > 1):
                             print "\t\t" + importcommand
 
                         exec importcommand
@@ -109,7 +110,7 @@ class ConfdbPyconfigParser:
                         if(validstatus == 1):
                             theextend = "process.extend(" + thefilecomponent + ")"
                             
-                        if(self.verbose > 2):
+                        if(self.verbose > 1):
                             print "\t\t" + theextend
                         eval(theextend)
 
@@ -167,7 +168,7 @@ class ConfdbPyconfigParser:
                         # OK, now get the default!
                         thedefault =  eval(valvar)
 
-                        if(self.verbose > 2):
+                        if(self.verbose > 1):
                             print 'The default value of variable ' + self.theparameter + ' is:\n'        
                             print thedefault
 
@@ -178,7 +179,7 @@ class ConfdbPyconfigParser:
                         return
                        
                     except:
-                        if(self.verbose > 2):
+                        if(self.verbose > 1):
                             print 'Could not get python-config information - no variable default found'
                             
 
