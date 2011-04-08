@@ -1,4 +1,8 @@
 2011-04-08  Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-05-31
+	* Adding Smart Renaming of modules/sequences/paths (replacement of substrings old => new)
+
+2011-04-08  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-30
 	* Adding Smart Reversioning of paths based on diff
 

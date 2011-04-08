@@ -34,6 +34,7 @@ public class ToolBar
 
     private static final String cmdDiff        = "Compare (Diff)";
     private static final String cmdSmartVersions= "Smart Path Versioning";
+    private static final String cmdSmartRenaming= "Smart Renaming";
     private static final String cmdReplace     = "Search&Replace";
     private static final String cmdEditPS      = "Edit Prescales";
     private static final String cmdEditML      = "Edit MessageLogger";
@@ -62,6 +63,7 @@ public class ToolBar
     private JButton jButtonReplace     = new JButton();
     private JButton jButtonDiff        = new JButton();
     private JButton jButtonSmartVersions= new JButton();
+    private JButton jButtonSmartRenaming= new JButton();
     private JButton jButtonEditPS      = new JButton();
     private JButton jButtonEditML      = new JButton();
     private JButton jButtonEditUP      = new JButton();
@@ -105,6 +107,7 @@ public class ToolBar
 	jButtonReplace.setEnabled(true);
 	jButtonDiff.setEnabled(true);
 	jButtonSmartVersions.setEnabled(true);
+	jButtonSmartRenaming.setEnabled(true);
 	jButtonEditPS.setEnabled(true);
 	jButtonEditML.setEnabled(true);
 	jButtonEditUP.setEnabled(false);
@@ -125,6 +128,7 @@ public class ToolBar
 	jButtonReplace.setEnabled(false);
 	//jButtonDiff.setEnabled(false);
 	jButtonSmartVersions.setEnabled(false);
+	jButtonSmartRenaming.setEnabled(false);
 	jButtonEditPS.setEnabled(false);
 	jButtonEditML.setEnabled(false);
 	jButtonEditUP.setEnabled(false);
@@ -139,6 +143,7 @@ public class ToolBar
 	jButtonOpen.setEnabled(true);
 	jButtonDiff.setEnabled(true);
 	jButtonSmartVersions.setEnabled(true);
+	jButtonSmartRenaming.setEnabled(true);
 	jButtonDisconnect.setEnabled(true);
     }
     
@@ -150,6 +155,7 @@ public class ToolBar
 	jButtonOpen.setEnabled(false);
 	jButtonDiff.setEnabled(false);
 	jButtonSmartVersions.setEnabled(false);
+	jButtonSmartRenaming.setEnabled(false);
 	jButtonDisconnect.setEnabled(false);
     }
 
@@ -249,6 +255,13 @@ public class ToolBar
 	jButtonSmartVersions.setIcon(new ImageIcon(getClass().
 					    getResource("/DiffIcon.png")));
 	jToolBar.add(jButtonSmartVersions);
+
+	jButtonSmartRenaming.setActionCommand(cmdSmartRenaming);
+	jButtonSmartRenaming.addActionListener(listener);
+	jButtonSmartRenaming.setToolTipText("Renaming paths/sequences/modules");
+	jButtonSmartVersions.setIcon(new ImageIcon(getClass().
+					    getResource("/SearchReplaceIcon.png")));
+	jToolBar.add(jButtonSmartRenaming);
 
 	jButtonEditPS.setActionCommand(cmdEditPS);
 	jButtonEditPS.addActionListener(listener);
