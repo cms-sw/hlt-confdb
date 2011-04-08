@@ -49,6 +49,7 @@ public class DiffDialog extends JDialog
     /** Diff object, which actually carries out the comparison */
     private IConfiguration newConfig = null;
     private IConfiguration oldConfig = null;
+    private Diff           diff      = null;
 
     //
     // construction
@@ -100,6 +101,7 @@ public class DiffDialog extends JDialog
     public DiffDialog(Diff diff)
     {
 	//super(true);
+	this.diff = diff;
 	setTitle("Compare Configurations");
 	
 	// initialize tree
@@ -137,6 +139,9 @@ public class DiffDialog extends JDialog
     //
     // member functions
     //
+
+    /** get the diff object for later scrutiny */
+    public Diff getDiff() {return diff;}
 
     /** set the new configuration */
     public void setNewConfig(IConfiguration c)
@@ -364,7 +369,7 @@ public class DiffDialog extends JDialog
 		oldConfig=database.loadConfiguration(oldId);
 	    }
 
-	    Diff diff = new Diff(oldConfig,newConfig);
+	    diff = new Diff(oldConfig,newConfig);
 	    diff.compare();
 	    treeModel.setDiff(diff);
 	    for (int i=jTreeDiff.getRowCount()-1;i>=0;i--)

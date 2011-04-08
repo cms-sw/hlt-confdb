@@ -62,6 +62,10 @@ public class ContainerComparison extends Comparison
     // member functions
     //
     
+    /** access to containers */
+    public ReferenceContainer oldContainer() {return oldContainer;}
+    public ReferenceContainer newContainer() {return newContainer;}
+
     /** determine the result of the comparison */
     public int result()
     {

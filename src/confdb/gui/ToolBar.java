@@ -33,6 +33,7 @@ public class ToolBar
     private static final String cmdConvert     = "Convert";
 
     private static final String cmdDiff        = "Compare (Diff)";
+    private static final String cmdSmartVersions= "Smart Path Versioning";
     private static final String cmdReplace     = "Search&Replace";
     private static final String cmdEditPS      = "Edit Prescales";
     private static final String cmdEditML      = "Edit MessageLogger";
@@ -60,6 +61,7 @@ public class ToolBar
 
     private JButton jButtonReplace     = new JButton();
     private JButton jButtonDiff        = new JButton();
+    private JButton jButtonSmartVersions= new JButton();
     private JButton jButtonEditPS      = new JButton();
     private JButton jButtonEditML      = new JButton();
     private JButton jButtonEditUP      = new JButton();
@@ -102,6 +104,7 @@ public class ToolBar
 	jButtonConvert.setEnabled(true);
 	jButtonReplace.setEnabled(true);
 	jButtonDiff.setEnabled(true);
+	jButtonSmartVersions.setEnabled(true);
 	jButtonEditPS.setEnabled(true);
 	jButtonEditML.setEnabled(true);
 	jButtonEditUP.setEnabled(false);
@@ -121,6 +124,7 @@ public class ToolBar
 	jButtonConvert.setEnabled(false);
 	jButtonReplace.setEnabled(false);
 	//jButtonDiff.setEnabled(false);
+	jButtonSmartVersions.setEnabled(false);
 	jButtonEditPS.setEnabled(false);
 	jButtonEditML.setEnabled(false);
 	jButtonEditUP.setEnabled(false);
@@ -134,6 +138,7 @@ public class ToolBar
 	jButtonNew.setEnabled(true);
 	jButtonOpen.setEnabled(true);
 	jButtonDiff.setEnabled(true);
+	jButtonSmartVersions.setEnabled(true);
 	jButtonDisconnect.setEnabled(true);
     }
     
@@ -144,6 +149,7 @@ public class ToolBar
 	jButtonNew.setEnabled(false);
 	jButtonOpen.setEnabled(false);
 	jButtonDiff.setEnabled(false);
+	jButtonSmartVersions.setEnabled(false);
 	jButtonDisconnect.setEnabled(false);
     }
 
@@ -236,6 +242,13 @@ public class ToolBar
 	jButtonDiff.setIcon(new ImageIcon(getClass().
 					    getResource("/DiffIcon.png")));
 	jToolBar.add(jButtonDiff);
+
+	jButtonSmartVersions.setActionCommand(cmdSmartVersions);
+	jButtonSmartVersions.addActionListener(listener);
+	jButtonSmartVersions.setToolTipText("Update path versions according to diff");
+	jButtonSmartVersions.setIcon(new ImageIcon(getClass().
+					    getResource("/DiffIcon.png")));
+	jToolBar.add(jButtonSmartVersions);
 
 	jButtonEditPS.setActionCommand(cmdEditPS);
 	jButtonEditPS.addActionListener(listener);

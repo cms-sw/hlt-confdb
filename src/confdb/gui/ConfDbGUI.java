@@ -37,6 +37,7 @@ import confdb.converter.OfflineConverter;
 import confdb.converter.ConverterException;
 
 import confdb.data.*;
+import confdb.diff.*;
 
 
 /**
@@ -621,6 +622,60 @@ public class ConfDbGUI
 	    dialog.setOldConfigs(currentConfig.configInfo());
 	}
 	dialog.setVisible(true);
+    }
+    
+    /** compare current configuration to another one */
+    public void smartVersionsConfigurations()
+    {
+	// make a diff to previously deplyed version to find all changed paths
+	DiffDialog dialog = new DiffDialog(frame,database);
+	dialog.setTitle("List of changed paths from Diff");
+	dialog.pack();
+	dialog.setLocationRelativeTo(frame);
+	if (!currentConfig.isEmpty()) {
+	    dialog.setNewConfig(currentConfig);
+	    dialog.setOldConfigs(currentConfig.configInfo());
+	}
+	dialog.setVisible(true);
+
+	// look at paths which have changed (not added nor removed)
+	Diff diff = dialog.getDiff();
+	for (int i=0; i<diff.pathCount(); i++) {
+	    ContainerComparison pathComparison = (ContainerComparison)diff.path(i);
+	    // System.out.println("Smart: "+i+" "+pathComparison.toString());
+	    if (pathComparison.result()==Comparison.RESULT_CHANGED) {
+		Path oldPath = (Path)pathComparison.oldContainer();
+		Path newPath = (Path)pathComparison.newContainer();
+		// System.out.println("Smart: "+i+" "+oldPath.name()+" "+newPath.name());
+
+		// no versioning of endpaths
+		if (newPath.isSetAsEndPath()) break;
+
+		String oldName = newPath.name();
+		String newName = null;
+		// re-version only versioned paths
+		int index = oldName.lastIndexOf("_v");
+		if (index>=0) {
+		    Integer version=0;
+		    String number = oldName.substring(index+2);
+		    if (number.equals("")) {
+			version=1;
+		    } else {
+			version=1+Integer.decode(number);
+		    }
+		    newName = oldName.substring(0,index+2)+String.valueOf(version);
+		    System.out.println("SmartRename: "+newName+" ["+oldName+"]");
+		    try {
+			Path path = currentConfig.path(oldName);
+			path.setNameAndPropagate(newName);
+			treeModelCurrentConfig.nodeChanged(newName);
+		    }
+		    catch (DataException e) {
+			System.err.println(e.getMessage());
+		    }
+		}
+	    }
+	}
     }
     
     /** open prescale editor */

@@ -1,3 +1,7 @@
+2011-04-08  Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-05-30
+	* Adding Smart Reversioning of paths based on diff
+
 2011-04-07  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-29
 	* Improved color coding for EventContent

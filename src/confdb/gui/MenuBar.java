@@ -40,8 +40,9 @@ public class MenuBar
     /** menu bar item names: toolMenu */
     private static final String toolMenuReplace       = "Search&Replace";
     private static final String toolMenuDiff          = "Compare (Diff)";
+    private static final String toolMenuSmartVersions = "Smart Path Versioning";
     private static final String toolMenuPSEditor      = "Edit Prescales";
-    private static final String toolMenuSPSEditor      = "Edit SmartPrescales";
+    private static final String toolMenuSPSEditor     = "Edit SmartPrescales";
     private static final String toolMenuMLEditor      = "Edit MessageLogger";
 
     /** menu bar item names: options */
@@ -71,6 +72,7 @@ public class MenuBar
     private JMenuItem configMenuConvertItem     = null;
 
     private JMenuItem toolMenuDiffItem          = null;
+    private JMenuItem toolMenuSmartVersionsItem = null;
     private JMenuItem toolMenuReplaceItem       = null;
     private JMenuItem toolMenuPSEditorItem      = null;
     private JMenuItem toolMenuSPSEditorItem      = null;
@@ -115,6 +117,7 @@ public class MenuBar
 	configMenuConvertItem.setEnabled(true);
 	toolMenuReplaceItem.setEnabled(true);
 	toolMenuDiffItem.setEnabled(true);
+	toolMenuSmartVersionsItem.setEnabled(true);
 	toolMenuPSEditorItem.setEnabled(true);
 	toolMenuSPSEditorItem.setEnabled(true);
 	toolMenuMLEditorItem.setEnabled(true);
@@ -133,6 +136,7 @@ public class MenuBar
 	configMenuMigrateItem.setEnabled(false);
 	configMenuConvertItem.setEnabled(false);
 	//toolMenuDiffItem.setEnabled(false);
+	toolMenuSmartVersionsItem.setEnabled(false);
 	toolMenuReplaceItem.setEnabled(false);
 	toolMenuPSEditorItem.setEnabled(false);
 	toolMenuSPSEditorItem.setEnabled(false);
@@ -150,6 +154,7 @@ public class MenuBar
 	configMenuOpenItem.setEnabled(true);
 	configMenuOpenOldItem.setEnabled(true);
 	toolMenuDiffItem.setEnabled(true);
+	toolMenuSmartVersionsItem.setEnabled(true);
 	dbMenuDisconnectItem.setEnabled(true);
     }
     
@@ -163,6 +168,7 @@ public class MenuBar
 	if (configMenuJParseItem!=null) configMenuJParseItem.setEnabled(false);
 	configMenuOpenItem.setEnabled(false);
 	toolMenuDiffItem.setEnabled(false);
+	toolMenuSmartVersionsItem.setEnabled(false);
 	dbMenuDisconnectItem.setEnabled(false);
     }
 
@@ -246,6 +252,10 @@ public class MenuBar
 	toolMenuDiffItem.setActionCommand(toolMenuDiff);
 	toolMenuDiffItem.addActionListener(listener);
 	toolMenu.add(toolMenuDiffItem);
+	toolMenuSmartVersionsItem = new JMenuItem(toolMenuSmartVersions,KeyEvent.VK_V);
+	toolMenuSmartVersionsItem.setActionCommand(toolMenuSmartVersions);
+	toolMenuSmartVersionsItem.addActionListener(listener);
+	toolMenu.add(toolMenuSmartVersionsItem);
 	toolMenuReplaceItem = new JMenuItem(toolMenuReplace,KeyEvent.VK_R);
 	toolMenuReplaceItem.setActionCommand(toolMenuReplace);
 	toolMenuReplaceItem.addActionListener(listener);
