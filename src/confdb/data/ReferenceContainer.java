@@ -342,6 +342,7 @@ abstract
 
 	    if (!itp.isValueSet()||
 		itp.label().equals(new String())||
+		itp.label().equals("")||
 		itp.label().equals("rawDataCollector")||
 		itp.label().equals("source")) return;
 	    

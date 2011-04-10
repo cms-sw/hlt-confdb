@@ -168,19 +168,21 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 	    result = p.name();
 	    return result;
 	} else if (column==1) {
-	    boolean unresolved = false;
+	    boolean ok = true;
 	    if (p.type().equals("InputTag")) {
 		InputTagParameter it = (InputTagParameter)p;
-		unresolved = (config.module(it.label())==null);
+		String label = it.label();
+		ok = ( (label.equals("")) || (label.equals("rawDataCollector")) || (label.equals("source")) || (config.module(label)!=null) );
 	    } else if (p.type().equals("VInputTag")) {
 		VInputTagParameter vit = (VInputTagParameter)p;
 		for (int i=0; i<vit.vectorSize(); i++) {
-		    unresolved = (config.module(vit.label(i))==null);
-		    if (unresolved) break;
+		    String label = vit.label(i);
+		    ok = ( (label.equals("")) || (label.equals("rawDataCollector")) || (label.equals("source")) || (config.module(label)!=null) );
+		    if (!ok) break;
 		}
 	    }
 	    result = p.type();
-	    if (unresolved) result = "<html><font color=#ff0000>"+result+"</font></html>";
+	    if (!ok) result = "<html><font color=#ff0000>"+result+"</font></html>";
 	    return result;
 	} else if (column==2) {
 	    result = (isPSet) ? "" : p.valueAsString();
