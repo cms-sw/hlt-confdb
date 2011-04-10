@@ -74,7 +74,7 @@ public class SmartRenameDialog extends JDialog
     {
 	oldPattern = jTextOldPattern.getText();
 	newPattern = jTextNewPattern.getText();
-	validChoice = ((oldPattern!=null) && (newPattern!=null) && (!oldPattern.equals("")));
+	validChoice = ((oldPattern!=null) && (newPattern!=null) && (!oldPattern.equals("")) && (!oldPattern.equals(newPattern)));
 	setVisible(false);
     }
 

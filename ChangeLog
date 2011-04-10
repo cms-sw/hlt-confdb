@@ -1,3 +1,8 @@
+2011-04-10  Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-05-33
+	* Add "replace-module-by-another-module-in-menu-globally" feature
+	* Small fixes here and there
+
 2011-04-09  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-32
 	* Add missing file

@@ -205,6 +205,10 @@ abstract public class ParameterContainer extends DatabaseEntry
     /** get all parameters (recursively) with specified name *and* type */
     public Parameter[] findParameters(String name,String type,String value,boolean startsWith)
     {
+	String One = new String("'");
+	char[] two = {'"'};
+	String Two = new String(two);
+
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
 	Iterator<Parameter> itP = recursiveParameterIterator();
 	while (itP.hasNext()) {
@@ -212,6 +216,7 @@ abstract public class ParameterContainer extends DatabaseEntry
 	    String paramType = p.type();
 	    String paramName = p.name();
 	    String paramValue = p.valueAsString();
+	    if ( (p instanceof StringParameter) || (p instanceof VStringParameter) ) paramValue=paramValue.replace(One,"").replace(Two,"");
 	    
 	    boolean typeMatch = (type==null);
 	    if (!typeMatch) typeMatch = startsWith ? paramType.startsWith(type) : paramType.contains(type);

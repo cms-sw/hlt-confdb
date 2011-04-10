@@ -725,6 +725,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem = new JMenuItem("Rename Module");
 	    menuItem.addActionListener(moduleListener);
 	    popupModules.add(menuItem);
+
+	    JMenu replaceModuleMenu = createAddModuleMenu(null,moduleListener);
+	    popupModules.add(replaceModuleMenu);
 	}
 	
 	if (depth==2&&enableSort) {
@@ -1053,7 +1056,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
     private JMenu createAddModuleMenu(ReferenceContainer container,
 				      ActionListener     listener)
     {
-	JMenu     addModuleMenu = new JMenu("Add Module");
+	JMenu addModuleMenu = null;
+	if (container==null) {
+	    addModuleMenu = new JMenu("Replace Module");
+	} else {
+	    addModuleMenu = new JMenu("Add Module");
+	}
 	JMenuItem menuItemAll;
 	JMenuItem menuItem;
 	JMenuItem copyItemAll;
@@ -1144,13 +1152,13 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		Iterator<String> itI = sortedInstanceNames.iterator();
 		while (itI.hasNext()) {
 		    String instanceName = itI.next();
-			ModuleInstance instance = null;
-			try {
-				instance = (ModuleInstance)t.instance(instanceName);
-			}
-			catch (DataException ex) {}
-			
-			menuItemAll = new JMenuItem(instance.name());
+		    ModuleInstance instance = null;
+		    try {
+			instance = (ModuleInstance)t.instance(instanceName);
+		    }
+		    catch (DataException ex) {}
+		    
+		    menuItemAll = new JMenuItem(instance.name());
 		    menuItem    = new JMenuItem(instance.name());
 		    copyItemAll = new JMenuItem(instance.name());
 		    copyItem    = new JMenuItem(instance.name());
@@ -1163,6 +1171,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		    copyItemAll.setActionCommand("copy:"+t.name()+":"+instance.name());
 		    copyItem.setActionCommand("copy:"+t.name()+":"+instance.name());
 		    
+		    if (container!=null) {
 		    for (int j=0;j<container.entryCount();j++) {
 				Reference reference = container.entry(j);
 				if (instance.isReferencedBy(reference)) {
@@ -1172,6 +1181,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 					copyItem.setEnabled(false);
 					break;
 				}
+		    }
 		    }
 		    instanceMenuAll.add(menuItemAll);
 		    instanceMenu.add(menuItem);
@@ -1664,6 +1674,9 @@ class ModuleMenuListener implements ActionListener
     {
 	JMenuItem source   = (JMenuItem)(e.getSource());
 	String    cmd      = source.getText();
+	String    action   = source.getActionCommand();
+	TreePath  treePath = tree.getSelectionPath();
+	Object    node     = treePath.getLastPathComponent();
 	
 	if (cmd.equals("Sort")) {
 	    ConfigurationTreeActions.sortModules(tree);
@@ -1671,6 +1684,10 @@ class ModuleMenuListener implements ActionListener
 	else if (cmd.equals("Rename Module")) {
 	    ConfigurationTreeActions.editNodeName(tree);
  	}
+	// replace the module by the selected one
+	else {
+	    ConfigurationTreeActions.replaceModuleInternally(tree,(ModuleInstance)node,action);
+	}
     }
 }
 

@@ -1173,6 +1173,74 @@ public class ConfigurationTreeActions
 	return true;
     }
     
+    /**
+     * replace a module with the internal one
+     */
+    public static boolean replaceModuleInternally(JTree tree,ModuleInstance oldModule,String newObject)
+    {
+	if (tree==null||oldModule==null||newObject==null) return false;
+
+	String oldModuleName = oldModule.name();
+	String newModuleName = "";
+	String[] s = newObject.split(":");
+	if (s.length>1) newModuleName = s[1];
+
+	ConfigurationTreeModel model     = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config    = (Configuration)model.getRoot();
+	if (config==null) return false;
+
+	ModuleInstance         newModule = config.module(newModuleName);
+	if (newModule==null||config.module(oldModule.name())==null) return false;
+
+	int index    = config.indexOfModule(oldModule);
+	int refCount = oldModule.referenceCount();
+	ReferenceContainer[] parents = new ReferenceContainer[refCount];
+	int[]                indices = new int[refCount];
+	int iRefCount=0;
+	while (oldModule.referenceCount()>0) {
+	    Reference reference = oldModule.reference(0);
+	    parents[iRefCount] = reference.container();
+	    indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
+	    config.removeModuleReference((ModuleReference)reference);
+	    model.nodeRemoved(parents[iRefCount],indices[iRefCount],reference);
+	    iRefCount++;
+	}
+	model.nodeRemoved(model.modulesNode(),index,oldModule);	
+
+	// oldModule's refCount is now 0 and hence oldModule is removed
+	// from the config; thus we can rename newModule to oldModule's
+	// name which is needed for later combined setNameAndPropagate
+	try {
+	    newModule.setNameAndPropagate(oldModuleName);
+	}
+	catch (DataException e) {
+	    System.err.println(e.getMessage());
+	}
+
+	// update refs pointing to oldModule to point to newModule
+	for (int i=0;i<refCount;i++) {
+	    config.insertModuleReference(parents[i],indices[i],newModule);
+	    model.nodeInserted(parents[i],indices[i]);
+	}
+
+	// now rename newModule back to its original name, and update all
+	// (V)InputTags/keeps etc. originally referring to both oldModule
+	// and the also newModule under oldModule's name to use  newModule's
+	// original and final name.
+	try {
+	    newModule.setNameAndPropagate(newModuleName);
+	}
+	catch (DataException e) {
+	    System.err.println(e.getMessage());
+	}
+
+	model.updateLevel1Nodes();
+	tree.expandPath(new TreePath(model.getPathToRoot(newModule)));
+
+	return true;
+    }
+
+
     /** sort Paths */
     public static void sortPaths(JTree tree)
     {
