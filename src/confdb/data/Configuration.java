@@ -1542,7 +1542,10 @@ public class Configuration implements IConfiguration
 			pathCount += d.pathCount();
 		    }
 		}
-		for (PrimaryDataset id : dList) s.removeDataset(id);
+		for (PrimaryDataset id : dList) {
+		    id.clear();
+		    s.removeDataset(id);
+		}
 		pathCount += s.pathCount();
 		if (pathCount==0) {
 		    sList.add(s);
