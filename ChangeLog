@@ -1,9 +1,13 @@
 2011-04-12  Martin Grunewald  <Martin.Grunewald@cern.ch>
-	* tag V01-05-34
+	* tag V01-05-36
+	* Even more cleanup in subtable creation
+
+2011-04-12  Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-05-35
 	* Better cleanup in subtable creation
 
 2011-04-10  Martin Grunewald  <Martin.Grunewald@cern.ch>
-	* tag V01-05-33
+	* tag V01-05-33/34
 	* Add "replace-module-by-another-module-in-menu-globally" feature
 	* Small fixes here and there
 
