@@ -1528,12 +1528,15 @@ public class Configuration implements IConfiguration
 	    Iterator<Stream> itS = c.streamIterator();
 	    while (itS.hasNext()) {
 		Stream s = itS.next();
+		int omrefs=0;
+		OutputModule om = s.outputModule();
+		if (om!=null) omrefs = om.referenceCount();
 		dList.clear();
 		int pathCount=0;
 		Iterator<PrimaryDataset> itD = s.datasetIterator();
 		while (itD.hasNext()) {
 		    PrimaryDataset d = itD.next();
-		    if (d.pathCount()==0) {
+		    if (d.pathCount()==0||omrefs==0) {
 			dList.add(d);
 		    } else{
 			pathCount += d.pathCount();
@@ -1555,7 +1558,7 @@ public class Configuration implements IConfiguration
 	    }
 	}
 	for (EventContent ic : cList) removeContent(ic);
-	
+
 	return contentCount;
     }
     
