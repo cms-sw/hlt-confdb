@@ -1,3 +1,8 @@
+2011-04-13  Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-37
+	* Import all Sequences. (Bug/feature 76150).
+	* Import all Paths modifications. 
+
 2011-04-12  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-36
 	* Even more cleanup in subtable creation

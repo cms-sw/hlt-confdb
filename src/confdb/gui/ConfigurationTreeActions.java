@@ -526,27 +526,56 @@ public class ConfigurationTreeActions
     }
 
     
-    /** import All paths */
-    public static boolean importAllReferenceContainers(JTree tree, JTree sourceTree, Object external) {
-    	ConfigurationTreeModel sm  		= (ConfigurationTreeModel)sourceTree.getModel();
-		ConfigurationTreeModel tm    	= (ConfigurationTreeModel)tree.getModel();
-		Configuration          config   = (Configuration)tm.getRoot();
-		Configuration	importConfig	= (Configuration)sm.getRoot();
+    /** import Paths / Sequences in two steps. Insertions and Updates. 
+     * To avoid the out of range error. 
+     * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4275976
+	 * */
+    public static boolean importAllReferenceContainers(JTree tree, JTree sourceTree, Object external)  {
+    	ConfigurationTreeModel st  		= (ConfigurationTreeModel)sourceTree.getModel();
+		ConfigurationTreeModel tt    	= (ConfigurationTreeModel)tree.getModel();
+		Configuration          config   = (Configuration)tt.getRoot();
+		Configuration	importConfig	= (Configuration)st.getRoot();
 		
-    	if(sm.getChildCount(external) == 0) return false;
+    	if(st.getChildCount(external) == 0) return false;
+    	
+    	int choice = JOptionPane.showConfirmDialog(null			,
+    			" Some Items may already exist. "				+
+				"Do you want to overwrite them All?"			,
+						      "Overwrite all"					,
+						      JOptionPane.YES_NO_CANCEL_OPTION	);
+    	
+    	if(choice == JOptionPane.CANCEL_OPTION) return false;
+    	
+
+    	
+    	boolean updateAll = (choice == JOptionPane.YES_OPTION);
+
+		ConfigurationTreeModel sm  		= (ConfigurationTreeModel) sourceTree.getModel();
+		// Updates before insertions.
+		if(updateAll)
 		for(int i = 0; i < sm.getChildCount(external); i++) {
 			tree.setSelectionPath(null);
 			ReferenceContainer container = (ReferenceContainer) sm.getChild(external, i);
-			importReferenceContainerNoDiff(tree, container);
+			ConfigurationTreeActions.importReferenceUpdates(tree, container);
 		}
-		
+
+		// Insertions after updates.
+		for(int i = 0; i < sm.getChildCount(external); i++) {
+			tree.setSelectionPath(null);
+			ReferenceContainer container = (ReferenceContainer) sm.getChild(external, i);
+			ConfigurationTreeActions.importReferenceInsertions(tree, container);
+		}
+    	 
+		// Show differences between configurations. Only once at the end.
 		Diff diff = new Diff(importConfig, config);
-	    DiffDialog dlg = new DiffDialog(diff);
-	    dlg.pack();
-	    dlg.setVisible(true);
+	    DiffDialog dialg = new DiffDialog(diff);
+	    dialg.pack();
+	    dialg.setVisible(true);
 
     	return true;
     }
+   
+
     
     /** import Path / Sequence */
     public static boolean importReferenceContainer(JTree tree,
@@ -637,24 +666,22 @@ public class ConfigurationTreeActions
 	return true;
     }
     
-    
-    /** import Paths / Sequences without making a diff */
-    public static boolean importReferenceContainerNoDiff(JTree tree,
-						   ReferenceContainer external)
-    {
-	
+  
+    /**
+     * Perform insertions of new references to the target tree.
+     * */
+    public static boolean importReferenceInsertions(		JTree tree					,
+						   									ReferenceContainer external	)    {
 		ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
 		Configuration          config   = (Configuration)model.getRoot();
 		TreePath               treePath = tree.getSelectionPath();
 		
-		int count =
-		    (external instanceof Path) ? config.pathCount():config.sequenceCount();
+		int count = (external instanceof Path) ? config.pathCount():config.sequenceCount();
 		    
 		int index = (treePath==null) ? count :
 		    (treePath.getPathCount()==2) ?
 		    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
 					    treePath.getLastPathComponent())+1;
-	
 		ReferenceContainer   container = null;
 		Object               parent    = null;
 		String               type      = null;
@@ -668,61 +695,79 @@ public class ConfigurationTreeActions
 		    parent    = model.sequencesNode();
 		    type      = "sequence";
 		}
+
+		if (container!=null) return false;
 		
-		boolean update = false;
-		if (container!=null) {
-		
-		    index = (type.equals("path")) ? config.indexOfPath((Path)container) 
-			                          : config.indexOfSequence((Sequence)container);
-	    
-		    int choice =
-			JOptionPane.showConfirmDialog(null,"The "+type+" '"+
-						      container.name()+"' exists, "+
-						      "do you want to overwrite it?",
-						      "Overwrite "+type,
-						      JOptionPane.OK_CANCEL_OPTION);
-		    if (choice==JOptionPane.CANCEL_OPTION) return false;
-		    
-		    update = true;
-		    
-		    while (container.entryCount()>0) {
-			Reference entry = (Reference)container.entry(0);
-			tree.setSelectionPath(new TreePath(model.getPathToRoot(entry)));
-			removeReference(tree);
-		    }
-		}
-		else {
-		    if (!config.hasUniqueQualifier(external)) return false;
-		    if (type.equals("path")) {
-			container = config.insertPath(index,external.name());
-			((Path)container).setAsEndPath(((Path)external).isSetAsEndPath());
-		    } else {
-			container = config.insertSequence(index,external.name());
-		    }
-		}
-		
-		if (importContainerEntries(config,model,external,container)) {
+		// only insertions are allowed
+	    if (!config.hasUniqueQualifier(external)) return false;
+	    if (type.equals("path")) {
+	    	container = config.insertPath(index,external.name());
+	    	((Path)container).setAsEndPath(((Path)external).isSetAsEndPath());
+	    } else {
+	    	container = config.insertSequence(index,external.name());
+	    }
+
+	    if (importContainerEntries(config,model,external,container))
 		    container.setDatabaseId(external.databaseId());
-		}
 		
-		// Sometimes I got an error:
-		// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4275976
-
-		if (update) model.nodeChanged(container);
-		else	    model.nodeInserted(parent,index);
-
-		
+		//System.out.println("[importAllReferenceContainers] Inserting " + index + ", total = " + model.getChildCount(parent));
+		model.nodeInserted(parent,index);
 		model.updateLevel1Nodes();
 		
-		for (int i=0;i<container.referenceCount();i++) {
-		    Reference reference = container.reference(i);
+		for (int i=0;i<external.referenceCount();i++) {
+		    Reference reference = external.reference(i);
 		    ReferenceContainer parentContainer = reference.container();
 		    parentContainer.setHasChanged();
 		}
-
-		return update;
+		return true;
     }
 
+
+    
+    
+    /**
+     * Perform updates to the target tree.
+     * */
+    public static boolean importReferenceUpdates		(	JTree tree					,
+						   									ReferenceContainer external	) {
+		ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+		Configuration          config   = (Configuration)model.getRoot();
+
+		ReferenceContainer   container = null;
+		if (external instanceof Path) {
+		    container = config.path(external.name());
+		}
+		else if (external instanceof Sequence) {
+		    container = config.sequence(external.name());
+		}
+	
+		// exit if cannot be updated. (it doesn't exist at target).
+		if (container==null) return false;
+	    
+	    while (container.entryCount()>0) {
+			Reference entry = (Reference)container.entry(0);
+			tree.setSelectionPath(new TreePath(model.getPathToRoot(entry)));
+			removeReference(tree);
+	    }
+
+		if (importContainerEntries(config,model,external,container))
+		    container.setDatabaseId(external.databaseId());
+
+		model.nodeChanged(container);
+		
+		model.updateLevel1Nodes();		
+		for (int i=0;i<external.referenceCount();i++) {
+		    Reference reference = external.reference(i);
+		    ReferenceContainer parentContainer = reference.container();
+		    parentContainer.setHasChanged();
+		}
+		
+		return true;
+    }
+
+    
+    
+    
     /** insert entries of an external reference container into the local copy */
     private static
 	boolean importContainerEntries(Configuration          config,

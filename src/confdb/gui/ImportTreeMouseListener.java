@@ -68,14 +68,20 @@ public class ImportTreeMouseListener extends MouseAdapter
 	
 	if(node instanceof StringBuffer) {
 		if(tm.getChildCount(node) != 0) {
-			
 			Object child = tm.getChild(node, 0);
 			if (child instanceof Path) 	{
 			    JPopupMenu popup = new JPopupMenu();
 			    JMenuItem  item = new JMenuItem("Import All Paths");
-			    item.addActionListener(new AddAllRereferenceContainerListener(currentTree, importTree, node));
+			    item.addActionListener(new AddAllReferencesListener(currentTree, importTree, node));
 			    popup.add(item);
 			    popup.show(e.getComponent(),e.getX(),e.getY());
+			} else if (child instanceof Sequence) {
+			    JPopupMenu popup = new JPopupMenu();
+			    JMenuItem  item = new JMenuItem("Import All Sequences");
+			    item.addActionListener(new AddAllReferencesListener(currentTree, importTree, node));
+			    popup.add(item);
+			    popup.show(e.getComponent(),e.getX(),e.getY());
+				
 			}
 			
 		}
@@ -157,19 +163,21 @@ class AddContainerListener implements ActionListener
     }
 }
 
-// AllPaths listener class
-class AddAllRereferenceContainerListener  implements ActionListener {
+
+//All Paths / sequences listener class
+class AddAllReferencesListener  implements ActionListener {
 	private JTree	targetTree	;
 	private JTree	sourceTree	;
 	private Object 	container	;
 	
-	public AddAllRereferenceContainerListener(JTree targetTree, JTree sourceTree, Object parentPathNode) {
+	public AddAllReferencesListener(JTree targetTree, JTree sourceTree, Object parentPathNode) {
 		this.targetTree = targetTree		;
 		this.sourceTree = sourceTree		;
 		this.container	= parentPathNode	;
 	}
 	
 	public void actionPerformed(ActionEvent e) {
+		
 		// execute an action.
 		ConfigurationTreeActions.importAllReferenceContainers(targetTree, sourceTree, container);
 	}
