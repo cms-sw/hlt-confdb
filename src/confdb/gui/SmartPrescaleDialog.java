@@ -56,14 +56,11 @@ public class SmartPrescaleDialog extends JDialog
     /** standard constructor */
     public SmartPrescaleDialog(JFrame jFrame,Configuration config)
     {
-
-
 	super(jFrame,true);
 	this.config = config;
 
 	cmbModule=(DefaultComboBoxModel)jComboBoxModule.getModel();
 	cmbModule.removeAllElements();
-      
 	
 	smartPrescaleTable= new ArrayList<SmartPrescaleTable>();
 	Iterator<ModuleInstance> itM = config.moduleIterator();
@@ -84,12 +81,11 @@ public class SmartPrescaleDialog extends JDialog
 		}
 	    });
 					   
-	
 	smartTableModel = new SmartPrescaleTableModel();
 	smartTableModel.initialize(config,module,smartPrescaleTable.get(0));
 	jTable.setModel(smartTableModel);
 	jTable.setDefaultRenderer(String.class, new SmartPrescaleTableCellRenderer());
-	jTable.setDefaultRenderer(Long.class,new SmartPrescaleTableCellRenderer());
+	jTable.setDefaultRenderer(Long.class,   new SmartPrescaleTableCellRenderer());
 	jTextFieldHLT.setText(config.toString());
 	
 	jButtonCancel.addActionListener(new ActionListener() {
@@ -137,8 +133,10 @@ public class SmartPrescaleDialog extends JDialog
     {
 	int tableWidth = jTable.getPreferredSize().width;
 	int columnCount = jTable.getColumnModel().getColumnCount();
-	for (int i=0;i<columnCount;i++) {
-	    int columnWidth = (i==0) ? tableWidth/2 : tableWidth/2/(columnCount-1);
+        int headerWidth = (int) (tableWidth * 0.4);
+	jTable.getColumnModel().getColumn(0).setPreferredWidth(headerWidth);
+	for (int i = 1; i < columnCount; i++) {
+	    int columnWidth = (tableWidth - headerWidth) / (columnCount-1);
 	    jTable.getColumnModel().getColumn(i).setPreferredWidth(columnWidth);
 	}
     }
@@ -146,7 +144,6 @@ public class SmartPrescaleDialog extends JDialog
     // listener callbacks
     private void jTableShowPopup(MouseEvent e)
     {
-       
        	if (!e.isPopupTrigger()) return;
 
 	iRow = jTable.rowAtPoint(e.getPoint());
@@ -159,6 +156,7 @@ public class SmartPrescaleDialog extends JDialog
 		    smartTableModel.addRow(iRow,
 					   JOptionPane
 					   .showInputDialog("Enter the condition: "));
+		    adjustTableColumnWidths();
 		}
 	    });
 	popup.add(menuItemAdd);
@@ -178,6 +176,7 @@ public class SmartPrescaleDialog extends JDialog
     private void jComboBoxModelActionPerformed(ActionEvent e)
     {
 	updateMainPanel();
+	adjustTableColumnWidths();
     }
 
 
@@ -347,11 +346,11 @@ class SmartPrescaleTableModel extends AbstractTableModel
    
     /** is a cell editable or not? */
     public boolean isCellEditable(int row, int col) {
-    	// first column can be always edited.
-    	if(col==0) return true;
+    	// first column can be edited only for non-simple selections
+    	if ((col==0) && ! smartPrescaleTable.simple(row)) return true;
 
-    	// only in certain cases col==1 can be edited.
-    	if((col==1)&&(smartPrescaleTable.simple(row))) return true;
+    	// smart prescale column can be edited only for simple se;ection
+    	if ((col==1) &&   smartPrescaleTable.simple(row)) return true;
     	
     	// the rest of the columns cannot be edited.
     	return false;
@@ -372,7 +371,7 @@ class SmartPrescaleTableModel extends AbstractTableModel
     {
 	if (col==1) {
 	    smartPrescaleTable.modRowSetScale(row, (Long)value);
-	    fireTableStructureChanged();
+	    //fireTableStructureChanged();
 	    fireTableDataChanged();
 	    return;
 	}
@@ -404,7 +403,7 @@ class SmartPrescaleTableModel extends AbstractTableModel
 
 	if (!strCondition.equals("")) {
 	    smartPrescaleTable.modRow(row,strCondition);
-	    fireTableStructureChanged();
+	    //fireTableStructureChanged();
 	    fireTableDataChanged();
 	}
     }
@@ -509,14 +508,7 @@ class SmartPrescaleTableCellRenderer extends DefaultTableCellRenderer
 	    else if (valueAsLong >1) setBackground(Color.ORANGE);
 	    else setBackground(Color.BLUE);
 	} else if (value instanceof String) {
-	    String valueAsString=(String)value;
-	    if (valueAsString.indexOf("/")==-1) {
-		setBackground(Color.GREEN);
-	    } else if (valueAsString.indexOf("/ 0")>=0) {
-		setBackground(Color.RED);
-	    } else {
-		setBackground(Color.ORANGE);
-	    }
+            setBackground(Color.WHITE);
 	}
 	return this;
     }

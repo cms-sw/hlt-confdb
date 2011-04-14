@@ -77,8 +77,6 @@ public class PrescaleDialog extends JDialog
 		    jComboBoxModelActionPerformed(e);
 		}
 	    });
-
-	
 	jButtonCancel.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    setVisible(false);
@@ -124,8 +122,10 @@ public class PrescaleDialog extends JDialog
     {
 	int tableWidth = jTable.getPreferredSize().width;
 	int columnCount = jTable.getColumnModel().getColumnCount();
-	for (int i=0;i<columnCount;i++) {
-	    int columnWidth = (i==0) ? tableWidth/2 : tableWidth/2/(columnCount-1);
+        int headerWidth = (int) (tableWidth * 0.4);
+	jTable.getColumnModel().getColumn(0).setPreferredWidth(headerWidth);
+	for (int i = 1; i < columnCount; i++) {
+	    int columnWidth = (tableWidth - headerWidth) / (columnCount-1);
 	    jTable.getColumnModel().getColumn(i).setPreferredWidth(columnWidth);
 	}
     }
@@ -409,7 +409,7 @@ class PrescaleTableModel extends AbstractTableModel
     /** number of rows */
     public int getRowCount() { return prescaleTable.pathCount(); }
     
-    /** get column name for colimn 'col' */
+    /** get column name for column 'col' */
     public String getColumnName(int col)
     { return (col==0) ? "Path" : prescaleTable.prescaleColumnName(col-1); }
     
