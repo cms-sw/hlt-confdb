@@ -34,6 +34,7 @@ $classpath = $classpath . ":ext/jython-2.5.2.jar";
 
 # start the GUI
 `rm -f ConfDbGUI.log`;
+system("printf \"%s\n\" \"java -classpath $classpath confdb.gui.ConfDbGUI\"");
 system("java -classpath $classpath confdb.gui.ConfDbGUI");
 
 exit 0;
