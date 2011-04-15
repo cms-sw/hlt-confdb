@@ -114,6 +114,9 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** get associated output module */
     public OutputModule outputModule() { return outputModule; }
    
+    /** set associated output module */
+    public void setOutputModule(OutputModule om) { outputModule=om; return; }
+   
     /** get the parent configuration */
     public IConfiguration config() { return parentContent.config(); }
 

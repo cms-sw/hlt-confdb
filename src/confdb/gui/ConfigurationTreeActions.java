@@ -806,6 +806,26 @@ public class ConfigurationTreeActions
 		    treeModel.nodeInserted(treeModel.modulesNode(),
 					   config.moduleCount()-1);
 	    }
+	    else if (entry instanceof OutputModuleReference) {
+		OutputModuleReference sourceRef = (OutputModuleReference)entry;
+		OutputModule          source    = (OutputModule)sourceRef.parent();
+		OutputModule          target    = config.output(source.name());
+		OutputModuleReference targetRef = null;
+		if (target!=null) {
+		    targetRef = config.insertOutputModuleReference(targetContainer,i,target);
+		    result = false;
+		}
+		else {
+		    System.out.println("OutputModules must already exist as they are imported via stream import!");
+		    return result;
+		}
+		targetRef.setOperator(sourceRef.getOperator());
+
+		treeModel.nodeInserted(targetContainer,i);
+		if (target.referenceCount()==1)
+		    treeModel.nodeInserted(treeModel.outputsNode(),
+					   config.outputCount()-1);
+	    }
 	    else if (entry instanceof PathReference) {
 		PathReference sourceRef=(PathReference)entry;
 		Path          source   =(Path)sourceRef.parent();
@@ -1455,27 +1475,29 @@ public class ConfigurationTreeActions
 	TreePath               treePath = tree.getSelectionPath();
 
 	EventContent content = null;
-	
+
 	if (contentName.equals("")) {
-	   Object targetNode=treePath.getLastPathComponent();
-	   if (targetNode instanceof EventContent)
-	       content = (EventContent)targetNode;
-	   else return false;
+	    if (treePath!=null) {
+		Object targetNode=treePath.getLastPathComponent();
+		if (targetNode instanceof EventContent)
+		    content = (EventContent)targetNode;
+	    }
 	}
 	else {
 	    content = config.content(contentName);
 	}
 	
 	if (content==null) {
-	    System.err.println("stream must be added to existing event content!");
+	    System.err.println("stream must be added to existing and selected event content!");
 	    return false;
 	}
 	
 	Stream stream = content.stream(external.name());
-	if (stream==null) {
-	    stream = content.insertStream(external.name());
-	    stream.setFractionToDisk(external.fractionToDisk());
-	}
+	if (stream==null) stream = content.insertStream(external.name());
+
+	stream.setFractionToDisk(external.fractionToDisk());
+	OutputModule om = new OutputModule(external.outputModule().name(),stream);
+	stream.setOutputModule(om);
 	
 	Iterator<Path> itP = external.pathIterator();
 	while (itP.hasNext()) {

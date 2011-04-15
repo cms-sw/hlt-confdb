@@ -1,3 +1,11 @@
+2011-04-15  Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-05-41
+	* Fix bug re importing OutputModules: they are now automatically
+	  imported together with their stream. Further, endpaths containing 
+	  output modules can be imported with their outputmodule, but only
+	  when the corrsponding stream already exists (or was previously
+	  imported)
+
 2011-04-15  Andrea Bocci
 	* tag V01-05-40
 	* Fixes in (Smart)Rendering, simplified start script
