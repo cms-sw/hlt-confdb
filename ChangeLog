@@ -1,3 +1,7 @@
+2011-04-15  Andrea Bocci
+	* tag V01-05-40
+	* Fixes in (Smart)Rendering, simplified start script
+
 2011-04-13  Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-37
 	* Import all Sequences. (Bug/feature 76150).
