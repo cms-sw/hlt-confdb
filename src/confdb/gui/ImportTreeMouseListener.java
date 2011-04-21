@@ -66,24 +66,43 @@ public class ImportTreeMouseListener extends MouseAdapter
 	importTree.setSelectionPath(tp);
 	Object node = tp.getLastPathComponent();
 	
+	// Import all container's items.
 	if(node instanceof StringBuffer) {
 		if(tm.getChildCount(node) != 0) {
 			Object child = tm.getChild(node, 0);
-			if (child instanceof Path) 	{
-			    JPopupMenu popup = new JPopupMenu();
-			    JMenuItem  item = new JMenuItem("Import All Paths");
+			if (child instanceof ReferenceContainer) {
+				JPopupMenu popup = new JPopupMenu();
+				JMenuItem  item = null;
+				if 		(child instanceof Path)		item = new JMenuItem("Import All Paths")	;
+				else if (child instanceof Sequence)	item = new JMenuItem("Import All Sequences");
+				
 			    item.addActionListener(new AddAllReferencesListener(currentTree, importTree, node));
 			    popup.add(item);
 			    popup.show(e.getComponent(),e.getX(),e.getY());
-			} else if (child instanceof Sequence) {
-			    JPopupMenu popup = new JPopupMenu();
-			    JMenuItem  item = new JMenuItem("Import All Sequences");
-			    item.addActionListener(new AddAllReferencesListener(currentTree, importTree, node));
+			 } else if (child instanceof Instance) {
+				JPopupMenu popup = new JPopupMenu();
+				JMenuItem	item = null;
+				if 		(child instanceof ServiceInstance) 	item = new JMenuItem("Import All Services")	;	
+				else if (child instanceof ESModuleInstance)	item = new JMenuItem("Import All ESModules");
+				else if (child instanceof ESSourceInstance)	item = new JMenuItem("Import All ESSources");
+				else if (child instanceof EDSourceInstance)	item = new JMenuItem("Import All EDSources");
+
+				if(item != null) {
+				    item.addActionListener(new AddAllInstancesListener(currentTree, importTree, node));
+				    popup.add(item);
+				    popup.show(e.getComponent(),e.getX(),e.getY());					
+				}
+			} else if(child instanceof PSetParameter) {
+				JPopupMenu popup = new JPopupMenu();
+				JMenuItem	item = null;
+				item = new JMenuItem("Import All PSets")	;
+			    item.addActionListener(new AddAllPSetsListener(currentTree, importTree, node));
 			    popup.add(item);
 			    popup.show(e.getComponent(),e.getX(),e.getY());
+
+					
 				
 			}
-			
 		}
 	}
 	
@@ -226,6 +245,46 @@ class AddInstanceListener implements ActionListener
     {
 	ConfigurationTreeActions.importInstance(targetTree,instance);
     }
+}
+
+// Import all instances listener class
+class AddAllInstancesListener implements ActionListener {
+	// member data
+	private JTree		targetTree;
+	private JTree		sourceTree;
+	private Object		container;
+	
+	// constructor
+	public AddAllInstancesListener(JTree targetTree, JTree sourceTree, Object container) {
+		this.targetTree	= targetTree;
+		this.sourceTree	= sourceTree;
+		this.container	= container;
+	}
+	
+	// member functions
+	public void actionPerformed(ActionEvent e) {
+		ConfigurationTreeActions.ImportAllInstances(targetTree, sourceTree, container);
+	}
+}
+
+//Import all instances listener class
+class AddAllPSetsListener implements ActionListener {
+	// member data
+	private JTree		targetTree;
+	private JTree		sourceTree;
+	private Object		container;
+	
+	// constructor
+	public AddAllPSetsListener(JTree targetTree, JTree sourceTree, Object container) {
+		this.targetTree	= targetTree;
+		this.sourceTree	= sourceTree;
+		this.container	= container;
+	}
+	
+	// member functions
+	public void actionPerformed(ActionEvent e) {
+		ConfigurationTreeActions.ImportAllPSets(targetTree, sourceTree, container);
+	}
 }
 
 

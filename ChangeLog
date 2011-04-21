@@ -1,3 +1,9 @@
+2011-04-21 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-42
+	* Add "Import all" feature for PSets, EDSource, ESSources, ESModules and Services.
+    * Some "Import all Paths" and "Import all Sequences" fixes.
+    * Including progress bar dialog.
+
 2011-04-15  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-41
 	* Fix bug re importing OutputModules: they are now automatically
