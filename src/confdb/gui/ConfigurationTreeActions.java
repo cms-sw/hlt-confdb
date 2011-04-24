@@ -1333,9 +1333,10 @@ public class ConfigurationTreeActions
 	if (tree==null||oldModule==null||newObject==null) return false;
 
 	String oldModuleName = oldModule.name();
-	String newModuleName = "";
+	String newModuleName = null;
 	String[] s = newObject.split(":");
 	if (s.length>1) newModuleName = s[1];
+	if (newModuleName==null || newModuleName.equals(oldModuleName)) return false;
 
 	ConfigurationTreeModel model     = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config    = (Configuration)model.getRoot();
@@ -1388,6 +1389,107 @@ public class ConfigurationTreeActions
 
 	model.updateLevel1Nodes();
 	tree.expandPath(new TreePath(model.getPathToRoot(newModule)));
+
+	return true;
+    }
+
+
+    /**
+     * replace a container (path or sequence) with the internal one
+     */
+    public static boolean replaceContainerInternally(JTree tree,String type,ReferenceContainer oldContainer,String newObject)
+    {
+	if (tree==null||type==null||oldContainer==null||newObject==null) return false;
+	if (newObject.equals(oldContainer.name())) return false;
+
+	ConfigurationTreeModel model     = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config    = (Configuration)model.getRoot();
+	if (config==null) return false;
+
+	if (type.equals("Sequence")) {
+
+	    Sequence oldSequence = (Sequence)oldContainer;
+	    if (oldSequence==null) return false;
+	    if (config.sequence(oldSequence.name())==null) return false;
+	    Sequence newSequence = config.sequence(newObject);
+	    if (newSequence==null) return false;
+
+	    int index    = config.indexOfSequence(oldSequence);
+	    int refCount = oldSequence.referenceCount();
+	    ReferenceContainer[] parents = new ReferenceContainer[refCount];
+	    int[]                indices = new int[refCount];
+	    int iRefCount=0;
+	    while (oldSequence.referenceCount()>0) {
+		Reference reference = oldSequence.reference(0);
+		parents[iRefCount] = reference.container();
+		indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
+		reference.remove();
+		model.nodeRemoved(parents[iRefCount],indices[iRefCount],reference);
+		iRefCount++;
+	    }
+	    model.nodeRemoved(model.sequencesNode(),index,oldSequence);	
+	    for (int i=0;i<refCount;i++) {
+		config.insertSequenceReference(parents[i],indices[i],newSequence);
+		model.nodeInserted(parents[i],indices[i]);
+	    }	    
+	    model.updateLevel1Nodes();
+	    tree.expandPath(new TreePath(model.getPathToRoot(newSequence)));
+	    config.removeSequence(oldSequence);
+
+	} else if (type.equals("Path")) {
+
+	    Path oldPath = (Path)oldContainer;
+	    if (oldPath==null) return false;
+	    if (config.path(oldPath.name())==null) return false;
+	    Path newPath = config.path(newObject);
+	    if (newPath==null) return false;
+
+	    int index    = config.indexOfPath(oldPath);
+	    int refCount = oldPath.referenceCount();
+	    ReferenceContainer[] parents = new ReferenceContainer[refCount];
+	    int[]                indices = new int[refCount];
+	    int iRefCount=0;
+	    while (oldPath.referenceCount()>0) {
+		Reference reference = oldPath.reference(0);
+		parents[iRefCount] = reference.container();
+		indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
+		reference.remove();
+		model.nodeRemoved(parents[iRefCount],indices[iRefCount],reference);
+		iRefCount++;
+	    }
+	    model.nodeRemoved(model.pathsNode(),index,oldPath);	
+	    for (int i=0;i<refCount;i++) {
+		config.insertPathReference(parents[i],indices[i],newPath);
+		model.nodeInserted(parents[i],indices[i]);
+	    }	    
+	    model.updateLevel1Nodes();
+	    tree.expandPath(new TreePath(model.getPathToRoot(newPath)));
+	    //
+	    // newPath is added to oldPath's datasets/streams/contents
+	    Iterator<PrimaryDataset> itPD = oldPath.datasetIterator();
+	    while (itPD.hasNext())   itPD.next().insertPath(newPath);
+	    Iterator<Stream>         itST = oldPath.streamIterator();
+	    while (itST.hasNext())   itST.next().insertPath(newPath);
+	    Iterator<EventContent>   itEC = oldPath.contentIterator();
+	    while (itEC.hasNext())   newPath.addToContent(itEC.next());
+	    // tricky: newPath must get oldPath's [Smart]Prescales
+	    String newPathName = newPath.name();
+	    String tmpPathName = newPathName+"_X";
+	    while (!config.isUniqueQualifier(tmpPathName)) tmpPathName +="X";
+	    try {
+		newPath.setNameAndPropagate(tmpPathName);
+		newPath.setName(newPathName);
+		oldPath.setName(tmpPathName);
+	    }
+	    catch (DataException e) {
+		System.err.println(e.getMessage());
+	    }
+	    //
+	    config.removePath(oldPath);
+
+	} else {
+	    return false;
+	}
 
 	return true;
     }

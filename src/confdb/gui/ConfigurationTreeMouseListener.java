@@ -523,14 +523,15 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	if (depth==3) {
 	    Path path = (Path)node;
 
-	    JMenu addModuleMenu = createAddModuleMenu(path,pathListener);
+	    JMenu addModuleMenu = createAddRepModuleMenu(path,null,
+							 pathListener,true);
 	    popupPaths.add(addModuleMenu);
 	    
-	    JMenu addPathMenu = createAddPathMenu(path);
+	    JMenu addPathMenu = createAddRepPathMenu(path,true);
 	    popupPaths.add(addPathMenu);
 	    
-	    JMenu addSequenceMenu = createAddSequenceMenu(path,pathListener,
-							  false);
+	    JMenu addSequenceMenu = createAddRepSequenceMenu(path,pathListener,
+							     false,true);
 	    popupPaths.add(addSequenceMenu);
 	    
 	    popupPaths.addSeparator();
@@ -551,19 +552,24 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    cbMenuItem.addItemListener(new PathItemListener(tree));
 	    popupPaths.add(cbMenuItem);
 	    
+	    JMenu repPathMenu = createAddRepPathMenu(path,false);
+	    popupPaths.add(repPathMenu);
+
 	    return;
 	}
 	
 	// a specific module/path/sequence reference is selected
 	if (depth==4) {
 	    Path path = (Path)parent;
-	    JMenu addModuleMenu = createAddModuleMenu(path,pathListener);
+	    JMenu addModuleMenu = createAddRepModuleMenu(path,null,
+							 pathListener,true);
 	    popupPaths.add(addModuleMenu);
 
-	    JMenu addPathMenu = createAddPathMenu(path);
+	    JMenu addPathMenu = createAddRepPathMenu(path,true);
 	    popupPaths.add(addPathMenu);
 	    
-	    JMenu addSequenceMenu = createAddSequenceMenu(path,pathListener,false);
+	    JMenu addSequenceMenu = createAddRepSequenceMenu(path,pathListener,
+							     false,true);
 	    popupPaths.add(addSequenceMenu);
 	    
 	    popupPaths.addSeparator();
@@ -640,13 +646,13 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	else if (depth==3) {
 	    Sequence sequence = (Sequence)node;
 
-	    JMenu addModuleMenu = createAddModuleMenu(sequence,
-						      sequenceListener);
+	    JMenu addModuleMenu = createAddRepModuleMenu(sequence,null,
+							 sequenceListener,true);
 	    popupSequences.add(addModuleMenu);
 	    
-	    JMenu addSequenceMenu = createAddSequenceMenu(sequence,
-							  sequenceListener,
-							  false);
+	    JMenu addSequenceMenu = createAddRepSequenceMenu(sequence,
+							     sequenceListener,
+							     false,true);
 	    popupSequences.add(addSequenceMenu);
 	    
 	    popupSequences.addSeparator();
@@ -658,17 +664,23 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem = new JMenuItem("Remove Sequence");
 	    menuItem.addActionListener(sequenceListener);
 	    popupSequences.add(menuItem);
+
+	    JMenu repSequenceMenu = createAddRepSequenceMenu(sequence,
+							     sequenceListener,
+							     false,false);
+	    popupSequences.add(repSequenceMenu);
+
 	}
 	else if (depth==4) {
 	    Sequence sequence = (Sequence)parent;
 
-	    JMenu addModuleMenu = createAddModuleMenu(sequence,
-						      sequenceListener);
+	    JMenu addModuleMenu = createAddRepModuleMenu(sequence,null,
+							 sequenceListener,true);
 	    popupSequences.add(addModuleMenu);
 
-	    JMenu addSequenceMenu = createAddSequenceMenu(sequence,
-							  sequenceListener,
-							  true);
+	    JMenu addSequenceMenu = createAddRepSequenceMenu(sequence,
+							     sequenceListener,
+							     true,true);
 	    popupSequences.add(addSequenceMenu);
 	    
 	    if (node instanceof ModuleReference) {
@@ -717,6 +729,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 
 	TreePath treePath = tree.getSelectionPath();
 	int      depth    = treePath.getPathCount();
+	Object   node     = treePath.getPathComponent(depth-1);
 
 	JMenuItem menuItem;
 	popupModules = new JPopupMenu();	
@@ -726,8 +739,10 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem.addActionListener(moduleListener);
 	    popupModules.add(menuItem);
 
-	    JMenu replaceModuleMenu = createAddModuleMenu(null,moduleListener);
-	    popupModules.add(replaceModuleMenu);
+	    ModuleInstance module = (ModuleInstance)node;
+	    JMenu repModuleMenu = createAddRepModuleMenu(null,module,
+							 moduleListener,false);
+	    popupModules.add(repModuleMenu);
 	}
 	
 	if (depth==2&&enableSort) {
@@ -1052,15 +1067,17 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
     // private member functions
     //
     
-    /** create the 'Add Module' submenu */
-    private JMenu createAddModuleMenu(ReferenceContainer container,
-				      ActionListener     listener)
+    /** create the 'Add/Replace Module' submenu */
+    private JMenu createAddRepModuleMenu(ReferenceContainer container,
+					 ModuleInstance     module,
+					 ActionListener     listener,
+					 boolean            isAdd)
     {
-	JMenu addModuleMenu = null;
-	if (container==null) {
-	    addModuleMenu = new JMenu("Replace Module");
+	JMenu moduleMenu = null;
+	if (isAdd) {
+	    moduleMenu = new JMenu("Add Module");
 	} else {
-	    addModuleMenu = new JMenu("Add Module");
+	    moduleMenu = new JMenu("Replace Module");
 	}
 	JMenuItem menuItemAll;
 	JMenuItem menuItem;
@@ -1073,7 +1090,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 
 	// explicitely add OutputModule menu
 	JMenu outputMenu = new ScrollableMenu("OutputModule");
-	addModuleMenu.add(outputMenu);
+	moduleMenu.add(outputMenu);
 	Iterator<OutputModule> itOM = config.outputIterator();
 	while (itOM.hasNext()) {
 	    OutputModule om = itOM.next();
@@ -1103,7 +1120,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		moduleTypeAllMenu = new ScrollableMenu("All");
 		menuHashMap.put(moduleType,moduleTypeMenu);
 		menuHashMap.put(moduleTypeAll,moduleTypeAllMenu);
-		addModuleMenu.add(moduleTypeMenu);
+		moduleMenu.add(moduleTypeMenu);
 		moduleTypeMenu.add(moduleTypeAllMenu);
 	    }
 	    else {
@@ -1172,17 +1189,26 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		    copyItem.setActionCommand("copy:"+t.name()+":"+instance.name());
 		    
 		    if (container!=null) {
-		    for (int j=0;j<container.entryCount();j++) {
-				Reference reference = container.entry(j);
-				if (instance.isReferencedBy(reference)) {
-					menuItemAll.setEnabled(false);
-					menuItem.setEnabled(false);
-					copyItemAll.setEnabled(false);
-					copyItem.setEnabled(false);
-					break;
-				}
+			for (int j=0;j<container.entryCount();j++) {
+			    Reference reference = container.entry(j);
+			    if (instance.isReferencedBy(reference)) {
+				menuItemAll.setEnabled(false);
+				menuItem.setEnabled(false);
+				copyItemAll.setEnabled(false);
+				copyItem.setEnabled(false);
+				break;
+			    }
+			}
 		    }
+		    if (module!=null) {
+			if (module.name().equals(instance.name())) {
+			    menuItemAll.setEnabled(false);
+			    menuItem.setEnabled(false);
+			    copyItemAll.setEnabled(false);
+			    copyItem.setEnabled(false);
+			}
 		    }
+
 		    instanceMenuAll.add(menuItemAll);
 		    instanceMenu.add(menuItem);
 		    copyMenuAll.add(copyItemAll);
@@ -1202,16 +1228,23 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		moduleTypeAndLetterMenu.add(menuItem);
 	    }
 	}
-	return addModuleMenu;
+	return moduleMenu;
     }
 
     
-    /**create 'Add Path' submenu */
-    private JMenu createAddPathMenu(Object node)
+    /**create 'Add/Replace Path' submenu */
+    private JMenu createAddRepPathMenu(Object node,boolean isAdd)
     {
-	JMenuItem menuItem;
-	JMenu     addPathMenu = new ScrollableMenu("Add Path");
-	
+	String    actionCmd   = null;
+	JMenu     pathMenu    = null;
+	if (isAdd) {
+	    actionCmd="PATHREF";
+	    pathMenu = new ScrollableMenu("Add Path");
+	} else {
+	    actionCmd="PATHREP";
+	    pathMenu = new ScrollableMenu("Replace Path");
+	}
+	JMenuItem menuItem;	
 	ArrayList<Path> forbiddenPaths = new ArrayList<Path>();
 	
 	if (node instanceof Path) {
@@ -1220,8 +1253,8 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem = new JMenuItem("New Path");
 	    menuItem.addActionListener(pathListener);
 	    menuItem.setActionCommand("NEWPATH");
-	    addPathMenu.add(menuItem);
-	    addPathMenu.addSeparator();
+	    pathMenu.add(menuItem);
+	    pathMenu.addSeparator();
 	}
 	else if (node instanceof Reference) {
 	    Reference reference  = (Reference)node;
@@ -1236,24 +1269,34 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		}
 	    }
 	}
+
 	IConfiguration config = (IConfiguration)treeModel.getRoot();
 	for (int i=0;i<config.pathCount();i++) {
 	    Path path = config.path(i);
 	    menuItem = new JMenuItem(path.name());
 	    menuItem.addActionListener(pathListener);
-	    menuItem.setActionCommand("PATHREF");
+	    menuItem.setActionCommand(actionCmd);
 	    if (forbiddenPaths.contains(path)) menuItem.setEnabled(false);
-	    addPathMenu.add(menuItem);
+	    pathMenu.add(menuItem);
 	}
-	return addPathMenu;
+	return pathMenu;
     }
     
-    /** create 'Add Sequence' Menu */
-    private JMenu createAddSequenceMenu(ReferenceContainer pathOrSequence,
-					ActionListener     listener,
-					boolean            isSeqRef)
+    /** create 'Add/Replace Sequence' Menu */
+    private JMenu createAddRepSequenceMenu(ReferenceContainer pathOrSequence,
+					   ActionListener     listener,
+					   boolean            isSeqRef,
+					   boolean            isAdd)
     {
-	JMenu     addSequenceMenu = new ScrollableMenu("Add Sequence");
+	String    actionCmd    = null;
+	JMenu     sequenceMenu = null;
+	if (isAdd) {
+	    actionCmd="SEQREF";
+	    sequenceMenu = new ScrollableMenu("Add Sequence");	    
+	} else {
+	    actionCmd="SEQREP";
+	    sequenceMenu = new ScrollableMenu("Replace Sequence");
+	}
 	JMenuItem menuItem;
 	ArrayList<Sequence> forbiddenSequences = new ArrayList<Sequence>();
 	
@@ -1264,8 +1307,8 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		menuItem = new JMenuItem("New Sequence");
 		menuItem.addActionListener(listener);
 		menuItem.setActionCommand("NEWSEQ");
-		addSequenceMenu.add(menuItem);
-		addSequenceMenu.addSeparator();
+		sequenceMenu.add(menuItem);
+		sequenceMenu.addSeparator();
 	    }
 	}
 	
@@ -1283,11 +1326,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    Sequence sequence = config.sequence(i);
 	    menuItem = new JMenuItem(sequence.name());
 	    menuItem.addActionListener(listener);
-	    menuItem.setActionCommand("SEQREF");
+	    menuItem.setActionCommand(actionCmd);
 	    if (forbiddenSequences.contains(sequence)) menuItem.setEnabled(false);
-	    addSequenceMenu.add(menuItem); 
+	    sequenceMenu.add(menuItem); 
 	}
-	return addSequenceMenu;
+	return sequenceMenu;
     }
 
 
@@ -1534,6 +1577,9 @@ class PathMenuListener implements ActionListener
 	else if (action.equals("PATHREF")) {
 	    ConfigurationTreeActions.insertReference(tree,"Path",cmd);
 	}
+	else if (action.equals("PATHREP")) {
+	    ConfigurationTreeActions.replaceContainerInternally(tree,"Path",(Path)node,cmd);
+	}
 	else if (action.equals("SEQREF")) {
 	    ConfigurationTreeActions.insertReference(tree,"Sequence",cmd);
 	}
@@ -1595,7 +1641,7 @@ class SequenceMenuListener implements ActionListener
 	String    action   = source.getActionCommand();
 	TreePath  treePath = tree.getSelectionPath();
 	Object    node     = treePath.getLastPathComponent();
-	
+
 	if (action.equals("RMUNREF")) {
 	    ConfigurationTreeActions.removeUnreferencedSequences(tree);
 	}
@@ -1607,6 +1653,9 @@ class SequenceMenuListener implements ActionListener
 	}
 	else if (action.equals("SEQREF")) {
 	    ConfigurationTreeActions.insertReference(tree,"Sequence",cmd);
+	}
+	else if (action.equals("SEQREP")) {
+	    ConfigurationTreeActions.replaceContainerInternally(tree,"Sequence",(Sequence)node,cmd);
 	}
 	else if (action.equals("GOTO")) {
 	    ConfigurationTreeActions.scrollToInstance(tree);
