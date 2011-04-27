@@ -181,7 +181,7 @@ abstract public class ParameterContainer extends DatabaseEntry
     /** get all parameters (recursively) with specified name *and* type */
     public Parameter[] findParameters(String name,String type,String value)
     {
-	if (type==null&&value==null) return findParameters(name);
+	if (value==null) return findParameters(name,type);
 	ArrayList<Parameter> params = new ArrayList<Parameter>();
 	Iterator<Parameter> itP = recursiveParameterIterator();
 	while (itP.hasNext()) {

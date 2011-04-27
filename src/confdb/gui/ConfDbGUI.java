@@ -3500,6 +3500,15 @@ public class ConfDbGUI
 	    });
 	buttonGroupSearch2.add(rbMenuItem);
 	jPopupMenuSearch.add(rbMenuItem);
+	rbMenuItem = new JRadioButtonMenuItem("parameter values");
+	rbMenuItem.setActionCommand("matchValues");
+	rbMenuItem.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jTreeCurrentConfigUpdateSearch(jTextFieldSearch.getText());
+		}
+	    });
+	buttonGroupSearch2.add(rbMenuItem);
+	jPopupMenuSearch.add(rbMenuItem);
     }
 
     /** create the 'Search:' popup menu for the importConfig panel */
@@ -3542,6 +3551,15 @@ public class ConfDbGUI
 	jPopupMenuImportSearch.add(rbMenuItem);
 	rbMenuItem = new JRadioButtonMenuItem("types/plugins");
 	rbMenuItem.setActionCommand("matchPlugins");
+	rbMenuItem.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jTreeImportConfigUpdateSearch(jTextFieldImportSearch.getText());
+		}
+	    });
+	buttonGroupImportSearch2.add(rbMenuItem);
+	jPopupMenuImportSearch.add(rbMenuItem);
+	rbMenuItem = new JRadioButtonMenuItem("parameter values");
+	rbMenuItem.setActionCommand("matchValues");
 	rbMenuItem.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    jTreeImportConfigUpdateSearch(jTextFieldImportSearch.getText());
