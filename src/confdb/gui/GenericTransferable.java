@@ -5,7 +5,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 
-
 /**
  * GenericTransferable.java
  * 
@@ -26,31 +25,33 @@ import java.io.IOException;
  *
  * @version 1, 30.07.2005
  */
+
 public class GenericTransferable implements Transferable
 {
     //
     // member data
     //
-
-    /** the data this transferable transports */
-    private Object data;
-    
-    /** storage for data flavors supported of this transferable */
-    private static final DataFlavor[] flavors = new DataFlavor[1];
+	  final static int GENERIC_OBJECT	= 0;
+	  final static int STRING 			= 1;
+	  
+	  /** the data this transferable transports */
+	  private Object data;
     
     /** the actual flavors supported by this transferable */
-    static { flavors[0] = DataFlavor.stringFlavor; }
-
-
+    final public static DataFlavor GENERIC_OBJECT_FLAVOR = new DataFlavor(Object.class, "Object flavor");
+    
+    /** storage for data flavors supported of this transferable */
+    static DataFlavor flavors[] = { GENERIC_OBJECT_FLAVOR	,
+    								DataFlavor.stringFlavor };
+    
     //
     // construction
     //
     
     /** standard constructor */
-       public GenericTransferable(Object data)
-    {
-	super();
-	this.data = data;
+    public GenericTransferable(Object data)  {
+    	super();
+    	this.data = data;
     }
     
 
@@ -62,10 +63,30 @@ public class GenericTransferable implements Transferable
     public DataFlavor[] getTransferDataFlavors() { return flavors; }
     
     /**determine whether or not a given data flavor is supported */
-    public boolean isDataFlavorSupported(DataFlavor flavor) { return true; }
+    public boolean isDataFlavorSupported(DataFlavor flavor) {
+        boolean returnValue = false;
+        for (int i = 0, n = flavors.length; i < n; i++) {
+          if (flavor.equals(flavors[i])) {
+            returnValue = true;
+            break;
+          }
+        }
+        return returnValue;
+    }
+    
 
     /**get the data this transferable transports */
     public Object getTransferData(DataFlavor flavor)
-	throws UnsupportedFlavorException, IOException { return data; }
+    	throws UnsupportedFlavorException, IOException {
+		  Object returnObject;
+		  if (flavor.equals(flavors[GENERIC_OBJECT])) {
+		      returnObject = data;
+		  } else if (flavor.equals(flavors[STRING])) {
+		      returnObject = data.toString();
+		  } else {
+		    throw new UnsupportedFlavorException(flavor);
+		  }
+		  return returnObject;
+    }
     
 }

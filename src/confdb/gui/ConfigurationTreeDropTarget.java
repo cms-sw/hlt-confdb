@@ -86,10 +86,8 @@ private Insets autoscrollInsets = new Insets(30, 30, 30, 30);
 	    acceptAsDropTarget(tree,sourceNode,selectedNode)) {
 	    dtde.acceptDrag(dtde.getDropAction());
 	}
-	else {
-	    dtde.rejectDrag();
-	}
-	   
+	//else { dtde.rejectDrag(); }
+	
 	super.dragOver(dtde);
     }
 
@@ -123,6 +121,11 @@ private Insets autoscrollInsets = new Insets(30, 30, 30, 30);
 	    }
 	}
 	else {
+	    String message = "\"Import error!\"\n"
+	           + "Please make sure that target type matches source type.";
+	    JOptionPane.showMessageDialog(new JFrame(), message, "Dialog", JOptionPane.ERROR_MESSAGE);
+	     
+	    
 	    dtde.rejectDrop();
 	}
 	

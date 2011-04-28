@@ -1,3 +1,8 @@
+2011-04-28 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-45
+	* Type mismatch error message for Drag&Drop feature. bug #76145.
+	* Fixes ClassCastException in Drag&Drop functionality.
+	
 2011-04-27 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-44
 	* fix of object selection by label/name, plugin/type and (now separate) parameter value
