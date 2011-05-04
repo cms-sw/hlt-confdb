@@ -7,7 +7,6 @@
 
 import os, string, sys, posix, tokenize, array, getopt
 import FWCore.ParameterSet.Config as cms
-from pkgutil import extend_path
 
 def main(argv):
     pyparser = ConfdbPyconfigParser()
@@ -24,7 +23,7 @@ class ConfdbPyconfigParser:
         self.theparamdefault = ''
         self.founddefault = False
         self.foundcomponent = False
-        self.verbose = 2
+        self.verbose = 0
 
     def SetThePythonVar(self,modname,psetname,nestedpsetname,paramname):
         self.themodule = modname
@@ -41,15 +40,10 @@ class ConfdbPyconfigParser:
 
         # Look at what cfi_py configs are available
         thearch = os.environ.get("SCRAM_ARCH")
-        therelbase = os.environ.get("CMSSW_RELEASE_BASE")
-        #        therelbase = os.environ.get("CMSSW_BASE")
+        therelbase = os.environ.get("CMSSW_BASE")
         thevalidatedpackdirectory = thedirectory.split('data/')[0]
         thevalidatedpackdirectory = thevalidatedpackdirectory.split('src/')[1]
         thevalidateddirectory = therelbase + '/cfipython/' + thearch + '/' + thevalidatedpackdirectory + '/'
-
-        thevalidatedcfipydirectory = therelbase + '/cfipython/' + thearch + '/'
-        sys.path.append(thevalidateddirectory)
-
         validcfipyfiles = []
         cfipyfiles = [] 
 
@@ -88,29 +82,24 @@ class ConfdbPyconfigParser:
                         thesubsystempackage = thedirectory.split('src/')[1].split('/data/')[0].lstrip().rstrip()
                         thesubsystem = thesubsystempackage.split('/')[0]
                         thepackage = thesubsystempackage.split('/')[1]
-                        #                        importcommand = "import " + thesubsystem + "." + thepackage + "." + thefilecomponent
-                        importcommand = "import " + thefilecomponent
-                        
-#                    if(self.verbose > 2):
-#                        print "PSet = " + self.thenestedpset + ", " + self.thepset + ", " + self.theparameter
+                        importcommand = "import " + thesubsystem + "." + thepackage + "." + thefilecomponent
+                    
+                    if(self.verbose > 2):
+                        print "PSet = " + self.thenestedpset + ", " + self.thepset + ", " + self.theparameter
                         
                     if(self.verbose > 2):
                         print 'Starting python session'
         
                     try:
-                        if(self.verbose > 1):
+                        if(self.verbose > 2):
                             print "\t\t" + importcommand
 
                         exec importcommand
 
                         # Now create a process and construct the command to extend it with the py-cfi
                         process = cms.Process("MyProcess")
-                        if(validstatus == 0):
-                            theextend = "process.extend(" + thesubsystem + "." + thepackage + "." + thefilecomponent + ")"
-                        if(validstatus == 1):
-                            theextend = "process.extend(" + thefilecomponent + ")"
-                            
-                        if(self.verbose > 1):
+                        theextend = "process.extend(" + thesubsystem + "." + thepackage + "." + thefilecomponent + ")"
+                        if(self.verbose > 2):
                             print "\t\t" + theextend
                         eval(theextend)
 
@@ -168,7 +157,7 @@ class ConfdbPyconfigParser:
                         # OK, now get the default!
                         thedefault =  eval(valvar)
 
-                        if(self.verbose > 1):
+                        if(self.verbose > 2):
                             print 'The default value of variable ' + self.theparameter + ' is:\n'        
                             print thedefault
 
@@ -179,7 +168,7 @@ class ConfdbPyconfigParser:
                         return
                        
                     except:
-                        if(self.verbose > 1):
+                        if(self.verbose > 2):
                             print 'Could not get python-config information - no variable default found'
                             
 

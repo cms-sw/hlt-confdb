@@ -729,7 +729,14 @@ PromptTrackCountingESProducer.Parameter maximumDecayLength double 999999.0 track
 PromptTrackCountingESProducer.Parameter maxImpactParameterSig double 999999.0 tracked
 PromptTrackCountingESProducer.Parameter trackQualityClass string "any" tracked
 PromptTrackCountingESProducer.Parameter nthTrack int32 -1 tracked
+PromptTrackCountingESProducer.Parameter maxImpactParameter double 0.1 tracked  
+PromptTrackCountingESProducer.Parameter deltaRmin double 0.0 tracked  
 
 Module HLTFilter HLTPrescaler HLTrigger HLTcore
 HLTPrescaler.Parameter L1GtReadoutRecordTag InputTag hltGtDigis tracked
 HLTPrescaler.Parameter offset uint32 0 tracked 
+
+Module EDProducer HybridClusterProducer RecoEcal EgammaClusterProducers 
+HybridClusterProducer.Parameter severitySpikeId int32 2 tracked 
+HybridClusterProducer.Parameter severitySpikeThreshold double 0.95 tracked 
+HybridClusterProducer.Parameter severityRecHitThreshold double 4.0 tracked 
