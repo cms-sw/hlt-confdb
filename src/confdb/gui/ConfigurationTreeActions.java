@@ -192,7 +192,7 @@ public class ConfigurationTreeActions
     
     
     /** 
-     * Import All instances.
+     * Import All Parameter Sets
      * */
         public static boolean ImportAllPSets(JTree tree, JTree sourceTree, Object external)  {
     			ConfigurationTreeModel sm  		= (ConfigurationTreeModel) sourceTree.getModel();
@@ -236,7 +236,7 @@ public class ConfigurationTreeActions
     			
     			// Shows differences between configurations. Only once at the end.
     	        Diff diff = new Diff(importConfig, config);
-    	    	diff.compare();
+    	    	diff.compare("PSet");
     	    	if (!diff.isIdentical()) {
     	    	    DiffDialog dlg = new DiffDialog(diff);
     	    	    dlg.pack();
@@ -677,6 +677,7 @@ public class ConfigurationTreeActions
     	//////////////////////////////////////
     	
 		// Show differences between configurations. Only once at the end.
+        /*
         Diff diff = new Diff(importConfig, config);
     	diff.compare();
     	if (!diff.isIdentical()) {
@@ -684,6 +685,18 @@ public class ConfigurationTreeActions
     	    dlg.pack();
     	    dlg.setVisible(true);
     	}
+    	*/
+        
+    	Diff diff = new Diff(importConfig,config);
+    	diff.compare(type);
+    	if (!diff.isIdentical()) {
+    	    DiffDialog dlg = new DiffDialog(diff);
+    	    dlg.pack();
+    	    dlg.setVisible(true);
+    	}
+    	
+    	
+    	
         
     	return true;
     }
@@ -786,8 +799,8 @@ public class ConfigurationTreeActions
     /** import Path / Sequence
      * Perform updates and insertions of new references into a target tree.
      * This method does not perform the same operation as single reference 
-     * importation does. Tree nodes are not refreshed to allow multiple 
-     * invocations in a loop.
+     * importation does. Tree nodes are not refreshed allowing multiple 
+     * invocations in loop.
      * */
     public static boolean importMultipleReferenceContainers(JTree tree,
 						   ReferenceContainer external, boolean update)
@@ -820,7 +833,7 @@ public class ConfigurationTreeActions
 	}
 	
 	if (container!=null) {
-	
+		// updates
 	    index = (type.equals("path")) ? config.indexOfPath((Path)container) 
 		                          : config.indexOfSequence((Sequence)container);
 	    if(update) {
@@ -829,7 +842,13 @@ public class ConfigurationTreeActions
 		    	removeMultipleReferences(tree, entry);
 		    }
 	    } else return false;
+	    
+		if (importContainerEntries(config,model,external,container))
+		    container.setDatabaseId(external.databaseId());
+		model.nodeChanged(container);
+		
 	} else {
+		// insertions
 	    if (!config.hasUniqueQualifier(external)) return false;
 	    if (type.equals("path")) {
 	    	container = config.insertPath(index,external.name());
@@ -837,13 +856,10 @@ public class ConfigurationTreeActions
 	    } else {
 	    	container = config.insertSequence(index,external.name());
 	    }
+		if (importContainerEntries(config,model,external,container))
+		    container.setDatabaseId(external.databaseId());
+		model.nodeInserted(parent,index);
 	}
-	
-	if (importContainerEntries(config,model,external,container))
-	    container.setDatabaseId(external.databaseId());
-	
-	if (update) model.nodeChanged(container);
-	else	    model.nodeInserted(parent,index);
 	
 	for (int i=0;i<container.referenceCount();i++) {
 	    Reference reference = container.reference(i);
@@ -2362,7 +2378,16 @@ public class ConfigurationTreeActions
 						break;
 					}
 			}
-	    	
+
+			String type = ""; // get the type for future comparisons
+			if(sm.getChildCount(external) > 0) {
+				Instance instance = (Instance) sm.getChild(external, 0);
+						if(instance instanceof EDSourceInstance) type = "EDSource";
+				else 	if(instance instanceof ESSourceInstance) type = "ESSource";
+				else 	if(instance instanceof ESModuleInstance) type = "ESModule";
+				else 	if(instance instanceof ServiceInstance)  type = "Service" ;
+			}
+			
 			boolean updateAll = false;
 			if(existance) {
 		    	int choice = JOptionPane.showConfirmDialog(null			,
@@ -2389,7 +2414,7 @@ public class ConfigurationTreeActions
 		    
 			// Show differences between configurations. Only once at the end.
 	        Diff diff = new Diff(importConfig, config);
-	    	diff.compare();
+	    	diff.compare(type);
 	    	if (!diff.isIdentical()) {
 	    	    DiffDialog dlg = new DiffDialog(diff);
 	    	    dlg.pack();
@@ -2779,15 +2804,16 @@ final class ImportAllReferencesThread extends SwingWorker<String>
 	        panel.add(BorderLayout.NORTH, jl);
 	        
 	        tree.setSelectionPath(null);
-		for(int i = 0; i < sourceModel.getChildCount(ext); i++) {
-			ReferenceContainer container = (ReferenceContainer) sourceModel.getChild(ext, i);
-			ConfigurationTreeActions.importMultipleReferenceContainers(tree, container, updateAll);
-			bar.setValue(progress++);
-			jl.setText("Count: " + i);
-		}
+	        
+			for(int i = 0; i < sourceModel.getChildCount(ext); i++) {
+				ReferenceContainer container = (ReferenceContainer) sourceModel.getChild(ext, i);
+				ConfigurationTreeActions.importMultipleReferenceContainers(tree, container, updateAll);
+				bar.setValue(progress++);
+				jl.setText("Count: " + i);
+			}
 
-		targetModel.updateLevel1Nodes();
-		jl.setText(sourceModel.getChildCount(ext) + " items imported!");
+			targetModel.updateLevel1Nodes();
+			jl.setText(sourceModel.getChildCount(ext) + " items imported!");
 	      return new String("Done!");
 	  }
 	  

@@ -1,3 +1,10 @@
+2011-05-11 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-46
+	* Fixes a little bug of "import all" option.
+	* Includes new diff functionalities to perform comparisons between
+	  containers of the same type.
+	* Shows only relevant container differences after using Import all.
+
 2011-04-28 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-45
 	* Type mismatch error message for Drag&Drop feature. bug #76145.
