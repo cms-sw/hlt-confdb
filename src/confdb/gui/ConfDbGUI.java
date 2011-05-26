@@ -4,12 +4,16 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 import javax.swing.table.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 import javax.swing.border.*;
 import javax.swing.plaf.basic.*;
 import java.awt.*;
 import java.awt.event.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
 
@@ -147,7 +151,7 @@ public class ConfDbGUI
     private JTabbedPane   jTabbedPaneRightLower     = new JTabbedPane();
     private JScrollPane   jScrollPaneRightLower     = new JScrollPane();
     private JEditorPane   jEditorPaneSnippet        = new JEditorPane();
-
+    
     private JComboBox     jComboBoxEventContent     = new JComboBox();
     private JList         jListStreams              = new JList();
     private JList         jListDatasets             = new JList();
@@ -157,8 +161,31 @@ public class ConfDbGUI
     private JTable        jTableCommands            = new JTable();
     
     private JProgressBar  jProgressBar              = new JProgressBar(); 
-    
 
+    private JEditorPane   jEditorPanePathsToDataset = new JEditorPane();
+    private JScrollPane   jScrollPaneRightLower2    = new JScrollPane();
+    private JEditorPane   jEditorPaneUnresolvedITags= new JEditorPane();
+    private JScrollPane   jScrollPaneRightLower3    = new JScrollPane();
+    static SimpleAttributeSet ITALIC_GRAY = new SimpleAttributeSet();
+    static SimpleAttributeSet BOLD_BLACK = new SimpleAttributeSet();
+    static SimpleAttributeSet BLACK = new SimpleAttributeSet(); 
+    static {
+        StyleConstants.setForeground(ITALIC_GRAY, Color.gray);
+        StyleConstants.setItalic(ITALIC_GRAY, true);
+        StyleConstants.setFontFamily(ITALIC_GRAY, "Helvetica");
+        StyleConstants.setFontSize(ITALIC_GRAY, 12);
+
+        StyleConstants.setForeground(BOLD_BLACK, Color.black);
+        StyleConstants.setBold(BOLD_BLACK, true);
+        StyleConstants.setFontFamily(BOLD_BLACK, "Helvetica");
+        StyleConstants.setFontSize(BOLD_BLACK, 12);
+
+        StyleConstants.setForeground(BLACK, Color.black);
+        StyleConstants.setFontFamily(BLACK, "Helvetica");
+        StyleConstants.setFontSize(BLACK, 14);
+      }
+
+    
     //
     // construction
     //
@@ -1940,80 +1967,60 @@ public class ConfDbGUI
 		public String getToolTipText(MouseEvent evt) {
 		    String text = null;
 		    if (getRowForLocation(evt.getX(),evt.getY()) == -1)
-			return text;
+		    	return text;
+		    
 		    TreePath tp = getPathForLocation(evt.getX(),evt.getY());
 		    Object selectedNode = tp.getLastPathComponent();
-		    if (selectedNode instanceof Path) {
-			Path path = (Path)selectedNode;
-			if (path.datasetCount()>0) {
-			    text = "<html>"+path.name()+
-				" assigned to dataset(s): ";
-			    Iterator<PrimaryDataset> itPD =
-				path.datasetIterator();
-			    while (itPD.hasNext())
-				text += "<br>"+itPD.next().name();
-			}
-			String[] unresolved = path.unresolvedInputTags();
-			if (unresolved.length>0) {
-			    if (text!=null) text += "<br>"; else text="<html>";
-			    text += "Unresolved InputTags in "+path.name()+":";
-			    for (int i=0;i<unresolved.length;i++)
-				text+="<br>"+unresolved[i];
-			}
-			if (text!=null) text +="</html>";
-		    }
-		    else if (selectedNode instanceof ESSourceInstance||
-			     selectedNode instanceof ESModuleInstance||
-			     selectedNode instanceof ModuleInstance) {
-			Instance instance = (Instance)selectedNode;
-			text = instance.template().name();
-		    }
-		    else if (selectedNode instanceof ModuleReference) {
-			ModuleReference reference=(ModuleReference)selectedNode;
-			ModuleInstance  instance=(ModuleInstance)reference.parent();
-			text = "<html>"+instance.template().name();
 
-			Path path = (Path)(tp.getPathComponent(2));
-			String[] unresolved = path.unresolvedInputTags();
-			if (unresolved.length>0) text+="<br>Unresolved InputTags out of the "+unresolved.length+" in the current path:";
-			for (String un : unresolved) {
-			    String[] tokens = un.split("[/:]");
-			    for (int i=0; i<tokens.length; i++) {
-				if (instance.name().equals(tokens[i])) {
-				    text += "<br>"+un;
-				    break;
+	    	// Do not display any message for Paths. Requested by Andrea. bug/feature 82524
+		    if (	selectedNode instanceof ESSourceInstance	||
+					     selectedNode instanceof ESModuleInstance	||
+					     selectedNode instanceof ModuleInstance) 	{
+				Instance instance = (Instance)selectedNode;
+				text = instance.template().name();
+		    } else if (selectedNode instanceof ModuleReference) 	{
+				ModuleReference reference=(ModuleReference)selectedNode;
+				ModuleInstance  instance=(ModuleInstance)reference.parent();
+				text = "<html>"+instance.template().name();
+	
+				Path path = (Path)(tp.getPathComponent(2));
+				String[] unresolved = path.unresolvedInputTags();
+				if (unresolved.length>0) text+="<br>Unresolved InputTags out of the "+unresolved.length+" in the current path:";
+				for (String un : unresolved) {
+				    String[] tokens = un.split("[/:]");
+				    for (int i=0; i<tokens.length; i++) {
+					if (instance.name().equals(tokens[i])) {
+					    text += "<br>"+un;
+					    break;
+					}
+				    }
 				}
-			    }
-			}
-			text +="<html>";
-		    }
-		    else if (selectedNode instanceof SequenceReference) {
-			SequenceReference reference=(SequenceReference)selectedNode;
-			Sequence instance=(Sequence)reference.parent();
-			text = "<html>"+instance.name();
-
-			Path path = (Path)(tp.getPathComponent(2));
-			String[] unresolved = path.unresolvedInputTags();
-			if (unresolved.length>0) text+="<br>Unresolved InputTags out of the "+unresolved.length+" in the current path:";
-			for (String un : unresolved) {
-			    String[] tokens = un.split("[/:]");
-			    for (int i=0; i<tokens.length; i++) {
-				if (instance.name().equals(tokens[i])) {
-				    text += "<br>"+un;
-				    break;
+				text +="<html>";
+		    } else if (selectedNode instanceof SequenceReference) {
+				SequenceReference reference=(SequenceReference)selectedNode;
+				Sequence instance=(Sequence)reference.parent();
+				text = "<html>"+instance.name();
+	
+				Path path = (Path)(tp.getPathComponent(2));
+				String[] unresolved = path.unresolvedInputTags();
+				if (unresolved.length>0) text+="<br>Unresolved InputTags out of the "+unresolved.length+" in the current path:";
+				for (String un : unresolved) {
+				    String[] tokens = un.split("[/:]");
+				    for (int i=0; i<tokens.length; i++) {
+					if (instance.name().equals(tokens[i])) {
+					    text += "<br>"+un;
+					    break;
+					}
+				    }
 				}
-			    }
-			}
-			text += "<html>";
-		    }
-		    else if (selectedNode instanceof Stream) {
-			Stream stream = (Stream)selectedNode;
-			text = "Event Content: " + stream.parentContent().name();
-		    }
-		    else if (selectedNode instanceof PrimaryDataset) {
-			PrimaryDataset dataset = (PrimaryDataset)selectedNode;
-			Stream         stream  = dataset.parentStream();
-			text = "Stream: " + stream.name();
+				text += "<html>";
+		    } else if (selectedNode instanceof Stream) {
+				Stream stream = (Stream)selectedNode;
+				text = "Event Content: " + stream.parentContent().name();
+		    } else if (selectedNode instanceof PrimaryDataset) {
+				PrimaryDataset dataset = (PrimaryDataset)selectedNode;
+				Stream         stream  = dataset.parentStream();
+				text = "Stream: " + stream.name();
 		    }
 		    return text;
 		}
@@ -2092,6 +2099,181 @@ public class ConfDbGUI
 	    (new ParameterTableMouseListener(frame,
 					     jTreeTableParameters));
     }
+    
+    
+    
+    
+    /** return a text list with assigned datasets to the current path. */
+	public String getAssignedDatasets() {
+	    String text = "";
+	    Path path;
+	    if (currentParameterContainer instanceof Path) {
+		    path = (Path)currentParameterContainer;
+	    } else return "";
+
+		if (path.datasetCount()>0) {
+		    Iterator<PrimaryDataset> itPD = path.datasetIterator();
+		    while (itPD.hasNext())
+					text += itPD.next().name() + "\n";
+		}
+		return text;
+	}
+	
+	/** Prepare a summary of unassigned input tags using the original 	*/
+	/** python code. This print directly in jEditorPaneUnresolvedITags	*/
+	/** NOTE: This do not try to show a real python code but a summary  */
+	/** of tags in a familiar notation. 								*/
+	public void getUnresolvedInputTagsSummary() {
+	    String text = "";
+	    String module 	= null;
+	    String tag		= null;
+	    Path path;
+	    if (currentParameterContainer instanceof Path) {
+		    path = (Path)currentParameterContainer;
+	    } else return;
+	    
+		String[] unresolved = path.unresolvedInputTags(); // return duplicated modules.
+		String[] modules	= new String [unresolved.length]; // as maximum.
+		int MLength			= 0;
+		
+		if (unresolved.length>0) {
+			jEditorPaneUnresolvedITags.setText("");
+			
+			// Coalesce duplicated modules.
+			for (int i=0;i<unresolved.length;i++) {
+				if(i==0)	{
+					modules[i] = this.getModuleFromUnresolvedInputTag(unresolved[i]);
+					MLength++;
+				} else {
+					boolean found = false;
+					for (int j=0;j<MLength;j++) {
+						if((modules[j].compareTo(this.getModuleFromUnresolvedInputTag(unresolved[i])))==0) found = true;
+					}
+					if(!found) {
+						modules[MLength] = this.getModuleFromUnresolvedInputTag(unresolved[i]);
+						MLength++;
+					}
+				}
+			}
+			
+			// link and sort various inputTags according to modules
+			String pythonCode;
+			String [] sortedTags= new String[unresolved.length];
+			int Ntags;
+			for (int i=0; i < MLength; i++) {
+				pythonCode = getPythonCodeForModule(modules[i]);
+				Ntags	= 0;
+				
+				// separate tags for this module.
+				for (int t=0;t<unresolved.length;t++) { 
+					String _tag = this.getUnresolvedInputTag(unresolved[t]);
+
+					if(modules[i].compareTo(this.getModuleFromUnresolvedInputTag(unresolved[t])) == 0) {
+						// also coalesce
+						boolean found = false;
+						for(int tt=0; tt <Ntags; tt++) {
+							if(sortedTags[tt].compareTo(_tag) == 0) found = true;
+						}
+						if(!found) {
+							sortedTags[Ntags] = _tag;
+							Ntags++;	
+						}
+					}	
+				}
+				
+				// Highlights the Tag for this module in order:
+				// Display the first python line.
+				String header = pythonCode.substring(0, pythonCode.indexOf("(") + 1) + " ... \n";
+				try {
+					jEditorPaneUnresolvedITags.getDocument().insertString(
+							jEditorPaneUnresolvedITags.getDocument().getLength(), header, ITALIC_GRAY);
+				} catch (BadLocationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
+				// Displays list of unresolved tags:
+				for(int t =0; t < Ntags; t++) {
+		        	String tagLine = pythonCode.substring(pythonCode.indexOf(sortedTags[t]), pythonCode.indexOf(")", pythonCode.indexOf(sortedTags[t]) + sortedTags[t].length()) + 1);
+		        	tagLine+=",\n";
+		        	try {
+						jEditorPaneUnresolvedITags.getDocument().insertString(
+								jEditorPaneUnresolvedITags.getDocument().getLength(), tagLine, BOLD_BLACK);
+			        	
+					} catch (BadLocationException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				try {
+					// Display dots:
+					jEditorPaneUnresolvedITags.getDocument().insertString(
+							jEditorPaneUnresolvedITags.getDocument().getLength(), "    ... )\n\n", ITALIC_GRAY);
+				} catch (BadLocationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		}		
+	}
+
+	/** Look for Python code for a module of an unassigned input tag. */
+	private String getPythonCodeForModule(String module) {
+		String text 	= "";
+		// Looks for Python code of a module:
+		ModuleInstance moduleObj = currentConfig.module(module);
+		if(moduleObj != null) {
+		    try {
+				text = cnvEngine.getModuleWriter().toString(moduleObj);
+		    }
+		    catch (ConverterException e) {
+		    	System.out.println(e.getMessage());
+		    	return e.getMessage();
+		    }
+		} else System.out.println("module "+module+" NOT found!"); 
+		return text;
+	}
+	
+	/** get the module name from the old format of unassigned tag string */
+	/** this will be used to highlight the module name in the view, etc. */
+	private String getModuleFromUnresolvedInputTag(String unInTag) {
+		String text 	= "";
+		String module 	= null;
+		
+		java.util.List<String> temp= Arrays.asList(unInTag.split("/"));
+		if(temp.size() > 1) {
+			String relevant	= temp.get(temp.size() - 1);
+			temp= Arrays.asList(relevant.split("::")); // more than one if Vtag.
+			if(temp.size() > 1) {
+				module 	= temp.get(0);
+			}
+		} else return "";
+		return module;
+	}
+	
+	/** get the unassigned tag name from the old format of unassigned tag string */
+	/** this will be used to highlight the tag name in the view.                 */
+	private String getUnresolvedInputTag(String unInTag) {
+		String text 	= "";
+		String tag		= null;
+		
+		java.util.List<String> temp= Arrays.asList(unInTag.split("/"));
+		if(temp.size() > 1) {
+			String relevant	= temp.get(temp.size() - 1);
+			temp= Arrays.asList(relevant.split("::")); // more than one if Vtag.
+			if(temp.size() > 1) {
+				if(relevant.indexOf("::[") != -1) 	tag	= temp.get(temp.size() - 2); // Take the second to last tag.
+				else 								tag	= temp.get(temp.size() - 1); // Take the last tag.
+				
+				if(tag.indexOf('=') != -1) tag = tag.substring(0, tag.indexOf('='));
+				if(tag.indexOf('[') != -1) tag = tag.substring(0, tag.indexOf('['));
+			}
+		} else return "";
+		return tag;
+	}
+	
+    
+    ///////////////
     
     /** show/hide the import-tree pane */
     private void showImportTree()
@@ -2208,6 +2390,9 @@ public class ConfDbGUI
     /** display the configuration snippet for currently selected component */
     private void displaySnippet()
     {
+    //by default some components are disabled.
+    if (!(currentParameterContainer instanceof Path)) restoreRightLowerTabs();
+    	
 	if (currentParameterContainer==treeModelCurrentConfig.psetsNode()) {
 	    String s="";
 	    Iterator<PSetParameter> itPSet = currentConfig.psetIterator();
@@ -2283,8 +2468,15 @@ public class ConfDbGUI
 	}
 	else if (currentParameterContainer instanceof Path) {
 	    Path path = (Path)currentParameterContainer;
-	    jEditorPaneSnippet.setText(cnvEngine.getPathWriter().
-				       toString(path,cnvEngine,"  "));
+	    jEditorPaneSnippet.setText(cnvEngine.getPathWriter().toString(path,cnvEngine,"  "));
+	    
+        jTabbedPaneRightLower.setEnabledAt(1, true); // sets the second tab as enabled
+        jTabbedPaneRightLower.setEnabledAt(2, true); // sets the third  tab as enabled
+        jEditorPanePathsToDataset.setText(this.getAssignedDatasets());
+        
+        // this print directly in jEditorPaneUnresolvedITags
+        this.getUnresolvedInputTagsSummary();  
+	    
 	}
 	else if (currentParameterContainer instanceof Sequence) {
 	    Sequence sequence = (Sequence)currentParameterContainer;
@@ -2302,6 +2494,18 @@ public class ConfDbGUI
     {
 	jEditorPaneSnippet.setText("");
     }
+    
+    /** restore the snippet tabs to default 							*/
+    /** block the assigned datasets and unassigned input tag Tabs in	*/
+    /** the right lower panel when a path is not selected anymore. 		*/
+    private void restoreRightLowerTabs(){
+        jTabbedPaneRightLower.setEnabledAt(1, false); // sets the second tab as Disabled
+        jTabbedPaneRightLower.setEnabledAt(2, false); // sets the third  tab as Disabled
+        jTabbedPaneRightLower.setSelectedIndex(0);
+	    jEditorPanePathsToDataset.setText("");
+	    jEditorPaneUnresolvedITags.setText("");
+    } 
+    
 
 
     /** display the event content editor, fill all fields */
@@ -3693,11 +3897,21 @@ public class ConfDbGUI
     /** create the right lower panel */
     private void createRightLowerPanel()
     {
-	jEditorPaneSnippet.setEditable(false);
+    	jEditorPaneSnippet.setEditable(false);
         jScrollPaneRightLower.setViewportView(jEditorPaneSnippet);
-	
         jTabbedPaneRightLower.addTab("Snippet", jScrollPaneRightLower);
-	
+        
+        // Initialize the right lower tabs by default.
+        jEditorPanePathsToDataset.setEditable(false);
+        jScrollPaneRightLower2.setViewportView(jEditorPanePathsToDataset);
+        jTabbedPaneRightLower.addTab("Assigned to Datasets", jScrollPaneRightLower2);
+        jEditorPaneUnresolvedITags.setEditable(false);
+        jEditorPaneUnresolvedITags.setContentType("text/html");
+        jScrollPaneRightLower3.setViewportView(jEditorPaneUnresolvedITags);
+        jTabbedPaneRightLower.addTab("Unresolved Input Tags", jScrollPaneRightLower3);
+        jTabbedPaneRightLower.setEnabledAt(1, false); // sets the second tab as Disabled
+        jTabbedPaneRightLower.setEnabledAt(2, false); // sets the third  tab as Disabled
+        
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelRightLower);
         jPanelRightLower.setLayout(layout);
         layout.setHorizontalGroup(
@@ -3709,9 +3923,6 @@ public class ConfDbGUI
 				.add(jTabbedPaneRightLower, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 346, Short.MAX_VALUE)
 				);
     }
-
-
-
 
     
     /** create event content editor panel */
