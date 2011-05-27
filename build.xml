@@ -20,7 +20,7 @@
 
   <!-- compile all *.java files in src/** to *.class files in classes/** -->
   <target name="compile" depends="init">
-    <javac srcdir="${dir.src}" destdir="${dir.build}" debug="true">
+    <javac srcdir="${dir.src}" destdir="${dir.build}" debug="true" includeantruntime="false">
       <classpath>
         <fileset dir="${dir.ext}" includes="*.jar"/>
       </classpath>
