@@ -169,14 +169,15 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 	    return result;
 	} else if (column==1) {
 	    boolean ok = true;
+	    String label = null;
 	    if (p.type().equals("InputTag")) {
 		InputTagParameter it = (InputTagParameter)p;
-		String label = it.label();
+		label = it.label()==null ? "" : it.label();
 		ok = ( (label.equals("")) || (label.equals("rawDataCollector")) || (label.equals("source")) || (config.module(label)!=null) );
 	    } else if (p.type().equals("VInputTag")) {
 		VInputTagParameter vit = (VInputTagParameter)p;
 		for (int i=0; i<vit.vectorSize(); i++) {
-		    String label = vit.label(i);
+		    label = vit.label(i)==null ? "" : vit.label(i);
 		    ok = ( (label.equals("")) || (label.equals("rawDataCollector")) || (label.equals("source")) || (config.module(label)!=null) );
 		    if (!ok) break;
 		}
