@@ -3665,6 +3665,24 @@ public class ConfDbGUI
 	
 	JRadioButtonMenuItem rbMenuItem;
 	
+	rbMenuItem = new JRadioButtonMenuItem("contains");
+	rbMenuItem.setActionCommand("contains");
+	rbMenuItem.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jTreeCurrentConfigUpdateSearch(jTextFieldSearch.getText());
+		}
+	    });
+	buttonGroupSearch1.add(rbMenuItem);
+	jPopupMenuSearch.add(rbMenuItem);
+	rbMenuItem = new JRadioButtonMenuItem("matches");
+	rbMenuItem.setActionCommand("matches");
+	rbMenuItem.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jTreeCurrentConfigUpdateSearch(jTextFieldSearch.getText());
+		}
+	    });
+	buttonGroupSearch1.add(rbMenuItem);
+	jPopupMenuSearch.add(rbMenuItem);
 	rbMenuItem = new JRadioButtonMenuItem("startsWith");
 	rbMenuItem.setActionCommand("startsWith");
 	rbMenuItem.setSelected(true);
@@ -3675,18 +3693,9 @@ public class ConfDbGUI
 	    });
 	buttonGroupSearch1.add(rbMenuItem);
 	jPopupMenuSearch.add(rbMenuItem);
-	rbMenuItem = new JRadioButtonMenuItem("contains");
-	rbMenuItem.setActionCommand("contains");
-	rbMenuItem.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    jTreeCurrentConfigUpdateSearch(jTextFieldSearch.getText());
-		}
-	    });
-	buttonGroupSearch1.add(rbMenuItem);
-	jPopupMenuSearch.add(rbMenuItem);
 	jPopupMenuSearch.addSeparator();
 	rbMenuItem = new JRadioButtonMenuItem("names/labels");
-	rbMenuItem.setActionCommand("matchLabels");
+	rbMenuItem.setActionCommand("matchNames");
 	rbMenuItem.setSelected(true);
 	rbMenuItem.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
@@ -3696,7 +3705,7 @@ public class ConfDbGUI
 	buttonGroupSearch2.add(rbMenuItem);
 	jPopupMenuSearch.add(rbMenuItem);
 	rbMenuItem = new JRadioButtonMenuItem("types/plugins");
-	rbMenuItem.setActionCommand("matchPlugins");
+	rbMenuItem.setActionCommand("matchTypes");
 	rbMenuItem.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    jTreeCurrentConfigUpdateSearch(jTextFieldSearch.getText());
@@ -3723,6 +3732,24 @@ public class ConfDbGUI
 	
 	JRadioButtonMenuItem rbMenuItem;
 	
+	rbMenuItem = new JRadioButtonMenuItem("contains");
+	rbMenuItem.setActionCommand("contains");
+	rbMenuItem.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jTreeImportConfigUpdateSearch(jTextFieldImportSearch.getText());
+		}
+	    });
+	buttonGroupImportSearch1.add(rbMenuItem);
+	jPopupMenuImportSearch.add(rbMenuItem);
+	rbMenuItem = new JRadioButtonMenuItem("matches");
+	rbMenuItem.setActionCommand("matches");
+	rbMenuItem.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jTreeImportConfigUpdateSearch(jTextFieldImportSearch.getText());
+		}
+	    });
+	buttonGroupImportSearch1.add(rbMenuItem);
+	jPopupMenuImportSearch.add(rbMenuItem);
 	rbMenuItem = new JRadioButtonMenuItem("startsWith");
 	rbMenuItem.setActionCommand("startsWith");
 	rbMenuItem.setSelected(true);
@@ -3733,18 +3760,9 @@ public class ConfDbGUI
 	    });
 	buttonGroupImportSearch1.add(rbMenuItem);
 	jPopupMenuImportSearch.add(rbMenuItem);
-	rbMenuItem = new JRadioButtonMenuItem("contains");
-	rbMenuItem.setActionCommand("contains");
-	rbMenuItem.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    jTreeImportConfigUpdateSearch(jTextFieldImportSearch.getText());
-		}
-	    });
-	buttonGroupImportSearch1.add(rbMenuItem);
-	jPopupMenuImportSearch.add(rbMenuItem);
 	jPopupMenuImportSearch.addSeparator();
 	rbMenuItem = new JRadioButtonMenuItem("names/labels");
-	rbMenuItem.setActionCommand("matchLabels");
+	rbMenuItem.setActionCommand("matchNames");
 	rbMenuItem.setSelected(true);
 	rbMenuItem.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
@@ -3754,7 +3772,7 @@ public class ConfDbGUI
 	buttonGroupImportSearch2.add(rbMenuItem);
 	jPopupMenuImportSearch.add(rbMenuItem);
 	rbMenuItem = new JRadioButtonMenuItem("types/plugins");
-	rbMenuItem.setActionCommand("matchPlugins");
+	rbMenuItem.setActionCommand("matchTypes");
 	rbMenuItem.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    jTreeImportConfigUpdateSearch(jTextFieldImportSearch.getText());

@@ -1,3 +1,7 @@
+2011-05-28 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-05-49
+	* add regexp matching as 3rd option in search mode
+
 2011-05-27 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-48
 	* protect for null-pointer exception in ParameterTreeModel.java
