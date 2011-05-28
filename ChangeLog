@@ -1,4 +1,6 @@
 2011-05-28 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-05-50
+	* add missed files
 	* tag V01-05-49
 	* add regexp matching as 3rd option in search mode
 
