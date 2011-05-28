@@ -287,67 +287,78 @@ public class ModifierInstructions
     }
 
     /** interpret a search string */
+
+    public boolean isMatch(String source, String search, int alg) {
+	switch (alg) {
+	case 1: return source.contains(search);
+	case 2: return source.matches(search);
+	case 3: return source.startsWith(search);
+	default: return false;
+	}
+    }
+    
     public void interpretSearchString(String search,String mode,
 				      IConfiguration config)
     {
-	boolean startsWith  = true;
-	boolean matchLabels = true;
-	boolean matchValues = false;
+	int alg = 0;
+	int obj = 0;
 
-	if (mode.length()>0) {
-	    String[] options = mode.split(":");
-	    if      (options[0].equals("startsWith")) startsWith = true;
-	    else if (options[0].equals("contains"))   startsWith = false;
-	    else return;
-	    if      (options[1].equals("matchLabels"))  matchLabels = true;
-	    else if (options[1].equals("matchPlugins")) matchLabels = false;
-	    else if (options[1].equals("matchValues"))  matchValues = true;
-	    else return;
-	}
-	
+	String[] options = mode.split(":");
+
+	if      (options[0].equals("contains"))   alg=1;
+	else if (options[0].equals("matches"))    alg=2;
+	else if (options[0].equals("startsWith")) alg=3;
+	else return;
+
+	if      (options[1].equals("matchNames"))  obj=1;
+	else if (options[1].equals("matchTypes"))  obj=2;
+	else if (options[1].equals("matchValues")) obj=3;
+	else return;
+
+	if (alg==2) search=search.replace("*",".*").replace("?",".");
+	System.out.println("Search: mode/pattern: "+mode+" / "+search);
+
+	String name=null;
+	String Name=null;
+	String Type=null;
 	Iterator<PSetParameter> itPSet = config.psetIterator();
 	while (itPSet.hasNext()) {
-	    String  name    = itPSet.next().name();
-	    boolean isMatch = (startsWith) ? 
-		name.startsWith(search) : name.contains(search);
-	    if (isMatch) psetWhiteList.add(name);
+	    name = itPSet.next().name();
+	    if (isMatch(name,search,alg)) psetWhiteList.add(name);
 	}
 	if (psetWhiteList.size()==0) filterAllPSets(true);
 	
 	Iterator<EDSourceInstance> itEDS = config.edsourceIterator();
 	while (itEDS.hasNext()) {
 	    EDSourceInstance eds = itEDS.next();
-	    if (matchValues && eds.findParameters(null,null,search,startsWith).length>0) {
+	    if (obj==3 && eds.findParameters(null,null,search,alg).length>0) {
 		edsourceWhiteList.add(eds.name());
 	    } else {
-		String name = (matchLabels) ?eds.name() : eds.template().name();
-		boolean isMatch = (startsWith) ? 
-		    name.startsWith(search) : name.contains(search);
-		if (isMatch) {
+		name = (obj==1) ? eds.name() : eds.template().name();
+		if (isMatch(name,search,alg)) {
 		    edsourceWhiteList.add(eds.name());
 		} else {
-		    String Name = (matchLabels) ? search : null;
-		    String Type = (matchLabels) ? null : search;
-		    if (eds.findParameters(Name,Type,null,startsWith).length>0) essourceWhiteList.add(eds.name());
+		    Name = (obj==1) ? search : null;
+		    Type = (obj==1) ? null : search;
+		    if (eds.findParameters(Name,Type,null,alg).length>0) edsourceWhiteList.add(eds.name());
 		}
 	    }
 	}
 	if (edsourceWhiteList.size()==0) filterAllEDSources(true);
+
 	Iterator<ESSourceInstance> itESS = config.essourceIterator();
 	while (itESS.hasNext()) {
 	    ESSourceInstance ess = itESS.next();
-	    if (matchValues && ess.findParameters(null,null,search,startsWith).length>0) {
+	    if (obj==3 && ess.findParameters(null,null,search,alg).length>0) {
 		essourceWhiteList.add(ess.name());
 	    } else {
-		String name = (matchLabels) ? ess.name() : ess.template().name();
-		boolean isMatch = (startsWith) ? 
-		    name.startsWith(search) : name.contains(search);
-		if (isMatch) {
+		name = (obj==1) ? ess.name() : ess.template().name();
+		if (isMatch(name,search,alg)) {
 		    essourceWhiteList.add(ess.name());
 		} else {
-		    String Name = (matchLabels) ? search : null;
-		    String Type = (matchLabels) ? null : search;
-		    if (ess.findParameters(Name,Type,null,startsWith).length>0) essourceWhiteList.add(ess.name());
+		    Name = (obj==1) ? search : null;
+		    Type = (obj==1) ? null : search;
+		    if (ess.findParameters(Name,Type,null,alg).length>0) essourceWhiteList.add(ess.name());
 		}
 	    }
 	}
@@ -356,18 +367,16 @@ public class ModifierInstructions
 	Iterator<ESModuleInstance> itESM = config.esmoduleIterator();
 	while (itESM.hasNext()) {
 	    ESModuleInstance esm = itESM.next();
-	    if (matchValues && esm.findParameters(null,null,search,startsWith).length>0) {
+	    if (obj==3 && esm.findParameters(null,null,search,alg).length>0) {
 		esmoduleWhiteList.add(esm.name());
 	    } else {
-		String name = (matchLabels) ? esm.name() : esm.template().name();
-		boolean isMatch = (startsWith) ? 
-		    name.startsWith(search) : name.contains(search);
-		if (isMatch) {
+		name = (obj==1) ? esm.name() : esm.template().name();
+		if (isMatch(name,search,alg)) {
 		    esmoduleWhiteList.add(esm.name());
 		} else {
-		    String Name = (matchLabels) ? search : null;
-		    String Type = (matchLabels) ? null : search;
-		    if (esm.findParameters(Name,Type,null,startsWith).length>0) esmoduleWhiteList.add(esm.name());
+		    Name = (obj==1) ? search : null;
+		    Type = (obj==1) ? null : search;
+		    if (esm.findParameters(Name,Type,null,alg).length>0) esmoduleWhiteList.add(esm.name());
 		}
 	    }
 	}
@@ -376,18 +385,16 @@ public class ModifierInstructions
 	Iterator<ServiceInstance> itSvc = config.serviceIterator();
 	while (itSvc.hasNext()) {
 	    ServiceInstance svc = itSvc.next();
-	    if (matchValues && svc.findParameters(null,null,search,startsWith).length>0) {
+	    if (obj==3 && svc.findParameters(null,null,search,alg).length>0) {
 		serviceWhiteList.add(svc.name());
 	    } else {
-		String name = (matchLabels) ? svc.name() : svc.template().name();
-		boolean isMatch = (startsWith) ? 
-		    name.startsWith(search) : name.contains(search);
-		if (isMatch) {
+		name = (obj==1) ? svc.name() : svc.template().name();
+		if (isMatch(name,search,alg)) {
 		    serviceWhiteList.add(svc.name());
 		} else {
-		    String Name = (matchLabels) ? search : null;
-		    String Type = (matchLabels) ? null : search;
-		    if (svc.findParameters(Name,Type,null,startsWith).length>0) serviceWhiteList.add(svc.name());
+		    Name = (obj==1) ? search : null;
+		    Type = (obj==1) ? null : search;
+		    if (svc.findParameters(Name,Type,null,alg).length>0) serviceWhiteList.add(svc.name());
 		}
 	    }
 	}
@@ -395,36 +402,30 @@ public class ModifierInstructions
 	
 	Iterator<Path> itP = config.pathIterator();
 	while (itP.hasNext()) {
-	    String name = itP.next().name();
-	    boolean isMatch = (startsWith) ? 
-		name.startsWith(search) : name.contains(search);
-	    if (isMatch) pathWhiteList.add(name);
+	    name = itP.next().name();
+	    if (isMatch(name,search,alg)) pathWhiteList.add(name);
 	}
 	if (pathWhiteList.size()==0) filterAllPaths(true);
 	
 	Iterator<Sequence> itS = config.sequenceIterator();
 	while (itS.hasNext()) {
-	    String name = itS.next().name();
-	    boolean isMatch = (startsWith) ? 
-		name.startsWith(search) : name.contains(search);
-	    if (isMatch) requestSequence(name);
+	    name = itS.next().name();
+	    if (isMatch(name,search,alg)) requestSequence(name);
 	}
 	
 	Iterator<ModuleInstance> itM = config.moduleIterator();
 	while (itM.hasNext()) {
 	    ModuleInstance module = itM.next();
-	    if (matchValues && module.findParameters(null,null,search,startsWith).length>0) {
+	    if (obj==3 && module.findParameters(null,null,search,alg).length>0) {
 		requestModule(module.name());
 	    } else {
-		String name = (matchLabels) ? module.name() : module.template().name();
-		boolean isMatch = (startsWith) ? 
-		    name.startsWith(search) : name.contains(search);
-		if (isMatch) {
+		name = (obj==1) ? module.name() : module.template().name();
+		if (isMatch(name,search,alg)) {
 		    requestModule(module.name());
 		} else {
-		    String Name = (matchLabels) ? search : null;
-		    String Type = (matchLabels) ? null : search;
-		    if (module.findParameters(Name,Type,null,startsWith).length>0) requestModule(module.name());
+		    Name = (obj==1) ? search : null;
+		    Type = (obj==1) ? null : search;
+		    if (module.findParameters(Name,Type,null,alg).length>0) requestModule(module.name());
 		}
 	    }
 	}
@@ -432,18 +433,16 @@ public class ModifierInstructions
 	Iterator<OutputModule> itOM = config.outputIterator();
 	while (itOM.hasNext()) {
 	    OutputModule output = itOM.next();
-	    if (matchValues &&  output.findParameters(null,null,search,startsWith).length>0) {
+	    if (obj==3 && output.findParameters(null,null,search,alg).length>0) {
 		requestOutput(output.name());
 	    } else {
-		String name = (matchLabels) ? output.name() : output.className();
-		boolean isMatch = (startsWith) ?
-		    name.startsWith(search) : name.contains(search);
-		if (isMatch) {
+		name = (obj==1) ? output.name() : output.className();
+		if (isMatch(name,search,alg)) {
 		    requestOutput(output.name());
 		} else {
-		    String Name = (matchLabels) ? search : null;
-		    String Type = (matchLabels) ? null : search;
-		    if (output.findParameters(Name,Type,null,startsWith).length>0) requestOutput(output.name());
+		    Name = (obj==1) ? search : null;
+		    Type = (obj==1) ? null : search;
+		    if (output.findParameters(Name,Type,null,alg).length>0) requestOutput(output.name());
 		}
 	    }
 	}
@@ -451,28 +450,22 @@ public class ModifierInstructions
 	Iterator<EventContent> itEC = config.contentIterator();
 	while (itEC.hasNext()) {
 	    EventContent content = itEC.next();
-	    String name = content.name();
-	    boolean isMatch = (startsWith) ?
-		name.startsWith(search) : name.contains(search);
-	    if (isMatch) requestContent(content.name());
+	    name = content.name();
+	    if (isMatch(name,search,alg)) requestContent(name);
 	}
 	
 	Iterator<Stream> itST = config.streamIterator();
 	while (itST.hasNext()) {
 	    Stream stream = itST.next();
-	    String name = stream.name();
-	    boolean isMatch = (startsWith) ?
-		name.startsWith(search) : name.contains(search);
-	    if (isMatch) requestStream(stream.name());
+	    name = stream.name();
+	    if (isMatch(name,search,alg)) requestStream(name);
 	}
 	
 	Iterator<PrimaryDataset> itPD = config.datasetIterator();
 	while (itPD.hasNext()) {
 	    PrimaryDataset dataset = itPD.next();
-	    String name = dataset.name();
-	    boolean isMatch = (startsWith) ?
-		name.startsWith(search) : name.contains(search);
-	    if (isMatch) requestDataset(dataset.name());
+	    name = dataset.name();
+	    if (isMatch(name,search,alg)) requestDataset(name);
 	}
 	
     }

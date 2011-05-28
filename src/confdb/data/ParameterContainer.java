@@ -203,7 +203,15 @@ abstract public class ParameterContainer extends DatabaseEntry
     }
 
     /** get all parameters (recursively) with specified name *and* type */
-    public Parameter[] findParameters(String name,String type,String value,boolean startsWith)
+    public boolean isMatch(String source, String search, int alg) {
+	switch (alg) {
+	case 1: return source.contains(search);
+	case 2: return source.matches(search);
+	case 3: return source.startsWith(search);
+	default: return false;
+	}
+    }
+    public Parameter[] findParameters(String name,String type,String value,int alg)
     {
 	String One = new String("'");
 	char[] two = {'"'};
@@ -215,17 +223,15 @@ abstract public class ParameterContainer extends DatabaseEntry
 	    Parameter p = itP.next();
 	    String paramType = p.type();
 	    String paramName = p.name();
-	    String paramValue = p.valueAsString();
+	    String paramValue= p.valueAsString();
 	    if ( (p instanceof StringParameter) || (p instanceof VStringParameter) ) paramValue=paramValue.replace(One,"").replace(Two,"");
 	    
-	    boolean typeMatch = (type==null);
-	    if (!typeMatch) typeMatch = startsWith ? paramType.startsWith(type) : paramType.contains(type);
+	    boolean typeMatch = (type==null)  ? true : isMatch(paramType,type,alg);
 	    
-	    boolean nameMatch = (name==null);
-	    if (!nameMatch) nameMatch = startsWith ? paramName.startsWith(name) : paramName.contains(name);
+	    boolean nameMatch = (name==null)  ? true : isMatch(paramName,name,alg);
 	    
-	    boolean valueMatch = (value==null);
-	    if (!valueMatch) valueMatch = startsWith ? paramValue.startsWith(value) : paramValue.contains(value);
+	    boolean valueMatch= (value==null) ? true : isMatch(paramValue,value,alg);
+
 	    if (typeMatch&&nameMatch&&valueMatch) params.add(p);
 	}
 	return params.toArray(new Parameter[params.size()]);
