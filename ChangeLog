@@ -1,3 +1,8 @@
+2011-06-01 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-51
+	* Disable "mouse over" text for Sequences and 
+	* display "unsersolved input tags" in right lower panel tabs. (bug/feature 82524).
+
 2011-05-28 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-50
 	* add missed files

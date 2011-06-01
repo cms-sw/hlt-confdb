@@ -1972,7 +1972,7 @@ public class ConfDbGUI
 		    TreePath tp = getPathForLocation(evt.getX(),evt.getY());
 		    Object selectedNode = tp.getLastPathComponent();
 
-	    	// Do not display any message for Paths. Requested by Andrea. bug/feature 82524
+	    	// Do not display neither "unresolved input tags" nor "datasets" for Paths. bug/feature 82524 
 		    if (	selectedNode instanceof ESSourceInstance	||
 					     selectedNode instanceof ESModuleInstance	||
 					     selectedNode instanceof ModuleInstance) 	{
@@ -1997,23 +1997,13 @@ public class ConfDbGUI
 				}
 				text +="<html>";
 		    } else if (selectedNode instanceof SequenceReference) {
+		    	// Do not display "unresolved input tags" for Sequences. bug/feature 82524
+		    	
 				SequenceReference reference=(SequenceReference)selectedNode;
 				Sequence instance=(Sequence)reference.parent();
 				text = "<html>"+instance.name();
-	
-				Path path = (Path)(tp.getPathComponent(2));
-				String[] unresolved = path.unresolvedInputTags();
-				if (unresolved.length>0) text+="<br>Unresolved InputTags out of the "+unresolved.length+" in the current path:";
-				for (String un : unresolved) {
-				    String[] tokens = un.split("[/:]");
-				    for (int i=0; i<tokens.length; i++) {
-					if (instance.name().equals(tokens[i])) {
-					    text += "<br>"+un;
-					    break;
-					}
-				    }
-				}
 				text += "<html>";
+				
 		    } else if (selectedNode instanceof Stream) {
 				Stream stream = (Stream)selectedNode;
 				text = "Event Content: " + stream.parentContent().name();
@@ -2120,19 +2110,25 @@ public class ConfDbGUI
 	}
 	
 	/** Prepare a summary of unassigned input tags using the original 	*/
-	/** python code. This print directly in jEditorPaneUnresolvedITags	*/
-	/** NOTE: This do not try to show a real python code but a summary  */
-	/** of tags in a familiar notation. 								*/
+	/** python code. This prints directly in jEditorPaneUnresolvedITags	*/
+	/** NOTE: This does not show a real python code but a summary of    */
+	/** tags in a familiar format. 										*/
 	public void getUnresolvedInputTagsSummary() {
 	    String text = "";
 	    String module 	= null;
 	    String tag		= null;
 	    Path path;
+	    Sequence sequence;
+	    String[] unresolved;
 	    if (currentParameterContainer instanceof Path) {
 		    path = (Path)currentParameterContainer;
+		    unresolved = path.unresolvedInputTags(); // return duplicated modules.
+	    } else if(currentParameterContainer instanceof Sequence){
+	    	sequence = (Sequence) currentParameterContainer;
+	    	unresolved = sequence.unresolvedInputTags();
 	    } else return;
 	    
-		String[] unresolved = path.unresolvedInputTags(); // return duplicated modules.
+		
 		String[] modules	= new String [unresolved.length]; // as maximum.
 		int MLength			= 0;
 		
@@ -2390,8 +2386,10 @@ public class ConfDbGUI
     /** display the configuration snippet for currently selected component */
     private void displaySnippet()
     {
-    //by default some components are disabled.
-    if (!(currentParameterContainer instanceof Path)) restoreRightLowerTabs();
+    //by default some tabs are disabled.
+    if ((!(currentParameterContainer instanceof Path))	||
+    	(!(currentParameterContainer instanceof Sequence))) 
+    	restoreRightLowerTabs();
     	
 	if (currentParameterContainer==treeModelCurrentConfig.psetsNode()) {
 	    String s="";
@@ -2470,18 +2468,23 @@ public class ConfDbGUI
 	    Path path = (Path)currentParameterContainer;
 	    jEditorPaneSnippet.setText(cnvEngine.getPathWriter().toString(path,cnvEngine,"  "));
 	    
-        jTabbedPaneRightLower.setEnabledAt(1, true); // sets the second tab as enabled
-        jTabbedPaneRightLower.setEnabledAt(2, true); // sets the third  tab as enabled
+        jTabbedPaneRightLower.setEnabledAt(1, true); // sets second tab enabled
+        jTabbedPaneRightLower.setEnabledAt(2, true); // sets third  tab enabled
         jEditorPanePathsToDataset.setText(this.getAssignedDatasets());
         
         // this print directly in jEditorPaneUnresolvedITags
         this.getUnresolvedInputTagsSummary();  
-	    
 	}
 	else if (currentParameterContainer instanceof Sequence) {
 	    Sequence sequence = (Sequence)currentParameterContainer;
 	    jEditorPaneSnippet.setText(cnvEngine.getSequenceWriter().
 				       toString(sequence,cnvEngine,"  "));
+	    
+        jTabbedPaneRightLower.setEnabledAt(1, true); // sets second tab enabled
+        jTabbedPaneRightLower.setEnabledAt(2, true); // sets third  tab enabled
+        jEditorPanePathsToDataset.setText(this.getAssignedDatasets());
+        
+        this.getUnresolvedInputTagsSummary(); // print directly in jEditorPaneUnresolvedITags
 	}
 	else {
 	    clearSnippet();
