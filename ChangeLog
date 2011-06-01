@@ -1,4 +1,8 @@
 2011-06-01 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* Not tagged as version.
+	* Disable "datasets" tab for sequences.
+	
+2011-06-01 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-51
 	* Disable "mouse over" text for Sequences and 
 	* display "unsersolved input tags" in right lower panel tabs. (bug/feature 82524).

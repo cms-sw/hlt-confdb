@@ -2480,10 +2480,10 @@ public class ConfDbGUI
 	    jEditorPaneSnippet.setText(cnvEngine.getSequenceWriter().
 				       toString(sequence,cnvEngine,"  "));
 	    
-        jTabbedPaneRightLower.setEnabledAt(1, true); // sets second tab enabled
-        jTabbedPaneRightLower.setEnabledAt(2, true); // sets third  tab enabled
-        jEditorPanePathsToDataset.setText(this.getAssignedDatasets());
+        // jTabbedPaneRightLower.setEnabledAt(1, true); // No dataset tab for sequences.
+	    // jEditorPanePathsToDataset.setText(this.getAssignedDatasets());
         
+	    jTabbedPaneRightLower.setEnabledAt(2, true); // sets third  tab enabled
         this.getUnresolvedInputTagsSummary(); // print directly in jEditorPaneUnresolvedITags
 	}
 	else {
