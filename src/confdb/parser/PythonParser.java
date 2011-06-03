@@ -401,6 +401,14 @@ public class PythonParser
 						   sequence.entryCount(),s);
 		}
 		else {
+                    Operator operator = Operator.DEFAULT;
+                    if (entry.charAt(0) == '-') {
+                      entry = entry.substring(1);
+                      operator = Operator.IGNORE;
+                    } else if (entry.charAt(0) == '!') {
+                      entry = entry.substring(1);
+                      operator = Operator.NEGATE;
+                    }
 		    ParseNode moduleNode=getChildNode(modulesNode,entry);
 		    String    moduleName=getNodeValue(moduleNode,"@classname");
 		    String    moduleLabel=entry;
@@ -412,6 +420,7 @@ public class PythonParser
 						     sequence.entryCount(),
 						     moduleName,
 						     moduleLabel);
+                    reference.setOperator(operator);
 		    ArrayList<Parameter> moduleParams=getParameters(moduleNode);
 		    int referenceCount = 0;
 		    String moduleType = "UNKNOWN";
@@ -455,9 +464,17 @@ public class PythonParser
 		    config.insertSequenceReference(path,path.entryCount(),s);
 		}
 		else {
-		    ParseNode moduleNode=getChildNode(modulesNode,entry);
-		    String    moduleName=getNodeValue(moduleNode,"@classname");
-		    String    moduleLabel=entry;
+                    Operator operator = Operator.DEFAULT;
+                    if (entry.charAt(0) == '-') {
+                      entry = entry.substring(1);
+                      operator = Operator.IGNORE;
+                    } else if (entry.charAt(0) == '!') {
+                      entry = entry.substring(1);
+                      operator = Operator.NEGATE;
+                    }
+		    ParseNode moduleNode  = getChildNode(modulesNode,entry);
+		    String    moduleName  = getNodeValue(moduleNode,"@classname");
+		    String    moduleLabel = entry;
 		    if (moduleLabel.equals(new String()))moduleLabel=moduleName;
 		    
 		    ModuleInstance  module = null;
@@ -466,6 +483,7 @@ public class PythonParser
 						     path.entryCount(),
 						     moduleName,
 						     moduleLabel);
+                    reference.setOperator(operator);
 		    ArrayList<Parameter> moduleParams=getParameters(moduleNode);
 		    int referenceCount = 0;
 		    String moduleType = "UNKNOWN";
