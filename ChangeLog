@@ -1,7 +1,7 @@
 2011-06-01 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* Not tagged as version.
 	* Disable "datasets" tab for sequences.
-	
+
 2011-06-01 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-51
 	* Disable "mouse over" text for Sequences and 
@@ -21,7 +21,7 @@
 	* tag V01-05-47
 	* Display datasets and unassigned input tags of selected path
 	* in right lower panel tabs. (bug/feature 82524).
-	
+
 2011-05-11 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-46
 	* Fixes a little bug of "import all" option.
@@ -33,7 +33,7 @@
 	* tag V01-05-45
 	* Type mismatch error message for Drag&Drop feature. bug #76145.
 	* Fixes ClassCastException in Drag&Drop functionality.
-	
+
 2011-04-27 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-44
 	* fix of object selection by label/name, plugin/type and (now separate) parameter value
@@ -41,12 +41,12 @@
 2011-04-24 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-43
 	* update "replace ModuleInstance", add "replace Sequence|Path"
-	
+
 2011-04-21 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-42
 	* Add "Import all" feature for PSets, EDSource, ESSources, ESModules and Services.
-    * Some "Import all Paths" and "Import all Sequences" fixes.
-    * Including progress bar dialog.
+	* Some "Import all Paths" and "Import all Sequences" fixes.
+	* Including progress bar dialog.
 
 2011-04-15  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-41
@@ -81,7 +81,7 @@
 2011-04-09  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-32
 	* Add missing file
-	
+
 2011-04-08  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-31
 	* Adding Smart Renaming of modules/sequences/paths (replacement of substrings old => new)
@@ -114,7 +114,7 @@
 2011-04-02  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-24
 	* Migrate/Diff no longer ignore/forget Reference status NEGATE/IGNORE/DEFAULT
-	
+
 2011-03-31  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-23
 	* improved labellig of radio buttons in "search" popup
@@ -254,7 +254,7 @@
 	alphabetically
 	* content statements in the editor can be ordered by path now
 	* statements associated with a path are properly loaded
-	
+
 2010-03-18  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-04-09
@@ -382,7 +382,7 @@
 	* tag V01-03-03
 	* gui: fix for problem with ECs associated with Paths not being saved
 	properly (by Vasu)
-	
+
 
 2010-01-21  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
@@ -469,7 +469,7 @@
 	selected, commands associated with these paths can be added. If no
 	specific path is selected, free-formed (but validated) commands
 	can be entered in the then editable combo box field.
-	
+
 2009-10-08  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V01-01-00
@@ -525,7 +525,7 @@
 	* tag V00-28-03
 	* improvement to db interaction stabilization by Ulf, to be
 	deployed with next version of RCMS.
-	
+
 2009-06-23  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-28-02
@@ -670,9 +670,9 @@
 
 2008-08-08  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
-        * tag V00-25-03
+	* tag V00-25-03
 	* undo changes to V00-25-02
-        
+
 	* tag V00-25-02
 	* OutputModuleDialog: add 'keep triggerTriggerEventWithRefs' to
 	the standard value of the outputCommands parameter of any output
@@ -765,7 +765,7 @@
 	* tag V00-23-09
 	* revert to old default regarding --cff (namely implying
 	--noedsources and --nooutput)
-	
+
 2008-05-14  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-23-08
@@ -798,12 +798,12 @@
 	* tag V00-23-04
 	* changed my mind; use HLT DEVELOPMENT for the tutorial, Define
 	TEST2R & TEST9R
-	
+
 2008-04-30  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-23-03
 	* add db connection for TUTORIALS DB (int9r)
-	
+
 2008-04-29  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-23-02
@@ -821,7 +821,7 @@
 	* tag V00-23-00
 	* gui: add menu 'Tools'
 	* gui: add editor for prescale table
-	
+
 2008-04-24  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-22-15
@@ -929,7 +929,7 @@
 	* replace migration report with diff dialog
 	* ConfDB.reconnect()
 	* [V]PSetParameter.setValue()
-	
+
 
 2008-03-16  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
@@ -1090,7 +1090,7 @@
 	expansion during editing
 	* data bugfix: improve Configuration.hasChanged()
 	* db bugfix: make sure paths get databaseId!=0 right after loading
-	
+
 
 2008-01-11  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
@@ -1340,7 +1340,7 @@
 	within a given Path/Sequence; unresolved means that no module with
 	that label is found upstream within that path. That is fine though
 	in case the InputTag references data expected in the input file ...
-	
+
 2007-09-22  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-11-02
@@ -1359,7 +1359,7 @@
 	database connection info (and some other stuff)
 	* Verfied that after application of problems.txt (to 1_6_0),
 	HLTtable.py is parsed completely!
-	
+
 2007-09-14  Philipp Schieferdecker  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-11-00
@@ -1408,14 +1408,14 @@
 	* out-of-sequence errors w. the CSC*Producers and
 	DTSegment*Producers gone
 	* pick up latest converter changes
-	
+
 2007-08-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-10-04
 	* bug fix: boolean parameter values would always come back 'false'
 	from the database
 	* pick up latest parser fix
-	
+
 2007-08-21  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-10-03
@@ -1433,7 +1433,7 @@
 	class (1=HLT Dev, 2=OMDS)
 	* pick up latest parser fixes
 	* pick up latest browser fixes
-	
+
 2007-08-15  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-10-01
@@ -1456,7 +1456,7 @@
 	assigned paths and allows to manipulate them
 	* the int2r hlt development schema was updated and is now only
 	compatible with this version (and later)!
-	
+
 2007-08-13  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-09-01
@@ -1465,7 +1465,7 @@
 	repository of default db connections
 	* confdb.gui.CfgMenuBar -> confdb.gui.ConfDBMenuBar, disable menu
 	bar commands when they are not available
-	
+
 2007-08-10  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-09-00
@@ -1545,7 +1545,7 @@
 	* datamodel/gui/db fixes
 	* allow for the creation of new directories in
 	ConfigurationExportDialog
-	
+
 
 2007-07-31  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
@@ -1614,7 +1614,7 @@
 	* updates to panels and dialogs, robust UI designs using NetBeans.
 	* The node of an inserted module reference gets immediately
 	selected.
-	
+
 2007-06-08  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-03-01
@@ -1630,7 +1630,7 @@
 	* set currentObject to null if the treetable fires a
 	treeStructureChanged event -> avoid Add Path / Add Sequence to
 	skip the entering of a valid name
-	
+
 2007-06-06  Philipp SCHIEFERDECKER  <philipp.schieferdecker@cern.ch>
 
 	* tag V00-03-00
@@ -1775,7 +1775,7 @@
 	* add isEndPath() to Path, based on any 'OutputModule' being
 	present in the Path
 	* sql: add 'configDescriptor' field to 'Configurations'
-	
+
 2007-03-30  Jonathan HOLLAR <jjhollar@cern.ch>
 	* tag V00-00-07
 	* Collect recent parser changes for handling PSets defined in multiple 
