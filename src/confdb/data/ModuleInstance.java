@@ -88,35 +88,18 @@ public class ModuleInstance extends Instance implements Referencable
 	String oldName = name();
 	super.setName(name);
 
+	// need to check all paths containing this module
 	Path[] paths = parentPaths();
 	HashSet<Path> pathSet = new HashSet<Path>();
 	for (Path path : paths) pathSet.add(path);
+
+	// as well as endpaths for outputmodules/eventcontents
 	if (config()!=null) {
 	    Iterator<Path> itP = config().pathIterator();
 	    while (itP.hasNext()) {
 		Path path = itP.next();
 		if (path.isEndPath()) {
 		    pathSet.add(path);
-		    Iterator<ModuleInstance> itM = path.moduleIterator();
-		    while (itM.hasNext()) {
-			ModuleInstance module = itM.next();
-			if (!module.template().type().equals("OutputModule"))
-			    continue;
-			VStringParameter outCom = (VStringParameter)
-			    module.parameter("outputCommands","vstring");
-			if (outCom==null) continue;
-			for (int i=0;i<outCom.vectorSize();i++) {
-			    String a[]=((String)outCom.value(i)).split(" ");
-			    if (!a[0].equals("keep")) continue;
-			    String b[] = a[1].split("_");
-			    if (b.length!=4) continue;
-			    if (b[1].equals(oldName)) {
-				outCom.setValue(i,"keep "+b[0]+"_"+name+
-						"_"+b[2]+"_"+b[3]);
-				module.setHasChanged();
-			    }
-			}
-		    }
 		}
 	    }
 	}
@@ -124,6 +107,22 @@ public class ModuleInstance extends Instance implements Referencable
 	Iterator<Path> itPath = pathSet.iterator();
 	while (itPath.hasNext()) {
 	    Path path = itPath.next();
+
+	    // outputmodules/eventcontent
+	    Iterator<OutputModule> itO = path.outputIterator();
+	    while (itO.hasNext()) {
+		OutputModule output = itO.next();
+		Stream stream = output.parentStream();
+		EventContent content = stream.parentContent();
+		Iterator<OutputCommand> itC = content.commandIterator();
+		while (itC.hasNext()) {
+		    OutputCommand command = itC.next();
+		    if (command.moduleName().equals(oldName)) {
+			command.setModuleName(name());
+		    }
+		}
+	    }
+
 	    boolean isDownstream = path.isEndPath();
 	    Iterator<ModuleInstance> itM = path.moduleIterator();
 	    while (itM.hasNext()) {

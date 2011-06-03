@@ -1,3 +1,7 @@
+2011-06-03  Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-05-52
+	* Bug fix: propagate module re-labelling to event content statements
+
 2011-06-01 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* Not tagged as version.
 	* Disable "datasets" tab for sequences.
