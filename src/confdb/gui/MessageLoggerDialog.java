@@ -90,7 +90,7 @@ public class MessageLoggerDialog extends JDialog
 	    });
 	
 	setContentPane(initComponents());
-	if(!initMessageLogger())
+	if (!initMessageLogger())
 	    setVisible(false);
     }
 
@@ -121,24 +121,24 @@ public class MessageLoggerDialog extends JDialog
     {
 	
 	String stringMesLogDestinationName;
-	while(true){
+	while(true) {
 	    stringMesLogDestinationName = JOptionPane.showInputDialog("Enter destination "); 
 	    System.out.println(stringMesLogDestinationName);
-	    if(stringMesLogDestinationName==null)
+	    if (stringMesLogDestinationName==null)
 		return;
-	    if(stringMesLogDestinationName.matches("[a-zA-Z0-9]+"))
+	    if (stringMesLogDestinationName.matches("[a-zA-Z0-9]+"))
 		break;
 	    else
 		JOptionPane.showMessageDialog(null,"Please enter alpha-numeric charecters for the destination name.","Warning",JOptionPane.ERROR_MESSAGE); 
 	       
 	}
 	
-	if(stringMesLogDestinationName.equals("")||stringMesLogDestinationName.equals("MessageLogger"))
+	if (stringMesLogDestinationName.equals("")||stringMesLogDestinationName.equals("MessageLogger"))
 	    return;
 	int iDestVestorSize=parameterDestination.vectorSize();
-	for(int i=0;i<iDestVestorSize;i++){
+	for(int i=0;i<iDestVestorSize;i++) {
 	    String strCurrent=(String)parameterDestination.value(i);
-	    if(strCurrent.equals(stringMesLogDestinationName)){
+	    if (strCurrent.equals(stringMesLogDestinationName)) {
 		return;
 	    }
 	}
@@ -155,23 +155,23 @@ public class MessageLoggerDialog extends JDialog
     {
        	int iTemp=jTabbedPaneMessageOutStreams.getSelectedIndex();
 	MessageLoggerPanel messageLoggerPanelRemove=(MessageLoggerPanel)jTabbedPaneMessageOutStreams.getSelectedComponent();
-	if(!serviceMessage.removeUntrackedParameter(messageLoggerPanelRemove.pSetDestination))
+	if (!serviceMessage.removeUntrackedParameter(messageLoggerPanelRemove.pSetDestination))
             return;
 
 	
 	jTabbedPaneMessageOutStreams.setSelectedIndex(iTemp-1);
 
 	int iDestVestorSize=parameterDestination.vectorSize();
-	for(int i=0;i<iDestVestorSize;i++){
+	for(int i=0;i<iDestVestorSize;i++) {
 	    String strCurrent=(String)parameterDestination.value(i);
-	    if(strCurrent.equals(messageLoggerPanelRemove.strDestination)){
+	    if (strCurrent.equals(messageLoggerPanelRemove.strDestination)) {
 		parameterDestination.removeValue(i);
 		break;
 	    }
 	}
 	jTabbedPaneMessageOutStreams.removeTabAt(iTemp);
 	messageLoggerPanels.remove(iTemp);
-	if(messageLoggerPanels.size()>1)
+	if (messageLoggerPanels.size()>1)
 	    jButtonRemoveCurrent.setVisible(true);
 	else
 	    jButtonRemoveCurrent.setVisible(false);
@@ -179,9 +179,9 @@ public class MessageLoggerDialog extends JDialog
     }
 
 
-    private void AddMessageLoggerDestination(String strDestination,Boolean bCreateNew){
+    private void AddMessageLoggerDestination(String strDestination,Boolean bCreateNew) {
 	MessageLoggerPanel messageLoggerPanelOutStream=new MessageLoggerPanel(config,serviceMessage,strDestination,bCreateNew);
-	if(strDestination.equals(""))
+	if (strDestination.equals(""))
 	    jTabbedPaneMessageOutStreams.addTab("Default",messageLoggerPanelOutStream);
 	else
 	    jTabbedPaneMessageOutStreams.addTab(strDestination,messageLoggerPanelOutStream);
@@ -190,30 +190,30 @@ public class MessageLoggerDialog extends JDialog
 	
     }
     
-    private void commitChanges(){
-	for(MessageLoggerPanel messageLoggerPanelOutStream : messageLoggerPanels){
+    private void commitChanges() {
+	for(MessageLoggerPanel messageLoggerPanelOutStream : messageLoggerPanels) {
 	    messageLoggerPanelOutStream.commitTransient();
 	}
     }
 
 
-    private boolean initMessageLogger(){
+    private boolean initMessageLogger() {
 
 	serviceMessage=config.service("MessageLogger");
-	if(serviceMessage==null)
+	if (serviceMessage==null)
 	    return false;
 	AddMessageLoggerDestination("",false);
 	Iterator<Parameter> itP=serviceMessage.parameterIterator();
 	ArrayList<Parameter> alP=new ArrayList<Parameter>();
 	Parameter.getParameters(itP,alP);
-	for(Parameter parameter : alP){
+	for(Parameter parameter : alP) {
 	    String    parameterName = parameter.name();
 	    String    parameterType = parameter.type();
-	    if(parameterName.equals("destinations")){
+	    if (parameterName.equals("destinations")) {
 		parameterDestination=(VStringParameter)parameter;
-		for(int i=0;i<parameterDestination.vectorSize();i++){
+		for(int i=0;i<parameterDestination.vectorSize();i++) {
 		    String strDestination=(String)parameterDestination.value(i);
-		    if(strDestination.equals(""))
+		    if (strDestination.equals(""))
 			continue;
 		    AddMessageLoggerDestination(strDestination,false);
 		}
@@ -310,6 +310,7 @@ class MessageLoggerPanel extends JPanel
     private VStringParameter parameterSupressInfo;
     private VStringParameter parameterSupressDebug;
     private VStringParameter parameterSupressWarning;
+    private VStringParameter parameterSupressError;
 
     StringParameter parameterThreshold;
     StringParameter parameterLimit;
@@ -331,26 +332,27 @@ class MessageLoggerPanel extends JPanel
     /** GUI components */
  
   
-    private JComboBox   jComboBoxThreshold                 = new JComboBox();
-    private JComboBox   jComboBoxLimit                 = new JComboBox();
-    private JComboBox   jComboBoxTimeSpan                 = new JComboBox();
-    private JTable      jTableProducts                    = new JTable();
+    private JComboBox jComboBoxThreshold    = new JComboBox();
+    private JComboBox jComboBoxLimit        = new JComboBox();
+    private JComboBox jComboBoxTimeSpan     = new JComboBox();
+    private JTable    jTableProducts        = new JTable();
    
-    private JCheckBox     jCheckBoxInfo                 = new JCheckBox();
-    private JCheckBox     jCheckBoxDebug                = new JCheckBox();
-    private JCheckBox     jCheckBoxWarning                 = new JCheckBox();
+    private JCheckBox jCheckBoxInfo         = new JCheckBox();
+    private JCheckBox jCheckBoxDebug        = new JCheckBox();
+    private JCheckBox jCheckBoxWarning      = new JCheckBox();
+    private JCheckBox jCheckBoxError        = new JCheckBox();
 
-    private JCheckBox      jCheckBoxShowSelected        = new JCheckBox();
+    private JCheckBox jCheckBoxShowSelected = new JCheckBox();
    
 
     /** GUI models */
-    private ProductTableLoggerModel         tmProducts;
-    private DefaultComboBoxModel      cbmOutputThreshold;
-    private DefaultComboBoxModel      cbmOutputLimit;
-    private DefaultComboBoxModel      cbmOutputTimeSpan;
+    private ProductTableLoggerModel tmProducts;
+    private DefaultComboBoxModel    cbmOutputThreshold;
+    private DefaultComboBoxModel    cbmOutputLimit;
+    private DefaultComboBoxModel    cbmOutputTimeSpan;
     private Boolean bSupMessage = false;
-    private Boolean bSupDebug = false;
-    private Boolean bSupError = false;
+    private Boolean bSupDebug   = false;
+    private Boolean bSupError   = false;
 
     String strDestination;
 
@@ -372,16 +374,16 @@ class MessageLoggerPanel extends JPanel
 		
 	Iterator<Parameter>  parameterDestination;
 
-	if(bCreateNew){
+	if (bCreateNew) {
 	    serviceMessageLogger.updateParameter(strDestination,"PSet","");
 	    pSetDestination=(PSetParameter)serviceMessageLogger.parameter(strDestination);
 	    parameterDestination=pSetDestination.parameterIterator();
 	    
-	}else{
+	} else {
 
-	    if(strDestination.equals("")){
+	    if (strDestination.equals("")) {
 		parameterDestination=serviceMessageLogger.parameterIterator();
-	    }else{
+	    } else {
 		pSetDestination=(PSetParameter)serviceMessageLogger.parameter(strDestination);
 		parameterDestination=pSetDestination.parameterIterator();
 	    }
@@ -394,11 +396,11 @@ class MessageLoggerPanel extends JPanel
 	    String    parameterType = param.type();
 	   
      
-	    if(parameterName.equals("threshold")){
+	    if (parameterName.equals("threshold")) {
 		String strThreshold=(String)param.valueAsString();
 		strThreshold=strThreshold.replace("\"","");
-		for(int iJ=0;iJ<jComboBoxThreshold.getItemCount();iJ++){
-		    if(((String)jComboBoxThreshold.getItemAt(iJ)).equals(strThreshold)){
+		for(int iJ=0;iJ<jComboBoxThreshold.getItemCount();iJ++) {
+		    if (((String)jComboBoxThreshold.getItemAt(iJ)).equals(strThreshold)) {
 			jComboBoxThreshold.setSelectedIndex(iJ);
 			break;
 		    }   
@@ -406,11 +408,11 @@ class MessageLoggerPanel extends JPanel
 		parameterThreshold=(StringParameter)param;
 	    }
 
-	    if(parameterName.equals("limit")){
+	    if (parameterName.equals("limit")) {
 		String strLimit=(String)param.valueAsString();
 		strLimit=strLimit.replace("\"","");
-		for(int iJ=0;iJ<jComboBoxLimit.getItemCount();iJ++){
-		    if(((String)jComboBoxLimit.getItemAt(iJ)).equals(strLimit)){
+		for(int iJ=0;iJ<jComboBoxLimit.getItemCount();iJ++) {
+		    if (((String)jComboBoxLimit.getItemAt(iJ)).equals(strLimit)) {
 			jComboBoxLimit.setSelectedIndex(iJ);
 			break;
 		    }   
@@ -420,11 +422,11 @@ class MessageLoggerPanel extends JPanel
 
 
 	    
-	    if(parameterName.equals("timespan")){
+	    if (parameterName.equals("timespan")) {
 		String strSpan=(String)param.valueAsString();
 		strSpan=strSpan.replace("\"","");
-		for(int iJ=0;iJ<jComboBoxTimeSpan.getItemCount();iJ++){
-		    if(((String)jComboBoxTimeSpan.getItemAt(iJ)).equals(strSpan)){
+		for(int iJ=0;iJ<jComboBoxTimeSpan.getItemCount();iJ++) {
+		    if (((String)jComboBoxTimeSpan.getItemAt(iJ)).equals(strSpan)) {
 			jComboBoxTimeSpan.setSelectedIndex(iJ);
 			break;
 		    }   
@@ -432,33 +434,40 @@ class MessageLoggerPanel extends JPanel
 		parameterSpan=(StringParameter)param;
 	    }
 
-	    if(parameterName.equals("suppressInfo")){
+	    if (parameterName.equals("suppressInfo")) {
 		parameterSupressInfo=(VStringParameter)param;
-		for(int i=0;i<parameterSupressInfo.vectorSize();i++){
+		for(int i=0;i<parameterSupressInfo.vectorSize();i++) {
 		    String strSupressInfo=(String)parameterSupressInfo.value(i);
 		    tmProducts.selectRowColumn(products,strSupressInfo,1);
 		}
 	    }
 	    
-	    if(parameterName.equals("suppressDebug")){
+	    if (parameterName.equals("suppressDebug")) {
 		parameterSupressDebug=(VStringParameter)param;
-		for(int i=0;i<parameterSupressDebug.vectorSize();i++){
+		for(int i=0;i<parameterSupressDebug.vectorSize();i++) {
 		    String strSupressDebug=(String)parameterSupressDebug.value(i);
 		    tmProducts.selectRowColumn(products,strSupressDebug,2);
 		}
 	    }
-	    if(parameterName.equals("suppressWarning")){
+	    if (parameterName.equals("suppressWarning")) {
 		parameterSupressWarning=(VStringParameter)param;
-		for(int i=0;i<parameterSupressWarning.vectorSize();i++){
+		for(int i=0;i<parameterSupressWarning.vectorSize();i++) {
 		    String strSupressWarning=(String)parameterSupressWarning.value(i);
 		    tmProducts.selectRowColumn(products,strSupressWarning,3);
+		}
+	    }
+	    if (parameterName.equals("suppressError")) {
+		parameterSupressError=(VStringParameter)param;
+		for(int i=0;i<parameterSupressError.vectorSize();i++) {
+		    String strSupressError=(String)parameterSupressError.value(i);
+		    tmProducts.selectRowColumn(products,strSupressError,4);
 		}
 	    }
 	}
 
 
-	if(parameterThreshold==null){
-	    if(strDestination.equals("")) {
+	if (parameterThreshold==null) {
+	    if (strDestination.equals("")) {
 		serviceMessageLogger.updateParameter("threshold",
 						     "string",
 						     "Info");
@@ -476,11 +485,11 @@ class MessageLoggerPanel extends JPanel
 	}
 
 	
-	if(parameterLimit==null){
-	    if(strDestination.equals("")){
+	if (parameterLimit==null) {
+	    if (strDestination.equals("")) {
 		serviceMessageLogger.updateParameter("limit","string","");
 		parameterLimit=(StringParameter)serviceMessageLogger.parameter("limit");
-	    }else{
+	    } else {
 		parameterLimit=new StringParameter("limit","",false);
 		pSetDestination.addParameter(parameterLimit);
 	    }
@@ -488,54 +497,50 @@ class MessageLoggerPanel extends JPanel
 	}
 
 
-	if(parameterSpan==null){
-	    if(strDestination.equals("")){
+	if (parameterSpan==null) {
+	    if (strDestination.equals("")) {
 		serviceMessageLogger.updateParameter("timespan","string","");
 		parameterSpan=(StringParameter)serviceMessageLogger.parameter("timespan");
-	    }else{
+	    } else {
 		parameterSpan=new StringParameter("timespan","",false);
 		pSetDestination.addParameter(parameterSpan);
 	    }
 		    
 	}
 
-	if(parameterSupressInfo==null){
-	    if(strDestination.equals("")){
-		serviceMessageLogger.updateParameter("suppressInfo","vstring","");
-		parameterSupressInfo=(VStringParameter)serviceMessageLogger.parameter("suppressInfo");
-	    }else{
-		parameterSupressInfo =
-		    new VStringParameter("suppressInfo","",false);
-		pSetDestination.addParameter(parameterSupressInfo);
+	if (parameterSupressError == null) {
+	    if (strDestination.equals("")) {
+		serviceMessageLogger.updateParameter("suppressError", "vstring", "");
+		parameterSupressError = (VStringParameter) serviceMessageLogger.parameter("suppressError");
+	    } else {
+		parameterSupressError = new VStringParameter("suppressError", "", false);
+		pSetDestination.addParameter(parameterSupressError);
 	    }
-		    
 	}
-	
-	if(parameterSupressWarning==null) {
-	   
-	    if(strDestination.equals("")) {
-		serviceMessageLogger.updateParameter("suppressWarning",
-						     "vstring","");
-		parameterSupressWarning =
-		    (VStringParameter)serviceMessageLogger
-		    .parameter("suppressWarning");
-	    }else{
-		parameterSupressWarning =
-		    new VStringParameter("suppressWarning","",false);
+	if (parameterSupressWarning == null) {
+	    if (strDestination.equals("")) {
+		serviceMessageLogger.updateParameter("suppressWarning", "vstring", "");
+		parameterSupressWarning = (VStringParameter) serviceMessageLogger.parameter("suppressWarning");
+	    } else {
+		parameterSupressWarning = new VStringParameter("suppressWarning", "", false);
 		pSetDestination.addParameter(parameterSupressWarning);
 	    }
 	}
-	if (parameterSupressDebug==null) {
-	   
+	if (parameterSupressInfo == null) {
 	    if (strDestination.equals("")) {
-		serviceMessageLogger.updateParameter("suppressDebug",
-						     "vstring","");
-		parameterSupressDebug =
-		    (VStringParameter)serviceMessageLogger
-		    .parameter("suppressDebug");
-	    }else{
-		parameterSupressDebug =
-		    new VStringParameter("suppressDebug","",false);
+		serviceMessageLogger.updateParameter("suppressInfo", "vstring", "");
+		parameterSupressInfo=(VStringParameter)serviceMessageLogger.parameter("suppressInfo");
+	    } else {
+		parameterSupressInfo = new VStringParameter("suppressInfo", "", false);
+		pSetDestination.addParameter(parameterSupressInfo);
+	    }
+	}
+	if (parameterSupressDebug == null) {
+	    if (strDestination.equals("")) {
+		serviceMessageLogger.updateParameter("suppressDebug", "vstring", "");
+		parameterSupressDebug = (VStringParameter) serviceMessageLogger.parameter("suppressDebug");
+	    } else {
+		parameterSupressDebug = new VStringParameter("suppressDebug","",false);
 		pSetDestination.addParameter(parameterSupressDebug);
 	    }
 	}	
@@ -543,20 +548,20 @@ class MessageLoggerPanel extends JPanel
 
     
 
-    private void initGuiTransientData(){
+    private void initGuiTransientData() {
 	thresholdsArrayList.add("");
 	thresholdsArrayList.add("INFO");
 	thresholdsArrayList.add("DEBUG");
 	thresholdsArrayList.add("WARNING");
 	thresholdsArrayList.add("ERROR");
 
-	for(int i=0;i<10;i++){
+	for(int i=0;i<10;i++) {
 	    limitArrayList.add(""+i);
 	}
 	limitArrayList.add("50");
 	limitArrayList.add("100");
 	
-	for(int i=0;i<10;i++){
+	for(int i=0;i<10;i++) {
 	    spanArrayList.add(""+i*100);
 	}
 	
@@ -564,13 +569,13 @@ class MessageLoggerPanel extends JPanel
 
 
 
-    private void initGuiComponents(){
+    private void initGuiComponents() {
 
 	cbmOutputThreshold=(DefaultComboBoxModel)jComboBoxThreshold.getModel();
 	cbmOutputThreshold.removeAllElements();
 
 	Iterator<String> it = thresholdsArrayList.iterator();
-	while (it.hasNext()){
+	while (it.hasNext()) {
 	    String strTemp=it.next();
 	    cbmOutputThreshold.addElement(strTemp);
 	}
@@ -580,7 +585,7 @@ class MessageLoggerPanel extends JPanel
 	cbmOutputLimit.addElement("");
 
 	it = limitArrayList.iterator();
-	while (it.hasNext()){
+	while (it.hasNext()) {
 	    String strTemp=it.next();
 	    cbmOutputLimit.addElement(strTemp);
 	}
@@ -589,7 +594,7 @@ class MessageLoggerPanel extends JPanel
 	cbmOutputTimeSpan.removeAllElements();
 	cbmOutputTimeSpan.addElement("");
 	it = spanArrayList.iterator();
-	while (it.hasNext()){
+	while (it.hasNext()) {
 	    String strTemp=it.next();
 	    cbmOutputTimeSpan.addElement(strTemp);
 	}
@@ -638,54 +643,62 @@ class MessageLoggerPanel extends JPanel
     }
     
 
-    public void commitTransient(){
+    public void commitTransient() {
 
 
-	if(jComboBoxThreshold.getSelectedIndex()>0){
+	if (jComboBoxThreshold.getSelectedIndex()>0) {
 	    String strThreshold=(String)jComboBoxThreshold.getSelectedItem();
 	    serviceMessageLogger.updateParameter(parameterThreshold.fullName(),parameterThreshold.type(),strThreshold);
 	}
 
-	if(jComboBoxLimit.getSelectedIndex()>0){
+	if (jComboBoxLimit.getSelectedIndex()>0) {
 	    String strLimit=(String)jComboBoxLimit.getSelectedItem();
 	    serviceMessageLogger.updateParameter(parameterLimit.fullName(),parameterLimit.type(),strLimit);
 	}
 
-	if(jComboBoxTimeSpan.getSelectedIndex()>0){
+	if (jComboBoxTimeSpan.getSelectedIndex()>0) {
 	    String strTimeSpan=(String)jComboBoxTimeSpan.getSelectedItem();
 	    serviceMessageLogger.updateParameter(parameterSpan.fullName(),parameterSpan.type(),strTimeSpan);
 	}
 
 	Iterator<ProductLogger> it = products.values().iterator();
        
-	String strSupressInfo="";
-	String strSupressDebug="";
-	String strSupressWarning="";
+	String strSupressInfo    = "";
+	String strSupressDebug   = "";
+	String strSupressWarning = "";
+	String strSupressError   = "";
 
-	while (it.hasNext()){
+	while (it.hasNext()) {
 	    ProductLogger temp=it.next();
 
-	    if(temp.info==true){
-		if(strSupressInfo==""){
+	    if (temp.info==true) {
+		if (strSupressInfo=="") {
 		    strSupressInfo="\""+temp.label+"\"";
-		}else{
+		} else {
 		    strSupressInfo=strSupressInfo+",\""+temp.label+"\"";
 		}
 	    }
 	    
 	 
-	    if(temp.debug==true){
-		if(strSupressDebug==""){
+	    if (temp.debug==true) {
+		if (strSupressDebug=="") {
 		    strSupressDebug="\""+temp.label+"\"";
-		}else{
+		} else {
 		    strSupressDebug=strSupressDebug+",\""+temp.label+"\"";
 		}
 	    }
-	    if(temp.warning==true){
-		if(strSupressWarning==""){
+	    if (temp.warning==true) {
+		if (strSupressWarning=="") {
 		    strSupressWarning="\""+temp.label+"\"";
-		}else{
+		} else {
 		    strSupressWarning=strSupressWarning+",\""+temp.label+"\"";
+		}
+	    }
+	    if (temp.error==true) {
+		if (strSupressError=="") {
+		    strSupressError="\""+temp.label+"\"";
+		} else {
+		    strSupressError=strSupressError+",\""+temp.label+"\"";
 		}
 	    }
 	}
@@ -694,6 +707,7 @@ class MessageLoggerPanel extends JPanel
 	serviceMessageLogger.updateParameter(parameterSupressInfo.fullName(),parameterSupressInfo.type(),strSupressInfo);
 	serviceMessageLogger.updateParameter(parameterSupressDebug.fullName(),parameterSupressDebug.type(),strSupressDebug);
 	serviceMessageLogger.updateParameter(parameterSupressWarning.fullName(),parameterSupressWarning.type(),strSupressWarning);
+	serviceMessageLogger.updateParameter(parameterSupressError.fullName(),parameterSupressError.type(),strSupressError);
 
     }
     
@@ -706,7 +720,7 @@ class MessageLoggerPanel extends JPanel
    
     private void jButtonMessageActionPerformed(ActionEvent e)
     {
-	if(bSupMessage)
+	if (bSupMessage)
 	    bSupMessage=false;
 	else
 	    bSupMessage=true;
@@ -724,9 +738,9 @@ class MessageLoggerPanel extends JPanel
     
     private void jCheckBoxShowSelectedActionPerformed(ActionEvent e)
     {
-	if(jCheckBoxShowSelected.isSelected()){
+	if (jCheckBoxShowSelected.isSelected()) {
 	    tmProducts.update(products,true);
-	}else{
+	} else {
 	    tmProducts.update(products,false);
 	}
     }
@@ -736,35 +750,39 @@ class MessageLoggerPanel extends JPanel
     
     private void jCheckBoxInfoActionPerformed(ActionEvent e)
     {
-	if(jCheckBoxInfo.isSelected()){
+	if (jCheckBoxInfo.isSelected()) {
 	    tmProducts.toggleSelectionAll(products,true,1);
-	}else{
+	} else {
 	    tmProducts.toggleSelectionAll(products,false,1);
 	}
-	    
     }
   
     private void jCheckBoxDebugActionPerformed(ActionEvent e)
     {
-	if(jCheckBoxDebug.isSelected()){
+	if (jCheckBoxDebug.isSelected()) {
 	    tmProducts.toggleSelectionAll(products,true,2);
-	}else{
+	} else {
 	    tmProducts.toggleSelectionAll(products,false,2);
 	}
-	    
     }
 
     private void jCheckBoxWarningActionPerformed(ActionEvent e)
     {
-	if(jCheckBoxWarning.isSelected()){
+	if (jCheckBoxWarning.isSelected()) {
 	    tmProducts.toggleSelectionAll(products,true,3);
-	}else{
+	} else {
 	    tmProducts.toggleSelectionAll(products,false,3);
 	}
-	    
     }
 
-    
+    private void jCheckBoxErrorActionPerformed(ActionEvent e)
+    {
+	if (jCheckBoxError.isSelected()) {
+	    tmProducts.toggleSelectionAll(products,true,3);
+	} else {
+	    tmProducts.toggleSelectionAll(products,false,3);
+	}
+    }
 
     
     //Create products
@@ -825,19 +843,22 @@ class MessageLoggerPanel extends JPanel
    
 	JLabel jLabelSuppressAll = new JLabel();
 	jLabelSuppressAll.setText("Suppress All");
+
 	jCheckBoxInfo.setFont(new java.awt.Font("Dialog", 1, 12));
        	jCheckBoxInfo.setSelected(false);
         jCheckBoxInfo.setText("info");
-
 
 	jCheckBoxDebug.setFont(new java.awt.Font("Dialog", 1, 12));
 	jCheckBoxDebug.setSelected(false);
         jCheckBoxDebug.setText("debug");
 
-
 	jCheckBoxWarning.setFont(new java.awt.Font("Dialog", 1, 12));
 	jCheckBoxWarning.setSelected(false);
-        jCheckBoxWarning.setText("warining");
+        jCheckBoxWarning.setText("warning");
+
+	jCheckBoxError.setFont(new java.awt.Font("Dialog", 1, 12));
+	jCheckBoxError.setSelected(false);
+        jCheckBoxError.setText("error");
 
 	jCheckBoxShowSelected.setFont(new java.awt.Font("Dialog", 1, 12));
 	jCheckBoxShowSelected.setSelected(false);
@@ -864,20 +885,24 @@ class MessageLoggerPanel extends JPanel
 						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
 						 .add(jLabelTimeSpan)
 						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						 .add(jComboBoxTimeSpan, 0, 100, Short.MAX_VALUE))
-					     .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
-						  .add(jCheckBoxShowSelected)
-						  .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						  .add(jLabelSuppressAll)
-						  .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						  .add(jCheckBoxInfo)
-						  .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						  .add(jCheckBoxDebug)
-						  .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						  .add(jCheckBoxWarning)))
-				              .addContainerGap())
-					 
-				       );
+						 .add(jComboBoxTimeSpan, 0, 100, Short.MAX_VALUE)
+                                                 )
+					    .add(org.jdesktop.layout.GroupLayout.LEADING, layout.createSequentialGroup()
+						 .add(jCheckBoxShowSelected)
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(jLabelSuppressAll)
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(jCheckBoxInfo)
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(jCheckBoxDebug)
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(jCheckBoxWarning)
+						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+						 .add(jCheckBoxError)
+                                                 )
+                                            )
+				       .addContainerGap())
+                                       );
 				       
 	//        layout.linkSize(new java.awt.Component[] {jButtonApply, jButtonCancel, jButtonOK}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
 	
@@ -902,7 +927,8 @@ class MessageLoggerPanel extends JPanel
 					  .add(jLabelSuppressAll)
 					  .add(jCheckBoxInfo)
 					  .add(jCheckBoxDebug)
-					  .add(jCheckBoxWarning))
+					  .add(jCheckBoxWarning)
+					  .add(jCheckBoxError))
 				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
 				
 
@@ -928,7 +954,7 @@ class ProductTableLoggerModel extends AbstractTableModel
     private ArrayList<ProductLogger> products = new ArrayList<ProductLogger>();
     
     /** column names */
-    private static String[] columnNames = {"Module","Info","Debug","Warning"};
+    private static String[] columnNames = {"Module","Info","Debug","Warning","Error"};
     
     Boolean bShowSelected;
     
@@ -941,13 +967,13 @@ class ProductTableLoggerModel extends AbstractTableModel
        
 	this.bShowSelected=bShowSelected;
 
-	while (it.hasNext()){
+	while (it.hasNext()) {
 	    ProductLogger temp=it.next();
-	    if(bShowSelected){
-		if(temp.info||temp.debug||temp.warning){
+	    if (bShowSelected) {
+		if (temp.info||temp.debug||temp.warning) {
 		    products.add(temp);
 		}
-	    }else{
+	    } else {
 		products.add(temp);
 	    }
 	}
@@ -960,22 +986,24 @@ class ProductTableLoggerModel extends AbstractTableModel
 	products.clear();
 	Iterator<ProductLogger> it = map.values().iterator();
        
-	while (it.hasNext()){
+	while (it.hasNext()) {
 	    ProductLogger temp=it.next();
-	    if(bShowSelected){
-		if(temp.info||temp.debug||temp.warning){
+	    if (bShowSelected) {
+		if (temp.info||temp.debug||temp.warning||temp.error) {
 		    switch (iCol) {
-		    case 1 : temp.info = bToggleSelection;break;
-		    case 2 : temp.debug = bToggleSelection;break;
-		    case 3 : temp.warning = bToggleSelection;break;
+		    case 1 : temp.info    = bToggleSelection; break;
+		    case 2 : temp.debug   = bToggleSelection; break;
+		    case 3 : temp.warning = bToggleSelection; break;
+		    case 4 : temp.error   = bToggleSelection; break;
 		    }
 		    products.add(temp);
 		}
-	    }else{
+	    } else {
 		switch (iCol) {
-		case 1 : temp.info = bToggleSelection;break;
-		case 2 : temp.debug = bToggleSelection;break;
-		case 3 : temp.warning = bToggleSelection;break;
+		case 1 : temp.info    = bToggleSelection; break;
+		case 2 : temp.debug   = bToggleSelection; break;
+		case 3 : temp.warning = bToggleSelection; break;
+		case 4 : temp.error   = bToggleSelection; break;
 		}
 		products.add(temp);
 	    }
@@ -990,13 +1018,14 @@ class ProductTableLoggerModel extends AbstractTableModel
 	products.clear();
 	Iterator<ProductLogger> it = map.values().iterator();
        
-	while (it.hasNext()){
+	while (it.hasNext()) {
 	    ProductLogger temp=it.next();
-	    if(temp.label.equals(strModule)){
+	    if (temp.label.equals(strModule)) {
 		switch (iCol) {
-		case 1 : temp.info = true;break;
-		case 2 : temp.debug = true;break;
-		case 3 : temp.warning = true;break;
+		case 1 : temp.info    = true; break;
+		case 2 : temp.debug   = true; break;
+		case 3 : temp.warning = true; break;
+		case 4 : temp.error   = true; break;
 		}
 	    }
 	    products.add(temp);
@@ -1025,6 +1054,7 @@ class ProductTableLoggerModel extends AbstractTableModel
 	case 1 : return product.info;
 	case 2 : return product.debug;
 	case 3 : return product.warning;
+	case 4 : return product.error;
 	}
 	return null;
     }
@@ -1044,9 +1074,10 @@ class ProductTableLoggerModel extends AbstractTableModel
 	if (col==0) return;
 	ProductLogger product = products.get(row);
 	
-	if      (col==1) product.info      = (Boolean)value;
+	if      (col==1) product.info    = (Boolean)value;
 	else if (col==2) product.debug   = (Boolean)value;
 	else if (col==3) product.warning = (Boolean)value;
+	else if (col==4) product.error   = (Boolean)value;
     }
 }
     
@@ -1057,9 +1088,10 @@ class ProductTableLoggerModel extends AbstractTableModel
 class ProductLogger implements Comparable<ProductLogger>
 {
     public String  label = "";
-    public Boolean info = false;
-    public Boolean debug = false;
+    public Boolean info    = false;
+    public Boolean debug   = false;
     public Boolean warning = false;
+    public Boolean error   = false;
 
     public ProductLogger(String label) { this.label = label; }
 
