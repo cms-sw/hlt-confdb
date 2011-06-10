@@ -262,169 +262,178 @@ public class Diff
 	}
     }
     
+    /** Compare a subset of components of the same type. */
+    /** Usage: after import all components. */
+    public void compare(String type, ArrayList<String> items) {
+		if(type.equalsIgnoreCase("Path")) {
+	    	for(int i=0; i < items.size(); i++) {
+	    	    Path path2 = config1.path(items.get(i));
+	    	    Path path1 = config2.path(items.get(i));
+	    	    Comparison c = compareContainers(path1,path2);
+	    	    if (!c.isIdentical()) paths.add(c);
+	    	}
+		} else if (type.equalsIgnoreCase("Sequence")) {
+	    	for(int i=0; i < items.size(); i++) {
+	    	    Sequence seq1 = config1.sequence(items.get(i));
+	    	    Sequence seq2 = config2.sequence(items.get(i));
+	    	    Comparison c = compareContainers(seq1, seq2);
+	    	    if (!c.isIdentical()) sequences.add(c);
+	    	}
+		} else if (type.equalsIgnoreCase("EDSource")) {
+			for(int i=0; i < items.size(); i++) {
+			    EDSourceInstance edsold = config1.edsource(items.get(i));
+			    EDSourceInstance edsnew = config2.edsource(items.get(i));
+			    Comparison c = compareInstances(edsold,edsnew);
+			    if (!c.isIdentical()) edsources.add(c);
+			}
+		} else if (type.equalsIgnoreCase("ESSource")) {
+			for(int i=0; i < items.size(); i++) {
+			    ESSourceInstance essold = config1.essource(items.get(i));
+			    ESSourceInstance essnew = config2.essource(items.get(i));
+			    Comparison c = compareInstances(essold,essnew);
+			    if (!c.isIdentical()) essources.add(c);
+			}
+		} else if (type.equalsIgnoreCase("ESModule")) {
+			for(int i=0; i < items.size(); i++) {
+			    ESModuleInstance esmodold = config1.esmodule(items.get(i));
+			    ESModuleInstance esmodnew = config2.esmodule(items.get(i));
+			    Comparison c = compareInstances(esmodold,esmodnew);
+			    if (!c.isIdentical()) esmodules.add(c);
+			}
+		} else if (type.equalsIgnoreCase("Service"))  {
+			for(int i=0; i < items.size(); i++) {
+			    ServiceInstance servold = config1.service(items.get(i));
+			    ServiceInstance servnew = config2.service(items.get(i));
+			    Comparison c = compareInstances(servold,servnew);
+			    if (!c.isIdentical()) services.add(c);
+			}
+		} else if (type.equalsIgnoreCase("PSet")){
+			for(int i=0; i < items.size(); i++) {
+			    PSetParameter pset1 = config1.pset(items.get(i));
+			    PSetParameter pset2 = config2.pset(items.get(i));
+			    Comparison c = comparePSets(pset1,pset2);
+			    if (!c.isIdentical()) psets.add(c);	
+			}
+		} else {
+			// by default:
+			for(int i=0; i < items.size(); i++) {
+				String search = type + ":" + items.get(i);
+				this.compare(search);
+			}	
+		}    	
+    }
     
     /** compare specific components */
     public void compare(String search)
     {
-	String   type    = search.split(":")[0];
-
-	if(search.split(":").length > 1) {
-		// many names to compare
-		String[] names   = search.split(":")[1].split(",");
-		String   oldName = names[0];
-		String   newName = (names.length>1) ? names[1] : oldName;
-
-		if (type.equalsIgnoreCase("PSet")) {
-		    PSetParameter psetold = config1.pset(oldName);
-		    PSetParameter psetnew = config2.pset(newName);
-		    Comparison c = comparePSets(psetold,psetnew);
-		    if (!c.isIdentical()) psets.add(c);
-		}
-		else if (type.equalsIgnoreCase("EDSource")||
-			 type.equalsIgnoreCase("eds")) {
-		    EDSourceInstance edsold = config1.edsource(oldName);
-		    EDSourceInstance edsnew = config2.edsource(newName);
-		    Comparison c = compareInstances(edsold,edsnew);
-		    if (!c.isIdentical()) edsources.add(c);
-		}
-		else if (type.equalsIgnoreCase("ESSource")||
-			 type.equalsIgnoreCase("ess")) {
-		    ESSourceInstance essold = config1.essource(oldName);
-		    ESSourceInstance essnew = config2.essource(newName);
-		    Comparison c = compareInstances(essold,essnew);
-		    if (!c.isIdentical()) essources.add(c);
-		}
-		else if (type.equalsIgnoreCase("ESModule")||
-			 type.equalsIgnoreCase("esm")) {
-		    ESModuleInstance esmold = config1.esmodule(oldName);
-		    ESModuleInstance esmnew = config2.esmodule(newName);
-		    Comparison c = compareInstances(esmold,esmnew);
-		    if (!c.isIdentical()) esmodules.add(c);
-		}
-		else if (type.equalsIgnoreCase("Service")||
-			 type.equalsIgnoreCase("svc")) {
-		    ServiceInstance svcold = config1.service(oldName);
-		    ServiceInstance svcnew = config2.service(newName);
-		    Comparison c = compareInstances(svcold,svcnew);
-		    if (!c.isIdentical()) services.add(c);
-		}
-		else if (type.equalsIgnoreCase("Module")||
-			 type.equalsIgnoreCase("m")) {
-		    ModuleInstance mold = config1.module(oldName);
-		    ModuleInstance mnew = config2.module(newName);
-		    Comparison c = compareInstances(mold,mnew);
-		    if (!c.isIdentical()) modules.add(c);
-		}
-		else if (type.equalsIgnoreCase("OutputModule")||
-			 type.equalsIgnoreCase("om")) {
-		    OutputModule omold = config1.output(oldName);
-		    OutputModule omnew = config2.output(newName);
-		    Comparison c = compareOutputModules(omold,omnew);
-		    if (!c.isIdentical()) modules.add(c);
-		}
-		else if (type.equalsIgnoreCase("EventContent")||
-			 type.equalsIgnoreCase("ec")) {
-		    EventContent ecold = config1.content(oldName);
-		    EventContent ecnew = config2.content(newName);
-		    Comparison c = compareEventContents(ecold,ecnew);
-		    if (!c.isIdentical()) contents.add(c);
-		}
-		else if (type.equalsIgnoreCase("Path")||
-			 type.equalsIgnoreCase("p")) {
-		    Path pold = config1.path(oldName);
-		    Path pnew = config2.path(newName);
-		    Comparison c = compareContainers(pold,pnew);
-		    if (!c.isIdentical()) {
-			paths.add(c);
-			Iterator<Comparison> it = c.recursiveComparisonIterator();
-			while (it.hasNext()) {
-			    Comparison cc = it.next();
-			    if (cc instanceof ContainerComparison) sequences.add(cc);
-			    else if (cc instanceof InstanceComparison) modules.add(cc);
+		String   type    = search.split(":")[0];
+	
+		if(search.split(":").length > 1) {
+			// many names to compare
+			String[] names   = search.split(":")[1].split(",");
+			String   oldName = names[0];
+			String   newName = (names.length>1) ? names[1] : oldName;
+	
+			if (type.equalsIgnoreCase("PSet")) {
+			    PSetParameter psetold = config1.pset(oldName);
+			    PSetParameter psetnew = config2.pset(newName);
+			    Comparison c = comparePSets(psetold,psetnew);
+			    if (!c.isIdentical()) psets.add(c);
 			}
-		    }
-		}
-		else if (type.equalsIgnoreCase("Sequence")||
-			 type.equalsIgnoreCase("s")) {
-		    Sequence sold = config1.sequence(oldName);
-		    Sequence snew = config2.sequence(newName);
-		    Comparison c = compareContainers(sold,snew);
-		    if (!c.isIdentical()) {
-				sequences.add(c);
+			else if (type.equalsIgnoreCase("EDSource")||
+				 type.equalsIgnoreCase("eds")) {
+			    EDSourceInstance edsold = config1.edsource(oldName);
+			    EDSourceInstance edsnew = config2.edsource(newName);
+			    Comparison c = compareInstances(edsold,edsnew);
+			    if (!c.isIdentical()) edsources.add(c);
+			}
+			else if (type.equalsIgnoreCase("ESSource")||
+				 type.equalsIgnoreCase("ess")) {
+			    ESSourceInstance essold = config1.essource(oldName);
+			    ESSourceInstance essnew = config2.essource(newName);
+			    Comparison c = compareInstances(essold,essnew);
+			    if (!c.isIdentical()) essources.add(c);
+			}
+			else if (type.equalsIgnoreCase("ESModule")||
+				 type.equalsIgnoreCase("esm")) {
+			    ESModuleInstance esmold = config1.esmodule(oldName);
+			    ESModuleInstance esmnew = config2.esmodule(newName);
+			    Comparison c = compareInstances(esmold,esmnew);
+			    if (!c.isIdentical()) esmodules.add(c);
+			}
+			else if (type.equalsIgnoreCase("Service")||
+				 type.equalsIgnoreCase("svc")) {
+			    ServiceInstance svcold = config1.service(oldName);
+			    ServiceInstance svcnew = config2.service(newName);
+			    Comparison c = compareInstances(svcold,svcnew);
+			    if (!c.isIdentical()) services.add(c);
+			}
+			else if (type.equalsIgnoreCase("Module")||
+				 type.equalsIgnoreCase("m")) {
+			    ModuleInstance mold = config1.module(oldName);
+			    ModuleInstance mnew = config2.module(newName);
+			    Comparison c = compareInstances(mold,mnew);
+			    if (!c.isIdentical()) modules.add(c);
+			}
+			else if (type.equalsIgnoreCase("OutputModule")||
+				 type.equalsIgnoreCase("om")) {
+			    OutputModule omold = config1.output(oldName);
+			    OutputModule omnew = config2.output(newName);
+			    Comparison c = compareOutputModules(omold,omnew);
+			    if (!c.isIdentical()) modules.add(c);
+			}
+			else if (type.equalsIgnoreCase("EventContent")||
+				 type.equalsIgnoreCase("ec")) {
+			    EventContent ecold = config1.content(oldName);
+			    EventContent ecnew = config2.content(newName);
+			    Comparison c = compareEventContents(ecold,ecnew);
+			    if (!c.isIdentical()) contents.add(c);
+			}
+			else if (type.equalsIgnoreCase("Path")||
+				 type.equalsIgnoreCase("p")) {
+			    Path pold = config1.path(oldName);
+			    Path pnew = config2.path(newName);
+			    Comparison c = compareContainers(pold,pnew);
+			    if (!c.isIdentical()) {
+				paths.add(c);
 				Iterator<Comparison> it = c.recursiveComparisonIterator();
 				while (it.hasNext()) {
 				    Comparison cc = it.next();
 				    if (cc instanceof ContainerComparison) sequences.add(cc);
-				    else if (cc instanceof InstanceComparison)  modules.add(cc);
+				    else if (cc instanceof InstanceComparison) modules.add(cc);
 				}
-		    }
+			    }
+			}
+			else if (type.equalsIgnoreCase("Sequence")||
+				 type.equalsIgnoreCase("s")) {
+			    Sequence sold = config1.sequence(oldName);
+			    Sequence snew = config2.sequence(newName);
+			    Comparison c = compareContainers(sold,snew);
+			    if (!c.isIdentical()) {
+					sequences.add(c);
+					Iterator<Comparison> it = c.recursiveComparisonIterator();
+					while (it.hasNext()) {
+					    Comparison cc = it.next();
+					    if (cc instanceof ContainerComparison) sequences.add(cc);
+					    else if (cc instanceof InstanceComparison)  modules.add(cc);
+					}
+			    }
+			}
+			else if (type.equalsIgnoreCase("Stream")) {
+			    Stream sold = config1.stream(oldName);
+			    Stream snew = config2.stream(newName);
+			    Comparison c = compareStreams(sold,snew);
+			    if (!c.isIdentical()) streams.add(c);
+			}
+			else if (type.equalsIgnoreCase("Dataset")||
+				 type.equalsIgnoreCase("d")) {
+			    PrimaryDataset dold = config1.dataset(oldName);
+			    PrimaryDataset dnew = config2.dataset(newName);
+			    Comparison c = compareDatasets(dold,dnew);
+			    if (!c.isIdentical()) datasets.add(c);
+			}
+			
 		}
-		else if (type.equalsIgnoreCase("Stream")) {
-		    Stream sold = config1.stream(oldName);
-		    Stream snew = config2.stream(newName);
-		    Comparison c = compareStreams(sold,snew);
-		    if (!c.isIdentical()) streams.add(c);
-		}
-		else if (type.equalsIgnoreCase("Dataset")||
-			 type.equalsIgnoreCase("d")) {
-		    PrimaryDataset dold = config1.dataset(oldName);
-		    PrimaryDataset dnew = config2.dataset(newName);
-		    Comparison c = compareDatasets(dold,dnew);
-		    if (!c.isIdentical()) datasets.add(c);
-		}
-		
-	} else {
-		// compare by types
-		
-		if (type.equalsIgnoreCase("PSet")) {
-			comparePSets();
-		}
-		else if (type.equalsIgnoreCase("EDSource")||
-			 type.equalsIgnoreCase("eds")) {
-			compareEDSources();
-		}
-		else if (type.equalsIgnoreCase("ESSource")||
-			 type.equalsIgnoreCase("ess")) {
-			compareESSources();
-		}
-		else if (type.equalsIgnoreCase("ESModule")||
-			 type.equalsIgnoreCase("esm")) {
-			compareESModules();
-		}
-		else if (type.equalsIgnoreCase("Service")||
-			 type.equalsIgnoreCase("svc")) {
-			compareServices();
-		}
-		else if (type.equalsIgnoreCase("Module")||
-			 type.equalsIgnoreCase("m")) {
-			compareModules();
-		}
-		else if (type.equalsIgnoreCase("OutputModule")||
-			 type.equalsIgnoreCase("om")) {
-			compareOutputModules();
-		}
-		else if (type.equalsIgnoreCase("EventContent")||
-			 type.equalsIgnoreCase("ec")) {
-			compareEventContents();
-		}
-		else if (type.equalsIgnoreCase("Path")||
-			 type.equalsIgnoreCase("p")) {
-			comparePaths();
-		}
-		else if (type.equalsIgnoreCase("Sequence")||
-			type.equalsIgnoreCase("s")) {	
-			compareSequences();
-		}
-		else if (type.equalsIgnoreCase("Stream")) {
-			compareStreams();
-		}
-		else if (type.equalsIgnoreCase("Dataset")||
-			 type.equalsIgnoreCase("d")) {
-			compareDatasets();
-		}
-	}
-
-	
     }
     
     /** compare all paths and store all non-identical comparisons */

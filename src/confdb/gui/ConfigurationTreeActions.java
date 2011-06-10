@@ -214,7 +214,7 @@ public class ConfigurationTreeActions
     					existance = true;
     					break;
     				} 
-    			}    	    	
+    			}
     	    	
     			boolean updateAll = false;
     			if(existance) {
@@ -228,15 +228,18 @@ public class ConfigurationTreeActions
     		    	updateAll = (choice == JOptionPane.YES_OPTION);
     			}
     	    	
+    			ArrayList<String> items = new ArrayList<String>();
+    			
     			for(int i = 0; i < sm.getChildCount(external); i++) {
     				PSetParameter PSet = (PSetParameter) sm.getChild(external, i);
     				importPSet(tree, external, PSet, updateAll);
+    				items.add(PSet.name()); // register imported PSet for diff.
     			}
     			tm.updateLevel1Nodes();
     			
-    			// Shows differences between configurations. Only once at the end.
+    			// Shows differences between configurations.
     	        Diff diff = new Diff(importConfig, config);
-    	    	diff.compare("PSet");
+    	        diff.compare("PSet", items);
     	    	if (!diff.isIdentical()) {
     	    	    DiffDialog dlg = new DiffDialog(diff);
     	    	    dlg.pack();
@@ -676,28 +679,16 @@ public class ConfigurationTreeActions
         d.setVisible(true);
     	//////////////////////////////////////
     	
-		// Show differences between configurations. Only once at the end.
-        /*
-        Diff diff = new Diff(importConfig, config);
-    	diff.compare();
-    	if (!diff.isIdentical()) {
-    	    DiffDialog dlg = new DiffDialog(diff);
-    	    dlg.pack();
-    	    dlg.setVisible(true);
-    	}
-    	*/
-        
+        ArrayList<String> importedItems = worker.getImportedItems();
+    	
     	Diff diff = new Diff(importConfig,config);
-    	diff.compare(type);
+    	diff.compare(type, importedItems);
     	if (!diff.isIdentical()) {
     	    DiffDialog dlg = new DiffDialog(diff);
     	    dlg.pack();
     	    dlg.setVisible(true);
     	}
     	
-    	
-    	
-        
     	return true;
     }
    
@@ -2405,25 +2396,84 @@ public class ConfigurationTreeActions
 	        j.setMessage("Importing all items:");
 
 	        ImportAllInstancesThread worker = new ImportAllInstancesThread(tree, sm, external, updateAll, j);
-	    	worker.start();
+	    	worker.start();			
 
 	        final JDialog d = j.createDialog(j,"Importing all items");
 	        d.pack();
 	        d.setVisible(true);
 	    	//////////////////////////////////////
-		    
-			// Show differences between configurations. Only once at the end.
+	        
+	        ArrayList<String> importedItems = worker.getImportedItems();
 	        Diff diff = new Diff(importConfig, config);
-	    	diff.compare(type);
+	        diff.compare(type, importedItems); // using ArrayList.
+	    	
 	    	if (!diff.isIdentical()) {
 	    	    DiffDialog dlg = new DiffDialog(diff);
 	    	    dlg.pack();
 	    	    dlg.setVisible(true);
 	    	}
-	        
+	    	
 		    return true;
     }
 
+    /** 
+     * Update All ESModules.
+     * NOTE: ESModules are instances of Instance. but only updates make sense.
+     * */
+        public static boolean UpdateAllESModules(JTree tree, JTree sourceTree, Object external)  {
+    			ConfigurationTreeModel sm  		= (ConfigurationTreeModel) sourceTree.getModel();
+    			ConfigurationTreeModel tm    	= (ConfigurationTreeModel)tree.getModel();
+    			Configuration          config   = (Configuration)tm.getRoot();
+    			Configuration	importConfig	= (Configuration)sm.getRoot();			
+    			
+    	    	if(sm.getChildCount(external) == 0) {
+    	    		String error = "[confdb.gui.ConfigurationTreeActions.UpdateAllESModules] ERROR: Child count == 0";
+    	    		System.err.println(error);
+    	    		return false;
+    	    	}
+
+    			String type = ""; // get the type for future comparisons
+    			if(sm.getChildCount(external) > 0) {
+    				Instance instance = (Instance) sm.getChild(external, 0);
+    				if(instance instanceof ESModuleInstance) type = "ESModule";
+    				else System.err.println("[confdb.gui.ConfigurationTreeActions.UpdateAllESModules] ERROR: type mismatch!");
+    			} else return false;
+    			
+		    	int choice = JOptionPane.showConfirmDialog(null						,
+		    			" Items shared by both configurations will be overwritten.\n"+
+						"Do you want to update them?"								,
+								      "update all"									,
+								      JOptionPane.YES_NO_OPTION						);
+		    	
+		    	if(choice == JOptionPane.NO_OPTION) return false;
+
+    	    	//////////////////////////////////////
+    	        JOptionPane j = new JOptionPane();
+    	        j.setMessage("Updating shared items:");
+
+    	        UpdateAllESModulesThread worker = new UpdateAllESModulesThread(tree, sm, external, j);
+    	    	worker.start();			// UpdateAllESModulesThread
+
+    	        final JDialog d = j.createDialog(j,"Updating shared items");
+    	        d.pack();
+    	        d.setVisible(true);
+    	    	//////////////////////////////////////
+    	        
+    	        ArrayList<String> updatedItems = worker.getUpdatedItems();
+    	        Diff diff = new Diff(importConfig, config);
+    	        diff.compare(type, updatedItems); // using ArrayList.
+    	    	
+    	    	if (!diff.isIdentical()) {
+    	    	    DiffDialog dlg = new DiffDialog(diff);
+    	    	    dlg.pack();
+    	    	    dlg.setVisible(true);
+    	    	}
+    	    	
+    		    return true;
+        }
+        ////
+    
+    
 
     /*
      * replace an existing instance with the external one
@@ -2664,6 +2714,9 @@ final class ImportAllInstancesThread extends SwingWorker<String>
 	  private	Object					ext			;
 	  private	boolean					updateAll	;
 	  
+	  private	String 					type		;	// type of imported items
+	  private	ArrayList<String>		items		;	// name of imported items
+	  
 	  /** standard constructor */
 	  public ImportAllInstancesThread(JTree Tree, ConfigurationTreeModel sourceModel, Object external, boolean UpdateAll, JOptionPane panel)
 	  {
@@ -2673,6 +2726,7 @@ final class ImportAllInstancesThread extends SwingWorker<String>
 		  this.ext 			= external;
 		  this.updateAll	= UpdateAll;
 		  this.panel		= panel;
+		  this.items		= new ArrayList<String>();
 	  }
 	
 	  /** SwingWorker: construct() 
@@ -2692,6 +2746,9 @@ final class ImportAllInstancesThread extends SwingWorker<String>
 			for(int i = 0; i < sourceModel.getChildCount(ext); i++) {
 				tree.setSelectionPath(null);
 				Instance instance = (Instance) sourceModel.getChild(ext, i);
+				
+				items.add(instance.name());	// register item for diff
+				
 				////////
 				bar.setValue(i+ 1);
 				jl.setText("Count: " + i);
@@ -2705,8 +2762,9 @@ final class ImportAllInstancesThread extends SwingWorker<String>
 				    (instance instanceof ServiceInstance)&&
 				    config.service(instance.name())!=null) {
 					
-					if(updateAll)
+					if(updateAll) {
 						ConfigurationTreeActions.replaceMultipleInstances(tree,instance);
+					}
 					continue;
 				}
 				
@@ -2743,8 +2801,12 @@ final class ImportAllInstancesThread extends SwingWorker<String>
 			}
 			
 			jl.setText(sourceModel.getChildCount(ext) + " items imported!");
-     
 	      return new String("Done!");
+	  }
+	  
+	  /** Return an Array list with containers name to perform a diff operation. */
+	  public ArrayList<String> getImportedItems(){
+		  return items;
 	  }
 	  
 	
@@ -2763,6 +2825,82 @@ final class ImportAllInstancesThread extends SwingWorker<String>
 }
 
 
+
+
+
+/** Update ESModules using a different thread.  */
+final class UpdateAllESModulesThread extends SwingWorker<String>
+{
+	  /** member data */
+	  private long       				startTime	;
+	  private 	JOptionPane				panel		;
+
+	  private 	JTree 					tree		;
+	  private	ConfigurationTreeModel	sourceModel	;
+	  private	ConfigurationTreeModel	targetModel	;
+	  private	Object					ext			;
+	  private	ArrayList<String>		items		;	// name of imported items
+	  
+	  /** standard constructor */
+	  public UpdateAllESModulesThread(JTree Tree, ConfigurationTreeModel sourceModel, Object external, JOptionPane panel)
+	  {
+		  this.tree 		= Tree;
+		  this.sourceModel 	= sourceModel;
+		  this.targetModel	= (ConfigurationTreeModel)tree.getModel();
+		  this.ext 			= external;
+		  this.panel		= panel;
+		  this.items		= new ArrayList<String>();
+	  }
+	
+	  /** SwingWorker: construct() 
+	 * @throws InterruptedException */
+	  protected String construct() throws InterruptedException
+	  {
+		  	Configuration config   = (Configuration)targetModel.getRoot();
+	        JProgressBar bar = new JProgressBar(0, sourceModel.getChildCount(ext)); 
+	        bar.setValue(1);
+	        bar.setIndeterminate(false);
+	        panel.add(BorderLayout.CENTER, bar);
+	        JLabel jl = new JLabel();
+	        jl.setText("Count: 0");
+	        panel.add(BorderLayout.NORTH, jl);
+		  
+			for(int i = 0; i < sourceModel.getChildCount(ext); i++) {
+				tree.setSelectionPath(null);
+				Instance instance = (Instance) sourceModel.getChild(ext, i);
+				
+				////////
+				bar.setValue(i+ 1);
+				jl.setText("Count: " + i);
+				////////
+				if ((instance instanceof ESModuleInstance)&&
+				    config.esmodule(instance.name())!=null) {
+						ConfigurationTreeActions.replaceMultipleInstances(tree,instance);
+						items.add(instance.name());	// register item for diff
+				}
+			}
+			jl.setText(items.size() + " items updated!");
+			return new String("Done!");
+	  }
+	  
+	  /** Return an Array list with containers name to perform a diff operation. */
+	  public ArrayList<String> getUpdatedItems(){
+		  return items;
+	  }
+	  
+	  /** SwingWorker: finished */
+	  protected void finished()  {
+			  //long elapsedTime = System.currentTimeMillis() - startTime;
+			  Instance child = (Instance) sourceModel.getChild(ext, 0);
+			  if (child instanceof ESModuleInstance)	targetModel.nodeStructureChanged(targetModel.esmodulesNode());
+			  targetModel.updateLevel1Nodes();
+	  }
+}
+///
+
+
+
+
 /** Import a reference container using a different thread 
  * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4275976
  * */
@@ -2776,6 +2914,7 @@ final class ImportAllReferencesThread extends SwingWorker<String>
 	  private	ConfigurationTreeModel	targetModel	;
 	  private	Object					ext			;
 	  private	boolean					updateAll	;
+	  private	ArrayList<String>		items		;
 	  
 	  
 	  
@@ -2788,6 +2927,7 @@ final class ImportAllReferencesThread extends SwingWorker<String>
 		  this.ext 			= external;
 		  this.updateAll	= UpdateAll;
 		  this.panel		= panel;
+		  this.items		= new ArrayList<String>();
 	  }
 	
 	  /** SwingWorker: construct() 
@@ -2810,6 +2950,7 @@ final class ImportAllReferencesThread extends SwingWorker<String>
 				ConfigurationTreeActions.importMultipleReferenceContainers(tree, container, updateAll);
 				bar.setValue(progress++);
 				jl.setText("Count: " + i);
+				items.add(container.name());	// registering container name for diff.
 			}
 
 			targetModel.updateLevel1Nodes();
@@ -2822,6 +2963,11 @@ final class ImportAllReferencesThread extends SwingWorker<String>
 	  protected void finished()  {
 			  long elapsedTime = System.currentTimeMillis() - startTime;
 			  targetModel.updateLevel1Nodes();
+	  }
+	  
+	  /** Return an Array list with containers name to perform a diff operation. */
+	  public ArrayList<String> getImportedItems() {
+		  return items;
 	  }
 }
 

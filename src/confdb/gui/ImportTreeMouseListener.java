@@ -73,8 +73,8 @@ public class ImportTreeMouseListener extends MouseAdapter
 			if (child instanceof ReferenceContainer) {
 				JPopupMenu popup = new JPopupMenu();
 				JMenuItem  item = null;
-				if 		(child instanceof Path)		item = new JMenuItem("Import All Paths")	;
-				else if (child instanceof Sequence)	item = new JMenuItem("Import All Sequences");
+				if 		(child instanceof Path)		item = new JMenuItem("Import all Paths")	;
+				else if (child instanceof Sequence)	item = new JMenuItem("Import all Sequences");
 				
 			    item.addActionListener(new AddAllReferencesListener(currentTree, importTree, node));
 			    popup.add(item);
@@ -82,13 +82,18 @@ public class ImportTreeMouseListener extends MouseAdapter
 			 } else if (child instanceof Instance) {
 				JPopupMenu popup = new JPopupMenu();
 				JMenuItem	item = null;
-				if 		(child instanceof ServiceInstance) 	item = new JMenuItem("Import All Services")	;	
-				else if (child instanceof ESModuleInstance)	item = new JMenuItem("Import All ESModules");
-				else if (child instanceof ESSourceInstance)	item = new JMenuItem("Import All ESSources");
-				else if (child instanceof EDSourceInstance)	item = new JMenuItem("Import All EDSources");
-
+				if 		(child instanceof ServiceInstance) 	item = new JMenuItem("Import all Services")	;	
+				else if (child instanceof ESModuleInstance)	item = new JMenuItem("Update all existing ESModules");
+				else if (child instanceof ESSourceInstance)	item = new JMenuItem("Import all ESSources");
+				else if (child instanceof EDSourceInstance)	item = new JMenuItem("Import all EDSources");
 				if(item != null) {
-				    item.addActionListener(new AddAllInstancesListener(currentTree, importTree, node));
+					// Adding listeners:
+					if(child instanceof ESModuleInstance) {
+						item.addActionListener(new AddUpdateESModulesListener(currentTree, importTree, node));
+					} else {
+						item.addActionListener(new AddAllInstancesListener(currentTree, importTree, node));
+					}
+				    
 				    popup.add(item);
 				    popup.show(e.getComponent(),e.getX(),e.getY());					
 				}
@@ -264,6 +269,26 @@ class AddAllInstancesListener implements ActionListener {
 	// member functions
 	public void actionPerformed(ActionEvent e) {
 		ConfigurationTreeActions.ImportAllInstances(targetTree, sourceTree, container);
+	}
+}
+
+//Update shared ESModules listener class
+class AddUpdateESModulesListener implements ActionListener {
+	// member data
+	private JTree		targetTree;
+	private JTree		sourceTree;
+	private Object		container;
+	
+	// constructor
+	public AddUpdateESModulesListener(JTree targetTree, JTree sourceTree, Object container) {
+		this.targetTree	= targetTree;
+		this.sourceTree	= sourceTree;
+		this.container	= container;
+	}
+	
+	// member functions
+	public void actionPerformed(ActionEvent e) {
+		ConfigurationTreeActions.UpdateAllESModules(targetTree, sourceTree, container);
 	}
 }
 

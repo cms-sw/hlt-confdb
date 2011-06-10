@@ -1,3 +1,8 @@
+2011-06-10 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-55
+	* Present only imported items differences after importing them. (bug/feature 83085).		
+	* Change to "update all existing modules" instead of "import all modules". (bug/feature 83086).
+	
 2011-06-08  Andrea Bocci <andrea.bocci@crn.ch>
 	* tag V01-05-54
 	* MessageLogger editor: add support for discarding LogError-level messages on a per-module basis
