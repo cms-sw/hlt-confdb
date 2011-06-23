@@ -2,8 +2,8 @@ package confdb.gui;
 
 import javax.swing.*;
 import javax.swing.tree.*;
+import javax.swing.SwingWorker;
 
-import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -20,6 +20,7 @@ import confdb.data.*;
  */
 public class ConfigurationTreeActions
 {
+	  
 	
     //
     // Parameters
@@ -628,8 +629,6 @@ public class ConfigurationTreeActions
     	ConfigurationTreeModel sm  		= (ConfigurationTreeModel)sourceTree.getModel();
 		ConfigurationTreeModel tm    	= (ConfigurationTreeModel)tree.getModel();
 		Configuration          config   = (Configuration)tm.getRoot();
-		Configuration	importConfig	= (Configuration)sm.getRoot();
-		String					type	= null;
 		
     	if(sm.getChildCount(external) == 0) return false;
 
@@ -640,11 +639,9 @@ public class ConfigurationTreeActions
 			ReferenceContainer   targetContainer = null;
 			if 		(container instanceof Path) 	{
 				targetContainer = config.path(container.name())		;
-				type	= "Path";
 			}
 			else if (container instanceof Sequence)	{
 				targetContainer = config.sequence(container.name())	;
-				type	= "Sequence";
 			}
 			
 			if (targetContainer!=null) {
@@ -664,31 +661,10 @@ public class ConfigurationTreeActions
         	updateAll = (choice == JOptionPane.YES_OPTION);
     	} 
     	
-    	//////////////////////////////////////
-        JOptionPane j = new JOptionPane();
-        j.setMessage("Importing all " + type + "s:");
+        ImportAllReferencesThread worker = new ImportAllReferencesThread(tree, sourceTree, external, updateAll);
+        WorkerProgressBar progressBar = new WorkerProgressBar("Importing all references", worker);
+        progressBar.createAndShowGUI();	// Run the worker and show the progress bar.
 
-        ImportAllReferencesThread worker = new ImportAllReferencesThread(tree, sourceTree, external, updateAll, j);
-    	worker.start();
-
-        final JDialog d = j.createDialog(j,"Importing all items");
-        d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        d.setSize(300, 75);
-
-        d.pack();
-        d.setVisible(true);
-    	//////////////////////////////////////
-    	
-        ArrayList<String> importedItems = worker.getImportedItems();
-    	
-    	Diff diff = new Diff(importConfig,config);
-    	diff.compare(type, importedItems);
-    	if (!diff.isIdentical()) {
-    	    DiffDialog dlg = new DiffDialog(diff);
-    	    dlg.pack();
-    	    dlg.setVisible(true);
-    	}
-    	
     	return true;
     }
    
@@ -704,7 +680,6 @@ public class ConfigurationTreeActions
 	
 	int count =
 	    (external instanceof Path) ? config.pathCount():config.sequenceCount();
-
 	int index = (treePath==null) ? count :
 	    (treePath.getPathCount()==2) ?
 	    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
@@ -755,13 +730,17 @@ public class ConfigurationTreeActions
 	    } else {
 		container = config.insertSequence(index,external.name());
 	    }
+
 	}
 	
+	// Force update the tree to avoid ArrayIndexOutOfBoundsException bug76145
+	if (update) model.nodeChanged(container);
+	else	    model.nodeInserted(parent,index);
+
 	if (importContainerEntries(config,model,external,container))
 	    container.setDatabaseId(external.databaseId());
 	
-	if (update) model.nodeChanged(container);
-	else	    model.nodeInserted(parent,index);
+	model.nodeChanged(container);
 	model.updateLevel1Nodes();
 	
 	Diff diff = new Diff(external.config(),config);
@@ -783,30 +762,16 @@ public class ConfigurationTreeActions
 	return true;
     }
     
-    
-    
-    
-    
     /** import Path / Sequence
-     * Perform updates and insertions of new references into a target tree.
-     * This method does not perform the same operation as single reference 
-     * importation does. Tree nodes are not refreshed allowing multiple 
-     * invocations in loop.
+     * Perform updates and insertions of new references into a target configuration.
+     * NOTE: Nodes are not updated in the Tree model.
      * */
-    public static boolean importMultipleReferenceContainers(JTree tree,
-						   ReferenceContainer external, boolean update)
+    public static boolean importReferenceContainersNoModel(JTree tree, ReferenceContainer external, boolean update)
     {
 	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config   = (Configuration)model.getRoot();
-	TreePath               treePath = tree.getSelectionPath();
 	
-	int count =
-	    (external instanceof Path) ? config.pathCount():config.sequenceCount();
-
-	int index = (treePath==null) ? count :
-	    (treePath.getPathCount()==2) ?
-	    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
-				    treePath.getLastPathComponent())+1;
+	int index = (external instanceof Path) ? config.pathCount():config.sequenceCount();
 	
 	ReferenceContainer   container = null;
 	Object               parent    = null;
@@ -824,43 +789,38 @@ public class ConfigurationTreeActions
 	}
 	
 	if (container!=null) {
-		// updates
 	    index = (type.equals("path")) ? config.indexOfPath((Path)container) 
 		                          : config.indexOfSequence((Sequence)container);
 	    if(update) {
 		    while (container.entryCount()>0) {
-		    	Reference entry = (Reference)container.entry(0);
-		    	removeMultipleReferences(tree, entry);
+			Reference entry = (Reference)container.entry(0);
+			removeReferencesNoModel(tree, entry);
 		    }
 	    } else return false;
-	    
-		if (importContainerEntries(config,model,external,container))
-		    container.setDatabaseId(external.databaseId());
-		model.nodeChanged(container);
-		
 	} else {
-		// insertions
 	    if (!config.hasUniqueQualifier(external)) return false;
 	    if (type.equals("path")) {
 	    	container = config.insertPath(index,external.name());
 	    	((Path)container).setAsEndPath(((Path)external).isSetAsEndPath());
 	    } else {
-	    	container = config.insertSequence(index,external.name());
+			container = config.insertSequence(index,external.name());
 	    }
-		if (importContainerEntries(config,model,external,container))
-		    container.setDatabaseId(external.databaseId());
-		model.nodeInserted(parent,index);
 	}
 	
+	
+	if (importContainerEntriesNoModel(config,external,container))
+	    container.setDatabaseId(external.databaseId());
+	
+	// PS 31/01/2011: fixes bug reported by Andrea B.
 	for (int i=0;i<container.referenceCount();i++) {
 	    Reference reference = container.reference(i);
 	    ReferenceContainer parentContainer = reference.container();
 	    parentContainer.setHasChanged();
-	} 
+	}
 	
 	return true;
     }
-  
+    
     
     /** insert entries of an external reference container into the local copy */
     private static
@@ -950,13 +910,10 @@ public class ConfigurationTreeActions
 		    result = false;
 		}
 		else {
-		    target = config.insertSequence(config.sequenceCount(),
-						   sourceRef.name());
-		    treeModel.nodeInserted(treeModel.sequencesNode(),
-					   config.sequenceCount()-1);
+		    target = config.insertSequence(config.sequenceCount(), sourceRef.name());
+		    treeModel.nodeInserted(treeModel.sequencesNode(), config.sequenceCount()-1);
 		    config.insertSequenceReference(targetContainer,i,target);
-		    boolean tmp =
-			importContainerEntries(config,treeModel,source,target);
+		    boolean tmp = importContainerEntries(config,treeModel,source,target);
 		    if (tmp) target.setDatabaseId(source.databaseId());
 		    if (result) result = tmp;
 		}
@@ -966,6 +923,99 @@ public class ConfigurationTreeActions
 	}
 	return result;
     }
+    
+    
+    /** 
+     * importContainerEntriesNoModel
+     * ------------------------------
+     * Insert entries of an external reference container into the local copy
+     * NOTE: Nodes are not updated in JTree model.
+     * SEE ALSO: confdb.gui.ConfigurationTreeActions.importContainerEntries
+     * */
+    private static
+	boolean importContainerEntriesNoModel(Configuration          config,
+				       ReferenceContainer     sourceContainer,
+				       ReferenceContainer     targetContainer) {
+	boolean result = true;
+	for (int i=0;i<sourceContainer.entryCount();i++) {
+	    Reference entry = sourceContainer.entry(i);
+	    
+	    if (entry instanceof ModuleReference) {
+			ModuleReference sourceRef = (ModuleReference)entry;
+			ModuleInstance  source    = (ModuleInstance)sourceRef.parent();
+			ModuleInstance  target    = config.module(source.name());
+			ModuleReference targetRef = null;
+			if (target!=null) {
+			    targetRef = config.insertModuleReference(targetContainer,i,target);
+			    result = false;
+			}
+			else {
+			    targetRef = config.insertModuleReference(targetContainer,i,
+							     source.template().name(),
+							     source.name());
+			    target = (ModuleInstance)targetRef.parent();
+			    for (int j=0;j<target.parameterCount();j++)
+				target.updateParameter(j,source.parameter(j)
+						       .valueAsString());
+			    target.setDatabaseId(source.databaseId());
+			}
+			targetRef.setOperator(sourceRef.getOperator());
+	
+	    } else if (entry instanceof OutputModuleReference) {
+			OutputModuleReference sourceRef = (OutputModuleReference)entry;
+			OutputModule          source    = (OutputModule)sourceRef.parent();
+			OutputModule          target    = config.output(source.name());
+			OutputModuleReference targetRef = null;
+			if (target!=null) {
+			    targetRef = config.insertOutputModuleReference(targetContainer,i,target);
+			    result = false;
+			}
+			else {
+			    System.out.println("OutputModules must already exist as they are imported via stream import!");
+			    return result;
+			}
+			targetRef.setOperator(sourceRef.getOperator());
+
+	    } else if (entry instanceof PathReference) {
+			PathReference sourceRef=(PathReference)entry;
+			Path          source   =(Path)sourceRef.parent();
+			Path          target   =config.path(source.name());
+			if (target!=null) {
+			    config.insertPathReference(targetContainer,i,target);
+			    result = false;
+			}
+			else {
+			    target = config.insertPath(config.pathCount(),sourceRef.name());
+			    config.insertPathReference(targetContainer,i,target);
+			    boolean tmp =
+				importContainerEntriesNoModel(config,source,target);
+			    if (tmp) target.setDatabaseId(source.databaseId());
+			    if (result) result = tmp;
+			}
+	    } else if (entry instanceof SequenceReference) {
+			SequenceReference sourceRef=(SequenceReference)entry;
+			Sequence          source=(Sequence)sourceRef.parent();
+			Sequence          target=config.sequence(sourceRef.name());
+			if (target!=null) {
+			    config.insertSequenceReference(targetContainer,i,target);
+			    result = false;
+			}
+			else {
+			    target = config.insertSequence(config.sequenceCount(), sourceRef.name());
+			    config.insertSequenceReference(targetContainer,i,target);
+			    boolean tmp = importContainerEntriesNoModel(config,source,target);
+			    if (tmp) target.setDatabaseId(source.databaseId());
+			    if (result) result = tmp;
+			}
+	    }
+	}
+	return result;
+    }
+    
+    
+    
+    
+    
         
     /** insert reference into currently selected reference container */
     public static boolean insertReference(JTree tree,String type,String name)
@@ -1926,10 +1976,12 @@ public class ConfigurationTreeActions
 	Stream stream = null;
 	
 	if (streamName.equals("")) {
-	    Object targetNode=treePath.getLastPathComponent();
-	    if (targetNode instanceof Stream)
-		stream = (Stream)targetNode;
-	    else return false;
+		if(treePath != null) {
+		    Object targetNode=treePath.getLastPathComponent();
+		    if (targetNode instanceof Stream)
+			stream = (Stream)targetNode;
+		    else return false;
+		}
 	}
 	else {
 	    stream = config.stream(streamName);
@@ -2391,28 +2443,11 @@ public class ConfigurationTreeActions
 		    	updateAll = (choice == JOptionPane.YES_OPTION);
 			}
 
-	    	//////////////////////////////////////
-	        JOptionPane j = new JOptionPane();
-	        j.setMessage("Importing all items:");
-
-	        ImportAllInstancesThread worker = new ImportAllInstancesThread(tree, sm, external, updateAll, j);
-	    	worker.start();			
-
-	        final JDialog d = j.createDialog(j,"Importing all items");
-	        d.pack();
-	        d.setVisible(true);
-	    	//////////////////////////////////////
-	        
-	        ArrayList<String> importedItems = worker.getImportedItems();
-	        Diff diff = new Diff(importConfig, config);
-	        diff.compare(type, importedItems); // using ArrayList.
-	    	
-	    	if (!diff.isIdentical()) {
-	    	    DiffDialog dlg = new DiffDialog(diff);
-	    	    dlg.pack();
-	    	    dlg.setVisible(true);
-	    	}
-	    	
+			
+			ImportAllInstancesThread worker = new ImportAllInstancesThread(tree, sm, external, updateAll);
+			WorkerProgressBar wpb = new WorkerProgressBar("Importing Instances...", worker);
+			wpb.createAndShowGUI();
+			
 		    return true;
     }
 
@@ -2420,58 +2455,35 @@ public class ConfigurationTreeActions
      * Update All ESModules.
      * NOTE: ESModules are instances of Instance. but only updates make sense.
      * */
-        public static boolean UpdateAllESModules(JTree tree, JTree sourceTree, Object external)  {
-    			ConfigurationTreeModel sm  		= (ConfigurationTreeModel) sourceTree.getModel();
-    			ConfigurationTreeModel tm    	= (ConfigurationTreeModel)tree.getModel();
-    			Configuration          config   = (Configuration)tm.getRoot();
-    			Configuration	importConfig	= (Configuration)sm.getRoot();			
-    			
-    	    	if(sm.getChildCount(external) == 0) {
-    	    		String error = "[confdb.gui.ConfigurationTreeActions.UpdateAllESModules] ERROR: Child count == 0";
-    	    		System.err.println(error);
-    	    		return false;
-    	    	}
+    public static boolean UpdateAllESModules(JTree tree, JTree sourceTree, Object external)  {
+			ConfigurationTreeModel sm  		= (ConfigurationTreeModel) sourceTree.getModel();	
+			
+	    	if(sm.getChildCount(external) == 0) {
+	    		String error = "[confdb.gui.ConfigurationTreeActions.UpdateAllESModules] ERROR: Child count == 0";
+	    		System.err.println(error);
+	    		return false;
+	    	}
 
-    			String type = ""; // get the type for future comparisons
-    			if(sm.getChildCount(external) > 0) {
-    				Instance instance = (Instance) sm.getChild(external, 0);
-    				if(instance instanceof ESModuleInstance) type = "ESModule";
-    				else System.err.println("[confdb.gui.ConfigurationTreeActions.UpdateAllESModules] ERROR: type mismatch!");
-    			} else return false;
-    			
-		    	int choice = JOptionPane.showConfirmDialog(null						,
-		    			" Items shared by both configurations will be overwritten.\n"+
-						"Do you want to update them?"								,
-								      "update all"									,
-								      JOptionPane.YES_NO_OPTION						);
-		    	
-		    	if(choice == JOptionPane.NO_OPTION) return false;
+			if(sm.getChildCount(external) > 0) {
+				Instance instance = (Instance) sm.getChild(external, 0);
+				if(!(instance instanceof ESModuleInstance)) 
+					System.err.println("[confdb.gui.ConfigurationTreeActions.UpdateAllESModules] ERROR: type mismatch!");
+			} else return false;
+			
+	    	int choice = JOptionPane.showConfirmDialog(null						,
+	    			" Items shared by both configurations will be overwritten.\n"+
+					"Do you want to update them?"								,
+							      "update all"									,
+							      JOptionPane.YES_NO_OPTION						);
+	    	
+	    	if(choice == JOptionPane.NO_OPTION) return false;
 
-    	    	//////////////////////////////////////
-    	        JOptionPane j = new JOptionPane();
-    	        j.setMessage("Updating shared items:");
-
-    	        UpdateAllESModulesThread worker = new UpdateAllESModulesThread(tree, sm, external, j);
-    	    	worker.start();			// UpdateAllESModulesThread
-
-    	        final JDialog d = j.createDialog(j,"Updating shared items");
-    	        d.pack();
-    	        d.setVisible(true);
-    	    	//////////////////////////////////////
-    	        
-    	        ArrayList<String> updatedItems = worker.getUpdatedItems();
-    	        Diff diff = new Diff(importConfig, config);
-    	        diff.compare(type, updatedItems); // using ArrayList.
-    	    	
-    	    	if (!diff.isIdentical()) {
-    	    	    DiffDialog dlg = new DiffDialog(diff);
-    	    	    dlg.pack();
-    	    	    dlg.setVisible(true);
-    	    	}
-    	    	
-    		    return true;
-        }
-        ////
+	    	UpdateAllESModulesThread worker = new UpdateAllESModulesThread(tree, sm, external);
+	    	WorkerProgressBar	wpb	 = new WorkerProgressBar("Updating all Modules", worker);
+	    	wpb.createAndShowGUI();
+	    	
+		    return true;
+    }
     
     
 
@@ -2605,77 +2617,63 @@ public class ConfigurationTreeActions
     }
     
     
-    /** Replace one instance without updating the treePath (to be used in a loop). */
-    public static boolean replaceMultipleInstances(JTree tree,Instance external) {
+    /** Replace instances in a configuration but don't update the model */
+    public static boolean replaceInstancesNoModel(JTree tree,Instance external) {
     	ConfigurationTreeModel model     = (ConfigurationTreeModel)tree.getModel();
     	Configuration          config    = (Configuration)model.getRoot();
-    	Object                 parent    = null;
     	Instance               oldInst   = null;
     	Instance               newInst   = null;
     	int                    index     = -1;
 
     	if (external instanceof EDSourceInstance) {
-    	    parent  = model.edsourcesNode();
     	    oldInst = config.edsource(external.name());
     	    index   = 0;
     	    config.removeEDSource((EDSourceInstance)oldInst);
-    	    model.nodeRemoved(parent,index,oldInst);
     	    newInst = config.insertEDSource(external.template().name());
     	}
     	else if (external instanceof ESSourceInstance) {
-    	    parent  = model.essourcesNode();
     	    oldInst = config.essource(external.name());
     	    index   = config.indexOfESSource((ESSourceInstance)oldInst);
     	    config.removeESSource((ESSourceInstance)oldInst);
-    	    model.nodeRemoved(parent,index,oldInst);
     	    newInst = config.insertESSource(index,
     					    external.template().name(),
     					    external.name());
     	}
     	else if (external instanceof ESModuleInstance) {
-    	    parent  = model.esmodulesNode();
     	    oldInst = config.esmodule(external.name());
     	    index   = config.indexOfESModule((ESModuleInstance)oldInst);
     	    config.removeESModule((ESModuleInstance)oldInst);
-    	    model.nodeRemoved(parent,index,oldInst);
     	    newInst = config.insertESModule(index,
     					    external.template().name(),
     					    external.name());
     	}
     	else if (external instanceof ServiceInstance) {
-    	    parent  = model.servicesNode();
     	    oldInst = config.service(external.name());
     	    index   = config.indexOfService((ServiceInstance)oldInst);
     	    config.removeService((ServiceInstance)oldInst);
-    	    model.nodeRemoved(parent,index,oldInst);
     	    newInst = config.insertService(index,external.template().name());
     	}
     	
     	for (int i=0;i<newInst.parameterCount();i++)
     	    newInst.updateParameter(i,external.parameter(i).valueAsString());
     	newInst.setDatabaseId(external.databaseId()); // dangerous?
-
-    	model.nodeInserted(parent,index);
     	
     	return true;
     }
     
-    public static boolean removeMultipleReferences(JTree tree,Reference reference) 
+    /**
+     * Remove references from configuration but don't update the tree model.
+     * Similar to removeReference but using a reference instead of the
+     * selected path on the tree. 
+     * */
+    public static boolean removeReferencesNoModel(JTree tree,Reference reference) 
     {
 		ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
 		Configuration          config    = (Configuration)model.getRoot();
-		ModuleInstance         module    = null;
-		int                    indexOfModule= -1;
-		
 
-	    module	= config.module(reference.name());
 		ReferenceContainer     container = reference.container();
-		int                    index     = container.indexOfEntry(reference);
-
 	    
 		if (reference instanceof ModuleReference) {
-		    module = (ModuleInstance)reference.parent();
-		    indexOfModule = config.indexOfModule(module);
 		    config.removeModuleReference((ModuleReference)reference);
 		}
 		else if (reference instanceof OutputModuleReference) {
@@ -2685,11 +2683,6 @@ public class ConfigurationTreeActions
 		else {
 		    container.removeEntry(reference);
 		}
-		
-		model.nodeRemoved(container,index,reference);
-		if (module!=null&&module.referenceCount()==0)
-		    model.nodeRemoved(model.modulesNode(),indexOfModule,module);
-				
 		return true;
     }
 
@@ -2697,20 +2690,21 @@ public class ConfigurationTreeActions
 }
 
 
-
+//////////////////////////////////////////////
 /// threads
-
+//////////////////////////////////////////////
 
 /** Import a instance container using a different thread.  */
-final class ImportAllInstancesThread extends SwingWorker<String>
+class ImportAllInstancesThread extends SwingWorker<String, String>
 {
 	  /** member data */
-	  private long       	startTime;
-	  private 	JOptionPane				panel		;
+	  private long       				startTime	;
 
 	  private 	JTree 					tree		;
 	  private	ConfigurationTreeModel	sourceModel	;
 	  private	ConfigurationTreeModel	targetModel	;
+	  private	Configuration			targetConfig;
+	  private	Configuration			sourceConfig;
 	  private	Object					ext			;
 	  private	boolean					updateAll	;
 	  
@@ -2718,57 +2712,62 @@ final class ImportAllInstancesThread extends SwingWorker<String>
 	  private	ArrayList<String>		items		;	// name of imported items
 	  
 	  /** standard constructor */
-	  public ImportAllInstancesThread(JTree Tree, ConfigurationTreeModel sourceModel, Object external, boolean UpdateAll, JOptionPane panel)
+	  public ImportAllInstancesThread(JTree Tree, ConfigurationTreeModel sourceModel, Object external, boolean UpdateAll)
 	  {
 		  this.tree 		= Tree;
 		  this.sourceModel 	= sourceModel;
 		  this.targetModel	= (ConfigurationTreeModel)tree.getModel();
+		  this.targetConfig	= (Configuration)targetModel.getRoot();
+		  this.sourceConfig	= (Configuration)sourceModel.getRoot();
 		  this.ext 			= external;
 		  this.updateAll	= UpdateAll;
-		  this.panel		= panel;
 		  this.items		= new ArrayList<String>();
+		  this.type			= "";
 	  }
 	
-	  /** SwingWorker: construct() 
-	 * @throws InterruptedException */
-	  protected String construct() throws InterruptedException
-	  {
-		  Configuration config   = (Configuration)targetModel.getRoot();
-		  
-	        JProgressBar bar = new JProgressBar(0, sourceModel.getChildCount(ext)); 
-	        bar.setValue(1);
-	        bar.setIndeterminate(false);
-	        panel.add(BorderLayout.CENTER, bar);
-	        JLabel jl = new JLabel();
-	        jl.setText("Count: 0");
-	        panel.add(BorderLayout.NORTH, jl);
-		  
+	  
+	  /** Return an Array list with containers name to perform a diff operation. */
+	  public ArrayList<String> getImportedItems(){
+		  return items;
+	  }
+	  
+
+	@Override
+	protected String doInBackground() throws Exception {
+			if(sourceModel.getChildCount(ext) > 0) {
+				Instance instance = (Instance) sourceModel.getChild(ext, 0);
+						if(instance instanceof EDSourceInstance) type = "EDSource";
+				else 	if(instance instanceof ESSourceInstance) type = "ESSource";
+				else 	if(instance instanceof ESModuleInstance) type = "ESModule";
+				else 	if(instance instanceof ServiceInstance)  type = "Service" ;
+			}
+			int count = sourceModel.getChildCount(ext);	
+			
 			for(int i = 0; i < sourceModel.getChildCount(ext); i++) {
 				tree.setSelectionPath(null);
 				Instance instance = (Instance) sourceModel.getChild(ext, i);
 				
+				int progress = (i*100)/count;	// range 0-100.
+				setProgress(progress);
 				items.add(instance.name());	// register item for diff
-				
-				////////
-				bar.setValue(i+ 1);
-				jl.setText("Count: " + i);
-				////////
+
 				if ((instance instanceof EDSourceInstance)&&
-				    config.edsource(instance.name())!=null||
+						targetConfig.edsource(instance.name())!=null||
 				    (instance instanceof ESSourceInstance)&&
-				    config.essource(instance.name())!=null||
+				    targetConfig.essource(instance.name())!=null||
 				    (instance instanceof ESModuleInstance)&&
-				    config.esmodule(instance.name())!=null||
+				    targetConfig.esmodule(instance.name())!=null||
 				    (instance instanceof ServiceInstance)&&
-				    config.service(instance.name())!=null) {
+				    targetConfig.service(instance.name())!=null) {
 					
 					if(updateAll) {
-						ConfigurationTreeActions.replaceMultipleInstances(tree,instance);
+						ConfigurationTreeActions.replaceInstancesNoModel(tree,instance);
+						firePropertyChange("current", null, instance.name());
 					}
 					continue;
 				}
 				
-				if (config.isUniqueQualifier(instance.name())) {
+				if (targetConfig.isUniqueQualifier(instance.name())) {
 					int index = 0;
 					
 					String   templateName = instance.template().name();
@@ -2777,197 +2776,237 @@ final class ImportAllInstancesThread extends SwingWorker<String>
 					Object   parent       		= null;
 					
 					if (instance instanceof EDSourceInstance) {
-						InsertedIinstance = config.insertEDSource(templateName);
+						InsertedIinstance = targetConfig.insertEDSource(templateName);
 					    parent = targetModel.edsourcesNode();
 					}
 					else if (instance instanceof ESSourceInstance) {
-						InsertedIinstance = config.insertESSource(index,templateName,instanceName);
+						InsertedIinstance = targetConfig.insertESSource(index,templateName,instanceName);
 					    parent   = targetModel.essourcesNode();
 					}
 					else if (instance instanceof ESModuleInstance) {
-						InsertedIinstance = config.insertESModule(index,templateName,instanceName);
+						InsertedIinstance = targetConfig.insertESModule(index,templateName,instanceName);
 					    parent   = targetModel.esmodulesNode();
 					}
 					else if (instance instanceof ServiceInstance) {
-						InsertedIinstance = config.insertService(index,templateName);
+						InsertedIinstance = targetConfig.insertService(index,templateName);
 					    parent   = targetModel.servicesNode();
 					} else continue;
 					
 					for (int j=0;j<InsertedIinstance.parameterCount();j++)
 						InsertedIinstance.updateParameter(j,instance.parameter(j).valueAsString());
+					
 					InsertedIinstance.setDatabaseId(instance.databaseId());
 					targetModel.nodeInserted(parent,index);
+					
+					firePropertyChange("current", null, instance.name());
 				}
 			}
 			
-			jl.setText(sourceModel.getChildCount(ext) + " items imported!");
+			setProgress(100);
+			
 	      return new String("Done!");
-	  }
-	  
-	  /** Return an Array list with containers name to perform a diff operation. */
-	  public ArrayList<String> getImportedItems(){
-		  return items;
-	  }
-	  
+	}
 	
-	  /** SwingWorker: finished */
-	  protected void finished()  {
-			  long elapsedTime = System.currentTimeMillis() - startTime;
+	/*
+    * Executed in event dispatching thread
+    */
+   @Override
+   public void done() {
+		long elapsedTime = System.currentTimeMillis() - startTime;
+		
+		Instance child = (Instance) sourceModel.getChild(ext, 0);
+		if 	  (child instanceof ServiceInstance)	targetModel.nodeStructureChanged(targetModel.servicesNode()) ; 		
+		else if (child instanceof ESModuleInstance)	targetModel.nodeStructureChanged(targetModel.esmodulesNode());
+		else if (child instanceof ESSourceInstance)	targetModel.nodeStructureChanged(targetModel.essourcesNode());
+		else if (child instanceof EDSourceInstance)	targetModel.nodeStructureChanged(targetModel.edsourcesNode());
+		targetModel.updateLevel1Nodes();
 
-			  Instance child = (Instance) sourceModel.getChild(ext, 0);
-			  if 	  (child instanceof ServiceInstance)	targetModel.nodeStructureChanged(targetModel.servicesNode()) ; 		
-			  else if (child instanceof ESModuleInstance)	targetModel.nodeStructureChanged(targetModel.esmodulesNode());
-			  else if (child instanceof ESSourceInstance)	targetModel.nodeStructureChanged(targetModel.essourcesNode());
-			  else if (child instanceof EDSourceInstance)	targetModel.nodeStructureChanged(targetModel.edsourcesNode());
-		  
-			  targetModel.updateLevel1Nodes();
-	  }
+    	Diff diff = new Diff(sourceConfig,targetConfig);
+    	diff.compare(type, items);
+    	if (!diff.isIdentical()) {
+    	    DiffDialog dlg = new DiffDialog(diff);
+    	    dlg.pack();
+    	    dlg.setVisible(true);
+    	}
+    	firePropertyChange("current", null, items.size() + " items imported! ");
+    	System.out.println(items.size() + " items imported! enlapsedTime: " + elapsedTime);
+  
+
+   }
 }
 
 
 
-
-
-/** Update ESModules using a different thread.  */
-final class UpdateAllESModulesThread extends SwingWorker<String>
+/** Update ESModules using threads.  */
+final class UpdateAllESModulesThread extends SwingWorker<String, String>
 {
 	  /** member data */
 	  private long       				startTime	;
-	  private 	JOptionPane				panel		;
-
 	  private 	JTree 					tree		;
 	  private	ConfigurationTreeModel	sourceModel	;
 	  private	ConfigurationTreeModel	targetModel	;
 	  private	Object					ext			;
-	  private	ArrayList<String>		items		;	// name of imported items
+	  private	ArrayList<String>		items		;	// names of imported items
+	  private	Configuration			targetConfig;
+	  private	Configuration			sourceConfig;
+	  private	String					type		;
 	  
 	  /** standard constructor */
-	  public UpdateAllESModulesThread(JTree Tree, ConfigurationTreeModel sourceModel, Object external, JOptionPane panel)
+	  public UpdateAllESModulesThread(JTree Tree, ConfigurationTreeModel sourceModel, Object external)
 	  {
 		  this.tree 		= Tree;
 		  this.sourceModel 	= sourceModel;
 		  this.targetModel	= (ConfigurationTreeModel)tree.getModel();
 		  this.ext 			= external;
-		  this.panel		= panel;
 		  this.items		= new ArrayList<String>();
+		  this.targetConfig	= (Configuration)targetModel.getRoot();
+		  this.sourceConfig	= (Configuration)sourceModel.getRoot();
+		  this.type			= "";
 	  }
 	
-	  /** SwingWorker: construct() 
-	 * @throws InterruptedException */
-	  protected String construct() throws InterruptedException
-	  {
-		  	Configuration config   = (Configuration)targetModel.getRoot();
-	        JProgressBar bar = new JProgressBar(0, sourceModel.getChildCount(ext)); 
-	        bar.setValue(1);
-	        bar.setIndeterminate(false);
-	        panel.add(BorderLayout.CENTER, bar);
-	        JLabel jl = new JLabel();
-	        jl.setText("Count: 0");
-	        panel.add(BorderLayout.NORTH, jl);
-		  
-			for(int i = 0; i < sourceModel.getChildCount(ext); i++) {
-				tree.setSelectionPath(null);
-				Instance instance = (Instance) sourceModel.getChild(ext, i);
-				
-				////////
-				bar.setValue(i+ 1);
-				jl.setText("Count: " + i);
-				////////
-				if ((instance instanceof ESModuleInstance)&&
-				    config.esmodule(instance.name())!=null) {
-						ConfigurationTreeActions.replaceMultipleInstances(tree,instance);
-						items.add(instance.name());	// register item for diff
-				}
-			}
-			jl.setText(items.size() + " items updated!");
-			return new String("Done!");
-	  }
-	  
 	  /** Return an Array list with containers name to perform a diff operation. */
 	  public ArrayList<String> getUpdatedItems(){
 		  return items;
 	  }
+
+	@Override
+	protected String doInBackground() throws Exception {
+        int count = sourceModel.getChildCount(ext);	
+        Instance instance = null;
+		for(int i = 0; i < sourceModel.getChildCount(ext); i++) {
+			tree.setSelectionPath(null);
+			instance = (Instance) sourceModel.getChild(ext, i);
+			
+			int progress = (i*100)/count;	// range 0-100
+			setProgress(progress);
+			//System.out.println("progress = " + progress);
+			
+			if ((instance instanceof ESModuleInstance)&&
+			    targetConfig.esmodule(instance.name())!=null) {
+				ConfigurationTreeActions.replaceInstancesNoModel(tree,instance);
+				items.add(instance.name());	// register item for diff
+				firePropertyChange("current", null, instance.name());
+			}
+		}
+		setProgress(100);
+		
+		if(instance != null)
+		if(instance instanceof ESModuleInstance) type = "ESModule";
+		
+		return new String("Done!");
+	}
 	  
-	  /** SwingWorker: finished */
-	  protected void finished()  {
-			  //long elapsedTime = System.currentTimeMillis() - startTime;
-			  Instance child = (Instance) sourceModel.getChild(ext, 0);
-			  if (child instanceof ESModuleInstance)	targetModel.nodeStructureChanged(targetModel.esmodulesNode());
-			  targetModel.updateLevel1Nodes();
-	  }
+	/*
+    * Executed in event dispatching thread
+    */
+   @Override
+   public void done() {
+		long elapsedTime = System.currentTimeMillis() - startTime;
+
+    	Diff diff = new Diff(sourceConfig,targetConfig);
+    	diff.compare(type, items);
+    	if (!diff.isIdentical()) {
+    	    DiffDialog dlg = new DiffDialog(diff);
+    	    dlg.pack();
+    	    dlg.setVisible(true);
+    	}
+    	firePropertyChange("current", null, items.size() + " items imported! ");
+    	System.out.println(items.size() + " items imported! enlapsedTime: " + elapsedTime);
+    	targetModel.updateLevel1Nodes();
+   }
+
 }
-///
 
 
-
-
-/** Import a reference container using a different thread 
+/** Import a reference container using threads 
  * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4275976
  * */
-final class ImportAllReferencesThread extends SwingWorker<String>
-{
+class ImportAllReferencesThread extends SwingWorker<String, String> {
 	  /** member data */
 	  private 	long       				startTime	;
-	  private 	JOptionPane				panel		;
 	  private 	JTree 					tree		;
 	  private	ConfigurationTreeModel	sourceModel	;
 	  private	ConfigurationTreeModel	targetModel	;
 	  private	Object					ext			;
 	  private	boolean					updateAll	;
 	  private	ArrayList<String>		items		;
+	  private	String					type		;
+	  private	Configuration			targetConfig;
+	  private	Configuration			sourceConfig;
 	  
 	  
 	  
 	  /** standard constructor */
-	  public ImportAllReferencesThread(JTree tree, JTree sourceTree, Object external, boolean UpdateAll, JOptionPane panel)
+	  public ImportAllReferencesThread(JTree tree, JTree sourceTree, Object external, boolean UpdateAll)
 	  {
 		  this.tree 		= tree;
 		  this.sourceModel 	= (ConfigurationTreeModel)sourceTree.getModel();;
 		  this.targetModel	= (ConfigurationTreeModel)tree.getModel();
 		  this.ext 			= external;
 		  this.updateAll	= UpdateAll;
-		  this.panel		= panel;
 		  this.items		= new ArrayList<String>();
-	  }
-	
-	  /** SwingWorker: construct() 
-	 * @throws InterruptedException */
-	  protected String construct() throws InterruptedException
-	  {
-		  int progress = 1;
-	        JProgressBar bar = new JProgressBar(0, sourceModel.getChildCount(ext)); 
-	        bar.setValue(1);
-	        bar.setIndeterminate(false);
-	        panel.add(BorderLayout.CENTER, bar);
-	        JLabel jl = new JLabel();
-	        jl.setText("Count: 0");
-	        panel.add(BorderLayout.NORTH, jl);
-	        
-	        tree.setSelectionPath(null);
-	        
-			for(int i = 0; i < sourceModel.getChildCount(ext); i++) {
-				ReferenceContainer container = (ReferenceContainer) sourceModel.getChild(ext, i);
-				ConfigurationTreeActions.importMultipleReferenceContainers(tree, container, updateAll);
-				bar.setValue(progress++);
-				jl.setText("Count: " + i);
-				items.add(container.name());	// registering container name for diff.
-			}
-
-			targetModel.updateLevel1Nodes();
-			jl.setText(sourceModel.getChildCount(ext) + " items imported!");
-	      return new String("Done!");
+		  this.targetConfig	= (Configuration)targetModel.getRoot();
+		  this.sourceConfig	= (Configuration)sourceModel.getRoot();
+		  this.type			= "";
 	  }
 	  
-	
-	  /** SwingWorker: finished */
-	  protected void finished()  {
-			  long elapsedTime = System.currentTimeMillis() - startTime;
-			  targetModel.updateLevel1Nodes();
-	  }
-	  
-	  /** Return an Array list with containers name to perform a diff operation. */
+	  /** Return an Array list with container names to perform a diff operation. */
 	  public ArrayList<String> getImportedItems() {
 		  return items;
 	  }
-}
+
+
+	@Override
+	protected String doInBackground() throws Exception {
+        tree.setSelectionPath(null);
+        int count = sourceModel.getChildCount(ext);
+        ReferenceContainer container = null;
+        String oldValue = "";
+		for(int i = 0; i < count; i++) {
+			container = (ReferenceContainer) sourceModel.getChild(ext, i);
+			ConfigurationTreeActions.importReferenceContainersNoModel(tree, container, updateAll);
+			items.add(container.name());	// registering container name for diff.
+			int progress = (i*100)/count;	// range 0-100.
+			
+			setProgress(progress);
+			firePropertyChange("current", oldValue, container.name());
+			oldValue = container.name();
+		}
+		setProgress(100);
+        
+		if(container != null)
+		if(container instanceof Path) type = "path";
+		else if (container instanceof Sequence) type = "sequence";
+
+    	return new String("Done!");
+	}
+	
+	/**
+    * Executed in event dispatching thread
+    */
+   @Override
+   public void done() {
+		long elapsedTime = System.currentTimeMillis() - startTime;
+
+    	Diff diff = new Diff(sourceConfig,targetConfig);
+    	diff.compare(type, items);
+    	if (!diff.isIdentical()) {
+    	    DiffDialog dlg = new DiffDialog(diff);
+    	    dlg.pack();
+    	    dlg.setVisible(true);
+    	}
+    	firePropertyChange("current", null, items.size() + " items imported! ");
+    	System.out.println(items.size() + " items imported! enlapsedTime: " + elapsedTime);
+    	
+    	// Since the model is not updated during the process, we do it now.
+    	if(this.type == "path") targetModel.nodeStructureChanged(targetModel.pathsNode());
+    	else targetModel.nodeStructureChanged(targetModel.sequencesNode());
+    	targetModel.updateLevel1Nodes();
+   }
+ }
+
+
+
+
+
 

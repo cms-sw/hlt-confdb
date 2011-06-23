@@ -186,8 +186,7 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
 	    // insert Path/Sequence
 	    if (sourceNode instanceof ReferenceContainer) {
 		ReferenceContainer container = (ReferenceContainer)sourceNode;
-		return ConfigurationTreeActions.importReferenceContainer(targetTree,
-									 container);
+		return ConfigurationTreeActions.importReferenceContainer(targetTree, container);
 	    }
 	}
 	// sourceTree *is* targetTree -> reordering
@@ -215,7 +214,6 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
 		Reference source = (Reference)sourceNode;
 		return ConfigurationTreeActions.moveReference(targetTree,source);
 	    }
-
 	}
 	
 	return false;

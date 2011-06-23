@@ -1,3 +1,12 @@
+2011-06-23 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-56
+	* Bug fix: Fixes selection path errors. (bug 76145).
+	* Fixes Import errors: Forces update the tree model to avoid 
+	  ArrayIndexOutOfBoundsException.
+	* Added a new progress bar dialog which is also customisable and
+	  reusable for long processes.
+	* Improvements to ImportAll functionality. (avoiding model updates). 
+	  
 2011-06-10 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-55
 	* Present only imported items differences after importing them. (bug/feature 83085).		
@@ -22,7 +31,7 @@
 2011-06-01 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-51
 	* Disable "mouse over" text for Sequences and 
-	* display "unsersolved input tags" in right lower panel tabs. (bug/feature 82524).
+	* display "unresolved input tags" in right lower panel tabs. (bug/feature 82524).
 
 2011-05-28 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-50
