@@ -6,6 +6,7 @@ import javax.swing.SwingWorker;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 import confdb.diff.Diff;
 import confdb.data.*;
@@ -774,17 +775,14 @@ public class ConfigurationTreeActions
 	int index = (external instanceof Path) ? config.pathCount():config.sequenceCount();
 	
 	ReferenceContainer   container = null;
-	Object               parent    = null;
 	String               type      = null;
 
 	if (external instanceof Path) {
 	    container = config.path(external.name());
-	    parent    = model.pathsNode();
 	    type      = "path";
 	}
 	else if (external instanceof Sequence) {
 	    container = config.sequence(external.name());
-	    parent    = model.sequencesNode();
 	    type      = "sequence";
 	}
 	
@@ -2328,6 +2326,53 @@ public class ConfigurationTreeActions
 	return true;
     }
 
+    
+    /**
+     * replaceModuleNoModel
+     * --------------------------
+     * Replace a Module but do not update the JTree representation.
+     * Used by Import all functionality.
+     * */
+    public static boolean replaceModuleNoModel(JTree tree,ModuleInstance external)
+    {
+	ConfigurationTreeModel model     = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config    = (Configuration)model.getRoot();
+	ModuleInstance         oldModule = config.module(external.name());
+	if (oldModule==null) return false;
+
+	int index    = config.indexOfModule(oldModule);
+	int refCount = oldModule.referenceCount();
+	ReferenceContainer[] parents = new ReferenceContainer[refCount];
+	int[]                indices = new int[refCount];
+	int iRefCount=0;
+	while (oldModule.referenceCount()>0) {
+	    Reference reference = oldModule.reference(0);
+	    parents[iRefCount] = reference.container();
+	    indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
+	    config.removeModuleReference((ModuleReference)reference);
+	    iRefCount++;
+	}
+	
+	try {
+	    ModuleTemplate template = (ModuleTemplate)
+		config.release().moduleTemplate(external.template().name());
+	    ModuleInstance newModule = (ModuleInstance)
+		template.instance(external.name());
+	    for (int i=0;i<newModule.parameterCount();i++)
+	    	newModule.updateParameter(i,external.parameter(i).valueAsString());
+	    newModule.setDatabaseId(external.databaseId());
+	    config.insertModule(index,newModule);
+	    
+	    for (int i=0;i<refCount;i++) {
+	    	config.insertModuleReference(parents[i],indices[i],newModule);
+	    }
+	} catch (DataException e) {
+	    System.err.println("replaceModuleNoModel() FAILED: " + e.getMessage());
+	    return false;
+	}
+	return true;
+    }
+    
 
     /**
      * import a node into the tree and add the respective component
@@ -2397,7 +2442,6 @@ public class ConfigurationTreeActions
 			ConfigurationTreeModel sm  		= (ConfigurationTreeModel) sourceTree.getModel();
 			ConfigurationTreeModel tm    	= (ConfigurationTreeModel)tree.getModel();
 			Configuration          config   = (Configuration)tm.getRoot();
-			Configuration	importConfig	= (Configuration)sm.getRoot();			
 			
 	    	if(sm.getChildCount(external) == 0) {
 	    		String error = "[confdb.gui.ConfigurationTreeActions.ImportAllInstances] ERROR: Child count == 0";
@@ -2422,14 +2466,6 @@ public class ConfigurationTreeActions
 					}
 			}
 
-			String type = ""; // get the type for future comparisons
-			if(sm.getChildCount(external) > 0) {
-				Instance instance = (Instance) sm.getChild(external, 0);
-						if(instance instanceof EDSourceInstance) type = "EDSource";
-				else 	if(instance instanceof ESSourceInstance) type = "ESSource";
-				else 	if(instance instanceof ESModuleInstance) type = "ESModule";
-				else 	if(instance instanceof ServiceInstance)  type = "Service" ;
-			}
 			
 			boolean updateAll = false;
 			if(existance) {
@@ -2453,9 +2489,10 @@ public class ConfigurationTreeActions
 
     /** 
      * Update All ESModules.
-     * NOTE: ESModules are instances of Instance. but only updates make sense.
+     * NOTE: ESModules are instances of Instance.
+     * This function won't be used anymore.
      * */
-    public static boolean UpdateAllESModules(JTree tree, JTree sourceTree, Object external)  {
+    public static boolean UpdateAllModules(JTree tree, JTree sourceTree, Object external)  {
 			ConfigurationTreeModel sm  		= (ConfigurationTreeModel) sourceTree.getModel();	
 			
 	    	if(sm.getChildCount(external) == 0) {
@@ -2466,8 +2503,10 @@ public class ConfigurationTreeActions
 
 			if(sm.getChildCount(external) > 0) {
 				Instance instance = (Instance) sm.getChild(external, 0);
-				if(!(instance instanceof ESModuleInstance)) 
-					System.err.println("[confdb.gui.ConfigurationTreeActions.UpdateAllESModules] ERROR: type mismatch!");
+				if(!(instance instanceof ModuleInstance)) {
+					System.err.println("[confdb.gui.ConfigurationTreeActions.UpdateAllModules] ERROR: type mismatch!");
+					return false;
+				}
 			} else return false;
 			
 	    	int choice = JOptionPane.showConfirmDialog(null						,
@@ -2478,13 +2517,12 @@ public class ConfigurationTreeActions
 	    	
 	    	if(choice == JOptionPane.NO_OPTION) return false;
 
-	    	UpdateAllESModulesThread worker = new UpdateAllESModulesThread(tree, sm, external);
+	    	UpdateAllModulesThread worker = new UpdateAllModulesThread(tree, sm, external);
 	    	WorkerProgressBar	wpb	 = new WorkerProgressBar("Updating all Modules", worker);
 	    	wpb.createAndShowGUI();
 	    	
 		    return true;
     }
-    
     
 
     /*
@@ -2685,7 +2723,6 @@ public class ConfigurationTreeActions
 		}
 		return true;
     }
-
     
 }
 
@@ -2734,6 +2771,7 @@ class ImportAllInstancesThread extends SwingWorker<String, String>
 
 	@Override
 	protected String doInBackground() throws Exception {
+		startTime = System.currentTimeMillis();
 			if(sourceModel.getChildCount(ext) > 0) {
 				Instance instance = (Instance) sourceModel.getChild(ext, 0);
 						if(instance instanceof EDSourceInstance) type = "EDSource";
@@ -2828,8 +2866,14 @@ class ImportAllInstancesThread extends SwingWorker<String, String>
     	    dlg.pack();
     	    dlg.setVisible(true);
     	}
-    	firePropertyChange("current", null, items.size() + " items imported! ");
-    	System.out.println(items.size() + " items imported! enlapsedTime: " + elapsedTime);
+    	String time = 
+        	String.format("%d min, %d sec", 
+        		    TimeUnit.MILLISECONDS.toMinutes(elapsedTime),
+        		    TimeUnit.MILLISECONDS.toSeconds(elapsedTime) - 
+        		    TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(elapsedTime))
+        		);
+    	firePropertyChange("current", null, items.size() + " items imported! " + time);
+    	System.out.println(items.size() + " items imported! enlapsedTime: " + time);
   
 
    }
@@ -2837,8 +2881,8 @@ class ImportAllInstancesThread extends SwingWorker<String, String>
 
 
 
-/** Update ESModules using threads.  */
-final class UpdateAllESModulesThread extends SwingWorker<String, String>
+/** Update Modules using threads.  */
+final class UpdateAllModulesThread extends SwingWorker<String, String>
 {
 	  /** member data */
 	  private long       				startTime	;
@@ -2852,7 +2896,7 @@ final class UpdateAllESModulesThread extends SwingWorker<String, String>
 	  private	String					type		;
 	  
 	  /** standard constructor */
-	  public UpdateAllESModulesThread(JTree Tree, ConfigurationTreeModel sourceModel, Object external)
+	  public UpdateAllModulesThread(JTree Tree, ConfigurationTreeModel sourceModel, Object external)
 	  {
 		  this.tree 		= Tree;
 		  this.sourceModel 	= sourceModel;
@@ -2871,19 +2915,19 @@ final class UpdateAllESModulesThread extends SwingWorker<String, String>
 
 	@Override
 	protected String doInBackground() throws Exception {
+		startTime = System.currentTimeMillis();
         int count = sourceModel.getChildCount(ext);	
-        Instance instance = null;
+        ModuleInstance instance = null;
 		for(int i = 0; i < sourceModel.getChildCount(ext); i++) {
 			tree.setSelectionPath(null);
-			instance = (Instance) sourceModel.getChild(ext, i);
+			instance = (ModuleInstance) sourceModel.getChild(ext, i);
 			
 			int progress = (i*100)/count;	// range 0-100
 			setProgress(progress);
-			//System.out.println("progress = " + progress);
 			
-			if ((instance instanceof ESModuleInstance)&&
-			    targetConfig.esmodule(instance.name())!=null) {
-				ConfigurationTreeActions.replaceInstancesNoModel(tree,instance);
+			if ((instance instanceof ModuleInstance)&&
+			    targetConfig.module(instance.name())!=null) {
+				ConfigurationTreeActions.replaceModuleNoModel(tree,instance);
 				items.add(instance.name());	// register item for diff
 				firePropertyChange("current", null, instance.name());
 			}
@@ -2891,7 +2935,7 @@ final class UpdateAllESModulesThread extends SwingWorker<String, String>
 		setProgress(100);
 		
 		if(instance != null)
-		if(instance instanceof ESModuleInstance) type = "ESModule";
+		if(instance instanceof ModuleInstance) type = "Module";
 		
 		return new String("Done!");
 	}
@@ -2910,9 +2954,17 @@ final class UpdateAllESModulesThread extends SwingWorker<String, String>
     	    dlg.pack();
     	    dlg.setVisible(true);
     	}
-    	firePropertyChange("current", null, items.size() + " items imported! ");
-    	System.out.println(items.size() + " items imported! enlapsedTime: " + elapsedTime);
+    	String time = 
+    	String.format("%d min, %d sec", 
+    		    TimeUnit.MILLISECONDS.toMinutes(elapsedTime),
+    		    TimeUnit.MILLISECONDS.toSeconds(elapsedTime) - 
+    		    TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(elapsedTime))
+    		);
+
+    	firePropertyChange("current", null, items.size() + " items updated! " + time);
+    	System.out.println(items.size() + " items updated! enlapsedTime: " + time);
     	targetModel.updateLevel1Nodes();
+    	targetModel.nodeStructureChanged(targetModel.modulesNode());
    }
 
 }
@@ -2958,6 +3010,8 @@ class ImportAllReferencesThread extends SwingWorker<String, String> {
 
 	@Override
 	protected String doInBackground() throws Exception {
+		startTime = System.currentTimeMillis();
+		
         tree.setSelectionPath(null);
         int count = sourceModel.getChildCount(ext);
         ReferenceContainer container = null;
@@ -2995,10 +3049,17 @@ class ImportAllReferencesThread extends SwingWorker<String, String> {
     	    dlg.pack();
     	    dlg.setVisible(true);
     	}
-    	firePropertyChange("current", null, items.size() + " items imported! ");
-    	System.out.println(items.size() + " items imported! enlapsedTime: " + elapsedTime);
     	
-    	// Since the model is not updated during the process, we do it now.
+    	String time = 
+        	String.format("%d min, %d sec", 
+        		    TimeUnit.MILLISECONDS.toMinutes(elapsedTime),
+        		    TimeUnit.MILLISECONDS.toSeconds(elapsedTime) - 
+        		    TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(elapsedTime))
+        		);
+    	firePropertyChange("current", null, items.size() + " items imported! " +  time);
+    	System.out.println(items.size() + " items imported! enlapsedTime: " + time);
+    	
+    	// Since the model is not updated during the process, do it now.
     	if(this.type == "path") targetModel.nodeStructureChanged(targetModel.pathsNode());
     	else targetModel.nodeStructureChanged(targetModel.sequencesNode());
     	targetModel.updateLevel1Nodes();

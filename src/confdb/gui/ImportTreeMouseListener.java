@@ -1,14 +1,9 @@
 package confdb.gui;
 
 import javax.swing.*;
-import javax.swing.event.*;
 import javax.swing.tree.*;
-import java.awt.*;
 import java.awt.event.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 
 import confdb.data.*;
 
@@ -83,17 +78,17 @@ public class ImportTreeMouseListener extends MouseAdapter
 				JPopupMenu popup = new JPopupMenu();
 				JMenuItem	item = null;
 				if 		(child instanceof ServiceInstance) 	item = new JMenuItem("Import all Services")	;	
-				else if (child instanceof ESModuleInstance)	item = new JMenuItem("Update all existing ESModules");
+				else if (child instanceof ESModuleInstance)	item = new JMenuItem("Import all ESModules");
 				else if (child instanceof ESSourceInstance)	item = new JMenuItem("Import all ESSources");
 				else if (child instanceof EDSourceInstance)	item = new JMenuItem("Import all EDSources");
+				else if (child instanceof ModuleInstance)	item = new JMenuItem("Update all existing Modules")	;
 				if(item != null) {
 					// Adding listeners:
-					if(child instanceof ESModuleInstance) {
-						item.addActionListener(new AddUpdateESModulesListener(currentTree, importTree, node));
-					} else {
+					if(child instanceof ModuleInstance) 
+						item.addActionListener(new AddUpdateAllModulesListener(currentTree, importTree, node));
+					else 
 						item.addActionListener(new AddAllInstancesListener(currentTree, importTree, node));
-					}
-				    
+					
 				    popup.add(item);
 				    popup.show(e.getComponent(),e.getX(),e.getY());					
 				}
@@ -104,9 +99,6 @@ public class ImportTreeMouseListener extends MouseAdapter
 			    item.addActionListener(new AddAllPSetsListener(currentTree, importTree, node));
 			    popup.add(item);
 			    popup.show(e.getComponent(),e.getX(),e.getY());
-
-					
-				
 			}
 		}
 	}
@@ -272,15 +264,16 @@ class AddAllInstancesListener implements ActionListener {
 	}
 }
 
-//Update shared ESModules listener class
-class AddUpdateESModulesListener implements ActionListener {
+
+//Update shared Modules listener class
+class AddUpdateAllModulesListener implements ActionListener {
 	// member data
 	private JTree		targetTree;
 	private JTree		sourceTree;
 	private Object		container;
 	
 	// constructor
-	public AddUpdateESModulesListener(JTree targetTree, JTree sourceTree, Object container) {
+	public AddUpdateAllModulesListener(JTree targetTree, JTree sourceTree, Object container) {
 		this.targetTree	= targetTree;
 		this.sourceTree	= sourceTree;
 		this.container	= container;
@@ -288,9 +281,11 @@ class AddUpdateESModulesListener implements ActionListener {
 	
 	// member functions
 	public void actionPerformed(ActionEvent e) {
-		ConfigurationTreeActions.UpdateAllESModules(targetTree, sourceTree, container);
+		//ConfigurationTreeActions.ImportAllESModules(targetTree, sourceTree, container);
+		ConfigurationTreeActions.UpdateAllModules(targetTree, sourceTree, container);
 	}
 }
+
 
 //Import all instances listener class
 class AddAllPSetsListener implements ActionListener {
