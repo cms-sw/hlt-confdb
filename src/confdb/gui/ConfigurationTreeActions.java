@@ -1484,9 +1484,18 @@ public class ConfigurationTreeActions
 	    }
 	    model.nodeRemoved(model.sequencesNode(),index,oldSequence);	
 	    for (int i=0;i<refCount;i++) {
-		config.insertSequenceReference(parents[i],indices[i],newSequence);
-		model.nodeInserted(parents[i],indices[i]);
-	    }	    
+		Reference check = parents[i].entry(newSequence.name());
+		int iref=parents[i].indexOfEntry(check);
+		if (iref<0) {
+		    config.insertSequenceReference(parents[i],indices[i],newSequence);
+		    model.nodeInserted(parents[i],indices[i]);
+		} else if (iref>indices[i]) {
+		    config.insertSequenceReference(parents[i],indices[i],newSequence);
+		    model.nodeInserted(parents[i],indices[i]);
+		    check.remove();
+		    model.nodeRemoved(parents[i],iref,check);
+		}
+	    }
 	    model.updateLevel1Nodes();
 	    tree.expandPath(new TreePath(model.getPathToRoot(newSequence)));
 	    config.removeSequence(oldSequence);
@@ -1514,8 +1523,17 @@ public class ConfigurationTreeActions
 	    }
 	    model.nodeRemoved(model.pathsNode(),index,oldPath);	
 	    for (int i=0;i<refCount;i++) {
-		config.insertPathReference(parents[i],indices[i],newPath);
-		model.nodeInserted(parents[i],indices[i]);
+		Reference check = parents[i].entry(newPath.name());
+		int iref=parents[i].indexOfEntry(check);
+		if (iref<0) {
+		    config.insertPathReference(parents[i],indices[i],newPath);
+		    model.nodeInserted(parents[i],indices[i]);
+		} else if (iref>indices[i]) {
+		    config.insertPathReference(parents[i],indices[i],newPath);
+		    model.nodeInserted(parents[i],indices[i]);
+		    check.remove();
+		    model.nodeRemoved(parents[i],iref,check);
+		}
 	    }	    
 	    model.updateLevel1Nodes();
 	    tree.expandPath(new TreePath(model.getPathToRoot(newPath)));
