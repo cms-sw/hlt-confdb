@@ -110,6 +110,18 @@ public class ImportTreeMouseListener extends MouseAdapter
 	    JMenuItem  item = new JMenuItem("Import " + container.name());
 	    item.addActionListener(new AddContainerListener(currentTree,container));
 	    popup.add(item);
+	    
+	    // Specific menu:
+	    item = new JMenuItem("Deep import " + container.name())	;
+		if 		(node instanceof Path)		{
+			item.addActionListener(new AddDeepContainerListener(currentTree, importTree, container));
+			popup.add(item);
+		}
+		else if (node instanceof Sequence)	{
+			item.addActionListener(new AddDeepContainerListener(currentTree, importTree, container));
+			popup.add(item);			
+		}
+	    
 	    popup.show(e.getComponent(),e.getX(),e.getY());
 	}
 	else if (node instanceof ModuleInstance) {
@@ -179,6 +191,30 @@ class AddContainerListener implements ActionListener
     }
 }
 
+//container listener class
+class AddDeepContainerListener implements ActionListener
+{
+    // member data
+    private JTree              targetTree;
+    private JTree              sourceTree;
+    private ReferenceContainer container;
+
+    // construction
+    public AddDeepContainerListener(JTree targetTree			,
+    								JTree sourceTree			,
+									ReferenceContainer container)
+    {
+	this.targetTree = targetTree;
+	this.sourceTree	= sourceTree;
+	this.container  = container	;
+    }
+
+    // member functions
+    public void actionPerformed(ActionEvent e)
+    {
+	ConfigurationTreeActions.DeepImportReferenceContainer(targetTree, sourceTree, container);
+    }
+}
 
 //All Paths / sequences listener class
 class AddAllReferencesListener  implements ActionListener {

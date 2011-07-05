@@ -438,7 +438,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	    }
 	    return 0;
 	}
-	System.out.println("getChildCount("+node+") = 0!");
+	//System.out.println("getChildCount("+node+") = 0!");
 	return 0;
     }
     

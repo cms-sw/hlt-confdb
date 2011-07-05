@@ -1,3 +1,8 @@
+2011-07-05 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-59
+	* Big Fix: Update EventContents when renaming and creating Streams. bug 83721
+	* Add "Deep Import" feature for Paths and Sequences.
+
 2011-06-29  Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-05-58
 	* Bug fix in replace Sequence/Path: if parent already contains the new

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
+import confdb.diff.Comparison;
 import confdb.diff.Diff;
 import confdb.data.*;
 
@@ -763,6 +764,95 @@ public class ConfigurationTreeActions
 	return true;
     }
     
+    
+    /** import Path / Sequence */
+    public static boolean DeepImportReferenceContainer(JTree tree, JTree sourceTree, ReferenceContainer external)
+    {
+		ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();			// Target Model
+		ConfigurationTreeModel sm		= (ConfigurationTreeModel)sourceTree.getModel(); 	// Source Model
+		Configuration          config   = (Configuration)model.getRoot();
+		Configuration	sourceConfig	= (Configuration)sm.getRoot();
+		TreePath               treePath = tree.getSelectionPath();
+		
+		int count =
+		    (external instanceof Path) ? config.pathCount():config.sequenceCount();
+		int index = (treePath==null) ? count :
+		    (treePath.getPathCount()==2) ?
+		    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+					    treePath.getLastPathComponent())+1;
+		
+		ReferenceContainer   container = null;
+		Object               parent    = null;
+		String               type      = null;
+	
+		if (external instanceof Path) {
+		    container = config.path(external.name());
+		    parent    = model.pathsNode();
+		    type      = "path";
+		}
+		else if (external instanceof Sequence) {
+		    container = config.sequence(external.name());
+		    parent    = model.sequencesNode();
+		    type      = "sequence";
+		}
+		
+		if (container!=null) { // if container already exist:
+		
+		    index = (type.equals("path")) ? config.indexOfPath((Path)container) 
+			                          : config.indexOfSequence((Sequence)container);
+	    
+		    int choice =
+			JOptionPane.showConfirmDialog(null,"The "+type+" '"+
+						      container.name()+"' exists, "+
+						      "do you want to overwrite it?",
+						      "Overwrite "+type,
+						      JOptionPane.OK_CANCEL_OPTION);
+		    if (choice==JOptionPane.CANCEL_OPTION) return false;
+
+		} else { // if root container doesn't exist:
+			
+		    if (!config.hasUniqueQualifier(external)) return false;
+		    if (type.equals("path")) {
+				container = config.insertPath(index,external.name());
+				((Path)container).setAsEndPath(((Path)external).isSetAsEndPath());
+		    } else {
+		    	container = config.insertSequence(index,external.name());
+		    }
+
+			model.nodeInserted(parent,index); // Force update bug76145
+		}
+		
+		
+		// This does the rest of the work:
+		if (DeepImportContainerEntries(config, sourceConfig, tree, external, container))
+		    container.setDatabaseId(external.databaseId());
+		
+		model.nodeChanged(container);
+		model.updateLevel1Nodes();
+		
+		Diff diff = new Diff(external.config(),config);
+		String search = type+":"+container.name();
+		diff.compare(search);
+		if (!diff.isIdentical()) {
+		    DiffDialog dlg = new DiffDialog(diff);
+		    dlg.pack();
+		    dlg.setVisible(true);
+		}
+		
+		// PS 31/01/2011: fixes bug reported by Andrea B.
+		for (int i=0;i<container.referenceCount();i++) {
+		    Reference reference = container.reference(i);
+		    ReferenceContainer parentContainer = reference.container();
+		    parentContainer.setHasChanged();
+		}
+		
+		
+		return true;
+    }
+    
+    
+    
+    
     /** import Path / Sequence
      * Perform updates and insertions of new references into a target configuration.
      * NOTE: Nodes are not updated in the Tree model.
@@ -833,94 +923,314 @@ public class ConfigurationTreeActions
 	    Reference entry = sourceContainer.entry(i);
 	    
 	    if (entry instanceof ModuleReference) {
-		ModuleReference sourceRef = (ModuleReference)entry;
-		ModuleInstance  source    = (ModuleInstance)sourceRef.parent();
-		ModuleInstance  target    = config.module(source.name());
-		ModuleReference targetRef = null;
-		if (target!=null) {
-		    targetRef = config.insertModuleReference(targetContainer,i,target);
-		    result = false;
-		}
-		else {
-		    targetRef = config.insertModuleReference(targetContainer,i,
-						     source.template().name(),
-						     source.name());
-		    target = (ModuleInstance)targetRef.parent();
-		    for (int j=0;j<target.parameterCount();j++)
-			target.updateParameter(j,source.parameter(j)
-					       .valueAsString());
-		    target.setDatabaseId(source.databaseId());
-		}
-		targetRef.setOperator(sourceRef.getOperator());
-
-		treeModel.nodeInserted(targetContainer,i);
-		if (target.referenceCount()==1)
-		    treeModel.nodeInserted(treeModel.modulesNode(),
-					   config.moduleCount()-1);
-	    }
-	    else if (entry instanceof OutputModuleReference) {
-		OutputModuleReference sourceRef = (OutputModuleReference)entry;
-		OutputModule          source    = (OutputModule)sourceRef.parent();
-		OutputModule          target    = config.output(source.name());
-		OutputModuleReference targetRef = null;
-		if (target!=null) {
-		    targetRef = config.insertOutputModuleReference(targetContainer,i,target);
-		    result = false;
-		}
-		else {
-		    System.out.println("OutputModules must already exist as they are imported via stream import!");
-		    return result;
-		}
-		targetRef.setOperator(sourceRef.getOperator());
-
-		treeModel.nodeInserted(targetContainer,i);
-		if (target.referenceCount()==1)
-		    treeModel.nodeInserted(treeModel.outputsNode(),
-					   config.outputCount()-1);
-	    }
-	    else if (entry instanceof PathReference) {
-		PathReference sourceRef=(PathReference)entry;
-		Path          source   =(Path)sourceRef.parent();
-		Path          target   =config.path(source.name());
-		if (target!=null) {
-		    config.insertPathReference(targetContainer,i,target);
-		    result = false;
-		}
-		else {
-		    target = config.insertPath(config.pathCount(),sourceRef.name());
-		    treeModel.nodeInserted(treeModel.pathsNode(),
-					   config.pathCount()-1);
-		    config.insertPathReference(targetContainer,i,target);
-		    boolean tmp =
-			importContainerEntries(config,treeModel,source,target);
-		    if (tmp) target.setDatabaseId(source.databaseId());
-		    if (result) result = tmp;
-		}
-		
-		treeModel.nodeInserted(targetContainer,i);
-	    }
-	    else if (entry instanceof SequenceReference) {
-		SequenceReference sourceRef=(SequenceReference)entry;
-		Sequence          source=(Sequence)sourceRef.parent();
-		Sequence          target=config.sequence(sourceRef.name());
-		if (target!=null) {
-		    config.insertSequenceReference(targetContainer,i,target);
-		    result = false;
-		}
-		else {
-		    target = config.insertSequence(config.sequenceCount(), sourceRef.name());
-		    treeModel.nodeInserted(treeModel.sequencesNode(), config.sequenceCount()-1);
-		    config.insertSequenceReference(targetContainer,i,target);
-		    boolean tmp = importContainerEntries(config,treeModel,source,target);
-		    if (tmp) target.setDatabaseId(source.databaseId());
-		    if (result) result = tmp;
-		}
-		
-		treeModel.nodeInserted(targetContainer,i);
+			ModuleReference sourceRef = (ModuleReference)entry;
+			ModuleInstance  source    = (ModuleInstance)sourceRef.parent();
+			ModuleInstance  target    = config.module(source.name());
+			ModuleReference targetRef = null;
+			if (target!=null) {
+			    targetRef = config.insertModuleReference(targetContainer,i,target);
+			    result = false;
+			}
+			else {
+			    targetRef = config.insertModuleReference(targetContainer,i,
+							     source.template().name(),
+							     source.name());
+			    target = (ModuleInstance)targetRef.parent();
+			    for (int j=0;j<target.parameterCount();j++)
+				target.updateParameter(j,source.parameter(j)
+						       .valueAsString());
+			    target.setDatabaseId(source.databaseId());
+			}
+			targetRef.setOperator(sourceRef.getOperator());
+	
+			treeModel.nodeInserted(targetContainer,i);
+			if (target.referenceCount()==1)
+			    treeModel.nodeInserted(treeModel.modulesNode(),
+						   config.moduleCount()-1);
+	    } else if (entry instanceof OutputModuleReference) {
+			OutputModuleReference sourceRef = (OutputModuleReference)entry;
+			OutputModule          source    = (OutputModule)sourceRef.parent();
+			OutputModule          target    = config.output(source.name());
+			OutputModuleReference targetRef = null;
+			if (target!=null) {
+			    targetRef = config.insertOutputModuleReference(targetContainer,i,target);
+			    result = false;
+			}
+			else {
+			    System.out.println("OutputModules must already exist as they are imported via stream import!");
+			    return result;
+			}
+			targetRef.setOperator(sourceRef.getOperator());
+	
+			treeModel.nodeInserted(targetContainer,i);
+			if (target.referenceCount()==1)
+			    treeModel.nodeInserted(treeModel.outputsNode(),
+						   config.outputCount()-1);
+	    } else if (entry instanceof PathReference) {
+			PathReference sourceRef=(PathReference)entry;
+			Path          source   =(Path)sourceRef.parent();
+			Path          target   =config.path(source.name());
+			if (target!=null) {
+			    config.insertPathReference(targetContainer,i,target);
+			    result = false;
+			}
+			else {
+			    target = config.insertPath(config.pathCount(),sourceRef.name());
+			    treeModel.nodeInserted(treeModel.pathsNode(),
+						   config.pathCount()-1);
+			    config.insertPathReference(targetContainer,i,target);
+			    boolean tmp =
+				importContainerEntries(config,treeModel,source,target);
+			    if (tmp) target.setDatabaseId(source.databaseId());
+			    if (result) result = tmp;
+			}
+			
+			treeModel.nodeInserted(targetContainer,i);
+	    } else if (entry instanceof SequenceReference) {
+			SequenceReference sourceRef=(SequenceReference)entry;
+			Sequence          source=(Sequence)sourceRef.parent();
+			Sequence          target=config.sequence(sourceRef.name());
+			if (target!=null) {
+			    config.insertSequenceReference(targetContainer,i,target);
+			    result = false;
+			}
+			else {
+			    target = config.insertSequence(config.sequenceCount(), sourceRef.name());
+			    treeModel.nodeInserted(treeModel.sequencesNode(), config.sequenceCount()-1);
+			    config.insertSequenceReference(targetContainer,i,target);
+			    boolean tmp = importContainerEntries(config,treeModel,source,target);
+			    if (tmp) target.setDatabaseId(source.databaseId());
+			    if (result) result = tmp;
+			}
+			
+			treeModel.nodeInserted(targetContainer,i);
 	    }
 	}
 	return result;
     }
+    
+    
+    /** 
+     * DeepImportContainerEntries
+     * ----------------------------
+     * insert entries of an external reference container into the local copy 
+     * In this case, this make a deep check of entries values.
+     * @author jimeneze
+     * */
+    private static
+	boolean DeepImportContainerEntries(	Configuration          	config			,
+										Configuration			sourceConfig	,
+								       JTree					targetTree		,
+								       ReferenceContainer     sourceContainer	,
+								       ReferenceContainer     targetContainer	) {
+    	ConfigurationTreeModel treeModel    = (ConfigurationTreeModel)targetTree.getModel();
+
+		boolean result = true;
+		for (int i=0;i<sourceContainer.entryCount();i++) {
+			System.out.println("------ Iteration  -----" + i  + " of " + (sourceContainer.entryCount()-1) + ", target count = " + targetContainer.entryCount());
+		    Reference entry = sourceContainer.entry(i);
+		    
+		    if (entry instanceof ModuleReference) {					// MODULE REFERENCES
+				ModuleReference sourceRef = (ModuleReference)entry;
+				ModuleInstance  source    = (ModuleInstance)sourceRef.parent();
+				ModuleInstance  target    = config.module(source.name());
+				ModuleReference targetRef = null;
+				
+				if (target!=null) { // if module already exist then just insert the reference.
+					System.out.println("Processing Module " + target.name());
+			    	
+					Diff diff = new Diff(sourceConfig,config);
+		    	    Comparison c = diff.compareInstances(source, target);
+		    	    
+		    	    // If module exist but it's not identical:
+		    	    if (!c.isIdentical()) { // replace module:
+		    	    	System.out.println("Replacing module = " + source.name());
+		    	    	ConfigurationTreeActions.replaceModule(targetTree, source);
+
+		    	    	treeModel.nodeStructureChanged(treeModel.modulesNode()); // forcing refresh
+		    	    } else {	// If module exist and it's identical then do nothing:
+		    	    	result = false;
+		    	    }
+				} else { // Inserts the module and the reference:
+					
+					// NOTE: next call also inserts the module before inserting references
+					targetRef = config.insertModuleReference(	targetContainer, 0			, 					// i instead of 0.
+						     									source.template().name()	,
+						     									source.name())				;
+
+				    target = (ModuleInstance)targetRef.parent();
+				    // Update parameters:
+				    for (int j=0;j<target.parameterCount();j++)
+				    	target.updateParameter(j,source.parameter(j).valueAsString());
+				    target.setDatabaseId(source.databaseId());
+				    
+				    // it was inserted. common operations:
+					targetRef.setOperator(sourceRef.getOperator()); 
+					treeModel.nodeInserted(targetContainer,0);		// Inserting in 0 instead of i-position.
+					if (target.referenceCount()==1) treeModel.nodeInserted(treeModel.modulesNode(), config.moduleCount()-1);
+				}
+			//-----------------------------------------------------------------------------//
+		    } else if (entry instanceof OutputModuleReference) {	// OUTPUTMODULE REFERENCES
+		    	System.out.println("OUTPUT MODULE REFERENCE");
+		    	
+				OutputModuleReference sourceRef = (OutputModuleReference)entry;
+				OutputModule          source    = (OutputModule)sourceRef.parent();
+				OutputModule          target    = config.output(source.name());
+				OutputModuleReference targetRef = null;
+				if (target!=null) { // if OutputModule exist then insert ONLY the Reference.
+					System.out.println("Processing Module " + target.name());
+			    	
+					Diff diff = new Diff(sourceConfig,config);
+		    	    Comparison c = diff.compareOutputModules(source, target);
+		    	    
+		    	    // If output module exists but it's not identical:
+		    	    if (!c.isIdentical()) { // replace module:
+		    	    	System.out.println("Replacing Output module = " + source.name());
+					     
+					    // Update parameters:
+					    for (int j=0;j<target.parameterCount();j++) {
+					    	target.updateParameter(j,source.parameter(j).valueAsString());
+					    	System.out.println("OM: Updating parameter: " + source.parameter(j).name());
+					    }
+					    target.setDatabaseId(source.databaseId());
+		    	    	// OJO jimeneze
+
+		    	    	treeModel.nodeStructureChanged(treeModel.modulesNode()); // forcing refresh
+		    	    } else {	// If module exist and it's identical then do nothing:
+		    	    	result = false;
+		    	    }
+		    	    
+				    targetRef = config.insertOutputModuleReference(targetContainer,i,target);
+					
+				    // common operations: 
+					targetRef.setOperator(sourceRef.getOperator());
+					treeModel.nodeInserted(targetContainer,i);
+					if (target.referenceCount()==1)
+					    treeModel.nodeInserted(treeModel.outputsNode(), config.outputCount()-1);
+				    
+				    result = false;
+				} else { // If it does not exist won't import anything.
+				    System.out.println("OutputModules must already exist as they are imported via stream import!");
+				    return false;
+				}
+		    //-----------------------------------------------------------------------------//
+		    } else if (entry instanceof PathReference) {	// PATH REFERENCES
+		    	System.out.println("PATH REFERENCE");
+		    	
+				PathReference sourceRef=(PathReference)entry;
+				Path          source   =(Path)sourceRef.parent();
+				Path          target   =config.path(source.name());
+				if (target!=null) {	// if the path already exist then it just insert the reference.
+					
+			    	Diff diff = new Diff(sourceConfig,config);
+		    	    Comparison c = diff.compareContainers(source, target);
+		    	    if (!c.isIdentical()) {
+		    	    	System.out.println("existing Path differences found!");
+					    DeepImportContainerEntries(config, sourceConfig, targetTree, source, target);
+					    treeModel.nodeStructureChanged(treeModel.pathsNode());
+		    	    	
+		    	    } else {
+		    	    	// IDENTICAL: nothing to do.
+		    	    }
+					
+				    config.insertPathReference(targetContainer,i,target);
+				    result = false;
+				} else { // insert the path and the reference.
+					
+				    target = config.insertPath(config.pathCount(),sourceRef.name());
+				    treeModel.nodeInserted(treeModel.pathsNode(),
+							   config.pathCount()-1);
+				    
+				    config.insertPathReference(targetContainer,i,target);	// insert the reference.
+				    // recursively entries insertion!
+				    boolean tmp = DeepImportContainerEntries(config, sourceConfig, targetTree,source,target);
+				    if (tmp) target.setDatabaseId(source.databaseId());
+				    if (result) result = tmp;
+				}
+				treeModel.nodeInserted(targetContainer,i); // refresh the tree view
+			//-----------------------------------------------------------------------------//
+		    } else if (entry instanceof SequenceReference) {		// SEQUENCE REFERENCES
+				System.out.println("Processing Sequence:  " + entry.name());
+				
+				SequenceReference sourceRef=(SequenceReference)entry;
+				Sequence          source=(Sequence)sourceRef.parent();
+				Sequence          target=config.sequence(sourceRef.name());
+				
+				if (target!=null) {	// if sequence already exist then just insert the reference.
+			    	Diff diff = new Diff(sourceConfig,config);
+		    	    Comparison c = diff.compareContainers(source, target);
+		    	    if (!c.isIdentical()) {
+		    	    	System.out.println("Differences found in Sequence " + target.name());
+					    DeepImportContainerEntries(config, sourceConfig, targetTree, source, target);
+					    treeModel.nodeStructureChanged(treeModel.sequencesNode());
+					    treeModel.nodeStructureChanged(treeModel.pathsNode());
+		    	    }
+				    result = false;
+				} else { // Insert the sequence and the reference.					
+					System.out.println(" Inserting Sequence: " + sourceRef.name());
+					
+				    target = config.insertSequence(config.sequenceCount(), sourceRef.name());
+				    treeModel.nodeInserted(treeModel.sequencesNode(), config.sequenceCount()-1);
+				    config.insertSequenceReference(targetContainer,i,target);
+				    // recursively entries insertion!				    
+				    boolean tmp = DeepImportContainerEntries(config, sourceConfig, targetTree, source, target);
+				    if (tmp) target.setDatabaseId(source.databaseId());
+				    if (result) result = tmp;
+				    treeModel.nodeInserted(targetContainer,i);
+				}
+				
+				boolean existance = false;
+    	    	for (int j=0;j<targetContainer.entryCount();j++) {
+    	    		Reference subentry = (Reference)targetContainer.entry(j);
+					if(	(subentry 	instanceof SequenceReference)&&
+						(entry 		instanceof SequenceReference)&&
+						(subentry.name().equals(entry.name()))) 	{
+    	    			System.out.println("Sequence reference found! " + entry.name());
+    	    			existance = true;
+    	    		}
+    	    	}
+    	    	if(!existance) {
+				    config.insertSequenceReference(targetContainer,i,target);
+				    treeModel.nodeInserted(targetContainer,i);
+    	    	}
+		    }
+		}
+		//-----------------------------------------------------------------------------//
+		
+		System.out.println("Removing remaining items...");
+		// REMOVE ALL REMAINING ITEMS. Containers must be identical.
+		for (int i=0;i<targetContainer.entryCount();i++) {
+			//System.out.println("Checking " + i + " of " + targetContainer.entryCount() + " entry: " + targetContainer.entry(i));
+			
+			Reference targetSubEntry = (Reference) targetContainer.entry(i);
+			boolean found = false;
+			for (int j=0;j<sourceContainer.entryCount();j++) {
+				Reference sourceSubEntry = (Reference) sourceContainer.entry(j);
+				
+				if(	((((targetSubEntry instanceof SequenceReference)&&
+					   (sourceSubEntry instanceof SequenceReference))
+					  ||
+					  ((targetSubEntry instanceof ModuleReference)&&
+					  (sourceSubEntry  instanceof ModuleReference))
+					  ||
+					  ((targetSubEntry instanceof PathReference)&&
+					  (sourceSubEntry  instanceof PathReference)))	
+					  &&
+					  (targetSubEntry.name().equals(sourceSubEntry.name())))) {
+					found = true;
+				} 
+			}
+			if(!found) { // DELETE
+				System.out.println("DELETE: Deleting reference! " + targetSubEntry.name());
+				removeReference(targetTree, targetSubEntry);
+				i--;
+			}
+		}
+		
+		return result;
+    }
+    
+    
     
     
     /** 
@@ -1291,6 +1601,61 @@ public class ConfigurationTreeActions
 								    index-1)));
 	
 	return true;
+    }
+    
+    
+    /** removeReference
+     * ------------------
+     * remove reference passed by parameter instead using selectionPath.
+     * NOTE: This will be used by deep import feature. 
+     * 29/06/2011
+     * */
+    public static boolean removeReference(JTree tree, Reference reference)
+    {
+		ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+		Configuration          config    = (Configuration)model.getRoot();
+		//TreePath               treePath  = tree.getSelectionPath();
+		
+	
+		ReferenceContainer     container = reference.container();
+		int                    index     = container.indexOfEntry(reference);
+		ModuleInstance         module    = null;
+		int                    indexOfModule= -1;
+		
+		if (reference instanceof ModuleReference) {
+			System.out.println("[removeReference] removing ModuleReference " + reference.name());
+		    module = (ModuleInstance)reference.parent();
+		    indexOfModule = config.indexOfModule(module);
+		    
+		    
+		    config.removeModuleReference((ModuleReference)reference);
+		    
+		    System.out.println("[removeReference] using index " + indexOfModule);
+		} else if (reference instanceof OutputModuleReference) {
+		    OutputModuleReference omr = (OutputModuleReference)reference;
+		    config.removeOutputModuleReference(omr);
+		}
+		else {
+		    container.removeEntry(reference);
+		}
+		
+		model.nodeRemoved(container,index,reference);
+		if (module!=null&&module.referenceCount()==0)
+		    model.nodeRemoved(model.modulesNode(),indexOfModule,module);
+		model.updateLevel1Nodes();
+		
+		/*
+		TreePath parentTreePath = treePath.getParentPath();
+		Object   parent         = parentTreePath.getLastPathComponent();
+		if (index==0)
+		    tree.setSelectionPath(parentTreePath);
+		else
+		    tree.setSelectionPath(parentTreePath
+					  .pathByAddingChild(model.getChild(parent,
+									    index-1)));
+		*/
+		
+		return true;
     }
 
     /** set operator  */
