@@ -2187,11 +2187,19 @@ public class ConfDbGUI
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-				
+
 				// Displays list of unresolved tags:
 				for(int t =0; t < Ntags; t++) {
-		        	String tagLine = pythonCode.substring(pythonCode.indexOf(sortedTags[t]), pythonCode.indexOf(")", pythonCode.indexOf(sortedTags[t]) + sortedTags[t].length()) + 1);
-		        	tagLine+=",\n";
+					String tagLine = "";
+					if(pythonCode.indexOf(sortedTags[t]) == -1) {
+						System.err.println("ERROR: [confdb.gui.ConfDbGUI.getUnresolvedInputTagsSummary] Unresolved input tag not found! --> ["+t+"]" + sortedTags[t]);
+						System.err.println("ERROR: SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!");
+						// SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!
+					}
+					else {
+						tagLine = pythonCode.substring(pythonCode.indexOf(sortedTags[t]), pythonCode.indexOf(")", pythonCode.indexOf(sortedTags[t]) + sortedTags[t].length()) + 1);
+						tagLine+=",\n"; 
+					}
 		        	try {
 						jEditorPaneUnresolvedITags.getDocument().insertString(
 								jEditorPaneUnresolvedITags.getDocument().getLength(), tagLine, BOLD_BLACK);
