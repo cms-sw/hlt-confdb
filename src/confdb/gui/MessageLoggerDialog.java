@@ -970,7 +970,7 @@ class ProductTableLoggerModel extends AbstractTableModel
 	while (it.hasNext()) {
 	    ProductLogger temp=it.next();
 	    if (bShowSelected) {
-		if (temp.info||temp.debug||temp.warning||temp.error) {
+		if (temp.info||temp.debug||temp.warning) {
 		    products.add(temp);
 		}
 	    } else {
