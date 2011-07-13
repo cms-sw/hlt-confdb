@@ -65,8 +65,14 @@ public class PythonParameterWriter  implements IParameterWriter
 			{
 				// strange things happen here: from time to time the value is empty!
 				String value = parameter.valueAsString();
-				if ( value.length() == 0 )
-					throw new ConverterException( "oops, empty scalar parameter value! Don't know what to do");
+				if ( value.length() == 0 ) {
+					System.out.println("[confdb.converter.python.PythonParameterWriter.toString] ( value.length() == 0 ) !!!");
+					value = "None";
+					//throw new ConverterException( "oops, empty scalar parameter value! Don't know what to do");
+					
+				}
+					
+					
 				if ( parameter instanceof StringParameter && value.charAt(0) == '"' && value.indexOf( '"', 1 ) < value.length() - 1 )
 					value = "'" + value + "'";
 

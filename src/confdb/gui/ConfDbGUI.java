@@ -1964,56 +1964,59 @@ public class ConfDbGUI
 	// current configuration tree
 	treeModelCurrentConfig = new ConfigurationTreeModel(currentConfig);
 	jTreeCurrentConfig     = new JTree(treeModelCurrentConfig) {
-		public String getToolTipText(MouseEvent evt) {
-		    String text = null;
-		    if (getRowForLocation(evt.getX(),evt.getY()) == -1)
-		    	return text;
-		    
-		    TreePath tp = getPathForLocation(evt.getX(),evt.getY());
-		    Object selectedNode = tp.getLastPathComponent();
-
-	    	// Do not display neither "unresolved input tags" nor "datasets" for Paths. bug/feature 82524 
-		    if (	selectedNode instanceof ESSourceInstance	||
-					     selectedNode instanceof ESModuleInstance	||
-					     selectedNode instanceof ModuleInstance) 	{
-				Instance instance = (Instance)selectedNode;
-				text = instance.template().name();
-		    } else if (selectedNode instanceof ModuleReference) 	{
-				ModuleReference reference=(ModuleReference)selectedNode;
-				ModuleInstance  instance=(ModuleInstance)reference.parent();
-				text = "<html>"+instance.template().name();
+			public String getToolTipText(MouseEvent evt) {
+			    String text = null;
+			    if (getRowForLocation(evt.getX(),evt.getY()) == -1)
+			    	return text;
+			    
+			    TreePath tp = getPathForLocation(evt.getX(),evt.getY());
+			    Object selectedNode = tp.getLastPathComponent();
 	
-				Path path = (Path)(tp.getPathComponent(2));
-				String[] unresolved = path.unresolvedInputTags();
-				if (unresolved.length>0) text+="<br>Unresolved InputTags out of the "+unresolved.length+" in the current path:";
-				for (String un : unresolved) {
-				    String[] tokens = un.split("[/:]");
-				    for (int i=0; i<tokens.length; i++) {
-					if (instance.name().equals(tokens[i])) {
-					    text += "<br>"+un;
-					    break;
+		    	// Do not display neither "unresolved input tags" nor "datasets" for Paths. bug/feature 82524 
+			    if (	selectedNode instanceof ESSourceInstance	||
+						     selectedNode instanceof ESModuleInstance	||
+						     selectedNode instanceof ModuleInstance) 	{
+					Instance instance = (Instance)selectedNode;
+					text = instance.template().name();
+			    } else if (selectedNode instanceof ModuleReference) 	{
+					ModuleReference reference=(ModuleReference)selectedNode;
+					ModuleInstance  instance=(ModuleInstance)reference.parent();
+					text = "<html>"+instance.template().name();
+		
+					Object component = (tp.getPathComponent(2));
+					if(component instanceof Path) {
+						Path path = (Path)(tp.getPathComponent(2));
+						String[] unresolved = path.unresolvedInputTags();
+						if (unresolved.length>0) text+="<br>Unresolved InputTags out of the "+unresolved.length+" in the current path:";
+						for (String un : unresolved) {
+						    String[] tokens = un.split("[/:]");
+						    for (int i=0; i<tokens.length; i++) {
+							if (instance.name().equals(tokens[i])) {
+							    text += "<br>"+un;
+							    break;
+							}
+						    }
+						}
 					}
-				    }
-				}
-				text +="<html>";
-		    } else if (selectedNode instanceof SequenceReference) {
-		    	// Do not display "unresolved input tags" for Sequences. bug/feature 82524
-		    	
-				SequenceReference reference=(SequenceReference)selectedNode;
-				Sequence instance=(Sequence)reference.parent();
-				text = "<html>"+instance.name();
-				text += "<html>";
-				
-		    } else if (selectedNode instanceof Stream) {
-				Stream stream = (Stream)selectedNode;
-				text = "Event Content: " + stream.parentContent().name();
-		    } else if (selectedNode instanceof PrimaryDataset) {
-				PrimaryDataset dataset = (PrimaryDataset)selectedNode;
-				Stream         stream  = dataset.parentStream();
-				text = "Stream: " + stream.name();
-		    }
-		    return text;
-		}
+					text +="<html>";
+			    } else if (selectedNode instanceof SequenceReference) {
+			    	// Do not display "unresolved input tags" for Sequences. bug/feature 82524
+			    	
+					SequenceReference reference=(SequenceReference)selectedNode;
+					Sequence instance=(Sequence)reference.parent();
+					text = "<html>"+instance.name();
+					text += "<html>";
+					
+			    } else if (selectedNode instanceof Stream) {
+					Stream stream = (Stream)selectedNode;
+					text = "Event Content: " + stream.parentContent().name();
+			    } else if (selectedNode instanceof PrimaryDataset) {
+					PrimaryDataset dataset = (PrimaryDataset)selectedNode;
+					Stream         stream  = dataset.parentStream();
+					text = "Stream: " + stream.name();
+			    }
+			    return text;
+			}
 	    };
 	jTreeCurrentConfig.setToolTipText("");
 	jTreeCurrentConfig.setRootVisible(false);
@@ -2192,14 +2195,16 @@ public class ConfDbGUI
 				for(int t =0; t < Ntags; t++) {
 					String tagLine = "";
 					if(pythonCode.indexOf(sortedTags[t]) == -1) {
+						System.err.println("ERROR: " + pythonCode);
 						System.err.println("ERROR: [confdb.gui.ConfDbGUI.getUnresolvedInputTagsSummary] Unresolved input tag not found! --> ["+t+"]" + sortedTags[t]);
 						System.err.println("ERROR: SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!");
+						
 						// SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!
 					}
-					else {
+					//else {
 						tagLine = pythonCode.substring(pythonCode.indexOf(sortedTags[t]), pythonCode.indexOf(")", pythonCode.indexOf(sortedTags[t]) + sortedTags[t].length()) + 1);
 						tagLine+=",\n"; 
-					}
+					//}
 		        	try {
 						jEditorPaneUnresolvedITags.getDocument().insertString(
 								jEditorPaneUnresolvedITags.getDocument().getLength(), tagLine, BOLD_BLACK);

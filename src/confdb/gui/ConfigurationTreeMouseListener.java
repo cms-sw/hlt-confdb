@@ -138,8 +138,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
     public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
     
     /** check if this event should really trigger the menu to be displayed */
-    private void maybeShowPopup(MouseEvent e)
-    {
+    private void maybeShowPopup(MouseEvent e) {
+    	
+    	
 	if (!e.isPopupTrigger()) return;
 	
 	if (!tree.isEditable()) return;
@@ -578,6 +579,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    	menuItem = new JMenuItem("Remove Module");
 	    	menuItem.addActionListener(pathListener);
 	    	popupPaths.add(menuItem);
+	    	
+			// CLONE OPTION:
+		    menuItem = new JMenuItem("Clone Module");
+		    menuItem.addActionListener(pathListener);
+		    popupPaths.add(menuItem);
+	    	
 	    	popupPaths.addSeparator();
 	    	popupPaths.add( createSetOperatorMenu( (Reference)node, pathListener ) );
 	    }
@@ -687,6 +694,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		menuItem = new JMenuItem("Remove Module");
 		menuItem.addActionListener(sequenceListener);
 		popupSequences.add(menuItem);
+		
+		// CLONE OPTION:
+	    menuItem = new JMenuItem("Clone Module");
+	    menuItem.addActionListener(sequenceListener);
+	    popupSequences.add(menuItem);
+		
 	    }
 	    if (node instanceof OutputModuleReference) {
 		menuItem = new JMenuItem("Remove OutputModule");
@@ -717,9 +730,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    Reference reference = (Reference)node;
 	    menuItem = new JMenuItem("GOTO "+reference.name());
 	    menuItem.setActionCommand("GOTO");
-	    menuItem.addActionListener(sequenceListener);
+	    menuItem.addActionListener(sequenceListener);	    
+	    
 	    popupSequences.add(menuItem);
 	}
+
 	
     }
     
@@ -1613,6 +1628,9 @@ class PathMenuListener implements ActionListener
 	else if (action.equals("Set Operator")) {
 	    ConfigurationTreeActions.setOperator( tree, cmd );
 	}
+	else if(cmd.equals("Clone Module")) {
+		ConfigurationTreeActions.CloneModule(tree, (ModuleReference)node, action);
+	}
  	// add a module(-reference) to the currently selected path
 	else {
 	    ConfigurationTreeActions.insertReference(tree,"Module",action);
@@ -1697,6 +1715,9 @@ class SequenceMenuListener implements ActionListener
 	}
 	else if (action.equals("OutputModule")) {
 	    ConfigurationTreeActions.insertReference(tree,"OutputModule",cmd);
+	}
+	else if(cmd.equals("Clone Module")) {
+		ConfigurationTreeActions.CloneModule(tree, (ModuleReference)node, action);
 	}
 	// add a module to the selected sequence
 	else {

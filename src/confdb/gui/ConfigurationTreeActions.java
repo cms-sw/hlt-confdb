@@ -1261,7 +1261,6 @@ public class ConfigurationTreeActions
 				} 
 			}
 			if(!found) { // DELETE
-				System.out.println("DELETE: Deleting reference! " + targetSubEntry.name());
 				removeReference(targetTree, targetSubEntry);
 				i--;	// going back after modifying the size.
 				treeModel.nodeStructureChanged(targetContainer);
@@ -1369,6 +1368,7 @@ public class ConfigurationTreeActions
     /** insert reference into currently selected reference container */
     public static boolean insertReference(JTree tree,String type,String name)
     {
+    	
 	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config   = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
@@ -1426,48 +1426,46 @@ public class ConfigurationTreeActions
 		= config.release().moduleTemplate(templateName);
 
 	    if (!copy) {
-		if (template.hasInstance(instanceName)) {
-		    try {
-			module =
-			    (ModuleInstance)template.instance(instanceName);
-		    }
-		    catch (DataException e) {
-			System.err.println(e.getMessage());
-			return false;
-		    }
-		    reference =
-			config.insertModuleReference(parent,index,module);
-		}
-		else  {
-		    instanceName = templateName; int count=2;
-		    while (template.hasInstance(instanceName)) {
-			instanceName = templateName + count; ++count;
-		    }
-		    reference = config.insertModuleReference(parent,index,
-							     templateName,
-							     instanceName);
-		    module = (ModuleInstance)reference.parent();
-		}
-	    }
-	    else {
-		ModuleInstance original = null;
-		try {
-		    original = (ModuleInstance)template.instance(instanceName);
-		}
-		catch (DataException e) {
-		    System.err.println(e.getMessage());
-		    return false;
-		}
-		instanceName = "copy_of_" + instanceName;
-		reference = config.insertModuleReference(parent,index,
-							 templateName,
-							 instanceName);
-		module = (ModuleInstance)reference.parent();
-		Iterator<Parameter> itP = original.parameterIterator();
-		while (itP.hasNext()) {
-		    Parameter p = itP.next();
-		    module.updateParameter(p.name(),p.type(),p.valueAsString());
-		}
+			if (template.hasInstance(instanceName)) {
+			    try {
+				module =
+				    (ModuleInstance)template.instance(instanceName);
+			    }
+			    catch (DataException e) {
+				System.err.println(e.getMessage());
+				return false;
+			    }
+			    reference =
+				config.insertModuleReference(parent,index,module);
+			} else  {
+			    instanceName = templateName; int count=2;
+			    while (template.hasInstance(instanceName)) {
+				instanceName = templateName + count; ++count;
+			    }
+			    reference = config.insertModuleReference(parent,index,
+								     templateName,
+								     instanceName);
+			    module = (ModuleInstance)reference.parent();
+			}
+	    } else {
+	    	ModuleInstance original = null;
+			try {
+			    original = (ModuleInstance)template.instance(instanceName);
+			}
+			catch (DataException e) {
+			    System.err.println(e.getMessage());
+			    return false;
+			}
+			instanceName = "copy_of_" + instanceName;
+			reference = config.insertModuleReference(parent,index,
+								 templateName,
+								 instanceName);
+			module = (ModuleInstance)reference.parent();
+			Iterator<Parameter> itP = original.parameterIterator();
+			while (itP.hasNext()) {
+			    Parameter p = itP.next();
+			    module.updateParameter(p.name(),p.type(),p.valueAsString());
+			}
 	    }
 	}
 	
@@ -1649,8 +1647,6 @@ public class ConfigurationTreeActions
      * ------------------
      * remove reference passed by parameter instead using selectionPath.
      * NOTE: This will be used by deep import function.
-     * 29/06/2011
-     * @author jimeneze
      * */
     public static boolean removeReference(JTree tree, Reference reference)
     {
@@ -1663,7 +1659,6 @@ public class ConfigurationTreeActions
 		int                    indexOfModule= -1;
 		
 		if (reference instanceof ModuleReference) {
-			System.out.println("[confdb.gui.ConfigurationTreeActions.removeReference] removing ModuleReference " + reference.name());
 		    module = (ModuleInstance)reference.parent();
 		    indexOfModule = config.indexOfModule(module);
 		    config.removeModuleReference((ModuleReference)reference);
@@ -1837,6 +1832,76 @@ public class ConfigurationTreeActions
 	return true;
     }
 
+
+    /**
+     * Clone module
+     * --------------------
+     * Clone an existing module with a different name.
+     * @NOTE: if the user doesn't change the default name 'copy_of_xxx'
+     * it will throw an exception:
+     * Instance.setName() ERROR: name 'copy_of_hltDisplacedHT250L25Associator' is not unique!
+     * This is normal since the node is already inserted.
+     * */
+    public static boolean CloneModule(JTree tree,ModuleReference oldModule,String newObject) {
+    	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+		Configuration          config   = (Configuration)model.getRoot();
+		TreePath               treePath = tree.getSelectionPath();
+		int                    depth    = treePath.getPathCount();
+		
+		TreePath parentTreePath = (depth==3) ? treePath : treePath.getParentPath();
+		ReferenceContainer parent = (ReferenceContainer)parentTreePath.getLastPathComponent();
+		int index = (depth==3) ?
+		    0 : parent.indexOfEntry((Reference)treePath.getLastPathComponent())+1;
+		
+		Reference      reference    = null;
+		ModuleInstance module       = config.module(oldModule.name());
+		
+		// retrieving the template:
+	    String   templateName=  module.template().name();
+	    String   instanceName = oldModule.name();
+	    ModuleTemplate template	= config.release().moduleTemplate(templateName);
+    
+    	ModuleInstance original = null;
+		try {
+		    original = (ModuleInstance)template.instance(instanceName);
+		}
+		catch (DataException e) {
+		    System.err.println(e.getMessage());
+		    return false;
+		}
+		
+		// Temporary name "copy_of_xxx"
+		instanceName = "copy_of_" + instanceName;
+		reference = config.insertModuleReference(parent,index,
+							 templateName,
+							 instanceName);
+		module = (ModuleInstance)reference.parent();
+		
+		// Copy values
+		Iterator<Parameter> itP = original.parameterIterator();
+		while (itP.hasNext()) {
+		    Parameter p = itP.next();
+		    module.updateParameter(p.name(),p.type(),p.valueAsString());
+		}
+    	
+		// Inserting in the model and refreshing tree view:
+    	model.nodeInserted(parent,index);
+    	model.updateLevel1Nodes();
+
+    	TreePath newTreePath = parentTreePath.pathByAddingChild(reference);
+    	tree.expandPath(newTreePath.getParentPath());
+    	tree.setSelectionPath(newTreePath);
+    	
+    	// Allow the user to modify the name of the reference
+    	if (module!=null&&module.referenceCount()==1) {
+    	    TreePath moduleTreePath = new TreePath(model.getPathToRoot((Object)module));
+    	    model.nodeInserted(model.modulesNode(),config.moduleCount()-1);
+    	    editNodeName(tree);
+    	}
+    	
+    	return true;
+    }
+    
 
     /**
      * replace a container (path or sequence) with the internal one
