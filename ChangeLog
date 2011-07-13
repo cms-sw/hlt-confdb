@@ -1,4 +1,8 @@
-2011-07-08 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+2011-07-13 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-62
+	* Include MessageLoggerDialog changes.	(Andrea).
+
+2011-07-13 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-61
 	* Remove ClassCastException passing the mouse over module nodes. bug 84305
 	* Set empty scalar parameter to "None" by default in Python converter. bug 84064
