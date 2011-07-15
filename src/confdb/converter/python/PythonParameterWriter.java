@@ -49,6 +49,15 @@ public class PythonParameterWriter  implements IParameterWriter
 		StringBuffer str = new StringBuffer( 1000 );
 		str.append( indent + parameter.name() + " = " );
 		
+		if(	(parameter.valueAsString().length() == 0)&&
+			(parameter instanceof ScalarParameter )) { // bug 84064
+			str.append("None");
+			str.append( appendix );
+			System.out.println("[confdb.converter.python.PythonParameterWriter.toString] ( value.length() == 0 ) !!!  Printing -> " + str);
+			return str.toString();
+		}
+			
+		
 		if ( parameter instanceof VectorParameter )
 			appendVector( str, (VectorParameter)parameter, indent );
 		else if ( parameter instanceof PSetParameter )
@@ -66,10 +75,7 @@ public class PythonParameterWriter  implements IParameterWriter
 				// strange things happen here: from time to time the value is empty!
 				String value = parameter.valueAsString();
 				if ( value.length() == 0 ) {
-					System.out.println("[confdb.converter.python.PythonParameterWriter.toString] ( value.length() == 0 ) !!!");
-					value = "None";
 					//throw new ConverterException( "oops, empty scalar parameter value! Don't know what to do");
-					
 				}
 					
 					
@@ -95,6 +101,7 @@ public class PythonParameterWriter  implements IParameterWriter
 			str.append( ' ' );
 		str.append( ')' );
 		str.append( appendix );
+		
 		return str.toString();
 	}
 
