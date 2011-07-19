@@ -604,6 +604,105 @@ public class ConfigurationTreeActions
 	return true;
     }
     
+    /** Insert a new sequence using the given name passed by parameter 
+     * It checks the sequence name existence and tries different 
+     * suffixes using underscore + a number from 0 to 9.
+     * */
+    public static String insertSequenceNamed(JTree tree, String name)
+    {
+		ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+		Configuration          config   = (Configuration)model.getRoot();
+		TreePath               treePath = tree.getSelectionPath();
+		
+		int index = (treePath.getPathCount()==2) ?
+		    0 :model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+					     treePath.getLastPathComponent())+1;
+		// To make sure that sequence name doesn't exist:
+		String newName = name;
+		if(config.sequence(name)!= null) {
+			for(int j = 0; j < 10; j++) {
+				newName = name + "_" + j;
+				if(config.sequence(newName) == null) {
+					j = 10;
+				}
+			}					
+		}
+		
+		Sequence sequence = config.insertSequence(index, newName);
+		
+		model.nodeInserted(model.sequencesNode(),index);
+		model.updateLevel1Nodes();
+		TreePath parentPath = (index==0) ? treePath : treePath.getParentPath();
+		TreePath newTreePath = parentPath.pathByAddingChild(sequence);
+		tree.setSelectionPath(newTreePath);
+		return newName;
+    }
+    
+    /**
+     * CloneSequence
+     * ------------------------------------
+     * Clone a sequence from source reference container to target reference container.
+     * If the target reference container is null, it creates the root sequence using the
+     * source sequence name + suffix.
+     * This method use recursion to clone the source tree based in the selection path.
+     * NOTE: It automatically go across the entries setting the selection path in different
+     * levels. Selection Path is restored to current level when recursion ends.
+     * */
+    public static boolean CloneSequence(JTree tree, ReferenceContainer sourceContainer, ReferenceContainer targetContainer) {
+    	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+    	Configuration          config   = (Configuration)model.getRoot();
+    	TreePath               treePath = tree.getSelectionPath();
+    	String targetName = sourceContainer.name() + "_clone";
+    	
+    	if(targetContainer == null) {
+    		targetName = ConfigurationTreeActions.insertSequenceNamed(tree, targetName); // It has created the targetContainer
+    		targetContainer = config.sequence(targetName);
+        	if(targetContainer == null) {
+        		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneSequence] ERROR: targetSequence == NULL");
+        		return false;
+        	} 
+    	}
+    	else targetName = targetContainer.name();
+    	
+    	
+    	treePath = tree.getSelectionPath(); // need to get selection path again. (after insertSequenceNamed).
+    	
+    	if(targetContainer.entryCount() != 0) {
+    		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneSequence] ERROR: targetSequence.entryCount != 0 " + targetContainer.name());
+    	}
+    	
+    	String newName; 
+    	for(int i = 0; i < sourceContainer.entryCount(); i++) {
+    		Reference entry = sourceContainer.entry(i);
+    		newName	= entry.name() + "_clone";
+    		if(entry instanceof SequenceReference) {
+    			SequenceReference 	sourceRef = (SequenceReference)entry;
+				Sequence source    = (Sequence) sourceRef.parent();
+
+				newName = ConfigurationTreeActions.insertSequenceNamed(tree, newName); // It has created the targetContainer
+				
+    			Object lc = tree.getSelectionPath().getLastPathComponent(); // get from the new selectionPath set in insertSequenceNamed.
+    			ConfigurationTreeActions.CloneSequence(tree, source, (ReferenceContainer) lc);
+    			Sequence targetSequence = config.sequence(newName);
+    			
+    			//tree.setSelectionPath(treePath); // set the selection path again to this level.
+			    config.insertSequenceReference(targetContainer,i, targetSequence);
+			    model.nodeInserted(targetContainer,i);
+    		} else if(entry instanceof ModuleReference) {
+    			ModuleReference 	sourceRef = (ModuleReference)entry;
+    			ConfigurationTreeActions.CloneModule(tree, sourceRef, newName);
+    		} else {
+        		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneSequence] ERROR: reference instanceof " + entry.getClass());
+        		return false;
+    		}
+    		tree.setSelectionPath(treePath); // set the selection path again to this level.
+    	}
+    	
+    	return true;
+    }
+    
+    
+    
     /** move an existing sequence within the list of sequences */
     public static boolean moveSequence(JTree tree,Sequence sourceSequence)
     {
@@ -1837,21 +1936,26 @@ public class ConfigurationTreeActions
      * Clone module
      * --------------------
      * Clone an existing module with a different name.
+     * USAGE: if newName is null, it allows the user to edit the name,
+     * otherwise it assign the prefix "copy_of_" to the sourceModule. 
      * @NOTE: if the user doesn't change the default name 'copy_of_xxx'
      * it will throw an exception:
      * Instance.setName() ERROR: name 'copy_of_hltDisplacedHT250L25Associator' is not unique!
-     * This is normal since the node is already inserted.
+     * That message is not a problem. It also happens adding a new module.
      * */
-    public static boolean CloneModule(JTree tree,ModuleReference oldModule,String newObject) {
+    public static boolean CloneModule(JTree tree,ModuleReference oldModule, String newName) {
     	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
 		Configuration          config   = (Configuration)model.getRoot();
 		TreePath               treePath = tree.getSelectionPath();
 		int                    depth    = treePath.getPathCount();
-		
 		TreePath parentTreePath = (depth==3) ? treePath : treePath.getParentPath();
 		ReferenceContainer parent = (ReferenceContainer)parentTreePath.getLastPathComponent();
-		int index = (depth==3) ?
-		    0 : parent.indexOfEntry((Reference)treePath.getLastPathComponent())+1;
+
+		// INDEX: if you are cloning the module by hand use next position in selection path.
+		// if module is being cloned by "cloneSequence" use the count to insert it in order.
+		
+		int index = (newName != null) ? parent.entryCount() 
+				: parent.indexOfEntry((Reference)treePath.getLastPathComponent())+1;
 		
 		Reference      reference    = null;
 		ModuleInstance module       = config.module(oldModule.name());
@@ -1871,7 +1975,20 @@ public class ConfigurationTreeActions
 		}
 		
 		// Temporary name "copy_of_xxx"
-		instanceName = "copy_of_" + instanceName;
+		if(newName != null) instanceName = newName;
+		else 				instanceName = "copy_of_" + instanceName;
+		
+		// To make sure module name doesn't exist.
+		String temp;
+		if(config.module(instanceName)!= null)
+			for(int j = 0; j < 10; j++) {
+				temp = instanceName + "_" + j;
+				if(config.module(temp) == null) {
+					j = 10;
+					instanceName = temp;
+				}
+			}
+
 		reference = config.insertModuleReference(parent,index,
 							 templateName,
 							 instanceName);
@@ -1896,7 +2013,7 @@ public class ConfigurationTreeActions
     	if (module!=null&&module.referenceCount()==1) {
     	    TreePath moduleTreePath = new TreePath(model.getPathToRoot((Object)module));
     	    model.nodeInserted(model.modulesNode(),config.moduleCount()-1);
-    	    editNodeName(tree);
+    	    if(newName == null) editNodeName(tree);
     	}
     	
     	return true;

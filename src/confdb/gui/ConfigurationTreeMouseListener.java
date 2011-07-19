@@ -668,6 +668,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem.addActionListener(sequenceListener);
 	    popupSequences.add(menuItem);
 	    
+	    // request 75955
+	    menuItem = new JMenuItem("Clone Sequence");
+	    menuItem.addActionListener(sequenceListener);
+	    popupSequences.add(menuItem);
+	    
 	    menuItem = new JMenuItem("Remove Sequence");
 	    menuItem.addActionListener(sequenceListener);
 	    popupSequences.add(menuItem);
@@ -1629,7 +1634,7 @@ class PathMenuListener implements ActionListener
 	    ConfigurationTreeActions.setOperator( tree, cmd );
 	}
 	else if(cmd.equals("Clone Module")) {
-		ConfigurationTreeActions.CloneModule(tree, (ModuleReference)node, action);
+		ConfigurationTreeActions.CloneModule(tree, (ModuleReference)node, null);
 	}
  	// add a module(-reference) to the currently selected path
 	else {
@@ -1687,6 +1692,9 @@ class SequenceMenuListener implements ActionListener
 	else if (cmd.equals("Rename Sequence")) {
 	    ConfigurationTreeActions.editNodeName(tree);
 	}
+	else if (cmd.equals("Clone Sequence")) {
+	    ConfigurationTreeActions.CloneSequence(tree, (Sequence)node, null);
+	}
 	else if (cmd.equals("Remove Sequence")) {
 	    if (node instanceof Sequence) {
 		Sequence sequence = (Sequence)node;
@@ -1717,7 +1725,7 @@ class SequenceMenuListener implements ActionListener
 	    ConfigurationTreeActions.insertReference(tree,"OutputModule",cmd);
 	}
 	else if(cmd.equals("Clone Module")) {
-		ConfigurationTreeActions.CloneModule(tree, (ModuleReference)node, action);
+		ConfigurationTreeActions.CloneModule(tree, (ModuleReference)node, null);
 	}
 	// add a module to the selected sequence
 	else {
