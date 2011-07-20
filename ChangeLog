@@ -1,7 +1,8 @@
 2011-07-19 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
-	* Not tagged.
+	* tag V01-05-63 
 	* Set empty scalar assignment to "None" in Python converter. bug 84064
 	* Add "Clone sequence" option. (bug/feature 75955).
+	* Add "Clone path" option. (bug/feature 75955).
 
 2011-07-13 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-62

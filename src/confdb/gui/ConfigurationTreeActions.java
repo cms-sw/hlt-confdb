@@ -604,11 +604,14 @@ public class ConfigurationTreeActions
 	return true;
     }
     
-    /** Insert a new sequence using the given name passed by parameter 
+    /** 
+     * insertSequenceNamed
+     * -----------------------------------------------------------------
+     * Insert a new sequence using the given name passed by parameter 
      * It checks the sequence name existence and tries different 
      * suffixes using underscore + a number from 0 to 9.
      * */
-    public static String insertSequenceNamed(JTree tree, String name)
+    private static String insertSequenceNamed(JTree tree, String name)
     {
 		ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
 		Configuration          config   = (Configuration)model.getRoot();
@@ -638,9 +641,46 @@ public class ConfigurationTreeActions
 		return newName;
     }
     
+    /** 
+     * insertPathNamed
+     * -----------------------------------------------------------------
+     * Insert a new Path using the given name passed by parameter 
+     * It checks the path name existence and tries different 
+     * suffixes using underscore + a number from 0 to 9.
+     * */
+    private static String insertPathNamed(JTree tree, String name)
+    {
+		ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+		Configuration          config   = (Configuration)model.getRoot();
+		TreePath               treePath = tree.getSelectionPath();
+		
+		int index = (treePath.getPathCount()==2) ?
+		    0 :model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+					     treePath.getLastPathComponent())+1;
+		// To make sure that sequence name doesn't exist:
+		String newName = name;
+		if(config.path(name)!= null) {
+			for(int j = 0; j < 10; j++) {
+				newName = name + "_" + j;
+				if(config.path(newName) == null) {
+					j = 10;
+				}
+			}					
+		}
+		
+		Path path = config.insertPath(index, newName);
+		
+		model.nodeInserted(model.pathsNode(),index);
+		model.updateLevel1Nodes();
+		TreePath parentPath = (index==0) ? treePath : treePath.getParentPath();
+		TreePath newTreePath = parentPath.pathByAddingChild(path);
+		tree.setSelectionPath(newTreePath);
+		return newName;
+    }
+    
     /**
      * CloneSequence
-     * ------------------------------------
+     * -----------------------------------------------------------------
      * Clone a sequence from source reference container to target reference container.
      * If the target reference container is null, it creates the root sequence using the
      * source sequence name + suffix.
@@ -685,7 +725,6 @@ public class ConfigurationTreeActions
     			ConfigurationTreeActions.CloneSequence(tree, source, (ReferenceContainer) lc);
     			Sequence targetSequence = config.sequence(newName);
     			
-    			//tree.setSelectionPath(treePath); // set the selection path again to this level.
 			    config.insertSequenceReference(targetContainer,i, targetSequence);
 			    model.nodeInserted(targetContainer,i);
     		} else if(entry instanceof ModuleReference) {
@@ -701,6 +740,89 @@ public class ConfigurationTreeActions
     	return true;
     }
     
+    /**
+     * CloneContainer
+     * -----------------------------------------------------------------
+     * CloneContainer clones a Path container.
+     * Generates a full copy of the selected path also creating
+     * clones of modules and nested sequences.
+     * This method uses recursion to also take into account the sub-paths.
+     * */
+    public static boolean CloneContainer(JTree tree, ReferenceContainer sourceContainer, ReferenceContainer targetContainer) {
+    	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+    	Configuration          config   = (Configuration)model.getRoot();
+    	TreePath               treePath = tree.getSelectionPath();
+    	String targetName = sourceContainer.name() + "_clone";
+    	
+    	if(targetContainer == null) {
+    		if (sourceContainer instanceof Path) {
+        		targetName = ConfigurationTreeActions.insertPathNamed(tree, targetName); // It has created the targetContainer
+        		targetContainer = config.path(targetName);
+        		
+        		Path sourcePath = config.path(sourceContainer.name());
+        		((Path)targetContainer).setAsEndPath(sourcePath.isSetAsEndPath());	// Setting as End path if needed.
+    		} else System.err.println("[confdb.gui.ConfigurationTreeActions.CloneContainer] ERROR: sourceContainer NOT instanceof Path");
+    		
+        	if(targetContainer == null) {
+        		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneContainer] ERROR: targetSequence == NULL");
+        		return false;
+        	}
+    	} else targetName = targetContainer.name();
+    	
+    	
+    	treePath = tree.getSelectionPath(); // need to get selection path again. (after insertSequenceNamed).
+    	
+    	if(targetContainer.entryCount() != 0) {
+    		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneContainer] ERROR: targetContainer.entryCount != 0 " + targetContainer.name());
+    	}
+    	
+
+    	for(int i = 0; i < sourceContainer.entryCount(); i++) {
+    		Reference entry = sourceContainer.entry(i);
+    		
+    		if(entry instanceof SequenceReference) {
+    	    	// Sets selection path to sequenceNode:
+    	    	tree.setSelectionPath(new TreePath(model.getPathToRoot(model.sequencesNode())));
+    	    	
+    			SequenceReference 	sourceRef = (SequenceReference)entry;
+				Sequence source    = (Sequence) sourceRef.parent();
+    	    	ConfigurationTreeActions.CloneSequence(tree, source, null);
+    	    	
+    	    	// Getting the cloned sequence using the selection path:
+    	    	Sequence clonedSequence = (Sequence) tree.getLastSelectedPathComponent();
+    	    	
+			    config.insertSequenceReference(targetContainer,i, clonedSequence);
+			    model.nodeInserted(targetContainer,i);
+    	    	
+    	    	// sets the selection path back to pathNode:
+    	    	tree.setSelectionPath(treePath);    	    	
+    		} else if (entry instanceof ModuleReference) {
+    			String newName	= entry.name() + "_clone";
+    			ModuleReference 	sourceRef = (ModuleReference)entry;
+    			ConfigurationTreeActions.CloneModule(tree, sourceRef, newName);
+    		} else if (entry instanceof PathReference) {
+    			String newName	= entry.name() + "_clone";
+        		newName = ConfigurationTreeActions.insertPathNamed(tree, newName); // It has created the targetContainer
+        		Path targetPath = config.path(newName);
+        		Path sourcePath = config.path(entry.name());
+        		targetPath.setAsEndPath(sourcePath.isSetAsEndPath());	// Setting as End path if needed.
+        		
+        		// Clone subpath:
+        		ConfigurationTreeActions.CloneContainer(tree, sourcePath, targetPath);
+        		
+        		// and now insert the reference
+			    config.insertPathReference(targetContainer, i, targetPath);
+			    model.nodeInserted(targetContainer,i);
+        		
+    		} else {
+    			System.err.println("[confdb.gui.ConfigurationTreeActions.CloneContainer] Error instanceof ?");
+    		}
+    		
+    		tree.setSelectionPath(treePath); // set the selection path again to this level.
+    	}
+
+    	return true;
+    }
     
     
     /** move an existing sequence within the list of sequences */

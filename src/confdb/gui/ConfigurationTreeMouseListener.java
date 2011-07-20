@@ -544,7 +544,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem = new JMenuItem("Remove Path");
 	    menuItem.addActionListener(pathListener);
 	    popupPaths.add(menuItem);
-
+	    
+	    // Clone path request 75955
+	    menuItem = new JMenuItem("Clone Path");
+	    menuItem.addActionListener(pathListener);
+	    popupPaths.add(menuItem);
 	    
 	    popupPaths.addSeparator();
 	    JCheckBoxMenuItem cbMenuItem = new JCheckBoxMenuItem("endpath");
@@ -1611,6 +1615,9 @@ class PathMenuListener implements ActionListener
 	}
 	else if (cmd.equals("Rename Path")) {
 	    ConfigurationTreeActions.editNodeName(tree);
+	}
+	else if (cmd.equals("Clone Path")) {
+	    ConfigurationTreeActions.CloneContainer(tree, (Path)node, null);
 	}
 	else if (cmd.equals("Remove Path")) {
 	    if (node instanceof Path)
