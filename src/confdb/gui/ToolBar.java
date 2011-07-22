@@ -40,7 +40,8 @@ public class ToolBar
     private static final String cmdEditML      = "Edit MessageLogger";
     private static final String cmdEditUP      = "Add Untracked Parameter";
 
-    private static final String cmdTrack = "Track InputTags";
+    private static final String cmdTrack 		= "Track InputTags";
+    private static final String cmdEnableClone 	= "Enable Path Cloning";
     
     private static final String cmdConnectToDB      = "Connect to DB";
     private static final String cmdDisconnectFromDB = "Disconnect from DB";
@@ -69,6 +70,7 @@ public class ToolBar
     private JButton jButtonEditUP      = new JButton();
     
     private JToggleButton jButtonTrack = new JToggleButton();
+    private JToggleButton jButtonCloning = new JToggleButton();
     
     private JButton jButtonConnect     = new JButton();
     private JButton jButtonDisconnect  = new JButton();
@@ -113,6 +115,7 @@ public class ToolBar
 	jButtonEditUP.setEnabled(false);
 	jButtonExport.setEnabled(true);
 	jButtonTrack.setEnabled(true);
+	jButtonCloning.setEnabled(true);
     }
     
     /** no configuration is open */
@@ -134,6 +137,7 @@ public class ToolBar
 	jButtonEditUP.setEnabled(false);
 	jButtonExport.setEnabled(false);
 	jButtonTrack.setEnabled(false);
+	jButtonCloning.setEnabled(false);
     }
     
     /** database connection is established */
@@ -286,6 +290,15 @@ public class ToolBar
 					   getResource("/TrackIcon.png")));
 	jToolBar.add(jButtonTrack);
 
+	// Enable cloning menu option.
+	jButtonCloning.setActionCommand(cmdEnableClone);
+	jButtonCloning.addActionListener(listener);
+	jButtonCloning.setToolTipText("enable/disable Path cloning");
+	jButtonCloning.setIcon(new ImageIcon(getClass().
+					   getResource("/TrackIcon.png")));
+	jToolBar.add(jButtonCloning);
+	
+	
 
 	jToolBar.addSeparator();
 

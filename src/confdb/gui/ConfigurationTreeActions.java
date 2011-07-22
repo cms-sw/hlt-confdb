@@ -825,6 +825,78 @@ public class ConfigurationTreeActions
     }
     
     
+    /** CopyReferenceContainer
+     * -----------------------------------------------------------------
+     * It will perform copies of sequences or paths.
+     * This is also called "Simple Clone". It will only create a new 
+     * top level sequence/path containing references to original modules 
+     * and sequences of the source one.
+     * */
+    public static boolean CopyReferenceContainer(JTree tree, ReferenceContainer sourceContainer) {
+    	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
+    	Configuration          config   = (Configuration)model.getRoot();
+    	TreePath               treePath = tree.getSelectionPath();
+    	
+    	String targetName = "Copy_of_" + sourceContainer.name();
+    	ReferenceContainer targetContainer = null;
+    	
+		if (sourceContainer instanceof Path) {
+    		targetName = ConfigurationTreeActions.insertPathNamed(tree, targetName); // It has created the targetContainer
+    		targetContainer = config.path(targetName);
+    		
+    		Path sourcePath = config.path(sourceContainer.name());
+    		((Path)targetContainer).setAsEndPath(sourcePath.isSetAsEndPath());	// Setting as End path if needed.
+		} else if(sourceContainer instanceof Sequence) {
+			targetName = ConfigurationTreeActions.insertSequenceNamed(tree, targetName); // It has created the targetContainer
+			targetContainer = config.sequence(targetName); 
+		} else {
+			System.err.println("[confdb.gui.ConfigurationTreeActions.CloneContainer] ERROR: sourceContainer NOT instanceof Path");
+			return false;
+		}
+		
+    	if(targetContainer == null) {
+    		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneContainer] ERROR: targetSequence == NULL");
+    		return false;
+    	}
+    	
+    	//treePath = tree.getSelectionPath(); // need to get selection path again. (after insertSequenceNamed).
+    	
+    	if(targetContainer.entryCount() != 0) {
+    		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneContainer] ERROR: targetContainer.entryCount != 0 " + targetContainer.name());
+    	}
+    	
+
+    	for(int i = 0; i < sourceContainer.entryCount(); i++) {
+    		Reference entry = sourceContainer.entry(i);
+    		
+    		if(entry instanceof SequenceReference) {
+    			SequenceReference 	sourceRef = (SequenceReference)entry;
+				Sequence source    = (Sequence) sourceRef.parent();
+
+			    config.insertSequenceReference(targetContainer,i, source);
+			    model.nodeInserted(targetContainer,i);
+    		} else if (entry instanceof ModuleReference) {
+    			ModuleInstance module = config.module(entry.name());
+    			config.insertModuleReference(targetContainer, i, module);
+    			model.nodeInserted(targetContainer, i);
+    		} else if (entry instanceof PathReference) {
+        		Path sourcePath = config.path(entry.name());
+			    config.insertPathReference(targetContainer, i, sourcePath);
+			    model.nodeInserted(targetContainer,i);
+    		} else {
+    			System.err.println("[confdb.gui.ConfigurationTreeActions.CopyReferenceContainer] Error: instanceof ?");
+    		}
+    		
+    		//tree.setSelectionPath(treePath); // set the selection path again to this level.
+    	}
+
+    	return true;
+    }
+    
+    
+    
+    
+    
     /** move an existing sequence within the list of sequences */
     public static boolean moveSequence(JTree tree,Sequence sourceSequence)
     {

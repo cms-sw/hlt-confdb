@@ -100,6 +100,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 
     /** enable the ability to sort components */
     private boolean enableSort = true;
+    
+    /** Enable path cloning context menu */
+    private boolean enablePathCloning = false;
 
     
     //
@@ -244,6 +247,13 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    if (treePath.getPathComponent(i).equals(node)) return true;
 	return false;
     }
+    
+    /** Sets EnablePathCloning property */
+    public boolean setEnablePathClonig(boolean EnableCloning) {
+    	this.enablePathCloning = EnableCloning;
+    	return this.enablePathCloning;
+    }
+    
     
     /** update 'PSets' menu */
     public void updatePSetMenu()
@@ -546,7 +556,15 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    popupPaths.add(menuItem);
 	    
 	    // Clone path request 75955
-	    menuItem = new JMenuItem("Clone Path");
+	    // NOTE: Deep Clone for path temporary disable.
+	    if(enablePathCloning) {
+		    menuItem = new JMenuItem("Clone Path");
+		    menuItem.addActionListener(pathListener);
+		    popupPaths.add(menuItem);
+	    }
+	    
+	    // Copy path request 75955
+	    menuItem = new JMenuItem("Copy Path");
 	    menuItem.addActionListener(pathListener);
 	    popupPaths.add(menuItem);
 	    
@@ -674,6 +692,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    
 	    // request 75955
 	    menuItem = new JMenuItem("Clone Sequence");
+	    menuItem.addActionListener(sequenceListener);
+	    popupSequences.add(menuItem);
+	    
+	    // request 75955
+	    menuItem = new JMenuItem("Copy Sequence");
 	    menuItem.addActionListener(sequenceListener);
 	    popupSequences.add(menuItem);
 	    
@@ -1619,6 +1642,9 @@ class PathMenuListener implements ActionListener
 	else if (cmd.equals("Clone Path")) {
 	    ConfigurationTreeActions.CloneContainer(tree, (Path)node, null);
 	}
+	else if (cmd.equals("Copy Path")) {
+	    ConfigurationTreeActions.CopyReferenceContainer(tree, (Path)node);
+	}
 	else if (cmd.equals("Remove Path")) {
 	    if (node instanceof Path)
 		ConfigurationTreeActions.removeReferenceContainer(tree);
@@ -1702,6 +1728,9 @@ class SequenceMenuListener implements ActionListener
 	else if (cmd.equals("Clone Sequence")) {
 	    ConfigurationTreeActions.CloneSequence(tree, (Sequence)node, null);
 	}
+	else if (cmd.equals("Copy Sequence")) {
+	    ConfigurationTreeActions.CopyReferenceContainer(tree, (Sequence)node);
+	}	
 	else if (cmd.equals("Remove Sequence")) {
 	    if (node instanceof Sequence) {
 		Sequence sequence = (Sequence)node;

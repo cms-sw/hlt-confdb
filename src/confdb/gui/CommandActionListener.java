@@ -42,6 +42,8 @@ public class CommandActionListener implements ActionListener
     private static final String cmdUPEditor         = "Add Untracked Parameter";
 
     private static final String cmdTrack            = "Track InputTags";
+    private static final String cmdEnableClone      = "Enable Path Cloning";
+    
     
     private static final String cmdConnectToDB      = "Connect to DB";
     private static final String cmdDisconnectFromDB = "Disconnect from DB";
@@ -85,8 +87,8 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdMLEditor))         app.openMessageLoggerEditor();
 	if (command.equals(cmdUPEditor))         app.addUntrackedParameter();
 	
-	if (command.equals(cmdTrack))            app.setOptionTrackInputTags(source.
-									     isSelected());
+	if (command.equals(cmdTrack))            app.setOptionTrackInputTags(source.isSelected());
+	if (command.equals(cmdEnableClone))      app.setEnablePathCloning(source.isSelected());
 
 	if (command.equals(cmdConnectToDB))      app.connectToDatabase();
 	if (command.equals(cmdDisconnectFromDB)) app.disconnectFromDatabase();

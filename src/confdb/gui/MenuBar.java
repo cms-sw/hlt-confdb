@@ -47,7 +47,8 @@ public class MenuBar
     private static final String toolMenuMLEditor      = "Edit MessageLogger";
 
     /** menu bar item names: options */
-    private static final String optionsMenuTrack      = "Track InputTags";
+    private static final String optionsMenuTrack      			= "Track InputTags";
+    private static final String optionsMenuEnablePathCloning	= "Enable Path Cloning";
 
     /** menu bar item names: dbMenu */
     private static final String dbMenuConnectToDB      = "Connect to DB";
@@ -81,6 +82,7 @@ public class MenuBar
     private JMenuItem toolMenuMLEditorItem      = null;
     
     private JCheckBoxMenuItem optionsMenuTrackItem = null;
+    private JCheckBoxMenuItem optionsMenuEnablePathCloningItem = null;
 
     private JMenuItem dbMenuConnectItem         = null;
     private JMenuItem dbMenuDisconnectItem      = null;
@@ -125,6 +127,7 @@ public class MenuBar
 	toolMenuSPSEditorItem.setEnabled(true);
 	toolMenuMLEditorItem.setEnabled(true);
 	optionsMenuTrackItem.setEnabled(true);
+	optionsMenuEnablePathCloningItem.setEnabled(true);
 	dbMenuExportItem.setEnabled(true);
     }
 
@@ -146,6 +149,7 @@ public class MenuBar
 	toolMenuSPSEditorItem.setEnabled(false);
 	toolMenuMLEditorItem.setEnabled(false);
 	optionsMenuTrackItem.setEnabled(false);
+	optionsMenuEnablePathCloningItem.setEnabled(false);
 	dbMenuExportItem.setEnabled(false);
     }
     
@@ -288,10 +292,15 @@ public class MenuBar
 	JMenu optionsMenu = new JMenu("Options");
 	optionsMenu.setMnemonic(KeyEvent.VK_O);
 	jMenuBar.add(optionsMenu);
+	// Enable track.
 	optionsMenuTrackItem = new JCheckBoxMenuItem(optionsMenuTrack);
 	optionsMenuTrackItem.addActionListener(listener);
 	optionsMenu.add(optionsMenuTrackItem);
-
+	// Enable path cloning.
+	optionsMenuEnablePathCloningItem = new JCheckBoxMenuItem(optionsMenuEnablePathCloning);
+	optionsMenuEnablePathCloningItem.addActionListener(listener);
+	optionsMenu.add(optionsMenuEnablePathCloningItem);
+	
 	JMenu dbMenu = new JMenu("Database");
 	dbMenu.setMnemonic(KeyEvent.VK_D);
 	jMenuBar.add(dbMenu);

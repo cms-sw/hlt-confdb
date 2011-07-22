@@ -184,6 +184,9 @@ public class ConfDbGUI
         StyleConstants.setFontFamily(BLACK, "Helvetica");
         StyleConstants.setFontSize(BLACK, 14);
       }
+    
+    /** Other program state values. */
+    //boolean enablePathCloning = false;	// ToolBar Option to enable the path cloning context menu option.
 
     
     //
@@ -975,6 +978,19 @@ public class ConfDbGUI
 	}
 	
     }
+    
+    /** Set option 'Enable path cloning' */
+    public void setEnablePathCloning(boolean enableCloning) {
+    	
+    	MouseListener[] mls = (MouseListener[])(jTreeCurrentConfig.getListeners(MouseListener.class));
+    	
+		for(int i = 0; i < mls.length; i++) {
+			if(mls[i].getClass() == ConfigurationTreeMouseListener.class) {
+				((ConfigurationTreeMouseListener)mls[i]).setEnablePathClonig(enableCloning);
+			}
+		}
+    }
+    
 
     /** connect to the database */
     public void connectToDatabase()
