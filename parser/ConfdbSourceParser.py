@@ -1895,6 +1895,9 @@ class SourceParser:
     # Handle the case of a ParameterSet being passed to an object that's been "new'd" in the original 
     # module.
     def ParsePassedParameterSet(self, thepsetname, thesrcfile, theobjectclass, thenestedpsetname, thedatadir, themodulename):
+
+        if((thepsetname == "TimingFillerParameters") and (theobjectclass == "MuonTimingFiller")):
+            return
 	
 	if(self.verbose > 1):
 	    print 'Parsing passed parameter set ' + thepsetname + ' passed from file ' + thesrcfile + ' to object of class ' + theobjectclass
