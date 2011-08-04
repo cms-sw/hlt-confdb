@@ -1075,9 +1075,10 @@ public class ConfigurationTreeActions
 		    0:model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
 					    treePath.getLastPathComponent())+1;
 		
-		ReferenceContainer   container = null;
-		Object               parent    = null;
-		String               type      = null;
+		ReferenceContainer  container	= null;
+		Object              parent		= null;
+		String              type		= null;
+		Diff				diff		= null;
 		
 		boolean deletePreviousInsertion = false;
 	
@@ -1101,24 +1102,23 @@ public class ConfigurationTreeActions
 		    } else {
 		    	container = config.insertSequence(index,external.name());
 		    }
-		    deletePreviousInsertion = true;	// This will allow delete the inserted item
+		    //deletePreviousInsertion = true;	// This will allow delete the inserted item
 		    								// in case the user cancel the operation.
 		    
 			model.nodeInserted(parent,index); // Force update bug76145
 		}
 		
-		// prepare to make a diff.
-		Diff diff = new Diff(sourceConfig,config);
-
-	    
-	    String message 	= "You are about adding, deleting and ordering multiple items!  "; 
-		message+= "These operations could adversely affect to many parts of the configuration.\n";
-		message+= "Please check the differences to make sure you want to do this.\n";
-	    
-	    
-	    boolean accept = false;
-    	
 		String search = type+":"+container.name();
+		// prepare to make a diff.
+		//diff = new Diff(sourceConfig,config);
+
+		/*
+	    String message 	= "You are about to add, delete or order multiple items! \n"; 
+		message+= "These operations could adversely affect many parts of the configuration.\n";
+		message+= "Please check the differences and make sure you want to do this.\n";
+		
+		boolean accept = false;
+		
 		diff.compare(search);
     	if (!diff.isIdentical()) {
     		DeepImportDiffDialog dlg = new DeepImportDiffDialog(diff, message);
@@ -1144,8 +1144,7 @@ public class ConfigurationTreeActions
 	    	// And then exit. abort insertions.
 	    	return false;
 	    }
-
-		// Otherwise:
+	    */
 
 		// This does the rest of the work:
 		if (DeepImportContainerEntries(config, sourceConfig, tree, external, container))
