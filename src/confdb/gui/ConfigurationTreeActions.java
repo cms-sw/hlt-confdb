@@ -6,6 +6,7 @@ import javax.swing.SwingWorker;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import confdb.diff.Comparison;
@@ -1077,6 +1078,8 @@ public class ConfigurationTreeActions
 		ReferenceContainer   container = null;
 		Object               parent    = null;
 		String               type      = null;
+		
+		boolean deletePreviousInsertion = false;
 	
 		if (external instanceof Path) {
 		    container = config.path(external.name());
@@ -1089,20 +1092,7 @@ public class ConfigurationTreeActions
 		    type      = "sequence";
 		}
 		
-		if (container!=null) { // if container already exist:
-		
-		    index = (type.equals("path")) ? config.indexOfPath((Path)container) 
-			                          : config.indexOfSequence((Sequence)container);
-	    
-		    int choice =
-			JOptionPane.showConfirmDialog(null,"The "+type+" '"+
-						      container.name()+"' exists, "+
-						      "do you want to overwrite it?",
-						      "Overwrite "+type,
-						      JOptionPane.OK_CANCEL_OPTION);
-		    if (choice==JOptionPane.CANCEL_OPTION) return false;
-
-		} else { // if root container doesn't exist:
+		if (container==null)  { // if root container doesn't exist:
 			
 		    if (!config.hasUniqueQualifier(external)) return false;
 		    if (type.equals("path")) {
@@ -1111,11 +1101,52 @@ public class ConfigurationTreeActions
 		    } else {
 		    	container = config.insertSequence(index,external.name());
 		    }
-
+		    deletePreviousInsertion = true;	// This will allow delete the inserted item
+		    								// in case the user cancel the operation.
+		    
 			model.nodeInserted(parent,index); // Force update bug76145
 		}
 		
-		
+		// prepare to make a diff.
+		Diff diff = new Diff(sourceConfig,config);
+
+	    
+	    String message 	= "You are about adding, deleting and ordering multiple items!  "; 
+		message+= "These operations could adversely affect to many parts of the configuration.\n";
+		message+= "Please check the differences to make sure you want to do this.\n";
+	    
+	    
+	    boolean accept = false;
+    	
+		String search = type+":"+container.name();
+		diff.compare(search);
+    	if (!diff.isIdentical()) {
+    		DeepImportDiffDialog dlg = new DeepImportDiffDialog(diff, message);
+    	    dlg.pack();
+    	    dlg.setVisible(true);
+    	    accept = dlg.getResults();
+    	}
+
+	    // In case user cancel the operation:
+	    if(!accept) {
+	    	// If the container was inserted at the beginning:
+	    	if(deletePreviousInsertion) {
+	    		// Delete the container.
+	    		if(type.equalsIgnoreCase("path")) {
+	    			Path pathToDelete = config.path(container.name());
+	    			config.removePath(pathToDelete);
+	    		} else if(type.equalsIgnoreCase("sequence")) {
+	    			Sequence sequenceToDelete = config.sequence(container.name());
+	    			config.removeSequence(sequenceToDelete);
+	    		}
+	    		model.nodeRemoved(parent,index,container);
+	    	}
+	    	// And then exit. abort insertions.
+	    	return false;
+	    }
+
+		// Otherwise:
+
 		// This does the rest of the work:
 		if (DeepImportContainerEntries(config, sourceConfig, tree, external, container))
 		    container.setDatabaseId(external.databaseId());
@@ -1123,8 +1154,8 @@ public class ConfigurationTreeActions
 		model.nodeChanged(container);
 		model.updateLevel1Nodes();
 		
-		Diff diff = new Diff(external.config(),config);
-		String search = type+":"+container.name();
+		diff = new Diff(external.config(),config);
+		search = type+":"+container.name();
 		diff.compare(search);
 		if (!diff.isIdentical()) {
 		    DiffDialog dlg = new DiffDialog(diff);
@@ -1132,7 +1163,6 @@ public class ConfigurationTreeActions
 		    dlg.setVisible(true);
 		}
 		
-		// PS 31/01/2011: fixes bug reported by Andrea B.
 		for (int i=0;i<container.referenceCount();i++) {
 		    Reference reference = container.reference(i);
 		    ReferenceContainer parentContainer = reference.container();
@@ -1321,7 +1351,6 @@ public class ConfigurationTreeActions
 
     	boolean result = true;
 		for (int i=0;i<sourceContainer.entryCount();i++) {
-			//System.out.println("------ Iteration  -----" + (i+1)  + " of " + sourceContainer.entryCount() + ", target count = " + targetContainer.entryCount());
 		    Reference entry = sourceContainer.entry(i);
 		    
 		    if (entry instanceof ModuleReference) {					// MODULE REFERENCES
@@ -1452,21 +1481,65 @@ public class ConfigurationTreeActions
 					
 		    	    // Do not insert Paths references.
 		    	    // Nested paths are not allowed in theory.
-				    config.insertPathReference(targetContainer,i,target);
+				    //config.insertPathReference(targetContainer,i,target);
+				    //treeModel.nodeInserted(targetContainer,i); // refresh the tree view
+				    
+				    
+				    
+		    	    // Now references must be checked:
+	    	    	for (int j=0;j<targetContainer.entryCount();j++) {
+	    	    		Reference subentry = (Reference)targetContainer.entry(j);
+						if(	(subentry 	instanceof PathReference)&&
+							(entry 		instanceof PathReference)&&
+							(subentry.name().equals(entry.name()))) 	{
+	    	    			
+	    	    			// Check if SequenceReference are in the same order:
+	    	    			if(i != j) {
+	    	    				// So remove reference, and insert it later.
+	    	    				removeReference(targetTree, subentry);	// this might delete the ITEM (index of -1 when searching). 
+	    	    				treeModel.nodeStructureChanged(targetContainer);
+	    	    			}
+	    	    		}
+	    	    	}
+				    
+				    
+				    
 				    result = false;
 				} else { // insert the path and the reference.
 					
 				    target = config.insertPath(config.pathCount(),sourceRef.name());
 				    treeModel.nodeInserted(treeModel.pathsNode(), config.pathCount()-1);
-				    
 				    config.insertPathReference(targetContainer,i,target);	// insert the reference.
+				    
+				    treeModel.nodeInserted(targetContainer,i); // refresh the tree view
+				    
 				    // recursively entries insertion!
 				    boolean tmp = DeepImportContainerEntries(config, sourceConfig, targetTree,source,target);
 				    if (tmp) target.setDatabaseId(source.databaseId());
 				    if (result) result = tmp;
 				    treeModel.nodeStructureChanged(treeModel.pathsNode());
 				}
-				treeModel.nodeInserted(targetContainer,i); // refresh the tree view
+				
+				
+				// INSERT REFERENCES: for new sequences, and out of order references.
+	    	    
+				boolean existance = false;
+    	    	for (int j=0;j<targetContainer.entryCount();j++) {
+    	    		Reference subentry = (Reference)targetContainer.entry(j);
+					if(	(subentry 	instanceof PathReference)&&
+						(entry 		instanceof PathReference)&&
+						(subentry.name().equals(entry.name()))) 	{
+    	    			existance = true;
+    	    		}
+    	    	}
+    	    	if(!existance) {
+				    config.insertPathReference(targetContainer,i,target);
+				    treeModel.nodeInserted(targetContainer,i); // refresh the tree view
+    	    	}
+    	    	
+				
+				
+				//treeModel.nodeInserted(targetContainer,i); // refresh the tree view
 			//-----------------------------------------------------------------------------//
 		    } else if (entry instanceof SequenceReference) {		// SEQUENCE REFERENCES
 				

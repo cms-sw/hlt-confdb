@@ -45,13 +45,22 @@ public class AboutDialog extends JDialog
 	    "a CMS tool to create and manage " +
 	    "CMSSW job configurations based on a " +
 	    "relational database.</p>" +
+	    
+	    "This software was originally developed " +
+	    "by Philipp Schieferdecker and is currently " +
+	    "maintained by Raul Jimenez Estupinan " +
+	    "with contributions from Ulf Behrens, " +
+	    "Jonathan Hollar, Vasundhara Chetluru " +
+	    "and Martin Gruenewald. " +
 	    "<p>For feedback please contact me at " +
-	    "<b>philipp.schieferdecker@cern.ch</b>.</p>" +
+	    "<b>raul.jimenez.estupinan@cern.ch</b>.</p>" +
+	    
+	    
 	    "<p>Find documentation on the web under " +
 	    "<b>https://twiki.cern.ch/twiki/bin/view/CMS/EvfConfDBGUI</b>.</p>";
 
 	jTextFieldApplication.setText("ConfDbGUI");
-	jTextFieldVersion.setText("V01-05-65");
+	jTextFieldVersion.setText("V01-05-66");
 
 	jEditorPaneAbout.setContentType("text/html");
 	jEditorPaneAbout.setText(txt);
