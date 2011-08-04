@@ -42,7 +42,7 @@ public class CommandActionListener implements ActionListener
     private static final String cmdUPEditor         = "Add Untracked Parameter";
 
     private static final String cmdTrack            = "Track InputTags";
-    private static final String cmdEnableClone      = "Enable Path Cloning";
+    private static final String cmdEnableClone      = "Enable Path Deep Cloning";
     
     
     private static final String cmdConnectToDB      = "Connect to DB";

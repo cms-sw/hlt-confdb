@@ -679,7 +679,7 @@ public class ConfigurationTreeActions
     }
     
     /**
-     * CloneSequence
+     * DeepCloneSequence
      * -----------------------------------------------------------------
      * Clone a sequence from source reference container to target reference container.
      * If the target reference container is null, it creates the root sequence using the
@@ -688,7 +688,7 @@ public class ConfigurationTreeActions
      * NOTE: It automatically go across the entries setting the selection path in different
      * levels. Selection Path is restored to current level when recursion ends.
      * */
-    public static boolean CloneSequence(JTree tree, ReferenceContainer sourceContainer, ReferenceContainer targetContainer) {
+    public static boolean DeepCloneSequence(JTree tree, ReferenceContainer sourceContainer, ReferenceContainer targetContainer) {
     	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
     	Configuration          config   = (Configuration)model.getRoot();
     	TreePath               treePath = tree.getSelectionPath();
@@ -698,7 +698,7 @@ public class ConfigurationTreeActions
     		targetName = ConfigurationTreeActions.insertSequenceNamed(tree, targetName); // It has created the targetContainer
     		targetContainer = config.sequence(targetName);
         	if(targetContainer == null) {
-        		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneSequence] ERROR: targetSequence == NULL");
+        		System.err.println("[confdb.gui.ConfigurationTreeActions.DeepCloneSequence] ERROR: targetSequence == NULL");
         		return false;
         	} 
     	}
@@ -708,7 +708,7 @@ public class ConfigurationTreeActions
     	treePath = tree.getSelectionPath(); // need to get selection path again. (after insertSequenceNamed).
     	
     	if(targetContainer.entryCount() != 0) {
-    		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneSequence] ERROR: targetSequence.entryCount != 0 " + targetContainer.name());
+    		System.err.println("[confdb.gui.ConfigurationTreeActions.DeepCloneSequence] ERROR: targetSequence.entryCount != 0 " + targetContainer.name());
     	}
     	
     	String newName; 
@@ -722,7 +722,7 @@ public class ConfigurationTreeActions
 				newName = ConfigurationTreeActions.insertSequenceNamed(tree, newName); // It has created the targetContainer
 				
     			Object lc = tree.getSelectionPath().getLastPathComponent(); // get from the new selectionPath set in insertSequenceNamed.
-    			ConfigurationTreeActions.CloneSequence(tree, source, (ReferenceContainer) lc);
+    			ConfigurationTreeActions.DeepCloneSequence(tree, source, (ReferenceContainer) lc);
     			Sequence targetSequence = config.sequence(newName);
     			
 			    config.insertSequenceReference(targetContainer,i, targetSequence);
@@ -731,7 +731,7 @@ public class ConfigurationTreeActions
     			ModuleReference 	sourceRef = (ModuleReference)entry;
     			ConfigurationTreeActions.CloneModule(tree, sourceRef, newName);
     		} else {
-        		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneSequence] ERROR: reference instanceof " + entry.getClass());
+        		System.err.println("[confdb.gui.ConfigurationTreeActions.DeepCloneSequence] ERROR: reference instanceof " + entry.getClass());
         		return false;
     		}
     		tree.setSelectionPath(treePath); // set the selection path again to this level.
@@ -741,14 +741,14 @@ public class ConfigurationTreeActions
     }
     
     /**
-     * CloneContainer
+     * DeepCloneContainer
      * -----------------------------------------------------------------
-     * CloneContainer clones a Path container.
+     * DeepCloneContainer clones a Path container.
      * Generates a full copy of the selected path also creating
      * clones of modules and nested sequences.
      * This method uses recursion to also take into account the sub-paths.
      * */
-    public static boolean CloneContainer(JTree tree, ReferenceContainer sourceContainer, ReferenceContainer targetContainer) {
+    public static boolean DeepCloneContainer(JTree tree, ReferenceContainer sourceContainer, ReferenceContainer targetContainer) {
     	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
     	Configuration          config   = (Configuration)model.getRoot();
     	TreePath               treePath = tree.getSelectionPath();
@@ -761,10 +761,10 @@ public class ConfigurationTreeActions
         		
         		Path sourcePath = config.path(sourceContainer.name());
         		((Path)targetContainer).setAsEndPath(sourcePath.isSetAsEndPath());	// Setting as End path if needed.
-    		} else System.err.println("[confdb.gui.ConfigurationTreeActions.CloneContainer] ERROR: sourceContainer NOT instanceof Path");
+    		} else System.err.println("[confdb.gui.ConfigurationTreeActions.DeepCloneContainer] ERROR: sourceContainer NOT instanceof Path");
     		
         	if(targetContainer == null) {
-        		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneContainer] ERROR: targetSequence == NULL");
+        		System.err.println("[confdb.gui.ConfigurationTreeActions.DeepCloneContainer] ERROR: targetSequence == NULL");
         		return false;
         	}
     	} else targetName = targetContainer.name();
@@ -773,7 +773,7 @@ public class ConfigurationTreeActions
     	treePath = tree.getSelectionPath(); // need to get selection path again. (after insertSequenceNamed).
     	
     	if(targetContainer.entryCount() != 0) {
-    		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneContainer] ERROR: targetContainer.entryCount != 0 " + targetContainer.name());
+    		System.err.println("[confdb.gui.ConfigurationTreeActions.DeepCloneContainer] ERROR: targetContainer.entryCount != 0 " + targetContainer.name());
     	}
     	
 
@@ -786,7 +786,7 @@ public class ConfigurationTreeActions
     	    	
     			SequenceReference 	sourceRef = (SequenceReference)entry;
 				Sequence source    = (Sequence) sourceRef.parent();
-    	    	ConfigurationTreeActions.CloneSequence(tree, source, null);
+    	    	ConfigurationTreeActions.DeepCloneSequence(tree, source, null);
     	    	
     	    	// Getting the cloned sequence using the selection path:
     	    	Sequence clonedSequence = (Sequence) tree.getLastSelectedPathComponent();
@@ -808,14 +808,14 @@ public class ConfigurationTreeActions
         		targetPath.setAsEndPath(sourcePath.isSetAsEndPath());	// Setting as End path if needed.
         		
         		// Clone subpath:
-        		ConfigurationTreeActions.CloneContainer(tree, sourcePath, targetPath);
+        		ConfigurationTreeActions.DeepCloneContainer(tree, sourcePath, targetPath);
         		
         		// and now insert the reference
 			    config.insertPathReference(targetContainer, i, targetPath);
 			    model.nodeInserted(targetContainer,i);
         		
     		} else {
-    			System.err.println("[confdb.gui.ConfigurationTreeActions.CloneContainer] Error instanceof ?");
+    			System.err.println("[confdb.gui.ConfigurationTreeActions.DeepCloneContainer] Error instanceof ?");
     		}
     		
     		tree.setSelectionPath(treePath); // set the selection path again to this level.
@@ -825,14 +825,14 @@ public class ConfigurationTreeActions
     }
     
     
-    /** CopyReferenceContainer
+    /** CloneReferenceContainer
      * -----------------------------------------------------------------
-     * It will perform copies of sequences or paths.
-     * This is also called "Simple Clone". It will only create a new 
+     * It will perform clones of sequences or paths.
+     * This is also called "Simple Clone" or "shallow clone". It will only create a new 
      * top level sequence/path containing references to original modules 
      * and sequences of the source one.
      * */
-    public static boolean CopyReferenceContainer(JTree tree, ReferenceContainer sourceContainer) {
+    public static boolean CloneReferenceContainer(JTree tree, ReferenceContainer sourceContainer) {
     	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
     	Configuration          config   = (Configuration)model.getRoot();
     	TreePath               treePath = tree.getSelectionPath();
@@ -850,19 +850,19 @@ public class ConfigurationTreeActions
 			targetName = ConfigurationTreeActions.insertSequenceNamed(tree, targetName); // It has created the targetContainer
 			targetContainer = config.sequence(targetName); 
 		} else {
-			System.err.println("[confdb.gui.ConfigurationTreeActions.CloneContainer] ERROR: sourceContainer NOT instanceof Path");
+			System.err.println("[confdb.gui.ConfigurationTreeActions.CloneReferenceContainer] ERROR: sourceContainer NOT instanceof Path");
 			return false;
 		}
 		
     	if(targetContainer == null) {
-    		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneContainer] ERROR: targetSequence == NULL");
+    		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneReferenceContainer] ERROR: targetSequence == NULL");
     		return false;
     	}
     	
     	//treePath = tree.getSelectionPath(); // need to get selection path again. (after insertSequenceNamed).
     	
     	if(targetContainer.entryCount() != 0) {
-    		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneContainer] ERROR: targetContainer.entryCount != 0 " + targetContainer.name());
+    		System.err.println("[confdb.gui.ConfigurationTreeActions.CloneReferenceContainer] ERROR: targetContainer.entryCount != 0 " + targetContainer.name());
     	}
     	
 
@@ -884,7 +884,7 @@ public class ConfigurationTreeActions
 			    config.insertPathReference(targetContainer, i, sourcePath);
 			    model.nodeInserted(targetContainer,i);
     		} else {
-    			System.err.println("[confdb.gui.ConfigurationTreeActions.CopyReferenceContainer] Error: instanceof ?");
+    			System.err.println("[confdb.gui.ConfigurationTreeActions.CloneReferenceContainer] Error: instanceof ?");
     		}
     		
     		//tree.setSelectionPath(treePath); // set the selection path again to this level.

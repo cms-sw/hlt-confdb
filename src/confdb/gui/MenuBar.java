@@ -48,7 +48,7 @@ public class MenuBar
 
     /** menu bar item names: options */
     private static final String optionsMenuTrack      			= "Track InputTags";
-    private static final String optionsMenuEnablePathCloning	= "Enable Path Cloning";
+    private static final String optionsMenuEnablePathCloning	= "Enable Path Deep Cloning";
 
     /** menu bar item names: dbMenu */
     private static final String dbMenuConnectToDB      = "Connect to DB";

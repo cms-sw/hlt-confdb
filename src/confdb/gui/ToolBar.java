@@ -41,7 +41,7 @@ public class ToolBar
     private static final String cmdEditUP      = "Add Untracked Parameter";
 
     private static final String cmdTrack 		= "Track InputTags";
-    private static final String cmdEnableClone 	= "Enable Path Cloning";
+    private static final String cmdEnableClone 	= "Enable Path Deep Cloning";
     
     private static final String cmdConnectToDB      = "Connect to DB";
     private static final String cmdDisconnectFromDB = "Disconnect from DB";
