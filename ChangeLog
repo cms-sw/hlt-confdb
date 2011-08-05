@@ -1,7 +1,11 @@
+2011-08-05 Andrea Bocci  <andrea.bocci@cern.ch>
+	* tag V01-05-68
+	* hack to allow wildcards in smart prescales
+
 2011-08-04 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-67
 	* Temporarily disable the Deep import dialog.
-	
+
 2011-08-04 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-66
 	* Change About Dialog. Update message and contact person.
@@ -17,7 +21,7 @@
 	* Add "Copy Sequence" option (bug/feature 75955).
 	* Add "Copy Path" option (bug/feature 75955).
 	* Add "Enable Path cloning" under "Options" menu. (bug/feature 75955).
-	
+
 2011-07-19 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-63 
 	* Set empty scalar assignment to "None" in Python converter. bug 84064
