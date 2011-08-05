@@ -95,7 +95,7 @@ public class SmartPrescaleTable
     
     /**check path in the streams **/
     public boolean checkHLTPathExists(String strPath){
-	Path path=null;
+	Path path = null;
 	if (hasAccessToHLTResults) {
 	    if (streams.size()>0) {
 		for (int j=0;j<streams.size();j++) {
@@ -195,9 +195,11 @@ public class SmartPrescaleTable
 		}catch (NumberFormatException e) { 
 		    g = -10000;
 		}
-		if ( (g<0) && (!strPath.equals("FALSE"))
-		     && (!checkL1TCondExists(strPath))
-		     && (!checkHLTPathExists(strPath)) ) {
+		if ( (g<0) 
+                     && ! strPath.equals("FALSE")
+                     && ! (strPath.indexOf("*") >= 0) // quick hack to allow wildcards
+		     && ! checkL1TCondExists(strPath)
+		     && ! checkHLTPathExists(strPath) ) {
 		    strCondition = SmartPrescaleTable.rename(strCondition,strPath,"FALSE");
 		}
 	    }
@@ -210,8 +212,7 @@ public class SmartPrescaleTable
 		parameterTriggerConditions.setValue(i,strCondition);
 	    }
 	    if (!strCondition.equals("")) {
-		SmartPrescaleTableRow row 
-		    = new SmartPrescaleTableRow(strCondition);
+		SmartPrescaleTableRow row = new SmartPrescaleTableRow(strCondition);
 		if (row.simple() && (checkHLTPathExists(row.pathName))) {
 		    pathToRow.put(row.pathName,row);
 		} else {

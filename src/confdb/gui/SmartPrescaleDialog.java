@@ -391,9 +391,10 @@ class SmartPrescaleTableModel extends AbstractTableModel
 		g = -10000;
 	    }
 	    if ( (g<0)
-		 && (!strPath.equals("FALSE"))
-		 && (!smartPrescaleTable.checkL1TCondExists(strPath))
-		 && (!smartPrescaleTable.checkHLTPathExists(strPath)) ) {
+		 && ! strPath.equals("FALSE")
+                 && ! (strPath.indexOf("*") >= 0) // quick hack to allow wildcards
+		 && ! smartPrescaleTable.checkL1TCondExists(strPath)
+		 && ! smartPrescaleTable.checkHLTPathExists(strPath) ) {
 		return;
 	    }
 	}
