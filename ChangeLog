@@ -1,4 +1,10 @@
 2011-08-09 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-71
+	* Enable alert dialog for "Deep Import" feature.
+	* Include a Deep Import analysis to present a Diff between
+	the current configuration and the results after using DeepImport.   
+
+2011-08-09 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-70
 	* Update confdb.properties using the right TEST2R host name. (bug 85323).
 	
