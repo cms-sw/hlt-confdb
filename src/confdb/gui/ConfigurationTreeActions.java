@@ -1102,7 +1102,14 @@ public class ConfigurationTreeActions
 		
 		DeepImportContainerEntriesSimulation(importTestConfig, sourceConfig, external, container);
 		diff = new Diff(config, importTestConfig);
-		diff.compare();
+
+		// Instead of comparing the configuration as usually, we make use of two new comparing
+		// methods which doesn't take Streams into account. This is because the temporary copy
+		// created by "getConfigurationCopy" does not create a full functional copy of the target
+		// configuration.
+		diff.compareModules();
+		diff.comparePathsIgnoreStreams();		// Ignore Streams.
+		diff.compareSequencesIgnoreStreams();	// Ignore Streams.
 		
 	    String message 	= "You are about to add, delete or order multiple items! \n"; 
 		message+= "These operations could adversely affect many parts of the configuration.\n";
@@ -1249,6 +1256,36 @@ public class ConfigurationTreeActions
 			}
 	    }
 
+	    
+	    // COPY DATASETS:
+    	Iterator<PSetParameter> dataIt = sourceConf.psetIterator();
+    	index = 0;
+	    while (dataIt.hasNext()) {
+	    	PSetParameter data = dataIt.next();
+	    	PSetParameter datacheck = configurationCopy.pset(data.name());
+	    	if(datacheck == null) {
+	    		configurationCopy.insertPSet(data);	
+	    	}
+			index++;
+	    }
+	    
+	    // COPY Event Content:
+    	Iterator<EventContent> E = sourceConf.contentIterator();
+    	index = 0;
+	    while (E.hasNext()) {
+	    	EventContent EvC = E.next();
+	    	EventContent EvCCheck = configurationCopy.insertContent(EvC.name());
+	    	// COPY STREAMS:
+	    	
+	    	Iterator<Stream> StrIterator = EvC.streamIterator();
+	    	while(StrIterator.hasNext()) {
+	    		Stream Str = StrIterator.next();
+	    		EvCCheck.insertStream(Str.name());
+	    	}
+			index++;
+			
+	    }   	    
+
 	    // COPY Sequence:
     	Iterator<Sequence> Seqit = sourceConf.sequenceIterator();
     	index = 0;
@@ -1261,7 +1298,7 @@ public class ConfigurationTreeActions
 			}
 			index++;
 	    }
-	    
+	
 	    // COPY PATHS:
     	Iterator<Path> pathit = sourceConf.pathIterator();
     	index = 0;
@@ -1275,6 +1312,13 @@ public class ConfigurationTreeActions
 	    	}
 			index++;
 	    }
+	    
+ 
+	    // It doesn't really COPY:
+	    //		- EVENTCONTENT, OUTPUTMODULES, STREAMS AND DATASETS.
+	    
+	    
+
 	    
     	return configurationCopy;
     }
@@ -1446,6 +1490,10 @@ public class ConfigurationTreeActions
      * Insert entries of an external reference container into the local copy 
      * In this case, deep check is made to ensure that Containers are identical.
      * Inserting, Replacing, Deleting and Ordering modules.
+     * NOTE: DeepImport feature make use of preanalysis before performing its
+     * operations. If for any reason the DeepImportContainerEntries structure is changed
+     * then DeepImportContainerEntriesSimulation must also be changed to ensure the
+     * diff results matches the DeepImport results.
      * @author jimeneze
      * */
     private static
@@ -1609,8 +1657,6 @@ public class ConfigurationTreeActions
 	    	    		}
 	    	    	}
 				    
-				    
-				    
 				    result = false;
 				} else { // insert the path and the reference.
 					
@@ -1629,7 +1675,6 @@ public class ConfigurationTreeActions
 				
 				
 				// INSERT REFERENCES: for new sequences, and out of order references.
-	    	    
 				boolean existance = false;
     	    	for (int j=0;j<targetContainer.entryCount();j++) {
     	    		Reference subentry = (Reference)targetContainer.entry(j);
@@ -1643,9 +1688,7 @@ public class ConfigurationTreeActions
 				    config.insertPathReference(targetContainer,i,target);
 				    treeModel.nodeInserted(targetContainer,i); // refresh the tree view
     	    	}
-    	    	
-				
-				
+
 				//treeModel.nodeInserted(targetContainer,i); // refresh the tree view
 			//-----------------------------------------------------------------------------//
 		    } else if (entry instanceof SequenceReference) {		// SEQUENCE REFERENCES
@@ -1752,6 +1795,8 @@ public class ConfigurationTreeActions
      * Insert entries of an external reference container into the local copy 
      * In this case, deep check is made to ensure that Containers are identical.
      * Inserting, Replacing, Deleting and Ordering modules.
+     * NOTE: As long as the original method 'DeepImportContainerEntries' is
+     * changed, this must also be changed having both similar workflows.
      * @author jimeneze
      * */
     private static
@@ -2027,9 +2072,9 @@ public class ConfigurationTreeActions
      * SEE ALSO: confdb.gui.ConfigurationTreeActions.importContainerEntries
      * */
     private static
-	boolean importContainerEntriesNoModel(Configuration          config,
-				       ReferenceContainer     sourceContainer,
-				       ReferenceContainer     targetContainer) {
+	boolean importContainerEntriesNoModel(	Configuration          config			,
+				       						ReferenceContainer     sourceContainer	,
+				       						ReferenceContainer     targetContainer) {
 	boolean result = true;
 	for (int i=0;i<sourceContainer.entryCount();i++) {
 	    Reference entry = sourceContainer.entry(i);

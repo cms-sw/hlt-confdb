@@ -453,6 +453,30 @@ public class Diff
     	}
     }
     
+    /** comparePathsIgnoreStreams
+     * ----------------------------------------------------------------
+     * Compare all paths and store all non-identical comparisons 
+     * NOTE: This method ignores the Streams by making use of the 
+     * constructor "compareContainersIgnoreStreams".
+     * This was originally designed to ignore extra differences in the
+     * previous analysis of DeepImport feature.
+     * */
+    public void comparePathsIgnoreStreams() {
+    	Iterator<Path> itPath2 = config2.pathIterator();
+    	while (itPath2.hasNext()) {
+    	    Path path2 = itPath2.next();
+    	    Path path1 = config1.path(path2.name());
+    	    Comparison c = compareContainersIgnoreStreams(path1,path2);
+    	    if (!c.isIdentical()) paths.add(c);
+    	}
+    	Iterator<Path> itPath1 = config1.pathIterator();
+    	while (itPath1.hasNext()) {
+    	    Path path1 = itPath1.next();
+    	    if (config2.path(path1.name())==null)
+    		paths.add(compareContainersIgnoreStreams(path1,null));
+    	}
+    }
+    
     /** compare all parameter sets and store all non-identical comparisons */
     public void comparePSets() {
     	// global parameter sets
@@ -597,6 +621,31 @@ public class Diff
     	}    	
     }
 
+    /** compareSequencesIgnoreStreams
+     * ----------------------------------------------------------------
+     * Compare all Sequences and store all non-identical comparisons 
+     * NOTE: This method ignores the Streams by making use of the 
+     * constructor "compareContainersIgnoreStreams".
+     * This was originally designed to ignore extra differences in the
+     * previous analysis of DeepImport feature.
+     * */
+    public void compareSequencesIgnoreStreams() {
+    	// Sequences
+    	Iterator<Sequence> itSeq2 = config2.sequenceIterator();
+    	while (itSeq2.hasNext()) {
+    	    Sequence seq2 = itSeq2.next();
+    	    Sequence seq1 = config1.sequence(seq2.name());
+    	    Comparison c = compareContainersIgnoreStreams(seq1,seq2);
+    	    if (!c.isIdentical()) sequences.add(c);
+    	}
+    	Iterator<Sequence> itSeq1 = config1.sequenceIterator();
+    	while (itSeq1.hasNext()) {
+    	    Sequence seq1 = itSeq1.next();
+    	    if (config2.sequence(seq1.name())==null)
+    		sequences.add(compareContainersIgnoreStreams(seq1,null));
+    	}    	
+    }
+    
     /** compare all EventContents sets and store all non-identical comparisons */
     public void compareEventContents() {
     	// EventContents
@@ -882,6 +931,27 @@ public class Diff
 	return result;
     }
     
+    /** compare two output modules ignoring the Streams */
+    public Comparison compareOutputModules(OutputModule om1,
+					   						OutputModule om2,
+					   						boolean ignoreStreams)
+    {
+    	// avoid checking the Streams using the flag TRUE.
+	Comparison result = new OutputModuleComparison(om1,om2, ignoreStreams);
+	
+	if (!result.isAdded()&&!result.isRemoved()) {
+	    Comparison paramComparisons[] =
+		compareParameterLists(om1.parameterIterator(),
+				      om2.parameterIterator());
+	    for (Comparison c : paramComparisons)
+		if (!c.isIdentical()) result.addComparison(c);
+	}
+
+	return result;
+    }
+    
+    
+    
     /** compare two event contents */
     public Comparison compareEventContents(EventContent ec1,
 					   EventContent ec2)
@@ -978,6 +1048,92 @@ public class Diff
 	
 	return result;	
     }
+    
+    
+    
+    /** compareContainersIgnoreStreams
+     * ----------------------------------------------------------------
+     * compare two reference containers (path/sequence) 
+     * NOTE: This method ignores the Streams by making use of the 
+     * constructor "OutputModuleComparison" with the flag "TRUE".
+     * This was originally designed to ignore extra differences in the
+     * previous analysis of DeepImport feature.
+     * */
+    public Comparison compareContainersIgnoreStreams(ReferenceContainer rc1,
+					ReferenceContainer rc2)
+    {
+	if (rc1!=null&&rc2!=null&&containerMap.containsKey(rc1.name()+"::"+rc2.name()))
+	    return containerMap.get(rc1.name()+"::"+rc2.name());
+	
+	Comparison result = new ContainerComparison(rc1,rc2);
+	
+	if (!result.isAdded()&&!result.isRemoved()) {
+	    Iterator<Reference> itRef2 = rc2.entryIterator();
+	    while (itRef2.hasNext()) {
+		Reference    reference2 = itRef2.next();
+		Reference    reference1 = rc1.entry(reference2.name());
+		Referencable parent2    = reference2.parent();
+		Referencable parent1    =
+		    (reference1==null) ? null : reference1.parent();
+		
+		Comparison r = compareReferences(reference1,reference2);
+		if (r.isChanged()) result.addComparison(r);
+		if (parent2 instanceof ReferenceContainer) {
+		    Comparison c =
+		    	compareContainersIgnoreStreams((ReferenceContainer)parent1,
+		    									(ReferenceContainer)parent2);
+		    if (!c.isIdentical()) result.addComparison(c);
+		}
+		else if (parent2 instanceof ModuleInstance) {
+		    Comparison c = compareInstances((Instance)parent1,
+						    (Instance)parent2);
+		    if (!c.isIdentical()) result.addComparison(c);
+		}
+		else if (parent2 instanceof OutputModule) {
+		    if (parent1==null||(parent1 instanceof OutputModule)) {
+	    	// avoid checking the Streams using the flag TRUE.
+			Comparison c = compareOutputModules((OutputModule)parent1,
+							    				(OutputModule)parent2,
+							    				true);
+			if (!c.isIdentical()) result.addComparison(c);
+		    }
+		}
+	    }
+	    
+	    Iterator<Reference> itRef1 = rc1.entryIterator();
+	    while (itRef1.hasNext()) {
+		Reference reference1 = itRef1.next();
+		Reference reference2 = rc2.entry(reference1.name());
+		if (reference2!=null) continue;
+		
+		Referencable parent1 = reference1.parent();
+
+		Comparison r = compareReferences(reference1,reference2);
+		if (r.isChanged()) result.addComparison(r);
+		if (parent1 instanceof ReferenceContainer) {
+		    ReferenceContainer rc = (ReferenceContainer)parent1;
+		    result.addComparison(new ContainerComparison(rc,null));
+		}
+		else if (parent1 instanceof ModuleInstance) {
+		    Instance i = (Instance)parent1;
+		    result.addComparison(new InstanceComparison(i,null));
+		}
+		else if (parent1 instanceof OutputModule) {
+		    OutputModule om = (OutputModule)parent1;
+		    result.addComparison(new OutputModuleComparison(om,null, true)); // avoid checking the Streams using the flag TRUE.
+		}
+		
+		containerMap.put(rc1.name()+"::"+rc2.name(),result);
+	    }
+	}
+	
+	return result;	
+    }
+    
+    
+    
+    
+    
 
     /** compare two streams */
     public Comparison compareStreams(Stream s1,Stream s2)

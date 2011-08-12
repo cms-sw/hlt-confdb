@@ -23,6 +23,9 @@ public class OutputModuleComparison extends Comparison
     /** new output module */
     private OutputModule newOutputModule = null;
     
+    /** force to ignore streams */
+    private boolean IgnoreStreams = false;		
+    
     
     //
     // construction
@@ -36,27 +39,52 @@ public class OutputModuleComparison extends Comparison
 	this.newOutputModule = newOutputModule;
     }
 
+    /** standard constructor */
+    public OutputModuleComparison(	OutputModule oldOutputModule,
+    								OutputModule newOutputModule,
+    								boolean		ignoreStreams)
+    {
+    this.IgnoreStreams = ignoreStreams;
+	this.oldOutputModule = oldOutputModule;
+	this.newOutputModule = newOutputModule;
+    }
+
     
     //
     // member functions
     //
     
-    /** determine the result of the comparison */
+
+    /** result
+     * ---------------------------------------------------
+     * determine the result of the comparison 
+     * NOTE: this method was modified to avoid checking 
+     * streams if needed.
+     * */
     public int result()
     {
 	if      (oldOutputModule==null&&newOutputModule!=null)
 	    return RESULT_ADDED;
 	else if (oldOutputModule!=null&&newOutputModule==null)
 	    return RESULT_REMOVED;
-	else if (comparisonCount()==0&&
-		 oldOutputModule.name()
-		 .equals(newOutputModule.name())&&
-		 oldOutputModule.className()
-		 .equals(newOutputModule.className())&&
-		 oldOutputModule.parentStream().name()
-		 .equals(newOutputModule.parentStream().name()))
-	    return RESULT_IDENTICAL;
-	else return RESULT_CHANGED;
+	else if (IgnoreStreams) {
+		// IgnoreStreams avoid comparing "comparisonCount" and Streams.
+		if(oldOutputModule.name().equals(newOutputModule.name())&&
+		   oldOutputModule.className().equals(newOutputModule.className())) {
+		    return RESULT_IDENTICAL;
+		} else  return RESULT_CHANGED;
+	}else {
+		System.out.println("OutputModuleComparison: NOT ignoreStreams");
+		if(comparisonCount()==0&&
+				 oldOutputModule.name()
+				 .equals(newOutputModule.name())&&
+				 oldOutputModule.className()
+				 .equals(newOutputModule.className())&&
+				 oldOutputModule.parentStream().name()
+				 .equals(newOutputModule.parentStream().name()))
+			    return RESULT_IDENTICAL;
+		else return RESULT_CHANGED;
+	}
     }
     
     /** plain-text representation of the comparison */

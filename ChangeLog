@@ -1,4 +1,11 @@
-2011-08-09 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+2011-08-12 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-72
+	* Add some improvements to Deep Import analysis.
+	* Add a partial copy method for configurations. 
+		Create temporary configurations for comparisons.
+	* Add some Diff methods to compare Path/Sequences ignoring Streams.
+	
+2011-08-11 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-71
 	* Enable alert dialog for "Deep Import" feature.
 	* Include a Deep Import analysis to present a Diff between
