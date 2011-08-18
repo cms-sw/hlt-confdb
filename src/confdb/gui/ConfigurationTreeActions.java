@@ -1059,13 +1059,16 @@ public class ConfigurationTreeActions
     }
     
     
-    /** import Path / Sequence */
-    public static boolean DeepImportReferenceContainer(JTree tree, JTree sourceTree, ReferenceContainer external)
+    /** import Path / Sequence
+     * DeepImportReferenceContainer Import Paths and Sequences container
+     * giving as result identical containers in source and target configuration.
+     * NOTE: The implementation of this method has change to support filtering.
+     * It uses the source configuration instead of the source JTree. 
+     * */
+    public static boolean DeepImportReferenceContainer(JTree tree, Configuration sourceConfig, ReferenceContainer external)
     {
-		ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();			// Target Model
-		ConfigurationTreeModel sm		= (ConfigurationTreeModel)sourceTree.getModel(); 	// Source Model
+		ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();			// Target Model.
 		Configuration          config   = (Configuration)model.getRoot();
-		Configuration	sourceConfig	= (Configuration)sm.getRoot();
 		TreePath               treePath = tree.getSelectionPath();
 		
 		int count =
@@ -1204,7 +1207,7 @@ public class ConfigurationTreeActions
     	index = 0;
 	    while (ESMit.hasNext()) {
 			ESModuleInstance esmodule = ESMit.next();
-			ESModuleInstance NewModule = configurationCopy.insertESModule(index, esmodule.template().name(), esmodule.name()); // ojo
+			ESModuleInstance NewModule = configurationCopy.insertESModule(index, esmodule.template().name(), esmodule.name()); 
 			index++;
 			Iterator<Parameter> itP = esmodule.parameterIterator();
 			while (itP.hasNext()) {
@@ -3727,6 +3730,7 @@ public class ConfigurationTreeActions
 
 	    	// Checks if any item already exist.
 	    	boolean existance = false;
+
 			for(int i = 0; i < sm.getChildCount(external); i++) {
 				Instance instance = (Instance) sm.getChild(external, i);
 				if (	(instance instanceof EDSourceInstance)&&
@@ -3737,6 +3741,7 @@ public class ConfigurationTreeActions
 					    config.esmodule(instance.name())!=null||
 					    (instance instanceof ServiceInstance)&&
 					    config.service(instance.name())!=null) {
+
 						existance = true;
 						break;
 					}
@@ -4024,6 +4029,7 @@ class ImportAllInstancesThread extends SwingWorker<String, String>
 	  
 	  private	String 					type		;	// type of imported items
 	  private	ArrayList<String>		items		;	// name of imported items
+	  private	ConfigurationModifier	mconf		;	// Needed when filtering. Only available resulting items.
 	  
 	  /** standard constructor */
 	  public ImportAllInstancesThread(JTree Tree, ConfigurationTreeModel sourceModel, Object external, boolean UpdateAll)
@@ -4031,12 +4037,22 @@ class ImportAllInstancesThread extends SwingWorker<String, String>
 		  this.tree 		= Tree;
 		  this.sourceModel 	= sourceModel;
 		  this.targetModel	= (ConfigurationTreeModel)tree.getModel();
-		  this.targetConfig	= (Configuration)targetModel.getRoot();
-		  this.sourceConfig	= (Configuration)sourceModel.getRoot();
 		  this.ext 			= external;
 		  this.updateAll	= UpdateAll;
 		  this.items		= new ArrayList<String>();
 		  this.type			= "";
+		  this.targetConfig	= (Configuration)targetModel.getRoot();
+		  this.sourceConfig	= null;
+		  this.mconf		= null;
+		  
+		  
+		  // Allows to import from a ConfigurationModifier Object. (after filtering).
+		  Object sourceConf	= sourceModel.getRoot();
+		  if(sourceConf instanceof Configuration) 
+			  this.sourceConfig	= (Configuration)sourceModel.getRoot();
+		  else if(sourceConf instanceof ConfigurationModifier)
+			  mconf = (ConfigurationModifier) sourceModel.getRoot();
+
 	  }
 	
 	  
@@ -4136,7 +4152,11 @@ class ImportAllInstancesThread extends SwingWorker<String, String>
 		else if (child instanceof EDSourceInstance)	targetModel.nodeStructureChanged(targetModel.edsourcesNode());
 		targetModel.updateLevel1Nodes();
 
-    	Diff diff = new Diff(sourceConfig,targetConfig);
+		
+		Diff diff;
+		if(sourceConfig != null) 	diff= new Diff(sourceConfig,targetConfig);
+		else						diff = new Diff(mconf, targetConfig);
+		
     	diff.compare(type, items);
     	if (!diff.isIdentical()) {
     	    DiffDialog dlg = new DiffDialog(diff);
@@ -4170,6 +4190,7 @@ final class UpdateAllModulesThread extends SwingWorker<String, String>
 	  private	ArrayList<String>		items		;	// names of imported items
 	  private	Configuration			targetConfig;
 	  private	Configuration			sourceConfig;
+	  private	ConfigurationModifier	sourceConfM	;
 	  private	String					type		;
 	  
 	  /** standard constructor */
@@ -4181,8 +4202,17 @@ final class UpdateAllModulesThread extends SwingWorker<String, String>
 		  this.ext 			= external;
 		  this.items		= new ArrayList<String>();
 		  this.targetConfig	= (Configuration)targetModel.getRoot();
-		  this.sourceConfig	= (Configuration)sourceModel.getRoot();
 		  this.type			= "";
+		  this.sourceConfig = null;
+		  this.sourceConfM	= null; // Necessary to allow import from a filtered configuration.
+		  
+		  
+		  Object conf = sourceModel.getRoot();
+		  if(conf instanceof Configuration)
+			  this.sourceConfig	= (Configuration)sourceModel.getRoot();
+		  else if(conf instanceof ConfigurationModifier)
+			  this.sourceConfM = (ConfigurationModifier) sourceModel.getRoot();
+		  
 	  }
 	
 	  /** Return an Array list with containers name to perform a diff operation. */
@@ -4224,7 +4254,11 @@ final class UpdateAllModulesThread extends SwingWorker<String, String>
    public void done() {
 		long elapsedTime = System.currentTimeMillis() - startTime;
 
-    	Diff diff = new Diff(sourceConfig,targetConfig);
+    	Diff diff;
+    	if(sourceConfig != null)
+    		diff= new Diff(sourceConfig,targetConfig);
+    	else diff = new Diff(sourceConfM,targetConfig);
+    	
     	diff.compare(type, items);
     	if (!diff.isIdentical()) {
     	    DiffDialog dlg = new DiffDialog(diff);
@@ -4262,6 +4296,7 @@ class ImportAllReferencesThread extends SwingWorker<String, String> {
 	  private	String					type		;
 	  private	Configuration			targetConfig;
 	  private	Configuration			sourceConfig;
+	  private	ConfigurationModifier	sourceConfM	;	// Necessary to allow import from filtered configurations.
 	  
 	  
 	  
@@ -4274,9 +4309,17 @@ class ImportAllReferencesThread extends SwingWorker<String, String> {
 		  this.ext 			= external;
 		  this.updateAll	= UpdateAll;
 		  this.items		= new ArrayList<String>();
-		  this.targetConfig	= (Configuration)targetModel.getRoot();
-		  this.sourceConfig	= (Configuration)sourceModel.getRoot();
 		  this.type			= "";
+		  this.targetConfig	= (Configuration)targetModel.getRoot();
+		  this.sourceConfig	= null;
+		  this.sourceConfM	= null;
+		  
+		  Object sourceConf = sourceModel.getRoot();
+		  if(sourceConf instanceof Configuration)
+			  this.sourceConfig	= (Configuration)sourceModel.getRoot();
+		  else if(sourceConf instanceof ConfigurationModifier)
+			  this.sourceConfM	= (ConfigurationModifier) sourceModel.getRoot();
+		  
 	  }
 	  
 	  /** Return an Array list with container names to perform a diff operation. */
@@ -4319,7 +4362,10 @@ class ImportAllReferencesThread extends SwingWorker<String, String> {
    public void done() {
 		long elapsedTime = System.currentTimeMillis() - startTime;
 
-    	Diff diff = new Diff(sourceConfig,targetConfig);
+    	Diff diff;
+    	if(sourceConfig != null)	diff = new Diff(sourceConfig,targetConfig);
+    	else 						diff = new Diff(sourceConfM, targetConfig);
+    	
     	diff.compare(type, items);
     	if (!diff.isIdentical()) {
     	    DiffDialog dlg = new DiffDialog(diff);

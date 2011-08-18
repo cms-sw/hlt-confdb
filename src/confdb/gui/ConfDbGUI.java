@@ -2066,9 +2066,11 @@ public class ConfDbGUI
 	treeModelImportConfig = new ConfigurationTreeModel(importConfig);
 	jTreeImportConfig      = new JTree(treeModelImportConfig);
         jTreeImportConfig.setBackground(importTreeBackground);
-
-	ImportTreeMouseListener importMouseListener =
-	    new ImportTreeMouseListener(jTreeImportConfig,jTreeCurrentConfig);
+    
+    ImportTreeMouseListener importMouseListener =
+    	new ImportTreeMouseListener(jTreeImportConfig,jTreeCurrentConfig, importConfig);
+ 
+    
 	jTreeImportConfig.addMouseListener(importMouseListener);
 	
 	jTreeImportConfig.setRootVisible(true);

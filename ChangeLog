@@ -1,3 +1,12 @@
+2011-08-18 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-73
+	* Allows "DeepImport" when filtering the import list. (bug 84122).
+	* Adds "import all" feature for filtered configurations. (bug 84123).
+	  If a filter is applied to the source configuration, only the resulting
+	  items will be imported.
+	  Available for Path, Sequences, EDSources, ESSources, ESModules and Services.
+	  Also available for "Update all Modules".
+	
 2011-08-12 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-72
 	* Add some improvements to Deep Import analysis.

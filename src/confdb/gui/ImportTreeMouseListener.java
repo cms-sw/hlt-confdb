@@ -25,18 +25,19 @@ public class ImportTreeMouseListener extends MouseAdapter
     /** reference to current tree */
     private JTree currentTree;
 
-    
+    private Configuration importConfiguration;
     //
     // constructor
     //
     
     /** standard constructor */
-    public ImportTreeMouseListener(JTree importTree,JTree currentTree)
-    {
-	this.importTree  = importTree;
-	this.currentTree = currentTree;
-    }
     
+    public ImportTreeMouseListener(JTree importTree,JTree currentTree, Configuration ImportConfiguration)
+    {
+    	this.importTree  = importTree;
+    	this.currentTree = currentTree;
+    	this.importConfiguration = ImportConfiguration;	// Necessary for "Deep Import" if filtering.
+    }    
     
     //
     // member functions
@@ -114,11 +115,11 @@ public class ImportTreeMouseListener extends MouseAdapter
 	    // Specific menu:
 	    item = new JMenuItem("Deep import " + container.name())	;
 		if 		(node instanceof Path)		{
-			item.addActionListener(new AddDeepContainerListener(currentTree, importTree, container));
+			item.addActionListener(new AddDeepContainerListener(currentTree, importConfiguration, container));
 			popup.add(item);
 		}
 		else if (node instanceof Sequence)	{
-			item.addActionListener(new AddDeepContainerListener(currentTree, importTree, container));
+			item.addActionListener(new AddDeepContainerListener(currentTree, importConfiguration, container));
 			popup.add(item);			
 		}
 	    
@@ -196,23 +197,24 @@ class AddDeepContainerListener implements ActionListener
 {
     // member data
     private JTree              targetTree;
-    private JTree              sourceTree;
     private ReferenceContainer container;
+    private Configuration		importConfiguration;
 
     // construction
+    
     public AddDeepContainerListener(JTree targetTree			,
-    								JTree sourceTree			,
+									Configuration sourceConfig	,
 									ReferenceContainer container)
-    {
-	this.targetTree = targetTree;
-	this.sourceTree	= sourceTree;
-	this.container  = container	;
-    }
+	{
+		this.targetTree = targetTree;
+		this.container  = container;
+		this.importConfiguration = sourceConfig; // Uses the source configuration instead of the JTree.
+	}
 
     // member functions
     public void actionPerformed(ActionEvent e)
     {
-	ConfigurationTreeActions.DeepImportReferenceContainer(targetTree, sourceTree, container);
+    	ConfigurationTreeActions.DeepImportReferenceContainer(targetTree, importConfiguration, container);
     }
 }
 
@@ -297,6 +299,7 @@ class AddAllInstancesListener implements ActionListener {
 	// member functions
 	public void actionPerformed(ActionEvent e) {
 		ConfigurationTreeActions.ImportAllInstances(targetTree, sourceTree, container);
+		
 	}
 }
 
@@ -317,7 +320,6 @@ class AddUpdateAllModulesListener implements ActionListener {
 	
 	// member functions
 	public void actionPerformed(ActionEvent e) {
-		//ConfigurationTreeActions.ImportAllESModules(targetTree, sourceTree, container);
 		ConfigurationTreeActions.UpdateAllModules(targetTree, sourceTree, container);
 	}
 }
