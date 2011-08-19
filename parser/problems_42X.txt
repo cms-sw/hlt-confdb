@@ -77,6 +77,7 @@ ESModule PixelCPETemplateRecoESProducer RecoLocalTracker SiPixelRecHits
 PixelCPETemplateRecoESProducer.Parameter TanLorentzAnglePerTesla double 0.106 tracked
 PixelCPETemplateRecoESProducer.Parameter PixelErrorParametrization string "NOTcmsim" tracked
 PixelCPETemplateRecoESProducer.Parameter Alpha2Order bool true tracked
+PixelCPETemplateRecoESProducer.Parameter ClusterProbComputationFlag int32 0 tracked
 
 ESModule PixelCPEGenericESProducer RecoLocalTracker SiPixelRecHits
 PixelCPEGenericESProducer.Parameter TanLorentzAnglePerTesla double 0.106 tracked
@@ -367,6 +368,15 @@ LXXXCorrectionService.Parameter level string "L1Offset" tracked
 LXXXCorrectionService.Parameter algorithm string "1PU_IC5Calo" tracked
 LXXXCorrectionService.Parameter section string "" tracked
 LXXXCorrectionService.Parameter era string "Summer09_7TeV_ReReco332" tracked
+LXXXCorrectionService.Parameter useCondDB bool true untracked 
+
+ESSource L1FastjetCorrectionService JetMETCorrections Modules
+L1FastjetCorrectionService.Parameter era string "Jec10V1" tracked
+L1FastjetCorrectionService.Parameter level string "L1FastJet" tracked
+L1FastjetCorrectionService.Parameter algorithm string "AK5Calo" tracked 
+L1FastjetCorrectionService.Parameter section string "" tracked
+L1FastjetCorrectionService.Parameter srcRho InputTag hltKT6CaloJets tracked
+L1FastjetCorrectionService.Parameter useCondDB bool false untracked
 
 ESSource L4EMFCorrectionService JetMETCorrections Modules
 L4EMFCorrectionService.Parameter tagName string "Spring07_L4EMF_Iterative_Cone_05" tracked
@@ -740,3 +750,53 @@ Module EDProducer HybridClusterProducer RecoEcal EgammaClusterProducers
 HybridClusterProducer.Parameter severitySpikeId int32 2 tracked 
 HybridClusterProducer.Parameter severitySpikeThreshold double 0.95 tracked 
 HybridClusterProducer.Parameter severityRecHitThreshold double 4.0 tracked 
+
+ESModule EcalSeverityLevelESProducer RecoLocalCalo EcalRecAlgos  
+EcalSeverityLevelESProducer.Parameter timeThresh double 2.0 tracked 
+
+Module EDProducer PrimaryVertexProducer RecoVertex PrimaryVertexProducer
+PrimaryVertexProducer.Parameter PVSelParameters PSet tracked
+PrimaryVertexProducer.Parameter TkClusParameters PSet tracked
+
+Module EDAnalyzer EventSetupRecordDataGetter FWCore Modules
+EventSetupRecordDataGetter.Parameter verbose bool false untracked  
+EventSetupRecordDataGetter.Parameter toGet VPSet tracked
+
+ESModule SeedingLayersESProducer RecoTracker TkSeedingLayers
+SeedingLayersESProducer.Parameter TID PSet tracked
+SeedingLayersESProducer.Parameter TIB PSet tracked 
+SeedingLayersESProducer.Parameter TOB PSet tracked 
+
+Module EDProducer SiStripExcludedFEDListProducer EventFilter SiStripRawToDigi
+SiStripExcludedFEDListProducer.Parameter ProductLabel InputTag source tracked
+
+Module EDProducer HLTTrackClusterRemover RecoLocalTracker SubCollectionProducers
+HLTTrackClusterRemover.Parameter Common PSet tracked
+
+Module EDFilter HIProtoTrackSelector RecoHI HiTracking
+HIProtoTrackSelector.Parameter src InputTag hiPixel3ProtoTracks tracked
+HIProtoTrackSelector.Parameter VertexCollection InputTag hiPixelMedianVertex tracked
+HIProtoTrackSelector.Parameter beamSpotLabel InputTag offlineBeamSpot tracked
+HIProtoTrackSelector.Parameter ptMin double 0.0 tracked
+HIProtoTrackSelector.Parameter nSigmaZ double 5.0 tracked
+HIProtoTrackSelector.Parameter minZCut double 0.2 tracked
+HIProtoTrackSelector.Parameter maxD0Significance double 5.0 tracked
+
+Module EDProducer SiStripRawToDigiModule EventFilter SiStripRawToDigi
+SiStripRawToDigiModule.Parameter ProductLabel InputTag rawDataCollector tracked
+SiStripRawToDigiModule.Parameter AppendedBytes int32 0 tracked
+SiStripRawToDigiModule.Parameter UseDaqRegister bool false tracked
+SiStripRawToDigiModule.Parameter UseFedKey bool false tracked
+SiStripRawToDigiModule.Parameter UnpackBadChannels bool false tracked
+SiStripRawToDigiModule.Parameter MarkModulesOnMissingFeds bool true tracked
+SiStripRawToDigiModule.Parameter TriggerFedId int32 0 tracked
+SiStripRawToDigiModule.Parameter UnpackCommonModeValues bool false tracked
+SiStripRawToDigiModule.Parameter DoAllCorruptBufferChecks bool false tracked
+SiStripRawToDigiModule.Parameter ErrorThreshold uint32 7174 tracked
+
+Module EDProducer SiStripDigiToRawModule EventFilter SiStripRawToDigi
+SiStripDigiToRawModule.Parameter InputModuleLabel string "simSiStripDigis" tracked
+SiStripDigiToRawModule.Parameter InputDigiLabel string "ZeroSuppressed" tracked
+SiStripDigiToRawModule.Parameter FedReadoutMode string "ZERO_SUPPRESSED" tracked
+SiStripDigiToRawModule.Parameter UseFedKey bool false tracked
+SiStripDigiToRawModule.Parameter UseWrongDigiType bool false tracked
