@@ -17,6 +17,8 @@ import java.io.*;
 import confdb.data.*;
 import java.math.BigInteger;
 
+import oracle.jdbc.pool.OracleDataSource;
+
 
 /**
  * ConfDB
@@ -345,6 +347,33 @@ public class ConfDB
 
     /** retrieve db url */
     public String dbUrl() { return this.dbUrl; }
+    
+
+    /** getTnsnameFormat
+     * ----------------------------------------------------------------
+     * Use Oracle Java extensions to create TNSName Connection String
+     * bug 86323.
+     * */
+    public String getTnsnameFormat(String dbPassword, String dbServiceName, String dbHost, String dbPort) {
+		OracleDataSource ods;
+		try {
+			ods = new OracleDataSource();
+			ods.setUser(dbUser);
+			ods.setPassword(dbPassword);
+			ods.setDriverType("thin");
+			ods.setServiceName(dbServiceName);
+			ods.setServerName(dbHost);
+			ods.setPortNumber(Integer.parseInt(dbPort));
+			
+			return ods.getURL();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return "ERROR TNSNAME FORMAT";
+    }
+    
     
     /** close all prepared statements */
     void closePreparedStatements() throws DatabaseException

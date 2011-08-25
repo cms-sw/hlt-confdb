@@ -25,6 +25,7 @@ import confdb.gui.treetable.*;
 import confdb.db.ConfDB;
 import confdb.db.ConfOldDB;
 import confdb.db.DatabaseException;
+import confdb.db.OracleDatabaseConnector;
 
 import confdb.migrator.DatabaseMigrator;
 import confdb.migrator.ReleaseMigrator;
@@ -1012,6 +1013,12 @@ public class ConfDbGUI
 	String dbPwrd = dbDialog.getDbPassword();
 	
 	try {
+
+		// Use TNSNames format to connect to oracle:
+		if (dbType.equals(database.dbTypeOracle))
+			dbUrl = database.getTnsnameFormat(dbPwrd, dbName, dbHost, dbPort);
+		
+		
 	    database.connect(dbType,dbUrl,dbUser,dbPwrd);
 	    ((DatabaseInfoPanel)jPanelDbConnection).connectedToDatabase(dbType,
 									dbHost,
