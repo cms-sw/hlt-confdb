@@ -2496,6 +2496,33 @@ public class ConfigurationTreeActions
 	tree.scrollPathToVisible(instanceTreePath);
 
     }
+    
+    
+    /**
+     * scroll to the Path given by the path name and expand the tree.
+     * */
+    public static void scrollToPathByName(String pathName, JTree tree) {
+    	ConfigurationTreeModel model   =(ConfigurationTreeModel)tree.getModel();
+    	Configuration          config  =(Configuration)model.getRoot();
+    	
+    	TreePath Path = new TreePath(model.getPathToRoot(config.path(pathName)));
+    	tree.setSelectionPath(Path);
+    	tree.expandPath(Path);
+    	tree.scrollPathToVisible(Path);
+    }
+    
+    /**
+     * scroll to the module given by the module name and expand the tree.
+     * */
+    public static void scrollToModuleByName(String moduleName, JTree tree) {
+    	ConfigurationTreeModel model   =(ConfigurationTreeModel)tree.getModel();
+    	Configuration          config  =(Configuration)model.getRoot();
+    	
+    	TreePath Path = new TreePath(model.getPathToRoot(config.module(moduleName)));
+    	tree.setSelectionPath(Path);
+    	tree.expandPath(Path);
+    	tree.scrollPathToVisible(Path);
+    }
 
     /** import a single module into path or sequence */
     public static boolean importModule(JTree tree,ModuleInstance external)

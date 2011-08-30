@@ -9,6 +9,9 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.border.*;
 import javax.swing.plaf.basic.*;
+
+import sun.security.pkcs11.Secmod.Module;
+
 import java.awt.*;
 import java.awt.event.*;
 
@@ -163,10 +166,16 @@ public class ConfDbGUI
     
     private JProgressBar  jProgressBar              = new JProgressBar(); 
 
+    // JScrollPane Tabs for Right lower panel:
     private JEditorPane   jEditorPanePathsToDataset = new JEditorPane();
-    private JScrollPane   jScrollPaneRightLower2    = new JScrollPane();
+    private JScrollPane   TAB_assignedToDatasets    = new JScrollPane();
     private JEditorPane   jEditorPaneUnresolvedITags= new JEditorPane();
-    private JScrollPane   jScrollPaneRightLower3    = new JScrollPane();
+    private JScrollPane   TAB_unresolvedInputTags   = new JScrollPane();
+    private JEditorPane   jEditorContainedInPaths	= new JEditorPane();
+    private JScrollPane	  TAB_containedInPaths		= new JScrollPane();
+    
+    
+    
     static SimpleAttributeSet ITALIC_GRAY = new SimpleAttributeSet();
     static SimpleAttributeSet BOLD_BLACK = new SimpleAttributeSet();
     static SimpleAttributeSet BLACK = new SimpleAttributeSet(); 
@@ -2137,11 +2146,37 @@ public class ConfDbGUI
 		return text;
 	}
 	
+    /** return a text list of Paths which contains the current Module/Sequence. */
+	public String getAssignedPaths() {
+	    String text = "";
+	    ModuleInstance moduleInstance	= null;
+	    Sequence	sequence	= null;
+	    Path[] paths = null;
+	    
+	    if (currentParameterContainer instanceof ModuleInstance) {
+		    moduleInstance = (ModuleInstance)currentParameterContainer;
+		    paths = moduleInstance.parentPaths();
+	    } else if (currentParameterContainer instanceof Sequence) {
+	    	sequence = (Sequence) currentParameterContainer;
+	    	paths = sequence.parentPaths();
+	    	
+	    } else return "";
+	    
+	    if(paths != null)
+	    for(int i = 0; i < paths.length; i++) {
+	    	text+= "<a href='"+paths[i]+"'>" + paths[i] + "</a> <br>";
+	    }
+	    
+		return text;
+	}
+	
+	
 	/** Prepare a summary of unassigned input tags using the original 	*/
-	/** python code. This prints directly in jEditorPaneUnresolvedITags	*/
-	/** NOTE: This does not show a real python code but a summary of    */
-	/** tags in a familiar format. 										*/
-	public void getUnresolvedInputTagsSummary() {
+	/** python code. This uses links to expand the tree and show the	*/
+	/** selected Module													*/
+	/** NOTE: The string returned is not the original python code. 		*/
+	/** It only contains the relevant InputTags	in a familiar format	*/
+	public String getUnresolvedInputTagsSummary() {
 	    String text = "";
 	    String module 	= null;
 	    String tag		= null;
@@ -2154,7 +2189,7 @@ public class ConfDbGUI
 	    } else if(currentParameterContainer instanceof Sequence){
 	    	sequence = (Sequence) currentParameterContainer;
 	    	unresolved = sequence.unresolvedInputTags();
-	    } else return;
+	    } else return "ERROR: getUnresolvedInputTagsSummary(): unknown currentParameterContainer";
 	    
 		
 		String[] modules	= new String [unresolved.length]; // as maximum.
@@ -2207,14 +2242,11 @@ public class ConfDbGUI
 				
 				// Highlights the Tag for this module in order:
 				// Display the first python line.
-				String header = pythonCode.substring(0, pythonCode.indexOf("(") + 1) + " ... \n";
-				try {
-					jEditorPaneUnresolvedITags.getDocument().insertString(
-							jEditorPaneUnresolvedITags.getDocument().getLength(), header, ITALIC_GRAY);
-				} catch (BadLocationException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				String header = "<a href='" + modules[i] + "'>" + 
+								modules[i] + " </a> " + 
+								pythonCode.substring(modules[i].length(), pythonCode.indexOf("(") + 1) + 
+								"... <br>";
+				text+= header;
 
 				// Displays list of unresolved tags:
 				for(int t =0; t < Ntags; t++) {
@@ -2223,34 +2255,23 @@ public class ConfDbGUI
 						System.err.println("ERROR: " + pythonCode);
 						System.err.println("ERROR: [confdb.gui.ConfDbGUI.getUnresolvedInputTagsSummary] Unresolved input tag not found! --> ["+t+"]" + sortedTags[t]);
 						System.err.println("ERROR: SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!");
-						
 						// SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!
 					}
-					//else {
-						tagLine = pythonCode.substring(pythonCode.indexOf(sortedTags[t]), pythonCode.indexOf(")", pythonCode.indexOf(sortedTags[t]) + sortedTags[t].length()) + 1);
-						tagLine+=",\n"; 
-					//}
-		        	try {
-						jEditorPaneUnresolvedITags.getDocument().insertString(
-								jEditorPaneUnresolvedITags.getDocument().getLength(), tagLine, BOLD_BLACK);
+						tagLine = "<b>" + pythonCode.substring(pythonCode.indexOf(sortedTags[t]), pythonCode.indexOf(")", pythonCode.indexOf(sortedTags[t]) + sortedTags[t].length()) + 1);
+						tagLine+=",</b><br>"; 
+
+					text+= tagLine;
 			        	
-					} catch (BadLocationException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
 				}
-				try {
-					// Display dots:
-					jEditorPaneUnresolvedITags.getDocument().insertString(
-							jEditorPaneUnresolvedITags.getDocument().getLength(), "    ... )\n\n", ITALIC_GRAY);
-				} catch (BadLocationException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				// Display dots:
+				text+= "    ... )<br><br>";
 			}
-		}		
+		}
+		return text;
 	}
 
+	
+	
 	/** Look for Python code for a module of an unassigned input tag. */
 	private String getPythonCodeForModule(String module) {
 		String text 	= "";
@@ -2429,6 +2450,7 @@ public class ConfDbGUI
     	(!(currentParameterContainer instanceof Sequence))) 
     	restoreRightLowerTabs();
     	
+    
 	if (currentParameterContainer==treeModelCurrentConfig.psetsNode()) {
 	    String s="";
 	    Iterator<PSetParameter> itPSet = currentConfig.psetIterator();
@@ -2483,6 +2505,9 @@ public class ConfDbGUI
 	    }
 	}
 	else if (currentParameterContainer instanceof ModuleInstance) {
+		jTabbedPaneRightLower.setEnabledAt(3, true); // sets second tab enabled
+		jEditorContainedInPaths.setText(this.getAssignedPaths());
+		
 	    ModuleInstance module = (ModuleInstance)currentParameterContainer;
 	    try {
 		jEditorPaneSnippet.setText(cnvEngine.getModuleWriter().
@@ -2509,20 +2534,20 @@ public class ConfDbGUI
         jTabbedPaneRightLower.setEnabledAt(1, true); // sets second tab enabled
         jTabbedPaneRightLower.setEnabledAt(2, true); // sets third  tab enabled
         jEditorPanePathsToDataset.setText(this.getAssignedDatasets());
-        
-        // this print directly in jEditorPaneUnresolvedITags
-        this.getUnresolvedInputTagsSummary();  
+       
+        jEditorPaneUnresolvedITags.setText(getUnresolvedInputTagsSummary());
 	}
 	else if (currentParameterContainer instanceof Sequence) {
 	    Sequence sequence = (Sequence)currentParameterContainer;
 	    jEditorPaneSnippet.setText(cnvEngine.getSequenceWriter().
 				       toString(sequence,cnvEngine,"  "));
-	    
-        // jTabbedPaneRightLower.setEnabledAt(1, true); // No dataset tab for sequences.
-	    // jEditorPanePathsToDataset.setText(this.getAssignedDatasets());
         
 	    jTabbedPaneRightLower.setEnabledAt(2, true); // sets third  tab enabled
-        this.getUnresolvedInputTagsSummary(); // print directly in jEditorPaneUnresolvedITags
+
+	    jEditorPaneUnresolvedITags.setText(getUnresolvedInputTagsSummary());
+        
+		jTabbedPaneRightLower.setEnabledAt(3, true); // sets second tab enabled
+		jEditorContainedInPaths.setText(this.getAssignedPaths());
 	}
 	else {
 	    clearSnippet();
@@ -2542,12 +2567,37 @@ public class ConfDbGUI
     private void restoreRightLowerTabs(){
         jTabbedPaneRightLower.setEnabledAt(1, false); // sets the second tab as Disabled
         jTabbedPaneRightLower.setEnabledAt(2, false); // sets the third  tab as Disabled
+        jTabbedPaneRightLower.setEnabledAt(3, false); // sets the third  tab as Disabled
         jTabbedPaneRightLower.setSelectedIndex(0);
 	    jEditorPanePathsToDataset.setText("");
 	    jEditorPaneUnresolvedITags.setText("");
+	    jEditorContainedInPaths.setText("");
+	    
+	    // Hyperlink listener to catch the path request.
+	    jEditorContainedInPaths.addHyperlinkListener(new HyperlinkListener() {
+			        public void hyperlinkUpdate(HyperlinkEvent event) {
+			            if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+			            	String pathname = event.getDescription();
+			            	ConfigurationTreeActions.scrollToPathByName(pathname, jTreeCurrentConfig);
+			            }
+			          }
+	    			}
+	    		);
+	    
+	    // Hyperlink listener to catch the module requests.	    
+	    jEditorPaneUnresolvedITags.addHyperlinkListener(new HyperlinkListener() {
+	        public void hyperlinkUpdate(HyperlinkEvent event) {
+	            if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+	            	String modulename = event.getDescription();
+	            	ConfigurationTreeActions.scrollToModuleByName(modulename, jTreeCurrentConfig);
+	            }
+	          }
+			}
+		);
     } 
     
 
+    
 
     /** display the event content editor, fill all fields */
     private void fillEventContents()
@@ -3962,14 +4012,22 @@ public class ConfDbGUI
         
         // Initialize the right lower tabs by default.
         jEditorPanePathsToDataset.setEditable(false);
-        jScrollPaneRightLower2.setViewportView(jEditorPanePathsToDataset);
-        jTabbedPaneRightLower.addTab("Assigned to Datasets", jScrollPaneRightLower2);
+        TAB_assignedToDatasets.setViewportView(jEditorPanePathsToDataset);
+        jTabbedPaneRightLower.addTab("Assigned to Datasets", TAB_assignedToDatasets);
+        
         jEditorPaneUnresolvedITags.setEditable(false);
         jEditorPaneUnresolvedITags.setContentType("text/html");
-        jScrollPaneRightLower3.setViewportView(jEditorPaneUnresolvedITags);
-        jTabbedPaneRightLower.addTab("Unresolved Input Tags", jScrollPaneRightLower3);
+        TAB_unresolvedInputTags.setViewportView(jEditorPaneUnresolvedITags);
+        jTabbedPaneRightLower.addTab("Unresolved Input Tags", TAB_unresolvedInputTags);
+        
+        jEditorContainedInPaths.setEditable(false);
+        jEditorContainedInPaths.setContentType("text/html");
+        TAB_containedInPaths.setViewportView(jEditorContainedInPaths);
+        jTabbedPaneRightLower.addTab("Contained in Paths", TAB_containedInPaths);
+        
         jTabbedPaneRightLower.setEnabledAt(1, false); // sets the second tab as Disabled
         jTabbedPaneRightLower.setEnabledAt(2, false); // sets the third  tab as Disabled
+        jTabbedPaneRightLower.setEnabledAt(3, false); // sets the fourth tab as Disabled
         
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelRightLower);
         jPanelRightLower.setLayout(layout);
