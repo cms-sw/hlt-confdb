@@ -567,6 +567,12 @@ FastjetJetProducer.Parameter doAreaFastjet bool false tracked
 FastjetJetProducer.Parameter doRhoFastjet bool false tracked
 FastjetJetProducer.Parameter subtractorName string "" tracked
 FastjetJetProducer.Parameter sumRecHits bool false tracked
+FastjetJetProducer.Parameter doAreaDiskApprox bool true tracked 
+FastjetJetProducer.Parameter voronoiRfact double 0.9 tracked  
+FastjetJetProducer.Parameter useDeterministicSeed bool true tracked 
+FastjetJetProducer.Parameter minSeed uint32 14327 tracked 
+FastjetJetProducer.Parameter Rho_EtaMax double 4.4 tracked 
+
 
 ESModule SiStripQualityESProducer CalibTracker SiStripESProducers
 SiStripQualityESProducer.Parameter appendToDataLabel string "" tracked
@@ -773,14 +779,14 @@ SiStripExcludedFEDListProducer.Parameter ProductLabel InputTag source tracked
 Module EDProducer HLTTrackClusterRemover RecoLocalTracker SubCollectionProducers
 HLTTrackClusterRemover.Parameter Common PSet tracked
 
-Module EDFilter HIProtoTrackSelector RecoHI HiTracking
-HIProtoTrackSelector.Parameter src InputTag hiPixel3ProtoTracks tracked
-HIProtoTrackSelector.Parameter VertexCollection InputTag hiPixelMedianVertex tracked
-HIProtoTrackSelector.Parameter beamSpotLabel InputTag offlineBeamSpot tracked
-HIProtoTrackSelector.Parameter ptMin double 0.0 tracked
-HIProtoTrackSelector.Parameter nSigmaZ double 5.0 tracked
-HIProtoTrackSelector.Parameter minZCut double 0.2 tracked
-HIProtoTrackSelector.Parameter maxD0Significance double 5.0 tracked
+Module EDFilter HIProtoTrackSelection RecoHI HiTracking
+HIProtoTrackSelection.Parameter src InputTag hiPixel3ProtoTracks tracked
+HIProtoTrackSelection.Parameter VertexCollection InputTag hiPixelMedianVertex tracked
+HIProtoTrackSelection.Parameter beamSpotLabel InputTag offlineBeamSpot tracked
+HIProtoTrackSelection.Parameter ptMin double 0.0 tracked
+HIProtoTrackSelection.Parameter nSigmaZ double 5.0 tracked
+HIProtoTrackSelection.Parameter minZCut double 0.2 tracked
+HIProtoTrackSelection.Parameter maxD0Significance double 5.0 tracked
 
 Module EDProducer SiStripRawToDigiModule EventFilter SiStripRawToDigi
 SiStripRawToDigiModule.Parameter ProductLabel InputTag rawDataCollector tracked
@@ -800,3 +806,11 @@ SiStripDigiToRawModule.Parameter InputDigiLabel string "ZeroSuppressed" tracked
 SiStripDigiToRawModule.Parameter FedReadoutMode string "ZERO_SUPPRESSED" tracked
 SiStripDigiToRawModule.Parameter UseFedKey bool false tracked
 SiStripDigiToRawModule.Parameter UseWrongDigiType bool false tracked
+
+Module EDFilter HIBestVertexSelection RecoHI HiTracking
+HIBestVertexSelection.Parameter src InputTag hiPixelAdaptiveVertex tracked
+HIBestVertexSelection.Parameter maxNumber uint32 1 tracked
+ 
+Module EDProducer ChargedRefCandidateProducer CommonTools RecoAlgos
+ChargedRefCandidateProducer.Parameter src InputTag ... tracked
+ChargedRefCandidateProducer.Parameter particleType string "pi+" tracked
