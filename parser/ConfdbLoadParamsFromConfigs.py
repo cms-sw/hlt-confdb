@@ -27,57 +27,57 @@ def main(argv):
     #    input_usingwhitelist = False
     input_usingwhitelist = True
     input_whitelist = [
-        "Alignment",
-        "CalibCalorimetry",
-        "CalibMuon",
-        "CalibTracker",
-        "Calibration",
-        "CondCore",
-        "CommonTools", 
-        "DQM",
-        "DQMServices",
-        "EventFilter",
-        "FWCore",
-        "Geometry",
-        "GeometryReaders",
-        "HLTrigger",
-        "IOPool",
-        "IORawData",
-        "JetMETCorrections",
-        "L1Trigger",
-        "L1TriggerConfig",
-        "MagneticField",
-        "PhysicsTools",
-        "RecoBTag",
-        "RecoBTau",
-        "RecoCaloTools",
-        "RecoEcal",
-        "RecoEgamma",
-        "RecoHI",   
-        "RecoJets",
-        "RecoLocalCalo",
-        "RecoLocalMuon",
-        "RecoLocalTracker",
-        "RecoLuminosity",
-        "RecoMET",
-        "RecoMuon",
-        "RecoParticleFlow",
-        "RecoPixelVertexing",
-        "RecoTauTag",
-        "RecoTracker",
-        "RecoVertex",
-        "SimCalorimetry",
-        "SimGeneral",
-        "TrackPropagation",
-        "TrackingTools"
+       "Alignment",
+       "CalibCalorimetry",
+       "CalibMuon",
+       "CalibTracker",
+       "Calibration",
+       "CondCore",
+       "CommonTools", 
+       "DQM",
+       "DQMServices",
+       "EventFilter"
+       "FWCore",
+       "Geometry",
+       "GeometryReaders",
+       "HLTrigger",
+       "IOPool",
+       "IORawData",
+       "JetMETCorrections",
+       "L1Trigger",
+       "L1TriggerConfig",
+       "MagneticField",
+       "PhysicsTools",
+       "RecoBTag",
+       "RecoBTau",
+       "RecoCaloTools",
+       "RecoEcal",
+       "RecoEgamma",
+       "RecoHI",   
+       "RecoJets",
+       "RecoLocalCalo",
+       "RecoLocalMuon",
+       "RecoLocalTracker",
+       "RecoLuminosity",
+       "RecoMET",
+       "RecoMuon",
+       "RecoParticleFlow",
+       "RecoPixelVertexing",
+       "RecoTauTag",
+       "RecoTracker"
+       "RecoVertex",
+       "SimCalorimetry",
+       "SimGeneral",
+       "TrackPropagation",
+       "TrackingTools"
         ]
 
     input_verbose = 0
-    input_dbuser = "CMS_HLT_TEST"
-    #    input_dbuser = "CMS_HLTDEV"
+    #    input_dbuser = "CMS_HLT_TEST"
+    input_dbuser = "CMS_HLTDEV"
     input_dbpwd = ""
-    #    input_host = "CMS_ORCOFF_PROD"
-    input_host = "CMS_ORCOFF_INT2R"
+    input_host = "CMS_ORCOFF_PROD"
+    #    input_host = "CMS_ORCOFF_INT2R"
     input_addtorelease = "none"
     input_comparetorelease = ""
     input_noload = False
@@ -340,6 +340,7 @@ class ConfdbLoadParamsfromConfigs:
 
         # Get package list of auto-generated cfi's for this release
         validatedcfipackagelist = os.listdir(validatedcfisource_tree)
+        validatedcfipackagelist = ''
 
         self.VerbosePrint("Will parse packages in the whitelist",1)
         for okpackage in self.whitelist:
@@ -552,6 +553,10 @@ class ConfdbLoadParamsfromConfigs:
                     for pyfile in pyfiles:
                         if(pyfile.endswith("_cfi.py")):
                             thecomponent = pyfile.split('.py')[0]
+
+                            # FIXME - for patchfile mode, take a list of targeted cfi's as input
+                            #if(pyfile.find("OnDemandMeasurementTrackerESProducer_cfi") != -1):
+                            #   continue
 
                             try:
                                 allowmultiplecfis = False
