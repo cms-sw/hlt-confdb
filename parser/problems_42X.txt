@@ -572,7 +572,7 @@ FastjetJetProducer.Parameter voronoiRfact double 0.9 tracked
 FastjetJetProducer.Parameter useDeterministicSeed bool true tracked 
 FastjetJetProducer.Parameter minSeed uint32 14327 tracked 
 FastjetJetProducer.Parameter Rho_EtaMax double 4.4 tracked 
-
+FastjetJetProducer.Parameter puPtMin double 0.0 tracked
 
 ESModule SiStripQualityESProducer CalibTracker SiStripESProducers
 SiStripQualityESProducer.Parameter appendToDataLabel string "" tracked
@@ -698,7 +698,8 @@ PFRecoTauDiscriminationByIsolation.Parameter applyRelativeSumPtCut bool false tr
 PFRecoTauDiscriminationByIsolation.Parameter applySumPtCut bool false tracked
 PFRecoTauDiscriminationByIsolation.Parameter ApplyDiscriminationByTrackerIsolation bool true tracked
 PFRecoTauDiscriminationByIsolation.Parameter qualityCuts PSet tracked
- 
+PFRecoTauDiscriminationByIsolation.Parameter customOuterCone double -1.0 tracked
+
 Module EDProducer CaloRecoTauDiscriminationByLeadingTrackPtCut RecoTauTag RecoTau 
 CaloRecoTauDiscriminationByLeadingTrackPtCut.Parameter CaloTauProducer InputTag caloRecoTauProducer tracked 
 CaloRecoTauDiscriminationByLeadingTrackPtCut.Parameter Prediscriminants PSet tracked 
@@ -759,10 +760,15 @@ HybridClusterProducer.Parameter severityRecHitThreshold double 4.0 tracked
 
 ESModule EcalSeverityLevelESProducer RecoLocalCalo EcalRecAlgos  
 EcalSeverityLevelESProducer.Parameter timeThresh double 2.0 tracked 
+EcalSeverityLevelESProducer.Parameter appendToDataLabel string  "" tracked
+EcalSeverityLevelESProducer.Parameter flagMask vuint32 {} tracked
+EcalSeverityLevelESProducer.Parameter dbstatusMask vuint32 {} tracked
+
 
 Module EDProducer PrimaryVertexProducer RecoVertex PrimaryVertexProducer
 PrimaryVertexProducer.Parameter PVSelParameters PSet tracked
 PrimaryVertexProducer.Parameter TkClusParameters PSet tracked
+PrimaryVertexProducer.Parameter vertexCollections VPSet tracked
 
 Module EDAnalyzer EventSetupRecordDataGetter FWCore Modules
 EventSetupRecordDataGetter.Parameter verbose bool false untracked  
@@ -814,3 +820,7 @@ HIBestVertexSelection.Parameter maxNumber uint32 1 tracked
 Module EDProducer ChargedRefCandidateProducer CommonTools RecoAlgos
 ChargedRefCandidateProducer.Parameter src InputTag ... tracked
 ChargedRefCandidateProducer.Parameter particleType string "pi+" tracked
+
+ESModule MeasurementTrackerESProducer RecoTracker MeasurementDet
+MeasurementTrackerESProducer.Parameter skipClusters InputTag hltIter4ClustersRefRemoval tracked
+
