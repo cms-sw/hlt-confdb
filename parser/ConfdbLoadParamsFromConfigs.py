@@ -340,13 +340,14 @@ class ConfdbLoadParamsfromConfigs:
 
         # Get package list of auto-generated cfi's for this release
         validatedcfipackagelist = os.listdir(validatedcfisource_tree)
-        validatedcfipackagelist = ''
+        #        validatedcfipackagelist = ''
 
         self.VerbosePrint("Will parse packages in the whitelist",1)
         for okpackage in self.whitelist:
             self.VerbosePrint("\t" + str(okpackage),1)
 
         # First, check the auto-genearated validated cfi's in the release 
+        self.VerbosePrint("Checking validated cfi's in: " + validatedcfisource_tree, 0)
         for validatedcfipackage in validatedcfipackagelist:
             # Apply whitelisting/blacklisting also to pacakges with validated cfi's
             if(self.usingwhitelist == True):
@@ -377,7 +378,7 @@ class ConfdbLoadParamsfromConfigs:
                    
                    validatedcfipackagedir = validatedcfisource_tree + validatedcfipackage + "/" + subdir
                    
-                   self.VerbosePrint("Scanning package: " + validatedcfipackage + "/" + subdir, 0)
+                   self.VerbosePrint("Scanning package: " + validatedcfipackagedir, 0)
                    
                    validatedtestdir = validatedcfipackagedir + "/test/"
                    validatedpydir = validatedcfipackagedir + "/"
