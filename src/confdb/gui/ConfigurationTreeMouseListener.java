@@ -7,10 +7,12 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import confdb.gui.menu.ScrollableMenu;
 
 import confdb.data.*;
+
 import java.util.Collections;
 
 
@@ -1978,7 +1980,14 @@ class DatasetMenuListener implements ActionListener
 	if (action.startsWith("EDIT")) {
 	    String datasetName = action.split(" ")[1];
 	    PrimaryDataset dataset = config.dataset(datasetName);
+	    
+	    // Get the list to compare later:
+		ArrayList<Path> paths = new ArrayList<Path>();
+		Iterator<Path> paths_ = dataset.pathIterator();
+		while(paths_.hasNext()) paths.add(paths_.next());
+	    	
 	    EditDatasetDialog dlg = new EditDatasetDialog(frame,config,dataset);
+	    
 	    dlg.pack();
 	    dlg.setLocationRelativeTo(frame);
 	    dlg.setVisible(true);
@@ -1986,9 +1995,32 @@ class DatasetMenuListener implements ActionListener
 		model.nodeStructureChanged(dataset);
 		model.nodeStructureChanged(dataset.parentStream());
 		model.updateLevel1Nodes();
+		
+	    /////////////
+	    // bug 86605:
+	    // Editing datasets must update OutputModules from here and not
+	    // when opening the OutputModule.
+	    // It also must synch the modules of FilterModules (prescales)
+	    // and Output Modules by checking the paths differences.
+	    // Only recently added paths must be prescaled with 1.
+	    // Compare list
+		ArrayList<Path> paths_later = new ArrayList<Path>();
+		paths_ = dataset.pathIterator();
+		while(paths_.hasNext()) paths_later.add(paths_.next());
+			
+		// Select only new paths:
+	    ArrayList<Path> newpaths= new ArrayList<Path>();
+	    if(!paths.containsAll(paths_later)) {
+		    for(int i = 0; i < paths_later.size(); i++) {
+		    	if(!paths.contains(paths_later.get(i))) newpaths.add(paths_later.get(i));
+		    }
+	    }
+	    
+	    Stream parentStream = dataset.parentStream();
+		ConfigurationTreeActions.updateFilter(config, parentStream, newpaths);
 	    }
 	}
-    	else if (action.equals("ADD")) {
+    else if (action.equals("ADD")) {
 	    CreateDatasetDialog dlg = new CreateDatasetDialog(frame,config);
 	    dlg.pack(); dlg.setLocationRelativeTo(frame);
 	    dlg.setVisible(true);

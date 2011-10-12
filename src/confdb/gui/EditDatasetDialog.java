@@ -66,7 +66,7 @@ public class EditDatasetDialog extends JDialog
 	jButtonOk.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent evt) {
 		    jButtonOkActionPerformed(evt);
-		    
+
 		}
 	    });
     }
@@ -104,6 +104,7 @@ public class EditDatasetDialog extends JDialog
     {
 	ArrayList<String> pathNames = new ArrayList<String>();
 	Iterator<JCheckBox> itCB = pathCheckBoxes.iterator();
+	
 	while (itCB.hasNext()) {
 	    JCheckBox cb = itCB.next();
 	    if (cb.isSelected()) pathNames.add(cb.getActionCommand());
@@ -112,7 +113,7 @@ public class EditDatasetDialog extends JDialog
 	Iterator<String> itS = pathNames.iterator();
 	while (itS.hasNext())
 	    dataset.insertPath(config.path(itS.next()));
-	setVisible(false);
+	setVisible(false);	
     }
 
     /** initizlize GUI components */

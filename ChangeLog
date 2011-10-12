@@ -1,3 +1,8 @@
+2011-10-12 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-76
+	* Add the new path to the smart prescaler immediately when inserting
+	  a path in streams. (bug 86605).
+
 2011-08-30 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-75
 	* Add new tab in right lower panel with a list of Paths containing 

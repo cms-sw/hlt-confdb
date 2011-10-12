@@ -5,8 +5,10 @@ import javax.swing.tree.*;
 import javax.swing.SwingWorker;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
 
 import confdb.diff.Comparison;
@@ -3110,7 +3112,8 @@ public class ConfigurationTreeActions
 	return true;
     }
     
-    /** add a path to an existing stream */
+    /** add a path to an existing stream 
+     *  This function also updates the prescaler modules */
     public static boolean addPathToStream(JTree tree,String pathName)
     {
 	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
@@ -3141,6 +3144,11 @@ public class ConfigurationTreeActions
 	}
 	
 	model.updateLevel1Nodes();
+	
+	// Feature/Bug 86605
+	ArrayList<Path> newPaths = new ArrayList<Path>(); // Needed for method definition.
+	newPaths.add(path);	
+	updateFilter(config, stream, newPaths);	// To copy update prescaler.
 	
 	return true;
     }
@@ -3355,7 +3363,10 @@ public class ConfigurationTreeActions
 	return true;
     }
     
-    /** add a path to a primary dataset */
+    /** Add a path to a primary dataset 
+     * So far, this method is used to add a single path to a Primary dataset.
+     * This is not used to insert paths from the EditDatasetDialog panel.
+     * */
     public static boolean addPathToDataset(JTree tree,String name)
     {
 	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
@@ -3394,6 +3405,11 @@ public class ConfigurationTreeActions
 	}
 	model.nodeChanged(path);
 	model.updateLevel1Nodes();
+	
+	// Feature/Bug 86605
+	ArrayList<Path> newPaths = new ArrayList<Path>(); // Needed for method definition.
+	newPaths.add(path);	
+	updateFilter(config, stream, newPaths);	// To copy update prescaler.
 	
 	return true;
     }
@@ -4033,6 +4049,90 @@ public class ConfigurationTreeActions
 		return true;
     }
     
+    /** 
+     * When a dataset has changed it must trigger the OutputModule Update as well as
+     * the Prescaler values update.
+     * Only the module instances created with the template TriggerResultsFilter
+     * must be synch with the OutputModule path list.
+     * NOTE: technically it is possible to have more than one instance of TriggerResultsFilter
+     * but it should not happen in an EndPath. In a normal path it could happen, but those 
+     * you don't need to autoupdate in any way, they are only edited by hand
+     * 
+     * Module template : TriggerResultsFilter
+     * module --> HLTFilter --> T --> TriggerResultsFilter
+     * */
+    public static boolean updateFilter(Configuration config, Stream stream, ArrayList<Path> newPaths) {
+    	OutputModule OutputM = stream.outputModule();
+    	OutputM.forceUpdate(); // force update the OutputModules paths before update the filter.
+
+    	Path[] paths = OutputM.parentPaths(); // END PATHS
+    	
+    	for(int i = 0; i < paths.length; i++) {
+    		Path currentPath = paths[i];
+    		Iterator<ModuleInstance> modules = currentPath.moduleIterator();
+    		while(modules.hasNext()) {
+    			ModuleInstance currentModule = modules.next();
+    			Template template = currentModule.template();
+    			ArrayList<Path> toAdd = new ArrayList<Path>();
+    			
+    			// Only module template : TriggerResultsFilter
+    			if(	(template.name().compareTo("TriggerResultsFilter") == 0) &&
+    				(template.type().compareTo("HLTFilter") == 0)){
+    				
+        			Parameter para = null;
+        			para = currentModule.findParameter("triggerConditions");
+        			if(para != null) {
+        				VStringParameter parameterTriggerConditions =  (VStringParameter) para;
+        				
+        				if (parameterTriggerConditions==null) {
+        				    System.err.println("[ERROR@ConfigurationTreeActions::synchOutputModuleAndStream] parameterTriggerConditions == null! ");
+        				    return false;
+        				}
+        				
+        				for(int w=0; w < newPaths.size(); w++) {
+        					String pathname = newPaths.get(w).name();
+        					boolean found = false;
+	        				for(int j=0;j<parameterTriggerConditions.vectorSize();j++){
+	        				    String trgCondition = (String)parameterTriggerConditions.value(j);
+	        				    String strCondition = SmartPrescaleTable.regularise(trgCondition);
+	        				    StringTokenizer pathTokens = new StringTokenizer(strCondition,"/ ");
+	                		    while ( pathTokens.hasMoreTokens()) {
+	                				String strPath = pathTokens.nextToken().trim();
+	                				if(strPath.compareTo(pathname) == 0) {
+	                					found = true;
+	                					continue;
+	                				}
+	                			} // end while tokens.
+	        				} // end for parameters
+	        				
+	        				if(!found) {	// then add the path
+	        					toAdd.add(newPaths.get(w));
+	        				}
+        				} // end for newPaths
+        				
+        				// Add new paths to triggerConditions:
+    					for(int w=0; w<toAdd.size();w++) {
+    						if(para.valueAsString().length() > 2)	para.setValue(para.valueAsString() + ",\"" + toAdd.get(w) + "\"");
+    						else 									para.setValue(para.valueAsString() + "\""  + toAdd.get(w) + "\""); 
+    					}
+        			}
+    			}
+    		} // end while modules.
+    	} // end for paths.
+    	return true;
+    }
+    
+    // @TODO! change hardcode lines to enum values.
+    public enum specialModules {
+    	prescalerTemplateName {
+    	    public String toString() { return "TriggerResultsFilter"; }
+    	},
+
+    	prescalerTemplateType {
+    		public String toString() { return "HLTFilter"; }
+    	}
+    }
+
 }
 
 

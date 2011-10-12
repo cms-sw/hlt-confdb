@@ -166,10 +166,12 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     public boolean insertPath(Path path)
     {
 	if (paths.indexOf(path)>=0) return false;
+
 	path.addToContent(parentContent);
 	paths.add(path);
 	Collections.sort(paths);
 	setHasChanged();
+	
 	return true;
     }
     

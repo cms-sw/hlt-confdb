@@ -204,6 +204,16 @@ public class OutputModule extends ParameterContainer implements Referencable
 	return list.toArray(new Path[list.size()]);
     }
 
+    /** Force update 
+     * This function was developed to force the Output Module update
+     * by the time a Primary Data set is modified and not only when 
+     * expanding the OutputModule tree.
+     * Bug 86605.
+     * */
+    public void forceUpdate() {
+    	updateSelectEvents();
+    	updateOutputCommands();
+    }
     
     //
     // private member functions
@@ -231,7 +241,7 @@ public class OutputModule extends ParameterContainer implements Referencable
 	while (itOC.hasNext()) {
 	    String commandAsString = itOC.next().toString();
 	    if (listOfCommands.indexOf(commandAsString)<0)
-		listOfCommands.add(commandAsString);
+	    	listOfCommands.add(commandAsString);
 	}
 	
 	// now reformat them according to vstring requirements
@@ -242,6 +252,7 @@ public class OutputModule extends ParameterContainer implements Referencable
 	    valueAsString.append(itS.next());
 	}
 	vstringOutputCommands.setValue(valueAsString.toString());
+	
     }
 
     
