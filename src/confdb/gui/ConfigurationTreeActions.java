@@ -3143,6 +3143,17 @@ public class ConfigurationTreeActions
 		model.nodeStructureChanged(output.reference(0));
 	}
 	
+	
+	// Fixes the unassignedPathsList mess.
+	// I need to update the unassigned paths.
+	// NOTE: nothing but the last item of this container is a stringBuffer.
+	// the rest of the nodes are primaryDatasets (So we need to loop).
+	int index = model.getChildCount(stream);
+	for(int i = 0; i < index; i++) {
+		ConfigurationTreeNode unassignedPathsNode = (ConfigurationTreeNode)model.getChild(stream, i);
+		if(unassignedPathsNode.object() instanceof StringBuffer) model.nodeStructureChanged(unassignedPathsNode);
+	}
+	
 	model.updateLevel1Nodes();
 	
 	// Feature/Bug 86605

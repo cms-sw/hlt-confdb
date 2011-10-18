@@ -674,18 +674,29 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 	else if (parent instanceof ConfigurationTreeNode) {
 	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)parent;
 	    if (treeNode.object() instanceof PrimaryDataset) {
-		PrimaryDataset        dataset  = (PrimaryDataset)treeNode.object();
-		ConfigurationTreeNode pathNode = (ConfigurationTreeNode)child;
-		Path                  path     = (Path)pathNode.object();
-		return dataset.indexOfPath(path);
-	    }
-	    else if (treeNode.object() instanceof StringBuffer) {
-		ConfigurationTreeNode parentTreeNode =
-		    (ConfigurationTreeNode)treeNode.parent();
-		Stream stream = (Stream)parentTreeNode.parent();
-		Path   path   = (Path)child;
-		int index = stream.listOfUnassignedPaths().indexOf(path);
-		return index;
+	    	PrimaryDataset        dataset  = (PrimaryDataset)treeNode.object();
+	    	ConfigurationTreeNode pathNode = (ConfigurationTreeNode)child;
+	    	Path                  path     = (Path)pathNode.object();
+	    	return dataset.indexOfPath(path);
+	    } else if (treeNode.object() instanceof StringBuffer) {
+	    	// fixes the cast exception.
+	    	// case "Unassigned paths":
+	    	Stream stream;
+	    	if(treeNode.parent() instanceof Stream) {
+	    	    stream = (Stream)treeNode.parent();
+	    	    ConfigurationTreeNode treeNod = (ConfigurationTreeNode)child;
+	    	    if (treeNod.object() instanceof Path) {
+		    		Path path = (Path)treeNod.object();
+		    		return stream.listOfUnassignedPaths().indexOf(path);
+	    		}
+	    	}
+	    	/*
+    	    ConfigurationTreeNode parentTreeNode = (ConfigurationTreeNode)treeNode.parent();
+    		stream = (Stream)parentTreeNode.parent();
+    		Path   path   = (Path)child;
+    		int index = stream.listOfUnassignedPaths().indexOf(path);
+    		return index;	    		
+    		*/
 	    }
 	    //else if (treeNode.object() instanceof Stream
 	}
