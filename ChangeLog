@@ -1,3 +1,7 @@
+2011-10-20 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* Refresh paths and sequences top nodes in the TreeModel when 
+	  a module name is changed. bug 83721.
+
 2011-10-18 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-77
 	* Fix ClassCastException occurred when opening streams and its content.

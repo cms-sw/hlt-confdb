@@ -72,6 +72,11 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 		if (referencable instanceof ModuleInstance) {
 		    ModuleInstance module = (ModuleInstance)referencable;
 		    module.setNameAndPropagate(name);
+		    // Bug 83721: Update Sequences and Paths root container.
+		    //propagateModuleName(referencable, treeModel.sequencesNode());
+		    treeModel.nodeStructureChanged(treeModel.sequencesNode());
+		    treeModel.nodeStructureChanged(treeModel.pathsNode());
+
 		}
 		else if (referencable instanceof Path) {
 		    Path path = (Path)referencable;
@@ -141,6 +146,49 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 
 	return toBeEdited;
     }
+    
+    /** to propagate module's name throughout the tree. 
+     * Next method was created to solve the problem/bug83721
+     * Method was commented because didn't work 3th level deep.
+     * Note: Don't understand why. */
+    /*
+    private boolean propagateModuleName(Referencable referencable, Object parentNode) {
+    	boolean result = false;
+    	
+    	if(referencable instanceof ModuleInstance) {
+    		int jj[] = new int[1];
+		    int Count	= treeModel.getChildCount(parentNode);
+		    for(int j=0; j < Count; j++) {
+		    	Object Item = treeModel.getChild(parentNode, j);
+		    	
+		    	jj[0] = j;
+		    	if(Item instanceof ModuleReference) {
+		    		ModuleReference module = (ModuleReference)Item;
+		    		if(module.name().equals(referencable.name())) {
+		    			treeModel.nodeStructureChanged(parentNode); // Refresh structure.
+		    			result = true;
+		    		}
+		    		
+		    	} else if(Item instanceof OutputModuleReference) {
+		    		OutputModuleReference module = (OutputModuleReference)Item;
+		    		if(module.name().equals(referencable.name())) {
+		    			treeModel.nodeStructureChanged(parentNode); // Refresh structure.
+		    			result = true;
+		    		}
+		    		
+		    	} else if(	(Item instanceof Sequence)			||
+		    				(Item instanceof SequenceReference)||
+		    				(Item instanceof Path)				){
+		    		propagateModuleName(referencable, Item);
+		    	}
+		    } // end for
+    	}
+    	return result;
+    }
+    */
+    
+	
+    
     
     /** to determine the offset ;) */
     protected void determineOffset(JTree tree,

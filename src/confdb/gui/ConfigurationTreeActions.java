@@ -3981,6 +3981,8 @@ public class ConfigurationTreeActions
     /*
      * edit the name of the node
      */
+    // NOTE: Requests to change names are caught 
+    // by getCellEditorValue method at ConfigurationTreeEditor.java 
     public static void editNodeName(JTree tree)
     {
 	TreePath treePath = tree.getSelectionPath();
