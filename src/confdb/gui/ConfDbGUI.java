@@ -2125,6 +2125,9 @@ public class ConfDbGUI
 	    .addMouseListener
 	    (new ParameterTableMouseListener(frame,
 					     jTreeTableParameters));
+	
+	// Linking jTreeTableParameters to ConfigurationTreeMouseListener Listener!
+	mouseListener.setTreeTable(jTreeTableParameters); // set the TreeTable to stop editing.
     }
     
     

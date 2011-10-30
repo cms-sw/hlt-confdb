@@ -63,6 +63,17 @@ public class TreeTable extends JTable
     //
     // member functions
     //
+    /** Stop editing the current cell manually.
+     * Bug: 75952.
+     * */
+    public void stopEditing() {
+		if (cellEditor != null)
+			if (cellEditor.getCellEditorValue() != null)
+			cellEditor.stopCellEditing();
+			else
+			cellEditor.cancelCellEditing();
+    }
+    
     
     /** set the renderer of the tree */
     public void setTreeCellRenderer(TreeCellRenderer treeCellRenderer)
