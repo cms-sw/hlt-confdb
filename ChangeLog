@@ -1,6 +1,13 @@
-2011-10-20 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+2011-10-31 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-79
+	* Fix Bug 82525: "import" feature resets the size / position of the panels.
+	* Correct a ChangeLog mistake.
+	
+2011-10-30 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-78
 	* Fix bug75952: Add StopEditing functionality to TreeTable Class
+	
+2011-10-20 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* Refresh paths and sequences top nodes in the TreeModel when 
 	  a module name is changed. bug 83721.
 

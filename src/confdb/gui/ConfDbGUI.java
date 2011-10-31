@@ -2908,9 +2908,10 @@ public class ConfDbGUI
 	    jComboBoxEventContent.getModel().setSelectedItem(node.toString());
 	    return;
 	}
-	
-	
-	jSplitPane.setRightComponent(jSplitPaneRight);
+	 
+	// Bug 82525: "import" feature resets the size / position of the panels.
+	// commenting next line jSplitPanel position is avoided.
+	//jSplitPane.setRightComponent(jSplitPaneRight);
 	
 	while (node instanceof Parameter) {
 	    Parameter p = (Parameter)node;
@@ -3888,7 +3889,7 @@ public class ConfDbGUI
     
     /** create the right upper panel */
     private void createRightUpperPanel()
-    {
+    {    	
         JLabel jLabelPackage = new javax.swing.JLabel();
         JLabel jLabelCVS     = new javax.swing.JLabel();
 
