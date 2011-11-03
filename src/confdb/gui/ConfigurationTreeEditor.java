@@ -137,6 +137,9 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor
 	    Stream stream = (Stream)toBeEdited;
 	    stream.setName(name);
 	    treeModel.nodeChanged(stream);
+	    treeModel.nodeChanged(stream.outputModule());
+	    treeModel.nodeStructureChanged(treeModel.streamsNode());
+	    treeModel.nodeStructureChanged(treeModel.outputsNode());
 	}
 	else if (toBeEdited instanceof PrimaryDataset) {
 	    PrimaryDataset dataset = (PrimaryDataset)toBeEdited;
