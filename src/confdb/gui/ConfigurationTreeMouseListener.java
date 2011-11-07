@@ -148,21 +148,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
     /** MouseAdapter: mouseReleased() */
     public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
     
-    /** MouseAdapter: mouseClicked() */
-	public void mouseClicked(MouseEvent e) {
-
-		if (!tree.isEditable()) return;
-		if (TreeTableParameters == null) {
-			System.out.println("[ConfiguraitonTreeMouseListener] mouseClicked! TreeTableParameters == Null");
-			return;
-		}
-		
-		TreeTableParameters.stopEditing(); // Stop Edition in right upper panel
-	}
-	
-	/** Set TreeTable Component from the right panel to stop editing if needed
-     * Bug: 75952
-     * FIX: Stop editing cell component when clicking the tree. */
 	public void setTreeTable(TreeTable tt) {
 		TreeTableParameters = tt;
 	}
@@ -170,7 +155,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
     
     /** check if this event should really trigger the menu to be displayed */
     private void maybeShowPopup(MouseEvent e) {
-    	
+	/* Bug: 75952
+     * FIX: Stop editing cell component when clicking the tree. */    	
+	if (TreeTableParameters != null) {
+		TreeTableParameters.stopEditing(); // Stop Edition in right upper panel
+	}
     	
 	if (!e.isPopupTrigger()) return;
 	

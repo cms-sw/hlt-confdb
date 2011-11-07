@@ -68,10 +68,8 @@ public class TreeTable extends JTable
      * */
     public void stopEditing() {
 		if (cellEditor != null)
-			if (cellEditor.getCellEditorValue() != null)
-			cellEditor.stopCellEditing();
-			else
-			cellEditor.cancelCellEditing();
+			cellEditor.stopCellEditing();	// Stop editing saving the value. 
+			//cellEditor.cancelCellEditing(); // cancel editing but does not save the value.
     }
     
     
