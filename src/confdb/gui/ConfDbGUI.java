@@ -173,6 +173,8 @@ public class ConfDbGUI
     private JScrollPane   TAB_unresolvedInputTags   = new JScrollPane();
     private JEditorPane   jEditorContainedInPaths	= new JEditorPane();
     private JScrollPane	  TAB_containedInPaths		= new JScrollPane();
+    private JEditorPane   jEditorContainedInSequence= new JEditorPane();
+    private JScrollPane	  TAB_containedInSequence	= new JScrollPane();
     
     
     
@@ -2174,6 +2176,33 @@ public class ConfDbGUI
 	}
 	
 	
+	/**
+	 * return a html string format with a list of Sequences containing the
+	 * current parameter container.
+	 * Used to fill ContainedInSequence tab. (bug 88620).*/
+	public String getAssignedSequences() {
+	    String text = "";
+	    ModuleInstance moduleInstance	= null;
+	    Sequence	sequence	= null;
+	    if (currentParameterContainer instanceof ModuleInstance) {
+		    moduleInstance = (ModuleInstance)currentParameterContainer;
+		    
+		    Iterator<Sequence> SeqIt = currentConfig.sequenceIterator();
+		    while(SeqIt.hasNext()) {
+		    	Sequence Seq = SeqIt.next();
+		    	Reference ref = Seq.entry(moduleInstance.name());
+		    	if(ref != null) {
+			    	text+= "<a href='"+Seq.name()+"'>" + Seq.name() + "</a> <br>";
+		    	}
+		    }
+	    } else if (currentParameterContainer instanceof Sequence) {
+	    	sequence = (Sequence) currentParameterContainer;
+	    	
+	    } else return "";
+	    return text;
+	}
+	
+	
 	/** Prepare a summary of unassigned input tags using the original 	*/
 	/** python code. This uses links to expand the tree and show the	*/
 	/** selected Module													*/
@@ -2509,7 +2538,11 @@ public class ConfDbGUI
 	}
 	else if (currentParameterContainer instanceof ModuleInstance) {
 		jTabbedPaneRightLower.setEnabledAt(3, true); // sets second tab enabled
+		jTabbedPaneRightLower.setEnabledAt(4, true); // sets containedInSequence tab enabled
+		
 		jEditorContainedInPaths.setText(this.getAssignedPaths());
+		jEditorContainedInSequence.setText(this.getAssignedSequences());
+		
 		
 	    ModuleInstance module = (ModuleInstance)currentParameterContainer;
 	    try {
@@ -2568,13 +2601,15 @@ public class ConfDbGUI
     /** block the assigned datasets and unassigned input tag Tabs in	*/
     /** the right lower panel when a path is not selected anymore. 		*/
     private void restoreRightLowerTabs(){
-        jTabbedPaneRightLower.setEnabledAt(1, false); // sets the second tab as Disabled
-        jTabbedPaneRightLower.setEnabledAt(2, false); // sets the third  tab as Disabled
-        jTabbedPaneRightLower.setEnabledAt(3, false); // sets the third  tab as Disabled
+        jTabbedPaneRightLower.setEnabledAt(1, false); // sets tab as Disabled
+        jTabbedPaneRightLower.setEnabledAt(2, false); // sets tab as Disabled
+        jTabbedPaneRightLower.setEnabledAt(3, false); // sets tab as Disabled
+        jTabbedPaneRightLower.setEnabledAt(4, false); // sets containedInSequences disabled.
         jTabbedPaneRightLower.setSelectedIndex(0);
 	    jEditorPanePathsToDataset.setText("");
 	    jEditorPaneUnresolvedITags.setText("");
 	    jEditorContainedInPaths.setText("");
+	    jEditorContainedInSequence.setText("");
 	    
 	    // Hyperlink listener to catch the path request.
 	    jEditorContainedInPaths.addHyperlinkListener(new HyperlinkListener() {
@@ -2593,6 +2628,16 @@ public class ConfDbGUI
 	            if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 	            	String modulename = event.getDescription();
 	            	ConfigurationTreeActions.scrollToModuleByName(modulename, jTreeCurrentConfig);
+	            }
+	          }
+			}
+		);
+	    // Hyperlink listener to catch the sequence request.
+	    jEditorContainedInSequence.addHyperlinkListener(new HyperlinkListener() {
+	        public void hyperlinkUpdate(HyperlinkEvent event) {
+	            if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+	            	String sequenceName = event.getDescription();
+	            	ConfigurationTreeActions.scrollToSequenceByName(sequenceName, jTreeCurrentConfig);
 	            }
 	          }
 			}
@@ -4029,9 +4074,16 @@ public class ConfDbGUI
         TAB_containedInPaths.setViewportView(jEditorContainedInPaths);
         jTabbedPaneRightLower.addTab("Contained in Paths", TAB_containedInPaths);
         
+        jEditorContainedInSequence.setEditable(false);
+        jEditorContainedInSequence.setContentType("text/html");
+        TAB_containedInSequence.setViewportView(jEditorContainedInSequence);
+        jTabbedPaneRightLower.addTab("Contained in Sequences", TAB_containedInSequence);
+        
+        
         jTabbedPaneRightLower.setEnabledAt(1, false); // sets the second tab as Disabled
         jTabbedPaneRightLower.setEnabledAt(2, false); // sets the third  tab as Disabled
-        jTabbedPaneRightLower.setEnabledAt(3, false); // sets the fourth tab as Disabled
+        jTabbedPaneRightLower.setEnabledAt(3, false); // sets containedInPath tab as Disabled
+        jTabbedPaneRightLower.setEnabledAt(4, false); // sets containedInSequence tab as Disabled
         
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelRightLower);
         jPanelRightLower.setLayout(layout);

@@ -2512,6 +2512,19 @@ public class ConfigurationTreeActions
     	tree.expandPath(Path);
     	tree.scrollPathToVisible(Path);
     }
+
+    /**
+     * scroll to the Path given by the sequence name and expand the tree.
+     * */
+    public static void scrollToSequenceByName(String sequenceName, JTree tree) {
+    	ConfigurationTreeModel model   =(ConfigurationTreeModel)tree.getModel();
+    	Configuration          config  =(Configuration)model.getRoot();
+    	
+    	TreePath Path = new TreePath(model.getPathToRoot(config.sequence(sequenceName)));
+    	tree.setSelectionPath(Path);
+    	tree.expandPath(Path);
+    	tree.scrollPathToVisible(Path);
+    }
     
     /**
      * scroll to the module given by the module name and expand the tree.
