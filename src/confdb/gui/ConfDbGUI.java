@@ -1549,49 +1549,74 @@ public class ConfDbGUI
 	/** SwingWorker: finished */
 	protected void finished()
 	{
+		boolean failed = false;
 	    try {
 		long elapsedTime = System.currentTimeMillis() - startTime;
 		jProgressBar.setString(jProgressBar.getString() +
 				       get() + " (" + elapsedTime + " ms)");
 	    }
 	    catch (ExecutionException e) {
-		String errMsg =
-		    "Open Configuration FAILED:\n"+e.getCause().getMessage();
-		JOptionPane.showMessageDialog(frame,errMsg,
-					      "Open Configuration failed",
-					      JOptionPane.ERROR_MESSAGE,null);
+	    	//String errMsg = "Open Configuration FAILED:\n"+e.getCause().getMessage();
+	    	failed = true;
+	    	System.out.println("ERROR: [confdb.gui.ConfDbGUI.OpenConfigurationThread] " + e.getCause());
+
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+		//e.printStackTrace();
+		
+		// Add the configuration details:
+		String StackTrace = "ConfDb Version: " 	+ AboutDialog.getConfDbVersion() 	+ "\n";
+		StackTrace+= "Release Tag: " 			+ configInfo.releaseTag() 			+ "\n";
+		StackTrace+= "Configuration: " 			+ configInfo.fullName() 			+ "\n";
+		StackTrace+= "-----------------------------------------------------------------\n";
+		// get the Stack Trace in one String.
+		StackTraceElement st[] = e.getStackTrace();
+		for(int i = 0; i < st.length; i++) StackTrace+=st[i] + "\n";
+		
+    	String errMsg = "Open Configuration FAILED!\n"	+
+		"This configuration might be broken, working with it " + 
+		"may cause serious problems in the future.\n" + 
+		"It is highly recomendable to save a copy of it in a different area.\n" + 
+    	"If you have experienced any problem and you need to recover " + 
+    	"a broken configuration, please send us an email to:\n" + AboutDialog.getContactPerson();
+		
+    	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, StackTrace);
+		cd.createAndShowGUI();
+		
+		System.out.println("ERROR: [confdb.gui.ConfDbGUI.OpenConfigurationThread] ");
 		e.printStackTrace();
-	    } 
-	    catch (Exception e) {
-		e.printStackTrace();
-		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
+		
+	    } catch (Exception e) {
+			e.printStackTrace();
+			jProgressBar.setString(jProgressBar.getString()+"FAILED!");
 	    }
+	    
 	    jProgressBar.setIndeterminate(false);
 
-	    if (currentConfig.isLocked()) {
-		jTreeCurrentConfig.setEditable(false);
-		jTreeTableParameters.getTree().setEditable(false);
-		String msg =
-		    "The configuration '"+currentConfig.toString()+
-		    " is locked by user '"+currentConfig.lockedByUser()+"'!\n"+
-		    "You can't manipulate it until it is released.";
-		JOptionPane.showMessageDialog(frame,msg,"READ ONLY!",
-					      JOptionPane.WARNING_MESSAGE,
-					      null);
+	    if(!failed) {
+		    if (currentConfig.isLocked()) {
+				jTreeCurrentConfig.setEditable(false);
+				jTreeTableParameters.getTree().setEditable(false);
+				String msg =
+				    "The configuration '"+currentConfig.toString()+
+				    " is locked by user '"+currentConfig.lockedByUser()+"'!\n"+
+				    "You can't manipulate it until it is released.";
+				JOptionPane.showMessageDialog(frame,msg,"READ ONLY!",
+							      JOptionPane.WARNING_MESSAGE,
+							      null);
+			 } else {
+				jTreeCurrentConfig.setEditable(true);
+				jTreeTableParameters.getTree().setEditable(true);
+				try {
+				    database.lockConfiguration(currentConfig,userName);
+				}
+				catch (DatabaseException e) {
+				    JOptionPane.showMessageDialog(frame,e.getMessage(),
+								  "Failed to lock configuration",
+								  JOptionPane.ERROR_MESSAGE,null);
+				}
+			 }	    	
 	    }
-	    else {
-		jTreeCurrentConfig.setEditable(true);
-		jTreeTableParameters.getTree().setEditable(true);
-		try {
-		    database.lockConfiguration(currentConfig,userName);
-		}
-		catch (DatabaseException e) {
-		    JOptionPane.showMessageDialog(frame,e.getMessage(),
-						  "Failed to lock configuration",
-						  JOptionPane.ERROR_MESSAGE,null);
-		}
-	    }
+
 	}
     }
 

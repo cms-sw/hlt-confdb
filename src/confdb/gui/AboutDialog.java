@@ -21,10 +21,11 @@ public class AboutDialog extends JDialog
     //
 
     /** GUI components */
-    JEditorPane jEditorPaneAbout      = new JEditorPane();
-    JButton     jButtonOk             = new JButton();
-    JTextField  jTextFieldApplication = new JTextField();
-    JTextField  jTextFieldVersion     = new JTextField();
+    JEditorPane jEditorPaneAbout      		= new JEditorPane();
+    JButton     jButtonOk             		= new JButton();
+    JTextField  jTextFieldApplication 		= new JTextField();
+    static JTextField  jTextFieldVersion	= new JTextField("V01-05-83"); 			// ConfDb Version.
+    static String		contactEmail		= "raul.jimenez.estupinan@cern.ch";		// Contact person.
     
     
     //
@@ -53,25 +54,44 @@ public class AboutDialog extends JDialog
 	    "Jonathan Hollar, Vasundhara Chetluru " +
 	    "and Martin Gruenewald. " +
 	    "<p>For feedback please contact me at " +
-	    "<b>raul.jimenez.estupinan@cern.ch</b>.</p>" +
+	    "<b>"+ contactEmail +"</b>.</p>" +
 	    
 	    
 	    "<p>Find documentation on the web under " +
 	    "<b>https://twiki.cern.ch/twiki/bin/view/CMS/EvfConfDBGUI</b>.</p>";
 
 	jTextFieldApplication.setText("ConfDbGUI");
-	jTextFieldVersion.setText("V01-05-82");
+	// jTextFieldVersion.setText("V01-05-82"); // Change in definition.
 
 	jEditorPaneAbout.setContentType("text/html");
 	jEditorPaneAbout.setText(txt);
 	
     }
+
     
     
     //
     // member functions
     //
 
+    /**
+     * getConfDbVersion
+     * -------------------------------
+     * return ConfDb current version String.
+     * Allow get confdb version in case of errors.*/
+    static public String getConfDbVersion() {
+    	return jTextFieldVersion.getText();
+    }
+    
+    /**
+     * getContactPerson
+     * -------------------------------
+     * return ConfDb current contact person.
+     * Allow get confdb contact person in case of errors.*/
+    static public String getContactPerson() {
+    	return contactEmail;
+    }
+    
     /** close the dialog window if 'OK' was pressed */
     public void jButtonOkActionPerformed(ActionEvent e) { setVisible(false); }
     
