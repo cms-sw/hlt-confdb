@@ -2223,6 +2223,16 @@ public class ConfDbGUI
 	    } else if (currentParameterContainer instanceof Sequence) {
 	    	sequence = (Sequence) currentParameterContainer;
 	    	
+		    Iterator<Sequence> SeqIt = currentConfig.sequenceIterator();
+		    while(SeqIt.hasNext()) {
+		    	Sequence Seq = SeqIt.next();
+		    	Reference ref = Seq.entry(sequence.name());
+		    	if(ref != null) {
+			    	text+= "<a href='"+Seq.name()+"'>" + Seq.name() + "</a> <br>";
+		    	}
+		    }
+	    	
+	    	
 	    } else return "";
 	    return text;
 	}
@@ -2609,6 +2619,9 @@ public class ConfDbGUI
         
 		jTabbedPaneRightLower.setEnabledAt(3, true); // sets second tab enabled
 		jEditorContainedInPaths.setText(this.getAssignedPaths());
+		
+		jTabbedPaneRightLower.setEnabledAt(4, true); // sets containedInSequence tab enabled
+		jEditorContainedInSequence.setText(this.getAssignedSequences());
 	}
 	else {
 	    clearSnippet();
