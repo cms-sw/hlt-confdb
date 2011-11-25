@@ -320,6 +320,11 @@ public class ConfDB
     private  PreparedStatement psInsertServiceTemplateRelease     = null;
     private  PreparedStatement psInsertModuleTemplateRelease     = null;
     
+    // New path fields extension:
+    private  PreparedStatement psCheckPathFieldsExistence			= null;
+    private  PreparedStatement psSelectPathExtraFields				= null;
+    private	 PreparedStatement psInsertPathDescription				= null;
+    
 
     private ArrayList<PreparedStatement> preparedStatements =
 	new ArrayList<PreparedStatement>();
@@ -936,6 +941,8 @@ public class ConfDB
 	SoftwareRelease release = config.release();
 
 	try {
+		boolean extraFields = checkExtraPathFields();
+		
 	    csLoadConfiguration.setInt(1,configId);
 	    csLoadConfiguration.executeUpdate();
 
@@ -1043,8 +1050,25 @@ public class ConfDB
 		    idToModules.put(id,module);
 		}
 		else if (type.equals("Path")) {
-		    int  insertIndex = config.pathCount();
+
+			int  insertIndex = config.pathCount();
 		    Path path = config.insertPath(insertIndex,instanceName);
+		    
+		    if(extraFields) {
+				String  pathDesc = null;
+				String	pathCont = null;
+				psSelectPathExtraFields.setInt(1, id);
+				ResultSet pathDescription = psSelectPathExtraFields.executeQuery();
+
+			    while (pathDescription.next()) {
+			    	pathDesc    = pathDescription.getString(2);
+			    	pathCont	= pathDescription.getString(3);
+			    }
+			    path.setDescription(pathDesc);
+			    path.setContacts(pathCont);		   	
+		    }
+
+		    
 		    path.setAsEndPath(flag);
 		    path.setDatabaseId(id);
 		    idToPaths.put(id,path);
@@ -1329,6 +1353,32 @@ public class ConfDB
 	    dbConnector.release(rsPathStreamDataset);
 	}
     }
+    
+    /** check if extra fields for paths are available in current db. */
+    public boolean checkExtraPathFields() throws DatabaseException {
+    	ResultSet rs = null;
+    	int extraFields = 0;
+    	try {
+    		rs = psCheckPathFieldsExistence.executeQuery();
+    	
+    		while(rs.next()) {
+    			extraFields = rs.getInt(1);	
+    		}
+    		
+    	}
+    	catch (SQLException e) {
+    	    String errMsg =
+    		"ConfDB::checkExtraPathFields failed: "+
+    		e.getMessage();
+    	    throw new DatabaseException(errMsg,e);
+    	} finally {
+    		dbConnector.release(rs);
+    	}
+    	
+		if(extraFields == 1) return true;
+		else return false;
+    }
+    
     
 
     /** insert a new directory */
@@ -1861,14 +1911,29 @@ public class ConfDB
 		String  pathName       = path.name();
 		int     pathId        = path.databaseId();
 		boolean pathIsEndPath = path.isSetAsEndPath();
+		String  description		= path.getDescription();
+		String contacts			= path.getContacts();
 		
 		if (pathId<=0) {
-		    psInsertPath.setString(1,pathName);
-		    psInsertPath.setBoolean(2,pathIsEndPath);
-		    psInsertPath.executeUpdate();
+			boolean extraFields = checkExtraPathFields();
 		    
-		    rs = psInsertPath.getGeneratedKeys();
-		    rs.next();
+			if(extraFields) {
+			     // inserting extra fields in schema:
+			    psInsertPathDescription.setString(1,pathName);
+			    psInsertPathDescription.setBoolean(2,pathIsEndPath);
+			    psInsertPathDescription.setString(3, description);
+			    psInsertPathDescription.setString(4, contacts);
+			    psInsertPathDescription.executeUpdate();
+			    rs = psInsertPathDescription.getGeneratedKeys();				
+			} else {
+				// no extra fields in schema:
+			    psInsertPath.setString(1,pathName);
+			    psInsertPath.setBoolean(2,pathIsEndPath);
+			    psInsertPath.executeUpdate();
+			    rs = psInsertPath.getGeneratedKeys();
+			}
+
+			rs.next();
 		    
 		    pathId = rs.getInt(1);
 		    result.put(pathName,pathId);
@@ -5293,6 +5358,31 @@ public class ConfDB
 		("INSERT INTO ModuleTemplates "+
 		 " (superId, typeId, name, CVSTAG,packageId) VALUES (?,?,?,?,?)");
 	    preparedStatements.add(psInsertModuleTemplateRelease);
+	    
+	    // SQL statements for new path fields:
+	    psCheckPathFieldsExistence = 
+			dbConnector.getConnection().prepareStatement
+			("Select 1 from dual where exists (			" + 
+			  "select 1 from all_tab_columns			" +
+			  "where table_name = 'PATHS'				" + 
+			  "and column_name = 'DESCRIPTION')			");
+		    preparedStatements.add(psCheckPathFieldsExistence);
+		    
+		psSelectPathExtraFields = 
+			dbConnector.getConnection().prepareStatement(
+			"SELECT p.pathid		,	" +
+			"		p.description	, 	" +
+			"		p.contact			" +
+			"FROM	Paths	p			" +
+			"WHERE	p.pathid = ?		");
+		    preparedStatements.add(psSelectPathExtraFields);		  
+		    
+		psInsertPathDescription =
+			dbConnector.getConnection().prepareStatement
+			("INSERT INTO Paths (name,isEndPath, description, contact) " +
+			 "VALUES(?, ?, ?, ?)",keyColumn);
+		    preparedStatements.add(psInsertPathDescription);
+		    
 	    
 	}
 	catch (SQLException e) {

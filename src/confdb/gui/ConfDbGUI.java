@@ -14,6 +14,8 @@ import sun.security.pkcs11.Secmod.Module;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -176,6 +178,16 @@ public class ConfDbGUI
     private JEditorPane   jEditorContainedInSequence= new JEditorPane();
     private JScrollPane	  TAB_containedInSequence	= new JScrollPane();
     
+    // Path fields in right upper panel
+    private JPanel        jPanelPathFields          = new JPanel();
+    private JEditorPane   jEditorPathDescription    = new JEditorPane();
+    private JEditorPane   jEditorPathContacts	    = new JEditorPane();
+    private JScrollPane	  jScrollPanePathContacts	= new JScrollPane();
+    private JScrollPane	  jScrollPanePathDescription= new JScrollPane();
+    private JButton		  jButtonSavePathFields		= new JButton("Save");
+    private JButton		  jButtonCancelPathFields	= new JButton("Cancel");
+    private JTextField    jTextFieldPathName		= new JTextField();
+
     
     
     static SimpleAttributeSet ITALIC_GRAY = new SimpleAttributeSet();
@@ -321,6 +333,29 @@ public class ConfDbGUI
 		    jButtonImportCancelSearchActionPerformed(e);
 		}
 	    });
+	
+	/** Register ActionListener to save extra path fields. */
+	jButtonSavePathFields.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonSaveDescriptionPaneActionPerformed(e);
+		    // It will be automatically enabled when Text is modified.
+		    jButtonSavePathFields.setEnabled(false);
+		    jButtonCancelPathFields.setEnabled(false); 
+		}
+	    });
+	/** Register ActionListener to cancel/undo changes in extra path fields. */
+	jButtonCancelPathFields.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    // It will be automatically enabled when Text is modified.
+		    jButtonSavePathFields.setEnabled(false); 
+		    jButtonCancelPathFields.setEnabled(false);
+		    
+		    // Reload values
+		    displayPathFields();
+		}
+	    });
+	
+	
 	jComboBoxPaths.addItemListener(new ItemListener() {
 		public void itemStateChanged(ItemEvent e) {
 		    jComboBoxPathsItemStateChanged(e);
@@ -2509,6 +2544,51 @@ public class ConfDbGUI
 	 .getBorder()).setTitle("Parameters");
     }
     
+    /** clear the paths fields panel - right upper area. */
+    private void clearPathFields() {
+    	// Restore the original jPanelPlugin panel.
+    	jSplitPaneRightUpper.setTopComponent(jPanelPlugin);
+   }
+    
+    /** displays the paths fields panel - right upper area. */
+    private void displayPathFields() {
+    	// There only can be one Component. jPanelPathFields or jPanelPlugin.
+    	if(jSplitPaneRightUpper.getComponents()[0].equals(jPanelPathFields)) return;
+
+    	boolean extrafields = false;
+		try {
+			extrafields = database.checkExtraPathFields();
+		} catch (DatabaseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	if(!extrafields) return;
+    	
+    	if(currentParameterContainer instanceof Path) {
+    		Path container = (Path)currentParameterContainer;
+    	    jSplitPaneRightUpper.setDividerLocation(200);	// Set the vertical size of the panel.
+    	    jSplitPaneRightUpper.setDividerSize(8);
+        	jSplitPaneRightUpper.setTopComponent(jPanelPathFields);
+        	
+        	jEditorPathDescription.setText(container.getDescription());
+        	jEditorPathContacts.setText(container.getContacts());
+        	jTextFieldPathName.setText(container.name());
+        	
+        	// Reset Save button when a new path is selected.
+            jButtonSavePathFields.setEnabled(false);
+            jButtonCancelPathFields.setEnabled(false);
+        	
+    	} else {
+        	jEditorPathDescription.setText(new String());
+        	jEditorPathContacts.setText(new String());
+
+    	}
+
+   }
+    
+    
+    
+    
     /** display the configuration snippet for currently selected component */
     private void displaySnippet()
     {
@@ -2751,6 +2831,23 @@ public class ConfDbGUI
 	    jTreeImportConfig.setSelectionPath(tp);
 	}
     }
+    
+    /** record new values for extra path fields. */
+    private void jButtonSaveDescriptionPaneActionPerformed(ActionEvent e)
+    {
+    	if (currentParameterContainer instanceof Path) {
+		    Path p = (Path)currentParameterContainer;
+		    p.setDescription(jEditorPathDescription.getText());
+		    p.setContacts(jEditorPathContacts.getText());
+		    
+		    p.setHasChanged();
+		    treeModelCurrentConfig.nodeChanged(p);
+		    treeModelCurrentConfig.updateLevel1Nodes();
+		    currentConfig.setHasChanged(true);
+			//jTreeCurrentConfig.updateUI();
+		}
+    }
+    
     private void jComboBoxPathsItemStateChanged(ItemEvent e)
     {
 	if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -2791,9 +2888,15 @@ public class ConfDbGUI
 	    jTreeCurrentConfig.scrollPathToVisible(tp);
 	}
     }
+    
+    /** This event control the SplitPanel position in right
+     * upper panel. */
     private void jSplitPaneRightComponentMoved(ComponentEvent e)
     {
-	if (!(currentParameterContainer instanceof Instance)) {
+    	// If the current selected item is not an Instance or a path
+    	// then hide the upper panel.
+	if ((!(currentParameterContainer instanceof Instance))&&
+		(!(currentParameterContainer instanceof Path))) {
 	    jSplitPaneRightUpper.setDividerLocation(0);
 	    jSplitPaneRightUpper.setDividerSize(1);
 	}
@@ -3009,20 +3112,27 @@ public class ConfDbGUI
 	    currentParameterContainer = node;
 	    displayParameters();
 	    displaySnippet();
+	    clearPathFields();
 	}
 	else if (node==null||node==treeModelCurrentConfig.psetsNode()) {
 	    currentParameterContainer = currentConfig.psets();
 	    displayParameters();
 	    displaySnippet();
+	    clearPathFields();
 	}
 	else if (node instanceof ReferenceContainer) {
 	    clearParameters();
 	    currentParameterContainer = node;
 	    displaySnippet();
+	    if(currentParameterContainer instanceof Path) {
+	    	displayPathFields();
+	    }
+	    
 	}
 	else {
 	    clearParameters();
 	    clearSnippet();
+	    //clearPathFields();
 	}
     }
 
@@ -4069,6 +4179,111 @@ public class ConfDbGUI
 					    );
         jSplitPaneRightUpper.setTopComponent(jPanelPlugin);
 	
+        //////////////////////////////////////////
+        // path extra fields section - bug 75958 
+        //
+        JLabel jLabelPathDescription	= new javax.swing.JLabel();
+        JLabel jLabelPathContacts		= new javax.swing.JLabel();
+        JLabel jLabelPathName 			= new javax.swing.JLabel();
+
+        jLabelPathDescription.setFont(new java.awt.Font("Dialog", 0, 12));
+        jLabelPathDescription.setText("Description:");
+        
+        jLabelPathContacts.setFont(new java.awt.Font("Dialog", 0, 12));
+        jLabelPathContacts.setText("Contacts:");
+        
+        jLabelPathName.setFont(new java.awt.Font("Dialog", 0, 12));
+        jLabelPathName.setText("Path:");
+        
+        jTextFieldPathName.setEditable(false);
+        
+        jScrollPanePathContacts.setViewportView(jEditorPathContacts);
+        jScrollPanePathDescription.setViewportView(jEditorPathDescription);
+        
+        // Set Document Listener:
+        jEditorPathContacts.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void removeUpdate(DocumentEvent e) { somethingHasChanged(); }
+			
+			@Override
+			public void insertUpdate(DocumentEvent e) { somethingHasChanged(); }
+			
+			@Override
+			public void changedUpdate(DocumentEvent e) { somethingHasChanged(); }
+			
+			public void somethingHasChanged() {
+					jButtonSavePathFields.setEnabled(true);
+					jButtonCancelPathFields.setEnabled(true);
+					// add Autosave ?
+			}
+		});
+        // Set Document Listener:
+        jEditorPathDescription.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void removeUpdate(DocumentEvent e) { somethingHasChanged(); }
+			
+			@Override
+			public void insertUpdate(DocumentEvent e) { somethingHasChanged(); }
+			
+			@Override
+			public void changedUpdate(DocumentEvent e) { somethingHasChanged(); }
+			
+			public void somethingHasChanged() {
+					jButtonSavePathFields.setEnabled(true);
+					jButtonCancelPathFields.setEnabled(true);
+					// add Autosave ?
+			}
+		});
+        
+        jButtonSavePathFields.setEnabled(false);
+        jButtonCancelPathFields.setEnabled(false);
+        
+        org.jdesktop.layout.GroupLayout jPanelPathLayout = new org.jdesktop.layout.GroupLayout(jPanelPathFields);
+        jPanelPathFields.setLayout(jPanelPathLayout);
+        // Using TRAILING alignment the button will be aligned to the right.
+        jPanelPathLayout.setHorizontalGroup(jPanelPathLayout.createSequentialGroup()
+        .addContainerGap()
+        .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+        .add(jLabelPathName)
+        .add(jLabelPathDescription)
+        .add(jLabelPathContacts)
+        )
+        .addContainerGap()
+        .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+        .add(jTextFieldPathName, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+        .add(jScrollPanePathDescription, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+        .add(jScrollPanePathContacts, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+        .add(jPanelPathLayout.createSequentialGroup()
+                .add(jButtonCancelPathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 100, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .add(jButtonSavePathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 100, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+        		)
+        )
+        );
+        
+        jPanelPathLayout.setVerticalGroup(jPanelPathLayout.createSequentialGroup()
+        .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+        .add(jLabelPathName)
+        .add(jTextFieldPathName, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 18, Short.MAX_VALUE)
+        )
+        .addContainerGap()
+        .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+        .add(jLabelPathDescription)
+        .add(jScrollPanePathDescription, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
+        )
+        .addContainerGap()
+        .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+        .add(jLabelPathContacts)
+        .add(jScrollPanePathContacts, 80, 80, 80)
+        )
+        .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+        		.add(jButtonCancelPathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+        		.add(jButtonSavePathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+        		)
+        );
+        //////////////////////////////////////////
+        
+        
+        // Parameters Section:
 	jScrollPaneParameters.setBackground(new java.awt.Color(255, 255, 255));
         jScrollPaneParameters.setBorder(javax.swing.BorderFactory.createTitledBorder("Parameters"));
 	

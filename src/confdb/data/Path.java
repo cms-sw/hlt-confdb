@@ -25,6 +25,11 @@ public class Path extends ReferenceContainer
     /** flag indicating that the path was set to be an endpath */
     private boolean isSetAsEndPath = false;
     
+    /** field indicating a short description of a particular path */
+    private String description;
+    /** field indicating emails addresses of the people responsible of a particular path */
+    private String contacts;
+    
 
     //
     // construction
@@ -67,6 +72,19 @@ public class Path extends ReferenceContainer
       }
     */
 
+    public String getDescription() {
+    	return this.description;
+    }
+    public String getContacts() {
+    	return this.contacts;
+    }
+    public void setDescription(String Desc) {
+    	this.description = Desc;
+    }
+    public void setContacts(String Cont) {
+    	this.contacts = Cont;
+    }
+    
     /** chek if this path contains an output module */
     public boolean isEndPath()
     {
