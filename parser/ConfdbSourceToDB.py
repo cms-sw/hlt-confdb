@@ -692,7 +692,7 @@ class ConfdbSourceToDB:
                 #		if((tagline.lstrip().rstrip() == basetagline.lstrip().rstrip()) and (packagedir.find("Alignment/") == -1)):
                 #                if(tagline.lstrip().rstrip() == basetagline.lstrip().rstrip() and packagedir.find("HLTrigger") == -1):
                 #                if(modulename.find("HcalRecAlgoESProducer") != -1 or modulename.find("EcalSeverityLevelESProducer") != -1 or modulename.find("MuonIdProducer") != -1 or modulename.find("HcalHitReconstructor") != -1 or modulename.find("HLTLogMonitorFilter") != -1): 
-                if((tagline.lstrip().rstrip() == basetagline.lstrip().rstrip()) and (packagedir.find("Alignment/") == -1)):
+                if(((tagline.lstrip().rstrip() == basetagline.lstrip().rstrip()) and (packagedir.find("Alignment/") == -1)) or (modulename.find("HLTLogMonitorFilter") != -1) or (modulename.find("HcalRecAlgoESProducer") != -1)):
 		    if(self.verbose > 0):
 			print "Base release and test release tags are the same -  will reassociate."
 		    return
@@ -810,7 +810,8 @@ class ConfdbSourceToDB:
 
 	    if(componenttype == 1):
                 if(modulebaseclass == "PFTauDiscriminationProducerBase" or
-                   modulebaseclass == "CaloTauDiscriminationProducerBase"):
+                   modulebaseclass == "CaloTauDiscriminationProducerBase" or
+                   modulebaseclass == "SiStripExcludedFEDListProducer"):
                     modulebaseclass = "EDProducer"
 		
 		# Make sure we recognize the base class of this module
