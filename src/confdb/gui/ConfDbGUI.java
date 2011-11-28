@@ -2566,7 +2566,7 @@ public class ConfDbGUI
     	
     	if(currentParameterContainer instanceof Path) {
     		Path container = (Path)currentParameterContainer;
-    	    jSplitPaneRightUpper.setDividerLocation(200);	// Set the vertical size of the panel.
+    	    jSplitPaneRightUpper.setDividerLocation(250);	// Set the vertical size of the panel.
     	    jSplitPaneRightUpper.setDividerSize(8);
         	jSplitPaneRightUpper.setTopComponent(jPanelPathFields);
         	
@@ -4083,6 +4083,7 @@ public class ConfDbGUI
     /** create the right upper panel */
     private void createRightUpperPanel()
     {    	
+    	// module's section:
         JLabel jLabelPackage = new javax.swing.JLabel();
         JLabel jLabelCVS     = new javax.swing.JLabel();
 
@@ -4195,7 +4196,11 @@ public class ConfDbGUI
         jLabelPathName.setFont(new java.awt.Font("Dialog", 0, 12));
         jLabelPathName.setText("Path:");
         
+        jTextFieldPathName.setBackground(new java.awt.Color(250, 250, 250));
         jTextFieldPathName.setEditable(false);
+        jTextFieldPathName.setFont(new java.awt.Font("Dialog", 0, 10));
+        jTextFieldPathName.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+        
         
         jScrollPanePathContacts.setViewportView(jEditorPathContacts);
         jScrollPanePathDescription.setViewportView(jEditorPathDescription);
@@ -4237,25 +4242,28 @@ public class ConfDbGUI
         
         jButtonSavePathFields.setEnabled(false);
         jButtonCancelPathFields.setEnabled(false);
+        jPanelPathFields.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         org.jdesktop.layout.GroupLayout jPanelPathLayout = new org.jdesktop.layout.GroupLayout(jPanelPathFields);
         jPanelPathFields.setLayout(jPanelPathLayout);
         // Using TRAILING alignment the button will be aligned to the right.
         jPanelPathLayout.setHorizontalGroup(jPanelPathLayout.createSequentialGroup()
-        .addContainerGap()
+        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
         .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
         .add(jLabelPathName)
         .add(jLabelPathDescription)
         .add(jLabelPathContacts)
         )
-        .addContainerGap()
+        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
         .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
         .add(jTextFieldPathName, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
         .add(jScrollPanePathDescription, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
         .add(jScrollPanePathContacts, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
         .add(jPanelPathLayout.createSequentialGroup()
                 .add(jButtonCancelPathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 100, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jButtonSavePathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 100, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
         		)
         )
         );
@@ -4265,16 +4273,17 @@ public class ConfDbGUI
         .add(jLabelPathName)
         .add(jTextFieldPathName, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 18, Short.MAX_VALUE)
         )
-        .addContainerGap()
+        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
         .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
         .add(jLabelPathDescription)
         .add(jScrollPanePathDescription, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
         )
-        .addContainerGap()
+        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
         .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
         .add(jLabelPathContacts)
         .add(jScrollPanePathContacts, 80, 80, 80)
         )
+        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
         .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
         		.add(jButtonCancelPathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
         		.add(jButtonSavePathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)

@@ -1,3 +1,7 @@
+2011-11-28 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-86
+	* Improve documentation fields panel. (bug 75959).
+	
 2011-11-25 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-85
 	* Change TEST2R host from int2r2-v.cern.ch to int2r1-v.cern.ch
