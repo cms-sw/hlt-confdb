@@ -1,3 +1,9 @@
+2011-11-25 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-85
+	* Change TEST2R host from int2r2-v.cern.ch to int2r1-v.cern.ch
+	* Add first prototype panel for documentation fields. (bug 75959).
+	* Add logic to show documentation fields when available in the db. (bug 75958).
+	
 2011-11-21 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-84
 	* Show list of sequences containing the selected sequence in the
