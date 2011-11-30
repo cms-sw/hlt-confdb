@@ -337,12 +337,10 @@ public class ConfDbGUI
 	/** Register ActionListener to save extra path fields. */
 	jButtonSavePathFields.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
-		    jButtonSaveDescriptionPaneActionPerformed(e);
-		    // It will be automatically enabled when Text is modified.
-		    jButtonSavePathFields.setEnabled(false);
-		    jButtonCancelPathFields.setEnabled(false); 
+			SaveDocumentationFieldsActionPerformed();
 		}
-	    });
+	});
+	
 	/** Register ActionListener to cancel/undo changes in extra path fields. */
 	jButtonCancelPathFields.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
@@ -353,7 +351,7 @@ public class ConfDbGUI
 		    // Reload values
 		    displayPathFields();
 		}
-	    });
+	});
 	
 	
 	jComboBoxPaths.addItemListener(new ItemListener() {
@@ -1610,7 +1608,7 @@ public class ConfDbGUI
     	String errMsg = "Open Configuration FAILED!\n"	+
 		"This configuration might be broken, working with it " + 
 		"may cause serious problems in the future.\n" + 
-		"It is highly recomendable to save a copy of it in a different area.\n" + 
+		"It is highly recommended to save a copy of it in a different area.\n" + 
     	"If you have experienced any problem and you need to recover " + 
     	"a broken configuration, please send us an email to:\n" + AboutDialog.getContactPerson();
 		
@@ -2188,7 +2186,7 @@ public class ConfDbGUI
 	    (new ParameterTableMouseListener(frame,
 					     jTreeTableParameters));
 	
-	// Linking jTreeTableParameters to ConfigurationTreeMouseListener Listener!
+	// Linking jTreeTableParameters to ConfigurationTreeMouseListener Listener - bug 75952
 	mouseListener.setTreeTable(jTreeTableParameters); // set the TreeTable to stop editing.
     }
     
@@ -2833,18 +2831,28 @@ public class ConfDbGUI
     }
     
     /** record new values for extra path fields. */
-    private void jButtonSaveDescriptionPaneActionPerformed(ActionEvent e)
+    private void SaveDocumentationFieldsActionPerformed()
     {
+    	if(currentParameterContainer == null) return;
+    	
     	if (currentParameterContainer instanceof Path) {
 		    Path p = (Path)currentParameterContainer;
-		    p.setDescription(jEditorPathDescription.getText());
-		    p.setContacts(jEditorPathContacts.getText());
 		    
-		    p.setHasChanged();
-		    treeModelCurrentConfig.nodeChanged(p);
-		    treeModelCurrentConfig.updateLevel1Nodes();
-		    currentConfig.setHasChanged(true);
-			//jTreeCurrentConfig.updateUI();
+		    // Only save if something has changed.
+		    if((!jEditorPathDescription.getText().equals(p.getDescription()))||
+		       (!jEditorPathContacts.getText().equals(p.getContacts()))) {
+			    p.setDescription(jEditorPathDescription.getText());
+			    p.setContacts(jEditorPathContacts.getText());
+			    
+			    p.setHasChanged();
+			    treeModelCurrentConfig.nodeChanged(p);
+			    treeModelCurrentConfig.updateLevel1Nodes();
+			    currentConfig.setHasChanged(true);
+			    
+			    // It will be automatically enabled when Text is modified.
+			    jButtonSavePathFields.setEnabled(false);
+			    jButtonCancelPathFields.setEnabled(false);
+		    }
 		}
     }
     
@@ -3016,6 +3024,7 @@ public class ConfDbGUI
     private void jTreeCurrentConfigTreeNodesChanged(TreeModelEvent e)
     {
 	if (currentConfig==null) return;
+	
 	Object node = e.getChildren()[0];
 	if (node instanceof EventContent)
 	    fillEventContents();
@@ -3073,6 +3082,7 @@ public class ConfDbGUI
     
     private void jTreeCurrentConfigValueChanged(TreeSelectionEvent e)
     {
+    	
 	TreePath treePath=e.getNewLeadSelectionPath();
 	if (treePath==null) {
 	    clearParameters();
@@ -3086,6 +3096,9 @@ public class ConfDbGUI
 	    clearSnippet();
 	    return;
 	}
+
+	// AutoSave documentation fields
+	SaveDocumentationFieldsActionPerformed();
 
 
 	if (node instanceof EventContent) {
@@ -4219,7 +4232,6 @@ public class ConfDbGUI
 			public void somethingHasChanged() {
 					jButtonSavePathFields.setEnabled(true);
 					jButtonCancelPathFields.setEnabled(true);
-					// add Autosave ?
 			}
 		});
         // Set Document Listener:
@@ -4236,9 +4248,9 @@ public class ConfDbGUI
 			public void somethingHasChanged() {
 					jButtonSavePathFields.setEnabled(true);
 					jButtonCancelPathFields.setEnabled(true);
-					// add Autosave ?
 			}
 		});
+        
         
         jButtonSavePathFields.setEnabled(false);
         jButtonCancelPathFields.setEnabled(false);
