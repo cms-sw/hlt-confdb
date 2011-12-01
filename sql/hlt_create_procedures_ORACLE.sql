@@ -59,7 +59,7 @@ CREATE GLOBAL TEMPORARY TABLE tmp_real_table
 CREATE GLOBAL TEMPORARY TABLE tmp_string_table
 (
   parameter_id	    NUMBER,
-  parameter_value   VARCHAR2(1024),
+  parameter_value   VARCHAR2(2048),
   sequence_nb       NUMBER
 ) ON COMMIT PRESERVE ROWS;
 
@@ -85,7 +85,7 @@ CREATE GLOBAL TEMPORARY TABLE tmp_sequence_entries
 --
 -- PROCDEDURE load_parameter_value
 --
-CREATE PROCEDURE load_parameter_value(parameter_id   NUMBER,
+CREATE OR REPLACE PROCEDURE load_parameter_value(parameter_id   NUMBER,
                                       parameter_type CHAR)
 AS
   v_bool_value   NUMBER(1);
@@ -94,7 +94,7 @@ AS
   v_int64_value  NUMBER;
   v_int64_hex    NUMBER(1);
   v_double_value FLOAT;
-  v_string_value VARCHAR2(1024);
+  v_string_value VARCHAR2(2048);
   v_sequence_nb  PLS_INTEGER;
 
   /* declare cursors */
@@ -353,7 +353,7 @@ END;
 --
 -- PROCEDURE load_parameters
 --
-CREATE PROCEDURE load_parameters(parent_id IN NUMBER)
+CREATE OR REPLACE PROCEDURE load_parameters(parent_id IN NUMBER)
 AS
   v_parameter_id    NUMBER;
   v_parameter_type  VARCHAR2(64);
@@ -449,7 +449,7 @@ END;
 --
 -- PROCEDURE load_template
 --
-CREATE PROCEDURE load_template(release_id IN NUMBER,
+CREATE OR REPLACE PROCEDURE load_template(release_id IN NUMBER,
                                template_name IN CHAR)
 AS
   v_template_id     NUMBER;
@@ -630,7 +630,7 @@ END;
 --
 -- PROCEDURE load_templates
 --
-CREATE PROCEDURE load_templates(release_id IN NUMBER)
+CREATE OR REPLACE PROCEDURE load_templates(release_id IN NUMBER)
 AS
   v_template_id     NUMBER;
   v_template_type   VARCHAR2(64);
@@ -778,7 +778,7 @@ END;
 --
 -- PROCEDURE load_templates_for_config
 --
-CREATE PROCEDURE load_templates_for_config(config_id IN NUMBER)
+CREATE OR REPLACE PROCEDURE load_templates_for_config(config_id IN NUMBER)
 AS
   v_template_id     NUMBER;
   v_template_type   VARCHAR2(64);
@@ -977,7 +977,7 @@ END;
 --
 -- PROCEDURE load_configuration
 --
-CREATE PROCEDURE load_configuration(config_id IN NUMBER)
+CREATE OR REPLACE PROCEDURE load_configuration(config_id IN NUMBER)
 AS
   v_instance_id     NUMBER;
   v_template_id     NUMBER;
