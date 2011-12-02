@@ -293,6 +293,54 @@ public class PrescaleDialog extends JDialog
 }
 
 
+/**
+ * PrescaleTableService
+ * This is to get a prescale JTable for one particular path. 
+ * NOTE: It will be used in rightUpperPanel. */
+
+class PrescaleTableService {
+    /** model for the prescale table */
+    private PrescaleTableModel 	tableModel	;
+	private Configuration 		config		;
+    private JTable     jTable           = new javax.swing.JTable();
+    
+
+    public PrescaleTableService(Configuration config) {
+    	this.config = config;
+    }
+
+    /** Initialise a customised Prescale table using the given path. 
+     * NOTE: The table will be used to ONLY display prescales and
+     * not to modify them. */
+    public JTable initialise(Path path) {
+    	tableModel = new PrescaleTableModel();
+    	tableModel.initialize(config, path);
+    	jTable.setModel(tableModel);
+    	jTable.setDefaultRenderer(Integer.class,new PrescaleTableCellRenderer());
+    	jTable.setEnabled(false);	// THIS MAKES THE TABLE READ/ONLY.
+    	adjustTableColumnWidths();
+    	return jTable;
+    }
+    
+    /** adjust the width of each table column */
+    private void adjustTableColumnWidths()
+    {
+		int tableWidth = jTable.getPreferredSize().width;
+		int columnCount = jTable.getColumnModel().getColumnCount();
+	        int headerWidth = (int) (tableWidth * 0.4);
+		jTable.getColumnModel().getColumn(0).setPreferredWidth(headerWidth);
+		for (int i = 1; i < columnCount; i++) {
+		    int columnWidth = (tableWidth - headerWidth) / (columnCount-1);
+		    jTable.getColumnModel().getColumn(i).setPreferredWidth(columnWidth);
+		}
+    }
+    
+    /** Get the Row corresponding to the given Path */
+    public JTable getPrescaleTable(Path path) {
+    	return initialise(path);
+    }
+}
+
 //
 //PrescaleTableModel
 //
@@ -317,6 +365,10 @@ class PrescaleTableModel extends AbstractTableModel
     {
 	prescaleTable = new PrescaleTable(config);
 	fireTableDataChanged();
+    }
+    
+    public void initialize(IConfiguration config, Path path) {
+    	prescaleTable = new PrescaleTable(config, path);
     }
 
     /** update the PrescaleService in configuration according to table data */

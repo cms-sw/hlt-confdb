@@ -187,6 +187,8 @@ public class ConfDbGUI
     private JButton		  jButtonSavePathFields		= new JButton("Save");
     private JButton		  jButtonCancelPathFields	= new JButton("Cancel");
     private JTextField    jTextFieldPathName		= new JTextField();
+    private JTable     	  jTablePrescales  			= new javax.swing.JTable(); // Prescales for rightUpperPanel.
+    private JScrollPane	  jScrollPanePrescales		= new JScrollPane();
 
     
     
@@ -2575,11 +2577,15 @@ public class ConfDbGUI
         	// Reset Save button when a new path is selected.
             jButtonSavePathFields.setEnabled(false);
             jButtonCancelPathFields.setEnabled(false);
+            
+            // Set prescales fot the current path.
+            PrescaleTableService PrescaleTServ = new PrescaleTableService(currentConfig);
+            jTablePrescales = PrescaleTServ.getPrescaleTable(container);
+            jScrollPanePrescales.setViewportView(jTablePrescales);
         	
     	} else {
         	jEditorPathDescription.setText(new String());
         	jEditorPathContacts.setText(new String());
-
     	}
 
    }
@@ -2837,10 +2843,14 @@ public class ConfDbGUI
     	
     	if (currentParameterContainer instanceof Path) {
 		    Path p = (Path)currentParameterContainer;
-		    
+		    boolean save = false;
 		    // Only save if something has changed.
-		    if((!jEditorPathDescription.getText().equals(p.getDescription()))||
-		       (!jEditorPathContacts.getText().equals(p.getContacts()))) {
+		    if((p.getContacts() == null) && (!jEditorPathContacts.getText().equals(""))) 				save = true;
+		    if((p.getContacts() != null) && (!jEditorPathContacts.getText().equals(p.getContacts()))) 	save = true;
+		    if((p.getDescription() == null) && (!jEditorPathDescription.getText().equals(""))) 					save = true;
+		    if((p.getDescription() != null) && (!jEditorPathDescription.getText().equals(p.getDescription()))) 	save = true;
+		    	
+		    if(save) {
 			    p.setDescription(jEditorPathDescription.getText());
 			    p.setContacts(jEditorPathContacts.getText());
 			    
@@ -4214,7 +4224,6 @@ public class ConfDbGUI
         jTextFieldPathName.setFont(new java.awt.Font("Dialog", 0, 10));
         jTextFieldPathName.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
         
-        
         jScrollPanePathContacts.setViewportView(jEditorPathContacts);
         jScrollPanePathDescription.setViewportView(jEditorPathDescription);
         
@@ -4251,11 +4260,14 @@ public class ConfDbGUI
 			}
 		});
         
-        
         jButtonSavePathFields.setEnabled(false);
         jButtonCancelPathFields.setEnabled(false);
         jPanelPathFields.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
+        // Prescales:
+        jScrollPanePrescales.setViewportView(jTablePrescales);
+    	
+    	/* set the elements: */
         org.jdesktop.layout.GroupLayout jPanelPathLayout = new org.jdesktop.layout.GroupLayout(jPanelPathFields);
         jPanelPathFields.setLayout(jPanelPathLayout);
         // Using TRAILING alignment the button will be aligned to the right.
@@ -4277,6 +4289,7 @@ public class ConfDbGUI
                 .add(jButtonSavePathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 100, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
         		)
+        .add(jScrollPanePrescales, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 708, Short.MAX_VALUE)
         )
         );
         
@@ -4300,7 +4313,14 @@ public class ConfDbGUI
         		.add(jButtonCancelPathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
         		.add(jButtonSavePathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
         		)
+        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+        .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+        		.add(jScrollPanePrescales, GroupLayout.PREFERRED_SIZE, 34, GroupLayout.PREFERRED_SIZE)
+        		
+        )
         );
+        
+
         //////////////////////////////////////////
         
         

@@ -1,10 +1,15 @@
+2011-12-02 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-89
+	* Add R/O prescale table for the corresponding path in the rightUpper panel 
+	  (Documentation fields panel). (bug 89524).
+	* Fix autosave documentation fields behaviour.
+	   
 2011-12-01 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-88
 	* Table definitions and configuration load process have changed 
 	  allowing up to 2048 characters parameter values.(bug 75950).
 	  NOTE: Changes will be applied to HLT_Development in the next technical stop.
 	  
-
 2011-11-30 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-87
 	* Documentation fields autosave when clicking the tree. (bug 75959).
