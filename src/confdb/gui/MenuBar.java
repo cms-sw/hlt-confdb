@@ -54,6 +54,7 @@ public class MenuBar
     private static final String dbMenuConnectToDB      = "Connect to DB";
     private static final String dbMenuDisconnectFromDB = "Disconnect from DB";
     private static final String dbMenuExportConfig     = "Export Configuration";
+    private static final String dbMenuDBInfo     	   = "Database Info";
     
     /** meny bar items */
     private JMenuItem confdbMenuAboutItem       = null;
@@ -87,6 +88,7 @@ public class MenuBar
     private JMenuItem dbMenuConnectItem         = null;
     private JMenuItem dbMenuDisconnectItem      = null;
     private JMenuItem dbMenuExportItem          = null;
+    private JMenuItem dbMenuDBInfoItem			= null;
     
     
 
@@ -165,6 +167,7 @@ public class MenuBar
 	toolMenuSmartVersionsItem.setEnabled(true);
 	toolMenuSmartRenamingItem.setEnabled(true);
 	dbMenuDisconnectItem.setEnabled(true);
+	dbMenuDBInfoItem.setEnabled(true);
     }
     
     /** no database connection is established */
@@ -180,6 +183,7 @@ public class MenuBar
 	toolMenuSmartVersionsItem.setEnabled(false);
 	toolMenuSmartRenamingItem.setEnabled(false);
 	dbMenuDisconnectItem.setEnabled(false);
+	dbMenuDBInfoItem.setEnabled(false);
     }
 
     /** populate the menu bar with all menus and their items */
@@ -316,6 +320,10 @@ public class MenuBar
 	dbMenuExportItem.setActionCommand(dbMenuExportConfig);
 	dbMenuExportItem.addActionListener(listener);
 	dbMenu.add(dbMenuExportItem);
+	dbMenuDBInfoItem = new JMenuItem(dbMenuDBInfo, KeyEvent.VK_B);
+	dbMenuDBInfoItem.setActionCommand(dbMenuDBInfo);
+	dbMenuDBInfoItem.addActionListener(listener);
+	dbMenu.add(dbMenuDBInfoItem);
     }
     
 

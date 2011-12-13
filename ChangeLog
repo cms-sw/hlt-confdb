@@ -1,3 +1,16 @@
+2011-12-13 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-05-90
+	* Table definitions and configuration load process have changed 
+	  allowing long string parameter values. CLOBs fields.(bug 75950).
+	  - tables: INPUTTAGPARAMVALUES, VSTRINGPARAMVALUES, STRINGPARAMVALUES,
+	  			TMP_STRING_TABLE.
+	  - procedure: load_parameter_value.
+	  NOTE: Changes will be applied to HLT_Development in January 2012.
+	* Check the database structure when connecting to perform the load process
+	  depending on the database features.
+	* Add menu option "database info" and info panel to show database
+	  additional information and features. (eg. documentation fields).
+	   
 2011-12-02 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-89
 	* Add R/O prescale table for the corresponding path in the rightUpper panel 

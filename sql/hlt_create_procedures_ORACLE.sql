@@ -59,7 +59,7 @@ CREATE GLOBAL TEMPORARY TABLE tmp_real_table
 CREATE GLOBAL TEMPORARY TABLE tmp_string_table
 (
   parameter_id	    NUMBER,
-  parameter_value   VARCHAR2(2048),
+  parameter_value   CLOB  ,
   sequence_nb       NUMBER
 ) ON COMMIT PRESERVE ROWS;
 
@@ -85,16 +85,15 @@ CREATE GLOBAL TEMPORARY TABLE tmp_sequence_entries
 --
 -- PROCDEDURE load_parameter_value
 --
-CREATE OR REPLACE PROCEDURE load_parameter_value(parameter_id   NUMBER,
-                                      parameter_type CHAR)
-AS
+CREATE OR REPLACE PROCEDURE load_parameter_value(parameter_id   NUMBER, parameter_type CHAR) AS
   v_bool_value   NUMBER(1);
   v_int32_value  NUMBER;
   v_int32_hex    NUMBER(1);
   v_int64_value  NUMBER;
   v_int64_hex    NUMBER(1);
   v_double_value FLOAT;
-  v_string_value VARCHAR2(2048);
+  /* v_string_value VARCHAR2(2024); */
+  v_string_value CLOB;
   v_sequence_nb  PLS_INTEGER;
 
   /* declare cursors */
@@ -282,7 +281,8 @@ BEGIN
     OPEN cur_string;
     FETCH cur_string INTO v_string_value;
     IF cur_string%FOUND THEN
-      INSERT INTO tmp_string_table VALUES(parameter_id,v_string_value,NULL);
+      INSERT INTO tmp_string_table (parameter_id, parameter_value, sequence_nb) VALUES(parameter_id,v_string_value,NULL);
+      /* INSERT INTO tmp_string_table (parameter_id, sequence_nb, parameter_value) VALUES(parameter_id, NULL, v_string_value); */
     END IF;
     CLOSE cur_string;
   /** load vstring values */
@@ -292,8 +292,8 @@ BEGIN
     LOOP
       FETCH cur_vstring INTO v_string_value,v_sequence_nb;
       EXIT WHEN cur_vstring%NOTFOUND;
-      INSERT INTO tmp_string_table
-        VALUES(parameter_id,v_string_value,v_sequence_nb);
+      INSERT INTO tmp_string_table (parameter_id, parameter_value, sequence_nb) VALUES(parameter_id,v_string_value,v_sequence_nb);
+      /* INSERT INTO tmp_string_table (parameter_id, sequence_nb, parameter_value) VALUES(parameter_id,v_sequence_nb, v_string_value); */
     END LOOP;
     CLOSE cur_vstring;
   /** load inputtag values */
@@ -302,7 +302,8 @@ BEGIN
     OPEN cur_inputtag;
     FETCH cur_inputtag INTO v_string_value;
     IF cur_inputtag%FOUND THEN
-      INSERT INTO tmp_string_table VALUES(parameter_id,v_string_value,NULL);
+      INSERT INTO tmp_string_table (parameter_id, parameter_value, sequence_nb) VALUES(parameter_id,v_string_value,NULL);
+      /* INSERT INTO tmp_string_table (parameter_id, sequence_nb, parameter_value) VALUES(parameter_id, NULL, v_string_value); */
     END IF;
     CLOSE cur_inputtag;
   /** load vinputtag values */
@@ -312,8 +313,8 @@ BEGIN
     LOOP
       FETCH cur_vinputtag INTO v_string_value,v_sequence_nb;
       EXIT WHEN cur_vinputtag%NOTFOUND;
-      INSERT INTO tmp_string_table
-        VALUES(parameter_id,v_string_value,v_sequence_nb);
+      INSERT INTO tmp_string_table (parameter_id, parameter_value, sequence_nb) VALUES(parameter_id,v_string_value,v_sequence_nb);
+      /* INSERT INTO tmp_string_table (parameter_id, sequence_nb, parameter_value) VALUES(parameter_id,v_sequence_nb, v_string_value); */
     END LOOP;
     CLOSE cur_vinputtag;
   /** load eventid values */
@@ -322,7 +323,8 @@ BEGIN
     OPEN cur_eventid;
     FETCH cur_eventid INTO v_string_value;
     IF cur_eventid%FOUND THEN
-      INSERT INTO tmp_string_table VALUES(parameter_id,v_string_value,NULL);
+      INSERT INTO tmp_string_table (parameter_id, parameter_value, sequence_nb) VALUES(parameter_id,v_string_value,NULL);
+      /* INSERT INTO tmp_string_table (parameter_id, sequence_nb, parameter_value) VALUES(parameter_id, NULL, v_string_value); */
     END IF;
     CLOSE cur_eventid;
   /** load veventid values */
@@ -332,8 +334,8 @@ BEGIN
     LOOP
       FETCH cur_veventid INTO v_string_value,v_sequence_nb;
       EXIT WHEN cur_veventid%NOTFOUND;
-      INSERT INTO tmp_string_table
-        VALUES(parameter_id,v_string_value,v_sequence_nb);
+      INSERT INTO tmp_string_table (parameter_id, parameter_value, sequence_nb) VALUES(parameter_id,v_string_value,v_sequence_nb);
+      /* INSERT INTO tmp_string_table (parameter_id, sequence_nb, parameter_value) VALUES(parameter_id,v_sequence_nb, v_string_value); */
     END LOOP;
     CLOSE cur_veventid;
   /** load fileinpath values */
@@ -342,12 +344,16 @@ BEGIN
     OPEN cur_fileinpath;
     FETCH cur_fileinpath INTO v_string_value;
     IF cur_fileinpath%FOUND THEN
-      INSERT INTO tmp_string_table VALUES(parameter_id,v_string_value,NULL);
+       INSERT INTO tmp_string_table (parameter_id, parameter_value, sequence_nb) VALUES(parameter_id,v_string_value,NULL);
+      /*INSERT INTO tmp_string_table (parameter_id, sequence_nb, parameter_value) VALUES(parameter_id, NULL, v_string_value);*/
     END IF;
     CLOSE cur_fileinpath;
   END IF;
 END;
 /
+
+
+
 
 
 --

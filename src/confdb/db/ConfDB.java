@@ -1,11 +1,13 @@
 package confdb.db;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Clob;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -15,6 +17,9 @@ import java.util.Iterator;
 import java.io.*;
 
 import confdb.data.*;
+import confdb.gui.AboutDialog;
+import confdb.gui.errorNotificationPanel;
+
 import java.math.BigInteger;
 
 import oracle.jdbc.pool.OracleDataSource;
@@ -58,6 +63,16 @@ public class ConfDB
     
     /** database password */
     private String dbPwrd = null;
+    
+    // Db parameters: -- ONLY info. dbUrl already contain this.
+    private String dbHost = null;
+    private String dbPort = null;
+    private String dbName = null;
+    
+    // database features:
+    private boolean extraPathFieldsAvailability = false;
+    private boolean clobsFieldsAvailability 	= false;
+    
     
     /** template table name hash map */
     private HashMap<String,String> templateTableNameHashMap = null;
@@ -303,6 +318,7 @@ public class ConfDB
     private PreparedStatement psSelectIntValues                   = null;
     private PreparedStatement psSelectRealValues                  = null;
     private PreparedStatement psSelectStringValues                = null;
+    private PreparedStatement psSelectCLOBsValues                 = null; // get Clobs - bug75950
     private PreparedStatement psSelectPathEntries                 = null;
     private PreparedStatement psSelectSequenceEntries             = null;
 
@@ -324,6 +340,9 @@ public class ConfDB
     private  PreparedStatement psCheckPathFieldsExistence			= null;
     private  PreparedStatement psSelectPathExtraFields				= null;
     private	 PreparedStatement psInsertPathDescription				= null;
+    
+    // Check CLOBs availability: - bug75950
+    private  PreparedStatement psCheckCLOBFieldsExistence			= null;
     
 
     private ArrayList<PreparedStatement> preparedStatements =
@@ -353,20 +372,31 @@ public class ConfDB
     /** retrieve db url */
     public String dbUrl() { return this.dbUrl; }
     
+    /** get db metadata **/
+    public DatabaseMetaData getDatabaseMetaData() {
+		try {
+			return dbConnector.getConnection().getMetaData();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return null;
+    }
+    
 
     /** getTnsnameFormat
      * ----------------------------------------------------------------
      * Use Oracle Java extensions to create TNSName Connection String
      * bug 86323.
      * */
-    public String getTnsnameFormat(String dbPassword, String dbServiceName, String dbHost, String dbPort) {
+    public String getTnsnameFormat() {
 		OracleDataSource ods;
 		try {
 			ods = new OracleDataSource();
 			ods.setUser(dbUser);
-			ods.setPassword(dbPassword);
+			ods.setPassword(dbPwrd);
 			ods.setDriverType("thin");
-			ods.setServiceName(dbServiceName);
+			ods.setServiceName(dbName);
 			ods.setServerName(dbHost);
 			ods.setPortNumber(Integer.parseInt(dbPort));
 			
@@ -378,6 +408,21 @@ public class ConfDB
 
 		return "ERROR TNSNAME FORMAT";
     }
+    
+    public String setDbParameters(String dbPassword, String dbServiceName, String dbHostName, String dbPortNumber) {
+        dbPwrd = dbPassword; 
+        dbHost = dbHostName; 
+        dbPort = dbPortNumber;
+        dbName = dbServiceName;
+        
+        return getTnsnameFormat();
+    }
+    
+    public String getHostName() 	{ return dbHost; }
+    public String getPortNumber() 	{ return dbPort; }
+    public String getDbName()		{ return dbName; }
+    public boolean getExtraPathFieldsAvailability() { return extraPathFieldsAvailability; 	}
+    public boolean getClobsFieldsAvailability() 	{ return clobsFieldsAvailability; 		}
     
     
     /** close all prepared statements */
@@ -396,7 +441,7 @@ public class ConfDB
 	}
 	preparedStatements.clear();
     }
-    
+
 
     /** connect to the database */
     public void connect(String dbType,String dbUrl,String dbUser,String dbPwrd)
@@ -413,6 +458,7 @@ public class ConfDB
 	
 	dbConnector.openConnection();
 	prepareStatements();
+	checkDbFeatures(); // Check Clobs and Documentation fields availability.
     }
     
     /** connect to the database */
@@ -425,6 +471,7 @@ public class ConfDB
 
 	dbConnector.openConnection();
 	prepareStatements();
+	checkDbFeatures(); // Check Clobs and Documentation fields availability.
     }
     
     /** connect to the database */
@@ -434,6 +481,7 @@ public class ConfDB
 	this.dbUrl  = "UNKNOWN";
 	dbConnector = new OracleDatabaseConnector(connection);
 	prepareStatements();
+	checkDbFeatures(); // Check Clobs and Documentation fields availability.
     }
     
     /** disconnect from database */
@@ -488,6 +536,20 @@ public class ConfDB
     public IDatabaseConnector getDbConnector() {
 		return dbConnector;
 	}
+    
+    /** Check database features.
+     * NOTE: Depending on this, database queries and 
+     * app. workflow would be modified. */
+    public void checkDbFeatures() {
+    	try {
+            extraPathFieldsAvailability = checkExtraPathFields();
+            clobsFieldsAvailability 	= checkCLOBFields();
+    	}
+    	catch (DatabaseException e) {
+    	    e.printStackTrace(); // DEBUG
+    	}
+
+    }
 
     
     /** list number of entries in (some) tables */
@@ -810,6 +872,9 @@ public class ConfDB
 	
 	try {
 	    cs.executeUpdate();
+
+	    System.out.println("getParameters from loadTemplates!");
+	    
 	    HashMap<Integer,ArrayList<Parameter> > templateParams = getParameters();
 	    
 	    rsTemplates = psSelectTemplates.executeQuery();
@@ -941,7 +1006,6 @@ public class ConfDB
 	SoftwareRelease release = config.release();
 
 	try {
-		boolean extraFields = checkExtraPathFields();
 		
 	    csLoadConfiguration.setInt(1,configId);
 	    csLoadConfiguration.executeUpdate();
@@ -1054,7 +1118,7 @@ public class ConfDB
 			int  insertIndex = config.pathCount();
 		    Path path = config.insertPath(insertIndex,instanceName);
 		    
-		    if(extraFields) {
+		    if(extraPathFieldsAvailability) {
 				String  pathDesc = null;
 				String	pathCont = null;
 				psSelectPathExtraFields.setInt(1, id);
@@ -1378,6 +1442,31 @@ public class ConfDB
 		if(extraFields == 1) return true;
 		else return false;
     }
+    
+    /** check CLOBs availability in current db. - bug75950 */
+    public boolean checkCLOBFields() throws DatabaseException {
+    	ResultSet rs = null;
+    	int clobsAvailability = 0;
+    	try {
+    		rs = psCheckCLOBFieldsExistence.executeQuery();
+    		while(rs.next()) {
+    			clobsAvailability = rs.getInt(1);
+    		}
+    		
+    	}
+    	catch (SQLException e) {
+    	    String errMsg =
+    		"ConfDB::checkCLOBFields failed: "+
+    		e.getMessage();
+    	    throw new DatabaseException(errMsg,e);
+    	} finally {
+    		dbConnector.release(rs);
+    	}
+		if(clobsAvailability == 1) return true;
+		else return false;
+    }
+    
+    
     
     
 
@@ -1915,9 +2004,8 @@ public class ConfDB
 		String contacts			= path.getContacts();
 		
 		if (pathId<=0) {
-			boolean extraFields = checkExtraPathFields();
 		    
-			if(extraFields) {
+			if(extraPathFieldsAvailability) {
 			     // inserting extra fields in schema:
 			    psInsertPathDescription.setString(1,pathName);
 			    psInsertPathDescription.setBoolean(2,pathIsEndPath);
@@ -5254,6 +5342,7 @@ public class ConfDB
 	    psSelectRealValues.setFetchSize(2048);
 	    preparedStatements.add(psSelectRealValues);
 	    
+	    
 	    psSelectStringValues =
 		dbConnector.getConnection().prepareStatement
 		("SELECT DISTINCT"+
@@ -5264,6 +5353,39 @@ public class ConfDB
 		 "ORDER BY sequence_nb ASC");
 	    psSelectStringValues.setFetchSize(2048);
 	    preparedStatements.add(psSelectStringValues);
+	    
+	    /** Query new CLOB fields in temp_string_table.
+	     *  NOTE: the rowid JOIN is to simulate the
+	     *  DISTINCT modifier in the original query,
+	     *  which might be a bad design.
+	     *  I have managed to patch it up and group
+	     *  the results as the DISTINCT does since
+	     *  it is not possible to apply DISTINCT
+	     *  and/or GROUPBY in CLOB queries.  */
+	    psSelectCLOBsValues =
+			dbConnector.getConnection().prepareStatement
+			("SELECT 						" + 
+			 "   clobs.parameter_id    ,	" +
+			 "   clobs.parameter_value ,	" +
+			 "   clobs.sequence_nb 			" +
+			 "FROM							" +
+			 "   (							" +
+			 "   SELECT  Max(rowid) idrow , " +
+		     "   parameter_id      ,		" +
+		     "   sequence_nb				" +
+		     "   FROM tmp_string_table		" +
+		     "   GROUP BY parameter_id ,	" +
+			 "   sequence_nb				" +
+			 "   ) grouped					" +
+		     "JOIN							" +
+			 "   tmp_string_table clobs 	" +
+			 "ON (clobs.rowid = grouped.idrow)");
+		    psSelectStringValues.setFetchSize(2048);
+		preparedStatements.add(psSelectCLOBsValues);
+		
+		
+		
+		
 	    
 	    psSelectPathEntries =
 		dbConnector.getConnection().prepareStatement
@@ -5368,6 +5490,17 @@ public class ConfDB
 			  "and column_name = 'DESCRIPTION')			");
 		    preparedStatements.add(psCheckPathFieldsExistence);
 		    
+	    // SQL statements for CLOBS fields: - bug75950
+	    psCheckCLOBFieldsExistence = 
+			dbConnector.getConnection().prepareStatement
+			("SELECT 1									" + 
+			 "FROM dual WHERE EXISTS (					" +
+			 "SELECT 1 FROM all_tab_columns				" +
+			 "WHERE table_name = 'TMP_STRING_TABLE'		" +
+			 "AND column_name = 'PARAMETER_VALUE'		" +
+             "AND data_type = 'CLOB')");
+		    preparedStatements.add(psCheckCLOBFieldsExistence);
+
 		psSelectPathExtraFields = 
 			dbConnector.getConnection().prepareStatement(
 			"SELECT p.pathid		,	" +
@@ -5457,14 +5590,19 @@ public class ConfDB
 	ResultSet rsIntValues     = null;
 	ResultSet rsRealValues    = null;
 	ResultSet rsStringValues  = null;
-	
 	try {
-	    rsParameters    = psSelectParameters.executeQuery();
+		rsParameters    = psSelectParameters.executeQuery();
 	    rsBooleanValues = psSelectBooleanValues.executeQuery();
 	    rsIntValues     = psSelectIntValues.executeQuery();
 	    rsRealValues    = psSelectRealValues.executeQuery();
-	    rsStringValues  = psSelectStringValues.executeQuery();
 	    
+	    // Query will be performed depending on db structure: - bug75950
+	    if(clobsFieldsAvailability) {
+		    rsStringValues  = psSelectCLOBsValues.executeQuery();	    	
+	    } else {
+	    	rsStringValues  = psSelectStringValues.executeQuery();
+	    }
+
 	    // get values as strings first
 	    HashMap<Integer,String> idToValueAsString =
 		new HashMap<Integer,String>();
@@ -5510,7 +5648,27 @@ public class ConfDB
 	    
 	    while (rsStringValues.next()) {
 		int    parameterId   = rsStringValues.getInt(1);
-		String  valueAsString = rsStringValues.getString(2);
+		String  valueAsString = "";
+		if(!clobsFieldsAvailability) {	// Get VARCHAR / STRING.
+			valueAsString = rsStringValues.getString(2); // get PARAMETER_VALUE
+		} else { // get CLOBS and CONVERT TO JAVA STRINGS: - bug75950
+	    	String errMsg = "Open Configuration FAILED!\n"	+
+			"Error opening CLOB data.\n" +  
+	    	"Please, report this incident to: \n" + AboutDialog.getContactPerson();
+	    	
+			try {
+				valueAsString = CLOBToString(rsStringValues.getClob(2));
+			} catch (java.sql.SQLException e1) {
+		    	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, e1.toString());
+				cd.createAndShowGUI();
+				e1.printStackTrace();
+			} catch (java.io.IOException e2) {
+		    	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, e2.toString());
+				cd.createAndShowGUI();
+				e2.printStackTrace();
+			}
+		} 
+
 		Integer sequenceNb    = new Integer(rsStringValues.getInt(3));
 		
 		if (sequenceNb!=null&&
@@ -5615,6 +5773,19 @@ public class ConfDB
 	return idToParameters;
     }
 
+    
+    private String CLOBToString(Clob cl) throws IOException, SQLException {
+	    if (cl == null) return "";
+	    StringBuffer strOut = new StringBuffer();
+	    String aux;
+	    BufferedReader br = new BufferedReader(cl.getCharacterStream());
+	    while ((aux=br.readLine()) != null)
+	    	strOut.append(aux);
+	
+	    return strOut.toString();
+    }
+    
+    
     /** set parameters of an instance */
     private void updateInstanceParameters(Instance instance,
 					  ArrayList<Parameter> parameters)
@@ -6083,7 +6254,22 @@ public class ConfDB
 	return result;
     }
     
-
+    public String debugSQL(PreparedStatement pstmt) {
+    	String value = "<SQL not found>";
+    	try {
+    		Class<?> stmt1 = pstmt.getClass();  
+    	    java.lang.reflect.Field mem = stmt1.getField("sql");  
+    	    value= (String)mem.get(pstmt);
+    	} catch (NoSuchFieldException x) {
+    	    x.printStackTrace();
+     	} catch (IllegalAccessException x) {
+     	    x.printStackTrace();
+    	}
+	     
+	    return value;
+    }
+    
+    
     //
     // MAIN
     //

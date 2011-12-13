@@ -17,6 +17,8 @@ import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -190,6 +192,9 @@ public class ConfDbGUI
     private JTable     	  jTablePrescales  			= new javax.swing.JTable(); // Prescales for rightUpperPanel.
     private JScrollPane	  jScrollPanePrescales		= new JScrollPane();
 
+    // DB INFO fields:
+    public boolean clobsAvailability;
+    public boolean extraPathFieldsAvailability;
     
     
     static SimpleAttributeSet ITALIC_GRAY = new SimpleAttributeSet();
@@ -1061,8 +1066,10 @@ public class ConfDbGUI
 	try {
 
 		// Use TNSNames format to connect to oracle:
-		if (dbType.equals(database.dbTypeOracle))
-			dbUrl = database.getTnsnameFormat(dbPwrd, dbName, dbHost, dbPort);
+		if (dbType.equals(database.dbTypeOracle)) {
+			dbUrl = database.setDbParameters(dbPwrd, dbName, dbHost, dbPort); // return Url in TNS format.
+		}
+			
 		
 		
 	    database.connect(dbType,dbUrl,dbUser,dbPwrd);
@@ -1079,6 +1086,10 @@ public class ConfDbGUI
 	}
 	menuBar.dbConnectionIsEstablished();
 	toolBar.dbConnectionIsEstablished();
+	
+		clobsAvailability 			= database.getClobsFieldsAvailability();
+		extraPathFieldsAvailability = database.getExtraPathFieldsAvailability();
+	
     }
 
     /** disconnect from the  database */
@@ -1191,6 +1202,153 @@ public class ConfDbGUI
 	}
 
     }
+    
+    /** Show Db information */
+    public void showDBInfo() {
+		String getDatabaseProductVersion = "";
+		String getDriverName = "";
+		String getDriverVersion = "";
+    	 JFrame		infoFrame;
+    	 JPanel		infoPanel = new JPanel();
+    	 JTextArea 	Output		;
+    	 infoFrame = new JFrame("Database Info");
+    	 infoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    	 infoFrame.setResizable(false);
+    	 
+	 		try {
+	 			DatabaseMetaData dbmd = database.getDatabaseMetaData();
+	 			getDatabaseProductVersion = dbmd.getDatabaseProductVersion();
+	 			getDriverName = dbmd.getDriverName();
+	 			getDriverVersion = dbmd.getDriverVersion();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			
+    	    
+		    JTextArea jlabelCLOBsAvailability		= new JTextArea();
+    	    jlabelCLOBsAvailability.setText("Documentation fields availability:");
+    	    jlabelCLOBsAvailability.setEditable(false);
+    	    jlabelCLOBsAvailability.setBackground(null);
+    	    
+    	    JTextArea jlabelExtraPathsAvailability	= new JTextArea();
+    	    jlabelExtraPathsAvailability.setText("Long String support:");
+    	    jlabelExtraPathsAvailability.setEditable(false);
+    	    jlabelExtraPathsAvailability.setBackground(null);
+    	    
+    	    JTextArea DatabaseHost	= new JTextArea("db Host: ");
+    	    DatabaseHost.setEditable(false);
+    	    DatabaseHost.setBackground(null);
+    	    
+    	    JTextArea DatabaseHostValue	= new JTextArea(database.getHostName());
+    	    DatabaseHostValue.setEditable(false);
+    	    DatabaseHostValue.setBackground(null);
+    	    
+    	    JTextArea DatabaseName	= new JTextArea("db Name: ");
+    	    DatabaseName.setEditable(false);
+    	    DatabaseName.setBackground(null);
+    	    
+    	    JTextArea DatabaseNameValue	= new JTextArea(database.getDbName());
+    	    DatabaseNameValue.setEditable(false);
+    	    DatabaseNameValue.setBackground(null);
+    	    
+    	    JTextArea DatabaseProductVersion	= new JTextArea("DatabaseProductVersion: ");
+    	    DatabaseProductVersion.setEditable(false);
+    	    DatabaseProductVersion.setBackground(null);
+    	    JTextArea DatabaseProductVersionValue	= new JTextArea(getDatabaseProductVersion);
+    	    DatabaseProductVersionValue.setEditable(false);
+    	    DatabaseProductVersionValue.setBackground(null);
+    	    
+    	    JTextArea DriverName	= new JTextArea("DriverName: ");
+    	    DriverName.setEditable(false);
+    	    DriverName.setBackground(null);
+    	    
+    	    JTextArea DriverNameValue	= new JTextArea(getDriverName);
+    	    DriverNameValue.setEditable(false);
+    	    DriverNameValue.setBackground(null);
+    	    
+    	    JTextArea DriverVersion	= new JTextArea("DriverVersion: ");
+    	    DriverVersion.setEditable(false);
+    	    DriverVersion.setBackground(null);
+    	    
+    	    JTextArea DriverVersionValue	= new JTextArea(getDriverVersion);
+    	    DriverVersionValue.setEditable(false);
+    	    DriverVersionValue.setBackground(null);
+    	    
+    	    
+    	    JLabel ico1 = new JLabel();	// icon
+    	    JLabel ico2 = new JLabel();	// icon
+    	    if(extraPathFieldsAvailability) ico1.setIcon(new ImageIcon(getClass().getResource("/ESSourcesDirIcon.png")));
+    	    else 							ico1.setIcon(new ImageIcon(getClass().getResource("/ModulesDirIcon.png")));
+    	    
+    	    if(clobsAvailability) 			ico2.setIcon(new ImageIcon(getClass().getResource("/ESSourcesDirIcon.png")));
+    	    else 							ico2.setIcon(new ImageIcon(getClass().getResource("/ModulesDirIcon.png")));
+    	    
+    	    
+    	    org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(infoPanel);
+    	    infoPanel.setLayout(layout);
+    	    infoPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+    	    
+    	 // Using TRAILING alignment the button will be aligned to the right.
+    	    layout.setHorizontalGroup(layout.createSequentialGroup()
+    	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+    	    		.add(DatabaseProductVersion, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE)
+    	    		.add(DriverName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE)
+    	    		.add(DriverVersion, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE)
+    	    		.add(DatabaseHost, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE)
+    	    		.add(DatabaseName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE)
+    	    		
+    	    		.add(jlabelCLOBsAvailability, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE)
+    	    		.add(jlabelExtraPathsAvailability, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE))
+    	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+		    		.add(DatabaseProductVersionValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		    		.add(DriverNameValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		    		.add(DriverVersionValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		    		.add(DatabaseHostValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		    		.add(DatabaseNameValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		    		
+    	    		.add(ico1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25)
+    	    		.add(ico2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25))
+    	    );
+    	    
+    	    layout.setVerticalGroup(layout.createSequentialGroup()
+        	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)	
+        	    		.add(DatabaseProductVersion, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
+        	    		.add(DatabaseProductVersionValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
+        	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)	
+        	    		.add(DriverName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
+        	    		.add(DriverNameValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
+        	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)	
+        	    		.add(DriverVersion, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
+        	    		.add(DriverVersionValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
+        	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+        	    		.add(DatabaseHost, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
+        	    		.add(DatabaseHostValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
+        	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+        	    		.add(DatabaseName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
+        	    		.add(DatabaseNameValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
+	    	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)    		
+	    	    		.add(jlabelCLOBsAvailability, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 25)
+	    	    		.add(ico1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25))
+	    	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+	    	    		.add(jlabelExtraPathsAvailability, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 25)
+	    	    		.add(ico2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25))
+    	    );
+
+        
+        // Create and set up the content pane.
+    	infoPanel.setOpaque(true);
+        infoFrame.setContentPane(infoPanel);
+
+        // Display the window.
+        infoFrame.pack();
+        infoFrame.setVisible(true);
+        
+        // Setting the position of the dialog on the center of the screen
+        Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+        infoFrame.setLocation((int)d.getWidth()/2 - (int)infoFrame.getPreferredSize().getWidth()/2,
+                (int)d.getHeight()/2 - (int)infoFrame.getPreferredSize().getHeight()/2);	
+    }
+    
 
     /** reset current and import configuration */
     private void resetConfiguration()

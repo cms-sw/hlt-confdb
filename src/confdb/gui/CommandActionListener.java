@@ -48,6 +48,7 @@ public class CommandActionListener implements ActionListener
     private static final String cmdConnectToDB      = "Connect to DB";
     private static final String cmdDisconnectFromDB = "Disconnect from DB";
     private static final String cmdExportConfig     = "Export Configuration";
+    private static final String cmdDBInfo     = "Database Info";
   
     
     /** standard constructor */
@@ -94,6 +95,7 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdDisconnectFromDB)) app.disconnectFromDatabase();
 	if (command.equals(cmdExportConfig))     app.exportConfiguration();
 	if (command.equals(cmdOpenOldScehma))    app.importConfigurationFromDBV1();
+	if (command.equals(cmdDBInfo))    		 app.showDBInfo();
     }
 
 }

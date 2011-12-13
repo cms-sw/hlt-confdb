@@ -1177,7 +1177,7 @@ CREATE INDEX VDoubleValuesParamId_idx ON VDoubleParamValues(paramId);
 CREATE TABLE StringParamValues
 (
 	paramId    	NUMBER		NOT NULL,
-	value      	VARCHAR2(2048),
+	value      	CLOB				,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
@@ -1192,7 +1192,7 @@ CREATE TABLE VStringParamValues
 (
 	paramId    	NUMBER		NOT NULL,
 	sequenceNb 	NUMBER(6)	NOT NULL,
-	value      	VARCHAR2(2048),
+	value      	CLOB				,
 	UNIQUE(paramId,sequenceNb),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
@@ -1207,7 +1207,7 @@ CREATE INDEX VStringValuesParamId_idx ON VStringParamValues(paramId);
 CREATE TABLE InputTagParamValues
 (
 	paramId    	NUMBER		NOT NULL,
-	value      	VARCHAR2(2048)   NOT NULL,
+	value      	CLOB   		NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
