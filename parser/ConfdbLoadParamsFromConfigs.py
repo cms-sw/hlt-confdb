@@ -36,7 +36,7 @@ def main(argv):
        "CommonTools", 
        "DQM",
        "DQMServices",
-       "EventFilter"
+       "EventFilter",
        "FWCore",
        "Geometry",
        "GeometryReaders",
@@ -64,7 +64,7 @@ def main(argv):
        "RecoParticleFlow",
        "RecoPixelVertexing",
        "RecoTauTag",
-       "RecoTracker"
+       "RecoTracker",
        "RecoVertex",
        "SimCalorimetry",
        "SimGeneral",
@@ -365,7 +365,7 @@ class ConfdbLoadParamsfromConfigs:
                         skip = True
                         if(skip == True):
                             continue
-                        
+
             # Check if this is really a directory
             if(os.path.isdir(validatedcfisource_tree + validatedcfipackage)):
                
@@ -419,6 +419,12 @@ class ConfdbLoadParamsfromConfigs:
                    # the cfi
                    for validatedpyfile in validatedpyfiles:
                        if(validatedpyfile.find("testProducerWithPsetDesc_cfi") != -1):
+                           continue
+                       if(validatedpyfile.find("DoodadESSource_cfi") != -1):
+                           continue
+                       if(validatedpyfile.find("WhatsItESProducer_cfi") != -1):
+                           continue
+                       if(validatedpyfile.find("testLabel1_cfi") != -1):
                            continue
                        if(validatedpyfile.endswith("_cfi.py")):
                            thecomponent = validatedpyfile.split('.py')[0]
@@ -1286,6 +1292,11 @@ class ConfdbLoadParamsfromConfigs:
 
         oldcomponentsuperid = ''
         tmpoldcomponentsuperid = (self.dbcursor.fetchone())
+
+        # If this is a new module, return without further attempt at matching old parameters
+        if(tmpoldcomponentsuperid == None):
+            return matchingparamid
+        
         if(tmpoldcomponentsuperid):
             oldcomponentsuperid = tmpoldcomponentsuperid[0]
 
@@ -1334,7 +1345,7 @@ class ConfdbLoadParamsfromConfigs:
 
                     if((str(oldparamval) != str(parametervalue)) or (str(parametervalue) == '' and str(oldparamval) == 'None')):
                         self.VerbosePrint("\tParameter " + str(parametername) + " changed from " + str(oldparamval) + " to " + str(parametervalue),2)
-                        matchingparamid = oldparamid
+                        #                        matchingparamid = oldparamid
                     else:
                         self.VerbosePrint("\tParameter " + str(parametername) + " is unchanged with value " + str(parametervalue),2)
                 else:
