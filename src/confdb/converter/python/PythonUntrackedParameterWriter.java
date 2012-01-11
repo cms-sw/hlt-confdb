@@ -16,10 +16,7 @@ public class PythonUntrackedParameterWriter extends PythonParameterWriter
 			System.out.println( getClass().getName() );
 		}
 		this.converterEngine = converterEngine;
-		/* skip this to output untracked default parameters
-		if ( !parameter.isTracked() && parameter.isDefault() )
-			return "";
-		*/
+		// if ( !parameter.isTracked() && parameter.isDefault() ) return "";
 
 		return toString( parameter, indent );
 	}

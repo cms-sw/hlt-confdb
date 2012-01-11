@@ -22,8 +22,7 @@ public class PythonParameterWriter  implements IParameterWriter
 	public String toString( Parameter parameter, ConverterEngine converterEngine, String indent ) throws ConverterException 
 	{
 		this.converterEngine = converterEngine;
-		if ( !parameter.isTracked() && parameter.isDefault() )
-			return "";
+		// if ( !parameter.isTracked() && parameter.isDefault() ) return "";
 
 		return toString( parameter, indent );
 	}

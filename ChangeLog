@@ -1,3 +1,10 @@
+2012-01-11 Martin Grunewald <Martin.Grunewald@cern.ch>
+	* tag V01-06-00
+	* export untracked parameters regardless of whether they
+	  are set at their default value or not (defaults are ill-
+	  defined: cfi default vs C++ default wrt to changes of
+	  cfi/C++ defaults not re-parsed into ConfDB)
+
 2011-12-13 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-05-90
 	* Table definitions and configuration load process have changed 
