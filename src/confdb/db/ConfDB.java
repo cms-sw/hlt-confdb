@@ -5361,7 +5361,7 @@ public class ConfDB
 	     *  I have managed to patch it up and group
 	     *  the results as the DISTINCT does since
 	     *  it is not possible to apply DISTINCT
-	     *  and/or GROUPBY in CLOB queries.  */
+	     *  and/or GROUPBY in CLOB queries.  
 	    psSelectCLOBsValues =
 			dbConnector.getConnection().prepareStatement
 			("SELECT 						" + 
@@ -5380,6 +5380,15 @@ public class ConfDB
 		     "JOIN							" +
 			 "   tmp_string_table clobs 	" +
 			 "ON (clobs.rowid = grouped.idrow)");
+			 */
+	    psSelectCLOBsValues =
+			dbConnector.getConnection().prepareStatement
+			("SELECT 						" + 
+			 "   parameter_id    ,	" +
+			 "   parameter_value ,	" +
+			 "   sequence_nb 		" +
+			 "FROM					" +
+			 "   tmp_string_table 	" );
 		    psSelectStringValues.setFetchSize(2048);
 		preparedStatements.add(psSelectCLOBsValues);
 		

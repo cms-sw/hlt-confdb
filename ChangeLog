@@ -1,3 +1,8 @@
+2011-01-19 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* Not tagged.
+	* Change SQL query to retrieve Clobs from tmp_string_table
+		according to the new PLSQL "load_parameter_values" (test).
+	
 2012-01-11 Martin Grunewald <Martin.Grunewald@cern.ch>
 	* tag V01-06-00
 	* export untracked parameters regardless of whether they
