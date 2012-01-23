@@ -1,3 +1,8 @@
+2011-01-23 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* Not tagged.
+	* Use a separate tmp table to store CLOBs in the PLSQL. (test).
+		NOTE: This only affects to databases with long string support.
+		
 2011-01-19 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* Not tagged.
 	* Change SQL query to retrieve Clobs from tmp_string_table

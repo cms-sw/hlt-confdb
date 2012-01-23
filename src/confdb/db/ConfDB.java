@@ -5388,8 +5388,8 @@ public class ConfDB
 			 "   parameter_value ,	" +
 			 "   sequence_nb 		" +
 			 "FROM					" +
-			 "   tmp_string_table 	" );
-		    psSelectStringValues.setFetchSize(2048);
+			 "   tmp_clob_table 	" );
+	    psSelectCLOBsValues.setFetchSize(2048);
 		preparedStatements.add(psSelectCLOBsValues);
 		
 		
@@ -5500,6 +5500,7 @@ public class ConfDB
 		    preparedStatements.add(psCheckPathFieldsExistence);
 		    
 	    // SQL statements for CLOBS fields: - bug75950
+		/*
 	    psCheckCLOBFieldsExistence = 
 			dbConnector.getConnection().prepareStatement
 			("SELECT 1									" + 
@@ -5507,7 +5508,14 @@ public class ConfDB
 			 "SELECT 1 FROM all_tab_columns				" +
 			 "WHERE table_name = 'TMP_STRING_TABLE'		" +
 			 "AND column_name = 'PARAMETER_VALUE'		" +
-             "AND data_type = 'CLOB')");
+             "AND data_type = 'CLOB')"); 
+         */
+		    psCheckCLOBFieldsExistence = 
+				dbConnector.getConnection().prepareStatement
+				("SELECT 1									" + 
+				 "FROM dual WHERE EXISTS (					" +
+				 "SELECT 1 FROM user_tables WHERE 			" +
+				 "table_name = 'TMP_CLOB_TABLE')"			); 
 		    preparedStatements.add(psCheckCLOBFieldsExistence);
 
 		psSelectPathExtraFields = 
@@ -5599,6 +5607,7 @@ public class ConfDB
 	ResultSet rsIntValues     = null;
 	ResultSet rsRealValues    = null;
 	ResultSet rsStringValues  = null;
+	ResultSet rsClobValues    = null;
 	try {
 		rsParameters    = psSelectParameters.executeQuery();
 	    rsBooleanValues = psSelectBooleanValues.executeQuery();
@@ -5607,7 +5616,8 @@ public class ConfDB
 	    
 	    // Query will be performed depending on db structure: - bug75950
 	    if(clobsFieldsAvailability) {
-		    rsStringValues  = psSelectCLOBsValues.executeQuery();	    	
+	    	rsClobValues  	= psSelectCLOBsValues.executeQuery();
+	    	rsStringValues  = psSelectStringValues.executeQuery();
 	    } else {
 	    	rsStringValues  = psSelectStringValues.executeQuery();
 	    }
@@ -5655,39 +5665,67 @@ public class ConfDB
 		    idToValueAsString.put(parameterId,valueAsString);
 	    }
 	    
+	    
+	    
+	    
+	    
+	    /////////////////
 	    while (rsStringValues.next()) {
-		int    parameterId   = rsStringValues.getInt(1);
-		String  valueAsString = "";
-		if(!clobsFieldsAvailability) {	// Get VARCHAR / STRING.
+			int    parameterId   = rsStringValues.getInt(1);
+			String  valueAsString = "";
+			
 			valueAsString = rsStringValues.getString(2); // get PARAMETER_VALUE
-		} else { // get CLOBS and CONVERT TO JAVA STRINGS: - bug75950
-	    	String errMsg = "Open Configuration FAILED!\n"	+
-			"Error opening CLOB data.\n" +  
-	    	"Please, report this incident to: \n" + AboutDialog.getContactPerson();
-	    	
-			try {
-				valueAsString = CLOBToString(rsStringValues.getClob(2));
-			} catch (java.sql.SQLException e1) {
-		    	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, e1.toString());
-				cd.createAndShowGUI();
-				e1.printStackTrace();
-			} catch (java.io.IOException e2) {
-		    	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, e2.toString());
-				cd.createAndShowGUI();
-				e2.printStackTrace();
-			}
-		} 
-
-		Integer sequenceNb    = new Integer(rsStringValues.getInt(3));
-		
-		if (sequenceNb!=null&&
-		    idToValueAsString.containsKey(parameterId))
-		    idToValueAsString.put(parameterId,
-					  idToValueAsString.get(parameterId) +
-					  ", "+valueAsString);
-		else idToValueAsString.put(parameterId,valueAsString);
+	
+			Integer sequenceNb    = new Integer(rsStringValues.getInt(3));
+			
+			if (sequenceNb!=null&&
+			    idToValueAsString.containsKey(parameterId))
+			    idToValueAsString.put(parameterId,
+						  idToValueAsString.get(parameterId) +
+						  ", "+valueAsString);
+			else idToValueAsString.put(parameterId,valueAsString);
 	    }
+	    
+	    
+	    
+	    
+	    if(clobsFieldsAvailability) {
+		    while (rsClobValues.next()) {
+				int    parameterId   = rsClobValues.getInt(1);
+				String  valueAsString = "";
+				
+		    	String errMsg = "Open Configuration FAILED!\n"	+
+				"Error opening CLOB data.\n" +  
+		    	"Please, report this incident to: \n" + AboutDialog.getContactPerson();
+		    	
+				try {
+					valueAsString = CLOBToString(rsClobValues.getClob(2));
+				} catch (java.sql.SQLException e1) {
+			    	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, e1.toString());
+					cd.createAndShowGUI();
+					e1.printStackTrace();
+				} catch (java.io.IOException e2) {
+			    	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, e2.toString());
+					cd.createAndShowGUI();
+					e2.printStackTrace();
+				}
 
+				Integer sequenceNb    = new Integer(rsClobValues.getInt(3));
+				
+				if (sequenceNb!=null&&
+				    idToValueAsString.containsKey(parameterId))
+				    idToValueAsString.put(parameterId,
+							  idToValueAsString.get(parameterId) +
+							  ", "+valueAsString);
+				else idToValueAsString.put(parameterId,valueAsString);
+			    }
+	    }
+	    
+	    ///////////////////
+	    
+	    
+	    
+	    
 	    
 	    ArrayList<IdPSetPair>  psets  = new ArrayList<IdPSetPair>();
 	    ArrayList<IdVPSetPair> vpsets = new ArrayList<IdVPSetPair>();
