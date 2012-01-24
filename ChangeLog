@@ -1,3 +1,9 @@
+2012-01-24 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-01
+	* Clean up the code according to new requirements for feat.75950/89524.
+	* Update SQL scripts with new table definitions.
+	* Add PLSQL file under /sql/ with procedures to revoke and restore privileges.
+
 2011-01-23 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* Not tagged.
 	* Use a separate tmp table to store CLOBs in the PLSQL. (test).

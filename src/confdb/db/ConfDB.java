@@ -71,7 +71,6 @@ public class ConfDB
     
     // database features:
     private boolean extraPathFieldsAvailability = false;
-    private boolean clobsFieldsAvailability 	= false;
     
     
     /** template table name hash map */
@@ -341,9 +340,6 @@ public class ConfDB
     private  PreparedStatement psSelectPathExtraFields				= null;
     private	 PreparedStatement psInsertPathDescription				= null;
     
-    // Check CLOBs availability: - bug75950
-    private  PreparedStatement psCheckCLOBFieldsExistence			= null;
-    
 
     private ArrayList<PreparedStatement> preparedStatements =
 	new ArrayList<PreparedStatement>();
@@ -422,7 +418,6 @@ public class ConfDB
     public String getPortNumber() 	{ return dbPort; }
     public String getDbName()		{ return dbName; }
     public boolean getExtraPathFieldsAvailability() { return extraPathFieldsAvailability; 	}
-    public boolean getClobsFieldsAvailability() 	{ return clobsFieldsAvailability; 		}
     
     
     /** close all prepared statements */
@@ -543,7 +538,6 @@ public class ConfDB
     public void checkDbFeatures() {
     	try {
             extraPathFieldsAvailability = checkExtraPathFields();
-            clobsFieldsAvailability 	= checkCLOBFields();
     	}
     	catch (DatabaseException e) {
     	    e.printStackTrace(); // DEBUG
@@ -1442,31 +1436,6 @@ public class ConfDB
 		if(extraFields == 1) return true;
 		else return false;
     }
-    
-    /** check CLOBs availability in current db. - bug75950 */
-    public boolean checkCLOBFields() throws DatabaseException {
-    	ResultSet rs = null;
-    	int clobsAvailability = 0;
-    	try {
-    		rs = psCheckCLOBFieldsExistence.executeQuery();
-    		while(rs.next()) {
-    			clobsAvailability = rs.getInt(1);
-    		}
-    		
-    	}
-    	catch (SQLException e) {
-    	    String errMsg =
-    		"ConfDB::checkCLOBFields failed: "+
-    		e.getMessage();
-    	    throw new DatabaseException(errMsg,e);
-    	} finally {
-    		dbConnector.release(rs);
-    	}
-		if(clobsAvailability == 1) return true;
-		else return false;
-    }
-    
-    
     
     
 
@@ -5499,24 +5468,6 @@ public class ConfDB
 			  "and column_name = 'DESCRIPTION')			");
 		    preparedStatements.add(psCheckPathFieldsExistence);
 		    
-	    // SQL statements for CLOBS fields: - bug75950
-		/*
-	    psCheckCLOBFieldsExistence = 
-			dbConnector.getConnection().prepareStatement
-			("SELECT 1									" + 
-			 "FROM dual WHERE EXISTS (					" +
-			 "SELECT 1 FROM all_tab_columns				" +
-			 "WHERE table_name = 'TMP_STRING_TABLE'		" +
-			 "AND column_name = 'PARAMETER_VALUE'		" +
-             "AND data_type = 'CLOB')"); 
-         */
-		    psCheckCLOBFieldsExistence = 
-				dbConnector.getConnection().prepareStatement
-				("SELECT 1									" + 
-				 "FROM dual WHERE EXISTS (					" +
-				 "SELECT 1 FROM user_tables WHERE 			" +
-				 "table_name = 'TMP_CLOB_TABLE')"			); 
-		    preparedStatements.add(psCheckCLOBFieldsExistence);
 
 		psSelectPathExtraFields = 
 			dbConnector.getConnection().prepareStatement(
@@ -5614,13 +5565,8 @@ public class ConfDB
 	    rsIntValues     = psSelectIntValues.executeQuery();
 	    rsRealValues    = psSelectRealValues.executeQuery();
 	    
-	    // Query will be performed depending on db structure: - bug75950
-	    if(clobsFieldsAvailability) {
-	    	rsClobValues  	= psSelectCLOBsValues.executeQuery();
-	    	rsStringValues  = psSelectStringValues.executeQuery();
-	    } else {
-	    	rsStringValues  = psSelectStringValues.executeQuery();
-	    }
+
+	    rsStringValues  = psSelectStringValues.executeQuery();
 
 	    // get values as strings first
 	    HashMap<Integer,String> idToValueAsString =
@@ -5685,42 +5631,6 @@ public class ConfDB
 						  ", "+valueAsString);
 			else idToValueAsString.put(parameterId,valueAsString);
 	    }
-	    
-	    
-	    
-	    
-	    if(clobsFieldsAvailability) {
-		    while (rsClobValues.next()) {
-				int    parameterId   = rsClobValues.getInt(1);
-				String  valueAsString = "";
-				
-		    	String errMsg = "Open Configuration FAILED!\n"	+
-				"Error opening CLOB data.\n" +  
-		    	"Please, report this incident to: \n" + AboutDialog.getContactPerson();
-		    	
-				try {
-					valueAsString = CLOBToString(rsClobValues.getClob(2));
-				} catch (java.sql.SQLException e1) {
-			    	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, e1.toString());
-					cd.createAndShowGUI();
-					e1.printStackTrace();
-				} catch (java.io.IOException e2) {
-			    	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, e2.toString());
-					cd.createAndShowGUI();
-					e2.printStackTrace();
-				}
-
-				Integer sequenceNb    = new Integer(rsClobValues.getInt(3));
-				
-				if (sequenceNb!=null&&
-				    idToValueAsString.containsKey(parameterId))
-				    idToValueAsString.put(parameterId,
-							  idToValueAsString.get(parameterId) +
-							  ", "+valueAsString);
-				else idToValueAsString.put(parameterId,valueAsString);
-			    }
-	    }
-	    
 	    ///////////////////
 	    
 	    

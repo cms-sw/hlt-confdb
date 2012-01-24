@@ -5,8 +5,13 @@
 -- CREATED:
 -- 01/12/2007 Philipp Schieferdecker <philipp.schieferdecker@cern.ch>
 -- 
--- Modified : 
--- 01/05/2009 ConfDBV1 Schema 
+-- Modified :
+-- 24/01/2012 	- Includes documentation fields for Paths table
+--				- Change to 4k char for INPUTTAGPARAMVALUES, VINPUTTAGPARAMVALUES, 
+				  VSTRINGPARAMVALUES, STRINGPARAMVALUES.
+-- 
+-- 01/05/2009 ConfDBV1 Schema
+
 --
 -- TABLE 'SoftwareReleases'
 --
@@ -244,7 +249,9 @@ CREATE TABLE Paths
 (
 	pathId     	NUMBER,
 	name       	VARCHAR2(128)  NOT NULL,
-	isEndPath       NUMBER(1)  DEFAULT '0' NOT NULL,
+	isEndPath   NUMBER(1)  DEFAULT '0' NOT NULL,
+	description	CLOB,
+  	contact		CLOB,
 	CONSTRAINT pk_paths PRIMARY KEY(pathId)
 );
 
@@ -1177,7 +1184,7 @@ CREATE INDEX VDoubleValuesParamId_idx ON VDoubleParamValues(paramId);
 CREATE TABLE StringParamValues
 (
 	paramId    	NUMBER		NOT NULL,
-	value      	CLOB				,
+	value      	VARCHAR2(4000),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
@@ -1192,7 +1199,7 @@ CREATE TABLE VStringParamValues
 (
 	paramId    	NUMBER		NOT NULL,
 	sequenceNb 	NUMBER(6)	NOT NULL,
-	value      	CLOB				,
+	value      	VARCHAR2(4000),
 	UNIQUE(paramId,sequenceNb),
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
@@ -1207,7 +1214,7 @@ CREATE INDEX VStringValuesParamId_idx ON VStringParamValues(paramId);
 CREATE TABLE InputTagParamValues
 (
 	paramId    	NUMBER		NOT NULL,
-	value      	CLOB   		NOT NULL,
+	value      	VARCHAR2(4000)	NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 
@@ -1222,7 +1229,7 @@ CREATE TABLE VInputTagParamValues
 (
 	paramId    	NUMBER		NOT NULL,
 	sequenceNb 	NUMBER(6)	NOT NULL,
-	value      	VARCHAR2(128)	NOT NULL,
+	value      	VARCHAR2(4000)	NOT NULL,
 	FOREIGN KEY(paramId) REFERENCES Parameters(paramId) ON DELETE CASCADE
 );
 

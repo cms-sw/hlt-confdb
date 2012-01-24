@@ -193,7 +193,6 @@ public class ConfDbGUI
     private JScrollPane	  jScrollPanePrescales		= new JScrollPane();
 
     // DB INFO fields:
-    public boolean clobsAvailability;
     public boolean extraPathFieldsAvailability;
     
     
@@ -1087,7 +1086,7 @@ public class ConfDbGUI
 	menuBar.dbConnectionIsEstablished();
 	toolBar.dbConnectionIsEstablished();
 	
-		clobsAvailability 			= database.getClobsFieldsAvailability();
+		
 		extraPathFieldsAvailability = database.getExtraPathFieldsAvailability();
 	
     }
@@ -1225,13 +1224,8 @@ public class ConfDbGUI
 			}
 			
     	    
-		    JTextArea jlabelCLOBsAvailability		= new JTextArea();
-    	    jlabelCLOBsAvailability.setText("Documentation fields availability:");
-    	    jlabelCLOBsAvailability.setEditable(false);
-    	    jlabelCLOBsAvailability.setBackground(null);
-    	    
     	    JTextArea jlabelExtraPathsAvailability	= new JTextArea();
-    	    jlabelExtraPathsAvailability.setText("Long String support:");
+    	    jlabelExtraPathsAvailability.setText("Documentation fields availability:");
     	    jlabelExtraPathsAvailability.setEditable(false);
     	    jlabelExtraPathsAvailability.setBackground(null);
     	    
@@ -1280,8 +1274,6 @@ public class ConfDbGUI
     	    if(extraPathFieldsAvailability) ico1.setIcon(new ImageIcon(getClass().getResource("/ESSourcesDirIcon.png")));
     	    else 							ico1.setIcon(new ImageIcon(getClass().getResource("/ModulesDirIcon.png")));
     	    
-    	    if(clobsAvailability) 			ico2.setIcon(new ImageIcon(getClass().getResource("/ESSourcesDirIcon.png")));
-    	    else 							ico2.setIcon(new ImageIcon(getClass().getResource("/ModulesDirIcon.png")));
     	    
     	    
     	    org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(infoPanel);
@@ -1297,7 +1289,6 @@ public class ConfDbGUI
     	    		.add(DatabaseHost, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE)
     	    		.add(DatabaseName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE)
     	    		
-    	    		.add(jlabelCLOBsAvailability, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE)
     	    		.add(jlabelExtraPathsAvailability, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE))
     	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
 		    		.add(DatabaseProductVersionValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1306,8 +1297,7 @@ public class ConfDbGUI
 		    		.add(DatabaseHostValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 		    		.add(DatabaseNameValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 		    		
-    	    		.add(ico1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25)
-    	    		.add(ico2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25))
+    	    		.add(ico1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25))
     	    );
     	    
     	    layout.setVerticalGroup(layout.createSequentialGroup()
@@ -1326,12 +1316,9 @@ public class ConfDbGUI
         	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
         	    		.add(DatabaseName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
         	    		.add(DatabaseNameValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
-	    	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)    		
-	    	    		.add(jlabelCLOBsAvailability, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 25)
-	    	    		.add(ico1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25))
 	    	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
 	    	    		.add(jlabelExtraPathsAvailability, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 25)
-	    	    		.add(ico2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25))
+	    	    		.add(ico1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25))
     	    );
 
         
