@@ -1,5 +1,6 @@
 Configuration/StandardSequences		FrontierConditions_GlobalTag_cfi.py
 FWCore/MessageLogger			MessageLogger_cfi.py
+RecoTracker/FinalTrackSelectors         selectLoose_cfi.py
 RecoBTag/TrackProbability               trackProbabilityFakeCond_cfi.py
 RecoTracker/MeasurementDet		MeasurementTrackerESProducer_cfi.py
 RecoTracker/TkSeedingLayers             PixelAndStripLayerPairs_cfi.py
@@ -27,7 +28,6 @@ RecoJets/JetProducers                   ca4TrackJets_cfi.py
 RecoMET/METProducers                    CaloMET_cfi.py
 RecoMET/METProducers                    genMetCalo_cfi.py
 RecoMET/METProducers			TCMET_cfi.py
-RecoEgamma/EgammaHLTProducers		hltEgammaRegionalCTFFinalFitWithMaterial_cfi.py
 RecoEgamma/EgammaHLTProducers           hltPhotonTrackIsol_cfi.py
 RecoEgamma/EgammaPhotonProducers	conversionTrackCandidates_cfi.py
 RecoEcal/EgammaClusterProducers         correctedIslandBarrelSuperClusters_cfi.py
