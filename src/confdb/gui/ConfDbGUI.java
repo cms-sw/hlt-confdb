@@ -2693,6 +2693,9 @@ public class ConfDbGUI
     private void clearPathFields() {
     	// Restore the original jPanelPlugin panel.
     	jSplitPaneRightUpper.setTopComponent(jPanelPlugin);
+    	jScrollPaneParameters.setVisible(true);
+    	jSplitPaneRightUpper.setDividerLocation(0);
+    	jSplitPaneRightUpper.setDividerSize(-1);
    }
     
     /** displays the paths fields panel - right upper area. */
@@ -2711,9 +2714,12 @@ public class ConfDbGUI
     	
     	if(currentParameterContainer instanceof Path) {
     		Path container = (Path)currentParameterContainer;
-    	    jSplitPaneRightUpper.setDividerLocation(250);	// Set the vertical size of the panel.
-    	    jSplitPaneRightUpper.setDividerSize(8);
+    	    jSplitPaneRightUpper.setDividerLocation(100);	// Set the vertical size of the panel.
+    	    jSplitPaneRightUpper.setDividerSize(-1);
         	jSplitPaneRightUpper.setTopComponent(jPanelPathFields);
+        	jScrollPaneParameters.setVisible(false);
+        	
+        	
         	
         	jEditorPathDescription.setText(container.getDescription());
         	jEditorPathContacts.setText(container.getContacts());
@@ -3264,8 +3270,11 @@ public class ConfDbGUI
 	}
 	 
 	// Bug 82525: "import" feature resets the size / position of the panels.
-	// commenting next line jSplitPanel position is avoided.
-	//jSplitPane.setRightComponent(jSplitPaneRight);
+	// RightComponent is only restored when needed.
+	if(jSplitPane.getRightComponent().equals(jPanelContentEditor))
+		jSplitPane.setRightComponent(jSplitPaneRight);
+	
+	clearPathFields();
 	
 	while (node instanceof Parameter) {
 	    Parameter p = (Parameter)node;
@@ -3277,30 +3286,24 @@ public class ConfDbGUI
 	}
 	
 	if (node instanceof ParameterContainer) {
+		
 	    currentParameterContainer = node;
 	    displayParameters();
 	    displaySnippet();
-	    clearPathFields();
-	}
-	else if (node==null||node==treeModelCurrentConfig.psetsNode()) {
+	    
+	} else if (node==null||node==treeModelCurrentConfig.psetsNode()) {
 	    currentParameterContainer = currentConfig.psets();
 	    displayParameters();
 	    displaySnippet();
-	    clearPathFields();
-	}
-	else if (node instanceof ReferenceContainer) {
+	} else if (node instanceof ReferenceContainer) {
 	    clearParameters();
 	    currentParameterContainer = node;
 	    displaySnippet();
-	    if(currentParameterContainer instanceof Path) {
-	    	displayPathFields();
-	    }
+	    if(currentParameterContainer instanceof Path) displayPathFields();
 	    
-	}
-	else {
+	} else {
 	    clearParameters();
 	    clearSnippet();
-	    //clearPathFields();
 	}
     }
 

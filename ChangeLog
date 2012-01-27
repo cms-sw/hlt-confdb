@@ -1,4 +1,10 @@
 2012-01-27 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-04
+	* Fix EventContent editor in Right Upper Panel. No panels were displayed
+	  after clicking an EventContent.
+	* Improves documentation fields panel to take up the maximum size.
+	
+2012-01-27 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-03
 	* Add quotation marks to empty VInputTag values. bug #90850.
 	
