@@ -5966,8 +5966,12 @@ public class ConfDB
 		    }
 		    else if (vp instanceof VUInt64Parameter) {
 			psInsertParameterValue.setObject(3,((BigInteger)vp.value(i)).longValue());
-		    }
-		    else {
+		    } else if (vp instanceof VInputTagParameter) {
+		    	// fix to bug #90850: "Export Configuration Failed"
+		    	String value = (String) vp.value(i);
+		    	if(value.isEmpty()) value = "\"\"";		 
+		    	psInsertParameterValue.setString(3,value);
+		    } else {
 			psInsertParameterValue.setObject(3,vp.value(i));
 		    }
 

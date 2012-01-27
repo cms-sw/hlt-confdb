@@ -1,3 +1,7 @@
+2012-01-27 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-03
+	* Add quotation marks to empty VInputTag values. bug #90850.
+	
 2012-01-26 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-02
 	* Change host name for TEST2R setup to int2r1-s.cern.ch
