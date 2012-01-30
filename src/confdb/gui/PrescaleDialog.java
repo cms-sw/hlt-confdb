@@ -4,6 +4,8 @@ import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -297,14 +299,16 @@ public class PrescaleDialog extends JDialog
  * PrescaleTableService
  * This is to get a prescale JTable for one particular path. 
  * NOTE: It will be used in rightUpperPanel. */
-
 class PrescaleTableService {
     /** model for the prescale table */
-    private PrescaleTableModel 	tableModel	;
+    private PrescaleSinglePathTableModel 	tableModel	;
 	private Configuration 		config		;
     private JTable     jTable           = new javax.swing.JTable();
+    private JButton    jButtonApply     = new javax.swing.JButton();
+    private boolean	   hasChanged		= false;
     
 
+    public PrescaleTableService(){};	// NULL CONSTRUCTOR
     public PrescaleTableService(Configuration config) {
     	this.config = config;
     }
@@ -313,7 +317,7 @@ class PrescaleTableService {
      * NOTE: The table will be used to ONLY display prescales and
      * not to modify them. */
     public JTable initialise(Path path) {
-    	tableModel = new PrescaleTableModel();
+    	tableModel = new PrescaleSinglePathTableModel();
     	tableModel.initialize(config, path);
     	jTable.setModel(tableModel);
     	jTable.setDefaultRenderer(Integer.class,new PrescaleTableCellRenderer());
@@ -339,6 +343,28 @@ class PrescaleTableService {
     public JTable getPrescaleTable(Path path) {
     	return initialise(path);
     }
+    
+    /** Get a JPanel with the corresponding prescale row.
+     * Allow to edit the prescale for that path and includes
+     * Component to save the values ready to be embebed in a Panel. 
+     * @param path
+     * @return JPanel
+     */
+    public JTable getPrescaleTableEditable(Path path) {
+    	JTable table = initialise(path);
+    	table.setEnabled(true);    	
+    	return table;
+    }
+    
+    public void savePrescales() {
+    	//tableModel.updatePrescaleService(config); DO NOT USE. This will scratch ALL prescales.
+    	tableModel.updatePrescaleServiceSinglePath(config);
+    	
+    }
+    
+    public void setHasChanged() { hasChanged = true; }
+    
+    public boolean hasChanged() { return hasChanged; }
 }
 
 //
@@ -346,8 +372,8 @@ class PrescaleTableService {
 //
 class PrescaleTableModel extends AbstractTableModel
 {
-    /** the presacale table data structure */
-    private PrescaleTable prescaleTable;
+    /** the prescale table data structure */
+    protected PrescaleTable prescaleTable;
 
     public String defaultName()
     {
@@ -365,10 +391,6 @@ class PrescaleTableModel extends AbstractTableModel
     {
 	prescaleTable = new PrescaleTable(config);
 	fireTableDataChanged();
-    }
-    
-    public void initialize(IConfiguration config, Path path) {
-    	prescaleTable = new PrescaleTable(config, path);
     }
 
     /** update the PrescaleService in configuration according to table data */
@@ -484,7 +506,9 @@ class PrescaleTableModel extends AbstractTableModel
     /** set the value of a table cell */
     public void setValueAt(Object value,int row, int col)
     {
-	prescaleTable.setPrescale(row,col-1,(Integer)value);
+    	prescaleTable.setPrescale(row,col-1,(Integer)value);
+    	
+    	fireTableDataChanged();	// Fire event to alert a listener at ConfDbGUI.java (bug 89524).
     }
     
     
@@ -496,6 +520,77 @@ class PrescaleTableModel extends AbstractTableModel
 	return false;
     }
 }
+
+
+//
+// PrescaleTable Model for one single prescale row/path
+// NOTE: DO NOT USE the parent methods since that will scratch ALL prescales.
+// In this Model will only be loaded ONE path prescale. 
+class PrescaleSinglePathTableModel extends PrescaleTableModel {
+	
+	/* Initialize the table with only one row - the given path */
+    public void initialize(IConfiguration config, Path path) {
+    	prescaleTable = new PrescaleTable(config, path);
+    }
+	
+    /*Update prescale service with the only row contained in the table. 
+     * NOTE: This function copies all the values in the table from the Original PrescaleTable.
+     * This follows the workflow of the original class.
+     * */
+    public void updatePrescaleServiceSinglePath(IConfiguration config) {
+    	
+    	PrescaleTable fullTable = new PrescaleTable(config); // FULL TABLE:
+    	
+    	
+    	ServiceInstance prescaleSvc = config.service("PrescaleService");
+    	if (prescaleSvc==null) {
+    	    System.err.println("No PrescaleService found.");
+    	    return;
+    	}
+    	prescaleSvc.updateParameter("lvl1DefaultLabel","string",prescaleTable.defaultName());
+    	StringBuffer labelsAsString = new StringBuffer();
+    	for (int i=0;i<prescaleTable.prescaleCount();i++) {
+    	    if (labelsAsString.length()>0) labelsAsString.append(",");
+    	    labelsAsString.append(prescaleTable.prescaleColumnName(i));
+    	}
+    	prescaleSvc.updateParameter("lvl1Labels","vstring",labelsAsString.toString());
+    	
+    	
+    	VPSetParameter vpsetPrescaleTable = (VPSetParameter)prescaleSvc.parameter("prescaleTable","VPSet");
+    	if (vpsetPrescaleTable==null) {
+    	    System.err.println("No VPSet prescaleTable found.");
+    	    return;
+    	}
+    	vpsetPrescaleTable.setValue("");
+    	
+    	// Get the values of the modified path prescale.
+    	String pathNameToUpdate = prescaleTable.pathName(0);			// Zero because there is only one row.
+    	String PrescAsString 	= prescaleTable.prescalesAsString(0);	// Zero because there is only one row.
+    	
+    	for (int iPath=0;iPath<fullTable.pathCount();iPath++) {
+    	    String pathName = fullTable.pathName(iPath);
+    	    String prescalesAsString = fullTable.prescalesAsString(iPath);
+    	    
+    	    if(pathName.compareTo(pathNameToUpdate) == 0)  {
+    	    	prescalesAsString = PrescAsString; // Overwrite values with the update.	
+    	    } else {
+    	    	if (!fullTable.isPrescaled(iPath)) continue;
+    	    }
+    	    
+    	    ArrayList<Parameter> params = new ArrayList<Parameter>();
+    	    StringParameter  sPathName = new StringParameter("pathName",pathName,true);
+    	    VUInt32Parameter vPrescales = new VUInt32Parameter("prescales",prescalesAsString,true);
+    	    params.add(sPathName);
+    	    params.add(vPrescales);
+    	    vpsetPrescaleTable.addParameterSet(new PSetParameter("",params,true));
+    	    
+    	}
+    	prescaleSvc.setHasChanged();
+    }
+	
+}
+
+
 
 
 //

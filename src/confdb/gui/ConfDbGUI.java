@@ -191,6 +191,7 @@ public class ConfDbGUI
     private JTextField    jTextFieldPathName		= new JTextField();
     private JTable     	  jTablePrescales  			= new javax.swing.JTable(); // Prescales for rightUpperPanel.
     private JScrollPane	  jScrollPanePrescales		= new JScrollPane();
+    private PrescaleTableService PrescaleTServ		= new PrescaleTableService();
 
     // DB INFO fields:
     public boolean extraPathFieldsAvailability;
@@ -344,6 +345,7 @@ public class ConfDbGUI
 	jButtonSavePathFields.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 			SaveDocumentationFieldsActionPerformed();
+			
 		}
 	});
 	
@@ -1338,6 +1340,7 @@ public class ConfDbGUI
     
 
     /** reset current and import configuration */
+    // TODO:
     private void resetConfiguration()
     {
 	currentRelease.clearInstances();
@@ -1371,6 +1374,8 @@ public class ConfDbGUI
 	jToggleButtonImport.setEnabled(false);
 
 	jSplitPane.setRightComponent(jSplitPaneRight);
+	clearPathFields(); // TODO
+	
     }
 
     /** check if current configuration is in a valid state for save/convert */
@@ -1440,6 +1445,10 @@ public class ConfDbGUI
 	jTextFieldCreator.setText(currentConfig.creator());
 	
 	jTextFieldProcess.setEditable(true);
+	
+	// Set current configuration to the prescaleService
+	PrescaleTServ = new PrescaleTableService(currentConfig);
+	
     }
     
     
@@ -2730,8 +2739,16 @@ public class ConfDbGUI
             jButtonCancelPathFields.setEnabled(false);
             
             // Set prescales fot the current path.
-            PrescaleTableService PrescaleTServ = new PrescaleTableService(currentConfig);
-            jTablePrescales = PrescaleTServ.getPrescaleTable(container);
+            jTablePrescales = PrescaleTServ.getPrescaleTableEditable(container);
+            
+            jTablePrescales.getModel().addTableModelListener(new TableModelListener() {
+				public void tableChanged(TableModelEvent e) {
+					PrescaleTServ.setHasChanged();		// set the prescale as changed to allow save the value by jButtonSavePathFields.
+					setDocumentationFieldsChanged();	// Enable the buttons.
+				}
+			});
+            
+            
             jScrollPanePrescales.setViewportView(jTablePrescales);
         	
     	} else {
@@ -2741,7 +2758,11 @@ public class ConfDbGUI
 
    }
     
-    
+	// Set save button as enable to save documentation fields and prescales.      
+   public void setDocumentationFieldsChanged() {
+		jButtonSavePathFields.setEnabled(true);
+		jButtonCancelPathFields.setEnabled(true);
+   } 
     
     
     /** display the configuration snippet for currently selected component */
@@ -3000,6 +3021,8 @@ public class ConfDbGUI
 		    if((p.getContacts() != null) && (!jEditorPathContacts.getText().equals(p.getContacts()))) 	save = true;
 		    if((p.getDescription() == null) && (!jEditorPathDescription.getText().equals(""))) 					save = true;
 		    if((p.getDescription() != null) && (!jEditorPathDescription.getText().equals(p.getDescription()))) 	save = true;
+		    
+		    if((PrescaleTServ != null) && (PrescaleTServ.hasChanged())) save = true;
 		    	
 		    if(save) {
 			    p.setDescription(jEditorPathDescription.getText());
@@ -3013,6 +3036,8 @@ public class ConfDbGUI
 			    // It will be automatically enabled when Text is modified.
 			    jButtonSavePathFields.setEnabled(false);
 			    jButtonCancelPathFields.setEnabled(false);
+			    
+			    PrescaleTServ.savePrescales();	// Save Prescale values from Documentation Field Panel.
 		    }
 		}
     }
@@ -4357,6 +4382,7 @@ public class ConfDbGUI
         JLabel jLabelPathDescription	= new javax.swing.JLabel();
         JLabel jLabelPathContacts		= new javax.swing.JLabel();
         JLabel jLabelPathName 			= new javax.swing.JLabel();
+        JLabel jLabelPrescales 			= new javax.swing.JLabel();
 
         jLabelPathDescription.setFont(new java.awt.Font("Dialog", 0, 12));
         jLabelPathDescription.setText("Description:");
@@ -4366,6 +4392,9 @@ public class ConfDbGUI
         
         jLabelPathName.setFont(new java.awt.Font("Dialog", 0, 12));
         jLabelPathName.setText("Path:");
+        
+        jLabelPrescales.setFont(new java.awt.Font("Dialog", 0, 12));
+        jLabelPrescales.setText("Prescales:");
         
         jTextFieldPathName.setBackground(new java.awt.Color(250, 250, 250));
         jTextFieldPathName.setEditable(false);
@@ -4387,8 +4416,7 @@ public class ConfDbGUI
 			public void changedUpdate(DocumentEvent e) { somethingHasChanged(); }
 			
 			public void somethingHasChanged() {
-					jButtonSavePathFields.setEnabled(true);
-					jButtonCancelPathFields.setEnabled(true);
+				setDocumentationFieldsChanged();
 			}
 		});
         // Set Document Listener:
@@ -4403,8 +4431,7 @@ public class ConfDbGUI
 			public void changedUpdate(DocumentEvent e) { somethingHasChanged(); }
 			
 			public void somethingHasChanged() {
-					jButtonSavePathFields.setEnabled(true);
-					jButtonCancelPathFields.setEnabled(true);
+				setDocumentationFieldsChanged();
 			}
 		});
         
@@ -4413,7 +4440,7 @@ public class ConfDbGUI
         jPanelPathFields.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         // Prescales:
-        jScrollPanePrescales.setViewportView(jTablePrescales);
+        //jScrollPanePrescales.setViewportView(jTablePrescales);
     	
     	/* set the elements: */
         org.jdesktop.layout.GroupLayout jPanelPathLayout = new org.jdesktop.layout.GroupLayout(jPanelPathFields);
@@ -4425,19 +4452,19 @@ public class ConfDbGUI
         .add(jLabelPathName)
         .add(jLabelPathDescription)
         .add(jLabelPathContacts)
+        .add(jLabelPrescales)
         )
         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
         .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
         .add(jTextFieldPathName, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
         .add(jScrollPanePathDescription, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
         .add(jScrollPanePathContacts, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+        .add(jScrollPanePrescales, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 708, Short.MAX_VALUE)
         .add(jPanelPathLayout.createSequentialGroup()
                 .add(jButtonCancelPathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 100, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jButtonSavePathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 100, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-        		)
-        .add(jScrollPanePrescales, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 708, Short.MAX_VALUE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED))
         )
         );
         
@@ -4458,14 +4485,13 @@ public class ConfDbGUI
         )
         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
         .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-        		.add(jButtonCancelPathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-        		.add(jButtonSavePathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-        		)
+        .add(jLabelPrescales)
+        .add(jScrollPanePrescales, GroupLayout.PREFERRED_SIZE, 34, GroupLayout.PREFERRED_SIZE)
+        )
         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
         .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-        		.add(jScrollPanePrescales, GroupLayout.PREFERRED_SIZE, 34, GroupLayout.PREFERRED_SIZE)
-        		
-        )
+        		.add(jButtonCancelPathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+        		.add(jButtonSavePathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
         );
         
 
