@@ -52,11 +52,10 @@ Geometry/CaloEventSetup			CaloGeometryBuilder_cfi.py
 Geometry/EcalAlgo			EcalBarrelGeometry_cfi.py
 MagneticField/Engine			autoMagneticFieldProducer_cfi
 CommonTools/RecoAlgos			LargestEtCaloJetSelector_cfi.py
-CommonTools/RecoAlgos			EtMinCaloJetSelector_cfi.py
+CommonTools/RecoAlgos			etMinCaloJetSelector_cfi.py
 JetMETCorrections/Modules		hltLXXXCorrectionESProducer_cfi.py
 JetMETCorrections/Modules		hltL1FastjetCorrectionESProducer_cfi.py
 JetMETCorrections/Configuration		JetCorrectionServices_cff.py
 JetMETCorrections/Modules		hltJetCorrectionESChain_cfi.py
-JetMETCorrections/Modules		JetCorrectionServiceChain_cfi.py
 JetMETCorrections/Configuration		DefaultJEC_cff.py
 GeometryReaders/XMLIdealGeometryESSource	cmsGeometryDB_cff.py
