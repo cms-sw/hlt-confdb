@@ -1,8 +1,14 @@
+2012-01-31 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-06
+	* Better implementation of SinglePathPrescaleTable and PrescaleTableService 
+	  in different files, using class inheritance, and proper names.
+	* Fix interference with the original prescale editor.
+
 2012-01-30 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-05
 	* Clear documentation panel (right upper panel) when a configuration is closed.
 	* Make prescales table editable in documentation panel. (bug/feature 89524).
-	* Add autosave for prescales enbedded in documentation panel.
+	* Add autosave for prescales embedded in documentation panel.
 
 2012-01-27 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-04

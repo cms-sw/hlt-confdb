@@ -186,7 +186,7 @@ public class ConfDbGUI
     private JEditorPane   jEditorPathContacts	    = new JEditorPane();
     private JScrollPane	  jScrollPanePathContacts	= new JScrollPane();
     private JScrollPane	  jScrollPanePathDescription= new JScrollPane();
-    private JButton		  jButtonSavePathFields		= new JButton("Save");
+    private JButton		  jButtonSavePathFields		= new JButton("Apply");
     private JButton		  jButtonCancelPathFields	= new JButton("Cancel");
     private JTextField    jTextFieldPathName		= new JTextField();
     private JTable     	  jTablePrescales  			= new javax.swing.JTable(); // Prescales for rightUpperPanel.
@@ -851,6 +851,10 @@ public class ConfDbGUI
     /** open prescale editor */
     public void openPrescaleEditor()
     {
+    	// NOTE: clearPathFields() is necessary to do not interfere with 
+    	// the embedded editor in the rightUpperPanel (documentation panel):
+    	clearPathFields();  
+    	
 	PrescaleDialog dialog = new PrescaleDialog(frame,currentConfig);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
@@ -1340,7 +1344,6 @@ public class ConfDbGUI
     
 
     /** reset current and import configuration */
-    // TODO:
     private void resetConfiguration()
     {
 	currentRelease.clearInstances();
@@ -1374,8 +1377,7 @@ public class ConfDbGUI
 	jToggleButtonImport.setEnabled(false);
 
 	jSplitPane.setRightComponent(jSplitPaneRight);
-	clearPathFields(); // TODO
-	
+	clearPathFields(); 
     }
 
     /** check if current configuration is in a valid state for save/convert */
@@ -2716,7 +2718,6 @@ public class ConfDbGUI
 		try {
 			extrafields = database.checkExtraPathFields();
 		} catch (DatabaseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     	if(!extrafields) return;
