@@ -1,3 +1,10 @@
+RecoBTau/JetTagComputer                 combinedMVABJetTags_cfi.py
+RecoEcal/EgammaClusterProducers         multi5x5SuperClustersWithPreshower_cfi.py
+RecoEcal/EgammaClusterProducers         multi5x5SuperClusters_cfi.py
+EventFilter/SiStripRawToDigi            SiStripDigis_cfi.py
+DQM/CSCMonitorModule                    csc_hlt_dqm_sourceclient_cfi.py
+RecoParticleFlow/PFProducer             particleFlow_cfi.py
+RecoParticleFlow/PFProducer             particleFlowBlock_cfi.py
 RecoJets/Configuration                  CaloTowersES_cfi.py
 Configuration/StandardSequences		FrontierConditions_GlobalTag_cfi.py
 FWCore/MessageLogger			MessageLogger_cfi.py
