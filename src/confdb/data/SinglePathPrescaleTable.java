@@ -7,6 +7,8 @@ import java.util.Iterator;
 
 /**
  * Class SinglePathPrescaleTable
+ * @author raul.jimenez.estupinan@cern.ch
+ * @see PrescaleTable, PrescaleTableService
  * Implements PrescaleTable to contain prescales of one single Path each time.
  * This class has been designed to manipulate prescales of a single path embedded
  * in a panel.
@@ -19,7 +21,7 @@ public class SinglePathPrescaleTable extends PrescaleTable {
 	
 
 	// CONSTRUCTOR
-	/** PrescaleTable constructor for only one path 
+	/** PrescaleTable constructor to load one single path 
      *  Only fill the table with prescales for the given path.*/
     public SinglePathPrescaleTable(IConfiguration config, Path path) {
     	this.path = path;
@@ -28,8 +30,7 @@ public class SinglePathPrescaleTable extends PrescaleTable {
     
     // METHODS
     
-    /** Initialise prescale table with prescales for the given path. 
-     * This is to be give prescales information for a particular path. */
+    /** Initialise prescale table with prescales for the given path.  */
     private void initializeForGivenPath(IConfiguration config, Path path)
     {
 		defaultName="";

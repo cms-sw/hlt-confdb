@@ -84,10 +84,12 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
     /**create transferable which contains all paths that are currently selected */
     protected Transferable createTransferable(JComponent c)
     {
+
   	Transferable t = null;
 	if(c instanceof JTree) {
 	    sourceTree  = (JTree)c;
 	    sourceNode  = sourceTree.getSelectionPath().getLastPathComponent();
+	    
 	    if (sourceNode instanceof ReferenceContainer ||
 		sourceNode instanceof Reference ||
 		sourceNode instanceof Instance ||
@@ -95,6 +97,14 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
 		sourceNode instanceof Parameter) {
 		ConfigurationTreeTransferHandler.setDragImage();
 		t = new GenericTransferable(sourceNode);
+	    }
+	    
+
+	    if(sourceNode instanceof ConfigurationTreeNode) {
+	    	if(((ConfigurationTreeNode)sourceNode).object() instanceof PrimaryDataset) {
+				ConfigurationTreeTransferHandler.setDragImage();
+				t = new GenericTransferable(sourceNode);
+	    	}
 	    }
 	}
 	return t;
@@ -108,7 +118,7 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
     
     /** import data which is being dragged */
     public boolean importData(JComponent comp,Transferable t)
-    {
+    {	
 	if (sourceNode==null) return false;
 	if (!(comp instanceof JTree)) return false;
 	if (!((JTree)comp).isEditable()) return false;
@@ -214,6 +224,41 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
 		Reference source = (Reference)sourceNode;
 		return ConfigurationTreeActions.moveReference(targetTree,source);
 	    }
+	    
+	    
+		// Also allow PrimaryDatasets - bug #88066.
+	    if(sourceNode instanceof ConfigurationTreeNode) {
+	    	// sourceNode could be a PrimaryDataset:
+	    	
+	    	ConfigurationTreeNode sctn = (ConfigurationTreeNode) sourceNode;
+	    	if(sctn.object() instanceof PrimaryDataset) {
+	    		
+	    		// sourceNode IS a PrimaryDataset so check the targetNode:
+	    		if(targetNode instanceof ConfigurationTreeNode) {
+	    			// targetNode could be another PrimaryDataset inside a Stream.
+	    			ConfigurationTreeNode tctn = (ConfigurationTreeNode) targetNode;
+
+	    			if( (sctn.object() instanceof PrimaryDataset) &&
+	    				(tctn.object() instanceof PrimaryDataset) &&
+	    				(tctn.parent() instanceof Stream)) {
+	    				// target is a PrimaryDataset inside a Streams
+						PrimaryDataset pset = (PrimaryDataset)sctn.object();
+				    	TreePath TargetPath = new TreePath(targetModel.getPathToRoot(tctn.parent())); // Set treePath to the targetStream
+				    	targetTree.setSelectionPath(TargetPath);
+			    		// MOVE PSET:
+						ConfigurationTreeActions.movePrimaryDataset(sourceTree, targetTree, pset);
+	    			}
+	    		} else if(targetNode instanceof Stream) {
+	    			// targetNode IS a Stream.
+					PrimaryDataset pset = (PrimaryDataset)sctn.object();
+			    	TreePath TargetPath = new TreePath(targetModel.getPathToRoot(targetNode));	//point to the Stream
+			    	targetTree.setSelectionPath(TargetPath);
+		    		// MOVE PSET:
+					ConfigurationTreeActions.movePrimaryDataset(sourceTree, targetTree, pset);
+	    		}
+	    	} 
+	    }
+	    
 	}
 	
 	return false;

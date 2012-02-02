@@ -149,6 +149,9 @@ public class ConfigurationTreeActions
     }
     
     
+
+    
+    
     /** remove global pset */
     public static boolean removePSet(JTree tree,PSetParameter pset)
     {
@@ -3139,13 +3142,12 @@ public class ConfigurationTreeActions
 	
 	stream.insertPath(path);
 
-
 	if (model.contentMode().equals("paths"))
 	    model.nodeInserted(content,content.indexOfPath(path));
-
+	
 	if (model.streamMode().equals("paths"))
 	    model.nodeInserted(stream,stream.indexOfPath(path));
-
+	
 	Iterator<Stream> itS = content.streamIterator();
 	while (itS.hasNext()) {
 	    OutputModule output = itS.next().outputModule();
@@ -3287,18 +3289,115 @@ public class ConfigurationTreeActions
 	int index = config.indexOfDataset(dataset);
 	model.nodeInserted(model.datasetsNode(),index);
 	if (model.streamMode().equals("datasets"))
-	    model.nodeInserted(dataset.parentStream(),
-			       dataset.parentStream().indexOfDataset(dataset));
+	    model.nodeInserted(dataset.parentStream(), dataset.parentStream().indexOfDataset(dataset));
+	
 	model.nodeStructureChanged(model.contentsNode());
 	model.updateLevel1Nodes();
 	
 	if (node == model.datasetsNode()) {
 	    TreePath newTreePath = treePath.pathByAddingChild(dataset);
 	    tree.setSelectionPath(newTreePath);
+	    
 	}
 	
 	return true;
     }
+    
+    
+    /**
+     * This method inserts an existing PrimaryDatasets into a Stream including
+     * all it's paths. 
+     * This is to implement the drag and drop functionality for PrimaryDatasets
+     * between Streams.
+     * bug/feature 88066
+     * */
+    public static boolean insertPrimaryDatasetPathsIncluded(JTree tree, PrimaryDataset dataset) {
+    	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+    	Configuration          config = (Configuration)model.getRoot();
+    	TreePath               treePath = tree.getSelectionPath();
+    	Object                 node     = treePath.getLastPathComponent();
+    	boolean inserted = true;
+    	
+    	if(node instanceof Stream) {
+    		Stream targetStream = (Stream) node;
+    		PrimaryDataset newDataSet = targetStream.insertDataset(dataset.name());
+    		insertPrimaryDataset(tree, newDataSet);
+    		
+    		TreePath TargetPath = new TreePath(model.getPathToRoot(newDataSet));
+    		tree.setSelectionPath(TargetPath);
+    		
+    		for(int i = 0; i < dataset.pathCount(); i++)
+    			inserted = addPathToDataset_noUpdateTreeNodes(tree, dataset.path(i).name());
+    		
+    		if(!inserted) {
+    			// if not all the paths were properly inserted then remove the dataset.
+    			// this will allow to restore the dataset to the original stream.
+    			removePrimaryDataset(tree);
+    		}
+    		
+    		// Due too the large amount of paths that can be associated to a primaryDataset
+    		// the Tree structure is only updated at the end of the process.
+    		model.nodeChanged(newDataSet);
+    		model.updateLevel1Nodes();
+    	}
+    	
+    	return inserted;
+    }
+    
+    /**
+     * movePrimaryDataset
+     * Uses sourceTree and targetTree to retrieve the transferred components
+     * NOTE: 
+     *  - Launch an error message to the user and revert the operation
+     *    in case of failure.
+     *  - When a Primary Dataset is transferred/moved from one stream to 
+     *    another, paths are not removed from the parent source stream.
+     * bug/feature 88066
+     * */
+    public static boolean movePrimaryDataset(JTree sourceTree, JTree targetTree, PrimaryDataset dataset) {
+    	
+    	TreePath               targetPath  = targetTree.getSelectionPath();
+    	Object                 targetNode  = targetPath.getLastPathComponent();
+		ConfigurationTreeModel sourceModel = (ConfigurationTreeModel)sourceTree.getModel();
+		Configuration          config = (Configuration)sourceModel.getRoot();
+		
+		// Remove
+    	TreePath SourcePath = new TreePath(sourceModel.getPathToRoot(dataset));
+    	sourceTree.setSelectionPath(SourcePath);			    	
+    	ConfigurationTreeActions.removePrimaryDataset(sourceTree);
+    	
+    	// Insert
+    	TreePath TargetPath = new TreePath(sourceModel.getPathToRoot(targetNode));
+    	targetTree.setSelectionPath(TargetPath);
+		boolean ok = ConfigurationTreeActions.insertPrimaryDatasetPathsIncluded(targetTree, dataset);
+		
+		if(!ok) {
+			// REVERT THE OPERATION
+
+			// Restore the dataset to the previous Stream:
+			SourcePath = new TreePath(sourceModel.getPathToRoot(dataset.parentStream())); // Point to the parent Stream.
+	    	sourceTree.setSelectionPath(SourcePath);			    	
+			ConfigurationTreeActions.insertPrimaryDatasetPathsIncluded(sourceTree, dataset);
+			
+			// ERROR: 
+			// Add the configuration details:
+			String StackTrace = "ConfDb Version: " 	+ AboutDialog.getConfDbVersion() 	+ "\n";
+			StackTrace+= "Release Tag: " 			+ config.releaseTag()   		+ "\n";
+			StackTrace+= "Configuration: " 			+ config.name()				+ "\n";
+			StackTrace+= "-----------------------------------------------------------------\n";
+			StackTrace+= "ERROR: ConfigurationTreeActions.insertPrimaryDatasetPathsIncluded(targetTree, pset); \n";
+			StackTrace+= "ERROR: PrimaryDataset.insertPath() \n";
+			
+	    	String errMsg = "Drag and Drop operation FAILED!\n"	+
+			"path already associated with dataset in the parent stream!\n"; 
+			
+	    	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, StackTrace);
+			cd.createAndShowGUI();
+		}
+		
+		return ok;
+    }
+    
     
     /** import primary dataset */
     public static boolean importPrimaryDataset(JTree tree,
@@ -3359,7 +3458,7 @@ public class ConfigurationTreeActions
 	Object                 node     = treePath.getLastPathComponent();
 	PrimaryDataset dataset = null;
 	Stream         stream  = null;
-
+	
 	if (node instanceof PrimaryDataset) {
 	    dataset = (PrimaryDataset)node;
 	    stream  = dataset.parentStream();
@@ -3437,6 +3536,65 @@ public class ConfigurationTreeActions
 	
 	return true;
     }
+    
+    /** Add a path to a primary dataset 
+     * So far, this method is used to add a single path to a Primary dataset.
+     * NOTE: This method will not update the TreeNodes since this is to be used
+     * in a loop for multiple path insertions.
+     * bug/feature 88066.
+     * */
+    private static boolean addPathToDataset_noUpdateTreeNodes(JTree tree,String name)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	Object                 node     = treePath.getLastPathComponent();
+	
+	PrimaryDataset dataset = null;
+	Stream         stream  = null;
+	Path           path    = null;
+	
+	if (node instanceof PrimaryDataset) {
+	    dataset = (PrimaryDataset)node;
+	    stream  = dataset.parentStream();
+	    path    = config.path(name);
+	}
+	else if (node instanceof ConfigurationTreeNode) {
+	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
+	    ConfigurationTreeNode parentNode = (ConfigurationTreeNode)treeNode.parent();
+	    path    = (Path)treeNode.object();
+	    stream  = (Stream)parentNode.parent();
+	    dataset = stream.dataset(name);
+	    tree.setSelectionPath(treePath.getParentPath());
+	}
+	
+	int index = -1;
+	if (stream.indexOfPath(path)<0) stream.insertPath(path);
+	else index = stream.listOfUnassignedPaths().indexOf(path);
+	
+	boolean inserted = dataset.insertPath(path);
+	if(inserted) {
+		model.nodeInserted(dataset,dataset.indexOfPath(path));
+		if (model.streamMode().equals("datasets")) {
+		    model.nodeInserted(model.getChild(stream,stream.indexOfDataset(dataset)),
+				       dataset.indexOfPath(path));
+		    model.nodeRemoved(model.getChild(stream,stream.datasetCount()),index,path);
+		}
+		//model.nodeChanged(path);
+		//model.updateLevel1Nodes();
+		
+		// Feature/Bug 86605
+		ArrayList<Path> newPaths = new ArrayList<Path>(); // Needed for method definition.
+		newPaths.add(path);	
+		updateFilter(config, stream, newPaths);	// To copy update prescaler.
+	} else {
+		// This will invoke an errorNotificationPanel.
+		return false;
+	}
+	
+	return true;
+    }
+    
     
     /** remove a path from its parent dataset */
     public static boolean removePathFromDataset(JTree tree)

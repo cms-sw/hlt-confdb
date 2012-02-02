@@ -17,8 +17,12 @@ import confdb.data.VUInt32Parameter;
 
 /**
  * PrescaleTableService
+ * @author raul.jimenez.estupinan@cern.ch
+ * @see PrescaleTable, SinglePathPrescaleTable, SinglePathPrescaleTableModel
  * This is to get a prescale JTable for one particular path. 
- * NOTE: It will be used in rightUpperPanel. */
+ * NOTE: It will be used in rightUpperPanel. 
+ * */
+
 class PrescaleTableService {
     /** model for the prescale table */
     private SinglePathPrescaleTableModel 	tableModel	;
@@ -101,7 +105,8 @@ class SinglePathPrescaleTableModel extends PrescaleTableModel {
     	prescaleTable = new SinglePathPrescaleTable(config, path);
     }
 	
-    /*Update prescale service with the only row contained in the table. 
+    /**
+     *  Update prescale service with the only row contained in the table. 
      * NOTE: This function copies all the values in the table from the Original PrescaleTable.
      * This follows the workflow of the original class.
      * */

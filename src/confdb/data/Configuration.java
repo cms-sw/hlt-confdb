@@ -1053,6 +1053,7 @@ public class Configuration implements IConfiguration
 	hasChanged = true;
 	return true;
     }
+
     
     /** get the sequence number of a certain path */
     public int pathSequenceNb(Path path) { return paths.indexOf(path); }

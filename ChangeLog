@@ -1,3 +1,9 @@
+2012-02-02 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-07
+	* Allow moving datasets from one stream to another (bug/feature 88066).
+	* Add error alerts and revert operations for dataset transfer failures (bug/feature 88066). 
+	* Put some more comments to (bug/feature 89524).
+	
 2012-01-31 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-06
 	* Better implementation of SinglePathPrescaleTable and PrescaleTableService 

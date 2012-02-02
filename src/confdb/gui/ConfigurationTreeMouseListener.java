@@ -984,28 +984,27 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	else if (depth==4) {
 	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
 	    if (model.streamMode().equals("paths")) {
-		Path path = (Path)treeNode.object();
-		menuItem = new JMenuItem("<html>Remove <i>"+path.name()+
-					 "</i></html>");
-		menuItem.addActionListener(streamListener);
-		menuItem.setActionCommand("REMOVEPATH");
-		popupStreams.add(menuItem);
-	    }
-	    else if (model.streamMode().equals("datasets")) {
-		if (treeNode.object() instanceof PrimaryDataset) {
-		    PrimaryDataset dataset = (PrimaryDataset)treeNode.object();
-		    menuItem = new JMenuItem("<html>Remove <i>"+dataset.name()+
-					     "</i></html>");
-		    menuItem.addActionListener(streamListener);
-		    menuItem.setActionCommand("REMOVEDATASET");
-		    popupStreams.add(menuItem);
-		} else if (treeNode.object() instanceof StringBuffer) {
-		    StringBuffer unassigned = (StringBuffer)treeNode.object();
-		    menuItem = new JMenuItem("<html>Remove Unassigned Paths</i></html>");
-		    menuItem.addActionListener(streamListener);
-		    menuItem.setActionCommand("REMOVEUNASSIGNED");
-		    popupStreams.add(menuItem);		    
-		}
+			Path path = (Path)treeNode.object();
+			menuItem = new JMenuItem("<html>Remove <i>"+path.name()+
+						 "</i></html>");
+			menuItem.addActionListener(streamListener);
+			menuItem.setActionCommand("REMOVEPATH");
+			popupStreams.add(menuItem);
+	    } else if (model.streamMode().equals("datasets")) {
+			if (treeNode.object() instanceof PrimaryDataset) {
+			    PrimaryDataset dataset = (PrimaryDataset)treeNode.object();
+			    menuItem = new JMenuItem("<html>Remove <i>"+dataset.name()+
+						     "</i></html>");
+			    menuItem.addActionListener(streamListener);
+			    menuItem.setActionCommand("REMOVEDATASET");
+			    popupStreams.add(menuItem);
+			} else if (treeNode.object() instanceof StringBuffer) {
+			    StringBuffer unassigned = (StringBuffer)treeNode.object();
+			    menuItem = new JMenuItem("<html>Remove Unassigned Paths</i></html>");
+			    menuItem.addActionListener(streamListener);
+			    menuItem.setActionCommand("REMOVEUNASSIGNED");
+			    popupStreams.add(menuItem);		    
+			}
 	    }
 	}
 	else if (depth==5) {

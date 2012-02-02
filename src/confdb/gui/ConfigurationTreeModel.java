@@ -477,6 +477,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel
 
 	}
 	else if (parent instanceof Stream) {
+		
 	    Stream stream = (Stream)parent;
 	    if (streamMode.equals("datasets")) 
 		//return new ConfigurationTreeNode(stream,stream.dataset(i));

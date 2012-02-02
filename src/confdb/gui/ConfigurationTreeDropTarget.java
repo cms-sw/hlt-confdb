@@ -123,7 +123,7 @@ private Insets autoscrollInsets = new Insets(30, 30, 30, 30);
 	else {
 	    String message = "\"Import error!\"\n"
 	           + "Please make sure that target type matches source type.";
-	    JOptionPane.showMessageDialog(new JFrame(), message, "Dialog", JOptionPane.ERROR_MESSAGE);
+	    JOptionPane.showMessageDialog(new JFrame(), message, "Import Error!", JOptionPane.ERROR_MESSAGE);
 	     
 	    
 	    dtde.rejectDrop();
@@ -290,6 +290,7 @@ private Insets autoscrollInsets = new Insets(30, 30, 30, 30);
     private boolean acceptAsDropTarget(JTree targetTree,
 				       Object sourceNode,Object targetNode)
     {
+    	
 	if (!targetTree.isEditable()) return false;
 
 	ConfigurationTreeModel model =
@@ -321,6 +322,30 @@ private Insets autoscrollInsets = new Insets(30, 30, 30, 30);
 	      targetNode instanceof EventContent)) ||
 	    (sourceNode instanceof Parameter &&
 	     targetNode instanceof Parameter)) return true;
+	
+	// Also allow PrimaryDatasets - bug #88066.
+	
+	// Allow PrimaryDataset transfers 
+	if( (sourceNode instanceof ConfigurationTreeNode) && 
+		(targetNode instanceof ConfigurationTreeNode)) {
+		ConfigurationTreeNode sctn = (ConfigurationTreeNode) sourceNode;
+		ConfigurationTreeNode tctn = (ConfigurationTreeNode) targetNode;
+		
+		// Drop target is another PrimaryDataset.
+		if( (sctn.object() instanceof PrimaryDataset) &&
+			(tctn.object() instanceof PrimaryDataset)) {
+			if(tctn.parent() instanceof Stream) return true;
+		}
+	}
+	
+	// Allow PrimaryDataset transfer to Stream targets.
+	if( (sourceNode instanceof ConfigurationTreeNode) && 
+		(targetNode instanceof Stream)) {
+		ConfigurationTreeNode sctn = (ConfigurationTreeNode) sourceNode;
+		if (sctn.object() instanceof PrimaryDataset) return true;
+	}
+	
+	
 	return false;
     }
 
