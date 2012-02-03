@@ -345,6 +345,22 @@ private Insets autoscrollInsets = new Insets(30, 30, 30, 30);
 		if (sctn.object() instanceof PrimaryDataset) return true;
 	}
 	
+	// bug #82526: add/remove path to/from a primary datase
+	if(sourceNode instanceof ConfigurationTreeNode) { 
+		ConfigurationTreeNode sctn = (ConfigurationTreeNode) sourceNode;
+		if(sctn.object() instanceof Path) {
+			if(targetNode instanceof ConfigurationTreeNode) {
+				ConfigurationTreeNode tctn = (ConfigurationTreeNode) targetNode;
+				if(tctn.object() instanceof Path) {
+					Object parent = tctn.parent();
+					if(parent instanceof PrimaryDataset) return true;
+				} else if (tctn.object() instanceof PrimaryDataset) return true; // already pointing to a PDataset.
+			}
+		}
+	}
+	
+	
+	
 	
 	return false;
     }

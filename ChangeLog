@@ -1,3 +1,7 @@
+2012-02-03 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-08
+	* Add/remove path to/from a primary dataset using Drag&Drop method (bug/feature 82526).
+
 2012-02-02 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-07
 	* Allow moving datasets from one stream to another (bug/feature 88066).

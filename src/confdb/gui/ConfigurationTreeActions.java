@@ -3398,6 +3398,37 @@ public class ConfigurationTreeActions
 		return ok;
     }
     
+    /**
+     * movePathsBetweenDatasets
+     * Moves a path from one primary data set to another.
+     * If datasets are not contained in the same stream it will remove
+     * the path from the source P. Dataset leaving the path in the source stream.
+     * 
+     * Uses targetTree to retrieve the targetComponent 
+     * @see ConfigurationTreeDropTarget.java, ConfigurationTreeTransferHandler.java
+     * bug #82526: add/remove path to/from a primary datase
+     * */
+    public static boolean movePathsBetweenDatasets(JTree sourceTree, JTree targetTree, ConfigurationTreeNode pathNode) {
+    	TreePath               targetPath  = targetTree.getSelectionPath();
+    	Object                 targetNode  = targetPath.getLastPathComponent();
+		ConfigurationTreeModel sourceModel = (ConfigurationTreeModel)sourceTree.getModel();
+		Configuration          config = (Configuration)sourceModel.getRoot();
+    	
+    	Path path = (Path) pathNode.object();
+    	
+		// Remove
+    	TreePath SourcePath = new TreePath(sourceModel.getPathToRoot(pathNode));
+    	sourceTree.setSelectionPath(SourcePath);
+    	ConfigurationTreeActions.removePathFromDataset(sourceTree);
+    	
+    	// Insert
+    	TreePath TargetPath = new TreePath(sourceModel.getPathToRoot(targetNode));
+    	targetTree.setSelectionPath(TargetPath);
+    	ConfigurationTreeActions.addPathToDataset(targetTree, path.name());
+    	
+    	return true;
+    }
+    
     
     /** import primary dataset */
     public static boolean importPrimaryDataset(JTree tree,

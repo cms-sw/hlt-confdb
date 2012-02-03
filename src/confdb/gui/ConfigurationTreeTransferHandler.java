@@ -99,11 +99,20 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
 		t = new GenericTransferable(sourceNode);
 	    }
 	    
-
+	    // make PrimaryDataset transferable. feature/bug 88066: Allow moving datasets from one stream to another
 	    if(sourceNode instanceof ConfigurationTreeNode) {
 	    	if(((ConfigurationTreeNode)sourceNode).object() instanceof PrimaryDataset) {
 				ConfigurationTreeTransferHandler.setDragImage();
 				t = new GenericTransferable(sourceNode);
+	    	}
+	    }
+	    
+	    // make Path inside a PrimaryDataset transferable. feature/bug #82526: add/remove path to/from a primary dataset.
+	    if(sourceNode instanceof ConfigurationTreeNode) {
+	    	if(((ConfigurationTreeNode)sourceNode).object() instanceof Path) {
+	    		Path transferablePath = (Path)((ConfigurationTreeNode)sourceNode).object();
+				ConfigurationTreeTransferHandler.setDragImage();
+				t = new GenericTransferable(transferablePath);	// passing the Path not the Node.
 	    	}
 	    }
 	}
@@ -258,6 +267,30 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
 	    		}
 	    	} 
 	    }
+	    
+	    //bug #82526: add/remove path to/from a primary datase
+		if(sourceNode instanceof ConfigurationTreeNode) { 
+			ConfigurationTreeNode sctn = (ConfigurationTreeNode) sourceNode;
+			if(sctn.object() instanceof Path) {
+				if(targetNode instanceof ConfigurationTreeNode) {
+					ConfigurationTreeNode tctn = (ConfigurationTreeNode) targetNode;
+					if(tctn.object() instanceof Path) {
+						Object parent = tctn.parent();
+						if(parent instanceof PrimaryDataset) {
+			    			// targetNode IS a Stream.
+					    	TreePath TargetPath = new TreePath(targetModel.getPathToRoot(parent));	//point to the Dataset
+					    	targetTree.setSelectionPath(TargetPath);
+							ConfigurationTreeActions.movePathsBetweenDatasets(sourceTree, targetTree, sctn);
+						}
+					} else if (tctn.object() instanceof PrimaryDataset) {
+		    			// targetNode IS a Stream.
+				    	TreePath TargetPath = new TreePath(targetModel.getPathToRoot(tctn.object()));	//point to the Dataset
+				    	targetTree.setSelectionPath(TargetPath);						
+						ConfigurationTreeActions.movePathsBetweenDatasets(sourceTree, targetTree, sctn);
+					}
+				}
+			}
+		}
 	    
 	}
 	
