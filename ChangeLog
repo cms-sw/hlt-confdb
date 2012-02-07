@@ -1,4 +1,6 @@
 2012-02-07 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-06-12
+	* Extend search&replace to plugin type (for normal modules only)
 	* tag V01-06-09/10/11
 	* Extend module replacement to copys of modules or new instances
 

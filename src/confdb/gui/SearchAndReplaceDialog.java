@@ -199,6 +199,7 @@ public class SearchAndReplaceDialog extends JDialog
 	Template        template   = release.template(pluginName);
 	if (template==null) return;
 	
+	m.addElement("Plugin");
 	Iterator<Parameter> itP = template.parameterIterator();
 	while (itP.hasNext()) {
 	    Parameter parameter = itP.next();
@@ -282,14 +283,27 @@ public class SearchAndReplaceDialog extends JDialog
 			   " paramName="+paramName+
 			   " paramValue="+paramValue);
 
+	boolean plug0 = paramName.equals("Plugin");
 	while (itT.hasNext()) {
 	    Template template = itT.next();
 	    if (!pluginType.equals("All")&&!pluginType.equals(template.type()))
 		continue;
-	    
+	    boolean plug1 = pluginName.equals(template.name());
 	    Iterator<Instance> itI = template.instanceIterator();
 	    while (itI.hasNext()) {
 		Instance  instance  = itI.next();
+		if (plug0) {
+		    if (plug1) {
+			String text =
+			    "<html>"+
+			    "<b>"+template.name()+"."+instance.name()+"</b> "+
+			    "<font color=#0000ff>Plugin</font> Name (current value: "+
+			    "<font color=#ff0000>"+template.name()+"</font>)"+
+			    "</html>";
+			m.addElement(new JCheckBox(text,true));
+		    }
+		    continue;
+		}
 		Parameter params[]  = instance.findParameters(paramName,paramType,paramValue);
 		if (params.length==0) continue;
 		for (Parameter p : params) {
@@ -332,10 +346,14 @@ public class SearchAndReplaceDialog extends JDialog
 	
 	paramName = paramName.split(" ")[0];
 	
+	boolean plug0 = paramName.equals("Plugin");
+	if (plug0) {
+	    if (release.moduleTemplate(paramValue)==null) return;
+	}
 	for (int i=0;i<m.getSize();i++) {
 	    JCheckBox cb = (JCheckBox)m.get(i);
 	    if (!cb.isSelected()) continue;
-	
+
 	    String text = cb.getText();
 	    String a[] = text.split(" ");
 	    String pluginDotLabel = a[0];
@@ -346,11 +364,72 @@ public class SearchAndReplaceDialog extends JDialog
 	    String d[] = pluginDotLabel.split("\\.");
 	    String plugin = d[0];
 	    String label  = d[1];
-	    
+
 	    paramType = paramType.substring(20,paramType.length()-7);
 	    
 	    if (pluginName.equals("")) template = release.template(plugin);
+	    boolean plug1 = !paramValue.equals(plugin);
 	    if (template.hasInstance(label)) {
+		if (plug0) {
+		    if (plug1) {
+			Instance instance=null;
+			try {
+			    instance = template.instance(label);
+			} 
+			catch (DataException ex) {}
+			if (instance instanceof ModuleInstance) {
+			    ModuleInstance oldModule = (ModuleInstance)instance;
+			    String oldModuleName=oldModule.name();
+			    String newModuleName="New_"+oldModuleName;
+			    int ii=0;
+			    while (!config.isUniqueQualifier(newModuleName)) {
+				newModuleName = "New_"+newModuleName+"_"+ii;
+				++ii;
+			    }
+			    ModuleInstance newModule = config.insertModule(paramValue,newModuleName);
+			    Iterator<Parameter> itP = oldModule.parameterIterator();
+			    while (itP.hasNext()) {
+				Parameter p = itP.next();
+				Parameter n = newModule.parameter(p.name(),p.type());
+				if (n!=null) newModule.updateParameter(p.name(),p.type(),p.valueAsString());
+			    }			
+			    int index    = config.indexOfModule(oldModule);
+			    int refCount = oldModule.referenceCount();
+			    ReferenceContainer[] parents = new ReferenceContainer[refCount];
+			    int[]                indices = new int[refCount];
+			    int iRefCount=0;
+			    while (oldModule.referenceCount()>0) {
+				Reference reference = oldModule.reference(0);
+				parents[iRefCount] = reference.container();
+				indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
+				config.removeModuleReference((ModuleReference)reference);
+				iRefCount++;
+			    }
+			    // oldModule's refCount is now 0 and hence oldModule is removed
+			    // from the config; thus we can rename newModule to oldModule's
+			    // name which is needed for later combined setNameAndPropagate
+			    try {
+				newModule.setNameAndPropagate(oldModuleName);
+			    }
+			    catch (DataException e) {
+				System.err.println(e.getMessage());
+			    }
+			    
+			    // update refs pointing to oldModule to point to newModule
+			    for (int iii=0;iii<refCount;iii++) {
+				config.insertModuleReference(parents[iii],indices[iii],newModule);
+			    }
+			    String newText =
+				"<html>"+
+				"<b>"+newModule.template().name()+"."+newModule.name()+"</b> "+
+				"<font color=#0000ff>Plugin</font> Name (new value: "+
+				"<font color=#00ff00>"+newModule.template().name()+"</font>)"+
+				"</html>";
+			    m.set(i,new JCheckBox(newText,true));
+			}
+		    }
+		    continue;
+		}		    
 		try {
 		    Instance instance = template.instance(label);
 		    if (instance.updateParameter(fullParamName,
