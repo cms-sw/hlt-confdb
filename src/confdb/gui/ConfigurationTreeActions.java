@@ -2690,22 +2690,24 @@ public class ConfigurationTreeActions
 	    model.nodeInserted(parents[i],indices[i]);
 	}
 	
-	// now rename newModule back to its original name, and update all
-	// (V)InputTags/keeps etc. originally referring to both oldModule
-	// and the also newModule under oldModule's name to use  newModule's
-	// original and final name.
-	try {
-	    newModule.setNameAndPropagate(newModuleName);
+	if (s.length==2) {
+	    // now rename newModule back to its original name, and update all
+	    // (V)InputTags/keeps etc. originally referring to both oldModule
+	    // and the also newModule under oldModule's name to use  newModule's
+	    // original and final name.
+	    try {
+		newModule.setNameAndPropagate(newModuleName);
+	    }
+	    catch (DataException e) {
+		System.err.println(e.getMessage());
+	    }
 	}
-	catch (DataException e) {
-	    System.err.println(e.getMessage());
-	}
-	
+
 	model.updateLevel1Nodes();
 
 	model.nodeStructureChanged(model.modulesNode());
         scrollToModuleByName(newModuleName, tree);
-	if (s.length==1 || s.length==3) editNodeName(tree);
+	// if (s.length==1 || s.length==3) editNodeName(tree);
 
 	return true;
     }
