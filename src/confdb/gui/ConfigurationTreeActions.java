@@ -2621,7 +2621,9 @@ public class ConfigurationTreeActions
 	ModuleInstance newModule = null;
 	String newTemplateName   = null;
 	if (s.length==1) {
+	    // old module replaced by new instance of the template, keeping oldModuleName
 	    newTemplateName = s[0];
+	    // temporary unique name
 	    newModuleName   = "Instance_of_"+newTemplateName;
 	    int i=0;
 	    while (!config.isUniqueQualifier(newModuleName)) {
@@ -2636,12 +2638,15 @@ public class ConfigurationTreeActions
 		if (n!=null) newModule.updateParameter(p.name(),p.type(),p.valueAsString());
 	    }
 	} else if (s.length==2) {
+	    // old module replaced by existing module, keeping newModuleName
 	    newTemplateName = s[0];
 	    newModuleName   = s[1];
 	    if (newModuleName.equals(oldModuleName)) return false;
 	    newModule = config.module(newModuleName);
 	} else if (s.length==3) {
+	    // old module replaced by new copy of an existing module, keeping oldModuleName
 	    newTemplateName = s[1];
+	    // temporary unique name
 	    newModuleName   = "Copy_of_"+s[2];
 	    int i=0;
 	    while (!config.isUniqueQualifier(newModuleName)) {
@@ -2706,8 +2711,11 @@ public class ConfigurationTreeActions
 	model.updateLevel1Nodes();
 
 	model.nodeStructureChanged(model.modulesNode());
-        scrollToModuleByName(newModuleName, tree);
-	// if (s.length==1 || s.length==3) editNodeName(tree);
+	if (s.length==2) {
+	    scrollToModuleByName(newModuleName, tree);
+	} else {
+	    scrollToModuleByName(oldModuleName, tree);
+	}
 
 	return true;
     }
