@@ -2603,20 +2603,61 @@ public class ConfigurationTreeActions
      */
     public static boolean replaceModuleInternally(JTree tree,ModuleInstance oldModule,String newObject)
     {
+	/* newObject = class or class:name or copy:class:name */
+	System.out.println("XXX "+oldModule.name()+" "+newObject);
+
 	if (tree==null||oldModule==null||newObject==null) return false;
 
 	String oldModuleName = oldModule.name();
 	String newModuleName = null;
 	String[] s = newObject.split(":");
-	if (s.length>1) newModuleName = s[1];
-	if (newModuleName==null || newModuleName.equals(oldModuleName)) return false;
 
 	ConfigurationTreeModel model     = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config    = (Configuration)model.getRoot();
 	if (config==null) return false;
 
-	ModuleInstance         newModule = config.module(newModuleName);
-	if (newModule==null||config.module(oldModule.name())==null) return false;
+	if (config.module(oldModule.name())==null) return false;
+
+	ModuleInstance newModule = null;
+	String newTemplateName   = null;
+	if (s.length==1) {
+	    newTemplateName = s[0];
+	    newModuleName   = "Instance_of_"+newTemplateName;
+	    int i=0;
+	    while (!config.isUniqueQualifier(newModuleName)) {
+		newModuleName = "Instance_of_"+newTemplateName+"_"+i;
+		++i;
+	    }
+	    newModule = config.insertModule(newTemplateName,newModuleName);
+	    Iterator<Parameter> itP = oldModule.parameterIterator();
+	    while (itP.hasNext()) {
+		Parameter p = itP.next();
+		Parameter n = newModule.parameter(p.name(),p.type());
+		if (n!=null) newModule.updateParameter(p.name(),p.type(),p.valueAsString());
+	    }
+	} else if (s.length==2) {
+	    newTemplateName = s[0];
+	    newModuleName   = s[1];
+	    if (newModuleName.equals(oldModuleName)) return false;
+	    newModule = config.module(newModuleName);
+	} else if (s.length==3) {
+	    newTemplateName = s[1];
+	    newModuleName   = "Copy_of_"+s[2];
+	    int i=0;
+	    while (!config.isUniqueQualifier(newModuleName)) {
+		newModuleName = "Copy_of_"+s[2]+"_"+i;
+		++i;
+	    }
+	    newModule = config.insertModule(newTemplateName,newModuleName);
+	    Iterator<Parameter> itP = oldModule.parameterIterator();
+	    while (itP.hasNext()) {
+		Parameter p = itP.next();
+		Parameter n = newModule.parameter(p.name(),p.type());
+		if (n!=null) newModule.updateParameter(p.name(),p.type(),p.valueAsString());
+	    }	    
+	} else {
+	    return false;
+	}
 
 	int index    = config.indexOfModule(oldModule);
 	int refCount = oldModule.referenceCount();
@@ -2642,13 +2683,13 @@ public class ConfigurationTreeActions
 	catch (DataException e) {
 	    System.err.println(e.getMessage());
 	}
-
+	
 	// update refs pointing to oldModule to point to newModule
 	for (int i=0;i<refCount;i++) {
 	    config.insertModuleReference(parents[i],indices[i],newModule);
 	    model.nodeInserted(parents[i],indices[i]);
 	}
-
+	
 	// now rename newModule back to its original name, and update all
 	// (V)InputTags/keeps etc. originally referring to both oldModule
 	// and the also newModule under oldModule's name to use  newModule's
@@ -2659,9 +2700,12 @@ public class ConfigurationTreeActions
 	catch (DataException e) {
 	    System.err.println(e.getMessage());
 	}
-
+	
 	model.updateLevel1Nodes();
-	tree.expandPath(new TreePath(model.getPathToRoot(newModule)));
+
+	model.nodeStructureChanged(model.modulesNode());
+        scrollToModuleByName(newModuleName, tree);
+	if (s.length==1 || s.length==3) editNodeName(tree);
 
 	return true;
     }

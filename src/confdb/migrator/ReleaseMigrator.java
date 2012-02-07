@@ -320,7 +320,10 @@ public class ReleaseMigrator
 			    "PARAMETER REMAINS AT DEFAULT: "+
 			    "source="+sourceParameter+" -> "+
 			    "target="+targetParameter;
-			messages.add(msg);
+			//messages.add(msg);
+			String valueAsString=sourceParameter.valueAsString();
+			target.updateParameter(parameterName,parameterType,
+					       valueAsString);
 		    }
 		    else {
 			String valueAsString=sourceParameter.valueAsString();
