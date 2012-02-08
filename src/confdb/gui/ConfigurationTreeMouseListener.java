@@ -534,6 +534,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	JMenuItem menuItem;
 	popupPaths = new JPopupMenu();
 
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	IConfiguration         config = (IConfiguration)model.getRoot();
+	
 	TreePath  treePath = tree.getSelectionPath();
 	int       depth    = treePath.getPathCount();
 	Object    node     = treePath.getPathComponent(depth-1);
@@ -585,6 +588,73 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		    popupPaths.add(menuItem);
 	    }
 	    
+	    
+	    // bug #82526: add/remove path to/from a primary dataset
+	    // ASSIGN TO DATASET/STREAM MENU
+	    popupPaths.addSeparator();
+    	JMenu assignPathMenu=new ScrollableMenu("Assign to P.Dataset");
+    	popupPaths.add(assignPathMenu);
+    	Iterator<Stream> itST = config.streamIterator();
+	    while (itST.hasNext()) {
+			Stream stream = itST.next();
+			
+			PrimaryDataset pds = stream.dataset(path);
+			if(pds == null) {
+				menuItem = new ScrollableMenu(stream.name());
+				JMenuItem subMenuItem = new JMenuItem();
+
+				Iterator<PrimaryDataset> itPD = stream.datasetIterator();
+				while(itPD.hasNext()) {
+					PrimaryDataset dataset = itPD.next();
+					subMenuItem = new JMenuItem(dataset.name());
+					subMenuItem.addActionListener(streamListener);
+					subMenuItem.setActionCommand("ADDPATHTO:"+dataset.name());
+					menuItem.add(subMenuItem);
+				}
+			} else {
+				// GREYED OUT STREAM:
+				menuItem = new JMenuItem(stream.name());
+				menuItem.setEnabled(false);
+			}
+			assignPathMenu.add(menuItem);
+	    }
+	    // bug #82526: add/remove path to/from a primary dataset
+	    // REMOVE FROM THIS DATASET/STREAM 
+    	JMenu removePathMenu=new ScrollableMenu("Remove from P.Dataset");
+    	popupPaths.add(removePathMenu);
+    	itST = config.streamIterator();
+	    while (itST.hasNext()) {
+			Stream stream = itST.next();
+			
+			PrimaryDataset pds = stream.dataset(path);
+			if(pds != null) {
+				menuItem = new ScrollableMenu(stream.name());
+				JMenuItem subMenuItem = new JMenuItem();
+
+				Iterator<PrimaryDataset> itPD = stream.datasetIterator();
+				while(itPD.hasNext()) {
+					PrimaryDataset dataset = itPD.next();
+					subMenuItem = new JMenuItem(dataset.name());
+					subMenuItem.setEnabled(false);
+					if(pds.equals(dataset)) {
+						subMenuItem.addActionListener(pathListener);
+						subMenuItem.setActionCommand("REMOVEPATH:"+dataset.name());
+						subMenuItem.setEnabled(true);
+					}
+					menuItem.add(subMenuItem);
+				}
+			} else {
+				// GREYED OUT STREAM:
+				menuItem = new JMenuItem(stream.name());
+				menuItem.setEnabled(false);
+			}
+			removePathMenu.add(menuItem);
+	    }
+	    popupPaths.add(removePathMenu);
+	    
+    	
+    	
+    	
 	    popupPaths.addSeparator();
 	    JCheckBoxMenuItem cbMenuItem = new JCheckBoxMenuItem("endpath");
 	    cbMenuItem.setState(path.isEndPath());
@@ -1010,22 +1080,65 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	else if (depth==5) {
 	    ConfigurationTreeNode treeNode=(ConfigurationTreeNode)node;
 	    if (treeNode.parent() instanceof ConfigurationTreeNode) {
-		ConfigurationTreeNode parentNode=(ConfigurationTreeNode)treeNode.parent();
-		if (parentNode.object() instanceof StringBuffer) {
-		    Stream stream = (Stream)parentNode.parent();
-		    Path  path    = (Path)treeNode.object();
-		    JMenu assignPathMenu=new ScrollableMenu("Assign "+path.name()+" to");
-		    popupStreams.add(assignPathMenu);
-		    Iterator<PrimaryDataset> itPD = stream.datasetIterator();
-		    while (itPD.hasNext()) {
-			PrimaryDataset dataset = itPD.next();
-			menuItem = new JMenuItem(dataset.name());
-			menuItem.addActionListener(streamListener);
-			menuItem.setActionCommand("ADDPATHTO:"+dataset.name());
-			assignPathMenu.add(menuItem);
-		    }
-		}
+			ConfigurationTreeNode parentNode=(ConfigurationTreeNode)treeNode.parent();
+			if (parentNode.object() instanceof StringBuffer) {
+			    Stream stream = (Stream)parentNode.parent();
+			    Path  path    = (Path)treeNode.object();
+			    JMenu assignPathMenu=new ScrollableMenu("Assign "+path.name()+" to");
+			    popupStreams.add(assignPathMenu);
+			    Iterator<PrimaryDataset> itPD = stream.datasetIterator();
+			    while (itPD.hasNext()) {
+					PrimaryDataset dataset = itPD.next();
+					menuItem = new JMenuItem(dataset.name());
+					menuItem.addActionListener(streamListener);
+					menuItem.setActionCommand("ADDPATHTO:"+dataset.name());
+					assignPathMenu.add(menuItem);
+			    }
+			}
 	    }
+	    
+	    // The code above seems to be fake.
+	    // Find bellow code for new option menu.
+    	//bug #82526: add/remove path to/from a primary dataset
+	    if(treeNode.object() instanceof Path) {
+	    	
+		    // ASSIGN MENU
+	    	Path path = (Path)treeNode.object();
+	    	JMenu assignPathMenu=new ScrollableMenu("Assign to");
+	    	popupStreams.add(assignPathMenu);
+	    	Iterator<Stream> itST = config.streamIterator();
+		    while (itST.hasNext()) {
+				Stream stream = itST.next();
+				
+				PrimaryDataset pds = stream.dataset(path);
+				if(pds == null) {
+					menuItem = new ScrollableMenu(stream.name());
+					JMenuItem subMenuItem = new JMenuItem();
+					Iterator<PrimaryDataset> itPD = stream.datasetIterator();
+					while(itPD.hasNext()) {
+						PrimaryDataset dataset = itPD.next();
+						subMenuItem = new JMenuItem(dataset.name());
+						subMenuItem.addActionListener(streamListener);
+						subMenuItem.setActionCommand("ADDPATHTO:"+dataset.name());
+						menuItem.add(subMenuItem);
+					}
+				} else {
+					// GREYED OUT STREAM:
+					menuItem = new JMenuItem(stream.name());
+					menuItem.setEnabled(false);
+				}
+				assignPathMenu.add(menuItem);
+		    }
+		    
+		    
+		    // REMOVE FROM THIS DATASET/STREAM 
+		    JMenuItem removePathMenu=new JMenuItem("Remove from P.Dataset");
+		    removePathMenu.addActionListener(datasetListener);
+		    removePathMenu.setActionCommand("REMOVEPATH");
+	    	popupStreams.add(removePathMenu);		    
+	    }
+	    
+	    
 	}
     }
     
@@ -1651,6 +1764,11 @@ class PathMenuListener implements ActionListener
 	}
 	else if (action.equals("GOTO")) {
 	    ConfigurationTreeActions.scrollToInstance(tree);
+	}
+	else if (action.startsWith("REMOVEPATH:")) {
+    	//bug #82526: add/remove path to/from a primary dataset
+		String datasetName = action.split(":")[1];
+	    ConfigurationTreeActions.removePathFromDataset(tree, datasetName);
 	}
 	else if (cmd.equals("Sort")) {
 	    ConfigurationTreeActions.sortPaths(tree);

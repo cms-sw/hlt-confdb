@@ -1,3 +1,10 @@
+2012-02-08 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-14
+	* Add "Assign path to a primary dataset" option attached to each path (bug/feature 82526).
+	* Add "Remove path from a primary dataset" option attached to each path (bug/feature 82526).
+	* Add "Assign path to a primary dataset" option in Stream menu for each path.
+	* Add "Remove path from P.dataset" option in Stream menu for each path. 
+	
 2012-02-08 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-06-13
 	* Smarter parameter updating when replacing module

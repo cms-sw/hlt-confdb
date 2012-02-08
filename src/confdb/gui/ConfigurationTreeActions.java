@@ -3592,7 +3592,7 @@ public class ConfigurationTreeActions
     }
     
     /** Add a path to a primary dataset 
-     * So far, this method is used to add a single path to a Primary dataset.
+     * This method is used to add a single path to a Primary dataset.
      * This is not used to insert paths from the EditDatasetDialog panel.
      * */
     public static boolean addPathToDataset(JTree tree,String name)
@@ -3610,15 +3610,33 @@ public class ConfigurationTreeActions
 	    dataset = (PrimaryDataset)node;
 	    stream  = dataset.parentStream();
 	    path    = config.path(name);
-	}
-	else if (node instanceof ConfigurationTreeNode) {
+	}else if (node instanceof ConfigurationTreeNode) {
 	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
-	    ConfigurationTreeNode parentNode = (ConfigurationTreeNode)treeNode.parent();
-	    path    = (Path)treeNode.object();
-	    stream  = (Stream)parentNode.parent();
-	    dataset = stream.dataset(name);
-	    tree.setSelectionPath(treePath.getParentPath());
+	    if(treeNode.parent() instanceof ConfigurationTreeNode) {
+	    	// REMOVING PATH FROM DATASET - FROM DATASET LIST.
+		    ConfigurationTreeNode parentNode = (ConfigurationTreeNode)treeNode.parent();
+		    path    = (Path)treeNode.object();
+		    stream  = (Stream)parentNode.parent();
+		    dataset = stream.dataset(name);
+		    tree.setSelectionPath(treePath.getParentPath());
+	    } else if(treeNode.parent() instanceof PrimaryDataset) {
+			// REMOVING PATH FROM DATASET - FROM STREAM LIST.
+	    	String pathName = "";
+	    	if(treeNode.object() instanceof Path) {
+	    		pathName = ((Path)treeNode.object()).name();
+	    	} else System.err.println("[ConfigurationTreeActions.java][addPathToDataset] ERROR: TreeNode is not instance of Path");
+		    dataset = config.dataset(name);
+		    stream  = dataset.parentStream();
+		    path    = config.path(pathName);
+	    }
+
+	} else if (node instanceof Path) {
+		// REMOVING PATH FROM DATASET - FROM PATH LIST.
+    	path = (Path) node;
+	    dataset = config.dataset(name);
+	    stream  = dataset.parentStream();
 	}
+	
 	
 	int index = -1;
 	if (stream.indexOfPath(path)<0) stream.insertPath(path);
@@ -3708,8 +3726,7 @@ public class ConfigurationTreeActions
 	Configuration          config = (Configuration)model.getRoot();
 	TreePath               treePath = tree.getSelectionPath();
 	
-	ConfigurationTreeNode treeNode =
-	    (ConfigurationTreeNode)treePath.getLastPathComponent();
+	ConfigurationTreeNode treeNode = (ConfigurationTreeNode)treePath.getLastPathComponent();
 	PrimaryDataset dataset = (PrimaryDataset)treeNode.parent();
 	Stream         stream  = dataset.parentStream();
 	Path           path    = (Path)treeNode.object();
@@ -3727,6 +3744,32 @@ public class ConfigurationTreeActions
 	
 	return true;
     }
+    
+    /** remove a path from the given dataset. 
+     * bug #82526: add/remove path to/from a primary dataset
+     * */
+    public static boolean removePathFromDataset(JTree tree, String datasetName)
+    {
+	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+	Configuration          config = (Configuration)model.getRoot();
+	TreePath               treePath = tree.getSelectionPath();
+	
+	Path           path    = (Path) treePath.getLastPathComponent();
+	PrimaryDataset dataset = config.dataset(datasetName);
+	Stream         stream  = dataset.parentStream();
+	int            index   = dataset.indexOfPath(path);
+	
+	dataset.removePath(path);
+	
+	model.nodeRemoved(dataset,index,path);
+	if (model.streamMode().equals("datasets"))
+	    model.nodeRemoved(model.getChild(stream,stream.indexOfDataset(dataset)), index,path);
+	model.nodeInserted(model.getChild(stream,stream.datasetCount()), stream.listOfUnassignedPaths().indexOf(path));
+	model.updateLevel1Nodes();
+	
+	return true;
+    }
+    
 
     /** move a path from one dataset to another within the same stream */
     public static boolean movePathToDataset(JTree tree,
