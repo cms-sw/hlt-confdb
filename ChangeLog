@@ -1,3 +1,7 @@
+2012-02-08 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-06-13
+	* Smarter parameter updating when replacing module
+
 2012-02-07 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-06-12
 	* Extend search&replace to plugin type (for normal modules only)

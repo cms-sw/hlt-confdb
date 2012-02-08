@@ -2631,7 +2631,17 @@ public class ConfigurationTreeActions
 		++i;
 	    }
 	    newModule = config.insertModule(newTemplateName,newModuleName);
-	    Iterator<Parameter> itP = oldModule.parameterIterator();
+	    Iterator<Parameter> itP = null;
+	    itP=oldModule.parameterIterator();
+	    while (itP.hasNext()) {
+		Parameter p = itP.next();
+		Iterator<Parameter> itQ = newModule.parameterIterator();
+		while (itQ.hasNext()) {
+		    Parameter q = itQ.next();
+		    if (p.type().equals(q.type())) newModule.updateParameter(q.name(),q.type(),p.valueAsString());
+		}
+	    }			
+	    itP = oldModule.parameterIterator();
 	    while (itP.hasNext()) {
 		Parameter p = itP.next();
 		Parameter n = newModule.parameter(p.name(),p.type());
@@ -2654,7 +2664,17 @@ public class ConfigurationTreeActions
 		++i;
 	    }
 	    newModule = config.insertModule(newTemplateName,newModuleName);
-	    Iterator<Parameter> itP = oldModule.parameterIterator();
+	    Iterator<Parameter> itP = null;
+	    itP=oldModule.parameterIterator();
+	    while (itP.hasNext()) {
+		Parameter p = itP.next();
+		Iterator<Parameter> itQ = newModule.parameterIterator();
+		while (itQ.hasNext()) {
+		    Parameter q = itQ.next();
+		    if (p.type().equals(q.type())) newModule.updateParameter(q.name(),q.type(),p.valueAsString());
+		}
+	    }			
+	    itP = oldModule.parameterIterator();
 	    while (itP.hasNext()) {
 		Parameter p = itP.next();
 		Parameter n = newModule.parameter(p.name(),p.type());
