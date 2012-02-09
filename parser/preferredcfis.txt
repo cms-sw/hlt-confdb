@@ -1,3 +1,4 @@
+RecoTauTag/TauTagTools                  HLTPFTauSelector_cfi.py
 RecoMuon/L2MuonIsolationProducer        hltL2MuonIsolationsCR_cfi.py
 RecoBTau/JetTagComputer                 combinedMVABJetTags_cfi.py
 RecoEcal/EgammaClusterProducers         multi5x5SuperClustersWithPreshower_cfi.py
