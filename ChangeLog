@@ -1,3 +1,12 @@
+2012-02-09 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-06-15
+	* Extension of menu-diff: use the result of the diff between two
+	  configuration as a patch to modify a third configuration,
+	  resulting in a patched, fourth configuration.
+	  Only added or changed paths, but not deleted paths, are
+	  updated (deep update, ie, including changed sequences
+	  and modules)
+
 2012-02-08 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-14
 	* Add "Assign path to a primary dataset" option attached to each path (bug/feature 82526).

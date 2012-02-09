@@ -40,6 +40,7 @@ public class DiffDialog extends JDialog
     private JEditorPane  jEditorPaneDiff      = new javax.swing.JEditorPane();
     private JButton      jButtonLoadNewConfig = new javax.swing.JButton();
     private JButton      jButtonLoadOldConfig = new javax.swing.JButton();
+    private JButton      jButtonApply         = new javax.swing.JButton();    
     private JButton      jButtonClose         = new javax.swing.JButton();    
     
     /** diff tree components */
@@ -50,6 +51,8 @@ public class DiffDialog extends JDialog
     private IConfiguration newConfig = null;
     private IConfiguration oldConfig = null;
     private Diff           diff      = null;
+
+    private boolean apply = false;
 
     //
     // construction
@@ -90,6 +93,11 @@ public class DiffDialog extends JDialog
 		    jComboBoxOldConfigActionPerformed(e);
 		}
 	    });
+	jButtonApply.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonApplyActionPerformed(e);
+		}
+	    });
 	jButtonClose.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    jButtonCloseActionPerformed(e);
@@ -119,6 +127,11 @@ public class DiffDialog extends JDialog
 	jButtonLoadNewConfig.setEnabled(false);
 	jButtonLoadOldConfig.setEnabled(false);
 	jComboBoxOldConfig.setEnabled(false);
+	jButtonApply.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    jButtonApplyActionPerformed(e);
+		}
+	    });
 	jButtonClose.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    jButtonCloseActionPerformed(e);
@@ -142,6 +155,8 @@ public class DiffDialog extends JDialog
 
     /** get the diff object for later scrutiny */
     public Diff getDiff() {return diff;}
+    /** should the diff be applied to another config? */
+    public boolean getApply() {return apply;}
 
     /** set the new configuration */
     public void setNewConfig(IConfiguration c)
@@ -211,8 +226,14 @@ public class DiffDialog extends JDialog
 	    compareConfigurations();
 	}
     }
+    public void jButtonApplyActionPerformed(ActionEvent e)
+    {
+	apply = true;
+	setVisible(false);
+    }
     public void jButtonCloseActionPerformed(ActionEvent e)
     {
+	apply = false;
 	setVisible(false);
     }
     public void jComboBoxOldConfigUpdate(ConfigInfo info,
@@ -231,6 +252,7 @@ public class DiffDialog extends JDialog
     }
     public void compareConfigurations()
     {
+	jButtonApply.setEnabled(false);
 	jButtonClose.setEnabled(false);
 	DiffThread worker = new DiffThread();
 	worker.start();
@@ -264,6 +286,7 @@ public class DiffDialog extends JDialog
 
         jButtonLoadNewConfig.setText("...");
         jButtonLoadOldConfig.setText("...");
+        jButtonApply.setText("Apply");
         jButtonClose.setText("Close");
         
 	jScrollPaneTree.setViewportView(jTreeDiff);
@@ -285,6 +308,7 @@ public class DiffDialog extends JDialog
                     .add(layout.createSequentialGroup()
                         .addContainerGap()
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.CENTER)
+                            .add(jButtonApply, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 800, Short.MAX_VALUE)
                             .add(jButtonClose, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 800, Short.MAX_VALUE)
                             .add(jTabbedPane1)))
                     .add(layout.createSequentialGroup()
@@ -328,6 +352,7 @@ public class DiffDialog extends JDialog
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jTabbedPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 365, Short.MAX_VALUE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jButtonApply)
                 .add(jButtonClose)
                 .addContainerGap())
         );
@@ -398,6 +423,7 @@ public class DiffDialog extends JDialog
 		jProgressBarDiff.setString(jProgressBarDiff.getString()+"FAILED!!");
 	    }
 	    jProgressBarDiff.setIndeterminate(false);
+	    jButtonApply.setEnabled(true);
 	    jButtonClose.setEnabled(true);
 	}
     }
