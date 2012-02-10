@@ -1807,7 +1807,7 @@ public class ConfigurationTreeActions
      * changed, this must also be changed having both similar workflows.
      * @author jimeneze
      * */
-    static
+    private static
     boolean DeepImportContainerEntriesSimulation(	Configuration          	config			,
 										Configuration			sourceConfig	,
 								       ReferenceContainer     sourceContainer	,

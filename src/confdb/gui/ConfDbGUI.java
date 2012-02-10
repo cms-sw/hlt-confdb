@@ -776,19 +776,25 @@ public class ConfDbGUI
 	    // System.out.println("ConfDbGUI.diffConfiguration: import : "+importConfig.toString());
 	    
 	    //
+	    boolean  result = false;
+	    String pathName = null;
+	    ReferenceContainer  external       = null;
+	    ContainerComparison pathComparison = null;
+	    //
 	    // System.out.println("ConfDbGUI.diffConfiguration: # of diffs: "+diff.pathCount());
 	    for (int i=0; i<diff.pathCount(); i++) {
-		ContainerComparison pathComparison = (ContainerComparison)diff.path(i);
+		pathComparison = (ContainerComparison)diff.path(i);
 		// System.out.println("ConfDbGUI.diffConfiguration: "+i+" "+pathComparison.resultAsString());
 		if (pathComparison.result()==Comparison.RESULT_CHANGED || pathComparison.result()==Comparison.RESULT_ADDED) {
-		    String pathName = pathComparison.newContainer().name();
+		    pathName = pathComparison.newContainer().name();
 		    // System.out.println("ConfDbGUI.diffConfiguration: path to update/add:"+pathName);
-		    ReferenceContainer external = importConfig.path(pathName);
+		    external = importConfig.path(pathName);
 		    if (external==null) {
 			// System.out.println("ConfDbGUI.diffConfiguration: path not found in importConfig - skip!");
-		    } else if ( ((Path)external).isEndPath() ) {
+			// } else if ( ((Path)external).isEndPath() ) {
 			// System.out.println("ConfDbGUI.diffConfiguration: path is endpath - skip!");
 		    } else {
+			/*
 			ReferenceContainer internal = currentConfig.path(external.name());
 			if (internal==null) {
 			    // System.out.println("ConfDbGUI.diffConfiguration: path not found in currentConfig - add!");
@@ -796,14 +802,18 @@ public class ConfDbGUI
 			    ((Path)internal).setAsEndPath(((Path)external).isSetAsEndPath());
 			}
 			// System.out.println("ConfDbGUI.diffConfiguration: start "+pathName+" "+external.name()+" "+internal.name());
-			ConfigurationTreeActions.DeepImportContainerEntriesSimulation(currentConfig, importConfig, external, internal);
-			// System.out.println("ConfDbGUI.diffConfiguration: done  "+currentConfig.hasChanged());
+			// result = ConfigurationTreeActions.DeepImportContainerEntriesSimulation(currentConfig, importConfig, external, internal);
+			*/
+			// System.out.println("ConfDbGUI.diffConfiguration: start "+pathName+" "+external.name());
+			result = ConfigurationTreeActions.DeepImportReferenceContainer(jTreeCurrentConfig,importConfig,external);
+			if (!result) System.out.println("ConfDbGUI.diffConfiguration: path not updated: "+pathName);
 		    }
 		} else {
-		    String pathName = pathComparison.oldContainer().name();
-		    // System.out.println("ConfDbGUI.diffConfiguration: path to remove/identical:"+pathName+" - not done!!!");
+		    pathName = pathComparison.oldContainer().name();
+		    System.out.println("ConfDbGUI.diffConfiguration: path not removed: "+pathName);
 		}
 	    }
+	    //
 	}
     }
     

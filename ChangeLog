@@ -1,5 +1,5 @@
-2012-02-09 Martin Grunewald  <Martin.Grunewald@cern.ch>
-	* tag V01-06-15
+2012-02-10 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-06-15/16
 	* Extension of menu-diff: use the result of the diff between two
 	  configuration as a patch to modify a third configuration,
 	  resulting in a patched, fourth configuration.
