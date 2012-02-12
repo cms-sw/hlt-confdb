@@ -310,8 +310,8 @@ public class ReleaseMigrator
 	    Parameter targetParameter = target.parameter(i);
 	    String    parameterName   = targetParameter.name();
 	    String    parameterType   = targetParameter.type();
-	    Parameter sourceParameter = source.parameter(parameterName,
-							 parameterType);
+	    Parameter sourceParameter = source.parameter(parameterName);
+	    //						 parameterType);
 
 	    if (sourceParameter!=null) {
 		if (sourceParameter.type().equals(parameterType)) {
@@ -330,6 +330,14 @@ public class ReleaseMigrator
 			target.updateParameter(parameterName,parameterType,
 					       valueAsString);
 		    }
+		}
+		else if (
+			 parameterType.equals("v"+sourceParameter.type()) ||
+			 parameterType.equals("V"+sourceParameter.type())
+			 ) {
+		    String valueAsString=sourceParameter.valueAsString();
+		    target.updateParameter(parameterName,parameterType,
+					   valueAsString);
 		}
 		else {
 		    String msg =
