@@ -1185,10 +1185,22 @@ public class ConfDB
 		int    entryId    = rsSequenceEntries.getInt(2);
 		int    sequenceNb = rsSequenceEntries.getInt(3);
 		String entryType  = rsSequenceEntries.getString(4);
-		
+		//Operator operator = Operator.getOperator( rsSequenceEntries.getInt(5) );
+
 		Sequence sequence = idToSequences.get(sequenceId);
 		int      index    = sequence.entryCount();
 		
+		boolean fail=true;
+		Operator operator = Operator.DEFAULT;
+		try {
+		    operator = Operator.getOperator( rsSequenceEntries.getInt(5) );
+		    fail=false;
+		} catch (SQLException e) {
+		    operator = Operator.DEFAULT;
+		    fail=true;
+		}
+		if (sequence.name().equals("HLTL1UnpackerSequence")) System.out.println(fail+" XXX: "+entryType);
+
 		if (index!=sequenceNb)
 		    System.err.println("ERROR in sequence "+sequence.name()+
 				       ": index="+index+" sequenceNb="
@@ -1202,18 +1214,18 @@ public class ConfDB
 					   " expected as daughter " + index +
 					   " of sequence " + sequence.name());
 		    }
-		    config.insertSequenceReference(sequence,index,entry);
+		    config.insertSequenceReference(sequence,index,entry).setOperator( operator );
 		}
 		else if (entryType.equals("Module")) {
 		    ModuleInstance entry = (ModuleInstance)idToModules.get(entryId);
-		    config.insertModuleReference(sequence,index,entry);
+		    config.insertModuleReference(sequence,index,entry).setOperator( operator );
 		}
 		else if (entryType.equals("OutputModule")) {
 		    Stream entry = (Stream)idToStream.get(entryId);
 		    if(entry==null) continue;
 		    OutputModule referencedOutput = entry.outputModule();
 		    if (referencedOutput==null) continue;
-		    config.insertOutputModuleReference(sequence,index,referencedOutput);
+		    config.insertOutputModuleReference(sequence,index,referencedOutput).setOperator( operator );
 		}
 		else
 		    System.err.println("Invalid entryType '"+entryType+"'");
@@ -2278,6 +2290,7 @@ public class ConfDB
 			    psInsertSequenceSequenceAssoc.setInt(1,sequenceId);
 			    psInsertSequenceSequenceAssoc.setInt(2,childSequenceId);
 			    psInsertSequenceSequenceAssoc.setInt(3,sequenceNb);
+			    psInsertSequenceSequenceAssoc.setInt(4,r.getOperator().ordinal());
 			    psInsertSequenceSequenceAssoc.addBatch();
 			}
 			catch (SQLException e) {
@@ -2298,6 +2311,7 @@ public class ConfDB
 			    psInsertSequenceModuleAssoc.setInt(1,sequenceId);
 			    psInsertSequenceModuleAssoc.setInt(2,moduleId);
 			    psInsertSequenceModuleAssoc.setInt(3,sequenceNb);
+			    psInsertSequenceModuleAssoc.setInt(4,r.getOperator().ordinal());
 			    psInsertSequenceModuleAssoc.addBatch();
 			}
 			catch (SQLException e) {
@@ -2318,6 +2332,7 @@ public class ConfDB
 			    psInsertSequenceOutputModuleAssoc.setInt(1,sequenceId);
 			    psInsertSequenceOutputModuleAssoc.setInt(2,outputModuleId);
 			    psInsertSequenceOutputModuleAssoc.setInt(3,sequenceNb);
+			    psInsertSequenceOutputModuleAssoc.setInt(4,r.getOperator().ordinal());
 			    psInsertSequenceOutputModuleAssoc.addBatch();
 			}
 			catch (SQLException e) {
@@ -4744,14 +4759,14 @@ public class ConfDB
 	    
 	    psInsertSequenceModuleAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO SequenceModuleAssoc (sequenceId,moduleId,sequenceNb) "+
-		 "VALUES(?, ?, ?)");
+		("INSERT INTO SequenceModuleAssoc (sequenceId,moduleId,sequenceNb,operator) "+
+		 "VALUES(?, ?, ?, ?)");
 	    preparedStatements.add(psInsertSequenceModuleAssoc);
 	    
 	     psInsertSequenceOutputModuleAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO SequenceOutputModAssoc (sequenceId,outputModuleId,sequenceNb) "+
-		 "VALUES(?, ?, ?)");
+		("INSERT INTO SequenceOutputModAssoc (sequenceId,outputModuleId,sequenceNb,operator) "+
+		 "VALUES(?, ?, ?, ?)");
 	    preparedStatements.add(psInsertSequenceOutputModuleAssoc);
 
 	    psInsertPathPathAssoc =
@@ -4769,8 +4784,8 @@ public class ConfDB
 	    psInsertSequenceSequenceAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO SequenceInSequenceAssoc"+
-		 "(parentSequenceId,childSequenceId,sequenceNb) "+
-		 "VALUES(?, ?, ?)");
+		 "(parentSequenceId,childSequenceId,sequenceNb,operator) "+
+		 "VALUES(?, ?, ?, ?)");
 	    preparedStatements.add(psInsertSequenceSequenceAssoc);
 	    
 	    psInsertPathModuleAssoc =
@@ -5385,6 +5400,7 @@ public class ConfDB
 		 " entry_id," +
 		 " sequence_nb," +
  		 " entry_type " +
+		 " operator " +
 		 "FROM tmp_sequence_entries "+
 		 "ORDER BY sequence_id ASC, sequence_nb ASC");
 	    psSelectSequenceEntries.setFetchSize(1024);

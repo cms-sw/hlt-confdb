@@ -689,10 +689,10 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    	menuItem.addActionListener(pathListener);
 	    	popupPaths.add(menuItem);
 	    	
-			// CLONE OPTION:
-		    menuItem = new JMenuItem("Clone Module");
-		    menuItem.addActionListener(pathListener);
-		    popupPaths.add(menuItem);
+		// CLONE OPTION:
+		menuItem = new JMenuItem("Clone Module");
+		menuItem.addActionListener(pathListener);
+		popupPaths.add(menuItem);
 	    	
 	    	popupPaths.addSeparator();
 	    	popupPaths.add( createSetOperatorMenu( (Reference)node, pathListener ) );
@@ -818,10 +818,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		popupSequences.add(menuItem);
 		
 		// CLONE OPTION:
-	    menuItem = new JMenuItem("Clone Module");
-	    menuItem.addActionListener(sequenceListener);
-	    popupSequences.add(menuItem);
-		
+		menuItem = new JMenuItem("Clone Module");
+		menuItem.addActionListener(sequenceListener);
+		popupSequences.add(menuItem);
+
+	    	popupSequences.addSeparator();
+	    	popupSequences.add( createSetOperatorMenu( (Reference)node, sequenceListener ) );
 	    }
 	    if (node instanceof OutputModuleReference) {
 		menuItem = new JMenuItem("Remove OutputModule");
@@ -1896,6 +1898,9 @@ class SequenceMenuListener implements ActionListener
 	}
 	else if (action.equals("OutputModule")) {
 	    ConfigurationTreeActions.insertReference(tree,"OutputModule",cmd);
+	}
+	else if (action.equals("Set Operator")) {
+	    ConfigurationTreeActions.setOperator( tree, cmd );
 	}
 	else if(cmd.equals("Clone Module")) {
 		ConfigurationTreeActions.CloneModule(tree, (ModuleReference)node, null);

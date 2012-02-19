@@ -1,3 +1,8 @@
+2012-02-19 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-06-18 put operator(IGNORE,NEGATE) also for modules inside
+	* sequences (so far only for modules directly in a path)
+	* - still needs DB intervention
+
 2012-02-11 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-06-17 Improve migration
 
