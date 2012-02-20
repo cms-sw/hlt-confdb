@@ -80,7 +80,8 @@ CREATE GLOBAL TEMPORARY TABLE tmp_sequence_entries
   sequence_id       NUMBER,
   entry_id          NUMBER,
   sequence_nb       NUMBER,
-  entry_type        VARCHAR2(64)
+  entry_type        VARCHAR2(64),
+  operator          NUMBER
 ) ON COMMIT PRESERVE ROWS;
 
 
@@ -974,7 +975,6 @@ BEGIN
 END;  
 /
 
-
 --
 -- PROCEDURE load_configuration
 --
@@ -1155,7 +1155,9 @@ AS
     SELECT
       SequenceInSequenceAssoc.parentSequenceId,
       SequenceInSequenceAssoc.childSequenceId,
-      SequenceInSequenceAssoc.sequenceNb
+      SequenceInSequenceAssoc.sequenceNb,
+      SequenceInSequenceAssoc.operator
+
     FROM SequenceInSequenceAssoc
     JOIN ConfigurationSequenceAssoc
     ON SequenceInSequenceAssoc.parentSequenceId =
@@ -1167,7 +1169,8 @@ AS
     SELECT
       SequenceModuleAssoc.sequenceId,
       SequenceModuleAssoc.moduleId,
-      SequenceModuleAssoc.sequenceNb
+      SequenceModuleAssoc.sequenceNb,
+      SequenceModuleAssoc.operator
     FROM SequenceModuleAssoc
     JOIN ConfigurationSequenceAssoc
     ON SequenceModuleAssoc.sequenceId =
@@ -1180,7 +1183,8 @@ AS
     SELECT
       SequenceOutputModAssoc.sequenceId,
       SequenceOutputModAssoc.outputModuleId,
-      SequenceOutputModAssoc.sequenceNb
+      SequenceOutputModAssoc.sequenceNb,
+      SequenceOutputModAssoc.operator
     FROM SequenceOutputModAssoc
     JOIN ConfigurationSequenceAssoc
     ON SequenceOutputModAssoc.sequenceId =
@@ -1346,30 +1350,30 @@ BEGIN
   /* load sequence-sequence associations */
   OPEN cur_sequence_sequence;
   LOOP
-    FETCH cur_sequence_sequence INTO v_parent_id,v_child_id,v_sequence_nb;
+    FETCH cur_sequence_sequence INTO v_parent_id,v_child_id,v_sequence_nb,v_operator;
     EXIT WHEN cur_sequence_sequence%NOTFOUND;
-    INSERT INTO tmp_sequence_entries
-      VALUES(v_parent_id,v_child_id,v_sequence_nb,'Sequence');
+    INSERT INTO tmp_sequence_entries (sequence_id,entry_id,sequence_nb,entry_type,operator)
+      VALUES(v_parent_id,v_child_id,v_sequence_nb,'Sequence',v_operator);
   END LOOP;
   CLOSE cur_sequence_sequence;
 
   /* load sequence-module associations */
   OPEN cur_sequence_module;
   LOOP
-    FETCH cur_sequence_module INTO v_parent_id,v_child_id,v_sequence_nb;
+    FETCH cur_sequence_module INTO v_parent_id,v_child_id,v_sequence_nb,v_operator;
     EXIT WHEN cur_sequence_module%NOTFOUND;
-    INSERT INTO tmp_sequence_entries
-      VALUES(v_parent_id,v_child_id,v_sequence_nb,'Module');
+    INSERT INTO tmp_sequence_entries (sequence_id,entry_id,sequence_nb,entry_type,operator)
+      VALUES(v_parent_id,v_child_id,v_sequence_nb,'Module',v_operator);
   END LOOP;
   CLOSE cur_sequence_module;
 
  /* load sequence-module associations */
   OPEN cur_sequence_outputmod;
   LOOP
-    FETCH cur_sequence_outputmod INTO v_parent_id,v_child_id,v_sequence_nb;
+    FETCH cur_sequence_outputmod INTO v_parent_id,v_child_id,v_sequence_nb,v_operator;
     EXIT WHEN cur_sequence_outputmod%NOTFOUND;
-    INSERT INTO tmp_sequence_entries
-      VALUES(v_parent_id,v_child_id,v_sequence_nb,'OutputModule');
+    INSERT INTO tmp_sequence_entries (sequence_id,entry_id,sequence_nb,entry_type,operator)
+      VALUES(v_parent_id,v_child_id,v_sequence_nb,'OutputModule',v_operator);
       load_parameters(v_child_id);
   END LOOP;
   CLOSE cur_sequence_outputmod;

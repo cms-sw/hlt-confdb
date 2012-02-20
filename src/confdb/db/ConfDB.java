@@ -1198,6 +1198,8 @@ public class ConfDB
 		} catch (SQLException e) {
 		    operator = Operator.DEFAULT;
 		    fail=true;
+		    
+		    System.out.println("SQLException catched at confDb.java::loadConfiguration()   sequence = " + sequence.name());
 		}
 		if (sequence.name().equals("HLTL1UnpackerSequence")) System.out.println(fail+" XXX: "+entryType);
 
@@ -5399,7 +5401,7 @@ public class ConfDB
 		 " sequence_id," +
 		 " entry_id," +
 		 " sequence_nb," +
- 		 " entry_type " +
+ 		 " entry_type, " +
 		 " operator " +
 		 "FROM tmp_sequence_entries "+
 		 "ORDER BY sequence_id ASC, sequence_nb ASC");

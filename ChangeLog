@@ -1,3 +1,9 @@
+2012-02-20 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-19
+	* Update load_configuration procedure and SQL definitions to take into account module 
+	  reference operators inside Sequences.
+	* Modify psSelectSequenceEntries statement.
+
 2012-02-19 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-06-18 put operator(IGNORE,NEGATE) also for modules inside
 	* sequences (so far only for modules directly in a path)

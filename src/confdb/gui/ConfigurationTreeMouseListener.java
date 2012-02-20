@@ -813,6 +813,8 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    popupSequences.add(addSequenceMenu);
 	    
 	    if (node instanceof ModuleReference) {
+	    	ModuleReference mr = (ModuleReference) node;
+	    	
 		menuItem = new JMenuItem("Remove Module");
 		menuItem.addActionListener(sequenceListener);
 		popupSequences.add(menuItem);
