@@ -1,3 +1,5 @@
+RecoTracker/FinalTrackSelectors         trackListMerger_cfi.py
+RecoTracker/FinalTrackSelectors         simpleTrackListMerger_cfi.py
 TrackingTools/TrajectoryCleaning        TrajectoryCleanerBySharedHits_cfi.py
 RecoTracker/DeDx                        hltDeDxEstimatorProducer_cfi.py
 IORawData/DaqSource                     hltDaqSource_cfi.py
@@ -55,7 +57,6 @@ EventFilter/EcalRawToDigi		EcalRawToRecHitRoI_cfi.py
 EventFilter/EcalRawToDigi               ecalRegionalMuonsFEDs_cfi.py
 EventFilter/DTRawToDigi			dtunpacker_cfi.py
 FastSimulation/Configuration		TrackerRecoGeometryESProducer_cfi.py
-FastSimulation/Tracking			HLTGeneralTracks_cfi.py
 TrackingTools/TrajectoryCleaning	TrajectoryCleanerBySharedHits_cfi.py
 TrackingTools/TrackAssociator		DetIdAssociatorESProducer_cff.py
 Geometry/CaloEventSetup			CaloGeometryBuilder_cfi.py
