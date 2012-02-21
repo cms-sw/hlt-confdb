@@ -1,3 +1,6 @@
+TrackingTools/TrajectoryCleaning        TrajectoryCleanerBySharedHits_cfi.py
+RecoTracker/DeDx                        hltDeDxEstimatorProducer_cfi.py
+IORawData/DaqSource                     hltDaqSource_cfi.py
 RecoTauTag/TauTagTools                  HLTPFTauSelector_cfi.py
 RecoMuon/L2MuonIsolationProducer        hltL2MuonIsolationsCR_cfi.py
 RecoBTau/JetTagComputer                 combinedMVABJetTags_cfi.py
@@ -39,7 +42,6 @@ RecoMET/METProducers                    CaloMET_cfi.py
 RecoMET/METProducers                    genMetCalo_cfi.py
 RecoMET/METProducers			TCMET_cfi.py
 RecoEgamma/EgammaHLTProducers           hltPhotonTrackIsol_cfi.py
-RecoEgamma/EgammaPhotonProducers	conversionTrackCandidates_cfi.py
 RecoEcal/EgammaClusterProducers         correctedIslandBarrelSuperClusters_cfi.py
 RecoEcal/EgammaClusterProducers         correctedFixedMatrixSuperClustersWithPreshower_cfi.py
 RecoEcal/EgammaClusterProducers         correctedDynamicHybridSuperClusters_cfi.py
@@ -52,7 +54,6 @@ HLTrigger/Egamma			hltPMMassFilter_cfi.py
 EventFilter/EcalRawToDigi		EcalRawToRecHitRoI_cfi.py
 EventFilter/EcalRawToDigi               ecalRegionalMuonsFEDs_cfi.py
 EventFilter/DTRawToDigi			dtunpacker_cfi.py
-IORawData/SiStripInputSources		DaqSource_cfi.py
 FastSimulation/Configuration		TrackerRecoGeometryESProducer_cfi.py
 FastSimulation/Tracking			HLTGeneralTracks_cfi.py
 TrackingTools/TrajectoryCleaning	TrajectoryCleanerBySharedHits_cfi.py
