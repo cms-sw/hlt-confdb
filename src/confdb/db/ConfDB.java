@@ -71,6 +71,7 @@ public class ConfDB
     
     // database features:
     private boolean extraPathFieldsAvailability = false;
+    private boolean operatorFieldForSequencesAvailability = false; // bug #91797
     
     
     /** template table name hash map */
@@ -320,6 +321,8 @@ public class ConfDB
     private PreparedStatement psSelectCLOBsValues                 = null; // get Clobs - bug75950
     private PreparedStatement psSelectPathEntries                 = null;
     private PreparedStatement psSelectSequenceEntries             = null;
+    private PreparedStatement psSelectSequenceEntriesAndOperator  = null; // bug #91797
+    
 
 
     private  PreparedStatement psSelectSoftwarePackageId           = null;
@@ -339,6 +342,9 @@ public class ConfDB
     private  PreparedStatement psCheckPathFieldsExistence			= null;
     private  PreparedStatement psSelectPathExtraFields				= null;
     private	 PreparedStatement psInsertPathDescription				= null;
+    
+    // bug #91797: ConfDB operator IGNORE/NEGATE also for modules in a sequence.
+    private	PreparedStatement psCheckOperatorForModuleSequenceAssoc	= null;
     
 
     private ArrayList<PreparedStatement> preparedStatements =
@@ -417,7 +423,10 @@ public class ConfDB
     public String getHostName() 	{ return dbHost; }
     public String getPortNumber() 	{ return dbPort; }
     public String getDbName()		{ return dbName; }
+    
+    // methods to retrieve db features:
     public boolean getExtraPathFieldsAvailability() { return extraPathFieldsAvailability; 	}
+    public boolean getOperatorFieldForSequencesAvailability() { return operatorFieldForSequencesAvailability; }
     
     
     /** close all prepared statements */
@@ -538,6 +547,7 @@ public class ConfDB
     public void checkDbFeatures() {
     	try {
             extraPathFieldsAvailability = checkExtraPathFields();
+            operatorFieldForSequencesAvailability = checkOperatorFieldForSequences();
     	}
     	catch (DatabaseException e) {
     	    e.printStackTrace(); // DEBUG
@@ -1006,7 +1016,14 @@ public class ConfDB
 
 	    rsInstances       = psSelectInstances.executeQuery();
 	    rsPathEntries     = psSelectPathEntries.executeQuery();
-	    rsSequenceEntries = psSelectSequenceEntries.executeQuery();
+	    
+	    
+	    // This is to fix the operator field bug for modules inside sequences. bug #91797
+	    if(operatorFieldForSequencesAvailability)
+	    	rsSequenceEntries = psSelectSequenceEntriesAndOperator.executeQuery();
+	    else
+	    	rsSequenceEntries = psSelectSequenceEntries.executeQuery();
+	    	
 	    
 	    psSelectEventContentEntries.setInt(1,configId);
 	    rsEventContentEntries = psSelectEventContentEntries.executeQuery();
@@ -1185,7 +1202,9 @@ public class ConfDB
 		int    entryId    = rsSequenceEntries.getInt(2);
 		int    sequenceNb = rsSequenceEntries.getInt(3);
 		String entryType  = rsSequenceEntries.getString(4);
-		//Operator operator = Operator.getOperator( rsSequenceEntries.getInt(5) );
+		
+		
+
 
 		Sequence sequence = idToSequences.get(sequenceId);
 		int      index    = sequence.entryCount();
@@ -1193,7 +1212,9 @@ public class ConfDB
 		boolean fail=true;
 		Operator operator = Operator.DEFAULT;
 		try {
-		    operator = Operator.getOperator( rsSequenceEntries.getInt(5) );
+		    //operator = Operator.getOperator( rsSequenceEntries.getInt(5) );
+			if(operatorFieldForSequencesAvailability) 
+				operator = Operator.getOperator( rsSequenceEntries.getInt(5) );
 		    fail=false;
 		} catch (SQLException e) {
 		    operator = Operator.DEFAULT;
@@ -1201,8 +1222,9 @@ public class ConfDB
 		    
 		    System.out.println("SQLException catched at confDb.java::loadConfiguration()   sequence = " + sequence.name());
 		}
+		
 		if (sequence.name().equals("HLTL1UnpackerSequence")) System.out.println(fail+" XXX: "+entryType);
-
+		
 		if (index!=sequenceNb)
 		    System.err.println("ERROR in sequence "+sequence.name()+
 				       ": index="+index+" sequenceNb="
@@ -1441,6 +1463,32 @@ public class ConfDB
     	catch (SQLException e) {
     	    String errMsg =
     		"ConfDB::checkExtraPathFields failed: "+
+    		e.getMessage();
+    	    throw new DatabaseException(errMsg,e);
+    	} finally {
+    		dbConnector.release(rs);
+    	}
+    	
+		if(extraFields == 1) return true;
+		else return false;
+    }
+    
+    
+    /** check if the operator fields for TMP_SEQUENCE_ENTRIES is available in current db. */
+    public boolean checkOperatorFieldForSequences() throws DatabaseException {
+    	ResultSet rs = null;
+    	int extraFields = 0;
+    	try {
+    		rs = psCheckOperatorForModuleSequenceAssoc.executeQuery();
+    	
+    		while(rs.next()) {
+    			extraFields = rs.getInt(1);	
+    		}
+    		
+    	}
+    	catch (SQLException e) {
+    	    String errMsg =
+    		"ConfDB::checkOperatorFieldForSequences failed: "+
     		e.getMessage();
     	    throw new DatabaseException(errMsg,e);
     	} finally {
@@ -5401,13 +5449,26 @@ public class ConfDB
 		 " sequence_id," +
 		 " entry_id," +
 		 " sequence_nb," +
- 		 " entry_type, " +
+ 		 " entry_type " +
 		 " operator " +
 		 "FROM tmp_sequence_entries "+
 		 "ORDER BY sequence_id ASC, sequence_nb ASC");
 	    psSelectSequenceEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectSequenceEntries);
 
+	    // bug #91797 ConfDB operator IGNORE/NEGATE also for modules in a sequence
+	    psSelectSequenceEntriesAndOperator =
+			dbConnector.getConnection().prepareStatement
+			("SELECT" +
+			 " sequence_id," +
+			 " entry_id," +
+			 " sequence_nb," +
+	 		 " entry_type, " +
+			 " operator " +
+			 "FROM tmp_sequence_entries "+
+			 "ORDER BY sequence_id ASC, sequence_nb ASC");
+	    psSelectSequenceEntriesAndOperator.setFetchSize(1024);
+		    preparedStatements.add(psSelectSequenceEntriesAndOperator);
 
 
 	    //Insert a new relesase
@@ -5502,7 +5563,15 @@ public class ConfDB
 			 "VALUES(?, ?, ?, ?)",keyColumn);
 		    preparedStatements.add(psInsertPathDescription);
 		    
-	    
+		    
+	    // bug #91797: ConfDB operator IGNORE/NEGATE also for modules in a sequence.
+	    psCheckOperatorForModuleSequenceAssoc	= 
+			dbConnector.getConnection().prepareStatement
+			("select 1 from dual where exists ( 		" + 
+			 " select 1 from all_tab_columns 			" + 
+			 " where table_name = 'TMP_SEQUENCE_ENTRIES'" +
+			 "   and column_name = 'OPERATOR')			");
+		    preparedStatements.add(psCheckPathFieldsExistence);
 	}
 	catch (SQLException e) {
 	    String errMsg = "ConfDB::prepareStatements() failed: "+e.getMessage();

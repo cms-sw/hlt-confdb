@@ -2480,16 +2480,8 @@ public class ConfigurationTreeActions
     	Reference       		reference = (Reference)treePath.getLastPathComponent();
     	Operator op = Operator.valueOf( newOperator );
     	
-    	///////
-    	System.out.println("[setOperator] ----------------------------------");
-    	System.out.println("[setOperator] reference = " + reference.name());
-    	System.out.println("[setOperator] operator = " + newOperator);
-    	System.out.println("[setOperator] operator = " + op.name());
-    	//	///
-    	
     	reference.setOperator( op );
     	
-    	System.out.println("[setOperator] operator set= " + reference.getOperatorAndName());
     	model.nodeChanged( reference );
     	return true;
     }
