@@ -54,6 +54,7 @@ public class MenuBar
     private static final String dbMenuConnectToDB      = "Connect to DB";
     private static final String dbMenuDisconnectFromDB = "Disconnect from DB";
     private static final String dbMenuExportConfig     = "Export Configuration";
+    private static final String dbMenuImportFromPython = "Import from Python";
     private static final String dbMenuDBInfo     	   = "Database Info";
     
     /** meny bar items */
@@ -88,6 +89,7 @@ public class MenuBar
     private JMenuItem dbMenuConnectItem         = null;
     private JMenuItem dbMenuDisconnectItem      = null;
     private JMenuItem dbMenuExportItem          = null;
+    private JMenuItem dbMenuImportFromPythonItem= null;
     private JMenuItem dbMenuDBInfoItem			= null;
     
     
@@ -214,6 +216,7 @@ public class MenuBar
 	configMenuParseItem.setActionCommand(configMenuParse);
 	configMenuParseItem.addActionListener(listener);
 	configMenu.add(configMenuParseItem);
+	
 	/*
 	configMenuJParseItem = new JMenuItem(configMenuJParse,KeyEvent.VK_J);
 	configMenuJParseItem.setActionCommand(configMenuJParse);
@@ -320,6 +323,13 @@ public class MenuBar
 	dbMenuExportItem.setActionCommand(dbMenuExportConfig);
 	dbMenuExportItem.addActionListener(listener);
 	dbMenu.add(dbMenuExportItem);
+	
+	// bug/feature  #76151 	import from python
+	dbMenuImportFromPythonItem = new JMenuItem(dbMenuImportFromPython, KeyEvent.VK_P);
+	dbMenuImportFromPythonItem.setActionCommand(dbMenuImportFromPython);
+	dbMenuImportFromPythonItem.addActionListener(listener);
+	dbMenu.add(dbMenuImportFromPythonItem);
+	
 	dbMenuDBInfoItem = new JMenuItem(dbMenuDBInfo, KeyEvent.VK_B);
 	dbMenuDBInfoItem.setActionCommand(dbMenuDBInfo);
 	dbMenuDBInfoItem.addActionListener(listener);

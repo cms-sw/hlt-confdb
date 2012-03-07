@@ -47,6 +47,7 @@ public class CommandActionListener implements ActionListener
     
     private static final String cmdConnectToDB      = "Connect to DB";
     private static final String cmdDisconnectFromDB = "Disconnect from DB";
+    private static final String cmdImportFromPython = "Import from Python";
     private static final String cmdExportConfig     = "Export Configuration";
     private static final String cmdDBInfo     = "Database Info";
   
@@ -96,6 +97,7 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdExportConfig))     app.exportConfiguration();
 	if (command.equals(cmdOpenOldScehma))    app.importConfigurationFromDBV1();
 	if (command.equals(cmdDBInfo))    		 app.showDBInfo();
+	if (command.equals(cmdImportFromPython)) app.importFromPythonToolDialog();
     }
 
 }

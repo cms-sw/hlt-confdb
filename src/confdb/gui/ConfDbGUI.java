@@ -10,6 +10,9 @@ import javax.swing.text.StyleConstants;
 import javax.swing.border.*;
 import javax.swing.plaf.basic.*;
 
+import org.python.core.PyObject;
+import org.python.util.PythonInterpreter;
+
 import sun.security.pkcs11.Secmod.Module;
 
 import java.awt.*;
@@ -1452,6 +1455,58 @@ public class ConfDbGUI
                 (int)d.getHeight()/2 - (int)infoFrame.getPreferredSize().getHeight()/2);	
     }
     
+    
+    
+    /** Show import tool window to import a Python file into the database 
+     * bug/feature  #76151 	
+     * */
+    public void importFromPythonToolDialog() {
+    	jparseConfiguration();
+    	    /*
+	    	if (!closeConfiguration()) return;
+	    	
+	    	ParseConfigurationDialog dialog =
+	    	    new ParseConfigurationDialog(frame,database);
+	    	dialog.pack();
+	    	dialog.setLocationRelativeTo(frame);
+	    	dialog.setVisible(true);
+	    	
+	    	if (dialog.validChoice()) {
+	    	    String fileName   = dialog.fileName();
+	    	    String releaseTag = dialog.releaseTag();
+	    	    System.out.println("filename: " + fileName);
+	    	    System.out.println("releaseTag: " + releaseTag);
+	    	}
+    	
+    	    FileChooserDialog Fcd = new FileChooserDialog();
+    	    Fcd.createAndShowGUI();
+    	    
+            // Create an instance of the PythonInterpreter
+            PythonInterpreter python = new PythonInterpreter();
+
+            // The exec() method executes strings of code
+            python.exec("import sys");
+            python.exec("sys.path.append('python')");   // add the CMSSW Python path
+            python.exec("sys.path.append('jython')");   // add the Jythonn libraries
+            python.exec("import pycimport");            // load precompiled .pyc files
+
+            System.out.println("loading HLT configuration...");
+            //python.exec("from full import process");
+            python.exec("from hlt import process");
+            System.out.println("file imported!");
+
+            PyObject pyprocess = python.get("process");
+
+            Parser parser = new Parser();
+            Process process = parser.parseProcess(pyprocess);
+            //process.dump();
+   
+             */
+            System.out.println("done!");
+            
+    	    
+    }
+    
 
     /** reset current and import configuration */
     private void resetConfiguration()
@@ -1776,10 +1831,15 @@ public class ConfDbGUI
 	protected String construct() throws DatabaseException,JParserException
 	{
 	    startTime = System.currentTimeMillis();
-	    if (!releaseTag.equals(currentRelease.releaseTag()))
-		database.loadSoftwareRelease(releaseTag,currentRelease);
+	    // TODO: very important to uncomment next line!
+	    System.out.println("IMPORTANT: TODO uncomment loadSoftwareRelease");
+	    if (!releaseTag.equals(currentRelease.releaseTag())) 
+	    	database.loadSoftwareRelease(releaseTag,currentRelease);
+	    
+	    
 	    parser = new JPythonParser(currentRelease);
-	    parser.parseFile(fileName);
+	    //TODO: here is where the parser is really invoked.
+	    parser.parseFile(fileName); 
 	    setCurrentConfig(parser.createConfiguration());
 	    return new String("Done!");
 	}

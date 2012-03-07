@@ -1,3 +1,11 @@
+2012-03-07 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-21
+	* First implementation of the Python parser using Jython 2.5.2.
+	- Still needs some improvements for PSets, validations, etc.
+	- Includes a modified version of jython-2.5.2.jar and some other
+	  extra libraries to work.
+
+
 2012-02-20 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-20
 	* Prepare Confdb to be compatible with both table definitions (tmp_sequence_entries)

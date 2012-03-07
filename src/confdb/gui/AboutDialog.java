@@ -24,7 +24,8 @@ public class AboutDialog extends JDialog
     JEditorPane jEditorPaneAbout      		= new JEditorPane();
     JButton     jButtonOk             		= new JButton();
     JTextField  jTextFieldApplication 		= new JTextField();
-    static JTextField  jTextFieldVersion	= new JTextField("V01-06-20"); 			// ConfDb Version.
+    static JTextField  jTextFieldVersion	= new JTextField("V01-06-21"); 			// ConfDb Version.
+
     static String		contactEmail		= "raul.jimenez.estupinan@cern.ch";		// Contact person.
     
     
