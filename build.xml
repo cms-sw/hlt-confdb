@@ -106,7 +106,7 @@
         <pathelement location="${dir.lib}/cmssw-evf-confdb-gui.jar"/>
         <pathelement location="${dir.ext}/ojdbc14.jar"/>
         <pathelement location="${dir.ext}/swing-layout-1.0.jar"/>
-        <pathelement location="${dir.ext}/jython-2.5.1.jar"/>
+        <pathelement location="${dir.ext}/jython-2.5.2.jar"/>
       	<pathelement location="${dir.ext}/antlr-runtime-3.1.3.jar"/>
       	<pathelement location="${dir.ext}/asm-3.1.jar"/>
       	<pathelement location="${dir.ext}/asm-commons-3.1.jar"/>

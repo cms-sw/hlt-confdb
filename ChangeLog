@@ -1,3 +1,9 @@
+2012-03-08 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-22
+	* Add Oracle script to create read-only schemas using dblinks.
+	* Update confdb.properties to the new active dataguard setup.
+	* Fix an error in build.xml to deploy the browser.
+
 2012-03-07 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-21
 	* First implementation of the Python parser using Jython 2.5.2.

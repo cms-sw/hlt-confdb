@@ -3846,6 +3846,8 @@ public class ConfDB
 	    // SELECT
 	    //
 	    
+		
+		
 	    psSelectModuleTypes =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
@@ -4353,6 +4355,7 @@ public class ConfDB
 		 "WHERE ConfigurationPathAssoc.pathId=?");
 	    preparedStatements.add(psSelectPathId);
 	    
+	    
 	    psSelectStreamByEventContent = 
 	    	dbConnector.getConnection().prepareStatement(
 	    			"SELECT  ECS.STREAMID "				+
@@ -4588,7 +4591,7 @@ public class ConfDB
 		("SELECT COUNT(*) FROM VecParameterSets");
 	    preparedStatements.add(psSelectVecParameterSetCount);
 	    
-
+	    
 	    //
 	    // INSERT
 	    //
@@ -4653,7 +4656,7 @@ public class ConfDB
 		 "VALUES(?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertStreams);
     
-	  
+	    
 	    psInsertPrimaryDatasets =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO PrimaryDatasets (datasetLabel)" +
@@ -4729,7 +4732,6 @@ public class ConfDB
 	    preparedStatements.add(psInsertESSource);
 	    
 
-
 	    psInsertConfigESSourceAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
@@ -4799,7 +4801,6 @@ public class ConfDB
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigSequenceAssoc);
 	    
-	
 	    
 	    psInsertModule =
 		dbConnector.getConnection().prepareStatement
@@ -5035,6 +5036,7 @@ public class ConfDB
 		 "VALUES (?, ?, ?)");
 	    preparedStatements.add(psInsertVInputTagParamValue);
 
+	    
 	    //
 	    // DELETE
 	    //
@@ -5117,6 +5119,7 @@ public class ConfDB
 	       "WHERE configId=?");
 	       preparedStatements.add(psDeleteStreamsAndDatasetsFromConfig);
 	    */
+	    
 
 	    psDeleteChildSeqsFromParentSeq =
 		dbConnector.getConnection().prepareStatement
@@ -5301,7 +5304,6 @@ public class ConfDB
 
 	    }
 	    
-
 	    //
 	    // SELECT FOR TEMPORARY TABLES
 	    //
@@ -5427,8 +5429,6 @@ public class ConfDB
 		preparedStatements.add(psSelectCLOBsValues);
 		
 		
-		
-		
 	    
 	    psSelectPathEntries =
 		dbConnector.getConnection().prepareStatement
@@ -5469,7 +5469,7 @@ public class ConfDB
 			 "ORDER BY sequence_id ASC, sequence_nb ASC");
 	    psSelectSequenceEntriesAndOperator.setFetchSize(1024);
 		    preparedStatements.add(psSelectSequenceEntriesAndOperator);
-
+		
 
 	    //Insert a new relesase
 	    psInsertReleaseTag = 
@@ -5547,7 +5547,6 @@ public class ConfDB
 			  "and column_name = 'DESCRIPTION')			");
 		    preparedStatements.add(psCheckPathFieldsExistence);
 		    
-
 		psSelectPathExtraFields = 
 			dbConnector.getConnection().prepareStatement(
 			"SELECT p.pathid		,	" +
@@ -5562,7 +5561,6 @@ public class ConfDB
 			("INSERT INTO Paths (name,isEndPath, description, contact) " +
 			 "VALUES(?, ?, ?, ?)",keyColumn);
 		    preparedStatements.add(psInsertPathDescription);
-		    
 		    
 	    // bug #91797: ConfDB operator IGNORE/NEGATE also for modules in a sequence.
 	    psCheckOperatorForModuleSequenceAssoc	= 
