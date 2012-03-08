@@ -3,6 +3,7 @@
 	* Add Oracle script to create read-only schemas using dblinks.
 	* Update confdb.properties to the new active dataguard setup.
 	* Fix an error in build.xml to deploy the browser.
+	* Disable python parser Option.
 
 2012-03-07 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-21
