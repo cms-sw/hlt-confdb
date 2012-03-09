@@ -328,7 +328,7 @@ public class MenuBar
 	dbMenuImportFromPythonItem = new JMenuItem(dbMenuImportFromPython, KeyEvent.VK_P);
 	dbMenuImportFromPythonItem.setActionCommand(dbMenuImportFromPython);
 	dbMenuImportFromPythonItem.addActionListener(listener);
-	//dbMenu.add(dbMenuImportFromPythonItem);	// Temporary disable menu option until be ready.
+	dbMenu.add(dbMenuImportFromPythonItem);	// Temporary disable menu option until be ready.
 	
 	dbMenuDBInfoItem = new JMenuItem(dbMenuDBInfo, KeyEvent.VK_B);
 	dbMenuDBInfoItem.setActionCommand(dbMenuDBInfo);

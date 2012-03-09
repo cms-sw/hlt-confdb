@@ -1831,15 +1831,16 @@ public class ConfDbGUI
 	protected String construct() throws DatabaseException,JParserException
 	{
 	    startTime = System.currentTimeMillis();
-	    // TODO: very important to uncomment next line!
-	    System.out.println("IMPORTANT: TODO uncomment loadSoftwareRelease");
+	    
 	    if (!releaseTag.equals(currentRelease.releaseTag())) 
 	    	database.loadSoftwareRelease(releaseTag,currentRelease);
 	    
-	    
+	    System.out.println("Before instantiating the parser...");
 	    parser = new JPythonParser(currentRelease);
-	    //TODO: here is where the parser is really invoked.
+	    System.out.println("After instantiating the parser...");
 	    parser.parseFile(fileName); 
+	    System.out.println("Parser invoked, error?...");
+	    
 	    setCurrentConfig(parser.createConfiguration());
 	    return new String("Done!");
 	}
@@ -1868,7 +1869,18 @@ public class ConfDbGUI
 	    jTreeCurrentConfig.setEditable(true);
 	    jTreeTableParameters.getTree().setEditable(true);
 
-	    if (parser.closeProblemStream()) {
+	    if(parser == null) {
+	    	// TODO: 
+			// Add the configuration details:
+			String StackTrace = "ConfDb Version: " 	+ AboutDialog.getConfDbVersion() 	+ "\n";
+			StackTrace+= "Release Tag: " 			+ currentRelease.releaseTag() 		+ "\n";
+			StackTrace+= "-----------------------------------------------------------------\n";			
+	    	String errMsg = "Parse Python configuration FAILED!\n"	+
+			"Please send us an email to:\n" + AboutDialog.getContactPerson();
+			
+	    	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, StackTrace);
+			cd.createAndShowGUI();
+	    } else  if (parser.closeProblemStream()) {
 		System.err.println("problems encountered, see problems.txt.");
 		JParserProblemsDialog dialog=new JParserProblemsDialog(frame,
 								       parser);

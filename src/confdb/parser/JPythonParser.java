@@ -144,16 +144,13 @@ public class JPythonParser
 	    //	    pyCmd("theProcess = __import__('"+leaf+"')");
 	    //	    pyCmd("import FWCore.ParameterSet.Config as cms");
 	    
-	    
 	    /////////////////////////////////////////////////////////
 	    // 27-feb-2012
 	    pyCmd("import sys");
 	    pyCmd("sys.path.append('python')");   // add the CMSSW Python path
-	    //pyCmd("sys.path.append('jython')");   // add the Jythonn libraries
 	    pyCmd("import pycimport");            // load precompiled .pyc files
 	    /////////////////////////////////////////////////////////
-	    
-	    
+
 	    // now import process object from (uncompiled) py file
 	    pyCmd("from "+leaf+" import process");
 	    pyCmd("print process");

@@ -11,6 +11,7 @@
   <property name="dir.build" location="classes"/>
   <property name="dir.icons" location="icons"/>
   <property name="dir.lib" location="lib"/>
+  <property name="dir.python" location="python"/>
 
   <!-- initialize variables, make directories -->
   <target name="init">
@@ -33,6 +34,8 @@
       <fileset dir="${dir.build}"/>
       <fileset dir="${dir.icons}"/>
       <fileset dir="${dir.src}"><include name="conf/*"/></fileset>
+    <!-- include python FWCore --> 
+	  <fileset dir="${dir.python}"/> 
       <manifest>
         <attribute name="Main-Class" value="confdb.gui.ConfDbGUI" />    
       </manifest>
@@ -48,6 +51,16 @@
 		<fileset dir="${dir.src}"><include name="conf/*"/></fileset>
 		<zipfileset excludes="META-INF/**/*" src="${dir.ext}/ojdbc14.jar"/>
 		<zipfileset excludes="META-INF/**/*" src="${dir.ext}/swing-layout-1.0.jar"/>
+	
+		<zipfileset src="${dir.ext}/jython-2.5.2.jar"/>
+		<zipfileset src="${dir.ext}/antlr-runtime-3.1.3.jar"/>
+		<zipfileset src="${dir.ext}/asm-3.1.jar"/>
+		<zipfileset src="${dir.ext}/asm-commons-3.1.jar"/>
+		<zipfileset src="${dir.ext}/asm-util-3.1.jar"/>
+		<zipfileset src="${dir.ext}/constantine-0.4.jar"/>
+		<zipfileset src="${dir.ext}/jna.jar"/>
+		<zipfileset src="${dir.ext}/jna-posix.jar"/>
+		
 		<manifest>
 			<attribute name="Main-Class" value="confdb.gui.ConfDbGUI" />    
 	  	</manifest>
@@ -92,6 +105,7 @@
     <war destfile="${dir.lib}/confdb.war" webxml="browser/WebContent/WEB-INF/web.xml">
       <lib file="${dir.lib}/cmssw-evf-confdb-browser.jar"/>
       <lib file="${dir.ext}/mysql-connector-java-5.0.5-bin.jar"/>
+    	
       <fileset dir="browser/WebContent"/>
         <zipfileset dir="${dir.lib}" includes="cmssw-evf-confdb-gui.jar" prefix="gui"/>
         <zipfileset dir="${dir.lib}" includes="confdb-gui-all-inclusive.jar" prefix="gui"/>
@@ -107,11 +121,6 @@
         <pathelement location="${dir.ext}/ojdbc14.jar"/>
         <pathelement location="${dir.ext}/swing-layout-1.0.jar"/>
         <pathelement location="${dir.ext}/jython-2.5.2.jar"/>
-      	<pathelement location="${dir.ext}/antlr-runtime-3.1.3.jar"/>
-      	<pathelement location="${dir.ext}/asm-3.1.jar"/>
-      	<pathelement location="${dir.ext}/asm-commons-3.1.jar"/>
-		<pathelement location="${dir.ext}/asm-util-3.1.jar"/>
-        <pathelement path="${java.class.path}"/>
       </classpath>
     </java>
   </target>
@@ -125,5 +134,4 @@
     </delete>
     <echo message="clean successful"/>
   </target>
-
 </project>
