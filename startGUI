@@ -41,16 +41,6 @@ $classpath = $classpath . ":ext/constantine-0.4.jar";
 $classpath = $classpath . ":ext/jna.jar";
 $classpath = $classpath . ":ext/jna-posix.jar";
 
-## the ones bellow are not needed.
-##$classpath = $classpath . ":ext/junit-3.8.2.jar";
-##$classpath = $classpath . ":ext/libreadline-java-0.8.jar";
-##$classpath = $classpath . ":ext/postgresql-8.3-603.jdbc4.jar";
-##$classpath = $classpath . ":ext/servlet-api-2.5.jar";
-##$classpath = $classpath . ":ext/stringtemplate-3.2.jar";
-##$classpath = $classpath . ":ext/xercesImpl-2.9.1.jar";
-##$classpath = $classpath . ":ext/antlr-3.1.3.jar";
-##$classpath = $classpath . ":ext/jarjar-0.7.jar";
-##$classpath = $classpath . ":ext/jline-0.9.95-SNAPSHOT.jar";
 
 # start the GUI
 `rm -f ConfDbGUI.log`;

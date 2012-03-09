@@ -1,4 +1,7 @@
 2012-03-09 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* Include some clarifications for developers at README.txt
+	
+2012-03-09 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-23
 	* Update build.xml to include /python source folder in cmssw-evf-confdb-gui.jar
 	* Update start.jnlp script to download all the .jar needed by python parser.
