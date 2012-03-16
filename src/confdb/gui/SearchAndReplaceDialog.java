@@ -407,11 +407,13 @@ public class SearchAndReplaceDialog extends JDialog
 			    int refCount = oldModule.referenceCount();
 			    ReferenceContainer[] parents = new ReferenceContainer[refCount];
 			    int[]                indices = new int[refCount];
+			    Operator[]           operators = new Operator[refCount];
 			    int iRefCount=0;
 			    while (oldModule.referenceCount()>0) {
 				Reference reference = oldModule.reference(0);
 				parents[iRefCount] = reference.container();
 				indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
+				operators[iRefCount] = reference.getOperator();
 				config.removeModuleReference((ModuleReference)reference);
 				iRefCount++;
 			    }
@@ -427,7 +429,7 @@ public class SearchAndReplaceDialog extends JDialog
 			    
 			    // update refs pointing to oldModule to point to newModule
 			    for (int iii=0;iii<refCount;iii++) {
-				config.insertModuleReference(parents[iii],indices[iii],newModule);
+				config.insertModuleReference(parents[iii],indices[iii],newModule).setOperator(operators[iii]);
 			    }
 			    String newText =
 				"<html>"+

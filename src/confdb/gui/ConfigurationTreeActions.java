@@ -2690,11 +2690,13 @@ public class ConfigurationTreeActions
 	int refCount = oldModule.referenceCount();
 	ReferenceContainer[] parents = new ReferenceContainer[refCount];
 	int[]                indices = new int[refCount];
+	Operator[]           operators = new Operator[refCount];
 	int iRefCount=0;
 	while (oldModule.referenceCount()>0) {
 	    Reference reference = oldModule.reference(0);
 	    parents[iRefCount] = reference.container();
 	    indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
+	    operators[iRefCount] = reference.getOperator();
 	    config.removeModuleReference((ModuleReference)reference);
 	    model.nodeRemoved(parents[iRefCount],indices[iRefCount],reference);
 	    iRefCount++;
@@ -2713,7 +2715,7 @@ public class ConfigurationTreeActions
 	
 	// update refs pointing to oldModule to point to newModule
 	for (int i=0;i<refCount;i++) {
-	    config.insertModuleReference(parents[i],indices[i],newModule);
+	    config.insertModuleReference(parents[i],indices[i],newModule).setOperator(operators[i]);
 	    model.nodeInserted(parents[i],indices[i]);
 	}
 	
@@ -2855,11 +2857,13 @@ public class ConfigurationTreeActions
 	    int refCount = oldSequence.referenceCount();
 	    ReferenceContainer[] parents = new ReferenceContainer[refCount];
 	    int[]                indices = new int[refCount];
+	    Operator[]           operators = new Operator[refCount];
 	    int iRefCount=0;
 	    while (oldSequence.referenceCount()>0) {
 		Reference reference = oldSequence.reference(0);
 		parents[iRefCount] = reference.container();
 		indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
+		operators[iRefCount] = reference.getOperator();
 		reference.remove();
 		model.nodeRemoved(parents[iRefCount],indices[iRefCount],reference);
 		iRefCount++;
@@ -2869,10 +2873,10 @@ public class ConfigurationTreeActions
 		Reference check = parents[i].entry(newSequence.name());
 		int iref=parents[i].indexOfEntry(check);
 		if (iref<0) {
-		    config.insertSequenceReference(parents[i],indices[i],newSequence);
+		    config.insertSequenceReference(parents[i],indices[i],newSequence).setOperator(operators[i]);
 		    model.nodeInserted(parents[i],indices[i]);
 		} else if (iref>indices[i]) {
-		    config.insertSequenceReference(parents[i],indices[i],newSequence);
+		    config.insertSequenceReference(parents[i],indices[i],newSequence).setOperator(operators[i]);
 		    model.nodeInserted(parents[i],indices[i]);
 		    check.remove();
 		    model.nodeRemoved(parents[i],iref,check);
@@ -2894,11 +2898,13 @@ public class ConfigurationTreeActions
 	    int refCount = oldPath.referenceCount();
 	    ReferenceContainer[] parents = new ReferenceContainer[refCount];
 	    int[]                indices = new int[refCount];
+	    Operator[]           operators = new Operator[refCount];
 	    int iRefCount=0;
 	    while (oldPath.referenceCount()>0) {
 		Reference reference = oldPath.reference(0);
 		parents[iRefCount] = reference.container();
 		indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
+		operators[iRefCount] = reference.getOperator();
 		reference.remove();
 		model.nodeRemoved(parents[iRefCount],indices[iRefCount],reference);
 		iRefCount++;
@@ -2908,10 +2914,10 @@ public class ConfigurationTreeActions
 		Reference check = parents[i].entry(newPath.name());
 		int iref=parents[i].indexOfEntry(check);
 		if (iref<0) {
-		    config.insertPathReference(parents[i],indices[i],newPath);
+		    config.insertPathReference(parents[i],indices[i],newPath).setOperator(operators[i]);
 		    model.nodeInserted(parents[i],indices[i]);
 		} else if (iref>indices[i]) {
-		    config.insertPathReference(parents[i],indices[i],newPath);
+		    config.insertPathReference(parents[i],indices[i],newPath).setOperator(operators[i]);
 		    model.nodeInserted(parents[i],indices[i]);
 		    check.remove();
 		    model.nodeRemoved(parents[i],iref,check);
