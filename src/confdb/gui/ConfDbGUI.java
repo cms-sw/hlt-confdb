@@ -541,9 +541,11 @@ public class ConfDbGUI
 	if (dialog.validChoice()) {
 	    String fileName   = dialog.fileName();
 	    String releaseTag = dialog.releaseTag();
+	    boolean compiledFile 	=  dialog.compiledFile();
+	    boolean ignorePrescales = dialog.ignorePrescaleService();
 	    
 	    JParseConfigurationThread worker =
-		new JParseConfigurationThread(fileName,releaseTag);
+		new JParseConfigurationThread(fileName,releaseTag, compiledFile, ignorePrescales);
 	    worker.start();
 	    jProgressBar.setIndeterminate(true);
 	    jProgressBar.setVisible(true);
@@ -1818,13 +1820,17 @@ public class ConfDbGUI
 	private JPythonParser parser     = null;
 	private String        fileName   = null;
 	private String        releaseTag = null;
+	private boolean 	  compiledFile 		= false;
+	private boolean 	  ignorePrescales	= false;
 	private long          startTime;
 	
 	/** standard constructor */
-	public JParseConfigurationThread(String fileName,String releaseTag)
+	public JParseConfigurationThread(String fileName,String releaseTag, boolean compiledFile, boolean ignorePrescales)
 	{
 	    this.fileName   = fileName;
 	    this.releaseTag = releaseTag;
+	    this.compiledFile 		= compiledFile;
+	    this.ignorePrescales 	= ignorePrescales;
 	}
 	
 	/** SwingWorker: construct() */
@@ -1838,7 +1844,11 @@ public class ConfDbGUI
 	    System.out.println("Before instantiating the parser...");
 	    parser = new JPythonParser(currentRelease);
 	    System.out.println("After instantiating the parser...");
-	    parser.parseFile(fileName); 
+	    
+	    if(compiledFile) parser.parseCompileFile(fileName);
+	    else parser.parseFileBatchMode(fileName, ignorePrescales);
+
+	    
 	    System.out.println("Parser invoked, error?...");
 	    
 	    setCurrentConfig(parser.createConfiguration());

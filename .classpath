@@ -4,5 +4,8 @@
 	<classpathentry kind="src" path="icons"/>
 	<classpathentry including="FWCore/" kind="src" path="python"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="ext/ojdbc14.jar"/>
+	<classpathentry kind="lib" path="ext/jython-2.5.2.jar"/>
+	<classpathentry kind="lib" path="ext/swing-layout-1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

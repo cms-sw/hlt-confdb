@@ -43,6 +43,11 @@ public class JParseConfigurationDialog extends JDialog
     JButton    jButtonBrowse       = new javax.swing.JButton();
     JButton    jButtonOK           = new javax.swing.JButton();
     JButton    jButtonCancel       = new javax.swing.JButton();
+    
+    // Checkboxes
+    JCheckBox ignorePrescales = new JCheckBox("Ignore prescale service");
+    JCheckBox compilePython = new JCheckBox("Import from compiled python file (.pyc)");
+    
 
     /** label of the 'OK' button */
     private static final String ok = new String("OK");
@@ -72,6 +77,9 @@ public class JParseConfigurationDialog extends JDialog
 		jTextFieldFileName.requestFocusInWindow();
 	    }
 	});
+	
+	
+	
     }
 
     
@@ -87,6 +95,19 @@ public class JParseConfigurationDialog extends JDialog
     
     /** return the choosen release tag */
     public String releaseTag() { return releaseTag; }
+    
+    /** return true if compiled file option selected */
+    public boolean compiledFile() {
+    	if(compilePython.getSelectedObjects() == null) return false;
+    	else return true;
+    }
+    
+    /** return true if compiled file option selected */
+    public boolean ignorePrescaleService() {
+    	if(ignorePrescales.getSelectedObjects() == null) return false;
+    	else return true;
+    }
+    
     
     /** set the release tag, by making it the selected item in the combo box */
     public boolean setReleaseTag(String releaseTag)
@@ -217,6 +238,18 @@ public class JParseConfigurationDialog extends JDialog
 		    jButtonCancelActionPerformed(e);
 		}
 	 });
+	
+	// Add checkBoxListener:
+	
+	compilePython.addItemListener(
+		    new ItemListener() {
+		        public void itemStateChanged(ItemEvent e) {
+		            // Set "ignore" whenever box is checked or unchecked.
+		            ignorePrescales.setSelected(!(e.getStateChange() == ItemEvent.SELECTED));
+		            ignorePrescales.setEnabled(!(e.getStateChange() == ItemEvent.SELECTED));
+		        }
+		    }
+	);
 
 
         org.jdesktop.layout.GroupLayout layout =
@@ -293,7 +326,25 @@ public class JParseConfigurationDialog extends JDialog
 						    .layout.GroupLayout
 						    .DEFAULT_SIZE, 92,
 						    Short.MAX_VALUE)
-					       .add(127, 127, 127)))
+					       .add(127, 127, 127))
+					       
+					  .add(layout
+					       .createSequentialGroup()
+					       .add(139, 139, 139)
+					       .add(compilePython, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE)
+					       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+					       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+					       .add(127, 127, 127))
+					       
+					  .add(layout
+					       .createSequentialGroup()
+					       .add(139, 139, 139)
+					       .add(ignorePrescales, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE)
+					       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+					       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+					       .add(127, 127, 127))
+
+				     	)
 				     .addContainerGap())
 				);
 
@@ -332,6 +383,14 @@ public class JParseConfigurationDialog extends JDialog
 				   .addPreferredGap(org.jdesktop
 						    .layout.LayoutStyle.RELATED, 24,
 						    Short.MAX_VALUE)
+						    
+					.add(compilePython)
+					.add(ignorePrescales)
+					
+					.addPreferredGap(org.jdesktop
+						    .layout.LayoutStyle.RELATED, 24,
+						    Short.MAX_VALUE)
+						    
 				   .add(layout.createParallelGroup(org.jdesktop
 								   .layout
 								   .GroupLayout

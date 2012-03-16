@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.StringTokenizer;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,7 +16,10 @@ import java.util.Vector;
 import org.python.core.*;
 import org.python.util.PythonInterpreter;
 
+import com.kenai.jffi.Array;
+
 import java.io.*;
+import java.math.BigInteger;
 
 import confdb.data.*;
 
@@ -59,6 +63,10 @@ public class JPythonParser
     /** output stream for problems.txt */
     private PrintWriter  problemStream = null;
     private StringBuffer problemBuffer = new StringBuffer();
+    
+    private String command = "";
+    
+    private boolean ignorePrescaleService = false;
 
     
     //
@@ -72,6 +80,8 @@ public class JPythonParser
 	cmsswTag = release.releaseTag();
 	int index=cmsswTag.indexOf("_HLT");
 	if (index>=0) cmsswTag = cmsswTag.substring(0,index);
+	
+	
     }
     
     static private <T> T convert(PyObject object, Class<T> c) {
@@ -93,7 +103,7 @@ public class JPythonParser
     }
 
     /** parse a file */
-    public void parseFile(String fileName) throws JParserException
+    public void parseCompileFile(String fileName) throws JParserException
     {
 
 	// path to file without trailing /
@@ -119,71 +129,148 @@ public class JPythonParser
 
 	String pyCmd = null;
 
-	try {
+		try {
+			
+			
+	
+		    pythonInterpreter = new PythonInterpreter();
+	
+		    // need to set up search path
+		    pyCmd("import sys");
+		    pyCmd("sys.path.append('"+path+"')");
+		    pyCmd("print sys.path");
 
-	    pythonInterpreter = new PythonInterpreter();
+		    pyCmd("import sys");
+		    pyCmd("sys.path.append('python')");   // add the CMSSW Python path
+		    pyCmd("import pycimport");            // load precompiled .pyc files
+		    /////////////////////////////////////////////////////////
+	
+		    // now import process object from (uncompiled) py file
+		    pyCmd("from "+leaf+" import process");
+		    
+		    pyCmd("print process");
+	
+		    // get process object
+		    process = pythonInterpreter.get("process");
+		    System.out.println("Process object found: "+(process!=null));
+		    
+		    // get its process name
+		    String processName = convert(process.invoke("name_"),String.class);
+		    System.out.println("Process  name  found: "+processName);
+	
+		    
+		    // configinfo of new configuration
+		    ConfigInfo configInfo = new ConfigInfo(name,null,-1,0,"","",
+				       release.releaseTag(),processName,
+				       "parsed from "+fileName);
+	
+		    // new configuration
+		    configuration = new Configuration();
+		    configuration.initialize(configInfo,release);
+		    
+		    
+		    
+		}
+		catch (Exception e) {
+		    e.printStackTrace();
+		}
 
-	    // for large py files, would need pyc compiled files but this does not work
-	    //      pyCmd("import commands");
-	    //      pyCmd("print commands.getstatusoutput('python -m py_compile "+fileName+"')");
-	    //      pyCmd("print commands.getstatusoutput('python -m compileall -f "+path+"/FWCore')");
+    }
+    
+    /** parse a file */
+    public void parseFileBatchMode(String fileName, boolean ignorePrescales) throws JParserException
+    {
 
-	    // need to set up search path
-	    pyCmd("import sys");
-	    pyCmd("sys.path.append('"+path+"')");
-	    //	    pyCmd("sys.path.append('"+path+"/FWCore')");
-	    //	    pyCmd("sys.path.append('"+path+"/FWCore/ParameterSet')");
-	    pyCmd("print sys.path");
+	// path to file without trailing /
+	String path = new String(fileName);
+	path=path.substring(0,path.lastIndexOf("/")+1);
+	if (path.lastIndexOf("/")>=0) path=path.substring(0,path.lastIndexOf("/"));
 
-	    // now import pyc file and its process
-	    //      pyCmd("import pycimport");
-	    //	    pyCmd("from FWCore.ParameterSet.Options import Options");
-	    //	    pyCmd("import Config as cms");
-	    //	    pyCmd("import FWCore.ParameterSet.Config as cms");
-	    //	    pyCmd("theProcess = cms.Process('HIGGS')");
-	    //	    pyCmd("theProcess = __import__('"+leaf+"')");
-	    //	    pyCmd("import FWCore.ParameterSet.Config as cms");
-	    
-	    /////////////////////////////////////////////////////////
-	    // 27-feb-2012
-	    pyCmd("import sys");
-	    pyCmd("sys.path.append('python')");   // add the CMSSW Python path
-	    pyCmd("import pycimport");            // load precompiled .pyc files
-	    /////////////////////////////////////////////////////////
+	// name of file including extension
+	String name = new String(fileName);
+	name=name.substring(name.lastIndexOf("/")+1);
 
-	    // now import process object from (uncompiled) py file
-	    pyCmd("from "+leaf+" import process");
-	    pyCmd("print process");
+	// name of file excluding extension
+	String leaf = new String(name);
+	if (leaf.indexOf(".py")>=0) leaf=leaf.substring(0,leaf.indexOf(".py"));
+	
+	ignorePrescaleService = ignorePrescales;
 
-	    // get process object
-	    process = pythonInterpreter.get("process");
-	    System.out.println("Process object found: "+(process!=null));
+	System.out.println("JPythonParser: ");
+	System.out.println("  ReleaseTag: "+release.releaseTag());
+	System.out.println("  CMSSW  Tag: "+cmsswTag);
+	System.out.println("  Full File : "+fileName);
+	System.out.println("  File Path : "+path);
+	System.out.println("  File Name : "+name);
+	System.out.println("  Leaf Name : "+leaf);
 
-	    // get its process name
-	    String processName = convert(process.invoke("name_"),String.class);
-	    System.out.println("Process  name  found: "+processName);
+	String pyCmd = null;
 
-	    // configinfo of new configuration
-	    ConfigInfo configInfo =
-		new ConfigInfo(name,null,-1,0,"","",
-			       release.releaseTag(),processName,
-			       "parsed from "+fileName);
-
-	    // new configuration
-	    configuration = new Configuration();
-	    configuration.initialize(configInfo,release);
-	    
-	}
-	/*
-	catch (IOException e) {
-	    System.err.println("Error opening file " + fileName + ": " +
-			       e.getMessage());
-	}
-	*/
-	catch (Exception e) {
-	    e.printStackTrace();
-	    //printParsedTree();
-	}
+		try {
+			
+			
+	
+		    pythonInterpreter = new PythonInterpreter();
+	
+		    // for large py files, would need pyc compiled files but this does not work
+		    //      pyCmd("import commands");
+		    //      pyCmd("print commands.getstatusoutput('python -m py_compile "+fileName+"')");
+		    //      pyCmd("print commands.getstatusoutput('python -m compileall -f "+path+"/FWCore')");
+	
+		    // need to set up search path
+		    pyCmd("import sys");
+		    pyCmd("sys.path.append('"+path+"')");
+		    //	    pyCmd("sys.path.append('"+path+"/FWCore')");
+		    //	    pyCmd("sys.path.append('"+path+"/FWCore/ParameterSet')");
+		    pyCmd("print sys.path");
+	
+		    // now import pyc file and its process
+		    //      pyCmd("import pycimport");
+		    //	    pyCmd("from FWCore.ParameterSet.Options import Options");
+		    //	    pyCmd("import Config as cms");
+		    //	    pyCmd("import FWCore.ParameterSet.Config as cms");
+		    //	    pyCmd("theProcess = cms.Process('HIGGS')");
+		    //	    pyCmd("theProcess = __import__('"+leaf+"')");
+		    //	    pyCmd("import FWCore.ParameterSet.Config as cms");
+		    
+		    /////////////////////////////////////////////////////////
+		    // 27-feb-2012
+		    pyCmd("import sys");
+		    pyCmd("sys.path.append('python')");   // add the CMSSW Python path
+		    pyCmd("import pycimport");            // load precompiled .pyc files
+		    /////////////////////////////////////////////////////////
+	
+		    // now import process object from (uncompiled) py file
+		    //pyCmd("from "+leaf+" import process");
+	
+		    executePyLineByLine(fileName);
+		    
+		    pyCmd("print process");
+	
+		    // get process object
+		    process = pythonInterpreter.get("process");
+		    System.out.println("Process object found: "+(process!=null));
+		    
+			    // get its process name
+			    String processName = convert(process.invoke("name_"),String.class);
+			    System.out.println("Process  name  found: "+processName);
+		
+			    
+			    // configinfo of new configuration
+			    ConfigInfo configInfo = new ConfigInfo(name,null,-1,0,"","",
+					       release.releaseTag(),processName,
+					       "parsed from "+fileName);
+		
+			    // new configuration
+			    configuration = new Configuration();
+			    configuration.initialize(configInfo,release);
+		    
+		    
+		    
+		}
+		catch (Exception e) {
+		    e.printStackTrace();
+		}
 
     }
     
@@ -203,8 +290,7 @@ public class JPythonParser
     //Pyprocess.dump();
 	//////////////////////////////////////////////////////////
 	
-	// add global psets
-	parsePSets(process);
+	
 	// add primary data source (edsource)
 	parseEDSources(process);
 	// add essources
@@ -233,6 +319,9 @@ public class JPythonParser
     parsePathsFromPython(process);
 	// add endpaths
     parseEndPathsFromPython(process);
+    
+	// add global psets + Streams + Datasets.  
+	parsePSets(process); // this need to go after Paths to properly link the Datasets.
     
     
 	return configuration;
@@ -388,7 +477,43 @@ public class JPythonParser
         String type  = getType(psetObject);
         String label = getLabel(psetObject);
         
+	    // IGNORE PSETs: HLTConfigVersion, maxEvents, options
+	    if(	(label.compareTo("HLTConfigVersion") == 0)	||
+	    	(label.compareTo("maxEvents") == 0) 		||
+	    	(label.compareTo("options") == 0) 			) {
+	    	
+	    	// TODO: This can be used to check the selected template release!
+	    	System.out.println("parsePset: IGNORING! type="+type+", label='"+label+"'");	
+	    	return false;
+	    }
+
+        
+        
         System.out.println("parsePset: type="+type+", label="+label);
+
+	    
+
+	    
+   	
+	    
+	    // Inserting streams
+	    if(label.compareTo("streams") == 0) {
+	    	
+	    	// The python representation of a stream is a PSET.
+	    	// The parameters of the PSET named 'streams' are the name of the streams.
+		    return parseStreams(psetObject);
+
+	    }
+	    
+	    // UPDATE datasets.
+        // NOTE: Datasets are inserted with the streams to be updated soon afterwards with the corresponding paths.
+	    if(label.compareTo("datasets") == 0) {
+	    	System.out.println("parsePset: updating datasets! type="+type+", label='"+label+"'");
+	    	return parseDatasets(psetObject);
+	    }	 
+	    
+	    
+	    // Otherwise, Insert PSet to configuration.
         Boolean     tracked = convert(psetObject.invoke("isTracked"), Boolean.class);
 	    PSetParameter pset = (PSetParameter)ParameterFactory.create("PSet",label,"",tracked);
 	    //
@@ -396,9 +521,9 @@ public class JPythonParser
 	    ArrayList<confdb.data.Parameter> params = parsePSetParameters(psetObject);
 	    for(int It = 0; It < params.size(); It++)
 	    	pset.addParameter(params.get(It));
-	    
-	    // Insert PSet to configuration.
-	    configuration.insertPSet(pset);
+	    configuration.insertPSet(pset);	    	
+    	
+
         
         return true;
     }
@@ -527,6 +652,17 @@ public class JPythonParser
         	PyObject pathContent = object.__getattr__(new PyString("_seq"));
         	parseReferenceContainerContent(pathContent, insertedPath);
         	
+        } else if(confdbTypes.endPath.is(type)){
+        	insertedPath = configuration.path(label);
+        	
+        	if(insertedPath == null)
+        		System.err.println("[parsePath] path does not exist!" + label);
+
+        	
+    		// Content:
+        	PyObject pathContent = object.__getattr__(new PyString("_seq"));
+        	parseReferenceContainerContent(pathContent, insertedPath);
+        	
         } else System.out.println("[parsePath] CHUNGO: type " + type);
     }
     
@@ -559,12 +695,89 @@ public class JPythonParser
 			confdb.data.Parameter param = __parseParameter(entry.getValue(), entry.getKey());
 			
 			params.add(param);
-			System.out.println("      parameter full name = "+param.fullName());
-			System.out.println("      parameter value as string = "+param.valueAsString());
+			//System.out.println("      parameter full name = "+param.fullName());
+			//System.out.println("      parameter value as string = "+param.valueAsString());
+			//__getArrayListFromPyObject(entry.getValue()); //TODO no hace falta.
 			}
 			return params;
     }
     
+    // NOTE: Streams come as PSets from python.
+    private boolean parseStreams(PyObject parameterContainerObject) {
+    	ArrayList<confdb.data.Parameter> params = new ArrayList<confdb.data.Parameter>();
+        String type  = getType(parameterContainerObject);
+        String label = getLabel(parameterContainerObject);
+        System.out.println("PSET parameter type="+type+", label="+label);
+    	PyDictionary parameterContainer = (PyDictionary) parameterContainerObject.invoke("parameters_");
+			for (Object parameterObject : parameterContainer.entrySet()) {
+			PyDictionary.Entry<String, PyObject> entry = (PyDictionary.Entry<String, PyObject>) parameterObject;
+			//map.put(entry.getKey(), parseParameter(entry.getValue()));
+			
+			System.out.println("      entry getKey = "+entry.getKey()); //TODO Be careful with this line, could be empty?
+			confdb.data.Parameter param = __parseParameter(entry.getValue(), entry.getKey());
+			//params.add(param);
+	        String streamName = param.name();
+	        System.out.println("parsePset: Inserting streams! "+ streamName);
+	        String contentName = "hltEventContent" + streamName; // convention.
+	        
+	        EventContent content = configuration.insertContent(contentName);
+	        Stream stream = content.insertStream(streamName);
+	        
+	        // Primary datasets associated to datasets?
+			
+			// Each stream has a list of Dataset associated.
+			ArrayList<String> ListOfDatasets = __getArrayListFromPyObject(entry.getValue()); //TODO
+			
+				for(int ds = 0; ds < ListOfDatasets.size(); ds++) {
+		    		PrimaryDataset newDataSet = stream.insertDataset(ListOfDatasets.get(ds));
+				}
+			}
+			
+			return true;
+    }
+    
+    private boolean parseDatasets(PyObject parameterContainerObject) {
+    	ArrayList<confdb.data.Parameter> params = new ArrayList<confdb.data.Parameter>();
+        String type  = getType(parameterContainerObject);
+        String label = getLabel(parameterContainerObject);
+        System.out.println("PSET parameter type="+type+", label="+label);
+    	PyDictionary parameterContainer = (PyDictionary) parameterContainerObject.invoke("parameters_");
+			for (Object parameterObject : parameterContainer.entrySet()) {
+			PyDictionary.Entry<String, PyObject> entry = (PyDictionary.Entry<String, PyObject>) parameterObject;
+			
+			
+			System.out.println("      entry getKey = "+entry.getKey()); //TODO Be careful with this line, could be empty?
+			confdb.data.Parameter param = __parseParameter(entry.getValue(), entry.getKey());
+			
+	        String datasetName = param.name();
+	        System.out.println("parsePset: updating DATASET! "+ datasetName);
+	        
+	        PrimaryDataset dset = configuration.dataset(datasetName);
+	        
+	        if(dset == null) {
+	        	System.err.println("ERROR [parseDatasets]: Dataset not found. Cannot be updated!");
+	        	return false;
+	        }
+	        
+			// Each stream has a list of Dataset associated.
+			ArrayList<String> ListOfPaths = __getArrayListFromPyObject(entry.getValue()); //TODO
+			
+				for(int path = 0; path < ListOfPaths.size(); path++) {
+					//System.out.println("parseDatasets: Path! "+ ListOfPaths.get(path));
+					Path path_  = configuration.path(ListOfPaths.get(path));
+					if(path_ == null) {
+						System.err.println("ERROR [parseDatasets]: Path not found. Cannot be associated to Dataset --> " + ListOfPaths.get(path));
+						//return false;
+					} else {
+					Stream stream = dset.parentStream();
+					stream.insertPath(path_); // before inserting into a dataset, it must be inserted into the stream.
+					dset.insertPath(path_);
+					}
+				}
+			}
+			
+			return true;
+    }
     
     
     // Parse parameter types
@@ -572,10 +785,18 @@ public class JPythonParser
         String      type    = parameterObject.getType().getName();
         Boolean     tracked = convert(parameterObject.invoke("isTracked"), Boolean.class);
         PyObject    value   = parameterObject.invoke("value");
-        
-        
-        
+
         return ParameterFactory.create(type, name, value.toString(), tracked);
+    }
+    
+    private ArrayList<String> __getArrayListFromPyObject(PyObject VStringParam) {
+    	ArrayList<String> VString = new ArrayList<String>();
+    	PyList parameterList= (PyList) VStringParam;
+    	for(int i=0; i < parameterList.size(); i++) {
+    		//System.out.println("              PYLIST : " + parameterList.get(i));
+    		VString.add(parameterList.get(i).toString());
+    	}
+    	return VString;
     }
    
     
@@ -626,9 +847,20 @@ public class JPythonParser
             module.findParameter(parameterName).setTracked(tracked);
         } else if ("uint32" == type || "int32" == type || "uint64" == type || "int64" == type) {
             //Number v = convert(value, Number.class);
-            
-            module.updateParameter(parameterName,type,value.toString());
+        	
+            if(type == "uint64") {
+            	String LHexStringValue = value.__hex__().toString();
+            	// Following patch is needed because an "L" is added during the conversion. 
+            	if(LHexStringValue.contains("L")) LHexStringValue = LHexStringValue.substring(0, LHexStringValue.indexOf("L"));
+            	
+            	System.out.println("uint64 "+parameterName+"= "+LHexStringValue);
+            	module.updateParameter(parameterName,type,LHexStringValue);
+            } else {
+            	// Default case:
+            	module.updateParameter(parameterName,type,value.toString());
+            }
             module.findParameter(parameterName).setTracked(tracked);
+            
         } else if ("vuint32" == type || "vint32" == type || "vuint64" == type || "vint64" == type) {
             //List<Number> v = convert(value, List.class);
             // NOTE: No need to convert or to cast value by value.
@@ -667,8 +899,11 @@ public class JPythonParser
             
         } else if ("string" == type) {
             String v = convert(value, String.class);
-            if(v.isEmpty()) System.out.println("*****************+ Setting an empty string!");
-            module.updateParameter(parameterName,type,value.toString());
+            if(v.isEmpty()) {
+            	v = "\"\"";	// Empty string from the point of view of the GUI.
+            }
+            
+            module.updateParameter(parameterName,type,v);
             module.findParameter(parameterName).setTracked(tracked);
         } else if ("vstring" == type) {
             //List<String> v = convert(value, List.class);
@@ -705,7 +940,6 @@ public class JPythonParser
             } else System.err.println("[parseParameter] parameter not found! " + parameterName);
         } else if ("InputTag" == type) {
             //String v = convert(value, String.class);
-            
             module.updateParameter(parameterName,type,value.toString());
             module.findParameter(parameterName).setTracked(tracked);
         } else if ("VInputTag" == type) {
@@ -947,6 +1181,7 @@ public class JPythonParser
     public enum confdbTypes {
   	  sequence("Sequence"),
   	  path("Path"),
+  	  endPath("EndPath"),
   	  module("Module");
 
   	  private String text;
@@ -1061,9 +1296,74 @@ public class JPythonParser
         	return false;
         }
     }
+    
+    
+	   public void executePyLineByLine(String file) {
+		      File archivo = null;
+		      FileReader fr = null;
+		      BufferedReader br = null;
+
+		      try {
+		         archivo = new File (file);
+		         fr = new FileReader (archivo);
+		         br = new BufferedReader(fr);
+
+		         // Lectura del fichero
+		         String linea;
+		         while((linea=br.readLine())!=null) {
+		         //for(int i = 0; i < 20; i++) {
+		        //	 linea = br.readLine();
+		        	 //System.out.println("\nprocesing line "+i+": "+linea);
+		        	 
+		        	 
+		        	 checkValidInstruction(linea); 
+		         }
+		         	
+		      }
+		      catch(Exception e){
+		         e.printStackTrace();
+		      }finally{
+		         // En el finally cerramos el fichero, para asegurarnos
+		         // que se cierra tanto si todo va bien como si salta 
+		         // una excepcion.
+		         try{                    
+		            if( null != fr ){   
+		               fr.close();     
+		            }                  
+		         }catch (Exception e2){ 
+		            e2.printStackTrace();
+		         }
+		      }
+		   }
+	   
+	   public void checkValidInstruction(String pyInstrc) {
+		   command+= pyInstrc;
+		   
+		   int leftBCount = countOccurrences(command, "[^(]");
+		   int rightBCount = countOccurrences(command, "[^)]");
+
+		   //System.out.println("leftB " + leftBCount);
+		   //System.out.println("rightB " + rightBCount);
+		   if((leftBCount>0)&&(leftBCount == rightBCount)) {
+			   // Command is well formed!
+			   if(ignorePrescaleService) {
+				   if(command.contains("PrescaleService")) 
+					   command = ""; // Ignore prescale service instruction.
+			   }				   
+			   
+			   if(command != "")
+				   pyCmd(command);
+
+			   command = "";
+		   }
+	   }
+	   
+	   public int countOccurrences(String line, String regex) {
+		   int count = line.length() - line.replaceAll(regex, "").length();
+		   return count;
+	   }
 
 }
-
 
 
 

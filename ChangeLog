@@ -1,3 +1,12 @@
+2012-03-16 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-26
+	* Improvements in Jpython parser.
+	- Allow to parse .py and compiled files .pyc.
+	- Include option to ignore prescales service. (this avoid the Java method size error).
+	- Includes Datasets and Streams.
+	- Set empty strings to "" by default.
+	- Set uint64 in HEX by default.
+
 2012-03-13 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-25
 	* Fix the .classpath file.
