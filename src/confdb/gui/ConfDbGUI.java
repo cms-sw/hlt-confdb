@@ -5233,6 +5233,7 @@ class CommandTableCellRenderer extends DefaultTableCellRenderer
 	    ModuleInstance instance = config.module(label);
 	    if (instance==null) return this;
 
+	    setBackground(Color.ORANGE);
 	    Path[] paths = instance.parentPaths();
 	    boolean ok = false;
 	    if (path!=null) {

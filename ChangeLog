@@ -1,3 +1,6 @@
+2012-03-18 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-06-28 improved color-coding of EventConetnt commands
+
 2012-03-16 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-06-27 fix operator(IGNORE,NEGATE) for "replace" actions
 
