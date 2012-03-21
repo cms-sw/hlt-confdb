@@ -72,6 +72,6 @@
 	data.put( "cache", cache );	
 	reply.put( "data", data );
 
-	out.println( reply.toString() );
+	out.println( reply.toString( 2 ) );
 %>
 
