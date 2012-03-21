@@ -1,5 +1,6 @@
 package confdb.data;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -11,7 +12,7 @@ import java.util.Iterator;
  *
  * Directory to hold configurations or other directories.
  */
-public class Directory
+public class Directory implements Serializable
 {
     //
     // member data

@@ -1,5 +1,7 @@
 package confdb.data;
 
+import java.io.Serializable;
+
 /**
  * DatabaseEntry
  * --------------
@@ -11,7 +13,7 @@ package confdb.data;
  * not yet in the DB or have changed (and therefore need to have a new
  * copy saved.
  */
-public class DatabaseEntry
+public class DatabaseEntry implements Serializable
 {
     //
     // member data

@@ -1,6 +1,7 @@
 package confdb.data;
 
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,7 +15,7 @@ import java.util.Collections;
  * Manage different CMSSW file formats, which Streams & OutputModules
  * are based on.
  */
-public class EventContent extends DatabaseEntry implements Comparable<EventContent>
+public class EventContent extends DatabaseEntry implements Comparable<EventContent>, Serializable
 {
     //
     // member data

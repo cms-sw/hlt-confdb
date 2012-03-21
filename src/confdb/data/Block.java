@@ -1,5 +1,6 @@
 package confdb.data;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.ArrayList;
 
@@ -10,7 +11,7 @@ import java.util.ArrayList;
  * @author Philipp Schieferdecker
  *
  */
-public class Block
+public class Block implements Serializable
 {
     //
     // member data

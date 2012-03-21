@@ -1,5 +1,6 @@
 package confdb.data;
 
+import java.io.Serializable;
 import java.util.Iterator;
 
 
@@ -10,7 +11,7 @@ import java.util.Iterator;
  *
  * Configuration Interface.
  */
-public interface IConfiguration
+public interface IConfiguration extends Serializable
 {
     /** name of the configuration */
     public String name();

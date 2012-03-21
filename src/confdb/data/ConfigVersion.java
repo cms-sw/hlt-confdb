@@ -1,5 +1,7 @@
 package confdb.data;
 
+import java.io.Serializable;
+
 
 /**
  * ConfigVersion
@@ -8,7 +10,7 @@ package confdb.data;
  *
  * Information about one version of a configuration.
  */
-public class ConfigVersion implements Comparable<ConfigVersion>
+public class ConfigVersion implements Comparable<ConfigVersion>, Serializable
 {
     //
     // member data

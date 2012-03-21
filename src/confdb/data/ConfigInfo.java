@@ -1,5 +1,6 @@
 package confdb.data;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,7 +13,7 @@ import java.util.Collections;
  *
  * Information about a configuration.
  */
-public class ConfigInfo implements Comparable<ConfigInfo>
+public class ConfigInfo implements Comparable<ConfigInfo>, Serializable
 {
     //
     // member data
