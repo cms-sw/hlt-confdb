@@ -1,5 +1,6 @@
 package confdb.data;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +16,7 @@ import java.util.Iterator;
  * organized in software packages which are organized in software
  * subsystems. 
  */
-public class SoftwareRelease
+public class SoftwareRelease implements Serializable
 {
     //
     // member data

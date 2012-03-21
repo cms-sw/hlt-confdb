@@ -1,6 +1,7 @@
 package confdb.data;
 
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -12,7 +13,7 @@ import java.util.Iterator;
  *
  * Common parameter base class for scalar and vector type parameters.
  */
-abstract public class Parameter implements Comparable<Parameter>
+abstract public class Parameter implements Comparable<Parameter>, Serializable
 {
     //
     // member data

@@ -1,5 +1,6 @@
 package confdb.data;
 
+import java.io.Serializable;
 import java.util.Iterator;
 
 
@@ -11,7 +12,7 @@ import java.util.Iterator;
  * manage a single drop / keep statement, representing an entry in the
  * vstring outputCommands parameter of an OutputModule.
  */
-public class OutputCommand implements Comparable<OutputCommand>
+public class OutputCommand implements Comparable<OutputCommand>, Serializable
 {
     //
     // member data

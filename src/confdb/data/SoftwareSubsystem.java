@@ -1,5 +1,6 @@
 package confdb.data;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Collections;
@@ -12,7 +13,7 @@ import java.util.Collections;
  *
  * A software subsystem contains one layer of software packages.
  */
-public class SoftwareSubsystem implements Comparable<SoftwareSubsystem>
+public class SoftwareSubsystem implements Comparable<SoftwareSubsystem>, Serializable
 {
     //
     // member data
