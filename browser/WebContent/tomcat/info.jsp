@@ -67,6 +67,7 @@
 	cache.put( "inMemCache", getInMemCache() );
 	cache.put( "fileCache", new JSONObject( ConfCache.getCache().getDiskcacheHits() ) );
 	cache.put( "db", new JSONObject( ConfCache.getCache().getDbRequests() ) );
+	cache.put( "serialize", new JSONObject( ConfCache.getCache().getSerialize() ) );
 
 	data.put( "cache", cache );	
 	reply.put( "data", data );
