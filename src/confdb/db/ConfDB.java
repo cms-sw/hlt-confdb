@@ -423,6 +423,7 @@ public class ConfDB
     public String getHostName() 	{ return dbHost; }
     public String getPortNumber() 	{ return dbPort; }
     public String getDbName()		{ return dbName; }
+    public String getDbUser()		{ return dbUser; }
     
     // methods to retrieve db features:
     public boolean getExtraPathFieldsAvailability() { return extraPathFieldsAvailability; 	}
@@ -5643,7 +5644,7 @@ public class ConfDB
 	ResultSet rsIntValues     = null;
 	ResultSet rsRealValues    = null;
 	ResultSet rsStringValues  = null;
-	ResultSet rsClobValues    = null;
+
 	try {
 		rsParameters    = psSelectParameters.executeQuery();
 	    rsBooleanValues = psSelectBooleanValues.executeQuery();
@@ -6166,7 +6167,6 @@ public class ConfDB
     {
 	reconnect();
 	
-	int result = -1;
 	ResultSet rs = null;
 	try {
 	    psSelectReleaseId.setString(1,releaseTag);
@@ -6188,7 +6188,6 @@ public class ConfDB
     /** get the release id for a release tag */
     private String getReleaseTag(int releaseId) throws DatabaseException
     {
-	String result = new String();
 	ResultSet rs = null;
 	try {
 	    psSelectReleaseTag.setInt(1,releaseId);
@@ -6213,7 +6212,6 @@ public class ConfDB
     {
 	reconnect();
 
-	String result = new String();
 	ResultSet rs = null;
 	try {
 	    psSelectReleaseTagForConfig.setInt(1,configId);
