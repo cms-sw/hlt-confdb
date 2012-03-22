@@ -1,3 +1,8 @@
+2012-03-22 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-29
+	* Implements Serializable Classes to improve the browser performance. (Ulf)
+	* disk cache + statistics for the browser. (Ulf).
+
 2012-03-18 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-06-28 improved color-coding of EventConetnt commands
 
