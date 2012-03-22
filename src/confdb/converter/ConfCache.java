@@ -1,13 +1,7 @@
 package confdb.converter;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,13 +18,12 @@ public class ConfCache
 	static private ConfCache cache = null;
     static private int fillUpToMB = 40;
     static private int clearLessThanMB = 30;
-    static private String path = null;
+    static private DiskCache diskCache = null;
 	
     private HashMap<String, ConfWrapper> confCache = new HashMap<String, ConfWrapper>();
     private int allRequests = 0;
-    private Statistics diskcacheHits = new Statistics();
     private Statistics dbRequests = new Statistics();
-    private Statistics serialize = new Statistics();
+
 
     static public ConfCache getCache()
     {
@@ -59,14 +52,12 @@ public class ConfCache
     	return getCache().checkMySoftReferences();
     }
     
-    static public void setPath( String p ) throws IOException, SecurityException
+    static public void setPath( String p, int size  ) throws IOException, SecurityException
     {
-    	File file = new File( p + ".start" );
-    	if ( file.exists() )
-    		file.delete();
-    	if ( !file.createNewFile() )
-    		return;
-    	path = p;
+    	if ( p == null || size <= 0 )
+    		diskCache = null;
+    	else
+    		diskCache = new DiskCache( p, size );
     }
 
     public synchronized IConfiguration getConfiguration( int key, ConfDB database ) throws DatabaseException
@@ -83,13 +74,12 @@ public class ConfCache
 		}
 		
     	long start = System.currentTimeMillis();
-		if ( path != null )
+		if ( diskCache != null )
 		{
 			configuration = loadFromDisk(key, database);
 			if ( configuration != null )
 			{
 				put( key, configuration, database );
-				diskcacheHits.add( System.currentTimeMillis() - start );
 				return configuration;
 			}
 		}
@@ -109,57 +99,19 @@ public class ConfCache
 		}
 		dbRequests.add( System.currentTimeMillis() - start );
 		put( key, configuration, database );
-		if ( path != null )
+		if ( diskCache != null )
 			writeToDisk( key, configuration, database );
 		return configuration;
     }
 
     private void writeToDisk( int key, IConfiguration conf, ConfDB database )
     {
-    	long start = System.currentTimeMillis();
-    	String name = getFileName(key, database);
-        try {
-        	FileOutputStream fos = new FileOutputStream( name );
-	        ObjectOutputStream oos = new ObjectOutputStream(fos);
-			oos.writeObject( conf );
-	        oos.close();
-	        fos.close();
-			serialize.add( System.currentTimeMillis() - start );
-        	System.out.println( "conf written to " + name );
-		} catch (Exception e) {
-			try {
-				e.printStackTrace( new PrintWriter( path + "error" ) );
-			} catch (Exception x) {
-			}
-		}
+    	diskCache.writeToDisk( conf, getFileName(key, database) );
     }
     
     private IConfiguration loadFromDisk( int key, ConfDB database )
     {
-    	long now = System.currentTimeMillis();
-    	String name = getFileName(key, database);
-    	FileInputStream fis = null;
-        try {
-        	fis = new FileInputStream( name );
-		} catch (FileNotFoundException e) {
-			return null;
-		}
-
-		try {
-			System.out.println( "loading conf from " + name );
-	        ObjectInputStream ois = new ObjectInputStream(fis);
-	        Object o = ois.readObject();
-	        ois.close();
-	        long dt = System.currentTimeMillis() - now;
-	        System.out.println( "" + dt + " msecs to load conf" );
-	        return (IConfiguration)o;
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+    	return (IConfiguration)diskCache.loadFromDisk( getFileName(key, database) );
     }
     
     private void put( int key, IConfiguration conf, ConfDB database )
@@ -192,7 +144,7 @@ public class ConfCache
 	
 	private String getFileName( int key, ConfDB database )
 	{
-		return path + database.dbUrl().hashCode() + "." + key;
+		return (database.dbUrl() + " " + database.getDbUser()).hashCode() + "." + key;
 	}
 	
     private synchronized int checkMySoftReferences() 
@@ -246,16 +198,12 @@ public class ConfCache
 		return allRequests;
 	}
 
-	public Statistics getDiskcacheHits() {
-		return diskcacheHits;
-	}
-
 	public Statistics getDbRequests() {
 		return dbRequests;
 	}
 
-	public Statistics getSerialize() {
-		return serialize;
+	public DiskCache getDiskCache() {
+		return diskCache;
 	}
 
 }
