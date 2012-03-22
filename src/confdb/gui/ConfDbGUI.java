@@ -1841,15 +1841,10 @@ public class ConfDbGUI
 	    if (!releaseTag.equals(currentRelease.releaseTag())) 
 	    	database.loadSoftwareRelease(releaseTag,currentRelease);
 	    
-	    System.out.println("Before instantiating the parser...");
 	    parser = new JPythonParser(currentRelease);
-	    System.out.println("After instantiating the parser...");
 	    
 	    if(compiledFile) parser.parseCompileFile(fileName);
 	    else parser.parseFileBatchMode(fileName, ignorePrescales);
-
-	    
-	    System.out.println("Parser invoked, error?...");
 	    
 	    setCurrentConfig(parser.createConfiguration());
 	    return new String("Done!");

@@ -1,4 +1,13 @@
 2012-03-22 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-30
+	* Update connection setup for Online database. (Andrea).
+	* Improvements in Jpython parser.
+	- Fix problem with brackets coming from vectors.
+	- Create Streams/OutputModules/EventContents based on OutputModules.
+	- Create and organise paths in Datasets when possible.
+	- Improve console messages.
+	
+2012-03-22 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-29
 	* Implements Serializable Classes to improve the browser performance. (Ulf)
 	* disk cache + statistics for the browser. (Ulf).
