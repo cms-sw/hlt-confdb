@@ -1,5 +1,4 @@
 <%@page import="java.text.Format"%>
-<%@page import="com.sun.tools.javac.code.Type.ForAll"%>
 <%@page import="java.io.File"%>
 <%@page import="confdb.converter.ConfCache"%>
 <%@ page language="java" contentType="text/plain"
