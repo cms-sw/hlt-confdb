@@ -1464,49 +1464,6 @@ public class ConfDbGUI
      * */
     public void importFromPythonToolDialog() {
     	jparseConfiguration();
-    	    /*
-	    	if (!closeConfiguration()) return;
-	    	
-	    	ParseConfigurationDialog dialog =
-	    	    new ParseConfigurationDialog(frame,database);
-	    	dialog.pack();
-	    	dialog.setLocationRelativeTo(frame);
-	    	dialog.setVisible(true);
-	    	
-	    	if (dialog.validChoice()) {
-	    	    String fileName   = dialog.fileName();
-	    	    String releaseTag = dialog.releaseTag();
-	    	    System.out.println("filename: " + fileName);
-	    	    System.out.println("releaseTag: " + releaseTag);
-	    	}
-    	
-    	    FileChooserDialog Fcd = new FileChooserDialog();
-    	    Fcd.createAndShowGUI();
-    	    
-            // Create an instance of the PythonInterpreter
-            PythonInterpreter python = new PythonInterpreter();
-
-            // The exec() method executes strings of code
-            python.exec("import sys");
-            python.exec("sys.path.append('python')");   // add the CMSSW Python path
-            python.exec("sys.path.append('jython')");   // add the Jythonn libraries
-            python.exec("import pycimport");            // load precompiled .pyc files
-
-            System.out.println("loading HLT configuration...");
-            //python.exec("from full import process");
-            python.exec("from hlt import process");
-            System.out.println("file imported!");
-
-            PyObject pyprocess = python.get("process");
-
-            Parser parser = new Parser();
-            Process process = parser.parseProcess(pyprocess);
-            //process.dump();
-   
-             */
-            System.out.println("done!");
-            
-    	    
     }
     
 

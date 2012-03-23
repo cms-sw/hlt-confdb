@@ -540,14 +540,16 @@ public class JPythonParser
     }
     
     // this will be used to parse PSets inside modules
-    private PSetParameter parsePSetParameter(PyObject psetObject) {
+    private PSetParameter parsePSetParameter(PyObject psetObject, String name) {
         String type  = getType(psetObject);
         String label = getLabel(psetObject);
         Boolean     tracked = convert(psetObject.invoke("isTracked"), Boolean.class);
         
+        label = name;
         if(label == null) label = "";
         
 	    PSetParameter pset = (PSetParameter)ParameterFactory.create("PSet",label,"",tracked);
+	    
 	    //
         // Add parameters to PSET.
 	    ArrayList<confdb.data.Parameter> params = parsePSetParameters(psetObject);
@@ -720,21 +722,21 @@ public class JPythonParser
     
     
     
-    
+    // parse an object with parameters.
     private ArrayList<confdb.data.Parameter> parsePSetParameters(PyObject parameterContainerObject) {
     	ArrayList<confdb.data.Parameter> params = new ArrayList<confdb.data.Parameter>();
         String type  = getType(parameterContainerObject);
         String label = getLabel(parameterContainerObject);
     	PyDictionary parameterContainer = (PyDictionary) parameterContainerObject.invoke("parameters_");
 			for (Object parameterObject : parameterContainer.entrySet()) {
-			PyDictionary.Entry<String, PyObject> entry = (PyDictionary.Entry<String, PyObject>) parameterObject;
-				String svalue = entry.getValue().toString();
-			confdb.data.Parameter param = __parseParameter(entry.getValue(), entry.getKey());
-			
-			params.add(param);
-			//System.out.println("      parameter full name = "+param.fullName());
-			//System.out.println("      parameter value as string = "+param.valueAsString());
-			//__getArrayListFromPyObject(entry.getValue()); //TODO no hace falta.
+				PyDictionary.Entry<String, PyObject> entry = (PyDictionary.Entry<String, PyObject>) parameterObject;
+					String svalue = entry.getValue().toString();
+				confdb.data.Parameter param = __parseParameter(entry.getValue(), entry.getKey());
+				
+				params.add(param);
+				//System.out.println("      parameter full name = "+param.fullName());
+				//System.out.println("      parameter value as string = "+param.valueAsString());
+				//__getArrayListFromPyObject(entry.getValue()); //TODO no hace falta.
 			}
 			return params;
     }
@@ -845,6 +847,11 @@ public class JPythonParser
        
     	string_value = cleanBrackets(string_value); //Needed!
         
+    	if(type == "PSet") {
+    		//System.out.println("Start recursion for PSet parameters " + name);
+    		return parsePSetParameter(parameterObject, name); // Start recursion.
+    	}
+    	
         return ParameterFactory.create(type, name, string_value, tracked);
     }
     
@@ -894,6 +901,17 @@ public class JPythonParser
         Boolean     tracked = convert(parameterObject.invoke("isTracked"), Boolean.class);
         PyObject    value   = parameterObject.invoke("value");
 
+        
+        // NOTE: This only can be a toplevel parameter:
+   	    Parameter[] p = module.findParameters(parameterName, type);
+   	    Parameter ParameterToBeUpdated = null;
+   	    if(p == null) System.out.println("[ERROR][parseParameter] Parameter not found with name "+parameterName+" at Module " + module.name());
+   	    else
+   	    if(p.length != 1) {
+   	    	System.out.println("[ERROR] Found more than one parameter named " + parameterName + " in the Template Object " + module.name());
+   	    } else {
+   	    	ParameterToBeUpdated = p[0];// Parameter to update.
+   	    }
 
         
         if ("bool" == type) {
@@ -988,12 +1006,45 @@ public class JPythonParser
             
         } else if ("PSet" == type) {
             //PyDictionary v = (PyDictionary) parameterObject.invoke("parameters_");
+            //TODO: PARSING PSET
+        	
+        		//PSetParameter pset = parsePSetParameter((PyObject)value);
+        		PSetParameter pset = parsePSetParameter(parameterObject, parameterName);
+        		if(ParameterToBeUpdated instanceof PSetParameter) {
+       	    		PSetParameter psetToUpdate = (PSetParameter) ParameterToBeUpdated;
+       	    		
+       	    		// If PSet contains already a structure, check names.
+       	    		// If a subparameter exist, update it, Otherwise add it:
 
-            module.updateParameter(parameterName,type,value.toString());
+       	    		for(int i = 0; i < pset.parameterCount(); i++) {
+       	    			// Check the content.
+       	    			if(pset.parameter(i).name() == "") {
+       	    				// Insert: No named parameter.
+       	    				// NOTE: If the template structure contains no named parameters, they could be duplicated.
+       	    				psetToUpdate.addParameter(pset.parameter(i));
+       	    			} else {
+       	    				Parameter param = psetToUpdate.parameter(pset.parameter(i).name());
+           	    			if(param != null){
+           	    				// If exist: update
+           	    				psetToUpdate.parameter(pset.parameter(i).name()).setValue(pset.parameter(i).valueAsString());
+           	    			} else {
+           	    				// If it doesnt exist: add.
+           	    				psetToUpdate.addParameter(pset.parameter(i));
+
+           	    			}
+       	    			}
+       	    			
+
+       	    		}     	    			
+        		} else System.err.println("[ERROR] [parseParameter] PSetParamter expected for name " + parameterName + " for the module " + module.name());
+       	    //} else System.err.println("[ERROR] [parseParameter] Only one parameter expected of type "+type+" and name " + parameterName + " for the module " + module.name());
+       	    
+       	    //module.updateParameter(parameterName,type,pset.valueAsString());
+            //module.updateParameter(parameterName,type,value.toString());
             module.findParameter(parameterName).setTracked(tracked);
             
         } else if ("VPSet" == type) {
-            //TODO: need parseList method. ?
+            //TODO: PARSING VPSET
             confdb.data.Parameter param = module.findParameter(parameterName);
             if(param != null) {
             	if(param instanceof VPSetParameter) {
@@ -1005,8 +1056,8 @@ public class JPythonParser
 
                 	PyList parameterList= (PyList) value;
                 	for(int i=0; i < parameterList.size(); i++) {
-                	    PSetParameter pset = parsePSetParameter((PyObject)parameterList.get(i));
-                	    VPSet.addParameterSet(pset);                	    
+                	    PSetParameter Pset = parsePSetParameter((PyObject)parameterList.get(i), ""); //TODO name "" ?
+                	    VPSet.addParameterSet(Pset);                	    
                 	}
                 	
             	} else  System.err.println("[ERROR] [parseParameter] "+parameterName +" of VPSETPARAMETER expected! found " + param.getClass().toString());
