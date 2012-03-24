@@ -1,3 +1,8 @@
+2012-03-24 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-06-32
+	* allow smart renaming to be selectively applied to paths only,
+	  sequences only, or modules only (or All!).
+	
 2012-03-23 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-31
 	* Temporary disable "Import from python" option in the MenuBar. (to deploy the app.)

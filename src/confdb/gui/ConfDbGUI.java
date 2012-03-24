@@ -896,6 +896,10 @@ public class ConfDbGUI
 	    String oldName = null;
 	    String newName = null;
 
+	    String applyTo = dialog.applyTo();
+	    System.out.println("SmartRenaming applyTo: "+applyTo);
+
+	    if (applyTo.equals("All") || applyTo.equals("Modules")) {
 	    ModuleInstance module = null;
 	    for (int i=0; i<currentConfig.moduleCount(); i++) {
 		module = currentConfig.module(i);
@@ -916,7 +920,9 @@ public class ConfDbGUI
 		    }
 		}
 	    }
+	    }
 
+	    if (applyTo.equals("All") || applyTo.equals("Sequences")) {
 	    Sequence sequence = null;
 	    for (int i=0; i<currentConfig.sequenceCount(); i++) {
 		sequence = currentConfig.sequence(i);
@@ -937,7 +943,9 @@ public class ConfDbGUI
 		    }
 		}
 	    }
+	    }
 
+	    if (applyTo.equals("All") || applyTo.equals("Paths")) {
 	    Path path = null;
 	    for (int i=0; i<currentConfig.pathCount(); i++) {
 		path = currentConfig.path(i);
@@ -957,6 +965,7 @@ public class ConfDbGUI
 			System.out.println("SmartRenaming Path: "+newName+" ["+oldName+"] not changed: new name already exists!");
 		    }
 		}
+	    }
 	    }
 
 	    treeModelCurrentConfig.setConfiguration(currentConfig);
