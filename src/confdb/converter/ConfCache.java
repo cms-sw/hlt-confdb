@@ -33,6 +33,11 @@ public class ConfCache
     		long max = Runtime.getRuntime().maxMemory() / 1024 / 1024;
     		clearLessThanMB = Math.min( 30, (int)max / 4 );
     		fillUpToMB = clearLessThanMB + 10;
+    		try {
+				setPath( "/afs/cern.ch/project/jps/reps/cms-project-co", 500 );
+			} catch (Exception e) {
+				diskCache = null;
+			}
     	}
     	return cache;
     }
