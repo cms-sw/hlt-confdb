@@ -244,12 +244,37 @@ public class Path extends ReferenceContainer
 	}
 	return result;
     }
-    
+
+    static public String hltPrescalerLabel(String name)
+    {
+	int first = name.indexOf("_");
+	if (first==-1) {first=0;}
+	int last  = name.lastIndexOf("_v");
+	if (last ==-1) {last =name.length();}
+	return "hltPre"+name.substring(first,last).replace("_","");
+    }
+
     /** set the name and propagate it to all relevant modules */
     public void setNameAndPropagate(String name) throws DataException
     {
 	String oldName = name();
+	if (oldName.equals(name)) return;
 	super.setName(name);
+
+	/* propagate path name change to HLTPrescaler instance in path */
+	String newLabel =  hltPrescalerLabel(name);
+	for (Reference r : entries) {
+            Referencable parent = r.parent();
+            if (parent instanceof ModuleInstance) {
+                ModuleInstance module = (ModuleInstance)parent;
+                if (module.template().toString().equals("HLTPrescaler")) {
+		    if (!(newLabel.equals(module.name()))) {
+			module.setNameAndPropagate(newLabel);
+			module.setHasChanged();
+		    }
+		}
+	    }
+	}
 
 	/* propagate path name change to all TriggerResultsFilter instances */
 	Iterator<ModuleInstance> itM = config().moduleIterator();

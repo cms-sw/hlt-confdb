@@ -86,6 +86,7 @@ public class ModuleInstance extends Instance implements Referencable
     public void setNameAndPropagate(String name) throws DataException
     {
 	String oldName = name();
+	if (oldName.equals(name)) return;
 	super.setName(name);
 
 	// need to check all paths containing this module
