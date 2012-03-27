@@ -1841,7 +1841,6 @@ public class ConfDbGUI
 	    jTreeTableParameters.getTree().setEditable(true);
 
 	    if(parser == null) {
-	    	// TODO: 
 			// Add the configuration details:
 			String StackTrace = "ConfDb Version: " 	+ AboutDialog.getConfDbVersion() 	+ "\n";
 			StackTrace+= "Release Tag: " 			+ currentRelease.releaseTag() 		+ "\n";

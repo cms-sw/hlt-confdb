@@ -1,4 +1,9 @@
 2012-03-27 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-35
+	* Improvements in Jython parser.
+	* Temporary disable "Import from python" option in the MenuBar. (to deploy the app.)
+	
+2012-03-27 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-34
 	* Improvements in Jython parser.
 	* Problems report dialog after parsing a configuration.
