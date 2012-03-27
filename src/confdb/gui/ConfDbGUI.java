@@ -1851,14 +1851,14 @@ public class ConfDbGUI
 			
 	    	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, StackTrace);
 			cd.createAndShowGUI();
-	    } else  if (parser.closeProblemStream()) {
-		System.err.println("problems encountered, see problems.txt.");
-		JParserProblemsDialog dialog=new JParserProblemsDialog(frame,
-								       parser);
-		dialog.pack();
-		dialog.setLocationRelativeTo(frame);
-		dialog.setVisible(true);
+	    } else { //  if (parser.closeProblemStream()) {
+			//System.err.println("problems encountered, see problems.txt.");
+			JParserProblemsDialog dialog=new JParserProblemsDialog(frame, parser);
+			dialog.pack();
+			dialog.setLocationRelativeTo(frame);
+			dialog.setVisible(true);
 	    }
+	    
 	    
 	}
     }

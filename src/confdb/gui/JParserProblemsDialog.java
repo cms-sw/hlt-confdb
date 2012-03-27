@@ -63,9 +63,12 @@ public class JParserProblemsDialog extends JDialog
 	JLabel      jLabel1 = new javax.swing.JLabel();
 
         jLabel1.setFont(new java.awt.Font("Dialog", 1, 14));
+        /*
         jLabel1.setText("Problems were encountered parsing this configuration; "+
 			"a file problems.txt was created with the following "+
 			"content:");
+			*/
+        jLabel1.setText("Problems report for the imported configuration.");
         jButtonClose.setText("Close");
 
         jTextArea.setColumns(20);

@@ -2,6 +2,8 @@ package confdb.parser;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+
 import org.python.core.*;
 import org.python.util.PythonInterpreter;
 
@@ -52,6 +54,10 @@ public class JPythonParser
     private String command = "";
     
     private boolean ignorePrescaleService = false;
+    
+    private ArrayList<String> error;
+    private ArrayList<String> info;
+    private ArrayList<String> warning;
 
     
     //
@@ -66,7 +72,32 @@ public class JPythonParser
 	int index=cmsswTag.indexOf("_HLT");
 	if (index>=0) cmsswTag = cmsswTag.substring(0,index);
 	
-	
+    	error = new ArrayList<String>();
+    	info = new ArrayList<String>();
+    	warning = new ArrayList<String>();
+    }
+    
+    public enum msg {
+    	  err,	// error messages
+    	  war,	// warning messages
+    	  inf;	// info messages
+    }
+    
+    public void alert(msg typeMsg, String message) {
+    	switch(typeMsg) {
+    	case err:
+    		error.add(message);
+    		System.err.println("[ERROR]" + message);
+    		break;
+    	case war:
+    		warning.add(message);
+    		System.out.println("[WARNING]" + message);
+    		break;
+    	case inf:
+    		info.add(message);
+    		System.out.println("[INFO]" + message);
+    		break;
+    	}
     }
     
     static private <T> T convert(PyObject object, Class<T> c) {
@@ -79,7 +110,16 @@ public class JPythonParser
     //
     
     /** get problems as string */
-    public String problemsAsString() { return problemBuffer.toString(); }
+    //public String problemsAsString() { return problemBuffer.toString(); }
+    public String problemsAsString() { 
+    	String message ="";
+    	
+    	for(int i = 0; i < error.size(); 	i ++)	message+="[ERROR]"	+error.get(i)	+"\n";
+    	for(int i = 0; i < warning.size(); 	i ++) 	message+="[WARNING]"+warning.get(i)	+"\n";
+    	for(int i = 0; i < info.size(); 	i ++)	message+="[INFO]"	+info.get(i)	+"\n";
+    	
+    	return message;
+    }
 
     /** exec py cmd */
     public void pyCmd(String pycmd) {
@@ -234,11 +274,11 @@ public class JPythonParser
 	
 		    // get process object
 		    process = pythonInterpreter.get("process");
-		    System.out.println("[INFO] Process object found: "+(process!=null));
+		    alert(msg.inf, " Process object found: "+(process!=null));
 		    
 			    // get its process name
 			    String processName = convert(process.invoke("name_"),String.class);
-			    System.out.println("[INFO] Process  name  found: "+processName);
+			    alert(msg.inf, " Process  name  found: "+processName);
 		
 			    
 			    // configinfo of new configuration
@@ -342,7 +382,7 @@ public class JPythonParser
         PyDictionary producers = (PyDictionary) process.__getattr__("_Process__esproducers");
         if(validPyObject(producers)) 
         	parseESModuleMap(producers);
-        else System.out.println("[ERROR][parseESModules] ESModules no valid objects to parse."); //TODO: this message is not needed
+        else alert(msg.err, "[parseESModules] ESModules no valid objects to parse."); //TODO: this message is not needed
     }
     
     // parse ESSources:
@@ -383,7 +423,7 @@ public class JPythonParser
         
     // parse Services dictionary
     private void parseServiceMap(PyDictionary pydict) {
-    	System.out.println("[INFO] Services (" + pydict.size() + ")");
+    	alert(msg.inf, " Services (" + pydict.size() + ")");
         for (Object o : pydict.entrySet()) {
             PyDictionary.Entry<String, PyObject> moduleObject = (PyDictionary.Entry<String, PyObject>) o;
             parseService(moduleObject.getValue());
@@ -408,7 +448,7 @@ public class JPythonParser
     
     // parse modules dictionary
     private void parseESModuleMap(PyDictionary pydict) {
-    	System.out.println("[INFO] ESModules (" + pydict.size() + ")");
+    	alert(msg.inf, " ESModules (" + pydict.size() + ")");
         for (Object o : pydict.entrySet()) {
             PyDictionary.Entry<String, PyObject> moduleObject = (PyDictionary.Entry<String, PyObject>) o;
             parseESModule(moduleObject.getValue());
@@ -417,7 +457,7 @@ public class JPythonParser
     
     // parse modules dictionary
     private void parseESSourceMap(PyDictionary pydict) {
-    	System.out.println("[INFO] ESSources (" + pydict.size() + ")");
+    	alert(msg.inf, " ESSources (" + pydict.size() + ")");
         for (Object o : pydict.entrySet()) {
             PyDictionary.Entry<String, PyObject> moduleObject = (PyDictionary.Entry<String, PyObject>) o;
             parseESSource(moduleObject.getValue());
@@ -426,7 +466,7 @@ public class JPythonParser
     
     // parse modules dictionary
     private void parseModuleMap(PyDictionary pydict) {
-    	System.out.println("[INFO] Modules (" + pydict.size() + ")");
+    	alert(msg.inf, " Modules (" + pydict.size() + ")");
         for (Object o : pydict.entrySet()) {
             PyDictionary.Entry<String, PyObject> moduleObject = (PyDictionary.Entry<String, PyObject>) o;
             parseModule(moduleObject.getValue());
@@ -435,7 +475,7 @@ public class JPythonParser
     
     // parse PSets dictionary
     private void parsePSetMap(PyDictionary pydict) {
-    	System.out.println("[INFO] PSets (" + pydict.size() + ")");
+    	alert(msg.inf, " PSets (" + pydict.size() + ")");
         for (Object o : pydict.entrySet()) {
             PyDictionary.Entry<String, PyObject> moduleObject = (PyDictionary.Entry<String, PyObject>) o;
             
@@ -508,7 +548,7 @@ public class JPythonParser
 	    	(label.compareTo("options") == 0) 			) {
 	    	
 	    	// TODO: This can be used to check the selected template release!
-	    	System.out.println("[INFO] parsePset: IGNORING! type="+type+", label='"+label+"'");	
+	    	alert(msg.inf, " parsePset: IGNORING! type="+type+", label='"+label+"'");	
 	    	return false;
 	    }
 	    
@@ -638,7 +678,7 @@ public class JPythonParser
     }
     
     private boolean parsePathMap(PyDictionary pydict) {
-    	System.out.println("[INFO] Paths (" + pydict.size() + ")");
+    	alert(msg.inf, " Paths (" + pydict.size() + ")");
     	PyList keys = (PyList) pydict.invoke("keys");
         for (Object key : keys) {
         	String pathName = (String) key;
@@ -652,7 +692,7 @@ public class JPythonParser
     }
     
     private boolean parseEndPathMap(PyDictionary pydict) {
-    	System.out.println("[INFO] EndPaths (" + pydict.size() + ")");
+    	alert(msg.inf, " EndPaths (" + pydict.size() + ")");
     	PyList keys = (PyList) pydict.invoke("keys");
         for (Object key : keys) {
         	String pathName = (String) key;
@@ -677,7 +717,7 @@ public class JPythonParser
         	insertedPath = configuration.path(label);
         	
         	if(insertedPath == null)
-        		System.err.println("[ERROR][parsePath] path does not exist!" + label);
+        		alert(msg.err, "[parsePath] path does not exist!" + label);
 
         	
     		// Content:
@@ -688,13 +728,13 @@ public class JPythonParser
         	insertedPath = configuration.path(label);
         	
         	if(insertedPath == null)
-        		System.err.println("[ERROR] [parsePath] path does not exist!" + label);
+        		alert(msg.err, "[parsePath] path does not exist!" + label);
 
     		// Content:
         	PyObject pathContent = object.__getattr__(new PyString("_seq"));
         	parseReferenceContainerContent(pathContent, insertedPath);
         	
-        } else System.err.println("[ERROR][parsePath] type Unknow " + type);
+        } else alert(msg.err, "[parsePath] type Unknow " + type);
     }
     
     
@@ -767,7 +807,7 @@ public class JPythonParser
 		        	
 		        } else {
 		        	// Create Stream coming from Stream definition, not from OutputModule definition.
-			        System.out.println("[WARNING] Creating Stream from Stream definition "+ streamName);
+		        	alert(msg.war, " Creating Stream from Stream definition "+ streamName);
 			        
 			        String contentName = "hltEventContent" + streamName; // convention.
 			        EventContent content = configuration.insertContent(contentName);
@@ -807,7 +847,7 @@ public class JPythonParser
 	        PrimaryDataset dset = configuration.dataset(datasetName);
 	        
 	        if(dset == null) {
-	        	System.err.println("ERROR [parseDatasets]: Dataset not found. Cannot be updated!");
+	        	alert(msg.err, "[parseDatasets]: Dataset not found. Cannot be updated!");
 	        	return false;
 	        }
 	        
@@ -823,7 +863,7 @@ public class JPythonParser
 					Path path_ = stream.path(ListOfPaths.get(path));
 					
 					if(path_ == null) {
-						System.out.println("[WARNING][parseDatasets]: Path not found in the stream. Cannot be associated to Dataset --> " + ListOfPaths.get(path));
+						alert(msg.war, "[parseDatasets]: Path not found in the stream. Cannot be associated to Dataset --> " + ListOfPaths.get(path));
 						//return false;
 					} else {
 						// ONLY existing paths in the stream.
@@ -910,7 +950,7 @@ public class JPythonParser
         // NOTE: This only can be a toplevel parameter:
    	    Parameter[] p = module.findParameters(parameterName, type);
    	    Parameter ParameterToBeUpdated = null;
-   	    if(p == null) System.out.println("[ERROR][parseParameter] Parameter not found with name "+parameterName+" at Module " + module.name());
+   	    if(p == null) alert(msg.err, "[parseParameter] "+type+" parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
    	    else {
     		for(int i = 0; i < p.length; i++) {
     			if(p[i].fullName().compareTo(parameterName) == 0) {
@@ -919,7 +959,7 @@ public class JPythonParser
     		}
     		
     		if(ParameterToBeUpdated == null){
-       	    	System.out.println("[ERROR][parseParameter] Parameter with name "+parameterName+" not found at Module " + module.name());       	    	
+    			alert(msg.err, "[parseParameter] "+ type +" parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");    	    	
     		}
    	    }
 
@@ -970,8 +1010,8 @@ public class JPythonParser
             		
                     module.updateParameter(parameterName,type,svalue);
                     module.findParameter(parameterName).setTracked(tracked);
-            	} else System.err.println("[ERROR][parseParameter] parameter not VectorParameter! " + parameterName);
-            } else System.err.println("[ERROR][parseParameter] parameter not found! " + parameterName);
+            	} else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
+            } else alert(msg.err, "[parseParameter] "+type+" parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
             
         } else if ("double" == type) {
             //Double v = convert(value, Double.class);
@@ -992,8 +1032,8 @@ public class JPythonParser
             		
                     module.updateParameter(parameterName,type,svalue);
                     module.findParameter(parameterName).setTracked(tracked);
-            	} else System.err.println("[ERROR][parseParameter] parameter not VectorParameter! " + parameterName);
-            } else System.err.println("[ERROR][parseParameter] parameter not found! " + parameterName);
+            	} else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
+            } else alert(msg.err, "[parseParameter] vdouble parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
             
         } else if ("string" == type) {
             String v = convert(value, String.class);
@@ -1014,8 +1054,8 @@ public class JPythonParser
             		
                     module.updateParameter(parameterName,type,clean_value);
                     module.findParameter(parameterName).setTracked(tracked);
-            	} else System.err.println("[ERROR] [parseParameter] parameter not VectorParameter! " + parameterName);
-            } else System.err.println("[ERROR] [parseParameter] parameter not found! " + parameterName);
+            	} else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
+            } else alert(msg.err, "[parseParameter] vstring parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
             
         } else if ("PSet" == type) {
             //TODO: PARSING PSET
@@ -1048,7 +1088,7 @@ public class JPythonParser
        	    			
 
        	    		}     	    			
-        		} else System.err.println("[ERROR] [parseParameter] PSetParamter expected for name " + parameterName + " for the module " + module.name());
+        		} else alert(msg.err, "[parseParameter] PSetParamter expected for name " + parameterName + " for the module " + module.name());
         		
         		module.findParameter(parameterName).setTracked(tracked);
             
@@ -1069,8 +1109,8 @@ public class JPythonParser
                 	    VPSet.addParameterSet(Pset);                	    
                 	}
                 	
-            	} else  System.err.println("[ERROR] [parseParameter] "+parameterName +" of VPSETPARAMETER expected! found " + param.getClass().toString());
-            } else System.err.println("[ERROR] [parseParameter] parameter not found! " + parameterName);
+            	} else  alert(msg.err, "[parseParameter] "+parameterName +" of VPSETPARAMETER expected! found " + param.getClass().toString());
+            } else alert(msg.err, "[parseParameter] VPSet parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
         } else if ("InputTag" == type) {
             module.updateParameter(parameterName,type,value.toString());
             module.findParameter(parameterName).setTracked(tracked);
@@ -1085,10 +1125,10 @@ public class JPythonParser
             		
                     module.updateParameter(parameterName,type,clean_value);
                     module.findParameter(parameterName).setTracked(tracked);
-            	} else System.err.println("[ERROR] [parseParameter] parameter not VectorParameter! " + parameterName);
-            } else System.err.println("[ERROR][ parseParameter] parameter not found! " + parameterName);
+            	} else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
+            } else alert(msg.err, "[parseParameter] VInputTag parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
         } else {
-            System.err.println("[WARNING][parseParameter] TYPE: [unsupported] " + type);
+        	alert(msg.war, "[parseParameter] TYPE: [unsupported] " + type);
         }
         
     }
@@ -1126,8 +1166,8 @@ public class JPythonParser
                 		ec.insertCommand(outputCommand);
                 	}
 
-            	} else System.err.println("[ERROR][parseOutputModuleParameter] outputCommands not found! " + parameterName);
-            } else System.err.println("[ERROR][parseOutputModuleParameter] parameter not found! " + parameterName);
+            	} else alert(msg.err, "[parseOutputModuleParameter] outputCommands not found! " + parameterName);
+            } else alert(msg.err, "[parseOutputModuleParameter] parameter not found! " + parameterName);
             
         } else if ("PSet" == type) {
             PyDictionary parameterContainer = (PyDictionary) parameterObject.invoke("parameters_");
@@ -1145,10 +1185,10 @@ public class JPythonParser
 						Path pathObj = configuration.path(val.__getitem__(path).toString());
 						stream.insertPath(pathObj);
 					}
-				} else System.err.println("[ERROR][parseOutputModuleParameter] SelectEvents not found! " + parameterName);
+				} else alert(msg.err, "[parseOutputModuleParameter] SelectEvents not found! " + parameterName);
 			}
         } else {
-            System.err.println("[WARNING][parseParameter] TYPE "+ type +" unsupported");
+        	alert(msg.war, "[parseParameter] TYPE "+ type +" unsupported");
         }
         
     }
@@ -1162,7 +1202,7 @@ public class JPythonParser
     
     
     private void parseSequenceMap(PyDictionary pydict) {
-    	System.out.println("[INFO] Sequences (" + pydict.size() + ")");
+    	alert(msg.inf, " Sequences (" + pydict.size() + ")");
     	PyList keys = (PyList) pydict.invoke("keys");
     	
         for (Object key : keys) {
@@ -1200,7 +1240,7 @@ public class JPythonParser
         	PyObject sequenceContent = object.__getattr__(new PyString("_seq"));
         	parseReferenceContainerContent(sequenceContent, insertedSeq);
         	
-        } else System.err.println("[ERROR][parseSequence] type " + type);
+        } else alert(msg.err, "[parseSequence] type " + type);
         
         return insertedSeq;
     }
@@ -1246,9 +1286,7 @@ public class JPythonParser
         	ModuleInstance module = configuration.module(label);
         	
         	if(module == null) {
-        		System.err.println("[ERROR][JPythonParser::parseSequenceImpl] module not found! ");
-        		System.err.println("[ERROR][JPythonParser::parseSequenceImpl] label = " + label);
-        		System.err.println("[ERROR][JPythonParser::parseSequenceImpl] type  = " + type);
+        		alert(msg.err, "[parseSequenceImpl] module not found! label = " + label + ", type  = " + type);
         	}
         	
         	Reference moduleRef = parentContainer.entry(module.name());
@@ -1263,8 +1301,8 @@ public class JPythonParser
     	    if (module !=null) {
     	    	Reference moduleRef = configuration.insertOutputModuleReference(parentContainer,parentContainer.entryCount(), module);
             	if(moduleRef == null)
-            		System.err.println("[ERROR]: No reference to OutputModule " + label + " has been added to "+parentContainer.name());
-    	    } else System.err.println("[ERROR]: No OutputModule " + label + " has been found!");
+            		alert(msg.err, " No reference to OutputModule " + label + " has been added to "+parentContainer.name());
+    	    } else alert(msg.err, " No OutputModule " + label + " has been found!");
         	
         }
         //else System.out.println("type = " + type);
@@ -1279,14 +1317,14 @@ public class JPythonParser
     	return parseSequence(sequence);
     }
 
-    private static boolean validPyObject(PyObject object) {
+    private boolean validPyObject(PyObject object) {
         String type  = getType(object);
         String label = getLabel(object);
         boolean validObject = true;
     	if((type == "NoneType")||(label== "null")) {
     		validObject = false;
     		
-    		System.err.println("[ERROR][validPyObject] Object of type = " + type + ", label = " + label + " does not exist in this Config.");
+    		alert(msg.err, "[validPyObject] Object of type = " + type + ", label = " + label + " does not exist in this Config.");
     	}
     	
     	return validObject;
@@ -1314,10 +1352,10 @@ public class JPythonParser
     /** close the problem stream, if it is open */
     public boolean closeProblemStream()
     {
-	if (problemStream==null) return false;
-	problemStream.flush();
-	problemStream.close();
-	return true;
+		if (problemStream==null) return false;
+		problemStream.flush();
+		problemStream.close();
+		return true;
     }
 
     //
@@ -1498,6 +1536,8 @@ public class JPythonParser
         	return false;
         }
     }
+    
+
     
     
 	   public void executePyLineByLine(String file) {
