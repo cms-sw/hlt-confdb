@@ -786,7 +786,7 @@ public class JPythonParser
     }
     
     
-    // This function organize Streams from path into datasets when possible.
+    // This function organise Streams from path into datasets when possible.
     // No new paths are added to the stream. Only organized.
     private boolean parseDatasets(PyObject parameterContainerObject) {
     	ArrayList<confdb.data.Parameter> params = new ArrayList<confdb.data.Parameter>();
@@ -846,10 +846,15 @@ public class JPythonParser
         if(string_value == "") string_value = "\"\""; // equivalent to cms.string("");
        
     	string_value = cleanBrackets(string_value); //Needed!
+    	
+    	// TODO: FIX Long number in vectors!
+    	//string_value = fixLongNumber(string_value);
         
     	if(type == "PSet") {
     		//System.out.println("Start recursion for PSet parameters " + name);
     		return parsePSetParameter(parameterObject, name); // Start recursion.
+    	}  else if ("uint32" == type || "int32" == type || "uint64" == type || "int64" == type) {
+    		string_value = fixLongNumber(string_value);
     	}
     	
         return ParameterFactory.create(type, name, string_value, tracked);
@@ -906,14 +911,19 @@ public class JPythonParser
    	    Parameter[] p = module.findParameters(parameterName, type);
    	    Parameter ParameterToBeUpdated = null;
    	    if(p == null) System.out.println("[ERROR][parseParameter] Parameter not found with name "+parameterName+" at Module " + module.name());
-   	    else
-   	    if(p.length != 1) {
-   	    	System.out.println("[ERROR] Found more than one parameter named " + parameterName + " in the Template Object " + module.name());
-   	    } else {
-   	    	ParameterToBeUpdated = p[0];// Parameter to update.
+   	    else {
+    		for(int i = 0; i < p.length; i++) {
+    			if(p[i].fullName().compareTo(parameterName) == 0) {
+    				ParameterToBeUpdated = p[i];// Parameter to update.
+    			}
+    		}
+    		
+    		if(ParameterToBeUpdated == null){
+       	    	System.out.println("[ERROR][parseParameter] Parameter with name "+parameterName+" not found at Module " + module.name());       	    	
+    		}
    	    }
 
-        
+   	    
         if ("bool" == type) {
             //Boolean v = convert(value, Boolean.class);
             
@@ -927,16 +937,20 @@ public class JPythonParser
             if(type == "uint64") {
             	String LHexStringValue = value.__hex__().toString();
             	// Following patch is needed because an "L" is added during the conversion. 
-            	if(LHexStringValue.contains("L")) LHexStringValue = LHexStringValue.substring(0, LHexStringValue.indexOf("L"));
+            	//if(LHexStringValue.contains("L")) LHexStringValue = LHexStringValue.substring(0, LHexStringValue.indexOf("L"));
             	//System.out.println("uint64 "+parameterName+"= "+LHexStringValue);
             	String svalue = value.toString();
         		svalue = cleanBrackets(LHexStringValue);
+        		svalue = fixLongNumber(svalue);
             	
             	module.updateParameter(parameterName,type,svalue);
             } else {
             	// Default case:
+            	//System.out.println("CASTING NUMBER TO STRING!" + value.__str__().toString());
+            	
             	String svalue = value.toString();
         		svalue = cleanBrackets(svalue);
+        		svalue = fixLongNumber(svalue);
             	module.updateParameter(parameterName,type,svalue);
             }
             module.findParameter(parameterName).setTracked(tracked);
@@ -990,7 +1004,6 @@ public class JPythonParser
             module.updateParameter(parameterName,type,v);
             module.findParameter(parameterName).setTracked(tracked);
         } else if ("vstring" == type) {
-            //List<String> v = convert(value, List.class);
             
             confdb.data.Parameter param = module.findParameter(parameterName);
             if(param != null) {
@@ -1005,7 +1018,6 @@ public class JPythonParser
             } else System.err.println("[ERROR] [parseParameter] parameter not found! " + parameterName);
             
         } else if ("PSet" == type) {
-            //PyDictionary v = (PyDictionary) parameterObject.invoke("parameters_");
             //TODO: PARSING PSET
         	
         		//PSetParameter pset = parsePSetParameter((PyObject)value);
@@ -1037,11 +1049,8 @@ public class JPythonParser
 
        	    		}     	    			
         		} else System.err.println("[ERROR] [parseParameter] PSetParamter expected for name " + parameterName + " for the module " + module.name());
-       	    //} else System.err.println("[ERROR] [parseParameter] Only one parameter expected of type "+type+" and name " + parameterName + " for the module " + module.name());
-       	    
-       	    //module.updateParameter(parameterName,type,pset.valueAsString());
-            //module.updateParameter(parameterName,type,value.toString());
-            module.findParameter(parameterName).setTracked(tracked);
+        		
+        		module.findParameter(parameterName).setTracked(tracked);
             
         } else if ("VPSet" == type) {
             //TODO: PARSING VPSET
@@ -1084,6 +1093,13 @@ public class JPythonParser
         
     }
     
+    // 
+    private String fixLongNumber(String string) {
+    	String LHexStringValue = string;
+    	if(LHexStringValue.contains("L")) LHexStringValue = LHexStringValue.substring(0, LHexStringValue.indexOf("L"));
+    	
+    	return LHexStringValue;
+    }
     
     // Basically the same as parseParameter, but only for OutputModules.
     // An OutputModule only has two parameters:
@@ -1528,8 +1544,10 @@ public class JPythonParser
 		   int leftBCount = countOccurrences(command, "[^(]");
 		   int rightBCount = countOccurrences(command, "[^)]");
 
-		   //System.out.println("leftB " + leftBCount);
-		   //System.out.println("rightB " + rightBCount);
+		   // ChangeFormat?
+		   
+		   
+		   
 		   if((leftBCount>0)&&(leftBCount == rightBCount)) {
 			   // Command is well formed!
 			   if(ignorePrescaleService) {
