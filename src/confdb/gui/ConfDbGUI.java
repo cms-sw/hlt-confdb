@@ -890,9 +890,12 @@ public class ConfDbGUI
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
 	if (dialog.validChoice()) {
+	    String filPattern = dialog.filPattern();
+	    if (filPattern.equals("")) filPattern="*";
+	    filPattern=filPattern.replace("*",".*").replace("?",".");
 	    String oldPattern = dialog.oldPattern();
 	    String newPattern = dialog.newPattern();
-	    System.out.println("SmartRenamingConfigurations "+oldPattern+" "+newPattern);
+	    System.out.println("SmartRenamingConfigurations "+filPattern+" "+oldPattern+" "+newPattern);
 	    String oldName = null;
 	    String newName = null;
 
@@ -900,72 +903,78 @@ public class ConfDbGUI
 	    System.out.println("SmartRenaming applyTo: "+applyTo);
 
 	    if (applyTo.equals("All") || applyTo.equals("Modules")) {
-	    ModuleInstance module = null;
-	    for (int i=0; i<currentConfig.moduleCount(); i++) {
-		module = currentConfig.module(i);
-		oldName = module.name();
-		newName = oldName.replace(oldPattern,newPattern);
-		if (!oldName.equals(newName)) {
-		    if (currentConfig.isUniqueQualifier(newName)) {
-			System.out.println("SmartRenaming Module: "+newName+" ["+oldName+"]");
-			try {
-			    module.setNameAndPropagate(newName);
-			    treeModelCurrentConfig.nodeChanged(module);
+		ModuleInstance module = null;
+		for (int i=0; i<currentConfig.moduleCount(); i++) {
+		    module = currentConfig.module(i);
+		    oldName = module.name();
+		    if (oldName.matches(filPattern)) {
+			newName = oldName.replace(oldPattern,newPattern);
+			if (!oldName.equals(newName)) {
+			    if (currentConfig.isUniqueQualifier(newName)) {
+				System.out.println("SmartRenaming Module: "+newName+" ["+oldName+"]");
+				try {
+				    module.setNameAndPropagate(newName);
+				    treeModelCurrentConfig.nodeChanged(module);
+				}
+				catch (DataException e) {
+				    System.err.println(e.getMessage());
+				}
+			    } else {
+				System.out.println("SmartRenaming Module: "+newName+" ["+oldName+"] not changed: new name already exists!");
+			    }
 			}
-			catch (DataException e) {
-			    System.err.println(e.getMessage());
-			}
-		    } else {
-			System.out.println("SmartRenaming Module: "+newName+" ["+oldName+"] not changed: new name already exists!");
 		    }
 		}
 	    }
-	    }
-
+	    
 	    if (applyTo.equals("All") || applyTo.equals("Sequences")) {
-	    Sequence sequence = null;
-	    for (int i=0; i<currentConfig.sequenceCount(); i++) {
-		sequence = currentConfig.sequence(i);
-		oldName = sequence.name();
-		newName = oldName.replace(oldPattern,newPattern);
-		if (!oldName.equals(newName)) {
-		    if (currentConfig.isUniqueQualifier(newName)) {
-			System.out.println("SmartRenaming Sequence: "+newName+" ["+oldName+"]");
-			try {
-			    sequence.setName(newName);
-			    treeModelCurrentConfig.nodeChanged(sequence);
+		Sequence sequence = null;
+		for (int i=0; i<currentConfig.sequenceCount(); i++) {
+		    sequence = currentConfig.sequence(i);
+		    oldName = sequence.name();
+		    if (oldName.matches(filPattern)) {
+			newName = oldName.replace(oldPattern,newPattern);
+			if (!oldName.equals(newName)) {
+			    if (currentConfig.isUniqueQualifier(newName)) {
+				System.out.println("SmartRenaming Sequence: "+newName+" ["+oldName+"]");
+				try {
+				    sequence.setName(newName);
+				    treeModelCurrentConfig.nodeChanged(sequence);
+				}
+				catch (DataException e) {
+				    System.err.println(e.getMessage());
+				}
+			    } else {
+				System.out.println("SmartRenaming Sequence: "+newName+" ["+oldName+"] not changed: new name already exists!");
+			    }
 			}
-			catch (DataException e) {
-			    System.err.println(e.getMessage());
-			}
-		    } else {
-			System.out.println("SmartRenaming Sequence: "+newName+" ["+oldName+"] not changed: new name already exists!");
 		    }
 		}
-	    }
 	    }
 
 	    if (applyTo.equals("All") || applyTo.equals("Paths")) {
-	    Path path = null;
-	    for (int i=0; i<currentConfig.pathCount(); i++) {
-		path = currentConfig.path(i);
-		oldName = path.name();
-		newName = oldName.replace(oldPattern,newPattern);
-		if (!oldName.equals(newName)) {
-		    if (currentConfig.isUniqueQualifier(newName)) {
-			System.out.println("SmartRenaming Path: "+newName+" ["+oldName+"]");
-			try {
-			    path.setNameAndPropagate(newName);
-			    treeModelCurrentConfig.nodeChanged(path);
+		Path path = null;
+		for (int i=0; i<currentConfig.pathCount(); i++) {
+		    path = currentConfig.path(i);
+		    oldName = path.name();
+		    if (oldName.matches(filPattern)) {
+			newName = oldName.replace(oldPattern,newPattern);
+			if (!oldName.equals(newName)) {
+			    if (currentConfig.isUniqueQualifier(newName)) {
+				System.out.println("SmartRenaming Path: "+newName+" ["+oldName+"]");
+				try {
+				    path.setNameAndPropagate(newName);
+				    treeModelCurrentConfig.nodeChanged(path);
+				}
+				catch (DataException e) {
+				    System.err.println(e.getMessage());
+				}
+			    } else {
+				System.out.println("SmartRenaming Path: "+newName+" ["+oldName+"] not changed: new name already exists!");
+			    }
 			}
-			catch (DataException e) {
-			    System.err.println(e.getMessage());
-			}
-		    } else {
-			System.out.println("SmartRenaming Path: "+newName+" ["+oldName+"] not changed: new name already exists!");
 		    }
 		}
-	    }
 	    }
 
 	    treeModelCurrentConfig.setConfiguration(currentConfig);

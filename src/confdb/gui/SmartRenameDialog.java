@@ -27,12 +27,14 @@ public class SmartRenameDialog extends JDialog
     
     /** GUI components */
     private JComboBox  jComboBoxType    = new JComboBox();
+    private JTextField jTextFilPattern  = new JTextField();
     private JTextField jTextOldPattern  = new JTextField();
     private JTextField jTextNewPattern  = new JTextField();
     private JButton    jButtonOk        = new JButton();
     private JButton    jButtonCancel    = new JButton();
     
-    /** old/new */
+    /** filter/old/new */
+    private String filPattern = null;
     private String oldPattern = null;
     private String newPattern = null;
 
@@ -51,6 +53,7 @@ public class SmartRenameDialog extends JDialog
 	applyTo = "All";
 	setContentPane(createContentPane());
 	jComboBoxType.setEnabled(true);
+	jTextFilPattern.setEditable(true);
 	jTextOldPattern.setEditable(true);
 	jTextNewPattern.setEditable(true);
 	jButtonOk.setEnabled(true);
@@ -70,6 +73,11 @@ public class SmartRenameDialog extends JDialog
     }
   
     /** parameter name entered */
+    public void jTextFilPatternActionPerformed(ActionEvent e)
+    {
+	filPattern = jTextFilPattern.getText();
+    }
+    
     public void jTextOldPatternActionPerformed(ActionEvent e)
     {
 	oldPattern = jTextOldPattern.getText();
@@ -83,6 +91,7 @@ public class SmartRenameDialog extends JDialog
     /** 'Do' button pressed */
     public void jButtonOkActionPerformed(ActionEvent e)
     {
+	filPattern = jTextFilPattern.getText();
 	oldPattern = jTextOldPattern.getText();
 	newPattern = jTextNewPattern.getText();
 	validChoice = ((oldPattern!=null) && (newPattern!=null) && (!oldPattern.equals("")) && (!oldPattern.equals(newPattern)));
@@ -92,6 +101,7 @@ public class SmartRenameDialog extends JDialog
     /** 'Cancel' button pressed */
     public void jButtonCancelActionPerformed(ActionEvent e)
     {
+	filPattern=null;
 	oldPattern=null;
 	newPattern=null;
 	validChoice = false;
@@ -101,6 +111,9 @@ public class SmartRenameDialog extends JDialog
     /** valid choide? */
     public boolean validChoice() { return validChoice; }
     
+    /** parameter filter pattern */
+    public String filPattern() { return filPattern; }
+
     /** parameter old name */
     public String oldPattern() { return oldPattern; }
 
@@ -120,10 +133,12 @@ public class SmartRenameDialog extends JDialog
 	JPanel contentPane = new JPanel();
 	
         JLabel jLabelComboBoxType= new JLabel();
+        JLabel jLabelFilPattern  = new JLabel();
         JLabel jLabelOldPattern  = new JLabel();
         JLabel jLabelNewPattern  = new JLabel();
 	
 	jLabelComboBoxType.setText("Apply to:");
+        jLabelFilPattern.setText("Filter Pattern:");
         jLabelOldPattern.setText("Old Pattern:");
         jLabelNewPattern.setText("New Pattern:");
 
@@ -140,6 +155,12 @@ public class SmartRenameDialog extends JDialog
 		}
 	    });
 
+	jTextFilPattern.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                jTextFilPatternActionPerformed(evt);
+            }
+        });
+	
 	jTextOldPattern.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 jTextOldPatternActionPerformed(evt);
@@ -175,6 +196,8 @@ public class SmartRenameDialog extends JDialog
 				  .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
 				       .add(jLabelComboBoxType,
 					    org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,100,Short.MAX_VALUE)
+				       .add(jLabelFilPattern,
+					    org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,100,Short.MAX_VALUE)
 				       .add(jLabelOldPattern,
 					    org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,100,Short.MAX_VALUE)
 				       .add(jLabelNewPattern,
@@ -184,6 +207,8 @@ public class SmartRenameDialog extends JDialog
 				       )
 				  .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
 				       .add(jComboBoxType,
+					    org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,400,Short.MAX_VALUE)
+				       .add(jTextFilPattern,
 					    org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,400,Short.MAX_VALUE)
 				       .add(jTextOldPattern,
 					    org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,400,Short.MAX_VALUE)
@@ -199,6 +224,14 @@ public class SmartRenameDialog extends JDialog
 					  org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,
 					  org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
 				     .add(jComboBoxType,
+					  org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,
+					  org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
+				     )
+				.add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+				     .add(jLabelFilPattern,
+					  org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,
+					  org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
+				     .add(jTextFilPattern,
 					  org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,
 					  org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
 				     )
