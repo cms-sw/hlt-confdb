@@ -1,5 +1,5 @@
 2012-03-27 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
-	* Not tagged.
+	* tag V01-06-34
 	* Improvements in Jython parser.
 	* Problems report dialog after parsing a configuration.
 
