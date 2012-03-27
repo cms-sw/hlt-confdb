@@ -34,7 +34,7 @@ public class ConfCache
     		clearLessThanMB = Math.min( 30, (int)max / 4 );
     		fillUpToMB = clearLessThanMB + 10;
     		try {
-				setPath( "/afs/cern.ch/project/jps/reps/cms-project-co", 500 );
+				setPath( "/afs/cern.ch/project/jps/reps/cms-project-co", 490 );
 			} catch (Exception e) {
 				diskCache = null;
 			}
