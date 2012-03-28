@@ -877,8 +877,6 @@ public class ConfDB
 	
 	try {
 	    cs.executeUpdate();
-
-	    System.out.println("getParameters from loadTemplates!");
 	    
 	    HashMap<Integer,ArrayList<Parameter> > templateParams = getParameters();
 	    
@@ -906,6 +904,7 @@ public class ConfDB
 			if (p==null) missingCount++;
 		    }
 		    if (missingCount>0) {
+		    	//TODO database check. This is happening.
 			System.err.println("ERROR: "+missingCount+" parameter(s) "+
 					   "missing from "+template.type()+
 					   " Template '"+template.name()+"'");
@@ -1224,6 +1223,7 @@ public class ConfDB
 		    System.out.println("SQLException catched at confDb.java::loadConfiguration()   sequence = " + sequence.name());
 		}
 		
+		//TODO Why to have this check?
 		if (sequence.name().equals("HLTL1UnpackerSequence")) System.out.println(fail+" XXX: "+entryType);
 		
 		if (index!=sequenceNb)
@@ -5774,6 +5774,7 @@ public class ConfDB
 			if (p==null) missingCount++;
 			else pset.addParameter(p);
 		    }
+		    // TODO Database check. This is happening.
 		    if (missingCount>0)
 			System.err.println("WARNING: "+missingCount+" parameter(s)"+
 					   " missing from PSet '"+pset.name()+"'");
@@ -5794,6 +5795,7 @@ public class ConfDB
 			if (p==null||!(p instanceof PSetParameter)) missingCount++;
 			else vpset.addParameterSet((PSetParameter)p);
 		    }
+		    // TODO database check, this is happening.
 		    if (missingCount>0)
 			System.err.println("WARNING: "+missingCount+" pset(s)"+
 					   " missing from VPSet '"+vpset.name()+"'");

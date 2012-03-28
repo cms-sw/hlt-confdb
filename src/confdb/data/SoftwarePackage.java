@@ -96,6 +96,20 @@ public class SoftwarePackage implements Comparable<SoftwarePackage>, Serializabl
 	    System.err.println("SoftwarePackage.addTemplate ERROR: " +
 			       "cvsTag mismatch!\n package: "+name()+" / "+cvsTag() +
 			       "\ntemplate: "+t.name()+" / "+t.cvsTag());
+	// TODO I guess this is the proper check code.
+	/*
+	else if (!t.cvsTag().equals(cvsTag())) {
+		// TODO I guess this is the proper check code.
+		if (cvsTag().equals("V00-00-00")) cvsTag = t.cvsTag(); // Update template tag.
+		else if (!t.cvsTag().equals("V00-00-00")&&!t.cvsTag().equals(cvsTag()))
+	    System.err.println("SoftwarePackage.addTemplate ERROR: " +
+			       "cvsTag mismatch!\n package: "+name()+" / "+cvsTag() +
+			       "\ntemplate: "+t.name()+" / "+t.cvsTag());
+	}
+    */
+	
+
+	
 	// else
 	templates.add(t);
     }

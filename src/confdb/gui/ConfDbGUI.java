@@ -1851,11 +1851,12 @@ public class ConfDbGUI
 
 	    if(parser == null) {
 			// Add the configuration details:
-			String StackTrace = "ConfDb Version: " 	+ AboutDialog.getConfDbVersion() 	+ "\n";
+	    	AboutDialog ad = new AboutDialog(null); // Only to get version and contact info. //DONT SHOW DIALOG!
+			String StackTrace = "ConfDb Version: " 	+ ad.getConfDbVersion() 	+ "\n";
 			StackTrace+= "Release Tag: " 			+ currentRelease.releaseTag() 		+ "\n";
 			StackTrace+= "-----------------------------------------------------------------\n";			
 	    	String errMsg = "Parse Python configuration FAILED!\n"	+
-			"Please send us an email to:\n" + AboutDialog.getContactPerson();
+			"Please send us an email to:\n" + ad.getContactPerson();
 			
 	    	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, StackTrace);
 			cd.createAndShowGUI();
@@ -1892,7 +1893,7 @@ public class ConfDbGUI
 	    
 	    if(currentRelease == null) currentRelease = new SoftwareRelease();
 	    
-	    Configuration config = database.loadConfiguration(configInfo,currentRelease);
+	    Configuration config = database.loadConfiguration(configInfo,currentRelease); 
 	    setCurrentConfig(config);
 
 	    return new String("Done!");
@@ -1915,8 +1916,9 @@ public class ConfDbGUI
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
 		//e.printStackTrace();
 		
+		AboutDialog ad = new AboutDialog(null); // Only to get version and contact info. //DONT SHOW DIALOG!
 		// Add the configuration details:
-		String StackTrace = "ConfDb Version: " 	+ AboutDialog.getConfDbVersion() 	+ "\n";
+		String StackTrace = "ConfDb Version: " 	+ ad.getConfDbVersion() 	+ "\n";
 		StackTrace+= "Release Tag: " 			+ configInfo.releaseTag() 			+ "\n";
 		StackTrace+= "Configuration: " 			+ configInfo.fullName() 			+ "\n";
 		StackTrace+= "-----------------------------------------------------------------\n";
@@ -1929,7 +1931,7 @@ public class ConfDbGUI
 		"may cause serious problems in the future.\n" + 
 		"It is highly recommended to save a copy of it in a different area.\n" + 
     	"If you have experienced any problem and you need to recover " + 
-    	"a broken configuration, please send us an email to:\n" + AboutDialog.getContactPerson();
+    	"a broken configuration, please send us an email to:\n" + ad.getContactPerson();
 		
     	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, StackTrace);
 		cd.createAndShowGUI();

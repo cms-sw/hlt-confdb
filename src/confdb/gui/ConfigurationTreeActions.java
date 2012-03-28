@@ -3463,7 +3463,8 @@ public class ConfigurationTreeActions
 			
 			// ERROR: 
 			// Add the configuration details:
-			String StackTrace = "ConfDb Version: " 	+ AboutDialog.getConfDbVersion() 	+ "\n";
+			AboutDialog ad = new AboutDialog(null); // Only to get version and contact info. //DONT SHOW DIALOG!
+			String StackTrace = "ConfDb Version: " 	+ ad.getConfDbVersion() 	+ "\n";
 			StackTrace+= "Release Tag: " 			+ config.releaseTag()   		+ "\n";
 			StackTrace+= "Configuration: " 			+ config.name()				+ "\n";
 			StackTrace+= "-----------------------------------------------------------------\n";
