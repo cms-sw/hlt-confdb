@@ -443,6 +443,10 @@ public class ConfDbGUI
 	frame.setLocation(frameX,frameY);
 	frame.setVisible(true);
 	
+	// CHECH ConfdbSofware version:
+	ConfdbSoftwareVersion softwareVersion = new ConfdbSoftwareVersion();
+	softwareVersion.CheckSoftwareVersion();	// Against the container version!
+	
 	gui.connectToDatabase();
     }
     

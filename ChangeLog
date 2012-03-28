@@ -1,4 +1,12 @@
 2012-03-28 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-40
+	* Software version checker!
+	- from now on the confdb version must be set in the file confdb.version
+	  this file includes the contact email, confdb version and the URL to compare versions.
+	- The project is prepared to deploy confdb.version file in the web container.
+	- It shows a console message, it needs a panel alert the users.
+
+2012-03-28 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-39
 	* Set confdb version and contact info from confdb.version file.
 	* Update build.xml to deploy confdb.version file in the web container. 
