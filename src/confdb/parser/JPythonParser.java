@@ -1217,18 +1217,34 @@ public class JPythonParser
         	parseReferenceContainerContent(leftContent, parentContainer);
         	parseReferenceContainerContent(rightContent, parentContainer);
         	
+        } else if(	pythonObjects.seqIgnore.is(type)	||
+        			pythonObjects.seqNegation.is(type)	){
         	
-        } else if(pythonObjects.seqIgnore.is(type)) {
+        	
         	PyObject operandContent = sequenceContent.__getattr__(new PyString("_operand"));
-        	parseReferenceContainerContent(operandContent, parentContainer);
-        	// TODO: Must set ignore to the generated sequence. How?
-        } else if(pythonObjects.seqNegation.is(type)) {
-        	PyObject operandContent = sequenceContent.__getattr__(new PyString("_operand"));
-        	parseReferenceContainerContent(operandContent, parentContainer);
+
+        	String Subtype  = getType(operandContent);
+            label = getLabel(operandContent);	// subseq.
+        	// Only modules can be negated or ignored:
+        	ModuleInstance module = configuration.module(label);
+        	
+        	if(module == null)
+        		alert(msg.err, "[parseSequenceImpl] module not found! label = " + label + ", type  = " + Subtype);
+        	
+        	Reference moduleRef = parentContainer.entry(module.name());
+        	
+        	if(moduleRef == null)
+        		moduleRef = configuration.insertModuleReference(parentContainer, parentContainer.entryCount(), module);
+        	
+        	if(pythonObjects.seqNegation.is(type))	moduleRef.setOperator(Operator.NEGATE);
+        	if(pythonObjects.seqIgnore.is(type)) 	moduleRef.setOperator(Operator.IGNORE);
+        		
+        	
         	// TODO: Must negate the generated sequence. How?
         } else if(	pythonObjects.EDProducer.is(type)	||
         			pythonObjects.EDFilter.is(type)		||
         			pythonObjects.EDAnalyzer.is(type)) {
+        	
         	
         	ModuleInstance module = configuration.module(label);
         	
@@ -1450,7 +1466,7 @@ public class JPythonParser
     	  sequence("Sequence"),
     	  seqOpFollows("_SequenceOpFollows"),
     	  seqNegation("_SequenceNegation"),
-    	  seqIgnore("_SequenceNegation"),
+    	  seqIgnore("_SequenceIgnore"),
     	  seqOpAids("_SequenceOpAids"), 
     	  EDProducer("EDProducer"),
     	  EDFilter("EDFilter"),

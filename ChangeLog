@@ -1,3 +1,9 @@
+2012-03-28 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-38
+	* Improvements in Jython parser.
+	- Parse operators.
+	- disable "Import from python" option in the MenuBar. (to deploy the app.)
+	
 2012-03-27 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-06-37
 	* propagate path renaming to HLTPrescaler instance label
