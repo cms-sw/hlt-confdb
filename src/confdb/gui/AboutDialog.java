@@ -31,8 +31,9 @@ public class AboutDialog extends JDialog
     JEditorPane jEditorPaneAbout      		= new JEditorPane();
     JButton     jButtonOk             		= new JButton();
     JTextField  jTextFieldApplication 		= new JTextField();
-    static JTextField  jTextFieldVersion	= new JTextField(); 			// ConfDb Version.
-
+    
+    /* NOTE: to change the GUI version go to: /conf/confdb.version file .*/
+    static JTextField  jTextFieldVersion	= new JTextField(); // ConfDb Version.
     static String		contactEmail		= ""; // Change in confdb.version file!
     
     
@@ -44,6 +45,9 @@ public class AboutDialog extends JDialog
     public AboutDialog(JFrame frame)
     {
 	super(frame,true);
+	
+	getConfDbVersion(); //load info from confdb.version file
+	getContactPerson(); //load info from confdb.version file
 	
 	setTitle("About ConfDbGUI");
 	
@@ -74,8 +78,7 @@ public class AboutDialog extends JDialog
 	jEditorPaneAbout.setContentType("text/html");
 	jEditorPaneAbout.setText(txt);
 	
-	getConfDbVersion(); //load info from confdb.version file
-	getContactPerson(); //load info from confdb.version file
+
 	
     }
 
@@ -93,17 +96,10 @@ public class AboutDialog extends JDialog
      * NOTE: to change the GUI version go to: /conf/confdb.version file .*/
     public String getConfDbVersion() {
 		
-		InputStream inStream = getClass().getResourceAsStream("/conf/confdb.version");
-	    Properties  properties = new Properties();
-	    try {
-			properties.load(inStream);
-		} catch (IOException e) {
-			System.err.println("[ERROR][AboutDialog] unable to load confdb.version file!");
-			e.printStackTrace();
-		}
-		//System.out.println("confdb version = " + properties.getProperty("confdb.version"));
+    	ConfdbSoftwareVersion softversion = new ConfdbSoftwareVersion();
+    	softversion.loadLocalProperties();
 		
-		jTextFieldVersion.setText(properties.getProperty("confdb.version"));
+		jTextFieldVersion.setText(softversion.getVersionFromWebContainer());
     	
     	return jTextFieldVersion.getText();
     }
@@ -115,17 +111,11 @@ public class AboutDialog extends JDialog
      * Allow get confdb contact person in case of errors.
      * NOTE: to change the GUI version go to: /conf/confdb.version file .*/
     public String getContactPerson() {
-		InputStream inStream = getClass().getResourceAsStream("/conf/confdb.version");
-	    Properties  properties = new Properties();
-	    try {
-			properties.load(inStream);
-		} catch (IOException e) {
-			System.err.println("[ERROR][AboutDialog] unable to load confdb.version file!");
-			e.printStackTrace();
-		}
-		//System.out.println("confdb contact = " + properties.getProperty("confdb.contact"));
-		
-		contactEmail = properties.getProperty("confdb.contact");
+    	
+    	ConfdbSoftwareVersion softversion = new ConfdbSoftwareVersion();
+    	softversion.loadLocalProperties();
+
+		contactEmail = softversion.getContact();
     	
     	return contactEmail;
     }

@@ -1,3 +1,8 @@
+2012-03-29 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-41
+	* Software version checker!
+	- Alert the user about a new version of Confdb.
+
 2012-03-28 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-40
 	* Software version checker!
