@@ -99,7 +99,7 @@ public class AboutDialog extends JDialog
     	ConfdbSoftwareVersion softversion = new ConfdbSoftwareVersion();
     	softversion.loadLocalProperties();
 		
-		jTextFieldVersion.setText(softversion.getVersionFromWebContainer());
+		jTextFieldVersion.setText(softversion.getClientVersion());
     	
     	return jTextFieldVersion.getText();
     }

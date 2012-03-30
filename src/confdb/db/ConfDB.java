@@ -1224,7 +1224,7 @@ public class ConfDB
 		}
 		
 		//TODO Why to have this check?
-		if (sequence.name().equals("HLTL1UnpackerSequence")) System.out.println(fail+" XXX: "+entryType);
+		//if (sequence.name().equals("HLTL1UnpackerSequence")) System.out.println(fail+" XXX: "+entryType);
 		
 		if (index!=sequenceNb)
 		    System.err.println("ERROR in sequence "+sequence.name()+
@@ -1367,7 +1367,8 @@ public class ConfDB
 		}else{
 		    commandToString = "keep " + commandToString;
 		}
-		outputCommand.initializeFromString(commandToString);
+		
+		outputCommand.initializeFromString(commandToString); // Bug
 		
 		if( parentPathId>0){
 		    
@@ -1385,8 +1386,16 @@ public class ConfDB
 		    
 		    if (found){
 			outputCommand = new OutputCommand(parentPath,parentReference);
+			
+			// BUG bug #88643 //TODO
+			//Load the values
+			
+			outputCommand.setClassName(classN);
+			outputCommand.setExtraName(extra);
+			outputCommand.setModuleName(module);
+			outputCommand.setProcessName(process);
+			
 		    }
-
 		}
 		
 		eventContent.insertCommand(outputCommand);
@@ -2496,6 +2505,7 @@ public class ConfDB
 	    }
 	    
 	    for(int j=0;j<eventContent.commandCount();j++){
+	    	
 		OutputCommand command = eventContent.command(j);
 		String className = command.className();
 		String moduleName = command.moduleName();
@@ -2506,6 +2516,7 @@ public class ConfDB
 		    iDrop = 0;
 		}
 		try {
+			
 		    psSelectStatementId.setString(1,className);
 		    psSelectStatementId.setString(2,moduleName);
 		    psSelectStatementId.setString(3,extraName);
@@ -2533,14 +2544,17 @@ public class ConfDB
 			rsNewStatementId.next();
 			statementId = rsNewStatementId.getInt(1);
 		    }
+		    
+		    
 		    psInsertECStatementAssoc.setInt(1,j);
 		    psInsertECStatementAssoc.setInt(2,statementId);
 		    psInsertECStatementAssoc.setInt(3,contentId);
 		    Path parentPath = command.parentPath();
-		    if(parentPath!=null)
-			psInsertECStatementAssoc.setInt(4,parentPath.databaseId());
-		    else
+		    if(parentPath!=null) {
+		    	psInsertECStatementAssoc.setInt(4,parentPath.databaseId());
+		    } else {
 			psInsertECStatementAssoc.setInt(4,-1);
+		    }
 		    psInsertECStatementAssoc.addBatch();
 		}
 		catch (SQLException e) {

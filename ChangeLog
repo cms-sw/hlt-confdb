@@ -1,3 +1,12 @@
+2012-03-30 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-42
+	* Fix bug #88643: Cannot save after editing Output Commands in EventContents.
+	- Set the EventContent as "hasChanged".
+	- Remove restriction in OutputCommand to load ModuleName property when the parentReference exists.
+	* Remove senseless message of Operator check for Sequence HLTL1UnpackerSequence.
+	* Fix condition for V00-00-00 cvsTag software Packages.
+	- Error will be shown when a template cvstag is neither the expected tag nor V00-00-00 tag.
+	
 2012-03-29 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-41
 	* Software version checker!

@@ -175,15 +175,16 @@ public class OutputCommand implements Comparable<OutputCommand>, Serializable
     /** set the module name */
     public boolean setModuleName(String moduleName)
     {
-	if (parentReference != null) {
-	    System.err.println("OutputCommand.setModuleName() ERROR: "+
-			       "output command has a parent reference!");
-	    return false;
-	}
-	this.moduleName = moduleName.split(" ")[0];
-	this.moduleName = moduleName.split("_")[0];
-	if (moduleName().length()==0) this.moduleName = "*";
-	return true;
+		// allow to set this property. - bug #88643.
+    	//if (parentReference != null) {
+		    //System.err.println("OutputCommand.setModuleName() ERROR: output command has a parent reference!");
+		    //return false;
+		//}
+    	
+		this.moduleName = moduleName.split(" ")[0];
+		this.moduleName = moduleName.split("_")[0];
+		if (moduleName().length()==0) this.moduleName = "*";
+		return true;
     }
     
     /** set the extra name */

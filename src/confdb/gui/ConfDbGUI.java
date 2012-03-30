@@ -3883,7 +3883,10 @@ public class ConfDbGUI
 	dlg.pack();
 	dlg.setLocationRelativeTo(frame);
 	dlg.setVisible(true);
-	if (dlg.command()!=null) command.set(dlg.command());
+	if (dlg.command()!=null) {
+		content.setHasChanged(); // TODO
+		command.set(dlg.command());
+	}
 
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
@@ -3893,6 +3896,9 @@ public class ConfDbGUI
 	Iterator<Stream> itS = content.streamIterator();
 	while (itS.hasNext()) {
 	    OutputModule output = itS.next().outputModule();
+	    //output.setHasChanged(); //TODO
+
+	    
 	    treeModelCurrentConfig.nodeChanged(output.parameter(1));
 	    if (output.referenceCount()>0)
 		treeModelCurrentConfig
