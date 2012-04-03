@@ -34,7 +34,7 @@ public class ConfCache
     		clearLessThanMB = Math.min( 30, (int)max / 4 );
     		fillUpToMB = clearLessThanMB + 10;
     		try {
-				setPath( "/afs/cern.ch/project/jps/reps/cms-project-co", 490 );
+				setPath( "/afs/cern.ch/project/jps/reps/cms-project-co", 485 );
 			} catch (Exception e) {
 				diskCache = null;
 			}
@@ -62,7 +62,7 @@ public class ConfCache
     	if ( p == null || size <= 0 )
     		diskCache = null;
     	else
-    		diskCache = new DiskCache( p, size );
+    		diskCache = new DiskCache( p, size, 10 );
     }
 
     public synchronized IConfiguration getConfiguration( int key, ConfDB database ) throws DatabaseException
