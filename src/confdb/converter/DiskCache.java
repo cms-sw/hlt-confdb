@@ -16,15 +16,17 @@ public class DiskCache
     protected String dir = "";
     protected long maxSpace = 45 * 1024 * 1024;
     protected long inUse = 0;
+    protected int maxSizeMB = 5;
     
     private Statistics deserialize = new Statistics();
     private Statistics serialize = new Statistics();
 
     static public ArrayList<ExceptionBufferEntry> exceptions = new ArrayList<DiskCache.ExceptionBufferEntry>();
     
-    public DiskCache( String p, long space ) throws IOException, SecurityException
+    public DiskCache( String p, long space, int maxSizeMB ) throws IOException, SecurityException
     {
     	maxSpace = space * 1024 * 1024;
+    	this.maxSizeMB = maxSizeMB;
     	p += File.separator;
     	File file = new File( p + ".start" );
     	if ( file.exists() )
@@ -39,7 +41,7 @@ public class DiskCache
     {
     	long start = System.currentTimeMillis();
         try {
-        	while ( maxSpace - inUse < 5 * 1024 * 1024 )
+        	while ( maxSpace - inUse < maxSizeMB * 1024 * 1024 )
         		deleteOldestFile();
         	File file = new File( dir + fileName );
         	FileOutputStream fos = new FileOutputStream( file );
