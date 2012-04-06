@@ -72,8 +72,10 @@ public class ConfdbSoftwareVersion {
 		
 		// Get web container version.
 		String containerVersion = getVersionFromWebContainer();
+		int Container_version = versionToInt(containerVersion);
+		int Current_version = versionToInt(confdbVersion);
 		
-		if(!confdbVersion.equals(containerVersion)) {
+		if(Container_version > Current_version) {
 			System.out.println("[WARNING] You are using a lower version of Confdb GUI!");
 			System.out.println("[WARNING] client = " + confdbVersion);
 			System.out.println("[WARNING] containerVersion = " + containerVersion);
@@ -85,11 +87,43 @@ public class ConfdbSoftwareVersion {
 			JPanel panel = new JPanel();
 	        panel.setLayout(new GridLayout(2, 2));
 			JOptionPane.showMessageDialog(panel, message,"WARNING!", JOptionPane.WARNING_MESSAGE);
+		} else if(Container_version < Current_version) {
+			System.out.println("[WARNING] You are using an experimental version of Confdb GUI!");
+			System.out.println("[WARNING] client = " + confdbVersion);
+			System.out.println("[WARNING] containerVersion = " + containerVersion);
+			
+			String message = 	"You're running an experimental version of Confdb-GUI at the moment!\n"+
+								"It's highly recommended to get the latest public version ("+containerVersion+").\n";
+								
+			JPanel panel = new JPanel();
+	        panel.setLayout(new GridLayout(2, 2));
+			JOptionPane.showMessageDialog(panel, message,"WARNING!", JOptionPane.WARNING_MESSAGE);
 		}
+		
+		
 		
 		loadLocalProperties();
 		
 		return containerVersion;
+	}
+	
+	private int versionToInt(String version) {
+		int serial = -1;
+		String foo = "";
+		
+		foo = version.replaceAll("V", "");
+		foo = foo.replaceAll("v", "");
+		//System.out.println("Replacing V -> " + foo);
+		foo = foo.replaceAll("-", "");
+		//System.out.println("Replacing -> " + foo);
+		try {
+		serial = Integer.parseInt(foo);
+		} catch (NumberFormatException e) {
+            System.out.println ("[ConfdbSoftwareVersion] ##Wrong Number##");
+            serial = -1;
+        }
+		
+		return serial;
 	}
 	
 	public String getUrl() {

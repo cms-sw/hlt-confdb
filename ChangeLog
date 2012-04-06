@@ -1,3 +1,10 @@
+2012-04-06 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-43
+	* Software version checker
+	- Alert the user of being running an experimental version of Confdb-GUI.
+	- Point to real container.
+	* Enable Python parser option.
+	
 2012-03-30 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-42
 	* Fix bug #88643: Cannot save after editing Output Commands in EventContents.
