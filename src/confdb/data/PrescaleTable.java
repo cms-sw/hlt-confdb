@@ -119,12 +119,12 @@ public class PrescaleTable
     }
 
     /** add a new column at i-th position */
-    public void addPrescaleColumn(int i,String columnName)
+    public void addPrescaleColumn(int i,String columnName,long prescale)
     {
 	if (i>=columnNames.size()) return;
 	columnNames.add(i+1,columnName);
 	Iterator<PrescaleTableRow> itR = rows.iterator();
-	while (itR.hasNext()) itR.next().prescales.add(i,new Long(1));
+	while (itR.hasNext()) itR.next().prescales.add(i,prescale);
 
     }
     public void duplicatePrescaleColumn(int i,String columnName)

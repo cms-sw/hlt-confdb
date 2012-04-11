@@ -147,7 +147,12 @@ public class PrescaleDialog extends JDialog
 					 JOptionPane
 					 .showInputDialog("Enter the level1 "+
 							  "label for the new "+
-							  "column:"));
+							  "column:"),
+					 Math.abs(Long.decode(JOptionPane
+					 .showInputDialog("Enter the prescale "+
+							  "value for the new "+
+							  "column:")))
+					 );
 		    adjustTableColumnWidths();
 		}
 	    });
@@ -369,9 +374,9 @@ class PrescaleTableModel extends AbstractTableModel
     
 
     /** add an additional column (-> lvl1Label) */
-    public void addColumn(int i,String lvl1Label)
+    public void addColumn(int i,String lvl1Label,long prescale)
     {
-	prescaleTable.addPrescaleColumn(i,lvl1Label);
+	prescaleTable.addPrescaleColumn(i,lvl1Label,prescale);
 	fireTableStructureChanged();
     }
     public void reorderColumns(int i,String lvl1Labels)

@@ -1,3 +1,7 @@
+2012-04-11 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-06-45
+	* added prescale columns can be filled with user-provided value.
+	
 2012-04-11 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-44
 	* Set a timeout of 3 seconds for version checker.
