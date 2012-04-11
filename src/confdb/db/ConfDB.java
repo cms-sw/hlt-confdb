@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Properties;
 
 import java.io.*;
 
@@ -417,7 +418,31 @@ public class ConfDB
         dbPort = dbPortNumber;
         dbName = dbServiceName;
         
-        return getTnsnameFormat();
+        //return getTnsnameFormat();
+        return getDbURL(); // allow load balancing connection string.
+    }
+    
+    // Set the URL. All other parameters will be ignored. This will be used for load balancing.
+    public String getDbURL() {
+
+		String url = "jdbc:oracle:thin:@(DESCRIPTION =";
+		String[] hosts = dbHost.split(",");
+		
+		if(hosts.length == 0) return "ERROR TNSNAME FORMAT";
+		
+		for(int i = 0; i < hosts.length; i++) {
+				url+= "(ADDRESS = (PROTOCOL = TCP)(HOST = "+hosts[i]+")(PORT = 10121))\n";
+		}
+
+	    url+="(ENABLE=BROKEN) ";
+	    url+="(LOAD_BALANCE = yes) ";
+	    url+="(CONNECT_DATA = ";
+	    url+="  (SERVER = DEDICATED) ";
+	    url+=" (SERVICE_NAME = "+dbName+") ";
+	    url+="   (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15)) ";
+	    url+=") )";
+		
+		return url;
     }
     
     public String getHostName() 	{ return dbHost; }

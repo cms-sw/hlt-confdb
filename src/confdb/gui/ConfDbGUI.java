@@ -1210,6 +1210,7 @@ public class ConfDbGUI
 		// Use TNSNames format to connect to oracle:
 		if (dbType.equals(database.dbTypeOracle)) {
 			dbUrl = database.setDbParameters(dbPwrd, dbName, dbHost, dbPort); // return Url in TNS format.
+			System.out.println("[INFO] URL = " + dbUrl);
 		}
 			
 		
