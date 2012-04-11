@@ -46,30 +46,68 @@ public class ConfdbSoftwareVersion {
 	}
 
 	public String getVersionFromWebContainer() {
-		try {
+		getVersionFromWebContainerThread();
+		return confdbWebVersion;
+	}
+	
+	
+	private String getVersionFromWebContainerThread() {
+		Thread thread = new Thread(new Runnable() {
+		    @Override
+		    public void run() {
+				BufferedReader in = null;
+				try {
+					URL oracle = new URL(URL);
+			        in = new BufferedReader(new InputStreamReader(oracle.openStream()));
 
-			URL oracle = new URL(URL);
-	        BufferedReader in = new BufferedReader(new InputStreamReader(oracle.openStream()));
-
-	        confdbWebVersion = in.readLine(); // the version must be in the first line
-	        in.close();
-	        
-	        if(confdbWebVersion.indexOf("=") != -1) // This is to fix the Properties class format.
-	        	confdbWebVersion = confdbWebVersion.substring(confdbWebVersion.indexOf("=") + 1); 
-			
-			
-		} catch (IOException e) {
-			System.err.println("[ERROR][ConfdbSoftwareVersion] Unable to get confdb.version from " + URL);
-			//e.printStackTrace();
+			        confdbWebVersion = in.readLine(); // the version must be in the first line
+			        in.close();
+			        
+			        if(confdbWebVersion.indexOf("=") != -1) // This is to fix the Properties class format.
+			        	confdbWebVersion = confdbWebVersion.substring(confdbWebVersion.indexOf("=") + 1); 
+					
+			        in.close();
+			        
+				} catch (IOException e) {
+					System.err.println("[ERROR][ConfdbSoftwareVersion] Unable to get confdb.version from " + URL);
+					
+						try {
+							if(in != null)
+							in.close();
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					//e.printStackTrace();
+				} // end try/catch statement
+				
+		    } // end run method
+		});
+		
+		thread.start();
+		long endTimeMillis = System.currentTimeMillis() + 3000; //Waits 3 seconds.
+		while (thread.isAlive()) {
+		    if (System.currentTimeMillis() > endTimeMillis) {
+		    	System.err.println("[ERROR][ConfdbSoftwareVersion] Timeout passed at " + URL);
+		    	
+				String message = 	"The online version number of Confdb-GUI is not available at the moment.\n"+
+				"This could mean that the web container is down.\n Please contact: "+getContact()+"\n";
+				
+				JPanel panel = new JPanel();
+				panel.setLayout(new GridLayout(2, 2));
+				JOptionPane.showMessageDialog(panel, message,"WARNING!", JOptionPane.WARNING_MESSAGE);
+		        // set an error flag
+		        break;
+		    }
+		    try {
+		        Thread.sleep(500);
+		    }
+		    catch (InterruptedException t) {}
 		}
 		return confdbWebVersion;
 	}
 	
 	public String CheckSoftwareVersion() {
 
-		// Get client version:
-		
-		
 		// Get web container version.
 		String containerVersion = getVersionFromWebContainer();
 		int Container_version = versionToInt(containerVersion);

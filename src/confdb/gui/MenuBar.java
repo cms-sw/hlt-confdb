@@ -133,6 +133,7 @@ public class MenuBar
 	optionsMenuTrackItem.setEnabled(true);
 	optionsMenuEnablePathCloningItem.setEnabled(true);
 	dbMenuExportItem.setEnabled(true);
+	dbMenuImportFromPythonItem.setEnabled(true);
     }
 
     /** no configuration is open */
@@ -155,6 +156,7 @@ public class MenuBar
 	optionsMenuTrackItem.setEnabled(false);
 	optionsMenuEnablePathCloningItem.setEnabled(false);
 	dbMenuExportItem.setEnabled(false);
+	dbMenuImportFromPythonItem.setEnabled(false);
     }
     
     /** database connection is established */
@@ -170,6 +172,7 @@ public class MenuBar
 	toolMenuSmartRenamingItem.setEnabled(true);
 	dbMenuDisconnectItem.setEnabled(true);
 	dbMenuDBInfoItem.setEnabled(true);
+	dbMenuImportFromPythonItem.setEnabled(true);
     }
     
     /** no database connection is established */
@@ -186,6 +189,7 @@ public class MenuBar
 	toolMenuSmartRenamingItem.setEnabled(false);
 	dbMenuDisconnectItem.setEnabled(false);
 	dbMenuDBInfoItem.setEnabled(false);
+	dbMenuImportFromPythonItem.setEnabled(false);
     }
 
     /** populate the menu bar with all menus and their items */
