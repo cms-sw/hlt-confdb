@@ -1,3 +1,7 @@
+2012-04-13 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-47
+	* reconnect method retries automatically several times before raising a DatabaseException.
+	   
 2012-04-11 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-46
 	* Allow load balancing connections by using comma-separated host names.

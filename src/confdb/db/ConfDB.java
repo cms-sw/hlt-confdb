@@ -527,41 +527,54 @@ public class ConfDB
     /** reconnect to the database, if the connection appears to be down */
     public void reconnect() throws DatabaseException
     {
-	if (dbConnector==null) return;
-	ResultSet rs = null;
-	try {
-	    rs = psSelectUsersForLockedConfigs.executeQuery();
-	}
-	catch (SQLException e) {
-	    boolean connectionLost = false;
-	    if (dbConnector instanceof MySQLDatabaseConnector) {
-		if(e.getSQLState().equals("08S01")||
-		   e.getSQLState().equals("08003")) connectionLost = true;
-	    }
-	    else if (dbConnector instanceof OracleDatabaseConnector) {
-		if (e.getErrorCode() == 17430|| 
-		    e.getErrorCode() == 28   ||
-		    e.getErrorCode() == 17008|| 
-		    e.getErrorCode() == 17410||
-		    e.getErrorCode() == 17447) connectionLost = true;
-	    }
-	    else throw new DatabaseException("ConfDB::reconnect(): "+
-					     "unknown connector type!",e);
-	    
-	    if (connectionLost) {
-		closePreparedStatements();
-		dbConnector.closeConnection();
-		dbConnector.openConnection();
-		prepareStatements();
-		System.out.println("ConfDB::reconnect(): "+
-				   "connection reestablished!");		
- 	    }
-	}
-	finally {
-	    dbConnector.release(rs);
-	}
-    }
+		if (dbConnector==null) return;
+		ResultSet rs = null;
+		
+	     int retryCount = 5;
+	     boolean transactionCompleted = false;
+	     do {
+	    	 
+	    	 if(retryCount != 5) 
+	    		 System.err.println("ConfDB::reconnect(): Trying to connect... attemp (" +  (5 - retryCount) + ")");
+	    	 
+			try {
+			    rs = psSelectUsersForLockedConfigs.executeQuery();
+			    
+			    // If no exception is raised then reconnection is complete.
+			    transactionCompleted = true;
+			} catch (SQLException e) {
+				retryCount--;	
+				
+				System.out.println("SQLException: " + e.getMessage());
+				System.out.println("SQLException: " + e.getErrorCode());
+				
+			    if (!(dbConnector instanceof MySQLDatabaseConnector)&&!(dbConnector instanceof OracleDatabaseConnector))
+			    	throw new DatabaseException("ConfDB::reconnect(): unknown connector type!",e);
 
+					closePreparedStatements();
+					dbConnector.closeConnection();
+					dbConnector.openConnection();
+					prepareStatements();
+				    System.out.println("ConfDB::reconnect(): connection reestablished!");
+			} finally {
+			     if (rs != null) {
+				   	  try {
+				   	      rs.close();
+				   	  } catch (SQLException sqlEx) {
+				   		System.err.println("ConfDB::reconnect(): Error closing ResultSet! " + sqlEx.getMessage());
+				   	  }
+			     }
+		         
+			     if (dbConnector != null) dbConnector.release(rs);
+			}
+	     } while (!transactionCompleted && (retryCount > 0));
+	     
+	     // Raise exception when unable to connect.
+	     if(!transactionCompleted)  
+	    	 throw new DatabaseException("ConfDB::reconnect(): Unable to connect!");
+	     
+    }
+    
 
     public IDatabaseConnector getDbConnector() {
 		return dbConnector;
