@@ -209,7 +209,10 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	while (itPD.hasNext()) {
 	    PrimaryDataset PD = itPD.next();
 	    Iterator<Path> itP = PD.pathIterator();
-	    while (itP.hasNext()) result.add(itP.next());
+	    while (itP.hasNext()) {
+	    	Path path = itP.next();
+	    	if(!result.contains(path)) result.add(path);
+	    }
 	}
 	return result;
     }
@@ -264,11 +267,26 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     }
     
     /** retrieve primary dataset which contains specified path */
+    /*
     public PrimaryDataset dataset(Path path)
     {
 	for (PrimaryDataset pd : datasets)
 	    if (pd.indexOfPath(path)>=0) return pd;
 	return null;
+    }
+    */
+    
+    /** retrieve primary datasets which contains specified path 
+     * NOTE: This method will be available after the intervention.
+     * There will be more than one dataset sharing the same path.
+     * But the Stream is still the same. */
+    public ArrayList<PrimaryDataset> datasets(Path path)
+    {
+    	ArrayList<PrimaryDataset> datasetList = new ArrayList<PrimaryDataset>();
+		for (PrimaryDataset pd : datasets)
+		    if (pd.indexOfPath(path)>=0) datasetList.add(pd);//return pd;
+		//return null;
+		return datasetList;
     }
     
     /** retrieve primary dataset iterator */

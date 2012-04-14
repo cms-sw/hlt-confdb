@@ -1,4 +1,10 @@
 2012-04-14 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-50
+	* Remove restriction in the GUI to allow share a path in two datasets in the same stream.
+	- This feature works with the current database definition.
+	- it only gives an error if you explicitly share a path in two datasets, and the database has no the update.  
+
+2012-04-14 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-49
 	* Introduces load balancing URLs for the browser.
 	* Add multiple hosts at confdb.properties using comma-separator.

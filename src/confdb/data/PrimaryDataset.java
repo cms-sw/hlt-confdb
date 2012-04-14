@@ -132,12 +132,14 @@ public class PrimaryDataset extends DatabaseEntry
 			       "path already associated!");
 	    return false;
 	}
+	/*
 	if (parentStream.listOfAssignedPaths().indexOf(path)>=0) {
 	    System.err.println("PrimaryDataset.insertPath() ERROR: "+
 			       "path already associated with another dataset "+
 			       "in the parent stream!");
 	    return false;
 	}
+	*/
 	if (parentStream.indexOfPath(path)<0) parentStream.insertPath(path);
 	//else parentStream.setHasChanged();
 	paths.add(path);

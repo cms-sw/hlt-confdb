@@ -3261,47 +3261,100 @@ public class ConfigurationTreeActions
 	return true;
     }
     
+    
+    /** remove a path from a stream */
+    //TODO deprecated method, sharing one path in more than one dataset.
+    /*
+    public static boolean removePathFromStream(JTree tree)
+    {
+		ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+		Configuration          config = (Configuration)model.getRoot();
+		TreePath               treePath = tree.getSelectionPath();
+		
+		ConfigurationTreeNode treeNode =
+		    (ConfigurationTreeNode)treePath.getLastPathComponent();
+		Stream stream = (Stream)treeNode.parent();
+		Path   path   = (Path)treeNode.object();
+		int    index  = stream.indexOfPath(path);
+	
+		EventContent content = stream.parentContent();
+		int contentIndex = content.indexOfPath(path);
+		
+		PrimaryDataset dataset = stream.dataset(path);
+		if (dataset!=null)
+		    model.nodeRemoved(dataset,dataset.indexOfPath(path),path);
+		
+		stream.removePath(path);
+	
+		if (model.contentMode().equals("paths")&&content.indexOfPath(path)<0) {
+		    model.nodeRemoved(content,content.indexOfPath(path),path);
+		}
+		
+		Iterator<Stream> itS = content.streamIterator();
+		while (itS.hasNext()) {
+		    OutputModule output = itS.next().outputModule();
+		    PSetParameter psetSelectEvents =
+			(PSetParameter)output.parameter(0);
+		    model.nodeChanged(psetSelectEvents.parameter(0));
+		    if (output.referenceCount()>0)
+			model.nodeStructureChanged(output.reference(0));
+		}
+		
+		model.nodeRemoved(stream,index,treeNode);
+		model.updateLevel1Nodes();
+		
+		return true;
+    }
+    */
+    
     /** remove a path from a stream */
     public static boolean removePathFromStream(JTree tree)
     {
-	ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config = (Configuration)model.getRoot();
-	TreePath               treePath = tree.getSelectionPath();
+		ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
+		Configuration          config = (Configuration)model.getRoot();
+		TreePath               treePath = tree.getSelectionPath();
+		
+		ConfigurationTreeNode treeNode =
+		    (ConfigurationTreeNode)treePath.getLastPathComponent();
+		Stream stream = (Stream)treeNode.parent();
+		Path   path   = (Path)treeNode.object();
+		int    index  = stream.indexOfPath(path);
 	
-	ConfigurationTreeNode treeNode =
-	    (ConfigurationTreeNode)treePath.getLastPathComponent();
-	Stream stream = (Stream)treeNode.parent();
-	Path   path   = (Path)treeNode.object();
-	int    index  = stream.indexOfPath(path);
+		EventContent content = stream.parentContent();
+		int contentIndex = content.indexOfPath(path);
+		
+		//PrimaryDataset dataset = stream.dataset(path);
+		ArrayList<PrimaryDataset> primaryDatasets = stream.datasets(path);
+		
+		for(int ds = 0; ds < primaryDatasets.size(); ds++) {
+			PrimaryDataset dataset = primaryDatasets.get(ds);
+			
+			if (dataset!=null)
+			    model.nodeRemoved(dataset,dataset.indexOfPath(path),path);
+		}
 
-	EventContent content = stream.parentContent();
-	int contentIndex = content.indexOfPath(path);
+		stream.removePath(path);
 	
-	PrimaryDataset dataset = stream.dataset(path);
-	if (dataset!=null)
-	    model.nodeRemoved(dataset,dataset.indexOfPath(path),path);
-	
-	stream.removePath(path);
-
-	if (model.contentMode().equals("paths")&&content.indexOfPath(path)<0) {
-	    model.nodeRemoved(content,content.indexOfPath(path),path);
-	}
-	
-	Iterator<Stream> itS = content.streamIterator();
-	while (itS.hasNext()) {
-	    OutputModule output = itS.next().outputModule();
-	    PSetParameter psetSelectEvents =
-		(PSetParameter)output.parameter(0);
-	    model.nodeChanged(psetSelectEvents.parameter(0));
-	    if (output.referenceCount()>0)
-		model.nodeStructureChanged(output.reference(0));
-	}
-	
-	model.nodeRemoved(stream,index,treeNode);
-	model.updateLevel1Nodes();
-	
-	return true;
+		if (model.contentMode().equals("paths")&&content.indexOfPath(path)<0) {
+		    model.nodeRemoved(content,content.indexOfPath(path),path);
+		}
+		
+		Iterator<Stream> itS = content.streamIterator();
+		while (itS.hasNext()) {
+		    OutputModule output = itS.next().outputModule();
+		    PSetParameter psetSelectEvents =
+			(PSetParameter)output.parameter(0);
+		    model.nodeChanged(psetSelectEvents.parameter(0));
+		    if (output.referenceCount()>0)
+			model.nodeStructureChanged(output.reference(0));
+		}
+		
+		model.nodeRemoved(stream,index,treeNode);
+		model.updateLevel1Nodes();
+		
+		return true;
     }
+    
 
     /** remove unassigned paths from an existing stream */
     public static boolean removeUnassignedPathsFromStream(JTree tree)
@@ -3330,9 +3383,16 @@ public class ConfigurationTreeActions
 
 	    int contentIndex = content.indexOfPath(path);
 	    
-	    PrimaryDataset dataset = stream.dataset(path);
-	    if (dataset!=null)
-		model.nodeRemoved(dataset,dataset.indexOfPath(path),path);
+	    //PrimaryDataset dataset = stream.dataset(path);
+	    ArrayList<PrimaryDataset> datasets = stream.datasets(path);
+	    
+	    
+	    //if (dataset!=null) model.nodeRemoved(dataset,dataset.indexOfPath(path),path);
+	    // TODO update to count on many datasets sharing the same path.
+	    for(int i = 0; i < datasets.size(); i++) {
+	    	PrimaryDataset ds = datasets.get(i);
+	    	model.nodeRemoved(ds,ds.indexOfPath(path),path);
+	    }
 	    
 	    stream.removePath(path);
 	    
@@ -3650,14 +3710,20 @@ public class ConfigurationTreeActions
 	int index = -1;
 	if (stream.indexOfPath(path)<0) stream.insertPath(path);
 	else index = stream.listOfUnassignedPaths().indexOf(path);
-	dataset.insertPath(path);
 	
-	model.nodeInserted(dataset,dataset.indexOfPath(path));
-	if (model.streamMode().equals("datasets")) {
-	    model.nodeInserted(model.getChild(stream,stream.indexOfDataset(dataset)),
-			       dataset.indexOfPath(path));
-	    model.nodeRemoved(model.getChild(stream,stream.datasetCount()),index,path);
+	// bug/feature #93322 	Remove GUI and database restriction to share a path in more than one PrimaryDataset in a Stream.
+	if(dataset.path(path.name()) == null) {
+		dataset.insertPath(path);
+		model.nodeInserted(dataset,dataset.indexOfPath(path));
+		if (model.streamMode().equals("datasets")) {
+		    model.nodeInserted(model.getChild(stream,stream.indexOfDataset(dataset)),dataset.indexOfPath(path));
+		    if(index != -1) {
+		    	model.nodeRemoved(model.getChild(stream,stream.datasetCount()),index,path);
+		    }
+		}
 	}
+	
+
 	model.nodeChanged(path);
 	model.updateLevel1Nodes();
 	
@@ -3744,11 +3810,16 @@ public class ConfigurationTreeActions
 	dataset.removePath(path);
 	
 	model.nodeRemoved(dataset,index,treeNode);
-	if (model.streamMode().equals("datasets"))
-	    model.nodeRemoved(model.getChild(stream,stream.indexOfDataset(dataset)),
-			      index,treeNode);
-	model.nodeInserted(model.getChild(stream,stream.datasetCount()),
-			   stream.listOfUnassignedPaths().indexOf(path));
+	if (model.streamMode().equals("datasets")) {
+	    model.nodeRemoved(model.getChild(stream,stream.indexOfDataset(dataset)), index,treeNode);
+	}
+	
+	if(stream.datasets(path).size() == 0) {
+		// Only if the path goes to unassignedPaths.
+		model.nodeInserted(model.getChild(stream,stream.datasetCount()), stream.listOfUnassignedPaths().indexOf(path));
+	}
+		
+	
 	model.updateLevel1Nodes();
 	
 	return true;
@@ -3773,7 +3844,10 @@ public class ConfigurationTreeActions
 	model.nodeRemoved(dataset,index,path);
 	if (model.streamMode().equals("datasets"))
 	    model.nodeRemoved(model.getChild(stream,stream.indexOfDataset(dataset)), index,path);
-	model.nodeInserted(model.getChild(stream,stream.datasetCount()), stream.listOfUnassignedPaths().indexOf(path));
+	
+	// Only if the path goes to unassignedPaths.
+	if(stream.datasets(path).size() == 0)
+		model.nodeInserted(model.getChild(stream,stream.datasetCount()), stream.listOfUnassignedPaths().indexOf(path));
 	model.updateLevel1Nodes();
 	
 	return true;

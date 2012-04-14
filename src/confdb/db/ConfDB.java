@@ -1354,31 +1354,31 @@ public class ConfDB
 		primaryDatasetToId.put(primaryDataset,datasetId);
 	    }
 
+	    //TODO the key code is here. This should build only one Stream
+	    // sharing the Paths between more PrimaryDatasets for every pair (streamId,datasetId,PathId).
 	    while (rsPathStreamDataset.next()) {	    
-		int  pathId = rsPathStreamDataset.getInt(1);
-		int  streamId = rsPathStreamDataset.getInt(2);
-		int  datasetId = rsPathStreamDataset.getInt(3);
-
-		Path path = idToPaths.get(pathId);
-		Stream stream = idToStream.get(streamId);
-		PrimaryDataset primaryDataset = idToDataset.get(datasetId); 
-		
-		if(path==null) continue;
-		
-		if(stream == null) continue;
-		
-		EventContent eventContent = stream.parentContent();
-		stream.insertPath(path);
-		path.addToContent(eventContent);
-		
-		
-		if(primaryDataset==null)
-		    continue;		
-		primaryDataset.insertPath(path);
-		
-		stream.setDatabaseId(streamId);
-		primaryDataset.setDatabaseId(datasetId);
-		
+			int  pathId = rsPathStreamDataset.getInt(1);
+			int  streamId = rsPathStreamDataset.getInt(2);
+			int  datasetId = rsPathStreamDataset.getInt(3);
+	
+			Path path = idToPaths.get(pathId);
+			Stream stream = idToStream.get(streamId);
+			PrimaryDataset primaryDataset = idToDataset.get(datasetId); 
+			
+			if(path==null) continue;
+			if(stream == null) continue;
+			
+			EventContent eventContent = stream.parentContent();
+			stream.insertPath(path);
+			path.addToContent(eventContent);
+			
+			
+			if(primaryDataset==null)
+			    continue;		
+			primaryDataset.insertPath(path);
+			
+			stream.setDatabaseId(streamId);
+			primaryDataset.setDatabaseId(datasetId);
 	    }
 
 	    // read content statements last since paths need to be registered!
@@ -2772,37 +2772,92 @@ public class ConfDB
 	}
     }
 
+    
+    //TODO This is the other Key Code to implement the share paths.
+    /*
     private void insertPathStreamPDAssoc(HashMap<String,Integer> pathHashMap,HashMap<String,Integer> streamHashMap,HashMap<String,Integer> primaryDatasetHashMap,Configuration config,int configId) throws DatabaseException
     {
-	for (int i=0;i<config.streamCount();i++) {
-	    Stream stream  = config.stream(i);
-	    int  streamId = streamHashMap.get(stream.name());
-	    if(streamId<0)
-		continue;
-	    for (int j=0;j<stream.pathCount();j++) {
-		Path path  = stream.path(j);
-		int  pathId = pathHashMap.get(path.name());
-		PrimaryDataset primaryDataset = stream.dataset(path);
-		int datasetId = -1;
-
-		if(primaryDataset!=null){
-		    datasetId = primaryDataset.databaseId();
+		for (int i=0;i<config.streamCount();i++) {
+		    Stream stream  = config.stream(i);
+		    int  streamId = streamHashMap.get(stream.name());
+		    
+		    if(streamId<0) continue;
+		    
+		    for (int j=0;j<stream.pathCount();j++) {
+				Path path  = stream.path(j);
+				int  pathId = pathHashMap.get(path.name());
+				PrimaryDataset primaryDataset = stream.dataset(path); //TODO Here we have a problem. there could be more than one.
+				int datasetId = -1;
+	
+				if(primaryDataset!=null){
+				    datasetId = primaryDataset.databaseId();
+				}
+			
+			    try {
+				    psInsertPathStreamPDAssoc.setInt(1,path.databaseId());
+				    psInsertPathStreamPDAssoc.setInt(2,streamId);
+				    psInsertPathStreamPDAssoc.setInt(3,datasetId);
+				    psInsertPathStreamPDAssoc.executeUpdate();
+				} catch (SQLException e) {
+				    String errMsg =
+					"ConfDB::Event Content(config="+config.toString()+") failed "+
+					"(batch insert): "+e.getMessage();
+				    throw new DatabaseException(errMsg,e); 
+				}
+		    }
 		}
-		
-	        try {
-		    psInsertPathStreamPDAssoc.setInt(1,path.databaseId());
-		    psInsertPathStreamPDAssoc.setInt(2,streamId);
-		    psInsertPathStreamPDAssoc.setInt(3,datasetId);
-		    psInsertPathStreamPDAssoc.executeUpdate();
+    }
+    */
+    
+    //TODO This is the other Key Code to implement the share paths.
+    private void insertPathStreamPDAssoc(HashMap<String,Integer> pathHashMap,HashMap<String,Integer> streamHashMap,HashMap<String,Integer> primaryDatasetHashMap,Configuration config,int configId) throws DatabaseException
+    {
+		for (int i=0;i<config.streamCount();i++) {
+		    Stream stream  = config.stream(i);
+		    int  streamId = streamHashMap.get(stream.name());
+		    
+		    if(streamId<0) continue;
+		    
+		    for (int j=0;j<stream.pathCount();j++) {
+				Path path  = stream.path(j);
+				int  pathId = pathHashMap.get(path.name());
+				//PrimaryDataset primaryDataset = stream.dataset(path); //TODO Here we have a problem. there could be more than one.
+				ArrayList<PrimaryDataset> primaryDatasets = stream.datasets(path);
+				int datasetId = -1;
+	
+				// Make relation between Stream and Path, datasetId = -1.
+				if(primaryDatasets.size() == 0) {
+				    try {
+					    psInsertPathStreamPDAssoc.setInt(1,path.databaseId());
+					    psInsertPathStreamPDAssoc.setInt(2,streamId);
+					    psInsertPathStreamPDAssoc.setInt(3,datasetId);
+					    psInsertPathStreamPDAssoc.executeUpdate();
+					} catch (SQLException e) {
+					    String errMsg =
+						"ConfDB::Event Content(config="+config.toString()+") failed "+
+						"(batch insert): "+e.getMessage();
+					    throw new DatabaseException(errMsg,e); 
+					}
+				} else {
+					// Next loop makes one or more than one relations between datasets/Streams/Paths.
+					for (int ds = 0; ds < primaryDatasets.size(); ds++) {
+						PrimaryDataset primaryDataset = primaryDatasets.get(ds);
+						datasetId = primaryDataset.databaseId();
+					    try {
+						    psInsertPathStreamPDAssoc.setInt(1,path.databaseId());
+						    psInsertPathStreamPDAssoc.setInt(2,streamId);
+						    psInsertPathStreamPDAssoc.setInt(3,datasetId);
+						    psInsertPathStreamPDAssoc.executeUpdate();
+						} catch (SQLException e) {
+						    String errMsg =
+							"ConfDB::Event Content(config="+config.toString()+") failed "+
+							"(batch insert): "+e.getMessage();
+						    throw new DatabaseException(errMsg,e); 
+						}
+					}					
+				} //end
+		    }
 		}
-		catch (SQLException e) {
-		    String errMsg =
-			"ConfDB::Event Content(config="+config.toString()+") failed "+
-			"(batch insert): "+e.getMessage();
-		    throw new DatabaseException(errMsg,e); 
-		}
-	    }
-	}
     }
     
 

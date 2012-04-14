@@ -597,7 +597,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
     	Iterator<Stream> itST = config.streamIterator();
 	    while (itST.hasNext()) {
 			Stream stream = itST.next();
-			
+			/*
 			PrimaryDataset pds = stream.dataset(path);
 			if(pds == null) {
 				menuItem = new ScrollableMenu(stream.name());
@@ -616,6 +616,29 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 				menuItem = new JMenuItem(stream.name());
 				menuItem.setEnabled(false);
 			}
+			*/
+			//ArrayList<PrimaryDataset> pds = stream.datasets(path);
+			//for(int i = 0; i < pds.size(); i++) {
+				
+			menuItem = new ScrollableMenu(stream.name());
+			
+			if(stream.datasetCount() != 0) {
+				JMenuItem subMenuItem = new JMenuItem();
+				Iterator<PrimaryDataset> itPD = stream.datasetIterator();
+				while(itPD.hasNext()) {
+					PrimaryDataset dataset = itPD.next();
+					subMenuItem = new JMenuItem(dataset.name());
+					subMenuItem.addActionListener(streamListener);
+					subMenuItem.setActionCommand("ADDPATHTO:"+dataset.name());
+					
+					
+					if(dataset.path(path.name()) != null)
+						subMenuItem.setEnabled(false);
+					
+					menuItem.add(subMenuItem);
+				}
+			} else menuItem.setEnabled(false);
+
 			assignPathMenu.add(menuItem);
 	    }
 	    // bug #82526: add/remove path to/from a primary dataset
@@ -626,6 +649,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    while (itST.hasNext()) {
 			Stream stream = itST.next();
 			
+			/*
 			PrimaryDataset pds = stream.dataset(path);
 			if(pds != null) {
 				menuItem = new ScrollableMenu(stream.name());
@@ -648,6 +672,28 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 				menuItem = new JMenuItem(stream.name());
 				menuItem.setEnabled(false);
 			}
+			*/
+			menuItem = new ScrollableMenu(stream.name());
+			
+			if(stream.datasetCount() != 0) {
+				JMenuItem subMenuItem = new JMenuItem();
+				Iterator<PrimaryDataset> itPD = stream.datasetIterator();
+				while(itPD.hasNext()) {
+					PrimaryDataset dataset = itPD.next();
+					subMenuItem = new JMenuItem(dataset.name());
+					subMenuItem.setEnabled(true);
+					
+						subMenuItem.addActionListener(pathListener);
+						subMenuItem.setActionCommand("REMOVEPATH:"+dataset.name());
+						
+					if(dataset.path(path.name()) == null)
+						subMenuItem.setEnabled(false);
+					
+					menuItem.add(subMenuItem);
+				}
+			} else menuItem.setEnabled(false);
+			
+			
 			removePathMenu.add(menuItem);
 	    }
 	    popupPaths.add(removePathMenu);
@@ -1090,6 +1136,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 			    Path  path    = (Path)treeNode.object();
 			    JMenu assignPathMenu=new ScrollableMenu("Assign "+path.name()+" to");
 			    popupStreams.add(assignPathMenu);
+			   
 			    Iterator<PrimaryDataset> itPD = stream.datasetIterator();
 			    while (itPD.hasNext()) {
 					PrimaryDataset dataset = itPD.next();
@@ -1114,6 +1161,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		    while (itST.hasNext()) {
 				Stream stream = itST.next();
 				
+				/*
 				PrimaryDataset pds = stream.dataset(path);
 				if(pds == null) {
 					menuItem = new ScrollableMenu(stream.name());
@@ -1131,6 +1179,26 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 					menuItem = new JMenuItem(stream.name());
 					menuItem.setEnabled(false);
 				}
+				*/
+				
+				menuItem = new ScrollableMenu(stream.name());
+				if(stream.datasetCount() != 0) {
+					JMenuItem subMenuItem = new JMenuItem();
+					Iterator<PrimaryDataset> itPD = stream.datasetIterator();
+					while(itPD.hasNext()) {
+						PrimaryDataset dataset = itPD.next();
+						subMenuItem = new JMenuItem(dataset.name());
+						subMenuItem.addActionListener(streamListener);
+						subMenuItem.setActionCommand("ADDPATHTO:"+dataset.name());
+						
+						
+						if(dataset.path(path.name()) != null)
+							subMenuItem.setEnabled(false);
+						
+						menuItem.add(subMenuItem);
+					}
+				} else menuItem.setEnabled(false);
+				
 				assignPathMenu.add(menuItem);
 		    }
 		    
@@ -1141,7 +1209,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 		    removePathMenu.setActionCommand("REMOVEPATH");
 	    	popupStreams.add(removePathMenu);		    
 	    }
-	    
 	    
 	}
     }
