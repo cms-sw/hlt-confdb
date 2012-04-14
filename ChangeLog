@@ -1,4 +1,9 @@
 2012-04-14 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-49
+	* Introduces load balancing URLs for the browser.
+	* Add multiple hosts at confdb.properties using comma-separator.
+
+2012-04-14 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-48
 	* Fix browser reader accounts. (Andrea).
 
