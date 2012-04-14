@@ -63,8 +63,12 @@ public class BrowserConverter extends OfflineConverter
 	    String dbUser = dbProperties.getDbUser();
 	    if (dbUser.endsWith("_w"))
 	    	dbUser = dbUser.substring(0,dbUser.length()-1)+"r";
+            else if (dbUser.endsWith("_r"))
+                {}      // do nothing
 	    else if (dbUser.endsWith("_writer"))
 	    	dbUser = dbUser.substring(0,dbUser.length()-6)+"reader";
+            else if (dbUser.endsWith("_reader"))
+                {}      // do nothing
 	    else
 	    	dbUser = "cms_hlt_reader";
 
