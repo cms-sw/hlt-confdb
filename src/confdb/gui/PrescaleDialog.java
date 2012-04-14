@@ -144,14 +144,8 @@ public class PrescaleDialog extends JDialog
 		public void actionPerformed(ActionEvent ae)
 		{
 		    tableModel.addColumn(iColumn,
-					 JOptionPane
-					 .showInputDialog("Enter the level1 "+
-							  "label for the new "+
-							  "column:"),
-					 Math.abs(Long.decode(JOptionPane
-					 .showInputDialog("Enter the prescale "+
-							  "value for the new "+
-							  "column:")))
+					 JOptionPane.showInputDialog("Enter the label for the new column:"),
+					 Math.abs(Long.decode(JOptionPane.showInputDialog("Enter the prescale value for the new column:")))
 					 );
 		    adjustTableColumnWidths();
 		}
@@ -164,9 +158,7 @@ public class PrescaleDialog extends JDialog
 		{
 		    tableModel.duplicateColumn(iColumn,
 					 JOptionPane
-					 .showInputDialog("Enter the level1 "+
-							  "label for the column "+
-							  " to be duplicated:"));
+					 .showInputDialog("Enter the label for the column to be duplicated:"));
 		    adjustTableColumnWidths();
 		}
 	    });
@@ -178,8 +170,7 @@ public class PrescaleDialog extends JDialog
 		{
 		    tableModel.reorderColumns(iColumn,
 					 JOptionPane
-					 .showInputDialog("Enter the new order of level1 "+
-							  "labels as , separated list "));
+					 .showInputDialog("Enter the new order of labels as , separated list:"));
 		    adjustTableColumnWidths();
 		}
 	    });
@@ -200,11 +191,19 @@ public class PrescaleDialog extends JDialog
 	    menuItem.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent ae)
 		    {
-			tableModel.renameColumn(iColumn,
-						JOptionPane
-						.showInputDialog("Enter the new level1 "+
-								 "label for the column "+tableModel.getColumnName(iColumn)+":"));
-			adjustTableColumnWidths();
+                        Object label = JOptionPane.showInputDialog(
+                            null, 
+                            "Enter the new label for the column \"" + tableModel.getColumnName(iColumn) + "\" :",
+                            "Rename column",
+                            JOptionPane.PLAIN_MESSAGE,
+                            null,
+                            null,
+                            tableModel.getColumnName(iColumn)
+                        );
+                        if (label != null) {
+			    tableModel.renameColumn(iColumn, (String) label);
+			    adjustTableColumnWidths();
+                        }
 		    }
 		});
 	    popup.add(menuItem);
