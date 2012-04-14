@@ -1,3 +1,7 @@
+2012-04-14 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-48
+	* Fix browser reader accounts. (Andrea).
+
 2012-04-13 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-47
 	* reconnect method retries automatically several times before raising a DatabaseException.
