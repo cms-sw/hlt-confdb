@@ -3799,7 +3799,7 @@ public class ConfigurationTreeActions
 	    config.esmodule(external.name())!=null||
 	    (external instanceof ServiceInstance)&&
 	    config.service(external.name())!=null) {
-	    return replaceInstance(tree,external);
+	    return replaceInstance(tree,external,true);
 	}
 	
 	if (!config.isUniqueQualifier(external.name())) return false;
@@ -3937,7 +3937,7 @@ public class ConfigurationTreeActions
     /*
      * replace an existing instance with the external one
      */
-    private static boolean replaceInstance(JTree tree,Instance external)
+    public static boolean replaceInstance(JTree tree,Instance external,boolean updateModel)
     {
 	ConfigurationTreeModel model     = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config    = (Configuration)model.getRoot();
@@ -3947,39 +3947,39 @@ public class ConfigurationTreeActions
 	int                    index     = -1;
 
 	if (external instanceof EDSourceInstance) {
-	    parent  = model.edsourcesNode();
+	    if (updateModel) parent  = model.edsourcesNode();
 	    oldInst = config.edsource(external.name());
 	    index   = 0;
 	    config.removeEDSource((EDSourceInstance)oldInst);
-	    model.nodeRemoved(parent,index,oldInst);
+	    if (updateModel) model.nodeRemoved(parent,index,oldInst);
 	    newInst = config.insertEDSource(external.template().name());
 	}
 	else if (external instanceof ESSourceInstance) {
-	    parent  = model.essourcesNode();
+	    if (updateModel) parent  = model.essourcesNode();
 	    oldInst = config.essource(external.name());
 	    index   = config.indexOfESSource((ESSourceInstance)oldInst);
 	    config.removeESSource((ESSourceInstance)oldInst);
-	    model.nodeRemoved(parent,index,oldInst);
+	    if (updateModel) model.nodeRemoved(parent,index,oldInst);
 	    newInst = config.insertESSource(index,
 					    external.template().name(),
 					    external.name());
 	}
 	else if (external instanceof ESModuleInstance) {
-	    parent  = model.esmodulesNode();
+	    if (updateModel) parent  = model.esmodulesNode();
 	    oldInst = config.esmodule(external.name());
 	    index   = config.indexOfESModule((ESModuleInstance)oldInst);
 	    config.removeESModule((ESModuleInstance)oldInst);
-	    model.nodeRemoved(parent,index,oldInst);
+	    if (updateModel) model.nodeRemoved(parent,index,oldInst);
 	    newInst = config.insertESModule(index,
 					    external.template().name(),
 					    external.name());
 	}
 	else if (external instanceof ServiceInstance) {
-	    parent  = model.servicesNode();
+	    if (updateModel) parent  = model.servicesNode();
 	    oldInst = config.service(external.name());
 	    index   = config.indexOfService((ServiceInstance)oldInst);
 	    config.removeService((ServiceInstance)oldInst);
-	    model.nodeRemoved(parent,index,oldInst);
+	    if (updateModel) model.nodeRemoved(parent,index,oldInst);
 	    newInst = config.insertService(index,external.template().name());
 	}
 	
@@ -3987,10 +3987,12 @@ public class ConfigurationTreeActions
 	    newInst.updateParameter(i,external.parameter(i).valueAsString());
 	newInst.setDatabaseId(external.databaseId()); // dangerous?
 
-	model.nodeInserted(parent,index);
-	model.updateLevel1Nodes();
-	tree.expandPath(new TreePath(model.getPathToRoot(newInst)));
-	
+	if (updateModel) {
+	    model.nodeInserted(parent,index);
+	    model.updateLevel1Nodes();
+	    tree.expandPath(new TreePath(model.getPathToRoot(newInst)));
+	}
+
 	return true;
     }
 
@@ -4065,50 +4067,6 @@ public class ConfigurationTreeActions
 	tree.startEditingAtPath(treePath);
     }
     
-    
-    /** Replace instances in a configuration but don't update the model */
-    public static boolean replaceInstancesNoModel(JTree tree,Instance external) {
-    	ConfigurationTreeModel model     = (ConfigurationTreeModel)tree.getModel();
-    	Configuration          config    = (Configuration)model.getRoot();
-    	Instance               oldInst   = null;
-    	Instance               newInst   = null;
-    	int                    index     = -1;
-
-    	if (external instanceof EDSourceInstance) {
-    	    oldInst = config.edsource(external.name());
-    	    index   = 0;
-    	    config.removeEDSource((EDSourceInstance)oldInst);
-    	    newInst = config.insertEDSource(external.template().name());
-    	}
-    	else if (external instanceof ESSourceInstance) {
-    	    oldInst = config.essource(external.name());
-    	    index   = config.indexOfESSource((ESSourceInstance)oldInst);
-    	    config.removeESSource((ESSourceInstance)oldInst);
-    	    newInst = config.insertESSource(index,
-    					    external.template().name(),
-    					    external.name());
-    	}
-    	else if (external instanceof ESModuleInstance) {
-    	    oldInst = config.esmodule(external.name());
-    	    index   = config.indexOfESModule((ESModuleInstance)oldInst);
-    	    config.removeESModule((ESModuleInstance)oldInst);
-    	    newInst = config.insertESModule(index,
-    					    external.template().name(),
-    					    external.name());
-    	}
-    	else if (external instanceof ServiceInstance) {
-    	    oldInst = config.service(external.name());
-    	    index   = config.indexOfService((ServiceInstance)oldInst);
-    	    config.removeService((ServiceInstance)oldInst);
-    	    newInst = config.insertService(index,external.template().name());
-    	}
-    	
-    	for (int i=0;i<newInst.parameterCount();i++)
-    	    newInst.updateParameter(i,external.parameter(i).valueAsString());
-    	newInst.setDatabaseId(external.databaseId()); // dangerous?
-    	
-    	return true;
-    }
     
     /** 
      * When a dataset has changed it must trigger the OutputModule Update as well as
@@ -4280,7 +4238,7 @@ class ImportAllInstancesThread extends SwingWorker<String, String>
 				    targetConfig.service(instance.name())!=null) {
 					
 					if(updateAll) {
-						ConfigurationTreeActions.replaceInstancesNoModel(tree,instance);
+					    ConfigurationTreeActions.replaceInstance(tree,instance,false);
 						firePropertyChange("current", null, instance.name());
 					}
 					continue;
