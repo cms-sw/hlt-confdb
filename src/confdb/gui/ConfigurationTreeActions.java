@@ -1363,8 +1363,7 @@ public class ConfigurationTreeActions
 	    if(update) {
 		    while (container.entryCount()>0) {
 			Reference entry = (Reference)container.entry(0);
-			//removeReferencesNoModel(tree, entry);
-			removeReferenceNoModel(config, entry);
+			removeReference(config, null, entry);
 		    }
 	    } else return false;
 	} else {
@@ -1399,7 +1398,7 @@ public class ConfigurationTreeActions
 				       ReferenceContainer     sourceContainer,
 				       ReferenceContainer     targetContainer)
     {
-	boolean useModel = (treeModel !=null);
+	boolean updateModel = (treeModel !=null);
 	// result=true: import all daugthers unchangend
 	boolean result = true;
 
@@ -1427,7 +1426,7 @@ public class ConfigurationTreeActions
 			}
 			targetRef.setOperator(sourceRef.getOperator());
 
-			if (useModel) {
+			if (updateModel) {
 			    treeModel.nodeInserted(targetContainer,i);
 			    if (target.referenceCount()==1)
 				treeModel.nodeInserted(treeModel.modulesNode(),
@@ -1449,7 +1448,7 @@ public class ConfigurationTreeActions
 			}
 			targetRef.setOperator(sourceRef.getOperator());
 	
-			if (useModel) {
+			if (updateModel) {
 			    treeModel.nodeInserted(targetContainer,i);
 			    if (target.referenceCount()==1)
 				treeModel.nodeInserted(treeModel.outputsNode(),
@@ -1466,7 +1465,7 @@ public class ConfigurationTreeActions
 			}
 			else {
 			    target = config.insertPath(config.pathCount(),sourceRef.name());
-			    if (useModel) treeModel.nodeInserted(treeModel.pathsNode(),
+			    if (updateModel) treeModel.nodeInserted(treeModel.pathsNode(),
 								 config.pathCount()-1);
 			    config.insertPathReference(targetContainer,i,target).setOperator(sourceRef.getOperator());
 			    boolean tmp =
@@ -1475,7 +1474,7 @@ public class ConfigurationTreeActions
 			    if (result) result = tmp;
 			}
 			
-			if (useModel) treeModel.nodeInserted(targetContainer,i);
+			if (updateModel) treeModel.nodeInserted(targetContainer,i);
 
 	    } else if (entry instanceof SequenceReference) {
 			SequenceReference sourceRef=(SequenceReference)entry;
@@ -1487,14 +1486,14 @@ public class ConfigurationTreeActions
 			}
 			else {
 			    target = config.insertSequence(config.sequenceCount(), sourceRef.name());
-			    if (useModel) treeModel.nodeInserted(treeModel.sequencesNode(), config.sequenceCount()-1);
+			    if (updateModel) treeModel.nodeInserted(treeModel.sequencesNode(), config.sequenceCount()-1);
 			    config.insertSequenceReference(targetContainer,i,target).setOperator(sourceRef.getOperator());
 			    boolean tmp = importContainerEntries(config,treeModel,source,target);
 			    if (tmp) target.setDatabaseId(source.databaseId());
 			    if (result) result = tmp;
 			}
 			
-			if (useModel) treeModel.nodeInserted(targetContainer,i);
+			if (updateModel) treeModel.nodeInserted(targetContainer,i);
 	    }
 	}
 	return result;
@@ -1520,9 +1519,9 @@ public class ConfigurationTreeActions
 					   ReferenceContainer sourceContainer,
 					   ReferenceContainer targetContainer) {
 
-	boolean useModel = (targetTree != null);
+	boolean updateModel = (targetTree != null);
     	ConfigurationTreeModel treeModel = null;
-	if (useModel) treeModel = (ConfigurationTreeModel)targetTree.getModel();
+	if (updateModel) treeModel = (ConfigurationTreeModel)targetTree.getModel();
 	
     	boolean result = true;
 
@@ -1542,7 +1541,7 @@ public class ConfigurationTreeActions
 		    
 		    // If module exist but it's not identical:
 		    if (!c.isIdentical()) { // replace module.
-			if (useModel) {
+			if (updateModel) {
 			    ConfigurationTreeActions.replaceModule(targetTree, source);
 			    treeModel.nodeStructureChanged(treeModel.modulesNode()); // forcing refresh
 			} else {
@@ -1560,11 +1559,11 @@ public class ConfigurationTreeActions
 			    
 			    // Check if modules are in the same order:
 			    if(i != j) { // then remove reference, and insert it again.
-				if (useModel) {
-				    removeReference(targetTree, subentry);	// this might delete the Module (index of -1 when searching).
+				if (updateModel) {
+				    removeReference(null, targetTree, subentry); // this might delete the Module (index of -1 when searching).
 				    treeModel.nodeStructureChanged(targetContainer);
 				} else {
-				    removeReferenceNoModel(config, subentry);   // this might delete the Module (index of -1 when searching).
+				    removeReference(config, null, subentry);     // this might delete the Module (index of -1 when searching).
 				}
 				existance = false;	// this force the reference to be inserted again (in order).
 			    } else {
@@ -1589,14 +1588,14 @@ public class ConfigurationTreeActions
 			    
 			    // it was inserted. common operations:
 			    targetRef.setOperator(sourceRef.getOperator()); 
-			    if (useModel) {
+			    if (updateModel) {
 				treeModel.nodeInserted(targetContainer,i);
 				if (target.referenceCount()==1) treeModel.nodeInserted(treeModel.modulesNode(), config.moduleCount()-1);
 			    }
 			} else { // ONLY insert the reference. (the module already exists).
 			    targetRef = config.insertModuleReference(targetContainer, i, target);
 			    targetRef.setOperator(sourceRef.getOperator()); 
-			    if (useModel) treeModel.nodeInserted(targetContainer,i);	    					
+			    if (updateModel) treeModel.nodeInserted(targetContainer,i);	    					
 			}	    				
 		    }
 		} else { // Inserts the module and the reference:
@@ -1615,7 +1614,7 @@ public class ConfigurationTreeActions
 		    
 		    // it was inserted. common operations:
 		    targetRef.setOperator(sourceRef.getOperator()); 
-		    if (useModel) {
+		    if (updateModel) {
 			treeModel.nodeInserted(targetContainer,i);
 			if (target.referenceCount()==1) treeModel.nodeInserted(treeModel.modulesNode(), config.moduleCount()-1);
 		    }
@@ -1638,7 +1637,7 @@ public class ConfigurationTreeActions
 			}
 			target.setDatabaseId(source.databaseId());
 			
-			if (useModel) treeModel.nodeStructureChanged(treeModel.modulesNode()); // forcing refresh
+			if (updateModel) treeModel.nodeStructureChanged(treeModel.modulesNode()); // forcing refresh
 		    } else {	// If module exist and it's identical then do nothing:
 			result = false;
 		    }
@@ -1647,7 +1646,7 @@ public class ConfigurationTreeActions
 		    
 		    // common operations: 
 		    targetRef.setOperator(sourceRef.getOperator());
-		    if (useModel) {
+		    if (updateModel) {
 			treeModel.nodeInserted(targetContainer,i);
 			if (target.referenceCount()==1)
 			    treeModel.nodeInserted(treeModel.outputsNode(), config.outputCount()-1);
@@ -1670,13 +1669,13 @@ public class ConfigurationTreeActions
 		    if (!c.isIdentical()) {
 			//System.out.println("existing Path differences found!");
 			DeepImportContainerEntries(config, sourceConfig, targetTree, source, target);
-			if (useModel) treeModel.nodeStructureChanged(treeModel.pathsNode());		    	
+			if (updateModel) treeModel.nodeStructureChanged(treeModel.pathsNode());		    	
 		    } // else if IDENTICAL: nothing to do.
 		    
 		    // Do not insert Paths references.
 		    // Nested paths are not allowed in theory.
 		    // config.insertPathReference(targetContainer,i,target);
-		    // if (useModel) treeModel.nodeInserted(targetContainer,i); // refresh the tree view
+		    // if (updateModel) treeModel.nodeInserted(targetContainer,i); // refresh the tree view
 		    
 		    // Now references must be checked:
 		    for (int j=0;j<targetContainer.entryCount();j++) {
@@ -1688,11 +1687,11 @@ public class ConfigurationTreeActions
 			    // Check if SequenceReference are in the same order:
 			    if(i != j) {
 				// So remove reference, and insert it later.
-				if (useModel) {
-				    removeReference(targetTree, subentry);	// this might delete the ITEM (index of -1 when searching). 
+				if (updateModel) {
+				    removeReference(null, targetTree, subentry); // this might delete the ITEM (index of -1 when searching). 
 				    treeModel.nodeStructureChanged(targetContainer);
 				} else {
-				    removeReferenceNoModel(config, subentry);   // this might delete the ITEM (index of -1 when searching). 
+				    removeReference(config, null, subentry);     // this might delete the ITEM (index of -1 when searching). 
 				}
 			    } else {
 				subentry.setOperator(sourceRef.getOperator());
@@ -1706,7 +1705,7 @@ public class ConfigurationTreeActions
 		    target = config.insertPath(config.pathCount(),sourceRef.name());
 		    config.insertPathReference(targetContainer,i,target).setOperator(sourceRef.getOperator());	// insert the reference.
 
-		    if (useModel) {
+		    if (updateModel) {
 			treeModel.nodeInserted(treeModel.pathsNode(), config.pathCount()-1);
 			treeModel.nodeInserted(targetContainer,i); // refresh the tree view
 		    }
@@ -1715,7 +1714,7 @@ public class ConfigurationTreeActions
 		    boolean tmp = DeepImportContainerEntries(config, sourceConfig, targetTree,source,target);
 		    if (tmp) target.setDatabaseId(source.databaseId());
 		    if (result) result = tmp;
-		    if (useModel) treeModel.nodeStructureChanged(treeModel.pathsNode());
+		    if (updateModel) treeModel.nodeStructureChanged(treeModel.pathsNode());
 		}
 		
 		
@@ -1732,7 +1731,7 @@ public class ConfigurationTreeActions
     	    	}
     	    	if(!existance) {
 		    config.insertPathReference(targetContainer,i,target).setOperator(sourceRef.getOperator());
-		    if (useModel) treeModel.nodeInserted(targetContainer,i); // refresh the tree view
+		    if (updateModel) treeModel.nodeInserted(targetContainer,i); // refresh the tree view
     	    	}
 		
 		//treeModel.nodeInserted(targetContainer,i); // refresh the tree view
@@ -1750,7 +1749,7 @@ public class ConfigurationTreeActions
 
 		    if (!c.isIdentical()) {
 			DeepImportContainerEntries(config, sourceConfig, targetTree, source, target);
-			if (useModel) {
+			if (updateModel) {
 			    treeModel.nodeStructureChanged(treeModel.sequencesNode());
 			    treeModel.nodeStructureChanged(treeModel.pathsNode());
 			}
@@ -1766,11 +1765,11 @@ public class ConfigurationTreeActions
 			    // Check if SequenceReference are in the same order:
 			    if(i != j) {
 				// So remove reference, and insert it later.
-				if (useModel) {
-				    removeReference(targetTree, subentry);    // this might delete the ITEM (index of -1 when searching). 
+				if (updateModel) {
+				    removeReference(null, targetTree, subentry); // this might delete the ITEM (index of -1 when searching). 
 				    treeModel.nodeStructureChanged(targetContainer);
 				} else {
-				    removeReferenceNoModel(config, subentry); // this might delete the ITEM (index of -1 when searching). 
+				    removeReference(config, null, subentry);     // this might delete the ITEM (index of -1 when searching). 
 				}
 			    } else {
 				subentry.setOperator(sourceRef.getOperator());
@@ -1783,7 +1782,7 @@ public class ConfigurationTreeActions
 		    target = config.insertSequence(config.sequenceCount(), sourceRef.name());
 		    config.insertSequenceReference(targetContainer,i,target).setOperator(sourceRef.getOperator());
 
-		    if (useModel) treeModel.nodeInserted(treeModel.sequencesNode(), config.sequenceCount()-1);
+		    if (updateModel) treeModel.nodeInserted(treeModel.sequencesNode(), config.sequenceCount()-1);
 
 		    //config.insertSequenceReference(targetContainer,targetContainer.entryCount(),target);		    
 
@@ -1791,7 +1790,7 @@ public class ConfigurationTreeActions
 		    boolean tmp = DeepImportContainerEntries(config, sourceConfig, targetTree, source, target);
 		    if (tmp) target.setDatabaseId(source.databaseId());
 		    if (result) result = tmp;
-		    if (useModel) treeModel.nodeInserted(targetContainer,targetContainer.entryCount() -1);
+		    if (updateModel) treeModel.nodeInserted(targetContainer,targetContainer.entryCount() -1);
 		}
 		
 		// INSERT REFERENCES: for new sequences, and out of order references.
@@ -1807,7 +1806,7 @@ public class ConfigurationTreeActions
     	    	}
     	    	if(!existance) {
 		    config.insertSequenceReference(targetContainer,i,target).setOperator(sourceRef.getOperator());
-		    if (useModel) treeModel.nodeInserted(targetContainer,i);
+		    if (updateModel) treeModel.nodeInserted(targetContainer,i);
     	    	}
 	    }
 	}
@@ -1836,11 +1835,11 @@ public class ConfigurationTreeActions
 		} 
 	    }
 	    if(!found) { // DELETE
-		if (useModel) {
-		    removeReference(targetTree, targetSubEntry);
+		if (updateModel) {
+		    removeReference(null, targetTree, targetSubEntry);
 		    treeModel.nodeStructureChanged(targetContainer);
 		} else {
-		    removeReferenceNoModel(config, targetSubEntry);
+		    removeReference(config, null, targetSubEntry);
 		}
 		i--;	// going back after modifying the size.
 	    }
@@ -2134,33 +2133,42 @@ public class ConfigurationTreeActions
      * remove reference passed by parameter instead using selectionPath.
      * NOTE: This will be used by deep import function.
      * */
-    public static boolean removeReference(JTree tree, Reference reference)
+    public static boolean removeReference(Configuration config, JTree tree, Reference reference)
     {
-		ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
-		Configuration          config    = (Configuration)model.getRoot();
+	if ((config==null) && (tree==null)) return false;
+	if ((config!=null) && (tree!=null)) return false;
+
+	ConfigurationTreeModel model  = null;
+
+	boolean updateModel = (tree!=null);
+	if (updateModel) {
+	    model  = (ConfigurationTreeModel)tree.getModel();
+	    config = (Configuration)model.getRoot();
+	}
+
+	ReferenceContainer     container = reference.container();
+	int                    index     = container.indexOfEntry(reference);
+
+	ModuleInstance         module    = null;
+	int                    indexOfModule= -1;
 		
-		ReferenceContainer     container = reference.container();
-		int                    index     = container.indexOfEntry(reference);
-		ModuleInstance         module    = null;
-		int                    indexOfModule= -1;
-		
-		if (reference instanceof ModuleReference) {
-		    module = (ModuleInstance)reference.parent();
-		    indexOfModule = config.indexOfModule(module);
-		    config.removeModuleReference((ModuleReference)reference);
-		} else if (reference instanceof OutputModuleReference) {
-		    OutputModuleReference omr = (OutputModuleReference)reference;
-		    config.removeOutputModuleReference(omr);
-		}
-		else {
-		    container.removeEntry(reference);
-		}
-		
-		model.nodeRemoved(container,index,reference);
-		if (module!=null&&module.referenceCount()==0) model.nodeRemoved(model.modulesNode(),indexOfModule,module);
-		model.updateLevel1Nodes();
-		
-		return true;
+	if (reference instanceof ModuleReference) {
+	    module = (ModuleInstance)reference.parent();
+	    indexOfModule = config.indexOfModule(module);
+	    config.removeModuleReference((ModuleReference)reference);
+	} else if (reference instanceof OutputModuleReference) {
+	    config.removeOutputModuleReference((OutputModuleReference)reference);
+	} else {
+	    container.removeEntry(reference);
+	}
+	
+	if (updateModel) {
+	    model.nodeRemoved(container,index,reference);
+	    if (module!=null&&module.referenceCount()==0) model.nodeRemoved(model.modulesNode(),indexOfModule,module);
+	    model.updateLevel1Nodes();
+	}
+	
+	return true;
     }
 
     /** set operator  */
@@ -4134,32 +4142,6 @@ public class ConfigurationTreeActions
     	newInst.setDatabaseId(external.databaseId()); // dangerous?
     	
     	return true;
-    }
-    
-    /**
-     * Removes a reference from a configuration but doesn't update the tree model.
-     * Similar to removeReference but using the configuration and a reference 
-     * instead of the selected path and the tree.
-     * */
-    //public static boolean removeReferencesNoModel(JTree tree,Reference reference) 
-    public static boolean removeReferenceNoModel(Configuration config, Reference reference)
-    {
-		//ConfigurationTreeModel model  = (ConfigurationTreeModel)tree.getModel();
-		//Configuration          config    = (Configuration)model.getRoot();
-
-		ReferenceContainer     container = reference.container();
-	    
-		if (reference instanceof ModuleReference) {
-		    config.removeModuleReference((ModuleReference)reference);
-		}
-		else if (reference instanceof OutputModuleReference) {
-		    OutputModuleReference omr = (OutputModuleReference)reference;
-		    config.removeOutputModuleReference(omr);
-		}
-		else {
-		    container.removeEntry(reference);
-		}
-		return true;
     }
     
     /** 
