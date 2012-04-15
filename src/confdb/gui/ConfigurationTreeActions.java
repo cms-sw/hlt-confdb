@@ -1542,10 +1542,10 @@ public class ConfigurationTreeActions
 		    // If module exist but it's not identical:
 		    if (!c.isIdentical()) { // replace module.
 			if (updateModel) {
-			    ConfigurationTreeActions.replaceModule(targetTree, source);
+			    ConfigurationTreeActions.replaceModule(null, targetTree, source);
 			    treeModel.nodeStructureChanged(treeModel.modulesNode()); // forcing refresh
 			} else {
-			    ConfigurationTreeActions.replaceModuleNoModel(config, source);
+			    ConfigurationTreeActions.replaceModule(config, null, source);
 			}
 		    } // else If module exist and it's identical then do nothing.
 		    
@@ -2263,7 +2263,7 @@ public class ConfigurationTreeActions
 					      "Overwrite module",
 					      JOptionPane.OK_CANCEL_OPTION);
 	    if (choice==JOptionPane.CANCEL_OPTION) return false;
-	    else return replaceModule(tree,external);
+	    else return replaceModule(null, tree,external);
 	}
 	else if (treePath==null) return false;
 	
@@ -3715,11 +3715,21 @@ public class ConfigurationTreeActions
     /**
      * replace a module with the external one
      */
-    private static boolean replaceModule(JTree tree,ModuleInstance external)
+    public static boolean replaceModule(Configuration config,JTree tree,ModuleInstance external)
     {
-	ConfigurationTreeModel model     = (ConfigurationTreeModel)tree.getModel();
-	Configuration          config    = (Configuration)model.getRoot();
-	ModuleInstance         oldModule = config.module(external.name());
+	if ((config==null)&&(tree==null)) return false;
+	if ((config!=null)&&(tree!=null)) return false;
+
+	ConfigurationTreeModel model = null;
+	
+	boolean updateModel = (tree!=null);
+
+	if (updateModel) {
+	    model     = (ConfigurationTreeModel)tree.getModel();
+	    config    = (Configuration)model.getRoot();
+	}
+
+	ModuleInstance oldModule = config.module(external.name());
 	if (oldModule==null) return false;
 
 	int index    = config.indexOfModule(oldModule);
@@ -3734,11 +3744,11 @@ public class ConfigurationTreeActions
 	    parents[iRefCount] = reference.container();
 	    indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
 	    config.removeModuleReference((ModuleReference)reference);
-	    model.nodeRemoved(parents[iRefCount],indices[iRefCount],reference);
+	    if (updateModel) model.nodeRemoved(parents[iRefCount],indices[iRefCount],reference);
 	    iRefCount++;
 	}
 	
-	model.nodeRemoved(model.modulesNode(),index,oldModule);
+	if (updateModel) model.nodeRemoved(model.modulesNode(),index,oldModule);
 	
 	try {
 	    ModuleTemplate template = (ModuleTemplate)
@@ -3749,14 +3759,19 @@ public class ConfigurationTreeActions
 		newModule.updateParameter(i,external.parameter(i).valueAsString());
 	    newModule.setDatabaseId(external.databaseId());
 	    config.insertModule(index,newModule);
-	    model.nodeInserted(model.modulesNode(),index);
+
+	    if (updateModel) model.nodeInserted(model.modulesNode(),index);
 	    
 	    for (int i=0;i<refCount;i++) {
 		config.insertModuleReference(parents[i],indices[i],newModule).setOperator(operators[i]);
-		model.nodeInserted(parents[i],indices[i]);
+		if (updateModel) model.nodeInserted(parents[i],indices[i]);
 	    }
-	    model.updateLevel1Nodes();
-	    tree.expandPath(new TreePath(model.getPathToRoot(newModule)));
+
+	    if (updateModel) {
+		model.updateLevel1Nodes();
+		tree.expandPath(new TreePath(model.getPathToRoot(newModule)));
+	    }
+
 	}
 	catch (DataException e) {
 	    System.err.println("replaceModule() FAILED: " + e.getMessage());
@@ -3766,55 +3781,6 @@ public class ConfigurationTreeActions
     }
 
     
-    /**
-     * replaceModuleNoModel
-     * --------------------------
-     * Replace a Module but do not update the JTree representation.
-     * Used by Import all functionality.
-     * */
-    public static boolean replaceModuleNoModel(Configuration config, ModuleInstance external)
-    {
-	//ConfigurationTreeModel model     = (ConfigurationTreeModel)tree.getModel();
-	//Configuration          config    = (Configuration)model.getRoot();
-	ModuleInstance         oldModule = config.module(external.name());
-	if (oldModule==null) return false;
-
-	int index    = config.indexOfModule(oldModule);
-	int refCount = oldModule.referenceCount();
-	Operator[]           operators = new Operator[refCount];
-	ReferenceContainer[] parents = new ReferenceContainer[refCount];
-	int[]                indices = new int[refCount];
-	int iRefCount=0;
-	while (oldModule.referenceCount()>0) {
-	    Reference reference = oldModule.reference(0);
-	    operators[iRefCount] = reference.getOperator();
-	    parents[iRefCount] = reference.container();
-	    indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
-	    config.removeModuleReference((ModuleReference)reference);
-	    iRefCount++;
-	}
-	
-	try {
-	    ModuleTemplate template = (ModuleTemplate)
-		config.release().moduleTemplate(external.template().name());
-	    ModuleInstance newModule = (ModuleInstance)
-		template.instance(external.name());
-	    for (int i=0;i<newModule.parameterCount();i++)
-	    	newModule.updateParameter(i,external.parameter(i).valueAsString());
-	    newModule.setDatabaseId(external.databaseId());
-	    config.insertModule(index,newModule);
-	    
-	    for (int i=0;i<refCount;i++) {
-	    	config.insertModuleReference(parents[i],indices[i],newModule).setOperator(operators[i]);
-	    }
-	} catch (DataException e) {
-	    System.err.println("replaceModuleNoModel() FAILED: " + e.getMessage());
-	    return false;
-	}
-	return true;
-    }
-    
-
     /**
      * import a node into the tree and add the respective component
      * to the configuration
@@ -4456,9 +4422,9 @@ final class UpdateAllModulesThread extends SwingWorker<String, String>
 			
 			if ((instance instanceof ModuleInstance)&&
 			    targetConfig.module(instance.name())!=null) {
-				ConfigurationTreeActions.replaceModuleNoModel(targetConfig,instance);
-				items.add(instance.name());	// register item for diff
-				firePropertyChange("current", null, instance.name());
+			    ConfigurationTreeActions.replaceModule(targetConfig,null,instance);
+			    items.add(instance.name());	// register item for diff
+			    firePropertyChange("current", null, instance.name());
 			}
 		}
 		setProgress(100);
