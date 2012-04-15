@@ -3160,6 +3160,7 @@ public class ConfigurationTreeActions
     	TreePath               treePath = tree.getSelectionPath();
     	Object                 node     = treePath.getLastPathComponent();
     	boolean inserted = true;
+	boolean success  = true;
     	
     	if(node instanceof Stream) {
     		Stream targetStream = (Stream) node;
@@ -3169,10 +3170,12 @@ public class ConfigurationTreeActions
     		TreePath TargetPath = new TreePath(model.getPathToRoot(newDataSet));
     		tree.setSelectionPath(TargetPath);
     		
-    		for(int i = 0; i < dataset.pathCount(); i++)
+    		for(int i = 0; i < dataset.pathCount(); i++) {
     			inserted = addPathToDataset_noUpdateTreeNodes(tree, dataset.path(i).name());
-    		
-    		if(!inserted) {
+			success = success && inserted;
+		}
+
+    		if(!success) {
     			// if not all the paths were properly inserted then remove the dataset.
     			// this will allow to restore the dataset to the original stream.
     			removePrimaryDataset(tree);
@@ -3380,29 +3383,28 @@ public class ConfigurationTreeActions
 	    dataset = (PrimaryDataset)node;
 	    stream  = dataset.parentStream();
 	    path    = config.path(name);
-	}else if (node instanceof ConfigurationTreeNode) {
+	} else if (node instanceof ConfigurationTreeNode) {
 	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
 	    if(treeNode.parent() instanceof ConfigurationTreeNode) {
 	    	// REMOVING PATH FROM DATASET - FROM DATASET LIST.
-		    ConfigurationTreeNode parentNode = (ConfigurationTreeNode)treeNode.parent();
-		    path    = (Path)treeNode.object();
-		    stream  = (Stream)parentNode.parent();
-		    dataset = stream.dataset(name);
-		    tree.setSelectionPath(treePath.getParentPath());
+		ConfigurationTreeNode parentNode = (ConfigurationTreeNode)treeNode.parent();
+		path    = (Path)treeNode.object();
+		stream  = (Stream)parentNode.parent();
+		dataset = stream.dataset(name);
+		tree.setSelectionPath(treePath.getParentPath());
 	    } else if(treeNode.parent() instanceof PrimaryDataset) {
-			// REMOVING PATH FROM DATASET - FROM STREAM LIST.
+		// REMOVING PATH FROM DATASET - FROM STREAM LIST.
 	    	String pathName = "";
 	    	if(treeNode.object() instanceof Path) {
-	    		pathName = ((Path)treeNode.object()).name();
+		    pathName = ((Path)treeNode.object()).name();
 	    	} else System.err.println("[ConfigurationTreeActions.java][addPathToDataset] ERROR: TreeNode is not instance of Path");
-		    dataset = config.dataset(name);
-		    stream  = dataset.parentStream();
-		    path    = config.path(pathName);
-	    }
-
+		dataset = config.dataset(name);
+		stream  = dataset.parentStream();
+		path    = config.path(pathName);
+	    }	    
 	} else if (node instanceof Path) {
-		// REMOVING PATH FROM DATASET - FROM PATH LIST.
-    	path = (Path) node;
+	    // REMOVING PATH FROM DATASET - FROM PATH LIST.
+	    path = (Path) node;
 	    dataset = config.dataset(name);
 	    stream  = dataset.parentStream();
 	}
@@ -3414,17 +3416,17 @@ public class ConfigurationTreeActions
 	
 	// bug/feature #93322 	Remove GUI and database restriction to share a path in more than one PrimaryDataset in a Stream.
 	if(dataset.path(path.name()) == null) {
-		dataset.insertPath(path);
-		model.nodeInserted(dataset,dataset.indexOfPath(path));
-		if (model.streamMode().equals("datasets")) {
-		    model.nodeInserted(model.getChild(stream,stream.indexOfDataset(dataset)),dataset.indexOfPath(path));
-		    if(index != -1) {
-		    	model.nodeRemoved(model.getChild(stream,stream.datasetCount()),index,path);
-		    }
+	    dataset.insertPath(path);
+	    model.nodeInserted(dataset,dataset.indexOfPath(path));
+	    if (model.streamMode().equals("datasets")) {
+		model.nodeInserted(model.getChild(stream,stream.indexOfDataset(dataset)),dataset.indexOfPath(path));
+		if(index != -1) {
+		    model.nodeRemoved(model.getChild(stream,stream.datasetCount()),index,path);
 		}
+	    }
 	}
 	
-
+	
 	model.nodeChanged(path);
 	model.updateLevel1Nodes();
 	
@@ -3457,8 +3459,7 @@ public class ConfigurationTreeActions
 	    dataset = (PrimaryDataset)node;
 	    stream  = dataset.parentStream();
 	    path    = config.path(name);
-	}
-	else if (node instanceof ConfigurationTreeNode) {
+	} else if (node instanceof ConfigurationTreeNode) {
 	    ConfigurationTreeNode treeNode = (ConfigurationTreeNode)node;
 	    ConfigurationTreeNode parentNode = (ConfigurationTreeNode)treeNode.parent();
 	    path    = (Path)treeNode.object();

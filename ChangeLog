@@ -1,3 +1,7 @@
+2012-04-15 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-06-51
+	* simplifications and bug fixes, eps. IGNORE/NEGATE within sequences no longer lost on IMPORT
+	
 2012-04-14 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-50
 	* Remove restriction in the GUI to allow share a path in two datasets in the same stream.
