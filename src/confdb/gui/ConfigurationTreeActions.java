@@ -972,8 +972,7 @@ public class ConfigurationTreeActions
 
     
     /** import Path / Sequence */
-    public static boolean importReferenceContainer(JTree tree,
-						   ReferenceContainer external)
+    public static boolean importReferenceContainer(JTree tree, ReferenceContainer external)
     {
 	ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
 	Configuration          config   = (Configuration)model.getRoot();
