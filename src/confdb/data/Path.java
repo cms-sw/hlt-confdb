@@ -247,8 +247,8 @@ public class Path extends ReferenceContainer
 
     static public String hltPrescalerLabel(String name)
     {
-	int first = name.indexOf("_");
-	if (first==-1) {first=0;}
+	int first = 0;
+	if (name.startsWith("HLT_")) first = 4;
 	int last  = name.lastIndexOf("_v");
 	if (last ==-1) {last =name.length();}
 	return "hltPre"+name.substring(first,last).replace("_","");

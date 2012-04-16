@@ -1,3 +1,7 @@
+2012-04-16 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-06-53
+	* fix small bug in re-labelling prescaler instance based on path name
+
 2012-04-16 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-52
 	* Fix nullPointerException in Search&Replace tool.
