@@ -121,6 +121,7 @@ public abstract class SwingWorker<V> implements Future<V>, Runnable {
 
     /** <tt>true</tt> if <tt>start</tt> method was called. */
     private boolean started;
+    
 
     /** Creates new SwingWorker with default executor. */
     public SwingWorker() {
@@ -235,4 +236,5 @@ public abstract class SwingWorker<V> implements Future<V>, Runnable {
         throws InterruptedException, ExecutionException, TimeoutException {
         return task.get(timeout, unit);
     }
+    
 }

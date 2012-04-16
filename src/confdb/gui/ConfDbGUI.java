@@ -199,6 +199,9 @@ public class ConfDbGUI
     // DB INFO fields:
     public boolean extraPathFieldsAvailability;
     
+    // Instrumentation variables:
+    private long elapsedTime_OpenConfiguration		= 0;
+    
     
     static SimpleAttributeSet ITALIC_GRAY = new SimpleAttributeSet();
     static SimpleAttributeSet BOLD_BLACK = new SimpleAttributeSet();
@@ -574,14 +577,18 @@ public class ConfDbGUI
 	dialog.setVisible(true);
 	
 	if (dialog.validChoice()) {
-	    OpenConfigurationThread worker =
-		new OpenConfigurationThread(dialog.configInfo());
-	    worker.start();
+	    OpenConfigurationThread worker = new OpenConfigurationThread(dialog.configInfo());
+	    
+	    worker.start();	    
+	    
 	    jProgressBar.setIndeterminate(true);
 	    jProgressBar.setVisible(true);
 	    jProgressBar.setString("Loading Configuration ...");
 	    menuBar.configurationIsOpen();
 	    toolBar.configurationIsOpen();
+	    
+	    //System.out.println("ElapsedTime: " + worker.getElapsedTime());
+	    
 	}
     }
 
@@ -1347,6 +1354,7 @@ public class ConfDbGUI
     }
     
     /** Show Db information */
+    // TODO show instrumentation results.
     public void showDBInfo() {
 		String getDatabaseProductVersion = "";
 		String getDriverName = "";
@@ -1412,6 +1420,14 @@ public class ConfDbGUI
     	    DriverVersionValue.setEditable(false);
     	    DriverVersionValue.setBackground(null);
     	    
+    	    JTextArea elapsedTimeOpenConfiguration	= new JTextArea("Elapsed time to open last configuration: ");
+    	    elapsedTimeOpenConfiguration.setEditable(false);
+    	    elapsedTimeOpenConfiguration.setBackground(null);
+    	    
+    	    JTextArea elapsedTimeOpenConfigurationValue	= new JTextArea( elapsedTime_OpenConfiguration + " milliseconds.");
+    	    elapsedTimeOpenConfigurationValue.setEditable(false);
+    	    elapsedTimeOpenConfigurationValue.setBackground(null);
+    	    
     	    
     	    JLabel ico1 = new JLabel();	// icon
     	    JLabel ico2 = new JLabel();	// icon
@@ -1427,19 +1443,21 @@ public class ConfDbGUI
     	 // Using TRAILING alignment the button will be aligned to the right.
     	    layout.setHorizontalGroup(layout.createSequentialGroup()
     	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-    	    		.add(DatabaseProductVersion, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE)
-    	    		.add(DriverName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE)
-    	    		.add(DriverVersion, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE)
-    	    		.add(DatabaseHost, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE)
-    	    		.add(DatabaseName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE)
+    	    		.add(DatabaseProductVersion, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
+    	    		.add(DriverName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
+    	    		.add(DriverVersion, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
+    	    		.add(DatabaseHost, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
+    	    		.add(DatabaseName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
+    	    		.add(elapsedTimeOpenConfiguration, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
     	    		
-    	    		.add(jlabelExtraPathsAvailability, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE))
+    	    		.add(jlabelExtraPathsAvailability, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE))
     	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
 		    		.add(DatabaseProductVersionValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 		    		.add(DriverNameValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 		    		.add(DriverVersionValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 		    		.add(DatabaseHostValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 		    		.add(DatabaseNameValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		    		.add(elapsedTimeOpenConfigurationValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 		    		
     	    		.add(ico1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25))
     	    );
@@ -1460,6 +1478,9 @@ public class ConfDbGUI
         	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
         	    		.add(DatabaseName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
         	    		.add(DatabaseNameValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
+        	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+        	    		.add(elapsedTimeOpenConfiguration, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
+        	    		.add(elapsedTimeOpenConfigurationValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
 	    	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
 	    	    		.add(jlabelExtraPathsAvailability, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 25)
 	    	    		.add(ico1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25))
@@ -1598,6 +1619,11 @@ public class ConfDbGUI
 	// Set current configuration to the prescaleService
 	PrescaleTServ = new PrescaleTableService(currentConfig);
 	
+    }
+    
+    /** Time spent in opening a configuration. */
+    private void setElapsedTime(long time) {
+    	elapsedTime_OpenConfiguration = time;
     }
     
     
@@ -1884,11 +1910,14 @@ public class ConfDbGUI
 	/** member data */
 	private ConfigInfo configInfo = null;
 	private long       startTime;
+	private long 	   elapsedTime;
 	
 	/** standard constructor */
 	public OpenConfigurationThread(ConfigInfo configInfo)
 	{
 	    this.configInfo = configInfo;
+	    elapsedTime = 0;
+	    startTime = 0;
 	}
 	
 	/** SwingWorker: construct() */
@@ -1909,9 +1938,10 @@ public class ConfDbGUI
 	{
 		boolean failed = false;
 	    try {
-		long elapsedTime = System.currentTimeMillis() - startTime;
-		jProgressBar.setString(jProgressBar.getString() +
-				       get() + " (" + elapsedTime + " ms)");
+		elapsedTime = System.currentTimeMillis() - startTime;
+		jProgressBar.setString(jProgressBar.getString() + get() + " (" + elapsedTime + " ms)");
+		
+		setElapsedTime(elapsedTime);
 	    }
 	    catch (ExecutionException e) {
 	    	//String errMsg = "Open Configuration FAILED:\n"+e.getCause().getMessage();
@@ -1977,6 +2007,10 @@ public class ConfDbGUI
 	    }
 
 	}
+	
+	/* Instrumenting this task. */
+	public long getElapsedTime() { return elapsedTime; }
+	
     }
 
 

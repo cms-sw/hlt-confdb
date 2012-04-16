@@ -279,11 +279,14 @@ public class SearchAndReplaceDialog extends JDialog
 	}
 
 	// DEBUG
-	System.out.println("paramType="+paramType+
-			   " paramName="+paramName+
-			   " paramValue="+paramValue);
+	System.out.println("[search][INFO] " + 
+			"paramType="+paramType+" paramName="+paramName+" paramValue="+paramValue);
+	
+	boolean plug0 = false;
+	if(paramName != null)
+		plug0 = paramName.equals("Plugin");
 
-	boolean plug0 = paramName.equals("Plugin");
+	
 	while (itT.hasNext()) {
 	    Template template = itT.next();
 	    if (!pluginType.equals("All")&&!pluginType.equals(template.type()))

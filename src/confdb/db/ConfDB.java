@@ -1261,8 +1261,6 @@ public class ConfDB
 		    System.out.println("SQLException catched at confDb.java::loadConfiguration()   sequence = " + sequence.name());
 		}
 		
-		//TODO Why to have this check?
-		//if (sequence.name().equals("HLTL1UnpackerSequence")) System.out.println(fail+" XXX: "+entryType);
 		
 		if (index!=sequenceNb)
 		    System.err.println("ERROR in sequence "+sequence.name()+
@@ -5834,37 +5832,37 @@ public class ConfDB
 	    ArrayList<IdVPSetPair> vpsets = new ArrayList<IdVPSetPair>();
 
 	    while (rsParameters.next()) {
-		int     id       = rsParameters.getInt(1);
-		String  type     = rsParameters.getString(2);
-		String  name     = rsParameters.getString(3);
-		boolean isTrkd   = rsParameters.getBoolean(4);
-		int     seqNb    = rsParameters.getInt(5);
-		int     parentId = rsParameters.getInt(6);
-		
-		if (name==null) name = "";
-		
-		String valueAsString = null;
-		if (type.indexOf("PSet")<0)
-		    valueAsString = idToValueAsString.remove(id);
-		if (valueAsString==null) valueAsString="";
-		
-		Parameter p = ParameterFactory.create(type,name,valueAsString,
-						      isTrkd);
-		
-		if (type.equals("PSet"))
-		    psets.add(new IdPSetPair(id,(PSetParameter)p));
-		if (type.equals("VPSet"))
-		    vpsets.add(new IdVPSetPair(id,(VPSetParameter)p));
-		
-		ArrayList<Parameter> parameters = null;
-		if (idToParameters.containsKey(parentId))
-		    parameters = idToParameters.get(parentId);
-		else {
-		    parameters = new ArrayList<Parameter>();
-		    idToParameters.put(parentId,parameters);
-		}
-		while (parameters.size()<=seqNb) parameters.add(null);
-		parameters.set(seqNb,p);
+			int     id       = rsParameters.getInt(1);
+			String  type     = rsParameters.getString(2);
+			String  name     = rsParameters.getString(3);
+			boolean isTrkd   = rsParameters.getBoolean(4);
+			int     seqNb    = rsParameters.getInt(5);
+			int     parentId = rsParameters.getInt(6);
+			
+			if (name==null) name = "";
+			
+			String valueAsString = null;
+			if (type.indexOf("PSet")<0)
+			    valueAsString = idToValueAsString.remove(id);
+			if (valueAsString==null) valueAsString="";
+			
+			Parameter p = ParameterFactory.create(type,name,valueAsString,
+							      isTrkd);
+			
+			if (type.equals("PSet"))
+			    psets.add(new IdPSetPair(id,(PSetParameter)p));
+			if (type.equals("VPSet"))
+			    vpsets.add(new IdVPSetPair(id,(VPSetParameter)p));
+			
+			ArrayList<Parameter> parameters = null;
+			if (idToParameters.containsKey(parentId))
+			    parameters = idToParameters.get(parentId);
+			else {
+			    parameters = new ArrayList<Parameter>();
+			    idToParameters.put(parentId,parameters);
+			}
+			while (parameters.size()<=seqNb) parameters.add(null);
+			parameters.set(seqNb,p);
 	    }
 	    
 	    Iterator<IdPSetPair> itPSet = psets.iterator();

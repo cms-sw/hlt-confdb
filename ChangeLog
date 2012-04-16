@@ -1,3 +1,8 @@
+2012-04-16 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-52
+	* Fix nullPointerException in Search&Replace tool.
+	* Record elapsed time for last opened configuration.
+
 2012-04-15 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-06-51
 	* simplifications and bug fixes, eps. IGNORE/NEGATE within sequences no longer lost on IMPORT
