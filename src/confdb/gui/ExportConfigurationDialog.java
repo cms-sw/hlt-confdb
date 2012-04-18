@@ -182,10 +182,10 @@ public class ExportConfigurationDialog extends JDialog
 	    String dbHost = jTextFieldHost.getText();
 	    String dbPort = jTextFieldPort.getText();
 	    String dbName = jTextFieldName.getText();
-	    String dbUrl  = url(dbType,dbHost,dbPort,dbName);
+	    //String dbUrl  = url(dbType,dbHost,dbPort,dbName);
 	    String dbUser = jTextFieldUser.getText();
 	    String dbPwrd = new String(jTextFieldPwrd.getPassword());
-	    
+	    String dbUrl =targetDB.setDbParameters(dbPwrd, dbName, dbHost, dbPort);
 	    targetDB.connect(dbType,dbUrl,dbUser,dbPwrd);
 	 //   targetDB.getReleaseId(releaseTag); // check
 	    
