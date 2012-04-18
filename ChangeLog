@@ -1,4 +1,10 @@
 2012-04-18 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-55
+	* Fix bug: remove path from unassigned datasets.
+	* Enables all possible paths and add red background for shared paths in Datasets Editor.
+	* Shows all possible paths in the list to add paths to datasets. 
+	
+2012-04-18 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-54
 	* Use TNS connections to export configurations. 
 

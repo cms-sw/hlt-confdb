@@ -143,9 +143,26 @@ public class EditDatasetDialog extends JDialog
 		cbText = "<html><b>"+cbText+"</b></html>";
 	    JCheckBox cb = new JCheckBox(cbText);
 	    cb.setActionCommand(path.name());
+	    /*
 	    if (dataset.indexOfPath(path)>=0) cb.setSelected(true);
 	    else if (stream.listOfAssignedPaths().indexOf(path)>=0)
-		cb.setEnabled(false);
+	    	cb.setEnabled(false);
+    	*/
+	    
+	    if (dataset.indexOfPath(path)>=0) cb.setSelected(true);
+	    
+	    // Red if this exist in any other dataset of the same stream.
+	    ArrayList<PrimaryDataset> pds = stream.datasets(path);
+    	for(int i = 0; i < pds.size(); i++){
+    		PrimaryDataset ds = pds.get(i);
+    		if(!ds.equals(dataset)) {
+    			cb.setBackground(Color.red);
+    			break;
+    		}
+    	} 
+	    	
+	    
+	    
 	    cb.addItemListener(new ItemListener() {
 		    public void itemStateChanged(ItemEvent e) {
 			cbItemStateChanged(e);

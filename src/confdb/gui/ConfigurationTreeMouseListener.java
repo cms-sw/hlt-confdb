@@ -1261,26 +1261,31 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    menuItem.setActionCommand("REMOVE");
 	    popupDatasets.add(menuItem);
 
+	    
 	    ArrayList<Path> paths = new ArrayList<Path>();
 	    Iterator<Path> itP = config.pathIterator();
 	    while (itP.hasNext()) {
-		Path path = itP.next();
-		if (dataset.parentStream().listOfAssignedPaths().indexOf(path)<0)
+	    	Path path = itP.next();
+	    	//if (dataset.parentStream().listOfAssignedPaths().indexOf(path)<0)
 		    paths.add(path);
 	    }
-	    
+	    // TODO 
 	    Collections.sort(paths);
 	    itP = paths.iterator();
+	    
 	    while (itP.hasNext()) {
-		Path path = itP.next();
-		if (path.isEndPath()) continue;
-		Stream stream = dataset.parentStream();
-		menuItem = (stream.listOfUnassignedPaths().indexOf(path)>=0) ?
-		    new JMenuItem("<html><b>"+path.name()+"</b></html>") :
-		    new JMenuItem(path.name());
-		menuItem.addActionListener(datasetListener);
-		menuItem.setActionCommand("ADDPATH");
-		addPathMenu.add(menuItem);
+			Path path = itP.next();
+			if (path.isEndPath()) continue;
+			Stream stream = dataset.parentStream();
+			menuItem = (stream.listOfUnassignedPaths().indexOf(path)>=0) ?
+			    new JMenuItem("<html><b>"+path.name()+"</b></html>") :
+			    new JMenuItem(path.name());
+			menuItem.addActionListener(datasetListener);
+			menuItem.setActionCommand("ADDPATH");
+			
+			if(dataset.path(path.name()) != null) menuItem.setEnabled(false);
+			
+			addPathMenu.add(menuItem);
 	    }
 	}
 	else if (depth==4) {
@@ -1296,18 +1301,20 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    PrimaryDataset parentDataset = (PrimaryDataset)treeNode.parent();
 	    Stream parentStream = parentDataset.parentStream();
 	    if (parentStream.datasetCount()>1) {
-		JMenu movePathMenu = new ScrollableMenu("<html>Move <i>"+path.name()+
-							"</i> to ...</html>");
-		popupDatasets.add(movePathMenu);
-		Iterator<PrimaryDataset> itPD = parentStream.datasetIterator();
-		while (itPD.hasNext()) {
-		    PrimaryDataset dataset = itPD.next();
-		    if (dataset.name().equals(parentDataset.name())) continue;
-		    menuItem = new JMenuItem(dataset.name());
-		    menuItem.addActionListener(datasetListener);
-		    menuItem.setActionCommand("MOVEPATH:"+dataset.name());
-		    movePathMenu.add(menuItem);
-		}
+			JMenu movePathMenu = new ScrollableMenu("<html>Move <i>"+path.name()+
+								"</i> to ...</html>");
+			popupDatasets.add(movePathMenu);
+			Iterator<PrimaryDataset> itPD = parentStream.datasetIterator();
+			while (itPD.hasNext()) {
+			    PrimaryDataset dataset = itPD.next();
+			    if (dataset.name().equals(parentDataset.name())) continue;
+			    
+			    menuItem = new JMenuItem(dataset.name());
+			    menuItem.addActionListener(datasetListener);
+			    menuItem.setActionCommand("MOVEPATH:"+dataset.name());
+			    movePathMenu.add(menuItem);
+			    if(dataset.path(path.name()) != null) menuItem.setEnabled(false);
+			}
 	    }
 	}
     }
