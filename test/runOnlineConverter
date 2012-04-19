@@ -26,15 +26,15 @@ while (@ARGV)
 {
     my $arg = shift @ARGV;
     if ($arg eq "--hltdev") {
-	$db_host = "cmsr1-v.cern.ch";
+	$db_host = "cmsr1-s.cern.ch";
 	$db_name = "cms_cond.cern.ch";
 	$db_user = "cms_hltdev_reader";
 	$db_pwrd = "convertme!";
     }
     elsif ($arg eq "--orcoff") {
-	$db_host = "cmsr1-v.cern.ch";
+	$db_host = "cmsr1-s.cern.ch";
 	$db_name = "cms_cond.cern.ch";
-	$db_user = "cms_hlt_r";
+	$db_user = "cms_hlt_gui_r";
 	$db_pwrd = "convertme!";
     }
     elsif ($arg eq "--rcms") {
@@ -45,7 +45,7 @@ while (@ARGV)
     }
     elsif ($arg eq "--rcms_tunnel") {
 	$db_host = "localhost";
-	$db_name = "cms_rcms.cern.ch";
+	$db_name = "cms_omds_tunnel.cern.ch";
 	$db_user = "cms_hlt_r";
 	$db_pwrd = "convertme!";
     }
@@ -62,10 +62,10 @@ while (@ARGV)
 	$db_pwrd = "convertme!";
     }
     elsif ($arg eq "--test2r") {
-	$db_host = "int2r1-v.cern.ch";
+	$db_host = "int2r1-s.cern.ch";
 	$db_name = "int2r_nolb.cern.ch";
-	$db_user = "cms_hlt_test";
-	$db_pwrd = "hltdevtest1";
+	$db_user = "cms_hltdev";
+	$db_pwrd = "Magnum2Classic";
     }
     elsif ($arg eq "--configName") {
 	$config_name = shift @ARGV;
