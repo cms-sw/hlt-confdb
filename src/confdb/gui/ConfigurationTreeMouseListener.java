@@ -2,6 +2,8 @@ package confdb.gui;
 
 import javax.swing.*;
 import javax.swing.tree.*;
+
+import java.awt.Color;
 import java.awt.event.*;
 
 import java.util.ArrayList;
@@ -1264,12 +1266,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	    
 	    ArrayList<Path> paths = new ArrayList<Path>();
 	    Iterator<Path> itP = config.pathIterator();
-	    while (itP.hasNext()) {
-	    	Path path = itP.next();
-	    	//if (dataset.parentStream().listOfAssignedPaths().indexOf(path)<0)
-		    paths.add(path);
-	    }
-	    // TODO 
+	    
+	    while (itP.hasNext()) paths.add(itP.next());
+ 
 	    Collections.sort(paths);
 	    itP = paths.iterator();
 	    
@@ -1277,15 +1276,30 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 			Path path = itP.next();
 			if (path.isEndPath()) continue;
 			Stream stream = dataset.parentStream();
-			menuItem = (stream.listOfUnassignedPaths().indexOf(path)>=0) ?
-			    new JMenuItem("<html><b>"+path.name()+"</b></html>") :
-			    new JMenuItem(path.name());
+			
+			menuItem = null;
+			if(stream.listOfUnassignedPaths().indexOf(path)>=0) {
+				menuItem = new JMenuItem("<html><font color='blue'>"+path.name()+"</font></html>");
+			} else {
+			    // Red if this exist in any other dataset of the same stream.
+			    ArrayList<PrimaryDataset> pds = stream.datasets(path);
+		    	for(int i = 0; i < pds.size(); i++){
+		    		PrimaryDataset ds = pds.get(i);
+		    		if(!ds.equals(dataset)) {
+		    			menuItem = new JMenuItem("<html><font color='red'>"+path.name()+"</font></html>");
+		    			break;
+		    		}
+		    	}
+		    	// default:
+		    	if(menuItem == null)
+		    		menuItem = new JMenuItem(path.name());
+			}
+			
 			menuItem.addActionListener(datasetListener);
 			menuItem.setActionCommand("ADDPATH");
 			
-			if(dataset.path(path.name()) != null) menuItem.setEnabled(false);
-			
-			addPathMenu.add(menuItem);
+			if(dataset.path(path.name()) == null)
+				addPathMenu.add(menuItem);
 	    }
 	}
 	else if (depth==4) {
@@ -2242,8 +2256,10 @@ class DatasetMenuListener implements ActionListener
 							      dlg.dataset());
 	}
 	else if (action.equals("ADDPATH")) {
-	    if (cmd.startsWith("<html><b>")) cmd = cmd.substring(9);
-	    if (cmd.endsWith("</b></html>")) cmd = cmd.substring(0,cmd.length()-11);
+		
+	    //if (cmd.startsWith("<html><b>")) cmd = cmd.substring(9);
+	    //if (cmd.endsWith("</b></html>")) cmd = cmd.substring(0,cmd.length()-11);
+		cmd = cleanHtmlTags(cmd);
 	    ConfigurationTreeActions.addPathToDataset(tree,cmd);
 	}
 	else if (action.equals("REMOVE")) {
@@ -2259,6 +2275,13 @@ class DatasetMenuListener implements ActionListener
 	    String targetDatasetName = action.split(":")[1];
 	    ConfigurationTreeActions.movePathToDataset(tree,targetDatasetName);
 	}
+    }
+    
+    private String cleanHtmlTags(String cmd) {
+    	String cmdR = cmd;
+    	cmdR = cmdR.replaceAll("\\<.*?\\>", "");
+    	
+    	return cmdR;
     }
 }
 

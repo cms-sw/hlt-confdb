@@ -1,3 +1,10 @@
+2012-04-20 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-56
+	* Changes in PrimaryDatasets editor:
+	- Use Red and Blue colours for unassigned paths and paths already in the stream (also in "add path" list).
+	- Two columns instead of three.
+	* Embedded prescales editor 2px higher.  
+
 2012-04-18 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-55
 	* Fix bug: remove path from unassigned datasets.

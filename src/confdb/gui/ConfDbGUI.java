@@ -4694,7 +4694,7 @@ public class ConfDbGUI
         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
         .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
         .add(jLabelPrescales)
-        .add(jScrollPanePrescales, GroupLayout.PREFERRED_SIZE, 34, GroupLayout.PREFERRED_SIZE)
+        .add(jScrollPanePrescales, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE)
         )
         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
         .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)

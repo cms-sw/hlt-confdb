@@ -3307,7 +3307,10 @@ public class ConfigurationTreeActions
 	
 	PrimaryDataset dataset = stream.insertDataset(external.name());
 	if (dataset==null) {
-	    if (config.dataset(external.name())!=null) return false; // TODO?
+	    if (config.dataset(external.name())!=null) {
+	    	System.err.println("dataset already exists in the stream!");
+	    	return false;
+	    }
 	    dataset = stream.dataset(external.name());
 	}
 	

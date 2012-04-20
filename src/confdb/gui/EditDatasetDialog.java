@@ -6,8 +6,10 @@ import java.util.Collections;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Rectangle2D;
 
 import confdb.data.Configuration;
 import confdb.data.Stream;
@@ -126,7 +128,7 @@ public class EditDatasetDialog extends JDialog
 
 	jListPaths.setModel(new DefaultListModel());
 	
-	jPanelPaths.setLayout(new GridLayout(0,3));
+	jPanelPaths.setLayout(new GridLayout(0,2));
 	ArrayList<Path> paths = new ArrayList<Path>();
 	Iterator<Path> itP = config.pathIterator();
 	while (itP.hasNext()) {
@@ -139,17 +141,14 @@ public class EditDatasetDialog extends JDialog
 	    Path   path    = itP.next();
 	    Stream stream = dataset.parentStream();
 	    String cbText = path.name();
-	    if (stream.listOfUnassignedPaths().indexOf(path)>=0)
-		cbText = "<html><b>"+cbText+"</b></html>";
+
 	    JCheckBox cb = new JCheckBox(cbText);
 	    cb.setActionCommand(path.name());
-	    /*
-	    if (dataset.indexOfPath(path)>=0) cb.setSelected(true);
-	    else if (stream.listOfAssignedPaths().indexOf(path)>=0)
-	    	cb.setEnabled(false);
-    	*/
+
 	    
 	    if (dataset.indexOfPath(path)>=0) cb.setSelected(true);
+	    // Blue if unassigned path.
+	    if(stream.listOfUnassignedPaths().indexOf(path)>=0) cb.setBackground(Color.blue);
 	    
 	    // Red if this exist in any other dataset of the same stream.
 	    ArrayList<PrimaryDataset> pds = stream.datasets(path);
@@ -179,6 +178,14 @@ public class EditDatasetDialog extends JDialog
         jButtonCancel.setText("Cancel");
         jScrollPaneList.setViewportView(jListPaths);
 
+        JTextArea unassignedPath = new JTextArea("unassigned path");
+        unassignedPath.setBackground(null);
+        JTextArea blueBox = new JTextArea(" ");
+        blueBox.setBackground(Color.blue);
+        JTextArea sharedPath = new JTextArea("already in stream");
+        sharedPath.setBackground(null);
+        JTextArea redBox = new JTextArea(" ");
+        redBox.setBackground(Color.red);
 
 	org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanel);
 	jPanel.setLayout(layout);
@@ -193,9 +200,20 @@ public class EditDatasetDialog extends JDialog
 						 .add(jScrollPanePaths, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, (int)(size.getWidth()-205), Short.MAX_VALUE)
 						 .addContainerGap())
 					    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+			    		 .add(blueBox, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+			    		 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+			    		 .add(unassignedPath, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 140, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+ 						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+			    		 .add(redBox, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+			    		 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+			    		 .add(sharedPath, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 140, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+ 						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
 						 .add(jButtonCancel)
 						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						 .add(jButtonOk))))
+						 .add(jButtonOk)
+						 .addContainerGap()
+
+						 )))
 				  );
 	
         layout.linkSize(new java.awt.Component[] {jButtonCancel, jButtonOk}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
@@ -210,7 +228,14 @@ public class EditDatasetDialog extends JDialog
 				     .add(8, 8, 8)
 				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
 					  .add(jButtonOk)
-					  .add(jButtonCancel)))
+					  .add(jButtonCancel)
+					  .add(redBox, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+					  .add(sharedPath)
+					  .add(blueBox, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+					  .add(unassignedPath)
+					  )
+					  .addContainerGap()
+					  )
 				);
 	
 	return jPanel;
