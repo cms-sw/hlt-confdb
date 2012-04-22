@@ -39,28 +39,11 @@ public class DiskCache
 
     public void writeToDisk( Object o, String fileName )
     {
-    	long start = System.currentTimeMillis();
-        try {
-        	while ( maxSpace - inUse < maxSizeMB * 1024 * 1024 )
-        		deleteOldestFile();
-        	File file = new File( dir + fileName );
-        	FileOutputStream fos = new FileOutputStream( file );
-	        ObjectOutputStream oos = new ObjectOutputStream(fos);
-			oos.writeObject( o );
-	        oos.close();
-	        fos.close();
-	        inUse += file.length();
-			serialize.add( System.currentTimeMillis() - start );
-		} catch (Exception e) {
-			storeException(e);
-			try {
-	        	File file = new File( dir + fileName );
-				if ( file.exists() )
-					file.delete();
-				getInUse();
-			} catch (Exception x) {
-			}
-		}
+    	while ( maxSpace - inUse < maxSizeMB * 1024 * 1024 )
+    		deleteOldestFile();
+    	Thread thread = new Thread( Thread.currentThread().getThreadGroup(), 
+    			new WriterThread( fileName, o ), "diskWriter", 1024 * 1024 );
+    	thread.start();
     }
     
     public Object loadFromDisk( String fileName )
@@ -177,6 +160,51 @@ public class DiskCache
 		return deserialize;
 	}
 
+	
+	public class WriterThread implements Runnable
+	{
+		String fileName;
+		Object o;
+
+		WriterThread( String file, Object o )
+		{
+			fileName = file;
+			this.o = o;
+		}
+		
+		public void run() 
+		{
+	    	long start = System.currentTimeMillis();
+	        try {
+	        	File file = new File( dir + fileName );
+	        	FileOutputStream fos = new FileOutputStream( file );
+//	        	ByteArrayOutputStream fos = new ByteArrayOutputStream();
+		        ObjectOutputStream oos = new ObjectOutputStream(fos);
+				oos.writeObject( o );
+		        oos.close();
+		        fos.close();
+		        inUse += file.length();
+				serialize.add( System.currentTimeMillis() - start );
+			} catch (Exception e) {
+				if ( e.getMessage().equals( "Disk quota exceeded" ) )
+				{
+					getInUse();
+					maxSpace = inUse;
+				}
+				else
+					storeException(e);
+				try {
+		        	File file = new File( dir + fileName );
+					if ( file.exists() )
+						file.delete();
+					getInUse();
+				} catch (Exception x) {
+				}
+			}
+		}
+		
+	}
+	
 }
 
 
