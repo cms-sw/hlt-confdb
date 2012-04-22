@@ -36,7 +36,11 @@ public class ConfCache
     		try {
 				setPath( "/afs/cern.ch/project/jps/reps/cms-project-co", 485 );
 			} catch (Exception e) {
-				diskCache = null;
+	    		try {
+					setPath( "/afs/cern.ch/project/jps/reps/cms-confdb", 485 );
+				} catch (Exception e2) {
+					diskCache = null;
+				}
 			}
     	}
     	return cache;
