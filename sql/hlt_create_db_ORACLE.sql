@@ -377,10 +377,11 @@ CREATE TABLE PathStreamDatasetAssoc
   --configId Number Not Null,
 	pathId	NUMBER	NOT NULL,
 	streamId	NUMBER  NOT NULL,
-	datasetId  NUMBER,
-  CONSTRAINT pk_pathStreamDatasetAssoc PRIMARY KEY(pathId,streamId),
+	datasetId  NUMBER	NOT NULL,
+  CONSTRAINT pk_pathStreamDatasetAssoc_PSD PRIMARY KEY (pathId, streamId, datasetId),
 	CONSTRAINT pk_pathStreamDatasetAssoc_pi FOREIGN KEY(pathId) REFERENCES Paths(pathId),
-	CONSTRAINT pk_pathStreamDatasetAssoc_si FOREIGN KEY(streamId) REFERENCES Streams(streamId)
+	CONSTRAINT pk_pathStreamDatasetAssoc_si FOREIGN KEY(streamId) REFERENCES Streams(streamId),
+	CONSTRAINT pk_pathStreamDatasetAssoc_di FOREIGN KEY(datasetId) REFERENCES PrimaryDatasets(datasetId)
 );
 
 -- INDEX PathStreamAssocStreamId_idx

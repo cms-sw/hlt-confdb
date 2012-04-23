@@ -1,3 +1,8 @@
+2012-04-23 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-57
+	* Update ConfCache (by Ulf).
+	* Update PathStreamDataSetAssoc table definition at hlt_create_db_ORACLE.sql
+	
 2012-04-20 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-56
 	* Changes in PrimaryDatasets editor:
