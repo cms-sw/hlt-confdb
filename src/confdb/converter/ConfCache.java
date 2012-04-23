@@ -23,6 +23,7 @@ public class ConfCache
     private HashMap<String, ConfWrapper> confCache = new HashMap<String, ConfWrapper>();
     private int allRequests = 0;
     private Statistics dbRequests = new Statistics();
+    private DbLock dbLock = new DbLock();
 
 
     static public ConfCache getCache()
@@ -69,9 +70,43 @@ public class ConfCache
     		diskCache = new DiskCache( p, size, 10 );
     }
 
-    public synchronized IConfiguration getConfiguration( int key, ConfDB database ) throws DatabaseException
+    public IConfiguration getConfiguration( int key, ConfDB database ) throws DatabaseException
     {
     	allRequests += 1;
+		IConfiguration configuration = getConfigFromCache(key, database);
+		if ( configuration != null )
+			return configuration;
+		
+		synchronized( dbLock ) {
+			dbLock.configKey = getCacheKey(key, database);
+			configuration = getConfigFromCache(key, database);
+			if ( configuration == null )
+			{
+				long start = System.currentTimeMillis();
+
+				try {
+					configuration = database.loadConfiguration(key);
+				} catch (DatabaseException e) {
+					// wait, reconnect and try again
+					database.disconnect();
+					try {
+						Thread.sleep( 2000 );
+					} catch (InterruptedException e1) {
+					}
+					database.connect();
+					configuration = database.loadConfiguration(key);
+				}
+				dbRequests.add( System.currentTimeMillis() - start );
+				put( key, configuration, database );
+				if ( diskCache != null )
+					writeToDisk( key, configuration, database );
+			}
+		}
+		return configuration;
+    }
+
+    private synchronized IConfiguration getConfigFromCache( int key, ConfDB database )
+    {
 		IConfiguration configuration = null;
 		ConfWrapper conf = confCache.get( getCacheKey( key, database ) );
 		if ( conf != null )
@@ -82,7 +117,6 @@ public class ConfCache
 			confCache.remove( conf.getCacheKey() );
 		}
 		
-    	long start = System.currentTimeMillis();
 		if ( diskCache != null )
 		{
 			configuration = loadFromDisk(key, database);
@@ -93,34 +127,17 @@ public class ConfCache
 			}
 		}
 		
-		//Runtime.getRuntime().gc();
-		try {
-			configuration = database.loadConfiguration(key);
-		} catch (DatabaseException e) {
-			// wait, reconnect and try again
-			database.disconnect();
-			try {
-				Thread.sleep( 2000 );
-			} catch (InterruptedException e1) {
-			}
-			database.connect();
-			configuration = database.loadConfiguration(key);
-		}
-		dbRequests.add( System.currentTimeMillis() - start );
-		put( key, configuration, database );
-		if ( diskCache != null )
-			writeToDisk( key, configuration, database );
-		return configuration;
+		return null;
     }
-
+    
     private void writeToDisk( int key, IConfiguration conf, ConfDB database )
     {
-    	diskCache.writeToDisk( conf, getFileName(key, database) );
+    	diskCache.writeToDisk( conf, getCacheKey(key, database) );
     }
     
     private IConfiguration loadFromDisk( int key, ConfDB database )
     {
-    	return (IConfiguration)diskCache.loadFromDisk( getFileName(key, database) );
+    	return (IConfiguration)diskCache.loadFromDisk( getCacheKey(key, database) );
     }
     
     private void put( int key, IConfiguration conf, ConfDB database )
@@ -147,11 +164,6 @@ public class ConfCache
 
     
 	private String getCacheKey( int key, ConfDB database )
-	{
-		return "" + key + "@" + database.hashCode();
-	}
-	
-	private String getFileName( int key, ConfDB database )
 	{
 		return (database.dbUrl() + " " + database.getDbUser()).hashCode() + "." + key;
 	}
@@ -215,6 +227,11 @@ public class ConfCache
 		return diskCache;
 	}
 
+	class DbLock {
+		String configKey = "";
+	}
+	
+	
 }
 
 
