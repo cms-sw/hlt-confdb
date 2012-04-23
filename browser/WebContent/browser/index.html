@@ -18,6 +18,7 @@
 <script type="text/javascript" src="../js/yui/element/element-beta-min.js"></script>
 <script type="text/javascript" src="../js/yui/tabview/tabview.js"></script>
 <script type="text/javascript" src="../js/yui/json/json-min.js"></script>
+<script type="text/javascript" src="../js/jquery-1.6.4.min.js"></script>
 <script type="text/javascript" src="../js/HLT.js"></script>
 
 
@@ -30,6 +31,7 @@
 var viewportHeight,
 	tabHeight,
 	tabView,
+	tabNames,
 	tabContent = new Array(),
 	Dom = YAHOO.util.Dom,
 	cookie = true;
@@ -54,8 +56,25 @@ function init()
   	  if ( cookie ) 	
   	    YAHOO.util.Cookie.set( 'activeTab', activeTab, { expires: expiresWhen } );
 	} );
-	AjaxInfo.listDBs( processDBList );	
+	AjaxInfo.listDBs( processDBList );
+	$( window ).bind( 'resize', resize );
+//	window.onresize = resize;
 }
+
+
+function resize( ev )
+{
+	var width = $(window).width();
+	var height = $(window).height();
+	tabHeight = height - 50;
+	for ( var i = 0; i < tabNames.length; i++ )
+	{    
+	    var name = tabNames[i];
+	    $('#' + name ).height( tabHeight );
+//	    $('#' + name ).width( width );
+	}
+}
+
 
 
 function processDBList( dbList )
@@ -82,6 +101,7 @@ function processDBList( dbList )
 
 function createTabs( tabs )
 {
+	tabNames = tabs;
     var activeTab = 0;
     if ( cookie ) 
       activeTab = YAHOO.util.Cookie.get( 'activeTab', Number );
@@ -92,7 +112,7 @@ function createTabs( tabs )
 	    var name = tabs[i];
         var tabDiv = '<div id="Tab' + i + 'Div">not loaded</div>';
 	    var tabSource = "browseDB.jsp?db=" + escape( tabs[i] ) + "&height=" + tabHeight;
-	    tabContent[i] = '<iframe name="' + name + '" height="' + tabHeight + '" width="100%" frameborder="0" marginheight="0" marginwidth="5" scrolling="no" src="' + tabSource + '"></iframe>';
+	    tabContent[i] = '<iframe id="' + name + '" name="' + name + '" height="' + tabHeight + '" width="100%" frameborder="0" marginheight="0" marginwidth="5" scrolling="no" src="' + tabSource + '"></iframe>';
 	    if ( i == activeTab )
 	    {
 		  tabView.addTab(new YAHOO.widget.Tab( { label: name, content: tabDiv, active : true } ) );
@@ -100,7 +120,7 @@ function createTabs( tabs )
 		  tabContent[i] = null;
 		}
 		else
-		  tabView.addTab(new YAHOO.widget.Tab( { label: name, content: tabDiv } ) );
+			  tabView.addTab(new YAHOO.widget.Tab( { label: name, content: tabDiv } ) );
 	}
 }
 
