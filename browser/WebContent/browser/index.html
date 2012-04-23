@@ -31,7 +31,7 @@
 var viewportHeight,
 	tabHeight,
 	tabView,
-	tabNames,
+	tabNames = null,
 	tabContent = new Array(),
 	Dom = YAHOO.util.Dom,
 	cookie = true;
@@ -67,10 +67,12 @@ function resize( ev )
 	var width = $(window).width();
 	var height = $(window).height();
 	tabHeight = height - 50;
+	if ( !tabNames )
+		return;
+	$('#debugDiv').html( "resize: " + width + " x " + height );
 	for ( var i = 0; i < tabNames.length; i++ )
 	{    
-	    var name = tabNames[i];
-	    $('#' + name ).height( tabHeight );
+	    $('#tab' + i + 'IFrame' ).height( tabHeight );
 //	    $('#' + name ).width( width );
 	}
 }
@@ -112,7 +114,7 @@ function createTabs( tabs )
 	    var name = tabs[i];
         var tabDiv = '<div id="Tab' + i + 'Div">not loaded</div>';
 	    var tabSource = "browseDB.jsp?db=" + escape( tabs[i] ) + "&height=" + tabHeight;
-	    tabContent[i] = '<iframe id="' + name + '" name="' + name + '" height="' + tabHeight + '" width="100%" frameborder="0" marginheight="0" marginwidth="5" scrolling="no" src="' + tabSource + '"></iframe>';
+	    tabContent[i] = '<iframe id="tab' + i + 'IFrame" height="' + tabHeight + '" width="100%" frameborder="0" marginheight="0" marginwidth="5" scrolling="no" src="' + tabSource + '"></iframe>';
 	    if ( i == activeTab )
 	    {
 		  tabView.addTab(new YAHOO.widget.Tab( { label: name, content: tabDiv, active : true } ) );
@@ -136,6 +138,7 @@ YAHOO.util.Event.onDOMReady(init);
 <div id="doc3">
 <div id="tabMain" style="padding-top:10px"></div>
 </div>
+<div style="position:absolute; right:5px; top:2px; visibility:hidden" id="debugDiv" ></div>
 </body>
 
 </html>
