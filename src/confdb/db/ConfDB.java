@@ -8,8 +8,10 @@ import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Clob;
+import java.text.SimpleDateFormat;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -461,12 +463,9 @@ public class ConfDB
 	for (PreparedStatement ps : preparedStatements) {
 	    try { ps.close(); }
 	    catch (SQLException e) {
-		throw new DatabaseException("ConfDB::closePreparedStatements() "+
-					    "failed (SQL)", e);
-	    }
-	    catch (Exception e) {
-		throw new DatabaseException("ConfDB::closePreparedStatements() "+
-					    "failed", e);
+	    	throw new DatabaseException("ConfDB::closePreparedStatements() failed (SQL)", e);
+	    }catch (Exception e) {
+	    	throw new DatabaseException("ConfDB::closePreparedStatements() failed", e);
 	    }
 	}
 	preparedStatements.clear();
@@ -533,35 +532,57 @@ public class ConfDB
 	     int retryCount = 5;
 	     boolean transactionCompleted = false;
 	     do {
+	    	 Date dNow = new Date();
+	         SimpleDateFormat ft = new SimpleDateFormat ("[yyyy.MM.dd@hh:mm:ss a]");
 	    	 
-	    	 if(retryCount != 5) 
-	    		 System.err.println("ConfDB::reconnect(): Trying to connect... attemp (" +  (5 - retryCount) + ")");
+	    	 if(retryCount != 5)
+	    		 System.err.println("[ConfDB::reconnect]"+ft.format(dNow)+" Trying to connect... attemp (" +  (5 - retryCount) + ")");
 	    	 
 			try {
 			    rs = psSelectUsersForLockedConfigs.executeQuery();
-			    
+			    psSelectUsersForLockedConfigs.close();
 			    // If no exception is raised then reconnection is complete.
 			    transactionCompleted = true;
+			    
+			    System.out.println("[ConfDB::reconnect]"+ft.format(dNow)+" reconnect succeeded! ");
 			} catch (SQLException e) {
 				retryCount--;	
 				
-				System.out.println("SQLException: " + e.getMessage());
-				System.out.println("SQLException: " + e.getErrorCode());
+				System.err.println("[ConfDB::reconnect]"+ft.format(dNow)+" SQLException: " + e.getMessage());
+				System.err.println("[ConfDB::reconnect]"+ft.format(dNow)+" ErrorCode:    " + e.getErrorCode());
 				
 			    if (!(dbConnector instanceof MySQLDatabaseConnector)&&!(dbConnector instanceof OracleDatabaseConnector))
 			    	throw new DatabaseException("ConfDB::reconnect(): unknown connector type!",e);
 
+			    try {
 					closePreparedStatements();
+			    } catch (DatabaseException dbe) {
+			    	/* Ignore to reconnect */
+			    	System.err.println("[Confdb::reconnect]"+ft.format(dNow)+" closePreparedStatements() FAILED!");
+			    }
+			    
+			    try {
 					dbConnector.closeConnection();
+			    } catch (DatabaseException dbe) {
+			    	/* Ignore to reconnect */
+			    	System.err.println("[Confdb::reconnect]"+ft.format(dNow)+" dbConnector.closeConnection() FAILED!");
+			    }
+			    
+			    try {
 					dbConnector.openConnection();
-					prepareStatements();
-				    System.out.println("ConfDB::reconnect(): connection reestablished!");
+			    } catch (DatabaseException dbe) {
+			    	/* Ignore to reconnect */
+			    	System.err.println("[Confdb::reconnect]"+ft.format(dNow)+" dbConnector.openConnection() FAILED!");
+			    }					
+				
+			    prepareStatements();
+
 			} finally {
 			     if (rs != null) {
 				   	  try {
 				   	      rs.close();
 				   	  } catch (SQLException sqlEx) {
-				   		System.err.println("ConfDB::reconnect(): Error closing ResultSet! " + sqlEx.getMessage());
+				   		System.err.println("[ConfDB::reconnect()]"+ft.format(dNow)+" Error closing ResultSet! " + sqlEx.getMessage());
 				   	  }
 			     }
 		         
@@ -570,8 +591,8 @@ public class ConfDB
 	     } while (!transactionCompleted && (retryCount > 0));
 	     
 	     // Raise exception when unable to connect.
-	     if(!transactionCompleted)  
-	    	 throw new DatabaseException("ConfDB::reconnect(): Unable to connect!");
+	     if(!transactionCompleted)  throw new DatabaseException("ConfDB::reconnect(): Unable to connect!");
+	     else System.out.println("[ConfDB::reconnect] connection reestablished!"); 
 	     
     }
     
