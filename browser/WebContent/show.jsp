@@ -11,7 +11,7 @@
 <link rel="stylesheet" type="text/css" href="css/confdb-jq.css" rel="stylesheet" />	
 
 <!-- js -->
-<script type="text/javascript" src="js/jquery-1.4.4.min.js"></script>
+<script type="text/javascript" src="js/jquery-1.6.4.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.8.6.custom.min.js"></script>
 <script type="text/javascript" src="js/jquery.scrollTo-1.4.2-min.js"></script>
 <script type="text/javascript" src="js/jquery.cookie.js"></script>
@@ -105,6 +105,12 @@ body {
 	color: grey;
 }
 
+
+#debugDiv {
+	position: absolute;
+	top:    5px;
+	right: 10px;
+}
 
 #download {
 	position: absolute;
@@ -208,7 +214,7 @@ function iframeReady()
   if ( tabList.length > 0 )
   {
 	var next = tabList.pop();
-	var html = '<iframe src="' + next.src + '" name="' + next.name + 'Frame" id="' + next.name + 'Frame" frameborder="0" width="100%" height="' + tabsHeight + '"></iframe>';
+	var html = '<iframe src="' + next.src + '" name="' + next.name + 'Frame" id="' + next.name + 'Frame" frameborder="0" width="100%" height="' + (tabsHeight - 50) + '"></iframe>';
 	$( '#' + next.name + 'Div' ).html( html );
   }
   else
@@ -259,6 +265,57 @@ function getCookieName()
 	return encodeURIComponent( "show.jsp4" + config.dbName );
 }
 
+
+var hideDebugDivTimeout = null;
+
+function resizeAll( ev )
+{
+	var width = $(window).width();
+	var height = $(window).height();
+	$('#main').width( width );
+	$('#main').height( height );
+//	$('#header').width( width );
+	
+	adjust( width );
+	$('#streamsFrame').height( tabsHeight );
+	$('#detailsFrame').height( tabsHeight - 50 );
+	
+  	$('#download').hide();
+  	$('#debugDiv').show();
+  	$('#debugDiv').html( 'resize: ' + width + ' x ' + height );
+  	if ( hideDebugDivTimeout != null )
+  		window.clearTimeout( hideDebugDivTimeout );
+  	hideDebugDivTimeout = window.setTimeout( "hideDebugDiv()", 2000 );
+}
+
+function hideDebugDiv()
+{
+  	$('#debugDiv').hide();
+  	$('#download').show();
+  	hideDebugDivTimeout = null;
+}
+
+function adjust( width )
+{
+	var gap = $( '#detailsTab' ).offset().left - 650; 
+	if ( gap < 0 )
+	{
+		  $( '#tabs' ).css( 'top', '20px' );
+	  $('#header').width( width - 150 );
+	}
+	else
+	{
+	  $( '#tabs' ).css( 'top', '0px' );
+	  if ( $('#secondaryInfo').offset().left < 430 )
+		  $('#header').width( $('#header').width() + gap );
+	}
+	var y1 = $('#streams').offset().top;
+	var y2 = $(window).height();
+	tabsHeight = Math.floor( y2 - y1 - 10 );
+}
+
+
+
 $(function()
 {
   var width = $(window).width();
@@ -295,22 +352,7 @@ $(function()
   // Tabs
   tabs = $('#tabs').tabs( { cache: true } );
 
-  var gap = $( '#detailsTab' ).offset().left - 650; 
-  if ( gap < 0 )
-  {
-	  $( '#tabs' ).css( 'top', '20px' );
-	  $('#header').width( width - 150 );
-  }
-  else
-  {
-	  if ( $('#secondaryInfo').offset().left < 430 )
-		  $('#header').width( $('#header').width() + gap );
-  }
-  
-  var y1 = $('#streams').offset().top;
-  var y2 = $(window).height();
-  tabsHeight = Math.floor( y2 - y1 - 10 );
-  
+  adjust( width );
   
   $("#streamsDiv").html( '<iframe src="browser/showStreams.jsp?configKey=' + config.id + '&dbName=' + config.dbName +'" name="streamsFrame" id="streamsFrame" width="100%" height="' + tabsHeight + '" frameborder="0"></iframe>' );    
 
@@ -326,8 +368,9 @@ $(function()
 		  cookie = JSON.parse( cookieStr );
   }
   
+  $( window ).bind( 'resize', resizeAll );
 });
-
+	
 </script>
 
 </head>
@@ -372,6 +415,7 @@ $(function()
   </div>
 </div>
 <div id="download"><img src="img/wait.gif"></div>
+<div id="debugDiv"></div>
 </div>
 
 <div id="dialog-form" title="select config">
