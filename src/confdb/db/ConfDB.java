@@ -575,7 +575,14 @@ public class ConfDB
 			    	System.err.println("[Confdb::reconnect]"+ft.format(dNow)+" dbConnector.openConnection() FAILED!");
 			    }					
 				
-			    prepareStatements();
+			    
+			    try {
+			    	prepareStatements();
+			    } catch (DatabaseException dbe) {
+			    	/* Ignore to reconnect */
+			    	System.err.println("[Confdb::reconnect]"+ft.format(dNow)+" prepareStatements() FAILED!");
+			    }					
+			    
 
 			} finally {
 			     if (rs != null) {

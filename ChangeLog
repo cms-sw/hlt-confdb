@@ -1,4 +1,8 @@
 2012-04-24 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-59
+	* Improve reconnect method (ConfDB.java).
+	
+2012-04-24 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-58
 	* Improve reconnect method (ConfDB.java).
 	
