@@ -34,11 +34,10 @@
 <script type="text/javascript" src="<%=yui%>/resize/resize-min.js"></script>
 <script type="text/javascript" src="<%=yui%>/json/json-min.js"></script>
 <script type="text/javascript" src="<%=yui%>/treeview/treeview-min.js"></script>
-<script type="text/javascript" src="<%=yui%>/tabview/tabview.js"></script>
 <script type="text/javascript" src="<%=yui%>/container/container-min.js"></script>
 <script type="text/javascript" src="<%=yui%>/button/button-min.js"></script>
-<script type="text/javascript" src="<%=js%>/jquery-1.4.4.min.js"></script>
-<script type="text/javascript" src="<%=js%>/HLT.js"></script>
+<script type="text/javascript" src="<%=js%>/jquery-1.6.4.min.js"></script>
+
 
 
 <style>
@@ -138,14 +137,14 @@ body {
 		else
 		      out.println( "var pageId = '" + tabId + "';" );
 		out.println( "var onlineMode = true;" );
-		out.println( "AjaxInfo._path = '../../jsp/hlt/AjaxInfo.jsp';" );
+		out.println( "AjaxInfoDir = '../jsp/hlt/';" );
 	  }
 	  else
 	  {
 		out.println( "var dbName = '" + db + "';" );
 		out.println( "var onlineMode = false;" );
 		out.println( "var pageId = '" + db + "';" );
-		out.println( "AjaxInfo._path = '../browser/AjaxInfo.jsp';" );
+		out.println( "AjaxInfoDir = './';" );
 	  }
   }
   else
@@ -200,7 +199,8 @@ function init()
     Dom.setStyle(  'allDiv', 'height',  displayHeight + 'px' );
 
 	var treeHeight = displayHeight - 50;
-    Dom.setStyle( 'treeDiv', 'max-height',  treeHeight + 'px' );
+    $('#treeDiv').height( treeHeight );
+//    Dom.setStyle( 'treeDiv', 'max-height',  treeHeight + 'px' );
 
     resize = new YAHOO.util.Resize('mainLeft', {
             proxy: true,
@@ -215,18 +215,21 @@ function init()
         });
 
     resize.on('resize', function(ev) {
-            var w = ev.width;
-            if ( hltCookie && w > 10 )
+            treeWidth = ev.width;
+            if ( hltCookie && treeWidth > 10 )
             {
-              hltCookie.treeWidth = w;
+              hltCookie.treeWidth = treeWidth;
 		  	  YAHOO.util.Cookie.setSubs( pageId, hltCookie, { expires: cookieExpires } );
 		  	}
-            var width = displayWidth - w - 8;
+            var width = displayWidth - treeWidth - 8;
             Dom.setStyle( mainRight, 'height', displayHeight + 'px' );
             Dom.setStyle( mainRight, 'width', width + 'px');
             Dom.setStyle( 'configInput', 'width', (w - 50)+ 'px');
-            if ( iframe.length > 0 )
-	            Dom.get( mainRight ).innerHTML = iframe;
+          	$('#debugDiv').html( 'resize: ' + width + ' x ' + displayHeight );
+
+//          if ( iframe.length > 0 )
+//            Dom.get( mainRight ).innerHTML = iframe;
+//        	Dom.get( 'mainRight' ).innerHTML = 'resize ' + width + ' x ' + ev.height;
     });
 
   treeWidth = displayWidth / 3;
@@ -272,10 +275,40 @@ function init()
     Dom.setStyle( 'downloadTD', 'visibility', 'hidden' );
   }
 
-  AjaxInfo.getTree( dbName, filter, createTree );	
+  $.ajaxSetup( { timeout: 60000 } );
+  $.getJSON( AjaxInfoDir + 'AjaxInfo.jsp', { method: 'getTree', p1: 'string:' + dbName, p2: 'string:' + filter }, createTree ).fail( ajaxFailure );
 	  
+  $( window ).bind( 'resize', resizeAll );
 }
+
+function ajaxFailure( jqXHR )
+{
+	$('#leftHeaderDiv').html('');
+	alert( "ajax failure: " + jqXHR.statusText + ". Maybe you try again...");
+}
+
+function resizeAll( ev )
+{
+	displayWidth = $(window).width();
+	displayHeight = $(window).height();
 	
+	$('#treeDiv').height( displayHeight - 50 );
+	$('#mainRight').height( displayHeight );
+	
+    var width = displayWidth - treeWidth - 8;
+	$('#mainRight').width( width );
+
+
+  	if ( iframe.length > 0 )
+  	{
+  		$('#configIFrame').height( displayHeight );
+//		$('#configIFrame').width( width );
+	  	$('#debugDiv').html( 'resizeAll: ' + width + ' x ' + displayHeight );
+	}
+  		
+//    Dom.get( mainRight ).innerHTML = iframe;
+}
+
 
 function onSubmitClick( event ) 
 { 
@@ -296,16 +329,18 @@ function showNew()
 	return false;
 }
 	
-function createTree( treeData )
+function createTree( treeData, textStatus, jqXHR )
 {
 	if ( treeData.exceptionThrown )
 	{
+		$('#leftHeaderDiv').html('');
 		alert( treeData.exception + ': ' + treeData.message );
 		return;
 	}
 
     if ( treeData.ajaxFailure )
     {
+      $('#leftHeaderDiv').html('');
 	  alert( 'Ajax failure: ' + treeData.ajaxFailure );
 	  return;
     }
@@ -346,7 +381,6 @@ function createTree( treeData )
 			$(this).css( 'color', 'black' );
 		}
 	});
-				
 }
 	
 
@@ -438,7 +472,7 @@ function configSelected( event )
 
 function showConfig( configName )
 {
-  iframe = '<iframe src="../show.jsp?dbName=' + dbName + '&configName=' + configName + '" name="configIFrame" id="configFrame" width="100%" height="' + displayHeight + '" frameborder="0"></iframe>';
+  iframe = '<iframe src="../show.jsp?dbName=' + dbName + '&configName=' + configName + '" name="configIFrame" id="configIFrame" width="100%" height="' + displayHeight + '" frameborder="0"></iframe>';
   Dom.get( mainRight ).innerHTML = iframe;
 
   if ( hltCookie )
@@ -451,7 +485,7 @@ function showConfig( configName )
 
 function showConfigForRun( runNumber )
 {
-  iframe = '<iframe src="../show.jsp?runNumber=' + runNumber + '" name="configIFrame" id="configFrame" width="100%" height="' + displayHeight + '" frameborder="0"></iframe>';
+  iframe = '<iframe src="../show.jsp?runNumber=' + runNumber + '" name="configIFrame" id="configIFrame" width="100%" height="' + displayHeight + '" frameborder="0"></iframe>';
   Dom.get( mainRight ).innerHTML = iframe;
 }
 
@@ -531,6 +565,7 @@ YAHOO.util.Event.onContentReady( "allDiv", init );
   </div>
   <div id="mainRight"></div>
 </div>
+<div style="position:absolute; right:5px; top:2px; visibility:hidden;" id="debugDiv" ></div>
 </body>
 </html>
 
