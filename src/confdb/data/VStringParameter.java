@@ -40,6 +40,11 @@ public class VStringParameter extends VectorParameter
 	isValueSet = (values.size()>0);
     }
     
+    public boolean isValueSet() {
+    	isValueSet = (values.size()>0);
+    	return isValueSet;
+    }
+    
     /** constructor from a string */
     public VStringParameter(String name,String valuesAsString,boolean isTracked)
     {
@@ -67,7 +72,7 @@ public class VStringParameter extends VectorParameter
     public String valueAsString()
     {
 	String result = new String();
-	if (isValueSet) {
+	if (isValueSet()) {
 	    for (String v : values) result += "\"" + v + "\"" + ", ";
 	    result = result.substring(0,result.length()-2);
 	}
