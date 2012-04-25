@@ -1,4 +1,8 @@
 2012-04-25 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
+	* tag V01-06-61
+	* fix StringIndexOutOfBoundsException at VStringParameter.java
+
+2012-04-25 Raul Jimenez Estupinan  <raul.jimenez.estupinan@cern.ch>
 	* tag V01-06-60
 	* update reconnect method (ConfDB.java).
 
