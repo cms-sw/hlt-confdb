@@ -138,7 +138,7 @@ public class OnlineConverter extends ConverterBase
     //
 
     /** get the configuration string for FUEventProcessor */
-    public String getEpConfigString(int configId)
+    public synchronized String getEpConfigString(int configId)
 	throws ConverterException
     {
 	if (configId != this.configId)
@@ -147,7 +147,7 @@ public class OnlineConverter extends ConverterBase
     }
 
     /** get the configuration string for StorageManager */
-    public String getSmConfigString(int configId)
+    public synchronized String getSmConfigString(int configId)
 	throws ConverterException
     {
 	if (configId != this.configId)
@@ -156,7 +156,7 @@ public class OnlineConverter extends ConverterBase
     }
 
     /** get the pathName -> prescalerName map  DEPRECTATED */ 
-    public HashMap<String, String> getPathToPrescalerMap(int configId)
+    public synchronized HashMap<String, String> getPathToPrescalerMap(int configId)
     throws ConverterException 
     {
     if (configId != this.configId)
@@ -165,7 +165,7 @@ public class OnlineConverter extends ConverterBase
     }
 
     /** get the prescale table */
-    public PrescaleTable getPrescaleTable(int configId)
+    public synchronized PrescaleTable getPrescaleTable(int configId)
 	throws ConverterException
     {
 	if (configId != this.configId)
@@ -174,7 +174,7 @@ public class OnlineConverter extends ConverterBase
     }
 
     /** get pathname to pathid map */
-    public HashMap<String,Integer> getPathToPathIdMap(int configId)
+    public synchronized HashMap<String,Integer> getPathToPathIdMap(int configId)
 	throws ConverterException
     {
 	if (configId !=this.configId)
@@ -183,7 +183,7 @@ public class OnlineConverter extends ConverterBase
     }
 
     /** get modulename to moduleid map */
-    public HashMap<String,Integer> getModuleToModuleIdMap(int configId)
+    public synchronized HashMap<String,Integer> getModuleToModuleIdMap(int configId)
 	throws ConverterException
     {
 	if (configId !=this.configId)
