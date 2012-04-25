@@ -540,7 +540,7 @@ public class ConfDB
 	    	 
 			try {
 			    rs = psSelectUsersForLockedConfigs.executeQuery();
-			    psSelectUsersForLockedConfigs.close();
+			    
 			    // If no exception is raised then reconnection is complete.
 			    transactionCompleted = true;
 			    
