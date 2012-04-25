@@ -543,8 +543,6 @@ public class ConfDB
 			    
 			    // If no exception is raised then reconnection is complete.
 			    transactionCompleted = true;
-			    
-			    System.out.println("[ConfDB::reconnect]"+ft.format(dNow)+" reconnect succeeded! ");
 			} catch (SQLException e) {
 				retryCount--;	
 				
@@ -599,7 +597,7 @@ public class ConfDB
 	     
 	     // Raise exception when unable to connect.
 	     if(!transactionCompleted)  throw new DatabaseException("ConfDB::reconnect(): Unable to connect!");
-	     else System.out.println("[ConfDB::reconnect] connection reestablished!"); 
+	     else if(retryCount < 5) System.out.println("[ConfDB::reconnect] connection reestablished!"); 
 	     
     }
     
