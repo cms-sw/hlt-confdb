@@ -24,6 +24,7 @@ public class OnlineConverter extends ConverterBase
 {
     static private OnlineConverter converter = null;
     static private Connection dbConnection = null;
+    static private final Object lock = new Object();
     
 	
     //
@@ -138,57 +139,69 @@ public class OnlineConverter extends ConverterBase
     //
 
     /** get the configuration string for FUEventProcessor */
-    public synchronized String getEpConfigString(int configId)
+    public String getEpConfigString(int configId)
 	throws ConverterException
     {
-	if (configId != this.configId)
-	    convertConfiguration(configId);
-	return epConfigString;
+    	synchronized( lock ) {
+    		if (configId != this.configId)
+    			convertConfiguration(configId);
+    		return epConfigString;
+    	}
     }
 
     /** get the configuration string for StorageManager */
-    public synchronized String getSmConfigString(int configId)
+    public String getSmConfigString(int configId)
 	throws ConverterException
     {
-	if (configId != this.configId)
-	    convertConfiguration(configId);
-	return smConfigString;
+    	synchronized( lock ) {
+    		if (configId != this.configId)
+    			convertConfiguration(configId);
+    		return smConfigString;
+    	}
     }
 
     /** get the pathName -> prescalerName map  DEPRECTATED */ 
-    public synchronized HashMap<String, String> getPathToPrescalerMap(int configId)
+    public HashMap<String, String> getPathToPrescalerMap(int configId)
     throws ConverterException 
     {
-    if (configId != this.configId)
-        convertConfiguration(configId);
-    return pathToPrescaler;
+    	synchronized( lock ) {
+    		if (configId != this.configId)
+    			convertConfiguration(configId);
+    		return pathToPrescaler;
+    	}
     }
 
     /** get the prescale table */
-    public synchronized PrescaleTable getPrescaleTable(int configId)
+    public PrescaleTable getPrescaleTable(int configId)
 	throws ConverterException
     {
-	if (configId != this.configId)
-	    convertConfiguration(configId);
-	return prescaleTable;
+    	synchronized( lock ) {
+    		if (configId != this.configId)
+    			convertConfiguration(configId);
+    		return prescaleTable;
+    	}
     }
 
     /** get pathname to pathid map */
-    public synchronized HashMap<String,Integer> getPathToPathIdMap(int configId)
+    public HashMap<String,Integer> getPathToPathIdMap(int configId)
 	throws ConverterException
     {
-	if (configId !=this.configId)
-	    convertConfiguration(configId);
-	return pathToPathId;
+    	synchronized( lock ) {
+    		if (configId !=this.configId)
+    			convertConfiguration(configId);
+    		return pathToPathId;
+    	}
     }
 
     /** get modulename to moduleid map */
-    public synchronized HashMap<String,Integer> getModuleToModuleIdMap(int configId)
+    public HashMap<String,Integer> getModuleToModuleIdMap(int configId)
 	throws ConverterException
     {
-	if (configId !=this.configId)
-	    convertConfiguration(configId);
-	return moduleToModuleId;
+    	synchronized( lock ) {
+    		if (configId !=this.configId)
+    			convertConfiguration(configId);
+    		return moduleToModuleId;
+    	}
     }
     
 
@@ -346,23 +359,23 @@ public class OnlineConverter extends ConverterBase
     }
 
     /** configure the global tag event setup source */
-    private void configureGlobalTag(IConfiguration config)
+    private void configureGlobalTag( IConfiguration config )
     {
-	ESSourceInstance globalTag = config.essource("GlobalTag");
-	if (globalTag==null) return;
+    	ESSourceInstance globalTag = config.essource("GlobalTag");
+    	if ( globalTag == null ) 
+    		return;
 	
-	if (esGlobalTag.length()>0) {
-	    globalTag.updateParameter("globaltag","string",esGlobalTag);
-	}
+    	if ( esGlobalTag.length() > 0 ) 
+    		globalTag.updateParameter("globaltag","string",esGlobalTag);
 	
-	if (esConnect.length()>0) {
-	    String connect =
-		globalTag.parameter("connect","string").valueAsString();
-	    connect = connect.substring(1,connect.length()-1);
-	    connect = connect.substring(connect.lastIndexOf('/'));
-	    connect = esConnect + connect;
-	    globalTag.updateParameter("connect","string",connect);
-	}
+    	if (esConnect.length()>0) {
+    		String connect =
+    			globalTag.parameter("connect","string").valueAsString();
+    		connect = connect.substring(1,connect.length()-1);
+    		connect = connect.substring(connect.lastIndexOf('/'));
+    		connect = esConnect + connect;
+    		globalTag.updateParameter("connect","string",connect);
+    	}
     }
     
     
