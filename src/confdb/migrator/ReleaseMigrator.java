@@ -170,8 +170,7 @@ public class ReleaseMigrator
 	for (int i=0;i<sourceConfig.pathCount();i++) {
 	    Path source = sourceConfig.path(i);
 	    Path target = targetConfig.insertPath(i,source.name());
-	    if (source.isEndPath()&&!target.isEndPath())
-		target.setAsEndPath(true);
+	    target.setFields(source);
 	}
 
 	// migrate Sequences

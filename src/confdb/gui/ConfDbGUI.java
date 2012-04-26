@@ -3418,6 +3418,7 @@ public class ConfDbGUI
 	    fillEventContents();
 	else
 	    displaySnippet();
+	if(node instanceof Path) displayPathFields();
     }
     private void jTreeCurrentConfigTreeNodesInserted(TreeModelEvent e) {}
     private void jTreeCurrentConfigTreeNodesRemoved(TreeModelEvent e) {}

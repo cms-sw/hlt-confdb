@@ -765,7 +765,7 @@ public class ConfigurationTreeActions
         		targetContainer = config.path(targetName);
         		
         		Path sourcePath = config.path(sourceContainer.name());
-        		((Path)targetContainer).setAsEndPath(sourcePath.isSetAsEndPath());	// Setting as End path if needed.
+        		((Path)targetContainer).setFields(sourcePath);
     		} else System.err.println("[confdb.gui.ConfigurationTreeActions.DeepCloneContainer] ERROR: sourceContainer NOT instanceof Path");
     		
         	if(targetContainer == null) {
@@ -812,7 +812,7 @@ public class ConfigurationTreeActions
         		newName = ConfigurationTreeActions.insertPathNamed(tree, newName); // It has created the targetContainer
         		Path targetPath = config.path(newName);
         		Path sourcePath = config.path(entry.name());
-        		targetPath.setAsEndPath(sourcePath.isSetAsEndPath());	// Setting as End path if needed.
+        		targetPath.setFields(sourcePath);
         		
         		// Clone subpath:
         		ConfigurationTreeActions.DeepCloneContainer(tree, sourcePath, targetPath);
@@ -852,7 +852,7 @@ public class ConfigurationTreeActions
     		targetContainer = config.path(targetName);
     		
     		Path sourcePath = config.path(sourceContainer.name());
-    		((Path)targetContainer).setAsEndPath(sourcePath.isSetAsEndPath());	// Setting as End path if needed.
+    		((Path)targetContainer).setFields(sourcePath);
 		} else if(sourceContainer instanceof Sequence) {
 			targetName = ConfigurationTreeActions.insertSequenceNamed(tree, targetName); // It has created the targetContainer
 			targetContainer = config.sequence(targetName); 
@@ -1021,12 +1021,14 @@ public class ConfigurationTreeActions
 		tree.setSelectionPath(new TreePath(model.getPathToRoot(entry)));
 		removeReference(tree);
 	    }
+
+	    if (type.equals("path")) ((Path)container).setFields((Path)external);
 	}
 	else {
 	    if (!config.hasUniqueQualifier(external)) return false;
 	    if (type.equals("path")) {
 		container = config.insertPath(index,external.name());
-		((Path)container).setAsEndPath(((Path)external).isSetAsEndPath());
+		((Path)container).setFields((Path)external);
 	    } else {
 		container = config.insertSequence(index,external.name());
 	    }
@@ -1101,7 +1103,7 @@ public class ConfigurationTreeActions
 		    if (!importTestConfig.hasUniqueQualifier(external)) System.out.println("[DeepImportReferenceContainer] !importTestConfig.hasUniqueQualifier(external)!");
 		    if (type.equals("path")) {
 				container = importTestConfig.insertPath(index,external.name());
-				((Path)container).setAsEndPath(((Path)external).isSetAsEndPath());
+				((Path)container).setFields((Path)external);
 		    } else {
 		    	container = importTestConfig.insertSequence(index,external.name());
 		    }
@@ -1150,7 +1152,7 @@ public class ConfigurationTreeActions
 		    if (!config.hasUniqueQualifier(external)) return false;
 		    if (type.equals("path")) {
 				container = config.insertPath(index,external.name());
-				((Path)container).setAsEndPath(((Path)external).isSetAsEndPath());
+				((Path)container).setFields((Path)external);
 		    } else {
 		    	container = config.insertSequence(index,external.name());
 		    }
@@ -1314,7 +1316,7 @@ public class ConfigurationTreeActions
 	    	Path pathCheck = configurationCopy.path(path.name());
 	    	if(pathCheck == null) {
 				Path newPath = configurationCopy.insertPath(index, path.name());
-				newPath.setAsEndPath(path.isEndPath());
+				newPath.setFields(path);
 				importContainerEntries(configurationCopy,null,path,newPath);	
 	    	}
 			index++;
@@ -1360,18 +1362,19 @@ public class ConfigurationTreeActions
 	    index = (type.equals("path")) ? config.indexOfPath((Path)container) 
 		                          : config.indexOfSequence((Sequence)container);
 	    if(update) {
-		    while (container.entryCount()>0) {
-			Reference entry = (Reference)container.entry(0);
-			removeReference(config, null, entry);
-		    }
+		while (container.entryCount()>0) {
+		    Reference entry = (Reference)container.entry(0);
+		    removeReference(config, null, entry);
+		}
+		if (type.equals("path")) ((Path)container).setFields((Path)external);
 	    } else return false;
 	} else {
 	    if (!config.hasUniqueQualifier(external)) return false;
 	    if (type.equals("path")) {
 	    	container = config.insertPath(index,external.name());
-	    	((Path)container).setAsEndPath(((Path)external).isSetAsEndPath());
+	    	((Path)container).setFields((Path)external);
 	    } else {
-			container = config.insertSequence(index,external.name());
+		container = config.insertSequence(index,external.name());
 	    }
 	}
 	

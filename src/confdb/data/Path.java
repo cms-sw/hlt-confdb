@@ -26,9 +26,9 @@ public class Path extends ReferenceContainer
     private boolean isSetAsEndPath = false;
     
     /** field indicating a short description of a particular path */
-    private String description;
+    private String description = "";
     /** field indicating emails addresses of the people responsible of a particular path */
-    private String contacts;
+    private String contacts = "";
     
 
     //
@@ -72,6 +72,12 @@ public class Path extends ReferenceContainer
       }
     */
 
+    public void setFields(Path src) {
+	setDescription(src.getDescription());
+	setContacts(src.getContacts());
+	setAsEndPath(src.isSetAsEndPath());
+    }
+
     public String getDescription() {
     	return this.description;
     }
@@ -79,10 +85,17 @@ public class Path extends ReferenceContainer
     	return this.contacts;
     }
     public void setDescription(String Desc) {
+	//System.out.println("XX1: "+(this.description==null)+(Desc==null));
+	if (Desc==null) return;
+	if (this.description.equals(Desc)) return;
     	this.description = Desc;
+	setHasChanged();
     }
     public void setContacts(String Cont) {
+	if (Cont==null) return;
+	if (this.contacts.equals(Cont)) return;
     	this.contacts = Cont;
+	setHasChanged();
     }
     
     /** chek if this path contains an output module */

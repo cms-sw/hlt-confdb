@@ -50,9 +50,16 @@ public class ContainerComparison extends Comparison
 	    if (oldContainer!=null&&newContainer!=null) {
 		Path oldPath = (Path)oldContainer;
 		Path newPath = (Path)newContainer;
-		if (oldPath.isEndPath()!=newPath.isEndPath())
-		    pathQualifier =
-			(newPath.isEndPath()) ? "[ENDPATH]" : "[PATH]";
+		pathQualifier = "";
+		if (oldPath.isEndPath()!=newPath.isEndPath()) {
+		    pathQualifier += (newPath.isEndPath()) ? "[ENDPATH]" : "[PATH]";
+		}
+		if (!oldPath.getDescription().equals(newPath.getDescription())){
+		    pathQualifier += "[Description]";
+		}
+		if (!oldPath.getContacts().equals(newPath.getContacts())){
+		    pathQualifier += "[Contacts]";
+		}
 	    }
 	}
     }
