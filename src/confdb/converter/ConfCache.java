@@ -88,7 +88,10 @@ public class ConfCache
 					configuration = database.loadConfiguration(key);
 				} catch (DatabaseException e) {
 					// wait, reconnect and try again
-					database.disconnect();
+					try {
+						database.disconnect();
+					} catch (Exception e1) {
+					}
 					try {
 						Thread.sleep( 2000 );
 					} catch (InterruptedException e1) {
