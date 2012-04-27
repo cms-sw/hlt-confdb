@@ -1,5 +1,5 @@
 2012-04-27 Ulf Behrens <ulf.behrens@cern.ch>
-	* tag V01-06-63
+	* tag V01-06-63(b)
 	* all public methods of ConfDB are synchronized now
 	* addPSetForDatasets(), addPSetforStreams(): pset only added if not already existing
 
