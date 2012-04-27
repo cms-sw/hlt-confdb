@@ -1,3 +1,8 @@
+2012-04-27 Ulf Behrens <ulf.behrens@cern.ch>
+	* tag V01-06-63
+	* all public methods of ConfDB are synchronized now
+	* addPSetForDatasets(), addPSetforStreams(): pset only added if not already existing
+
 2012-04-26 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-06-62
 	* fix to keep Description/Contacts field values in import and migration
