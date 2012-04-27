@@ -378,7 +378,7 @@ public class ConfDB
     public String dbUrl() { return this.dbUrl; }
     
     /** get db metadata **/
-    public DatabaseMetaData getDatabaseMetaData() {
+    public synchronized DatabaseMetaData getDatabaseMetaData() {
 		try {
 			return dbConnector.getConnection().getMetaData();
 		} catch (SQLException e) {
@@ -473,7 +473,7 @@ public class ConfDB
 
 
     /** connect to the database */
-    public void connect(String dbType,String dbUrl,String dbUser,String dbPwrd)
+    public synchronized void connect(String dbType,String dbUrl,String dbUser,String dbPwrd)
 	throws DatabaseException
     {
 	this.dbType = dbType;
@@ -491,7 +491,7 @@ public class ConfDB
     }
     
     /** connect to the database */
-    public void connect() throws DatabaseException
+    public synchronized void connect() throws DatabaseException
     {
 	if (dbType.equals(dbTypeMySQL))
 	    dbConnector = new MySQLDatabaseConnector(dbUrl,dbUser,dbPwrd);
@@ -504,7 +504,7 @@ public class ConfDB
     }
     
     /** connect to the database */
-    public void connect(Connection connection) throws DatabaseException
+    public synchronized void connect(Connection connection) throws DatabaseException
     {
 	this.dbType = dbTypeOracle;
 	this.dbUrl  = "UNKNOWN";
@@ -514,7 +514,7 @@ public class ConfDB
     }
     
     /** disconnect from database */
-    public void disconnect() throws DatabaseException
+    public synchronized void disconnect() throws DatabaseException
     {
 	if (dbConnector!=null) {
 	    closePreparedStatements();
@@ -524,7 +524,7 @@ public class ConfDB
     }
     
     /** reconnect to the database, if the connection appears to be down */
-    public void reconnect() throws DatabaseException
+    public synchronized void reconnect() throws DatabaseException
     {
 		if (dbConnector==null) return;
 		ResultSet rs = null;
@@ -602,14 +602,14 @@ public class ConfDB
     }
     
 
-    public IDatabaseConnector getDbConnector() {
+    public synchronized IDatabaseConnector getDbConnector() {
 		return dbConnector;
 	}
     
     /** Check database features.
      * NOTE: Depending on this, database queries and 
      * app. workflow would be modified. */
-    public void checkDbFeatures() {
+    public synchronized void checkDbFeatures() {
     	try {
             extraPathFieldsAvailability = checkExtraPathFields();
             operatorFieldForSequencesAvailability = checkOperatorFieldForSequences();
@@ -622,7 +622,7 @@ public class ConfDB
 
     
     /** list number of entries in (some) tables */
-    public void listCounts() throws DatabaseException
+    public synchronized void listCounts() throws DatabaseException
     {
 	reconnect();
 	
@@ -699,7 +699,7 @@ public class ConfDB
     }
     
     /** load information about all stored configurations */
-    public Directory loadConfigurationTree() throws DatabaseException
+    public synchronized Directory loadConfigurationTree() throws DatabaseException
     {
 	reconnect();
 	
@@ -842,7 +842,7 @@ public class ConfDB
     }
     
     /** load a single template from a certain release */
-    public Template loadTemplate(String releaseTag,String templateName)
+    public synchronized Template loadTemplate(String releaseTag,String templateName)
 	throws DatabaseException
     {
 	int             releaseId = getReleaseId(releaseTag);
@@ -873,7 +873,7 @@ public class ConfDB
     }
 
     /** load a software release (all templates) */
-    public void loadSoftwareRelease(int releaseId,SoftwareRelease release)
+    public synchronized void loadSoftwareRelease(int releaseId,SoftwareRelease release)
 	throws DatabaseException
     {
 	String releaseTag = getReleaseTag(releaseId);
@@ -891,7 +891,7 @@ public class ConfDB
     }
     
     /** load a software release (all templates) */
-    public void loadSoftwareRelease(String releaseTag,SoftwareRelease release)
+    public synchronized void loadSoftwareRelease(String releaseTag,SoftwareRelease release)
 	throws DatabaseException
     {
 	int releaseId = getReleaseId(releaseTag);
@@ -899,7 +899,7 @@ public class ConfDB
     }
 
     /** load a partial software release */
-    public void loadPartialSoftwareRelease(int configId,
+    public synchronized void loadPartialSoftwareRelease(int configId,
 					   SoftwareRelease release)
 	throws DatabaseException
     {
@@ -919,7 +919,7 @@ public class ConfDB
     }
     
     /** load a partial software releaes */
-    public void loadPartialSoftwareRelease(String configName,
+    public synchronized void loadPartialSoftwareRelease(String configName,
 					   SoftwareRelease release)
 	throws DatabaseException
     {
@@ -1008,7 +1008,7 @@ public class ConfDB
     }
 
     /** load a configuration & *all* release templates from the database */
-    public Configuration loadConfiguration(int configId,
+    public synchronized Configuration loadConfiguration(int configId,
 					   SoftwareRelease release)
 	throws DatabaseException
     {
@@ -1018,7 +1018,7 @@ public class ConfDB
     
     
     /** load a configuration& *all* release templates from the database */
-    public Configuration loadConfiguration(ConfigInfo configInfo,
+    public synchronized Configuration loadConfiguration(ConfigInfo configInfo,
 					   SoftwareRelease release)
 	throws DatabaseException
     {
@@ -1038,7 +1038,7 @@ public class ConfDB
     
     
     /** load configuration & *necessary* release templates from the database */
-    public Configuration loadConfiguration(int configId)
+    public synchronized Configuration loadConfiguration(int configId)
 	throws DatabaseException
     {
 	ConfigInfo      configInfo = getConfigInfo(configId);
@@ -1521,7 +1521,7 @@ public class ConfDB
     }
     
     /** check if extra fields for paths are available in current db. */
-    public boolean checkExtraPathFields() throws DatabaseException {
+    public synchronized boolean checkExtraPathFields() throws DatabaseException {
     	ResultSet rs = null;
     	int extraFields = 0;
     	try {
@@ -1547,7 +1547,7 @@ public class ConfDB
     
     
     /** check if the operator fields for TMP_SEQUENCE_ENTRIES is available in current db. */
-    public boolean checkOperatorFieldForSequences() throws DatabaseException {
+    public synchronized boolean checkOperatorFieldForSequences() throws DatabaseException {
     	ResultSet rs = null;
     	int extraFields = 0;
     	try {
@@ -1574,7 +1574,7 @@ public class ConfDB
     
 
     /** insert a new directory */
-    public void insertDirectory(Directory dir) throws DatabaseException
+    public synchronized void insertDirectory(Directory dir) throws DatabaseException
     {
 	ResultSet rs = null;
 	try {
@@ -1599,7 +1599,7 @@ public class ConfDB
 
 
     /** remove an (empty!) directory */
-    public void removeDirectory(Directory dir) throws DatabaseException
+    public synchronized void removeDirectory(Directory dir) throws DatabaseException
     {
 	try {
 	    psDeleteDirectory.setInt(1,dir.dbId());
@@ -1615,7 +1615,7 @@ public class ConfDB
 
 
     /** insert a new configuration */
-    public void insertConfiguration(Configuration config,
+    public synchronized void insertConfiguration(Configuration config,
 				    String creator,String processName,
 				    String comment)
 	throws DatabaseException
@@ -1751,7 +1751,7 @@ public class ConfDB
     }
 
     /** lock a configuration and all of its versions */
-    public void lockConfiguration(Configuration config,String userName)
+    public synchronized void lockConfiguration(Configuration config,String userName)
 	throws DatabaseException
     {
 	reconnect();
@@ -1782,7 +1782,7 @@ public class ConfDB
     }
 
     /** unlock a configuration and all its versions */
-    public void unlockConfiguration(Configuration config) throws DatabaseException
+    public synchronized void unlockConfiguration(Configuration config) throws DatabaseException
     {
 	reconnect();
 
@@ -2910,7 +2910,7 @@ public class ConfDB
 
 
     /** get all configuration names */
-    public String[] getConfigNames() throws DatabaseException
+    public synchronized String[] getConfigNames() throws DatabaseException
     {
 	ArrayList<String> listOfNames = new ArrayList<String>();
 	ResultSet rs = null;
@@ -2929,7 +2929,7 @@ public class ConfDB
     }
 
     /** get all configuration names associated to a given release */
-    public String[] getConfigNamesByRelease(int releaseId)
+    public synchronized String[] getConfigNamesByRelease(int releaseId)
 	throws DatabaseException
     {
 	ArrayList<String> listOfNames = new ArrayList<String>();
@@ -2953,7 +2953,7 @@ public class ConfDB
     }
     
     /** get list of software release tags */
-    public String[] getReleaseTags() throws DatabaseException
+    public synchronized String[] getReleaseTags() throws DatabaseException
     {
 	reconnect();
 	
@@ -2975,7 +2975,7 @@ public class ConfDB
     }
 
     /** get list of software release tags */
-    public String[] getReleaseTagsSorted() throws DatabaseException
+    public synchronized String[] getReleaseTagsSorted() throws DatabaseException
     {
 	reconnect();
 	
@@ -2996,7 +2996,7 @@ public class ConfDB
     }
     
     /** get the id of a directory, -1 if it does not exist */
-    public int getDirectoryId(String directoryName) throws DatabaseException
+    public synchronized int getDirectoryId(String directoryName) throws DatabaseException
     {
 	reconnect();
 	ResultSet rs = null;
@@ -3018,7 +3018,7 @@ public class ConfDB
     }
 
     /** get hash map with all directories */
-    public HashMap<Integer,Directory> getDirectoryHashMap()
+    public synchronized HashMap<Integer,Directory> getDirectoryHashMap()
 	throws DatabaseException
     {
 	reconnect();
@@ -3070,7 +3070,7 @@ public class ConfDB
 	
 
     /** get the configuration id for a configuration name */
-    public int getConfigId(String fullConfigName) throws DatabaseException
+    public synchronized int getConfigId(String fullConfigName) throws DatabaseException
     {
 	reconnect();
 
@@ -3127,7 +3127,7 @@ public class ConfDB
     }
     
     /** get ConfigInfo for a particular configId */
-    public ConfigInfo getConfigInfo(int configId) throws DatabaseException
+    public synchronized ConfigInfo getConfigInfo(int configId) throws DatabaseException
     {
 	ConfigInfo result = getConfigInfo(configId,loadConfigurationTree());
 	if (result==null) {
@@ -3143,7 +3143,7 @@ public class ConfDB
     //
 
     /** delete a configuration from the DB */
-    public void removeConfiguration(int configId) throws DatabaseException
+    public synchronized void removeConfiguration(int configId) throws DatabaseException
     {
 	ResultSet rs = null;
 	try {
@@ -3177,7 +3177,7 @@ public class ConfDB
     }
     
     /** remove Content */
-    public void removeContent(int configId) throws SQLException {
+    public synchronized void removeContent(int configId) throws SQLException {
     	ResultSet rs1 = null;
     	try {
     		
@@ -3261,7 +3261,7 @@ public class ConfDB
     
     
     /** remove global psets of a configuration */
-    public void removeGlobalPSets(int configId) throws SQLException
+    public synchronized void removeGlobalPSets(int configId) throws SQLException
     {
 	ResultSet rs1 = null;
 	try {
@@ -3292,7 +3292,7 @@ public class ConfDB
 	}
     }
     /** remove EDSources from a configuration */
-    public void removeEDSources(int configId) throws SQLException
+    public synchronized void removeEDSources(int configId) throws SQLException
     {
 	ResultSet rs1 = null;
 	try {
@@ -3323,7 +3323,7 @@ public class ConfDB
 	}
     }
     /** remove ESSources */
-    public void removeESSources(int configId) throws SQLException
+    public synchronized void removeESSources(int configId) throws SQLException
     {
 	ResultSet rs1 = null;
 	try {
@@ -3354,7 +3354,7 @@ public class ConfDB
 	}
     }
     /** remove ESModules */
-    public void removeESModules(int configId) throws SQLException
+    public synchronized void removeESModules(int configId) throws SQLException
     {
 	ResultSet rs1 = null;
 	try {
@@ -3385,7 +3385,7 @@ public class ConfDB
 	}
     }
     /** remove Services */
-    public void removeServices(int configId) throws SQLException
+    public synchronized void removeServices(int configId) throws SQLException
     {
 	ResultSet rs1 = null;
 	try {
@@ -3416,7 +3416,7 @@ public class ConfDB
 	}
     }
     /** remove Sequences */
-    public void removeSequences(int configId) throws SQLException
+    public synchronized void removeSequences(int configId) throws SQLException
     {
 	ResultSet rs1 = null;
 	try {
@@ -3467,7 +3467,7 @@ public class ConfDB
 	}
     }
     /** remove Paths */
-    public void removePaths(int configId) throws SQLException
+    public synchronized void removePaths(int configId) throws SQLException
     {
 	ResultSet rs1 = null;
 	try {
@@ -3525,7 +3525,7 @@ public class ConfDB
 	}
     }
     /** remove Modules */
-    public void removeModule(int modId) throws SQLException
+    public synchronized void removeModule(int modId) throws SQLException
     {
 	ResultSet rs1 = null;
 	ResultSet rs2 = null;
@@ -3546,7 +3546,7 @@ public class ConfDB
 	}
     }
     /** remove Parameters */
-    public void removeParameters(int parentId) throws SQLException
+    public synchronized void removeParameters(int parentId) throws SQLException
     {
 	ResultSet rsParams = null;
 	ResultSet rsPSets  = null;
@@ -3639,7 +3639,7 @@ public class ConfDB
     //
     //INSERT SOFTWARE RELEASE
     //
-    public void insertRelease(String releaseTag,SoftwareRelease newRelease) throws DatabaseException
+    public synchronized void insertRelease(String releaseTag,SoftwareRelease newRelease) throws DatabaseException
     {
 	try{
 	    dbConnector.getConnection().setAutoCommit(false);
@@ -3690,7 +3690,7 @@ public class ConfDB
 	}
     }
 
-    public void insertSoftwareSubsystem(SoftwareRelease newRelease,int releaseId) throws SQLException
+    public synchronized void insertSoftwareSubsystem(SoftwareRelease newRelease,int releaseId) throws SQLException
     {
 	Iterator<SoftwareSubsystem> subsysIt = newRelease.subsystemIterator();
 	while (subsysIt.hasNext()) {
@@ -3714,7 +3714,7 @@ public class ConfDB
 	}
     }
     
-    public void insertSoftwarePackages(SoftwareSubsystem subsys,int subsysId,int releaseId) throws SQLException
+    public synchronized void insertSoftwarePackages(SoftwareSubsystem subsys,int subsysId,int releaseId) throws SQLException
     {
        
 	Iterator<SoftwarePackage> pkgIt = subsys.packageIterator();
@@ -3741,7 +3741,7 @@ public class ConfDB
 	}
     }
 
-    public void insertTemplateIntoRelease(SoftwarePackage softwarePackage,int pkgId,int releaseId) throws SQLException
+    public synchronized void insertTemplateIntoRelease(SoftwarePackage softwarePackage,int pkgId,int releaseId) throws SQLException
     {
 	Iterator<Template> templateIt = softwarePackage.templateIterator();
 	while (templateIt.hasNext()) {
@@ -3828,7 +3828,7 @@ public class ConfDB
     //
 
     /** remove a software release from the DB */
-    public void removeSoftwareRelease(int releaseId) throws DatabaseException
+    public synchronized void removeSoftwareRelease(int releaseId) throws DatabaseException
     {
 	if (getConfigNamesByRelease(releaseId).length>0) {
 	    System.err.println("ConfDB::removeSoftwareRelease ERROR: "+
