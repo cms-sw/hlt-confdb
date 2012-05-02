@@ -21,7 +21,7 @@ public class DiskCache
     private Statistics deserialize = new Statistics();
     private Statistics serialize = new Statistics();
 
-    static public ArrayList<ExceptionBufferEntry> exceptions = new ArrayList<DiskCache.ExceptionBufferEntry>();
+    private ArrayList<ExceptionBufferEntry> exceptions = new ArrayList<DiskCache.ExceptionBufferEntry>();
     
     public DiskCache( String p, long space, int maxSizeMB ) throws IOException, SecurityException
     {
@@ -54,9 +54,11 @@ public class DiskCache
     	if ( !file.exists() )
 			return null;
 
+    	FileInputStream fis = null;
+        ObjectInputStream ois = null;
         try {
-        	FileInputStream fis = new FileInputStream( file );
-	        ObjectInputStream ois = new ObjectInputStream(fis);
+        	fis = new FileInputStream( file );
+            ois = new ObjectInputStream(fis);
 	        Object o = ois.readObject();
 	        ois.close();
 	    	long now = System.currentTimeMillis();
@@ -66,6 +68,19 @@ public class DiskCache
 	        return o;
 		} catch (Exception e) {
 			storeException(e);
+		}
+		finally {
+			if ( ois != null )
+				try {
+					ois.close();
+				} catch (IOException e) {
+				}
+			if ( fis != null )
+				try {
+					fis.close();
+				} catch (IOException e) {
+				}
+			
 		}
 		return null;
     }
@@ -78,10 +93,19 @@ public class DiskCache
     		inUse += file.length();
     	return inUse;
     }
-    
+
+
     public int getAvailableSpace() // in MB
     {
-    	return (int)((maxSpace - getInUse()) / 1024 / 1024);
+    	return getAvailableSpace( true );
+    }
+    
+    public int getAvailableSpace( boolean update ) // in MB
+    {
+    	if ( update )
+    		return (int)((maxSpace - getInUse()) / 1024 / 1024);
+    	else
+    		return (int)((maxSpace - inUse) / 1024 / 1024);
     }
     
     protected void deleteOldestFile()
@@ -161,6 +185,10 @@ public class DiskCache
 	}
 
 	
+	public ArrayList<ExceptionBufferEntry> getExceptions() {
+		return exceptions;
+	}
+
 	public class WriterThread implements Runnable
 	{
 		String fileName;
@@ -175,14 +203,14 @@ public class DiskCache
 		public void run() 
 		{
 	    	long start = System.currentTimeMillis();
+	    	
+        	FileOutputStream fos = null;
+	        ObjectOutputStream oos = null;
 	        try {
 	        	File file = new File( dir + fileName );
-	        	FileOutputStream fos = new FileOutputStream( file );
-//	        	ByteArrayOutputStream fos = new ByteArrayOutputStream();
-		        ObjectOutputStream oos = new ObjectOutputStream(fos);
+	        	fos = new FileOutputStream( file );
+		        oos = new ObjectOutputStream(fos);
 				oos.writeObject( o );
-		        oos.close();
-		        fos.close();
 		        inUse += file.length();
 				serialize.add( System.currentTimeMillis() - start );
 			} catch (Exception e) {
@@ -200,6 +228,19 @@ public class DiskCache
 					getInUse();
 				} catch (Exception x) {
 				}
+			}
+			finally {
+				if ( oos != null )
+					try {
+						oos.close();
+					} catch (IOException e) {
+					}
+				if ( fos != null )
+					try {
+						fos.close();
+					} catch (IOException e) {
+					}
+				
 			}
 		}
 		
