@@ -41,7 +41,6 @@ public class VEventIDParameter extends VectorParameter
 				   e.getMessage());
 	    }
 	}
-	isValueSet = (this.values.size()>0);
     }
     
     /** constructor from a string */
@@ -74,10 +73,8 @@ public class VEventIDParameter extends VectorParameter
     public String valueAsString()
     {
 	String result = new String();
-	if (isValueSet) {
-	    for (EventID id : values) result += id.toString() + ", ";
-	    result = result.substring(0,result.length()-2);
-	}
+	for (EventID id : values) result += id.toString() + ", ";
+	if (values.size()>0) result = result.substring(0,result.length()-2);
 	return result;
     }
 
@@ -86,7 +83,7 @@ public class VEventIDParameter extends VectorParameter
     {
 	values.clear();
 	if (valueAsString==null||valueAsString.length()==0) {
-	    isValueSet = false;
+	    return true;
 	}
 	else {
 	    try {
@@ -97,7 +94,6 @@ public class VEventIDParameter extends VectorParameter
 		    while (s.endsWith(" ")) s = s.substring(0,s.length()-1);
 		    values.add(new EventID(s));
 		}
-		isValueSet = true;
 	    }
 	    catch (DataException e) {
 		System.err.println("VEventIDParameter.setValue ERROR: "+
@@ -133,7 +129,6 @@ public class VEventIDParameter extends VectorParameter
     public Object removeValue(int i)
     {
     	Object result = values.remove(i);
-	isValueSet = (values.size()>0);
 	return result;
     }
 

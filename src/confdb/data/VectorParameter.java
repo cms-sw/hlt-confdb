@@ -17,6 +17,7 @@ abstract public class VectorParameter extends Parameter
     public VectorParameter(String name,boolean isTracked)
     {
 	super(name,isTracked);
+	isValueSet = true;
     }
 
     //
@@ -40,9 +41,4 @@ abstract public class VectorParameter extends Parameter
     // member functions
     //
 
-    /** override Parameter::isValueSet() */
-    public boolean isValueSet()
-    {
-	return (isTracked()) ? true : super.isValueSet();
-    }
 }

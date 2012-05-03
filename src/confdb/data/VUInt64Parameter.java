@@ -44,7 +44,6 @@ public class VUInt64Parameter extends VectorParameter
 	    this.values.add(new BigInteger(Long.toHexString(i),16));
 	    this.isHex.add(new Boolean(false));
 	}
-	isValueSet = (values.size()>0);
     }
 
     /* need to avoid "have the same erasure"
@@ -56,7 +55,6 @@ public class VUInt64Parameter extends VectorParameter
 	    this.values.add(i.abs().mod((BigInteger.ONE.add(BigInteger.ONE)).pow(64)));
 	    this.isHex.add(new Boolean(false));
 	}
-	isValueSet = (values.size()>0);
     }
     */
 
@@ -95,22 +93,19 @@ public class VUInt64Parameter extends VectorParameter
     public String valueAsString()
     {
 	String result = new String();
-	if (isValueSet) {
-	    for (int i=0;i<values.size();i++) {
-		result += (isHex.get(i)) ?
-		    "0x"+values.get(i).toString(16) :
-		    values.get(i).toString();
-		result += ", ";
-	    }
-	    result = result.substring(0,result.length()-2);
+	for (int i=0;i<values.size();i++) {
+	    result += (isHex.get(i)) ?
+		"0x"+values.get(i).toString(16) :
+		values.get(i).toString();
+	    result += ", ";
 	}
+	if (values.size()>0) result = result.substring(0,result.length()-2);
 	return result;
     }
 
     /** set the parameter values from string */
     public boolean setValue(String valueAsString)
     {
-	isValueSet = false;
 	values.clear();
 	isHex.clear();
 
@@ -198,7 +193,6 @@ public class VUInt64Parameter extends VectorParameter
     public Object removeValue(int i)
     {
 	Object result = values.remove(i);
-	isValueSet = (values.size()>0);
 	return result;
     }
  

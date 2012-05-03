@@ -1,3 +1,9 @@
+2012-05-03 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-06-64
+	* fix isValueSet for vector parameters (essentially, always=true)
+	* and avoid formatting crashes on size=0
+	
+
 2012-04-27 Ulf Behrens <ulf.behrens@cern.ch>
 	* tag V01-06-63(b)
 	* all public methods of ConfDB are synchronized now

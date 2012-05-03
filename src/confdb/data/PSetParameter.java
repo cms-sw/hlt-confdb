@@ -225,7 +225,6 @@ public class PSetParameter extends Parameter
     {
 	int index = parameters.indexOf(p);
 	if (index>=0) parameters.remove(index);
-	isValueSet = (parameters.size()>0);
 	return index;
     }
 

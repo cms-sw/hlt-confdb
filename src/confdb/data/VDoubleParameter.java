@@ -33,7 +33,6 @@ public class VDoubleParameter extends VectorParameter
     {
 	super(name,isTracked);
 	for (Double d : values) this.values.add(new Double(d));
-	isValueSet = (values.size()>0);
     }
     
     /** constructor from a string */
@@ -63,10 +62,8 @@ public class VDoubleParameter extends VectorParameter
     public String valueAsString()
     {
 	String result = new String();
-	if (isValueSet) {
-	    for (Double v : values) result += v.toString() + ", ";
-	    result = result.substring(0,result.length()-2);
-	}
+	for (Double v : values) result += v.toString() + ", ";
+	if (values.size()>0) result = result.substring(0,result.length()-2);
 	return result;
     }
     
@@ -75,9 +72,8 @@ public class VDoubleParameter extends VectorParameter
     {
 	values.clear();
 	if (valueAsString==null||valueAsString.length()==0) {
-	    isValueSet = false;
-	}
-	else {
+	    return true;
+	} else {
 	    try {
 		String[] strValues = valueAsString.split(",");
 		for (int i=0;i<strValues.length;i++) {
@@ -86,7 +82,6 @@ public class VDoubleParameter extends VectorParameter
 		    while (s.endsWith(" ")) s = s.substring(0,s.length()-1);
 		    values.add(new Double(s));
 		}
-		isValueSet = true;
 	    }
 	    catch (NumberFormatException e) {
 		System.err.println(e.getMessage());
@@ -119,7 +114,6 @@ public class VDoubleParameter extends VectorParameter
     public Object removeValue(int i)
     {
     	Object result = values.remove(i);
-	isValueSet = (values.size()>0);
 	return result;
     }
 }

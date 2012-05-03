@@ -37,12 +37,6 @@ public class VStringParameter extends VectorParameter
 	    if (s!=null) this.values.add(new String(s));
 	    else         this.values.add(new String());
 	}
-	isValueSet = (values.size()>0);
-    }
-    
-    public boolean isValueSet() {
-    	isValueSet = (values.size()>0);
-    	return isValueSet;
     }
     
     /** constructor from a string */
@@ -72,10 +66,8 @@ public class VStringParameter extends VectorParameter
     public String valueAsString()
     {
 	String result = new String();
-	if (isValueSet()) {
-	    for (String v : values) result += "\"" + v + "\"" + ", ";
-	    result = result.substring(0,result.length()-2);
-	}
+	for (String v : values) result += "\"" + v + "\"" + ", ";
+	if (values.size()>0) result = result.substring(0,result.length()-2);
 	return result;
     }
     
@@ -83,12 +75,10 @@ public class VStringParameter extends VectorParameter
     public String valueAsSortedString()
     {
 	String result = new String();
-	if (isValueSet) {
-	    ArrayList<String> sortedValues = new ArrayList<String>(values);
-	    Collections.sort(sortedValues);
-	    for (String v : sortedValues) result += "\"" + v + "\"" + ", ";
-	    result = result.substring(0,result.length()-2);
-	}
+	ArrayList<String> sortedValues = new ArrayList<String>(values);
+	Collections.sort(sortedValues);
+	for (String v : sortedValues) result += "\"" + v + "\"" + ", ";
+	if (sortedValues.size()>0) result = result.substring(0,result.length()-2);
 	return result;
     }
     
@@ -98,7 +88,7 @@ public class VStringParameter extends VectorParameter
     {
 	values.clear();
 	if (valueAsString==null||valueAsString.length()==0) {
-	    isValueSet = false;
+	    return true;
 	}
 	else {
 	    String delim = null;
@@ -126,8 +116,6 @@ public class VStringParameter extends VectorParameter
 				   "value incomplete (delim="+delim+")? "+
 				   sb.toString());
 	    if (sb.length()>0) values.add(stripDelimiters(sb.toString()));
-	    
-	    isValueSet = true;
 	}
 	return true;
     }
@@ -157,7 +145,6 @@ public class VStringParameter extends VectorParameter
 	    values.add(valueAsString.substring(1,valueAsString.length()-1));
 	else
 	    values.add(new String(valueAsString));
-	isValueSet = (values.size()>0);
 	return true;
     }
 
@@ -165,7 +152,6 @@ public class VStringParameter extends VectorParameter
     public Object removeValue(int i)
     {
 	Object result = values.remove(i);
-	isValueSet = (values.size()>0);
 	return result;
     }
 
