@@ -1,0 +1,70 @@
+#!/bin/bash
+
+function help() {
+  echo -e "Sign all .jar files, using the certificate associated with the alias \"$USER\""
+  echo -e
+  echo -e "Usage:"
+  echo -e "\tsign [--help|-h]"
+  echo -e "\t\tprint this message and exits."
+  echo -e
+  echo -e "\tsign [--import CERT|-i CERT]"
+  echo -e "\t\tcreate a new keystore, import an X.509 certificate and associate it to the alias \"$USER\""
+  echo -e "\t\tNote: this assumes that the certificate is stored in the file CERT, with the name \"Imported Certificate\""
+  echo -e
+  echo -e "\tsign [--rebuild|-r]"
+  echo -e "\t\tcreate a new keystore, create a new key and associate it to the alias \"$USER\""
+  echo -e "\t\tNote: this featue is still experimental"
+  echo -e
+}
+
+function import() {
+  rm -f ~/.keystore
+  CERT="$1"
+  read -p "Java keystore password: " -s PASS
+  keytool -importkeystore \
+    -srckeystore "$CERT" \
+    -srcstoretype "PKCS12" \
+    -srcalias "Imported Certificate" \
+    -deststorepass "$PASS" \
+    -destkeypass "$PASS" \
+    -destalias "$USER"
+}
+
+function rebuild() {
+  echo -e "warning: \"--rebuild\" functionality is still experimental - press any key to continue, or ctrl-C to abort"
+  read
+  rm -f .keystore
+  read -p "Java keystore password: " -s PASS
+  keytool -genkey \
+          -dname "CN=$(phonebook --login $USER --terse firstname --terse surname | sed -e"s/;/ /" -e"s/;//"), OU=CERN, O=CMS, L=Geneva, S=Switzerland, C=EU" \
+          -alias "$USER" \
+          -storepass "$PASS" \
+          -keypass "$PASS"
+}
+
+
+if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+  help
+  exit 0
+elif [ "$1" == "--import" ] || [ "$1" == "-i" ]; then
+  if ! [ -f "$2" ]; then
+    help
+    exit 1
+  fi
+  import "$2"
+  exit 0
+elif [ "$1" == "--rebuild" ] || [ "$1" == "-r" ]; then
+  rebuild
+  exit 0
+fi
+
+if ! [ -f ~/.keystore ]; then
+  echo -e "No Java keystore found. Please create one with \"$0 --import CERT\" or \"$0 --rebuild\"."
+  exit 1
+fi
+
+read -p "Java keystore password: " -s PASS
+for JAR in $(find * -name '*.jar'); do 
+  jarsigner -storepass "$PASS" -keypass "$PASS" "$JAR" "$USER"
+done
+
