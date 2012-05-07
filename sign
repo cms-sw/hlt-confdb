@@ -21,6 +21,7 @@ function import() {
   rm -f ~/.keystore
   CERT="$1"
   read -p "Java keystore password: " -s PASS
+  echo
   keytool -importkeystore \
     -srckeystore "$CERT" \
     -srcstoretype "PKCS12" \
@@ -31,13 +32,13 @@ function import() {
 }
 
 function rebuild() {
-  echo -e "warning: \"--rebuild\" functionality is still experimental - press any key to continue, or ctrl-C to abort"
-  read
   rm -f ~/.keystore
   read -p "Java keystore password: " -s PASS
-  keytool -genkey \
+  echo
+  keytool -genkeypair \
           -dname "CN=$(phonebook --login $USER --terse firstname --terse surname | sed -e"s/;/ /" -e"s/;//"), OU=CERN, O=CMS, L=Geneva, S=Switzerland, C=EU" \
           -alias "$USER" \
+          -validity 1096 \
           -storepass "$PASS" \
           -keypass "$PASS"
 }
@@ -64,6 +65,7 @@ if ! [ -f ~/.keystore ]; then
 fi
 
 read -p "Java keystore password: " -s PASS
+echo
 for JAR in $(find * -name '*.jar'); do 
   jarsigner -storepass "$PASS" -keypass "$PASS" "$JAR" "$USER"
 done
