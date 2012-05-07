@@ -1,3 +1,4 @@
+RecoTauTag/RecoTau                      HLTPFRecoTauDiscriminationByIsolation_cfi.py
 RecoTracker/FinalTrackSelectors         trackListMerger_cfi.py
 RecoTracker/FinalTrackSelectors         simpleTrackListMerger_cfi.py
 TrackingTools/TrajectoryCleaning        TrajectoryCleanerBySharedHits_cfi.py
