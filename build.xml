@@ -114,12 +114,12 @@
       <lib file="${dir.lib}/cmssw-evf-confdb-browser.jar"/>
       <lib file="${dir.ext}/mysql-connector-java-5.0.5-bin.jar"/>
         
-        <!-- move confdb version file in the root path of the container -->
-        <file file="${dir.src}/conf/confdb.version"/>   
+      <!-- move confdb version file in the root path of the container -->
+      <fileset file="${dir.src}/conf/confdb.version"/>   
         
-      <fileset dir="browser/WebContent"/>
-        <zipfileset dir="${dir.lib}" includes="cmssw-evf-confdb-gui.jar" prefix="gui"/>
-        <zipfileset dir="${dir.lib}" includes="confdb-gui-all-inclusive.jar" prefix="gui"/>
+      <fileset dir="browser/WebContent" excludes="WEB-INF/web.xml"/>
+      <zipfileset dir="${dir.lib}" includes="cmssw-evf-confdb-gui.jar" prefix="gui"/>
+      <zipfileset dir="${dir.lib}" includes="confdb-gui-all-inclusive.jar" prefix="gui"/>
       <zipfileset dir="${dir.ext}" prefix="gui"/>
     </war>
   </target>
