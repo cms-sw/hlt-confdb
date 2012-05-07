@@ -67,6 +67,7 @@ fi
 read -p "Java keystore password: " -s PASS
 echo
 for JAR in $(find * -name '*.jar'); do 
+  echo "Signing $JAR"
   jarsigner -storepass "$PASS" -keypass "$PASS" "$JAR" "$USER"
 done
 
