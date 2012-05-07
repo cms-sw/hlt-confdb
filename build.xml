@@ -55,8 +55,8 @@
 		<zipfileset excludes="META-INF/**/*" src="${dir.ext}/jython-2.5.2.jar"/>
 		<zipfileset excludes="META-INF/**/*" src="${dir.ext}/antlr-runtime-3.1.3.jar"/>
 		<zipfileset excludes="META-INF/**/*" src="${dir.ext}/asm-3.1.jar"/>
-		<zipfileset excludes="META-INF/**/*" src="${dir.ext}/asm-commons-3.1.jar"/>
-		<zipfileset excludes="META-INF/**/*" src="${dir.ext}/asm-util-3.1.jar"/>
+		<!--<zipfileset excludes="META-INF/**/*" src="${dir.ext}/asm-commons-3.1.jar"/>-->
+		<!--<zipfileset excludes="META-INF/**/*" src="${dir.ext}/asm-util-3.1.jar"/>-->
 		<zipfileset excludes="META-INF/**/*" src="${dir.ext}/constantine-0.4.jar"/>
 		<zipfileset excludes="META-INF/**/*" src="${dir.ext}/jna.jar"/>
 		<zipfileset excludes="META-INF/**/*" src="${dir.ext}/jna-posix.jar"/>
@@ -71,9 +71,13 @@
   <!-- combine converter-relevant classes into jar file -->
   <target name="converter" depends="compile">
     <jar jarfile="${dir.lib}/cmssw-evf-confdb-converter.jar">
-      <fileset dir="${dir.build}"><exclude name="confdb/gui/**"/></fileset>
-      <fileset dir="${dir.build}"><exclude name="confdb/parser/**"/></fileset>
-      <fileset dir="${dir.src}"><include name="conf/*"/></fileset>
+      <fileset dir="${dir.build}">
+        <exclude name="confdb/gui/**"/>
+        <exclude name="confdb/parser/**"/>
+      </fileset>
+      <fileset dir="${dir.src}">
+        <include name="conf/*"/>
+      </fileset>
       <manifest>
         <attribute name="Main-Class" value="confdb.converter.Converter" />
       </manifest>
@@ -83,9 +87,13 @@
   <!-- combine converter-relevant classes into jar file -->
   <target name="browser" depends="compile">
     <jar jarfile="${dir.lib}/cmssw-evf-confdb-browser.jar">
-      <fileset dir="${dir.build}"><exclude name="confdb/gui/**"/></fileset>
-      <fileset dir="${dir.build}"><exclude name="confdb/parser/**"/></fileset>
-      <fileset dir="${dir.src}"><include name="conf/*"/></fileset>
+      <fileset dir="${dir.build}">
+        <exclude name="confdb/gui/**"/>
+        <exclude name="confdb/parser/**"/>
+      </fileset>
+      <fileset dir="${dir.src}">
+        <include name="conf/*"/>
+      </fileset>
     </jar>
   </target>
 
