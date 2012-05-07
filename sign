@@ -33,7 +33,7 @@ function import() {
 function rebuild() {
   echo -e "warning: \"--rebuild\" functionality is still experimental - press any key to continue, or ctrl-C to abort"
   read
-  rm -f .keystore
+  rm -f ~/.keystore
   read -p "Java keystore password: " -s PASS
   keytool -genkey \
           -dname "CN=$(phonebook --login $USER --terse firstname --terse surname | sed -e"s/;/ /" -e"s/;//"), OU=CERN, O=CMS, L=Geneva, S=Switzerland, C=EU" \
