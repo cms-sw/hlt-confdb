@@ -36,7 +36,7 @@ function rebuild() {
   read -p "Java keystore password: " -s PASS
   echo
   keytool -genkeypair \
-          -dname "CN=$(phonebook --login $USER --terse firstname --terse surname | sed -e"s/;/ /" -e"s/;//"), OU=CERN, O=CMS, L=Geneva, S=Switzerland, C=EU" \
+          -dname "CN=$(finger -p -l -m $USER | grep 'Name: ' | sed -e's/.*Name: //'), OU=CERN, O=CMS, L=Geneva, S=Switzerland, C=EU" \
           -alias "$USER" \
           -validity 1096 \
           -storepass "$PASS" \
