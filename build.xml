@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="ConfDB" default="gui" basedir=".">
+<project name="ConfDB" default="all" basedir=".">
 
   <description>
   Build ConfDB project.
@@ -108,8 +108,11 @@
     </jar>
   </target>
 
+  <!-- build all targets -->
+  <target name="all" depends="compile,gui,parser,browser,converter,gui-all-inclusive,war"/>
+
   <!-- combine webservice relevant files into war file -->
-  <target name="war">
+  <target name="war" depends="browser,gui-all-inclusive">
     <war destfile="${dir.lib}/confdb.war" webxml="browser/WebContent/WEB-INF/web.xml">
       <lib file="${dir.lib}/cmssw-evf-confdb-browser.jar"/>
       <lib file="${dir.ext}/mysql-connector-java-5.0.5-bin.jar"/>
