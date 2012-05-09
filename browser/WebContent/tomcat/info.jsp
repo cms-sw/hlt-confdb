@@ -72,18 +72,18 @@
 	DiskCache diskCache = ConfCache.getCache().getDiskCache();
 	if ( diskCache != null )
 	{
-		cache.put( "availableSpace", diskCache.getAvailableSpace() );
+		cache.put( "availableSpace", diskCache.getAvailableSpace( false ) );
 		Statistics stats = diskCache.getDeserialize();
 		if ( stats.getN() > 0 )
 			cache.put( "fileCache", new JSONObject( stats ) );
 		stats = diskCache.getSerialize();
 		if ( stats.getN() > 0 )
 			cache.put( "serialize", new JSONObject( stats ) );
+		JSONArray exceptions = new JSONArray( diskCache.getExceptions().toArray() );
+		data.put( "exceptions", exceptions );
 	}
 	data.put( "cache", cache );	
 	
-	JSONArray exceptions = new JSONArray( DiskCache.exceptions.toArray() );
-	data.put( "exceptions", exceptions );
 	
 	reply.put( "data", data );
 
