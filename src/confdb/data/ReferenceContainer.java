@@ -92,7 +92,7 @@ abstract
     /** set the name of the container */
     public void setName(String name) throws DataException
     {
-        name.replaceAll("\\W", "");
+        name = name.replaceAll("\\W", "");
 	if (config!=null&&!config.isUniqueQualifier(name))
 	    throw new DataException("ReferenceContainer.setName ERROR: '"+
 				    name+"' is not a unique qualifier.");
