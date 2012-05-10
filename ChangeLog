@@ -1,8 +1,11 @@
+2012-05-10 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-06-65
+	* remove non-alphanumeric characters from stream/dataset/path/sequence/module names
+
 2012-05-03 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-06-64
 	* fix isValueSet for vector parameters (essentially, always=true)
 	* and avoid formatting crashes on size=0
-	
 
 2012-04-27 Ulf Behrens <ulf.behrens@cern.ch>
 	* tag V01-06-63(b)
