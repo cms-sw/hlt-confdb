@@ -39,7 +39,7 @@ abstract public class Parameter implements Comparable<Parameter>, Serializable
     /** default constructor */
     public Parameter(String name,boolean isTracked)
     {
-	this.name      = name;
+	this.name      = name.replaceAll("\\W", "");
 	this.isTracked = isTracked;
     }
     

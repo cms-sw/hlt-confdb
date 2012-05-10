@@ -40,7 +40,7 @@ public class EventContent extends DatabaseEntry implements Comparable<EventConte
     /** standard constructor */
     public EventContent(String name)
     {
-	this.name = name;
+	this.name = name.replaceAll("\\W", ""); 
     }
     
     
@@ -52,7 +52,8 @@ public class EventContent extends DatabaseEntry implements Comparable<EventConte
     public String name() { return name; }
     
     /** set the name of this event content */
-    public void setName(String name) { this.name = name; 
+    public void setName(String name) { 
+        this.name = name.replaceAll("\\W", "");
 	setHasChanged();
     }
     

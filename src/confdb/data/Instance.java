@@ -60,6 +60,7 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
     /** set the name of this instance */
     public void setName(String name) throws DataException
     {
+        name = name.replaceAll("\\W", "");
 	if (template().hasInstance(name)
 	    ||(config!=null&&!config.isUniqueQualifier(name)))
 	    throw new DataException("Instance.setName() ERROR: " +

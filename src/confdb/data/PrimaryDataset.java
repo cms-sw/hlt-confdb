@@ -38,7 +38,7 @@ public class PrimaryDataset extends DatabaseEntry
     /** standard constructor */
     public PrimaryDataset(String name,Stream parentStream)
     {
-	this.name        = name;
+	this.name         = name.replaceAll("\\W", "");
 	this.parentStream = parentStream;
     }
     
@@ -68,7 +68,7 @@ public class PrimaryDataset extends DatabaseEntry
 
     /** set name of this stream */
     public void setName(String name) {
-	this.name = name;
+	this.name = name.replaceAll("\\W", "");
 	setHasChanged();
 	for (Path p : paths) {
 	    p.setHasChanged();

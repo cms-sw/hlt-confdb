@@ -157,7 +157,9 @@ public class OutputModule extends ParameterContainer implements Referencable
     public String name() { return name; }
     
     /** Referenable: setName() */
-    public void setName(String name) throws DataException { this.name = name; }
+    public void setName(String name) throws DataException { 
+        this.name = name.replaceAll("\\W", ""); 
+    }
     
     /** Referencable: retrieve the parent configuration */
     public IConfiguration config() { return parentStream().config(); }

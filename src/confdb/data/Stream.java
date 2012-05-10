@@ -46,7 +46,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** standard constructor */
     public Stream(String name,EventContent parentContent)
     {
-	this.name = name;
+	this.name = name.replaceAll("\\W", "");
 	this.parentContent = parentContent;
 	this.outputModule = new OutputModule("hltOutput"+name,this);
     }
@@ -64,7 +64,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     
     /** set name of this stream */
     public void setName(String name) { 
-	this.name = name;
+	this.name = name.replaceAll("\\W", "");
         setHasChanged();
 	try {
 	    this.outputModule.setName("hltOutput"+name);

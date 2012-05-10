@@ -41,7 +41,7 @@ abstract
     /** standard constructor */
     public ReferenceContainer(String name)
     {
-	this.name = name;
+	this.name = name.replaceAll("\\W", "");
     }
 
     //
@@ -92,6 +92,7 @@ abstract
     /** set the name of the container */
     public void setName(String name) throws DataException
     {
+        name.replaceAll("\\W", "");
 	if (config!=null&&!config.isUniqueQualifier(name))
 	    throw new DataException("ReferenceContainer.setName ERROR: '"+
 				    name+"' is not a unique qualifier.");
