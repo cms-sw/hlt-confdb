@@ -1,5 +1,5 @@
 2012-05-10 Andrea Bocci <andrea.bocci@cern.ch>
-	* tag V01-06-65
+	* tag V01-06-66
 	* remove non-alphanumeric characters from stream/dataset/path/sequence/module names
 
 2012-05-03 Martin Grunewald  <Martin.Grunewald@cern.ch>
