@@ -2,4 +2,3 @@
 BASE=$(dirname $0)
 
 ant -f $BASE/build.xml && java -classpath $BASE/lib/cmssw-evf-confdb-gui.jar:$BASE/ext/mysql-connector-java-5.0.5-bin.jar:$BASE/ext/ojdbc14.jar:$BASE/ext/swing-layout-1.0.jar:$BASE/ext/jython-2.5.2.jar confdb.gui.ConfDbGUI
-#ant -f $BASE/build.xml && java -Dswing.defaultlaf=com.sun.java.swing.plaf.gtk.GTKLookAndFeel -classpath $BASE/lib/cmssw-evf-confdb-gui.jar:$BASE/ext/mysql-connector-java-5.0.5-bin.jar:$BASE/ext/ojdbc14.jar:$BASE/ext/swing-layout-1.0.jar:$BASE/ext/jython-2.5.2.jar confdb.gui.ConfDbGUI
