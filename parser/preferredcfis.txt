@@ -14,7 +14,7 @@ DQM/CSCMonitorModule                    csc_hlt_dqm_sourceclient_cfi.py
 RecoParticleFlow/PFProducer             particleFlow_cfi.py
 RecoParticleFlow/PFProducer             particleFlowBlock_cfi.py
 RecoJets/Configuration                  CaloTowersES_cfi.py
-Configuration/StandardSequences		FrontierConditions_GlobalTag_cfi.py
+CondCore/ESSources                      PoolDBESSource_cfi.py
 FWCore/MessageLogger			MessageLogger_cfi.py
 RecoTracker/FinalTrackSelectors         selectLoose_cfi.py
 RecoBTag/TrackProbability               trackProbabilityFakeCond_cfi.py
