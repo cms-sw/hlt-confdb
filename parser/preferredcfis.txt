@@ -17,7 +17,6 @@ RecoJets/Configuration                  CaloTowersES_cfi.py
 CondCore/ESSources                      PoolDBESSource_cfi.py
 FWCore/MessageLogger			MessageLogger_cfi.py
 RecoTracker/FinalTrackSelectors         selectLoose_cfi.py
-RecoBTag/TrackProbability               trackProbabilityFakeCond_cfi.py
 RecoTracker/MeasurementDet		MeasurementTrackerESProducer_cfi.py
 RecoTracker/TkSeedingLayers             PixelAndStripLayerPairs_cfi.py
 RecoTracker/TkSeedingLayers		TobTecLayerPairs_cfi.py
