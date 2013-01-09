@@ -76,7 +76,7 @@ public class ConfigurationTreeTransferHandler extends TransferHandler
     //
 
     /** get a drag image from the currently dragged node (if any) */
-    public static BufferedImage getDragImage() { return dragImage; }
+    public static BufferedImage getDragImageUser() { return dragImage; }
 
     /** get the dragged source node */
     public static Object getSourceNode() { return sourceNode; }

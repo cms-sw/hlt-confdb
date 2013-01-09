@@ -136,7 +136,7 @@ private Insets autoscrollInsets = new Insets(30, 30, 30, 30);
     /** paint the dragged node  */
     private final void paintImage(JTree tree, Point pt)
     {
-	BufferedImage image = ConfigurationTreeTransferHandler.getDragImage();
+	BufferedImage image = ConfigurationTreeTransferHandler.getDragImageUser();
   	if(image != null) {
 	    tree.paintImmediately(rect2D.getBounds());
 	    rect2D.setRect((int)pt.getX()-15,(int)pt.getY()-15,
