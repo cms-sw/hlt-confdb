@@ -1,3 +1,6 @@
+TrackerGeometricDetESModule             trackerNumberingGeometry_cfi.py
+TrackerDigiGeometryESModule             trackerGeometryDB_cfi.py
+HcalTopologyIdealEP                     HcalTopology_cfi.py
 RecoTauTag/RecoTau                      HLTPFRecoTauDiscriminationByIsolation_cfi.py
 RecoTracker/FinalTrackSelectors         trackListMerger_cfi.py
 RecoTracker/FinalTrackSelectors         simpleTrackListMerger_cfi.py
