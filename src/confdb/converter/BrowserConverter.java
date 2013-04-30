@@ -33,7 +33,7 @@ public class BrowserConverter extends OfflineConverter
 	public int getKeyFromRunSummary( int runnumber ) throws SQLException
 	{
 		if ( psSelectHltKeyFromRunSummary == null )
-			psSelectHltKeyFromRunSummary = getDatabase().getDbConnector().getConnection().prepareStatement( "SELECT HLTKEY FROM CMS_WBM.RUNSUMMARY WHERE RUNNUMBER=?" );
+			psSelectHltKeyFromRunSummary = getDatabase().getDbConnector().getConnection().prepareStatement( "SELECT HLTKEY FROM WBM_RUNSUMMARY WHERE RUNNUMBER=?" );
 		psSelectHltKeyFromRunSummary.setInt( 1, runnumber );
 		ResultSet rs = psSelectHltKeyFromRunSummary.executeQuery();
 		int key = -1;
