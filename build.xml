@@ -6,17 +6,23 @@
   Build ConfDB project.
   </description>
 
-  <property name="dir.src" location="src"/>
-  <property name="dir.ext" location="ext"/>
-  <property name="dir.build" location="classes"/>
-  <property name="dir.icons" location="icons"/>
-  <property name="dir.lib" location="lib"/>
+  <property environment="env"/>
+  <property name="dir.src"    location="src"/>
+  <property name="dir.ext"    location="ext"/>
+  <property name="dir.signed" location="ext/signed"/>
+  <property name="dir.build"  location="classes"/>
+  <property name="dir.icons"  location="icons"/>
+  <property name="dir.lib"    location="lib"/>
   <property name="dir.python" location="python"/>
 
-  <!-- initialize variables, make directories -->
+  <!-- initialize variables, make directories, make sure the libraries are signed -->
   <target name="init">
     <mkdir dir="${dir.build}"/>
     <mkdir dir="${dir.lib}"/>
+    <mkdir dir="${dir.signed}"/>
+    <signjar alias="${env.USER}" storepass="alkekengi" lazy="true" preservelastmodified="true" destdir="${dir.signed}">
+      <fileset dir="${dir.ext}" includes="*.jar"/>
+    </signjar>
   </target>
 
   <!-- compile all *.java files in src/** to *.class files in classes/** -->
@@ -34,12 +40,13 @@
       <fileset dir="${dir.build}"/>
       <fileset dir="${dir.icons}"/>
       <fileset dir="${dir.src}"><include name="conf/*"/></fileset>
-    <!-- include python FWCore --> 
-          <fileset dir="${dir.python}"/> 
+      <!-- include python FWCore --> 
+      <fileset dir="${dir.python}"/> 
       <manifest>
         <attribute name="Main-Class" value="confdb.gui.ConfDbGUI" />    
       </manifest>
     </jar>
+    <signjar alias="${env.USER}" storepass="alkekengi" lazy="true" preservelastmodified="true" jar="${dir.lib}/cmssw-evf-confdb-gui.jar"/>
   </target>
 
         
@@ -50,21 +57,22 @@
                 <fileset dir="${dir.icons}"/>
                 <fileset dir="${dir.src}"><include name="conf/*"/></fileset>
 
-                <zipfileset excludes="META-INF/**/*" src="${dir.ext}/ojdbc14.jar"/>
-                <zipfileset excludes="META-INF/**/*" src="${dir.ext}/swing-layout-1.0.jar"/>
-                <zipfileset excludes="META-INF/**/*" src="${dir.ext}/jython-2.5.2.jar"/>
-                <zipfileset excludes="META-INF/**/*" src="${dir.ext}/antlr-runtime-3.1.3.jar"/>
-                <zipfileset excludes="META-INF/**/*" src="${dir.ext}/asm-3.1.jar"/>
-                <!--<zipfileset excludes="META-INF/**/*" src="${dir.ext}/asm-commons-3.1.jar"/>-->
-                <!--<zipfileset excludes="META-INF/**/*" src="${dir.ext}/asm-util-3.1.jar"/>-->
-                <zipfileset excludes="META-INF/**/*" src="${dir.ext}/constantine-0.4.jar"/>
-                <zipfileset excludes="META-INF/**/*" src="${dir.ext}/jna.jar"/>
-                <zipfileset excludes="META-INF/**/*" src="${dir.ext}/jna-posix.jar"/>
+                <zipfileset excludes="META-INF/**/*" src="${dir.signed}/ojdbc14.jar"/>
+                <zipfileset excludes="META-INF/**/*" src="${dir.signed}/swing-layout-1.0.jar"/>
+                <zipfileset excludes="META-INF/**/*" src="${dir.signed}/jython-2.5.2.jar"/>
+                <zipfileset excludes="META-INF/**/*" src="${dir.signed}/antlr-runtime-3.1.3.jar"/>
+                <zipfileset excludes="META-INF/**/*" src="${dir.signed}/asm-3.1.jar"/>
+                <!--<zipfileset excludes="META-INF/**/*" src="${dir.signed}/asm-commons-3.1.jar"/>-->
+                <!--<zipfileset excludes="META-INF/**/*" src="${dir.signed}/asm-util-3.1.jar"/>-->
+                <zipfileset excludes="META-INF/**/*" src="${dir.signed}/constantine-0.4.jar"/>
+                <zipfileset excludes="META-INF/**/*" src="${dir.signed}/jna.jar"/>
+                <zipfileset excludes="META-INF/**/*" src="${dir.signed}/jna-posix.jar"/>
                 
                 <manifest>
                         <attribute name="Main-Class" value="confdb.gui.ConfDbGUI" />    
                 </manifest>
         </jar>
+        <signjar alias="${env.USER}" storepass="alkekengi" lazy="true" preservelastmodified="true" jar="${dir.lib}/confdb-gui-all-inclusive.jar"/>
   </target>
         
         
@@ -82,6 +90,7 @@
         <attribute name="Main-Class" value="confdb.converter.Converter" />
       </manifest>
     </jar>
+    <signjar alias="${env.USER}" storepass="alkekengi" lazy="true" preservelastmodified="true" jar="${dir.lib}/cmssw-evf-confdb-converter.jar"/>
   </target>
 
   <!-- combine converter-relevant classes into jar file -->
@@ -95,6 +104,7 @@
         <include name="conf/*"/>
       </fileset>
     </jar>
+    <signjar alias="${env.USER}" storepass="alkekengi" lazy="true" preservelastmodified="true" jar="${dir.lib}/cmssw-evf-confdb-browser.jar"/>
   </target>
 
   <!-- combine parser-relevant classes into jar file -->
@@ -106,6 +116,7 @@
         <attribute name="Main-Class" value="confdb.parser.PythonParser" />
       </manifest>
     </jar>
+    <signjar alias="${env.USER}" storepass="alkekengi" lazy="true" preservelastmodified="true" jar="${dir.lib}/cmssw-evf-confdb-parser.jar"/>
   </target>
 
   <!-- build all targets -->
@@ -115,7 +126,7 @@
   <target name="war" depends="browser,gui-all-inclusive">
     <war destfile="${dir.lib}/confdb.war" webxml="browser/WebContent/WEB-INF/web.xml">
       <lib file="${dir.lib}/cmssw-evf-confdb-browser.jar"/>
-      <lib file="${dir.ext}/mysql-connector-java-5.0.5-bin.jar"/>
+      <lib file="${dir.signed}/mysql-connector-java-5.0.5-bin.jar"/>
         
       <!-- move confdb version file in the root path of the container -->
       <fileset file="${dir.src}/conf/confdb.version"/>   
@@ -123,7 +134,7 @@
       <fileset dir="browser/WebContent" excludes="WEB-INF/web.xml"/>
       <zipfileset dir="${dir.lib}" includes="cmssw-evf-confdb-gui.jar" prefix="gui"/>
       <zipfileset dir="${dir.lib}" includes="confdb-gui-all-inclusive.jar" prefix="gui"/>
-      <zipfileset dir="${dir.ext}" prefix="gui"/>
+      <zipfileset dir="${dir.signed}" prefix="gui"/>
     </war>
   </target>
 
@@ -132,9 +143,9 @@
     <java classname="confdb.gui.ConfDbGUI" fork="true">
       <classpath>
         <pathelement location="${dir.lib}/cmssw-evf-confdb-gui.jar"/>
-        <pathelement location="${dir.ext}/ojdbc14.jar"/>
-        <pathelement location="${dir.ext}/swing-layout-1.0.jar"/>
-        <pathelement location="${dir.ext}/jython-2.5.2.jar"/>
+        <pathelement location="${dir.signed}/ojdbc14.jar"/>
+        <pathelement location="${dir.signed}/swing-layout-1.0.jar"/>
+        <pathelement location="${dir.signed}/jython-2.5.2.jar"/>
       </classpath>
     </java>
   </target>
