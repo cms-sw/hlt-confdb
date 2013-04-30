@@ -1,4 +1,8 @@
 2013-04-30 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-06-69
+	* move functionality to sign jar files into ant build.xml
+
+2013-04-30 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V01-06-68
 	* set up a VIEW over ADG to access the WBM run summary
 	* update BrowserConverter.java access WBM over ADG to map run numbers to HLT
