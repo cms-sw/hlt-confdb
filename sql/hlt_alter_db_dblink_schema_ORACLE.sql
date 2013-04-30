@@ -443,6 +443,13 @@ CREATE VIEW SoftwareSubsystems AS SELECT * FROM SoftwareSubsystems@cmsonr;
 DROP TABLE SoftwareReleases;
 CREATE VIEW SoftwareReleases AS SELECT * FROM SoftwareReleases@cmsonr;
 
+--
+-- TABLE 'WBM_RunSummary'
+-- Used by the web converter to map run numbers to hlt configurations
+--
+DROP TABLE WBM_RunSummary;
+CREATE VIEW WBM_RunSummary AS SELECT * FROM CMS_WBM.RunSummary@cmsonr;
+
 
 
 
@@ -529,6 +536,7 @@ GRANT SELECT ON Directories                       TO CMS_HLT_GUI_W;
 GRANT SELECT ON SoftwarePackages                  TO CMS_HLT_GUI_W;
 GRANT SELECT ON SoftwareSubsystems                TO CMS_HLT_GUI_W;
 GRANT SELECT ON SoftwareReleases                  TO CMS_HLT_GUI_W;
+GRANT SELECT ON WBM_RunSummary                    TO CMS_HLT_GUI_W;
 
 -- GRANT INSERT:
 GRANT INSERT ON LockedConfigurations              TO CMS_HLT_GUI_W;
@@ -610,6 +618,7 @@ GRANT SELECT ON Directories                      TO CMS_HLT_GUI_R;
 GRANT SELECT ON SoftwarePackages                 TO CMS_HLT_GUI_R;
 GRANT SELECT ON SoftwareSubsystems               TO CMS_HLT_GUI_R;
 GRANT SELECT ON SoftwareReleases                 TO CMS_HLT_GUI_R;
+GRANT SELECT ON WBM_RunSummary                   TO CMS_HLT_GUI_R;
 
 
 -- GRANT EXECUTE:
@@ -722,6 +731,7 @@ CREATE OR REPLACE SYNONYM Directories                   FOR  CMS_HLT_GUI.Directo
 CREATE OR REPLACE SYNONYM SoftwarePackages              FOR  CMS_HLT_GUI.SoftwarePackages                ; 
 CREATE OR REPLACE SYNONYM SoftwareSubsystems            FOR  CMS_HLT_GUI.SoftwareSubsystems              ; 
 CREATE OR REPLACE SYNONYM SoftwareReleases              FOR  CMS_HLT_GUI.SoftwareReleases                ; 
+CREATE OR REPLACE SYNONYM WBM_RunSummary                FOR  CMS_HLT_GUI.WBM_RunSummary                  ; 
 
 
 -- procedure synonyms:
