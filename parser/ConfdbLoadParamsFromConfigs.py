@@ -21,7 +21,11 @@ def main(argv):
 
     # User can provide a list of packages to ignore...
     input_usingblacklist = False
-    input_blacklist = []
+    input_blacklist = [
+        "FWCore/PrescaleService",
+        "FWCore/Services",
+        "HLTrigger"
+        ]
 
     # or a list of packages (and only these packages) to use
     #    input_usingwhitelist = False
@@ -359,13 +363,14 @@ class ConfdbLoadParamsfromConfigs:
                         if(skip == True):
                             continue
 
+            skip = False
             if(self.usingblacklist == True):
-                skip = False
                 for blacklists in self.blacklist:
-                    if str(blacklists) == str(validatedpackage):
+                    if str(blacklists) == str(validatedcfipackage):
                         skip = True
-                        if(skip == True):
-                            continue
+            if(skip == True):
+                self.VerbosePrint("Skipping blacklisted package " + str(validatedcfipackage),0)
+                continue
 
             # Check if this is really a directory
             if(os.path.isdir(validatedcfisource_tree + validatedcfipackage)):
@@ -376,6 +381,15 @@ class ConfdbLoadParamsfromConfigs:
                    if(subdir.startswith(".")):
                        continue
                    # Check if the user really wants to use this package
+
+                   skipsubdir = False
+                   if(self.usingblacklist == True):
+                       for blacklists in self.blacklist:
+                            if(str(blacklists) == str(validatedcfipackage)+"/"+str(subdir)):
+                                skipsubdir = True
+                   if(skipsubdir == True):
+                       self.VerbosePrint("Skipping blacklisted package/subsystem " + str(validatedcfipackage)+"/"+str(subdir),0)
+                       continue
                    
                    validatedcfipackagedir = validatedcfisource_tree + validatedcfipackage + "/" + subdir
                    
@@ -499,13 +513,15 @@ class ConfdbLoadParamsfromConfigs:
                         skip = False
                 if(skip == True):
                     continue
+
+            skip = False
             if(self.usingblacklist == True):
-                skip = False
                 for blacklists in self.blacklist:
                     if str(blacklists) == str(package):
                         skip = True
-                if(skip == True):
-                    continue
+            if(skip == True):
+                self.VerbosePrint("Skipping blacklisted package " + str(package),0)
+                continue
 
 	    # Check if this is really a directory
 	    if(os.path.isdir(source_tree + package)):
@@ -516,6 +532,15 @@ class ConfdbLoadParamsfromConfigs:
                     if(subdir.startswith(".")):
                        continue
 		    # Check if the user really wants to use this package
+
+                    skipsubdir = False
+                    if(self.usingblacklist == True):
+                        for blacklists in self.blacklist:
+                            if str(blacklists) == str(package)+"/"+str(subdir):
+                                skipsubdir = True
+                    if(skipsubdir == True):
+                        self.VerbosePrint("Skipping blacklisted package/subsystem " + str(package)+"/"+str(subdir),0)
+                        continue
 
 		    packagedir = source_tree + package + "/" + subdir
 		
