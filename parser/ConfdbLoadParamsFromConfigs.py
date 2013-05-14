@@ -498,6 +498,12 @@ class ConfdbLoadParamsfromConfigs:
             except SyntaxError:
                 print "Syntax Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
                 continue
+            except RuntimeError:
+                print "Runtime Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                continue
+            except ValueError:
+                print "Value Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                continue
 
 	# After doing the preferred cfi's, start descending into the source tree to look at all others
 	for package in packagelist:
@@ -611,6 +617,12 @@ class ConfdbLoadParamsfromConfigs:
                                 continue
                             except SyntaxError:
                                 print "Syntax Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                                continue
+                            except RuntimeError:
+                                print "Runtime Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
+                                continue
+                            except ValueError:
+                                print "Value Error exception in " + thesubsystem + "." + thepackage + "." + thecomponent
                                 continue
                             
         # For intermediate pseudo-release, migrate the unmodified templates from the base release
