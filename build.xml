@@ -167,10 +167,14 @@
   <!-- delete all class files -->
   <target name="clean">
     <delete includeemptydirs="true" quiet="true">
+      <!--
       <fileset dir="${dir.build}" includes="**/*.class"/>
       <fileset dir="${dir.build}" includes="JNLP-INF/*.JNLP"/>
       <fileset dir="${dir.lib}" includes="**/*.jar"/>
       <fileset dir="${dir.lib}" includes="**/*.war"/>
+      -->
+      <fileset dir="${dir.build}"/>
+      <fileset dir="${dir.lib}"/>
       <fileset dir="${dir.signed}"/>
     </delete>
     <echo message="clean successful"/>
