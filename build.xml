@@ -18,6 +18,7 @@
   <!-- initialize variables, make directories, make sure the libraries are signed -->
   <target name="init">
     <mkdir dir="${dir.build}"/>
+    <mkdir dir="${dir.build}/JNLP-INF"/>
     <mkdir dir="${dir.lib}"/>
     <mkdir dir="${dir.signed}"/>
   </target>
@@ -32,9 +33,8 @@
   </target>
 
   <!-- create a JNLP template based on the GUI jnlp, to be included in the signed .jar -->
-  <target name="jnlp">
+  <target name="jnlp" depends="init">
     <!--
-    <mkdir dir="${dir.build}/JNLP-INF"/>
     <copy file="browser/WebContent/gui/start.jnlp" tofile="${dir.build}/JNLP-INF/APPLICATION_TEMPLATE.JNLP" overwrite="true"/>
     <replace file="${dir.build}/JNLP-INF/APPLICATION_TEMPLATE.JNLP" token="$$$$codebase" value="*"/>
     -->
@@ -120,7 +120,7 @@
   </target>
 
   <!-- sign all external jar files -->
-  <target name="signext">
+  <target name="signext" depends="init">
     <signjar alias="${env.USER}" storepass="alkekengi" lazy="true" preservelastmodified="true" destdir="${dir.signed}">
       <fileset dir="${dir.ext}" includes="*.jar"/>
     </signjar>
