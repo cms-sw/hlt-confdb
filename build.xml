@@ -33,9 +33,11 @@
 
   <!-- create a JNLP template based on the GUI jnlp, to be included in the signed .jar -->
   <target name="jnlp">
+    <!--
     <mkdir dir="${dir.build}/JNLP-INF"/>
     <copy file="browser/WebContent/gui/start.jnlp" tofile="${dir.build}/JNLP-INF/APPLICATION_TEMPLATE.JNLP" overwrite="true"/>
     <replace file="${dir.build}/JNLP-INF/APPLICATION_TEMPLATE.JNLP" token="$$$$codebase" value="*"/>
+    -->
   </target>
 
   <!-- combine all classes into jar file -->
