@@ -20,9 +20,6 @@
     <mkdir dir="${dir.build}"/>
     <mkdir dir="${dir.lib}"/>
     <mkdir dir="${dir.signed}"/>
-    <signjar alias="${env.USER}" storepass="alkekengi" lazy="true" preservelastmodified="true" destdir="${dir.signed}">
-      <fileset dir="${dir.ext}" includes="*.jar"/>
-    </signjar>
   </target>
 
   <!-- compile all *.java files in src/** to *.class files in classes/** -->
@@ -34,8 +31,15 @@
     </javac>
   </target>
 
+  <!-- create a JNLP template based on the GUI jnlp, to be included in the signed .jar -->
+  <target name="jnlp">
+    <mkdir dir="${dir.build}/JNLP-INF"/>
+    <copy file="browser/WebContent/gui/start.jnlp" tofile="${dir.build}/JNLP-INF/APPLICATION_TEMPLATE.JNLP" overwrite="true"/>
+    <replace file="${dir.build}/JNLP-INF/APPLICATION_TEMPLATE.JNLP" token="$$$$codebase" value="*"/>
+  </target>
+
   <!-- combine all classes into jar file -->
-  <target name="gui" depends="compile">
+  <target name="gui" depends="compile,jnlp">
     <jar jarfile="${dir.lib}/cmssw-evf-confdb-gui.jar">
       <fileset dir="${dir.build}"/>
       <fileset dir="${dir.icons}"/>
@@ -46,12 +50,10 @@
         <attribute name="Main-Class" value="confdb.gui.ConfDbGUI" />    
       </manifest>
     </jar>
-    <signjar alias="${env.USER}" storepass="alkekengi" lazy="true" preservelastmodified="true" jar="${dir.lib}/cmssw-evf-confdb-gui.jar"/>
   </target>
 
-        
   <!-- create executable jar file -->
-  <target name="gui-all-inclusive" depends="compile">
+  <target name="gui-all-inclusive" depends="compile,signext">
         <jar jarfile="${dir.lib}/confdb-gui-all-inclusive.jar">
                 <fileset dir="${dir.build}"/>
                 <fileset dir="${dir.icons}"/>
@@ -72,7 +74,6 @@
                         <attribute name="Main-Class" value="confdb.gui.ConfDbGUI" />    
                 </manifest>
         </jar>
-        <signjar alias="${env.USER}" storepass="alkekengi" lazy="true" preservelastmodified="true" jar="${dir.lib}/confdb-gui-all-inclusive.jar"/>
   </target>
         
         
@@ -90,7 +91,6 @@
         <attribute name="Main-Class" value="confdb.converter.Converter" />
       </manifest>
     </jar>
-    <signjar alias="${env.USER}" storepass="alkekengi" lazy="true" preservelastmodified="true" jar="${dir.lib}/cmssw-evf-confdb-converter.jar"/>
   </target>
 
   <!-- combine converter-relevant classes into jar file -->
@@ -104,7 +104,6 @@
         <include name="conf/*"/>
       </fileset>
     </jar>
-    <signjar alias="${env.USER}" storepass="alkekengi" lazy="true" preservelastmodified="true" jar="${dir.lib}/cmssw-evf-confdb-browser.jar"/>
   </target>
 
   <!-- combine parser-relevant classes into jar file -->
@@ -116,14 +115,24 @@
         <attribute name="Main-Class" value="confdb.parser.PythonParser" />
       </manifest>
     </jar>
-    <signjar alias="${env.USER}" storepass="alkekengi" lazy="true" preservelastmodified="true" jar="${dir.lib}/cmssw-evf-confdb-parser.jar"/>
   </target>
 
-  <!-- build all targets -->
-  <target name="all" depends="compile,gui,parser,browser,converter,gui-all-inclusive,war"/>
+  <!-- sign all external jar files -->
+  <target name="signext">
+    <signjar alias="${env.USER}" storepass="alkekengi" lazy="true" preservelastmodified="true" destdir="${dir.signed}">
+      <fileset dir="${dir.ext}" includes="*.jar"/>
+    </signjar>
+  </target>
+
+  <!-- sign all compiled jar files -->
+  <target name="signlib" depends="compile,gui,parser,browser,converter,gui-all-inclusive">
+    <signjar alias="${env.USER}" storepass="alkekengi" lazy="true" preservelastmodified="true">
+      <fileset dir="${dir.lib}" includes="*.jar"/>
+    </signjar>
+  </target>
 
   <!-- combine webservice relevant files into war file -->
-  <target name="war" depends="browser,gui-all-inclusive">
+  <target name="war" depends="signext,signlib">
     <war destfile="${dir.lib}/confdb.war" webxml="browser/WebContent/WEB-INF/web.xml">
       <lib file="${dir.lib}/cmssw-evf-confdb-browser.jar"/>
       <lib file="${dir.signed}/mysql-connector-java-5.0.5-bin.jar"/>
@@ -137,6 +146,9 @@
       <zipfileset dir="${dir.signed}" prefix="gui"/>
     </war>
   </target>
+
+  <!-- build all targets -->
+  <target name="all" depends="compile,gui,parser,browser,converter,gui-all-inclusive,war"/>
 
   <!-- run the ConfDB GUI -->
   <target name="run" depends="gui" description="Start the ConfDB GUI.">
@@ -152,10 +164,12 @@
 
   <!-- delete all class files -->
   <target name="clean">
-    <delete>
+    <delete includeemptydirs="true" quiet="true">
       <fileset dir="${dir.build}" includes="**/*.class"/>
+      <fileset dir="${dir.build}" includes="JNLP-INF/*.JNLP"/>
       <fileset dir="${dir.lib}" includes="**/*.jar"/>
       <fileset dir="${dir.lib}" includes="**/*.war"/>
+      <fileset dir="${dir.signed}"/>
     </delete>
     <echo message="clean successful"/>
   </target>
