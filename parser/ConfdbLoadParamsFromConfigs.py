@@ -19,12 +19,16 @@ def main(argv):
     input_arch = os.environ.get("SCRAM_ARCH")
     input_baserelease_path = input_base_path
 
-    # User can provide a list of packages to ignore...
+    # User can provide a list of things to ignore...
+    # These can be:
+    # 1) Whole packages
+    # 2) Subsystems (Package/Subsystem)
+    # 3) Individual cfi files (Package.Subsystem.filename_cfi)
     input_usingblacklist = False
     input_blacklist = [
         "FWCore/PrescaleService",
-        "FWCore/Services",
-        "HLTrigger"
+        "DQM",
+        "HLTrigger.special.hltHcalNoiseFilter_cfi"
         ]
 
     # or a list of packages (and only these packages) to use
@@ -593,9 +597,15 @@ class ConfdbLoadParamsfromConfigs:
                         if(pyfile.endswith("_cfi.py")):
                             thecomponent = pyfile.split('.py')[0]
 
-                            # FIXME - for patchfile mode, take a list of targeted cfi's as input
-                            #if(pyfile.find("OnDemandMeasurementTrackerESProducer_cfi") != -1):
-                            #   continue
+                            #Apply blacklisting to individual cfi files too
+                            skipcfi = False
+                            if(self.usingblacklist == True):
+                                for blacklists in self.blacklist:
+                                    if str(blacklists) == str(thesubsystem + "." + thepackage + "." + thecomponent):
+                                        skipcfi = True
+                            if(skipcfi == True):
+                                self.VerbosePrint("Skipping blacklisted cfi " + str(thesubsystem + "." + thepackage + "." + thecomponent),0)
+                                continue
 
                             try:
                                 allowmultiplecfis = False
