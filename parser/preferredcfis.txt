@@ -1,3 +1,4 @@
+CalibTracker/SiStripESProducers         SiStripQualityESProducer_cfi.py
 Geometry/TrackerNumberingBuilder        trackerNumberingGeometry_cfi.py
 Geometry/TrackerGeometryBuilder         trackerGeometryDB_cfi.py
 Geometry/HcalTopologyIdealEP            HcalTopology_cfi.py
