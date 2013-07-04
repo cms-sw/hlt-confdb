@@ -11,7 +11,7 @@ my $classpath      = $confdb_gui_jar;
 if (!-e $confdb_gui_jar)
 {
     print "\nBuilding $confdb_gui_jar ...\n";
-    `ant`;
+    `ant gui`;
 
     if (-e $confdb_gui_jar)
     {
