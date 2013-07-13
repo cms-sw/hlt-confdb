@@ -61,7 +61,7 @@
                 <fileset dir="${dir.icons}"/>
                 <fileset dir="${dir.src}"><include name="conf/*"/></fileset>
 
-                <zipfileset excludes="META-INF/**/*" src="${dir.signed}/ojdbc14.jar"/>
+                <zipfileset excludes="META-INF/**/*" src="${dir.signed}/ojdbc7.jar"/>
                 <zipfileset excludes="META-INF/**/*" src="${dir.signed}/swing-layout-1.0.jar"/>
                 <zipfileset excludes="META-INF/**/*" src="${dir.signed}/jython-2.5.2.jar"/>
                 <zipfileset excludes="META-INF/**/*" src="${dir.signed}/antlr-runtime-3.1.3.jar"/>
@@ -157,7 +157,7 @@
     <java classname="confdb.gui.ConfDbGUI" fork="true">
       <classpath>
         <pathelement location="${dir.lib}/cmssw-evf-confdb-gui.jar"/>
-        <pathelement location="${dir.signed}/ojdbc14.jar"/>
+        <pathelement location="${dir.signed}/ojdbc7.jar"/>
         <pathelement location="${dir.signed}/swing-layout-1.0.jar"/>
         <pathelement location="${dir.signed}/jython-2.5.2.jar"/>
       </classpath>

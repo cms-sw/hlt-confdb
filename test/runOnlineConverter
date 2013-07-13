@@ -79,7 +79,7 @@ die "Specify either --ep and/or --sm!" if (!$do_ep && !$do_sm);
 
 my $cmd = 
     "java " .
-    "-cp ../ext/ojdbc14.jar:../lib/cmssw-evf-confdb-converter.jar " .
+    "-cp ../ext/ojdbc7.jar:../lib/cmssw-evf-confdb-converter.jar " .
     "confdb.converter.OnlineConverter " .
     "-t oracle -h $db_host -d $db_name -u $db_user -s $db_pwrd " .
     "-c $config_name";
