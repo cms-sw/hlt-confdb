@@ -25,7 +25,9 @@
 
   <!-- compile all *.java files in src/** to *.class files in classes/** -->
   <target name="compile" depends="init">
-    <javac srcdir="${dir.src}" destdir="${dir.build}" debug="true" includeantruntime="false">
+    <javac srcdir="${dir.src}" destdir="${dir.build}" debug="true" target="1.7" includeantruntime="false">
+      <compilerarg line="-Xmaxerrs 0"/>
+      <compilerarg line="-Xmaxwarns 0"/>
       <classpath>
         <fileset dir="${dir.ext}" includes="*.jar"/>
       </classpath>
@@ -62,7 +64,6 @@
                 <fileset dir="${dir.src}"><include name="conf/*"/></fileset>
 
                 <zipfileset excludes="META-INF/**/*" src="${dir.signed}/ojdbc7.jar"/>
-                <zipfileset excludes="META-INF/**/*" src="${dir.signed}/swing-layout-1.0.jar"/>
                 <zipfileset excludes="META-INF/**/*" src="${dir.signed}/jython-2.5.2.jar"/>
                 <zipfileset excludes="META-INF/**/*" src="${dir.signed}/antlr-runtime-3.1.3.jar"/>
                 <zipfileset excludes="META-INF/**/*" src="${dir.signed}/asm-3.1.jar"/>
@@ -158,7 +159,6 @@
       <classpath>
         <pathelement location="${dir.lib}/cmssw-evf-confdb-gui.jar"/>
         <pathelement location="${dir.signed}/ojdbc7.jar"/>
-        <pathelement location="${dir.signed}/swing-layout-1.0.jar"/>
         <pathelement location="${dir.signed}/jython-2.5.2.jar"/>
       </classpath>
     </java>
