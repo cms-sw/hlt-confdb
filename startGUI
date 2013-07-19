@@ -24,7 +24,7 @@ if (!-e $confdb_gui_jar)
 $classpath = $classpath . ":ext/mysql-connector-java-5.0.5-bin.jar";
 
 # add Oracle JDBC Driver to classpath
-$classpath = $classpath . ":ext/ojdbc7.jar";
+$classpath = $classpath . ":ext/ojdbc14.jar";
 
 # add standalone jython.jar for PythonInterpreter support
 $classpath = $classpath . ":ext/jython-2.5.2.jar";
