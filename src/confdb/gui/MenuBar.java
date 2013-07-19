@@ -225,7 +225,7 @@ public class MenuBar
 	configMenuJParseItem = new JMenuItem(configMenuJParse,KeyEvent.VK_J);
 	configMenuJParseItem.setActionCommand(configMenuJParse);
 	configMenuJParseItem.addActionListener(listener);
-	configMenu.add(configMenuJParseItem);
+	configMenu.addComponent(configMenuJParseItem);
 	*/
 	configMenuOpenItem = new JMenuItem(configMenuOpen,KeyEvent.VK_O);
 	configMenuOpenItem.setActionCommand(configMenuOpen);

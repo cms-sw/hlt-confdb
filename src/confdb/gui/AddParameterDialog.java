@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import org.jdesktop.layout.*;
+import javax.swing.*;
 
 import confdb.data.ParameterFactory;
 import confdb.data.Parameter;
@@ -33,11 +33,11 @@ public class AddParameterDialog extends JDialog
     /** array of valid parameter types */
     private static final String[] types =
     {
-	"",
-	"int32","uint32","int64","uint64","double","string","bool",
-	"EventID","InputTag","FileInPath","PSet",
-	"vint32","vuint32","vint64","vuint64","vdouble","vstring",
-	"VEventID","VInputTag","VPSet"
+        "",
+        "int32","uint32","int64","uint64","double","string","bool",
+        "EventID","InputTag","FileInPath","PSet",
+        "vint32","vuint32","vint64","vuint64","vdouble","vstring",
+        "VEventID","VInputTag","VPSet"
     };
     
     /** GUI components */
@@ -56,22 +56,22 @@ public class AddParameterDialog extends JDialog
     /** standard constructor */
     public AddParameterDialog(JFrame frame,boolean isTrackedDefault)
     {
-	super(frame,true);
-	setContentPane(createContentPane(isTrackedDefault));
-	jTextFieldValue.setEditable(false);
-	jComboBoxType.setEditable(false);
-	addButton.setEnabled(false);
-	setTitle("Add Parameter");
+        super(frame,true);
+        setContentPane(createContentPane(isTrackedDefault));
+        jTextFieldValue.setEditable(false);
+        jComboBoxType.setEditable(false);
+        addButton.setEnabled(false);
+        setTitle("Add Parameter");
     }
     
 
     /** Overloaded constructor*/
     public AddParameterDialog(JFrame frame)
     {
-	this(frame,false);
-	isTrackedOption = false;
-	if(!isTrackedOption)
-	    jCheckBoxTracked.setEnabled(false); 
+        this(frame,false);
+        isTrackedOption = false;
+        if(!isTrackedOption)
+            jCheckBoxTracked.setEnabled(false); 
     }
 
     //
@@ -81,52 +81,52 @@ public class AddParameterDialog extends JDialog
     /** only allow the addition of a pset! */
     public void addParameterSet()
     {
-	psetMode = true;
-	jComboBoxType.setSelectedIndex(11);
-	jComboBoxType.setEnabled(false);
+        psetMode = true;
+        jComboBoxType.setSelectedIndex(11);
+        jComboBoxType.setEnabled(false);
     }
 
     /** parameter name entered */
     public void jTextFieldNameActionPerformed(ActionEvent e)
     {
-	String name = jTextFieldName.getText();
-	if (!name.equals("")) {
-	    if (psetMode) {
-		addButton.setEnabled(true);
-	    }
-	    else {
-		jComboBoxType.setEditable(true);
-	    }
-	}
+        String name = jTextFieldName.getText();
+        if (!name.equals("")) {
+            if (psetMode) {
+                addButton.setEnabled(true);
+            }
+            else {
+                jComboBoxType.setEditable(true);
+            }
+        }
     }
     
     /** type choosen from the combo box */
     public void jComboBoxTypeActionPerformed(ActionEvent e)
     {
-	String type = (String)jComboBoxType.getSelectedItem();
-	if (type.equals("PSet")||type.equals("VPSet")) {
-	    jTextFieldValue.setEditable(false);
-	    addButton.setEnabled(true);
-	}
-	else if (!type.equals("")) {
-	    jTextFieldValue.setEditable(true);
-	    jTextFieldValue.requestFocusInWindow();
-	    addButton.setEnabled(true);
-	}
+        String type = (String)jComboBoxType.getSelectedItem();
+        if (type.equals("PSet")||type.equals("VPSet")) {
+            jTextFieldValue.setEditable(false);
+            addButton.setEnabled(true);
+        }
+        else if (!type.equals("")) {
+            jTextFieldValue.setEditable(true);
+            jTextFieldValue.requestFocusInWindow();
+            addButton.setEnabled(true);
+        }
     }
 
     /** 'Add' button pressed */
     public void addButtonActionPerformed(ActionEvent e)
     {
-	validChoice = true;
-	setVisible(false);
+        validChoice = true;
+        setVisible(false);
     }
 
     /** 'Cancel' button pressed */
     public void cancelButtonActionPerformed(ActionEvent e)
     {
-	validChoice = false;
-	setVisible(false);
+        validChoice = false;
+        setVisible(false);
     }
 
     /** valid choide? */
@@ -152,36 +152,36 @@ public class AddParameterDialog extends JDialog
     /** init GUI components [generated with NetBeans] */
     private JPanel createContentPane(boolean isTrackedDefault)
     {
-	JPanel contentPane = new JPanel();
-	
+        JPanel contentPane = new JPanel();
+        
         JLabel jLabel1 = new JLabel();
         JLabel jLabel2 = new JLabel();
         JLabel jLabel3 = new JLabel();
-	
+        
         jLabel1.setText("Name:");
         jLabel2.setText("Type:");
         jLabel3.setText("Value:");
         
-	jTextFieldName.addActionListener(new ActionListener() {
+        jTextFieldName.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 jTextFieldNameActionPerformed(evt);
             }
         });
-	
         
-	jComboBoxType.setBackground(new Color(255, 255, 255));
+        
+        jComboBoxType.setBackground(new Color(255, 255, 255));
         jComboBoxType.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 jComboBoxTypeActionPerformed(evt);
             }
         });
-	
+        
         jCheckBoxTracked.setText("tracked");
         jCheckBoxTracked.setSelected(isTrackedDefault);
         jCheckBoxTracked.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         jCheckBoxTracked.setMargin(new java.awt.Insets(0, 0, 0, 0));
-	//if (!isTrackedDefault) jCheckBoxTracked.setEnabled(false);
-	
+        //if (!isTrackedDefault) jCheckBoxTracked.setEnabled(false);
+        
         addButton.setText("Add");
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -196,78 +196,78 @@ public class AddParameterDialog extends JDialog
             }
         });
 
-	org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(contentPane);
-	contentPane.setLayout(layout);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(contentPane);
+        contentPane.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(layout.createSequentialGroup()
-                        .add(12, 12, 12)
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(layout.createSequentialGroup()
-                                .add(jLabel3,
-				     org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,
-				     org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .add(223, 223, 223))
-                            .add(layout.createSequentialGroup()
-                                .add(jTextFieldValue,
-				     org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
-                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)))
-                        .add(jCheckBoxTracked))
-                    .add(layout.createSequentialGroup()
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(12)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel3,
+                                     javax.swing.GroupLayout.DEFAULT_SIZE,
+                                     javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGap(223))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jTextFieldValue,
+                                     javax.swing.GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
+                        .addComponent(jCheckBoxTracked))
+                    .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(jLabel1)
-                            .add(jTextFieldName,
-				 org.jdesktop.layout.GroupLayout.PREFERRED_SIZE,
-				 149, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                            .add(jLabel2,
-				 org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE)
-                            .add(org.jdesktop.layout.GroupLayout.LEADING,
-				 jComboBoxType, 0, 162, Short.MAX_VALUE)))
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel1)
+                            .addComponent(jTextFieldName,
+                                 javax.swing.GroupLayout.PREFERRED_SIZE,
+                                 149, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel2,
+                                 javax.swing.GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE)
+                            .addComponent(jComboBoxType, javax.swing.GroupLayout.Alignment.LEADING,
+                                 0, 162, Short.MAX_VALUE)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addContainerGap()
-                        .add(addButton,
-			     org.jdesktop.layout.GroupLayout.PREFERRED_SIZE,
-			     84, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(cancelButton,
-			     org.jdesktop.layout.GroupLayout.PREFERRED_SIZE,
-			     85, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(addButton,
+                             javax.swing.GroupLayout.PREFERRED_SIZE,
+                             84, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cancelButton,
+                             javax.swing.GroupLayout.PREFERRED_SIZE,
+                             85, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jLabel1)
-                    .add(jLabel2))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jComboBoxType,
-			 org.jdesktop.layout.GroupLayout.PREFERRED_SIZE,
-			 org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(jTextFieldName,
-			 org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 23, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jLabel3)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jCheckBoxTracked)
-                    .add(jTextFieldValue,
-			 org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 35, Short.MAX_VALUE)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(addButton)
-                    .add(cancelButton))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jComboBoxType,
+                         javax.swing.GroupLayout.PREFERRED_SIZE,
+                         javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jTextFieldName,
+                         javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jCheckBoxTracked)
+                    .addComponent(jTextFieldValue,
+                         javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 35, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(addButton)
+                    .addComponent(cancelButton))
                 .addContainerGap())
         );
 
-	return contentPane;
+        return contentPane;
     }
 
 }

@@ -45,10 +45,10 @@ import java.util.concurrent.TimeoutException;
  * 
  *   public SwingWorkerDemo() {
  *     status = new javax.swing.JLabel("Ready");
- *     status.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
- *     getContentPane().add(status, java.awt.BorderLayout.CENTER);
+ *     status.setHorizontalAlignment(javax.swing.GroupLayout.Alignment.CENTER);
+ *     getContentPane().addComponent(status, java.awt.BorderLayout.CENTER);
  *     start = new javax.swing.JButton("Start");
- *     getContentPane().add(start, java.awt.BorderLayout.SOUTH);
+ *     getContentPane().addComponent(start, java.awt.BorderLayout.SOUTH);
  * 
  *     start.addActionListener(new java.awt.event.ActionListener() {
  *       public void actionPerformed(java.awt.event.ActionEvent evt) {

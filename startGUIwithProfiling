@@ -26,9 +26,6 @@ $classpath = $classpath . ":ext/mysql-connector-java-5.0.5-bin.jar";
 # add Oracle JDBC Driver to classpath
 $classpath = $classpath . ":ext/ojdbc7.jar";
 
-# add swing-layout-1.0.jar to classpath for org.jdesktop.layout.* support
-$classpath = $classpath . ":ext/swing-layout-1.0.jar";
-
 # add standalone jython.jar for PythonInterpreter support
 $classpath = $classpath . ":ext/jython-2.5.2.jar";
 

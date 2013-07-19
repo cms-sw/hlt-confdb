@@ -14,7 +14,6 @@
     <jar href="confdb.jar" main="true" download="eager"/>
     <jar href="mysql-connector-java-5.0.5-bin.jar" download="eager"/>
     <jar href="ojdbc7.jar" download="eager"/>
-    <jar href="swing-layout-1.0.jar" download="eager"/>
   </resources>
   <application-desc main-class="confdb.gui.ConfDbGUI">
   </application-desc>
