@@ -1,3 +1,8 @@
+2013-08-01 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-07-03
+	* update Oracle JDBC to version 12.1.0.1 for Java 6
+	* migrate from org.jdesktop.layout.GroupLayout (Swing Layout) to javax.swing.GroupLayout (included in JDK 1.6+)
+
 2013-07-19 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V01-07-02
 	* roll back Oracle JDBC drivers to 10.2.0.2
