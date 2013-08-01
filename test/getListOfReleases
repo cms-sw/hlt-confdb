@@ -57,7 +57,7 @@ while (@ARGV)
 
 my $cmd =
     "java " .
-    "-cp ../ext/ojdbc7.jar:../lib/cmssw-evf-confdb-gui.jar confdb.db.ConfDB " . 
+    "-cp ../ext/ojdbc6.jar:../lib/cmssw-evf-confdb-gui.jar confdb.db.ConfDB " . 
     "-h $db_host -d $db_name -u $db_user -s $db_pwrd --listReleases";
 
 

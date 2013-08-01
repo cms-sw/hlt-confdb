@@ -24,7 +24,7 @@ if (!-e $confdb_gui_jar)
 $classpath = $classpath . ":ext/mysql-connector-java-5.0.5-bin.jar";
 
 # add Oracle JDBC Driver to classpath
-$classpath = $classpath . ":ext/ojdbc7.jar";
+$classpath = $classpath . ":ext/ojdbc6.jar";
 
 # add swing-layout-1.0.jar to classpath for org.jdesktop.layout.* support
 $classpath = $classpath . ":ext/swing-layout-1.0.jar";
