@@ -92,74 +92,47 @@ public class SoftwareReleaseDialog extends JDialog
 	    });
 	// END ADDED BY HAND
 	    
-	    org.jdesktop.layout.GroupLayout layout =
-	    new org.jdesktop.layout.GroupLayout(jPanel);
+	    javax.swing.GroupLayout layout =
+	    new javax.swing.GroupLayout(jPanel);
         jPanel.setLayout(layout);
-        layout
-	    .setHorizontalGroup(layout
-				.createParallelGroup(org.jdesktop
-						     .layout.GroupLayout.LEADING)
-				.add(layout.createSequentialGroup()
+        layout.setHorizontalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup()
 				     .addContainerGap()
-				     .add(layout
-					  .createParallelGroup(org.jdesktop
-							       .layout
-							       .GroupLayout.LEADING)
-					  .add(layout.createSequentialGroup()
-					       .add(jScrollPaneSoftwareRelease,
-						    org.jdesktop
-						    .layout.GroupLayout
-						    .DEFAULT_SIZE,
+				     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+					  .addGroup(layout.createSequentialGroup()
+					       .addComponent(jScrollPaneSoftwareRelease,
+						    javax.swing.GroupLayout.DEFAULT_SIZE,
 						    395, Short.MAX_VALUE)
 					       .addContainerGap())
-					  .add(layout.createSequentialGroup()
-					       .add(jLabelReleaseTag)
-					       .addPreferredGap(org.jdesktop
-								.layout.LayoutStyle
-								.RELATED)
-					       .add(jTextFieldReleaseTag,
-						    org.jdesktop
-						    .layout.GroupLayout
-						    .DEFAULT_SIZE, 310,
+					  .addGroup(layout.createSequentialGroup()
+					       .addComponent(jLabelReleaseTag)
+					       .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+					       .addComponent(jTextFieldReleaseTag,
+						    javax.swing.GroupLayout.DEFAULT_SIZE, 310,
 						    Short.MAX_VALUE)
 					       .addContainerGap())
-					  .add(layout.createSequentialGroup()
-					       .add(155, 155, 155)
-					       .add(jButtonDone,
-						    org.jdesktop
-						    .layout.GroupLayout
-						    .DEFAULT_SIZE, 88,
+					  .addGroup(layout.createSequentialGroup()
+					       .addGap(155)
+					       .addComponent(jButtonDone,
+						    javax.swing.GroupLayout.DEFAULT_SIZE, 88,
 						    Short.MAX_VALUE)
-					       .add(164, 164, 164))))
+					       .addGap(164))))
 				);
-        layout
-	    .setVerticalGroup(layout
-			      .createParallelGroup(org.jdesktop
-						   .layout.GroupLayout.LEADING)
-			      .add(layout.createSequentialGroup()
+        layout.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+			      .addGroup(layout.createSequentialGroup()
 				   .addContainerGap()
-				   .add(layout
-					.createParallelGroup(org.jdesktop
-							     .layout.GroupLayout
-							     .BASELINE)
-					.add(jLabelReleaseTag)
-					.add(jTextFieldReleaseTag,
-					     org.jdesktop
-					     .layout.GroupLayout
-					     .PREFERRED_SIZE,
-					     org.jdesktop
-					     .layout.GroupLayout.DEFAULT_SIZE,
-					     org.jdesktop
-					     .layout.GroupLayout.PREFERRED_SIZE))
-				   .addPreferredGap(org.jdesktop
-						    .layout.LayoutStyle.RELATED)
-				   .add(jScrollPaneSoftwareRelease,
-					org.jdesktop
-					.layout.GroupLayout.DEFAULT_SIZE, 391,
+				   .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					.addComponent(jLabelReleaseTag)
+					.addComponent(jTextFieldReleaseTag,
+					     javax.swing.GroupLayout.PREFERRED_SIZE,
+					     javax.swing.GroupLayout.DEFAULT_SIZE,
+					     javax.swing.GroupLayout.PREFERRED_SIZE))
+				   .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+				   .addComponent(jScrollPaneSoftwareRelease,
+					javax.swing.GroupLayout.DEFAULT_SIZE, 391,
 					Short.MAX_VALUE)
-				   .addPreferredGap(org.jdesktop
-						    .layout.LayoutStyle.RELATED)
-				   .add(jButtonDone)
+				   .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+				   .addComponent(jButtonDone)
 				   .addContainerGap())
 			      );
 	return jPanel;

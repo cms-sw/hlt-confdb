@@ -50,27 +50,27 @@ public class EditDatasetDialog extends JDialog
     // construction
     //
     public EditDatasetDialog(JFrame frame,
-			     Configuration config,
-			     PrimaryDataset dataset)
+                             Configuration config,
+                             PrimaryDataset dataset)
     {
-	super(frame,true);
-	this.config = config;
-	this.dataset = dataset;
-	setContentPane(initComponents(frame.getSize()));
-	setTitle("Edit Primary Dataset > " + dataset.name() + " <");
-	
-	jButtonCancel.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent evt) {
-		    setVisible(false);
-		}
-	    });
+        super(frame,true);
+        this.config = config;
+        this.dataset = dataset;
+        setContentPane(initComponents(frame.getSize()));
+        setTitle("Edit Primary Dataset > " + dataset.name() + " <");
+        
+        jButtonCancel.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent evt) {
+                    setVisible(false);
+                }
+            });
 
-	jButtonOk.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent evt) {
-		    jButtonOkActionPerformed(evt);
+        jButtonOk.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent evt) {
+                    jButtonOkActionPerformed(evt);
 
-		}
-	    });
+                }
+            });
     }
     
     
@@ -81,98 +81,98 @@ public class EditDatasetDialog extends JDialog
     /** update path list based on check boxes */
     private void updatePathList()
     {
-	DefaultListModel lm = (DefaultListModel)(jListPaths.getModel());
-	lm.removeAllElements();
-	Iterator<JCheckBox> itCB = pathCheckBoxes.iterator();
-	while (itCB.hasNext()) {
-	    JCheckBox cb = itCB.next();
-	    if (cb.isSelected()) {
-		String pathName = cb.getActionCommand();
-		if (dataset.path(pathName)==null)
-		    pathName="<html><font color=#ff0000>" + pathName + "</font></html>";
-		lm.addElement(pathName);
-	    }
-	}
+        DefaultListModel lm = (DefaultListModel)(jListPaths.getModel());
+        lm.removeAllElements();
+        Iterator<JCheckBox> itCB = pathCheckBoxes.iterator();
+        while (itCB.hasNext()) {
+            JCheckBox cb = itCB.next();
+            if (cb.isSelected()) {
+                String pathName = cb.getActionCommand();
+                if (dataset.path(pathName)==null)
+                    pathName="<html><font color=#ff0000>" + pathName + "</font></html>";
+                lm.addElement(pathName);
+            }
+        }
     }
     
     /** ItemListener for path check-boxes */
     private void cbItemStateChanged(ItemEvent e)
     {
-	updatePathList();
+        updatePathList();
     }
 
     /** ActionListener for OK button */
     private void jButtonOkActionPerformed(ActionEvent e)
     {
-	ArrayList<String> pathNames = new ArrayList<String>();
-	Iterator<JCheckBox> itCB = pathCheckBoxes.iterator();
-	
-	while (itCB.hasNext()) {
-	    JCheckBox cb = itCB.next();
-	    if (cb.isSelected()) pathNames.add(cb.getActionCommand());
-	}
-	dataset.clear();
-	Iterator<String> itS = pathNames.iterator();
-	while (itS.hasNext())
-	    dataset.insertPath(config.path(itS.next()));
-	setVisible(false);	
+        ArrayList<String> pathNames = new ArrayList<String>();
+        Iterator<JCheckBox> itCB = pathCheckBoxes.iterator();
+        
+        while (itCB.hasNext()) {
+            JCheckBox cb = itCB.next();
+            if (cb.isSelected()) pathNames.add(cb.getActionCommand());
+        }
+        dataset.clear();
+        Iterator<String> itS = pathNames.iterator();
+        while (itS.hasNext())
+            dataset.insertPath(config.path(itS.next()));
+        setVisible(false);      
     }
 
     /** initizlize GUI components */
     private JPanel initComponents(Dimension size)
     {
-	JPanel      jPanel           = new JPanel();
+        JPanel      jPanel           = new JPanel();
         JScrollPane jScrollPanePaths = new JScrollPane();
         JScrollPane jScrollPaneList  = new JScrollPane();
         JPanel      jPanelPaths      = new JPanel();
 
-	jListPaths.setModel(new DefaultListModel());
-	
-	jPanelPaths.setLayout(new GridLayout(0,2));
-	ArrayList<Path> paths = new ArrayList<Path>();
-	Iterator<Path> itP = config.pathIterator();
-	while (itP.hasNext()) {
-	    Path path = itP.next();
-	    if (!path.isEndPath()) paths.add(path);
-	}
-	Collections.sort(paths);
-	itP = paths.iterator();
-	while (itP.hasNext()) {
-	    Path   path    = itP.next();
-	    Stream stream = dataset.parentStream();
-	    String cbText = path.name();
+        jListPaths.setModel(new DefaultListModel());
+        
+        jPanelPaths.setLayout(new GridLayout(0,2));
+        ArrayList<Path> paths = new ArrayList<Path>();
+        Iterator<Path> itP = config.pathIterator();
+        while (itP.hasNext()) {
+            Path path = itP.next();
+            if (!path.isEndPath()) paths.add(path);
+        }
+        Collections.sort(paths);
+        itP = paths.iterator();
+        while (itP.hasNext()) {
+            Path   path    = itP.next();
+            Stream stream = dataset.parentStream();
+            String cbText = path.name();
 
-	    JCheckBox cb = new JCheckBox(cbText);
-	    cb.setActionCommand(path.name());
+            JCheckBox cb = new JCheckBox(cbText);
+            cb.setActionCommand(path.name());
 
-	    
-	    if (dataset.indexOfPath(path)>=0) cb.setSelected(true);
-	    // Blue if unassigned path.
-	    if(stream.listOfUnassignedPaths().indexOf(path)>=0) cb.setBackground(Color.blue);
-	    
-	    // Red if this exist in any other dataset of the same stream.
-	    ArrayList<PrimaryDataset> pds = stream.datasets(path);
-    	for(int i = 0; i < pds.size(); i++){
-    		PrimaryDataset ds = pds.get(i);
-    		if(!ds.equals(dataset)) {
-    			cb.setBackground(Color.red);
-    			break;
-    		}
-    	} 
-	    	
-	    
-	    
-	    cb.addItemListener(new ItemListener() {
-		    public void itemStateChanged(ItemEvent e) {
-			cbItemStateChanged(e);
-		    }
-		});
-	    pathCheckBoxes.add(cb);
-	    jPanelPaths.add(cb);
-	}
-	
-	updatePathList();
-	
+            
+            if (dataset.indexOfPath(path)>=0) cb.setSelected(true);
+            // Blue if unassigned path.
+            if(stream.listOfUnassignedPaths().indexOf(path)>=0) cb.setBackground(Color.blue);
+            
+            // Red if this exist in any other dataset of the same stream.
+            ArrayList<PrimaryDataset> pds = stream.datasets(path);
+        for(int i = 0; i < pds.size(); i++){
+                PrimaryDataset ds = pds.get(i);
+                if(!ds.equals(dataset)) {
+                        cb.setBackground(Color.red);
+                        break;
+                }
+        } 
+                
+            
+            
+            cb.addItemListener(new ItemListener() {
+                    public void itemStateChanged(ItemEvent e) {
+                        cbItemStateChanged(e);
+                    }
+                });
+            pathCheckBoxes.add(cb);
+            jPanelPaths.add(cb);
+        }
+        
+        updatePathList();
+        
         jScrollPanePaths.setViewportView(jPanelPaths);
         jButtonOk.setText("Ok");
         jButtonCancel.setText("Cancel");
@@ -187,57 +187,55 @@ public class EditDatasetDialog extends JDialog
         JTextArea redBox = new JTextArea(" ");
         redBox.setBackground(Color.red);
 
-	org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanel);
-	jPanel.setLayout(layout);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jPanel);
+        jPanel.setLayout(layout);
         layout.setHorizontalGroup(
-				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				  .add(layout.createSequentialGroup()
-				       .addContainerGap()
-				       .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-					    .add(layout.createSequentialGroup()
-						 .add(jScrollPaneList, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 200, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						 .add(jScrollPanePaths, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, (int)(size.getWidth()-205), Short.MAX_VALUE)
-						 .addContainerGap())
-					    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-			    		 .add(blueBox, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-			    		 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-			    		 .add(unassignedPath, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 140, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
- 						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-			    		 .add(redBox, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-			    		 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-			    		 .add(sharedPath, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 140, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
- 						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						 .add(jButtonCancel)
-						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						 .add(jButtonOk)
-						 .addContainerGap()
-
-						 )))
-				  );
-	
-        layout.linkSize(new java.awt.Component[] {jButtonCancel, jButtonOk}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
-	
+                                  layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                  .addGroup(layout.createSequentialGroup()
+                                       .addContainerGap()
+                                       .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addGroup(layout.createSequentialGroup()
+                                                 .addComponent(jScrollPaneList, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                 .addComponent(jScrollPanePaths, javax.swing.GroupLayout.DEFAULT_SIZE, (int)(size.getWidth()-205), Short.MAX_VALUE)
+                                                 .addContainerGap())
+                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                                 .addComponent(blueBox, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                 .addComponent(unassignedPath, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                 .addComponent(redBox, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                 .addComponent(sharedPath, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                 .addComponent(jButtonCancel)
+                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                 .addComponent(jButtonOk)
+                                                 .addContainerGap())))
+                                  );
+        
+        layout.linkSize(SwingConstants.HORIZONTAL, new java.awt.Component[] {jButtonCancel, jButtonOk});
+        
         layout.setVerticalGroup(
-				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				.add(layout.createSequentialGroup()
-				     .addContainerGap()
-				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-					  .add(org.jdesktop.layout.GroupLayout.LEADING, jScrollPanePaths, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 460, Short.MAX_VALUE)
-					  .add(org.jdesktop.layout.GroupLayout.LEADING, jScrollPaneList, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 460, Short.MAX_VALUE))
-				     .add(8, 8, 8)
-				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-					  .add(jButtonOk)
-					  .add(jButtonCancel)
-					  .add(redBox, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-					  .add(sharedPath)
-					  .add(blueBox, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-					  .add(unassignedPath)
-					  )
-					  .addContainerGap()
-					  )
-				);
-	
-	return jPanel;
+                                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createSequentialGroup()
+                                     .addContainerGap()
+                                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                          .addComponent(jScrollPanePaths, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 460, Short.MAX_VALUE)
+                                          .addComponent(jScrollPaneList,  javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 460, Short.MAX_VALUE))
+                                     .addGap(8)
+                                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                          .addComponent(jButtonOk)
+                                          .addComponent(jButtonCancel)
+                                          .addComponent(redBox,  javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                          .addComponent(sharedPath)
+                                          .addComponent(blueBox, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                          .addComponent(unassignedPath)
+                                          )
+                                          .addContainerGap()
+                                          )
+                                );
+        
+        return jPanel;
     }
 }

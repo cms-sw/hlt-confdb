@@ -299,7 +299,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 	//popupPSets.addSeparator();
 	//menuItem = new JMenuItem("Sort");
 	//menuItem.addActionListener(psetListener);
-	//popupPSets.add(menuItem);
+	//popupPSets.addComponent(menuItem);
 	//}
     }
     
@@ -611,7 +611,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 					subMenuItem = new JMenuItem(dataset.name());
 					subMenuItem.addActionListener(streamListener);
 					subMenuItem.setActionCommand("ADDPATHTO:"+dataset.name());
-					menuItem.add(subMenuItem);
+					menuItem.addComponent(subMenuItem);
 				}
 			} else {
 				// GREYED OUT STREAM:
@@ -667,7 +667,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 						subMenuItem.setActionCommand("REMOVEPATH:"+dataset.name());
 						subMenuItem.setEnabled(true);
 					}
-					menuItem.add(subMenuItem);
+					menuItem.addComponent(subMenuItem);
 				}
 			} else {
 				// GREYED OUT STREAM:
@@ -1174,7 +1174,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter
 						subMenuItem = new JMenuItem(dataset.name());
 						subMenuItem.addActionListener(streamListener);
 						subMenuItem.setActionCommand("ADDPATHTO:"+dataset.name());
-						menuItem.add(subMenuItem);
+						menuItem.addComponent(subMenuItem);
 					}
 				} else {
 					// GREYED OUT STREAM:

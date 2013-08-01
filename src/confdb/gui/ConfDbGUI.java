@@ -1435,54 +1435,54 @@ public class ConfDbGUI
     	    
     	    
     	    
-    	    org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(infoPanel);
+    	    javax.swing.GroupLayout layout = new javax.swing.GroupLayout(infoPanel);
     	    infoPanel.setLayout(layout);
     	    infoPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
     	    
     	 // Using TRAILING alignment the button will be aligned to the right.
     	    layout.setHorizontalGroup(layout.createSequentialGroup()
-    	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-    	    		.add(DatabaseProductVersion, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
-    	    		.add(DriverName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
-    	    		.add(DriverVersion, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
-    	    		.add(DatabaseHost, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
-    	    		.add(DatabaseName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
-    	    		.add(elapsedTimeOpenConfiguration, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
+    	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+    	    		.addComponent(DatabaseProductVersion, javax.swing.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
+    	    		.addComponent(DriverName, javax.swing.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
+    	    		.addComponent(DriverVersion, javax.swing.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
+    	    		.addComponent(DatabaseHost, javax.swing.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
+    	    		.addComponent(DatabaseName, javax.swing.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
+    	    		.addComponent(elapsedTimeOpenConfiguration, javax.swing.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
     	    		
-    	    		.add(jlabelExtraPathsAvailability, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE))
-    	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-		    		.add(DatabaseProductVersionValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-		    		.add(DriverNameValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-		    		.add(DriverVersionValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-		    		.add(DatabaseHostValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-		    		.add(DatabaseNameValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-		    		.add(elapsedTimeOpenConfigurationValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+    	    		.addComponent(jlabelExtraPathsAvailability, javax.swing.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE))
+    	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+		    		.addComponent(DatabaseProductVersionValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		    		.addComponent(DriverNameValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		    		.addComponent(DriverVersionValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		    		.addComponent(DatabaseHostValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		    		.addComponent(DatabaseNameValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		    		.addComponent(elapsedTimeOpenConfigurationValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 		    		
-    	    		.add(ico1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25))
+    	    		.addComponent(ico1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, 25))
     	    );
     	    
     	    layout.setVerticalGroup(layout.createSequentialGroup()
-        	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)	
-        	    		.add(DatabaseProductVersion, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
-        	    		.add(DatabaseProductVersionValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
-        	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)	
-        	    		.add(DriverName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
-        	    		.add(DriverNameValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
-        	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)	
-        	    		.add(DriverVersion, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
-        	    		.add(DriverVersionValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
-        	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-        	    		.add(DatabaseHost, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
-        	    		.add(DatabaseHostValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
-        	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-        	    		.add(DatabaseName, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
-        	    		.add(DatabaseNameValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
-        	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-        	    		.add(elapsedTimeOpenConfiguration, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
-        	    		.add(elapsedTimeOpenConfigurationValue, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
-	    	    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-	    	    		.add(jlabelExtraPathsAvailability, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 25)
-	    	    		.add(ico1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25))
+        	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)	
+        	    		.addComponent(DatabaseProductVersion, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
+        	    		.addComponent(DatabaseProductVersionValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
+        	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)	
+        	    		.addComponent(DriverName, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
+        	    		.addComponent(DriverNameValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
+        	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)	
+        	    		.addComponent(DriverVersion, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
+        	    		.addComponent(DriverVersionValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
+        	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+        	    		.addComponent(DatabaseHost, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
+        	    		.addComponent(DatabaseHostValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
+        	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+        	    		.addComponent(DatabaseName, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
+        	    		.addComponent(DatabaseNameValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
+        	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+        	    		.addComponent(elapsedTimeOpenConfiguration, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
+        	    		.addComponent(elapsedTimeOpenConfigurationValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
+	    	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+	    	    		.addComponent(jlabelExtraPathsAvailability, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 25)
+	    	    		.addComponent(ico1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, 25))
     	    );
 
         
@@ -3835,7 +3835,7 @@ public class ConfDbGUI
 	  if (lsm.isSelectionEmpty()) {
 	  
 	  // Top
-	  item = new JMenuItem("Top"); menu.add(item);
+	  item = new JMenuItem("Top"); menu.addComponent(item);
 	    item.setActionCommand(content.name()+":"+index);
 	    item.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
@@ -3845,7 +3845,7 @@ public class ConfDbGUI
 	    if (index==0) item.setEnabled(false);
 	    
 	    // Up
-	    item = new JMenuItem("Up");     menu.add(item);
+	    item = new JMenuItem("Up");     menu.addComponent(item);
 	    item.setActionCommand(content.name()+":"+
 	    content.indexOfCommand(command));
 	    item.addActionListener(new ActionListener() {
@@ -3856,7 +3856,7 @@ public class ConfDbGUI
 	    if (index==0) item.setEnabled(false);
 	    
 	    // Down
-	    item = new JMenuItem("Down");   menu.add(item);
+	    item = new JMenuItem("Down");   menu.addComponent(item);
 	    item.setActionCommand(content.name()+":"+
 	    content.indexOfCommand(command));
 	    item.addActionListener(new ActionListener() {
@@ -3867,7 +3867,7 @@ public class ConfDbGUI
 	    if (index==content.commandCount()-1) item.setEnabled(false);
 	    
 	    // Bottom
-	    item = new JMenuItem("Bottom"); menu.add(item);
+	    item = new JMenuItem("Bottom"); menu.addComponent(item);
 	    item.setActionCommand(content.name()+":"+
 	    content.indexOfCommand(command));
 	    item.addActionListener(new ActionListener() {
@@ -4179,71 +4179,71 @@ public class ConfDbGUI
         jTextFieldCreator.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
 
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelLeft);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jPanelLeft);
         jPanelLeft.setLayout(layout);
         layout.setHorizontalGroup(
-				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				  .add(layout.createSequentialGroup()
+				  layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				  .addGroup(layout.createSequentialGroup()
 				       .addContainerGap()
-				       .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+				       .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 					    
-					    .add(jPanelCurrentConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
-					    .add(layout.createSequentialGroup()
-						 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-						      .add(jLabelConfig)
-						      .add(jLabelProcess)
-						      .add(jLabelCreated))
-						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-						      .add(layout.createSequentialGroup()
-							   .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-								.add(org.jdesktop.layout.GroupLayout.LEADING, jTextFieldCreated, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE)
-								.add(org.jdesktop.layout.GroupLayout.LEADING, jTextFieldProcess, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE))
-							   .add(22, 22, 22)
-							   .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-								.add(layout.createSequentialGroup()
-								     .add(jLabelRelease)
-								     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-								     .add(jButtonRelease, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE))
-								.add(layout.createSequentialGroup()
-								     .add(jLabelCreator)
-								     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-								     .add(jTextFieldCreator, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 117, Short.MAX_VALUE))))
-						      .add(layout.createSequentialGroup()
-							   .add(jTextFieldCurrentConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
-							   .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-							   .add(jLabelLock, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
-						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)))
+					    .addComponent(jPanelCurrentConfig, javax.swing.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
+					    .addGroup(layout.createSequentialGroup()
+						 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						      .addComponent(jLabelConfig)
+						      .addComponent(jLabelProcess)
+						      .addComponent(jLabelCreated))
+						 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						      .addGroup(layout.createSequentialGroup()
+							   .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+								.addComponent(jTextFieldCreated, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE)
+								.addComponent(jTextFieldProcess, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE))
+							   .addGap(22)
+							   .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+								.addGroup(layout.createSequentialGroup()
+								     .addComponent(jLabelRelease)
+								     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+								     .addComponent(jButtonRelease, javax.swing.GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE))
+								.addGroup(layout.createSequentialGroup()
+								     .addComponent(jLabelCreator)
+								     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+								     .addComponent(jTextFieldCreator, javax.swing.GroupLayout.DEFAULT_SIZE, 117, Short.MAX_VALUE))))
+						      .addGroup(layout.createSequentialGroup()
+							   .addComponent(jTextFieldCurrentConfig, javax.swing.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
+							   .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+							   .addComponent(jLabelLock, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)))
+						 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
 				       .addContainerGap())
 				  );
         layout.setVerticalGroup(
-				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				.add(layout.createSequentialGroup()
+				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup()
 				     .addContainerGap()
-				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-					  .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-					       .add(jLabelConfig)
-					       .add(jTextFieldCurrentConfig, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-					  .add(jLabelLock, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 17, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-					  .add(jLabelProcess)
-					  .add(jLabelRelease)
-					  .add(jTextFieldProcess, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-					  .add(jButtonRelease, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 17, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-					  .add(jLabelCreated)
-					  .add(jTextFieldCreated, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-					  .add(jLabelCreator)
-					  .add(jTextFieldCreator, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-				     .add(jPanelCurrentConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 508, Short.MAX_VALUE)
+				     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+					  .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					       .addComponent(jLabelConfig)
+					       .addComponent(jTextFieldCurrentConfig, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+					  .addComponent(jLabelLock, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE))
+				     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+				     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					  .addComponent(jLabelProcess)
+					  .addComponent(jLabelRelease)
+					  .addComponent(jTextFieldProcess, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+					  .addComponent(jButtonRelease, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE))
+				     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+				     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					  .addComponent(jLabelCreated)
+					  .addComponent(jTextFieldCreated, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+					  .addComponent(jLabelCreator)
+					  .addComponent(jTextFieldCreator, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+				     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+				     .addComponent(jPanelCurrentConfig, javax.swing.GroupLayout.DEFAULT_SIZE, 508, Short.MAX_VALUE)
 				     .addContainerGap())
 				);
 
-        layout.linkSize(new java.awt.Component[] {jButtonRelease, jLabelRelease, jTextFieldProcess}, org.jdesktop.layout.GroupLayout.VERTICAL);
-        layout.linkSize(new java.awt.Component[] {jLabelLock, jTextFieldCurrentConfig}, org.jdesktop.layout.GroupLayout.VERTICAL);
+        layout.linkSize(SwingConstants.VERTICAL, new java.awt.Component[] {jButtonRelease, jLabelRelease, jTextFieldProcess});
+        layout.linkSize(SwingConstants.VERTICAL, new java.awt.Component[] {jLabelLock, jTextFieldCurrentConfig});
     }
     
     /** create the Import Configuration part of the configuration panel */
@@ -4260,32 +4260,32 @@ public class ConfDbGUI
 
         jScrollPaneImportConfig.setViewportView(jTreeImportConfig);
 
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelImportConfig);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jPanelImportConfig);
         jPanelImportConfig.setLayout(layout);
         layout.setHorizontalGroup(
-				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				  .add(layout.createSequentialGroup()
-				       .add(jLabelImportSearch)
-				       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-				       .add(jTextFieldImportSearch, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE)
-				       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-				       .add(jButtonImportCancelSearch, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 17, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-				  .add(jScrollPaneImportConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE)
+				  layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				  .addGroup(layout.createSequentialGroup()
+				       .addComponent(jLabelImportSearch)
+				       .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+				       .addComponent(jTextFieldImportSearch, javax.swing.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE)
+				       .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+				       .addComponent(jButtonImportCancelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE))
+				  .addComponent(jScrollPaneImportConfig, javax.swing.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE)
 				  );
         layout.setVerticalGroup(
-				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				.add(layout.createSequentialGroup()
+				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup()
 				     .addContainerGap()
-				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-					  .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-					       .add(jLabelImportSearch)
-					       .add(jTextFieldImportSearch, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-					  .add(jButtonImportCancelSearch, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-				     .add(jScrollPaneImportConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 367, Short.MAX_VALUE))
+				     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+					  .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					       .addComponent(jLabelImportSearch)
+					       .addComponent(jTextFieldImportSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+					  .addComponent(jButtonImportCancelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE))
+				     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+				     .addComponent(jScrollPaneImportConfig, javax.swing.GroupLayout.DEFAULT_SIZE, 367, Short.MAX_VALUE))
 				);
 
-	layout.linkSize(new java.awt.Component[] {jButtonImportCancelSearch, jTextFieldImportSearch}, org.jdesktop.layout.GroupLayout.VERTICAL);
+	layout.linkSize(SwingConstants.VERTICAL, new java.awt.Component[] {jButtonImportCancelSearch, jTextFieldImportSearch});
     }
     
     /** create the 'Configuration' panel (tab1 in left panel) */
@@ -4312,40 +4312,40 @@ public class ConfDbGUI
 	
 	jSplitPaneCurrentConfig.setRightComponent(jPanelImportConfig);
 
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelCurrentConfig);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jPanelCurrentConfig);
         jPanelCurrentConfig.setLayout(layout);
         layout.setHorizontalGroup(
-				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				  .add(layout.createSequentialGroup()
+				  layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				  .addGroup(layout.createSequentialGroup()
 				       .addContainerGap()
-				       .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-					    .add(jSplitPaneCurrentConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 363, Short.MAX_VALUE)
-					    .add(layout.createSequentialGroup()
-						 .add(jLabelSearch)
-						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						 .add(jTextFieldSearch, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 199, Short.MAX_VALUE)
-						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						 .add(jButtonCancelSearch, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-						 .add(63, 63, 63)
-						 .add(jToggleButtonImport, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 20, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+				       .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+					    .addComponent(jSplitPaneCurrentConfig, javax.swing.GroupLayout.DEFAULT_SIZE, 363, Short.MAX_VALUE)
+					    .addGroup(layout.createSequentialGroup()
+						 .addComponent(jLabelSearch)
+						 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						 .addComponent(jTextFieldSearch, javax.swing.GroupLayout.DEFAULT_SIZE, 199, Short.MAX_VALUE)
+						 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						 .addComponent(jButtonCancelSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+						 .addGap(63)
+						 .addComponent(jToggleButtonImport, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)))
 				       .addContainerGap())
 				  );
         layout.setVerticalGroup(
-				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				.add(layout.createSequentialGroup()
+				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup()
 				     .addContainerGap()
-				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-					  .add(jToggleButtonImport, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 19, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-					  .add(jButtonCancelSearch)
-					  .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-					       .add(jLabelSearch)
-					       .add(jTextFieldSearch, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
-				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-				     .add(jSplitPaneCurrentConfig, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 409, Short.MAX_VALUE)
+				     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+					  .addComponent(jToggleButtonImport, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
+					  .addComponent(jButtonCancelSearch)
+					  .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					       .addComponent(jLabelSearch)
+					       .addComponent(jTextFieldSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+				     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+				     .addComponent(jSplitPaneCurrentConfig, javax.swing.GroupLayout.DEFAULT_SIZE, 409, Short.MAX_VALUE)
 				     .addContainerGap())
 				);
 
-        layout.linkSize(new java.awt.Component[] {jButtonCancelSearch, jTextFieldSearch, jToggleButtonImport}, org.jdesktop.layout.GroupLayout.VERTICAL);
+        layout.linkSize(SwingConstants.VERTICAL, new java.awt.Component[] {jButtonCancelSearch, jTextFieldSearch, jToggleButtonImport});
 
     }
 
@@ -4531,57 +4531,57 @@ public class ConfDbGUI
 	jComboBoxPaths.setModel(new DefaultComboBoxModel());
         jComboBoxPaths.setBackground(new java.awt.Color(255, 255, 255));
 	
-        org.jdesktop.layout.GroupLayout jPanelPluginLayout = new org.jdesktop.layout.GroupLayout(jPanelPlugin);
+        javax.swing.GroupLayout jPanelPluginLayout = new javax.swing.GroupLayout(jPanelPlugin);
         jPanelPlugin.setLayout(jPanelPluginLayout);
         jPanelPluginLayout.setHorizontalGroup(
-					      jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-					      .add(jPanelPluginLayout.createSequentialGroup()
+					      jPanelPluginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+					      .addGroup(jPanelPluginLayout.createSequentialGroup()
 						   .addContainerGap()
-						   .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-							.add(jPanelPluginLayout.createSequentialGroup()
-							     .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-								  .add(org.jdesktop.layout.GroupLayout.LEADING, jTextFieldLabel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 243, Short.MAX_VALUE)
-								  .add(jPanelPluginLayout.createSequentialGroup()
-								       .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-									    .add(jLabelPackage)
-									    .add(jTextFieldPackage, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 161, Short.MAX_VALUE))
-								       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-								       .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-									    .add(jLabelCVS)
-									    .add(jTextFieldCVS, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 70, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))))
-							     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED))
-							.add(jPanelPluginLayout.createSequentialGroup()
-							     .add(jLabelLabel)
-							     .add(219, 219, 219)))
-						   .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-							.add(jComboBoxPaths, 0, 131, Short.MAX_VALUE)
-							.add(jLabelPaths)
-							.add(jTextFieldPlugin, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 131, Short.MAX_VALUE)
-							.add(jLabelPlugin))
+						   .addGroup(jPanelPluginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+							.addGroup(jPanelPluginLayout.createSequentialGroup()
+							     .addGroup(jPanelPluginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+								  .addComponent(jTextFieldLabel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 243, Short.MAX_VALUE)
+								  .addGroup(jPanelPluginLayout.createSequentialGroup()
+								       .addGroup(jPanelPluginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+									    .addComponent(jLabelPackage)
+									    .addComponent(jTextFieldPackage, javax.swing.GroupLayout.DEFAULT_SIZE, 161, Short.MAX_VALUE))
+								       .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+								       .addGroup(jPanelPluginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+									    .addComponent(jLabelCVS)
+									    .addComponent(jTextFieldCVS, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))))
+							     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
+							.addGroup(jPanelPluginLayout.createSequentialGroup()
+							     .addComponent(jLabelLabel)
+							     .addGap(219)))
+						   .addGroup(jPanelPluginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+							.addComponent(jComboBoxPaths, 0, 131, Short.MAX_VALUE)
+							.addComponent(jLabelPaths)
+							.addComponent(jTextFieldPlugin, javax.swing.GroupLayout.DEFAULT_SIZE, 131, Short.MAX_VALUE)
+							.addComponent(jLabelPlugin))
 						   .addContainerGap())
 					      );
         jPanelPluginLayout.setVerticalGroup(
-					    jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-					    .add(jPanelPluginLayout.createSequentialGroup()
+					    jPanelPluginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+					    .addGroup(jPanelPluginLayout.createSequentialGroup()
 						 .addContainerGap()
-						 .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-						      .add(jLabelPackage)
-						      .add(jLabelCVS)
-						      .add(jLabelPlugin))
-						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						 .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-						      .add(jTextFieldPackage, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-						      .add(jTextFieldCVS, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-						      .add(jTextFieldPlugin, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						 .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-						      .add(jLabelLabel)
-						      .add(jLabelPaths))
-						 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-						 .add(jPanelPluginLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-						      .add(jTextFieldLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-						      .add(jComboBoxPaths, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 21, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-						 .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+						 .addGroup(jPanelPluginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+						      .addComponent(jLabelPackage)
+						      .addComponent(jLabelCVS)
+						      .addComponent(jLabelPlugin))
+						 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						 .addGroup(jPanelPluginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+						      .addComponent(jTextFieldPackage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+						      .addComponent(jTextFieldCVS, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+						      .addComponent(jTextFieldPlugin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+						 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						 .addGroup(jPanelPluginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+						      .addComponent(jLabelLabel)
+						      .addComponent(jLabelPaths))
+						 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						 .addGroup(jPanelPluginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+						      .addComponent(jTextFieldLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+						      .addComponent(jComboBoxPaths, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE))
+						 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 					    );
         jSplitPaneRightUpper.setTopComponent(jPanelPlugin);
 	
@@ -4652,55 +4652,55 @@ public class ConfDbGUI
         //jScrollPanePrescales.setViewportView(jTablePrescales);
     	
     	/* set the elements: */
-        org.jdesktop.layout.GroupLayout jPanelPathLayout = new org.jdesktop.layout.GroupLayout(jPanelPathFields);
+        javax.swing.GroupLayout jPanelPathLayout = new javax.swing.GroupLayout(jPanelPathFields);
         jPanelPathFields.setLayout(jPanelPathLayout);
         // Using TRAILING alignment the button will be aligned to the right.
         jPanelPathLayout.setHorizontalGroup(jPanelPathLayout.createSequentialGroup()
-        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-        .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-        .add(jLabelPathName)
-        .add(jLabelPathDescription)
-        .add(jLabelPathContacts)
-        .add(jLabelPrescales)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(jPanelPathLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        .addComponent(jLabelPathName)
+        .addComponent(jLabelPathDescription)
+        .addComponent(jLabelPathContacts)
+        .addComponent(jLabelPrescales)
         )
-        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-        .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-        .add(jTextFieldPathName, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
-        .add(jScrollPanePathDescription, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
-        .add(jScrollPanePathContacts, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
-        .add(jScrollPanePrescales, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 708, Short.MAX_VALUE)
-        .add(jPanelPathLayout.createSequentialGroup()
-                .add(jButtonCancelPathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 100, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jButtonSavePathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 100, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(jPanelPathLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+        .addComponent(jTextFieldPathName, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+        .addComponent(jScrollPanePathDescription, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+        .addComponent(jScrollPanePathContacts, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+        .addComponent(jScrollPanePrescales, javax.swing.GroupLayout.DEFAULT_SIZE, 708, Short.MAX_VALUE)
+        .addGroup(jPanelPathLayout.createSequentialGroup()
+                .addComponent(jButtonCancelPathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButtonSavePathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
         )
         );
         
         jPanelPathLayout.setVerticalGroup(jPanelPathLayout.createSequentialGroup()
-        .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-        .add(jLabelPathName)
-        .add(jTextFieldPathName, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 18, Short.MAX_VALUE)
+        .addGroup(jPanelPathLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+        .addComponent(jLabelPathName)
+        .addComponent(jTextFieldPathName, javax.swing.GroupLayout.DEFAULT_SIZE, 18, Short.MAX_VALUE)
         )
-        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-        .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-        .add(jLabelPathDescription)
-        .add(jScrollPanePathDescription, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(jPanelPathLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+        .addComponent(jLabelPathDescription)
+        .addComponent(jScrollPanePathDescription, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
         )
-        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-        .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-        .add(jLabelPathContacts)
-        .add(jScrollPanePathContacts, 80, 80, 80)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(jPanelPathLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+        .addComponent(jLabelPathContacts)
+        .addComponent(jScrollPanePathContacts, 80, 80, 80)
         )
-        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-        .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-        .add(jLabelPrescales)
-        .add(jScrollPanePrescales, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(jPanelPathLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+        .addComponent(jLabelPrescales)
+        .addComponent(jScrollPanePrescales, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE)
         )
-        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-        .add(jPanelPathLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-        		.add(jButtonCancelPathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-        		.add(jButtonSavePathFields, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(jPanelPathLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+        		.addComponent(jButtonCancelPathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
+        		.addComponent(jButtonSavePathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         
 
@@ -4715,15 +4715,15 @@ public class ConfDbGUI
 	
         jSplitPaneRightUpper.setRightComponent(jScrollPaneParameters);
 
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelRightUpper);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jPanelRightUpper);
         jPanelRightUpper.setLayout(layout);
         layout.setHorizontalGroup(
-				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				  .add(jSplitPaneRightUpper, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 412, Short.MAX_VALUE)
+				  layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				  .addComponent(jSplitPaneRightUpper, javax.swing.GroupLayout.DEFAULT_SIZE, 412, Short.MAX_VALUE)
 				  );
         layout.setVerticalGroup(
-				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				.add(jSplitPaneRightUpper, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 390, Short.MAX_VALUE)
+				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addComponent(jSplitPaneRightUpper, javax.swing.GroupLayout.DEFAULT_SIZE, 390, Short.MAX_VALUE)
 				);
 	
 	jTreeTableParameters.getParent().setBackground(new Color(255,255,255));//PS
@@ -4762,15 +4762,15 @@ public class ConfDbGUI
         jTabbedPaneRightLower.setEnabledAt(3, false); // sets containedInPath tab as Disabled
         jTabbedPaneRightLower.setEnabledAt(4, false); // sets containedInSequence tab as Disabled
         
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelRightLower);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jPanelRightLower);
         jPanelRightLower.setLayout(layout);
         layout.setHorizontalGroup(
-				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				  .add(jTabbedPaneRightLower, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 436, Short.MAX_VALUE)
+				  layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				  .addComponent(jTabbedPaneRightLower, javax.swing.GroupLayout.DEFAULT_SIZE, 436, Short.MAX_VALUE)
 				  );
         layout.setVerticalGroup(
-				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				.add(jTabbedPaneRightLower, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 346, Short.MAX_VALUE)
+				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addComponent(jTabbedPaneRightLower, javax.swing.GroupLayout.DEFAULT_SIZE, 346, Short.MAX_VALUE)
 				);
     }
 
@@ -4874,90 +4874,91 @@ public class ConfDbGUI
 	jTableCommands.getColumnModel().getColumn(2).setPreferredWidth(90);
         jScrollPaneCommands.setViewportView(jTableCommands);
 
-        org.jdesktop.layout.GroupLayout jPanelScrollPaneLayout = new org.jdesktop.layout.GroupLayout(jPanelScrollPane);
+        javax.swing.GroupLayout jPanelScrollPaneLayout = new javax.swing.GroupLayout(jPanelScrollPane);
         jPanelScrollPane.setLayout(jPanelScrollPaneLayout);
         jPanelScrollPaneLayout.setHorizontalGroup(
-            jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jPanelScrollPaneLayout.createSequentialGroup()
+            jPanelScrollPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelScrollPaneLayout.createSequentialGroup()
                 .addContainerGap()
-                .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(jPanelScrollPaneLayout.createSequentialGroup()
-                        .add(jScrollPaneOutputModule, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 512, Short.MAX_VALUE)
+                .addGroup(jPanelScrollPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanelScrollPaneLayout.createSequentialGroup()
+                        .addComponent(jScrollPaneOutputModule, javax.swing.GroupLayout.DEFAULT_SIZE, 512, Short.MAX_VALUE)
                         .addContainerGap())
-                    .add(jPanelScrollPaneLayout.createSequentialGroup()
-                        .add(jLabelEventContent)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(jComboBoxEventContent, 0, 420, Short.MAX_VALUE))
-                    .add(jPanelScrollPaneLayout.createSequentialGroup()
-                        .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(jScrollPaneStreams, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 251, Short.MAX_VALUE)
-                            .add(jLabelStreams))
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(jLabelDatasets)
-                            .add(jScrollPaneDatasets, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE))
+                    .addGroup(jPanelScrollPaneLayout.createSequentialGroup()
+                        .addComponent(jLabelEventContent)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jComboBoxEventContent, 0, 420, Short.MAX_VALUE))
+                    .addGroup(jPanelScrollPaneLayout.createSequentialGroup()
+                        .addGroup(jPanelScrollPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPaneStreams, javax.swing.GroupLayout.DEFAULT_SIZE, 251, Short.MAX_VALUE)
+                            .addComponent(jLabelStreams))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanelScrollPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabelDatasets)
+                            .addComponent(jScrollPaneDatasets, javax.swing.GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE))
                         .addContainerGap())
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanelScrollPaneLayout.createSequentialGroup()
-                        .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(jLabelPaths)
-                            .add(jScrollPanePaths, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE))
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(jPanelScrollPaneLayout.createSequentialGroup()
-                                .add(jLabelCommands)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelScrollPaneLayout.createSequentialGroup()
+                        .addGroup(jPanelScrollPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabelPaths)
+                            .addComponent(jScrollPanePaths, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanelScrollPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanelScrollPaneLayout.createSequentialGroup()
+                                .addComponent(jLabelCommands)
                                 .addContainerGap(224, Short.MAX_VALUE))
-                            .add(org.jdesktop.layout.GroupLayout.TRAILING, jComboBoxCommands, 0, 347, Short.MAX_VALUE)
-                            .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanelScrollPaneLayout.createSequentialGroup()
-                                .add(jScrollPaneCommands, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 341, Short.MAX_VALUE)
-                                .addContainerGap())))
-                    .add(jPanelScrollPaneLayout.createSequentialGroup()
-                        .add(jLabelOutputModule)
+                            .addComponent(jComboBoxCommands, javax.swing.GroupLayout.Alignment.TRAILING, 0, 347, Short.MAX_VALUE)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelScrollPaneLayout.createSequentialGroup()
+                                .addComponent(jScrollPaneCommands, javax.swing.GroupLayout.DEFAULT_SIZE, 341, Short.MAX_VALUE)
+                                .addContainerGap())
+                            ))
+                    .addGroup(jPanelScrollPaneLayout.createSequentialGroup()
+                        .addComponent(jLabelOutputModule)
                         .addContainerGap(424, Short.MAX_VALUE))))
         );
         jPanelScrollPaneLayout.setVerticalGroup(
-            jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jPanelScrollPaneLayout.createSequentialGroup()
+            jPanelScrollPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelScrollPaneLayout.createSequentialGroup()
                 .addContainerGap()
-                .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jLabelEventContent)
-                    .add(jComboBoxEventContent, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .add(18, 18, 18)
-                .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                    .add(jLabelDatasets)
-                    .add(jLabelStreams))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
-                    .add(jScrollPaneDatasets, 0, 0, Short.MAX_VALUE)
-                    .add(jScrollPaneStreams, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 107, Short.MAX_VALUE))
-                .add(26, 26, 26)
-                .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jLabelCommands)
-                    .add(jLabelPaths))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jPanelScrollPaneLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                    .add(jPanelScrollPaneLayout.createSequentialGroup()
-                        .add(jComboBoxCommands, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .add(1, 1, 1)
-                        .add(jScrollPaneCommands, 0, 0, Short.MAX_VALUE))
-                    .add(jScrollPanePaths, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 258, Short.MAX_VALUE))
-                .add(18, 18, 18)
-                .add(jLabelOutputModule)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jScrollPaneOutputModule, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE)
+                .addGroup(jPanelScrollPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabelEventContent)
+                    .addComponent(jComboBoxEventContent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18)
+                .addGroup(jPanelScrollPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabelDatasets)
+                    .addComponent(jLabelStreams))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanelScrollPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPaneDatasets, 0, 0, Short.MAX_VALUE)
+                    .addComponent(jScrollPaneStreams, javax.swing.GroupLayout.DEFAULT_SIZE, 107, Short.MAX_VALUE))
+                .addGap(26)
+                .addGroup(jPanelScrollPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabelCommands)
+                    .addComponent(jLabelPaths))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanelScrollPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(jPanelScrollPaneLayout.createSequentialGroup()
+                        .addComponent(jComboBoxCommands, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(1)
+                        .addComponent(jScrollPaneCommands, 0, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPanePaths, javax.swing.GroupLayout.DEFAULT_SIZE, 258, Short.MAX_VALUE))
+                .addGap(18)
+                .addComponent(jLabelOutputModule)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPaneOutputModule, javax.swing.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
         jScrollPaneContentEditor.setViewportView(jPanelScrollPane);
 
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelContentEditor);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jPanelContentEditor);
         jPanelContentEditor.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jScrollPaneContentEditor, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPaneContentEditor, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jScrollPaneContentEditor, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 686, Short.MAX_VALUE)
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPaneContentEditor, javax.swing.GroupLayout.DEFAULT_SIZE, 686, Short.MAX_VALUE)
         );
     }
 
@@ -4986,25 +4987,25 @@ public class ConfDbGUI
 	jSplitPaneRight.setRightComponent(jPanelRightLower);
 	jProgressBar.setStringPainted(true);
 
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanelContentPane);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jPanelContentPane);
         jPanelContentPane.setLayout(layout);
         layout.setHorizontalGroup(
-				  layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				  .add(jProgressBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 1019, Short.MAX_VALUE)
-				  .add(jSplitPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 1019, Short.MAX_VALUE)
-				  .add(jPanelDbConnection, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				  .add(jToolBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 1019, Short.MAX_VALUE)
+				  layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				  .addComponent(jProgressBar, javax.swing.GroupLayout.DEFAULT_SIZE, 1019, Short.MAX_VALUE)
+				  .addComponent(jSplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 1019, Short.MAX_VALUE)
+				  .addComponent(jPanelDbConnection, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				  .addComponent(jToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, 1019, Short.MAX_VALUE)
 				  );
         layout.setVerticalGroup(
-				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				.add(layout.createSequentialGroup()
-				     .add(jToolBar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-				     .add(jPanelDbConnection, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-				     .add(jSplitPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 628, Short.MAX_VALUE)
-				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-				     .add(jProgressBar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 22, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup()
+				     .addComponent(jToolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+				     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+				     .addComponent(jPanelDbConnection, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+				     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+				     .addComponent(jSplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 628, Short.MAX_VALUE)
+				     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+				     .addComponent(jProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
 				);
     }
     

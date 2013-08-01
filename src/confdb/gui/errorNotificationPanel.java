@@ -90,39 +90,39 @@ public class errorNotificationPanel extends JPanel implements ActionListener {
     Icon icon = UIManager.getIcon("OptionPane.errorIcon");
     JLabel image = new JLabel(icon);
     
-    org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
+    javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
     this.setLayout(layout);
     
     
  // Using TRAILING alignment the button will be aligned to the right.
     layout.setHorizontalGroup(layout.createSequentialGroup()
     .addContainerGap()
-    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-    		.add(layout.createSequentialGroup()
-    			.add(image, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 50, 50)
-    			.add(msgBox, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 450, Short.MAX_VALUE))
-    		.add(layout.createSequentialGroup()
-    				.addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-    				.add(seeMore, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 140, 140)
-    				.addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-    				.add(okButton, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 140, 140)
-    				.addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED))
-    		.add(OutputScroll, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 450, Short.MAX_VALUE)
+    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+    		.addGroup(layout.createSequentialGroup()
+    			.addComponent(image, javax.swing.GroupLayout.PREFERRED_SIZE, 50, 50)
+    			.addComponent(msgBox, javax.swing.GroupLayout.PREFERRED_SIZE, 450, Short.MAX_VALUE))
+    		.addGroup(layout.createSequentialGroup()
+    				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+    				.addComponent(seeMore, javax.swing.GroupLayout.PREFERRED_SIZE, 140, 140)
+    				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+    				.addComponent(okButton, javax.swing.GroupLayout.PREFERRED_SIZE, 140, 140)
+    				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
+    		.addComponent(OutputScroll, javax.swing.GroupLayout.PREFERRED_SIZE, 450, Short.MAX_VALUE)
     ));
     
     layout.setVerticalGroup(layout.createSequentialGroup()
     .addContainerGap()
-    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-    		.add(image, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 50, 50)
-    		.add(msgBox, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 140, Short.MAX_VALUE)
+    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+    		.addComponent(image, javax.swing.GroupLayout.PREFERRED_SIZE, 50, 50)
+    		.addComponent(msgBox, javax.swing.GroupLayout.PREFERRED_SIZE, 140, Short.MAX_VALUE)
     )
-    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-	    .add(seeMore, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25)
-	    .add(okButton, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, 25)
+    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+	    .addComponent(seeMore, javax.swing.GroupLayout.PREFERRED_SIZE, 25, 25)
+	    .addComponent(okButton, javax.swing.GroupLayout.PREFERRED_SIZE, 25, 25)
     )
-    .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-    		.add(OutputScroll, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 100, Short.MAX_VALUE))
+    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+    		.addComponent(OutputScroll, javax.swing.GroupLayout.PREFERRED_SIZE, 100, Short.MAX_VALUE))
     );
 
     

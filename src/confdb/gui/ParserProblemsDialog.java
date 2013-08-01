@@ -31,16 +31,16 @@ public class ParserProblemsDialog extends JDialog
     /** standard constructor */
     public ParserProblemsDialog(JFrame jFrame, PythonParser parser)
     {
-	super(jFrame, true);
-	
-	setContentPane(initComponents());
-	jTextArea.setText(parser.problemsAsString());
-	
-	jButtonClose.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    jButtonCloseActionPerformed(e);
-		}
-	    });
+        super(jFrame, true);
+        
+        setContentPane(initComponents());
+        jTextArea.setText(parser.problemsAsString());
+        
+        jButtonClose.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    jButtonCloseActionPerformed(e);
+                }
+            });
     }
 
     
@@ -51,51 +51,51 @@ public class ParserProblemsDialog extends JDialog
     //listener callbacks
     public void jButtonCloseActionPerformed(ActionEvent e)
     {
-	setVisible(false);
+        setVisible(false);
     }
     
 
     /** init GUI components */
     private JPanel initComponents()
     {
-	JPanel      jPanel = new JPanel();
-	JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
-	JLabel      jLabel1 = new javax.swing.JLabel();
+        JPanel      jPanel = new JPanel();
+        JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
+        JLabel      jLabel1 = new javax.swing.JLabel();
 
         jLabel1.setFont(new java.awt.Font("Dialog", 1, 14));
         jLabel1.setText("Problems were encountered parsing this configuration; "+
-			"a file problems.txt was created with the following "+
-			"content:");
+                        "a file problems.txt was created with the following "+
+                        "content:");
         jButtonClose.setText("Close");
 
         jTextArea.setColumns(20);
         jTextArea.setEditable(false);
         jTextArea.setRows(5);
         jScrollPane1.setViewportView(jTextArea);
-	
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(jPanel);
+        
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jPanel);
         jPanel.setLayout(layout);
         layout
-	    .setHorizontalGroup(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				.add(layout.createSequentialGroup()
-				     .addContainerGap()
-				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-					  .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 826, Short.MAX_VALUE)
-					  .add(jLabel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					  .add(org.jdesktop.layout.GroupLayout.TRAILING, jButtonClose))
-				     .addContainerGap())
-				);
+            .setHorizontalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createSequentialGroup()
+                                     .addContainerGap()
+                                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                          .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 826, Short.MAX_VALUE)
+                                          .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                          .addComponent(jButtonClose, javax.swing.GroupLayout.Alignment.TRAILING))
+                                     .addContainerGap())
+                                );
         layout.setVerticalGroup(
-				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				.add(layout.createSequentialGroup()
-				     .addContainerGap()
-				     .add(jLabel1)
-				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-				     .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 368, Short.MAX_VALUE)
-				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-				     .add(jButtonClose)
-				     .addContainerGap())
-				);
-	return jPanel;
+                                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createSequentialGroup()
+                                     .addContainerGap()
+                                     .addComponent(jLabel1)
+                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 368, Short.MAX_VALUE)
+                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                     .addComponent(jButtonClose)
+                                     .addContainerGap())
+                                );
+        return jPanel;
     }
 }

@@ -6,7 +6,7 @@ import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import org.jdesktop.layout.*;
+import javax.swing.*;
 
 import confdb.data.Directory;
 import confdb.data.Configuration;
@@ -270,49 +270,49 @@ public class SaveConfigurationDialog extends JDialog
 	jButtonOk.setEnabled(false);
         jButtonCancel.setText("Cancel");
 	
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(contentPane);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(contentPane);
         contentPane.setLayout(layout);
         layout
 	    .setHorizontalGroup(
-				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				.add(layout.createSequentialGroup()
-				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-					  .add(layout.createSequentialGroup()
+				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup()
+				     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+					  .addGroup(layout.createSequentialGroup()
 					       .addContainerGap()
-					       .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-						    .add(jScrollPane1,
-							 org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 358, Short.MAX_VALUE)
-						    .add(layout.createSequentialGroup()
-							 .add(jLabel1)
-							 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-							 .add(jTextFieldConfigName,
-							      org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,
+					       .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						    .addComponent(jScrollPane1,
+							 javax.swing.GroupLayout.DEFAULT_SIZE, 358, Short.MAX_VALUE)
+						    .addGroup(layout.createSequentialGroup()
+							 .addComponent(jLabel1)
+							 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+							 .addComponent(jTextFieldConfigName,
+							      javax.swing.GroupLayout.DEFAULT_SIZE,
 							      217, Short.MAX_VALUE))))
-					  .add(layout.createSequentialGroup()
-					       .add(91, 91, 91)
-					       .add(jButtonOk, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 88, Short.MAX_VALUE)
-					       .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-					       .add(jButtonCancel,
-						    org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 86, Short.MAX_VALUE)
-					       .add(99, 99, 99)))
+					  .addGroup(layout.createSequentialGroup()
+					       .addGap(91)
+					       .addComponent(jButtonOk, javax.swing.GroupLayout.DEFAULT_SIZE, 88, Short.MAX_VALUE)
+					       .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+					       .addComponent(jButtonCancel,
+						    javax.swing.GroupLayout.DEFAULT_SIZE, 86, Short.MAX_VALUE)
+					       .addGap(99)))
 				     .addContainerGap())
 				);
         layout.setVerticalGroup(
-				layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-				.add(layout.createSequentialGroup()
+				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup()
 				     .addContainerGap()
-				     .add(jScrollPane1,org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 387, Short.MAX_VALUE)
-				     .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-					  .add(jLabel1)
-					  .add(jTextFieldConfigName,
-					       org.jdesktop.layout.GroupLayout.PREFERRED_SIZE,
-					       org.jdesktop.layout.GroupLayout.DEFAULT_SIZE,
-					       org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-				     .add(19, 19, 19)
-				     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-					  .add(jButtonOk)
-					  .add(jButtonCancel))
+				     .addComponent(jScrollPane1,javax.swing.GroupLayout.DEFAULT_SIZE, 387, Short.MAX_VALUE)
+				     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+				     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					  .addComponent(jLabel1)
+					  .addComponent(jTextFieldConfigName,
+					       javax.swing.GroupLayout.PREFERRED_SIZE,
+					       javax.swing.GroupLayout.DEFAULT_SIZE,
+					       javax.swing.GroupLayout.PREFERRED_SIZE))
+				     .addGap(19)
+				     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					  .addComponent(jButtonOk)
+					  .addComponent(jButtonCancel))
 				     .addContainerGap())
 				);
 	

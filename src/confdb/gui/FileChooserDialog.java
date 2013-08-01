@@ -47,7 +47,7 @@ public class FileChooserDialog extends JPanel implements ActionListener {
         //For layout purposes, put the buttons in a separate panel
         JPanel buttonPanel = new JPanel(); //use FlowLayout
         buttonPanel.add(openButton);
-        //buttonPanel.add(saveButton);
+        //buttonPanel.addComponent(saveButton);
 
         //Add the buttons and the log to this panel.
         add(buttonPanel, BorderLayout.PAGE_START);
