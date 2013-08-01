@@ -1,3 +1,11 @@
+2013-07-19 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-07-02
+	* roll back Oracle JDBC drivers to 10.2.0.2
+
+2013-07-13 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-07-01
+	* update Oracle JDBC to version 12.1.0.1 for Java 7
+
 2013-07-04 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V01-07-00
 	* rebuild for Java 7
