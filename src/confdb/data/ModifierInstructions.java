@@ -316,7 +316,7 @@ public class ModifierInstructions
 	else return;
 
 	if (alg==2) search=search.replace("*",".*").replace("?",".");
-	System.out.println("Search: mode/pattern: "+mode+" / "+search);
+	System.err.println("Search: mode/pattern: "+mode+" / "+search);
 
 	String name=null;
 	String Name=null;

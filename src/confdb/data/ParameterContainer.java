@@ -264,7 +264,7 @@ abstract public class ParameterContainer extends DatabaseEntry
 	else {
 	    Parameter parameterNew =
 		ParameterFactory.create(type,name,valueAsString,false);
-	    System.out.println("ParameterContainer INFO: "+
+	    System.err.println("ParameterContainer INFO: "+
 			       "Adding untracked parameter to top-level: "+
 			       parameterNew);
 	    addParameter(parameterNew);

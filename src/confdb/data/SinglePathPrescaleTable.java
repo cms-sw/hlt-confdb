@@ -80,11 +80,11 @@ public class SinglePathPrescaleTable extends PrescaleTable {
 		    String           pathName  =(String)sPathName.value();
 		    
 		    if (config.path(pathName)==null) {
-			System.out.println("invalid pathName '"+pathName+"'.");
+			System.err.println("invalid pathName '"+pathName+"'.");
 			continue;
 		    }
 		    if (vPrescales.vectorSize()!=columnNames.size()-1) {
-			System.out.println("invalid size of vuint prescales.");
+			System.err.println("invalid size of vuint prescales.");
 			continue;
 		    }
 		    

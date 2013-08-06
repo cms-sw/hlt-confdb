@@ -177,7 +177,7 @@ abstract
 	    setHasChanged();
 	}
 	else {
-	    System.out.println("ReferenceContainer.removeEntry FAILED.");
+	    System.err.println("ReferenceContainer.removeEntry FAILED.");
 	}
     }
     
