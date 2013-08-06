@@ -76,17 +76,17 @@ public class OracleDatabaseConnector extends DatabaseConnector
 			try {
 				DatabaseMetaData dbmd;
 				dbmd = connection.getMetaData();
-			    System.out.println("=====  Database info =====");  
-			    System.out.println("DatabaseProductName: " + dbmd.getDatabaseProductName() );  
-			    System.out.println("DatabaseProductVersion: " + dbmd.getDatabaseProductVersion() );  
-			    System.out.println("DatabaseMajorVersion: " + dbmd.getDatabaseMajorVersion() );  
-			    System.out.println("DatabaseMinorVersion: " + dbmd.getDatabaseMinorVersion() );  
-			    System.out.println("=====  Driver info =====");  
-			    System.out.println("DriverName: " + dbmd.getDriverName() );  
-			    System.out.println("DriverVersion: " + dbmd.getDriverVersion() );  
-			    System.out.println("DriverMajorVersion: " + dbmd.getDriverMajorVersion() );  
-			    System.out.println("DriverMinorVersion: " + dbmd.getDriverMinorVersion() );  
-			    System.out.println("=====  JDBC/DB attributes =====");  
+			    System.err.println("=====  Database info =====");  
+			    System.err.println("DatabaseProductName: " + dbmd.getDatabaseProductName() );  
+			    System.err.println("DatabaseProductVersion: " + dbmd.getDatabaseProductVersion() );  
+			    System.err.println("DatabaseMajorVersion: " + dbmd.getDatabaseMajorVersion() );  
+			    System.err.println("DatabaseMinorVersion: " + dbmd.getDatabaseMinorVersion() );  
+			    System.err.println("=====  Driver info =====");  
+			    System.err.println("DriverName: " + dbmd.getDriverName() );  
+			    System.err.println("DriverVersion: " + dbmd.getDriverVersion() );  
+			    System.err.println("DriverMajorVersion: " + dbmd.getDriverMajorVersion() );  
+			    System.err.println("DriverMinorVersion: " + dbmd.getDriverMinorVersion() );  
+			    System.err.println("=====  JDBC/DB attributes =====");  
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -94,7 +94,7 @@ public class OracleDatabaseConnector extends DatabaseConnector
 	}
 	catch (SQLException e) {
 	    String msg = "Failed to open connection to "+dbURL+" as user "+dbUser;
-	    System.out.println("Exception: " + e.getMessage());
+	    System.err.println("Exception: " + e.getMessage());
 	    
 	    throw new DatabaseException(msg);
 	}

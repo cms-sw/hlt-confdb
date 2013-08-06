@@ -75,6 +75,6 @@ my $cmd =
     "-t oracle -h $db_host -d $db_name -u $db_user -s $db_pwrd $args";
 
 
-print $cmd . "\n";
+print STDERR $cmd . "\n";
 system($cmd);
 

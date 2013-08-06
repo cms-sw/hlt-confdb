@@ -133,7 +133,7 @@ abstract public class Template extends    ParameterContainer
     public boolean isUniqueInstance(Instance instance)
     {
 	if (instances.indexOf(instance)==-1) {
-	    System.out.println("WARNING: isInstanceUnique called for "+
+	    System.err.println("WARNING: isInstanceUnique called for "+
 			       "unknown instance!");
 	    return true;
 	}

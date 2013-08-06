@@ -131,7 +131,7 @@ abstract public class DatabaseConnector implements IDatabaseConnector
 		    "WARNING: " +
 		    "Can't retrieve SQL Statement from SQL ResultSet: " +
 		    e.getMessage();
-		System.out.println(msg);
+		System.err.println(msg);
 	    }
 	    try {
 		rs.close();
@@ -139,7 +139,7 @@ abstract public class DatabaseConnector implements IDatabaseConnector
 	    catch (SQLException e) {
 		String msg =
 		    "WARNING: Can't close SQL ResultSet: "+e.getMessage();
-		System.out.println(msg);
+		System.err.println(msg);
 	    }
 	    rs = null;
 
