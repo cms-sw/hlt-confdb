@@ -429,7 +429,7 @@ public class ConfDbGUI
     /** create the GUI and show it */
     private static void createAndShowGUI()
     {
-	JFrame frame = new JFrame("ConfDbGUI");
+	JFrame frame = new JFrame("GDR ConfDbGUI");
 	ConfDbGUI gui = new ConfDbGUI(frame);
 	
 	int frameWidth =
@@ -576,6 +576,7 @@ public class ConfDbGUI
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
 	
+        System.out.println(" Configuration picked\n"):
 	if (dialog.validChoice()) {
 	    OpenConfigurationThread worker = new OpenConfigurationThread(dialog.configInfo());
 	    

@@ -539,7 +539,7 @@ public class ConfDB
 	    		 System.err.println("[ConfDB::reconnect]"+ft.format(dNow)+" Trying to connect... attemp (" +  (5 - retryCount) + ")");
 	    	 
 			try {
-			    rs = psSelectUsersForLockedConfigs.executeQuery();
+	//sv		    rs = psSelectUsersForLockedConfigs.executeQuery();
 			    
 			    // If no exception is raised then reconnection is complete.
 			    transactionCompleted = true;
@@ -718,38 +718,55 @@ public class ConfDB
 	    //long dir1Time = System.currentTimeMillis();
 	    
 	    while (rs.next()) {
+
 		int   dirId        = rs.getInt(1);
 		int   parentDirId  = rs.getInt(2);
 		String dirName     = rs.getString(3);
 		String dirCreated  = rs.getTimestamp(4).toString();
+
+                System.out.println("Retrieved Dirs: "+dirId+"- parent "+parentDirId+" "+dirName+" "+dirCreated);
 		
 		if (directoryHashMap.size()==0) {
+                    System.out.println("New root DIrectrory: "+dirId+"- "+dirName+" "+dirCreated);
 		    rootDir = new Directory(dirId,dirName,dirCreated,null);
+                    System.out.println("New root DIrectrory  done");
 		    directoryHashMap.put(dirId,rootDir);
 		}
 		else {
+                    System.out.println("Now checking parenmt dir - "+parentDirId);
+
 		    if (!directoryHashMap.containsKey(parentDirId))
 			throw new DatabaseException("parentDir not found in DB"+
 						    " (parentDirId="+parentDirId+
 						    ")");
+                    
+                    System.out.println("getting parentdir "+parentDirId);
 		    Directory parentDir = directoryHashMap.get(parentDirId);
+                    System.out.println("New DIrectrory with parent: "+dirId+"- "+dirName+" "+dirCreated+ parentDirId);
 		    Directory newDir    = new Directory(dirId,
 							dirName,
 							dirCreated,
 							parentDir);
+                    System.out.println("New DIrectrory with parent - done");
 		    parentDir.addChildDir(newDir);
+                    System.out.println("New DIrectrory - done adding child");
 		    directoryHashMap.put(dirId,newDir);
+                    System.out.println("New DIrectrory - done putting hash");
 		}
 	    }
 
 	    // DEBUG
 	    //long dir2Time = System.currentTimeMillis();
 	    
+            System.out.println("Done with Retrieving Dirs: ");
 	    // retrieve list of configurations for all directories
 	    HashMap<String,ConfigInfo> configHashMap =
 		new HashMap<String,ConfigInfo>();
 
+            System.out.println("Try to query COnfs");
+
 	    rs = psSelectConfigurations.executeQuery();
+            System.out.println("Queried COnfs");
 
 	    // DEBUG
 	    //long config1Time = System.currentTimeMillis();
@@ -764,6 +781,8 @@ public class ConfDB
 		String configReleaseTag  = rs.getString(7);
 		String configProcessName = rs.getString(8);
 		String configComment     = rs.getString(9);
+
+                System.out.println("Retrieved Conf: "+configName+" "+configCreated+" "+configReleaseTag);
 		
 		if (configComment==null) configComment="";
 
@@ -802,8 +821,8 @@ public class ConfDB
 		}
 	    }
 	    
-	    rs = psSelectLockedConfigurations.executeQuery();
-	    
+/*sv	    rs = psSelectLockedConfigurations.executeQuery();
+
 	    while (rs.next()) {
 		String dirName = rs.getString(1);
 		String configName = rs.getString(2);
@@ -818,7 +837,7 @@ public class ConfDB
 		}
 		configInfo.lock(userName);
 	    }
-	    
+	   */ 
 	    
 	    // DEBUG
 	    //int config2Time = System.currentTimeMillis();
@@ -1525,12 +1544,12 @@ public class ConfDB
     	ResultSet rs = null;
     	int extraFields = 0;
     	try {
-    		rs = psCheckPathFieldsExistence.executeQuery();
+/*sv    		rs = psCheckPathFieldsExistence.executeQuery();
     	
     		while(rs.next()) {
     			extraFields = rs.getInt(1);	
     		}
-    		
+   */ 		
     	}
     	catch (SQLException e) {
     	    String errMsg =
@@ -1551,12 +1570,12 @@ public class ConfDB
     	ResultSet rs = null;
     	int extraFields = 0;
     	try {
-    		rs = psCheckOperatorForModuleSequenceAssoc.executeQuery();
+/*sv    		rs = psCheckOperatorForModuleSequenceAssoc.executeQuery();
     	
     		while(rs.next()) {
     			extraFields = rs.getInt(1);	
     		}
-    		
+   */ 		
     	}
     	catch (SQLException e) {
     	    String errMsg =
@@ -3983,492 +4002,494 @@ public class ConfDB
 	    psSelectModuleTypes =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " ModuleTypes.typeId," +
-		 " ModuleTypes.type " +
-		 "FROM ModuleTypes");
+      	      	 " u_moduletypes.id," +
+   		 " u_moduletypes.type " +
+   		 "FROM u_moduletypes");
 	    preparedStatements.add(psSelectModuleTypes);
 	    
 
 	    psSelectParameterTypes =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " ParameterTypes.paramTypeId," +
-		 " ParameterTypes.paramType " +
-		 "FROM ParameterTypes");
+		 " DISTINCT f_moelements.paramtype FROM f_moelements");
 	    preparedStatements.add(psSelectParameterTypes);
 	    
 
 	    psSelectDirectories =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " Directories.dirId," +
-		 " Directories.parentDirId," +
-		 " Directories.dirName," +
-		 " Directories.created " +
-		 "FROM Directories " +
-		 "ORDER BY Directories.dirName ASC");
+   		 " Directories.id," +
+   		 " Directories.parentDirId," +
+   		 " Directories.name," +
+   		 " Directories.created " +
+   		 "FROM u_directories Directories " +
+   		 "ORDER BY Directories.name ASC");
 	    psSelectDirectories.setFetchSize(512);
 	    preparedStatements.add(psSelectDirectories);
 	    
-	    psSelectConfigurations =
-		dbConnector.getConnection().prepareStatement
+            psSelectConfigurations =
+                dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " Configurations.configId," +
-		 " Configurations.parentDirId," +
-		 " Configurations.config," +
-		 " Configurations.version," +
-		 " Configurations.created," +
-		 " Configurations.creator," +
-		 " SoftwareReleases.releaseTag," +
-		 " Configurations.processName," +
-		 " Configurations.description " +
-		 "FROM Configurations " +
-		 "JOIN SoftwareReleases " +
-		 "ON SoftwareReleases.releaseId = Configurations.releaseId " +
-		 "ORDER BY Configurations.config ASC");
+   " Configurations.configId," +
+   " Configurations.parentDirId," +
+   " Configurations.config," +
+   " Configurations.version," +
+   " Configurations.created," +
+   " Configurations.creator," +
+   " SoftwareReleases.releaseTag," +
+   " Configurations.processName," +
+   " Configurations.description " +
+   "FROM u_confversions Configurations " +
+   "JOIN u_softreleases SoftwareReleases " +
+   "ON SoftwareReleases.releaseId = Configurations.releaseId " +
+   "ORDER BY Configurations.config ASC");
 	    psSelectConfigurations.setFetchSize(512);
 	    preparedStatements.add(psSelectConfigurations);
 	    
-	    psSelectLockedConfigurations =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " Directories.dirName," +
-		 " LockedConfigurations.config," +
-		 " LockedConfigurations.userName " +
-		 "FROM LockedConfigurations " +
-		 "JOIN Directories " +
-		 "ON LockedConfigurations.parentDirId = Directories.dirId");
-	    preparedStatements.add(psSelectLockedConfigurations);
+//	    psSelectLockedConfigurations =
+//		dbConnector.getConnection().prepareStatement
+//		("SELECT" +
+//		 " Directories.dirName," +
+//		 " LockedConfigurations.config," +
+//		 " LockedConfigurations.userName " +
+//		 "FROM LockedConfigurations " +
+//		 "JOIN Directories " +
+//		 "ON LockedConfigurations.parentDirId = Directories.dirId");
+//	    preparedStatements.add(psSelectLockedConfigurations);
 
-	    psSelectUsersForLockedConfigs =
-		dbConnector.getConnection().prepareStatement
-		("SELECT"+
-		 " LockedConfigurations.userName "+
-		 "FROM LockedConfigurations");
-	    preparedStatements.add(psSelectUsersForLockedConfigs);
+//	    psSelectUsersForLockedConfigs =
+//		dbConnector.getConnection().prepareStatement
+//		("SELECT"+
+//		 " LockedConfigurations.userName "+
+//		 "FROM LockedConfigurations");
+//	    preparedStatements.add(psSelectUsersForLockedConfigs);
 
 	    psSelectConfigNames =
 		dbConnector.getConnection().prepareStatement
 		("SELECT DISTINCT" +
-		 " Directories.dirName," +
-		 " Configurations.config " +
-		 "FROM Configurations " +
-		 "JOIN Directories " +
-		 "ON Configurations.parentDirId = Directories.dirId " +
-		 "ORDER BY Directories.dirName ASC,Configurations.config ASC");
+   " Directories.name," +
+   " Configurations.config " +
+   "FROM u_confversions Configurations " +
+   "JOIN u_directories Directories " +
+   "ON Configurations.parentDirId = Directories.id " +
+   "ORDER BY Directories.name ASC,Configurations.config ASC");
 	    psSelectConfigNames.setFetchSize(1024);
 	    preparedStatements.add(psSelectConfigNames);
 
 	    psSelectConfigNamesByRelease =
 		dbConnector.getConnection().prepareStatement
 		("SELECT DISTINCT" +
-		 " Directories.dirName," +
-		 " Configurations.config, " +
-		 " Configurations.version " +
-		 "FROM Configurations " +
-		 "JOIN Directories " +
-		 "ON Configurations.parentDirId = Directories.dirId " +
-		 "WHERE Configurations.releaseId = ?" +
-		 "ORDER BY Directories.dirName ASC,Configurations.config ASC");
+   " Directories.name," +
+   " Configurations.config, " +
+   " Configurations.version " +
+   "FROM u_confversions Configurations " +
+   "JOIN u_directories Directories " +
+   "ON Configurations.parentDirId = Directories.id " +
+   "WHERE Configurations.releaseId = ?" +
+   "ORDER BY Directories.name ASC,Configurations.config ASC");
 	    psSelectConfigNamesByRelease.setFetchSize(1024);
 	    preparedStatements.add(psSelectConfigNamesByRelease);
 
 	    psSelectDirectoryId =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " Directories.dirId " +
-		 "FROM Directories "+
-		 "WHERE Directories.dirName = ?");
+   " Directories.id " +
+   "FROM u_directories Directories "+
+   "WHERE Directories.name = ?");
 	    preparedStatements.add(psSelectDirectoryId);
 	    
 	    psSelectConfigurationId =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " Configurations.configId " +
-		 "FROM Configurations "+
-		 "JOIN Directories " +
-		 "ON Directories.dirId=Configurations.parentDirId " +
-		 "WHERE Directories.dirName = ? AND" +
-		 " Configurations.config = ? AND" +
-		 " Configurations.version = ?");
+   " Configurations.id " +
+   "FROM u_confversions Configurations "+
+   "JOIN u_directories Directories " +
+   "ON Directories.id=Configurations.parentDirId " +
+   "WHERE Directories.name = ? AND" +
+   " Configurations.config = ? AND" +
+   " Configurations.version = ?");
 	    preparedStatements.add(psSelectConfigurationId);
 	    
 	    psSelectConfigurationIdLatest =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " Configurations.configId," +
-		 " Configurations.version " +
-		 "FROM Configurations " +
-		 "JOIN Directories " +
-		 "ON Directories.dirId=Configurations.parentDirId " +
-		 "WHERE Directories.dirName = ? AND" +
-		 " Configurations.config = ? " +
-		 "ORDER BY Configurations.version DESC");
+  " Configurations.id," +
+   " Configurations.version " +
+   "FROM u_confversions Configurations " +
+   "JOIN u_directories Directories " +
+   "ON Directories.id=Configurations.parentDirId " +
+   "WHERE Directories.name = ? AND" +
+   " Configurations.config = ? " +
+   "ORDER BY Configurations.version DESC");
 	    preparedStatements.add(psSelectConfigurationIdLatest);
 
 	    psSelectConfigurationCreated =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " Configurations.created " +
-		 "FROM Configurations " +
-		 "WHERE Configurations.configId = ?");
+  " Configurations.created " +
+   "FROM u_confversions Configurations " +
+   "WHERE Configurations.id = ?");
 	    preparedStatements.add(psSelectConfigurationCreated);
 	    
 	    psSelectReleaseTags =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " SoftwareReleases.releaseId," +
-		 " SoftwareReleases.releaseTag " +
-		 "FROM SoftwareReleases " +
-		 "ORDER BY SoftwareReleases.releaseId DESC");
+   " SoftwareReleases.id," +
+   " SoftwareReleases.releaseTag " +
+   "FROM u_softreleases SoftwareReleases " +
+   "ORDER BY SoftwareReleases.id DESC");
 	    psSelectReleaseTags.setFetchSize(32);
 	    preparedStatements.add(psSelectReleaseTags);
 	    
 	    psSelectReleaseTagsSorted =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " SoftwareReleases.releaseId," +
-		 " SoftwareReleases.releaseTag " +
-		 "FROM SoftwareReleases " +
-		 "ORDER BY SoftwareReleases.releaseTag ASC");
+   " SoftwareReleases.id," +
+   " SoftwareReleases.releaseTag " +
+   "FROM u_softreleases SoftwareReleases " +
+   "ORDER BY SoftwareReleases.releaseTag ASC");
 	    psSelectReleaseTagsSorted.setFetchSize(32);
 	    preparedStatements.add(psSelectReleaseTagsSorted);
 	    
 	    psSelectReleaseId =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " SoftwareReleases.releaseId "+
-		 "FROM SoftwareReleases " +
-		 "WHERE SoftwareReleases.releaseTag = ?");
+  " SoftwareReleases.id "+
+   "FROM u_softreleases SoftwareReleases " +
+   "WHERE SoftwareReleases.releaseTag = ?");
 
 	    psSelectReleaseTag =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " SoftwareReleases.releaseTag " +
-		 "FROM SoftwareReleases " +
-		 "WHERE SoftwareReleases.releaseId = ?");
+   " SoftwareReleases.releaseTag " +
+   "FROM u_softreleases SoftwareReleases " +
+   "WHERE SoftwareReleases.id = ?");
 	    preparedStatements.add(psSelectReleaseTag);
 	    
 	    psSelectReleaseTagForConfig =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " SoftwareReleases.releaseTag " +
-		 "FROM SoftwareReleases " +
-		 "JOIN Configurations " +
-		 "ON Configurations.releaseId = SoftwareReleases.releaseId " +
-		 "WHERE Configurations.configId = ?");
+   " SoftwareReleases.releaseTag " +
+   "FROM u_softreleases SoftwareReleases " +
+   "JOIN u_confversions Configurations " +
+   "ON Configurations.releaseId = SoftwareReleases.id " +
+   "WHERE Configurations.id = ?");
 	    preparedStatements.add(psSelectReleaseTagForConfig);
 	    
 	    psSelectSoftwareSubsystems =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " SoftwareSubsystems.subsysId," +
-		 " SoftwareSubsystems.name " +
-		 "FROM SoftwareSubsystems");
+   " SoftwareSubsystems.subsysId," +
+   " SoftwareSubsystems.name " +
+   "FROM u_softsubsystems SoftwareSubsystems");
 	    psSelectSoftwareSubsystems.setFetchSize(64);
 	    preparedStatements.add(psSelectSoftwareSubsystems);
 
 	    psSelectSoftwarePackages =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " SoftwarePackages.packageId," +
-		 " SoftwarePackages.subsysId," +
-		 " SoftwarePackages.name " +
-		 "FROM SoftwarePackages");
+   " SoftwarePackages.id," +
+   " SoftwarePackages.subsysId," +
+   " SoftwarePackages.name " +
+   "FROM u_softpackages SoftwarePackages");
 	    psSelectSoftwarePackages.setFetchSize(512);
 	    preparedStatements.add(psSelectSoftwarePackages);
 
 	    psSelectEDSourceTemplate =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " EDSourceTemplates.superId," +
-		 " EDSourceTemplates.name," +
-		 " EDSourceTemplates.cvstag " +
-		 "FROM EDSourceTemplates " +
-		 "WHERE EDSourceTemplates.name=? AND EDSourceTemplates.cvstag=?");
+  " EDSourceTemplates.id," +
+   " EDSourceTemplates.name," +
+   " EDSourceTemplates.cvstag " +
+   "FROM u_edstemplates EDSourceTemplates " +
+   "WHERE EDSourceTemplates.name=? AND EDSourceTemplates.cvstag= ?");
 	    preparedStatements.add(psSelectEDSourceTemplate);
 
 	    psSelectESSourceTemplate =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " ESSourceTemplates.superId," +
-		 " ESSourceTemplates.name," +
-		 " ESSourceTemplates.cvstag " +
-		 "FROM ESSourceTemplates " +
-		 "WHERE name=? AND cvstag=?");
+   " ESSourceTemplates.id," +
+   " ESSourceTemplates.name," +
+   " ESSourceTemplates.cvstag " +
+   "FROM u_esstemplates ESSourceTemplates " +
+   "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectESSourceTemplate);
 	    
 	    psSelectESModuleTemplate =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " ESModuleTemplates.superId," +
-		 " ESModuleTemplates.name," +
-		 " ESModuleTemplates.cvstag " +
-		 "FROM ESModuleTemplates " +
-		 "WHERE name=? AND cvstag=?");
+   " ESModuleTemplates.id," +
+   " ESModuleTemplates.name," +
+   " ESModuleTemplates.cvstag " +
+   "FROM u_esmtemplates ESModuleTemplates " +
+   "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectESModuleTemplate);
 
 	    psSelectServiceTemplate =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " ServiceTemplates.superId," +
-		 " ServiceTemplates.name," +
-		 " ServiceTemplates.cvstag " +
-		 "FROM ServiceTemplates " +
-		 "WHERE name=? AND cvstag=?");
+  " ServiceTemplates.id," +
+   " ServiceTemplates.name," +
+   " ServiceTemplates.cvstag " +
+   "FROM u_srvtemplates ServiceTemplates " +
+   "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectServiceTemplate);
 
 	    psSelectModuleTemplate = 
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " ModuleTemplates.superId," +
-		 " ModuleTemplates.typeId," +
-		 " ModuleTemplates.name," +
-		 " ModuleTemplates.cvstag " +
-		 "FROM ModuleTemplates " +
-		 "WHERE name=? AND cvstag=?");
+   " ModuleTemplates.id," +
+   " ModuleTemplates.id_mtype," +
+   " ModuleTemplates.name," +
+   " ModuleTemplates.cvstag " +
+   "FROM f_moduletemplates ModuleTemplates " +
+   "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectModuleTemplate);
 
 	        psSelectStreams =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " Streams.streamId,"+
-		 " Streams.streamLabel "+
-		 "FROM Streams " +
-		 "ORDER BY Streams.streamLabel ASC");
+  " Streams.id,"+
+   " Streams.name "+
+   "FROM u_streams Streams " +
+   "ORDER BY Streams.name ASC");
+
 
 	    psSelectPrimaryDatasets =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " PrimaryDatasets.datasetId,"+
-		 " PrimaryDatasets.datasetLabel "+
-		 "FROM PrimaryDatasets " +
-		 "ORDER BY PrimaryDatasets.datasetLabel ASC");
+   " PrimaryDatasets.id,"+
+   " PrimaryDatasets.name "+
+   "FROM u_datasets PrimaryDatasets " +
+   "ORDER BY PrimaryDatasets.name ASC");
+
 	    
-	    psSelectPrimaryDatasetEntries =
-		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " PrimaryDatasetPathAssoc.datasetId," +
-		 " PrimaryDatasets.datasetLabel,"+
-		 " PrimaryDatasetPathAssoc.pathId " +
-		 "FROM PrimaryDatasetPathAssoc "+
-		 "JOIN PrimaryDatasets "+
-		 "ON PrimaryDatasets.datasetId=PrimaryDatasetPathAssoc.datasetId "+
-		 "JOIN ConfigurationPathAssoc " +
-		 "ON ConfigurationPathAssoc.pathId=PrimaryDatasetPathAssoc.pathId "+
-		 "WHERE ConfigurationPathAssoc.configId=?");
-	    psSelectPrimaryDatasetEntries.setFetchSize(64);
-	    preparedStatements.add(psSelectPrimaryDatasetEntries);
+//	    psSelectPrimaryDatasetEntries =
+//		dbConnector.getConnection().prepareStatement
+//		("SELECT" +
+//		 " PrimaryDatasetPathAssoc.datasetId," +
+//		 " PrimaryDatasets.datasetLabel,"+
+//		 " PrimaryDatasetPathAssoc.pathId " +
+//		 "FROM PrimaryDatasetPathAssoc "+
+//		 "JOIN PrimaryDatasets "+
+////		 "ON PrimaryDatasets.datasetId=PrimaryDatasetPathAssoc.datasetId "+
+//		 "JOIN ConfigurationPathAssoc " +
+//		 "ON ConfigurationPathAssoc.pathId=PrimaryDatasetPathAssoc.pathId "+
+//		 "WHERE ConfigurationPathAssoc.configId=?");
+//	    psSelectPrimaryDatasetEntries.setFetchSize(64);
+//	    preparedStatements.add(psSelectPrimaryDatasetEntries);
 	  
-	    psSelectPSetsForConfig =
-		dbConnector.getConnection().prepareStatement
-		("SELECT"+
-		 " ParameterSets.superId "+
-		 "FROM ParameterSets " +
-		 "JOIN ConfigurationParamSetAssoc " +
-		 "ON ConfigurationParamSetAssoc.psetId="+
-		 "ParameterSets.superId " +
-		 "WHERE ConfigurationParamSetAssoc.configId=?");
-	    preparedStatements.add(psSelectPSetsForConfig);
+//	    psSelectPSetsForConfig =
+//		dbConnector.getConnection().prepareStatement
+//		("SELECT"+
+//		 " ParameterSets.superId "+
+//		 "FROM ParameterSets " +
+////		 "JOIN ConfigurationParamSetAssoc " +
+//		 "ON ConfigurationParamSetAssoc.psetId="+
+//		 "ParameterSets.superId " +
+//		 "WHERE ConfigurationParamSetAssoc.configId=?");
+//	    preparedStatements.add(psSelectPSetsForConfig);
 	    
-	    psSelectContentForConfig =
-	    	dbConnector.getConnection().prepareStatement(
-	    			"SELECT "											+
-	    			"EventContents.eventContentId "						+
-	    			"FROM	EventContents "								+
-	    			"JOIN	ConfigurationContentAssoc "					+
-	    			"ON		ConfigurationContentAssoc.eventContentId "	+
-	    			"	= 	EventContents.eventContentId "				+
-	    			"WHERE	ConfigurationContentAssoc.configId = ?"		);
-	    preparedStatements.add(psSelectContentForConfig);
-	    	
+//	    psSelectContentForConfig =
+//	    	dbConnector.getConnection().prepareStatement(
+//	    			"SELECT "											+
+//	    			"EventContents.eventContentId "						+
+//	    			"FROM	EventContents "								+
+//	    			"JOIN	ConfigurationContentAssoc "					+
+//	    			"ON		ConfigurationContentAssoc.eventContentId "	+
+//	    			"	= 	EventContents.eventContentId "				+
+//	    			"WHERE	ConfigurationContentAssoc.configId = ?"		);
+//	    preparedStatements.add(psSelectContentForConfig);
+//	    	
 	    psSelectEDSourcesForConfig =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " EDSources.superId "+
-		 "FROM EDSources "+
-		 "JOIN ConfigurationEDSourceAssoc " +
-		 "ON ConfigurationEDSourceAssoc.edsourceId=EDSources.superId " +
-		 "WHERE ConfigurationEDSourceAssoc.configId=?");
+   " EDSources.id "+
+    "FROM u_edsources EDSources "+
+   "JOIN u_conf2eds ConfigurationEDSourceAssoc " +
+   "ON ConfigurationEDSourceAssoc.id_edsource=EDSources.id " +
+   "WHERE ConfigurationEDSourceAssoc.id_confver=?");
 	    preparedStatements.add(psSelectEDSourcesForConfig);
 	    
 	    psSelectESSourcesForConfig =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " ESSources.superId "+
-		 "FROM ESSources "+
-		 "JOIN ConfigurationESSourceAssoc " +
-		 "ON ConfigurationESSourceAssoc.essourceId=ESSources.superId " +
-		 "WHERE ConfigurationESSourceAssoc.configId=?");
+  " ESSources.id "+
+   "FROM u_essources ESSources "+
+   "JOIN u_conf2ess ConfigurationESSourceAssoc " +
+   "ON ConfigurationESSourceAssoc.id_essource=ESSources.id " +
+   "WHERE ConfigurationESSourceAssoc.id_confver=?");
 	    preparedStatements.add(psSelectESSourcesForConfig);
 
 	    psSelectESModulesForConfig =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " ESModules.superId "+
-		 "FROM ESModules "+
-		 "JOIN ConfigurationESModuleAssoc " +
-		 "ON ConfigurationESModuleAssoc.esmoduleId=ESModules.superId " +
-		 "WHERE ConfigurationESModuleAssoc.configId=?");
+   " ESModules.id "+
+   "FROM u_esmodules ESModules "+
+   "JOIN u_conf2esm ConfigurationESModuleAssoc " +
+   "ON ConfigurationESModuleAssoc.id_esmodule=ESModules.id " +
+   "WHERE ConfigurationESModuleAssoc.id_confver=?");
 	    preparedStatements.add(psSelectESModulesForConfig);
 		    
 	    psSelectServicesForConfig =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " Services.superId "+
-		 "FROM Services "+
-		 "JOIN ConfigurationServiceAssoc " +
-		 "ON ConfigurationServiceAssoc.serviceId=Services.superId " +
-		 "WHERE ConfigurationServiceAssoc.configId=?");
+   " Services.id "+
+   "FROM u_services Services "+
+   "JOIN u_conf2srv ConfigurationServiceAssoc " +
+   "ON ConfigurationServiceAssoc.id_service=Services.id " +
+   "WHERE ConfigurationServiceAssoc.id_confver=?");
  	    preparedStatements.add(psSelectServicesForConfig);
 	    
-	    psSelectSequencesForConfig =
-		dbConnector.getConnection().prepareStatement
-		("SELECT"+
-		 " Sequences.sequenceId "+
-		 "FROM Sequences "+
-		 "JOIN ConfigurationSequenceAssoc "+
-		 "ON ConfigurationSequenceAssoc.sequenceId=Sequences.sequenceId "+
-		 "WHERE ConfigurationSequenceAssoc.configId=?");
-	    preparedStatements.add(psSelectSequencesForConfig);
+//   	    psSelectSequencesForConfig =
+//		dbConnector.getConnection().prepareStatement
+//		("SELECT"+
+//		 " Sequences.sequenceId "+
+//		 "FROM Sequences "+
+//		 "JOIN ConfigurationSequenceAssoc "+
+//		 "ON ConfigurationSequenceAssoc.sequenceId=Sequences.sequenceId "+
+//		 "WHERE ConfigurationSequenceAssoc.configId=?");
+//	    preparedStatements.add(psSelectSequencesForConfig);
 	    
 	    psSelectPathsForConfig =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " Paths.pathId "+
-		 "FROM Paths " +
-		 "JOIN ConfigurationPathAssoc " +
-		 "ON ConfigurationPathAssoc.pathId=Paths.pathId " +
-		 "WHERE ConfigurationPathAssoc.configId=?");
+  " Paths.id_pathiduq "+
+   "FROM f_pathid2uq Paths " +
+   "JOIN u_pathid2conf ConfigurationPathAssoc " +
+   "ON ConfigurationPathAssoc.id_pathid=Paths.id_pathid " +
+   "WHERE ConfigurationPathAssoc.id_confver=?");
 	    preparedStatements.add(psSelectPathsForConfig);
 
-	    psSelectModulesForSeq =
-		dbConnector.getConnection().prepareStatement
-		("SELECT "+
-		 " SequenceModuleAssoc.moduleId "+
-		 "FROM SequenceModuleAssoc "+
-		 "WHERE sequenceId=?");
-	    preparedStatements.add(psSelectModulesForSeq);
-	    
-	    psSelectModulesForPath =
-		dbConnector.getConnection().prepareStatement
-		("SELECT "+
-		 " PathModuleAssoc.moduleId "+
-		 "FROM PathModuleAssoc "+
-		 "WHERE pathId=?");
-	    preparedStatements.add(psSelectModulesForPath);
-	    
+//	    psSelectModulesForSeq =
+//		dbConnector.getConnection().prepareStatement
+//		("SELECT "+
+//		 " SequenceModuleAssoc.moduleId "+
+//		 "FROM SequenceModuleAssoc "+
+//		 "WHERE sequenceId=?");
+//	    preparedStatements.add(psSelectModulesForSeq);
+//	    
+//	    psSelectModulesForPath =
+//		dbConnector.getConnection().prepareStatement
+//		("SELECT "+
+//		 " PathModuleAssoc.moduleId "+
+//		 "FROM PathModuleAssoc "+
+//		 "WHERE pathId=?");
+//	    preparedStatements.add(psSelectModulesForPath);
+//	    
 	    psSelectEDSourceTemplatesForRelease =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " EDSourceTemplates.superId "+
-		 "FROM EDSourceTemplates "+
-		 "JOIN SuperIdReleaseAssoc " +
-		 "ON SuperIdReleaseAssoc.superId=EDSourceTemplates.superId " +
-		 "WHERE SuperIdReleaseAssoc.releaseId=?");
+   " EDSourceTemplates.id "+
+   "FROM u_edstemplates EDSourceTemplates "+
+   "JOIN u_edst2rele SuperIdReleaseAssoc " +
+   "ON SuperIdReleaseAssoc.id_edstemplate=EDSourceTemplates.id " +
+   "WHERE SuperIdReleaseAssoc.id_release=?");
  	    preparedStatements.add(psSelectEDSourceTemplatesForRelease);
 	    
 	    psSelectESSourceTemplatesForRelease =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " ESSourceTemplates.superId "+
-		 "FROM ESSourceTemplates "+
-		 "JOIN SuperIdReleaseAssoc " +
-		 "ON SuperIdReleaseAssoc.superId=ESSourceTemplates.superId " +
-		 "WHERE SuperIdReleaseAssoc.releaseId=?");
+   " ESSourceTemplates.id "+
+   "FROM u_esstemplates ESSourceTemplates "+
+   "JOIN u_esst2rele SuperIdReleaseAssoc " +
+   "ON SuperIdReleaseAssoc.id_esstemplate=ESSourceTemplates.id " +
+   "WHERE SuperIdReleaseAssoc.id_release=?");
  	    preparedStatements.add(psSelectESSourceTemplatesForRelease);
 	    
 	    psSelectESModuleTemplatesForRelease =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " ESModuleTemplates.superId "+
-		 "FROM ESModuleTemplates "+
-		 "JOIN SuperIdReleaseAssoc " +
-		 "ON SuperIdReleaseAssoc.superId=ESModuleTemplates.superId " +
-		 "WHERE SuperIdReleaseAssoc.releaseId=?");
+   " ESModuleTemplates.id "+
+   "FROM u_esmtemplates ESModuleTemplates "+
+   "JOIN u_esmt2rele SuperIdReleaseAssoc " +
+   "ON SuperIdReleaseAssoc.id_esmtemplate=ESModuleTemplates.id " +
+   "WHERE SuperIdReleaseAssoc.id_release=?");
  	    preparedStatements.add(psSelectESModuleTemplatesForRelease);
 	    
 	    psSelectServiceTemplatesForRelease =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " ServiceTemplates.superId "+
-		 "FROM ServiceTemplates "+
-		 "JOIN SuperIdReleaseAssoc " +
-		 "ON SuperIdReleaseAssoc.superId=ServiceTemplates.superId " +
-		 "WHERE SuperIdReleaseAssoc.releaseId=?");
+   " ServiceTemplates.id "+
+   "FROM u_srvtemplates ServiceTemplates "+
+   "JOIN u_srvt2rele SuperIdReleaseAssoc " +
+   "ON SuperIdReleaseAssoc.id_srvtemplate=ServiceTemplates.id " +
+   "WHERE SuperIdReleaseAssoc.id_release=?");
  	    preparedStatements.add(psSelectServiceTemplatesForRelease);
 	    
 	    psSelectModuleTemplatesForRelease =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " ModuleTemplates.superId "+
-		 "FROM ModuleTemplates "+
-		 "JOIN SuperIdReleaseAssoc " +
-		 "ON SuperIdReleaseAssoc.superId=ModuleTemplates.superId " +
-		 "WHERE SuperIdReleaseAssoc.releaseId=?");
+  " ModuleTemplates.id "+
+   "FROM u_moduletemplates ModuleTemplates "+
+   "JOIN u_modt2rele SuperIdReleaseAssoc " +
+   "ON SuperIdReleaseAssoc.id_modtemplate=ModuleTemplates.id " +
+   "WHERE SuperIdReleaseAssoc.id_release=?");
  	    preparedStatements.add(psSelectModuleTemplatesForRelease);
 	    
-	    psSelectParametersForSuperId =
-		dbConnector.getConnection().prepareStatement
-		("SELECT"+
-		 " SuperIdParameterAssoc.paramId "+
-		 "FROM SuperIdParameterAssoc "+
-		 "WHERE SuperIdParameterAssoc.superId=?");
-	    preparedStatements.add(psSelectParametersForSuperId);
-	    
-	    psSelectPSetsForSuperId =
-		dbConnector.getConnection().prepareStatement
-		("SELECT"+
-		 " SuperIdParamSetAssoc.psetId "+
-		 "FROM SuperIdParamSetAssoc "+
-		 "WHERE SuperIdParamSetAssoc.superId=?");
-	    preparedStatements.add(psSelectPSetsForSuperId);
-	    
-	    psSelectVPSetsForSuperId =
-		dbConnector.getConnection().prepareStatement
-		("SELECT"+
-		 " SuperIdVecParamSetAssoc.vpsetId "+
-		 "FROM SuperIdVecParamSetAssoc "+
-		 "WHERE SuperIdVecParamSetAssoc.superId=?");
-	    preparedStatements.add(psSelectVPSetsForSuperId);
-	    
-	    psSelectPSetId =
-		dbConnector.getConnection().prepareStatement
-		("SELECT ConfigurationParamSetAssoc.psetId "+
-		 "FROM ConfigurationParamSetAssoc "+
-		 "WHERE ConfigurationParamSetAssoc.psetId=?");
-	    preparedStatements.add(psSelectPSetId);
+//	    psSelectParametersForSuperId =
+//		dbConnector.getConnection().prepareStatement
+//		("SELECT"+
+//		 " SuperIdParameterAssoc.paramId "+
+//		 "FROM SuperIdParameterAssoc "+
+//		 "WHERE SuperIdParameterAssoc.superId=?");
+//	    preparedStatements.add(psSelectParametersForSuperId);
+//	    
+//	    psSelectPSetsForSuperId =
+//		dbConnector.getConnection().prepareStatement
+//		("SELECT"+
+//		 " SuperIdParamSetAssoc.psetId "+
+//		 "FROM SuperIdParamSetAssoc "+
+//		 "WHERE SuperIdParamSetAssoc.superId=?");
+//	    preparedStatements.add(psSelectPSetsForSuperId);
+//	    
+//	    psSelectVPSetsForSuperId =
+//		dbConnector.getConnection().prepareStatement
+//		("SELECT"+
+//		 " SuperIdVecParamSetAssoc.vpsetId "+
+//		 "FROM SuperIdVecParamSetAssoc "+
+//		 "WHERE SuperIdVecParamSetAssoc.superId=?");
+//	    preparedStatements.add(psSelectVPSetsForSuperId);
+//	    
+//	    psSelectPSetId =
+//		dbConnector.getConnection().prepareStatement
+//		("SELECT ConfigurationParamSetAssoc.psetId "+
+//		 "FROM ConfigurationParamSetAssoc "+
+//		 "WHERE ConfigurationParamSetAssoc.psetId=?");
+//	    preparedStatements.add(psSelectPSetId);
 
 	    psSelectEDSourceId =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " ConfigurationEDSourceAssoc.edsourceId "+
-		 "FROM ConfigurationEDSourceAssoc "+
-		 "WHERE ConfigurationEDSourceAssoc.edsourceId=?");
+   " ConfigurationEDSourceAssoc.id_edsource "+
+   "FROM u_conf2eds ConfigurationEDSourceAssoc "+
+   "WHERE ConfigurationEDSourceAssoc.id_edsource=?");
 	    preparedStatements.add(psSelectEDSourceId);
 
 	    psSelectESSourceId =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " ConfigurationESSourceAssoc.essourceId "+
-		 "FROM ConfigurationESSourceAssoc "+
-		 "WHERE ConfigurationESSourceAssoc.essourceId=?");
+   " ConfigurationESSourceAssoc.id_essource "+
+   "FROM u_conf2ess ConfigurationESSourceAssoc "+
+   "WHERE ConfigurationESSourceAssoc.id_essource=?");
 	    preparedStatements.add(psSelectESSourceId);
 
 	    psSelectESModuleId =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " ConfigurationESModuleAssoc.esmoduleId "+
-		 "FROM ConfigurationESModuleAssoc "+
-		 "WHERE ConfigurationESModuleAssoc.esmoduleId=?");
+  " ConfigurationESModuleAssoc.id_esmodule "+
+   "FROM u_conf2edm ConfigurationESModuleAssoc "+
+   "WHERE ConfigurationESModuleAssoc.id_esmodule=?");
+     preparedStatements.add(psSelectESModuleId);
+
 	    preparedStatements.add(psSelectESModuleId);
 
 	    psSelectServiceId =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " ConfigurationServiceAssoc.serviceId "+
-		 "FROM ConfigurationServiceAssoc "+
-		 "WHERE ConfigurationServiceAssoc.serviceId=?");
+   " ConfigurationServiceAssoc.id_service "+
+   "FROM u_conf2srv ConfigurationServiceAssoc "+
+   "WHERE ConfigurationServiceAssoc.id_service=?");
 	    preparedStatements.add(psSelectServiceId);
 
 	    psSelectSequenceId =
@@ -4482,13 +4503,13 @@ public class ConfDB
 	    psSelectPathId =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " ConfigurationPathAssoc.pathId "+
-		 "FROM ConfigurationPathAssoc "+
-		 "WHERE ConfigurationPathAssoc.pathId=?");
+   " ConfigurationPathAssoc.id_pathid "+
+   "FROM u_pathid2conf ConfigurationPathAssoc "+
+   "WHERE ConfigurationPathAssoc.id_pathid=?");
 	    preparedStatements.add(psSelectPathId);
 	    
 	    
-	    psSelectStreamByEventContent = 
+/*	    psSelectStreamByEventContent = 
 	    	dbConnector.getConnection().prepareStatement(
 	    			"SELECT  ECS.STREAMID "				+
 	    			"FROM    ECSTREAMASSOC   ECS "		+
@@ -5243,6 +5264,7 @@ public class ConfDB
 		("DELETE FROM ConfigurationPathAssoc "+
 		 "WHERE configId=?");
 	    preparedStatements.add(psDeletePathsFromConfig);
+*/
 
 	    /* 28/09/2009
 	       psDeleteStreamsAndDatasetsFromConfig =
@@ -5252,7 +5274,7 @@ public class ConfDB
 	       preparedStatements.add(psDeleteStreamsAndDatasetsFromConfig);
 	    */
 	    
-
+/*
 	    psDeleteChildSeqsFromParentSeq =
 		dbConnector.getConnection().prepareStatement
 		("DELETE FROM SequenceInSequenceAssoc "+
@@ -5521,7 +5543,7 @@ public class ConfDB
 		 "ORDER BY sequence_nb ASC");
 	    psSelectStringValues.setFetchSize(2048);
 	    preparedStatements.add(psSelectStringValues);
-	    
+*/	    
 	    /** Query new CLOB fields in temp_string_table.
 	     *  NOTE: the rowid JOIN is to simulate the
 	     *  DISTINCT modifier in the original query,
@@ -5549,7 +5571,7 @@ public class ConfDB
 			 "   tmp_string_table clobs 	" +
 			 "ON (clobs.rowid = grouped.idrow)");
 			 */
-	    psSelectCLOBsValues =
+/*	    psSelectCLOBsValues =
 			dbConnector.getConnection().prepareStatement
 			("SELECT 						" + 
 			 "   parameter_id    ,	" +
@@ -5702,6 +5724,7 @@ public class ConfDB
 			 " where table_name = 'TMP_SEQUENCE_ENTRIES'" +
 			 "   and column_name = 'OPERATOR')			");
 		    preparedStatements.add(psCheckPathFieldsExistence);
+*/
 	}
 	catch (SQLException e) {
 	    String errMsg = "ConfDB::prepareStatements() failed: "+e.getMessage();
@@ -5743,17 +5766,21 @@ public class ConfDB
 		templateTableNameHashMap.put(type,tableModuleTemplates);
 	    }
 	    
+
 	    rs = psSelectParameterTypes.executeQuery();
+/*	    int  typeId = 0;
 	    while (rs.next()) {
-		int               typeId = rs.getInt(1);
-		String            type   = rs.getString(2);
+		//int               typeId = rs.getInt(1);
+                typeId++;
+		String            type   = rs.getString(1);
 		paramTypeIdHashMap.put(type,typeId);
 		if (type.startsWith("v")||type.startsWith("V"))
 		    isVectorParamHashMap.put(typeId,true);
 		else
 		    isVectorParamHashMap.put(typeId,false);
+		}
+*/
 	    }
-	}
 	catch (SQLException e) {
 	    String errMsg = "ConfDB::prepareStatements() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
