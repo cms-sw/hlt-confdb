@@ -729,11 +729,11 @@ public class ConfDB
 		if (directoryHashMap.size()==0) {
                     System.out.println("New root DIrectrory: "+dirId+"- "+dirName+" "+dirCreated);
 		    rootDir = new Directory(dirId,dirName,dirCreated,null);
-                    System.out.println("New root DIrectrory  done");
+                    //svdbgSystem.out.println("New root DIrectrory  done");
 		    directoryHashMap.put(dirId,rootDir);
 		}
 		else {
-                    System.out.println("Now checking parenmt dir - "+parentDirId);
+                    //svdbgSystem.out.println("Now checking parenmt dir - "+parentDirId);
 
 		    if (!directoryHashMap.containsKey(parentDirId))
 			throw new DatabaseException("parentDir not found in DB"+
@@ -747,9 +747,9 @@ public class ConfDB
 							dirName,
 							dirCreated,
 							parentDir);
-                    System.out.println("New DIrectrory with parent - done");
+                    //svdbgSystem.out.println("New DIrectrory with parent - done");
 		    parentDir.addChildDir(newDir);
-                    System.out.println("New DIrectrory - done adding child");
+                    //svdbgSystem.out.println("New DIrectrory - done adding child");
 		    directoryHashMap.put(dirId,newDir);
                     System.out.println("New DIrectrory - done putting hash");
 		}
@@ -766,7 +766,7 @@ public class ConfDB
             System.out.println("Try to query COnfs");
 
 	    rs = psSelectConfigurations.executeQuery();
-            System.out.println("Queried COnfs");
+            //svdbgSystem.out.println("Queried COnfs");
 
 	    // DEBUG
 	    //long config1Time = System.currentTimeMillis();
@@ -868,6 +868,7 @@ public class ConfDB
 	SoftwareRelease release   = new SoftwareRelease();
 	release.clear(releaseTag);
 	try {
+            System.out.println("loadTemplate with ReleaseTag: "+releaseId+" "+templateName);
 	    csLoadTemplate.setInt(1,releaseId);
 	    csLoadTemplate.setString(2,templateName);
 	}
@@ -898,6 +899,7 @@ public class ConfDB
 	String releaseTag = getReleaseTag(releaseId);
 	release.clear(releaseTag);
 	try {
+            System.out.println("loadTemplates with ReleaseiD: "+releaseId+" "+release);
 	    csLoadTemplates.setInt(1,releaseId);
 	}
 	catch (SQLException e) {
@@ -914,6 +916,7 @@ public class ConfDB
 	throws DatabaseException
     {
 	int releaseId = getReleaseId(releaseTag);
+        System.out.println("loadSoftwareRelease with releaseTag(rec ID): "+releaseTag+" ("+releaseId+") "+release);
 	loadSoftwareRelease(releaseId,release);
     }
 
@@ -926,6 +929,7 @@ public class ConfDB
 	release.clear(releaseTag);
 	
 	try {
+            System.out.println("loadPartialSwRel configId: "+configId+" "+release);
 	    csLoadTemplatesForConfig.setInt(1,configId);
 	}
 	catch (SQLException e) {
@@ -958,6 +962,7 @@ public class ConfDB
 	    new HashMap<Integer,SoftwarePackage>();
 	ArrayList<SoftwareSubsystem> subsystems = getSubsystems(idToPackage);
 	
+        System.out.println("loadTemplates: release "+release);
 	try {
 	    cs.executeUpdate();
 	    
@@ -965,6 +970,8 @@ public class ConfDB
 	    
 	    rsTemplates = psSelectTemplates.executeQuery();
 	    
+ System.out.println("loadTemplates: gotParameters");
+
 	    while (rsTemplates.next()) {
 		int    id     = rsTemplates.getInt(1);
 		String type   = rsTemplates.getString(2);
@@ -972,10 +979,14 @@ public class ConfDB
 		String cvstag = rsTemplates.getString(4);
 		int    pkgId  = rsTemplates.getInt(5);
 		
+ //System.out.println("loadTemplates: id "+id+" type "+" name "+name+" cvstag "+cvstag+" pkgid "+pkgId);
+
 		SoftwarePackage pkg = idToPackage.get(pkgId);
 
 		Template template =
 		    TemplateFactory.create(type,name,cvstag,null);
+if (template==null) System.out.println("template NULL!!!");
+if (pkg==null) System.out.println("pkg NULL!!!");
 		
 		ArrayList<Parameter> params = templateParams.remove(id);
 		
@@ -1032,6 +1043,7 @@ public class ConfDB
 	throws DatabaseException
     {
 	ConfigInfo configInfo  = getConfigInfo(configId);
+        System.out.println("loadTemplates with configid: "+configId+" release "+release);
 	return loadConfiguration(configInfo,release);
     }
     
@@ -1043,6 +1055,7 @@ public class ConfDB
     {
 	String releaseTag = configInfo.releaseTag();
 	
+        System.out.println("loadTemplates with configinfo: "+releaseTag+" release "+release);
 	if (releaseTag==null) System.out.println("releaseTag = " + releaseTag);
 	if (release==null) System.out.println("release is null");
 	else if (release.releaseTag()==null) System.out.println("WHAT?!");
@@ -1064,6 +1077,7 @@ public class ConfDB
 	String          releaseTag = configInfo.releaseTag();
 	SoftwareRelease release    = new SoftwareRelease();
 	release.clear(releaseTag);
+        System.out.println("loadTemplates with only configid: "+configId);
 	loadPartialSoftwareRelease(configId,release);
 	Configuration config = new Configuration(configInfo,release);
 	loadConfiguration(config);
@@ -1078,6 +1092,8 @@ public class ConfDB
 	reconnect();
 	
 	int       configId = config.dbId();
+
+        System.out.println("loadConfiguration with config "+config);
 
 	ResultSet rsInstances       = null;
 	
@@ -1094,17 +1110,22 @@ public class ConfDB
 
 	try {
 		
+            System.out.println("Trying loadConfiguration id="+configId);
 	    csLoadConfiguration.setInt(1,configId);
 	    csLoadConfiguration.executeUpdate();
+            System.out.println("Done loadConfiguration id="+configId);
 
+            System.out.println("Trying rs instances"+configId);
 	    rsInstances       = psSelectInstances.executeQuery();
+	    psSelectPathEntries.setInt(1,configId);
+            System.out.println("Trying Pathentries"+configId);
 	    rsPathEntries     = psSelectPathEntries.executeQuery();
 	    
-	    
+	  /*  
 	    // This is to fix the operator field bug for modules inside sequences. bug #91797
 	    if(operatorFieldForSequencesAvailability)
 	    	rsSequenceEntries = psSelectSequenceEntriesAndOperator.executeQuery();
-	    else
+	 //   else
 	    	rsSequenceEntries = psSelectSequenceEntries.executeQuery();
 	    	
 	    
@@ -1119,13 +1140,15 @@ public class ConfDB
 
 	    psSelectEventContentStatements.setInt(1,configId);
 	    rsEventContentStatements = psSelectEventContentStatements.executeQuery();
-	   
+*/	   
 	    HashMap<Integer,Stream> idToStream = new HashMap<Integer,Stream>();
 	    HashMap<Integer,PrimaryDataset> idToDataset =
 		new HashMap<Integer,PrimaryDataset>();  
 
 
+            System.out.println("getting params"+configId);
 	    HashMap<Integer,ArrayList<Parameter> > idToParams = getParameters();
+            System.out.println("DOne params");
 	    
 	    HashMap<Integer,ModuleInstance> idToModules=
 		new HashMap<Integer,ModuleInstance>();
@@ -1150,6 +1173,8 @@ public class ConfDB
 		
 		String templateName = null;
 		
+//System.out.println("found instance "+id
+//                                     +  "name="+instanceName+" templateid="+templateId+" entryType="+type);
 		if (type.equals("PSet")) {
 		    PSetParameter pset = (PSetParameter)ParameterFactory
 			.create("PSet",instanceName,"",flag);
@@ -1240,7 +1265,7 @@ public class ConfDB
 		}
 	    }
 
-	    while (rsEventContentEntries.next()) {
+/*	    while (rsEventContentEntries.next()) {
 		int  eventContentId = rsEventContentEntries.getInt(1);
 		String name =  rsEventContentEntries.getString(2);
 		EventContent eventContent = config.insertContent(name);
@@ -1339,7 +1364,7 @@ public class ConfDB
 		sequence.setDatabaseId(sequenceId);
 		sequenceToId.put(sequence,sequenceId);
 	    }
-
+*/
 	    while (rsPathEntries.next()) {
 		int    pathId     = rsPathEntries.getInt(1);
 		int    entryId    = rsPathEntries.getInt(2);
@@ -1349,6 +1374,9 @@ public class ConfDB
 		
 		Path path  = idToPaths.get(pathId);
 		int  index = path.entryCount();
+
+//                System.out.println("found n path "+path.name()+": "+
+//                                       "index="+index+" sequenceNb="+sequenceNb+" entryType="+entryType);
 
 		if (index!=sequenceNb)
 		    System.err.println("ERROR in path "+path.name()+": "+
@@ -1382,7 +1410,7 @@ public class ConfDB
 
 
 
-	    while (rsDatasetEntries.next()) {
+/*	    while (rsDatasetEntries.next()) {
 		int  datasetId = rsDatasetEntries.getInt(1);
 		String datasetLabel =  rsDatasetEntries.getString(2);
 		int  streamId = rsDatasetEntries.getInt(3);
@@ -1511,7 +1539,7 @@ public class ConfDB
 		int databaseId = sequenceToId.get(sequence);
 		sequence.setDatabaseId(databaseId);
 	    }
-	    
+*/	    
 	    /*
 	      Iterator<Path> pathIt = config.pathIterator();
 	      while(pathIt.hasNext()){
@@ -1531,11 +1559,12 @@ public class ConfDB
 	finally {
 	    dbConnector.release(rsInstances);
 	    dbConnector.release(rsPathEntries);
-	    dbConnector.release(rsSequenceEntries);
+/*	    dbConnector.release(rsSequenceEntries);
 	    dbConnector.release(rsEventContentEntries);
 	    dbConnector.release(rsStreamEntries);
 	    dbConnector.release(rsDatasetEntries);
 	    dbConnector.release(rsPathStreamDataset);
+*/
 	}
     }
     
@@ -1787,10 +1816,11 @@ public class ConfDB
 	}
 	
 	try {
-	    psInsertConfigurationLock.setInt(1,parentDirId);
+/*	    psInsertConfigurationLock.setInt(1,parentDirId);
 	    psInsertConfigurationLock.setString(2,configName);
 	    psInsertConfigurationLock.setString(3,userName);
 	    psInsertConfigurationLock.executeUpdate();
+*/
 	}
 	catch (SQLException e) {
 	    String errMsg =
@@ -1811,10 +1841,10 @@ public class ConfDB
 	String  userName      = config.lockedByUser();
 
 	try {
-	    psDeleteLock.setInt(1,parentDirId);
+/*	    psDeleteLock.setInt(1,parentDirId);
 	    psDeleteLock.setString(2,configName);
 	    psDeleteLock.executeUpdate();
-	}
+*/	}
 	catch (SQLException e) {
 	    String errMsg =
 		" ConfDB::unlockConfiguration("+config.toString()+" failed: "+
@@ -4030,7 +4060,7 @@ public class ConfDB
             psSelectConfigurations =
                 dbConnector.getConnection().prepareStatement
 		("SELECT" +
-   " Configurations.configId," +
+   " Configurations.Id," +
    " Configurations.parentDirId," +
    " Configurations.config," +
    " Configurations.version," +
@@ -4134,17 +4164,17 @@ public class ConfDB
 	    psSelectReleaseTags =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-   " SoftwareReleases.id," +
+   " SoftwareReleases.releaseid," +
    " SoftwareReleases.releaseTag " +
    "FROM u_softreleases SoftwareReleases " +
-   "ORDER BY SoftwareReleases.id DESC");
+   "ORDER BY SoftwareReleases.releaseid DESC");
 	    psSelectReleaseTags.setFetchSize(32);
 	    preparedStatements.add(psSelectReleaseTags);
 	    
 	    psSelectReleaseTagsSorted =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-   " SoftwareReleases.id," +
+   " SoftwareReleases.releaseid," +
    " SoftwareReleases.releaseTag " +
    "FROM u_softreleases SoftwareReleases " +
    "ORDER BY SoftwareReleases.releaseTag ASC");
@@ -4154,7 +4184,7 @@ public class ConfDB
 	    psSelectReleaseId =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-  " SoftwareReleases.id "+
+  " SoftwareReleases.releaseid "+
    "FROM u_softreleases SoftwareReleases " +
    "WHERE SoftwareReleases.releaseTag = ?");
 
@@ -4163,7 +4193,7 @@ public class ConfDB
 		("SELECT" +
    " SoftwareReleases.releaseTag " +
    "FROM u_softreleases SoftwareReleases " +
-   "WHERE SoftwareReleases.id = ?");
+   "WHERE SoftwareReleases.releaseid = ?");
 	    preparedStatements.add(psSelectReleaseTag);
 	    
 	    psSelectReleaseTagForConfig =
@@ -4172,7 +4202,7 @@ public class ConfDB
    " SoftwareReleases.releaseTag " +
    "FROM u_softreleases SoftwareReleases " +
    "JOIN u_confversions Configurations " +
-   "ON Configurations.releaseId = SoftwareReleases.id " +
+   "ON Configurations.releaseId = SoftwareReleases.releaseid " +
    "WHERE Configurations.id = ?");
 	    preparedStatements.add(psSelectReleaseTagForConfig);
 	    
@@ -4188,7 +4218,7 @@ public class ConfDB
 	    psSelectSoftwarePackages =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-   " SoftwarePackages.id," +
+   " SoftwarePackages.packageid," +
    " SoftwarePackages.subsysId," +
    " SoftwarePackages.name " +
    "FROM u_softpackages SoftwarePackages");
@@ -4648,102 +4678,105 @@ public class ConfDB
 
 	    //work going on 
 
-	    
+*/	    
 	    psSelectReleaseCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM SoftwareReleases");
+  ("SELECT COUNT(*) FROM u_softreleases SoftwareReleases");
 	    preparedStatements.add(psSelectReleaseCount);
 
 	    psSelectConfigurationCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM Configurations");
+//  ("SELECT COUNT(*) FROM u_confversions Configurations");
+  ("SELECT COUNT(*) FROM u_configurations Configurations");
 	    preparedStatements.add(psSelectConfigurationCount);
 	    
 	    psSelectDirectoryCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM Directories");
+  ("SELECT COUNT(*) FROM u_directories Directories");
 	    preparedStatements.add(psSelectDirectoryCount);
 
 	    psSelectSuperIdCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM SuperIds");
+  ("SELECT COUNT(*) FROM u_confversions Configurations"); //sv just a placeholder 
 	    preparedStatements.add(psSelectSuperIdCount);
 
 	    psSelectEDSourceTemplateCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM EDSourceTemplates");
+("SELECT COUNT(*) FROM u_edstemplates EDSourceTemplates");
 	    preparedStatements.add(psSelectEDSourceTemplateCount);
 	    
 	    psSelectEDSourceCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM EDSources");
+  ("SELECT COUNT(*) FROM u_edsources EDSources");
 	    preparedStatements.add(psSelectEDSourceCount);
 
 	    psSelectESSourceTemplateCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM ESSourceTemplates");
+  ("SELECT COUNT(*) FROM u_esstemplates ESSourceTemplates");
 	    preparedStatements.add(psSelectESSourceTemplateCount);
 
 	    psSelectESSourceCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM ESSources");
+  ("SELECT COUNT(*) FROM u_essources ESSources");
 	    preparedStatements.add(psSelectESSourceCount);
 
 	    psSelectESModuleTemplateCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM ESModuleTemplates");
+("SELECT COUNT(*) FROM u_esmtemplates ESModuleTemplates");
 	    preparedStatements.add(psSelectESModuleTemplateCount);
 
 	    psSelectESModuleCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM ESModules");
+("SELECT COUNT(*) FROM u_esmodules ESModules");
 	    preparedStatements.add(psSelectESModuleCount);
 
 	    psSelectServiceTemplateCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM ServiceTemplates");
+  ("SELECT COUNT(*) FROM u_srvtemplates ServiceTemplates");
 	    preparedStatements.add(psSelectServiceTemplateCount);
 
 	    psSelectServiceCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM Services");
+("SELECT COUNT(*) FROM u_services Services");
 	    preparedStatements.add(psSelectServiceCount);
 	    
 	    psSelectModuleTemplateCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM ModuleTemplates");
+//sv deduplicati  ("SELECT COUNT(*) FROM f_moduletemplates ModuleTemplates");
+("SELECT COUNT(*) FROM u_moduletemplates ModuleTemplates"); 
 	    preparedStatements.add(psSelectModuleTemplateCount);
 	    
 	    psSelectModuleCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM Modules");
+("SELECT COUNT(*) FROM u_paelements Modules WHERE paetype = 1");
 	    preparedStatements.add(psSelectModuleCount);
 
 	    psSelectSequenceCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM Sequences");
+("SELECT COUNT(*) FROM u_paelements Modules WHERE paetype = 1");
 	    preparedStatements.add(psSelectSequenceCount);
 
 	    psSelectPathCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM Paths");
+//sv deduplicati  ("SELECT COUNT(*) FROM u_pathids Paths");
+("SELECT COUNT(*) FROM f_pathids Paths");
 	    preparedStatements.add(psSelectPathCount);
 	    
 	    psSelectParameterCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM Parameters");
+("SELECT COUNT(*) FROM f_pathids Paths"); //just a placholder
 	    preparedStatements.add(psSelectParameterCount);
 
 	    psSelectParameterSetCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM ParameterSets");
+("SELECT COUNT(*) FROM f_pathids Paths"); //just a placholder
 	    preparedStatements.add(psSelectParameterSetCount);
 
 	    psSelectVecParameterSetCount =
 		dbConnector.getConnection().prepareStatement
-		("SELECT COUNT(*) FROM VecParameterSets");
+("SELECT COUNT(*) FROM f_pathids Paths");
 	    preparedStatements.add(psSelectVecParameterSetCount);
-	    
+/*	    
 	    
 	    //
 	    // INSERT
@@ -5405,6 +5438,7 @@ public class ConfDB
 		("DELETE FROM Paths WHERE pathId = ?");
 	    preparedStatements.add(psDeletePath);
 	    
+*/
 	    
 	    //
 	    // STORED PROCEDURES
@@ -5458,6 +5492,7 @@ public class ConfDB
 
 	    }
 	    
+
 	    //
 	    // SELECT FOR TEMPORARY TABLES
 	    //
@@ -5543,7 +5578,7 @@ public class ConfDB
 		 "ORDER BY sequence_nb ASC");
 	    psSelectStringValues.setFetchSize(2048);
 	    preparedStatements.add(psSelectStringValues);
-*/	    
+	    
 	    /** Query new CLOB fields in temp_string_table.
 	     *  NOTE: the rowid JOIN is to simulate the
 	     *  DISTINCT modifier in the original query,
@@ -5571,7 +5606,7 @@ public class ConfDB
 			 "   tmp_string_table clobs 	" +
 			 "ON (clobs.rowid = grouped.idrow)");
 			 */
-/*	    psSelectCLOBsValues =
+	    psSelectCLOBsValues =
 			dbConnector.getConnection().prepareStatement
 			("SELECT 						" + 
 			 "   parameter_id    ,	" +
@@ -5586,46 +5621,47 @@ public class ConfDB
 	    
 	    psSelectPathEntries =
 		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " path_id," +
-		 " entry_id," +
-		 " sequence_nb," +
-		 " entry_type, " +
-		 " operator " +
-		 "FROM tmp_path_entries "+
-		 "ORDER BY path_id ASC, sequence_nb ASC");
+ ("SELECT" +
+   " c.pathid AS path_id," +
+   " a.o_id AS entry_id," +
+   " a.ord AS sequence_nb," +
+   " DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, " +
+   " a.operator " +
+   "FROM u_paelements a, u_pathid2conf b, u_pathids c "+
+        "WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND " +
+        "b.id_confver = ? " +
+   "ORDER BY a.id_pathid ASC, a.ord ASC");
 	    psSelectPathEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectPathEntries);
 	    
 	    psSelectSequenceEntries =
 		dbConnector.getConnection().prepareStatement
-		("SELECT" +
-		 " sequence_id," +
-		 " entry_id," +
-		 " sequence_nb," +
- 		 " entry_type " +
-		 " operator " +
-		 "FROM tmp_sequence_entries "+
-		 "ORDER BY sequence_id ASC, sequence_nb ASC");
+  ("SELECT" +
+   "a.id_pathid AS sequence_id," +
+   "a.id AS entry_id," +
+   "a.ord AS sequence_nb," +
+   "DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined')  AS entry_type," +
+   "a.operator " +
+   "FROM u_paelements a WHERE id IS NULL ");
 	    psSelectSequenceEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectSequenceEntries);
 
 	    // bug #91797 ConfDB operator IGNORE/NEGATE also for modules in a sequence
 	    psSelectSequenceEntriesAndOperator =
 			dbConnector.getConnection().prepareStatement
-			("SELECT" +
-			 " sequence_id," +
-			 " entry_id," +
-			 " sequence_nb," +
-	 		 " entry_type, " +
-			 " operator " +
-			 "FROM tmp_sequence_entries "+
-			 "ORDER BY sequence_id ASC, sequence_nb ASC");
+   ("SELECT" +
+    "id AS sequence_id," +
+    "id AS entry_id," +
+    "id AS sequence_nb," +
+    "id AS entry_type, " +
+    "id AS operator " +
+    "FROM u_paelements WHERE id IS NULL "+
+    "ORDER BY sequence_id ASC, sequence_nb ASC");
 	    psSelectSequenceEntriesAndOperator.setFetchSize(1024);
 		    preparedStatements.add(psSelectSequenceEntriesAndOperator);
 		
 
-	    //Insert a new relesase
+/*	    //Insert a new relesase
 	    psInsertReleaseTag = 
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO SoftwareReleases " +
@@ -5804,7 +5840,7 @@ public class ConfDB
 	ResultSet rsStringValues  = null;
 
 	try {
-		rsParameters    = psSelectParameters.executeQuery();
+	    rsParameters    = psSelectParameters.executeQuery();
 	    rsBooleanValues = psSelectBooleanValues.executeQuery();
 	    rsIntValues     = psSelectIntValues.executeQuery();
 	    rsRealValues    = psSelectRealValues.executeQuery();
