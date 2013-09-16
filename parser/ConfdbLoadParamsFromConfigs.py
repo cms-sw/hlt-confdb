@@ -300,9 +300,10 @@ class ConfdbLoadParamsfromConfigs:
                 self.oldcmsswrelid = tmprelid[0]
 
         # Find CVS tags
-        self.GetReleaseCVSTags()
-        if(self.addtorelease != "none"):
-            self.GetAddedCVSTags()
+#       No longer possible with GIT:
+#       self.GetReleaseCVSTags()
+#       if(self.addtorelease != "none"):
+#           self.GetAddedCVSTags()
 
         # Do some one-time operations - get dictionaries of parameter, module,
         # and service type mappings so we don't have to do this every time
@@ -986,7 +987,9 @@ class ConfdbLoadParamsfromConfigs:
                 # If not, first check if it existed in the previous release
                 oldcvstag = self.GetOldReleaseCVSTag(componentname)
                 
-                if(self.cvstag == oldcvstag):
+#               No longer possible with GIT:
+#               if(self.cvstag == oldcvstag):
+                if (0):
                     self.VerbosePrint("The CVS tag is unchanged: " + str(oldcvstag) + " to " + str(self.cvstag),2)
                     self.ReassociateSuperId(componentname)
                     
@@ -997,6 +1000,7 @@ class ConfdbLoadParamsfromConfigs:
                     doloadupdate = True
             else:
                 doloadupdate = True
+                self.cvstag = 'NO_CVS_TAGS_IN_GIT'
 
             # See if we need to load/update this component. Do this if the component doesn't already exist in the release and either:
             # 1) The component wasn't found in the previous release
