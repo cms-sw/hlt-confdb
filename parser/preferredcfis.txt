@@ -9,7 +9,6 @@ RecoTracker/FinalTrackSelectors         trackListMerger_cfi.py
 RecoTracker/FinalTrackSelectors         simpleTrackListMerger_cfi.py
 TrackingTools/TrajectoryCleaning        TrajectoryCleanerBySharedHits_cfi.py
 RecoTracker/DeDx                        hltDeDxEstimatorProducer_cfi.py
-IORawData/DaqSource                     hltDaqSource_cfi.py
 RecoTauTag/TauTagTools                  HLTPFTauSelector_cfi.py
 RecoMuon/L2MuonIsolationProducer        hltL2MuonIsolationsCR_cfi.py
 RecoBTau/JetTagComputer                 combinedMVABJetTags_cfi.py
