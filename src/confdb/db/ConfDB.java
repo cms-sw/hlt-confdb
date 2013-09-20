@@ -17,6 +17,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 import java.io.*;
 
 import confdb.data.*;
@@ -724,10 +727,10 @@ public class ConfDB
 		String dirName     = rs.getString(3);
 		String dirCreated  = rs.getTimestamp(4).toString();
 
-                System.out.println("Retrieved Dirs: "+dirId+"- parent "+parentDirId+" "+dirName+" "+dirCreated);
+                //System.out.println("Retrieved Dirs: "+dirId+"- parent "+parentDirId+" "+dirName+" "+dirCreated);
 		
 		if (directoryHashMap.size()==0) {
-                    System.out.println("New root DIrectrory: "+dirId+"- "+dirName+" "+dirCreated);
+                    //System.out.println("New root DIrectrory: "+dirId+"- "+dirName+" "+dirCreated);
 		    rootDir = new Directory(dirId,dirName,dirCreated,null);
                     //svdbgSystem.out.println("New root DIrectrory  done");
 		    directoryHashMap.put(dirId,rootDir);
@@ -740,9 +743,9 @@ public class ConfDB
 						    " (parentDirId="+parentDirId+
 						    ")");
                     
-                    System.out.println("getting parentdir "+parentDirId);
+                    //System.out.println("getting parentdir "+parentDirId);
 		    Directory parentDir = directoryHashMap.get(parentDirId);
-                    System.out.println("New DIrectrory with parent: "+dirId+"- "+dirName+" "+dirCreated+ parentDirId);
+                    //System.out.println("New DIrectrory with parent: "+dirId+"- "+dirName+" "+dirCreated+ parentDirId);
 		    Directory newDir    = new Directory(dirId,
 							dirName,
 							dirCreated,
@@ -751,7 +754,7 @@ public class ConfDB
 		    parentDir.addChildDir(newDir);
                     //svdbgSystem.out.println("New DIrectrory - done adding child");
 		    directoryHashMap.put(dirId,newDir);
-                    System.out.println("New DIrectrory - done putting hash");
+                    //System.out.println("New DIrectrory - done putting hash");
 		}
 	    }
 
@@ -782,7 +785,7 @@ public class ConfDB
 		String configProcessName = rs.getString(8);
 		String configComment     = rs.getString(9);
 
-                System.out.println("Retrieved Conf: "+configName+" "+configCreated+" "+configReleaseTag);
+                //System.out.println("Retrieved Conf: "+configName+" "+configCreated+" "+configReleaseTag);
 		
 		if (configComment==null) configComment="";
 
@@ -979,7 +982,8 @@ public class ConfDB
 		String cvstag = rsTemplates.getString(4);
 		int    pkgId  = rsTemplates.getInt(5);
 		
- //System.out.println("loadTemplates: id "+id+" type "+" name "+name+" cvstag "+cvstag+" pkgid "+pkgId);
+ System.out.println("loadTemplates: id "+id+" type "+" name "+name+" cvstag "+cvstag+" pkgid "+pkgId);
+		    //System.out.println("Template "+templateId+" "+templateName+" instance "+instanceName); 
 
 		SoftwarePackage pkg = idToPackage.get(pkgId);
 
@@ -1121,15 +1125,21 @@ if (pkg==null) System.out.println("pkg NULL!!!");
             System.out.println("Trying Pathentries"+configId);
 	    rsPathEntries     = psSelectPathEntries.executeQuery();
 	    
-	  /*  
+	    
 	    // This is to fix the operator field bug for modules inside sequences. bug #91797
 	    if(operatorFieldForSequencesAvailability)
+            {
+                psSelectSequenceEntriesAndOperator.setInt(1,configId);
 	    	rsSequenceEntries = psSelectSequenceEntriesAndOperator.executeQuery();
-	 //   else
+            }
+	    else
+            {
+                psSelectSequenceEntries.setInt(1,configId);
 	    	rsSequenceEntries = psSelectSequenceEntries.executeQuery();
+            }
 	    	
 	    
-	    psSelectEventContentEntries.setInt(1,configId);
+/*	    psSelectEventContentEntries.setInt(1,configId);
 	    rsEventContentEntries = psSelectEventContentEntries.executeQuery();
 	    psSelectStreamEntries.setInt(1,configId);
 	    rsStreamEntries = psSelectStreamEntries.executeQuery();
@@ -1225,7 +1235,6 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		}
 		else if (type.equals("Module")) {
 		    templateName = release.moduleTemplateName(templateId);
-		    
 		    ModuleInstance module = config.insertModule(templateName,
 								instanceName);
 		    module.setDatabaseId(id);
@@ -1304,8 +1313,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		outputModule.setDatabaseId(streamId);
 	    }
 	    
- 	    
-	    while (rsSequenceEntries.next()) {
+*/ 	    
+/*	    while (rsSequenceEntries.next()) {
 		int    sequenceId = rsSequenceEntries.getInt(1);
 		int    entryId    = rsSequenceEntries.getInt(2);
 		int    sequenceNb = rsSequenceEntries.getInt(3);
@@ -1364,8 +1373,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		sequence.setDatabaseId(sequenceId);
 		sequenceToId.put(sequence,sequenceId);
 	    }
-*/
-	    while (rsPathEntries.next()) {
+
+*/	    while (rsPathEntries.next()) {
 		int    pathId     = rsPathEntries.getInt(1);
 		int    entryId    = rsPathEntries.getInt(2);
 		int    sequenceNb = rsPathEntries.getInt(3);
@@ -1375,8 +1384,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		Path path  = idToPaths.get(pathId);
 		int  index = path.entryCount();
 
-//                System.out.println("found n path "+path.name()+": "+
-//                                       "index="+index+" sequenceNb="+sequenceNb+" entryType="+entryType);
+                System.out.println("found n path "+path.name()+": "+
+                                       "index="+index+" sequenceNb="+sequenceNb+" entryType="+entryType);
 
 		if (index!=sequenceNb)
 		    System.err.println("ERROR in path "+path.name()+": "+
@@ -5504,7 +5513,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		 " template_name," +
 		 " template_cvstag," +
 		 " template_pkgid " +
-		 "FROM tmp_template_table");
+		 "FROM tmp_template_table "+
+                 " ORDER by template_id");
 	    psSelectTemplates.setFetchSize(1024);
 	    preparedStatements.add(psSelectTemplates);
 	    
@@ -5524,14 +5534,18 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    
 	    psSelectParameters =
 		dbConnector.getConnection().prepareStatement
-		("SELECT DISTINCT" +
+		("SELECT " +
 		 " parameter_id," +
 		 " parameter_type," +
 		 " parameter_name," +
 		 " parameter_trkd," +
 		 " parameter_seqnb," +
-		 " parent_id " +
-		 "FROM tmp_parameter_table");
+		 " parent_id," +
+		 " lvl," +
+		 " value," +
+		 " valuelob " +
+		 " FROM tmp_parameter_table " + 
+                 " ORDER BY parameter_id");
 	    psSelectParameters.setFetchSize(4096);
 	    preparedStatements.add(psSelectParameters);
 	    
@@ -5630,33 +5644,41 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    "FROM u_paelements a, u_pathid2conf b, u_pathids c "+
         "WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND " +
         "b.id_confver = ? " +
-   "ORDER BY a.id_pathid ASC, a.ord ASC");
+   "ORDER BY a.id_pathid ASC, a.id ASC");
 	    psSelectPathEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectPathEntries);
 	    
 	    psSelectSequenceEntries =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT" +
-   "a.id_pathid AS sequence_id," +
-   "a.id AS entry_id," +
-   "a.ord AS sequence_nb," +
-   "DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined')  AS entry_type," +
-   "a.operator " +
-   "FROM u_paelements a WHERE id IS NULL ");
+ ("SELECT" +
+   " a.o_id AS sequence_id," +
+   " a.id AS entry_id,"+
+   " a.ord AS sequence_nb," +
+   " DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, " +
+   " a.operator " +
+   "FROM u_paelements a, u_pathid2conf b, u_pathids c "+
+        "WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND " +
+        "b.id_confver = ? AND a.lvl>0 " +
+   "ORDER BY a.id_pathid ASC, a.id ASC");
 	    psSelectSequenceEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectSequenceEntries);
+
+
+
 
 	    // bug #91797 ConfDB operator IGNORE/NEGATE also for modules in a sequence
 	    psSelectSequenceEntriesAndOperator =
 			dbConnector.getConnection().prepareStatement
-   ("SELECT" +
-    "id AS sequence_id," +
-    "id AS entry_id," +
-    "id AS sequence_nb," +
-    "id AS entry_type, " +
-    "id AS operator " +
-    "FROM u_paelements WHERE id IS NULL "+
-    "ORDER BY sequence_id ASC, sequence_nb ASC");
+("SELECT" +
+   " a.o_id AS sequence_id," +
+   " a.id AS entry_id,"+
+   " a.ord AS sequence_nb," +
+   " DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, " +
+   " a.operator " +
+   "FROM u_paelements a, u_pathid2conf b, u_pathids c "+
+        "WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND " +
+        "b.id_confver = ? AND a.lvl>0 " +
+   "ORDER BY a.id_pathid ASC, a.id ASC");
 	    psSelectSequenceEntriesAndOperator.setFetchSize(1024);
 		    preparedStatements.add(psSelectSequenceEntriesAndOperator);
 		
@@ -5834,6 +5856,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    new HashMap<Integer,ArrayList<Parameter> >();
 
 	ResultSet rsParameters    = null;
+	ResultSet rsParameters2    = null;
 	ResultSet rsBooleanValues = null;
 	ResultSet rsIntValues     = null;
 	ResultSet rsRealValues    = null;
@@ -5841,53 +5864,67 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 
 	try {
 	    rsParameters    = psSelectParameters.executeQuery();
-	    rsBooleanValues = psSelectBooleanValues.executeQuery();
-	    rsIntValues     = psSelectIntValues.executeQuery();
-	    rsRealValues    = psSelectRealValues.executeQuery();
+	    rsParameters2= rsParameters;
+	    //rsBooleanValues = psSelectBooleanValues.executeQuery();
+	    //rsIntValues     = psSelectIntValues.executeQuery();
+	    //rsRealValues    = psSelectRealValues.executeQuery();
 	    
 
-	    rsStringValues  = psSelectStringValues.executeQuery();
+	    //rsStringValues  = psSelectStringValues.executeQuery();
 
 	    // get values as strings first
 	    HashMap<Integer,String> idToValueAsString =
 		new HashMap<Integer,String>();
 	    
-	    while (rsBooleanValues.next()) {
-		int   parameterId   = rsBooleanValues.getInt(1);
+	    ArrayList<IdPSetPair>  psets  = new ArrayList<IdPSetPair>();
+	    ArrayList<IdVPSetPair> vpsets = new ArrayList<IdVPSetPair>();
+
+	    while (rsParameters.next()) {
+                int     parameterId       = rsParameters.getInt(1);
+                String  type     = rsParameters.getString(2);
+                String  name     = rsParameters.getString(3);
+                boolean isTrkd   = rsParameters.getBoolean(4);
+                int     seqNb    = rsParameters.getInt(5);
+                int     parentId = rsParameters.getInt(6);
+
+            if (type.equals("bool")) { 
 		String valueAsString =
-		    (new Boolean(rsBooleanValues.getBoolean(2))).toString();
+		    (new Boolean(rsParameters.getBoolean(8))).toString();
 		idToValueAsString.put(parameterId,valueAsString);
 	    }
 	    
-	    while (rsIntValues.next()) {
-		int    parameterId   = rsIntValues.getInt(1);
-		Long    value         = new Long(rsIntValues.getLong(2));
-		Integer sequenceNb    = new Integer(rsIntValues.getInt(3));
-		boolean isHex         = rsIntValues.getBoolean(4);
+            if (type.contains("int")) { 
+		//Long    value         = new Long(rsParameters.getLong(8));
+		boolean isHex         = false; //rsIntValues.getBoolean(4);
 		
-		String valueAsString = (isHex) ?
-		    "0x"+Long.toHexString(value) : Long.toString(value);
+		String  valueAsString = rsParameters.getString(8);
+
+                  if (isHex) 
+ 		    valueAsString= "0x"+valueAsString;
+              
+               if (valueAsString!=null)
+               { if (valueAsString.startsWith("{")) valueAsString=valueAsString.substring(1, valueAsString.length()-1);
+                 valueAsString=valueAsString.trim();
+               }
 		
-		if (sequenceNb!=null&&
-		    idToValueAsString.containsKey(parameterId))
-		    idToValueAsString.put(parameterId,
-					  idToValueAsString.get(parameterId) +
-					  ", "+valueAsString);
-		else
+		//if (sequenceNb!=null&&
+		//    idToValueAsString.containsKey(parameterId))
+		//    idToValueAsString.put(parameterId,
+	        //				  idToValueAsString.get(parameterId) +
+	       // 				  ", "+valueAsString);
+	//	else
 		    idToValueAsString.put(parameterId,valueAsString);
 	    }
 	    
-	    while (rsRealValues.next()) {
-		int     parameterId   = rsRealValues.getInt(1);
-		String  valueAsString =
-		    (new Double(rsRealValues.getDouble(2))).toString();
-		Integer sequenceNb    = new Integer(rsRealValues.getInt(3));
-		if (sequenceNb!=null&&
-		    idToValueAsString.containsKey(parameterId))
-		    idToValueAsString.put(parameterId,
-					  idToValueAsString.get(parameterId) +
-					  ", "+valueAsString);
-		else
+            if (type.contains("double")) { 
+		String  valueAsString = rsParameters.getString(8);
+
+               if (valueAsString!=null)
+               { if (valueAsString.startsWith("{")) valueAsString=valueAsString.substring(1, valueAsString.length()-1);
+                 valueAsString=valueAsString.trim();
+               }
+                //valueAsString=valueAsString.trim();
+
 		    idToValueAsString.put(parameterId,valueAsString);
 	    }
 	    
@@ -5896,52 +5933,70 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    
 	    
 	    /////////////////
-	    while (rsStringValues.next()) {
-			int    parameterId   = rsStringValues.getInt(1);
-			String  valueAsString = "";
+//	    while (rsStringValues.next()) {
+            if (type.contains("string")) { 
 			
-			valueAsString = rsStringValues.getString(2); // get PARAMETER_VALUE
+	       String valueAsString = rsParameters.getString(8); // get PARAMETER_VALUE
+
+               //if (valueAsString.startsWith("{")) valueAsString=valueAsString.substring(1, valueAsString.length()-1);
+                //valueAsString=valueAsString.trim();
+               if (valueAsString!=null)
+               { if (valueAsString.startsWith("{")) valueAsString=valueAsString.substring(1, valueAsString.length()-1);
+                 valueAsString=valueAsString.trim();
+               }
 	
-			Integer sequenceNb    = new Integer(rsStringValues.getInt(3));
-			
-			if (sequenceNb!=null&&
-			    idToValueAsString.containsKey(parameterId))
-			    idToValueAsString.put(parameterId,
-						  idToValueAsString.get(parameterId) +
-						  ", "+valueAsString);
-			else idToValueAsString.put(parameterId,valueAsString);
+			idToValueAsString.put(parameterId,valueAsString);
 	    }
 	    ///////////////////
 	    
 	    
 	    
+           }	    
 	    
-	    
-	    ArrayList<IdPSetPair>  psets  = new ArrayList<IdPSetPair>();
-	    ArrayList<IdVPSetPair> vpsets = new ArrayList<IdVPSetPair>();
+
+//            if (type.equals("Pset") { 
+			
+	    rsParameters=psSelectParameters.executeQuery();
+            int previouslvl=0;
+            Queue<Integer> idfifo = new LinkedList<Integer>();
 
 	    while (rsParameters.next()) {
-			int     id       = rsParameters.getInt(1);
-			String  type     = rsParameters.getString(2);
-			String  name     = rsParameters.getString(3);
-			boolean isTrkd   = rsParameters.getBoolean(4);
-			int     seqNb    = rsParameters.getInt(5);
-			int     parentId = rsParameters.getInt(6);
-			
+                int     parameterId       = rsParameters.getInt(1);
+                String  type     = rsParameters.getString(2);
+                String  name     = rsParameters.getString(3);
+                boolean isTrkd   = rsParameters.getBoolean(4);
+                int     seqNb    = rsParameters.getInt(5);
+                int     parentId = rsParameters.getInt(6);
+                int     lvl      = rsParameters.getInt(7);
+
+                int orparid=parentId;
 			if (name==null) name = "";
-			
+
+                        while (lvl<previouslvl) {
+				idfifo.remove();
+                                 previouslvl--;
+                        }
+                        if (lvl>0) parentId=idfifo.element();
+		        previouslvl=lvl;	
+
+                if (orparid==12910) System.out.println("ParId "+parentId+" (origparid "+orparid+") parameterId "+parameterId+" type "+
+                  " name "+" seqNb "+" lvl"+lvl);
 			String valueAsString = null;
 			if (type.indexOf("PSet")<0)
-			    valueAsString = idToValueAsString.remove(id);
+			    valueAsString = idToValueAsString.remove(parameterId);
 			if (valueAsString==null) valueAsString="";
 			
 			Parameter p = ParameterFactory.create(type,name,valueAsString,
 							      isTrkd);
 			
-			if (type.equals("PSet"))
-			    psets.add(new IdPSetPair(id,(PSetParameter)p));
-			if (type.equals("VPSet"))
-			    vpsets.add(new IdVPSetPair(id,(VPSetParameter)p));
+			if (type.equals("PSet")) {
+                            idfifo.offer(parameterId);
+			    psets.add(new IdPSetPair(parameterId,(PSetParameter)p));
+                        }
+			if (type.equals("VPSet")){
+                            idfifo.offer(parameterId);
+			    vpsets.add(new IdVPSetPair(parameterId,(VPSetParameter)p));
+                        }
 			
 			ArrayList<Parameter> parameters = null;
 			if (idToParameters.containsKey(parentId))
