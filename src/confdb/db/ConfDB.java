@@ -18,7 +18,7 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import java.util.LinkedList;
-import java.util.Queue;
+import java.util.Stack;
 
 import java.io.*;
 
@@ -706,6 +706,7 @@ public class ConfDB
     {
 	reconnect();
 	
+        System.out.println("loadConfigTree ");
 	Directory rootDir = null;
 	ResultSet rs = null;
 	try {
@@ -716,6 +717,7 @@ public class ConfDB
 	    //long startTime = System.currentTimeMillis();
 
 	    rs = psSelectDirectories.executeQuery();
+        System.out.println("Selected Directories ");
 
 	    // DEBUG
 	    //long dir1Time = System.currentTimeMillis();
@@ -727,34 +729,34 @@ public class ConfDB
 		String dirName     = rs.getString(3);
 		String dirCreated  = rs.getTimestamp(4).toString();
 
-                //System.out.println("Retrieved Dirs: "+dirId+"- parent "+parentDirId+" "+dirName+" "+dirCreated);
+                System.out.println("Retrieved Dirs: "+dirId+"- parent "+parentDirId+" "+dirName+" "+dirCreated);
 		
 		if (directoryHashMap.size()==0) {
-                    //System.out.println("New root DIrectrory: "+dirId+"- "+dirName+" "+dirCreated);
+                    System.out.println("New root DIrectrory: "+dirId+"- "+dirName+" "+dirCreated);
 		    rootDir = new Directory(dirId,dirName,dirCreated,null);
-                    //svdbgSystem.out.println("New root DIrectrory  done");
+                    System.out.println("New root DIrectrory  done");
 		    directoryHashMap.put(dirId,rootDir);
 		}
 		else {
-                    //svdbgSystem.out.println("Now checking parenmt dir - "+parentDirId);
+                    System.out.println("Now checking parenmt dir - "+parentDirId);
 
 		    if (!directoryHashMap.containsKey(parentDirId))
 			throw new DatabaseException("parentDir not found in DB"+
 						    " (parentDirId="+parentDirId+
 						    ")");
                     
-                    //System.out.println("getting parentdir "+parentDirId);
+                    System.out.println("getting parentdir "+parentDirId);
 		    Directory parentDir = directoryHashMap.get(parentDirId);
-                    //System.out.println("New DIrectrory with parent: "+dirId+"- "+dirName+" "+dirCreated+ parentDirId);
+                    System.out.println("New DIrectrory with parent: "+dirId+"- "+dirName+" "+dirCreated+ parentDirId);
 		    Directory newDir    = new Directory(dirId,
 							dirName,
 							dirCreated,
 							parentDir);
-                    //svdbgSystem.out.println("New DIrectrory with parent - done");
+                    System.out.println("New DIrectrory with parent - done");
 		    parentDir.addChildDir(newDir);
-                    //svdbgSystem.out.println("New DIrectrory - done adding child");
+                    System.out.println("New DIrectrory - done adding child");
 		    directoryHashMap.put(dirId,newDir);
-                    //System.out.println("New DIrectrory - done putting hash");
+                    System.out.println("New DIrectrory - done putting hash");
 		}
 	    }
 
@@ -1141,9 +1143,9 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    
 /*	    psSelectEventContentEntries.setInt(1,configId);
 	    rsEventContentEntries = psSelectEventContentEntries.executeQuery();
-	    psSelectStreamEntries.setInt(1,configId);
+*/	    psSelectStreamEntries.setInt(1,configId);
 	    rsStreamEntries = psSelectStreamEntries.executeQuery();
-	    psSelectDatasetEntries.setInt(1,configId);
+/*	    psSelectDatasetEntries.setInt(1,configId);
 	    rsDatasetEntries = psSelectDatasetEntries.executeQuery();
 	    psSelectPathStreamDatasetEntries.setInt(1,configId);
 	    rsPathStreamDataset = psSelectPathStreamDatasetEntries.executeQuery();
@@ -1183,8 +1185,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		
 		String templateName = null;
 		
-//System.out.println("found instance "+id
-//                                     +  "name="+instanceName+" templateid="+templateId+" entryType="+type);
+System.out.println("found instance "+id
+                                     +  "name="+instanceName+" templateid="+templateId+" entryType="+type);
 		if (type.equals("PSet")) {
 		    PSetParameter pset = (PSetParameter)ParameterFactory
 			.create("PSet",instanceName,"",flag);
@@ -1197,6 +1199,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 			    if (p!=null) pset.addParameter(p);
 			}
 		    }
+                    else System.out.println("Found null PSet for instance "+instanceName+" "+id+"  templateid="+templateId+" entryType="+type);
 		}
 		else if (type.equals("EDSource")) {
 		    templateName = release.edsourceTemplateName(templateId);
@@ -1283,7 +1286,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		eventContentToId.put(eventContent,eventContentId);
 		
 	    }
-
+*/
 
 	    while (rsStreamEntries.next()) {
 		int  streamId = rsStreamEntries.getInt(1);
@@ -1313,8 +1316,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		outputModule.setDatabaseId(streamId);
 	    }
 	    
-*/ 	    
-/*	    while (rsSequenceEntries.next()) {
+	    
+	    while (rsSequenceEntries.next()) {
 		int    sequenceId = rsSequenceEntries.getInt(1);
 		int    entryId    = rsSequenceEntries.getInt(2);
 		int    sequenceNb = rsSequenceEntries.getInt(3);
@@ -1374,7 +1377,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		sequenceToId.put(sequence,sequenceId);
 	    }
 
-*/	    while (rsPathEntries.next()) {
+	    while (rsPathEntries.next()) {
 		int    pathId     = rsPathEntries.getInt(1);
 		int    entryId    = rsPathEntries.getInt(2);
 		int    sequenceNb = rsPathEntries.getInt(3);
@@ -4058,7 +4061,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
    		 " Directories.id," +
-   		 " Directories.parentDirId," +
+   		 " Directories.id_parentDir," +
    		 " Directories.name," +
    		 " Directories.created " +
    		 "FROM u_directories Directories " +
@@ -4070,7 +4073,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
                 dbConnector.getConnection().prepareStatement
 		("SELECT" +
    " Configurations.Id," +
-   " Configurations.parentDirId," +
+   " Configurations.id_parentDir," +
    " Configurations.config," +
    " Configurations.version," +
    " Configurations.created," +
@@ -4110,7 +4113,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    " Configurations.config " +
    "FROM u_confversions Configurations " +
    "JOIN u_directories Directories " +
-   "ON Configurations.parentDirId = Directories.id " +
+   "ON Configurations.id_parentDir = Directories.id " +
    "ORDER BY Directories.name ASC,Configurations.config ASC");
 	    psSelectConfigNames.setFetchSize(1024);
 	    preparedStatements.add(psSelectConfigNames);
@@ -4123,7 +4126,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    " Configurations.version " +
    "FROM u_confversions Configurations " +
    "JOIN u_directories Directories " +
-   "ON Configurations.parentDirId = Directories.id " +
+   "ON Configurations.id_parentDir = Directories.id " +
    "WHERE Configurations.releaseId = ?" +
    "ORDER BY Directories.name ASC,Configurations.config ASC");
 	    psSelectConfigNamesByRelease.setFetchSize(1024);
@@ -4143,7 +4146,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    " Configurations.id " +
    "FROM u_confversions Configurations "+
    "JOIN u_directories Directories " +
-   "ON Directories.id=Configurations.parentDirId " +
+   "ON Directories.id=Configurations.id_parentDir " +
    "WHERE Directories.name = ? AND" +
    " Configurations.config = ? AND" +
    " Configurations.version = ?");
@@ -4156,7 +4159,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    " Configurations.version " +
    "FROM u_confversions Configurations " +
    "JOIN u_directories Directories " +
-   "ON Directories.id=Configurations.parentDirId " +
+   "ON Directories.id=Configurations.id_parentDir " +
    "WHERE Directories.name = ? AND" +
    " Configurations.config = ? " +
    "ORDER BY Configurations.version DESC");
@@ -4613,19 +4616,20 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    preparedStatements.add(psSelectEventContentEntries);
 
 		
+*/
 	    psSelectStreamEntries =
 		dbConnector.getConnection().prepareStatement
-		( "SELECT streams.streamid, Streams.streamLabel,Streams.fracToDisk, " +
-		  "ECSTREAMASSOC.EVENTCONTENTID, EventContents.name FROM Streams JOIN ECStreamAssoc ON " +
-		  "ECSTREAMASSOC.STREAMID = streams.streamid " +
-		  "JOIN EventContents ON EventContents.eventContentId = " +
-		  "ECStreamAssoc.eventContentId  JOIN ConfigurationContentAssoc ON " +
-		  "EventContents.eventContentId = " +
-		  "ConfigurationContentAssoc.eventContentId WHERE " +
-		  "ConfigurationContentAssoc.CONFIGID = ? ");
+                ("SELECT DISTINCT u_streamids.id,u_streams.name,u_streamids.FRACTODISK,U_EVENTCONTENTIDS.ID,U_EVENTCONTENTS.name "+
+                 "FROM u_streamids,u_streams,U_EVENTCONTENTIDS,U_EVENTCONTENTS,U_EVCO2STREAM,u_pathid2outm,u_pathid2conf " +
+                 "WHERE u_streams.id=u_streamids.id_stream " +
+                 "AND U_EVCO2STREAM.ID_STREAMID=u_streamids.id AND U_EVCO2STREAM.id_evcoid=U_EVENTCONTENTIDS.ID " +
+                 "AND U_EVENTCONTENTIDS.ID_EVCO=U_EVENTCONTENTS.ID "+
+                 "AND u_pathid2conf.id_pathid=u_pathid2outm.id_pathId AND u_streamids.id=u_pathid2outm.id_streamid "+
+                 "AND u_pathid2conf.id_confver = ?" );
 	    psSelectStreamEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectStreamEntries);
 	    
+/*
 	    psSelectDatasetEntries =
 		dbConnector.getConnection().prepareStatement
 		( "SELECT PrimaryDatasets.datasetId, PrimaryDatasets.datasetLabel," +
@@ -5637,13 +5641,13 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
  ("SELECT" +
    " c.pathid AS path_id," +
-   " a.o_id AS entry_id," +
+   " a.id AS entry_id," +
    " a.ord AS sequence_nb," +
    " DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, " +
    " a.operator " +
    "FROM u_paelements a, u_pathid2conf b, u_pathids c "+
         "WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND " +
-        "b.id_confver = ? " +
+        "b.id_confver = ? AND a.lvl=0 " +
    "ORDER BY a.id_pathid ASC, a.id ASC");
 	    psSelectPathEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectPathEntries);
@@ -5651,7 +5655,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    psSelectSequenceEntries =
 		dbConnector.getConnection().prepareStatement
  ("SELECT" +
-   " a.o_id AS sequence_id," +
+   " a.id_parent AS sequence_id," +
    " a.id AS entry_id,"+
    " a.ord AS sequence_nb," +
    " DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, " +
@@ -5670,7 +5674,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    psSelectSequenceEntriesAndOperator =
 			dbConnector.getConnection().prepareStatement
 ("SELECT" +
-   " a.o_id AS sequence_id," +
+   " a.id_parent AS sequence_id," +
    " a.id AS entry_id,"+
    " a.ord AS sequence_nb," +
    " DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, " +
@@ -5856,7 +5860,6 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    new HashMap<Integer,ArrayList<Parameter> >();
 
 	ResultSet rsParameters    = null;
-	ResultSet rsParameters2    = null;
 	ResultSet rsBooleanValues = null;
 	ResultSet rsIntValues     = null;
 	ResultSet rsRealValues    = null;
@@ -5864,7 +5867,6 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 
 	try {
 	    rsParameters    = psSelectParameters.executeQuery();
-	    rsParameters2= rsParameters;
 	    //rsBooleanValues = psSelectBooleanValues.executeQuery();
 	    //rsIntValues     = psSelectIntValues.executeQuery();
 	    //rsRealValues    = psSelectRealValues.executeQuery();
@@ -5878,6 +5880,9 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    
 	    ArrayList<IdPSetPair>  psets  = new ArrayList<IdPSetPair>();
 	    ArrayList<IdVPSetPair> vpsets = new ArrayList<IdVPSetPair>();
+
+            //Queue<Integer> idlifo = new LinkedList<Integer>();
+            Stack<Integer> idlifo= new Stack<Integer>();
 
 	    while (rsParameters.next()) {
                 int     parameterId       = rsParameters.getInt(1);
@@ -5929,12 +5934,9 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    }
 	    
 	    
-	    
-	    
-	    
 	    /////////////////
 //	    while (rsStringValues.next()) {
-            if (type.contains("string")) { 
+            if (type.contains("string")||type.contains("InputTag")) { 
 			
 	       String valueAsString = rsParameters.getString(8); // get PARAMETER_VALUE
 
@@ -5958,7 +5960,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 			
 	    rsParameters=psSelectParameters.executeQuery();
             int previouslvl=0;
-            Queue<Integer> idfifo = new LinkedList<Integer>();
+//            Queue<Integer> idlifo = new LinkedList<Integer>();
 
 	    while (rsParameters.next()) {
                 int     parameterId       = rsParameters.getInt(1);
@@ -5973,28 +5975,31 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 			if (name==null) name = "";
 
                         while (lvl<previouslvl) {
-				idfifo.remove();
+				idlifo.pop();
                                  previouslvl--;
                         }
-                        if (lvl>0) parentId=idfifo.element();
+                        if (lvl>0) parentId=idlifo.peek();
 		        previouslvl=lvl;	
 
-                if (orparid==12910) System.out.println("ParId "+parentId+" (origparid "+orparid+") parameterId "+parameterId+" type "+
-                  " name "+" seqNb "+" lvl"+lvl);
+                //if (orparid==4774) System.out.println("ParId "+parentId+" (origparid "+orparid+") parameterId "+parameterId+" type "+
+                 // type+" name "+name+" seqNb "+seqNb+" lvl"+lvl);
+
 			String valueAsString = null;
 			if (type.indexOf("PSet")<0)
 			    valueAsString = idToValueAsString.remove(parameterId);
 			if (valueAsString==null) valueAsString="";
 			
+                        if (name.contains("Empty")) name="";
+
 			Parameter p = ParameterFactory.create(type,name,valueAsString,
 							      isTrkd);
 			
 			if (type.equals("PSet")) {
-                            idfifo.offer(parameterId);
+                            idlifo.push(new Integer(parameterId));
 			    psets.add(new IdPSetPair(parameterId,(PSetParameter)p));
                         }
 			if (type.equals("VPSet")){
-                            idfifo.offer(parameterId);
+                            idlifo.push(new Integer(parameterId));
 			    vpsets.add(new IdVPSetPair(parameterId,(VPSetParameter)p));
                         }
 			

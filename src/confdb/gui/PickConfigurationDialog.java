@@ -82,9 +82,11 @@ public class PickConfigurationDialog extends JDialog
         this.database = database;
         setTitle(title);
         
+        System.out.println("Trying to load ConfDialog"); 
         // initialize tree
         try {
             rootDir   = database.loadConfigurationTree();
+            System.out.println("loaded Conf Tree:"+rootDir.name()); 
             treeModel = new DirectoryTreeModel(rootDir);
         } catch (DatabaseException e) {}
         jTree = new JTree(treeModel) {
