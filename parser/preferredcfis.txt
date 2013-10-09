@@ -1,3 +1,4 @@
+Geometry/CSCGeometryBuilder             cscGeometry_cfi.py
 HLTrigger/Configuration                 hltDaqSource_cfi.py
 DQMServices/Core                        DQMStore_cfi.py
 CalibTracker/SiStripESProducers         SiStripQualityESProducer_cfi.py
