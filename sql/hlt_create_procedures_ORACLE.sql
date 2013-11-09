@@ -355,7 +355,7 @@ END;
 --
 -- PROCEDURE load_parameters
 --
-CREATE OR REPLACE PROCEDURE load_parameters(parent_id IN NUMBER)
+CREATE OR REPLACE PROCEDURE load_parameters_modules(parent_id IN NUMBER)
 AS
   v_parameter_id    NUMBER;
   v_parameter_type  VARCHAR2(64);
@@ -365,10 +365,11 @@ AS
 
   /* cursor for parameters */
   CURSOR cur_parameters IS
-    SELECT Parameters.paramId,
-           ParameterTypes.paramType,
-           Parameters.name,
-           Parameters.tracked,
+    SELECT u_moelements.paramId,
+           u_moelements.paramType,
+           u_moelements.name,
+           u_moelements.tracked,
+           u_moelements.value,
            SuperIdParameterAssoc.sequenceNb
     FROM Parameters
     JOIN ParameterTypes
@@ -463,76 +464,61 @@ AS
 
   /* cursor for edsource templates */
   CURSOR cur_edsource_templates IS
-    SELECT EDSourceTemplates.superId,
-           EDSourceTemplates.name,
-           EDSourceTemplates.cvstag,
-	   EDSourceTemplates.packageId
-    FROM EDSourceTemplates
-    JOIN SuperIdReleaseAssoc
-    ON EDSourceTemplates.superId = SuperIdReleaseAssoc.superId
-    JOIN SoftwareReleases
-    ON SoftwareReleases.releaseId = SuperIdReleaseAssoc.releaseId
-    WHERE SoftwareReleases.releaseId = release_id
-    AND   EDSourceTemplates.name = template_name;
+    SELECT u_edstemplates.superId,
+           u_edstemplates.name,
+           u_edstemplates.cvstag,
+	   u_edstemplates.packageId
+    FROM u_edstemplates,u_edst2rele, U_SOFTRELEASES 
+    where  U_SOFTRELEASES.releaseid=release_id 
+    and u_edst2rele.ID_release=U_SOFTRELEASES.id and u_edst2rele.ID_EDSTEMPLATE=u_edstemplates.id
+    AND   u_edstemplates.name = template_name;
 
   /* cursor for essource templates */
   CURSOR cur_essource_templates IS
-    SELECT ESSourceTemplates.superId,
-           ESSourceTemplates.name,
-           ESSourceTemplates.cvstag,
-	   ESSourceTemplates.packageId
-    FROM ESSourceTemplates
-    JOIN SuperIdReleaseAssoc
-    ON ESSourceTemplates.superId = SuperIdReleaseAssoc.superId
-    JOIN SoftwareReleases
-    ON SoftwareReleases.releaseId = SuperIdReleaseAssoc.releaseId
-    WHERE SoftwareReleases.releaseId = release_id
-    AND   ESSourceTemplates.name = template_name;
+    SELECT u_esstemplates.superId,
+           u_esstemplates.name,
+           u_esstemplates.cvstag,
+	   u_esstemplates.packageId
+    FROM u_esstemplates,u_esst2rele,u_softreleases
+    where u_softreleases.releaseid=release_id
+    and u_esst2rele.id_release=u_softreleases.id and u_esst2rele.id_esstemplate=u_esstemplates.id
+    AND   u_esstemplates.name = template_name;
 
   /* cursor for esmodule templates */
   CURSOR cur_esmodule_templates IS
-    SELECT ESModuleTemplates.superId,
-           ESModuleTemplates.name,
-           ESModuleTemplates.cvstag,
-	   ESModuleTemplates.packageId
-    FROM ESModuleTemplates
-    JOIN SuperIdReleaseAssoc
-    ON ESModuleTemplates.superId = SuperIdReleaseAssoc.superId
-    JOIN SoftwareReleases
-    ON SoftwareReleases.releaseId = SuperIdReleaseAssoc.releaseId
-    WHERE SuperIdReleaseAssoc.releaseId = release_id
-    AND   ESModuleTemplates.name = template_name;
+    SELECT u_esmtemplates.superId,
+           u_esmtemplates.name,
+           u_esmtemplates.cvstag,
+	   u_esmtemplates.packageId
+    FROM u_esmtemplates,u_esmt2rele,u_softreleases
+    where u_softreleases.releaseid=release_id
+    and u_esmt2rele.id_release=u_softreleases.id and u_esmt2rele.id_esmtemplate=u_esmtemplates.id
+    AND   u_esmtemplates.name = template_name;
+
 
   /* cursor for service templates */
   CURSOR cur_service_templates IS
-    SELECT ServiceTemplates.superId,
-           ServiceTemplates.name,
-           ServiceTemplates.cvstag,
-	   ServiceTemplates.packageId
-    FROM ServiceTemplates
-    JOIN SuperIdReleaseAssoc
-    ON ServiceTemplates.superId = SuperIdReleaseAssoc.superId
-    JOIN SoftwareReleases
-    ON SoftwareReleases.releaseId = SuperIdReleaseAssoc.releaseId
-    WHERE SuperIdReleaseAssoc.releaseId = release_id
-    AND   ServiceTemplates.name = template_name;
+    SELECT u_srvtemplates.superId,
+           u_srvtemplates.name,
+           u_srvtemplates.cvstag,
+	   u_srvtemplates.packageId
+    FROM u_srvtemplates,u_srvt2rele,u_softreleases
+     where u_softreleases.releaseid=release_id
+    and u_srvt2rele.id_release=u_softreleases.id and u_srvt2rele.id_srvtemplate=u_srvtemplates.id
+    AND   u_srvtemplates.name = template_name;
 
   /* cursor for module templates */
   CURSOR cur_module_templates IS
-    SELECT ModuleTemplates.superId,
-           ModuleTemplates.name,
-           ModuleTemplates.cvstag,
-           ModuleTemplates.packageId,
-           ModuleTypes.type
-    FROM ModuleTemplates
-    JOIN ModuleTypes
-    ON   ModuleTemplates.typeId = ModuleTypes.typeId
-    JOIN SuperIdReleaseAssoc
-    ON ModuleTemplates.superId = SuperIdReleaseAssoc.superId
-    JOIN SoftwareReleases
-    ON SoftwareReleases.releaseId = SuperIdReleaseAssoc.releaseId
-    WHERE SuperIdReleaseAssoc.releaseId = release_id
-    AND   ModuleTemplates.name = template_name;
+    SELECT u_moduletemplates.superId,
+           u_moduletemplates.name,
+           u_moduletemplates.cvstag,
+           u_moduletemplates.packageId,
+           u_moduletypes.type
+    FROM u_moduletemplates,u_moduletypes,u_softreleases,u_modt2rele
+    where u_softreleases.releaseid=release_id
+    and u_modt2rele.id_release=u_softreleases.id and u_modt2rele.id_modtemplate=u_moduletemplates.id
+    and u_moduletypes.id=u_moduletemplates.id_mtype
+    AND   u_moduletemplates.name = template_name;
 
 BEGIN
 
@@ -553,7 +539,7 @@ BEGIN
     INSERT INTO tmp_template_table
       VALUES(v_template_id,'EDSource',
              v_template_name,v_template_cvstag,v_template_pkgid);
-    load_parameters(v_template_id);
+/*    load_parameters(v_template_id);*/
     template_found := TRUE;
   END LOOP;
   CLOSE cur_edsource_templates;
@@ -569,7 +555,7 @@ BEGIN
       INSERT INTO tmp_template_table
         VALUES(v_template_id,'ESSource',
                v_template_name,v_template_cvstag,v_template_pkgid);
-      load_parameters(v_template_id);
+/*      load_parameters(v_template_id);
       template_found := TRUE;
     END LOOP;
     CLOSE cur_essource_templates;
@@ -585,7 +571,7 @@ BEGIN
       INSERT INTO tmp_template_table
          VALUES(v_template_id,'ESModule',
                 v_template_name,v_template_cvstag,v_template_pkgid);
-      load_parameters(v_template_id);
+/*      load_parameters(v_template_id);
       template_found := TRUE;
     END LOOP;
     CLOSE cur_esmodule_templates;
@@ -601,7 +587,7 @@ BEGIN
       INSERT INTO tmp_template_table
         VALUES(v_template_id,'Service',
                v_template_name,v_template_cvstag,v_template_pkgid);
-      load_parameters(v_template_id);
+      /*load_parameters(v_template_id);
       template_found := TRUE;
     END LOOP;
     CLOSE cur_service_templates;
@@ -618,7 +604,7 @@ BEGIN
       INSERT INTO tmp_template_table
         VALUES(v_template_id,v_template_type,
                v_template_name,v_template_cvstag,v_template_pkgid);
-      load_parameters(v_template_id);
+      /*load_parameters(v_template_id);
       template_found := TRUE;
     END LOOP;
     CLOSE cur_module_templates;
@@ -642,61 +628,58 @@ AS
 
   /* cursor for edsource templates */
   CURSOR cur_edsource_templates IS
-    SELECT EDSourceTemplates.superId,
-           EDSourceTemplates.name,
-           EDSourceTemplates.cvstag,
-	   EDSourceTemplates.packageId
-    FROM EDSourceTemplates
-    JOIN SuperIdReleaseAssoc
-    ON EDSourceTemplates.superId = SuperIdReleaseAssoc.superId
-    WHERE SuperIdReleaseAssoc.releaseId = release_id;
+    SELECT u_edstemplates.superId,
+           u_edstemplates.name,
+           u_edstemplates.cvstag,
+           u_edstemplates.packageId
+    FROM u_edstemplates,u_edst2rele, U_SOFTRELEASES
+    where  U_SOFTRELEASES.releaseid=release_id
+    and u_edst2rele.ID_release=U_SOFTRELEASES.id and u_edst2rele.ID_EDSTEMPLATE=u_edstemplates.id;
 
   /* cursor for essource templates */
   CURSOR cur_essource_templates IS
-    SELECT ESSourceTemplates.superId,
-           ESSourceTemplates.name,
-           ESSourceTemplates.cvstag,
-	   ESSourceTemplates.packageId
-    FROM ESSourceTemplates
-    JOIN SuperIdReleaseAssoc
-    ON ESSourceTemplates.superId = SuperIdReleaseAssoc.superId
-    WHERE SuperIdReleaseAssoc.releaseId = release_id;
+    SELECT u_esstemplates.superId,
+           u_esstemplates.name,
+           u_esstemplates.cvstag,
+           u_esstemplates.packageId
+    FROM u_esstemplates,u_esst2rele,u_softreleases
+    where u_softreleases.releaseid=release_id
+    and u_esst2rele.id_release=u_softreleases.id and u_esst2rele.id_esstemplate=u_esstemplates.id;
+
 
   /* cursor for esmodule templates */
   CURSOR cur_esmodule_templates IS
-    SELECT ESModuleTemplates.superId,
-           ESModuleTemplates.name,
-           ESModuleTemplates.cvstag,
-	   ESModuleTemplates.packageId
-    FROM ESModuleTemplates
-    JOIN SuperIdReleaseAssoc
-    ON ESModuleTemplates.superId = SuperIdReleaseAssoc.superId
-    WHERE SuperIdReleaseAssoc.releaseId = release_id;
+    SELECT u_esmtemplates.superId,
+           u_esmtemplates.name,
+           u_esmtemplates.cvstag,
+           u_esmtemplates.packageId
+    FROM u_esmtemplates,u_esmt2rele,u_softreleases
+    where u_softreleases.releaseid=release_id
+    and u_esmt2rele.id_release=u_softreleases.id and u_esmt2rele.id_esmtemplate=u_esmtemplates.id;
+
 
   /* cursor for service templates */
   CURSOR cur_service_templates IS
-    SELECT ServiceTemplates.superId,
-           ServiceTemplates.name,
-           ServiceTemplates.cvstag,
-	   ServiceTemplates.packageId
-    FROM ServiceTemplates
-    JOIN SuperIdReleaseAssoc
-    ON ServiceTemplates.superId = SuperIdReleaseAssoc.superId
-    WHERE SuperIdReleaseAssoc.releaseId = release_id;
+    SELECT u_srvtemplates.superId,
+           u_srvtemplates.name,
+           u_srvtemplates.cvstag,
+           u_srvtemplates.packageId
+    FROM u_srvtemplates,u_srvt2rele,u_softreleases
+     where u_softreleases.releaseid=release_id
+    and u_srvt2rele.id_release=u_softreleases.id and u_srvt2rele.id_srvtemplate=u_srvtemplates.id;
+
 
   /* cursor for module templates */
   CURSOR cur_module_templates IS
-    SELECT ModuleTemplates.superId,
-           ModuleTemplates.name,
-           ModuleTemplates.cvstag,
-           ModuleTemplates.packageId,
-           ModuleTypes.type
-    FROM ModuleTemplates
-    JOIN ModuleTypes
-    ON   ModuleTemplates.typeId = ModuleTypes.typeId
-    JOIN SuperIdReleaseAssoc
-    ON ModuleTemplates.superId = SuperIdReleaseAssoc.superId
-    WHERE SuperIdReleaseAssoc.releaseId = release_id;
+    SELECT u_moduletemplates.superId,
+           u_moduletemplates.name,
+           u_moduletemplates.cvstag,
+           u_moduletemplates.packageId,
+           u_moduletypes.type
+    FROM u_moduletemplates,u_moduletypes,u_softreleases,u_modt2rele
+    where u_softreleases.releaseid=release_id
+    and u_modt2rele.id_release=u_softreleases.id and u_modt2rele.id_modtemplate=u_moduletemplates.id
+    and u_moduletypes.id=u_moduletemplates.id_mtype;
 
 BEGIN
   /* prepare temporary tables */
@@ -716,7 +699,7 @@ BEGIN
     INSERT INTO tmp_template_table
       VALUES(v_template_id,'EDSource',
              v_template_name,v_template_cvstag,v_template_pkgid);
-    load_parameters(v_template_id);   
+   /* load_parameters(v_template_id);   
   END LOOP;
   CLOSE cur_edsource_templates;
 
@@ -729,7 +712,7 @@ BEGIN
     INSERT INTO tmp_template_table
       VALUES(v_template_id,'ESSource',
              v_template_name,v_template_cvstag,v_template_pkgid);
-    load_parameters(v_template_id);
+    /*load_parameters(v_template_id);
   END LOOP;
   CLOSE cur_essource_templates;
 
@@ -742,7 +725,7 @@ BEGIN
     INSERT INTO tmp_template_table
       VALUES(v_template_id,'ESModule',
              v_template_name,v_template_cvstag,v_template_pkgid);
-    load_parameters(v_template_id);
+    /*load_parameters(v_template_id);
   END LOOP;
   CLOSE cur_esmodule_templates;
 
@@ -755,7 +738,7 @@ BEGIN
     INSERT INTO tmp_template_table
       VALUES(v_template_id,'Service',
              v_template_name,v_template_cvstag,v_template_pkgid);
-    load_parameters(v_template_id);
+    /*load_parameters(v_template_id);
   END LOOP;
   CLOSE cur_service_templates;
 
@@ -769,7 +752,7 @@ BEGIN
     INSERT INTO tmp_template_table
       VALUES(v_template_id,v_template_type,
              v_template_name,v_template_cvstag,v_template_pkgid);
-    load_parameters(v_template_id);
+    /*load_parameters(v_template_id);
   END LOOP;
   CLOSE cur_module_templates;
 
@@ -993,7 +976,7 @@ AS
   v_operator        NUMBER;
 
   /* cursor for global psets */
-  CURSOR cur_global_psets IS
+/*sv CURSOR cur_global_psets IS
     SELECT
       ParameterSets.superId,
       ParameterSets.name,
@@ -1003,155 +986,126 @@ AS
     JOIN ConfigurationParamSetAssoc
     ON ParameterSets.superId = ConfigurationParamSetAssoc.psetId
     WHERE ConfigurationParamSetAssoc.configId = config_id;
+*/
 
   /* cursor for edsources */
   CURSOR cur_edsources IS
     SELECT
-      EDSources.superId,
-      EDSources.templateId,
-      ConfigurationEDSourceAssoc.sequenceNb
-    FROM EDSources
-    JOIN ConfigurationEDSourceAssoc
-    ON EDSources.superId = ConfigurationEDSourceAssoc.edsourceId
-    WHERE ConfigurationEDSourceAssoc.configId = config_id;
+      u_edsources.superId,
+      u_edsources.id_template,
+      u_conf2eds.ord
+    FROM u_edsources,u_conf2eds
+    WHERE u_conf2eds.id_confver = config_id;
 
   /* cursor for essources */
   CURSOR cur_essources IS
     SELECT
-      ESSources.superId,
-      ESSources.templateId,
-      ESSources.name,
-      ConfigurationESSourceAssoc.prefer,
-      ConfigurationESSourceAssoc.sequenceNb
-    FROM ESSources
-    JOIN ConfigurationESSourceAssoc
-    ON ESSources.superId = ConfigurationESSourceAssoc.essourceId
-    WHERE ConfigurationESSourceAssoc.configId = config_id;
+      u_essources.superId,
+      u_essources.id_template,
+      u_essources.name,
+      u_conf2ess.prefer,
+      u_conf2ess.ord
+    FROM u_essources,u_conf2ess
+    WHERE u_conf2ess.id_confver = config_id;
 
   /* cursor for esmodules */
   CURSOR cur_esmodules IS
     SELECT
-      ESModules.superId,
-      ESModules.templateId,
-      ESModules.name,
-      ConfigurationESModuleAssoc.prefer,
-      ConfigurationESModuleAssoc.sequenceNb
-    FROM ESModules
-    JOIN ConfigurationESModuleAssoc
-    ON ESModules.superId = ConfigurationESModuleAssoc.esmoduleId
-    WHERE ConfigurationESModuleAssoc.configId = config_id;
+      u_esmodules.superId,
+      u_esmodules.id_template,
+      u_esmodules.name,
+      u_conf2esm.prefer,
+      u_conf2esm.ord
+    FROM u_esmodules,u_conf2esm
+    WHERE u_conf2esm.id_confver = config_id;
 
   /* cursor for services */
   CURSOR cur_services IS
     SELECT
-      Services.superId,
-      Services.templateId,
-      ConfigurationServiceAssoc.sequenceNb
-    FROM Services
-    JOIN ConfigurationServiceAssoc
-    ON   Services.superId = ConfigurationServiceAssoc.serviceId
-    WHERE ConfigurationServiceAssoc.configId = config_id;
+      u_services.superId,
+      u_services.templateId,
+      u_conf2srv.ord
+    FROM u_services,u_conf2srv
+    WHERE u_conf2srv.id_confver = config_id;
 
   /* cursor for modules from configuration *paths* */
   CURSOR cur_modules_from_paths IS
     SELECT
-      Modules.superId,
-      Modules.templateId,
-      Modules.name
-    FROM Modules
-    JOIN PathModuleAssoc
-    ON   PathModuleAssoc.moduleId = Modules.superId
-    JOIN ConfigurationPathAssoc
-    ON   PathModuleAssoc.pathId = ConfigurationPathAssoc.pathId
-    WHERE ConfigurationPathAssoc.configId = config_id;
-
-  /* cursor for modules from configuration *sequences* */
-  CURSOR cur_modules_from_sequences IS
-    SELECT
-      Modules.superId,
-      Modules.templateId,
-      Modules.name
-    FROM Modules
-    JOIN SequenceModuleAssoc
-    ON SequenceModuleAssoc.moduleId = Modules.superId
-    JOIN ConfigurationSequenceAssoc
-    ON SequenceModuleAssoc.sequenceId=ConfigurationSequenceAssoc.sequenceId
-    WHERE ConfigurationSequenceAssoc.configId = config_id;
+      u_paelements.o_id,
+      u_mod2templ.id_templ,
+      u_paelements.name
+    FROM u_paelements, u_pathid2conf, u_mod2templ
+    WHERE u_pathid2conf.id_pathid=u_paelements.id_pathid 
+    and u_mod2templ.id_pae=u_paelements.id 
+    and u_paelements.paetype=1
+    and u_pathid2conf.id_confver = config_id;
 
   /* cursor for paths */
   CURSOR cur_paths IS
     SELECT
-      Paths.pathId,
-      Paths.name,
-      Paths.isEndPath,
-      ConfigurationPathAssoc.sequenceNb
-    FROM Paths
-    JOIN ConfigurationPathAssoc
-    ON Paths.pathId = ConfigurationPathAssoc.pathId
-    WHERE ConfigurationPathAssoc.configId = config_id;
+      u_pathids.pathId,
+      u_paths.name,
+      u_pathids.isEndPath,
+      u_pathid2conf.ord
+    FROM u_pathids, u_paths,u_pathid2conf
+    WHERE u_pathid2conf.id_pathid=u_pathids.id
+    and u_paths.id=u_pathids.id_path
+    and u_pathid2conf.id_confver = config_id;
 
   /* cursor for sequences */
   CURSOR cur_sequences IS
     SELECT
-      Sequences.sequenceId,
-      Sequences.name,
-      ConfigurationSequenceAssoc.sequenceNb
-    FROM Sequences
-    JOIN ConfigurationSequenceAssoc
-    ON Sequences.sequenceId = ConfigurationSequenceAssoc.sequenceId
-    WHERE ConfigurationSequenceAssoc.configId = config_id;
+      u_paelements.o_id,
+      u_paelements.name
+      u_paelements.ord
+    FROM u_paelements, u_pathid2conf
+    WHERE u_pathid2conf.id_pathid=u_paelements.id_pathid 
+    and u_paelements.paetype=2
+    and u_pathid2conf.id_confver = config_id;
 
-  /* cursor for path-path associations */
-  CURSOR cur_path_path IS
-    SELECT
-      PathInPathAssoc.parentPathId,
-      PathInPathAssoc.childPathId,
-      PathInPathAssoc.sequenceNb,
-      PathInPathAssoc.operator
-    FROM PathInPathAssoc
-    JOIN ConfigurationPathAssoc
-    ON PathInPathAssoc.parentPathId = ConfigurationPathAssoc.pathId
-    WHERE ConfigurationPathAssoc.configId = config_id;
 
   /* cursor for path-sequence associations */
   CURSOR cur_path_sequence IS
     SELECT
-      PathSequenceAssoc.pathId,
-      PathSequenceAssoc.sequenceId,
-      PathSequenceAssoc.sequenceNb,
-      PathSequenceAssoc.operator
-    FROM PathSequenceAssoc
-    JOIN ConfigurationPathAssoc
-    ON PathSequenceAssoc.pathId = ConfigurationPathAssoc.pathId
-    WHERE ConfigurationPathAssoc.configId = config_id;
+      u_pathids.pathId,
+      u_paelements.o_id,
+      u_paelements.ord
+      u_paelements.operator
+    FROM  u_pathids,u_paelements,u_pathid2conf
+    WHERE u_pathid2conf.id_pathid=u_pathids.id
+    and  u_pathid2conf.id_pathid=u_paelements.id_pathid
+    and u_paelements.paetype=2
+    and u_pathid2conf.id_confver = config_id;
 
   /* cursor for path-module associations */
   CURSOR cur_path_module IS
     SELECT
-      PathModuleAssoc.pathId,
-      PathModuleAssoc.moduleId,
-      PathModuleAssoc.sequenceNb,
-      PathModuleAssoc.operator
-    FROM PathModuleAssoc
-    JOIN ConfigurationPathAssoc
-    ON PathModuleAssoc.pathId = ConfigurationPathAssoc.pathId
-    WHERE ConfigurationPathAssoc.configId = config_id;
+      u_pathids.pathId,
+      u_paelements.o_id,
+      u_paelements.ord,
+      u_paelements.operator
+    FROM u_pathids,u_paelements, u_pathid2conf
+    WHERE u_pathid2conf.id_pathid=u_paelements.id_pathid
+    and u_pathid2conf.id_pathid=u_pathids.id
+    and u_paelements.paetype=1
+    and u_pathid2conf.id_confver = config_id;
 
 /* cursor for path-outputmodule associations */
   CURSOR cur_path_outputmod IS
     SELECT
-      PathOutputModAssoc.pathId,
-      PathOutputModAssoc.outputModuleId,
-      PathOutputModAssoc.sequenceNb,
-      PathOutputModAssoc.operator
-    FROM PathOutputModAssoc
-    JOIN ConfigurationPathAssoc
-    ON PathOutputModAssoc.pathId = ConfigurationPathAssoc.pathId
-    WHERE ConfigurationPathAssoc.configId = config_id;
+      u_pathid2outm.id_pathId,
+      u_streamids.streamid,
+      u_pathid2outm.id_streamid,
+      u_pathid2outm.ord,
+      u_pathid2outm.operator
+    FROM u_pathid2outm,u_pathid2conf,u_streamids
+    WHERE u_pathid2conf.id_pathid=u_pathid2outm.id_pathId
+    and u_streamids.id=u_pathid2outm.id_streamid
+    and u_pathid2conf.id_confver = config_id;
 
 
   /* cursor for sequence-sequence associations */
-  CURSOR cur_sequence_sequence IS
+/*sv  CURSOR cur_sequence_sequence IS
     SELECT
       SequenceInSequenceAssoc.parentSequenceId,
       SequenceInSequenceAssoc.childSequenceId,
@@ -1163,9 +1117,9 @@ AS
     ON SequenceInSequenceAssoc.parentSequenceId =
        ConfigurationSequenceAssoc.sequenceId
     WHERE ConfigurationSequenceAssoc.configId = config_id;
-
+*/
   /* cursor for sequence-module associations */
-  CURSOR cur_sequence_module IS
+/*sv  CURSOR cur_sequence_module IS
     SELECT
       SequenceModuleAssoc.sequenceId,
       SequenceModuleAssoc.moduleId,
@@ -1176,10 +1130,11 @@ AS
     ON SequenceModuleAssoc.sequenceId =
        ConfigurationSequenceAssoc.sequenceId
     WHERE ConfigurationSequenceAssoc.configId = config_id;
+*/
 
 
  /* cursor for sequence-outputmod associations */
-  CURSOR cur_sequence_outputmod IS
+/*  CURSOR cur_sequence_outputmod IS
     SELECT
       SequenceOutputModAssoc.sequenceId,
       SequenceOutputModAssoc.outputModuleId,
@@ -1190,7 +1145,7 @@ AS
     ON SequenceOutputModAssoc.sequenceId =
        ConfigurationSequenceAssoc.sequenceId
     WHERE ConfigurationSequenceAssoc.configId = config_id;
-
+*/
 BEGIN
 
   execute immediate 'DELETE FROM tmp_instance_table';
@@ -1210,7 +1165,7 @@ BEGIN
     EXIT WHEN cur_global_psets%NOTFOUND;
     INSERT INTO tmp_instance_table
       VALUES(v_instance_id,NULL,'PSet',v_instance_name,v_pset_is_trkd,v_sequence_nb);
-    load_parameters(v_instance_id);
+    /*sv load_parameters(v_instance_id);*/
   END LOOP;
   CLOSE cur_global_psets;
  
@@ -1221,7 +1176,7 @@ BEGIN
     EXIT WHEN cur_edsources%NOTFOUND;
     INSERT INTO tmp_instance_table
       VALUES(v_instance_id,v_template_id,'EDSource',NULL,NULL,v_sequence_nb);
-    load_parameters(v_instance_id);
+  /*  load_parameters(v_instance_id);*/
   END LOOP;
   CLOSE cur_edsources;
 
@@ -1234,7 +1189,7 @@ BEGIN
     INSERT INTO tmp_instance_table
     VALUES(v_instance_id,v_template_id,'ESSource',
            v_instance_name,v_prefer,v_sequence_nb);
-    load_parameters(v_instance_id);
+  /*  load_parameters(v_instance_id);*/
   END LOOP;
   CLOSE cur_essources;
 
@@ -1247,7 +1202,7 @@ BEGIN
     INSERT INTO tmp_instance_table
     VALUES(v_instance_id,v_template_id,'ESModule',
            v_instance_name,v_prefer,v_sequence_nb);
-    load_parameters(v_instance_id);
+    /*load_parameters(v_instance_id);*/
   END LOOP;
   CLOSE cur_esmodules;
 
@@ -1258,7 +1213,7 @@ BEGIN
     EXIT WHEN cur_services%NOTFOUND;
     INSERT INTO tmp_instance_table
       VALUES(v_instance_id,v_template_id,'Service',NULL,NULL,v_sequence_nb);
-    load_parameters(v_instance_id);
+   /* load_parameters(v_instance_id);*/
   END LOOP;
   CLOSE cur_services;
 
@@ -1270,7 +1225,7 @@ BEGIN
     EXIT WHEN cur_modules_from_paths%NOTFOUND;
     INSERT INTO tmp_instance_table
       VALUES(v_instance_id,v_template_id,'Module',v_instance_name,NULL,NULL);
-    load_parameters(v_instance_id);
+  /*  load_parameters(v_instance_id);*/
   END LOOP;
   CLOSE cur_modules_from_paths;
 
@@ -1282,7 +1237,7 @@ BEGIN
     EXIT WHEN cur_modules_from_sequences%NOTFOUND;
     INSERT INTO tmp_instance_table
       VALUES(v_instance_id,v_template_id,'Module',v_instance_name,NULL,NULL);
-    load_parameters(v_instance_id);
+  /*  load_parameters(v_instance_id);*/
   END LOOP;
   CLOSE cur_modules_from_sequences;
 
@@ -1307,7 +1262,7 @@ BEGIN
   CLOSE cur_sequences;
 
   /* load path-path associations */
-  OPEN cur_path_path;
+/*  OPEN cur_path_path;
   LOOP
     FETCH cur_path_path INTO v_parent_id,v_child_id,v_sequence_nb,v_operator;
     EXIT WHEN cur_path_path%NOTFOUND;
@@ -1315,6 +1270,7 @@ BEGIN
       VALUES(v_parent_id,v_child_id,v_sequence_nb,'Path',v_operator);
   END LOOP;
   CLOSE cur_path_path;
+*/
 
   /* load path-sequence associations */
   OPEN cur_path_sequence;
@@ -1348,7 +1304,7 @@ BEGIN
   CLOSE cur_path_module;
 
   /* load sequence-sequence associations */
-  OPEN cur_sequence_sequence;
+/*  OPEN cur_sequence_sequence;
   LOOP
     FETCH cur_sequence_sequence INTO v_parent_id,v_child_id,v_sequence_nb,v_operator;
     EXIT WHEN cur_sequence_sequence%NOTFOUND;
@@ -1377,7 +1333,7 @@ BEGIN
       load_parameters(v_child_id);
   END LOOP;
   CLOSE cur_sequence_outputmod;
-
+*/
 END;  
 /
 
