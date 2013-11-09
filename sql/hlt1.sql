@@ -89,7 +89,7 @@ BEGIN
     INSERT INTO tmp_template_table
       VALUES(v_template_id,'EDSource',
              v_template_name,v_template_cvstag,v_template_pkgid);
-/*    load_parameters(v_template_id);*/
+    load_edst_parameters(v_template_id);
     template_found := TRUE;
   END LOOP;
   CLOSE cur_edsource_templates;
@@ -105,7 +105,7 @@ BEGIN
       INSERT INTO tmp_template_table
         VALUES(v_template_id,'ESSource',
                v_template_name,v_template_cvstag,v_template_pkgid);
-/*      load_parameters(v_template_id); */
+      load_esst_parameters(v_template_id); 
       template_found := TRUE;
     END LOOP;
     CLOSE cur_essource_templates;
@@ -121,7 +121,7 @@ BEGIN
       INSERT INTO tmp_template_table
          VALUES(v_template_id,'ESModule',
                 v_template_name,v_template_cvstag,v_template_pkgid);
-/*      load_parameters(v_template_id); */
+      load_esmt_parameters(v_template_id); 
       template_found := TRUE;
     END LOOP;
     CLOSE cur_esmodule_templates;
@@ -137,7 +137,7 @@ BEGIN
       INSERT INTO tmp_template_table
         VALUES(v_template_id,'Service',
                v_template_name,v_template_cvstag,v_template_pkgid);
-      /*load_parameters(v_template_id);*/
+      load_servt_parameters(v_template_id);
       template_found := TRUE;
     END LOOP;
     CLOSE cur_service_templates;
@@ -154,7 +154,7 @@ BEGIN
       INSERT INTO tmp_template_table
         VALUES(v_template_id,v_template_type,
                v_template_name,v_template_cvstag,v_template_pkgid);
-      /*load_parameters(v_template_id);*/
+      load_modt_parameters(v_template_id);
       template_found := TRUE;
     END LOOP;
     CLOSE cur_module_templates;
@@ -249,7 +249,7 @@ BEGIN
     INSERT INTO tmp_template_table
       VALUES(v_template_id,'EDSource',
              v_template_name,v_template_cvstag,v_template_pkgid);
-   /* load_parameters(v_template_id);   */
+    load_edst_parameters(v_template_id);   
   END LOOP;
   CLOSE cur_edsource_templates;
 
@@ -262,7 +262,7 @@ BEGIN
     INSERT INTO tmp_template_table
       VALUES(v_template_id,'ESSource',
              v_template_name,v_template_cvstag,v_template_pkgid);
-    /*load_parameters(v_template_id);*/
+    load_esst_parameters(v_template_id);
   END LOOP;
   CLOSE cur_essource_templates;
 
@@ -275,7 +275,7 @@ BEGIN
     INSERT INTO tmp_template_table
       VALUES(v_template_id,'ESModule',
              v_template_name,v_template_cvstag,v_template_pkgid);
-    /*load_parameters(v_template_id);*/
+    load_esmt_parameters(v_template_id);
   END LOOP;
   CLOSE cur_esmodule_templates;
 
@@ -288,7 +288,7 @@ BEGIN
     INSERT INTO tmp_template_table
       VALUES(v_template_id,'Service',
              v_template_name,v_template_cvstag,v_template_pkgid);
-    /*load_parameters(v_template_id); */
+    load_servt_parameters(v_template_id); 
   END LOOP;
   CLOSE cur_service_templates;
 
@@ -302,7 +302,7 @@ BEGIN
     INSERT INTO tmp_template_table
       VALUES(v_template_id,v_template_type,
              v_template_name,v_template_cvstag,v_template_pkgid);
-    /*load_parameters(v_template_id);*/
+    load_modt_parameters(v_template_id);
   END LOOP;
   CLOSE cur_module_templates;
 

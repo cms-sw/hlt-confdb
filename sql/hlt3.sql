@@ -74,27 +74,26 @@ AS
 
   /* cursor for modules from configuration *paths* */
   CURSOR cur_modules_from_paths IS
-    SELECT
-      u_paelements.o_id,
+      SELECT
+      d.id,
       u_mod2templ.id_templ,
       u_paelements.name
-    FROM u_paelements, u_pathid2conf, u_mod2templ
+    FROM u_paelements, u_pathid2conf, u_mod2templ,(select min(aa.id)as id, aa.crc32 from u_paelements aa,u_pathid2conf bb,u_pathids cc where aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =config_id group by aa.crc32,aa.paetype) d
     WHERE u_pathid2conf.id_pathid=u_paelements.id_pathid 
     and u_mod2templ.id_pae=u_paelements.id 
-    and u_paelements.paetype=1
-    and u_paelements.lvl=0
+    and u_paelements.paetype=1 and u_paelements.crc32=d.crc32
     and u_pathid2conf.id_confver = config_id;
 
   /* cursor for modules from configuration *sequences* */
   CURSOR cur_modules_from_sequences IS
     SELECT
-      u_paelements.o_id,
+      d.id,
       u_mod2templ.id_templ,
       u_paelements.name
-    FROM u_paelements, u_pathid2conf, u_mod2templ
+    FROM u_paelements, u_pathid2conf, u_mod2templ, (select min(aa.id)as id, aa.crc32 from u_paelements aa,u_pathid2conf bb,u_pathids cc where aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =config_id group by aa.crc32,aa.paetype) d
     WHERE u_pathid2conf.id_pathid=u_paelements.id_pathid
     and u_mod2templ.id_pae=u_paelements.id
-    and u_paelements.paetype=1
+    and u_paelements.paetype=1 and u_paelements.crc32=d.crc32
     and u_paelements.lvl>0
     and u_pathid2conf.id_confver = config_id;
 
@@ -113,47 +112,54 @@ AS
 
   /* cursor for sequences */
   CURSOR cur_sequences IS
-    SELECT
-      u_paelements.o_id,
+   /* SELECT
+      u_paelements.id,
       u_paelements.name,
       u_paelements.ord
     FROM u_paelements, u_pathid2conf
     WHERE u_pathid2conf.id_pathid=u_paelements.id_pathid 
     and u_paelements.paetype=2
+    and u_pathid2conf.id_confver = config_id;*/
+    SELECT
+      d.id,
+      a.name,
+      a.ord
+    FROM u_paelements a, u_pathid2conf, (select min(aa.id)as id, aa.crc32 from u_paelements aa,u_pathid2conf bb,u_pathids cc where aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =config_id group by aa.crc32,aa.paetype) d
+    WHERE u_pathid2conf.id_pathid=a.id_pathid
+    and a.paetype=2 and a.crc32=d.crc32
     and u_pathid2conf.id_confver = config_id;
-
 
   /* cursor for path-sequence associations */
   CURSOR cur_path_sequence IS
     SELECT
       u_pathids.pathId,
-      u_paelements.o_id,
+      d.id,
       u_paelements.ord,
       u_paelements.operator
-    FROM  u_pathids,u_paelements,u_pathid2conf
+    FROM  u_pathids,u_paelements,u_pathid2conf,(select min(aa.id)as id, aa.crc32 from u_paelements aa,u_pathid2conf bb,u_pathids cc where aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =config_id group by aa.crc32,aa.paetype) d
     WHERE u_pathid2conf.id_pathid=u_pathids.id
     and  u_pathid2conf.id_pathid=u_paelements.id_pathid
-    and u_paelements.paetype=2
+    and u_paelements.paetype=2 and u_paelements.crc32=d.crc32
     and u_pathid2conf.id_confver = config_id;
 
   /* cursor for path-module associations */
   CURSOR cur_path_module IS
     SELECT
       u_pathids.pathId,
-      u_paelements.o_id,
+      d.id,
       u_paelements.ord,
       u_paelements.operator
-    FROM u_pathids,u_paelements, u_pathid2conf
+    FROM u_pathids,u_paelements, u_pathid2conf, (select min(aa.id)as id, aa.crc32 from u_paelements aa,u_pathid2conf bb,u_pathids cc where aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =config_id group by aa.crc32,aa.paetype) d
     WHERE u_pathid2conf.id_pathid=u_paelements.id_pathid
     and u_pathid2conf.id_pathid=u_pathids.id
-    and u_paelements.paetype=1
+    and u_paelements.paetype=1 and u_paelements.crc32=d.crc32
     and u_pathid2conf.id_confver = config_id;
 
 /* cursor for path-outputmodule associations */
   CURSOR cur_path_outputmod IS
     SELECT
       u_pathid2outm.id_pathId,
-      u_streamids.streamid,
+      u_streamids.id,
       u_pathid2outm.ord,
       u_pathid2outm.operator
     FROM u_pathid2outm,u_pathid2conf,u_streamids
@@ -173,6 +179,7 @@ BEGIN
   execute immediate 'DELETE FROM tmp_path_entries';
   execute immediate 'DELETE FROM tmp_sequence_entries';
 
+  load_gpset_parameters(config_id);
 
   OPEN cur_edsources;
   LOOP
@@ -180,7 +187,7 @@ BEGIN
     EXIT WHEN cur_edsources%NOTFOUND;
     INSERT INTO tmp_instance_table
       VALUES(v_instance_id,v_template_id,'EDSource',NULL,NULL,v_sequence_nb);
-  /*  load_parameters(v_instance_id);*/
+    /*load_eds_parameters(v_instance_id);*/
   END LOOP;
   CLOSE cur_edsources;
 
@@ -193,7 +200,7 @@ BEGIN
     INSERT INTO tmp_instance_table
     VALUES(v_instance_id,v_template_id,'ESSource',
            v_instance_name,v_prefer,v_sequence_nb);
-  /*  load_parameters(v_instance_id);*/
+    /*load_ess_parameters(v_instance_id);*/
   END LOOP;
   CLOSE cur_essources;
 
@@ -206,7 +213,7 @@ BEGIN
     INSERT INTO tmp_instance_table
     VALUES(v_instance_id,v_template_id,'ESModule',
            v_instance_name,v_prefer,v_sequence_nb);
-    /*load_parameters(v_instance_id);*/
+    /*load_esm_parameters(v_instance_id);*/
   END LOOP;
   CLOSE cur_esmodules;
 
@@ -217,7 +224,7 @@ BEGIN
     EXIT WHEN cur_services%NOTFOUND;
     INSERT INTO tmp_instance_table
       VALUES(v_instance_id,v_template_id,'Service',NULL,NULL,v_sequence_nb);
-   /* load_parameters(v_instance_id);*/
+    /*load_serv_parameters(v_instance_id);*/
   END LOOP;
   CLOSE cur_services;
 
@@ -229,11 +236,11 @@ BEGIN
     EXIT WHEN cur_modules_from_paths%NOTFOUND;
     INSERT INTO tmp_instance_table
       VALUES(v_instance_id,v_template_id,'Module',v_instance_name,NULL,NULL);
-  /*  load_parameters(v_instance_id);*/
+    /*load_mod_parameters(v_instance_id);*/
   END LOOP;
   CLOSE cur_modules_from_paths;
 
- /* load modules from *sequences* */
+ /* load modules from *sequences* 
   OPEN cur_modules_from_sequences;
   LOOP
     FETCH cur_modules_from_sequences
@@ -241,9 +248,9 @@ BEGIN
     EXIT WHEN cur_modules_from_sequences%NOTFOUND;
     INSERT INTO tmp_instance_table
       VALUES(v_instance_id,v_template_id,'Module',v_instance_name,NULL,NULL);
-  /*  load_parameters(v_instance_id);*/
+    load_mod_parameters(v_instance_id);
   END LOOP;
-  CLOSE cur_modules_from_sequences;
+  CLOSE cur_modules_from_sequences;*/
 
  /* load paths */
   OPEN cur_paths;
