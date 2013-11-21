@@ -31,147 +31,154 @@ AS
   /* cursor for edsources */
   CURSOR cur_edsources IS
     SELECT
-      u_edsources.id,
-      u_edsources.id_template,
-      u_conf2eds.ord
-    FROM u_edsources,u_conf2eds
-    WHERE u_conf2eds.id_edsource=u_edsources.id
-    and u_conf2eds.id_confver = config_id;
+      v_edsources.id+1000000,
+      v_edsources.id_template+1000000,
+      v_conf2eds.ord
+    FROM v_edsources,v_conf2eds
+    WHERE v_conf2eds.id_edsource=v_edsources.id
+    and v_conf2eds.id_confver = config_id;
 
   /* cursor for essources */
   CURSOR cur_essources IS
     SELECT
-      u_essources.id,
-      u_essources.id_template,
-      u_essources.name,
-      u_conf2ess.prefer,
-      u_conf2ess.ord
-    FROM u_essources,u_conf2ess
-    WHERE u_conf2ess.id_essource=u_essources.id
-    and u_conf2ess.id_confver = config_id;
+      v_essources.id+2000000,
+      v_essources.id_template+2000000,
+      v_essources.name,
+      v_conf2ess.prefer,
+      v_conf2ess.ord
+    FROM v_essources,v_conf2ess
+    WHERE v_conf2ess.id_essource=v_essources.id
+    and v_conf2ess.id_confver = config_id;
 
   /* cursor for esmodules */
   CURSOR cur_esmodules IS
     SELECT
-      u_esmodules.id,
-      u_esmodules.id_template,
-      u_esmodules.name,
-      u_conf2esm.prefer,
-      u_conf2esm.ord
-    FROM u_esmodules,u_conf2esm
-    WHERE u_conf2esm.id_esmodule=u_esmodules.id 
-    and u_conf2esm.id_confver = config_id;
+      v_esmodules.id+3000000,
+      v_esmodules.id_template+3000000,
+      v_esmodules.name,
+      v_conf2esm.prefer,
+      v_conf2esm.ord
+    FROM v_esmodules,v_conf2esm
+    WHERE v_conf2esm.id_esmodule=v_esmodules.id 
+    and v_conf2esm.id_confver = config_id;
 
   /* cursor for services */
   CURSOR cur_services IS
     SELECT
-      u_services.id,
-      u_services.id_template,
-      u_conf2srv.ord
-    FROM u_services,u_conf2srv
-    WHERE u_conf2srv.id_service=u_services.id
-    and u_conf2srv.id_confver = config_id;
+      v_services.id+4000000,
+      v_services.id_template+4000000,
+      v_conf2srv.ord
+    FROM v_services,v_conf2srv
+    WHERE v_conf2srv.id_service=v_services.id
+    and v_conf2srv.id_confver = config_id;
 
   /* cursor for modules from configuration *paths* */
   CURSOR cur_modules_from_paths IS
-      SELECT
-      d.id,
-      u_mod2templ.id_templ,
-      u_paelements.name
-    FROM u_paelements, u_pathid2conf, u_mod2templ,(select min(aa.id)as id, aa.crc32 from u_paelements aa,u_pathid2conf bb,u_pathids cc where aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =config_id group by aa.crc32,aa.paetype) d
-    WHERE u_pathid2conf.id_pathid=u_paelements.id_pathid 
-    and u_mod2templ.id_pae=u_paelements.id 
-    and u_paelements.paetype=1 and u_paelements.crc32=d.crc32
-    and u_pathid2conf.id_confver = config_id;
+    SELECT UNIQUE
+      h_paelements.id,
+      h_pastruct.id_templ,
+      h_paelements.name
+    FROM h_pastruct,h_paelements, h_pathid2conf
+    WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid
+    and h_pastruct.id_pae=h_paelements.id
+    and h_paelements.paetype=1
+    and h_pathid2conf.id_confver = config_id;
 
   /* cursor for modules from configuration *sequences* */
   CURSOR cur_modules_from_sequences IS
-    SELECT
-      d.id,
-      u_mod2templ.id_templ,
-      u_paelements.name
-    FROM u_paelements, u_pathid2conf, u_mod2templ, (select min(aa.id)as id, aa.crc32 from u_paelements aa,u_pathid2conf bb,u_pathids cc where aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =config_id group by aa.crc32,aa.paetype) d
-    WHERE u_pathid2conf.id_pathid=u_paelements.id_pathid
-    and u_mod2templ.id_pae=u_paelements.id
-    and u_paelements.paetype=1 and u_paelements.crc32=d.crc32
-    and u_paelements.lvl>0
-    and u_pathid2conf.id_confver = config_id;
+    SELECT UNIQUE
+      h_paelements.id,
+      h_pastruct.id_templ,
+      h_paelements.name
+    FROM h_pastruct,h_paelements, h_pathid2conf, h_pae2moe
+    WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid
+    and h_pastruct.id_pae=h_paelements.id
+    and h_paelements.paetype=1
+    and h_pae2moe.id_pae=h_paelements.id
+    and h_pae2moe.lvl>0
+    and h_pathid2conf.id_confver = config_id;
+
 
 
   /* cursor for paths */
   CURSOR cur_paths IS
     SELECT
-      u_pathids.pathId,
-      u_paths.name,
-      u_pathids.isEndPath,
-      u_pathid2conf.ord
-    FROM u_pathids, u_paths,u_pathid2conf
-    WHERE u_pathid2conf.id_pathid=u_pathids.id
-    and u_paths.id=u_pathids.id_path
-    and u_pathid2conf.id_confver = config_id;
+      h_pathid2conf.id_pathid,
+      v_paths.name,
+      h_pathid2path.isEndPath,
+      h_pathid2conf.ord
+    FROM v_paths,h_pathid2conf,h_pathid2path
+    WHERE h_pathid2path.id_pathid=h_pathid2conf.id_pathid
+    and v_paths.id=h_pathid2path.id_path
+    and h_pathid2conf.id_confver = config_id order by v_paths.name;
 
   /* cursor for sequences */
   CURSOR cur_sequences IS
    /* SELECT
-      u_paelements.id,
-      u_paelements.name,
-      u_paelements.ord
-    FROM u_paelements, u_pathid2conf
-    WHERE u_pathid2conf.id_pathid=u_paelements.id_pathid 
-    and u_paelements.paetype=2
-    and u_pathid2conf.id_confver = config_id;*/
-    SELECT
-      d.id,
-      a.name,
-      a.ord
-    FROM u_paelements a, u_pathid2conf, (select min(aa.id)as id, aa.crc32 from u_paelements aa,u_pathid2conf bb,u_pathids cc where aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =config_id group by aa.crc32,aa.paetype) d
-    WHERE u_pathid2conf.id_pathid=a.id_pathid
-    and a.paetype=2 and a.crc32=d.crc32
-    and u_pathid2conf.id_confver = config_id;
+      v_paelements.id,
+      v_paelements.name,
+      v_paelements.ord
+    FROM v_paelements, v_pathid2conf
+    WHERE v_pathid2conf.id_pathid=v_paelements.id_pathid 
+    and v_paelements.paetype=2
+    and v_pathid2conf.id_confver = config_id;*/
+    SELECT  DISTINCT
+      h_paelements.id,
+      h_paelements.name, 0
+    FROM h_pastruct,h_paelements, h_pathid2conf 
+    WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid
+    and h_pastruct.id_pae=h_paelements.id
+    and h_paelements.paetype=2
+    and h_pathid2conf.id_confver = config_id order by h_paelements.name;
 
   /* cursor for path-sequence associations */
   CURSOR cur_path_sequence IS
-    SELECT
-      u_pathids.pathId,
-      d.id,
-      u_paelements.ord,
-      u_paelements.operator
-    FROM  u_pathids,u_paelements,u_pathid2conf,(select min(aa.id)as id, aa.crc32 from u_paelements aa,u_pathid2conf bb,u_pathids cc where aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =config_id group by aa.crc32,aa.paetype) d
-    WHERE u_pathid2conf.id_pathid=u_pathids.id
-    and  u_pathid2conf.id_pathid=u_paelements.id_pathid
-    and u_paelements.paetype=2 and u_paelements.crc32=d.crc32
-    and u_pathid2conf.id_confver = config_id;
+    SELECT UNIQUE
+      h_pastruct.id_pathid,
+      h_paelements.id,
+      0,
+      h_pastruct.operator
+    FROM h_pastruct,h_paelements, h_pathid2conf
+    WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid
+    and h_pastruct.id_pae=h_paelements.id
+    and h_paelements.paetype=2
+    and h_pastruct.lvl=0
+    and h_pathid2conf.id_confver = config_id;
+
+      
 
   /* cursor for path-module associations */
   CURSOR cur_path_module IS
-    SELECT
-      u_pathids.pathId,
-      d.id,
-      u_paelements.ord,
-      u_paelements.operator
-    FROM u_pathids,u_paelements, u_pathid2conf, (select min(aa.id)as id, aa.crc32 from u_paelements aa,u_pathid2conf bb,u_pathids cc where aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =config_id group by aa.crc32,aa.paetype) d
-    WHERE u_pathid2conf.id_pathid=u_paelements.id_pathid
-    and u_pathid2conf.id_pathid=u_pathids.id
-    and u_paelements.paetype=1 and u_paelements.crc32=d.crc32
-    and u_pathid2conf.id_confver = config_id;
+    SELECT UNIQUE
+      h_pastruct.id_pathid,
+      h_paelements.id,
+      0,
+      h_pastruct.operator
+    FROM h_pastruct,h_paelements, h_pathid2conf
+    WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid
+    and h_pastruct.id_pae=h_paelements.id
+    and h_paelements.paetype=1
+    and h_pastruct.lvl=0
+    and h_pathid2conf.id_confver = config_id;
+
 
 /* cursor for path-outputmodule associations */
   CURSOR cur_path_outputmod IS
     SELECT
-      u_pathid2outm.id_pathId,
-      u_streamids.id,
-      u_pathid2outm.ord,
-      u_pathid2outm.operator
-    FROM u_pathid2outm,u_pathid2conf,u_streamids
-    WHERE u_pathid2conf.id_pathid=u_pathid2outm.id_pathId
-    and u_streamids.id=u_pathid2outm.id_streamid
-    and u_pathid2conf.id_confver = config_id;
+      v_pathid2outm.id_pathId,
+      v_streamids.id,
+      v_pathid2outm.ord,
+      v_pathid2outm.operator
+    FROM v_pathid2outm,v_pathid2conf,v_streamids
+    WHERE v_pathid2conf.id_pathid=v_pathid2outm.id_pathId
+    and v_streamids.id=v_pathid2outm.id_streamid
+    and v_pathid2conf.id_confver = config_id;
 
 
 BEGIN
 
   execute immediate 'DELETE FROM tmp_instance_table';
-  execute immediate 'DELETE FROM tmp_parameter_table';
+/*  execute immediate 'DELETE FROM tmp_parameter_table';*/
   execute immediate 'DELETE FROM tmp_boolean_table';
   execute immediate 'DELETE FROM tmp_int_table';
   execute immediate 'DELETE FROM tmp_real_table';

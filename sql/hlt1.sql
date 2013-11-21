@@ -14,61 +14,62 @@ AS
 
   /* cursor for edsource templates */
   CURSOR cur_edsource_templates IS
-    SELECT u_edstemplates.id,
-           u_edstemplates.name,
-           u_edstemplates.cvstag,
-	   u_edstemplates.packageId
-    FROM u_edstemplates,u_edst2rele, U_SOFTRELEASES 
-    where  U_SOFTRELEASES.releaseid=release_id 
-    and u_edst2rele.ID_release=U_SOFTRELEASES.id and u_edst2rele.ID_EDSTEMPLATE=u_edstemplates.id
-    AND   u_edstemplates.name = template_name;
+    SELECT v_edstemplates.id,
+           v_edstemplates.name,
+           v_edstemplates.cvstag,
+	   v_edstemplates.packageId
+    FROM v_edstemplates,v_edst2rele, v_SOFTRELEASES 
+    where  v_SOFTRELEASES.releaseid=release_id 
+    and v_edst2rele.ID_release=v_SOFTRELEASES.id and v_edst2rele.ID_EDSTEMPLATE=v_edstemplates.id
+    AND   v_edstemplates.name = template_name;
 
   /* cursor for essource templates */
   CURSOR cur_essource_templates IS
-    SELECT u_esstemplates.id,
-           u_esstemplates.name,
-           u_esstemplates.cvstag,
-	   u_esstemplates.packageId
-    FROM u_esstemplates,u_esst2rele,u_softreleases
-    where u_softreleases.releaseid=release_id
-    and u_esst2rele.id_release=u_softreleases.id and u_esst2rele.id_esstemplate=u_esstemplates.id
-    AND   u_esstemplates.name = template_name;
+    SELECT v_esstemplates.id,
+           v_esstemplates.name,
+           v_esstemplates.cvstag,
+	   v_esstemplates.packageId
+    FROM v_esstemplates,v_esst2rele,v_softreleases
+    where v_softreleases.releaseid=release_id
+    and v_esst2rele.id_release=v_softreleases.id and v_esst2rele.id_esstemplate=v_esstemplates.id
+    AND   v_esstemplates.name = template_name;
 
   /* cursor for esmodule templates */
   CURSOR cur_esmodule_templates IS
-    SELECT u_esmtemplates.id,
-           u_esmtemplates.name,
-           u_esmtemplates.cvstag,
-	   u_esmtemplates.packageId
-    FROM u_esmtemplates,u_esmt2rele,u_softreleases
-    where u_softreleases.releaseid=release_id
-    and u_esmt2rele.id_release=u_softreleases.id and u_esmt2rele.id_esmtemplate=u_esmtemplates.id
-    AND   u_esmtemplates.name = template_name;
+    SELECT v_esmtemplates.id,
+           v_esmtemplates.name,
+           v_esmtemplates.cvstag,
+	   v_esmtemplates.packageId
+    FROM v_esmtemplates,v_esmt2rele,v_softreleases
+    where v_softreleases.releaseid=release_id
+    and v_esmt2rele.id_release=v_softreleases.id and v_esmt2rele.id_esmtemplate=v_esmtemplates.id
+    AND   v_esmtemplates.name = template_name;
 
 
   /* cursor for service templates */
   CURSOR cur_service_templates IS
-    SELECT u_srvtemplates.id,
-           u_srvtemplates.name,
-           u_srvtemplates.cvstag,
-	   u_srvtemplates.packageId
-    FROM u_srvtemplates,u_srvt2rele,u_softreleases
-     where u_softreleases.releaseid=release_id
-    and u_srvt2rele.id_release=u_softreleases.id and u_srvt2rele.id_srvtemplate=u_srvtemplates.id
-    AND   u_srvtemplates.name = template_name;
+    SELECT v_srvtemplates.id,
+           v_srvtemplates.name,
+           v_srvtemplates.cvstag,
+	   v_srvtemplates.packageId
+    FROM v_srvtemplates,v_srvt2rele,v_softreleases
+     where v_softreleases.releaseid=release_id
+    and v_srvt2rele.id_release=v_softreleases.id and v_srvt2rele.id_srvtemplate=v_srvtemplates.id
+    AND   v_srvtemplates.name = template_name;
 
   /* cursor for module templates */
   CURSOR cur_module_templates IS
-    SELECT u_moduletemplates.id,
-           u_moduletemplates.name,
-           u_moduletemplates.cvstag,
-           u_moduletemplates.packageId,
-           u_moduletypes.type
-    FROM u_moduletemplates,u_moduletypes,u_softreleases,u_modt2rele
-    where u_softreleases.releaseid=release_id
-    and u_modt2rele.id_release=u_softreleases.id and u_modt2rele.id_modtemplate=u_moduletemplates.id
-    and u_moduletypes.id=u_moduletemplates.id_mtype
-    AND   u_moduletemplates.name = template_name;
+    SELECT h_moduletemplates.id,
+           v_moduletemplates.name,
+           v_moduletemplates.cvstag,
+           v_moduletemplates.packageId,
+           v_moduletypes.type
+    FROM v_moduletemplates,v_moduletypes,v_softreleases,v_modt2rele,h_moduletemplates
+    where v_softreleases.releaseid=release_id
+    and v_modt2rele.id_release=v_softreleases.id and v_modt2rele.id_modtemplate=v_moduletemplates.id
+    and v_moduletypes.id=v_moduletemplates.id_mtype
+    and h_moduletemplates.crc32=v_moduletemplates.crc32
+    AND   v_moduletemplates.name = template_name;
 
 BEGIN
 
@@ -178,58 +179,59 @@ AS
 
   /* cursor for edsource templates */
   CURSOR cur_edsource_templates IS
-    SELECT u_edstemplates.Id,
-           u_edstemplates.name,
-           u_edstemplates.cvstag,
-           u_edstemplates.packageId
-    FROM u_edstemplates,u_edst2rele, U_SOFTRELEASES
-    where  U_SOFTRELEASES.releaseid=release_id
-    and u_edst2rele.ID_release=U_SOFTRELEASES.id and u_edst2rele.ID_EDSTEMPLATE=u_edstemplates.id;
+    SELECT v_edstemplates.Id,
+           v_edstemplates.name,
+           v_edstemplates.cvstag,
+           v_edstemplates.packageId
+    FROM v_edstemplates,v_edst2rele, v_SOFTRELEASES
+    where  v_SOFTRELEASES.releaseid=release_id
+    and v_edst2rele.ID_release=v_SOFTRELEASES.id and v_edst2rele.ID_EDSTEMPLATE=v_edstemplates.id;
 
   /* cursor for essource templates */
   CURSOR cur_essource_templates IS
-    SELECT u_esstemplates.Id,
-           u_esstemplates.name,
-           u_esstemplates.cvstag,
-           u_esstemplates.packageId
-    FROM u_esstemplates,u_esst2rele,u_softreleases
-    where u_softreleases.releaseid=release_id
-    and u_esst2rele.id_release=u_softreleases.id and u_esst2rele.id_esstemplate=u_esstemplates.id;
+    SELECT v_esstemplates.Id,
+           v_esstemplates.name,
+           v_esstemplates.cvstag,
+           v_esstemplates.packageId
+    FROM v_esstemplates,v_esst2rele,v_softreleases
+    where v_softreleases.releaseid=release_id
+    and v_esst2rele.id_release=v_softreleases.id and v_esst2rele.id_esstemplate=v_esstemplates.id;
 
 
   /* cursor for esmodule templates */
   CURSOR cur_esmodule_templates IS
-    SELECT u_esmtemplates.Id,
-           u_esmtemplates.name,
-           u_esmtemplates.cvstag,
-           u_esmtemplates.packageId
-    FROM u_esmtemplates,u_esmt2rele,u_softreleases
-    where u_softreleases.releaseid=release_id
-    and u_esmt2rele.id_release=u_softreleases.id and u_esmt2rele.id_esmtemplate=u_esmtemplates.id;
+    SELECT v_esmtemplates.Id,
+           v_esmtemplates.name,
+           v_esmtemplates.cvstag,
+           v_esmtemplates.packageId
+    FROM v_esmtemplates,v_esmt2rele,v_softreleases
+    where v_softreleases.releaseid=release_id
+    and v_esmt2rele.id_release=v_softreleases.id and v_esmt2rele.id_esmtemplate=v_esmtemplates.id;
 
 
   /* cursor for service templates */
   CURSOR cur_service_templates IS
-    SELECT u_srvtemplates.Id,
-           u_srvtemplates.name,
-           u_srvtemplates.cvstag,
-           u_srvtemplates.packageId
-    FROM u_srvtemplates,u_srvt2rele,u_softreleases
-     where u_softreleases.releaseid=release_id
-    and u_srvt2rele.id_release=u_softreleases.id and u_srvt2rele.id_srvtemplate=u_srvtemplates.id;
+    SELECT v_srvtemplates.Id,
+           v_srvtemplates.name,
+           v_srvtemplates.cvstag,
+           v_srvtemplates.packageId
+    FROM v_srvtemplates,v_srvt2rele,v_softreleases
+     where v_softreleases.releaseid=release_id
+    and v_srvt2rele.id_release=v_softreleases.id and v_srvt2rele.id_srvtemplate=v_srvtemplates.id;
 
 
   /* cursor for module templates */
   CURSOR cur_module_templates IS
-    SELECT u_moduletemplates.Id,
-           u_moduletemplates.name,
-           u_moduletemplates.cvstag,
-           u_moduletemplates.packageId,
-           u_moduletypes.type
-    FROM u_moduletemplates,u_moduletypes,u_softreleases,u_modt2rele
-    where u_softreleases.releaseid=release_id
-    and u_modt2rele.id_release=u_softreleases.id and u_modt2rele.id_modtemplate=u_moduletemplates.id
-    and u_moduletypes.id=u_moduletemplates.id_mtype;
+    SELECT h_moduletemplates.Id,
+           v_moduletemplates.name,
+           v_moduletemplates.cvstag,
+           v_moduletemplates.packageId,
+           v_moduletypes.type
+    FROM v_moduletemplates,v_moduletypes,v_softreleases,v_modt2rele,h_moduletemplates
+    where v_softreleases.releaseid=release_id
+    and v_modt2rele.id_release=v_softreleases.id and v_modt2rele.id_modtemplate=v_moduletemplates.id
+    and h_moduletemplates.crc32=v_moduletemplates.crc32
+    and v_moduletypes.id=v_moduletemplates.id_mtype;
 
 BEGIN
   /* prepare temporary tables */
@@ -247,7 +249,7 @@ BEGIN
       INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     EXIT WHEN cur_edsource_templates%NOTFOUND;
     INSERT INTO tmp_template_table
-      VALUES(v_template_id,'EDSource',
+      VALUES(v_template_id+1000000,'EDSource',
              v_template_name,v_template_cvstag,v_template_pkgid);
     load_edst_parameters(v_template_id);   
   END LOOP;
@@ -260,7 +262,7 @@ BEGIN
       INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     EXIT WHEN cur_essource_templates%NOTFOUND;
     INSERT INTO tmp_template_table
-      VALUES(v_template_id,'ESSource',
+      VALUES(v_template_id+2000000,'ESSource',
              v_template_name,v_template_cvstag,v_template_pkgid);
     load_esst_parameters(v_template_id);
   END LOOP;
@@ -273,7 +275,7 @@ BEGIN
       INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     EXIT WHEN cur_esmodule_templates%NOTFOUND;
     INSERT INTO tmp_template_table
-      VALUES(v_template_id,'ESModule',
+      VALUES(v_template_id+3000000,'ESModule',
              v_template_name,v_template_cvstag,v_template_pkgid);
     load_esmt_parameters(v_template_id);
   END LOOP;
@@ -286,7 +288,7 @@ BEGIN
       INTO v_template_id,v_template_name,v_template_cvstag,v_template_pkgid;
     EXIT WHEN cur_service_templates%NOTFOUND;
     INSERT INTO tmp_template_table
-      VALUES(v_template_id,'Service',
+      VALUES(v_template_id+4000000,'Service',
              v_template_name,v_template_cvstag,v_template_pkgid);
     load_servt_parameters(v_template_id); 
   END LOOP;

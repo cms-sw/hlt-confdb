@@ -319,6 +319,7 @@ public class ConfDB
 
     private PreparedStatement psSelectTemplates                   = null;
     private PreparedStatement psSelectInstances                   = null;
+    private PreparedStatement psSelectParametersTemplates         = null;
     private PreparedStatement psSelectParameters                  = null;
     private PreparedStatement psSelectBooleanValues               = null;
     private PreparedStatement psSelectIntValues                   = null;
@@ -328,6 +329,7 @@ public class ConfDB
     private PreparedStatement psSelectPathEntries                 = null;
     private PreparedStatement psSelectSequenceEntries             = null;
     private PreparedStatement psSelectSequenceEntriesAndOperator  = null; // bug #91797
+    private PreparedStatement psPrepareSequenceEntries			  = null; // bug #91797
     
 
 
@@ -543,9 +545,11 @@ public class ConfDB
 	    	 
 			try {
 	//sv		    rs = psSelectUsersForLockedConfigs.executeQuery();
+                            if (false) throw new SQLException();
 			    
 			    // If no exception is raised then reconnection is complete.
 			    transactionCompleted = true;
+                           
 			} catch (SQLException e) {
 				retryCount--;	
 				
@@ -1098,6 +1102,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	reconnect();
 	
 	int       configId = config.dbId();
+        Stack<Integer> idlifo= new Stack<Integer>();
 
         System.out.println("loadConfiguration with config "+config);
 
@@ -1105,6 +1110,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	
 	ResultSet rsPathEntries     = null;
 	ResultSet rsSequenceEntries = null;
+	ResultSet rsPrepareSequence = null;
      
         ResultSet rsEventContentEntries = null;
 	ResultSet rsStreamEntries = null;
@@ -1129,7 +1135,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    
 	    
 	    // This is to fix the operator field bug for modules inside sequences. bug #91797
-	    if(operatorFieldForSequencesAvailability)
+	    /*if(operatorFieldForSequencesAvailability)
             {
                 psSelectSequenceEntriesAndOperator.setInt(1,configId);
 	    	rsSequenceEntries = psSelectSequenceEntriesAndOperator.executeQuery();
@@ -1138,8 +1144,10 @@ if (pkg==null) System.out.println("pkg NULL!!!");
             {
                 psSelectSequenceEntries.setInt(1,configId);
 	    	rsSequenceEntries = psSelectSequenceEntries.executeQuery();
-            }
+            }*/
 	    	
+            psSelectSequenceEntries.setInt(1,configId);
+	    rsSequenceEntries = psSelectSequenceEntries.executeQuery();
 	    
 	    psSelectEventContentEntries.setInt(1,configId);
 	    rsEventContentEntries = psSelectEventContentEntries.executeQuery();
@@ -1237,6 +1245,9 @@ System.out.println("found instance "+id
 		    updateInstanceParameters(service,idToParams.remove(id));
 		}
 		else if (type.equals("Module")) {
+                    if (templateId==106) templateId=558;
+                    if (templateId==478) templateId=572;
+                    if (templateId==469) templateId=568;
 		    templateName = release.moduleTemplateName(templateId);
 		    ModuleInstance module = config.insertModule(templateName,
 								instanceName);
@@ -1320,24 +1331,89 @@ System.out.println("found instance "+id
 	    }
 */	    
 	    
+/*            int previouslvl=0;
 	    while (rsSequenceEntries.next()) {
 		int    sequenceId = rsSequenceEntries.getInt(1);
-		int    entryId    = rsSequenceEntries.getInt(2);
-		int    sequenceNb = rsSequenceEntries.getInt(3);
-		String entryType  = rsSequenceEntries.getString(4);
+		int    entryLvl   = rsSequenceEntries.getInt(3);
+		int    entryId    = rsSequenceEntries.getInt(4);
+		int    sequenceNb = rsSequenceEntries.getInt(5);
+		String entryType  = rsSequenceEntries.getString(6);
+	        int    operator   = rsSequenceEntries.getInt(7);	
 		
+System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLvl+" ord "+sequenceNb+" entryType="+entryType);
+
+                while (entryLvl<previouslvl) {
+                       idlifo.pop();
+                       previouslvl--;
+                }
+                previouslvl=entryLvl;
+
+		if (entryLvl==0) {
+			idlifo.push(entryId);}
+                if (entryLvl>0)
+                {
+		  sequenceId=idlifo.peek();
+System.out.println( "redirected parent to ="+sequenceId);
+		  if (entryType.equals("Sequence")) {
+		    idlifo.push(entryId);}
+                  psPrepareSequenceEntries.setInt(1,sequenceId);
+                  psPrepareSequenceEntries.setInt(2,entryId);
+                  psPrepareSequenceEntries.setInt(3,sequenceNb);
+                  psPrepareSequenceEntries.setString(4,entryType);
+                  psPrepareSequenceEntries.setInt(5,operator);
+		  rsPrepareSequence=psPrepareSequenceEntries.executeQuery();
+               } 	  
+            }    
+
+*/
+              int previouslvl=0;
+              boolean seqtoskip=false;
+              int lvltoskip=0;
+              boolean seqDone[];
+              seqDone=new boolean[100000]; 
+//            rsSequenceEntries = psSelectSequenceEntriesAndOperator.executeQuery();
+	    while (rsSequenceEntries.next()) {
+               int    sequenceId = rsSequenceEntries.getInt(1);
+                int    entryLvl   = rsSequenceEntries.getInt(3);
+                int    entryId    = rsSequenceEntries.getInt(4);
+                int    sequenceNb = rsSequenceEntries.getInt(5);
+                String entryType  = rsSequenceEntries.getString(6);
+ 
 		
+System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLvl+" ord "+sequenceNb+" entryType="+entryType);
+
+                while (entryLvl<previouslvl) {
+                       if ((!seqtoskip)&&(entryLvl>=lvltoskip)) idlifo.pop();
+                       previouslvl--;
+                }
+                previouslvl=entryLvl;
+                if (entryLvl<=lvltoskip) seqtoskip=false;
+
+                if (entryLvl==0) {
+                        if (seqDone[entryId]) {
+                             seqtoskip=true;
+                             lvltoskip=0;
+                           }
+                         else {
+                          seqDone[entryId]=true;
+                         }
+                          idlifo.push(entryId);
+                 }       
+                if ((entryLvl>0) && (!seqtoskip))
+                {
+		  sequenceId=idlifo.peek();
 
 
 		Sequence sequence = idToSequences.get(sequenceId);
 		int      index    = sequence.entryCount();
+   		sequenceNb=index;
 		
 		boolean fail=true;
 		Operator operator = Operator.DEFAULT;
 		try {
 		    //operator = Operator.getOperator( rsSequenceEntries.getInt(5) );
 			if(operatorFieldForSequencesAvailability) 
-				operator = Operator.getOperator( rsSequenceEntries.getInt(5) );
+				operator = Operator.getOperator( rsSequenceEntries.getInt(7) );
 		    fail=false;
 		} catch (SQLException e) {
 		    operator = Operator.DEFAULT;
@@ -1353,14 +1429,24 @@ System.out.println("found instance "+id
 				       +sequenceNb);
 		
 		if (entryType.equals("Sequence")) {
-		    Sequence entry = idToSequences.get(entryId);
-		    if (entry==null) {
-			System.err.println("ERROR: can't find sequence for "+
+                    if (seqDone[entryId]) {
+                         seqtoskip=true;
+                         lvltoskip=entryLvl;
+                     }
+                     else 
+		         idlifo.push(entryId);
+
+                //    if (!seqtoskip) {
+                        seqDone[entryId]=true;
+		    	Sequence entry = idToSequences.get(entryId);
+		    	if (entry==null) {
+				System.err.println("ERROR: can't find sequence for "+
 					   "id=" + entryId +
 					   " expected as daughter " + index +
 					   " of sequence " + sequence.name());
-		    }
-		    config.insertSequenceReference(sequence,index,entry).setOperator( operator );
+		    	}
+		    	config.insertSequenceReference(sequence,index,entry).setOperator( operator );
+                 //   }
 		}
 		else if (entryType.equals("Module")) {
 		    ModuleInstance entry = (ModuleInstance)idToModules.get(entryId);
@@ -1378,7 +1464,9 @@ System.out.println("found instance "+id
 		
 		sequence.setDatabaseId(sequenceId);
 		sequenceToId.put(sequence,sequenceId);
+               }
 	    }
+
 
 
 	    while (rsPathEntries.next()) {
@@ -1392,7 +1480,7 @@ System.out.println("found instance "+id
 		int  index = path.entryCount();
 
                 System.out.println("found n path "+path.name()+": "+
-                                       "index="+index+" sequenceNb="+sequenceNb+" entryType="+entryType);
+                                       "index="+index+" sequenceNb="+sequenceNb+" entryType="+entryType+" entryId="+entryId);
 
 		if (index!=sequenceNb)
 		    System.err.println("ERROR in path "+path.name()+": "+
@@ -1565,6 +1653,9 @@ System.out.println("found instance "+id
 	      }
 	    */
 
+         System.out.println("###########################End of loops###################");
+       
+
 	}
 	catch (SQLException e) {
 	    String errMsg =
@@ -1575,8 +1666,8 @@ System.out.println("found instance "+id
 	finally {
 	    dbConnector.release(rsInstances);
 	    dbConnector.release(rsPathEntries);
-/*	    dbConnector.release(rsSequenceEntries);
-	    dbConnector.release(rsEventContentEntries);
+	    dbConnector.release(rsSequenceEntries);
+/*	    dbConnector.release(rsEventContentEntries);
 	    dbConnector.release(rsStreamEntries);
 	    dbConnector.release(rsDatasetEntries);
 	    dbConnector.release(rsPathStreamDataset);
@@ -1595,6 +1686,7 @@ System.out.println("found instance "+id
     			extraFields = rs.getInt(1);	
     		}
    */ 		
+        if (false) throw new SQLException();
     	}
     	catch (SQLException e) {
     	    String errMsg =
@@ -1621,6 +1713,7 @@ System.out.println("found instance "+id
     			extraFields = rs.getInt(1);	
     		}
    */ 		
+         if (false) throw new SQLException();
     	}
     	catch (SQLException e) {
     	    String errMsg =
@@ -1837,6 +1930,7 @@ System.out.println("found instance "+id
 	    psInsertConfigurationLock.setString(3,userName);
 	    psInsertConfigurationLock.executeUpdate();
 */
+        if (false) throw new SQLException();
 	}
 	catch (SQLException e) {
 	    String errMsg =
@@ -1860,7 +1954,8 @@ System.out.println("found instance "+id
 /*	    psDeleteLock.setInt(1,parentDirId);
 	    psDeleteLock.setString(2,configName);
 	    psDeleteLock.executeUpdate();
-*/	}
+*/	if (false) throw new SQLException();
+        }
 	catch (SQLException e) {
 	    String errMsg =
 		" ConfDB::unlockConfiguration("+config.toString()+" failed: "+
@@ -4048,9 +4143,9 @@ System.out.println("found instance "+id
 	    psSelectModuleTypes =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-      	      	 " u_moduletypes.id," +
-   		 " u_moduletypes.type " +
-   		 "FROM u_moduletypes");
+      	      	 " v_moduletypes.id," +
+   		 " v_moduletypes.type " +
+   		 "FROM v_moduletypes");
 	    preparedStatements.add(psSelectModuleTypes);
 	    
 
@@ -4068,7 +4163,7 @@ System.out.println("found instance "+id
    		 " Directories.id_parentDir," +
    		 " Directories.name," +
    		 " Directories.created " +
-   		 "FROM u_directories Directories " +
+   		 "FROM v_directories Directories " +
    		 "ORDER BY Directories.name ASC");
 	    psSelectDirectories.setFetchSize(512);
 	    preparedStatements.add(psSelectDirectories);
@@ -4085,8 +4180,8 @@ System.out.println("found instance "+id
    " SoftwareReleases.releaseTag," +
    " Configurations.processName," +
    " Configurations.description " +
-   "FROM u_confversions Configurations " +
-   "JOIN u_softreleases SoftwareReleases " +
+   "FROM v_confversions Configurations " +
+   "JOIN v_softreleases SoftwareReleases " +
    "ON SoftwareReleases.releaseId = Configurations.releaseId " +
    "ORDER BY Configurations.config ASC");
 	    psSelectConfigurations.setFetchSize(512);
@@ -4115,8 +4210,8 @@ System.out.println("found instance "+id
 		("SELECT DISTINCT" +
    " Directories.name," +
    " Configurations.config " +
-   "FROM u_confversions Configurations " +
-   "JOIN u_directories Directories " +
+   "FROM v_confversions Configurations " +
+   "JOIN v_directories Directories " +
    "ON Configurations.id_parentDir = Directories.id " +
    "ORDER BY Directories.name ASC,Configurations.config ASC");
 	    psSelectConfigNames.setFetchSize(1024);
@@ -4128,8 +4223,8 @@ System.out.println("found instance "+id
    " Directories.name," +
    " Configurations.config, " +
    " Configurations.version " +
-   "FROM u_confversions Configurations " +
-   "JOIN u_directories Directories " +
+   "FROM v_confversions Configurations " +
+   "JOIN v_directories Directories " +
    "ON Configurations.id_parentDir = Directories.id " +
    "WHERE Configurations.releaseId = ?" +
    "ORDER BY Directories.name ASC,Configurations.config ASC");
@@ -4140,7 +4235,7 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
    " Directories.id " +
-   "FROM u_directories Directories "+
+   "FROM v_directories Directories "+
    "WHERE Directories.name = ?");
 	    preparedStatements.add(psSelectDirectoryId);
 	    
@@ -4148,8 +4243,8 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
    " Configurations.id " +
-   "FROM u_confversions Configurations "+
-   "JOIN u_directories Directories " +
+   "FROM v_confversions Configurations "+
+   "JOIN v_directories Directories " +
    "ON Directories.id=Configurations.id_parentDir " +
    "WHERE Directories.name = ? AND" +
    " Configurations.config = ? AND" +
@@ -4161,8 +4256,8 @@ System.out.println("found instance "+id
 		("SELECT" +
   " Configurations.id," +
    " Configurations.version " +
-   "FROM u_confversions Configurations " +
-   "JOIN u_directories Directories " +
+   "FROM v_confversions Configurations " +
+   "JOIN v_directories Directories " +
    "ON Directories.id=Configurations.id_parentDir " +
    "WHERE Directories.name = ? AND" +
    " Configurations.config = ? " +
@@ -4173,7 +4268,7 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
   " Configurations.created " +
-   "FROM u_confversions Configurations " +
+   "FROM v_confversions Configurations " +
    "WHERE Configurations.id = ?");
 	    preparedStatements.add(psSelectConfigurationCreated);
 	    
@@ -4182,7 +4277,7 @@ System.out.println("found instance "+id
 		("SELECT" +
    " SoftwareReleases.releaseid," +
    " SoftwareReleases.releaseTag " +
-   "FROM u_softreleases SoftwareReleases " +
+   "FROM v_softreleases SoftwareReleases " +
    "ORDER BY SoftwareReleases.releaseid DESC");
 	    psSelectReleaseTags.setFetchSize(32);
 	    preparedStatements.add(psSelectReleaseTags);
@@ -4192,7 +4287,7 @@ System.out.println("found instance "+id
 		("SELECT" +
    " SoftwareReleases.releaseid," +
    " SoftwareReleases.releaseTag " +
-   "FROM u_softreleases SoftwareReleases " +
+   "FROM v_softreleases SoftwareReleases " +
    "ORDER BY SoftwareReleases.releaseTag ASC");
 	    psSelectReleaseTagsSorted.setFetchSize(32);
 	    preparedStatements.add(psSelectReleaseTagsSorted);
@@ -4201,14 +4296,14 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
   " SoftwareReleases.releaseid "+
-   "FROM u_softreleases SoftwareReleases " +
+   "FROM v_softreleases SoftwareReleases " +
    "WHERE SoftwareReleases.releaseTag = ?");
 
 	    psSelectReleaseTag =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
    " SoftwareReleases.releaseTag " +
-   "FROM u_softreleases SoftwareReleases " +
+   "FROM v_softreleases SoftwareReleases " +
    "WHERE SoftwareReleases.releaseid = ?");
 	    preparedStatements.add(psSelectReleaseTag);
 	    
@@ -4216,8 +4311,8 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
    " SoftwareReleases.releaseTag " +
-   "FROM u_softreleases SoftwareReleases " +
-   "JOIN u_confversions Configurations " +
+   "FROM v_softreleases SoftwareReleases " +
+   "JOIN v_confversions Configurations " +
    "ON Configurations.releaseId = SoftwareReleases.releaseid " +
    "WHERE Configurations.id = ?");
 	    preparedStatements.add(psSelectReleaseTagForConfig);
@@ -4227,7 +4322,7 @@ System.out.println("found instance "+id
 		("SELECT" +
    " SoftwareSubsystems.subsysId," +
    " SoftwareSubsystems.name " +
-   "FROM u_softsubsystems SoftwareSubsystems");
+   "FROM v_softsubsystems SoftwareSubsystems");
 	    psSelectSoftwareSubsystems.setFetchSize(64);
 	    preparedStatements.add(psSelectSoftwareSubsystems);
 
@@ -4237,7 +4332,7 @@ System.out.println("found instance "+id
    " SoftwarePackages.packageid," +
    " SoftwarePackages.subsysId," +
    " SoftwarePackages.name " +
-   "FROM u_softpackages SoftwarePackages");
+   "FROM v_softpackages SoftwarePackages");
 	    psSelectSoftwarePackages.setFetchSize(512);
 	    preparedStatements.add(psSelectSoftwarePackages);
 
@@ -4247,7 +4342,7 @@ System.out.println("found instance "+id
   " EDSourceTemplates.id," +
    " EDSourceTemplates.name," +
    " EDSourceTemplates.cvstag " +
-   "FROM u_edstemplates EDSourceTemplates " +
+   "FROM v_edstemplates EDSourceTemplates " +
    "WHERE EDSourceTemplates.name=? AND EDSourceTemplates.cvstag= ?");
 	    preparedStatements.add(psSelectEDSourceTemplate);
 
@@ -4257,7 +4352,7 @@ System.out.println("found instance "+id
    " ESSourceTemplates.id," +
    " ESSourceTemplates.name," +
    " ESSourceTemplates.cvstag " +
-   "FROM u_esstemplates ESSourceTemplates " +
+   "FROM v_esstemplates ESSourceTemplates " +
    "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectESSourceTemplate);
 	    
@@ -4267,7 +4362,7 @@ System.out.println("found instance "+id
    " ESModuleTemplates.id," +
    " ESModuleTemplates.name," +
    " ESModuleTemplates.cvstag " +
-   "FROM u_esmtemplates ESModuleTemplates " +
+   "FROM v_esmtemplates ESModuleTemplates " +
    "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectESModuleTemplate);
 
@@ -4277,7 +4372,7 @@ System.out.println("found instance "+id
   " ServiceTemplates.id," +
    " ServiceTemplates.name," +
    " ServiceTemplates.cvstag " +
-   "FROM u_srvtemplates ServiceTemplates " +
+   "FROM v_srvtemplates ServiceTemplates " +
    "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectServiceTemplate);
 
@@ -4297,7 +4392,7 @@ System.out.println("found instance "+id
 		("SELECT" +
   " Streams.id,"+
    " Streams.name "+
-   "FROM u_streams Streams " +
+   "FROM v_streams Streams " +
    "ORDER BY Streams.name ASC");
 
 
@@ -4306,7 +4401,7 @@ System.out.println("found instance "+id
 		("SELECT" +
    " PrimaryDatasets.id,"+
    " PrimaryDatasets.name "+
-   "FROM u_datasets PrimaryDatasets " +
+   "FROM v_datasets PrimaryDatasets " +
    "ORDER BY PrimaryDatasets.name ASC");
 
 	    
@@ -4351,8 +4446,8 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " EDSources.id "+
-    "FROM u_edsources EDSources "+
-   "JOIN u_conf2eds ConfigurationEDSourceAssoc " +
+    "FROM v_edsources EDSources "+
+   "JOIN v_conf2eds ConfigurationEDSourceAssoc " +
    "ON ConfigurationEDSourceAssoc.id_edsource=EDSources.id " +
    "WHERE ConfigurationEDSourceAssoc.id_confver=?");
 	    preparedStatements.add(psSelectEDSourcesForConfig);
@@ -4361,8 +4456,8 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
   " ESSources.id "+
-   "FROM u_essources ESSources "+
-   "JOIN u_conf2ess ConfigurationESSourceAssoc " +
+   "FROM v_essources ESSources "+
+   "JOIN v_conf2ess ConfigurationESSourceAssoc " +
    "ON ConfigurationESSourceAssoc.id_essource=ESSources.id " +
    "WHERE ConfigurationESSourceAssoc.id_confver=?");
 	    preparedStatements.add(psSelectESSourcesForConfig);
@@ -4371,8 +4466,8 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ESModules.id "+
-   "FROM u_esmodules ESModules "+
-   "JOIN u_conf2esm ConfigurationESModuleAssoc " +
+   "FROM v_esmodules ESModules "+
+   "JOIN v_conf2esm ConfigurationESModuleAssoc " +
    "ON ConfigurationESModuleAssoc.id_esmodule=ESModules.id " +
    "WHERE ConfigurationESModuleAssoc.id_confver=?");
 	    preparedStatements.add(psSelectESModulesForConfig);
@@ -4381,8 +4476,8 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " Services.id "+
-   "FROM u_services Services "+
-   "JOIN u_conf2srv ConfigurationServiceAssoc " +
+   "FROM v_services Services "+
+   "JOIN v_conf2srv ConfigurationServiceAssoc " +
    "ON ConfigurationServiceAssoc.id_service=Services.id " +
    "WHERE ConfigurationServiceAssoc.id_confver=?");
  	    preparedStatements.add(psSelectServicesForConfig);
@@ -4402,7 +4497,7 @@ System.out.println("found instance "+id
 		("SELECT"+
   " Paths.id_pathiduq "+
    "FROM f_pathid2uq Paths " +
-   "JOIN u_pathid2conf ConfigurationPathAssoc " +
+   "JOIN v_pathid2conf ConfigurationPathAssoc " +
    "ON ConfigurationPathAssoc.id_pathid=Paths.id_pathid " +
    "WHERE ConfigurationPathAssoc.id_confver=?");
 	    preparedStatements.add(psSelectPathsForConfig);
@@ -4427,8 +4522,8 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " EDSourceTemplates.id "+
-   "FROM u_edstemplates EDSourceTemplates "+
-   "JOIN u_edst2rele SuperIdReleaseAssoc " +
+   "FROM v_edstemplates EDSourceTemplates "+
+   "JOIN v_edst2rele SuperIdReleaseAssoc " +
    "ON SuperIdReleaseAssoc.id_edstemplate=EDSourceTemplates.id " +
    "WHERE SuperIdReleaseAssoc.id_release=?");
  	    preparedStatements.add(psSelectEDSourceTemplatesForRelease);
@@ -4437,8 +4532,8 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ESSourceTemplates.id "+
-   "FROM u_esstemplates ESSourceTemplates "+
-   "JOIN u_esst2rele SuperIdReleaseAssoc " +
+   "FROM v_esstemplates ESSourceTemplates "+
+   "JOIN v_esst2rele SuperIdReleaseAssoc " +
    "ON SuperIdReleaseAssoc.id_esstemplate=ESSourceTemplates.id " +
    "WHERE SuperIdReleaseAssoc.id_release=?");
  	    preparedStatements.add(psSelectESSourceTemplatesForRelease);
@@ -4447,8 +4542,8 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ESModuleTemplates.id "+
-   "FROM u_esmtemplates ESModuleTemplates "+
-   "JOIN u_esmt2rele SuperIdReleaseAssoc " +
+   "FROM v_esmtemplates ESModuleTemplates "+
+   "JOIN v_esmt2rele SuperIdReleaseAssoc " +
    "ON SuperIdReleaseAssoc.id_esmtemplate=ESModuleTemplates.id " +
    "WHERE SuperIdReleaseAssoc.id_release=?");
  	    preparedStatements.add(psSelectESModuleTemplatesForRelease);
@@ -4457,8 +4552,8 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ServiceTemplates.id "+
-   "FROM u_srvtemplates ServiceTemplates "+
-   "JOIN u_srvt2rele SuperIdReleaseAssoc " +
+   "FROM v_srvtemplates ServiceTemplates "+
+   "JOIN v_srvt2rele SuperIdReleaseAssoc " +
    "ON SuperIdReleaseAssoc.id_srvtemplate=ServiceTemplates.id " +
    "WHERE SuperIdReleaseAssoc.id_release=?");
  	    preparedStatements.add(psSelectServiceTemplatesForRelease);
@@ -4467,8 +4562,8 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
   " ModuleTemplates.id "+
-   "FROM u_moduletemplates ModuleTemplates "+
-   "JOIN u_modt2rele SuperIdReleaseAssoc " +
+   "FROM v_moduletemplates ModuleTemplates "+
+   "JOIN v_modt2rele SuperIdReleaseAssoc " +
    "ON SuperIdReleaseAssoc.id_modtemplate=ModuleTemplates.id " +
    "WHERE SuperIdReleaseAssoc.id_release=?");
  	    preparedStatements.add(psSelectModuleTemplatesForRelease);
@@ -4508,7 +4603,7 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ConfigurationEDSourceAssoc.id_edsource "+
-   "FROM u_conf2eds ConfigurationEDSourceAssoc "+
+   "FROM v_conf2eds ConfigurationEDSourceAssoc "+
    "WHERE ConfigurationEDSourceAssoc.id_edsource=?");
 	    preparedStatements.add(psSelectEDSourceId);
 
@@ -4516,7 +4611,7 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ConfigurationESSourceAssoc.id_essource "+
-   "FROM u_conf2ess ConfigurationESSourceAssoc "+
+   "FROM v_conf2ess ConfigurationESSourceAssoc "+
    "WHERE ConfigurationESSourceAssoc.id_essource=?");
 	    preparedStatements.add(psSelectESSourceId);
 
@@ -4524,7 +4619,7 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
   " ConfigurationESModuleAssoc.id_esmodule "+
-   "FROM u_conf2edm ConfigurationESModuleAssoc "+
+   "FROM v_conf2edm ConfigurationESModuleAssoc "+
    "WHERE ConfigurationESModuleAssoc.id_esmodule=?");
      preparedStatements.add(psSelectESModuleId);
 
@@ -4534,7 +4629,7 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ConfigurationServiceAssoc.id_service "+
-   "FROM u_conf2srv ConfigurationServiceAssoc "+
+   "FROM v_conf2srv ConfigurationServiceAssoc "+
    "WHERE ConfigurationServiceAssoc.id_service=?");
 	    preparedStatements.add(psSelectServiceId);
 
@@ -4550,7 +4645,7 @@ System.out.println("found instance "+id
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ConfigurationPathAssoc.id_pathid "+
-   "FROM u_pathid2conf ConfigurationPathAssoc "+
+   "FROM v_pathid2conf ConfigurationPathAssoc "+
    "WHERE ConfigurationPathAssoc.id_pathid=?");
 	    preparedStatements.add(psSelectPathId);
 	    
@@ -4612,26 +4707,26 @@ System.out.println("found instance "+id
 
 	    psSelectEventContentEntries =
 		dbConnector.getConnection().prepareStatement
-            ("SELECT DISTINCT u_streamids.id,u_streams.name,u_streamids.FRACTODISK,U_EVENTCONTENTIDS.ID as evcoid,U_EVENTCONTENTS.name as evconame "+
-                 "FROM u_streamids,u_streams,U_EVENTCONTENTIDS,U_EVENTCONTENTS,U_EVCO2STREAM,u_pathid2outm,u_pathid2conf " +
-                 "WHERE u_streams.id=u_streamids.id_stream " +
-                 "AND U_EVCO2STREAM.ID_STREAMID=u_streamids.id AND U_EVCO2STREAM.id_evcoid=U_EVENTCONTENTIDS.ID " +
-                 "AND U_EVENTCONTENTIDS.ID_EVCO=U_EVENTCONTENTS.ID "+
-                 "AND u_pathid2conf.id_pathid=u_pathid2outm.id_pathId AND u_streamids.id=u_pathid2outm.id_streamid "+
-                 "AND u_pathid2conf.id_confver = ?" );
+            ("SELECT DISTINCT v_streamids.id,v_streams.name,v_streamids.FRACTODISK,V_EVENTCONTENTIDS.ID as evcoid,V_EVENTCONTENTS.name as evconame "+
+                 "FROM v_streamids,v_streams,V_EVENTCONTENTIDS,V_EVENTCONTENTS,V_EVCO2STREAM,v_pathid2outm,v_pathid2conf " +
+                 "WHERE v_streams.id=v_streamids.id_stream " +
+                 "AND V_EVCO2STREAM.ID_STREAMID=v_streamids.id AND V_EVCO2STREAM.id_evcoid=V_EVENTCONTENTIDS.ID " +
+                 "AND V_EVENTCONTENTIDS.ID_EVCO=V_EVENTCONTENTS.ID "+
+                 "AND v_pathid2conf.id_pathid=v_pathid2outm.id_pathId AND v_streamids.id=v_pathid2outm.id_streamid "+
+                 "AND v_pathid2conf.id_confver = ?" );
 	    psSelectEventContentEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectEventContentEntries);
 
 		
 	    psSelectStreamEntries =
 		dbConnector.getConnection().prepareStatement
-            ("SELECT DISTINCT u_streamids.id,u_streams.name,u_streamids.FRACTODISK,U_EVENTCONTENTIDS.ID as evcoid,U_EVENTCONTENTS.name as evconame "+
-                 "FROM u_streamids,u_streams,U_EVENTCONTENTIDS,U_EVENTCONTENTS,U_EVCO2STREAM,u_pathid2outm,u_pathid2conf " +
-                 "WHERE u_streams.id=u_streamids.id_stream " +
-                 "AND U_EVCO2STREAM.ID_STREAMID=u_streamids.id AND U_EVCO2STREAM.id_evcoid=U_EVENTCONTENTIDS.ID " +
-                 "AND U_EVENTCONTENTIDS.ID_EVCO=U_EVENTCONTENTS.ID "+
-                 "AND u_pathid2conf.id_pathid=u_pathid2outm.id_pathId AND u_streamids.id=u_pathid2outm.id_streamid "+
-                 "AND u_pathid2conf.id_confver = ?" );
+            ("SELECT DISTINCT v_streamids.id,v_streams.name,v_streamids.FRACTODISK,V_EVENTCONTENTIDS.ID as evcoid,V_EVENTCONTENTS.name as evconame "+
+                 "FROM v_streamids,v_streams,V_EVENTCONTENTIDS,V_EVENTCONTENTS,V_EVCO2STREAM,v_pathid2outm,v_pathid2conf " +
+                 "WHERE v_streams.id=v_streamids.id_stream " +
+                 "AND V_EVCO2STREAM.ID_STREAMID=v_streamids.id AND V_EVCO2STREAM.id_evcoid=V_EVENTCONTENTIDS.ID " +
+                 "AND V_EVENTCONTENTIDS.ID_EVCO=V_EVENTCONTENTS.ID "+
+                 "AND v_pathid2conf.id_pathid=v_pathid2outm.id_pathId AND v_streamids.id=v_pathid2outm.id_streamid "+
+                 "AND v_pathid2conf.id_confver = ?" );
 	    psSelectStreamEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectStreamEntries);
 	    
@@ -4700,84 +4795,84 @@ System.out.println("found instance "+id
 */	    
 	    psSelectReleaseCount =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT COUNT(*) FROM u_softreleases SoftwareReleases");
+  ("SELECT COUNT(*) FROM v_softreleases SoftwareReleases");
 	    preparedStatements.add(psSelectReleaseCount);
 
 	    psSelectConfigurationCount =
 		dbConnector.getConnection().prepareStatement
-//  ("SELECT COUNT(*) FROM u_confversions Configurations");
-  ("SELECT COUNT(*) FROM u_configurations Configurations");
+//  ("SELECT COUNT(*) FROM v_confversions Configurations");
+  ("SELECT COUNT(*) FROM v_configurations Configurations");
 	    preparedStatements.add(psSelectConfigurationCount);
 	    
 	    psSelectDirectoryCount =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT COUNT(*) FROM u_directories Directories");
+  ("SELECT COUNT(*) FROM v_directories Directories");
 	    preparedStatements.add(psSelectDirectoryCount);
 
 	    psSelectSuperIdCount =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT COUNT(*) FROM u_confversions Configurations"); //sv just a placeholder 
+  ("SELECT COUNT(*) FROM v_confversions Configurations"); //sv just a placeholder 
 	    preparedStatements.add(psSelectSuperIdCount);
 
 	    psSelectEDSourceTemplateCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM u_edstemplates EDSourceTemplates");
+("SELECT COUNT(*) FROM v_edstemplates EDSourceTemplates");
 	    preparedStatements.add(psSelectEDSourceTemplateCount);
 	    
 	    psSelectEDSourceCount =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT COUNT(*) FROM u_edsources EDSources");
+  ("SELECT COUNT(*) FROM v_edsources EDSources");
 	    preparedStatements.add(psSelectEDSourceCount);
 
 	    psSelectESSourceTemplateCount =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT COUNT(*) FROM u_esstemplates ESSourceTemplates");
+  ("SELECT COUNT(*) FROM v_esstemplates ESSourceTemplates");
 	    preparedStatements.add(psSelectESSourceTemplateCount);
 
 	    psSelectESSourceCount =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT COUNT(*) FROM u_essources ESSources");
+  ("SELECT COUNT(*) FROM v_essources ESSources");
 	    preparedStatements.add(psSelectESSourceCount);
 
 	    psSelectESModuleTemplateCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM u_esmtemplates ESModuleTemplates");
+("SELECT COUNT(*) FROM v_esmtemplates ESModuleTemplates");
 	    preparedStatements.add(psSelectESModuleTemplateCount);
 
 	    psSelectESModuleCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM u_esmodules ESModules");
+("SELECT COUNT(*) FROM v_esmodules ESModules");
 	    preparedStatements.add(psSelectESModuleCount);
 
 	    psSelectServiceTemplateCount =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT COUNT(*) FROM u_srvtemplates ServiceTemplates");
+  ("SELECT COUNT(*) FROM v_srvtemplates ServiceTemplates");
 	    preparedStatements.add(psSelectServiceTemplateCount);
 
 	    psSelectServiceCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM u_services Services");
+("SELECT COUNT(*) FROM v_services Services");
 	    preparedStatements.add(psSelectServiceCount);
 	    
 	    psSelectModuleTemplateCount =
 		dbConnector.getConnection().prepareStatement
 //sv deduplicati  ("SELECT COUNT(*) FROM f_moduletemplates ModuleTemplates");
-("SELECT COUNT(*) FROM u_moduletemplates ModuleTemplates"); 
+("SELECT COUNT(*) FROM v_moduletemplates ModuleTemplates"); 
 	    preparedStatements.add(psSelectModuleTemplateCount);
 	    
 	    psSelectModuleCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM u_paelements Modules WHERE paetype = 1");
+("SELECT COUNT(*) FROM v_paelements Modules WHERE paetype = 1");
 	    preparedStatements.add(psSelectModuleCount);
 
 	    psSelectSequenceCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM u_paelements Modules WHERE paetype = 1");
+("SELECT COUNT(*) FROM v_paelements Modules WHERE paetype = 1");
 	    preparedStatements.add(psSelectSequenceCount);
 
 	    psSelectPathCount =
 		dbConnector.getConnection().prepareStatement
-//sv deduplicati  ("SELECT COUNT(*) FROM u_pathids Paths");
+//sv deduplicati  ("SELECT COUNT(*) FROM v_pathids Paths");
 ("SELECT COUNT(*) FROM f_pathids Paths");
 	    preparedStatements.add(psSelectPathCount);
 	    
@@ -5542,7 +5637,7 @@ System.out.println("found instance "+id
 	    psSelectInstances.setFetchSize(1024);
 	    preparedStatements.add(psSelectInstances);
 	    
-/*from procedure	    psSelectParameters =
+	    psSelectParametersTemplates =
 		dbConnector.getConnection().prepareStatement
 		("SELECT " +
 		 " parameter_id," +
@@ -5556,27 +5651,30 @@ System.out.println("found instance "+id
 		 " valuelob " +
 		 " FROM tmp_parameter_table " + 
                  " ORDER BY parameter_id");
-	    psSelectParameters.setFetchSize(4096);
-	    preparedStatements.add(psSelectParameters);
-*/
+	    psSelectParametersTemplates.setFetchSize(4096);
+	    preparedStatements.add(psSelectParametersTemplates);
+
            psSelectParameters =
                 dbConnector.getConnection().prepareStatement
-                ("Select * from (Select * from (SELECT a.id, a.paramtype, a.name, a.tracked, a.ord,a.id_edsource, a.lvl,  a.value,  a.valuelob from U_EDSELEMENTS a, U_CONF2EDS c " +
-		" where c.ID_CONFVER=? and c.ID_EDSOURCE=a.ID_edsource order by a.id ) " +
+                ("Select * from (Select * from (SELECT a.id+1000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_edsource+1000000, a.lvl,  a.value,  a.valuelob from V_EDSELEMENTS a, V_CONF2EDS c " +
+		" where c.ID_CONFVER=? and c.ID_EDSOURCE=a.ID_edsource order by id ) " +
 		" UNION ALL " +
-		"Select * from (SELECT a.id, a.paramtype, a.name, a.tracked, a.ord,a.id_essource, a.lvl,  a.value,  a.valuelob from U_ESSELEMENTS a, U_CONF2ESS c " +
-		" where c.ID_CONFVER=? and c.ID_ESSOURCE=a.ID_essource order by a.id ) " +
+		"Select * from (SELECT a.id+2000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_essource+2000000, a.lvl,  a.value,  a.valuelob from V_ESSELEMENTS a, V_CONF2ESS c " +
+		" where c.ID_CONFVER=? and c.ID_ESSOURCE=a.ID_essource order by id ) " +
 		" UNION ALL " + 
-		"Select * from (SELECT a.id, a.paramtype, a.name, a.tracked, a.ord,a.id_pae, a.lvl,  a.value,  a.valuelob from U_MOELEMENTS a, U_PAELEMENTS b, U_PATHID2CONF c " +
-		" where c.ID_CONFVER=? and c.ID_PATHID=b.ID_PATHID and a.id_pae=b.id order by a.id ) " +
+//		"Select * from (SELECT a.id, a.paramtype, a.name, a.tracked, a.ord,a.id_pae, a.lvl,  a.value,  a.valuelob from V_MOELEMENTS a, V_PAELEMENTS b, V_PATHID2CONF c " +
+//		" where c.ID_CONFVER=? and c.ID_PATHID=b.ID_PATHID and a.id_pae=b.id order by a.id ) " +
+//		" UNION ALL " + 
+                " select * from (select sa.*, h_moelements.valuelob from (select distinct h_moelements.id, h_moelements.paramtype, h_moelements.name, h_moelements.tracked, h_pastruct.ord,h_pastruct.id_pae,  0 as lvl,  h_moelements.value  from h_moelements, h_pae2moe, h_pastruct  where h_moelements.id = h_pae2moe.id_moe AND h_pastruct.id_pae = h_pae2moe.id_pae AND " +
+                " h_pastruct.id IN (SELECT h_pastruct.id FROM h_pastruct,h_pathid2conf,h_paelements WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pastruct.id_pae=h_paelements.id and h_pathid2conf.id_confver=? ) order by h_pastruct.id_pae,h_pastruct.ord) sa, h_moelements where sa.id=h_moelements.id order by h_moelements.id )" +
 		" UNION ALL " + 
-		"Select * from (SELECT a.id, a.paramtype, a.name, a.tracked, a.ord,a.id_service, a.lvl,  a.value,  a.valuelob from U_SRVELEMENTS a, U_CONF2SRV c " +
-		" where c.ID_CONFVER=? and c.ID_SERVICE=a.ID_Service order by a.id )" +
+		"Select * from (SELECT a.id+4000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_service+4000000, a.lvl,  a.value,  a.valuelob from V_SRVELEMENTS a, V_CONF2SRV c " +
+		" where c.ID_CONFVER=? and c.ID_SERVICE=a.ID_Service order by id )" +
 		" UNION ALL " + 
-		"Select * from (SELECT a.id, a.paramtype, a.name, a.tracked, a.ord,a.id_esmodule, a.lvl,  a.value,  a.valuelob from U_ESMELEMENTS a, U_CONF2ESM c " +
-		" where c.ID_CONFVER=? and c.ID_esmodule=a.ID_esmodule order by a.id ) " +
+		"Select * from (SELECT a.id+3000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_esmodule+3000000, a.lvl,  a.value,  a.valuelob from V_ESMELEMENTS a, V_CONF2ESM c " +
+		" where c.ID_CONFVER=? and c.ID_esmodule=a.ID_esmodule order by id ) " +
                 " ) order by id");
-	    psSelectParameters.setFetchSize(4096);
+	    psSelectParameters.setFetchSize(8192);
 	    preparedStatements.add(psSelectParameters);
 	    
 	    psSelectBooleanValues =
@@ -5671,7 +5769,7 @@ System.out.println("found instance "+id
    " a.ord AS sequence_nb," +
    " DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, " +
    " a.operator " +
-   "FROM u_paelements a, u_pathid2conf b, u_pathids c "+
+   "FROM v_paelements a, v_pathid2conf b, v_pathids c "+
         "WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND " +
         "b.id_confver = ? AND a.lvl=0 " +
    "ORDER BY a.id_pathid ASC, a.id ASC");
@@ -5679,39 +5777,35 @@ System.out.println("found instance "+id
 	    preparedStatements.add(psSelectPathEntries);
 */
 	    
+	    /*
+                ("SELECT c.pathid AS path_id, d.id AS entry_id,  a.ord AS sequence_nb, DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, a.operator, a.crc32 FROM v_paelements a, v_pathid2conf b, v_pathids c,(select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) d  WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND  b.id_confver =?  AND a.lvl=0 and a.crc32=d.crc32  ORDER BY a.id_pathid ASC, a.id ASC");
+psSelectPathEntries =?"; */
 	    psSelectPathEntries =
 		dbConnector.getConnection().prepareStatement
-                ("SELECT c.pathid AS path_id, d.id AS entry_id,  a.ord AS sequence_nb, DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, a.operator, a.crc32 FROM u_paelements a, u_pathid2conf b, u_pathids c,(select min(aa.id)as id, aa.crc32 from u_paelements aa,u_pathid2conf bb,u_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) d  WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND  b.id_confver =?  AND a.lvl=0 and a.crc32=d.crc32  ORDER BY a.id_pathid ASC, a.id ASC");
+                ("SELECT h_pastruct.id_pathid, h_paelements.id, h_pastruct.ord, DECODE(h_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, h_pastruct.operator FROM h_pastruct,h_paelements, h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pastruct.id_pae=h_paelements.id and h_pastruct.lvl=0 and h_pathid2conf.id_confver = ? order by h_pastruct.id_pathid,h_pastruct.id");
 	    psSelectPathEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectPathEntries);
-
+		/*("SELECT e.id AS sequence_id,  d.id AS entry_id, a.ord AS sequence_nb, DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, a.operator, a.crc32 FROM v_paelements a, v_pathid2conf b, v_pathids c,(select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) d , (select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) e WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND b.id_confver =? AND a.lvl>0 and a.crc32=d.crc32 AND e.crc32 in (select crc32 from v_paelements where id=a.id_parent) ORDER BY a.id_pathid ASC, a.id ASC");
+*/
 	    psSelectSequenceEntries =
 		dbConnector.getConnection().prepareStatement
-		("SELECT e.id AS sequence_id,  d.id AS entry_id, a.ord AS sequence_nb, DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, a.operator, a.crc32 FROM u_paelements a, u_pathid2conf b, u_pathids c,(select min(aa.id)as id, aa.crc32 from u_paelements aa,u_pathid2conf bb,u_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) d , (select min(aa.id)as id, aa.crc32 from u_paelements aa,u_pathid2conf bb,u_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) e WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND b.id_confver =? AND a.lvl>0 and a.crc32=d.crc32 AND e.crc32 in (select crc32 from u_paelements where id=a.id_parent) ORDER BY a.id_pathid ASC, a.id ASC");
-	    psSelectSequenceEntries.setFetchSize(1024);
-	    preparedStatements.add(psSelectSequenceEntries);
-/*	    psSelectSequenceEntries =
-		dbConnector.getConnection().prepareStatement
- ("SELECT" +
-   " a.id_parent AS sequence_id," +
-   " a.id AS entry_id,"+
-   " a.ord AS sequence_nb," +
-   " DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, " +
-   " a.operator " +
-   "FROM u_paelements a, u_pathid2conf b, u_pathids c "+
-        "WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND " +
-        "b.id_confver = ? AND a.lvl>0 " +
-   "ORDER BY a.id_pathid ASC, a.id ASC");
+             ("SELECT h_pastruct.id_pathid,h_pastruct.id as srid,h_pastruct.lvl, h_paelements.id, h_pastruct.ord, DECODE(h_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, h_pastruct.operator FROM h_pastruct,h_paelements, h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pastruct.id_pae=h_paelements.id and ((h_pastruct.lvl=0 and h_paelements.paetype=2) or h_pastruct.lvl>0) and h_pathid2conf.id_confver = ? order by h_pastruct.id_pathid, srid");
+
 	    psSelectSequenceEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectSequenceEntries);
 
-*/
+	    psPrepareSequenceEntries =
+		dbConnector.getConnection().prepareStatement
+ 	    ("INSERT INTO TMP_SEQUENCE_ENTRIES "+
+             "VALUES (?,?,?,?,?)");
+	    preparedStatements.add(psPrepareSequenceEntries);
+
 
 
 	    // bug #91797 ConfDB operator IGNORE/NEGATE also for modules in a sequence
 	    psSelectSequenceEntriesAndOperator =
 			dbConnector.getConnection().prepareStatement
-		("SELECT e.id AS sequence_id,  d.id AS entry_id, a.ord AS sequence_nb, DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, a.operator, a.crc32 FROM u_paelements a, u_pathid2conf b, u_pathids c,(select min(aa.id)as id, aa.crc32 from u_paelements aa,u_pathid2conf bb,u_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) d , (select min(aa.id)as id, aa.crc32 from u_paelements aa,u_pathid2conf bb,u_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) e WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND b.id_confver =? AND a.lvl>0 and a.crc32=d.crc32 AND e.crc32 in (select crc32 from u_paelements where id=a.id_parent) ORDER BY a.id_pathid ASC, a.id ASC");
+            ("select distinct * from tmp_sequence_entries");
 	    psSelectSequenceEntriesAndOperator.setFetchSize(1024);
 		    preparedStatements.add(psSelectSequenceEntriesAndOperator);
 		
@@ -5895,16 +5989,23 @@ System.out.println("found instance "+id
 	ResultSet rsStringValues  = null;
 
 	try {
-            psSelectParameters.setInt(1,configId);
-            psSelectParameters.setInt(2,configId);
-            psSelectParameters.setInt(3,configId);
-            psSelectParameters.setInt(4,configId);
-            psSelectParameters.setInt(5,configId);
-	    rsParameters    = psSelectParameters.executeQuery();
+            if(configId==0)
+            {
+              //psSelectParametersTemplates.setInt(1,configId);
+	      rsParameters    = psSelectParametersTemplates.executeQuery(); 
+            }
+	    else
+            {
+            	psSelectParameters.setInt(1,configId);
+            	psSelectParameters.setInt(2,configId);
+            	psSelectParameters.setInt(3,configId);
+            	psSelectParameters.setInt(4,configId);
+            	psSelectParameters.setInt(5,configId);
+	    	rsParameters    = psSelectParameters.executeQuery();
 	    //rsBooleanValues = psSelectBooleanValues.executeQuery();
 	    //rsIntValues     = psSelectIntValues.executeQuery();
 	    //rsRealValues    = psSelectRealValues.executeQuery();
-	    
+            }
 
 	    //rsStringValues  = psSelectStringValues.executeQuery();
 
@@ -5925,6 +6026,7 @@ System.out.println("found instance "+id
                 boolean isTrkd   = rsParameters.getBoolean(4);
                 int     seqNb    = rsParameters.getInt(5);
                 int     parentId = rsParameters.getInt(6);
+
 
             if (type.equals("bool")) { 
 		String valueAsString =
@@ -5970,7 +6072,8 @@ System.out.println("found instance "+id
 	    
 	    /////////////////
 //	    while (rsStringValues.next()) {
-            if (type.contains("string")||type.contains("InputTag")) { 
+            if (type.contains("string")||type.contains("InputTag")||type.contains("FileInPath")
+                ||type.contains("EventID")) { 
 			
 	       String valueAsString = rsParameters.getString(8); // get PARAMETER_VALUE
 
@@ -5992,8 +6095,15 @@ System.out.println("found instance "+id
 
 //            if (type.equals("Pset") { 
 			
-	    rsParameters=psSelectParameters.executeQuery();
-            int previouslvl=0;
+            if(configId==0)
+            {
+	      	rsParameters    = psSelectParametersTemplates.executeQuery(); 
+            }
+	    else
+            {
+	    	rsParameters=psSelectParameters.executeQuery();
+            }
+	    int previouslvl=0;
 //            Queue<Integer> idlifo = new LinkedList<Integer>();
 
 	    while (rsParameters.next()) {
