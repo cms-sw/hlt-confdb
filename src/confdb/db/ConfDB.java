@@ -1130,6 +1130,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
             System.out.println("Trying rs instances"+configId);
 	    rsInstances       = psSelectInstances.executeQuery();
 	    psSelectPathEntries.setInt(1,configId);
+	    psSelectPathEntries.setInt(2,configId);
             System.out.println("Trying Pathentries"+configId);
 	    rsPathEntries     = psSelectPathEntries.executeQuery();
 	    
@@ -1153,14 +1154,14 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    rsEventContentEntries = psSelectEventContentEntries.executeQuery();
 	    psSelectStreamEntries.setInt(1,configId);
 	    rsStreamEntries = psSelectStreamEntries.executeQuery();
-/*	    psSelectDatasetEntries.setInt(1,configId);
+	    psSelectDatasetEntries.setInt(1,configId);
 	    rsDatasetEntries = psSelectDatasetEntries.executeQuery();
 	    psSelectPathStreamDatasetEntries.setInt(1,configId);
 	    rsPathStreamDataset = psSelectPathStreamDatasetEntries.executeQuery();
 
 	    psSelectEventContentStatements.setInt(1,configId);
 	    rsEventContentStatements = psSelectEventContentStatements.executeQuery();
-*/	   
+	   
 	    HashMap<Integer,Stream> idToStream = new HashMap<Integer,Stream>();
 	    HashMap<Integer,PrimaryDataset> idToDataset =
 		new HashMap<Integer,PrimaryDataset>();  
@@ -1193,8 +1194,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		
 		String templateName = null;
 		
-System.out.println("found instance "+id
-                                     +  "name="+instanceName+" templateid="+templateId+" entryType="+type);
+//System.out.println("found instance "+id
+//                                     +  "name="+instanceName+" templateid="+templateId+" entryType="+type);
 		if (type.equals("PSet")) {
 		    PSetParameter pset = (PSetParameter)ParameterFactory
 			.create("PSet",instanceName,"",flag);
@@ -1245,9 +1246,9 @@ System.out.println("found instance "+id
 		    updateInstanceParameters(service,idToParams.remove(id));
 		}
 		else if (type.equals("Module")) {
-                    if (templateId==106) templateId=558;
-                    if (templateId==478) templateId=572;
-                    if (templateId==469) templateId=568;
+                    //if (templateId==106) templateId=558;
+                    //if (templateId==478) templateId=572;
+                    //if (templateId==469) templateId=568;
 		    templateName = release.moduleTemplateName(templateId);
 		    ModuleInstance module = config.insertModule(templateName,
 								instanceName);
@@ -1289,8 +1290,8 @@ System.out.println("found instance "+id
 	    }
 
 	    while (rsEventContentEntries.next()) {
-		int  eventContentId = rsEventContentEntries.getInt(4);
-		String name =  rsEventContentEntries.getString(5);
+		int  eventContentId = rsEventContentEntries.getInt(1);
+		String name =  rsEventContentEntries.getString(2);
                 System.out.println("Evco id "+eventContentId+" name "+name);
 		EventContent eventContent = config.insertContent(name);
 		if(eventContent==null) continue;
@@ -1300,7 +1301,7 @@ System.out.println("found instance "+id
 	    }
 
 
-/*	    while (rsStreamEntries.next()) {
+	    while (rsStreamEntries.next()) {
 		int  streamId = rsStreamEntries.getInt(1);
 		String streamLabel =  rsStreamEntries.getString(2);
 		Double fracToDisk  =  rsStreamEntries.getDouble(3);
@@ -1314,7 +1315,7 @@ System.out.println("found instance "+id
 		Stream stream = eventContent.insertStream(streamLabel);
 		stream.setFractionToDisk(fracToDisk);
 		stream.setDatabaseId(streamId);
-		// eventContent.setDatabaseId(eventContentId)
+		eventContent.setDatabaseId(eventContentId);
 		streamToId.put(stream,streamId);
 		idToStream.put(streamId,stream);
 		ArrayList<Parameter> parameters = idToParams.remove(streamId);
@@ -1329,49 +1330,13 @@ System.out.println("found instance "+id
 		}
 		outputModule.setDatabaseId(streamId);
 	    }
-*/	    
 	    
-/*            int previouslvl=0;
-	    while (rsSequenceEntries.next()) {
-		int    sequenceId = rsSequenceEntries.getInt(1);
-		int    entryLvl   = rsSequenceEntries.getInt(3);
-		int    entryId    = rsSequenceEntries.getInt(4);
-		int    sequenceNb = rsSequenceEntries.getInt(5);
-		String entryType  = rsSequenceEntries.getString(6);
-	        int    operator   = rsSequenceEntries.getInt(7);	
-		
-System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLvl+" ord "+sequenceNb+" entryType="+entryType);
-
-                while (entryLvl<previouslvl) {
-                       idlifo.pop();
-                       previouslvl--;
-                }
-                previouslvl=entryLvl;
-
-		if (entryLvl==0) {
-			idlifo.push(entryId);}
-                if (entryLvl>0)
-                {
-		  sequenceId=idlifo.peek();
-System.out.println( "redirected parent to ="+sequenceId);
-		  if (entryType.equals("Sequence")) {
-		    idlifo.push(entryId);}
-                  psPrepareSequenceEntries.setInt(1,sequenceId);
-                  psPrepareSequenceEntries.setInt(2,entryId);
-                  psPrepareSequenceEntries.setInt(3,sequenceNb);
-                  psPrepareSequenceEntries.setString(4,entryType);
-                  psPrepareSequenceEntries.setInt(5,operator);
-		  rsPrepareSequence=psPrepareSequenceEntries.executeQuery();
-               } 	  
-            }    
-
-*/
+	    
               int previouslvl=0;
               boolean seqtoskip=false;
               int lvltoskip=0;
               boolean seqDone[];
               seqDone=new boolean[100000]; 
-//            rsSequenceEntries = psSelectSequenceEntriesAndOperator.executeQuery();
 	    while (rsSequenceEntries.next()) {
                int    sequenceId = rsSequenceEntries.getInt(1);
                 int    entryLvl   = rsSequenceEntries.getInt(3);
@@ -1380,7 +1345,7 @@ System.out.println( "redirected parent to ="+sequenceId);
                 String entryType  = rsSequenceEntries.getString(6);
  
 		
-System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLvl+" ord "+sequenceNb+" entryType="+entryType);
+//System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLvl+" ord "+sequenceNb+" entryType="+entryType);
 
                 while (entryLvl<previouslvl) {
                        if ((!seqtoskip)&&(entryLvl>=lvltoskip)) idlifo.pop();
@@ -1514,7 +1479,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 
 
 
-/*	    while (rsDatasetEntries.next()) {
+	    while (rsDatasetEntries.next()) {
 		int  datasetId = rsDatasetEntries.getInt(1);
 		String datasetLabel =  rsDatasetEntries.getString(2);
 		int  streamId = rsDatasetEntries.getInt(3);
@@ -1643,15 +1608,16 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		int databaseId = sequenceToId.get(sequence);
 		sequence.setDatabaseId(databaseId);
 	    }
-*/	    
-	    /*
-	      Iterator<Path> pathIt = config.pathIterator();
+	    
+	    
+/*	      Iterator<Path> pathIt = config.pathIterator();
 	      while(pathIt.hasNext()){
 	      Path path = pathIt.next();
 	      int databaseId = pathToId.get(path);
 	      path.setDatabaseId(databaseId);
 	      }
-	    */
+*/
+	    
 
          System.out.println("###########################End of loops###################");
        
@@ -4496,8 +4462,8 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
   " Paths.id_pathiduq "+
-   "FROM f_pathid2uq Paths " +
-   "JOIN v_pathid2conf ConfigurationPathAssoc " +
+   "FROM h_pathid2uq Paths " +
+   "JOIN h_pathid2conf ConfigurationPathAssoc " +
    "ON ConfigurationPathAssoc.id_pathid=Paths.id_pathid " +
    "WHERE ConfigurationPathAssoc.id_confver=?");
 	    preparedStatements.add(psSelectPathsForConfig);
@@ -4707,20 +4673,14 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 
 	    psSelectEventContentEntries =
 		dbConnector.getConnection().prepareStatement
-            ("SELECT DISTINCT v_streamids.id,v_streams.name,v_streamids.FRACTODISK,V_EVENTCONTENTIDS.ID as evcoid,V_EVENTCONTENTS.name as evconame "+
-                 "FROM v_streamids,v_streams,V_EVENTCONTENTIDS,V_EVENTCONTENTS,V_EVCO2STREAM,v_pathid2outm,v_pathid2conf " +
-                 "WHERE v_streams.id=v_streamids.id_stream " +
-                 "AND V_EVCO2STREAM.ID_STREAMID=v_streamids.id AND V_EVCO2STREAM.id_evcoid=V_EVENTCONTENTIDS.ID " +
-                 "AND V_EVENTCONTENTIDS.ID_EVCO=V_EVENTCONTENTS.ID "+
-                 "AND v_pathid2conf.id_pathid=v_pathid2outm.id_pathId AND v_streamids.id=v_pathid2outm.id_streamid "+
-                 "AND v_pathid2conf.id_confver = ?" );
+            ("select v_eventcontents.id,v_eventcontents.name from v_eventcontents,v_eventcontentids,v_conf2evco where v_eventcontentids.id=v_conf2evco.id_evcoid and v_eventcontents.id=v_eventcontentids.id_evco and v_conf2evco.id_confver=?");
 	    psSelectEventContentEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectEventContentEntries);
 
 		
 	    psSelectStreamEntries =
 		dbConnector.getConnection().prepareStatement
-            ("SELECT DISTINCT v_streamids.id,v_streams.name,v_streamids.FRACTODISK,V_EVENTCONTENTIDS.ID as evcoid,V_EVENTCONTENTS.name as evconame "+
+            ("SELECT DISTINCT v_streams.id+5000000,v_streams.name,v_streamids.FRACTODISK,V_EVENTCONTENTIDS.ID as evcoid,V_EVENTCONTENTS.name as evconame "+
                  "FROM v_streamids,v_streams,V_EVENTCONTENTIDS,V_EVENTCONTENTS,V_EVCO2STREAM,v_pathid2outm,v_pathid2conf " +
                  "WHERE v_streams.id=v_streamids.id_stream " +
                  "AND V_EVCO2STREAM.ID_STREAMID=v_streamids.id AND V_EVCO2STREAM.id_evcoid=V_EVENTCONTENTIDS.ID " +
@@ -4730,38 +4690,16 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    psSelectStreamEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectStreamEntries);
 	    
-/*
+
 	    psSelectDatasetEntries =
 		dbConnector.getConnection().prepareStatement
-		( "SELECT PrimaryDatasets.datasetId, PrimaryDatasets.datasetLabel," +
-		  "Streams.streamid, Streams.streamLabel FROM PrimaryDatasets "+
-		  "JOIN StreamDatasetAssoc ON "+
-		  "PrimaryDatasets.datasetId = StreamDatasetAssoc.datasetId "+
-		  "JOIN Streams ON "+
-		  "Streams.streamId = StreamDatasetAssoc.StreamId " +
-                  "JOIN ECStreamAssoc ON " +
-		  "ECStreamAssoc.StreamId = Streams.streamId " +
-		  "JOIN EventContents ON " +
-		  "EventContents.eventContentId = ECStreamAssoc.eventContentId "+
-		  "JOIN ConfigurationContentAssoc ON " +
-		  "EventContents.eventContentId = ConfigurationContentAssoc.eventContentId " +
-		  "WHERE ConfigurationContentAssoc.CONFIGID = ? ");
+            ("SELECT distinct v_datasets.id, v_datasets.name,v_streams.id+5000000 as streamid,v_streams.name as label from v_pathid2strdst, v_pathid2conf,v_datasetids,v_datasets,v_streams,v_streamids WHERE v_pathid2strdst.id_pathid=v_pathid2conf.id_pathid and v_datasets.id=v_datasetids.id_dataset and v_datasetids.id=v_pathid2strdst.id_datasetid and v_streams.id=v_streamids.id_stream and v_streamids.id=v_pathid2strdst.id_streamid AND v_pathid2conf.id_confver = ?");
 	    //psSelectDatasetEntries.setFetchSize(64);
 	    preparedStatements.add(psSelectPrimaryDatasetEntries);
 	    
 	    psSelectPathStreamDatasetEntries =
 		dbConnector.getConnection().prepareStatement
-		( "SELECT PathStreamDatasetAssoc.pathId, PathStreamDatasetAssoc.streamId," +
-		  "PathStreamDatasetAssoc.datasetId FROM PathStreamDatasetAssoc "+
-		  "JOIN Streams ON "+
-		  "Streams.streamId = PathStreamDatasetAssoc.StreamId " +
-                  "JOIN ECStreamAssoc ON " +
-		  "ECStreamAssoc.StreamId = Streams.streamId " +
-		  "JOIN EventContents ON " +
-		  "EventContents.eventContentId = ECStreamAssoc.eventContentId "+
-		  "JOIN ConfigurationContentAssoc ON " +
-		  "EventContents.eventContentId = ConfigurationContentAssoc.eventContentId " +
-		  "WHERE ConfigurationContentAssoc.CONFIGID = ? ");
+            ("SELECT distinct h_pathid2uq.id_pathiduq,v_streams.id+5000000 as streamid,v_datasets.id as datasetid, v_datasets.name from v_pathid2strdst, h_pathid2conf,h_pathid2uq,v_datasetids,v_datasets,v_streams,v_streamids WHERE h_pathid2uq.id_pathiduq=h_pathid2conf.id_pathid and v_pathid2strdst.id_pathid=h_pathid2uq.id_pathid and v_datasets.id=v_datasetids.id_dataset and v_datasetids.id=v_pathid2strdst.id_datasetid and v_streams.id=v_streamids.id_stream and v_streamids.id=v_pathid2strdst.id_streamid AND h_pathid2conf.id_confver = ?");
 	    //psSelectPathStreamDatasetEntries.setFetchSize(64);
 	    preparedStatements.add(psSelectPathStreamDatasetEntries);
 
@@ -4773,26 +4711,11 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    
 	    psSelectEventContentStatements =  
 		dbConnector.getConnection().prepareStatement
-		("Select EventContentStatements.statementId, " +
-		 "EventContentStatements.classN, EventContentStatements.moduleL, "+
-		 "EventContentStatements.ExtraN,EventContentStatements.processN, "+
-		 "EventContentStatements.statementType,ECStatementAssoc.eventContentId, "+
-		 "ECStatementAssoc.statementRank, EventContents.name, ECStatementAssoc.pathId "+
-		 "FROM  EventContentStatements "+
-		 "JOIN ECStatementAssoc ON ECStatementAssoc.statementId = "+
-		 "EventContentStatements.statementId " +
-		 "JOIN EventContents ON EventContents.eventContentId = " +
-		 "ECStatementAssoc.eventContentId " +
-		 "JOIN ConfigurationContentAssoc ON EventContents.eventContentId = " +
-		 "ConfigurationContentAssoc.eventContentId " +
-		 "WHERE ConfigurationContentAssoc.configId = ? " +
-		 " ORDER BY ECStatementAssoc.eventContentId, ECStatementAssoc.statementRank ASC"
-		 );
+              ("select distinct v_evcostatements.id as statemId, v_evcostatements.classn,v_evcostatements.modulel,v_evcostatements.extran,v_evcostatements.processn,v_evcostatements.statementtype,v_eventcontents.id as evcoid, v_evco2stat.statementrank,v_eventcontents.name,decode(v_evco2stat.id_pathid,-1,'-1',0,'0',(select h_pathid2uq.id_pathiduq from h_pathid2uq where h_pathid2uq.id_pathid=v_evco2stat.id_pathid)) from v_eventcontents,v_eventcontentids,v_evcostatements, v_conf2evco, v_evco2stat where v_eventcontents.id=v_eventcontentids.id_evco and v_evcostatements.id=v_evco2stat.id_stat and v_evco2stat.id_evcoid=v_conf2evco.id_evcoid and v_eventcontentids.id=v_conf2evco.id_evcoid and v_conf2evco.id_confver=? order by statemid");
 	    preparedStatements.add(psSelectEventContentStatements);
 
-	    //work going on 
 
-*/	    
+	    
 	    psSelectReleaseCount =
 		dbConnector.getConnection().prepareStatement
   ("SELECT COUNT(*) FROM v_softreleases SoftwareReleases");
@@ -4800,7 +4723,6 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 
 	    psSelectConfigurationCount =
 		dbConnector.getConnection().prepareStatement
-//  ("SELECT COUNT(*) FROM v_confversions Configurations");
   ("SELECT COUNT(*) FROM v_configurations Configurations");
 	    preparedStatements.add(psSelectConfigurationCount);
 	    
@@ -5673,7 +5595,8 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		" UNION ALL " + 
 		"Select * from (SELECT a.id+3000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_esmodule+3000000, a.lvl,  a.value,  a.valuelob from V_ESMELEMENTS a, V_CONF2ESM c " +
 		" where c.ID_CONFVER=? and c.ID_esmodule=a.ID_esmodule order by id ) " +
-                " ) order by id");
+		" UNION ALL " + 
+                " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_streamid+5000000, a.lvl,  a.value,  a.valuelob from v_outmelements a,v_pathid2conf,v_pathid2outm,v_streamids where a.id_streamid=v_streamids.id  AND v_streamids.id=v_pathid2outm.id_streamid and v_pathid2outm.id_pathid=v_pathid2conf.id_pathid AND v_pathid2conf.id_confver = ? order by id) )");
 	    psSelectParameters.setFetchSize(8192);
 	    preparedStatements.add(psSelectParameters);
 	    
@@ -5782,7 +5705,9 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 psSelectPathEntries =?"; */
 	    psSelectPathEntries =
 		dbConnector.getConnection().prepareStatement
-                ("SELECT h_pastruct.id_pathid, h_paelements.id, h_pastruct.ord, DECODE(h_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, h_pastruct.operator FROM h_pastruct,h_paelements, h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pastruct.id_pae=h_paelements.id and h_pastruct.lvl=0 and h_pathid2conf.id_confver = ? order by h_pastruct.id_pathid,h_pastruct.id");
+                ("Select * from (SELECT h_pastruct.id_pathid, h_paelements.id, h_pastruct.ord, DECODE(h_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, h_pastruct.operator FROM h_pastruct,h_paelements, h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pastruct.id_pae=h_paelements.id and h_pastruct.lvl=0 and h_pathid2conf.id_confver = ? order by h_pastruct.id_pathid,h_pastruct.id) " +
+                " UNION ALL " +
+                " select * from (SELECT h_pathids.id,v_streamids.id_stream+5000000, v_pathid2outm.ord, 'OutputModule', v_pathid2outm.operator from  v_paths, h_pathids, H_PATHID2CONF ,  H_PATHID2PATH,V_PATHID2OUTM,v_streamids, v_streams,h_pathid2uq where H_PATHID2CONF.id_confver=? and h_pathids.id=H_PATHID2CONF.id_pathid AND v_paths.id=H_PATHID2PATH.id_path and H_PATHID2PATH.id_pathid=h_pathids.id and h_pathids.id  = h_pathid2uq.id_pathiduq AND h_pathid2uq.id_pathid =  V_PATHID2OUTM.id_pathid and v_streamids.id=V_PATHID2OUTM.id_streamid and v_streams.id=v_streamids.id_stream order by id,ord)");
 	    psSelectPathEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectPathEntries);
 		/*("SELECT e.id AS sequence_id,  d.id AS entry_id, a.ord AS sequence_nb, DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, a.operator, a.crc32 FROM v_paelements a, v_pathid2conf b, v_pathids c,(select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) d , (select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) e WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND b.id_confver =? AND a.lvl>0 and a.crc32=d.crc32 AND e.crc32 in (select crc32 from v_paelements where id=a.id_parent) ORDER BY a.id_pathid ASC, a.id ASC");
@@ -6001,6 +5926,7 @@ psSelectPathEntries =?"; */
             	psSelectParameters.setInt(3,configId);
             	psSelectParameters.setInt(4,configId);
             	psSelectParameters.setInt(5,configId);
+            	psSelectParameters.setInt(6,configId);
 	    	rsParameters    = psSelectParameters.executeQuery();
 	    //rsBooleanValues = psSelectBooleanValues.executeQuery();
 	    //rsIntValues     = psSelectIntValues.executeQuery();
