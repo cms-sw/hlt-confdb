@@ -194,7 +194,7 @@ public class ConfDbGUI
     private JTextField    jTextFieldPathName		= new JTextField();
     private JTable     	  jTablePrescales  			= new javax.swing.JTable(); // Prescales for rightUpperPanel.
     private JScrollPane	  jScrollPanePrescales		= new JScrollPane();
-    private PrescaleTableService PrescaleTServ		= new PrescaleTableService();
+    private PrescaleTableService PrescaleTServ		= null;
 
     // DB INFO fields:
     public boolean extraPathFieldsAvailability;
@@ -1615,9 +1615,6 @@ public class ConfDbGUI
 	
 	jTextFieldProcess.setEditable(true);
 	
-	// Set current configuration to the prescaleService
-	PrescaleTServ = new PrescaleTableService(currentConfig);
-	
     }
     
     /** Time spent in opening a configuration. */
@@ -2940,6 +2937,8 @@ public class ConfDbGUI
             jButtonSavePathFields.setEnabled(false);
             jButtonCancelPathFields.setEnabled(false);
             
+	    // Set current configuration to the prescaleService
+	    PrescaleTServ = new PrescaleTableService(currentConfig);
             // Set prescales fot the current path.
             jTablePrescales = PrescaleTServ.getPrescaleTableEditable(container);
             
