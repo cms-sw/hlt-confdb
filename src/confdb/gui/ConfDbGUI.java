@@ -3229,6 +3229,8 @@ public class ConfDbGUI
 		    if(save) {
 			    p.setDescription(jEditorPathDescription.getText());
 			    p.setContacts(jEditorPathContacts.getText());
+
+			    PrescaleTServ.savePrescales();	// Save Prescale values from Documentation Field Panel.
 			    
 			    p.setHasChanged();
 			    treeModelCurrentConfig.nodeChanged(p);
@@ -3239,7 +3241,6 @@ public class ConfDbGUI
 			    jButtonSavePathFields.setEnabled(false);
 			    jButtonCancelPathFields.setEnabled(false);
 			    
-			    PrescaleTServ.savePrescales();	// Save Prescale values from Documentation Field Panel.
 		    }
 		}
     }

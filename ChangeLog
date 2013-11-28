@@ -1,3 +1,7 @@
+2013-11-28 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-04
+        * enable editing of path's prescales in upper-right panel (path view)
+
 2013-08-01 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V01-07-03
 	* update Oracle JDBC to version 12.1.0.1 for Java 6

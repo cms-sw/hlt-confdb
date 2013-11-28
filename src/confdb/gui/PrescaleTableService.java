@@ -103,6 +103,7 @@ class SinglePathPrescaleTableModel extends PrescaleTableModel {
 	/* Initialize the table with only one row - the given path */
     public void initialize(IConfiguration config, Path path) {
     	prescaleTable = new SinglePathPrescaleTable(config, path);
+	fireTableDataChanged();
     }
 	
     /**
