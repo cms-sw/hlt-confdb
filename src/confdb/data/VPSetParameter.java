@@ -182,8 +182,6 @@ public class VPSetParameter extends Parameter
 	if (pset.name().length()>0) {
 	    System.err.println("VPSetParameter.addParameterSet ERROR: "+
 			       "can't add named PSet to VPSet "+name());
-	    if (!pset.name().contains("Empty")) 
-             return;
 	}
 	
 	pset.setParent(this);

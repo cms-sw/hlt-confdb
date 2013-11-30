@@ -76,21 +76,23 @@ AS
   CURSOR cur_modules_from_paths IS
     SELECT UNIQUE
       h_paelements.id,
-      h_pastruct.id_templ,
+      tmp_template_table.template_id,
       h_paelements.name
-    FROM h_pastruct,h_paelements, h_pathid2conf
+    FROM h_pastruct,h_paelements, h_pathid2conf,tmp_template_table, h_moduletemplates
     WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid
     and h_pastruct.id_pae=h_paelements.id
     and h_paelements.paetype=1
+    and tmp_template_table.template_name=h_moduletemplates.name
+    and h_moduletemplates.id=h_paelements.id_templ
     and h_pathid2conf.id_confver = config_id;
 
   /* cursor for modules from configuration *sequences* */
   CURSOR cur_modules_from_sequences IS
     SELECT UNIQUE
       h_paelements.id,
-      h_pastruct.id_templ,
+      h_paelements.id_templ,
       h_paelements.name
-    FROM h_pastruct,h_paelements, h_pathid2conf, h_pae2moe
+    FROM h_pastruct, h_paelements, h_pathid2conf, h_pae2moe
     WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid
     and h_pastruct.id_pae=h_paelements.id
     and h_paelements.paetype=1
@@ -165,26 +167,27 @@ AS
 /* cursor for path-outputmodule associations */
   CURSOR cur_path_outputmod IS
     SELECT
-      v_pathid2outm.id_pathId,
+      h_pathid2uq.id_pathiduq,
       v_streamids.id,
       v_pathid2outm.ord,
       v_pathid2outm.operator
-    FROM v_pathid2outm,v_pathid2conf,v_streamids
+    FROM v_pathid2outm,v_pathid2conf,v_streamids,h_pathid2uq
     WHERE v_pathid2conf.id_pathid=v_pathid2outm.id_pathId
     and v_streamids.id=v_pathid2outm.id_streamid
+    and h_pathid2uq.id_pathid=v_pathid2outm.id_pathId
     and v_pathid2conf.id_confver = config_id;
 
 
 BEGIN
 
-  execute immediate 'DELETE FROM tmp_instance_table';
+  execute immediate 'TRUNCATE TABLE tmp_instance_table';
 /*  execute immediate 'DELETE FROM tmp_parameter_table';*/
-  execute immediate 'DELETE FROM tmp_boolean_table';
-  execute immediate 'DELETE FROM tmp_int_table';
-  execute immediate 'DELETE FROM tmp_real_table';
-  execute immediate 'DELETE FROM tmp_string_table';
-  execute immediate 'DELETE FROM tmp_path_entries';
-  execute immediate 'DELETE FROM tmp_sequence_entries';
+  execute immediate 'TRUNCATE TABLE tmp_boolean_table';
+  execute immediate 'TRUNCATE TABLE tmp_int_table';
+  execute immediate 'TRUNCATE TABLE tmp_real_table';
+  execute immediate 'TRUNCATE TABLE tmp_string_table';
+  execute immediate 'TRUNCATE TABLE tmp_path_entries';
+  execute immediate 'TRUNCATE TABLE tmp_sequence_entries';
 
   load_gpset_parameters(config_id);
 

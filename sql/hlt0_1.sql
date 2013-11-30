@@ -42,7 +42,7 @@ BEGIN
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+1000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+1000000,v_parameter_lvl,v_parameter_value,v_parameter_valob);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+1000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -87,7 +87,7 @@ BEGIN
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+1000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+1000000,v_parameter_lvl,v_parameter_value,v_parameter_valob);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+1000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -132,7 +132,7 @@ BEGIN
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+2000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+2000000,v_parameter_lvl,v_parameter_value,v_parameter_valob);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+2000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -177,7 +177,7 @@ BEGIN
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+2000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+2000000,v_parameter_lvl,v_parameter_value,v_parameter_valob);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+2000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -222,7 +222,7 @@ BEGIN
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+3000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+3000000,v_parameter_lvl,v_parameter_value,v_parameter_valob);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+3000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -267,7 +267,7 @@ BEGIN
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+3000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+3000000,v_parameter_lvl,v_parameter_value,v_parameter_valob);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+3000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -312,7 +312,7 @@ BEGIN
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+4000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+4000000,v_parameter_lvl,v_parameter_value,v_parameter_valob);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+4000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -357,7 +357,7 @@ BEGIN
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+4000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+4000000,v_parameter_lvl,v_parameter_value,v_parameter_valob);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+4000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -377,7 +377,7 @@ AS
 
   /* cursor for parameters */
   CURSOR cur_parameters IS
-    SELECT id,
+    SELECT h_modtelements.id,
            paramType,
            name,
            tracked,
@@ -385,9 +385,10 @@ AS
            lvl,
            value,
            valuelob
-    FROM v_modtelements
-    WHERE id_modtemplate = parent_id
-    ORDER BY id ASC;
+    FROM h_modtelements,h_modt2modte
+    WHERE 
+    h_modtelements.id=h_modt2modte.id_modte 
+    and h_modt2modte.id_templ = parent_id;
 
 
 BEGIN
@@ -402,7 +403,7 @@ BEGIN
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id,v_parameter_lvl,v_parameter_value,v_parameter_valob);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -447,7 +448,7 @@ BEGIN
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id,v_parameter_lvl,v_parameter_value,v_parameter_valob);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -493,7 +494,7 @@ BEGIN
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id,v_parameter_lvl,v_parameter_value,v_parameter_valob);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 

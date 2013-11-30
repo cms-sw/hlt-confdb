@@ -74,12 +74,12 @@ AS
 BEGIN
 
   /* prepare temporary tables */
-  execute immediate 'DELETE FROM tmp_template_table';
-  execute immediate 'DELETE FROM tmp_parameter_table';
-  execute immediate 'DELETE FROM tmp_boolean_table';
-  execute immediate 'DELETE FROM tmp_int_table';
-  execute immediate 'DELETE FROM tmp_real_table';
-  execute immediate 'DELETE FROM tmp_string_table';
+  execute immediate 'TRUNCATE TABLE tmp_template_table';
+  execute immediate 'TRUNCATE TABLE tmp_parameter_table';
+  execute immediate 'TRUNCATE TABLE tmp_boolean_table';
+  execute immediate 'TRUNCATE TABLE tmp_int_table';
+  execute immediate 'TRUNCATE TABLE tmp_real_table';
+  execute immediate 'TRUNCATE TABLE tmp_string_table';
 
   /* load edsource templates */
   OPEN cur_edsource_templates;
@@ -164,7 +164,24 @@ BEGIN
 END;  
 /
 
+--
+-- PROCEDURE load_templates
+--
+CREATE OR REPLACE PROCEDURE load_templates_for_config(config_id IN NUMBER)
+AS
+  release_id NUMBER;
 
+CURSOR cur_release IS
+     SELECT releaseid from v_confversions where id=config_id ;
+
+BEGIN 
+     OPEN cur_release;
+      FETCH cur_release
+        INTO release_id;
+       load_templates(release_id);
+     CLOSE cur_release;
+END;
+/
 
 --
 -- PROCEDURE load_templates
@@ -235,12 +252,12 @@ AS
 
 BEGIN
   /* prepare temporary tables */
-  execute immediate 'DELETE FROM tmp_template_table';
-  execute immediate 'DELETE FROM tmp_parameter_table';
-  execute immediate 'DELETE FROM tmp_boolean_table';
-  execute immediate 'DELETE FROM tmp_int_table';
-  execute immediate 'DELETE FROM tmp_real_table';
-  execute immediate 'DELETE FROM tmp_string_table';
+  execute immediate 'TRUNCATE TABLE tmp_template_table';
+  execute immediate 'TRUNCATE TABLE tmp_parameter_table';
+  execute immediate 'TRUNCATE TABLE tmp_boolean_table';
+  execute immediate 'TRUNCATE TABLE tmp_int_table';
+  execute immediate 'TRUNCATE TABLE tmp_real_table';
+  execute immediate 'TRUNCATE TABLE tmp_string_table';
   
   /* load edsource templates */
   OPEN cur_edsource_templates;

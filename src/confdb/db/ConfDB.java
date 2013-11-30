@@ -710,7 +710,7 @@ public class ConfDB
     {
 	reconnect();
 	
-        System.out.println("loadConfigTree ");
+        ////System.out.println("loadConfigTree ");
 	Directory rootDir = null;
 	ResultSet rs = null;
 	try {
@@ -721,7 +721,7 @@ public class ConfDB
 	    //long startTime = System.currentTimeMillis();
 
 	    rs = psSelectDirectories.executeQuery();
-        System.out.println("Selected Directories ");
+        ////System.out.println("Selected Directories ");
 
 	    // DEBUG
 	    //long dir1Time = System.currentTimeMillis();
@@ -733,46 +733,46 @@ public class ConfDB
 		String dirName     = rs.getString(3);
 		String dirCreated  = rs.getTimestamp(4).toString();
 
-                System.out.println("Retrieved Dirs: "+dirId+"- parent "+parentDirId+" "+dirName+" "+dirCreated);
+                ////System.out.println("Retrieved Dirs: "+dirId+"- parent "+parentDirId+" "+dirName+" "+dirCreated);
 		
 		if (directoryHashMap.size()==0) {
-                    System.out.println("New root DIrectrory: "+dirId+"- "+dirName+" "+dirCreated);
+                    ////System.out.println("New root DIrectrory: "+dirId+"- "+dirName+" "+dirCreated);
 		    rootDir = new Directory(dirId,dirName,dirCreated,null);
-                    System.out.println("New root DIrectrory  done");
+                    ////System.out.println("New root DIrectrory  done");
 		    directoryHashMap.put(dirId,rootDir);
 		}
 		else {
-                    System.out.println("Now checking parenmt dir - "+parentDirId);
+                    ////System.out.println("Now checking parenmt dir - "+parentDirId);
 
 		    if (!directoryHashMap.containsKey(parentDirId))
 			throw new DatabaseException("parentDir not found in DB"+
 						    " (parentDirId="+parentDirId+
 						    ")");
                     
-                    System.out.println("getting parentdir "+parentDirId);
+                    ////System.out.println("getting parentdir "+parentDirId);
 		    Directory parentDir = directoryHashMap.get(parentDirId);
-                    System.out.println("New DIrectrory with parent: "+dirId+"- "+dirName+" "+dirCreated+ parentDirId);
+                    ////System.out.println("New DIrectrory with parent: "+dirId+"- "+dirName+" "+dirCreated+ parentDirId);
 		    Directory newDir    = new Directory(dirId,
 							dirName,
 							dirCreated,
 							parentDir);
-                    System.out.println("New DIrectrory with parent - done");
+                    ////System.out.println("New DIrectrory with parent - done");
 		    parentDir.addChildDir(newDir);
-                    System.out.println("New DIrectrory - done adding child");
+                    ////System.out.println("New DIrectrory - done adding child");
 		    directoryHashMap.put(dirId,newDir);
-                    System.out.println("New DIrectrory - done putting hash");
+                    ////System.out.println("New DIrectrory - done putting hash");
 		}
 	    }
 
 	    // DEBUG
 	    //long dir2Time = System.currentTimeMillis();
 	    
-            System.out.println("Done with Retrieving Dirs: ");
+            ////System.out.println("Done with Retrieving Dirs: ");
 	    // retrieve list of configurations for all directories
 	    HashMap<String,ConfigInfo> configHashMap =
 		new HashMap<String,ConfigInfo>();
 
-            System.out.println("Try to query COnfs");
+            ////System.out.println("Try to query COnfs");
 
 	    rs = psSelectConfigurations.executeQuery();
             //svdbgSystem.out.println("Queried COnfs");
@@ -979,7 +979,7 @@ public class ConfDB
 	    
 	    rsTemplates = psSelectTemplates.executeQuery();
 	    
- System.out.println("loadTemplates: gotParameters");
+ ////System.out.println("loadTemplates: gotParameters");
 
 	    while (rsTemplates.next()) {
 		int    id     = rsTemplates.getInt(1);
@@ -1053,7 +1053,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	throws DatabaseException
     {
 	ConfigInfo configInfo  = getConfigInfo(configId);
-        System.out.println("loadTemplates with configid: "+configId+" release "+release);
+        ////System.out.println("loadTemplates with configid: "+configId+" release "+release);
 	return loadConfiguration(configInfo,release);
     }
     
@@ -1065,7 +1065,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
     {
 	String releaseTag = configInfo.releaseTag();
 	
-        System.out.println("loadTemplates with configinfo: "+releaseTag+" release "+release);
+        ////System.out.println("loadTemplates with configinfo: "+releaseTag+" release "+release);
 	if (releaseTag==null) System.out.println("releaseTag = " + releaseTag);
 	if (release==null) System.out.println("release is null");
 	else if (release.releaseTag()==null) System.out.println("WHAT?!");
@@ -1087,7 +1087,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	String          releaseTag = configInfo.releaseTag();
 	SoftwareRelease release    = new SoftwareRelease();
 	release.clear(releaseTag);
-        System.out.println("loadTemplates with only configid: "+configId);
+        ////System.out.println("loadTemplates with only configid: "+configId);
 	loadPartialSoftwareRelease(configId,release);
 	Configuration config = new Configuration(configInfo,release);
 	loadConfiguration(config);
@@ -1104,7 +1104,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	int       configId = config.dbId();
         Stack<Integer> idlifo= new Stack<Integer>();
 
-        System.out.println("loadConfiguration with config "+config);
+        ////System.out.println("loadConfiguration with config "+config);
 
 	ResultSet rsInstances       = null;
 	
@@ -1122,16 +1122,16 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 
 	try {
 		
-            System.out.println("Trying loadConfiguration id="+configId);
+            ////System.out.println("Trying loadConfiguration id="+configId);
 	    csLoadConfiguration.setInt(1,configId);
 	    csLoadConfiguration.executeUpdate();
-            System.out.println("Done loadConfiguration id="+configId);
+            ////System.out.println("Done loadConfiguration id="+configId);
 
-            System.out.println("Trying rs instances"+configId);
+            ////System.out.println("Trying rs instances"+configId);
 	    rsInstances       = psSelectInstances.executeQuery();
 	    psSelectPathEntries.setInt(1,configId);
 	    psSelectPathEntries.setInt(2,configId);
-            System.out.println("Trying Pathentries"+configId);
+            ////System.out.println("Trying Pathentries"+configId);
 	    rsPathEntries     = psSelectPathEntries.executeQuery();
 	    
 	    
@@ -1167,9 +1167,9 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		new HashMap<Integer,PrimaryDataset>();  
 
 
-            System.out.println("getting params"+configId);
+            ////System.out.println("getting params"+configId);
 	    HashMap<Integer,ArrayList<Parameter> > idToParams = getParameters(configId);
-            System.out.println("DOne params");
+            ////System.out.println("DOne params");
 	    
 	    HashMap<Integer,ModuleInstance> idToModules=
 		new HashMap<Integer,ModuleInstance>();
@@ -1194,8 +1194,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		
 		String templateName = null;
 		
-//System.out.println("found instance "+id
-//                                     +  "name="+instanceName+" templateid="+templateId+" entryType="+type);
+System.out.println("found instance "+id
+                                     +  "name="+instanceName+" templateid="+templateId+" entryType="+type);
 		if (type.equals("PSet")) {
 		    PSetParameter pset = (PSetParameter)ParameterFactory
 			.create("PSet",instanceName,"",flag);
@@ -1292,7 +1292,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    while (rsEventContentEntries.next()) {
 		int  eventContentId = rsEventContentEntries.getInt(1);
 		String name =  rsEventContentEntries.getString(2);
-                System.out.println("Evco id "+eventContentId+" name "+name);
+                ////System.out.println("Evco id "+eventContentId+" name "+name);
 		EventContent eventContent = config.insertContent(name);
 		if(eventContent==null) continue;
 		eventContent.setDatabaseId(eventContentId);
@@ -1310,7 +1310,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		EventContent eventContent = config.content(name);
 		if(eventContent==null) continue;
 
-                System.out.println("Stream id "+streamId+" Label "+streamLabel+" fracTo "+ fracToDisk+" Evco id "+eventContentId+" name "+name);
+                ////System.out.println("Stream id "+streamId+" Label "+streamLabel+" fracTo "+ fracToDisk+" Evco id "+eventContentId+" name "+name);
 
 		Stream stream = eventContent.insertStream(streamLabel);
 		stream.setFractionToDisk(fracToDisk);
@@ -1444,8 +1444,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		Path path  = idToPaths.get(pathId);
 		int  index = path.entryCount();
 
-                System.out.println("found n path "+path.name()+": "+
-                                       "index="+index+" sequenceNb="+sequenceNb+" entryType="+entryType+" entryId="+entryId);
+                ////System.out.println("found n path "+path.name()+": "+
+                   ////                    "index="+index+" sequenceNb="+sequenceNb+" entryType="+entryType+" entryId="+entryId);
 
 		if (index!=sequenceNb)
 		    System.err.println("ERROR in path "+path.name()+": "+
@@ -1619,7 +1619,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 */
 	    
 
-         System.out.println("###########################End of loops###################");
+         ////System.out.println("###########################End of loops###################");
        
 
 	}
@@ -4699,8 +4699,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    
 	    psSelectPathStreamDatasetEntries =
 		dbConnector.getConnection().prepareStatement
-            ("SELECT distinct h_pathid2uq.id_pathiduq,v_streams.id+5000000 as streamid,v_datasets.id as datasetid, v_datasets.name from v_pathid2strdst, h_pathid2conf,h_pathid2uq,v_datasetids,v_datasets,v_streams,v_streamids WHERE h_pathid2uq.id_pathiduq=h_pathid2conf.id_pathid and v_pathid2strdst.id_pathid=h_pathid2uq.id_pathid and v_datasets.id=v_datasetids.id_dataset and v_datasetids.id=v_pathid2strdst.id_datasetid and v_streams.id=v_streamids.id_stream and v_streamids.id=v_pathid2strdst.id_streamid AND h_pathid2conf.id_confver = ?");
-	    //psSelectPathStreamDatasetEntries.setFetchSize(64);
+            ("SELECT distinct h_pathid2uq.id_pathiduq,v_streams.id+5000000 as streamid,v_datasets.id as datasetid, v_datasets.name from v_pathid2strdst, v_pathid2conf,v_datasetids,v_datasets,v_streams,v_streamids,h_pathid2uq WHERE h_pathid2uq.id_pathid=v_pathid2conf.id_pathid and v_pathid2strdst.id_pathid=v_pathid2conf.id_pathid and  v_datasets.id=v_datasetids.id_dataset and v_datasetids.id=v_pathid2strdst.id_datasetid and v_streams.id=v_streamids.id_stream and v_streamids.id=v_pathid2strdst.id_streamid AND v_pathid2conf.id_confver = ?");
+          //psSelectPathStreamDatasetEntries.setFetchSize(64);
 	    preparedStatements.add(psSelectPathStreamDatasetEntries);
 
 	    psSelectStatementId = 
@@ -4778,7 +4778,6 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    
 	    psSelectModuleTemplateCount =
 		dbConnector.getConnection().prepareStatement
-//sv deduplicati  ("SELECT COUNT(*) FROM f_moduletemplates ModuleTemplates");
 ("SELECT COUNT(*) FROM v_moduletemplates ModuleTemplates"); 
 	    preparedStatements.add(psSelectModuleTemplateCount);
 	    
@@ -4794,23 +4793,22 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 
 	    psSelectPathCount =
 		dbConnector.getConnection().prepareStatement
-//sv deduplicati  ("SELECT COUNT(*) FROM v_pathids Paths");
-("SELECT COUNT(*) FROM f_pathids Paths");
+("SELECT COUNT(*) FROM v_pathids Paths");
 	    preparedStatements.add(psSelectPathCount);
 	    
 	    psSelectParameterCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM f_pathids Paths"); //just a placholder
+("SELECT COUNT(*) FROM v_pathids Paths"); //just a placholder
 	    preparedStatements.add(psSelectParameterCount);
 
 	    psSelectParameterSetCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM f_pathids Paths"); //just a placholder
+("SELECT COUNT(*) FROM v_pathids Paths"); //just a placholder
 	    preparedStatements.add(psSelectParameterSetCount);
 
 	    psSelectVecParameterSetCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM f_pathids Paths");
+("SELECT COUNT(*) FROM v_pathids Paths");//just a placeholder
 	    preparedStatements.add(psSelectVecParameterSetCount);
 /*	    
 	    
@@ -5570,9 +5568,9 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		 " parent_id," +
 		 " lvl," +
 		 " value," +
-		 " valuelob " +
-		 " FROM tmp_parameter_table " + 
-                 " ORDER BY parameter_id");
+		 " valuelob, " +
+		 " stamp " +
+		 " FROM tmp_parameter_table order by stamp");  
 	    psSelectParametersTemplates.setFetchSize(4096);
 	    preparedStatements.add(psSelectParametersTemplates);
 
@@ -5587,8 +5585,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 //		"Select * from (SELECT a.id, a.paramtype, a.name, a.tracked, a.ord,a.id_pae, a.lvl,  a.value,  a.valuelob from V_MOELEMENTS a, V_PAELEMENTS b, V_PATHID2CONF c " +
 //		" where c.ID_CONFVER=? and c.ID_PATHID=b.ID_PATHID and a.id_pae=b.id order by a.id ) " +
 //		" UNION ALL " + 
-                " select * from (select sa.*, h_moelements.valuelob from (select distinct h_moelements.id, h_moelements.paramtype, h_moelements.name, h_moelements.tracked, h_pastruct.ord,h_pastruct.id_pae,  0 as lvl,  h_moelements.value  from h_moelements, h_pae2moe, h_pastruct  where h_moelements.id = h_pae2moe.id_moe AND h_pastruct.id_pae = h_pae2moe.id_pae AND " +
-                " h_pastruct.id IN (SELECT h_pastruct.id FROM h_pastruct,h_pathid2conf,h_paelements WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pastruct.id_pae=h_paelements.id and h_pathid2conf.id_confver=? ) order by h_pastruct.id_pae,h_pastruct.ord) sa, h_moelements where sa.id=h_moelements.id order by h_moelements.id )" +
+                " select id,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob from (select sa.*, h_moelements.valuelob from (select  distinct h_moelements.id, h_moelements.paramtype, h_moelements.name, h_moelements.tracked, h_pae2moe.ord,h_pastruct.id_pae,  h_pae2moe.lvl as lvl,  h_moelements.value,h_pae2moe.id as pae2id  from h_moelements, h_pae2moe, h_pastruct  where h_moelements.id = h_pae2moe.id_moe AND h_pastruct.id_pae = h_pae2moe.id_pae AND  h_pastruct.id  IN (SELECT h_pastruct.id FROM h_pastruct,h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pathid2conf.id_confver=?) order by h_pae2moe.id) sa, h_moelements where sa.id=h_moelements.id) " +
 		" UNION ALL " + 
 		"Select * from (SELECT a.id+4000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_service+4000000, a.lvl,  a.value,  a.valuelob from V_SRVELEMENTS a, V_CONF2SRV c " +
 		" where c.ID_CONFVER=? and c.ID_SERVICE=a.ID_Service order by id )" +
@@ -5596,7 +5593,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		"Select * from (SELECT a.id+3000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_esmodule+3000000, a.lvl,  a.value,  a.valuelob from V_ESMELEMENTS a, V_CONF2ESM c " +
 		" where c.ID_CONFVER=? and c.ID_esmodule=a.ID_esmodule order by id ) " +
 		" UNION ALL " + 
-                " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_streamid+5000000, a.lvl,  a.value,  a.valuelob from v_outmelements a,v_pathid2conf,v_pathid2outm,v_streamids where a.id_streamid=v_streamids.id  AND v_streamids.id=v_pathid2outm.id_streamid and v_pathid2outm.id_pathid=v_pathid2conf.id_pathid AND v_pathid2conf.id_confver = ? order by id) )");
+                " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,v_streamids.id_stream+5000000, a.lvl,  a.value,  a.valuelob from v_outmelements a,v_pathid2conf,v_pathid2outm,v_streamids where a.id_streamid=v_streamids.id  AND v_streamids.id=v_pathid2outm.id_streamid and v_pathid2outm.id_pathid=v_pathid2conf.id_pathid AND v_pathid2conf.id_confver = ? order by id) )");
 	    psSelectParameters.setFetchSize(8192);
 	    preparedStatements.add(psSelectParameters);
 	    
@@ -5700,14 +5697,11 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    preparedStatements.add(psSelectPathEntries);
 */
 	    
-	    /*
-                ("SELECT c.pathid AS path_id, d.id AS entry_id,  a.ord AS sequence_nb, DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, a.operator, a.crc32 FROM v_paelements a, v_pathid2conf b, v_pathids c,(select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) d  WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND  b.id_confver =?  AND a.lvl=0 and a.crc32=d.crc32  ORDER BY a.id_pathid ASC, a.id ASC");
-psSelectPathEntries =?"; */
 	    psSelectPathEntries =
 		dbConnector.getConnection().prepareStatement
                 ("Select * from (SELECT h_pastruct.id_pathid, h_paelements.id, h_pastruct.ord, DECODE(h_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, h_pastruct.operator FROM h_pastruct,h_paelements, h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pastruct.id_pae=h_paelements.id and h_pastruct.lvl=0 and h_pathid2conf.id_confver = ? order by h_pastruct.id_pathid,h_pastruct.id) " +
                 " UNION ALL " +
-                " select * from (SELECT h_pathids.id,v_streamids.id_stream+5000000, v_pathid2outm.ord, 'OutputModule', v_pathid2outm.operator from  v_paths, h_pathids, H_PATHID2CONF ,  H_PATHID2PATH,V_PATHID2OUTM,v_streamids, v_streams,h_pathid2uq where H_PATHID2CONF.id_confver=? and h_pathids.id=H_PATHID2CONF.id_pathid AND v_paths.id=H_PATHID2PATH.id_path and H_PATHID2PATH.id_pathid=h_pathids.id and h_pathids.id  = h_pathid2uq.id_pathiduq AND h_pathid2uq.id_pathid =  V_PATHID2OUTM.id_pathid and v_streamids.id=V_PATHID2OUTM.id_streamid and v_streams.id=v_streamids.id_stream order by id,ord)");
+                " select * from (select h_pathid2uq.id_pathiduq, v_streams.id+5000000 as stid,V_PATHID2OUTM.ord,'OutputModule', V_PATHID2OUTM.operator from V_PATHID2OUTM,v_streams,v_streamids,v_PATHID2CONF,h_pathid2uq where v_streams.id=v_streamids.id_stream and v_streamids.id=V_PATHID2OUTM.id_streamid and v_PATHID2CONF.id_confver=? and  v_PATHID2CONF.id_pathid= V_PATHID2OUTM.id_pathid and h_pathid2uq.id_pathid=v_PATHID2CONF.id_pathid)");
 	    psSelectPathEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectPathEntries);
 		/*("SELECT e.id AS sequence_id,  d.id AS entry_id, a.ord AS sequence_nb, DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, a.operator, a.crc32 FROM v_paelements a, v_pathid2conf b, v_pathids c,(select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) d , (select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) e WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND b.id_confver =? AND a.lvl>0 and a.crc32=d.crc32 AND e.crc32 in (select crc32 from v_paelements where id=a.id_parent) ORDER BY a.id_pathid ASC, a.id ASC");
@@ -5945,6 +5939,9 @@ psSelectPathEntries =?"; */
             //Queue<Integer> idlifo = new LinkedList<Integer>();
             Stack<Integer> idlifo= new Stack<Integer>();
 
+            int newpamid=1000000;
+            if(configId==0) newpamid=2000000;
+	    int previouslvl=0;
 	    while (rsParameters.next()) {
                 int     parameterId       = rsParameters.getInt(1);
                 String  type     = rsParameters.getString(2);
@@ -5952,6 +5949,10 @@ psSelectPathEntries =?"; */
                 boolean isTrkd   = rsParameters.getBoolean(4);
                 int     seqNb    = rsParameters.getInt(5);
                 int     parentId = rsParameters.getInt(6);
+                int     lvl      = rsParameters.getInt(7);
+
+
+             parameterId=++newpamid;
 
 
             if (type.equals("bool")) { 
@@ -6016,12 +6017,12 @@ psSelectPathEntries =?"; */
 	    
 	    
 	    
-           }	    
+//           }	    
 	    
 
 //            if (type.equals("Pset") { 
 			
-            if(configId==0)
+/*            if(configId==0)
             {
 	      	rsParameters    = psSelectParametersTemplates.executeQuery(); 
             }
@@ -6029,9 +6030,10 @@ psSelectPathEntries =?"; */
             {
 	    	rsParameters=psSelectParameters.executeQuery();
             }
+
+
 	    int previouslvl=0;
 //            Queue<Integer> idlifo = new LinkedList<Integer>();
-
 	    while (rsParameters.next()) {
                 int     parameterId       = rsParameters.getInt(1);
                 String  type     = rsParameters.getString(2);
@@ -6040,8 +6042,12 @@ psSelectPathEntries =?"; */
                 int     seqNb    = rsParameters.getInt(5);
                 int     parentId = rsParameters.getInt(6);
                 int     lvl      = rsParameters.getInt(7);
+ */            
+
+                
 
                 int orparid=parentId;
+                System.out.println("ParId "+parentId+" (origparid "+orparid+") parameterId "+parameterId+" type "+ type+" name "+name+" seqNb "+seqNb+" lvl"+lvl);
 			if (name==null) name = "";
 
                         while (lvl<previouslvl) {
@@ -6059,7 +6065,6 @@ psSelectPathEntries =?"; */
 			    valueAsString = idToValueAsString.remove(parameterId);
 			if (valueAsString==null) valueAsString="";
 			
-                        if (name.contains("Empty")) name="";
 
 			Parameter p = ParameterFactory.create(type,name,valueAsString,
 							      isTrkd);
