@@ -877,7 +877,7 @@ public class ConfDB
 	SoftwareRelease release   = new SoftwareRelease();
 	release.clear(releaseTag);
 	try {
-            System.out.println("loadTemplate with ReleaseTag: "+releaseId+" "+templateName);
+            //System.out.println("loadTemplate with ReleaseTag: "+releaseId+" "+templateName);
 	    csLoadTemplate.setInt(1,releaseId);
 	    csLoadTemplate.setString(2,templateName);
 	}
@@ -908,7 +908,7 @@ public class ConfDB
 	String releaseTag = getReleaseTag(releaseId);
 	release.clear(releaseTag);
 	try {
-            System.out.println("loadTemplates with ReleaseiD: "+releaseId+" "+release);
+            //System.out.println("loadTemplates with ReleaseiD: "+releaseId+" "+release);
 	    csLoadTemplates.setInt(1,releaseId);
 	}
 	catch (SQLException e) {
@@ -925,7 +925,7 @@ public class ConfDB
 	throws DatabaseException
     {
 	int releaseId = getReleaseId(releaseTag);
-        System.out.println("loadSoftwareRelease with releaseTag(rec ID): "+releaseTag+" ("+releaseId+") "+release);
+        //System.out.println("loadSoftwareRelease with releaseTag(rec ID): "+releaseTag+" ("+releaseId+") "+release);
 	loadSoftwareRelease(releaseId,release);
     }
 
@@ -938,7 +938,7 @@ public class ConfDB
 	release.clear(releaseTag);
 	
 	try {
-            System.out.println("loadPartialSwRel configId: "+configId+" "+release);
+            //System.out.println("loadPartialSwRel configId: "+configId+" "+release);
 	    csLoadTemplatesForConfig.setInt(1,configId);
 	}
 	catch (SQLException e) {
@@ -971,7 +971,7 @@ public class ConfDB
 	    new HashMap<Integer,SoftwarePackage>();
 	ArrayList<SoftwareSubsystem> subsystems = getSubsystems(idToPackage);
 	
-        System.out.println("loadTemplates: release "+release);
+        //System.out.println("loadTemplates: release "+release);
 	try {
 	    cs.executeUpdate();
 	    
@@ -988,7 +988,7 @@ public class ConfDB
 		String cvstag = rsTemplates.getString(4);
 		int    pkgId  = rsTemplates.getInt(5);
 		
- System.out.println("loadTemplates: id "+id+" type "+" name "+name+" cvstag "+cvstag+" pkgid "+pkgId);
+ //System.out.println("loadTemplates: id "+id+" type "+" name "+name+" cvstag "+cvstag+" pkgid "+pkgId);
 		    //System.out.println("Template "+templateId+" "+templateName+" instance "+instanceName); 
 
 		SoftwarePackage pkg = idToPackage.get(pkgId);
@@ -1122,7 +1122,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 
 	try {
 		
-            ////System.out.println("Trying loadConfiguration id="+configId);
+            System.out.println("Trying loadConfiguration id="+configId);
 	    csLoadConfiguration.setInt(1,configId);
 	    csLoadConfiguration.executeUpdate();
             ////System.out.println("Done loadConfiguration id="+configId);
@@ -1194,8 +1194,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		
 		String templateName = null;
 		
-System.out.println("found instance "+id
-                                     +  "name="+instanceName+" templateid="+templateId+" entryType="+type);
+//System.out.println("found instance "+id
+ //                                    +  "name="+instanceName+" templateid="+templateId+" entryType="+type);
 		if (type.equals("PSet")) {
 		    PSetParameter pset = (PSetParameter)ParameterFactory
 			.create("PSet",instanceName,"",flag);
@@ -1350,19 +1350,29 @@ System.out.println("found instance "+id
                 while (entryLvl<previouslvl) {
                        if ((!seqtoskip)&&(entryLvl>=lvltoskip)) idlifo.pop();
                        previouslvl--;
+                       if (previouslvl < lvltoskip) 
+                       {
+			seqtoskip=false;
+                        lvltoskip=0;
+                       }
                 }
                 previouslvl=entryLvl;
-                if (entryLvl<=lvltoskip) seqtoskip=false;
+                //if (entryLvl<lvltoskip){
+                 //       seqtoskip=false;
+                  //      lvltoskip=0;
+                // }
 
                 if (entryLvl==0) {
                         if (seqDone[entryId]) {
                              seqtoskip=true;
-                             lvltoskip=0;
+                             lvltoskip=1;
                            }
                          else {
                           seqDone[entryId]=true;
-                         }
                           idlifo.push(entryId);
+                          previouslvl++;
+                             lvltoskip=1;
+                         }
                  }       
                 if ((entryLvl>0) && (!seqtoskip))
                 {
@@ -1396,10 +1406,13 @@ System.out.println("found instance "+id
 		if (entryType.equals("Sequence")) {
                     if (seqDone[entryId]) {
                          seqtoskip=true;
-                         lvltoskip=entryLvl;
+                         lvltoskip=entryLvl+1;
                      }
                      else 
-		         idlifo.push(entryId);
+		       {  idlifo.push(entryId);
+                          previouslvl++;
+                       }
+
 
                 //    if (!seqtoskip) {
                         seqDone[entryId]=true;
@@ -5954,6 +5967,8 @@ System.out.println("found instance "+id
 
              parameterId=++newpamid;
 
+	     if (name==null) name = "";
+             if (name.contains("Empty name")) name="";
 
             if (type.equals("bool")) { 
 		String valueAsString =
@@ -5970,6 +5985,13 @@ System.out.println("found instance "+id
                   if (isHex) 
  		    valueAsString= "0x"+valueAsString;
               
+                Clob valueAsStringLOB = rsParameters.getClob(9);
+                if (valueAsStringLOB!=null)
+               { 
+                 int lobLength=(int)valueAsStringLOB.length();
+                 valueAsString=valueAsStringLOB.getSubString(1,lobLength);
+                 valueAsString=valueAsString.trim();
+               }	
                if (valueAsString!=null)
                { if (valueAsString.startsWith("{")) valueAsString=valueAsString.substring(1, valueAsString.length()-1);
                  valueAsString=valueAsString.trim();
@@ -5987,6 +6009,13 @@ System.out.println("found instance "+id
             if (type.contains("double")) { 
 		String  valueAsString = rsParameters.getString(8);
 
+                Clob valueAsStringLOB = rsParameters.getClob(9);
+                if (valueAsStringLOB!=null)
+               { 
+                 int lobLength=(int)valueAsStringLOB.length();
+                 valueAsString=valueAsStringLOB.getSubString(1,lobLength);
+                 valueAsString=valueAsString.trim();
+               }	
                if (valueAsString!=null)
                { if (valueAsString.startsWith("{")) valueAsString=valueAsString.substring(1, valueAsString.length()-1);
                  valueAsString=valueAsString.trim();
@@ -6006,12 +6035,19 @@ System.out.println("found instance "+id
 
                //if (valueAsString.startsWith("{")) valueAsString=valueAsString.substring(1, valueAsString.length()-1);
                 //valueAsString=valueAsString.trim();
+                Clob valueAsStringLOB = rsParameters.getClob(9);
+                if (valueAsStringLOB!=null)
+               { 
+                 int lobLength=(int)valueAsStringLOB.length();
+                 valueAsString=valueAsStringLOB.getSubString(1,lobLength);
+                 valueAsString=valueAsString.trim();
+               }	
                if (valueAsString!=null)
                { if (valueAsString.startsWith("{")) valueAsString=valueAsString.substring(1, valueAsString.length()-1);
                  valueAsString=valueAsString.trim();
                }
-	
-			idToValueAsString.put(parameterId,valueAsString);
+		 idToValueAsString.put(parameterId,valueAsString);
+               
 	    }
 	    ///////////////////
 	    
@@ -6047,8 +6083,7 @@ System.out.println("found instance "+id
                 
 
                 int orparid=parentId;
-                System.out.println("ParId "+parentId+" (origparid "+orparid+") parameterId "+parameterId+" type "+ type+" name "+name+" seqNb "+seqNb+" lvl"+lvl);
-			if (name==null) name = "";
+                //System.out.println("ParId "+parentId+" (origparid "+orparid+") parameterId "+parameterId+" type "+ type+" name "+name+" seqNb "+seqNb+" lvl"+lvl);
 
                         while (lvl<previouslvl) {
 				idlifo.pop();
@@ -6071,10 +6106,12 @@ System.out.println("found instance "+id
 			
 			if (type.equals("PSet")) {
                             idlifo.push(new Integer(parameterId));
+                            previouslvl++;
 			    psets.add(new IdPSetPair(parameterId,(PSetParameter)p));
                         }
 			if (type.equals("VPSet")){
                             idlifo.push(new Integer(parameterId));
+                            previouslvl++;
 			    vpsets.add(new IdVPSetPair(parameterId,(VPSetParameter)p));
                         }
 			
