@@ -89,12 +89,11 @@ def main(argv):
     input_addtorelease = "none"
     input_comparetorelease = ""
     input_noload = False
-    input_patch = False
     input_preferfile = ""
     
     print "Using release base: " + input_base_path
 
-    opts, args = getopt.getopt(sys.argv[1:], "r:b:w:c:v:d:u:s:t:o:a:m:i:p:n:h", ["release=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","addtorelease=","comparetorelease=","preferredcfis=","patch=","noload=","help="])
+    opts, args = getopt.getopt(sys.argv[1:], "r:b:w:c:v:d:u:s:t:o:a:m:i:n:h", ["release=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","addtorelease=","comparetorelease=","preferredcfis=","noload=","help="])
 
     for o, a in opts:
         if o in ("-r","release="):
@@ -156,9 +155,6 @@ def main(argv):
         if o in ("-n","noload="):
             print "Will parse release without loading to the DB"
             input_noload = True
-        if o in ("-p","patch="):
-            print "Will patch release if it already exists in the DB"
-            input_patch = True 
         if o in ("-h","help="):
             print "Help menu for ConfdbLoadParamsFromConfigs"
             print "\t-r <CMSSW release (default is the CMSSW_VERSION envvar)>"
@@ -168,7 +164,6 @@ def main(argv):
             print "\t-b <Comma-delimited list of packages to ignore>"
             print "\t-i <Text file containing list of preferred cfi.py files>"
             print "\t-n <1 = No inserts - parse the release without making changes to the DB>"
-            print "\t-p <1 = Patch the release if it already exists in the DB>"
             print "\t-v <Verbosity level (0-3)>"
             print "\t-d <Name of the database to connect to>"
             print "\t-u <User name to connect as>"
@@ -178,11 +173,11 @@ def main(argv):
             print "\t   For help with git-related problems: http://mercurial.selenic.com/"
             return
 
-    confdbjob = ConfdbLoadParamsfromConfigs(input_cmsswrel,input_base_path,input_baserelease_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbuser,input_dbpwd,input_host,input_noload,input_patch,input_addtorelease,input_comparetorelease,input_preferfile,input_arch)
+    confdbjob = ConfdbLoadParamsfromConfigs(input_cmsswrel,input_base_path,input_baserelease_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbuser,input_dbpwd,input_host,input_noload,input_addtorelease,input_comparetorelease,input_preferfile,input_arch)
     confdbjob.BeginJob()
 
 class ConfdbLoadParamsfromConfigs:
-    def __init__(self,clirel,clibasepath,clibasereleasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbuser,clidbpwd,clihost,clinoload,clipatch,cliaddtorelease,clicomparetorelease,clipreferfile,cliarch):
+    def __init__(self,clirel,clibasepath,clibasereleasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbuser,clidbpwd,clihost,clinoload,cliaddtorelease,clicomparetorelease,clipreferfile,cliarch):
 
         self.dbname = ''
         self.dbuser = clidbuser
@@ -191,7 +186,6 @@ class ConfdbLoadParamsfromConfigs:
         self.dbhost = clihost
         self.verbose = cliverbose
         self.noload = clinoload
-        self.patch = clipatch
         self.addtorelease = cliaddtorelease
         self.comparetorelease = clicomparetorelease
         self.prefercfifile = clipreferfile
@@ -281,10 +275,8 @@ class ConfdbLoadParamsfromConfigs:
 
         if(tmprelid):
             self.cmsswrelid = tmprelid[0]
-            if(self.patch == False):
-                print 'The release ' + str(self.cmsswrel) + ' already exists in the DB. Exiting now.'
-                print 'To patch this release, use the -p option'
-                return
+            print 'The release ' + str(self.cmsswrel) + ' already exists in the DB. Patching of existing releases is no longer supported. Exiting now.'
+            return
         else:
             self.VerbosePrint("INSERT INTO SoftwareReleases (releaseTag) VALUES ('" + str(self.cmsswrel) + "')",0)
             if(self.noload == False):
