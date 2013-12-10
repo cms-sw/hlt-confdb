@@ -1,3 +1,4 @@
+RecoParticleFlow/PFClusterProducer      particleFlowClusterECAL_cfi.py
 Geometry/HcalEventSetup                 HcalGeometryDBReader_cfi.py
 Geometry/CSCGeometryBuilder             cscGeometry_cfi.py
 HLTrigger/Configuration                 hltDaqSource_cfi.py
