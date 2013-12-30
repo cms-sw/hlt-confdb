@@ -1335,7 +1335,7 @@ class ConfdbLoadParamsfromConfigs:
                                 self.addedtagtuple.append((package + "/" + subdir, tagline.lstrip().rstrip()))
 
     def GetReleaseGitHashTags(self):
-        gitgethash = "git ls-tree --abbrev=32 -r -d " + str(self.cmsswrel)
+        gitgethash = "git --git-dir=$CMSSW_BASE/src/.git --work-tree=$CMSSW_BASE/src ls-tree --abbrev=32 -r -d " + str(self.cmsswrel)
         myoutput = os.popen(gitgethash).readlines()
     
         for meh in myoutput:
@@ -1353,7 +1353,7 @@ class ConfdbLoadParamsfromConfigs:
         packagelist = os.listdir(source_tree)
 
         # Get hashtags for the 'HEAD' 
-        gitgethash = "git ls-tree --abbrev=32 -r -d HEAD"
+        gitgethash = "git --git-dir=$CMSSW_BASE/src/.git --work-tree=$CMSSW_BASE/src ls-tree --abbrev=32 -r -d HEAD"
         myoutput = os.popen(gitgethash).readlines()
 
         tempaddedtagtuple = []
