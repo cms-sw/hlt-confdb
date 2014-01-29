@@ -1376,9 +1376,17 @@ public class ConfDB
 		    continue;
 
 		PrimaryDataset primaryDataset = stream.insertDataset(datasetLabel);
-		primaryDataset.setDatabaseId(datasetId);
-		idToDataset.put(datasetId,primaryDataset);
-		primaryDatasetToId.put(primaryDataset,datasetId);
+                // check for a "broken" configuration with duplicate dataset entries
+                if (primaryDataset == null) {
+                  System.err.println("WARNING: attempting to insert a duplicate dataset \"" + datasetLabel + "\" in stream \"" + stream.name() + "\"");
+                  // TODO try to recover the broken configuration ?
+                  //  - try to merge the paths in the existing dataset
+                  //  - delete this duplicate dataset
+                } else {
+                  primaryDataset.setDatabaseId(datasetId);
+                  idToDataset.put(datasetId,primaryDataset);
+                  primaryDatasetToId.put(primaryDataset,datasetId);
+                }
 	    }
 
 	    //TODO the key code is here. This should build only one Stream
