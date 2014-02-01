@@ -79,6 +79,8 @@ public class ConfDB
     private boolean extraPathFieldsAvailability = false;
     private boolean operatorFieldForSequencesAvailability = false; // bug #91797
     
+    //sv
+    private Integer countingParamIds=0;
     
     /** template table name hash map */
     private HashMap<String,String> templateTableNameHashMap = null;
@@ -95,6 +97,12 @@ public class ConfDB
     /** 'insert parameter' sql statement hash map */
     private HashMap<String,PreparedStatement> insertParameterHashMap = null;
     
+    /** Original parameters DB hash map */
+    private HashMap<Integer,Integer> dbidParamHashMap = null;
+
+    /** Original parameters DB hash map */
+    private HashMap<Integer,Integer> dbidTemplateHashMap = null;
+
     /** prepared sql statements */
     private PreparedStatement psSelectModuleTypes                 = null;
     private PreparedStatement psSelectParameterTypes              = null;
@@ -198,6 +206,8 @@ public class ConfDB
 
     private PreparedStatement psInsertDirectory                   = null;
     private PreparedStatement psInsertConfiguration               = null;
+    private PreparedStatement psInsertConfigurationVers           = null;
+    private PreparedStatement psFindConfiguration                 = null;
     private PreparedStatement psInsertConfigurationLock           = null;
     //Insert Event Content
     private PreparedStatement psInsertContents                    = null;
@@ -544,7 +554,7 @@ public class ConfDB
 	    		 System.err.println("[ConfDB::reconnect]"+ft.format(dNow)+" Trying to connect... attemp (" +  (5 - retryCount) + ")");
 	    	 
 			try {
-	//sv		    rs = psSelectUsersForLockedConfigs.executeQuery();
+			    rs = psSelectUsersForLockedConfigs.executeQuery();
                             if (false) throw new SQLException();
 			    
 			    // If no exception is raised then reconnection is complete.
@@ -830,7 +840,7 @@ public class ConfDB
 		}
 	    }
 	    
-/*sv	    rs = psSelectLockedConfigurations.executeQuery();
+	    rs = psSelectLockedConfigurations.executeQuery();
 
 	    while (rs.next()) {
 		String dirName = rs.getString(1);
@@ -846,7 +856,7 @@ public class ConfDB
 		}
 		configInfo.lock(userName);
 	    }
-	   */ 
+
 	    
 	    // DEBUG
 	    //int config2Time = System.currentTimeMillis();
@@ -1194,8 +1204,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		
 		String templateName = null;
 		
-//System.out.println("found instance "+id
- //                                    +  "name="+instanceName+" templateid="+templateId+" entryType="+type);
+System.out.println("found instance "+id
+                                     +  "name="+instanceName+" templateid="+templateId+" entryType="+type);
 		if (type.equals("PSet")) {
 		    PSetParameter pset = (PSetParameter)ParameterFactory
 			.create("PSet",instanceName,"",flag);
@@ -1310,7 +1320,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		EventContent eventContent = config.content(name);
 		if(eventContent==null) continue;
 
-                ////System.out.println("Stream id "+streamId+" Label "+streamLabel+" fracTo "+ fracToDisk+" Evco id "+eventContentId+" name "+name);
+                System.out.println("Stream id "+streamId+" Label "+streamLabel+" fracTo "+ fracToDisk+" Evco id "+eventContentId+" name "+name);
 
 		Stream stream = eventContent.insertStream(streamLabel);
 		stream.setFractionToDisk(fracToDisk);
@@ -1345,7 +1355,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
                 String entryType  = rsSequenceEntries.getString(6);
  
 		
-//System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLvl+" ord "+sequenceNb+" entryType="+entryType);
+System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLvl+" ord "+sequenceNb+" entryType="+entryType);
 
                 while (entryLvl<previouslvl) {
                        if ((!seqtoskip)&&(entryLvl>=lvltoskip)) idlifo.pop();
@@ -1623,13 +1633,13 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    }
 	    
 	    
-/*	      Iterator<Path> pathIt = config.pathIterator();
+	      Iterator<Path> pathIt = config.pathIterator();
 	      while(pathIt.hasNext()){
 	      Path path = pathIt.next();
 	      int databaseId = pathToId.get(path);
 	      path.setDatabaseId(databaseId);
 	      }
-*/
+
 	    
 
          ////System.out.println("###########################End of loops###################");
@@ -1643,10 +1653,10 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
-	    dbConnector.release(rsInstances);
+/*	    dbConnector.release(rsInstances);
 	    dbConnector.release(rsPathEntries);
 	    dbConnector.release(rsSequenceEntries);
-/*	    dbConnector.release(rsEventContentEntries);
+	    dbConnector.release(rsEventContentEntries);
 	    dbConnector.release(rsStreamEntries);
 	    dbConnector.release(rsDatasetEntries);
 	    dbConnector.release(rsPathStreamDataset);
@@ -1764,21 +1774,39 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    "V"+config.nextVersion();
 
 	ResultSet rs = null;
+        System.out.println("Inserting config "+config.name()+" as "+configDescriptor);
 
 		
 	try {
 	    dbConnector.getConnection().setAutoCommit(false);
-	    
-	    psInsertConfiguration.setInt(1,releaseId);
-	    psInsertConfiguration.setString(2,configDescriptor);
-	    psInsertConfiguration.setInt(3,config.parentDirId());
-	    psInsertConfiguration.setString(4,config.name());
-	    psInsertConfiguration.setInt(5,config.nextVersion());
-	    psInsertConfiguration.setString(6,creator);
-	    psInsertConfiguration.setString(7,processName);
-	    psInsertConfiguration.setString(8,comment);
-	    psInsertConfiguration.executeUpdate();
-	    rs = psInsertConfiguration.getGeneratedKeys();
+
+            psFindConfiguration.setString(1,config.parentDir().name()+"/"+config.name());
+	    rs = psFindConfiguration.executeQuery(); 
+            Integer id_config=0;
+            while (rs.next()) {
+                 id_config = rs.getInt(1);
+            }
+            if (id_config==0) 
+            {
+              psInsertConfiguration.setString(1,config.parentDir().name()+"/"+config.name()); 
+              psInsertConfiguration.executeUpdate();
+              psFindConfiguration.setString(1,config.parentDir().name()+"/"+config.name());
+	      rs = psFindConfiguration.executeQuery(); 
+	      rs.next();
+	      id_config= rs.getInt(1);
+            }
+
+	    psInsertConfigurationVers.setInt(1,id_config);
+	    psInsertConfigurationVers.setInt(2,config.nextVersion());
+	    psInsertConfigurationVers.setInt(3,releaseId);
+	    psInsertConfigurationVers.setString(4,configDescriptor);
+	    psInsertConfigurationVers.setInt(5,config.parentDirId());
+	    psInsertConfigurationVers.setString(6,config.name());
+	    psInsertConfigurationVers.setString(7,creator);
+	    psInsertConfigurationVers.setString(8,processName);
+	    psInsertConfigurationVers.setString(9,comment);
+	    psInsertConfigurationVers.executeUpdate();
+	    rs = psInsertConfigurationVers.getGeneratedKeys();
 	    
 	    rs.next();
 	    int configId = rs.getInt(1);
@@ -1810,32 +1838,33 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	  
 	    HashMap<String,Integer> primaryDatasetHashMap =
 		insertPrimaryDatasets(configId,config);
-	    HashMap<String,Integer> eventContentHashMap =
-		insertEventContents(configId,config);
+//notyet	    HashMap<String,Integer> eventContentHashMap =
+//notyet		insertEventContents(configId,config);
 	    HashMap<String,Integer> streamHashMap =
 		insertStreams(configId,config);
 	  
-	    insertEventContentStreamAssoc(eventContentHashMap,streamHashMap,config);
-	    insertStreamDatasetAssoc(streamHashMap,primaryDatasetHashMap,config);
+//notyet	    insertEventContentStreamAssoc(eventContentHashMap,streamHashMap,config);
+//notyet	    insertStreamDatasetAssoc(streamHashMap,primaryDatasetHashMap,config);
  
 	    // insert paths
-	    HashMap<String,Integer> pathHashMap=insertPaths(configId,config);
+//notyet	    HashMap<String,Integer> pathHashMap=insertPaths(configId,config);
 	    
 	    // insert sequences
-	    HashMap<String,Integer> sequenceHashMap=insertSequences(configId,
-								    config);
+//notyet	    HashMap<String,Integer> sequenceHashMap=insertSequences(configId,
+//notyet								    config);
 	    
 	    // insert modules
-	    HashMap<String,Integer> moduleHashMap=insertModules(config);
+//notyet	    HashMap<String,Integer> moduleHashMap=insertModules(config);
 
 	 
-	    insertEventContentStatements(configId,config,eventContentHashMap);	  
-	    insertPathStreamPDAssoc(pathHashMap,streamHashMap,primaryDatasetHashMap,
-				    config,configId);
+//notyet	    insertEventContentStatements(configId,config,eventContentHashMap);	  
+//notyet	    insertPathStreamPDAssoc(pathHashMap,streamHashMap,primaryDatasetHashMap,
+//notyet				    config,configId);
 	
 
 	    // insert parameter bindings / values
-	    psInsertParameterSet.executeBatch();
+//notyet
+/*	    psInsertParameterSet.executeBatch();
 	    psInsertVecParameterSet.executeBatch();
 	    psInsertGlobalPSet.executeBatch();
 	    psInsertSuperIdParamAssoc.executeBatch();
@@ -1845,10 +1874,10 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		insertParameterHashMap.values().iterator();
 	    while (itPS.hasNext()) itPS.next().executeBatch();
 	
-
+*/
 	    // insert references regarding paths and sequences
-	    insertReferences(config,pathHashMap,sequenceHashMap,
-			     moduleHashMap,streamHashMap);
+//notyet	    insertReferences(config,pathHashMap,sequenceHashMap,
+//notyet			     moduleHashMap,streamHashMap);
 	    
 	
 	    dbConnector.getConnection().commit();
@@ -1903,12 +1932,12 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    throw new DatabaseException(errMsg);
 	}
 	
-	try {
-/*	    psInsertConfigurationLock.setInt(1,parentDirId);
+/*	try {
+	    psInsertConfigurationLock.setInt(1,parentDirId);
 	    psInsertConfigurationLock.setString(2,configName);
 	    psInsertConfigurationLock.setString(3,userName);
 	    psInsertConfigurationLock.executeUpdate();
-*/
+
         if (false) throw new SQLException();
 	}
 	catch (SQLException e) {
@@ -1917,6 +1946,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
+*/
     }
 
     /** unlock a configuration and all its versions */
@@ -1929,11 +1959,11 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	String  configName    = config.name();
 	String  userName      = config.lockedByUser();
 
-	try {
-/*	    psDeleteLock.setInt(1,parentDirId);
+/*	try {
+	    psDeleteLock.setInt(1,parentDirId);
 	    psDeleteLock.setString(2,configName);
 	    psDeleteLock.executeUpdate();
-*/	if (false) throw new SQLException();
+	if (false) throw new SQLException();
         }
 	catch (SQLException e) {
 	    String errMsg =
@@ -1941,6 +1971,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
+*/
     }
     
     /** insert a new super id, return its value */
@@ -1967,33 +1998,37 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	throws DatabaseException
     {
 	for (int sequenceNb=0;sequenceNb<config.psetCount();sequenceNb++) {
-	    int           psetId = insertSuperId();
+	    //int           psetId = insertSuperId();
 	    PSetParameter pset   = config.pset(sequenceNb);
 	    try {
 		// first, insert the pset (constraint!)
-		psInsertParameterSet.setInt(1,psetId);
-		psInsertParameterSet.setString(2,pset.name());
-		psInsertParameterSet.setBoolean(3,pset.isTracked());
-		psInsertParameterSet.addBatch();
+		psInsertGPset.setString(1,pset.name());
+		psInsertGPset.setBoolean(2,pset.isTracked());
+                psInsertGPset.executeUpdate(();
+                ResultSet rs=psInsertGPset.getGeneratedKeys();
+                rs.next();
+                int psetid=rs.getInt(1);
+
+ 		
 		
 		for (int i=0;i<pset.parameterCount();i++) {
 		    Parameter p = pset.parameter(i);
 		    if (p instanceof PSetParameter) {
 			PSetParameter ps = (PSetParameter)p;
-			insertParameterSet(psetId,i,ps);
+			insertParameterSet(psetId,i,ps,psInsertParameterGPset);
 		    }
 		    else if (p instanceof VPSetParameter) {
 			VPSetParameter vps = (VPSetParameter)p;
-			insertVecParameterSet(psetId,i,vps);
+			insertVecParameterSet(psetId,i,vps,psInsertParameterGPset);
 		    }
-		    else insertParameter(psetId,i,p);
+		    else insertParameter(psetId,i,p,psInsertParameterGPset);
 		}
 	    
 		// now, enter association to configuration
 		psInsertGlobalPSet.setInt(1,configId);
 		psInsertGlobalPSet.setInt(2,psetId);
 		psInsertGlobalPSet.setInt(3,sequenceNb);
-		psInsertGlobalPSet.addBatch();
+		psInsertGlobalPSet.executeUpdate();
 	    }
 	    catch (SQLException e) {
 		String errMsg =
@@ -2013,12 +2048,14 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    int              edsourceId = edsource.databaseId();
 	    int              templateId = edsource.template().databaseId();
 	    
+            ResultSet rs = null;
 	    if (edsourceId<=0) {
-		edsourceId = insertSuperId();
 		try {
-		    psInsertEDSource.setInt(1,edsourceId);
-		    psInsertEDSource.setInt(2,templateId);
-		    psInsertEDSource.addBatch();
+		    psInsertEDSource.setInt(1,templateId-1000000);
+		    psInsertEDSource.executeUpdate();
+                    rs = psInsertEDSource.getGeneratedKeys();
+                    rs.next();
+		    edsourceId = rs.getInt(1);
 		}
 		catch (SQLException e) {
 		    String errMsg =
@@ -2027,9 +2064,10 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 			" templateId="+templateId+"): "+e.getMessage();
 		    throw new DatabaseException(errMsg,e);
 		}
-		insertInstanceParameters(edsourceId,edsource);
-		edsource.setDatabaseId(edsourceId);
+		insertInstanceParameters(edsourceId+1000000,edsource,"EDS");
+		edsource.setDatabaseId(edsourceId+1000000);
 	    }
+            else edsourceId-=1000000;
 	    
 	    try {
 		psInsertConfigEDSourceAssoc.setInt(1,configId);
@@ -2047,7 +2085,6 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	}
 	
 	try {
-	    psInsertEDSource.executeBatch();
 	    psInsertConfigEDSourceAssoc.executeBatch();
 	}
 	catch (SQLException e) {
@@ -2068,13 +2105,16 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    int              templateId  = essource.template().databaseId();
 	    boolean          isPreferred = essource.isPreferred();
 
+           ResultSet rs = null;
+ 
 	    if (essourceId<=0) {
-		essourceId = insertSuperId();
 		try {
-		    psInsertESSource.setInt(1,essourceId);
-		    psInsertESSource.setInt(2,templateId);
-		    psInsertESSource.setString(3,essource.name());
-		    psInsertESSource.addBatch();
+		    psInsertESSource.setInt(1,templateId-2000000);
+		    psInsertESSource.setString(2,essource.name());
+		    psInsertESSource.executeUpdate();
+                    rs = psInsertESSource.getGeneratedKeys();
+                    rs.next();
+                    essourceId = rs.getInt(1);
 		}
 		catch (SQLException e) {
 		    String errMsg =
@@ -2083,9 +2123,10 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 			e.getMessage();
 		    throw new DatabaseException(errMsg,e);
 		}
-		insertInstanceParameters(essourceId,essource);
-		essource.setDatabaseId(essourceId);
+		insertInstanceParameters(essourceId+2000000,essource,"ESS");
+		essource.setDatabaseId(essourceId+2000000);
 	    }
+            else essourceId-=2000000;
 	    
 	    try {
 		psInsertConfigESSourceAssoc.setInt(1,configId);
@@ -2104,7 +2145,6 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	}
 
 	try {
-	    psInsertESSource.executeBatch();
 	    psInsertConfigESSourceAssoc.executeBatch();
 	}
 	catch (SQLException e) {
@@ -2125,13 +2165,17 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    int              templateId  = esmodule.template().databaseId();
 	    boolean          isPreferred = esmodule.isPreferred();
 	    
+            ResultSet rs = null;
+
 	    if (esmoduleId<=0) {
-		esmoduleId = insertSuperId();
 		try {
-		    psInsertESModule.setInt(1,esmoduleId);
-		    psInsertESModule.setInt(2,templateId);
-		    psInsertESModule.setString(3,esmodule.name());
-		    psInsertESModule.addBatch();
+		    psInsertESModule.setInt(1,templateId-3000000);
+		    psInsertESModule.setString(2,esmodule.name());
+		    psInsertESModule.executeUpdate();
+                    rs = psInsertESModule.getGeneratedKeys();
+                    rs.next();
+                    esmoduleId = rs.getInt(1);
+
 		}
 		catch (SQLException e) {
 		    String errMsg =
@@ -2140,9 +2184,10 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 			e.getMessage();
 		    throw new DatabaseException(errMsg,e);
 		}
-		insertInstanceParameters(esmoduleId,esmodule);
-		esmodule.setDatabaseId(esmoduleId);
+		insertInstanceParameters(esmoduleId+3000000,esmodule,"ESM");
+		esmodule.setDatabaseId(esmoduleId+3000000);
 	    }
+            else esmoduleId-=3000000;
 	    
 	    try {
 		psInsertConfigESModuleAssoc.setInt(1,configId);
@@ -2161,7 +2206,6 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	}
 
 	try {
-	    psInsertESModule.executeBatch();
 	    psInsertConfigESModuleAssoc.executeBatch();
 	}
 	catch (SQLException e) {
@@ -2181,12 +2225,16 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    int             serviceId  = service.databaseId();
 	    int             templateId = service.template().databaseId();
 	    
+            ResultSet rs = null;
+
 	    if (serviceId<=0) {
-		serviceId = insertSuperId();
 		try {
-		    psInsertService.setInt(1,serviceId);
-		    psInsertService.setInt(2,templateId);
-		    psInsertService.addBatch();
+		    psInsertService.setInt(1,templateId-4000000);
+		    psInsertService.executeUpdate();
+                    rs = psInsertService.getGeneratedKeys();
+                    rs.next();
+                    serviceId = rs.getInt(1);
+
 		}
 		catch (SQLException e) {
 		    String errMsg =
@@ -2195,9 +2243,10 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 			e.getMessage();
 		    throw new DatabaseException(errMsg,e);
 		}
-		insertInstanceParameters(serviceId,service);
-		service.setDatabaseId(serviceId);
+		insertInstanceParameters(serviceId+4000000,service,"SRVC");
+		service.setDatabaseId(serviceId+4000000);
 	    }
+                else serviceId-=4000000;
 	    
 	    try {
 		psInsertConfigServiceAssoc.setInt(1,configId);
@@ -2215,7 +2264,6 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	}
 
 	try {
-	    psInsertService.executeBatch();
 	    psInsertConfigServiceAssoc.executeBatch();
 	}
 	catch (SQLException e) {
@@ -2425,7 +2473,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    IdInstancePair pair     = it.next();
 	    int            moduleId = pair.id;
 	    ModuleInstance module   = (ModuleInstance)pair.instance;
-	    insertInstanceParameters(moduleId,module);
+	    insertInstanceParameters(moduleId,module,"MODU");
 	    module.setDatabaseId(moduleId);
 	}
 	
@@ -2821,14 +2869,14 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    if (!p.isDefault()) {
 		if (p instanceof VPSetParameter) {
 		    VPSetParameter vpset = (VPSetParameter)p;
-		    insertVecParameterSet(streamId,sequenceNb,vpset);
+		    insertVecParameterSet(streamId,sequenceNb,vpset,"STREAMS");
 		}
 		else if (p instanceof PSetParameter) {
 		    PSetParameter pset = (PSetParameter)p;
-		    insertParameterSet(streamId,sequenceNb,pset);
+		    insertParameterSet(streamId,sequenceNb,pset,"STREAMS");
 		}
 		else {
-		    insertParameter(streamId,sequenceNb,p);
+		    insertParameter(streamId,sequenceNb,p,"STREAMS");
 		}
 	    }
 	}
@@ -3025,7 +3073,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
     
 
     /** insert all instance parameters */
-    private void insertInstanceParameters(int superId,Instance instance)
+    private void insertInstanceParameters(int superId,Instance instance,String dbtable)
 	throws DatabaseException
     {
 	for(int sequenceNb=0;sequenceNb<instance.parameterCount();sequenceNb++){
@@ -3034,14 +3082,14 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    if (!p.isDefault()) {
 		if (p instanceof VPSetParameter) {
 		    VPSetParameter vpset = (VPSetParameter)p;
-		    insertVecParameterSet(superId,sequenceNb,vpset);
+		    insertVecParameterSet(superId,sequenceNb,vpset,dbtable);
 		}
 		else if (p instanceof PSetParameter) {
 		    PSetParameter pset = (PSetParameter)p;
-		    insertParameterSet(superId,sequenceNb,pset);
+		    insertParameterSet(superId,sequenceNb,pset,dbtable);
 		}
 		else {
-		    insertParameter(superId,sequenceNb,p);
+		    insertParameter(superId,sequenceNb,p,dbtable);
 		}
 	    }
 	}
@@ -3794,7 +3842,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    int releaseId = rsInsertReleaseTag.getInt(1);
 	    insertSoftwareSubsystem(newRelease,releaseId);
 
-	    /*	    psInsertEDSourceTemplate.executeBatch();
+	    /*was already	    psInsertEDSourceTemplate.executeBatch();
 	    psInsertESSourceTemplate.executeBatch();
 	    psInsertESModuleTemplate.executeBatch();
 	    psInsertServiceTemplate.executeBatch();
@@ -3803,7 +3851,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    // insert parameter bindings / values
 	    psInsertParameterSet.executeBatch();
 	    psInsertVecParameterSet.executeBatch();
-	    psInsertGlobalPSet.executeBatch();
+	    //psInsertGlobalPSet.executeBatch();
 	    psInsertSuperIdParamAssoc.executeBatch();
 	    psInsertSuperIdParamSetAssoc.executeBatch();
 	    psInsertSuperIdVecParamSetAssoc.executeBatch();
@@ -3943,21 +3991,21 @@ if (pkg==null) System.out.println("pkg NULL!!!");
     
     
     /** insert all instance parameters */
-    private void insertTemplateParameters(int superId,Template template)
+    private void insertTemplateParameters(int superId,Template template,String dbtable)
 	throws DatabaseException
     {
 	for(int sequenceNb=0;sequenceNb<template.parameterCount();sequenceNb++){
 	    Parameter p = template.parameter(sequenceNb);
 	    if (p instanceof VPSetParameter) {
 		VPSetParameter vpset = (VPSetParameter)p;
-		insertVecParameterSet(superId,sequenceNb,vpset);
+		insertVecParameterSet(superId,sequenceNb,vpset,dbtable);
 	    }
 	    else if (p instanceof PSetParameter) {
 		PSetParameter pset = (PSetParameter)p;
-		insertParameterSet(superId,sequenceNb,pset);
+		insertParameterSet(superId,sequenceNb,pset,dbtable);
 	    }
 	    else {
-		insertParameter(superId,sequenceNb,p);
+		insertParameter(superId,sequenceNb,p,dbtable);
 	    }
 	}
     }
@@ -4161,28 +4209,28 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    " Configurations.description " +
    "FROM v_confversions Configurations " +
    "JOIN v_softreleases SoftwareReleases " +
-   "ON SoftwareReleases.releaseId = Configurations.releaseId " +
+   "ON SoftwareReleases.Id = Configurations.id_release " +
    "ORDER BY Configurations.config ASC");
 	    psSelectConfigurations.setFetchSize(512);
 	    preparedStatements.add(psSelectConfigurations);
 	    
-//	    psSelectLockedConfigurations =
-//		dbConnector.getConnection().prepareStatement
-//		("SELECT" +
-//		 " Directories.dirName," +
-//		 " LockedConfigurations.config," +
-//		 " LockedConfigurations.userName " +
-//		 "FROM LockedConfigurations " +
-//		 "JOIN Directories " +
-//		 "ON LockedConfigurations.parentDirId = Directories.dirId");
-//	    preparedStatements.add(psSelectLockedConfigurations);
+	    psSelectLockedConfigurations =
+		dbConnector.getConnection().prepareStatement
+		("SELECT" +
+		 " v_directories.Name," +
+		 " v_lockedconfs.id_config," +
+		 " v_lockedconfs.userName " +
+		 "FROM v_lockedconfs " +
+		 "JOIN v_directories " +
+		 "ON v_lockedconfs.id_parentdir = v_directories.id");
+	    preparedStatements.add(psSelectLockedConfigurations);
 
-//	    psSelectUsersForLockedConfigs =
-//		dbConnector.getConnection().prepareStatement
-//		("SELECT"+
-//		 " LockedConfigurations.userName "+
-//		 "FROM LockedConfigurations");
-//	    preparedStatements.add(psSelectUsersForLockedConfigs);
+	    psSelectUsersForLockedConfigs =
+		dbConnector.getConnection().prepareStatement
+		("SELECT"+
+		 " v_lockedconfs.userName "+
+		 "FROM v_lockedconfs");
+	    preparedStatements.add(psSelectUsersForLockedConfigs);
 
 	    psSelectConfigNames =
 		dbConnector.getConnection().prepareStatement
@@ -4205,7 +4253,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    "FROM v_confversions Configurations " +
    "JOIN v_directories Directories " +
    "ON Configurations.id_parentDir = Directories.id " +
-   "WHERE Configurations.releaseId = ?" +
+   "WHERE Configurations.id_release = ?" +
    "ORDER BY Directories.name ASC,Configurations.config ASC");
 	    psSelectConfigNamesByRelease.setFetchSize(1024);
 	    preparedStatements.add(psSelectConfigNamesByRelease);
@@ -4254,17 +4302,17 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    psSelectReleaseTags =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-   " SoftwareReleases.releaseid," +
+   " SoftwareReleases.id," +
    " SoftwareReleases.releaseTag " +
    "FROM v_softreleases SoftwareReleases " +
-   "ORDER BY SoftwareReleases.releaseid DESC");
+   "ORDER BY SoftwareReleases.id DESC");
 	    psSelectReleaseTags.setFetchSize(32);
 	    preparedStatements.add(psSelectReleaseTags);
 	    
 	    psSelectReleaseTagsSorted =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-   " SoftwareReleases.releaseid," +
+   " SoftwareReleases.id," +
    " SoftwareReleases.releaseTag " +
    "FROM v_softreleases SoftwareReleases " +
    "ORDER BY SoftwareReleases.releaseTag ASC");
@@ -4274,7 +4322,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    psSelectReleaseId =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-  " SoftwareReleases.releaseid "+
+  " SoftwareReleases.id "+
    "FROM v_softreleases SoftwareReleases " +
    "WHERE SoftwareReleases.releaseTag = ?");
 
@@ -4283,7 +4331,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		("SELECT" +
    " SoftwareReleases.releaseTag " +
    "FROM v_softreleases SoftwareReleases " +
-   "WHERE SoftwareReleases.releaseid = ?");
+   "WHERE SoftwareReleases.id = ?");
 	    preparedStatements.add(psSelectReleaseTag);
 	    
 	    psSelectReleaseTagForConfig =
@@ -4292,7 +4340,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    " SoftwareReleases.releaseTag " +
    "FROM v_softreleases SoftwareReleases " +
    "JOIN v_confversions Configurations " +
-   "ON Configurations.releaseId = SoftwareReleases.releaseid " +
+   "ON Configurations.id_release = SoftwareReleases.id " +
    "WHERE Configurations.id = ?");
 	    preparedStatements.add(psSelectReleaseTagForConfig);
 	    
@@ -4693,7 +4741,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		
 	    psSelectStreamEntries =
 		dbConnector.getConnection().prepareStatement
-            ("SELECT DISTINCT v_streams.id+5000000,v_streams.name,v_streamids.FRACTODISK,V_EVENTCONTENTIDS.ID as evcoid,V_EVENTCONTENTS.name as evconame "+
+            ("SELECT DISTINCT v_streams.id+5000000,v_streams.name,v_streamids.FRACTODISK,V_EVENTCONTENTS.ID as evcoid,V_EVENTCONTENTS.name as evconame "+
                  "FROM v_streamids,v_streams,V_EVENTCONTENTIDS,V_EVENTCONTENTS,V_EVCO2STREAM,v_pathid2outm,v_pathid2conf " +
                  "WHERE v_streams.id=v_streamids.id_stream " +
                  "AND V_EVCO2STREAM.ID_STREAMID=v_streamids.id AND V_EVCO2STREAM.id_evcoid=V_EVENTCONTENTIDS.ID " +
@@ -4708,7 +4756,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
             ("SELECT distinct v_datasets.id, v_datasets.name,v_streams.id+5000000 as streamid,v_streams.name as label from v_pathid2strdst, v_pathid2conf,v_datasetids,v_datasets,v_streams,v_streamids WHERE v_pathid2strdst.id_pathid=v_pathid2conf.id_pathid and v_datasets.id=v_datasetids.id_dataset and v_datasetids.id=v_pathid2strdst.id_datasetid and v_streams.id=v_streamids.id_stream and v_streamids.id=v_pathid2strdst.id_streamid AND v_pathid2conf.id_confver = ?");
 	    //psSelectDatasetEntries.setFetchSize(64);
-	    preparedStatements.add(psSelectPrimaryDatasetEntries);
+	    preparedStatements.add(psSelectDatasetEntries);
 	    
 	    psSelectPathStreamDatasetEntries =
 		dbConnector.getConnection().prepareStatement
@@ -4823,7 +4871,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 ("SELECT COUNT(*) FROM v_pathids Paths");//just a placeholder
 	    preparedStatements.add(psSelectVecParameterSetCount);
-/*	    
+	    
 	    
 	    //
 	    // INSERT
@@ -4831,38 +4879,47 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	   
 	    psInsertDirectory =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO Directories " +
-		 "(parentDirId,dirName,created) " +
-		 "VALUES (?, ?, SYSDATE)",
-		 keyColumn);
+  ("INSERT INTO v_directories " +
+   "(id_parentdir,name,created) " +
+   "VALUES (?, ?, SYSDATE)",
+   keyColumn);
 	    preparedStatements.add(psInsertDirectory);
 
 
 	    if (dbType.equals(dbTypeMySQL))
-		psInsertConfiguration =
+		psInsertConfigurationVers =
 		    dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO Configurations " +
 		     "(releaseId,configDescriptor,parentDirId,config," +
 		     "version,created,creator,processName,description) " +
 		     "VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?)",keyColumn);
 	    else if (dbType.equals(dbTypeOracle))
-		psInsertConfiguration =
+		psInsertConfigurationVers =
 		    dbConnector.getConnection().prepareStatement
-		    ("INSERT INTO Configurations " +
-		     "(releaseId,configDescriptor,parentDirId,config," +
-		     "version,created,creator,processName,description) " +
-		     "VALUES (?, ?, ?, ?, ?, SYSDATE, ?, ?, ?)",
+		    ("INSERT INTO v_confversions " +
+		     "(id_config,version,id_release,name,id_parentDir,config," +
+		     "created,creator,processName,description) " +
+		     "VALUES (?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, ?)",
 		     keyColumn);
-	    preparedStatements.add(psInsertConfiguration);
+	    preparedStatements.add(psInsertConfigurationVers);
 	    
+            psFindConfiguration =
+              dbConnector.getConnection().prepareStatement
+                    ("SELECT id AS id_config FROM v_configurations WHERE name = ?");
+            preparedStatements.add(psFindConfiguration);
 	  
+	    psInsertConfiguration =
+               dbConnector.getConnection().prepareStatement
+                    ("INSERT INTO  v_configurations(name) VALUES(?)");
+            preparedStatements.add(psInsertConfiguration);
+
 	    psInsertConfigurationLock =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO LockedConfigurations (parentDirId,config,userName)" +
+		("INSERT INTO v_lockedconfs (parentDirId,config,userName)" +
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigurationLock);
 
-
+/*
 	    //Insert Event Content	       
 	    psInsertContents =
 		dbConnector.getConnection().prepareStatement
@@ -4932,12 +4989,12 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		psInsertSuperId = dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO SuperIds VALUES('')",keyColumn);
 	    preparedStatements.add(psInsertSuperId);
-
+*/
 	 
 	    psInsertGlobalPSet =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO ConfigurationParamSetAssoc " +
-		 "(configId,psetId,sequenceNb) " +
+		("INSERT INTO v_conf2gpset " +
+		 "(id_confver,id_gpset,ord) " +
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertGlobalPSet);
 	    
@@ -4945,69 +5002,69 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 
 	    psInsertEDSource =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO EDSources (superId,templateId) " +
-		 "VALUES(?, ?)");
+            ("INSERT INTO v_edsources (id_template) " +
+            "VALUES(?)",keyColumn);
 	    preparedStatements.add(psInsertEDSource);
 	 
 	    psInsertConfigEDSourceAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO " +
-		 "ConfigurationEDSourceAssoc (configId,edsourceId,sequenceNb) " +
-		 "VALUES(?, ?, ?)");
+  ("INSERT INTO " +
+   "v_conf2eds (id_confver,id_edsource,ord) " +
+   "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigEDSourceAssoc);
 	    
 
 	    psInsertESSource =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO " +
-		 "ESSources (superId,templateId,name) " +
-		 "VALUES(?, ?, ?)");
+  ("INSERT INTO " +
+   "v_essources (id_template,name) " +
+   "VALUES(?, ?)", keyColumn);
 	    preparedStatements.add(psInsertESSource);
 	    
 
 	    psInsertConfigESSourceAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO " +
-		 "ConfigurationESSourceAssoc " +
-		 "(configId,essourceId,sequenceNb,prefer) " +
-		 "VALUES(?, ?, ?, ?)");
+  ("INSERT INTO " +
+   "v_conf2ess " +
+   "(id_confver,id_essource,ord,prefer) " +
+   "VALUES(?, ?, ?, ?)");
 	    preparedStatements.add(psInsertConfigESSourceAssoc);
 
 	    psInsertESModule =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO " +
-		 "ESModules (superId,templateId,name) " +
-		 "VALUES(?, ?, ?)");
+  ("INSERT INTO " +
+   "v_esmodules (id_template,name) " +
+   "VALUES(?, ?)", keyColumn);
 	    preparedStatements.add(psInsertESModule);
 
 
 	    psInsertConfigESModuleAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO " +
-		 "ConfigurationESModuleAssoc " +
-		 "(configId,esmoduleId,sequenceNb,prefer) " +
-		 "VALUES(?, ?, ?, ?)");
+  ("INSERT INTO " +
+   "v_conf2esm " +
+   "(id_confver,id_esmodule,ord,prefer) " +
+   "VALUES(?, ?, ?, ?)");
 	    preparedStatements.add(psInsertConfigESModuleAssoc);
 	    
 	
 	    
 	    psInsertService =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO " +
-		 "Services (superId,templateId) " +
-		 "VALUES(?, ?)");
+  ("INSERT INTO " +
+   "v_services (id_template) " +
+   "VALUES(?)", keyColumn);
 	    preparedStatements.add(psInsertService);
 
 	    psInsertConfigServiceAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO " +
-		 "ConfigurationServiceAssoc (configId,serviceId,sequenceNb) " +
-		 "VALUES(?, ?, ?)");
+  ("INSERT INTO " +
+   "v_conf2srv (id_confver,id_service,ord) " +
+   "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigServiceAssoc);
 
 	
 
-	    psInsertPath =
+/*	    psInsertPath =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO Paths (name,isEndPath) " +
 		 "VALUES(?, ?)",keyColumn);
@@ -5089,37 +5146,38 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		("INSERT INTO SuperIdReleaseAssoc (superId,releaseId) " +
 		 "VALUES(?, ?)");
 	    preparedStatements.add(psInsertSuperIdReleaseAssoc);
+*/
 	    
 	    psInsertServiceTemplate =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO ServiceTemplates (superId,name,cvstag) " +
-		 "VALUES (?, ?, ?)");
+ ("INSERT INTO v_srvtemplates (id_pkg,name,cvstag) " +
+   "VALUES (?, ?, ?)", keyColumn);
 	    preparedStatements.add(psInsertServiceTemplate);
 	    
 	    psInsertEDSourceTemplate =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO EDSourceTemplates (superId,name,cvstag) " +
-		 "VALUES (?, ?, ?)");
+  ("INSERT INTO v_edstemplates (id_pkg,name,cvstag) " +
+   "VALUES (?, ?, ?)", keyColumn);
 	    preparedStatements.add(psInsertEDSourceTemplate);
 	    
 	    psInsertESSourceTemplate =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO ESSourceTemplates (superId,name,cvstag) " +
-		 "VALUES (?, ?, ?)");
+  ("INSERT INTO v_esstemplates (pkg_id,name,cvstag) " +
+   "VALUES (?, ?, ?)", keyColumn);
 	    preparedStatements.add(psInsertESSourceTemplate);
 	    
 	    psInsertESModuleTemplate =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO ESModuleTemplates (superId,name,cvstag) " +
-		 "VALUES (?, ?, ?)");
+  ("INSERT INTO v_moduletemplates (id_pkg,id_mtype,name,cvstag) " +
+   "VALUES (?, ?, ?, ?)", keyColumn);
 	    preparedStatements.add(psInsertESModuleTemplate);
 	    
-	    psInsertModuleTemplate =
+/*	    psInsertModuleTemplate =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO ModuleTemplates (superId,typeId,name,cvstag) " +
 		 "VALUES (?, ?, ?, ?)");
 	    preparedStatements.add(psInsertModuleTemplate);
-	    
+*/	    
 	    psInsertParameterSet =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO ParameterSets(superId,name,tracked) " +
@@ -5132,11 +5190,17 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertVecParameterSet);
 
-	    psInsertParameter =
+	    psInsertGPset =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO Parameters (paramTypeId,name,tracked) " +
-		 "VALUES(?, ?, ?)",keyColumn);
-	    preparedStatements.add(psInsertParameter);
+		("INSERT INTO v_globalpsets (name,tracked) " +
+		 "VALUES(?, ?)",keyColumn);
+	    preparedStatements.add(psInsertGPset);
+	    
+	    psInsertParameterGPset =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO Parameters (id_gpset,moetype,name,lvl,tracked,paramtype,ord,value,valuelob,hex) " +
+		 "VALUES(?, 1, ?, ?, ?, ?, ?, ?, ?, ?)",keyColumn);
+	    preparedStatements.add(psInsertParameterGPset);
 	    
 	    psInsertSuperIdParamSetAssoc =
 		dbConnector.getConnection().prepareStatement
@@ -5268,35 +5332,37 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		("INSERT INTO VInputTagParamValues (paramId,sequenceNb,value) " +
 		 "VALUES (?, ?, ?)");
 	    preparedStatements.add(psInsertVInputTagParamValue);
-
+*/
 	    
 	    //
 	    // DELETE
 	    //
 	    
+
 	    psDeleteDirectory =
 		dbConnector.getConnection().prepareStatement
-		("DELETE FROM Directories WHERE dirId=?");
+("DELETE FROM v_directories WHERE id=?");
 	    preparedStatements.add(psDeleteDirectory);
 
 	    psDeleteLock =
 		dbConnector.getConnection().prepareStatement
-		("DELETE FROM LockedConfigurations " +
-		 "WHERE parentDirId=? AND config=?");
-	    preparedStatements.add(psDeleteLock);
+		("DELETE FROM v_lockedconfs " +
+		 "WHERE id_parentdir=? AND id_config=?");
+            preparedStatements.add(psDeleteLock);
 
 	    psDeleteConfiguration =
 		dbConnector.getConnection().prepareStatement
-		("DELETE FROM CONFIGURATIONS " +
-		 "WHERE configId = ?");
+  ("DELETE FROM v_confversions " +
+   "WHERE id = ?");
 	    preparedStatements.add(psDeleteConfiguration);
 	    
 	    psDeleteSoftwareRelease =
 		dbConnector.getConnection().prepareStatement
-		("DELETE FROM SOFTWARERELEASES " +
-		 "WHERE releaseId = ?");
+  ("DELETE FROM v_softreleases " +
+   "WHERE id = ?");
 	    preparedStatements.add(psDeleteSoftwareRelease);
 	    
+/*
 	    psDeletePSetsFromConfig =
 		dbConnector.getConnection().prepareStatement
 		("DELETE FROM ConfigurationParamSetAssoc "+
@@ -5308,32 +5374,33 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    			"DELETE FROM	ConfigurationContentAssoc	"	+
 	    			"WHERE configId = ?"							);
 	    preparedStatements.add(psDeleteContentFromConfig);
+*/
 	    
 	    psDeleteEDSourcesFromConfig =
 		dbConnector.getConnection().prepareStatement
-		("DELETE FROM ConfigurationEDSourceAssoc "+
-		 "WHERE configId=?");
+  ("DELETE FROM v_conf2eds "+
+   "WHERE id_confver=?");
 	    preparedStatements.add(psDeleteEDSourcesFromConfig);
 	    
 	    psDeleteESSourcesFromConfig =
 		dbConnector.getConnection().prepareStatement
-		("DELETE FROM ConfigurationESSourceAssoc "+
-		 "WHERE configId=?");
+  ("DELETE FROM v_conf2ess "+
+   "WHERE id_confver=?");
 	    preparedStatements.add(psDeleteESSourcesFromConfig);
 	    
 	    psDeleteESModulesFromConfig =
 		dbConnector.getConnection().prepareStatement
-		("DELETE FROM ConfigurationESModuleAssoc "+
-		 "WHERE configId=?");
+  ("DELETE FROM v_conf2esm "+
+   "WHERE id_confver=?");
 	    preparedStatements.add(psDeleteESModulesFromConfig);
 	    
 	    psDeleteServicesFromConfig =
 		dbConnector.getConnection().prepareStatement
-		("DELETE FROM ConfigurationServiceAssoc "+
-		 "WHERE configId=?");
+  ("DELETE FROM v_conf2srv "+
+   "WHERE id_confver=?");
 	    preparedStatements.add(psDeleteServicesFromConfig);
 	    
-	    psDeleteSequencesFromConfig =
+/*	    psDeleteSequencesFromConfig =
 		dbConnector.getConnection().prepareStatement
 		("DELETE FROM ConfigurationSequenceAssoc "+
 		 "WHERE configId=?");
@@ -5582,6 +5649,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		 " lvl," +
 		 " value," +
 		 " valuelob, " +
+                 " hex, " +
 		 " stamp " +
 		 " FROM tmp_parameter_table order by stamp");  
 	    psSelectParametersTemplates.setFetchSize(4096);
@@ -5589,24 +5657,24 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 
            psSelectParameters =
                 dbConnector.getConnection().prepareStatement
-                ("Select * from (Select * from (SELECT a.id+1000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_edsource+1000000, a.lvl,  a.value,  a.valuelob from V_EDSELEMENTS a, V_CONF2EDS c " +
+                ("Select * from (Select * from (SELECT a.id+1000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_edsource+1000000, a.lvl,  a.value,  a.valuelob, a.hex  from V_EDSELEMENTS a, V_CONF2EDS c " +
 		" where c.ID_CONFVER=? and c.ID_EDSOURCE=a.ID_edsource order by id ) " +
 		" UNION ALL " +
-		"Select * from (SELECT a.id+2000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_essource+2000000, a.lvl,  a.value,  a.valuelob from V_ESSELEMENTS a, V_CONF2ESS c " +
+		"Select * from (SELECT a.id+2000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_essource+2000000, a.lvl,  a.value,  a.valuelob , a.hex from V_ESSELEMENTS a, V_CONF2ESS c " +
 		" where c.ID_CONFVER=? and c.ID_ESSOURCE=a.ID_essource order by id ) " +
 		" UNION ALL " + 
 //		"Select * from (SELECT a.id, a.paramtype, a.name, a.tracked, a.ord,a.id_pae, a.lvl,  a.value,  a.valuelob from V_MOELEMENTS a, V_PAELEMENTS b, V_PATHID2CONF c " +
 //		" where c.ID_CONFVER=? and c.ID_PATHID=b.ID_PATHID and a.id_pae=b.id order by a.id ) " +
 //		" UNION ALL " + 
-                " select id,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob from (select sa.*, h_moelements.valuelob from (select  distinct h_moelements.id, h_moelements.paramtype, h_moelements.name, h_moelements.tracked, h_pae2moe.ord,h_pastruct.id_pae,  h_pae2moe.lvl as lvl,  h_moelements.value,h_pae2moe.id as pae2id  from h_moelements, h_pae2moe, h_pastruct  where h_moelements.id = h_pae2moe.id_moe AND h_pastruct.id_pae = h_pae2moe.id_pae AND  h_pastruct.id  IN (SELECT h_pastruct.id FROM h_pastruct,h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pathid2conf.id_confver=?) order by h_pae2moe.id) sa, h_moelements where sa.id=h_moelements.id) " +
+                " select id,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (select sa.*, h_moelements.valuelob,h_moelements.hex from (select  distinct h_moelements.id, h_moelements.paramtype, h_moelements.name, h_moelements.tracked, h_pae2moe.ord,h_pastruct.id_pae,  h_pae2moe.lvl as lvl,  h_moelements.value,h_pae2moe.id as pae2id  from h_moelements, h_pae2moe, h_pastruct  where h_moelements.id = h_pae2moe.id_moe AND h_pastruct.id_pae = h_pae2moe.id_pae AND  h_pastruct.id  IN (SELECT h_pastruct.id FROM h_pastruct,h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pathid2conf.id_confver=?) order by h_pae2moe.id) sa, h_moelements where sa.id=h_moelements.id) " +
 		" UNION ALL " + 
-		"Select * from (SELECT a.id+4000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_service+4000000, a.lvl,  a.value,  a.valuelob from V_SRVELEMENTS a, V_CONF2SRV c " +
+		"Select * from (SELECT a.id+4000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_service+4000000, a.lvl,  a.value,  a.valuelob, a.hex from V_SRVELEMENTS a, V_CONF2SRV c " +
 		" where c.ID_CONFVER=? and c.ID_SERVICE=a.ID_Service order by id )" +
 		" UNION ALL " + 
-		"Select * from (SELECT a.id+3000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_esmodule+3000000, a.lvl,  a.value,  a.valuelob from V_ESMELEMENTS a, V_CONF2ESM c " +
+		"Select * from (SELECT a.id+3000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_esmodule+3000000, a.lvl,  a.value,  a.valuelob, a.hex from V_ESMELEMENTS a, V_CONF2ESM c " +
 		" where c.ID_CONFVER=? and c.ID_esmodule=a.ID_esmodule order by id ) " +
 		" UNION ALL " + 
-                " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,v_streamids.id_stream+5000000, a.lvl,  a.value,  a.valuelob from v_outmelements a,v_pathid2conf,v_pathid2outm,v_streamids where a.id_streamid=v_streamids.id  AND v_streamids.id=v_pathid2outm.id_streamid and v_pathid2outm.id_pathid=v_pathid2conf.id_pathid AND v_pathid2conf.id_confver = ? order by id) )");
+                " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,v_streamids.id_stream+5000000, a.lvl,  a.value,  a.valuelob, a.hex from v_outmelements a,v_pathid2conf,v_pathid2outm,v_streamids where a.id_streamid=v_streamids.id  AND v_streamids.id=v_pathid2outm.id_streamid and v_pathid2outm.id_pathid=v_pathid2conf.id_pathid AND v_pathid2conf.id_confver = ? order by id) )");
 	    psSelectParameters.setFetchSize(8192);
 	    preparedStatements.add(psSelectParameters);
 	    
@@ -5742,67 +5810,67 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		    preparedStatements.add(psSelectSequenceEntriesAndOperator);
 		
 
-/*	    //Insert a new relesase
+	    //Insert a new relesase
 	    psInsertReleaseTag = 
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO SoftwareReleases " +
-		  " (releaseTag)  VALUES (?)",keyColumn);
+  ("INSERT INTO v_softreleases " +
+    " (releaseTag)  VALUES (?)",keyColumn);
 	     psInsertReleaseTag .setFetchSize(1024);
 	    preparedStatements.add( psInsertReleaseTag );
 
 	    psSelectSoftwareSubsystemId = 	
 		dbConnector.getConnection().prepareStatement
-		("SELECT subsysId " +
-		 "FROM SoftwareSubsystems "+
-		 "WHERE name = ?");
+  ("SELECT id " +
+   "FROM v_softsubsystems "+
+   "WHERE name = ?");
 	    psSelectSoftwareSubsystemId.setFetchSize(1024);
 	    preparedStatements.add(psSelectSoftwareSubsystemId);
 
 	    psInsertSoftwareSubsystem = 	
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO SoftwareSubsystems "+
-		 " (name) VALUES (?)",keyColumn);
+  ("INSERT INTO v_softsubsystems "+
+   " (name) VALUES (?)",keyColumn);
 	    preparedStatements.add(psInsertSoftwareSubsystem);
 	    
 	    psSelectSoftwarePackageId = 	
 		dbConnector.getConnection().prepareStatement
-		("SELECT packageId " +
-		 "FROM SoftwarePackages "+
-		 "WHERE subsysId = ? AND name = ? ");
+  ("SELECT id " +
+   "FROM v_softpackages "+
+   "WHERE id_subs = ? AND name = ? ");
 	    psSelectSoftwarePackageId.setFetchSize(1024);
 	    preparedStatements.add(psSelectSoftwarePackageId);
 	    
 	    psInsertSoftwarePackage = 	
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO SoftwarePackages "+
-		 " (subsysId, name) VALUES (?,?)",keyColumn);
+  ("INSERT INTO v_softpackages "+
+   " (id_subs, name) VALUES (?,?)",keyColumn);
 	    preparedStatements.add(psInsertSoftwarePackage);
 
 	    psInsertEDSourceTemplateRelease = 
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO EDSourceTemplates "+
-		 " (superId, name, CVSTAG,packageId) VALUES (?,?,?,?)");
+  ("INSERT INTO v_edstemplates "+
+   " (id_pkg, name, CVSTAG) VALUES (?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertEDSourceTemplateRelease);
 
 	    psInsertESSourceTemplateRelease = 
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO ESSourceTemplates "+
-		 " (superId, name, CVSTAG,packageId) VALUES (?,?,?,?)");
+  ("INSERT INTO v_esstemplates "+
+   " (id_pkg, name, CVSTAG,) VALUES (?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertESSourceTemplateRelease);
 
 	    
 	    psInsertESModuleTemplateRelease = 
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO ESModuleTemplates "+
-		 " (superId, name, CVSTAG,packageId) VALUES (?,?,?,?)");
+  ("INSERT INTO v_esmtemplates "+
+   " (ik_pkg, name, CVSTAG) VALUES (?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertESModuleTemplateRelease);
 
 	    psInsertServiceTemplateRelease = 
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO ServiceTemplates "+
-		 " (superId, name, CVSTAG,packageId) VALUES (?,?,?,?)");
+  ("INSERT INTO v_srvtemplates "+
+   " (id_pkg, name, CVSTAG) VALUES (?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertServiceTemplateRelease);
-	    
+/*	    
 	    psInsertModuleTemplateRelease = 
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO ModuleTemplates "+
@@ -5853,6 +5921,9 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	paramTypeIdHashMap       = new HashMap<String,Integer>();
 	isVectorParamHashMap     = new HashMap<Integer,Boolean>();
 	insertParameterHashMap   = new HashMap<String,PreparedStatement>();
+        dbidParamHashMap	 = new HashMap<Integer,Integer>();
+        dbidTemplateHashMap	 = new HashMap<Integer,Integer>();
+        
 	
 	insertParameterHashMap.put("bool",      psInsertBoolParamValue);
 	insertParameterHashMap.put("int32",     psInsertInt32ParamValue);
@@ -5965,7 +6036,11 @@ if (pkg==null) System.out.println("pkg NULL!!!");
                 int     lvl      = rsParameters.getInt(7);
 
 
-             parameterId=++newpamid;
+             //parameterId=++newpamid;
+             //parameterId=++countingParamIds;
+             //dbidParamHashMap.put(parameterId,parameterId+newpamid);
+             dbidParamHashMap.put(parameterId,++countingParamIds);
+             parameterId=countingParamIds;
 
 	     if (name==null) name = "";
              if (name.contains("Empty name")) name="";
@@ -5980,10 +6055,13 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		//Long    value         = new Long(rsParameters.getLong(8));
 		boolean isHex         = false; //rsIntValues.getBoolean(4);
 		
+                if (rsParameters.getInt(10)>0) isHex=true;
+
 		String  valueAsString = rsParameters.getString(8);
 
-                  if (isHex) 
- 		    valueAsString= "0x"+valueAsString;
+                 if((isHex)&&(type.contains("64"))) valueAsString= "0x"+Long.toHexString(rsParameters.getLong(8));
+                 else if (isHex) 
+ 		    valueAsString= "0x"+Integer.toHexString(rsParameters.getInt(8));
               
                 Clob valueAsStringLOB = rsParameters.getClob(9);
                 if (valueAsStringLOB!=null)
@@ -6083,7 +6161,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
                 
 
                 int orparid=parentId;
-                //System.out.println("ParId "+parentId+" (origparid "+orparid+") parameterId "+parameterId+" type "+ type+" name "+name+" seqNb "+seqNb+" lvl"+lvl);
+                System.out.println("ParId "+parentId+" (origparid "+orparid+") parameterId "+parameterId+" type "+ type+" name "+name+" seqNb "+seqNb+" lvl"+lvl);
 
                         while (lvl<previouslvl) {
 				idlifo.pop();
@@ -6213,27 +6291,37 @@ if (pkg==null) System.out.println("pkg NULL!!!");
     }
     
     /** insert vpset into ParameterSets table */
-    private void insertVecParameterSet(int           superId,
+    private void insertVecParameterSet(int           parId,
 				       int            sequenceNb,
-				       VPSetParameter vpset)
+                                       int           lvl,
+				       VPSetParameter vpset,
+                                       PreparedStatement dbstmnt)
 	throws DatabaseException
     {
-	int      vpsetId = insertSuperId();
+	//int      vpsetId = insertSuperId();
 	ResultSet rs      = null;
 	try {
-	    psInsertVecParameterSet.setInt(1,vpsetId);
-	    psInsertVecParameterSet.setString(2,vpset.name());
-	    psInsertVecParameterSet.setBoolean(3,vpset.isTracked());
-	    psInsertVecParameterSet.addBatch();
+	    dbstmnt.setInt(1,parId);
+	    dbstmnt.setString(2,vpset.name());
+	    dbstmnt.setInt(3,lvl);
+	    dbstmnt.setBoolean(4,vpset.isTracked());
+	    dbstmnt.setString(5,"VPSet);
+            dbstmnt.setInt(6,sequenceNb);
+            dbstmnt.setString(7,"NULL");
+            dbstmnt.setString(8,"NULL");
+            dbstmnt.setString(9,"NULL");
+            //dbstmnt.setInt(10,crc32());
+
+	    dbstmnt.addBatch();
 	    
 	    for (int i=0;i<vpset.parameterSetCount();i++) {
 		PSetParameter pset = vpset.parameterSet(i);
-		insertParameterSet(vpsetId,i,pset);
+		insertParameterSet(vpsetId,i,lvl+1,pset,dbstmnt);
 	    }
 	}
 	catch (SQLException e) { 
 	    String errMsg =
-		"ConfDB::insertVecParameterSet(superId="+superId+
+		"ConfDB::insertVecParameterSet(parId="+parId+
 		",sequenceNb="+sequenceNb+",vpset="+vpset.name()+") failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -6241,41 +6329,55 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	finally {
 	    dbConnector.release(rs);
 	}
-	insertSuperIdVecParamSetAssoc(superId,vpsetId,sequenceNb);
+	//insertSuperIdVecParamSetAssoc(superId,vpsetId,sequenceNb);
     }
     
     /** insert pset into ParameterSets table */
-    private void insertParameterSet(int          superId,
+    private void insertParameterSet(int          parId,
 				    int           sequenceNb,
-				    PSetParameter pset)
+                                    int         lvl,
+				    PSetParameter pset,
+				    PreparedStatement dbstmnt)
 	throws DatabaseException
     {
-	int      psetId = insertSuperId();
+	//int      psetId = insertSuperId();
 	ResultSet rs = null;
 	try {
-	    psInsertParameterSet.setInt(1,psetId);
-	    psInsertParameterSet.setString(2,pset.name());
-	    psInsertParameterSet.setBoolean(3,pset.isTracked());
-	    psInsertParameterSet.addBatch();
-	    
+	    dbstmnt.setInt(1,parId);
+	    dbstmnt.setString(2,pset.name());
+	    dbstmnt.setInt(3,lvl);
+	    dbstmnt.setBoolean(4,pset.isTracked());
+	    dbstmnt.setString(5,"PSet");
+	    dbstmnt.setInt(6,sequenceNb);
+	    dbstmnt.setString(7,"NULL");
+	    dbstmnt.setString(8,"NULL");
+	    dbstmnt.setString(9,"NULL");
+	    //dbstmnt.setInt(10,crc32());
+             
+	    dbstmnt.executeUpdate();
+//	    rs=dbstmnt.getGeneratedKeys(); 
+//            rs.next();
+//            int psetId = rs.getInt(1);
+
+            
 	    for (int i=0;i<pset.parameterCount();i++) {
 		Parameter p = pset.parameter(i);
 		if (p instanceof PSetParameter) {
 		    PSetParameter ps = (PSetParameter)p;
-		    insertParameterSet(psetId,i,ps);
+		    insertParameterSet(parId,i,lvl+1,ps,dbstmnt);
 		}
 		else if (p instanceof VPSetParameter) {
 		    VPSetParameter vps = (VPSetParameter)p;
-		    insertVecParameterSet(psetId,i,vps);
+		    insertVecParameterSet(parId,i,lvl+1,vps,dbstmnt);
 		}
 		else {
-		    insertParameter(psetId,i,p);
+		    insertParameter(parId,i,lvl+1,p,dbstmnt);
 		}
 	    }
 	}
 	catch (SQLException e) { 
 	    String errMsg =
-		"ConfDB::insertParameterSet(superId="+superId+
+		"ConfDB::insertParameterSet(psetId="+psetId+
 		",sequenceNb="+sequenceNb+",pset="+pset.name()+") failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -6283,13 +6385,15 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	finally {
 	    dbConnector.release(rs);
 	}
-	insertSuperIdParamSetAssoc(superId,psetId,sequenceNb);
+//	insertSuperIdParamSetAssoc(superId,psetId,sequenceNb);
     }
     
     /** insert parameter into Parameters table */
-    private void insertParameter(int      superId,
+    private void insertParameter(int      parId,
 				 int       sequenceNb,
-				 Parameter parameter)
+				 int       lvl,
+				 Parameter parameter,
+                                 PreparedStatement dbstmnt)
 	throws DatabaseException
     {
 	int      paramId = 0;
@@ -6302,18 +6406,74 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		fileInPathParameter.setValue("' '");
 		}*/
 
-	    psInsertParameter.setInt(1,paramTypeIdHashMap
-				     .get(parameter.type()));
-	    psInsertParameter.setString(2,parameter.name());
-	    psInsertParameter.setBoolean(3,parameter.isTracked());
-	    psInsertParameter.executeUpdate();
-	    rs = psInsertParameter.getGeneratedKeys();
-	    rs.next();
-	    paramId = rs.getInt(1);
+	    dbstmnt.setInt(1,parId);
+	    dbstmnt.setString(2,parameter.name());
+	    dbstmnt.setInt(3,lvl);
+	    dbstmnt.setBoolean(4,parameter.isTracked());
+	    dbstmnt.setString(5,parameter.type);
+            dbstmnt.setInt(6,sequenceNb);
+
+            String value = "";
+
+            if (parameter instanceof VectorParameter) {
+                value="{ ";
+                VectorParameter vp = (VectorParameter)parameter;
+                for (int i=0;i<vp.vectorSize();i++) {
+                    if (vp instanceof VStringParameter) {
+                        value+=  " \"" + (String)vp.value(i) + "\" ";
+		    }
+                    else if (vp instanceof VUInt64Parameter) {
+                        value+= " "+(((BigInteger)vp.value(i)).longValue()).toString()+" ";
+                    } else if (vp instanceof VInputTagParameter) {
+                        if (((String) vp.value(i)).isEmpty()) value+=" \"\" ";
+                        else value+=" "+((String) vp.value(i))+" ";
+		    } else 
+                    {
+                        value +=" "+((String) vp.value(i))+" ";
+                    }
+                    if (i<vp.vectorSize()-1) { value +=",";}
+                    else {value +="}";}
+
+                    int hexo=0;
+                    if (vp instanceof VInt32Parameter) {
+                        VInt32Parameter vint32=(VInt32Parameter)vp;
+                        if (vint32.isHex(i)) hexo=1;
+                    } else if (vp instanceof VUInt32Parameter) {
+                        VUInt32Parameter vuint32=(VUInt32Parameter)vp;
+                        if (vuint32.isHex(i)) hexo=1;
+                    } else if (vp instanceof VInt64Parameter) {
+                        VInt64Parameter vint64=(VInt64Parameter)vp;
+                        if (vint64.isHex(i)) hexo=1;
+                    } else if (vp instanceof VUInt64Parameter) {
+                        VUInt64Parameter vuint64=(VUInt64Parameter)vp;
+                        if (vuint32.isHex(i)) hexo=1;
+                    }
+                        
+                 }
+             
+              	if (value.length()<4000) {
+                    dbstmnt.setString(7,value); 
+                    dbstmnt.setString(8,"NULL"); 
+              	} else {
+              	    dbstmnt.setString(7,"NULL");
+                    dbstmnt.setString(8,value); 
+              	}
+ 
+                    dbstmnt.setString(9,hexo); 
+             }
+             else {
+                ScalarParameter sp = (ScalarParameter)parameter;
+                if (sp instanceof StringParameter) {
+		  StringParameter string = "\""+(StringParameter)sp+"\"";
+                  dbstmnt.setString(7,string);
+                }
+  
+
+	     dbstmnt.executeUpdate();
 	}
 	catch (SQLException e) { 
 	    String errMsg =
-		"ConfDB::insertParameter(superId="+superId+",sequenceNb="+
+		"ConfDB::insertParameter(parId="+parId+",sequenceNb="+
 		sequenceNb+",parameter="+parameter.name()+") failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -6322,8 +6482,6 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    dbConnector.release(rs);
 	}
 	
-	insertSuperIdParamAssoc(superId,paramId,sequenceNb);
-	insertParameterValue(paramId,parameter);
     }
     
     /** associate parameter with the service/module superid */
