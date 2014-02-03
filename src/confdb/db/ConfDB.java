@@ -5723,6 +5723,9 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		"Select * from (SELECT a.id+3000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_esmodule+3000000, a.lvl,  a.value,  a.valuelob, a.hex from V_ESMELEMENTS a, V_CONF2ESM c " +
 		" where c.ID_CONFVER=? and c.ID_esmodule=a.ID_esmodule order by id ) " +
 		" UNION ALL " + 
+		"Select * from (SELECT a.id+6000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_gpset+6000000, a.lvl,  a.value,  a.valuelob, a.hex from V_GPSETELEMENTS a, V_CONF2GPSET c " +
+		" where c.ID_CONFVER=? and c.ID_gpset=a.ID_gpset order by id ) " +
+		" UNION ALL " + 
                 " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,v_streamids.id_stream+5000000, a.lvl,  a.value,  a.valuelob, a.hex from v_outmelements a,v_pathid2conf,v_pathid2outm,v_streamids where a.id_streamid=v_streamids.id  AND v_streamids.id=v_pathid2outm.id_streamid and v_pathid2outm.id_pathid=v_pathid2conf.id_pathid AND v_pathid2conf.id_confver = ? order by id) )");
 	    psSelectParameters.setFetchSize(8192);
 	    preparedStatements.add(psSelectParameters);
@@ -6054,6 +6057,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
             	psSelectParameters.setInt(4,configId);
             	psSelectParameters.setInt(5,configId);
             	psSelectParameters.setInt(6,configId);
+            	psSelectParameters.setInt(7,configId);
 	    	rsParameters    = psSelectParameters.executeQuery();
 	    //rsBooleanValues = psSelectBooleanValues.executeQuery();
 	    //rsIntValues     = psSelectIntValues.executeQuery();
