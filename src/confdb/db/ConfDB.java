@@ -214,6 +214,7 @@ public class ConfDB
     private PreparedStatement psInsertContentsConfigAssoc         = null;
     private PreparedStatement psInsertEventContentStatements      = null;
     private PreparedStatement psInsertStreams                     = null;
+    private PreparedStatement psInsertStreamsIds                     = null;
     private PreparedStatement psInsertPrimaryDatasets             = null;
     private PreparedStatement psInsertECStreamAssoc               = null;
     private PreparedStatement psInsertPathStreamPDAssoc           = null;
@@ -253,7 +254,15 @@ public class ConfDB
     private PreparedStatement psInsertESSourceTemplate            = null;
     private PreparedStatement psInsertESModuleTemplate            = null;
     private PreparedStatement psInsertModuleTemplate              = null;
-    private PreparedStatement psInsertParameter                   = null;
+    private PreparedStatement psInsertGPset 	                  = null;
+    private PreparedStatement psInsertParameterGPset              = null;
+    private PreparedStatement psInsertParameterEDS                = null;
+    private PreparedStatement psInsertParameterESS                = null;
+    private PreparedStatement psInsertParameterESM                = null;
+    private PreparedStatement psInsertParameterSRV                = null;
+    private PreparedStatement psInsertParameterMOE                = null;
+    private PreparedStatement psInsertParameterMODT               = null;
+    private PreparedStatement psInsertParameterOUTM               = null;
     private PreparedStatement psInsertParameterSet                = null;
     private PreparedStatement psInsertVecParameterSet             = null;
     private PreparedStatement psInsertSuperIdParamAssoc           = null;
@@ -2004,10 +2013,10 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		// first, insert the pset (constraint!)
 		psInsertGPset.setString(1,pset.name());
 		psInsertGPset.setBoolean(2,pset.isTracked());
-                psInsertGPset.executeUpdate(();
+                psInsertGPset.executeUpdate();
                 ResultSet rs=psInsertGPset.getGeneratedKeys();
                 rs.next();
-                int psetid=rs.getInt(1);
+                int psetId=rs.getInt(1);
 
  		
 		
@@ -2015,13 +2024,13 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		    Parameter p = pset.parameter(i);
 		    if (p instanceof PSetParameter) {
 			PSetParameter ps = (PSetParameter)p;
-			insertParameterSet(psetId,i,ps,psInsertParameterGPset);
+			insertParameterSet(psetId,i,0,ps,psInsertParameterGPset);
 		    }
 		    else if (p instanceof VPSetParameter) {
 			VPSetParameter vps = (VPSetParameter)p;
-			insertVecParameterSet(psetId,i,vps,psInsertParameterGPset);
+			insertVecParameterSet(psetId,i,0,vps,psInsertParameterGPset);
 		    }
-		    else insertParameter(psetId,i,p,psInsertParameterGPset);
+		    else insertParameter(psetId,i,0,p,psInsertParameterGPset);
 		}
 	    
 		// now, enter association to configuration
@@ -2064,7 +2073,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 			" templateId="+templateId+"): "+e.getMessage();
 		    throw new DatabaseException(errMsg,e);
 		}
-		insertInstanceParameters(edsourceId+1000000,edsource,"EDS");
+		insertInstanceParameters(edsourceId,edsource,psInsertParameterEDS);
 		edsource.setDatabaseId(edsourceId+1000000);
 	    }
             else edsourceId-=1000000;
@@ -2123,7 +2132,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 			e.getMessage();
 		    throw new DatabaseException(errMsg,e);
 		}
-		insertInstanceParameters(essourceId+2000000,essource,"ESS");
+		insertInstanceParameters(essourceId,essource,psInsertParameterESS);
 		essource.setDatabaseId(essourceId+2000000);
 	    }
             else essourceId-=2000000;
@@ -2184,7 +2193,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 			e.getMessage();
 		    throw new DatabaseException(errMsg,e);
 		}
-		insertInstanceParameters(esmoduleId+3000000,esmodule,"ESM");
+		insertInstanceParameters(esmoduleId,esmodule,psInsertParameterESM);
 		esmodule.setDatabaseId(esmoduleId+3000000);
 	    }
             else esmoduleId-=3000000;
@@ -2243,7 +2252,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 			e.getMessage();
 		    throw new DatabaseException(errMsg,e);
 		}
-		insertInstanceParameters(serviceId+4000000,service,"SRVC");
+		insertInstanceParameters(serviceId,service,psInsertParameterSRV);
 		service.setDatabaseId(serviceId+4000000);
 	    }
                 else serviceId-=4000000;
@@ -2473,7 +2482,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    IdInstancePair pair     = it.next();
 	    int            moduleId = pair.id;
 	    ModuleInstance module   = (ModuleInstance)pair.instance;
-	    insertInstanceParameters(moduleId,module,"MODU");
+	    insertInstanceParameters(moduleId,module,psInsertParameterMOE);
 	    module.setDatabaseId(moduleId);
 	}
 	
@@ -2842,16 +2851,19 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		continue;
 	    }
 	    try {
-		streamId = insertSuperId();
-		psInsertStreams.setInt(1,streamId);
-		psInsertStreams.setString(2,stream.name());
-		psInsertStreams.setDouble(3,stream.fractionToDisk());
+		psInsertStreams.setString(1,stream.name());
 		psInsertStreams.executeUpdate();
 		rs = psInsertStreams.getGeneratedKeys();
 		rs.next();
 		streamId = rs.getInt(1);
-		result.put(stream.name(),streamId);
+		psInsertStreamsIds.setInt(1,streamId);
+		psInsertStreamsIds.setDouble(2,stream.fractionToDisk());
+		psInsertStreamsIds.executeUpdate();
+		rs = psInsertStreamsIds.getGeneratedKeys();
+		rs.next();
+		streamId = rs.getInt(1);
 		stream.setDatabaseId(streamId);
+		result.put(stream.name(),streamId);
 	    }
 	    catch (SQLException e) {
 		String errMsg =
@@ -2869,14 +2881,14 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    if (!p.isDefault()) {
 		if (p instanceof VPSetParameter) {
 		    VPSetParameter vpset = (VPSetParameter)p;
-		    insertVecParameterSet(streamId,sequenceNb,vpset,"STREAMS");
+		    insertVecParameterSet(streamId,sequenceNb,0,vpset,psInsertParameterOUTM);
 		}
 		else if (p instanceof PSetParameter) {
 		    PSetParameter pset = (PSetParameter)p;
-		    insertParameterSet(streamId,sequenceNb,pset,"STREAMS");
+		    insertParameterSet(streamId,sequenceNb,0,pset,psInsertParameterOUTM);
 		}
 		else {
-		    insertParameter(streamId,sequenceNb,p,"STREAMS");
+		    insertParameter(streamId,sequenceNb,0,p,psInsertParameterOUTM);
 		}
 	    }
 	}
@@ -3073,7 +3085,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
     
 
     /** insert all instance parameters */
-    private void insertInstanceParameters(int superId,Instance instance,String dbtable)
+    private void insertInstanceParameters(int superId,Instance instance,PreparedStatement dbstmnt)
 	throws DatabaseException
     {
 	for(int sequenceNb=0;sequenceNb<instance.parameterCount();sequenceNb++){
@@ -3082,14 +3094,14 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    if (!p.isDefault()) {
 		if (p instanceof VPSetParameter) {
 		    VPSetParameter vpset = (VPSetParameter)p;
-		    insertVecParameterSet(superId,sequenceNb,vpset,dbtable);
+		    insertVecParameterSet(superId,sequenceNb,0,vpset,dbstmnt);
 		}
 		else if (p instanceof PSetParameter) {
 		    PSetParameter pset = (PSetParameter)p;
-		    insertParameterSet(superId,sequenceNb,pset,dbtable);
+		    insertParameterSet(superId,sequenceNb,0,pset,dbstmnt);
 		}
 		else {
-		    insertParameter(superId,sequenceNb,p,dbtable);
+		    insertParameter(superId,sequenceNb,0,p,dbstmnt);
 		}
 	    }
 	}
@@ -3939,7 +3951,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    try{
 		templateId = insertSuperId();
 		insertSuperIdReleaseAssoc(templateId,releaseId);
-		insertTemplateParameters(templateId,template);
+		insertTemplateParameters(templateId,template,psInsertParameterMODT);
 	    }catch (DatabaseException  e2) { 
 		e2.printStackTrace(); 
 	    } 
@@ -3991,21 +4003,21 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
     
     
     /** insert all instance parameters */
-    private void insertTemplateParameters(int superId,Template template,String dbtable)
+    private void insertTemplateParameters(int superId,Template template,PreparedStatement dbtable)
 	throws DatabaseException
     {
 	for(int sequenceNb=0;sequenceNb<template.parameterCount();sequenceNb++){
 	    Parameter p = template.parameter(sequenceNb);
 	    if (p instanceof VPSetParameter) {
 		VPSetParameter vpset = (VPSetParameter)p;
-		insertVecParameterSet(superId,sequenceNb,vpset,dbtable);
+		insertVecParameterSet(superId,sequenceNb,0,vpset,dbtable);
 	    }
 	    else if (p instanceof PSetParameter) {
 		PSetParameter pset = (PSetParameter)p;
-		insertParameterSet(superId,sequenceNb,pset,dbtable);
+		insertParameterSet(superId,sequenceNb,0,pset,dbtable);
 	    }
 	    else {
-		insertParameter(superId,sequenceNb,p,dbtable);
+		insertParameter(superId,sequenceNb,0,p,dbtable);
 	    }
 	}
     }
@@ -4939,13 +4951,20 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		 "VALUES(?,?,?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertEventContentStatements);
 
-	   
+*/	   
 	     psInsertStreams =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO Streams (streamId,streamLabel,fracToDisk)" +
-		 "VALUES(?,?,?)",keyColumn);
+		("INSERT INTO v_streams (name)" +
+		 "VALUES(?)",keyColumn);
 	    preparedStatements.add(psInsertStreams);
-    
+
+             psInsertStreamsIds =
+                dbConnector.getConnection().prepareStatement
+                ("INSERT INTO v_streamids (id_stream,streamid,fractodisk)" +
+                 "VALUES(?,-1,?)",keyColumn);
+            preparedStatements.add(psInsertStreamsIds);
+
+/*
 	    
 	    psInsertPrimaryDatasets =
 		dbConnector.getConnection().prepareStatement
@@ -5198,10 +5217,40 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    
 	    psInsertParameterGPset =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO Parameters (id_gpset,moetype,name,lvl,tracked,paramtype,ord,value,valuelob,hex) " +
-		 "VALUES(?, 1, ?, ?, ?, ?, ?, ?, ?, ?)",keyColumn);
+		("INSERT INTO v_gpsetelements (id_gpset,moetype,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id) " +
+		 "VALUES(?, 1, ?, ?, ?, ?, ?, ?, ?, ?,-1)",keyColumn);
 	    preparedStatements.add(psInsertParameterGPset);
 	    
+           psInsertParameterEDS =
+                dbConnector.getConnection().prepareStatement
+                ("INSERT INTO v_edselements (id_edsource,moetype,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id) " +
+                 "VALUES(?, 1, ?, ?, ?, ?, ?, ?, ?, ?, -1)",keyColumn);
+            preparedStatements.add(psInsertParameterEDS);
+
+           psInsertParameterESM =
+                dbConnector.getConnection().prepareStatement
+                ("INSERT INTO v_esmelements (id_esmodule,moetype,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id) " +
+                 "VALUES(?, 1, ?, ?, ?, ?, ?, ?, ?, ?, -1)",keyColumn);
+            preparedStatements.add(psInsertParameterESM);
+
+           psInsertParameterESS =
+                dbConnector.getConnection().prepareStatement
+                ("INSERT INTO v_esselements (id_essource,moetype,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id) " +
+                 "VALUES(?, 1, ?, ?, ?, ?, ?, ?, ?, ?, -1)",keyColumn);
+            preparedStatements.add(psInsertParameterESS);
+
+           psInsertParameterSRV =
+                dbConnector.getConnection().prepareStatement
+                ("INSERT INTO v_srvelements (id_service,moetype,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id) " +
+                 "VALUES(?, 1, ?, ?, ?, ?, ?, ?, ?, ?, -1)",keyColumn);
+            preparedStatements.add(psInsertParameterSRV);
+
+           psInsertParameterOUTM =
+                dbConnector.getConnection().prepareStatement
+                ("INSERT INTO v_outmelements (id_streamid,moetype,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id) " +
+                 "VALUES(?, 1, ?, ?, ?, ?, ?, ?, ?, ?, -1)",keyColumn);
+            preparedStatements.add(psInsertParameterOUTM);
+
 	    psInsertSuperIdParamSetAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO SuperIdParamSetAssoc (superId,psetId,sequenceNb) "+
@@ -5214,7 +5263,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		 "SuperIdVecParamSetAssoc (superId,vpsetId,sequenceNb) " +
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertSuperIdVecParamSetAssoc);
-	    
+/*	    
 	    psInsertSuperIdParamAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO SuperIdParameterAssoc (superId,paramId,sequenceNb) " +
@@ -6305,18 +6354,18 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    dbstmnt.setString(2,vpset.name());
 	    dbstmnt.setInt(3,lvl);
 	    dbstmnt.setBoolean(4,vpset.isTracked());
-	    dbstmnt.setString(5,"VPSet);
+	    dbstmnt.setString(5,"VPSet");
             dbstmnt.setInt(6,sequenceNb);
-            dbstmnt.setString(7,"NULL");
-            dbstmnt.setString(8,"NULL");
-            dbstmnt.setString(9,"NULL");
+            dbstmnt.setString(7,null);
+            dbstmnt.setString(8,null);
+            dbstmnt.setString(9,null);
             //dbstmnt.setInt(10,crc32());
 
 	    dbstmnt.addBatch();
 	    
 	    for (int i=0;i<vpset.parameterSetCount();i++) {
 		PSetParameter pset = vpset.parameterSet(i);
-		insertParameterSet(vpsetId,i,lvl+1,pset,dbstmnt);
+		insertParameterSet(parId,i,lvl+1,pset,dbstmnt);
 	    }
 	}
 	catch (SQLException e) { 
@@ -6349,9 +6398,9 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    dbstmnt.setBoolean(4,pset.isTracked());
 	    dbstmnt.setString(5,"PSet");
 	    dbstmnt.setInt(6,sequenceNb);
-	    dbstmnt.setString(7,"NULL");
-	    dbstmnt.setString(8,"NULL");
-	    dbstmnt.setString(9,"NULL");
+	    dbstmnt.setString(7,null);
+	    dbstmnt.setString(8,null);
+	    dbstmnt.setString(9,null);
 	    //dbstmnt.setInt(10,crc32());
              
 	    dbstmnt.executeUpdate();
@@ -6377,7 +6426,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	}
 	catch (SQLException e) { 
 	    String errMsg =
-		"ConfDB::insertParameterSet(psetId="+psetId+
+		"ConfDB::insertParameterSet(parId="+parId+
 		",sequenceNb="+sequenceNb+",pset="+pset.name()+") failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -6410,10 +6459,11 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    dbstmnt.setString(2,parameter.name());
 	    dbstmnt.setInt(3,lvl);
 	    dbstmnt.setBoolean(4,parameter.isTracked());
-	    dbstmnt.setString(5,parameter.type);
+	    dbstmnt.setString(5,parameter.type());
             dbstmnt.setInt(6,sequenceNb);
 
             String value = "";
+            int hexo=0;
 
             if (parameter instanceof VectorParameter) {
                 value="{ ";
@@ -6423,18 +6473,18 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
                         value+=  " \"" + (String)vp.value(i) + "\" ";
 		    }
                     else if (vp instanceof VUInt64Parameter) {
-                        value+= " "+(((BigInteger)vp.value(i)).longValue()).toString()+" ";
+                        Long vuint64=((BigInteger)vp.value(i)).longValue(); 
+                        value+= " "+vuint64.toString()+" ";
                     } else if (vp instanceof VInputTagParameter) {
                         if (((String) vp.value(i)).isEmpty()) value+=" \"\" ";
                         else value+=" "+((String) vp.value(i))+" ";
 		    } else 
                     {
-                        value +=" "+((String) vp.value(i))+" ";
+                        value +=" "+ (vp.value(i)).toString()+" ";
                     }
-                    if (i<vp.vectorSize()-1) { value +=",";}
+                    if (i<(vp.vectorSize()-1)) { value +=",";}
                     else {value +="}";}
 
-                    int hexo=0;
                     if (vp instanceof VInt32Parameter) {
                         VInt32Parameter vint32=(VInt32Parameter)vp;
                         if (vint32.isHex(i)) hexo=1;
@@ -6446,30 +6496,53 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
                         if (vint64.isHex(i)) hexo=1;
                     } else if (vp instanceof VUInt64Parameter) {
                         VUInt64Parameter vuint64=(VUInt64Parameter)vp;
-                        if (vuint32.isHex(i)) hexo=1;
+                        if (vuint64.isHex(i)) hexo=1;
                     }
                         
                  }
              
-              	if (value.length()<4000) {
-                    dbstmnt.setString(7,value); 
-                    dbstmnt.setString(8,"NULL"); 
-              	} else {
-              	    dbstmnt.setString(7,"NULL");
-                    dbstmnt.setString(8,value); 
-              	}
- 
-                    dbstmnt.setString(9,hexo); 
              }
              else {
                 ScalarParameter sp = (ScalarParameter)parameter;
                 if (sp instanceof StringParameter) {
-		  StringParameter string = "\""+(StringParameter)sp+"\"";
-                  dbstmnt.setString(7,string);
+		  	value = ((StringParameter)sp).valueAsString();
                 }
+                else if (sp instanceof FileInPathParameter) {
+                  	value =((FileInPathParameter)sp).valueAsString();
+                }
+                else if (sp instanceof UInt64Parameter) {
+                        Long vuint64=((BigInteger)sp.value()).longValue();
+                        value=vuint64.toString();
+                }
+                else {
+               		value = (String) sp.valueAsString();
+                }
+		if (sp instanceof Int32Parameter) {
+                    Int32Parameter int32=(Int32Parameter)sp;
+		    if (int32.isHex()) hexo=1;
+                } else if (sp instanceof UInt32Parameter) {
+                    UInt32Parameter uint32=(UInt32Parameter)sp;
+                    if (uint32.isHex()) hexo=1;
+                } else if (sp instanceof Int64Parameter) {
+                    Int64Parameter int64=(Int64Parameter)sp;
+                    if (int64.isHex()) hexo=1;
+                } else if (sp instanceof UInt64Parameter) {
+                    UInt64Parameter uint64=(UInt64Parameter)sp;
+                    if (uint64.isHex()) hexo=1;
+                }
+		
+              }
   
-
-	     dbstmnt.executeUpdate();
+              if (value.length()<4000) {
+                   dbstmnt.setString(7,value); 
+                   dbstmnt.setString(8,null); 
+              } else {
+              	    dbstmnt.setString(7,null);
+                    dbstmnt.setString(8,value); 
+              }
+ 
+              dbstmnt.setInt(9,hexo); 
+	      dbstmnt.executeUpdate();
 	}
 	catch (SQLException e) { 
 	    String errMsg =
