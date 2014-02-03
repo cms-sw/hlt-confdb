@@ -3861,12 +3861,12 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    psInsertModuleTemplate.executeBatch();*/
 	    
 	    // insert parameter bindings / values
-	    psInsertParameterSet.executeBatch();
-	    psInsertVecParameterSet.executeBatch();
+	    //psInsertParameterSet.executeBatch();
+	    //psInsertVecParameterSet.executeBatch();
 	    //psInsertGlobalPSet.executeBatch();
-	    psInsertSuperIdParamAssoc.executeBatch();
-	    psInsertSuperIdParamSetAssoc.executeBatch();
-	    psInsertSuperIdVecParamSetAssoc.executeBatch();
+	    //psInsertSuperIdParamAssoc.executeBatch();
+	    //psInsertSuperIdParamSetAssoc.executeBatch();
+	    //psInsertSuperIdVecParamSetAssoc.executeBatch();
 	    Iterator<PreparedStatement> itPS =
 		insertParameterHashMap.values().iterator();
 	    while (itPS.hasNext()) {
@@ -6108,6 +6108,9 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 
 		String  valueAsString = rsParameters.getString(8);
 
+                if (type.contains("v")) { //should handle vector hex representation
+                         valueAsString=rsParameters.getString(8);
+                } else
                  if((isHex)&&(type.contains("64"))) valueAsString= "0x"+Long.toHexString(rsParameters.getLong(8));
                  else if (isHex) 
  		    valueAsString= "0x"+Integer.toHexString(rsParameters.getInt(8));
@@ -6361,7 +6364,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
             dbstmnt.setString(9,null);
             //dbstmnt.setInt(10,crc32());
 
-	    dbstmnt.addBatch();
+	    dbstmnt.execute();
 	    
 	    for (int i=0;i<vpset.parameterSetCount();i++) {
 		PSetParameter pset = vpset.parameterSet(i);
@@ -6403,8 +6406,8 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    dbstmnt.setString(9,null);
 	    //dbstmnt.setInt(10,crc32());
              
-	    dbstmnt.executeUpdate();
-//	    rs=dbstmnt.getGeneratedKeys(); 
+	    dbstmnt.execute();
+	    //rs=dbstmnt.getGeneratedKeys(); 
 //            rs.next();
 //            int psetId = rs.getInt(1);
 
