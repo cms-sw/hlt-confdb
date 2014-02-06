@@ -45,6 +45,7 @@ public class MenuBar
     private static final String toolMenuPSEditor      = "Edit Prescales";
     private static final String toolMenuSPSEditor     = "Edit SmartPrescales";
     private static final String toolMenuMLEditor      = "Edit MessageLogger";
+    private static final String toolMenuJavaCode      = "Execute Java Code";
 
     /** menu bar item names: options */
     private static final String optionsMenuTrack      			= "Track InputTags";
@@ -80,8 +81,9 @@ public class MenuBar
     private JMenuItem toolMenuSmartRenamingItem = null;
     private JMenuItem toolMenuReplaceItem       = null;
     private JMenuItem toolMenuPSEditorItem      = null;
-    private JMenuItem toolMenuSPSEditorItem      = null;
+    private JMenuItem toolMenuSPSEditorItem     = null;
     private JMenuItem toolMenuMLEditorItem      = null;
+    private JMenuItem toolMenuJavaCodeItem      = null;
     
     private JCheckBoxMenuItem optionsMenuTrackItem = null;
     private JCheckBoxMenuItem optionsMenuEnablePathCloningItem = null;
@@ -130,6 +132,7 @@ public class MenuBar
 	toolMenuPSEditorItem.setEnabled(true);
 	toolMenuSPSEditorItem.setEnabled(true);
 	toolMenuMLEditorItem.setEnabled(true);
+	toolMenuJavaCodeItem.setEnabled(true);
 	optionsMenuTrackItem.setEnabled(true);
 	optionsMenuEnablePathCloningItem.setEnabled(true);
 	dbMenuExportItem.setEnabled(true);
@@ -153,6 +156,7 @@ public class MenuBar
 	toolMenuPSEditorItem.setEnabled(false);
 	toolMenuSPSEditorItem.setEnabled(false);
 	toolMenuMLEditorItem.setEnabled(false);
+	toolMenuJavaCodeItem.setEnabled(false);
 	optionsMenuTrackItem.setEnabled(false);
 	optionsMenuEnablePathCloningItem.setEnabled(false);
 	dbMenuExportItem.setEnabled(false);
@@ -297,6 +301,10 @@ public class MenuBar
 	toolMenuMLEditorItem.setActionCommand(toolMenuMLEditor);
 	toolMenuMLEditorItem.addActionListener(listener);
 	toolMenu.add(toolMenuMLEditorItem);
+	toolMenuJavaCodeItem = new JMenuItem(toolMenuJavaCode,KeyEvent.VK_J);
+	toolMenuJavaCodeItem.setActionCommand(toolMenuJavaCode);
+	toolMenuJavaCodeItem.addActionListener(listener);
+	toolMenu.add(toolMenuJavaCodeItem);
 	
 
 

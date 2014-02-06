@@ -1,3 +1,7 @@
+2014-02-06 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-05
+        * add functionality to execute java code to directly manipulate the config
+
 2013-11-28 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-07-04
         * enable editing of path's prescales in upper-right panel (path view)

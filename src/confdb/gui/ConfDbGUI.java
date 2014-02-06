@@ -1044,6 +1044,15 @@ public class ConfDbGUI
     }
 
  	
+    /** execute Java Code to manipulate Config */
+    public void openJavaCodeExecution()
+    {
+ 	JavaCodeExecution execute = new JavaCodeExecution(currentConfig);
+	execute.execute();
+
+    }
+
+ 	
     /** add untracked parameter to the currently active component */
     public void addUntrackedParameter()
     {
