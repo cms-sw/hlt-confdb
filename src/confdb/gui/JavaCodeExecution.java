@@ -109,6 +109,7 @@ public class JavaCodeExecution
 			    pset.removeParameter(params[k]);
 			    pset.addParameter(parameter);
 			}
+			module.setHasChanged();
 		    }
 		}
 		// Remove all deprecated ESProducers
