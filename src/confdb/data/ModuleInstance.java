@@ -147,6 +147,17 @@ public class ModuleInstance extends Instance implements Referencable
 						   tmp.valueAsString());
 			}
 		    }
+		    else if (p instanceof ESInputTagParameter) {
+			ESInputTagParameter esinputTag = (ESInputTagParameter)p;
+			if (esinputTag.data().equals(oldName)) {
+			    ESInputTagParameter tmp =
+				(ESInputTagParameter)esinputTag.clone(null);
+			    tmp.setData(name());
+			    module.updateParameter(esinputTag.fullName(),
+						   esinputTag.type(),
+						   tmp.valueAsString());
+			}
+		    }
 		    else if (p instanceof VInputTagParameter) {
 			VInputTagParameter vInputTag = (VInputTagParameter)p;
 			VInputTagParameter tmp =
@@ -164,6 +175,25 @@ public class ModuleInstance extends Instance implements Referencable
 			}
 			module.updateParameter(vInputTag.fullName(),
 					       vInputTag.type(),
+					       tmp.valueAsString());
+		    }
+		    else if (p instanceof VESInputTagParameter) {
+			VESInputTagParameter vESInputTag = (VESInputTagParameter)p;
+			VESInputTagParameter tmp =
+			    (VESInputTagParameter)vESInputTag.clone(null);
+			for (int i=0;i<tmp.vectorSize();i++) {
+			    ESInputTagParameter ESinputTag = 
+				new ESInputTagParameter("",
+						      tmp.value(i)
+						      .toString(),
+						      false);
+			    if (ESinputTag.data().equals(oldName)) {
+				ESinputTag.setData(name());
+				tmp.setValue(i,ESinputTag.valueAsString());
+			    }
+			}
+			module.updateParameter(vESInputTag.fullName(),
+					       vESInputTag.type(),
 					       tmp.valueAsString());
 		    }
 		}
