@@ -886,9 +886,9 @@ public class JPythonParser
 
     /* Note:
      * an ESInputTag could either be split in
-     *   'data', 'module'
+     *   'module', 'data'
      * or left as a single string
-     *   'data:module'
+     *   'module:data'
      */
 
     /* Note:

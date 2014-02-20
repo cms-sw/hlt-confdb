@@ -111,8 +111,8 @@ public class VESInputTagParameter extends VectorParameter
     /** i-th value of a vector type parameter */
     public Object value(int i) { return values.get(i).toString(); }
 
-    public String data(int i) { return values.get(i).data(); }
     public String module(int i) { return values.get(i).module(); }
+    public String data(int i) { return values.get(i).data(); }
 
     /** set i-th value of a vector-type parameter */
     public boolean setValue(int i,String valueAsString)
@@ -150,11 +150,11 @@ class ESInputTag implements Serializable
     // member data
     //
     
-    /** data */
-    private String data    = null;
-
-    /** instance */
+    /** module label */
     private String module = null;
+
+    /** data label */
+    private String data    = null;
 
 
 
@@ -163,10 +163,10 @@ class ESInputTag implements Serializable
     //
 
     /** standard constructor */
-    public ESInputTag(String data,String module)
+    public ESInputTag(String module,String data)
     {
-	this.data    = data;
 	this.module = module;
+	this.data   = data;
     }
     
     /** constructor from string */
@@ -176,14 +176,14 @@ class ESInputTag implements Serializable
 	    (valueAsString.startsWith("\"")&&valueAsString.endsWith("\"")))
 	    valueAsString = valueAsString.substring(1,valueAsString.length()-1);
 	data    = "";
-	module = "";
+	module  = "";
 	String[] strValues = valueAsString.split(":");
 	if (strValues.length>0&&strValues.length<3) {
-	    data = strValues[0];
-	    if (strValues.length>1) module = strValues[1];
+	    module = strValues[0];
+	    if (strValues.length>1) data = strValues[1];
 	}
 	else throw new DataException("ESInputTag format is " +
-				     "<data>[:<module>]");
+				     "<module>[:<data>]");
     }
     
 
@@ -191,15 +191,15 @@ class ESInputTag implements Serializable
     // member functions
     //
 
-    public String data() {return data;}
     public String module() {return module;}
+    public String data() {return data;}
 
     /** overload toString() */
     public String toString()
     {
-	String result = data;
-	if (module.length()>0) {
-	    result += ":" + module;
+	String result = module;
+	if (data.length()>0) {
+	    result += ":" + data;
 	}
 	return result;
     }

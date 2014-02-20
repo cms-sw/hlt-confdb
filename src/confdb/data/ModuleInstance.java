@@ -149,10 +149,10 @@ public class ModuleInstance extends Instance implements Referencable
 		    }
 		    else if (p instanceof ESInputTagParameter) {
 			ESInputTagParameter esinputTag = (ESInputTagParameter)p;
-			if (esinputTag.data().equals(oldName)) {
+			if (esinputTag.module().equals(oldName)) {
 			    ESInputTagParameter tmp =
 				(ESInputTagParameter)esinputTag.clone(null);
-			    tmp.setData(name());
+			    tmp.setModule(name());
 			    module.updateParameter(esinputTag.fullName(),
 						   esinputTag.type(),
 						   tmp.valueAsString());
@@ -187,8 +187,8 @@ public class ModuleInstance extends Instance implements Referencable
 						      tmp.value(i)
 						      .toString(),
 						      false);
-			    if (ESinputTag.data().equals(oldName)) {
-				ESinputTag.setData(name());
+			    if (ESinputTag.module().equals(oldName)) {
+				ESinputTag.setModule(name());
 				tmp.setValue(i,ESinputTag.valueAsString());
 			    }
 			}

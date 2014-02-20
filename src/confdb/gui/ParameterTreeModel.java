@@ -172,15 +172,14 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 	} else if (column==1) {
 	    boolean ok = true;
 	    String label = null;
-	    String data  = null;
 	    if (p.type().equals("InputTag")) {
 		InputTagParameter it = (InputTagParameter)p;
 		label = it.label()==null ? "" : it.label();
 		ok = ( (label.equals("")) || (label.equals("rawDataCollector")) || (label.equals("source")) || (config.module(label)!=null) );
 	    } else if (p.type().equals("ESInputTag")) {
 		ESInputTagParameter it = (ESInputTagParameter)p;
-		data = it.data()==null ? "" : it.data();
-		ok = ( (data.equals("")) || (config.module(data)!=null) );
+		label = it.module()==null ? "" : it.module();
+		ok = ( (label.equals("")) || (config.essource(label)!=null) || (config.esmodule(label)!=null) );
 	    } else if (p.type().equals("VInputTag")) {
 		VInputTagParameter vit = (VInputTagParameter)p;
 		for (int i=0; i<vit.vectorSize(); i++) {
@@ -191,8 +190,8 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 	    } else if (p.type().equals("VESInputTag")) {
 		VESInputTagParameter vit = (VESInputTagParameter)p;
 		for (int i=0; i<vit.vectorSize(); i++) {
-		    data = vit.data(i)==null ? "" : vit.data(i);
-		    ok = ( (data.equals("")) || (config.module(data)!=null) );
+		    label = vit.module(i)==null ? "" : vit.module(i);
+		    ok = ( (label.equals("")) || (config.essource(label)!=null) || (config.esmodule(label)!=null) );
 		    if (!ok) break;
 		}
 	    }

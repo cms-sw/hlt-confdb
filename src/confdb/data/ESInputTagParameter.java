@@ -16,11 +16,11 @@ public class ESInputTagParameter extends ScalarParameter
     /** parameter type string */
     private static final String type = "ESInputTag";
     
-    /** first value: data */
-    private String data = null;
-    
-    /** second value: module */
+    /** first value: module label */
     private String module = null;
+    
+    /** second value: data label */
+    private String data = null;
     
     
     
@@ -30,14 +30,14 @@ public class ESInputTagParameter extends ScalarParameter
 
     /** standard constructor */
     public ESInputTagParameter(String name,
-			     String data,String module,
-			     boolean isTracked)
+			       String module, String data,
+			       boolean isTracked)
     {
 	super(name,isTracked);
-	isValueSet = (data!=null&&module!=null);
+	isValueSet = (module!=null&&data!=null);
 	if (isValueSet) {
-	    this.data    = new String(data);
 	    this.module = new String(module);
+	    this.data   = new String(data);
 	}
     }
     
@@ -57,7 +57,7 @@ public class ESInputTagParameter extends ScalarParameter
     public Parameter clone(Object parent)
     {
 	ESInputTagParameter result =
-	    new ESInputTagParameter(name,data,module,isTracked);
+	    new ESInputTagParameter(name,module,data,isTracked);
 	result.setParent(parent);
 	return result;
     }
@@ -71,20 +71,19 @@ public class ESInputTagParameter extends ScalarParameter
 	return (isValueSet) ? valueAsString() : null;
     }
     
-    /** get data */
-    public String data() { return data; }
-
     /** get module */
     public String module() { return module; }
 
+    /** get data */
+    public String data() { return data; }
     
     /** retrieve the value of the parameter as a string */
     public String valueAsString()
     {
 	if (isValueSet) {
-	    String result = data;
-	    if (module.length()>0)
-		result += ":" + module;
+	    String result = module;
+	    if (data.length()>0)
+		result += ":" + data;
 	    if (result.equals(new String())) result = "\"\"";
 	    return result;
 	}
@@ -96,8 +95,8 @@ public class ESInputTagParameter extends ScalarParameter
     {
 	if (valueAsString==null||valueAsString.length()==0) {
 	    isValueSet = false;
-	    data      = null;
-	    module   = null;
+	    module     = null;
+	    data       = null;
 	}
 	else {
 	    if ((valueAsString.startsWith("'") &&valueAsString.endsWith("'"))||
@@ -106,19 +105,18 @@ public class ESInputTagParameter extends ScalarParameter
 	    
 	    String[] strValues = valueAsString.split(":");
 	    if (strValues.length==0||strValues.length>3) return false;
-	    data = strValues[0];
-	    if (strValues.length>1) module = strValues[1];
-	    else module = "";
+	    module = strValues[0];
+	    if (strValues.length>1) data = strValues[1];
+	    else data = "";
 	    isValueSet = true;
 	}
 	return true;
     }
 
     /** set data */
-    public void setData(String data) { this.data = data; }
-    
-    /** set data */
     public void setModule(String module) { this.module = module; }
 
-
+    /** set data */
+    public void setData(String data) { this.data = data; }
+    
 }
