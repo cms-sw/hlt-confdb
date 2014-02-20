@@ -130,6 +130,16 @@ public class VPSetParameter extends Parameter
 	return result;
     }
 
+    /** number of unresolved ESInputTag parameters in vpset */
+    public int unresolvedESInputTagCount(IConfiguration config)
+    {
+	int result = 0;
+	for (PSetParameter pset : parameterSets) {
+	    result += pset.unresolvedESInputTagCount(config);
+	}
+	return result;
+    }
+
     /** number of parameter set entries */
     public int parameterSetCount() { return parameterSets.size(); }
 

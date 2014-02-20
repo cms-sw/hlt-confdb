@@ -118,5 +118,14 @@ public class ESInputTagParameter extends ScalarParameter
 
     /** set data */
     public void setData(String data) { this.data = data; }
-    
+
+    /** unresolved ESInputTags */
+    public int unresolvedESInputTagCount(IConfiguration config)
+    {
+	if ((config.essource(module)==null)&&(config.esmodule(module)==null)) {
+	    return 1;
+	} else {
+	    return 0;
+	}
+    }
 }

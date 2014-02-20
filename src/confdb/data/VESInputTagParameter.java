@@ -136,6 +136,15 @@ public class VESInputTagParameter extends VectorParameter
 	return result;
     }
 
+    /** unresolved ESInputTags */
+    public int unresolvedESInputTagCount(IConfiguration config)
+    {
+	int result = 0;
+	for (ESInputTag tag : values) result += tag.unresolvedESInputTagCount(config);
+	return result;
+					  
+    }
+
 }
 
 
@@ -203,5 +212,15 @@ class ESInputTag implements Serializable
 	}
 	return result;
     }
-    
+
+    /** unresolved ESInputTags */
+    public int unresolvedESInputTagCount(IConfiguration config)
+    {
+	if ((config.essource(module)==null)&&(config.esmodule(module)==null)) {
+	    return 1;
+	} else {
+	    return 0;
+	}
+    }
+
 }
