@@ -33,12 +33,130 @@ public class JavaCodeExecution
     {
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] start:");
-        runCode();
+	//        runCode2286();
+	runCode2466();
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] ended!");
     }
 
-    private void runCode()
+    private void runCode2466()
+    {
+	// Example code to migrate the HLT config following integration of PR #2466,
+	// used to make PR #2640
+
+	// Update parameters of MeasurementTrackerESProducer instances
+	ESModuleInstance esmodule = null;
+	for (int i=0; i<currentConfig.esmoduleCount(); i++) {
+	    esmodule = currentConfig.esmodule(i);
+	    if (esmodule.template().name().equals("MeasurementTrackerESProducer")) {
+		System.out.println("Fixing MeasurementTrackerESProducer parameters (2): "+esmodule.name());
+		esmodule.updateParameter("Regional","bool","false");
+		esmodule.updateParameter("OnDemand","bool","false");
+	    }
+	}
+
+	// Update parameters MaskedMeasurementTrackerEventProducer instances
+	ModuleInstance module = null;
+	for (int i=0; i<currentConfig.moduleCount(); i++) {
+	    module = currentConfig.module(i);
+	    if (module.template().name().equals("MaskedMeasurementTrackerEventProducer")) {
+		System.out.println("Fixing MaskedMeasurementTrackerEventProducer parameters (1): "+module.name());
+		module.updateParameter("OnDemand","bool","false");
+	    }
+	}
+
+	// Replacements keeping module label names
+	replaceAllInstances(    0,"HLTTrackClusterRemover","HLTTrackClusterRemoverNew");
+	replaceAllInstances(24660,"MeasurementTrackerSiStripRefGetterProducer","MeasurementTrackerEventProducer");
+	replaceAllInstances(24661,"SiStripRawToClusters","SiStripClusterizerFromRaw");
+    }
+
+    private void replaceAllInstances(int special, String oldTemplateName, String newTemplateName)
+    {
+	ModuleInstance oldModule=null;
+	ModuleInstance newModule=null;
+
+	String oldModuleName=null;
+	String newModuleName=null;
+
+	String label24660 = null;
+
+	for (int i=currentConfig.moduleCount()-1; i>=0; i--) {
+	    oldModule = currentConfig.module(i);
+	    if (oldModule.template().name().equals(oldTemplateName)) {
+		oldModuleName = oldModule.name();
+		System.out.println("Replacing "+oldTemplateName+"/"+newTemplateName+": "+oldModuleName);
+		newModuleName = oldModuleName+"NEW";
+		newModule = currentConfig.insertModule(newTemplateName,newModuleName);
+	
+		// Copy over all parameters from old to new as far as possible
+		Iterator<Parameter> itP = oldModule.parameterIterator();
+		while (itP.hasNext()) {
+		    Parameter p = itP.next();
+		    Parameter q = newModule.parameter(p.name(),p.type());
+		    if (q==null) {
+			System.out.println("  Parameter does not exist: "+p.name());
+			if (special==24660) {
+			    label24660=p.valueAsString();
+			}
+		    } else {
+			System.out.println("  Transferring parameter  : "+p.name());
+			newModule.updateParameter(p.name(),p.type(),p.valueAsString());
+		    }
+		}
+		if (special==24660) {
+		    Iterator<Parameter> itQ = newModule.parameterIterator();
+		    while (itQ.hasNext()) {
+			Parameter q = itQ.next();
+			if (q.name().equals("stripLazyGetterProducer")) newModule.updateParameter(q.name(),q.type(),"''");
+			if (q.name().equals("stripClusterProducer")) newModule.updateParameter(q.name(),q.type(),label24660);
+		    }
+		}
+		if (special==24661) {
+		    Iterator<Parameter> itQ = newModule.parameterIterator();
+		    while (itQ.hasNext()) {
+			Parameter q = itQ.next();
+			if (q.name().equals("onDemand")) newModule.updateParameter(q.name(),q.type(),"true");
+		    }
+		}		    
+
+		// Get hold of oldModule's Refs etc.
+		int index = currentConfig.indexOfModule(oldModule);
+		int refCount = oldModule.referenceCount();
+		ReferenceContainer[] parents = new ReferenceContainer[refCount];
+		int[]                indices = new int[refCount];
+		Operator[]           operators = new Operator[refCount];
+		int iRefCount=0;
+		while (oldModule.referenceCount()>0) {
+		    Reference reference = oldModule.reference(0);
+		    parents[iRefCount] = reference.container();
+		    indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
+		    operators[iRefCount] = reference.getOperator();
+		    currentConfig.removeModuleReference((ModuleReference)reference);
+		    iRefCount++;
+		}
+
+		// oldModule's refCount is now 0 and hence oldModule is removed
+		// from the config; thus we can rename newModule to oldModule's
+		// name
+		try {
+		    newModule.setNameAndPropagate(oldModuleName);
+		}
+		catch (DataException e) {
+		    System.err.println(e.getMessage());
+		}
+	
+		// update refs pointing to oldModule to point to newModule
+		for (int j=0;j<refCount;j++) {
+		    currentConfig.insertModuleReference(parents[j],indices[j],newModule).setOperator(operators[j]);
+		}
+	
+	    }	    
+
+	}
+    }
+
+    private void runCode2286()
     {
 	// Example code to migrate the HLT config for PR #2286
 
