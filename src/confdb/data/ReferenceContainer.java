@@ -370,7 +370,7 @@ abstract
 	    VInputTagParameter vitp = (VInputTagParameter)p;
 	    for (int i=0;i<vitp.vectorSize();i++) {
 		InputTagParameter itp =
-		    new InputTagParameter("["+(new Integer(i)).toString()+"]",
+		    new InputTagParameter("_"+(new Integer(i)).toString()+"_",
 					  vitp.value(i).toString(),false);
 		itp.setParent(vitp);
 		getUnresolvedInputTags(itp,labels,unresolved,prefix+"::"+vitp.name());
@@ -435,7 +435,7 @@ abstract
 	    VESInputTagParameter vitp = (VESInputTagParameter)p;
 	    for (int i=0;i<vitp.vectorSize();i++) {
 		ESInputTagParameter itp =
-		    new ESInputTagParameter("["+(new Integer(i)).toString()+"]",
+		    new ESInputTagParameter("_"+(new Integer(i)).toString()+"_",
 					    vitp.value(i).toString(),false);
 		itp.setParent(vitp);
 		getUnresolvedESInputTags(itp,unresolved,prefix+"::"+vitp.name());

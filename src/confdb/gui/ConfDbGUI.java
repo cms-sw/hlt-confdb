@@ -2709,24 +2709,30 @@ public class ConfDbGUI
 				// Display the first python line.
 				String header = "<a href='" + modules[i] + "'>" + 
 								modules[i] + " </a> " + 
-								pythonCode.substring(modules[i].length(), pythonCode.indexOf("(") + 1) + 
+								pythonCode.substring(modules[i].length(), pythonCode.indexOf(",") + 1) + 
 								"... <br>";
 				text+= header;
 
 				// Displays list of unresolved tags:
 				for(int t =0; t < Ntags; t++) {
-					String tagLine = "";
-					if(pythonCode.indexOf(sortedTags[t]) == -1) {
-						System.err.println("ERROR: " + pythonCode);
-						System.err.println("ERROR: [confdb.gui.ConfDbGUI.getUnresolvedInputTagsSummary] Unresolved input tag not found! --> ["+t+"]" + sortedTags[t]);
-						System.err.println("ERROR: SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!");
-						// SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!
-					}
-						tagLine = "<b>" + pythonCode.substring(pythonCode.indexOf(sortedTags[t]), pythonCode.indexOf(")", pythonCode.indexOf(sortedTags[t]) + sortedTags[t].length()) + 1);
-						tagLine+=",</b><br>"; 
-
-					text+= tagLine;
-			        	
+				    String tagLine = "";
+				    String strippedTag = new String(sortedTags[t]);
+				    if (strippedTag.indexOf("::_")!=-1) strippedTag = strippedTag.substring(0,strippedTag.indexOf("::_"));
+				    if (strippedTag.lastIndexOf("::")!=-1) strippedTag=strippedTag.substring(strippedTag.lastIndexOf("::")+2);
+				    if (pythonCode.indexOf(strippedTag) == -1) {
+					System.err.println("ERROR: " + pythonCode);
+					System.err.println("ERROR: [confdb.gui.ConfDbGUI.getUnresolvedInputTagsSummary] Unresolved input tag not found! --> ["+t+"]" + sortedTags[t]+" "+strippedTag);
+					System.err.println("ERROR: SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!");
+					// SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!
+				    }
+				    tagLine = "<b>" + sortedTags[t] + 
+					pythonCode.substring(pythonCode.indexOf(strippedTag)+strippedTag.length(), pythonCode.indexOf(")", pythonCode.indexOf(strippedTag)+strippedTag.length())+1);
+				    tagLine+=",</b><br>"; 
+				    
+				    //System.out.println("[confdb.gui.ConfDbGUI.getUnresolvedInputTagsSummary] Unresolved input ["+t+"] [" + sortedTags[t]+"] ["+strippedTag+"]");
+				    
+				    text+= tagLine;
+				    
 				}
 				// Display dots:
 				text+= "    ... )<br><br>";
@@ -2757,41 +2763,28 @@ public class ConfDbGUI
 	/** get the module name from the old format of unassigned tag string */
 	/** this will be used to highlight the module name in the view, etc. */
 	private String getModuleFromUnresolvedInputTag(String unInTag) {
-		String text 	= "";
-		String module 	= null;
-		
-		java.util.List<String> temp= Arrays.asList(unInTag.split("/"));
-		if(temp.size() > 1) {
-			String relevant	= temp.get(temp.size() - 1);
-			temp= Arrays.asList(relevant.split("::")); // more than one if Vtag.
-			if(temp.size() > 1) {
-				module 	= temp.get(0);
-			}
-		} else return "";
-		return module;
+	    String module = null;
+	    java.util.List<String> temp = Arrays.asList(unInTag.split("/"));
+	    String relevant = temp.get(temp.size() - 1); // only last one
+	    temp = Arrays.asList(relevant.split("::"));
+	    module = temp.get(0); // only first one
+	    //	    System.out.println("getModuleFromUnresolvedInputTag: "+unInTag+" => "+module);
+	    return module;
 	}
 	
 	/** get the unassigned tag name from the old format of unassigned tag string */
 	/** this will be used to highlight the tag name in the view.                 */
 	private String getUnresolvedInputTag(String unInTag) {
-		String text 	= "";
-		String tag		= null;
-		
-		java.util.List<String> temp= Arrays.asList(unInTag.split("/"));
-		if(temp.size() > 1) {
-			String relevant	= temp.get(temp.size() - 1);
-			temp= Arrays.asList(relevant.split("::")); // more than one if Vtag.
-			if(temp.size() > 1) {
-				if(relevant.indexOf("::[") != -1) 	tag	= temp.get(temp.size() - 2); // Take the second to last tag.
-				else 								tag	= temp.get(temp.size() - 1); // Take the last tag.
-				
-				if(tag.indexOf('=') != -1) tag = tag.substring(0, tag.indexOf('='));
-				if(tag.indexOf('[') != -1) tag = tag.substring(0, tag.indexOf('['));
-			}
-		} else return "";
-		return tag;
+	    String tag = null;
+	    java.util.List<String> temp= Arrays.asList(unInTag.split("/"));
+	    String relevant = temp.get(temp.size() - 1); // only last one
+	    //	    temp = Arrays.asList(relevant.split("::"));
+	    tag = relevant;
+	    if (tag.indexOf("::")!=-1) tag = tag.substring(tag.indexOf("::")+2); // skip first which is module label
+	    if (tag.indexOf("=") !=-1) tag = tag.substring(0,tag.indexOf("=")); // fully qualified parameter name
+	    //	    System.out.println("getUnresolvedInputTag: "+unInTag+" => "+tag);
+	    return tag;
 	}
-	
     
     ///////////////
     
