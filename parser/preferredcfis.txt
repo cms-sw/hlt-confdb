@@ -54,14 +54,12 @@ RecoMET/METProducers                    CaloMET_cfi.py
 RecoMET/METProducers                    genMetCalo_cfi.py
 RecoMET/METProducers			TCMET_cfi.py
 RecoMET/METProducers			PFMET_cfi.py
-RecoEgamma/EgammaHLTProducers           hltPhotonTrackIsol_cfi.py
 RecoEcal/EgammaClusterProducers         correctedIslandBarrelSuperClusters_cfi.py
 RecoEcal/EgammaClusterProducers         correctedFixedMatrixSuperClustersWithPreshower_cfi.py
 RecoEcal/EgammaClusterProducers         correctedDynamicHybridSuperClusters_cfi.py
 RecoEcal/EgammaClusterProducers         correctedHybridSuperClusters_cfi.py
 RecoEcal/EgammaClusterProducers         hybridSuperClusters_cfi.py
 RecoHI/HiTracking                       HIPixelMedianVertex_cfi.py
-RecoHI/HiMuonAlgos			HiMuL3_cfi.py
 RecoVertex/PrimaryVertexProducer	OfflinePrimaryVertices_cfi.py
 HLTrigger/Egamma			hltPMMassFilter_cfi.py
 EventFilter/EcalRawToDigi		EcalRawToRecHitRoI_cfi.py
