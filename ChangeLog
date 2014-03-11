@@ -1,4 +1,8 @@
 
+2014-03-11 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-11
+	* Fix (recursive) parsing of PSets and VPSets in the JPythonParser
+
 2014-03-06 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-07-10
 	* Fix bug in displaying unresolved InputTags in the GUI panels
