@@ -28,6 +28,16 @@ AS
     WHERE ConfigurationParamSetAssoc.configId = config_id;
 */
 
+  CURSOR cur_global_psets IS
+    SELECT
+      v_globalpsets.id+6000000,
+      v_globalpsets.name,
+      v_globalpsets.tracked,
+      v_conf2gpset.ord
+    FROM v_globalpsets,v_conf2gpset
+    WHERE v_conf2gpset.id_confver=config_id
+	AND v_globalpsets.id=v_conf2gpset.id_gpset;
+
   /* cursor for edsources */
   CURSOR cur_edsources IS
     SELECT
@@ -189,7 +199,17 @@ BEGIN
   execute immediate 'TRUNCATE TABLE tmp_path_entries';
   execute immediate 'TRUNCATE TABLE tmp_sequence_entries';
 
-  load_gpset_parameters(config_id);
+    /* load global psets */
+  OPEN cur_global_psets;
+  LOOP
+    FETCH cur_global_psets
+      INTO v_instance_id,v_instance_name,v_pset_is_trkd,v_sequence_nb;
+    EXIT WHEN cur_global_psets%NOTFOUND;
+    INSERT INTO tmp_instance_table
+      VALUES(v_instance_id,NULL,'PSet',v_instance_name,v_pset_is_trkd,v_sequence_nb);
+    /*sv load_gpset_parameters(v_instance_id);*/
+  END LOOP;
+  CLOSE cur_global_psets;
 
   OPEN cur_edsources;
   LOOP

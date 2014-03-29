@@ -19,7 +19,7 @@ AS
            v_edstemplates.cvstag,
 	   v_edstemplates.packageId
     FROM v_edstemplates,v_edst2rele, v_SOFTRELEASES 
-    where  v_SOFTRELEASES.releaseid=release_id 
+    where  v_SOFTRELEASES.id=release_id 
     and v_edst2rele.ID_release=v_SOFTRELEASES.id and v_edst2rele.ID_EDSTEMPLATE=v_edstemplates.id
     AND   v_edstemplates.name = template_name;
 
@@ -30,7 +30,7 @@ AS
            v_esstemplates.cvstag,
 	   v_esstemplates.packageId
     FROM v_esstemplates,v_esst2rele,v_softreleases
-    where v_softreleases.releaseid=release_id
+    where v_softreleases.id=release_id
     and v_esst2rele.id_release=v_softreleases.id and v_esst2rele.id_esstemplate=v_esstemplates.id
     AND   v_esstemplates.name = template_name;
 
@@ -41,7 +41,7 @@ AS
            v_esmtemplates.cvstag,
 	   v_esmtemplates.packageId
     FROM v_esmtemplates,v_esmt2rele,v_softreleases
-    where v_softreleases.releaseid=release_id
+    where v_softreleases.id=release_id
     and v_esmt2rele.id_release=v_softreleases.id and v_esmt2rele.id_esmtemplate=v_esmtemplates.id
     AND   v_esmtemplates.name = template_name;
 
@@ -53,7 +53,7 @@ AS
            v_srvtemplates.cvstag,
 	   v_srvtemplates.packageId
     FROM v_srvtemplates,v_srvt2rele,v_softreleases
-     where v_softreleases.releaseid=release_id
+     where v_softreleases.id=release_id
     and v_srvt2rele.id_release=v_softreleases.id and v_srvt2rele.id_srvtemplate=v_srvtemplates.id
     AND   v_srvtemplates.name = template_name;
 
@@ -65,7 +65,7 @@ AS
            v_moduletemplates.packageId,
            v_moduletypes.type
     FROM v_moduletemplates,v_moduletypes,v_softreleases,v_modt2rele,h_moduletemplates
-    where v_softreleases.releaseid=release_id
+    where v_softreleases.id=release_id
     and v_modt2rele.id_release=v_softreleases.id and v_modt2rele.id_modtemplate=v_moduletemplates.id
     and v_moduletypes.id=v_moduletemplates.id_mtype
     and h_moduletemplates.crc32=v_moduletemplates.crc32
@@ -172,7 +172,7 @@ AS
   release_id NUMBER;
 
 CURSOR cur_release IS
-     SELECT releaseid from v_confversions where id=config_id ;
+     SELECT id_release from v_confversions where id=config_id ;
 
 BEGIN 
      OPEN cur_release;
@@ -201,7 +201,7 @@ AS
            v_edstemplates.cvstag,
            v_edstemplates.packageId
     FROM v_edstemplates,v_edst2rele, v_SOFTRELEASES
-    where  v_SOFTRELEASES.releaseid=release_id
+    where  v_SOFTRELEASES.id=release_id
     and v_edst2rele.ID_release=v_SOFTRELEASES.id and v_edst2rele.ID_EDSTEMPLATE=v_edstemplates.id;
 
   /* cursor for essource templates */
@@ -211,7 +211,7 @@ AS
            v_esstemplates.cvstag,
            v_esstemplates.packageId
     FROM v_esstemplates,v_esst2rele,v_softreleases
-    where v_softreleases.releaseid=release_id
+    where v_softreleases.id=release_id
     and v_esst2rele.id_release=v_softreleases.id and v_esst2rele.id_esstemplate=v_esstemplates.id;
 
 
@@ -222,7 +222,7 @@ AS
            v_esmtemplates.cvstag,
            v_esmtemplates.packageId
     FROM v_esmtemplates,v_esmt2rele,v_softreleases
-    where v_softreleases.releaseid=release_id
+    where v_softreleases.id=release_id
     and v_esmt2rele.id_release=v_softreleases.id and v_esmt2rele.id_esmtemplate=v_esmtemplates.id;
 
 
@@ -233,7 +233,7 @@ AS
            v_srvtemplates.cvstag,
            v_srvtemplates.packageId
     FROM v_srvtemplates,v_srvt2rele,v_softreleases
-     where v_softreleases.releaseid=release_id
+     where v_softreleases.id=release_id
     and v_srvt2rele.id_release=v_softreleases.id and v_srvt2rele.id_srvtemplate=v_srvtemplates.id;
 
 
@@ -245,7 +245,7 @@ AS
            v_moduletemplates.packageId,
            v_moduletypes.type
     FROM v_moduletemplates,v_moduletypes,v_softreleases,v_modt2rele,h_moduletemplates
-    where v_softreleases.releaseid=release_id
+    where v_softreleases.id=release_id
     and v_modt2rele.id_release=v_softreleases.id and v_modt2rele.id_modtemplate=v_moduletemplates.id
     and h_moduletemplates.crc32=v_moduletemplates.crc32
     and v_moduletypes.id=v_moduletemplates.id_mtype;

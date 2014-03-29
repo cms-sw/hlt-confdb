@@ -49,6 +49,7 @@ CREATE TABLE tmp_parameter_table
   lvl               NUMBER,
   value		    VARCHAR2(4000),
   valuelob          CLOB,
+  hex	            NUMBER,
   stamp             TIMESTAMP
 );
 /*) ON COMMIT PRESERVE ROWS;   */

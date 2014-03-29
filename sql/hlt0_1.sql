@@ -14,6 +14,7 @@ AS
   v_parameter_lvl    NUMBER;
   v_parameter_value VARCHAR2(4000);
   v_parameter_valob CLOB;
+  v_parameter_hex   NUMBER;
 
   /* cursor for parameters */
   CURSOR cur_parameters IS
@@ -24,7 +25,8 @@ AS
            ord,
            lvl,
            value,
-           valuelob
+           valuelob,
+           hex
     FROM v_edselements
     WHERE id_edsource = parent_id
     ORDER BY id ASC;
@@ -38,11 +40,11 @@ BEGIN
   LOOP
     FETCH cur_parameters
       INTO v_parameter_id,v_parameter_type,
-           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob;
+           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex;
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+1000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+1000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+1000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -59,6 +61,7 @@ AS
   v_parameter_lvl    NUMBER;
   v_parameter_value VARCHAR2(4000);
   v_parameter_valob CLOB;
+  v_parameter_hex   NUMBER;
 
   /* cursor for parameters */
   CURSOR cur_parameters IS
@@ -69,7 +72,8 @@ AS
            ord,
            lvl,
            value,
-           valuelob
+           valuelob,
+           hex
     FROM v_edstelements
     WHERE id_edstemplate = parent_id
     ORDER BY id ASC;
@@ -83,11 +87,11 @@ BEGIN
   LOOP
     FETCH cur_parameters
       INTO v_parameter_id,v_parameter_type,
-           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob;
+           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex;
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+1000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+1000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+1000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -104,6 +108,7 @@ AS
   v_parameter_lvl    NUMBER;
   v_parameter_value VARCHAR2(4000);
   v_parameter_valob CLOB;
+  v_parameter_hex   NUMBER;
 
   /* cursor for parameters */
   CURSOR cur_parameters IS
@@ -114,7 +119,8 @@ AS
            ord,
            lvl,
            value,
-           valuelob
+           valuelob,
+           hex
     FROM v_esstelements
     WHERE id_esstemplate = parent_id
     ORDER BY id ASC;
@@ -128,11 +134,11 @@ BEGIN
   LOOP
     FETCH cur_parameters
       INTO v_parameter_id,v_parameter_type,
-           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob;
+           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex;
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+2000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+2000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+2000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -149,6 +155,7 @@ AS
   v_parameter_lvl    NUMBER;
   v_parameter_value VARCHAR2(4000);
   v_parameter_valob CLOB;
+  v_parameter_hex   NUMBER;
 
   /* cursor for parameters */
   CURSOR cur_parameters IS
@@ -159,7 +166,8 @@ AS
            ord,
            lvl,
            value,
-           valuelob
+           valuelob,
+           hex
     FROM v_esselements
     WHERE id_essource = parent_id
     ORDER BY id ASC;
@@ -173,11 +181,11 @@ BEGIN
   LOOP
     FETCH cur_parameters
       INTO v_parameter_id,v_parameter_type,
-           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob;
+           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex;
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+2000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+2000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+2000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -194,6 +202,7 @@ AS
   v_parameter_lvl    NUMBER;
   v_parameter_value VARCHAR2(4000);
   v_parameter_valob CLOB;
+  v_parameter_hex   NUMBER;
 
   /* cursor for parameters */
   CURSOR cur_parameters IS
@@ -204,7 +213,8 @@ AS
            ord,
            lvl,
            value,
-           valuelob
+           valuelob,
+           hex
     FROM v_esmtelements
     WHERE id_esmtemplate = parent_id
     ORDER BY id ASC;
@@ -218,11 +228,11 @@ BEGIN
   LOOP
     FETCH cur_parameters
       INTO v_parameter_id,v_parameter_type,
-           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob;
+           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex;
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+3000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+3000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+3000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -239,6 +249,7 @@ AS
   v_parameter_lvl    NUMBER;
   v_parameter_value VARCHAR2(4000);
   v_parameter_valob CLOB;
+  v_parameter_hex   NUMBER;
 
   /* cursor for parameters */
   CURSOR cur_parameters IS
@@ -249,7 +260,8 @@ AS
            ord,
            lvl,
            value,
-           valuelob
+           valuelob,
+           hex
     FROM v_esmelements
     WHERE id_esmodule = parent_id
     ORDER BY id ASC;
@@ -263,11 +275,11 @@ BEGIN
   LOOP
     FETCH cur_parameters
       INTO v_parameter_id,v_parameter_type,
-           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob;
+           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex;
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+3000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+3000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+3000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -284,6 +296,7 @@ AS
   v_parameter_lvl    NUMBER;
   v_parameter_value VARCHAR2(4000);
   v_parameter_valob CLOB;
+  v_parameter_hex   NUMBER;
 
   /* cursor for parameters */
   CURSOR cur_parameters IS
@@ -294,7 +307,8 @@ AS
            ord,
            lvl,
            value,
-           valuelob
+           valuelob,
+           hex
     FROM v_srvelements
     WHERE id_service = parent_id
     ORDER BY id ASC;
@@ -308,11 +322,11 @@ BEGIN
   LOOP
     FETCH cur_parameters
       INTO v_parameter_id,v_parameter_type,
-           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob;
+           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex;
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+4000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+4000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+4000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -329,6 +343,7 @@ AS
   v_parameter_lvl    NUMBER;
   v_parameter_value VARCHAR2(4000);
   v_parameter_valob CLOB;
+  v_parameter_hex   NUMBER;
 
   /* cursor for parameters */
   CURSOR cur_parameters IS
@@ -339,7 +354,8 @@ AS
            ord,
            lvl,
            value,
-           valuelob
+           valuelob,
+           hex
     FROM v_srvtelements
     WHERE id_srvtemplate = parent_id
     ORDER BY id ASC;
@@ -353,11 +369,11 @@ BEGIN
   LOOP
     FETCH cur_parameters
       INTO v_parameter_id,v_parameter_type,
-           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob;
+           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex;
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id+4000000,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+4000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+4000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -374,6 +390,7 @@ AS
   v_parameter_lvl    NUMBER;
   v_parameter_value VARCHAR2(4000);
   v_parameter_valob CLOB;
+  v_parameter_hex   NUMBER;
 
   /* cursor for parameters */
   CURSOR cur_parameters IS
@@ -384,11 +401,13 @@ AS
            ord,
            lvl,
            value,
-           valuelob
+           valuelob,
+           hex
     FROM h_modtelements,h_modt2modte
     WHERE 
     h_modtelements.id=h_modt2modte.id_modte 
-    and h_modt2modte.id_templ = parent_id;
+    and h_modt2modte.id_templ = parent_id 
+    order by h_modt2modte.id;
 
 
 BEGIN
@@ -399,11 +418,11 @@ BEGIN
   LOOP
     FETCH cur_parameters
       INTO v_parameter_id,v_parameter_type,
-           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob;
+           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex;
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -420,6 +439,7 @@ AS
   v_parameter_lvl    NUMBER;
   v_parameter_value VARCHAR2(4000);
   v_parameter_valob CLOB;
+  v_parameter_hex   NUMBER;
 
   /* cursor for parameters */
   CURSOR cur_parameters IS
@@ -430,7 +450,8 @@ AS
            ord,
            lvl,
            value,
-           valuelob
+           valuelob,
+           hex
     FROM v_moelements
     WHERE id_pae = parent_id
     ORDER BY id ASC;
@@ -444,11 +465,11 @@ BEGIN
   LOOP
     FETCH cur_parameters
       INTO v_parameter_id,v_parameter_type,
-           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob;
+           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex;
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
       VALUES(v_parameter_id,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
@@ -465,6 +486,7 @@ AS
   v_parameter_lvl    NUMBER;
   v_parameter_value VARCHAR2(4000);
   v_parameter_valob CLOB;
+  v_parameter_hex   NUMBER;
 
   /* cursor for parameters */
   CURSOR cur_parameters IS
@@ -475,7 +497,8 @@ AS
            v_gpsetelements.ord,
            v_gpsetelements.lvl,
            v_gpsetelements.value,
-           v_gpsetelements.valuelob
+           v_gpsetelements.valuelob,
+           v_gpsetelements.hex
     FROM v_gpsetelements,v_conf2gpset
     WHERE v_conf2gpset.id_confver = parent_id 
     AND v_gpsetelements.id_gpset=v_conf2gpset.id_gpset
@@ -490,11 +513,11 @@ BEGIN
   LOOP
     FETCH cur_parameters
       INTO v_parameter_id,v_parameter_type,
-           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob;
+           v_parameter_name,v_parameter_trkd,v_parameter_seqnb,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex;
     EXIT WHEN cur_parameters%NOTFOUND;
     INSERT INTO tmp_parameter_table
-      VALUES(v_parameter_id,v_parameter_type,
-          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id,v_parameter_lvl,v_parameter_value,v_parameter_valob,CURRENT_TIMESTAMP);
+      VALUES(v_parameter_id+6000000,v_parameter_type,
+          v_parameter_name,v_parameter_trkd,v_parameter_seqnb,parent_id+6000000,v_parameter_lvl,v_parameter_value,v_parameter_valob,v_parameter_hex,CURRENT_TIMESTAMP);
   END LOOP;
   CLOSE cur_parameters;
 
