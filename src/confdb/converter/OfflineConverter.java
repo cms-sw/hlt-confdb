@@ -147,11 +147,11 @@ public class OfflineConverter extends ConverterBase
 	boolean asFragment  =               false;
 
 	String  dbType      =            "oracle";
-	String  dbHost      =   "cmsr1-v.cern.ch";
+	String  dbHost      =   "int2r1-v.cern.ch";
 	String  dbPort      =             "10121";
-	String  dbName      =  "cms_cond.cern.ch";
-	String  dbUser      = "cms_hltdev_reader";
-	String  dbPwrd      =        "convertme!";
+	String  dbName      =  "int2r-nolb.cern.ch";
+	String  dbUser      = "cms_hlt_gdr";
+	String  dbPwrd      =        "convertMe!";
 
 	HashMap<String,String> cnvArgs = new HashMap<String,String>();
 	

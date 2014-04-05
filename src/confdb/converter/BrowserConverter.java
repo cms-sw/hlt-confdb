@@ -59,7 +59,7 @@ public class BrowserConverter extends OfflineConverter
 	static public BrowserConverter getConverter( int dbIndex ) throws ConverterException 
 	{
 	    ConfDBSetups dbs = new ConfDBSetups();
-	    DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertme!" );
+	    DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertMe!" );
 	    String dbUser = dbProperties.getDbUser();
 	    if (dbUser.endsWith("_w"))
 	    	dbUser = dbUser.substring(0,dbUser.length()-1)+"r";
@@ -70,7 +70,7 @@ public class BrowserConverter extends OfflineConverter
             else if (dbUser.endsWith("_reader"))
                 {}      // do nothing
 	    else
-	    	dbUser = "cms_hlt_reader";
+	    	dbUser = "cms_hlt_gdr";
 
 	    dbProperties.setDbUser(dbUser);
 	    

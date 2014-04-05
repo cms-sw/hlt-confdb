@@ -8,6 +8,7 @@ import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Clob;
+import java.sql.Types;
 import java.text.SimpleDateFormat;
 
 import java.util.ArrayList;
@@ -77,7 +78,7 @@ public class ConfDB
     
     // database features:
     private boolean extraPathFieldsAvailability = false;
-    private boolean operatorFieldForSequencesAvailability = false; // bug #91797
+    private boolean operatorFieldForSequencesAvailability = true; 
     
     //sv
     private Integer countingParamIds=0;
@@ -210,7 +211,9 @@ public class ConfDB
     private PreparedStatement psFindConfiguration                 = null;
     private PreparedStatement psInsertConfigurationLock           = null;
     //Insert Event Content
+    private PreparedStatement psCheckContents                    = null;
     private PreparedStatement psInsertContents                    = null;
+    private PreparedStatement psInsertContentIds                 = null;
     private PreparedStatement psInsertContentsConfigAssoc         = null;
     private PreparedStatement psInsertEventContentStatements      = null;
     private PreparedStatement psInsertStreams                     = null;
@@ -236,8 +239,18 @@ public class ConfDB
     private PreparedStatement psInsertConfigESModuleAssoc         = null;
     private PreparedStatement psInsertService                     = null;
     private PreparedStatement psInsertConfigServiceAssoc          = null;
+    private PreparedStatement psCheckPathName                     = null;
+    private PreparedStatement psCheckPathNoum                     = null;
+    private PreparedStatement psInsertPathNoum                    = null;
     private PreparedStatement psInsertPath                        = null;
+    private PreparedStatement psInsertPathIds                     = null;
     private PreparedStatement psInsertConfigPathAssoc             = null;
+    private PreparedStatement psInsertHPathIds                    = null;
+    private PreparedStatement psInsertHPathId2Path                = null;
+    private PreparedStatement psInsertHPathId2Uq                  = null;
+    private PreparedStatement psSelectPathId2Uq                   = null;
+    private PreparedStatement psCheckHPathIdCrc                   = null;
+    private PreparedStatement psInsertConfigHPathAssoc            = null;
     private PreparedStatement psInsertSequence                    = null;
     private PreparedStatement psInsertConfigSequenceAssoc         = null;
     private PreparedStatement psInsertModule                      = null;
@@ -263,6 +276,12 @@ public class ConfDB
     private PreparedStatement psInsertParameterMOE                = null;
     private PreparedStatement psInsertParameterMODT               = null;
     private PreparedStatement psInsertParameterOUTM               = null;
+    private PreparedStatement psInsertPathElement                 = null;
+    private PreparedStatement psInsertPathElementAssoc            = null;
+    private PreparedStatement psInsertHPathElement                = null;
+    private PreparedStatement psInsertMoElement                   = null;
+    private PreparedStatement psInsertMod2Templ                    = null;
+    private PreparedStatement psInsertPae2Moe                     = null;
     private PreparedStatement psInsertParameterSet                = null;
     private PreparedStatement psInsertVecParameterSet             = null;
     private PreparedStatement psInsertSuperIdParamAssoc           = null;
@@ -1213,8 +1232,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		
 		String templateName = null;
 		
-System.out.println("found instance "+id
-                                     +  "name="+instanceName+" templateid="+templateId+" entryType="+type);
+//System.out.println("found instance "+id
+ //                                    +  "name="+instanceName+" templateid="+templateId+" entryType="+type);
 		if (type.equals("PSet")) {
 		    PSetParameter pset = (PSetParameter)ParameterFactory
 			.create("PSet",instanceName,"",flag);
@@ -1329,7 +1348,7 @@ System.out.println("found instance "+id
 		EventContent eventContent = config.content(name);
 		if(eventContent==null) continue;
 
-                System.out.println("Stream id "+streamId+" Label "+streamLabel+" fracTo "+ fracToDisk+" Evco id "+eventContentId+" name "+name);
+                //System.out.println("Stream id "+streamId+" Label "+streamLabel+" fracTo "+ fracToDisk+" Evco id "+eventContentId+" name "+name);
 
 		Stream stream = eventContent.insertStream(streamLabel);
 		stream.setFractionToDisk(fracToDisk);
@@ -1355,7 +1374,7 @@ System.out.println("found instance "+id
               boolean seqtoskip=false;
               int lvltoskip=0;
               boolean seqDone[];
-              seqDone=new boolean[100000]; 
+              seqDone=new boolean[5000000]; 
 	    while (rsSequenceEntries.next()) {
                int    sequenceId = rsSequenceEntries.getInt(1);
                 int    entryLvl   = rsSequenceEntries.getInt(3);
@@ -1364,7 +1383,7 @@ System.out.println("found instance "+id
                 String entryType  = rsSequenceEntries.getString(6);
  
 		
-System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLvl+" ord "+sequenceNb+" entryType="+entryType);
+//System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLvl+" ord "+sequenceNb+" entryType="+entryType);
 
                 while (entryLvl<previouslvl) {
                        if ((!seqtoskip)&&(entryLvl>=lvltoskip)) idlifo.pop();
@@ -1406,7 +1425,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		Operator operator = Operator.DEFAULT;
 		try {
 		    //operator = Operator.getOperator( rsSequenceEntries.getInt(5) );
-			if(operatorFieldForSequencesAvailability) 
+		//	if(operatorFieldForSequencesAvailability) 
 				operator = Operator.getOperator( rsSequenceEntries.getInt(7) );
 		    fail=false;
 		} catch (SQLException e) {
@@ -1847,28 +1866,28 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	  
 	    HashMap<String,Integer> primaryDatasetHashMap =
 		insertPrimaryDatasets(configId,config);
-//notyet	    HashMap<String,Integer> eventContentHashMap =
-//notyet		insertEventContents(configId,config);
+	    HashMap<String,Integer> eventContentHashMap =
+		insertEventContents(configId,config);
 	    HashMap<String,Integer> streamHashMap =
 		insertStreams(configId,config);
 	  
-//notyet	    insertEventContentStreamAssoc(eventContentHashMap,streamHashMap,config);
-//notyet	    insertStreamDatasetAssoc(streamHashMap,primaryDatasetHashMap,config);
+	    insertEventContentStreamAssoc(eventContentHashMap,streamHashMap,config);
+//notneeded	    insertStreamDatasetAssoc(streamHashMap,primaryDatasetHashMap,config);
  
 	    // insert paths
-//notyet	    HashMap<String,Integer> pathHashMap=insertPaths(configId,config);
+	    HashMap<String,Integer> pathHashMap=insertPaths(configId,config);
 	    
 	    // insert sequences
-//notyet	    HashMap<String,Integer> sequenceHashMap=insertSequences(configId,
-//notyet								    config);
+	    HashMap<String,Integer> sequenceHashMap=insertSequences(configId,
+								    config);
 	    
 	    // insert modules
-//notyet	    HashMap<String,Integer> moduleHashMap=insertModules(config);
+	    HashMap<String,Integer> moduleHashMap=insertModules(config);
 
 	 
-//notyet	    insertEventContentStatements(configId,config,eventContentHashMap);	  
-//notyet	    insertPathStreamPDAssoc(pathHashMap,streamHashMap,primaryDatasetHashMap,
-//notyet				    config,configId);
+	    insertEventContentStatements(configId,config,eventContentHashMap);	  
+	    insertPathStreamPDAssoc(pathHashMap,streamHashMap,primaryDatasetHashMap,
+				    config,configId);
 	
 
 	    // insert parameter bindings / values
@@ -1885,8 +1904,8 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	
 */
 	    // insert references regarding paths and sequences
-//notyet	    insertReferences(config,pathHashMap,sequenceHashMap,
-//notyet			     moduleHashMap,streamHashMap);
+	    insertReferences(config,pathHashMap,sequenceHashMap,
+			     moduleHashMap,streamHashMap);
 	    
 	
 	    dbConnector.getConnection().commit();
@@ -2282,6 +2301,26 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    throw new DatabaseException(errMsg,e);
 	}
     }
+
+    private Integer calculatePathCRC(Path path)
+    {
+	return 111111;
+    }
+    
+    private Integer calculateSequenceCRC(Sequence seq)
+    {
+	return 111111;
+    }
+    
+    private Integer calculateModuleCRC(ModuleInstance module)
+    {
+	return 111111;
+    }
+    
+    private Integer calculateTemplateCRC()
+    {
+	return 111111;
+    }
     
     /** insert configuration's paths */
     private HashMap<String,Integer> insertPaths(int configId,
@@ -2301,37 +2340,141 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		boolean pathIsEndPath = path.isSetAsEndPath();
 		String  description		= path.getDescription();
 		String contacts			= path.getContacts();
+                int vpathId = -1; 
 		
-		if (pathId<=0) {
+			if (pathId<=0) {
 		    
-			if(extraPathFieldsAvailability) {
+                        int id_path = -1;
+                        int crc32 = calculatePathCRC(path);
+		/*h_ tables 
+                        psCheckPathName.setString(1,pathName);
+                        rs=psCheckPathName.executeQuery();
+                        if (rs.next()) {
+                            id_path = rs.getInt(1);
+                        }
+                System.out.println("insertPath: searched confver "+configId+" id path "+id_path);
+
+                 */
+                        if (id_path<0) {
+                                String pathnoum=pathName;
+                                Integer version=0;
+                                if (pathName.contains("_v")) {
+                                    String[] pathandver=pathName.split("_v");
+                                    pathnoum=pathandver[0];
+                                    version=Integer.parseInt(pathandver[1]);
+                                }
+                                psCheckPathNoum.setString(1,pathnoum);
+				rs=psCheckPathNoum.executeQuery();
+                        	int id_pathnoum = -1;
+                        	if(rs.next()) {
+                            		id_pathnoum = rs.getInt(1);
+                        	}
+                //System.out.println("insertPath: searched pathnoum "+id_pathnoum);
+                                if (id_pathnoum<0) {
+					psInsertPathNoum.setString(1,pathnoum);
+					psInsertPathNoum.executeUpdate();
+                                        rs=psInsertPathNoum.getGeneratedKeys();
+					rs.next();
+					id_pathnoum=rs.getInt(1);
+                //System.out.println("insertPath: created pathnoum "+id_pathnoum);
+				}	
+				psInsertPath.setString(1,pathName);
+				psInsertPath.setInt(2,version);
+				psInsertPath.setInt(3,id_pathnoum);
+
+                                psInsertPath.executeUpdate();
+				rs=psInsertPath.getGeneratedKeys();
+                                rs.next();
+                               	id_path=rs.getInt(1);                
+                //System.out.println("insertPath: created id_path "+id_path);
+                        }
+				
+                       
+			//if(extraPathFieldsAvailability) {
+			if(false) {
 			     // inserting extra fields in schema:
 			    psInsertPathDescription.setString(1,pathName);
-			    psInsertPathDescription.setBoolean(2,pathIsEndPath);
+                            if (pathIsEndPath){ 
+			    	psInsertPathDescription.setInt(2,1);
+                            } else {
+			    	psInsertPathDescription.setInt(2,0);
+                            }
 			    psInsertPathDescription.setString(3, description);
 			    psInsertPathDescription.setString(4, contacts);
 			    psInsertPathDescription.executeUpdate();
 			    rs = psInsertPathDescription.getGeneratedKeys();				
 			} else {
 				// no extra fields in schema:
-			    psInsertPath.setString(1,pathName);
-			    psInsertPath.setBoolean(2,pathIsEndPath);
-			    psInsertPath.executeUpdate();
-			    rs = psInsertPath.getGeneratedKeys();
+			    psInsertPathIds.setInt(1,id_path);
+                            if (pathIsEndPath){ 
+			    	psInsertPathIds.setInt(2,1);
+                            } else {
+			    	psInsertPathIds.setInt(2,0);
+                            }
+			    psInsertPathIds.setInt(3,crc32);
+			    psInsertPathIds.setInt(4,111111);
+			    psInsertPathIds.executeUpdate();
+			    rs = psInsertPathIds.getGeneratedKeys();
+                            rs.next();
+                            vpathId=rs.getInt(1);
+                //System.out.println("insertPath: created vpathid "+vpathId);
 			}
+                        pathId=vpathId; //if not using h_ tables
 
-			rs.next();
-		    
-		    pathId = rs.getInt(1);
+                       /*only for h_ tables 
+                         psCheckHPathIdCrc.setInt(1,crc32);
+                        rs=psCheckHPathIdCrc.executeQuery();
+                        if (rs.next()) { 
+				pathId=rs.getInt(1);
+                System.out.println("insertPath: found crc in pathid "+pathId);
+                        } else { 
+                            psInsertHPathIds.setInt(1,crc32);
+                            psInsertHPathIds.setInt(2,111111);
+                            psInsertHPathIds.executeUpdate();
+                            rs = psInsertHPathIds.getGeneratedKeys();
+                            rs.next();
+                            pathId=rs.getInt(1);
+                System.out.println("insertPath: created pathid "+pathId);
+
+                            psInsertHPathId2Path.setInt(1,id_path);
+                            psInsertHPathId2Path.setInt(2,pathId);
+                            psInsertHPathId2Path.setBoolean(3,pathIsEndPath);
+                            psInsertHPathId2Path.executeUpdate();
+
+			    psInsertHPathId2Uq.setInt(1,vpathId);
+			    psInsertHPathId2Uq.setInt(2,pathId);
+			    psInsertHPathId2Uq.executeUpdate();
+                        }
+                     */
+
 		    result.put(pathName,pathId);
 		    idToPath.put(pathId,path);
 		}
-		else result.put(pathName,-pathId);
+		else {
+                    result.put(pathName,-pathId);
+                       /*only for h_ tables 
+		    psSelectPathId2Uq.setInt(2,pathId);
+		    psSelectPathId2Uq.executeUpdate();
+                    rs.next();
+                    vpathId=rs.getInt(1);
+                System.out.println("insertPath: searched (pathId existed) vpathid "+vpathId);
+                       */ 
+                    vpathId=pathId; //working with v_
+                }
 		
-		psInsertConfigPathAssoc.setInt(1,configId);
-		psInsertConfigPathAssoc.setInt(2,pathId);
+                //System.out.println("insertPath: Trying to insert confver "+configId+" v pathid "+vpathId);
+		psInsertConfigPathAssoc.setInt(1,vpathId);
+		psInsertConfigPathAssoc.setInt(2,configId);
 		psInsertConfigPathAssoc.setInt(3,sequenceNb);
-		psInsertConfigPathAssoc.addBatch();
+		psInsertConfigPathAssoc.executeUpdate();
+
+                       /*only for h_ tables 
+                System.out.println("insertPath: Trying to insert confver "+configId+" h_pathid "+pathId);
+		psInsertConfigHPathAssoc.setInt(1,pathId);
+		psInsertConfigHPathAssoc.setInt(2,configId);
+		psInsertConfigHPathAssoc.setInt(3,sequenceNb);
+		psInsertConfigHPathAssoc.executeUpdate();
+                   */
 	    }
 
 	    // only *now* set the new databaseId of changed paths!
@@ -2351,7 +2494,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    dbConnector.release(rs);
 	}
 
-	try {
+/*	try {
 	    psInsertConfigPathAssoc.executeBatch();
 	}
 	catch (SQLException e) {
@@ -2360,7 +2503,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		") failed (batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
-	
+*/	
 	return result;
     }
     
@@ -2381,12 +2524,15 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		String   sequenceName = sequence.name();
 		
 		if (sequenceId<=0) {
+                    int crc32 = calculateSequenceCRC(sequence);
+                    psInsertPathElement.setInt(1,2); //paetype
+		    psInsertPathElement.setString(2,sequenceName);
+                    psInsertPathElement.setInt(3,crc32);
 
-		    psInsertSequence.setString(1,sequenceName);
-		    psInsertSequence.executeUpdate();
-		    
-		    rs = psInsertSequence.getGeneratedKeys();
-		    rs.next();
+                    psInsertPathElement.executeUpdate();
+
+                    rs=psInsertPathElement.getGeneratedKeys();
+                    rs.next();
 
 		    sequenceId = rs.getInt(1);
 		    result.put(sequenceName,sequenceId);
@@ -2395,10 +2541,10 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		else
 		    result.put(sequenceName,-sequenceId);
 		
-		psInsertConfigSequenceAssoc.setInt(1,configId);
-		psInsertConfigSequenceAssoc.setInt(2,sequenceId);
-		psInsertConfigSequenceAssoc.setInt(3,sequenceNb);
-		psInsertConfigSequenceAssoc.addBatch();
+	//	psInsertConfigSequenceAssoc.setInt(1,configId);
+	//	psInsertConfigSequenceAssoc.setInt(2,sequenceId);
+	//	psInsertConfigSequenceAssoc.setInt(3,sequenceNb);
+	//	psInsertConfigSequenceAssoc.addBatch();
 	    }
 
 	    // only *now* set the new databaseId of changed sequences!
@@ -2418,7 +2564,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    dbConnector.release(rs);
 	}
 
-	try {
+/*	try {
 	    psInsertConfigSequenceAssoc.executeBatch();
 	}
 	catch (SQLException e) {
@@ -2427,7 +2573,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		"(batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
-	
+*/	
 	return result;
     }
     
@@ -2440,22 +2586,56 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	ArrayList<IdInstancePair> modulesToStore =
 	    new ArrayList<IdInstancePair>();
 	
+        ResultSet rs = null;
+
 	for (int i=0;i<config.moduleCount();i++) {
 	    ModuleInstance module     = config.module(i);
 	    int            moduleId   = module.databaseId();
+	    int            hmoduleId   = module.databaseId();
 	    int            templateId = module.template().databaseId();
 	    if (moduleId>0) {
 		result.put(module.name(),moduleId);
 	    }
 	    else {
-		moduleId = insertSuperId();
+               int crc32 = calculateModuleCRC(module);
 		try {
-		    psInsertModule.setInt(1,moduleId);
-		    psInsertModule.setInt(2,templateId);
-		    psInsertModule.setString(3,module.name());
-		    psInsertModule.addBatch();
+                    psInsertPathElement.setInt(1,1); //paetype
+		    psInsertPathElement.setString(2,module.name());
+		    psInsertPathElement.setInt(3,crc32);
+		    psInsertPathElement.executeUpdate();
+
+                    rs=psInsertPathElement.getGeneratedKeys();
+                    rs.next();
+                    moduleId=rs.getInt(1);
+
+                    psInsertMod2Templ.setInt(1,moduleId);
+                    psInsertMod2Templ.setInt(2,templateId);
+                    psInsertMod2Templ.executeUpdate();
+
+                    insertInstanceParameters(moduleId,module,psInsertMoElement);
+
 		    result.put(module.name(),moduleId);
 		    modulesToStore.add(new IdInstancePair(moduleId,module));
+	            module.setDatabaseId(moduleId);
+
+ /* Only for h_ tables
+                    psCheckHPaElCrc.setInt(1,crc32);
+                    rs=psCheckHPaElCrc.executeQuery();
+                    if (rs.next()) {
+                            hmoduleId=rs.getInt(1);
+                System.out.println("insertPath: found crc in pathid "+moduleId);
+                    } else {
+                        psInsertHPaEl.setInt(1,crc32);
+                        psInsertHPaEl.setInt(2,111111);
+                        psInsertHPaEl.executeUpdate();
+                        rs = psInsertHPaEl.getGeneratedKeys();
+                        rs.next();
+                        hmoduleId=rs.getInt(1);
+                System.out.println("insertPath: created HPAE "+moduleId);
+	                insertInstanceParameters(hmoduleId,module,psInsertParameterHMOE);
+
+                        }
+*/
 		}
 		catch (SQLException e) {
 		    String errMsg =
@@ -2467,7 +2647,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    }
 	}
 	
-	try {
+/*	try {
 	    psInsertModule.executeBatch();
 	}
 	catch (SQLException e) {
@@ -2476,7 +2656,8 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		"(batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e); 
 	}
-	
+*/	
+/*
 	Iterator<IdInstancePair> it=modulesToStore.iterator();
 	while (it.hasNext()) {
 	    IdInstancePair pair     = it.next();
@@ -2485,7 +2666,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    insertInstanceParameters(moduleId,module,psInsertParameterMOE);
 	    module.setDatabaseId(moduleId);
 	}
-	
+*/	
 	return result;
     }
     
@@ -2506,7 +2687,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		
 		for(int sequenceNb=0;sequenceNb<path.entryCount();sequenceNb++){
 		    Reference r = path.entry(sequenceNb);
-		    if (r instanceof PathReference) {
+/*not allowed anymore		    if (r instanceof PathReference) {
 			int childPathId = Math.abs(pathHashMap.get(r.name()));
 			try {
 			    psInsertPathPathAssoc.setInt(1,pathId);
@@ -2524,15 +2705,18 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 				e.getMessage();
 			    throw new DatabaseException(errMsg,e);
 			}
-		    }
-		    else if (r instanceof SequenceReference) {
+		    } else */
+		    if (r instanceof SequenceReference) {
 			int sequenceId=Math.abs(sequenceHashMap.get(r.name()));
 			try {
-			    psInsertPathSequenceAssoc.setInt(1,pathId);
-			    psInsertPathSequenceAssoc.setInt(2,sequenceId);
-			    psInsertPathSequenceAssoc.setInt(3,sequenceNb);
-			    psInsertPathSequenceAssoc.setInt(4,r.getOperator().ordinal());
-			    psInsertPathSequenceAssoc.addBatch();
+			    psInsertPathElementAssoc.setInt(1,pathId);
+			    psInsertPathElementAssoc.setInt(2,sequenceId);
+			    psInsertPathElementAssoc.setNull(3,Types.INTEGER);//parent
+			    psInsertPathElementAssoc.setInt(4,0); //lvl
+			    psInsertPathElementAssoc.setInt(5,sequenceNb);
+			    psInsertPathElementAssoc.setInt(6,r.getOperator().ordinal());
+			    psInsertPathElementAssoc.executeUpdate();
+                            insertSeqReferences(config,pathId,sequenceId,1,sequenceHashMap,moduleHashMap,streamHashMap);
 			}
 			catch (SQLException e) {
 			    String errMsg = 
@@ -2547,11 +2731,13 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		    else if (r instanceof ModuleReference) {
 			int moduleId = moduleHashMap.get(r.name());
 			try {
-			    psInsertPathModuleAssoc.setInt(1,pathId);
-			    psInsertPathModuleAssoc.setInt(2,moduleId);
-			    psInsertPathModuleAssoc.setInt(3,sequenceNb);
-			    psInsertPathModuleAssoc.setInt(4,r.getOperator().ordinal());
-			    psInsertPathModuleAssoc.addBatch();
+			    psInsertPathElementAssoc.setInt(1,pathId);
+			    psInsertPathElementAssoc.setInt(2,moduleId);
+			    psInsertPathElementAssoc.setNull(3,Types.INTEGER);//parent
+			    psInsertPathElementAssoc.setInt(4,0); //lvl
+			    psInsertPathElementAssoc.setInt(5,sequenceNb);
+			    psInsertPathElementAssoc.setInt(6,r.getOperator().ordinal());
+			    psInsertPathElementAssoc.executeUpdate();
 			}
 			catch (SQLException e) {
 			    String errMsg = 
@@ -2573,7 +2759,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 			    psInsertPathOutputModuleAssoc.setInt(2,outputModuleId);
 			    psInsertPathOutputModuleAssoc.setInt(3,sequenceNb);
 			    psInsertPathOutputModuleAssoc.setInt(4,r.getOperator().ordinal());
-			    psInsertPathOutputModuleAssoc.addBatch();
+			    psInsertPathOutputModuleAssoc.executeUpdate();
 			}
 			catch (SQLException e) {
 			    String errMsg = 
@@ -2588,6 +2774,30 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		}
 	    }
 	}
+/*        try {
+            psInsertPathPathAssoc.executeBatch();
+            psInsertPathSequenceAssoc.executeBatch();
+            psInsertPathModuleAssoc.executeBatch();
+            psInsertPathOutputModuleAssoc.executeBatch();
+            psInsertSequenceSequenceAssoc.executeBatch();
+            psInsertSequenceModuleAssoc.executeBatch();
+            psInsertSequenceOutputModuleAssoc.executeBatch();
+        }
+        catch (SQLException e) {
+            String errMsg =
+                "ConfDB::insertReferences(config="+config.toString()+") failed "+
+                "(batch insert): "+e.getMessage();
+            throw new DatabaseException(errMsg,e);
+        }*/
+    }
+
+    /** insert all references, regarding paths and sequences */
+    private void insertSeqReferences(Configuration config,int pathId,int parentId,int lvl, 
+				  HashMap<String,Integer> sequenceHashMap,
+				  HashMap<String,Integer> moduleHashMap,
+				  HashMap<String,Integer> streamHashMap)
+	throws DatabaseException
+    {
 	
 	
 	
@@ -2605,11 +2815,16 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 			int childSequenceId=Math.abs(sequenceHashMap
 						     .get(r.name()));
 			try {
-			    psInsertSequenceSequenceAssoc.setInt(1,sequenceId);
-			    psInsertSequenceSequenceAssoc.setInt(2,childSequenceId);
-			    psInsertSequenceSequenceAssoc.setInt(3,sequenceNb);
-			    psInsertSequenceSequenceAssoc.setInt(4,r.getOperator().ordinal());
-			    psInsertSequenceSequenceAssoc.addBatch();
+			    psInsertPathElementAssoc.setInt(1,pathId);
+			    psInsertPathElementAssoc.setInt(2,sequenceId);
+			    psInsertPathElementAssoc.setInt(3,parentId); //lvl
+			    psInsertPathElementAssoc.setInt(4,lvl); //lvl
+			    psInsertPathElementAssoc.setInt(5,sequenceNb);
+			    psInsertPathElementAssoc.setInt(6,r.getOperator().ordinal());
+			    psInsertPathElementAssoc.executeUpdate();
+                          
+                            insertSeqReferences(config,pathId,sequenceId,lvl+1,sequenceHashMap,moduleHashMap,streamHashMap);
+
 			}
 			catch (SQLException e) {
 			    e.printStackTrace();
@@ -2626,11 +2841,13 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		    else if (r instanceof ModuleReference) {
 			int moduleId = moduleHashMap.get(r.name());
 			try {
-			    psInsertSequenceModuleAssoc.setInt(1,sequenceId);
-			    psInsertSequenceModuleAssoc.setInt(2,moduleId);
-			    psInsertSequenceModuleAssoc.setInt(3,sequenceNb);
-			    psInsertSequenceModuleAssoc.setInt(4,r.getOperator().ordinal());
-			    psInsertSequenceModuleAssoc.addBatch();
+			    psInsertPathElementAssoc.setInt(1,pathId);
+			    psInsertPathElementAssoc.setInt(2,moduleId);
+			    psInsertPathElementAssoc.setInt(3,parentId); //lvl
+			    psInsertPathElementAssoc.setInt(4,lvl); //lvl
+			    psInsertPathElementAssoc.setInt(5,sequenceNb);
+			    psInsertPathElementAssoc.setInt(6,r.getOperator().ordinal());
+			    psInsertPathElementAssoc.executeUpdate();
 			}
 			catch (SQLException e) {
 			    String errMsg = 
@@ -2647,11 +2864,11 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 			if(outputModuleId<0)
 			    outputModuleId = -1 * outputModuleId;
 			try {
-			    psInsertSequenceOutputModuleAssoc.setInt(1,sequenceId);
-			    psInsertSequenceOutputModuleAssoc.setInt(2,outputModuleId);
-			    psInsertSequenceOutputModuleAssoc.setInt(3,sequenceNb);
-			    psInsertSequenceOutputModuleAssoc.setInt(4,r.getOperator().ordinal());
-			    psInsertSequenceOutputModuleAssoc.addBatch();
+			    psInsertPathOutputModuleAssoc.setInt(1,pathId);
+			    psInsertPathOutputModuleAssoc.setInt(2,outputModuleId);
+			    psInsertPathOutputModuleAssoc.setInt(3,sequenceNb);
+			    psInsertPathOutputModuleAssoc.setInt(4,r.getOperator().ordinal());
+			    psInsertPathOutputModuleAssoc.executeUpdate();
 			}
 			catch (SQLException e) {
 			    String errMsg = 
@@ -2667,21 +2884,6 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    }
 	}
 	
-	try {
-	    psInsertPathPathAssoc.executeBatch();
-	    psInsertPathSequenceAssoc.executeBatch();
-	    psInsertPathModuleAssoc.executeBatch();
-	    psInsertPathOutputModuleAssoc.executeBatch();
-	    psInsertSequenceSequenceAssoc.executeBatch();
-	    psInsertSequenceModuleAssoc.executeBatch();
-	    psInsertSequenceOutputModuleAssoc.executeBatch();
-	}
-	catch (SQLException e) {
-	    String errMsg =
-		"ConfDB::insertReferences(config="+config.toString()+") failed "+
-		"(batch insert): "+e.getMessage();
-	    throw new DatabaseException(errMsg,e); 
-	}
     }
    
 
@@ -2702,9 +2904,21 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		continue;
 	    }
 	    try {
-		psInsertContents.setString(1,eventContent.name());
-		psInsertContents.executeUpdate();
-		rse = psInsertContents.getGeneratedKeys();
+                psCheckContents.setString(1,eventContent.name());
+                rse=psCheckContents.executeQuery();
+                int id_cont=-1;
+                if (rse.next()) {
+			id_cont=rse.getInt(1);
+                } else {
+                	psInsertContents.setString(1,eventContent.name());
+			psInsertContents.executeUpdate();
+			rse = psInsertContents.getGeneratedKeys();
+			rse.next();
+                        id_cont=rse.getInt(1);
+                }
+                psInsertContentIds.setInt(1,id_cont);
+                psInsertContentIds.executeUpdate();
+		rse = psInsertContentIds.getGeneratedKeys();
 		rse.next();
 		eventContentId = rse.getInt(1);
 		result.put(eventContent.name(),eventContentId);
@@ -4533,12 +4747,14 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    
 	    psSelectPathsForConfig =
 		dbConnector.getConnection().prepareStatement
-		("SELECT"+
+/*h_		("SELECT"+
   " Paths.id_pathiduq "+
    "FROM h_pathid2uq Paths " +
    "JOIN h_pathid2conf ConfigurationPathAssoc " +
    "ON ConfigurationPathAssoc.id_pathid=Paths.id_pathid " +
    "WHERE ConfigurationPathAssoc.id_confver=?");
+*/
+                ("SELECT v_pathids.id  FROM v_pathids   JOIN v_pathid2conf ON v_pathid2conf.id_pathid=v_pathids.id WHERE v_pathid2conf.id_confver=?  order by v_pathid2conf.id_pathid");
 	    preparedStatements.add(psSelectPathsForConfig);
 
 //	    psSelectModulesForSeq =
@@ -4772,19 +4988,21 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    
 	    psSelectPathStreamDatasetEntries =
 		dbConnector.getConnection().prepareStatement
-            ("SELECT distinct h_pathid2uq.id_pathiduq,v_streams.id+5000000 as streamid,v_datasets.id as datasetid, v_datasets.name from v_pathid2strdst, v_pathid2conf,v_datasetids,v_datasets,v_streams,v_streamids,h_pathid2uq WHERE h_pathid2uq.id_pathid=v_pathid2conf.id_pathid and v_pathid2strdst.id_pathid=v_pathid2conf.id_pathid and  v_datasets.id=v_datasetids.id_dataset and v_datasetids.id=v_pathid2strdst.id_datasetid and v_streams.id=v_streamids.id_stream and v_streamids.id=v_pathid2strdst.id_streamid AND v_pathid2conf.id_confver = ?");
+           /* h_  ("SELECT distinct h_pathid2uq.id_pathiduq,v_streams.id+5000000 as streamid,v_datasets.id as datasetid, v_datasets.name from v_pathid2strdst, v_pathid2conf,v_datasetids,v_datasets,v_streams,v_streamids,h_pathid2uq WHERE h_pathid2uq.id_pathid=v_pathid2conf.id_pathid and v_pathid2strdst.id_pathid=v_pathid2conf.id_pathid and  v_datasets.id=v_datasetids.id_dataset and v_datasetids.id=v_pathid2strdst.id_datasetid and v_streams.id=v_streamids.id_stream and v_streamids.id=v_pathid2strdst.id_streamid AND v_pathid2conf.id_confver = ?");*/
+             ("SELECT distinct v_pathid2conf.id_pathid,v_streams.id+5000000 as streamid,v_datasets.id as datasetid, v_datasets.name from v_pathid2strdst, v_pathid2conf,v_datasetids,v_datasets,v_streams,v_streamids WHERE v_pathid2strdst.id_pathid=v_pathid2conf.id_pathid and  v_datasets.id=v_datasetids.id_dataset and v_datasetids.id=v_pathid2strdst.id_datasetid and v_streams.id=v_streamids.id_stream and v_streamids.id=v_pathid2strdst.id_streamid AND v_pathid2conf.id_confver = ?");
           //psSelectPathStreamDatasetEntries.setFetchSize(64);
 	    preparedStatements.add(psSelectPathStreamDatasetEntries);
 
 	    psSelectStatementId = 
 		dbConnector.getConnection().prepareStatement
-		("SELECT statementId from EventContentStatements WHERE classN = ? " +
+		("SELECT id from v_evcoStatements WHERE classN = ? " +
 		 " AND moduleL = ? AND extraN = ? AND processN = ? AND statementType = ? ");
 	    preparedStatements.add(psSelectStatementId);
 	    
 	    psSelectEventContentStatements =  
 		dbConnector.getConnection().prepareStatement
-              ("select distinct v_evcostatements.id as statemId, v_evcostatements.classn,v_evcostatements.modulel,v_evcostatements.extran,v_evcostatements.processn,v_evcostatements.statementtype,v_eventcontents.id as evcoid, v_evco2stat.statementrank,v_eventcontents.name,decode(v_evco2stat.id_pathid,-1,'-1',0,'0',(select h_pathid2uq.id_pathiduq from h_pathid2uq where h_pathid2uq.id_pathid=v_evco2stat.id_pathid)) from v_eventcontents,v_eventcontentids,v_evcostatements, v_conf2evco, v_evco2stat where v_eventcontents.id=v_eventcontentids.id_evco and v_evcostatements.id=v_evco2stat.id_stat and v_evco2stat.id_evcoid=v_conf2evco.id_evcoid and v_eventcontentids.id=v_conf2evco.id_evcoid and v_conf2evco.id_confver=? order by statemid");
+           /* h_  ("select distinct v_evcostatements.id as statemId, v_evcostatements.classn,v_evcostatements.modulel,v_evcostatements.extran,v_evcostatements.processn,v_evcostatements.statementtype,v_eventcontents.id as evcoid, v_evco2stat.statementrank,v_eventcontents.name,decode(v_evco2stat.id_pathid,-1,'-1',0,'0',(select h_pathid2uq.id_pathiduq from h_pathid2uq where h_pathid2uq.id_pathid=v_evco2stat.id_pathid)) from v_eventcontents,v_eventcontentids,v_evcostatements, v_conf2evco, v_evco2stat where v_eventcontents.id=v_eventcontentids.id_evco and v_evcostatements.id=v_evco2stat.id_stat and v_evco2stat.id_evcoid=v_conf2evco.id_evcoid and v_eventcontentids.id=v_conf2evco.id_evcoid and v_conf2evco.id_confver=? order by statemid");*/
+               ("select distinct v_evcostatements.id as statemId, v_evcostatements.classn,v_evcostatements.modulel,v_evcostatements.extran,v_evcostatements.processn,v_evcostatements.statementtype,v_eventcontents.id as evcoid, v_evco2stat.statementrank,v_eventcontents.name,v_evco2stat.id_pathid from v_eventcontents,v_eventcontentids,v_evcostatements, v_conf2evco, v_evco2stat where v_eventcontents.id=v_eventcontentids.id_evco and v_evcostatements.id=v_evco2stat.id_stat and v_evco2stat.id_evcoid=v_conf2evco.id_evcoid and v_eventcontentids.id=v_conf2evco.id_evcoid and v_conf2evco.id_confver=? order by statemid");
 	    preparedStatements.add(psSelectEventContentStatements);
 
 
@@ -4931,27 +5149,39 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigurationLock);
 
-/*
+
 	    //Insert Event Content	       
+	    psCheckContents =
+		dbConnector.getConnection().prepareStatement
+		("SELECT id FROM v_EventContents WHERE name= ? ");
+	    preparedStatements.add(psCheckContents);
+
 	    psInsertContents =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO EventContents (name)" +
+		("INSERT INTO v_EventContents (name)" +
 		 "VALUES(?)",keyColumn);
 	    preparedStatements.add(psInsertContents);
+
+            psInsertContentIds =
+                dbConnector.getConnection().prepareStatement
+                ("INSERT INTO v_EventContentids (id_evco)" +
+                 "VALUES(?)",keyColumn);
+            preparedStatements.add(psInsertContentIds);
+
 	  
 	    psInsertContentsConfigAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO ConfigurationContentAssoc (eventContentId,configId)" +
+		("INSERT INTO v_conf2evco (id_evCoId,id_confver)" +
 		 "VALUES(?,?)");
 	    preparedStatements.add(psInsertContentsConfigAssoc);
 
 	    psInsertEventContentStatements =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO EventContentStatements (classN,moduleL,extraN,processN,statementType) " +
+		("INSERT INTO v_evcostatements (classN,moduleL,extraN,processN,statementType) " +
 		 "VALUES(?,?,?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertEventContentStatements);
 
-*/	   
+	   
 	     psInsertStreams =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO v_streams (name)" +
@@ -4964,43 +5194,43 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
                  "VALUES(?,-1,?)",keyColumn);
             preparedStatements.add(psInsertStreamsIds);
 
-/*
+
 	    
 	    psInsertPrimaryDatasets =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO PrimaryDatasets (datasetLabel)" +
+		("INSERT INTO v_datasets (name)" +
 		 "VALUES(?)",keyColumn);
 	    preparedStatements.add(psInsertPrimaryDatasets);
 
 	    psInsertECStreamAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO ECStreamAssoc (eventContentId, streamId)" +
+		("INSERT INTO v_evco2stream (id_evcoid, id_streamid)" +
 		 "VALUES(?,?)");
 	    preparedStatements.add(psInsertECStreamAssoc);
 	   
 	    
 	    psInsertPathStreamPDAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO PathStreamDatasetAssoc (pathId, streamId, datasetId)" +
+		("INSERT INTO v_pathid2strdst (id_pathid, id_streamId, id_datasetId)" +
 		 "VALUES(?,?,?)");
 	    preparedStatements.add(psInsertPathStreamPDAssoc);
 	    
 	  
 	    psInsertECStatementAssoc = 
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO ECStatementAssoc (statementRank,statementId,eventContentId,pathId) " +
+		("INSERT INTO v_evco2stat (statementRank,id_stat,id_evcoid,id_pathId) " +
 		 "VALUES(?,?,?,?) ");
 	    preparedStatements.add(psInsertECStatementAssoc);
 	    
 
-	    psInsertStreamDatasetAssoc =
+/*	    psInsertStreamDatasetAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO StreamDatasetAssoc (streamId, datasetId)" +
-		 "VALUES(?,?)");
+		("INSERT INTO v_pathid2strdst (id_pathid,id_streamId, id_datasetId)" +
+		 "VALUES(?,?,?)");
 	    preparedStatements.add(psInsertStreamDatasetAssoc);
-
+*/
 	
-
+/*
 	    if (dbType.equals(dbTypeMySQL))
 		psInsertSuperId = dbConnector.getConnection().prepareStatement
 		    ("INSERT INTO SuperIds VALUES()",keyColumn);
@@ -5082,21 +5312,77 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    preparedStatements.add(psInsertConfigServiceAssoc);
 
 	
-
-/*	    psInsertPath =
+            psCheckPathName = 
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO Paths (name,isEndPath) " +
-		 "VALUES(?, ?)",keyColumn);
+                (" SELECT id from v_paths WHERE name=? ");
+	    preparedStatements.add(psCheckPathName);
+
+            psCheckPathNoum = 
+		dbConnector.getConnection().prepareStatement
+                (" SELECT id from v_noumpaths WHERE name=? ");
+	    preparedStatements.add(psCheckPathNoum);
+
+	    psInsertPathNoum =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO v_noumPaths (name) " +
+		 "VALUES(?)",keyColumn);
+	    preparedStatements.add(psInsertPathNoum);
+	  
+	    psInsertPath =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO v_Paths (name,version,id_noumpath) " +
+		 "VALUES(?, ?, ?)",keyColumn);
 	    preparedStatements.add(psInsertPath);
 	  
+	    psInsertPathIds =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO v_pathids (id_path,pathid,isEndPath,crc32,crc32logic) " +
+		 "VALUES(?, -999, ?, ?, ?)",keyColumn);
+	    preparedStatements.add(psInsertPathIds);
+	  
+	    psInsertHPathIds =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO h_pathids (crc32,crc32logic) " +
+		 "VALUES(?, ? )",keyColumn);
+	    preparedStatements.add(psInsertHPathIds);
+
+	    psInsertHPathId2Path =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO h_pathid2path (id_path,id_pathid,isEndPath) " +
+		 "VALUES(?, ?, ?)",keyColumn);
+	    preparedStatements.add(psInsertHPathId2Path);
+	  
+	    psInsertHPathId2Uq =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO h_pathid2uq (id_pathid,id_pathiduq) " +
+		 "VALUES(?, ? )",keyColumn);
+	    preparedStatements.add(psInsertHPathId2Uq);
+	  
+	    psSelectPathId2Uq =
+		dbConnector.getConnection().prepareStatement
+		("SELECT id_pathid FROM h_pathid2uq WHERE id_pathiduq=? ");
+	    preparedStatements.add(psSelectPathId2Uq);
+
+            psCheckHPathIdCrc =
+               dbConnector.getConnection().prepareStatement
+	       ("SELECT id FROM h_pathids WHERE crc32=? ");
+	    preparedStatements.add(psCheckHPathIdCrc);
+
 	    psInsertConfigPathAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
-		 "ConfigurationPathAssoc (configId,pathId,sequenceNb) " +
+		 "v_pathid2conf (id_pathId,id_confver,ord) " +
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigPathAssoc);
 	 
-	    psInsertSequence =
+	    psInsertConfigHPathAssoc =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO " +
+		 "h_pathid2conf (id_pathId,id_confver,ord) " +
+		 "VALUES(?, ?, ?)");
+	    preparedStatements.add(psInsertConfigHPathAssoc);
+	 
+/*	    psInsertSequence =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO Sequences (name) " +
 		 "VALUES(?)",keyColumn);
@@ -5109,15 +5395,51 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		 "ConfigurationSequenceAssoc (configId,sequenceId,sequenceNb) " +
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigSequenceAssoc);
-	    
-	    
-	    psInsertModule =
+*/
+
+	    psInsertPathElement =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO Modules (superId,templateId,name) " +
-		 "VALUES(?, ?, ?)");
-	    preparedStatements.add(psInsertModule);
+		("INSERT INTO v_paelements (paetype,name,crc32,crc32logic,o_id) " +
+		 "VALUES(?, ?, ?, -999,-999)",keyColumn);
+	    preparedStatements.add(psInsertPathElement);
 	    
-	    psInsertSequenceModuleAssoc =
+	    psInsertHPathElement =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO h_paelements (moe_type,templateId,name,crc32,crc32logic) " +
+		 "VALUES(?, ?, ?, ?, -999)");
+	    preparedStatements.add(psInsertHPathElement);
+	    
+           psInsertMoElement =
+                dbConnector.getConnection().prepareStatement
+                ("INSERT INTO v_moelements (moetype,name,o_id,paramtype,tracked,crc32,value,valuelob,hex) " +
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ? )",keyColumn);
+            preparedStatements.add(psInsertMoElement);
+
+           psInsertPae2Moe=
+                dbConnector.getConnection().prepareStatement
+                ("INSERT INTO v_pae2moe (id_pae,id_moe,lvl,ord) " +
+                 "VALUES(?, ?, ?, ?)",keyColumn);
+            preparedStatements.add(psInsertPae2Moe);
+
+           psInsertMod2Templ=
+                dbConnector.getConnection().prepareStatement
+                ("INSERT INTO v_mod2templ (id_pae,id_templ) " +
+                 "VALUES(?, ? )");
+            preparedStatements.add(psInsertMod2Templ);
+
+	    psInsertPathElementAssoc =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO v_pathid2pae (id_pathid,id_pae,id_parent,lvl,ord,operator) " +
+		 "VALUES(?, ?, ?, ?, ?, ?)");
+	    preparedStatements.add(psInsertPathModuleAssoc);
+
+            psInsertPathOutputModuleAssoc =
+                dbConnector.getConnection().prepareStatement
+                ("INSERT INTO v_pathid2outm (id_pathid,id_streamid,ord,operator) " +
+                 "VALUES(?, ?, ?, ?)");
+            preparedStatements.add(psInsertPathOutputModuleAssoc);
+
+/*	    psInsertSequenceModuleAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO SequenceModuleAssoc (sequenceId,moduleId,sequenceNb,operator) "+
 		 "VALUES(?, ?, ?, ?)");
@@ -5187,7 +5509,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    
 	    psInsertESModuleTemplate =
 		dbConnector.getConnection().prepareStatement
-  ("INSERT INTO v_moduletemplates (id_pkg,id_mtype,name,cvstag) " +
+  ("INSERT INTO v_esmtemplates (id_pkg,name,cvstag) " +
    "VALUES (?, ?, ?, ?)", keyColumn);
 	    preparedStatements.add(psInsertESModuleTemplate);
 	    
@@ -5214,41 +5536,41 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		("INSERT INTO v_globalpsets (name,tracked) " +
 		 "VALUES(?, ?)",keyColumn);
 	    preparedStatements.add(psInsertGPset);
-	    
-	    psInsertParameterGPset =
-		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_gpsetelements (id_gpset,moetype,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id) " +
-		 "VALUES(?, 1, ?, ?, ?, ?, ?, ?, ?, ?,-1)",keyColumn);
-	    preparedStatements.add(psInsertParameterGPset);
-	    
+
+	   psInsertParameterGPset =
+                dbConnector.getConnection().prepareStatement
+                ("INSERT INTO v_gpsetelements (id_gpset,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?,-1, ?)",keyColumn);
+            preparedStatements.add(psInsertParameterGPset);
+
            psInsertParameterEDS =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_edselements (id_edsource,moetype,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id) " +
-                 "VALUES(?, 1, ?, ?, ?, ?, ?, ?, ?, ?, -1)",keyColumn);
+                ("INSERT INTO v_edselements (id_edsource,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
             preparedStatements.add(psInsertParameterEDS);
 
            psInsertParameterESM =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_esmelements (id_esmodule,moetype,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id) " +
-                 "VALUES(?, 1, ?, ?, ?, ?, ?, ?, ?, ?, -1)",keyColumn);
+                ("INSERT INTO v_esmelements (id_esmodule,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
             preparedStatements.add(psInsertParameterESM);
 
            psInsertParameterESS =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_esselements (id_essource,moetype,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id) " +
-                 "VALUES(?, 1, ?, ?, ?, ?, ?, ?, ?, ?, -1)",keyColumn);
+                ("INSERT INTO v_esselements (id_essource,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
             preparedStatements.add(psInsertParameterESS);
 
            psInsertParameterSRV =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_srvelements (id_service,moetype,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id) " +
-                 "VALUES(?, 1, ?, ?, ?, ?, ?, ?, ?, ?, -1)",keyColumn);
+                ("INSERT INTO v_srvelements (id_service,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
             preparedStatements.add(psInsertParameterSRV);
 
            psInsertParameterOUTM =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_outmelements (id_streamid,moetype,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id) " +
-                 "VALUES(?, 1, ?, ?, ?, ?, ?, ?, ?, ?, -1)",keyColumn);
+                ("INSERT INTO v_outmelements (id_streamid,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
             preparedStatements.add(psInsertParameterOUTM);
 
 	    psInsertSuperIdParamSetAssoc =
@@ -5715,7 +6037,8 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 //		"Select * from (SELECT a.id, a.paramtype, a.name, a.tracked, a.ord,a.id_pae, a.lvl,  a.value,  a.valuelob from V_MOELEMENTS a, V_PAELEMENTS b, V_PATHID2CONF c " +
 //		" where c.ID_CONFVER=? and c.ID_PATHID=b.ID_PATHID and a.id_pae=b.id order by a.id ) " +
 //		" UNION ALL " + 
-                " select id,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (select sa.*, h_moelements.valuelob,h_moelements.hex from (select  distinct h_moelements.id, h_moelements.paramtype, h_moelements.name, h_moelements.tracked, h_pae2moe.ord,h_pastruct.id_pae,  h_pae2moe.lvl as lvl,  h_moelements.value,h_pae2moe.id as pae2id  from h_moelements, h_pae2moe, h_pastruct  where h_moelements.id = h_pae2moe.id_moe AND h_pastruct.id_pae = h_pae2moe.id_pae AND  h_pastruct.id  IN (SELECT h_pastruct.id FROM h_pastruct,h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pathid2conf.id_confver=?) order by h_pae2moe.id) sa, h_moelements where sa.id=h_moelements.id) " +
+                /*h_" select id,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (select sa.*, h_moelements.valuelob,h_moelements.hex from (select  distinct h_moelements.id, h_moelements.paramtype, h_moelements.name, h_moelements.tracked, h_pae2moe.ord,h_pastruct.id_pae,  h_pae2moe.lvl as lvl,  h_moelements.value,h_pae2moe.id as pae2id  from h_moelements, h_pae2moe, h_pastruct  where h_moelements.id = h_pae2moe.id_moe AND h_pastruct.id_pae = h_pae2moe.id_pae AND  h_pastruct.id  IN (SELECT h_pastruct.id FROM h_pastruct,h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pathid2conf.id_confver=?) order by h_pae2moe.id) sa, h_moelements where sa.id=h_moelements.id) " + */
+                " select id,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (select sa.*, v_moelements.valuelob,v_moelements.hex from (select  distinct v_moelements.id, v_moelements.paramtype, v_moelements.name, v_moelements.tracked, v_pae2moe.ord,v_pathid2pae.id_pae,  v_pae2moe.lvl as lvl,  v_moelements.value,v_pae2moe.id as pae2id  from v_moelements, v_pae2moe, v_pathid2pae  where v_moelements.id = v_pae2moe.id_moe AND v_pathid2pae.id_pae = v_pae2moe.id_pae AND  v_pathid2pae.id  IN (SELECT v_pathid2pae.id FROM v_pathid2pae,v_pathid2conf WHERE v_pathid2conf.id_pathid=v_pathid2pae.id_pathid and v_pathid2conf.id_confver=?) order by v_pae2moe.id) sa, v_moelements where sa.id=v_moelements.id) " +
 		" UNION ALL " + 
 		"Select * from (SELECT a.id+4000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_service+4000000, a.lvl,  a.value,  a.valuelob, a.hex from V_SRVELEMENTS a, V_CONF2SRV c " +
 		" where c.ID_CONFVER=? and c.ID_SERVICE=a.ID_Service order by id )" +
@@ -5832,16 +6155,20 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    
 	    psSelectPathEntries =
 		dbConnector.getConnection().prepareStatement
-                ("Select * from (SELECT h_pastruct.id_pathid, h_paelements.id, h_pastruct.ord, DECODE(h_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, h_pastruct.operator FROM h_pastruct,h_paelements, h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pastruct.id_pae=h_paelements.id and h_pastruct.lvl=0 and h_pathid2conf.id_confver = ? order by h_pastruct.id_pathid,h_pastruct.id) " +
+            /*h_    ("Select * from (SELECT h_pastruct.id_pathid, h_paelements.id, h_pastruct.ord, DECODE(h_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, h_pastruct.operator FROM h_pastruct,h_paelements, h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pastruct.id_pae=h_paelements.id and h_pastruct.lvl=0 and h_pathid2conf.id_confver = ? order by h_pastruct.id_pathid,h_pastruct.id) " +
                 " UNION ALL " +
                 " select * from (select h_pathid2uq.id_pathiduq, v_streams.id+5000000 as stid,V_PATHID2OUTM.ord,'OutputModule', V_PATHID2OUTM.operator from V_PATHID2OUTM,v_streams,v_streamids,v_PATHID2CONF,h_pathid2uq where v_streams.id=v_streamids.id_stream and v_streamids.id=V_PATHID2OUTM.id_streamid and v_PATHID2CONF.id_confver=? and  v_PATHID2CONF.id_pathid= V_PATHID2OUTM.id_pathid and h_pathid2uq.id_pathid=v_PATHID2CONF.id_pathid)");
-	    psSelectPathEntries.setFetchSize(1024);
+	    psSelectPathEntries.setFetchSize(1024); */
+                ("Select * from (SELECT v_pathid2conf.id_pathid, v_paelements.id, v_pathid2pae.ord, DECODE(v_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, v_pathid2pae.operator FROM v_pathid2pae,v_paelements, v_pathid2conf WHERE v_pathid2conf.id_pathid=v_pathid2pae.id_pathid and v_pathid2pae.id_pae=v_paelements.id and v_pathid2pae.lvl=0 and v_pathid2conf.id_confver = ? order by v_pathid2pae.id_pathid,v_pathid2pae.id) " +
+               " UNION ALL " +
+               " select * from (select v_PATHID2CONF.id_pathid, v_streams.id+5000000 as stid,V_PATHID2OUTM.ord,'OutputModule', V_PATHID2OUTM.operator from V_PATHID2OUTM,v_streams,v_streamids,v_PATHID2CONF where v_streams.id=v_streamids.id_stream and v_streamids.id=V_PATHID2OUTM.id_streamid and v_PATHID2CONF.id_confver=? and  v_PATHID2CONF.id_pathid= V_PATHID2OUTM.id_pathid )");
 	    preparedStatements.add(psSelectPathEntries);
 		/*("SELECT e.id AS sequence_id,  d.id AS entry_id, a.ord AS sequence_nb, DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, a.operator, a.crc32 FROM v_paelements a, v_pathid2conf b, v_pathids c,(select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) d , (select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) e WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND b.id_confver =? AND a.lvl>0 and a.crc32=d.crc32 AND e.crc32 in (select crc32 from v_paelements where id=a.id_parent) ORDER BY a.id_pathid ASC, a.id ASC");
 */
 	    psSelectSequenceEntries =
 		dbConnector.getConnection().prepareStatement
-             ("SELECT h_pastruct.id_pathid,h_pastruct.id as srid,h_pastruct.lvl, h_paelements.id, h_pastruct.ord, DECODE(h_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, h_pastruct.operator FROM h_pastruct,h_paelements, h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pastruct.id_pae=h_paelements.id and ((h_pastruct.lvl=0 and h_paelements.paetype=2) or h_pastruct.lvl>0) and h_pathid2conf.id_confver = ? order by h_pastruct.id_pathid, srid");
+           /*h_  ("SELECT h_pastruct.id_pathid,h_pastruct.id as srid,h_pastruct.lvl, h_paelements.id, h_pastruct.ord, DECODE(h_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, h_pastruct.operator FROM h_pastruct,h_paelements, h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pastruct.id_pae=h_paelements.id and ((h_pastruct.lvl=0 and h_paelements.paetype=2) or h_pastruct.lvl>0) and h_pathid2conf.id_confver = ? order by h_pastruct.id_pathid, srid");*/
+                 ("SELECT v_pathid2pae.id_pathid,v_pathid2pae.id as srid,v_pathid2pae.lvl, v_paelements.id, v_pathid2pae.ord, DECODE(v_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, v_pathid2pae.operator FROM v_pathid2pae,v_paelements, v_pathid2conf WHERE v_pathid2conf.id_pathid=v_pathid2pae.id_pathid and v_pathid2pae.id_pae=v_paelements.id and ((v_pathid2pae.lvl=0 and v_paelements.paetype=2) or v_pathid2pae.lvl>0) and v_pathid2conf.id_confver = ? order by v_pathid2pae.id_pathid, srid");
 
 	    psSelectSequenceEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectSequenceEntries);
@@ -6059,12 +6386,8 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
             	psSelectParameters.setInt(6,configId);
             	psSelectParameters.setInt(7,configId);
 	    	rsParameters    = psSelectParameters.executeQuery();
-	    //rsBooleanValues = psSelectBooleanValues.executeQuery();
-	    //rsIntValues     = psSelectIntValues.executeQuery();
-	    //rsRealValues    = psSelectRealValues.executeQuery();
             }
 
-	    //rsStringValues  = psSelectStringValues.executeQuery();
 
 	    // get values as strings first
 	    HashMap<Integer,String> idToValueAsString =
@@ -6162,7 +6485,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	    
 	    /////////////////
 //	    while (rsStringValues.next()) {
-            if (type.contains("string")||type.contains("InputTag")||type.contains("FileInPath")
+            if (type.contains("string")||type.contains("InputTag")||type.contains("ESInputTag")||type.contains("FileInPath")
                 ||type.contains("EventID")) { 
 			
 	       String valueAsString = rsParameters.getString(8); // get PARAMETER_VALUE
@@ -6217,7 +6540,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
                 
 
                 int orparid=parentId;
-                System.out.println("ParId "+parentId+" (origparid "+orparid+") parameterId "+parameterId+" type "+ type+" name "+name+" seqNb "+seqNb+" lvl"+lvl);
+                //System.out.println("ParId "+parentId+" (origparid "+orparid+") parameterId "+parameterId+" type "+ type+" name "+name+" seqNb "+seqNb+" lvl"+lvl);
 
                         while (lvl<previouslvl) {
 				idlifo.pop();
@@ -6347,7 +6670,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
     }
     
     /** insert vpset into ParameterSets table */
-    private void insertVecParameterSet(int           parId,
+    private void insertVecParameterSet(int           parentId,
 				       int            sequenceNb,
                                        int           lvl,
 				       VPSetParameter vpset,
@@ -6357,27 +6680,46 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	//int      vpsetId = insertSuperId();
 	ResultSet rs      = null;
 	try {
-	    dbstmnt.setInt(1,parId);
+            if (dbstmnt==psInsertMoElement) {
+                dbstmnt.setInt(1,3); //moetype
+                dbstmnt.setString(2,vpset.name());
+                dbstmnt.setInt(3,-1);
+                dbstmnt.setString(4,"VPSet");
+                dbstmnt.setBoolean(5,vpset.isTracked());
+                dbstmnt.setInt(6,999);
+             } else {
+             dbstmnt.setInt(1,parentId);
 	    dbstmnt.setString(2,vpset.name());
 	    dbstmnt.setInt(3,lvl);
 	    dbstmnt.setBoolean(4,vpset.isTracked());
 	    dbstmnt.setString(5,"VPSet");
             dbstmnt.setInt(6,sequenceNb);
+            dbstmnt.setInt(10,3); //moetype
+            }
             dbstmnt.setString(7,null);
             dbstmnt.setString(8,null);
             dbstmnt.setString(9,null);
-            //dbstmnt.setInt(10,crc32());
 
 	    dbstmnt.execute();
-	    
+	    if (dbstmnt==psInsertMoElement) {
+                rs=dbstmnt.getGeneratedKeys();
+                rs.next();
+                int paramId = rs.getInt(1);
+                psInsertPae2Moe.setInt(1,parentId);
+                psInsertPae2Moe.setInt(2,paramId);
+                psInsertPae2Moe.setInt(3,lvl);
+                psInsertPae2Moe.setInt(4,sequenceNb);
+                psInsertPae2Moe.executeUpdate();
+           }
+ 
 	    for (int i=0;i<vpset.parameterSetCount();i++) {
 		PSetParameter pset = vpset.parameterSet(i);
-		insertParameterSet(parId,i,lvl+1,pset,dbstmnt);
+		insertParameterSet(parentId,i,lvl+1,pset,dbstmnt);
 	    }
 	}
 	catch (SQLException e) { 
 	    String errMsg =
-		"ConfDB::insertVecParameterSet(parId="+parId+
+		"ConfDB::insertVecParameterSet(parId="+parentId+
 		",sequenceNb="+sequenceNb+",vpset="+vpset.name()+") failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -6389,7 +6731,7 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
     }
     
     /** insert pset into ParameterSets table */
-    private void insertParameterSet(int          parId,
+    private void insertParameterSet(int          parentId,
 				    int           sequenceNb,
                                     int         lvl,
 				    PSetParameter pset,
@@ -6399,41 +6741,60 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 	//int      psetId = insertSuperId();
 	ResultSet rs = null;
 	try {
-	    dbstmnt.setInt(1,parId);
+              if (dbstmnt==psInsertMoElement) {
+                dbstmnt.setInt(1,2); //moetype
+                dbstmnt.setString(2,pset.name());
+                dbstmnt.setInt(3,-1);
+                dbstmnt.setString(4,"PSet");
+                dbstmnt.setBoolean(5,pset.isTracked());
+                dbstmnt.setInt(6,999);
+             } else {
+	    dbstmnt.setInt(1,parentId);
 	    dbstmnt.setString(2,pset.name());
 	    dbstmnt.setInt(3,lvl);
 	    dbstmnt.setBoolean(4,pset.isTracked());
 	    dbstmnt.setString(5,"PSet");
 	    dbstmnt.setInt(6,sequenceNb);
-	    dbstmnt.setString(7,null);
+	    dbstmnt.setInt(10,2); //moetype
+	    }
+            dbstmnt.setString(7,null);
 	    dbstmnt.setString(8,null);
 	    dbstmnt.setString(9,null);
-	    //dbstmnt.setInt(10,crc32());
-             
 	    dbstmnt.execute();
 	    //rs=dbstmnt.getGeneratedKeys(); 
 //            rs.next();
 //            int psetId = rs.getInt(1);
+            if (dbstmnt==psInsertMoElement) {
+                rs=dbstmnt.getGeneratedKeys();
+                rs.next();
+                int paramId = rs.getInt(1);
+                psInsertPae2Moe.setInt(1,parentId);
+                psInsertPae2Moe.setInt(2,paramId);
+                psInsertPae2Moe.setInt(3,lvl);
+                psInsertPae2Moe.setInt(4,sequenceNb);
+                psInsertPae2Moe.executeUpdate();
+           }
+
 
             
 	    for (int i=0;i<pset.parameterCount();i++) {
 		Parameter p = pset.parameter(i);
 		if (p instanceof PSetParameter) {
 		    PSetParameter ps = (PSetParameter)p;
-		    insertParameterSet(parId,i,lvl+1,ps,dbstmnt);
+		    insertParameterSet(parentId,i,lvl+1,ps,dbstmnt);
 		}
 		else if (p instanceof VPSetParameter) {
 		    VPSetParameter vps = (VPSetParameter)p;
-		    insertVecParameterSet(parId,i,lvl+1,vps,dbstmnt);
+		    insertVecParameterSet(parentId,i,lvl+1,vps,dbstmnt);
 		}
 		else {
-		    insertParameter(parId,i,lvl+1,p,dbstmnt);
+		    insertParameter(parentId,i,lvl+1,p,dbstmnt);
 		}
 	    }
 	}
 	catch (SQLException e) { 
 	    String errMsg =
-		"ConfDB::insertParameterSet(parId="+parId+
+		"ConfDB::insertParameterSet(parId="+parentId+
 		",sequenceNb="+sequenceNb+",pset="+pset.name()+") failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -6445,14 +6806,13 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
     }
     
     /** insert parameter into Parameters table */
-    private void insertParameter(int      parId,
+    private void insertParameter(int      parentId,
 				 int       sequenceNb,
 				 int       lvl,
 				 Parameter parameter,
                                  PreparedStatement dbstmnt)
 	throws DatabaseException
     {
-	int      paramId = 0;
 	ResultSet rs      = null;
 	try {
 	    /* Fix for File in Path Error*/
@@ -6462,12 +6822,22 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 		fileInPathParameter.setValue("' '");
 		}*/
 
-	    dbstmnt.setInt(1,parId);
+	    if (dbstmnt==psInsertMoElement) {
+	        dbstmnt.setInt(1,1); //moetype
+	      	dbstmnt.setString(2,parameter.name());
+	        dbstmnt.setInt(3,-1);
+	    	dbstmnt.setString(4,parameter.type());
+	    	dbstmnt.setBoolean(5,parameter.isTracked());
+	        dbstmnt.setInt(6,999);
+             } else {
+	    dbstmnt.setInt(1,parentId);
 	    dbstmnt.setString(2,parameter.name());
 	    dbstmnt.setInt(3,lvl);
 	    dbstmnt.setBoolean(4,parameter.isTracked());
 	    dbstmnt.setString(5,parameter.type());
             dbstmnt.setInt(6,sequenceNb);
+	    dbstmnt.setInt(10,1); //moetype
+            }
 
             String value = "";
             int hexo=0;
@@ -6550,10 +6920,23 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
  
               dbstmnt.setInt(9,hexo); 
 	      dbstmnt.executeUpdate();
+
+	    if (dbstmnt==psInsertMoElement) {
+            	rs=dbstmnt.getGeneratedKeys(); 
+            	rs.next();
+            	int paramId = rs.getInt(1);
+                psInsertPae2Moe.setInt(1,parentId);
+                psInsertPae2Moe.setInt(2,paramId);
+                psInsertPae2Moe.setInt(3,lvl);
+                psInsertPae2Moe.setInt(4,sequenceNb);
+     
+                psInsertPae2Moe.executeUpdate();
+           }
+
 	}
 	catch (SQLException e) { 
 	    String errMsg =
-		"ConfDB::insertParameter(parId="+parId+",sequenceNb="+
+		"ConfDB::insertParameter(parId="+parentId+",sequenceNb="+
 		sequenceNb+",parameter="+parameter.name()+") failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -6944,10 +7327,10 @@ System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLv
 
 
 	String  dbType      =           "oracle";
-	String  dbHost      =  "cmsr1-v.cern.ch";
+	String  dbHost      =  "int2r1-v.cern.ch";
 	String  dbPort      =            "10121";
-	String  dbName      = "cms_cond.cern.ch";
-	String  dbUser      =       "cms_hltdev";
+	String  dbName      = "int2r_nolb.cern.ch";
+	String  dbUser      =       "cms_hlt_gdr";
 	String  dbPwrd      =                 "";
 
 	for (int iarg=0;iarg<args.length;iarg++) {

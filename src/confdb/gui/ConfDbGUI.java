@@ -576,7 +576,7 @@ public class ConfDbGUI
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
 	
-        System.out.println(" Configuration picked\n"):
+        //System.out.println(" Configuration picked\n");
 	if (dialog.validChoice()) {
 	    OpenConfigurationThread worker = new OpenConfigurationThread(dialog.configInfo());
 	    

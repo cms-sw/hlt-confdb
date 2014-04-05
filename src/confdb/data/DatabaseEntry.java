@@ -21,6 +21,7 @@ public class DatabaseEntry implements Serializable
     
     /** database id (primary key) */
     private int databaseId = 0;
+    private int crcval = 0;
 
     //
     // member functions
@@ -28,6 +29,7 @@ public class DatabaseEntry implements Serializable
     
     /** retrieve the database id*/
     public int databaseId() { return databaseId; }
+    public int crcval() { return crcval; }
 
     /** indicate wether this object is not in the DB or has changed */
     public boolean hasChanged() { return databaseId==0; }
@@ -37,8 +39,13 @@ public class DatabaseEntry implements Serializable
     {
 	this.databaseId = databaseId;
     }
+    /** set the crc */
+    public void setCrcval(int crc)
+    {
+	this.crcval = crc;
+    }
 
     /** indicate that this object is not in DB or has changed */
-    public void setHasChanged() { databaseId = 0; }
+    public void setHasChanged() { databaseId = 0; crcval = 0;}
     
 }
