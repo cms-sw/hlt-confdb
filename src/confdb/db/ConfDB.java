@@ -4396,9 +4396,9 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    psSelectModuleTypes =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-      	      	 " v_moduletypes.id," +
-   		 " v_moduletypes.type " +
-   		 "FROM v_moduletypes");
+      	      	 " u_moduletypes.id," +
+   		 " u_moduletypes.type " +
+   		 "FROM u_moduletypes");
 	    preparedStatements.add(psSelectModuleTypes);
 	    
 
@@ -4416,7 +4416,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    		 " Directories.id_parentDir," +
    		 " Directories.name," +
    		 " Directories.created " +
-   		 "FROM v_directories Directories " +
+   		 "FROM u_directories Directories " +
    		 "ORDER BY Directories.name ASC");
 	    psSelectDirectories.setFetchSize(512);
 	    preparedStatements.add(psSelectDirectories);
@@ -4433,8 +4433,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    " SoftwareReleases.releaseTag," +
    " Configurations.processName," +
    " Configurations.description " +
-   "FROM v_confversions Configurations " +
-   "JOIN v_softreleases SoftwareReleases " +
+   "FROM u_confversions Configurations " +
+   "JOIN u_softreleases SoftwareReleases " +
    "ON SoftwareReleases.Id = Configurations.id_release " +
    "ORDER BY Configurations.config ASC");
 	    psSelectConfigurations.setFetchSize(512);
@@ -4443,19 +4443,19 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    psSelectLockedConfigurations =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " v_directories.Name," +
-		 " v_lockedconfs.id_config," +
-		 " v_lockedconfs.userName " +
-		 "FROM v_lockedconfs " +
-		 "JOIN v_directories " +
-		 "ON v_lockedconfs.id_parentdir = v_directories.id");
+		 " u_directories.Name," +
+		 " u_lockedconfs.id_config," +
+		 " u_lockedconfs.userName " +
+		 "FROM u_lockedconfs " +
+		 "JOIN u_directories " +
+		 "ON u_lockedconfs.id_parentdir = u_directories.id");
 	    preparedStatements.add(psSelectLockedConfigurations);
 
 	    psSelectUsersForLockedConfigs =
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
-		 " v_lockedconfs.userName "+
-		 "FROM v_lockedconfs");
+		 " u_lockedconfs.userName "+
+		 "FROM u_lockedconfs");
 	    preparedStatements.add(psSelectUsersForLockedConfigs);
 
 	    psSelectConfigNames =
@@ -4463,8 +4463,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		("SELECT DISTINCT" +
    " Directories.name," +
    " Configurations.config " +
-   "FROM v_confversions Configurations " +
-   "JOIN v_directories Directories " +
+   "FROM u_confversions Configurations " +
+   "JOIN u_directories Directories " +
    "ON Configurations.id_parentDir = Directories.id " +
    "ORDER BY Directories.name ASC,Configurations.config ASC");
 	    psSelectConfigNames.setFetchSize(1024);
@@ -4476,8 +4476,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    " Directories.name," +
    " Configurations.config, " +
    " Configurations.version " +
-   "FROM v_confversions Configurations " +
-   "JOIN v_directories Directories " +
+   "FROM u_confversions Configurations " +
+   "JOIN u_directories Directories " +
    "ON Configurations.id_parentDir = Directories.id " +
    "WHERE Configurations.id_release = ?" +
    "ORDER BY Directories.name ASC,Configurations.config ASC");
@@ -4488,7 +4488,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
    " Directories.id " +
-   "FROM v_directories Directories "+
+   "FROM u_directories Directories "+
    "WHERE Directories.name = ?");
 	    preparedStatements.add(psSelectDirectoryId);
 	    
@@ -4496,8 +4496,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
    " Configurations.id " +
-   "FROM v_confversions Configurations "+
-   "JOIN v_directories Directories " +
+   "FROM u_confversions Configurations "+
+   "JOIN u_directories Directories " +
    "ON Directories.id=Configurations.id_parentDir " +
    "WHERE Directories.name = ? AND" +
    " Configurations.config = ? AND" +
@@ -4509,8 +4509,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		("SELECT" +
   " Configurations.id," +
    " Configurations.version " +
-   "FROM v_confversions Configurations " +
-   "JOIN v_directories Directories " +
+   "FROM u_confversions Configurations " +
+   "JOIN u_directories Directories " +
    "ON Directories.id=Configurations.id_parentDir " +
    "WHERE Directories.name = ? AND" +
    " Configurations.config = ? " +
@@ -4521,7 +4521,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
   " Configurations.created " +
-   "FROM v_confversions Configurations " +
+   "FROM u_confversions Configurations " +
    "WHERE Configurations.id = ?");
 	    preparedStatements.add(psSelectConfigurationCreated);
 	    
@@ -4530,7 +4530,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		("SELECT" +
    " SoftwareReleases.id," +
    " SoftwareReleases.releaseTag " +
-   "FROM v_softreleases SoftwareReleases " +
+   "FROM u_softreleases SoftwareReleases " +
    "ORDER BY SoftwareReleases.id DESC");
 	    psSelectReleaseTags.setFetchSize(32);
 	    preparedStatements.add(psSelectReleaseTags);
@@ -4540,7 +4540,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		("SELECT" +
    " SoftwareReleases.id," +
    " SoftwareReleases.releaseTag " +
-   "FROM v_softreleases SoftwareReleases " +
+   "FROM u_softreleases SoftwareReleases " +
    "ORDER BY SoftwareReleases.releaseTag ASC");
 	    psSelectReleaseTagsSorted.setFetchSize(32);
 	    preparedStatements.add(psSelectReleaseTagsSorted);
@@ -4549,14 +4549,14 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
   " SoftwareReleases.id "+
-   "FROM v_softreleases SoftwareReleases " +
+   "FROM u_softreleases SoftwareReleases " +
    "WHERE SoftwareReleases.releaseTag = ?");
 
 	    psSelectReleaseTag =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
    " SoftwareReleases.releaseTag " +
-   "FROM v_softreleases SoftwareReleases " +
+   "FROM u_softreleases SoftwareReleases " +
    "WHERE SoftwareReleases.id = ?");
 	    preparedStatements.add(psSelectReleaseTag);
 	    
@@ -4564,8 +4564,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
    " SoftwareReleases.releaseTag " +
-   "FROM v_softreleases SoftwareReleases " +
-   "JOIN v_confversions Configurations " +
+   "FROM u_softreleases SoftwareReleases " +
+   "JOIN u_confversions Configurations " +
    "ON Configurations.id_release = SoftwareReleases.id " +
    "WHERE Configurations.id = ?");
 	    preparedStatements.add(psSelectReleaseTagForConfig);
@@ -4575,7 +4575,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		("SELECT" +
    " SoftwareSubsystems.subsysId," +
    " SoftwareSubsystems.name " +
-   "FROM v_softsubsystems SoftwareSubsystems");
+   "FROM u_softsubsystems SoftwareSubsystems");
 	    psSelectSoftwareSubsystems.setFetchSize(64);
 	    preparedStatements.add(psSelectSoftwareSubsystems);
 
@@ -4585,7 +4585,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    " SoftwarePackages.packageid," +
    " SoftwarePackages.subsysId," +
    " SoftwarePackages.name " +
-   "FROM v_softpackages SoftwarePackages");
+   "FROM u_softpackages SoftwarePackages");
 	    psSelectSoftwarePackages.setFetchSize(512);
 	    preparedStatements.add(psSelectSoftwarePackages);
 
@@ -4595,7 +4595,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
   " EDSourceTemplates.id," +
    " EDSourceTemplates.name," +
    " EDSourceTemplates.cvstag " +
-   "FROM v_edstemplates EDSourceTemplates " +
+   "FROM u_edstemplates EDSourceTemplates " +
    "WHERE EDSourceTemplates.name=? AND EDSourceTemplates.cvstag= ?");
 	    preparedStatements.add(psSelectEDSourceTemplate);
 
@@ -4605,7 +4605,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    " ESSourceTemplates.id," +
    " ESSourceTemplates.name," +
    " ESSourceTemplates.cvstag " +
-   "FROM v_esstemplates ESSourceTemplates " +
+   "FROM u_esstemplates ESSourceTemplates " +
    "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectESSourceTemplate);
 	    
@@ -4615,7 +4615,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    " ESModuleTemplates.id," +
    " ESModuleTemplates.name," +
    " ESModuleTemplates.cvstag " +
-   "FROM v_esmtemplates ESModuleTemplates " +
+   "FROM u_esmtemplates ESModuleTemplates " +
    "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectESModuleTemplate);
 
@@ -4625,7 +4625,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
   " ServiceTemplates.id," +
    " ServiceTemplates.name," +
    " ServiceTemplates.cvstag " +
-   "FROM v_srvtemplates ServiceTemplates " +
+   "FROM u_srvtemplates ServiceTemplates " +
    "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectServiceTemplate);
 
@@ -4645,7 +4645,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		("SELECT" +
   " Streams.id,"+
    " Streams.name "+
-   "FROM v_streams Streams " +
+   "FROM u_streams Streams " +
    "ORDER BY Streams.name ASC");
 
 
@@ -4654,7 +4654,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		("SELECT" +
    " PrimaryDatasets.id,"+
    " PrimaryDatasets.name "+
-   "FROM v_datasets PrimaryDatasets " +
+   "FROM u_datasets PrimaryDatasets " +
    "ORDER BY PrimaryDatasets.name ASC");
 
 	    
@@ -4699,8 +4699,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " EDSources.id "+
-    "FROM v_edsources EDSources "+
-   "JOIN v_conf2eds ConfigurationEDSourceAssoc " +
+    "FROM u_edsources EDSources "+
+   "JOIN u_conf2eds ConfigurationEDSourceAssoc " +
    "ON ConfigurationEDSourceAssoc.id_edsource=EDSources.id " +
    "WHERE ConfigurationEDSourceAssoc.id_confver=?");
 	    preparedStatements.add(psSelectEDSourcesForConfig);
@@ -4709,8 +4709,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
   " ESSources.id "+
-   "FROM v_essources ESSources "+
-   "JOIN v_conf2ess ConfigurationESSourceAssoc " +
+   "FROM u_essources ESSources "+
+   "JOIN u_conf2ess ConfigurationESSourceAssoc " +
    "ON ConfigurationESSourceAssoc.id_essource=ESSources.id " +
    "WHERE ConfigurationESSourceAssoc.id_confver=?");
 	    preparedStatements.add(psSelectESSourcesForConfig);
@@ -4719,8 +4719,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ESModules.id "+
-   "FROM v_esmodules ESModules "+
-   "JOIN v_conf2esm ConfigurationESModuleAssoc " +
+   "FROM u_esmodules ESModules "+
+   "JOIN u_conf2esm ConfigurationESModuleAssoc " +
    "ON ConfigurationESModuleAssoc.id_esmodule=ESModules.id " +
    "WHERE ConfigurationESModuleAssoc.id_confver=?");
 	    preparedStatements.add(psSelectESModulesForConfig);
@@ -4729,8 +4729,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " Services.id "+
-   "FROM v_services Services "+
-   "JOIN v_conf2srv ConfigurationServiceAssoc " +
+   "FROM u_services Services "+
+   "JOIN u_conf2srv ConfigurationServiceAssoc " +
    "ON ConfigurationServiceAssoc.id_service=Services.id " +
    "WHERE ConfigurationServiceAssoc.id_confver=?");
  	    preparedStatements.add(psSelectServicesForConfig);
@@ -4754,7 +4754,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    "ON ConfigurationPathAssoc.id_pathid=Paths.id_pathid " +
    "WHERE ConfigurationPathAssoc.id_confver=?");
 */
-                ("SELECT v_pathids.id  FROM v_pathids   JOIN v_pathid2conf ON v_pathid2conf.id_pathid=v_pathids.id WHERE v_pathid2conf.id_confver=?  order by v_pathid2conf.id_pathid");
+                ("SELECT u_pathids.id  FROM u_pathids   JOIN u_pathid2conf ON u_pathid2conf.id_pathid=u_pathids.id WHERE u_pathid2conf.id_confver=?  order by u_pathid2conf.id_pathid");
 	    preparedStatements.add(psSelectPathsForConfig);
 
 //	    psSelectModulesForSeq =
@@ -4777,8 +4777,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " EDSourceTemplates.id "+
-   "FROM v_edstemplates EDSourceTemplates "+
-   "JOIN v_edst2rele SuperIdReleaseAssoc " +
+   "FROM u_edstemplates EDSourceTemplates "+
+   "JOIN u_edst2rele SuperIdReleaseAssoc " +
    "ON SuperIdReleaseAssoc.id_edstemplate=EDSourceTemplates.id " +
    "WHERE SuperIdReleaseAssoc.id_release=?");
  	    preparedStatements.add(psSelectEDSourceTemplatesForRelease);
@@ -4787,8 +4787,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ESSourceTemplates.id "+
-   "FROM v_esstemplates ESSourceTemplates "+
-   "JOIN v_esst2rele SuperIdReleaseAssoc " +
+   "FROM u_esstemplates ESSourceTemplates "+
+   "JOIN u_esst2rele SuperIdReleaseAssoc " +
    "ON SuperIdReleaseAssoc.id_esstemplate=ESSourceTemplates.id " +
    "WHERE SuperIdReleaseAssoc.id_release=?");
  	    preparedStatements.add(psSelectESSourceTemplatesForRelease);
@@ -4797,8 +4797,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ESModuleTemplates.id "+
-   "FROM v_esmtemplates ESModuleTemplates "+
-   "JOIN v_esmt2rele SuperIdReleaseAssoc " +
+   "FROM u_esmtemplates ESModuleTemplates "+
+   "JOIN u_esmt2rele SuperIdReleaseAssoc " +
    "ON SuperIdReleaseAssoc.id_esmtemplate=ESModuleTemplates.id " +
    "WHERE SuperIdReleaseAssoc.id_release=?");
  	    preparedStatements.add(psSelectESModuleTemplatesForRelease);
@@ -4807,8 +4807,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ServiceTemplates.id "+
-   "FROM v_srvtemplates ServiceTemplates "+
-   "JOIN v_srvt2rele SuperIdReleaseAssoc " +
+   "FROM u_srvtemplates ServiceTemplates "+
+   "JOIN u_srvt2rele SuperIdReleaseAssoc " +
    "ON SuperIdReleaseAssoc.id_srvtemplate=ServiceTemplates.id " +
    "WHERE SuperIdReleaseAssoc.id_release=?");
  	    preparedStatements.add(psSelectServiceTemplatesForRelease);
@@ -4817,8 +4817,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
   " ModuleTemplates.id "+
-   "FROM v_moduletemplates ModuleTemplates "+
-   "JOIN v_modt2rele SuperIdReleaseAssoc " +
+   "FROM u_moduletemplates ModuleTemplates "+
+   "JOIN u_modt2rele SuperIdReleaseAssoc " +
    "ON SuperIdReleaseAssoc.id_modtemplate=ModuleTemplates.id " +
    "WHERE SuperIdReleaseAssoc.id_release=?");
  	    preparedStatements.add(psSelectModuleTemplatesForRelease);
@@ -4858,7 +4858,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ConfigurationEDSourceAssoc.id_edsource "+
-   "FROM v_conf2eds ConfigurationEDSourceAssoc "+
+   "FROM u_conf2eds ConfigurationEDSourceAssoc "+
    "WHERE ConfigurationEDSourceAssoc.id_edsource=?");
 	    preparedStatements.add(psSelectEDSourceId);
 
@@ -4866,7 +4866,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ConfigurationESSourceAssoc.id_essource "+
-   "FROM v_conf2ess ConfigurationESSourceAssoc "+
+   "FROM u_conf2ess ConfigurationESSourceAssoc "+
    "WHERE ConfigurationESSourceAssoc.id_essource=?");
 	    preparedStatements.add(psSelectESSourceId);
 
@@ -4874,7 +4874,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
   " ConfigurationESModuleAssoc.id_esmodule "+
-   "FROM v_conf2edm ConfigurationESModuleAssoc "+
+   "FROM u_conf2edm ConfigurationESModuleAssoc "+
    "WHERE ConfigurationESModuleAssoc.id_esmodule=?");
      preparedStatements.add(psSelectESModuleId);
 
@@ -4884,7 +4884,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ConfigurationServiceAssoc.id_service "+
-   "FROM v_conf2srv ConfigurationServiceAssoc "+
+   "FROM u_conf2srv ConfigurationServiceAssoc "+
    "WHERE ConfigurationServiceAssoc.id_service=?");
 	    preparedStatements.add(psSelectServiceId);
 
@@ -4900,7 +4900,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT"+
    " ConfigurationPathAssoc.id_pathid "+
-   "FROM v_pathid2conf ConfigurationPathAssoc "+
+   "FROM u_pathid2conf ConfigurationPathAssoc "+
    "WHERE ConfigurationPathAssoc.id_pathid=?");
 	    preparedStatements.add(psSelectPathId);
 	    
@@ -4962,144 +4962,144 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 
 	    psSelectEventContentEntries =
 		dbConnector.getConnection().prepareStatement
-            ("select v_eventcontents.id,v_eventcontents.name from v_eventcontents,v_eventcontentids,v_conf2evco where v_eventcontentids.id=v_conf2evco.id_evcoid and v_eventcontents.id=v_eventcontentids.id_evco and v_conf2evco.id_confver=?");
+            ("select u_eventcontentids.id,u_eventcontents.name from u_eventcontents,u_eventcontentids,u_conf2evco where u_eventcontentids.id=u_conf2evco.id_evcoid and u_eventcontents.id=u_eventcontentids.id_evco and u_conf2evco.id_confver=?");
 	    psSelectEventContentEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectEventContentEntries);
 
 		
 	    psSelectStreamEntries =
 		dbConnector.getConnection().prepareStatement
-            ("SELECT DISTINCT v_streams.id+5000000,v_streams.name,v_streamids.FRACTODISK,V_EVENTCONTENTS.ID as evcoid,V_EVENTCONTENTS.name as evconame "+
-                 "FROM v_streamids,v_streams,V_EVENTCONTENTIDS,V_EVENTCONTENTS,V_EVCO2STREAM,v_pathid2outm,v_pathid2conf " +
-                 "WHERE v_streams.id=v_streamids.id_stream " +
-                 "AND V_EVCO2STREAM.ID_STREAMID=v_streamids.id AND V_EVCO2STREAM.id_evcoid=V_EVENTCONTENTIDS.ID " +
-                 "AND V_EVENTCONTENTIDS.ID_EVCO=V_EVENTCONTENTS.ID "+
-                 "AND v_pathid2conf.id_pathid=v_pathid2outm.id_pathId AND v_streamids.id=v_pathid2outm.id_streamid "+
-                 "AND v_pathid2conf.id_confver = ?" );
+            ("SELECT DISTINCT u_streams.id+5000000,u_streams.name,u_streamids.FRACTODISK,u_EVENTCONTENTS.ID as evcoid,u_EVENTCONTENTS.name as evconame "+
+                 "FROM u_streamids,u_streams,u_EVENTCONTENTIDS,u_EVENTCONTENTS,u_EVCO2STREAM,u_pathid2outm,u_pathid2conf " +
+                 "WHERE u_streams.id=u_streamids.id_stream " +
+                 "AND u_EVCO2STREAM.ID_STREAMID=u_streamids.id AND u_EVCO2STREAM.id_evcoid=u_EVENTCONTENTIDS.ID " +
+                 "AND u_EVENTCONTENTIDS.ID_EVCO=u_EVENTCONTENTS.ID "+
+                 "AND u_pathid2conf.id_pathid=u_pathid2outm.id_pathId AND u_streamids.id=u_pathid2outm.id_streamid "+
+                 "AND u_pathid2conf.id_confver = ?" );
 	    psSelectStreamEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectStreamEntries);
 	    
 
 	    psSelectDatasetEntries =
 		dbConnector.getConnection().prepareStatement
-            ("SELECT distinct v_datasets.id, v_datasets.name,v_streams.id+5000000 as streamid,v_streams.name as label from v_pathid2strdst, v_pathid2conf,v_datasetids,v_datasets,v_streams,v_streamids WHERE v_pathid2strdst.id_pathid=v_pathid2conf.id_pathid and v_datasets.id=v_datasetids.id_dataset and v_datasetids.id=v_pathid2strdst.id_datasetid and v_streams.id=v_streamids.id_stream and v_streamids.id=v_pathid2strdst.id_streamid AND v_pathid2conf.id_confver = ?");
+            ("SELECT distinct u_datasets.id, u_datasets.name,u_streams.id+5000000 as streamid,u_streams.name as label from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid AND u_pathid2conf.id_confver = ?");
 	    //psSelectDatasetEntries.setFetchSize(64);
 	    preparedStatements.add(psSelectDatasetEntries);
 	    
 	    psSelectPathStreamDatasetEntries =
 		dbConnector.getConnection().prepareStatement
-           /* h_  ("SELECT distinct h_pathid2uq.id_pathiduq,v_streams.id+5000000 as streamid,v_datasets.id as datasetid, v_datasets.name from v_pathid2strdst, v_pathid2conf,v_datasetids,v_datasets,v_streams,v_streamids,h_pathid2uq WHERE h_pathid2uq.id_pathid=v_pathid2conf.id_pathid and v_pathid2strdst.id_pathid=v_pathid2conf.id_pathid and  v_datasets.id=v_datasetids.id_dataset and v_datasetids.id=v_pathid2strdst.id_datasetid and v_streams.id=v_streamids.id_stream and v_streamids.id=v_pathid2strdst.id_streamid AND v_pathid2conf.id_confver = ?");*/
-             ("SELECT distinct v_pathid2conf.id_pathid,v_streams.id+5000000 as streamid,v_datasets.id as datasetid, v_datasets.name from v_pathid2strdst, v_pathid2conf,v_datasetids,v_datasets,v_streams,v_streamids WHERE v_pathid2strdst.id_pathid=v_pathid2conf.id_pathid and  v_datasets.id=v_datasetids.id_dataset and v_datasetids.id=v_pathid2strdst.id_datasetid and v_streams.id=v_streamids.id_stream and v_streamids.id=v_pathid2strdst.id_streamid AND v_pathid2conf.id_confver = ?");
+           /* h_  ("SELECT distinct h_pathid2uq.id_pathiduq,u_streams.id+5000000 as streamid,u_datasets.id as datasetid, u_datasets.name from u_pathid2strdst, u_pathid2conf,v_datasetids,v_datasets,v_streams,v_streamids,h_pathid2uq WHERE h_pathid2uq.id_pathid=v_pathid2conf.id_pathid and v_pathid2strdst.id_pathid=v_pathid2conf.id_pathid and  v_datasets.id=v_datasetids.id_dataset and v_datasetids.id=v_pathid2strdst.id_datasetid and v_streams.id=v_streamids.id_stream and v_streamids.id=v_pathid2strdst.id_streamid AND v_pathid2conf.id_confver = ?");*/
+             ("SELECT distinct u_pathid2conf.id_pathid,u_streams.id+5000000 as streamid,u_datasets.id as datasetid, u_datasets.name from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and  u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid AND u_pathid2conf.id_confver = ?");
           //psSelectPathStreamDatasetEntries.setFetchSize(64);
 	    preparedStatements.add(psSelectPathStreamDatasetEntries);
 
 	    psSelectStatementId = 
 		dbConnector.getConnection().prepareStatement
-		("SELECT id from v_evcoStatements WHERE classN = ? " +
+		("SELECT id from u_evcoStatements WHERE classN = ? " +
 		 " AND moduleL = ? AND extraN = ? AND processN = ? AND statementType = ? ");
 	    preparedStatements.add(psSelectStatementId);
 	    
 	    psSelectEventContentStatements =  
 		dbConnector.getConnection().prepareStatement
            /* h_  ("select distinct v_evcostatements.id as statemId, v_evcostatements.classn,v_evcostatements.modulel,v_evcostatements.extran,v_evcostatements.processn,v_evcostatements.statementtype,v_eventcontents.id as evcoid, v_evco2stat.statementrank,v_eventcontents.name,decode(v_evco2stat.id_pathid,-1,'-1',0,'0',(select h_pathid2uq.id_pathiduq from h_pathid2uq where h_pathid2uq.id_pathid=v_evco2stat.id_pathid)) from v_eventcontents,v_eventcontentids,v_evcostatements, v_conf2evco, v_evco2stat where v_eventcontents.id=v_eventcontentids.id_evco and v_evcostatements.id=v_evco2stat.id_stat and v_evco2stat.id_evcoid=v_conf2evco.id_evcoid and v_eventcontentids.id=v_conf2evco.id_evcoid and v_conf2evco.id_confver=? order by statemid");*/
-               ("select distinct v_evcostatements.id as statemId, v_evcostatements.classn,v_evcostatements.modulel,v_evcostatements.extran,v_evcostatements.processn,v_evcostatements.statementtype,v_eventcontents.id as evcoid, v_evco2stat.statementrank,v_eventcontents.name,v_evco2stat.id_pathid from v_eventcontents,v_eventcontentids,v_evcostatements, v_conf2evco, v_evco2stat where v_eventcontents.id=v_eventcontentids.id_evco and v_evcostatements.id=v_evco2stat.id_stat and v_evco2stat.id_evcoid=v_conf2evco.id_evcoid and v_eventcontentids.id=v_conf2evco.id_evcoid and v_conf2evco.id_confver=? order by statemid");
+               ("select distinct u_evcostatements.id as statemId, u_evcostatements.classn,u_evcostatements.modulel,u_evcostatements.extran,u_evcostatements.processn,u_evcostatements.statementtype,u_eventcontentids.id as evcoid, u_evco2stat.statementrank,u_eventcontents.name,u_evco2stat.id_pathid from u_eventcontents,u_eventcontentids,u_evcostatements, u_conf2evco, u_evco2stat where u_eventcontents.id=u_eventcontentids.id_evco and u_evcostatements.id=u_evco2stat.id_stat and u_evco2stat.id_evcoid=u_conf2evco.id_evcoid and u_eventcontentids.id=u_conf2evco.id_evcoid and u_conf2evco.id_confver=? order by statemid");
 	    preparedStatements.add(psSelectEventContentStatements);
 
 
 	    
 	    psSelectReleaseCount =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT COUNT(*) FROM v_softreleases SoftwareReleases");
+  ("SELECT COUNT(*) FROM u_softreleases SoftwareReleases");
 	    preparedStatements.add(psSelectReleaseCount);
 
 	    psSelectConfigurationCount =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT COUNT(*) FROM v_configurations Configurations");
+  ("SELECT COUNT(*) FROM u_configurations Configurations");
 	    preparedStatements.add(psSelectConfigurationCount);
 	    
 	    psSelectDirectoryCount =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT COUNT(*) FROM v_directories Directories");
+  ("SELECT COUNT(*) FROM u_directories Directories");
 	    preparedStatements.add(psSelectDirectoryCount);
 
 	    psSelectSuperIdCount =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT COUNT(*) FROM v_confversions Configurations"); //sv just a placeholder 
+  ("SELECT COUNT(*) FROM u_confversions Configurations"); //sv just a placeholder 
 	    preparedStatements.add(psSelectSuperIdCount);
 
 	    psSelectEDSourceTemplateCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM v_edstemplates EDSourceTemplates");
+("SELECT COUNT(*) FROM u_edstemplates EDSourceTemplates");
 	    preparedStatements.add(psSelectEDSourceTemplateCount);
 	    
 	    psSelectEDSourceCount =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT COUNT(*) FROM v_edsources EDSources");
+  ("SELECT COUNT(*) FROM u_edsources EDSources");
 	    preparedStatements.add(psSelectEDSourceCount);
 
 	    psSelectESSourceTemplateCount =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT COUNT(*) FROM v_esstemplates ESSourceTemplates");
+  ("SELECT COUNT(*) FROM u_esstemplates ESSourceTemplates");
 	    preparedStatements.add(psSelectESSourceTemplateCount);
 
 	    psSelectESSourceCount =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT COUNT(*) FROM v_essources ESSources");
+  ("SELECT COUNT(*) FROM u_essources ESSources");
 	    preparedStatements.add(psSelectESSourceCount);
 
 	    psSelectESModuleTemplateCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM v_esmtemplates ESModuleTemplates");
+("SELECT COUNT(*) FROM u_esmtemplates ESModuleTemplates");
 	    preparedStatements.add(psSelectESModuleTemplateCount);
 
 	    psSelectESModuleCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM v_esmodules ESModules");
+("SELECT COUNT(*) FROM u_esmodules ESModules");
 	    preparedStatements.add(psSelectESModuleCount);
 
 	    psSelectServiceTemplateCount =
 		dbConnector.getConnection().prepareStatement
-  ("SELECT COUNT(*) FROM v_srvtemplates ServiceTemplates");
+  ("SELECT COUNT(*) FROM u_srvtemplates ServiceTemplates");
 	    preparedStatements.add(psSelectServiceTemplateCount);
 
 	    psSelectServiceCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM v_services Services");
+("SELECT COUNT(*) FROM u_services Services");
 	    preparedStatements.add(psSelectServiceCount);
 	    
 	    psSelectModuleTemplateCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM v_moduletemplates ModuleTemplates"); 
+("SELECT COUNT(*) FROM u_moduletemplates ModuleTemplates"); 
 	    preparedStatements.add(psSelectModuleTemplateCount);
 	    
 	    psSelectModuleCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM v_paelements Modules WHERE paetype = 1");
+("SELECT COUNT(*) FROM u_paelements Modules WHERE paetype = 1");
 	    preparedStatements.add(psSelectModuleCount);
 
 	    psSelectSequenceCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM v_paelements Modules WHERE paetype = 1");
+("SELECT COUNT(*) FROM u_paelements Modules WHERE paetype = 1");
 	    preparedStatements.add(psSelectSequenceCount);
 
 	    psSelectPathCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM v_pathids Paths");
+("SELECT COUNT(*) FROM u_pathids Paths");
 	    preparedStatements.add(psSelectPathCount);
 	    
 	    psSelectParameterCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM v_pathids Paths"); //just a placholder
+("SELECT COUNT(*) FROM u_pathids Paths"); //just a placholder
 	    preparedStatements.add(psSelectParameterCount);
 
 	    psSelectParameterSetCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM v_pathids Paths"); //just a placholder
+("SELECT COUNT(*) FROM u_pathids Paths"); //just a placholder
 	    preparedStatements.add(psSelectParameterSetCount);
 
 	    psSelectVecParameterSetCount =
 		dbConnector.getConnection().prepareStatement
-("SELECT COUNT(*) FROM v_pathids Paths");//just a placeholder
+("SELECT COUNT(*) FROM u_pathids Paths");//just a placeholder
 	    preparedStatements.add(psSelectVecParameterSetCount);
 	    
 	    
@@ -5109,7 +5109,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	   
 	    psInsertDirectory =
 		dbConnector.getConnection().prepareStatement
-  ("INSERT INTO v_directories " +
+  ("INSERT INTO u_directories " +
    "(id_parentdir,name,created) " +
    "VALUES (?, ?, SYSDATE)",
    keyColumn);
@@ -5126,7 +5126,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    else if (dbType.equals(dbTypeOracle))
 		psInsertConfigurationVers =
 		    dbConnector.getConnection().prepareStatement
-		    ("INSERT INTO v_confversions " +
+		    ("INSERT INTO u_confversions " +
 		     "(id_config,version,id_release,name,id_parentDir,config," +
 		     "created,creator,processName,description) " +
 		     "VALUES (?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, ?)",
@@ -5135,17 +5135,17 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    
             psFindConfiguration =
               dbConnector.getConnection().prepareStatement
-                    ("SELECT id AS id_config FROM v_configurations WHERE name = ?");
+                    ("SELECT id AS id_config FROM u_configurations WHERE name = ?");
             preparedStatements.add(psFindConfiguration);
 	  
 	    psInsertConfiguration =
                dbConnector.getConnection().prepareStatement
-                    ("INSERT INTO  v_configurations(name) VALUES(?)");
+                    ("INSERT INTO  u_configurations(name) VALUES(?)");
             preparedStatements.add(psInsertConfiguration);
 
 	    psInsertConfigurationLock =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_lockedconfs (parentDirId,config,userName)" +
+		("INSERT INTO u_lockedconfs (parentDirId,config,userName)" +
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigurationLock);
 
@@ -5153,44 +5153,44 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    //Insert Event Content	       
 	    psCheckContents =
 		dbConnector.getConnection().prepareStatement
-		("SELECT id FROM v_EventContents WHERE name= ? ");
+		("SELECT id FROM u_EventContents WHERE name= ? ");
 	    preparedStatements.add(psCheckContents);
 
 	    psInsertContents =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_EventContents (name)" +
+		("INSERT INTO u_EventContents (name)" +
 		 "VALUES(?)",keyColumn);
 	    preparedStatements.add(psInsertContents);
 
             psInsertContentIds =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_EventContentids (id_evco)" +
+                ("INSERT INTO u_EventContentids (id_evco)" +
                  "VALUES(?)",keyColumn);
             preparedStatements.add(psInsertContentIds);
 
 	  
 	    psInsertContentsConfigAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_conf2evco (id_evCoId,id_confver)" +
+		("INSERT INTO u_conf2evco (id_evCoId,id_confver)" +
 		 "VALUES(?,?)");
 	    preparedStatements.add(psInsertContentsConfigAssoc);
 
 	    psInsertEventContentStatements =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_evcostatements (classN,moduleL,extraN,processN,statementType) " +
+		("INSERT INTO u_evcostatements (classN,moduleL,extraN,processN,statementType) " +
 		 "VALUES(?,?,?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertEventContentStatements);
 
 	   
 	     psInsertStreams =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_streams (name)" +
+		("INSERT INTO u_streams (name)" +
 		 "VALUES(?)",keyColumn);
 	    preparedStatements.add(psInsertStreams);
 
              psInsertStreamsIds =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_streamids (id_stream,streamid,fractodisk)" +
+                ("INSERT INTO u_streamids (id_stream,streamid,fractodisk)" +
                  "VALUES(?,-1,?)",keyColumn);
             preparedStatements.add(psInsertStreamsIds);
 
@@ -5198,34 +5198,34 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    
 	    psInsertPrimaryDatasets =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_datasets (name)" +
+		("INSERT INTO u_datasets (name)" +
 		 "VALUES(?)",keyColumn);
 	    preparedStatements.add(psInsertPrimaryDatasets);
 
 	    psInsertECStreamAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_evco2stream (id_evcoid, id_streamid)" +
+		("INSERT INTO u_evco2stream (id_evcoid, id_streamid)" +
 		 "VALUES(?,?)");
 	    preparedStatements.add(psInsertECStreamAssoc);
 	   
 	    
 	    psInsertPathStreamPDAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_pathid2strdst (id_pathid, id_streamId, id_datasetId)" +
+		("INSERT INTO u_pathid2strdst (id_pathid, id_streamId, id_datasetId)" +
 		 "VALUES(?,?,?)");
 	    preparedStatements.add(psInsertPathStreamPDAssoc);
 	    
 	  
 	    psInsertECStatementAssoc = 
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_evco2stat (statementRank,id_stat,id_evcoid,id_pathId) " +
+		("INSERT INTO u_evco2stat (statementRank,id_stat,id_evcoid,id_pathId) " +
 		 "VALUES(?,?,?,?) ");
 	    preparedStatements.add(psInsertECStatementAssoc);
 	    
 
 /*	    psInsertStreamDatasetAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_pathid2strdst (id_pathid,id_streamId, id_datasetId)" +
+		("INSERT INTO u_pathid2strdst (id_pathid,id_streamId, id_datasetId)" +
 		 "VALUES(?,?,?)");
 	    preparedStatements.add(psInsertStreamDatasetAssoc);
 */
@@ -5242,7 +5242,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	 
 	    psInsertGlobalPSet =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_conf2gpset " +
+		("INSERT INTO u_conf2gpset " +
 		 "(id_confver,id_gpset,ord) " +
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertGlobalPSet);
@@ -5251,14 +5251,14 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 
 	    psInsertEDSource =
 		dbConnector.getConnection().prepareStatement
-            ("INSERT INTO v_edsources (id_template) " +
+            ("INSERT INTO u_edsources (id_template) " +
             "VALUES(?)",keyColumn);
 	    preparedStatements.add(psInsertEDSource);
 	 
 	    psInsertConfigEDSourceAssoc =
 		dbConnector.getConnection().prepareStatement
   ("INSERT INTO " +
-   "v_conf2eds (id_confver,id_edsource,ord) " +
+   "u_conf2eds (id_confver,id_edsource,ord) " +
    "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigEDSourceAssoc);
 	    
@@ -5266,7 +5266,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    psInsertESSource =
 		dbConnector.getConnection().prepareStatement
   ("INSERT INTO " +
-   "v_essources (id_template,name) " +
+   "u_essources (id_template,name) " +
    "VALUES(?, ?)", keyColumn);
 	    preparedStatements.add(psInsertESSource);
 	    
@@ -5274,7 +5274,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    psInsertConfigESSourceAssoc =
 		dbConnector.getConnection().prepareStatement
   ("INSERT INTO " +
-   "v_conf2ess " +
+   "u_conf2ess " +
    "(id_confver,id_essource,ord,prefer) " +
    "VALUES(?, ?, ?, ?)");
 	    preparedStatements.add(psInsertConfigESSourceAssoc);
@@ -5282,7 +5282,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    psInsertESModule =
 		dbConnector.getConnection().prepareStatement
   ("INSERT INTO " +
-   "v_esmodules (id_template,name) " +
+   "u_esmodules (id_template,name) " +
    "VALUES(?, ?)", keyColumn);
 	    preparedStatements.add(psInsertESModule);
 
@@ -5290,7 +5290,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    psInsertConfigESModuleAssoc =
 		dbConnector.getConnection().prepareStatement
   ("INSERT INTO " +
-   "v_conf2esm " +
+   "u_conf2esm " +
    "(id_confver,id_esmodule,ord,prefer) " +
    "VALUES(?, ?, ?, ?)");
 	    preparedStatements.add(psInsertConfigESModuleAssoc);
@@ -5300,43 +5300,43 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    psInsertService =
 		dbConnector.getConnection().prepareStatement
   ("INSERT INTO " +
-   "v_services (id_template) " +
+   "u_services (id_template) " +
    "VALUES(?)", keyColumn);
 	    preparedStatements.add(psInsertService);
 
 	    psInsertConfigServiceAssoc =
 		dbConnector.getConnection().prepareStatement
   ("INSERT INTO " +
-   "v_conf2srv (id_confver,id_service,ord) " +
+   "u_conf2srv (id_confver,id_service,ord) " +
    "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigServiceAssoc);
 
 	
             psCheckPathName = 
 		dbConnector.getConnection().prepareStatement
-                (" SELECT id from v_paths WHERE name=? ");
+                (" SELECT id from u_paths WHERE name=? ");
 	    preparedStatements.add(psCheckPathName);
 
             psCheckPathNoum = 
 		dbConnector.getConnection().prepareStatement
-                (" SELECT id from v_noumpaths WHERE name=? ");
+                (" SELECT id from u_noumpaths WHERE name=? ");
 	    preparedStatements.add(psCheckPathNoum);
 
 	    psInsertPathNoum =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_noumPaths (name) " +
+		("INSERT INTO u_noumPaths (name) " +
 		 "VALUES(?)",keyColumn);
 	    preparedStatements.add(psInsertPathNoum);
 	  
 	    psInsertPath =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_Paths (name,version,id_noumpath) " +
+		("INSERT INTO u_Paths (name,version,id_noumpath) " +
 		 "VALUES(?, ?, ?)",keyColumn);
 	    preparedStatements.add(psInsertPath);
 	  
 	    psInsertPathIds =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_pathids (id_path,pathid,isEndPath,crc32,crc32logic) " +
+		("INSERT INTO u_pathids (id_path,pathid,isEndPath,crc32,crc32logic) " +
 		 "VALUES(?, -999, ?, ?, ?)",keyColumn);
 	    preparedStatements.add(psInsertPathIds);
 	  
@@ -5371,7 +5371,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    psInsertConfigPathAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
-		 "v_pathid2conf (id_pathId,id_confver,ord) " +
+		 "u_pathid2conf (id_pathId,id_confver,ord) " +
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigPathAssoc);
 	 
@@ -5399,7 +5399,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 
 	    psInsertPathElement =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_paelements (paetype,name,crc32,crc32logic,o_id) " +
+		("INSERT INTO u_paelements (paetype,name,crc32,crc32logic,o_id) " +
 		 "VALUES(?, ?, ?, -999,-999)",keyColumn);
 	    preparedStatements.add(psInsertPathElement);
 	    
@@ -5411,31 +5411,31 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    
            psInsertMoElement =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_moelements (moetype,name,o_id,paramtype,tracked,crc32,value,valuelob,hex) " +
+                ("INSERT INTO u_moelements (moetype,name,o_id,paramtype,tracked,crc32,value,valuelob,hex) " +
                  "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ? )",keyColumn);
             preparedStatements.add(psInsertMoElement);
 
            psInsertPae2Moe=
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_pae2moe (id_pae,id_moe,lvl,ord) " +
+                ("INSERT INTO u_pae2moe (id_pae,id_moe,lvl,ord) " +
                  "VALUES(?, ?, ?, ?)",keyColumn);
             preparedStatements.add(psInsertPae2Moe);
 
            psInsertMod2Templ=
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_mod2templ (id_pae,id_templ) " +
+                ("INSERT INTO u_mod2templ (id_pae,id_templ) " +
                  "VALUES(?, ? )");
             preparedStatements.add(psInsertMod2Templ);
 
 	    psInsertPathElementAssoc =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_pathid2pae (id_pathid,id_pae,id_parent,lvl,ord,operator) " +
+		("INSERT INTO u_pathid2pae (id_pathid,id_pae,id_parent,lvl,ord,operator) " +
 		 "VALUES(?, ?, ?, ?, ?, ?)");
 	    preparedStatements.add(psInsertPathModuleAssoc);
 
             psInsertPathOutputModuleAssoc =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_pathid2outm (id_pathid,id_streamid,ord,operator) " +
+                ("INSERT INTO u_pathid2outm (id_pathid,id_streamid,ord,operator) " +
                  "VALUES(?, ?, ?, ?)");
             preparedStatements.add(psInsertPathOutputModuleAssoc);
 
@@ -5491,25 +5491,25 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    
 	    psInsertServiceTemplate =
 		dbConnector.getConnection().prepareStatement
- ("INSERT INTO v_srvtemplates (id_pkg,name,cvstag) " +
+ ("INSERT INTO u_srvtemplates (id_pkg,name,cvstag) " +
    "VALUES (?, ?, ?)", keyColumn);
 	    preparedStatements.add(psInsertServiceTemplate);
 	    
 	    psInsertEDSourceTemplate =
 		dbConnector.getConnection().prepareStatement
-  ("INSERT INTO v_edstemplates (id_pkg,name,cvstag) " +
+  ("INSERT INTO u_edstemplates (id_pkg,name,cvstag) " +
    "VALUES (?, ?, ?)", keyColumn);
 	    preparedStatements.add(psInsertEDSourceTemplate);
 	    
 	    psInsertESSourceTemplate =
 		dbConnector.getConnection().prepareStatement
-  ("INSERT INTO v_esstemplates (pkg_id,name,cvstag) " +
+  ("INSERT INTO u_esstemplates (pkg_id,name,cvstag) " +
    "VALUES (?, ?, ?)", keyColumn);
 	    preparedStatements.add(psInsertESSourceTemplate);
 	    
 	    psInsertESModuleTemplate =
 		dbConnector.getConnection().prepareStatement
-  ("INSERT INTO v_esmtemplates (id_pkg,name,cvstag) " +
+  ("INSERT INTO u_esmtemplates (id_pkg,name,cvstag) " +
    "VALUES (?, ?, ?, ?)", keyColumn);
 	    preparedStatements.add(psInsertESModuleTemplate);
 	    
@@ -5533,43 +5533,43 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 
 	    psInsertGPset =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO v_globalpsets (name,tracked) " +
+		("INSERT INTO u_globalpsets (name,tracked) " +
 		 "VALUES(?, ?)",keyColumn);
 	    preparedStatements.add(psInsertGPset);
 
 	   psInsertParameterGPset =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_gpsetelements (id_gpset,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
+                ("INSERT INTO u_gpsetelements (id_gpset,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
                  "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?,-1, ?)",keyColumn);
             preparedStatements.add(psInsertParameterGPset);
 
            psInsertParameterEDS =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_edselements (id_edsource,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
+                ("INSERT INTO u_edselements (id_edsource,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
                  "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
             preparedStatements.add(psInsertParameterEDS);
 
            psInsertParameterESM =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_esmelements (id_esmodule,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
+                ("INSERT INTO u_esmelements (id_esmodule,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
                  "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
             preparedStatements.add(psInsertParameterESM);
 
            psInsertParameterESS =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_esselements (id_essource,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
+                ("INSERT INTO u_esselements (id_essource,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
                  "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
             preparedStatements.add(psInsertParameterESS);
 
            psInsertParameterSRV =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_srvelements (id_service,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
+                ("INSERT INTO u_srvelements (id_service,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
                  "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
             preparedStatements.add(psInsertParameterSRV);
 
            psInsertParameterOUTM =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO v_outmelements (id_streamid,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
+                ("INSERT INTO u_outmelements (id_streamid,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
                  "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
             preparedStatements.add(psInsertParameterOUTM);
 
@@ -5712,24 +5712,24 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 
 	    psDeleteDirectory =
 		dbConnector.getConnection().prepareStatement
-("DELETE FROM v_directories WHERE id=?");
+("DELETE FROM u_directories WHERE id=?");
 	    preparedStatements.add(psDeleteDirectory);
 
 	    psDeleteLock =
 		dbConnector.getConnection().prepareStatement
-		("DELETE FROM v_lockedconfs " +
+		("DELETE FROM u_lockedconfs " +
 		 "WHERE id_parentdir=? AND id_config=?");
             preparedStatements.add(psDeleteLock);
 
 	    psDeleteConfiguration =
 		dbConnector.getConnection().prepareStatement
-  ("DELETE FROM v_confversions " +
+  ("DELETE FROM u_confversions " +
    "WHERE id = ?");
 	    preparedStatements.add(psDeleteConfiguration);
 	    
 	    psDeleteSoftwareRelease =
 		dbConnector.getConnection().prepareStatement
-  ("DELETE FROM v_softreleases " +
+  ("DELETE FROM u_softreleases " +
    "WHERE id = ?");
 	    preparedStatements.add(psDeleteSoftwareRelease);
 	    
@@ -5749,25 +5749,25 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    
 	    psDeleteEDSourcesFromConfig =
 		dbConnector.getConnection().prepareStatement
-  ("DELETE FROM v_conf2eds "+
+  ("DELETE FROM u_conf2eds "+
    "WHERE id_confver=?");
 	    preparedStatements.add(psDeleteEDSourcesFromConfig);
 	    
 	    psDeleteESSourcesFromConfig =
 		dbConnector.getConnection().prepareStatement
-  ("DELETE FROM v_conf2ess "+
+  ("DELETE FROM u_conf2ess "+
    "WHERE id_confver=?");
 	    preparedStatements.add(psDeleteESSourcesFromConfig);
 	    
 	    psDeleteESModulesFromConfig =
 		dbConnector.getConnection().prepareStatement
-  ("DELETE FROM v_conf2esm "+
+  ("DELETE FROM u_conf2esm "+
    "WHERE id_confver=?");
 	    preparedStatements.add(psDeleteESModulesFromConfig);
 	    
 	    psDeleteServicesFromConfig =
 		dbConnector.getConnection().prepareStatement
-  ("DELETE FROM v_conf2srv "+
+  ("DELETE FROM u_conf2srv "+
    "WHERE id_confver=?");
 	    preparedStatements.add(psDeleteServicesFromConfig);
 	    
@@ -6028,28 +6028,28 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 
            psSelectParameters =
                 dbConnector.getConnection().prepareStatement
-                ("Select * from (Select * from (SELECT a.id+1000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_edsource+1000000, a.lvl,  a.value,  a.valuelob, a.hex  from V_EDSELEMENTS a, V_CONF2EDS c " +
+                ("Select * from (Select * from (SELECT a.id+1000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_edsource+1000000, a.lvl,  a.value,  a.valuelob, a.hex  from u_EDSELEMENTS a, u_CONF2EDS c " +
 		" where c.ID_CONFVER=? and c.ID_EDSOURCE=a.ID_edsource order by id ) " +
 		" UNION ALL " +
-		"Select * from (SELECT a.id+2000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_essource+2000000, a.lvl,  a.value,  a.valuelob , a.hex from V_ESSELEMENTS a, V_CONF2ESS c " +
+		"Select * from (SELECT a.id+2000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_essource+2000000, a.lvl,  a.value,  a.valuelob , a.hex from u_ESSELEMENTS a, u_CONF2ESS c " +
 		" where c.ID_CONFVER=? and c.ID_ESSOURCE=a.ID_essource order by id ) " +
 		" UNION ALL " + 
 //		"Select * from (SELECT a.id, a.paramtype, a.name, a.tracked, a.ord,a.id_pae, a.lvl,  a.value,  a.valuelob from V_MOELEMENTS a, V_PAELEMENTS b, V_PATHID2CONF c " +
 //		" where c.ID_CONFVER=? and c.ID_PATHID=b.ID_PATHID and a.id_pae=b.id order by a.id ) " +
 //		" UNION ALL " + 
                 /*h_" select id,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (select sa.*, h_moelements.valuelob,h_moelements.hex from (select  distinct h_moelements.id, h_moelements.paramtype, h_moelements.name, h_moelements.tracked, h_pae2moe.ord,h_pastruct.id_pae,  h_pae2moe.lvl as lvl,  h_moelements.value,h_pae2moe.id as pae2id  from h_moelements, h_pae2moe, h_pastruct  where h_moelements.id = h_pae2moe.id_moe AND h_pastruct.id_pae = h_pae2moe.id_pae AND  h_pastruct.id  IN (SELECT h_pastruct.id FROM h_pastruct,h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pathid2conf.id_confver=?) order by h_pae2moe.id) sa, h_moelements where sa.id=h_moelements.id) " + */
-                " select id,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (select sa.*, v_moelements.valuelob,v_moelements.hex from (select  distinct v_moelements.id, v_moelements.paramtype, v_moelements.name, v_moelements.tracked, v_pae2moe.ord,v_pathid2pae.id_pae,  v_pae2moe.lvl as lvl,  v_moelements.value,v_pae2moe.id as pae2id  from v_moelements, v_pae2moe, v_pathid2pae  where v_moelements.id = v_pae2moe.id_moe AND v_pathid2pae.id_pae = v_pae2moe.id_pae AND  v_pathid2pae.id  IN (SELECT v_pathid2pae.id FROM v_pathid2pae,v_pathid2conf WHERE v_pathid2conf.id_pathid=v_pathid2pae.id_pathid and v_pathid2conf.id_confver=?) order by v_pae2moe.id) sa, v_moelements where sa.id=v_moelements.id) " +
+                " select id,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (select sa.*, u_moelements.valuelob,u_moelements.hex from (select  distinct u_moelements.id, u_moelements.paramtype, u_moelements.name, u_moelements.tracked, u_pae2moe.ord,u_pathid2pae.id_pae,  u_pae2moe.lvl as lvl,  u_moelements.value,u_pae2moe.id as pae2id  from u_moelements, u_pae2moe, u_pathid2pae  where u_moelements.id = u_pae2moe.id_moe AND u_pathid2pae.id_pae = u_pae2moe.id_pae AND  u_pathid2pae.id  IN (SELECT u_pathid2pae.id FROM u_pathid2pae,u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2conf.id_confver=?) order by u_pae2moe.id) sa, u_moelements where sa.id=u_moelements.id) " +
 		" UNION ALL " + 
-		"Select * from (SELECT a.id+4000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_service+4000000, a.lvl,  a.value,  a.valuelob, a.hex from V_SRVELEMENTS a, V_CONF2SRV c " +
+		"Select * from (SELECT a.id+4000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_service+4000000, a.lvl,  a.value,  a.valuelob, a.hex from u_SRVELEMENTS a, u_CONF2SRV c " +
 		" where c.ID_CONFVER=? and c.ID_SERVICE=a.ID_Service order by id )" +
 		" UNION ALL " + 
-		"Select * from (SELECT a.id+3000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_esmodule+3000000, a.lvl,  a.value,  a.valuelob, a.hex from V_ESMELEMENTS a, V_CONF2ESM c " +
+		"Select * from (SELECT a.id+3000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_esmodule+3000000, a.lvl,  a.value,  a.valuelob, a.hex from u_ESMELEMENTS a, u_CONF2ESM c " +
 		" where c.ID_CONFVER=? and c.ID_esmodule=a.ID_esmodule order by id ) " +
 		" UNION ALL " + 
-		"Select * from (SELECT a.id+6000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_gpset+6000000, a.lvl,  a.value,  a.valuelob, a.hex from V_GPSETELEMENTS a, V_CONF2GPSET c " +
+		"Select * from (SELECT a.id+6000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_gpset+6000000, a.lvl,  a.value,  a.valuelob, a.hex from u_GPSETELEMENTS a, u_CONF2GPSET c " +
 		" where c.ID_CONFVER=? and c.ID_gpset=a.ID_gpset order by id ) " +
 		" UNION ALL " + 
-                " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,v_streamids.id_stream+5000000, a.lvl,  a.value,  a.valuelob, a.hex from v_outmelements a,v_pathid2conf,v_pathid2outm,v_streamids where a.id_streamid=v_streamids.id  AND v_streamids.id=v_pathid2outm.id_streamid and v_pathid2outm.id_pathid=v_pathid2conf.id_pathid AND v_pathid2conf.id_confver = ? order by id) )");
+                " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,u_streamids.id_stream+5000000, a.lvl,  a.value,  a.valuelob, a.hex from u_outmelements a,u_pathid2conf,u_pathid2outm,u_streamids where a.id_streamid=u_streamids.id  AND u_streamids.id=u_pathid2outm.id_streamid and u_pathid2outm.id_pathid=u_pathid2conf.id_pathid AND u_pathid2conf.id_confver = ? order by id) )");
 	    psSelectParameters.setFetchSize(8192);
 	    preparedStatements.add(psSelectParameters);
 	    
@@ -6159,16 +6159,16 @@ if (pkg==null) System.out.println("pkg NULL!!!");
                 " UNION ALL " +
                 " select * from (select h_pathid2uq.id_pathiduq, v_streams.id+5000000 as stid,V_PATHID2OUTM.ord,'OutputModule', V_PATHID2OUTM.operator from V_PATHID2OUTM,v_streams,v_streamids,v_PATHID2CONF,h_pathid2uq where v_streams.id=v_streamids.id_stream and v_streamids.id=V_PATHID2OUTM.id_streamid and v_PATHID2CONF.id_confver=? and  v_PATHID2CONF.id_pathid= V_PATHID2OUTM.id_pathid and h_pathid2uq.id_pathid=v_PATHID2CONF.id_pathid)");
 	    psSelectPathEntries.setFetchSize(1024); */
-                ("Select * from (SELECT v_pathid2conf.id_pathid, v_paelements.id, v_pathid2pae.ord, DECODE(v_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, v_pathid2pae.operator FROM v_pathid2pae,v_paelements, v_pathid2conf WHERE v_pathid2conf.id_pathid=v_pathid2pae.id_pathid and v_pathid2pae.id_pae=v_paelements.id and v_pathid2pae.lvl=0 and v_pathid2conf.id_confver = ? order by v_pathid2pae.id_pathid,v_pathid2pae.id) " +
+                ("Select * from (SELECT u_pathid2conf.id_pathid, u_paelements.id, u_pathid2pae.ord, DECODE(u_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, u_pathid2pae.operator FROM u_pathid2pae,u_paelements, u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_pathid2pae.lvl=0 and u_pathid2conf.id_confver = ? order by u_pathid2pae.id_pathid,u_pathid2pae.id) " +
                " UNION ALL " +
-               " select * from (select v_PATHID2CONF.id_pathid, v_streams.id+5000000 as stid,V_PATHID2OUTM.ord,'OutputModule', V_PATHID2OUTM.operator from V_PATHID2OUTM,v_streams,v_streamids,v_PATHID2CONF where v_streams.id=v_streamids.id_stream and v_streamids.id=V_PATHID2OUTM.id_streamid and v_PATHID2CONF.id_confver=? and  v_PATHID2CONF.id_pathid= V_PATHID2OUTM.id_pathid )");
+               " select * from (select u_PATHID2CONF.id_pathid, u_streams.id+5000000 as stid,u_PATHID2OUTM.ord,'OutputModule', u_PATHID2OUTM.operator from u_PATHID2OUTM,u_streams,u_streamids,u_PATHID2CONF where u_streams.id=u_streamids.id_stream and u_streamids.id=u_PATHID2OUTM.id_streamid and u_PATHID2CONF.id_confver=? and  u_PATHID2CONF.id_pathid= u_PATHID2OUTM.id_pathid )");
 	    preparedStatements.add(psSelectPathEntries);
 		/*("SELECT e.id AS sequence_id,  d.id AS entry_id, a.ord AS sequence_nb, DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, a.operator, a.crc32 FROM v_paelements a, v_pathid2conf b, v_pathids c,(select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) d , (select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) e WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND b.id_confver =? AND a.lvl>0 and a.crc32=d.crc32 AND e.crc32 in (select crc32 from v_paelements where id=a.id_parent) ORDER BY a.id_pathid ASC, a.id ASC");
 */
 	    psSelectSequenceEntries =
 		dbConnector.getConnection().prepareStatement
            /*h_  ("SELECT h_pastruct.id_pathid,h_pastruct.id as srid,h_pastruct.lvl, h_paelements.id, h_pastruct.ord, DECODE(h_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, h_pastruct.operator FROM h_pastruct,h_paelements, h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pastruct.id_pae=h_paelements.id and ((h_pastruct.lvl=0 and h_paelements.paetype=2) or h_pastruct.lvl>0) and h_pathid2conf.id_confver = ? order by h_pastruct.id_pathid, srid");*/
-                 ("SELECT v_pathid2pae.id_pathid,v_pathid2pae.id as srid,v_pathid2pae.lvl, v_paelements.id, v_pathid2pae.ord, DECODE(v_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, v_pathid2pae.operator FROM v_pathid2pae,v_paelements, v_pathid2conf WHERE v_pathid2conf.id_pathid=v_pathid2pae.id_pathid and v_pathid2pae.id_pae=v_paelements.id and ((v_pathid2pae.lvl=0 and v_paelements.paetype=2) or v_pathid2pae.lvl>0) and v_pathid2conf.id_confver = ? order by v_pathid2pae.id_pathid, srid");
+                 ("SELECT u_pathid2pae.id_pathid,u_pathid2pae.id as srid,u_pathid2pae.lvl, u_paelements.id, u_pathid2pae.ord, DECODE(u_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, u_pathid2pae.operator FROM u_pathid2pae,u_paelements, u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and ((u_pathid2pae.lvl=0 and u_paelements.paetype=2) or u_pathid2pae.lvl>0) and u_pathid2conf.id_confver = ? order by u_pathid2pae.id_pathid, srid");
 
 	    psSelectSequenceEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectSequenceEntries);
@@ -6192,7 +6192,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    //Insert a new relesase
 	    psInsertReleaseTag = 
 		dbConnector.getConnection().prepareStatement
-  ("INSERT INTO v_softreleases " +
+  ("INSERT INTO u_softreleases " +
     " (releaseTag)  VALUES (?)",keyColumn);
 	     psInsertReleaseTag .setFetchSize(1024);
 	    preparedStatements.add( psInsertReleaseTag );
@@ -6200,53 +6200,53 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    psSelectSoftwareSubsystemId = 	
 		dbConnector.getConnection().prepareStatement
   ("SELECT id " +
-   "FROM v_softsubsystems "+
+   "FROM u_softsubsystems "+
    "WHERE name = ?");
 	    psSelectSoftwareSubsystemId.setFetchSize(1024);
 	    preparedStatements.add(psSelectSoftwareSubsystemId);
 
 	    psInsertSoftwareSubsystem = 	
 		dbConnector.getConnection().prepareStatement
-  ("INSERT INTO v_softsubsystems "+
+  ("INSERT INTO u_softsubsystems "+
    " (name) VALUES (?)",keyColumn);
 	    preparedStatements.add(psInsertSoftwareSubsystem);
 	    
 	    psSelectSoftwarePackageId = 	
 		dbConnector.getConnection().prepareStatement
   ("SELECT id " +
-   "FROM v_softpackages "+
+   "FROM u_softpackages "+
    "WHERE id_subs = ? AND name = ? ");
 	    psSelectSoftwarePackageId.setFetchSize(1024);
 	    preparedStatements.add(psSelectSoftwarePackageId);
 	    
 	    psInsertSoftwarePackage = 	
 		dbConnector.getConnection().prepareStatement
-  ("INSERT INTO v_softpackages "+
+  ("INSERT INTO u_softpackages "+
    " (id_subs, name) VALUES (?,?)",keyColumn);
 	    preparedStatements.add(psInsertSoftwarePackage);
 
 	    psInsertEDSourceTemplateRelease = 
 		dbConnector.getConnection().prepareStatement
-  ("INSERT INTO v_edstemplates "+
+  ("INSERT INTO u_edstemplates "+
    " (id_pkg, name, CVSTAG) VALUES (?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertEDSourceTemplateRelease);
 
 	    psInsertESSourceTemplateRelease = 
 		dbConnector.getConnection().prepareStatement
-  ("INSERT INTO v_esstemplates "+
+  ("INSERT INTO u_esstemplates "+
    " (id_pkg, name, CVSTAG,) VALUES (?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertESSourceTemplateRelease);
 
 	    
 	    psInsertESModuleTemplateRelease = 
 		dbConnector.getConnection().prepareStatement
-  ("INSERT INTO v_esmtemplates "+
+  ("INSERT INTO u_esmtemplates "+
    " (ik_pkg, name, CVSTAG) VALUES (?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertESModuleTemplateRelease);
 
 	    psInsertServiceTemplateRelease = 
 		dbConnector.getConnection().prepareStatement
-  ("INSERT INTO v_srvtemplates "+
+  ("INSERT INTO u_srvtemplates "+
    " (id_pkg, name, CVSTAG) VALUES (?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertServiceTemplateRelease);
 /*	    
