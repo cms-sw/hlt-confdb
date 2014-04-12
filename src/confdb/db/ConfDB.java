@@ -1470,7 +1470,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		}
 		else if (entryType.equals("OutputModule")) {
 		    Stream entry = (Stream)idToStream.get(entryId);
-		    if(entry==null) continue;
+		    if(entry==null) {System.err.println("ERROR: can't find stream for entryid"); continue;}
 		    OutputModule referencedOutput = entry.outputModule();
 		    if (referencedOutput==null) continue;
 		    config.insertOutputModuleReference(sequence,index,referencedOutput).setOperator( operator );
@@ -1495,8 +1495,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		Path path  = idToPaths.get(pathId);
 		int  index = path.entryCount();
 
-                ////System.out.println("found n path "+path.name()+": "+
-                   ////                    "index="+index+" sequenceNb="+sequenceNb+" entryType="+entryType+" entryId="+entryId);
+                System.out.println("found n path "+path.name()+": "+
+                                       "index="+index+" sequenceNb="+sequenceNb+" entryType="+entryType+" entryId="+entryId);
 
 		if (index!=sequenceNb)
 		    System.err.println("ERROR in path "+path.name()+": "+
@@ -1664,6 +1664,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	      Iterator<Path> pathIt = config.pathIterator();
 	      while(pathIt.hasNext()){
 	      Path path = pathIt.next();
+              System.err.println("Iterating path "+path.name()+": "+ "id="+path.databaseId());
 	      int databaseId = pathToId.get(path);
 	      path.setDatabaseId(databaseId);
 	      }
@@ -4969,27 +4970,21 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		
 	    psSelectStreamEntries =
 		dbConnector.getConnection().prepareStatement
-            ("SELECT DISTINCT u_streams.id+5000000,u_streams.name,u_streamids.FRACTODISK,u_EVENTCONTENTS.ID as evcoid,u_EVENTCONTENTS.name as evconame "+
-                 "FROM u_streamids,u_streams,u_EVENTCONTENTIDS,u_EVENTCONTENTS,u_EVCO2STREAM,u_pathid2outm,u_pathid2conf " +
-                 "WHERE u_streams.id=u_streamids.id_stream " +
-                 "AND u_EVCO2STREAM.ID_STREAMID=u_streamids.id AND u_EVCO2STREAM.id_evcoid=u_EVENTCONTENTIDS.ID " +
-                 "AND u_EVENTCONTENTIDS.ID_EVCO=u_EVENTCONTENTS.ID "+
-                 "AND u_pathid2conf.id_pathid=u_pathid2outm.id_pathId AND u_streamids.id=u_pathid2outm.id_streamid "+
-                 "AND u_pathid2conf.id_confver = ?" );
+            ("SELECT DISTINCT u_streamids.id+5000000,u_streams.name,u_streamids.FRACTODISK,u_EVENTCONTENTIDS.ID as evcoid,u_EVENTCONTENTS.name as evconame FROM u_streamids,u_streams,u_EVENTCONTENTIDS,u_EVENTCONTENTS,u_EVCO2STREAM,u_pathid2outm,u_pathid2conf,u_conf2evco WHERE u_streams.id=u_streamids.id_stream AND u_EVENTCONTENTIDS.ID_EVCO=u_EVENTCONTENTS.ID AND u_EVCO2STREAM.id_evcoid=u_EVENTCONTENTIDS.ID AND u_EVCO2STREAM.ID_STREAMID=u_streamids.id AND u_streamids.id=u_pathid2outm.id_streamid AND u_conf2evco.id_confver=u_pathid2conf.id_confver AND u_conf2evco.id_evcoid=u_EVENTCONTENTIDS.ID AND u_pathid2conf.id_pathid=u_pathid2outm.id_pathId AND u_pathid2conf.id_confver = ? order by u_streams.name");
 	    psSelectStreamEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectStreamEntries);
 	    
 
 	    psSelectDatasetEntries =
 		dbConnector.getConnection().prepareStatement
-            ("SELECT distinct u_datasets.id, u_datasets.name,u_streams.id+5000000 as streamid,u_streams.name as label from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid AND u_pathid2conf.id_confver = ?");
+            ("SELECT distinct u_datasetids.id, u_datasets.name,u_streamids.id+5000000 as streamid,u_streams.name as label from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids,u_evco2stream, u_conf2evco WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid and u_evco2stream.id_streamid=u_streamids.id and u_evco2stream.id_evcoid=u_conf2evco.id_evcoid and u_conf2evco.id_confver=u_pathid2conf.id_confver AND u_pathid2conf.id_confver = ?");
 	    //psSelectDatasetEntries.setFetchSize(64);
 	    preparedStatements.add(psSelectDatasetEntries);
 	    
 	    psSelectPathStreamDatasetEntries =
 		dbConnector.getConnection().prepareStatement
            /* h_  ("SELECT distinct h_pathid2uq.id_pathiduq,u_streams.id+5000000 as streamid,u_datasets.id as datasetid, u_datasets.name from u_pathid2strdst, u_pathid2conf,v_datasetids,v_datasets,v_streams,v_streamids,h_pathid2uq WHERE h_pathid2uq.id_pathid=v_pathid2conf.id_pathid and v_pathid2strdst.id_pathid=v_pathid2conf.id_pathid and  v_datasets.id=v_datasetids.id_dataset and v_datasetids.id=v_pathid2strdst.id_datasetid and v_streams.id=v_streamids.id_stream and v_streamids.id=v_pathid2strdst.id_streamid AND v_pathid2conf.id_confver = ?");*/
-             ("SELECT distinct u_pathid2conf.id_pathid,u_streams.id+5000000 as streamid,u_datasets.id as datasetid, u_datasets.name from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and  u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid AND u_pathid2conf.id_confver = ?");
+             ("SELECT distinct u_pathid2conf.id_pathid,u_streamids.id+5000000 as streamid,u_datasetids.id as datasetid, u_datasets.name from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids, u_evco2stream, u_conf2evco WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and  u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid AND u_evco2stream.id_streamid=u_streamids.id and u_evco2stream.id_evcoid=u_conf2evco.id_evcoid and u_conf2evco.id_confver=u_pathid2conf.id_confver and u_pathid2conf.id_confver = ?");
           //psSelectPathStreamDatasetEntries.setFetchSize(64);
 	    preparedStatements.add(psSelectPathStreamDatasetEntries);
 
@@ -6049,7 +6044,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		"Select * from (SELECT a.id+6000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_gpset+6000000, a.lvl,  a.value,  a.valuelob, a.hex from u_GPSETELEMENTS a, u_CONF2GPSET c " +
 		" where c.ID_CONFVER=? and c.ID_gpset=a.ID_gpset order by id ) " +
 		" UNION ALL " + 
-                " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,u_streamids.id_stream+5000000, a.lvl,  a.value,  a.valuelob, a.hex from u_outmelements a,u_pathid2conf,u_pathid2outm,u_streamids where a.id_streamid=u_streamids.id  AND u_streamids.id=u_pathid2outm.id_streamid and u_pathid2outm.id_pathid=u_pathid2conf.id_pathid AND u_pathid2conf.id_confver = ? order by id) )");
+                " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,u_streamids.id+5000000, a.lvl,  a.value,  a.valuelob, a.hex from u_outmelements a,u_pathid2conf,u_pathid2outm,u_streamids where a.id_streamid=u_streamids.id  AND u_streamids.id=u_pathid2outm.id_streamid and u_pathid2outm.id_pathid=u_pathid2conf.id_pathid AND u_pathid2conf.id_confver = ? order by id) )");
 	    psSelectParameters.setFetchSize(8192);
 	    preparedStatements.add(psSelectParameters);
 	    
@@ -6159,9 +6154,9 @@ if (pkg==null) System.out.println("pkg NULL!!!");
                 " UNION ALL " +
                 " select * from (select h_pathid2uq.id_pathiduq, v_streams.id+5000000 as stid,V_PATHID2OUTM.ord,'OutputModule', V_PATHID2OUTM.operator from V_PATHID2OUTM,v_streams,v_streamids,v_PATHID2CONF,h_pathid2uq where v_streams.id=v_streamids.id_stream and v_streamids.id=V_PATHID2OUTM.id_streamid and v_PATHID2CONF.id_confver=? and  v_PATHID2CONF.id_pathid= V_PATHID2OUTM.id_pathid and h_pathid2uq.id_pathid=v_PATHID2CONF.id_pathid)");
 	    psSelectPathEntries.setFetchSize(1024); */
-                ("Select * from (SELECT u_pathid2conf.id_pathid, u_paelements.id, u_pathid2pae.ord, DECODE(u_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, u_pathid2pae.operator FROM u_pathid2pae,u_paelements, u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_pathid2pae.lvl=0 and u_pathid2conf.id_confver = ? order by u_pathid2pae.id_pathid,u_pathid2pae.id) " +
+                ("Select * from (Select * from (SELECT u_pathid2conf.id_pathid, u_paelements.id, u_pathid2pae.ord, DECODE(u_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, u_pathid2pae.operator FROM u_pathid2pae,u_paelements, u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_pathid2pae.lvl=0 and u_pathid2conf.id_confver = ? order by u_pathid2pae.id_pathid,u_pathid2pae.id) " +
                " UNION ALL " +
-               " select * from (select u_PATHID2CONF.id_pathid, u_streams.id+5000000 as stid,u_PATHID2OUTM.ord,'OutputModule', u_PATHID2OUTM.operator from u_PATHID2OUTM,u_streams,u_streamids,u_PATHID2CONF where u_streams.id=u_streamids.id_stream and u_streamids.id=u_PATHID2OUTM.id_streamid and u_PATHID2CONF.id_confver=? and  u_PATHID2CONF.id_pathid= u_PATHID2OUTM.id_pathid )");
+               " select * from (select u_PATHID2CONF.id_pathid, u_streamids.id+5000000 as stid,u_PATHID2OUTM.ord,'OutputModule', u_PATHID2OUTM.operator from u_PATHID2OUTM,u_streams,u_streamids,u_PATHID2CONF where u_streams.id=u_streamids.id_stream and u_streamids.id=u_PATHID2OUTM.id_streamid and u_PATHID2CONF.id_confver=? and  u_PATHID2CONF.id_pathid= u_PATHID2OUTM.id_pathid )) order by id_pathid,ord");
 	    preparedStatements.add(psSelectPathEntries);
 		/*("SELECT e.id AS sequence_id,  d.id AS entry_id, a.ord AS sequence_nb, DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, a.operator, a.crc32 FROM v_paelements a, v_pathid2conf b, v_pathids c,(select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) d , (select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) e WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND b.id_confver =? AND a.lvl>0 and a.crc32=d.crc32 AND e.crc32 in (select crc32 from v_paelements where id=a.id_parent) ORDER BY a.id_pathid ASC, a.id ASC");
 */
