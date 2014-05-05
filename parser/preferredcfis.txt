@@ -28,6 +28,7 @@ CondCore/ESSources                      PoolDBESSource_cfi.py
 FWCore/MessageLogger			MessageLogger_cfi.py
 RecoTracker/FinalTrackSelectors         selectLoose_cfi.py
 RecoTracker/MeasurementDet		MeasurementTrackerESProducer_cfi.py
+RecoTracker/TkNavigation                NavigationSchoolESProducer_cfi.py
 RecoTracker/TkSeedingLayers             seedingLayersEDProducer_cfi.py
 RecoTracker/TrackProducer		TrackProducer_cfi.py
 RecoTracker/TkSeedGenerator		SeedGeneratorFromRegionHitsEDProducer_cfi.py
