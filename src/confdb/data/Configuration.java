@@ -279,6 +279,7 @@ public class Configuration implements IConfiguration
     public boolean hasChanged()
     {
 	if (hasChanged) return true;
+	if (psets.hasChanged()) return true;
 	for (EDSourceInstance eds : edsources) if(eds.hasChanged()) return true;
 	for (ESSourceInstance ess : essources) if(ess.hasChanged()) return true;
 	for (ESModuleInstance esm : esmodules) if(esm.hasChanged()) return true;

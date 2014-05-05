@@ -1145,6 +1145,7 @@ public class ConfDB
 			    if (p!=null) pset.addParameter(p);
 			}
 		    }
+		    config.psets().setDatabaseId(1);
 		}
 		else if (type.equals("EDSource")) {
 		    templateName = release.edsourceTemplateName(templateId);
@@ -1865,6 +1866,7 @@ public class ConfDB
 		throw new DatabaseException(errMsg,e);
 	    }
 	}
+	config.psets().setDatabaseId(1);
     }
     
     /** insert configuration's edsoures */

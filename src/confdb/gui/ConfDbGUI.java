@@ -2818,13 +2818,18 @@ public class ConfDbGUI
 
 	treeModelParameters.setConfiguration(currentConfig);
 
+	ParameterContainer container = null;
+
 	if (currentParameterContainer instanceof ParameterContainer) {
+	    container = (ParameterContainer)currentParameterContainer;
+	}
+
+	if (container!=null || currentParameterContainer instanceof PSetParameter) {
+
 	    toolBar.enableAddUntrackedParameter();
 	    jSplitPaneRightUpper.setDividerLocation(-1);
 	    jSplitPaneRightUpper.setDividerSize(8);
 
-	    ParameterContainer container =
-		(ParameterContainer)currentParameterContainer;
 	    
 	    if (container instanceof Instance) {
 		Instance i = (Instance)container;
@@ -2845,19 +2850,14 @@ public class ConfDbGUI
 		jTextFieldCVS.setText(new String());
 		jLabelPlugin.setText(new String());
 		jTextFieldPlugin.setText(new String());
-		jTextFieldLabel.setText(new String());
 	    }
 
-
-	    
 	    DefaultComboBoxModel cbModel =
 		(DefaultComboBoxModel)jComboBoxPaths.getModel();
 	    cbModel.removeAllElements();
 	    
 	    if (container instanceof Referencable) {
 		Referencable module = (Referencable)container;
-		jTextFieldLabel.setText(module.name());
-		border.setTitle(module.name() + " Parameters");
 		jComboBoxPaths.setEnabled(true);
 		cbModel.addElement("");
 		Path[] paths = module.parentPaths();
@@ -2867,7 +2867,15 @@ public class ConfDbGUI
 		jComboBoxPaths.setEnabled(false);
 	    }
 
-	    treeModelParameters.setParameterContainer(container);	    
+	    if (currentParameterContainer instanceof GlobalPSetContainer) {
+		jTextFieldLabel.setText("PSets");
+		border.setTitle("PSets Parameters");
+	    } else { 
+		jTextFieldLabel.setText(currentParameterContainer.toString());
+		border.setTitle(currentParameterContainer.toString() + " Parameters");
+	    }
+
+	    treeModelParameters.setParameterContainer(currentParameterContainer);
 	}
 	else {
 	    clearParameters();
@@ -2977,7 +2985,7 @@ public class ConfDbGUI
     	restoreRightLowerTabs();
     	
     
-	if (currentParameterContainer==treeModelCurrentConfig.psetsNode()) {
+        if (currentParameterContainer==currentConfig.psets()) {
 	    String s="";
 	    Iterator<PSetParameter> itPSet = currentConfig.psetIterator();
 	    try {
@@ -2990,6 +2998,16 @@ public class ConfDbGUI
 		jEditorPaneSnippet.setText(e.getMessage());
 	    }
 	}
+	else if (currentParameterContainer instanceof PSetParameter) {
+	    PSetParameter pset = (PSetParameter)currentParameterContainer;
+	    try {
+		jEditorPaneSnippet.setText(cnvEngine.getParameterWriter().
+					   toString(pset,cnvEngine,"  "));
+	    }
+	    catch (ConverterException e) {
+		jEditorPaneSnippet.setText(e.getMessage());
+            }
+        }
 	else if (currentParameterContainer instanceof EDSourceInstance) {
 	    EDSourceInstance edsource = (EDSourceInstance)currentParameterContainer;
 	    try {
@@ -3506,21 +3524,26 @@ public class ConfDbGUI
 	
 	clearPathFields();
 	
+	Parameter p = null;
 	while (node instanceof Parameter) {
-	    Parameter p = (Parameter)node;
+	    p = (Parameter)node;
 	    node = p.parent();
 	}
 	
 	if (node instanceof Reference) {
 	    node = ((Reference)node).parent();
 	}
-	
-	if (node instanceof ParameterContainer) {
-		
+
+	System.err.println("XXX0: "+node+" "+(node instanceof ParameterContainer)+" "+(node==null)+" "+(node==treeModelCurrentConfig.psetsNode())+" "+(node instanceof ReferenceContainer));
+	if (node instanceof GlobalPSetContainer) {
+	    currentParameterContainer = node;
+	    if (p!=null) currentParameterContainer = p;
+	    displayParameters();
+	    displaySnippet();
+	} else if (node instanceof ParameterContainer) {
 	    currentParameterContainer = node;
 	    displayParameters();
 	    displaySnippet();
-	    
 	} else if (node==null||node==treeModelCurrentConfig.psetsNode()) {
 	    currentParameterContainer = currentConfig.psets();
 	    displayParameters();
@@ -3529,8 +3552,7 @@ public class ConfDbGUI
 	    clearParameters();
 	    currentParameterContainer = node;
 	    displaySnippet();
-	    if(currentParameterContainer instanceof Path) displayPathFields();
-	    
+	    if(currentParameterContainer instanceof Path) displayPathFields();	    
 	} else {
 	    clearParameters();
 	    clearSnippet();
