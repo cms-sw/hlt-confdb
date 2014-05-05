@@ -1,4 +1,8 @@
 
+2014-05-05 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-12
+	* Fix Global PSets editing and display
+
 2014-03-11 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-07-11
 	* Fix (recursive) parsing of PSets and VPSets in the JPythonParser
