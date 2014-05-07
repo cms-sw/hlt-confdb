@@ -504,6 +504,7 @@ public class ConfDB
     void closePreparedStatements() throws DatabaseException
     {
 	for (PreparedStatement ps : preparedStatements) {
+          if (ps!=null)
 	    try { ps.close(); }
 	    catch (SQLException e) {
 	    	throw new DatabaseException("ConfDB::closePreparedStatements() failed (SQL)", e);
@@ -511,6 +512,7 @@ public class ConfDB
 	    	throw new DatabaseException("ConfDB::closePreparedStatements() failed", e);
 	    }
 	}
+
 	preparedStatements.clear();
     }
 
@@ -976,7 +978,7 @@ public class ConfDB
 	release.clear(releaseTag);
 	
 	try {
-            //System.out.println("loadPartialSwRel configId: "+configId+" "+release);
+            ////System.out.println("loadPartialSwRel configId: "+configId+" "+release);
 	    csLoadTemplatesForConfig.setInt(1,configId);
 	}
 	catch (SQLException e) {
@@ -1027,7 +1029,7 @@ public class ConfDB
 		int    pkgId  = rsTemplates.getInt(5);
 		
  //System.out.println("loadTemplates: id "+id+" type "+" name "+name+" cvstag "+cvstag+" pkgid "+pkgId);
-		    //System.out.println("Template "+templateId+" "+templateName+" instance "+instanceName); 
+		   //System.out.println("Template "+templateId+" "+templateName+" instance "+instanceName); 
 
 		SoftwarePackage pkg = idToPackage.get(pkgId);
 
@@ -1103,7 +1105,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
     {
 	String releaseTag = configInfo.releaseTag();
 	
-        ////System.out.println("loadTemplates with configinfo: "+releaseTag+" release "+release);
+        //System.out.println("loadTemplates with configinfo: "+releaseTag+" release "+release);
 	if (releaseTag==null) System.out.println("releaseTag = " + releaseTag);
 	if (release==null) System.out.println("release is null");
 	else if (release.releaseTag()==null) System.out.println("WHAT?!");
@@ -1125,7 +1127,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	String          releaseTag = configInfo.releaseTag();
 	SoftwareRelease release    = new SoftwareRelease();
 	release.clear(releaseTag);
-        ////System.out.println("loadTemplates with only configid: "+configId);
+        System.out.println("loadTemplates with only configid: "+configId);
 	loadPartialSoftwareRelease(configId,release);
 	Configuration config = new Configuration(configInfo,release);
 	loadConfiguration(config);
@@ -1233,7 +1235,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		String templateName = null;
 		
 //System.out.println("found instance "+id
- //                                    +  "name="+instanceName+" templateid="+templateId+" entryType="+type);
+//                                    +  "name="+instanceName+" templateid="+templateId+" entryType="+type);
 		if (type.equals("PSet")) {
 		    PSetParameter pset = (PSetParameter)ParameterFactory
 			.create("PSet",instanceName,"",flag);
@@ -1364,7 +1366,26 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		while (it.hasNext()) {
 		    Parameter p = it.next();
 		    if (p==null) continue;
+                /*if (p.type().equals("vstring"))
+                {
+                  VStringParameter p2=(VStringParameter) p;
+                  System.out.println(" Param "+p2.type()+" name "+p2.name()+" val "+p2.valueAsString()+" size "+p2.vectorSize());
+                  if (p2.vectorSize()>0)
+                    for (int x=0;x<p2.vectorSize();x++)
+			 System.out.println(" vstringd values " + x + " " +p2.value(x));
+                 }*/
+
 		    outputModule.updateParameter(p.name(),p.type(),p.valueAsString());
+
+                /*if (p.type().equals("vstring"))
+                {
+		    VStringParameter p2 = (VStringParameter) outputModule.parameter(p.name());
+                    //System.out.println(" Reread Param "+p2.type()+" name "+p2.name()+" val "+p2.valueAsString()+" size "+p2.vectorSize());
+                    if (p2.vectorSize()>0)
+                      for (int x=0;x<p2.vectorSize();x++)
+			 //System.out.println(" reread values " + x + " " +p2.value(x));
+                  
+                }*/
 		}
 		outputModule.setDatabaseId(streamId);
 	    }
@@ -1382,8 +1403,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
                 int    sequenceNb = rsSequenceEntries.getInt(5);
                 String entryType  = rsSequenceEntries.getString(6);
  
-		
 //System.out.println("found seq "+ entryId + "parent="+sequenceId+ " lvl="+entryLvl+" ord "+sequenceNb+" entryType="+entryType);
+		
 
                 while (entryLvl<previouslvl) {
                        if ((!seqtoskip)&&(entryLvl>=lvltoskip)) idlifo.pop();
@@ -1409,7 +1430,11 @@ if (pkg==null) System.out.println("pkg NULL!!!");
                           seqDone[entryId]=true;
                           idlifo.push(entryId);
                           previouslvl++;
-                             lvltoskip=1;
+                          lvltoskip=1;
+		    	Sequence entry = idToSequences.get(entryId);
+//System.out.println(" inserting seq "+sequenceId+" into sequenceToId" );
+		entry.setDatabaseId(sequenceId);
+		sequenceToId.put(entry,sequenceId);
                          }
                  }       
                 if ((entryLvl>0) && (!seqtoskip))
@@ -1495,8 +1520,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		Path path  = idToPaths.get(pathId);
 		int  index = path.entryCount();
 
-                System.out.println("found n path "+path.name()+": "+
-                                       "index="+index+" sequenceNb="+sequenceNb+" entryType="+entryType+" entryId="+entryId);
+              //  System.out.println("found n path "+path.name()+": "+
+              //                         "index="+index+" sequenceNb="+sequenceNb+" entryType="+entryType+" entryId="+entryId);
 
 		if (index!=sequenceNb)
 		    System.err.println("ERROR in path "+path.name()+": "+
@@ -1516,10 +1541,15 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		}	
 		else if (entryType.equals("OutputModule")) {
 		    Stream entry = (Stream)idToStream.get(entryId);
-		    if(entry==null) continue;
-		    OutputModule referencedOutput = entry.outputModule();
-		    if (referencedOutput==null) continue;
-		    config.insertOutputModuleReference(path,index,referencedOutput).setOperator(operator);
+		    if(entry==null) {System.err.println("noStreamId for "+path.name());continue;}
+		    //if(entry==null) {System.err.println("noStreamId for "+path.name());}
+		    //else {
+			OutputModule referencedOutput = entry.outputModule();
+		    	if (referencedOutput==null) {System.err.println("nooutputModule for "+path.name());continue;}
+		    	//if (referencedOutput==null) {System.err.println("nooutputModule for "+path.name());}
+                        //else 
+			config.insertOutputModuleReference(path,index,referencedOutput).setOperator(operator);
+                    //}
 		}
 		else
 		    System.err.println("Invalid entryType '"+entryType+"'");
@@ -1536,7 +1566,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		int  streamId = rsDatasetEntries.getInt(3);
 		String streamLabel =  rsDatasetEntries.getString(4);
 		Stream stream = idToStream.get(streamId);
-		if(stream == null)
+		if((stream == null) || (datasetLabel.equals("Unassigned path")))
 		    continue;
 
 		PrimaryDataset primaryDataset = stream.insertDataset(datasetLabel);
@@ -1664,7 +1694,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	      Iterator<Path> pathIt = config.pathIterator();
 	      while(pathIt.hasNext()){
 	      Path path = pathIt.next();
-              System.err.println("Iterating path "+path.name()+": "+ "id="+path.databaseId());
+              //System.err.println("Iterating path "+path.name()+": "+ "id="+path.databaseId());
 	      int databaseId = pathToId.get(path);
 	      path.setDatabaseId(databaseId);
 	      }
@@ -4406,7 +4436,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    psSelectParameterTypes =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
-		 " DISTINCT f_moelements.paramtype FROM f_moelements");
+		 " DISTINCT u_moelements.paramtype FROM u_moelements");
 	    preparedStatements.add(psSelectParameterTypes);
 	    
 
@@ -4637,7 +4667,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
    " ModuleTemplates.id_mtype," +
    " ModuleTemplates.name," +
    " ModuleTemplates.cvstag " +
-   "FROM f_moduletemplates ModuleTemplates " +
+   "FROM u_moduletemplates ModuleTemplates " +
    "WHERE name=? AND cvstag=?");
 	    preparedStatements.add(psSelectModuleTemplate);
 
@@ -5335,7 +5365,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		 "VALUES(?, -999, ?, ?, ?)",keyColumn);
 	    preparedStatements.add(psInsertPathIds);
 	  
-	    psInsertHPathIds =
+/*	    psInsertHPathIds =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO h_pathids (crc32,crc32logic) " +
 		 "VALUES(?, ? )",keyColumn);
@@ -5362,7 +5392,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
                dbConnector.getConnection().prepareStatement
 	       ("SELECT id FROM h_pathids WHERE crc32=? ");
 	    preparedStatements.add(psCheckHPathIdCrc);
-
+*/
 	    psInsertConfigPathAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
@@ -5370,13 +5400,13 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigPathAssoc);
 	 
-	    psInsertConfigHPathAssoc =
+/*	    psInsertConfigHPathAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
 		 "h_pathid2conf (id_pathId,id_confver,ord) " +
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigHPathAssoc);
-	 
+*/	 
 /*	    psInsertSequence =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO Sequences (name) " +
@@ -6024,27 +6054,27 @@ if (pkg==null) System.out.println("pkg NULL!!!");
            psSelectParameters =
                 dbConnector.getConnection().prepareStatement
                 ("Select * from (Select * from (SELECT a.id+1000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_edsource+1000000, a.lvl,  a.value,  a.valuelob, a.hex  from u_EDSELEMENTS a, u_CONF2EDS c " +
-		" where c.ID_CONFVER=? and c.ID_EDSOURCE=a.ID_edsource order by id ) " +
+		" where c.ID_CONFVER=? and c.ID_EDSOURCE=a.ID_edsource order by a.id_edsource+1000000,id ) " +
 		" UNION ALL " +
 		"Select * from (SELECT a.id+2000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_essource+2000000, a.lvl,  a.value,  a.valuelob , a.hex from u_ESSELEMENTS a, u_CONF2ESS c " +
-		" where c.ID_CONFVER=? and c.ID_ESSOURCE=a.ID_essource order by id ) " +
+		" where c.ID_CONFVER=? and c.ID_ESSOURCE=a.ID_essource order by a.id_essource+2000000,id ) " +
 		" UNION ALL " + 
 //		"Select * from (SELECT a.id, a.paramtype, a.name, a.tracked, a.ord,a.id_pae, a.lvl,  a.value,  a.valuelob from V_MOELEMENTS a, V_PAELEMENTS b, V_PATHID2CONF c " +
 //		" where c.ID_CONFVER=? and c.ID_PATHID=b.ID_PATHID and a.id_pae=b.id order by a.id ) " +
 //		" UNION ALL " + 
                 /*h_" select id,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (select sa.*, h_moelements.valuelob,h_moelements.hex from (select  distinct h_moelements.id, h_moelements.paramtype, h_moelements.name, h_moelements.tracked, h_pae2moe.ord,h_pastruct.id_pae,  h_pae2moe.lvl as lvl,  h_moelements.value,h_pae2moe.id as pae2id  from h_moelements, h_pae2moe, h_pastruct  where h_moelements.id = h_pae2moe.id_moe AND h_pastruct.id_pae = h_pae2moe.id_pae AND  h_pastruct.id  IN (SELECT h_pastruct.id FROM h_pastruct,h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pathid2conf.id_confver=?) order by h_pae2moe.id) sa, h_moelements where sa.id=h_moelements.id) " + */
-                " select id,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (select sa.*, u_moelements.valuelob,u_moelements.hex from (select  distinct u_moelements.id, u_moelements.paramtype, u_moelements.name, u_moelements.tracked, u_pae2moe.ord,u_pathid2pae.id_pae,  u_pae2moe.lvl as lvl,  u_moelements.value,u_pae2moe.id as pae2id  from u_moelements, u_pae2moe, u_pathid2pae  where u_moelements.id = u_pae2moe.id_moe AND u_pathid2pae.id_pae = u_pae2moe.id_pae AND  u_pathid2pae.id  IN (SELECT u_pathid2pae.id FROM u_pathid2pae,u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2conf.id_confver=?) order by u_pae2moe.id) sa, u_moelements where sa.id=u_moelements.id) " +
+                " select * from (select id as moeid,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (select sa.*, u_moelements.valuelob,u_moelements.hex from (select  distinct u_moelements.id, u_moelements.paramtype, u_moelements.name, u_moelements.tracked, u_pae2moe.ord,u_pathid2pae.id_pae,  u_pae2moe.lvl as lvl,  u_moelements.value,u_pae2moe.id as pae2id  from u_moelements, u_pae2moe, u_pathid2pae  where u_moelements.id = u_pae2moe.id_moe AND u_pathid2pae.id_pae = u_pae2moe.id_pae AND  u_pathid2pae.id  IN (SELECT u_pathid2pae.id FROM u_pathid2pae,u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2conf.id_confver=?) order by u_pae2moe.id_moe,u_pae2moe.id) sa, u_moelements where sa.id=u_moelements.id) order by moeid )" +
 		" UNION ALL " + 
 		"Select * from (SELECT a.id+4000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_service+4000000, a.lvl,  a.value,  a.valuelob, a.hex from u_SRVELEMENTS a, u_CONF2SRV c " +
-		" where c.ID_CONFVER=? and c.ID_SERVICE=a.ID_Service order by id )" +
+		" where c.ID_CONFVER=? and c.ID_SERVICE=a.ID_Service order by a.id_service+4000000,id )" +
 		" UNION ALL " + 
 		"Select * from (SELECT a.id+3000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_esmodule+3000000, a.lvl,  a.value,  a.valuelob, a.hex from u_ESMELEMENTS a, u_CONF2ESM c " +
-		" where c.ID_CONFVER=? and c.ID_esmodule=a.ID_esmodule order by id ) " +
+		" where c.ID_CONFVER=? and c.ID_esmodule=a.ID_esmodule order by a.id_esmodule+3000000,id ) " +
 		" UNION ALL " + 
 		"Select * from (SELECT a.id+6000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_gpset+6000000, a.lvl,  a.value,  a.valuelob, a.hex from u_GPSETELEMENTS a, u_CONF2GPSET c " +
-		" where c.ID_CONFVER=? and c.ID_gpset=a.ID_gpset order by id ) " +
+		" where c.ID_CONFVER=? and c.ID_gpset=a.ID_gpset order by a.id_gpset+6000000,id ) " +
 		" UNION ALL " + 
-                " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,u_streamids.id+5000000, a.lvl,  a.value,  a.valuelob, a.hex from u_outmelements a,u_pathid2conf,u_pathid2outm,u_streamids where a.id_streamid=u_streamids.id  AND u_streamids.id=u_pathid2outm.id_streamid and u_pathid2outm.id_pathid=u_pathid2conf.id_pathid AND u_pathid2conf.id_confver = ? order by id) )");
+                " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,u_streamids.id+5000000, a.lvl,  a.value,  a.valuelob, a.hex from u_outmelements a,u_pathid2conf,u_pathid2outm,u_streamids where a.id_streamid=u_streamids.id  AND u_streamids.id=u_pathid2outm.id_streamid and u_pathid2outm.id_pathid=u_pathid2conf.id_pathid AND u_pathid2conf.id_confver = ? order by u_streamids.id+5000000,id) )");
 	    psSelectParameters.setFetchSize(8192);
 	    preparedStatements.add(psSelectParameters);
 	    
