@@ -3534,7 +3534,6 @@ public class ConfDbGUI
 	    node = ((Reference)node).parent();
 	}
 
-	System.err.println("XXX0: "+node+" "+(node instanceof ParameterContainer)+" "+(node==null)+" "+(node==treeModelCurrentConfig.psetsNode())+" "+(node instanceof ReferenceContainer));
 	if (node instanceof GlobalPSetContainer) {
 	    currentParameterContainer = node;
 	    if (p!=null) currentParameterContainer = p;
