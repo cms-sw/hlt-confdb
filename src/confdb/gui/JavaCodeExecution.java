@@ -33,11 +33,30 @@ public class JavaCodeExecution
     {
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] start:");
-	runCode3211();
+	runCodeFillPSet();
+	//      runCode3211();
 	//	runCode2466();
 	//      runCode2286();
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] ended!");
+    }
+
+    private void runCodeFillPSet()
+    {
+	PSetParameter pset = config.pset("HLTPSetPvClusterComparer");
+	if (pset==null) {
+	    pset = new PSetParameter("HLTPSetPvClusterComparer","",true);
+	    config.insertPSet(pset);
+	}
+	DoubleParameter track_pt_min = new DoubleParameter("track_pt_min", 1.0,true);
+	DoubleParameter track_pt_max = new DoubleParameter("track_pt_max",10.0,true);
+	DoubleParameter track_chi2_max = new DoubleParameter("track_chi2_max",9999999.0,true);
+	DoubleParameter track_prob_min = new DoubleParameter("track_prob_min",-1.0,true);
+	pset.addParameter(track_pt_min);
+	pset.addParameter(track_pt_max);
+	pset.addParameter(track_chi2_max);
+	pset.addParameter(track_prob_min);
+	config.psets().setHasChanged();
     }
 
     private void runCode3211()

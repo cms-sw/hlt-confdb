@@ -1,3 +1,7 @@
+2014-05-20 Martin Grunewald  <Martin.Grunewald@cern.ch>
+        * tag V01-07-15
+        * Some more Java code
+
 2014-05-09 Martin Grunewald  <Martin.Grunewald@cern.ch>
         * tag V01-07-14
         * Add Java code for PR 3211, misc fixes
