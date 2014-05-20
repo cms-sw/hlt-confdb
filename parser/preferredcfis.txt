@@ -34,7 +34,6 @@ RecoTracker/TkSeedingLayers             seedingLayersEDProducer_cfi.py
 RecoTracker/TrackProducer		TrackProducer_cfi.py
 RecoTracker/TkSeedGenerator		SeedGeneratorFromRegionHitsEDProducer_cfi.py
 RecoTracker/TkSeedGenerator		SeedGeneratorFromProtoTracksEDProducer_cfi.py
-RecoTracker/MeasurementDet		OnDemandMeasurementTrackerESProducer_cfi.py
 RecoTracker/SpecialSeedGenerators	CombinatorialSeedGeneratorForCosmicsRegionalReconstruction_cfi.py
 RecoTauTag/RecoTau			PFRecoTauProducer_cfi.py
 RecoTauTag/RecoTau			HPSPFRecoTauProducer_cfi.py
@@ -64,8 +63,6 @@ RecoEcal/EgammaClusterProducers         hybridSuperClusters_cfi.py
 RecoHI/HiTracking                       HIPixelMedianVertex_cfi.py
 RecoVertex/PrimaryVertexProducer	OfflinePrimaryVertices_cfi.py
 HLTrigger/Egamma			hltPMMassFilter_cfi.py
-EventFilter/EcalRawToDigi		EcalRawToRecHitRoI_cfi.py
-EventFilter/EcalRawToDigi               ecalRegionalMuonsFEDs_cfi.py
 EventFilter/DTRawToDigi			dtunpacker_cfi.py
 FastSimulation/Configuration		TrackerRecoGeometryESProducer_cfi.py
 TrackingTools/TrajectoryCleaning	TrajectoryCleanerBySharedHits_cfi.py
