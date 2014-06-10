@@ -9,6 +9,7 @@ CalibTracker/SiStripESProducers         SiStripQualityESProducer_cfi.py
 Geometry/TrackerNumberingBuilder        trackerNumberingGeometry_cfi.py
 Geometry/TrackerGeometryBuilder         trackerGeometryDB_cfi.py
 Geometry/HcalTopologyIdealEP            HcalTopology_cfi.py
+RecoTauTag/RecoTau                      PFTauDiscriminatorLogicalAndProducer_cfi.py
 RecoTauTag/RecoTau                      HLTPFRecoTauDiscriminationByIsolation_cfi.py
 RecoTracker/FinalTrackSelectors         trackListMerger_cfi.py
 RecoTracker/FinalTrackSelectors         simpleTrackListMerger_cfi.py
