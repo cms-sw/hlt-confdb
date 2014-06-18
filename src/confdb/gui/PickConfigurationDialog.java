@@ -82,13 +82,12 @@ public class PickConfigurationDialog extends JDialog
         this.database = database;
         setTitle(title);
         
-        System.out.println("Trying to load ConfDialog"); 
+        //System.out.println("Trying to load ConfDialog"); 
         // initialize tree
         try {
             rootDir   = database.loadConfigurationTree();
-            System.out.println("loaded Conf Tree:"+rootDir.name()); 
             treeModel = new DirectoryTreeModel(rootDir);
-        } catch (DatabaseException e) {}
+        } catch (DatabaseException e) { System.out.println("Exception on ConfDialog");}
         jTree = new JTree(treeModel) {
                 public String getToolTipText(MouseEvent evt) {
                     return jTreeGetToolTipText(evt);

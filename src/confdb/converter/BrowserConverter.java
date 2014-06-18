@@ -59,7 +59,7 @@ public class BrowserConverter extends OfflineConverter
 	static public BrowserConverter getConverter( int dbIndex ) throws ConverterException 
 	{
 	    ConfDBSetups dbs = new ConfDBSetups();
-	    DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertMe!" );
+	    DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertiMi!" );
 	    String dbUser = dbProperties.getDbUser();
 	    if (dbUser.endsWith("_w"))
 	    	dbUser = dbUser.substring(0,dbUser.length()-1)+"r";
@@ -77,7 +77,7 @@ public class BrowserConverter extends OfflineConverter
 	    BrowserConverter converter = map.get( new Integer( dbIndex ) );
 		if ( converter == null )
 		{
-			converter = new BrowserConverter( dbs.type( dbIndex ), dbProperties.getDbURL(), dbProperties.getDbUser(), "convertme!" );		
+			converter = new BrowserConverter( dbs.type( dbIndex ), dbProperties.getDbURL(), dbProperties.getDbUser(), "convertiMi!" );		
 			map.put( new Integer( dbIndex ), converter );
 		}
 		return converter;

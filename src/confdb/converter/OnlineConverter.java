@@ -419,11 +419,11 @@ public class OnlineConverter extends ConverterBase
     public static void main(String[] args) {
 	String config = "";
 	String dbType = "oracle";
-	String dbHost = "int2r1-v.cern.ch";
+	String dbHost = "cmsr1-v.cern.ch";
 	String dbPort = "10121";
-	String dbName = "int2r-nolb.cern.ch";
+	String dbName = "cmsr.cern.ch";
 	String dbUser = "cms_hlt_gdr";
-	String dbPwrd = "convertMe!";
+	String dbPwrd = "convertiMi!";
 	
 	boolean doEPConfig = false;
 	boolean doSMConfig = false;
