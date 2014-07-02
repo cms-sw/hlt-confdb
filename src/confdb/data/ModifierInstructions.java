@@ -321,10 +321,23 @@ public class ModifierInstructions
 	String name=null;
 	String Name=null;
 	String Type=null;
+
 	Iterator<PSetParameter> itPSet = config.psetIterator();
 	while (itPSet.hasNext()) {
-	    name = itPSet.next().name();
-	    if (isMatch(name,search,alg)) psetWhiteList.add(name);
+	    GlobalPSetContainer pset = new GlobalPSetContainer();
+	    pset.addParameter(itPSet.next().clone(pset));
+	    if (obj==3 && pset.findParameters(null,null,search,alg).length>0) {
+		psetWhiteList.add(pset.parameter(0).name());
+	    } else {
+		name = (obj==1) ? pset.parameter(0).name() : "PSet";
+		if (isMatch(name,search,alg)) {
+		    psetWhiteList.add(pset.parameter(0).name());
+		} else {
+		    Name = (obj==1) ? search : null;
+		    Type = (obj==1) ? null : search;
+		    if (pset.findParameters(Name,Type,null,alg).length>0) psetWhiteList.add(pset.parameter(0).name());
+		}
+	    }
 	}
 	if (psetWhiteList.size()==0) filterAllPSets(true);
 	

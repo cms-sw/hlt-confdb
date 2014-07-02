@@ -1,3 +1,7 @@
+2014-07-02 Martin Grunewald  <Martin.Grunewald@cern.ch>
+        * tag V01-07-16
+        * Extend parameter-type/value search to global PSets
+
 2014-05-20 Martin Grunewald  <Martin.Grunewald@cern.ch>
         * tag V01-07-15
         * Some more Java code
