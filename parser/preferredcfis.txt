@@ -1,3 +1,4 @@
+SimCalorimetry/HcalTestBeam             hardwired_conditions_cfi.py
 TrackingTools/MaterialEffects           MaterialPropagator_cfi.py
 RecoTauTag/RecoTau                      RecoTauCombinatoricProducer_cfi.py
 RecoParticleFlow/PFClusterProducer      particleFlowClusterECAL_cfi.py
