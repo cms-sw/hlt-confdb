@@ -435,7 +435,7 @@ public class ConfDB
 		if(hosts.length == 0) return "ERROR TNSNAME FORMAT";
 		
 		for(int i = 0; i < hosts.length; i++) {
-				url+= "(ADDRESS = (PROTOCOL = TCP)(HOST = "+hosts[i]+")(PORT = 10121))\n";
+				url+= "(ADDRESS = (PROTOCOL = TCP)(HOST = "+hosts[i]+")(PORT = "+dbPort+"))\n";
 		}
 
 	    url+="(ENABLE=BROKEN) ";
