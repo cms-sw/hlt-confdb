@@ -1,4 +1,8 @@
 2014-08-03 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-07-19
+	* read the port number from the database properties
+
+2014-08-03 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V01-07-18
 	* add an entry to access the development database over ssh
 
