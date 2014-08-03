@@ -1,3 +1,7 @@
+2014-08-03 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-07-18
+	* add an entry to access the development database over ssh
+
 2014-07-11 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V01-07-17
 	* fix the build system to use a CERN-issued code-signing certificate
