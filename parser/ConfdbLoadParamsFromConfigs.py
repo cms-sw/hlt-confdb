@@ -275,7 +275,7 @@ class ConfdbLoadParamsfromConfigs:
             return
 
         # Find this release in the DB
-        self.dbcursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (releaseTag = '" + self.cmsswrel + "')")
+        self.dbcursor.execute("SELECT u_softreleases.Id FROM u_softreleases WHERE (releaseTag = '" + self.cmsswrel + "')")
         tmprelid = self.dbcursor.fetchone()
 
         if(tmprelid):
@@ -285,15 +285,15 @@ class ConfdbLoadParamsfromConfigs:
                 print 'To patch this release, use the -p option'
                 return
         else:
-            self.VerbosePrint("INSERT INTO SoftwareReleases (releaseTag) VALUES ('" + str(self.cmsswrel) + "')",0)
+            self.VerbosePrint("INSERT INTO u_softreleases (releaseTag) VALUES ('" + str(self.cmsswrel) + "')",0)
             if(self.noload == False):
-                self.dbcursor.execute("INSERT INTO SoftwareReleases (releaseTag) VALUES ('" + str(self.cmsswrel) + "')")
-                self.dbcursor.execute("SELECT ReleaseId_Sequence.currval from dual")
+                self.dbcursor.execute("INSERT INTO u_softreleases (releaseTag) VALUES ('" + str(self.cmsswrel) + "')")
+                self.dbcursor.execute("SELECT U_SOFTRELEASES_SEQ.currval from dual")
                 self.cmsswrelid = self.dbcursor.fetchone()[0]
                 print "Inserted new release " + str(self.cmsswrel) + " with key = " + str(self.cmsswrelid)
 
         if(self.comparetorelease != ""):
-            self.dbcursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (releaseTag = '" + self.comparetorelease + "')") 
+            self.dbcursor.execute("SELECT u_softreleases.Id FROM u_softreleases WHERE (releaseTag = '" + self.comparetorelease + "')") 
             tmprelid = self.dbcursor.fetchone()
 
             if(tmprelid):
@@ -306,12 +306,12 @@ class ConfdbLoadParamsfromConfigs:
 
         # Do some one-time operations - get dictionaries of parameter, module,
         # and service type mappings so we don't have to do this every time
-        self.dbcursor.execute("SELECT ParameterTypes.paramType, ParameterTypes.paramTypeId FROM ParameterTypes")
+        self.dbcursor.execute("SELECT DISTINCT paramtype FROM u_moelements")
         temptuple = self.dbcursor.fetchall()
         for temptype, tempname in temptuple:
             self.paramtypedict[temptype] = tempname
 
-        self.dbcursor.execute("SELECT ModuleTypes.type, ModuleTypes.typeId FROM ModuleTypes")
+        self.dbcursor.execute("SELECT u_moduletypes.type, u_moduletypes.id FROM u_moduletypes")
         temptuple = self.dbcursor.fetchall()
         for temptype, tempname in temptuple:
             self.modtypedict[temptype] = tempname
@@ -331,6 +331,8 @@ class ConfdbLoadParamsfromConfigs:
                                "vstring":"VStringParamValues",
                                "InputTag":"InputTagParamValues",
                                "VInputTag":"VInputTagParamValues",
+                               "ESInputTag":"ESInputTagParamValues",
+                               "VESInputTag":"VESInputTagParamValues",
                                "EventID":"EventIDParamValues",
                                "VEventID":"VEventIDParamValues",
                                "FileInPath":"FileInPathParamValues"}

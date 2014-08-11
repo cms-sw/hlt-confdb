@@ -135,7 +135,8 @@
   </target>
 
   <!-- combine webservice relevant files into war file -->
-  <target name="war" depends="signext,signlib">
+  <!---target name="war" depends="signext,signlib" -->
+  <target name="war" depends="parser,browser,gui-all-inclusive">
     <war destfile="${dir.lib}/confdb.war" webxml="browser/WebContent/WEB-INF/web.xml">
       <lib file="${dir.lib}/cmssw-evf-confdb-browser.jar"/>
       <lib file="${dir.signed}/mysql-connector-java-5.0.5-bin.jar"/>

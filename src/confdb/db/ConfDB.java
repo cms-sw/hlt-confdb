@@ -81,7 +81,7 @@ public class ConfDB
     private boolean operatorFieldForSequencesAvailability = true; 
     
     //sv
-    private Integer countingParamIds=9000000;
+    private Integer countingParamIds=20000000;
     
     /** template table name hash map */
     private HashMap<String,String> templateTableNameHashMap = null;
@@ -1025,10 +1025,18 @@ public class ConfDB
 	
         //System.out.println("loadTemplates: release "+release);
 	try {
-	    cs.executeUpdate();
-	    
-	    HashMap<Integer,ArrayList<Parameter> > templateParams = getParameters(0);
-	    
+/*	    cs.executeUpdate();
+  taken away stored proc*/	    
+	   int releaseId = getReleaseId(release.releaseTag());
+	    HashMap<Integer,ArrayList<Parameter> > templateParams = getParameters(-releaseId);
+
+
+            psSelectTemplates.setInt(1,releaseId);
+            psSelectTemplates.setInt(2,releaseId);
+            psSelectTemplates.setInt(3,releaseId);
+            psSelectTemplates.setInt(4,releaseId);
+            psSelectTemplates.setInt(5,releaseId);
+ 
 	    rsTemplates = psSelectTemplates.executeQuery();
 	    
  ////System.out.println("loadTemplates: gotParameters");
@@ -1040,7 +1048,7 @@ public class ConfDB
 		String cvstag = rsTemplates.getString(4);
 		int    pkgId  = rsTemplates.getInt(5);
 		
-//System.out.println("loadTemplates: id "+id+" type "+" name "+name+" cvstag "+cvstag+" pkgid "+pkgId);
+System.out.println("loadTemplates: id "+id+" type "+" name "+name+" cvstag "+cvstag+" pkgid "+pkgId);
 		   //System.out.println("Template "+templateId+" "+templateName+" instance "+instanceName); 
 
 		SoftwarePackage pkg = idToPackage.get(pkgId);
@@ -1175,12 +1183,22 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 
 	try {
 		
-            System.out.println("Trying loadConfiguration id="+configId);
+     /*       System.out.println("Trying loadConfiguration id="+configId);
 	    csLoadConfiguration.setInt(1,configId);
 	    csLoadConfiguration.executeUpdate();
             ////System.out.println("Done loadConfiguration id="+configId);
+     removed stored procedures*/
+
 
             ////System.out.println("Trying rs instances"+configId);
+            psSelectInstances.setInt(1,configId);
+            psSelectInstances.setInt(2,configId);
+            psSelectInstances.setInt(3,configId);
+            psSelectInstances.setInt(4,configId);
+            psSelectInstances.setInt(5,configId);
+            psSelectInstances.setInt(6,configId);
+            psSelectInstances.setInt(7,configId);
+            psSelectInstances.setInt(8,configId);
 	    rsInstances       = psSelectInstances.executeQuery();
 	    psSelectPathEntries.setInt(1,configId);
 	    psSelectPathEntries.setInt(2,configId);
@@ -6107,11 +6125,57 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 
 	    }
 	    
+            psSelectTemplates =
+                dbConnector.getConnection().prepareStatement
+                ("select u_moduletemplates.id,u_moduletypes.type,u_moduletemplates.name,u_moduletemplates.cvstag,u_moduletemplates.id_pkg from u_moduletemplates, u_modt2rele,u_moduletypes where u_modt2rele.id_release=? and u_modt2rele.id_modtemplate=u_moduletemplates.id and u_moduletypes.id=u_moduletemplates.id_mtype " +
+" UNION ALL " +
+" SELECT id+4000000,'Service',name,cvstag,id_pkg FROM u_srvtemplates  WHERE id in (select id_srvtemplate as id from u_srvt2rele where id_release=?) " +
+" UNION ALL " +
+" SELECT id+3000000,'ESModule',name,cvstag,id_pkg FROM u_esmtemplates  WHERE id in (select id_esmtemplate from u_esmt2rele where id_release=?) "+
+" UNION ALL "+
+" SELECT id+2000000,'ESSource',name,cvstag,id_pkg  FROM u_esstemplates  WHERE id in (select id_esstemplate as id from u_esst2rele where id_release=?) " +
+" UNION ALL "+
+" SELECT id+1000000,'EDSource',name,cvstag,id_pkg FROM u_edstemplates  WHERE id in (select id_edstemplate as id from u_edst2rele where id_release=?) order by 5,1");
+            psSelectTemplates.setFetchSize(1024);
+            preparedStatements.add(psSelectTemplates);
 
+psSelectParametersTemplates =
+                dbConnector.getConnection().prepareStatement
+            
+                ("select id,paramtype,name,tracked,ord,id_modtemplate,lvl,value,valuelob,hex from u_modtelements where id_modtemplate in (select distinct id_modtemplate as id from u_modt2rele where id_release=?) " +
+" UNION ALL " +
+" select id+4000000,paramtype,name,tracked,ord,id_srvtemplate+4000000,lvl,value,valuelob,hex from u_srvtelements where id_srvtemplate in (select distinct id_srvtemplate as id from u_srvt2rele where id_release=?) "+
+" UNION ALL " +
+" select id+3000000,paramtype,name,tracked,ord,id_esmtemplate+3000000,lvl,value,valuelob,hex  from u_esmtelements where id_esmtemplate in (select distinct id_esmtemplate as id from u_esmt2rele where id_release=?) "+
+" UNION ALL " +
+" select id+2000000,paramtype,name,tracked,ord,id_esstemplate+2000000,lvl,value,valuelob,hex  from u_esstelements where id_esstemplate in (select distinct id_esstemplate as id from u_esst2rele where id_release=?) "+
+" UNION ALL " +
+" select id+1000000,paramtype,name,tracked,ord,id_edstemplate+1000000,lvl,value,valuelob,hex from u_edstelements where id_edstemplate in (select distinct id_edstemplate as id from u_edst2rele where id_release=?) order by 6,1");
+            preparedStatements.add(psSelectParametersTemplates);
+
+           psSelectInstances =
+                dbConnector.getConnection().prepareStatement
+                ("SELECT u_globalpsets.id+6000000, NULL, 'PSet', u_globalpsets.name, u_globalpsets.tracked, u_conf2gpset.ord FROM u_globalpsets,u_conf2gpset WHERE u_conf2gpset.id_confver=? AND u_globalpsets.id=u_conf2gpset.id_gpset "+
+" UNION ALL "+
+" SELECT u_edsources.id+1000000, u_edsources.id_template+1000000, 'EDSource',NULL,NULL, u_conf2eds.ord FROM u_edsources,u_conf2eds WHERE u_conf2eds.id_edsource=u_edsources.id and u_conf2eds.id_confver = ? "+
+" UNION ALL "+
+" SELECT u_essources.id+2000000, u_essources.id_template+2000000, 'ESSource', u_essources.name, u_conf2ess.prefer, u_conf2ess.ord FROM u_essources,u_conf2ess WHERE u_conf2ess.id_essource=u_essources.id and u_conf2ess.id_confver = ? "+
+" UNION ALL "+
+" SELECT u_esmodules.id+3000000, u_esmodules.id_template+3000000, 'ESModule', u_esmodules.name, u_conf2esm.prefer, u_conf2esm.ord FROM u_esmodules,u_conf2esm WHERE u_conf2esm.id_esmodule=u_esmodules.id and u_conf2esm.id_confver = ? "+
+" UNION ALL "+
+" SELECT u_services.id+4000000, u_services.id_template+4000000, 'Service',NULL,NULL, u_conf2srv.ord FROM u_services,u_conf2srv WHERE u_conf2srv.id_service=u_services.id and u_conf2srv.id_confver = ? "+
+" UNION ALL "+
+" SELECT UNIQUE u_paelements.id, u_mod2templ.id_templ, 'Module', u_paelements.name,NULL, NULL FROM u_pathid2pae,u_paelements, u_pathid2conf, u_mod2templ WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_paelements.paetype=1 and u_mod2templ.id_pae=u_paelements.id and u_pathid2conf.id_confver = ? "+
+" UNION ALL "+
+" SELECT u_pathid2conf.id_pathid, NULL, 'Path', u_paths.name, u_pathids.isEndPath, u_pathid2conf.ord FROM u_paths,u_pathid2conf,u_pathids WHERE u_pathids.id=u_pathid2conf.id_pathid and u_paths.id=u_pathids.id_path and u_pathid2conf.id_confver = ? "+
+" UNION ALL "+
+" SELECT UNIQUE u_paelements.id, NULL, 'Sequence', u_paelements.name, NULL,NULL FROM u_paelements, u_pathid2conf,u_pathid2pae WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_paelements.paetype=2 and u_pathid2conf.id_confver = ?");
+            psSelectInstances.setFetchSize(1024);
+            preparedStatements.add(psSelectInstances);
 	    //
 	    // SELECT FOR TEMPORARY TABLES
 	    //
-	    psSelectTemplates =
+/*	    psSelectTemplates =
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
 		 " template_id," +
@@ -6155,7 +6219,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		 " FROM tmp_parameter_table order by stamp");  
 	    psSelectParametersTemplates.setFetchSize(4096);
 	    preparedStatements.add(psSelectParametersTemplates);
-
+*/
            psSelectParameters =
                 dbConnector.getConnection().prepareStatement
                 ("Select * from (Select * from (SELECT a.id+1000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_edsource+1000000, a.lvl,  a.value,  a.valuelob, a.hex  from u_EDSELEMENTS a, u_CONF2EDS c " +
@@ -6501,9 +6565,14 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	ResultSet rsStringValues  = null;
 
 	try {
-            if(configId==0)
+            if(configId<0)
             {
-              //psSelectParametersTemplates.setInt(1,configId);
+              int releaseId=-configId;
+              psSelectParametersTemplates.setInt(1,releaseId);
+              psSelectParametersTemplates.setInt(2,releaseId);
+              psSelectParametersTemplates.setInt(3,releaseId);
+              psSelectParametersTemplates.setInt(4,releaseId);
+              psSelectParametersTemplates.setInt(5,releaseId);
 	      rsParameters    = psSelectParametersTemplates.executeQuery(); 
             }
 	    else
@@ -6679,8 +6748,8 @@ if (pkg==null) System.out.println("pkg NULL!!!");
                         if (lvl>0) parentId=idlifo.peek();
 		        previouslvl=lvl;	
 
-                //if (orparid==4774) System.out.println("ParId "+parentId+" (origparid "+orparid+") parameterId "+parameterId+" type "+
-                 // type+" name "+name+" seqNb "+seqNb+" lvl"+lvl);
+                if (configId<0) System.out.println("ParId "+parentId+" (origparid "+orparid+") parameterId "+parameterId+" type "+
+                  type+" name "+name+" seqNb "+seqNb+" lvl"+lvl);
 
 			String valueAsString = null;
 			if (type.indexOf("PSet")<0)

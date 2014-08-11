@@ -47,14 +47,14 @@ class ConfdbOracleModuleLoader:
 	for temptype, tempname in temptuple:
 	    self.paramtypedict[temptype] = tempname
 
-	cursor.execute("SELECT ModuleTypes.type, ModuleTypes.typeId FROM ModuleTypes")
+        cursor.execute("SELECT u_moduletypes.type, u_moduletypes.id FROM u_moduletypes")
         temptuple = cursor.fetchall()
 	for temptype, tempname in temptuple:
 	    self.modtypedict[temptype] = tempname
 
         if(self.comparetorel != ""):
             print self.comparetorel
-            cursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (releaseTag = '" + self.comparetorel + "')")
+            cursor.execute("SELECT u_softreleases.id FROM u_softreleases WHERE (releaseTag = '" + self.comparetorel + "')")
             tempid = cursor.fetchone()
             self.comparetorelid = tempid[0]
  
@@ -64,18 +64,19 @@ class ConfdbOracleModuleLoader:
     # Add this CMSSW release to the table after a sanity check 
     # to make sure it doesn't already exist.
     def ConfdbAddNewRelease(self,thecursor,therelease):
-	thecursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (releaseTag = '" + therelease + "')")
+        thecursor.execute("SELECT u_softreleases.id FROM u_softreleases WHERE (releaseTag = '" + therelease + "')")
 	therelnum =  thecursor.fetchone()
 
 	if(therelnum):
 	    print "\tThis release already exists in the DB!"
 	    return -1
 
-	thecursor.execute("INSERT INTO SoftwareReleases (releaseTag) VALUES ('" + therelease + "')")
+        thecursor.execute("INSERT INTO u_softreleases (releaseTag) VALUES ('" + therelease + "')")
+
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
-        thecursor.execute("SELECT ReleaseId_Sequence.currval from dual")
+        thecursor.execute("SELECT U_SOFTRELEASES_SEQ.currval from dual")
 #	thecursor.execute("SELECT releaseId FROM SoftwareReleases ORDER BY releaseId DESC")
 	therelnum = (thecursor.fetchone())[0]
 	print "New releasekey = " + str(therelnum)
@@ -86,18 +87,18 @@ class ConfdbOracleModuleLoader:
 
     # Given a tag of a module, check if its template exists in the DB
     def ConfdbCheckModuleExistence(self,thecursor,modtype,modname,modtag):
-	thecursor.execute("SELECT * FROM SuperIds")
+	#thecursor.execute("SELECT * FROM SuperIds")
 
         # Get the module type (base class) ID
 	modtypestr = str(self.modtypedict[modtype])
 
         # See if a module of this type, name, and CVS tag already exists
 	if(self.comparetorelid != ""):
-	    thecursor.execute("SELECT ModuleTemplates.superId, ModuleTemplates.name FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ModuleTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ") AND (ModuleTemplates.name = '" + modname + "') AND (ModuleTemplates.typeId = " + modtypestr + ")")
+            thecursor.execute("SELECT u_ModuleTemplates.Id, u_ModuleTemplates.name FROM u_ModuleTemplates,u_modt2rele  WHERE u_modt2rele.id_modtemplate=u_ModuleTemplates.Id AND (u_modt2rele.id_release=" + str(self.comparetorelid) + ") AND (u_ModuleTemplates.name = '" + modname + "') AND (u_ModuleTemplates.id_mtype = " + modtypestr + ")")
 	else:
 	    if(self.verbose > 2):
-		print "SELECT ModuleTemplates.superId FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modname + "') AND (ModuleTemplates.typeId = " + modtypestr + ")"
-	    thecursor.execute("SELECT ModuleTemplates.superId FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modname + "') AND (ModuleTemplates.typeId = '" + modtypestr + "')")
+                print "SELECT u_ModuleTemplates.Id FROM u_ModuleTemplates WHERE (u_ModuleTemplates.name = '" + modname + "') AND (u_ModuleTemplates.Id_mtype = " + modtypestr + ")"
+            thecursor.execute("SELECT u_ModuleTemplates.Id FROM u_ModuleTemplates WHERE (u_ModuleTemplates.name = '" + modname + "') AND (u_ModuleTemplates.Id_mtype = '" + modtypestr + "')")
 
 	modsuperid = thecursor.fetchone()
 
@@ -110,15 +111,15 @@ class ConfdbOracleModuleLoader:
 
     # Given a tag of a service, check if its template exists in the DB
     def ConfdbCheckServiceExistence(self,thecursor,servname,servtag):
-	thecursor.execute("SELECT * FROM SuperIds")
+#	thecursor.execute("SELECT * FROM SuperIds")
 
         # See if a service of this name and CVS tag already exists
 	if(self.comparetorelid != ""):
-	    thecursor.execute("SELECT ServiceTemplates.superId, ServiceTemplates.name FROM ServiceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ServiceTemplates.superId) WHERE (ServiceTemplates.name = '" + servname + "') AND (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	    thecursor.execute("SELECT u_SrvTemplates.Id, u_SrvTemplates.name FROM u_SrvTemplates, u_srvt2rele  WHERE u_srvt2rele.id_srvtemplate=u_SrvTemplates.Id AND (u_SrvTemplates.name = '" + servname + "') AND (u_srvt2rele.Id_release = " + str(self.comparetorelid) + ")")
 	else:
 	    if(self.verbose > 2):
-		print "SELECT ServiceTemplates.superId FROM ServiceTemplates WHERE (ServiceTemplates.name = '" + servname + "')"
-	    thecursor.execute("SELECT ServiceTemplates.superId FROM ServiceTemplates WHERE (ServiceTemplates.name = '" + servname + "')")
+		print "SELECT u_SrvTemplates.Id FROM u_SrvTemplates WHERE (SrvTemplates.name = '" + servname + "')"
+	    thecursor.execute("SELECT u_SrvTemplates.Id FROM u_SrvTemplates WHERE (u_SrvTemplates.name = '" + servname + "')")
 
 	servsuperid = thecursor.fetchone()
 
@@ -131,16 +132,16 @@ class ConfdbOracleModuleLoader:
 
     # Given a tag of an es_source, check if its template exists in the DB
     def ConfdbCheckESSourceExistence(self,thecursor,srcname,srctag):
-	thecursor.execute("SELECT * FROM SuperIds")
+	#thecursor.execute("SELECT * FROM SuperIds")
 
         # See if a service of this name and CVS tag already exists
         # See if a service of this name and CVS tag already exists
 	if(self.comparetorelid != ""):
-	    thecursor.execute("SELECT ESSourceTemplates.superId, ESSourceTemplates.name FROM ESSourceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ESSourceTemplates.superId) WHERE (ESSourceTemplates.name = '" + srcname + "') AND (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	    thecursor.execute("SELECT u_ESSTemplates.Id, u_ESSTemplates.name FROM u_ESSTemplates, u_esst2rele where u_esst2rele.id_esstemplate=u_ESSTemplates.Id  AND (u_ESSTemplates.name = '" + srcname + "') AND (u_esst2rele.Id_release = " + str(self.comparetorelid) + ")")
 	else:
 	    if(self.verbose > 2):
-		print "SELECT ESSourceTemplates.superId FROM ESSourceTemplates WHERE (ESSourceTemplates.name = '" + srcname + "')"
-	    thecursor.execute("SELECT ESSourceTemplates.superId FROM ESSourceTemplates WHERE (ESSourceTemplates.name = '" + srcname + "')")
+		print "SELECT u_ESSTemplates.Id FROM u_ESSTemplates WHERE (u_ESSTemplates.name = '" + srcname + "')"
+	    thecursor.execute("SELECT u_ESSTemplates.Id FROM u_ESSTemplates WHERE (u_ESSTemplates.name = '" + srcname + "')")
 
 	srcsuperid = thecursor.fetchone()
 
@@ -153,15 +154,15 @@ class ConfdbOracleModuleLoader:
 
     # Given a tag of an ed_source, check if its template exists in the DB
     def ConfdbCheckEDSourceExistence(self,thecursor,srcname,srctag):
-	thecursor.execute("SELECT * FROM SuperIds")
+	#thecursor.execute("SELECT * FROM SuperIds")
 
         # See if a service of this name and CVS tag already exists
 	if(self.comparetorelid != ""):
-	    thecursor.execute("SELECT EDSourceTemplates.superId, EDSourceTemplates.name FROM EDSourceTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = EDSourceTemplates.superId) WHERE (EDSourceTemplates.name = '" + srcname + "') AND (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	    thecursor.execute("SELECT u_EDSTemplates.Id, u_EDSTemplates.name FROM u_EDSTemplates, u_eDst2rele where u_eDst2rele.id_eDstemplate=u_EDSTemplates.Id  AND (u_EDSTemplates.name = '" + srcname + "') AND (u_eDst2rele.Id_release = " + str(self.comparetorelid) + ")")
 	else:
 	    if(self.verbose > 2):
-		print "SELECT EDSourceTemplates.superId FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + srcname + "')"
-	    thecursor.execute("SELECT EDSourceTemplates.superId FROM EDSourceTemplates WHERE (EDSourceTemplates.name = '" + srcname + "')")
+		print "SELECT u_EDSTemplates.Id FROM u_EDSTemplates WHERE (u_EDSTemplates.name = '" + srcname + "')"
+	    thecursor.execute("SELECT u_EDSTemplates.Id FROM u_EDSTemplates WHERE (u_EDSTemplates.name = '" + srcname + "')")
 
 	srcsuperid = thecursor.fetchone()
 
@@ -174,15 +175,15 @@ class ConfdbOracleModuleLoader:
 
     # Given a tag of an es_module, check if its template exists in the DB
     def ConfdbCheckESModuleExistence(self,thecursor,srcname,srctag):
-	thecursor.execute("SELECT * FROM SuperIds")
+	#thecursor.execute("SELECT * FROM SuperIds")
 
         # See if a service of this name and CVS tag already exists
 	if(self.comparetorelid != ""):
-	    thecursor.execute("SELECT ESModuleTemplates.superId, ESModuleTemplates.name FROM ESModuleTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ESModuleTemplates.superId) WHERE (ESModuleTemplates.name = '" + srcname + "') AND (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ")")
+	    thecursor.execute("SELECT u_ESMTemplates.Id, u_ESMTemplates.name FROM u_ESMTemplates, u_esmt2rele where u_esmt2rele.id_esmtemplate=u_ESMTemplates.Id  AND (u_ESMTemplates.name = '" + srcname + "') AND (u_esmt2rele.Id_release = " + str(self.comparetorelid) + ")")
 	else:
 	    if(self.verbose > 2):
-		print "SELECT ESModuleTemplates.superId FROM ESModuleTemplates WHERE (ESModuleTemplates.name = '" + srcname + "')"
-	    thecursor.execute("SELECT ESModuleTemplates.superId FROM ESModuleTemplates WHERE (ESModuleTemplates.name = '" + srcname + "')")
+		print "SELECT u_ESMTemplates.Id FROM u_ESMTemplates WHERE (u_ESMTemplates.name = '" + srcname + "')"
+	    thecursor.execute("SELECT u_ESMTemplates.Id FROM u_ESMTemplates WHERE (u_ESMTemplates.name = '" + srcname + "')")
 
 	esmodsuperid = thecursor.fetchone()
 
@@ -200,13 +201,11 @@ class ConfdbOracleModuleLoader:
 
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUES('')")
+	#s#thecursor.execute("INSERT INTO SuperIds VALUES('')")
 
-        thecursor.execute("SELECT SuperId_Sequence.currval from dual") 
-	newsuperid = (thecursor.fetchall()[0])[0]
+        #thecursor.execute("SELECT SuperId_Sequence.currval from dual") 
+	##newsuperid = (thecursor.fetchall()[0])[0]
 
-	# Attach this template to the currect release
-	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
 	# Get the module type (base class)
 	modbaseclassid = self.modtypedict[modbaseclass]
@@ -216,10 +215,16 @@ class ConfdbOracleModuleLoader:
 
 	# Now create a new module
 	if(self.verbose > 2):
-	    print "INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')"
+            print "INSERT INTO u_moduletemplates (typeId, name, cvstag, packageId) VALUES (" + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')"
             
-	thecursor.execute("INSERT INTO ModuleTemplates (superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')")
+	thecursor.execute("INSERT INTO u_moduletemplates (typeId, name, cvstag, packageId) VALUES (" + str(modbaseclassid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')")
 
+        thecursor.execute("SELECT U_moduletemplates_SEQ.currval from dual")
+	newsuperid = (thecursor.fetchall()[0])[0]
+        #newsuperid = (thecursor.fetchone())[0]
+
+	# Attach this template to the currect release
+	thecursor.execute("INSERT INTO u_modt2rele (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 	
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
@@ -235,25 +240,27 @@ class ConfdbOracleModuleLoader:
 
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUES('')")
+#	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
 #	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
-        thecursor.execute("SELECT SuperId_Sequence.currval from dual")
-	newsuperid = (thecursor.fetchall()[0])[0]
 
-	# Attach this template to the currect release
-	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
         if(self.addtorel != "none"):
             print 'This service appears in the base release with a different tag. Will ADD from the specified test release'
 
 	# Now create a new service
-	thecursor.execute("INSERT INTO ServiceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "', '" + str(softpackageid) + "')")
+	thecursor.execute("INSERT INTO u_SrvTemplates ( name, cvstag, packageId) VALUES (" + servclassname + "', '" + servcvstag + "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO ServiceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + servclassname + "', '" + servcvstag + "', '" + str(softpackageid) + "')"
+	    print "INSERT INTO u_SrvTemplates ( name, cvstag, packageId) VALUES (" + servclassname + "', '" + servcvstag + "', '" + str(softpackageid) + "')"
 	
+        thecursor.execute("SELECT u_SrvTemplates_seq.currval from dual")
+	newsuperid = (thecursor.fetchall()[0])[0]
+
+	# Attach this template to the currect release
+	thecursor.execute("INSERT INTO u_srvt2rele (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
+
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
 	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
@@ -268,25 +275,27 @@ class ConfdbOracleModuleLoader:
 
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUES('')")
+#	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
 #	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
-        thecursor.execute("SELECT SuperId_Sequence.currval from dual")        
-	newsuperid = (thecursor.fetchall()[0])[0]
 
-	# Attach this template to the currect release
-	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
         if(self.addtorel != "none"):
             print 'This es_source appears in the base release with a different tag. Will ADD from the specified test release'
 
 	# Now create a new es_source
-	thecursor.execute("INSERT INTO ESSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')")
+	thecursor.execute("INSERT INTO u_ESSTemplates ( name, cvstag, packageId) VALUES (" srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO ESSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')"
+             print "INSERT INTO u_ESSTemplates ( name, cvstag, packageId) VALUES (" srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')"
 	
+        thecursor.execute("SELECT u_esstemplates_seq.currval from dual")        
+	newsuperid = (thecursor.fetchall()[0])[0]
+
+	# Attach this template to the currect release
+	thecursor.execute("INSERT INTO u_esst2rele (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
+
         # appendToDataLabel
         doAppend = False
         for ptype, pname,pval,ptracked,pseq in parameters:
@@ -311,25 +320,27 @@ class ConfdbOracleModuleLoader:
 
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUES('')")
+#	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
 #	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC")
-        thecursor.execute("SELECT SuperId_Sequence.currval from dual")        
-	newsuperid = (thecursor.fetchall()[0])[0]
 
-	# Attach this template to the currect release
-	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
         if(self.addtorel != "none"):
             print 'This ed_source appears in the base release with a different tag. Will ADD from the specified test release'
 
 	# Now create a new es_source
-	thecursor.execute("INSERT INTO EDSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')")
+	thecursor.execute("INSERT INTO u_EDSTemplates (name, cvstag, packageId) VALUES (" srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')")
 	if(self.verbose > 2):
-	    print "INSERT INTO EDSourceTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')"
+           print "INSERT INTO u_EDSTemplates (name, cvstag, packageId) VALUES (" srcclassname + "', '" + srccvstag + "', '" + str(softpackageid) + "')"
 	
+        thecursor.execute("SELECT u_EDSTemplates_seq.currval from dual")        
+	newsuperid = (thecursor.fetchall()[0])[0]
+
+	# Attach this template to the currect release
+	thecursor.execute("INSERT INTO u_EDST2rele (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
+
 	# Now deal with parameters
 	self.ConfdbAttachParameters(thecursor,newsuperid,parameters,vecparameters)
 	self.ConfdbAttachParameterSets(thecursor,newsuperid,paramsets,vecparamsets)
@@ -344,16 +355,12 @@ class ConfdbOracleModuleLoader:
 
 	# Allocate a new SuperId
 	newsuperid = -1
-	thecursor.execute("INSERT INTO SuperIds VALUES('')")
+#	thecursor.execute("INSERT INTO SuperIds VALUES('')")
 
 #	thecursor.execute("SELECT LAST_INSERT_ID()")
 
 #	thecursor.execute("SELECT superId FROM SuperIds ORDER BY superId DESC");
-        thecursor.execute("SELECT SuperId_Sequence.currval from dual")        
-	newsuperid = (thecursor.fetchall()[0])[0]
 
-	# Attach this template to the currect release
-	thecursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
 
         if(self.addtorel != "none"):
             print 'This es_module appears in the base release with a different tag. Will ADD from the specified test release'
@@ -361,8 +368,14 @@ class ConfdbOracleModuleLoader:
 	# Now create a new module
         if(self.verbose > 2):
             print "INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')"
-	thecursor.execute("INSERT INTO ESModuleTemplates (superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')")
+	thecursor.execute("INSERT INTO u_ESMTemplates (name, cvstag, packageId) VALUES (" + modclassname + "', '" + modcvstag + "', '" + str(softpackageid) + "')")
 	
+        thecursor.execute("SELECT u_ESMTemplates_seq.currval from dual")        
+	newsuperid = (thecursor.fetchall()[0])[0]
+
+	# Attach this template to the currect release
+	thecursor.execute("INSERT INTO u_esmt2rele (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.releasekey) + ")")
+
         # appendToDataLabel
         doAppend = False
         for ptype, pname,pval,ptracked,pseq in parameters:

@@ -44,14 +44,14 @@ class ConfdbMySQLModuleLoader:
 	for temptype, tempname in temptuple:
 	    self.paramtypedict[temptype] = tempname
 
-	cursor.execute("SELECT ModuleTypes.type, ModuleTypes.typeId FROM ModuleTypes")
+	cursor.execute("SELECT u_moduletypes.type, u_moduletypes.id FROM u_moduletypes")
         temptuple = cursor.fetchall()
 	for temptype, tempname in temptuple:
 	    self.modtypedict[temptype] = tempname
  
         if(self.comparetorel != ""):
             print self.comparetorel
-            cursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (releaseTag = '" + self.comparetorel + "')")
+            cursor.execute("SELECT u_softreleases.id FROM u_softreleases WHERE (releaseTag = '" + self.comparetorel + "')")
             tempid = cursor.fetchone()
             self.comparetorelid = tempid[0]
 
@@ -61,14 +61,14 @@ class ConfdbMySQLModuleLoader:
     # Add this CMSSW release to the table after a sanity check 
     # to make sure it doesn't already exist.
     def ConfdbAddNewRelease(self,thecursor,therelease):
-	thecursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (releaseTag = '" + therelease + "')")
+	thecursor.execute("SELECT u_softreleases.id FROM u_softreleases WHERE (releaseTag = '" + therelease + "')")
 	therelnum =  thecursor.fetchone()
 
 	if(therelnum):
 	    print "\tThis release already exists in the DB!"
 	    return -1
 
-	thecursor.execute("INSERT INTO SoftwareReleases (releaseTag) VALUES ('" + therelease + "')")
+	thecursor.execute("INSERT INTO u_softreleases (releaseTag) VALUES ('" + therelease + "')")
 
 	thecursor.execute("SELECT LAST_INSERT_ID()")
 
@@ -81,18 +81,18 @@ class ConfdbMySQLModuleLoader:
 
     # Given a tag of a module, check if its template exists in the DB
     def ConfdbCheckModuleExistence(self,thecursor,modtype,modname,modtag):
-	thecursor.execute("SELECT * FROM SuperIds")
+	#thecursor.execute("SELECT * FROM SuperIds")
 
         # Get the module type (base class) ID
 	modtypestr = str(self.modtypedict[modtype])
 
         # See if a module of this type, name, and CVS tag already exists
 	if(self.comparetorelid != ""):
-	    thecursor.execute("SELECT ModuleTemplates.superId, ModuleTemplates.name FROM ModuleTemplates JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = ModuleTemplates.superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.comparetorelid) + ") AND (ModuleTemplates.name = '" + modname + "') AND (ModuleTemplates.typeId = " + modtypestr + ")")
+	    thecursor.execute("SELECT u_ModuleTemplates.Id, u_ModuleTemplates.name FROM u_ModuleTemplates,u_modt2rele  WHERE u_modt2rele.id_modtemplate=u_ModuleTemplates.Id AND (u_modt2rele.id_release=" + str(self.comparetorelid) + ") AND (u_ModuleTemplates.name = '" + modname + "') AND (u_ModuleTemplates.id_mtype = " + modtypestr + ")")
 	else:
 	    if(self.verbose > 2):
-		print "SELECT ModuleTemplates.superId FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modname + "') AND (ModuleTemplates.typeId = " + modtypestr + ")"
-	    thecursor.execute("SELECT ModuleTemplates.superId FROM ModuleTemplates WHERE (ModuleTemplates.name = '" + modname + "') AND (ModuleTemplates.typeId = '" + modtypestr + "')")
+		print "SELECT u_ModuleTemplates.Id FROM u_ModuleTemplates WHERE (u_ModuleTemplates.name = '" + modname + "') AND (u_ModuleTemplates.Id_mtype = " + modtypestr + ")"
+	    thecursor.execute("SELECT u_ModuleTemplates.Id FROM u_ModuleTemplates WHERE (u_ModuleTemplates.name = '" + modname + "') AND (u_ModuleTemplates.Id_mtype = '" + modtypestr + "')")
 
 	modsuperid = thecursor.fetchone()
 
@@ -105,7 +105,7 @@ class ConfdbMySQLModuleLoader:
 
     # Given a tag of a service, check if its template exists in the DB
     def ConfdbCheckServiceExistence(self,thecursor,servname,servtag):
-	thecursor.execute("SELECT * FROM SuperIds")
+	#thecursor.execute("SELECT * FROM SuperIds")
 
         # See if a service of this name and CVS tag already exists
 	if(self.comparetorelid != ""):
