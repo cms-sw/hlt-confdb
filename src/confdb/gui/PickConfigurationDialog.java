@@ -378,6 +378,11 @@ public class PickConfigurationDialog extends JDialog
         admins.add("geoff");
         admins.add("gesmith");
         admins.add("lschwab");
+        // Aram Avetisyan
+        admins.add("aram");
+        admins.add("avetisya");
+        // Marina Passaseo
+        admins.add("passaseo");
         
         if (allowUnlocking&&
             (userName.equalsIgnoreCase(configInfo.lockedByUser())||
