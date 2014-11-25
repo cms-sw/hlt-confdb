@@ -33,12 +33,18 @@ public class JavaCodeExecution
     {
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] start:");
-	runCodeFillPSet();
+	runCode6568();
+	//	runCodeFillPSet();
 	//      runCode3211();
 	//	runCode2466();
 	//      runCode2286();
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] ended!");
+    }
+
+    private void runCode6568()
+    {
+	replaceAllInstances(1,"SimpleTrackListMerger","TrackListMerger");
     }
 
     private void runCodeFillPSet()
@@ -351,7 +357,16 @@ public class JavaCodeExecution
 		System.out.println("Replacing "+oldTemplateName+"/"+newTemplateName+": "+oldModuleName);
 		newModuleName = oldModuleName+"NEW";
 		newModule = config.insertModule(newTemplateName,newModuleName);
-	
+
+		if (special==1) {
+		    newModule.parameter("TrackProducers","VInputTag").setValue(null);
+		    newModule.parameter("selectedTrackQuals","VInputTag").setValue(null);
+		    VPSetParameter vpset = (VPSetParameter) newModule.parameter("setsToMerge","VPSet");
+		    while (vpset.parameterSetCount()>1) {
+			vpset.removeParameterSet(vpset.parameterSet(vpset.parameterSetCount()-1));
+		    }
+		}
+
 		// Copy over all parameters from old to new as far as possible
 		Iterator<Parameter> itP = oldModule.parameterIterator();
 		while (itP.hasNext()) {
@@ -382,6 +397,17 @@ public class JavaCodeExecution
 			if (q.name().equals("onDemand")) newModule.updateParameter(q.name(),q.type(),"true");
 		    }
 		}		    
+		if (special==1) {
+		    String label1 = oldModule.parameter("TrackProducer1","string").valueAsString();
+		    String label2 = oldModule.parameter("TrackProducer2","string").valueAsString();
+		    System.out.println("  "+label1+" "+label2);
+		    ArrayList<String> list = new ArrayList<String>(2);
+		    list.add(label1);
+		    list.add(label2);
+		    VInputTagParameter vInputTag = new VInputTagParameter("Dummy",list,true);
+		    newModule.parameter("TrackProducers","VInputTag").setValue(vInputTag.valueAsString());
+		    newModule.parameter("selectedTrackQuals","VInputTag").setValue(vInputTag.valueAsString());
+		}
 
 		// Get hold of oldModule's Refs etc.
 		int index = config.indexOfModule(oldModule);
