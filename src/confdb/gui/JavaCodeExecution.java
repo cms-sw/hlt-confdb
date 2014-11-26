@@ -33,13 +33,19 @@ public class JavaCodeExecution
     {
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] start:");
-	runCode6568();
+	runCode6618();
+	//      runCode6568();
 	//	runCodeFillPSet();
 	//      runCode3211();
 	//	runCode2466();
 	//      runCode2286();
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] ended!");
+    }
+
+    private void runCode6618()
+    {
+	replaceAllInstances(2,"HLTTrackClusterRemoverNew","TrackClusterRemover");
     }
 
     private void runCode6568()
@@ -407,6 +413,12 @@ public class JavaCodeExecution
 		    VInputTagParameter vInputTag = new VInputTagParameter("Dummy",list,true);
 		    newModule.parameter("TrackProducers","VInputTag").setValue(vInputTag.valueAsString());
 		    newModule.parameter("selectedTrackQuals","VInputTag").setValue(vInputTag.valueAsString());
+		}
+		if (special==2) {
+		    PSetParameter pset = (PSetParameter) oldModule.parameter("Common","PSet");
+		    DoubleParameter maxChi2 = (DoubleParameter) pset.parameter("maxChi2");
+		    System.out.println("  maxChi2 = "+maxChi2.valueAsString());
+		    newModule.parameter("maxChi2","double").setValue(maxChi2.valueAsString());
 		}
 
 		// Get hold of oldModule's Refs etc.
