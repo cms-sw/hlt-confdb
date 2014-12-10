@@ -114,6 +114,8 @@ public class ConfDB
     private PreparedStatement psSelectUsersForLockedConfigs       = null;
     
     private PreparedStatement psSelectSwArchNames                 = null;
+    private PreparedStatement psSelectOrigDbId                    = null;
+    private PreparedStatement psSelectNewDbId                    = null;
 
     private PreparedStatement psSelectConfigNames                 = null;
     private PreparedStatement psSelectConfigNamesByRelease        = null;
@@ -1141,6 +1143,27 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	return config;
     }
     
+    /** load configuration & *necessary* release templates from the database */
+    public synchronized Configuration loadConfigurationWithOrigId(int configId)
+	throws DatabaseException
+    {
+	reconnect();
+        ResultSet rs=null;
+        int newId=-1;
+        //System.out.println("loadConfiguration with orig Id: "+configId);
+        try{
+        psSelectNewDbId.setInt(1,configId);
+        rs=psSelectNewDbId.executeQuery();
+         while (rs.next()) {
+          newId=rs.getInt(1); 
+        };
+       } 
+       catch (SQLException e) { String errMsg =  "ConfDB::loadConfigurationWithOrigId(Configuration config) failed "+
+            "(OrigconfigId="+configId+"): "+e.getMessage();
+            throw new DatabaseException(errMsg,e);
+         };
+       return loadConfiguration(newId);
+}
     
     /** load configuration & *necessary* release templates from the database */
     public synchronized Configuration loadConfiguration(int configId)
@@ -1384,10 +1407,10 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		int  eventContentId = rsStreamEntries.getInt(4);
 		String name =  rsStreamEntries.getString(5);
 		EventContent eventContent = config.content(name);
-                System.out.println("Stream id "+streamId+" Label "+streamLabel+" fracTo "+ fracToDisk+" Evco id "+eventContentId+" name "+name);
+                //System.out.println("Stream id "+streamId+" Label "+streamLabel+" fracTo "+ fracToDisk+" Evco id "+eventContentId+" name "+name);
 		if(eventContent==null) continue;
 
-                System.out.println("Adding Stream id "+streamId+" Label "+streamLabel+" fracTo "+ fracToDisk+" Evco id "+eventContentId+" name "+name);
+                //System.out.println("Adding Stream id "+streamId+" Label "+streamLabel+" fracTo "+ fracToDisk+" Evco id "+eventContentId+" name "+name);
 
 		Stream stream = eventContent.insertStream(streamLabel);
 		stream.setFractionToDisk(fracToDisk);
@@ -1603,11 +1626,11 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		int  streamId = rsDatasetEntries.getInt(3);
 		String streamLabel =  rsDatasetEntries.getString(4);
 		Stream stream = idToStream.get(streamId);
-              System.out.println("Dataset entry label "+datasetLabel+" id "+datasetId+" stream "+streamLabel+" streamid "+streamId);
+              //System.out.println("Dataset entry label "+datasetLabel+" id "+datasetId+" stream "+streamLabel+" streamid "+streamId);
 		if((stream == null) || (datasetLabel.equals("Unassigned path")))
 		    continue;
 
-              System.out.println("Adding dataset "+datasetLabel+" id "+datasetId+" stream "+streamLabel+" streamid "+streamId);
+              //System.out.println("Adding dataset "+datasetLabel+" id "+datasetId+" stream "+streamLabel+" streamid "+streamId);
 		PrimaryDataset primaryDataset = stream.insertDataset(datasetLabel);
 		primaryDataset.setDatabaseId(datasetId);
 		idToDataset.put(datasetId,primaryDataset);
@@ -1625,7 +1648,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 			Stream stream = idToStream.get(streamId);
 			PrimaryDataset primaryDataset = idToDataset.get(datasetId); 
 			
-              System.out.println("Path to dataset "+datasetId+" id "+pathId+" streamid "+streamId);
+              //System.out.println("Path to dataset "+datasetId+" id "+pathId+" streamid "+streamId);
 			if(path==null) continue;
 			if(stream == null) continue;
 			
@@ -1633,11 +1656,11 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 			stream.insertPath(path);
 			path.addToContent(eventContent);
 			
-              System.out.println("Adding Path to dataset "+datasetId+" id "+pathId+" streamid "+streamId);
+              //System.out.println("Adding Path to dataset "+datasetId+" id "+pathId+" streamid "+streamId);
 			
 			if(primaryDataset==null)
 			    continue;		
-              System.out.println("Adding Path to dataset "+datasetId+" id "+pathId+" streamid "+streamId);
+              //System.out.println("Adding Path to dataset "+datasetId+" id "+pathId+" streamid "+streamId);
 			primaryDataset.insertPath(path);
 			
 			stream.setDatabaseId(streamId);
@@ -3558,6 +3581,33 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	}
     }
 	
+    public synchronized int getConfigId(String fullConfigName) throws DatabaseException
+    {
+        int newId=getConfigNewId(fullConfigName);
+       // System.out.println("getConfigId : " + fullConfigName + " newId " + newId );
+
+        reconnect();
+
+        ResultSet rs=null;
+        int oldId=-1;
+
+        try{
+        psSelectOrigDbId.setInt(1,newId);
+        rs=psSelectOrigDbId.executeQuery();
+         while (rs.next()) {
+          oldId=rs.getInt(1);
+        };
+       }
+       catch (SQLException e) {  
+          String errMsg =
+                "ConfDB::getConfigId(fullConfigName="+fullConfigName+
+                ": "+e.getMessage();
+            throw new DatabaseException(errMsg,e);
+		};
+
+
+        return oldId;
+}
 
     /** get the configuration id for a configuration name */
     public synchronized int getConfigNewId(String fullConfigName) throws DatabaseException
@@ -3615,6 +3665,26 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    dbConnector.release(rs);
 	}
     }
+    /** get ConfigInfo for a particular configId */
+    public synchronized ConfigInfo getConfigInfo(int configId) throws DatabaseException
+    {
+        reconnect();
+        ResultSet rs=null;
+        int newId=-1;
+        try{
+        psSelectNewDbId.setInt(1,configId);
+        rs=psSelectNewDbId.executeQuery();
+         while (rs.next()) {
+          newId=rs.getInt(1);
+        };
+       }
+       catch (SQLException e) { String errMsg =  "ConfDB::getConfigInfo(Configuration config) failed "+
+            "(OrigconfigId="+configId+"): "+e.getMessage();
+            throw new DatabaseException(errMsg,e);
+         };
+
+      return getConfigNewInfo(newId);
+    }; 
     
     /** get ConfigInfo for a particular configId */
     public synchronized ConfigInfo getConfigNewInfo(int configId) throws DatabaseException
@@ -4598,6 +4668,16 @@ if (pkg==null) System.out.println("pkg NULL!!!");
                 ("select unique(SW_ARCH) HLT_SW_ARCH from ( select CMSSW_REL || ' ' || ARCH as SW_ARCH from HLT_CMSSW_ARCH where CMSSW_REL is not null) order by HLT_SW_ARCH desc");
             psSelectSwArchNames.setFetchSize(1024);
             preparedStatements.add(psSelectSwArchNames);
+
+           psSelectOrigDbId =
+                dbConnector.getConnection().prepareStatement
+                ("select configid from u_confversions where id=? ");
+            preparedStatements.add(psSelectOrigDbId);
+
+           psSelectNewDbId =
+                dbConnector.getConnection().prepareStatement
+                ("select id from u_confversions where configid=? ");
+            preparedStatements.add(psSelectNewDbId);
 
 
 	    psSelectConfigNames =

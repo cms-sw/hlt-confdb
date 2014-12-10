@@ -85,7 +85,7 @@ public class ConfCache
 				long start = System.currentTimeMillis();
 
 				try {
-					configuration = database.loadConfiguration(key);
+					configuration = database.loadConfigurationWithOrigId(key);
 				} catch (DatabaseException e) {
 					// wait, reconnect and try again
 					try {
@@ -97,7 +97,7 @@ public class ConfCache
 					} catch (InterruptedException e1) {
 					}
 					database.connect();
-					configuration = database.loadConfiguration(key);
+					configuration = database.loadConfigurationWithOrigId(key);
 				}
 				dbRequests.add( System.currentTimeMillis() - start );
 				put( key, configuration, database );
