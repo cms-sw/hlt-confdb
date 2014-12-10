@@ -82,7 +82,7 @@ public class OnlineConverter extends ConverterBase
 	try {
 	    DbProperties dbProperties = DbProperties.getDefaultDbProperties();
 	    initDB(dbProperties.dbType, dbProperties.getDbURL(), dbProperties
-		   .getDbUser(), "convertme!");
+		   .getDbUser(), "convertiMi!");
 	} catch (IOException e) {
 	    throw new ConverterException("can't construct OnlineConverter", e);
 	}
@@ -94,7 +94,7 @@ public class OnlineConverter extends ConverterBase
       try {
 	    DbProperties dbProperties = DbProperties.getDefaultDbProperties();
 	    initDB(dbProperties.dbType, dbProperties.getDbURL(), dbProperties
-		   .getDbUser(), "convertme!");
+		   .getDbUser(), "convertiMi!");
       } catch (IOException e) {
 	    throw new ConverterException("can't construct OnlineConverter", e);
       }

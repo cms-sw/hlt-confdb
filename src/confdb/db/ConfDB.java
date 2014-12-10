@@ -113,6 +113,8 @@ public class ConfDB
     private PreparedStatement psSelectLockedConfigurations        = null;
     private PreparedStatement psSelectUsersForLockedConfigs       = null;
     
+    private PreparedStatement psSelectSwArchNames                 = null;
+
     private PreparedStatement psSelectConfigNames                 = null;
     private PreparedStatement psSelectConfigNamesByRelease        = null;
     private PreparedStatement psSelectDirectoryId                 = null;
@@ -1007,7 +1009,7 @@ public class ConfDB
 					   SoftwareRelease release)
 	throws DatabaseException
     {
-	int configId = getConfigId(configName);
+	int configId = getConfigNewId(configName);
 	loadPartialSoftwareRelease(configId,release);
     }
     
@@ -1113,7 +1115,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 					   SoftwareRelease release)
 	throws DatabaseException
     {
-	ConfigInfo configInfo  = getConfigInfo(configId);
+	ConfigInfo configInfo  = getConfigNewInfo(configId);
         ////System.out.println("loadTemplates with configid: "+configId+" release "+release);
 	return loadConfiguration(configInfo,release);
     }
@@ -1144,7 +1146,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
     public synchronized Configuration loadConfiguration(int configId)
 	throws DatabaseException
     {
-	ConfigInfo      configInfo = getConfigInfo(configId);
+	ConfigInfo      configInfo = getConfigNewInfo(configId);
 	String          releaseTag = configInfo.releaseTag();
 	SoftwareRelease release    = new SoftwareRelease();
 	release.clear(releaseTag);
@@ -3558,7 +3560,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	
 
     /** get the configuration id for a configuration name */
-    public synchronized int getConfigId(String fullConfigName) throws DatabaseException
+    public synchronized int getConfigNewId(String fullConfigName) throws DatabaseException
     {
 	reconnect();
 
@@ -3573,7 +3575,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	index = fullConfigName.lastIndexOf("/");
 	if (index<0) {
 	    String errMsg =
-		"ConfDB::getConfigId(fullConfigName="+fullConfigName+
+		"ConfDB::getConfigNewId(fullConfigName="+fullConfigName+
 		") failed (invalid name).";
 	    throw new DatabaseException(errMsg);
 	}
@@ -3604,7 +3606,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::getConfigId(fullConfigName="+fullConfigName+
+		"ConfDB::getConfigNewId(fullConfigName="+fullConfigName+
 		") failed (dirName="+dirName+", configName="+configName+
 		",version="+version+"): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -3615,15 +3617,34 @@ if (pkg==null) System.out.println("pkg NULL!!!");
     }
     
     /** get ConfigInfo for a particular configId */
-    public synchronized ConfigInfo getConfigInfo(int configId) throws DatabaseException
+    public synchronized ConfigInfo getConfigNewInfo(int configId) throws DatabaseException
     {
-	ConfigInfo result = getConfigInfo(configId,loadConfigurationTree());
+	ConfigInfo result = getConfigNewInfo(configId,loadConfigurationTree());
 	if (result==null) {
 	    String errMsg =
-		"ConfDB::getConfigInfo(configId="+configId+") failed.";
+		"ConfDB::getConfigNewInfo(configId="+configId+") failed.";
 	    throw new DatabaseException(errMsg);
 	}
 	return result;
+    }
+
+    /** get all configuration names */
+    public synchronized String[] getSwArchNames() throws DatabaseException
+    {
+        ArrayList<String> listOfNames = new ArrayList<String>();
+        ResultSet rs = null;
+        try {
+            rs = psSelectSwArchNames.executeQuery();
+            while (rs.next()) listOfNames.add(rs.getString(1));
+        }
+        catch (SQLException e) {
+            String errMsg = "ConfDB::getSwArchNames() failed: "+e.getMessage();
+            throw new DatabaseException(errMsg,e);
+        }
+        finally {
+            dbConnector.release(rs);
+        }
+        return listOfNames.toArray(new String[listOfNames.size()]);
     }
 
     //
@@ -4572,6 +4593,13 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		 "FROM u_lockedconfs");
 	    preparedStatements.add(psSelectUsersForLockedConfigs);
 
+           psSelectSwArchNames =
+                dbConnector.getConnection().prepareStatement
+                ("select unique(SW_ARCH) HLT_SW_ARCH from ( select CMSSW_REL || ' ' || ARCH as SW_ARCH from HLT_CMSSW_ARCH where CMSSW_REL is not null) order by HLT_SW_ARCH desc");
+            psSelectSwArchNames.setFetchSize(1024);
+            preparedStatements.add(psSelectSwArchNames);
+
+
 	    psSelectConfigNames =
 		dbConnector.getConnection().prepareStatement
 		("SELECT DISTINCT" +
@@ -5078,23 +5106,23 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		
 	    psSelectStreamEntries =
 		dbConnector.getConnection().prepareStatement
-            ("SELECT DISTINCT u_streamids.id+5000000,u_streams.name,u_streamids.FRACTODISK,u_EVENTCONTENTIDS.ID as evcoid,u_EVENTCONTENTS.name as evconame FROM u_streamids,u_streams,u_EVENTCONTENTIDS,u_EVENTCONTENTS,u_EVCO2STREAM,u_pathid2outm,u_pathid2conf,u_conf2evco WHERE u_streams.id=u_streamids.id_stream AND u_EVENTCONTENTIDS.ID_EVCO=u_EVENTCONTENTS.ID AND u_EVCO2STREAM.id_evcoid=u_EVENTCONTENTIDS.ID AND u_EVCO2STREAM.ID_STREAMID=u_streamids.id AND u_streamids.id=u_pathid2outm.id_streamid AND u_conf2evco.id_confver=u_pathid2conf.id_confver AND u_conf2evco.id_evcoid=u_EVENTCONTENTIDS.ID AND u_pathid2conf.id_pathid=u_pathid2outm.id_pathId AND u_pathid2conf.id_confver = ? order by u_streams.name");
+            ("SELECT DISTINCT u_streamids.id_stream+5000000,u_streams.name,u_streamids.FRACTODISK,u_EVENTCONTENTIDS.ID as evcoid,u_EVENTCONTENTS.name as evconame FROM u_streamids,u_streams,u_EVENTCONTENTIDS,u_EVENTCONTENTS,u_EVCO2STREAM,u_pathid2outm,u_pathid2conf,u_conf2evco WHERE u_streams.id=u_streamids.id_stream AND u_EVENTCONTENTIDS.ID_EVCO=u_EVENTCONTENTS.ID AND u_EVCO2STREAM.id_evcoid=u_EVENTCONTENTIDS.ID AND u_EVCO2STREAM.ID_STREAMID=u_streamids.id AND u_streamids.id=u_pathid2outm.id_streamid AND u_conf2evco.id_confver=u_pathid2conf.id_confver AND u_conf2evco.id_evcoid=u_EVENTCONTENTIDS.ID AND u_pathid2conf.id_pathid=u_pathid2outm.id_pathId AND u_pathid2conf.id_confver = ? order by u_streams.name");
 	    psSelectStreamEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectStreamEntries);
 	    
 
 	    psSelectDatasetEntries =
 		dbConnector.getConnection().prepareStatement
-            //("SELECT distinct u_datasetids.id, u_datasets.name,u_streamids.id+5000000 as streamid,u_streams.name as label from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids,u_evco2stream, u_conf2evco WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid and u_evco2stream.id_streamid=u_streamids.id and u_evco2stream.id_evcoid=u_conf2evco.id_evcoid and u_conf2evco.id_confver=u_pathid2conf.id_confver AND u_pathid2conf.id_confver = ?");
-           ("SELECT distinct u_datasetids.id, u_datasets.name,u_streamids.id+5000000 as streamid,u_streams.name as label from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid AND u_pathid2conf.id_confver = ?");
+            ("SELECT distinct u_datasetids.id_dataset, u_datasets.name,u_streamids.id_stream+5000000 as streamid,u_streams.name as label from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids,u_evco2stream, u_conf2evco WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid and u_evco2stream.id_streamid=u_streamids.id and u_evco2stream.id_evcoid=u_conf2evco.id_evcoid and u_conf2evco.id_confver=u_pathid2conf.id_confver AND u_pathid2conf.id_confver = ?");
+           //("SELECT distinct u_datasetids.id_dataset, u_datasets.name,u_streamids.id_stream+5000000 as streamid,u_streams.name as label from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid AND u_pathid2conf.id_confver = ?");
 	    //psSelectDatasetEntries.setFetchSize(64);
 	    preparedStatements.add(psSelectDatasetEntries);
 	    
 	    psSelectPathStreamDatasetEntries =
 		dbConnector.getConnection().prepareStatement
            /* h_  ("SELECT distinct h_pathid2uq.id_pathiduq,u_streams.id+5000000 as streamid,u_datasets.id as datasetid, u_datasets.name from u_pathid2strdst, u_pathid2conf,v_datasetids,v_datasets,v_streams,v_streamids,h_pathid2uq WHERE h_pathid2uq.id_pathid=v_pathid2conf.id_pathid and v_pathid2strdst.id_pathid=v_pathid2conf.id_pathid and  v_datasets.id=v_datasetids.id_dataset and v_datasetids.id=v_pathid2strdst.id_datasetid and v_streams.id=v_streamids.id_stream and v_streamids.id=v_pathid2strdst.id_streamid AND v_pathid2conf.id_confver = ?");*/
-            // ("SELECT distinct u_pathid2conf.id_pathid,u_streamids.id+5000000 as streamid,u_datasetids.id as datasetid, u_datasets.name from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids, u_evco2stream, u_conf2evco WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and  u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid AND u_evco2stream.id_streamid=u_streamids.id and u_evco2stream.id_evcoid=u_conf2evco.id_evcoid and u_conf2evco.id_confver=u_pathid2conf.id_confver and u_pathid2conf.id_confver = ?");
-           ("SELECT distinct u_pathid2conf.id_pathid,u_streamids.id+5000000 as streamid,u_datasetids.id as datasetid, u_datasets.name from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and  u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid and u_pathid2conf.id_confver = ?");
+             ("SELECT distinct u_pathid2conf.id_pathid,u_streamids.id_stream+5000000 as streamid,u_datasetids.id_dataset as datasetid, u_datasets.name from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids, u_evco2stream, u_conf2evco WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and  u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid AND u_evco2stream.id_streamid=u_streamids.id and u_evco2stream.id_evcoid=u_conf2evco.id_evcoid and u_conf2evco.id_confver=u_pathid2conf.id_confver and u_pathid2conf.id_confver = ?");
+          // ("SELECT distinct u_pathid2conf.id_pathid,u_streamids.id_stream+5000000 as streamid,u_datasetids.id_dataset as datasetid, u_datasets.name from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and  u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid and u_pathid2conf.id_confver = ?");
           //psSelectPathStreamDatasetEntries.setFetchSize(64);
 	    preparedStatements.add(psSelectPathStreamDatasetEntries);
 
@@ -6258,7 +6286,7 @@ psSelectParametersTemplates =
 		"Select * from (SELECT a.id+6000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_gpset+6000000, a.lvl,  a.value,  a.valuelob, a.hex from u_GPSETELEMENTS a, u_CONF2GPSET c " +
 		" where c.ID_CONFVER=? and c.ID_gpset=a.ID_gpset order by a.id_gpset+6000000,id ) " +
 		" UNION ALL " + 
-                " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,u_streamids.id+5000000, a.lvl,  a.value,  a.valuelob, a.hex from u_outmelements a,u_pathid2conf,u_pathid2outm,u_streamids where a.id_streamid=u_streamids.id  AND u_streamids.id=u_pathid2outm.id_streamid and u_pathid2outm.id_pathid=u_pathid2conf.id_pathid AND u_pathid2conf.id_confver = ? order by u_streamids.id+5000000,id) )");
+                " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,u_streamids.id_stream+5000000, a.lvl,  a.value,  a.valuelob, a.hex from u_outmelements a,u_pathid2conf,u_pathid2outm,u_streamids where a.id_streamid=u_streamids.id  AND u_streamids.id=u_pathid2outm.id_streamid and u_pathid2outm.id_pathid=u_pathid2conf.id_pathid AND u_pathid2conf.id_confver = ? order by u_streamids.id_stream+5000000,id) )");
 	    psSelectParameters.setFetchSize(8192);
 	    preparedStatements.add(psSelectParameters);
 	    
@@ -6370,7 +6398,7 @@ psSelectParametersTemplates =
 	    psSelectPathEntries.setFetchSize(1024); */
                 ("Select * from (Select * from (SELECT u_pathid2conf.id_pathid, u_paelements.id, u_pathid2pae.ord, DECODE(u_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, u_pathid2pae.operator FROM u_pathid2pae,u_paelements, u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_pathid2pae.lvl=0 and u_pathid2conf.id_confver = ? order by u_pathid2pae.id_pathid,u_pathid2pae.id) " +
                " UNION ALL " +
-               " select * from (select u_PATHID2CONF.id_pathid, u_streamids.id+5000000 as stid,u_PATHID2OUTM.ord,'OutputModule', u_PATHID2OUTM.operator from u_PATHID2OUTM,u_streams,u_streamids,u_PATHID2CONF where u_streams.id=u_streamids.id_stream and u_streamids.id=u_PATHID2OUTM.id_streamid and u_PATHID2CONF.id_confver=? and  u_PATHID2CONF.id_pathid= u_PATHID2OUTM.id_pathid )) order by id_pathid,ord");
+               " select * from (select u_PATHID2CONF.id_pathid, u_streamids.id_stream+5000000 as stid,u_PATHID2OUTM.ord,'OutputModule', u_PATHID2OUTM.operator from u_PATHID2OUTM,u_streams,u_streamids,u_PATHID2CONF where u_streams.id=u_streamids.id_stream and u_streamids.id=u_PATHID2OUTM.id_streamid and u_PATHID2CONF.id_confver=? and  u_PATHID2CONF.id_pathid= u_PATHID2OUTM.id_pathid )) order by id_pathid,ord");
 	    preparedStatements.add(psSelectPathEntries);
 		/*("SELECT e.id AS sequence_id,  d.id AS entry_id, a.ord AS sequence_nb, DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, a.operator, a.crc32 FROM v_paelements a, v_pathid2conf b, v_pathids c,(select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) d , (select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) e WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND b.id_confver =? AND a.lvl>0 and a.crc32=d.crc32 AND e.crc32 in (select crc32 from v_paelements where id=a.id_parent) ORDER BY a.id_pathid ASC, a.id ASC");
 */
@@ -7447,7 +7475,7 @@ psSelectParametersTemplates =
     }
 
     /** look for ConfigInfo in the specified parent directory */
-    private ConfigInfo getConfigInfo(int configId,Directory parentDir)
+    private ConfigInfo getConfigNewInfo(int configId,Directory parentDir)
     {
 	for (int i=0;i<parentDir.configInfoCount();i++) {
 	    ConfigInfo configInfo = parentDir.configInfo(i);
@@ -7461,7 +7489,7 @@ psSelectParametersTemplates =
 	}
 	
 	for (int i=0;i<parentDir.childDirCount();i++) {
-	    ConfigInfo configInfo = getConfigInfo(configId,parentDir.childDir(i));
+	    ConfigInfo configInfo = getConfigNewInfo(configId,parentDir.childDir(i));
 	    if (configInfo!=null) return configInfo;
 	}
 	
@@ -7666,7 +7694,7 @@ psSelectParametersTemplates =
 	    // configurations
 	    else if (configId.length()>0||configName.length()>0) {
 		int id = (configId.length()>0) ?
-		    Integer.parseInt(configId) : database.getConfigId(configName);
+		    Integer.parseInt(configId) : database.getConfigNewId(configName);
 		if (id<=0) System.out.println("Configuration not found!");
 		else if (dopackages) {
 		    Configuration   config  = database.loadConfiguration(id);
@@ -7676,7 +7704,7 @@ psSelectParametersTemplates =
 		    while (it.hasNext()) System.out.println(it.next());
 		}
 		else if (doversions) {
-		    ConfigInfo info = database.getConfigInfo(id);
+		    ConfigInfo info = database.getConfigNewInfo(id);
 		    System.out.println("name=" + info.parentDir().name() + "/" +
 				       info.name());
 		    for (int i=0;i<info.versionCount();i++) {
@@ -7691,7 +7719,7 @@ psSelectParametersTemplates =
 		    }
 		}
 		else if (doremove) {
-		    ConfigInfo info = database.getConfigInfo(id);
+		    ConfigInfo info = database.getConfigNewInfo(id);
 		    System.out.println("REMOVE " + info.parentDir().name() + "/" +
 				       info.name()+ "/V" + info.version());
 		    try {
@@ -7732,7 +7760,7 @@ psSelectParametersTemplates =
 			System.out.println("REMOVE CONFIGURATIONS!");
 			for (String s : configs) {
 			    System.out.print("Remove "+s+"... ");
-			    int cid = database.getConfigId(s);
+			    int cid = database.getConfigNewId(s);
 			    database.removeConfiguration(cid);
 			    System.out.println("REMOVED");
 			}

@@ -266,7 +266,8 @@ function init()
 		});
 
 
-  if ( onlineMode )
+ // if ( onlineMode )
+  if ( 1>0 )
   {
     var submitButton = new YAHOO.widget.Button( { label: "Submit", id: "submitbutton", container: "buttonTD" });
     submitButton.on("click", onSubmitClick ); 	
@@ -557,6 +558,8 @@ YAHOO.util.Event.onContentReady( "allDiv", init );
 
 </head>
 <body class="yui-skin-sam">
+<div align="right" id="swSel">Retrieving SWARCH here</div>
+
 <div id="allDiv">
   <div class="skin1" id="mainLeft">
     <div id="leftHeaderDiv" class='tree1'><img src="<%=img%>/wait.gif"></div>
@@ -564,8 +567,11 @@ YAHOO.util.Event.onContentReady( "allDiv", init );
     <div align="left" id="treeDiv" class="tree1"></div>
   </div>
   <div id="mainRight"></div>
+<script  language="javascript" type="text/javascript">
+jQuery("#swSel").load("swarch.jsp?select");
+</script>
 </div>
-<div style="position:absolute; right:5px; top:2px; visibility:hidden;" id="debugDiv" ></div>
+<div style="position:absolute; right:5px; top:2px; visibility:visible;" id="debugDiv" ></div>
 </body>
 </html>
 
