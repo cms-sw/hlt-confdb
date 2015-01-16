@@ -1,3 +1,7 @@
+2015-01-16 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-07-23
+	* allow using the BrowserConverter from the command line
+
 2014-11-26 Martin Grunewald  <Martin.Grunewald@cern.ch>
 	* tag V01-07-22
 	* more JavaCodeExecution
