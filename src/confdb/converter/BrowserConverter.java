@@ -376,9 +376,8 @@ public class BrowserConverter extends OfflineConverter
                 id = Integer.parseInt(configId);
             }
             else {
-            id = converter.getDatabase().getConfigId(configName);
+                id = converter.getDatabase().getConfigId(configName);
             }
-
             System.out.println( converter.getConfigString(id, format, modifications, asFragment) );
         }
         catch (Exception e) {
