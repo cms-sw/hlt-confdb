@@ -194,7 +194,7 @@ public class ConfDbGUI
     private JTextField    jTextFieldPathName		= new JTextField();
     private JTable     	  jTablePrescales  			= new javax.swing.JTable(); // Prescales for rightUpperPanel.
     private JScrollPane	  jScrollPanePrescales		= new JScrollPane();
-    private PrescaleTableService PrescaleTServ		= new PrescaleTableService();
+    private PrescaleTableService PrescaleTServ		= null;
 
     // DB INFO fields:
     public boolean extraPathFieldsAvailability;
@@ -1045,6 +1045,15 @@ public class ConfDbGUI
     }
 
  	
+    /** execute Java Code to manipulate Config */
+    public void openJavaCodeExecution()
+    {
+ 	JavaCodeExecution execute = new JavaCodeExecution(currentConfig);
+	execute.execute();
+
+    }
+
+ 	
     /** add untracked parameter to the currently active component */
     public void addUntrackedParameter()
     {
@@ -1615,9 +1624,6 @@ public class ConfDbGUI
 	jTextFieldCreator.setText(currentConfig.creator());
 	
 	jTextFieldProcess.setEditable(true);
-	
-	// Set current configuration to the prescaleService
-	PrescaleTServ = new PrescaleTableService(currentConfig);
 	
     }
     
@@ -2704,24 +2710,30 @@ public class ConfDbGUI
 				// Display the first python line.
 				String header = "<a href='" + modules[i] + "'>" + 
 								modules[i] + " </a> " + 
-								pythonCode.substring(modules[i].length(), pythonCode.indexOf("(") + 1) + 
+								pythonCode.substring(modules[i].length(), pythonCode.indexOf(",") + 1) + 
 								"... <br>";
 				text+= header;
 
 				// Displays list of unresolved tags:
 				for(int t =0; t < Ntags; t++) {
-					String tagLine = "";
-					if(pythonCode.indexOf(sortedTags[t]) == -1) {
-						System.err.println("ERROR: " + pythonCode);
-						System.err.println("ERROR: [confdb.gui.ConfDbGUI.getUnresolvedInputTagsSummary] Unresolved input tag not found! --> ["+t+"]" + sortedTags[t]);
-						System.err.println("ERROR: SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!");
-						// SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!
-					}
-						tagLine = "<b>" + pythonCode.substring(pythonCode.indexOf(sortedTags[t]), pythonCode.indexOf(")", pythonCode.indexOf(sortedTags[t]) + sortedTags[t].length()) + 1);
-						tagLine+=",</b><br>"; 
-
-					text+= tagLine;
-			        	
+				    String tagLine = "";
+				    String strippedTag = new String(sortedTags[t]);
+				    if (strippedTag.indexOf("::_")!=-1) strippedTag = strippedTag.substring(0,strippedTag.indexOf("::_"));
+				    if (strippedTag.lastIndexOf("::")!=-1) strippedTag=strippedTag.substring(strippedTag.lastIndexOf("::")+2);
+				    if (pythonCode.indexOf(strippedTag) == -1) {
+					System.err.println("ERROR: " + pythonCode);
+					System.err.println("ERROR: [confdb.gui.ConfDbGUI.getUnresolvedInputTagsSummary] Unresolved input tag not found! --> ["+t+"]" + sortedTags[t]+" "+strippedTag);
+					System.err.println("ERROR: SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!");
+					// SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!
+				    }
+				    tagLine = "<b>" + sortedTags[t] + 
+					pythonCode.substring(pythonCode.indexOf(strippedTag)+strippedTag.length(), pythonCode.indexOf(")", pythonCode.indexOf(strippedTag)+strippedTag.length())+1);
+				    tagLine+=",</b><br>"; 
+				    
+				    //System.out.println("[confdb.gui.ConfDbGUI.getUnresolvedInputTagsSummary] Unresolved input ["+t+"] [" + sortedTags[t]+"] ["+strippedTag+"]");
+				    
+				    text+= tagLine;
+				    
 				}
 				// Display dots:
 				text+= "    ... )<br><br>";
@@ -2752,41 +2764,28 @@ public class ConfDbGUI
 	/** get the module name from the old format of unassigned tag string */
 	/** this will be used to highlight the module name in the view, etc. */
 	private String getModuleFromUnresolvedInputTag(String unInTag) {
-		String text 	= "";
-		String module 	= null;
-		
-		java.util.List<String> temp= Arrays.asList(unInTag.split("/"));
-		if(temp.size() > 1) {
-			String relevant	= temp.get(temp.size() - 1);
-			temp= Arrays.asList(relevant.split("::")); // more than one if Vtag.
-			if(temp.size() > 1) {
-				module 	= temp.get(0);
-			}
-		} else return "";
-		return module;
+	    String module = null;
+	    java.util.List<String> temp = Arrays.asList(unInTag.split("/"));
+	    String relevant = temp.get(temp.size() - 1); // only last one
+	    temp = Arrays.asList(relevant.split("::"));
+	    module = temp.get(0); // only first one
+	    //	    System.out.println("getModuleFromUnresolvedInputTag: "+unInTag+" => "+module);
+	    return module;
 	}
 	
 	/** get the unassigned tag name from the old format of unassigned tag string */
 	/** this will be used to highlight the tag name in the view.                 */
 	private String getUnresolvedInputTag(String unInTag) {
-		String text 	= "";
-		String tag		= null;
-		
-		java.util.List<String> temp= Arrays.asList(unInTag.split("/"));
-		if(temp.size() > 1) {
-			String relevant	= temp.get(temp.size() - 1);
-			temp= Arrays.asList(relevant.split("::")); // more than one if Vtag.
-			if(temp.size() > 1) {
-				if(relevant.indexOf("::[") != -1) 	tag	= temp.get(temp.size() - 2); // Take the second to last tag.
-				else 								tag	= temp.get(temp.size() - 1); // Take the last tag.
-				
-				if(tag.indexOf('=') != -1) tag = tag.substring(0, tag.indexOf('='));
-				if(tag.indexOf('[') != -1) tag = tag.substring(0, tag.indexOf('['));
-			}
-		} else return "";
-		return tag;
+	    String tag = null;
+	    java.util.List<String> temp= Arrays.asList(unInTag.split("/"));
+	    String relevant = temp.get(temp.size() - 1); // only last one
+	    //	    temp = Arrays.asList(relevant.split("::"));
+	    tag = relevant;
+	    if (tag.indexOf("::")!=-1) tag = tag.substring(tag.indexOf("::")+2); // skip first which is module label
+	    if (tag.indexOf("=") !=-1) tag = tag.substring(0,tag.indexOf("=")); // fully qualified parameter name
+	    //	    System.out.println("getUnresolvedInputTag: "+unInTag+" => "+tag);
+	    return tag;
 	}
-	
     
     ///////////////
     
@@ -2820,13 +2819,18 @@ public class ConfDbGUI
 
 	treeModelParameters.setConfiguration(currentConfig);
 
+	ParameterContainer container = null;
+
 	if (currentParameterContainer instanceof ParameterContainer) {
+	    container = (ParameterContainer)currentParameterContainer;
+	}
+
+	if (container!=null || currentParameterContainer instanceof PSetParameter) {
+
 	    toolBar.enableAddUntrackedParameter();
 	    jSplitPaneRightUpper.setDividerLocation(-1);
 	    jSplitPaneRightUpper.setDividerSize(8);
 
-	    ParameterContainer container =
-		(ParameterContainer)currentParameterContainer;
 	    
 	    if (container instanceof Instance) {
 		Instance i = (Instance)container;
@@ -2847,19 +2851,14 @@ public class ConfDbGUI
 		jTextFieldCVS.setText(new String());
 		jLabelPlugin.setText(new String());
 		jTextFieldPlugin.setText(new String());
-		jTextFieldLabel.setText(new String());
 	    }
 
-
-	    
 	    DefaultComboBoxModel cbModel =
 		(DefaultComboBoxModel)jComboBoxPaths.getModel();
 	    cbModel.removeAllElements();
 	    
 	    if (container instanceof Referencable) {
 		Referencable module = (Referencable)container;
-		jTextFieldLabel.setText(module.name());
-		border.setTitle(module.name() + " Parameters");
 		jComboBoxPaths.setEnabled(true);
 		cbModel.addElement("");
 		Path[] paths = module.parentPaths();
@@ -2869,7 +2868,15 @@ public class ConfDbGUI
 		jComboBoxPaths.setEnabled(false);
 	    }
 
-	    treeModelParameters.setParameterContainer(container);	    
+	    if (currentParameterContainer instanceof GlobalPSetContainer) {
+		jTextFieldLabel.setText("PSets");
+		border.setTitle("PSets Parameters");
+	    } else { 
+		jTextFieldLabel.setText(currentParameterContainer.toString());
+		border.setTitle(currentParameterContainer.toString() + " Parameters");
+	    }
+
+	    treeModelParameters.setParameterContainer(currentParameterContainer);
 	}
 	else {
 	    clearParameters();
@@ -2941,6 +2948,8 @@ public class ConfDbGUI
             jButtonSavePathFields.setEnabled(false);
             jButtonCancelPathFields.setEnabled(false);
             
+	    // Set current configuration to the prescaleService
+	    PrescaleTServ = new PrescaleTableService(currentConfig);
             // Set prescales fot the current path.
             jTablePrescales = PrescaleTServ.getPrescaleTableEditable(container);
             
@@ -2977,7 +2986,7 @@ public class ConfDbGUI
     	restoreRightLowerTabs();
     	
     
-	if (currentParameterContainer==treeModelCurrentConfig.psetsNode()) {
+        if (currentParameterContainer==currentConfig.psets()) {
 	    String s="";
 	    Iterator<PSetParameter> itPSet = currentConfig.psetIterator();
 	    try {
@@ -2990,6 +2999,16 @@ public class ConfDbGUI
 		jEditorPaneSnippet.setText(e.getMessage());
 	    }
 	}
+	else if (currentParameterContainer instanceof PSetParameter) {
+	    PSetParameter pset = (PSetParameter)currentParameterContainer;
+	    try {
+		jEditorPaneSnippet.setText(cnvEngine.getParameterWriter().
+					   toString(pset,cnvEngine,"  "));
+	    }
+	    catch (ConverterException e) {
+		jEditorPaneSnippet.setText(e.getMessage());
+            }
+        }
 	else if (currentParameterContainer instanceof EDSourceInstance) {
 	    EDSourceInstance edsource = (EDSourceInstance)currentParameterContainer;
 	    try {
@@ -3230,6 +3249,8 @@ public class ConfDbGUI
 		    if(save) {
 			    p.setDescription(jEditorPathDescription.getText());
 			    p.setContacts(jEditorPathContacts.getText());
+
+			    PrescaleTServ.savePrescales();	// Save Prescale values from Documentation Field Panel.
 			    
 			    p.setHasChanged();
 			    treeModelCurrentConfig.nodeChanged(p);
@@ -3240,7 +3261,6 @@ public class ConfDbGUI
 			    jButtonSavePathFields.setEnabled(false);
 			    jButtonCancelPathFields.setEnabled(false);
 			    
-			    PrescaleTServ.savePrescales();	// Save Prescale values from Documentation Field Panel.
 		    }
 		}
     }
@@ -3505,21 +3525,25 @@ public class ConfDbGUI
 	
 	clearPathFields();
 	
+	Parameter p = null;
 	while (node instanceof Parameter) {
-	    Parameter p = (Parameter)node;
+	    p = (Parameter)node;
 	    node = p.parent();
 	}
 	
 	if (node instanceof Reference) {
 	    node = ((Reference)node).parent();
 	}
-	
-	if (node instanceof ParameterContainer) {
-		
+
+	if (node instanceof GlobalPSetContainer) {
+	    currentParameterContainer = node;
+	    if (p!=null) currentParameterContainer = p;
+	    displayParameters();
+	    displaySnippet();
+	} else if (node instanceof ParameterContainer) {
 	    currentParameterContainer = node;
 	    displayParameters();
 	    displaySnippet();
-	    
 	} else if (node==null||node==treeModelCurrentConfig.psetsNode()) {
 	    currentParameterContainer = currentConfig.psets();
 	    displayParameters();
@@ -3528,8 +3552,7 @@ public class ConfDbGUI
 	    clearParameters();
 	    currentParameterContainer = node;
 	    displaySnippet();
-	    if(currentParameterContainer instanceof Path) displayPathFields();
-	    
+	    if(currentParameterContainer instanceof Path) displayPathFields();	    
 	} else {
 	    clearParameters();
 	    clearSnippet();

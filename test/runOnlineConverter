@@ -86,6 +86,6 @@ my $cmd =
 if ($do_ep) { $cmd = $cmd . " --ep"; }
 if ($do_sm) { $cmd = $cmd . " --sm"; }
 
-print $cmd . "\n";
+print STDERR $cmd . "\n";
 system($cmd);
 

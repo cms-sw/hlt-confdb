@@ -106,4 +106,9 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
 	}
     }
 
+    /** unresolvedESInputTagCount */
+    public int unresolvedESInputTagCount() {
+	return unresolvedESInputTagCount(config);
+    }
+
 }

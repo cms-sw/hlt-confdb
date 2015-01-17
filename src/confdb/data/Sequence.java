@@ -40,7 +40,7 @@ public class Sequence extends ReferenceContainer
 		return;
 	    }
 	}
-	System.out.println("Sequence.insertEntry FAILED.");
+	System.err.println("Sequence.insertEntry FAILED.");
     }
     
     /** check if sequence contains a specific module */

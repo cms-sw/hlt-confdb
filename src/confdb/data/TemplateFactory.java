@@ -35,7 +35,7 @@ public class TemplateFactory
 	else if (isValidModuleType(type))
 	    return new ModuleTemplate(name,cvsTag,parameters,type);
 	
-	System.out.println("TemplateFactory: unknown type '"+type+"'");
+	System.err.println("TemplateFactory: unknown type '"+type+"'");
 	return null;
     }
 

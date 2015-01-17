@@ -33,6 +33,8 @@ public class ParameterFactory
 	    return new EventIDParameter(name,value,isTracked);
 	if (type.equals("InputTag"))
 	    return new InputTagParameter(name,value,isTracked);
+	if (type.equals("ESInputTag"))
+	    return new ESInputTagParameter(name,value,isTracked);
 	if (type.equals("FileInPath"))
 	    return new FileInPathParameter(name,value,isTracked);
 	if (type.equals("vint32"))
@@ -51,6 +53,8 @@ public class ParameterFactory
 	    return new VEventIDParameter(name,value,isTracked);
 	if (type.equals("VInputTag"))
 	    return new VInputTagParameter(name,value,isTracked);
+	if (type.equals("VESInputTag"))
+	    return new VESInputTagParameter(name,value,isTracked);
 	if (type.equals("PSet"))
 	    return new PSetParameter(name,value,isTracked);
 	if (type.equals("VPSet"))

@@ -359,11 +359,31 @@ public class PickConfigurationDialog extends JDialog
         
         String userName = System.getProperty("user.name");
         ArrayList<String> admins = new ArrayList<String>();
+        // generic "admin" user
+        admins.add("admin");
+        // Jonathan Hollar
+        admins.add("jjhollar");
+        // Andrea Bocci
+        admins.add("fwyzard");
+        // Martin Gruenewald
         admins.add("gruen");
         admins.add("martin");
-        admins.add("fwyzard");
-        admins.add("jjhollar");
+        // Andrea Perrotta
         admins.add("Andrea");
+        admins.add("perrotta");
+        admins.add("aperrott");
+        // Juliette Alimena
+        admins.add("Juliette2");
+        admins.add("jalimena");
+        // Geoffrey Smith
+        admins.add("geoff");
+        admins.add("gesmith");
+        admins.add("lschwab");
+        // Aram Avetisyan
+        admins.add("aram");
+        admins.add("avetisya");
+        // Marina Passaseo
+        admins.add("passaseo");
         
         if (allowUnlocking&&
             (userName.equalsIgnoreCase(configInfo.lockedByUser())||

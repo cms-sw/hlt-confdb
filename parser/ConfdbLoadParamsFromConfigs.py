@@ -89,12 +89,11 @@ def main(argv):
     input_addtorelease = "none"
     input_comparetorelease = ""
     input_noload = False
-    input_patch = False
     input_preferfile = ""
     
     print "Using release base: " + input_base_path
 
-    opts, args = getopt.getopt(sys.argv[1:], "r:b:w:c:v:d:u:s:t:o:a:m:i:p:n:h", ["release=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","addtorelease=","comparetorelease=","preferredcfis=","patch=","noload=","help="])
+    opts, args = getopt.getopt(sys.argv[1:], "r:b:w:c:v:d:u:s:t:o:a:m:i:n:h", ["release=","blacklist=","whitelist=","releasename=","verbose=","dbname=","user=","password=","dbtype=","hostname=","addtorelease=","comparetorelease=","preferredcfis=","noload=","help="])
 
     for o, a in opts:
         if o in ("-r","release="):
@@ -156,11 +155,8 @@ def main(argv):
         if o in ("-n","noload="):
             print "Will parse release without loading to the DB"
             input_noload = True
-        if o in ("-p","patch="):
-            print "Will patch release if it already exists in the DB"
-            input_patch = True 
         if o in ("-h","help="):
-            print "Help menu for ConfdbSourceToDB"
+            print "Help menu for ConfdbLoadParamsFromConfigs"
             print "\t-r <CMSSW release (default is the CMSSW_VERSION envvar)>"
             print "\t-c <Manually set the name of the release>"
             print "\t-m <Release to compare to when updating>"
@@ -168,20 +164,20 @@ def main(argv):
             print "\t-b <Comma-delimited list of packages to ignore>"
             print "\t-i <Text file containing list of preferred cfi.py files>"
             print "\t-n <1 = No inserts - parse the release without making changes to the DB>"
-            print "\t-p <1 = Patch the release if it already exists in the DB>"
             print "\t-v <Verbosity level (0-3)>"
             print "\t-d <Name of the database to connect to>"
             print "\t-u <User name to connect as>"
             print "\t-s <Database password>"
             print "\t-o <Hostname>"
             print "\t-h Print this help menu"
+            print "\t   For help with git-related problems: http://mercurial.selenic.com/"
             return
 
-    confdbjob = ConfdbLoadParamsfromConfigs(input_cmsswrel,input_base_path,input_baserelease_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbuser,input_dbpwd,input_host,input_noload,input_patch,input_addtorelease,input_comparetorelease,input_preferfile,input_arch)
+    confdbjob = ConfdbLoadParamsfromConfigs(input_cmsswrel,input_base_path,input_baserelease_path,input_whitelist,input_blacklist,input_usingwhitelist,input_usingblacklist,input_verbose,input_dbuser,input_dbpwd,input_host,input_noload,input_addtorelease,input_comparetorelease,input_preferfile,input_arch)
     confdbjob.BeginJob()
 
 class ConfdbLoadParamsfromConfigs:
-    def __init__(self,clirel,clibasepath,clibasereleasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbuser,clidbpwd,clihost,clinoload,clipatch,cliaddtorelease,clicomparetorelease,clipreferfile,cliarch):
+    def __init__(self,clirel,clibasepath,clibasereleasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbuser,clidbpwd,clihost,clinoload,cliaddtorelease,clicomparetorelease,clipreferfile,cliarch):
 
         self.dbname = ''
         self.dbuser = clidbuser
@@ -190,7 +186,6 @@ class ConfdbLoadParamsfromConfigs:
         self.dbhost = clihost
         self.verbose = cliverbose
         self.noload = clinoload
-        self.patch = clipatch
         self.addtorelease = cliaddtorelease
         self.comparetorelease = clicomparetorelease
         self.prefercfifile = clipreferfile
@@ -280,10 +275,8 @@ class ConfdbLoadParamsfromConfigs:
 
         if(tmprelid):
             self.cmsswrelid = tmprelid[0]
-            if(self.patch == False):
-                print 'The release ' + str(self.cmsswrel) + ' already exists in the DB. Exiting now.'
-                print 'To patch this release, use the -p option'
-                return
+            print 'The release ' + str(self.cmsswrel) + ' already exists in the DB. Patching of existing releases is no longer supported. Exiting now.'
+            return
         else:
             self.VerbosePrint("INSERT INTO u_softreleases (releaseTag) VALUES ('" + str(self.cmsswrel) + "')",0)
             if(self.noload == False):
@@ -300,9 +293,14 @@ class ConfdbLoadParamsfromConfigs:
                 self.oldcmsswrelid = tmprelid[0]
 
         # Find CVS tags
-        self.GetReleaseCVSTags()
+        #       No longer possible with GIT:
+        #       self.GetReleaseCVSTags()
+        #       if(self.addtorelease != "none"):
+        #           self.GetAddedCVSTags()
+        self.GetReleaseGitHashTags()
         if(self.addtorelease != "none"):
-            self.GetAddedCVSTags()
+            self.GetAddedGitHashTags()
+                        
 
         # Do some one-time operations - get dictionaries of parameter, module,
         # and service type mappings so we don't have to do this every time
@@ -412,13 +410,13 @@ class ConfdbLoadParamsfromConfigs:
                    for modtag, cvstag in self.tagtuple:
                        if(modtag.lstrip().rstrip() == validatedcfipackagename.lstrip().rstrip()):
                            self.cvstag = cvstag
-                           self.VerbosePrint("\tCVS tag from base release: " + cvstag,1)
+                           self.VerbosePrint("\tgit hashtag from base release: " + cvstag,1)
 
                    if(self.addtorelease != "none"):
                        for modtag, cvstag in self.addedtagtuple:
                            if(modtag.lstrip().rstrip() == validatedcfipackage.lstrip().rstrip()):
                                self.cvstag = cvstag
-                               self.VerbosePrint("\tCVS tag from test release: " + cvstag,1)
+                               self.VerbosePrint("\tgit hashtag from test release: " + cvstag,1)
                                
                    self.GetPackageID(validatedcfipackage,subdir)
 
@@ -988,14 +986,15 @@ class ConfdbLoadParamsfromConfigs:
                 # If not, first check if it existed in the previous release
                 oldcvstag = self.GetOldReleaseCVSTag(componentname)
                 
+                #               No longer possible with GIT:
                 if(self.cvstag == oldcvstag):
-                    self.VerbosePrint("The CVS tag is unchanged: " + str(oldcvstag) + " to " + str(self.cvstag),2)
+                    self.VerbosePrint("The git hashtag is unchanged: " + str(oldcvstag) + " to " + str(self.cvstag),2)
                     self.ReassociateSuperId(componentname)
                     
                     # If so, just reassociate the old template to the new release
                     doloadupdate = False
                 else:
-                    self.VerbosePrint("The CVS tag changed: " + str(oldcvstag) + " to " + str(self.cvstag),2)
+                    self.VerbosePrint("The git hashtag changed: " + str(oldcvstag) + " to " + str(self.cvstag),2)
                     doloadupdate = True
             else:
                 doloadupdate = True
@@ -1337,6 +1336,59 @@ class ConfdbLoadParamsfromConfigs:
                                 tagline = tagline.split('N')[1]
                                 self.addedtagtuple.append((package + "/" + subdir, tagline.lstrip().rstrip()))
 
+    def GetReleaseGitHashTags(self):
+        gitgethash = "git --git-dir=$CMSSW_BASE/src/.git --work-tree=$CMSSW_BASE/src ls-tree --abbrev=32 -r -d " + str(self.cmsswrel)
+        myoutput = os.popen(gitgethash).readlines()
+    
+        for meh in myoutput:
+            packagename = meh.split()[3]
+            thegithashtag = meh.split()[2]
+            if(packagename.count("/") != 1):
+                continue
+            self.tagtuple.append((packagename, thegithashtag))
+
+    def GetAddedGitHashTags(self):
+        # If making an intermediate pseudo-release, get the hashtags for the
+        # checked-out packages
+        cvsdir = ''
+        source_tree = self.base_path + "//src/"
+        packagelist = os.listdir(source_tree)
+
+        # Get hashtags for the 'HEAD' 
+        gitgethash = "git --git-dir=$CMSSW_BASE/src/.git --work-tree=$CMSSW_BASE/src ls-tree --abbrev=32 -r -d HEAD"
+        myoutput = os.popen(gitgethash).readlines()
+
+        tempaddedtagtuple = []
+        templocalpackages = []
+                
+        for meh in myoutput:
+            packagename = meh.split()[3]
+            thegithashtag = meh.split()[2]
+            tempaddedtagtuple.append((packagename, thegithashtag))
+
+            
+        # Start descending into the source tree to see what pacakges are there
+        for package in packagelist:
+            if(package.startswith(".")):
+                continue
+            # Check if this is really a directory
+            if(os.path.isdir(source_tree + package)):
+                subdirlist = os.listdir(source_tree + package)
+                for subdir in subdirlist:
+                    if(subdir.startswith(".")):
+                        continue
+                    
+                    templocalpackages.append(package+"/"+subdir)
+
+        # Now do this in the worst way possible, double loop over packages in the test
+        # release and packges in the git ls-tree output 
+        for templocalpackage in templocalpackages:
+            for tempaddedpackage,tempaddedtag in tempaddedtagtuple:
+                if(tempaddedpackage.count("/") != 1):
+                    continue
+                if(tempaddedpackage.find(templocalpackage) != -1):
+                    self.addedtagtuple.append((templocalpackage, tempaddedtag))
+                        
     def CompareParamToOldRelease(self,parametername,parametervalue,parametertype):
 
         componenttable = self.componenttable
@@ -1448,9 +1500,9 @@ class ConfdbLoadParamsfromConfigs:
             self.totalremappedcomponents = self.totalremappedcomponents + 1
 
     def RemapTemplates(self):
-	print "Remapping the following existing unmodified templates from release " + self.baseforaddedrel + " to new intermediate release called " + self.cmsswrel
         print "Modified templates:"
         print self.modifiedtemplates
+	print "Remapping the following existing unmodified templates from release " + self.baseforaddedrel + " to new intermediate release called " + self.cmsswrel
 
 	self.dbcursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (SoftwareReleases.releaseTag = '" + self.baseforaddedrel + "')")
         oldrelid = (self.dbcursor.fetchone())[0]

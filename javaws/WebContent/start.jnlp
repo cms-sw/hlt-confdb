@@ -1,16 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <jnlp codebase="$$codebase">
   <information>
-    <title>ConfigDB editor</title>
-    <vendor>ube</vendor>
-    <description>HLT configuration editor</description>
+    <title>CMS ConfDB GUI</title>
+    <vendor>CMS ConfDB</vendor>
+    <homepage href=""/>
+    <description>CMS HLT configuration editor</description>
     <offline-allowed/>
   </information>
   <security>
     <all-permissions/>
   </security>
+  <update check="always" policy="prompt-update"/>
   <resources>
-    <j2se version="1.5+"/>
+    <j2se version="1.6+"/>
     <jar href="confdb.jar" main="true" download="eager"/>
     <jar href="mysql-connector-java-5.0.5-bin.jar" download="eager"/>
     <jar href="ojdbc6.jar" download="eager"/>

@@ -172,6 +172,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	if (node instanceof Instance) {
 	    Instance instance      = (Instance)node;
 	    int      count         = instance.unsetTrackedParameterCount();
+	    int      unresolved    = instance.unresolvedESInputTagCount();
 	    result="<html>";
 	    if (instance instanceof ESPreferable) {
 		ESPreferable esp = (ESPreferable)instance;
@@ -180,12 +181,14 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    }
 	    else result += instance.name();
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
+	    if (unresolved>0) result += " <font color=#00ff00>["+unresolved+"]</font>";
 	    result+="</html>";
 	}
 	else if (node instanceof Path) {
 	    Path path       = (Path)node;
 	    int  entryCount = path.entryCount();
 	    int  unsetCount = path.unsetTrackedParameterCount();
+	    int  unresolvedCount = path.unresolvedESInputTagCount();
 	    result = "<html>";
 	    if (!path.isEndPath()&&path.datasetCount()==0)
 		result += "<font color=#ff0000>"+getText()+"</font>";
@@ -197,8 +200,9 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 		"<font color=#ff0000>("+entryCount+")</font>";
 	    if (unsetCount>0)
 		result += " <font color=#ff0000>["+unsetCount+"]</font>";
+	    if (unresolvedCount>0) result += " <font color=#00ff00>["+unresolvedCount+"]</font>";
 	    if (doDisplayUnresolvedInputTags) {
-		int unresolvedCount = path.unresolvedInputTagCount();
+		unresolvedCount = path.unresolvedInputTagCount();
 		if (unresolvedCount>0)
 		    result+=" <font color=#0000ff>["+unresolvedCount+"]</font>";
 	    }
@@ -211,10 +215,12 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    Path          path       = (Path)reference.parent();
 	    int           entryCount = path.entryCount();
 	    int           count      = path.unsetTrackedParameterCount();
+	    int           unresolved = path.unresolvedESInputTagCount();
 	    result = "<html>" + reference.getOperatorAndName();
 	    result += (entryCount>0) ? "("+entryCount+")":
 		"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
+	    if (unresolved>0) result += " <font color=#00ff00>["+unresolved+"]</font>";
 	    result += "</html>";
 	}
 	else if (node instanceof Sequence) {
@@ -222,12 +228,14 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    int      refCount   = sequence.parentPaths().length;
 	    int      entryCount = sequence.entryCount();
 	    int      count      = sequence.unsetTrackedParameterCount();
+	    int      unresolved = sequence.unresolvedESInputTagCount();
 	    result = (refCount>0) ?
 		"<html>"+getText() :
 		"<html><font color=#808080>"+getText()+"</font>";
 	    result += (entryCount>0) ?
 		" ("+entryCount+")":"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
+	    if (unresolved>0) result += " <font color=#00ff00>["+unresolved+"]</font>";
 	    result += "</html>";
 	}
 	else if (node instanceof SequenceReference) {
@@ -235,16 +243,18 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer
 	    Sequence          sequence   = (Sequence)reference.parent();
 	    int               entryCount = sequence.entryCount();
 	    int               count      = sequence.unsetTrackedParameterCount();
+	    int               unresolved = sequence.unresolvedESInputTagCount();
 	    result = "<html>" + reference.getOperatorAndName();
 	    result += (entryCount>0) ?
 		" ("+entryCount+")":
 		"<font color=#ff0000>("+entryCount+")</font>";
 	    if (count>0) result += " <font color=#ff0000>["+count+"]</font>";
+	    if (unresolved>0) result += " <font color=#00ff00>["+unresolved+"]</font>";
 	    if (doDisplayUnresolvedInputTags && (xpath != null)) {
 		int n=0;
 		String label = ((Reference)node).name();
-		String[] unresolved = xpath.unresolvedInputTags();
-		for (String un : unresolved) {
+		String[] Unresolved = xpath.unresolvedInputTags();
+		for (String un : Unresolved) {
 		    String[] tokens = un.split("[/:]");
 		    for (int i=0; i<tokens.length; i++) {
 			if (label.equals(tokens[i])) {

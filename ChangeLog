@@ -1,3 +1,74 @@
+2014-11-26 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-22
+	* more JavaCodeExecution
+
+2014-11-25 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-21
+	* more JavaCodeExecution
+
+2014-11-17 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-07-20
+	* allow more STORM and FOG people to Unlock configurations
+
+2014-08-03 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-07-19
+	* read the port number from the database properties
+
+2014-08-03 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-07-18
+	* add an entry to access the development database over ssh
+
+2014-07-11 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-07-17
+	* fix the build system to use a CERN-issued code-signing certificate
+
+2014-07-02 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-16
+	* Extend parameter-type/value search to global PSets
+
+2014-05-20 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-15
+	* Some more Java code
+
+2014-05-09 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-14
+	* Add Java code for PR 3211, misc fixes
+
+2014-05-05 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-13
+
+2014-05-05 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-12bis
+	* Fix Global PSets editing and display
+
+2014-03-11 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-11
+	* Fix (recursive) parsing of PSets and VPSets in the JPythonParser
+
+2014-03-06 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-10
+	* Fix bug in displaying unresolved InputTags in the GUI panels
+
+2014-02-26 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-09
+	* add more JavaCode execution
+
+2014-02-20 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-07/08
+	* add Fix bugs in (V)ESInputTag implementation
+
+2014-02-19 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-06
+	* add support in GUI for (V)ESInputTag based on work from Sandro
+
+2014-02-06 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-05
+	* add functionality to execute java code to directly manipulate the config
+
+2013-11-28 Martin Grunewald  <Martin.Grunewald@cern.ch>
+	* tag V01-07-04
+	* enable editing of path's prescales in upper-right panel (path view)
+
 2013-08-01 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V01-07-03
 	* update Oracle JDBC to version 12.1.0.1 for Java 6

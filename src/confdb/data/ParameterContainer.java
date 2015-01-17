@@ -264,7 +264,7 @@ abstract public class ParameterContainer extends DatabaseEntry
 	else {
 	    Parameter parameterNew =
 		ParameterFactory.create(type,name,valueAsString,false);
-	    System.out.println("ParameterContainer INFO: "+
+	    System.err.println("ParameterContainer INFO: "+
 			       "Adding untracked parameter to top-level: "+
 			       parameterNew);
 	    addParameter(parameterNew);
@@ -295,4 +295,30 @@ abstract public class ParameterContainer extends DatabaseEntry
 	return result;
     }
 
+    /** nuymber of unresolved ESInputTags */
+    public int unresolvedESInputTagCount(IConfiguration config)
+    {
+	int result = 0;
+	Iterator<Parameter> itP = parameterIterator();
+	while (itP.hasNext()) {
+	    Parameter p = itP.next();
+	    if (p instanceof VPSetParameter) {
+		VPSetParameter vpset = (VPSetParameter)p;
+		result += vpset.unresolvedESInputTagCount(config);
+	    }
+	    else if (p instanceof PSetParameter) {
+		PSetParameter pset = (PSetParameter)p;
+		result += pset.unresolvedESInputTagCount(config);
+	    }
+	    else if (p instanceof ESInputTagParameter) {
+		ESInputTagParameter par = (ESInputTagParameter)p;
+		result += par.unresolvedESInputTagCount(config);
+	    }
+	    else if (p instanceof VESInputTagParameter) {
+		VESInputTagParameter par = (VESInputTagParameter)p;
+		result += par.unresolvedESInputTagCount(config);
+	    }
+	}
+	return result;
+    }
 }

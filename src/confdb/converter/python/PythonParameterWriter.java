@@ -6,11 +6,13 @@ import confdb.converter.IParameterWriter;
 import confdb.converter.ascii.AsciiParameterWriter;
 import confdb.data.BoolParameter;
 import confdb.data.InputTagParameter;
+import confdb.data.ESInputTagParameter;
 import confdb.data.PSetParameter;
 import confdb.data.Parameter;
 import confdb.data.ScalarParameter;
 import confdb.data.StringParameter;
 import confdb.data.VInputTagParameter;
+import confdb.data.VESInputTagParameter;
 import confdb.data.VPSetParameter;
 import confdb.data.VStringParameter;
 import confdb.data.VectorParameter;
@@ -67,6 +69,8 @@ public class PythonParameterWriter  implements IParameterWriter
 			str.append( "( " );
 			if ( parameter instanceof InputTagParameter )
 				str.append( getInputTagString( parameter.valueAsString() ) );
+			else if ( parameter instanceof ESInputTagParameter )
+				str.append( getESInputTagString( parameter.valueAsString() ) );
 			else if ( parameter instanceof VPSetParameter )
 				appendVPSetParameters( str, (VPSetParameter)parameter, indent );
 			else if ( parameter instanceof ScalarParameter )
@@ -177,6 +181,20 @@ public class PythonParameterWriter  implements IParameterWriter
 		return str.toString();
 	}
 
+	protected String getESInputTagString( String value )
+	{
+		String[] values = value.split( ":" );
+		if ( value.equals( "\"\"" ) )
+			return value;
+		if ( values.length == 1 )
+			return "\"" + value + "\"";
+		StringBuffer str = new StringBuffer();
+		for ( int i = 0; i < values.length; i++ )
+			str.append( "'" + values[i] + "'," );
+		str.setLength( str.length() - 1 );
+		return str.toString();
+	}
+
 	
 	protected void appendPSet( StringBuffer str, PSetParameter pset, String indent ) throws ConverterException
 	{
@@ -216,6 +234,16 @@ public class PythonParameterWriter  implements IParameterWriter
 			{
 				String inputTag = (String)vector.value(i);
 				str.append( "'" + inputTag + "'," );
+			}
+			if ( stop > start )
+				str.setLength( str.length() - 1 );
+		}
+		else if ( vector instanceof VESInputTagParameter )
+		{
+			for ( int i = start; i < stop; i++ )
+			{
+				String esInputTag = (String)vector.value(i);
+				str.append( "'" + esInputTag + "'," );
 			}
 			if ( stop > start )
 				str.setLength( str.length() - 1 );

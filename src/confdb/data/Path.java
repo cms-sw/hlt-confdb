@@ -85,7 +85,7 @@ public class Path extends ReferenceContainer
     	return this.contacts;
     }
     public void setDescription(String Desc) {
-	//System.out.println("XX1: "+(this.description==null)+(Desc==null));
+	//System.err.println("XX1: "+(this.description==null)+(Desc==null));
 	if (Desc==null) return;
 	if (this.description.equals(Desc)) return;
     	this.description = Desc;
@@ -143,7 +143,7 @@ public class Path extends ReferenceContainer
 	    entries.add(i,reference);
 	    setHasChanged();
 	}
-	else System.out.println("Path.insertEntry FAILED.");
+	else System.err.println("Path.insertEntry FAILED.");
     }
     
     /** check if path contains a specific entry */

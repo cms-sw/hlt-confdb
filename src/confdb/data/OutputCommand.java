@@ -84,7 +84,7 @@ public class OutputCommand implements Comparable<OutputCommand>, Serializable
 	int pathHashCode = (parentPath==null) ? 0:parentPath.name().hashCode();
 	result = 31*result+pathHashCode;
 	result = 31*result+toString().hashCode();
-	System.out.println("toString():"+toString()+", hashCode = "+result);
+	System.err.println("toString():"+toString()+", hashCode = "+result);
 	return result;
     }
     

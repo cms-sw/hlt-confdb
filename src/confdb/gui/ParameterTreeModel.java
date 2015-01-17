@@ -16,7 +16,9 @@ import confdb.data.VectorParameter;
 import confdb.data.PSetParameter;
 import confdb.data.VPSetParameter;
 import confdb.data.InputTagParameter;
+import confdb.data.ESInputTagParameter;
 import confdb.data.VInputTagParameter;
+import confdb.data.VESInputTagParameter;
 import confdb.data.IConfiguration;
 import confdb.data.*;
 
@@ -174,11 +176,22 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel
 		InputTagParameter it = (InputTagParameter)p;
 		label = it.label()==null ? "" : it.label();
 		ok = ( (label.equals("")) || (label.equals("rawDataCollector")) || (label.equals("source")) || (config.module(label)!=null) );
+	    } else if (p.type().equals("ESInputTag")) {
+		ESInputTagParameter it = (ESInputTagParameter)p;
+		label = it.module()==null ? "" : it.module();
+		ok = ( (label.equals("")) || (config.essource(label)!=null) || (config.esmodule(label)!=null) );
 	    } else if (p.type().equals("VInputTag")) {
 		VInputTagParameter vit = (VInputTagParameter)p;
 		for (int i=0; i<vit.vectorSize(); i++) {
 		    label = vit.label(i)==null ? "" : vit.label(i);
 		    ok = ( (label.equals("")) || (label.equals("rawDataCollector")) || (label.equals("source")) || (config.module(label)!=null) );
+		    if (!ok) break;
+		}
+	    } else if (p.type().equals("VESInputTag")) {
+		VESInputTagParameter vit = (VESInputTagParameter)p;
+		for (int i=0; i<vit.vectorSize(); i++) {
+		    label = vit.module(i)==null ? "" : vit.module(i);
+		    ok = ( (label.equals("")) || (config.essource(label)!=null) || (config.esmodule(label)!=null) );
 		    if (!ok) break;
 		}
 	    }

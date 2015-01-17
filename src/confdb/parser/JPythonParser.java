@@ -557,15 +557,37 @@ public class JPythonParser
         label = name;
         if(label == null) label = "";
         
-	    PSetParameter pset = (PSetParameter)ParameterFactory.create("PSet",label,"",tracked);
+	PSetParameter pset = (PSetParameter)ParameterFactory.create("PSet",label,"",tracked);
 	    
-	    //
+	//
         // Add parameters to PSET.
 	    ArrayList<confdb.data.Parameter> params = parsePSetParameters(psetObject);
 	    for(int It = 0; It < params.size(); It++)
 	    	pset.addParameter(params.get(It));
 	    
 	    return pset;
+    }
+    
+    
+    // this will be used to parse VPSets inside modules
+    private VPSetParameter parseVPSetParameter(PyObject vpsetObject, String name) {
+        String type  = getType(vpsetObject);
+        String label = getLabel(vpsetObject);
+        Boolean     tracked = convert(vpsetObject.invoke("isTracked"), Boolean.class);
+        
+        label = name;
+        if(label == null) label = "";
+        
+	VPSetParameter VPSet = (VPSetParameter)ParameterFactory.create("VPSet",label,"",tracked);
+	    
+	//
+        // Add PSets to VPSET.
+	PyList parameterList = (PyList) vpsetObject.invoke("value");
+	for (int i=0; i<parameterList.size(); i++) {
+	    PSetParameter Pset = parsePSetParameter((PyObject)parameterList.get(i),"");
+	    VPSet.addParameterSet(Pset);
+	}
+	return VPSet;
     }
     
     
@@ -847,9 +869,11 @@ public class JPythonParser
     	string_value = cleanBrackets(string_value); //Needed!
         
     	if(type == "PSet") {
-    		return parsePSetParameter(parameterObject, name); // Start recursion.
+	    return parsePSetParameter(parameterObject, name); // Start recursion.
+	} else if (type == "VPSet") {
+	    return parseVPSetParameter(parameterObject, name); // Start recursion.
     	}  else if ("uint32" == type || "int32" == type || "uint64" == type || "int64" == type) {
-    		string_value = fixLongNumber(string_value);
+	    string_value = fixLongNumber(string_value);
     	}
     	
         return ParameterFactory.create(type, name, string_value, tracked);
@@ -885,6 +909,13 @@ public class JPythonParser
      */
 
     /* Note:
+     * an ESInputTag could either be split in
+     *   'module', 'data'
+     * or left as a single string
+     *   'module:data'
+     */
+
+    /* Note:
      * these CMS types are not yet supported:
      *   FileInPath
      *   EventID
@@ -917,7 +948,9 @@ public class JPythonParser
     			alert(msg.err, "[parseParameter] "+ type +" parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");    	    	
     		}
    	    }
-
+	    
+	    //System.out.println(" ");
+	    //System.out.println("[parse] " + module.name()+": "+ parameterName);
    	    
         if ("bool" == type) {
             //Boolean v = convert(value, Boolean.class);
@@ -1008,58 +1041,28 @@ public class JPythonParser
             } else alert(msg.err, "[parseParameter] vstring parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
             
         } else if ("PSet" == type) {
-            //TODO: PARSING PSET
-        		PSetParameter pset = parsePSetParameter(parameterObject, parameterName);
-        		if(ParameterToBeUpdated instanceof PSetParameter) {
-       	    		PSetParameter psetToUpdate = (PSetParameter) ParameterToBeUpdated;
-       	    		
-       	    		// If PSet contains already a structure, check names.
-       	    		// If a sub-parameter exist, update it, Otherwise add it:
-
-       	    		for(int i = 0; i < pset.parameterCount(); i++) {
-       	    			// Check the content.
-       	    			if(pset.parameter(i).name() == "") {
-       	    				// Insert: No named parameter.
-       	    				// NOTE: If the template structure contains no named parameters, they could be duplicated.
-       	    				psetToUpdate.addParameter(pset.parameter(i));
-       	    			} else {
-       	    				Parameter param = psetToUpdate.parameter(pset.parameter(i).name());
-           	    			if(param != null){
-           	    				// If exist: update
-           	    				psetToUpdate.parameter(pset.parameter(i).name()).setValue(pset.parameter(i).valueAsString());
-           	    			} else {
-           	    				// If it doesnt exist: add.
-           	    				psetToUpdate.addParameter(pset.parameter(i));
-
-           	    			}
-       	    			}
-       	    			
-
-       	    		}     	    			
-        		} else alert(msg.err, "[parseParameter] PSetParamter expected for name " + parameterName + " for the module " + module.name());
-        		
-        		module.findParameter(parameterName).setTracked(tracked);
+	    module.updateParameter(parameterName,type,"");
+	    PSetParameter pset = parsePSetParameter(parameterObject, parameterName);
+	    module.updateParameter(parameterName,type,pset.valueAsString());
+	    module.findParameter(parameterName).setTracked(tracked);
             
         } else if ("VPSet" == type) {
-            //TODO: PARSING VPSET
+
             confdb.data.Parameter param = module.findParameter(parameterName);
             if(param != null) {
             	if(param instanceof VPSetParameter) {
-            	
-            		VPSetParameter VPSet = (VPSetParameter) param;
-
-            		module.updateParameter(parameterName,type,""); // TODO REMOVE THE DEFAULT VALUES ? 
-                    module.findParameter(parameterName).setTracked(tracked);
-
-                	PyList parameterList= (PyList) value;
-                	for(int i=0; i < parameterList.size(); i++) {
-                	    PSetParameter Pset = parsePSetParameter((PyObject)parameterList.get(i), ""); //TODO name "" ?
-                	    VPSet.addParameterSet(Pset);                	    
-                	}
-                	
-            	} else  alert(msg.err, "[parseParameter] "+parameterName +" of VPSETPARAMETER expected! found " + param.getClass().toString());
+		    module.updateParameter(parameterName,type,"");
+		    VPSetParameter VPSet = parseVPSetParameter(parameterObject,parameterName);
+		    module.updateParameter(parameterName,type,VPSet.valueAsString());
+		    module.findParameter(parameterName).setTracked(tracked);
+            	} else alert(msg.err, "[parseParameter] parameter not VPSetParameter! " + parameterName);
             } else alert(msg.err, "[parseParameter] VPSet parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
+
         } else if ("InputTag" == type) {
+            module.updateParameter(parameterName,type,value.toString());
+            module.findParameter(parameterName).setTracked(tracked);
+            
+        } else if ("ESInputTag" == type) {
             module.updateParameter(parameterName,type,value.toString());
             module.findParameter(parameterName).setTracked(tracked);
             
@@ -1075,6 +1078,20 @@ public class JPythonParser
                     module.findParameter(parameterName).setTracked(tracked);
             	} else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
             } else alert(msg.err, "[parseParameter] VInputTag parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
+
+        } else if ("VESInputTag" == type) {
+            confdb.data.Parameter param = module.findParameter(parameterName);
+            if(param != null) {
+            	if(param instanceof VectorParameter) {
+            		VectorParameter param_sp = (VectorParameter) param;
+            		String clean_value = cleanBrackets(value.toString());
+            		param_sp.setValue(clean_value);
+            		
+                    module.updateParameter(parameterName,type,clean_value);
+                    module.findParameter(parameterName).setTracked(tracked);
+            	} else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
+            } else alert(msg.err, "[parseParameter] VESInputTag parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
+
         } else {
         	alert(msg.war, "[parseParameter] TYPE: [unsupported] " + type);
         }
@@ -1432,7 +1449,9 @@ public class JPythonParser
     	vstring("vstring"),
     	PSet("PSet"),
     	InputTag("InputTag"),
-    	VInputTag("VInputTag");
+    	ESInputTag("ESInputTag"),
+	VInputTag("VInputTag"),
+    	VESInputTag("VESInputTag");
 
     	  private String text;
 

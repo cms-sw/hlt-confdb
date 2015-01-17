@@ -39,6 +39,7 @@ public class CommandActionListener implements ActionListener
     private static final String cmdPSEditor         = "Edit Prescales";
     private static final String cmdSPSEditor        = "Edit SmartPrescales";
     private static final String cmdMLEditor         = "Edit MessageLogger";
+    private static final String cmdJavaCode         = "Execute Java Code";
     private static final String cmdUPEditor         = "Add Untracked Parameter";
 
     private static final String cmdTrack            = "Track InputTags";
@@ -87,6 +88,7 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdPSEditor))         app.openPrescaleEditor();
 	if (command.equals(cmdSPSEditor))        app.openSmartPrescaleEditor();
 	if (command.equals(cmdMLEditor))         app.openMessageLoggerEditor();
+	if (command.equals(cmdJavaCode))         app.openJavaCodeExecution();
 	if (command.equals(cmdUPEditor))         app.addUntrackedParameter();
 	
 	if (command.equals(cmdTrack))            app.setOptionTrackInputTags(source.isSelected());

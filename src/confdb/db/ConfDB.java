@@ -309,6 +309,7 @@ public class ConfDB
     private PreparedStatement psInsertStringParamValue            = null;
     private PreparedStatement psInsertEventIDParamValue           = null;
     private PreparedStatement psInsertInputTagParamValue          = null;
+    private PreparedStatement psInsertESInputTagParamValue        = null;
     private PreparedStatement psInsertFileInPathParamValue        = null;
     private PreparedStatement psInsertVInt32ParamValue            = null;
     private PreparedStatement psInsertVUInt32ParamValue           = null;
@@ -318,6 +319,7 @@ public class ConfDB
     private PreparedStatement psInsertVStringParamValue           = null;
     private PreparedStatement psInsertVEventIDParamValue          = null;
     private PreparedStatement psInsertVInputTagParamValue         = null;
+    private PreparedStatement psInsertVESInputTagParamValue       = null;
 
     private PreparedStatement psDeleteDirectory                   = null;
     private PreparedStatement psDeleteLock                        = null;
@@ -489,7 +491,7 @@ public class ConfDB
 		if(hosts.length == 0) return "ERROR TNSNAME FORMAT";
 		
 		for(int i = 0; i < hosts.length; i++) {
-				url+= "(ADDRESS = (PROTOCOL = TCP)(HOST = "+hosts[i]+")(PORT = 10121))\n";
+				url+= "(ADDRESS = (PROTOCOL = TCP)(HOST = "+hosts[i]+")(PORT = "+dbPort+"))\n";
 		}
 
 	    url+="(ENABLE=BROKEN) ";
@@ -1308,6 +1310,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 			}
 		    }
                     else System.out.println("Found null PSet for instance "+instanceName+" "+id+"  templateid="+templateId+" entryType="+type);
+		    config.psets().setDatabaseId(1);
 		}
 		else if (type.equals("EDSource")) {
 		    templateName = release.edsourceTemplateName(templateId);
@@ -2161,6 +2164,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		throw new DatabaseException(errMsg,e);
 	    }
 	}
+	config.psets().setDatabaseId(1);
     }
     
     /** insert configuration's edsoures */
@@ -5913,6 +5917,12 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		 "VALUES (?, ?)");
 	    preparedStatements.add(psInsertInputTagParamValue);
 
+	    psInsertESInputTagParamValue =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO ESInputTagParamValues (paramId,value) " +
+		 "VALUES (?, ?)");
+	    preparedStatements.add(psInsertESInputTagParamValue);
+
 	    psInsertFileInPathParamValue =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO FileInPathParamValues (paramId,value) " +
@@ -5970,6 +5980,13 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		("INSERT INTO VInputTagParamValues (paramId,sequenceNb,value) " +
 		 "VALUES (?, ?, ?)");
 	    preparedStatements.add(psInsertVInputTagParamValue);
+
+	    psInsertVESInputTagParamValue =
+		dbConnector.getConnection().prepareStatement
+		("INSERT INTO VESInputTagParamValues (paramId,sequenceNb,value) " +
+		 "VALUES (?, ?, ?)");
+	    preparedStatements.add(psInsertVESInputTagParamValue);
+
 */
 	    
 	    //
@@ -6622,24 +6639,26 @@ psSelectParametersTemplates =
         dbidTemplateHashMap	 = new HashMap<Integer,Integer>();
         
 	
-	insertParameterHashMap.put("bool",      psInsertBoolParamValue);
-	insertParameterHashMap.put("int32",     psInsertInt32ParamValue);
-	insertParameterHashMap.put("vint32",    psInsertVInt32ParamValue);
-	insertParameterHashMap.put("uint32",    psInsertUInt32ParamValue);
-	insertParameterHashMap.put("vuint32",   psInsertVUInt32ParamValue);
-	insertParameterHashMap.put("int64",     psInsertInt64ParamValue);
-	insertParameterHashMap.put("vint64",    psInsertVInt64ParamValue);
-	insertParameterHashMap.put("uint64",    psInsertUInt64ParamValue);
-	insertParameterHashMap.put("vuint64",   psInsertVUInt64ParamValue);
-	insertParameterHashMap.put("double",    psInsertDoubleParamValue);
-	insertParameterHashMap.put("vdouble",   psInsertVDoubleParamValue);
-	insertParameterHashMap.put("string",    psInsertStringParamValue);
-	insertParameterHashMap.put("vstring",   psInsertVStringParamValue);
-	insertParameterHashMap.put("EventID",   psInsertEventIDParamValue);
-	insertParameterHashMap.put("VEventID",  psInsertVEventIDParamValue);
-	insertParameterHashMap.put("InputTag",  psInsertInputTagParamValue);
-	insertParameterHashMap.put("VInputTag", psInsertVInputTagParamValue);
-	insertParameterHashMap.put("FileInPath",psInsertFileInPathParamValue);
+	insertParameterHashMap.put("bool",       psInsertBoolParamValue);
+	insertParameterHashMap.put("int32",      psInsertInt32ParamValue);
+	insertParameterHashMap.put("vint32",     psInsertVInt32ParamValue);
+	insertParameterHashMap.put("uint32",     psInsertUInt32ParamValue);
+	insertParameterHashMap.put("vuint32",    psInsertVUInt32ParamValue);
+	insertParameterHashMap.put("int64",      psInsertInt64ParamValue);
+	insertParameterHashMap.put("vint64",     psInsertVInt64ParamValue);
+	insertParameterHashMap.put("uint64",     psInsertUInt64ParamValue);
+	insertParameterHashMap.put("vuint64",    psInsertVUInt64ParamValue);
+	insertParameterHashMap.put("double",     psInsertDoubleParamValue);
+	insertParameterHashMap.put("vdouble",    psInsertVDoubleParamValue);
+	insertParameterHashMap.put("string",     psInsertStringParamValue);
+	insertParameterHashMap.put("vstring",    psInsertVStringParamValue);
+	insertParameterHashMap.put("EventID",    psInsertEventIDParamValue);
+	insertParameterHashMap.put("VEventID",   psInsertVEventIDParamValue);
+	insertParameterHashMap.put("InputTag",   psInsertInputTagParamValue);
+	insertParameterHashMap.put("ESInputTag", psInsertESInputTagParamValue);
+	insertParameterHashMap.put("VInputTag",  psInsertVInputTagParamValue);
+	insertParameterHashMap.put("VESInputTag",psInsertVESInputTagParamValue);
+	insertParameterHashMap.put("FileInPath", psInsertFileInPathParamValue);
 
 	ResultSet rs = null;
 	try {
@@ -7376,7 +7395,7 @@ psSelectParametersTemplates =
 		    }
 		    else if (vp instanceof VUInt64Parameter) {
 			psInsertParameterValue.setObject(3,((BigInteger)vp.value(i)).longValue());
-		    } else if (vp instanceof VInputTagParameter) {
+		    } else if ( (vp instanceof VInputTagParameter) || (vp instanceof VESInputTagParameter) ) {
 		    	// fix to bug #90850: "Export Configuration Failed"
 		    	String value = (String) vp.value(i);
 		    	if(value.isEmpty()) value = "\"\"";		 

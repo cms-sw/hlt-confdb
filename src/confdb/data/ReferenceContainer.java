@@ -112,6 +112,12 @@ abstract
 	return unresolvedInputTags().length;
     }
     
+    /** calculate the number of unresolved ESInputTags */
+    public int unresolvedESInputTagCount()
+    {
+	return unresolvedESInputTags().length;
+    }
+    
     /** get unresolved InputTags */
     public String[] unresolvedInputTags()
     {
@@ -119,6 +125,15 @@ abstract
 	HashSet<String> labels = new HashSet<String>();
 	for (Reference r : entries)
 	    getUnresolvedInputTags(r,labels,unresolved,name());
+	return unresolved.toArray(new String[unresolved.size()]);
+    }
+
+    /** get unresolved ESInputTags */
+    public String[] unresolvedESInputTags()
+    {
+	ArrayList<String> unresolved = new ArrayList<String>();
+	for (Reference r : entries)
+	    getUnresolvedESInputTags(r,unresolved,name());
 	return unresolved.toArray(new String[unresolved.size()]);
     }
 
@@ -177,7 +192,7 @@ abstract
 	    setHasChanged();
 	}
 	else {
-	    System.out.println("ReferenceContainer.removeEntry FAILED.");
+	    System.err.println("ReferenceContainer.removeEntry FAILED.");
 	}
     }
     
@@ -355,7 +370,7 @@ abstract
 	    VInputTagParameter vitp = (VInputTagParameter)p;
 	    for (int i=0;i<vitp.vectorSize();i++) {
 		InputTagParameter itp =
-		    new InputTagParameter("["+(new Integer(i)).toString()+"]",
+		    new InputTagParameter("_"+(new Integer(i)).toString()+"_",
 					  vitp.value(i).toString(),false);
 		itp.setParent(vitp);
 		getUnresolvedInputTags(itp,labels,unresolved,prefix+"::"+vitp.name());
@@ -370,6 +385,71 @@ abstract
 	    VPSetParameter vpset = (VPSetParameter)p;
 	    for (int i=0;i<vpset.parameterSetCount();i++)
 		getUnresolvedInputTags(vpset.parameterSet(i),labels,unresolved,prefix+"::"+vpset.name());
+	}
+    }
+ 
+
+    /** get unresolved ESInputTags from a reference, given labels to this point */
+    private void getUnresolvedESInputTags(Reference r,
+					  ArrayList<String> unresolved,
+					  String prefix)
+    {
+	if (r instanceof ModuleReference) {
+	    ModuleReference modref = (ModuleReference)r;
+	    ModuleInstance  module = (ModuleInstance)modref.parent();
+	    Iterator<Parameter> it = module.parameterIterator();
+	    while (it.hasNext()) {
+		Parameter p = it.next();
+		getUnresolvedESInputTags(p,unresolved,prefix+"/"+module.name());
+	    }
+	}
+	else if (r instanceof OutputModuleReference) {
+	}
+	else {
+	    ReferenceContainer container = (ReferenceContainer)r.parent();
+	    Iterator<Reference> it = container.entryIterator();
+	    while (it.hasNext()) {
+		Reference entry = it.next();
+		getUnresolvedESInputTags(entry,unresolved,prefix+"/"+r.name());
+	    }
+	}
+    }
+
+    /** get unresolved ESInputTags from a parameter, given labels to this point */
+    private void getUnresolvedESInputTags(Parameter p,
+					  ArrayList<String> unresolved,
+					  String prefix)
+    {
+	if (p instanceof ESInputTagParameter) {
+	    ESInputTagParameter itp = (ESInputTagParameter)p;
+
+	    if (!itp.isValueSet()||
+		itp.module().equals(new String())||
+		itp.module().equals("")) return;
+	    
+	    if ( (config.essource(itp.module())==null) || (config.esmodule(itp.module())==null) ) {
+		unresolved.add(prefix+"::"+itp.name()+"="+itp.valueAsString());
+	    }
+	}
+	else if (p instanceof VESInputTagParameter) {
+	    VESInputTagParameter vitp = (VESInputTagParameter)p;
+	    for (int i=0;i<vitp.vectorSize();i++) {
+		ESInputTagParameter itp =
+		    new ESInputTagParameter("_"+(new Integer(i)).toString()+"_",
+					    vitp.value(i).toString(),false);
+		itp.setParent(vitp);
+		getUnresolvedESInputTags(itp,unresolved,prefix+"::"+vitp.name());
+	    }
+	}
+	else if (p instanceof PSetParameter) {
+	    PSetParameter pset = (PSetParameter)p;
+	    for (int i=0;i<pset.parameterCount();i++)
+		getUnresolvedESInputTags(pset.parameter(i),unresolved,prefix+"::"+pset.name());
+	}
+	else if (p instanceof VPSetParameter) {
+	    VPSetParameter vpset = (VPSetParameter)p;
+	    for (int i=0;i<vpset.parameterSetCount();i++)
+		getUnresolvedESInputTags(vpset.parameterSet(i),unresolved,prefix+"::"+vpset.name());
 	}
     }
  
