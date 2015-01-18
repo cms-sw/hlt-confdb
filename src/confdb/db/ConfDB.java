@@ -6374,6 +6374,9 @@ psSelectParametersTemplates =
                 /*h_" select id,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (select sa.*, h_moelements.valuelob,h_moelements.hex from (select  distinct h_moelements.id, h_moelements.paramtype, h_moelements.name, h_moelements.tracked, h_pae2moe.ord,h_pastruct.id_pae,  h_pae2moe.lvl as lvl,  h_moelements.value,h_pae2moe.id as pae2id  from h_moelements, h_pae2moe, h_pastruct  where h_moelements.id = h_pae2moe.id_moe AND h_pastruct.id_pae = h_pae2moe.id_pae AND  h_pastruct.id  IN (SELECT h_pastruct.id FROM h_pastruct,h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pathid2conf.id_confver=?) order by h_pae2moe.id) sa, h_moelements where sa.id=h_moelements.id) " + */
                 " select * from (select id as moeid,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (select sa.*, u_moelements.valuelob,u_moelements.hex from (select  distinct u_moelements.id, u_moelements.paramtype, u_moelements.name, u_moelements.tracked, u_pae2moe.ord,u_pathid2pae.id_pae,  u_pae2moe.lvl as lvl,  u_moelements.value,u_pae2moe.id as pae2id  from u_moelements, u_pae2moe, u_pathid2pae  where u_moelements.id = u_pae2moe.id_moe AND u_pathid2pae.id_pae = u_pae2moe.id_pae AND  u_pathid2pae.id  IN (SELECT u_pathid2pae.id FROM u_pathid2pae,u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2conf.id_confver=?) order by u_pae2moe.id_moe,u_pae2moe.id) sa, u_moelements where sa.id=u_moelements.id) order by moeid )" +
 		" UNION ALL " + 
+                " select * from (select id as moeid,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (SELECT u_moelements.*,u_pae2moe.lvl,u_conf2pae.id_pae,u_pae2moe.ord FROM u_conf2pae,u_paelements,u_moelements,u_pae2moe  WHERE  u_conf2pae.id_pae=u_paelements.id and u_pae2moe.id_pae=u_paelements.id and u_pae2moe.id_moe=u_moelements.id and ((u_conf2pae.lvl=0 and u_paelements.paetype=1) or u_conf2pae.lvl>0) and u_conf2pae.id_confver = ? and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver )) order by moeid) " +
+//                " select * from (select id as moeid,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (SELECT u_moelements.*,u_conf2pae.lvl,u_conf2pae.id_pae,u_conf2pae.ord FROM u_conf2pae,u_paelements,u_moelements,u_pae2moe  WHERE  u_conf2pae.id_pae=u_paelements.id and u_pae2moe.id_pae=u_paelements.id and u_pae2moe.id_moe=u_moelements.id and ((u_conf2pae.lvl=0 and u_paelements.paetype=1) or u_conf2pae.lvl>0) and u_conf2pae.id_confver = ? and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver )) order by moeid) " + 
+                 " UNION ALL " + 
 		"Select * from (SELECT a.id+4000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_service+4000000, a.lvl,  a.value,  a.valuelob, a.hex from u_SRVELEMENTS a, u_CONF2SRV c " +
 		" where c.ID_CONFVER=? and c.ID_SERVICE=a.ID_Service order by a.id_service+4000000,id )" +
 		" UNION ALL " + 
@@ -6727,6 +6730,7 @@ psSelectParametersTemplates =
             	psSelectParameters.setInt(5,configId);
             	psSelectParameters.setInt(6,configId);
             	psSelectParameters.setInt(7,configId);
+            	psSelectParameters.setInt(8,configId);
 	    	rsParameters    = psSelectParameters.executeQuery();
             }
 
