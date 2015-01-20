@@ -9,49 +9,47 @@
 <%@page contentType="text/plain"%>
 <%
     out.clearBuffer();
-	BrowserConverter converter = null;
-	try {
-		BrowserConverter.UrlParameter paras = BrowserConverter.getUrlParameter( request.getParameterMap() );
+    BrowserConverter converter = null;
+    try {
+        BrowserConverter.UrlParameter params = BrowserConverter.getUrlParameter( request.getParameterMap() );
 
-	    ModifierInstructions modifierInstructions = new ModifierInstructions();
-	    modifierInstructions.interpretArgs( paras.toModifier );
-	    
-	    if ( paras.runNumber != -1 )
-	    	paras.dbName = "ORCOFF";
-	    
-	   	converter = BrowserConverter.getConverter( paras.dbName );
-	    if ( paras.runNumber != -1 )
-	    {
-	    	paras.configName = null;
-	    	paras.configId = converter.getKeyFromRunSummary( paras.runNumber );
-	    	if ( paras.configId <= 0 )
-            {
-            	out.println( "ERROR: CONFIG_NOT_FOUND" );
+        ModifierInstructions modifierInstructions = new ModifierInstructions();
+        modifierInstructions.interpretArgs( params.toModifier );
+
+        if (params.runNumber != -1)
+            params.dbName = "ORCOFF";
+
+        converter = BrowserConverter.getConverter( params.dbName );
+
+        if (params.runNumber != -1) {
+            params.configName = null;
+            params.configId = converter.getKeyFromRunSummary( params.runNumber );
+            if (params.configId <= 0) {
+                out.println( "ERROR: CONFIG_NOT_FOUND" );
                 return;
             }
-	    }
+        }
 
-	    if ( paras.configName != null )
-	    	paras.configId = converter.getDatabase().getConfigId( paras.configName );
+        if (params.configName != null)
+            params.configId = converter.getDatabase().getConfigId( params.configName );
 
-	    String result = converter.getConfigString( paras.configId, paras.format, modifierInstructions, paras.asFragment);
-	    out.print(result);
-	    out.close();
-	} catch (Exception e) {
-    	Throwable cause = e.getCause(); 
-	    out.print(e.getMessage()+"\n"); 
-	    if ( cause != null )
-		    out.print( "cause: " + cause.getMessage() + "\n\n");
-	    else
-	    	out.print( "\n" );
-	    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-	    PrintWriter writer = new PrintWriter(buffer);
-	    e.printStackTrace(writer);
-	    writer.close();
-	    out.println(buffer.toString());
-	    if (converter!=null)
-	        BrowserConverter.deleteConverter( converter );
-	}
+        String result = converter.getConfigString( params.configId, params.format, modifierInstructions, params.asFragment);
+        out.print(result);
+
+    } catch (Exception e) {
+        // print the error message
+        out.print(e.getMessage()+"\n");
+        // in the case of a chained exception, print also the underlying cause's error message
+        Throwable cause = e.getCause();
+        if (cause != null)
+            out.print("caused by: " + cause.getMessage() + "\n");
+        out.print("\n");
+        // print the stack trace
+        e.printStackTrace(new PrintWriter(out, true));
+
+        if (converter != null)
+            BrowserConverter.deleteConverter( converter );
+    }
 %>
 
 
