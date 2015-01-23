@@ -22,7 +22,7 @@
 
   <!-- compile all *.java files in src/** to *.class files in classes/** -->
   <target name="compile" depends="init">
-    <javac srcdir="${dir.src}" destdir="${dir.build}" debug="true" target="1.6" source="1.6" includeantruntime="false">
+    <javac srcdir="${dir.src}" destdir="${dir.build}" debug="true" target="1.6" source="1.6" bootclasspath="/usr/lib/jvm/java-6-openjdk-amd64/jre/lib/rt.jar" includeantruntime="false">
       <compilerarg line="-Xmaxerrs 0"/>
       <compilerarg line="-Xmaxwarns 0"/>
       <classpath>
