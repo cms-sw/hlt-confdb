@@ -1,3 +1,9 @@
+2015-01-25 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-08-00
+	* do not build or deploy the "GUI all-inlusive" jar
+	* web interface: do not close the output stream
+	* update server URL
+
 2015-01-16 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V01-07-23
 	* allow using the BrowserConverter from the command line
