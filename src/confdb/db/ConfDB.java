@@ -1554,6 +1554,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 		}
 		else if (entryType.equals("Module")) {
 		    ModuleInstance entry = (ModuleInstance)idToModules.get(entryId);
+                    System.err.println("Module "+entryId+" seq "+sequence+" index "+index);
 		    config.insertModuleReference(sequence,index,entry).setOperator( operator );
 		}
 		else if (entryType.equals("OutputModule")) {
@@ -3584,6 +3585,31 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	    dbConnector.release(rs);
 	}
     }
+    public synchronized int getConfigId(int newId) throws DatabaseException
+    {
+
+        reconnect();
+
+        ResultSet rs=null;
+        int oldId=-1;
+
+        try{
+        psSelectOrigDbId.setInt(1,newId);
+        rs=psSelectOrigDbId.executeQuery();
+         while (rs.next()) {
+          oldId=rs.getInt(1);
+        };
+       }
+       catch (SQLException e) {  
+          String errMsg =
+                "ConfDB::getConfigId(newID"+newId+
+                ": "+e.getMessage();
+            throw new DatabaseException(errMsg,e);
+		};
+
+        return oldId;
+}
+
 	
     public synchronized int getConfigId(String fullConfigName) throws DatabaseException
     {
