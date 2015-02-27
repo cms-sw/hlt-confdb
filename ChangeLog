@@ -1,3 +1,7 @@
+2015-02-27 Martin Grunewald <Martin.Grunewald@cern.ch>
+	* tag V01-08-01
+	* fix import of global PSets
+
 2015-01-25 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V01-08-00
 	* do not build or deploy the "GUI all-inlusive" jar
