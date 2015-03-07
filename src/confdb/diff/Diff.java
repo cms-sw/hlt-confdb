@@ -1450,7 +1450,7 @@ public class Diff
 	}
 	catch (NumberFormatException e1) {
 	    try {
-		configId = getDatabase().getConfigId(configIdAsString);
+		configId = getDatabase().getConfigNewId(configIdAsString);
 	    }
 	    catch (DatabaseException e2) {
 		String errMsg =
@@ -1542,9 +1542,9 @@ public class Diff
 	Configuration config2 = null;
 	try {
 	    int id1 =
-		(configId1>0) ? configId1 : database.getConfigId(configName1);
+		(configId1>0) ? configId1 : database.getConfigNewId(configName1);
 	    int id2 =
-		(configId2>0) ? configId2 : database.getConfigId(configName2);
+		(configId2>0) ? configId2 : database.getConfigNewId(configName2);
 
 	    config1 = database.loadConfiguration(id1);
 	    config2 = database.loadConfiguration(id2);

@@ -1314,7 +1314,7 @@ public class ConfDbGUI
 	System.out.println();
 
 
-	DatabaseConnectionDialog dbDialog = new DatabaseConnectionDialog(frame,"/conf/confdbv0.properties");
+	DatabaseConnectionDialog dbDialog = new DatabaseConnectionDialog(frame,"/conf/confdbv1.properties");
 	dbDialog.pack();
 	dbDialog.setLocationRelativeTo(frame);
 	dbDialog.setVisible(true);

@@ -384,12 +384,12 @@ public class DiffDialog extends JDialog
 	{
 	    startTime = System.currentTimeMillis();
 	    if (newConfig==null) {
-		int newId=database.getConfigId(jTextFieldNewConfig.getText());
+		int newId=database.getConfigNewId(jTextFieldNewConfig.getText());
 		newConfig=database.loadConfiguration(newId);
 	    }
 	    if (oldConfig==null) {
 		String oldConfigName=(String)jComboBoxOldConfig.getSelectedItem();
-		int oldId=database.getConfigId(oldConfigName);
+		int oldId=database.getConfigNewId(oldConfigName);
 		oldConfig=database.loadConfiguration(oldId);
 	    }
 

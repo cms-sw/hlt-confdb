@@ -119,7 +119,7 @@ public class ConfDBCreateConfig
 	    database.connect(dbType,dbUrl,dbUser,dbPwrd);
 
 	    // check that master configuration exists
-	    int configId = database.getConfigId(masterConfigName);
+	    int configId = database.getConfigNewId(masterConfigName);
 	    out.println("GOOD, found master config "+masterConfigName);
 
 	    // check that directory of new configuration exists
@@ -185,7 +185,7 @@ public class ConfDBCreateConfig
 		"from master "+masterConfig+".";
 	    
 	    try {
-		int newConfigId = database.getConfigId(newConfigName);
+		int newConfigId = database.getConfigNewId(newConfigName);
 		ConfigInfo ci = database.getConfigInfo(newConfigId);
 		masterConfig.setConfigInfo(ci);
 	    }
