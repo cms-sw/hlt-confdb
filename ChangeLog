@@ -1,3 +1,7 @@
+2015-03-19 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-08-02
+	* append the HLTSchedule to the menu also for full dumps
+
 2015-02-27 Martin Grunewald <Martin.Grunewald@cern.ch>
 	* tag V01-08-01
 	* fix import of global PSets
