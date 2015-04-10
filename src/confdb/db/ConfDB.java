@@ -29,6 +29,7 @@ import confdb.gui.errorNotificationPanel;
 
 import java.math.BigInteger;
 
+
 import oracle.jdbc.pool.OracleDataSource;
 
 
@@ -1029,14 +1030,16 @@ public class ConfDB
 	HashMap<Integer,SoftwarePackage> idToPackage =
 	    new HashMap<Integer,SoftwarePackage>();
 	ArrayList<SoftwareSubsystem> subsystems = getSubsystems(idToPackage);
+
 	
-        //System.out.println("loadTemplates: release "+release);
+//System.err.println("loadTemplates: release ");
 	try {
 /*	    cs.executeUpdate();
   taken away stored proc*/	    
 	   int releaseId = getReleaseId(release.releaseTag());
 	    HashMap<Integer,ArrayList<Parameter> > templateParams = getParameters(-releaseId);
 
+// System.err.println("loadTemplates: gotParameters ");
 
             psSelectTemplates.setInt(1,releaseId);
             psSelectTemplates.setInt(2,releaseId);
@@ -1046,7 +1049,7 @@ public class ConfDB
  
 	    rsTemplates = psSelectTemplates.executeQuery();
 	    
- ////System.out.println("loadTemplates: gotParameters");
+// System.err.println("loadTemplates: gotTemplates ");
 
 	    while (rsTemplates.next()) {
 		int    id     = rsTemplates.getInt(1);
@@ -1062,8 +1065,8 @@ public class ConfDB
 
 		Template template =
 		    TemplateFactory.create(type,name,cvstag,null);
-if (template==null) System.out.println("template NULL!!!");
-if (pkg==null) System.out.println("pkg NULL!!!");
+if (template==null) System.err.println("template NULL!!!");
+if (pkg==null) System.err.println("pkg NULL!!!");
 		
 		ArrayList<Parameter> params = templateParams.remove(id);
 		
@@ -1113,6 +1116,7 @@ if (pkg==null) System.out.println("pkg NULL!!!");
 	
 	release.sortSubsystems();
 	release.sortTemplates();
+// System.err.println("loadTemplates: done");
     }
 
     /** load a configuration & *all* release templates from the database */
@@ -6362,6 +6366,7 @@ psSelectParametersTemplates =
 " select id+2000000,paramtype,name,tracked,ord,id_esstemplate+2000000,lvl,value,valuelob,hex  from u_esstelements where id_esstemplate in (select distinct id_esstemplate as id from u_esst2rele where id_release=?) "+
 " UNION ALL " +
 " select id+1000000,paramtype,name,tracked,ord,id_edstemplate+1000000,lvl,value,valuelob,hex from u_edstelements where id_edstemplate in (select distinct id_edstemplate as id from u_edst2rele where id_release=?) order by 6,1");
+            psSelectParametersTemplates.setFetchSize(8192);
             preparedStatements.add(psSelectParametersTemplates);
 
            psSelectInstances =
@@ -6385,7 +6390,7 @@ psSelectParametersTemplates =
 " SELECT UNIQUE u_paelements.id, NULL, 'Sequence', u_paelements.name, NULL,NULL FROM u_paelements, u_conf2pae WHERE  u_conf2pae.id_pae=u_paelements.id and u_paelements.paetype=2 and u_conf2pae.id_confver = ? and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver ) "+
 " UNION ALL "+
 " SELECT UNIQUE u_paelements.id, NULL, 'Sequence', u_paelements.name, NULL,NULL FROM u_paelements, u_pathid2conf,u_pathid2pae WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_paelements.paetype=2 and u_pathid2conf.id_confver = ? order by 3,6,4");
-            psSelectInstances.setFetchSize(1024);
+            psSelectInstances.setFetchSize(2048);
             preparedStatements.add(psSelectInstances);
 	    //
 	    // SELECT FOR TEMPORARY TABLES
@@ -6574,6 +6579,7 @@ psSelectParametersTemplates =
                 ("Select * from (Select * from (SELECT u_pathid2conf.id_pathid, u_paelements.id, u_pathid2pae.ord, DECODE(u_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, u_pathid2pae.operator FROM u_pathid2pae,u_paelements, u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_pathid2pae.lvl=0 and u_pathid2conf.id_confver = ? order by u_pathid2pae.id_pathid,u_pathid2pae.id) " +
                " UNION ALL " +
                " select * from (select u_PATHID2CONF.id_pathid, u_streamids.id+5000000 as stid,u_PATHID2OUTM.ord,'OutputModule', u_PATHID2OUTM.operator from u_PATHID2OUTM,u_streams,u_streamids,u_PATHID2CONF where u_streams.id=u_streamids.id_stream and u_streamids.id=u_PATHID2OUTM.id_streamid and u_PATHID2CONF.id_confver=? and  u_PATHID2CONF.id_pathid= u_PATHID2OUTM.id_pathid )) order by id_pathid,ord");
+	    psSelectPathEntries.setFetchSize(1024);
 	    preparedStatements.add(psSelectPathEntries);
 		/*("SELECT e.id AS sequence_id,  d.id AS entry_id, a.ord AS sequence_nb, DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, a.operator, a.crc32 FROM v_paelements a, v_pathid2conf b, v_pathids c,(select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) d , (select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) e WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND b.id_confver =? AND a.lvl>0 and a.crc32=d.crc32 AND e.crc32 in (select crc32 from v_paelements where id=a.id_parent) ORDER BY a.id_pathid ASC, a.id ASC");
 */
@@ -6785,6 +6791,8 @@ psSelectParametersTemplates =
 	ResultSet rsRealValues    = null;
 	ResultSet rsStringValues  = null;
 
+// System.err.println("getParameters ");
+
 	try {
             if(configId<0)
             {
@@ -6810,6 +6818,8 @@ psSelectParametersTemplates =
             }
 
 
+// System.err.println("getParameter query dones ");
+
 	    // get values as strings first
 	    HashMap<Integer,String> idToValueAsString =
 		new HashMap<Integer,String>();
@@ -6823,6 +6833,7 @@ psSelectParametersTemplates =
             //int newpamid=8000000;
             //if(configId==0) newpamid=10000000;
 	    int previouslvl=0;
+//long thebefore=System.currentTimeMillis();
 	    while (rsParameters.next()) {
                 int     parameterId       = rsParameters.getInt(1);
                 String  type     = rsParameters.getString(2);
@@ -6831,7 +6842,6 @@ psSelectParametersTemplates =
                 int     seqNb    = rsParameters.getInt(5);
                 int     parentId = rsParameters.getInt(6);
                 int     lvl      = rsParameters.getInt(7);
-
 
              //parameterId=++newpamid;
              //parameterId=++countingParamIds;
@@ -6983,12 +6993,14 @@ psSelectParametersTemplates =
 							      isTrkd);
 			
 			if (type.equals("PSet")) {
-                            idlifo.push(new Integer(parameterId));
+                            //idlifo.push(new Integer(parameterId));
+                            idlifo.push(parameterId);
                             previouslvl++;
 			    psets.add(new IdPSetPair(parameterId,(PSetParameter)p));
                         }
 			if (type.equals("VPSet")){
-                            idlifo.push(new Integer(parameterId));
+                            //idlifo.push(new Integer(parameterId));
+                            idlifo.push(parameterId);
                             previouslvl++;
 			    vpsets.add(new IdVPSetPair(parameterId,(VPSetParameter)p));
                         }
@@ -7002,6 +7014,10 @@ psSelectParametersTemplates =
 			}
 			while (parameters.size()<=seqNb) parameters.add(null);
 			parameters.set(seqNb,p);
+//long thenow = System.currentTimeMillis( )-thebefore;
+//System.err.println("Thisloop (ms)  "+Long.toString(thenow));
+//if (thenow>4) System.err.println("Thisloop  "+type+" name "+name+" lvl"+lvl);
+//thebefore=System.currentTimeMillis();
 	    }
 	    
 	    Iterator<IdPSetPair> itPSet = psets.iterator();
@@ -7319,25 +7335,25 @@ psSelectParametersTemplates =
                     Int32Parameter int32=(Int32Parameter)sp;
 		    if (int32.isHex()) {
                         hexo=1;
-                        value=int32.value().toString();
+                       // value=int32.value().toString();
                     }
                 } else if (sp instanceof UInt32Parameter) {
                     UInt32Parameter uint32=(UInt32Parameter)sp;
 		    if (uint32.isHex()) {
                         hexo=1;
-                        value=uint32.value().toString();
+                        //value=uint32.value().toString();
                     }
                 } else if (sp instanceof Int64Parameter) {
                     Int64Parameter int64=(Int64Parameter)sp;
 		    if (int64.isHex()) {
                         hexo=1;
-                        value=int64.value().toString();
+                        //value=int64.value().toString();
                     }
                 } else if (sp instanceof UInt64Parameter) {
                     UInt64Parameter uint64=(UInt64Parameter)sp;
 		    if (uint64.isHex()) {
                         hexo=1;
-                        value=uint64.value().toString();
+                        //value=uint64.value().toString();
                     }
                 }
 		
