@@ -4690,7 +4690,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
    		 " Directories.name," +
    		 " Directories.created " +
    		 "FROM u_directories Directories " +
-   		 "ORDER BY Directories.name ASC");
+   		 "ORDER BY Directories.id,Directories.name ASC");
 	    psSelectDirectories.setFetchSize(512);
 	    preparedStatements.add(psSelectDirectories);
 	    

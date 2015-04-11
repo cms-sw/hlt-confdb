@@ -150,8 +150,8 @@ public class OfflineConverter extends ConverterBase
 	String  dbHost      =   "cmsr1-v.cern.ch";
 	String  dbPort      =             "10121";
 	String  dbName      =  "cmsr.cern.ch";
-	String  dbUser      = "cms_hlt_gdr";
-	String  dbPwrd      =        "convertiMi!";
+	String  dbUser      = "cms_hlt_gdr_r";
+	String  dbPwrd      =        "convertMe!";
 
 	HashMap<String,String> cnvArgs = new HashMap<String,String>();
 	

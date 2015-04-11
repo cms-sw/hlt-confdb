@@ -70,14 +70,14 @@ public class BrowserConverter extends OfflineConverter
             else if (dbUser.endsWith("_reader"))
                 {}      // do nothing
 	    else
-	    	dbUser = "cms_hlt_gdr";
+	    	dbUser = "cms_hlt_gdr_r";
 
 	    dbProperties.setDbUser(dbUser);
 	    
 	    BrowserConverter converter = map.get( new Integer( dbIndex ) );
 		if ( converter == null )
 		{
-			converter = new BrowserConverter( dbs.type( dbIndex ), dbProperties.getDbURL(), dbProperties.getDbUser(), "convertiMi!" );		
+			converter = new BrowserConverter( dbs.type( dbIndex ), dbProperties.getDbURL(), dbProperties.getDbUser(), "convertMe!" );		
 			map.put( new Integer( dbIndex ), converter );
 		}
 		return converter;
