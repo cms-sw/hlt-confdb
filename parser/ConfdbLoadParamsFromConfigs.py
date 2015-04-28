@@ -24,11 +24,12 @@ def main(argv):
     # 1) Whole packages
     # 2) Subsystems (Package/Subsystem)
     # 3) Individual cfi files (Package.Subsystem.filename_cfi)
-    input_usingblacklist = False
+    input_usingblacklist = True
     input_blacklist = [
-        "FWCore/PrescaleService",
-        "DQM",
-        "HLTrigger.special.hltHcalNoiseFilter_cfi"
+        "DQM.Integration.test.FrontierCondition_GT_Offline_cfi",
+#       "FWCore/PrescaleService",
+#       "DQM",
+#       "HLTrigger.special.hltHcalNoiseFilter_cfi"
         ]
 
     # or a list of packages (and only these packages) to use
