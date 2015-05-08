@@ -1,3 +1,7 @@
+2015-05-08 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-08-04
+	* update build environment for lxplus and the `confdb` user
+
 2015-04-28 Martin Grunewald <Martin.Grunewald@cern.ch>
 	* tag V01-08-03
 	* blacklist bad file
