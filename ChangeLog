@@ -1,3 +1,7 @@
+2015-04-28 Martin Grunewald <Martin.Grunewald@cern.ch>
+	* tag V01-08-03
+	* blacklist bad file
+
 2015-03-19 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V01-08-02
 	* append the HLTSchedule to the menu also for full dumps
