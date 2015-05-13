@@ -78,7 +78,7 @@ public class ConfDB
     private String dbName = null;
     
     // database features:
-    private boolean extraPathFieldsAvailability = false;
+    private boolean extraPathFieldsAvailability = true;
     private boolean operatorFieldForSequencesAvailability = true; 
     
     //sv
@@ -675,6 +675,7 @@ public class ConfDB
      * app. workflow would be modified. */
     public synchronized void checkDbFeatures() {
     	try {
+            //extraPathFieldsAvailability = checkExtraPathFields();
             extraPathFieldsAvailability = checkExtraPathFields();
             operatorFieldForSequencesAvailability = checkOperatorFieldForSequences();
     	}
@@ -1368,7 +1369,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 			int  insertIndex = config.pathCount();
 		    Path path = config.insertPath(insertIndex,instanceName);
 		    
-		    if(extraPathFieldsAvailability) {
+		    /*if(extraPathFieldsAvailability) {
 				String  pathDesc = null;
 				String	pathCont = null;
 				psSelectPathExtraFields.setInt(1, id);
@@ -1380,8 +1381,16 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 			    }
 			    path.setDescription(pathDesc);
 			    path.setContacts(pathCont);		   	
-		    }
+		    }*/
 
+		    String  pathDesc = null;
+		    String	pathCont = null;
+
+		    pathDesc    = rsInstances.getString(6);
+		    pathCont	= rsInstances.getString(7);
+
+		    path.setDescription(pathDesc);
+		    path.setContacts(pathCont);		   	
 		    
 		    path.setAsEndPath(flag);
 		    path.setDatabaseId(id);
@@ -1802,13 +1811,15 @@ if (pkg==null) System.err.println("pkg NULL!!!");
     public synchronized boolean checkExtraPathFields() throws DatabaseException {
     	ResultSet rs = null;
     	int extraFields = 0;
-    	try {
-/*sv    		rs = psCheckPathFieldsExistence.executeQuery();
+//sv
+        return true;
+/*    	try {
+    		rs = psCheckPathFieldsExistence.executeQuery();
     	
     		while(rs.next()) {
     			extraFields = rs.getInt(1);	
     		}
-   */ 		
+    		
         if (false) throw new SQLException();
     	}
     	catch (SQLException e) {
@@ -1822,6 +1833,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
     	
 		if(extraFields == 1) return true;
 		else return false;
+*/
     }
     
     
@@ -1829,14 +1841,17 @@ if (pkg==null) System.err.println("pkg NULL!!!");
     public synchronized boolean checkOperatorFieldForSequences() throws DatabaseException {
     	ResultSet rs = null;
     	int extraFields = 0;
+        return true;
+/*sv
     	try {
-/*sv    		rs = psCheckOperatorForModuleSequenceAssoc.executeQuery();
+    		rs = psCheckOperatorForModuleSequenceAssoc.executeQuery();
     	
     		while(rs.next()) {
     			extraFields = rs.getInt(1);	
     		}
-   */ 		
+    		
          if (false) throw new SQLException();
+         extraFields = 1; //sv
     	}
     	catch (SQLException e) {
     	    String errMsg =
@@ -1849,6 +1864,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
     	
 		if(extraFields == 1) return true;
 		else return false;
+*/
     }
     
     
@@ -2488,6 +2504,9 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 				psInsertPath.setString(1,pathName);
 				psInsertPath.setInt(2,version);
 				psInsertPath.setInt(3,id_pathnoum);
+			        psInsertPath.setString(3, description);
+			        psInsertPath.setString(4, contacts);
+                               
 
                                 psInsertPath.executeUpdate();
 				rs=psInsertPath.getGeneratedKeys();
@@ -2498,7 +2517,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 				
                        
 			//if(extraPathFieldsAvailability) {
-			if(false) {
+                        if (false) {
 			     // inserting extra fields in schema:
 			    psInsertPathDescription.setString(1,pathName);
                             if (pathIsEndPath){ 
@@ -4690,7 +4709,8 @@ if (pkg==null) System.err.println("pkg NULL!!!");
    		 " Directories.name," +
    		 " Directories.created " +
    		 "FROM u_directories Directories " +
-   		 "ORDER BY Directories.id,Directories.name ASC");
+   		 //"ORDER BY Directories.id,Directories.name ASC");
+   		 "ORDER BY Directories.name ASC");
 	    psSelectDirectories.setFetchSize(512);
 	    preparedStatements.add(psSelectDirectories);
 	    
@@ -5626,8 +5646,8 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 	  
 	    psInsertPath =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO u_Paths (name,version,id_noumpath) " +
-		 "VALUES(?, ?, ?)",keyColumn);
+		("INSERT INTO u_Paths (name,version,id_noumpath,description, contact) " +
+		 "VALUES(?, ?, ?, ?, ?)",keyColumn);
 	    preparedStatements.add(psInsertPath);
 	  
 	    psInsertPathIds =
@@ -6371,25 +6391,25 @@ psSelectParametersTemplates =
 
            psSelectInstances =
                 dbConnector.getConnection().prepareStatement
-                ("SELECT u_globalpsets.id+6000000, NULL, 'PSet', u_globalpsets.name, u_globalpsets.tracked, u_conf2gpset.ord FROM u_globalpsets,u_conf2gpset WHERE u_conf2gpset.id_confver=? AND u_globalpsets.id=u_conf2gpset.id_gpset "+
+                ("SELECT u_globalpsets.id+6000000, NULL, 'PSet', u_globalpsets.name, u_globalpsets.tracked, u_conf2gpset.ord, NULL as description, NULL as contact FROM u_globalpsets,u_conf2gpset WHERE u_conf2gpset.id_confver=? AND u_globalpsets.id=u_conf2gpset.id_gpset "+
 " UNION ALL "+
-" SELECT u_edsources.id+1000000, u_edsources.id_template+1000000, 'EDSource',NULL,NULL, u_conf2eds.ord FROM u_edsources,u_conf2eds WHERE u_conf2eds.id_edsource=u_edsources.id and u_conf2eds.id_confver = ? "+
+" SELECT u_edsources.id+1000000, u_edsources.id_template+1000000, 'EDSource',NULL,NULL, u_conf2eds.ord,NULL as description, NULL as contact  FROM u_edsources,u_conf2eds WHERE u_conf2eds.id_edsource=u_edsources.id and u_conf2eds.id_confver = ? "+
 " UNION ALL "+
-" SELECT u_essources.id+2000000, u_essources.id_template+2000000, 'ESSource', u_essources.name, u_conf2ess.prefer, u_conf2ess.ord FROM u_essources,u_conf2ess WHERE u_conf2ess.id_essource=u_essources.id and u_conf2ess.id_confver = ? "+
+" SELECT u_essources.id+2000000, u_essources.id_template+2000000, 'ESSource', u_essources.name, u_conf2ess.prefer, u_conf2ess.ord,NULL as description, NULL as contact  FROM u_essources,u_conf2ess WHERE u_conf2ess.id_essource=u_essources.id and u_conf2ess.id_confver = ? "+
 " UNION ALL "+
-" SELECT u_esmodules.id+3000000, u_esmodules.id_template+3000000, 'ESModule', u_esmodules.name, u_conf2esm.prefer, u_conf2esm.ord FROM u_esmodules,u_conf2esm WHERE u_conf2esm.id_esmodule=u_esmodules.id and u_conf2esm.id_confver = ? "+
+" SELECT u_esmodules.id+3000000, u_esmodules.id_template+3000000, 'ESModule', u_esmodules.name, u_conf2esm.prefer, u_conf2esm.ord,NULL as description, NULL as contact  FROM u_esmodules,u_conf2esm WHERE u_conf2esm.id_esmodule=u_esmodules.id and u_conf2esm.id_confver = ? "+
 " UNION ALL "+
-" SELECT u_services.id+4000000, u_services.id_template+4000000, 'Service',NULL,NULL, u_conf2srv.ord FROM u_services,u_conf2srv WHERE u_conf2srv.id_service=u_services.id and u_conf2srv.id_confver = ? "+
+" SELECT u_services.id+4000000, u_services.id_template+4000000, 'Service',NULL,NULL, u_conf2srv.ord,NULL as description, NULL as contact  FROM u_services,u_conf2srv WHERE u_conf2srv.id_service=u_services.id and u_conf2srv.id_confver = ? "+
 " UNION ALL "+
-" SELECT UNIQUE u_paelements.id, u_mod2templ.id_templ, 'Module', u_paelements.name,NULL, NULL FROM u_pathid2pae,u_paelements, u_pathid2conf, u_mod2templ WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_paelements.paetype=1 and u_mod2templ.id_pae=u_paelements.id and u_pathid2conf.id_confver = ? "+
+" SELECT ta.*,NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, u_mod2templ.id_templ, 'Module', u_paelements.name,NULL as endpath, NULL as ord FROM u_pathid2pae,u_paelements, u_pathid2conf, u_mod2templ WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_paelements.paetype=1 and u_mod2templ.id_pae=u_paelements.id and u_pathid2conf.id_confver = ? ) ta"+
 " UNION ALL "+
-" SELECT u_pathid2conf.id_pathid, NULL, 'Path', u_paths.name, u_pathids.isEndPath, u_pathid2conf.ord FROM u_paths,u_pathid2conf,u_pathids WHERE u_pathids.id=u_pathid2conf.id_pathid and u_paths.id=u_pathids.id_path and u_pathid2conf.id_confver = ? "+
+" SELECT u_pathid2conf.id_pathid, NULL, 'Path', u_paths.name, u_pathids.isEndPath, u_pathid2conf.ord,u_paths.description,u_paths.contact FROM u_paths,u_pathid2conf,u_pathids WHERE u_pathids.id=u_pathid2conf.id_pathid and u_paths.id=u_pathids.id_path and u_pathid2conf.id_confver = ? "+
 " UNION ALL "+
-" SELECT UNIQUE u_paelements.id, u_mod2templ.id_templ, 'Module', u_paelements.name, NULL,NULL FROM u_paelements, u_conf2pae,u_mod2templ WHERE  u_conf2pae.id_pae=u_paelements.id and u_paelements.paetype=1 and u_conf2pae.id_confver = ? and u_mod2templ.id_pae=u_paelements.id and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver ) "+
+" select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, u_mod2templ.id_templ, 'Module', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_conf2pae,u_mod2templ WHERE  u_conf2pae.id_pae=u_paelements.id and u_paelements.paetype=1 and u_conf2pae.id_confver = ? and u_mod2templ.id_pae=u_paelements.id and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver )) ta  "+
 " UNION ALL "+
-" SELECT UNIQUE u_paelements.id, NULL, 'Sequence', u_paelements.name, NULL,NULL FROM u_paelements, u_conf2pae WHERE  u_conf2pae.id_pae=u_paelements.id and u_paelements.paetype=2 and u_conf2pae.id_confver = ? and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver ) "+
+"  select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, NULL, 'Sequence', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_conf2pae WHERE  u_conf2pae.id_pae=u_paelements.id and u_paelements.paetype=2 and u_conf2pae.id_confver = ? and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver )) ta "+
 " UNION ALL "+
-" SELECT UNIQUE u_paelements.id, NULL, 'Sequence', u_paelements.name, NULL,NULL FROM u_paelements, u_pathid2conf,u_pathid2pae WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_paelements.paetype=2 and u_pathid2conf.id_confver = ? order by 3,6,4");
+" select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, NULL, 'Sequence', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_pathid2conf,u_pathid2pae WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_paelements.paetype=2 and u_pathid2conf.id_confver = ?) ta order by 3,6,4");
             psSelectInstances.setFetchSize(2048);
             preparedStatements.add(psSelectInstances);
 	    //
@@ -6674,32 +6694,34 @@ psSelectParametersTemplates =
 	("INSERT INTO u_moduletemplates "+
 		 " (id_mtype, name, CVSTAG,id_pkg) VALUES (?,?,?,?)",keyColumn);
 	    preparedStatements.add(psInsertModuleTemplateRelease);
-/*	    
+	    
 	    // SQL statements for new path fields:
 	    psCheckPathFieldsExistence = 
 			dbConnector.getConnection().prepareStatement
 			("Select 1 from dual where exists (			" + 
 			  "select 1 from all_tab_columns			" +
-			  "where table_name = 'PATHS'				" + 
+			  "where table_name = 'U_PATHS'				" + 
 			  "and column_name = 'DESCRIPTION')			");
 		    preparedStatements.add(psCheckPathFieldsExistence);
+
 		    
 		psSelectPathExtraFields = 
 			dbConnector.getConnection().prepareStatement(
-			"SELECT p.pathid		,	" +
+			"SELECT p.id		,	" +
 			"		p.description	, 	" +
 			"		p.contact			" +
-			"FROM	Paths	p			" +
-			"WHERE	p.pathid = ?		");
+			"FROM	u_paths	p, u_pathids q			" +
+			"WHERE	p.id = q.id_path and q.id= ?		");
 		    preparedStatements.add(psSelectPathExtraFields);		  
 		    
 		psInsertPathDescription =
 			dbConnector.getConnection().prepareStatement
-			("INSERT INTO Paths (name,isEndPath, description, contact) " +
+			("INSERT INTO u_paths (name,isEndPath, description, contact) " +
 			 "VALUES(?, ?, ?, ?)",keyColumn);
 		    preparedStatements.add(psInsertPathDescription);
 		    
 	    // bug #91797: ConfDB operator IGNORE/NEGATE also for modules in a sequence.
+/*
 	    psCheckOperatorForModuleSequenceAssoc	= 
 			dbConnector.getConnection().prepareStatement
 			("select 1 from dual where exists ( 		" + 
