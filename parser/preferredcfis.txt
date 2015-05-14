@@ -1,3 +1,5 @@
+RecoPixelVertexing/PixelLowPtUtilities  AllPixelTracks_cfi.py
+EventFilter/L1TRawToDigi                l1tRawToDigi_cfi.py
 TrackingTools/GeomPropagators           AnyDirectionAnalyticalPropagator_cfi.py
 SimCalorimetry/HcalTestBeam             hardwired_conditions_cfi.py
 TrackingTools/MaterialEffects           MaterialPropagator_cfi.py
