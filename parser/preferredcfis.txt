@@ -79,7 +79,8 @@ CommonTools/RecoAlgos			LargestEtCaloJetSelector_cfi.py
 CommonTools/RecoAlgos			etMinCaloJetSelector_cfi.py
 JetMETCorrections/Modules		hltLXXXCorrectionESProducer_cfi.py
 JetMETCorrections/Modules		hltL1FastjetCorrectionESProducer_cfi.py
-JetMETCorrections/Configuration		JetCorrectionServices_cff.py
 JetMETCorrections/Modules		hltJetCorrectionESChain_cfi.py
 JetMETCorrections/Configuration		DefaultJEC_cff.py
+JetMETCorrections/Configuration         CorrectedJetProducers_cff.py
+JetMETCorrections/Configuration         JetCorrectionProducers_cff.py
 GeometryReaders/XMLIdealGeometryESSource	cmsGeometryDB_cff.py
