@@ -42,7 +42,7 @@ RecoTauTag/RecoTau			PFRecoTauProducer_cfi.py
 RecoTauTag/RecoTau			HPSPFRecoTauProducer_cfi.py
 RecoTauTag/Configuration		HPSPFTaus_cff.py
 RecoLocalCalo/CaloTowersCreator		calotowermaker_cfi.py
-RecoLocalCalo/EcalRecProducers          ecalFixedAlphaBetaFitUncalibRecHit_cfi.py
+RecoLocalCalo/EcalRecProducers          ecalMultiFitUncalibRecHit_cfi.py
 RecoLocalCalo/EcalRecProducers          ecalRecHit_cfi.py
 RecoLocalCalo/HcalRecProducers		HcalHitReconstructor_hf_cfi.py
 RecoLocalCalo/HcalRecProducers		HcalHitReconstructor_hbhe_cfi.py

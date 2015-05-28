@@ -179,15 +179,16 @@ public class ConfigurationTreeActions
     {
 		ConfigurationTreeModel model    = (ConfigurationTreeModel)tree.getModel();
 		Configuration          config   = (Configuration)model.getRoot();
-		
-		if (config.pset(pset.name())!=null) {
+		PSetParameter          oldPSet  = config.pset(pset.name());
+
+		if (oldPSet!=null) {
 			if(update) {
 				int    index  =   -1;
 				Object parent = null;
 
-			    index = config.indexOfPSet(pset);
+			    index = config.indexOfPSet(oldPSet);
 			    if (index<0) return false;
-			    config.removePSet(pset);
+			    config.removePSet(oldPSet);
 			    parent = model.psetsNode();
 				model.nodeRemoved(parent,index,external);
 			} else return false;

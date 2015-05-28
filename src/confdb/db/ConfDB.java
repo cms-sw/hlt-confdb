@@ -404,7 +404,8 @@ public class ConfDB
     // New path fields extension:
     private  PreparedStatement psCheckPathFieldsExistence			= null;
     private  PreparedStatement psSelectPathExtraFields				= null;
-    private	 PreparedStatement psInsertPathDescription				= null;
+    private  PreparedStatement psInsertPathDescription				= null;
+    private  PreparedStatement psUpdatePathDescription				= null;
     
     // bug #91797: ConfDB operator IGNORE/NEGATE also for modules in a sequence.
     private	PreparedStatement psCheckOperatorForModuleSequenceAssoc	= null;
@@ -1386,8 +1387,8 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 		    String  pathDesc = null;
 		    String	pathCont = null;
 
-		    pathDesc    = rsInstances.getString(6);
-		    pathCont	= rsInstances.getString(7);
+		    pathDesc    = rsInstances.getString(7);
+		    pathCont	= rsInstances.getString(8);
 
 		    path.setDescription(pathDesc);
 		    path.setContacts(pathCont);		   	
@@ -2027,7 +2028,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 */
 	    // insert references regarding paths and sequences
 	    insertReferences(config,pathHashMap,sequenceHashMap,
-			     moduleHashMap,streamHashMap);
+			     moduleHashMap,streamHashMap,configId);
 	    
 	
 	    dbConnector.getConnection().commit();
@@ -2082,7 +2083,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 	    throw new DatabaseException(errMsg);
 	}
 	
-/*	try {
+	try {
 	    psInsertConfigurationLock.setInt(1,parentDirId);
 	    psInsertConfigurationLock.setString(2,configName);
 	    psInsertConfigurationLock.setString(3,userName);
@@ -2096,7 +2097,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
-*/
+
     }
 
     /** unlock a configuration and all its versions */
@@ -2109,7 +2110,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 	String  configName    = config.name();
 	String  userName      = config.lockedByUser();
 
-/*	try {
+	try {
 	    psDeleteLock.setInt(1,parentDirId);
 	    psDeleteLock.setString(2,configName);
 	    psDeleteLock.executeUpdate();
@@ -2121,7 +2122,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
-*/
+
     }
     
     /** insert a new super id, return its value */
@@ -2465,19 +2466,20 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 		String contacts			= path.getContacts();
                 int vpathId = -1; 
 		
-			if (pathId<=0) {
+		if (pathId<=0) {
 		    
                         int id_path = -1;
-                        int crc32 = calculatePathCRC(path);
+                        int crc32=0;
 		/*h_ tables 
+                        int crc32 = calculatePathCRC(path);
+                 */
                         psCheckPathName.setString(1,pathName);
                         rs=psCheckPathName.executeQuery();
                         if (rs.next()) {
                             id_path = rs.getInt(1);
                         }
-                System.out.println("insertPath: searched confver "+configId+" id path "+id_path);
+                //System.err.println("insertPath: searched confver "+configId+" id path "+id_path);
 
-                 */
                         if (id_path<0) {
                                 String pathnoum=pathName;
                                 Integer version=0;
@@ -2492,7 +2494,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
                         	if(rs.next()) {
                             		id_pathnoum = rs.getInt(1);
                         	}
-                //System.out.println("insertPath: searched pathnoum "+id_pathnoum);
+                //System.err.println("insertPath: searched pathnoum "+id_pathnoum);
                                 if (id_pathnoum<0) {
 					psInsertPathNoum.setString(1,pathnoum);
 					psInsertPathNoum.executeUpdate();
@@ -2504,8 +2506,10 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 				psInsertPath.setString(1,pathName);
 				psInsertPath.setInt(2,version);
 				psInsertPath.setInt(3,id_pathnoum);
-			        psInsertPath.setString(3, description);
-			        psInsertPath.setString(4, contacts);
+			        //psInsertPath.setString(4, description);
+			        //psInsertPath.setString(5, contacts);
+			        psInsertPath.setNull(4,Types.VARCHAR);//description
+			        psInsertPath.setNull(5,Types.VARCHAR);//contacts
                                
 
                                 psInsertPath.executeUpdate();
@@ -2513,39 +2517,32 @@ if (pkg==null) System.err.println("pkg NULL!!!");
                                 rs.next();
                                	id_path=rs.getInt(1);                
                 //System.out.println("insertPath: created id_path "+id_path);
-                        }
-				
+                          } /*else {
+			       psUpdatePathDescription.setString(1, description);	
+			       psUpdatePathDescription.setString(2, contacts);	
+			       psUpdatePathDescription.setInt(3, id_path);	
+			       psUpdatePathDescription.executeUpdate();	
+		          }	*/	
+
                        
-			//if(extraPathFieldsAvailability) {
-                        if (false) {
-			     // inserting extra fields in schema:
-			    psInsertPathDescription.setString(1,pathName);
-                            if (pathIsEndPath){ 
-			    	psInsertPathDescription.setInt(2,1);
-                            } else {
-			    	psInsertPathDescription.setInt(2,0);
-                            }
-			    psInsertPathDescription.setString(3, description);
-			    psInsertPathDescription.setString(4, contacts);
-			    psInsertPathDescription.executeUpdate();
-			    rs = psInsertPathDescription.getGeneratedKeys();				
-			} else {
-				// no extra fields in schema:
-			    psInsertPathIds.setInt(1,id_path);
-                            if (pathIsEndPath){ 
+			  psInsertPathIds.setInt(1,id_path);
+                          if (pathIsEndPath){ 
 			    	psInsertPathIds.setInt(2,1);
-                            } else {
+                          } else {
 			    	psInsertPathIds.setInt(2,0);
-                            }
-			    psInsertPathIds.setInt(3,crc32);
-			    psInsertPathIds.setInt(4,111111);
-			    psInsertPathIds.executeUpdate();
-			    rs = psInsertPathIds.getGeneratedKeys();
-                            rs.next();
-                            vpathId=rs.getInt(1);
+                          }
+			  //psInsertPathIds.setInt(3,crc32);
+			  psInsertPathIds.setNull(3,Types.INTEGER);//crc
+			  //psInsertPathIds.setInt(4,111111);
+			  psInsertPathIds.setNull(4,Types.INTEGER);
+			  psInsertPathIds.setString(5, description);
+			  psInsertPathIds.setString(6, contacts);
+			  psInsertPathIds.executeUpdate();
+			  rs = psInsertPathIds.getGeneratedKeys();
+                          rs.next();
+                          vpathId=rs.getInt(1);
                 //System.out.println("insertPath: created vpathid "+vpathId);
-			}
-                        pathId=vpathId; //if not using h_ tables
+                          pathId=vpathId; //if not using h_ tables
 
                        /*only for h_ tables 
                          psCheckHPathIdCrc.setInt(1,crc32);
@@ -2592,7 +2589,8 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 		psInsertConfigPathAssoc.setInt(1,vpathId);
 		psInsertConfigPathAssoc.setInt(2,configId);
 		psInsertConfigPathAssoc.setInt(3,sequenceNb);
-		psInsertConfigPathAssoc.executeUpdate();
+		psInsertConfigPathAssoc.addBatch();
+		//psInsertConfigPathAssoc.executeUpdate();
 
                        /*only for h_ tables 
                 System.out.println("insertPath: Trying to insert confver "+configId+" h_pathid "+pathId);
@@ -2620,7 +2618,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 	    dbConnector.release(rs);
 	}
 
-/*	try {
+	try {
 	    psInsertConfigPathAssoc.executeBatch();
 	}
 	catch (SQLException e) {
@@ -2629,7 +2627,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 		") failed (batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
-*/	
+	
 	return result;
     }
     
@@ -2650,10 +2648,12 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 		String   sequenceName = sequence.name();
 		
 		if (sequenceId<=0) {
-                    int crc32 = calculateSequenceCRC(sequence);
+                    //int crc32 = calculateSequenceCRC(sequence);
+                    int crc32 = 0;
                     psInsertPathElement.setInt(1,2); //paetype
 		    psInsertPathElement.setString(2,sequenceName);
-                    psInsertPathElement.setInt(3,crc32);
+                    //psInsertPathElement.setInt(3,crc32);
+                    psInsertPathElement.setNull(3,Types.INTEGER);
 
                     psInsertPathElement.executeUpdate();
 
@@ -2723,11 +2723,13 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 		result.put(module.name(),moduleId);
 	    }
 	    else {
-               int crc32 = calculateModuleCRC(module);
+               //int crc32 = calculateModuleCRC(module);
+               int crc32 = 0;
 		try {
                     psInsertPathElement.setInt(1,1); //paetype
 		    psInsertPathElement.setString(2,module.name());
-		    psInsertPathElement.setInt(3,crc32);
+		    //psInsertPathElement.setInt(3,crc32);
+		    psInsertPathElement.setNull(3,Types.INTEGER); //crc
 		    psInsertPathElement.executeUpdate();
 
                     rs=psInsertPathElement.getGeneratedKeys();
@@ -2736,9 +2738,10 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 
                     psInsertMod2Templ.setInt(1,moduleId);
                     psInsertMod2Templ.setInt(2,templateId);
-                    psInsertMod2Templ.executeUpdate();
+                    psInsertMod2Templ.addBatch();
 
                     insertInstanceParameters(moduleId,module,psInsertMoElement);
+                    
 
 		    result.put(module.name(),moduleId);
 		    modulesToStore.add(new IdInstancePair(moduleId,module));
@@ -2773,8 +2776,9 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 	    }
 	}
 	
-/*	try {
-	    psInsertModule.executeBatch();
+	try {
+	    psInsertMod2Templ.executeBatch();
+            psInsertMoElement.executeBatch();
 	}
 	catch (SQLException e) {
 	    String errMsg =
@@ -2782,7 +2786,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 		"(batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e); 
 	}
-*/	
+	
 /*
 	Iterator<IdInstancePair> it=modulesToStore.iterator();
 	while (it.hasNext()) {
@@ -2801,7 +2805,8 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 				  HashMap<String,Integer> pathHashMap,
 				  HashMap<String,Integer> sequenceHashMap,
 				  HashMap<String,Integer> moduleHashMap,
-				  HashMap<String,Integer> streamHashMap)
+				  HashMap<String,Integer> streamHashMap, 
+                                  int configId)
 	throws DatabaseException
     {
 	// paths
@@ -2834,7 +2839,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 		    } else */
 		    if (r instanceof SequenceReference) {
 			int sequenceId=Math.abs(sequenceHashMap.get(r.name()));
-         System.out.println("insertReferences - Found  seq " + sequenceId + " ( " + r.name() + " )");
+         //System.out.println("insertReferences - Found  seq " + sequenceId + " ( " + r.name() + " )");
 			try {
 			    psInsertPathElementAssoc.setInt(1,pathId);
 			    psInsertPathElementAssoc.setInt(2,sequenceId);
@@ -2842,8 +2847,9 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 			    psInsertPathElementAssoc.setInt(4,0); //lvl
 			    psInsertPathElementAssoc.setInt(5,sequenceNb);
 			    psInsertPathElementAssoc.setInt(6,r.getOperator().ordinal());
-			    psInsertPathElementAssoc.executeUpdate();
-                            insertSeqReferences((Sequence)r.parent(),pathId,sequenceId,1,sequenceHashMap,moduleHashMap,streamHashMap);
+			    psInsertPathElementAssoc.addBatch();
+			    //psInsertPathElementAssoc.executeUpdate();
+                            insertPathSeqReferences((Sequence)r.parent(),pathId,sequenceId,1,sequenceHashMap,moduleHashMap,streamHashMap);
 			}
 			catch (SQLException e) {
 			    String errMsg = 
@@ -2864,7 +2870,8 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 			    psInsertPathElementAssoc.setInt(4,0); //lvl
 			    psInsertPathElementAssoc.setInt(5,sequenceNb);
 			    psInsertPathElementAssoc.setInt(6,r.getOperator().ordinal());
-			    psInsertPathElementAssoc.executeUpdate();
+			    psInsertPathElementAssoc.addBatch();
+			    //psInsertPathElementAssoc.executeUpdate();
 			}
 			catch (SQLException e) {
 			    String errMsg = 
@@ -2886,7 +2893,8 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 			    psInsertPathOutputModuleAssoc.setInt(2,outputModuleId);
 			    psInsertPathOutputModuleAssoc.setInt(3,sequenceNb);
 			    psInsertPathOutputModuleAssoc.setInt(4,r.getOperator().ordinal());
-			    psInsertPathOutputModuleAssoc.executeUpdate();
+			    psInsertPathOutputModuleAssoc.addBatch();
+			    //psInsertPathOutputModuleAssoc.executeUpdate();
 			}
 			catch (SQLException e) {
 			    String errMsg = 
@@ -2901,28 +2909,121 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 		}
 	    }
 	}
-/*        try {
-            psInsertPathPathAssoc.executeBatch();
-            psInsertPathSequenceAssoc.executeBatch();
-            psInsertPathModuleAssoc.executeBatch();
+//sequences
+       for (int sequenceNb=0;sequenceNb<config.sequenceCount();sequenceNb++) {
+                Sequence sequence     = config.sequence(sequenceNb);
+                int      sequenceId   = sequence.databaseId();
+
+                        try{
+                            psInsertConfigSequenceAssoc.setInt(1,configId);
+                            psInsertConfigSequenceAssoc.setInt(2,sequenceId);
+                            psInsertConfigSequenceAssoc.setNull(3,Types.INTEGER);//parent
+                            psInsertConfigSequenceAssoc.setInt(4,0); //lvl
+                            psInsertConfigSequenceAssoc.setInt(5,sequenceNb);
+                            psInsertConfigSequenceAssoc.setInt(6,0);
+                            psInsertConfigSequenceAssoc.addBatch();
+
+                            insertSeqReferences(sequence,configId,0,0,sequenceHashMap,moduleHashMap);
+			}
+			catch (SQLException e) {
+			    String errMsg = 
+				"ConfDB::insertSeqReferences(config="+
+				config.toString()+
+				") failed (configId="+configId+",sequenceId="+
+				sequenceId+",sequenceNb="+sequenceNb+"): "+
+				e.getMessage();
+			    throw new DatabaseException(errMsg,e);
+			}
+               }
+        try {
+
+            psInsertPathElementAssoc.executeBatch();
             psInsertPathOutputModuleAssoc.executeBatch();
-            psInsertSequenceSequenceAssoc.executeBatch();
-            psInsertSequenceModuleAssoc.executeBatch();
-            psInsertSequenceOutputModuleAssoc.executeBatch();
+            psInsertConfigSequenceAssoc.executeBatch();
+//            psInsertPathPathAssoc.executeBatch();
+//            psInsertPathSequenceAssoc.executeBatch();
+//            psInsertPathModuleAssoc.executeBatch();
+//            psInsertPathOutputModuleAssoc.executeBatch();
+//            psInsertSequenceSequenceAssoc.executeBatch();
+//            psInsertSequenceModuleAssoc.executeBatch();
         }
         catch (SQLException e) {
             String errMsg =
                 "ConfDB::insertReferences(config="+config.toString()+") failed "+
                 "(batch insert): "+e.getMessage();
             throw new DatabaseException(errMsg,e);
-        }*/
+        }
     }
 
     /** insert all references, regarding paths and sequences */
-    private void insertSeqReferences(Sequence sequence,int pathId,int parentId,int lvl, 
+    private void insertSeqReferences(Sequence sequence,int configId,int parentId,int lvl,
+                                  HashMap<String,Integer> sequenceHashMap,
+                                  HashMap<String,Integer> moduleHashMap)
+        throws DatabaseException
+    {
+            int      sequenceId = sequenceHashMap.get(sequence.name());
+
+               for (int sequenceNb=0;sequenceNb<sequence.entryCount();
+                     sequenceNb++) {
+                    Reference r = sequence.entry(sequenceNb);
+                    if (r instanceof SequenceReference) {
+                        int childSequenceId=Math.abs(sequenceHashMap
+                                                     .get(r.name()));
+                        try {
+                            psInsertConfigSequenceAssoc.setInt(1,configId);
+                            psInsertConfigSequenceAssoc.setInt(2,childSequenceId);
+                            psInsertConfigSequenceAssoc.setInt(3,parentId); //lvl
+                            psInsertConfigSequenceAssoc.setInt(4,lvl); //lvl
+                            psInsertConfigSequenceAssoc.setInt(5,sequenceNb);
+                            psInsertConfigSequenceAssoc.setInt(6,r.getOperator().ordinal());
+                            psInsertConfigSequenceAssoc.addBatch();
+
+                            insertSeqReferences((Sequence)r.parent(),configId,childSequenceId,lvl+1,sequenceHashMap,moduleHashMap);
+
+                        }
+                        catch (SQLException e) {
+                            e.printStackTrace();
+                            String errMsg =
+                                "ConfDB::insertReferences(Sequence="+
+                                sequence.name()+
+                                ") failed (sequenceId="+sequenceId+" ("+
+                                sequence.name()+"), childSequenceId="+
+                                childSequenceId+" ("+r.name()+")"+
+                                ",sequenceNb="+sequenceNb+"): "+e.getMessage();
+                            throw new DatabaseException(errMsg,e);
+                        }
+                    }
+                    else if (r instanceof ModuleReference) {
+                        int moduleId = moduleHashMap.get(r.name());
+                        try {
+                            psInsertConfigSequenceAssoc.setInt(1,configId);
+                            psInsertConfigSequenceAssoc.setInt(2,moduleId);
+                            psInsertConfigSequenceAssoc.setInt(3,parentId); //lvl
+                            psInsertConfigSequenceAssoc.setInt(4,lvl); //lvl
+                            psInsertConfigSequenceAssoc.setInt(5,sequenceNb);
+                            psInsertConfigSequenceAssoc.setInt(6,r.getOperator().ordinal());
+                            psInsertConfigSequenceAssoc.addBatch();
+                            //psInsertPathElementAssoc.executeUpdate();
+                        }
+                        catch (SQLException e) {
+                            String errMsg =
+                                "ConfDB::insertReferences(Sequence="+
+                                sequence.name()+") failed (sequenceId="+
+                                sequenceId+",moduleId="+moduleId+
+                                ",sequenceNb="+sequenceNb+"): "+e.getMessage();
+                            throw new DatabaseException(errMsg,e);
+                        }
+                    }
+            }
+
+    }
+
+
+    /** insert all references, regarding paths and sequences */
+    private void insertPathSeqReferences(Sequence sequence,int pathId,int parentId,int lvl, 
 				  HashMap<String,Integer> sequenceHashMap,
 				  HashMap<String,Integer> moduleHashMap,
-				  HashMap<String,Integer> streamHashMap)
+				  HashMap<String,Integer> streamHashMap )
 	throws DatabaseException
     {
 	
@@ -2935,9 +3036,10 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 	    
 	    int      sequenceId = sequenceHashMap.get(sequence.name());
 
-         System.out.println("insertSeqRef - Found " + sequence.entryCount() + " for seq " + sequenceId + " ( " + sequence.name() + " )");
+         //System.out.println("insertSeqRef - Found " + sequence.entryCount() + " for seq " + sequenceId + " ( " + sequence.name() + " )");
 
-	    if (sequenceId>0) {
+	    //if (sequenceId>0) {
+	    if (true) {
 		
 		for (int sequenceNb=0;sequenceNb<sequence.entryCount();
 		     sequenceNb++) {
@@ -2952,9 +3054,10 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 			    psInsertPathElementAssoc.setInt(4,lvl); //lvl
 			    psInsertPathElementAssoc.setInt(5,sequenceNb);
 			    psInsertPathElementAssoc.setInt(6,r.getOperator().ordinal());
-			    psInsertPathElementAssoc.executeUpdate();
+			    psInsertPathElementAssoc.addBatch();
+			    //psInsertPathElementAssoc.executeUpdate();
                           
-                            insertSeqReferences((Sequence)r.parent(),pathId,childSequenceId,lvl+1,sequenceHashMap,moduleHashMap,streamHashMap);
+                            insertPathSeqReferences((Sequence)r.parent(),pathId,childSequenceId,lvl+1,sequenceHashMap,moduleHashMap,streamHashMap);
 
 			}
 			catch (SQLException e) {
@@ -2978,7 +3081,8 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 			    psInsertPathElementAssoc.setInt(4,lvl); //lvl
 			    psInsertPathElementAssoc.setInt(5,sequenceNb);
 			    psInsertPathElementAssoc.setInt(6,r.getOperator().ordinal());
-			    psInsertPathElementAssoc.executeUpdate();
+			    psInsertPathElementAssoc.addBatch();
+			    //psInsertPathElementAssoc.executeUpdate();
 			}
 			catch (SQLException e) {
 			    String errMsg = 
@@ -2989,7 +3093,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 			    throw new DatabaseException(errMsg,e);
 			}
 		    }
-		    else if (r instanceof OutputModuleReference) {
+		    else if (r instanceof OutputModuleReference)  {
 			String streamName = r.name().replaceFirst("hltOutput","");
 			int outputModuleId = streamHashMap.get(streamName);
 			if(outputModuleId<0)
@@ -2999,7 +3103,8 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 			    psInsertPathOutputModuleAssoc.setInt(2,outputModuleId);
 			    psInsertPathOutputModuleAssoc.setInt(3,sequenceNb);
 			    psInsertPathOutputModuleAssoc.setInt(4,r.getOperator().ordinal());
-			    psInsertPathOutputModuleAssoc.executeUpdate();
+			    psInsertPathOutputModuleAssoc.addBatch();
+			    //psInsertPathOutputModuleAssoc.executeUpdate();
 			}
 			catch (SQLException e) {
 			    String errMsg = 
@@ -4737,7 +4842,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 		dbConnector.getConnection().prepareStatement
 		("SELECT" +
 		 " u_directories.Name," +
-		 " u_lockedconfs.id_config," +
+		 " u_lockedconfs.config," +
 		 " u_lockedconfs.userName " +
 		 "FROM u_lockedconfs " +
 		 "JOIN u_directories " +
@@ -5455,7 +5560,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 
 	    psInsertConfigurationLock =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO u_lockedconfs (parentDirId,config,userName)" +
+		("INSERT INTO u_lockedconfs (id_parentDir,config,userName)" +
 		 "VALUES(?, ?, ?)");
 	    preparedStatements.add(psInsertConfigurationLock);
 
@@ -5652,8 +5757,8 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 	  
 	    psInsertPathIds =
 		dbConnector.getConnection().prepareStatement
-		("INSERT INTO u_pathids (id_path,pathid,isEndPath,crc32,crc32logic) " +
-		 "VALUES(?, -999, ?, ?, ?)",keyColumn);
+		("INSERT INTO u_pathids (id_path,pathid,isEndPath,crc32,crc32logic,description, contact) " +
+		 "VALUES(?, -999, ?, ?, ?, ?, ?)",keyColumn);
 	    preparedStatements.add(psInsertPathIds);
 	  
 /*	    psInsertHPathIds =
@@ -5705,24 +5810,25 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 	    preparedStatements.add(psInsertSequence);
 	    
 	
+*/
 	    psInsertConfigSequenceAssoc =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO " +
-		 "ConfigurationSequenceAssoc (configId,sequenceId,sequenceNb) " +
-		 "VALUES(?, ?, ?)");
+		 "u_conf2pae (id_confver,id_pae,id_parent,lvl,ord,operator) " +
+		 "VALUES(?, ?, ?, ?, ?, ?)");
 	    preparedStatements.add(psInsertConfigSequenceAssoc);
-*/
+
 
 	    psInsertPathElement =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO u_paelements (paetype,name,crc32,crc32logic,o_id) " +
-		 "VALUES(?, ?, ?, -999,-999)",keyColumn);
+		 "VALUES(?, ?, ?, NULL,-999)",keyColumn);
 	    preparedStatements.add(psInsertPathElement);
 	    
 	    psInsertHPathElement =
 		dbConnector.getConnection().prepareStatement
 		("INSERT INTO h_paelements (moe_type,templateId,name,crc32,crc32logic) " +
-		 "VALUES(?, ?, ?, ?, -999)");
+		 "VALUES(?, ?, ?, ?, NULL)");
 	    preparedStatements.add(psInsertHPathElement);
 	    
            psInsertMoElement =
@@ -6101,7 +6207,7 @@ if (pkg==null) System.err.println("pkg NULL!!!");
 	    psDeleteLock =
 		dbConnector.getConnection().prepareStatement
 		("DELETE FROM u_lockedconfs " +
-		 "WHERE id_parentdir=? AND id_config=?");
+		 "WHERE id_parentdir=? AND config=?");
             preparedStatements.add(psDeleteLock);
 
 	    psDeleteConfiguration =
@@ -6403,7 +6509,7 @@ psSelectParametersTemplates =
 " UNION ALL "+
 " SELECT ta.*,NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, u_mod2templ.id_templ, 'Module', u_paelements.name,NULL as endpath, NULL as ord FROM u_pathid2pae,u_paelements, u_pathid2conf, u_mod2templ WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_paelements.paetype=1 and u_mod2templ.id_pae=u_paelements.id and u_pathid2conf.id_confver = ? ) ta"+
 " UNION ALL "+
-" SELECT u_pathid2conf.id_pathid, NULL, 'Path', u_paths.name, u_pathids.isEndPath, u_pathid2conf.ord,u_paths.description,u_paths.contact FROM u_paths,u_pathid2conf,u_pathids WHERE u_pathids.id=u_pathid2conf.id_pathid and u_paths.id=u_pathids.id_path and u_pathid2conf.id_confver = ? "+
+" SELECT u_pathid2conf.id_pathid, NULL, 'Path', u_paths.name, u_pathids.isEndPath, u_pathid2conf.ord,u_pathids.description,u_pathids.contact FROM u_paths,u_pathid2conf,u_pathids WHERE u_pathids.id=u_pathid2conf.id_pathid and u_paths.id=u_pathids.id_path and u_pathid2conf.id_confver = ? "+
 " UNION ALL "+
 " select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, u_mod2templ.id_templ, 'Module', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_conf2pae,u_mod2templ WHERE  u_conf2pae.id_pae=u_paelements.id and u_paelements.paetype=1 and u_conf2pae.id_confver = ? and u_mod2templ.id_pae=u_paelements.id and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver )) ta  "+
 " UNION ALL "+
@@ -6710,8 +6816,8 @@ psSelectParametersTemplates =
 			"SELECT p.id		,	" +
 			"		p.description	, 	" +
 			"		p.contact			" +
-			"FROM	u_paths	p, u_pathids q			" +
-			"WHERE	p.id = q.id_path and q.id= ?		");
+			"FROM	u_pathids	p			" +
+			"WHERE	p.id = ?		");
 		    preparedStatements.add(psSelectPathExtraFields);		  
 		    
 		psInsertPathDescription =
@@ -6719,6 +6825,11 @@ psSelectParametersTemplates =
 			("INSERT INTO u_paths (name,isEndPath, description, contact) " +
 			 "VALUES(?, ?, ?, ?)",keyColumn);
 		    preparedStatements.add(psInsertPathDescription);
+
+		psUpdatePathDescription =
+			dbConnector.getConnection().prepareStatement
+			("UPDATE u_paths SET description=?, contact=? WHERE id= ? ");
+		    preparedStatements.add(psUpdatePathDescription);
 		    
 	    // bug #91797: ConfDB operator IGNORE/NEGATE also for modules in a sequence.
 /*
@@ -6875,6 +6986,7 @@ psSelectParametersTemplates =
              if (name.contains("Empty name")) name="";
 
             if (type.equals("bool")) { 
+ System.err.println("getParameters: name "+name+" id="+parameterId+" parentId "+parentId);
 		String valueAsString =
 		    (new Boolean(rsParameters.getBoolean(8))).toString();
 		idToValueAsString.put(parameterId,valueAsString);
@@ -6887,6 +6999,7 @@ psSelectParametersTemplates =
                 if (rsParameters.getInt(10)>0) isHex=true;
 
 		String  valueAsString = rsParameters.getString(8);
+// System.err.println("getParameters: name "+name+" id="+parameterId+" parentId "+parentId);
 
                 if (type.contains("v")) { //should handle vector hex representation
                          valueAsString=rsParameters.getString(8);
@@ -7145,7 +7258,8 @@ psSelectParametersTemplates =
                 dbstmnt.setInt(3,-1);
                 dbstmnt.setString(4,"VPSet");
                 dbstmnt.setBoolean(5,vpset.isTracked());
-                dbstmnt.setInt(6,999);
+                //dbstmnt.setInt(6,999);
+                dbstmnt.setNull(6,Types.INTEGER);//crc
              } else {
              dbstmnt.setInt(1,parentId);
 	    dbstmnt.setString(2,vpset.name());
@@ -7168,7 +7282,8 @@ psSelectParametersTemplates =
                 psInsertPae2Moe.setInt(2,paramId);
                 psInsertPae2Moe.setInt(3,lvl);
                 psInsertPae2Moe.setInt(4,sequenceNb);
-                psInsertPae2Moe.executeUpdate();
+                psInsertPae2Moe.addBatch();
+                //psInsertPae2Moe.executeUpdate();
            }
  
 	    for (int i=0;i<vpset.parameterSetCount();i++) {
@@ -7186,6 +7301,16 @@ psSelectParametersTemplates =
 	finally {
 	    dbConnector.release(rs);
 	}
+       try {
+            psInsertPae2Moe.executeBatch();
+        }
+        catch (SQLException e) {
+            String errMsg =
+                "ConfDB::insertVecParameterSet(parId="+parentId+") failed "+
+                "(batch insert):" + e.getMessage();
+            throw new DatabaseException(errMsg,e);
+        }
+
 	//insertSuperIdVecParamSetAssoc(superId,vpsetId,sequenceNb);
     }
     
@@ -7206,7 +7331,8 @@ psSelectParametersTemplates =
                 dbstmnt.setInt(3,-1);
                 dbstmnt.setString(4,"PSet");
                 dbstmnt.setBoolean(5,pset.isTracked());
-                dbstmnt.setInt(6,999);
+                //dbstmnt.setInt(6,999);
+                dbstmnt.setNull(6,Types.INTEGER);//crc
              } else {
 	    dbstmnt.setInt(1,parentId);
 	    dbstmnt.setString(2,pset.name());
@@ -7231,7 +7357,7 @@ psSelectParametersTemplates =
                 psInsertPae2Moe.setInt(2,paramId);
                 psInsertPae2Moe.setInt(3,lvl);
                 psInsertPae2Moe.setInt(4,sequenceNb);
-                psInsertPae2Moe.executeUpdate();
+                psInsertPae2Moe.addBatch();
            }
 
 
@@ -7261,6 +7387,17 @@ psSelectParametersTemplates =
 	finally {
 	    dbConnector.release(rs);
 	}
+
+       try {
+            psInsertPae2Moe.executeBatch();
+        }
+        catch (SQLException e) {
+            String errMsg =
+                "ConfDB::insertParameterSet(parId="+parentId+") failed "+
+                "(batch insert):" + e.getMessage();
+            throw new DatabaseException(errMsg,e);
+        }
+ 
 //	insertSuperIdParamSetAssoc(superId,psetId,sequenceNb);
     }
     
@@ -7287,7 +7424,8 @@ psSelectParametersTemplates =
 	        dbstmnt.setInt(3,-1);
 	    	dbstmnt.setString(4,parameter.type());
 	    	dbstmnt.setBoolean(5,parameter.isTracked());
-	        dbstmnt.setInt(6,999);
+	        //dbstmnt.setInt(6,999);
+	        dbstmnt.setNull(6,Types.INTEGER);//crc
              } else {
 	    dbstmnt.setInt(1,parentId);
 	    dbstmnt.setString(2,parameter.name());
@@ -7350,6 +7488,10 @@ psSelectParametersTemplates =
                         //Long vuint64=((BigInteger)sp.value()).longValue();
                         value=Long.toString(((BigInteger)sp.value()).longValue());
                 }
+                else if (sp instanceof BoolParameter) {
+                         if ((Boolean) sp.value()) value= "1"; 
+                          else value="0";
+                }
                 else {
                		value = (String) sp.valueAsString();
                 }
@@ -7357,13 +7499,13 @@ psSelectParametersTemplates =
                     Int32Parameter int32=(Int32Parameter)sp;
 		    if (int32.isHex()) {
                         hexo=1;
-                       // value=int32.value().toString();
+                        value=int32.value().toString();
                     }
                 } else if (sp instanceof UInt32Parameter) {
                     UInt32Parameter uint32=(UInt32Parameter)sp;
 		    if (uint32.isHex()) {
                         hexo=1;
-                        //value=uint32.value().toString();
+                        value=uint32.value().toString();
                     }
                 } else if (sp instanceof Int64Parameter) {
                     Int64Parameter int64=(Int64Parameter)sp;
@@ -7401,7 +7543,8 @@ psSelectParametersTemplates =
                 psInsertPae2Moe.setInt(3,lvl);
                 psInsertPae2Moe.setInt(4,sequenceNb);
      
-                psInsertPae2Moe.executeUpdate();
+                //psInsertPae2Moe.executeUpdate();
+                psInsertPae2Moe.addBatch();
            }
 
 	}
@@ -7416,6 +7559,18 @@ psSelectParametersTemplates =
 	    dbConnector.release(rs);
 	}
 	
+      try {
+	    if (dbstmnt==psInsertMoElement) {
+               psInsertPae2Moe.executeBatch();
+            }
+        }
+        catch (SQLException e) {
+            String errMsg =
+                "ConfDB::insertParameter(parId="+parentId+") failed "+
+                "(batch insert):" + e.getMessage();
+            throw new DatabaseException(errMsg,e);
+        }
+
     }
     
     /** associate parameter with the service/module superid */

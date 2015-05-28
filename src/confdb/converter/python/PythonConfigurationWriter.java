@@ -201,24 +201,18 @@ public class PythonConfigurationWriter implements IConfigurationWriter
 			str.append( ")\n" );
 		}
 
-		if ( writeProcess == WriteProcess.YES )
+		if ( conf.pathCount() > 0 )
 		{
-		}
-		else
-		{
-			if ( conf.pathCount() > 0 )
+			str.append( "\n" + object + "HLTSchedule = cms.Schedule( *(" );
+			for ( int i = 0; i < conf.pathCount(); i++ )
 			{
-				str.append( "\nHLTSchedule = cms.Schedule( *(" );
-				for ( int i = 0; i < conf.pathCount(); i++ )
-				{
-					Path path = conf.path(i);
-					str.append( path.name() + ", " );
-				}
-				int length = str.length();
-				str.setCharAt( length - 2, ' ' );
-				str.setLength( length - 1 );
-				str.append( "))\n" );
+				Path path = conf.path(i);
+				str.append( object + path.name() + ", " );
 			}
+			int length = str.length();
+			str.setCharAt( length - 2, ' ' );
+			str.setLength( length - 1 );
+			str.append( "))\n" );
 		}
 
 		return str.toString();
