@@ -7,7 +7,6 @@ RecoTauTag/RecoTau                      RecoTauCombinatoricProducer_cfi.py
 RecoParticleFlow/PFClusterProducer      particleFlowClusterECAL_cfi.py
 Geometry/HcalEventSetup                 HcalGeometryDBReader_cfi.py
 Geometry/CSCGeometryBuilder             cscGeometry_cfi.py
-HLTrigger/Configuration                 hltDaqSource_cfi.py
 DQMServices/Core                        DQMStore_cfi.py
 CalibTracker/SiStripESProducers         SiStripQualityESProducer_cfi.py
 Geometry/TrackerNumberingBuilder        trackerNumberingGeometry_cfi.py
@@ -19,7 +18,6 @@ RecoTracker/FinalTrackSelectors         trackListMerger_cfi.py
 RecoTracker/FinalTrackSelectors         simpleTrackListMerger_cfi.py
 TrackingTools/TrajectoryCleaning        TrajectoryCleanerBySharedHits_cfi.py
 RecoTracker/DeDx                        hltDeDxEstimatorProducer_cfi.py
-IORawData/DaqSource                     hltDaqSource_cfi.py
 RecoTauTag/TauTagTools                  HLTPFTauSelector_cfi.py
 RecoMuon/L2MuonIsolationProducer        hltL2MuonIsolationsCR_cfi.py
 RecoBTau/JetTagComputer                 combinedMVABJetTags_cfi.py
