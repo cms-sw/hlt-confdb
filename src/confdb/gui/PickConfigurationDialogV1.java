@@ -24,7 +24,7 @@ import confdb.db.*;
  *
  * Pick a configuration, e.g. to open, import, etc.
  */
-public class PickOldConfigurationDialog extends JDialog
+public class PickConfigurationDialogV1 extends JDialog
 {
     //
     // member data
@@ -34,7 +34,7 @@ public class PickOldConfigurationDialog extends JDialog
     private JFrame jFrame;
 
     /** configuration database */
-    private ConfOldDB database;
+    private ConfDBV1 database;
     
     /** root directory of configurations */
     private Directory rootDir;
@@ -76,7 +76,7 @@ public class PickOldConfigurationDialog extends JDialog
     //
 
     /** standard constructor */
-    public PickOldConfigurationDialog(JFrame jFrame,String title,ConfOldDB database)
+    public PickConfigurationDialogV1(JFrame jFrame,String title,ConfDBV1 database)
     {
         super(jFrame,true);
         this.jFrame = jFrame;

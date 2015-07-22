@@ -32,8 +32,8 @@ import java.io.IOException;
 
 import confdb.gui.treetable.*;
 
+import confdb.db.ConfDBV1;
 import confdb.db.ConfDB;
-import confdb.db.ConfOldDB;
 import confdb.db.DatabaseException;
 import confdb.db.OracleDatabaseConnector;
 
@@ -1309,7 +1309,7 @@ public class ConfDbGUI
 	if (database.dbUrl().equals(new String())) return;
 	if (!closeConfiguration()) return;
        
-	ConfOldDB databaseOld = new ConfOldDB();
+	ConfDBV1 databaseOld = new ConfDBV1();
 	
 	System.out.println();
 
@@ -1339,8 +1339,8 @@ public class ConfDbGUI
 					  JOptionPane.ERROR_MESSAGE);
 	}
 
-	PickOldConfigurationDialog dialog =
-	    new PickOldConfigurationDialog(frame,"Open Configuration from old Schema",databaseOld);
+	PickConfigurationDialogV1 dialog =
+	    new PickConfigurationDialogV1(frame,"Open Configuration from ConfDB V1",databaseOld);
 
 	dialog.allowUnlocking();
 	dialog.pack();
@@ -2027,11 +2027,11 @@ public class ConfDbGUI
 	private ConfigInfo configInfo = null;
 	private long       startTime;
 	
-	private ConfOldDB databaseOld;
-	private ConfDB    database;
+	private ConfDBV1   databaseOld;
+	private ConfDB     database;
 
 	/** standard constructor */
-	public OpenOldConfigurationThread(ConfigInfo configInfo,ConfOldDB databaseOld,ConfDB database)
+	public OpenOldConfigurationThread(ConfigInfo configInfo,ConfDBV1 databaseOld,ConfDB database)
 	{
 	    this.configInfo = configInfo;
 	    this.databaseOld = databaseOld;

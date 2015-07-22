@@ -156,7 +156,7 @@ public class PrimaryDataset extends DatabaseEntry
 	if (index<0) return false;
 	paths.remove(index);
 	setHasChanged();
- //       parentStream.setHasChanged();
+        //parentStream.setHasChanged();
 	return true;
     }
     

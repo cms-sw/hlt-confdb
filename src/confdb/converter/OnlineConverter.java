@@ -82,7 +82,7 @@ public class OnlineConverter extends ConverterBase
 	try {
 	    DbProperties dbProperties = DbProperties.getDefaultDbProperties();
 	    initDB(dbProperties.dbType, dbProperties.getDbURL(), dbProperties
-		   .getDbUser(), "convertMe!");
+		   .getDbUser(), "convertme!");
 	} catch (IOException e) {
 	    throw new ConverterException("can't construct OnlineConverter", e);
 	}
@@ -94,7 +94,7 @@ public class OnlineConverter extends ConverterBase
       try {
 	    DbProperties dbProperties = DbProperties.getDefaultDbProperties();
 	    initDB(dbProperties.dbType, dbProperties.getDbURL(), dbProperties
-		   .getDbUser(), "convertMe!");
+		   .getDbUser(), "convertme!");
       } catch (IOException e) {
 	    throw new ConverterException("can't construct OnlineConverter", e);
       }
@@ -423,7 +423,7 @@ public class OnlineConverter extends ConverterBase
 	String dbPort = "10121";
 	String dbName = "cmsr.cern.ch";
 	String dbUser = "cms_hlt_gdr_r";
-	String dbPwrd = "convertMe!";
+	String dbPwrd = "convertme!";
 	
 	boolean doEPConfig = false;
 	boolean doSMConfig = false;

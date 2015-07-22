@@ -29,6 +29,7 @@ public class BrowserConverter extends OfflineConverter
     {
         super( "HTML", dbType, dbUrl, dbUser, dbPwrd );
     }
+
     private BrowserConverter(String format,
                              String dbType, String dbUrl,
                  String dbUser, String dbPwrd) throws ConverterException
@@ -36,73 +37,72 @@ public class BrowserConverter extends OfflineConverter
         super( format, dbType, dbUrl, dbUser, dbPwrd );
     }
 
-    
-	public int getKeyFromRunSummary( int runnumber ) throws SQLException
-	{
-		if ( psSelectHltKeyFromRunSummary == null )
-			psSelectHltKeyFromRunSummary = getDatabase().getDbConnector().getConnection().prepareStatement( "SELECT HLTKEY FROM WBM_RUNSUMMARY WHERE RUNNUMBER=?" );
-		psSelectHltKeyFromRunSummary.setInt( 1, runnumber );
-		ResultSet rs = psSelectHltKeyFromRunSummary.executeQuery();
-		int key = -1;
-		if ( rs.next() )
-			key = rs.getInt(1);
-		return key;
-	}
-    
-	protected void finalize() throws Throwable
-	{
-		super.finalize();
-		ConfDB db = getDatabase();
-		if ( db != null )
-			db.disconnect();
-	}
+    public int getKeyFromRunSummary( int runnumber ) throws SQLException
+    {
+        if ( psSelectHltKeyFromRunSummary == null )
+            psSelectHltKeyFromRunSummary = getDatabase().getDbConnector().getConnection().prepareStatement( "SELECT HLTKEY FROM WBM_RUNSUMMARY WHERE RUNNUMBER=?" );
+        psSelectHltKeyFromRunSummary.setInt( 1, runnumber );
+        ResultSet rs = psSelectHltKeyFromRunSummary.executeQuery();
+        int key = -1;
+        if ( rs.next() )
+            key = rs.getInt(1);
+        return key;
+    }
 
-	static public BrowserConverter getConverter( String dbName ) throws ConverterException 
-	{
-		return getConverter( getDbIndex(dbName) );
-	}
-	
-	
-	static public BrowserConverter getConverter( int dbIndex ) throws ConverterException 
-	{
-	    ConfDBSetups dbs = new ConfDBSetups();
-	    DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertiMi!" );
-	    String dbUser = dbProperties.getDbUser();
-	    if (dbUser.endsWith("_w"))
-	    	dbUser = dbUser.substring(0,dbUser.length()-1)+"r";
+    protected void finalize() throws Throwable
+    {
+        super.finalize();
+        ConfDB db = getDatabase();
+        if ( db != null )
+            db.disconnect();
+    }
+
+    static public BrowserConverter getConverter( String dbName ) throws ConverterException
+    {
+        return getConverter( getDbIndex(dbName) );
+    }
+
+
+    static public BrowserConverter getConverter( int dbIndex ) throws ConverterException
+    {
+        ConfDBSetups dbs = new ConfDBSetups();
+        DbProperties dbProperties = new DbProperties( dbs, dbIndex, "convertme!" );
+        String dbUser = dbProperties.getDbUser();
+        if (dbUser.endsWith("_w"))
+            dbUser = dbUser.substring(0, dbUser.length()-1)+"r";
             else if (dbUser.endsWith("_r"))
                 {}      // do nothing
         else if (dbUser.endsWith("_writer"))
             dbUser = dbUser.substring(0, dbUser.length()-6)+"reader";
             else if (dbUser.endsWith("_reader"))
                 {}      // do nothing
-	    else
-	    	dbUser = "cms_hlt_gdr_r";
+        else
+            dbUser = "cms_hlt_gdr_r";
 
-	    dbProperties.setDbUser(dbUser);
-	    
-	    BrowserConverter converter = map.get( new Integer( dbIndex ) );
-		if ( converter == null )
-		{
-			converter = new BrowserConverter( dbs.type( dbIndex ), dbProperties.getDbURL(), dbProperties.getDbUser(), "convertMe!" );		
-			map.put( new Integer( dbIndex ), converter );
-		}
-		return converter;
-	}
+        dbProperties.setDbUser(dbUser);
 
-	static public void deleteConverter( ConverterBase converter )
-	{
-		Set<Map.Entry<Integer,BrowserConverter>> entries = map.entrySet();
-		for ( Map.Entry<Integer,BrowserConverter> entry : entries )
-		{
-			if ( entry.getValue() == converter )
-			{
-				map.remove( entry.getKey() );
-				return;
-			}
-		}
-	}
-	
+        BrowserConverter converter = map.get( new Integer( dbIndex ) );
+        if ( converter == null )
+        {
+            converter = new BrowserConverter( dbs.type( dbIndex ), dbProperties.getDbURL(), dbProperties.getDbUser(), "convertme!" );
+            map.put( new Integer( dbIndex ), converter );
+        }
+        return converter;
+    }
+
+    static public void deleteConverter( ConverterBase converter )
+    {
+        Set<Map.Entry<Integer, BrowserConverter>> entries = map.entrySet();
+        for ( Map.Entry<Integer, BrowserConverter> entry : entries )
+        {
+            if ( entry.getValue() == converter )
+            {
+                map.remove( entry.getKey() );
+                return;
+            }
+        }
+    }
+
     static public String getDbName( int dbIndex )
     {
         if ( dbNames == null )

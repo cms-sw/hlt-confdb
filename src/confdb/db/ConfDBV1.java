@@ -29,13 +29,13 @@ import oracle.jdbc.pool.OracleDataSource;
 
 
 /**
- * ConfDB v1
- * ------
+ * ConfDBV1
+ * --------
  * @author Philipp Schieferdecker
  *
  * Handle all database access operations.
  */
-public class ConfOldDB
+public class ConfDBV1
 {
     //
     // member data
@@ -363,7 +363,7 @@ public class ConfOldDB
     //
     
     /** standard constructor */
-    public ConfOldDB()
+    public ConfDBV1()
     {
 	// template table name hash map
 	templateTableNameHashMap = new HashMap<String,String>();
@@ -467,9 +467,9 @@ public class ConfOldDB
 	for (PreparedStatement ps : preparedStatements) {
 	    try { ps.close(); }
 	    catch (SQLException e) {
-	    	throw new DatabaseException("ConfDB::closePreparedStatements() failed (SQL)", e);
+	    	throw new DatabaseException("ConfDBV1::closePreparedStatements() failed (SQL)", e);
 	    }catch (Exception e) {
-	    	throw new DatabaseException("ConfDB::closePreparedStatements() failed", e);
+	    	throw new DatabaseException("ConfDBV1::closePreparedStatements() failed", e);
 	    }
 	}
 	preparedStatements.clear();
@@ -540,7 +540,7 @@ public class ConfOldDB
 	         SimpleDateFormat ft = new SimpleDateFormat ("[yyyy.MM.dd@hh:mm:ss a]");
 	    	 
 	    	 if(retryCount != 5)
-	    		 System.err.println("[ConfDB::reconnect]"+ft.format(dNow)+" Trying to connect... attemp (" +  (5 - retryCount) + ")");
+	    		 System.err.println("[ConfDBV1::reconnect]"+ft.format(dNow)+" Trying to connect... attemp (" +  (5 - retryCount) + ")");
 	    	 
 			try {
 			    rs = psSelectUsersForLockedConfigs.executeQuery();
@@ -550,11 +550,11 @@ public class ConfOldDB
 			} catch (SQLException e) {
 				retryCount--;	
 				
-				System.err.println("[ConfDB::reconnect]"+ft.format(dNow)+" SQLException: " + e.getMessage());
-				System.err.println("[ConfDB::reconnect]"+ft.format(dNow)+" ErrorCode:    " + e.getErrorCode());
+				System.err.println("[ConfDBV1::reconnect]"+ft.format(dNow)+" SQLException: " + e.getMessage());
+				System.err.println("[ConfDBV1::reconnect]"+ft.format(dNow)+" ErrorCode:    " + e.getErrorCode());
 				
 			    if (!(dbConnector instanceof MySQLDatabaseConnector)&&!(dbConnector instanceof OracleDatabaseConnector))
-			    	throw new DatabaseException("ConfDB::reconnect(): unknown connector type!",e);
+			    	throw new DatabaseException("ConfDBV1::reconnect(): unknown connector type!",e);
 
 			    try {
 					closePreparedStatements();
@@ -591,7 +591,7 @@ public class ConfOldDB
 				   	  try {
 				   	      rs.close();
 				   	  } catch (SQLException sqlEx) {
-				   		System.err.println("[ConfDB::reconnect()]"+ft.format(dNow)+" Error closing ResultSet! " + sqlEx.getMessage());
+				   		System.err.println("[ConfDBV1::reconnect()]"+ft.format(dNow)+" Error closing ResultSet! " + sqlEx.getMessage());
 				   	  }
 			     }
 		         
@@ -600,8 +600,8 @@ public class ConfOldDB
 	     } while (!transactionCompleted && (retryCount > 0));
 	     
 	     // Raise exception when unable to connect.
-	     if(!transactionCompleted)  throw new DatabaseException("ConfDB::reconnect(): Unable to connect!");
-	     else if(retryCount < 5) System.out.println("[ConfDB::reconnect] connection reestablished!"); 
+	     if(!transactionCompleted)  throw new DatabaseException("ConfDBV1::reconnect(): Unable to connect!");
+	     else if(retryCount < 5) System.out.println("[ConfDBV1::reconnect] connection reestablished!"); 
 	     
     }
     
@@ -694,7 +694,7 @@ public class ConfOldDB
 			       "\n");
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::listCounts() failed:"+e.getMessage();
+	    String errMsg = "ConfDBV1::listCounts() failed:"+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -774,7 +774,7 @@ public class ConfOldDB
 		Directory dir = directoryHashMap.get(parentDirId);
 		if (dir==null) {
 		    String errMsg =
-			"ConfDB::loadConfigurationTree(): can't find directory "+
+			"ConfDBV1::loadConfigurationTree(): can't find directory "+
 			"for parentDirId="+parentDirId+".";
 		    throw new DatabaseException(errMsg);
 		}
@@ -816,7 +816,7 @@ public class ConfOldDB
 		ConfigInfo configInfo = configHashMap.get(configPathAndName);
 		if (configInfo==null) {
 		    String errMsg =
-			"ConfDB::loadConfigurationTree(): can't find locked "+
+			"ConfDBV1::loadConfigurationTree(): can't find locked "+
 			"configuration '"+configPathAndName+"'.";
 		    throw new DatabaseException(errMsg);
 		}
@@ -835,7 +835,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::loadConfigurationTree() failed: "+e.getMessage();
+		"ConfDBV1::loadConfigurationTree() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -858,7 +858,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::loadTemplate(releaseTag="+releaseTag+
+		"ConfDBV1::loadTemplate(releaseTag="+releaseTag+
 		",templateName="+templateName+") failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -868,7 +868,7 @@ public class ConfOldDB
 	
 	if (!it.hasNext()) {
 	    String errMsg =
-		"ConfDB::loadTemplate(releaseTag="+releaseTag+
+		"ConfDBV1::loadTemplate(releaseTag="+releaseTag+
 		",templateName="+templateName+"): template not found.";
 	    throw new DatabaseException(errMsg);
 	}
@@ -887,7 +887,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::loadSoftwareRelease(releaseId="+releaseId+
+		"ConfDBV1::loadSoftwareRelease(releaseId="+releaseId+
 		",release) failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -915,7 +915,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::loadPartialSoftwareRelease(configId="+configId+
+		"ConfDBV1::loadPartialSoftwareRelease(configId="+configId+
 		",release) failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -1000,7 +1000,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::loadTemplates() failed: "+e.getMessage();
+		"ConfDBV1::loadTemplates() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -1510,7 +1510,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::loadConfiguration(Configuration config) failed "+
+		"ConfDBV1::loadConfiguration(Configuration config) failed "+
 		"(configId="+configId+"): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -1539,7 +1539,7 @@ public class ConfOldDB
     	}
     	catch (SQLException e) {
     	    String errMsg =
-    		"ConfDB::checkExtraPathFields failed: "+
+    		"ConfDBV1::checkExtraPathFields failed: "+
     		e.getMessage();
     	    throw new DatabaseException(errMsg,e);
     	} finally {
@@ -1565,7 +1565,7 @@ public class ConfOldDB
     	}
     	catch (SQLException e) {
     	    String errMsg =
-    		"ConfDB::checkOperatorFieldForSequences failed: "+
+    		"ConfDBV1::checkOperatorFieldForSequences failed: "+
     		e.getMessage();
     	    throw new DatabaseException(errMsg,e);
     	} finally {
@@ -1592,7 +1592,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertDirectory(Directory dir) failed "+
+		"ConfDBV1::insertDirectory(Directory dir) failed "+
 		"(parentDirId="+dir.parentDir().dbId()+",name="+dir.name()+"): "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -1612,7 +1612,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::removeDirectory(Directory dir) failed "+
+		"ConfDBV1::removeDirectory(Directory dir) failed "+
 		"(name="+dir.name()+"): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -1733,7 +1733,7 @@ public class ConfOldDB
 	    try { dbConnector.getConnection().rollback(); }
 	    catch (SQLException e2) { e2.printStackTrace(); }
 	    String errMsg =
-		"ConfDB::insertConfiguration(config="+config.dbId()+
+		"ConfDBV1::insertConfiguration(config="+config.dbId()+
 		",creator="+creator+",processName="+processName+
 		",comment="+comment+") failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -1743,7 +1743,7 @@ public class ConfOldDB
 	    try { dbConnector.getConnection().rollback(); }
 	    catch (SQLException e2) { e2.printStackTrace(); }
 	    String errMsg =
-		"ConfDB::insertConfiguration(config="+config.dbId()+
+		"ConfDBV1::insertConfiguration(config="+config.dbId()+
 		",creator="+creator+",processName="+processName+
 		",comment="+comment+") failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -1767,7 +1767,7 @@ public class ConfOldDB
 	
 	if (config.isLocked()) {
 	    String errMsg =
-		"ConfDB::lockConfiguration(): Can't lock "+config.toString()+
+		"ConfDBV1::lockConfiguration(): Can't lock "+config.toString()+
 		": already locked by user '"+config.lockedByUser()+"'.";
 	    throw new DatabaseException(errMsg);
 	}
@@ -1780,7 +1780,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::lockConfiguration("+config.toString()+") failed: "+
+		"ConfDBV1::lockConfiguration("+config.toString()+") failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -1803,7 +1803,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		" ConfDB::unlockConfiguration("+config.toString()+" failed: "+
+		" ConfDBV1::unlockConfiguration("+config.toString()+" failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -1820,7 +1820,7 @@ public class ConfOldDB
 	    return rs.getInt(1);
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::insertSuperId() failed: "+e.getMessage();
+	    String errMsg = "ConfDBV1::insertSuperId() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -1863,7 +1863,7 @@ public class ConfOldDB
 	    }
 	    catch (SQLException e) {
 		String errMsg =
-		    "ConfDB::insertGlobalPSets(configId="+configId+") failed: "+
+		    "ConfDBV1::insertGlobalPSets(configId="+configId+") failed: "+
 		    e.getMessage();
 		throw new DatabaseException(errMsg,e);
 	    }
@@ -1889,7 +1889,7 @@ public class ConfOldDB
 		}
 		catch (SQLException e) {
 		    String errMsg =
-			"ConfDB::insertEDSources(configID="+configId+
+			"ConfDBV1::insertEDSources(configID="+configId+
 			") failed (edsourceId="+edsourceId+
 			" templateId="+templateId+"): "+e.getMessage();
 		    throw new DatabaseException(errMsg,e);
@@ -1906,7 +1906,7 @@ public class ConfOldDB
 	    }
 	    catch (SQLException e) {
 		String errMsg =
-		    "ConfDB::insertEDSources(configID="+configId+") failed "+
+		    "ConfDBV1::insertEDSources(configID="+configId+") failed "+
 		    "(edsourceId="+edsourceId+", sequenceNb="+sequenceNb+"): "+
 		    e.getMessage();
 		throw new DatabaseException(errMsg,e);   
@@ -1919,7 +1919,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertEDSources(configId="+configId+") failed "+
+		"ConfDBV1::insertEDSources(configId="+configId+") failed "+
 		"(batch insert):" + e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -1945,7 +1945,7 @@ public class ConfOldDB
 		}
 		catch (SQLException e) {
 		    String errMsg =
-			"ConfDB::insertESSources(configID="+configId+") failed "+
+			"ConfDBV1::insertESSources(configID="+configId+") failed "+
 			"(essourceId="+essourceId+" templateId="+templateId+"): "+
 			e.getMessage();
 		    throw new DatabaseException(errMsg,e);
@@ -1963,7 +1963,7 @@ public class ConfOldDB
 	    }
 	    catch (SQLException e) {
 		String errMsg =
-		    "ConfDB::insertESSources(configID="+configId+") failed "+
+		    "ConfDBV1::insertESSources(configID="+configId+") failed "+
 		    "(essourceId="+essourceId+", sequenceNb="+sequenceNb+"):" +
 		    e.getMessage();
 		throw new DatabaseException(errMsg,e);  
@@ -1976,7 +1976,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertESSources(configId="+configId+") failed "+
+		"ConfDBV1::insertESSources(configId="+configId+") failed "+
 		"(batch insert):" + e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -2002,7 +2002,7 @@ public class ConfOldDB
 		}
 		catch (SQLException e) {
 		    String errMsg =
-			"ConfDB::insertESModules(configID="+configId+") failed "+
+			"ConfDBV1::insertESModules(configID="+configId+") failed "+
 			"(esmoduleId="+esmoduleId+" templateId="+templateId+"): "+
 			e.getMessage();
 		    throw new DatabaseException(errMsg,e);
@@ -2020,7 +2020,7 @@ public class ConfOldDB
 	    }
 	    catch (SQLException e) {
 		String errMsg =
-		    "ConfDB::insertESModules(configID="+configId+") failed "+
+		    "ConfDBV1::insertESModules(configID="+configId+") failed "+
 		    "(esmoduleId="+esmoduleId+", sequenceNb="+sequenceNb+"): "+
 		    e.getMessage();
 		throw new DatabaseException(errMsg,e);
@@ -2033,7 +2033,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertESModule(configId="+configId+") failed "+
+		"ConfDBV1::insertESModule(configId="+configId+") failed "+
 		"(batch insert):" + e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -2057,7 +2057,7 @@ public class ConfOldDB
 		}
 		catch (SQLException e) {
 		    String errMsg =
-			"ConfDB::insertServices(configID="+configId+") failed "+
+			"ConfDBV1::insertServices(configID="+configId+") failed "+
 			"(serviceId="+serviceId+" templateId="+templateId+"): "+
 			e.getMessage();
 		    throw new DatabaseException(errMsg,e);
@@ -2074,7 +2074,7 @@ public class ConfOldDB
 	    }
 	    catch (SQLException e) {
 		String errMsg =
-		    "ConfDB::insertServices(configID="+configId+") failed "+
+		    "ConfDBV1::insertServices(configID="+configId+") failed "+
 		    "(serviceId="+serviceId+", sequenceNb="+sequenceNb+"): "+
 		    e.getMessage();
 		throw new DatabaseException(errMsg,e);
@@ -2087,7 +2087,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertService(configId="+configId+") failed "+
+		"ConfDBV1::insertService(configId="+configId+") failed "+
 		"(batch insert):" + e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -2153,7 +2153,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertPaths(configId="+configId+") failed: "+
+		"ConfDBV1::insertPaths(configId="+configId+") failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -2166,7 +2166,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertPaths(configId="+configId+
+		"ConfDBV1::insertPaths(configId="+configId+
 		") failed (batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -2220,7 +2220,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertSequences(configId="+configId+") failed: "+
+		"ConfDBV1::insertSequences(configId="+configId+") failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -2233,7 +2233,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertSequences(configId="+configId+") failed "+
+		"ConfDBV1::insertSequences(configId="+configId+") failed "+
 		"(batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -2269,7 +2269,7 @@ public class ConfOldDB
 		}
 		catch (SQLException e) {
 		    String errMsg =
-			"ConfDB::insertModules(config="+config.toString()+
+			"ConfDBV1::insertModules(config="+config.toString()+
 			" failed (moduleId="+moduleId+" templateId="+templateId+
 			"): "+e.getMessage();
 		    throw new DatabaseException(errMsg,e);
@@ -2282,7 +2282,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertModules(configId="+config.toString()+") failed "+
+		"ConfDBV1::insertModules(configId="+config.toString()+") failed "+
 		"(batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e); 
 	}
@@ -2327,7 +2327,7 @@ public class ConfOldDB
 			}
 			catch (SQLException e) {
 			    String errMsg = 
-				"ConfDB::insertReferences(config="+
+				"ConfDBV1::insertReferences(config="+
 				config.toString()+
 				") failed (pathId="+pathId+",childPathId="+
 				childPathId+",sequenceNb="+sequenceNb+"): "+
@@ -2346,7 +2346,7 @@ public class ConfOldDB
 			}
 			catch (SQLException e) {
 			    String errMsg = 
-				"ConfDB::insertReferences(config="+
+				"ConfDBV1::insertReferences(config="+
 				config.toString()+
 				") failed (pathId="+pathId+",sequenceId="+
 				sequenceId+",sequenceNb="+sequenceNb+"): "+
@@ -2365,7 +2365,7 @@ public class ConfOldDB
 			}
 			catch (SQLException e) {
 			    String errMsg = 
-				"ConfDB::insertReferences(config="+
+				"ConfDBV1::insertReferences(config="+
 				config.toString()+
 				") failed (pathId="+pathId+",moduleId="+
 				moduleId+",sequenceNb="+sequenceNb+"): "+
@@ -2387,7 +2387,7 @@ public class ConfOldDB
 			}
 			catch (SQLException e) {
 			    String errMsg = 
-				"ConfDB::insertReferences(config="+
+				"ConfDBV1::insertReferences(config="+
 				config.toString()+
 				") failed (pathId="+pathId+",moduleId="+
 				outputModuleId+",sequenceNb="+sequenceNb+"): "+
@@ -2424,7 +2424,7 @@ public class ConfOldDB
 			catch (SQLException e) {
 			    e.printStackTrace();
 			    String errMsg = 
-				"ConfDB::insertReferences(config="+
+				"ConfDBV1::insertReferences(config="+
 				config.toString()+
 				") failed (sequenceId="+sequenceId+" ("+
 				sequence.name()+"), childSequenceId="+
@@ -2444,7 +2444,7 @@ public class ConfOldDB
 			}
 			catch (SQLException e) {
 			    String errMsg = 
-				"ConfDB::insertReferences(config="+
+				"ConfDBV1::insertReferences(config="+
 				config.toString()+") failed (sequenceId="+
 				sequenceId+",moduleId="+moduleId+
 				",sequenceNb="+sequenceNb+"): "+e.getMessage();
@@ -2465,7 +2465,7 @@ public class ConfOldDB
 			}
 			catch (SQLException e) {
 			    String errMsg = 
-				"ConfDB::insertReferences(config="+
+				"ConfDBV1::insertReferences(config="+
 				config.toString()+
 				") failed (sequenceId="+sequenceId+",outputmoduleId="+
 				outputModuleId+",sequenceNb="+sequenceNb+"): "+
@@ -2488,7 +2488,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertReferences(config="+config.toString()+") failed "+
+		"ConfDBV1::insertReferences(config="+config.toString()+") failed "+
 		"(batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e); 
 	}
@@ -2522,7 +2522,7 @@ public class ConfOldDB
 	    }
 	    catch (SQLException e) {
 		String errMsg =
-		    "ConfDB::Event Content(config="+config.toString()+") failed "+
+		    "ConfDBV1::Event Content(config="+config.toString()+") failed "+
 		    "(batch insert): "+e.getMessage();
 		throw new DatabaseException(errMsg,e); 
 	    }
@@ -2541,7 +2541,7 @@ public class ConfOldDB
 	    }
 	    catch (SQLException e) {
 		String errMsg =
-		    "ConfDB::Event Content Config Association (config="+
+		    "ConfDBV1::Event Content Config Association (config="+
 		    config.toString()+") failed (batch insert): "+e.getMessage();
 		throw new DatabaseException(errMsg,e); 
 	    }
@@ -2552,7 +2552,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::Event Content Config Association(config="+
+		"ConfDBV1::Event Content Config Association(config="+
 		config.toString()+") failed (batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e); 
 	}
@@ -2627,7 +2627,7 @@ public class ConfOldDB
 		}
 		catch (SQLException e) {
 		    String errMsg =
-			"ConfDB::StatementID Update(config="+config.toString()+
+			"ConfDBV1::StatementID Update(config="+config.toString()+
 			") failed (batch insert): "+e.getMessage();
 		    throw new DatabaseException(errMsg,e); 
 		}
@@ -2639,7 +2639,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::StatementID Update(config="+config.toString()+") failed "+
+		"ConfDBV1::StatementID Update(config="+config.toString()+") failed "+
 		"(batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e); 
 	}
@@ -2674,7 +2674,7 @@ public class ConfOldDB
 	    }
 	    catch (SQLException e) {
 		String errMsg =
-		    "ConfDB::Streams(config="+config.toString()+") failed "+
+		    "ConfDBV1::Streams(config="+config.toString()+") failed "+
 		    "(batch insert): "+e.getMessage();
 		throw new DatabaseException(errMsg,e); 
 	    }
@@ -2730,7 +2730,7 @@ public class ConfOldDB
 	    }
 	    catch (SQLException e) {
 		String errMsg =
-		    "ConfDB::Primary Dataset (config="+config.toString()+") failed "+
+		    "ConfDBV1::Primary Dataset (config="+config.toString()+") failed "+
 		    "(batch insert): "+e.getMessage();
 		throw new DatabaseException(errMsg,e); 
 	    }
@@ -2758,7 +2758,7 @@ public class ConfOldDB
 		}
 		catch (SQLException e) {
 		    String errMsg =
-			"ConfDB::Event Content(config="+config.toString()+") failed "+
+			"ConfDBV1::Event Content(config="+config.toString()+") failed "+
 			"(batch insert): "+e.getMessage();
 		    throw new DatabaseException(errMsg,e); 
 		}
@@ -2784,7 +2784,7 @@ public class ConfOldDB
 		}
 		catch (SQLException e) {
 		    String errMsg =
-			"ConfDB::Stream Primary dataset association(config="+config.toString()+") failed "+
+			"ConfDBV1::Stream Primary dataset association(config="+config.toString()+") failed "+
 			"(batch insert): "+e.getMessage();
 		    throw new DatabaseException(errMsg,e); 
 		}
@@ -2796,7 +2796,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::Stream Primary dataset association(config="+config.toString()+") failed "+
+		"ConfDBV1::Stream Primary dataset association(config="+config.toString()+") failed "+
 		"(batch insert): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e); 
 	}
@@ -2830,7 +2830,7 @@ public class ConfOldDB
 				    psInsertPathStreamPDAssoc.executeUpdate();
 				} catch (SQLException e) {
 				    String errMsg =
-					"ConfDB::Event Content(config="+config.toString()+") failed "+
+					"ConfDBV1::Event Content(config="+config.toString()+") failed "+
 					"(batch insert): "+e.getMessage();
 				    throw new DatabaseException(errMsg,e); 
 				}
@@ -2864,7 +2864,7 @@ public class ConfOldDB
 					    psInsertPathStreamPDAssoc.executeUpdate();
 					} catch (SQLException e) {
 					    String errMsg =
-						"ConfDB::Event Content(config="+config.toString()+") failed "+
+						"ConfDBV1::Event Content(config="+config.toString()+") failed "+
 						"(batch insert): "+e.getMessage();
 					    throw new DatabaseException(errMsg,e); 
 					}
@@ -2880,7 +2880,7 @@ public class ConfOldDB
 						    psInsertPathStreamPDAssoc.executeUpdate();
 						} catch (SQLException e) {
 						    String errMsg =
-							"ConfDB::Event Content(config="+config.toString()+") failed "+
+							"ConfDBV1::Event Content(config="+config.toString()+") failed "+
 							"(batch insert): "+e.getMessage();
 						    throw new DatabaseException(errMsg,e); 
 						}
@@ -2925,7 +2925,7 @@ public class ConfOldDB
 	    while (rs.next()) listOfNames.add(rs.getString(1)+"/"+rs.getString(2));
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::getConfigNames() failed: "+e.getMessage();
+	    String errMsg = "ConfDBV1::getConfigNames() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -2948,7 +2948,7 @@ public class ConfOldDB
 				"/V"+rs.getInt(3));
 	}
 	catch (SQLException e) {
-	    String errMsg="ConfDB::getConfigNamesByRelease() failed: "+
+	    String errMsg="ConfDBV1::getConfigNamesByRelease() failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -2974,7 +2974,7 @@ public class ConfOldDB
 	    }
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::getReleaseTags() failed: "+e.getMessage();
+	    String errMsg = "ConfDBV1::getReleaseTags() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	return listOfTags.toArray(new String[listOfTags.size()]);
@@ -2995,7 +2995,7 @@ public class ConfOldDB
 	    }
 	}
 	catch (SQLException e) {
-	    String errMsg="ConfDB::getReleaseTagsSorted() failed: "+e.getMessage();
+	    String errMsg="ConfDBV1::getReleaseTagsSorted() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	return listOfTags.toArray(new String[listOfTags.size()]);
@@ -3014,7 +3014,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg = 
-		"ConfDB::getDirectoryId(directoryName="+directoryName+
+		"ConfDBV1::getDirectoryId(directoryName="+directoryName+
 		") failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -3066,7 +3066,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::getDirectoryHashMap() failed: "+e.getMessage();
+		"ConfDBV1::getDirectoryHashMap() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -3091,7 +3091,7 @@ public class ConfOldDB
 	index = fullConfigName.lastIndexOf("/");
 	if (index<0) {
 	    String errMsg =
-		"ConfDB::getConfigId(fullConfigName="+fullConfigName+
+		"ConfDBV1::getConfigId(fullConfigName="+fullConfigName+
 		") failed (invalid name).";
 	    throw new DatabaseException(errMsg);
 	}
@@ -3122,7 +3122,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::getConfigId(fullConfigName="+fullConfigName+
+		"ConfDBV1::getConfigId(fullConfigName="+fullConfigName+
 		") failed (dirName="+dirName+", configName="+configName+
 		",version="+version+"): "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -3138,7 +3138,7 @@ public class ConfOldDB
 	ConfigInfo result = getConfigInfo(configId,loadConfigurationTree());
 	if (result==null) {
 	    String errMsg =
-		"ConfDB::getConfigInfo(configId="+configId+") failed.";
+		"ConfDBV1::getConfigInfo(configId="+configId+") failed.";
 	    throw new DatabaseException(errMsg);
 	}
 	return result;
@@ -3154,7 +3154,7 @@ public class ConfOldDB
             while (rs.next()) listOfNames.add(rs.getString(1));
         }
         catch (SQLException e) {
-            String errMsg = "ConfDB::getSwArchNames() failed: "+e.getMessage();
+            String errMsg = "ConfDBV1::getSwArchNames() failed: "+e.getMessage();
             throw new DatabaseException(errMsg,e);
         }
         finally {
@@ -3857,7 +3857,7 @@ public class ConfOldDB
     public synchronized void removeSoftwareRelease(int releaseId) throws DatabaseException
     {
 	if (getConfigNamesByRelease(releaseId).length>0) {
-	    System.err.println("ConfDB::removeSoftwareRelease ERROR: "+
+	    System.err.println("ConfDBV1::removeSoftwareRelease ERROR: "+
 			       "Can't remove release with associated "+
 			       "configurations!)");
 	    return;
@@ -5749,7 +5749,7 @@ public class ConfOldDB
 		    preparedStatements.add(psCheckPathFieldsExistence);
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::prepareStatements() failed: "+e.getMessage();
+	    String errMsg = "ConfDBV1::prepareStatements() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	
@@ -5802,7 +5802,7 @@ public class ConfOldDB
 	    }
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::prepareStatements() failed: "+e.getMessage();
+	    String errMsg = "ConfDBV1::prepareStatements() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -5982,7 +5982,7 @@ public class ConfOldDB
 	    
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::getParameters() failed: "+e.getMessage();
+	    String errMsg = "ConfDBV1::getParameters() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -6045,7 +6045,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) { 
 	    String errMsg =
-		"ConfDB::insertVecParameterSet(superId="+superId+
+		"ConfDBV1::insertVecParameterSet(superId="+superId+
 		",sequenceNb="+sequenceNb+",vpset="+vpset.name()+") failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -6087,7 +6087,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) { 
 	    String errMsg =
-		"ConfDB::insertParameterSet(superId="+superId+
+		"ConfDBV1::insertParameterSet(superId="+superId+
 		",sequenceNb="+sequenceNb+",pset="+pset.name()+") failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -6125,7 +6125,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) { 
 	    String errMsg =
-		"ConfDB::insertParameter(superId="+superId+",sequenceNb="+
+		"ConfDBV1::insertParameter(superId="+superId+",sequenceNb="+
 		sequenceNb+",parameter="+parameter.name()+") failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -6151,7 +6151,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertSuperIdParamAssoc(superId="+superId+
+		"ConfDBV1::insertSuperIdParamAssoc(superId="+superId+
 		",paramId="+paramId+",sequenceNb="+sequenceNb+") failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
@@ -6171,7 +6171,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::inesrtSuperIdParamSetAssoc(superId="+superId+
+		"ConfDBV1::inesrtSuperIdParamSetAssoc(superId="+superId+
 		",psetId="+psetId+",sequenceNb="+sequenceNb+") failed: "+
 		e.getMessage();
  	    throw new DatabaseException(errMsg,e);
@@ -6191,7 +6191,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::inesrtSuperIdVecParamSetAssoc(superId="+superId+
+		"ConfDBV1::inesrtSuperIdVecParamSetAssoc(superId="+superId+
 		",vpsetId="+vpsetId+",sequenceNb="+sequenceNb+") failed: "+
 		e.getMessage();
  	    throw new DatabaseException(errMsg,e);
@@ -6207,7 +6207,7 @@ public class ConfOldDB
 	    // -------------------------------------------------------
 	    //if (parameter.isTracked()) {
 	    //String errMsg =
-	    //  "ConfDB::insertParameterValue(paramId="+paramId+
+	    //  "ConfDBV1::insertParameterValue(paramId="+paramId+
 	    //  ",parameter="+parameter.name()+") failed: parameter is tracked"+
 	    //  " but not set.";
 	    //throw new DatabaseException(errMsg);
@@ -6300,7 +6300,7 @@ public class ConfOldDB
 	}
 	catch (Exception e) {
 	    String errMsg =
-		"ConfDB::insertParameterValue(paramId="+paramId+
+		"ConfDBV1::insertParameterValue(paramId="+paramId+
 		",parameter="+parameter.name()+") failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -6318,7 +6318,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertSuperIdReleaseAssoc(superId="+superId+
+		"ConfDBV1::insertSuperIdReleaseAssoc(superId="+superId+
 		",releaseTag="+releaseTag+") failed: "+e.getMessage();
  	    throw new DatabaseException(errMsg,e);
 	}
@@ -6335,7 +6335,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::insertSuperIdReleaseAssoc(superId="+superId+
+		"ConfDBV1::insertSuperIdReleaseAssoc(superId="+superId+
 		",releaseId="+releaseId+") failed: "+e.getMessage();
  	    throw new DatabaseException(errMsg,e);
 	}
@@ -6356,7 +6356,7 @@ public class ConfOldDB
 	}
 	catch (SQLException e) {
 	    String errMsg =
-		"ConfDB::getReleaseId(releaseTag="+releaseTag+") failed: "+
+		"ConfDBV1::getReleaseId(releaseTag="+releaseTag+") failed: "+
 		e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
@@ -6468,7 +6468,7 @@ public class ConfOldDB
 	    }
 	}
 	catch (SQLException e) {
-	    String errMsg = "ConfDB::getSubsystems() failed: "+e.getMessage();
+	    String errMsg = "ConfDBV1::getSubsystems() failed: "+e.getMessage();
 	    throw new DatabaseException(errMsg,e);
 	}
 	finally {
@@ -6606,7 +6606,7 @@ public class ConfOldDB
 	System.err.println("dbUser = " + dbUser);
 	System.err.println("dbPwrd = " + dbPwrd);
 	
-	ConfDB database = new ConfDB();
+	ConfDBV1 database = new ConfDBV1();
 
 	try {
 	    database.connect(dbType,dbUrl,dbUser,dbPwrd);
