@@ -1,3 +1,7 @@
+2015-07-23 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V02-03-01
+	* from Sandro: fix for u_lockedconf field name
+
 2015-07-22 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V02-03-00
 	* clean up after merge from ConfDB v1
