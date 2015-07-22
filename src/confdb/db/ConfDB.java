@@ -6796,7 +6796,7 @@ psSelectParametersTemplates =
              if (name.contains("Empty name")) name="";
 
             if (type.equals("bool")) {
- System.err.println("getParameters: name "+name+" id="+parameterId+" parentId "+parentId);
+// System.err.println("getParameters: name "+name+" id="+parameterId+" parentId "+parentId);
                 String valueAsString =
                     (new Boolean(rsParameters.getBoolean(8))).toString();
                 idToValueAsString.put(parameterId,valueAsString);
