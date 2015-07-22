@@ -4693,7 +4693,7 @@ public class ConfDB
                 dbConnector.getConnection().prepareStatement
                 ("SELECT" +
                  " u_directories.Name," +
-                 " u_lockedconfs.config," +
+                 " u_lockedconfs.id_config," +
                  " u_lockedconfs.userName " +
                  "FROM u_lockedconfs " +
                  "JOIN u_directories " +
@@ -5401,7 +5401,7 @@ public class ConfDB
 
             psInsertConfigurationLock =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO u_lockedconfs (id_parentDir,config,userName)" +
+                ("INSERT INTO u_lockedconfs (id_parentDir,id_config,userName)" +
                  "VALUES(?, ?, ?)");
             preparedStatements.add(psInsertConfigurationLock);
 
@@ -6028,7 +6028,7 @@ public class ConfDB
             psDeleteLock =
                 dbConnector.getConnection().prepareStatement
                 ("DELETE FROM u_lockedconfs " +
-                 "WHERE id_parentdir=? AND config=?");
+                 "WHERE id_parentdir=? AND id_config=?");
             preparedStatements.add(psDeleteLock);
 
             psDeleteConfiguration =
@@ -6796,7 +6796,7 @@ psSelectParametersTemplates =
              if (name.contains("Empty name")) name="";
 
             if (type.equals("bool")) {
- System.err.println("getParameters: name "+name+" id="+parameterId+" parentId "+parentId);
+// System.err.println("getParameters: name "+name+" id="+parameterId+" parentId "+parentId);
                 String valueAsString =
                     (new Boolean(rsParameters.getBoolean(8))).toString();
                 idToValueAsString.put(parameterId,valueAsString);
