@@ -2,16 +2,17 @@
 
 # set the target directory
 BASE=$HOME/www/v2
+URL=http://confdb.web.cern.ch/confdb/v2/gui/
 
 # create the target directory 
 mkdir -p $BASE
 
 # deploy the GUI and the support files
 unzip -o -q lib/confdb.war confdb.version gui/* -d $BASE/
-sed -i 's#$$codebase#http://confdb.web.cern.ch/confdb/v2/gui/#' $BASE/gui/start.jnlp
+sed -i "s#\$\$codebase#$URL#" $BASE/gui/start.jnlp
 
 # deploy all .jar files for interactive use
 mkdir -p $BASE/lib
 cp lib/*.jar ext/signed/*.jar $BASE/lib
 
-echo "ConfDB GUI version `cat $BASE/confdb.version | grep confdb.version | cut -d= -f2` succesfully deployed"
+echo "ConfDB GUI version `cat $BASE/confdb.version | grep confdb.version | cut -d= -f2` succesfully deployed at $URL"
