@@ -228,6 +228,8 @@ public class ConfDB
     private PreparedStatement psInsertECStatementAssoc            = null;
     private PreparedStatement psSelectPathStreamDatasetEntries    = null;
 
+    private PreparedStatement psInsertConfDone                    = null;
+    private PreparedStatement psInsertConfProcessing              = null;
     //Work on going
 
     private PreparedStatement psInsertSuperId                     = null;
@@ -1914,6 +1916,11 @@ public class ConfDB
             insertReferences(config,pathHashMap,sequenceHashMap,
                              moduleHashMap,streamHashMap,configId);
 
+            psInsertConfDone.setInt(1,configId);
+            psInsertConfDone.executeUpdate();
+            //psInsertConfProcessing.setInt(1,configId);
+            //psInsertConfProcessing.executeUpdate();
+
             dbConnector.getConnection().commit();
         }
         catch (DatabaseException e) {
@@ -2653,6 +2660,7 @@ public class ConfDB
         try {
             psInsertMod2Templ.executeBatch();
             psInsertMoElement.executeBatch();
+            //psInsertPae2Moe.executeBatch();
         }
         catch (SQLException e) {
             String errMsg =
@@ -5483,6 +5491,17 @@ public class ConfDB
                  "VALUES(?,?,?)");
             preparedStatements.add(psInsertStreamDatasetAssoc);
 
+
+            psInsertConfDone = 
+              dbConnector.getConnection().prepareStatement
+                ("INSERT INTO u_confdone (id_confver) VALUES(?)");
+            preparedStatements.add(psInsertConfDone);
+
+            psInsertConfProcessing = 
+              dbConnector.getConnection().prepareStatement
+                ("INSERT INTO f_queue (id_confver) VALUES(?)");
+            preparedStatements.add(psInsertConfProcessing);
+
 /*
             if (dbType.equals(dbTypeMySQL))
                 psInsertSuperId = dbConnector.getConnection().prepareStatement
@@ -7098,7 +7117,9 @@ psSelectParametersTemplates =
             dbConnector.release(rs);
         }
        /*try {
-            psInsertPae2Moe.executeBatch();
+            if (dbstmnt==psInsertMoElement) {
+                  psInsertPae2Moe.executeBatch();
+            }
         }
         catch (SQLException e) {
             String errMsg =
@@ -7184,7 +7205,9 @@ psSelectParametersTemplates =
         }
 
        /*try {
-            psInsertPae2Moe.executeBatch();
+            if (dbstmnt==psInsertMoElement) {
+               psInsertPae2Moe.executeBatch();
+             }
         }
         catch (SQLException e) {
             String errMsg =
@@ -7216,7 +7239,7 @@ psSelectParametersTemplates =
             if (dbstmnt==psInsertMoElement) {
                 dbstmnt.setInt(1,1); //moetype
                 dbstmnt.setString(2,parameter.name());
-                dbstmnt.setInt(3,-1);
+                dbstmnt.setNull(3,Types.INTEGER);
                 dbstmnt.setString(4,parameter.type());
                 dbstmnt.setBoolean(5,parameter.isTracked());
                 //dbstmnt.setInt(6,999);
@@ -7338,8 +7361,8 @@ psSelectParametersTemplates =
                 psInsertPae2Moe.setInt(3,lvl);
                 psInsertPae2Moe.setInt(4,sequenceNb);
 
-                psInsertPae2Moe.executeUpdate();
                 //psInsertPae2Moe.addBatch();
+                psInsertPae2Moe.executeUpdate();
            }
 
         }
