@@ -1,3 +1,8 @@
+2015-07-29 Sandro Ventura <sandro.ventura@cern.ch>
+	* tag V02-03-02
+	* small fixes for direct writing to v2
+	* updated DB choice pull down menu for v2 accounts
+
 2015-07-23 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V02-03-01
 	* from Sandro: fix for u_lockedconf field name
