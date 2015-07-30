@@ -228,6 +228,8 @@ public class ConfDB
     private PreparedStatement psInsertECStatementAssoc            = null;
     private PreparedStatement psSelectPathStreamDatasetEntries    = null;
 
+    private PreparedStatement psInsertConfDone                    = null;
+    private PreparedStatement psInsertConfProcessing              = null;
     //Work on going
 
     private PreparedStatement psInsertSuperId                     = null;
@@ -1914,6 +1916,11 @@ public class ConfDB
             insertReferences(config,pathHashMap,sequenceHashMap,
                              moduleHashMap,streamHashMap,configId);
 
+            psInsertConfDone.setInt(1,configId);
+            psInsertConfDone.executeUpdate();
+            //psInsertConfProcessing.setInt(1,configId);
+            //psInsertConfProcessing.executeUpdate();
+
             dbConnector.getConnection().commit();
         }
         catch (DatabaseException e) {
@@ -2384,8 +2391,8 @@ public class ConfDB
                                 psInsertPath.setInt(3,id_pathnoum);
                                 //psInsertPath.setString(4, description);
                                 //psInsertPath.setString(5, contacts);
-                                psInsertPath.setNull(4,Types.VARCHAR);//description
-                                psInsertPath.setNull(5,Types.VARCHAR);//contacts
+                                //psInsertPath.setNull(4,Types.VARCHAR);//description
+                                //psInsertPath.setNull(5,Types.VARCHAR);//contacts
 
                                 psInsertPath.executeUpdate();
                                 rs=psInsertPath.getGeneratedKeys();
@@ -2653,6 +2660,7 @@ public class ConfDB
         try {
             psInsertMod2Templ.executeBatch();
             psInsertMoElement.executeBatch();
+            //psInsertPae2Moe.executeBatch();
         }
         catch (SQLException e) {
             String errMsg =
@@ -5483,6 +5491,17 @@ public class ConfDB
                  "VALUES(?,?,?)");
             preparedStatements.add(psInsertStreamDatasetAssoc);
 
+
+            psInsertConfDone = 
+              dbConnector.getConnection().prepareStatement
+                ("INSERT INTO u_confdone (id_confver) VALUES(?)");
+            preparedStatements.add(psInsertConfDone);
+
+            psInsertConfProcessing = 
+              dbConnector.getConnection().prepareStatement
+                ("INSERT INTO f_queue (id_confver) VALUES(?)");
+            preparedStatements.add(psInsertConfProcessing);
+
 /*
             if (dbType.equals(dbTypeMySQL))
                 psInsertSuperId = dbConnector.getConnection().prepareStatement
@@ -5575,14 +5594,14 @@ public class ConfDB
 
             psInsertPath =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO u_Paths (name,version,id_noumpath,description, contact) " +
-                 "VALUES(?, ?, ?, ?, ?)",keyColumn);
+                ("INSERT INTO u_Paths (name,version,id_noumpath) " +
+                 "VALUES(?, ?, ?)",keyColumn);
             preparedStatements.add(psInsertPath);
 
             psInsertPathIds =
                 dbConnector.getConnection().prepareStatement
-                ("INSERT INTO u_pathids (id_path,pathid,isEndPath,crc32,crc32logic,description, contact) " +
-                 "VALUES(?, -999, ?, ?, ?, ?, ?)",keyColumn);
+                ("INSERT INTO u_pathids (id_path,pathid,isEndPath,crc32,crc32logic,description, contact, fromdb) " +
+                 "VALUES(?, NULL, ?, ?, ?, ?, ?,'gui')",keyColumn);
             preparedStatements.add(psInsertPathIds);
 
 /*          psInsertHPathIds =
@@ -5644,7 +5663,7 @@ public class ConfDB
             psInsertPathElement =
                 dbConnector.getConnection().prepareStatement
                 ("INSERT INTO u_paelements (paetype,name,crc32,crc32logic,o_id) " +
-                 "VALUES(?, ?, ?, NULL,-999)",keyColumn);
+                 "VALUES(?, ?, ?, NULL,NULL)",keyColumn);
             preparedStatements.add(psInsertPathElement);
 
             psInsertHPathElement =
@@ -5808,67 +5827,67 @@ public class ConfDB
            psInsertParameterGPset =
                 dbConnector.getConnection().prepareStatement
                 ("INSERT INTO u_gpsetelements (id_gpset,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
-                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?,-1, ?)",keyColumn);
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?,NULL, ?)",keyColumn);
             preparedStatements.add(psInsertParameterGPset);
 
            psInsertParameterEDS =
                 dbConnector.getConnection().prepareStatement
                 ("INSERT INTO u_edselements (id_edsource,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
-                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)",keyColumn);
             preparedStatements.add(psInsertParameterEDS);
 
            psInsertParameterEDST =
                 dbConnector.getConnection().prepareStatement
                 ("INSERT INTO u_edstelements (id_edstemplate,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
-                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)",keyColumn);
             preparedStatements.add(psInsertParameterEDST);
 
            psInsertParameterESM =
                 dbConnector.getConnection().prepareStatement
                 ("INSERT INTO u_esmelements (id_esmodule,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
-                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)",keyColumn);
             preparedStatements.add(psInsertParameterESM);
 
            psInsertParameterESMT =
                 dbConnector.getConnection().prepareStatement
                 ("INSERT INTO u_esmtelements (id_esmtemplate,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
-                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)",keyColumn);
             preparedStatements.add(psInsertParameterESMT);
 
            psInsertParameterESS =
                 dbConnector.getConnection().prepareStatement
                 ("INSERT INTO u_esselements (id_essource,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
-                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)",keyColumn);
             preparedStatements.add(psInsertParameterESS);
 
            psInsertParameterESST =
                 dbConnector.getConnection().prepareStatement
                 ("INSERT INTO u_esstelements (id_esstemplate,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
-                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)",keyColumn);
             preparedStatements.add(psInsertParameterESST);
 
            psInsertParameterSRV =
                 dbConnector.getConnection().prepareStatement
                 ("INSERT INTO u_srvelements (id_service,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
-                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)",keyColumn);
             preparedStatements.add(psInsertParameterSRV);
 
            psInsertParameterSRVT =
                 dbConnector.getConnection().prepareStatement
                 ("INSERT INTO u_srvtelements (id_srvtemplate,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
-                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)",keyColumn);
             preparedStatements.add(psInsertParameterSRVT);
 
            psInsertParameterMODT =
                 dbConnector.getConnection().prepareStatement
                 ("INSERT INTO u_modtelements (id_modtemplate,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
-                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)",keyColumn);
             preparedStatements.add(psInsertParameterMODT);
 
            psInsertParameterOUTM =
                 dbConnector.getConnection().prepareStatement
                 ("INSERT INTO u_outmelements (id_streamid,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) " +
-                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, -1, ?)",keyColumn);
+                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)",keyColumn);
             preparedStatements.add(psInsertParameterOUTM);
 
             psInsertSuperIdParamSetAssoc =
@@ -7051,7 +7070,7 @@ psSelectParametersTemplates =
             if (dbstmnt==psInsertMoElement) {
                 dbstmnt.setInt(1,3); //moetype
                 dbstmnt.setString(2,vpset.name());
-                dbstmnt.setInt(3,-1);
+                dbstmnt.setNull(3,Types.INTEGER);
                 dbstmnt.setString(4,"VPSet");
                 dbstmnt.setBoolean(5,vpset.isTracked());
                 //dbstmnt.setInt(6,999);
@@ -7078,8 +7097,8 @@ psSelectParametersTemplates =
                 psInsertPae2Moe.setInt(2,paramId);
                 psInsertPae2Moe.setInt(3,lvl);
                 psInsertPae2Moe.setInt(4,sequenceNb);
-                psInsertPae2Moe.addBatch();
-                //psInsertPae2Moe.executeUpdate();
+                //psInsertPae2Moe.addBatch();
+                psInsertPae2Moe.executeUpdate();
            }
 
             for (int i=0;i<vpset.parameterSetCount();i++) {
@@ -7097,15 +7116,17 @@ psSelectParametersTemplates =
         finally {
             dbConnector.release(rs);
         }
-       try {
-            psInsertPae2Moe.executeBatch();
+       /*try {
+            if (dbstmnt==psInsertMoElement) {
+                  psInsertPae2Moe.executeBatch();
+            }
         }
         catch (SQLException e) {
             String errMsg =
                 "ConfDB::insertVecParameterSet(parId="+parentId+") failed "+
                 "(batch insert):" + e.getMessage();
             throw new DatabaseException(errMsg,e);
-        }
+        }*/
 
         //insertSuperIdVecParamSetAssoc(superId,vpsetId,sequenceNb);
     }
@@ -7153,7 +7174,8 @@ psSelectParametersTemplates =
                 psInsertPae2Moe.setInt(2,paramId);
                 psInsertPae2Moe.setInt(3,lvl);
                 psInsertPae2Moe.setInt(4,sequenceNb);
-                psInsertPae2Moe.addBatch();
+                //psInsertPae2Moe.addBatch();
+                psInsertPae2Moe.executeUpdate();
             }
 
             for (int i=0;i<pset.parameterCount();i++) {
@@ -7182,15 +7204,17 @@ psSelectParametersTemplates =
             dbConnector.release(rs);
         }
 
-       try {
-            psInsertPae2Moe.executeBatch();
+       /*try {
+            if (dbstmnt==psInsertMoElement) {
+               psInsertPae2Moe.executeBatch();
+             }
         }
         catch (SQLException e) {
             String errMsg =
                 "ConfDB::insertParameterSet(parId="+parentId+") failed "+
                 "(batch insert):" + e.getMessage();
             throw new DatabaseException(errMsg,e);
-        }
+        }*/
 
 //      insertSuperIdParamSetAssoc(superId,psetId,sequenceNb);
     }
@@ -7215,7 +7239,7 @@ psSelectParametersTemplates =
             if (dbstmnt==psInsertMoElement) {
                 dbstmnt.setInt(1,1); //moetype
                 dbstmnt.setString(2,parameter.name());
-                dbstmnt.setInt(3,-1);
+                dbstmnt.setNull(3,Types.INTEGER);
                 dbstmnt.setString(4,parameter.type());
                 dbstmnt.setBoolean(5,parameter.isTracked());
                 //dbstmnt.setInt(6,999);
@@ -7337,8 +7361,8 @@ psSelectParametersTemplates =
                 psInsertPae2Moe.setInt(3,lvl);
                 psInsertPae2Moe.setInt(4,sequenceNb);
 
-                //psInsertPae2Moe.executeUpdate();
-                psInsertPae2Moe.addBatch();
+                //psInsertPae2Moe.addBatch();
+                psInsertPae2Moe.executeUpdate();
            }
 
         }
@@ -7353,7 +7377,7 @@ psSelectParametersTemplates =
             dbConnector.release(rs);
         }
 
-      try {
+      /*try {
             if (dbstmnt==psInsertMoElement) {
                psInsertPae2Moe.executeBatch();
             }
@@ -7363,7 +7387,7 @@ psSelectParametersTemplates =
                 "ConfDB::insertParameter(parId="+parentId+") failed "+
                 "(batch insert):" + e.getMessage();
             throw new DatabaseException(errMsg,e);
-        }
+        }*/
 
     }
 
