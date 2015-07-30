@@ -14,4 +14,4 @@ sed -i 's#$$codebase#http://confdb.web.cern.ch/confdb/gui/#' $BASE/gui/start.jnl
 mkdir -p $BASE/lib
 cp lib/*.jar ext/signed/*.jar $BASE/lib
 
-echo "ConfDB GUI version `cat $BASE/confdb.version | grep confdb.version | cut -d= -f2` succesfully deployed"
+echo "ConfDB GUI version `cat $BASE/confdb.version | grep confdb.version | cut -d= -f2` successfully deployed"
