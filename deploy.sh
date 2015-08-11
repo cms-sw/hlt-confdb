@@ -1,7 +1,7 @@
 #! /bin/bash -e
 
 # set the target directory
-BASE=$HOME/www
+BASE=$HOME/www/v1
 
 # create the target directory 
 mkdir -p $BASE
