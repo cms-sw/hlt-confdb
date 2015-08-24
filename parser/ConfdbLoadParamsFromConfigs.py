@@ -27,6 +27,7 @@ def main(argv):
     input_usingblacklist = True
     input_blacklist = [
         "DQM.Integration.config.FrontierCondition_GT_Offline_cfi",
+        "DQM.SiStripMonitorHardware.SiStripSpyEventMatcher_cfi",
 #       "FWCore/PrescaleService",
 #       "DQM",
 #       "HLTrigger.special.hltHcalNoiseFilter_cfi"
