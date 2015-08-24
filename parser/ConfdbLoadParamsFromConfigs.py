@@ -26,7 +26,7 @@ def main(argv):
     # 3) Individual cfi files (Package.Subsystem.filename_cfi)
     input_usingblacklist = True
     input_blacklist = [
-        "DQM.Integration.test.FrontierCondition_GT_Offline_cfi",
+        "DQM.Integration.config.FrontierCondition_GT_Offline_cfi",
 #       "FWCore/PrescaleService",
 #       "DQM",
 #       "HLTrigger.special.hltHcalNoiseFilter_cfi"
