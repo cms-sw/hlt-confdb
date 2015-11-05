@@ -1,3 +1,33 @@
+2015-09-05 Sandro Ventura <sandro.ventura@cern.ch>
+        * tag V02-03-03
+        * fix a missing FocusListener in ExportConfigurationDialog class which could cause directories tree corruption
+
+2015-07-29 Sandro Ventura <sandro.ventura@cern.ch>
+	* tag V02-03-02
+	* small fixes for direct writing to v2
+	* updated DB choice pull down menu for v2 accounts
+
+2015-07-23 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V02-03-01
+	* from Sandro: fix for u_lockedconf field name
+
+2015-07-22 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V02-03-00
+	* clean up after merge from ConfDB v1
+	* deploy at http://confdb.web.cern.ch/confdb/v2/
+
+2015-05-28 Sandro Ventura <sandro.ventura@cern.ch>
+	* tag V02-02-05
+	* merge with ConfDB v1 updates
+
+2015-04-11 Sandro Ventura <sandro.ventura@cern.ch>
+	* tag V02-02-04
+	* second ConfDB v2 version deployed online
+
+2015-02-23 Sandro Ventura <sandro.ventura@cern.ch>
+	* tag V02-01-02
+	* first ConfDB v2 version deployed online
+
 2015-05-08 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V01-08-04
 	* update build environment for lxplus and the `confdb` user

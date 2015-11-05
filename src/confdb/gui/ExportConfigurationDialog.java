@@ -196,6 +196,10 @@ public class ExportConfigurationDialog extends JDialog
             jTreeDirectories.setCellRenderer(new DirectoryTreeCellRenderer());
             jTreeDirectories.setCellEditor(new DirectoryTreeCellEditor(jTreeDirectories, new DirectoryTreeCellRenderer()));
             
+         // register focus listener to save current edit by clicking elsewhere.
+         // See: TreeDirectoryFocusListener.java
+            jTreeDirectories.addFocusListener(new TreeDirectoryFocusListener(jTreeDirectories, targetDB));
+
             // register additional listener callbacks
             jTreeDirectories.addTreeSelectionListener(new TreeSelectionListener() {
                     public void valueChanged(TreeSelectionEvent e) {
