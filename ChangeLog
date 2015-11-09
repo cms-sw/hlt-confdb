@@ -1,6 +1,6 @@
 2015-09-05 Sandro Ventura <sandro.ventura@cern.ch>
-        * tag V02-03-03
-        * fix a missing FocusListener in ExportConfigurationDialog class which could cause directories tree corruption
+	* tag V02-03-03
+	* fix a missing FocusListener in ExportConfigurationDialog class which could cause directories tree corruption
 
 2015-07-29 Sandro Ventura <sandro.ventura@cern.ch>
 	* tag V02-03-02
