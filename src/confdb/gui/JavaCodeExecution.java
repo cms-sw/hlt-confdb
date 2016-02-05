@@ -33,7 +33,8 @@ public class JavaCodeExecution
     {
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] start:");
-	runCode6618();
+	runCode13062();
+	//	runCode6618();
 	//      runCode6568();
 	//	runCodeFillPSet();
 	//      runCode3211();
@@ -41,6 +42,73 @@ public class JavaCodeExecution
 	//      runCode2286();
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] ended!");
+    }
+
+    private void runCode13062()
+    {
+	edModuleUpdate13062("PixelTrackProducer");
+	edModuleUpdate13062("SeedGeneratorFromRegionHitsEDProducer");
+	globalPSetUpdate13062("CkfBaseTrajectoryFilter");
+    }
+
+    private void edModuleUpdate13062(String templateName)
+    {
+	PSetParameter pset = null;
+	ModuleInstance module = null;
+	for (int i=0; i<config.moduleCount(); i++) {
+	    module = config.module(i);
+	    if (module.template().name().equals(templateName)) {
+		if (config.module(module.name()).parameter("RegionFactoryPSet","PSet")!=null) {
+		    pset = (PSetParameter) config.module(module.name()).parameter("RegionFactoryPSet","PSet");
+		    if (pset.parameter("RegionPSet")!=null){
+			pset = (PSetParameter) pset.parameter("RegionPSet");
+			if (pset.parameter("useMultipleScattering")==null) {
+			    BoolParameter para = new BoolParameter("useMultipleScattering",false,true);
+			    pset.addParameter(para);
+			    module.setHasChanged();
+			}
+			if (pset.parameter("useFakeVertices")==null) {
+			    BoolParameter para = new BoolParameter("useFakeVertices",false,true);
+			    pset.addParameter(para);
+			    module.setHasChanged();
+			}
+		    }
+		}
+	    }
+	}
+    }
+
+    private void globalPSetUpdate13062(String componentType)
+    {
+	PSetParameter pset = null;
+	for (int i=0; i<config.psetCount(); i++) {
+	    pset = config.pset(i);
+	    if (pset.parameter("ComponentType")!=null) {
+		String ComponentType = pset.parameter("ComponentType").valueAsString();
+		ComponentType = ComponentType.substring(1,ComponentType.length()-1);
+		if (ComponentType.equals(componentType)) {
+		    if (pset.parameter("minGoodStripCharge")==null) {
+			PSetParameter para = new PSetParameter("minGoodStripCharge","",true);
+			StringParameter ref = new StringParameter("refToPSet_","HLTSiStripClusterChargeCutNone",true);
+			para.addParameter(ref);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("maxCCCLostHits")==null) {
+			Int32Parameter para = new Int32Parameter("maxCCCLostHits",9999,true);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("seedExtension")==null) {
+			Int32Parameter para = new Int32Parameter("seedExtension",0,true);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("strictSeedExtension")==null) {
+			BoolParameter para = new BoolParameter("strictSeedExtension",false,true);
+			pset.addParameter(para);
+		    }
+		}
+	    }
+	}
+	config.psets().setHasChanged();
     }
 
     private void runCode6618()
