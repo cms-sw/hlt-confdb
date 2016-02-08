@@ -1231,8 +1231,12 @@ class ConfdbLoadParamsfromConfigs:
         returnid = 0
         paramistracked = 0
 
-        parametervalue = pval.value()
         parametertype = pval.configTypeName()
+        if parametertype == 'PSet':
+            # work around PSet with a parameter named "value"
+            parametervalue = pval
+        else:
+            parametervalue = pval.value()
         parametertracked = pval.isTracked()
 
         # Reformat representations of Booleans for python -> Oracle
