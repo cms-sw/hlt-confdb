@@ -1,3 +1,5 @@
+L1Trigger/L1TGlobal                     TriggerMenu_cff.py
+L1Trigger/L1TGlobal                     StableParameters_cff.py
 RecoPixelVertexing/PixelLowPtUtilities  AllPixelTracks_cfi.py
 TrackingTools/GeomPropagators           AnyDirectionAnalyticalPropagator_cfi.py
 SimCalorimetry/HcalTestBeam             hardwired_conditions_cfi.py
