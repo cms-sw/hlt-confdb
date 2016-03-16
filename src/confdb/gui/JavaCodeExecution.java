@@ -6,6 +6,8 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
 
 import confdb.data.*;
 
@@ -33,7 +35,8 @@ public class JavaCodeExecution
     {
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] start:");
-	runCode13062();
+	runCodeL1TMenu();
+	//      runCode13062();
 	//	runCode6618();
 	//      runCode6568();
 	//	runCodeFillPSet();
@@ -42,6 +45,82 @@ public class JavaCodeExecution
 	//      runCode2286();
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] ended!");
+    }
+
+    private void runCodeL1TMenu()
+    {
+	// Update to a new L1T menu by 'translating' L1T algorithm names 'old' to 'new'
+	Map<String,String> map = new TreeMap<String,String>();
+	map.put("L1_AlwaysTrue","L1_ZeroBias");
+	map.put("L1_SingleEG20","L1_SingleEG24");
+	map.put("L1_SingleEG25","L1_SingleEG26");
+	map.put("L1_SingleEG35","L1_SingleEG40");
+	map.put("L1_SingleIsoEG25","L1_SingleIsoEG26");
+	map.put("L1_SingleIsoEG25er","L1_SingleIsoEG26er");
+	map.put("L1_DoubleEG_15_10","L1_DoubleEG_15_10 OR L1_DoubleEG_18_17 OR L1_DoubleEG_20_18 OR L1_DoubleEG_23_10");
+	map.put("L1_DoubleEG_22_10","L1_DoubleEG_22_10 OR L1_DoubleEG_22_20 OR L1_DoubleEG_24_17");
+	map.put("L1_DoubleTauJet40er","XXXremovedXXX");
+	map.put("L1_Mu16er_IsoTau28er","L1_Mu18er_IsoTau28er");
+	map.put("L1_Mu16er_IsoTau32er","L1_Mu18er_IsoTau32er");
+	map.put("L1_Mu16er_TauJet20er","L1_Mu16er_Tau20er");
+	map.put("L1_QuadJetC36_TauJet52","L1_QuadJetC36_Tau52");
+	map.put("L1_SingleJet36","L1_SingleJet35");
+	map.put("L1_SingleJet52","L1_SingleJet60");
+	map.put("L1_SingleJet68","L1_SingleJet60");
+	map.put("L1_SingleJet92","L1_SingleJet90");
+	map.put("L1_SingleJet128","L1_SingleJet120");
+	map.put("L1_SingleJet176","L1_SingleJet180");
+	map.put("L1_DoubleJetC52","L1_DoubleJetC50");
+	map.put("L1_DoubleJetC56_ETM60","L1_DoubleJetC60_ETM60");
+	map.put("L1_DoubleJetC84","L1_DoubleJetC80");
+	map.put("L1_HTT75","L1_HTT160");
+	map.put("L1_HTT100","L1_HTT200");
+	map.put("L1_HTT125","L1_HTT220");
+	map.put("L1_HTT150","L1_HTT255");
+	map.put("L1_HTT175","L1_HTT300");
+	map.put("L1_HTT200","L1_HTT320");
+	map.put("L1_HTT250","L1_HTT350");
+	map.put("L1_DoubleEG6_HTT150","L1_DoubleEG6_HTT255");
+	map.put("L1_EG25er_HTT100","L1_EG27er_HTT200");
+	map.put("L1_Mu6_HTT100","L1_Mu6_HTT200");
+	map.put("L1_Mu8_HTT50","L1_Mu8_HTT150");
+	map.put("L1_DoubleMu0_Eta1p6_WdEta18","L1_DoubleMu0er1p6_dEta_Max1p8");
+	map.put("L1_DoubleMu0_Eta1p6_WdEta18_OS","L1_DoubleMu0er1p6_dEta_Max1p8_OS");
+	map.put("L1_DoubleMu_10_0_WdEta18","L1_DoubleMu_10_0_dEta_Max1p8");
+	map.put("L1_Mu3_JetC16_WdEtaPhi2","L1_Mu3_JetC16_dEta_Max0p4_dPhi_Max0p4");
+	map.put("L1_Mu3_JetC52_WdEtaPhi2","L1_Mu3_JetC52_dEta_Max0p4_dPhi_Max0p4");
+	map.put("L1_Jet32_DoubleMu_Open_10_MuMuNotWdPhi23_JetMuWdPhi1","L1_Jet32_DoubleMuOpen_Mu10_dPhi_Jet_Mu0_Max1p05_dPhi_Mu_Mu_Min1p0");
+	map.put("L1_Jet32_MuOpen_EG10_MuEGNotWdPhi3_JetMuWdPhi1","L1_Jet32_MuOpen_EG10_dPhi_Jet_Mu_Max1p05_dPhi_Mu_EG_Min1p05");
+	map.put("L1_IsoEG20er_TauJet20er_NotWdEta0","L1_IsoEG20er_Tau20er_dEta_Min0p2");
+
+	String oldSeeds = null;
+	String tmpSeeds = null;
+	String newSeeds = null;
+	ModuleInstance module = null;
+	for (int i =0; i<config.moduleCount(); i++) {
+	    module = config.module(i);
+	    if (module.template().name().equals("HLTL1TSeed")) {
+		oldSeeds = module.parameter("L1SeedsLogicalExpression","string").valueAsString();
+		oldSeeds = " "+oldSeeds.substring(1,oldSeeds.length()-1)+" ";
+		tmpSeeds = new String(oldSeeds);
+		for (String key: map.keySet()) {
+		    if (tmpSeeds.contains(" "+key+" ")) {
+			tmpSeeds = tmpSeeds.replace(" "+key+" ","X"+key+"X");
+		    }
+		}
+		newSeeds = new String(tmpSeeds);
+		for (String key: map.keySet()) {
+		    if (newSeeds.contains("X"+key+"X")) {
+			newSeeds = newSeeds.replace("X"+key+"X"," "+map.get(key)+" ");
+		    }
+		}
+		if (!(oldSeeds.equals(newSeeds))) {
+		    System.out.println(module.name()+"|"+oldSeeds+"|"+newSeeds+"|");
+		    module.updateParameter("L1SeedsLogicalExpression","string",newSeeds.substring(1,newSeeds.length()-1));
+		    module.setHasChanged();
+		}
+	    }
+	}
     }
 
     private void runCode13062()
