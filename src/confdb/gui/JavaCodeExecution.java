@@ -35,6 +35,7 @@ public class JavaCodeExecution
     {
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] start:");
+	//	runChecker();
 	runCodeL1TMenu();
 	//      runCode13062();
 	//	runCode6618();
@@ -45,6 +46,74 @@ public class JavaCodeExecution
 	//      runCode2286();
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] ended!");
+    }
+
+    private void runChecker()
+    {
+	ModuleInstance module = null;
+	String newName = null;
+
+	for (int i =0; i<config.moduleCount(); i++) {
+	    module = config.module(i);
+	    if (module.template().name().equals("HLTL1TSeed")) {
+		newName = module.parameter("L1SeedsLogicalExpression","string").valueAsString();
+		newName = " "+newName.substring(1,newName.length()-1)+" ";
+		newName = newName.replace("  "," ").replace(" and "," AND ").replace(" or "," OR ").replace("L1","").replace("_","");
+		newName = "hltL1s"+newName.replace(" ","");
+		if (!newName.equals(module.name())) {
+		    if (!config.isUniqueQualifier(newName)) {
+			String testName=null;
+			int j=0;
+			testName = newName.replace("hltL1s","hltL1sV"+j);
+			while (!config.isUniqueQualifier(testName)) {
+			    ++j;
+			    testName = newName.replace("hltL1s","hltL1sV"+j);
+			}
+			newName = testName;
+		    }
+		    System.out.println("HLTL1TSeed instance "+module.name()+" => "+newName);
+		    //		try {
+		    //		    module.setNameAndPropagate(newName);
+		    //		}
+		    //		catch (DataException e) {
+		    //		    System.err.println(e.getMessage());
+		    //		}
+		}
+	    }
+	}
+
+	Path[] paths = null;
+	for (int i =0; i<config.moduleCount(); i++) {
+	    module = config.module(i);
+	    if (module.template().name().equals("HLTPrescaler")) {
+		paths = module.parentPaths();
+		if (paths.length==1) {
+		    newName = paths[0].name().replace("HLT","").replaceAll("_v[0-9]+$","");
+		    newName = "hltPre"+newName.replace("_","");
+		    if (!newName.equals(module.name())) {
+			if (!config.isUniqueQualifier(newName)) {
+			    String testName=null;
+			    int j=0;
+			    testName = newName.replace("hltPre","hltPreV"+j);
+			    while (!config.isUniqueQualifier(testName)) {
+				++j;
+				testName = newName.replace("hltPre","hltPreV"+j);
+			    }
+			    newName = testName;
+			}
+			System.out.println("HLTL1TPrescaler instance "+module.name()+" => "+newName);
+			//		    try {
+			//			module.setNameAndPropagate(newName);
+			//		    }
+			//		    catch (DataException e) {
+			//			System.err.println(e.getMessage());
+			//		    }
+		    }
+		} else {
+		    System.err.println("Error: HLTPrescaler instance "+module.name()+" is in more than one path.");
+		}
+	    }
+	}
     }
 
     private void runCodeL1TMenu()
