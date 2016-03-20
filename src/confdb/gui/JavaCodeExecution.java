@@ -78,6 +78,7 @@ public class JavaCodeExecution
 		    //		catch (DataException e) {
 		    //		    System.err.println(e.getMessage());
 		    //		}
+		    module.setHasChanged();
 		}
 	    }
 	}
@@ -108,6 +109,7 @@ public class JavaCodeExecution
 			//		    catch (DataException e) {
 			//			System.err.println(e.getMessage());
 			//		    }
+			module.setHasChanged();
 		    }
 		} else {
 		    System.err.println("Error: HLTPrescaler instance "+module.name()+" is in more than one path.");
