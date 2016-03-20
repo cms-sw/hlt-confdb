@@ -102,7 +102,7 @@ public class JavaCodeExecution
 			    }
 			    newName = testName;
 			}
-			System.out.println("HLTL1TPrescaler instance "+module.name()+" => "+newName);
+			System.out.println("HLTPrescaler instance "+module.name()+" => "+newName);
 			//		    try {
 			//			module.setNameAndPropagate(newName);
 			//		    }
