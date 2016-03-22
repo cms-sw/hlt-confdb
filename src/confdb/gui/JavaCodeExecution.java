@@ -164,6 +164,7 @@ public class JavaCodeExecution
 	map.put("L1_Jet32_MuOpen_EG10_MuEGNotWdPhi3_JetMuWdPhi1","L1_Jet32_MuOpen_EG10_dPhi_Jet_Mu_Max1p05_dPhi_Mu_EG_Min1p05");
 	map.put("L1_IsoEG20er_TauJet20er_NotWdEta0","L1_IsoEG20er_Tau20er_dEta_Min0p2");
 
+	int count = 0;
 	String oldSeeds = null;
 	String tmpSeeds = null;
 	String newSeeds = null;
@@ -186,9 +187,10 @@ public class JavaCodeExecution
 		    }
 		}
 		if (!(oldSeeds.equals(newSeeds))) {
-		    System.out.println(module.name()+"|"+oldSeeds+"|"+newSeeds+"|");
+		    System.out.println(count+": "+module.name()+"|"+oldSeeds+"|"+newSeeds+"|");
 		    module.updateParameter("L1SeedsLogicalExpression","string",newSeeds.substring(1,newSeeds.length()-1));
 		    module.setHasChanged();
+		    count = count+1;
 		}
 	    }
 	}
