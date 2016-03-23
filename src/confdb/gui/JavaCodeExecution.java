@@ -35,8 +35,8 @@ public class JavaCodeExecution
     {
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] start:");
-	//	runChecker();
-	runCodeL1TMenu();
+	runChecker();
+	//	runCodeL1TMenu();
 	//      runCode13062();
 	//	runCode6618();
 	//      runCode6568();
@@ -75,13 +75,13 @@ public class JavaCodeExecution
 			    newName = testName;
 			}
 			System.out.println("HLTL1TSeed instance "+module.name()+" => "+newName);
-			//		try {
-			//		    module.setNameAndPropagate(newName);
-			//		}
-			//		catch (DataException e) {
-			//		    System.err.println(e.getMessage());
-			//		}
-			//          module.setHasChanged();
+			try {
+			    module.setNameAndPropagate(newName);
+			}
+			catch (DataException e) {
+			    System.err.println(e.getMessage());
+			}
+			module.setHasChanged();
 		    }
 		}
 	    }
@@ -107,13 +107,13 @@ public class JavaCodeExecution
 			    newName = testName;
 			}
 			System.out.println("HLTPrescaler instance "+module.name()+" => "+newName);
-			//		    try {
-			//			module.setNameAndPropagate(newName);
-			//		    }
-			//		    catch (DataException e) {
-			//			System.err.println(e.getMessage());
-			//		    }
-			//                  module.setHasChanged();
+			try {
+			    module.setNameAndPropagate(newName);
+			}
+			catch (DataException e) {
+			    System.err.println(e.getMessage());
+			}
+			module.setHasChanged();
 		    }
 		} else {
 		    System.err.println("Error: HLTPrescaler instance "+module.name()+" is in more than one path.");
