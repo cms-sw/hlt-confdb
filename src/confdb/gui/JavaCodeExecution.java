@@ -93,7 +93,7 @@ public class JavaCodeExecution
 	    if (module.template().name().equals("HLTPrescaler")) {
 		paths = module.parentPaths();
 		if (paths.length==1) {
-		    newName = paths[0].name().replace("HLT","").replaceAll("_v[0-9]+$","");
+		    newName = paths[0].name().replace("HLT_","").replaceAll("_v[0-9]+$","");
 		    newName = "hltPre"+newName.replace("_","");
 		    if (!newName.equals(module.name())) {
 			if (!config.isUniqueQualifier(newName)) {
