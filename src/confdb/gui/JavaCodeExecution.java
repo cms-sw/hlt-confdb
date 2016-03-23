@@ -62,7 +62,9 @@ public class JavaCodeExecution
 		newName = "hltL1s"+newName.replace(" ","");
 		if (!newName.equals(module.name())) {
 		    if ( (newName.indexOf("Always")>=0) || (newName.indexOf("Bias")>=0) || (newName.indexOf("True")>=0) ) {
-			System.out.println("Keeping HLTL1TSeed instance "+module.name()+" => "+newName);
+			System.out.println("Keeping HLTL1TSeed instance (Always|Bias|True) "+module.name()+" => "+newName);
+		    } else if (newName.length()>=128) {
+			System.out.println("Keeping HLTL1TSeed instance (length) "+module.name()+" => "+newName);
 		    } else {
 			if (!config.isUniqueQualifier(newName)) {
 			    String testName=null;
