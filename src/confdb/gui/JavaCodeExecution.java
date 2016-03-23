@@ -58,7 +58,7 @@ public class JavaCodeExecution
 	    if (module.template().name().equals("HLTL1TSeed")) {
 		newName = module.parameter("L1SeedsLogicalExpression","string").valueAsString();
 		newName = " "+newName.substring(1,newName.length()-1)+" ";
-		newName = newName.replace("  "," ").replace(" and "," AND ").replace(" or "," OR ").replace("L1","").replace("_","");
+		newName = newName.replace("  "," ").replace(" and "," AND ").replace(" or "," OR ").replace("L1","").replace("_","").replace(" AND ","XandX").replace(" OR ","XorX");
 		newName = "hltL1s"+newName.replace(" ","");
 		if (!newName.equals(module.name())) {
 		    if ( (newName.indexOf("Always")>=0) || (newName.indexOf("Bias")>=0) || (newName.indexOf("True")>=0) ) {
