@@ -36,7 +36,8 @@ public class JavaCodeExecution
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] start:");
 	runChecker();
-	//	runCodeL1TMenu();
+	//	runCodeL1TMenu1();
+	//	runCodeL1TMenu0();
 	//      runCode13062();
 	//	runCode6618();
 	//      runCode6568();
@@ -124,7 +125,80 @@ public class JavaCodeExecution
 	}
     }
 
-    private void runCodeL1TMenu()
+    private void runCodeL1TMenu1()
+    {
+	// Update to a new L1T menu by 'translating' L1T algorithm names 'old' to 'new'
+	Map<String,String> map = new TreeMap<String,String>();
+
+	map.put("L1_DoubleEG_22_20","XXXremovedXXX");
+	map.put("L1_DoubleIsoTau36er","XXXremovedXXX");
+	map.put("L1_DoubleIsoTau40er","XXXremovedXXX");
+	map.put("L1_DoubleMu0er1p25_dEta_Max1p8_OS","XXXremovedXXX");
+	map.put("L1_DoubleTau40er","XXXremovedXXX");
+	map.put("L1_ETM60_JetF60_dPhi_Min0p4","XXXremovedXXX");
+	map.put("L1_HTT350","XXXremovedXXX");
+	map.put("L1_HTT400","XXXremovedXXX");
+	map.put("L1_Mu14er_Tau20er","XXXremovedXXX");
+	map.put("L1_Mu14er_Tau24er","XXXremovedXXX");
+	map.put("L1_Mu18er_IsoTau28er","XXXremovedXXX");
+	map.put("L1_Mu18er_IsoTau30er","XXXremovedXXX");
+	map.put("L1_Mu18er_IsoTau32er","XXXremovedXXX");
+	map.put("L1_Mu18er_IsoTau36er","XXXremovedXXX");
+	map.put("L1_Mu18er_IsoTau40er","XXXremovedXXX");
+	map.put("L1_SingleEG32","XXXremovedXXX");
+	map.put("L1_SingleEG38","XXXremovedXXX");
+	map.put("L1_SingleEG42","XXXremovedXXX");
+	map.put("L1_SingleIsoEG27","XXXremovedXXX");
+	map.put("L1_SingleIsoEG27er","XXXremovedXXX");
+	map.put("L1_SingleMu35","XXXremovedXXX");
+	map.put("L1_SingleMu40","XXXremovedXXX");
+	map.put("L1_SingleMuBeamHalo","XXXremovedXXX");
+	map.put("L1_SingleTau150er","XXXremovedXXX");
+
+	map.put("L1_IsoEG20er_Tau20er_dEta_Min0p2","L1_IsoEG22er_Tau20er_dEta_Min0p2");
+	map.put("L1_IsoEG20er_Tau24er_dEta_Min0p2","L1_IsoEG22er_Tau20er_dEta_Min0p2");
+	map.put("L1_IsoEG23er_Tau20er_dEta_Min0p2","L1_IsoEG22er_Tau20er_dEta_Min0p2");
+
+	map.put("L1_SingleJetC20_NotBptxOR_NoHaloMu_3BX","L1_SingleJetC20_NotBptxOR_3BX");
+	map.put("L1_SingleJetC32_NotBptxOR_NoHaloMu_3BX","L1_SingleJetC32_NotBptxOR_3BX");
+	map.put("L1_SingleJetC36_NotBptxOR_NoHaloMu_3BX","L1_SingleJetC36_NotBptxOR_3BX");
+	map.put("L1_SingleMuOpen_NotBptxOR_NoHaloMu_3BX","L1_SingleMuOpen_NotBptxOR_3BX");
+
+	int count = 0;
+	String oldSeeds = null;
+	String tmpSeeds = null;
+	String newSeeds = null;
+	ModuleInstance module = null;
+	for (int i =0; i<config.moduleCount(); i++) {
+	    module = config.module(i);
+	    if (module.template().name().equals("HLTL1TSeed")) {
+		oldSeeds = module.parameter("L1SeedsLogicalExpression","string").valueAsString();
+		oldSeeds = " "+oldSeeds.substring(1,oldSeeds.length()-1)+" ";
+		tmpSeeds = new String(oldSeeds);
+		for (String key: map.keySet()) {
+		    if (tmpSeeds.contains(" "+key+" ")) {
+			tmpSeeds = tmpSeeds.replace(" "+key+" ","X"+key+"X");
+		    }
+		}
+		newSeeds = new String(tmpSeeds);
+		for (String key: map.keySet()) {
+		    if (newSeeds.contains("X"+key+"X")) {
+			newSeeds = newSeeds.replace("X"+key+"X"," "+map.get(key)+" ");
+		    }
+		}
+		newSeeds = newSeeds.replace(" or "," OR ").replace(" OR XXXremovedXXX "," ").replace(" XXXremovedXXX OR "," ");
+		newSeeds = newSeeds.replace(" and "," AND ").replace(" AND XXXremovedXXX "," ").replace(" XXXremovedXXX AND "," ");
+		if (!(oldSeeds.equals(newSeeds))) {
+		    System.out.println(count+": "+module.name()+"|"+oldSeeds+"|"+newSeeds+"|");
+		    module.updateParameter("L1SeedsLogicalExpression","string",newSeeds.substring(1,newSeeds.length()-1));
+		    module.setHasChanged();
+		    count = count+1;
+		}
+	    }
+	}
+    }
+
+    private void runCodeL1TMenu0()
     {
 	// Update to a new L1T menu by 'translating' L1T algorithm names 'old' to 'new'
 	Map<String,String> map = new TreeMap<String,String>();
