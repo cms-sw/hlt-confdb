@@ -35,7 +35,8 @@ public class JavaCodeExecution
     {
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] start:");
-	runChecker();
+	//	runChecker();
+	runCode14317();
 	//	runCodeL1TMenu1();
 	//	runCodeL1TMenu0();
 	//      runCode13062();
@@ -120,6 +121,56 @@ public class JavaCodeExecution
 		    }
 		} else {
 		    System.err.println("Error: HLTPrescaler instance "+module.name()+" is in more than one path.");
+		}
+	    }
+	}
+    }
+
+    private void runCode14317()
+    {
+	PSetParameter pset = null;
+	for (int i=0; i<config.psetCount(); i++) {
+	    pset = config.pset(i);
+	    if (pset.parameter("ComponentType")!=null) {
+		String ComponentType = pset.parameter("ComponentType").valueAsString();
+		ComponentType = ComponentType.substring(1,ComponentType.length()-1);
+		if (ComponentType.equals("CkfBaseTrajectoryFilter")) {
+		    String value = "13";
+		    if (pset.parameter("minNumberOfHits")!=null) {
+			Parameter para = pset.parameter("minNumberOfHits");
+			value = para.valueAsString();
+			pset.removeParameter(para);
+		    }
+		    if (pset.parameter("minNumberOfHitsForLoopers")==null) {
+			Int32Parameter para = new Int32Parameter("minNumberOfHitsForLoopers",0,true);
+			para.setValue(value);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("minNumberOfHitsPerLoop")==null) {
+			Int32Parameter para = new Int32Parameter("minNumberOfHitsPerLoop",4,true);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("extraNumberOfHitsBeforeTheFirstLoop")==null) {
+			Int32Parameter para = new Int32Parameter("extraNumberOfHitsBeforeTheFirstLoop",4,true);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("maxLostHitsFraction")==null) {
+			DoubleParameter para = new DoubleParameter("maxLostHitsFraction",999.0,true);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("constantValueForLostHitsFractionFilter")==null) {
+			DoubleParameter para = new DoubleParameter("constantValueForLostHitsFractionFilter",1.0,true);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("minimumNumberOfHits")==null) {
+			Int32Parameter para = new Int32Parameter("minimumNumberOfHits",5,true);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("seedPairPenalty")==null) {
+			Int32Parameter para = new Int32Parameter("seedPairPenalty",0,true);
+			pset.addParameter(para);
+		    }
+		    config.psets().setHasChanged();
 		}
 	    }
 	}

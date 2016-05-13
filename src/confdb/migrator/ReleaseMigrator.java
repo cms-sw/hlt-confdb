@@ -374,6 +374,22 @@ public class ReleaseMigrator
 				   sourceParameter+", WHAT THE F!@# !?");
 	    }
 	}
+
+	// special E/g migration
+	//	//	if (target.template().name().equals("HLTEgammaEtFilter") ||
+	//	    target.template().name().equals("HLTPMMassFilter")) {
+	//	    target.updateParameter("l1EGCand","InputTag",source.parameter("L1IsoCand","InputTag").valueAsString());
+	//	} else if (target.template().name().equals("HLTEgammaGenericQuadraticFilter") ||
+	//		   target.template().name().equals("HLTEgammaGenericFilter") ||
+	//		   target.template().name().equals("HLTMuonGenericFilter")) {
+	//	    target.updateParameter("varTag","InputTag",source.parameter("isoTag","InputTag").valueAsString());
+	//	    target.updateParameter("l1EGCand","InputTag",source.parameter("L1IsoCand","InputTag").valueAsString());
+	//	} else if (target.template().name().equals("HLTElectronPixelMatchFilter")) {
+	//	    target.updateParameter("l1EGCand","InputTag",source.parameter("L1IsoCand","InputTag").valueAsString());
+	//	    target.updateParameter("l1PixelSeedsTag","InputTag",source.parameter("L1IsoPixelSeedsTag","InputTag").valueAsString());
+	//	}
+	// special E/g migration
+
     }
     
     /** migrate references from source Path/Sequence to target Path/Sequence */
