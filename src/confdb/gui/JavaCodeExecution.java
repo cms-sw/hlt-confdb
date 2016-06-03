@@ -35,8 +35,8 @@ public class JavaCodeExecution
     {
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] start:");
-	//	runChecker();
-	runCode14317();
+	runChecker();
+	//	runCode14317();
 	//	runCodeL1TMenu1();
 	//	runCodeL1TMenu0();
 	//      runCode13062();
