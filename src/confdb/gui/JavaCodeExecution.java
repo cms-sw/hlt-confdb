@@ -63,29 +63,34 @@ public class JavaCodeExecution
 		newName = newName.replace("  "," ").replace(" and "," AND ").replace(" or "," OR ").replace("L1","").replace("_","").replace(" AND ","Iand").replace(" OR ","Ior");
 		newName = "hltL1s"+newName.replace(" ","");
 		if (!newName.equals(module.name())) {
-		    if ( (newName.indexOf("Always")>=0) || (newName.indexOf("Bias")>=0) || (newName.indexOf("True")>=0) ) {
-			System.out.println("Keeping HLTL1TSeed instance (Always|Bias|True) "+module.name()+" => "+newName);
+		    if (newName.indexOf("Zero")>=0) {
+			System.out.println("  Keeping (Zero)   "+module.name()+" /not "+newName);
 		    } else if (newName.length()>=128) {
-			System.out.println("Keeping HLTL1TSeed instance (length) "+module.name()+" => "+newName);
+			System.out.println("  Keeping (length) "+module.name()+" /not "+newName);
 		    } else {
+			Boolean found = false;
 			if (!config.isUniqueQualifier(newName)) {
 			    String testName=null;
 			    int j=0;
 			    testName = newName.replace("hltL1s","hltL1sV"+j);
+			    found = (found || module.name().equals(testName));
 			    while (!config.isUniqueQualifier(testName)) {
 				++j;
 				testName = newName.replace("hltL1s","hltL1sV"+j);
+				found = (found || module.name().equals(testName));
 			    }
 			    newName = testName;
 			}
-			System.out.println("HLTL1TSeed instance "+module.name()+" => "+newName);
-			try {
-			    module.setNameAndPropagate(newName);
+			if (!found) {
+			    System.out.println("  Changing  "+module.name()+" => "+newName);
+			    try {
+				module.setNameAndPropagate(newName);
+			    }
+			    catch (DataException e) {
+				System.err.println(e.getMessage());
+			    }
+			    module.setHasChanged();
 			}
-			catch (DataException e) {
-			    System.err.println(e.getMessage());
-			}
-			module.setHasChanged();
 		    }
 		}
 	    }
