@@ -62,6 +62,9 @@ public class JavaCodeExecution
 		newName = " "+newName.substring(1,newName.length()-1)+" ";
 		newName = newName.replace("  "," ").replace(" and "," AND ").replace(" or "," OR ").replace("L1","").replace("_","").replace(" AND ","Iand").replace(" OR ","Ior");
 		newName = "hltL1s"+newName.replace(" ","");
+		if (module.parameter("L1GlobalInputTag","InputTag").valueAsString().equals("hltGtStage2ObjectMap")) {
+		    newName += "ObjectMap";
+		}
 		if (!newName.equals(module.name())) {
 		    if (newName.indexOf("Zero")>=0) {
 			System.out.println("  Keeping (Zero)   "+module.name()+" /not "+newName);
