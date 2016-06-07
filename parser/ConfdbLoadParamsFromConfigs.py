@@ -83,9 +83,9 @@ def main(argv):
 
     input_verbose = 0
     #    input_dbuser = "CMS_HLT_TEST"
-    input_dbuser = "CMS_HLTDEV"
+    input_dbuser = "CMS_HLT_GDR_W"
     input_dbpwd = ""
-    input_host = "CMS_ORCOFF_PROD"
+    input_host = "CMSR"
     #    input_host = "CMS_ORCOFF_INT2R"
     input_addtorelease = "none"
     input_comparetorelease = ""
@@ -221,6 +221,10 @@ class ConfdbLoadParamsfromConfigs:
         self.usedcfilist = []
         self.thepyfile = ''
         self.usedcfifile = "listofusedcfis." + str(clirel) + ".log"
+        self.componentrelassdict = {}
+        self.componentrelassfielddict = {}
+        self.componentparamtabledict = {}
+        self.compar = []
         
 	# Deal with package tags for this release.
 	self.cmsswrel = clirel
@@ -305,7 +309,7 @@ class ConfdbLoadParamsfromConfigs:
 
         # Do some one-time operations - get dictionaries of parameter, module,
         # and service type mappings so we don't have to do this every time
-        self.dbcursor.execute("SELECT DISTINCT paramtype FROM u_moelements")
+        self.dbcursor.execute("SELECT name,id  FROM u_paramtypes")
         temptuple = self.dbcursor.fetchall()
         for temptype, tempname in temptuple:
             self.paramtypedict[temptype] = tempname
@@ -338,6 +342,24 @@ class ConfdbLoadParamsfromConfigs:
 
         if(self.prefercfifile != ""):
             self.CreatePreferredCfiList()
+
+        self.componentrelassdict = {"u_moduletemplates":"u_modt2rele",
+                                    "u_edstemplates":"u_edst2rele",
+                                    "u_esstemplates":"u_esst2rele",
+                                    "u_esmtemplates":"u_esmt2rele",
+                                    "u_srvtemplates":"u_srvt2rele"}
+
+        self.componentrelassfielddict = {"u_moduletemplates":"id_modtemplate",
+                                         "u_edstemplates":"id_edstemplate",
+                                         "u_esstemplates":"id_esstemplate",
+                                         "u_esmtemplates":"id_esmtemplate",
+                                         "u_srvtemplates":"id_srvtemplate"}
+
+        self.componentparamtabledict = {"u_moduletemplates":"u_modtelements",
+                                        "u_edstemplates":"u_edstelements",
+                                        "u_esstemplates":"u_esstelements",
+                                        "u_esmtemplates":"u_esmtelements",
+                                        "u_srvtemplates":"u_srvtelements"}
 
         self.VerbosePrint("\n",0)
         self.VerbosePrint("*********************",0)
@@ -701,63 +723,69 @@ class ConfdbLoadParamsfromConfigs:
         eval(theextend)
         
         myproducers = process.producers_()
-        self.componenttable = "ModuleTemplates"
+        self.componenttable = "u_moduletemplates"
         self.FindParamsFromPython(thesubsystem, thepackage, myproducers,"EDProducer", allowmultiplecfis)
         
         myfilters = process.filters_()
-        self.componenttable = "ModuleTemplates"
+        self.componenttable = "u_moduletemplates"
         self.FindParamsFromPython(thesubsystem, thepackage, myfilters,"EDFilter", allowmultiplecfis)
         
         myservices = process.services_()
-        self.componenttable = "ServiceTemplates"                                
+        self.componenttable = "u_srvtemplates"                                
         self.FindParamsFromPython(thesubsystem, thepackage, myservices,"Service", allowmultiplecfis) 
-        
+       
         myanalyzers = process.analyzers_()
-        self.componenttable = "ModuleTemplates"
+        self.componenttable = "u_moduletemplates"
         self.FindParamsFromPython(thesubsystem, thepackage, myanalyzers,"EDAnalyzer", allowmultiplecfis) 
         
         myoutputmodules = process.outputModules_()
-        self.componenttable = "ModuleTemplates"
+        self.componenttable = "u_moduletemplates"
         self.FindParamsFromPython(thesubsystem, thepackage, myoutputmodules,"OutputModule", allowmultiplecfis)
         
         myessources = process.es_sources_()
-        self.componenttable = "ESSourceTemplates"                                
+        self.componenttable = "u_esstemplates"                                
         self.FindParamsFromPython(thesubsystem, thepackage, myessources,"ESSource", allowmultiplecfis) 
         
         myesproducers = process.es_producers_()
-        self.componenttable = "ESModuleTemplates"                                
+        self.componenttable = "u_esmtemplates"                                
         self.FindParamsFromPython(thesubsystem, thepackage, myesproducers,"ESModule", allowmultiplecfis) 
 
         myedsources = process.source_()
-        self.componenttable = "EDSourceTemplates"
+        self.componenttable = "u_edstemplates"
         if(myedsources):
             self.FindSingleComponentParamsFromPython(thesubsystem, thepackage, myedsources, "Source", allowmultiplecfis)
-            
+             
     def DoPsetRecursion(self,psetval,psetname,psetsid):
 
         params = psetval.parameters_()
         subobjectsuperid = -1
 
-        nextseqid = -1
-        self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParameterAssoc WHERE superId = " + str(psetsid) + " ORDER BY sequenceNb DESC")
-        nextpseqid = self.dbcursor.fetchone()
-        if(nextpseqid):
-            nextseqid = nextpseqid[0]
-        self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParamSetAssoc WHERE superId = " + str(psetsid) + " ORDER BY sequenceNb DESC")
-        nextpsetseqid = self.dbcursor.fetchone()
-        if(nextpsetseqid):
-            if(nextpsetseqid[0] > nextseqid):
-                nextseqid = nextpsetseqid[0]
-        self.dbcursor.execute("SELECT sequenceNb FROM SuperIdVecParamSetAssoc WHERE superId = " + str(psetsid) + " ORDER BY sequenceNb DESC")
-        nextvpsetseqid = self.dbcursor.fetchone()
-        if(nextvpsetseqid):
-            if(nextvpsetseqid[0] > nextseqid):
-                nextseqid = nextvpsetseqid[0]
-                
-        self.VerbosePrint("The last inserted sequenceNb for PSet " + str(psetname) + " component was " + str(nextseqid),2)
+        ##nextseqid = -1
+        ##self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParameterAssoc WHERE superId = " + str(psetsid) + " ORDER BY sequenceNb DESC")
+        ##nextpseqid = self.dbcursor.fetchone()
+        ##if(nextpseqid):
+        ##    nextseqid = nextpseqid[0]
+        ##self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParamSetAssoc WHERE superId = " + str(psetsid) + " ORDER BY sequenceNb DESC")
+        ##nextpsetseqid = self.dbcursor.fetchone()
+        ##if(nextpsetseqid):
+        ##    if(nextpsetseqid[0] > nextseqid):
+        ##        nextseqid = nextpsetseqid[0]
+        ##self.dbcursor.execute("SELECT sequenceNb FROM SuperIdVecParamSetAssoc WHERE superId = " + str(psetsid) + " ORDER BY sequenceNb DESC")
+        ##nextvpsetseqid = self.dbcursor.fetchone()
+        ##if(nextvpsetseqid):
+        ##    if(nextvpsetseqid[0] > nextseqid):
+        ##        nextseqid = nextvpsetseqid[0]
+        ##        
+        ##self.VerbosePrint("The last inserted sequenceNb for PSet " + str(psetname) + " component was " + str(nextseqid),2)
         self.localseq = 0
-        self.localseq = nextseqid + 1
-        self.VerbosePrint("The first parameter for PSet " + str(psetname) + " will be inserted with sequenceNb " + str(self.localseq),2)
+        
+
+        for rows in self.compar:
+                if (int(rows[1])==psetsid):
+                   self.localseq = self.localseq + 1
+
+        ##self.localseq = nextseqid + 1
+        self.VerbosePrint("The first parameter for PSet " + str(psetname) + str(psetsid) +" will be inserted with sequenceNb " + str(self.localseq),2)
 
         for paramname, paramval in params.iteritems():
             if(paramval.configTypeName() == "PSet" or paramval.configTypeName() == "untracked PSet"):
@@ -784,6 +812,11 @@ class ConfdbLoadParamsfromConfigs:
                     del self.nesting[-1]
                     i = i + 1
     
+    def xstr(self,s):
+        if s is None:
+            return ''
+        return str(s)
+
     def FindParamsFromPython(self, thesubsystem, thepackage, mycomponents, componenttype, allowmultiplecfis):
 
         self.nesting = []
@@ -806,28 +839,52 @@ class ConfdbLoadParamsfromConfigs:
             self.componentname = value.type_()
             self.usedcfilist.append((self.thepyfile,self.componentname))
             componentsuperid = self.LoadUpdateComponent(value.type_(),componenttype)
+            componentparamtable = self.componentparamtabledict[self.componenttable]
+            componentrelassfield = self.componentrelassfielddict[self.componenttable]
             objectsuperid = -1
             vobjectsuperid = -1
 
-
             nextseqid = -1
-            self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParameterAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
-            nextpseqid = self.dbcursor.fetchone()
-            if(nextpseqid):
-                nextseqid = nextpseqid[0]
-            self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParamSetAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
-            nextpsetseqid = self.dbcursor.fetchone()
-            if(nextpsetseqid):
-                if(nextpsetseqid[0] > nextseqid):
-                    nextseqid = nextpsetseqid[0]
-            self.dbcursor.execute("SELECT sequenceNb FROM SuperIdVecParamSetAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
-            nextvpsetseqid = self.dbcursor.fetchone() 
-            if(nextvpsetseqid):
-                if(nextvpsetseqid[0] > nextseqid):
-                    nextseqid = nextvpsetseqid[0]
+            self.VerbosePrint("SELECT * from "+ componentparamtable +" WHERE "+componentrelassfield+" = " + str(componentsuperid) + " ORDER BY id ",3)
+            self.dbcursor.execute("SELECT * from "+ componentparamtable +" WHERE "+componentrelassfield+" = " + str(componentsuperid) + " ORDER BY id ")
+            parentid=[componentsuperid]
+            ppar=componentsuperid
+            self.compar=[]
+            oldlvl=0
+            for rows in self.dbcursor:
+                 #print rows
+                 #rows[3]=self.xstr(rows[3])
+                 lvl=int(rows[6])
+                 if (lvl>oldlvl):
+                     parentid.append(ppar)
+                 elif (lvl<oldlvl):
+                    for dlvl in range(lvl+1,oldlvl+1):
+                       del parentid[lvl+1]
+                 #print "Selected existing param",rows,parentid[lvl]
+                 self.compar.append([rows,parentid[lvl]]) 
+                 if (lvl==0):
+		#	nextseqid=int(rows[9])
+                    #print "pname",rows[3]," ord",nextseqid
+                    nextseqid=nextseqid+1
+                 oldlvl=lvl
+                 ppar=int(rows[0])
+	    comparlen=len(self.compar)
+    	
+#            nextpseqid = self.dbcursor.fetchone()
+#            if(nextpseqid):
+#                nextseqid = nextpseqid[0]
+#            self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParamSetAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
+#            nextpsetseqid = self.dbcursor.fetchone()
+#            if(nextpsetseqid):
+#                if(nextpsetseqid[0] > nextseqid):
+#                    nextseqid = nextpsetseqid[0]
+#            self.dbcursor.execute("SELECT sequenceNb FROM SuperIdVecParamSetAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
+#            nextvpsetseqid = self.dbcursor.fetchone() 
+#            if(nextvpsetseqid):
+#                if(nextvpsetseqid[0] > nextseqid):
+#                    nextseqid = nextvpsetseqid[0]
 
             self.VerbosePrint("The last inserted sequenceNb for this component was " + str(nextseqid),2)
-            self.localseq = 0
             self.localseq = nextseqid + 1
             self.VerbosePrint("The first parameter will be inserted with sequenceNb " + str(self.localseq),2)
             
@@ -851,7 +908,7 @@ class ConfdbLoadParamsfromConfigs:
                     else:
                         vobjectsuperid = self.LoadUpdateVPSet(paramname,psetname,paramval,componentsuperid)
                         vpsetname = paramname
-                        self.nesting.append(('VPSet',paramname,objectsuperid))
+                        self.nesting.append(('VPSet',paramname,vobjectsuperid))
                         self.VerbosePrint("\t\t" + str(paramname) + "\t" + str(paramval.configTypeName()) + "[" + str(len(paramval)) + "]", 1)
                         psetname = str(paramval.configTypeName()) + "[" + str(len(paramval)) + "]"
                         sizeofvpset = self.VPSetSize(vobjectsuperid)
@@ -871,12 +928,35 @@ class ConfdbLoadParamsfromConfigs:
                             del self.nesting[-1]
                         else:
                             self.VerbosePrint("\t\t"  + str(paramname) + " already appears with " + str(sizeofvpset) + " entries. Will not add more entries",1)
+                            del self.nesting[-1]
+                if(self.noload == False):
+                   starttowrite=0;
+                   if (len(self.compar)>comparlen):
+                       pcount=0
+                       for rows in self.compar:
+                          if (int(rows[0][0])<0):			
+                             starttowrite=pcount
+                             break
+                          pcount=pcount+1
+                       for pn in range(starttowrite,len(self.compar)):
+                          if (int(self.compar[pn][0][0])>0):
+                             #print "db delete where id="+self.compar[pn][0][0]
+                             delstr="DELETE FROM "+ self.componentparamtabledict[self.componenttable] +" WHERE id="+str(self.compar[pn][0][0]); 
+                             self.dbcursor.execute(delstr)
+
+                       for pn in range(starttowrite,len(self.compar)):
+                             #print "db insert where val="+str(self.compar[pn][0][3])
+                             insertstr1 = "INSERT INTO "+ self.componentparamtabledict[self.componenttable]+" ("+self.componentrelassfielddict[self.componenttable]+",moetype, paramtype,name, lvl, tracked, ord, value, valuelob) "
+                             insertstr1 = insertstr1 + " VALUES ('"+str(componentsuperid)+"','"+str(self.compar[pn][0][2])+"','"+str(self.compar[pn][0][7])+"','"+self.xstr(self.compar[pn][0][3])+"','"+str(self.compar[pn][0][6])+"','"+str(self.compar[pn][0][8])+"','"+str(self.compar[pn][0][9])+"','"+str(self.compar[pn][0][10])+"', :PLOB)"
+                             self.dbcursor.execute(insertstr1,PLOB=self.compar[pn][0][11])
+
 
     def FindSingleComponentParamsFromPython(self, thesubsystem, thepackage, mycomponents, componenttype, allowmultiplecfis):
         self.nesting = []
 
         psetname = "TopLevel"
         name = mycomponents.type_()
+
         
         self.VerbosePrint("(" + str(componenttype) + " " + name + ") " + thesubsystem + "." + thepackage + "." + name, 1)
         
@@ -895,25 +975,57 @@ class ConfdbLoadParamsfromConfigs:
         self.componentname = mycomponents.type_()
         self.usedcfilist.append((self.thepyfile,self.componentname))
         componentsuperid = self.LoadUpdateComponent(mycomponents.type_(),componenttype)
+        componentparamtable = self.componentparamtabledict[self.componenttable]
+        componentrelassfield = self.componentrelassfielddict[self.componenttable]
+
         objectsuperid = -1
         vobjectsuperid = -1
         
         
         nextseqid = -1
-        self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParameterAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
-        nextpseqid = self.dbcursor.fetchone()
-        if(nextpseqid):
-            nextseqid = nextpseqid[0]
-        self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParamSetAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
-        nextpsetseqid = self.dbcursor.fetchone()
-        if(nextpsetseqid):
-            if(nextpsetseqid[0] > nextseqid):
-                nextseqid = nextpsetseqid[0]
-        self.dbcursor.execute("SELECT sequenceNb FROM SuperIdVecParamSetAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
-        nextvpsetseqid = self.dbcursor.fetchone() 
-        if(nextvpsetseqid):
-            if(nextvpsetseqid[0] > nextseqid):
-                nextseqid = nextvpsetseqid[0]
+        #print "SELECT ord from "+ componentparamtable +" WHERE "+componentrelassfield+" = " + str(componentsuperid) + " ORDER BY id DESC"
+        #self.dbcursor.execute("SELECT ord from "+ componentparamtable +" WHERE "+componentrelassfield+" = " + str(componentsuperid) + " ORDER BY id DESC")
+        #nextpseqid = self.dbcursor.fetchone()
+        ##self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParameterAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
+        ##nextpseqid = self.dbcursor.fetchone()
+        ##if(nextpseqid):
+        ##    nextseqid = nextpseqid[0]
+        ##self.dbcursor.execute("SELECT sequenceNb FROM SuperIdParamSetAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
+        ##nextpsetseqid = self.dbcursor.fetchone()
+        ##if(nextpsetseqid):
+        ##    if(nextpsetseqid[0] > nextseqid):
+        ##        nextseqid = nextpsetseqid[0]
+        ##self.dbcursor.execute("SELECT sequenceNb FROM SuperIdVecParamSetAssoc WHERE superId = " + str(componentsuperid) + " ORDER BY sequenceNb DESC")
+        ##nextvpsetseqid = self.dbcursor.fetchone() 
+        ##if(nextvpsetseqid):
+        ##    if(nextvpsetseqid[0] > nextseqid):
+        ##        nextseqid = nextvpsetseqid[0]
+
+        self.VerbosePrint("SELECT * from "+ componentparamtable +" WHERE "+componentrelassfield+" = " + str(componentsuperid) + " ORDER BY id ",3)
+        self.dbcursor.execute("SELECT * from "+ componentparamtable +" WHERE "+componentrelassfield+" = " + str(componentsuperid) + " ORDER BY id ")
+
+        parentid=[componentsuperid]
+        ppar=componentsuperid
+        self.compar=[]
+        oldlvl=0
+        for rows in self.dbcursor:
+             #print "Selected existing param",rows
+             #rows[3]=self.xstr(rows[3])
+             lvl=int(rows[6])
+             if (lvl>oldlvl):
+                 parentid.append(ppar)
+             elif (lvl<oldlvl):
+                for dlvl in range(lvl+1,oldlvl+1):
+                   del parentid[lvl+1]
+             self.compar.append([rows,parentid[lvl]])
+             if (lvl==0):
+            #       nextseqid=int(rows[9])
+                #print "pname (single)",rows[3]," ord",nextseqid
+                nextseqid=nextseqid+1
+             oldlvl=lvl
+             ppar=int(rows[0])
+        comparlen=len(self.compar)
+
 
         self.VerbosePrint("The last inserted sequenceNb for this component was " + str(nextseqid),2)
         self.localseq = 0
@@ -960,6 +1072,28 @@ class ConfdbLoadParamsfromConfigs:
                         del self.nesting[-1]
                     else:
                         self.VerbosePrint("\t\t"  + str(paramname) + " already appears with " + str(sizeofvpset) + " entries. Will not add more entries",1)        
+                        del self.nesting[-1]
+
+                if(self.noload == False):
+                   starttowrite=0;
+                   if (len(self.compar)>comparlen):
+                       pcount=0
+                       for rows in self.compar:
+                          if (int(rows[0][0])<0):			
+                             starttowrite=pcount
+                             break
+                          pcount=pcount+1
+                       for pn in range(starttowrite,len(self.compar)):
+                          if (int(self.compar[pn][0][0])>0):
+                             #print "db delete where id="+self.compar[pn][0][0]
+                             delstr="DELETE FROM "+ self.componentparamtabledict[self.componenttable] +" WHERE id="+str(self.compar[pn][0][0]); 
+                             self.dbcursor.execute(delstr)
+
+                       for pn in range(starttowrite,len(self.compar)):
+                             #print "db insert where val="+str(self.compar[pn][0][3])
+                             insertstr1 = "INSERT INTO "+ self.componentparamtabledict[self.componenttable]+" ("+self.componentrelassfielddict[self.componenttable]+",moetype, paramtype,name, lvl, tracked, ord, value, valuelob) "
+                             insertstr1 = insertstr1 + " VALUES ('"+str(componentsuperid)+"','"+str(self.compar[pn][0][2])+"','"+str(self.compar[pn][0][7])+"','"+self.xstr(self.compar[pn][0][3])+"','"+str(self.compar[pn][0][6])+"','"+str(self.compar[pn][0][8])+"','"+str(self.compar[pn][0][9])+"','"+str(self.compar[pn][0][10])+"', :PLOB)"
+                             self.dbcursor.execute(insertstr1,PLOB=self.compar[pn][0][11])
 
     def FindObjectSuperId(self):
         print "Not yet"
@@ -967,10 +1101,13 @@ class ConfdbLoadParamsfromConfigs:
     def LoadUpdateComponent(self,componentname,componenttype):
 
         componenttable = self.componenttable
+        componentrelass = self.componentrelassdict[componenttable]
+        componentrelassfield = self.componentrelassfielddict[componenttable]
         modtypestr = ''
         returnid = -1
             
-        selectstring = "SELECT " + componenttable + ".superId, " + componenttable + ".name, " + componenttable + ".cvstag, " + componenttable + ".packageId FROM " + componenttable + " JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = " + componenttable + ".superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.cmsswrelid) + ") AND (" + componenttable + ".name = '" + componentname + "')"
+#        selectstring = "SELECT " + componenttable + ".superId, " + componenttable + ".name, " + componenttable + ".cvstag, " + componenttable + ".packageId FROM " + componenttable + " JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = " + componenttable + ".superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.cmsswrelid) + ") AND (" + componenttable + ".name = '" + componentname + "')"
+        selectstring = "SELECT a.id, a.name, a.cvstag, a.id_pkg FROM " + componenttable + " a, " + componentrelass + " c  WHERE c.id_release="+ str(self.cmsswrelid) + " AND a.name = '" + componentname + "' AND c."+componentrelassfield+"=a.id"
         self.VerbosePrint(selectstring, 3)
 
         self.dbcursor.execute(selectstring)
@@ -1007,27 +1144,29 @@ class ConfdbLoadParamsfromConfigs:
             if(doloadupdate == True):
                 # Let's add it.
                 newsuperid = -1
-                if(self.noload == False):
-                    self.dbcursor.execute("INSERT INTO SuperIds VALUES('')")
-                    self.dbcursor.execute("SELECT SuperId_Sequence.currval from dual")
-                    newsuperid = (self.dbcursor.fetchall()[0])[0]
+#                if(self.noload == False):
+#                    self.dbcursor.execute("INSERT INTO SuperIds VALUES('')")
+#                    self.dbcursor.execute("SELECT SuperId_Sequence.currval from dual")
+#                    newsuperid = (self.dbcursor.fetchall()[0])[0]
 
-                # Attach this template to the currect release
-                if(self.noload == False):
-                    self.dbcursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(newsuperid) + ", " + str(self.cmsswrelid) + ")")
             
                 # Now create a new module
                 insertstring = ''
-                if(self.componenttable == "ModuleTemplates"):
+                if(self.componenttable == "u_moduletemplates"):
                     modbaseclassid = self.modtypedict[componenttype]
-                    insertstring = "INSERT INTO " + self.componenttable + "(superId, typeId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", " + str(modbaseclassid) + ", '" + componentname + "', '" + self.cvstag  + "', '" + str(self.softpackageid) + "')"
+                    insertstring = "INSERT INTO " + self.componenttable + "(id_mtype, name, cvstag, id_pkg) VALUES ( " + str(modbaseclassid) + ", '" + componentname + "', '" + self.cvstag  + "', '" + str(self.softpackageid) + "')"
                 else:
-                    insertstring = "INSERT INTO " + self.componenttable + "(superId, name, cvstag, packageId) VALUES (" + str(newsuperid) + ", '" + componentname + "', '" + self.cvstag  + "', '" + str(self.softpackageid) + "')"
+                    insertstring = "INSERT INTO " + self.componenttable + "(name, cvstag, id_pkg) VALUES ( '" + componentname + "', '" + self.cvstag  + "', '" + str(self.softpackageid) + "')"
 
                 self.VerbosePrint(insertstring, 3)
                 if(self.noload == False):
                     self.dbcursor.execute(insertstring)
+                    self.dbcursor.execute("SELECT "+self.componenttable+"_seq.currval from dual")
+                    newsuperid = (self.dbcursor.fetchall()[0])[0]
 
+                # Attach this template to the currect release
+                if(self.noload == False):
+                    self.dbcursor.execute("INSERT INTO "+ self.componentrelassdict[componenttable] + " VALUES ( NULL," + str(newsuperid) + ", " + str(self.cmsswrelid) + ")")
                 self.totalloadedcomponents = self.totalloadedcomponents + 1
 
                 returnid = newsuperid
@@ -1039,6 +1178,7 @@ class ConfdbLoadParamsfromConfigs:
         returnid = 0
         paramistracked = 0
         unmodifiedparamid = 0
+        vecvalstr = "{ "
 
         parametertype = pval.configTypeName()
         parametertracked = pval.isTracked()
@@ -1078,92 +1218,135 @@ class ConfdbLoadParamsfromConfigs:
                 parametervalue = ""
                 self.VerbosePrint("\tDefault value for string parameter " + parametername + " has >1024 characters. Setting default to an empty string.",0)
                 
-        selectstr = "SELECT SuperIdParameterAssoc.paramId FROM SuperIdParameterAssoc JOIN Parameters ON (Parameters.name = '" + parametername + "') WHERE (SuperIdParameterAssoc.superId = " + str(sid) + ") AND (SuperIdParameterAssoc.paramId = Parameters.paramId)"
+        parametertypeint = self.paramtypedict[parametertype]
+        paramtable = self.paramtabledict[parametertype]
 
-        self.VerbosePrint(selectstr, 3)
-        self.dbcursor.execute(selectstr)
+#        selectstr = "SELECT id FROM "+ self.componentparamtabledict[self.componenttable] +"  WHERE "+ self.componentrelassfielddict[self.componenttable] +"="+ str(sid) + " AND name='"+ parametername + "'"
 
-        paramid = self.dbcursor.fetchone()
+#        self.VerbosePrint(selectstr, 3)
+#        self.dbcursor.execute(selectstr)
+
+#        paramid = self.dbcursor.fetchone()
+
+        paramid=0
+        idx=0
+        pcount=0
+        plvl=0
+        pfound=0
+        for rows in self.compar:
+                #print "param search",rows
+                if (int(rows[0][0])==sid): 
+                   idx=pcount
+                if ((pfound) and (int(rows[0][6])>plvl)):
+                   idx=pcount
+                elif ((pfound) and (int(rows[0][6])<plvl)):
+                   pfound=0
+                if (int(rows[1])==sid): 
+                   idx=pcount
+                   pfound=1
+                   plvl=int(rows[0][6])
+		if ((int(rows[1])==sid) and (rows[0][3]==parametername)):
+                   paramid=int(rows[0][0])
+                   break
+                pcount=pcount+1 
+
+        #print "After search ",parametername," belonging to ",sid," will have ",idx
 
         if(paramid):
-            returnid = paramid[0]
+            #print "paramid found",rows[0][3],rows[0][0]
+            returnid = paramid
         else:
             if(parametertype == "ESInputTag"):
                 parametertype = "InputTag"
             
-            parametertypeint = self.paramtypedict[parametertype]
-            paramtable = self.paramtabledict[parametertype]
 
             # Check parameter value from old release here
             if(self.comparetorelease != ""):                
                 unmodifiedparamid = self.CompareParamToOldRelease(parametername,parametervalue,parametertype)
 
+
+            if((parametertype.startswith('v')) or (parametertype.startswith('V'))):
+                paramindex = 1
+                for parametervectorvalue in parametervalue:
+
+                    # Treat VInputTags. Elements may be returned as either InputTag objects, or
+                    # plain strings without a configTypeName() method. So try to decide which 
+                    # based on the string representation of the parameter name, then check 
+                    # configTypeName() if it looks like an InputTag to be sure...
+                    if(parametertype == "VInputTag"):
+                        if(str(parametervectorvalue).startswith("cms.InputTag") or str(parametervectorvalue).startswith("cms.untracked.InputTag")):
+                            if (parametervectorvalue.configTypeName().find("InputTag") != -1):
+                                parametervectorvalue = parametervectorvalue.value()
+
+                    # Protect against numerical overflows
+                    if(parametertype == "vdouble"):
+                        if(parametervectorvalue > 1e+125):
+                            parametervectorvalue = 1e+125
+                                                            
+                    ##insertstr3 = "INSERT INTO " + str(paramtable) + " (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(paramindex) + ", '" + str(parametervectorvalue) + "')"
+                    ##self.VerbosePrint(insertstr3, 3)
+                    if(str(parametervectorvalue).find("'") == -1):
+                        # Protect against loading empty VInputTags
+                        if(str(parametervectorvalue) != ''):
+                            if (paramindex>1):
+                                vecvalstr = vecvalstr + ", "
+                            vecvalstr = vecvalstr + str(parametervectorvalue)
+                            paramindex = paramindex + 1
+
+
+            vecvalstr = vecvalstr + " }"
+
+            if (len(str(parametervalue))<4000):
+		palob=""
+            else:
+                palob=str(parametervalue)
+		parametervalue=""
+
+            if (len(vecvalstr)<4000):
+		palob=""
+            else:
+                palob=vecvalstr
+                vecvalstr=""
+            
+            if(str(parametervalue).find("'") != -1):
+                parametervalue=""
+ 
+            self.totalloadedparams = self.totalloadedparams+1
+
             # Add this parameter to the new release
-            if((unmodifiedparamid == 0) or (self.comparetorelease == "")):
-                insertstr1 = "INSERT INTO Parameters (paramTypeId, name, tracked) VALUES (" + str(parametertypeint) + ", '" + parametername + "', " + str(paramistracked) + ")"
-                self.VerbosePrint(insertstr1, 3)
+            if((not parametertype.startswith('v')) and (not parametertype.startswith('V'))):
+#                insertstr1 = "INSERT INTO "+ self.componentparamtabledict[self.componenttable]+" ("+self.componentrelassfielddict[self.componenttable]+", moetype, paramtype,name, lvl, tracked, ord, value, valuelob) VALUES ("+str(sid)+", 1,'" + str(parametertype) + "', '" + parametername + "', "+str(len(self.nesting))+", " + str(paramistracked) +", "+str(self.localseq)+", '"+str(parametervalue)+"',:PLOB)"
+                self.compar.insert(idx+1,[[-self.totalloadedparams,str(sid),'1',str(parametername),'','',str(len(self.nesting)), str(parametertype),str(paramistracked),str(self.localseq),str(parametervalue),palob,'0',''],sid])
+            else:
+#                insertstr1 = "INSERT INTO "+ self.componentparamtabledict[self.componenttable]+" ("+self.componentrelassfielddict[self.componenttable]+", moetype, paramtype,name, lvl, tracked, ord, value, valuelob) VALUES ("+str(sid)+", 1,'" + str(parametertype) + "', '" + parametername + "', "+str(len(self.nesting))+", " + str(paramistracked) +", "+str(self.localseq)+", '"+vecvalstr+ "', :PLOB)"
+                self.compar.insert(idx+1,[[-self.totalloadedparams,str(sid),'1',str(parametername),'','',str(len(self.nesting)), str(parametertype),str(paramistracked),str(self.localseq),vecvalstr,palob,'0',''],sid])
+            
 
-                if(self.noload == False):
-                    self.dbcursor.execute(insertstr1)
-                    self.dbcursor.execute("SELECT ParamId_Sequence.currval from dual")
-                    newparamid = self.dbcursor.fetchone()[0] 
 
-                self.totalloadedparams = self.totalloadedparams+1
+           # self.VerbosePrint(insertstr1, 3)
+
+           # if(self.noload == False):
+           #     self.dbcursor.execute(insertstr1,PLOB=palob)
+           #     self.dbcursor.execute("SELECT "+self.componentparamtabledict[self.componenttable]+"_seq.currval from dual")
+           #     newparamid = self.dbcursor.fetchone()[0] 
+
                 
-                insertstr2 = "INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(self.localseq) + ")"
-                self.VerbosePrint(insertstr2, 3)
-                if(self.noload == False):
-                    self.dbcursor.execute(insertstr2)                                                
-
-                returnid = newparamid
+            newparamid = -self.totalloadedparams
+            returnid = newparamid
                 
-                self.VerbosePrint('Added ' + str(parametername) + ' with paramId = ' + str(newparamid),2)                            
-                if(self.nesting != []):
-                    self.VerbosePrint('The nesting is:',2)
-                    self.VerbosePrint(self.nesting,2)
+            self.VerbosePrint('Added ' + str(parametername) + ' with paramId = ' + str(newparamid),2)                            
+            if(self.nesting != []):
+                self.VerbosePrint('The nesting is:',2)
+                self.VerbosePrint(self.nesting,2)
 
-                self.localseq = self.localseq + 1
+            self.localseq = self.localseq + 1
         
-                if((not parametertype.startswith('v')) and (not parametertype.startswith('V'))):
-                    insertstr3 = "INSERT INTO " + str(paramtable) + " (paramId, value) VALUES (" + str(newparamid) + ", '" + str(parametervalue) + "')"
-                    self.VerbosePrint(insertstr3, 3)
-                    if(str(parametervalue).find("'") == -1):                        
-                        if(self.noload == False):
-                            self.dbcursor.execute(insertstr3)
-                    
-                else:
-                    paramindex = 1
-                    for parametervectorvalue in parametervalue:
-
-                        # Treat VInputTags. Elements may be returned as either InputTag objects, or
-                        # plain strings without a configTypeName() method. So try to decide which 
-                        # based on the string representation of the parameter name, then check 
-                        # configTypeName() if it looks like an InputTag to be sure...
-                        if(parametertype == "VInputTag"):
-                            if(str(parametervectorvalue).startswith("cms.InputTag") or str(parametervectorvalue).startswith("cms.untracked.InputTag")):
-                                if (parametervectorvalue.configTypeName().find("InputTag") != -1):
-                                    parametervectorvalue = parametervectorvalue.value()
-
-                        # Protect against numerical overflows
-                        if(parametertype == "vdouble"):
-                            if(parametervectorvalue > 1e+125):
-                                parametervectorvalue = 1e+125
-                                                                
-                        insertstr3 = "INSERT INTO " + str(paramtable) + " (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(paramindex) + ", '" + str(parametervectorvalue) + "')"
-                        self.VerbosePrint(insertstr3, 3)
-                        if(str(parametervectorvalue).find("'") == -1):
-                            # Protect against loading empty VInputTags
-                            if(str(parametervectorvalue) != ''):
-                                if(self.noload == False):
-                                    self.dbcursor.execute(insertstr3)
-                                paramindex = paramindex + 1
-
             # Reassociate this parameter from the previous release
-            if((unmodifiedparamid > 0) and (self.comparetorelease != "")):
-                insertstr4 = "INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(sid) + ", " + str(unmodifiedparamid) + ", " + str(self.localseq) + ")"
-                nextseqid = self.dbcursor.fetchone()
-                if(nextseqid):
-                    self.localseq = nextseqid[0] + 1
+#            if((unmodifiedparamid > 0) and (self.comparetorelease != "")):
+#                insertstr4 = "INSERT INTO SuperIdParameterAssoc (superId, paramId, sequenceNb) VALUES (" + str(sid) + ", " + str(unmodifiedparamid) + ", " + str(self.localseq) + ")"
+#                nextseqid = self.dbcursor.fetchone()
+#                if(nextseqid):
+#                    self.localseq = nextseqid[0] + 1
                                         
         return returnid
 
@@ -1172,9 +1355,17 @@ class ConfdbLoadParamsfromConfigs:
         returnid = 0
         paramistracked = 0
 
-        parametervalue = pval.value()
         parametertype = pval.configTypeName()
+        if parametertype == 'PSet':
+            # work around PSet with a parameter named "value"
+            parametervalue = pval
+        else:
+            parametervalue = pval.value()
         parametertracked = pval.isTracked()
+
+        if(parametertype.find("untracked") != -1):
+            parametertype = parametertype.split("untracked")[1].lstrip().rstrip()
+
 
         if(psetname.find("[") != -1 and psetname.find("]") != -1):
             parametername = ''
@@ -1187,33 +1378,53 @@ class ConfdbLoadParamsfromConfigs:
         else:
             paramistracked = 0
                                                  
-        selectstr = "SELECT SuperIdParamSetAssoc.psetId FROM SuperIdParamSetAssoc JOIN ParameterSets ON (ParameterSets.name = '" + parametername + "') WHERE (SuperIdParamSetAssoc.superId = " + str(sid) + ") AND (SuperIdParamSetAssoc.psetId = ParameterSets.superId)"
+#        selectstr = "SELECT id FROM "+ self.componentparamtabledict[self.componenttable] +"  WHERE "+ self.componentrelassfielddict[self.componenttable] +"="+ str(sid) + " AND name='"+ parametername + "'"
+#
+#        self.VerbosePrint(selectstr, 3)
+#        self.dbcursor.execute(selectstr)
+#
+#        paramid = self.dbcursor.fetchone()
+        paramid=0
+        idx=0
+        pcount=0
+        plvl=0
+        pfound=0
+        for rows in self.compar:
+                if (int(rows[0][0])==sid): 
+                   idx=pcount
+                if ((pfound) and (int(rows[0][6])>plvl)):
+                   idx=pcount
+                elif ((pfound) and (int(rows[0][6])<plvl)):
+                   pfound=0
+                if (int(rows[1])==sid): 
+                   idx=pcount
+                   pfound=1
+                   plvl=int(rows[0][6])
+                if ((parametername) and (int(rows[1])==sid) and (rows[0][3]==parametername)):
+                   paramid=int(rows[0][0])
+                   break
+                pcount=pcount+1
 
-        self.VerbosePrint(selectstr, 3)
-        self.dbcursor.execute(selectstr)
-
-        paramid = self.dbcursor.fetchone()
         
         if(paramid):
-            returnid = paramid[0]
+            #print "parami found",rows[0][3],rows[0][0]
+            returnid = paramid
         else:
-            if(self.noload == False):
-                self.dbcursor.execute("INSERT INTO SuperIds VALUES('')")
-                self.dbcursor.execute("SELECT SuperId_Sequence.currval from dual")
-                newparamid = self.dbcursor.fetchone()[0]
 
-            insertstr1 = "INSERT INTO ParameterSets (superId, name, tracked) VALUES (" + str(newparamid) + ", '" + parametername + "', " + str(paramistracked) + ")"
-            self.VerbosePrint(insertstr1, 3)
+#            insertstr1 = "INSERT INTO "+ self.componentparamtabledict[self.componenttable]+" ("+self.componentrelassfielddict[self.componenttable]+", moetype, paramtype,name, lvl, tracked, ord, value) VALUES ("+str(sid)+", 2,'" + str(parametertype) + "', '" + parametername + "', "+str(len(self.nesting))+", " + str(paramistracked) +", "+str(self.localseq)+", NULL)"
 
-            if(self.noload == False):
-                self.dbcursor.execute(insertstr1)
+#            self.VerbosePrint(insertstr1, 3)
 
             self.totalloadedparams = self.totalloadedparams+1
+
+            self.compar.insert(idx+1,[[-self.totalloadedparams,str(sid),'2',str(parametername),'','',str(len(self.nesting)),'PSet',str(paramistracked),str(self.localseq),'','','0',''],sid])
+
+            #if(self.noload == False):
+            #    self.dbcursor.execute(insertstr1)
+            #    self.dbcursor.execute("SELECT "+self.componentparamtabledict[self.componenttable]+"_seq.currval from dual")
+            #    newparamid = self.dbcursor.fetchone()[0]
+            newparamid = -self.totalloadedparams
                                                                                                  
-            insertstr2 = "INSERT INTO SuperIdParamSetAssoc (superId, psetId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(self.localseq) + ")"
-            self.VerbosePrint(insertstr2, 3)
-            if(self.noload == False):
-                self.dbcursor.execute(insertstr2)
 
             self.localseq = self.localseq + 1
             
@@ -1228,9 +1439,16 @@ class ConfdbLoadParamsfromConfigs:
         returnid = 0
         paramistracked = 0
 
-        parametervalue = pval.value()
         parametertype = pval.configTypeName()
+        if parametertype == 'PSet':
+            # work around PSet with a parameter named "value"
+            parametervalue = pval
+        else:
+            parametervalue = pval.value()
         parametertracked = pval.isTracked()
+
+        if(parametertype.find("untracked") != -1):
+            parametertype = parametertype.split("untracked")[1].lstrip().rstrip()
 
         # Reformat representations of Booleans for python -> Oracle
 
@@ -1240,34 +1458,54 @@ class ConfdbLoadParamsfromConfigs:
         else:
             paramistracked = 0
                                                  
-        selectstr = "SELECT SuperIdVecParamSetAssoc.vpsetId FROM SuperIdVecParamSetAssoc JOIN VecParameterSets ON (VecParameterSets.name = '" + parametername + "') WHERE (SuperIdVecParamSetAssoc.superId = " + str(sid) + ") AND (SuperIdVecParamSetAssoc.vpsetId = VecParameterSets.superId)"
+#        selectstr = "SELECT id FROM "+ self.componentparamtabledict[self.componenttable] +"  WHERE "+ self.componentrelassfielddict[self.componenttable] +"="+ str(sid) + " AND name='"+ parametername + "'"
 
-        self.VerbosePrint(selectstr, 3)
-        self.dbcursor.execute(selectstr)
 
-        paramid = self.dbcursor.fetchone()
-        
+#        self.VerbosePrint(selectstr, 3)
+#        self.dbcursor.execute(selectstr)
+#
+#        paramid = self.dbcursor.fetchone()
+        paramid=0
+        idx=0
+        pcount=0
+        plvl=0
+        pfound=0
+        for rows in self.compar:
+                if (int(rows[0][0])==sid): 
+                   idx=pcount
+                if ((pfound) and (int(rows[0][6])>plvl)):
+                   idx=pcount
+                elif ((pfound) and (int(rows[0][6])<plvl)):
+                   pfound=0
+                if (int(rows[1])==sid): 
+                   idx=pcount
+                   pfound=1
+                   plvl=int(rows[0][6])
+                if ((int(rows[1])==sid) and (rows[0][3]==parametername)):
+                   paramid=int(rows[0][0])
+                   break
+                pcount=pcount+1
+
         if(paramid):
-            returnid = paramid[0]
+            #print "parami found",rows[0][3],rows[0][0]
+            returnid = paramid
         else:
-            if(self.noload == False):
-                self.dbcursor.execute("INSERT INTO SuperIds VALUES('')")
-                self.dbcursor.execute("SELECT SuperId_Sequence.currval from dual")
-                newparamid = self.dbcursor.fetchone()[0]
 
-            insertstr1 = "INSERT INTO VecParameterSets (superId, name, tracked) VALUES (" + str(newparamid) + ", '" + parametername + "', " + str(paramistracked) + ")"
-            self.VerbosePrint(insertstr1, 3)
+#            insertstr1 = "INSERT INTO "+ self.componentparamtabledict[self.componenttable]+" ("+self.componentrelassfielddict[self.componenttable]+", moetype, paramtype,name, lvl, tracked, ord, value) VALUES ("+str(sid)+", 3,'" + str(parametertype) + "', '" + parametername + "', "+str(len(self.nesting))+", " + str(paramistracked) +", "+str(self.localseq)+", NULL)"
 
-            if(self.noload == False):
-                self.dbcursor.execute(insertstr1)
+#            self.VerbosePrint(insertstr1, 3)
+
+#            if(self.noload == False):
+#                self.dbcursor.execute(insertstr1)
+#                self.dbcursor.execute("SELECT "+self.componentparamtabledict[self.componenttable]+"_seq.currval from dual")
+#                newparamid = self.dbcursor.fetchone()[0]
 
             self.totalloadedparams = self.totalloadedparams+1
-                                                                                                 
-            insertstr2 = "INSERT INTO SuperIdVecParamSetAssoc (superId, vpsetId, sequenceNb) VALUES (" + str(sid) + ", " + str(newparamid) + ", " + str(self.localseq) + ")"
-            self.VerbosePrint(insertstr2, 3)
-            if(self.noload == False):
-                self.dbcursor.execute(insertstr2)
 
+            self.compar.insert(idx+1,[[-self.totalloadedparams,str(sid),'3',str(parametername),'','',str(len(self.nesting)), str(parametertype),str(paramistracked),str(self.localseq),'','',"0",''],sid])
+
+            newparamid=-self.totalloadedparams
+                                                                                                 
             self.localseq = self.localseq + 1
             
             self.VerbosePrint('Added VPSet ' + str(parametername) + ' with superId = ' + str(newparamid),2)
@@ -1276,19 +1514,26 @@ class ConfdbLoadParamsfromConfigs:
 
         return returnid
 
-    def VPSetSize(self,vpsetsid): 
+    def VPSetSize(self,sid): 
 
         vpsetlen = 0
 
-        selectstr = "SELECT * FROM SuperIdParamSetAssoc WHERE superId = " + str(vpsetsid) + " ORDER BY psetId DESC"
-        self.VerbosePrint(selectstr, 3)
-        self.dbcursor.execute(selectstr)
+        pfound=0
+        
+        for rows in self.compar:
+                if (int(rows[1])==sid):
+                   pfound=pfound+1
+                   #break
 
-        tmppsetentries = (self.dbcursor.fetchone())
-        if(tmppsetentries):
-            vpsetlen = tmppsetentries[0]
+#        selectstr = "SELECT * FROM SuperIdParamSetAssoc WHERE superId = " + str(vpsetsid) + " ORDER BY psetId DESC"
+#        self.VerbosePrint(selectstr, 3)
+#        self.dbcursor.execute(selectstr)
 
-        return vpsetlen
+#        tmppsetentries = (self.dbcursor.fetchone())
+#        if(tmppsetentries):
+#            vpsetlen = tmppsetentries[0]
+
+        return pfound
 
     def GetReleaseCVSTags(self):
         if(self.addtorelease != "none"):
@@ -1393,11 +1638,17 @@ class ConfdbLoadParamsfromConfigs:
     def CompareParamToOldRelease(self,parametername,parametervalue,parametertype):
 
         componenttable = self.componenttable
+        componentrelass = self.componentrelassdict[componenttable]
+        componentrelassfield = self.componentrelassfielddict[componenttable]
+
         modtypestr = ''
         matchingparamid = 0
 
         # First find the old module 
-        selectstr = "SELECT " + componenttable + ".superId, " + componenttable + ".name, " + componenttable + ".cvstag, " + componenttable + ".packageId FROM " + componenttable + " JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = " + componenttable + ".superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.oldcmsswrelid) + ") AND (" + componenttable + ".name = '" + self.componentname + "')"
+        #selectstr = "SELECT " + componenttable + ".Id, " + componenttable + ".name, " + componenttable + ".cvstag, " + componenttable + ".pkg FROM " + componenttable + " JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = " + componenttable + ".superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.oldcmsswrelid) + ") AND (" + componenttable + ".name = '" + self.componentname + "')"
+
+        selectstr = "SELECT a.id, a.name, a.cvstag, a.id_pkg FROM " + componenttable + " a, " + componentrelass + " c  WHERE c.id_release="+ str(self.oldcmsswrelid) + " AND a.name = '" + componentname + "' AND c."+componentrelassfield+"=a.id"
+
         self.VerbosePrint(selectstr, 3)
         
         self.dbcursor.execute(selectstr)
@@ -1412,6 +1663,31 @@ class ConfdbLoadParamsfromConfigs:
         if(tmpoldcomponentsuperid):
             oldcomponentsuperid = tmpoldcomponentsuperid[0]
 
+        self.VerbosePrint("SELECT * from "+ componentparamtable +" WHERE "+componentrelassfield+" = " + str(oldcomponentsuperid) + " ORDER BY id ",3)
+        self.dbcursor.execute("SELECT * from "+ componentparamtable +" WHERE "+componentrelassfield+" = " + str(oldcomponentsuperid) + " ORDER BY id ")
+
+        parentid=[componentsuperid]
+        ppar=componentsuperid
+        oldcompar=[]
+        oldlvl=0
+        for rows in self.dbcursor:
+             #rows[3]=self.xstr(rows[3])
+             #print "Selected existing param",rows
+             lvl=int(rows[6])
+             if (lvl>oldlvl):
+                 parentid.append(ppar)
+             elif (lvl<oldlvl):
+                for dlvl in range(lvl+1,oldlvl+1):
+                   del parentid[lvl+1]
+             oldcompar.append([rows,parentid[lvl]])
+             if (lvl==0):
+            #       nextseqid=int(rows[9])
+                #print "pname (sing)",rows[3]," ord",nextseqid
+                nextseqid=nextseqid+1
+             oldlvl=lvl
+             ppar=int(rows[0])
+        comparlen=len(oldcompar)
+
         # Then work downwards through the PSet nesting to find the old parameter value to compare to
 
         if(len(self.nesting) == 0):
@@ -1419,41 +1695,54 @@ class ConfdbLoadParamsfromConfigs:
         else:
             for fwkcomponenttype, fwkcomponentname, newsuperid in self.nesting:
                 if(fwkcomponenttype == 'PSet' and fwkcomponentname.find("VPSet") == -1):
-                    selectstr = "SELECT ParameterSets.superId FROM ParameterSets JOIN SuperIdParamSetAssoc ON (SuperIdParamSetAssoc.superId = " + str(oldcomponentsuperid) + ") WHERE (ParameterSets.name = '" + str(fwkcomponentname) + "') AND (ParameterSets.superId = SuperIdParamSetAssoc.psetId)"
+                    #selectstr = "SELECT ParameterSets.superId FROM ParameterSets JOIN SuperIdParamSetAssoc ON (SuperIdParamSetAssoc.superId = " + str(oldcomponentsuperid) + ") WHERE (ParameterSets.name = '" + str(fwkcomponentname) + "') AND (ParameterSets.superId = SuperIdParamSetAssoc.psetId)"
                 
                     self.VerbosePrint(selectstr,3)
                     self.dbcursor.execute(selectstr)
                 
-                    tmpcomponentsuperid = self.dbcursor.fetchone()
-                    if(tmpcomponentsuperid):
-                        oldcomponentsuperid = tmpcomponentsuperid[0]
+                    #tmpcomponentsuperid = self.dbcursor.fetchone()
+                    oldcomponentsuperid=''
+                    
+                    for rows in oldcompar:
+                       if ((rows[1]==oldcomponentsuperid) and (rows[0][3]==fwkcomponentname)):
+                           oldcomponentsuperid=rows[0][0]
 
         if(oldcomponentsuperid):
             # The module and sub-PSet exists in the old release, now check if the parameter does too
 #            selectstr = "SELECT SuperIdParameterAssoc.paramId FROM SuperIdParameterAssoc JOIN Parameters ON (Parameters.name = '" + parametername + "') WHERE (SuperIdParameterAssoc.superId = " + str(oldcomponentsuperid) + ") AND (SuperIdParameterAssoc.paramId = Parameters.paramId)"
 
-            selectstr2 = "SELECT Parameters.paramId, Parameters.paramTypeId FROM Parameters JOIN SuperIdParameterAssoc ON (SuperIdParameterAssoc.superId = " + str(oldcomponentsuperid) + ") WHERE (Parameters.name = '" + str(parametername) + "') AND (Parameters.paramId = SuperIdParameterAssoc.paramId)"
+            #selectstr2 = "SELECT Parameters.paramId, Parameters.paramTypeId FROM Parameters JOIN SuperIdParameterAssoc ON (SuperIdParameterAssoc.superId = " + str(oldcomponentsuperid) + ") WHERE (Parameters.name = '" + str(parametername) + "') AND (Parameters.paramId = SuperIdParameterAssoc.paramId)"
 
-            self.VerbosePrint(selectstr2, 3)
-            self.dbcursor.execute(selectstr2)
+            #self.VerbosePrint(selectstr2, 3)
+            #self.dbcursor.execute(selectstr2)
 
             oldparamid = ''
-            tmpoldparamid = self.dbcursor.fetchone()
-            if(tmpoldparamid):
-                oldparamid = tmpoldparamid[0]
+            oldparamval = ''
+                    
+            for rows in oldcompar:
+               if ((rows[1]==oldcomponentsuperid) and (rows[0][3]==parametername)):
+                  oldparamid=rows[0][0]
+                  oldparamval=rows[0][10]
+                  if (rows[0][10]):
+                     oldparamval=rows[0][11]
+
+        if(oldcomponentsuperid):
+            # The module and sub-PSet exists in the old release, now check if the parameter does too
+            #tmpoldparamid = self.dbcursor.fetchone()
+            #if(tmpoldparamid):
+            #    oldparamid = tmpoldparamid[0]
 
             parametertypeint = self.paramtypedict[parametertype]
             paramtable = self.paramtabledict[parametertype]
 
             if((not parametertype.startswith('v')) and (not parametertype.startswith('V')) and (oldparamid != '')):
-                selectstr3 = "SELECT  " + paramtable + ".value FROM " + paramtable + " WHERE " + paramtable + ".paramId = " + str(oldparamid)
+                #selectstr3 = "SELECT  " + paramtable + ".value FROM " + paramtable + " WHERE " + paramtable + ".paramId = " + str(oldparamid)
                 
-                self.VerbosePrint(selectstr3, 3)
-                self.dbcursor.execute(selectstr3)
+                #self.VerbosePrint(selectstr3, 3)
+                #self.dbcursor.execute(selectstr3)
                                                                 
-                tmpoldparamval = self.dbcursor.fetchone()
-                if(tmpoldparamval):
-                    oldparamval = tmpoldparamval[0]
+                #tmpoldparamval = self.dbcursor.fetchone()
+                if(oldparamid):
 
                     if((str(oldparamval) != str(parametervalue)) or (str(parametervalue) == '' and str(oldparamval) == 'None')):
                         self.VerbosePrint("\tParameter " + str(parametername) + " changed from " + str(oldparamval) + " to " + str(parametervalue),2)
@@ -1469,7 +1758,13 @@ class ConfdbLoadParamsfromConfigs:
     def GetOldReleaseCVSTag(self,componentname):
         oldcvstag = "none"
         
-        selectstring = "SELECT " + self.componenttable + ".superId, " + self.componenttable + ".name, " + self.componenttable + ".cvstag, " + self.componenttable + ".packageId FROM " + self.componenttable + " JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = " + self.componenttable + ".superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.oldcmsswrelid) + ") AND (" + self.componenttable + ".name = '" + componentname + "')"
+        componenttable = self.componenttable
+        componentrelass = self.componentrelassdict[componenttable]
+        componentrelassfield = self.componentrelassfielddict[componenttable]
+
+        #selectstring = "SELECT " + self.componenttable + ".superId, " + self.componenttable + ".name, " + self.componenttable + ".cvstag, " + self.componenttable + ".packageId FROM " + self.componenttable + " JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = " + self.componenttable + ".superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.oldcmsswrelid) + ") AND (" + self.componenttable + ".name = '" + componentname + "')"
+        selectstring = "SELECT a.id, a.name, a.cvstag, a.id_pkg FROM " + componenttable + " a, " + componentrelass + " c  WHERE c.id_release="+ str(self.oldcmsswrelid) + " AND a.name = '" + componentname + "' AND c."+componentrelassfield+"=a.id"
+
 
         self.VerbosePrint(selectstring,3)
         self.dbcursor.execute(selectstring)
@@ -1484,8 +1779,14 @@ class ConfdbLoadParamsfromConfigs:
     def ReassociateSuperId(self,componentname): 
         oldsuperid = -1
 
-        selectstring = "SELECT " + self.componenttable + ".superId, " + self.componenttable + ".name, " + self.componenttable + ".cvstag, " + self.componenttable + ".packageId FROM " + self.componenttable + " JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = " + self.componenttable + ".superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.oldcmsswrelid) + ") AND (" + self.componenttable + ".name = '" + componentname + "')"
+        componenttable = self.componenttable
+        componentrelass = self.componentrelassdict[componenttable]
+        componentrelassfield = self.componentrelassfielddict[componenttable]
+
+        #selectstring = "SELECT " + self.componenttable + ".superId, " + self.componenttable + ".name, " + self.componenttable + ".cvstag, " + self.componenttable + ".packageId FROM " + self.componenttable + " JOIN SuperIdReleaseAssoc ON (SuperIdReleaseAssoc.superId = " + self.componenttable + ".superId) WHERE (SuperIdReleaseAssoc.releaseId = " + str(self.oldcmsswrelid) + ") AND (" + self.componenttable + ".name = '" + componentname + "')"
         
+        selectstring = "SELECT a.id, a.name, a.cvstag, a.id_pkg FROM " + componenttable + " a, " + componentrelass + " c  WHERE c.id_release="+ str(self.oldcmsswrelid) + " AND a.name = '" + componentname + "' AND c."+componentrelassfield+"=a.id"
+
         self.VerbosePrint(selectstring,3)
         self.dbcursor.execute(selectstring)
         
@@ -1493,7 +1794,8 @@ class ConfdbLoadParamsfromConfigs:
         
         if(oldmodule):
             oldsuperid = oldmodule[0]
-            insertstr = "INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.cmsswrelid) + ")"
+            #insertstr = "INSERT INTO  (superId, releaseId) VALUES (" + str(oldsuperid) + ", " + str(self.cmsswrelid) + ")"
+            insertstr="INSERT INTO "+ self.componentrelassdict[componenttable] + " VALUES ( NULL," + str(oldsuperid) + ", " + str(self.cmsswrelid) + ")"
             self.VerbosePrint(insertstr,3)
             if(self.noload == False):
                 self.dbcursor.execute(insertstr)
@@ -1505,45 +1807,67 @@ class ConfdbLoadParamsfromConfigs:
         print self.modifiedtemplates
 	print "Remapping the following existing unmodified templates from release " + self.baseforaddedrel + " to new intermediate release called " + self.cmsswrel
 
-	self.dbcursor.execute("SELECT SoftwareReleases.releaseId FROM SoftwareReleases WHERE (SoftwareReleases.releaseTag = '" + self.baseforaddedrel + "')")
+	self.dbcursor.execute("SELECT u_softreleases.id FROM u_softreleases WHERE (releaseTag = '" + self.baseforaddedrel + "')")
         oldrelid = (self.dbcursor.fetchone())[0]
 	newrelid = self.cmsswrelid
-	self.dbcursor.execute("SELECT SuperIds.superId FROM SuperIds JOIN SuperIdReleaseAssoc ON (SuperIds.superId = SuperIdReleaseAssoc.superId) WHERE (SuperIdReleaseAssoc.releaseId = '" + str(oldrelid) + "')")
+
+	self.dbcursor.execute("SELECT a.id,a.name FROM u_moduletemplates a, u_modt2rele b WHERE b.id_modtemplate=a.id AND b.id_release="+ str(oldrelid))
 	superidtuple = self.dbcursor.fetchall()
-
 	for superidentry in superidtuple:	    
-	    superid = superidentry[0]
-
-	    matches = ''
-	    self.dbcursor.execute("SELECT ModuleTemplates.name FROM ModuleTemplates WHERE (ModuleTemplates.superId = '" + str(superid) + "')")
-	    tempname = self.dbcursor.fetchone()
-	    if(tempname):
-		matches = tempname[0]
-
-	    self.dbcursor.execute("SELECT ServiceTemplates.name FROM ServiceTemplates WHERE (ServiceTemplates.superId = '" + str(superid) + "')")
-	    tempname = self.dbcursor.fetchone()
-	    if(tempname):
-		matches = tempname[0]
-
-	    self.dbcursor.execute("SELECT ESSourceTemplates.name FROM ESSourceTemplates WHERE (ESSourceTemplates.superId = '" + str(superid) + "')")
-	    tempname = self.dbcursor.fetchone()
-	    if(tempname):
-		matches = tempname[0]
-
-	    self.dbcursor.execute("SELECT EDSourceTemplates.name FROM EDSourceTemplates WHERE (EDSourceTemplates.superId = '" + str(superid) + "')")
-	    tempname = self.dbcursor.fetchone()
-	    if(tempname):
-		matches = tempname[0]
-
-	    self.dbcursor.execute("SELECT ESModuleTemplates.name FROM ESModuleTemplates WHERE (ESModuleTemplates.superId = '" + str(superid) + "')")
-	    tempname = self.dbcursor.fetchone()
-	    if(tempname):
-		matches = tempname[0]
-
-	    if(not (matches in self.modifiedtemplates)):
+	    matches = superidentry[1]
+            superid=superidentry[0]
+            if(not (matches in self.modifiedtemplates)):
                 if(self.noload == False):
-                    self.dbcursor.execute("INSERT INTO SuperIdReleaseAssoc (superId, releaseId) VALUES (" + str(superid) + ", " + str(newrelid) + ")")
+                    self.dbcursor.execute("INSERT INTO u_modt2rele (id_modtemplate, id_release) VALUES (" + str(superid) + ", " + str(newrelid) + ")")
                 self.VerbosePrint(matches,0)
+
+
+
+        self.dbcursor.execute("SELECT a.id,a.name FROM u_srvtemplates a, u_srvt2rele b WHERE b.id_srvtemplate=a.id AND b.id_release="+ str(oldrelid))
+        superidtuple = self.dbcursor.fetchall()
+        for superidentry in superidtuple:
+            matches = superidentry[1]
+            superid=superidentry[0]
+            if(not (matches in self.modifiedtemplates)):
+                if(self.noload == False):              
+                    self.dbcursor.execute("INSERT INTO u_srvt2rele (id_srvtemplate, id_release) VALUES (" + str(superid) + ", " + str(newrelid) + ")")
+                self.VerbosePrint(matches,0)
+
+
+
+        self.dbcursor.execute("SELECT a.id,a.name FROM u_esstemplates a, u_esst2rele b WHERE b.id_esstemplate=a.id AND b.id_release="+ str(oldrelid))
+        superidtuple = self.dbcursor.fetchall()
+        for superidentry in superidtuple:
+            matches = superidentry[1]
+            superid=superidentry[0]
+            if(not (matches in self.modifiedtemplates)):
+                if(self.noload == False):                    
+                    self.dbcursor.execute("INSERT INTO u_esst2rele (id_esstemplate, id_release) VALUES (" + str(superid) + ", " + str(newrelid) + ")")
+                self.VerbosePrint(matches,0)
+
+
+
+        self.dbcursor.execute("SELECT a.id,a.name FROM u_edstemplates a, u_edst2rele b WHERE b.id_edstemplate=a.id AND b.id_release="+ str(oldrelid))
+        superidtuple = self.dbcursor.fetchall()
+        for superidentry in superidtuple:
+            matches = superidentry[1]
+            superid=superidentry[0]
+            if(not (matches in self.modifiedtemplates)):
+                if(self.noload == False):
+                    self.dbcursor.execute("INSERT INTO u_edst2rele (id_edstemplate, id_release) VALUES (" + str(superid) + ", " + str(newrelid) + ")")
+                self.VerbosePrint(matches,0)
+
+
+        self.dbcursor.execute("SELECT a.id,a.name FROM u_esmtemplates a, u_esmt2rele b WHERE b.id_esmtemplate=a.id AND b.id_release="+ str(oldrelid))
+        superidtuple = self.dbcursor.fetchall()
+        for superidentry in superidtuple:
+            matches = superidentry[1]
+            superid=superidentry[0]
+            if(not (matches in self.modifiedtemplates)):
+                if(self.noload == False):
+                    self.dbcursor.execute("INSERT INTO u_esmt2rele (id_esmtemplate, id_release) VALUES (" + str(superid) + ", " + str(newrelid) + ")")
+                self.VerbosePrint(matches,0)
+
 
 	self.VerbosePrint("\n",0)
                                     
