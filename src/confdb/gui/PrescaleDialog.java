@@ -11,6 +11,10 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import java.io.*;
+import java.util.Scanner;
+import java.util.regex.*;
+
 import confdb.data.*;
 
 
@@ -32,6 +36,7 @@ public class PrescaleDialog extends JDialog
     private Configuration config;
     
     /** GUI components */
+    private JTextField jTextFieldFile   = new javax.swing.JTextField();
     private JTextField jTextFieldHLT    = new javax.swing.JTextField();
     private JComboBox  jComboBoxModule  = new javax.swing.JComboBox();
     private JButton    jButtonOK        = new javax.swing.JButton();
@@ -45,8 +50,7 @@ public class PrescaleDialog extends JDialog
 
     /** index of the selected column */
     private int iColumn = -1;
-    
-    
+
     //
     // construction
     //
@@ -62,6 +66,7 @@ public class PrescaleDialog extends JDialog
 
 	jTable.setModel(tableModel);
 	jTable.setDefaultRenderer(Integer.class,new PrescaleTableCellRenderer());
+	jTextFieldFile.setText("");
 	jTextFieldHLT.setText(config.toString());
 
 	cmbModule=(DefaultComboBoxModel)jComboBoxModule.getModel();
@@ -87,11 +92,13 @@ public class PrescaleDialog extends JDialog
 	jButtonApply.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    updatePrescaleService();
+		    updatePrescaleServiceFromFile(fileName());
 		}
 	    });
 	jButtonOK.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    updatePrescaleService();
+		    updatePrescaleServiceFromFile(fileName());
 		    setVisible(false);
 		}
 	    });
@@ -109,6 +116,8 @@ public class PrescaleDialog extends JDialog
 	adjustTableColumnWidths();
     }
     
+    public String fileName() {return jTextFieldFile.getText();}
+
     //
     // private member functions
     //
@@ -117,6 +126,10 @@ public class PrescaleDialog extends JDialog
     private void updatePrescaleService()
     {
 	tableModel.updatePrescaleService(config);
+    }
+    private void updatePrescaleServiceFromFile(String fileName)
+    {
+	tableModel.updatePrescaleServiceFromFile(config,fileName);
     }
     
     /** adjust the width of each table column */
@@ -230,11 +243,15 @@ public class PrescaleDialog extends JDialog
 	
         JLabel      jLabel1     = new javax.swing.JLabel();
         JLabel      jLabel2     = new javax.swing.JLabel();
+        JLabel      jLabel3     = new javax.swing.JLabel();
         JScrollPane jScrollPane = new javax.swing.JScrollPane();
 	
         jLabel1.setText("HLT:");
         jLabel2.setText("Default:");
-	
+	jLabel3.setText("File:");
+
+	jTextFieldFile.setBorder(BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+
         jTextFieldHLT.setEditable(false);
         jTextFieldHLT.setBorder(BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
@@ -265,6 +282,10 @@ public class PrescaleDialog extends JDialog
 						 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 						 .addComponent(jComboBoxModule, javax.swing.GroupLayout.DEFAULT_SIZE, 298, Short.MAX_VALUE))
 					    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+						 .addComponent(jLabel3)
+						 .addGap(18)
+						 .addComponent(jTextFieldFile,javax.swing.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE))
+					    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
 						 .addComponent(jButtonCancel)
 						 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
 						 .addComponent(jButtonApply)
@@ -287,6 +308,9 @@ public class PrescaleDialog extends JDialog
 				     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 				     .addComponent(jScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 570, Short.MAX_VALUE)
 				     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+				     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					  .addComponent(jLabel3,javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+					  .addComponent(jTextFieldFile))
 				     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 					  .addComponent(jButtonOK)
 					  .addComponent(jButtonApply)
@@ -370,7 +394,172 @@ class PrescaleTableModel extends AbstractTableModel
 	}
 	prescaleSvc.setHasChanged();
     }
-    
+
+    public void updatePrescaleServiceFromFile(IConfiguration config, String fileName)
+    {
+	if (fileName.equals("")) {
+	    return;
+	}
+	System.out.println("Updating PrescaleService from file: "+fileName);
+
+	// Find and check PrescaleService in Configuration
+	ServiceInstance prescaleSvc = config.service("PrescaleService");
+	if (prescaleSvc==null) {
+	    System.out.println("No PrescaleService found in Configuration - aborting!");
+	    return;
+	}
+	VStringParameter lvl1Labels = (VStringParameter) prescaleSvc.parameter("lvl1Labels","vstring");
+	if (lvl1Labels==null) {
+	    System.out.println("No vstring lvl1Labels found in PrescaleService Configuration - aborting!");
+	    return;
+	}
+	VPSetParameter vpsetPrescaleTable =
+	    (VPSetParameter)prescaleSvc.parameter("prescaleTable","VPSet");
+	if (lvl1Labels==null) {
+	    System.out.println("No VPSet prescaleTable found in PrescaleService Configuration - aborting!");
+	    return;
+	}
+
+	String defaultName = new String("");
+	ArrayList<String> columnNames = new ArrayList<String>();
+	columnNames.clear();
+	ArrayList<Long> indices = new ArrayList<Long>();
+	indices.clear();
+	ArrayList<PrescaleTableRow> prescaleTable = new ArrayList<PrescaleTableRow>();
+	prescaleTable.clear();
+
+	// Read Input File
+	System.out.println("Reading Input File containing Prescale Table!");
+	try {
+	    Scanner tableScanner = new Scanner(new FileInputStream(fileName),"UTF-8");
+
+	    // Header line (csv strings): dummy, followed by prescale column labels
+	    if (tableScanner.hasNextLine()) {
+		Scanner lineScanner = new Scanner(tableScanner.nextLine());
+		lineScanner.useDelimiter(",");
+		if (lineScanner.hasNext()) {
+		    defaultName = lineScanner.next().trim();
+		}
+		while (lineScanner.hasNext()) {
+		    columnNames.add(lineScanner.next().trim());
+		}
+	    }
+	    System.out.println("Header / # of prescale columns found in file: " + defaultName+" / " + columnNames.size());
+	    if (columnNames.size()==0) {
+		System.out.println("No prescale columns found in file - aborting!");
+		return;
+	    }
+
+	    // Indices to map found columnNames into PrescaleService columnNames
+	    for (int i=0; i<columnNames.size(); i++) {
+		indices.add((long)(lvl1Labels.vectorSize()));
+		String label = columnNames.get(i);
+		//System.out.println(" i/Label: "+i+"/"+label);
+		for (int j = 0; j<lvl1Labels.vectorSize(); j++) {
+		    String Label = new String((String)lvl1Labels.value(j));
+		    //System.out.println(" j/Label: "+j+"/"+Label);
+		    if (label.equals(Label)) {
+			indices.set(i,(long)j);
+		    }
+		}
+		System.out.println("Mapping of input-file label '"+label+"' to PrescaleService is "+i+" => "+indices.get(i));
+		if (indices.get(i)==(long)lvl1Labels.vectorSize()) {
+		    System.out.println("Column name in file not found in PrescaleService config (add there first) - aborting! Label="+label);
+		    return;
+		}
+	    }
+
+	    // Body of prescale table
+	    while (tableScanner.hasNextLine()) {
+		String pathName = new String("");
+		ArrayList<Long> prescales = new ArrayList<Long>();
+		prescales.clear();
+		Scanner lineScanner = new Scanner(tableScanner.nextLine());
+		lineScanner.useDelimiter(",");
+		if (lineScanner.hasNext()) {
+		    pathName = lineScanner.next().trim();
+		    // removeVersion (might be different due to re-versioning)
+		    pathName = pathName.replaceAll("_v[0-9]+$","");
+		}
+		while (lineScanner.hasNext()) {
+		    prescales.add(Long.valueOf(lineScanner.next().trim()));
+		}
+		System.out.println("Line read with "+prescales.size()+" prescale values for path '"+pathName+"'");
+		if (columnNames.size()==prescales.size()) {
+		    PrescaleTableRow row = new PrescaleTableRow(pathName,prescales);
+		    prescaleTable.add(row);
+		} else {
+		    System.out.println("Error in input file line (# of columns) - skipping path: "+pathName);
+		}
+	    }
+	    System.out.println("# of valid path rows found in file: " + prescaleTable.size());
+	    if (prescaleTable.size()==0) {
+		System.out.println("No valid path rows found in file - aborting!");
+		return;
+	    }
+	}
+	catch (IOException e) {
+	    System.out.println("IOException: " + e.getMessage());
+	    System.out.println("Aborting!");
+	    return;
+	}
+
+	// Update PrescaleService in Configuration
+	System.out.println("Updating PrescaleService in Configuration!");
+	String fullName = null;
+	for (int i=0; i<prescaleTable.size(); i++) {
+	    PrescaleTableRow row = prescaleTable.get(i);
+	    //check if path is in Configuration and if so, update to full name
+	    String pathName = row.pathName;
+	    System.out.println("Searching Configuration for path matching with: "+pathName);
+	    int found = 0;
+	    for (int j=0; j<config.pathCount(); ++j) {
+		if (pathName.equals(config.path(j).name().replaceAll("_v[0-9]+$",""))) {
+		    found += 1;
+		    fullName = new String(config.path(j).name());
+		    System.out.println("  Found match with: "+fullName);
+		}
+	    }
+	    if (found==0) {
+		System.out.println("  No matching path found in Configuration - skipping (requested update of) path: "+pathName);
+	    } else if (found>1) {
+		System.out.println("  More than one matching path found in Configuration - skipping (requested update of) path: "+pathName);
+	    } else {
+		System.out.println("  Updating prescales of path: "+fullName);
+		int index=vpsetPrescaleTable.parameterSetCount();
+		for (int j=0; j<vpsetPrescaleTable.parameterSetCount(); j++) {
+		    if (vpsetPrescaleTable.parameterSet(j).parameter("pathName").valueAsString().equals("\""+fullName+"\"")) {
+			index=j;
+		    }
+		}
+		if (index==vpsetPrescaleTable.parameterSetCount()) {
+		    // add new entry in PrescaleTable with default prescales
+		    System.out.println("Adding to PrescaleService new path: "+fullName);
+		    StringParameter name = new StringParameter("pathName",fullName,true);
+		    ArrayList<Long> initial = new ArrayList<Long>();
+		    for (int j=0; j<lvl1Labels.vectorSize(); j++) {
+			initial.add((long) 1);
+		    }
+		    VUInt32Parameter prescales = new VUInt32Parameter("prescales",initial,true);
+		    PSetParameter entry = new PSetParameter("entry","",true);
+		    entry.addParameter(name);
+		    entry.addParameter(prescales);
+		    vpsetPrescaleTable.addParameterSet(entry);
+		}
+		// path now in PrescaleService config - update prescales
+		for (int j=0; j<row.prescales.size(); j++) {
+		    int k = (int) ((long) indices.get(j));
+		    UInt32Parameter prescale = new UInt32Parameter("prescale",row.prescales.get(j),true);
+		    VUInt32Parameter prescales = (VUInt32Parameter) vpsetPrescaleTable.parameterSet(index).parameter("prescales");
+		    prescales.setValue(k,prescale.valueAsString());
+		}
+		prescaleSvc.setHasChanged();
+	    }
+	}
+	if (prescaleSvc.hasChanged()) {
+	    initialize(config);
+	}
+    }
 
     /** add an additional column (-> lvl1Label) */
     public void addColumn(int i,String lvl1Label,long prescale)
