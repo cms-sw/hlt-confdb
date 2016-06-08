@@ -237,6 +237,10 @@ public class SaveConfigurationDialog extends JDialog
 	    jButtonOk.setEnabled(false);
 	    return;
 	}
+	if (selectedDir.dbId() == -1) {
+	    jButtonOk.setEnabled(false);
+	    return;
+	}
 	String configName = jTextFieldConfigName.getText();
 	if (configName.length()==0||containsForbiddenSymbol(configName)) {
 	    jButtonOk.setEnabled(false);

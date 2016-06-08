@@ -271,6 +271,10 @@ public class ExportConfigurationDialog extends JDialog
             jButtonExport.setEnabled(false);
             return;
         }
+	if (targetDir.dbId() == -1) {
+	    jButtonExport.setEnabled(false);
+	    return;
+	}
         String configName = jTextFieldConfigName.getText();
         if (configName.length()==0) {
             jButtonExport.setEnabled(false);
