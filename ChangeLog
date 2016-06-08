@@ -1,3 +1,10 @@
+2016-06-08 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V02-03-04
+	* import ConfDB v2 parsing tools from Sandro's parsing branch
+	* add default values to the New Configuration dialog
+	* disable OK/Export button if the target directory does not exist
+	* sign JARs directly with confdb's certificate
+
 2015-09-05 Sandro Ventura <sandro.ventura@cern.ch>
 	* tag V02-03-03
 	* fix a missing FocusListener in ExportConfigurationDialog class which could cause directories tree corruption
