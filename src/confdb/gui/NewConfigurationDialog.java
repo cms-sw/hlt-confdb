@@ -73,12 +73,14 @@ public class NewConfigurationDialog extends JDialog implements ActionListener,
 	
 	setTitle("Enter Configuration Name");
 	
-	textFieldName = new JTextField(20);
-	textFieldProcess = new JTextField(20);
+	textFieldName = new JTextField("HLT", 20);
+	textFieldProcess = new JTextField("HLT", 20);
 
 	try {
 	    comboBoxReleaseTag = new JComboBox(database.getReleaseTags());
 	    comboBoxReleaseTag.setBackground(Color.WHITE);
+            if (comboBoxReleaseTag.getItemCount() > 1)
+                comboBoxReleaseTag.setSelectedIndex(1);
 	}
 	catch (DatabaseException e) {
 	    System.err.println(e.getMessage());
