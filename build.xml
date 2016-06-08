@@ -102,7 +102,7 @@
   <!-- sign all external jar files -->
   <target name="signext" depends="init">
     <!-- alternative tsaurl="http://time.certum.pl/" -->
-    <signjar keystore="/afs/cern.ch/user/c/confdb/private/keystore/keystore" storepass="alkekengi" alias="confdb" lazy="true" preservelastmodified="false" tsaurl="https://timestamp.geotrust.com/tsa" destdir="${dir.signed}">
+    <signjar keystore="/afs/cern.ch/user/c/confdb/private/certificate/certificate.p12" storepass="confdb" alias="cms confdb's  id" lazy="true" preservelastmodified="false" tsaurl="https://timestamp.geotrust.com/tsa" destdir="${dir.signed}">
       <fileset dir="${dir.ext}" includes="*.jar"/>
     </signjar>
   </target>
@@ -110,7 +110,7 @@
   <!-- sign all compiled jar files -->
   <target name="signlib" depends="compile,gui,parser,browser,converter">
     <!-- alternative tsaurl="http://time.certum.pl/" -->
-    <signjar keystore="/afs/cern.ch/user/c/confdb/private/keystore/keystore" storepass="alkekengi" alias="confdb" lazy="true" preservelastmodified="false" tsaurl="https://timestamp.geotrust.com/tsa">
+    <signjar keystore="/afs/cern.ch/user/c/confdb/private/certificate/certificate.p12" storepass="confdb" alias="cms confdb's  id" lazy="true" preservelastmodified="false" tsaurl="https://timestamp.geotrust.com/tsa">
       <fileset dir="${dir.lib}" includes="*.jar"/>
     </signjar>
   </target>
