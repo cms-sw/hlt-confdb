@@ -6,6 +6,8 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
 
 import confdb.data.*;
 
@@ -33,7 +35,12 @@ public class JavaCodeExecution
     {
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] start:");
-	runCode6618();
+	runChecker();
+	//	runCode14317();
+	//	runCodeL1TMenu1();
+	//	runCodeL1TMenu0();
+	//      runCode13062();
+	//	runCode6618();
 	//      runCode6568();
 	//	runCodeFillPSet();
 	//      runCode3211();
@@ -41,6 +48,358 @@ public class JavaCodeExecution
 	//      runCode2286();
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] ended!");
+    }
+
+    private void runChecker()
+    {
+	ModuleInstance module = null;
+	String newName = null;
+
+	for (int i =0; i<config.moduleCount(); i++) {
+	    module = config.module(i);
+	    if (module.template().name().equals("HLTL1TSeed")) {
+		newName = module.parameter("L1SeedsLogicalExpression","string").valueAsString();
+		newName = " "+newName.substring(1,newName.length()-1)+" ";
+		newName = newName.replace("  "," ").replace(" and "," AND ").replace(" or "," OR ").replace("L1","").replace("_","").replace(" AND ","Iand").replace(" OR ","Ior");
+		newName = "hltL1s"+newName.replace(" ","");
+		if (module.parameter("L1GlobalInputTag","InputTag").valueAsString().equals("hltGtStage2ObjectMap")) {
+		    newName += "ObjectMap";
+		}
+		if (!newName.equals(module.name())) {
+		    if (newName.indexOf("Zero")>=0) {
+			System.out.println("  Keeping (Zero)   "+module.name()+" /not "+newName);
+		    } else if (newName.length()>=128) {
+			System.out.println("  Keeping (length) "+module.name()+" /not "+newName);
+		    } else {
+			Boolean found = false;
+			if (!config.isUniqueQualifier(newName)) {
+			    String testName=null;
+			    int j=0;
+			    testName = newName.replace("hltL1s","hltL1sV"+j);
+			    found = (found || module.name().equals(testName));
+			    while (!config.isUniqueQualifier(testName)) {
+				++j;
+				testName = newName.replace("hltL1s","hltL1sV"+j);
+				found = (found || module.name().equals(testName));
+			    }
+			    newName = testName;
+			}
+			if (!found) {
+			    System.out.println("  Changing  "+module.name()+" => "+newName);
+			    try {
+				module.setNameAndPropagate(newName);
+			    }
+			    catch (DataException e) {
+				System.err.println(e.getMessage());
+			    }
+			    module.setHasChanged();
+			}
+		    }
+		}
+	    }
+	}
+
+	Path[] paths = null;
+	for (int i =0; i<config.moduleCount(); i++) {
+	    module = config.module(i);
+	    if (module.template().name().equals("HLTPrescaler")) {
+		paths = module.parentPaths();
+		if (paths.length==1) {
+		    newName = paths[0].name().replace("HLT_","").replaceAll("_v[0-9]+$","");
+		    newName = "hltPre"+newName.replace("_","");
+		    if (!newName.equals(module.name())) {
+			if (!config.isUniqueQualifier(newName)) {
+			    String testName=null;
+			    int j=0;
+			    testName = newName.replace("hltPre","hltPreV"+j);
+			    while (!config.isUniqueQualifier(testName)) {
+				++j;
+				testName = newName.replace("hltPre","hltPreV"+j);
+			    }
+			    newName = testName;
+			}
+			System.out.println("HLTPrescaler instance "+module.name()+" => "+newName);
+			try {
+			    module.setNameAndPropagate(newName);
+			}
+			catch (DataException e) {
+			    System.err.println(e.getMessage());
+			}
+			module.setHasChanged();
+		    }
+		} else {
+		    System.err.println("Error: HLTPrescaler instance "+module.name()+" is in more than one path.");
+		}
+	    }
+	}
+    }
+
+    private void runCode14317()
+    {
+	PSetParameter pset = null;
+	for (int i=0; i<config.psetCount(); i++) {
+	    pset = config.pset(i);
+	    if (pset.parameter("ComponentType")!=null) {
+		String ComponentType = pset.parameter("ComponentType").valueAsString();
+		ComponentType = ComponentType.substring(1,ComponentType.length()-1);
+		if (ComponentType.equals("CkfBaseTrajectoryFilter")) {
+		    String value = "13";
+		    if (pset.parameter("minNumberOfHits")!=null) {
+			Parameter para = pset.parameter("minNumberOfHits");
+			value = para.valueAsString();
+			pset.removeParameter(para);
+		    }
+		    if (pset.parameter("minNumberOfHitsForLoopers")==null) {
+			Int32Parameter para = new Int32Parameter("minNumberOfHitsForLoopers",0,true);
+			para.setValue(value);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("minNumberOfHitsPerLoop")==null) {
+			Int32Parameter para = new Int32Parameter("minNumberOfHitsPerLoop",4,true);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("extraNumberOfHitsBeforeTheFirstLoop")==null) {
+			Int32Parameter para = new Int32Parameter("extraNumberOfHitsBeforeTheFirstLoop",4,true);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("maxLostHitsFraction")==null) {
+			DoubleParameter para = new DoubleParameter("maxLostHitsFraction",999.0,true);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("constantValueForLostHitsFractionFilter")==null) {
+			DoubleParameter para = new DoubleParameter("constantValueForLostHitsFractionFilter",1.0,true);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("minimumNumberOfHits")==null) {
+			Int32Parameter para = new Int32Parameter("minimumNumberOfHits",5,true);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("seedPairPenalty")==null) {
+			Int32Parameter para = new Int32Parameter("seedPairPenalty",0,true);
+			pset.addParameter(para);
+		    }
+		    config.psets().setHasChanged();
+		}
+	    }
+	}
+    }
+
+    private void runCodeL1TMenu1()
+    {
+	// Update to a new L1T menu by 'translating' L1T algorithm names 'old' to 'new'
+	Map<String,String> map = new TreeMap<String,String>();
+
+	map.put("L1_DoubleEG_22_20","XXXremovedXXX");
+	map.put("L1_DoubleIsoTau36er","XXXremovedXXX");
+	map.put("L1_DoubleIsoTau40er","XXXremovedXXX");
+	map.put("L1_DoubleMu0er1p25_dEta_Max1p8_OS","XXXremovedXXX");
+	map.put("L1_DoubleTau40er","XXXremovedXXX");
+	map.put("L1_ETM60_JetF60_dPhi_Min0p4","XXXremovedXXX");
+	map.put("L1_HTT350","XXXremovedXXX");
+	map.put("L1_HTT400","XXXremovedXXX");
+	map.put("L1_Mu14er_Tau20er","XXXremovedXXX");
+	map.put("L1_Mu14er_Tau24er","XXXremovedXXX");
+	map.put("L1_Mu18er_IsoTau28er","XXXremovedXXX");
+	map.put("L1_Mu18er_IsoTau30er","XXXremovedXXX");
+	map.put("L1_Mu18er_IsoTau32er","XXXremovedXXX");
+	map.put("L1_Mu18er_IsoTau36er","XXXremovedXXX");
+	map.put("L1_Mu18er_IsoTau40er","XXXremovedXXX");
+	map.put("L1_SingleEG32","XXXremovedXXX");
+	map.put("L1_SingleEG38","XXXremovedXXX");
+	map.put("L1_SingleEG42","XXXremovedXXX");
+	map.put("L1_SingleIsoEG27","XXXremovedXXX");
+	map.put("L1_SingleIsoEG27er","XXXremovedXXX");
+	map.put("L1_SingleMu35","XXXremovedXXX");
+	map.put("L1_SingleMu40","XXXremovedXXX");
+	map.put("L1_SingleMuBeamHalo","XXXremovedXXX");
+	map.put("L1_SingleTau150er","XXXremovedXXX");
+
+	map.put("L1_IsoEG20er_Tau20er_dEta_Min0p2","L1_IsoEG22er_Tau20er_dEta_Min0p2");
+	map.put("L1_IsoEG20er_Tau24er_dEta_Min0p2","L1_IsoEG22er_Tau20er_dEta_Min0p2");
+	map.put("L1_IsoEG23er_Tau20er_dEta_Min0p2","L1_IsoEG22er_Tau20er_dEta_Min0p2");
+
+	map.put("L1_SingleJetC20_NotBptxOR_NoHaloMu_3BX","L1_SingleJetC20_NotBptxOR_3BX");
+	map.put("L1_SingleJetC32_NotBptxOR_NoHaloMu_3BX","L1_SingleJetC32_NotBptxOR_3BX");
+	map.put("L1_SingleJetC36_NotBptxOR_NoHaloMu_3BX","L1_SingleJetC36_NotBptxOR_3BX");
+	map.put("L1_SingleMuOpen_NotBptxOR_NoHaloMu_3BX","L1_SingleMuOpen_NotBptxOR_3BX");
+
+	int count = 0;
+	String oldSeeds = null;
+	String tmpSeeds = null;
+	String newSeeds = null;
+	ModuleInstance module = null;
+	for (int i =0; i<config.moduleCount(); i++) {
+	    module = config.module(i);
+	    if (module.template().name().equals("HLTL1TSeed")) {
+		oldSeeds = module.parameter("L1SeedsLogicalExpression","string").valueAsString();
+		oldSeeds = " "+oldSeeds.substring(1,oldSeeds.length()-1)+" ";
+		tmpSeeds = new String(oldSeeds);
+		for (String key: map.keySet()) {
+		    if (tmpSeeds.contains(" "+key+" ")) {
+			tmpSeeds = tmpSeeds.replace(" "+key+" ","X"+key+"X");
+		    }
+		}
+		newSeeds = new String(tmpSeeds);
+		for (String key: map.keySet()) {
+		    if (newSeeds.contains("X"+key+"X")) {
+			newSeeds = newSeeds.replace("X"+key+"X"," "+map.get(key)+" ");
+		    }
+		}
+		newSeeds = newSeeds.replace(" or "," OR ").replace(" OR XXXremovedXXX "," ").replace(" XXXremovedXXX OR "," ");
+		newSeeds = newSeeds.replace(" and "," AND ").replace(" AND XXXremovedXXX "," ").replace(" XXXremovedXXX AND "," ");
+		if (!(oldSeeds.equals(newSeeds))) {
+		    System.out.println(count+": "+module.name()+"|"+oldSeeds+"|"+newSeeds+"|");
+		    module.updateParameter("L1SeedsLogicalExpression","string",newSeeds.substring(1,newSeeds.length()-1));
+		    module.setHasChanged();
+		    count = count+1;
+		}
+	    }
+	}
+    }
+
+    private void runCodeL1TMenu0()
+    {
+	// Update to a new L1T menu by 'translating' L1T algorithm names 'old' to 'new'
+	Map<String,String> map = new TreeMap<String,String>();
+	map.put("L1_AlwaysTrue","L1_ZeroBias");
+	map.put("L1_SingleEG20","L1_SingleEG24");
+	map.put("L1_SingleEG25","L1_SingleEG26");
+	map.put("L1_SingleEG35","L1_SingleEG40");
+	map.put("L1_SingleIsoEG25","L1_SingleIsoEG26");
+	map.put("L1_SingleIsoEG25er","L1_SingleIsoEG26er");
+	map.put("L1_DoubleEG_15_10","L1_DoubleEG_15_10 OR L1_DoubleEG_18_17 OR L1_DoubleEG_20_18 OR L1_DoubleEG_23_10");
+	map.put("L1_DoubleEG_22_10","L1_DoubleEG_22_10 OR L1_DoubleEG_22_20 OR L1_DoubleEG_24_17");
+	map.put("L1_DoubleTauJet40er","XXXremovedXXX");
+	map.put("L1_Mu16er_IsoTau28er","L1_Mu18er_IsoTau28er");
+	map.put("L1_Mu16er_IsoTau32er","L1_Mu18er_IsoTau32er");
+	map.put("L1_Mu16er_TauJet20er","L1_Mu16er_Tau20er");
+	map.put("L1_QuadJetC36_TauJet52","L1_QuadJetC36_Tau52");
+	map.put("L1_SingleJet36","L1_SingleJet35");
+	map.put("L1_SingleJet52","L1_SingleJet60");
+	map.put("L1_SingleJet68","L1_SingleJet60");
+	map.put("L1_SingleJet92","L1_SingleJet90");
+	map.put("L1_SingleJet128","L1_SingleJet120");
+	map.put("L1_SingleJet176","L1_SingleJet180");
+	map.put("L1_DoubleJetC52","L1_DoubleJetC50");
+	map.put("L1_DoubleJetC56_ETM60","L1_DoubleJetC60_ETM60");
+	map.put("L1_DoubleJetC84","L1_DoubleJetC80");
+	map.put("L1_HTT75","L1_HTT160");
+	map.put("L1_HTT100","L1_HTT200");
+	map.put("L1_HTT125","L1_HTT220");
+	map.put("L1_HTT150","L1_HTT255");
+	map.put("L1_HTT175","L1_HTT300");
+	map.put("L1_HTT200","L1_HTT320");
+	map.put("L1_HTT250","L1_HTT350");
+	map.put("L1_DoubleEG6_HTT150","L1_DoubleEG6_HTT255");
+	map.put("L1_EG25er_HTT100","L1_EG27er_HTT200");
+	map.put("L1_Mu6_HTT100","L1_Mu6_HTT200");
+	map.put("L1_Mu8_HTT50","L1_Mu8_HTT150");
+	map.put("L1_DoubleMu0_Eta1p6_WdEta18","L1_DoubleMu0er1p6_dEta_Max1p8");
+	map.put("L1_DoubleMu0_Eta1p6_WdEta18_OS","L1_DoubleMu0er1p6_dEta_Max1p8_OS");
+	map.put("L1_DoubleMu_10_0_WdEta18","L1_DoubleMu_10_0_dEta_Max1p8");
+	map.put("L1_Mu3_JetC16_WdEtaPhi2","L1_Mu3_JetC16_dEta_Max0p4_dPhi_Max0p4");
+	map.put("L1_Mu3_JetC52_WdEtaPhi2","L1_Mu3_JetC52_dEta_Max0p4_dPhi_Max0p4");
+	map.put("L1_Jet32_DoubleMu_Open_10_MuMuNotWdPhi23_JetMuWdPhi1","L1_Jet32_DoubleMuOpen_Mu10_dPhi_Jet_Mu0_Max1p05_dPhi_Mu_Mu_Min1p0");
+	map.put("L1_Jet32_MuOpen_EG10_MuEGNotWdPhi3_JetMuWdPhi1","L1_Jet32_MuOpen_EG10_dPhi_Jet_Mu_Max1p05_dPhi_Mu_EG_Min1p05");
+	map.put("L1_IsoEG20er_TauJet20er_NotWdEta0","L1_IsoEG20er_Tau20er_dEta_Min0p2");
+
+	int count = 0;
+	String oldSeeds = null;
+	String tmpSeeds = null;
+	String newSeeds = null;
+	ModuleInstance module = null;
+	for (int i =0; i<config.moduleCount(); i++) {
+	    module = config.module(i);
+	    if (module.template().name().equals("HLTL1TSeed")) {
+		oldSeeds = module.parameter("L1SeedsLogicalExpression","string").valueAsString();
+		oldSeeds = " "+oldSeeds.substring(1,oldSeeds.length()-1)+" ";
+		tmpSeeds = new String(oldSeeds);
+		for (String key: map.keySet()) {
+		    if (tmpSeeds.contains(" "+key+" ")) {
+			tmpSeeds = tmpSeeds.replace(" "+key+" ","X"+key+"X");
+		    }
+		}
+		newSeeds = new String(tmpSeeds);
+		for (String key: map.keySet()) {
+		    if (newSeeds.contains("X"+key+"X")) {
+			newSeeds = newSeeds.replace("X"+key+"X"," "+map.get(key)+" ");
+		    }
+		}
+		if (!(oldSeeds.equals(newSeeds))) {
+		    System.out.println(count+": "+module.name()+"|"+oldSeeds+"|"+newSeeds+"|");
+		    module.updateParameter("L1SeedsLogicalExpression","string",newSeeds.substring(1,newSeeds.length()-1));
+		    module.setHasChanged();
+		    count = count+1;
+		}
+	    }
+	}
+    }
+
+    private void runCode13062()
+    {
+	edModuleUpdate13062("PixelTrackProducer");
+	edModuleUpdate13062("SeedGeneratorFromRegionHitsEDProducer");
+	globalPSetUpdate13062("CkfBaseTrajectoryFilter");
+    }
+
+    private void edModuleUpdate13062(String templateName)
+    {
+	PSetParameter pset = null;
+	ModuleInstance module = null;
+	for (int i=0; i<config.moduleCount(); i++) {
+	    module = config.module(i);
+	    if (module.template().name().equals(templateName)) {
+		if (config.module(module.name()).parameter("RegionFactoryPSet","PSet")!=null) {
+		    pset = (PSetParameter) config.module(module.name()).parameter("RegionFactoryPSet","PSet");
+		    if (pset.parameter("RegionPSet")!=null){
+			pset = (PSetParameter) pset.parameter("RegionPSet");
+			if (pset.parameter("useMultipleScattering")==null) {
+			    BoolParameter para = new BoolParameter("useMultipleScattering",false,true);
+			    pset.addParameter(para);
+			    module.setHasChanged();
+			}
+			if (pset.parameter("useFakeVertices")==null) {
+			    BoolParameter para = new BoolParameter("useFakeVertices",false,true);
+			    pset.addParameter(para);
+			    module.setHasChanged();
+			}
+		    }
+		}
+	    }
+	}
+    }
+
+    private void globalPSetUpdate13062(String componentType)
+    {
+	PSetParameter pset = null;
+	for (int i=0; i<config.psetCount(); i++) {
+	    pset = config.pset(i);
+	    if (pset.parameter("ComponentType")!=null) {
+		String ComponentType = pset.parameter("ComponentType").valueAsString();
+		ComponentType = ComponentType.substring(1,ComponentType.length()-1);
+		if (ComponentType.equals(componentType)) {
+		    if (pset.parameter("minGoodStripCharge")==null) {
+			PSetParameter para = new PSetParameter("minGoodStripCharge","",true);
+			StringParameter ref = new StringParameter("refToPSet_","HLTSiStripClusterChargeCutNone",true);
+			para.addParameter(ref);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("maxCCCLostHits")==null) {
+			Int32Parameter para = new Int32Parameter("maxCCCLostHits",9999,true);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("seedExtension")==null) {
+			Int32Parameter para = new Int32Parameter("seedExtension",0,true);
+			pset.addParameter(para);
+		    }
+		    if (pset.parameter("strictSeedExtension")==null) {
+			BoolParameter para = new BoolParameter("strictSeedExtension",false,true);
+			pset.addParameter(para);
+		    }
+		}
+	    }
+	}
+	config.psets().setHasChanged();
     }
 
     private void runCode6618()
