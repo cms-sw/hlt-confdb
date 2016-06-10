@@ -1,3 +1,8 @@
+2016-06-10 Martin Grunewald <Martin.Grunewald@cern.ch>
+	* tag V02-04-00
+        * add feature to read PrescaleTable updates from a csv file
+        * sync parser, JavaCodeExecution, and ReleaseMigrator with master (confdbv1) branch
+
 2016-06-08 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V02-03-04
 	* import ConfDB v2 parsing tools from Sandro's parsing branch
