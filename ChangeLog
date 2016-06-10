@@ -1,7 +1,11 @@
-2016-06-10 Martin Grunewald <Martin.Grunewald@cern.ch>
+2016-06-10 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V02-04-01
+	* fix compilation
+
+2016-06-09 Martin Grunewald <Martin.Grunewald@cern.ch>
 	* tag V02-04-00
-        * add feature to read PrescaleTable updates from a csv file
-        * sync parser, JavaCodeExecution, and ReleaseMigrator with master (confdbv1) branch
+	* add feature to read PrescaleTable updates from a csv file
+	* sync parser, JavaCodeExecution, and ReleaseMigrator with master (confdbv1) branch
 
 2016-06-08 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V02-03-04
