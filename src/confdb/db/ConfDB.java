@@ -5746,9 +5746,9 @@ public class ConfDB
 	insertParameterHashMap.put("EventID",    psInsertEventIDParamValue);
 	insertParameterHashMap.put("VEventID",   psInsertVEventIDParamValue);
 	insertParameterHashMap.put("InputTag",   psInsertInputTagParamValue);
-	insertParameterHashMap.put("ESInputTag", psInsertESInputTagParamValue);
+	insertParameterHashMap.put("ESInputTag", psInsertInputTagParamValue);
 	insertParameterHashMap.put("VInputTag",  psInsertVInputTagParamValue);
-	insertParameterHashMap.put("VESInputTag",psInsertVESInputTagParamValue);
+	insertParameterHashMap.put("VESInputTag",psInsertVInputTagParamValue);
 	insertParameterHashMap.put("FileInPath", psInsertFileInPathParamValue);
 
 	ResultSet rs = null;

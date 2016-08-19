@@ -1,3 +1,7 @@
+2015-05-08 Sandro Ventura <sandro.ventura@cern.ch>
+	* tag V01-08-05
+	* add Fix bugs in (V)ESInputTag implementation
+
 2015-05-08 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V01-08-04
 	* update build environment for lxplus and the `confdb` user
