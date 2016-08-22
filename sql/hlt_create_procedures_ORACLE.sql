@@ -298,7 +298,7 @@ BEGIN
     END LOOP;
     CLOSE cur_vstring;
   /** load inputtag values */
-  ELSIF parameter_type='InputTag'
+  ELSIF parameter_type='InputTag' OR parameter_type='ESInputTag'
   THEN
     OPEN cur_inputtag;
     FETCH cur_inputtag INTO v_string_value;
@@ -307,7 +307,7 @@ BEGIN
     END IF;
     CLOSE cur_inputtag;
   /** load vinputtag values */
-  ELSIF parameter_type='VInputTag'
+  ELSIF parameter_type='VInputTag' OR parameter_type='VESInputTag'
   THEN
     OPEN cur_vinputtag;
     LOOP

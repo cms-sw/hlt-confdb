@@ -905,6 +905,27 @@ class ConfdbOracleModuleLoader:
 			    print "INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')"
 			thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
 
+	    # ESInputTag
+	    elif(paramtype == "ESInputTag"):
+		type = self.paramtypedict['ESInputTag']
+
+		# Fill Parameters table
+		newparamid = self.AddNewParam(thecursor,newsuperid,paramname,type,paramistracked,paramseq)
+
+		# Fill ParameterValues table
+		if(paramval == None or paramval == ''):
+		    if(self.verbose > 2):
+			print "No default parameter value found"
+		else:
+		    if(paramval.find("'") != -1):
+			if(self.verbose > 2):
+			    print "INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")"
+			thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", " + paramval + ")")
+		    else:
+			if(self.verbose > 2):
+			    print "INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')"
+			thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparamid) + ", '" + paramval + "')")
+
 	    else:
 		print '\tError: Unknown param type ' + paramtype + ' ' + paramname + ' - do nothing'
                 self.globalseqcount = self.globalseqcount - 1
@@ -1020,6 +1041,23 @@ class ConfdbOracleModuleLoader:
 	    # vector<InputTag>
 	    elif(vecptype == "VInputTag" or vecptype == "InputTag" or vecptype == "vtag"):
 		type = self.paramtypedict['VInputTag']
+
+		# Fill Parameters table
+		newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
+
+		sequencer = 0
+
+		for vecpval in vecpvals:
+		    if(vecpval):
+			# Fill ParameterValues table
+			if(self.verbose > 2):
+			    print "INSERT INTO VInputTagParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + vecpval + "')"
+			thecursor.execute("INSERT INTO VInputTagParamValues (paramId, sequenceNb, value) VALUES (" + str(newparamid) + ", " + str(sequencer) + ", '" + vecpval + "')")   
+			sequencer = sequencer + 1
+
+	    # vector<InputTag>
+	    elif(vecptype == "VESInputTag" or vecptype == "ESInputTag"):
+		type = self.paramtypedict['VESInputTag']
 
 		# Fill Parameters table
 		newparamid = self.AddNewParam(thecursor,newsuperid,vecpname,type,vecpistracked,vecpseq)
@@ -1668,8 +1706,10 @@ class ConfdbOracleModuleLoader:
 			print "Parameter is unchanged (" + str(oldparamval) + ", " + str(paramval) + ")"
 
 	    # InputTag
-	    if(paramtype == "InputTag"):
+	    if(paramtype == "InputTag" or paramtype == "ESInputTag"):
 		type = self.paramtypedict['InputTag']
+	        if(paramtype == "ESInputTag"):
+                    type = self.paramtypedict['ESInputTag']
 
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,paramname,oldsuperid)
@@ -2083,8 +2123,11 @@ class ConfdbOracleModuleLoader:
 			    sequencer = sequencer + 1
 
 	    # vector<InputTag>
-	    elif(vecptype == "VInputTag" or vecptype == "InputTag" or vecptype == "vtag"):		
+	    elif(vecptype == "VInputTag" or vecptype == "InputTag" or vecptype == "vtag" or vecptype == "ESInputTag"):		
 		type = self.paramtypedict['VInputTag']
+                if (vecptype == "ESInputTag"):
+                    type = self.paramtypedict['VESInputTag']
+
 		# Get the old value of this parameter
 		oldparamid = self.RetrieveParamId(thecursor,vecpname,oldsuperid)
 		
@@ -2379,7 +2422,7 @@ class ConfdbOracleModuleLoader:
 		    print "\tWarning: Attempted to load a non-string value to FileInPath table:"
 		    print "\t\tstring " + str(psetname) + " = " + str(psetval)
 		    print "\t\tLoading parameter with no default value"
-	    elif(psettype == "InputTag"):
+	    elif(psettype == "InputTag" or psettype == "ESInputTag"):
 		if(psetval.find("'") != -1):
 		    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newparammemberid) + ", " + psetval + ")")
 		else:
@@ -2436,7 +2479,7 @@ class ConfdbOracleModuleLoader:
 		for entry in entries:
 		    thecursor.execute("INSERT INTO VStringParamValues (paramId, sequenceNb, value) VALUES (" + str(newparammemberid) + ", " + str(sequencer) + ", '" + entry.lstrip().rstrip() + "')")   
 		    sequencer = sequencer + 1		
-	    elif(psettype == "VInputTag" or psettype == "vtag"):
+	    elif(psettype == "VInputTag" or psettype == "vtag" or psettype == "VESInputTag"):
 		sequencer = 0
 		entries = psetval.lstrip().rstrip().lstrip('{').rstrip('}').split(',')
 		for entry in entries:
@@ -2630,7 +2673,7 @@ class ConfdbOracleModuleLoader:
 		    print "\t\tstring " + str(vpsetname) + " = " + str(vpsetval)
 		    print "\t\tLoading parameter with no default value" 
 
-	    elif(vpsettype == "InputTag"):
+	    elif(vpsettype == "InputTag" or vpsettype == "ESInputTag"):
 		if(vpsetval.find("'") != -1):
 		    thecursor.execute("INSERT INTO InputTagParamValues (paramId, value) VALUES (" + str(newvparammemberid) + ", " + vpsetval + ")")
 		else:
