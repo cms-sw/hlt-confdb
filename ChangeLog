@@ -1,6 +1,7 @@
-2015-05-08 Sandro Ventura <sandro.ventura@cern.ch>
+2016-08-20 Sandro Ventura <sandro.ventura@cern.ch>
 	* tag V01-08-05
-	* add Fix bugs in (V)ESInputTag implementation
+	* fix bugs in (V)ESInputTag implementation
+	* add feature to read PrescaleTable updates from a csv file
 
 2015-05-08 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V01-08-04
