@@ -103,9 +103,9 @@ def main(argv):
             scramlisthandles = os.popen("scramv1 list CMSSW | grep " + str(a)).readlines()
             for scramlisthandle in scramlisthandles:
                 if(scramlisthandle.lstrip().startswith('-->') and scramlisthandle.rstrip().endswith(str(a))):
-                    scramlistpath = scramlisthandle.lstrip().rstrip().split('-->')[1]
+                    scramlistpath = scramlisthandle.strip().split('-->')[1]
                     if(input_addtorelease == "none"):
-                        input_base_path = scramlistpath.lstrip().rstrip() + "/"
+                        input_base_path = scramlistpath.strip() + "/"
                         foundinscramlist = True
                         input_cmsswrel = str(a)
                         
@@ -204,8 +204,8 @@ class ConfdbLoadParamsfromConfigs:
         # Track CVS tags
         self.cvstag = ''
         self.packageid = ''
-        self.tagtuple = []
-        self.addedtagtuple = []
+        self.tagtuple = {}
+        self.addedtagtuple = {}
 
 	# Get a Conf DB connection here. Only need to do this once at the 
 	# beginning of a job.
@@ -262,10 +262,10 @@ class ConfdbLoadParamsfromConfigs:
             self.usedcfifile = "listofusedcfis." + str(self.addtorelease) + ".log"
             self.outputlogfile = "parse." + str(self.addtorelease) + "." + str(self.dbhost) + ".log"
 
-	source_tree = self.base_path + "//src/"
+	source_tree = self.base_path + "/src/"
 
         # Set up the source tree for auto-generated cfi's
-        validatedcfisource_tree = self.base_path + "//cfipython/" + str(self.arch) + "/"
+        validatedcfisource_tree = self.base_path + "/cfipython/" + str(self.arch) + "/"
 
         self.outputlogfilehandle = open(self.outputlogfile, 'w')
         
@@ -298,11 +298,7 @@ class ConfdbLoadParamsfromConfigs:
             if(tmprelid):
                 self.oldcmsswrelid = tmprelid[0]
 
-        # Find CVS tags
-        #       No longer possible with GIT:
-        #       self.GetReleaseCVSTags()
-        #       if(self.addtorelease != "none"):
-        #           self.GetAddedCVSTags()
+        # Find git hash for each package
         self.GetReleaseGitHashTags()
         if(self.addtorelease != "none"):
             self.GetAddedGitHashTags()
@@ -429,19 +425,16 @@ class ConfdbLoadParamsfromConfigs:
                    if(not os.path.isdir(validatedpydir)):
                        continue
                    
-                   # Retrieve the CVS tag
+                   # Retrieve the package tag
                    validatedcfipackagename = validatedcfipackage+"/"+subdir
-                   for modtag, cvstag in self.tagtuple:
-                       if(modtag.lstrip().rstrip() == validatedcfipackagename.lstrip().rstrip()):
-                           self.cvstag = cvstag
-                           self.VerbosePrint("\tgit hashtag from base release: " + cvstag,1)
+                   if (validatedcfipackagename in self.tagtuple):
+                       self.cvstag = self.tagtuple[validatedcfipackagename]
+                       self.VerbosePrint("\tCVS tag from base release: " + self.cvstag,1)
 
-                   if(self.addtorelease != "none"):
-                       for modtag, cvstag in self.addedtagtuple:
-                           if(modtag.lstrip().rstrip() == validatedcfipackage.lstrip().rstrip()):
-                               self.cvstag = cvstag
-                               self.VerbosePrint("\tgit hashtag from test release: " + cvstag,1)
-                               
+                   if (self.addtorelease != "none") and (validatedcfipackagename in self.addedtagtuple):
+                       self.cvstag = self.addedtagtuple[validatedcfipackagename]
+                       self.VerbosePrint("\tCVS tag from test release: " + self.cvstag,1)
+
                    self.GetPackageID(validatedcfipackage,subdir)
 
                    validatedpyfiles = os.listdir(validatedpydir)
@@ -453,7 +446,7 @@ class ConfdbLoadParamsfromConfigs:
                            for subvalidatedpyfile in subvalidatedpyfiles:
                                validatedpyfiles.append(validatedpyfile + "." + subvalidatedpyfile)
 
-                   thevalidatedsubsystempackage = validatedpydir.split(self.arch)[1].lstrip().rstrip()
+                   thevalidatedsubsystempackage = validatedpydir.split(self.arch)[1].strip()
                    thevalidatedsubsystem = thevalidatedsubsystempackage.split('/')[0]
                    thevalidatedpackage = thevalidatedsubsystempackage.split('/')[1]
 
@@ -480,28 +473,26 @@ class ConfdbLoadParamsfromConfigs:
         # Next, check if there are any preferred cfi files to use for this Package/Subsystem.
         # If so, get the parameters from there.
         for preferredsubpackage, preferredcfi in self.preferredcfilist:
+            preferredsubpackage = preferredsubpackage.strip()
             self.VerbosePrint("Using the preferred cfi.py: " + preferredcfi + " for " + preferredsubpackage,1)
             pyfile = preferredcfi
             thecomponent = pyfile.split('.py')[0]
 
-            thesubsystem = (preferredsubpackage.split("/")[0]).lstrip().rstrip()
-            thepackage = (preferredsubpackage.split("/")[1]).lstrip().rstrip()
+            thesubsystem = (preferredsubpackage.split("/")[0]).strip()
+            thepackage = (preferredsubpackage.split("/")[1]).strip()
             pydir = source_tree + preferredsubpackage + "/python/"
 
             if(not os.path.isdir(pydir)):
                 continue
 
-            # Retrieve the CVS tag
-            for modtag, cvstag in self.tagtuple:
-                if(modtag.lstrip().rstrip() == preferredsubpackage.lstrip().rstrip()):
-                    self.cvstag = cvstag
-                    self.VerbosePrint("\tCVS tag from base release: " + cvstag,1)
+            # Retrieve the package tag
+            if (preferredsubpackage in self.tagtuple):
+                self.cvstag = self.tagtuple[preferredsubpackage]
+                self.VerbosePrint("\tCVS tag from base release: " + self.cvstag,1)
 
-            if(self.addtorelease != "none"):
-                for modtag, cvstag in self.addedtagtuple:
-                    if(modtag.lstrip().rstrip() == preferredsubpackage.lstrip().rstrip()):
-                        self.cvstag = cvstag
-                        self.VerbosePrint("\tCVS tag from test release: " + cvstag,1)
+            if (self.addtorelease != "none") and (preferredsubpackage in self.addedtagtuple):
+                self.cvstag = self.addedtagtuple[preferredsubpackage]
+                self.VerbosePrint("\tCVS tag from test release: " + self.cvstag,1)
                         
             self.GetPackageID(thesubsystem,thepackage)
                 
@@ -588,18 +579,16 @@ class ConfdbLoadParamsfromConfigs:
                     if(not os.path.isdir(pydir)):
                         continue
 
-                    # Retrieve the CVS tag
+                    # Retrieve the package tag
                     packagename = package+"/"+subdir
-                    for modtag, cvstag in self.tagtuple:
-                        if(modtag.lstrip().rstrip() == packagename.lstrip().rstrip()):
-                            self.cvstag = cvstag
-                            self.VerbosePrint("\tCVS tag from base release: " + cvstag,1)
+                    if (packagename in self.tagtuple):
+                        self.cvstag = self.tagtuple[packagename]
+                        self.VerbosePrint("\tCVS tag from base release: " + self.cvstag,1)
 
-                    if(self.addtorelease != "none"):
-                        for modtag, cvstag in self.addedtagtuple:
-                            if(modtag.lstrip().rstrip() == packagename.lstrip().rstrip()):
-                                self.cvstag = cvstag
-                                self.VerbosePrint("\tCVS tag from test release: " + cvstag,1)
+                    if (self.addtorelease != "none") and (packagename in self.addedtagtuple):
+                        self.cvstag = self.addedtagtuple[packagename]
+                        self.VerbosePrint("\tCVS tag from test release: " + self.cvstag,1)
+
 
                     self.GetPackageID(package,subdir)
                             
@@ -612,7 +601,7 @@ class ConfdbLoadParamsfromConfigs:
                             for subpyfile in subpyfiles:
                                 pyfiles.append(pyfile + "." + subpyfile)
                                 
-                    thesubsystempackage = pydir.split('src/')[1].split('/data/')[0].lstrip().rstrip()
+                    thesubsystempackage = pydir.split('src/')[1].split('/data/')[0].strip()
                     thesubsystem = thesubsystempackage.split('/')[0]
                     thepackage = thesubsystempackage.split('/')[1]
 
@@ -690,10 +679,10 @@ class ConfdbLoadParamsfromConfigs:
         # Construct the py-cfi to import
         thesubsystempackage = ""
         if(usepythonsubdir == True):
-            thesubsystempackage = pydir.split('src/')[1].split('/data/')[0].lstrip().rstrip()
+            thesubsystempackage = pydir.split('src/')[1].split('/data/')[0].strip()
         else:
-            thesubsystempackage = pydir.split("cfipython/")[1].lstrip().rstrip()
-            thesubsystempackage = thesubsystempackage.split(self.arch+"/")[1].rstrip("/").lstrip().rstrip()
+            thesubsystempackage = pydir.split("cfipython/")[1].strip()
+            thesubsystempackage = thesubsystempackage.split(self.arch+"/")[1].rstrip("/").strip()
             
         thesubsystem = thesubsystempackage.split('/')[0]
         thepackage = thesubsystempackage.split('/')[1]
@@ -1184,7 +1173,7 @@ class ConfdbLoadParamsfromConfigs:
         parametertype = pval.configTypeName()
         parametertracked = pval.isTracked()
         if(parametertype.find("untracked") != -1):
-            parametertype = parametertype.split("untracked")[1].lstrip().rstrip()
+            parametertype = parametertype.split("untracked")[1].strip()
 
         if(not parametertype in self.paramtypedict):
             self.VerbosePrint("\tIgnoring unknown parameter type " + str(parametertype),0)
@@ -1536,53 +1525,6 @@ class ConfdbLoadParamsfromConfigs:
 
         return pfound
 
-    def GetReleaseCVSTags(self):
-        if(self.addtorelease != "none"):
-            # If we're creating an intermediate release, get the list of tags from the *base* release
-            if(os.path.isfile(self.baserelease_path + "//src/PackageList.cmssw")):
-                tagfile = open(self.baserelease_path + "//src/PackageList.cmssw")
-                taglines = tagfile.readlines()
-                for tagline in taglines:
-                    self.tagtuple.append(((tagline.split())[0], (tagline.split())[1]))
-        else:
-            # Otherwise, get the list of tags from *this* release
-            if(os.path.isfile(self.base_path + "//src/PackageList.cmssw")):
-                tagfile = open(self.base_path + "//src/PackageList.cmssw")
-                taglines = tagfile.readlines()
-                for tagline in taglines:
-                    self.tagtuple.append(((tagline.split())[0], (tagline.split())[1]))
-
-    def GetAddedCVSTags(self):
-        tagline = ""
-        basetagline = ""
-        
-        # If making an intermediate pseudo-release, get the CVS tags from the
-        # checked-out packages
-        cvsdir = ''
-	source_tree = self.base_path + "//src/"
-        packagelist = os.listdir(source_tree)
-
-        # Start descending into the source tree
-        for package in packagelist:
-            # Check if this is really a directory
-            if(os.path.isdir(source_tree + package)):
-                subdirlist = os.listdir(source_tree + package)
-                for subdir in subdirlist:
-                    if(subdir.startswith(".")):
-                        continue
-
-                    packagedir = source_tree + package + "/" + subdir
-                    cvsdir = packagedir + "/CVS/"
-                    
-                    if(os.path.isfile(cvsdir + "/Tag")):
-                        cvscotagfile = open(cvsdir + "/Tag")
-                        cvscotaglines = cvscotagfile.readlines()
-                        for cvscotagline in cvscotaglines:
-                            tagline = cvscotagline.lstrip().rstrip()
-                            if(tagline.startswith('N')):
-                                tagline = tagline.split('N')[1]
-                                self.addedtagtuple.append((package + "/" + subdir, tagline.lstrip().rstrip()))
-
     def GetReleaseGitHashTags(self):
         gitgethash = "git --git-dir=$CMSSW_BASE/src/.git --work-tree=$CMSSW_BASE/src ls-tree --abbrev=32 -r -d " + str(self.cmsswrel)
         myoutput = os.popen(gitgethash).readlines()
@@ -1592,13 +1534,13 @@ class ConfdbLoadParamsfromConfigs:
             thegithashtag = meh.split()[2]
             if(packagename.count("/") != 1):
                 continue
-            self.tagtuple.append((packagename, thegithashtag))
+            self.tagtuple[packagename] = thegithashtag
 
     def GetAddedGitHashTags(self):
         # If making an intermediate pseudo-release, get the hashtags for the
         # checked-out packages
         cvsdir = ''
-        source_tree = self.base_path + "//src/"
+        source_tree = self.base_path + "/src/"
         packagelist = os.listdir(source_tree)
 
         # Get hashtags for the 'HEAD' 
@@ -1634,7 +1576,7 @@ class ConfdbLoadParamsfromConfigs:
                 if(tempaddedpackage.count("/") != 1):
                     continue
                 if(tempaddedpackage.find(templocalpackage) != -1):
-                    self.addedtagtuple.append((templocalpackage, tempaddedtag))
+                    self.addedtagtuple[templocalpackage] = tempaddedtag.strip()
                         
     def CompareParamToOldRelease(self,parametername,parametervalue,parametertype):
 
