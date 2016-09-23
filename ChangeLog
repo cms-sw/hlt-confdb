@@ -1,3 +1,7 @@
+2016-09-23 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V01-09-00
+	* change ConfDB v0 and v1 to read-only users
+
 2016-08-29 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V01-08-06
 	* sign JARs directly with confdb's certificate
