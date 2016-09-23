@@ -1,3 +1,8 @@
+2016-09-23 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V02-04-02
+	* change ConfDB v0 and v1 to read-only users
+	* change offline ConfDB v2 to read/write users
+
 2016-06-10 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V02-04-01
 	* fix compilation
