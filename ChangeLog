@@ -1,3 +1,7 @@
+2016-10-06 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V02-04-03
+	* update the list of users who can unlock any configuration
+
 2016-09-23 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V02-04-02
 	* change ConfDB v0 and v1 to read-only users
