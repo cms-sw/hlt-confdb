@@ -1,3 +1,8 @@
+2016-11-08 Martin Grunewald <Martin.Grunewald@cern.ch>
+	* tag V02-04-04
+	* Fix PrescaleService.csv upload bug JIRA CMSHLT-1008 
+	* Fix ESInputTag parsing bug (Sandro)
+
 2016-10-06 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V02-04-03
 	* update the list of users who can unlock any configuration
