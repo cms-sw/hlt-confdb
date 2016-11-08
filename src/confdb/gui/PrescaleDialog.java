@@ -129,7 +129,8 @@ public class PrescaleDialog extends JDialog
     }
     private void updatePrescaleServiceFromFile(String fileName)
     {
-	tableModel.updatePrescaleServiceFromFile(config,fileName);
+	tableModel.updatePrescaleTableFromFile(fileName);
+	tableModel.updatePrescaleService(config);
     }
     
     /** adjust the width of each table column */
@@ -395,38 +396,20 @@ class PrescaleTableModel extends AbstractTableModel
 	prescaleSvc.setHasChanged();
     }
 
-    public void updatePrescaleServiceFromFile(IConfiguration config, String fileName)
+    public void updatePrescaleTableFromFile(String fileName)
     {
 	if (fileName.equals("")) {
 	    return;
 	}
-	System.out.println("Updating PrescaleService from file: "+fileName);
-
-	// Find and check PrescaleService in Configuration
-	ServiceInstance prescaleSvc = config.service("PrescaleService");
-	if (prescaleSvc==null) {
-	    System.out.println("No PrescaleService found in Configuration - aborting!");
-	    return;
-	}
-	VStringParameter lvl1Labels = (VStringParameter) prescaleSvc.parameter("lvl1Labels","vstring");
-	if (lvl1Labels==null) {
-	    System.out.println("No vstring lvl1Labels found in PrescaleService Configuration - aborting!");
-	    return;
-	}
-	VPSetParameter vpsetPrescaleTable =
-	    (VPSetParameter)prescaleSvc.parameter("prescaleTable","VPSet");
-	if (lvl1Labels==null) {
-	    System.out.println("No VPSet prescaleTable found in PrescaleService Configuration - aborting!");
-	    return;
-	}
+	System.out.println("Updating PrescaleTable from file: "+fileName);
 
 	String defaultName = new String("");
 	ArrayList<String> columnNames = new ArrayList<String>();
 	columnNames.clear();
 	ArrayList<Long> indices = new ArrayList<Long>();
 	indices.clear();
-	ArrayList<PrescaleTableRow> prescaleTable = new ArrayList<PrescaleTableRow>();
-	prescaleTable.clear();
+	ArrayList<PrescaleTableRow> prescaleFile = new ArrayList<PrescaleTableRow>();
+	prescaleFile.clear();
 
 	// Read Input File
 	System.out.println("Reading Input File containing Prescale Table!");
@@ -450,20 +433,20 @@ class PrescaleTableModel extends AbstractTableModel
 		return;
 	    }
 
-	    // Indices to map found columnNames into PrescaleService columnNames
+	    // Indices to map found columnNames into PrescaleTable columnNames
 	    for (int i=0; i<columnNames.size(); i++) {
-		indices.add((long)(lvl1Labels.vectorSize()));
+		indices.add((long)(prescaleTable.prescaleCount()+1));
 		String label = columnNames.get(i);
 		//System.out.println(" i/Label: "+i+"/"+label);
-		for (int j = 0; j<lvl1Labels.vectorSize(); j++) {
-		    String Label = new String((String)lvl1Labels.value(j));
+		    for (int j = 0; j<prescaleTable.prescaleCount(); j++) {
+			String Label = new String(prescaleTable.prescaleColumnName(j));
 		    //System.out.println(" j/Label: "+j+"/"+Label);
 		    if (label.equals(Label)) {
 			indices.set(i,(long)j);
 		    }
 		}
 		System.out.println("Mapping of input-file label '"+label+"' to PrescaleService is "+i+" => "+indices.get(i));
-		if (indices.get(i)==(long)lvl1Labels.vectorSize()) {
+		    if (indices.get(i)==prescaleTable.prescaleCount()+1) {
 		    System.out.println("Column name in file not found in PrescaleService config (add there first) - aborting! Label="+label);
 		    return;
 		}
@@ -487,13 +470,13 @@ class PrescaleTableModel extends AbstractTableModel
 		System.out.println("Line read with "+prescales.size()+" prescale values for path '"+pathName+"'");
 		if (columnNames.size()==prescales.size()) {
 		    PrescaleTableRow row = new PrescaleTableRow(pathName,prescales);
-		    prescaleTable.add(row);
+		    prescaleFile.add(row);
 		} else {
 		    System.out.println("Error in input file line (# of columns) - skipping path: "+pathName);
 		}
 	    }
-	    System.out.println("# of valid path rows found in file: " + prescaleTable.size());
-	    if (prescaleTable.size()==0) {
+	    System.out.println("# of valid path rows found in file: " + prescaleFile.size());
+	    if (prescaleFile.size()==0) {
 		System.out.println("No valid path rows found in file - aborting!");
 		return;
 	    }
@@ -504,60 +487,37 @@ class PrescaleTableModel extends AbstractTableModel
 	    return;
 	}
 
-	// Update PrescaleService in Configuration
-	System.out.println("Updating PrescaleService in Configuration!");
+	// Update PrescaleTable with PrescaleFile
+	System.out.println("Updating PrescaleTable with PrescaleFile!");
 	String fullName = null;
-	for (int i=0; i<prescaleTable.size(); i++) {
-	    PrescaleTableRow row = prescaleTable.get(i);
-	    //check if path is in Configuration and if so, update to full name
+	for (int i=0; i<prescaleFile.size(); i++) {
+	    PrescaleTableRow row = prescaleFile.get(i);
+	    //check if path is in PrescaleTable and if so, update to full name
 	    String pathName = row.pathName;
-	    System.out.println("Searching Configuration for path matching with: "+pathName);
+	    System.out.println("Searching PrescaleTable for path matching with: "+pathName);
 	    int found = 0;
-	    for (int j=0; j<config.pathCount(); ++j) {
-		if (pathName.equals(config.path(j).name().replaceAll("_v[0-9]+$",""))) {
+	    int index = 0;
+	    for (int j=0; j<prescaleTable.pathCount(); ++j) {
+		if (pathName.equals(prescaleTable.pathName(j).replaceAll("_v[0-9]+$",""))) {
 		    found += 1;
-		    fullName = new String(config.path(j).name());
+		    index  = j;
+		    fullName = new String(prescaleTable.pathName(j));
 		    System.out.println("  Found match with: "+fullName);
 		}
 	    }
 	    if (found==0) {
-		System.out.println("  No matching path found in Configuration - skipping (requested update of) path: "+pathName);
+		System.out.println("  No matching path found in PrescaleTable - skipping (requested update of) path: "+pathName);
 	    } else if (found>1) {
-		System.out.println("  More than one matching path found in Configuration - skipping (requested update of) path: "+pathName);
+		System.out.println("  More than one matching path found in PrescaleTable - skipping (requested update of) path: "+pathName);
 	    } else {
 		System.out.println("  Updating prescales of path: "+fullName);
-		int index=vpsetPrescaleTable.parameterSetCount();
-		for (int j=0; j<vpsetPrescaleTable.parameterSetCount(); j++) {
-		    if (vpsetPrescaleTable.parameterSet(j).parameter("pathName").valueAsString().equals("\""+fullName+"\"")) {
-			index=j;
-		    }
-		}
-		if (index==vpsetPrescaleTable.parameterSetCount()) {
-		    // add new entry in PrescaleTable with default prescales
-		    System.out.println("Adding to PrescaleService new path: "+fullName);
-		    StringParameter name = new StringParameter("pathName",fullName,true);
-		    ArrayList<Long> initial = new ArrayList<Long>();
-		    for (int j=0; j<lvl1Labels.vectorSize(); j++) {
-			initial.add((long) 1);
-		    }
-		    VUInt32Parameter prescales = new VUInt32Parameter("prescales",initial,true);
-		    PSetParameter entry = new PSetParameter("entry","",true);
-		    entry.addParameter(name);
-		    entry.addParameter(prescales);
-		    vpsetPrescaleTable.addParameterSet(entry);
-		}
-		// path now in PrescaleService config - update prescales
 		for (int j=0; j<row.prescales.size(); j++) {
 		    int k = (int) ((long) indices.get(j));
-		    UInt32Parameter prescale = new UInt32Parameter("prescale",row.prescales.get(j),true);
-		    VUInt32Parameter prescales = (VUInt32Parameter) vpsetPrescaleTable.parameterSet(index).parameter("prescales");
-		    prescales.setValue(k,prescale.valueAsString());
+                    Long prescale = row.prescales.get(j);
+                    prescaleTable.setPrescale(index,k,prescale);
 		}
-		prescaleSvc.setHasChanged();
+		fireTableDataChanged();
 	    }
-	}
-	if (prescaleSvc.hasChanged()) {
-	    initialize(config);
 	}
     }
 
