@@ -1246,10 +1246,6 @@ class ConfdbLoadParamsfromConfigs:
             #print "paramid found",rows[0][3],rows[0][0]
             returnid = paramid
         else:
-            if(parametertype == "ESInputTag"):
-                parametertype = "InputTag"
-            
-
             # Check parameter value from old release here
             if(self.comparetorelease != ""):                
                 unmodifiedparamid = self.CompareParamToOldRelease(parametername,parametervalue,parametertype)
@@ -1259,13 +1255,18 @@ class ConfdbLoadParamsfromConfigs:
                 paramindex = 1
                 for parametervectorvalue in parametervalue:
 
-                    # Treat VInputTags. Elements may be returned as either InputTag objects, or
+                    # Treat V(ES)InputTags. Elements may be returned as either InputTag objects, or
                     # plain strings without a configTypeName() method. So try to decide which 
                     # based on the string representation of the parameter name, then check 
                     # configTypeName() if it looks like an InputTag to be sure...
                     if(parametertype == "VInputTag"):
                         if(str(parametervectorvalue).startswith("cms.InputTag") or str(parametervectorvalue).startswith("cms.untracked.InputTag")):
                             if (parametervectorvalue.configTypeName().find("InputTag") != -1):
+                                parametervectorvalue = parametervectorvalue.value()
+
+                    if(parametertype == "VESInputTag"):
+                        if(str(parametervectorvalue).startswith("cms.ESInputTag") or str(parametervectorvalue).startswith("cms.untracked.ESInputTag")):
+                            if (parametervectorvalue.configTypeName().find("ESInputTag") != -1):
                                 parametervectorvalue = parametervectorvalue.value()
 
                     # Protect against numerical overflows
