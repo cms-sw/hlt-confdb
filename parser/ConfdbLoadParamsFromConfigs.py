@@ -28,6 +28,11 @@ def main(argv):
     input_blacklist = [
         "DQM.Integration.config.FrontierCondition_GT_Offline_cfi",
         "DQM.SiStripMonitorHardware.SiStripSpyEventMatcher_cfi",
+        "HeavyFlavorAnalysis/SpecificDecay",
+        "RecoJets.FFTJetProducers.fftjetpileupestimator_pf_cfi",
+        "SimGeneral.TrackingAnalysis.TrackingParticleSelection_cfi",
+        "Alignment.LaserAlignment.LaserAlignmentEventFilter_cfi",
+        "RecoMET.METFilters.hcalLaserEventFilter_cfi",
 #       "FWCore/PrescaleService",
 #       "DQM",
 #       "HLTrigger.special.hltHcalNoiseFilter_cfi"
