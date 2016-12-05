@@ -22,7 +22,6 @@ TrackingTools/TrajectoryCleaning        TrajectoryCleanerBySharedHits_cfi.py
 RecoTracker/DeDx                        hltDeDxEstimatorProducer_cfi.py
 RecoTauTag/TauTagTools                  HLTPFTauSelector_cfi.py
 RecoMuon/L2MuonIsolationProducer        hltL2MuonIsolationsCR_cfi.py
-RecoBTau/JetTagComputer                 combinedMVABJetTags_cfi.py
 RecoEcal/EgammaClusterProducers         multi5x5SuperClustersWithPreshower_cfi.py
 RecoEcal/EgammaClusterProducers         multi5x5SuperClusters_cfi.py
 EventFilter/SiStripRawToDigi            SiStripDigis_cfi.py
@@ -81,7 +80,6 @@ JetMETCorrections/Modules		hltLXXXCorrectionESProducer_cfi.py
 JetMETCorrections/Modules		hltL1FastjetCorrectionESProducer_cfi.py
 JetMETCorrections/Modules		hltJetCorrectionESChain_cfi.py
 JetMETCorrections/Configuration		DefaultJEC_cff.py
-JetMETCorrections/Configuration         JetCorrectors_cff_cff.py
 JetMETCorrections/Configuration         JetCorrectionServices_cff.py
 JetMETCorrections/Configuration         CorrectedJetProducers_cff.py
 JetMETCorrections/Configuration         JetCorrectionProducers_cff.py

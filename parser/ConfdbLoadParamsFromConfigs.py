@@ -29,6 +29,7 @@ def main(argv):
         "DQM.Integration.config.FrontierCondition_GT_Offline_cfi",
         "DQM.SiStripMonitorHardware.SiStripSpyEventMatcher_cfi",
         "HeavyFlavorAnalysis/SpecificDecay",
+        "RecoBTag/Skimming",
         "RecoJets.FFTJetProducers.fftjetpileupestimator_pf_cfi",
         "SimGeneral.TrackingAnalysis.TrackingParticleSelection_cfi",
         "Alignment.LaserAlignment.LaserAlignmentEventFilter_cfi",
