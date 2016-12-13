@@ -1,7 +1,7 @@
 Alignment/LaserAlignment                HLTLaserAlignmentEventFilter_cfi.py
 RecoBTag/SecondaryVertex                doubleVertex2TrkComputer_cfi.py
 L1Trigger/L1TGlobal                     TriggerMenu_cff.py
-RecoPixelVertexing/PixelLowPtUtilities  AllPixelTracks_cfi.py
+RecoPixelVertexing/PixelTrackFitting    PixelTracks_cfi.py
 TrackingTools/GeomPropagators           AnyDirectionAnalyticalPropagator_cfi.py
 SimCalorimetry/HcalTestBeam             hardwired_conditions_cfi.py
 TrackingTools/MaterialEffects           MaterialPropagator_cfi.py
