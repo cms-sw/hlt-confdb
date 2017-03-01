@@ -1,3 +1,8 @@
+2016-10-06 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V02-04-05
+	* fix handling of completely empty string paramaters
+	* build against Jave 1.8+
+
 2016-11-08 Martin Grunewald <Martin.Grunewald@cern.ch>
 	* tag V02-04-04
 	* Fix PrescaleService.csv upload bug JIRA CMSHLT-1008 
