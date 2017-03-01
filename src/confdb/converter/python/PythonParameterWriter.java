@@ -50,12 +50,18 @@ public class PythonParameterWriter  implements IParameterWriter
 		StringBuffer str = new StringBuffer( 1000 );
 		str.append( indent + parameter.name() + " = " );
 		
-		if(	(parameter.valueAsString().length() == 0)&&
-			(parameter instanceof ScalarParameter )) { // bug 84064
+		if ((parameter.valueAsString().length() == 0) && (parameter instanceof ScalarParameter)) { // bug 84064
+                    if (parameter instanceof StringParameter) {
+			str.append( getPythonClass( parameter ) );
+			str.append( "( \"\" )" );
+			str.append( appendix );
+			return str.toString();
+                    } else {
 			str.append("None");
 			str.append( appendix );
-			System.out.println("[confdb.converter.python.PythonParameterWriter.toString] ( value.length() == 0 ) !!!  Printing -> " + str);
+			System.err.println("[confdb.converter.python.PythonParameterWriter.toString] ( value.length() == 0 ) !!!  Printing -> " + str);
 			return str.toString();
+                    }
 		}
 			
 		
