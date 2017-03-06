@@ -1,4 +1,7 @@
 classes/
 ext/signed/
+ext/cachedir/
 lib/
 .*.swp
+*.class
+*.pyc
