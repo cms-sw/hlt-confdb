@@ -1,6 +1,20 @@
 #! /bin/bash
 BASE=$(dirname $0)
+
+# enable GTK look and feel
 #SWING=-Dswing.defaultlaf=com.sun.java.swing.plaf.gtk.GTKLookAndFeel
 SWING=
 
-ant -f $BASE/build.xml gui && java $SWING -classpath $BASE/lib/cmssw-evf-confdb-gui.jar:$BASE/ext/mysql-connector-java-5.0.5-bin.jar:$BASE/ext/ojdbc6.jar:$BASE/ext/jython.jar confdb.gui.ConfDbGUI
+# enable profiling
+#PROFILE=-Xrunhprof:heap=sites,cpu=samples,depth=10
+PROFILE=
+
+# find a python interpreter to compilet .py files into bytecode
+for PYTHON in python2.7 python2 python; do
+  if [ -x `which $PYTHON` ]; then
+    CPYTHON="-Dcpython_cmd=`which $PYTHON`"
+    break
+  fi
+done
+
+ant -f $BASE/build.xml gui && java -Doracle.jdbc.timezoneAsRegion=false $SWING $CPYTHON $PROFILE -classpath $BASE/lib/cmssw-evf-confdb-gui.jar:$BASE/ext/mysql-connector-java-5.0.5-bin.jar:$BASE/ext/ojdbc6.jar:$BASE/ext/jython.jar confdb.gui.ConfDbGUI
