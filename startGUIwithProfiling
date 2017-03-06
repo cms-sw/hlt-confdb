@@ -27,7 +27,7 @@ $classpath = $classpath . ":ext/mysql-connector-java-5.0.5-bin.jar";
 $classpath = $classpath . ":ext/ojdbc6.jar";
 
 # add standalone jython.jar for PythonInterpreter support
-$classpath = $classpath . ":ext/jython-2.5.2.jar";
+$classpath = $classpath . ":ext/jython.jar";
 
 # start the GUI
 `rm -f ConfDbGUI.log`;
