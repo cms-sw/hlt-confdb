@@ -1,11 +1,17 @@
+2017-03-07 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V02-05-00
+	* update Jython to version 2.7.1rc1 + hg 8049 + fix to Lib/inspect.py (#2566)
+	* update FWCore/ParameterSet to CMSSW_9_0_0_pre6
+	* rework importing a configuration from a python file
+
 2017-03-12 Sandro Ventura <sandro.ventura@cern.ch>
 	* tag V02-04-06
 	* fix SW release parsing of VPset contained in PSet 
 
-2016-10-06 Andrea Bocci <andrea.bocci@cern.ch>
+2016-03-01 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V02-04-05
 	* fix handling of completely empty string paramaters
-	* build against Jave 1.8+
+	* build against Java 1.8+
 
 2016-11-08 Martin Grunewald <Martin.Grunewald@cern.ch>
 	* tag V02-04-04

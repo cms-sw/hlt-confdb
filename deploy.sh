@@ -1,8 +1,8 @@
 #! /bin/bash -e
 
 # set the target directory
-BASE=$HOME/www/v2
-URL=http://confdb.web.cern.ch/confdb/v2/gui/
+BASE=$HOME/www/test
+URL=http://confdb.web.cern.ch/confdb/test/gui/
 
 # create the target directory 
 mkdir -p $BASE
