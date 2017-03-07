@@ -494,9 +494,10 @@ public class JPythonParser
         String label = getLabel(psetObject);
 
         // IGNORE PSETs: HLTConfigVersion, maxEvents, options
-        if ( (label.compareTo("HLTConfigVersion") == 0)  ||
-                (label.compareTo("maxEvents") == 0)         ||
-                (label.compareTo("options") == 0)           ) {
+        if ((label.compareTo("HLTConfigVersion") == 0) ||
+            (label.compareTo("maxEvents") == 0) ||
+            (label.compareTo("options") == 0))
+        {
             alert(msg.inf, " parsePset: IGNORING! type="+type+", label='"+label+"'");
             return false;
         }
@@ -635,7 +636,6 @@ public class JPythonParser
 
         if (validPyObject(paths))
             parsePathMap(paths);
-
     }
 
     // Parse Paths:
@@ -644,7 +644,6 @@ public class JPythonParser
 
         if (validPyObject(paths))
             parseEndPathMap(paths);
-
     }
 
     private boolean parsePathMap(PyDictionary pydict) {
@@ -657,7 +656,6 @@ public class JPythonParser
             PyObject value = pydict.__getitem__(new PyString((String) key));
             parsePath(value);
         }
-
         return true;
     }
 
@@ -666,13 +664,12 @@ public class JPythonParser
         PyList keys = (PyList) pydict.invoke("keys");
         for (Object key : keys) {
             String pathName = (String) key;
-            //System.out.println("Path: " + key);
+            //System.out.println("EndPath: " + key);
             Path path = configuration.insertPath(configuration.pathCount(), pathName);
             path.setAsEndPath(true);
             PyObject value = pydict.__getitem__(new PyString((String) key));
             parsePath(value);
         }
-
         return true;
     }
 
@@ -1134,7 +1131,7 @@ public class JPythonParser
 
     // Sometimes, a simple value comes with a braket at the end that needs to be removed.
     private String cleanBrackets(String vectorValues) {
-        return  vectorValues.replace("[", "").replace("]", "");
+        return vectorValues.replace("[", "").replace("]", "");
     }
 
     private void parseSequenceMap(PyDictionary pydict) {
@@ -1146,11 +1143,9 @@ public class JPythonParser
 
             confdb.data.Sequence seq = configuration.sequence(sequenceName);
             if (seq == null) {
-
                 PyObject value = pydict.__getitem__(new PyString((String) key)); // Get the Sequence Python Object.
                 parseSequence(value);   // Parse it and insert the sequence. Recursively
-
-            } //else System.out.println("Seq: " + sequenceName + " already exist! ");
+            }
         }
 
     }
@@ -1162,19 +1157,17 @@ public class JPythonParser
         //System.out.println("[parseSequence] " + type + " " + label);
         confdb.data.Sequence insertedSeq = null;
 
-
         if (confdbTypes.sequence.is(type)) {
             insertedSeq = configuration.sequence(label);
 
+            // create a new Sequence if needed
             if (insertedSeq == null) {
-                // Now we can insert the resulting sequence (with subitems already on it).
                 int seqIndex = configuration.sequenceCount();
                 insertedSeq = configuration.insertSequence(seqIndex, label);
             }
 
-            // Content:
-            PyObject sequenceContent = object.__getattr__(new PyString("_seq"));
-            parseReferenceContainerContent(sequenceContent, insertedSeq);
+            // add the Sequence's elements
+            parseReferenceContainerContent(object.__getattr__("_seq"), insertedSeq);
 
         } else alert(msg.err, "[parseSequence] expected Sequence, got type " + type);
 
@@ -1183,77 +1176,70 @@ public class JPythonParser
 
     // Parse sequence/path content:
     private void parseReferenceContainerContent(PyObject sequenceContent, confdb.data.ReferenceContainer parentContainer) {
-        String type  = getType(sequenceContent);
-        String label = getLabel(sequenceContent);   // subseq.
+        PyList collection = (PyList) sequenceContent.__getattr__("_collection"); 
+        for (Object object: collection) {
+            PyObject element = (PyObject) object;
+            String type  = getType(element);
+            String label = getLabel(element);
 
-        if (pythonObjects.sequence.is(type)) {
-            // Parse sub-items of label sequence on demand:
-            confdb.data.Sequence subSequence = parseSequenceOnDemand(label);
+            if (pythonObjects.sequence.is(type))
+            // Sequence
+            {
+                // Parse sub-items of label sequence on demand:
+                PyDictionary sequences = (PyDictionary) process.__getattr__("_Process__sequences");
+                PyObject sequence = sequences.__getitem__(new PyString(label));
+                confdb.data.Sequence subSequence = parseSequence(sequence);
 
-            Reference seqRef = parentContainer.entry(label);
-
-            // If sequence reference does not exist in this container, add it!
-            if (seqRef == null) configuration.insertSequenceReference(parentContainer, parentContainer.entryCount(), subSequence); // Missing operator.
-
-        } else if (  pythonObjects.seqOpFollows.is(type) ||
-                pythonObjects.seqOpAids.is(type))   {
-            // Contain list of sequences?
-            PyObject leftContent  = sequenceContent.__getattr__(new PyString("_left"));
-            PyObject rightContent = sequenceContent.__getattr__(new PyString("_right"));
-
-            parseReferenceContainerContent(leftContent, parentContainer);
-            parseReferenceContainerContent(rightContent, parentContainer);
-
-        } else if (  pythonObjects.seqIgnore.is(type)    ||
-                pythonObjects.seqNegation.is(type)  ){
-
-            PyObject operandContent = sequenceContent.__getattr__(new PyString("_operand"));
-
-            String Subtype  = getType(operandContent);
-            label = getLabel(operandContent);   // subseq.
-            // Only modules can be negated or ignored:
-            ModuleInstance module = configuration.module(label);
-
-            if (module == null)
-                alert(msg.err, "[parseSequenceImpl] module not found! label = " + label + ", type  = " + Subtype);
-
-            Reference moduleRef = parentContainer.entry(module.name());
-
-            if (moduleRef == null)
-                moduleRef = configuration.insertModuleReference(parentContainer, parentContainer.entryCount(), module);
-
-            if (pythonObjects.seqNegation.is(type))  moduleRef.setOperator(Operator.NEGATE);
-            if (pythonObjects.seqIgnore.is(type))    moduleRef.setOperator(Operator.IGNORE);
-
-            // TODO: Must negate the generated sequence. How?
-        } else if (  pythonObjects.EDProducer.is(type)   ||
-                pythonObjects.EDFilter.is(type)     ||
-                pythonObjects.EDAnalyzer.is(type)) {
-
-            ModuleInstance module = configuration.module(label);
-
-            if (module == null) {
-                alert(msg.err, "[parseSequenceImpl] module not found! label = " + label + ", type  = " + type);
+                // If sequence reference does not exist in this container, add it!
+                Reference reference = parentContainer.entry(label);
+                if (reference == null)
+                    reference = configuration.insertSequenceReference(parentContainer, parentContainer.entryCount(), subSequence);
             }
+            // Module with modifier (not or ignore)
+            else if (pythonObjects.seqIgnore.is(type) || pythonObjects.seqNegation.is(type))
+            {
+                // Only modules can be negated or ignored:
+                PyObject operand = element.__getattr__("_operand");
+                label = getLabel(operand);
+                ModuleInstance module = configuration.module(label);
 
-            Reference moduleRef = parentContainer.entry(module.name());
+                if (module == null)
+                    alert(msg.err, "[parseSequenceImpl] module not found! label = " + label + ", type  = " + getType(operand));
 
-            if (moduleRef == null)
-                moduleRef = configuration.insertModuleReference(parentContainer, parentContainer.entryCount(), module);
-            // TODO: How to set the operator of the module reference?
-            //config.insertModuleReference(sequence, index, entry).setOperator( operator );
-        } else if (pythonObjects.OutputModule.is(type)) {
-            OutputModule module = configuration.output(label);
-
-            if (module !=null) {
-                Reference moduleRef = configuration.insertOutputModuleReference(parentContainer, parentContainer.entryCount(), module);
-                if (moduleRef == null)
-                    alert(msg.err, " No reference to OutputModule " + label + " has been added to "+parentContainer.name());
-            } else alert(msg.err, " No OutputModule " + label + " has been found!");
-
+                Reference reference = parentContainer.entry(module.name());
+                if (reference == null) {
+                    reference = configuration.insertModuleReference(parentContainer, parentContainer.entryCount(), module);
+                    if (pythonObjects.seqNegation.is(type))  reference.setOperator(Operator.NEGATE);
+                    if (pythonObjects.seqIgnore.is(type))    reference.setOperator(Operator.IGNORE);
+                }
+            }
+            // Module (EDFilter, EDProducer or EDAnalyzer) without a modifier
+            else if (pythonObjects.EDFilter.is(type) || pythonObjects.EDProducer.is(type) || pythonObjects.EDAnalyzer.is(type))
+            {
+                ModuleInstance module = configuration.module(label);
+                if (module == null) {
+                    alert(msg.err, "[parseSequenceImpl] " + type + " " + label + " not found!");
+                    continue;
+                }
+                Reference reference = parentContainer.entry(module.name());
+                if (reference == null)
+                    reference = configuration.insertModuleReference(parentContainer, parentContainer.entryCount(), module);
+            }
+            // OutputModule
+            else if (pythonObjects.OutputModule.is(type))
+            {
+                OutputModule module = configuration.output(label);
+                if (module == null) {
+                    alert(msg.err, "[parseSequenceImpl] OutputModule " + label + " not found!");
+                    continue;
+                }
+                Reference reference = parentContainer.entry(module.name());
+                if (reference == null)
+                    reference = configuration.insertOutputModuleReference(parentContainer, parentContainer.entryCount(), module);
+            } else {
+                alert(msg.err, "[parseSequenceImpl] unexpected object of type " + type + " and label " + label + " on Sequence or Path.");
+            }
         }
-        //else System.out.println("type = " + type);
-
     }
 
     // Return the recently inserted sequence to be linked to the parent seq/container.
@@ -1374,7 +1360,7 @@ public class JPythonParser
             this.text = text;
         }
 
-        public String getText() {
+        public String toString() {
             return this.text;
         }
 
@@ -1423,7 +1409,7 @@ public class JPythonParser
             this.text = text;
         }
 
-        public String getText() {
+        public String toString() {
             return this.text;
         }
 
@@ -1456,16 +1442,18 @@ public class JPythonParser
         EDAnalyzer("EDAnalyzer"),
         OutputModule("OutputModule");
 
-        private String text;
+        private final String text;
 
-        pythonObjects(String text) {
+        private pythonObjects(final String text) {
             this.text = text;
         }
 
-        public String getText() {
+        @Override
+        public String toString() {
             return this.text;
         }
 
+        /*
         public static pythonObjects fromString(String text) {
             if (text != null) {
                 for (pythonObjects b : pythonObjects.values()) {
@@ -1476,6 +1464,7 @@ public class JPythonParser
             }
             return null;
         }
+        */
 
         public boolean is(String OutText) {
             if (this.text.compareTo(OutText) == 0) return true;
