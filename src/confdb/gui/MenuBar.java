@@ -25,10 +25,9 @@ public class MenuBar
     
     /** menu bar item names: configMenu */
     private static final String configMenuNew         = "New";
-    private static final String configMenuParse       = "Parse";
-    private static final String configMenuJParse      = "JParse";
     private static final String configMenuOpen        = "Open";
     private static final String configMenuOpenOld     = "Open Old Schema";
+    private static final String configMenuJParse      = "Open Python File";
     private static final String configMenuClose       = "Close";
     private static final String configMenuSave        = "Save";
     private static final String configMenuCommentSave = "Comment&Save";
@@ -48,22 +47,20 @@ public class MenuBar
     private static final String toolMenuJavaCode      = "Execute Java Code";
 
     /** menu bar item names: options */
-    private static final String optionsMenuTrack      			= "Track InputTags";
-    private static final String optionsMenuEnablePathCloning	= "Enable Path Deep Cloning";
+    private static final String optionsMenuTrack      = "Track InputTags";
+    private static final String optionsMenuEnablePathCloning    = "Enable Path Deep Cloning";
 
     /** menu bar item names: dbMenu */
     private static final String dbMenuConnectToDB      = "Connect to DB";
     private static final String dbMenuDisconnectFromDB = "Disconnect from DB";
     private static final String dbMenuExportConfig     = "Export Configuration";
-    private static final String dbMenuImportFromPython = "Import from Python";
-    private static final String dbMenuDBInfo     	   = "Database Info";
+    private static final String dbMenuDBInfo           = "Database Info";
     
     /** meny bar items */
     private JMenuItem confdbMenuAboutItem       = null;
     private JMenuItem confdbMenuQuitItem        = null;
     
     private JMenuItem configMenuNewItem         = null;
-    private JMenuItem configMenuParseItem       = null;
     private JMenuItem configMenuJParseItem      = null;
     private JMenuItem configMenuOpenItem        = null;
     private JMenuItem configMenuOpenOldItem     = null;
@@ -91,7 +88,6 @@ public class MenuBar
     private JMenuItem dbMenuConnectItem         = null;
     private JMenuItem dbMenuDisconnectItem      = null;
     private JMenuItem dbMenuExportItem          = null;
-    private JMenuItem dbMenuImportFromPythonItem= null;
     private JMenuItem dbMenuDBInfoItem			= null;
     
     
@@ -115,8 +111,6 @@ public class MenuBar
     {
 	dbConnectionIsEstablished();
 	configMenuNewItem.setEnabled(true);
-	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(true);
-	if (configMenuJParseItem!=null) configMenuJParseItem.setEnabled(true);
 	configMenuOpenItem.setEnabled(true);
 	configMenuCloseItem.setEnabled(true);
 	configMenuSaveItem.setEnabled(true);
@@ -136,7 +130,6 @@ public class MenuBar
 	optionsMenuTrackItem.setEnabled(true);
 	optionsMenuEnablePathCloningItem.setEnabled(true);
 	dbMenuExportItem.setEnabled(true);
-	dbMenuImportFromPythonItem.setEnabled(true);
     }
 
     /** no configuration is open */
@@ -160,15 +153,13 @@ public class MenuBar
 	optionsMenuTrackItem.setEnabled(false);
 	optionsMenuEnablePathCloningItem.setEnabled(false);
 	dbMenuExportItem.setEnabled(false);
-	dbMenuImportFromPythonItem.setEnabled(false);
     }
     
     /** database connection is established */
     public void dbConnectionIsEstablished()
     {
 	configMenuNewItem.setEnabled(true);
-	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(true);
-	if (configMenuJParseItem!=null) configMenuJParseItem.setEnabled(true);
+	configMenuJParseItem.setEnabled(true);
 	configMenuOpenItem.setEnabled(true);
 	configMenuOpenOldItem.setEnabled(true);
 	toolMenuDiffItem.setEnabled(true);
@@ -176,7 +167,6 @@ public class MenuBar
 	toolMenuSmartRenamingItem.setEnabled(true);
 	dbMenuDisconnectItem.setEnabled(true);
 	dbMenuDBInfoItem.setEnabled(true);
-	dbMenuImportFromPythonItem.setEnabled(true);
     }
     
     /** no database connection is established */
@@ -185,15 +175,13 @@ public class MenuBar
 	configurationIsNotOpen();
 	configMenuNewItem.setEnabled(false);
 	configMenuOpenOldItem.setEnabled(false);
-	if (configMenuParseItem!=null) configMenuParseItem.setEnabled(false);
-	if (configMenuJParseItem!=null) configMenuJParseItem.setEnabled(false);
+	configMenuJParseItem.setEnabled(false);
 	configMenuOpenItem.setEnabled(false);
 	toolMenuDiffItem.setEnabled(false);
 	toolMenuSmartVersionsItem.setEnabled(false);
 	toolMenuSmartRenamingItem.setEnabled(false);
 	dbMenuDisconnectItem.setEnabled(false);
 	dbMenuDBInfoItem.setEnabled(false);
-	dbMenuImportFromPythonItem.setEnabled(false);
     }
 
     /** populate the menu bar with all menus and their items */
@@ -220,17 +208,6 @@ public class MenuBar
 	configMenuNewItem.setActionCommand(configMenuNew);
 	configMenuNewItem.addActionListener(listener);
 	configMenu.add(configMenuNewItem);
-	configMenuParseItem = new JMenuItem(configMenuParse,KeyEvent.VK_P);
-	configMenuParseItem.setActionCommand(configMenuParse);
-	configMenuParseItem.addActionListener(listener);
-	configMenu.add(configMenuParseItem);
-	
-	/*
-	configMenuJParseItem = new JMenuItem(configMenuJParse,KeyEvent.VK_J);
-	configMenuJParseItem.setActionCommand(configMenuJParse);
-	configMenuJParseItem.addActionListener(listener);
-	configMenu.addComponent(configMenuJParseItem);
-	*/
 	configMenuOpenItem = new JMenuItem(configMenuOpen,KeyEvent.VK_O);
 	configMenuOpenItem.setActionCommand(configMenuOpen);
 	configMenuOpenItem.addActionListener(listener);
@@ -239,6 +216,13 @@ public class MenuBar
 	configMenuOpenOldItem.setActionCommand(configMenuOpenOld);
 	configMenuOpenOldItem.addActionListener(listener);
 	configMenu.add(configMenuOpenOldItem);
+
+	// bug/feature  #76151 	import from python
+	configMenuJParseItem = new JMenuItem(configMenuJParse, KeyEvent.VK_P);
+	configMenuJParseItem.setActionCommand(configMenuJParse);
+	configMenuJParseItem.addActionListener(listener);
+	configMenu.add(configMenuJParseItem);
+	
 	configMenuCloseItem = new JMenuItem(configMenuClose,KeyEvent.VK_C);
 	configMenuCloseItem.setActionCommand(configMenuClose);
 	configMenuCloseItem.addActionListener(listener);
@@ -335,12 +319,6 @@ public class MenuBar
 	dbMenuExportItem.setActionCommand(dbMenuExportConfig);
 	dbMenuExportItem.addActionListener(listener);
 	dbMenu.add(dbMenuExportItem);
-	
-	// bug/feature  #76151 	import from python
-	dbMenuImportFromPythonItem = new JMenuItem(dbMenuImportFromPython, KeyEvent.VK_P);
-	dbMenuImportFromPythonItem.setActionCommand(dbMenuImportFromPython);
-	dbMenuImportFromPythonItem.addActionListener(listener);
-	dbMenu.add(dbMenuImportFromPythonItem);	// Temporary disable menu option until be ready.
 	
 	dbMenuDBInfoItem = new JMenuItem(dbMenuDBInfo, KeyEvent.VK_B);
 	dbMenuDBInfoItem.setActionCommand(dbMenuDBInfo);

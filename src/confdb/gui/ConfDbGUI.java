@@ -41,8 +41,6 @@ import confdb.migrator.DatabaseMigrator;
 import confdb.migrator.ReleaseMigrator;
 import confdb.migrator.MigratorException;
 
-import confdb.parser.PythonParser;
-import confdb.parser.ParserException;
 import confdb.parser.JPythonParser;
 import confdb.parser.JParserException;
 
@@ -507,35 +505,10 @@ public class ConfDbGUI
 	}
     }
 
-    /** parse a configuration from a *.py file */
-    public void parseConfiguration()
-    {
-	if (!closeConfiguration()) return;
-	
-	ParseConfigurationDialog dialog =
-	    new ParseConfigurationDialog(frame,database);
-	dialog.pack();
-	dialog.setLocationRelativeTo(frame);
-	dialog.setVisible(true);
-	
-	if (dialog.validChoice()) {
-	    String fileName   = dialog.fileName();
-	    String releaseTag = dialog.releaseTag();
-	    
-	    ParseConfigurationThread worker =
-		new ParseConfigurationThread(fileName,releaseTag);
-	    worker.start();
-	    jProgressBar.setIndeterminate(true);
-	    jProgressBar.setVisible(true);
-	    jProgressBar.setString("Parsing '"+fileName+"' against Release " +
-				  releaseTag + " ... ");
-	    menuBar.configurationIsOpen();
-	    toolBar.configurationIsOpen();
-	}
-    }
-
-    /** parse a configuration from a *.py file */
-    public void jparseConfiguration()
+    /** Show import tool window to import a Python file into the database
+     * bug/feature  #76151
+     * */
+    public void importFromPythonToolDialog()
     {
 	if (!closeConfiguration()) return;
 	
@@ -1511,15 +1484,6 @@ public class ConfDbGUI
     }
     
     
-    
-    /** Show import tool window to import a Python file into the database 
-     * bug/feature  #76151 	
-     * */
-    public void importFromPythonToolDialog() {
-    	jparseConfiguration();
-    }
-    
-
     /** reset current and import configuration */
     private void resetConfiguration()
     {
@@ -1756,71 +1720,6 @@ public class ConfDbGUI
 	    jProgressBar.setIndeterminate(false);
 	    jTreeCurrentConfig.setEditable(true);
 	    jTreeTableParameters.getTree().setEditable(true);
-	}
-    }
-    
-
-    /** load release templates from the database and parse config from *.py */
-    private class ParseConfigurationThread extends SwingWorker<String>
-    {
-	/** member data */
-	private PythonParser parser     = null;
-	private String       fileName   = null;
-	private String       releaseTag = null;
-	private long         startTime;
-	
-	/** standard constructor */
-	public ParseConfigurationThread(String fileName,String releaseTag)
-	{
-	    this.fileName   = fileName;
-	    this.releaseTag = releaseTag;
-	}
-	
-	/** SwingWorker: construct() */
-	protected String construct() throws DatabaseException,ParserException
-	{
-	    startTime = System.currentTimeMillis();
-	    if (!releaseTag.equals(currentRelease.releaseTag()))
-		database.loadSoftwareRelease(releaseTag,currentRelease);
-	    parser = new PythonParser(currentRelease);
-	    parser.parseFile(fileName);
-	    setCurrentConfig(parser.createConfiguration());
-	    return new String("Done!");
-	}
-	
-	/** SwingWorker: finished */
-	protected void finished()
-	{
-	    try {
-		long elapsedTime = System.currentTimeMillis() - startTime;
-		jProgressBar.setString(jProgressBar.getString()+get()+
-				       " ("+elapsedTime+" ms)");
-	    }
-	    catch (ExecutionException e) {
-		String errMsg =
-		    "Parse Configuration FAILED:\n"+e.getCause().getMessage();
-		JOptionPane.showMessageDialog(frame,errMsg,
-					      "Parse Configuration failed",
-					      JOptionPane.ERROR_MESSAGE,null);
-		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
-	    } 
-	    catch (Exception e) {
-		e.printStackTrace();
-		jProgressBar.setString(jProgressBar.getString()+"FAILED!");	
-	    }
-	    jProgressBar.setIndeterminate(false);
-	    jTreeCurrentConfig.setEditable(true);
-	    jTreeTableParameters.getTree().setEditable(true);
-
-	    if (parser.closeProblemStream()) {
-		System.err.println("problems encountered, see problems.txt.");
-		ParserProblemsDialog dialog=new ParserProblemsDialog(frame,
-								     parser);
-		dialog.pack();
-		dialog.setLocationRelativeTo(frame);
-		dialog.setVisible(true);
-	    }
-	    
 	}
     }
     
