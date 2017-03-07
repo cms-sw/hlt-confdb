@@ -68,7 +68,7 @@ public class JPythonParser
         this.release = release;
         cmsswTag = release.releaseTag();
         int index=cmsswTag.indexOf("_HLT");
-        if (index>=0) cmsswTag = cmsswTag.substring(0,index);
+        if (index>=0) cmsswTag = cmsswTag.substring(0, index);
 
         error = new ArrayList<String>();
         info = new ArrayList<String>();
@@ -112,9 +112,9 @@ public class JPythonParser
     public String problemsAsString() {
         String message ="";
 
-        for(int i = 0; i < error.size();    i ++)   message+="[ERROR]"  +error.get(i)   +"\n";
-        for(int i = 0; i < warning.size();  i ++)   message+="[WARNING]"+warning.get(i) +"\n";
-        for(int i = 0; i < info.size();     i ++)   message+="[INFO]"   +info.get(i)    +"\n";
+        for (int i = 0; i < error.size();    i ++)   message+="[ERROR]"  +error.get(i)   +"\n";
+        for (int i = 0; i < warning.size();  i ++)   message+="[WARNING]"+warning.get(i) +"\n";
+        for (int i = 0; i < info.size();     i ++)   message+="[INFO]"   +info.get(i)    +"\n";
 
         return message;
     }
@@ -131,8 +131,8 @@ public class JPythonParser
 
         // path to file without trailing /
         String path = new String(fileName);
-        path=path.substring(0,path.lastIndexOf("/")+1);
-        if (path.lastIndexOf("/")>=0) path=path.substring(0,path.lastIndexOf("/"));
+        path=path.substring(0, path.lastIndexOf("/")+1);
+        if (path.lastIndexOf("/")>=0) path=path.substring(0, path.lastIndexOf("/"));
 
         // name of file including extension
         String name = new String(fileName);
@@ -140,7 +140,7 @@ public class JPythonParser
 
         // name of file excluding extension
         String leaf = new String(name);
-        if (leaf.indexOf(".py")>=0) leaf=leaf.substring(0,leaf.indexOf(".py"));
+        if (leaf.indexOf(".py")>=0) leaf=leaf.substring(0, leaf.indexOf(".py"));
 
         System.out.println("JPythonParser: ");
         System.out.println("  ReleaseTag: "+release.releaseTag());
@@ -176,17 +176,17 @@ public class JPythonParser
             System.out.println("Process object found: "+(process!=null));
 
             // get its process name
-            String processName = convert(process.invoke("name_"),String.class);
+            String processName = convert(process.invoke("name_"), String.class);
             System.out.println("Process  name  found: "+processName);
 
             // configinfo of new configuration
-            ConfigInfo configInfo = new ConfigInfo(name,null,-1,0,"","",
-                    release.releaseTag(),processName,
+            ConfigInfo configInfo = new ConfigInfo(name, null,-1, 0,"","",
+                    release.releaseTag(), processName,
                     "parsed from "+fileName);
 
             // new configuration
             configuration = new Configuration();
-            configuration.initialize(configInfo,release);
+            configuration.initialize(configInfo, release);
 
         }
         catch (Exception e) {
@@ -201,8 +201,8 @@ public class JPythonParser
 
         // path to file without trailing /
         String path = new String(fileName);
-        path=path.substring(0,path.lastIndexOf("/")+1);
-        if (path.lastIndexOf("/")>=0) path=path.substring(0,path.lastIndexOf("/"));
+        path=path.substring(0, path.lastIndexOf("/")+1);
+        if (path.lastIndexOf("/")>=0) path=path.substring(0, path.lastIndexOf("/"));
 
         // name of file including extension
         String name = new String(fileName);
@@ -210,7 +210,7 @@ public class JPythonParser
 
         // name of file excluding extension
         String leaf = new String(name);
-        if (leaf.indexOf(".py")>=0) leaf=leaf.substring(0,leaf.indexOf(".py"));
+        if (leaf.indexOf(".py")>=0) leaf=leaf.substring(0, leaf.indexOf(".py"));
 
         ignorePrescaleService = ignorePrescales;
 
@@ -243,17 +243,17 @@ public class JPythonParser
             alert(msg.inf, " Process object found: "+(process!=null));
 
             // get its process name
-            String processName = convert(process.invoke("name_"),String.class);
+            String processName = convert(process.invoke("name_"), String.class);
             alert(msg.inf, " Process  name  found: "+processName);
 
             // configinfo of new configuration
-            ConfigInfo configInfo = new ConfigInfo(name,null,-1,0,"","",
-                    release.releaseTag(),processName,
+            ConfigInfo configInfo = new ConfigInfo(name, null,-1, 0,"","",
+                    release.releaseTag(), processName,
                     "parsed from "+fileName);
 
             // new configuration
             configuration = new Configuration();
-            configuration.initialize(configInfo,release);
+            configuration.initialize(configInfo, release);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -311,7 +311,7 @@ public class JPythonParser
     // parse Services:
     private void parseServices(PyObject process) {
         PyDictionary producers = (PyDictionary) process.__getattr__("_Process__services");
-        if(validPyObject(producers))
+        if (validPyObject(producers))
             parseServiceMap(producers);
     }
 
@@ -319,57 +319,57 @@ public class JPythonParser
     // There is only one EDSource.
     private void parseEDSources(PyObject process) {
         PyObject source = (PyObject) process.__getattr__("_Process__source");
-        if(validPyObject(source))
+        if (validPyObject(source))
             parseEDSource(source);
     }
 
     // parse Psets:
     private void parsePSets(PyObject process) {
         PyDictionary producers = (PyDictionary) process.__getattr__("_Process__psets");
-        if(validPyObject(producers))
+        if (validPyObject(producers))
             parsePSetMap(producers);
     }
 
     // parse Modules of type ESModules
     private void parseESModules(PyObject process) {
         PyDictionary producers = (PyDictionary) process.__getattr__("_Process__esproducers");
-        if(validPyObject(producers))
+        if (validPyObject(producers))
             parseESModuleMap(producers);
     }
 
     // parse ESSources:
     private void parseESSources(PyObject process) {
         PyDictionary producers = (PyDictionary) process.__getattr__("_Process__essources");
-        if(validPyObject(producers))
+        if (validPyObject(producers))
             parseESSourceMap(producers);
     }
 
     // parse Modules of type Producer:
     private void parseProducerModules(PyObject process) {
-        PyDictionary producers = (PyDictionary) process.__getattr__("_Process__producers");
-        if(validPyObject(producers))
-            parseModuleMap(producers);
+        PyDictionary modules = (PyDictionary) process.__getattr__("_Process__producers");
+        if (validPyObject(modules))
+            parseModuleMap(modules, "EDProducers");
     }
 
     // parse Modules of type filters:
     private void parseFilterModules(PyObject process) {
-        PyDictionary producers = (PyDictionary) process.__getattr__("_Process__filters");
-        if(validPyObject(producers))
-            parseModuleMap(producers);
+        PyDictionary modules = (PyDictionary) process.__getattr__("_Process__filters");
+        if (validPyObject(modules))
+            parseModuleMap(modules, "EDFilters");
     }
 
     // parse Modules of type analyzers:
     private void parseAnalyzerModules(PyObject process) {
-        PyDictionary producers = (PyDictionary) process.__getattr__("_Process__analyzers");
-        if(validPyObject(producers))
-            parseModuleMap(producers);
+        PyDictionary modules = (PyDictionary) process.__getattr__("_Process__analyzers");
+        if (validPyObject(modules))
+            parseModuleMap(modules, "EDAnalyzers");
     }
 
     // parse Modules of type outputmodules:
     private void parseOutputModules(PyObject process) {
-        PyDictionary producers = (PyDictionary) process.__getattr__("_Process__outputmodules");
-        if(validPyObject(producers))
-            parseModuleMap(producers);
+        PyDictionary modules = (PyDictionary) process.__getattr__("_Process__outputmodules");
+        if (validPyObject(modules))
+            parseModuleMap(modules, "OutputModules");
     }
 
     // parse Services dictionary
@@ -389,7 +389,7 @@ public class JPythonParser
 
         String moduleClass = convert(pydict.invoke("type_"), String.class);
 
-        //ModuleInstance module = configuration.insertModule(moduleClass,label);
+        //ModuleInstance module = configuration.insertModule(moduleClass, label);
         EDSourceInstance module = configuration.insertEDSource(moduleClass);
         //TODO: Update module with file values?
         PyDictionary parameterContainerObject = (PyDictionary) pydict.invoke("parameters_");
@@ -416,8 +416,8 @@ public class JPythonParser
     }
 
     // parse modules dictionary
-    private void parseModuleMap(PyDictionary pydict) {
-        alert(msg.inf, " Modules (" + pydict.size() + ")");
+    private void parseModuleMap(PyDictionary pydict, String name) {
+        alert(msg.inf, " " + name + " (" + pydict.size() + ")");
         for (Object o : pydict.entrySet()) {
             PyDictionary.Entry<String, PyObject> moduleObject = (PyDictionary.Entry<String, PyObject>) o;
             parseModule(moduleObject.getValue());
@@ -451,10 +451,10 @@ public class JPythonParser
         String type  = getType(moduleObject);
         String label = getLabel(moduleObject);
 
-        if(type == "OutputModule") {
+        if (type == "OutputModule") {
             OutputModule module = configuration.output(label);
 
-            if(module != null) {
+            if (module != null) {
                 PyDictionary parameterContainerObject = (PyDictionary) moduleObject.invoke("parameters_");
                 updateOutputModuleParameters(parameterContainerObject, module);
             } else {
@@ -466,7 +466,7 @@ public class JPythonParser
                 String streamName = label;
                 // fixing the OM name:
                 String prefix = "hltOutput"; // Used prefix for OutputModules.
-                if(streamName.startsWith(prefix)) streamName = streamName.substring(prefix.length());
+                if (streamName.startsWith(prefix)) streamName = streamName.substring(prefix.length());
 
                 String contentName = "hltEventContent" + streamName; // convention.
                 EventContent content = configuration.insertContent(contentName);
@@ -479,7 +479,7 @@ public class JPythonParser
 
         } else {
             String moduleClass = convert(moduleObject.invoke("type_"), String.class);
-            ModuleInstance module = configuration.insertModule(moduleClass,label);
+            ModuleInstance module = configuration.insertModule(moduleClass, label);
             //TODO: Update module with file values?
             PyDictionary parameterContainerObject = (PyDictionary) moduleObject.invoke("parameters_");
             updateModuleParameters(parameterContainerObject, module);
@@ -494,7 +494,7 @@ public class JPythonParser
         String label = getLabel(psetObject);
 
         // IGNORE PSETs: HLTConfigVersion, maxEvents, options
-        if( (label.compareTo("HLTConfigVersion") == 0)  ||
+        if ( (label.compareTo("HLTConfigVersion") == 0)  ||
                 (label.compareTo("maxEvents") == 0)         ||
                 (label.compareTo("options") == 0)           ) {
             alert(msg.inf, " parsePset: IGNORING! type="+type+", label='"+label+"'");
@@ -502,7 +502,7 @@ public class JPythonParser
         }
 
         // Inserting streams
-        if(label.compareTo("streams") == 0) {
+        if (label.compareTo("streams") == 0) {
             // The python representation of a stream is a PSET.
             // The parameters of the PSET named 'streams' are the name of the streams.
             return parseStreams(psetObject);
@@ -510,17 +510,17 @@ public class JPythonParser
         }
 
         // UPDATE datasets.
-        if(label.compareTo("datasets") == 0) {
+        if (label.compareTo("datasets") == 0) {
             return parseDatasets(psetObject);
         }
 
         // Otherwise, Insert PSet to configuration.
         Boolean     tracked = convert(psetObject.invoke("isTracked"), Boolean.class);
-        PSetParameter pset = (PSetParameter)ParameterFactory.create("PSet",label,"",tracked);
+        PSetParameter pset = (PSetParameter)ParameterFactory.create("PSet", label,"", tracked);
         //
         // Add parameters to PSET.
         ArrayList<confdb.data.Parameter> params = parsePSetParameters(psetObject);
-        for(int It = 0; It < params.size(); It++)
+        for (int It = 0; It < params.size(); It++)
             pset.addParameter(params.get(It));
         configuration.insertPSet(pset);
 
@@ -534,14 +534,14 @@ public class JPythonParser
         Boolean     tracked = convert(psetObject.invoke("isTracked"), Boolean.class);
 
         label = name;
-        if(label == null) label = "";
+        if (label == null) label = "";
 
-        PSetParameter pset = (PSetParameter)ParameterFactory.create("PSet",label,"",tracked);
+        PSetParameter pset = (PSetParameter)ParameterFactory.create("PSet", label,"", tracked);
 
         //
         // Add parameters to PSET.
         ArrayList<confdb.data.Parameter> params = parsePSetParameters(psetObject);
-        for(int It = 0; It < params.size(); It++)
+        for (int It = 0; It < params.size(); It++)
             pset.addParameter(params.get(It));
 
         return pset;
@@ -555,9 +555,9 @@ public class JPythonParser
         Boolean     tracked = convert(vpsetObject.invoke("isTracked"), Boolean.class);
 
         label = name;
-        if(label == null) label = "";
+        if (label == null) label = "";
 
-        VPSetParameter VPSet = (VPSetParameter)ParameterFactory.create("VPSet",label,"",tracked);
+        VPSetParameter VPSet = (VPSetParameter)ParameterFactory.create("VPSet", label,"", tracked);
 
         //
         // Add PSets to VPSET.
@@ -578,7 +578,7 @@ public class JPythonParser
 
         String moduleClass = convert(moduleObject.invoke("type_"), String.class);
 
-        //ModuleInstance module = configuration.insertModule(moduleClass,label);
+        //ModuleInstance module = configuration.insertModule(moduleClass, label);
         ESModuleInstance module = configuration.insertESModule(configuration.esmoduleCount(), moduleClass, label);
         //TODO: Update module with file values?
         PyDictionary parameterContainerObject = (PyDictionary) moduleObject.invoke("parameters_");
@@ -595,7 +595,7 @@ public class JPythonParser
 
         String moduleClass = convert(moduleObject.invoke("type_"), String.class);
 
-        //ModuleInstance module = configuration.insertModule(moduleClass,label);
+        //ModuleInstance module = configuration.insertModule(moduleClass, label);
         ServiceInstance module = configuration.insertService(configuration.serviceCount(), moduleClass);
         //TODO: Update module with file values?
         PyDictionary parameterContainerObject = (PyDictionary) moduleObject.invoke("parameters_");
@@ -612,7 +612,7 @@ public class JPythonParser
 
         String moduleClass = convert(moduleObject.invoke("type_"), String.class);
 
-        //ModuleInstance module = configuration.insertModule(moduleClass,label);
+        //ModuleInstance module = configuration.insertModule(moduleClass, label);
 
         ESSourceInstance module = configuration.insertESSource(configuration.essourceCount(), moduleClass, label);
         //TODO: Update module with file values?
@@ -625,7 +625,7 @@ public class JPythonParser
     // Parse Sequences:
     private void parseSequencesFromPython(PyObject pyprocess){
         PyDictionary sequences = (PyDictionary) pyprocess.__getattr__("_Process__sequences");
-        if(validPyObject(sequences))
+        if (validPyObject(sequences))
             parseSequenceMap(sequences);
     }
 
@@ -633,7 +633,7 @@ public class JPythonParser
     private void parsePathsFromPython(PyObject pyprocess){
         PyDictionary paths = (PyDictionary) pyprocess.__getattr__("_Process__paths");
 
-        if(validPyObject(paths))
+        if (validPyObject(paths))
             parsePathMap(paths);
 
     }
@@ -642,7 +642,7 @@ public class JPythonParser
     private void parseEndPathsFromPython(PyObject pyprocess){
         PyDictionary paths = (PyDictionary) pyprocess.__getattr__("_Process__endpaths");
 
-        if(validPyObject(paths))
+        if (validPyObject(paths))
             parseEndPathMap(paths);
 
     }
@@ -683,20 +683,20 @@ public class JPythonParser
         //System.out.println("[parseSequence] " + type + " " + label);
         confdb.data.Path insertedPath = null;
 
-        if(confdbTypes.path.is(type)) {
+        if (confdbTypes.path.is(type)) {
             insertedPath = configuration.path(label);
 
-            if(insertedPath == null)
+            if (insertedPath == null)
                 alert(msg.err, "[parsePath] path does not exist!" + label);
 
             // Content:
             PyObject pathContent = object.__getattr__(new PyString("_seq"));
             parseReferenceContainerContent(pathContent, insertedPath);
 
-        } else if(confdbTypes.endPath.is(type)){
+        } else if (confdbTypes.endPath.is(type)){
             insertedPath = configuration.path(label);
 
-            if(insertedPath == null)
+            if (insertedPath == null)
                 alert(msg.err, "[parsePath] path does not exist!" + label);
 
             // Content:
@@ -758,11 +758,11 @@ public class JPythonParser
             String streamName = param.name();
             Stream stream = configuration.stream(streamName);
 
-            if(stream != null) {
+            if (stream != null) {
                 // This is ok. now we try to split it in Datasets.
                 // Each stream has a list of Dataset associated.
                 ArrayList<String> ListOfDatasets = __getArrayListFromPyObject(entry.getValue());
-                for(int ds = 0; ds < ListOfDatasets.size(); ds++) {
+                for (int ds = 0; ds < ListOfDatasets.size(); ds++) {
                     PrimaryDataset newDataSet = stream.insertDataset(ListOfDatasets.get(ds));
                 }
 
@@ -777,7 +777,7 @@ public class JPythonParser
 
                 // Each stream has a list of Dataset associated.
                 ArrayList<String> ListOfDatasets = __getArrayListFromPyObject(entry.getValue());
-                for(int ds = 0; ds < ListOfDatasets.size(); ds++) {
+                for (int ds = 0; ds < ListOfDatasets.size(); ds++) {
                     PrimaryDataset newDataSet = ExtraStream.insertDataset(ListOfDatasets.get(ds));
                 }
             }
@@ -804,7 +804,7 @@ public class JPythonParser
 
             PrimaryDataset dset = configuration.dataset(datasetName);
 
-            if(dset == null) {
+            if (dset == null) {
                 alert(msg.err, "[parseDatasets]: Dataset not found. Cannot be updated!");
                 return false;
             }
@@ -812,13 +812,13 @@ public class JPythonParser
             // Each stream has a list of Dataset associated.
             ArrayList<String> ListOfPaths = __getArrayListFromPyObject(entry.getValue());
 
-            for(int path = 0; path < ListOfPaths.size(); path++) {
+            for (int path = 0; path < ListOfPaths.size(); path++) {
                 // Path must be previously inserted into the stream from the OUTPUT MODULE definition.
                 Stream stream = dset.parentStream();
                 Path path_ = stream.path(ListOfPaths.get(path));
 
-                if(path_ == null) {
-                    alert(msg.war, "[parseDatasets]: Path " + ListOfPaths.get(path) + "not found in the stream. Cannot be associated to Dataset --> " + ListOfPaths.get(path));
+                if (path_ == null) {
+                    alert(msg.war, "[parseDatasets]: Path " + ListOfPaths.get(path) + " not found in the stream. Cannot be associated to Dataset --> " + ListOfPaths.get(path));
                 } else {
                     // ONLY existing paths in the stream.
                     dset.insertPath(path_);
@@ -837,11 +837,11 @@ public class JPythonParser
         PyObject    value   = parameterObject.invoke("value");
 
         String string_value = value.toString();
-        if(string_value == "") string_value = "\"\""; // equivalent to cms.string("");
+        if (string_value == "") string_value = "\"\""; // equivalent to cms.string("");
 
         string_value = cleanBrackets(string_value); //Needed!
 
-        if(type == "PSet") {
+        if (type == "PSet") {
             return parsePSetParameter(parameterObject, name); // Start recursion.
         } else if (type == "VPSet") {
             return parseVPSetParameter(parameterObject, name); // Start recursion.
@@ -856,7 +856,7 @@ public class JPythonParser
     private ArrayList<String> __getArrayListFromPyObject(PyObject VStringParam) {
         ArrayList<String> VString = new ArrayList<String>();
         PyList parameterList= (PyList) VStringParam;
-        for(int i=0; i < parameterList.size(); i++) {
+        for (int i=0; i < parameterList.size(); i++) {
             VString.add(parameterList.get(i).toString());
         }
         return VString;
@@ -905,15 +905,15 @@ public class JPythonParser
         // NOTE: This only can be a toplevel parameter:
         Parameter[] p = module.findParameters(parameterName, type);
         Parameter ParameterToBeUpdated = null;
-        if(p == null) alert(msg.err, "[parseParameter] "+type+" parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
+        if (p == null) alert(msg.err, "[parseParameter] "+type+" parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
         else {
-            for(int i = 0; i < p.length; i++) {
-                if(p[i].fullName().compareTo(parameterName) == 0) {
+            for (int i = 0; i < p.length; i++) {
+                if (p[i].fullName().compareTo(parameterName) == 0) {
                     ParameterToBeUpdated = p[i];// Parameter to update.
                 }
             }
 
-            if(ParameterToBeUpdated == null){
+            if (ParameterToBeUpdated == null){
                 alert(msg.err, "[parseParameter] "+ type +" parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
             }
         }
@@ -924,21 +924,21 @@ public class JPythonParser
         if ("bool" == type) {
             //Boolean v = convert(value, Boolean.class);
 
-            module.updateParameter(parameterName,type,value.toString());
+            module.updateParameter(parameterName, type, value.toString());
             module.findParameter(parameterName).setTracked(tracked);
         } else if ("vbool" == type) {
-            module.updateParameter(parameterName,type,value.toString());
+            module.updateParameter(parameterName, type, value.toString());
             module.findParameter(parameterName).setTracked(tracked);
 
         } else if ("uint32" == type || "int32" == type || "uint64" == type || "int64" == type) {
-            if(type == "uint64") {
+            if (type == "uint64") {
                 // Get Hexadecimal format by default.
                 String LHexStringValue = value.__hex__().toString();
                 String svalue = value.toString();
                 svalue = cleanBrackets(LHexStringValue);
                 svalue = fixLongNumber(svalue);
 
-                module.updateParameter(parameterName,type,svalue);
+                module.updateParameter(parameterName, type, svalue);
             } else {
                 // Default case:
                 //System.out.println("CASTING NUMBER TO STRING!" + value.__str__().toString());
@@ -946,7 +946,7 @@ public class JPythonParser
                 String svalue = value.toString();
                 svalue = cleanBrackets(svalue);
                 svalue = fixLongNumber(svalue);
-                module.updateParameter(parameterName,type,svalue);
+                module.updateParameter(parameterName, type, svalue);
             }
             module.findParameter(parameterName).setTracked(tracked);
 
@@ -955,13 +955,13 @@ public class JPythonParser
             // NOTE: No need to convert or to cast value by value.
             // It can be done at once, but erasing the vector brackets.
             confdb.data.Parameter param = module.findParameter(parameterName);
-            if(param != null) {
-                if(param instanceof VectorParameter) {
+            if (param != null) {
+                if (param instanceof VectorParameter) {
                     VectorParameter param_sp = (VectorParameter) param;
 
                     String svalue = value.toString();
                     svalue = cleanBrackets(svalue);
-                    module.updateParameter(parameterName,type,svalue);
+                    module.updateParameter(parameterName, type, svalue);
                     module.findParameter(parameterName).setTracked(tracked);
                 } else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
             } else alert(msg.err, "[parseParameter] "+type+" parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
@@ -970,97 +970,97 @@ public class JPythonParser
             String svalue = value.toString();
             //svalue = cleanBrackets(svalue);
 
-            module.updateParameter(parameterName,type,svalue);
+            module.updateParameter(parameterName, type, svalue);
             module.findParameter(parameterName).setTracked(tracked);
         } else if ("vdouble" == type) {
 
             confdb.data.Parameter param = module.findParameter(parameterName);
-            if(param != null) {
-                if(param instanceof VectorParameter) {
+            if (param != null) {
+                if (param instanceof VectorParameter) {
                     VectorParameter param_sp = (VectorParameter) param;
                     String svalue = value.toString();
                     svalue = cleanBrackets(svalue);
                     param_sp.setValue(svalue);
 
-                    module.updateParameter(parameterName,type,svalue);
+                    module.updateParameter(parameterName, type, svalue);
                     module.findParameter(parameterName).setTracked(tracked);
                 } else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
             } else alert(msg.err, "[parseParameter] vdouble parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
 
         } else if ("string" == type) {
             String v = convert(value, String.class);
-            if(v.isEmpty()) {
+            if (v.isEmpty()) {
                 v = "\"\""; // Empty string from the point of view of the GUI.
             }
 
-            module.updateParameter(parameterName,type,v);
+            module.updateParameter(parameterName, type, v);
             module.findParameter(parameterName).setTracked(tracked);
         } else if ("vstring" == type) {
 
             confdb.data.Parameter param = module.findParameter(parameterName);
-            if(param != null) {
-                if(param instanceof VectorParameter) {
+            if (param != null) {
+                if (param instanceof VectorParameter) {
                     VectorParameter param_sp = (VectorParameter) param;
                     String clean_value = cleanBrackets(value.toString());
                     param_sp.setValue(clean_value);
 
-                    module.updateParameter(parameterName,type,clean_value);
+                    module.updateParameter(parameterName, type, clean_value);
                     module.findParameter(parameterName).setTracked(tracked);
                 } else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
             } else alert(msg.err, "[parseParameter] vstring parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
 
         } else if ("PSet" == type) {
-            module.updateParameter(parameterName,type,"");
+            module.updateParameter(parameterName, type,"");
             PSetParameter pset = parsePSetParameter(parameterObject, parameterName);
-            module.updateParameter(parameterName,type,pset.valueAsString());
+            module.updateParameter(parameterName, type, pset.valueAsString());
             module.findParameter(parameterName).setTracked(tracked);
 
         } else if ("VPSet" == type) {
 
             confdb.data.Parameter param = module.findParameter(parameterName);
-            if(param != null) {
-                if(param instanceof VPSetParameter) {
-                    module.updateParameter(parameterName,type,"");
-                    VPSetParameter VPSet = parseVPSetParameter(parameterObject,parameterName);
-                    module.updateParameter(parameterName,type,VPSet.valueAsString());
+            if (param != null) {
+                if (param instanceof VPSetParameter) {
+                    module.updateParameter(parameterName, type,"");
+                    VPSetParameter VPSet = parseVPSetParameter(parameterObject, parameterName);
+                    module.updateParameter(parameterName, type, VPSet.valueAsString());
                     module.findParameter(parameterName).setTracked(tracked);
                 } else alert(msg.err, "[parseParameter] parameter not VPSetParameter! " + parameterName);
             } else alert(msg.err, "[parseParameter] VPSet parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
 
         } else if ("FileInPath" == type) {
-            module.updateParameter(parameterName,type,value.toString());
+            module.updateParameter(parameterName, type, value.toString());
             module.findParameter(parameterName).setTracked(tracked);
 
         } else if ("InputTag" == type) {
-            module.updateParameter(parameterName,type,value.toString());
+            module.updateParameter(parameterName, type, value.toString());
             module.findParameter(parameterName).setTracked(tracked);
 
         } else if ("ESInputTag" == type) {
-            module.updateParameter(parameterName,type,value.toString());
+            module.updateParameter(parameterName, type, value.toString());
             module.findParameter(parameterName).setTracked(tracked);
 
         } else if ("VInputTag" == type) {
             confdb.data.Parameter param = module.findParameter(parameterName);
-            if(param != null) {
-                if(param instanceof VectorParameter) {
+            if (param != null) {
+                if (param instanceof VectorParameter) {
                     VectorParameter param_sp = (VectorParameter) param;
                     String clean_value = cleanBrackets(value.toString());
                     param_sp.setValue(clean_value);
 
-                    module.updateParameter(parameterName,type,clean_value);
+                    module.updateParameter(parameterName, type, clean_value);
                     module.findParameter(parameterName).setTracked(tracked);
                 } else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
             } else alert(msg.err, "[parseParameter] VInputTag parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
 
         } else if ("VESInputTag" == type) {
             confdb.data.Parameter param = module.findParameter(parameterName);
-            if(param != null) {
-                if(param instanceof VectorParameter) {
+            if (param != null) {
+                if (param instanceof VectorParameter) {
                     VectorParameter param_sp = (VectorParameter) param;
                     String clean_value = cleanBrackets(value.toString());
                     param_sp.setValue(clean_value);
 
-                    module.updateParameter(parameterName,type,clean_value);
+                    module.updateParameter(parameterName, type, clean_value);
                     module.findParameter(parameterName).setTracked(tracked);
                 } else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
             } else alert(msg.err, "[parseParameter] VESInputTag parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
@@ -1074,7 +1074,7 @@ public class JPythonParser
     //
     private String fixLongNumber(String string) {
         String LHexStringValue = string;
-        if(LHexStringValue.contains("L")) LHexStringValue = LHexStringValue.substring(0, LHexStringValue.indexOf("L"));
+        if (LHexStringValue.contains("L")) LHexStringValue = LHexStringValue.substring(0, LHexStringValue.indexOf("L"));
 
         return LHexStringValue;
     }
@@ -1090,14 +1090,14 @@ public class JPythonParser
 
         if ("vstring" == type) {
             confdb.data.Parameter param = module.findParameter(parameterName);
-            if(param != null) {
+            if (param != null) {
 
                 Stream ps = module.parentStream();
                 EventContent ec = ps.parentContent();
 
-                if(parameterName.compareTo("outputCommands") == 0) {
+                if (parameterName.compareTo("outputCommands") == 0) {
                     PyList parameterList= (PyList) value;
-                    for(int i=0; i < parameterList.size(); i++) {
+                    for (int i=0; i < parameterList.size(); i++) {
                         // update eventContent:
                         OutputCommand outputCommand = new OutputCommand();
                         outputCommand.initializeFromString(parameterList.get(i).toString());
@@ -1114,12 +1114,12 @@ public class JPythonParser
 
                 Stream stream = module.parentStream();
 
-                if(entry.getKey().compareTo("SelectEvents") == 0) {
+                if (entry.getKey().compareTo("SelectEvents") == 0) {
                     // get Streams definition from here.
                     //NOTE: The object in python can be split in several parts but we can iterate all over them.
                     // SelectEvent = (cms.vstring(..) + cms.vstring(..))
                     PyObject val = entry.getValue();
-                    for(int path = 0; path < val.__len__(); path++) {
+                    for (int path = 0; path < val.__len__(); path++) {
                         Path pathObj = configuration.path(val.__getitem__(path).toString());
                         stream.insertPath(pathObj);
                     }
@@ -1145,7 +1145,7 @@ public class JPythonParser
             String sequenceName = (String) key;
 
             confdb.data.Sequence seq = configuration.sequence(sequenceName);
-            if(seq == null) {
+            if (seq == null) {
 
                 PyObject value = pydict.__getitem__(new PyString((String) key)); // Get the Sequence Python Object.
                 parseSequence(value);   // Parse it and insert the sequence. Recursively
@@ -1163,10 +1163,10 @@ public class JPythonParser
         confdb.data.Sequence insertedSeq = null;
 
 
-        if(confdbTypes.sequence.is(type)) {
+        if (confdbTypes.sequence.is(type)) {
             insertedSeq = configuration.sequence(label);
 
-            if(insertedSeq == null) {
+            if (insertedSeq == null) {
                 // Now we can insert the resulting sequence (with subitems already on it).
                 int seqIndex = configuration.sequenceCount();
                 insertedSeq = configuration.insertSequence(seqIndex, label);
@@ -1186,16 +1186,16 @@ public class JPythonParser
         String type  = getType(sequenceContent);
         String label = getLabel(sequenceContent);   // subseq.
 
-        if(pythonObjects.sequence.is(type)) {
+        if (pythonObjects.sequence.is(type)) {
             // Parse sub-items of label sequence on demand:
             confdb.data.Sequence subSequence = parseSequenceOnDemand(label);
 
             Reference seqRef = parentContainer.entry(label);
 
             // If sequence reference does not exist in this container, add it!
-            if(seqRef == null) configuration.insertSequenceReference(parentContainer,parentContainer.entryCount(),subSequence); // Missing operator.
+            if (seqRef == null) configuration.insertSequenceReference(parentContainer, parentContainer.entryCount(), subSequence); // Missing operator.
 
-        } else if(  pythonObjects.seqOpFollows.is(type) ||
+        } else if (  pythonObjects.seqOpFollows.is(type) ||
                 pythonObjects.seqOpAids.is(type))   {
             // Contain list of sequences?
             PyObject leftContent  = sequenceContent.__getattr__(new PyString("_left"));
@@ -1204,7 +1204,7 @@ public class JPythonParser
             parseReferenceContainerContent(leftContent, parentContainer);
             parseReferenceContainerContent(rightContent, parentContainer);
 
-        } else if(  pythonObjects.seqIgnore.is(type)    ||
+        } else if (  pythonObjects.seqIgnore.is(type)    ||
                 pythonObjects.seqNegation.is(type)  ){
 
             PyObject operandContent = sequenceContent.__getattr__(new PyString("_operand"));
@@ -1214,40 +1214,40 @@ public class JPythonParser
             // Only modules can be negated or ignored:
             ModuleInstance module = configuration.module(label);
 
-            if(module == null)
+            if (module == null)
                 alert(msg.err, "[parseSequenceImpl] module not found! label = " + label + ", type  = " + Subtype);
 
             Reference moduleRef = parentContainer.entry(module.name());
 
-            if(moduleRef == null)
+            if (moduleRef == null)
                 moduleRef = configuration.insertModuleReference(parentContainer, parentContainer.entryCount(), module);
 
-            if(pythonObjects.seqNegation.is(type))  moduleRef.setOperator(Operator.NEGATE);
-            if(pythonObjects.seqIgnore.is(type))    moduleRef.setOperator(Operator.IGNORE);
+            if (pythonObjects.seqNegation.is(type))  moduleRef.setOperator(Operator.NEGATE);
+            if (pythonObjects.seqIgnore.is(type))    moduleRef.setOperator(Operator.IGNORE);
 
             // TODO: Must negate the generated sequence. How?
-        } else if(  pythonObjects.EDProducer.is(type)   ||
+        } else if (  pythonObjects.EDProducer.is(type)   ||
                 pythonObjects.EDFilter.is(type)     ||
                 pythonObjects.EDAnalyzer.is(type)) {
 
             ModuleInstance module = configuration.module(label);
 
-            if(module == null) {
+            if (module == null) {
                 alert(msg.err, "[parseSequenceImpl] module not found! label = " + label + ", type  = " + type);
             }
 
             Reference moduleRef = parentContainer.entry(module.name());
 
-            if(moduleRef == null)
+            if (moduleRef == null)
                 moduleRef = configuration.insertModuleReference(parentContainer, parentContainer.entryCount(), module);
             // TODO: How to set the operator of the module reference?
-            //config.insertModuleReference(sequence,index,entry).setOperator( operator );
-        } else if(pythonObjects.OutputModule.is(type)) {
+            //config.insertModuleReference(sequence, index, entry).setOperator( operator );
+        } else if (pythonObjects.OutputModule.is(type)) {
             OutputModule module = configuration.output(label);
 
             if (module !=null) {
-                Reference moduleRef = configuration.insertOutputModuleReference(parentContainer,parentContainer.entryCount(), module);
-                if(moduleRef == null)
+                Reference moduleRef = configuration.insertOutputModuleReference(parentContainer, parentContainer.entryCount(), module);
+                if (moduleRef == null)
                     alert(msg.err, " No reference to OutputModule " + label + " has been added to "+parentContainer.name());
             } else alert(msg.err, " No OutputModule " + label + " has been found!");
 
@@ -1268,7 +1268,7 @@ public class JPythonParser
         String type  = getType(object);
         String label = getLabel(object);
         boolean validObject = true;
-        if((type == "NoneType")||(label== "null")) {
+        if ((type == "NoneType")||(label== "null")) {
             validObject = false;
 
             alert(msg.err, "[validPyObject] Object of type = " + type + ", label = " + label + " does not exist in this Config.");
@@ -1285,7 +1285,7 @@ public class JPythonParser
 
         PyStringMap dict = (PyStringMap) object.getDict();
 
-        if(dict == null) return null;   // patched to don't brake
+        if (dict == null) return null;   // patched to don't brake
 
         if (dict.has_key("_Labelable__label"))
             return convert(dict.__getitem__("_Labelable__label"), String.class);
@@ -1310,7 +1310,7 @@ public class JPythonParser
     //
 
     /** record a missing/mismatched parameter */
-    private void addProblem(String type,String name,String subsys,String pkg,
+    private void addProblem(String type, String name, String subsys, String pkg,
             confdb.data.Parameter p)
     {
         if (problemParameters.contains(name + "." + p.name())) return;
@@ -1390,7 +1390,7 @@ public class JPythonParser
         }
 
         public boolean is(String OutText) {
-            if(this.text.compareTo(OutText) == 0) return true;
+            if (this.text.compareTo(OutText) == 0) return true;
             return false;
         }
 
@@ -1439,7 +1439,7 @@ public class JPythonParser
         }
 
         public boolean is(String OutText) {
-            if(this.text.compareTo(OutText) == 0) return true;
+            if (this.text.compareTo(OutText) == 0) return true;
             return false;
         }
 
@@ -1478,7 +1478,7 @@ public class JPythonParser
         }
 
         public boolean is(String OutText) {
-            if(this.text.compareTo(OutText) == 0) return true;
+            if (this.text.compareTo(OutText) == 0) return true;
             return false;
         }
     }
@@ -1496,7 +1496,7 @@ public class JPythonParser
             // Lectura del fichero
             String linea;
             while((linea=br.readLine())!=null) {
-                //for(int i = 0; i < 20; i++) {
+                //for (int i = 0; i < 20; i++) {
                 //   linea = br.readLine();
                 //System.out.println("\nprocesing line "+i+": "+linea);
 
@@ -1511,7 +1511,7 @@ public class JPythonParser
             // que se cierra tanto si todo va bien como si salta
             // una excepcion.
             try{
-                if( null != fr ){
+                if ( null != fr ){
                     fr.close();
                 }
             }catch (Exception e2){
@@ -1528,14 +1528,14 @@ public class JPythonParser
 
         // ChangeFormat?
 
-        if((leftBCount>0)&&(leftBCount == rightBCount)) {
+        if ((leftBCount>0)&&(leftBCount == rightBCount)) {
             // Command is well formed!
-            if(ignorePrescaleService) {
-                if(command.contains("PrescaleService"))
+            if (ignorePrescaleService) {
+                if (command.contains("PrescaleService"))
                     command = ""; // Ignore prescale service instruction.
             }
 
-            if(command != "")
+            if (command != "")
                 pyCmd(command);
 
             command = "";
