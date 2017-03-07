@@ -888,7 +888,6 @@ public class JPythonParser
 
     /* Note:
      * these CMS types are not yet supported:
-     *   FileInPath
      *   EventID
      *   VEventID
      *   LuminosityBlockID
@@ -1027,6 +1026,10 @@ public class JPythonParser
                     module.findParameter(parameterName).setTracked(tracked);
                 } else alert(msg.err, "[parseParameter] parameter not VPSetParameter! " + parameterName);
             } else alert(msg.err, "[parseParameter] VPSet parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
+
+        } else if ("FileInPath" == type) {
+            module.updateParameter(parameterName,type,value.toString());
+            module.findParameter(parameterName).setTracked(tracked);
 
         } else if ("InputTag" == type) {
             module.updateParameter(parameterName,type,value.toString());
