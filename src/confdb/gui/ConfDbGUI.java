@@ -512,8 +512,7 @@ public class ConfDbGUI
     {
 	if (!closeConfiguration()) return;
 	
-	JParseConfigurationDialog dialog =
-	    new JParseConfigurationDialog(frame,database);
+	JParseConfigurationDialog dialog = new JParseConfigurationDialog(frame,database);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
@@ -521,16 +520,12 @@ public class ConfDbGUI
 	if (dialog.validChoice()) {
 	    String fileName   = dialog.fileName();
 	    String releaseTag = dialog.releaseTag();
-	    boolean compiledFile 	=  dialog.compiledFile();
-	    boolean ignorePrescales = dialog.ignorePrescaleService();
 	    
-	    JParseConfigurationThread worker =
-		new JParseConfigurationThread(fileName,releaseTag, compiledFile, ignorePrescales);
+	    JParseConfigurationThread worker = new JParseConfigurationThread(fileName,releaseTag);
 	    worker.start();
 	    jProgressBar.setIndeterminate(true);
 	    jProgressBar.setVisible(true);
-	    jProgressBar.setString("Parsing '"+fileName+"' against Release " +
-				  releaseTag + " ... ");
+	    jProgressBar.setString("Parsing '"+fileName+"' against Release " + releaseTag + " ... ");
 	    menuBar.configurationIsOpen();
 	    toolBar.configurationIsOpen();
 	}
@@ -1731,17 +1726,13 @@ public class ConfDbGUI
 	private JPythonParser parser     = null;
 	private String        fileName   = null;
 	private String        releaseTag = null;
-	private boolean 	  compiledFile 		= false;
-	private boolean 	  ignorePrescales	= false;
 	private long          startTime;
 	
 	/** standard constructor */
-	public JParseConfigurationThread(String fileName,String releaseTag, boolean compiledFile, boolean ignorePrescales)
+	public JParseConfigurationThread(String fileName, String releaseTag)
 	{
 	    this.fileName   = fileName;
 	    this.releaseTag = releaseTag;
-	    this.compiledFile 		= compiledFile;
-	    this.ignorePrescales 	= ignorePrescales;
 	}
 	
 	/** SwingWorker: construct() */
@@ -1753,10 +1744,7 @@ public class ConfDbGUI
 	    	database.loadSoftwareRelease(releaseTag,currentRelease);
 	    
 	    parser = new JPythonParser(currentRelease);
-	    
-	    if(compiledFile) parser.parseCompileFile(fileName);
-	    else parser.parseFileBatchMode(fileName, ignorePrescales);
-	    
+	    parser.parseCompileFile(fileName);
 	    setCurrentConfig(parser.createConfiguration());
 	    return new String("Done!");
 	}
