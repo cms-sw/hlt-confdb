@@ -1,3 +1,8 @@
+/* TODO
+ * reuse more code between "modules" and OutputModules
+ * get rid of the conversion to and from strings while parsing parameters
+ */
+
 package confdb.parser;
 
 import java.util.ArrayList;
@@ -13,7 +18,6 @@ import confdb.data.*;
 /**
  * JPythonParser
  * ------------
- * @author Philipp Schieferdecker
  *
  * Parse a flat *.py configuration file using Jython
  *
@@ -150,10 +154,7 @@ public class JPythonParser
         System.out.println("  File Name : "+name);
         System.out.println("  Leaf Name : "+leaf);
 
-        String pyCmd = null;
-
         try {
-
             pythonInterpreter = new PythonInterpreter();
 
             // need to set up search path
@@ -222,10 +223,7 @@ public class JPythonParser
         System.out.println("  File Name : "+name);
         System.out.println("  Leaf Name : "+leaf);
 
-        String pyCmd = null;
-
         try {
-
             pythonInterpreter = new PythonInterpreter();
 
             // need to set up search path
@@ -279,7 +277,7 @@ public class JPythonParser
         // add esmodules
         parseESModules(process);
         // set preferred essources / esmodules
-        //?
+        // TODO
         // add services
         parseServices(process);
 
@@ -315,7 +313,7 @@ public class JPythonParser
             parseServiceMap(producers);
     }
 
-    // parse EDSources:
+    // parse EDSource:
     // There is only one EDSource.
     private void parseEDSources(PyObject process) {
         PyObject source = (PyObject) process.__getattr__("_Process__source");
@@ -383,7 +381,6 @@ public class JPythonParser
 
     // parse EDSource dictionary
     private void parseEDSource(PyObject pydict) {
-
         String type  = getType(pydict);
         String label = getLabel(pydict);
 
@@ -703,9 +700,8 @@ public class JPythonParser
         } else alert(msg.err, "[parsePath] type Unknow " + type);
     }
 
-    private void updateModuleParameters(PyDictionary parameterContainer,
-            confdb.data.Instance module) {
-
+    private void updateModuleParameters(PyDictionary parameterContainer, confdb.data.Instance module)
+    {
         for (Object parameterObject : parameterContainer.entrySet()) {
             PyDictionary.Entry<String, PyObject> entry = (PyDictionary.Entry<String, PyObject>) parameterObject;
             parseParameter(entry.getKey(), entry.getValue(), module);
@@ -714,9 +710,8 @@ public class JPythonParser
     }
 
     // Basically the same as updateModuleParameters but an OutputModule parameter.
-    private void updateOutputModuleParameters(PyDictionary parameterContainer,
-            confdb.data.OutputModule module) {
-
+    private void updateOutputModuleParameters(PyDictionary parameterContainer, confdb.data.OutputModule module)
+    {
         for (Object parameterObject : parameterContainer.entrySet()) {
             PyDictionary.Entry<String, PyObject> entry = (PyDictionary.Entry<String, PyObject>) parameterObject;
             parseOutputModuleParameter(entry.getKey(), entry.getValue(), module);
@@ -901,54 +896,51 @@ public class JPythonParser
 
         // NOTE: This only can be a toplevel parameter:
         Parameter[] p = module.findParameters(parameterName, type);
-        Parameter ParameterToBeUpdated = null;
-        if (p == null) alert(msg.err, "[parseParameter] "+type+" parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
-        else {
+        Parameter parameterToBeUpdated = null;
+        if (p == null) {
+            alert(msg.war, "[parseParameter] " + type + " parameter '" + parameterName + "' not found in template for Module '" + module.name() +"'; will not be added.");
+        } else {
             for (int i = 0; i < p.length; i++) {
                 if (p[i].fullName().compareTo(parameterName) == 0) {
-                    ParameterToBeUpdated = p[i];// Parameter to update.
+                    parameterToBeUpdated = p[i];// Parameter to update.
+                    break;
                 }
             }
-
-            if (ParameterToBeUpdated == null){
-                alert(msg.err, "[parseParameter] "+ type +" parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
+            if (parameterToBeUpdated == null) {
+                alert(msg.war, "[parseParameter] " + type + " parameter '" + parameterName + "' not found in template for Module '" + module.name() +"'; will not be added.");
             }
         }
 
         //System.out.println(" ");
         //System.out.println("[parse] " + module.name()+": "+ parameterName);
 
-        if ("bool" == type) {
-            //Boolean v = convert(value, Boolean.class);
-
+        if ("bool" == type)
+        {
             module.updateParameter(parameterName, type, value.toString());
             module.findParameter(parameterName).setTracked(tracked);
-        } else if ("vbool" == type) {
+        }
+        else if ("vbool" == type)
+        {
             module.updateParameter(parameterName, type, value.toString());
             module.findParameter(parameterName).setTracked(tracked);
-
-        } else if ("uint32" == type || "int32" == type || "uint64" == type || "int64" == type) {
+        }
+        else if ("uint32" == type || "int32" == type || "uint64" == type || "int64" == type)
+        {
+            String svalue;
             if (type == "uint64") {
-                // Get Hexadecimal format by default.
-                String LHexStringValue = value.__hex__().toString();
-                String svalue = value.toString();
-                svalue = cleanBrackets(LHexStringValue);
-                svalue = fixLongNumber(svalue);
-
-                module.updateParameter(parameterName, type, svalue);
+                // Use Hexadecimal format by default.
+                svalue = value.__hex__().toString();
             } else {
                 // Default case:
-                //System.out.println("CASTING NUMBER TO STRING!" + value.__str__().toString());
-
-                String svalue = value.toString();
-                svalue = cleanBrackets(svalue);
-                svalue = fixLongNumber(svalue);
-                module.updateParameter(parameterName, type, svalue);
+                svalue = value.toString();
             }
+            svalue = cleanBrackets(svalue);
+            svalue = fixLongNumber(svalue);
+            module.updateParameter(parameterName, type, svalue);
             module.findParameter(parameterName).setTracked(tracked);
-
-        } else if ("vuint32" == type || "vint32" == type || "vuint64" == type || "vint64" == type) {
-
+        }
+        else if ("vuint32" == type || "vint32" == type || "vuint64" == type || "vint64" == type)
+        {
             // NOTE: No need to convert or to cast value by value.
             // It can be done at once, but erasing the vector brackets.
             confdb.data.Parameter param = module.findParameter(parameterName);
@@ -962,15 +954,15 @@ public class JPythonParser
                     module.findParameter(parameterName).setTracked(tracked);
                 } else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
             } else alert(msg.err, "[parseParameter] "+type+" parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
-
-        } else if ("double" == type) {
+        } 
+        else if ("double" == type)
+        {
             String svalue = value.toString();
-            //svalue = cleanBrackets(svalue);
-
             module.updateParameter(parameterName, type, svalue);
             module.findParameter(parameterName).setTracked(tracked);
-        } else if ("vdouble" == type) {
-
+        }
+        else if ("vdouble" == type)
+        {
             confdb.data.Parameter param = module.findParameter(parameterName);
             if (param != null) {
                 if (param instanceof VectorParameter) {
@@ -983,17 +975,18 @@ public class JPythonParser
                     module.findParameter(parameterName).setTracked(tracked);
                 } else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
             } else alert(msg.err, "[parseParameter] vdouble parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
-
-        } else if ("string" == type) {
+        }
+        else if ("string" == type)
+        {
             String v = convert(value, String.class);
             if (v.isEmpty()) {
                 v = "\"\""; // Empty string from the point of view of the GUI.
             }
-
             module.updateParameter(parameterName, type, v);
             module.findParameter(parameterName).setTracked(tracked);
-        } else if ("vstring" == type) {
-
+        }
+        else if ("vstring" == type)
+        {
             confdb.data.Parameter param = module.findParameter(parameterName);
             if (param != null) {
                 if (param instanceof VectorParameter) {
@@ -1005,15 +998,16 @@ public class JPythonParser
                     module.findParameter(parameterName).setTracked(tracked);
                 } else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
             } else alert(msg.err, "[parseParameter] vstring parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
-
-        } else if ("PSet" == type) {
+        }
+        else if ("PSet" == type)
+        {
             module.updateParameter(parameterName, type,"");
             PSetParameter pset = parsePSetParameter(parameterObject, parameterName);
             module.updateParameter(parameterName, type, pset.valueAsString());
             module.findParameter(parameterName).setTracked(tracked);
-
-        } else if ("VPSet" == type) {
-
+        }
+        else if ("VPSet" == type)
+        {
             confdb.data.Parameter param = module.findParameter(parameterName);
             if (param != null) {
                 if (param instanceof VPSetParameter) {
@@ -1023,20 +1017,24 @@ public class JPythonParser
                     module.findParameter(parameterName).setTracked(tracked);
                 } else alert(msg.err, "[parseParameter] parameter not VPSetParameter! " + parameterName);
             } else alert(msg.err, "[parseParameter] VPSet parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
-
-        } else if ("FileInPath" == type) {
+        }
+        else if ("FileInPath" == type)
+        {
             module.updateParameter(parameterName, type, value.toString());
             module.findParameter(parameterName).setTracked(tracked);
-
-        } else if ("InputTag" == type) {
+        }
+        else if ("InputTag" == type)
+        {
             module.updateParameter(parameterName, type, value.toString());
             module.findParameter(parameterName).setTracked(tracked);
-
-        } else if ("ESInputTag" == type) {
+        }
+        else if ("ESInputTag" == type)
+        {
             module.updateParameter(parameterName, type, value.toString());
             module.findParameter(parameterName).setTracked(tracked);
-
-        } else if ("VInputTag" == type) {
+        }
+        else if ("VInputTag" == type)
+        {
             confdb.data.Parameter param = module.findParameter(parameterName);
             if (param != null) {
                 if (param instanceof VectorParameter) {
@@ -1048,8 +1046,9 @@ public class JPythonParser
                     module.findParameter(parameterName).setTracked(tracked);
                 } else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
             } else alert(msg.err, "[parseParameter] VInputTag parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
-
-        } else if ("VESInputTag" == type) {
+        }
+        else if ("VESInputTag" == type)
+        {
             confdb.data.Parameter param = module.findParameter(parameterName);
             if (param != null) {
                 if (param instanceof VectorParameter) {
@@ -1061,8 +1060,9 @@ public class JPythonParser
                     module.findParameter(parameterName).setTracked(tracked);
                 } else alert(msg.err, "[parseParameter] parameter not VectorParameter! " + parameterName);
             } else alert(msg.err, "[parseParameter] VESInputTag parameter '" + parameterName + "' not found! at Module '" + module.name() +"'");
-
-        } else {
+        }
+        else
+        {
             alert(msg.war, "[parseParameter] TYPE: [unsupported] " + type);
         }
 
