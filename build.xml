@@ -11,6 +11,7 @@
   <property name="dir.icons"  location="icons"/>
   <property name="dir.lib"    location="lib"/>
   <property name="dir.python" location="python"/>
+  <property name="build.compiler" value="modern"/>
 
   <!-- initialize variables, make directories, make sure the libraries are signed -->
   <target name="init">
@@ -18,6 +19,16 @@
     <mkdir dir="${dir.build}/JNLP-INF"/>
     <mkdir dir="${dir.lib}"/>
     <mkdir dir="${dir.signed}"/>
+  </target>
+
+  <!-- compile all *.py files under python/ to *$py.class files -->
+  <target name="python" depends="init">
+    <!-- java -jar ~/src/ConfDB/ext/jython.jar -m compileall python-->
+    <java jar="${dir.ext}/jython.jar" fork="true">
+      <arg value="-m"/>
+      <arg value="compileall"/>
+      <arg value="${dir.python}"/>
+    </java>
   </target>
 
   <!-- compile all *.java files in src/** to *.class files in classes/** -->
@@ -40,7 +51,7 @@
   </target>
 
   <!-- combine all classes into jar file -->
-  <target name="gui" depends="compile,jnlp">
+  <target name="gui" depends="python,compile,jnlp">
     <jar jarfile="${dir.lib}/cmssw-evf-confdb-gui.jar">
       <fileset dir="${dir.build}"/>
       <fileset dir="${dir.icons}"/>
@@ -156,6 +167,7 @@
       <fileset dir="${dir.build}"/>
       <fileset dir="${dir.lib}"/>
       <fileset dir="${dir.signed}"/>
+      <fileset dir="${dir.python}" includes="**/*.class"/>
     </delete>
     <echo message="clean successful"/>
   </target>
