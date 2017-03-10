@@ -1,3 +1,9 @@
+2017-03-10 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V02-05-01
+	* clean up, update, and properly initialize the jython parsing code
+	* fix parsing of python when running from Java WebStart
+	* more useful message after a successful deployment
+
 2017-03-07 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V02-05-00
 	* update Jython to version 2.7.1rc1 + hg 8049 + fix to Lib/inspect.py (#2566)
