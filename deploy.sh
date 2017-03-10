@@ -15,4 +15,4 @@ sed -i "s#\$\$codebase#$URL#" $BASE/gui/start.jnlp
 mkdir -p $BASE/lib
 cp lib/*.jar ext/signed/*.jar $BASE/lib
 
-echo "ConfDB GUI version `cat $BASE/confdb.version | grep confdb.version | cut -d= -f2` successfully deployed at $URL"
+echo "ConfDB GUI version `cat $BASE/confdb.version | grep confdb.version | cut -d= -f2` successfully deployed at ${URL}start.jnlp"
