@@ -12,7 +12,7 @@
   </security>
   <update check="always" policy="prompt-update"/>
   <resources>
-    <j2se version="1.8+" java-vm-args="-Doracle.jdbc.timezoneAsRegion=false -Dcpython_cmd=python"/>
+    <j2se version="1.8+" java-vm-args="-Doracle.jdbc.timezoneAsRegion=false"/>
     <jar href="cmssw-evf-confdb-gui.jar" main="true" download="eager"/>
     <jar href="mysql-connector-java-5.0.5-bin.jar" download="eager"/>
     <jar href="ojdbc6.jar" download="eager"/>

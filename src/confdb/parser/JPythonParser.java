@@ -159,12 +159,10 @@ public class JPythonParser
 
             // need to set up search path
             pyCmd("import sys");
-            pyCmd("sys.path.append('"+path+"')");
+            pyCmd("sys.path.append('"+path+"')");   // add the .py file's path
+            pyCmd("import pycimport");              // load bytecode .pyc files if available
             pyCmd("print sys.path");
 
-            pyCmd("import sys");
-            pyCmd("sys.path.append('python')");   // add the CMSSW Python path
-            pyCmd("import pycimport");            // load precompiled .pyc files
             /////////////////////////////////////////////////////////
 
             // now import process object from (uncompiled) py file

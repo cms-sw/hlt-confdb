@@ -25,8 +25,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -411,6 +413,30 @@ public class ConfDbGUI
 	    });
     }
     
+
+    private static String findPython27() {
+        // look for an external Python 2.7 interpreter
+        String[] filenames = { "python2.7", "python27", "python2", "python" };
+
+        String extension = "";
+        if (System.getProperty("os.name").toUpperCase().startsWith("WINDOWS"))
+            extension = ".exe";
+
+        try {
+            String path = System.getenv("PATH");
+            for (String filename: filenames) {
+                for (String dir: path.split(java.io.File.pathSeparator)) {
+                    File file = new File(dir + java.io.File.separatorChar + filename + extension);
+                    if (file.exists() && file.canExecute()) {
+                        return file.getCanonicalPath();
+                    }
+                }
+            }
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
     
     //
     // main
@@ -419,9 +445,17 @@ public class ConfDbGUI
     /** main method, thread-safe call to createAndShowGUI */
     public static void main(String[] args)
     {
+        // initialize the Jython interpreter
+        Properties properties = new Properties();
+        properties.setProperty("python.path", "__pyclasspath__/Lib");
+        String python27 = findPython27();
+        if (python27 != null && python27 != "")
+            properties.setProperty("cpython_cmd", python27);
+        PythonInterpreter.initialize(System.getProperties(), properties, args);
+
 	javax.swing.SwingUtilities.invokeLater(new Runnable() {
-		public void run() { createAndShowGUI(); }
-	    });
+            public void run() { createAndShowGUI(); }
+	});
     }
     
     /** create the GUI and show it */
