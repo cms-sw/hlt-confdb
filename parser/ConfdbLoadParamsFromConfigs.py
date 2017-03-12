@@ -797,16 +797,23 @@ class ConfdbLoadParamsfromConfigs:
                 self.LoadUpdateParam(paramname,psetname,paramval,psetsid)
                 
             else:
+                vobjectsuperid = self.LoadUpdateVPSet(paramname,psetname,paramval,psetsid)
+                self.nesting.append(('VPSet',paramname,vobjectsuperid))
                 self.VerbosePrint("\t\t" + str(psetname) + "." + str(paramname) + "\t" + str(paramval.configTypeName()) + "[" + str(len(paramval)) + "]",1)
+                subpsetname = str(paramval.configTypeName()) + "[" + str(len(paramval)) + "]"
                 i = 1
+                prevpsetiterseq = self.localseq
                 for vpsetentry in paramval:
-                    subobjectsuperid = self.LoadUpdatePSet(paramname,psetname,paramval,psetsid)
-                    self.nesting.append(('PSet',paramname,subobjectsuperid))
+                    self.localseq = i-1
+                    vobjectmembersuperid = self.LoadUpdatePSet(paramname,subpsetname,paramval,vobjectsuperid)
+                    self.nesting.append(('PSet','VPSet['+str(i)+']',vobjectmembersuperid))
                     prerecursionseq = self.localseq
-                    self.DoPsetRecursion(vpsetentry,psetname+'['+str(i)+']',subobjectsuperid)
+                    self.DoPsetRecursion(vpsetentry,paramname+'['+str(i)+']',vobjectmembersuperid)
                     self.localseq = prerecursionseq
                     del self.nesting[-1]
                     i = i + 1
+                self.localseq = prevpsetiterseq
+                del self.nesting[-1]
     
     def xstr(self,s):
         if s is None:
@@ -883,7 +890,7 @@ class ConfdbLoadParamsfromConfigs:
             self.VerbosePrint("The last inserted sequenceNb for this component was " + str(nextseqid),2)
             self.localseq = nextseqid + 1
             self.VerbosePrint("The first parameter will be inserted with sequenceNb " + str(self.localseq),2)
-            
+             
             if(componentsuperid != -1):
                 params = value.parameters_()
 
@@ -902,8 +909,8 @@ class ConfdbLoadParamsfromConfigs:
                         self.LoadUpdateParam(paramname,psetname,paramval,componentsuperid)
 
                     else:
-                        vobjectsuperid = self.LoadUpdateVPSet(paramname,psetname,paramval,componentsuperid)
                         vpsetname = paramname
+                        vobjectsuperid = self.LoadUpdateVPSet(paramname,vpsetname,paramval,componentsuperid)
                         self.nesting.append(('VPSet',paramname,vobjectsuperid))
                         self.VerbosePrint("\t\t" + str(paramname) + "\t" + str(paramval.configTypeName()) + "[" + str(len(paramval)) + "]", 1)
                         psetname = str(paramval.configTypeName()) + "[" + str(len(paramval)) + "]"
@@ -1046,8 +1053,8 @@ class ConfdbLoadParamsfromConfigs:
                     self.LoadUpdateParam(paramname,psetname,paramval,componentsuperid)
 
                 else:
-                    vobjectsuperid = self.LoadUpdateVPSet(paramname,psetname,paramval,componentsuperid)
                     vpsetname = paramname
+                    vobjectsuperid = self.LoadUpdateVPSet(paramname,vpsetname,paramval,componentsuperid)
                     self.nesting.append(('VPSet',paramname,objectsuperid))
                     self.VerbosePrint("\t\t" + str(paramname) + "\t" + str(paramval.configTypeName()) + "[" + str(len(paramval)) + "]", 1)
                     psetname = str(paramval.configTypeName()) + "[" + str(len(paramval)) + "]"
@@ -1435,7 +1442,7 @@ class ConfdbLoadParamsfromConfigs:
 
         returnid = 0
         paramistracked = 0
-
+        
         parametertype = pval.configTypeName()
         if parametertype == 'PSet':
             # work around PSet with a parameter named "value"
@@ -1443,7 +1450,7 @@ class ConfdbLoadParamsfromConfigs:
         else:
             parametervalue = pval.value()
         parametertracked = pval.isTracked()
-
+ 
         if(parametertype.find("untracked") != -1):
             parametertype = parametertype.split("untracked")[1].lstrip().rstrip()
 
