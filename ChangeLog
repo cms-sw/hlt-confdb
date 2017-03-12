@@ -1,3 +1,7 @@
+2017-03-12 Sandro Ventura <sandro.ventura@cern.ch>
+	* tag V02-04-06
+	* fix SW release parsing of VPset contained in PSet 
+
 2016-10-06 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V02-04-05
 	* fix handling of completely empty string paramaters
