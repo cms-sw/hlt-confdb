@@ -3,7 +3,15 @@
 
   <description>Build ConfDB project.</description>
 
+  <!--load additional ant tasks-->
+  <taskdef resource="net/sf/antcontrib/antlib.xml">
+    <classpath>
+      <pathelement location="antlib/ant-contrib-1.0b3.jar"/>
+    </classpath>
+  </taskdef>
+
   <property environment="env"/>
+  <property name="build.compiler" value="modern"/>
   <property name="dir.src"    location="src"/>
   <property name="dir.ext"    location="ext"/>
   <property name="dir.signed" location="ext/signed"/>
@@ -11,24 +19,71 @@
   <property name="dir.icons"  location="icons"/>
   <property name="dir.lib"    location="lib"/>
   <property name="dir.python" location="python"/>
-  <property name="build.compiler" value="modern"/>
+  <property name="sign.store" value="/afs/cern.ch/user/c/confdb/private/certificate/certificate.p12"/>
+  <property name="sign.alias" value="cms confdb's  id"/>
+  <property name="sign.pass"  value="confdb"/>
+  <property name="sign.tsa"   value="https://timestamp.geotrust.com/tsa"/>
+  <!-- alternative tsaurl="http://time.certum.pl/" -->
 
-  <!-- initialize variables, make directories, make sure the libraries are signed -->
+  <!-- initialize variables, make directories, check what needs to be rebuilt -->
   <target name="init">
     <mkdir dir="${dir.build}"/>
     <mkdir dir="${dir.build}/JNLP-INF"/>
     <mkdir dir="${dir.lib}"/>
     <mkdir dir="${dir.signed}"/>
+    <uptodate property="python.uptodate" targetfile="${dir.lib}/cmssw-python.jar">
+      <srcfiles dir="${dir.python}" includes="**/*.py"/>
+    </uptodate>
+    <resourcecount property="python.files">
+      <fileset dir="${dir.python}" includes="**/*.py"/>
+    </resourcecount>
+    <uptodate property="gui.uptodate" targetfile="${dir.lib}/cmssw-evf-confdb-gui.jar">
+      <srcfiles dir="${dir.src}"/>
+      <srcfiles dir="${dir.icons}"/>
+    </uptodate>
+    <available file="${sign.store}" property="sign.available"/>
   </target>
 
   <!-- compile all *.py files under python/ to *$py.class files -->
-  <target name="python" depends="init">
-    <!-- java -jar ~/src/ConfDB/ext/jython.jar -m compileall python-->
+  <target name="python" depends="init" unless="python.uptodate">
+    <echo message="Python: compile ${python.files} python files to python bytecode"/>
+    <exec executable="python2.7">
+      <arg value="-m"/>
+      <arg value="compileall"/>
+      <arg value="-q"/>
+      <arg value="${dir.python}"/>
+    </exec>
+    <echo message="Jython: compile ${python.files} python files to java class data"/>
     <java jar="${dir.ext}/jython.jar" fork="true">
       <arg value="-m"/>
       <arg value="compileall"/>
+      <arg value="-q"/>
       <arg value="${dir.python}"/>
     </java>
+    <jar jarfile="${dir.lib}/cmssw-python.jar">
+      <fileset dir="${dir.python}"/>
+      <manifest>
+        <attribute name="Application-Name"                          value="CMSSW python library"/>
+        <attribute name="Vendor"                                    value="CMS ConfDB"/>
+        <attribute name="Codebase"                                  value="*"/>
+        <attribute name="Application-Library-Allowable-Codebase"    value="*"/>
+        <attribute name="Permissions"                               value="all-permissions"/>
+        <attribute name="Trusted-Only"                              value="true"/>
+      </manifest>
+    </jar>
+    <if>
+      <istrue value="${sign.available}"/>
+      <then>
+        <signjar keystore="${sign.store}" storepass="${sign.pass}" alias="${sign.alias}" lazy="true" preservelastmodified="false" tsaurl="${sign.tsa}">
+          <fileset file="${dir.lib}/cmssw-python.jar"/>
+        </signjar>
+      </then>
+      <else>
+        <echo message=""/>
+        <echo message="Warning:"/>
+        <echo message="The keystore is not available, the .jar files will not be signed."/>
+      </else>
+    </if>
   </target>
 
   <!-- compile all *.java files in src/** to *.class files in classes/** -->
@@ -42,36 +97,41 @@
     </javac>
   </target>
 
-  <!-- create a JNLP template based on the GUI jnlp, to be included in the signed .jar -->
-  <target name="jnlp" depends="init">
-    <!--
-    <copy file="browser/WebContent/gui/start.jnlp" tofile="${dir.build}/JNLP-INF/APPLICATION_TEMPLATE.JNLP" overwrite="true"/>
-    <replace file="${dir.build}/JNLP-INF/APPLICATION_TEMPLATE.JNLP" token="$$$$codebase" value="*"/>
-    -->
-  </target>
-
   <!-- combine all classes into jar file -->
-  <target name="gui" depends="python,compile,jnlp">
+  <target name="gui" depends="compile" unless="gui.uptodate">
     <jar jarfile="${dir.lib}/cmssw-evf-confdb-gui.jar">
       <fileset dir="${dir.build}"/>
       <fileset dir="${dir.icons}"/>
-      <fileset dir="${dir.src}"><include name="conf/*"/></fileset>
-      <!-- include python FWCore -->
-      <fileset dir="${dir.python}"/>
+      <fileset dir="${dir.src}">
+        <include name="conf/*"/>
+      </fileset>
       <manifest>
         <attribute name="Application-Name"                          value="CMS ConfDB GUI" />
         <attribute name="Vendor"                                    value="CMS ConfDB"/>
         <attribute name="Main-Class"                                value="confdb.gui.ConfDbGUI"/>
-        <attribute name="Codebase"                                  value="*"/>     <!-- value="http://j2eeps.cern.ch/ https://j2eeps.cern.ch/ file:/"/> -->
-        <attribute name="Application-Library-Allowable-Codebase"    value="*"/>     <!-- value="http://j2eeps.cern.ch/ https://j2eeps.cern.ch/ file:/"/> -->
+        <attribute name="Codebase"                                  value="*"/>
+        <attribute name="Application-Library-Allowable-Codebase"    value="*"/>
         <attribute name="Permissions"                               value="all-permissions"/>
         <attribute name="Trusted-Only"                              value="true"/>
       </manifest>
     </jar>
+    <if>
+      <istrue value="${sign.available}"/>
+      <then>
+        <signjar keystore="${sign.store}" storepass="${sign.pass}" alias="${sign.alias}" lazy="true" preservelastmodified="false" tsaurl="${sign.tsa}">
+          <fileset file="${dir.lib}/cmssw-evf-confdb-gui.jar"/>
+        </signjar>
+      </then>
+      <else>
+        <echo message=""/>
+        <echo message="Warning:"/>
+        <echo message="The keystore is not available, the .jar files will not be signed."/>
+      </else>
+    </if>
   </target>
 
   <!-- combine converter-relevant classes into jar file -->
-  <target name="converter" depends="compile">
+  <target name="converter" depends="compile" unless="gui.uptodate">
     <jar jarfile="${dir.lib}/cmssw-evf-confdb-converter.jar">
       <fileset dir="${dir.build}">
         <exclude name="confdb/gui/**"/>
@@ -84,73 +144,77 @@
         <attribute name="Main-Class" value="confdb.converter.Converter" />
       </manifest>
     </jar>
+    <if>
+      <istrue value="${sign.available}"/>
+      <then>
+        <signjar keystore="${sign.store}" storepass="${sign.pass}" alias="${sign.alias}" lazy="true" preservelastmodified="false" tsaurl="${sign.tsa}">
+          <fileset file="${dir.lib}/cmssw-evf-confdb-converter.jar"/>
+        </signjar>
+      </then>
+      <else>
+        <echo message=""/>
+        <echo message="Warning:"/>
+        <echo message="The keystore is not available, the .jar files will not be signed."/>
+      </else>
+    </if>
   </target>
 
-  <!-- combine converter-relevant classes into jar file -->
-  <target name="browser" depends="compile">
-    <jar jarfile="${dir.lib}/cmssw-evf-confdb-browser.jar">
+  <!-- combine parser-relevant classes into jar file -->
+  <target name="parser" depends="compile" unless="gui.uptodate">
+    <jar jarfile="${dir.lib}/cmssw-evf-confdb-parser.jar">
       <fileset dir="${dir.build}">
         <exclude name="confdb/gui/**"/>
-        <exclude name="confdb/parser/**"/>
       </fileset>
       <fileset dir="${dir.src}">
         <include name="conf/*"/>
       </fileset>
-    </jar>
-  </target>
-
-  <!-- combine parser-relevant classes into jar file -->
-  <target name="parser" depends="compile">
-    <jar jarfile="${dir.lib}/cmssw-evf-confdb-parser.jar">
-      <fileset dir="${dir.build}"><exclude name="confdb/gui/**"/></fileset>
-      <fileset dir="${dir.src}"><include name="conf/*"/></fileset>
       <manifest>
         <attribute name="Main-Class" value="confdb.parser.PythonParser" />
       </manifest>
     </jar>
+    <if>
+      <istrue value="${sign.available}"/>
+      <then>
+        <signjar keystore="${sign.store}" storepass="${sign.pass}" alias="${sign.alias}" lazy="true" preservelastmodified="false" tsaurl="${sign.tsa}">
+          <fileset file="${dir.lib}/cmssw-evf-confdb-parser.jar"/>
+        </signjar>
+      </then>
+      <else>
+        <echo message=""/>
+        <echo message="Warning:"/>
+        <echo message="The keystore is not available, the .jar files will not be signed."/>
+      </else>
+    </if>
   </target>
 
   <!-- sign all external jar files -->
   <target name="signext" depends="init">
-    <!-- alternative tsaurl="http://time.certum.pl/" -->
-    <signjar keystore="/afs/cern.ch/user/c/confdb/private/certificate/certificate.p12" storepass="confdb" alias="cms confdb's  id" lazy="true" preservelastmodified="false" tsaurl="https://timestamp.geotrust.com/tsa" destdir="${dir.signed}">
-      <fileset dir="${dir.ext}" includes="*.jar"/>
-    </signjar>
-  </target>
-
-  <!-- sign all compiled jar files -->
-  <target name="signlib" depends="compile,gui,parser,browser,converter">
-    <!-- alternative tsaurl="http://time.certum.pl/" -->
-    <signjar keystore="/afs/cern.ch/user/c/confdb/private/certificate/certificate.p12" storepass="confdb" alias="cms confdb's  id" lazy="true" preservelastmodified="false" tsaurl="https://timestamp.geotrust.com/tsa">
-      <fileset dir="${dir.lib}" includes="*.jar"/>
-    </signjar>
-  </target>
-
-  <!-- combine webservice relevant files into war file -->
-  <target name="war" depends="signext,signlib">
-    <war destfile="${dir.lib}/confdb.war" webxml="browser/WebContent/WEB-INF/web.xml">
-      <lib file="${dir.lib}/cmssw-evf-confdb-browser.jar"/>
-      <lib file="${dir.signed}/mysql-connector-java-5.0.5-bin.jar"/>
-
-      <!-- move confdb version file in the root path of the container -->
-      <fileset file="${dir.src}/conf/confdb.version"/>
-
-      <fileset dir="browser/WebContent" excludes="WEB-INF/web.xml"/>
-      <zipfileset dir="${dir.lib}" includes="cmssw-evf-confdb-gui.jar" prefix="gui"/>
-      <zipfileset dir="${dir.signed}" prefix="gui"/>
-    </war>
+    <if>
+      <istrue value="${sign.available}"/>
+      <then>
+        <signjar keystore="${sign.store}" storepass="${sign.pass}" alias="${sign.alias}" lazy="true" preservelastmodified="false" tsaurl="${sign.tsa}" destdir="${dir.signed}">
+          <fileset dir="${dir.ext}" includes="*.jar"/>
+        </signjar>
+      </then>
+      <else>
+        <echo message=""/>
+        <echo message="Warning:"/>
+        <echo message="The keystore is not available, the .jar files will not be signed."/>
+      </else>
+    </if>
   </target>
 
   <!-- build all targets -->
-  <target name="all" depends="compile,gui,parser,browser,converter,war"/>
+  <target name="all" depends="compile,python,gui,parser,converter,signext"/>
 
   <!-- run the ConfDB GUI -->
-  <target name="run" depends="gui" description="Start the ConfDB GUI.">
+  <target name="run" depends="gui,python,signext" description="Start the ConfDB GUI.">
     <java classname="confdb.gui.ConfDbGUI" fork="true">
       <classpath>
         <pathelement location="${dir.lib}/cmssw-evf-confdb-gui.jar"/>
+        <pathelement location="${dir.lib}/cmssw-python.jar"/>
         <pathelement location="${dir.signed}/ojdbc6.jar"/>
-        <pathelement location="${dir.signed}/jython-2.5.2.jar"/>
+        <pathelement location="${dir.signed}/jython.jar"/>
       </classpath>
     </java>
   </target>
@@ -158,15 +222,10 @@
   <!-- delete all class files -->
   <target name="clean">
     <delete includeemptydirs="true" quiet="true">
-      <!--
-      <fileset dir="${dir.build}" includes="**/*.class"/>
-      <fileset dir="${dir.build}" includes="JNLP-INF/*.JNLP"/>
-      <fileset dir="${dir.lib}" includes="**/*.jar"/>
-      <fileset dir="${dir.lib}" includes="**/*.war"/>
-      -->
       <fileset dir="${dir.build}"/>
       <fileset dir="${dir.lib}"/>
       <fileset dir="${dir.signed}"/>
+      <fileset dir="${dir.python}" includes="**/*.pyc"/>
       <fileset dir="${dir.python}" includes="**/*.class"/>
     </delete>
     <echo message="clean successful"/>
