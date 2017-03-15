@@ -53,7 +53,7 @@
       <arg value="-q"/>
       <arg value="${dir.python}"/>
     </exec>
-    <echo message="Jython: compile ${python.files} python files to java class data"/>
+    <echo message="Jython: compile ${python.files} python files to java bytecode"/>
     <java jar="${dir.ext}/jython.jar" fork="true">
       <arg value="-m"/>
       <arg value="compileall"/>
