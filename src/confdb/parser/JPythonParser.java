@@ -230,7 +230,7 @@ public class JPythonParser
         parsePathsFromPython(process);
 
         // add outputmodules + Streams + EventContents
-        parseOutputModules(process);
+        // FIXME parseOutputModules(process);
 
         // add global psets + Streams + Datasets
         parsePSets(process); // this need to go after Paths to properly link the Datasets.
