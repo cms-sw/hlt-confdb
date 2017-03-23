@@ -1,11 +1,17 @@
 #! /bin/bash -e
 
 # set the target directory
-BASE=$HOME/www/test
-URL=http://confdb.web.cern.ch/confdb/test/gui/
+BASE=$HOME/www/v2
+URL=http://confdb.web.cern.ch/confdb/v2/gui/
+
+# backup an existing directory
+if [ -e "$BASE" ]; then
+  BACKUP=$BASE.`date -u -r $BASE +%Y%m%d.%H%M%S`
+  mv $BASE $BACKUP
+  echo "ConfDB GUI version `cat $BACKUP/confdb.version | grep confdb.version | cut -d= -f2` backed up at ${BACKUP}"
+fi
 
 # create the target directory
-rm -rf $BASE
 mkdir -p $BASE
 mkdir -p $BASE/lib
 mkdir -p $BASE/gui
