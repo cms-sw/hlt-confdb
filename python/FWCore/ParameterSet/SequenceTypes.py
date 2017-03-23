@@ -16,9 +16,9 @@ class _Sequenceable(object):
     def __init__(self):
         pass
     def __mul__(self,rhs):
-        return _SequenceOpAids(self,rhs)
+        return _SequenceCollection(self,rhs)
     def __add__(self,rhs):
-        return _SequenceOpFollows(self,rhs)
+        return _SequenceCollection(self,rhs)
     def __invert__(self):
         return _SequenceNegation(self)
     def _clonesequence(self, lookuptable):
@@ -26,18 +26,12 @@ class _Sequenceable(object):
             return lookuptable[id(self)]
         except:
             raise KeyError("no "+str(type(self))+" with id "+str(id(self))+" found")
-    def _replace(self, original, replacement):
-        pass
-    def _remove(self, original):
-        """Remove 'original'. Return can be
-             (_Sequenceable, True ): module was found and removed, this is the new non-empty sequence.
-             (_Sequenceable, False): module was not found, this is the original sequence (that is, 'self')
-             (None,          True ): the module was found and removed, the result is an empty sequence."""
-        return (self, False)
-    def resolve(self, processDict):
+    def resolve(self, processDict,keepIfCannotResolve=False):
         return self
     def isOperation(self):
         """Returns True if the object is an operator (e.g. *,+ or !) type"""
+        return False
+    def isLeaf(self):
         return False
     def _visitSubNodes(self,visitor):
         pass
@@ -45,9 +39,9 @@ class _Sequenceable(object):
         visitor.enter(self)
         self._visitSubNodes(visitor)
         visitor.leave(self)
-    def findHardDependencies(self, sequenceName, dependencyDict):
-        pass
-
+    def _appendToCollection(self,collection):
+        collection.append(self)
+        
 def _checkIfSequenceable(caller, v):
     if not isinstance(v,_Sequenceable):
         typename = format_typename(caller)
@@ -57,9 +51,136 @@ def _checkIfSequenceable(caller, v):
         msg +="\nPlease remove the problematic object from the argument list"
         raise TypeError(msg)
 
+def _checkIfBooleanLogicSequenceable(caller, v):
+    if not isinstance(v,_BooleanLogicSequenceable):
+        typename = format_typename(caller)
+        msg = format_outerframe(2)
+        msg += "%s only takes arguments of types which are allowed in a boolean logic sequence, but was given:\n" %typename
+        msg +=format_typename(v)
+        msg +="\nPlease remove the problematic object from the argument list"
+        raise TypeError(msg)
+
+class _BooleanLogicSequenceable(_Sequenceable):
+    """Denotes an object which can be used in a boolean logic sequence"""
+    def __init__(self):
+        super(_BooleanLogicSequenceable,self).__init__()
+    def __or__(self,other):
+        return _BooleanLogicExpression(_BooleanLogicExpression.OR,self,other)
+    def __and__(self,other):
+        return _BooleanLogicExpression(_BooleanLogicExpression.AND,self,other)
+
+
+class _BooleanLogicExpression(_BooleanLogicSequenceable):
+    """Contains the operation of a boolean logic expression"""
+    OR = 0
+    AND = 1
+    def __init__(self,op,left,right):
+        _checkIfBooleanLogicSequenceable(self,left)
+        _checkIfBooleanLogicSequenceable(self,right)
+        self._op = op
+        self._items = list()
+        #if either the left or right side are the same kind of boolean expression
+        # then we can just add their items to our own. This keeps the expression
+        # tree more compact
+        if isinstance(left,_BooleanLogicExpression) and left._op == self._op:
+            self._items.extend(left._items)
+        else:
+            self._items.append(left)
+        if isinstance(right,_BooleanLogicExpression) and right._op == self._op:
+            self._items.extend(right._items)
+        else:
+            self._items.append(right)
+    def isOperation(self):
+        return True
+    def _visitSubNodes(self,visitor):
+        for i in self._items:
+            i.visitNode(visitor)
+    def dumpSequencePython(self):
+        returnValue = ''
+        join = ''
+        operatorJoin =self.operatorString()
+        for m in self._items:
+            returnValue +=join
+            join = operatorJoin
+            if not isinstance(m,_BooleanLogicSequenceLeaf):
+                returnValue += '('+m.dumpSequencePython()+')'
+            else:
+                returnValue += m.dumpSequencePython()
+        return returnValue
+    def operatorString(self):
+        returnValue ='|'
+        if self._op == self.AND:
+            returnValue = '&'
+        return returnValue
+
+
 class _SequenceLeaf(_Sequenceable):
     def __init__(self):
         pass
+    def isLeaf(self):
+        return True
+
+
+class _BooleanLogicSequenceLeaf(_BooleanLogicSequenceable):
+    def __init__(self):
+        pass
+    def isLeaf(self):
+        return True
+
+class _SequenceCollection(_Sequenceable):
+    """Holds representation of the operations without having to use recursion.
+    Operations are added to the beginning of the list and their operands are
+    added to the end of the list, with the left added before the right
+    """
+    def __init__(self,*seqList):
+        self._collection = list()
+        for s in seqList:
+            _checkIfSequenceable(self,s)
+            s._appendToCollection(self._collection)
+    def __mul__(self,rhs):
+        _checkIfSequenceable(self,rhs)
+        rhs._appendToCollection(self._collection)
+        return self
+    def __add__(self,rhs):
+        _checkIfSequenceable(self,rhs)
+        rhs._appendToCollection(self._collection)
+        return self
+    def __str__(self):
+        sep = ''
+        returnValue = ''
+        for m in self._collection:
+            if m is not None:
+                returnValue += sep+str(m)
+                sep = '+'
+        return returnValue
+    def _appendToCollection(self,collection):
+        collection.extend(self._collection)
+    def dumpSequencePython(self):
+        returnValue = ''
+        separator = ''
+        for item in self._collection:
+            itemDump = item.dumpSequencePython()
+            if itemDump:
+                returnValue += (separator + itemDump)
+                separator = '+'
+        return returnValue
+    def dumpSequenceConfig(self):
+        returnValue = self._collection[0].dumpSequenceConfig()
+        for m in self._collection[1:]:
+            returnValue += '&'+m.dumpSequenceConfig()        
+        return returnValue
+    def visitNode(self,visitor):
+        for m in self._collection:
+            m.visitNode(visitor)
+    def resolve(self, processDict,keepIfCannotResolve=False):
+        self._collection = [x.resolve(processDict,keepIfCannotResolve) for x in self._collection]
+        return self
+    def index(self,item):
+        return self._collection.index(item)
+    def insert(self,index,item):
+        self._collection.insert(index,item)
+
+
 
 class _ModuleSequenceType(_ConfigureComponent, _Labelable):
     """Base class for classes which define a sequence of modules"""
@@ -76,7 +197,8 @@ class _ModuleSequenceType(_ConfigureComponent, _Labelable):
             raise TypeError(msg)
         if len(arg)==1:
             _checkIfSequenceable(self, arg[0])
-            self._seq = arg[0]
+            self._seq = _SequenceCollection()
+            arg[0]._appendToCollection(self._seq._collection)
         self._isModified = False
     def isFrozen(self):
         return self._isFrozen
@@ -87,27 +209,30 @@ class _ModuleSequenceType(_ConfigureComponent, _Labelable):
     def __imul__(self,rhs):
         _checkIfSequenceable(self, rhs)
         if self._seq is None:
-            self._seq = rhs
-        else:
-            self._seq = _SequenceOpAids(self._seq,rhs)
+            self.__dict__["_seq"] = _SequenceCollection()
+        self._seq+=rhs
         return self
     def __iadd__(self,rhs):
         _checkIfSequenceable(self, rhs)
         if self._seq is None:
-            self._seq = rhs
-        else:
-            self._seq = _SequenceOpFollows(self._seq,rhs)
+            self.__dict__["_seq"] = _SequenceCollection()
+        self._seq += rhs
         return self
     def __str__(self):
         return str(self._seq)
     def dumpConfig(self, options):
-        return '{'+self._seq.dumpSequenceConfig()+'}\n'
+        s = ''
+        if self._seq is not None:
+            s = self._seq.dumpSequenceConfig()
+        return '{'+s+'}\n'
     def dumpPython(self, options):
+        """Returns a string which is the python representation of the object"""
         s=''
         if self._seq is not None:
             s =self._seq.dumpSequencePython()
         return 'cms.'+type(self).__name__+'('+s+')\n'
     def dumpSequencePython(self):
+        """Returns a string which contains the python representation of just the internal sequence"""
         # only dump the label, if possible
         if self.hasLabel_():
             return _Labelable.dumpSequencePython(self)
@@ -115,12 +240,31 @@ class _ModuleSequenceType(_ConfigureComponent, _Labelable):
             # dump it verbose
             if self._seq is None:
                 return ''
-            return '('+self._seq.dumpSequencePython()+')'
+            s = self._seq.dumpSequencePython()
+            if s:
+              return '('+s+')'
+            return ''
+    def dumpSequenceConfig(self):
+        """Returns a string which contains the old config language representation of just the internal sequence"""
+        # only dump the label, if possible
+        if self.hasLabel_():
+            return _Labelable.dumpSequenceConfig(self)
+        else:
+            # dump it verbose
+            if self._seq is None:
+                return ''
+            return '('+self._seq.dumpSequenceConfig()+')'
     def __repr__(self):
         s = ''
         if self._seq is not None:
            s = str(self._seq)
         return "cms."+type(self).__name__+'('+s+')\n'
+    def moduleNames(self):
+        """Returns a set containing the names of all modules being used"""
+        result = set()
+        visitor = NodeNameVisitor(result)
+        self.visit(visitor)
+        return result
     def copy(self):
         returnValue =_ModuleSequenceType.__new__(type(self))
         if self._seq is not None:
@@ -128,6 +272,13 @@ class _ModuleSequenceType(_ConfigureComponent, _Labelable):
         else:
             returnValue.__init__()
         return returnValue
+    def copyAndExclude(self,listOfModulesToExclude):
+        """Returns a copy of the sequence which exlcudes those module in 'listOfModulesToExclude'"""
+        v = _CopyAndExcludeSequenceVisitor(listOfModulesToExclude)
+        self.visit(v)
+        result = self.__new__(type(self))
+        result.__init__(v.result())
+        return result
     def expandAndClone(self):
         visitor = ExpandVisitor(type(self))
         self.visit(visitor)
@@ -136,35 +287,40 @@ class _ModuleSequenceType(_ConfigureComponent, _Labelable):
         self._seq = self._seq._clonesequence(lookuptable)
         return self
     def replace(self, original, replacement):
+        """Finds all instances of 'original' and substitutes 'replacement' for them.
+           Returns 'True' if a replacement occurs."""
         if not isinstance(original,_Sequenceable) or not isinstance(replacement,_Sequenceable):
            raise TypeError("replace only works with sequenceable objects")
         else:
-           self._replace(original, replacement)
-    def _replace(self, original, replacement):
-        if self._seq == original:
-            self._seq = replacement
-        else:
-            if self._seq is not None:
-                self._seq._replace(original,replacement)
-    def remove(self, something):
-        """Remove the leftmost occurrence of 'something' (a sequence or a module)
-           It will give an error if removing 'something' leaves a cms.Sequence empty.
-           Returns 'True' if the module has been removed, False if it was not found"""
-        (seq, found) = self._remove(something)
-        return found
-    def _remove(self, original):
-        if (self._seq == original):
-            self._seq = None
-            return (None, True)
-        (self._seq, found) = self._seq._remove(original);
-        return (self, found)
-    def resolve(self, processDict):
+            v = _CopyAndReplaceSequenceVisitor(original,replacement)
+            self.visit(v)
+            if v.didReplace():
+                self._seq = v.result()
+            return v.didReplace()
+    def index(self,item):
+        """Returns the index at which the item is found or raises an exception"""
         if self._seq is not None:
-            self._seq = self._seq.resolve(processDict)
+            return self._seq.index(item)
+        raise ValueError(str(item)+" is not in the sequence")
+    def insert(self,index,item):
+        """Inserts the item at the index specified"""
+        _checkIfSequenceable(self, item)
+        self._seq.insert(index,item)
+    def remove(self, something):
+        """Remove the first occurrence of 'something' (a sequence or a module)
+           Returns 'True' if the module has been removed, False if it was not found"""
+        v = _CopyAndRemoveFirstSequenceVisitor(something)
+        self.visit(v)
+        if v.didRemove():
+            self._seq = v.result()
+        return v.didRemove()
+    def resolve(self, processDict,keepIfCannotResolve=False):
+        if self._seq is not None:
+            self._seq = self._seq.resolve(processDict,keepIfCannotResolve)
         return self
     def __setattr__(self,name,value):
         if not name.startswith("_"):
-            raise AttributeError, "You cannot set parameters for sequence like objects."
+            raise AttributeError("You cannot set parameters for sequence like objects.")
         else:
             self.__dict__[name] = value
     #def replace(self,old,new):
@@ -178,13 +334,6 @@ class _ModuleSequenceType(_ConfigureComponent, _Labelable):
     #def __contains__(self,item):
     #"""returns whether or not 'item' is in the sequence"""
     #def modules_(self):
-    def _findDependencies(self,knownDeps,presentDeps):
-        if self._seq is not None:
-            self._seq._findDependencies(knownDeps,presentDeps)
-    def moduleDependencies(self):
-        deps = dict()
-        self._findDependencies(deps,set())
-        return deps
     def nameInProcessDesc_(self, myname):
         return myname
     def insertInto(self, parameterSet, myname, processDict):
@@ -203,124 +352,8 @@ class _ModuleSequenceType(_ConfigureComponent, _Labelable):
         """
         if self._seq is not None:
             self._seq.visitNode(visitor)
-    def findHardDependencies(self, sequenceName, dependencyDict):
-        if self._seq is not None and self.hasLabel_():
-            self._seq.findHardDependencies(self.label_(), dependencyDict)
 
-
-class _SequenceOperator(_Sequenceable):
-    """Used in the expression tree for a sequence"""
-    def __init__(self, left, right):
-        _checkIfSequenceable(self,left)
-        _checkIfSequenceable(self,right)
-        self._left = left
-        self._right = right
-    def __str__(self):
-        returnValue = self._dumpChild(self._left, str(self._left))
-        returnValue +=self._pySymbol
-        returnValue +=self._dumpChild(self._right, str(self._right))
-        return returnValue
-    def dumpSequenceConfig(self):
-        returnValue = self._dumpChild(self._left, self._left.dumpSequenceConfig())
-        returnValue +=self._cfgSymbol
-        returnValue +=self._dumpChild(self._right, self._right.dumpSequenceConfig())
-        return returnValue
-    def dumpSequencePython(self):
-        returnValue = self._dumpChild(self._left, self._left.dumpSequencePython())
-        returnValue +=self._pySymbol
-        returnValue +=self._dumpChild(self._right, self._right.dumpSequencePython())
-        return returnValue
-    def _dumpChild(self, child, dump):
-        returnValue = dump
-        # see if it needs parentheses for precedence
-        if isinstance(child, _SequenceOperator) and (child._precedence() < self._precedence()):
-           returnValue = '('+returnValue+')'
-        return returnValue
-    def _clonesequence(self, lookuptable):
-        return type(self)(self._left._clonesequence(lookuptable),self._right._clonesequence(lookuptable))
-    def _replace(self, original, replacement):
-        if self._left == original:
-            self._left = replacement
-        else:
-            self._left._replace(original, replacement)
-        if self._right == original:
-            self._right = replacement
-        else:
-            self._right._replace(original, replacement)                    
-    def _remove(self, original):
-        if self._left == original:  return (self._right, True) # left IS what we want to remove
-        (self._left, found) = self._left._remove(original)     # otherwise clean left
-        if (self._left == None):    return (self._right, True) # left is empty after cleaning
-        if found:                   return (self, True)        # found on left, don't clean right
-        if self._right == original: return (self._left, True)  # right IS what we want to remove
-        (self._right, found) = self._right._remove(original)   # otherwise clean right
-        if (self._right == None):   return (self._left, True)  # right is empty after cleaning
-        return (self,found)                                    # return what we found
-    def resolve(self, processDict):
-        self._left = self._left.resolve(processDict)
-        self._right = self._right.resolve(processDict)
-        return self
-    def isOperation(self):
-        return True
-    def _visitSubNodes(self,visitor):
-        self._left.visitNode(visitor)
-        self._right.visitNode(visitor)
-    def _precedence(self):
-        """Precedence order for this operation, the larger the value the higher the precedence"""
-        raise RuntimeError("_precedence must be overwritten by inheriting classes")
-        return 0
-
-
-class _SequenceOpAids(_SequenceOperator):
-    """Used in the expression tree for a sequence as a stand in for the ',' operator"""
-    def __init__(self, left, right):
-        _SequenceOperator.__init__(self, left, right)
-        self._cfgSymbol = ','
-        self._pySymbol = '*'
-    def _findDependencies(self,knownDeps,presentDeps):
-        #do left first and then right since right depends on left
-        self._left._findDependencies(knownDeps,presentDeps)
-        self._right._findDependencies(knownDeps,presentDeps)
-    def _precedence(self):
-        return 2
-    def findHardDependencies(self, sequenceName, dependencyDict):
-        # everything on the RHS depends on everything on the LHS
-        rhs = set()
-        moduleNames = NodeNameVisitor(rhs)
-        self._right.visitNode(moduleNames)
-        lhs = set()
-        moduleNames = NodeNameVisitor(lhs)
-        self._left.visitNode(moduleNames)
-        dep = _HardDependency(sequenceName, lhs)
-        for rhsmodule in rhs:
-            if not rhsmodule in dependencyDict:
-                dependencyDict[rhsmodule] = list()
-            dependencyDict[rhsmodule].append(dep)
-        self._left.findHardDependencies(sequenceName, dependencyDict)
-        self._right.findHardDependencies(sequenceName, dependencyDict)
-
-class _SequenceOpFollows(_SequenceOperator):
-    """Used in the expression tree for a sequence as a stand in for the '&' operator"""
-    def __init__(self, left, right):
-        _SequenceOperator.__init__(self, left, right)
-        self._cfgSymbol = '&'
-        self._pySymbol = '+'
-    def _findDependencies(self,knownDeps,presentDeps):
-        oldDepsL = presentDeps.copy()
-        oldDepsR = presentDeps.copy()
-        self._left._findDependencies(knownDeps,oldDepsL)
-        self._right._findDependencies(knownDeps,oldDepsR)
-        end = len(presentDeps)
-        presentDeps.update(oldDepsL)
-        presentDeps.update(oldDepsR)
-    def _precedence(self):
-        return 1
-    def findHardDependencies(self, sequenceName, dependencyDict):
-        self._left.findHardDependencies(sequenceName, dependencyDict)
-        self._right.findHardDependencies(sequenceName, dependencyDict)
-
-
-class _UnarySequenceOperator(_Sequenceable):
+class _UnarySequenceOperator(_BooleanLogicSequenceable):
     """For ~ and - operators"""
     def __init__(self, operand):
        self._operand = operand
@@ -345,15 +378,15 @@ class _UnarySequenceOperator(_Sequenceable):
         (self._operand, found) = self._operand._remove(original)
         if self._operand == None: return (None, True)
         return (self, found)
-    def resolve(self, processDict):
-        self._operand = self._operand.resolve(processDict)
+    def resolve(self, processDict,keepIfCannotResolve=False):
+        self._operand = self._operand.resolve(processDict,keepIfCannotResolve)
         return self
     def isOperation(self):
         return True
     def _visitSubNodes(self,visitor):
         self._operand.visitNode(visitor)
-    def findHardDependencies(self, sequenceName, dependencyDict):
-        pass
+    def decoration(self):
+        self._operand.decoration()
 
 
 class _SequenceNegation(_UnarySequenceOperator):
@@ -365,7 +398,11 @@ class _SequenceNegation(_UnarySequenceOperator):
     def dumpSequenceConfig(self):
         return '!%s' %self._operand.dumpSequenceConfig()
     def dumpSequencePython(self):
+        if self._operand.isOperation():
+            return '~(%s)' %self._operand.dumpSequencePython()
         return '~%s' %self._operand.dumpSequencePython()
+    def decoration(self):
+        return '!'
 
 class _SequenceIgnore(_UnarySequenceOperator):
     """Used in the expression tree for a sequence as a stand in for the '-' operator"""
@@ -377,6 +414,8 @@ class _SequenceIgnore(_UnarySequenceOperator):
         return '-%s' %self._operand.dumpSequenceConfig()
     def dumpSequencePython(self):
         return 'cms.ignore(%s)' %self._operand.dumpSequencePython()
+    def decoration(self):
+        return '-'
 
 def ignore(seq):
     """The EDFilter passed as an argument will be run but its filter value will be ignored
@@ -424,11 +463,16 @@ class SequencePlaceholder(_Sequenceable):
     def insertInto(self, parameterSet, myname):
         raise RuntimeError("The SequencePlaceholder "+self._name
                            +" was never overridden")
-    def resolve(self, processDict):
+    def resolve(self, processDict,keepIfCannotResolve=False):
         if not self._name in processDict:
-            print str(processDict.keys())
-            raise RuntimeError("The SequencePlaceholder "+self._name+ " cannot be resolved.i\n Known keys are:"+str(processDict.keys()))
-        return  processDict[self._name]
+            #print str(processDict.keys())
+            if keepIfCannotResolve:
+                return self
+            raise RuntimeError("The SequencePlaceholder "+self._name+ " cannot be resolved.\n Known keys are:"+str(processDict.keys()))
+        o = processDict[self._name]
+        if not isinstance(o,_Sequenceable):
+            raise RuntimeError("The SequencePlaceholder "+self._name+ " refers to an object type which is not allowed to be on a sequence: "+str(type(o)))
+        return o.resolve(processDict)
 
     def _clonesequence(self, lookuptable):
         if id(self) not in lookuptable:
@@ -470,34 +514,6 @@ class Schedule(_ValidatingParameterListBase,_ConfigureComponent,_Unlabelable):
         for seq in self:
             seq.visit(visitor)
         return result
-    def enforceDependencies(self):
-        # I don't think we need the processDict
-        processDict = dict()
-        dependencyDict = dict()
-        names = set()
-        namesVisitor = NodeNameVisitor(names)
-        ok = True
-        errors = list()
-        for seq in self:
-            seq.visit(namesVisitor)
-            seq.findHardDependencies('schedule', dependencyDict)
-        # dependencyDict is (label, list of _HardDependency objects,
-        # where a _HardDependency contains a set of strings from one sequence
-        for label, depList in dependencyDict.iteritems():
-            # see if it's in 
-            try:
-                thisPos = names.index(label)
-                # we had better find all the dependencies
-                for hardDep in depList:
-                    for dep in hardDep.depsSet:
-                        if names[0:thisPos].count(dep) == 0:
-                            ok = False 
-                            message = "WARNING:"+label+" depends on "+dep+", as declared in " \
-                                      + hardDep.sequenceName+", but not found in schedule"
-                            print message
-            except:  
-                # can't find it?  No big deal.
-                pass
 
 
 class SequenceVisitor(object):
@@ -514,7 +530,7 @@ class ModuleNodeVisitor(object):
     def __init__(self,l):
         self.l = l
     def enter(self,visitee):
-        if isinstance(visitee,_SequenceLeaf):
+        if visitee.isLeaf():
             self.l.append(visitee)
         pass
     def leave(self,visitee):
@@ -526,7 +542,7 @@ class NodeNameVisitor(object):
     def __init__(self,l):
         self.l = l
     def enter(self,visitee):
-        if isinstance(visitee,_SequenceLeaf):
+        if visitee.isLeaf():
             self.l.add(visitee.label_())
         pass
     def leave(self,visitee):
@@ -539,7 +555,7 @@ class ExpandVisitor(object):
         self._type = type
         self.l = []
     def enter(self,visitee):
-        if isinstance(visitee,_SequenceLeaf):
+        if visitee.isLeaf():
             self.l.append(visitee)
     def leave(self, visitee):
         if isinstance(visitee,_UnarySequenceOperator):
@@ -558,10 +574,11 @@ class DecoratedNodeNameVisitor(object):
     """ Adds any '!' or '-' needed.  Takes a list """
     def __init__(self,l):
         self.l = l
+        self._decoration =''
     def enter(self,visitee):
-        if isinstance(visitee,_SequenceLeaf):
+        if visitee.isLeaf():
             if hasattr(visitee, "_Labelable__label"):
-                self.l.append(visitee.label_())
+                self.l.append(self._decoration+visitee.label_())
             else:
                 error = "An object in a sequence was not found in the process\n"
                 if hasattr(visitee, "_filename"):
@@ -569,9 +586,17 @@ class DecoratedNodeNameVisitor(object):
                 else:
                     error += "Dump follows\n" + repr(visitee)
                 raise RuntimeError(error)
-    def leave(self,visitee):
+        if isinstance(visitee,_BooleanLogicExpression):
+            self.l.append(self._decoration+visitee.operatorString())
         if isinstance(visitee,_UnarySequenceOperator):
-           self.l[-1] = visitee.dumpSequenceConfig()
+            self._decoration=visitee.decoration()
+        else:
+            self._decoration=''
+
+    def leave(self,visitee):
+        if isinstance(visitee,_BooleanLogicExpression):
+            #need to add the 'go back' command to keep track of where we are in the tree
+            self.l.append('@')
 
 
 class ResolveVisitor(object):
@@ -581,7 +606,7 @@ class ResolveVisitor(object):
     def enter(self,visitee):
         if isinstance(visitee, SequencePlaceholder):
             if not visitee._name in self.processDict:
-                print str(self.processDict.keys())
+                #print str(self.processDict.keys())
                 raise RuntimeError("The SequencePlaceholder "+visitee._name+ " cannot be resolved.\n Known keys are:"+str(self.processDict.keys()))
             visitee = self.processDict[visitee._name]
     def leave(self,visitee):
@@ -589,41 +614,329 @@ class ResolveVisitor(object):
            pass
 
 
+class _CopyAndExcludeSequenceVisitorOld(object):
+   """Traverses a Sequence and constructs a new sequence which does not contain modules from the specified list"""
+   def __init__(self,modulesToRemove):
+       self.__modulesToIgnore = modulesToRemove
+       self.__stack = list()
+       self.__stack.append(list())
+       self.__result = None
+       self.__didExclude = False
+   def enter(self,visitee):
+       if len(self.__stack) > 0:
+           #add visitee to its parent's stack entry
+           self.__stack[-1].append([visitee,False])
+       if visitee.isLeaf():
+           if visitee in self.__modulesToIgnore:
+               self.__didExclude = True
+               self.__stack[-1][-1]=[None,True]
+       elif isinstance(visitee, Sequence):
+           if visitee in self.__modulesToIgnore:
+               self.__didExclude = True
+               self.__stack[-1][-1]=[None,True]
+           self.__stack.append(list())
+       else:
+           #need to add a stack entry to keep track of children
+           self.__stack.append(list())
+   def leave(self,visitee):
+       node = visitee
+       if not visitee.isLeaf():
+           #were any children changed?
+           l = self.__stack[-1]
+           changed = False
+           countNulls = 0
+           nonNulls = list()
+           for c in l:
+               if c[1] == True:
+                   changed = True
+               if c[0] is None:
+                   countNulls +=1
+               else:
+                   nonNulls.append(c[0])
+           if changed:
+               self.__didExclude = True
+               if countNulls != 0:
+                   #this node must go away
+                   if len(nonNulls) == 0:
+                       #all subnodes went away 
+                       node = None
+                   else:
+                       node = nonNulls[0]
+                       for n in nonNulls[1:]:
+                           node = node+n
+               else:
+                   #some child was changed so we need to clone
+                   # this node and replace it with one that holds 
+                   # the new child(ren)
+                   children = [x[0] for x in l ]
+                   if not isinstance(visitee,Sequence):
+                       node = visitee.__new__(type(visitee))
+                       node.__init__(*children)
+                   else:
+                       node = nonNulls[0]
+       if node != visitee:
+           #we had to replace this node so now we need to 
+           # change parent's stack entry as well
+           if len(self.__stack) > 1:
+               p = self.__stack[-2]
+               #find visitee and replace
+               for i,c in enumerate(p):
+                   if c[0]==visitee:
+                       c[0]=node
+                       c[1]=True
+                       break
+       if not visitee.isLeaf():
+           self.__stack = self.__stack[:-1]        
+   def result(self):
+       result = None
+       for n in (x[0] for x in self.__stack[0]):
+           if n is None:
+               continue
+           if result is None:
+               result = n
+           else:
+               result = result+n
+       return result
+   def didExclude(self):
+       return self.__didExclude
+
+
+class _MutatingSequenceVisitor(object):
+    """Traverses a Sequence and constructs a new sequence by applying the operator to each element of the sequence"""
+    def __init__(self,operator):
+      self.__operator = operator
+      self.__stack = list()
+      self.__stack.append(list())
+      self.__result = None
+      self.__didApply = False
+    def enter(self,visitee):
+      if len(self.__stack) > 0:
+          #add visitee to its parent's stack entry
+          self.__stack[-1].append([visitee,False])
+      v = self.__operator(visitee)
+      if v is not visitee:
+          #was changed
+          self.__didApply = True
+          self.__stack[-1][-1]=[v,True]
+      if not isinstance(visitee, _SequenceLeaf):
+          #need to add a stack entry to keep track of children
+          self.__stack.append(list())
+    def leave(self,visitee):
+      node = visitee
+      if not visitee.isLeaf():
+          #were any children changed?
+          l = self.__stack[-1]
+          changed = False
+          countNulls = 0
+          nonNulls = list()
+          for c in l:
+              if c[1] == True:
+                  changed = True
+              if c[0] is None:
+                  countNulls +=1
+              else:
+                  nonNulls.append(c[0])
+          if changed:
+              if countNulls != 0:
+                  #this node must go away
+                  if len(nonNulls) == 0:
+                      #all subnodes went away 
+                      node = None
+                  else:
+                      node = nonNulls[0]
+                      for n in nonNulls[1:]:
+                          node = node+n
+              else:
+                  #some child was changed so we need to clone
+                  # this node and replace it with one that holds 
+                  # the new child(ren)
+                  children = [x[0] for x in l ]
+                  if not isinstance(visitee,Sequence):
+                      node = visitee.__new__(type(visitee))
+                      node.__init__(*children)
+                  else:
+                      node = nonNulls[0]
+                      for n in nonNulls[1:]:
+                          node = node+n
+
+      if node != visitee:
+          #we had to replace this node so now we need to 
+          # change parent's stack entry as well
+          if len(self.__stack) > 1:
+              p = self.__stack[-2]
+              #find visitee and replace
+              for i,c in enumerate(p):
+                  if c[0]==visitee:
+                      c[0]=node
+                      c[1]=True
+                      break
+      if not visitee.isLeaf():
+          self.__stack = self.__stack[:-1]        
+    def result(self):
+      result = None
+      for n in (x[0] for x in self.__stack[0]):
+          if n is None:
+              continue
+          if result is None:
+              result = n
+          else:
+              result = result+n
+      return result
+    def _didApply(self):
+      return self.__didApply
+
+class _CopyAndRemoveFirstSequenceVisitor(_MutatingSequenceVisitor):
+    """Traverses a Sequence and constructs a new sequence which does not contain modules from the specified list"""
+    def __init__(self,moduleToRemove):
+        class _RemoveFirstOperator(object):
+            def __init__(self,moduleToRemove):
+                self.__moduleToRemove = moduleToRemove
+                self.__found = False
+            def __call__(self,test):
+                if not self.__found and test is self.__moduleToRemove:
+                    self.__found = True
+                    return None
+                return test
+        super(type(self),self).__init__(_RemoveFirstOperator(moduleToRemove))
+    def didRemove(self):
+        return self._didApply()
+
+class _CopyAndExcludeSequenceVisitor(_MutatingSequenceVisitor):
+    """Traverses a Sequence and constructs a new sequence which does not contain the module specified"""
+    def __init__(self,modulesToRemove):
+        class _ExcludeOperator(object):
+            def __init__(self,modulesToRemove):
+                self.__modulesToIgnore = modulesToRemove
+            def __call__(self,test):
+                if test in modulesToRemove:
+                    return None
+                return test
+        super(type(self),self).__init__(_ExcludeOperator(modulesToRemove))
+    def didExclude(self):
+        return self._didApply()
+
+class _CopyAndReplaceSequenceVisitor(_MutatingSequenceVisitor):
+    """Traverses a Sequence and constructs a new sequence which  replaces a specified module with a different module"""
+    def __init__(self,target,replace):
+        class _ReplaceOperator(object):
+            def __init__(self,target,replace):
+                self.__target = target
+                self.__replace = replace
+            def __call__(self,test):
+                if test == self.__target:
+                    return self.__replace
+                return test
+        super(type(self),self).__init__(_ReplaceOperator(target,replace))
+    def didReplace(self):
+        return self._didApply()
+
+
+
 if __name__=="__main__":
     import unittest
     class DummyModule(_Labelable, _SequenceLeaf):
+        def __init__(self,name):
+            self.setLabel(name)
+    class DummyBooleanModule(_Labelable, _BooleanLogicSequenceLeaf):
         def __init__(self,name):
             self.setLabel(name)
     class TestModuleCommand(unittest.TestCase):
         def setUp(self):
             """Nothing to do """
             pass
+        def testBoolean(self):
+            a = DummyBooleanModule("a")
+            b = DummyBooleanModule("b")
+            p = Path( a & b)
+            self.assertEqual(p.dumpPython(None),"cms.Path(process.a&process.b)\n")
+            l = list()
+            namesVisitor = DecoratedNodeNameVisitor(l)
+            p.visit(namesVisitor)
+            self.assertEqual(l,['&','a','b','@'])
+            p2 = Path( a | b)
+            self.assertEqual(p2.dumpPython(None),"cms.Path(process.a|process.b)\n")
+            l[:]=[]
+            p2.visit(namesVisitor)
+            self.assertEqual(l,['|','a','b','@'])
+            c = DummyBooleanModule("c")
+            d = DummyBooleanModule("d")
+            p3 = Path(a & b & c & d)
+            self.assertEqual(p3.dumpPython(None),"cms.Path(process.a&process.b&process.c&process.d)\n")
+            l[:]=[]
+            p3.visit(namesVisitor)
+            self.assertEqual(l,['&','a','b','c','d','@'])
+            p3 = Path(((a & b) & c) & d)
+            self.assertEqual(p3.dumpPython(None),"cms.Path(process.a&process.b&process.c&process.d)\n")
+            p3 = Path(a & (b & (c & d)))
+            self.assertEqual(p3.dumpPython(None),"cms.Path(process.a&process.b&process.c&process.d)\n")
+            p3 = Path((a & b) & (c & d))
+            self.assertEqual(p3.dumpPython(None),"cms.Path(process.a&process.b&process.c&process.d)\n")
+            p3 = Path(a & (b & c) & d)
+            self.assertEqual(p3.dumpPython(None),"cms.Path(process.a&process.b&process.c&process.d)\n")
+            p4 = Path(a | b | c | d)
+            self.assertEqual(p4.dumpPython(None),"cms.Path(process.a|process.b|process.c|process.d)\n")
+            p5 = Path(a | b & c & d )
+            self.assertEqual(p5.dumpPython(None),"cms.Path(process.a|(process.b&process.c&process.d))\n")
+            l[:]=[]
+            p5.visit(namesVisitor)
+            self.assertEqual(l,['|','a','&','b','c','d','@','@'])
+            p5 = Path(a & b | c & d )
+            self.assertEqual(p5.dumpPython(None),"cms.Path((process.a&process.b)|(process.c&process.d))\n")
+            l[:]=[]
+            p5.visit(namesVisitor)
+            self.assertEqual(l,['|','&','a','b','@','&','c','d','@','@'])
+            p5 = Path(a & (b | c) & d )
+            self.assertEqual(p5.dumpPython(None),"cms.Path(process.a&(process.b|process.c)&process.d)\n")
+            l[:]=[]
+            p5.visit(namesVisitor)
+            self.assertEqual(l,['&','a','|','b','c','@','d','@'])
+            p5 = Path(a & b & c | d )
+            self.assertEqual(p5.dumpPython(None),"cms.Path((process.a&process.b&process.c)|process.d)\n")
+            l[:]=[]
+            p5.visit(namesVisitor)
+            self.assertEqual(l,['|','&','a','b','c','@','d','@'])
+            p6 = Path( a & ~b)
+            self.assertEqual(p6.dumpPython(None),"cms.Path(process.a&(~process.b))\n")
+            l[:]=[]
+            p6.visit(namesVisitor)
+            self.assertEqual(l,['&','a','!b','@'])
+            p6 = Path( a & ignore(b))
+            self.assertEqual(p6.dumpPython(None),"cms.Path(process.a&(cms.ignore(process.b)))\n")
+            l[:]=[]
+            p6.visit(namesVisitor)
+            self.assertEqual(l,['&','a','-b','@'])
+            p6 = Path(~(a&b))
+            self.assertEqual(p6.dumpPython(None),"cms.Path(~(process.a&process.b))\n")
+            l[:]=[]
+            p6.visit(namesVisitor)
+            self.assertEqual(l,['!&','a','b','@'])
+
         def testDumpPython(self):
             a = DummyModule("a")
             b = DummyModule('b')
             p = Path((a*b))
             #print p.dumpConfig('')
-            self.assertEqual(p.dumpPython(None),"cms.Path(process.a*process.b)\n")
+            self.assertEqual(p.dumpPython(None),"cms.Path(process.a+process.b)\n")
             p2 = Path((b+a))
             #print p2.dumpConfig('')
             self.assertEqual(p2.dumpPython(None),"cms.Path(process.b+process.a)\n")
             c = DummyModule('c')
             p3 = Path(c*(a+b))
             #print p3.dumpConfig('')
-            self.assertEqual(p3.dumpPython(None),"cms.Path(process.c*(process.a+process.b))\n")
+            self.assertEqual(p3.dumpPython(None),"cms.Path(process.c+process.a+process.b)\n")
             p4 = Path(c*a+b)
             #print p4.dumpConfig('')
-            self.assertEqual(p4.dumpPython(None),"cms.Path(process.c*process.a+process.b)\n")
+            self.assertEqual(p4.dumpPython(None),"cms.Path(process.c+process.a+process.b)\n")
             p5 = Path(a+ignore(b))
             #print p5.dumpConfig('')
             self.assertEqual(p5.dumpPython(None),"cms.Path(process.a+cms.ignore(process.b))\n")
             p6 = Path(c+a*b)
             #print p6.dumpConfig('')
-            self.assertEqual(p6.dumpPython(None),"cms.Path(process.c+process.a*process.b)\n")
+            self.assertEqual(p6.dumpPython(None),"cms.Path(process.c+process.a+process.b)\n")
             p7 = Path(a+~b)
             self.assertEqual(p7.dumpPython(None),"cms.Path(process.a+~process.b)\n")
             p8 = Path((a+b)*c)
-            self.assertEqual(p8.dumpPython(None),"cms.Path((process.a+process.b)*process.c)\n")
+            self.assertEqual(p8.dumpPython(None),"cms.Path(process.a+process.b+process.c)\n")
             l = list()
             namesVisitor = DecoratedNodeNameVisitor(l)
             p.visit(namesVisitor)
@@ -639,14 +952,39 @@ if __name__=="__main__":
             p8.visit(moduleVisitor)
             names = [m.label_() for m in l]
             self.assertEqual(names, ['a', 'b', 'c'])
-
+        def testDumpConfig(self):
+            a = DummyModule("a")
+            b = DummyModule('b')
+            p = Path((a*b))
+            #print p.dumpConfig('')
+            self.assertEqual(p.dumpConfig(None),"{a&b}\n")
+            p2 = Path((b+a))
+            #print p2.dumpConfig('')
+            self.assertEqual(p2.dumpConfig(None),"{b&a}\n")
+            c = DummyModule('c')
+            p3 = Path(c*(a+b))
+            #print p3.dumpConfig('')
+            self.assertEqual(p3.dumpConfig(None),"{c&a&b}\n")
+            p4 = Path(c*a+b)
+            #print p4.dumpConfig('')
+            self.assertEqual(p4.dumpConfig(None),"{c&a&b}\n")
+            p5 = Path(a+ignore(b))
+            #print p5.dumpConfig('')
+            self.assertEqual(p5.dumpConfig(None),"{a&-b}\n")
+            p6 = Path(c+a*b)
+            #print p6.dumpConfig('')
+            self.assertEqual(p6.dumpConfig(None),"{c&a&b}\n")
+            p7 = Path(a+~b)
+            self.assertEqual(p7.dumpConfig(None),"{a&!b}\n")
+            p8 = Path((a+b)*c)
+            self.assertEqual(p8.dumpConfig(None),"{a&b&c}\n")        
         def testVisitor(self):
             class TestVisitor(object):
                 def __init__(self, enters, leaves):
                     self._enters = enters
                     self._leaves = leaves
                 def enter(self,visitee):
-                    #print visitee
+                    #print visitee.dumpSequencePython()
                     if self._enters[0] != visitee:
                         raise RuntimeError("wrong node ("+str(visitee)+") on 'enter'")
                     else:
@@ -660,22 +998,22 @@ if __name__=="__main__":
             b = DummyModule('b')
             multAB = a*b
             p = Path(multAB)
-            t = TestVisitor(enters=[multAB,a,b],
-                            leaves=[a,b,multAB])
+            t = TestVisitor(enters=[a,b],
+                            leaves=[a,b])
             p.visit(t)
 
             plusAB = a+b
             p = Path(plusAB)
-            t = TestVisitor(enters=[plusAB,a,b],
-                            leaves=[a,b,plusAB])
+            t = TestVisitor(enters=[a,b],
+                            leaves=[a,b])
             p.visit(t)
             
             s=Sequence(plusAB)
             c=DummyModule("c")
             multSC = s*c
             p=Path(multSC)
-            t=TestVisitor(enters=[multSC,s,plusAB,a,b,c],
-                          leaves=[a,b,plusAB,s,c,multSC])
+            t=TestVisitor(enters=[s,a,b,c],
+                          leaves=[a,b,s,c])
             p.visit(t)
             
             notA= ~a
@@ -701,6 +1039,15 @@ if __name__=="__main__":
             self.assertEqual(l, ['m1'])
             p.resolve(d)
             l[:] = []
+            p.visit(namesVisitor)
+            self.assertEqual(l, ['m1', 'm2'])
+            l[:]=[]
+            s1 = Sequence(m1)
+            s2 = SequencePlaceholder("s3")
+            s3 = Sequence(m2)
+            s4 = SequencePlaceholder("s2")
+            p=Path(s1+s4)
+            p.resolve(d)
             p.visit(namesVisitor)
             self.assertEqual(l, ['m1', 'm2'])
         def testReplace(self):
@@ -736,7 +1083,35 @@ if __name__=="__main__":
             s3.replace(s2,m1)
             s3.visit(namesVisitor)
             self.assertEqual(l,['!m1', 'm1'])
+            
+            s1 = Sequence(m1+m2)
+            s2 = Sequence(m3+m4)
+            s3 = Sequence(s1+s2)
+            s3.replace(m3,m5)
+            l[:] = []
+            s3.visit(namesVisitor)
+            self.assertEqual(l,['m1','m2','m5','m4'])
+        def testIndex(self):
+            m1 = DummyModule("a")
+            m2 = DummyModule("b")
+            m3 = DummyModule("c")
+        
+            s = Sequence(m1+m2+m3)
+            self.assertEqual(s.index(m1),0)
+            self.assertEqual(s.index(m2),1)        
+            self.assertEqual(s.index(m3),2)
 
+        def testInsert(self):
+            m1 = DummyModule("a")
+            m2 = DummyModule("b")
+            m3 = DummyModule("c")
+            s = Sequence(m1+m3)
+            s.insert(1,m2)
+            self.assertEqual(s.index(m1),0)
+            self.assertEqual(s.index(m2),1)        
+            self.assertEqual(s.index(m3),2)
+            
+        
         def testExpandAndClone(self):
             m1 = DummyModule("m1")
             m2 = DummyModule("m2")
@@ -773,6 +1148,7 @@ if __name__=="__main__":
             
             s4 = Sequence()
             s4 +=m1
+            print s1._seq.dumpSequencePython()
             l[:]=[]; s1.visit(namesVisitor); self.assertEqual(l,['m1'])
             self.assertEqual(s4.dumpPython(None),"cms.Sequence(process.m1)\n")
             s4 = Sequence()
@@ -796,7 +1172,7 @@ if __name__=="__main__":
             l[:] = []; s1.visit(namesVisitor); self.assertEqual(l,['m1', '!m3'])
             l[:] = []; s2.visit(namesVisitor); self.assertEqual(l,['m1', 'm1', '!m3'])
             s2.remove(m3)
-            l[:] = []; s1.visit(namesVisitor); self.assertEqual(l,['m1'])
+            l[:] = []; s1.visit(namesVisitor); self.assertEqual(l,['m1', '!m3'])
             l[:] = []; s2.visit(namesVisitor); self.assertEqual(l,['m1', 'm1'])
             s1 = Sequence( m1 + m2 + m1 + m2 )
             l[:] = []; s1.visit(namesVisitor); self.assertEqual(l,['m1', 'm2', 'm1', 'm2'])
@@ -808,21 +1184,21 @@ if __name__=="__main__":
             s2.remove(s1)
             l[:] = []; s2.visit(namesVisitor); self.assertEqual(l,['m2', '-m3', 'm3'])
             s2.remove(m3)
-            l[:] = []; s2.visit(namesVisitor); self.assertEqual(l,['m2', 'm3'])
+            l[:] = []; s2.visit(namesVisitor); self.assertEqual(l,['m2','m3'])
             s1 = Sequence(m1*m2*m3)
-            self.assertEqual(s1.dumpPython(None), "cms.Sequence(process.m1*process.m2*process.m3)\n")
+            self.assertEqual(s1.dumpPython(None), "cms.Sequence(process.m1+process.m2+process.m3)\n")
             s1.remove(m2)
-            self.assertEqual(s1.dumpPython(None), "cms.Sequence(process.m1*process.m3)\n")
+            self.assertEqual(s1.dumpPython(None), "cms.Sequence(process.m1+process.m3)\n")
             s1 = Sequence(m1+m2+m3)
             self.assertEqual(s1.dumpPython(None), "cms.Sequence(process.m1+process.m2+process.m3)\n")
             s1.remove(m2)
             self.assertEqual(s1.dumpPython(None), "cms.Sequence(process.m1+process.m3)\n")
             s1 = Sequence(m1*m2+m3)
-            self.assertEqual(s1.dumpPython(None), "cms.Sequence(process.m1*process.m2+process.m3)\n")
+            self.assertEqual(s1.dumpPython(None), "cms.Sequence(process.m1+process.m2+process.m3)\n")
             s1.remove(m2)
             self.assertEqual(s1.dumpPython(None), "cms.Sequence(process.m1+process.m3)\n")
             s1 = Sequence(m1+m2*m3)
-            self.assertEqual(s1.dumpPython(None), "cms.Sequence(process.m1+process.m2*process.m3)\n")
+            self.assertEqual(s1.dumpPython(None), "cms.Sequence(process.m1+process.m2+process.m3)\n")
             s1.remove(m2)
             self.assertEqual(s1.dumpPython(None), "cms.Sequence(process.m1+process.m3)\n")
             s1.remove(m1)
@@ -839,31 +1215,78 @@ if __name__=="__main__":
             l[:]=[]; s4.visit(namesVisitor); self.assertEqual(l,[])
             self.assertEqual(s4.dumpPython(None), "cms.Sequence()\n")
             
-            
-
-        def testDependencies(self):
-            m1 = DummyModule("m1")
-            m2 = DummyModule("m2")
-            m3 = DummyModule("m3")
-            m4 = DummyModule("m4")
-            m5 = DummyModule("m5")
-            deps = dict()
-            s4 = Sequence(~m1*(m2+m3)+m4)
-            s4.setLabel('s4')
-            s4.findHardDependencies('top',deps)
-            self.assertEqual(deps['m2'][0].depSet, set(['m1']))
-            self.assertEqual(deps['m3'][0].depSet, set(['m1']))
-            self.assertEqual(deps['m2'][0].sequenceName, 's4')
-            self.assertEqual(deps['m3'][0].sequenceName, 's4')
-            self.failIf(deps.has_key('m4'))
-            self.failIf(deps.has_key('m1'))
-            deps = dict()
-            p5 = Path(s4*m5)
-            p5.setLabel('p5')
-            p5.findHardDependencies('top',deps)
-            self.assertEqual(len(deps['m5'][0].depSet), 4)
-            self.assertEqual(deps['m5'][0].sequenceName, 'p5')
-            self.assertEqual(deps['m3'][0].sequenceName, 's4')
+        def testCopyAndExclude(self):
+            a = DummyModule("a")
+            b = DummyModule("b")
+            c = DummyModule("c")
+            d = DummyModule("d")
+            s = Sequence(a+b+c)
+            self.assertEqual(s.copyAndExclude([d]).dumpPython(None),"cms.Sequence(process.a+process.b+process.c)\n")
+            s = Sequence(a+b+c+d)
+            self.assertEqual(s.copyAndExclude([a]).dumpPython(None),"cms.Sequence(process.b+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([b]).dumpPython(None),"cms.Sequence(process.a+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([c]).dumpPython(None),"cms.Sequence(process.a+process.b+process.d)\n")
+            self.assertEqual(s.copyAndExclude([d]).dumpPython(None),"cms.Sequence(process.a+process.b+process.c)\n")
+            s=Sequence(a*b+c+d)
+            self.assertEqual(s.copyAndExclude([a]).dumpPython(None),"cms.Sequence(process.b+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([b]).dumpPython(None),"cms.Sequence(process.a+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([c]).dumpPython(None),"cms.Sequence(process.a+process.b+process.d)\n")
+            self.assertEqual(s.copyAndExclude([d]).dumpPython(None),"cms.Sequence(process.a+process.b+process.c)\n")
+            s = Sequence(a+b*c+d)
+            self.assertEqual(s.copyAndExclude([a]).dumpPython(None),"cms.Sequence(process.b+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([b]).dumpPython(None),"cms.Sequence(process.a+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([c]).dumpPython(None),"cms.Sequence(process.a+process.b+process.d)\n")
+            self.assertEqual(s.copyAndExclude([d]).dumpPython(None),"cms.Sequence(process.a+process.b+process.c)\n")
+            s2 = Sequence(a+b)
+            s = Sequence(c+s2+d)
+            self.assertEqual(s.copyAndExclude([a]).dumpPython(None),"cms.Sequence(process.c+process.b+process.d)\n")
+            self.assertEqual(s.copyAndExclude([b]).dumpPython(None),"cms.Sequence(process.c+process.a+process.d)\n")
+            self.assertEqual(s.copyAndExclude([c]).dumpPython(None),"cms.Sequence((process.a+process.b)+process.d)\n")
+            self.assertEqual(s.copyAndExclude([d]).dumpPython(None),"cms.Sequence(process.c+(process.a+process.b))\n")
+            self.assertEqual(s.copyAndExclude([a,b]).dumpPython(None),"cms.Sequence(process.c+process.d)\n")
+            s2 = Sequence(a+b+c)
+            s = Sequence(s2+d)
+            self.assertEqual(s.copyAndExclude([a]).dumpPython(None),"cms.Sequence(process.b+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([b]).dumpPython(None),"cms.Sequence(process.a+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([c]).dumpPython(None),"cms.Sequence(process.a+process.b+process.d)\n")
+            self.assertEqual(s.copyAndExclude([d]).dumpPython(None),"cms.Sequence((process.a+process.b+process.c))\n")
+            s2 = Sequence(a+b+c)
+            s = Sequence(s2*d)
+            self.assertEqual(s.copyAndExclude([a]).dumpPython(None),"cms.Sequence(process.b+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([b]).dumpPython(None),"cms.Sequence(process.a+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([c]).dumpPython(None),"cms.Sequence(process.a+process.b+process.d)\n")
+            self.assertEqual(s.copyAndExclude([d]).dumpPython(None),"cms.Sequence((process.a+process.b+process.c))\n")
+            self.assertEqual(s.copyAndExclude([a,b,c]).dumpPython(None),"cms.Sequence(process.d)\n")
+            s = Sequence(ignore(a)+b+c+d)
+            self.assertEqual(s.copyAndExclude([a]).dumpPython(None),"cms.Sequence(process.b+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([b]).dumpPython(None),"cms.Sequence(cms.ignore(process.a)+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([c]).dumpPython(None),"cms.Sequence(cms.ignore(process.a)+process.b+process.d)\n")
+            self.assertEqual(s.copyAndExclude([d]).dumpPython(None),"cms.Sequence(cms.ignore(process.a)+process.b+process.c)\n")
+            s = Sequence(a+ignore(b)+c+d)
+            self.assertEqual(s.copyAndExclude([a]).dumpPython(None),"cms.Sequence(cms.ignore(process.b)+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([b]).dumpPython(None),"cms.Sequence(process.a+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([c]).dumpPython(None),"cms.Sequence(process.a+cms.ignore(process.b)+process.d)\n")
+            self.assertEqual(s.copyAndExclude([d]).dumpPython(None),"cms.Sequence(process.a+cms.ignore(process.b)+process.c)\n")
+            s = Sequence(a+b+c+ignore(d))
+            self.assertEqual(s.copyAndExclude([a]).dumpPython(None),"cms.Sequence(process.b+process.c+cms.ignore(process.d))\n")
+            self.assertEqual(s.copyAndExclude([b]).dumpPython(None),"cms.Sequence(process.a+process.c+cms.ignore(process.d))\n")
+            self.assertEqual(s.copyAndExclude([c]).dumpPython(None),"cms.Sequence(process.a+process.b+cms.ignore(process.d))\n")
+            self.assertEqual(s.copyAndExclude([d]).dumpPython(None),"cms.Sequence(process.a+process.b+process.c)\n")
+            s = Sequence(~a+b+c+d)
+            self.assertEqual(s.copyAndExclude([a]).dumpPython(None),"cms.Sequence(process.b+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([b]).dumpPython(None),"cms.Sequence(~process.a+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([c]).dumpPython(None),"cms.Sequence(~process.a+process.b+process.d)\n")
+            self.assertEqual(s.copyAndExclude([d]).dumpPython(None),"cms.Sequence(~process.a+process.b+process.c)\n")
+            s = Sequence(a+~b+c+d)
+            self.assertEqual(s.copyAndExclude([a]).dumpPython(None),"cms.Sequence(~process.b+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([b]).dumpPython(None),"cms.Sequence(process.a+process.c+process.d)\n")
+            self.assertEqual(s.copyAndExclude([c]).dumpPython(None),"cms.Sequence(process.a+~process.b+process.d)\n")
+            self.assertEqual(s.copyAndExclude([d]).dumpPython(None),"cms.Sequence(process.a+~process.b+process.c)\n")
+            s = Sequence(a+b+c+~d)
+            self.assertEqual(s.copyAndExclude([a]).dumpPython(None),"cms.Sequence(process.b+process.c+~process.d)\n")
+            self.assertEqual(s.copyAndExclude([b]).dumpPython(None),"cms.Sequence(process.a+process.c+~process.d)\n")
+            self.assertEqual(s.copyAndExclude([c]).dumpPython(None),"cms.Sequence(process.a+process.b+~process.d)\n")
+            self.assertEqual(s.copyAndExclude([d]).dumpPython(None),"cms.Sequence(process.a+process.b+process.c)\n")
         def testSequenceTypeChecks(self):
             m1 = DummyModule("m1")
             m2 = DummyModule("m2")
@@ -874,8 +1297,42 @@ if __name__=="__main__":
             def testRaise2():
                 s2 = Sequence(m1*None)
             self.assertRaises(TypeError,testRaise2)
-
-
+        def testCopy(self):
+            a = DummyModule("a")
+            b = DummyModule("b")
+            c = DummyModule("c")
+            p1 = Path(a+b+c)
+            p2 = p1.copy()
+            e = DummyModule("e")
+            p2.replace(b,e)
+            self.assertEqual(p1.dumpPython(None),"cms.Path(process.a+process.b+process.c)\n")
+            self.assertEqual(p2.dumpPython(None),"cms.Path(process.a+process.e+process.c)\n")
+            p1 = Path(a+b+c)
+            p2 = p1.copy()
+            p1 += e
+            self.assertEqual(p1.dumpPython(None),"cms.Path(process.a+process.b+process.c+process.e)\n")
+            self.assertEqual(p2.dumpPython(None),"cms.Path(process.a+process.b+process.c)\n")
+        
+        def testInsertInto(self):
+            from FWCore.ParameterSet.Types import vstring
+            class TestPSet(object):
+                def __init__(self):
+                    self._dict = dict()
+                def addVString(self,isTracked,label,value):
+                    self._dict[label]=value
+            a = DummyModule("a")
+            b = DummyModule("b")
+            c = DummyModule("c")
+            d = DummyModule("d")
+            p = Path(a+b+c+d)
+            ps = TestPSet()
+            p.insertInto(ps,"p",dict())
+            self.assertEqual(ps._dict, {"p":vstring("a","b","c","d")})
+            s = Sequence(b+c)
+            p = Path(a+s+d)
+            ps = TestPSet()
+            p.insertInto(ps,"p",dict())
+            self.assertEqual(ps._dict, {"p":vstring("a","b","c","d")})
                         
     unittest.main()
                           

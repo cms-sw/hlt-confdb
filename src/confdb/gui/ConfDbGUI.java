@@ -25,8 +25,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -41,8 +43,6 @@ import confdb.migrator.DatabaseMigrator;
 import confdb.migrator.ReleaseMigrator;
 import confdb.migrator.MigratorException;
 
-import confdb.parser.PythonParser;
-import confdb.parser.ParserException;
 import confdb.parser.JPythonParser;
 import confdb.parser.JParserException;
 
@@ -413,6 +413,30 @@ public class ConfDbGUI
 	    });
     }
     
+
+    private static String findPython27() {
+        // look for an external Python 2.7 interpreter
+        String[] filenames = { "python2.7", "python27", "python2", "python" };
+
+        String extension = "";
+        if (System.getProperty("os.name").toUpperCase().startsWith("WINDOWS"))
+            extension = ".exe";
+
+        try {
+            String path = System.getenv("PATH");
+            for (String filename: filenames) {
+                for (String dir: path.split(java.io.File.pathSeparator)) {
+                    File file = new File(dir + java.io.File.separatorChar + filename + extension);
+                    if (file.exists() && file.canExecute()) {
+                        return file.getCanonicalPath();
+                    }
+                }
+            }
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
     
     //
     // main
@@ -421,9 +445,17 @@ public class ConfDbGUI
     /** main method, thread-safe call to createAndShowGUI */
     public static void main(String[] args)
     {
+        // initialize the Jython interpreter
+        Properties properties = new Properties();
+        properties.setProperty("python.path", "__pyclasspath__/Lib");
+        String python27 = findPython27();
+        if (python27 != null && python27 != "")
+            properties.setProperty("cpython_cmd", python27);
+        PythonInterpreter.initialize(System.getProperties(), properties, args);
+
 	javax.swing.SwingUtilities.invokeLater(new Runnable() {
-		public void run() { createAndShowGUI(); }
-	    });
+            public void run() { createAndShowGUI(); }
+	});
     }
     
     /** create the GUI and show it */
@@ -507,13 +539,14 @@ public class ConfDbGUI
 	}
     }
 
-    /** parse a configuration from a *.py file */
-    public void parseConfiguration()
+    /** Show import tool window to import a Python file into the database
+     * bug/feature  #76151
+     * */
+    public void importFromPythonToolDialog()
     {
 	if (!closeConfiguration()) return;
 	
-	ParseConfigurationDialog dialog =
-	    new ParseConfigurationDialog(frame,database);
+	JParseConfigurationDialog dialog = new JParseConfigurationDialog(frame,database);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
@@ -522,42 +555,11 @@ public class ConfDbGUI
 	    String fileName   = dialog.fileName();
 	    String releaseTag = dialog.releaseTag();
 	    
-	    ParseConfigurationThread worker =
-		new ParseConfigurationThread(fileName,releaseTag);
+	    JParseConfigurationThread worker = new JParseConfigurationThread(fileName,releaseTag);
 	    worker.start();
 	    jProgressBar.setIndeterminate(true);
 	    jProgressBar.setVisible(true);
-	    jProgressBar.setString("Parsing '"+fileName+"' against Release " +
-				  releaseTag + " ... ");
-	    menuBar.configurationIsOpen();
-	    toolBar.configurationIsOpen();
-	}
-    }
-
-    /** parse a configuration from a *.py file */
-    public void jparseConfiguration()
-    {
-	if (!closeConfiguration()) return;
-	
-	JParseConfigurationDialog dialog =
-	    new JParseConfigurationDialog(frame,database);
-	dialog.pack();
-	dialog.setLocationRelativeTo(frame);
-	dialog.setVisible(true);
-	
-	if (dialog.validChoice()) {
-	    String fileName   = dialog.fileName();
-	    String releaseTag = dialog.releaseTag();
-	    boolean compiledFile 	=  dialog.compiledFile();
-	    boolean ignorePrescales = dialog.ignorePrescaleService();
-	    
-	    JParseConfigurationThread worker =
-		new JParseConfigurationThread(fileName,releaseTag, compiledFile, ignorePrescales);
-	    worker.start();
-	    jProgressBar.setIndeterminate(true);
-	    jProgressBar.setVisible(true);
-	    jProgressBar.setString("Parsing '"+fileName+"' against Release " +
-				  releaseTag + " ... ");
+	    jProgressBar.setString("Parsing '"+fileName+"' against Release " + releaseTag + " ... ");
 	    menuBar.configurationIsOpen();
 	    toolBar.configurationIsOpen();
 	}
@@ -1511,15 +1513,6 @@ public class ConfDbGUI
     }
     
     
-    
-    /** Show import tool window to import a Python file into the database 
-     * bug/feature  #76151 	
-     * */
-    public void importFromPythonToolDialog() {
-    	jparseConfiguration();
-    }
-    
-
     /** reset current and import configuration */
     private void resetConfiguration()
     {
@@ -1761,88 +1754,19 @@ public class ConfDbGUI
     
 
     /** load release templates from the database and parse config from *.py */
-    private class ParseConfigurationThread extends SwingWorker<String>
-    {
-	/** member data */
-	private PythonParser parser     = null;
-	private String       fileName   = null;
-	private String       releaseTag = null;
-	private long         startTime;
-	
-	/** standard constructor */
-	public ParseConfigurationThread(String fileName,String releaseTag)
-	{
-	    this.fileName   = fileName;
-	    this.releaseTag = releaseTag;
-	}
-	
-	/** SwingWorker: construct() */
-	protected String construct() throws DatabaseException,ParserException
-	{
-	    startTime = System.currentTimeMillis();
-	    if (!releaseTag.equals(currentRelease.releaseTag()))
-		database.loadSoftwareRelease(releaseTag,currentRelease);
-	    parser = new PythonParser(currentRelease);
-	    parser.parseFile(fileName);
-	    setCurrentConfig(parser.createConfiguration());
-	    return new String("Done!");
-	}
-	
-	/** SwingWorker: finished */
-	protected void finished()
-	{
-	    try {
-		long elapsedTime = System.currentTimeMillis() - startTime;
-		jProgressBar.setString(jProgressBar.getString()+get()+
-				       " ("+elapsedTime+" ms)");
-	    }
-	    catch (ExecutionException e) {
-		String errMsg =
-		    "Parse Configuration FAILED:\n"+e.getCause().getMessage();
-		JOptionPane.showMessageDialog(frame,errMsg,
-					      "Parse Configuration failed",
-					      JOptionPane.ERROR_MESSAGE,null);
-		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
-	    } 
-	    catch (Exception e) {
-		e.printStackTrace();
-		jProgressBar.setString(jProgressBar.getString()+"FAILED!");	
-	    }
-	    jProgressBar.setIndeterminate(false);
-	    jTreeCurrentConfig.setEditable(true);
-	    jTreeTableParameters.getTree().setEditable(true);
-
-	    if (parser.closeProblemStream()) {
-		System.err.println("problems encountered, see problems.txt.");
-		ParserProblemsDialog dialog=new ParserProblemsDialog(frame,
-								     parser);
-		dialog.pack();
-		dialog.setLocationRelativeTo(frame);
-		dialog.setVisible(true);
-	    }
-	    
-	}
-    }
-    
-
-    /** load release templates from the database and parse config from *.py */
     private class JParseConfigurationThread extends SwingWorker<String>
     {
 	/** member data */
 	private JPythonParser parser     = null;
 	private String        fileName   = null;
 	private String        releaseTag = null;
-	private boolean 	  compiledFile 		= false;
-	private boolean 	  ignorePrescales	= false;
 	private long          startTime;
 	
 	/** standard constructor */
-	public JParseConfigurationThread(String fileName,String releaseTag, boolean compiledFile, boolean ignorePrescales)
+	public JParseConfigurationThread(String fileName, String releaseTag)
 	{
 	    this.fileName   = fileName;
 	    this.releaseTag = releaseTag;
-	    this.compiledFile 		= compiledFile;
-	    this.ignorePrescales 	= ignorePrescales;
 	}
 	
 	/** SwingWorker: construct() */
@@ -1854,10 +1778,7 @@ public class ConfDbGUI
 	    	database.loadSoftwareRelease(releaseTag,currentRelease);
 	    
 	    parser = new JPythonParser(currentRelease);
-	    
-	    if(compiledFile) parser.parseCompileFile(fileName);
-	    else parser.parseFileBatchMode(fileName, ignorePrescales);
-	    
+	    parser.parseCompileFile(fileName);
 	    setCurrentConfig(parser.createConfiguration());
 	    return new String("Done!");
 	}

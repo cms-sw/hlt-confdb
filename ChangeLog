@@ -1,11 +1,35 @@
+2017-03-23 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V02-05-03
+	* ignore OutputModules while parsing a pyton file
+
+2017-03-13 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V02-05-02
+	* package CMSSW python files into a separate .jar file
+	* add "ant contrib" build tools
+	* sign .jar files only if the keystore is accessible
+	* clean up obsolete build targets and drop obsolete MySQL connector
+	* update the deployment script and startup files
+
+2017-03-10 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V02-05-01
+	* clean up, update, and properly initialize the jython parsing code
+	* fix parsing of python when running from Java WebStart
+	* more useful message after a successful deployment
+
+2017-03-07 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V02-05-00
+	* update Jython to version 2.7.1rc1 + hg 8049 + fix to Lib/inspect.py (#2566)
+	* update FWCore/ParameterSet to CMSSW_9_0_0_pre6
+	* rework importing a configuration from a python file
+
 2017-03-12 Sandro Ventura <sandro.ventura@cern.ch>
 	* tag V02-04-06
 	* fix SW release parsing of VPset contained in PSet 
 
-2016-10-06 Andrea Bocci <andrea.bocci@cern.ch>
+2016-03-01 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V02-04-05
 	* fix handling of completely empty string paramaters
-	* build against Jave 1.8+
+	* build against Java 1.8+
 
 2016-11-08 Martin Grunewald <Martin.Grunewald@cern.ch>
 	* tag V02-04-04

@@ -1,5 +1,12 @@
 #! /bin/bash
 BASE=$(dirname $0)
 
-ant -f $BASE/build.xml gui && java -classpath $BASE/lib/cmssw-evf-confdb-gui.jar:$BASE/ext/mysql-connector-java-5.0.5-bin.jar:$BASE/ext/ojdbc6.jar:$BASE/ext/jython-2.5.2.jar confdb.gui.ConfDbGUI
-#ant -f $BASE/build.xml gui && java -Dswing.defaultlaf=com.sun.java.swing.plaf.gtk.GTKLookAndFeel -classpath $BASE/lib/cmssw-evf-confdb-gui.jar:$BASE/ext/mysql-connector-java-5.0.5-bin.jar:$BASE/ext/ojdbc6.jar:$BASE/ext/jython-2.5.2.jar confdb.gui.ConfDbGUI
+# enable GTK look and feel
+#SWING=-Dswing.defaultlaf=com.sun.java.swing.plaf.gtk.GTKLookAndFeel
+SWING=
+
+# enable profiling
+#PROFILE=-Xrunhprof:heap=sites,cpu=samples,depth=10
+PROFILE=
+
+ant -f $BASE/build.xml gui && java -Doracle.jdbc.timezoneAsRegion=false $SWING $PROFILE -classpath $BASE/lib/cmssw-evf-confdb-gui.jar:$BASE/lib/cmssw-python.jar:$BASE/ext/ojdbc6.jar:$BASE/ext/jython.jar confdb.gui.ConfDbGUI
