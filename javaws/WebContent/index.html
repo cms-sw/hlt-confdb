@@ -4,44 +4,67 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Java ConfDB GUI</title>
 </head>
+<style>
+h3 {
+  margin-top: 30pt;
+}
+pre {
+  margin-left: 30pt;
+}
+</style>
 <body>
-<h1>ConfDB GUI</h1>
-<!--
-<h3>You have two options to start the Java ConfDB GUI:</h3>
--->
-<h3>click <a href="start.jnlp">here</a> to start the Java Web Start version</h3>
-<!--
-<ul>
-  <li>advantages:
-    <ul>
-      <li>you are automatically running the latest version</li>
-    </ul>
-  </li>
-  <li>disadvantages:
-    <ul>
-      <li><b>might not work at all!</b><br>With the recent upgrades of JavaWebStart security restrictions have been tightened on several platforms. 
-      You can lift these restrictions but it's probably easier to use method 2 to start the GUI</li>
-    </ul>
-  </li>
-</ul>
-<h3>click <a href="confdb-gui-all-inclusive.jar">here</a> to download an executable jar file which includes all classes needed. </h3>
-Double-clicking the downloaded jar file should start the GUI on many platforms.<br>
-If not, start the GUI on a command line by entering:<br>
-<pre>java -jar confdb-gui-all-inclusive.jar</pre><br>
-in the directory where the jar file can be found
-<ul>
-  <li>advantages:
-    <ul>
-      <li>you can run the GUI locally like any other (Java) program</li>
-    </ul>
-  </li>
-  <li>disadvantages:
-    <ul>
-      <li>it takes longer to start the GUI if you download the jar file each time you want to run the program</li>
-      <li>you might not run the latest version if you do not download the jar file each time you start the GUI</li>
-    </ul>
-  </li>
-</ul>
--->
+<h1>HLT ConfDB GUI</h1>
+
+<h3>Click <a href="start.jnlp">here</a> to start the HLT ConfDB GUI via Java Web Start</h3>
+
+<p>The HLT ConfDB GUI is a signed Java application; the signing certificate was granted by the
+<a href="https://ca.cern.ch/ca/">CERN Certification Authority</a> to the "CMS ConfDB" account.<br>
+To verify the certificate, please install the <a href="https://cafiles.cern.ch/cafiles/certificates/CERN%20Root%20Certification%20Authority%202.crt">
+CERN Root Certification Authority 2 Certificate</a>.</p>
+
+<h3>Building the GUI</h3>
+<p>You will need the <code>git</code> client, the <code>ant</code> build tool, and a Java 1.8 JDK installed:
+<pre>
+git clone https://github.com/cms-sw/hlt-confdb.git
+cd hlt-confdb
+ant gui
+./start
+</pre>
+</p>
+
+<h3>Connection details</h3>
+<p>In order to work, the GUI needs to connect to one of the Oracle database at CERN.<br>
+The offline database <b>HLTDEVv2</b> should be accessible from the CERN network and from all institutes
+that belong to the CMS collaboration.<br>
+The online database <b>DAQv2</b> is accessible only from the .CMS network at Point 5, while its read-only
+copy <b>ORCOFFv2</b> is accessible from the CERN network. An ssh tunnel can be used to connect from outside.</p>
+
+<p>You can test the connection to the offline database with
+<pre>
+telnet cmsr1-s.cern.ch 10121
+</pre>
+If the output is something like
+<pre>
+Trying 188.184.36.76...
+Connected to db-rac-349.cern.ch.
+Escape character is '^]'.
+</pre>
+then you can connect to the database.<br>
+If the output is something like
+<pre>
+Trying 188.184.36.76...
+telnet: Unable to connect to remote host: Connection refused
+</pre>
+then you cannot connect directly to the database, and you need to use a tunnel.<br>
+Forward the local port 10121 through an ssh connection to lxplus:
+<pre>
+ssh -f -N -L 10121:cmsr1-s.cern.ch:10121 lxplus.cern.ch
+</pre>
+then start the GUI, select the HLTDEVv2 database, and change the host to <code>localhost</code>.</p>
+<p>If you are working from an institute outside CERN, please write to
+<a href="mailto:Katarzyna Maria Dziedziniewicz-Wojcik <katarzyna.maria.dziedziniewicz@cern.ch?cc=Andrea Bocci <andrea.bocci@cern.ch>" target="_blank">
+Katarzyna Maria Dziedziniewicz-Wojcik (cc Andrea Bocci)</a> providing the IP address range for your institute,
+and ask to allow it through the CMS database firewall.</p>
+
 </body>
 </html>
