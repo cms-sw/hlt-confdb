@@ -19,10 +19,9 @@ public class CommandActionListener implements ActionListener
     private static final String cmdQuit             = "Quit";
 
     private static final String cmdNew              = "New";
-    private static final String cmdParse            = "Parse";
-    private static final String cmdJParse           = "JParse";
     private static final String cmdOpen             = "Open";
     private static final String cmdOpenOldScehma    = "Open Old Schema";
+    private static final String cmdJParse           = "Open Python File";
     private static final String cmdClose            = "Close";
     private static final String cmdSave             = "Save";
     private static final String cmdCommentSave      = "Comment&Save";
@@ -45,12 +44,10 @@ public class CommandActionListener implements ActionListener
     private static final String cmdTrack            = "Track InputTags";
     private static final String cmdEnableClone      = "Enable Path Deep Cloning";
     
-    
     private static final String cmdConnectToDB      = "Connect to DB";
     private static final String cmdDisconnectFromDB = "Disconnect from DB";
-    private static final String cmdImportFromPython = "Import from Python";
     private static final String cmdExportConfig     = "Export Configuration";
-    private static final String cmdDBInfo     = "Database Info";
+    private static final String cmdDBInfo           = "Database Info";
   
     
     /** standard constructor */
@@ -69,8 +66,7 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdQuit))             app.quitApplication();
 
 	if (command.equals(cmdNew))              app.newConfiguration();
-	if (command.equals(cmdParse))            app.parseConfiguration();
-	if (command.equals(cmdJParse))           app.jparseConfiguration();
+	if (command.equals(cmdJParse))           app.importFromPythonToolDialog();
 	if (command.equals(cmdOpen))             app.openConfiguration();
 	if (command.equals(cmdClose))            app.closeConfiguration();
 	if (command.equals(cmdSave))             app.saveConfiguration(false);
@@ -99,7 +95,6 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdExportConfig))     app.exportConfiguration();
 	if (command.equals(cmdOpenOldScehma))    app.importConfigurationFromDBV1();
 	if (command.equals(cmdDBInfo))    		 app.showDBInfo();
-	if (command.equals(cmdImportFromPython)) app.importFromPythonToolDialog();
     }
 
 }

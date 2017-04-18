@@ -44,11 +44,6 @@ public class JParseConfigurationDialog extends JDialog
     JButton    jButtonOK           = new javax.swing.JButton();
     JButton    jButtonCancel       = new javax.swing.JButton();
     
-    // Checkboxes
-    JCheckBox ignorePrescales = new JCheckBox("Ignore prescale service");
-    JCheckBox compilePython = new JCheckBox("Import from compiled python file (.pyc)");
-    
-
     /** label of the 'OK' button */
     private static final String ok = new String("OK");
     
@@ -95,19 +90,6 @@ public class JParseConfigurationDialog extends JDialog
     
     /** return the choosen release tag */
     public String releaseTag() { return releaseTag; }
-    
-    /** return true if compiled file option selected */
-    public boolean compiledFile() {
-    	if(compilePython.getSelectedObjects() == null) return false;
-    	else return true;
-    }
-    
-    /** return true if compiled file option selected */
-    public boolean ignorePrescaleService() {
-    	if(ignorePrescales.getSelectedObjects() == null) return false;
-    	else return true;
-    }
-    
     
     /** set the release tag, by making it the selected item in the combo box */
     public boolean setReleaseTag(String releaseTag)
@@ -239,19 +221,6 @@ public class JParseConfigurationDialog extends JDialog
 		}
 	 });
 	
-	// Add checkBoxListener:
-	
-	compilePython.addItemListener(
-		    new ItemListener() {
-		        public void itemStateChanged(ItemEvent e) {
-		            // Set "ignore" whenever box is checked or unchecked.
-		            ignorePrescales.setSelected(!(e.getStateChange() == ItemEvent.SELECTED));
-		            ignorePrescales.setEnabled(!(e.getStateChange() == ItemEvent.SELECTED));
-		        }
-		    }
-	);
-
-
         javax.swing.GroupLayout layout =
 	    new javax.swing.GroupLayout(jPanel);
         jPanel.setLayout(layout);
@@ -287,21 +256,6 @@ public class JParseConfigurationDialog extends JDialog
 						    javax.swing.GroupLayout.DEFAULT_SIZE, 92,
 						    Short.MAX_VALUE)
 					       .addGap(127))
-					       
-					  .addGroup(layout.createSequentialGroup()
-					       .addGap(139)
-					       .addComponent(compilePython, javax.swing.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE)
-					       .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-					       .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-					       .addGap(127))
-					       
-					  .addGroup(layout.createSequentialGroup()
-					       .addGap(139)
-					       .addComponent(ignorePrescales, javax.swing.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE)
-					       .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-					       .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-					       .addGap(127))
-
 				     	)
 				     .addContainerGap())
 				);
@@ -322,15 +276,7 @@ public class JParseConfigurationDialog extends JDialog
 					     javax.swing.GroupLayout.PREFERRED_SIZE,
 					     javax.swing.GroupLayout.DEFAULT_SIZE,
 					     javax.swing.GroupLayout.PREFERRED_SIZE))
-				   .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24,
-						    Short.MAX_VALUE)
-						    
-					.addComponent(compilePython)
-					.addComponent(ignorePrescales)
-					
-					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24,
-						    Short.MAX_VALUE)
-						    
+				   .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
 				   .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 					.addComponent(jButtonOK)
 					.addComponent(jButtonCancel))

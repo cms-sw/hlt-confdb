@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<jnlp codebase="$$codebase">
+<jnlp codebase="$$codebase" href="start.jnlp">
   <information>
     <title>CMS ConfDB GUI</title>
     <vendor>CMS ConfDB</vendor>
-    <homepage href=""/>
+    <homepage href="$$codebase"/>
     <description>CMS HLT configuration editor</description>
     <offline-allowed/>
   </information>
@@ -12,10 +12,11 @@
   </security>
   <update check="always" policy="prompt-update"/>
   <resources>
-    <j2se version="1.6+"/>
-    <jar href="confdb.jar" main="true" download="eager"/>
-    <jar href="mysql-connector-java-5.0.5-bin.jar" download="eager"/>
+    <j2se version="1.8+" java-vm-args="-Doracle.jdbc.timezoneAsRegion=false"/>
+    <jar href="cmssw-evf-confdb-gui.jar" main="true" download="eager"/>
+    <jar href="cmssw-python.jar" main="true" download="eager"/>
     <jar href="ojdbc6.jar" download="eager"/>
+    <jar href="jython.jar" download="eager"/>
   </resources>
   <application-desc main-class="confdb.gui.ConfDbGUI">
   </application-desc>
