@@ -1,3 +1,4 @@
+RecoMuon/GlobalTrackingTools            MuonTrackingRegionBuilderHLT_cfi.py
 Alignment/LaserAlignment                HLTLaserAlignmentEventFilter_cfi.py
 RecoBTag/SecondaryVertex                doubleVertex2TrkComputer_cfi.py
 L1Trigger/L1TGlobal                     TriggerMenu_cff.py
