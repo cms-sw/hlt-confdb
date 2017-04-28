@@ -31,6 +31,7 @@ def main(argv):
         "HeavyFlavorAnalysis/SpecificDecay",
         "RecoBTag/Skimming",
         "RecoJets.FFTJetProducers.fftjetpileupestimator_pf_cfi",
+        "RecoJets.FFTJetProducers.fftjetpileupestimator_calo_cfi",
         "SimGeneral.TrackingAnalysis.TrackingParticleSelection_cfi",
         "Alignment.LaserAlignment.LaserAlignmentEventFilter_cfi",
         "RecoMET.METFilters.hcalLaserEventFilter_cfi",
