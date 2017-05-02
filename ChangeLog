@@ -1,3 +1,8 @@
+2017-05-02 Andrea Bocci <andrea.bocci@cern.ch>
+	* tag V02-06-00
+	* add support for connecting through a SOCKS proxy
+	* convert database icon from gif to png
+
 2017-03-23 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V02-05-03
 	* ignore OutputModules while parsing a pyton file
