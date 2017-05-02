@@ -56,15 +56,28 @@ Trying 188.184.36.76...
 telnet: Unable to connect to remote host: Connection refused
 </pre>
 then you cannot connect directly to the database, and you need to use a tunnel.<br>
-Forward the local port 10121 through an ssh connection to lxplus:
-<pre>
-ssh -f -N -L 10121:cmsr1-s.cern.ch:10121 lxplus.cern.ch
-</pre>
-then start the GUI, select the HLTDEVv2 database, and change the host to <code>localhost</code>.</p>
 <p>If you are working from an institute outside CERN, please write to
 <a href="mailto:Katarzyna Maria Dziedziniewicz-Wojcik <katarzyna.maria.dziedziniewicz@cern.ch?cc=Andrea Bocci <andrea.bocci@cern.ch>" target="_blank">
 Katarzyna Maria Dziedziniewicz-Wojcik (cc Andrea Bocci)</a> providing the IP address range for your institute,
 and ask to allow it through the CMS database firewall.</p>
+
+<h3>Connection through a tunnel</h3>
+<p>Starting with the GUI version V02-06-00, the preferred method to connect is to create a dynamic
+forwarding through an ssh connection to lxplus:
+<pre>
+ssh -f -N -D 1080 lxplus.cern.ch
+</pre>
+then start the GUI, select the HLTDEVv2 database, and tick the "SOCKS Proxy" checkmark.<br>
+Change the proxy port number if you used a different local port.</p>
+
+<p>If this approach does not work, it is also possible to forward a port.
+Forward the local port 10121 to the database server through an ssh connection to lxplus:
+<pre>
+ssh -f -N -L 10121:188.184.36.85:10121 lxplus.cern.ch
+</pre>
+then start the GUI, select the HLTDEVv2 database, and change the host to <code>localhost</code>.<br>
+Change the server port number if you used a different local port.
+</p>
 
 </body>
 </html>
