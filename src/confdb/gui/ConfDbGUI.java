@@ -72,28 +72,28 @@ public class ConfDbGUI
 
     /** current user */
     private String userName = "";
-    
+
     /** access to the ConfDB database */
     private ConfDB database = null;
-    
+
     /** current software release (collection of all templates) */
     private SoftwareRelease currentRelease = null;
-    
+
     /** the current configuration */
     private Configuration currentConfig = null;
-    
+
     /** the current software release for imports */
     private SoftwareRelease importRelease = null;
 
     /** the import configuration */
     private Configuration importConfig = null;
-    
+
     /** current parameter container (Instance | OuputModule) */
     private Object currentParameterContainer = null;
 
     /** ascii converter engine, to display config snippets (right-lower) */
     private ConverterEngine cnvEngine = null;
-    
+
 
     /** TREE- & TABLE-MODELS */
     private ConfigurationTreeModel  treeModelCurrentConfig;
@@ -112,9 +112,9 @@ public class ConfDbGUI
     private JPanel        jPanelDbConnection        = new JPanel();
     private JSplitPane    jSplitPane                = new JSplitPane();
     private JSplitPane    jSplitPaneRight           = new JSplitPane();
-    
+
     private JPanel        jPanelContentEditor       = new JPanel();
-    
+
     private JPanel        jPanelLeft                = new JPanel();
     private JTextField    jTextFieldCurrentConfig   = new JTextField();
     private JLabel        jLabelLock                = new JLabel();
@@ -157,12 +157,12 @@ public class ConfDbGUI
     private JComboBox     jComboBoxPaths            = new JComboBox();     // AL
     private JScrollPane   jScrollPaneParameters     = new JScrollPane();
     private TreeTable     jTreeTableParameters;
-    
+
     private JPanel        jPanelRightLower          = new JPanel();
     private JTabbedPane   jTabbedPaneRightLower     = new JTabbedPane();
     private JScrollPane   jScrollPaneRightLower     = new JScrollPane();
     private JEditorPane   jEditorPaneSnippet        = new JEditorPane();
-    
+
     private JComboBox     jComboBoxEventContent     = new JComboBox();
     private JList         jListStreams              = new JList();
     private JList         jListDatasets             = new JList();
@@ -170,8 +170,8 @@ public class ConfDbGUI
     private JComboBox     jComboBoxCommands         = new JComboBox();
     private JTextArea     jTextAreaOutputModule     = new JTextArea();
     private JTable        jTableCommands            = new JTable();
-    
-    private JProgressBar  jProgressBar              = new JProgressBar(); 
+
+    private JProgressBar  jProgressBar              = new JProgressBar();
 
     // JScrollPane Tabs for Right lower panel:
     private JEditorPane   jEditorPanePathsToDataset = new JEditorPane();
@@ -182,7 +182,7 @@ public class ConfDbGUI
     private JScrollPane	  TAB_containedInPaths		= new JScrollPane();
     private JEditorPane   jEditorContainedInSequence= new JEditorPane();
     private JScrollPane	  TAB_containedInSequence	= new JScrollPane();
-    
+
     // Path fields in right upper panel
     private JPanel        jPanelPathFields          = new JPanel();
     private JEditorPane   jEditorPathDescription    = new JEditorPane();
@@ -198,14 +198,14 @@ public class ConfDbGUI
 
     // DB INFO fields:
     public boolean extraPathFieldsAvailability;
-    
+
     // Instrumentation variables:
     private long elapsedTime_OpenConfiguration		= 0;
-    
-    
+
+
     static SimpleAttributeSet ITALIC_GRAY = new SimpleAttributeSet();
     static SimpleAttributeSet BOLD_BLACK = new SimpleAttributeSet();
-    static SimpleAttributeSet BLACK = new SimpleAttributeSet(); 
+    static SimpleAttributeSet BLACK = new SimpleAttributeSet();
     static {
         StyleConstants.setForeground(ITALIC_GRAY, Color.gray);
         StyleConstants.setItalic(ITALIC_GRAY, true);
@@ -221,29 +221,29 @@ public class ConfDbGUI
         StyleConstants.setFontFamily(BLACK, "Helvetica");
         StyleConstants.setFontSize(BLACK, 14);
       }
-    
+
     /** Other program state values. */
     //boolean enablePathCloning = false;	// ToolBar Option to enable the path cloning context menu option.
 
-    
+
     //
     // construction
     //
-    
+
     /** standard constructor */
     public ConfDbGUI(JFrame frame)
     {
 	this.userName = System.getProperty("user.name");
 	this.frame    = frame;
-	
+
 	this.database         = new ConfDB();
 	this.currentRelease   = new SoftwareRelease();
 	this.currentConfig    = new Configuration();
 	this.importRelease    = new SoftwareRelease();
 	this.importConfig     = new Configuration();
-	
+
 	//this.jTableCommands.setAutoCreateRowSorter(true);
-	
+
 	try {
 	    this.cnvEngine = ConverterFactory.getConverterEngine("python");
 	}
@@ -251,14 +251,14 @@ public class ConfDbGUI
 	    System.err.println("failed to initialize converter engine: " +
 			       e.getMessage());
 	}
-	
+
 	createTreesAndTables();
 	createContentPane();
 	hideImportTree();
-	
+
 	frame.setContentPane(jPanelContentPane);
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    
+
 	jTextFieldProcess.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    jButtonProcessActionPerformed(e);
@@ -317,7 +317,7 @@ public class ConfDbGUI
 			jTreeCurrentConfigValueChanged(e);
 		}
 	    });
-	
+
 	KeyStroke ks_F2  = KeyStroke.getKeyStroke("F2");
 	Object    key_F2 = jTreeCurrentConfig.getInputMap().get(ks_F2);
 	if (key_F2!=null) jTreeCurrentConfig.getInputMap().put(ks_F2,"none");
@@ -346,28 +346,28 @@ public class ConfDbGUI
 		    jButtonImportCancelSearchActionPerformed(e);
 		}
 	    });
-	
+
 	/** Register ActionListener to save extra path fields. */
 	jButtonSavePathFields.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 			SaveDocumentationFieldsActionPerformed();
-			
+
 		}
 	});
-	
+
 	/** Register ActionListener to cancel/undo changes in extra path fields. */
 	jButtonCancelPathFields.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    // It will be automatically enabled when Text is modified.
-		    jButtonSavePathFields.setEnabled(false); 
+		    jButtonSavePathFields.setEnabled(false);
 		    jButtonCancelPathFields.setEnabled(false);
-		    
+
 		    // Reload values
 		    displayPathFields();
 		}
 	});
-	
-	
+
+
 	jComboBoxPaths.addItemListener(new ItemListener() {
 		public void itemStateChanged(ItemEvent e) {
 		    jComboBoxPathsItemStateChanged(e);
@@ -396,7 +396,7 @@ public class ConfDbGUI
 		    public void componentResized(ComponentEvent e) {}
 		    public void componentShown(ComponentEvent e) {}
 		});
-	    
+
 	    frame.addWindowListener(new WindowAdapter() {
 		public void windowClosing(WindowEvent e)
 		{
@@ -412,7 +412,7 @@ public class ConfDbGUI
 		}
 	    });
     }
-    
+
 
     private static String findPython27() {
         // look for an external Python 2.7 interpreter
@@ -437,11 +437,11 @@ public class ConfDbGUI
         return null;
     }
 
-    
+
     //
     // main
     //
-    
+
     /** main method, thread-safe call to createAndShowGUI */
     public static void main(String[] args)
     {
@@ -457,13 +457,13 @@ public class ConfDbGUI
             public void run() { createAndShowGUI(); }
 	});
     }
-    
+
     /** create the GUI and show it */
     private static void createAndShowGUI()
     {
 	JFrame frame = new JFrame("GDR ConfDbGUI");
 	ConfDbGUI gui = new ConfDbGUI(frame);
-	
+
 	int frameWidth =
 	    (int)(0.75*frame.getToolkit().getScreenSize().getWidth());
 	int frameHeight =
@@ -477,19 +477,19 @@ public class ConfDbGUI
 	frame.setSize(frameWidth,frameHeight);
 	frame.setLocation(frameX,frameY);
 	frame.setVisible(true);
-	
+
 	// CHECH ConfdbSofware version:
 	ConfdbSoftwareVersion softwareVersion = new ConfdbSoftwareVersion();
 	softwareVersion.CheckSoftwareVersion();	// Against the container version!
-	
+
 	gui.connectToDatabase();
     }
-    
+
 
     //
     // member functions
     //
-    
+
     /** get the main frame */
     public JFrame getFrame() { return frame; }
 
@@ -501,7 +501,7 @@ public class ConfDbGUI
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
     }
-    
+
     /** quit the GUI application */
     public void quitApplication()
     {
@@ -515,18 +515,18 @@ public class ConfDbGUI
     public void newConfiguration()
     {
 	if (!closeConfiguration()) return;
-	
+
 	NewConfigurationDialog dialog = new NewConfigurationDialog(frame,
 								   database);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-	
+
 	if (dialog.validChoice()) {
 	    String name       = dialog.name();
 	    String process    = dialog.process();
 	    String releaseTag = dialog.releaseTag();
-	    
+
 	    NewConfigurationThread worker =
 		new NewConfigurationThread(name,process,releaseTag);
 	    worker.start();
@@ -545,16 +545,16 @@ public class ConfDbGUI
     public void importFromPythonToolDialog()
     {
 	if (!closeConfiguration()) return;
-	
+
 	JParseConfigurationDialog dialog = new JParseConfigurationDialog(frame,database);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-	
+
 	if (dialog.validChoice()) {
 	    String fileName   = dialog.fileName();
 	    String releaseTag = dialog.releaseTag();
-	    
+
 	    JParseConfigurationThread worker = new JParseConfigurationThread(fileName,releaseTag);
 	    worker.start();
 	    jProgressBar.setIndeterminate(true);
@@ -570,28 +570,28 @@ public class ConfDbGUI
     {
 	if (database.dbUrl().equals(new String())) return;
 	if (!closeConfiguration()) return;
-	
+
 	PickConfigurationDialog dialog =
 	    new PickConfigurationDialog(frame,"Open Configuration",database);
 	dialog.allowUnlocking();
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-	
+
         //System.out.println(" Configuration picked\n");
 	if (dialog.validChoice()) {
 	    OpenConfigurationThread worker = new OpenConfigurationThread(dialog.configInfo());
-	    
-	    worker.start();	    
-	    
+
+	    worker.start();
+
 	    jProgressBar.setIndeterminate(true);
 	    jProgressBar.setVisible(true);
 	    jProgressBar.setString("Loading Configuration ...");
 	    menuBar.configurationIsOpen();
 	    toolBar.configurationIsOpen();
-	    
+
 	    //System.out.println("ElapsedTime: " + worker.getElapsedTime());
-	    
+
 	}
     }
 
@@ -599,16 +599,16 @@ public class ConfDbGUI
     public boolean closeConfiguration()
     {
 	return closeConfiguration(true);
-    } 
+    }
 
     /** close the current configuration */
     public boolean closeConfiguration(boolean showDialog)
     {
 	if (currentConfig.isEmpty()) return true;
-	
+
 	if (currentConfig.hasChanged()&&showDialog) {
 	    Object[] options = { "OK", "CANCEL" };
-	    int answer = 
+	    int answer =
 		JOptionPane.showOptionDialog(null,
 					     "The current configuration "+
 					     "contains unsaved changes, "+
@@ -618,23 +618,23 @@ public class ConfDbGUI
 					     null, options, options[1]);
 	    if (answer==1) return false;
 	}
-	
+
 	if (!currentConfig.isLocked()&&currentConfig.version()>0) {
 	    try { database.unlockConfiguration(currentConfig); }
 	    catch (DatabaseException e) { System.err.println(e.getMessage()); }
 	}
 
 	resetConfiguration();
-	
+
 	return true;
-    } 
-    
+    }
+
     /** save a new version of the current configuration */
     public void saveConfiguration(boolean askForComment)
     {
 	if (currentConfig.isEmpty()||!currentConfig.hasChanged()||
-	    currentConfig.isLocked()||!checkConfiguration()) return;	
-	
+	    currentConfig.isLocked()||!checkConfiguration()) return;
+
 	if (currentConfig.version()==0) {
 	    saveAsConfiguration();
 	    return;
@@ -643,7 +643,7 @@ public class ConfDbGUI
 	    try { database.unlockConfiguration(currentConfig); }
 	    catch (DatabaseException e) { System.err.println(e.getMessage()); }
 	}
-	
+
 	String processName = jTextFieldProcess.getText();
 	String comment = "";
 
@@ -663,36 +663,36 @@ public class ConfDbGUI
 		return;
 	    }
 	}
-	
+
 	SaveConfigurationThread worker =
 	    new SaveConfigurationThread(processName,comment);
 	worker.start();
 	jProgressBar.setIndeterminate(true);
 	jProgressBar.setString("Save Configuration ...");
 	jProgressBar.setVisible(true);
-	
+
     }
-    
+
     /** save the current configuration under a new name */
     public void saveAsConfiguration()
     {
 	if (!checkConfiguration()) return;
-	
+
 	boolean isLocked = currentConfig.isLocked();
 	if (currentConfig.version()!=0&&!isLocked) {
 	    try { database.unlockConfiguration(currentConfig); }
 	    catch (DatabaseException e) { System.err.println(e.getMessage()); }
 	}
-		
+
 	String processName = jTextFieldProcess.getText();
 	String comment = (currentConfig.version()==0) ?
 	    "first import" :
 	    "saveAs "+currentConfig+" ["+currentConfig.dbId()+"]";
-	
-	
+
+
 	SaveConfigurationDialog dialog =
 	    new SaveConfigurationDialog(frame,database,currentConfig,comment);
-	
+
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
@@ -700,19 +700,19 @@ public class ConfDbGUI
 	    SaveConfigurationThread worker =
 		new SaveConfigurationThread(processName,dialog.comment());
 	    worker.start();
-	    
+
 	    jProgressBar.setIndeterminate(true);
 	    jProgressBar.setString("Save Configuration ...");
 	    jProgressBar.setVisible(true);
 	    currentConfig.setHasChanged(false);
-	    
+
 	}
 	else if (currentConfig.version()!=0&&!isLocked) {
 	    try { database.lockConfiguration(currentConfig,userName); }
 	    catch (DatabaseException e) { System.err.println(e.getMessage()); }
 	}
     }
-    
+
     /** compare current configuration to another one */
     public void diffConfigurations()
     {
@@ -730,20 +730,20 @@ public class ConfDbGUI
 	    String oldConfigName = diff.configName1();
 	    String newConfigName = diff.configName2();
 	    // System.out.println("ConfDbGUI.diffConfiguration: old:"+oldConfigName+" new:"+newConfigName);
-	    
+
 	    closeConfiguration(false);
 
 	    //openConfiguration();
 	    if (database.dbUrl().equals(new String())) return;
 	    if (!closeConfiguration()) return;
-	    
+
 	    PickConfigurationDialog cdialog =
 		new PickConfigurationDialog(frame,"Open Configuration to be updated",database);
 	    cdialog.allowUnlocking();
 	    cdialog.pack();
 	    cdialog.setLocationRelativeTo(frame);
 	    cdialog.setVisible(true);
-	    
+
 	    if (cdialog.validChoice()) { } else {return;}
 
 	    OpenConfigurationThread cworker =
@@ -772,7 +772,7 @@ public class ConfDbGUI
 	    idialog.pack();
 	    idialog.setLocationRelativeTo(frame);
 	    idialog.setVisible(true);
-	    
+
 	    if (idialog.validChoice()&&
 		idialog.configInfo().releaseTag().equals(currentRelease.releaseTag())) {
 	    } else {return;}
@@ -793,7 +793,7 @@ public class ConfDbGUI
 	    }
 
 	    // System.out.println("ConfDbGUI.diffConfiguration: import : "+importConfig.toString());
-	    
+
 	    //
 	    boolean  result = false;
 	    String pathName = null;
@@ -835,7 +835,7 @@ public class ConfDbGUI
 	    //
 	}
     }
-    
+
     /** compare current configuration to another one */
     public void smartVersionsConfigurations()
     {
@@ -895,7 +895,7 @@ public class ConfDbGUI
 	    }
 	}
     }
-    
+
     /** compare current configuration to another one */
     public void smartRenamingConfigurations()
     {
@@ -940,7 +940,7 @@ public class ConfDbGUI
 		    }
 		}
 	    }
-	    
+
 	    if (applyTo.equals("All") || applyTo.equals("Sequences")) {
 		Sequence sequence = null;
 		for (int i=0; i<currentConfig.sequenceCount(); i++) {
@@ -994,19 +994,19 @@ public class ConfDbGUI
 	    treeModelCurrentConfig.setConfiguration(currentConfig);
 	}
     }
-    
+
     /** open prescale editor */
     public void openPrescaleEditor()
     {
-    	// NOTE: clearPathFields() is necessary to do not interfere with 
+    	// NOTE: clearPathFields() is necessary to do not interfere with
     	// the embedded editor in the rightUpperPanel (documentation panel):
-    	clearPathFields();  
-    	
+    	clearPathFields();
+
 	PrescaleDialog dialog = new PrescaleDialog(frame,currentConfig);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-	
+
 	ServiceInstance prescaleSvc = currentConfig.service("PrescaleService");
 	if (prescaleSvc!=null)
 	    treeModelCurrentConfig.nodeStructureChanged(prescaleSvc);
@@ -1015,38 +1015,38 @@ public class ConfDbGUI
     /** open prescale editor */
     public void openSmartPrescaleEditor()
     {
-      
+
 	SmartPrescaleDialog dialog = new SmartPrescaleDialog(frame,currentConfig);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-	
+
 	ServiceInstance smartPrescaleSvc = currentConfig.service("SmartPrescaleService");
 	if (smartPrescaleSvc!=null)
 	    treeModelCurrentConfig.nodeStructureChanged(smartPrescaleSvc);
     }
 
 
-            
+
     /** open message logger */
     public void openMessageLoggerEditor()
     {
 
 	ServiceInstance messageLoggerSvc=currentConfig.service("MessageLogger");
 	if (messageLoggerSvc==null) return;
-	
+
  	MessageLoggerDialog dialog = new MessageLoggerDialog(frame,
 							     currentConfig);
  	dialog.pack();
  	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-	
+
  	if (messageLoggerSvc!=null) {
-     	    treeModelCurrentConfig.nodeStructureChanged(messageLoggerSvc);   
+     	    treeModelCurrentConfig.nodeStructureChanged(messageLoggerSvc);
 	}
     }
 
- 	
+
     /** execute Java Code to manipulate Config */
     public void openJavaCodeExecution()
     {
@@ -1055,7 +1055,7 @@ public class ConfDbGUI
 
     }
 
- 	
+
     /** add untracked parameter to the currently active component */
     public void addUntrackedParameter()
     {
@@ -1070,7 +1070,7 @@ public class ConfDbGUI
  		Parameter p = container.parameter(dlg.name());
  		if(p!=null) {
  		    //JOptionPane.showMessageDialog(null,
-		    //"Parameter already exists",JOptionPane.ERROR_MESSAGE); 
+		    //"Parameter already exists",JOptionPane.ERROR_MESSAGE);
  		    return;
  		}
  		if(dlg.valueAsString()==null)
@@ -1079,10 +1079,10 @@ public class ConfDbGUI
  		else
  		    container.updateParameter(dlg.name(),dlg.type(),"");
  		displayParameters();
- 	    }	
+ 	    }
  	}
     }
-    
+
 
     /** one another configuration to import components */
     public void importConfiguration()
@@ -1093,7 +1093,7 @@ public class ConfDbGUI
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-	
+
 	if (dialog.validChoice()&&
 	    dialog.configInfo().releaseTag().equals(currentRelease.releaseTag())) {
 	    ImportConfigurationThread worker =
@@ -1102,22 +1102,22 @@ public class ConfDbGUI
 	    jProgressBar.setIndeterminate(true);
 	    jProgressBar.setVisible(true);
 	    jProgressBar.setString("Importing Configuration ...");
-	}	
+	}
     }
-    
+
     /** migrate the current configuration to a new release */
     public void migrateConfiguration()
     {
 	if (!checkConfiguration()) return;
-	
+
 	MigrateConfigurationDialog dialog =
 	    new MigrateConfigurationDialog(frame,database);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-	
-	String releaseTag = dialog.releaseTag();	
-	
+
+	String releaseTag = dialog.releaseTag();
+
 	if (releaseTag.length()>0) {
 	    MigrateConfigurationThread worker =
 		new MigrateConfigurationThread(releaseTag);
@@ -1128,20 +1128,20 @@ public class ConfDbGUI
 				  releaseTag + "' ... ");
 	}
     }
-    
+
     /** convert the current configuration to a text file (ascii,python,html) */
     public void convertConfiguration()
     {
 	if (!checkConfiguration()) return;
-	
+
 	ConvertConfigurationDialog dialog =
 	    new ConvertConfigurationDialog(frame,currentConfig);
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-	
+
 	if (!dialog.isCanceled()) {
-	    ConvertConfigurationThread worker = 
+	    ConvertConfigurationThread worker =
 		new ConvertConfigurationThread(dialog.configToConvert(),
 					       dialog.fileName(),
 					       dialog.format(),
@@ -1153,7 +1153,7 @@ public class ConfDbGUI
 				   currentConfig.name()+"' ... ");
 	}
     }
-    
+
     /** search/replace parameters in the current configuration */
     public void searchAndReplace()
     {
@@ -1171,17 +1171,17 @@ public class ConfDbGUI
 	ConfigurationTreeRenderer renderer =
 	    (ConfigurationTreeRenderer)jTreeCurrentConfig.getCellRenderer();
 	renderer.displayUnresolvedInputTags(doTrack);
-	
+
 	IConfiguration config=(IConfiguration)treeModelCurrentConfig.getRoot();
 	int pathIndices[] = new int[config.pathCount()];
 	for (int i=0;i<config.pathCount();i++) pathIndices[i]=i;
 	treeModelCurrentConfig.childNodesChanged(treeModelCurrentConfig
 						 .pathsNode(),pathIndices);
 
-	Path[] children = new Path[config.pathCount()];	
+	Path[] children = new Path[config.pathCount()];
 	for (int i=0; i<config.pathCount(); i++) {
 	    children[i]=(Path)treeModelCurrentConfig.getChild(treeModelCurrentConfig.pathsNode(),i);
-	    
+
 	    Path newParent = children[i];
 	    int newIndices[] = new int[newParent.entryCount()];
 		for (int j=0; j<newParent.entryCount(); j++) {
@@ -1189,32 +1189,32 @@ public class ConfDbGUI
 	    }
 	    treeModelCurrentConfig.childNodesChanged(newParent,newIndices);
 	}
-	
+
     }
-    
+
     /** Set option 'Enable path cloning' */
     public void setEnablePathCloning(boolean enableCloning) {
-    	
+
     	MouseListener[] mls = (MouseListener[])(jTreeCurrentConfig.getListeners(MouseListener.class));
-    	
+
 		for(int i = 0; i < mls.length; i++) {
 			if(mls[i].getClass() == ConfigurationTreeMouseListener.class) {
 				((ConfigurationTreeMouseListener)mls[i]).setEnablePathClonig(enableCloning);
 			}
 		}
     }
-    
+
 
     /** connect to the database */
     public void connectToDatabase()
     {
 	disconnectFromDatabase();
-	
+
 	DatabaseConnectionDialog dbDialog = new DatabaseConnectionDialog(frame);
 	dbDialog.pack();
 	dbDialog.setLocationRelativeTo(frame);
 	dbDialog.setVisible(true);
-	
+
 	if (!dbDialog.validChoice()) return;
 	String dbType = dbDialog.getDbType();
 	String dbHost = dbDialog.getDbHost();
@@ -1223,16 +1223,24 @@ public class ConfDbGUI
 	String dbUrl  = dbDialog.getDbUrl();
 	String dbUser = dbDialog.getDbUser();
 	String dbPwrd = dbDialog.getDbPassword();
-	
+
+        if (dbDialog.isProxyEnabled()) {
+            System.setProperty("socksProxyHost", dbDialog.getProxyHost());
+            System.setProperty("socksProxyPort", dbDialog.getProxyPort());
+        } else {
+            System.setProperty("socksProxyHost", "");
+            System.setProperty("socksProxyPort", "");
+        }
+
 	try {
 
 		// Use TNSNames format to connect to oracle:
 		if (dbType.equals(database.dbTypeOracle)) {
-			dbUrl = database.setDbParameters(dbPwrd, dbName, dbHost, dbPort); 
+			dbUrl = database.setDbParameters(dbPwrd, dbName, dbHost, dbPort);
 		}
-			
-		
-		
+
+
+
 	    database.connect(dbType,dbUrl,dbUser,dbPwrd);
 	    ((DatabaseInfoPanel)jPanelDbConnection).connectedToDatabase(dbType,
 									dbHost,
@@ -1247,17 +1255,17 @@ public class ConfDbGUI
 	}
 	menuBar.dbConnectionIsEstablished();
 	toolBar.dbConnectionIsEstablished();
-	
-		
+
+
 		extraPathFieldsAvailability = database.getExtraPathFieldsAvailability();
-	
+
     }
 
     /** disconnect from the  database */
     public void disconnectFromDatabase()
     {
 	if (!closeConfiguration()) return;
-	
+
 	try {
 	    database.disconnect();
 	    ((DatabaseInfoPanel)jPanelDbConnection).disconnectedFromDatabase();
@@ -1279,7 +1287,7 @@ public class ConfDbGUI
     public void exportConfiguration()
     {
 	if (!checkConfiguration()) return;
-	
+
 	ExportConfigurationDialog dialog =
 	    new ExportConfigurationDialog(frame,
 					  currentConfig.releaseTag(),
@@ -1287,12 +1295,12 @@ public class ConfDbGUI
 	dialog.pack();
 	dialog.setLocationRelativeTo(frame);
 	dialog.setVisible(true);
-	
+
 	if (dialog.validChoice()) {
 	    ConfDB      targetDB   = dialog.targetDB();
 	    String      targetName = dialog.targetName();
 	    Directory   targetDir  = dialog.targetDir();
-	    
+
 	    ExportConfigurationThread worker =
 		new ExportConfigurationThread(targetDB,targetName,targetDir);
 	    worker.start();
@@ -1302,17 +1310,17 @@ public class ConfDbGUI
 				   targetDB.dbUrl() + " ... ");
 	}
     }
-    
-    
+
+
     /** export the current configuration to a new database */
     public void importConfigurationFromDBV1()
     {
 
 	if (database.dbUrl().equals(new String())) return;
 	if (!closeConfiguration()) return;
-       
+
 	ConfDBV1 databaseOld = new ConfDBV1();
-	
+
 	System.out.println();
 
 
@@ -1320,7 +1328,7 @@ public class ConfDbGUI
 	dbDialog.pack();
 	dbDialog.setLocationRelativeTo(frame);
 	dbDialog.setVisible(true);
-	
+
 	if (!dbDialog.validChoice()) return;
 	String dbType = dbDialog.getDbType();
 	String dbHost = dbDialog.getDbHost();
@@ -1329,7 +1337,15 @@ public class ConfDbGUI
 	String dbUrl  = dbDialog.getDbUrl();
 	String dbUser = dbDialog.getDbUser();
 	String dbPwrd = dbDialog.getDbPassword();
-	
+
+        if (dbDialog.isProxyEnabled()) {
+            System.setProperty("socksProxyHost", dbDialog.getProxyHost());
+            System.setProperty("socksProxyPort", dbDialog.getProxyPort());
+        } else {
+            System.setProperty("socksProxyHost", null);
+            System.setProperty("socksProxyPort", null);
+        }
+
 	try {
 	    databaseOld.connect(dbType,dbUrl,dbUser,dbPwrd);
 	    //  ((DatabaseInfoPanel)jPanelDbConnection).connectedToDatabase(dbType,
@@ -1359,11 +1375,11 @@ public class ConfDbGUI
 	    jProgressBar.setString("Loading Configuration ...");
 	    menuBar.configurationIsOpen();
 	    toolBar.configurationIsOpen();
-	 
+
 	}
 
     }
-    
+
     /** Show Db information */
     // TODO show instrumentation results.
     public void showDBInfo() {
@@ -1376,7 +1392,7 @@ public class ConfDbGUI
     	 infoFrame = new JFrame("Database Info");
     	 infoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     	 infoFrame.setResizable(false);
-    	 
+
 	 		try {
 	 			DatabaseMetaData dbmd = database.getDatabaseMetaData();
 	 			getDatabaseProductVersion = dbmd.getDatabaseProductVersion();
@@ -1385,72 +1401,72 @@ public class ConfDbGUI
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			
-    	    
+
+
     	    JTextArea jlabelExtraPathsAvailability	= new JTextArea();
     	    jlabelExtraPathsAvailability.setText("Documentation fields availability:");
     	    jlabelExtraPathsAvailability.setEditable(false);
     	    jlabelExtraPathsAvailability.setBackground(null);
-    	    
+
     	    JTextArea DatabaseHost	= new JTextArea("db Host: ");
     	    DatabaseHost.setEditable(false);
     	    DatabaseHost.setBackground(null);
-    	    
+
     	    JTextArea DatabaseHostValue	= new JTextArea(database.getHostName());
     	    DatabaseHostValue.setEditable(false);
     	    DatabaseHostValue.setBackground(null);
-    	    
+
     	    JTextArea DatabaseName	= new JTextArea("db Name: ");
     	    DatabaseName.setEditable(false);
     	    DatabaseName.setBackground(null);
-    	    
+
     	    JTextArea DatabaseNameValue	= new JTextArea(database.getDbName());
     	    DatabaseNameValue.setEditable(false);
     	    DatabaseNameValue.setBackground(null);
-    	    
+
     	    JTextArea DatabaseProductVersion	= new JTextArea("DatabaseProductVersion: ");
     	    DatabaseProductVersion.setEditable(false);
     	    DatabaseProductVersion.setBackground(null);
     	    JTextArea DatabaseProductVersionValue	= new JTextArea(getDatabaseProductVersion);
     	    DatabaseProductVersionValue.setEditable(false);
     	    DatabaseProductVersionValue.setBackground(null);
-    	    
+
     	    JTextArea DriverName	= new JTextArea("DriverName: ");
     	    DriverName.setEditable(false);
     	    DriverName.setBackground(null);
-    	    
+
     	    JTextArea DriverNameValue	= new JTextArea(getDriverName);
     	    DriverNameValue.setEditable(false);
     	    DriverNameValue.setBackground(null);
-    	    
+
     	    JTextArea DriverVersion	= new JTextArea("DriverVersion: ");
     	    DriverVersion.setEditable(false);
     	    DriverVersion.setBackground(null);
-    	    
+
     	    JTextArea DriverVersionValue	= new JTextArea(getDriverVersion);
     	    DriverVersionValue.setEditable(false);
     	    DriverVersionValue.setBackground(null);
-    	    
+
     	    JTextArea elapsedTimeOpenConfiguration	= new JTextArea("Elapsed time to open last configuration: ");
     	    elapsedTimeOpenConfiguration.setEditable(false);
     	    elapsedTimeOpenConfiguration.setBackground(null);
-    	    
+
     	    JTextArea elapsedTimeOpenConfigurationValue	= new JTextArea( elapsedTime_OpenConfiguration + " milliseconds.");
     	    elapsedTimeOpenConfigurationValue.setEditable(false);
     	    elapsedTimeOpenConfigurationValue.setBackground(null);
-    	    
-    	    
+
+
     	    JLabel ico1 = new JLabel();	// icon
     	    JLabel ico2 = new JLabel();	// icon
     	    if(extraPathFieldsAvailability) ico1.setIcon(new ImageIcon(getClass().getResource("/ESSourcesDirIcon.png")));
     	    else 							ico1.setIcon(new ImageIcon(getClass().getResource("/ModulesDirIcon.png")));
-    	    
-    	    
-    	    
+
+
+
     	    javax.swing.GroupLayout layout = new javax.swing.GroupLayout(infoPanel);
     	    infoPanel.setLayout(layout);
     	    infoPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-    	    
+
     	 // Using TRAILING alignment the button will be aligned to the right.
     	    layout.setHorizontalGroup(layout.createSequentialGroup()
     	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -1460,7 +1476,7 @@ public class ConfDbGUI
     	    		.addComponent(DatabaseHost, javax.swing.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
     	    		.addComponent(DatabaseName, javax.swing.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
     	    		.addComponent(elapsedTimeOpenConfiguration, javax.swing.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE)
-    	    		
+
     	    		.addComponent(jlabelExtraPathsAvailability, javax.swing.GroupLayout.PREFERRED_SIZE, 260, Short.MAX_VALUE))
     	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 		    		.addComponent(DatabaseProductVersionValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1469,18 +1485,18 @@ public class ConfDbGUI
 		    		.addComponent(DatabaseHostValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 		    		.addComponent(DatabaseNameValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 		    		.addComponent(elapsedTimeOpenConfigurationValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-		    		
+
     	    		.addComponent(ico1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, 25))
     	    );
-    	    
+
     	    layout.setVerticalGroup(layout.createSequentialGroup()
-        	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)	
+        	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
         	    		.addComponent(DatabaseProductVersion, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
         	    		.addComponent(DatabaseProductVersionValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
-        	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)	
+        	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
         	    		.addComponent(DriverName, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
         	    		.addComponent(DriverNameValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
-        	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)	
+        	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
         	    		.addComponent(DriverVersion, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100)
         	    		.addComponent(DriverVersionValue, javax.swing.GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, 100))
         	    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -1497,7 +1513,7 @@ public class ConfDbGUI
 	    	    		.addComponent(ico1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, 25))
     	    );
 
-        
+
         // Create and set up the content pane.
     	infoPanel.setOpaque(true);
         infoFrame.setContentPane(infoPanel);
@@ -1505,19 +1521,19 @@ public class ConfDbGUI
         // Display the window.
         infoFrame.pack();
         infoFrame.setVisible(true);
-        
+
         // Setting the position of the dialog on the center of the screen
         Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
         infoFrame.setLocation((int)d.getWidth()/2 - (int)infoFrame.getPreferredSize().getWidth()/2,
-                (int)d.getHeight()/2 - (int)infoFrame.getPreferredSize().getHeight()/2);	
+                (int)d.getHeight()/2 - (int)infoFrame.getPreferredSize().getHeight()/2);
     }
-    
-    
+
+
     /** reset current and import configuration */
     private void resetConfiguration()
     {
 	currentRelease.clearInstances();
-	
+
 	currentConfig.reset();
 	treeModelCurrentConfig.setConfiguration(currentConfig);
 	jTextFieldCurrentConfig.setText("");
@@ -1527,7 +1543,7 @@ public class ConfDbGUI
 	jButtonRelease.setText("");
 	jTextFieldCreated.setText("");
 	jTextFieldCreator.setText("");
-	
+
 	jTextFieldSearch.setText("");
 	jTextFieldImportSearch.setText("");
 	jButtonCancelSearch.setEnabled(false);
@@ -1535,26 +1551,26 @@ public class ConfDbGUI
 
 	clearParameters();
 	clearSnippet();
-	
+
 	menuBar.configurationIsNotOpen();
 	toolBar.configurationIsNotOpen();
 
 	importConfig.reset();
 	treeModelImportConfig.setConfiguration(importConfig);
 	hideImportTree();
-	
+
 	jTextFieldProcess.setEditable(false);
 	jToggleButtonImport.setEnabled(false);
 
 	jSplitPane.setRightComponent(jSplitPaneRight);
-	clearPathFields(); 
+	clearPathFields();
     }
 
     /** check if current configuration is in a valid state for save/convert */
     private boolean checkConfiguration()
     {
 	if (currentConfig.isEmpty()) return false;
-	
+
 	int unsetParamCount = currentConfig.unsetTrackedParameterCount();
 	if (unsetParamCount>0) {
 	    String msg =
@@ -1564,7 +1580,7 @@ public class ConfDbGUI
 	    JOptionPane.showMessageDialog(frame,msg,"",
 					  JOptionPane.WARNING_MESSAGE);
 	}
-	
+
 	int emptyContainerCount = currentConfig.emptyContainerCount();
 	if (emptyContainerCount>0) {
 	    String msg =
@@ -1575,10 +1591,10 @@ public class ConfDbGUI
 					  JOptionPane.ERROR_MESSAGE);
 	    return false;
 	}
-	
+
 	return true;
     }
-    
+
 
     /** set the current configuration */
     private void setCurrentConfig(Configuration config)
@@ -1586,7 +1602,7 @@ public class ConfDbGUI
 	TreePath tp = jTreeCurrentConfig.getSelectionPath();
 	currentConfig = config;
 	treeModelCurrentConfig.setConfiguration(currentConfig);
-	
+
 	currentRelease = currentConfig.release();
 	jTreeCurrentConfig.scrollPathToVisible(tp);
 	jTreeCurrentConfig.setSelectionPath(tp);
@@ -1597,7 +1613,7 @@ public class ConfDbGUI
 						   currentConfig.dbId()+
 						   "  comment:"+
 						   currentConfig.comment());
-	
+
 	if (currentConfig.isLocked()) {
 	    jLabelLock.setIcon(new ImageIcon(getClass().
 					     getResource("/LockedIcon.png")));
@@ -1610,26 +1626,26 @@ public class ConfDbGUI
 	    jLabelLock.setToolTipText("It's all yours, nobody else can "+
 				      "modify this configuration until closed!");
 	}
-	
+
 	jTextFieldProcess.setText(currentConfig.processName());
 	jButtonRelease.setText(currentRelease.releaseTag());
 	jTextFieldCreated.setText(currentConfig.created());
 	jTextFieldCreator.setText(currentConfig.creator());
-	
+
 	jTextFieldProcess.setEditable(true);
-	
+
     }
-    
+
     /** Time spent in opening a configuration. */
     private void setElapsedTime(long time) {
     	elapsedTime_OpenConfiguration = time;
     }
-    
-    
+
+
     //
     // THREADS
     //
-    
+
     /** migrate current configuration to another database  */
     private class ExportConfigurationThread extends SwingWorker<String>
     {
@@ -1639,7 +1655,7 @@ public class ConfDbGUI
 	private Directory        targetDir  = null;
 	private DatabaseMigrator migrator   = null;
 	private long             startTime;
-	
+
 	/** standard constructor */
 	public ExportConfigurationThread(ConfDB targetDB,
 					 String targetName,Directory targetDir)
@@ -1648,7 +1664,7 @@ public class ConfDbGUI
 	    this.targetName = targetName;
 	    this.targetDir  = targetDir;
 	}
-	
+
 	/** SwingWorker: construct() */
 	protected String construct() throws DatabaseException, MigratorException
 	{
@@ -1658,7 +1674,7 @@ public class ConfDbGUI
 	    targetDB.disconnect();
 	    return new String("Done!");
 	}
-	
+
 	/** SwingWorker: finished */
 	protected void finished()
 	{
@@ -1686,14 +1702,14 @@ public class ConfDbGUI
 	    }
 	    catch (Exception e) {
 		e.printStackTrace();
-		jProgressBar.setString(jProgressBar.getString() + "FAILED!");	
+		jProgressBar.setString(jProgressBar.getString() + "FAILED!");
 		jProgressBar.setIndeterminate(false);
 	    }
 
 	}
     }
-    
-    
+
+
     /** load release templates from the database */
     private class NewConfigurationThread extends SwingWorker<String>
     {
@@ -1702,7 +1718,7 @@ public class ConfDbGUI
 	private String process    = null;
 	private String releaseTag = null;
 	private long   startTime;
-	
+
 	/** standard constructor */
 	public NewConfigurationThread(String name,String process,
 				      String releaseTag)
@@ -1711,7 +1727,7 @@ public class ConfDbGUI
 	    this.process    = process;
 	    this.releaseTag = releaseTag;
 	}
-	
+
 	/** SwingWorker: construct() */
 	protected String construct() throws DatabaseException
 	{
@@ -1720,7 +1736,7 @@ public class ConfDbGUI
 		database.loadSoftwareRelease(releaseTag,currentRelease);
 	    return new String("Done!");
 	}
-	    
+
 	/** SwingWorker: finished */
 	protected void finished()
 	{
@@ -1741,17 +1757,17 @@ public class ConfDbGUI
 					      "New Configuration failed",
 					      JOptionPane.ERROR_MESSAGE,null);
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
-	    } 
+	    }
 	    catch (Exception e) {
 		e.printStackTrace();
-		jProgressBar.setString(jProgressBar.getString()+"FAILED!");	
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
 	    }
 	    jProgressBar.setIndeterminate(false);
 	    jTreeCurrentConfig.setEditable(true);
 	    jTreeTableParameters.getTree().setEditable(true);
 	}
     }
-    
+
 
     /** load release templates from the database and parse config from *.py */
     private class JParseConfigurationThread extends SwingWorker<String>
@@ -1761,28 +1777,28 @@ public class ConfDbGUI
 	private String        fileName   = null;
 	private String        releaseTag = null;
 	private long          startTime;
-	
+
 	/** standard constructor */
 	public JParseConfigurationThread(String fileName, String releaseTag)
 	{
 	    this.fileName   = fileName;
 	    this.releaseTag = releaseTag;
 	}
-	
+
 	/** SwingWorker: construct() */
 	protected String construct() throws DatabaseException,JParserException
 	{
 	    startTime = System.currentTimeMillis();
-	    
-	    if (!releaseTag.equals(currentRelease.releaseTag())) 
+
+	    if (!releaseTag.equals(currentRelease.releaseTag()))
 	    	database.loadSoftwareRelease(releaseTag,currentRelease);
-	    
+
 	    parser = new JPythonParser(currentRelease);
 	    parser.parseCompileFile(fileName);
 	    setCurrentConfig(parser.createConfiguration());
 	    return new String("Done!");
 	}
-	
+
 	/** SwingWorker: finished */
 	protected void finished()
 	{
@@ -1798,10 +1814,10 @@ public class ConfDbGUI
 					      "Parse Configuration failed",
 					      JOptionPane.ERROR_MESSAGE,null);
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
-	    } 
+	    }
 	    catch (Exception e) {
 		e.printStackTrace();
-		jProgressBar.setString(jProgressBar.getString()+"FAILED!");	
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
 	    }
 	    jProgressBar.setIndeterminate(false);
 	    jTreeCurrentConfig.setEditable(true);
@@ -1812,10 +1828,10 @@ public class ConfDbGUI
 	    	AboutDialog ad = new AboutDialog(null); // Only to get version and contact info. //DONT SHOW DIALOG!
 			String StackTrace = "ConfDb Version: " 	+ ad.getConfDbVersion() 	+ "\n";
 			StackTrace+= "Release Tag: " 			+ currentRelease.releaseTag() 		+ "\n";
-			StackTrace+= "-----------------------------------------------------------------\n";			
+			StackTrace+= "-----------------------------------------------------------------\n";
 	    	String errMsg = "Parse Python configuration FAILED!\n"	+
 			"Please send us an email to:\n" + ad.getContactPerson();
-			
+
 	    	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, StackTrace);
 			cd.createAndShowGUI();
 	    } else { //  if (parser.closeProblemStream()) {
@@ -1825,11 +1841,11 @@ public class ConfDbGUI
 			dialog.setLocationRelativeTo(frame);
 			dialog.setVisible(true);
 	    }
-	    
-	    
+
+
 	}
     }
-    
+
 
     /** load a configuration from the database  */
     private class OpenConfigurationThread extends SwingWorker<String>
@@ -1838,7 +1854,7 @@ public class ConfDbGUI
 	private ConfigInfo configInfo = null;
 	private long       startTime;
 	private long 	   elapsedTime;
-	
+
 	/** standard constructor */
 	public OpenConfigurationThread(ConfigInfo configInfo)
 	{
@@ -1846,20 +1862,20 @@ public class ConfDbGUI
 	    elapsedTime = 0;
 	    startTime = 0;
 	}
-	
+
 	/** SwingWorker: construct() */
 	protected String construct() throws DatabaseException
 	{
 	    startTime = System.currentTimeMillis();
-	    
+
 	    if(currentRelease == null) currentRelease = new SoftwareRelease();
-	    
-	    Configuration config = database.loadConfiguration(configInfo,currentRelease); 
+
+	    Configuration config = database.loadConfiguration(configInfo,currentRelease);
 	    setCurrentConfig(config);
 
 	    return new String("Done!");
 	}
-	
+
 	/** SwingWorker: finished */
 	protected void finished()
 	{
@@ -1867,7 +1883,7 @@ public class ConfDbGUI
 	    try {
 		elapsedTime = System.currentTimeMillis() - startTime;
 		jProgressBar.setString(jProgressBar.getString() + get() + " (" + elapsedTime + " ms)");
-		
+
 		setElapsedTime(elapsedTime);
 	    }
 	    catch (ExecutionException e) {
@@ -1877,7 +1893,7 @@ public class ConfDbGUI
 
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
 		//e.printStackTrace();
-		
+
 		AboutDialog ad = new AboutDialog(null); // Only to get version and contact info. //DONT SHOW DIALOG!
 		// Add the configuration details:
 		String StackTrace = "ConfDb Version: " 	+ ad.getConfDbVersion() 	+ "\n";
@@ -1887,25 +1903,25 @@ public class ConfDbGUI
 		// get the Stack Trace in one String.
 		StackTraceElement st[] = e.getStackTrace();
 		for(int i = 0; i < st.length; i++) StackTrace+=st[i] + "\n";
-		
+
     	String errMsg = "Open Configuration FAILED!\n"	+
-		"This configuration might be broken, working with it " + 
-		"may cause serious problems in the future.\n" + 
-		"It is highly recommended to save a copy of it in a different area.\n" + 
-    	"If you have experienced any problem and you need to recover " + 
+		"This configuration might be broken, working with it " +
+		"may cause serious problems in the future.\n" +
+		"It is highly recommended to save a copy of it in a different area.\n" +
+    	"If you have experienced any problem and you need to recover " +
     	"a broken configuration, please send us an email to:\n" + ad.getContactPerson();
-		
+
     	errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, StackTrace);
 		cd.createAndShowGUI();
-		
+
 		System.out.println("ERROR: [confdb.gui.ConfDbGUI.OpenConfigurationThread] ");
 		e.printStackTrace();
-		
+
 	    } catch (Exception e) {
 			e.printStackTrace();
 			jProgressBar.setString(jProgressBar.getString()+"FAILED!");
 	    }
-	    
+
 	    jProgressBar.setIndeterminate(false);
 
 	    if(!failed) {
@@ -1930,14 +1946,14 @@ public class ConfDbGUI
 								  "Failed to lock configuration",
 								  JOptionPane.ERROR_MESSAGE,null);
 				}
-			 }	    	
+			 }
 	    }
 
 	}
-	
+
 	/* Instrumenting this task. */
 	public long getElapsedTime() { return elapsedTime; }
-	
+
     }
 
 
@@ -1947,7 +1963,7 @@ public class ConfDbGUI
 	/** member data */
 	private ConfigInfo configInfo = null;
 	private long       startTime;
-	
+
 	private ConfDBV1   databaseOld;
 	private ConfDB     database;
 
@@ -1958,34 +1974,34 @@ public class ConfDbGUI
 	    this.databaseOld = databaseOld;
 	    this.database = database;
 	}
-	
+
 	/** SwingWorker: construct() */
 	protected String construct() throws DatabaseException
 	{
 	    startTime = System.currentTimeMillis();
-	    
- 
+
+
 	    currentRelease = new SoftwareRelease();
 	    Configuration configOld = databaseOld.loadConfiguration(configInfo,currentRelease);
 	    databaseOld.disconnect();
 
-      
+
 	    Configuration config = new Configuration();
 	    database.insertRelease(configInfo.releaseTag(),currentRelease);
 	    database.loadSoftwareRelease(configInfo.releaseTag(),currentRelease);
-	  
-  
-	    config.initialize(new ConfigInfo(configInfo.name(),null,configInfo.releaseTag()),currentRelease);	    
+
+
+	    config.initialize(new ConfigInfo(configInfo.name(),null,configInfo.releaseTag()),currentRelease);
 	    ReleaseMigrator releaseMigrator = new ReleaseMigrator(configOld,config);
 	    releaseMigrator.migrate();
-	   
+
 	    setCurrentConfig(config);
-	    
+
 	    jTextFieldProcess.setText(configOld.processName());
 
-	    return new String("Done!");	    
+	    return new String("Done!");
 	}
-	
+
 	/** SwingWorker: finished */
 	protected void finished()
 	{
@@ -2002,7 +2018,7 @@ public class ConfDbGUI
 					      JOptionPane.ERROR_MESSAGE,null);
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
 		e.printStackTrace();
-	    } 
+	    }
 	    catch (Exception e) {
 		e.printStackTrace();
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
@@ -2035,33 +2051,33 @@ public class ConfDbGUI
 	}
     }
 
-    
+
     /** import a configuration from the database */
     private class ImportConfigurationThread extends SwingWorker<String>
     {
 	/** member data */
 	private ConfigInfo configInfo = null;
 	private long       startTime;
-	
+
 	/** standard constructor */
 	public ImportConfigurationThread(ConfigInfo configInfo)
 	{
 	    this.configInfo = configInfo;
 	}
-	
+
 	/** SwingWorker: construct() */
 	protected String construct() throws DatabaseException
 	{
 	    startTime = System.currentTimeMillis();
-	    
+
 	    // fix bug76148
 	    // if (importRelease.releaseTag()!=currentRelease.releaseTag())
 		importRelease = new SoftwareRelease(currentRelease);
-	    
+
 	    importConfig = database.loadConfiguration(configInfo,importRelease);
 	    return new String("Done!");
 	}
-	
+
 	/** SwingWorker: finished */
 	protected void finished()
 	{
@@ -2081,7 +2097,7 @@ public class ConfDbGUI
 					      "Import Configuration failed",
 					      JOptionPane.ERROR_MESSAGE,null);
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
-	    } 
+	    }
 	    catch (Exception e) {
 		e.printStackTrace();
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
@@ -2089,7 +2105,7 @@ public class ConfDbGUI
 	    jProgressBar.setIndeterminate(false);
 	}
     }
-    
+
     /** save a configuration in the database */
     private class SaveConfigurationThread extends SwingWorker<String>
     {
@@ -2097,27 +2113,27 @@ public class ConfDbGUI
 	private long   startTime;
 	private String processName;
 	private String comment;
-	
+
 	/** standard constructor */
 	public SaveConfigurationThread(String processName,String comment)
 	{
 	    this.processName = processName;
 	    this.comment     = comment;
 	}
-	
+
 	/** SwingWorker: construct() */
 	protected String construct() throws DatabaseException
 	{
 	    startTime = System.currentTimeMillis();
-	    
+
 	    database.insertConfiguration(currentConfig,
 					 userName,processName,comment);
 	    if (!currentConfig.isLocked())
 		database.lockConfiguration(currentConfig,userName);
-	    
+
 	    return new String("Done!");
 	}
-	
+
 	/** SwingWorker: finished */
 	protected void finished()
 	{
@@ -2135,7 +2151,7 @@ public class ConfDbGUI
 					      "Save Configuration failed",
 					      JOptionPane.ERROR_MESSAGE,null);
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
-	    } 
+	    }
 	    catch (Exception e) {
 		e.printStackTrace();
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
@@ -2143,7 +2159,7 @@ public class ConfDbGUI
 	    jProgressBar.setIndeterminate(false);
 	}
     }
-    
+
     /** migrate a configuration in the database to a new release */
     private class MigrateConfigurationThread extends SwingWorker<String>
     {
@@ -2152,21 +2168,21 @@ public class ConfDbGUI
 	private String          targetReleaseTag = null;
 	private ReleaseMigrator migrator         = null;
 	private long            startTime;
-	
+
 	/** standard constructor */
 	public MigrateConfigurationThread(String targetReleaseTag)
 	{
 	    this.targetReleaseTag = targetReleaseTag;
 	}
-	
+
 	/** SwingWorker: construct() */
 	protected String construct() throws DatabaseException
 	{
 	    startTime = System.currentTimeMillis();
-	    
+
 	    SoftwareRelease targetRelease = new SoftwareRelease();
 	    database.loadSoftwareRelease(targetReleaseTag,targetRelease);
-	    
+
 	    String targetProcessName = currentConfig.processName();
 
 	    ConfigInfo targetConfigInfo =
@@ -2176,13 +2192,13 @@ public class ConfDbGUI
 			       "migrated from "+currentRelease.releaseTag());
 
 	    targetConfig = new Configuration(targetConfigInfo,targetRelease);
-	    
+
 	    migrator = new ReleaseMigrator(currentConfig,targetConfig);
 	    migrator.migrate();
 
 	    return new String("Done!");
 	}
-	
+
 	/** SwingWorker: finished */
 	protected void finished()
 	{
@@ -2211,7 +2227,7 @@ public class ConfDbGUI
 					      JOptionPane.ERROR_MESSAGE,null);
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
 		jProgressBar.setIndeterminate(false);
-	    } 
+	    }
 	    catch (Exception e) {
 		e.printStackTrace();
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
@@ -2229,7 +2245,7 @@ public class ConfDbGUI
 	private String         format     = null;
 	private boolean        asFragment = false;
 	private long           startTime;
-	
+
 	/** standard constructor */
 	public ConvertConfigurationThread(IConfiguration config,
 					  String  fileName,
@@ -2241,7 +2257,7 @@ public class ConfDbGUI
 	    this.format     = format;
 	    this.asFragment = asFragment;
 	}
-	
+
 	/** SwingWorker: construct() */
 	protected String construct() throws ConverterException,IOException
 	{
@@ -2257,7 +2273,7 @@ public class ConfDbGUI
 	    }
 	    return new String("Done!");
 	}
-	    
+
 	/** SwingWorker: finished */
 	protected void finished()
 	{
@@ -2273,7 +2289,7 @@ public class ConfDbGUI
 					      "Convert Configuration failed",
 					      JOptionPane.ERROR_MESSAGE,null);
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
-	    } 
+	    }
 	    catch (Exception e) {
 		e.printStackTrace();
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
@@ -2281,21 +2297,21 @@ public class ConfDbGUI
 	    jProgressBar.setIndeterminate(false);
 	}
     }
-    
-    
+
+
     /** load release templates from the database */
     private class UpdateTemplatesThread extends SwingWorker<String>
     {
 	/** member data */
 	private String releaseTag = null;
 	private long   startTime;
-	
+
 	/** standard constructor */
 	public UpdateTemplatesThread(String releaseTag)
 	{
 	    this.releaseTag = releaseTag;
 	}
-	
+
 	/** SwingWorker: construct() */
 	protected String construct() throws DatabaseException
 	{
@@ -2304,7 +2320,7 @@ public class ConfDbGUI
 		database.loadSoftwareRelease(releaseTag,currentRelease);
 	    return new String("Done!");
 	}
-	
+
 	/** SwingWorker: finished */
 	protected void finished()
 	{
@@ -2320,23 +2336,23 @@ public class ConfDbGUI
 					      "Update Templates failed",
 					      JOptionPane.ERROR_MESSAGE,null);
 		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
-	    } 
-	    
+	    }
+
 	    catch (Exception e) {
 		e.printStackTrace();
-		jProgressBar.setString(jProgressBar.getString()+"FAILED!");	
+		jProgressBar.setString(jProgressBar.getString()+"FAILED!");
 	    }
 	    jProgressBar.setIndeterminate(false);
 	}
     }
-    
-    
+
+
     //--------------------------------------------------------------------------
     //
     // private member functions
     //
     //--------------------------------------------------------------------------
-    
+
     /** create trees and tables, including models */
     private void createTreesAndTables()
     {
@@ -2347,11 +2363,11 @@ public class ConfDbGUI
 			    String text = null;
 			    if (getRowForLocation(evt.getX(),evt.getY()) == -1)
 			    	return text;
-			    
+
 			    TreePath tp = getPathForLocation(evt.getX(),evt.getY());
 			    Object selectedNode = tp.getLastPathComponent();
-	
-		    	// Do not display neither "unresolved input tags" nor "datasets" for Paths. bug/feature 82524 
+
+		    	// Do not display neither "unresolved input tags" nor "datasets" for Paths. bug/feature 82524
 			    if (	selectedNode instanceof ESSourceInstance	||
 						     selectedNode instanceof ESModuleInstance	||
 						     selectedNode instanceof ModuleInstance) 	{
@@ -2361,7 +2377,7 @@ public class ConfDbGUI
 					ModuleReference reference=(ModuleReference)selectedNode;
 					ModuleInstance  instance=(ModuleInstance)reference.parent();
 					text = "<html>"+instance.template().name();
-		
+
 					Object component = (tp.getPathComponent(2));
 					if(component instanceof Path) {
 						Path path = (Path)(tp.getPathComponent(2));
@@ -2380,12 +2396,12 @@ public class ConfDbGUI
 					text +="<html>";
 			    } else if (selectedNode instanceof SequenceReference) {
 			    	// Do not display "unresolved input tags" for Sequences. bug/feature 82524
-			    	
+
 					SequenceReference reference=(SequenceReference)selectedNode;
 					Sequence instance=(Sequence)reference.parent();
 					text = "<html>"+instance.name();
 					text += "<html>";
-					
+
 			    } else if (selectedNode instanceof Stream) {
 					Stream stream = (Stream)selectedNode;
 					text = "Event Content: " + stream.parentContent().name();
@@ -2403,25 +2419,25 @@ public class ConfDbGUI
 	jTreeCurrentConfig.setEditable(true);
 	jTreeCurrentConfig.getSelectionModel()
 	    .setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-	
-	
+
+
 	jTreeCurrentConfig
 	    .setCellRenderer(new ConfigurationTreeRenderer());
 	jTreeCurrentConfig
 	    .setCellEditor(new ConfigurationTreeEditor(jTreeCurrentConfig,
 						       new ConfigurationTreeRenderer()));
-	
+
 	ConfigurationTreeMouseListener mouseListener =
 	    new ConfigurationTreeMouseListener(jTreeCurrentConfig,frame);
 	jTreeCurrentConfig.addMouseListener(mouseListener);
-	
+
 	ConfigurationTreeTransferHandler currentDndHandler =
 	    new ConfigurationTreeTransferHandler(jTreeCurrentConfig,currentRelease,
 						 treeModelParameters);
 	jTreeCurrentConfig.setTransferHandler(currentDndHandler);
 	jTreeCurrentConfig.setDropTarget(new ConfigurationTreeDropTarget());
 	jTreeCurrentConfig.setDragEnabled(true);
-	
+
 	// import tree
 	Color defaultTreeBackground = UIManager.getColor("Tree.textBackground");
 	Color importTreeBackground  = UIManager.getColor("Button.background");
@@ -2429,26 +2445,26 @@ public class ConfDbGUI
 	treeModelImportConfig = new ConfigurationTreeModel(importConfig);
 	jTreeImportConfig      = new JTree(treeModelImportConfig);
         jTreeImportConfig.setBackground(importTreeBackground);
-    
+
     ImportTreeMouseListener importMouseListener =
     	new ImportTreeMouseListener(jTreeImportConfig,jTreeCurrentConfig, importConfig);
- 
-    
+
+
 	jTreeImportConfig.addMouseListener(importMouseListener);
-	
+
 	jTreeImportConfig.setRootVisible(true);
 	jTreeImportConfig.setEditable(false);
 	jTreeImportConfig.getSelectionModel()
 	    .setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 	jTreeImportConfig.setCellRenderer(new ConfigurationTreeRenderer());
 
-	
+
 	ConfigurationTreeTransferHandler importDndHandler =
 	    new ConfigurationTreeTransferHandler(jTreeImportConfig,null,null);
 	jTreeImportConfig.setTransferHandler(importDndHandler);
 	jTreeImportConfig.setDropTarget(new ConfigurationTreeDropTarget());
 	jTreeImportConfig.setDragEnabled(true);
-	
+
 	UIManager.put("Tree.textBackground",defaultTreeBackground);
 
 	// parameter table
@@ -2456,7 +2472,7 @@ public class ConfDbGUI
 	jTreeTableParameters = new TreeTable(treeModelParameters);
 	jTreeTableParameters
 	    .setTreeCellRenderer(new ParameterTreeCellRenderer());
-	
+
 	jTreeTableParameters.getColumnModel().getColumn(0)
 	    .setPreferredWidth(120);
 	jTreeTableParameters.getColumnModel().getColumn(1)
@@ -2472,14 +2488,14 @@ public class ConfDbGUI
 	    .addMouseListener
 	    (new ParameterTableMouseListener(frame,
 					     jTreeTableParameters));
-	
+
 	// Linking jTreeTableParameters to ConfigurationTreeMouseListener Listener - bug 75952
 	mouseListener.setTreeTable(jTreeTableParameters); // set the TreeTable to stop editing.
     }
-    
-    
-    
-    
+
+
+
+
     /** return a text list with assigned datasets to the current path. */
 	public String getAssignedDatasets() {
 	    String text = "";
@@ -2495,32 +2511,32 @@ public class ConfDbGUI
 		}
 		return text;
 	}
-	
+
     /** return a text list of Paths which contains the current Module/Sequence. */
 	public String getAssignedPaths() {
 	    String text = "";
 	    ModuleInstance moduleInstance	= null;
 	    Sequence	sequence	= null;
 	    Path[] paths = null;
-	    
+
 	    if (currentParameterContainer instanceof ModuleInstance) {
 		    moduleInstance = (ModuleInstance)currentParameterContainer;
 		    paths = moduleInstance.parentPaths();
 	    } else if (currentParameterContainer instanceof Sequence) {
 	    	sequence = (Sequence) currentParameterContainer;
 	    	paths = sequence.parentPaths();
-	    	
+
 	    } else return "";
-	    
+
 	    if(paths != null)
 	    for(int i = 0; i < paths.length; i++) {
 	    	text+= "<a href='"+paths[i]+"'>" + paths[i] + "</a> <br>";
 	    }
-	    
+
 		return text;
 	}
-	
-	
+
+
 	/**
 	 * return a html string format with a list of Sequences containing the
 	 * current parameter container.
@@ -2531,7 +2547,7 @@ public class ConfDbGUI
 	    Sequence	sequence	= null;
 	    if (currentParameterContainer instanceof ModuleInstance) {
 		    moduleInstance = (ModuleInstance)currentParameterContainer;
-		    
+
 		    Iterator<Sequence> SeqIt = currentConfig.sequenceIterator();
 		    while(SeqIt.hasNext()) {
 		    	Sequence Seq = SeqIt.next();
@@ -2542,7 +2558,7 @@ public class ConfDbGUI
 		    }
 	    } else if (currentParameterContainer instanceof Sequence) {
 	    	sequence = (Sequence) currentParameterContainer;
-	    	
+
 		    Iterator<Sequence> SeqIt = currentConfig.sequenceIterator();
 		    while(SeqIt.hasNext()) {
 		    	Sequence Seq = SeqIt.next();
@@ -2551,13 +2567,13 @@ public class ConfDbGUI
 			    	text+= "<a href='"+Seq.name()+"'>" + Seq.name() + "</a> <br>";
 		    	}
 		    }
-	    	
-	    	
+
+
 	    } else return "";
 	    return text;
 	}
-	
-	
+
+
 	/** Prepare a summary of unassigned input tags using the original 	*/
 	/** python code. This uses links to expand the tree and show the	*/
 	/** selected Module													*/
@@ -2577,14 +2593,14 @@ public class ConfDbGUI
 	    	sequence = (Sequence) currentParameterContainer;
 	    	unresolved = sequence.unresolvedInputTags();
 	    } else return "ERROR: getUnresolvedInputTagsSummary(): unknown currentParameterContainer";
-	    
-		
+
+
 		String[] modules	= new String [unresolved.length]; // as maximum.
 		int MLength			= 0;
-		
+
 		if (unresolved.length>0) {
 			jEditorPaneUnresolvedITags.setText("");
-			
+
 			// Coalesce duplicated modules.
 			for (int i=0;i<unresolved.length;i++) {
 				if(i==0)	{
@@ -2601,7 +2617,7 @@ public class ConfDbGUI
 					}
 				}
 			}
-			
+
 			// link and sort various inputTags according to modules
 			String pythonCode;
 			String [] sortedTags= new String[unresolved.length];
@@ -2609,9 +2625,9 @@ public class ConfDbGUI
 			for (int i=0; i < MLength; i++) {
 				pythonCode = getPythonCodeForModule(modules[i]);
 				Ntags	= 0;
-				
+
 				// separate tags for this module.
-				for (int t=0;t<unresolved.length;t++) { 
+				for (int t=0;t<unresolved.length;t++) {
 					String _tag = this.getUnresolvedInputTag(unresolved[t]);
 
 					if(modules[i].compareTo(this.getModuleFromUnresolvedInputTag(unresolved[t])) == 0) {
@@ -2622,16 +2638,16 @@ public class ConfDbGUI
 						}
 						if(!found) {
 							sortedTags[Ntags] = _tag;
-							Ntags++;	
+							Ntags++;
 						}
-					}	
+					}
 				}
-				
+
 				// Highlights the Tag for this module in order:
 				// Display the first python line.
-				String header = "<a href='" + modules[i] + "'>" + 
-								modules[i] + " </a> " + 
-								pythonCode.substring(modules[i].length(), pythonCode.indexOf(",") + 1) + 
+				String header = "<a href='" + modules[i] + "'>" +
+								modules[i] + " </a> " +
+								pythonCode.substring(modules[i].length(), pythonCode.indexOf(",") + 1) +
 								"... <br>";
 				text+= header;
 
@@ -2647,14 +2663,14 @@ public class ConfDbGUI
 					System.err.println("ERROR: SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!");
 					// SEE: PythonParameterWriter.java(66). --> strange things happen here: from time to time the value is empty!
 				    }
-				    tagLine = "<b>" + sortedTags[t] + 
+				    tagLine = "<b>" + sortedTags[t] +
 					pythonCode.substring(pythonCode.indexOf(strippedTag)+strippedTag.length(), pythonCode.indexOf(")", pythonCode.indexOf(strippedTag)+strippedTag.length())+1);
-				    tagLine+=",</b><br>"; 
-				    
+				    tagLine+=",</b><br>";
+
 				    //System.out.println("[confdb.gui.ConfDbGUI.getUnresolvedInputTagsSummary] Unresolved input ["+t+"] [" + sortedTags[t]+"] ["+strippedTag+"]");
-				    
+
 				    text+= tagLine;
-				    
+
 				}
 				// Display dots:
 				text+= "    ... )<br><br>";
@@ -2663,8 +2679,8 @@ public class ConfDbGUI
 		return text;
 	}
 
-	
-	
+
+
 	/** Look for Python code for a module of an unassigned input tag. */
 	private String getPythonCodeForModule(String module) {
 		String text 	= "";
@@ -2678,10 +2694,10 @@ public class ConfDbGUI
 		    	System.out.println(e.getMessage());
 		    	return e.getMessage();
 		    }
-		} else System.out.println("module "+module+" NOT found!"); 
+		} else System.out.println("module "+module+" NOT found!");
 		return text;
 	}
-	
+
 	/** get the module name from the old format of unassigned tag string */
 	/** this will be used to highlight the module name in the view, etc. */
 	private String getModuleFromUnresolvedInputTag(String unInTag) {
@@ -2693,7 +2709,7 @@ public class ConfDbGUI
 	    //	    System.out.println("getModuleFromUnresolvedInputTag: "+unInTag+" => "+module);
 	    return module;
 	}
-	
+
 	/** get the unassigned tag name from the old format of unassigned tag string */
 	/** this will be used to highlight the tag name in the view.                 */
 	private String getUnresolvedInputTag(String unInTag) {
@@ -2707,9 +2723,9 @@ public class ConfDbGUI
 	    //	    System.out.println("getUnresolvedInputTag: "+unInTag+" => "+tag);
 	    return tag;
 	}
-    
+
     ///////////////
-    
+
     /** show/hide the import-tree pane */
     private void showImportTree()
     {
@@ -2723,13 +2739,13 @@ public class ConfDbGUI
 	jSplitPaneCurrentConfig.setDividerLocation(1);
 	jSplitPaneCurrentConfig.setDividerSize(1);
     }
-    
+
     /** TEMPORARY! */
     public void refreshParameters()
     {
 	displayParameters();
     }
-    
+
 
     /** display parameters of the instance in right upper area */
     private void displayParameters()
@@ -2752,7 +2768,7 @@ public class ConfDbGUI
 	    jSplitPaneRightUpper.setDividerLocation(-1);
 	    jSplitPaneRightUpper.setDividerSize(8);
 
-	    
+
 	    if (container instanceof Instance) {
 		Instance i = (Instance)container;
 		String subName=i.template().parentPackage().subsystem().name();
@@ -2760,7 +2776,7 @@ public class ConfDbGUI
 		String cvsTag =i.template().cvsTag();
 		String type   =i.template().type();
 		String plugin =i.template().name();
-		
+
 		jTextFieldPackage.setText(subName+"/"+pkgName);
 		jTextFieldCVS.setText(cvsTag);
 		jLabelPlugin.setText(type + ":");
@@ -2777,7 +2793,7 @@ public class ConfDbGUI
 	    DefaultComboBoxModel cbModel =
 		(DefaultComboBoxModel)jComboBoxPaths.getModel();
 	    cbModel.removeAllElements();
-	    
+
 	    if (container instanceof Referencable) {
 		Referencable module = (Referencable)container;
 		jComboBoxPaths.setEnabled(true);
@@ -2792,7 +2808,7 @@ public class ConfDbGUI
 	    if (currentParameterContainer instanceof GlobalPSetContainer) {
 		jTextFieldLabel.setText("PSets");
 		border.setTitle("PSets Parameters");
-	    } else { 
+	    } else {
 		jTextFieldLabel.setText(currentParameterContainer.toString());
 		border.setTitle(currentParameterContainer.toString() + " Parameters");
 	    }
@@ -2825,11 +2841,11 @@ public class ConfDbGUI
 
 	currentParameterContainer = null;
 	treeModelParameters.setParameterContainer(currentParameterContainer);
-	
+
 	((TitledBorder)jScrollPaneParameters
 	 .getBorder()).setTitle("Parameters");
     }
-    
+
     /** clear the paths fields panel - right upper area. */
     private void clearPathFields() {
     	// Restore the original jPanelPlugin panel.
@@ -2838,7 +2854,7 @@ public class ConfDbGUI
     	jSplitPaneRightUpper.setDividerLocation(0);
     	jSplitPaneRightUpper.setDividerSize(-1);
    }
-    
+
     /** displays the paths fields panel - right upper area. */
     private void displayPathFields() {
     	// There only can be one Component. jPanelPathFields or jPanelPlugin.
@@ -2851,62 +2867,62 @@ public class ConfDbGUI
 			e.printStackTrace();
 		}
     	if(!extrafields) return;
-    	
+
     	if(currentParameterContainer instanceof Path) {
     		Path container = (Path)currentParameterContainer;
     	    jSplitPaneRightUpper.setDividerLocation(100);	// Set the vertical size of the panel.
     	    jSplitPaneRightUpper.setDividerSize(-1);
         	jSplitPaneRightUpper.setTopComponent(jPanelPathFields);
         	jScrollPaneParameters.setVisible(false);
-        	
-        	
-        	
+
+
+
         	jEditorPathDescription.setText(container.getDescription());
         	jEditorPathContacts.setText(container.getContacts());
         	jTextFieldPathName.setText(container.name());
-        	
+
         	// Reset Save button when a new path is selected.
             jButtonSavePathFields.setEnabled(false);
             jButtonCancelPathFields.setEnabled(false);
-            
+
 	    // Set current configuration to the prescaleService
 	    PrescaleTServ = new PrescaleTableService(currentConfig);
             // Set prescales fot the current path.
             jTablePrescales = PrescaleTServ.getPrescaleTableEditable(container);
-            
+
             jTablePrescales.getModel().addTableModelListener(new TableModelListener() {
 				public void tableChanged(TableModelEvent e) {
 					PrescaleTServ.setHasChanged();		// set the prescale as changed to allow save the value by jButtonSavePathFields.
 					setDocumentationFieldsChanged();	// Enable the buttons.
 				}
 			});
-            
-            
+
+
             jScrollPanePrescales.setViewportView(jTablePrescales);
-        	
+
     	} else {
         	jEditorPathDescription.setText(new String());
         	jEditorPathContacts.setText(new String());
     	}
 
    }
-    
-	// Set save button as enable to save documentation fields and prescales.      
+
+	// Set save button as enable to save documentation fields and prescales.
    public void setDocumentationFieldsChanged() {
 		jButtonSavePathFields.setEnabled(true);
 		jButtonCancelPathFields.setEnabled(true);
-   } 
-    
-    
+   }
+
+
     /** display the configuration snippet for currently selected component */
     private void displaySnippet()
     {
     //by default some tabs are disabled.
     if ((!(currentParameterContainer instanceof Path))	||
-    	(!(currentParameterContainer instanceof Sequence))) 
+    	(!(currentParameterContainer instanceof Sequence)))
     	restoreRightLowerTabs();
-    	
-    
+
+
         if (currentParameterContainer==currentConfig.psets()) {
 	    String s="";
 	    Iterator<PSetParameter> itPSet = currentConfig.psetIterator();
@@ -2973,11 +2989,11 @@ public class ConfDbGUI
 	else if (currentParameterContainer instanceof ModuleInstance) {
 		jTabbedPaneRightLower.setEnabledAt(3, true); // sets second tab enabled
 		jTabbedPaneRightLower.setEnabledAt(4, true); // sets containedInSequence tab enabled
-		
+
 		jEditorContainedInPaths.setText(this.getAssignedPaths());
 		jEditorContainedInSequence.setText(this.getAssignedSequences());
-		
-		
+
+
 	    ModuleInstance module = (ModuleInstance)currentParameterContainer;
 	    try {
 		jEditorPaneSnippet.setText(cnvEngine.getModuleWriter().
@@ -3000,25 +3016,25 @@ public class ConfDbGUI
 	else if (currentParameterContainer instanceof Path) {
 	    Path path = (Path)currentParameterContainer;
 	    jEditorPaneSnippet.setText(cnvEngine.getPathWriter().toString(path,cnvEngine,"  "));
-	    
+
         jTabbedPaneRightLower.setEnabledAt(1, true); // sets second tab enabled
         jTabbedPaneRightLower.setEnabledAt(2, true); // sets third  tab enabled
         jEditorPanePathsToDataset.setText(this.getAssignedDatasets());
-       
+
         jEditorPaneUnresolvedITags.setText(getUnresolvedInputTagsSummary());
 	}
 	else if (currentParameterContainer instanceof Sequence) {
 	    Sequence sequence = (Sequence)currentParameterContainer;
 	    jEditorPaneSnippet.setText(cnvEngine.getSequenceWriter().
 				       toString(sequence,cnvEngine,"  "));
-        
+
 	    jTabbedPaneRightLower.setEnabledAt(2, true); // sets third  tab enabled
 
 	    jEditorPaneUnresolvedITags.setText(getUnresolvedInputTagsSummary());
-        
+
 		jTabbedPaneRightLower.setEnabledAt(3, true); // sets second tab enabled
 		jEditorContainedInPaths.setText(this.getAssignedPaths());
-		
+
 		jTabbedPaneRightLower.setEnabledAt(4, true); // sets containedInSequence tab enabled
 		jEditorContainedInSequence.setText(this.getAssignedSequences());
 	}
@@ -3027,13 +3043,13 @@ public class ConfDbGUI
 	}
 	jEditorPaneSnippet.setCaretPosition(0);
     }
-    
+
     /** clear snippet pane (right-lower) */
     private void clearSnippet()
     {
 	jEditorPaneSnippet.setText("");
     }
-    
+
     /** restore the snippet tabs to default 							*/
     /** block the assigned datasets and unassigned input tag Tabs in	*/
     /** the right lower panel when a path is not selected anymore. 		*/
@@ -3047,7 +3063,7 @@ public class ConfDbGUI
 	    jEditorPaneUnresolvedITags.setText("");
 	    jEditorContainedInPaths.setText("");
 	    jEditorContainedInSequence.setText("");
-	    
+
 	    // Hyperlink listener to catch the path request.
 	    jEditorContainedInPaths.addHyperlinkListener(new HyperlinkListener() {
 			        public void hyperlinkUpdate(HyperlinkEvent event) {
@@ -3058,8 +3074,8 @@ public class ConfDbGUI
 			          }
 	    			}
 	    		);
-	    
-	    // Hyperlink listener to catch the module requests.	    
+
+	    // Hyperlink listener to catch the module requests.
 	    jEditorPaneUnresolvedITags.addHyperlinkListener(new HyperlinkListener() {
 	        public void hyperlinkUpdate(HyperlinkEvent event) {
 	            if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -3079,10 +3095,10 @@ public class ConfDbGUI
 	          }
 			}
 		);
-    } 
-    
+    }
 
-    
+
+
 
     /** display the event content editor, fill all fields */
     private void fillEventContents()
@@ -3150,12 +3166,12 @@ public class ConfDbGUI
 	    jTreeImportConfig.setSelectionPath(tp);
 	}
     }
-    
+
     /** record new values for extra path fields. */
     private void SaveDocumentationFieldsActionPerformed()
     {
     	if(currentParameterContainer == null) return;
-    	
+
     	if (currentParameterContainer instanceof Path) {
 		    Path p = (Path)currentParameterContainer;
 		    boolean save = false;
@@ -3164,43 +3180,43 @@ public class ConfDbGUI
 		    if((p.getContacts() != null) && (!jEditorPathContacts.getText().equals(p.getContacts()))) 	save = true;
 		    if((p.getDescription() == null) && (!jEditorPathDescription.getText().equals(""))) 					save = true;
 		    if((p.getDescription() != null) && (!jEditorPathDescription.getText().equals(p.getDescription()))) 	save = true;
-		    
+
 		    if((PrescaleTServ != null) && (PrescaleTServ.hasChanged())) save = true;
-		    	
+
 		    if(save) {
 			    p.setDescription(jEditorPathDescription.getText());
 			    p.setContacts(jEditorPathContacts.getText());
 
 			    PrescaleTServ.savePrescales();	// Save Prescale values from Documentation Field Panel.
-			    
+
 			    p.setHasChanged();
 			    treeModelCurrentConfig.nodeChanged(p);
 			    treeModelCurrentConfig.updateLevel1Nodes();
 			    currentConfig.setHasChanged(true);
-			    
+
 			    // It will be automatically enabled when Text is modified.
 			    jButtonSavePathFields.setEnabled(false);
 			    jButtonCancelPathFields.setEnabled(false);
-			    
+
 		    }
 		}
     }
-    
+
     private void jComboBoxPathsItemStateChanged(ItemEvent e)
     {
 	if (e.getStateChange() == ItemEvent.SELECTED) {
-	    
+
 	    String moduleLabel = jTextFieldLabel.getText();
 	    String pathName = e.getItem().toString();
 	    if (moduleLabel==""||pathName=="") return;
-	    
+
 	    // collapse complete tree
 	    int row = jTreeCurrentConfig.getRowCount() - 1;
 	    while (row >= 0) {
 		jTreeCurrentConfig.collapseRow(row);
 		row--;
 	    }
-	    
+
 	    // construct the treepath to the selected reference
 	    Path path = currentConfig.path(pathName);
 	    ArrayList<Reference> pathToNode = new ArrayList<Reference>();
@@ -3216,7 +3232,7 @@ public class ConfDbGUI
 		    }
 		}
 	    }
-	
+
 	    TreePath tp =
 		new TreePath(treeModelCurrentConfig.getPathToRoot(path));
 	    for (int i=pathToNode.size()-1;i>=0;i--)
@@ -3226,7 +3242,7 @@ public class ConfDbGUI
 	    jTreeCurrentConfig.scrollPathToVisible(tp);
 	}
     }
-    
+
     /** This event control the SplitPanel position in right
      * upper panel. */
     private void jSplitPaneRightComponentMoved(ComponentEvent e)
@@ -3239,7 +3255,7 @@ public class ConfDbGUI
 	    jSplitPaneRightUpper.setDividerSize(1);
 	}
     }
-    
+
 
     //
     // DOCUMENTLISTENER CALLBACKS
@@ -3263,13 +3279,13 @@ public class ConfDbGUI
     private void jTreeCurrentConfigUpdateSearch(String search)
     {
 	if (search.length()>0) {
-	    String mode = 
+	    String mode =
 		buttonGroupSearch1.getSelection().getActionCommand()+":"+
 		buttonGroupSearch2.getSelection().getActionCommand();
 	    jButtonCancelSearch.setEnabled(true);
 	    ModifierInstructions modifications = new ModifierInstructions();
 	    modifications.interpretSearchString(search,mode,currentConfig);
-	    ConfigurationModifier modifier = 
+	    ConfigurationModifier modifier =
 		new ConfigurationModifier(currentConfig);
 	    modifier.modify(modifications);
 	    treeModelCurrentConfig.setConfiguration(modifier);
@@ -3283,7 +3299,7 @@ public class ConfDbGUI
     private void jTreeConfigExpandLevel1Nodes(JTree t)
     {
 	ConfigurationTreeModel m = (ConfigurationTreeModel)t.getModel();
-	
+
 	TreePath tpPSets = new TreePath(m.getPathToRoot(m.psetsNode()));
 	t.expandPath(tpPSets);
 	TreePath tpEDSources = new TreePath(m.getPathToRoot(m.edsourcesNode()));
@@ -3329,13 +3345,13 @@ public class ConfDbGUI
     private void jTreeImportConfigUpdateSearch(String search)
     {
 	if (search.length()>0) {
-	    String mode = 
+	    String mode =
 		buttonGroupImportSearch1.getSelection().getActionCommand()+":"+
 		buttonGroupImportSearch2.getSelection().getActionCommand();
 	    jButtonImportCancelSearch.setEnabled(true);
 	    ModifierInstructions modifications = new ModifierInstructions();
 	    modifications.interpretSearchString(search,mode,importConfig);
-	    ConfigurationModifier modifier = 
+	    ConfigurationModifier modifier =
 		new ConfigurationModifier(importConfig);
 	    modifier.modify(modifications);
 	    treeModelImportConfig.setConfiguration(modifier);
@@ -3346,15 +3362,15 @@ public class ConfDbGUI
 	    jButtonImportCancelSearch.setEnabled(false);
 	}
     }
-    
+
     //
     // TREEMODELLISTENER CALLBACKS
     //
-    
+
     private void jTreeCurrentConfigTreeNodesChanged(TreeModelEvent e)
     {
 	if (currentConfig==null) return;
-	
+
 	Object node = e.getChildren()[0];
 	if (node instanceof EventContent)
 	    fillEventContents();
@@ -3369,7 +3385,7 @@ public class ConfDbGUI
     private void jTreeTableParametersTreeNodesChanged(TreeModelEvent e)
     {
 	Object changedNode = e.getChildren()[0];
-	
+
 	if (changedNode instanceof Parameter) {
 	    Parameter p = (Parameter)changedNode;
 	    treeModelCurrentConfig.nodeChanged(p);
@@ -3405,15 +3421,15 @@ public class ConfDbGUI
 	    if (parentContainer==null) currentConfig.setHasChanged(true);
 	}
     }
-    
+
 
     //
     // TREESELECTIONLISTENER CALLBACKS
     //
-    
+
     private void jTreeCurrentConfigValueChanged(TreeSelectionEvent e)
     {
-    	
+
 	TreePath treePath=e.getNewLeadSelectionPath();
 	if (treePath==null) {
 	    clearParameters();
@@ -3438,20 +3454,20 @@ public class ConfDbGUI
 	    jComboBoxEventContent.getModel().setSelectedItem(node.toString());
 	    return;
 	}
-	 
+
 	// Bug 82525: "import" feature resets the size / position of the panels.
 	// RightComponent is only restored when needed.
 	if(jSplitPane.getRightComponent().equals(jPanelContentEditor))
 		jSplitPane.setRightComponent(jSplitPaneRight);
-	
+
 	clearPathFields();
-	
+
 	Parameter p = null;
 	while (node instanceof Parameter) {
 	    p = (Parameter)node;
 	    node = p.parent();
 	}
-	
+
 	if (node instanceof Reference) {
 	    node = ((Reference)node).parent();
 	}
@@ -3473,7 +3489,7 @@ public class ConfDbGUI
 	    clearParameters();
 	    currentParameterContainer = node;
 	    displaySnippet();
-	    if(currentParameterContainer instanceof Path) displayPathFields();	    
+	    if(currentParameterContainer instanceof Path) displayPathFields();
 	} else {
 	    clearParameters();
 	    clearSnippet();
@@ -3495,7 +3511,7 @@ public class ConfDbGUI
 	jTreeCurrentConfig
 	    .setSelectionPath(new TreePath(treeModelCurrentConfig
 					   .getPathToRoot(content)));
-	
+
 	// fill streams
 	DefaultListModel slm = (DefaultListModel)jListStreams.getModel();
 	slm.clear();
@@ -3516,14 +3532,14 @@ public class ConfDbGUI
 	//Iterator<Path> itP = content.pathIterator();
 	Iterator<Path> itP = content.orderedPathIterator();
 	while (itP.hasNext()) plm.addElement(itP.next().name());
-	
+
 	// fill output command combobox menu
 	fillComboBoxCommandsMenu(null);
-	
+
 	// fill output commands
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.setContent(content);
-	
+
 	// clear output module text area
 	jTextAreaOutputModule.setText("");
     }
@@ -3531,10 +3547,10 @@ public class ConfDbGUI
     {
 	ListSelectionModel lsmS = jListStreams.getSelectionModel();
 	if (lsmS.getValueIsAdjusting()) return;
-	
+
 	String contentName = jComboBoxEventContent.getSelectedItem().toString();
 	EventContent content = currentConfig.content(contentName);
-	
+
 	Stream stream = (lsmS.isSelectionEmpty() || lsmS.getMinSelectionIndex()==0 ) ?
 	    null : content.stream(lsmS.getMinSelectionIndex()-1);
 
@@ -3545,21 +3561,21 @@ public class ConfDbGUI
 	Iterator<PrimaryDataset> itPD = (stream==null) ?
 	    content.datasetIterator() : stream.datasetIterator();
 	while (itPD.hasNext()) dlm.addElement(itPD.next().name());
-	
+
 	// fill paths
 	DefaultListModel plm = (DefaultListModel)jListPaths.getModel();
 	plm.clear();
 	Iterator<Path> itP = (stream==null) ?
 	    content.orderedPathIterator() : stream.orderedPathIterator();
 	while (itP.hasNext()) plm.addElement(itP.next().name());
-	
+
 	// fill output command combobox menu
 	fillComboBoxCommandsMenu(null);
-	
+
 	// fill output commands
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.setStream(stream);
-	
+
 	// clear output module text area
 	updateOutputModulePreview();
     }
@@ -3569,16 +3585,16 @@ public class ConfDbGUI
 	ListSelectionModel lsmD = jListDatasets.getSelectionModel();
 
 	if (lsmD.getValueIsAdjusting()) return;
-	
+
 	String contentName = jComboBoxEventContent.getSelectedItem().toString();
 	EventContent content = currentConfig.content(contentName);
-	
+
 	Stream stream = (lsmS.isSelectionEmpty() || lsmS.getMinSelectionIndex()==0 ) ?
 	    null : content.stream(lsmS.getMinSelectionIndex()-1);
-	
+
 	PrimaryDataset dataset = (lsmD.isSelectionEmpty() || lsmD.getMinSelectionIndex()==0 ) ?
 	    null : content.dataset(lsmD.getMinSelectionIndex()-1);
-	
+
 	// fill paths
 	DefaultListModel plm = (DefaultListModel)jListPaths.getModel();
 	plm.clear();
@@ -3590,7 +3606,7 @@ public class ConfDbGUI
 
 	// fill output command combobox menu
 	fillComboBoxCommandsMenu(null);
-	
+
 	// fill output commands
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.setDataset(dataset);
@@ -3608,10 +3624,10 @@ public class ConfDbGUI
 	}
 	if (path==null) jComboBoxCommands.setEditable(true);
 	else            jComboBoxCommands.setEditable(false);
-	
+
 	// fill output command combobox menu
 	fillComboBoxCommandsMenu(path);
-	
+
 	// fill output commands
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.setPath(path);
@@ -3620,10 +3636,10 @@ public class ConfDbGUI
     {
 	Object selectedItem = jComboBoxCommands.getSelectedItem();
 	if (selectedItem==null) return;
-	
+
 	String contentName = jComboBoxEventContent.getSelectedItem().toString();
 	EventContent content = currentConfig.content(contentName);
-	
+
 	if (selectedItem instanceof String) {
 	    String commandAsString = (String)selectedItem;
 	    OutputCommand command = new OutputCommand();
@@ -3676,7 +3692,7 @@ public class ConfDbGUI
 	EventContent       content = currentConfig.content(contentName);
 	Stream             stream = (lsmS.isSelectionEmpty() || lsmS.getMinSelectionIndex()==0 ) ?
 	    null : content.stream(lsmS.getMinSelectionIndex()-1);
-	
+
 	if (stream!=null) {
 	    try {
 		jTextAreaOutputModule
@@ -3688,18 +3704,18 @@ public class ConfDbGUI
 	    }
 	}
     }
-    
+
     /** fill the combo box menu for output commands to be added */
     private void fillComboBoxCommandsMenu(Path path)
     {
 	String contentName = jComboBoxEventContent.getSelectedItem().toString();
 	EventContent content = currentConfig.content(contentName);
-	
+
 	DefaultComboBoxModel cbm =
 	    (DefaultComboBoxModel)jComboBoxCommands.getModel();
 	cbm.removeAllElements();
 	cbm.addElement(null);
-	
+
 	if (path==null) {
 	    OutputCommand ocDropAll = new OutputCommand();
 	    ocDropAll.setDrop();
@@ -3724,7 +3740,7 @@ public class ConfDbGUI
 	    if (content.indexOfCommand(ocTrgEvt)<0) cbm.addElement(ocTrgEvt);
 	    return;
 	}
-	
+
 	// path is not null
 	Iterator<Reference> itR = path.recursiveReferenceIterator();
 	while (itR.hasNext()) {
@@ -3743,23 +3759,23 @@ public class ConfDbGUI
 	    }
 	}
     }
-    
+
     /** show popup menu for command in table being right-clicked */
     private void jTableCommandsShowPopup(MouseEvent e)
     {
 	int row = jTableCommands.rowAtPoint(new Point(e.getX(),e.getY()));
 	jTableCommands.getSelectionModel().setSelectionInterval(row,row);
 	if (row<0) return;
-	
+
 	String contentName = jComboBoxEventContent.getSelectedItem().toString();
 	EventContent content = currentConfig.content(contentName);
-	
+
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	OutputCommand command = (OutputCommand)ctm.getValueAt(row,1);
 	int           index   = content.indexOfCommand(command);
 
 	ListSelectionModel lsm = jListPaths.getSelectionModel();
-	
+
 	JMenuItem  item = null;
 
 	// Edit
@@ -3772,13 +3788,13 @@ public class ConfDbGUI
 		    jTableCommandsPopupEdit(e);
 		}
 	    });
-	
+
 	menu.addSeparator();
 
 	/*
 
 	  if (lsm.isSelectionEmpty()) {
-	  
+
 	  // Top
 	  item = new JMenuItem("Top"); menu.addComponent(item);
 	    item.setActionCommand(content.name()+":"+index);
@@ -3788,7 +3804,7 @@ public class ConfDbGUI
 	    }
 	    });
 	    if (index==0) item.setEnabled(false);
-	    
+
 	    // Up
 	    item = new JMenuItem("Up");     menu.addComponent(item);
 	    item.setActionCommand(content.name()+":"+
@@ -3799,7 +3815,7 @@ public class ConfDbGUI
 	    }
 	    });
 	    if (index==0) item.setEnabled(false);
-	    
+
 	    // Down
 	    item = new JMenuItem("Down");   menu.addComponent(item);
 	    item.setActionCommand(content.name()+":"+
@@ -3810,7 +3826,7 @@ public class ConfDbGUI
 	    }
 	    });
 	    if (index==content.commandCount()-1) item.setEnabled(false);
-	    
+
 	    // Bottom
 	    item = new JMenuItem("Bottom"); menu.addComponent(item);
 	    item.setActionCommand(content.name()+":"+
@@ -3821,11 +3837,11 @@ public class ConfDbGUI
 	    }
 	    });
 	    if (index==content.commandCount()-1) item.setEnabled(false);
-	    
+
 	    menu.addSeparator();
 	    }
 	*/
-	
+
 	// Remove
 	item = new JMenuItem("Remove"); menu.add(item);
 	item.setActionCommand(content.name()+":"+
@@ -3848,7 +3864,7 @@ public class ConfDbGUI
 
 	menu.show(e.getComponent(),e.getX(),e.getY());
     }
-   
+
     /** jTableCommands: popup action 'Edit' */
     private void jTableCommandsPopupEdit(ActionEvent e)
     {
@@ -3872,13 +3888,13 @@ public class ConfDbGUI
 	ctm.fireTableDataChanged();
 
 	updateOutputModulePreview();
-	
+
 	Iterator<Stream> itS = content.streamIterator();
 	while (itS.hasNext()) {
 	    OutputModule output = itS.next().outputModule();
 	    //output.setHasChanged(); //TODO
 
-	    
+
 	    treeModelCurrentConfig.nodeChanged(output.parameter(1));
 	    if (output.referenceCount()>0)
 		treeModelCurrentConfig
@@ -3894,15 +3910,15 @@ public class ConfDbGUI
       int    commandIndex = (new Integer(s[1])).intValue();
       EventContent  content = currentConfig.content(contentName);
       OutputCommand command = content.command(commandIndex);
-      
+
       int targetIndex = 0;
       content.moveCommand(command,targetIndex);
-      
+
       CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
       ctm.fireTableDataChanged();
-      
+
       updateOutputModulePreview();
-      
+
       Iterator<Stream> itS = content.streamIterator();
       while (itS.hasNext()) {
       OutputModule output = itS.next().outputModule();
@@ -3913,7 +3929,7 @@ public class ConfDbGUI
       }
       }
     */
-    
+
     /** jTableCommands: popup action 'Up' */
     /*
       private void jTableCommandsPopupUp(ActionEvent e)
@@ -3923,15 +3939,15 @@ public class ConfDbGUI
       int    commandIndex = (new Integer(s[1])).intValue();
       EventContent  content = currentConfig.content(contentName);
       OutputCommand command = content.command(commandIndex);
-      
+
       int targetIndex = commandIndex-1;
       content.moveCommand(command,targetIndex);
-      
+
       CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
       ctm.fireTableDataChanged();
-      
+
       updateOutputModulePreview();
-      
+
       Iterator<Stream> itS = content.streamIterator();
       while (itS.hasNext()) {
       OutputModule output = itS.next().outputModule();
@@ -3942,7 +3958,7 @@ public class ConfDbGUI
       }
       }
     */
-    
+
     /** jTableCommands: popup action 'Down' */
     /*
       private void jTableCommandsPopupDown(ActionEvent e)
@@ -3952,15 +3968,15 @@ public class ConfDbGUI
       int    commandIndex = (new Integer(s[1])).intValue();
       EventContent  content = currentConfig.content(contentName);
       OutputCommand command = content.command(commandIndex);
-      
+
       int targetIndex = commandIndex+1;
       content.moveCommand(command,targetIndex);
-      
+
       CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
       ctm.fireTableDataChanged();
-      
+
       updateOutputModulePreview();
-      
+
       Iterator<Stream> itS = content.streamIterator();
       while (itS.hasNext()) {
       OutputModule output = itS.next().outputModule();
@@ -3971,7 +3987,7 @@ public class ConfDbGUI
       }
       }
     */
-    
+
     /** jTableCommands: popup action 'Bottom' */
     /*
       private void jTableCommandsPopupBottom(ActionEvent e)
@@ -3981,15 +3997,15 @@ public class ConfDbGUI
       int    commandIndex = (new Integer(s[1])).intValue();
       EventContent  content = currentConfig.content(contentName);
       OutputCommand command = content.command(commandIndex);
-      
+
       int targetIndex = content.commandCount()-1;
       content.moveCommand(command,targetIndex);
-      
+
       CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
       ctm.fireTableDataChanged();
-      
+
       updateOutputModulePreview();
-      
+
       Iterator<Stream> itS = content.streamIterator();
       while (itS.hasNext()) {
       OutputModule output = itS.next().outputModule();
@@ -4000,7 +4016,7 @@ public class ConfDbGUI
       }
     }
     */
-    
+
     /** jTableCommands: popup action 'Remove' */
     private void jTableCommandsPopupRemove(ActionEvent e)
     {
@@ -4009,15 +4025,15 @@ public class ConfDbGUI
 	int    commandIndex = (new Integer(s[1])).intValue();
 	EventContent  content = currentConfig.content(contentName);
 	OutputCommand command = content.command(commandIndex);
-	
+
 	content.removeCommand(command);
-	
+
 	fillComboBoxCommandsMenu(command.parentPath());
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
 
 	updateOutputModulePreview();
-	
+
 	Iterator<Stream> itS = content.streamIterator();
 	while (itS.hasNext()) {
 	    OutputModule output = itS.next().outputModule();
@@ -4027,8 +4043,8 @@ public class ConfDbGUI
 		    .nodeStructureChanged(output.reference(0));
 	}
     }
-    
-    
+
+
     /** jTableCommands: popup action 'Remove All' */
     private void jTableCommandsPopupRemoveAll(ActionEvent e)
     {
@@ -4037,15 +4053,15 @@ public class ConfDbGUI
 	int    commandIndex = (new Integer(s[1])).intValue();
 	EventContent  content = currentConfig.content(contentName);
 	OutputCommand command = content.command(commandIndex);
-	
+
 	content.removeAllCommands();
-	
+
 	fillComboBoxCommandsMenu(null);
 	CommandTableModel ctm = (CommandTableModel)jTableCommands.getModel();
 	ctm.fireTableDataChanged();
 
 	updateOutputModulePreview();
-	
+
 	Iterator<Stream> itS = content.streamIterator();
 	while (itS.hasNext()) {
 	    OutputModule output = itS.next().outputModule();
@@ -4055,12 +4071,12 @@ public class ConfDbGUI
 		    .nodeStructureChanged(output.reference(0));
 	}
     }
-    
-    
+
+
     //
     // CREATE GUI COMPONENTS
     //
-    
+
     /** create the  menubar */
     private void createMenuBar()
     {
@@ -4093,7 +4109,7 @@ public class ConfDbGUI
         JLabel jLabelRelease = new javax.swing.JLabel();
         JLabel jLabelCreated = new javax.swing.JLabel();
         JLabel jLabelCreator = new javax.swing.JLabel();
-	
+
         jLabelConfig.setText("Configuration:");
 
         jTextFieldCurrentConfig.setBackground(new java.awt.Color(255, 255, 255));
@@ -4131,7 +4147,7 @@ public class ConfDbGUI
 				  .addGroup(layout.createSequentialGroup()
 				       .addContainerGap()
 				       .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-					    
+
 					    .addComponent(jPanelCurrentConfig, javax.swing.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
 					    .addGroup(layout.createSequentialGroup()
 						 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4190,7 +4206,7 @@ public class ConfDbGUI
         layout.linkSize(SwingConstants.VERTICAL, new java.awt.Component[] {jButtonRelease, jLabelRelease, jTextFieldProcess});
         layout.linkSize(SwingConstants.VERTICAL, new java.awt.Component[] {jLabelLock, jTextFieldCurrentConfig});
     }
-    
+
     /** create the Import Configuration part of the configuration panel */
     private void createImportConfigPanel()
     {
@@ -4232,7 +4248,7 @@ public class ConfDbGUI
 
 	layout.linkSize(SwingConstants.VERTICAL, new java.awt.Component[] {jButtonImportCancelSearch, jTextFieldImportSearch});
     }
-    
+
     /** create the 'Configuration' panel (tab1 in left panel) */
     private void createConfigurationPanel()
     {
@@ -4247,14 +4263,14 @@ public class ConfDbGUI
 
 	jButtonCancelSearch.setEnabled(false);
 	jToggleButtonImport.setEnabled(false);
-	
+
 	jLabelSearch.setText("Search:");
 
         jSplitPaneCurrentConfig.setResizeWeight(0.5);
         jScrollPaneCurrentConfig.setViewportView(jTreeCurrentConfig);
-	
+
         jSplitPaneCurrentConfig.setLeftComponent(jScrollPaneCurrentConfig);
-	
+
 	jSplitPaneCurrentConfig.setRightComponent(jPanelImportConfig);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jPanelCurrentConfig);
@@ -4294,15 +4310,15 @@ public class ConfDbGUI
 
     }
 
-    
+
     /** create the 'Search:' popup menu */
     private void createSearchPopupMenu()
     {
 	buttonGroupSearch1 = new ButtonGroup();
 	buttonGroupSearch2 = new ButtonGroup();
-	
+
 	JRadioButtonMenuItem rbMenuItem;
-	
+
 	rbMenuItem = new JRadioButtonMenuItem("contains");
 	rbMenuItem.setActionCommand("contains");
 	rbMenuItem.addActionListener(new ActionListener() {
@@ -4367,9 +4383,9 @@ public class ConfDbGUI
     {
 	buttonGroupImportSearch1 = new ButtonGroup();
 	buttonGroupImportSearch2 = new ButtonGroup();
-	
+
 	JRadioButtonMenuItem rbMenuItem;
-	
+
 	rbMenuItem = new JRadioButtonMenuItem("contains");
 	rbMenuItem.setActionCommand("contains");
 	rbMenuItem.addActionListener(new ActionListener() {
@@ -4429,17 +4445,17 @@ public class ConfDbGUI
 	jPopupMenuImportSearch.add(rbMenuItem);
     }
 
-    
+
     /** create the right upper panel */
     private void createRightUpperPanel()
-    {    	
+    {
     	// module's section:
         JLabel jLabelPackage = new javax.swing.JLabel();
         JLabel jLabelCVS     = new javax.swing.JLabel();
 
         JLabel jLabelLabel   = new javax.swing.JLabel();
         JLabel jLabelPaths   = new javax.swing.JLabel();
-	
+
         jSplitPaneRightUpper.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         jLabelPackage.setFont(new java.awt.Font("Dialog", 0, 12));
         jLabelPackage.setText("Package:");
@@ -4475,7 +4491,7 @@ public class ConfDbGUI
 
 	jComboBoxPaths.setModel(new DefaultComboBoxModel());
         jComboBoxPaths.setBackground(new java.awt.Color(255, 255, 255));
-	
+
         javax.swing.GroupLayout jPanelPluginLayout = new javax.swing.GroupLayout(jPanelPlugin);
         jPanelPlugin.setLayout(jPanelPluginLayout);
         jPanelPluginLayout.setHorizontalGroup(
@@ -4529,9 +4545,9 @@ public class ConfDbGUI
 						 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 					    );
         jSplitPaneRightUpper.setTopComponent(jPanelPlugin);
-	
+
         //////////////////////////////////////////
-        // path extra fields section - bug 75958 
+        // path extra fields section - bug 75958
         //
         JLabel jLabelPathDescription	= new javax.swing.JLabel();
         JLabel jLabelPathContacts		= new javax.swing.JLabel();
@@ -4540,35 +4556,35 @@ public class ConfDbGUI
 
         jLabelPathDescription.setFont(new java.awt.Font("Dialog", 0, 12));
         jLabelPathDescription.setText("Description:");
-        
+
         jLabelPathContacts.setFont(new java.awt.Font("Dialog", 0, 12));
         jLabelPathContacts.setText("Contacts:");
-        
+
         jLabelPathName.setFont(new java.awt.Font("Dialog", 0, 12));
         jLabelPathName.setText("Path:");
-        
+
         jLabelPrescales.setFont(new java.awt.Font("Dialog", 0, 12));
         jLabelPrescales.setText("Prescales:");
-        
+
         jTextFieldPathName.setBackground(new java.awt.Color(250, 250, 250));
         jTextFieldPathName.setEditable(false);
         jTextFieldPathName.setFont(new java.awt.Font("Dialog", 0, 10));
         jTextFieldPathName.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
-        
+
         jScrollPanePathContacts.setViewportView(jEditorPathContacts);
         jScrollPanePathDescription.setViewportView(jEditorPathDescription);
-        
+
         // Set Document Listener:
         jEditorPathContacts.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void removeUpdate(DocumentEvent e) { somethingHasChanged(); }
-			
+
 			@Override
 			public void insertUpdate(DocumentEvent e) { somethingHasChanged(); }
-			
+
 			@Override
 			public void changedUpdate(DocumentEvent e) { somethingHasChanged(); }
-			
+
 			public void somethingHasChanged() {
 				setDocumentationFieldsChanged();
 			}
@@ -4577,25 +4593,25 @@ public class ConfDbGUI
         jEditorPathDescription.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void removeUpdate(DocumentEvent e) { somethingHasChanged(); }
-			
+
 			@Override
 			public void insertUpdate(DocumentEvent e) { somethingHasChanged(); }
-			
+
 			@Override
 			public void changedUpdate(DocumentEvent e) { somethingHasChanged(); }
-			
+
 			public void somethingHasChanged() {
 				setDocumentationFieldsChanged();
 			}
 		});
-        
+
         jButtonSavePathFields.setEnabled(false);
         jButtonCancelPathFields.setEnabled(false);
         jPanelPathFields.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
+
         // Prescales:
         //jScrollPanePrescales.setViewportView(jTablePrescales);
-    	
+
     	/* set the elements: */
         javax.swing.GroupLayout jPanelPathLayout = new javax.swing.GroupLayout(jPanelPathFields);
         jPanelPathFields.setLayout(jPanelPathLayout);
@@ -4621,7 +4637,7 @@ public class ConfDbGUI
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
         )
         );
-        
+
         jPanelPathLayout.setVerticalGroup(jPanelPathLayout.createSequentialGroup()
         .addGroup(jPanelPathLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
         .addComponent(jLabelPathName)
@@ -4647,17 +4663,17 @@ public class ConfDbGUI
         		.addComponent(jButtonCancelPathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
         		.addComponent(jButtonSavePathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
-        
+
 
         //////////////////////////////////////////
-        
-        
+
+
         // Parameters Section:
 	jScrollPaneParameters.setBackground(new java.awt.Color(255, 255, 255));
         jScrollPaneParameters.setBorder(javax.swing.BorderFactory.createTitledBorder("Parameters"));
-	
+
         jScrollPaneParameters.setViewportView(jTreeTableParameters);
-	
+
         jSplitPaneRightUpper.setRightComponent(jScrollPaneParameters);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jPanelRightUpper);
@@ -4670,43 +4686,43 @@ public class ConfDbGUI
 				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 				.addComponent(jSplitPaneRightUpper, javax.swing.GroupLayout.DEFAULT_SIZE, 390, Short.MAX_VALUE)
 				);
-	
+
 	jTreeTableParameters.getParent().setBackground(new Color(255,255,255));//PS
     }
-    
+
     /** create the right lower panel */
     private void createRightLowerPanel()
     {
     	jEditorPaneSnippet.setEditable(false);
         jScrollPaneRightLower.setViewportView(jEditorPaneSnippet);
         jTabbedPaneRightLower.addTab("Snippet", jScrollPaneRightLower);
-        
+
         // Initialize the right lower tabs by default.
         jEditorPanePathsToDataset.setEditable(false);
         TAB_assignedToDatasets.setViewportView(jEditorPanePathsToDataset);
         jTabbedPaneRightLower.addTab("Assigned to Datasets", TAB_assignedToDatasets);
-        
+
         jEditorPaneUnresolvedITags.setEditable(false);
         jEditorPaneUnresolvedITags.setContentType("text/html");
         TAB_unresolvedInputTags.setViewportView(jEditorPaneUnresolvedITags);
         jTabbedPaneRightLower.addTab("Unresolved Input Tags", TAB_unresolvedInputTags);
-        
+
         jEditorContainedInPaths.setEditable(false);
         jEditorContainedInPaths.setContentType("text/html");
         TAB_containedInPaths.setViewportView(jEditorContainedInPaths);
         jTabbedPaneRightLower.addTab("Contained in Paths", TAB_containedInPaths);
-        
+
         jEditorContainedInSequence.setEditable(false);
         jEditorContainedInSequence.setContentType("text/html");
         TAB_containedInSequence.setViewportView(jEditorContainedInSequence);
         jTabbedPaneRightLower.addTab("Contained in Sequences", TAB_containedInSequence);
-        
-        
+
+
         jTabbedPaneRightLower.setEnabledAt(1, false); // sets the second tab as Disabled
         jTabbedPaneRightLower.setEnabledAt(2, false); // sets the third  tab as Disabled
         jTabbedPaneRightLower.setEnabledAt(3, false); // sets containedInPath tab as Disabled
         jTabbedPaneRightLower.setEnabledAt(4, false); // sets containedInSequence tab as Disabled
-        
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jPanelRightLower);
         jPanelRightLower.setLayout(layout);
         layout.setHorizontalGroup(
@@ -4719,7 +4735,7 @@ public class ConfDbGUI
 				);
     }
 
-    
+
     /** create event content editor panel */
     private void createContentEditorPanel()
     {
@@ -4734,11 +4750,11 @@ public class ConfDbGUI
         JLabel      jLabelStreams            = new JLabel();
         JLabel      jLabelDatasets           = new JLabel();
         JLabel      jLabelPaths              = new JLabel();
-        JLabel      jLabelCommands           = new JLabel();	
+        JLabel      jLabelCommands           = new JLabel();
         JLabel      jLabelOutputModule       = new JLabel();
 
 
-	
+
         jScrollPaneContentEditor.setBorder(javax.swing.BorderFactory.createTitledBorder("Event Content Editor"));
 
         jPanelScrollPane.setPreferredSize(new java.awt.Dimension(400, 600));
@@ -4917,16 +4933,16 @@ public class ConfDbGUI
 	createLeftPanel();
 	createRightUpperPanel();
 	createRightLowerPanel();
-	
+
 	createContentEditorPanel();
-	
+
 	jSplitPane.setDividerLocation(0.55);
         jSplitPane.setResizeWeight(0.5);
 	jSplitPaneRight.setDividerLocation(0.5);
 	jSplitPaneRight.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         jSplitPaneRight.setResizeWeight(0.5);
         jSplitPane.setRightComponent(jSplitPaneRight);
-	
+
 	jSplitPane.setLeftComponent(jPanelLeft);
 	jSplitPaneRight.setLeftComponent(jPanelRightUpper);
 	jSplitPaneRight.setRightComponent(jPanelRightLower);
@@ -4953,7 +4969,7 @@ public class ConfDbGUI
 				     .addComponent(jProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
 				);
     }
-    
+
 }
 
 
@@ -4965,7 +4981,7 @@ class CommandTableModel extends AbstractTableModel
 {
     /** event content */
     private EventContent content = null;
-    
+
     /** selected stream within content */
     private Stream stream = null;
 
@@ -4990,7 +5006,7 @@ class CommandTableModel extends AbstractTableModel
 	this.path = null;
 	fireTableDataChanged();
     }
-    
+
     /** set selected stream */
     public void setStream(Stream stream)
     {
@@ -4999,7 +5015,7 @@ class CommandTableModel extends AbstractTableModel
 	    fireTableDataChanged();
 	    return;
 	}
-	
+
 	if (content==null||content.indexOfStream(stream)<0) {
 	    System.err.println("CommandTableModel.setStream() ERROR: "+
 			       "stream not in currently set content: "+
@@ -5020,7 +5036,7 @@ class CommandTableModel extends AbstractTableModel
 	    fireTableDataChanged();
 	    return;
 	}
-	
+
 	if (content==null||content.indexOfDataset(dataset)<0) {
 	    System.err.println("CommandTableModel.setDataset() ERROR: "+
 			       "dataset not in currently set content: "+
@@ -5077,7 +5093,7 @@ class CommandTableModel extends AbstractTableModel
 
     /** AbstractTableModel: number of columns */
     public int getColumnCount() { return 3; }
-    
+
     /** AbstractTableModel: number of rows */
     public int getRowCount()
     {
@@ -5087,7 +5103,7 @@ class CommandTableModel extends AbstractTableModel
 	else if (content!=null) return content.commandCount();
 	else return 0;
     }
-    
+
     /** AbstractTableModel: get column names */
     public String getColumnName( int iColumn)
     {
@@ -5106,7 +5122,7 @@ class CommandTableModel extends AbstractTableModel
 	else if (stream!=null)  command = content.command(stream,iRow);
 	else if (content!=null) command = content.command(iRow);
 	else return new String("ERROR");
-	
+
 	Path path = command.parentPath();
 
 	if (iColumn==0) return new Integer(content.indexOfCommand(command));
@@ -5114,7 +5130,7 @@ class CommandTableModel extends AbstractTableModel
 	if (iColumn==2) return (path==null) ? "<GLOBAL>" : path.toString();
 	return new Object();
     }
-    
+
     /** AbstractTableModel: get class for column index */
     public Class getColumnClass(int iColumn)
     {
@@ -5142,7 +5158,7 @@ class CommandTableCellRenderer extends DefaultTableCellRenderer
 
 	    OutputCommand oc = (OutputCommand)table.getValueAt(row,1);
 	    String       soc = oc.toString();
-	    
+
 	    setBackground(Color.LIGHT_GRAY);
 	    OutputCommand ocDropAll = new OutputCommand();
 	    ocDropAll.setDrop();
