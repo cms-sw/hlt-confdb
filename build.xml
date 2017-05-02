@@ -22,8 +22,11 @@
   <property name="sign.store" value="/afs/cern.ch/user/c/confdb/private/certificate/certificate.p12"/>
   <property name="sign.alias" value="cms confdb's  id"/>
   <property name="sign.pass"  value="confdb"/>
+  <!-- currently not working
   <property name="sign.tsa"   value="https://timestamp.geotrust.com/tsa"/>
-  <!-- alternative tsaurl="http://time.certum.pl/" -->
+  -->
+  <!-- alternative tsa url -->
+  <property name="sign.tsa"   value="http://time.certum.pl/"/>
 
   <!-- initialize variables, make directories, check what needs to be rebuilt -->
   <target name="init">
