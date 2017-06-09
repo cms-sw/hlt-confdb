@@ -53,9 +53,6 @@ RecoLocalTracker/SiStripRecHitConverter StripCPEfromTrackAngle_cfi.py
 RecoLocalTracker/SiStripZeroSuppression	SiStripZeroSuppression_cfi.py
 RecoMuon/L3MuonIsolationProducer	L3MuonIsolationProducer_cfi.py
 RecoMuon/MuonIdentification		muons_cfi.py
-RecoJets/JetProducers			ic5CaloJets_cfi.py
-RecoJets/JetProducers                   hltak5CaloJets_cfi.py
-RecoJets/JetProducers                   ca4TrackJets_cfi.py
 RecoMET/METProducers                    CaloMET_cfi.py
 RecoMET/METProducers                    genMetCalo_cfi.py
 RecoMET/METProducers			TCMET_cfi.py
