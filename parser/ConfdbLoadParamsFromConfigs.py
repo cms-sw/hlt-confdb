@@ -68,6 +68,7 @@ def main(argv):
       "RecoBTag",
       "RecoBTau",
       "RecoCaloTools",
+      "RecoCTPPS",
       "RecoEcal",
       "RecoEgamma",
       "RecoHI",   
