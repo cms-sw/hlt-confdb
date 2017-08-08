@@ -2,6 +2,7 @@ RecoMuon/L2MuonSeedGenerator            L2OfflineMuonSeeds_cfi.py
 RecoMuon/GlobalTrackingTools            MuonTrackingRegionBuilderHLT_cfi.py
 Alignment/LaserAlignment                HLTLaserAlignmentEventFilter_cfi.py
 RecoBTag/SecondaryVertex                doubleVertex2TrkComputer_cfi.py
+L1Trigger/L1TGlobal                     GlobalParameters_cff.py
 L1Trigger/L1TGlobal                     TriggerMenu_cff.py
 RecoPixelVertexing/PixelTrackFitting    pixelTracks_cfi.py
 TrackingTools/GeomPropagators           AnyDirectionAnalyticalPropagator_cfi.py
