@@ -28,6 +28,7 @@ def main(argv):
     input_blacklist = [
         "DQM.Integration.config.FrontierCondition_GT_Offline_cfi",
         "DQM.SiStripMonitorHardware.SiStripSpyEventMatcher_cfi",
+        "DQM.EcalMonitorTasks.EcalMonitorTask_cfi",
         "HeavyFlavorAnalysis/SpecificDecay",
         "RecoBTag/Skimming",
         "RecoJets.FFTJetProducers.fftjetpileupestimator_pf_cfi",
