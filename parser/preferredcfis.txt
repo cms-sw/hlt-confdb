@@ -1,3 +1,4 @@
+CalibCalorimetry/HcalPlugins            HcalTimeSlew_cff
 RecoMuon/L2MuonSeedGenerator            L2OfflineMuonSeeds_cfi.py
 RecoMuon/GlobalTrackingTools            MuonTrackingRegionBuilderHLT_cfi.py
 Alignment/LaserAlignment                HLTLaserAlignmentEventFilter_cfi.py
