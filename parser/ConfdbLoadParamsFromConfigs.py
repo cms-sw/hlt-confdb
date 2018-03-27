@@ -36,6 +36,7 @@ def main(argv):
         "SimGeneral.TrackingAnalysis.TrackingParticleSelection_cfi",
         "Alignment.LaserAlignment.LaserAlignmentEventFilter_cfi",
         "RecoMET.METFilters.hcalLaserEventFilter_cfi",
+        "Calibration.LumiAlCaRecoProducers.alcaRawPCCProducer_cfi",
 #       "FWCore/PrescaleService",
 #       "DQM",
 #       "HLTrigger.special.hltHcalNoiseFilter_cfi"
