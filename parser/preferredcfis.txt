@@ -10,6 +10,7 @@ TrackingTools/GeomPropagators           AnyDirectionAnalyticalPropagator_cfi.py
 SimCalorimetry/HcalTestBeam             hardwired_conditions_cfi.py
 TrackingTools/MaterialEffects           MaterialPropagator_cfi.py
 RecoTauTag/RecoTau                      RecoTauCombinatoricProducer_cfi.py
+RecoTauTag/RecoTau                      PFRecoTauChargedHadronProducer_cfi.py
 RecoParticleFlow/PFClusterProducer      particleFlowClusterECAL_cfi.py
 Geometry/HcalEventSetup                 HcalGeometryDBReader_cfi.py
 Geometry/CSCGeometryBuilder             cscGeometry_cfi.py
