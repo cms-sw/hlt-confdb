@@ -22,7 +22,6 @@ Geometry/HcalTopologyIdealEP            HcalTopology_cfi.py
 RecoTauTag/RecoTau                      PFTauDiscriminatorLogicalAndProducer_cfi.py
 RecoTauTag/RecoTau                      HLTPFRecoTauDiscriminationByIsolation_cfi.py
 RecoTracker/FinalTrackSelectors         trackListMerger_cfi.py
-RecoTracker/FinalTrackSelectors         simpleTrackListMerger_cfi.py
 TrackingTools/TrajectoryCleaning        TrajectoryCleanerBySharedHits_cfi.py
 RecoTracker/DeDx                        hltDeDxEstimatorProducer_cfi.py
 RecoTauTag/TauTagTools                  HLTPFTauSelector_cfi.py
