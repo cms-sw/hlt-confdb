@@ -44,8 +44,6 @@ RecoTracker/TrackProducer		TrackProducer_cfi.py
 RecoTracker/TkSeedGenerator		SeedGeneratorFromRegionHitsEDProducer_cfi.py
 RecoTracker/TkSeedGenerator		SeedGeneratorFromProtoTracksEDProducer_cfi.py
 RecoTracker/SpecialSeedGenerators	CombinatorialSeedGeneratorForCosmicsRegionalReconstruction_cfi.py
-RecoTauTag/RecoTau			PFRecoTauProducer_cfi.py
-RecoTauTag/RecoTau			HPSPFRecoTauProducer_cfi.py
 RecoTauTag/Configuration		HPSPFTaus_cff.py
 RecoLocalCalo/CaloTowersCreator		calotowermaker_cfi.py
 RecoLocalCalo/EcalRecProducers          ecalMultiFitUncalibRecHit_cfi.py
