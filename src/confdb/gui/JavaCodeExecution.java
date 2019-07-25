@@ -35,7 +35,8 @@ public class JavaCodeExecution
     {
 	System.out.println(" ");
 	System.out.println("[JavaCodeExecution] start:");
-	runChecker();
+	//	runChecker();
+	//	runCode27220();
 	//	runCode14317();
 	//	runCodeL1TMenu1();
 	//	runCodeL1TMenu0();
@@ -132,6 +133,29 @@ public class JavaCodeExecution
 		}
 	    }
 	}
+    }
+
+    private void runCode27220()
+    {
+	PSetParameter pset = null;
+	int j=0;
+	for (int i=0; i<config.psetCount(); i++) {
+	    pset = config.pset(i);
+	    if (pset.parameter("ComponentType")!=null) {
+		String ComponentType = pset.parameter("ComponentType").valueAsString();
+		ComponentType = ComponentType.substring(1,ComponentType.length()-1);
+                System.out.println("runCode27220 "+pset.name()+" ComponentType="+ComponentType);
+		if (ComponentType.equals("CkfTrajectoryBuilder") || ComponentType.equals("GroupedCkfTrajectoryBuilder") || ComponentType.equals("MuonCkfTrajectoryBuilder")) {
+		    if (pset.parameter("seedAs5DHit")==null) {
+			j++;
+			BoolParameter para = new BoolParameter("seedAs5DHit",false,true);
+			pset.addParameter(para);
+			System.out.println("   "+j+" "+pset.name()+" ComponentType="+ComponentType);
+		    }
+		}
+	    }
+	}
+	config.psets().setHasChanged();
     }
 
     private void runCode14317()
