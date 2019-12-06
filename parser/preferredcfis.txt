@@ -10,7 +10,6 @@ TrackingTools/GeomPropagators           AnyDirectionAnalyticalPropagator_cfi.py
 SimCalorimetry/HcalTestBeam             hardwired_conditions_cfi.py
 TrackingTools/MaterialEffects           MaterialPropagator_cfi.py
 RecoTauTag/RecoTau                      RecoTauCombinatoricProducer_cfi.py
-RecoTauTag/RecoTau                      PFRecoTauChargedHadronProducer_cfi.py
 RecoParticleFlow/PFClusterProducer      particleFlowClusterECAL_cfi.py
 Geometry/HcalEventSetup                 HcalGeometryDBReader_cfi.py
 Geometry/CSCGeometryBuilder             cscGeometry_cfi.py
@@ -72,7 +71,6 @@ TrackingTools/TrajectoryCleaning	TrajectoryCleanerBySharedHits_cfi.py
 TrackingTools/TrackAssociator		DetIdAssociatorESProducer_cff.py
 Geometry/CaloEventSetup			CaloGeometryBuilder_cfi.py
 Geometry/EcalAlgo			EcalBarrelGeometry_cfi.py
-MagneticField/Engine			autoMagneticFieldProducer_cfi
 CommonTools/RecoAlgos			LargestEtCaloJetSelector_cfi.py
 CommonTools/RecoAlgos			etMinCaloJetSelector_cfi.py
 JetMETCorrections/Modules		hltLXXXCorrectionESProducer_cfi.py
