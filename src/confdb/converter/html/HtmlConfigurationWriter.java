@@ -11,6 +11,7 @@ import confdb.converter.IOutputWriter;
 import confdb.converter.IParameterWriter;
 import confdb.converter.IPathWriter;
 import confdb.converter.ISequenceWriter;
+import confdb.converter.ITaskWriter;
 import confdb.converter.IServiceWriter;
 import confdb.data.IConfiguration;
 import confdb.data.EDSourceInstance;
@@ -21,6 +22,7 @@ import confdb.data.OutputModule;
 import confdb.data.Parameter;
 import confdb.data.Path;
 import confdb.data.Sequence;
+import confdb.data.Task;
 import confdb.data.ServiceInstance;
 
 public class HtmlConfigurationWriter implements IConfigurationWriter {
@@ -64,6 +66,17 @@ public class HtmlConfigurationWriter implements IConfigurationWriter {
 				Sequence sequence = conf.sequence(i);
 				str.append(wrapLine(sequenceWriter.toString(sequence, converterEngine, "  "), '&',
 						16 + sequence.name().length()));
+			}
+			// if (conf.taskCount() == 0)
+			str.append(converterEngine.getNewline());
+		}
+
+		if (conf.taskCount() > 0) {
+			str.append("<a name=\"tasks\"><hr noshade></a>" + converterEngine.getNewline());
+			ITaskWriter taskWriter = converterEngine.getTaskWriter();
+			for (int i = 0; i < conf.taskCount(); i++) {
+				Task task = conf.task(i);
+				str.append(wrapLine(taskWriter.toString(task, converterEngine, "  "), '&', 16 + task.name().length()));
 			}
 			str.append(converterEngine.getNewline());
 		}

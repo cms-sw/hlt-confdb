@@ -32,6 +32,7 @@ public class DiffTreeRenderer extends DefaultTreeCellRenderer {
 	private ImageIcon serviceIcon;
 	private ImageIcon pathIcon;
 	private ImageIcon sequenceIcon;
+	private ImageIcon taskIcon;
 	private ImageIcon moduleIcon;
 
 	private ImageIcon changedIcon;
@@ -54,6 +55,7 @@ public class DiffTreeRenderer extends DefaultTreeCellRenderer {
 		pathIcon = new ImageIcon(getClass().getResource("/PathIcon.png"));
 		moduleIcon = new ImageIcon(getClass().getResource("/ModuleIcon.png"));
 		sequenceIcon = new ImageIcon(getClass().getResource("/SequenceIcon.png"));
+		taskIcon = new ImageIcon(getClass().getResource("/TaskIcon.png"));
 
 		changedIcon = new ImageIcon(getClass().getResource("/ChangedIcon.png"));
 		addedIcon = new ImageIcon(getClass().getResource("/AddIcon.png"));
