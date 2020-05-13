@@ -42,6 +42,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 	private StringBuffer servicesNode = new StringBuffer();
 	private StringBuffer pathsNode = new StringBuffer();
 	private StringBuffer sequencesNode = new StringBuffer();
+	private StringBuffer tasksNode = new StringBuffer();
 	private StringBuffer modulesNode = new StringBuffer();
 	private StringBuffer outputsNode = new StringBuffer();
 	private StringBuffer contentsNode = new StringBuffer();
@@ -116,6 +117,11 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		return sequencesNode;
 	}
 
+	/** get the tasks root node */
+	public StringBuffer tasksNode() {
+		return tasksNode;
+	}
+
 	/** get the modules root node */
 	public StringBuffer modulesNode() {
 		return modulesNode;
@@ -155,6 +161,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 				level1Nodes.add(servicesNode);
 				level1Nodes.add(pathsNode);
 				level1Nodes.add(sequencesNode);
+				level1Nodes.add(tasksNode);
 				level1Nodes.add(modulesNode);
 				level1Nodes.add(outputsNode);
 				level1Nodes.add(contentsNode);
@@ -288,6 +295,14 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		sequencesNode.append(")</html>");
 		nodeChanged(sequencesNode);
 
+		// Tasks node
+		int taskCount = config.taskCount();
+		tasksNode.delete(0, tasksNode.length());
+		tasksNode.append("<html><b>Tasks</b> (");
+		tasksNode.append(taskCount);
+		tasksNode.append(")</html>");
+		nodeChanged(tasksNode);
+
 		// Module node
 		int moduleCount = config.moduleCount();
 		int unsetModuleCount = config.unsetTrackedModuleParameterCount();
@@ -379,6 +394,8 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 				return config.pathCount();
 			if (node.equals(sequencesNode))
 				return config.sequenceCount();
+			if (node.equals(tasksNode))
+				return config.taskCount();
 			if (node.equals(modulesNode))
 				return config.moduleCount();
 			if (node.equals(outputsNode))
@@ -429,6 +446,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			SequenceReference reference = (SequenceReference) node;
 			Sequence sequence = (Sequence) reference.parent();
 			return sequence.entryCount();
+		} else if (node instanceof TaskReference) {
+			TaskReference reference = (TaskReference) node;
+			Task task = (Task) reference.parent();
+			return task.entryCount();
 		} else if (node instanceof PSetParameter) {
 			PSetParameter pset = (PSetParameter) node;
 			return pset.parameterCount();
@@ -469,6 +490,8 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 				return config.path(i);
 			if (parent.equals(sequencesNode))
 				return config.sequence(i);
+			if (parent.equals(tasksNode))
+				return config.task(i);
 			if (parent.equals(modulesNode))
 				return config.module(i);
 			if (parent.equals(outputsNode))
@@ -520,6 +543,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			SequenceReference reference = (SequenceReference) parent;
 			Sequence sequence = (Sequence) reference.parent();
 			return sequence.entry(i);
+		} else if (parent instanceof TaskReference) {
+			TaskReference reference = (TaskReference) parent;
+			Task task = (Task) reference.parent();
+			return task.entry(i);
 		} else if (parent instanceof PSetParameter) {
 			PSetParameter pset = (PSetParameter) parent;
 			return pset.parameter(i);
@@ -572,6 +599,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			if (parent.equals(sequencesNode)) {
 				Sequence sequence = (Sequence) child;
 				return config.indexOfSequence(sequence);
+			}
+			if (parent.equals(tasksNode)) {
+				Task task = (Task) child;
+				return config.indexOfTask(task);
 			}
 			if (parent.equals(modulesNode)) {
 				ModuleInstance module = (ModuleInstance) child;
@@ -649,6 +680,11 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			Sequence sequence = (Sequence) seqreference.parent();
 			Reference reference = (Reference) child;
 			return sequence.indexOfEntry(reference);
+		} else if (parent instanceof TaskReference) {
+			TaskReference tasreference = (TaskReference) parent;
+			Task task = (Task) tasreference.parent();
+			Reference reference = (Reference) child;
+			return task.indexOfEntry(reference);
 		} else if (parent instanceof PSetParameter) {
 			PSetParameter pset = (PSetParameter) parent;
 			Parameter parameter = (Parameter) child;
@@ -716,6 +752,8 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			return pathsNode;
 		else if (node instanceof Sequence)
 			return sequencesNode;
+		else if (node instanceof Task)
+			return tasksNode;
 		else if (node instanceof EventContent)
 			return contentsNode;
 		else if (node instanceof Stream)

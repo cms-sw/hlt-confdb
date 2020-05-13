@@ -179,6 +179,8 @@ public class ConfDbGUI {
 	private JScrollPane TAB_containedInPaths = new JScrollPane();
 	private JEditorPane jEditorContainedInSequence = new JEditorPane();
 	private JScrollPane TAB_containedInSequence = new JScrollPane();
+	private JEditorPane jEditorContainedInTask = new JEditorPane();
+	private JScrollPane TAB_containedInTask = new JScrollPane();
 
 	// Path fields in right upper panel
 	private JPanel jPanelPathFields = new JPanel();
@@ -478,7 +480,7 @@ public class ConfDbGUI {
 
 		GUIFontConfig.setFonts();
 
-		JFrame frame = new JFrame("GDR ConfDbGUI");
+		JFrame frame = new JFrame("GDR ConfDbGUI DEVELOPMENT");
 		frame.setFont(GUIFontConfig.getFont(0));
 
 		ConfDbGUI gui = new ConfDbGUI(frame);
@@ -983,6 +985,31 @@ public class ConfDbGUI {
 								}
 							} else {
 								System.out.println("SmartRenaming Sequence: " + newName + " [" + oldName
+										+ "] not changed: new name already exists!");
+							}
+						}
+					}
+				}
+			}
+
+			if (applyTo.equals("All") || applyTo.equals("Tasks")) {
+				Task task = null;
+				for (int i = 0; i < currentConfig.taskCount(); i++) {
+					task = currentConfig.task(i);
+					oldName = task.name();
+					if (oldName.matches(filPattern)) {
+						newName = oldName.replace(oldPattern, newPattern);
+						if (!oldName.equals(newName)) {
+							if (currentConfig.isUniqueQualifier(newName)) {
+								System.out.println("SmartRenaming Task: " + newName + " [" + oldName + "]");
+								try {
+									task.setName(newName);
+									treeModelCurrentConfig.nodeChanged(task);
+								} catch (DataException e) {
+									System.err.println(e.getMessage());
+								}
+							} else {
+								System.out.println("SmartRenaming Task: " + newName + " [" + oldName
 										+ "] not changed: new name already exists!");
 							}
 						}
@@ -1573,7 +1600,7 @@ public class ConfDbGUI {
 		int emptyContainerCount = currentConfig.emptyContainerCount();
 		if (emptyContainerCount > 0) {
 			String msg = "current configuration contains " + emptyContainerCount
-					+ " empty containers (paths/sequences). " + "They must be filled before saving/converting!";
+					+ " empty containers (paths/sequences/tasks). " + "They must be filled before saving/converting!";
 			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
@@ -2077,11 +2104,18 @@ public class ConfDbGUI {
 
 			String targetProcessName = currentConfig.processName();
 
+			System.out.println("targetProcessName " + targetProcessName);
+
 			ConfigInfo targetConfigInfo = new ConfigInfo(currentConfig.name(), currentConfig.parentDir(), -1,
 					currentConfig.version(), "", userName, targetReleaseTag, targetProcessName,
 					"migrated from " + currentRelease.releaseTag());
 
+			System.out.println("targetConfigInfo " + targetConfigInfo.toString());
+
 			targetConfig = new Configuration(targetConfigInfo, targetRelease);
+
+			System.out.println("currentConfig " + currentConfig.toString());
+			System.out.println("targetConfig " + targetConfig.toString());
 
 			migrator = new ReleaseMigrator(currentConfig, targetConfig);
 			migrator.migrate();
@@ -2265,6 +2299,12 @@ public class ConfDbGUI {
 					text = "<html>" + instance.name();
 					text += "<html>";
 
+				} else if (selectedNode instanceof TaskReference) {
+					TaskReference reference = (TaskReference) selectedNode;
+					Task instance = (Task) reference.parent();
+					text = "<html>" + instance.name();
+					text += "<html>";
+
 				} else if (selectedNode instanceof Stream) {
 					Stream stream = (Stream) selectedNode;
 					text = "Event Content: " + stream.parentContent().name();
@@ -2356,11 +2396,14 @@ public class ConfDbGUI {
 		return text;
 	}
 
-	/** return a text list of Paths which contains the current Module/Sequence. */
+	/**
+	 * return a text list of Paths which contains the current Module/Sequence/Task.
+	 */
 	public String getAssignedPaths() {
 		String text = "";
 		ModuleInstance moduleInstance = null;
 		Sequence sequence = null;
+		Task task = null;
 		Path[] paths = null;
 
 		if (currentParameterContainer instanceof ModuleInstance) {
@@ -2369,6 +2412,10 @@ public class ConfDbGUI {
 		} else if (currentParameterContainer instanceof Sequence) {
 			sequence = (Sequence) currentParameterContainer;
 			paths = sequence.parentPaths();
+
+		} else if (currentParameterContainer instanceof Task) {
+			task = (Task) currentParameterContainer;
+			paths = task.parentPaths();
 
 		} else
 			return "";
@@ -2422,6 +2469,42 @@ public class ConfDbGUI {
 		return text;
 	}
 
+	/**
+	 * return a html string format with a list of Tasks containing the current
+	 * parameter container. Used to fill ContainedInTasks tab.
+	 */
+	public String getAssignedTasks() {
+		String text = "";
+		ModuleInstance moduleInstance = null;
+		Task task = null;
+		if (currentParameterContainer instanceof ModuleInstance) {
+			moduleInstance = (ModuleInstance) currentParameterContainer;
+
+			Iterator<Task> TasIt = currentConfig.taskIterator();
+			while (TasIt.hasNext()) {
+				Task Tas = TasIt.next();
+				Reference ref = Tas.entry(moduleInstance.name());
+				if (ref != null) {
+					text += "<a href='" + Tas.name() + "'>" + Tas.name() + "</a> <br>";
+				}
+			}
+		} else if (currentParameterContainer instanceof Task) {
+			task = (Task) currentParameterContainer;
+
+			Iterator<Task> TasIt = currentConfig.taskIterator();
+			while (TasIt.hasNext()) {
+				Task Tas = TasIt.next();
+				Reference ref = Tas.entry(task.name());
+				if (ref != null) {
+					text += "<a href='" + Tas.name() + "'>" + Tas.name() + "</a> <br>";
+				}
+			}
+
+		} else
+			return "";
+		return text;
+	}
+
 	/** Prepare a summary of unassigned input tags using the original */
 	/** python code. This uses links to expand the tree and show the */
 	/** selected Module */
@@ -2433,6 +2516,7 @@ public class ConfDbGUI {
 		String tag = null;
 		Path path;
 		Sequence sequence;
+		Task task;
 		String[] unresolved;
 		if (currentParameterContainer instanceof Path) {
 			path = (Path) currentParameterContainer;
@@ -2440,6 +2524,9 @@ public class ConfDbGUI {
 		} else if (currentParameterContainer instanceof Sequence) {
 			sequence = (Sequence) currentParameterContainer;
 			unresolved = sequence.unresolvedInputTags();
+		} else if (currentParameterContainer instanceof Task) {
+			task = (Task) currentParameterContainer;
+			unresolved = task.unresolvedInputTags();
 		} else
 			return "ERROR: getUnresolvedInputTagsSummary(): unknown currentParameterContainer";
 
@@ -2767,7 +2854,8 @@ public class ConfDbGUI {
 	/** display the configuration snippet for currently selected component */
 	private void displaySnippet() {
 		// by default some tabs are disabled.
-		if ((!(currentParameterContainer instanceof Path)) || (!(currentParameterContainer instanceof Sequence)))
+		if ((!(currentParameterContainer instanceof Path)) || (!(currentParameterContainer instanceof Sequence))
+				|| (!(currentParameterContainer instanceof Task)))
 			restoreRightLowerTabs();
 
 		if (currentParameterContainer == currentConfig.psets()) {
@@ -2818,9 +2906,11 @@ public class ConfDbGUI {
 		} else if (currentParameterContainer instanceof ModuleInstance) {
 			jTabbedPaneRightLower.setEnabledAt(3, true); // sets second tab enabled
 			jTabbedPaneRightLower.setEnabledAt(4, true); // sets containedInSequence tab enabled
+			jTabbedPaneRightLower.setEnabledAt(5, true); // sets containedInTask tab enabled
 
 			jEditorContainedInPaths.setText(this.getAssignedPaths());
 			jEditorContainedInSequence.setText(this.getAssignedSequences());
+			jEditorContainedInTask.setText(this.getAssignedTasks());
 
 			ModuleInstance module = (ModuleInstance) currentParameterContainer;
 			try {
@@ -2849,7 +2939,6 @@ public class ConfDbGUI {
 			jEditorPaneSnippet.setText(cnvEngine.getSequenceWriter().toString(sequence, cnvEngine, "  "));
 
 			jTabbedPaneRightLower.setEnabledAt(2, true); // sets third tab enabled
-
 			jEditorPaneUnresolvedITags.setText(getUnresolvedInputTagsSummary());
 
 			jTabbedPaneRightLower.setEnabledAt(3, true); // sets second tab enabled
@@ -2857,6 +2946,21 @@ public class ConfDbGUI {
 
 			jTabbedPaneRightLower.setEnabledAt(4, true); // sets containedInSequence tab enabled
 			jEditorContainedInSequence.setText(this.getAssignedSequences());
+		} else if (currentParameterContainer instanceof Task) {
+			Task task = (Task) currentParameterContainer;
+			jEditorPaneSnippet.setText(cnvEngine.getTaskWriter().toString(task, cnvEngine, "  "));
+
+			jTabbedPaneRightLower.setEnabledAt(2, true); // sets third tab enabled
+			jEditorPaneUnresolvedITags.setText(getUnresolvedInputTagsSummary());
+
+			jTabbedPaneRightLower.setEnabledAt(3, true); // sets second tab enabled
+			jEditorContainedInPaths.setText(this.getAssignedPaths());
+
+			jTabbedPaneRightLower.setEnabledAt(4, true); // sets containedInSequence tab enabled
+			jEditorContainedInSequence.setText(this.getAssignedSequences());
+
+			jTabbedPaneRightLower.setEnabledAt(5, true); // sets containedInTasks tab enabled
+			jEditorContainedInTask.setText(this.getAssignedTasks());
 		} else {
 			clearSnippet();
 		}
@@ -2876,11 +2980,13 @@ public class ConfDbGUI {
 		jTabbedPaneRightLower.setEnabledAt(2, false); // sets tab as Disabled
 		jTabbedPaneRightLower.setEnabledAt(3, false); // sets tab as Disabled
 		jTabbedPaneRightLower.setEnabledAt(4, false); // sets containedInSequences disabled.
+		jTabbedPaneRightLower.setEnabledAt(5, false); // sets containedInTasks disabled.
 		jTabbedPaneRightLower.setSelectedIndex(0);
 		jEditorPanePathsToDataset.setText("");
 		jEditorPaneUnresolvedITags.setText("");
 		jEditorContainedInPaths.setText("");
 		jEditorContainedInSequence.setText("");
+		jEditorContainedInTask.setText("");
 
 		// Hyperlink listener to catch the path request.
 		jEditorContainedInPaths.addHyperlinkListener(new HyperlinkListener() {
@@ -2907,6 +3013,16 @@ public class ConfDbGUI {
 				if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 					String sequenceName = event.getDescription();
 					ConfigurationTreeActions.scrollToSequenceByName(sequenceName, jTreeCurrentConfig);
+				}
+			}
+		});
+
+		// Hyperlink listener to catch the task request.
+		jEditorContainedInTask.addHyperlinkListener(new HyperlinkListener() {
+			public void hyperlinkUpdate(HyperlinkEvent event) {
+				if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+					String taskName = event.getDescription();
+					ConfigurationTreeActions.scrollToTaskByName(taskName, jTreeCurrentConfig);
 				}
 			}
 		});
@@ -3118,11 +3234,13 @@ public class ConfDbGUI {
 		TreePath tpESModules = new TreePath(m.getPathToRoot(m.esmodulesNode()));
 		t.expandPath(tpESModules);
 		TreePath tpServices = new TreePath(m.getPathToRoot(m.servicesNode()));
-		t.expandPath(tpESSources);
+		t.expandPath(tpServices);
 		TreePath tpPaths = new TreePath(m.getPathToRoot(m.pathsNode()));
 		t.expandPath(tpPaths);
 		TreePath tpSequences = new TreePath(m.getPathToRoot(m.sequencesNode()));
 		t.expandPath(tpSequences);
+		TreePath tpTasks = new TreePath(m.getPathToRoot(m.tasksNode()));
+		t.expandPath(tpTasks);
 		TreePath tpModules = new TreePath(m.getPathToRoot(m.modulesNode()));
 		t.expandPath(tpModules);
 		TreePath tpOutputs = new TreePath(m.getPathToRoot(m.outputsNode()));
@@ -4484,10 +4602,16 @@ public class ConfDbGUI {
 		TAB_containedInSequence.setViewportView(jEditorContainedInSequence);
 		jTabbedPaneRightLower.addTab("Contained in Sequences", TAB_containedInSequence);
 
+		jEditorContainedInTask.setEditable(false);
+		jEditorContainedInTask.setContentType("text/html");
+		TAB_containedInTask.setViewportView(jEditorContainedInTask);
+		jTabbedPaneRightLower.addTab("Contained in Tasks", TAB_containedInTask);
+
 		jTabbedPaneRightLower.setEnabledAt(1, false); // sets the second tab as Disabled
 		jTabbedPaneRightLower.setEnabledAt(2, false); // sets the third tab as Disabled
 		jTabbedPaneRightLower.setEnabledAt(3, false); // sets containedInPath tab as Disabled
 		jTabbedPaneRightLower.setEnabledAt(4, false); // sets containedInSequence tab as Disabled
+		jTabbedPaneRightLower.setEnabledAt(5, false); // sets containedInTask tab as Disabled
 
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jPanelRightLower);
 		jPanelRightLower.setLayout(layout);

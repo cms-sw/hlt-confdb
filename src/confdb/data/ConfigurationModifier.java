@@ -32,6 +32,7 @@ public class ConfigurationModifier implements IConfiguration {
 	private ArrayList<OutputModule> outputs = new ArrayList<OutputModule>();
 	private ArrayList<Path> paths = new ArrayList<Path>();
 	private ArrayList<Sequence> sequences = new ArrayList<Sequence>();
+	private ArrayList<Task> tasks = new ArrayList<Task>();
 	private ArrayList<EventContent> contents = new ArrayList<EventContent>();
 	private ArrayList<Stream> streams = new ArrayList<Stream>();
 	private ArrayList<PrimaryDataset> datasets = new ArrayList<PrimaryDataset>();
@@ -137,6 +138,7 @@ public class ConfigurationModifier implements IConfiguration {
 		outputs.clear();
 		paths.clear();
 		sequences.clear();
+		tasks.clear();
 		contents.clear();
 		streams.clear();
 		datasets.clear();
@@ -240,6 +242,12 @@ public class ConfigurationModifier implements IConfiguration {
 						if (!modifications.isUndefined(sequence) && !sequences.contains(sequence))
 							sequences.add(sequence);
 					}
+					Iterator<Task> itT = path.taskIterator();
+					while (itT.hasNext()) {
+						Task task = itT.next();
+						if (!modifications.isUndefined(task) && !tasks.contains(task))
+							tasks.add(task);
+					}
 					Iterator<ModuleInstance> itM = path.moduleIterator();
 					while (itM.hasNext()) {
 						ModuleInstance module = itM.next();
@@ -269,6 +277,13 @@ public class ConfigurationModifier implements IConfiguration {
 			Sequence sequence = master.sequence(itS.next());
 			if (sequence != null && sequences.indexOf(sequence) < 0)
 				sequences.add(sequence);
+		}
+
+		Iterator<String> itT = modifications.requestedTaskIterator();
+		while (itT.hasNext()) {
+			Task task = master.task(itT.next());
+			if (task != null && tasks.indexOf(task) < 0)
+				tasks.add(task);
 		}
 
 		Iterator<String> itM = modifications.requestedModuleIterator();
@@ -357,6 +372,44 @@ public class ConfigurationModifier implements IConfiguration {
 		return result.iterator();
 	}
 
+	/**
+	 * order tasks such that each task is defined before being referenced
+	 */
+	public Iterator<Task> orderedTaskIterator() {
+		ArrayList<Task> result = new ArrayList<Task>();
+		Iterator<Task> itT = taskIterator();
+		while (itT.hasNext()) {
+			Task task = itT.next();
+			int indexT = result.indexOf(task);
+			if (indexT < 0) {
+				indexT = result.size();
+				result.add(task);
+			}
+			Iterator<Reference> itR = task.entryIterator();
+			while (itR.hasNext()) {
+				Reference reference = itR.next();
+				Referencable parent = reference.parent();
+				if (parent instanceof Task) {
+					Task t = (Task) parent;
+					if (isModified && !tasks.contains(t))
+						continue;
+					int indexR = result.indexOf(t);
+					if (indexR < 0) {
+						indexR = indexT;
+						indexT++;
+						result.add(indexR, t);
+					} else if (indexR > indexT) {
+						result.remove(indexR);
+						indexR = indexT;
+						indexT++;
+						result.add(indexR, t);
+					}
+				}
+			}
+		}
+		return result.iterator();
+	}
+
 	/** reset all modifications */
 	public void reset() {
 		modifications = new ModifierInstructions();
@@ -370,6 +423,7 @@ public class ConfigurationModifier implements IConfiguration {
 		outputs.clear();
 		paths.clear();
 		sequences.clear();
+		tasks.clear();
 		contents.clear();
 		streams.clear();
 		datasets.clear();
@@ -915,5 +969,30 @@ public class ConfigurationModifier implements IConfiguration {
 	/** add a block */
 	public void insertBlock(Block block) {
 		blocks.add(block);
+	}
+
+	/** number of Tasks */
+	public int taskCount() {
+		return (isModified) ? tasks.size() : master.taskCount();
+	}
+
+	/** get i-th Task */
+	public Task task(int i) {
+		return (isModified) ? tasks.get(i) : master.task(i);
+	}
+
+	/** get Task by name */
+	public Task task(String taskName) {
+		return master.task(taskName);
+	}
+
+	/** index of a certain Task */
+	public int indexOfTask(Task task) {
+		return (isModified) ? tasks.indexOf(task) : master.indexOfTask(task);
+	}
+
+	/** retrieve task iterator */
+	public Iterator<Task> taskIterator() {
+		return (isModified) ? tasks.iterator() : master.taskIterator();
 	}
 }

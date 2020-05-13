@@ -54,7 +54,7 @@ public class SmartRenameDialog extends JDialog {
 		jTextNewPattern.setEditable(true);
 		jButtonOk.setEnabled(true);
 		jButtonCancel.setEnabled(true);
-		setTitle("Change substrings within module/sequence/path names");
+		setTitle("Change substrings within module/sequence/task/path names");
 	}
 
 	//
@@ -146,6 +146,7 @@ public class SmartRenameDialog extends JDialog {
 		m.addElement("All");
 		m.addElement("Paths");
 		m.addElement("Sequences");
+		m.addElement("Task");
 		m.addElement("Modules");
 
 		jComboBoxType.addActionListener(new ActionListener() {
