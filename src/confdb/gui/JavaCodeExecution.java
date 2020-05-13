@@ -489,7 +489,7 @@ public class JavaCodeExecution {
 				cacheModule = config.insertModule("SiPixelClusterShapeCacheProducer", cacheModuleName);
 				cacheModule.updateParameter("src", "InputTag", SiPixelClusterProducerModuleName);
 
-				// Insert new caching module in sequences/paths directly after the
+				// Insert new caching module in sequences/tasks/paths directly after the
 				// SiPixelClusterProducer instance
 				for (int l = 0; l < SiPixelClusterProducerModule.referenceCount(); l++) {
 					Reference reference = SiPixelClusterProducerModule.reference(l);

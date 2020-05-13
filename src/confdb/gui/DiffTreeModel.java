@@ -34,6 +34,7 @@ public class DiffTreeModel extends AbstractTreeModel {
 	private StringBuffer servicesNode = new StringBuffer();
 	private StringBuffer pathsNode = new StringBuffer();
 	private StringBuffer sequencesNode = new StringBuffer();
+	private StringBuffer tasksNode = new StringBuffer();
 	private StringBuffer modulesNode = new StringBuffer();
 	private StringBuffer outputsNode = new StringBuffer();
 	private StringBuffer contentsNode = new StringBuffer();
@@ -144,6 +145,17 @@ public class DiffTreeModel extends AbstractTreeModel {
 				it.next().setParent(sequencesNode);
 		}
 
+		// Tasks node
+		int taskCount = diff.taskCount();
+		if (taskCount > 0) {
+			tasksNode.delete(0, tasksNode.length());
+			tasksNode.append("<html><b>Tasks</b> (").append(taskCount).append(")</html>");
+			topNodes.add(tasksNode);
+			Iterator<Comparison> it = diff.taskIterator();
+			while (it.hasNext())
+				it.next().setParent(tasksNode);
+		}
+
 		// Module node
 		int moduleCount = diff.moduleCount();
 		if (moduleCount > 0) {
@@ -238,6 +250,8 @@ public class DiffTreeModel extends AbstractTreeModel {
 				return diff.pathCount();
 			if (node.equals(sequencesNode))
 				return diff.sequenceCount();
+			if (node.equals(tasksNode))
+				return diff.taskCount();
 			if (node.equals(modulesNode))
 				return diff.moduleCount();
 			if (node.equals(outputsNode))
@@ -273,6 +287,8 @@ public class DiffTreeModel extends AbstractTreeModel {
 				return diff.path(i);
 			if (parent.equals(sequencesNode))
 				return diff.sequence(i);
+			if (parent.equals(tasksNode))
+				return diff.task(i);
 			if (parent.equals(modulesNode))
 				return diff.module(i);
 			if (parent.equals(outputsNode))
@@ -309,6 +325,8 @@ public class DiffTreeModel extends AbstractTreeModel {
 				return diff.indexOfPath((Comparison) child);
 			if (parent.equals(sequencesNode))
 				return diff.indexOfSequence((Comparison) child);
+			if (parent.equals(tasksNode))
+				return diff.indexOfTask((Comparison) child);
 			if (parent.equals(modulesNode))
 				return diff.indexOfModule((Comparison) child);
 			if (parent.equals(outputsNode))
