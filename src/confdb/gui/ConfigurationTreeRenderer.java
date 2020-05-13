@@ -57,6 +57,9 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 	/** sequence icon */
 	private ImageIcon sequenceIcon = null;
 
+	/** task icon */
+	private ImageIcon taskIcon = null;
+
 	/** ParameterSet icon */
 	private ImageIcon psetIcon = null;
 
@@ -89,6 +92,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 		moduleIcon = new ImageIcon(getClass().getResource("/ModuleIcon.png"));
 		outputIcon = new ImageIcon(getClass().getResource("/OutputIcon.png"));
 		sequenceIcon = new ImageIcon(getClass().getResource("/SequenceIcon.png"));
+		taskIcon = new ImageIcon(getClass().getResource("/TaskIcon.png"));
 		psetIcon = new ImageIcon(getClass().getResource("/PSetIcon.png"));
 		vpsetIcon = new ImageIcon(getClass().getResource("/VPSetIcon.png"));
 		contentIcon = new ImageIcon(getClass().getResource("/ContentIcon.png"));
@@ -129,9 +133,11 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 				node = ((Reference) node).parent();
 			Path path = (Path) node;
 			return (path.isEndPath()) ? endpathIcon : pathIcon;
-		} else if (node instanceof Sequence || node instanceof SequenceReference)
+		} else if (node instanceof Sequence || node instanceof SequenceReference) {
 			return sequenceIcon;
-		else if (node instanceof PSetParameter) {
+		} else if (node instanceof Task || node instanceof TaskReference) {
+			return taskIcon;
+		} else if (node instanceof PSetParameter) {
 			IConfiguration config = (IConfiguration) treeModel.getRoot();
 			if (config.indexOfPSet((PSetParameter) node) >= 0)
 				return psetIcon;
@@ -235,6 +241,48 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 			int entryCount = sequence.entryCount();
 			int count = sequence.unsetTrackedParameterCount();
 			int unresolved = sequence.unresolvedESInputTagCount();
+			result = "<html>" + reference.getOperatorAndName();
+			result += (entryCount > 0) ? " (" + entryCount + ")" : "<font color=#ff0000>(" + entryCount + ")</font>";
+			if (count > 0)
+				result += " <font color=#ff0000>[" + count + "]</font>";
+			if (unresolved > 0)
+				result += " <font color=#00ff00>[" + unresolved + "]</font>";
+			if (doDisplayUnresolvedInputTags && (xpath != null)) {
+				int n = 0;
+				String label = ((Reference) node).name();
+				String[] Unresolved = xpath.unresolvedInputTags();
+				for (String un : Unresolved) {
+					String[] tokens = un.split("[/:]");
+					for (int i = 0; i < tokens.length; i++) {
+						if (label.equals(tokens[i])) {
+							n++;
+							break;
+						}
+					}
+				}
+				if (n > 0)
+					result += " <font color=#0000ff>[" + n + "]</font>";
+			}
+			result += "</html>";
+		} else if (node instanceof Task) {
+			Task task = (Task) node;
+			int refCount = task.parentPaths().length;
+			int entryCount = task.entryCount();
+			int count = task.unsetTrackedParameterCount();
+			int unresolved = task.unresolvedESInputTagCount();
+			result = (refCount > 0) ? "<html>" + getText() : "<html><font color=#808080>" + getText() + "</font>";
+			result += (entryCount > 0) ? " (" + entryCount + ")" : "<font color=#ff0000>(" + entryCount + ")</font>";
+			if (count > 0)
+				result += " <font color=#ff0000>[" + count + "]</font>";
+			if (unresolved > 0)
+				result += " <font color=#00ff00>[" + unresolved + "]</font>";
+			result += "</html>";
+		} else if (node instanceof TaskReference) {
+			TaskReference reference = (TaskReference) node;
+			Task task = (Task) reference.parent();
+			int entryCount = task.entryCount();
+			int count = task.unsetTrackedParameterCount();
+			int unresolved = task.unresolvedESInputTagCount();
 			result = "<html>" + reference.getOperatorAndName();
 			result += (entryCount > 0) ? " (" + entryCount + ")" : "<font color=#ff0000>(" + entryCount + ")</font>";
 			if (count > 0)

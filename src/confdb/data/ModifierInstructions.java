@@ -67,6 +67,13 @@ public class ModifierInstructions {
 	private boolean undefineAllSequences = false;
 	private ArrayList<String> undefinedSequences = new ArrayList<String>();
 
+	/** tasks requested regardless of being referenced in requested paths */
+	private ArrayList<String> requestedTasks = new ArrayList<String>();
+
+	/** tasks to be properly referenced but *not* defined */
+	private boolean undefineAllTasks = false;
+	private ArrayList<String> undefinedTasks = new ArrayList<String>();
+
 	/** modules reqested regardless of being referenced in requested path */
 	private ArrayList<String> requestedModules = new ArrayList<String>();
 	private ArrayList<String> requestedOutputs = new ArrayList<String>();
@@ -142,6 +149,9 @@ public class ModifierInstructions {
 		value = args.remove("nosequences");
 		if (value != null)
 			undefineAllSequences();
+		value = args.remove("notasks");
+		if (value != null)
+			undefineAllTasks();
 		value = args.remove("nomodules");
 		if (value != null)
 			undefineAllModules();
@@ -247,6 +257,17 @@ public class ModifierInstructions {
 					undefineSequence(s.substring(1));
 				else
 					requestSequence(s);
+			}
+		}
+
+		value = args.remove("tasks");
+		if (value != null) {
+			String[] taskNames = value.split(",");
+			for (String s : taskNames) {
+				if (s.startsWith("-"))
+					undefineTask(s.substring(1));
+				else
+					requestTask(s);
 			}
 		}
 
@@ -468,6 +489,13 @@ public class ModifierInstructions {
 				requestSequence(name);
 		}
 
+		Iterator<Task> itT = config.taskIterator();
+		while (itT.hasNext()) {
+			name = itT.next().name();
+			if (isMatch(name, search, alg))
+				requestTask(name);
+		}
+
 		Iterator<ModuleInstance> itM = config.moduleIterator();
 		while (itM.hasNext()) {
 			ModuleInstance module = itM.next();
@@ -673,6 +701,28 @@ public class ModifierInstructions {
 			}
 		}
 
+		// make sure content of requested tasks is requested as well
+		ArrayList<Task> reqTasks = new ArrayList<Task>();
+		for (String taskName : requestedTasks)
+			reqTasks.add(config.task(taskName));
+
+		Iterator<Task> itReqTas = reqTasks.iterator();
+		while (itReqTas.hasNext()) {
+			Task task = itReqTas.next();
+			Iterator<Reference> itR = task.recursiveReferenceIterator();
+			while (itR.hasNext()) {
+				Reference reference = itR.next();
+				Referencable parent = reference.parent();
+				String name = parent.name();
+				if (isUndefined(parent))
+					continue;
+				if (parent instanceof Task) // TODO: should here also be sequences???
+					requestTask(name);
+				else if (parent instanceof ModuleInstance)
+					requestModule(name);
+			}
+		}
+
 		// make sure content of undefined sequences is undefined as well
 		ArrayList<Sequence> undefSequences = new ArrayList<Sequence>();
 		if (undefineAllSequences) {
@@ -697,6 +747,37 @@ public class ModifierInstructions {
 					undefineSequence(s.name());
 			}
 			Iterator<ModuleInstance> itM = sequence.moduleIterator();
+			while (itM.hasNext()) {
+				ModuleInstance m = itM.next();
+				if (!isUndefined(m))
+					undefineModule(m.name());
+			}
+		}
+
+		// make sure content of undefined tasks is undefined as well
+		ArrayList<Task> undefTasks = new ArrayList<Task>();
+		if (undefineAllTasks) {
+			Iterator<Task> itT = config.taskIterator();
+			while (itT.hasNext())
+				undefTasks.add(itT.next());
+		} else {
+			for (String taskName : undefinedTasks) {
+				Task task = config.task(taskName);
+				if (task != null)
+					undefTasks.add(task);
+			}
+		}
+
+		Iterator<Task> itUndefTas = undefTasks.iterator();
+		while (itUndefTas.hasNext()) {
+			Task task = itUndefTas.next();
+			Iterator<Task> itT = task.taskIterator();
+			while (itT.hasNext()) {
+				Task t = itT.next();
+				if (!isUndefined(t))
+					undefineTask(t.name());
+			}
+			Iterator<ModuleInstance> itM = task.moduleIterator(); // hope this is OK
 			while (itM.hasNext()) {
 				ModuleInstance m = itM.next();
 				if (!isUndefined(m))
@@ -827,29 +908,38 @@ public class ModifierInstructions {
 		return result;
 	}
 
-	/** check if a sequence or module is specifically requested */
-	public boolean isRequested(Referencable moduleOrSequence) {
-		if (moduleOrSequence instanceof Sequence)
-			return (requestedSequences.contains(moduleOrSequence.name()));
-		else if (moduleOrSequence instanceof ModuleInstance)
-			return (requestedModules.contains(moduleOrSequence.name()));
-		else if (moduleOrSequence instanceof OutputModule)
-			return (requestedOutputs.contains(moduleOrSequence.name()));
+	/** check if a sequence, task or module is specifically requested */
+	public boolean isRequested(Referencable moduleOrSequenceOrTask) {
+		if (moduleOrSequenceOrTask instanceof Sequence)
+			return (requestedSequences.contains(moduleOrSequenceOrTask.name()));
+		else if (moduleOrSequenceOrTask instanceof Task)
+			return (requestedTasks.contains(moduleOrSequenceOrTask.name()));
+		else if (moduleOrSequenceOrTask instanceof ModuleInstance)
+			return (requestedModules.contains(moduleOrSequenceOrTask.name()));
+		else if (moduleOrSequenceOrTask instanceof OutputModule)
+			return (requestedOutputs.contains(moduleOrSequenceOrTask.name()));
 		return false;
 	}
 
-	/** check if a sequence or module should be undefined */
-	public boolean isUndefined(Referencable moduleOrSequence) {
-		if (moduleOrSequence instanceof Sequence)
-			return (undefineAllSequences) ? true : (undefinedSequences.contains(moduleOrSequence.name()));
-		else if ((moduleOrSequence instanceof ModuleInstance) || (moduleOrSequence instanceof OutputModule))
-			return (undefineAllModules) ? true : (undefinedModules.contains(moduleOrSequence.name()));
+	/** check if a sequence, task or module should be undefined */
+	public boolean isUndefined(Referencable moduleOrSequenceOrTask) {
+		if (moduleOrSequenceOrTask instanceof Sequence)
+			return (undefineAllSequences) ? true : (undefinedSequences.contains(moduleOrSequenceOrTask.name()));
+		else if (moduleOrSequenceOrTask instanceof Task)
+			return (undefineAllTasks) ? true : (undefinedTasks.contains(moduleOrSequenceOrTask.name()));
+		else if ((moduleOrSequenceOrTask instanceof ModuleInstance) || (moduleOrSequenceOrTask instanceof OutputModule))
+			return (undefineAllModules) ? true : (undefinedModules.contains(moduleOrSequenceOrTask.name()));
 		return false;
 	}
 
 	/** get iterator for requested sequences */
 	public Iterator<String> requestedSequenceIterator() {
 		return requestedSequences.iterator();
+	}
+
+	/** get iterator for requested tasks */
+	public Iterator<String> requestedTaskIterator() {
+		return requestedTasks.iterator();
 	}
 
 	/** get iterator for requested modules */
@@ -1167,11 +1257,6 @@ public class ModifierInstructions {
 		requestedSequences.remove(sequenceName);
 	}
 
-	/** no sequences will be defined */
-	public void undefineAllSequences() {
-		undefineAllSequences = true;
-	}
-
 	/** sequence won't be defined but references remain; content removed! */
 	public void undefineSequence(String sequenceName) {
 		undefinedSequences.add(sequenceName);
@@ -1180,6 +1265,36 @@ public class ModifierInstructions {
 	/** remove sequence from list of undefined sequences */
 	public void redefineSequence(String sequenceName) {
 		undefinedSequences.remove(sequenceName);
+	}
+
+	/** no sequences will be defined */
+	public void undefineAllSequences() {
+		undefineAllSequences = true;
+	}
+
+	/** request a task regardless of it being referenced in path */
+	public void requestTask(String taskName) {
+		requestedTasks.add(taskName);
+	}
+
+	/** unrequest a task regardless of it being referenced in path */
+	public void unrequestTask(String taskName) {
+		requestedTasks.remove(taskName);
+	}
+
+	/** remove task from list of undefined tasks */
+	public void redefineTask(String taskName) {
+		undefinedTasks.remove(taskName);
+	}
+
+	/** task won't be defined but references remain; content removed! */
+	public void undefineTask(String taskName) {
+		undefinedTasks.add(taskName);
+	}
+
+	/** no tasks will be defined */
+	public void undefineAllTasks() {
+		undefineAllTasks = true;
 	}
 
 	/** request a module regardless of it being referenced in path */

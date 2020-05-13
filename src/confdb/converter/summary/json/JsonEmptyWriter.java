@@ -8,6 +8,7 @@ import confdb.converter.IESSourceWriter;
 import confdb.converter.IModuleWriter;
 import confdb.converter.IParameterWriter;
 import confdb.converter.ISequenceWriter;
+import confdb.converter.ITaskWriter;
 import confdb.converter.IServiceWriter;
 import confdb.data.EDSourceInstance;
 import confdb.data.ESModuleInstance;
@@ -16,10 +17,16 @@ import confdb.data.ModuleInstance;
 import confdb.data.Parameter;
 import confdb.data.Sequence;
 import confdb.data.ServiceInstance;
+import confdb.data.Task;
 
-public class JsonEmptyWriter implements ISequenceWriter, IServiceWriter, IEDSourceWriter, IESSourceWriter,
+public class JsonEmptyWriter implements ISequenceWriter, ITaskWriter, IServiceWriter, IEDSourceWriter, IESSourceWriter,
 		IESModuleWriter, IModuleWriter, IParameterWriter {
 	public String toString(Sequence sequence, ConverterEngine converterEngine, String indent) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public String toString(Task task, ConverterEngine converterEngine, String indent) {
 		// TODO Auto-generated method stub
 		return null;
 	}

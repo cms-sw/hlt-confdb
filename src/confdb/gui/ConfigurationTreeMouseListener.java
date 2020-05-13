@@ -56,6 +56,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 	/** popup menu associated with sequences */
 	private JPopupMenu popupSequences = null;
 
+	/** popup menu associated with tasks */
+	private JPopupMenu popupTasks = null;
+
 	/** popup menu associated with modules */
 	private JPopupMenu popupModules = null;
 
@@ -88,6 +91,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 	/** action listener for sequences-menu actions */
 	private SequenceMenuListener sequenceListener = null;
+
+	/** action listener for tasks-menu actions */
+	private TaskMenuListener taskListener = null;
 
 	/** action listener for modules-menu actions */
 	private ModuleMenuListener moduleListener = null;
@@ -130,6 +136,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		serviceListener = new ServiceMenuListener(tree);
 		pathListener = new PathMenuListener(tree);
 		sequenceListener = new SequenceMenuListener(tree);
+		taskListener = new TaskMenuListener(tree);
 		moduleListener = new ModuleMenuListener(tree);
 		contentListener = new ContentMenuListener(tree);
 		streamListener = new StreamMenuListener(tree, frame);
@@ -234,6 +241,13 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		if (isInTreePath(treePath, treeModel.sequencesNode())/* &&depth<=4 */) {
 			updateSequenceMenu();
 			popupSequences.show(e.getComponent(), e.getX(), e.getY());
+			return;
+		}
+
+		// show the 'Tasks' popup?
+		if (isInTreePath(treePath, treeModel.tasksNode())/* &&depth<=4 */) {
+			updateTaskMenu();
+			popupTasks.show(e.getComponent(), e.getX(), e.getY());
 			return;
 		}
 
@@ -559,6 +573,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			JMenu addSequenceMenu = createAddRepSequenceMenu(path, pathListener, false, true);
 			popupPaths.add(addSequenceMenu);
 
+			JMenu addTaskMenu = createAddRepTaskMenu(path, pathListener, false, true);
+			popupPaths.add(addTaskMenu);
+
 			popupPaths.addSeparator();
 
 			menuItem = new JMenuItem("Rename Path");
@@ -685,7 +702,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			return;
 		}
 
-		// a specific module/path/sequence reference is selected
+		// a specific module/path/sequence/task reference is selected
 		if (depth == 4) {
 			Path path = (Path) parent;
 			JMenu addModuleMenu = createAddRepModuleMenu(path, null, pathListener, true);
@@ -696,6 +713,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 			JMenu addSequenceMenu = createAddRepSequenceMenu(path, pathListener, false, true);
 			popupPaths.add(addSequenceMenu);
+
+			JMenu addTaskMenu = createAddRepTaskMenu(path, pathListener, false, true);
+			popupPaths.add(addTaskMenu);
 
 			popupPaths.addSeparator();
 
@@ -724,6 +744,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			}
 			if (node instanceof SequenceReference) {
 				menuItem = new JMenuItem("Remove Sequence");
+				menuItem.addActionListener(pathListener);
+				popupPaths.add(menuItem);
+			}
+			if (node instanceof TaskReference) {
+				menuItem = new JMenuItem("Remove Task");
 				menuItem.addActionListener(pathListener);
 				popupPaths.add(menuItem);
 			}
@@ -782,6 +807,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			JMenu addSequenceMenu = createAddRepSequenceMenu(sequence, sequenceListener, false, true);
 			popupSequences.add(addSequenceMenu);
 
+			JMenu addTaskMenu = createAddRepTaskMenu(sequence, sequenceListener, false, true);
+			popupSequences.add(addTaskMenu);
+
 			popupSequences.addSeparator();
 
 			menuItem = new JMenuItem("Rename Sequence");
@@ -814,6 +842,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			JMenu addSequenceMenu = createAddRepSequenceMenu(sequence, sequenceListener, true, true);
 			popupSequences.add(addSequenceMenu);
 
+			JMenu addTaskMenu = createAddRepTaskMenu(sequence, sequenceListener, false, true);
+			popupSequences.add(addTaskMenu);
+
 			if (node instanceof ModuleReference) {
 				ModuleReference mr = (ModuleReference) node;
 
@@ -844,6 +875,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				menuItem.addActionListener(sequenceListener);
 				popupSequences.add(menuItem);
 			}
+			if (node instanceof TaskReference) {
+				menuItem = new JMenuItem("Remove Task");
+				menuItem.addActionListener(sequenceListener);
+				popupSequences.add(menuItem);
+			}
 		}
 
 		if (depth == 2 && enableSort) {
@@ -862,6 +898,122 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			menuItem.addActionListener(sequenceListener);
 
 			popupSequences.add(menuItem);
+		}
+
+	}
+
+	/** update 'Tasks' Menu */
+	public void updateTaskMenu() {
+		JMenuItem menuItem;
+		popupTasks = new JPopupMenu();
+
+		TreePath treePath = tree.getSelectionPath();
+		int depth = treePath.getPathCount();
+		Object node = treePath.getPathComponent(depth - 1);
+		Object parent = treePath.getPathComponent(depth - 2);
+
+		IConfiguration config = (IConfiguration) treeModel.getRoot();
+
+		if (depth == 2) {
+			menuItem = new JMenuItem("Add Task");
+			menuItem.addActionListener(taskListener);
+			popupTasks.add(menuItem);
+			popupTasks.addSeparator();
+			menuItem = new JMenuItem("Remove Unreferenced Tasks");
+			menuItem.addActionListener(taskListener);
+			menuItem.setActionCommand("RMUNREFTAS");
+			popupTasks.add(menuItem);
+			menuItem = new JMenuItem("Resolve Unnecessary Tasks");
+			menuItem.addActionListener(taskListener);
+			menuItem.setActionCommand("RESOLVETAS");
+			popupTasks.add(menuItem);
+		} else if (depth == 3) {
+			Task task = (Task) node;
+
+			JMenu addModuleMenu = createAddRepModuleMenu(task, null, taskListener, true);
+			popupTasks.add(addModuleMenu);
+
+			JMenu addTaskMenu = createAddRepTaskMenu(task, taskListener, false, true);
+			popupTasks.add(addTaskMenu);
+
+			popupTasks.addSeparator();
+
+			menuItem = new JMenuItem("Rename Task");
+			menuItem.addActionListener(taskListener);
+			popupTasks.add(menuItem);
+
+			menuItem = new JMenuItem("Clone Task");
+			menuItem.addActionListener(taskListener);
+			popupTasks.add(menuItem);
+
+			menuItem = new JMenuItem("Deep Clone Task");
+			menuItem.addActionListener(taskListener);
+			popupTasks.add(menuItem);
+
+			menuItem = new JMenuItem("Remove Task");
+			menuItem.addActionListener(taskListener);
+			popupTasks.add(menuItem);
+
+			JMenu repTaskMenu = createAddRepTaskMenu(task, taskListener, false, false);
+			popupTasks.add(repTaskMenu);
+
+		} else if (depth == 4) {
+			Task task = (Task) parent;
+
+			JMenu addModuleMenu = createAddRepModuleMenu(task, null, taskListener, true);
+			popupTasks.add(addModuleMenu);
+
+			JMenu addTaskMenu = createAddRepTaskMenu(task, taskListener, true, true);
+			popupTasks.add(addTaskMenu);
+
+			if (node instanceof ModuleReference) {
+				ModuleReference mr = (ModuleReference) node;
+
+				menuItem = new JMenuItem("Remove Module");
+				menuItem.addActionListener(taskListener);
+				popupTasks.add(menuItem);
+
+				// CLONE OPTION:
+				menuItem = new JMenuItem("Clone Module");
+				menuItem.addActionListener(taskListener);
+				popupTasks.add(menuItem);
+
+				popupTasks.addSeparator();
+				popupTasks.add(createSetOperatorMenu((Reference) node, taskListener));
+			}
+			if (node instanceof OutputModuleReference) {
+				menuItem = new JMenuItem("Remove OutputModule");
+				menuItem.addActionListener(taskListener);
+				popupTasks.add(menuItem);
+			}
+			if (node instanceof PathReference) {
+				menuItem = new JMenuItem("Remove Path");
+				menuItem.addActionListener(taskListener);
+				popupTasks.add(menuItem);
+			}
+			if (node instanceof TaskReference) {
+				menuItem = new JMenuItem("Remove Task");
+				menuItem.addActionListener(taskListener);
+				popupTasks.add(menuItem);
+			}
+		}
+
+		if (depth == 2 && enableSort) {
+			popupTasks.addSeparator();
+			menuItem = new JMenuItem("Sort");
+			menuItem.addActionListener(taskListener);
+			popupTasks.add(menuItem);
+		}
+
+		if (node instanceof Reference) {
+			if (depth == 4)
+				popupTasks.addSeparator();
+			Reference reference = (Reference) node;
+			menuItem = new JMenuItem("GOTO " + reference.name());
+			menuItem.setActionCommand("GOTO");
+			menuItem.addActionListener(taskListener);
+
+			popupTasks.add(menuItem);
 		}
 
 	}
@@ -1524,6 +1676,55 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		return sequenceMenu;
 	}
 
+	/** create 'Add/Replace Task' Menu */
+	private JMenu createAddRepTaskMenu(ReferenceContainer pathOrTask, ActionListener listener, boolean isTasRef,
+			boolean isAdd) {
+		String actionCmd = null;
+		JMenu taskMenu = null;
+		if (isAdd) {
+			actionCmd = "TASREF";
+			taskMenu = new ScrollableMenu("Add Task");
+		} else {
+			actionCmd = "TASREP";
+			taskMenu = new ScrollableMenu("Replace Task");
+		}
+		JMenuItem menuItem;
+		ArrayList<Task> forbiddenTasks = new ArrayList<Task>();
+
+		if (pathOrTask instanceof Task) {
+			Task task = (Task) pathOrTask;
+			forbiddenTasks.add(task);
+			if (!isTasRef) {
+				menuItem = new JMenuItem("New Task");
+				menuItem.addActionListener(listener);
+				menuItem.setActionCommand("NEWTAS");
+				taskMenu.add(menuItem);
+				taskMenu.addSeparator();
+			}
+		}
+
+		for (int i = 0; i < pathOrTask.entryCount(); i++) {
+			Reference reference = pathOrTask.entry(i);
+			if (reference instanceof TaskReference) {
+				TaskReference tasreference = (TaskReference) reference;
+				Task task = (Task) tasreference.parent();
+				forbiddenTasks.add(task);
+			}
+		}
+
+		IConfiguration config = (IConfiguration) treeModel.getRoot();
+		for (int i = 0; i < config.taskCount(); i++) {
+			Task task = config.task(i);
+			menuItem = new JMenuItem(task.name());
+			menuItem.addActionListener(listener);
+			menuItem.setActionCommand(actionCmd);
+			if (forbiddenTasks.contains(task))
+				menuItem.setEnabled(false);
+			taskMenu.add(menuItem);
+		}
+		return taskMenu;
+	}
+
 	/** create 'Set Operator' Menu */
 	private JMenu createSetOperatorMenu(Reference reference, ActionListener listener) {
 		JMenu menu = new ScrollableMenu("Set Operator");
@@ -1740,6 +1941,8 @@ class PathMenuListener implements ActionListener {
 			ConfigurationTreeActions.replaceContainerInternally(tree, "Path", (Path) node, cmd);
 		} else if (action.equals("SEQREF")) {
 			ConfigurationTreeActions.insertReference(tree, "Sequence", cmd);
+		} else if (action.equals("TASREF")) {
+			ConfigurationTreeActions.insertReference(tree, "Task", cmd);
 		} else if (action.equals("GOTO")) {
 			ConfigurationTreeActions.scrollToInstance(tree);
 		} else if (action.startsWith("REMOVEPATH:")) {
@@ -1764,6 +1967,8 @@ class PathMenuListener implements ActionListener {
 		} else if (cmd.equals("Remove OutputModule")) {
 			ConfigurationTreeActions.removeReference(tree);
 		} else if (cmd.equals("Remove Sequence")) {
+			ConfigurationTreeActions.removeReference(tree);
+		} else if (cmd.equals("Remove Task")) {
 			ConfigurationTreeActions.removeReference(tree);
 		} else if (action.equals("OutputModule")) {
 			ConfigurationTreeActions.insertReference(tree, "OutputModule", cmd);
@@ -1808,6 +2013,8 @@ class SequenceMenuListener implements ActionListener {
 			ConfigurationTreeActions.insertSequence(tree);
 		} else if (action.equals("SEQREF")) {
 			ConfigurationTreeActions.insertReference(tree, "Sequence", cmd);
+		} else if (action.equals("TASREF")) {
+			ConfigurationTreeActions.insertReference(tree, "Task", cmd);
 		} else if (action.equals("SEQREP")) {
 			ConfigurationTreeActions.replaceContainerInternally(tree, "Sequence", (Sequence) node, cmd);
 		} else if (action.equals("GOTO")) {
@@ -1836,6 +2043,8 @@ class SequenceMenuListener implements ActionListener {
 				ConfigurationTreeActions.removeReferenceContainer(tree);
 			} else if (node instanceof SequenceReference)
 				ConfigurationTreeActions.removeReference(tree);
+		} else if (cmd.equals("Remove Task")) {
+			ConfigurationTreeActions.removeReference(tree);
 		} else if (cmd.equals("Remove Module")) {
 			ConfigurationTreeActions.removeReference(tree);
 		} else if (cmd.equals("Remove OutputModule")) {
@@ -1853,6 +2062,80 @@ class SequenceMenuListener implements ActionListener {
 		}
 	}
 
+}
+
+/**
+ * listen to actions from the 'Tasks' popup menu x
+ */
+class TaskMenuListener implements ActionListener {
+	/** reference to the tree to be manipulated */
+	private JTree tree = null;
+
+	/** standard constructor */
+	public TaskMenuListener(JTree tree) {
+		this.tree = tree;
+	}
+
+	/** ActionListener interface */
+	public void actionPerformed(ActionEvent e) {
+		JMenuItem source = (JMenuItem) (e.getSource());
+		String cmd = source.getText();
+		String action = source.getActionCommand();
+		TreePath treePath = tree.getSelectionPath();
+		Object node = treePath.getLastPathComponent();
+
+		if (action.equals("RMUNREFTAS")) {
+			ConfigurationTreeActions.removeUnreferencedTasks(tree);
+		} else if (action.equals("RESOLVETAS")) {
+			ConfigurationTreeActions.resolveUnnecessaryTasks(tree);
+		} else if (action.equals("NEWTAS")) {
+			ConfigurationTreeActions.insertTask(tree);
+		} else if (action.equals("TASREF")) {
+			ConfigurationTreeActions.insertReference(tree, "Task", cmd);
+		} else if (action.equals("TASREP")) {
+			ConfigurationTreeActions.replaceContainerInternally(tree, "Task", (Task) node, cmd);
+		} else if (action.equals("GOTO")) {
+			ConfigurationTreeActions.scrollToInstance(tree);
+		} else if (cmd.equals("Sort")) {
+			ConfigurationTreeActions.sortTasks(tree);
+		} else if (cmd.equals("Add Task")) {
+			ConfigurationTreeActions.insertTask(tree);
+		} else if (cmd.equals("Rename Task")) {
+			ConfigurationTreeActions.editNodeName(tree);
+		} else if (cmd.equals("Deep Clone Task")) {
+			ConfigurationTreeActions.DeepCloneTask(tree, (Task) node, null);
+		} else if (cmd.equals("Clone Task")) {
+			ConfigurationTreeActions.CloneReferenceContainer(tree, (Task) node);
+		} else if (cmd.equals("Remove Task")) {
+			if (node instanceof Task) {
+				Task task = (Task) node;
+				if (task.referenceCount() > 0) {
+					StringBuffer warning = new StringBuffer();
+					warning.append("Do you really want to remove '").append(task.name())
+							.append("', which is referenced ").append(task.referenceCount()).append(" times?");
+					if (JOptionPane.CANCEL_OPTION == JOptionPane.showConfirmDialog(null, warning.toString(), "",
+							JOptionPane.OK_CANCEL_OPTION))
+						return;
+				}
+				ConfigurationTreeActions.removeReferenceContainer(tree);
+			} else if (node instanceof TaskReference)
+				ConfigurationTreeActions.removeReference(tree);
+		} else if (cmd.equals("Remove Module")) {
+			ConfigurationTreeActions.removeReference(tree);
+		} else if (cmd.equals("Remove OutputModule")) {
+			ConfigurationTreeActions.removeReference(tree);
+		} else if (action.equals("OutputModule")) {
+			ConfigurationTreeActions.insertReference(tree, "OutputModule", cmd);
+		} else if (action.equals("Set Operator")) {
+			ConfigurationTreeActions.setOperator(tree, cmd);
+		} else if (cmd.equals("Clone Module")) {
+			ConfigurationTreeActions.CloneModule(tree, (ModuleReference) node, null);
+		}
+		// add a module to the selected task
+		else {
+			ConfigurationTreeActions.insertReference(tree, "Module", action);
+		}
+	}
 }
 
 /**

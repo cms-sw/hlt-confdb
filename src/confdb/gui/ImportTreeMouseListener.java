@@ -74,7 +74,8 @@ public class ImportTreeMouseListener extends MouseAdapter {
 						item = new JMenuItem("Import all Paths");
 					else if (child instanceof Sequence)
 						item = new JMenuItem("Import all Sequences");
-
+					else if (child instanceof Task)
+						item = new JMenuItem("Import all Tasks");
 					item.addActionListener(new AddAllReferencesListener(currentTree, importTree, node));
 					popup.add(item);
 					popup.show(e.getComponent(), e.getX(), e.getY());
@@ -126,6 +127,9 @@ public class ImportTreeMouseListener extends MouseAdapter {
 				item.addActionListener(new AddDeepContainerListener(currentTree, importConfiguration, container));
 				popup.add(item);
 			} else if (node instanceof Sequence) {
+				item.addActionListener(new AddDeepContainerListener(currentTree, importConfiguration, container));
+				popup.add(item);
+			} else if (node instanceof Task) {
 				item.addActionListener(new AddDeepContainerListener(currentTree, importConfiguration, container));
 				popup.add(item);
 			}
@@ -210,7 +214,7 @@ class AddDeepContainerListener implements ActionListener {
 	}
 }
 
-//All Paths / sequences listener class
+//All Paths / sequences / tasks listener class
 class AddAllReferencesListener implements ActionListener {
 	private JTree targetTree;
 	private JTree sourceTree;

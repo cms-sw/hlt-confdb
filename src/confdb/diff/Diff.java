@@ -41,6 +41,7 @@ public class Diff {
 	private ArrayList<Comparison> services = new ArrayList<Comparison>();
 	private ArrayList<Comparison> paths = new ArrayList<Comparison>();
 	private ArrayList<Comparison> sequences = new ArrayList<Comparison>();
+	private ArrayList<Comparison> tasks = new ArrayList<Comparison>();
 	private ArrayList<Comparison> modules = new ArrayList<Comparison>();
 	private ArrayList<Comparison> outputs = new ArrayList<Comparison>();
 	private ArrayList<Comparison> contents = new ArrayList<Comparison>();
@@ -204,6 +205,22 @@ public class Diff {
 				sequences.add(compareContainers(seq1, null));
 		}
 
+		// Tasks
+		Iterator<Task> itTas2 = config2.taskIterator();
+		while (itTas2.hasNext()) {
+			Task tas2 = itTas2.next();
+			Task tas1 = config1.task(tas2.name());
+			Comparison c = compareContainers(tas1, tas2);
+			if (!c.isIdentical())
+				tasks.add(c);
+		}
+		Iterator<Task> itTas1 = config1.taskIterator();
+		while (itTas1.hasNext()) {
+			Task tas1 = itTas1.next();
+			if (config2.task(tas1.name()) == null)
+				tasks.add(compareContainers(tas1, null));
+		}
+
 		// Paths
 		Iterator<Path> itPath2 = config2.pathIterator();
 		while (itPath2.hasNext()) {
@@ -287,6 +304,14 @@ public class Diff {
 				Comparison c = compareContainers(seq1, seq2);
 				if (!c.isIdentical())
 					sequences.add(c);
+			}
+		} else if (type.equalsIgnoreCase("Task")) {
+			for (int i = 0; i < items.size(); i++) {
+				Task tas1 = config1.task(items.get(i));
+				Task tas2 = config2.task(items.get(i));
+				Comparison c = compareContainers(tas1, tas2);
+				if (!c.isIdentical())
+					tasks.add(c);
 			}
 		} else if (type.equalsIgnoreCase("EDSource")) {
 			for (int i = 0; i < items.size(); i++) {
@@ -421,6 +446,21 @@ public class Diff {
 						Comparison cc = it.next();
 						if (cc instanceof ContainerComparison)
 							sequences.add(cc);
+						else if (cc instanceof InstanceComparison)
+							modules.add(cc);
+					}
+				}
+			} else if (type.equalsIgnoreCase("Task") || type.equalsIgnoreCase("t")) {
+				Task told = config1.task(oldName);
+				Task tnew = config2.task(newName);
+				Comparison c = compareContainers(told, tnew); // BSATARIC: black box
+				if (!c.isIdentical()) {
+					tasks.add(c);
+					Iterator<Comparison> it = c.recursiveComparisonIterator();
+					while (it.hasNext()) {
+						Comparison cc = it.next();
+						if (cc instanceof ContainerComparison)
+							tasks.add(cc);
 						else if (cc instanceof InstanceComparison)
 							modules.add(cc);
 					}
@@ -663,6 +703,51 @@ public class Diff {
 		}
 	}
 
+	/** compare all Tasks and store all non-identical comparisons */
+	public void compareTasks() {
+		// Tasks
+		Iterator<Task> itTas2 = config2.taskIterator();
+		while (itTas2.hasNext()) {
+			Task tas2 = itTas2.next();
+			Task tas1 = config1.task(tas2.name());
+			Comparison c = compareContainers(tas1, tas2);
+			if (!c.isIdentical())
+				tasks.add(c);
+		}
+		Iterator<Task> itTas1 = config1.taskIterator();
+		while (itTas1.hasNext()) {
+			Task tas1 = itTas1.next();
+			if (config2.task(tas1.name()) == null)
+				tasks.add(compareContainers(tas1, null));
+		}
+	}
+
+	/**
+	 * compareTasksIgnoreStreams
+	 * ---------------------------------------------------------------- Compare all
+	 * Tasks and store all non-identical comparisons NOTE: This method ignores the
+	 * Streams by making use of the constructor "compareContainersIgnoreStreams".
+	 * This was originally designed to ignore extra differences in the previous
+	 * analysis of DeepImport feature.
+	 */
+	public void compareTasksIgnoreStreams() {
+		// Tasks
+		Iterator<Task> itTas2 = config2.taskIterator();
+		while (itTas2.hasNext()) {
+			Task tas2 = itTas2.next();
+			Task tas1 = config1.task(tas2.name());
+			Comparison c = compareContainersIgnoreStreams(tas1, tas2);
+			if (!c.isIdentical())
+				tasks.add(c);
+		}
+		Iterator<Task> itTas1 = config1.taskIterator();
+		while (itTas1.hasNext()) {
+			Task tas1 = itTas1.next();
+			if (config2.task(tas1.name()) == null)
+				tasks.add(compareContainersIgnoreStreams(tas1, null));
+		}
+	}
+
 	/** compare all EventContents sets and store all non-identical comparisons */
 	public void compareEventContents() {
 		// EventContents
@@ -724,8 +809,9 @@ public class Diff {
 	/** check if there are any differences at all */
 	public boolean isIdentical() {
 		return (psetCount() == 0 && edsourceCount() == 0 && essourceCount() == 0 && esmoduleCount() == 0
-				&& serviceCount() == 0 && pathCount() == 0 && sequenceCount() == 0 && moduleCount() == 0
-				&& outputCount() == 0 && contentCount() == 0 && streamCount() == 0 && datasetCount() == 0);
+				&& serviceCount() == 0 && pathCount() == 0 && sequenceCount() == 0 && taskCount() == 0
+				&& moduleCount() == 0 && outputCount() == 0 && contentCount() == 0 && streamCount() == 0
+				&& datasetCount() == 0);
 	}
 
 	/** number of psets */
@@ -866,6 +952,26 @@ public class Diff {
 	/** iterator over all sequences */
 	public Iterator<Comparison> sequenceIterator() {
 		return sequences.iterator();
+	}
+
+	/** number of tasks */
+	public int taskCount() {
+		return tasks.size();
+	}
+
+	/** retrieve i-th task comparison */
+	public Comparison task(int i) {
+		return tasks.get(i);
+	}
+
+	/** get index of task comparison */
+	public int indexOfTask(Comparison tas) {
+		return tasks.indexOf(tas);
+	}
+
+	/** iterator over all tasks */
+	public Iterator<Comparison> taskIterator() {
+		return tasks.iterator();
 	}
 
 	/** number of modules */
@@ -1062,13 +1168,15 @@ public class Diff {
 		return result;
 	}
 
-	/** compare two reference containers (path/sequence) */
+	/** compare two reference containers (path/sequence/task) */
 	public Comparison compareContainers(ReferenceContainer rc1, ReferenceContainer rc2) {
 		if (rc1 != null && rc2 != null && containerMap.containsKey(rc1.name() + "::" + rc2.name()))
-			return containerMap.get(rc1.name() + "::" + rc2.name());
+			return containerMap.get(rc1.name() + "::" + rc2.name()); // BSATARIC: if comparison was already done before
 
 		Comparison result = new ContainerComparison(rc1, rc2);
 
+		// BSATARIC: going from parent components (rc1 and rc2) dig into child
+		// components (entries) and compare them
 		if (!result.isAdded() && !result.isRemoved()) {
 			Iterator<Reference> itRef2 = rc2.entryIterator();
 			while (itRef2.hasNext()) {
@@ -1130,10 +1238,10 @@ public class Diff {
 	/**
 	 * compareContainersIgnoreStreams
 	 * ---------------------------------------------------------------- compare two
-	 * reference containers (path/sequence) NOTE: This method ignores the Streams by
-	 * making use of the constructor "OutputModuleComparison" with the flag "TRUE".
-	 * This was originally designed to ignore extra differences in the previous
-	 * analysis of DeepImport feature.
+	 * reference containers (path/sequence/task) NOTE: This method ignores the
+	 * Streams by making use of the constructor "OutputModuleComparison" with the
+	 * flag "TRUE". This was originally designed to ignore extra differences in the
+	 * previous analysis of DeepImport feature.
 	 */
 	public Comparison compareContainersIgnoreStreams(ReferenceContainer rc1, ReferenceContainer rc2) {
 		if (rc1 != null && rc2 != null && containerMap.containsKey(rc1.name() + "::" + rc2.name()))
@@ -1294,6 +1402,13 @@ public class Diff {
 			result.append("\n---------------------------------------" + "----------------------------------------\n");
 			result.append("Sequences (" + sequenceCount() + "):\n");
 			result.append(printContainerComparisons(sequenceIterator()));
+		}
+
+		// tasks
+		if (taskCount() > 0) {
+			result.append("\n---------------------------------------" + "----------------------------------------\n");
+			result.append("Tasks (" + taskCount() + "):\n");
+			result.append(printContainerComparisons(taskIterator()));
 		}
 
 		// modules
