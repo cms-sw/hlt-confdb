@@ -1,41 +1,39 @@
 package confdb.data;
 
-
 /**
  * Referencable
  * ------------
  * @author Philipp Schieferdecker
  *
- * A Common interace for anything that can be referenced: module
+ * A Common interface for anything that can be referenced: module
  * instance, path, sequence.
  */
-public interface Referencable
-{
-    /** name of this referencable */
-    public String name();
+public interface Referencable {
+	/** name of this referencable */
+	public String name();
 
-    /** set name of this referencable */
-    public void setName(String name) throws DataException;
+	/** set name of this referencable */
+	public void setName(String name) throws DataException;
 
-    /** parent configuration of this referencable */
-    public IConfiguration config();
+	/** parent configuration of this referencable */
+	public IConfiguration config();
 
-    /** create a reference of this in a reference container (path/sequence) */
-    public Reference createReference(ReferenceContainer container,int i);
+	/** create a reference of this in a reference container (path/sequence) */
+	public Reference createReference(ReferenceContainer container, int i);
 
-    /** number of references */
-    public int referenceCount();
-    
-    /** retrieve the i-th reference */
-    public Reference reference(int i);
+	/** number of references */
+	public int referenceCount();
 
-    /** test if a specifc reference refers to this entity */
-    public boolean isReferencedBy(Reference reference);
+	/** retrieve the i-th reference */
+	public Reference reference(int i);
 
-    /** remove a reference of this */
-    public void removeReference(Reference reference);
-    
-    /** create an array of all paths which reference this */
-    public Path[] parentPaths();
-    
+	/** test if a specifc reference refers to this entity */
+	public boolean isReferencedBy(Reference reference);
+
+	/** remove a reference of this */
+	public void removeReference(Reference reference);
+
+	/** create an array of all paths which reference this */
+	public Path[] parentPaths();
+
 }

@@ -8,41 +8,44 @@ package confdb.gui;
  * Simple structure containing the object and its parent within a
  * (Configuration) tree.
  */
-public class ConfigurationTreeNode
-{
-    //
-    // member data
-    //
-    
-    /** the parent of the object */
-    private Object parent = null;
+public class ConfigurationTreeNode {
+	//
+	// member data
+	//
 
-    /** the object behind the node */
-    private Object object = null;
+	/** the parent of the object */
+	private Object parent = null;
 
-    //
-    // construction
-    //
+	/** the object behind the node */
+	private Object object = null;
 
-    /** standard constructor */
-    public ConfigurationTreeNode(Object parent,Object object)
-    {
-	this.parent = parent;
-	this.object = object;
-    }
+	//
+	// construction
+	//
 
-    
-    //
-    // member functions
-    //
+	/** standard constructor */
+	public ConfigurationTreeNode(Object parent, Object object) {
+		this.parent = parent;
+		this.object = object;
+	}
 
-    /** Object: toString() */
-    public String toString() { return object.toString(); }
+	//
+	// member functions
+	//
 
-    /** retrieve the node object */
-    public Object object() { return object; }
+	/** Object: toString() */
+	public String toString() {
+		return object.toString();
+	}
 
-    /** retrieve the parent */
-    public Object parent() { return parent; }
-    
+	/** retrieve the node object */
+	public Object object() {
+		return object;
+	}
+
+	/** retrieve the parent */
+	public Object parent() {
+		return parent;
+	}
+
 }

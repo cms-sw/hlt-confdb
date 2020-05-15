@@ -11,7 +11,6 @@ import java.util.Collections;
 import confdb.data.Directory;
 import confdb.data.ConfigInfo;
 
-
 /**
  * ConfigInfoListModel
  * -------------------
@@ -19,52 +18,55 @@ import confdb.data.ConfigInfo;
  *
  * Display list of configurations, seeded by a Directory.
  */
-public class ConfigInfoListModel extends AbstractListModel
-{
-    //
-    // member data
-    //
-    
-    /** list of ConfigInfos */
-    private ArrayList<ConfigInfo> configs = new ArrayList<ConfigInfo>();
-    
-    //
-    // construction
-    //
+public class ConfigInfoListModel extends AbstractListModel {
+	//
+	// member data
+	//
 
-    /** standard constructor */
-    public ConfigInfoListModel(Directory dir)
-    {
-	setDirectory(dir);
-    }
-    
-    //
-    // member functions
-    //
-    
-    /** set directory */
-    public void setDirectory(Directory dir)
-    {
-	fireIntervalRemoved(this,0,getSize());
-	configs = dir.listAllConfigurations();
-	Collections.sort(configs);
-	fireIntervalAdded(this,0,getSize());
-    }
+	/** list of ConfigInfos */
+	private ArrayList<ConfigInfo> configs = new ArrayList<ConfigInfo>();
 
-    /** get the index of a configuration info */
-    public int indexOf(ConfigInfo ci) { return configs.indexOf(ci); }
-    
-    /** ListModel::getSize() */
-    public int getSize() { return configs.size(); }
+	//
+	// construction
+	//
 
-    /** ListModel::getElementAt() */
-    public Object getElementAt(int i) {	return configs.get(i); }
+	/** standard constructor */
+	public ConfigInfoListModel(Directory dir) {
+		setDirectory(dir);
+	}
 
-    /** indicate that an element has changed */
-    public void elementChanged(ConfigInfo element)
-    {
-	int index = configs.indexOf(element);
-	if (index>=0) fireContentsChanged(this,index,index);
-    }
-    
+	//
+	// member functions
+	//
+
+	/** set directory */
+	public void setDirectory(Directory dir) {
+		fireIntervalRemoved(this, 0, getSize());
+		configs = dir.listAllConfigurations();
+		Collections.sort(configs);
+		fireIntervalAdded(this, 0, getSize());
+	}
+
+	/** get the index of a configuration info */
+	public int indexOf(ConfigInfo ci) {
+		return configs.indexOf(ci);
+	}
+
+	/** ListModel::getSize() */
+	public int getSize() {
+		return configs.size();
+	}
+
+	/** ListModel::getElementAt() */
+	public Object getElementAt(int i) {
+		return configs.get(i);
+	}
+
+	/** indicate that an element has changed */
+	public void elementChanged(ConfigInfo element) {
+		int index = configs.indexOf(element);
+		if (index >= 0)
+			fireContentsChanged(this, index, index);
+	}
+
 }

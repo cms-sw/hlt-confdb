@@ -7,45 +7,52 @@ import java.io.Serializable;
  * --------------
  * @author Philipp Schieferdecker
  *
- * Class to keep track of the status of a component in the
- * database: cache the primary key for objects which are already in
- * the DB and have not changed, indicate those object which are either
- * not yet in the DB or have changed (and therefore need to have a new
- * copy saved.
+ * Class to keep track of the status of a component in the database:
+ * cache the primary key for objects which are already in the DB and
+ * have not changed, indicate those object which are either not yet in
+ * the DB or have changed (and therefore need to have a new copy saved.
  */
-public class DatabaseEntry implements Serializable
-{
-    //
-    // member data
-    //
-    
-    /** database id (primary key) */
-    private int databaseId = 0;
-    private int crcval = 0;
+public class DatabaseEntry implements Serializable {
+	//
+	// member data
+	//
 
-    //
-    // member functions
-    //
-    
-    /** retrieve the database id*/
-    public int databaseId() { return databaseId; }
-    public int crcval() { return crcval; }
+	/** database id (primary key) */
+	private int databaseId = 0;
+	private int crcval = 0;
 
-    /** indicate wether this object is not in the DB or has changed */
-    public boolean hasChanged() { return databaseId==0; }
+	//
+	// member functions
+	//
 
-    /** set the database id */
-    public void setDatabaseId(int databaseId)
-    {
-	this.databaseId = databaseId;
-    }
-    /** set the crc */
-    public void setCrcval(int crc)
-    {
-	this.crcval = crc;
-    }
+	/** retrieve the database id */
+	public int databaseId() {
+		return databaseId;
+	}
 
-    /** indicate that this object is not in DB or has changed */
-    public void setHasChanged() { databaseId = 0; crcval = 0;}
-    
+	public int crcval() {
+		return crcval;
+	}
+
+	/** indicate wether this object is not in the DB or has changed */
+	public boolean hasChanged() {
+		return databaseId == 0;
+	}
+
+	/** set the database id */
+	public void setDatabaseId(int databaseId) {
+		this.databaseId = databaseId;
+	}
+
+	/** set the crc */
+	public void setCrcval(int crc) {
+		this.crcval = crc;
+	}
+
+	/** indicate that this object is not in DB or has changed */
+	public void setHasChanged() {
+		databaseId = 0;
+		crcval = 0;
+	}
+
 }

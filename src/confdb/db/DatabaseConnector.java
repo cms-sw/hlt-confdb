@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-
 /**
  * DatabaseConnector
  * -----------------
@@ -14,137 +13,116 @@ import java.sql.SQLException;
  * related details to the respective implementations of this class.
  */
 
-abstract public class DatabaseConnector implements IDatabaseConnector
-{
-    //
-    // member data
-    //
-    
-    /** connection to the database */
-    protected Connection connection = null;
-    
-    /** URL of the database */
-    protected String dbURL = null;
+abstract public class DatabaseConnector implements IDatabaseConnector {
+	//
+	// member data
+	//
 
-    /** current user accessing the database */
-    protected String dbUser = null;
+	/** connection to the database */
+	protected Connection connection = null;
 
-    /** password of current user accessing the database */
-    protected String dbPassword = null;
-    
-    //
-    // construction
-    //
-    
-    /** standard constructor */
-    public DatabaseConnector(String url, String user, String password)
-	throws DatabaseException
-    {
-	// assign the database parameters
-	this.dbURL      = url;
-	this.dbUser     = user;
-	this.dbPassword = password;
-	
-	// open the database connection
-	//this.openConnection();
-    }
-    
-    
-    /** constructor via passing of connection */
-    public DatabaseConnector(Connection connection) throws DatabaseException
-    {
-	// assign the database parameters
-	this.dbURL      = "UNKNOWN";
-	this.dbUser     = "UNKNOWN";
-	this.dbPassword = "UNKNOWN";
-	this.connection = connection;
-    }
-    
-    
-    //
-    // member functions
-    //
+	/** URL of the database */
+	protected String dbURL = null;
 
-    /** open connection to databse */
-    public abstract void openConnection() throws DatabaseException;
-    
-    /** close the connection to the database */
-    public void closeConnection()
-    {
-	try {
-	    if ( connection != null )  
-	    {
-	    	if ( !connection.isClosed()  &&  !dbURL.equals("UNKNOWN") ) 
-	    		connection.close();
-	    	connection = null;
-	    }
+	/** current user accessing the database */
+	protected String dbUser = null;
+
+	/** password of current user accessing the database */
+	protected String dbPassword = null;
+
+	//
+	// construction
+	//
+
+	/** standard constructor */
+	public DatabaseConnector(String url, String user, String password) throws DatabaseException {
+		// assign the database parameters
+		this.dbURL = url;
+		this.dbUser = user;
+		this.dbPassword = password;
+
+		// open the database connection
+		// this.openConnection();
 	}
-	catch (SQLException e) {
-	    connection = null;
-	    //String msg = "Failed to close database connection: " + e.getMessage();
-	    //throw new DatabaseException(msg);
+
+	/** constructor via passing of connection */
+	public DatabaseConnector(Connection connection) throws DatabaseException {
+		// assign the database parameters
+		this.dbURL = "UNKNOWN";
+		this.dbUser = "UNKNOWN";
+		this.dbPassword = "UNKNOWN";
+		this.connection = connection;
 	}
-    }
 
-    /** access to the connection to the database */
-    public Connection getConnection()
-    {
-	return connection;
-    }
+	//
+	// member functions
+	//
 
-    /** access to the URL of the database */
-    public String dbURL()
-    {
-	return dbURL;
-    }
+	/** open connection to databse */
+	public abstract void openConnection() throws DatabaseException;
 
-    /** access the current username accessing the database */
-    public String dbUser()
-    {
-	return dbUser;
-    }
-
-    /** access the password of the current user accessing the database */
-    public String dbPassword()
-    {
-	return dbPassword;
-    }
- 
-    /** initialize database connection parameters */
-    public void setParameters(String url,String user,String password)
-    {
-	dbURL      = url;
-	dbUser     = user;
-	dbPassword = password;
-    }
-
-    /** release the resources associated with a result set */
-    public ResultSet release(ResultSet rs)
-    {
-	if (rs != null) {
-	    //Statement stmt = null;
-	    try {
-		/*stmt = */ rs.getStatement();
-	    }
-	    catch (SQLException e) {
-		String msg =
-		    "WARNING: " +
-		    "Can't retrieve SQL Statement from SQL ResultSet: " +
-		    e.getMessage();
-		System.err.println(msg);
-	    }
-	    try {
-		rs.close();
-	    }
-	    catch (SQLException e) {
-		String msg =
-		    "WARNING: Can't close SQL ResultSet: "+e.getMessage();
-		System.err.println(msg);
-	    }
-	    rs = null;
-
+	/** close the connection to the database */
+	public void closeConnection() {
+		try {
+			if (connection != null) {
+				if (!connection.isClosed() && !dbURL.equals("UNKNOWN"))
+					connection.close();
+				connection = null;
+			}
+		} catch (SQLException e) {
+			connection = null;
+			// String msg = "Failed to close database connection: " + e.getMessage();
+			// throw new DatabaseException(msg);
+		}
 	}
-	return rs;
-    }
+
+	/** access to the connection to the database */
+	public Connection getConnection() {
+		return connection;
+	}
+
+	/** access to the URL of the database */
+	public String dbURL() {
+		return dbURL;
+	}
+
+	/** access the current username accessing the database */
+	public String dbUser() {
+		return dbUser;
+	}
+
+	/** access the password of the current user accessing the database */
+	public String dbPassword() {
+		return dbPassword;
+	}
+
+	/** initialize database connection parameters */
+	public void setParameters(String url, String user, String password) {
+		dbURL = url;
+		dbUser = user;
+		dbPassword = password;
+	}
+
+	/** release the resources associated with a result set */
+	public ResultSet release(ResultSet rs) {
+		if (rs != null) {
+			// Statement stmt = null;
+			try {
+				/* stmt = */ rs.getStatement();
+			} catch (SQLException e) {
+				String msg = "WARNING: " + "Can't retrieve SQL Statement from SQL ResultSet: " + e.getMessage();
+				System.err.println(msg);
+			}
+			try {
+				rs.close();
+			} catch (SQLException e) {
+				String msg = "WARNING: Can't close SQL ResultSet: " + e.getMessage();
+				System.err.println(msg);
+			}
+			rs = null;
+
+		}
+		return rs;
+	}
 
 }
