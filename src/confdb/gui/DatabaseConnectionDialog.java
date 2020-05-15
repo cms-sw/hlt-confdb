@@ -13,7 +13,6 @@ import java.io.IOException;
 
 import confdb.db.ConfDBSetups;
 
-
 /**
  * DatabaseConnectionDialog
  * ------------------------
@@ -23,481 +22,463 @@ import confdb.db.ConfDBSetups;
  *
  */
 
-public class DatabaseConnectionDialog
-    extends JDialog
-    implements ActionListener, FocusListener, PropertyChangeListener
-{
-    //
-    // member data
-    //
+public class DatabaseConnectionDialog extends JDialog implements ActionListener, FocusListener, PropertyChangeListener {
+	//
+	// member data
+	//
 
-    /** possible choices of dbType*/
-    private static final String dbTypeMySQL = "mysql";
-    private static final String dbTypeOracle = "oracle";
+	/** possible choices of dbType */
+	private static final String dbTypeMySQL = "mysql";
+	private static final String dbTypeOracle = "oracle";
 
-    /** indicate if a valid choice was made */
-    private boolean validChoice = false;
+	/** indicate if a valid choice was made */
+	private boolean validChoice = false;
 
-    /** database setup */
-    private ConfDBSetups dbSetups = new ConfDBSetups();
+	/** database setup */
+	private ConfDBSetups dbSetups = new ConfDBSetups();
 
-    /** GUI components */
-    private JComboBox      comboBoxDbSetup   = null;
-    private ButtonGroup    buttonGroupDbType = null;
-    private JRadioButton   mysqlButton       = null;
-    private JRadioButton   oracleButton      = null;
-    private JRadioButton   noneButton        = null;
-    private JTextField     textFieldDbHost   = null;
-    private JTextField     textFieldDbPort   = null;
-    private JTextField     textFieldDbName   = null;
-    private JTextField     textFieldDbUser   = null;
-    private JPasswordField textFieldDbPwrd   = null;
+	/** GUI components */
+	private JComboBox comboBoxDbSetup = null;
+	private ButtonGroup buttonGroupDbType = null;
+	private JRadioButton mysqlButton = null;
+	private JRadioButton oracleButton = null;
+	private JRadioButton noneButton = null;
+	private JTextField textFieldDbHost = null;
+	private JTextField textFieldDbPort = null;
+	private JTextField textFieldDbName = null;
+	private JTextField textFieldDbUser = null;
+	private JPasswordField textFieldDbPwrd = null;
 
-    private JCheckBox      checkBoxProxyEnabled = null;
-    private JTextField     textFieldProxyHost = null;
-    private JTextField     textFieldProxyPort = null;
+	private JCheckBox checkBoxProxyEnabled = null;
+	private JTextField textFieldProxyHost = null;
+	private JTextField textFieldProxyPort = null;
 
-    /** option pane */
-    private JOptionPane optionPane = null;
+	/** option pane */
+	private JOptionPane optionPane = null;
 
-    /** option button labels */
-    private static final String okString     = "OK";
-    private static final String cancelString = "Cancel";
+	/** option button labels */
+	private static final String okString = "OK";
+	private static final String cancelString = "Cancel";
 
-    /** change listener for the proxy settings */
-    private ItemListener checkBoxProxyListener = new ItemListener() {
+	/** change listener for the proxy settings */
+	private ItemListener checkBoxProxyListener = new ItemListener() {
 
-	public void itemStateChanged(ItemEvent event) {
-	    boolean selected = checkBoxProxyEnabled.isSelected();
-	    textFieldProxyHost.setEnabled(selected);
-	    textFieldProxyPort.setEnabled(selected);
-	}
-    };
-
-    //
-    // member functions
-    //
-
-    /** constructor */
-    public DatabaseConnectionDialog(JFrame frame, String strProperties)
-    {
-	super(frame, "Establish Database connection",true);
-
-	System.out.println(strProperties);
-
-	dbSetups = new ConfDBSetups(strProperties);
-
-	validChoice = false;
-
-	comboBoxDbSetup = new JComboBox(dbSetups.labelsAsArray());
-	comboBoxDbSetup.setEditable(false);
-	comboBoxDbSetup.setSelectedIndex(0);
-	comboBoxDbSetup.setBackground(new Color(255, 255, 255));
-	comboBoxDbSetup.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent evt) {
-		    comboBoxDbSetupActionPerformed(evt);
+		public void itemStateChanged(ItemEvent event) {
+			boolean selected = checkBoxProxyEnabled.isSelected();
+			textFieldProxyHost.setEnabled(selected);
+			textFieldProxyPort.setEnabled(selected);
 		}
-	    });
+	};
 
-	mysqlButton = new JRadioButton("MySQL");
-	mysqlButton.setMnemonic(KeyEvent.VK_M);
-	mysqlButton.setActionCommand(dbTypeMySQL);
-	mysqlButton.setSelected(true);
+	//
+	// member functions
+	//
 
-	oracleButton = new JRadioButton("Oracle");
-	oracleButton.setMnemonic(KeyEvent.VK_O);
-	oracleButton.setActionCommand(dbTypeOracle);
+	/** constructor */
+	public DatabaseConnectionDialog(JFrame frame, String strProperties) {
+		super(frame, "Establish Database connection", true);
 
-	noneButton = new JRadioButton("NONE");
+		System.out.println(strProperties);
 
-	buttonGroupDbType = new ButtonGroup();
-	buttonGroupDbType.add(mysqlButton);
-	buttonGroupDbType.add(oracleButton);
-	buttonGroupDbType.add(noneButton);
+		dbSetups = new ConfDBSetups(strProperties);
 
-	noneButton.setSelected(true);
+		validChoice = false;
 
-	textFieldDbHost = new JTextField(15);
-	textFieldDbPort = new JTextField(6);
-	textFieldDbName = new JTextField(15);
-	textFieldDbUser = new JTextField(15);
-	textFieldDbPwrd = new JPasswordField(15);
+		comboBoxDbSetup = new JComboBox(dbSetups.labelsAsArray());
+		comboBoxDbSetup.setEditable(false);
+		comboBoxDbSetup.setSelectedIndex(0);
+		comboBoxDbSetup.setBackground(new Color(255, 255, 255));
+		comboBoxDbSetup.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				comboBoxDbSetupActionPerformed(evt);
+			}
+		});
 
-	String proxyHost = System.getProperty("socksProxyHost");
-	String proxyPort = System.getProperty("socksProxyPort");
-	boolean proxyEnabled;
-	if (proxyHost == null || proxyHost.isEmpty()) {
-	  proxyHost = "localhost";
-	  proxyEnabled = false;
-	} else {
-	  proxyEnabled = true;
-	}
-	if (proxyPort == null || proxyPort.isEmpty()) {
-	  proxyPort = "1080";
-	}
+		mysqlButton = new JRadioButton("MySQL");
+		mysqlButton.setMnemonic(KeyEvent.VK_M);
+		mysqlButton.setActionCommand(dbTypeMySQL);
+		mysqlButton.setSelected(true);
 
-	textFieldProxyHost = new JTextField(proxyHost, 15);
-	textFieldProxyHost.setEnabled(proxyEnabled);
-	textFieldProxyPort = new JTextField(proxyPort, 6);
-	textFieldProxyPort.setEnabled(proxyEnabled);
-	checkBoxProxyEnabled = new JCheckBox("SOCKS Proxy:");
-	checkBoxProxyEnabled.setSelected(proxyEnabled);
-	checkBoxProxyEnabled.addItemListener(checkBoxProxyListener);
+		oracleButton = new JRadioButton("Oracle");
+		oracleButton.setMnemonic(KeyEvent.VK_O);
+		oracleButton.setActionCommand(dbTypeOracle);
 
-	JPanel panelDbType = new JPanel(new FlowLayout());
-	panelDbType.add(mysqlButton);
-	panelDbType.add(oracleButton);
+		noneButton = new JRadioButton("NONE");
 
-	// create the option pane
-	String labelDbStup = "Setup:";
-	String labelDbHost = "Host:";
-	String labelDbPort = "Port:";
-	String labelDbName = "DB Name:";
-	String labelDbUser = "User:";
-	String labelDbPwrd = "Password:";
-	String labelProxyHost = "Host:";
-	String labelProxyPort = "Port:";
+		buttonGroupDbType = new ButtonGroup();
+		buttonGroupDbType.add(mysqlButton);
+		buttonGroupDbType.add(oracleButton);
+		buttonGroupDbType.add(noneButton);
 
-	Object[] inputs = { labelDbStup, comboBoxDbSetup,
-	                    panelDbType,
-			    labelDbHost, textFieldDbHost,
-			    labelDbPort, textFieldDbPort,
-			    labelDbName, textFieldDbName,
-			    labelDbUser, textFieldDbUser,
-			    labelDbPwrd, textFieldDbPwrd,
-	                    checkBoxProxyEnabled,
-	                    labelProxyHost, textFieldProxyHost,
-	                    labelProxyPort, textFieldProxyPort };
+		noneButton.setSelected(true);
 
-	ImageIcon icon = new ImageIcon(getClass().getResource("/dbicon.gif"));
+		textFieldDbHost = new JTextField(15);
+		textFieldDbPort = new JTextField(6);
+		textFieldDbName = new JTextField(15);
+		textFieldDbUser = new JTextField(15);
+		textFieldDbPwrd = new JPasswordField(15);
 
-	Object[] options = { okString,cancelString };
-
-	optionPane = new JOptionPane(inputs,
-				     JOptionPane.QUESTION_MESSAGE,
-				     JOptionPane.YES_NO_OPTION,
-				     icon, //null,
-				     options,
-				     options[0]);
-
-	// make this dialog display the created content pane
-	setContentPane(optionPane);
-
-	//handle window closing correctly
-	setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-	addWindowListener(new WindowAdapter()
-	    {
-		public void windowClosing(WindowEvent we)
-		{
-		    optionPane.setValue(new Integer(JOptionPane.CLOSED_OPTION));
+		String proxyHost = System.getProperty("socksProxyHost");
+		String proxyPort = System.getProperty("socksProxyPort");
+		boolean proxyEnabled;
+		if (proxyHost == null || proxyHost.isEmpty()) {
+			proxyHost = "localhost";
+			proxyEnabled = false;
+		} else {
+			proxyEnabled = true;
 		}
-	    });
-
-	// ensure the database user field always get the first focus
-	addComponentListener(new ComponentAdapter()
-	    {
-		public void componentShown(ComponentEvent ce)
-		{
-		    textFieldDbHost.requestFocusInWindow();
-		    textFieldDbHost.selectAll();
+		if (proxyPort == null || proxyPort.isEmpty()) {
+			proxyPort = "1080";
 		}
-	    });
 
-	// register event handlers to put text into the fields
-	textFieldDbHost.addActionListener(this);
-	textFieldDbHost.addFocusListener(this);
+		textFieldProxyHost = new JTextField(proxyHost, 15);
+		textFieldProxyHost.setEnabled(proxyEnabled);
+		textFieldProxyPort = new JTextField(proxyPort, 6);
+		textFieldProxyPort.setEnabled(proxyEnabled);
+		checkBoxProxyEnabled = new JCheckBox("SOCKS Proxy:");
+		checkBoxProxyEnabled.setSelected(proxyEnabled);
+		checkBoxProxyEnabled.addItemListener(checkBoxProxyListener);
 
-	textFieldDbPort.addActionListener(this);
-	textFieldDbPort.addFocusListener(this);
+		JPanel panelDbType = new JPanel(new FlowLayout());
+		panelDbType.add(mysqlButton);
+		panelDbType.add(oracleButton);
 
-	textFieldDbName.addActionListener(this);
-	textFieldDbName.addFocusListener(this);
+		// create the option pane
+		String labelDbStup = "Setup:";
+		String labelDbHost = "Host:";
+		String labelDbPort = "Port:";
+		String labelDbName = "DB Name:";
+		String labelDbUser = "User:";
+		String labelDbPwrd = "Password:";
+		String labelProxyHost = "Host:";
+		String labelProxyPort = "Port:";
 
-	textFieldDbUser.addActionListener(this);
-	textFieldDbUser.addFocusListener(this);
+		Object[] inputs = { labelDbStup, comboBoxDbSetup, panelDbType, labelDbHost, textFieldDbHost, labelDbPort,
+				textFieldDbPort, labelDbName, textFieldDbName, labelDbUser, textFieldDbUser, labelDbPwrd,
+				textFieldDbPwrd, checkBoxProxyEnabled, labelProxyHost, textFieldProxyHost, labelProxyPort,
+				textFieldProxyPort };
 
-	textFieldDbPwrd.addActionListener(this);
-	textFieldDbPwrd.addFocusListener(this);
+		ImageIcon icon = new ImageIcon(getClass().getResource("/dbicon.gif"));
 
-	textFieldProxyHost.addActionListener(this);
-	textFieldProxyHost.addFocusListener(this);
+		Object[] options = { okString, cancelString };
 
-	textFieldProxyPort.addActionListener(this);
-	textFieldProxyPort.addFocusListener(this);
+		optionPane = new JOptionPane(inputs, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION, icon, // null,
+				options, options[0]);
 
-	// register an event handler to react to option pane state changes
-	optionPane.addPropertyChangeListener(this);
-    }
+		// make this dialog display the created content pane
+		setContentPane(optionPane);
 
+		// handle window closing correctly
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+		addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent we) {
+				optionPane.setValue(new Integer(JOptionPane.CLOSED_OPTION));
+			}
+		});
 
-    /** constructor */
-    public DatabaseConnectionDialog(JFrame frame)
-    {
-	super(frame,"Establish Database connection",true);
+		// ensure the database user field always get the first focus
+		addComponentListener(new ComponentAdapter() {
+			public void componentShown(ComponentEvent ce) {
+				textFieldDbHost.requestFocusInWindow();
+				textFieldDbHost.selectAll();
+			}
+		});
 
-	validChoice = false;
+		// register event handlers to put text into the fields
+		textFieldDbHost.addActionListener(this);
+		textFieldDbHost.addFocusListener(this);
 
-	comboBoxDbSetup = new JComboBox(dbSetups.labelsAsArray());
-	comboBoxDbSetup.setEditable(false);
-	comboBoxDbSetup.setSelectedIndex(0);
-	comboBoxDbSetup.setBackground(new Color(255, 255, 255));
-	comboBoxDbSetup.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent evt) {
-		    comboBoxDbSetupActionPerformed(evt);
-		}
-	    });
+		textFieldDbPort.addActionListener(this);
+		textFieldDbPort.addFocusListener(this);
 
-	mysqlButton = new JRadioButton("MySQL");
-	mysqlButton.setMnemonic(KeyEvent.VK_M);
-	mysqlButton.setActionCommand(dbTypeMySQL);
-	mysqlButton.setSelected(true);
+		textFieldDbName.addActionListener(this);
+		textFieldDbName.addFocusListener(this);
 
-	oracleButton = new JRadioButton("Oracle");
-	oracleButton.setMnemonic(KeyEvent.VK_O);
-	oracleButton.setActionCommand(dbTypeOracle);
+		textFieldDbUser.addActionListener(this);
+		textFieldDbUser.addFocusListener(this);
 
-	noneButton = new JRadioButton("NONE");
+		textFieldDbPwrd.addActionListener(this);
+		textFieldDbPwrd.addFocusListener(this);
 
-	buttonGroupDbType = new ButtonGroup();
-	buttonGroupDbType.add(mysqlButton);
-	buttonGroupDbType.add(oracleButton);
-	buttonGroupDbType.add(noneButton);
+		textFieldProxyHost.addActionListener(this);
+		textFieldProxyHost.addFocusListener(this);
 
-	noneButton.setSelected(true);
+		textFieldProxyPort.addActionListener(this);
+		textFieldProxyPort.addFocusListener(this);
 
-	textFieldDbHost = new JTextField(15);
-	textFieldDbPort = new JTextField(6);
-	textFieldDbName = new JTextField(15);
-	textFieldDbUser = new JTextField(15);
-	textFieldDbPwrd = new JPasswordField(15);
-
-	String proxyHost = System.getProperty("socksProxyHost");
-	String proxyPort = System.getProperty("socksProxyPort");
-	boolean proxyEnabled;
-	if (proxyHost == null || proxyHost.isEmpty()) {
-	    proxyHost = "localhost";
-	    proxyEnabled = false;
-	} else {
-	    proxyEnabled = true;
-	}
-	if (proxyPort == null || proxyPort.isEmpty()) {
-	    proxyPort = "1080";
+		// register an event handler to react to option pane state changes
+		optionPane.addPropertyChangeListener(this);
 	}
 
-	textFieldProxyHost = new JTextField(proxyHost, 15);
-	textFieldProxyHost.setEnabled(proxyEnabled);
-	textFieldProxyPort = new JTextField(proxyPort, 6);
-	textFieldProxyPort.setEnabled(proxyEnabled);
-	checkBoxProxyEnabled = new JCheckBox("SOCKS Proxy:");
-	checkBoxProxyEnabled.setSelected(proxyEnabled);
-	checkBoxProxyEnabled.addItemListener(checkBoxProxyListener);
+	/** constructor */
+	public DatabaseConnectionDialog(JFrame frame) {
+		super(frame, "Establish Database connection", true);
 
-	JPanel panelDbType = new JPanel(new FlowLayout());
-	panelDbType.add(mysqlButton);
-	panelDbType.add(oracleButton);
+		validChoice = false;
 
-	// create the option pane
-	String labelDbStup = "Setup:";
-	String labelDbHost = "Host:";
-	String labelDbPort = "Port:";
-	String labelDbName = "DB Name:";
-	String labelDbUser = "User:";
-	String labelDbPwrd = "Password:";
-	String labelProxyHost = "Host:";
-	String labelProxyPort = "Port:";
+		comboBoxDbSetup = new JComboBox(dbSetups.labelsAsArray());
+		comboBoxDbSetup.setEditable(false);
+		comboBoxDbSetup.setSelectedIndex(0);
+		comboBoxDbSetup.setBackground(new Color(255, 255, 255));
+		comboBoxDbSetup.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				comboBoxDbSetupActionPerformed(evt);
+			}
+		});
 
-	Object[] inputs = { labelDbStup, comboBoxDbSetup,
-	                    panelDbType,
-			    labelDbHost, textFieldDbHost,
-			    labelDbPort, textFieldDbPort,
-			    labelDbName, textFieldDbName,
-			    labelDbUser, textFieldDbUser,
-			    labelDbPwrd, textFieldDbPwrd,
-	                    checkBoxProxyEnabled,
-	                    labelProxyHost, textFieldProxyHost,
-	                    labelProxyPort, textFieldProxyPort };
+		mysqlButton = new JRadioButton("MySQL");
+		mysqlButton.setMnemonic(KeyEvent.VK_M);
+		mysqlButton.setActionCommand(dbTypeMySQL);
+		mysqlButton.setSelected(true);
 
-	ImageIcon icon = new ImageIcon(getClass().getResource("/dbicon.png"));
+		oracleButton = new JRadioButton("Oracle");
+		oracleButton.setMnemonic(KeyEvent.VK_O);
+		oracleButton.setActionCommand(dbTypeOracle);
 
-	Object[] options = { okString,cancelString };
+		noneButton = new JRadioButton("NONE");
 
-	optionPane = new JOptionPane(inputs,
-				     JOptionPane.QUESTION_MESSAGE,
-				     JOptionPane.YES_NO_OPTION,
-				     icon, //null,
-				     options,
-				     options[0]);
+		buttonGroupDbType = new ButtonGroup();
+		buttonGroupDbType.add(mysqlButton);
+		buttonGroupDbType.add(oracleButton);
+		buttonGroupDbType.add(noneButton);
 
-	// make this dialog display the created content pane
-	setContentPane(optionPane);
+		noneButton.setSelected(true);
 
-	//handle window closing correctly
-	setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-	addWindowListener(new WindowAdapter()
-	    {
-		public void windowClosing(WindowEvent we)
-		{
-		    optionPane.setValue(new Integer(JOptionPane.CLOSED_OPTION));
+		textFieldDbHost = new JTextField(15);
+		textFieldDbPort = new JTextField(6);
+		textFieldDbName = new JTextField(15);
+		textFieldDbUser = new JTextField(15);
+		textFieldDbPwrd = new JPasswordField(15);
+
+		String proxyHost = System.getProperty("socksProxyHost");
+		String proxyPort = System.getProperty("socksProxyPort");
+		boolean proxyEnabled;
+		if (proxyHost == null || proxyHost.isEmpty()) {
+			proxyHost = "localhost";
+			proxyEnabled = false;
+		} else {
+			proxyEnabled = true;
 		}
-	    });
-
-	// ensure the database user field always get the first focus
-	addComponentListener(new ComponentAdapter()
-	    {
-		public void componentShown(ComponentEvent ce)
-		{
-		    textFieldDbHost.requestFocusInWindow();
-		    textFieldDbHost.selectAll();
+		if (proxyPort == null || proxyPort.isEmpty()) {
+			proxyPort = "1080";
 		}
-	    });
 
-	// register event handlers to put text into the fields
-	textFieldDbHost.addActionListener(this);
-	textFieldDbHost.addFocusListener(this);
+		textFieldProxyHost = new JTextField(proxyHost, 15);
+		textFieldProxyHost.setEnabled(proxyEnabled);
+		textFieldProxyPort = new JTextField(proxyPort, 6);
+		textFieldProxyPort.setEnabled(proxyEnabled);
+		checkBoxProxyEnabled = new JCheckBox("SOCKS Proxy:");
+		checkBoxProxyEnabled.setSelected(proxyEnabled);
+		checkBoxProxyEnabled.addItemListener(checkBoxProxyListener);
 
-	textFieldDbPort.addActionListener(this);
-	textFieldDbPort.addFocusListener(this);
+		JPanel panelDbType = new JPanel(new FlowLayout());
+		panelDbType.add(mysqlButton);
+		panelDbType.add(oracleButton);
 
-	textFieldDbName.addActionListener(this);
-	textFieldDbName.addFocusListener(this);
+		// create the option pane
+		String labelDbStup = "Setup:";
+		String labelDbHost = "Host:";
+		String labelDbPort = "Port:";
+		String labelDbName = "DB Name:";
+		String labelDbUser = "User:";
+		String labelDbPwrd = "Password:";
+		String labelProxyHost = "Host:";
+		String labelProxyPort = "Port:";
 
-	textFieldDbUser.addActionListener(this);
-	textFieldDbUser.addFocusListener(this);
+		Object[] inputs = { labelDbStup, comboBoxDbSetup, panelDbType, labelDbHost, textFieldDbHost, labelDbPort,
+				textFieldDbPort, labelDbName, textFieldDbName, labelDbUser, textFieldDbUser, labelDbPwrd,
+				textFieldDbPwrd, checkBoxProxyEnabled, labelProxyHost, textFieldProxyHost, labelProxyPort,
+				textFieldProxyPort };
 
-	textFieldDbPwrd.addActionListener(this);
-	textFieldDbPwrd.addFocusListener(this);
+		ImageIcon icon = new ImageIcon(getClass().getResource("/dbicon.png"));
 
-	textFieldProxyHost.addActionListener(this);
-	textFieldProxyHost.addFocusListener(this);
+		Object[] options = { okString, cancelString };
 
-	textFieldProxyPort.addActionListener(this);
-	textFieldProxyPort.addFocusListener(this);
+		optionPane = new JOptionPane(inputs, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION, icon, // null,
+				options, options[0]);
 
-	// register an event handler to react to option pane state changes
-	optionPane.addPropertyChangeListener(this);
-    }
+		// make this dialog display the created content pane
+		setContentPane(optionPane);
 
-    /** was a valid choice made? */
-    public boolean validChoice() { return validChoice; }
+		// handle window closing correctly
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+		addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent we) {
+				optionPane.setValue(new Integer(JOptionPane.CLOSED_OPTION));
+			}
+		});
 
-    /** get database type */
-    public String getDbType()
-    {
-	return buttonGroupDbType.getSelection().getActionCommand();
-    }
+		// ensure the database user field always get the first focus
+		addComponentListener(new ComponentAdapter() {
+			public void componentShown(ComponentEvent ce) {
+				textFieldDbHost.requestFocusInWindow();
+				textFieldDbHost.selectAll();
+			}
+		});
 
-    /** get database host */
-    public String getDbHost() { return textFieldDbHost.getText(); }
+		// register event handlers to put text into the fields
+		textFieldDbHost.addActionListener(this);
+		textFieldDbHost.addFocusListener(this);
 
-    /** get database port number */
-    public String getDbPort() { return textFieldDbPort.getText(); }
+		textFieldDbPort.addActionListener(this);
+		textFieldDbPort.addFocusListener(this);
 
-    /** connect through a proxy ? */
-    public boolean isProxyEnabled() { return checkBoxProxyEnabled.isSelected(); }
+		textFieldDbName.addActionListener(this);
+		textFieldDbName.addFocusListener(this);
 
-    /** get proxy host */
-    public String getProxyHost() { return checkBoxProxyEnabled.isSelected() ? textFieldProxyHost.getText() : ""; }
+		textFieldDbUser.addActionListener(this);
+		textFieldDbUser.addFocusListener(this);
 
-    /** get proxy port number */
-    public String getProxyPort() { return checkBoxProxyEnabled.isSelected() ? textFieldProxyPort.getText() : ""; }
+		textFieldDbPwrd.addActionListener(this);
+		textFieldDbPwrd.addFocusListener(this);
 
-    /** get database name */
-    public String getDbName() {	return textFieldDbName.getText(); }
+		textFieldProxyHost.addActionListener(this);
+		textFieldProxyHost.addFocusListener(this);
 
-    /** get database url */
-    public String getDbUrl()
-    {
-	String result = null;
-	String type = getDbType();
-	String host = getDbHost();
-	String port = getDbPort();
-	String name = getDbName();
-	if (host.length()==0 || port.length()==0 || name.length()==0) return result;
-	if (type.equals(dbTypeMySQL))       result = "jdbc:mysql://";
-	else if (type.equals(dbTypeOracle)) result = "jdbc:oracle:thin:@//";
-	else return result;
-	result += host + ":" + port + "/" + name;
-	return result;
-    }
+		textFieldProxyPort.addActionListener(this);
+		textFieldProxyPort.addFocusListener(this);
 
-    /** get database user name */
-    public String getDbUser() {	return textFieldDbUser.getText(); }
-
-    /** get database password */
-    public String getDbPassword()
-    {
-	return new String(textFieldDbPwrd.getPassword());
-    }
-
-    /** type choosen from the combo box */
-    public void comboBoxDbSetupActionPerformed(ActionEvent e)
-    {
-	int selectedIndex = comboBoxDbSetup.getSelectedIndex();
-	textFieldDbHost.setText(dbSetups.host(selectedIndex));
-	textFieldDbPort.setText(dbSetups.port(selectedIndex));
-	textFieldDbName.setText(dbSetups.name(selectedIndex));
-	textFieldDbUser.setText(dbSetups.user(selectedIndex));
-	String dbType = dbSetups.type(selectedIndex);
-	if      (dbType.equals("mysql"))  mysqlButton.setSelected(true);
-	else if (dbType.equals("oracle")) oracleButton.setSelected(true);
-	else                              noneButton.setSelected(true);
-
-	//textFieldDbUser.requestFocusInWindow();
-	//textFieldDbUser.selectAll();
-	textFieldDbPwrd.requestFocusInWindow();
-	textFieldDbPwrd.selectAll();
-    }
-
-
-    /** callback to handle text field events. (Hitting <RETURN> will be like <OK>) */
-    public void actionPerformed(ActionEvent e)
-    {
-	optionPane.setValue(okString);
-    }
-
-    /** if a text failed focus */
-    public void focusGained(FocusEvent e)
-    {
-	JTextField textField = (JTextField)e.getComponent();
-	if (textField!=null) textField.selectAll();
-    }
-
-    /** if a text field looses focus, do nothing */
-    public void focusLost(FocusEvent e)
-    {
-	JTextField textField = (JTextField)e.getComponent();
-	if (textField!=null) textField.select(0,0);
-    }
-
-    /** callback to handle option pane state changes */
-    public void propertyChange(PropertyChangeEvent e)
-    {
-	String property = e.getPropertyName();
-
-	if (isVisible() &&
-	    (e.getSource()==optionPane) &&
-	    (JOptionPane.VALUE_PROPERTY.equals(property) ||
-	     JOptionPane.INPUT_VALUE_PROPERTY.equals(property))) {
-
-	    // retrieve current value, check if initialized
-	    Object value = optionPane.getValue();
-	    if (value==JOptionPane.UNINITIALIZED_VALUE)  return;
-
-	    // reset current value
-	    optionPane.setValue(JOptionPane.UNINITIALIZED_VALUE);
-
-	    if (okString.equals(value)) {
-		validChoice = true;
-		setVisible(false);
-	    }
-	    else {
-		setVisible(false);
-		//JOptionPane.showMessageDialog(optionPane.getRootFrame(),
-		//		      "No database connection established.",
-		//		      "",
-		//		      JOptionPane.WARNING_MESSAGE);
-	    }
+		// register an event handler to react to option pane state changes
+		optionPane.addPropertyChangeListener(this);
 	}
-    }
+
+	/** was a valid choice made? */
+	public boolean validChoice() {
+		return validChoice;
+	}
+
+	/** get database type */
+	public String getDbType() {
+		return buttonGroupDbType.getSelection().getActionCommand();
+	}
+
+	/** get database host */
+	public String getDbHost() {
+		return textFieldDbHost.getText();
+	}
+
+	/** get database port number */
+	public String getDbPort() {
+		return textFieldDbPort.getText();
+	}
+
+	/** connect through a proxy ? */
+	public boolean isProxyEnabled() {
+		return checkBoxProxyEnabled.isSelected();
+	}
+
+	/** get proxy host */
+	public String getProxyHost() {
+		return checkBoxProxyEnabled.isSelected() ? textFieldProxyHost.getText() : "";
+	}
+
+	/** get proxy port number */
+	public String getProxyPort() {
+		return checkBoxProxyEnabled.isSelected() ? textFieldProxyPort.getText() : "";
+	}
+
+	/** get database name */
+	public String getDbName() {
+		return textFieldDbName.getText();
+	}
+
+	/** get database url */
+	public String getDbUrl() {
+		String result = null;
+		String type = getDbType();
+		String host = getDbHost();
+		String port = getDbPort();
+		String name = getDbName();
+		if (host.length() == 0 || port.length() == 0 || name.length() == 0)
+			return result;
+		if (type.equals(dbTypeMySQL))
+			result = "jdbc:mysql://";
+		else if (type.equals(dbTypeOracle))
+			result = "jdbc:oracle:thin:@//";
+		else
+			return result;
+		result += host + ":" + port + "/" + name;
+		return result;
+	}
+
+	/** get database user name */
+	public String getDbUser() {
+		return textFieldDbUser.getText();
+	}
+
+	/** get database password */
+	public String getDbPassword() {
+		return new String(textFieldDbPwrd.getPassword());
+	}
+
+	/** type choosen from the combo box */
+	public void comboBoxDbSetupActionPerformed(ActionEvent e) {
+		int selectedIndex = comboBoxDbSetup.getSelectedIndex();
+		textFieldDbHost.setText(dbSetups.host(selectedIndex));
+		textFieldDbPort.setText(dbSetups.port(selectedIndex));
+		textFieldDbName.setText(dbSetups.name(selectedIndex));
+		textFieldDbUser.setText(dbSetups.user(selectedIndex));
+		String dbType = dbSetups.type(selectedIndex);
+		if (dbType.equals("mysql"))
+			mysqlButton.setSelected(true);
+		else if (dbType.equals("oracle"))
+			oracleButton.setSelected(true);
+		else
+			noneButton.setSelected(true);
+
+		// textFieldDbUser.requestFocusInWindow();
+		// textFieldDbUser.selectAll();
+		textFieldDbPwrd.requestFocusInWindow();
+		textFieldDbPwrd.selectAll();
+	}
+
+	/**
+	 * callback to handle text field events. (Hitting <RETURN> will be like <OK>)
+	 */
+	public void actionPerformed(ActionEvent e) {
+		optionPane.setValue(okString);
+	}
+
+	/** if a text failed focus */
+	public void focusGained(FocusEvent e) {
+		JTextField textField = (JTextField) e.getComponent();
+		if (textField != null)
+			textField.selectAll();
+	}
+
+	/** if a text field looses focus, do nothing */
+	public void focusLost(FocusEvent e) {
+		JTextField textField = (JTextField) e.getComponent();
+		if (textField != null)
+			textField.select(0, 0);
+	}
+
+	/** callback to handle option pane state changes */
+	public void propertyChange(PropertyChangeEvent e) {
+		String property = e.getPropertyName();
+
+		if (isVisible() && (e.getSource() == optionPane)
+				&& (JOptionPane.VALUE_PROPERTY.equals(property) || JOptionPane.INPUT_VALUE_PROPERTY.equals(property))) {
+
+			// retrieve current value, check if initialized
+			Object value = optionPane.getValue();
+			if (value == JOptionPane.UNINITIALIZED_VALUE)
+				return;
+
+			// reset current value
+			optionPane.setValue(JOptionPane.UNINITIALIZED_VALUE);
+
+			if (okString.equals(value)) {
+				validChoice = true;
+				setVisible(false);
+			} else {
+				setVisible(false);
+				// JOptionPane.showMessageDialog(optionPane.getRootFrame(),
+				// "No database connection established.",
+				// "",
+				// JOptionPane.WARNING_MESSAGE);
+			}
+		}
+	}
 
 }

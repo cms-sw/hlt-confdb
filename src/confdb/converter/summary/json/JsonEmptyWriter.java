@@ -17,37 +17,32 @@ import confdb.data.Parameter;
 import confdb.data.Sequence;
 import confdb.data.ServiceInstance;
 
-public class JsonEmptyWriter implements ISequenceWriter, IServiceWriter, IEDSourceWriter, IESSourceWriter, IESModuleWriter, IModuleWriter, IParameterWriter
-{
-	public String toString(Sequence sequence, ConverterEngine converterEngine,
-			String indent) {
+public class JsonEmptyWriter implements ISequenceWriter, IServiceWriter, IEDSourceWriter, IESSourceWriter,
+		IESModuleWriter, IModuleWriter, IParameterWriter {
+	public String toString(Sequence sequence, ConverterEngine converterEngine, String indent) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public String toString(ServiceInstance service,
-			ConverterEngine converterEngine, String indent)
+	public String toString(ServiceInstance service, ConverterEngine converterEngine, String indent)
 			throws ConverterException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public String toString(EDSourceInstance edsource,
-			ConverterEngine converterEngine, String indent)
+	public String toString(EDSourceInstance edsource, ConverterEngine converterEngine, String indent)
 			throws ConverterException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public String toString(ESSourceInstance essource,
-			ConverterEngine converterEngine, String indent)
+	public String toString(ESSourceInstance essource, ConverterEngine converterEngine, String indent)
 			throws ConverterException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public String toString(ESModuleInstance esmodule,
-			ConverterEngine converterEngine, String indent)
+	public String toString(ESModuleInstance esmodule, ConverterEngine converterEngine, String indent)
 			throws ConverterException {
 		// TODO Auto-generated method stub
 		return null;
@@ -60,11 +55,10 @@ public class JsonEmptyWriter implements ISequenceWriter, IServiceWriter, IEDSour
 
 	public void setConverterEngine(ConverterEngine converterEngine) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	public String toString(Parameter parameter,
-			ConverterEngine converterEngine, String indent)
+	public String toString(Parameter parameter, ConverterEngine converterEngine, String indent)
 			throws ConverterException {
 		// TODO Auto-generated method stub
 		return null;

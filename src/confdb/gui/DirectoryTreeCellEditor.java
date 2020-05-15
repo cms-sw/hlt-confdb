@@ -11,7 +11,6 @@ import java.util.EventObject;
 import confdb.data.Directory;
 import confdb.data.ConfigInfo;
 
-
 /**
  * DirectoryTreeCellEditor
  * -----------------------
@@ -20,75 +19,60 @@ import confdb.data.ConfigInfo;
  * Cell editor for tree view of configurations available in a
  * configuration database instance.
  */
-public class DirectoryTreeCellEditor extends DefaultTreeCellEditor
-{
-    //
-    // member data
-    //
+public class DirectoryTreeCellEditor extends DefaultTreeCellEditor {
+	//
+	// member data
+	//
 
-    /** Directory to be edited */
-    private Directory dir = null;
-    
-    //
-    // construction
-    //
-    
-    /** standard constructor */
-    public DirectoryTreeCellEditor(JTree tree,DefaultTreeCellRenderer renderer)
-    {
-	super(tree,renderer);
-    }
-    
-    
-    //
-    // member functions
-    //
-    
-    /** is cell editable? don't respond to double clicks */
-    public boolean isCellEditable(EventObject e)
-    {
-	if (e instanceof MouseEvent) return false;
-	return true;
-    }
-    
-    /**  DefaultTreeCellEditor's 'getCellEditorValue' */
-    public Object getCellEditorValue()
-    {
-	Object value = super.getCellEditorValue();
+	/** Directory to be edited */
+	private Directory dir = null;
 
-	if (dir == null) {
-	    System.err.println("return null from "+
-			       "DirectoryTreeCellEditor::getCellEditorValue()");
-	    return null;
+	//
+	// construction
+	//
+
+	/** standard constructor */
+	public DirectoryTreeCellEditor(JTree tree, DefaultTreeCellRenderer renderer) {
+		super(tree, renderer);
 	}
-	
-	Directory parentDir = dir.parentDir();
-	String newDirName = parentDir.name();
-	if (!newDirName.equals("/")) newDirName+="/";
-	newDirName+=value.toString();
-	dir.setName(newDirName);
-	return dir;
-    }
-    
-    /** TreeCellEditor's 'getTreeCellEditorComponent' */
-    public Component getTreeCellEditorComponent(JTree   tree,
-						Object  value,
-						boolean isSelected,
-						boolean expanded,
-						boolean leaf,
-						int     row)
-    {
-	if (value instanceof Directory) {
-	    dir = (Directory)value;
+
+	//
+	// member functions
+	//
+
+	/** is cell editable? don't respond to double clicks */
+	public boolean isCellEditable(EventObject e) {
+		if (e instanceof MouseEvent)
+			return false;
+		return true;
 	}
-	
-	return super.getTreeCellEditorComponent(tree,
-						value,
-						isSelected,
-						expanded,
-						leaf,
-						row);
-    }
-    
+
+	/** DefaultTreeCellEditor's 'getCellEditorValue' */
+	public Object getCellEditorValue() {
+		Object value = super.getCellEditorValue();
+
+		if (dir == null) {
+			System.err.println("return null from " + "DirectoryTreeCellEditor::getCellEditorValue()");
+			return null;
+		}
+
+		Directory parentDir = dir.parentDir();
+		String newDirName = parentDir.name();
+		if (!newDirName.equals("/"))
+			newDirName += "/";
+		newDirName += value.toString();
+		dir.setName(newDirName);
+		return dir;
+	}
+
+	/** TreeCellEditor's 'getTreeCellEditorComponent' */
+	public Component getTreeCellEditorComponent(JTree tree, Object value, boolean isSelected, boolean expanded,
+			boolean leaf, int row) {
+		if (value instanceof Directory) {
+			dir = (Directory) value;
+		}
+
+		return super.getTreeCellEditorComponent(tree, value, isSelected, expanded, leaf, row);
+	}
+
 }
-    

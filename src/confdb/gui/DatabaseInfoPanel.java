@@ -3,129 +3,117 @@ package confdb.gui;
 import javax.swing.*;
 import java.awt.*;
 
-
 /**
  * DatabaseInfoPanel
  * -----------------
  * @author Philipp Schieferdecker
  *
- * display the relevant information about the connection to the database.
+ * display the relevant information about the connection to the
+ * database.
  *
  */
 
+public class DatabaseInfoPanel extends JPanel {
+	//
+	// member data
+	//
 
-public class DatabaseInfoPanel extends JPanel
-{
-    //
-    // member data
-    //
-    
-    /** connection status */
-    private JLabel connectionStatus = null;
-    
-    /** database type */
-    private JLabel labelDbType = null;
-    private ImageIcon iconDbTypeMySQL = null;
-    private ImageIcon iconDbTypeOracle = null;
+	/** connection status */
+	private JLabel connectionStatus = null;
 
-    /** database host */
-    private JLabel labelDbHost = null;
-    private JLabel valueDbHost = null;
+	/** database type */
+	private JLabel labelDbType = null;
+	private ImageIcon iconDbTypeMySQL = null;
+	private ImageIcon iconDbTypeOracle = null;
 
-    /** database port */
-    private JLabel labelDbPort = null;
-    private JLabel valueDbPort = null;
+	/** database host */
+	private JLabel labelDbHost = null;
+	private JLabel valueDbHost = null;
 
-    /** database host */
-    private JLabel labelDbName = null;
-    private JLabel valueDbName = null;
+	/** database port */
+	private JLabel labelDbPort = null;
+	private JLabel valueDbPort = null;
 
-    /** database host */
-    private JLabel labelDbUser = null;
-    private JLabel valueDbUser = null;
+	/** database host */
+	private JLabel labelDbName = null;
+	private JLabel valueDbName = null;
 
-    
-    //
-    // construction
-    //
+	/** database host */
+	private JLabel labelDbUser = null;
+	private JLabel valueDbUser = null;
 
-    /** default constructor */
-    public DatabaseInfoPanel()
-    {
-	super(new FlowLayout());
-	
-	setBackground(Color.WHITE);
+	//
+	// construction
+	//
 
-	connectionStatus = new JLabel("<html><font color=\"#ff0000\">" +
-				      " <b>Disconnected</b> " +
-				      "</font></html>");
-	connectionStatus.setBorder(BorderFactory.createRaisedBevelBorder());
-	
-	labelDbType = new JLabel();
-	iconDbTypeMySQL  = new ImageIcon(getClass().getResource("/mysql.gif"));
-	iconDbTypeOracle = new ImageIcon(getClass().getResource("/oracle.gif"));
+	/** default constructor */
+	public DatabaseInfoPanel() {
+		super(new FlowLayout());
 
-	labelDbHost = new JLabel("<html> <b>Host:</b></html>");
-	labelDbPort = new JLabel("<html> <b>Port:</b></html>");
-	labelDbName = new JLabel("<html> <b>Name:</b></html>");
-	labelDbUser = new JLabel("<html> <b>User:</b></html>");
-	
-	valueDbHost = new JLabel(" - ");
-	valueDbPort = new JLabel(" - ");
-	valueDbName = new JLabel(" - ");
-	valueDbUser = new JLabel(" - ");
-	
-	valueDbHost.setBorder(BorderFactory.createLoweredBevelBorder());
-	valueDbPort.setBorder(BorderFactory.createLoweredBevelBorder());
-	valueDbName.setBorder(BorderFactory.createLoweredBevelBorder());
-	valueDbUser.setBorder(BorderFactory.createLoweredBevelBorder());
-	
-	add(labelDbType);
-	add(connectionStatus);
-	add(labelDbHost);
-	add(valueDbHost);
-	add(labelDbPort);
-	add(valueDbPort);
-	add(labelDbName);
-	add(valueDbName);
-	add(labelDbUser);
-	add(valueDbUser);
-    }
-    
+		setBackground(Color.WHITE);
 
-    //
-    // member functions
-    //
-    
-    /** connected to databse, update the database information */
-    public void connectedToDatabase(String type,String host,String port,
-				    String name,String user)
-    {
-	connectionStatus.setText("<html><font color=\"#00ff00\">" +
-				 " <b>Connected</b> " +
-				 "</color></html>");
+		connectionStatus = new JLabel("<html><font color=\"#ff0000\">" + " <b>Disconnected</b> " + "</font></html>");
+		connectionStatus.setBorder(BorderFactory.createRaisedBevelBorder());
 
-	if (type.equals("mysql")) labelDbType.setIcon(iconDbTypeMySQL);
-	if (type.equals("oracle")) labelDbType.setIcon(iconDbTypeOracle);
-	
-	valueDbHost.setText(" "+host+" ");
-	valueDbPort.setText(" "+port+" ");
-	valueDbName.setText(" "+name+" ");
-	valueDbUser.setText(" "+user+" ");
-    }
+		labelDbType = new JLabel();
+		iconDbTypeMySQL = new ImageIcon(getClass().getResource("/mysql.gif"));
+		iconDbTypeOracle = new ImageIcon(getClass().getResource("/oracle.gif"));
 
-    /** connected to databse, update the database information */
-    public void disconnectedFromDatabase()
-    {
-	connectionStatus.setText("<html><font color=\"#ff0000\">" +
-				 " <b>Disconnected</b> " +
-				 "</color></html>");
+		labelDbHost = new JLabel("<html> <b>Host:</b></html>");
+		labelDbPort = new JLabel("<html> <b>Port:</b></html>");
+		labelDbName = new JLabel("<html> <b>Name:</b></html>");
+		labelDbUser = new JLabel("<html> <b>User:</b></html>");
 
-	labelDbType.setIcon(null);
-	valueDbHost.setText(" - ");
-	valueDbPort.setText(" - ");
-	valueDbName.setText(" - ");
-	valueDbUser.setText(" - ");
-    }
+		valueDbHost = new JLabel(" - ");
+		valueDbPort = new JLabel(" - ");
+		valueDbName = new JLabel(" - ");
+		valueDbUser = new JLabel(" - ");
+
+		valueDbHost.setBorder(BorderFactory.createLoweredBevelBorder());
+		valueDbPort.setBorder(BorderFactory.createLoweredBevelBorder());
+		valueDbName.setBorder(BorderFactory.createLoweredBevelBorder());
+		valueDbUser.setBorder(BorderFactory.createLoweredBevelBorder());
+
+		add(labelDbType);
+		add(connectionStatus);
+		add(labelDbHost);
+		add(valueDbHost);
+		add(labelDbPort);
+		add(valueDbPort);
+		add(labelDbName);
+		add(valueDbName);
+		add(labelDbUser);
+		add(valueDbUser);
+	}
+
+	//
+	// member functions
+	//
+
+	/** connected to databse, update the database information */
+	public void connectedToDatabase(String type, String host, String port, String name, String user) {
+		connectionStatus.setText("<html><font color=\"#00ff00\">" + " <b>Connected</b> " + "</color></html>");
+
+		if (type.equals("mysql"))
+			labelDbType.setIcon(iconDbTypeMySQL);
+		if (type.equals("oracle"))
+			labelDbType.setIcon(iconDbTypeOracle);
+
+		valueDbHost.setText(" " + host + " ");
+		valueDbPort.setText(" " + port + " ");
+		valueDbName.setText(" " + name + " ");
+		valueDbUser.setText(" " + user + " ");
+	}
+
+	/** connected to databse, update the database information */
+	public void disconnectedFromDatabase() {
+		connectionStatus.setText("<html><font color=\"#ff0000\">" + " <b>Disconnected</b> " + "</color></html>");
+
+		labelDbType.setIcon(null);
+		valueDbHost.setText(" - ");
+		valueDbPort.setText(" - ");
+		valueDbName.setText(" - ");
+		valueDbUser.setText(" - ");
+	}
 
 }
