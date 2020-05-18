@@ -27,7 +27,7 @@ public class Sequence extends ReferenceContainer {
 	/** insert a module into the sequence */
 	public void insertEntry(int i, Reference reference) {
 		if (reference instanceof ModuleReference || reference instanceof SequenceReference
-				|| reference instanceof OutputModuleReference) {
+				|| reference instanceof TaskReference || reference instanceof OutputModuleReference) {
 			if (!entries.contains(reference)) {
 				entries.add(i, reference);
 				setHasChanged();
