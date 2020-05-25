@@ -1615,7 +1615,7 @@ public class ConfigurationTreeActions {
 			index = config.pathCount();
 		else if (external instanceof Sequence)
 			index = config.sequenceCount();
-		else if (external instanceof Sequence)
+		else if (external instanceof Task)
 			index = config.taskCount();
 
 		ReferenceContainer container = null;
