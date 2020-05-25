@@ -76,6 +76,7 @@ public class ConfDB {
 	// database features:
 	private boolean extraPathFieldsAvailability = true;
 	private boolean operatorFieldForSequencesAvailability = true;
+	private boolean operatorFieldForTasksAvailability = true;
 
 	// sv
 	private Integer countingParamIds = 20000000;
@@ -147,6 +148,7 @@ public class ConfDB {
 	private PreparedStatement psSelectESModulesForConfig = null;
 	private PreparedStatement psSelectServicesForConfig = null;
 	private PreparedStatement psSelectSequencesForConfig = null;
+	private PreparedStatement psSelectTasksForConfig = null;
 	private PreparedStatement psSelectPathsForConfig = null;
 	private PreparedStatement psSelectContentForConfig = null;
 
@@ -169,6 +171,7 @@ public class ConfDB {
 	private PreparedStatement psSelectESModuleId = null;
 	private PreparedStatement psSelectServiceId = null;
 	private PreparedStatement psSelectSequenceId = null;
+	private PreparedStatement psSelectTaskId = null;
 	private PreparedStatement psSelectPathId = null;
 	private PreparedStatement psSelectModuleIdBySeq = null;
 	private PreparedStatement psSelectModuleIdByPath = null;
@@ -195,6 +198,7 @@ public class ConfDB {
 	private PreparedStatement psSelectModuleTemplateCount = null;
 	private PreparedStatement psSelectModuleCount = null;
 	private PreparedStatement psSelectSequenceCount = null;
+	private PreparedStatement psSelectTaskCount = null;
 	private PreparedStatement psSelectPathCount = null;
 	private PreparedStatement psSelectParameterCount = null;
 	private PreparedStatement psSelectParameterSetCount = null;
@@ -254,13 +258,19 @@ public class ConfDB {
 	private PreparedStatement psCheckHPathIdCrc = null;
 	private PreparedStatement psInsertConfigHPathAssoc = null;
 	private PreparedStatement psInsertSequence = null;
+	private PreparedStatement psInsertTask = null;
 	private PreparedStatement psInsertConfigSequenceAssoc = null;
+	private PreparedStatement psInsertConfigTaskAssoc = null;
 	private PreparedStatement psInsertModule = null;
 	private PreparedStatement psInsertSequenceModuleAssoc = null;
 	private PreparedStatement psInsertSequenceOutputModuleAssoc = null;
+	private PreparedStatement psInsertTaskModuleAssoc = null;
+	private PreparedStatement psInsertTaskOutputModuleAssoc = null;
 	private PreparedStatement psInsertPathPathAssoc = null;
 	private PreparedStatement psInsertPathSequenceAssoc = null;
 	private PreparedStatement psInsertSequenceSequenceAssoc = null;
+	private PreparedStatement psInsertPathTaskAssoc = null;
+	private PreparedStatement psInsertTaskTaskAssoc = null;
 	private PreparedStatement psInsertPathModuleAssoc = null;
 	private PreparedStatement psInsertPathOutputModuleAssoc = null;
 	private PreparedStatement psInsertSuperIdReleaseAssoc = null;
@@ -330,6 +340,7 @@ public class ConfDB {
 	private PreparedStatement psDeleteESModulesFromConfig = null;
 	private PreparedStatement psDeleteServicesFromConfig = null;
 	private PreparedStatement psDeleteSequencesFromConfig = null;
+	private PreparedStatement psDeleteTasksFromConfig = null;
 	private PreparedStatement psDeletePathsFromConfig = null;
 	private PreparedStatement psDeleteContentFromConfig = null;
 
@@ -339,6 +350,13 @@ public class ConfDB {
 	private PreparedStatement psDeleteChildSeqFromParentPaths = null;
 	private PreparedStatement psDeleteChildPathsFromParentPath = null;
 	private PreparedStatement psDeleteChildPathFromParentPaths = null;
+
+	private PreparedStatement psDeleteChildTasksFromParentTask = null;
+	private PreparedStatement psDeleteChildTaskFromParentTasks = null;
+	private PreparedStatement psDeleteChildTasksFromParentSeq = null;
+	private PreparedStatement psDeleteChildTaskFromParentSeqs = null;
+	private PreparedStatement psDeleteChildTasksFromParentPath = null;
+	private PreparedStatement psDeleteChildTaskFromParentPaths = null;
 
 	private PreparedStatement psDeletePathStreamDataSetAssoc = null;
 	private PreparedStatement psDeletePathOutputModAssoc = null;
@@ -361,6 +379,7 @@ public class ConfDB {
 	private PreparedStatement psDeletePSet = null;
 	private PreparedStatement psDeleteVPSet = null;
 	private PreparedStatement psDeleteSequence = null;
+	private PreparedStatement psDeleteTask = null;
 	private PreparedStatement psDeletePath = null;
 
 	private CallableStatement csLoadTemplate = null;
@@ -378,9 +397,12 @@ public class ConfDB {
 	private PreparedStatement psSelectStringValues = null;
 	private PreparedStatement psSelectCLOBsValues = null; // get Clobs - bug75950
 	private PreparedStatement psSelectPathEntries = null;
-	private PreparedStatement psSelectSequenceEntries = null;
+	private PreparedStatement psSelectSequenceAndTaskEntries = null;
 	private PreparedStatement psSelectSequenceEntriesAndOperator = null; // bug #91797
 	private PreparedStatement psPrepareSequenceEntries = null; // bug #91797
+	private PreparedStatement psSelectTaskEntries = null;
+	private PreparedStatement psSelectTaskEntriesAndOperator = null; // bug #91797
+	private PreparedStatement psPrepareTaskEntries = null; // bug #91797
 
 	private PreparedStatement psSelectSoftwarePackageId = null;
 	private PreparedStatement psInsertSoftwarePackage = null;
@@ -402,6 +424,15 @@ public class ConfDB {
 
 	// bug #91797: ConfDB operator IGNORE/NEGATE also for modules in a sequence.
 	private PreparedStatement psCheckOperatorForModuleSequenceAssoc = null;
+	private PreparedStatement psCheckOperatorForModuleTaskAssoc = null;
+
+	// BSATARIC TASKS
+	private PreparedStatement psInsertTaskPaeType = null;
+	private PreparedStatement psGetPaeTypes = null;
+	private PreparedStatement psGetPaeColumnNumber = null;
+	private PreparedStatement psGetConf2Pae = null;
+	private PreparedStatement psGetPath2Pae = null;
+	private PreparedStatement psGetPaelements = null;
 
 	private ArrayList<PreparedStatement> preparedStatements = new ArrayList<PreparedStatement>();
 
@@ -522,6 +553,10 @@ public class ConfDB {
 
 	public boolean getOperatorFieldForSequencesAvailability() {
 		return operatorFieldForSequencesAvailability;
+	}
+
+	public boolean getOperatorFieldForTasksAvailability() {
+		return operatorFieldForTasksAvailability;
 	}
 
 	/** close all prepared statements */
@@ -683,6 +718,7 @@ public class ConfDB {
 		try {
 			extraPathFieldsAvailability = checkExtraPathFields();
 			operatorFieldForSequencesAvailability = checkOperatorFieldForSequences();
+			operatorFieldForTasksAvailability = checkOperatorFieldForTasks();
 		} catch (DatabaseException e) {
 			e.printStackTrace(); // DEBUG
 		}
@@ -740,6 +776,9 @@ public class ConfDB {
 			rs = psSelectSequenceCount.executeQuery();
 			rs.next();
 			int sequenceCount = rs.getInt(1);
+			rs = psSelectTaskCount.executeQuery();
+			rs.next();
+			int taskCount = rs.getInt(1);
 			rs = psSelectPathCount.executeQuery();
 			rs.next();
 			int pathCount = rs.getInt(1);
@@ -759,8 +798,9 @@ public class ConfDB {
 					+ essourceTemplateCount + ")" + "\nESModules (T):  " + esmoduleCount + " (" + esmoduleTemplateCount
 					+ ")" + "\nServices (T):   " + serviceCount + " (" + serviceTemplateCount + ")"
 					+ "\nModules (T):    " + moduleCount + " (" + moduleTemplateCount + ")" + "\nSequences:      "
-					+ sequenceCount + "\nPaths:          " + pathCount + "\nParameters:     " + parameterCount
-					+ "\nPSets:          " + parameterSetCount + "\nVPSets:         " + vecParameterSetCount + "\n");
+					+ sequenceCount + "\nTasks:      " + taskCount + "\nPaths:          " + pathCount
+					+ "\nParameters:     " + parameterCount + "\nPSets:          " + parameterSetCount
+					+ "\nVPSets:         " + vecParameterSetCount + "\n");
 		} catch (SQLException e) {
 			String errMsg = "ConfDB::listCounts() failed:" + e.getMessage();
 			throw new DatabaseException(errMsg, e);
@@ -1152,14 +1192,17 @@ public class ConfDB {
 
 		int configId = config.dbId();
 		Stack<Integer> idlifo = new Stack<Integer>();
+		Stack<Integer> idTasklifo = new Stack<Integer>();
 
 		// System.err.println("loadConfiguration with config "+config);
 
 		ResultSet rsInstances = null;
 
 		ResultSet rsPathEntries = null;
-		ResultSet rsSequenceEntries = null;
+		ResultSet rsSequenceAndTaskEntries = null;
+		// ResultSet rsTaskEntries = null;
 		ResultSet rsPrepareSequence = null;
+		ResultSet rsPrepareTask = null;
 
 		ResultSet rsEventContentEntries = null;
 		ResultSet rsStreamEntries = null;
@@ -1167,10 +1210,18 @@ public class ConfDB {
 		ResultSet rsDatasetEntries = null;
 		ResultSet rsPathStreamDataset = null;
 
+		ResultSet rsConf2Paes = null;
+		ResultSet rsPath2Paes = null;
+		ResultSet rsPaeElements = null;
+
 		SoftwareRelease release = config.release();
 
-		try {
+		boolean pera = true;
 
+		try {
+			/*
+			 * if (pera) return;
+			 */
 			// System.err.println("Trying rs instances"+configId);
 			psSelectInstances.setInt(1, configId);
 			psSelectInstances.setInt(2, configId);
@@ -1182,25 +1233,27 @@ public class ConfDB {
 			psSelectInstances.setInt(8, configId);
 			psSelectInstances.setInt(9, configId);
 			psSelectInstances.setInt(10, configId);
-			rsInstances = psSelectInstances.executeQuery();
+			psSelectInstances.setInt(11, configId); // Tasks
+			psSelectInstances.setInt(12, configId); // Tasks
+			rsInstances = psSelectInstances.executeQuery(); // BSATARIC: get all instances for the same config
+															// (sequences too)
+
+			/*
+			 * if (pera) return;
+			 */
+
 			psSelectPathEntries.setInt(1, configId);
 			psSelectPathEntries.setInt(2, configId);
 			// System.err.println("Trying Pathentries"+configId);
 			rsPathEntries = psSelectPathEntries.executeQuery();
 
-			// This is to fix the operator field bug for modules inside sequences. bug
-			// #91797
-			/*
-			 * if(operatorFieldForSequencesAvailability) {
-			 * psSelectSequenceEntriesAndOperator.setInt(1,configId); rsSequenceEntries =
-			 * psSelectSequenceEntriesAndOperator.executeQuery(); } else {
-			 * psSelectSequenceEntries.setInt(1,configId); rsSequenceEntries =
-			 * psSelectSequenceEntries.executeQuery(); }
-			 */
+			psSelectSequenceAndTaskEntries.setInt(1, configId);
+			psSelectSequenceAndTaskEntries.setInt(2, configId);
+			rsSequenceAndTaskEntries = psSelectSequenceAndTaskEntries.executeQuery();
 
-			psSelectSequenceEntries.setInt(1, configId);
-			psSelectSequenceEntries.setInt(2, configId);
-			rsSequenceEntries = psSelectSequenceEntries.executeQuery();
+			// psSelectTaskEntries.setInt(1, configId);
+			// psSelectTaskEntries.setInt(2, configId);
+			// rsTaskEntries = psSelectTaskEntries.executeQuery();
 
 			psSelectEventContentEntries.setInt(1, configId);
 			rsEventContentEntries = psSelectEventContentEntries.executeQuery();
@@ -1214,6 +1267,12 @@ public class ConfDB {
 			psSelectEventContentStatements.setInt(1, configId);
 			rsEventContentStatements = psSelectEventContentStatements.executeQuery();
 
+			// BSATARIC TASKS QUERIES
+
+			// rsConf2Paes = psGetConf2Pae.executeQuery();
+			// rsPath2Paes = psGetPath2Pae.executeQuery();
+			// rsPaeElements = psGetPaelements.executeQuery();
+
 			HashMap<Integer, Stream> idToStream = new HashMap<Integer, Stream>();
 			HashMap<Integer, PrimaryDataset> idToDataset = new HashMap<Integer, PrimaryDataset>();
 
@@ -1224,15 +1283,56 @@ public class ConfDB {
 			HashMap<Integer, ModuleInstance> idToModules = new HashMap<Integer, ModuleInstance>();
 			HashMap<Integer, Path> idToPaths = new HashMap<Integer, Path>();
 			HashMap<Integer, Sequence> idToSequences = new HashMap<Integer, Sequence>();
+			HashMap<Integer, Task> idToTasks = new HashMap<Integer, Task>();
 
 			HashMap<EventContent, Integer> eventContentToId = new HashMap<EventContent, Integer>();
 			HashMap<Stream, Integer> streamToId = new HashMap<Stream, Integer>();
 			HashMap<PrimaryDataset, Integer> primaryDatasetToId = new HashMap<PrimaryDataset, Integer>();
 			HashMap<Path, Integer> pathToId = new HashMap<Path, Integer>();
 			HashMap<Sequence, Integer> sequenceToId = new HashMap<Sequence, Integer>();
+			HashMap<Task, Integer> taskToId = new HashMap<Task, Integer>();
 
-			while (rsInstances.next()) {
-				int id = rsInstances.getInt(1);
+			// TODO: continue from here write custom queries (following 2 don't work too
+			// many results)
+			// BSATARIC loop here over conf2pae, path2pae and paelelements
+			/*
+			 * if (rsConf2Paes.next()) while (rsConf2Paes.next()) {
+			 * 
+			 * System.out.println("Conf version: " + rsConf2Paes.getInt(1));
+			 * System.out.println("ID PAE: " + rsConf2Paes.getInt(2));
+			 * System.out.println("ID parent: " + rsConf2Paes.getInt(3));
+			 * System.out.println("LVL: " + rsConf2Paes.getInt(4));
+			 * System.out.println("ORD\n: " + rsConf2Paes.getInt(5));
+			 * 
+			 * }
+			 */
+
+			/*
+			 * if (rsPath2Paes.next()) while (rsPath2Paes.next()) {
+			 * 
+			 * System.out.println("Path id: " + rsPath2Paes.getInt(1));
+			 * System.out.println("ID PAE: " + rsPath2Paes.getInt(2));
+			 * System.out.println("ID parent: " + rsPath2Paes.getInt(3));
+			 * System.out.println("LVL: " + rsPath2Paes.getInt(4));
+			 * System.out.println("ORD\n: " + rsPath2Paes.getInt(5));
+			 * 
+			 * }
+			 */
+
+			/*
+			 * if (rsPaeElements.next()) while (rsPaeElements.next()) {
+			 * System.out.println("AAA");
+			 * 
+			 * System.out.println("PAETYPE: " + rsPaeElements.getInt(1));
+			 * System.out.println("NAME: " + rsPaeElements.getString(2));
+			 * System.out.println("O ID: " + rsPaeElements.getInt(3));
+			 * System.out.println("FROM DB: " + rsPaeElements.getString(4));
+			 * 
+			 * }
+			 */
+
+			while (rsInstances.next()) { // BSATARIC: populate configuration through instances loop
+				int id = rsInstances.getInt(1); // BSATARIC: he literally takes return result as parameters 1,2,3 (type)
 				int templateId = rsInstances.getInt(2);
 				String type = rsInstances.getString(3);
 				String instanceName = rsInstances.getString(4);
@@ -1317,10 +1417,17 @@ public class ConfDB {
 					path.setDatabaseId(id);
 					idToPaths.put(id, path);
 				} else if (type.equals("Sequence")) {
-					int insertIndex = config.sequenceCount();
+					System.out.println("SEQUENCE LOADED! ID: " + id);
+					int insertIndex = config.sequenceCount(); // BSATARIC: it's only previous sequence count
 					Sequence sequence = config.insertSequence(insertIndex, instanceName);
 					sequence.setDatabaseId(id);
 					idToSequences.put(id, sequence);
+				} else if (type.equals("Task")) {
+					System.out.println("TASK LOADED! ID: " + id);
+					int insertIndex = config.taskCount();
+					Task task = config.insertTask(insertIndex, instanceName);
+					task.setDatabaseId(id);
+					idToTasks.put(id, task);
 				}
 			}
 
@@ -1390,115 +1497,227 @@ public class ConfDB {
 			}
 
 			int previouslvl = 0;
-			boolean seqtoskip = false;
+			boolean seqOrTaskToSkip = false;
 			int lvltoskip = 0;
-			boolean seqDone[];
-			seqDone = new boolean[5000000];
-			while (rsSequenceEntries.next()) {
-				int sequenceId = rsSequenceEntries.getInt(1);
-				int entryLvl = rsSequenceEntries.getInt(3);
-				int entryId = rsSequenceEntries.getInt(4);
-				int sequenceNb = rsSequenceEntries.getInt(5);
-				String entryType = rsSequenceEntries.getString(6);
+			boolean seqOrTaskDone[];
+			seqOrTaskDone = new boolean[5000000];
+			while (rsSequenceAndTaskEntries.next()) { // BSATARIC: I guess list of all sequences in configuration
+				// System.out.println("SEQUENCE LOADING...");
 
-				// System.err.println("found seq "+ entryId + "parent="+sequenceId+ "
-				// lvl="+entryLvl+" ord "+sequenceNb+" entryType="+entryType);
+				int sequenceOrTaskId = rsSequenceAndTaskEntries.getInt(1);
+				int entryLvl = rsSequenceAndTaskEntries.getInt(3);
+				int entryId = rsSequenceAndTaskEntries.getInt(4);
+				int sequenceNb = rsSequenceAndTaskEntries.getInt(5);
+				String entryType = rsSequenceAndTaskEntries.getString(6);
 
-				while (entryLvl < previouslvl) {
-					if ((!seqtoskip) && (entryLvl >= lvltoskip))
+				// if (entryLvl == 0)
+				System.out.println("SEQUENCE/TASK parent " + sequenceOrTaskId + " lvl = " + entryLvl + " entryId "
+						+ entryId + " ord " + sequenceNb + " entryType = " + entryType);
+
+				System.out.println("ENTRY LEVEL: " + entryLvl);
+				System.out.println("PREVIOUS LEVEL: " + previouslvl);
+
+				while (entryLvl < previouslvl) { // next sequence/task in the entries (zero level)
+					if ((!seqOrTaskToSkip) && (entryLvl >= lvltoskip)) {
 						idlifo.pop();
+						System.out.println("POPPED sequenceOrTaskId: " + entryId + "parentId " + sequenceOrTaskId);
+					}
 					previouslvl--;
 					if (previouslvl < lvltoskip) {
-						seqtoskip = false;
+						seqOrTaskToSkip = false;
 						lvltoskip = 0;
 					}
 				}
 				previouslvl = entryLvl;
 				// if (entryLvl<lvltoskip) {
-				// seqtoskip=false;
+				// seqOrTaskToSkip=false;
 				// lvltoskip=0;
 				// }
 
-				if (entryLvl == 0) {
-					if (seqDone[entryId]) {
-						seqtoskip = true;
+				if (entryLvl == 0) { // BSATARIC: basically only sequences and not sequence references are taken as
+										// entries?
+					if (seqOrTaskDone[entryId]) {
+						seqOrTaskToSkip = true;
 						lvltoskip = 1;
 					} else {
-						seqDone[entryId] = true;
+						seqOrTaskDone[entryId] = true;
 						idlifo.push(entryId);
 						previouslvl++;
 						lvltoskip = 1;
-						Sequence entry = idToSequences.get(entryId);
-						// System.err.println(" inserting seq "+sequenceId+" into sequenceToId" );
-						entry.setDatabaseId(sequenceId);
-						sequenceToId.put(entry, sequenceId);
+						if (entryType.equals("Sequence")) {
+							Sequence entry = idToSequences.get(entryId);
+
+							System.out.println("PUSHED sequenceOrTaskId: " + entryId + "parentId " + sequenceOrTaskId
+									+ " sequenceName " + entry.name());
+
+							// System.err.println(" inserting seq "+sequenceOrTaskId+" into sequenceToId" );
+							entry.setDatabaseId(sequenceOrTaskId);
+							sequenceToId.put(entry, sequenceOrTaskId);
+						} else if (entryType.equals("Task")) {
+							Task entry = idToTasks.get(entryId);
+
+							System.out.println("PUSHED sequenceOrTaskId: " + entryId + "parentId " + sequenceOrTaskId
+									+ " taskName " + entry.name());
+
+							// System.err.println(" inserting seq "+sequenceOrTaskId+" into sequenceToId" );
+							entry.setDatabaseId(sequenceOrTaskId);
+							taskToId.put(entry, sequenceOrTaskId);
+						}
 					}
 				}
-				if ((entryLvl > 0) && (!seqtoskip)) {
-					sequenceId = idlifo.peek();
+				if ((entryLvl > 0) && (!seqOrTaskToSkip)) { // BSATARIC: entryLvl > 0 what is that? Sequences part of
+					// sequences?
+					sequenceOrTaskId = idlifo.peek();
 
-					Sequence sequence = idToSequences.get(sequenceId);
-					int index = sequence.entryCount();
-					sequenceNb = index;
+					Sequence sequence = idToSequences.get(sequenceOrTaskId);
+					if (sequence != null) { // if there is sequence with this ID - otherwise it is a task
+						int index = sequence.entryCount();
+						sequenceNb = index;
 
-					boolean fail = true;
-					Operator operator = Operator.DEFAULT;
-					try {
-						// operator = Operator.getOperator( rsSequenceEntries.getInt(5) );
-						// if(operatorFieldForSequencesAvailability)
-						operator = Operator.getOperator(rsSequenceEntries.getInt(7));
-						fail = false;
-					} catch (SQLException e) {
-						operator = Operator.DEFAULT;
-						fail = true;
+						boolean fail = true;
+						Operator operator = Operator.DEFAULT;
+						try {
+							// operator = Operator.getOperator( rsSequenceAndTaskEntries.getInt(5) );
+							// if(operatorFieldForSequencesAvailability)
+							operator = Operator.getOperator(rsSequenceAndTaskEntries.getInt(7));
+							fail = false;
+						} catch (SQLException e) {
+							operator = Operator.DEFAULT;
+							fail = true;
 
-						System.out.println("SQLException catched at confDb.java::loadConfiguration()   sequence = "
-								+ sequence.name());
+							System.out.println("SQLException catched at confDb.java::loadConfiguration()   sequence = "
+									+ sequence.name());
+						}
+
+						if (index != sequenceNb)
+							System.err.println("ERROR in sequence " + sequence.name() + ": index=" + index
+									+ " sequenceNb=" + sequenceNb);
+
+						if (entryType.equals("Sequence")) {
+							if (seqOrTaskDone[entryId]) {
+								seqOrTaskToSkip = true;
+								lvltoskip = entryLvl + 1;
+							} else {
+								idlifo.push(entryId);
+								System.out.println(
+										"PUSHED sequenceOrTaskId: " + entryId + "parentId " + sequenceOrTaskId);
+								previouslvl++;
+							}
+
+							// if (!seqOrTaskToSkip) {
+							seqOrTaskDone[entryId] = true;
+							Sequence entry = idToSequences.get(entryId);
+							if (entry == null) {
+								System.err.println("ERROR: can't find sequence for " + "id=" + entryId
+										+ " expected as daughter " + index + " of sequence " + sequence.name());
+							}
+							config.insertSequenceReference(sequence, index, entry).setOperator(operator);
+							// }
+						} else if (entryType.equals("Task")) { // treat nested task inside sequence in the same way as
+																// nested sequence
+							if (seqOrTaskDone[entryId]) {
+								seqOrTaskToSkip = true;
+								lvltoskip = entryLvl + 1;
+							} else {
+								idlifo.push(entryId);
+								System.out.println(
+										"PUSHED sequenceOrTaskId: " + entryId + "parentId " + sequenceOrTaskId);
+								previouslvl++;
+							}
+
+							// if (!seqOrTaskToSkip) {
+							seqOrTaskDone[entryId] = true;
+							Task entry = (Task) idToTasks.get(entryId);
+							config.insertTaskReference(sequence, index, entry).setOperator(operator);
+						} else if (entryType.equals("Module")) {
+							ModuleInstance entry = (ModuleInstance) idToModules.get(entryId);
+							// System.err.println("Module "+entryId+" seq "+sequence+" index "+index);
+							config.insertModuleReference(sequence, index, entry).setOperator(operator);
+						} else if (entryType.equals("OutputModule")) {
+							Stream entry = (Stream) idToStream.get(entryId);
+							if (entry == null) {
+								System.err.println("ERROR: can't find stream for entryid");
+								continue;
+							}
+							OutputModule referencedOutput = entry.outputModule();
+							if (referencedOutput == null)
+								continue;
+							config.insertOutputModuleReference(sequence, index, referencedOutput).setOperator(operator);
+						} else
+							System.err.println("Invalid entryType '" + entryType + "'");
+
+						sequence.setDatabaseId(sequenceOrTaskId);
+						sequenceToId.put(sequence, sequenceOrTaskId);
+					} else { // BSATARIC TASKS
+						Task task = idToTasks.get(sequenceOrTaskId);
+
+						int index = task.entryCount();
+						sequenceNb = index;
+
+						boolean fail = true;
+						Operator operator = Operator.DEFAULT;
+						try {
+							// operator = Operator.getOperator( rsSequenceAndTaskEntries.getInt(5) );
+							// if(operatorFieldForSequencesAvailability)
+							operator = Operator.getOperator(rsSequenceAndTaskEntries.getInt(7));
+							fail = false;
+						} catch (SQLException e) {
+							operator = Operator.DEFAULT;
+							fail = true;
+
+							System.out.println(
+									"SQLException catched at confDb.java::loadConfiguration()   task = " + task.name());
+						}
+
+						if (index != sequenceNb)
+							System.err.println("ERROR in sequence " + task.name() + ": index=" + index + " sequenceNb="
+									+ sequenceNb);
+
+						if (entryType.equals("Task")) { // treat nested task inside task in the same way as nested
+														// sequence
+							if (seqOrTaskDone[entryId]) {
+								seqOrTaskToSkip = true;
+								lvltoskip = entryLvl + 1;
+							} else {
+								idlifo.push(entryId);
+								System.out.println("PUSHED taskId: " + entryId + "parentId " + sequenceOrTaskId);
+								previouslvl++;
+							}
+
+							// if (!seqOrTaskToSkip) {
+							seqOrTaskDone[entryId] = true;
+							Task entry = idToTasks.get(entryId);
+							if (entry == null) {
+								System.err.println("ERROR: can't find task for " + "id=" + entryId
+										+ " expected as daughter " + index + " of task " + task.name());
+							}
+							config.insertTaskReference(task, index, entry).setOperator(operator);
+							// }
+						} else if (entryType.equals("Module")) {
+							ModuleInstance entry = (ModuleInstance) idToModules.get(entryId);
+							config.insertModuleReference(task, index, entry).setOperator(operator);
+						} else if (entryType.equals("OutputModule")) {
+							Stream entry = (Stream) idToStream.get(entryId);
+							if (entry == null) {
+								System.err.println("ERROR: can't find stream for entryid");
+								continue;
+							}
+							OutputModule referencedOutput = entry.outputModule();
+							if (referencedOutput == null)
+								continue;
+							config.insertOutputModuleReference(task, index, referencedOutput).setOperator(operator);
+						} else
+							System.err.println("Invalid entryType '" + entryType + "'");
+
+						task.setDatabaseId(sequenceOrTaskId);
+						taskToId.put(task, sequenceOrTaskId);
 					}
-
-					if (index != sequenceNb)
-						System.err.println("ERROR in sequence " + sequence.name() + ": index=" + index + " sequenceNb="
-								+ sequenceNb);
-
-					if (entryType.equals("Sequence")) {
-						if (seqDone[entryId]) {
-							seqtoskip = true;
-							lvltoskip = entryLvl + 1;
-						} else {
-							idlifo.push(entryId);
-							previouslvl++;
-						}
-
-						// if (!seqtoskip) {
-						seqDone[entryId] = true;
-						Sequence entry = idToSequences.get(entryId);
-						if (entry == null) {
-							System.err.println("ERROR: can't find sequence for " + "id=" + entryId
-									+ " expected as daughter " + index + " of sequence " + sequence.name());
-						}
-						config.insertSequenceReference(sequence, index, entry).setOperator(operator);
-						// }
-					} else if (entryType.equals("Module")) {
-						ModuleInstance entry = (ModuleInstance) idToModules.get(entryId);
-						// System.err.println("Module "+entryId+" seq "+sequence+" index "+index);
-						config.insertModuleReference(sequence, index, entry).setOperator(operator);
-					} else if (entryType.equals("OutputModule")) {
-						Stream entry = (Stream) idToStream.get(entryId);
-						if (entry == null) {
-							System.err.println("ERROR: can't find stream for entryid");
-							continue;
-						}
-						OutputModule referencedOutput = entry.outputModule();
-						if (referencedOutput == null)
-							continue;
-						config.insertOutputModuleReference(sequence, index, referencedOutput).setOperator(operator);
-					} else
-						System.err.println("Invalid entryType '" + entryType + "'");
-
-					sequence.setDatabaseId(sequenceId);
-					sequenceToId.put(sequence, sequenceId);
 				}
 			}
+
+			// psInsertTaskPaeType.setInt(1, 3);
+			// psInsertTaskPaeType.setString(1, "Task"); //DONE PAE ID OF TASK IS 4
+			// psInsertTaskPaeType.executeUpdate();
 
 			while (rsPathEntries.next()) {
 				int pathId = rsPathEntries.getInt(1);
@@ -1524,6 +1743,9 @@ public class ConfDB {
 				} else if (entryType.equals("Sequence")) {
 					Sequence entry = idToSequences.get(entryId);
 					config.insertSequenceReference(path, index, entry).setOperator(operator);
+				} else if (entryType.equals("Task")) {
+					Task entry = idToTasks.get(entryId);
+					config.insertTaskReference(path, index, entry).setOperator(operator);
 				} else if (entryType.equals("Module")) {
 					ModuleInstance entry = (ModuleInstance) idToModules.get(entryId);
 					config.insertModuleReference(path, index, entry).setOperator(operator);
@@ -1687,11 +1909,23 @@ public class ConfDB {
 				primaryDataset.setDatabaseId(databaseId);
 			}
 
+			System.out.println("Problematic config: " + configId);
+
 			Iterator<Sequence> sequenceIt = config.sequenceIterator();
 			while (sequenceIt.hasNext()) {
+				System.out.println("ITERATING SEQUENCE");
 				Sequence sequence = sequenceIt.next();
 				int databaseId = sequenceToId.get(sequence);
 				sequence.setDatabaseId(databaseId);
+			}
+
+			Iterator<Task> taskIt = config.taskIterator(); // BSATARIC: I don't get it - hasn't this been done already 2
+															// times before??
+			while (taskIt.hasNext()) {
+				System.out.println("ITERATING TASK");
+				Task task = taskIt.next();
+				int databaseId = taskToId.get(task);
+				task.setDatabaseId(databaseId);
 			}
 
 			Iterator<Path> pathIt = config.pathIterator();
@@ -1713,7 +1947,7 @@ public class ConfDB {
 		} finally {
 			/*
 			 * dbConnector.release(rsInstances); dbConnector.release(rsPathEntries);
-			 * dbConnector.release(rsSequenceEntries);
+			 * dbConnector.release(rsSequenceAndTaskEntries);
 			 * dbConnector.release(rsEventContentEntries);
 			 * dbConnector.release(rsStreamEntries); dbConnector.release(rsDatasetEntries);
 			 * dbConnector.release(rsPathStreamDataset);
@@ -1732,6 +1966,14 @@ public class ConfDB {
 	 * db.
 	 */
 	public synchronized boolean checkOperatorFieldForSequences() throws DatabaseException {
+		ResultSet rs = null;
+		return true;
+	}
+
+	/**
+	 * check if the operator fields for TMP_TASK_ENTRIES is available in current db.
+	 */
+	public synchronized boolean checkOperatorFieldForTasks() throws DatabaseException {
 		ResultSet rs = null;
 		return true;
 	}
@@ -1846,6 +2088,12 @@ public class ConfDB {
 			// insert sequences
 			HashMap<String, Integer> sequenceHashMap = insertSequences(configId, config);
 
+			System.out.println("BEFORE INSERT TASKS");
+			// insert tasks
+			HashMap<String, Integer> taskHashMap = insertTasks(configId, config);
+
+			System.out.println("AFTER INSERT TASKS");
+
 			// insert modules
 			HashMap<String, Integer> moduleHashMap = insertModules(config);
 
@@ -1861,9 +2109,13 @@ public class ConfDB {
 			 * itPS = insertParameterHashMap.values().iterator(); while (itPS.hasNext())
 			 * itPS.next().executeBatch();
 			 */
+			System.out.println("BEFORE INSERT REFERENCES");
 
-			// insert references regarding paths and sequences
-			insertReferences(config, pathHashMap, sequenceHashMap, moduleHashMap, streamHashMap, configId);
+			// insert references regarding paths, sequences and tasks (BSATARIC: bug in task
+			// references overwrite sequncw references somehow)
+			insertReferences(config, pathHashMap, sequenceHashMap, taskHashMap, moduleHashMap, streamHashMap, configId);
+
+			System.out.println("AFTER INSERT REFERENCES");
 
 			psInsertConfDone.setInt(1, configId);
 			psInsertConfDone.executeUpdate();
@@ -2210,6 +2462,10 @@ public class ConfDB {
 		return 111111;
 	}
 
+	private Integer calculateTaskCRC(Task tas) {
+		return 111111;
+	}
+
 	private Integer calculateModuleCRC(ModuleInstance module) {
 		return 111111;
 	}
@@ -2395,8 +2651,9 @@ public class ConfDB {
 				int sequenceId = sequence.databaseId();
 				String sequenceName = sequence.name();
 
-				if (sequenceId <= 0) {
+				if (sequenceId <= 0) { // BSATARIC: if sequence doesn't exist in database
 					// int crc32 = calculateSequenceCRC(sequence);
+					System.out.println("DIDN'T FIND SEQUENCE");
 					int crc32 = 0;
 					psInsertPathElement.setInt(1, 2); // paetype
 					psInsertPathElement.setString(2, sequenceName);
@@ -2411,8 +2668,13 @@ public class ConfDB {
 					sequenceId = rs.getInt(1);
 					result.put(sequenceName, sequenceId);
 					idToSequence.put(sequenceId, sequence);
-				} else
+					System.out.println("sequenceId: " + sequenceId);
+				} else {
+					System.out.println("FOUND SEQUENCE");
 					result.put(sequenceName, -sequenceId);
+					System.out.println("sequenceId: " + -sequenceId);
+				}
+				System.out.println("sequenceName: " + sequenceName);
 
 				// psInsertConfigSequenceAssoc.setInt(1,configId);
 				// psInsertConfigSequenceAssoc.setInt(2,sequenceId);
@@ -2438,6 +2700,63 @@ public class ConfDB {
 		 * String errMsg = "ConfDB::insertSequences(configId="+configId+") failed "+
 		 * "(batch insert): "+e.getMessage(); throw new DatabaseException(errMsg,e); }
 		 */
+		return result;
+	}
+
+	/** insert configuration's tasks */
+	private HashMap<String, Integer> insertTasks(int configId, Configuration config) throws DatabaseException {
+		HashMap<String, Integer> result = new HashMap<String, Integer>();
+		HashMap<Integer, Task> idToTask = new HashMap<Integer, Task>();
+
+		ResultSet rs = null;
+		try {
+			for (int taskNb = 0; taskNb < config.taskCount(); taskNb++) {
+				System.out.println("taskNb: " + taskNb);
+				Task task = config.task(taskNb);
+				task.hasChanged();
+				int taskId = task.databaseId();
+				String taskName = task.name();
+
+				System.out.println("taskId HASCHANGED: " + taskId);
+
+				if (taskId <= 0) { // BSATARIC: if task doesn't exist in database
+					System.out.println("DIDN'T FIND TASK");
+					int crc32 = 0;
+					psInsertPathElement.setInt(1, 4); // paetype = 4 for task
+					psInsertPathElement.setString(2, taskName);
+					// psInsertPathElement.setInt(3,crc32);
+					psInsertPathElement.setNull(3, Types.INTEGER);
+
+					psInsertPathElement.executeUpdate();
+
+					rs = psInsertPathElement.getGeneratedKeys();
+					rs.next();
+
+					taskId = rs.getInt(1); // Task Id produced by MySQL operation (or Oracle whatever)
+					result.put(taskName, taskId);
+					idToTask.put(taskId, task);
+					System.out.println("taskId: " + taskId);
+				} else {
+					System.out.println("FOUND TASK");
+					result.put(taskName, -taskId);
+					System.out.println("taskId: " + -taskId);
+				}
+				System.out.println("taskName: " + taskName);
+			}
+
+			// only *now* set the new databaseId of changed tasks!
+			for (Map.Entry<Integer, Task> e : idToTask.entrySet()) {
+				int id = e.getKey();
+				Task t = e.getValue();
+				t.setDatabaseId(id);
+			}
+		} catch (SQLException e) {
+			String errMsg = "ConfDB::insertTasks(configId=" + configId + ") failed: " + e.getMessage();
+			throw new DatabaseException(errMsg, e);
+		} finally {
+			dbConnector.release(rs);
+		}
+
 		return result;
 	}
 
@@ -2520,11 +2839,13 @@ public class ConfDB {
 		return result;
 	}
 
+	// TODO: here is the problem
 	/** insert all references, regarding paths and sequences */
 	private void insertReferences(Configuration config, HashMap<String, Integer> pathHashMap,
-			HashMap<String, Integer> sequenceHashMap, HashMap<String, Integer> moduleHashMap,
-			HashMap<String, Integer> streamHashMap, int configId) throws DatabaseException {
-		// paths
+			HashMap<String, Integer> sequenceHashMap, HashMap<String, Integer> taskHashMap,
+			HashMap<String, Integer> moduleHashMap, HashMap<String, Integer> streamHashMap, int configId)
+			throws DatabaseException {
+		// paths (BSATARIC: paths are basically only consisting of references)
 		for (int i = 0; i < config.pathCount(); i++) {
 			Path path = config.path(i);
 			int pathId = pathHashMap.get(path.name());
@@ -2533,19 +2854,7 @@ public class ConfDB {
 
 				for (int sequenceNb = 0; sequenceNb < path.entryCount(); sequenceNb++) {
 					Reference r = path.entry(sequenceNb);
-					/*
-					 * not allowed anymore if (r instanceof PathReference) { int childPathId =
-					 * Math.abs(pathHashMap.get(r.name())); try {
-					 * psInsertPathPathAssoc.setInt(1,pathId);
-					 * psInsertPathPathAssoc.setInt(2,childPathId);
-					 * psInsertPathPathAssoc.setInt(3,sequenceNb);
-					 * psInsertPathPathAssoc.setInt(4,r.getOperator().ordinal());
-					 * psInsertPathPathAssoc.addBatch(); } catch (SQLException e) { String errMsg =
-					 * "ConfDB::insertReferences(config="+ config.toString()+
-					 * ") failed (pathId="+pathId+",childPathId="+
-					 * childPathId+",sequenceNb="+sequenceNb+"): "+ e.getMessage(); throw new
-					 * DatabaseException(errMsg,e); } } else
-					 */
+
 					if (r instanceof SequenceReference) {
 						int sequenceId = Math.abs(sequenceHashMap.get(r.name()));
 						// System.err.println("insertReferences - Found seq " + sequenceId + " ( " +
@@ -2559,14 +2868,55 @@ public class ConfDB {
 							psInsertPathElementAssoc.setInt(6, r.getOperator().ordinal());
 							psInsertPathElementAssoc.addBatch();
 							// psInsertPathElementAssoc.executeUpdate();
+							System.out.println("BEFORE insertPathSeqReferences");
+							System.out.println(
+									"pathId " + pathId + " sequenceId " + sequenceId + " sequenceNb " + sequenceNb);
+
 							insertPathSeqReferences((Sequence) r.parent(), pathId, sequenceId, 1, sequenceHashMap,
-									moduleHashMap, streamHashMap);
+									taskHashMap, moduleHashMap, streamHashMap);
+
+							System.out.println("AFTER insertPathSeqReferences");
 						} catch (SQLException e) {
 							String errMsg = "ConfDB::insertReferences(config=" + config.toString() + ") failed (pathId="
 									+ pathId + ",sequenceId=" + sequenceId + ",sequenceNb=" + sequenceNb + "): "
 									+ e.getMessage();
 							throw new DatabaseException(errMsg, e);
 						}
+					} else if (r instanceof TaskReference) {
+						int taskId = Math.abs(taskHashMap.get(r.name()));
+
+						System.out.println("pathId " + pathId + " taskId " + taskId + " task Name " + r.name());
+						// System.err.println("insertReferences - Found seq " + sequenceId + " ( " +
+						// r.name() + " )");
+						// (id_pathid,id_pae,id_parent,lvl,ord,operator)
+
+						// TODO: this creates mess with sequences but I don't know why
+						// if (false) {
+						try {
+							psInsertPathElementAssoc.setInt(1, pathId);
+							psInsertPathElementAssoc.setInt(2, taskId);
+							psInsertPathElementAssoc.setNull(3, Types.INTEGER);// parent
+							psInsertPathElementAssoc.setInt(4, 0); // lvl why zero?
+							psInsertPathElementAssoc.setInt(5, sequenceNb); // BSATARIC: such bad naming...
+							psInsertPathElementAssoc.setInt(6, r.getOperator().ordinal());
+							psInsertPathElementAssoc.addBatch();
+							// psInsertPathElementAssoc.executeUpdate();
+
+							System.out.println("BEFORE insertPathTasReferences");
+							System.out.println("pathId " + pathId + " taskId " + taskId + " sequenceNb " + sequenceNb);
+
+							insertPathTasReferences((Task) r.parent(), pathId, taskId, 1, taskHashMap, moduleHashMap,
+									streamHashMap);
+
+							System.out.println("AFTER insertPathTasReferences");
+						} catch (SQLException e) {
+							String errMsg = "ConfDB::insertReferences(config=" + config.toString() + ") failed (pathId="
+									+ pathId + ",taskId=" + taskId + ",sequenceNb=" + sequenceNb + "): "
+									+ e.getMessage();
+							throw new DatabaseException(errMsg, e);
+						}
+						// }
+
 					} else if (r instanceof ModuleReference) {
 						int moduleId = moduleHashMap.get(r.name());
 						try {
@@ -2606,10 +2956,13 @@ public class ConfDB {
 				}
 			}
 		}
-//sequences
+		// sequences (the ones that are not on any path!)
 		for (int sequenceNb = 0; sequenceNb < config.sequenceCount(); sequenceNb++) {
 			Sequence sequence = config.sequence(sequenceNb);
 			int sequenceId = sequence.databaseId();
+
+			System.out.println("BEFORE insertSeqReferences");
+			System.out.println("configId " + configId + " sequenceId " + sequenceId + " sequenceNb " + sequenceNb);
 
 			try {
 				psInsertConfigSequenceAssoc.setInt(1, configId);
@@ -2620,18 +2973,51 @@ public class ConfDB {
 				psInsertConfigSequenceAssoc.setInt(6, 0);
 				psInsertConfigSequenceAssoc.addBatch();
 
-				insertSeqReferences(sequence, configId, 0, 0, sequenceHashMap, moduleHashMap);
+				insertSeqReferences(sequence, configId, 0, 0, sequenceHashMap, taskHashMap, moduleHashMap);
+
+				System.out.println("AFTER insertSeqReferences");
+
 			} catch (SQLException e) {
 				String errMsg = "ConfDB::insertSeqReferences(config=" + config.toString() + ") failed (configId="
 						+ configId + ",sequenceId=" + sequenceId + ",sequenceNb=" + sequenceNb + "): " + e.getMessage();
 				throw new DatabaseException(errMsg, e);
 			}
 		}
-		try {
+		// tasks (the ones that are not on any path!)
+		for (int sequenceNb = 0; sequenceNb < config.taskCount(); sequenceNb++) {
+			Task task = config.task(sequenceNb);
+			int taskId = task.databaseId();
+			System.out.println("BEFORE insertTasReferences");
+			System.out.println("configId " + configId + " taskId " + taskId + " sequenceNb " + sequenceNb);
 
+			try {
+				psInsertConfigTaskAssoc.setInt(1, configId);
+				psInsertConfigTaskAssoc.setInt(2, taskId);
+				psInsertConfigTaskAssoc.setNull(3, Types.INTEGER);// parent
+				psInsertConfigTaskAssoc.setInt(4, 0); // lvl
+				psInsertConfigTaskAssoc.setInt(5, sequenceNb);
+				psInsertConfigTaskAssoc.setInt(6, 0);
+				psInsertConfigTaskAssoc.addBatch();
+				// TODO: continue from here
+				insertTasReferences(task, configId, 0, 0, taskHashMap, moduleHashMap);
+
+				System.out.println("AFTER insertTasReferences");
+
+			} catch (SQLException e) {
+				String errMsg = "ConfDB::insertSeqReferences(config=" + config.toString() + ") failed (configId="
+						+ configId + ",taskId=" + taskId + ",sequenceNb=" + sequenceNb + "): " + e.getMessage();
+				throw new DatabaseException(errMsg, e);
+			}
+		}
+
+		try {
+			// BSATARIC: it seems all this is collected statements in loop but it seems
+			// weird that it can work like that
+			// http://tutorials.jenkov.com/jdbc/batchupdate.html
 			psInsertPathElementAssoc.executeBatch();
 			psInsertPathOutputModuleAssoc.executeBatch();
 			psInsertConfigSequenceAssoc.executeBatch();
+			psInsertConfigTaskAssoc.executeBatch();
 //            psInsertPathPathAssoc.executeBatch();
 //            psInsertPathSequenceAssoc.executeBatch();
 //            psInsertPathModuleAssoc.executeBatch();
@@ -2647,7 +3033,8 @@ public class ConfDB {
 
 	/** insert all references, regarding paths and sequences */
 	private void insertSeqReferences(Sequence sequence, int configId, int parentId, int lvl,
-			HashMap<String, Integer> sequenceHashMap, HashMap<String, Integer> moduleHashMap) throws DatabaseException {
+			HashMap<String, Integer> sequenceHashMap, HashMap<String, Integer> taskHashMap,
+			HashMap<String, Integer> moduleHashMap) throws DatabaseException {
 		int sequenceId = sequenceHashMap.get(sequence.name());
 
 		for (int sequenceNb = 0; sequenceNb < sequence.entryCount(); sequenceNb++) {
@@ -2664,7 +3051,7 @@ public class ConfDB {
 					psInsertConfigSequenceAssoc.addBatch();
 
 					insertSeqReferences((Sequence) r.parent(), configId, childSequenceId, lvl + 1, sequenceHashMap,
-							moduleHashMap);
+							taskHashMap, moduleHashMap);
 
 				} catch (SQLException e) {
 					e.printStackTrace();
@@ -2673,8 +3060,35 @@ public class ConfDB {
 							+ r.name() + ")" + ",sequenceNb=" + sequenceNb + "): " + e.getMessage();
 					throw new DatabaseException(errMsg, e);
 				}
+			} else if (r instanceof TaskReference) {
+				int childTaskId = Math.abs(taskHashMap.get(r.name()));
+				try {
+					psInsertConfigSequenceAssoc.setInt(1, configId);
+					psInsertConfigSequenceAssoc.setInt(2, childTaskId);
+					psInsertConfigSequenceAssoc.setInt(3, parentId); // lvl
+					psInsertConfigSequenceAssoc.setInt(4, lvl); // lvl
+					psInsertConfigSequenceAssoc.setInt(5, sequenceNb);
+					psInsertConfigSequenceAssoc.setInt(6, r.getOperator().ordinal());
+					psInsertConfigSequenceAssoc.addBatch();
+
+					insertTasReferences((Task) r.parent(), configId, childTaskId, lvl + 1, taskHashMap, moduleHashMap);
+
+				} catch (SQLException e) {
+					e.printStackTrace();
+					String errMsg = "ConfDB::insertReferences(Sequence=" + sequence.name() + ") failed (sequenceId="
+							+ sequenceId + " (" + sequence.name() + "), childTaskId=" + childTaskId + " (" + r.name()
+							+ ")" + ",sequenceNb=" + sequenceNb + "): " + e.getMessage();
+					throw new DatabaseException(errMsg, e);
+				}
 			} else if (r instanceof ModuleReference) {
+
+				System.out.println("BEFORE INSERT CONFIG SEQUENCE MODULE REFERENCE");
+
 				int moduleId = moduleHashMap.get(r.name());
+
+				System.out.println("Sequence = " + sequence.name() + " Sequence ID " + sequenceId + " moduleId "
+						+ moduleId + " parentId " + parentId + " lvl " + lvl + " sequenceNb " + sequenceNb);
+
 				try {
 					psInsertConfigSequenceAssoc.setInt(1, configId);
 					psInsertConfigSequenceAssoc.setInt(2, moduleId);
@@ -2683,6 +3097,10 @@ public class ConfDB {
 					psInsertConfigSequenceAssoc.setInt(5, sequenceNb);
 					psInsertConfigSequenceAssoc.setInt(6, r.getOperator().ordinal());
 					psInsertConfigSequenceAssoc.addBatch();
+
+					System.out.println("AFTER INSERT CONFIG SEQUENCE MODULE REFERENCE");
+					// System.out.println("psInsertConfigSequenceAssoc: " +
+					// psInsertConfigSequenceAssoc.toString());
 					// psInsertPathElementAssoc.executeUpdate();
 				} catch (SQLException e) {
 					String errMsg = "ConfDB::insertReferences(Sequence=" + sequence.name() + ") failed (sequenceId="
@@ -2695,10 +3113,10 @@ public class ConfDB {
 
 	}
 
-	/** insert all references, regarding paths and sequences */
+	/** insert all references, regarding configuration (not path) and sequences */
 	private void insertPathSeqReferences(Sequence sequence, int pathId, int parentId, int lvl,
-			HashMap<String, Integer> sequenceHashMap, HashMap<String, Integer> moduleHashMap,
-			HashMap<String, Integer> streamHashMap) throws DatabaseException {
+			HashMap<String, Integer> sequenceHashMap, HashMap<String, Integer> taskHashMap,
+			HashMap<String, Integer> moduleHashMap, HashMap<String, Integer> streamHashMap) throws DatabaseException {
 
 		// sequences
 //      for (int i=0;i<config.sequenceCount();i++) {
@@ -2718,8 +3136,9 @@ public class ConfDB {
 				if (r instanceof SequenceReference) {
 					int childSequenceId = Math.abs(sequenceHashMap.get(r.name()));
 					try {
+
 						psInsertPathElementAssoc.setInt(1, pathId);
-						psInsertPathElementAssoc.setInt(2, childSequenceId);
+						psInsertPathElementAssoc.setInt(2, childSequenceId); // nesting
 						psInsertPathElementAssoc.setInt(3, parentId); // lvl
 						psInsertPathElementAssoc.setInt(4, lvl); // lvl
 						psInsertPathElementAssoc.setInt(5, sequenceNb);
@@ -2727,8 +3146,8 @@ public class ConfDB {
 						psInsertPathElementAssoc.addBatch();
 						// psInsertPathElementAssoc.executeUpdate();
 
-						insertPathSeqReferences((Sequence) r.parent(), pathId, childSequenceId, lvl + 1,
-								sequenceHashMap, moduleHashMap, streamHashMap);
+						insertPathSeqReferences((Sequence) r.parent(), pathId, childSequenceId, lvl + 1, // nesting
+								sequenceHashMap, taskHashMap, moduleHashMap, streamHashMap);
 
 					} catch (SQLException e) {
 						e.printStackTrace();
@@ -2737,8 +3156,36 @@ public class ConfDB {
 								+ r.name() + ")" + ",sequenceNb=" + sequenceNb + "): " + e.getMessage();
 						throw new DatabaseException(errMsg, e);
 					}
+				} else if (r instanceof TaskReference) {
+					int childTaskId = Math.abs(taskHashMap.get(r.name()));
+					try {
+						psInsertPathElementAssoc.setInt(1, pathId);
+						psInsertPathElementAssoc.setInt(2, childTaskId);
+						psInsertPathElementAssoc.setInt(3, parentId); // lvl
+						psInsertPathElementAssoc.setInt(4, lvl); // lvl
+						psInsertPathElementAssoc.setInt(5, sequenceNb);
+						psInsertPathElementAssoc.setInt(6, r.getOperator().ordinal());
+						psInsertPathElementAssoc.addBatch();
+						// psInsertPathElementAssoc.executeUpdate();
+
+						insertPathTasReferences((Task) r.parent(), pathId, childTaskId, lvl + 1, taskHashMap,
+								moduleHashMap, streamHashMap);
+
+					} catch (SQLException e) {
+						e.printStackTrace();
+						String errMsg = "ConfDB::insertReferences(Sequence=" + sequence.name() + ") failed (sequenceId="
+								+ sequenceId + " (" + sequence.name() + "), childSequenceId=" + childTaskId + " ("
+								+ r.name() + ")" + ",sequenceNb=" + sequenceNb + "): " + e.getMessage();
+						throw new DatabaseException(errMsg, e);
+					}
 				} else if (r instanceof ModuleReference) {
+					System.out.println("BEFORE INSERT PATH SEQUENCE MODULE REFERENCE");
+
 					int moduleId = moduleHashMap.get(r.name());
+
+					System.out.println("Sequence = " + sequence.name() + " Sequence ID " + sequenceId + " pathId "
+							+ pathId + " moduleId " + moduleId + " parentId " + parentId + " lvl " + lvl
+							+ " sequenceNb " + sequenceNb);
 					try {
 						psInsertPathElementAssoc.setInt(1, pathId);
 						psInsertPathElementAssoc.setInt(2, moduleId);
@@ -2748,6 +3195,8 @@ public class ConfDB {
 						psInsertPathElementAssoc.setInt(6, r.getOperator().ordinal());
 						psInsertPathElementAssoc.addBatch();
 						// psInsertPathElementAssoc.executeUpdate();
+
+						System.out.println("AFTER INSERT PATH SEQUENCE MODULE REFERENCE");
 					} catch (SQLException e) {
 						String errMsg = "ConfDB::insertReferences(Sequence=" + sequence.name() + ") failed (sequenceId="
 								+ sequenceId + ",moduleId=" + moduleId + ",sequenceNb=" + sequenceNb + "): "
@@ -2775,7 +3224,151 @@ public class ConfDB {
 				}
 			}
 		}
+	}
 
+	/** insert all references, regarding configuration (not path) and tasks */
+	private void insertTasReferences(Task task, int configId, int parentId, int lvl,
+			HashMap<String, Integer> taskHashMap, HashMap<String, Integer> moduleHashMap) throws DatabaseException {
+		int taskId = taskHashMap.get(task.name());
+
+		for (int sequenceNb = 0; sequenceNb < task.entryCount(); sequenceNb++) {
+			Reference r = task.entry(sequenceNb);
+			if (r instanceof TaskReference) {
+				int childTaskId = Math.abs(taskHashMap.get(r.name()));
+				try {
+					psInsertConfigTaskAssoc.setInt(1, configId);
+					psInsertConfigTaskAssoc.setInt(2, childTaskId);
+					psInsertConfigTaskAssoc.setInt(3, parentId); // lvl
+					psInsertConfigTaskAssoc.setInt(4, lvl); // lvl
+					psInsertConfigTaskAssoc.setInt(5, sequenceNb);
+					psInsertConfigTaskAssoc.setInt(6, r.getOperator().ordinal());
+					psInsertConfigTaskAssoc.addBatch();
+
+					insertTasReferences((Task) r.parent(), configId, childTaskId, lvl + 1, taskHashMap, moduleHashMap);
+
+				} catch (SQLException e) {
+					e.printStackTrace();
+					String errMsg = "ConfDB::insertReferences(Task=" + task.name() + ") failed (taskId=" + taskId + " ("
+							+ task.name() + "), childTaskId=" + childTaskId + " (" + r.name() + ")" + ",sequenceNb="
+							+ sequenceNb + "): " + e.getMessage();
+					throw new DatabaseException(errMsg, e);
+				}
+			} else if (r instanceof ModuleReference) {
+
+				System.out.println("BEFORE INSERT CONFIG TASK MODULE REFERENCE");
+
+				int moduleId = moduleHashMap.get(r.name());
+				System.out.println("Task = " + task.name() + " Task ID " + taskId + " moduleId " + moduleId
+						+ " parentId " + parentId + " lvl " + lvl + " sequenceNb " + sequenceNb);
+
+				try {
+					psInsertConfigTaskAssoc.setInt(1, configId);
+					psInsertConfigTaskAssoc.setInt(2, moduleId);
+					psInsertConfigTaskAssoc.setInt(3, parentId); // lvl
+					psInsertConfigTaskAssoc.setInt(4, lvl); // lvl
+					psInsertConfigTaskAssoc.setInt(5, sequenceNb);
+					psInsertConfigTaskAssoc.setInt(6, r.getOperator().ordinal());
+					psInsertConfigTaskAssoc.addBatch(); //
+					// psInsertConfigTaskAssoc.executeUpdate();
+
+					System.out.println("AFTER INSERT CONFIG TASK MODULE REFERENCE"); //
+					System.out.println("psInsertConfigTaskAssoc: " + //
+							psInsertConfigTaskAssoc.toString());
+
+				} catch (SQLException e) {
+					String errMsg = "ConfDB::insertReferences(Task=" + task.name() + ") failed (taskId=" + taskId
+							+ ",moduleId=" + moduleId + ",sequenceNb=" + sequenceNb + "): " + e.getMessage();
+					throw new DatabaseException(errMsg, e);
+				}
+
+			}
+		}
+
+	}
+
+	/** insert all references, regarding paths and tasks */
+	private void insertPathTasReferences(Task task, int pathId, int parentId, int lvl,
+			HashMap<String, Integer> taskHashMap, HashMap<String, Integer> moduleHashMap,
+			HashMap<String, Integer> streamHashMap) throws DatabaseException {
+
+		int taskId = taskHashMap.get(task.name());
+
+		if (true) {
+
+			for (int sequenceNb = 0; sequenceNb < task.entryCount(); sequenceNb++) {
+				Reference r = task.entry(sequenceNb);
+				if (r instanceof TaskReference) {
+					System.out.println("Trying to insert TaskReference");
+					int childTaskId = Math.abs(taskHashMap.get(r.name()));
+					try {
+						psInsertPathElementAssoc.setInt(1, pathId);
+						psInsertPathElementAssoc.setInt(2, childTaskId);
+						psInsertPathElementAssoc.setInt(3, parentId); // lvl
+						psInsertPathElementAssoc.setInt(4, lvl); // lvl
+						psInsertPathElementAssoc.setInt(5, sequenceNb);
+						psInsertPathElementAssoc.setInt(6, r.getOperator().ordinal());
+						psInsertPathElementAssoc.addBatch();
+						// psInsertPathElementAssoc.executeUpdate();
+
+						insertPathTasReferences((Task) r.parent(), pathId, childTaskId, lvl + 1, taskHashMap,
+								moduleHashMap, streamHashMap);
+						System.out.println("Finshed inserting TaskReference");
+
+					} catch (SQLException e) {
+						e.printStackTrace();
+						String errMsg = "ConfDB::insertReferences(Tasks=" + task.name() + ") failed (taskId=" + taskId
+								+ " (" + task.name() + "), childTaskId=" + childTaskId + " (" + r.name() + ")"
+								+ ",sequenceNb=" + sequenceNb + "): " + e.getMessage();
+						throw new DatabaseException(errMsg, e);
+					}
+				} else if (r instanceof ModuleReference) {
+					System.out.println("BEFORE INSERT PATH TASK MODULE REFERENCE");
+
+					int moduleId = moduleHashMap.get(r.name());
+
+					System.out
+							.println("Task = " + task.name() + " Task ID " + taskId + " pathId " + pathId + " moduleId "
+									+ moduleId + " parentId " + parentId + " lvl " + lvl + " sequenceNb " + sequenceNb);
+
+					try {
+						psInsertPathElementAssoc.setInt(1, pathId);
+						psInsertPathElementAssoc.setInt(2, moduleId);
+						psInsertPathElementAssoc.setInt(3, parentId); // lvl
+						psInsertPathElementAssoc.setInt(4, lvl); // lvl
+						psInsertPathElementAssoc.setInt(5, sequenceNb);
+						psInsertPathElementAssoc.setInt(6, r.getOperator().ordinal());
+						psInsertPathElementAssoc.addBatch(); //
+						// psInsertPathElementAssoc.executeUpdate();
+
+						System.out.println("AFTER INSERT PATH TASK MODULE REFERENCE");
+
+					} catch (SQLException e) {
+						String errMsg = "ConfDB::insertReferences(Task=" + task.name() + ") failed (taskId=" + taskId
+								+ ",moduleId=" + moduleId + ",sequenceNb=" + sequenceNb + "): " + e.getMessage();
+						throw new DatabaseException(errMsg, e);
+					}
+
+				} else if (r instanceof OutputModuleReference) {
+					String streamName = r.name().replaceFirst("hltOutput", "");
+					int outputModuleId = streamHashMap.get(streamName);
+					if (outputModuleId < 0)
+						outputModuleId = -1 * outputModuleId;
+					try {
+						psInsertPathOutputModuleAssoc.setInt(1, pathId);
+						psInsertPathOutputModuleAssoc.setInt(2, outputModuleId);
+						psInsertPathOutputModuleAssoc.setInt(3, sequenceNb);
+						psInsertPathOutputModuleAssoc.setInt(4, r.getOperator().ordinal());
+						psInsertPathOutputModuleAssoc.addBatch();
+						// psInsertPathOutputModuleAssoc.executeUpdate();
+					} catch (SQLException e) {
+						String errMsg = "ConfDB::insertReferences(sequence=" + task.name() + ") failed (taskId="
+								+ taskId + ",outputmoduleId=" + outputModuleId + ",sequenceNb=" + sequenceNb + "): "
+								+ e.getMessage();
+						throw new DatabaseException(errMsg, e);
+					}
+				}
+			}
+		}
 	}
 
 	/** insert configuration's Event Content */
@@ -3485,14 +4078,16 @@ public class ConfDB {
 		try {
 			dbConnector.getConnection().setAutoCommit(false);
 
-			removeGlobalPSets(configId);
-			removeEDSources(configId);
-			removeESSources(configId);
-			removeESModules(configId);
-			removeServices(configId);
-			removeSequences(configId);
-			removePaths(configId);
-			removeContent(configId);
+			// BSATARIC: empty calls (old DB)
+			removeGlobalPSets(configId); // NOT WORKING
+			removeEDSources(configId); // WORKS
+			removeESSources(configId); // WORKS
+			removeESModules(configId); // WORKS
+			removeServices(configId); // WORKS
+			removeSequences(configId); // NOT WORKING
+			removeTasks(configId); // EMPTY
+			removePaths(configId); // HALF WORKING
+			removeContent(configId); // NOT WORKING
 
 			psDeleteConfiguration.setInt(1, configId);
 			psDeleteConfiguration.executeUpdate();
@@ -3779,6 +4374,10 @@ public class ConfDB {
 		} finally {
 			dbConnector.release(rs1);
 		}
+	}
+
+	/** TODO: remove Tasks */
+	public synchronized void removeTasks(int configId) throws SQLException {
 	}
 
 	/** remove Paths */
@@ -4407,15 +5006,13 @@ public class ConfDB {
 							+ "ON Configurations.id_release = SoftwareReleases.id " + "WHERE Configurations.id = ?");
 			preparedStatements.add(psSelectReleaseTagForConfig);
 
-			psSelectSoftwareSubsystems = dbConnector.getConnection().prepareStatement
-			// ("SELECT subsysid, name FROM u_softsubsystems");
-			("SELECT id, name FROM u_softsubsystems");
+			psSelectSoftwareSubsystems = dbConnector.getConnection()
+					.prepareStatement("SELECT id, name FROM u_softsubsystems");
 			psSelectSoftwareSubsystems.setFetchSize(64);
 			preparedStatements.add(psSelectSoftwareSubsystems);
 
-			psSelectSoftwarePackages = dbConnector.getConnection().prepareStatement
-			// ("SELECT packageid, subsysid,name FROM u_softpackages");
-			("SELECT id, id_subs, name FROM u_softpackages");
+			psSelectSoftwarePackages = dbConnector.getConnection()
+					.prepareStatement("SELECT id, id_subs, name FROM u_softpackages");
 			psSelectSoftwarePackages.setFetchSize(512);
 			preparedStatements.add(psSelectSoftwarePackages);
 
@@ -4455,43 +5052,6 @@ public class ConfDB {
 					.prepareStatement("SELECT" + " PrimaryDatasets.id," + " PrimaryDatasets.name "
 							+ "FROM u_datasets PrimaryDatasets " + "ORDER BY PrimaryDatasets.name ASC");
 
-//          psSelectPrimaryDatasetEntries =
-//              dbConnector.getConnection().prepareStatement
-//              ("SELECT" +
-//               " PrimaryDatasetPathAssoc.datasetId," +
-//               " PrimaryDatasets.datasetLabel,"+
-//               " PrimaryDatasetPathAssoc.pathId " +
-//               "FROM PrimaryDatasetPathAssoc "+
-//               "JOIN PrimaryDatasets "+
-////             "ON PrimaryDatasets.datasetId=PrimaryDatasetPathAssoc.datasetId "+
-//               "JOIN ConfigurationPathAssoc " +
-//               "ON ConfigurationPathAssoc.pathId=PrimaryDatasetPathAssoc.pathId "+
-//               "WHERE ConfigurationPathAssoc.configId=?");
-//          psSelectPrimaryDatasetEntries.setFetchSize(64);
-//          preparedStatements.add(psSelectPrimaryDatasetEntries);
-
-//          psSelectPSetsForConfig =
-//              dbConnector.getConnection().prepareStatement
-//              ("SELECT"+
-//               " ParameterSets.superId "+
-//               "FROM ParameterSets " +
-////             "JOIN ConfigurationParamSetAssoc " +
-//               "ON ConfigurationParamSetAssoc.psetId="+
-//               "ParameterSets.superId " +
-//               "WHERE ConfigurationParamSetAssoc.configId=?");
-//          preparedStatements.add(psSelectPSetsForConfig);
-
-//          psSelectContentForConfig =
-//              dbConnector.getConnection().prepareStatement(
-//                              "SELECT "                                                                                       +
-//                              "EventContents.eventContentId "                                         +
-//                              "FROM   EventContents "                                                         +
-//                              "JOIN   ConfigurationContentAssoc "                                     +
-//                              "ON             ConfigurationContentAssoc.eventContentId "      +
-//                              "       =       EventContents.eventContentId "                          +
-//                              "WHERE  ConfigurationContentAssoc.configId = ?"         );
-//          preparedStatements.add(psSelectContentForConfig);
-//
 			psSelectEDSourcesForConfig = dbConnector.getConnection()
 					.prepareStatement("SELECT" + " EDSources.id " + "FROM u_edsources EDSources "
 							+ "JOIN u_conf2eds ConfigurationEDSourceAssoc "
@@ -4520,42 +5080,11 @@ public class ConfDB {
 							+ "WHERE ConfigurationServiceAssoc.id_confver=?");
 			preparedStatements.add(psSelectServicesForConfig);
 
-//          psSelectSequencesForConfig =
-//              dbConnector.getConnection().prepareStatement
-//              ("SELECT"+
-//               " Sequences.sequenceId "+
-//               "FROM Sequences "+
-//               "JOIN ConfigurationSequenceAssoc "+
-//               "ON ConfigurationSequenceAssoc.sequenceId=Sequences.sequenceId "+
-//               "WHERE ConfigurationSequenceAssoc.configId=?");
-//          preparedStatements.add(psSelectSequencesForConfig);
-
-			psSelectPathsForConfig = dbConnector.getConnection().prepareStatement
-			/*
-			 * h_ ("SELECT"+ " Paths.id_pathiduq "+ "FROM h_pathid2uq Paths " +
-			 * "JOIN h_pathid2conf ConfigurationPathAssoc " +
-			 * "ON ConfigurationPathAssoc.id_pathid=Paths.id_pathid " +
-			 * "WHERE ConfigurationPathAssoc.id_confver=?");
-			 */
-			("SELECT u_pathids.id  FROM u_pathids   JOIN u_pathid2conf ON u_pathid2conf.id_pathid=u_pathids.id WHERE u_pathid2conf.id_confver=?  order by u_pathid2conf.id_pathid");
+			psSelectPathsForConfig = dbConnector.getConnection().prepareStatement(
+					"SELECT u_pathids.id  FROM u_pathids   JOIN u_pathid2conf ON u_pathid2conf.id_pathid=u_pathids.id "
+							+ "WHERE u_pathid2conf.id_confver=?  order by u_pathid2conf.id_pathid");
 			preparedStatements.add(psSelectPathsForConfig);
 
-//          psSelectModulesForSeq =
-//              dbConnector.getConnection().prepareStatement
-//              ("SELECT "+
-//               " SequenceModuleAssoc.moduleId "+
-//               "FROM SequenceModuleAssoc "+
-//               "WHERE sequenceId=?");
-//          preparedStatements.add(psSelectModulesForSeq);
-//
-//          psSelectModulesForPath =
-//              dbConnector.getConnection().prepareStatement
-//              ("SELECT "+
-//               " PathModuleAssoc.moduleId "+
-//               "FROM PathModuleAssoc "+
-//               "WHERE pathId=?");
-//          preparedStatements.add(psSelectModulesForPath);
-//
 			psSelectEDSourceTemplatesForRelease = dbConnector.getConnection()
 					.prepareStatement("SELECT" + " EDSourceTemplates.id " + "FROM u_edstemplates EDSourceTemplates "
 							+ "JOIN u_edst2rele SuperIdReleaseAssoc "
@@ -4591,37 +5120,6 @@ public class ConfDB {
 							+ "WHERE SuperIdReleaseAssoc.id_release=?");
 			preparedStatements.add(psSelectModuleTemplatesForRelease);
 
-//          psSelectParametersForSuperId =
-//              dbConnector.getConnection().prepareStatement
-//              ("SELECT"+
-//               " SuperIdParameterAssoc.paramId "+
-//               "FROM SuperIdParameterAssoc "+
-//               "WHERE SuperIdParameterAssoc.superId=?");
-//          preparedStatements.add(psSelectParametersForSuperId);
-//
-//          psSelectPSetsForSuperId =
-//              dbConnector.getConnection().prepareStatement
-//              ("SELECT"+
-//               " SuperIdParamSetAssoc.psetId "+
-//               "FROM SuperIdParamSetAssoc "+
-//               "WHERE SuperIdParamSetAssoc.superId=?");
-//          preparedStatements.add(psSelectPSetsForSuperId);
-//
-//          psSelectVPSetsForSuperId =
-//              dbConnector.getConnection().prepareStatement
-//              ("SELECT"+
-//               " SuperIdVecParamSetAssoc.vpsetId "+
-//               "FROM SuperIdVecParamSetAssoc "+
-//               "WHERE SuperIdVecParamSetAssoc.superId=?");
-//          preparedStatements.add(psSelectVPSetsForSuperId);
-//
-//          psSelectPSetId =
-//              dbConnector.getConnection().prepareStatement
-//              ("SELECT ConfigurationParamSetAssoc.psetId "+
-//               "FROM ConfigurationParamSetAssoc "+
-//               "WHERE ConfigurationParamSetAssoc.psetId=?");
-//          preparedStatements.add(psSelectPSetId);
-
 			psSelectEDSourceId = dbConnector.getConnection()
 					.prepareStatement("SELECT" + " ConfigurationEDSourceAssoc.id_edsource "
 							+ "FROM u_conf2eds ConfigurationEDSourceAssoc "
@@ -4653,48 +5151,15 @@ public class ConfDB {
 							+ "FROM ConfigurationSequenceAssoc " + "WHERE ConfigurationSequenceAssoc.sequenceId=?");
 			preparedStatements.add(psSelectSequenceId);
 
+			psSelectTaskId = dbConnector.getConnection().prepareStatement("SELECT" + " ConfigurationTaskAssoc.taskId "
+					+ "FROM ConfigurationTaskAssoc " + "WHERE ConfigurationTaskAssoc.taskId=?");
+			preparedStatements.add(psSelectTaskId);
+
 			psSelectPathId = dbConnector.getConnection()
 					.prepareStatement("SELECT" + " ConfigurationPathAssoc.id_pathid "
 							+ "FROM u_pathid2conf ConfigurationPathAssoc "
 							+ "WHERE ConfigurationPathAssoc.id_pathid=?");
 			preparedStatements.add(psSelectPathId);
-
-			/*
-			 * psSelectStreamByEventContent = dbConnector.getConnection().prepareStatement(
-			 * "SELECT  ECS.STREAMID " + "FROM    ECSTREAMASSOC   ECS " +
-			 * "WHERE   ECS.EVENTCONTENTID  = ?" );
-			 * preparedStatements.add(psSelectStreamByEventContent);
-			 * 
-			 * psSelectStreamAssocByStream = dbConnector.getConnection().prepareStatement(
-			 * "SELECT ECS.STREAMID " + "FROM   ECSTREAMASSOC   ECS " +
-			 * "WHERE  ECS.STREAMID = ?" );
-			 * preparedStatements.add(psSelectStreamAssocByStream);
-			 * 
-			 * psSelectECStatementByEventContent =
-			 * dbConnector.getConnection().prepareStatement( "SELECT ECSTAT.STATEMENTID " +
-			 * "FROM   ECSTATEMENTASSOC        ECSTAT "+ "WHERE  ECSTAT.EVENTCONTENTID = ?"
-			 * ); preparedStatements.add(psSelectECStatementByEventContent);
-			 * 
-			 * psSelectECStatementByECStatement =
-			 * dbConnector.getConnection().prepareStatement( "SELECT ECSTAT.STATEMENTID " +
-			 * "FROM   ECSTATMENTASSOC ECSTAT " + "WHERE  ECSTAT.STATEMENTID = ? " );
-			 * preparedStatements.add(psSelectECStatementByECStatement);
-			 * 
-			 * psSelectModuleIdBySeq = dbConnector.getConnection().prepareStatement
-			 * ("SELECT"+ " SequenceModuleAssoc.moduleId "+ "FROM SequenceModuleAssoc "+
-			 * "WHERE SequenceModuleAssoc.moduleId=?");
-			 * preparedStatements.add(psSelectModuleIdBySeq);
-			 * 
-			 * psSelectModuleIdByPath = dbConnector.getConnection().prepareStatement
-			 * ("SELECT"+ " PathModuleAssoc.moduleId "+ "FROM PathModuleAssoc "+
-			 * "WHERE PathModuleAssoc.moduleId=?");
-			 * preparedStatements.add(psSelectModuleIdByPath);
-			 * 
-			 * psSelectTemplateId = dbConnector.getConnection().prepareStatement ("SELECT"+
-			 * " SuperIdReleaseAssoc.superId "+ "FROM SuperIdReleaseAssoc "+
-			 * "WHERE SuperIdReleaseAssoc.superId=?");
-			 * preparedStatements.add(psSelectTemplateId);
-			 */
 
 			// Event Content, Streams and Primary Datsets
 
@@ -4703,89 +5168,30 @@ public class ConfDB {
 			psSelectEventContentEntries.setFetchSize(1024);
 			preparedStatements.add(psSelectEventContentEntries);
 
-			psSelectStreamEntries = dbConnector.getConnection().prepareStatement
-//with conf2strdst             ("select distinct u_streamids.id+5000000 as streamid, u_streams.name as streamlabel, u_streamids.fractodisk as fractodisk, u_conf2evco.id_evcoid, u_eventcontents.name as name from u_conf2strdst,u_streamids,u_streams, u_conf2evco, u_eventcontents, u_eventcontentids where u_streams.id=u_streamids.id_stream and u_streamids.id=u_conf2strdst.id_streamid and u_eventcontents.id=u_eventcontentids.id_evco and u_eventcontentids.id=u_conf2evco.id_evcoid and u_conf2evco.id_confver=u_conf2strdst.id_confver and u_conf2strdst.id_confver=?");
-//before conf2strdst
-			("SELECT DISTINCT u_streamids.id+5000000,u_streams.name,u_streamids.FRACTODISK,u_EVENTCONTENTIDS.ID as evcoid,u_EVENTCONTENTS.name as evconame FROM u_streamids,u_streams,u_EVENTCONTENTIDS,u_EVENTCONTENTS,u_EVCO2STREAM,u_conf2evco WHERE u_streams.id=u_streamids.id_stream AND u_EVENTCONTENTIDS.ID_EVCO=u_EVENTCONTENTS.ID AND u_EVCO2STREAM.id_evcoid=u_EVENTCONTENTIDS.ID AND u_EVCO2STREAM.ID_STREAMID=u_streamids.id AND u_conf2evco.id_evcoid=u_EVENTCONTENTIDS.ID AND u_conf2evco.id_confver = ? order by u_streams.name");
-			// before taken away pathid relation ("SELECT DISTINCT
-			// u_streamids.id+5000000,u_streams.name,u_streamids.FRACTODISK,u_EVENTCONTENTIDS.ID
-			// as evcoid,u_EVENTCONTENTS.name as evconame FROM
-			// u_streamids,u_streams,u_EVENTCONTENTIDS,u_EVENTCONTENTS,u_EVCO2STREAM,u_pathid2outm,u_pathid2conf,u_conf2evco
-			// WHERE u_streams.id=u_streamids.id_stream AND
-			// u_EVENTCONTENTIDS.ID_EVCO=u_EVENTCONTENTS.ID AND
-			// u_EVCO2STREAM.id_evcoid=u_EVENTCONTENTIDS.ID AND
-			// u_EVCO2STREAM.ID_STREAMID=u_streamids.id AND
-			// u_streamids.id=u_pathid2outm.id_streamid AND
-			// u_conf2evco.id_confver=u_pathid2conf.id_confver AND
-			// u_conf2evco.id_evcoid=u_EVENTCONTENTIDS.ID AND
-			// u_pathid2conf.id_pathid=u_pathid2outm.id_pathId AND u_pathid2conf.id_confver
-			// = ? order by u_streams.name");
+			psSelectStreamEntries = dbConnector.getConnection().prepareStatement(
+					"SELECT DISTINCT u_streamids.id+5000000,u_streams.name,u_streamids.FRACTODISK,u_EVENTCONTENTIDS.ID "
+							+ "as evcoid,u_EVENTCONTENTS.name as evconame "
+							+ "FROM u_streamids,u_streams,u_EVENTCONTENTIDS,u_EVENTCONTENTS,u_EVCO2STREAM,u_conf2evco "
+							+ "WHERE u_streams.id=u_streamids.id_stream AND u_EVENTCONTENTIDS.ID_EVCO=u_EVENTCONTENTS.ID "
+							+ "AND u_EVCO2STREAM.id_evcoid=u_EVENTCONTENTIDS.ID AND u_EVCO2STREAM.ID_STREAMID=u_streamids.id "
+							+ "AND u_conf2evco.id_evcoid=u_EVENTCONTENTIDS.ID AND u_conf2evco.id_confver = ? order by u_streams.name");
 			psSelectStreamEntries.setFetchSize(1024);
 			preparedStatements.add(psSelectStreamEntries);
 
 			psSelectDatasetEntries = dbConnector.getConnection().prepareStatement(
 					"select distinct u_datasetids.id, u_datasets.name,u_streamids.id+5000000 as streamid,u_streams.name as label from u_conf2strdst,u_datasetids,u_datasets,u_streams,u_streamids WHERE   u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_conf2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_conf2strdst.id_streamid and u_conf2strdst.id_confver = ? order by id");
-//before conf2strdst             ("SELECT distinct u_datasetids.id, u_datasets.name,u_streamids.id+5000000 as streamid,u_streams.name as label from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids,(select id_stream, id_evcoid from u_evco2stream, u_streamids where u_streamids.id=u_evco2stream.id_streamid) h, u_conf2evco WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid and h.id_stream=u_streamids.id_stream and h.id_evcoid=u_conf2evco.id_evcoid and u_conf2evco.id_confver=u_pathid2conf.id_confver AND u_pathid2conf.id_confver = ?");
-			// fouled by streamids("SELECT distinct u_datasetids.id_dataset,
-			// u_datasets.name,u_streamids.id_stream+5000000 as streamid,u_streams.name as
-			// label from u_pathid2strdst,
-			// u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids,u_evco2stream,
-			// u_conf2evco WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and
-			// u_datasets.id=u_datasetids.id_dataset and
-			// u_datasetids.id=u_pathid2strdst.id_datasetid and
-			// u_streams.id=u_streamids.id_stream and
-			// u_streamids.id=u_pathid2strdst.id_streamid and
-			// u_evco2stream.id_streamid=u_streamids.id and
-			// u_evco2stream.id_evcoid=u_conf2evco.id_evcoid and
-			// u_conf2evco.id_confver=u_pathid2conf.id_confver AND u_pathid2conf.id_confver
-			// = ?");
-			// ("SELECT distinct u_datasetids.id_dataset,
-			// u_datasets.name,u_streamids.id_stream+5000000 as streamid,u_streams.name as
-			// label from u_pathid2strdst,
-			// u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids WHERE
-			// u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and
-			// u_datasets.id=u_datasetids.id_dataset and
-			// u_datasetids.id=u_pathid2strdst.id_datasetid and
-			// u_streams.id=u_streamids.id_stream and
-			// u_streamids.id=u_pathid2strdst.id_streamid AND u_pathid2conf.id_confver =
-			// ?");
-			// psSelectDatasetEntries.setFetchSize(64);
+
 			preparedStatements.add(psSelectDatasetEntries);
 
-			psSelectPathStreamDatasetEntries = dbConnector.getConnection().prepareStatement
-			/*
-			 * h_
-			 * ("SELECT distinct h_pathid2uq.id_pathiduq,u_streams.id+5000000 as streamid,u_datasets.id as datasetid, u_datasets.name from u_pathid2strdst, u_pathid2conf,v_datasetids,v_datasets,v_streams,v_streamids,h_pathid2uq WHERE h_pathid2uq.id_pathid=v_pathid2conf.id_pathid and v_pathid2strdst.id_pathid=v_pathid2conf.id_pathid and  v_datasets.id=v_datasetids.id_dataset and v_datasetids.id=v_pathid2strdst.id_datasetid and v_streams.id=v_streamids.id_stream and v_streamids.id=v_pathid2strdst.id_streamid AND v_pathid2conf.id_confver = ?"
-			 * );
-			 */
-			("SELECT distinct u_pathid2conf.id_pathid,u_evco2stream.id_streamid+5000000 as streamid,u_pathid2strdst.id_datasetid  datasetid FROM u_pathid2strdst, u_pathid2conf, u_evco2stream, u_conf2evco, u_conf2strdst WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and u_evco2stream.id_streamid = u_pathid2strdst.id_streamid AND u_evco2stream.id_evcoid=u_conf2evco.id_evcoid and u_conf2evco.id_confver=u_pathid2conf.id_confver and u_conf2strdst.id_datasetid=u_pathid2strdst.id_datasetid and u_conf2strdst.id_confver= u_pathid2conf.id_confver and u_pathid2conf.id_confver=?");
-//rewritten with confver relation                  ("SELECT distinct u_pathid2conf.id_pathid,u_streamids.id+5000000 as streamid,u_datasetids.id as datasetid, u_datasets.name FROM u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids, u_evco2stream, u_conf2evco, u_conf2strdst WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid AND u_streams.id=u_streamids.id_stream and u_evco2stream.id_evcoid=u_conf2evco.id_evcoid and u_conf2evco.id_confver=u_pathid2conf.id_confver and u_evco2stream.id_streamid = u_streamids.id AND u_conf2strdst.id_datasetid=u_pathid2strdst.id_datasetid and u_conf2strdst.id_confver= u_pathid2conf.id_confver and u_pathid2conf.id_confver=?");
-//rewritten removing subselect
-//             ("SELECT distinct u_pathid2conf.id_pathid,u_streamids.id+5000000 as streamid,u_datasetids.id as datasetid, u_datasets.name from u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids, (select id_stream, id_evcoid from u_evco2stream, u_streamids where u_streamids.id=u_evco2stream.id_streamid) h, u_conf2evco WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and  u_datasets.id=u_datasetids.id_dataset and u_datasetids.id=u_pathid2strdst.id_datasetid and u_streams.id=u_streamids.id_stream and u_streamids.id=u_pathid2strdst.id_streamid AND h.id_stream=u_streamids.id_stream and h.id_evcoid=u_conf2evco.id_evcoid and u_conf2evco.id_confver=u_pathid2conf.id_confver and u_pathid2conf.id_confver = ?");
-			// fouled by streamid ("SELECT distinct
-			// u_pathid2conf.id_pathid,u_streamids.id_stream+5000000 as
-			// streamid,u_datasetids.id_dataset as datasetid, u_datasets.name from
-			// u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids,
-			// u_evco2stream, u_conf2evco WHERE
-			// u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and
-			// u_datasets.id=u_datasetids.id_dataset and
-			// u_datasetids.id=u_pathid2strdst.id_datasetid and
-			// u_streams.id=u_streamids.id_stream and
-			// u_streamids.id=u_pathid2strdst.id_streamid AND
-			// u_evco2stream.id_streamid=u_streamids.id and
-			// u_evco2stream.id_evcoid=u_conf2evco.id_evcoid and
-			// u_conf2evco.id_confver=u_pathid2conf.id_confver and u_pathid2conf.id_confver
-			// = ?");
-			// ("SELECT distinct u_pathid2conf.id_pathid,u_streamids.id_stream+5000000 as
-			// streamid,u_datasetids.id_dataset as datasetid, u_datasets.name from
-			// u_pathid2strdst, u_pathid2conf,u_datasetids,u_datasets,u_streams,u_streamids
-			// WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid and
-			// u_datasets.id=u_datasetids.id_dataset and
-			// u_datasetids.id=u_pathid2strdst.id_datasetid and
-			// u_streams.id=u_streamids.id_stream and
-			// u_streamids.id=u_pathid2strdst.id_streamid and u_pathid2conf.id_confver =
-			// ?");
-			// psSelectPathStreamDatasetEntries.setFetchSize(64);
+			psSelectPathStreamDatasetEntries = dbConnector.getConnection().prepareStatement(
+					"SELECT distinct u_pathid2conf.id_pathid,u_evco2stream.id_streamid+5000000 as streamid,"
+							+ "u_pathid2strdst.id_datasetid  datasetid FROM u_pathid2strdst, u_pathid2conf, "
+							+ "u_evco2stream, u_conf2evco, u_conf2strdst WHERE u_pathid2strdst.id_pathid=u_pathid2conf.id_pathid "
+							+ "and u_evco2stream.id_streamid = u_pathid2strdst.id_streamid AND "
+							+ "u_evco2stream.id_evcoid=u_conf2evco.id_evcoid and u_conf2evco.id_confver=u_pathid2conf.id_confver "
+							+ "and u_conf2strdst.id_datasetid=u_pathid2strdst.id_datasetid and "
+							+ "u_conf2strdst.id_confver= u_pathid2conf.id_confver and u_pathid2conf.id_confver=?");
+
 			preparedStatements.add(psSelectPathStreamDatasetEntries);
 
 			psSelectStatementId = dbConnector.getConnection()
@@ -4793,13 +5199,8 @@ public class ConfDB {
 							+ " AND moduleL = ? AND extraN = ? AND processN = ? AND statementType = ? ");
 			preparedStatements.add(psSelectStatementId);
 
-			psSelectEventContentStatements = dbConnector.getConnection().prepareStatement
-			/*
-			 * h_
-			 * ("select distinct v_evcostatements.id as statemId, v_evcostatements.classn,v_evcostatements.modulel,v_evcostatements.extran,v_evcostatements.processn,v_evcostatements.statementtype,v_eventcontents.id as evcoid, v_evco2stat.statementrank,v_eventcontents.name,decode(v_evco2stat.id_pathid,-1,'-1',0,'0',(select h_pathid2uq.id_pathiduq from h_pathid2uq where h_pathid2uq.id_pathid=v_evco2stat.id_pathid)) from v_eventcontents,v_eventcontentids,v_evcostatements, v_conf2evco, v_evco2stat where v_eventcontents.id=v_eventcontentids.id_evco and v_evcostatements.id=v_evco2stat.id_stat and v_evco2stat.id_evcoid=v_conf2evco.id_evcoid and v_eventcontentids.id=v_conf2evco.id_evcoid and v_conf2evco.id_confver=? order by statemid"
-			 * );
-			 */
-			("select distinct u_evcostatements.id as statemId, u_evcostatements.classn,u_evcostatements.modulel,u_evcostatements.extran,u_evcostatements.processn,u_evcostatements.statementtype,u_eventcontentids.id as evcoid, u_evco2stat.statementrank,u_eventcontents.name,u_evco2stat.id_pathid from u_eventcontents,u_eventcontentids,u_evcostatements, u_conf2evco, u_evco2stat where u_eventcontents.id=u_eventcontentids.id_evco and u_evcostatements.id=u_evco2stat.id_stat and u_evco2stat.id_evcoid=u_conf2evco.id_evcoid and u_eventcontentids.id=u_conf2evco.id_evcoid and u_conf2evco.id_confver=? order by statemid");
+			psSelectEventContentStatements = dbConnector.getConnection().prepareStatement(
+					"select distinct u_evcostatements.id as statemId, u_evcostatements.classn,u_evcostatements.modulel,u_evcostatements.extran,u_evcostatements.processn,u_evcostatements.statementtype,u_eventcontentids.id as evcoid, u_evco2stat.statementrank,u_eventcontents.name,u_evco2stat.id_pathid from u_eventcontents,u_eventcontentids,u_evcostatements, u_conf2evco, u_evco2stat where u_eventcontents.id=u_eventcontentids.id_evco and u_evcostatements.id=u_evco2stat.id_stat and u_evco2stat.id_evcoid=u_conf2evco.id_evcoid and u_eventcontentids.id=u_conf2evco.id_evcoid and u_conf2evco.id_confver=? order by statemid");
 			preparedStatements.add(psSelectEventContentStatements);
 
 			psSelectReleaseCount = dbConnector.getConnection()
@@ -4859,8 +5260,14 @@ public class ConfDB {
 			preparedStatements.add(psSelectModuleCount);
 
 			psSelectSequenceCount = dbConnector.getConnection()
-					.prepareStatement("SELECT COUNT(*) FROM u_paelements Modules WHERE paetype = 1");
+					.prepareStatement("SELECT COUNT(*) FROM u_paelements Modules WHERE paetype = 1"); // BSATARIC not
+																										// 2??
 			preparedStatements.add(psSelectSequenceCount);
+
+			psSelectTaskCount = dbConnector.getConnection()
+					.prepareStatement("SELECT COUNT(*) FROM u_paelements Modules WHERE paetype = 4"); // BSATARIC
+
+			preparedStatements.add(psSelectTaskCount);
 
 			psSelectPathCount = dbConnector.getConnection().prepareStatement("SELECT COUNT(*) FROM u_pathids Paths");
 			preparedStatements.add(psSelectPathCount);
@@ -4975,16 +5382,6 @@ public class ConfDB {
 					.prepareStatement("INSERT INTO f_queue (id_confver) VALUES(?)");
 			preparedStatements.add(psInsertConfProcessing);
 
-			/*
-			 * if (dbType.equals(dbTypeMySQL)) psInsertSuperId =
-			 * dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO SuperIds VALUES()",keyColumn); else if
-			 * (dbType.equals(dbTypeOracle)) psInsertSuperId =
-			 * dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO SuperIds VALUES('')",keyColumn);
-			 * preparedStatements.add(psInsertSuperId);
-			 */
-
 			psInsertGlobalPSet = dbConnector.getConnection()
 					.prepareStatement("INSERT INTO u_conf2gpset " + "(id_confver,id_gpset,ord) " + "VALUES(?, ?, ?)");
 			preparedStatements.add(psInsertGlobalPSet);
@@ -5041,45 +5438,17 @@ public class ConfDB {
 					keyColumn);
 			preparedStatements.add(psInsertPathIds);
 
-			/*
-			 * psInsertHPathIds = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO h_pathids (crc32,crc32logic) " + "VALUES(?, ? )",keyColumn);
-			 * preparedStatements.add(psInsertHPathIds);
-			 * 
-			 * psInsertHPathId2Path = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO h_pathid2path (id_path,id_pathid,isEndPath) " +
-			 * "VALUES(?, ?, ?)",keyColumn); preparedStatements.add(psInsertHPathId2Path);
-			 * 
-			 * psInsertHPathId2Uq = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO h_pathid2uq (id_pathid,id_pathiduq) " +
-			 * "VALUES(?, ? )",keyColumn); preparedStatements.add(psInsertHPathId2Uq);
-			 * 
-			 * psSelectPathId2Uq = dbConnector.getConnection().prepareStatement
-			 * ("SELECT id_pathid FROM h_pathid2uq WHERE id_pathiduq=? ");
-			 * preparedStatements.add(psSelectPathId2Uq);
-			 * 
-			 * psCheckHPathIdCrc = dbConnector.getConnection().prepareStatement
-			 * ("SELECT id FROM h_pathids WHERE crc32=? ");
-			 * preparedStatements.add(psCheckHPathIdCrc);
-			 */
 			psInsertConfigPathAssoc = dbConnector.getConnection()
 					.prepareStatement("INSERT INTO " + "u_pathid2conf (id_pathId,id_confver,ord) " + "VALUES(?, ?, ?)");
 			preparedStatements.add(psInsertConfigPathAssoc);
 
-			/*
-			 * psInsertConfigHPathAssoc = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO " + "h_pathid2conf (id_pathId,id_confver,ord) " +
-			 * "VALUES(?, ?, ?)"); preparedStatements.add(psInsertConfigHPathAssoc);
-			 */
-			/*
-			 * psInsertSequence = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO Sequences (name) " + "VALUES(?)",keyColumn);
-			 * preparedStatements.add(psInsertSequence);
-			 * 
-			 */
 			psInsertConfigSequenceAssoc = dbConnector.getConnection().prepareStatement("INSERT INTO "
 					+ "u_conf2pae (id_confver,id_pae,id_parent,lvl,ord,operator) " + "VALUES(?, ?, ?, ?, ?, ?)");
 			preparedStatements.add(psInsertConfigSequenceAssoc);
+
+			psInsertConfigTaskAssoc = dbConnector.getConnection().prepareStatement("INSERT INTO "
+					+ "u_conf2pae (id_confver,id_pae,id_parent,lvl,ord,operator) " + "VALUES(?, ?, ?, ?, ?, ?)");
+			preparedStatements.add(psInsertConfigTaskAssoc);
 
 			psInsertPathElement = dbConnector.getConnection().prepareStatement(
 					"INSERT INTO u_paelements (paetype,name,crc32,crc32logic,o_id) " + "VALUES(?, ?, ?, NULL,NULL)",
@@ -5114,43 +5483,6 @@ public class ConfDB {
 					"INSERT INTO u_pathid2outm (id_pathid,id_streamid,ord,operator) " + "VALUES(?, ?, ?, ?)");
 			preparedStatements.add(psInsertPathOutputModuleAssoc);
 
-			/*
-			 * psInsertSequenceModuleAssoc = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO SequenceModuleAssoc (sequenceId,moduleId,sequenceNb,operator) "
-			 * + "VALUES(?, ?, ?, ?)"); preparedStatements.add(psInsertSequenceModuleAssoc);
-			 * 
-			 * psInsertSequenceOutputModuleAssoc =
-			 * dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO SequenceOutputModAssoc (sequenceId,outputModuleId,sequenceNb,operator) "
-			 * + "VALUES(?, ?, ?, ?)");
-			 * preparedStatements.add(psInsertSequenceOutputModuleAssoc);
-			 * 
-			 * psInsertPathPathAssoc = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO PathInPathAssoc(parentPathId,childPathId,sequenceNb,operator) "
-			 * + "VALUES(?, ?, ?, ?)"); preparedStatements.add(psInsertPathPathAssoc);
-			 * 
-			 * psInsertPathSequenceAssoc = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO PathSequenceAssoc (pathId,sequenceId,sequenceNb,operator) " +
-			 * "VALUES(?, ?, ?, ?)"); preparedStatements.add(psInsertPathSequenceAssoc);
-			 * 
-			 * psInsertSequenceSequenceAssoc = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO SequenceInSequenceAssoc"+
-			 * "(parentSequenceId,childSequenceId,sequenceNb,operator) "+
-			 * "VALUES(?, ?, ?, ?)"); preparedStatements.add(psInsertSequenceSequenceAssoc);
-			 * 
-			 * psInsertPathModuleAssoc = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO PathModuleAssoc (pathId,moduleId,sequenceNb,operator) " +
-			 * "VALUES(?, ?, ?, ?)"); preparedStatements.add(psInsertPathModuleAssoc);
-			 * 
-			 * psInsertPathOutputModuleAssoc = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO PathOutputModAssoc (pathId,outputModuleId,sequenceNb,operator) "
-			 * + "VALUES(?, ?, ?, ?)");
-			 * preparedStatements.add(psInsertPathOutputModuleAssoc);
-			 * 
-			 * psInsertSuperIdReleaseAssoc = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO SuperIdReleaseAssoc (superId,releaseId) " + "VALUES(?, ?)");
-			 * preparedStatements.add(psInsertSuperIdReleaseAssoc);
-			 */
 			psInsertEDSourceT2Rele = dbConnector.getConnection()
 					.prepareStatement("insert into u_edst2rele (id_edstemplate,id_release) values (?,?)");
 			preparedStatements.add(psInsertEDSourceT2Rele);
@@ -5276,92 +5608,6 @@ public class ConfDB {
 			psInsertSuperIdVecParamSetAssoc = dbConnector.getConnection().prepareStatement(
 					"INSERT INTO " + "SuperIdVecParamSetAssoc (superId,vpsetId,sequenceNb) " + "VALUES(?, ?, ?)");
 			preparedStatements.add(psInsertSuperIdVecParamSetAssoc);
-			/*
-			 * psInsertSuperIdParamAssoc = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO SuperIdParameterAssoc (superId,paramId,sequenceNb) " +
-			 * "VALUES(?, ?, ?)"); preparedStatements.add(psInsertSuperIdParamAssoc);
-			 * 
-			 * psInsertBoolParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO BoolParamValues (paramId,value) " + "VALUES (?, ?)");
-			 * preparedStatements.add(psInsertBoolParamValue);
-			 * 
-			 * psInsertInt32ParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO Int32ParamValues (paramId,value,hex) " + "VALUES (?, ?, ?)");
-			 * preparedStatements.add(psInsertInt32ParamValue);
-			 * 
-			 * psInsertUInt32ParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO UInt32ParamValues (paramId,value,hex) " + "VALUES (?, ?, ?)");
-			 * preparedStatements.add(psInsertUInt32ParamValue);
-			 * 
-			 * psInsertInt64ParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO Int64ParamValues (paramId,value,hex) " + "VALUES (?, ?, ?)");
-			 * preparedStatements.add(psInsertInt64ParamValue);
-			 * 
-			 * psInsertUInt64ParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO UInt64ParamValues (paramId,value,hex) " + "VALUES (?, ?, ?)");
-			 * preparedStatements.add(psInsertUInt64ParamValue);
-			 * 
-			 * psInsertDoubleParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO DoubleParamValues (paramId,value) " + "VALUES (?, ?)");
-			 * preparedStatements.add(psInsertDoubleParamValue);
-			 * 
-			 * psInsertStringParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO StringParamValues (paramId,value) " + "VALUES (?, ?)");
-			 * preparedStatements.add(psInsertStringParamValue);
-			 * 
-			 * psInsertEventIDParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO EventIDParamValues (paramId,value) " + "VALUES (?, ?)");
-			 * preparedStatements.add(psInsertEventIDParamValue);
-			 * 
-			 * psInsertInputTagParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO InputTagParamValues (paramId,value) " + "VALUES (?, ?)");
-			 * preparedStatements.add(psInsertInputTagParamValue);
-			 * 
-			 * psInsertESInputTagParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO ESInputTagParamValues (paramId,value) " + "VALUES (?, ?)");
-			 * preparedStatements.add(psInsertESInputTagParamValue);
-			 * 
-			 * psInsertFileInPathParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO FileInPathParamValues (paramId,value) " + "VALUES (?, ?)");
-			 * preparedStatements.add(psInsertFileInPathParamValue);
-			 * 
-			 * psInsertVInt32ParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO VInt32ParamValues "+ "(paramId,sequenceNb,value,hex) "+
-			 * "VALUES (?, ?, ?, ?)"); preparedStatements.add(psInsertVInt32ParamValue);
-			 * 
-			 * psInsertVUInt32ParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO VUInt32ParamValues "+ "(paramId,sequenceNb,value,hex) " +
-			 * "VALUES (?, ?, ?, ?)"); preparedStatements.add(psInsertVUInt32ParamValue);
-			 * 
-			 * psInsertVInt64ParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO VInt64ParamValues "+ "(paramId,sequenceNb,value,hex) "+
-			 * "VALUES (?, ?, ?, ?)"); preparedStatements.add(psInsertVInt64ParamValue);
-			 * 
-			 * psInsertVUInt64ParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO VUInt64ParamValues "+ "(paramId,sequenceNb,value,hex) " +
-			 * "VALUES (?, ?, ?, ?)"); preparedStatements.add(psInsertVUInt64ParamValue);
-			 * 
-			 * psInsertVDoubleParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO VDoubleParamValues (paramId,sequenceNb,value) " +
-			 * "VALUES (?, ?, ?)"); preparedStatements.add(psInsertVDoubleParamValue);
-			 * 
-			 * psInsertVStringParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO VStringParamValues (paramId,sequenceNb,value) " +
-			 * "VALUES (?, ?, ?)"); preparedStatements.add(psInsertVStringParamValue);
-			 * 
-			 * psInsertVEventIDParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO VEventIDParamValues (paramId,sequenceNb,value) " +
-			 * "VALUES (?, ?, ?)"); preparedStatements.add(psInsertVEventIDParamValue);
-			 * 
-			 * psInsertVInputTagParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO VInputTagParamValues (paramId,sequenceNb,value) " +
-			 * "VALUES (?, ?, ?)"); preparedStatements.add(psInsertVInputTagParamValue);
-			 * 
-			 * psInsertVESInputTagParamValue = dbConnector.getConnection().prepareStatement
-			 * ("INSERT INTO VESInputTagParamValues (paramId,sequenceNb,value) " +
-			 * "VALUES (?, ?, ?)"); preparedStatements.add(psInsertVESInputTagParamValue);
-			 * 
-			 */
 
 			//
 			// DELETE
@@ -5382,16 +5628,6 @@ public class ConfDB {
 					.prepareStatement("DELETE FROM u_softreleases " + "WHERE id = ?");
 			preparedStatements.add(psDeleteSoftwareRelease);
 
-			/*
-			 * psDeletePSetsFromConfig = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM ConfigurationParamSetAssoc "+ "WHERE configId=?");
-			 * preparedStatements.add(psDeletePSetsFromConfig);
-			 * 
-			 * psDeleteContentFromConfig = dbConnector.getConnection().prepareStatement(
-			 * "DELETE FROM    ConfigurationContentAssoc       " + "WHERE configId = ?" );
-			 * preparedStatements.add(psDeleteContentFromConfig);
-			 */
-
 			psDeleteEDSourcesFromConfig = dbConnector.getConnection()
 					.prepareStatement("DELETE FROM u_conf2eds " + "WHERE id_confver=?");
 			preparedStatements.add(psDeleteEDSourcesFromConfig);
@@ -5407,123 +5643,6 @@ public class ConfDB {
 			psDeleteServicesFromConfig = dbConnector.getConnection()
 					.prepareStatement("DELETE FROM u_conf2srv " + "WHERE id_confver=?");
 			preparedStatements.add(psDeleteServicesFromConfig);
-
-			/*
-			 * psDeleteSequencesFromConfig = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM ConfigurationSequenceAssoc "+ "WHERE configId=?");
-			 * preparedStatements.add(psDeleteSequencesFromConfig);
-			 * 
-			 * psDeletePathsFromConfig = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM ConfigurationPathAssoc "+ "WHERE configId=?");
-			 * preparedStatements.add(psDeletePathsFromConfig);
-			 */
-
-			/*
-			 * 28/09/2009 psDeleteStreamsAndDatasetsFromConfig =
-			 * dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM ConfigurationStreamAssoc "+ "WHERE configId=?");
-			 * preparedStatements.add(psDeleteStreamsAndDatasetsFromConfig);
-			 */
-
-			/*
-			 * psDeleteChildSeqsFromParentSeq = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM SequenceInSequenceAssoc "+ "WHERE parentSequenceId=?");
-			 * preparedStatements.add(psDeleteChildSeqsFromParentSeq);
-			 * 
-			 * psDeleteChildSeqFromParentSeqs = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM SequenceInSequenceAssoc "+ "WHERE childSequenceId=?");
-			 * preparedStatements.add(psDeleteChildSeqFromParentSeqs);
-			 * 
-			 * psDeleteChildSeqsFromParentPath =
-			 * dbConnector.getConnection().prepareStatement
-			 * 
-			 * "WHERE pathId=?"); preparedStatements.add(psDeleteChildSeqsFromParentPath);
-			 * 
-			 * psDeleteChildSeqFromParentPaths =
-			 * dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM PathSequenceAssoc "+ "WHERE sequenceId=?");
-			 * preparedStatements.add(psDeleteChildSeqFromParentPaths);
-			 * 
-			 * psDeletePathStreamDataSetAssoc =
-			 * dbConnector.getConnection().prepareStatement(
-			 * "DELETE FROM    PathStreamDataSetAssoc "+ "WHERE                  pathId = ?"
-			 * ); preparedStatements.add(psDeletePathStreamDataSetAssoc);
-			 * 
-			 * psDeletePathOutputModAssoc = dbConnector.getConnection().prepareStatement(
-			 * "DELETE FROM    PathOutputModAssoc " + "WHERE                  pathId = ?" );
-			 * preparedStatements.add(psDeletePathOutputModAssoc);
-			 * 
-			 * psDeleteECStreamFromEventCont = dbConnector.getConnection().prepareStatement(
-			 * "DELETE FROM    ECStreamAssoc " + "WHERE                  eventContentId = ?"
-			 * ); preparedStatements.add(psDeleteECStreamFromEventCont);
-			 * 
-			 * psDeleteECStatementFromEventCont =
-			 * dbConnector.getConnection().prepareStatement(
-			 * "DELETE FROM    ECStatementAssoc " +
-			 * "WHERE                  eventContentId = ?" );
-			 * 
-			 * psDeleteEventContentStatement = dbConnector.getConnection().prepareStatement(
-			 * "DELETE FROM    eventcontentstatements "+
-			 * "WHERE                  statementid = ?" );
-			 * 
-			 * psDeleteChildPathsFromParentPath =
-			 * dbConnector.getConnection().prepareStatement ("DELETE FROM PathInPathAssoc "+
-			 * "WHERE parentPathId=?");
-			 * preparedStatements.add(psDeleteChildPathsFromParentPath);
-			 * 
-			 * psDeleteChildPathFromParentPaths =
-			 * dbConnector.getConnection().prepareStatement ("DELETE FROM PathInPathAssoc "+
-			 * "WHERE childPathId=?");
-			 * preparedStatements.add(psDeleteChildPathFromParentPaths);
-			 * 
-			 * psDeleteModulesFromSeq = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM SequenceModuleAssoc "+ "WHERE sequenceId=?");
-			 * preparedStatements.add(psDeleteModulesFromSeq);
-			 * 
-			 * psDeleteModulesFromPath = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM PathModuleAssoc "+ "WHERE pathId=?");
-			 * preparedStatements.add(psDeleteModulesFromPath);
-			 * 
-			 * psDeleteTemplateFromRelease = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM SuperIdReleaseAssoc "+ "WHERE superId=? AND releaseId=?");
-			 * preparedStatements.add(psDeleteTemplateFromRelease);
-			 * 
-			 * psDeleteParametersForSuperId = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM SuperIdParameterAssoc "+ "WHERE superId=?");
-			 * preparedStatements.add(psDeleteParametersForSuperId);
-			 * 
-			 * psDeletePSetsForSuperId = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM SuperIdParamSetAssoc "+ "WHERE superId=?");
-			 * preparedStatements.add(psDeletePSetsForSuperId);
-			 * 
-			 * psDeleteVPSetsForSuperId = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM SuperIdVecParamSetAssoc "+ "WHERE superId=?");
-			 * preparedStatements.add(psDeleteVPSetsForSuperId);
-			 * 
-			 * psDeleteSuperId = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM SuperIds WHERE superId=?");
-			 * preparedStatements.add(psDeleteSuperId);
-			 * 
-			 * psDeleteParameter = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM Parameters WHERE paramId = ?");
-			 * preparedStatements.add(psDeleteParameter);
-			 * 
-			 * psDeletePSet = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM ParameterSets WHERE superId = ?");
-			 * preparedStatements.add(psDeletePSet);
-			 * 
-			 * psDeleteVPSet = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM VecParameterSets WHERE superId = ?");
-			 * preparedStatements.add(psDeleteVPSet);
-			 * 
-			 * psDeleteSequence = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM Sequences WHERE sequenceId = ?");
-			 * preparedStatements.add(psDeleteSequence);
-			 * 
-			 * psDeletePath = dbConnector.getConnection().prepareStatement
-			 * ("DELETE FROM Paths WHERE pathId = ?"); preparedStatements.add(psDeletePath);
-			 * 
-			 */
 
 			//
 			// STORED PROCEDURES
@@ -5609,53 +5728,27 @@ public class ConfDB {
 							+ " UNION ALL "
 							+ "  select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, NULL, 'Sequence', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_conf2pae WHERE  u_conf2pae.id_pae=u_paelements.id and u_paelements.paetype=2 and u_conf2pae.id_confver = ? and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver )) ta "
 							+ " UNION ALL "
-							+ " select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, NULL, 'Sequence', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_pathid2conf,u_pathid2pae WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_paelements.paetype=2 and u_pathid2conf.id_confver = ?) ta order by 3,6,4");
+							+ " select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, NULL, 'Sequence', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_pathid2conf,u_pathid2pae WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_paelements.paetype=2 and u_pathid2conf.id_confver = ?) ta"
+							+ " UNION ALL "
+							+ "  select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, NULL, 'Task', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_conf2pae WHERE  u_conf2pae.id_pae=u_paelements.id and u_paelements.paetype=4 and u_conf2pae.id_confver = ? and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver )) ta "
+							+ " UNION ALL "
+							+ " select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, NULL, 'Task', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_pathid2conf,u_pathid2pae WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_paelements.paetype=4 and u_pathid2conf.id_confver = ?) ta order by 3,6,4");
 			psSelectInstances.setFetchSize(2048);
 			preparedStatements.add(psSelectInstances);
 			//
 			// SELECT FOR TEMPORARY TABLES
 			//
-			/*
-			 * psSelectTemplates = dbConnector.getConnection().prepareStatement ("SELECT" +
-			 * " template_id," + " template_type," + " template_name," + " template_cvstag,"
-			 * + " template_pkgid " + "FROM tmp_template_table "+ " ORDER by template_id");
-			 * psSelectTemplates.setFetchSize(1024);
-			 * preparedStatements.add(psSelectTemplates);
-			 * 
-			 * psSelectInstances = dbConnector.getConnection().prepareStatement
-			 * ("SELECT DISTINCT" + " instance_id," + " template_id," + " instance_type," +
-			 * " instance_name," + " flag," + " sequence_nb " + "FROM tmp_instance_table " +
-			 * "ORDER BY instance_type,sequence_nb"); psSelectInstances.setFetchSize(1024);
-			 * preparedStatements.add(psSelectInstances);
-			 * 
-			 * psSelectParametersTemplates = dbConnector.getConnection().prepareStatement
-			 * ("SELECT " + " parameter_id," + " parameter_type," + " parameter_name," +
-			 * " parameter_trkd," + " parameter_seqnb," + " parent_id," + " lvl," +
-			 * " value," + " valuelob, " + " hex, " + " stamp " +
-			 * " FROM tmp_parameter_table order by stamp");
-			 * psSelectParametersTemplates.setFetchSize(4096);
-			 * preparedStatements.add(psSelectParametersTemplates);
-			 */
 			psSelectParameters = dbConnector.getConnection().prepareStatement(
 					"Select * from (Select * from (SELECT a.id+1000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_edsource+1000000, a.lvl,  a.value,  a.valuelob, a.hex  from u_EDSELEMENTS a, u_CONF2EDS c "
 							+ " where c.ID_CONFVER=? and c.ID_EDSOURCE=a.ID_edsource order by a.id_edsource+1000000,id ) "
 							+ " UNION ALL "
 							+ "Select * from (SELECT a.id+2000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_essource+2000000, a.lvl,  a.value,  a.valuelob , a.hex from u_ESSELEMENTS a, u_CONF2ESS c "
 							+ " where c.ID_CONFVER=? and c.ID_ESSOURCE=a.ID_essource order by a.id_essource+2000000,id ) "
-							+ " UNION ALL " +
-//              "Select * from (SELECT a.id, a.paramtype, a.name, a.tracked, a.ord,a.id_pae, a.lvl,  a.value,  a.valuelob from V_MOELEMENTS a, V_PAELEMENTS b, V_PATHID2CONF c " +
-//              " where c.ID_CONFVER=? and c.ID_PATHID=b.ID_PATHID and a.id_pae=b.id order by a.id ) " +
-//              " UNION ALL " +
-							/*
-							 * h_" select id,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (select sa.*, h_moelements.valuelob,h_moelements.hex from (select  distinct h_moelements.id, h_moelements.paramtype, h_moelements.name, h_moelements.tracked, h_pae2moe.ord,h_pastruct.id_pae,  h_pae2moe.lvl as lvl,  h_moelements.value,h_pae2moe.id as pae2id  from h_moelements, h_pae2moe, h_pastruct  where h_moelements.id = h_pae2moe.id_moe AND h_pastruct.id_pae = h_pae2moe.id_pae AND  h_pastruct.id  IN (SELECT h_pastruct.id FROM h_pastruct,h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pathid2conf.id_confver=?) order by h_pae2moe.id) sa, h_moelements where sa.id=h_moelements.id) "
-							 * +
-							 */
-							" select * from (select id as moeid,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (select sa.*, u_moelements.valuelob,u_moelements.hex from (select  distinct u_moelements.id, u_moelements.paramtype, u_moelements.name, u_moelements.tracked, u_pae2moe.ord,u_pathid2pae.id_pae,  u_pae2moe.lvl as lvl,  u_moelements.value,u_pae2moe.id as pae2id  from u_moelements, u_pae2moe, u_pathid2pae  where u_moelements.id = u_pae2moe.id_moe AND u_pathid2pae.id_pae = u_pae2moe.id_pae AND  u_pathid2pae.id  IN (SELECT u_pathid2pae.id FROM u_pathid2pae,u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2conf.id_confver=?) order by u_pae2moe.id_moe,u_pae2moe.id) sa, u_moelements where sa.id=u_moelements.id) order by moeid )"
+							+ " UNION ALL "
+							+ " select * from (select id as moeid,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (select sa.*, u_moelements.valuelob,u_moelements.hex from (select  distinct u_moelements.id, u_moelements.paramtype, u_moelements.name, u_moelements.tracked, u_pae2moe.ord,u_pathid2pae.id_pae,  u_pae2moe.lvl as lvl,  u_moelements.value,u_pae2moe.id as pae2id  from u_moelements, u_pae2moe, u_pathid2pae  where u_moelements.id = u_pae2moe.id_moe AND u_pathid2pae.id_pae = u_pae2moe.id_pae AND  u_pathid2pae.id  IN (SELECT u_pathid2pae.id FROM u_pathid2pae,u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2conf.id_confver=?) order by u_pae2moe.id_moe,u_pae2moe.id) sa, u_moelements where sa.id=u_moelements.id) order by moeid )"
 							+ " UNION ALL "
 							+ " select * from (select id as moeid,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (SELECT u_moelements.*,u_pae2moe.lvl,u_conf2pae.id_pae,u_pae2moe.ord FROM u_conf2pae,u_paelements,u_moelements,u_pae2moe  WHERE  u_conf2pae.id_pae=u_paelements.id and u_pae2moe.id_pae=u_paelements.id and u_pae2moe.id_moe=u_moelements.id and ((u_conf2pae.lvl=0 and u_paelements.paetype=1) or u_conf2pae.lvl>0) and u_conf2pae.id_confver = ? and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver )) order by moeid) "
-							+
-//                " select * from (select id as moeid,paramtype,name,tracked,ord,id_pae,lvl,value,valuelob,hex from (SELECT u_moelements.*,u_conf2pae.lvl,u_conf2pae.id_pae,u_conf2pae.ord FROM u_conf2pae,u_paelements,u_moelements,u_pae2moe  WHERE  u_conf2pae.id_pae=u_paelements.id and u_pae2moe.id_pae=u_paelements.id and u_pae2moe.id_moe=u_moelements.id and ((u_conf2pae.lvl=0 and u_paelements.paetype=1) or u_conf2pae.lvl>0) and u_conf2pae.id_confver = ? and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver )) order by moeid) " +
-							" UNION ALL "
+							+ " UNION ALL "
 							+ "Select * from (SELECT a.id+4000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_service+4000000, a.lvl,  a.value,  a.valuelob, a.hex from u_SRVELEMENTS a, u_CONF2SRV c "
 							+ " where c.ID_CONFVER=? and c.ID_SERVICE=a.ID_Service order by a.id_service+4000000,id )"
 							+ " UNION ALL "
@@ -5690,18 +5783,6 @@ public class ConfDB {
 			psSelectStringValues.setFetchSize(2048);
 			preparedStatements.add(psSelectStringValues);
 
-			/**
-			 * Query new CLOB fields in temp_string_table. NOTE: the rowid JOIN is to
-			 * simulate the DISTINCT modifier in the original query, which might be a bad
-			 * design. I have managed to patch it up and group the results as the DISTINCT
-			 * does since it is not possible to apply DISTINCT and/or GROUPBY in CLOB
-			 * queries. psSelectCLOBsValues = dbConnector.getConnection().prepareStatement
-			 * ("SELECT " + " clobs.parameter_id , " + " clobs.parameter_value , " + "
-			 * clobs.sequence_nb " + "FROM " + " ( " + " SELECT Max(rowid) idrow , " + "
-			 * parameter_id , " + " sequence_nb " + " FROM tmp_string_table " + " GROUP BY
-			 * parameter_id , " + " sequence_nb " + " ) grouped " + "JOIN " + "
-			 * tmp_string_table clobs " + "ON (clobs.rowid = grouped.idrow)");
-			 */
 			psSelectCLOBsValues = dbConnector.getConnection()
 					.prepareStatement("SELECT                                                "
 							+ "   parameter_id    ,  " + "   parameter_value ,  " + "   sequence_nb                "
@@ -5709,70 +5790,94 @@ public class ConfDB {
 			psSelectCLOBsValues.setFetchSize(2048);
 			preparedStatements.add(psSelectCLOBsValues);
 
-			/*
-			 * psSelectPathEntries = dbConnector.getConnection().prepareStatement ("SELECT"
-			 * + " c.pathid AS path_id," + " a.id AS entry_id," + " a.ord AS sequence_nb," +
-			 * " DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, "
-			 * + " a.operator " + "FROM v_paelements a, v_pathid2conf b, v_pathids c "+
-			 * "WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND " +
-			 * "b.id_confver = ? AND a.lvl=0 " + "ORDER BY a.id_pathid ASC, a.id ASC");
-			 * psSelectPathEntries.setFetchSize(1024);
-			 * preparedStatements.add(psSelectPathEntries);
-			 */
-
-			psSelectPathEntries = dbConnector.getConnection().prepareStatement
-			/*
-			 * h_
-			 * ("Select * from (SELECT h_pastruct.id_pathid, h_paelements.id, h_pastruct.ord, DECODE(h_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, h_pastruct.operator FROM h_pastruct,h_paelements, h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pastruct.id_pae=h_paelements.id and h_pastruct.lvl=0 and h_pathid2conf.id_confver = ? order by h_pastruct.id_pathid,h_pastruct.id) "
-			 * + " UNION ALL " +
-			 * " select * from (select h_pathid2uq.id_pathiduq, v_streams.id+5000000 as stid,V_PATHID2OUTM.ord,'OutputModule', V_PATHID2OUTM.operator from V_PATHID2OUTM,v_streams,v_streamids,v_PATHID2CONF,h_pathid2uq where v_streams.id=v_streamids.id_stream and v_streamids.id=V_PATHID2OUTM.id_streamid and v_PATHID2CONF.id_confver=? and  v_PATHID2CONF.id_pathid= V_PATHID2OUTM.id_pathid and h_pathid2uq.id_pathid=v_PATHID2CONF.id_pathid)"
-			 * ); psSelectPathEntries.setFetchSize(1024);
-			 */
-			("Select * from (Select * from (SELECT u_pathid2conf.id_pathid, u_paelements.id, u_pathid2pae.ord, DECODE(u_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, u_pathid2pae.operator FROM u_pathid2pae,u_paelements, u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_pathid2pae.lvl=0 and u_pathid2conf.id_confver = ? order by u_pathid2pae.id_pathid,u_pathid2pae.id) "
-					+ " UNION ALL "
-					+ " select * from (select u_PATHID2CONF.id_pathid, u_streamids.id+5000000 as stid,u_PATHID2OUTM.ord,'OutputModule', u_PATHID2OUTM.operator from u_PATHID2OUTM,u_streams,u_streamids,u_PATHID2CONF where u_streams.id=u_streamids.id_stream and u_streamids.id=u_PATHID2OUTM.id_streamid and u_PATHID2CONF.id_confver=? and  u_PATHID2CONF.id_pathid= u_PATHID2OUTM.id_pathid )) order by id_pathid,ord");
+			psSelectPathEntries = dbConnector.getConnection().prepareStatement(
+					"Select * from (Select * from (SELECT u_pathid2conf.id_pathid, u_paelements.id, u_pathid2pae.ord, "
+							+ "DECODE(u_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 4, 'Task', 'Undefined') "
+							+ "AS entry_type, u_pathid2pae.operator FROM u_pathid2pae,u_paelements, u_pathid2conf WHERE "
+							+ "u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_pathid2pae.lvl=0 "
+							+ "and u_pathid2conf.id_confver = ? order by u_pathid2pae.id_pathid,u_pathid2pae.id) "
+							+ " UNION ALL "
+							+ "select * from (select u_PATHID2CONF.id_pathid, u_streamids.id+5000000 as "
+							+ "stid,u_PATHID2OUTM.ord,'OutputModule', u_PATHID2OUTM.operator from "
+							+ "u_PATHID2OUTM,u_streams,u_streamids,u_PATHID2CONF where u_streams.id=u_streamids.id_stream "
+							+ "and u_streamids.id=u_PATHID2OUTM.id_streamid and u_PATHID2CONF.id_confver=? "
+							+ "and  u_PATHID2CONF.id_pathid= u_PATHID2OUTM.id_pathid )) order by id_pathid,ord");
 			psSelectPathEntries.setFetchSize(1024);
 			preparedStatements.add(psSelectPathEntries);
+
 			/*
-			 * ("SELECT e.id AS sequence_id,  d.id AS entry_id, a.ord AS sequence_nb, DECODE(a.paetype, 1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, a.operator, a.crc32 FROM v_paelements a, v_pathid2conf b, v_pathids c,(select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) d , (select min(aa.id)as id, aa.crc32 from v_paelements aa,v_pathid2conf bb,v_pathids cc where  aa.id_pathid = bb.id_pathid AND cc.id=aa.id_pathid AND bb.id_confver =2061 group by aa.crc32,aa.paetype) e WHERE a.id_pathid = b.id_pathid AND c.id=a.id_pathid AND b.id_confver =? AND a.lvl>0 and a.crc32=d.crc32 AND e.crc32 in (select crc32 from v_paelements where id=a.id_parent) ORDER BY a.id_pathid ASC, a.id ASC"
-			 * );
+			 * int sequenceId = rsSequenceAndTaskEntries.getInt(1); int entryLvl =
+			 * rsSequenceAndTaskEntries.getInt(3); int entryId =
+			 * rsSequenceAndTaskEntries.getInt(4); int sequenceNb =
+			 * rsSequenceAndTaskEntries.getInt(5); String entryType =
+			 * rsSequenceAndTaskEntries.getString(6);
+			 * 
 			 */
-			psSelectSequenceEntries = dbConnector.getConnection().prepareStatement
-			/*
-			 * h_
-			 * ("SELECT h_pastruct.id_pathid,h_pastruct.id as srid,h_pastruct.lvl, h_paelements.id, h_pastruct.ord, DECODE(h_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, h_pastruct.operator FROM h_pastruct,h_paelements, h_pathid2conf WHERE h_pathid2conf.id_pathid=h_pastruct.id_pathid and h_pastruct.id_pae=h_paelements.id and ((h_pastruct.lvl=0 and h_paelements.paetype=2) or h_pastruct.lvl>0) and h_pathid2conf.id_confver = ? order by h_pastruct.id_pathid, srid"
-			 * );
-			 */
-			// without orphans ("SELECT u_pathid2pae.id_pathid,u_pathid2pae.id as
-			// srid,u_pathid2pae.lvl, u_paelements.id, u_pathid2pae.ord,
-			// DECODE(u_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule',
-			// 'Undefined') AS entry_type, u_pathid2pae.operator FROM
-			// u_pathid2pae,u_paelements, u_pathid2conf WHERE
-			// u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and
-			// u_pathid2pae.id_pae=u_paelements.id and ((u_pathid2pae.lvl=0 and
-			// u_paelements.paetype=2) or u_pathid2pae.lvl>0) and u_pathid2conf.id_confver =
-			// ? order by u_pathid2pae.id_pathid, srid ");
-			// ("select * from (SELECT u_pathid2pae.id_pathid,u_pathid2pae.id as
-			// srid,u_pathid2pae.lvl, u_paelements.id, u_pathid2pae.ord,
-			// DECODE(u_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule',
-			// 'Undefined') AS entry_type, u_pathid2pae.operator FROM
-			// u_pathid2pae,u_paelements, u_pathid2conf WHERE
-			// u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and
-			// u_pathid2pae.id_pae=u_paelements.id and ((u_pathid2pae.lvl=0 and
-			// u_paelements.paetype=2) or u_pathid2pae.lvl>0) and u_pathid2conf.id_confver =
-			// ? order by u_pathid2pae.id_pathid, srid) UNION ALL select * from(SELECT
-			// 0,u_conf2pae.id as srid,u_conf2pae.lvl, u_paelements.id, u_conf2pae.ord,
-			// DECODE(u_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule',
-			// 'Undefined') AS entry_type, u_conf2pae.operator FROM u_conf2pae,u_paelements
-			// WHERE u_conf2pae.id_pae=u_paelements.id and ((u_conf2pae.lvl=0 and
-			// u_paelements.paetype=2) or u_conf2pae.lvl>0) and u_conf2pae.id_confver = ?
-			// and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a,
-			// u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver
-			// =u_conf2pae.id_confver and u_conf2pae.lvl=0) order by u_conf2pae.id_confver,
-			// srid)");
-			("select * from (SELECT u_pathid2pae.id_pathid,u_pathid2pae.id as srid,u_pathid2pae.lvl, u_paelements.id, u_pathid2pae.ord, DECODE(u_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, u_pathid2pae.operator FROM u_pathid2pae,u_paelements, u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and ((u_pathid2pae.lvl=0 and u_paelements.paetype=2) or u_pathid2pae.lvl>0) and u_pathid2conf.id_confver = ? order by u_pathid2pae.id_pathid, srid) UNION ALL select * from(SELECT 0,u_conf2pae.id as srid,u_conf2pae.lvl, u_paelements.id, u_conf2pae.ord, DECODE(u_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 'Undefined') AS entry_type, u_conf2pae.operator FROM u_conf2pae,u_paelements  WHERE  u_conf2pae.id_pae=u_paelements.id and ((u_conf2pae.lvl=0 and u_paelements.paetype=2) or u_conf2pae.lvl>0) and u_conf2pae.id_confver = ?  order by u_conf2pae.id_confver, srid)");
-			psSelectSequenceEntries.setFetchSize(1024);
-			preparedStatements.add(psSelectSequenceEntries);
+
+			psSelectSequenceAndTaskEntries = dbConnector.getConnection().prepareStatement(
+					"select * from (SELECT u_pathid2pae.id_pathid,u_pathid2pae.id as srid,u_pathid2pae.lvl, "
+							+ "u_paelements.id, u_pathid2pae.ord, DECODE(u_paelements.paetype,1, "
+							+ "'Module', 2, 'Sequence', 3, 'OutputModule', 4, 'Task', 'Undefined') "
+							+ "AS entry_type, u_pathid2pae.operator FROM u_pathid2pae,u_paelements, "
+							+ "u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and "
+							+ "u_pathid2pae.id_pae=u_paelements.id and ((u_pathid2pae.lvl=0 and (u_paelements.paetype=2 or u_paelements.paetype=4)) "
+							+ "or u_pathid2pae.lvl>0) and u_pathid2conf.id_confver = ? order by u_pathid2pae.id_pathid, srid) "
+							+ "UNION ALL select * from(SELECT 0,u_conf2pae.id as srid,u_conf2pae.lvl, u_paelements.id, u_conf2pae.ord, "
+							+ "DECODE(u_paelements.paetype,1, 'Module', 2, 'Sequence', 3, 'OutputModule', 4, 'Task', 'Undefined') AS entry_type, "
+							+ "u_conf2pae.operator FROM u_conf2pae,u_paelements  WHERE  u_conf2pae.id_pae=u_paelements.id and "
+							+ "((u_conf2pae.lvl=0 and (u_paelements.paetype=2 or u_paelements.paetype=4)) or u_conf2pae.lvl>0) and u_conf2pae.id_confver = ?  "
+							+ "order by u_conf2pae.id_confver, srid)");
+			psSelectSequenceAndTaskEntries.setFetchSize(1024);
+			preparedStatements.add(psSelectSequenceAndTaskEntries);
+
+			// BSATARIC: avoid paetype 2 as tasks cannot hold sequences. Basically this
+			// query will fetch all tasks and all their entries
+
+			// BSATARIC: u_conf2pae.lvl>0 fetches all modules inside sequences as well
+			psSelectTaskEntries = dbConnector.getConnection().prepareStatement(
+					"select * from (SELECT u_pathid2pae.id_pathid,u_pathid2pae.id as srid,u_pathid2pae.lvl, "
+							+ "u_paelements.id, u_pathid2pae.ord, DECODE(u_paelements.paetype, 1, "
+							+ "'Module', 3, 'OutputModule', 4, 'Task','Undefined') "
+							+ "AS entry_type, u_pathid2pae.operator FROM u_pathid2pae,u_paelements, "
+							+ "u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and "
+							+ "u_pathid2pae.id_pae=u_paelements.id and ((u_pathid2pae.lvl=0 and u_paelements.paetype=4) "
+							+ "or u_pathid2pae.lvl>0) and u_pathid2conf.id_confver = ? order by u_pathid2pae.id_pathid, srid) "
+							+ "UNION ALL select * from(SELECT 0,u_conf2pae.id as srid,u_conf2pae.lvl, u_paelements.id, u_conf2pae.ord, "
+							+ "DECODE(u_paelements.paetype,1, 'Module', 3, 'OutputModule', 4, 'Task', 'Undefined') AS entry_type, "
+							+ "u_conf2pae.operator FROM u_conf2pae,u_paelements  WHERE  u_conf2pae.id_pae=u_paelements.id and "
+							+ "((u_conf2pae.lvl=0 and u_paelements.paetype=4) or u_conf2pae.lvl>0) and u_conf2pae.id_confver = ?  "
+							+ "order by u_conf2pae.id_confver, srid)");
+			psSelectTaskEntries.setFetchSize(1024);
+			preparedStatements.add(psSelectTaskEntries);
+
+			// BSATARIC TASKS
+			psGetPaeTypes = dbConnector.getConnection().prepareStatement("SELECT * FROM u_paetypes");
+			psGetPaeTypes.setFetchSize(1024);
+			preparedStatements.add(psGetPaeTypes);
+
+			psGetPaeColumnNumber = dbConnector.getConnection()
+					.prepareStatement("SELECT COUNT (*) FROM user_tab_columns WHERE table_name='U_PAETYPES' ");
+			psGetPaeColumnNumber.setFetchSize(1024);
+			preparedStatements.add(psGetPaeColumnNumber);
+
+			psInsertTaskPaeType = dbConnector.getConnection()
+					.prepareStatement("INSERT INTO u_paetypes (name) " + " VALUES (?)");
+			psInsertTaskPaeType.setFetchSize(1024);
+			preparedStatements.add(psInsertTaskPaeType);
+
+			psGetConf2Pae = dbConnector.getConnection().prepareStatement("SELECT * FROM u_conf2pae ");
+			psGetConf2Pae.setFetchSize(1024);
+			preparedStatements.add(psGetConf2Pae);
+
+			psGetPath2Pae = dbConnector.getConnection().prepareStatement("SELECT * FROM u_pathid2pae ");
+			psGetPath2Pae.setFetchSize(1024);
+			preparedStatements.add(psGetPath2Pae);
+
+			psGetPaelements = dbConnector.getConnection()
+					.prepareStatement("SELECT COUNT(*) FROM u_paelements Modules WHERE paetype = 2 ");
+			psGetPaelements.setFetchSize(1024);
+			preparedStatements.add(psGetPaelements);
+			// BSATARIC TASKS END
 
 			psPrepareSequenceEntries = dbConnector.getConnection()
 					.prepareStatement("INSERT INTO TMP_SEQUENCE_ENTRIES " + "VALUES (?,?,?,?,?)");
@@ -5850,16 +5955,6 @@ public class ConfDB {
 					.prepareStatement("UPDATE u_paths SET description=?, contact=? WHERE id= ? ");
 			preparedStatements.add(psUpdatePathDescription);
 
-			// bug #91797: ConfDB operator IGNORE/NEGATE also for modules in a sequence.
-			/*
-			 * psCheckOperatorForModuleSequenceAssoc =
-			 * dbConnector.getConnection().prepareStatement
-			 * ("select 1 from dual where exists (             " +
-			 * " select 1 from all_tab_columns                        " +
-			 * " where table_name = 'TMP_SEQUENCE_ENTRIES'" +
-			 * "   and column_name = 'OPERATOR')                      ");
-			 * preparedStatements.add(psCheckPathFieldsExistence);
-			 */
 		} catch (SQLException e) {
 			String errMsg = "ConfDB::prepareStatements() failed: " + e.getMessage();
 			throw new DatabaseException(errMsg, e);
@@ -6023,12 +6118,6 @@ public class ConfDB {
 						valueAsString = valueAsString.trim();
 					}
 
-					// if (sequenceNb!=null&&
-					// idToValueAsString.containsKey(parameterId))
-					// idToValueAsString.put(parameterId,
-					// idToValueAsString.get(parameterId) +
-					// ", "+valueAsString);
-					// else
 					idToValueAsString.put(parameterId, valueAsString);
 				}
 

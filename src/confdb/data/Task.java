@@ -3,20 +3,20 @@ package confdb.data;
 import java.util.Iterator;
 
 /**
- * Sequence
- * --------
- * @author Philipp Schieferdecker
+ * Task --------
  * 
- * A 'Sequence' can host any number of ModuleReferences and
- * SequenceReferences, but no references to other Paths.
+ * @author bsataric
+ * 
+ *         A 'Task' can host any number of ModuleReferences and TaskReferences,
+ *         but no references to other Paths.
  */
-public class Sequence extends ReferenceContainer {
+public class Task extends ReferenceContainer {
 	//
 	// construction
 	//
 
 	/** standard constructor */
-	public Sequence(String name) {
+	public Task(String name) {
 		super(name);
 	}
 
@@ -24,20 +24,20 @@ public class Sequence extends ReferenceContainer {
 	// member functions
 	//
 
-	/** insert a module into the sequence */
+	/** insert a module or task into the Task */
 	public void insertEntry(int i, Reference reference) {
-		if (reference instanceof ModuleReference || reference instanceof SequenceReference
-				|| reference instanceof TaskReference || reference instanceof OutputModuleReference) {
+		if (reference instanceof ModuleReference || reference instanceof TaskReference
+				|| reference instanceof OutputModuleReference) {
 			if (!entries.contains(reference)) {
 				entries.add(i, reference);
 				setHasChanged();
 				return;
 			}
 		}
-		System.err.println("Sequence.insertEntry FAILED.");
+		System.err.println("Task.insertEntry FAILED.");
 	}
 
-	/** check if sequence contains a specific module */
+	/** check if Task contains a specific module */
 	public boolean containsEntry(Reference reference) {
 		Referencable parent = reference.parent();
 		Iterator<Reference> it = entries.iterator();
@@ -49,9 +49,9 @@ public class Sequence extends ReferenceContainer {
 		return false;
 	}
 
-	/** create a reference of this in a reference container (path/sequence) */
+	/** create a reference of this in a reference container (path/Sequence/Task) */
 	public Reference createReference(ReferenceContainer container, int i) {
-		SequenceReference reference = new SequenceReference(container, this);
+		TaskReference reference = new TaskReference(container, this);
 		references.add(reference);
 		container.insertEntry(i, reference);
 		container.setHasChanged();

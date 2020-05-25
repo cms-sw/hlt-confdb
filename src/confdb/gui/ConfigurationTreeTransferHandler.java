@@ -190,7 +190,7 @@ public class ConfigurationTreeTransferHandler extends TransferHandler {
 				return ConfigurationTreeActions.importModule(targetTree, source);
 			}
 
-			// insert Path/Sequence
+			// insert Path/Sequence/Task
 			if (sourceNode instanceof ReferenceContainer) {
 				ReferenceContainer container = (ReferenceContainer) sourceNode;
 				return ConfigurationTreeActions.importReferenceContainer(targetTree, container);
@@ -209,6 +209,12 @@ public class ConfigurationTreeTransferHandler extends TransferHandler {
 					&& (targetNode instanceof Sequence || targetNode == targetModel.sequencesNode())) {
 				Sequence source = (Sequence) sourceNode;
 				return ConfigurationTreeActions.moveSequence(targetTree, source);
+			}
+
+			// move a task
+			if (sourceNode instanceof Task && (targetNode instanceof Task || targetNode == targetModel.tasksNode())) {
+				Task source = (Task) sourceNode;
+				return ConfigurationTreeActions.moveTask(targetTree, source);
 			}
 
 			// move a reference within its parent container

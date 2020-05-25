@@ -487,6 +487,25 @@ public class ConvertConfigurationDialog extends JDialog {
 					}
 					checkBox.setSelected(isSelected);
 					checkBox.setEnabled(false);
+				} else if (value == treeModel.tasksNode()) {
+					boolean isSelected = false;
+					if (modifications.requestedTaskIterator().hasNext())
+						isSelected = true;
+					else {
+						Iterator<Task> it = config.taskIterator();
+						while (!isSelected && it.hasNext()) {
+							Task task = it.next();
+							Path[] paths = task.parentPaths();
+							for (Path p : paths) {
+								if (!modifications.isInBlackList(p)) {
+									isSelected = true;
+									break;
+								}
+							}
+						}
+					}
+					checkBox.setSelected(isSelected);
+					checkBox.setEnabled(false);
 				} else if (value == treeModel.modulesNode()) {
 					boolean isSelected = false;
 					if (modifications.requestedModuleIterator().hasNext())
@@ -507,16 +526,16 @@ public class ConvertConfigurationDialog extends JDialog {
 					checkBox.setSelected(isSelected);
 					checkBox.setEnabled(false);
 				}
-			} else if (value instanceof Sequence || value instanceof ModuleInstance) {
+			} else if (value instanceof Sequence || value instanceof Task || value instanceof ModuleInstance) {
 				checkBox.setEnabled(true);
-				Referencable moduleOrSequence = (Referencable) value;
-				if (modifications.isRequested(moduleOrSequence))
+				Referencable moduleOrSequenceOrTask = (Referencable) value;
+				if (modifications.isRequested(moduleOrSequenceOrTask))
 					checkBox.setSelected(true);
-				else if (modifications.doFilterAllPaths() || modifications.isUndefined(moduleOrSequence))
+				else if (modifications.doFilterAllPaths() || modifications.isUndefined(moduleOrSequenceOrTask))
 					checkBox.setSelected(false);
 				else {
 					boolean isSelected = false;
-					Path[] parentPaths = moduleOrSequence.parentPaths();
+					Path[] parentPaths = moduleOrSequenceOrTask.parentPaths();
 					for (Path p : parentPaths) {
 						if (!modifications.isInBlackList(p)) {
 							isSelected = true;
@@ -601,6 +620,28 @@ public class ConvertConfigurationDialog extends JDialog {
 					else
 						modifications.requestSequence(s.name());
 				}
+			} else if (value instanceof Task) {
+				Task t = (Task) value;
+
+				boolean isReferenced = false;
+				Path[] parentPaths = t.parentPaths();
+				for (Path p : parentPaths)
+					if (!modifications.isInBlackList(p)) {
+						isReferenced = true;
+						break;
+					}
+
+				if (isReferenced) {
+					if (modifications.isUndefined(t))
+						modifications.redefineTask(t.name());
+					else
+						modifications.undefineTask(t.name());
+				} else {
+					if (modifications.isRequested(t))
+						modifications.unrequestTask(t.name());
+					else
+						modifications.requestTask(t.name());
+				}
 			} else if (value instanceof ModuleInstance) {
 				ModuleInstance m = (ModuleInstance) value;
 
@@ -648,9 +689,9 @@ public class ConvertConfigurationDialog extends JDialog {
 
 				if (!ConvertConfigurationDialog.this.asFragment()) {
 					Object o = treePath.getLastPathComponent();
-					if (o instanceof Sequence || o instanceof ModuleInstance) {
-						Referencable moduleOrSequence = (Referencable) o;
-						Path[] paths = moduleOrSequence.parentPaths();
+					if (o instanceof Sequence || o instanceof Task || o instanceof ModuleInstance) {
+						Referencable moduleOrSequenceOrTask = (Referencable) o;
+						Path[] paths = moduleOrSequenceOrTask.parentPaths();
 						for (Path p : paths)
 							if (!modifications.isInBlackList(p))
 								return false;

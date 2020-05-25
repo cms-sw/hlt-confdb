@@ -155,6 +155,13 @@ public class ReleaseMigrator {
 			Sequence target = targetConfig.insertSequence(i, source.name());
 		}
 
+		// migrate Tasks
+		for (int i = 0; i < sourceConfig.taskCount(); i++) {
+			Task source = sourceConfig.task(i);
+			Task target = targetConfig.insertTask(i, source.name());
+			System.out.println("Migrating task " + source.name());
+		}
+
 		// migrate eventcontent
 		for (int i = 0; i < sourceConfig.contentCount(); i++) {
 			EventContent source = sourceConfig.content(i);
@@ -214,6 +221,13 @@ public class ReleaseMigrator {
 		for (int i = 0; i < sourceConfig.sequenceCount(); i++) {
 			Sequence source = sourceConfig.sequence(i);
 			Sequence target = targetConfig.sequence(i);
+			migrateReferences(source, target);
+		}
+
+		// migrate References within Tasks
+		for (int i = 0; i < sourceConfig.taskCount(); i++) {
+			Task source = sourceConfig.task(i);
+			Task target = targetConfig.task(i);
 			migrateReferences(source, target);
 		}
 
@@ -344,7 +358,10 @@ public class ReleaseMigrator {
 
 	}
 
-	/** migrate references from source Path/Sequence to target Path/Sequence */
+	/**
+	 * migrate references from source Path/Sequence/Task to target
+	 * Path/Sequence/Task
+	 */
 	private void migrateReferences(ReferenceContainer source, ReferenceContainer target) {
 		int iTarget = 0;
 		for (int i = 0; i < source.entryCount(); i++) {
@@ -362,6 +379,11 @@ public class ReleaseMigrator {
 				SequenceReference targetReference = targetConfig.insertSequenceReference(target, iTarget++,
 						targetSequence);
 				targetReference.setOperator(reference.getOperator());
+			} else if (reference instanceof TaskReference) {
+				Task sourceTask = (Task) reference.parent();
+				Task targetTask = targetConfig.task(sourceConfig.indexOfTask(sourceTask));
+				TaskReference targetReference = targetConfig.insertTaskReference(target, iTarget++, targetTask);
+				targetReference.setOperator(reference.getOperator());
 			} else if (reference instanceof ModuleReference) {
 				ModuleInstance sourceModule = (ModuleInstance) reference.parent();
 				ModuleInstance targetModule = targetConfig.module(sourceModule.name());
@@ -370,7 +392,7 @@ public class ReleaseMigrator {
 							targetModule);
 					targetReference.setOperator(reference.getOperator());
 				} else {
-					String msg = "MODULE MISSING FROM PATH/SEQUENCE: " + sourceModule.template().type() + " '"
+					String msg = "MODULE MISSING FROM PATH/SEQUENCE/TASK: " + sourceModule.template().type() + " '"
 							+ sourceModule.name() + "' / " + sourceModule.template().name() + " missing from "
 							+ source.name();
 					messages.add(msg);
@@ -386,7 +408,7 @@ public class ReleaseMigrator {
 					targetReference.setOperator(reference.getOperator());
 
 				} else {
-					String msg = "MODULE MISSING FROM PATH/SEQUENCE: " + " '" + sourceOutputModule.name() + "' / "
+					String msg = "MODULE MISSING FROM PATH/SEQUENCE/TASK: " + " '" + sourceOutputModule.name() + "' / "
 							+ " missing from " + source.name();
 					messages.add(msg);
 				}

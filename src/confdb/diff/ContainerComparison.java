@@ -3,6 +3,7 @@ package confdb.diff;
 import confdb.data.ReferenceContainer;
 import confdb.data.Path;
 import confdb.data.Sequence;
+import confdb.data.Task;
 
 /**
  * ContainerComparison
@@ -39,6 +40,8 @@ public class ContainerComparison extends Comparison {
 
 		if (rc instanceof Sequence) {
 			containerType = "Sequence";
+		} else if (rc instanceof Task) {
+			containerType = "Task";
 		} else if (rc instanceof Path) {
 			containerType = "Path";
 			if (oldContainer != null && newContainer != null) {

@@ -17,7 +17,6 @@ public class Configuration implements IConfiguration {
 	//
 	// member data
 	//
-
 	/** configuration information */
 	private ConfigInfo configInfo = null;
 
@@ -27,7 +26,7 @@ public class Configuration implements IConfiguration {
 	/** has the configuration changed since the last 'save' operation? */
 	private boolean hasChanged = false;
 
-	/** list of globale parameter sets */
+	/** list of global parameter sets */
 	private GlobalPSetContainer psets = null;
 
 	/** list of EDSources */
@@ -51,6 +50,9 @@ public class Configuration implements IConfiguration {
 	/** list of Sequences */
 	private ArrayList<Sequence> sequences = null;
 
+	/** list of Tasks */
+	private ArrayList<Task> tasks = null;
+
 	/** list of EventContents */
 	private ArrayList<EventContent> contents = null;
 
@@ -71,6 +73,7 @@ public class Configuration implements IConfiguration {
 		modules = new ArrayList<ModuleInstance>();
 		paths = new ArrayList<Path>();
 		sequences = new ArrayList<Sequence>();
+		tasks = new ArrayList<Task>();
 		contents = new ArrayList<EventContent>();
 	}
 
@@ -84,6 +87,7 @@ public class Configuration implements IConfiguration {
 		modules = new ArrayList<ModuleInstance>();
 		paths = new ArrayList<Path>();
 		sequences = new ArrayList<Sequence>();
+		tasks = new ArrayList<Task>();
 		contents = new ArrayList<EventContent>();
 
 		initialize(configInfo, release);
@@ -107,6 +111,7 @@ public class Configuration implements IConfiguration {
 		modules.clear();
 		paths.clear();
 		sequences.clear();
+		tasks.clear();
 		contents.clear();
 	}
 
@@ -123,6 +128,7 @@ public class Configuration implements IConfiguration {
 		modules.clear();
 		paths.clear();
 		sequences.clear();
+		tasks.clear();
 		contents.clear();
 	}
 
@@ -133,7 +139,7 @@ public class Configuration implements IConfiguration {
 		this.configInfo = configInfo;
 	}
 
-	/** overlaod toString() */
+	/** Overload toString() */
 	public String toString() {
 		String result = new String();
 		if (configInfo == null)
@@ -162,6 +168,8 @@ public class Configuration implements IConfiguration {
 			return pathCount();
 		else if (c == Sequence.class)
 			return sequenceCount();
+		else if (c == Task.class)
+			return taskCount();
 		else if (c == ModuleInstance.class)
 			return moduleCount();
 		else if (c == OutputModule.class)
@@ -180,7 +188,8 @@ public class Configuration implements IConfiguration {
 	public boolean isEmpty() {
 		return (name().length() == 0 && // psets.isEmpty()&&
 				psets.parameterCount() == 0 && edsources.isEmpty() && essources.isEmpty() && services.isEmpty()
-				&& modules.isEmpty() && paths.isEmpty() && sequences.isEmpty() && contents.isEmpty());
+				&& modules.isEmpty() && paths.isEmpty() && sequences.isEmpty() && tasks.isEmpty()
+				&& contents.isEmpty());
 	}
 
 	/** retrieve ConfigInfo object */
@@ -294,6 +303,9 @@ public class Configuration implements IConfiguration {
 		for (Sequence seq : sequences)
 			if (seq.hasChanged())
 				return true;
+		for (Task tas : tasks)
+			if (tas.hasChanged())
+				return true;
 		for (EventContent evc : contents)
 			if (evc.hasChanged())
 				return true;
@@ -331,6 +343,9 @@ public class Configuration implements IConfiguration {
 				return false;
 		for (Sequence s : sequences)
 			if (s.name().equals(qualifier))
+				return false;
+		for (Task t : tasks)
+			if (t.name().equals(qualifier))
 				return false;
 
 		Iterator<OutputModule> itOM = outputIterator();
@@ -377,6 +392,12 @@ public class Configuration implements IConfiguration {
 			if (s.name().equals(referencable.name()))
 				return false;
 		}
+		for (Task t : tasks) {
+			if (t == referencable)
+				continue;
+			if (t.name().equals(referencable.name()))
+				return false;
+		}
 		return true;
 	}
 
@@ -396,7 +417,7 @@ public class Configuration implements IConfiguration {
 		return true;
 	}
 
-	/** number of empty containers (paths / sequences) */
+	/** number of empty containers (paths / sequences / tasks) */
 	public int emptyContainerCount() {
 		int result = 0;
 		Iterator<Path> itP = paths.iterator();
@@ -409,6 +430,15 @@ public class Configuration implements IConfiguration {
 		while (itS.hasNext()) {
 			Sequence s = itS.next();
 			if (s.entryCount() == 0)
+				result++;
+		}
+		Iterator<Task> itT = tasks.iterator();
+		int taskNumber = 0;
+		while (itT.hasNext()) {
+			Task t = itT.next();
+			System.out.println("TASK NUMBER: " + taskNumber++);
+			System.out.println("TASK ENTRYCOUNT: " + t.entryCount());
+			if (t.entryCount() == 0)
 				result++;
 		}
 		return result;
@@ -937,14 +967,14 @@ public class Configuration implements IConfiguration {
 		hasChanged = true;
 	}
 
-	/** insert ModuleReference at i-th position into a path/sequence */
+	/** insert ModuleReference at i-th position into a path/sequence/task */
 	public ModuleReference insertModuleReference(ReferenceContainer container, int i, ModuleInstance instance) {
 		ModuleReference reference = (ModuleReference) instance.createReference(container, i);
 		hasChanged = true;
 		return reference;
 	}
 
-	/** insert ModuleReference at i-th position into a path/sequence */
+	/** insert ModuleReference at i-th position into a path/sequence/task */
 	public ModuleReference insertModuleReference(ReferenceContainer container, int i, String templateName,
 			String instanceName) {
 		ModuleInstance instance = insertModule(templateName, instanceName);
@@ -1175,7 +1205,7 @@ public class Configuration implements IConfiguration {
 		hasChanged = true;
 	}
 
-	/** insert a path reference into another path/sequence */
+	/** insert a path reference into another path/sequence/task */
 	public PathReference insertPathReference(ReferenceContainer parentPath, int i, Path path) {
 		PathReference reference = (PathReference) path.createReference(parentPath, i);
 		hasChanged = true;
@@ -1330,6 +1360,134 @@ public class Configuration implements IConfiguration {
 	/** sort Sequences */
 	public void sortSequences() {
 		Collections.sort(sequences);
+		hasChanged = true;
+	}
+
+	//
+	// Tasks
+	//
+
+	/** number of Tasks */
+	public int taskCount() {
+		return tasks.size();
+	}
+
+	/** get i-th Task */
+	public Task task(int i) {
+		return tasks.get(i);
+	}
+
+	/** get Task by name */
+	public Task task(String taskName) {
+		for (Task t : tasks)
+			if (t.name().equals(taskName))
+				return t;
+		return null;
+	}
+
+	/** index of a certain Task */
+	public int indexOfTask(Task task) {
+		return tasks.indexOf(task);
+	}
+
+	/** retrieve task iterator */
+	public Iterator<Task> taskIterator() {
+		return tasks.iterator();
+	}
+
+	/** retrieve task iterator */
+	public Iterator<Task> orderedTaskIterator() {
+		ArrayList<Task> result = new ArrayList<Task>();
+		Iterator<Task> itT = taskIterator();
+		while (itT.hasNext())
+			result.add(itT.next());
+		boolean isOrdered = false;
+		while (!isOrdered) {
+			isOrdered = true;
+			int indexT = 0;
+			while (indexT < result.size()) {
+				Task task = result.get(indexT); // take iterator on subtasks of the main task
+				int indexMax = -1;
+				itT = task.taskIterator();
+				while (itT.hasNext()) {
+					int index = result.indexOf(itT.next());
+					if (index > indexMax)
+						indexMax = index;
+				}
+				if (indexMax > indexT) {
+					isOrdered = false;
+					result.remove(indexT);
+					result.add(indexMax, task);
+				} else {
+					indexT++;
+				}
+			}
+		}
+		return result.iterator();
+	}
+
+	/** insert task */
+	public Task insertTask(int i, String taskName) {
+		Task task = new Task(taskName);
+		tasks.add(i, task);
+		task.setConfig(this);
+		hasChanged = true;
+		return task;
+	}
+
+	/** move a task to another position within tasks */
+	public boolean moveTask(Task task, int targetIndex) {
+		int currentIndex = tasks.indexOf(task);
+		if (currentIndex < 0)
+			return false;
+		if (currentIndex == targetIndex)
+			return true;
+		if (targetIndex > tasks.size())
+			return false;
+		if (currentIndex < targetIndex)
+			targetIndex--;
+		tasks.remove(currentIndex);
+		tasks.add(targetIndex, task);
+		hasChanged = true;
+		return true;
+	}
+
+	/** remove a task */
+	public void removeTask(Task task) {
+		while (task.referenceCount() > 0) {
+			TaskReference reference = (TaskReference) task.reference(0);
+			reference.remove();
+		}
+
+		// remove all modules from this task
+		while (task.entryCount() > 0) {
+			Reference reference = task.entry(0);
+			reference.remove();
+			if (reference instanceof ModuleReference) {
+				ModuleReference module = (ModuleReference) reference;
+				ModuleInstance instance = (ModuleInstance) module.parent();
+				if (instance.referenceCount() == 0) {
+					int index = modules.indexOf(instance);
+					modules.remove(index);
+				}
+			}
+		}
+
+		int index = tasks.indexOf(task);
+		tasks.remove(index);
+		hasChanged = true;
+	}
+
+	/** insert a task reference into another path */
+	public TaskReference insertTaskReference(ReferenceContainer parent, int i, Task task) {
+		TaskReference reference = (TaskReference) task.createReference(parent, i);
+		hasChanged = true;
+		return reference;
+	}
+
+	/** sort Tasks */
+	public void sortTasks() {
+		Collections.sort(tasks);
 		hasChanged = true;
 	}
 

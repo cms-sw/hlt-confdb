@@ -231,7 +231,7 @@ public class ToolBar {
 
 		jButtonSmartRenaming.setActionCommand(cmdSmartRenaming);
 		jButtonSmartRenaming.addActionListener(listener);
-		jButtonSmartRenaming.setToolTipText("Renaming paths/sequences/modules");
+		jButtonSmartRenaming.setToolTipText("Renaming paths/sequences/tasks/modules");
 		jButtonSmartVersions.setIcon(new ImageIcon(getClass().getResource("/SearchReplaceIcon.png")));
 		jToolBar.add(jButtonSmartRenaming);
 

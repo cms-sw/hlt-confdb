@@ -229,6 +229,13 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 		return sequences.iterator();
 	}
 
+	/** create iterator for all contained Tasks */
+	public Iterator<Task> taskIterator() {
+		ArrayList<Task> tasks = new ArrayList<Task>();
+		getTasksAmongEntries(entryIterator(), tasks);
+		return tasks.iterator();
+	}
+
 	/** create iterator for all contained Modules */
 	public Iterator<ModuleInstance> moduleIterator() {
 		ArrayList<ModuleInstance> modules = new ArrayList<ModuleInstance>();
@@ -433,6 +440,9 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 			} else if (entry instanceof SequenceReference) {
 				Sequence sequence = (Sequence) entry.parent();
 				getPathsAmongEntries(sequence.entryIterator(), paths);
+			} else if (entry instanceof TaskReference) {
+				Task task = (Task) entry.parent();
+				getPathsAmongEntries(task.entryIterator(), paths);
 			}
 		}
 	}
@@ -453,6 +463,22 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 		}
 	}
 
+	/** add all Task entries to 'task' array (recursively) */
+	private void getTasksAmongEntries(Iterator<Reference> itEntry, ArrayList<Task> tasks) {
+		while (itEntry.hasNext()) {
+			Reference entry = itEntry.next();
+			if (entry instanceof PathReference) {
+				PathReference ref = (PathReference) entry;
+				Path path = (Path) ref.parent();
+				getTasksAmongEntries(path.entryIterator(), tasks);
+			} else if (entry instanceof TaskReference) {
+				Task task = (Task) entry.parent();
+				tasks.add(task);
+				getTasksAmongEntries(task.entryIterator(), tasks);
+			}
+		}
+	}
+
 	/** add all Module entries to 'modules' array (recursively) */
 	private void getModulesAmongEntries(Iterator<Reference> itEntry, ArrayList<ModuleInstance> modules) {
 		while (itEntry.hasNext()) {
@@ -468,6 +494,9 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 			} else if (entry instanceof SequenceReference) {
 				Sequence sequence = (Sequence) entry.parent();
 				getModulesAmongEntries(sequence.entryIterator(), modules);
+			} else if (entry instanceof TaskReference) {
+				Task task = (Task) entry.parent();
+				getModulesAmongEntries(task.entryIterator(), modules);
 			}
 		}
 	}
@@ -487,6 +516,9 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 			} else if (entry instanceof SequenceReference) {
 				Sequence sequence = (Sequence) entry.parent();
 				getOutputsAmongEntries(sequence.entryIterator(), outputs);
+			} else if (entry instanceof TaskReference) {
+				Task task = (Task) entry.parent();
+				getOutputsAmongEntries(task.entryIterator(), outputs);
 			}
 		}
 	}
@@ -502,6 +534,9 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 			} else if (entry instanceof SequenceReference) {
 				Sequence sequence = (Sequence) entry.parent();
 				getReferences(sequence.entryIterator(), references);
+			} else if (entry instanceof TaskReference) {
+				Task task = (Task) entry.parent();
+				getReferences(task.entryIterator(), references);
 			}
 		}
 	}

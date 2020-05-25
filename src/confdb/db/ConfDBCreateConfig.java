@@ -163,6 +163,18 @@ public class ConfDBCreateConfig {
 			while (itRmv.hasNext())
 				masterConfig.removeSequence(itRmv.next());
 
+			// remove unreferenced tasks
+			ArrayList<Task> tasksToBeRemoved = new ArrayList<Task>();
+			Iterator<Task> itTas = masterConfig.taskIterator();
+			while (itTas.hasNext()) {
+				Task task = itTas.next();
+				if (task.parentPaths().length == 0)
+					tasksToBeRemoved.add(task);
+			}
+			Iterator<Task> itTasRmv = tasksToBeRemoved.iterator();
+			while (itTasRmv.hasNext())
+				masterConfig.removeTask(itTasRmv.next());
+
 			// save the configuration under the new name
 			String configName = newConfigName.substring(dirName.length() + 1);
 			String processName = masterConfig.processName();

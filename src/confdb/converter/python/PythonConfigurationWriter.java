@@ -13,6 +13,7 @@ import confdb.converter.IOutputWriter;
 import confdb.converter.IParameterWriter;
 import confdb.converter.IPathWriter;
 import confdb.converter.ISequenceWriter;
+import confdb.converter.ITaskWriter;
 import confdb.converter.IServiceWriter;
 import confdb.data.Block;
 import confdb.data.ESPreferable;
@@ -25,6 +26,7 @@ import confdb.data.OutputModule;
 import confdb.data.Parameter;
 import confdb.data.Path;
 import confdb.data.Sequence;
+import confdb.data.Task;
 import confdb.data.ServiceInstance;
 
 public class PythonConfigurationWriter implements IConfigurationWriter {
@@ -145,6 +147,16 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 			while (sequenceIterator.hasNext()) {
 				Sequence sequence = sequenceIterator.next();
 				str.append(sequenceWriter.toString(sequence, converterEngine, object));
+			}
+			str.append("\n");
+		}
+
+		if (conf.taskCount() > 0) {
+			ITaskWriter taskWriter = converterEngine.getTaskWriter();
+			Iterator<Task> taskIterator = conf.orderedTaskIterator();
+			while (taskIterator.hasNext()) {
+				Task task = taskIterator.next();
+				str.append(taskWriter.toString(task, converterEngine, object));
 			}
 			str.append("\n");
 		}

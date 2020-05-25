@@ -69,6 +69,7 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 					// Bug 83721: Update Sequences and Paths root container.
 					// propagateModuleName(referencable, treeModel.sequencesNode());
 					treeModel.nodeStructureChanged(treeModel.sequencesNode());
+					treeModel.nodeStructureChanged(treeModel.tasksNode());
 					treeModel.nodeStructureChanged(treeModel.pathsNode());
 
 				} else if (referencable instanceof Path) {
