@@ -5,11 +5,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 /**
- * ReferenceContainer
- * ------------------
+ * ReferenceContainer ------------------
+ * 
  * @author Philipp Schieferdecker
  * 
- * Common base class of Path and Sequence.
+ *         Common base class of Path and Sequence.
  */
 abstract public class ReferenceContainer extends DatabaseEntry implements Comparable<ReferenceContainer>, Referencable {
 	//
@@ -241,6 +241,13 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 		ArrayList<ModuleInstance> modules = new ArrayList<ModuleInstance>();
 		getModulesAmongEntries(entryIterator(), modules);
 		return modules.iterator();
+	}
+	
+	/** create iterator for all contained EDAliases */
+	public Iterator<EDAliasInstance> edAliasIterator() {
+		ArrayList<EDAliasInstance> edAliases = new ArrayList<EDAliasInstance>();
+		getEDAliasAmongEntries(entryIterator(), edAliases);
+		return edAliases.iterator();
 	}
 
 	/** create iterator for all contained OutputModules */
@@ -497,6 +504,28 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 			} else if (entry instanceof TaskReference) {
 				Task task = (Task) entry.parent();
 				getModulesAmongEntries(task.entryIterator(), modules);
+			}
+		}
+	}
+	
+	/** add all EDAlias entries to 'edAliases' array (recursively) */
+	private void getEDAliasAmongEntries(Iterator<Reference> itEntry, ArrayList<EDAliasInstance> edAliases) {
+		while (itEntry.hasNext()) {
+			Reference entry = itEntry.next();
+			if (entry instanceof EDAliasReference) {
+				EDAliasReference ref = (EDAliasReference) entry;
+				EDAliasInstance edAlias = (EDAliasInstance) ref.parent();
+				edAliases.add(edAlias);
+			} else if (entry instanceof PathReference) {
+				PathReference ref = (PathReference) entry;
+				Path path = (Path) ref.parent();
+				getEDAliasAmongEntries(path.entryIterator(), edAliases);
+			} else if (entry instanceof SequenceReference) {
+				Sequence sequence = (Sequence) entry.parent();
+				getEDAliasAmongEntries(sequence.entryIterator(), edAliases);
+			} else if (entry instanceof TaskReference) {
+				Task task = (Task) entry.parent();
+				getEDAliasAmongEntries(task.entryIterator(), edAliases);
 			}
 		}
 	}

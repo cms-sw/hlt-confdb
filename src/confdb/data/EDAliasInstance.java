@@ -5,13 +5,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 /**
- * ModuleInstance --------------
+ * EDAliasInstance --------------
  * 
- * @author Philipp Schieferdecker
+ * @author Bogdan Sataric
  *
- *         CMSSW framework module instance.
+ *         CMSSW framework EDAlias instance.
  */
-public class ModuleInstance extends Instance implements Referencable {
+public class EDAliasInstance extends Instance implements Referencable {
 	//
 	// data members
 	//
@@ -20,15 +20,15 @@ public class ModuleInstance extends Instance implements Referencable {
 	private int databaseId = 0;
 
 	/** list of references */
-	private ArrayList<ModuleReference> references = new ArrayList<ModuleReference>();
+	private ArrayList<EDAliasReference> references = new ArrayList<EDAliasReference>();
 
 	//
 	// construction
 	//
 
-	/** standard constructor */
-	public ModuleInstance(String name, ModuleTemplate template) throws DataException {
-		super(name, template);
+	/** standard constructor - EDAlias has no template */
+	public EDAliasInstance(String name) throws DataException {
+		super(name, null);
 	}
 
 	//
@@ -37,7 +37,7 @@ public class ModuleInstance extends Instance implements Referencable {
 
 	/** create a reference of this instance */
 	public Reference createReference(ReferenceContainer container, int i) {
-		ModuleReference reference = new ModuleReference(container, this);
+		EDAliasReference reference = new EDAliasReference(container, this);
 		references.add(reference);
 		container.insertEntry(i, reference);
 		return reference;
@@ -62,8 +62,6 @@ public class ModuleInstance extends Instance implements Referencable {
 	public void removeReference(Reference reference) {
 		int index = references.indexOf(reference);
 		references.remove(index);
-		if (referenceCount() == 0)
-			remove();
 	}
 
 	/** get list of parent paths */
@@ -84,7 +82,7 @@ public class ModuleInstance extends Instance implements Referencable {
 			return;
 		super.setName(name);
 
-		// need to check all paths containing this module
+		// need to check all paths containing this EDAlias
 		Path[] paths = parentPaths();
 		HashSet<Path> pathSet = new HashSet<Path>();
 		for (Path path : paths)
@@ -101,6 +99,7 @@ public class ModuleInstance extends Instance implements Referencable {
 			}
 		}
 
+		//TODO: from here
 		Iterator<Path> itPath = pathSet.iterator();
 		while (itPath.hasNext()) {
 			Path path = itPath.next();
@@ -121,15 +120,15 @@ public class ModuleInstance extends Instance implements Referencable {
 			}
 
 			boolean isDownstream = path.isEndPath();
-			Iterator<ModuleInstance> itM = path.moduleIterator();
-			while (itM.hasNext()) {
-				ModuleInstance module = itM.next();
+			Iterator<EDAliasInstance> itEDA = path.edAliasIterator();
+			while (itEDA.hasNext()) {
+				EDAliasInstance edAlias = itEDA.next();
 				if (!isDownstream) {
-					if (module == this)
+					if (edAlias == this)
 						isDownstream = true;
 					continue;
 				}
-				Iterator<Parameter> itP = module.recursiveParameterIterator();
+				Iterator<Parameter> itP = edAlias.recursiveParameterIterator();
 				while (itP.hasNext()) {
 					Parameter p = itP.next();
 					if (!p.isValueSet())
@@ -139,14 +138,14 @@ public class ModuleInstance extends Instance implements Referencable {
 						if (inputTag.label().equals(oldName)) {
 							InputTagParameter tmp = (InputTagParameter) inputTag.clone(null);
 							tmp.setLabel(name());
-							module.updateParameter(inputTag.fullName(), inputTag.type(), tmp.valueAsString());
+							edAlias.updateParameter(inputTag.fullName(), inputTag.type(), tmp.valueAsString());
 						}
-					} else if (p instanceof ESInputTagParameter) {
+					} /*else if (p instanceof ESInputTagParameter) {
 						ESInputTagParameter esinputTag = (ESInputTagParameter) p;
-						if (esinputTag.module().equals(oldName)) {
+						if (esinputTag.edAlias().equals(oldName)) {
 							ESInputTagParameter tmp = (ESInputTagParameter) esinputTag.clone(null);
 							tmp.setModule(name());
-							module.updateParameter(esinputTag.fullName(), esinputTag.type(), tmp.valueAsString());
+							edAlias.updateParameter(esinputTag.fullName(), esinputTag.type(), tmp.valueAsString());
 						}
 					} else if (p instanceof VInputTagParameter) {
 						VInputTagParameter vInputTag = (VInputTagParameter) p;
@@ -158,20 +157,20 @@ public class ModuleInstance extends Instance implements Referencable {
 								tmp.setValue(i, inputTag.valueAsString());
 							}
 						}
-						module.updateParameter(vInputTag.fullName(), vInputTag.type(), tmp.valueAsString());
+						edAlias.updateParameter(vInputTag.fullName(), vInputTag.type(), tmp.valueAsString());
 					} else if (p instanceof VESInputTagParameter) {
 						VESInputTagParameter vESInputTag = (VESInputTagParameter) p;
 						VESInputTagParameter tmp = (VESInputTagParameter) vESInputTag.clone(null);
 						for (int i = 0; i < tmp.vectorSize(); i++) {
 							ESInputTagParameter ESinputTag = new ESInputTagParameter("", tmp.value(i).toString(),
 									false);
-							if (ESinputTag.module().equals(oldName)) {
+							if (ESinputTag.edAlias().equals(oldName)) {
 								ESinputTag.setModule(name());
 								tmp.setValue(i, ESinputTag.valueAsString());
 							}
 						}
-						module.updateParameter(vESInputTag.fullName(), vESInputTag.type(), tmp.valueAsString());
-					}
+						edAlias.updateParameter(vESInputTag.fullName(), vESInputTag.type(), tmp.valueAsString());
+					}*/
 				}
 			}
 		}

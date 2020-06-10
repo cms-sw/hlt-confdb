@@ -9,12 +9,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 
 /**
- * ModifierInstructions
- * --------------------
+ * ModifierInstructions --------------------
+ * 
  * @author Philipp Schieferdecker
  *
- * Instructions for the ConfigurationModifier how to filter/manipulate
- * its master configuration.
+ *         Instructions for the ConfigurationModifier how to filter/manipulate
+ *         its master configuration.
  */
 public class ModifierInstructions {
 	//
@@ -74,13 +74,20 @@ public class ModifierInstructions {
 	private boolean undefineAllTasks = false;
 	private ArrayList<String> undefinedTasks = new ArrayList<String>();
 
-	/** modules reqested regardless of being referenced in requested path */
+	/** modules requested regardless of being referenced in requested path */
 	private ArrayList<String> requestedModules = new ArrayList<String>();
 	private ArrayList<String> requestedOutputs = new ArrayList<String>();
+	
+	/** EDAliases requested regardless of being referenced in requested path */
+	private ArrayList<String> requestedEDAliases = new ArrayList<String>();
 
 	/** modules to be properly referenced but *not* defined */
 	private boolean undefineAllModules = false;
 	private ArrayList<String> undefinedModules = new ArrayList<String>();
+	
+	/** EDAliases to be properly referenced but *not* defined */
+	private boolean undefineAllEDAliases = false;
+	private ArrayList<String> undefinedEDAliases = new ArrayList<String>();
 
 	/** contents, streams, & datasets reqested */
 	private ArrayList<String> requestedContents = new ArrayList<String>();
@@ -155,6 +162,9 @@ public class ModifierInstructions {
 		value = args.remove("nomodules");
 		if (value != null)
 			undefineAllModules();
+		value = args.remove("noedaliases");
+		if (value != null)
+			undefineAllEDAliases();
 		value = args.remove("nooutput");
 		if (value != null) {
 			filterAllOutputModules(true);
@@ -279,6 +289,17 @@ public class ModifierInstructions {
 					undefineModule(s.substring(1));
 				else
 					requestModule(s);
+			}
+		}
+		
+		value = args.remove("edaliases");
+		if (value != null) {
+			String[] edAliasNames = value.split(",");
+			for (String s : edAliasNames) {
+				if (s.startsWith("-"))
+					undefineEDAlias(s.substring(1));
+				else
+					requestEDAlias(s);
 			}
 		}
 
@@ -513,6 +534,8 @@ public class ModifierInstructions {
 				}
 			}
 		}
+		
+		//TODO: EDAliases
 
 		Iterator<OutputModule> itOM = config.outputIterator();
 		while (itOM.hasNext()) {
@@ -946,6 +969,11 @@ public class ModifierInstructions {
 	public Iterator<String> requestedModuleIterator() {
 		return requestedModules.iterator();
 	}
+	
+	/** get iterator for requested EDAliases */
+	public Iterator<String> requestedEDAliasIterator() {
+		return requestedEDAliases.iterator();
+	}
 
 	/** get iterator for requested outputs */
 	public Iterator<String> requestedOutputIterator() {
@@ -1306,6 +1334,16 @@ public class ModifierInstructions {
 	public void unrequestModule(String moduleName) {
 		requestedModules.remove(moduleName);
 	}
+	
+	/** request an EDAlias regardless of it being referenced in path */
+	public void requestEDAlias(String edAliasName) {
+		requestedEDAliases.add(edAliasName);
+	}
+
+	/** unrequest an EDAlias regardless of it being referenced in path */
+	public void unrequestEDAlias(String edAliasName) {
+		requestedEDAliases.remove(edAliasName);
+	}
 
 	/** request a output regardless of it being referenced in path */
 	public void requestOutput(String outputName) {
@@ -1345,6 +1383,21 @@ public class ModifierInstructions {
 	/** remove a module from the list of undefined modules */
 	public void redefineModule(String moduleName) {
 		undefinedModules.remove(moduleName);
+	}
+	
+	/** no EDAliases will be defined */
+	public void undefineAllEDAliases() {
+		undefineAllEDAliases = true;
+	}
+
+	/** EDAlias will not be defined, but references remain */
+	public void undefineEDAlias(String edAliasName) {
+		undefinedEDAliases.add(edAliasName);
+	}
+
+	/** remove a EDAlias from the list of undefined EDAlias */
+	public void redefineEDAlias(String edAliasName) {
+		undefinedEDAliases.remove(edAliasName);
 	}
 
 	/** insert a DaqSource */

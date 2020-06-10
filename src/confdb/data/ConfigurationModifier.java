@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * ConfigurationModifier
- * ---------------------
+ * ConfigurationModifier ---------------------
+ * 
  * @author Philipp Schieferdecker
  *
- * retrieve only selected parts of a configuration, after applying
- * configurable filter decisions.
+ *         retrieve only selected parts of a configuration, after applying
+ *         configurable filter decisions.
  */
 public class ConfigurationModifier implements IConfiguration {
 	//
@@ -29,6 +29,7 @@ public class ConfigurationModifier implements IConfiguration {
 	private ArrayList<ESModuleInstance> esmodules = new ArrayList<ESModuleInstance>();
 	private ArrayList<ServiceInstance> services = new ArrayList<ServiceInstance>();
 	private ArrayList<ModuleInstance> modules = new ArrayList<ModuleInstance>();
+	private ArrayList<EDAliasInstance> edaliases = new ArrayList<EDAliasInstance>();
 	private ArrayList<OutputModule> outputs = new ArrayList<OutputModule>();
 	private ArrayList<Path> paths = new ArrayList<Path>();
 	private ArrayList<Sequence> sequences = new ArrayList<Sequence>();
@@ -254,6 +255,12 @@ public class ConfigurationModifier implements IConfiguration {
 						if (!modifications.isUndefined(module) && !modules.contains(module))
 							modules.add(module);
 					}
+					Iterator<EDAliasInstance> itEDA = path.edAliasIterator();
+					while (itEDA.hasNext()) {
+						EDAliasInstance edAlias = itEDA.next();
+						if (!modifications.isUndefined(edAlias) && !edaliases.contains(edAlias))
+							edaliases.add(edAlias);
+					}
 					Iterator<OutputModule> itOM = path.outputIterator();
 					while (itOM.hasNext()) {
 						OutputModule output = itOM.next();
@@ -291,6 +298,13 @@ public class ConfigurationModifier implements IConfiguration {
 			ModuleInstance module = master.module(itM.next());
 			if (module != null && modules.indexOf(module) < 0)
 				modules.add(module);
+		}
+		
+		Iterator<String> itEDA = modifications.requestedEDAliasIterator();
+		while (itEDA.hasNext()) {
+			EDAliasInstance edalias = master.edAlias(itEDA.next());
+			if (edalias != null && edaliases.indexOf(edalias) < 0)
+				edaliases.add(edalias);
 		}
 
 		Iterator<String> itOM = modifications.requestedOutputIterator();
@@ -563,13 +577,23 @@ public class ConfigurationModifier implements IConfiguration {
 		return result;
 	}
 
-	/** number of unsert tracked module parameters */
+	/** number of unset tracked module parameters */
 	public int unsetTrackedModuleParameterCount() {
 		if (!isModified)
 			return master.unsetTrackedModuleParameterCount();
 		int result = 0;
 		for (ModuleInstance mod : modules)
 			result += mod.unsetTrackedParameterCount();
+		return result;
+	}
+	
+	/** number of unset tracked EDAlias parameters */
+	public int unsetTrackedEDAliasParameterCount() {
+		if (!isModified)
+			return master.unsetTrackedEDAliasParameterCount();
+		int result = 0;
+		for (EDAliasInstance eda : edaliases)
+			result += eda.unsetTrackedParameterCount();
 		return result;
 	}
 
@@ -809,6 +833,31 @@ public class ConfigurationModifier implements IConfiguration {
 	/** retrieve module iterator */
 	public Iterator<ModuleInstance> moduleIterator() {
 		return (isModified) ? modules.iterator() : master.moduleIterator();
+	}
+	
+	/** number of EDAliases */
+	public int edAliasCount() {
+		return (isModified) ? edaliases.size() : master.edAliasCount();
+	}
+
+	/** get i-th EDAlias */
+	public EDAliasInstance edAlias(int i) {
+		return (isModified) ? edaliases.get(i) : master.edAlias(i);
+	}
+
+	/** get EDAlias by name */
+	public EDAliasInstance edAlias(String edAliasName) {
+		return master.edAlias(edAliasName);
+	}
+
+	/** index of a certain EDAlias */
+	public int indexOfEDAlias(EDAliasInstance edAlias) {
+		return (isModified) ? edaliases.indexOf(edAlias) : master.indexOfEDAlias(edAlias);
+	}
+
+	/** retrieve edAlias iterator */
+	public Iterator<EDAliasInstance> edAliasIterator() {
+		return (isModified) ? edaliases.iterator() : master.edAliasIterator();
 	}
 
 	/** number of OutputModules */
