@@ -7,11 +7,11 @@ import java.util.Collections;
 import java.util.StringTokenizer;
 
 /**
- * Configuration
- * -------------
+ * Configuration -------------
+ * 
  * @author Philipp Schieferdecker
  *
- * Description of a CMSSW job configuration.
+ *         Description of a CMSSW job configuration.
  */
 public class Configuration implements IConfiguration {
 	//
@@ -43,6 +43,9 @@ public class Configuration implements IConfiguration {
 
 	/** list of Modules */
 	private ArrayList<ModuleInstance> modules = null;
+	
+	/** list of EDAliases */
+	private ArrayList<EDAliasInstance> edaliases = null;
 
 	/** list of Paths */
 	private ArrayList<Path> paths = null;
@@ -71,6 +74,7 @@ public class Configuration implements IConfiguration {
 		esmodules = new ArrayList<ESModuleInstance>();
 		services = new ArrayList<ServiceInstance>();
 		modules = new ArrayList<ModuleInstance>();
+		edaliases = new ArrayList<EDAliasInstance>();
 		paths = new ArrayList<Path>();
 		sequences = new ArrayList<Sequence>();
 		tasks = new ArrayList<Task>();
@@ -85,6 +89,7 @@ public class Configuration implements IConfiguration {
 		esmodules = new ArrayList<ESModuleInstance>();
 		services = new ArrayList<ServiceInstance>();
 		modules = new ArrayList<ModuleInstance>();
+		edaliases = new ArrayList<EDAliasInstance>();
 		paths = new ArrayList<Path>();
 		sequences = new ArrayList<Sequence>();
 		tasks = new ArrayList<Task>();
@@ -171,6 +176,8 @@ public class Configuration implements IConfiguration {
 		else if (c == Task.class)
 			return taskCount();
 		else if (c == ModuleInstance.class)
+			return moduleCount();
+		else if (c == EDAliasInstance.class)
 			return moduleCount();
 		else if (c == OutputModule.class)
 			return outputCount();
@@ -338,6 +345,9 @@ public class Configuration implements IConfiguration {
 		for (ModuleInstance m : modules)
 			if (m.name().equals(qualifier))
 				return false;
+		for (EDAliasInstance eda : edaliases)
+			if (eda.name().equals(qualifier))
+				return false;
 		for (Path p : paths)
 			if (p.name().equals(qualifier))
 				return false;
@@ -370,6 +380,12 @@ public class Configuration implements IConfiguration {
 			if (m == referencable)
 				continue;
 			if (m.name().equals(referencable.name()))
+				return false;
+		}
+		for (EDAliasInstance eda : edaliases) {
+			if (eda == referencable)
+				continue;
+			if (eda.name().equals(referencable.name()))
 				return false;
 		}
 		Iterator<OutputModule> itOM = outputIterator();
@@ -493,7 +509,7 @@ public class Configuration implements IConfiguration {
 		return result;
 	}
 
-	/** number of unsert tracked service parameters */
+	/** number of unset tracked service parameters */
 	public int unsetTrackedServiceParameterCount() {
 		int result = 0;
 		for (ServiceInstance svc : services)
@@ -501,11 +517,20 @@ public class Configuration implements IConfiguration {
 		return result;
 	}
 
-	/** number of unsert tracked module parameters */
+	/** number of unset tracked module parameters */
 	public int unsetTrackedModuleParameterCount() {
 		int result = 0;
 		for (ModuleInstance mod : modules)
 			result += mod.unsetTrackedParameterCount();
+		return result;
+	}
+	
+
+	/** number of unset tracked EDAlias parameters */
+	public int unsetTrackedEDAliasParameterCount() {
+		int result = 0;
+		for (EDAliasInstance eda : edaliases)
+			result += eda.unsetTrackedParameterCount();
 		return result;
 	}
 
@@ -985,6 +1010,98 @@ public class Configuration implements IConfiguration {
 	public void sortModules() {
 		Collections.sort(modules);
 	}
+	
+	
+	//
+	// EDAliases
+	//
+
+	/** number of EDAliases */
+	public int edAliasCount() {
+		return edaliases.size();
+	}
+
+	/** get i-th EDAlias */
+	public EDAliasInstance edAlias(int i) {
+		return edaliases.get(i);
+	}
+
+	/** get EDAlias by name */
+	public EDAliasInstance edAlias(String edAliasName) {
+		for (EDAliasInstance e : edaliases)
+			if (e.name().equals(edAliasName))
+				return e;
+		return null;
+	}
+
+	/** index of a certain EDAlias */
+	public int indexOfEDAlias(EDAliasInstance edAlias) {
+		return edaliases.indexOf(edAlias);
+	}
+
+	/** retrieve EDAlias iterator */
+	public Iterator<EDAliasInstance> edAliasIterator() {
+		return edaliases.iterator();
+	}
+
+	/** insert an EDAlias */
+	public EDAliasInstance insertEDAlias(String instanceName) {
+
+		EDAliasInstance instance = null;
+
+		try {
+			instance = new EDAliasInstance(instanceName);
+			if (instance.referenceCount() == 0) {
+				edaliases.add(instance);
+				instance.setConfig(this);
+				hasChanged = true;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+		return instance;
+	}
+
+	/** insert a pre-existing EDAlias */
+	public boolean insertEDAlias(int i, EDAliasInstance edAlias) {
+		if (edaliases.indexOf(edAlias) < 0 && edAlias.referenceCount() == 0) {
+			edaliases.add(i, edAlias);
+			edAlias.setConfig(this);
+			hasChanged = true;
+			return true;
+		}
+		return false;
+	}
+
+	/** remove a EDAlias reference */
+	public void removeEDAliasReference(EDAliasReference edAlias) {
+		EDAliasInstance instance = (EDAliasInstance) edAlias.parent();
+		edAlias.remove();
+		if (instance.referenceCount() == 0) {
+			int index = edaliases.indexOf(instance);
+			edaliases.remove(index);
+		}
+		hasChanged = true;
+	}
+
+	/** insert EDAliasReference at i-th position into a path/sequence/task */
+	public EDAliasReference insertEDAliasReference(ReferenceContainer container, int i, EDAliasInstance instance) {
+		EDAliasReference reference = (EDAliasReference) instance.createReference(container, i);
+		hasChanged = true;
+		return reference;
+	}
+
+	/** insert EDAliasReference at i-th position into a path/sequence/task */
+	public EDAliasReference insertEDAliasReference(ReferenceContainer container, int i,
+			String instanceName) {
+		EDAliasInstance instance = insertEDAlias(instanceName);
+		return (instance != null) ? insertEDAliasReference(container, i, instance) : null;
+	}
+
+	/** sort EDAliases */
+	public void sortEDAliases() {
+		Collections.sort(edaliases);
+	}
 
 	//
 	// OutputModules
@@ -1128,9 +1245,16 @@ public class Configuration implements IConfiguration {
 					int index = modules.indexOf(instance);
 					modules.remove(index);
 				}
+			} else if (reference instanceof EDAliasReference) {
+				EDAliasReference edAlias = (EDAliasReference) reference;
+				EDAliasInstance instance = (EDAliasInstance) edAlias.parent();
+				if (instance.referenceCount() == 0) {
+					int index = edaliases.indexOf(instance);
+					edaliases.remove(index);
+				}
 			}
 		}
-
+			
 		// remove this paths from all streams (includes datasets & contents)
 		Iterator<Stream> itS = path.streamIterator();
 		while (itS.hasNext())
@@ -1331,7 +1455,7 @@ public class Configuration implements IConfiguration {
 			reference.remove();
 		}
 
-		// remove all modules from this sequence
+		// remove all modules and EDAliases from this sequence
 		while (sequence.entryCount() > 0) {
 			Reference reference = sequence.entry(0);
 			reference.remove();
@@ -1341,6 +1465,13 @@ public class Configuration implements IConfiguration {
 				if (instance.referenceCount() == 0) {
 					int index = modules.indexOf(instance);
 					modules.remove(index);
+				}
+			} else if (reference instanceof EDAliasReference) {
+				EDAliasReference edAlias = (EDAliasReference) reference;
+				EDAliasInstance instance = (EDAliasInstance) edAlias.parent();
+				if (instance.referenceCount() == 0) {
+					int index = edaliases.indexOf(instance);
+					edaliases.remove(index);
 				}
 			}
 		}
@@ -1469,6 +1600,13 @@ public class Configuration implements IConfiguration {
 				if (instance.referenceCount() == 0) {
 					int index = modules.indexOf(instance);
 					modules.remove(index);
+				}
+			} else if (reference instanceof EDAliasReference) {
+				EDAliasReference edAlias = (EDAliasReference) reference;
+				EDAliasInstance instance = (EDAliasInstance) edAlias.parent();
+				if (instance.referenceCount() == 0) {
+					int index = edaliases.indexOf(instance);
+					edaliases.remove(index);
 				}
 			}
 		}

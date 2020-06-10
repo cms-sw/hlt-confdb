@@ -4,11 +4,11 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 /**
- * IConfiguration
- * --------------
+ * IConfiguration --------------
+ * 
  * @author Philipp Schieferdecker
  *
- * Configuration Interface.
+ *         Configuration Interface.
  */
 public interface IConfiguration extends Serializable {
 	/** name of the configuration */
@@ -53,23 +53,26 @@ public interface IConfiguration extends Serializable {
 	/** total number of unset tracked parameters */
 	public int unsetTrackedParameterCount();
 
-	/** number of unsert tracked global pset parameters */
+	/** number of unset tracked global pset parameters */
 	public int unsetTrackedPSetParameterCount();
 
-	/** number of unsert tracked edsource parameters */
+	/** number of unset tracked edsource parameters */
 	public int unsetTrackedEDSourceParameterCount();
 
-	/** number of unsert tracked essource parameters */
+	/** number of unset tracked essource parameters */
 	public int unsetTrackedESSourceParameterCount();
 
-	/** number of unsert tracked esmodule parameters */
+	/** number of unset tracked esmodule parameters */
 	public int unsetTrackedESModuleParameterCount();
 
-	/** number of unsert tracked service parameters */
+	/** number of unset tracked service parameters */
 	public int unsetTrackedServiceParameterCount();
 
-	/** number of unsert tracked module parameters */
+	/** number of unset tracked module parameters */
 	public int unsetTrackedModuleParameterCount();
+	
+	/** number of unset tracked EDAlias parameters */
+	public int unsetTrackedEDAliasParameterCount();
 
 	/** number of output modules not assigned to any path */
 	public int unassignedOutputModuleCount();
@@ -175,6 +178,21 @@ public interface IConfiguration extends Serializable {
 
 	/** retrieve module iterator */
 	public Iterator<ModuleInstance> moduleIterator();
+	
+	/** number of EDAliases */
+	public int edAliasCount();
+
+	/** get i-th EDAlias */
+	public EDAliasInstance edAlias(int i);
+
+	/** get EDAlias by name (name) */
+	public EDAliasInstance edAlias(String edAliasName);
+
+	/** index of a certain EDAlias */
+	public int indexOfEDAlias(EDAliasInstance edAlias);
+
+	/** retrieve EDAlias iterator */
+	public Iterator<EDAliasInstance> edAliasIterator();
 
 	/** number of OutputModules */
 	public int outputCount();

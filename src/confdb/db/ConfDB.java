@@ -31,11 +31,11 @@ import java.math.BigInteger;
 import oracle.jdbc.pool.OracleDataSource;
 
 /**
- * ConfDB
- * ------
+ * ConfDB ------
+ * 
  * @author Philipp Schieferdecker
  *
- * Handle all database access operations.
+ *         Handle all database access operations.
  */
 public class ConfDB {
 	//
@@ -1280,6 +1280,7 @@ public class ConfDB {
 			HashMap<Integer, ArrayList<Parameter>> idToParams = getParameters(configId);
 			// System.err.println("DOne params");
 
+			//BSATARIC: IDALIASES SHOULD HAVE A HASHMAP AS WELL
 			HashMap<Integer, ModuleInstance> idToModules = new HashMap<Integer, ModuleInstance>();
 			HashMap<Integer, Path> idToPaths = new HashMap<Integer, Path>();
 			HashMap<Integer, Sequence> idToSequences = new HashMap<Integer, Sequence>();
@@ -1383,7 +1384,7 @@ public class ConfDB {
 					Instance service = config.insertService(insertIndex, templateName);
 					service.setDatabaseId(id);
 					updateInstanceParameters(service, idToParams.remove(id));
-				} else if (type.equals("Module")) {
+				} else if (type.equals("Module")) { //BSATARIC: EDALIAS cannot have template
 					templateName = release.moduleTemplateName(templateId);
 					ModuleInstance module = config.insertModule(templateName, instanceName);
 					module.setDatabaseId(id);
@@ -5736,7 +5737,7 @@ public class ConfDB {
 			psSelectInstances.setFetchSize(2048);
 			preparedStatements.add(psSelectInstances);
 			//
-			// SELECT FOR TEMPORARY TABLES
+			// SELECT FOR TEMPORARY TABLES (BSATARIC: TODO EDALIAS)
 			//
 			psSelectParameters = dbConnector.getConnection().prepareStatement(
 					"Select * from (Select * from (SELECT a.id+1000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_edsource+1000000, a.lvl,  a.value,  a.valuelob, a.hex  from u_EDSELEMENTS a, u_CONF2EDS c "

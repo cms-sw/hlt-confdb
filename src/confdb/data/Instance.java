@@ -9,7 +9,7 @@ import java.util.Iterator;
  * --------
  * @author Philipp Schieferdecker
  *
- * abstract base class for Service, EDSource, ESSource, and Module Instances.
+ * abstract base class for Service, EDSource, ESSource, Module and EDAlias Instances.
  */
 public class Instance extends ParameterContainer implements Comparable<Instance>
 {
@@ -78,7 +78,7 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
     /** get the template */
     public Template template() { return template; }
     
-    /** ParameterContainer: indicate wether parameter is at its default */
+    /** ParameterContainer: indicate weather parameter is at its default */
     public boolean isParameterAtItsDefault(Parameter p)
     {
 	Parameter templateParameter =
@@ -87,7 +87,7 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
 	return p.valueAsString().equals(templateParameter.valueAsString());
     }
     
-    /** ParameterContainer: indicate wether a parameter can be removed */
+    /** ParameterContainer: indicate weather a parameter can be removed */
     public boolean isParameterRemovable(Parameter p)
     {
 	int index = indexOfParameter(p);
