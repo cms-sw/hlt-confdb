@@ -7,7 +7,7 @@ import java.util.Iterator;
  * 
  * @author bsataric
  * 
- *         A 'Task' can host any number of ModuleReferences and TaskReferences,
+ *         A 'Task' can host any number of ModuleReferences, TaskReferences and SwitchProducers,
  *         but no references to other Paths.
  */
 public class Task extends ReferenceContainer {
@@ -26,7 +26,8 @@ public class Task extends ReferenceContainer {
 
 	/** insert a module or task into the Task */
 	public void insertEntry(int i, Reference reference) {
-		if (reference instanceof ModuleReference || reference instanceof TaskReference
+		if (reference instanceof ModuleReference || reference instanceof TaskReference 
+				|| reference instanceof SwitchProducerReference 
 				|| reference instanceof OutputModuleReference) {
 			if (!entries.contains(reference)) {
 				entries.add(i, reference);
