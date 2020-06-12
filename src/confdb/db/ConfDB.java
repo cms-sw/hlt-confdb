@@ -197,6 +197,7 @@ public class ConfDB {
 	private PreparedStatement psSelectServiceCount = null;
 	private PreparedStatement psSelectModuleTemplateCount = null;
 	private PreparedStatement psSelectModuleCount = null;
+	private PreparedStatement psSelectEDAliasCount = null;
 	private PreparedStatement psSelectSequenceCount = null;
 	private PreparedStatement psSelectTaskCount = null;
 	private PreparedStatement psSelectPathCount = null;
@@ -773,6 +774,9 @@ public class ConfDB {
 			rs = psSelectModuleCount.executeQuery();
 			rs.next();
 			int moduleCount = rs.getInt(1);
+			rs = psSelectEDAliasCount.executeQuery();
+			rs.next();
+			int edAliasCount = rs.getInt(1);
 			rs = psSelectSequenceCount.executeQuery();
 			rs.next();
 			int sequenceCount = rs.getInt(1);
@@ -797,8 +801,9 @@ public class ConfDB {
 					+ edsourceCount + " (" + edsourceTemplateCount + ")" + "\nESSources (T):  " + essourceCount + " ("
 					+ essourceTemplateCount + ")" + "\nESModules (T):  " + esmoduleCount + " (" + esmoduleTemplateCount
 					+ ")" + "\nServices (T):   " + serviceCount + " (" + serviceTemplateCount + ")"
-					+ "\nModules (T):    " + moduleCount + " (" + moduleTemplateCount + ")" + "\nSequences:      "
-					+ sequenceCount + "\nTasks:      " + taskCount + "\nPaths:          " + pathCount
+					+ "\nModules (T):    " + moduleCount + " (" + moduleTemplateCount + ")" 
+					+ "\nEDAliases:    " + edAliasCount 
+					+ "\nSequences:      " + sequenceCount + "\nTasks:      " + taskCount + "\nPaths:          " + pathCount
 					+ "\nParameters:     " + parameterCount + "\nPSets:          " + parameterSetCount
 					+ "\nVPSets:         " + vecParameterSetCount + "\n");
 		} catch (SQLException e) {
@@ -1235,6 +1240,7 @@ public class ConfDB {
 			psSelectInstances.setInt(10, configId);
 			psSelectInstances.setInt(11, configId); // Tasks
 			psSelectInstances.setInt(12, configId); // Tasks
+			psSelectInstances.setInt(13, configId); // EDAliases
 			rsInstances = psSelectInstances.executeQuery(); // BSATARIC: get all instances for the same config
 															// (sequences too)
 
@@ -1282,6 +1288,7 @@ public class ConfDB {
 
 			//BSATARIC: IDALIASES SHOULD HAVE A HASHMAP AS WELL
 			HashMap<Integer, ModuleInstance> idToModules = new HashMap<Integer, ModuleInstance>();
+			HashMap<Integer, EDAliasInstance> idToEDAliases = new HashMap<Integer, EDAliasInstance>();
 			HashMap<Integer, Path> idToPaths = new HashMap<Integer, Path>();
 			HashMap<Integer, Sequence> idToSequences = new HashMap<Integer, Sequence>();
 			HashMap<Integer, Task> idToTasks = new HashMap<Integer, Task>();
@@ -1384,12 +1391,17 @@ public class ConfDB {
 					Instance service = config.insertService(insertIndex, templateName);
 					service.setDatabaseId(id);
 					updateInstanceParameters(service, idToParams.remove(id));
-				} else if (type.equals("Module")) { //BSATARIC: EDALIAS cannot have template
+				} else if (type.equals("Module")) { 
 					templateName = release.moduleTemplateName(templateId);
 					ModuleInstance module = config.insertModule(templateName, instanceName);
 					module.setDatabaseId(id);
 					updateInstanceParameters(module, idToParams.remove(id));
 					idToModules.put(id, module);
+				} else if (type.equals("EDAlias")) { //BSATARIC: EDALIAS cannot have template
+					EDAliasInstance edAlias = config.insertEDAlias(instanceName);
+					edAlias.setDatabaseId(id);
+					updateInstanceParameters(edAlias, idToParams.remove(id)); //TODO: check module parameters
+					idToEDAliases.put(id, edAlias);
 				} else if (type.equals("Path")) {
 
 					int insertIndex = config.pathCount();
@@ -5259,6 +5271,10 @@ public class ConfDB {
 			psSelectModuleCount = dbConnector.getConnection()
 					.prepareStatement("SELECT COUNT(*) FROM u_paelements Modules WHERE paetype = 1");
 			preparedStatements.add(psSelectModuleCount);
+			
+			psSelectEDAliasCount = dbConnector.getConnection()
+					.prepareStatement("SELECT COUNT(*) FROM u_paelements Modules WHERE paetype = 5");
+			preparedStatements.add(psSelectEDAliasCount);
 
 			psSelectSequenceCount = dbConnector.getConnection()
 					.prepareStatement("SELECT COUNT(*) FROM u_paelements Modules WHERE paetype = 1"); // BSATARIC not
@@ -5727,13 +5743,15 @@ public class ConfDB {
 							+ " UNION ALL "
 							+ " select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, u_mod2templ.id_templ, 'Module', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_conf2pae,u_mod2templ WHERE  u_conf2pae.id_pae=u_paelements.id and u_paelements.paetype=1 and u_conf2pae.id_confver = ? and u_mod2templ.id_pae=u_paelements.id and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver )) ta  "
 							+ " UNION ALL "
-							+ "  select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, NULL, 'Sequence', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_conf2pae WHERE  u_conf2pae.id_pae=u_paelements.id and u_paelements.paetype=2 and u_conf2pae.id_confver = ? and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver )) ta "
+							+ " select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, NULL, 'Sequence', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_conf2pae WHERE  u_conf2pae.id_pae=u_paelements.id and u_paelements.paetype=2 and u_conf2pae.id_confver = ? and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver )) ta "
 							+ " UNION ALL "
 							+ " select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, NULL, 'Sequence', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_pathid2conf,u_pathid2pae WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_paelements.paetype=2 and u_pathid2conf.id_confver = ?) ta"
 							+ " UNION ALL "
-							+ "  select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, NULL, 'Task', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_conf2pae WHERE  u_conf2pae.id_pae=u_paelements.id and u_paelements.paetype=4 and u_conf2pae.id_confver = ? and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver )) ta "
+							+ " select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, NULL, 'Task', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_conf2pae WHERE  u_conf2pae.id_pae=u_paelements.id and u_paelements.paetype=4 and u_conf2pae.id_confver = ? and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver )) ta "
 							+ " UNION ALL "
-							+ " select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, NULL, 'Task', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_pathid2conf,u_pathid2pae WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_paelements.paetype=4 and u_pathid2conf.id_confver = ?) ta order by 3,6,4");
+							+ " select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, NULL, 'Task', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_pathid2conf,u_pathid2pae WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and u_pathid2pae.id_pae=u_paelements.id and u_paelements.paetype=4 and u_pathid2conf.id_confver = ?) ta "
+							+ " UNION ALL "
+							+ " select ta.*, NULL as description,NULL as contact from (SELECT UNIQUE u_paelements.id, NULL, 'EDAlias', u_paelements.name, NULL as endpath,NULL as ord FROM u_paelements, u_conf2pae WHERE u_conf2pae.id_pae=u_paelements.id and u_paelements.paetype=5 and u_conf2pae.id_confver = ? and u_conf2pae.id_pae not in (SELECT a.id_pae FROM u_pathid2pae a, u_pathid2conf b WHERE a.id_pathid = b.id_pathid AND b.id_confver =u_conf2pae.id_confver )) ta order by 3,6,4");
 			psSelectInstances.setFetchSize(2048);
 			preparedStatements.add(psSelectInstances);
 			//
@@ -5818,7 +5836,7 @@ public class ConfDB {
 			psSelectSequenceAndTaskEntries = dbConnector.getConnection().prepareStatement(
 					"select * from (SELECT u_pathid2pae.id_pathid,u_pathid2pae.id as srid,u_pathid2pae.lvl, "
 							+ "u_paelements.id, u_pathid2pae.ord, DECODE(u_paelements.paetype,1, "
-							+ "'Module', 2, 'Sequence', 3, 'OutputModule', 4, 'Task', 'Undefined') "
+							+ "'Module', 2, 'Sequence', 3, 'OutputModule', 4, 'Task','Undefined') "
 							+ "AS entry_type, u_pathid2pae.operator FROM u_pathid2pae,u_paelements, "
 							+ "u_pathid2conf WHERE u_pathid2conf.id_pathid=u_pathid2pae.id_pathid and "
 							+ "u_pathid2pae.id_pae=u_paelements.id and ((u_pathid2pae.lvl=0 and (u_paelements.paetype=2 or u_paelements.paetype=4)) "
@@ -6016,7 +6034,7 @@ public class ConfDB {
 		}
 	}
 
-	/** get values as strings after loading templates/configuration */
+	/** get values as strings after loading templates/configuration TODO: EDAliases*/
 	private HashMap<Integer, ArrayList<Parameter>> getParameters(int configId) throws DatabaseException {
 		HashMap<Integer, ArrayList<Parameter>> idToParameters = new HashMap<Integer, ArrayList<Parameter>>();
 

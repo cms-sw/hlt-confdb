@@ -78,16 +78,23 @@ public class ModifierInstructions {
 	private ArrayList<String> requestedModules = new ArrayList<String>();
 	private ArrayList<String> requestedOutputs = new ArrayList<String>();
 	
-	/** EDAliases requested regardless of being referenced in requested path */
-	private ArrayList<String> requestedEDAliases = new ArrayList<String>();
-
 	/** modules to be properly referenced but *not* defined */
 	private boolean undefineAllModules = false;
 	private ArrayList<String> undefinedModules = new ArrayList<String>();
 	
+	/** EDAliases requested regardless of being referenced in requested path */
+	private ArrayList<String> requestedEDAliases = new ArrayList<String>();
+	
 	/** EDAliases to be properly referenced but *not* defined */
 	private boolean undefineAllEDAliases = false;
 	private ArrayList<String> undefinedEDAliases = new ArrayList<String>();
+
+	/** SwitchProducers requested regardless of being referenced in requested path */
+	private ArrayList<String> requestedSwitchProducers = new ArrayList<String>();
+	
+	/** SwitchProducers to be properly referenced but *not* defined */
+	private boolean undefineAllSwitchProducers= false;
+	private ArrayList<String> undefinedSwitchProducers = new ArrayList<String>();
 
 	/** contents, streams, & datasets reqested */
 	private ArrayList<String> requestedContents = new ArrayList<String>();
@@ -165,6 +172,9 @@ public class ModifierInstructions {
 		value = args.remove("noedaliases");
 		if (value != null)
 			undefineAllEDAliases();
+		value = args.remove("noswitchproducers");
+		if (value != null)
+			undefineAllSwitchProducers();
 		value = args.remove("nooutput");
 		if (value != null) {
 			filterAllOutputModules(true);
@@ -300,6 +310,17 @@ public class ModifierInstructions {
 					undefineEDAlias(s.substring(1));
 				else
 					requestEDAlias(s);
+			}
+		}
+		
+		value = args.remove("switchproducers");
+		if (value != null) {
+			String[] switchProducerNames = value.split(",");
+			for (String s : switchProducerNames) {
+				if (s.startsWith("-"))
+					undefineSwitchProducer(s.substring(1));
+				else
+					requestSwitchProducer(s);
 			}
 		}
 
@@ -534,8 +555,32 @@ public class ModifierInstructions {
 				}
 			}
 		}
+				
+		//BSataric: maybe search needs modifications from modules but we'll see
+		Iterator<EDAliasInstance> itEDA = config.edAliasIterator();
+		while (itEDA.hasNext()) {
+			EDAliasInstance edAlias = itEDA.next();
+			if (obj == 3 && edAlias.findParameters(null, null, search, alg).length > 0) {
+				requestEDAlias(edAlias.name());
+			} else {
+				name = (obj == 1) ? edAlias.name() : edAlias.template().name();
+				if (isMatch(name, search, alg)) {
+					requestEDAlias(edAlias.name());
+				} else {
+					Name = (obj == 1) ? search : null;
+					Type = (obj == 1) ? null : search;
+					if (edAlias.findParameters(Name, Type, null, alg).length > 0)
+						requestEDAlias(edAlias.name());
+				}
+			}
+		}
 		
-		//TODO: EDAliases
+		Iterator<SwitchProducer> itSP = config.switchProducerIterator();
+		while (itSP.hasNext()) {
+			name = itSP.next().name();
+			if (isMatch(name, search, alg))
+				requestSwitchProducer(name);
+		}
 
 		Iterator<OutputModule> itOM = config.outputIterator();
 		while (itOM.hasNext()) {
@@ -719,8 +764,14 @@ public class ModifierInstructions {
 					continue;
 				if (parent instanceof Sequence)
 					requestSequence(name);
+				else if (parent instanceof Task)
+					requestTask(name);
 				else if (parent instanceof ModuleInstance)
 					requestModule(name);
+				else if (parent instanceof EDAliasInstance)
+					requestEDAlias(name);
+				else if (parent instanceof SwitchProducer)
+					requestSwitchProducer(name);
 			}
 		}
 
@@ -739,10 +790,14 @@ public class ModifierInstructions {
 				String name = parent.name();
 				if (isUndefined(parent))
 					continue;
-				if (parent instanceof Task) // TODO: should here also be sequences???
+				if (parent instanceof Task)
 					requestTask(name);
 				else if (parent instanceof ModuleInstance)
 					requestModule(name);
+				else if (parent instanceof EDAliasInstance)
+					requestEDAlias(name);
+				else if (parent instanceof SwitchProducer)
+					requestSwitchProducer(name);
 			}
 		}
 
@@ -769,11 +824,29 @@ public class ModifierInstructions {
 				if (!isUndefined(s))
 					undefineSequence(s.name());
 			}
+			Iterator<Task> itT = sequence.taskIterator();
+			while (itT.hasNext()) {
+				Task t = itT.next();
+				if (!isUndefined(t))
+					undefineTask(t.name());
+			}
 			Iterator<ModuleInstance> itM = sequence.moduleIterator();
 			while (itM.hasNext()) {
 				ModuleInstance m = itM.next();
 				if (!isUndefined(m))
 					undefineModule(m.name());
+			}
+			Iterator<EDAliasInstance> itEDA = sequence.edAliasIterator();
+			while (itEDA.hasNext()) {
+				EDAliasInstance e = itEDA.next();
+				if (!isUndefined(e))
+					undefineModule(e.name());
+			}
+			Iterator<SwitchProducer> itSP = sequence.switchProducerIterator();
+			while (itSP.hasNext()) {
+				SwitchProducer sp = itSP.next();
+				if (!isUndefined(sp))
+					undefineSwitchProducer(sp.name());
 			}
 		}
 
@@ -805,6 +878,18 @@ public class ModifierInstructions {
 				ModuleInstance m = itM.next();
 				if (!isUndefined(m))
 					undefineModule(m.name());
+			}
+			Iterator<EDAliasInstance> itEDA = task.edAliasIterator();
+			while (itEDA.hasNext()) {
+				EDAliasInstance e = itEDA.next();
+				if (!isUndefined(e))
+					undefineModule(e.name());
+			}
+			Iterator<SwitchProducer> itSP = task.switchProducerIterator();
+			while (itSP.hasNext()) {
+				SwitchProducer sp = itSP.next();
+				if (!isUndefined(sp))
+					undefineSwitchProducer(sp.name());
 			}
 		}
 
@@ -932,26 +1017,34 @@ public class ModifierInstructions {
 	}
 
 	/** check if a sequence, task or module is specifically requested */
-	public boolean isRequested(Referencable moduleOrSequenceOrTask) {
-		if (moduleOrSequenceOrTask instanceof Sequence)
-			return (requestedSequences.contains(moduleOrSequenceOrTask.name()));
-		else if (moduleOrSequenceOrTask instanceof Task)
-			return (requestedTasks.contains(moduleOrSequenceOrTask.name()));
-		else if (moduleOrSequenceOrTask instanceof ModuleInstance)
-			return (requestedModules.contains(moduleOrSequenceOrTask.name()));
-		else if (moduleOrSequenceOrTask instanceof OutputModule)
-			return (requestedOutputs.contains(moduleOrSequenceOrTask.name()));
+	public boolean isRequested(Referencable requestedObject) {
+		if (requestedObject instanceof Sequence)
+			return (requestedSequences.contains(requestedObject.name()));
+		else if (requestedObject instanceof Task)
+			return (requestedTasks.contains(requestedObject.name()));
+		else if (requestedObject instanceof ModuleInstance)
+			return (requestedModules.contains(requestedObject.name()));
+		else if (requestedObject instanceof OutputModule)
+			return (requestedOutputs.contains(requestedObject.name()));
+		else if (requestedObject instanceof EDAliasInstance)
+			return (requestedEDAliases.contains(requestedObject.name()));
+		else if (requestedObject instanceof SwitchProducer)
+			return (requestedSwitchProducers.contains(requestedObject.name()));
 		return false;
 	}
 
-	/** check if a sequence, task or module should be undefined */
-	public boolean isUndefined(Referencable moduleOrSequenceOrTask) {
-		if (moduleOrSequenceOrTask instanceof Sequence)
-			return (undefineAllSequences) ? true : (undefinedSequences.contains(moduleOrSequenceOrTask.name()));
-		else if (moduleOrSequenceOrTask instanceof Task)
-			return (undefineAllTasks) ? true : (undefinedTasks.contains(moduleOrSequenceOrTask.name()));
-		else if ((moduleOrSequenceOrTask instanceof ModuleInstance) || (moduleOrSequenceOrTask instanceof OutputModule))
-			return (undefineAllModules) ? true : (undefinedModules.contains(moduleOrSequenceOrTask.name()));
+	/** check if a sequence, task, module, EDAlias or SwitchProducer should be undefined */
+	public boolean isUndefined(Referencable undefinedObject) {
+		if (undefinedObject instanceof Sequence)
+			return (undefineAllSequences) ? true : (undefinedSequences.contains(undefinedObject.name()));
+		else if (undefinedObject instanceof Task)
+			return (undefineAllTasks) ? true : (undefinedTasks.contains(undefinedObject.name()));
+		else if ((undefinedObject instanceof ModuleInstance) || (undefinedObject instanceof OutputModule))
+			return (undefineAllModules) ? true : (undefinedModules.contains(undefinedObject.name()));
+		else if (undefinedObject instanceof EDAliasInstance)
+			return (undefineAllEDAliases) ? true : (undefinedEDAliases.contains(undefinedObject.name()));
+		else if (undefinedObject instanceof SwitchProducer)
+			return (undefineAllSwitchProducers) ? true : (undefinedSwitchProducers.contains(undefinedObject.name()));
 		return false;
 	}
 
@@ -973,6 +1066,11 @@ public class ModifierInstructions {
 	/** get iterator for requested EDAliases */
 	public Iterator<String> requestedEDAliasIterator() {
 		return requestedEDAliases.iterator();
+	}
+	
+	/** get iterator for requested switch producers */
+	public Iterator<String> requestedSwitchProducerIterator() {
+		return requestedSwitchProducers.iterator();
 	}
 
 	/** get iterator for requested outputs */
@@ -1398,6 +1496,31 @@ public class ModifierInstructions {
 	/** remove a EDAlias from the list of undefined EDAlias */
 	public void redefineEDAlias(String edAliasName) {
 		undefinedEDAliases.remove(edAliasName);
+	}
+	
+	/** request a switch producer regardless of it being referenced in path */
+	public void requestSwitchProducer(String switchProducerName) {
+		requestedSwitchProducers.add(switchProducerName);
+	}
+
+	/** unrequest a switch producer regardless of it being referenced in path */
+	public void unrequestSwitchProducer(String switchProducerName) {
+		requestedSwitchProducers.remove(switchProducerName);
+	}
+
+	/** remove switch producer from list of undefined switch producers */
+	public void redefineSwitchProducer(String switchProducerName) {
+		requestedSwitchProducers.remove(switchProducerName);
+	}
+
+	/** switch producer won't be defined but references remain; content removed! */
+	public void undefineSwitchProducer(String switchProducerName) {
+		undefinedSwitchProducers.add(switchProducerName);
+	}
+
+	/** no switch producers will be defined */
+	public void undefineAllSwitchProducers() {
+		undefineAllSwitchProducers = true;
 	}
 
 	/** insert a DaqSource */

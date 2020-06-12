@@ -46,6 +46,9 @@ public class Configuration implements IConfiguration {
 	
 	/** list of EDAliases */
 	private ArrayList<EDAliasInstance> edaliases = null;
+	
+	/** list of SwitchProducers */
+	private ArrayList<SwitchProducer> switchproducers = null;
 
 	/** list of Paths */
 	private ArrayList<Path> paths = null;
@@ -75,6 +78,7 @@ public class Configuration implements IConfiguration {
 		services = new ArrayList<ServiceInstance>();
 		modules = new ArrayList<ModuleInstance>();
 		edaliases = new ArrayList<EDAliasInstance>();
+		switchproducers = new ArrayList<SwitchProducer>();
 		paths = new ArrayList<Path>();
 		sequences = new ArrayList<Sequence>();
 		tasks = new ArrayList<Task>();
@@ -90,6 +94,7 @@ public class Configuration implements IConfiguration {
 		services = new ArrayList<ServiceInstance>();
 		modules = new ArrayList<ModuleInstance>();
 		edaliases = new ArrayList<EDAliasInstance>();
+		switchproducers = new ArrayList<SwitchProducer>();
 		paths = new ArrayList<Path>();
 		sequences = new ArrayList<Sequence>();
 		tasks = new ArrayList<Task>();
@@ -179,6 +184,8 @@ public class Configuration implements IConfiguration {
 			return moduleCount();
 		else if (c == EDAliasInstance.class)
 			return moduleCount();
+		else if (c == SwitchProducer.class)
+			return switchProducerCount();
 		else if (c == OutputModule.class)
 			return outputCount();
 		else if (c == EventContent.class)
@@ -313,6 +320,12 @@ public class Configuration implements IConfiguration {
 		for (Task tas : tasks)
 			if (tas.hasChanged())
 				return true;
+		for (EDAliasInstance eda : edaliases)  //BSATARIC: not sure if this is necessary
+			if (eda.hasChanged())
+				return true;
+		for (SwitchProducer swp : switchproducers)
+			if (swp.hasChanged())
+				return true;	
 		for (EventContent evc : contents)
 			if (evc.hasChanged())
 				return true;
@@ -347,6 +360,9 @@ public class Configuration implements IConfiguration {
 				return false;
 		for (EDAliasInstance eda : edaliases)
 			if (eda.name().equals(qualifier))
+				return false;
+		for (SwitchProducer swp : switchproducers)
+			if (swp.name().equals(qualifier))
 				return false;
 		for (Path p : paths)
 			if (p.name().equals(qualifier))
@@ -386,6 +402,12 @@ public class Configuration implements IConfiguration {
 			if (eda == referencable)
 				continue;
 			if (eda.name().equals(referencable.name()))
+				return false;
+		}
+		for (SwitchProducer swp : switchproducers) {
+			if (swp == referencable)
+				continue;
+			if (swp.name().equals(referencable.name()))
 				return false;
 		}
 		Iterator<OutputModule> itOM = outputIterator();
@@ -455,6 +477,12 @@ public class Configuration implements IConfiguration {
 			System.out.println("TASK NUMBER: " + taskNumber++);
 			System.out.println("TASK ENTRYCOUNT: " + t.entryCount());
 			if (t.entryCount() == 0)
+				result++;
+		}
+		Iterator<SwitchProducer> itSP = switchproducers.iterator();
+		while (itSP.hasNext()) {
+			SwitchProducer sp = itSP.next();
+			if (sp.entryCount() == 0)
 				result++;
 		}
 		return result;
@@ -1101,6 +1129,142 @@ public class Configuration implements IConfiguration {
 	/** sort EDAliases */
 	public void sortEDAliases() {
 		Collections.sort(edaliases);
+	}
+	
+	
+	//
+	// SwitchProducers
+	//
+
+	/** number of SwitchProducers */
+	public int switchProducerCount() {
+		return switchproducers.size();
+	}
+
+	/** get i-th SwitchProducer */
+	public SwitchProducer switchProducer(int i) {
+		return switchproducers.get(i);
+	}
+
+	/** get SwitchProducer by name */
+	public SwitchProducer switchProducer(String switchProducerName) {
+		for (SwitchProducer s : switchproducers)
+			if (s.name().equals(switchProducerName))
+				return s;
+		return null;
+	}
+
+	/** index of a certain SwitchProducer */
+	public int indexOfSwitchProducer(SwitchProducer switchProducer) {
+		return switchproducers.indexOf(switchProducer);
+	}
+
+	/** retrieve switch producers iterator */
+	public Iterator<SwitchProducer> switchProducerIterator() {
+		return switchproducers.iterator();
+	}
+
+	/** retrieve switch producers iterator */
+	public Iterator<SwitchProducer> orderedSwitchProducerIterator() {
+		ArrayList<SwitchProducer> result = new ArrayList<SwitchProducer>();
+		Iterator<SwitchProducer> itS = switchProducerIterator();
+		while (itS.hasNext())
+			result.add(itS.next());
+		boolean isOrdered = false;
+		while (!isOrdered) {
+			isOrdered = true;
+			int indexS = 0;
+			while (indexS < result.size()) {
+				SwitchProducer switchProducer = result.get(indexS);
+				int indexMax = -1;
+				itS = switchProducer.switchProducerIterator();
+				while (itS.hasNext()) {
+					int index = result.indexOf(itS.next());
+					if (index > indexMax)
+						indexMax = index;
+				}
+				if (indexMax > indexS) {
+					isOrdered = false;
+					result.remove(indexS);
+					result.add(indexMax, switchProducer);
+				} else {
+					indexS++;
+				}
+			}
+		}
+		return result.iterator();
+	}
+
+	/** insert switch producer */
+	public SwitchProducer insertSwitchProducer(int i, String switchProducerName) {
+		SwitchProducer switchProducer = new SwitchProducer(switchProducerName);
+		switchproducers.add(i, switchProducer);
+		switchProducer.setConfig(this);
+		hasChanged = true;
+		return switchProducer;
+	}
+
+	/** move a switch producer to another position within switch producers */
+	public boolean moveSwitchProducer(SwitchProducer switchProducer, int targetIndex) {
+		int currentIndex = switchproducers.indexOf(switchProducer);
+		if (currentIndex < 0)
+			return false;
+		if (currentIndex == targetIndex)
+			return true;
+		if (targetIndex > switchproducers.size())
+			return false;
+		if (currentIndex < targetIndex)
+			targetIndex--;
+		switchproducers.remove(currentIndex);
+		switchproducers.add(targetIndex, switchProducer);
+		hasChanged = true;
+		return true;
+	}
+
+	/** remove a switch producer */
+	public void removeSwitchProducer(SwitchProducer switchProducer) {
+		while (switchProducer.referenceCount() > 0) {
+			SwitchProducerReference reference = (SwitchProducerReference) switchProducer.reference(0);
+			reference.remove();
+		}
+
+		// remove all modules and EDAliases from this switchProducer
+		while (switchProducer.entryCount() > 0) {
+			Reference reference = switchProducer.entry(0);
+			reference.remove();
+			if (reference instanceof ModuleReference) {
+				ModuleReference module = (ModuleReference) reference;
+				ModuleInstance instance = (ModuleInstance) module.parent();
+				if (instance.referenceCount() == 0) {
+					int index = modules.indexOf(instance);
+					modules.remove(index);
+				}
+			} else if (reference instanceof EDAliasReference) {
+				EDAliasReference edAlias = (EDAliasReference) reference;
+				EDAliasInstance instance = (EDAliasInstance) edAlias.parent();
+				if (instance.referenceCount() == 0) {
+					int index = edaliases.indexOf(instance);
+					edaliases.remove(index);
+				}
+			}
+		}
+
+		int index = switchproducers.indexOf(switchProducer);
+		switchproducers.remove(index);
+		hasChanged = true;
+	}
+
+	/** insert a switch producer into another path */
+	public SwitchProducerReference insertSwitchProducerReference(ReferenceContainer parent, int i, SwitchProducer switchProducer) {
+		SwitchProducerReference reference = (SwitchProducerReference) switchProducer.createReference(parent, i);
+		hasChanged = true;
+		return reference;
+	}
+
+	/** sort Switch producers */
+	public void sortSwitchProducers() {
+		Collections.sort(switchproducers);
+		hasChanged = true;
 	}
 
 	//

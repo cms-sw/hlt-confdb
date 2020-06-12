@@ -193,6 +193,24 @@ public interface IConfiguration extends Serializable {
 
 	/** retrieve EDAlias iterator */
 	public Iterator<EDAliasInstance> edAliasIterator();
+	
+	/** number of switch producers */
+	public int switchProducerCount();
+
+	/** get i-th switch producer */
+	public SwitchProducer switchProducer(int i);
+
+	/** get switch producer by name */
+	public SwitchProducer switchProducer(String switchProducerName);
+
+	/** index of a certain switch producer */
+	public int indexOfSwitchProducer(SwitchProducer switchProducer);
+
+	/** retrieve switch producer iterator */
+	public Iterator<SwitchProducer> switchProducerIterator();
+
+	/** retrieve switch producer iterator */
+	public Iterator<SwitchProducer> orderedSwitchProducerIterator();
 
 	/** number of OutputModules */
 	public int outputCount();
