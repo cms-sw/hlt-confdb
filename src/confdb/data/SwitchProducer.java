@@ -3,20 +3,20 @@ package confdb.data;
 import java.util.Iterator;
 
 /**
- * Sequence
+ * SwitchProducer
  * --------
- * @author Philipp Schieferdecker
+ * @author Bogdan Sataric
  * 
- * A 'Sequence' can host any number of ModuleReferences,
- * SequenceReferences, TaskReferences and SwitchProducereferences, but no references to other Paths.
+ * A 'SwitchProducer' can host only 1 or 2 elements of type EDProducer or EDAlias
+ * 
  */
-public class Sequence extends ReferenceContainer {
+public class SwitchProducer extends ReferenceContainer {
 	//
 	// construction
 	//
 
 	/** standard constructor */
-	public Sequence(String name) {
+	public SwitchProducer(String name) {
 		super(name);
 	}
 
@@ -24,21 +24,19 @@ public class Sequence extends ReferenceContainer {
 	// member functions
 	//
 
-	/** insert a module into the sequence */
+	/** insert a EDProducer or EDAlias into the SwitchProducer */
 	public void insertEntry(int i, Reference reference) {
-		if (reference instanceof ModuleReference || reference instanceof SequenceReference
-				|| reference instanceof TaskReference || reference instanceof SwitchProducerReference  
-				|| reference instanceof OutputModuleReference) {
+		if (reference instanceof ModuleReference || reference instanceof EDAliasReference) {
 			if (!entries.contains(reference)) {
 				entries.add(i, reference);
 				setHasChanged();
 				return;
 			}
 		}
-		System.err.println("Sequence.insertEntry FAILED.");
+		System.err.println("SwitchProducer.insertEntry FAILED.");
 	}
 
-	/** check if sequence contains a specific module */
+	/** check if SwitchProducer contains a specific EDProducer or EDAlias */
 	public boolean containsEntry(Reference reference) {
 		Referencable parent = reference.parent();
 		Iterator<Reference> it = entries.iterator();
@@ -50,9 +48,9 @@ public class Sequence extends ReferenceContainer {
 		return false;
 	}
 
-	/** create a reference of this in a reference container (path/sequence) */
+	/** create a reference of this in a reference container (path/sequence/task) */
 	public Reference createReference(ReferenceContainer container, int i) {
-		SequenceReference reference = new SequenceReference(container, this);
+		SwitchProducerReference reference = new SwitchProducerReference(container, this);
 		references.add(reference);
 		container.insertEntry(i, reference);
 		container.setHasChanged();
