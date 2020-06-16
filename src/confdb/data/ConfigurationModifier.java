@@ -318,9 +318,9 @@ public class ConfigurationModifier implements IConfiguration {
 		
 		Iterator<String> itSP = modifications.requestedSwitchProducerIterator();
 		while (itSP.hasNext()) {
-			Task task = master.task(itT.next());
-			if (task != null && tasks.indexOf(task) < 0)
-				tasks.add(task);
+			SwitchProducer switchProducer = master.switchProducer(itSP.next());
+			if (switchProducer != null && switchproducers.indexOf(switchProducer) < 0)
+				switchproducers.add(switchProducer);
 		}
 
 		Iterator<String> itOM = modifications.requestedOutputIterator();
@@ -907,15 +907,19 @@ public class ConfigurationModifier implements IConfiguration {
 	public EDAliasInstance edAlias(String edAliasName) {
 		return master.edAlias(edAliasName);
 	}
-
+	
 	/** index of a certain EDAlias */
 	public int indexOfEDAlias(EDAliasInstance edAlias) {
 		return (isModified) ? edaliases.indexOf(edAlias) : master.indexOfEDAlias(edAlias);
 	}
 	
+	public Iterator<EDAliasInstance> edAliasIterator() {
+		return (isModified) ? edaliases.iterator() : master.edAliasIterator();
+	}
+	
 	/** number of switch producers */
 	public int switchProducerCount() {
-		return (isModified) ? switchproducers.size() : master.taskCount();
+		return (isModified) ? switchproducers.size() : master.switchProducerCount();
 	}
 
 	/** get i-th switch producer */
@@ -1122,4 +1126,5 @@ public class ConfigurationModifier implements IConfiguration {
 	public Iterator<Task> taskIterator() {
 		return (isModified) ? tasks.iterator() : master.taskIterator();
 	}
+
 }

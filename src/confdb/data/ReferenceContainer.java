@@ -526,10 +526,6 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 				EDAliasReference ref = (EDAliasReference) entry;
 				EDAliasInstance edAlias = (EDAliasInstance) ref.parent();
 				edAliases.add(edAlias);
-			} else if (entry instanceof PathReference) {
-				PathReference ref = (PathReference) entry;
-				Path path = (Path) ref.parent();
-				getEDAliasAmongEntries(path.entryIterator(), edAliases);
 			} else if (entry instanceof SwitchProducerReference) {
 				SwitchProducerReference ref = (SwitchProducerReference) entry;
 				SwitchProducer switchProducer = (SwitchProducer) ref.parent();

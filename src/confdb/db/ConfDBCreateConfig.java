@@ -174,6 +174,18 @@ public class ConfDBCreateConfig {
 			Iterator<Task> itTasRmv = tasksToBeRemoved.iterator();
 			while (itTasRmv.hasNext())
 				masterConfig.removeTask(itTasRmv.next());
+			
+			// remove unreferenced switch producers
+			ArrayList<SwitchProducer> switchProducersToBeRemoved = new ArrayList<SwitchProducer>();
+			Iterator<SwitchProducer> itSwitchProducer = masterConfig.switchProducerIterator();
+			while (itSwitchProducer.hasNext()) {
+				SwitchProducer switchProducer = itSwitchProducer.next();
+				if (switchProducer.parentPaths().length == 0)
+					switchProducersToBeRemoved.add(switchProducer);
+			}
+			Iterator<SwitchProducer> itSwitchProducerRmv = switchProducersToBeRemoved.iterator();
+			while (itSwitchProducerRmv.hasNext())
+				masterConfig.removeSwitchProducer(itSwitchProducerRmv.next());
 
 			// save the configuration under the new name
 			String configName = newConfigName.substring(dirName.length() + 1);

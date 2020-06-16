@@ -3,12 +3,13 @@ package confdb.data;
 import java.util.Iterator;
 
 /**
- * Task --------
+ * Task 
+ * --------
  * 
- * @author bsataric
+ * @author Bogdan Sataric
  * 
- *         A 'Task' can host any number of ModuleReferences, TaskReferences and SwitchProducers,
- *         but no references to other Paths.
+ * A 'Task' can host any number of ModuleReferences, TaskReferences and SwitchProducers,
+ * but no references to other Paths.
  */
 public class Task extends ReferenceContainer {
 	//
