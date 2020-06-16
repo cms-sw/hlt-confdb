@@ -4,7 +4,8 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 /**
- * ParameterContainer ------------------
+ * ParameterContainer
+ * ------------------
  * 
  * @author Philipp Schieferdecker
  *
@@ -23,10 +24,10 @@ abstract public class ParameterContainer extends DatabaseEntry {
 	// abstract member functions
 	//
 
-	/** indicate wether parameter is at its default */
+	/** indicate weather parameter is at its default */
 	abstract public boolean isParameterAtItsDefault(Parameter p);
 
-	/** indicate wether a parameter can be removed or not */
+	/** indicate weather a parameter can be removed or not */
 	abstract public boolean isParameterRemovable(Parameter p);
 
 	//

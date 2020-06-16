@@ -563,7 +563,7 @@ public class ModifierInstructions {
 			if (obj == 3 && edAlias.findParameters(null, null, search, alg).length > 0) {
 				requestEDAlias(edAlias.name());
 			} else {
-				name = (obj == 1) ? edAlias.name() : edAlias.template().name();
+				name = edAlias.name(); //no template
 				if (isMatch(name, search, alg)) {
 					requestEDAlias(edAlias.name());
 				} else {
@@ -840,7 +840,7 @@ public class ModifierInstructions {
 			while (itEDA.hasNext()) {
 				EDAliasInstance e = itEDA.next();
 				if (!isUndefined(e))
-					undefineModule(e.name());
+					undefineEDAlias(e.name());
 			}
 			Iterator<SwitchProducer> itSP = sequence.switchProducerIterator();
 			while (itSP.hasNext()) {

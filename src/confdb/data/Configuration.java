@@ -1409,14 +1409,7 @@ public class Configuration implements IConfiguration {
 					int index = modules.indexOf(instance);
 					modules.remove(index);
 				}
-			} else if (reference instanceof EDAliasReference) {
-				EDAliasReference edAlias = (EDAliasReference) reference;
-				EDAliasInstance instance = (EDAliasInstance) edAlias.parent();
-				if (instance.referenceCount() == 0) {
-					int index = edaliases.indexOf(instance);
-					edaliases.remove(index);
-				}
-			}
+			} 
 		}
 			
 		// remove this paths from all streams (includes datasets & contents)
@@ -1630,13 +1623,6 @@ public class Configuration implements IConfiguration {
 					int index = modules.indexOf(instance);
 					modules.remove(index);
 				}
-			} else if (reference instanceof EDAliasReference) {
-				EDAliasReference edAlias = (EDAliasReference) reference;
-				EDAliasInstance instance = (EDAliasInstance) edAlias.parent();
-				if (instance.referenceCount() == 0) {
-					int index = edaliases.indexOf(instance);
-					edaliases.remove(index);
-				}
 			}
 		}
 
@@ -1764,13 +1750,6 @@ public class Configuration implements IConfiguration {
 				if (instance.referenceCount() == 0) {
 					int index = modules.indexOf(instance);
 					modules.remove(index);
-				}
-			} else if (reference instanceof EDAliasReference) {
-				EDAliasReference edAlias = (EDAliasReference) reference;
-				EDAliasInstance instance = (EDAliasInstance) edAlias.parent();
-				if (instance.referenceCount() == 0) {
-					int index = edaliases.indexOf(instance);
-					edaliases.remove(index);
 				}
 			}
 		}
