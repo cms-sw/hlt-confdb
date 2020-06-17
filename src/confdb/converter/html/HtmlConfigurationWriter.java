@@ -7,22 +7,26 @@ import confdb.converter.IEDSourceWriter;
 import confdb.converter.IESModuleWriter;
 import confdb.converter.IESSourceWriter;
 import confdb.converter.IModuleWriter;
+import confdb.converter.IEDAliasWriter;
 import confdb.converter.IOutputWriter;
 import confdb.converter.IParameterWriter;
 import confdb.converter.IPathWriter;
 import confdb.converter.ISequenceWriter;
 import confdb.converter.ITaskWriter;
+import confdb.converter.ISwitchProducerWriter;
 import confdb.converter.IServiceWriter;
 import confdb.data.IConfiguration;
 import confdb.data.EDSourceInstance;
 import confdb.data.ESModuleInstance;
 import confdb.data.ESSourceInstance;
 import confdb.data.ModuleInstance;
+import confdb.data.EDAliasInstance;
 import confdb.data.OutputModule;
 import confdb.data.Parameter;
 import confdb.data.Path;
 import confdb.data.Sequence;
 import confdb.data.Task;
+import confdb.data.SwitchProducer;
 import confdb.data.ServiceInstance;
 
 public class HtmlConfigurationWriter implements IConfigurationWriter {
@@ -67,7 +71,6 @@ public class HtmlConfigurationWriter implements IConfigurationWriter {
 				str.append(wrapLine(sequenceWriter.toString(sequence, converterEngine, "  "), '&',
 						16 + sequence.name().length()));
 			}
-			// if (conf.taskCount() == 0)
 			str.append(converterEngine.getNewline());
 		}
 
@@ -80,6 +83,17 @@ public class HtmlConfigurationWriter implements IConfigurationWriter {
 			}
 			str.append(converterEngine.getNewline());
 		}
+		
+		if (conf.switchProducerCount() > 0) {
+			str.append("<a name=\"switch producers\"><hr noshade></a>" + converterEngine.getNewline());
+			ISwitchProducerWriter switchProducerWriter = converterEngine.getSwitchProducerWriter();
+			for (int i = 0; i < conf.switchProducerCount(); i++) {
+				SwitchProducer switchProducer = conf.switchProducer(i);
+				str.append(wrapLine(switchProducerWriter.toString(switchProducer, converterEngine, "  "), 
+						'&', 16 + switchProducer.name().length()));
+			}
+			str.append(converterEngine.getNewline());
+		}
 
 		if (conf.moduleCount() > 0) {
 			str.append("<a name=\"modules\"><hr noshade></a>");
@@ -87,6 +101,16 @@ public class HtmlConfigurationWriter implements IConfigurationWriter {
 			for (int i = 0; i < conf.moduleCount(); i++) {
 				ModuleInstance module = conf.module(i);
 				str.append(moduleWriter.toString(module));
+			}
+			str.append(converterEngine.getNewline());
+		}
+		
+		if (conf.edAliasCount() > 0) {
+			str.append("<a name=\"edaliases\"><hr noshade></a>");
+			IEDAliasWriter edAliasWriter = converterEngine.getEDAliasWriter();
+			for (int i = 0; i < conf.edAliasCount(); i++) {
+				EDAliasInstance edAlias = conf.edAlias(i);
+				str.append(edAliasWriter.toString(edAlias));
 			}
 			str.append(converterEngine.getNewline());
 		}
