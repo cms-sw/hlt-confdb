@@ -9,11 +9,13 @@ import confdb.converter.IEDSourceWriter;
 import confdb.converter.IESSourceWriter;
 import confdb.converter.IESModuleWriter;
 import confdb.converter.IModuleWriter;
+import confdb.converter.IEDAliasWriter;
 import confdb.converter.IOutputWriter;
 import confdb.converter.IParameterWriter;
 import confdb.converter.IPathWriter;
 import confdb.converter.ISequenceWriter;
 import confdb.converter.ITaskWriter;
+import confdb.converter.ISwitchProducerWriter;
 import confdb.converter.IServiceWriter;
 import confdb.data.Block;
 import confdb.data.ESPreferable;
@@ -22,11 +24,13 @@ import confdb.data.EDSourceInstance;
 import confdb.data.ESSourceInstance;
 import confdb.data.ESModuleInstance;
 import confdb.data.ModuleInstance;
+import confdb.data.EDAliasInstance;
 import confdb.data.OutputModule;
 import confdb.data.Parameter;
 import confdb.data.Path;
 import confdb.data.Sequence;
 import confdb.data.Task;
+import confdb.data.SwitchProducer;
 import confdb.data.ServiceInstance;
 
 public class PythonConfigurationWriter implements IConfigurationWriter {
@@ -130,6 +134,16 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 			}
 			str.append("\n");
 		}
+		
+		if (conf.edAliasCount() > 0) {
+			IEDAliasWriter edAliasWriter = converterEngine.getEDAliasWriter();
+			for (int i = 0; i < conf.edAliasCount(); i++) {
+				EDAliasInstance edAlias = conf.edAlias(i);
+				str.append(object);
+				str.append(edAliasWriter.toString(edAlias));
+			}
+			str.append("\n");
+		}
 
 		if (conf.outputCount() > 0) {
 			IOutputWriter outputWriter = converterEngine.getOutputWriter();
@@ -157,6 +171,16 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 			while (taskIterator.hasNext()) {
 				Task task = taskIterator.next();
 				str.append(taskWriter.toString(task, converterEngine, object));
+			}
+			str.append("\n");
+		}
+		
+		if (conf.switchProducerCount() > 0) {
+			ISwitchProducerWriter switchProducerWriter = converterEngine.getSwitchProducerWriter();
+			Iterator<SwitchProducer> switchProducerIterator = conf.orderedSwitchProducerIterator();
+			while (switchProducerIterator.hasNext()) {
+				SwitchProducer switchProducer = switchProducerIterator.next();
+				str.append(switchProducerWriter.toString(switchProducer, converterEngine, object));
 			}
 			str.append("\n");
 		}
