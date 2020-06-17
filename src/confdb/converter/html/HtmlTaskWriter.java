@@ -2,7 +2,6 @@ package confdb.converter.html;
 
 import confdb.converter.ConverterEngine;
 import confdb.converter.ITaskWriter;
-import confdb.converter.ascii.AsciiTaskWriter;
 import confdb.data.Task;
 
 public class HtmlTaskWriter implements ITaskWriter {

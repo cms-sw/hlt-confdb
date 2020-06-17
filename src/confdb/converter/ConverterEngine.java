@@ -13,10 +13,12 @@ public class ConverterEngine {
 	private IESModuleWriter esmoduleWriter = null;
 	private IServiceWriter serviceWriter = null;
 	private IModuleWriter moduleWriter = null;
+	private IEDAliasWriter edAliasWriter = null;
 	private IOutputWriter outputWriter = null;
 	private IPathWriter pathWriter = null;
 	private ISequenceWriter sequenceWriter = null;
 	private ITaskWriter taskWriter = null;
+	private ISwitchProducerWriter switchProducerWriter = null;
 
 	private int maxLineLength = 250;
 
@@ -102,6 +104,15 @@ public class ConverterEngine {
 		this.moduleWriter = moduleWriter;
 		this.moduleWriter.setConverterEngine(this);
 	}
+	
+	public IEDAliasWriter getEDAliasWriter() {
+		return edAliasWriter;
+	}
+
+	protected void setEDAliasWriter(IEDAliasWriter edAliasWriter) {
+		this.edAliasWriter = edAliasWriter;
+		this.edAliasWriter.setConverterEngine(this);
+	}
 
 	public IOutputWriter getOutputWriter() {
 		return outputWriter;
@@ -119,6 +130,10 @@ public class ConverterEngine {
 	public ITaskWriter getTaskWriter() {
 		return taskWriter;
 	}
+	
+	public ISwitchProducerWriter getSwitchProducerWriter() {
+		return switchProducerWriter;
+	}
 
 	protected void setSequenceWriter(ISequenceWriter sequenceWriter) {
 		this.sequenceWriter = sequenceWriter;
@@ -126,6 +141,10 @@ public class ConverterEngine {
 
 	protected void setTaskWriter(ITaskWriter taskWriter) {
 		this.taskWriter = taskWriter;
+	}
+	
+	protected void setSwitchProducerWriter(ISwitchProducerWriter switchProducerWriter) {
+		this.switchProducerWriter = switchProducerWriter;
 	}
 
 	public String getConfigurationTrailer() {
