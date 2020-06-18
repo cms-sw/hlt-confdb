@@ -45,31 +45,54 @@ public class InstanceComparison extends Comparison
     {
 	if      (oldInstance==null&&newInstance!=null) return RESULT_ADDED;
 	else if (oldInstance!=null&&newInstance==null) return RESULT_REMOVED;
-	else if (comparisonCount()==0&&
-		 oldInstance.name().equals(newInstance.name())&&
-		 oldInstance.template().name().equals(newInstance.template().name()))
-	    return RESULT_IDENTICAL;
-	else return RESULT_CHANGED;
+	else { 
+		if (oldInstance.template() != null && newInstance.template() != null) { 
+			if (comparisonCount()==0&&
+			 oldInstance.name().equals(newInstance.name())&&
+			 oldInstance.template().name().equals(newInstance.template().name()))
+		    return RESULT_IDENTICAL;
+		} else {  //EDAlias branch
+			if (comparisonCount()==0&& oldInstance.name().equals(newInstance.name()))
+			 return RESULT_IDENTICAL;
+		}
+	}
+	return RESULT_CHANGED;
     }
     
     /** plain-text representation of the comparison */
     public String toString()
     {
-	return (newInstance==null) ?
-	    oldInstance.name()+" ["+oldInstance.template().name()+"] "+
-	    resultAsString() :
-	    newInstance.name()+" ["+newInstance.template().name()+"] "+
-	    resultAsString();
+    	if (oldInstance.template() != null && newInstance.template() != null) {
+			return (newInstance==null) ?
+			    oldInstance.name()+" ["+oldInstance.template().name()+"] "+
+			    resultAsString() :
+			    newInstance.name()+" ["+newInstance.template().name()+"] "+
+			    resultAsString();
+    	} else { //EDAlias branch
+    		return (newInstance==null) ?
+    			    oldInstance.name() + resultAsString() :
+    			    newInstance.name() + resultAsString();
+    	}
     }
 
     /** html representation of the comparison */
     public String toHtml()
     {
-	return (newInstance==null) ?
-	    "<html>"+oldInstance.template().name()+
-	    ".<b>"+oldInstance.name()+"<b></html>" :
-	    "<html>"+newInstance.template().name()+
-	    ".<b>"+newInstance.name()+"<b></html>";
+    	if (oldInstance.template() != null && newInstance.template() != null) {
+			return (newInstance==null) ?
+			    "<html>"+oldInstance.template().name()+
+			    ".<b>"+oldInstance.name()+"<b></html>" :
+			    "<html>"+newInstance.template().name()+
+			    ".<b>"+newInstance.name()+"<b></html>";
+    	} else { //EDAlias branch
+    		return (newInstance==null) ?
+    			"<html>"+".<b>"+oldInstance.name()+"<b></html>" :
+    			"<html>"+".<b>"+newInstance.name()+"<b></html>";
+    	}
+    }
+    
+    public boolean isInstanceOf(Class<?> cls) {
+    	return (oldInstance.getClass().equals(cls)) ? true : false;
     }
     
 }

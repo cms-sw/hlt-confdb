@@ -4,6 +4,7 @@ import confdb.data.ReferenceContainer;
 import confdb.data.Path;
 import confdb.data.Sequence;
 import confdb.data.Task;
+import confdb.data.SwitchProducer;
 
 /**
  * ContainerComparison
@@ -42,6 +43,8 @@ public class ContainerComparison extends Comparison {
 			containerType = "Sequence";
 		} else if (rc instanceof Task) {
 			containerType = "Task";
+		} else if (rc instanceof SwitchProducer) {
+			containerType = "SwitchProducer";
 		} else if (rc instanceof Path) {
 			containerType = "Path";
 			if (oldContainer != null && newContainer != null) {
