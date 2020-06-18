@@ -42,7 +42,9 @@ public class Diff {
 	private ArrayList<Comparison> paths = new ArrayList<Comparison>();
 	private ArrayList<Comparison> sequences = new ArrayList<Comparison>();
 	private ArrayList<Comparison> tasks = new ArrayList<Comparison>();
+	private ArrayList<Comparison> switchproducers = new ArrayList<Comparison>();
 	private ArrayList<Comparison> modules = new ArrayList<Comparison>();
+	private ArrayList<Comparison> edaliases = new ArrayList<Comparison>();
 	private ArrayList<Comparison> outputs = new ArrayList<Comparison>();
 	private ArrayList<Comparison> contents = new ArrayList<Comparison>();
 	private ArrayList<Comparison> streams = new ArrayList<Comparison>();
@@ -172,6 +174,23 @@ public class Diff {
 			if (config2.module(mod1.name()) == null)
 				modules.add(compareInstances(mod1, null));
 		}
+		
+		// EDAliases
+		Iterator<EDAliasInstance> itEDA2 = config2.edAliasIterator();
+		while (itEDA2.hasNext()) {
+			EDAliasInstance eda2 = itEDA2.next();
+			EDAliasInstance eda1 = config1.edAlias(eda2.name());
+			Comparison c = compareInstances(eda1, eda2);  //pretty convoluted how this works
+			if (!c.isIdentical())
+				edaliases.add(c);
+		}
+		Iterator<EDAliasInstance> itEDA1 = config1.edAliasIterator();
+		while (itEDA1.hasNext()) {
+			EDAliasInstance eda1 = itEDA1.next();
+			if (config2.module(eda1.name()) == null)
+				edaliases.add(compareInstances(eda1, null));
+		}
+
 
 		// Outputs
 		Iterator<OutputModule> itOut2 = config2.outputIterator();
@@ -219,6 +238,22 @@ public class Diff {
 			Task tas1 = itTas1.next();
 			if (config2.task(tas1.name()) == null)
 				tasks.add(compareContainers(tas1, null));
+		}
+		
+		// Switch Producers
+		Iterator<SwitchProducer> itSP2 = config2.switchProducerIterator();
+		while (itSP2.hasNext()) {
+			SwitchProducer sp2 = itSP2.next();
+			SwitchProducer sp1 = config1.switchProducer(sp2.name());
+			Comparison c = compareContainers(sp1, sp2);
+			if (!c.isIdentical())
+				switchproducers.add(c);
+		}
+		Iterator<SwitchProducer> itSP1 = config1.switchProducerIterator();
+		while (itSP1.hasNext()) {
+			SwitchProducer sp1 = itSP1.next();
+			if (config2.switchProducer(sp1.name()) == null)
+				switchproducers.add(compareContainers(sp1, null));
 		}
 
 		// Paths
@@ -313,7 +348,16 @@ public class Diff {
 				if (!c.isIdentical())
 					tasks.add(c);
 			}
-		} else if (type.equalsIgnoreCase("EDSource")) {
+		} else if (type.equalsIgnoreCase("SwitchProducer")) {
+			for (int i = 0; i < items.size(); i++) {
+				SwitchProducer sp1 = config1.switchProducer(items.get(i));
+				SwitchProducer sp2 = config2.switchProducer(items.get(i));
+				Comparison c = compareContainers(sp1, sp2);
+				if (!c.isIdentical())
+					switchproducers.add(c);
+			}
+		}
+		else if (type.equalsIgnoreCase("EDSource")) {
 			for (int i = 0; i < items.size(); i++) {
 				EDSourceInstance edsold = config1.edsource(items.get(i));
 				EDSourceInstance edsnew = config2.edsource(items.get(i));
@@ -408,6 +452,12 @@ public class Diff {
 				Comparison c = compareInstances(mold, mnew);
 				if (!c.isIdentical())
 					modules.add(c);
+			} else if (type.equalsIgnoreCase("EDAlias") || type.equalsIgnoreCase("eda")) {
+				EDAliasInstance edaold = config1.edAlias(oldName);
+				EDAliasInstance edanew = config2.edAlias(newName);
+				Comparison c = compareInstances(edaold, edanew);
+				if (!c.isIdentical())
+					edaliases.add(c);
 			} else if (type.equalsIgnoreCase("OutputModule") || type.equalsIgnoreCase("om")) {
 				OutputModule omold = config1.output(oldName);
 				OutputModule omnew = config2.output(newName);
@@ -463,6 +513,21 @@ public class Diff {
 							tasks.add(cc);
 						else if (cc instanceof InstanceComparison)
 							modules.add(cc);
+					}
+				}
+			} else if (type.equalsIgnoreCase("SwitchProducer") || type.equalsIgnoreCase("sp")) {
+				SwitchProducer spold = config1.switchProducer(oldName);
+				SwitchProducer spnew = config2.switchProducer(newName);
+				Comparison c = compareContainers(spold, spnew);
+				if (!c.isIdentical()) {
+					switchproducers.add(c);
+					Iterator<Comparison> it = c.recursiveComparisonIterator();
+					while (it.hasNext()) {
+						InstanceComparison icc = (InstanceComparison) it.next(); //switchproducers can only have EDProducers or aliases
+						if (icc.isInstanceOf(ModuleInstance.class))
+							modules.add(icc);
+						else if (icc.isInstanceOf(EDAliasInstance.class))
+							edaliases.add(icc);
 					}
 				}
 			} else if (type.equalsIgnoreCase("Stream")) {
@@ -638,6 +703,25 @@ public class Diff {
 				modules.add(compareInstances(mod1, null));
 		}
 	}
+	
+	/** compare all EDAliases and store all non-identical comparisons */
+	public void compareEDAliases() {
+		// EDAliases
+		Iterator<EDAliasInstance> itEDA2 = config2.edAliasIterator();
+		while (itEDA2.hasNext()) {
+			EDAliasInstance eda2 = itEDA2.next();
+			EDAliasInstance eda1 = config1.edAlias(eda2.name());
+			Comparison c = compareInstances(eda1, eda2);
+			if (!c.isIdentical())
+				edaliases.add(c);
+		}
+		Iterator<EDAliasInstance> itEDA1 = config1.edAliasIterator();
+		while (itEDA1.hasNext()) {
+			EDAliasInstance eda1 = itEDA1.next();
+			if (config2.edAlias(eda1.name()) == null)
+				edaliases.add(compareInstances(eda1, null));
+		}
+	}
 
 	/** compare all Output Modules and store all non-identical comparisons */
 	public void compareOutputModules() {
@@ -702,7 +786,7 @@ public class Diff {
 				sequences.add(compareContainersIgnoreStreams(seq1, null));
 		}
 	}
-
+	
 	/** compare all Tasks and store all non-identical comparisons */
 	public void compareTasks() {
 		// Tasks
@@ -747,6 +831,52 @@ public class Diff {
 				tasks.add(compareContainersIgnoreStreams(tas1, null));
 		}
 	}
+	
+	/** compare all SwitchProducers and store all non-identical comparisons */
+	public void compareSwitchProducers() {
+		// Switch producers
+		Iterator<SwitchProducer> itSP2 = config2.switchProducerIterator();
+		while (itSP2.hasNext()) {
+			SwitchProducer sp2 = itSP2.next();
+			SwitchProducer sp1 = config1.switchProducer(sp2.name());
+			Comparison c = compareContainers(sp1, sp2);
+			if (!c.isIdentical())
+				switchproducers.add(c);
+		}
+		Iterator<SwitchProducer> itSP1 = config1.switchProducerIterator();
+		while (itSP1.hasNext()) {
+			SwitchProducer sp1 = itSP1.next();
+			if (config2.switchProducer(sp1.name()) == null)
+				switchproducers.add(compareContainers(sp1, null));
+		}
+	}
+
+	/**
+	 * compareSwitchProducersIgnoreStreams
+	 * ---------------------------------------------------------------- Compare all
+	 * SwitchProducers and store all non-identical comparisons NOTE: This method ignores the
+	 * Streams by making use of the constructor "compareContainersIgnoreStreams".
+	 * This was originally designed to ignore extra differences in the previous
+	 * analysis of DeepImport feature.
+	 */
+	public void compareSwitchProducersIgnoreStreams() {
+		// SwitchProducers
+		Iterator<SwitchProducer> itSP2 = config2.switchProducerIterator();
+		while (itSP2.hasNext()) {
+			SwitchProducer sp2 = itSP2.next();
+			SwitchProducer sp1 = config1.switchProducer(sp2.name());
+			Comparison c = compareContainersIgnoreStreams(sp1, sp2);
+			if (!c.isIdentical())
+				switchproducers.add(c);
+		}
+		Iterator<SwitchProducer> itSP1 = config1.switchProducerIterator();
+		while (itSP1.hasNext()) {
+			SwitchProducer sp1 = itSP1.next();
+			if (config2.switchProducer(sp1.name()) == null)
+				switchproducers.add(compareContainersIgnoreStreams(sp1, null));
+		}
+	}
+	
 
 	/** compare all EventContents sets and store all non-identical comparisons */
 	public void compareEventContents() {
@@ -809,8 +939,9 @@ public class Diff {
 	/** check if there are any differences at all */
 	public boolean isIdentical() {
 		return (psetCount() == 0 && edsourceCount() == 0 && essourceCount() == 0 && esmoduleCount() == 0
-				&& serviceCount() == 0 && pathCount() == 0 && sequenceCount() == 0 && taskCount() == 0
-				&& moduleCount() == 0 && outputCount() == 0 && contentCount() == 0 && streamCount() == 0
+				&& serviceCount() == 0 && pathCount() == 0 && sequenceCount() == 0 && taskCount() == 0 
+				&& edAliasCount() == 0 && switchProducerCount() == 0 && moduleCount() == 0 
+				&& outputCount() == 0 && contentCount() == 0 && streamCount() == 0
 				&& datasetCount() == 0);
 	}
 
@@ -973,6 +1104,26 @@ public class Diff {
 	public Iterator<Comparison> taskIterator() {
 		return tasks.iterator();
 	}
+	
+	/** number of switch producers */
+	public int switchProducerCount() {
+		return switchproducers.size();
+	}
+
+	/** retrieve i-th switch producer comparison */
+	public Comparison switchProducer(int i) {
+		return switchproducers.get(i);
+	}
+
+	/** get index of switch producer comparison */
+	public int indexOfSwitchProducer(Comparison sp) {
+		return switchproducers.indexOf(sp);
+	}
+
+	/** iterator over all switch producers */
+	public Iterator<Comparison> switchProducerIterator() {
+		return switchproducers.iterator();
+	}
 
 	/** number of modules */
 	public int moduleCount() {
@@ -992,6 +1143,26 @@ public class Diff {
 	/** iterator over all modules */
 	public Iterator<Comparison> moduleIterator() {
 		return modules.iterator();
+	}
+	
+	/** number of edaliases */
+	public int edAliasCount() {
+		return edaliases.size();
+	}
+
+	/** retrieve i-th edalias comparison */
+	public Comparison edAlias(int i) {
+		return edaliases.get(i);
+	}
+
+	/** get index of edalias comparison */
+	public int indexOfEDAlias(Comparison edalias) {
+		return edaliases.indexOf(edalias);
+	}
+
+	/** iterator over all edaliases */
+	public Iterator<Comparison> edAliasIterator() {
+		return edaliases.iterator();
 	}
 
 	/** number of outputs */
@@ -1168,7 +1339,7 @@ public class Diff {
 		return result;
 	}
 
-	/** compare two reference containers (path/sequence/task) */
+	/** compare two reference containers (path/sequence/task/switchproducer) */
 	public Comparison compareContainers(ReferenceContainer rc1, ReferenceContainer rc2) {
 		if (rc1 != null && rc2 != null && containerMap.containsKey(rc1.name() + "::" + rc2.name()))
 			return containerMap.get(rc1.name() + "::" + rc2.name()); // BSATARIC: if comparison was already done before
@@ -1192,7 +1363,7 @@ public class Diff {
 					Comparison c = compareContainers((ReferenceContainer) parent1, (ReferenceContainer) parent2);
 					if (!c.isIdentical())
 						result.addComparison(c);
-				} else if (parent2 instanceof ModuleInstance) {
+				} else if (parent2 instanceof ModuleInstance || parent2 instanceof EDAliasInstance) {
 					Comparison c = compareInstances((Instance) parent1, (Instance) parent2);
 					if (!c.isIdentical())
 						result.addComparison(c);
@@ -1220,7 +1391,7 @@ public class Diff {
 				if (parent1 instanceof ReferenceContainer) {
 					ReferenceContainer rc = (ReferenceContainer) parent1;
 					result.addComparison(new ContainerComparison(rc, null));
-				} else if (parent1 instanceof ModuleInstance) {
+				} else if (parent1 instanceof ModuleInstance || parent1 instanceof EDAliasInstance) {
 					Instance i = (Instance) parent1;
 					result.addComparison(new InstanceComparison(i, null));
 				} else if (parent1 instanceof OutputModule) {
@@ -1238,7 +1409,7 @@ public class Diff {
 	/**
 	 * compareContainersIgnoreStreams
 	 * ---------------------------------------------------------------- compare two
-	 * reference containers (path/sequence/task) NOTE: This method ignores the
+	 * reference containers (path/sequence/task/switchproducer) NOTE: This method ignores the
 	 * Streams by making use of the constructor "OutputModuleComparison" with the
 	 * flag "TRUE". This was originally designed to ignore extra differences in the
 	 * previous analysis of DeepImport feature.
@@ -1265,7 +1436,7 @@ public class Diff {
 							(ReferenceContainer) parent2);
 					if (!c.isIdentical())
 						result.addComparison(c);
-				} else if (parent2 instanceof ModuleInstance) {
+				} else if (parent2 instanceof ModuleInstance || parent2 instanceof EDAliasInstance) {
 					Comparison c = compareInstances((Instance) parent1, (Instance) parent2);
 					if (!c.isIdentical())
 						result.addComparison(c);
@@ -1294,7 +1465,7 @@ public class Diff {
 				if (parent1 instanceof ReferenceContainer) {
 					ReferenceContainer rc = (ReferenceContainer) parent1;
 					result.addComparison(new ContainerComparison(rc, null));
-				} else if (parent1 instanceof ModuleInstance) {
+				} else if (parent1 instanceof ModuleInstance || parent1 instanceof EDAliasInstance) {
 					Instance i = (Instance) parent1;
 					result.addComparison(new InstanceComparison(i, null));
 				} else if (parent1 instanceof OutputModule) {
@@ -1410,12 +1581,26 @@ public class Diff {
 			result.append("Tasks (" + taskCount() + "):\n");
 			result.append(printContainerComparisons(taskIterator()));
 		}
+		
+		// switchproducers
+		if (switchProducerCount() > 0) {
+			result.append("\n---------------------------------------" + "----------------------------------------\n");
+			result.append("SwitchProducers (" + switchProducerCount() + "):\n");
+			result.append(printContainerComparisons(switchProducerIterator()));
+		}
 
 		// modules
 		if (moduleCount() > 0) {
 			result.append("\n---------------------------------------" + "----------------------------------------\n");
 			result.append("Modules (" + moduleCount() + "):\n");
 			result.append(printInstanceComparisons(moduleIterator()));
+		}
+		
+		// edaliases
+		if (edAliasCount() > 0) {
+			result.append("\n---------------------------------------" + "----------------------------------------\n");
+			result.append("EDAliases (" + edAliasCount() + "):\n");
+			result.append(printInstanceComparisons(edAliasIterator()));
 		}
 
 		// outputs
