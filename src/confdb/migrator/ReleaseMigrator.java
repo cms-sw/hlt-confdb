@@ -141,6 +141,15 @@ public class ReleaseMigrator {
 				missingTemplateCount++;
 			}
 		}
+		
+		// migrate EDAliases
+		for (int i = 0; i < sourceConfig.edAliasCount(); i++) {
+			EDAliasInstance source = sourceConfig.edAlias(i);
+			EDAliasInstance target = targetConfig.insertEDAlias(source.name());
+			if (target != null) {
+				migrateParameters(source, target); //TODO: not sure how to exactly migrate without template
+			}
+		}
 
 		// migrate Paths
 		for (int i = 0; i < sourceConfig.pathCount(); i++) {
@@ -161,6 +170,14 @@ public class ReleaseMigrator {
 			Task target = targetConfig.insertTask(i, source.name());
 			System.out.println("Migrating task " + source.name());
 		}
+		
+		// migrate SwitchProducers
+		for (int i = 0; i < sourceConfig.switchProducerCount(); i++) {
+			SwitchProducer source = sourceConfig.switchProducer(i);
+			SwitchProducer target = targetConfig.insertSwitchProducer(i, source.name());
+			System.out.println("Migrating switch producer " + source.name());
+		}
+
 
 		// migrate eventcontent
 		for (int i = 0; i < sourceConfig.contentCount(); i++) {
@@ -228,6 +245,13 @@ public class ReleaseMigrator {
 		for (int i = 0; i < sourceConfig.taskCount(); i++) {
 			Task source = sourceConfig.task(i);
 			Task target = targetConfig.task(i);
+			migrateReferences(source, target);
+		}
+		
+		// migrate References within SwitchProducers
+		for (int i = 0; i < sourceConfig.switchProducerCount(); i++) {
+			SwitchProducer source = sourceConfig.switchProducer(i);
+			SwitchProducer target = targetConfig.switchProducer(i);
 			migrateReferences(source, target);
 		}
 
@@ -359,8 +383,8 @@ public class ReleaseMigrator {
 	}
 
 	/**
-	 * migrate references from source Path/Sequence/Task to target
-	 * Path/Sequence/Task
+	 * migrate references from source Path/Sequence/Task/SwitchProducer to target
+	 * Path/Sequence/Task/SwitchProducer
 	 */
 	private void migrateReferences(ReferenceContainer source, ReferenceContainer target) {
 		int iTarget = 0;
@@ -384,6 +408,13 @@ public class ReleaseMigrator {
 				Task targetTask = targetConfig.task(sourceConfig.indexOfTask(sourceTask));
 				TaskReference targetReference = targetConfig.insertTaskReference(target, iTarget++, targetTask);
 				targetReference.setOperator(reference.getOperator());
+			} else if (reference instanceof SwitchProducerReference) {
+				SwitchProducer sourceSwitchProducer = (SwitchProducer) reference.parent();
+				SwitchProducer targetSwitchProducer = 
+						targetConfig.switchProducer(sourceConfig.indexOfSwitchProducer(sourceSwitchProducer));
+				SwitchProducerReference targetReference = 
+						targetConfig.insertSwitchProducerReference(target, iTarget++, targetSwitchProducer);
+				targetReference.setOperator(reference.getOperator());
 			} else if (reference instanceof ModuleReference) {
 				ModuleInstance sourceModule = (ModuleInstance) reference.parent();
 				ModuleInstance targetModule = targetConfig.module(sourceModule.name());
@@ -392,9 +423,21 @@ public class ReleaseMigrator {
 							targetModule);
 					targetReference.setOperator(reference.getOperator());
 				} else {
-					String msg = "MODULE MISSING FROM PATH/SEQUENCE/TASK: " + sourceModule.template().type() + " '"
+					String msg = "MODULE MISSING FROM PATH/SEQUENCE/TASK/SWITCHPRODUCER: " + sourceModule.template().type() + " '"
 							+ sourceModule.name() + "' / " + sourceModule.template().name() + " missing from "
 							+ source.name();
+					messages.add(msg);
+				}
+			} else if (reference instanceof EDAliasReference) {
+				EDAliasInstance sourceEDAlias = (EDAliasInstance) reference.parent();
+				EDAliasInstance targetEDAlias = targetConfig.edAlias(sourceEDAlias.name());
+				if (targetEDAlias != null) {
+					EDAliasReference targetReference = targetConfig.insertEDAliasReference(target, iTarget++,
+							targetEDAlias);
+					targetReference.setOperator(reference.getOperator());
+				} else {
+					String msg = "EDALIAS MISSING FROM SEQUENCEPRODUCER: "
+							+ sourceEDAlias.name() + " missing from " + source.name();
 					messages.add(msg);
 				}
 			} else if (reference instanceof OutputModuleReference) {
