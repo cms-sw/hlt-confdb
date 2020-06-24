@@ -28,6 +28,8 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 	//
 	// member data
 	//
+	//TODO: SwitchProducer and EDAlias
+
 
 	/** reference to the tree to be manipulated */
 	private JTree tree = null;
