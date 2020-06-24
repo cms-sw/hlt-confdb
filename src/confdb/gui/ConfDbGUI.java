@@ -181,6 +181,8 @@ public class ConfDbGUI {
 	private JScrollPane TAB_containedInSequence = new JScrollPane();
 	private JEditorPane jEditorContainedInTask = new JEditorPane();
 	private JScrollPane TAB_containedInTask = new JScrollPane();
+	private JEditorPane jEditorContainedInSwitchProducer = new JEditorPane();
+	private JScrollPane TAB_containedInSwitchProducer = new JScrollPane();
 
 	// Path fields in right upper panel
 	private JPanel jPanelPathFields = new JPanel();
@@ -966,6 +968,31 @@ public class ConfDbGUI {
 					}
 				}
 			}
+			
+			if (applyTo.equals("All") || applyTo.equals("EDAliases")) {
+				EDAliasInstance edAlias = null;
+				for (int i = 0; i < currentConfig.edAliasCount(); i++) {
+					edAlias = currentConfig.edAlias(i);
+					oldName = edAlias.name();
+					if (oldName.matches(filPattern)) {
+						newName = oldName.replace(oldPattern, newPattern);
+						if (!oldName.equals(newName)) {
+							if (currentConfig.isUniqueQualifier(newName)) {
+								System.out.println("SmartRenaming EDAlias: " + newName + " [" + oldName + "]");
+								try {
+									edAlias.setNameAndPropagate(newName);  //BSATARIC TODO: check how to make this
+									treeModelCurrentConfig.nodeChanged(edAlias);
+								} catch (DataException e) {
+									System.err.println(e.getMessage());
+								}
+							} else {
+								System.out.println("SmartRenaming EDAlias: " + newName + " [" + oldName
+										+ "] not changed: new name already exists!");
+							}
+						}
+					}
+				}
+			}
 
 			if (applyTo.equals("All") || applyTo.equals("Sequences")) {
 				Sequence sequence = null;
@@ -1010,6 +1037,31 @@ public class ConfDbGUI {
 								}
 							} else {
 								System.out.println("SmartRenaming Task: " + newName + " [" + oldName
+										+ "] not changed: new name already exists!");
+							}
+						}
+					}
+				}
+			}
+			
+			if (applyTo.equals("All") || applyTo.equals("SwitchProducers")) {
+				SwitchProducer switchProducer = null;
+				for (int i = 0; i < currentConfig.switchProducerCount(); i++) {
+					switchProducer = currentConfig.switchProducer(i);
+					oldName = switchProducer.name();
+					if (oldName.matches(filPattern)) {
+						newName = oldName.replace(oldPattern, newPattern);
+						if (!oldName.equals(newName)) {
+							if (currentConfig.isUniqueQualifier(newName)) {
+								System.out.println("SmartRenaming Switch producer: " + newName + " [" + oldName + "]");
+								try {
+									switchProducer.setName(newName);
+									treeModelCurrentConfig.nodeChanged(switchProducer);
+								} catch (DataException e) {
+									System.err.println(e.getMessage());
+								}
+							} else {
+								System.out.println("SmartRenaming Switch producer: " + newName + " [" + oldName
 										+ "] not changed: new name already exists!");
 							}
 						}
@@ -1600,7 +1652,7 @@ public class ConfDbGUI {
 		int emptyContainerCount = currentConfig.emptyContainerCount();
 		if (emptyContainerCount > 0) {
 			String msg = "current configuration contains " + emptyContainerCount
-					+ " empty containers (paths/sequences/tasks). " + "They must be filled before saving/converting!";
+					+ " empty containers (paths/sequences/tasks/switchProducers). " + "They must be filled before saving/converting!";
 			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
@@ -2291,6 +2343,22 @@ public class ConfDbGUI {
 						}
 					}
 					text += "<html>";
+				} else if (selectedNode instanceof EDAliasReference) {
+					EDAliasReference reference = (EDAliasReference) selectedNode;
+					EDAliasInstance instance = (EDAliasInstance) reference.parent();
+					text = "<html>" + instance.name();
+
+					//BSATARIC: not sure if we need this down for EDAliases (or something similar)
+					/*
+					 * Object component = (tp.getPathComponent(2)); if (component instanceof Path) {
+					 * Path path = (Path) (tp.getPathComponent(2)); String[] unresolved =
+					 * path.unresolvedInputTags(); if (unresolved.length > 0) text +=
+					 * "<br>Unresolved InputTags out of the " + unresolved.length +
+					 * " in the current path:"; for (String un : unresolved) { String[] tokens =
+					 * un.split("[/:]"); for (int i = 0; i < tokens.length; i++) { if
+					 * (instance.name().equals(tokens[i])) { text += "<br>" + un; break; } } } }
+					 */
+					text += "<html>";
 				} else if (selectedNode instanceof SequenceReference) {
 					// Do not display "unresolved input tags" for Sequences. bug/feature 82524
 
@@ -2302,6 +2370,12 @@ public class ConfDbGUI {
 				} else if (selectedNode instanceof TaskReference) {
 					TaskReference reference = (TaskReference) selectedNode;
 					Task instance = (Task) reference.parent();
+					text = "<html>" + instance.name();
+					text += "<html>";
+
+				} else if (selectedNode instanceof SwitchProducerReference) {
+					SwitchProducerReference reference = (SwitchProducerReference) selectedNode;
+					SwitchProducer instance = (SwitchProducer) reference.parent();
 					text = "<html>" + instance.name();
 					text += "<html>";
 
@@ -2397,26 +2471,32 @@ public class ConfDbGUI {
 	}
 
 	/**
-	 * return a text list of Paths which contains the current Module/Sequence/Task.
+	 * return a text list of Paths which contains the current Module/Sequence/Task/SwitchProducer/EDAlias.
 	 */
 	public String getAssignedPaths() {
 		String text = "";
 		ModuleInstance moduleInstance = null;
+		EDAliasInstance edAliasInstance = null;
 		Sequence sequence = null;
 		Task task = null;
+		SwitchProducer switchProducer = null;
 		Path[] paths = null;
 
 		if (currentParameterContainer instanceof ModuleInstance) {
 			moduleInstance = (ModuleInstance) currentParameterContainer;
 			paths = moduleInstance.parentPaths();
+		} else if (currentParameterContainer instanceof EDAliasInstance) {
+			edAliasInstance = (EDAliasInstance) currentParameterContainer;
+			paths = edAliasInstance.parentPaths();
 		} else if (currentParameterContainer instanceof Sequence) {
 			sequence = (Sequence) currentParameterContainer;
 			paths = sequence.parentPaths();
-
 		} else if (currentParameterContainer instanceof Task) {
 			task = (Task) currentParameterContainer;
 			paths = task.parentPaths();
-
+		} else if (currentParameterContainer instanceof SwitchProducer) {
+			switchProducer = (SwitchProducer) currentParameterContainer;
+			paths = switchProducer.parentPaths();
 		} else
 			return "";
 
@@ -2504,6 +2584,42 @@ public class ConfDbGUI {
 			return "";
 		return text;
 	}
+	
+	/**
+	 * return a html string format with a list of SwitchProducers containing the current
+	 * parameter container. Used to fill ContainedInSwitchProducers tab.
+	 */
+	public String getAssignedSwitchProducers() {
+		String text = "";
+		ModuleInstance moduleInstance = null;
+		EDAliasInstance edAliasInstance = null;
+		if (currentParameterContainer instanceof ModuleInstance) {
+			moduleInstance = (ModuleInstance) currentParameterContainer;
+
+			Iterator<SwitchProducer> SPit = currentConfig.switchProducerIterator();
+			while (SPit.hasNext()) {
+				SwitchProducer SP = SPit.next();
+				Reference ref = SP.entry(moduleInstance.name());
+				if (ref != null) {
+					text += "<a href='" + SP.name() + "'>" + SP.name() + "</a> <br>";
+				}
+			}
+		} else if (currentParameterContainer instanceof EDAliasInstance) {
+			edAliasInstance = (EDAliasInstance) currentParameterContainer;
+
+			Iterator<SwitchProducer> SPit = currentConfig.switchProducerIterator();
+			while (SPit.hasNext()) {
+				SwitchProducer SP = SPit.next();
+				Reference ref = SP.entry(edAliasInstance.name());
+				if (ref != null) {
+					text += "<a href='" + SP.name() + "'>" + SP.name() + "</a> <br>";
+				}
+			}
+
+		} else
+			return "";
+		return text;
+	}
 
 	/** Prepare a summary of unassigned input tags using the original */
 	/** python code. This uses links to expand the tree and show the */
@@ -2517,6 +2633,7 @@ public class ConfDbGUI {
 		Path path;
 		Sequence sequence;
 		Task task;
+		SwitchProducer switchProducer;
 		String[] unresolved;
 		if (currentParameterContainer instanceof Path) {
 			path = (Path) currentParameterContainer;
@@ -2527,9 +2644,13 @@ public class ConfDbGUI {
 		} else if (currentParameterContainer instanceof Task) {
 			task = (Task) currentParameterContainer;
 			unresolved = task.unresolvedInputTags();
+		} else if (currentParameterContainer instanceof SwitchProducer) {
+			switchProducer = (SwitchProducer) currentParameterContainer;
+			unresolved = switchProducer.unresolvedInputTags();
 		} else
 			return "ERROR: getUnresolvedInputTagsSummary(): unknown currentParameterContainer";
 
+		//BSATARIC: I'm not sure if this concerns EDAliases - TODO
 		String[] modules = new String[unresolved.length]; // as maximum.
 		int MLength = 0;
 
@@ -2855,7 +2976,7 @@ public class ConfDbGUI {
 	private void displaySnippet() {
 		// by default some tabs are disabled.
 		if ((!(currentParameterContainer instanceof Path)) || (!(currentParameterContainer instanceof Sequence))
-				|| (!(currentParameterContainer instanceof Task)))
+				|| (!(currentParameterContainer instanceof Task)) || (!(currentParameterContainer instanceof SwitchProducer)))
 			restoreRightLowerTabs();
 
 		if (currentParameterContainer == currentConfig.psets()) {
@@ -2907,10 +3028,29 @@ public class ConfDbGUI {
 			jTabbedPaneRightLower.setEnabledAt(3, true); // sets second tab enabled
 			jTabbedPaneRightLower.setEnabledAt(4, true); // sets containedInSequence tab enabled
 			jTabbedPaneRightLower.setEnabledAt(5, true); // sets containedInTask tab enabled
+			jTabbedPaneRightLower.setEnabledAt(6, true); // sets containedInSwitchProducers tab enabled
 
 			jEditorContainedInPaths.setText(this.getAssignedPaths());
 			jEditorContainedInSequence.setText(this.getAssignedSequences());
 			jEditorContainedInTask.setText(this.getAssignedTasks());
+			jEditorContainedInSwitchProducer.setText(this.getAssignedSwitchProducers());
+
+			ModuleInstance module = (ModuleInstance) currentParameterContainer;
+			try {
+				jEditorPaneSnippet.setText(cnvEngine.getModuleWriter().toString(module));
+			} catch (ConverterException e) {
+				jEditorPaneSnippet.setText(e.getMessage());
+			}
+		} else if (currentParameterContainer instanceof EDAliasInstance) {
+			jTabbedPaneRightLower.setEnabledAt(3, true); // sets second tab enabled
+			jTabbedPaneRightLower.setEnabledAt(4, true); // sets containedInSequence tab enabled
+			jTabbedPaneRightLower.setEnabledAt(5, true); // sets containedInTask tab enabled
+			jTabbedPaneRightLower.setEnabledAt(6, true); // sets containedInSwitchProducers tab enabled
+
+			jEditorContainedInPaths.setText(this.getAssignedPaths());
+			jEditorContainedInSequence.setText(this.getAssignedSequences());
+			jEditorContainedInTask.setText(this.getAssignedTasks());
+			jEditorContainedInSwitchProducer.setText(this.getAssignedSwitchProducers());
 
 			ModuleInstance module = (ModuleInstance) currentParameterContainer;
 			try {
@@ -2961,6 +3101,21 @@ public class ConfDbGUI {
 
 			jTabbedPaneRightLower.setEnabledAt(5, true); // sets containedInTasks tab enabled
 			jEditorContainedInTask.setText(this.getAssignedTasks());
+		} else if (currentParameterContainer instanceof SwitchProducer) {
+			SwitchProducer switchProducer = (SwitchProducer) currentParameterContainer;
+			jEditorPaneSnippet.setText(cnvEngine.getSwitchProducerWriter().toString(switchProducer, cnvEngine, "  "));
+
+			jTabbedPaneRightLower.setEnabledAt(2, true); // sets third tab enabled
+			jEditorPaneUnresolvedITags.setText(getUnresolvedInputTagsSummary());
+
+			jTabbedPaneRightLower.setEnabledAt(3, true); // sets second tab enabled
+			jEditorContainedInPaths.setText(this.getAssignedPaths());
+
+			jTabbedPaneRightLower.setEnabledAt(4, true); // sets containedInSequence tab enabled
+			jEditorContainedInSequence.setText(this.getAssignedSequences());
+
+			jTabbedPaneRightLower.setEnabledAt(5, true); // sets containedInTasks tab enabled
+			jEditorContainedInTask.setText(this.getAssignedTasks());
 		} else {
 			clearSnippet();
 		}
@@ -2981,12 +3136,14 @@ public class ConfDbGUI {
 		jTabbedPaneRightLower.setEnabledAt(3, false); // sets tab as Disabled
 		jTabbedPaneRightLower.setEnabledAt(4, false); // sets containedInSequences disabled.
 		jTabbedPaneRightLower.setEnabledAt(5, false); // sets containedInTasks disabled.
+		jTabbedPaneRightLower.setEnabledAt(6, false); // sets containedInSwitchProducers disabled.
 		jTabbedPaneRightLower.setSelectedIndex(0);
 		jEditorPanePathsToDataset.setText("");
 		jEditorPaneUnresolvedITags.setText("");
 		jEditorContainedInPaths.setText("");
 		jEditorContainedInSequence.setText("");
 		jEditorContainedInTask.setText("");
+		jEditorContainedInSwitchProducer.setText("");
 
 		// Hyperlink listener to catch the path request.
 		jEditorContainedInPaths.addHyperlinkListener(new HyperlinkListener() {
@@ -2998,7 +3155,7 @@ public class ConfDbGUI {
 			}
 		});
 
-		// Hyperlink listener to catch the module requests.
+		// Hyperlink listener to catch the module requests. (BSATARIC: do we need this for EDAliases? TODO)
 		jEditorPaneUnresolvedITags.addHyperlinkListener(new HyperlinkListener() {
 			public void hyperlinkUpdate(HyperlinkEvent event) {
 				if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -3023,6 +3180,16 @@ public class ConfDbGUI {
 				if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 					String taskName = event.getDescription();
 					ConfigurationTreeActions.scrollToTaskByName(taskName, jTreeCurrentConfig);
+				}
+			}
+		});
+		
+		// Hyperlink listener to catch the switch producer request.
+		jEditorContainedInSwitchProducer.addHyperlinkListener(new HyperlinkListener() {
+			public void hyperlinkUpdate(HyperlinkEvent event) {
+				if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+					String switchProducerName = event.getDescription();
+					ConfigurationTreeActions.scrollToSwitchProducerByName(switchProducerName, jTreeCurrentConfig);
 				}
 			}
 		});
@@ -3225,6 +3392,7 @@ public class ConfDbGUI {
 	private void jTreeConfigExpandLevel1Nodes(JTree t) {
 		ConfigurationTreeModel m = (ConfigurationTreeModel) t.getModel();
 
+		//BSATARIC: TODO see weather there should be something for SwitchProducers or EDAliases here
 		TreePath tpPSets = new TreePath(m.getPathToRoot(m.psetsNode()));
 		t.expandPath(tpPSets);
 		TreePath tpEDSources = new TreePath(m.getPathToRoot(m.edsourcesNode()));
@@ -4606,12 +4774,18 @@ public class ConfDbGUI {
 		jEditorContainedInTask.setContentType("text/html");
 		TAB_containedInTask.setViewportView(jEditorContainedInTask);
 		jTabbedPaneRightLower.addTab("Contained in Tasks", TAB_containedInTask);
+		
+		jEditorContainedInSwitchProducer.setEditable(false);
+		jEditorContainedInSwitchProducer.setContentType("text/html");
+		TAB_containedInSwitchProducer.setViewportView(jEditorContainedInSwitchProducer);
+		jTabbedPaneRightLower.addTab("Contained in Switch producers", TAB_containedInSwitchProducer);
 
 		jTabbedPaneRightLower.setEnabledAt(1, false); // sets the second tab as Disabled
 		jTabbedPaneRightLower.setEnabledAt(2, false); // sets the third tab as Disabled
 		jTabbedPaneRightLower.setEnabledAt(3, false); // sets containedInPath tab as Disabled
 		jTabbedPaneRightLower.setEnabledAt(4, false); // sets containedInSequence tab as Disabled
 		jTabbedPaneRightLower.setEnabledAt(5, false); // sets containedInTask tab as Disabled
+		jTabbedPaneRightLower.setEnabledAt(6, false); // sets containedInSwitchProducers tab as Disabled
 
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jPanelRightLower);
 		jPanelRightLower.setLayout(layout);

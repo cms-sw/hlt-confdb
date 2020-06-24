@@ -43,11 +43,13 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 	private StringBuffer pathsNode = new StringBuffer();
 	private StringBuffer sequencesNode = new StringBuffer();
 	private StringBuffer tasksNode = new StringBuffer();
+	private StringBuffer switchProducersNode = new StringBuffer();
 	private StringBuffer modulesNode = new StringBuffer();
 	private StringBuffer outputsNode = new StringBuffer();
 	private StringBuffer contentsNode = new StringBuffer();
 	private StringBuffer streamsNode = new StringBuffer();
 	private StringBuffer datasetsNode = new StringBuffer();
+	//BSATARIC: TODO (maybe EDAliases)
 
 	private StringBuffer unassignedPathsNode = new StringBuffer("<html><i>Unassigned " + "Paths</i></html>");
 
@@ -121,6 +123,11 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 	public StringBuffer tasksNode() {
 		return tasksNode;
 	}
+	
+	/** get the switch producers root node */
+	public StringBuffer switchProducersNode() {
+		return switchProducersNode;
+	}
 
 	/** get the modules root node */
 	public StringBuffer modulesNode() {
@@ -162,6 +169,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 				level1Nodes.add(pathsNode);
 				level1Nodes.add(sequencesNode);
 				level1Nodes.add(tasksNode);
+				level1Nodes.add(switchProducersNode);
 				level1Nodes.add(modulesNode);
 				level1Nodes.add(outputsNode);
 				level1Nodes.add(contentsNode);
@@ -302,6 +310,14 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		tasksNode.append(taskCount);
 		tasksNode.append(")</html>");
 		nodeChanged(tasksNode);
+		
+		// SwitchProducers node
+		int switchProducerCount = config.switchProducerCount();
+		switchProducersNode.delete(0, switchProducersNode.length());
+		switchProducersNode.append("<html><b>SwitchProducers</b> (");
+		switchProducersNode.append(switchProducerCount);
+		switchProducersNode.append(")</html>");
+		nodeChanged(switchProducersNode);
 
 		// Module node
 		int moduleCount = config.moduleCount();
@@ -396,6 +412,8 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 				return config.sequenceCount();
 			if (node.equals(tasksNode))
 				return config.taskCount();
+			if (node.equals(switchProducersNode))
+				return config.switchProducerCount();
 			if (node.equals(modulesNode))
 				return config.moduleCount();
 			if (node.equals(outputsNode))
@@ -450,6 +468,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			TaskReference reference = (TaskReference) node;
 			Task task = (Task) reference.parent();
 			return task.entryCount();
+		} else if (node instanceof SwitchProducerReference) {
+			SwitchProducerReference reference = (SwitchProducerReference) node;
+			SwitchProducer switchProducer = (SwitchProducer) reference.parent();
+			return switchProducer.entryCount();
 		} else if (node instanceof PSetParameter) {
 			PSetParameter pset = (PSetParameter) node;
 			return pset.parameterCount();
@@ -492,6 +514,8 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 				return config.sequence(i);
 			if (parent.equals(tasksNode))
 				return config.task(i);
+			if (parent.equals(switchProducersNode))
+				return config.switchProducer(i);
 			if (parent.equals(modulesNode))
 				return config.module(i);
 			if (parent.equals(outputsNode))
@@ -603,6 +627,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			if (parent.equals(tasksNode)) {
 				Task task = (Task) child;
 				return config.indexOfTask(task);
+			}
+			if (parent.equals(switchProducersNode)) {
+				SwitchProducer switchProducer = (SwitchProducer) child;
+				return config.indexOfSwitchProducer(switchProducer);
 			}
 			if (parent.equals(modulesNode)) {
 				ModuleInstance module = (ModuleInstance) child;
@@ -754,6 +782,8 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			return sequencesNode;
 		else if (node instanceof Task)
 			return tasksNode;
+		else if (node instanceof SwitchProducer)
+			return switchProducersNode;
 		else if (node instanceof EventContent)
 			return contentsNode;
 		else if (node instanceof Stream)

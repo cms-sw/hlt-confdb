@@ -1131,7 +1131,6 @@ public class Configuration implements IConfiguration {
 		Collections.sort(edaliases);
 	}
 	
-	
 	//
 	// SwitchProducers
 	//
