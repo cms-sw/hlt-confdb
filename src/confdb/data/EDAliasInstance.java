@@ -99,7 +99,6 @@ public class EDAliasInstance extends Instance implements Referencable {
 			}
 		}
 
-		//TODO: from here
 		Iterator<Path> itPath = pathSet.iterator();
 		while (itPath.hasNext()) {
 			Path path = itPath.next();
@@ -140,13 +139,15 @@ public class EDAliasInstance extends Instance implements Referencable {
 							tmp.setLabel(name());
 							edAlias.updateParameter(inputTag.fullName(), inputTag.type(), tmp.valueAsString());
 						}
-					} /*else if (p instanceof ESInputTagParameter) {
+					} else if (p instanceof ESInputTagParameter) {
 						ESInputTagParameter esinputTag = (ESInputTagParameter) p;
-						if (esinputTag.edAlias().equals(oldName)) {
-							ESInputTagParameter tmp = (ESInputTagParameter) esinputTag.clone(null);
-							tmp.setModule(name());
-							edAlias.updateParameter(esinputTag.fullName(), esinputTag.type(), tmp.valueAsString());
-						}
+						//TODO: BSATARIC what is this?
+						/*
+						 * if (esinputTag.edAlias().equals(oldName)) { ESInputTagParameter tmp =
+						 * (ESInputTagParameter) esinputTag.clone(null); tmp.setModule(name());
+						 * edAlias.updateParameter(esinputTag.fullName(), esinputTag.type(),
+						 * tmp.valueAsString()); }
+						 */
 					} else if (p instanceof VInputTagParameter) {
 						VInputTagParameter vInputTag = (VInputTagParameter) p;
 						VInputTagParameter tmp = (VInputTagParameter) vInputTag.clone(null);
@@ -170,13 +171,14 @@ public class EDAliasInstance extends Instance implements Referencable {
 							}
 						}
 						edAlias.updateParameter(vESInputTag.fullName(), vESInputTag.type(), tmp.valueAsString());
-					}*/
+					}
+
 				}
 			}
 		}
 	}
 
-	//TODO!
+	// TODO!
 	public boolean squeeze() {
 
 		boolean result = false;

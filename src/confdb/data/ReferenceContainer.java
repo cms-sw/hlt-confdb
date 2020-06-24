@@ -348,6 +348,15 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 				Parameter p = it.next();
 				getUnresolvedInputTags(p, labels, unresolved, prefix + "/" + module.name());
 			}
+		} else if (r instanceof EDAliasReference) {
+			EDAliasReference edaref = (EDAliasReference) r;
+			EDAliasInstance edAlias = (EDAliasInstance) edaref.parent();
+			labels.add(edAlias.name());
+			Iterator<Parameter> it = edAlias.parameterIterator();
+			while (it.hasNext()) {
+				Parameter p = it.next(); //BSATARIC: I'm not sure how will this work for EDAliases
+				getUnresolvedInputTags(p, labels, unresolved, prefix + "/" + edAlias.name()); 
+			}
 		} else if (r instanceof OutputModuleReference) {
 		} else {
 			ReferenceContainer container = (ReferenceContainer) r.parent();
