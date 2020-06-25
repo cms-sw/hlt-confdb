@@ -506,6 +506,25 @@ public class ConvertConfigurationDialog extends JDialog {
 					}
 					checkBox.setSelected(isSelected);
 					checkBox.setEnabled(false);
+				} else if (value == treeModel.switchProducersNode()) {
+					boolean isSelected = false;
+					if (modifications.requestedSwitchProducerIterator().hasNext())
+						isSelected = true;
+					else {
+						Iterator<SwitchProducer> it = config.switchProducerIterator();
+						while (!isSelected && it.hasNext()) {
+							SwitchProducer switchProducer = it.next();
+							Path[] paths = switchProducer.parentPaths();
+							for (Path p : paths) {
+								if (!modifications.isInBlackList(p)) {
+									isSelected = true;
+									break;
+								}
+							}
+						}
+					}
+					checkBox.setSelected(isSelected);
+					checkBox.setEnabled(false);
 				} else if (value == treeModel.modulesNode()) {
 					boolean isSelected = false;
 					if (modifications.requestedModuleIterator().hasNext())
@@ -526,16 +545,17 @@ public class ConvertConfigurationDialog extends JDialog {
 					checkBox.setSelected(isSelected);
 					checkBox.setEnabled(false);
 				}
-			} else if (value instanceof Sequence || value instanceof Task || value instanceof ModuleInstance) {
+			} else if (value instanceof Sequence || value instanceof Task || value instanceof SwitchProducer ||
+					   value instanceof ModuleInstance || value instanceof EDAliasInstance) {
 				checkBox.setEnabled(true);
-				Referencable moduleOrSequenceOrTask = (Referencable) value;
-				if (modifications.isRequested(moduleOrSequenceOrTask))
+				Referencable object = (Referencable) value;
+				if (modifications.isRequested(object))
 					checkBox.setSelected(true);
-				else if (modifications.doFilterAllPaths() || modifications.isUndefined(moduleOrSequenceOrTask))
+				else if (modifications.doFilterAllPaths() || modifications.isUndefined(object))
 					checkBox.setSelected(false);
 				else {
 					boolean isSelected = false;
-					Path[] parentPaths = moduleOrSequenceOrTask.parentPaths();
+					Path[] parentPaths = object.parentPaths();
 					for (Path p : parentPaths) {
 						if (!modifications.isInBlackList(p)) {
 							isSelected = true;
@@ -642,6 +662,28 @@ public class ConvertConfigurationDialog extends JDialog {
 					else
 						modifications.requestTask(t.name());
 				}
+			} else if (value instanceof SwitchProducer) {
+				SwitchProducer sp = (SwitchProducer) value;
+
+				boolean isReferenced = false;
+				Path[] parentPaths = sp.parentPaths();
+				for (Path p : parentPaths)
+					if (!modifications.isInBlackList(p)) {
+						isReferenced = true;
+						break;
+					}
+
+				if (isReferenced) {
+					if (modifications.isUndefined(sp))
+						modifications.redefineSwitchProducer(sp.name());
+					else
+						modifications.undefineSwitchProducer(sp.name());
+				} else {
+					if (modifications.isRequested(sp))
+						modifications.unrequestSwitchProducer(sp.name());
+					else
+						modifications.requestSwitchProducer(sp.name());
+				}
 			} else if (value instanceof ModuleInstance) {
 				ModuleInstance m = (ModuleInstance) value;
 
@@ -664,7 +706,30 @@ public class ConvertConfigurationDialog extends JDialog {
 					else
 						modifications.requestModule(m.name());
 				}
-			} else {
+			}  else if (value instanceof EDAliasInstance) {
+				EDAliasInstance eda = (EDAliasInstance) value;
+
+				boolean isReferenced = false;
+				Path[] parentPaths = eda.parentPaths();
+				for (Path p : parentPaths)
+					if (!modifications.isInBlackList(p)) {
+						isReferenced = true;
+						break;
+					}
+
+				if (isReferenced) {
+					if (modifications.isUndefined(eda))
+						modifications.redefineEDAlias(eda.name());
+					else
+						modifications.undefineEDAlias(eda.name());
+				} else {
+					if (modifications.isRequested(eda))
+						modifications.unrequestEDAlias(eda.name());
+					else
+						modifications.requestEDAlias(eda.name());
+				}
+			} 
+			else {
 				boolean isFiltered = modifications.isInBlackList(value);
 				if (isFiltered) {
 					modifications.removeFromBlackList(value);
@@ -689,9 +754,10 @@ public class ConvertConfigurationDialog extends JDialog {
 
 				if (!ConvertConfigurationDialog.this.asFragment()) {
 					Object o = treePath.getLastPathComponent();
-					if (o instanceof Sequence || o instanceof Task || o instanceof ModuleInstance) {
-						Referencable moduleOrSequenceOrTask = (Referencable) o;
-						Path[] paths = moduleOrSequenceOrTask.parentPaths();
+					if (o instanceof Sequence || o instanceof Task || o instanceof SwitchProducer || 
+						o instanceof EDAliasInstance || o instanceof ModuleInstance) {
+						Referencable object = (Referencable) o;
+						Path[] paths = object.parentPaths();
 						for (Path p : paths)
 							if (!modifications.isInBlackList(p))
 								return false;

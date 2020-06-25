@@ -3303,7 +3303,7 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 	
-	/** import a single EDAlias a switch producer */
+	/** import a single EDAlias into a switch producer */
 	public static boolean importEDAlias(JTree tree, EDAliasInstance external) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();

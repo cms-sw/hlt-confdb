@@ -35,7 +35,9 @@ public class DiffTreeModel extends AbstractTreeModel {
 	private StringBuffer pathsNode = new StringBuffer();
 	private StringBuffer sequencesNode = new StringBuffer();
 	private StringBuffer tasksNode = new StringBuffer();
+	private StringBuffer switchProducersNode = new StringBuffer();
 	private StringBuffer modulesNode = new StringBuffer();
+	private StringBuffer edAliasNode = new StringBuffer();
 	private StringBuffer outputsNode = new StringBuffer();
 	private StringBuffer contentsNode = new StringBuffer();
 	private StringBuffer streamsNode = new StringBuffer();
@@ -155,6 +157,17 @@ public class DiffTreeModel extends AbstractTreeModel {
 			while (it.hasNext())
 				it.next().setParent(tasksNode);
 		}
+		
+		// SwitchProducers node
+		int switchProducerCount = diff.switchProducerCount();
+		if (switchProducerCount > 0) {
+			switchProducersNode.delete(0, switchProducersNode.length());
+			switchProducersNode.append("<html><b>SwitchProducers</b> (").append(switchProducerCount).append(")</html>");
+			topNodes.add(switchProducersNode);
+			Iterator<Comparison> it = diff.switchProducerIterator();
+			while (it.hasNext())
+				it.next().setParent(switchProducersNode);
+		}
 
 		// Module node
 		int moduleCount = diff.moduleCount();
@@ -165,6 +178,17 @@ public class DiffTreeModel extends AbstractTreeModel {
 			Iterator<Comparison> it = diff.moduleIterator();
 			while (it.hasNext())
 				it.next().setParent(modulesNode);
+		}
+		
+		// EDAlias node (BSATARIC: I don 't know if this is necessary)
+		int edAliasCount = diff.edAliasCount();
+		if (edAliasCount > 0) {
+			edAliasNode.delete(0, edAliasNode.length());
+			edAliasNode.append("<html><b>EDAliases</b> (").append(edAliasCount).append(")</html>");
+			topNodes.add(edAliasNode);
+			Iterator<Comparison> it = diff.edAliasIterator();
+			while (it.hasNext())
+				it.next().setParent(edAliasNode);
 		}
 
 		// OutputModule node
@@ -252,8 +276,12 @@ public class DiffTreeModel extends AbstractTreeModel {
 				return diff.sequenceCount();
 			if (node.equals(tasksNode))
 				return diff.taskCount();
+			if (node.equals(switchProducersNode))
+				return diff.switchProducerCount();
 			if (node.equals(modulesNode))
 				return diff.moduleCount();
+			if (node.equals(edAliasNode))
+				return diff.edAliasCount();
 			if (node.equals(outputsNode))
 				return diff.outputCount();
 			if (node.equals(contentsNode))
@@ -289,8 +317,12 @@ public class DiffTreeModel extends AbstractTreeModel {
 				return diff.sequence(i);
 			if (parent.equals(tasksNode))
 				return diff.task(i);
+			if (parent.equals(switchProducersNode))
+				return diff.switchProducer(i);
 			if (parent.equals(modulesNode))
 				return diff.module(i);
+			if (parent.equals(edAliasNode))
+				return diff.edAlias(i);
 			if (parent.equals(outputsNode))
 				return diff.output(i);
 			if (parent.equals(contentsNode))
@@ -327,8 +359,12 @@ public class DiffTreeModel extends AbstractTreeModel {
 				return diff.indexOfSequence((Comparison) child);
 			if (parent.equals(tasksNode))
 				return diff.indexOfTask((Comparison) child);
+			if (parent.equals(switchProducersNode))
+				return diff.indexOfSwitchProducer((Comparison) child);
 			if (parent.equals(modulesNode))
 				return diff.indexOfModule((Comparison) child);
+			if (parent.equals(edAliasNode))
+				return diff.indexOfEDAlias((Comparison) child);
 			if (parent.equals(outputsNode))
 				return diff.indexOfOutput((Comparison) child);
 			if (parent.equals(contentsNode))
