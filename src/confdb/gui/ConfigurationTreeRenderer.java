@@ -50,6 +50,9 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 
 	/** module icon */
 	private ImageIcon moduleIcon = null;
+	
+	/** edAlias icon */
+	private ImageIcon edAliasIcon = null;
 
 	/** output module icon */
 	private ImageIcon outputIcon = null;
@@ -59,6 +62,9 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 
 	/** task icon */
 	private ImageIcon taskIcon = null;
+	
+	/** switch producer icon */
+	private ImageIcon switchProducerIcon = null;
 
 	/** ParameterSet icon */
 	private ImageIcon psetIcon = null;
@@ -90,9 +96,11 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 		pathIcon = new ImageIcon(getClass().getResource("/PathIcon.png"));
 		endpathIcon = new ImageIcon(getClass().getResource("/EndpathIcon.png"));
 		moduleIcon = new ImageIcon(getClass().getResource("/ModuleIcon.png"));
+		edAliasIcon = new ImageIcon(getClass().getResource("/EDAliasIcon.png"));
 		outputIcon = new ImageIcon(getClass().getResource("/OutputIcon.png"));
 		sequenceIcon = new ImageIcon(getClass().getResource("/SequenceIcon.png"));
 		taskIcon = new ImageIcon(getClass().getResource("/TaskIcon.png"));
+		switchProducerIcon = new ImageIcon(getClass().getResource("/SwitchProducerIcon.png"));
 		psetIcon = new ImageIcon(getClass().getResource("/PSetIcon.png"));
 		vpsetIcon = new ImageIcon(getClass().getResource("/VPSetIcon.png"));
 		contentIcon = new ImageIcon(getClass().getResource("/ContentIcon.png"));
@@ -126,6 +134,8 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 			return serviceIcon;
 		else if (node instanceof ModuleInstance || node instanceof ModuleReference)
 			return moduleIcon;
+		else if (node instanceof EDAliasInstance || node instanceof EDAliasReference)
+			return edAliasIcon;
 		else if (node instanceof OutputModule || node instanceof OutputModuleReference)
 			return outputIcon;
 		else if (node instanceof Path || node instanceof PathReference) {
@@ -137,6 +147,8 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 			return sequenceIcon;
 		} else if (node instanceof Task || node instanceof TaskReference) {
 			return taskIcon;
+		} else if (node instanceof SwitchProducer || node instanceof SwitchProducerReference) {
+			return switchProducerIcon;
 		} else if (node instanceof PSetParameter) {
 			IConfiguration config = (IConfiguration) treeModel.getRoot();
 			if (config.indexOfPSet((PSetParameter) node) >= 0)
@@ -306,7 +318,69 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 					result += " <font color=#0000ff>[" + n + "]</font>";
 			}
 			result += "</html>";
+		} else if (node instanceof SwitchProducer) {
+			SwitchProducer switchProducer = (SwitchProducer) node;
+			int refCount = switchProducer.parentPaths().length;
+			int entryCount = switchProducer.entryCount();
+			int count = switchProducer.unsetTrackedParameterCount();
+			int unresolved = switchProducer.unresolvedESInputTagCount();
+			result = (refCount > 0) ? "<html>" + getText() : "<html><font color=#808080>" + getText() + "</font>";
+			result += (entryCount > 0) ? " (" + entryCount + ")" : "<font color=#ff0000>(" + entryCount + ")</font>";
+			if (count > 0)
+				result += " <font color=#ff0000>[" + count + "]</font>";
+			if (unresolved > 0)
+				result += " <font color=#00ff00>[" + unresolved + "]</font>";
+			result += "</html>";
+		} else if (node instanceof SwitchProducerReference) {
+			SwitchProducerReference reference = (SwitchProducerReference) node;
+			SwitchProducer switchProducer = (SwitchProducer) reference.parent();
+			int entryCount = switchProducer.entryCount();
+			int count = switchProducer.unsetTrackedParameterCount();
+			int unresolved = switchProducer.unresolvedESInputTagCount();
+			result = "<html>" + reference.getOperatorAndName();
+			result += (entryCount > 0) ? " (" + entryCount + ")" : "<font color=#ff0000>(" + entryCount + ")</font>";
+			if (count > 0)
+				result += " <font color=#ff0000>[" + count + "]</font>";
+			if (unresolved > 0)
+				result += " <font color=#00ff00>[" + unresolved + "]</font>";
+			if (doDisplayUnresolvedInputTags && (xpath != null)) {
+				int n = 0;
+				String label = ((Reference) node).name();
+				String[] Unresolved = xpath.unresolvedInputTags();
+				for (String un : Unresolved) {
+					String[] tokens = un.split("[/:]");
+					for (int i = 0; i < tokens.length; i++) {
+						if (label.equals(tokens[i])) {
+							n++;
+							break;
+						}
+					}
+				}
+				if (n > 0)
+					result += " <font color=#0000ff>[" + n + "]</font>";
+			}
+			result += "</html>";
 		} else if (node instanceof ModuleReference) {
+			result = "<html>";
+			result += ((Reference) node).getOperatorAndName();
+			if (doDisplayUnresolvedInputTags && (xpath != null)) {
+				int n = 0;
+				String label = ((Reference) node).name();
+				String[] unresolved = xpath.unresolvedInputTags();
+				for (String un : unresolved) {
+					String[] tokens = un.split("[/:]");
+					for (int i = 0; i < tokens.length; i++) {
+						if (label.equals(tokens[i])) {
+							n++;
+							break;
+						}
+					}
+				}
+				if (n > 0)
+					result += " <font color=#0000ff>[" + n + "]</font>";
+			}
+			result += "</html>";
+		} else if (node instanceof EDAliasReference) {
 			result = "<html>";
 			result += ((Reference) node).getOperatorAndName();
 			if (doDisplayUnresolvedInputTags && (xpath != null)) {

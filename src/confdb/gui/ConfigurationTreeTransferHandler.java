@@ -189,8 +189,14 @@ public class ConfigurationTreeTransferHandler extends TransferHandler {
 				ModuleInstance source = (ModuleInstance) sourceNode;
 				return ConfigurationTreeActions.importModule(targetTree, source);
 			}
+			
+			// insert EDAlias
+			if (sourceNode instanceof EDAliasInstance) {
+				EDAliasInstance source = (EDAliasInstance) sourceNode;
+				return ConfigurationTreeActions.importEDAlias(targetTree, source);
+			}
 
-			// insert Path/Sequence/Task
+			// insert Path/Sequence/Task/SwitchProducer
 			if (sourceNode instanceof ReferenceContainer) {
 				ReferenceContainer container = (ReferenceContainer) sourceNode;
 				return ConfigurationTreeActions.importReferenceContainer(targetTree, container);
@@ -215,6 +221,13 @@ public class ConfigurationTreeTransferHandler extends TransferHandler {
 			if (sourceNode instanceof Task && (targetNode instanceof Task || targetNode == targetModel.tasksNode())) {
 				Task source = (Task) sourceNode;
 				return ConfigurationTreeActions.moveTask(targetTree, source);
+			}
+			
+			// move a switch producer
+			if (sourceNode instanceof SwitchProducer && (targetNode instanceof SwitchProducer || 
+					targetNode == targetModel.switchProducersNode())) {
+				SwitchProducer source = (SwitchProducer) sourceNode;
+				return ConfigurationTreeActions.moveSwitchProducer(targetTree, source);
 			}
 
 			// move a reference within its parent container
