@@ -162,14 +162,13 @@ public class EDAliasInstance extends Instance implements Referencable {
 					} else if (p instanceof VESInputTagParameter) {
 						VESInputTagParameter vESInputTag = (VESInputTagParameter) p;
 						VESInputTagParameter tmp = (VESInputTagParameter) vESInputTag.clone(null);
-						for (int i = 0; i < tmp.vectorSize(); i++) {
-							ESInputTagParameter ESinputTag = new ESInputTagParameter("", tmp.value(i).toString(),
-									false);
-							if (ESinputTag.edAlias().equals(oldName)) {
-								ESinputTag.setModule(name());
-								tmp.setValue(i, ESinputTag.valueAsString());
-							}
-						}
+						//TODO: EDAlias
+						/*
+						 * for (int i = 0; i < tmp.vectorSize(); i++) { ESInputTagParameter ESinputTag =
+						 * new ESInputTagParameter("", tmp.value(i).toString(), false); if
+						 * (ESinputTag.edAlias().equals(oldName)) { ESinputTag.setModule(name());
+						 * tmp.setValue(i, ESinputTag.valueAsString()); } }
+						 */
 						edAlias.updateParameter(vESInputTag.fullName(), vESInputTag.type(), tmp.valueAsString());
 					}
 

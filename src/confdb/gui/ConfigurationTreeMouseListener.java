@@ -19,8 +19,8 @@ import confdb.data.*;
 import java.util.Collections;
 
 /**
- * ConfigurationTreeMouseListener
- * ------------------------------
+ * ConfigurationTreeMouseListener ------------------------------
+ * 
  * @author Philipp Schieferdecker
  *
  */
@@ -265,7 +265,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			return;
 		}
 
-		//TODO: EDALIAS
+		// TODO: EDALIAS
 		// show the 'Modules' popup?
 		if (isInTreePath(treePath, treeModel.modulesNode()) && depth <= 3) {
 			updateModuleMenu();
@@ -579,7 +579,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		if (depth == 3) {
 			Path path = (Path) node;
 
-			JMenu addModuleMenu = createAddRepModuleMenu(path, null, pathListener, true);
+			JMenu addModuleMenu = createAddRepModuleMenu(path, null, pathListener, true, false);
 			popupPaths.add(addModuleMenu);
 
 			JMenu addPathMenu = createAddRepPathMenu(path, true);
@@ -590,7 +590,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 			JMenu addTaskMenu = createAddRepTaskMenu(path, pathListener, false, true);
 			popupPaths.add(addTaskMenu);
-			
+
 			JMenu addSwitchProducerMenu = createAddRepSPMenu(path, pathListener, false, true);
 			popupPaths.add(addSwitchProducerMenu);
 
@@ -723,7 +723,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		// a specific module/path/sequence/task reference is selected
 		if (depth == 4) {
 			Path path = (Path) parent;
-			JMenu addModuleMenu = createAddRepModuleMenu(path, null, pathListener, true);
+			JMenu addModuleMenu = createAddRepModuleMenu(path, null, pathListener, true, false);
 			popupPaths.add(addModuleMenu);
 
 			JMenu addPathMenu = createAddRepPathMenu(path, true);
@@ -734,7 +734,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 			JMenu addTaskMenu = createAddRepTaskMenu(path, pathListener, false, true);
 			popupPaths.add(addTaskMenu);
-			
+
 			JMenu addSwitchProducerMenu = createAddRepSPMenu(path, pathListener, false, true);
 			popupPaths.add(addSwitchProducerMenu);
 
@@ -835,7 +835,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		} else if (depth == 3) {
 			Sequence sequence = (Sequence) node;
 
-			JMenu addModuleMenu = createAddRepModuleMenu(sequence, null, sequenceListener, true);
+			JMenu addModuleMenu = createAddRepModuleMenu(sequence, null, sequenceListener, true, false);
 			popupSequences.add(addModuleMenu);
 
 			JMenu addSequenceMenu = createAddRepSequenceMenu(sequence, sequenceListener, false, true);
@@ -843,7 +843,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 			JMenu addTaskMenu = createAddRepTaskMenu(sequence, sequenceListener, false, true);
 			popupSequences.add(addTaskMenu);
-			
+
 			JMenu addSwitchProducerMenu = createAddRepSPMenu(sequence, sequenceListener, false, true);
 			popupSequences.add(addSwitchProducerMenu);
 
@@ -873,7 +873,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		} else if (depth == 4) {
 			Sequence sequence = (Sequence) parent;
 
-			JMenu addModuleMenu = createAddRepModuleMenu(sequence, null, sequenceListener, true);
+			JMenu addModuleMenu = createAddRepModuleMenu(sequence, null, sequenceListener, true, false);
 			popupSequences.add(addModuleMenu);
 
 			JMenu addSequenceMenu = createAddRepSequenceMenu(sequence, sequenceListener, true, true);
@@ -881,7 +881,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 			JMenu addTaskMenu = createAddRepTaskMenu(sequence, sequenceListener, true, true);
 			popupSequences.add(addTaskMenu);
-			
+
 			JMenu addSwitchProducerMenu = createAddRepSPMenu(sequence, sequenceListener, true, true);
 			popupSequences.add(addSwitchProducerMenu);
 
@@ -981,12 +981,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		} else if (depth == 3) {
 			Task task = (Task) node;
 
-			JMenu addModuleMenu = createAddRepModuleMenu(task, null, taskListener, true);
+			JMenu addModuleMenu = createAddRepModuleMenu(task, null, taskListener, true, false);
 			popupTasks.add(addModuleMenu);
 
 			JMenu addTaskMenu = createAddRepTaskMenu(task, taskListener, false, true);
 			popupTasks.add(addTaskMenu);
-			
+
 			JMenu addSwitchProducerMenu = createAddRepSPMenu(task, taskListener, false, true);
 			popupTasks.add(addSwitchProducerMenu);
 
@@ -1014,12 +1014,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		} else if (depth == 4) {
 			Task task = (Task) parent;
 
-			JMenu addModuleMenu = createAddRepModuleMenu(task, null, taskListener, true);
+			JMenu addModuleMenu = createAddRepModuleMenu(task, null, taskListener, true, false);
 			popupTasks.add(addModuleMenu);
 
 			JMenu addTaskMenu = createAddRepTaskMenu(task, taskListener, true, true);
 			popupTasks.add(addTaskMenu);
-			
+
 			JMenu addSwitchProducerMenu = createAddRepSPMenu(task, taskListener, true, true);
 			popupTasks.add(addSwitchProducerMenu);
 
@@ -1116,13 +1116,15 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		} else if (depth == 3) {
 			SwitchProducer switchProducer = (SwitchProducer) node;
 
-			JMenu addModuleMenu = createAddRepModuleMenu(switchProducer, null, switchProducerListener, true);
-			popupSwitchProducers.add(addModuleMenu);
+			if (switchProducer.entryCount() < 2) {
+				JMenu addModuleMenu = createAddRepModuleMenu(switchProducer, null, switchProducerListener, true, true);
+				popupSwitchProducers.add(addModuleMenu);
 
-			JMenu addEDAliasMenu = createAddRepEDAliasMenu(switchProducer, null, switchProducerListener, true);
-			popupSwitchProducers.add(addEDAliasMenu);
+				JMenu addEDAliasMenu = createAddRepEDAliasMenu(switchProducer, null, switchProducerListener, true);
+				popupSwitchProducers.add(addEDAliasMenu);
 
-			popupSwitchProducers.addSeparator();
+				popupSwitchProducers.addSeparator();
+			}
 
 			menuItem = new JMenuItem("Rename SwitchProducer");
 			menuItem.addActionListener(switchProducerListener);
@@ -1146,14 +1148,13 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		} else if (depth == 4) {
 			SwitchProducer switchProducer = (SwitchProducer) parent;
 
-			JMenu addModuleMenu = createAddRepModuleMenu(switchProducer, null, switchProducerListener, true);
-			popupSwitchProducers.add(addModuleMenu);
-			
-			JMenu addEDAliasMenu = createAddRepEDAliasMenu(switchProducer, null, switchProducerListener, true);
-			popupSwitchProducers.add(addEDAliasMenu);
-
-			JMenu addSwitchProducerMenu = createAddRepSPMenu(switchProducer, switchProducerListener, true, true);
-			popupSwitchProducers.add(addSwitchProducerMenu);
+			if (switchProducer.entryCount() < 2) {
+				JMenu addModuleMenu = createAddRepModuleMenu(switchProducer, null, switchProducerListener, true, true);
+				popupSwitchProducers.add(addModuleMenu);
+	
+				JMenu addEDAliasMenu = createAddRepEDAliasMenu(switchProducer, null, switchProducerListener, true);
+				popupSwitchProducers.add(addEDAliasMenu);
+			}
 
 			if (node instanceof ModuleReference) {
 				menuItem = new JMenuItem("Remove Module");
@@ -1228,7 +1229,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			popupModules.add(menuItem);
 
 			ModuleInstance module = (ModuleInstance) node;
-			JMenu repModuleMenu = createAddRepModuleMenu(null, module, moduleListener, false);
+			JMenu repModuleMenu = createAddRepModuleMenu(null, module, moduleListener, false, false);
 			popupModules.add(repModuleMenu);
 		}
 
@@ -1614,7 +1615,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 	/** create the 'Add/Replace Module' submenu */
 	private JMenu createAddRepModuleMenu(ReferenceContainer container, ModuleInstance module, ActionListener listener,
-			boolean isAdd) {
+			boolean isAdd, boolean isSwitchProducer) {
 		JMenu moduleMenu = null;
 		if (isAdd) {
 			moduleMenu = new JMenu("Add Module");
@@ -1631,17 +1632,19 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		SoftwareRelease release = config.release();
 
 		// Explicitly add OutputModule menu
-		JMenu outputMenu = new ScrollableMenu("OutputModule");
-		moduleMenu.add(outputMenu);
-		Iterator<OutputModule> itOM = config.outputIterator();
-		while (itOM.hasNext()) {
-			OutputModule om = itOM.next();
-			menuItem = new JMenuItem(om.name());
-			menuItem.addActionListener(listener);
-			menuItem.setActionCommand("OutputModule");
-			if (om.referenceCount() > 0)
-				menuItem.setEnabled(false);
-			outputMenu.add(menuItem);
+		if (!isSwitchProducer) {
+			JMenu outputMenu = new ScrollableMenu("OutputModule");
+			moduleMenu.add(outputMenu);
+			Iterator<OutputModule> itOM = config.outputIterator();
+			while (itOM.hasNext()) {
+				OutputModule om = itOM.next();
+				menuItem = new JMenuItem(om.name());
+				menuItem.addActionListener(listener);
+				menuItem.setActionCommand("OutputModule");
+				if (om.referenceCount() > 0)
+					menuItem.setEnabled(false);
+				outputMenu.add(menuItem);
+			}
 		}
 
 		// dynamically fill menus to add remaining module types
@@ -1664,8 +1667,14 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				moduleTypeAllMenu = new ScrollableMenu("All");
 				menuHashMap.put(moduleType, moduleTypeMenu);
 				menuHashMap.put(moduleTypeAll, moduleTypeAllMenu);
-				moduleMenu.add(moduleTypeMenu);
-				moduleTypeMenu.add(moduleTypeAllMenu);
+				if (!isSwitchProducer) {
+					moduleMenu.add(moduleTypeMenu);
+					moduleTypeMenu.add(moduleTypeAllMenu);
+				} else {
+					if (t.type().equals("EDProducer")) {
+						moduleMenu.add(moduleTypeMenu);
+					}
+				}
 			} else {
 				moduleTypeMenu = menuHashMap.get(moduleType);
 				moduleTypeAllMenu = menuHashMap.get(moduleTypeAll);
@@ -1676,12 +1685,21 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			if (!menuHashMap.containsKey(moduleTypeAndLetter)) {
 				moduleTypeAndLetterMenu = new ScrollableMenu(moduleLetter);
 				menuHashMap.put(moduleTypeAndLetter, moduleTypeAndLetterMenu);
-				moduleTypeMenu.add(moduleTypeAndLetterMenu);
+				if (!isSwitchProducer)
+					moduleTypeMenu.add(moduleTypeAndLetterMenu);
+				else {
+					if (t.type().equals("EDProducer")) {
+						moduleTypeMenu.add(moduleTypeAndLetterMenu);
+					}
+				}
 			} else {
 				moduleTypeAndLetterMenu = menuHashMap.get(moduleTypeAndLetter);
 			}
 
 			if (t.instanceCount() > 0) {
+				if (isSwitchProducer && !t.type().equals("EDProducer"))
+					continue;
+
 				JMenu instanceMenuAll = new ScrollableMenu(t.name());
 				JMenu instanceMenu = new ScrollableMenu(t.name());
 				menuItemAll = new JMenuItem("New Instance");
@@ -1772,7 +1790,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		return moduleMenu;
 	}
 
-	/** create the 'Add/Replace EDAlias' submenu */ //TODO: test and fix this
+	/** create the 'Add/Replace EDAlias' submenu */ // TODO: test and fix this
 	private JMenu createAddRepEDAliasMenu(ReferenceContainer container, EDAliasInstance edAlias,
 			ActionListener listener, boolean isAdd) {
 		JMenu edAliasMenu = null;
@@ -1795,8 +1813,8 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		Iterator<ModuleTemplate> it = release.moduleTemplateIterator();
 		Iterator<EDAliasInstance> it1 = config.edAliasIterator();
 		Iterator<EDAliasInstance> it2 = container.edAliasIterator();
-		while (it.hasNext()) {
-			ModuleTemplate t = it.next();
+		while (it1.hasNext()) {
+			// ModuleTemplate t = it.next();
 			EDAliasInstance ed = it1.next();
 
 			JMenu edAliasTypeMenu;
@@ -1808,17 +1826,17 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			 * if (moduleType.equals("OutputModule")) continue;
 			 */
 
-			String moduleTypeAll = "All";
+			String edAliasTypeAll = "All";
 			// if (!menuHashMap.containsKey(moduleType)) {
-			// edAliasTypeMenu = new ScrollableMenu(moduleType);
+			edAliasTypeMenu = new ScrollableMenu("All EDAliases");
 			edAliasTypeAllMenu = new ScrollableMenu("All");
 			// menuHashMap.put(moduleType, edAliasTypeMenu);
-			menuHashMap.put(moduleTypeAll, edAliasTypeAllMenu);
+			menuHashMap.put(edAliasTypeAll, edAliasTypeAllMenu);
 			// edAliasMenu.add(edAliasTypeMenu);
 			edAliasTypeMenu.add(edAliasTypeAllMenu);
 			// } else {
-			edAliasTypeMenu = menuHashMap.get(moduleType);
-			edAliasTypeAllMenu = menuHashMap.get(moduleTypeAll);
+			// edAliasTypeMenu = menuHashMap.get(moduleType);
+			edAliasTypeAllMenu = menuHashMap.get(edAliasTypeAll);
 			// }
 
 			String edAliasLetter = ed.name().substring(0, 1);
@@ -1832,9 +1850,10 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 			while (it2.hasNext()) {
 				EDAliasInstance ed2 = it2.next();
-				
-				//if 2 EDAliases are called the same (maybe object comparison instead?) forbid some options
-				if (ed.name().matches(ed2.name())) {  
+
+				// if 2 EDAliases are called the same (maybe object comparison instead?) forbid
+				// some options
+				if (ed.name().matches(ed2.name())) {
 					JMenu instanceMenuAll = new ScrollableMenu(ed.name());
 					JMenu instanceMenu = new ScrollableMenu(ed.name());
 					menuItemAll = new JMenuItem("New Instance");
@@ -1856,11 +1875,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 					ArrayList<String> sortedInstanceNames = new ArrayList<String>();
 					for (int i = 0; i < ed.referenceCount(); i++) {
-					//for (int i = 0; i < t.instanceCount(); i++) {
-						//ModuleInstance instance = (ModuleInstance) t.instance(i);
-						//EDAliasInstance instance = (EDAliasInstance)
-						//sortedInstanceNames.add(instance.name());
-						sortedInstanceNames.add(ed.reference(i).name()); //BSATARIC: TODO: I'm not sure how to do this like instances
+						// for (int i = 0; i < t.instanceCount(); i++) {
+						// ModuleInstance instance = (ModuleInstance) t.instance(i);
+						// EDAliasInstance instance = (EDAliasInstance)
+						// sortedInstanceNames.add(instance.name());
+						sortedInstanceNames.add(ed.reference(i).name()); // BSATARIC: TODO: I'm not sure how to do this
+																			// like instances
 
 					}
 					Collections.sort(sortedInstanceNames);
@@ -1868,13 +1888,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 					Iterator<String> itI = sortedInstanceNames.iterator();
 					while (itI.hasNext()) {
 						String instanceName = itI.next();
-						//ModuleInstance instance = null;
+						// ModuleInstance instance = null;
 						EDAliasInstance instance1 = null;
-						try {
-							//instance = (ModuleInstance) t.instance(instanceName);
-							instance1 = config.insertEDAlias(instanceName);  //this probably cannot be like this as it will be the same name
-						} catch (DataException ex) {
-						}
+						// instance = (ModuleInstance) t.instance(instanceName);
+						instance1 = config.insertEDAlias(instanceName); // this probably cannot be like this as it will
+																		// be the same name
 
 						menuItemAll = new JMenuItem(instance1.name());
 						menuItem = new JMenuItem(instance1.name());
@@ -2078,7 +2096,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		}
 		return taskMenu;
 	}
-	
+
 	/** create 'Add/Replace SwitchProducer' Menu */
 	private JMenu createAddRepSPMenu(ReferenceContainer pathOrSP, ActionListener listener, boolean isSPRef,
 			boolean isAdd) {
@@ -2127,7 +2145,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		}
 		return switchProducerMenu;
 	}
-
 
 	/** create 'Set Operator' Menu */
 	private JMenu createSetOperatorMenu(Reference reference, ActionListener listener) {
