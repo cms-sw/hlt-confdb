@@ -3,11 +3,12 @@ package confdb.data;
 import java.util.Iterator;
 
 /**
- * SwitchProducer
- * --------
+ * SwitchProducer --------
+ * 
  * @author Bogdan Sataric
  * 
- * A 'SwitchProducer' can host only 1 or 2 elements of type EDProducer or EDAlias
+ *         A 'SwitchProducer' can host only 1 or 2 elements of type EDProducer
+ *         or EDAlias
  * 
  */
 public class SwitchProducer extends ReferenceContainer {
@@ -26,11 +27,15 @@ public class SwitchProducer extends ReferenceContainer {
 
 	/** insert a EDProducer or EDAlias into the SwitchProducer */
 	public void insertEntry(int i, Reference reference) {
+		System.out.println("INSERTING SWITCHPRODUCER ENTRY");
 		if (reference instanceof ModuleReference || reference instanceof EDAliasReference) {
 			if (!entries.contains(reference)) {
+				System.out.println("INSERTING ENTRY");
+				System.out.println("REFERENCE CLASS " + reference.getClass().toString());
 				entries.add(i, reference);
 				setHasChanged();
 				return;
+
 			}
 		}
 		System.err.println("SwitchProducer.insertEntry FAILED.");

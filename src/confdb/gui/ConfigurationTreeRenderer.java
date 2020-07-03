@@ -323,7 +323,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 			int refCount = switchProducer.parentPaths().length;
 			int entryCount = switchProducer.entryCount();
 			int count = switchProducer.unsetTrackedParameterCount();
-			int unresolved = switchProducer.unresolvedESInputTagCount();
+			int unresolved = switchProducer.unresolvedESInputTagCount();  //EDALIAS PROBLEM
 			result = (refCount > 0) ? "<html>" + getText() : "<html><font color=#808080>" + getText() + "</font>";
 			result += (entryCount > 0) ? " (" + entryCount + ")" : "<font color=#ff0000>(" + entryCount + ")</font>";
 			if (count > 0)
@@ -486,6 +486,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 			// just need to provide a sufficiently long string...
 			setText(prepareText().replaceAll("</html>", "XXXX</html>"));
 		} else {
+			//System.out.println("USAOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
 			if ((tp.getPathCount() > 2) && (tp.getPathComponent(2) instanceof Path))
 				xpath = (Path) (tp.getPathComponent(2));
 			setText(prepareText());

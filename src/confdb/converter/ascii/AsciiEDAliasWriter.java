@@ -43,7 +43,7 @@ public class AsciiEDAliasWriter implements IEDAliasWriter {
 	}
 
 	protected void appendType(StringBuffer str, EDAliasInstance edAlias) {
-		str.append(edAlias.name()); // no template
+		str.append("cms.EDAlias"); // no template
 	}
 
 }
