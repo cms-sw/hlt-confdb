@@ -35,9 +35,14 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
     public Instance(String name,Template template) throws DataException
     {
 	this.template = template;
+	System.out.println("TRYING TO SET INSTANCE NAME");
 	setName(name);
+	System.out.println("INSTANCE NAME SET");
+	
+	if (template != null) {
 	for (int i=0;i<template.parameterCount();i++)
 	    addParameter(template.parameter(i).clone(this));
+	}
     }
     
     
@@ -61,10 +66,15 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
     public void setName(String name) throws DataException
     {
         name = name.replaceAll("\\W", "");
+        System.out.println("TRYING TO CHECK UNIQUE QUALIFIER OF INSTANCE");
+        if (template != null) {
+        	System.out.println("TEMPLATE IS NOT NULL");
 	if (template().hasInstance(name)
 	    ||(config!=null&&!config.isUniqueQualifier(name)))
 	    throw new DataException("Instance.setName() ERROR: " +
 				    "name '"+name+"' is not unique!");
+        }
+        System.out.println("CHECKED UNIQUE QUALIFIER OF INSTANCE");
 	this.name = name;
 	setHasChanged();
     }

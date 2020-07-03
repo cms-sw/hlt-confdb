@@ -16,10 +16,11 @@ public class PythonEDAliasWriter implements IEDAliasWriter {
 	public String toString(EDAliasInstance edAlias) throws ConverterException {
 		if (parameterWriter == null)
 			parameterWriter = converterEngine.getParameterWriter();
-
+		//TODO: FIX THIS!
 		String name = edAlias.name();
 
-		StringBuffer str = new StringBuffer(name); //this might need fixing since there is no template
+		StringBuffer str = new StringBuffer( name + " = cms.EDAlias(" );
+
 		if (edAlias.parameterCount() == 0) {
 			str.append(" )\n");
 			return str.toString();

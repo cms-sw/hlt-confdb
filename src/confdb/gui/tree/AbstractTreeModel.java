@@ -51,6 +51,7 @@ public abstract class AbstractTreeModel implements TreeModel {
 	/** invoke if representation of node has changed in the tree */
 	public void nodeChanged(Object node) {
 		if (listenerList != null && node != null) {
+			System.out.println("nodeChanged CALLED");
 			Object parent = getParent(node);
 			if (parent != null) {
 				int index = getIndexOfChild(parent, node);
@@ -127,6 +128,7 @@ public abstract class AbstractTreeModel implements TreeModel {
 	/** get path to root, called recursively by getPathToRoot(Object node) */
 	protected Object[] getPathToRoot(Object node, int depth) {
 		Object[] result;
+		System.out.println("getPathToRoot CALLED");
 		if (node == null) {
 			if (depth == 0)
 				return null;

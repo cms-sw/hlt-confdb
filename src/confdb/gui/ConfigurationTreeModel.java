@@ -11,11 +11,11 @@ import confdb.gui.tree.AbstractTreeModel;
 import confdb.data.*;
 
 /**
- * ConfigurationTreeModel
- * ----------------------
+ * ConfigurationTreeModel ----------------------
+ * 
  * @author Philipp Schieferdecker
  *
- * Display a configuration in a JTree structure.
+ *         Display a configuration in a JTree structure.
  */
 public class ConfigurationTreeModel extends AbstractTreeModel {
 	//
@@ -49,7 +49,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 	private StringBuffer contentsNode = new StringBuffer();
 	private StringBuffer streamsNode = new StringBuffer();
 	private StringBuffer datasetsNode = new StringBuffer();
-	//BSATARIC: TODO (maybe EDAliases)
+	// BSATARIC: TODO (maybe EDAliases)
 
 	private StringBuffer unassignedPathsNode = new StringBuffer("<html><i>Unassigned " + "Paths</i></html>");
 
@@ -123,7 +123,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 	public StringBuffer tasksNode() {
 		return tasksNode;
 	}
-	
+
 	/** get the switch producers root node */
 	public StringBuffer switchProducersNode() {
 		return switchProducersNode;
@@ -310,7 +310,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		tasksNode.append(taskCount);
 		tasksNode.append(")</html>");
 		nodeChanged(tasksNode);
-		
+
 		// SwitchProducers node
 		int switchProducerCount = config.switchProducerCount();
 		switchProducersNode.delete(0, switchProducersNode.length());
@@ -453,6 +453,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		} else if (node instanceof ModuleReference) {
 			ModuleReference reference = (ModuleReference) node;
 			return reference.parameterCount();
+		} else if (node instanceof EDAliasReference) {
+			EDAliasReference reference = (EDAliasReference) node;
+			return reference.parameterCount();
 		} else if (node instanceof OutputModuleReference) {
 			OutputModuleReference reference = (OutputModuleReference) node;
 			return reference.parameterCount();
@@ -556,6 +559,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		} else if (parent instanceof ModuleReference) {
 			ModuleReference reference = (ModuleReference) parent;
 			return reference.parameter(i);
+		} else if (parent instanceof EDAliasReference) {
+			EDAliasReference reference = (EDAliasReference) parent;
+			return reference.parameter(i);
 		} else if (parent instanceof OutputModuleReference) {
 			OutputModuleReference reference = (OutputModuleReference) parent;
 			return reference.parameter(i);
@@ -571,6 +577,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			TaskReference reference = (TaskReference) parent;
 			Task task = (Task) reference.parent();
 			return task.entry(i);
+		} else if (parent instanceof SwitchProducerReference) {
+			SwitchProducerReference reference = (SwitchProducerReference) parent;
+			SwitchProducer switchProducer = (SwitchProducer) reference.parent();
+			return switchProducer.entry(i);
 		} else if (parent instanceof PSetParameter) {
 			PSetParameter pset = (PSetParameter) parent;
 			return pset.parameter(i);
@@ -694,6 +704,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			ModuleReference reference = (ModuleReference) parent;
 			Parameter parameter = (Parameter) child;
 			return reference.indexOfParameter(parameter);
+		} else if (parent instanceof EDAliasReference) {
+			EDAliasReference reference = (EDAliasReference) parent;
+			Parameter parameter = (Parameter) child;
+			return reference.indexOfParameter(parameter);
 		} else if (parent instanceof OutputModuleReference) {
 			OutputModuleReference reference = (OutputModuleReference) parent;
 			Parameter parameter = (Parameter) child;
@@ -713,6 +727,11 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			Task task = (Task) tasreference.parent();
 			Reference reference = (Reference) child;
 			return task.indexOfEntry(reference);
+		} else if (parent instanceof SwitchProducerReference) {
+			SwitchProducerReference spreference = (SwitchProducerReference) parent;
+			SwitchProducer switchProducer = (SwitchProducer) spreference.parent();
+			Reference reference = (Reference) child;
+			return switchProducer.indexOfEntry(reference);
 		} else if (parent instanceof PSetParameter) {
 			PSetParameter pset = (PSetParameter) parent;
 			Parameter parameter = (Parameter) child;
@@ -755,6 +774,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 
 	/** get parent of a node */
 	public Object getParent(Object node) {
+		System.out.println("NODE OBJECT TYPE: " + node.getClass().toString());
 		if (node instanceof Parameter) {
 			Parameter p = (Parameter) node;
 			Object parent = p.parent();
@@ -772,9 +792,12 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			return esmodulesNode;
 		else if (node instanceof ServiceInstance)
 			return servicesNode;
-		else if (node instanceof ModuleInstance)
+		else if (node instanceof ModuleInstance) {
 			return modulesNode;
-		else if (node instanceof OutputModule)
+		} else if (node instanceof EDAliasInstance) {
+			System.out.println("EDALIAS NODE NOT EXISTING, RETURNING NULL");
+			return null; //FOR NOW
+		} else if (node instanceof OutputModule)
 			return outputsNode;
 		else if (node instanceof Path)
 			return pathsNode;
