@@ -168,31 +168,6 @@ public class PSetParameter extends Parameter
 	return result;
     }
 
-    /** number of unresolved ESInputTag parameters in pset */
-    public int unresolvedESInputTagCount(IConfiguration config)
-    {
-	int result = 0;
-	for (Parameter p : parameters) {
-	    if (p instanceof VPSetParameter) {
-		VPSetParameter vpset = (VPSetParameter)p;
-		result += vpset.unresolvedESInputTagCount(config);
-	    }
-	    else if (p instanceof PSetParameter) {
-		PSetParameter pset = (PSetParameter)p;
-		result += pset.unresolvedESInputTagCount(config);
-	    }
-	    else if (p instanceof ESInputTagParameter) {
-		ESInputTagParameter par = (ESInputTagParameter)p;
-		result += par.unresolvedESInputTagCount(config);
-	    }
-	    else if (p instanceof VESInputTagParameter) {
-		VESInputTagParameter par = (VESInputTagParameter)p;
-		result += par.unresolvedESInputTagCount(config);
-	    }
-	}
-	return result;
-    }
-
     /** number of parameters in parameter-set */
     public int parameterCount() { return parameters.size(); }
 
