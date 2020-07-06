@@ -1534,7 +1534,7 @@ public class ConfDB {
 						if (entryType.equals("Sequence")) {
 							Sequence entry = idToSequences.get(entryId);
 
-							System.out.println("PUSHED seqTaskOrSPId: " + entryId + "parentId " + seqTaskOrSPId
+							System.out.println("PUSHED seqTaskOrSPId: " + entryId + " parentId " + seqTaskOrSPId
 									+ " sequenceName " + entry.name());
 
 							entry.setDatabaseId(seqTaskOrSPId);
@@ -1542,7 +1542,7 @@ public class ConfDB {
 						} else if (entryType.equals("Task")) {
 							Task entry = idToTasks.get(entryId);
 
-							System.out.println("PUSHED seqTaskOrSPId: " + entryId + "parentId " + seqTaskOrSPId
+							System.out.println("PUSHED seqTaskOrSPId: " + entryId + " parentId " + seqTaskOrSPId
 									+ " taskName " + entry.name());
 
 							entry.setDatabaseId(seqTaskOrSPId);
@@ -1550,7 +1550,7 @@ public class ConfDB {
 						} else if (entryType.equals("SwitchProducer")) {
 							SwitchProducer entry = idToSwitchProducers.get(entryId);
 
-							System.out.println("PUSHED seqTaskOrSPId: " + entryId + "parentId " + seqTaskOrSPId
+							System.out.println("PUSHED seqTaskOrSPId: " + entryId + " parentId " + seqTaskOrSPId
 									+ " switchProducerName " + entry.name());
 
 							entry.setDatabaseId(seqTaskOrSPId);
@@ -1594,7 +1594,7 @@ public class ConfDB {
 								lvltoskip = entryLvl + 1;
 							} else {
 								idlifo.push(entryId);
-								System.out.println("PUSHED seqTaskOrSPId: " + entryId + "parentId " + seqTaskOrSPId);
+								System.out.println("PUSHED seqTaskOrSPId: " + entryId + " parentId " + seqTaskOrSPId);
 								previouslvl++;
 							}
 
@@ -1607,14 +1607,13 @@ public class ConfDB {
 							}
 							config.insertSequenceReference(sequence, index, entry).setOperator(operator);
 							// }
-						} else if (entryType.equals("Task")) { // treat nested task inside sequence in the same way as
-																// nested sequence
+						} else if (entryType.equals("Task")) { // treat nested task inside sequence in the same way as nested sequence
 							if (seqTaskOrSPDone[entryId]) {
 								seqTasOrSPToSkip = true;
 								lvltoskip = entryLvl + 1;
 							} else {
 								idlifo.push(entryId);
-								System.out.println("PUSHED seqTaskOrSPId: " + entryId + "parentId " + seqTaskOrSPId);
+								System.out.println("PUSHED seqTaskOrSPId: " + entryId + " parentId " + seqTaskOrSPId);
 								previouslvl++;
 							}
 
@@ -1623,6 +1622,15 @@ public class ConfDB {
 							Task entry = (Task) idToTasks.get(entryId);
 							config.insertTaskReference(sequence, index, entry).setOperator(operator);
 						} else if (entryType.equals("SwitchProducer")) {
+							if (seqTaskOrSPDone[entryId]) {
+								seqTasOrSPToSkip = true;
+								lvltoskip = entryLvl + 1;
+							} else {
+								idlifo.push(entryId);
+								System.out.println("PUSHED seqTaskOrSPId: " + entryId + " parentId " + seqTaskOrSPId);
+								previouslvl++;
+							}
+							seqTaskOrSPDone[entryId] = true;
 							SwitchProducer entry = (SwitchProducer) idToSwitchProducers.get(entryId);
 							// System.err.println("Module "+entryId+" seq "+sequence+" index "+index);
 							config.insertSwitchProducerReference(sequence, index, entry).setOperator(operator);
@@ -1676,7 +1684,7 @@ public class ConfDB {
 								lvltoskip = entryLvl + 1;
 							} else {
 								idlifo.push(entryId);
-								System.out.println("PUSHED taskId: " + entryId + "parentId " + seqTaskOrSPId);
+								System.out.println("PUSHED taskId: " + entryId + " parentId " + seqTaskOrSPId);
 								previouslvl++;
 							}
 
@@ -1690,6 +1698,16 @@ public class ConfDB {
 							config.insertTaskReference(task, index, entry).setOperator(operator);
 							// }
 						} else if (entryType.equals("SwitchProducer")) {
+							
+							if (seqTaskOrSPDone[entryId]) {
+								seqTasOrSPToSkip = true;
+								lvltoskip = entryLvl + 1;
+							} else {
+								idlifo.push(entryId);
+								System.out.println("PUSHED seqTaskOrSPId: " + entryId + " parentId " + seqTaskOrSPId);
+								previouslvl++;
+							}
+							seqTaskOrSPDone[entryId] = true;
 							SwitchProducer entry = (SwitchProducer) idToSwitchProducers.get(entryId);
 							// System.err.println("Module "+entryId+" seq "+sequence+" index "+index);
 							config.insertSwitchProducerReference(task, index, entry).setOperator(operator);
