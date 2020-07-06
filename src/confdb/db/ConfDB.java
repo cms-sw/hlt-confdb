@@ -3755,7 +3755,7 @@ public class ConfDB {
 			} else if (r instanceof EDAliasReference) {
 				System.out.println("BEFORE INSERT PATH SWITCHPRODUCER EDALIAS REFERENCE");
 
-				int edAliasId = EDAliasHashMap.get(r.name());  //Maybe ABS is needed since EDAlias changes?
+				int edAliasId = EDAliasHashMap.get(r.name());
 
 				System.out.println("SwitchProducer = " + switchProducer.name() + " SwitchProducer ID "
 						+ switchProducerId + " pathId " + pathId + " edAliasId " + edAliasId + " parentId " + parentId
