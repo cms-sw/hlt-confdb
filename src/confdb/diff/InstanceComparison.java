@@ -62,32 +62,44 @@ public class InstanceComparison extends Comparison
     /** plain-text representation of the comparison */
     public String toString()
     {
-    	if (oldInstance.template() != null && newInstance.template() != null) {
-			return (newInstance==null) ?
-			    oldInstance.name()+" ["+oldInstance.template().name()+"] "+
-			    resultAsString() :
-			    newInstance.name()+" ["+newInstance.template().name()+"] "+
-			    resultAsString();
-    	} else { //EDAlias branch
-    		return (newInstance==null) ?
-    			    oldInstance.name() + resultAsString() :
-    			    newInstance.name() + resultAsString();
+    	if (newInstance==null) {
+    		if (oldInstance.template() != null)
+    			return oldInstance.name() + " ["+oldInstance.template().name()+"] " + resultAsString(); 
+    		else
+    			return oldInstance.name() + resultAsString(); 
+    	} else {
+    		if (newInstance.template() != null)
+    			return newInstance.name() + " ["+newInstance.template().name()+"] " + resultAsString();
+    		else
+    			return newInstance.name() + resultAsString(); 
     	}
+    	
+	/*
+	 * System.out.println("OLD INSTANCE: " + oldInstance);
+	 * System.out.println("NEW INSTANCE: " + oldInstance); if
+	 * (!oldInstance.template().equals(null) &&
+	 * !newInstance.template().equals(null)) { return (newInstance==null) ?
+	 * oldInstance.name()+" ["+oldInstance.template().name()+"] "+ resultAsString()
+	 * : newInstance.name()+" ["+newInstance.template().name()+"] "+
+	 * resultAsString(); } else { //EDAlias branch return (newInstance==null) ?
+	 * oldInstance.name() + resultAsString() : newInstance.name() +
+	 * resultAsString(); }
+	 */
     }
 
     /** html representation of the comparison */
     public String toHtml()
     {
-    	if (oldInstance.template() != null && newInstance.template() != null) {
-			return (newInstance==null) ?
-			    "<html>"+oldInstance.template().name()+
-			    ".<b>"+oldInstance.name()+"<b></html>" :
-			    "<html>"+newInstance.template().name()+
-			    ".<b>"+newInstance.name()+"<b></html>";
-    	} else { //EDAlias branch
-    		return (newInstance==null) ?
-    			"<html>"+".<b>"+oldInstance.name()+"<b></html>" :
-    			"<html>"+".<b>"+newInstance.name()+"<b></html>";
+    	if (newInstance==null) {
+    		if (oldInstance.template() != null)
+			    return "<html>" + oldInstance.template().name() + ".<b>"+oldInstance.name() + "<b></html>"; 
+    		else
+    			return "<html>.<b>" + oldInstance.name() + "<b></html>";
+    	} else {
+    		if (newInstance.template() != null)
+			    return "<html>" + newInstance.template().name() + ".<b>"+newInstance.name() + "<b></html>"; 
+    		else
+    			return "<html>.<b>" + newInstance.name() + "<b></html>";
     	}
     }
     
