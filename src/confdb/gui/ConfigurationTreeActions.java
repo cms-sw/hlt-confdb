@@ -864,7 +864,7 @@ public class ConfigurationTreeActions {
 
 		SwitchProducer switchProducer = config.insertSwitchProducer(index, newName);
 
-		model.nodeInserted(model.tasksNode(), index);
+		model.nodeInserted(model.switchProducersNode(), index);
 		model.updateLevel1Nodes();
 		TreePath parentPath = (index == 0) ? treePath : treePath.getParentPath();
 		TreePath newTreePath = parentPath.pathByAddingChild(switchProducer);
