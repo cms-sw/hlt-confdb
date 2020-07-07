@@ -55,13 +55,13 @@ import confdb.data.*;
 import confdb.diff.*;
 
 /**
- * ConfDbGUI
- * ---------
+ * ConfDbGUI ---------
+ * 
  * @author Philipp Schieferdecker
  *
- * Graphical User Interface to create and manipulate CMSSW job
- * configurations stored in the relational configuration database,
- * ConfDB.
+ *         Graphical User Interface to create and manipulate CMSSW job
+ *         configurations stored in the relational configuration database,
+ *         ConfDB.
  */
 public class ConfDbGUI {
 	//
@@ -968,7 +968,7 @@ public class ConfDbGUI {
 					}
 				}
 			}
-			
+
 			if (applyTo.equals("All") || applyTo.equals("EDAliases")) {
 				EDAliasInstance edAlias = null;
 				for (int i = 0; i < currentConfig.edAliasCount(); i++) {
@@ -980,7 +980,7 @@ public class ConfDbGUI {
 							if (currentConfig.isUniqueQualifier(newName)) {
 								System.out.println("SmartRenaming EDAlias: " + newName + " [" + oldName + "]");
 								try {
-									edAlias.setNameAndPropagate(newName);  //BSATARIC TODO: check how to make this
+									edAlias.setNameAndPropagate(newName); // BSATARIC TODO: check how to make this
 									treeModelCurrentConfig.nodeChanged(edAlias);
 								} catch (DataException e) {
 									System.err.println(e.getMessage());
@@ -1043,7 +1043,7 @@ public class ConfDbGUI {
 					}
 				}
 			}
-			
+
 			if (applyTo.equals("All") || applyTo.equals("SwitchProducers")) {
 				SwitchProducer switchProducer = null;
 				for (int i = 0; i < currentConfig.switchProducerCount(); i++) {
@@ -1652,7 +1652,8 @@ public class ConfDbGUI {
 		int emptyContainerCount = currentConfig.emptyContainerCount();
 		if (emptyContainerCount > 0) {
 			String msg = "current configuration contains " + emptyContainerCount
-					+ " empty containers (paths/sequences/tasks/switchProducers). " + "They must be filled before saving/converting!";
+					+ " empty containers (paths/sequences/tasks/switchProducers). "
+					+ "They must be filled before saving/converting!";
 			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
@@ -2348,7 +2349,7 @@ public class ConfDbGUI {
 					EDAliasInstance instance = (EDAliasInstance) reference.parent();
 					text = "<html>" + instance.name();
 
-					//BSATARIC: not sure if we need this down for EDAliases (or something similar)
+					// BSATARIC: not sure if we need this down for EDAliases (or something similar)
 					/*
 					 * Object component = (tp.getPathComponent(2)); if (component instanceof Path) {
 					 * Path path = (Path) (tp.getPathComponent(2)); String[] unresolved =
@@ -2471,7 +2472,8 @@ public class ConfDbGUI {
 	}
 
 	/**
-	 * return a text list of Paths which contains the current Module/Sequence/Task/SwitchProducer/EDAlias.
+	 * return a text list of Paths which contains the current
+	 * Module/Sequence/Task/SwitchProducer/EDAlias.
 	 */
 	public String getAssignedPaths() {
 		String text = "";
@@ -2518,6 +2520,9 @@ public class ConfDbGUI {
 		String text = "";
 		ModuleInstance moduleInstance = null;
 		Sequence sequence = null;
+		Task task = null;
+		SwitchProducer switchProducer = null;
+		EDAliasInstance edAliasInstance = null;
 		if (currentParameterContainer instanceof ModuleInstance) {
 			moduleInstance = (ModuleInstance) currentParameterContainer;
 
@@ -2543,7 +2548,56 @@ public class ConfDbGUI {
 					text += "<a href='" + Seq.name() + "'>" + Seq.name() + "</a> <br>";
 				}
 			}
+
 			text += "</font></html>";
+
+		} else if (currentParameterContainer instanceof Task) {
+			task = (Task) currentParameterContainer;
+
+			Iterator<Sequence> SeqIt = currentConfig.sequenceIterator();
+			text += "<html><font size=5>";
+			while (SeqIt.hasNext()) {
+				Sequence Seq = SeqIt.next();
+				Reference ref = Seq.entry(task.name());
+				if (ref != null) {
+					text += "<a href='" + Seq.name() + "'>" + Seq.name() + "</a> <br>";
+				}
+			}
+			text += "</font></html>";
+
+		} else if (currentParameterContainer instanceof SwitchProducer) {
+			switchProducer = (SwitchProducer) currentParameterContainer;
+
+			Iterator<Sequence> SeqIt = currentConfig.sequenceIterator();
+			text += "<html><font size=5>";
+			while (SeqIt.hasNext()) {
+				Sequence Seq = SeqIt.next();
+				Reference ref = Seq.entry(switchProducer.name());
+				if (ref != null) {
+					text += "<a href='" + Seq.name() + "'>" + Seq.name() + "</a> <br>";
+				}
+			}
+			text += "</font></html>";
+
+		} else if (currentParameterContainer instanceof EDAliasInstance) {
+			edAliasInstance = (EDAliasInstance) currentParameterContainer;
+
+			Iterator<Sequence> SeqIt = currentConfig.sequenceIterator();
+			Iterator<SwitchProducer> SPIt = null;
+			text += "<html><font size=5>";
+			while (SeqIt.hasNext()) {
+				Sequence Seq = SeqIt.next();
+				SPIt = currentConfig.switchProducerIterator();
+				while (SPIt.hasNext()) {
+					SwitchProducer switchProducer1 = SPIt.next();
+					if (switchProducer1.entry(edAliasInstance.name()) != null
+							&& Seq.entry(switchProducer1.name()) != null) {
+						text += "<a href='" + Seq.name() + "'>" + Seq.name() + "</a> <br>";
+					}
+				}
+			}
+			text += "</font></html>";
+
 		} else
 			return "";
 		return text;
@@ -2557,6 +2611,8 @@ public class ConfDbGUI {
 		String text = "";
 		ModuleInstance moduleInstance = null;
 		Task task = null;
+		SwitchProducer switchProducer = null;
+		EDAliasInstance edAliasInstance = null;
 		if (currentParameterContainer instanceof ModuleInstance) {
 			moduleInstance = (ModuleInstance) currentParameterContainer;
 
@@ -2580,14 +2636,42 @@ public class ConfDbGUI {
 				}
 			}
 
+		} else if (currentParameterContainer instanceof SwitchProducer) {
+			switchProducer = (SwitchProducer) currentParameterContainer;
+
+			Iterator<Task> TasIt = currentConfig.taskIterator();
+			while (TasIt.hasNext()) {
+				Task Tas = TasIt.next();
+				Reference ref = Tas.entry(switchProducer.name());
+				if (ref != null) {
+					text += "<a href='" + Tas.name() + "'>" + Tas.name() + "</a> <br>";
+				}
+			}
+
+		} else if (currentParameterContainer instanceof EDAliasInstance) {
+			edAliasInstance = (EDAliasInstance) currentParameterContainer;
+
+			Iterator<Task> TasIt = currentConfig.taskIterator();
+			Iterator<SwitchProducer> SPIt = null;
+			while (TasIt.hasNext()) {
+				Task Tas = TasIt.next();
+				SPIt = currentConfig.switchProducerIterator();
+				while (SPIt.hasNext()) {
+					SwitchProducer switchProducer1 = SPIt.next();
+					if (switchProducer1.entry(edAliasInstance.name()) != null
+							&& Tas.entry(switchProducer1.name()) != null) {
+						text += "<a href='" + Tas.name() + "'>" + Tas.name() + "</a> <br>";
+					}
+				}
+			}
 		} else
 			return "";
 		return text;
 	}
-	
+
 	/**
-	 * return a html string format with a list of SwitchProducers containing the current
-	 * parameter container. Used to fill ContainedInSwitchProducers tab.
+	 * return a html string format with a list of SwitchProducers containing the
+	 * current parameter container. Used to fill ContainedInSwitchProducers tab.
 	 */
 	public String getAssignedSwitchProducers() {
 		String text = "";
@@ -2650,7 +2734,7 @@ public class ConfDbGUI {
 		} else
 			return "ERROR: getUnresolvedInputTagsSummary(): unknown currentParameterContainer";
 
-		//BSATARIC: I'm not sure if this concerns EDAliases - TODO
+		// BSATARIC: I'm not sure if this concerns EDAliases - TODO
 		String[] modules = new String[unresolved.length]; // as maximum.
 		int MLength = 0;
 
@@ -2976,7 +3060,8 @@ public class ConfDbGUI {
 	private void displaySnippet() {
 		// by default some tabs are disabled.
 		if ((!(currentParameterContainer instanceof Path)) || (!(currentParameterContainer instanceof Sequence))
-				|| (!(currentParameterContainer instanceof Task)) || (!(currentParameterContainer instanceof SwitchProducer)))
+				|| (!(currentParameterContainer instanceof Task))
+				|| (!(currentParameterContainer instanceof SwitchProducer)))
 			restoreRightLowerTabs();
 
 		if (currentParameterContainer == currentConfig.psets()) {
@@ -3159,7 +3244,8 @@ public class ConfDbGUI {
 			}
 		});
 
-		// Hyperlink listener to catch the module requests. (BSATARIC: do we need this for EDAliases? TODO)
+		// Hyperlink listener to catch the module requests. (BSATARIC: do we need this
+		// for EDAliases? TODO)
 		jEditorPaneUnresolvedITags.addHyperlinkListener(new HyperlinkListener() {
 			public void hyperlinkUpdate(HyperlinkEvent event) {
 				if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -3187,7 +3273,7 @@ public class ConfDbGUI {
 				}
 			}
 		});
-		
+
 		// Hyperlink listener to catch the switch producer request.
 		jEditorContainedInSwitchProducer.addHyperlinkListener(new HyperlinkListener() {
 			public void hyperlinkUpdate(HyperlinkEvent event) {
@@ -3396,7 +3482,8 @@ public class ConfDbGUI {
 	private void jTreeConfigExpandLevel1Nodes(JTree t) {
 		ConfigurationTreeModel m = (ConfigurationTreeModel) t.getModel();
 
-		//BSATARIC: TODO see weather there should be something for SwitchProducers or EDAliases here
+		// BSATARIC: TODO see weather there should be something for SwitchProducers or
+		// EDAliases here
 		TreePath tpPSets = new TreePath(m.getPathToRoot(m.psetsNode()));
 		t.expandPath(tpPSets);
 		TreePath tpEDSources = new TreePath(m.getPathToRoot(m.edsourcesNode()));
@@ -4778,7 +4865,7 @@ public class ConfDbGUI {
 		jEditorContainedInTask.setContentType("text/html");
 		TAB_containedInTask.setViewportView(jEditorContainedInTask);
 		jTabbedPaneRightLower.addTab("Contained in Tasks", TAB_containedInTask);
-		
+
 		jEditorContainedInSwitchProducer.setEditable(false);
 		jEditorContainedInSwitchProducer.setContentType("text/html");
 		TAB_containedInSwitchProducer.setViewportView(jEditorContainedInSwitchProducer);

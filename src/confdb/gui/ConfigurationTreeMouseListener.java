@@ -1162,9 +1162,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				popupSwitchProducers.add(menuItem);
 
 				// CLONE OPTION:
-				menuItem = new JMenuItem("Clone Module");
-				menuItem.addActionListener(switchProducerListener);
-				popupSwitchProducers.add(menuItem);
+				if (switchProducer.entryCount() < 2) {
+					menuItem = new JMenuItem("Clone Module");
+					menuItem.addActionListener(switchProducerListener);
+					popupSwitchProducers.add(menuItem);
+				}
 
 				popupSwitchProducers.addSeparator();
 				popupSwitchProducers.add(createSetOperatorMenu((Reference) node, switchProducerListener));
@@ -1179,9 +1181,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				popupSwitchProducers.add(menuItem);
 
 				// CLONE OPTION:
-				menuItem = new JMenuItem("Clone EDAlias");
-				menuItem.addActionListener(switchProducerListener);
-				popupSwitchProducers.add(menuItem);
+				if (switchProducer.entryCount() < 2) {
+					menuItem = new JMenuItem("Clone EDAlias");
+					menuItem.addActionListener(switchProducerListener);
+					popupSwitchProducers.add(menuItem);
+				}
 
 				popupSwitchProducers.addSeparator();
 				popupSwitchProducers.add(createSetOperatorMenu((Reference) node, switchProducerListener));
