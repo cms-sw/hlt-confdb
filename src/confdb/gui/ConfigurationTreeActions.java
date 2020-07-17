@@ -28,7 +28,6 @@ public class ConfigurationTreeActions {
 	//
 	// Parameters
 	//
-	// TODO: SwitchProducer and EDAlias
 
 	/** copy a parameter into another (v)pset */
 	public static boolean insertParameter(JTree tree, Parameter parameter, ParameterTreeModel parameterTreeModel) {
@@ -232,6 +231,28 @@ public class ConfigurationTreeActions {
 			dlg.pack();
 			dlg.setVisible(true);
 		}
+
+		return true;
+	}
+	
+	
+	//
+	// EDAlias VPSets
+	//
+
+	/** insert edalias vpset */
+	public static boolean insertEDAliasVPSet(JTree tree, VPSetParameter vpset) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+
+		//config.insertPSet(vpset);
+
+		model.nodeInserted(model.psetsNode(), config.psetCount() - 1);
+		model.updateLevel1Nodes();
+
+		TreePath parentPath = (treePath.getPathCount() == 2) ? treePath : treePath.getParentPath();
+		tree.setSelectionPath(parentPath.pathByAddingChild(vpset));
 
 		return true;
 	}
@@ -889,7 +910,7 @@ public class ConfigurationTreeActions {
 		int index = parent.entryCount();
 
 		System.out.println("PARENT " + parent.getClass().toString());
-		//index = 0;
+		// index = 0;
 
 		EDAliasInstance edAlias = config.insertEDAlias("<ENTER EDALIAS NAME>");
 		// SwitchProducer switchProducer = config.insertSwitchProducer(index, "<ENTER
@@ -914,7 +935,7 @@ public class ConfigurationTreeActions {
 		System.out.println("PARENT " + parent.toString());
 		System.out.println("EDALIAS " + parent.toString());
 
-		//TODO; FIX THIS
+		// TODO; FIX THIS
 		// reference = config.insertEDAliasReference(parent, index, instanceName); //
 		// this creates new EDAlias internally reference =
 		reference = config.insertEDAliasReference(parent, index, edAlias);
@@ -3948,6 +3969,22 @@ public class ConfigurationTreeActions {
 		}
 
 		return true;
+	}
+
+	public static void addModuleToEDAlias(JTree tree, JFrame frame) {
+
+		AddParameterDialog dlg = new AddParameterDialog(frame, true);
+		dlg.addVParameterSet();
+		dlg.pack();
+		dlg.setLocationRelativeTo(frame);
+		dlg.setVisible(true);
+		if (dlg.validChoice()) {
+			
+			  VPSetParameter vpset = (VPSetParameter) ParameterFactory.create(dlg.type(),
+			  dlg.name(), dlg.valueAsString(), dlg.isTracked());
+			  ConfigurationTreeActions.insertEDAliasVPSet(tree, vpset);
+			 
+		}
 	}
 
 	/**

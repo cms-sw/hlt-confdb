@@ -124,13 +124,16 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 	 * cell component when clicking the tree.
 	 */
 	private TreeTable TreeTableParameters;
+	
+	/** reference to the gui application */
+    //private ConfDbGUI app = null;
 
 	//
 	// construction
 	//
 
 	/** standard constructor */
-	public ConfigurationTreeMouseListener(JTree tree, JFrame frame) {
+	public ConfigurationTreeMouseListener(JTree tree, JFrame frame, ConfDbGUI app) {
 
 		this.tree = tree;
 		this.treeModel = (ConfigurationTreeModel) tree.getModel();
@@ -143,11 +146,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		pathListener = new PathMenuListener(tree);
 		sequenceListener = new SequenceMenuListener(tree);
 		taskListener = new TaskMenuListener(tree);
-		switchProducerListener = new SwitchProducerMenuListener(tree);
+		switchProducerListener = new SwitchProducerMenuListener(tree, frame, app);
 		moduleListener = new ModuleMenuListener(tree);
 		contentListener = new ContentMenuListener(tree);
 		streamListener = new StreamMenuListener(tree, frame);
 		datasetListener = new DatasetMenuListener(tree, frame);
+		
 	}
 
 	//
@@ -265,7 +269,8 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			return;
 		}
 
-		// TODO: EDALIAS
+		// show the 'VPSets' popup (EDAlias)?
+		
 		// show the 'Modules' popup?
 		if (isInTreePath(treePath, treeModel.modulesNode()) && depth <= 3) {
 			updateModuleMenu();
@@ -1183,6 +1188,23 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				// CLONE OPTION:
 				if (switchProducer.entryCount() < 2) {
 					menuItem = new JMenuItem("Clone EDAlias");
+					menuItem.addActionListener(switchProducerListener);
+					popupSwitchProducers.add(menuItem);
+				}
+				
+				/*
+				 * JMenuItem menuItem; popupPSets = new JPopupMenu();
+				 * 
+				 * TreePath treePath = tree.getSelectionPath(); int depth =
+				 * treePath.getPathCount(); Object node = treePath.getLastPathComponent();
+				 */
+
+				menuItem = new JMenuItem("Add Module (VPSet)");
+				menuItem.addActionListener(switchProducerListener);
+				popupSwitchProducers.add(menuItem);
+
+				if (depth == 3) {
+					menuItem = new JMenuItem("Remove Module (VPSet)");
 					menuItem.addActionListener(switchProducerListener);
 					popupSwitchProducers.add(menuItem);
 				}
@@ -2546,10 +2568,19 @@ class TaskMenuListener implements ActionListener {
 class SwitchProducerMenuListener implements ActionListener {
 	/** reference to the tree to be manipulated */
 	private JTree tree = null;
+	
+	/** reference to the parent frame */
+	private JFrame frame = null;
+	
+	/** reference to the parent GUI */
+    private ConfDbGUI app = null;
+
 
 	/** standard constructor */
-	public SwitchProducerMenuListener(JTree tree) {
+	public SwitchProducerMenuListener(JTree tree, JFrame frame, ConfDbGUI app) {
 		this.tree = tree;
+		this.frame = frame;
+		this.app = app;
 	}
 
 	/** ActionListener interface */
@@ -2603,6 +2634,14 @@ class SwitchProducerMenuListener implements ActionListener {
 			ConfigurationTreeActions.removeReference(tree);
 		} else if (cmd.equals("Remove EDAlias")) {
 			ConfigurationTreeActions.removeReference(tree);
+		} else if (cmd.equals("Rename EDAlias")) {
+			ConfigurationTreeActions.editNodeName(tree);
+		} else if (cmd.equals("Add Module (VPSet)")) {
+			//ConfigurationTreeActions.addModuleToEDAlias(tree, frame);
+			app.addUntrackedParameter();
+		} else if (cmd.equals("Remove module (VPSet)")) {
+			System.out.println("REMOVE MODULE (VPSET)");
+			//ConfigurationTreeActions.removeReference(tree);
 		} else if (cmd.equals("Rename EDAlias")) {
 			ConfigurationTreeActions.editNodeName(tree);
 		} else if (cmd.equals("Remove OutputModule")) {
