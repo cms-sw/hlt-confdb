@@ -2401,7 +2401,7 @@ public class ConfDbGUI {
 		jTreeCurrentConfig
 				.setCellEditor(new ConfigurationTreeEditor(jTreeCurrentConfig, new ConfigurationTreeRenderer()));
 
-		ConfigurationTreeMouseListener mouseListener = new ConfigurationTreeMouseListener(jTreeCurrentConfig, frame);
+		ConfigurationTreeMouseListener mouseListener = new ConfigurationTreeMouseListener(jTreeCurrentConfig, frame, this);
 		jTreeCurrentConfig.addMouseListener(mouseListener);
 
 		ConfigurationTreeTransferHandler currentDndHandler = new ConfigurationTreeTransferHandler(jTreeCurrentConfig,
@@ -2929,6 +2929,7 @@ public class ConfDbGUI {
 				jTextFieldPlugin.setText(plugin);
 
 			} else {
+				System.out.println("EDALIAS PARAMETER CONTAINER");
 				jTextFieldPackage.setText(new String());
 				jTextFieldCVS.setText(new String());
 				jLabelPlugin.setText(new String());

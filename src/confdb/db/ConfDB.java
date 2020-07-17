@@ -1059,9 +1059,10 @@ public class ConfDB {
 		// System.err.println("loadTemplates: release ");
 		try {
 			int releaseId = getReleaseId(release.releaseTag());
+			System.out.println("LOADING TEMPLATE PARAMS");
 			HashMap<Integer, ArrayList<Parameter>> templateParams = getParameters(-releaseId);
 
-			// System.err.println("loadTemplates: gotParameters ");
+			// System.err.println("templateParams " + templateParams);
 
 			psSelectTemplates.setInt(1, releaseId);
 			psSelectTemplates.setInt(2, releaseId);
@@ -1287,6 +1288,7 @@ public class ConfDB {
 			HashMap<Integer, PrimaryDataset> idToDataset = new HashMap<Integer, PrimaryDataset>();
 
 			// System.err.println("getting params"+configId);
+			System.out.println("loadConfiguration getParameters");
 			HashMap<Integer, ArrayList<Parameter>> idToParams = getParameters(configId);
 			// System.err.println("DOne params");
 
@@ -1499,13 +1501,11 @@ public class ConfDB {
 				String entryType = rsSeqTasOrSPEntries.getString(6);
 
 				// if (entryLvl == 0)
-				
-				  System.out.println("PATH ID " + seqTaskOrSPId +
-				  " lvl = " + entryLvl + " entryId " + entryId + " ord " + sequenceNb +
-				  " entryType = " + entryType);
-				  
-				  System.out.println("PREVIOUS LEVEL: " + previouslvl);
-				 
+
+				System.out.println("PATH ID " + seqTaskOrSPId + " lvl = " + entryLvl + " entryId " + entryId + " ord "
+						+ sequenceNb + " entryType = " + entryType);
+
+				System.out.println("PREVIOUS LEVEL: " + previouslvl);
 
 				while (entryLvl < previouslvl) { // next sequence/task/switch producer in the entries (zero level)
 					if ((!seqTasOrSPToSkip) && (entryLvl >= lvltoskip)) {
@@ -3505,8 +3505,8 @@ public class ConfDB {
 					psInsertPathElementAssoc.addBatch();
 					// psInsertPathElementAssoc.executeUpdate();
 
-					insertPathSwitchProducerReferences((SwitchProducer) r.parent(), pathId, childSwitchProducerId, lvl + 1,
-							switchProducerHashMap, moduleHashMap, EDAliasHashMap);
+					insertPathSwitchProducerReferences((SwitchProducer) r.parent(), pathId, childSwitchProducerId,
+							lvl + 1, switchProducerHashMap, moduleHashMap, EDAliasHashMap);
 
 					System.out.println("AFTER INSERT PATH SEQUENCE SWITCH PRODUCER REFERENCE");
 				} catch (SQLException e) {
@@ -6573,6 +6573,8 @@ public class ConfDB {
 				rsParameters = psSelectParameters.executeQuery();
 			}
 
+			System.out.println("psSelectParameters configId " + configId);
+
 // System.err.println("getParameter query dones ");
 
 			// get values as strings first
@@ -6587,21 +6589,49 @@ public class ConfDB {
 			// int newpamid=8000000;
 			// if(configId==0) newpamid=10000000;
 			int previouslvl = 0;
+			int counter = 0;
 //long thebefore=System.currentTimeMillis();
 			while (rsParameters.next()) {
-				int parameterId = rsParameters.getInt(1);
-				String type = rsParameters.getString(2);
-				String name = rsParameters.getString(3);
-				boolean isTrkd = rsParameters.getBoolean(4);
-				int seqNb = rsParameters.getInt(5);
-				int parentId = rsParameters.getInt(6);
-				int lvl = rsParameters.getInt(7);
+				int parameterId = rsParameters.getInt(1); // moeid
+				String type = rsParameters.getString(2); // paramtype
+				String name = rsParameters.getString(3); // name
+				boolean isTrkd = rsParameters.getBoolean(4); // tracked
+				int seqNb = rsParameters.getInt(5); // ord
+				int parentId = rsParameters.getInt(6); // id_pae
+				int lvl = rsParameters.getInt(7); // value
+
+				if (name != null)
+					if (configId < 0 && name.equals("RegionPSet") && parameterId == 7076738) {
+
+						System.out.println("PARAMETER ID " + parameterId);
+						System.out.println("PARAMETER TYPE " + type);
+						System.out.println("PARAMETER NAME " + name);
+						System.out.println("PARAMETER PARENT " + parentId);  //parent is from moduletemplates table for modules!!!!
+						System.out.println("PARAMETER LVL " + lvl);
+
+					}
 
 				// parameterId=++newpamid;
 				// parameterId=++countingParamIds;
 				// dbidParamHashMap.put(parameterId,parameterId+newpamid);
-				dbidParamHashMap.put(parameterId, ++countingParamIds);
-				parameterId = countingParamIds;
+				/*
+				 * if (name != null) if (configId < 0 && name.equals("RegionPSet")) {
+				 * System.out.println("PARAMETER ID before " + parameterId);
+				 * System.out.println("countingParamIds ID before " + countingParamIds);
+				 * 
+				 * }
+				 */
+				//TODO: uncomment (although it does nothing IMO)
+				//dbidParamHashMap.put(parameterId, ++countingParamIds); //bsataric: this hashmap is actually not used anywhere...
+				//parameterId = countingParamIds; //this is also done almost for no reason at all
+
+				/*
+				 * if (name != null) if (configId < 0 && name.equals("RegionPSet")) {
+				 * System.out.println("PARAMETER ID after " + parameterId);
+				 * System.out.println("countingParamIds ID after " + countingParamIds);
+				 * 
+				 * }
+				 */
 
 				if (name == null)
 					name = "";
@@ -6712,11 +6742,20 @@ public class ConfDB {
 				// "+parameterId+" type "+ type+" name "+name+" seqNb "+seqNb+" lvl"+lvl);
 
 				while (lvl < previouslvl) {
-					idlifo.pop();
+					int tmp = idlifo.pop();
 					previouslvl--;
+
+					//if (name.equals("RegionPSet"))
+						//System.out.println("IDLIFO after POP: " + idlifo);
+
 				}
-				if (lvl > 0)
-					parentId = idlifo.peek();
+				if (lvl > 0) {
+					parentId = idlifo.peek(); //7076738 is important
+					if (parentId == 7076738) {
+						counter++;
+						System.out.println("counter " + counter);
+					}
+				}
 				previouslvl = lvl;
 
 				// if (configId<0) System.out.println("ParId "+parentId+" (origparid
@@ -6730,10 +6769,28 @@ public class ConfDB {
 					valueAsString = "";
 
 				Parameter p = ParameterFactory.create(type, name, valueAsString, isTrkd);
+				
+				if (parentId == 7076738) {
+					System.out.println("Paramter p: " + p);
+					System.out.println("PARAMETER ID " + parameterId);
+					System.out.println("PARAMETER TYPE " + type);
+					System.out.println("PARAMETER NAME " + name);
+					System.out.println("PARAMETER PARENT " + parentId);  //parent is from moduletemplates table for modules!!!!
+					System.out.println("PARAMETER LVL " + lvl);
+				}
+
+				/*
+				 * if (name.equals("RegionPSet")) System.out.println("parameter: " +
+				 * p.toString() + " valueAsString " + valueAsString);
+				 */
 
 				if (type.equals("PSet")) {
 					// idlifo.push(new Integer(parameterId));
 					idlifo.push(parameterId);
+
+					if (name.equals("RegionPSet"))
+						System.out.println("IDLIFO after PUSH: " + idlifo);
+
 					previouslvl++;
 					psets.add(new IdPSetPair(parameterId, (PSetParameter) p));
 				}
@@ -6754,6 +6811,11 @@ public class ConfDB {
 				while (parameters.size() <= seqNb)
 					parameters.add(null);
 				parameters.set(seqNb, p);
+
+				if (name.equals("RegionPSet")) {
+					// System.out.println("RegionPSet parameters: " + parameters);
+				}
+
 			}
 
 			Iterator<IdPSetPair> itPSet = psets.iterator();
@@ -6767,6 +6829,7 @@ public class ConfDB {
 					Iterator<Parameter> it = parameters.iterator();
 					while (it.hasNext()) {
 						Parameter p = it.next();
+						// System.out.println("PARAMETER P: " + p);
 						if (p == null)
 							missingCount++;
 						else
