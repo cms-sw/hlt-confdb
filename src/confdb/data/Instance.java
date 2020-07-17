@@ -91,18 +91,25 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
     /** ParameterContainer: indicate weather parameter is at its default */
     public boolean isParameterAtItsDefault(Parameter p)
     {
-	Parameter templateParameter =
-	    template.findParameter(p.fullName(),p.type());
-	if (templateParameter==null) return false;
-	return p.valueAsString().equals(templateParameter.valueAsString());
+    	if (template != null) {
+    		Parameter templateParameter = template.findParameter(p.fullName(),p.type());
+    		if (templateParameter==null) return false;
+    		return p.valueAsString().equals(templateParameter.valueAsString());
+    	} else {
+    		return true;  //EDAlias try TODO: fix all EDAlias parameters to tracked (checkbox)
+    	}
     }
     
     /** ParameterContainer: indicate weather a parameter can be removed */
     public boolean isParameterRemovable(Parameter p)
     {
-	int index = indexOfParameter(p);
-	if (index<template.parameterCount()) return false;
-	return true;
+    	if (template != null) {
+    		int index = indexOfParameter(p);
+    		if (index<template.parameterCount()) return false;
+    			return true;
+    	} else {
+    		return true;
+    	}
     }
     
     /** remove this instance */

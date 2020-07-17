@@ -159,6 +159,10 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel {
 
 		Parameter p = (Parameter) node;
 		boolean isPSet = (p instanceof PSetParameter || p instanceof VPSetParameter);
+		
+		System.out.println("NODE TYPE: " + node.getClass().toString());
+		System.out.println("PARAMETER TYPE: " + p.getClass().toString());
+		System.out.println("COLUMN: " + column);
 
 		String result = new String();
 		if (column == 0) {

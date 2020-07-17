@@ -85,6 +85,14 @@ public class AddParameterDialog extends JDialog
         jComboBoxType.setSelectedIndex(11);
         jComboBoxType.setEnabled(false);
     }
+    
+    /** only allow the addition of a vpset! */
+    public void addVParameterSet()
+    {
+        //psetMode = true;
+        jComboBoxType.setSelectedIndex(20);
+        jComboBoxType.setEnabled(false);
+    }
 
     /** parameter name entered */
     public void jTextFieldNameActionPerformed(ActionEvent e)
