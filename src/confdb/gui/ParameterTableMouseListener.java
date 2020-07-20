@@ -223,9 +223,12 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 		if (this.isParentParentEDAlias) {
 			dlg.addString();
 			dlg.disableTrackedCheckbox();
+			dlg.setName("type");
 		}
 		dlg.pack();
 		dlg.setLocationRelativeTo(frame);
+		if (this.isParentParentEDAlias)
+			dlg.setValueFocus();
 		dlg.setVisible(true);
 		if (dlg.validChoice()) {
 			Parameter p = ParameterFactory.create(dlg.type(), dlg.name(), dlg.valueAsString(), dlg.isTracked());
