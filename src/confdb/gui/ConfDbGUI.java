@@ -1174,6 +1174,32 @@ public class ConfDbGUI {
 			}
 		}
 	}
+	
+	/** add untracked parameter to the currently active component */
+	public void addTrackedVPsetParameter() {
+		AddParameterDialog dlg = new AddParameterDialog(frame, true);
+		dlg.addVParameterSet();
+		dlg.disableTrackedCheckbox();
+		dlg.pack();
+		dlg.setLocationRelativeTo(frame);
+		dlg.setVisible(true);
+		if (dlg.validChoice()) {
+			if (currentParameterContainer instanceof ParameterContainer) {
+				ParameterContainer container = (ParameterContainer) currentParameterContainer;
+				Parameter p = container.parameter(dlg.name());
+				if (p != null) {
+					// JOptionPane.showMessageDialog(null,
+					// "Parameter already exists",JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				if (dlg.valueAsString() == null)
+					container.updateTrackedParameter(dlg.name(), dlg.type(), dlg.valueAsString());
+				else
+					container.updateTrackedParameter(dlg.name(), dlg.type(), "");
+				displayParameters();
+			}
+		}
+	}
 
 	/** one another configuration to import components */
 	public void importConfiguration() {

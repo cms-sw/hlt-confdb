@@ -10,8 +10,8 @@ import confdb.data.*;
 import confdb.gui.treetable.*;
 
 /**
- * ParameterTableMouseListener
- * ---------------------------
+ * ParameterTableMouseListener ---------------------------
+ * 
  * @author Philipp Schieferdecker
  *
  */
@@ -35,6 +35,9 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 	/** current parameter (set by MouseAdapter for ActionListener) */
 	private Parameter parameter = null;
 
+	/** Is current parameter parent EDAlias **/
+	private boolean isParentParentEDAlias;
+
 	//
 	// construction
 	//
@@ -44,6 +47,7 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 		this.treeTable = treeTable;
 		this.treeModel = (ParameterTreeModel) treeTable.getTree().getModel();
 		this.tableModel = (TreeTableTableModel) treeTable.getModel();
+		this.isParentParentEDAlias = false;
 	}
 
 	//
@@ -77,7 +81,24 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 		JPopupMenu popup = new JPopupMenu();
 		Object parent = parameter.parent();
 		Boolean bRemoveParam = false;
+		Object parentParent = null;
 
+		int dotIndex = parent.getClass().toString().lastIndexOf(".");
+		String parentClassName = parent.getClass().toString().substring(dotIndex + 1);
+		String parentParentClassName = null;
+
+		// System.out.println("*********** PARENT ********** " + parentClassName);
+
+		if (parentClassName.equals("VPSetParameter")) {
+			parentParent = ((Parameter) parent).parent();
+			dotIndex = parentParent.getClass().toString().lastIndexOf(".");
+			parentParentClassName = parentParent.getClass().toString().substring(dotIndex + 1);
+			isParentParentEDAlias = parentParentClassName.matches("EDAliasInstance") ? true : false;
+			// System.out.println("*********** PARENT PARENT ***********" +
+			// parentParent.getClass().toString());
+		}
+
+		// System.out.println("ISPARENTPARENTEDALIAS: " + isParentParentEDAlias);
 		// if(parent instanceof Instance){
 		// Template template = ((Instance)parent).template();
 		// Parameter pExists = template.parameter(parameter.name());
@@ -199,6 +220,10 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 	/** show dialog to add parameter to pset */
 	private void addParameter(PSetParameter pset) {
 		AddParameterDialog dlg = new AddParameterDialog(frame, pset.isTracked());
+		if (this.isParentParentEDAlias) {
+			dlg.addString();
+			dlg.disableTrackedCheckbox();
+		}
 		dlg.pack();
 		dlg.setLocationRelativeTo(frame);
 		dlg.setVisible(true);

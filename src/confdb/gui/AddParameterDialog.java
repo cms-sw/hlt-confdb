@@ -93,6 +93,21 @@ public class AddParameterDialog extends JDialog
         jComboBoxType.setSelectedIndex(20);
         jComboBoxType.setEnabled(false);
     }
+    
+    /** only allow the addition of a string! */
+    public void addString()
+    {
+        //psetMode = true;
+        jComboBoxType.setSelectedIndex(6);
+        jComboBoxType.setEnabled(false);
+    }
+    
+    /** only allow the addition of a tracked parameter! */
+    public void disableTrackedCheckbox()
+    {
+        //psetMode = true;
+    	jCheckBoxTracked.setEnabled(false);
+    }
 
     /** parameter name entered */
     public void jTextFieldNameActionPerformed(ActionEvent e)
@@ -108,7 +123,7 @@ public class AddParameterDialog extends JDialog
         }
     }
     
-    /** type choosen from the combo box */
+    /** type chosen from the combo box */
     public void jComboBoxTypeActionPerformed(ActionEvent e)
     {
         String type = (String)jComboBoxType.getSelectedItem();
@@ -137,7 +152,7 @@ public class AddParameterDialog extends JDialog
         setVisible(false);
     }
 
-    /** valid choide? */
+    /** valid choice? */
     public boolean validChoice() { return validChoice; }
     
     /** parameter name */
