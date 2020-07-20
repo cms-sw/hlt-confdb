@@ -274,6 +274,30 @@ abstract public class ParameterContainer extends DatabaseEntry {
 			return true;
 		}
 	}
+	
+	/** update a tracked parameter when the value is changed */
+	public boolean updateTrackedParameter(String name, String type, String valueAsString) {
+		Parameter p = findParameter(name, type);
+		// handle existing parameter, top-level or not
+		if (p != null) {
+			String oldValueAsString = p.valueAsString();
+			if (valueAsString.equals(oldValueAsString))
+				return true;
+			boolean result = p.setValue(valueAsString);
+			if (result)
+				setHasChanged();
+			return result;
+		}
+		// add an tracked parameter to the top-level
+		else {
+			Parameter parameterNew = ParameterFactory.create(type, name, valueAsString, true);
+			System.err
+					.println("ParameterContainer INFO: " + "Adding tracked parameter to top-level: " + parameterNew);
+			addParameter(parameterNew);
+			setHasChanged();
+			return true;
+		}
+	}
 
 	/** number of unset tracked parameters */
 	public int unsetTrackedParameterCount() {
