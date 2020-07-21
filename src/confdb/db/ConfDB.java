@@ -31,11 +31,11 @@ import java.math.BigInteger;
 import oracle.jdbc.pool.OracleDataSource;
 
 /**
- * ConfDB ------
- * 
+ * ConfDB
+ * ------
  * @author Philipp Schieferdecker
  *
- *         Handle all database access operations.
+ * Handle all database access operations.
  */
 public class ConfDB {
 	//
@@ -1796,7 +1796,7 @@ public class ConfDB {
 							System.err.println("Invalid entryType '" + entryType + "'");
 
 						switchProducer.setDatabaseId(seqTaskOrSPId);
-						System.out.println("PUTTTTTTTTTTTTTTTTTTTTTTTTT" + seqTaskOrSPId);
+						//System.out.println("PUTTTTTTTTTTTTTTTTTTTTTTTTT" + seqTaskOrSPId);
 						switchProducerToId.put(switchProducer, seqTaskOrSPId);
 					}
 				}
@@ -6807,10 +6807,6 @@ public class ConfDB {
 				if (type.equals("PSet")) {
 					// idlifo.push(new Integer(parameterId));
 					idlifo.push(parameterId);
-
-					if (name.equals("RegionPSet"))
-						System.out.println("IDLIFO after PUSH: " + idlifo);
-
 					previouslvl++;
 					psets.add(new IdPSetPair(parameterId, (PSetParameter) p));
 				}

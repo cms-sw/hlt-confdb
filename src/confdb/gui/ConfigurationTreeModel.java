@@ -11,11 +11,12 @@ import confdb.gui.tree.AbstractTreeModel;
 import confdb.data.*;
 
 /**
- * ConfigurationTreeModel ----------------------
+ * ConfigurationTreeModel
+ * ----------------------
  * 
  * @author Philipp Schieferdecker
  *
- *         Display a configuration in a JTree structure.
+ * Display a configuration in a JTree structure.
  */
 public class ConfigurationTreeModel extends AbstractTreeModel {
 	//

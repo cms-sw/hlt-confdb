@@ -9,12 +9,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 
 /**
- * ModifierInstructions --------------------
- * 
+ * ModifierInstructions
+ * --------------------
  * @author Philipp Schieferdecker
  *
- *         Instructions for the ConfigurationModifier how to filter/manipulate
- *         its master configuration.
+ * Instructions for the ConfigurationModifier how to filter/manipulate
+ * its master configuration.
  */
 public class ModifierInstructions {
 	//

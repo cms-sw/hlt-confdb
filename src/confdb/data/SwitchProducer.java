@@ -3,12 +3,12 @@ package confdb.data;
 import java.util.Iterator;
 
 /**
- * SwitchProducer --------
- * 
+ * SwitchProducer
+ * --------
  * @author Bogdan Sataric
  * 
- *         A 'SwitchProducer' can host only 1 or 2 elements of type EDProducer
- *         or EDAlias
+ * A 'SwitchProducer' can host only 1 or 2 elements of type EDProducer
+ * or EDAlias
  * 
  */
 public class SwitchProducer extends ReferenceContainer {

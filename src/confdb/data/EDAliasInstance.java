@@ -5,11 +5,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 /**
- * EDAliasInstance --------------
- * 
+ * EDAliasInstance
+ * --------------
  * @author Bogdan Sataric
  *
- *         CMSSW framework EDAlias instance.
+ * CMSSW framework EDAlias instance.
  */
 public class EDAliasInstance extends Instance implements Referencable {
 	//

@@ -5,11 +5,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 /**
- * ModuleInstance --------------
- * 
+ * ModuleInstance
+ * --------------
  * @author Philipp Schieferdecker
  *
- *         CMSSW framework module instance.
+ * CMSSW framework module instance.
  */
 public class ModuleInstance extends Instance implements Referencable {
 	//

@@ -16,8 +16,8 @@ public class HTMLSwitchProducerWriter implements ISwitchProducerWriter {
 		return str;
 	}
 
-	protected String decorate(String moduleOrEDAliasName) {
-		return "<a href=\"#" + moduleOrEDAliasName + "\">" + moduleOrEDAliasName + "</a>";
+	protected String decorate(String entryName) {
+		return "<a href=\"#" + entryName + "\">" + entryName + "</a>";
 	}
 
 	protected String decorateName(String switchProducerName) {

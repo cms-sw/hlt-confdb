@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * ConfigurationModifier ---------------------
- * 
+ * ConfigurationModifier
+ * ---------------------
  * @author Philipp Schieferdecker
  *
- *         retrieve only selected parts of a configuration, after applying
- *         configurable filter decisions.
+ * retrieve only selected parts of a configuration, after applying
+ * configurable filter decisions.
  */
 public class ConfigurationModifier implements IConfiguration {
 	//
