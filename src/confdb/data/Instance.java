@@ -96,7 +96,7 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
     		if (templateParameter==null) return false;
     		return p.valueAsString().equals(templateParameter.valueAsString());
     	} else {
-    		return true;  //EDAlias try TODO: fix all EDAlias parameters to tracked (checkbox)
+    		return false; //EDAlias
     	}
     }
     

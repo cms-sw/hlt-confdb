@@ -128,7 +128,7 @@ public abstract class AbstractTreeModel implements TreeModel {
 	/** get path to root, called recursively by getPathToRoot(Object node) */
 	protected Object[] getPathToRoot(Object node, int depth) {
 		Object[] result;
-		System.out.println("getPathToRoot CALLED");
+		//System.out.println("getPathToRoot CALLED");
 		if (node == null) {
 			if (depth == 0)
 				return null;

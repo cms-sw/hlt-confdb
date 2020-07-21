@@ -774,7 +774,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 
 	/** get parent of a node */
 	public Object getParent(Object node) {
-		System.out.println("NODE OBJECT TYPE: " + node.getClass().toString());
+		//System.out.println("NODE OBJECT TYPE: " + node.getClass().toString());
 		if (node instanceof Parameter) {
 			Parameter p = (Parameter) node;
 			Object parent = p.parent();
