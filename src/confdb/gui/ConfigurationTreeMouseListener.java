@@ -19,8 +19,8 @@ import confdb.data.*;
 import java.util.Collections;
 
 /**
- * ConfigurationTreeMouseListener ------------------------------
- * 
+ * ConfigurationTreeMouseListener
+ * ------------------------------
  * @author Philipp Schieferdecker
  *
  */

@@ -4,11 +4,11 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 /**
- * IConfiguration --------------
- * 
+ * IConfiguration
+ * --------------
  * @author Philipp Schieferdecker
  *
- *         Configuration Interface.
+ * Configuration Interface.
  */
 public interface IConfiguration extends Serializable {
 	/** name of the configuration */

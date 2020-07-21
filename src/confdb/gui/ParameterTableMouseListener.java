@@ -10,8 +10,8 @@ import confdb.data.*;
 import confdb.gui.treetable.*;
 
 /**
- * ParameterTableMouseListener ---------------------------
- * 
+ * ParameterTableMouseListener
+ * ---------------------------
  * @author Philipp Schieferdecker
  *
  */

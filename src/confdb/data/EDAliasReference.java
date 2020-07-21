@@ -1,11 +1,11 @@
 package confdb.data;
 
 /**
- * ModuleReference ---------------
- * 
+ * EDAliasReference
+ * ---------------
  * @author Bogdan Sataric
  *
- *         CMSSW framework EDAlias reference.
+ * CMSSW framework EDAlias reference.
  */
 public class EDAliasReference extends Reference {
 	//

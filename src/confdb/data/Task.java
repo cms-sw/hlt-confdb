@@ -5,7 +5,6 @@ import java.util.Iterator;
 /**
  * Task 
  * --------
- * 
  * @author Bogdan Sataric
  * 
  * A 'Task' can host any number of ModuleReferences, TaskReferences and SwitchProducers,

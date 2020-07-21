@@ -1,9 +1,9 @@
 package confdb.data;
 
 /**
- * switchProducerReference
+ * SwitchProducerReference
  * -----------------
- * @author Philipp Schieferdecker
+ * @author Bogdan Sataric
  *
  * Reference of a SwitchProducer within path/sequence or the task.
  */
