@@ -10,8 +10,8 @@ import confdb.data.ParameterFactory;
 import confdb.data.Parameter;
 
 /**
- * AddParameterDialog ------------------
- * 
+ * AddParameterDialog
+ * ------------------
  * @author Philipp Schieferdecker
  *
  */

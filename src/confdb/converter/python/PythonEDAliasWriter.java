@@ -16,7 +16,7 @@ public class PythonEDAliasWriter implements IEDAliasWriter {
 	public String toString(EDAliasInstance edAlias) throws ConverterException {
 		if (parameterWriter == null)
 			parameterWriter = converterEngine.getParameterWriter();
-		//TODO: FIX THIS!
+
 		String name = edAlias.name();
 
 		StringBuffer str = new StringBuffer( name + " = cms.EDAlias(" );

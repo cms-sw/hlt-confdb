@@ -51,7 +51,6 @@ public abstract class AbstractTreeModel implements TreeModel {
 	/** invoke if representation of node has changed in the tree */
 	public void nodeChanged(Object node) {
 		if (listenerList != null && node != null) {
-			System.out.println("nodeChanged CALLED");
 			Object parent = getParent(node);
 			if (parent != null) {
 				int index = getIndexOfChild(parent, node);

@@ -5,11 +5,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 /**
- * ReferenceContainer ------------------
- * 
+ * ReferenceContainer
+ * ------------------
  * @author Philipp Schieferdecker
  * 
- *         Common base class of Path, Sequence, Task etc.
+ * Common base class of Path, Sequence, Task etc.
  */
 abstract public class ReferenceContainer extends DatabaseEntry implements Comparable<ReferenceContainer>, Referencable {
 	//

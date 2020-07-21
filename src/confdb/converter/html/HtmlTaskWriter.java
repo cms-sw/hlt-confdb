@@ -16,8 +16,8 @@ public class HtmlTaskWriter implements ITaskWriter {
 		return str;
 	}
 
-	protected String decorate(String moduleName) {
-		return "<a href=\"#" + moduleName + "\">" + moduleName + "</a>";
+	protected String decorate(String entryName) {
+		return "<a href=\"#" + entryName + "\">" + entryName + "</a>";
 	}
 
 	protected String decorateName(String taskName) {
