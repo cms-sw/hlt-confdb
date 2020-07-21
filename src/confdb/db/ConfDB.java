@@ -1371,7 +1371,10 @@ public class ConfDB {
 				} else if (type.equals("EDAlias")) { // BSATARIC: EDALIAS cannot have template
 					EDAliasInstance edAlias = config.insertEDAlias(instanceName);
 					edAlias.setDatabaseId(id);
-					updateInstanceParameters(edAlias, idToParams.remove(id)); // TODO: check module parameters
+					System.out.println("EDAliasInstance ID: " + id);
+					System.out.println("idToParams BEFORE updateInstanceParameters: " + idToParams.get(id));
+					updateInstanceTrackedParameters(edAlias, idToParams.remove(id)); 
+					System.out.println("idToParams AFTER updateInstanceParameters: " + idToParams.get(id));
 					idToEDAliases.put(id, edAlias);
 				} else if (type.equals("Path")) {
 
@@ -2959,8 +2962,10 @@ public class ConfDB {
 					rs = psInsertPathElement.getGeneratedKeys();
 					rs.next();
 					edAliasId = rs.getInt(1);
-
+					
+					System.out.println("Before insert EDAlias params");
 					insertInstanceParameters(edAliasId, edAlias, psInsertMoElement); // This should work automatically
+					System.out.println("After insert EDAlias params");
 
 					result.put(edAlias.name(), edAliasId);
 					edAlias.setDatabaseId(edAliasId);
@@ -4314,9 +4319,14 @@ public class ConfDB {
 	/** insert all instance parameters */
 	private void insertInstanceParameters(int superId, Instance instance, PreparedStatement dbstmnt)
 			throws DatabaseException {
+		if (instance instanceof EDAliasInstance) System.out.println("EDALIAS PARAMCOUNT: " + instance.parameterCount());
 		for (int sequenceNb = 0; sequenceNb < instance.parameterCount(); sequenceNb++) {
 			Parameter p = instance.parameter(sequenceNb);
-
+			
+			if (instance instanceof EDAliasInstance) {
+				System.out.println("paramter: " + p);
+				System.out.println("p.default: " + p.isDefault());
+			}
 			if (!p.isDefault()) {
 				if (p instanceof VPSetParameter) {
 					VPSetParameter vpset = (VPSetParameter) p;
@@ -6601,7 +6611,7 @@ public class ConfDB {
 				int lvl = rsParameters.getInt(7); // value
 
 				if (name != null)
-					if (configId < 0 && name.equals("RegionPSet") && parameterId == 7076738) {
+					if (parameterId == 19641306) {
 
 						System.out.println("PARAMETER ID " + parameterId);
 						System.out.println("PARAMETER TYPE " + type);
@@ -6701,6 +6711,10 @@ public class ConfDB {
 						|| type.contains("FileInPath") || type.contains("EventID")) {
 
 					String valueAsString = rsParameters.getString(8); // get PARAMETER_VALUE
+					
+					if (parameterId == 19641307) {
+						System.out.println("PARAMETER STRING VALUE: " + valueAsString);
+					}
 
 					// if (valueAsString.startsWith("{")) valueAsString=valueAsString.substring(1,
 					// valueAsString.length()-1);
@@ -6716,6 +6730,11 @@ public class ConfDB {
 							valueAsString = valueAsString.substring(1, valueAsString.length() - 1);
 						valueAsString = valueAsString.trim();
 					}
+					
+					if (parameterId == 19641307) {
+						System.out.println("PARAMETER STRING VALUE AFTER CLOB: " + valueAsString);
+					}
+					
 					idToValueAsString.put(parameterId, valueAsString);
 
 				}
@@ -6751,7 +6770,7 @@ public class ConfDB {
 				}
 				if (lvl > 0) {
 					parentId = idlifo.peek(); //7076738 is important
-					if (parentId == 7076738) {
+					if (parentId == 19641306) {
 						counter++;
 						System.out.println("counter " + counter);
 					}
@@ -6767,16 +6786,17 @@ public class ConfDB {
 					valueAsString = idToValueAsString.remove(parameterId);
 				if (valueAsString == null)
 					valueAsString = "";
-
-				Parameter p = ParameterFactory.create(type, name, valueAsString, isTrkd);
 				
-				if (parentId == 7076738) {
-					System.out.println("Paramter p: " + p);
+				Parameter p = ParameterFactory.create(type, name, valueAsString, isTrkd);
+								
+				if (parameterId == 19641305 || parameterId == 19641306 || parameterId == 19641307) {
 					System.out.println("PARAMETER ID " + parameterId);
 					System.out.println("PARAMETER TYPE " + type);
 					System.out.println("PARAMETER NAME " + name);
 					System.out.println("PARAMETER PARENT " + parentId);  //parent is from moduletemplates table for modules!!!!
 					System.out.println("PARAMETER LVL " + lvl);
+					System.out.println("PARAMETER VALUE " + p.valueAsString());
+					System.out.println("PARAMETER ISTRKED " + isTrkd);
 				}
 
 				/*
@@ -6811,19 +6831,26 @@ public class ConfDB {
 				while (parameters.size() <= seqNb)
 					parameters.add(null);
 				parameters.set(seqNb, p);
-
-				if (name.equals("RegionPSet")) {
-					// System.out.println("RegionPSet parameters: " + parameters);
+				
+				if (parameterId == 19641305 || parameterId == 19641306 || parameterId == 19641307) {
+					System.out.println("*** PARAMETER ID *** " + parameterId);
+					System.out.println("*** parameters *** " + parameters);
 				}
-
 			}
 
+			//BSATARIC: not sure how this works... psets seem to be local variable but if commented it screws up the idToParameters
 			Iterator<IdPSetPair> itPSet = psets.iterator();
 			while (itPSet.hasNext()) {
 				IdPSetPair pair = itPSet.next();
 				int psetId = pair.id;
 				PSetParameter pset = pair.pset;
+				if (psetId == 19641306) {
+					System.out.println("idToParameters(19641306) BEFORE" + idToParameters.get(psetId));
+				}
 				ArrayList<Parameter> parameters = idToParameters.remove(psetId);
+				if (psetId == 19641306) {
+					System.out.println("idToParameters(19641306) AFTER" + idToParameters.get(psetId));
+				}
 				if (parameters != null) {
 					int missingCount = 0;
 					Iterator<Parameter> it = parameters.iterator();
@@ -6847,7 +6874,9 @@ public class ConfDB {
 				IdVPSetPair pair = itVPSet.next();
 				int vpsetId = pair.id;
 				VPSetParameter vpset = pair.vpset;
-				ArrayList<Parameter> parameters = idToParameters.remove(vpsetId);
+				ArrayList<Parameter> parameters = idToParameters.get(vpsetId);
+				if (vpsetId == 19641305) 
+					System.out.println("VPSET 19641305 parameters " + parameters);
 				if (parameters != null) {
 					int missingCount = 0;
 					Iterator<Parameter> it = parameters.iterator();
@@ -6905,6 +6934,28 @@ public class ConfDB {
 		}
 		instance.setDatabaseId(id);
 	}
+	
+	/** set tracked parameters of an instance */
+	private void updateInstanceTrackedParameters(Instance instance, ArrayList<Parameter> parameters) {
+		if (parameters == null)
+			return;
+		int id = instance.databaseId();
+		if (instance instanceof EDAliasInstance) 
+			System.out.println("EDAliasInstance params: " + parameters);
+		Iterator<Parameter> it = parameters.iterator();
+		while (it.hasNext()) {
+			Parameter p = it.next();
+			if (p == null)
+				continue;
+			instance.updateTrackedParameter(p.name(), p.type(), p.valueAsString());
+			if (instance instanceof EDAliasInstance) {
+				System.out.println("EDAliasInstance param p name: " + p.name());
+				System.out.println("EDAliasInstance param p type: " + p.type());
+				System.out.println("EDAliasInstance param p valueAsString: " + p.valueAsString());
+			}
+		}
+		instance.setDatabaseId(id);
+	}
 
 	/** insert vpset into ParameterSets table */
 	private void insertVecParameterSet(int parentId, int sequenceNb, int lvl, VPSetParameter vpset,
@@ -6945,7 +6996,7 @@ public class ConfDB {
 				// psInsertPae2Moe.addBatch();
 				psInsertPae2Moe.executeUpdate();
 			}
-
+			System.out.println("VPSET PARAMCOUNT: " + vpset.parameterSetCount());
 			for (int i = 0; i < vpset.parameterSetCount(); i++) {
 				PSetParameter pset = vpset.parameterSet(i);
 				insertParameterSet(parentId, i, lvl + 1, pset, dbstmnt);
