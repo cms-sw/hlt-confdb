@@ -2642,8 +2642,6 @@ class SwitchProducerMenuListener implements ActionListener {
 		} else if (cmd.equals("Remove module (VPSet)")) {
 			System.out.println("REMOVE MODULE (VPSET)");
 			//ConfigurationTreeActions.removeReference(tree);
-		} else if (cmd.equals("Rename EDAlias")) {
-			ConfigurationTreeActions.editNodeName(tree);
 		} else if (cmd.equals("Remove OutputModule")) {
 			ConfigurationTreeActions.removeReference(tree);
 		} else if (action.equals("OutputModule")) {

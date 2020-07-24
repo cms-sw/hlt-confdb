@@ -112,7 +112,9 @@ public class TreeTableTableModel extends AbstractTableModel
     /** TableMode::isCellEditable() */
     public boolean isCellEditable(int row,int column)
     {
-	if (!tree.isEditable()) return false;
+	if (!tree.isEditable()) {
+		return false;
+	}
 	return treeModel.isCellEditable(nodeForRow(row),column);
     }
     

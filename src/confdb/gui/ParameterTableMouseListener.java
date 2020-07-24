@@ -10,8 +10,8 @@ import confdb.data.*;
 import confdb.gui.treetable.*;
 
 /**
- * ParameterTableMouseListener
- * ---------------------------
+ * ParameterTableMouseListener ---------------------------
+ * 
  * @author Philipp Schieferdecker
  *
  */
@@ -35,8 +35,11 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 	/** current parameter (set by MouseAdapter for ActionListener) */
 	private Parameter parameter = null;
 
-	/** Is current parameter parent EDAlias **/
+	/** Is current parameter parent parent EDAlias **/
 	private boolean isParentParentEDAlias;
+
+	/** Is current parameter parent EDAlias **/
+	private boolean isParentEDAlias;
 
 	//
 	// construction
@@ -48,6 +51,7 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 		this.treeModel = (ParameterTreeModel) treeTable.getTree().getModel();
 		this.tableModel = (TreeTableTableModel) treeTable.getModel();
 		this.isParentParentEDAlias = false;
+		this.isParentEDAlias = false;
 	}
 
 	//
@@ -89,13 +93,17 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 
 		// System.out.println("*********** PARENT ********** " + parentClassName);
 
+		isParentEDAlias = (parentClassName.equals("EDAliasInstance")) ? true : false;
+
 		if (parentClassName.equals("VPSetParameter")) {
 			parentParent = ((Parameter) parent).parent();
 			dotIndex = parentParent.getClass().toString().lastIndexOf(".");
 			parentParentClassName = parentParent.getClass().toString().substring(dotIndex + 1);
 			isParentParentEDAlias = parentParentClassName.matches("EDAliasInstance") ? true : false;
-			// System.out.println("*********** PARENT PARENT ***********" +
-			// parentParent.getClass().toString());
+			/*
+			 * System.out.println("*********** PARENT PARENT ***********" +
+			 * parentParent.getClass().toString());
+			 */
 		}
 
 		// System.out.println("ISPARENTPARENTEDALIAS: " + isParentParentEDAlias);
@@ -116,6 +124,12 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 			JMenuItem menuItem = new JMenuItem("Add PSet");
 			menuItem.addActionListener(this);
 			popup.add(menuItem);
+			System.out.println("this.isParentParentEDAlias " + this.isParentParentEDAlias);
+			if (this.isParentEDAlias) {
+				menuItem = new JMenuItem("Rename Module (VPSet)");
+				menuItem.addActionListener(this);
+				popup.add(menuItem);
+			}
 			if (parent instanceof PSetParameter || bRemoveParam) {
 				popup.addSeparator();
 				menuItem = new JMenuItem("Remove Parameter");
@@ -154,6 +168,28 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 			if (cmd.equals("Add PSet")) {
 				VPSetParameter vpset = (VPSetParameter) parameter;
 				addParameterSet(vpset);
+			} else if (cmd.equals("Rename Module (VPSet)")) {
+				/*
+				 * JTree tree = treeTable.getTree(); System.out.println("TREETABLE TREE: " +
+				 * tree); TreePath treePath = tree.getSelectionPath();
+				 * System.out.println("TREETABLE PATH: "+ treePath);
+				 * tree.expandPath(treePath.getParentPath());
+				 * tree.scrollPathToVisible(treePath); tree.startEditingAtPath(treePath);
+				 */
+				/*
+				 * treeTable.requestFocus(); treeTable.setRowSelectionInterval(0, 0);
+				 */
+				//treeTable.changeSelection(0, 0, true, true);
+				//boolean rv1 = treeTable.isCellEditable(0, 0);
+				//System.out.println("IS EDITABLE: " + rv1);
+				/*
+				 * boolean rv = treeTable.editCellAt(0, 0); System.out.println("RV " + rv);
+				 */
+				//treeTable.getEditorComponent().requestFocus();
+				  //treeModel.setNameAt("AAA", parameter, 0); //FIX THIS SO IT COMES FROM INPUT
+				
+		        String name = JOptionPane.showInputDialog(frame, "Enter new module (VPSet) name", null);
+		        treeModel.setNameAt(name, parameter, 0);    	
 			} else if (parent instanceof PSetParameter) {
 				PSetParameter pset = (PSetParameter) parent;
 				if (cmd.equals("Remove Parameter")) {
@@ -275,5 +311,5 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 			}
 		}
 	}
-
+	
 }
