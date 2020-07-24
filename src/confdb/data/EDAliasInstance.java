@@ -39,9 +39,9 @@ public class EDAliasInstance extends Instance implements Referencable {
 	public Reference createReference(ReferenceContainer container, int i) {
 		EDAliasReference reference = new EDAliasReference(container, this);
 		references.add(reference);
-		System.out.println("EDALIAS REFERENCE CREATED " + reference.toString());
+		//System.out.println("EDALIAS REFERENCE CREATED " + reference.toString());
 		container.insertEntry(i, reference);
-		System.out.println("CONTAINER EDALIAS REFERENCE INSERTED " + container.toString());
+		//System.out.println("CONTAINER EDALIAS REFERENCE INSERTED " + container.toString());
 		return reference;
 	}
 

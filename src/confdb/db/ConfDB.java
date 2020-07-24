@@ -1059,7 +1059,7 @@ public class ConfDB {
 		// System.err.println("loadTemplates: release ");
 		try {
 			int releaseId = getReleaseId(release.releaseTag());
-			System.out.println("LOADING TEMPLATE PARAMS");
+			//System.out.println("LOADING TEMPLATE PARAMS");
 			HashMap<Integer, ArrayList<Parameter>> templateParams = getParameters(-releaseId);
 
 			// System.err.println("templateParams " + templateParams);
@@ -1288,7 +1288,7 @@ public class ConfDB {
 			HashMap<Integer, PrimaryDataset> idToDataset = new HashMap<Integer, PrimaryDataset>();
 
 			// System.err.println("getting params"+configId);
-			System.out.println("loadConfiguration getParameters");
+			//System.out.println("loadConfiguration getParameters");
 			HashMap<Integer, ArrayList<Parameter>> idToParams = getParameters(configId);
 			// System.err.println("DOne params");
 
@@ -1314,8 +1314,8 @@ public class ConfDB {
 				String instanceName = rsInstances.getString(4);
 				boolean flag = rsInstances.getBoolean(5);
 
-				System.out.println("****INSTANCE NAME: *****" + instanceName);
-				System.out.println("****INSTANCE TYPE: *****" + type);
+				//System.out.println("****INSTANCE NAME: *****" + instanceName);
+				//System.out.println("****INSTANCE TYPE: *****" + type);
 
 				String templateName = null;
 
@@ -1371,10 +1371,10 @@ public class ConfDB {
 				} else if (type.equals("EDAlias")) { // BSATARIC: EDALIAS cannot have template
 					EDAliasInstance edAlias = config.insertEDAlias(instanceName);
 					edAlias.setDatabaseId(id);
-					System.out.println("EDAliasInstance ID: " + id);
-					System.out.println("idToParams BEFORE updateInstanceParameters: " + idToParams.get(id));
+					//System.out.println("EDAliasInstance ID: " + id);
+					//System.out.println("idToParams BEFORE updateInstanceParameters: " + idToParams.get(id));
 					updateInstanceTrackedParameters(edAlias, idToParams.remove(id)); 
-					System.out.println("idToParams AFTER updateInstanceParameters: " + idToParams.get(id));
+					//System.out.println("idToParams AFTER updateInstanceParameters: " + idToParams.get(id));
 					idToEDAliases.put(id, edAlias);
 				} else if (type.equals("Path")) {
 
@@ -1416,7 +1416,7 @@ public class ConfDB {
 					task.setDatabaseId(id);
 					idToTasks.put(id, task);
 				} else if (type.equals("SwitchProducer")) {
-					System.out.println("SWITCHPRODUCER LOADED! ID: " + id);
+					//System.out.println("SWITCHPRODUCER LOADED! ID: " + id);
 					int insertIndex = config.switchProducerCount();
 					SwitchProducer switchProducer = config.insertSwitchProducer(insertIndex, instanceName);
 					switchProducer.setDatabaseId(id);
@@ -1505,10 +1505,12 @@ public class ConfDB {
 
 				// if (entryLvl == 0)
 
-				System.out.println("PATH ID " + seqTaskOrSPId + " lvl = " + entryLvl + " entryId " + entryId + " ord "
-						+ sequenceNb + " entryType = " + entryType);
-
-				System.out.println("PREVIOUS LEVEL: " + previouslvl);
+				/*
+				 * System.out.println("PATH ID " + seqTaskOrSPId + " lvl = " + entryLvl +
+				 * " entryId " + entryId + " ord " + sequenceNb + " entryType = " + entryType);
+				 * 
+				 * System.out.println("PREVIOUS LEVEL: " + previouslvl);
+				 */
 
 				while (entryLvl < previouslvl) { // next sequence/task/switch producer in the entries (zero level)
 					if ((!seqTasOrSPToSkip) && (entryLvl >= lvltoskip)) {
@@ -1555,10 +1557,10 @@ public class ConfDB {
 							taskToId.put(entry, seqTaskOrSPId);
 						} else if (entryType.equals("SwitchProducer")) {
 							SwitchProducer entry = idToSwitchProducers.get(entryId);
-
-							System.out.println("PUSHED switchProducerID: " + entryId + " parentId " + seqTaskOrSPId
-									+ " switchProducerName " + entry.name());
-
+							/*
+							 * System.out.println("PUSHED switchProducerID: " + entryId + " parentId " +
+							 * seqTaskOrSPId + " switchProducerName " + entry.name());
+							 */
 							entry.setDatabaseId(seqTaskOrSPId);
 							// System.out.println("PUTTTTTTTTTTTTTTTTTTTTTTTTT" + seqTaskOrSPId);
 							switchProducerToId.put(entry, seqTaskOrSPId);
@@ -1572,11 +1574,12 @@ public class ConfDB {
 					Task task = idToTasks.get(seqTaskOrSPId);
 					SwitchProducer switchProducer = idToSwitchProducers.get(seqTaskOrSPId);
 
-					System.out.println("********* NESTED ENTRIES START ***********");
-					System.out.println("* SEQUENCE: " + sequence);
-					System.out.println("* TASK: " + task);
-					System.out.println("* SP: " + switchProducer);
-					System.out.println("********* NESTED ENTRIES END ***********");
+					/*
+					 * System.out.println("********* NESTED ENTRIES START ***********");
+					 * System.out.println("* SEQUENCE: " + sequence); System.out.println("* TASK: "
+					 * + task); System.out.println("* SP: " + switchProducer);
+					 * System.out.println("********* NESTED ENTRIES END ***********");
+					 */
 
 					if (sequence != null) { // if there is sequence with this ID - otherwise it is a task
 						int index = sequence.entryCount();
@@ -1601,15 +1604,17 @@ public class ConfDB {
 							System.err.println("ERROR in sequence " + sequence.name() + ": index=" + index
 									+ " sequenceNb=" + sequenceNb);
 
-						System.out.println("ENTRY TYPEEEEEEEEEEEEEEEEEEEEEEEE: " + entryType);
+						//System.out.println("ENTRY TYPEEEEEEEEEEEEEEEEEEEEEEEE: " + entryType);
 						if (entryType.equals("Sequence")) {
 							if (seqTaskOrSPDone[entryId]) {
 								seqTasOrSPToSkip = true;
 								lvltoskip = entryLvl + 1;
 							} else {
 								idlifo.push(entryId);
-								System.out
-										.println("PUSHED NESTED sequenceId: " + entryId + " parentId " + seqTaskOrSPId);
+								/*
+								 * System.out .println("PUSHED NESTED sequenceId: " + entryId + " parentId " +
+								 * seqTaskOrSPId);
+								 */
 								previouslvl++;
 							}
 
@@ -1629,7 +1634,7 @@ public class ConfDB {
 								lvltoskip = entryLvl + 1;
 							} else {
 								idlifo.push(entryId);
-								System.out.println("PUSHED NESTED taskID: " + entryId + " parentId " + seqTaskOrSPId);
+								//System.out.println("PUSHED NESTED taskID: " + entryId + " parentId " + seqTaskOrSPId);
 								previouslvl++;
 							}
 
@@ -1647,8 +1652,10 @@ public class ConfDB {
 								lvltoskip = entryLvl + 1;
 							} else {
 								idlifo.push(entryId);
-								System.out.println(
-										"PUSHED NESTED switchProducerId: " + entryId + " parentId " + seqTaskOrSPId);
+								/*
+								 * System.out.println( "PUSHED NESTED switchProducerId: " + entryId +
+								 * " parentId " + seqTaskOrSPId);
+								 */
 								previouslvl++;
 							}
 							seqTaskOrSPDone[entryId] = true;
@@ -1709,7 +1716,7 @@ public class ConfDB {
 								lvltoskip = entryLvl + 1;
 							} else {
 								idlifo.push(entryId);
-								System.out.println("PUSHED NESTED taskId: " + entryId + " parentId " + seqTaskOrSPId);
+								//System.out.println("PUSHED NESTED taskId: " + entryId + " parentId " + seqTaskOrSPId);
 								previouslvl++;
 							}
 
@@ -1729,8 +1736,10 @@ public class ConfDB {
 								lvltoskip = entryLvl + 1;
 							} else {
 								idlifo.push(entryId);
-								System.out.println(
-										"PUSHED NESTED switchProducerId: " + entryId + " parentId " + seqTaskOrSPId);
+								/*
+								 * System.out.println( "PUSHED NESTED switchProducerId: " + entryId +
+								 * " parentId " + seqTaskOrSPId);
+								 */
 								previouslvl++;
 							}
 							seqTaskOrSPDone[entryId] = true;
@@ -1787,10 +1796,10 @@ public class ConfDB {
 							ModuleInstance entry = (ModuleInstance) idToModules.get(entryId);
 							config.insertModuleReference(switchProducer, index, entry).setOperator(operator);
 						} else if (entryType.equals("EDAlias")) {
-							System.out.println("idToEDAliases " + idToEDAliases);
+							//System.out.println("idToEDAliases " + idToEDAliases);
 							EDAliasInstance entry = (EDAliasInstance) idToEDAliases.get(entryId);
-							System.out.println("SWITCHPRODUCER: " + switchProducer);
-							System.out.println("EDALIAS: " + entry);
+							//System.out.println("SWITCHPRODUCER: " + switchProducer);
+							//System.out.println("EDALIAS: " + entry);
 							config.insertEDAliasReference(switchProducer, index, entry).setOperator(operator);
 						} else
 							System.err.println("Invalid entryType '" + entryType + "'");
@@ -1996,11 +2005,9 @@ public class ConfDB {
 				primaryDataset.setDatabaseId(databaseId);
 			}
 
-			System.out.println("Problematic config: " + configId);
-
 			Iterator<Sequence> sequenceIt = config.sequenceIterator();
 			while (sequenceIt.hasNext()) {
-				System.out.println("ITERATING SEQUENCE");
+				//System.out.println("ITERATING SEQUENCE");
 				Sequence sequence = sequenceIt.next();
 				int databaseId = sequenceToId.get(sequence);
 				sequence.setDatabaseId(databaseId);
@@ -2009,18 +2016,18 @@ public class ConfDB {
 			Iterator<Task> taskIt = config.taskIterator(); // BSATARIC: I don't get it - hasn't this been done already 2
 															// times before??
 			while (taskIt.hasNext()) {
-				System.out.println("ITERATING TASK");
+				//System.out.println("ITERATING TASK");
 				Task task = taskIt.next();
 				int databaseId = taskToId.get(task);
 				task.setDatabaseId(databaseId);
 			}
 
-			System.out.println("switchProducerToId HASHMAP " + switchProducerToId);
+			//System.out.println("switchProducerToId HASHMAP " + switchProducerToId);
 			Iterator<SwitchProducer> switchProducerIt = config.switchProducerIterator();
 			while (switchProducerIt.hasNext()) {
-				System.out.println("ITERATING SWITCHPRODUCER");
+				//System.out.println("ITERATING SWITCHPRODUCER");
 				SwitchProducer switchProducer = switchProducerIt.next();
-				System.out.println("switchProducer ID " + switchProducer.databaseId());
+				//System.out.println("switchProducer ID " + switchProducer.databaseId());
 				int databaseId = switchProducerToId.get(switchProducer);
 				switchProducer.setDatabaseId(databaseId);
 			}
@@ -6583,7 +6590,7 @@ public class ConfDB {
 				rsParameters = psSelectParameters.executeQuery();
 			}
 
-			System.out.println("psSelectParameters configId " + configId);
+			//System.out.println("psSelectParameters configId " + configId);
 
 // System.err.println("getParameter query dones ");
 
@@ -6610,16 +6617,18 @@ public class ConfDB {
 				int parentId = rsParameters.getInt(6); // id_pae
 				int lvl = rsParameters.getInt(7); // value
 
-				if (name != null)
-					if (parameterId == 19641306) {
-
-						System.out.println("PARAMETER ID " + parameterId);
-						System.out.println("PARAMETER TYPE " + type);
-						System.out.println("PARAMETER NAME " + name);
-						System.out.println("PARAMETER PARENT " + parentId);  //parent is from moduletemplates table for modules!!!!
-						System.out.println("PARAMETER LVL " + lvl);
-
-					}
+				/*
+				 * if (name != null) if (parameterId == 19641306) {
+				 * 
+				 * System.out.println("PARAMETER ID " + parameterId);
+				 * System.out.println("PARAMETER TYPE " + type);
+				 * System.out.println("PARAMETER NAME " + name);
+				 * System.out.println("PARAMETER PARENT " + parentId); //parent is from
+				 * moduletemplates table for modules!!!! System.out.println("PARAMETER LVL " +
+				 * lvl);
+				 * 
+				 * }
+				 */
 
 				// parameterId=++newpamid;
 				// parameterId=++countingParamIds;
@@ -6712,9 +6721,10 @@ public class ConfDB {
 
 					String valueAsString = rsParameters.getString(8); // get PARAMETER_VALUE
 					
-					if (parameterId == 19641307) {
-						System.out.println("PARAMETER STRING VALUE: " + valueAsString);
-					}
+					/*
+					 * if (parameterId == 19641307) { System.out.println("PARAMETER STRING VALUE: "
+					 * + valueAsString); }
+					 */
 
 					// if (valueAsString.startsWith("{")) valueAsString=valueAsString.substring(1,
 					// valueAsString.length()-1);
@@ -6731,9 +6741,10 @@ public class ConfDB {
 						valueAsString = valueAsString.trim();
 					}
 					
-					if (parameterId == 19641307) {
-						System.out.println("PARAMETER STRING VALUE AFTER CLOB: " + valueAsString);
-					}
+					/*
+					 * if (parameterId == 19641307) {
+					 * System.out.println("PARAMETER STRING VALUE AFTER CLOB: " + valueAsString); }
+					 */
 					
 					idToValueAsString.put(parameterId, valueAsString);
 
@@ -6789,15 +6800,16 @@ public class ConfDB {
 				
 				Parameter p = ParameterFactory.create(type, name, valueAsString, isTrkd);
 								
-				if (parameterId == 19641305 || parameterId == 19641306 || parameterId == 19641307) {
-					System.out.println("PARAMETER ID " + parameterId);
-					System.out.println("PARAMETER TYPE " + type);
-					System.out.println("PARAMETER NAME " + name);
-					System.out.println("PARAMETER PARENT " + parentId);  //parent is from moduletemplates table for modules!!!!
-					System.out.println("PARAMETER LVL " + lvl);
-					System.out.println("PARAMETER VALUE " + p.valueAsString());
-					System.out.println("PARAMETER ISTRKED " + isTrkd);
-				}
+				/*
+				 * if (parameterId == 19641305 || parameterId == 19641306 || parameterId ==
+				 * 19641307) { System.out.println("PARAMETER ID " + parameterId);
+				 * System.out.println("PARAMETER TYPE " + type);
+				 * System.out.println("PARAMETER NAME " + name);
+				 * System.out.println("PARAMETER PARENT " + parentId); //parent is from
+				 * moduletemplates table for modules!!!! System.out.println("PARAMETER LVL " +
+				 * lvl); System.out.println("PARAMETER VALUE " + p.valueAsString());
+				 * System.out.println("PARAMETER ISTRKED " + isTrkd); }
+				 */
 
 				/*
 				 * if (name.equals("RegionPSet")) System.out.println("parameter: " +
@@ -6828,10 +6840,11 @@ public class ConfDB {
 					parameters.add(null);
 				parameters.set(seqNb, p);
 				
-				if (parameterId == 19641305 || parameterId == 19641306 || parameterId == 19641307) {
-					System.out.println("*** PARAMETER ID *** " + parameterId);
-					System.out.println("*** parameters *** " + parameters);
-				}
+				/*
+				 * if (parameterId == 19641305 || parameterId == 19641306 || parameterId ==
+				 * 19641307) { System.out.println("*** PARAMETER ID *** " + parameterId);
+				 * System.out.println("*** parameters *** " + parameters); }
+				 */
 			}
 
 			//BSATARIC: not sure how this works... psets seem to be local variable but if commented it screws up the idToParameters
@@ -6840,13 +6853,16 @@ public class ConfDB {
 				IdPSetPair pair = itPSet.next();
 				int psetId = pair.id;
 				PSetParameter pset = pair.pset;
-				if (psetId == 19641306) {
-					System.out.println("idToParameters(19641306) BEFORE" + idToParameters.get(psetId));
-				}
+				/*
+				 * if (psetId == 19641306) {
+				 * System.out.println("idToParameters(19641306) BEFORE" +
+				 * idToParameters.get(psetId)); }
+				 */
 				ArrayList<Parameter> parameters = idToParameters.remove(psetId);
-				if (psetId == 19641306) {
-					System.out.println("idToParameters(19641306) AFTER" + idToParameters.get(psetId));
-				}
+				/*
+				 * if (psetId == 19641306) { System.out.println("idToParameters(19641306) AFTER"
+				 * + idToParameters.get(psetId)); }
+				 */
 				if (parameters != null) {
 					int missingCount = 0;
 					Iterator<Parameter> it = parameters.iterator();
@@ -6871,8 +6887,10 @@ public class ConfDB {
 				int vpsetId = pair.id;
 				VPSetParameter vpset = pair.vpset;
 				ArrayList<Parameter> parameters = idToParameters.get(vpsetId);
-				if (vpsetId == 19641305) 
-					System.out.println("VPSET 19641305 parameters " + parameters);
+				/*
+				 * if (vpsetId == 19641305) System.out.println("VPSET 19641305 parameters " +
+				 * parameters);
+				 */
 				if (parameters != null) {
 					int missingCount = 0;
 					Iterator<Parameter> it = parameters.iterator();
@@ -6936,19 +6954,23 @@ public class ConfDB {
 		if (parameters == null)
 			return;
 		int id = instance.databaseId();
-		if (instance instanceof EDAliasInstance) 
-			System.out.println("EDAliasInstance params: " + parameters);
+		/*
+		 * if (instance instanceof EDAliasInstance)
+		 * System.out.println("EDAliasInstance params: " + parameters);
+		 */
 		Iterator<Parameter> it = parameters.iterator();
 		while (it.hasNext()) {
 			Parameter p = it.next();
 			if (p == null)
 				continue;
 			instance.updateTrackedParameter(p.name(), p.type(), p.valueAsString());
-			if (instance instanceof EDAliasInstance) {
-				System.out.println("EDAliasInstance param p name: " + p.name());
-				System.out.println("EDAliasInstance param p type: " + p.type());
-				System.out.println("EDAliasInstance param p valueAsString: " + p.valueAsString());
-			}
+			/*
+			 * if (instance instanceof EDAliasInstance) {
+			 * System.out.println("EDAliasInstance param p name: " + p.name());
+			 * System.out.println("EDAliasInstance param p type: " + p.type());
+			 * System.out.println("EDAliasInstance param p valueAsString: " +
+			 * p.valueAsString()); }
+			 */
 		}
 		instance.setDatabaseId(id);
 	}
