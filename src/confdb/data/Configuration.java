@@ -1078,10 +1078,10 @@ public class Configuration implements IConfiguration {
 		EDAliasInstance instance = null;
 
 		try {
-			System.out.println("TRYING TO CREATE NEW EDALIAS ");
+			//System.out.println("TRYING TO CREATE NEW EDALIAS ");
 			instance = new EDAliasInstance(instanceName);
-			System.out.println("CREATED NEW EDALIAS ");
-			System.out.println("INSTANCE " + instance);
+			//System.out.println("CREATED NEW EDALIAS ");
+			//System.out.println("INSTANCE " + instance);
 			if (instance.referenceCount() == 0) {
 				edaliases.add(instance);
 				instance.setConfig(this);

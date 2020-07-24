@@ -27,11 +27,11 @@ public class SwitchProducer extends ReferenceContainer {
 
 	/** insert a EDProducer or EDAlias into the SwitchProducer */
 	public void insertEntry(int i, Reference reference) {
-		System.out.println("INSERTING SWITCHPRODUCER ENTRY");
+		//System.out.println("INSERTING SWITCHPRODUCER ENTRY");
 		if (reference instanceof ModuleReference || reference instanceof EDAliasReference) {
 			if (!entries.contains(reference)) {
-				System.out.println("INSERTING ENTRY");
-				System.out.println("REFERENCE CLASS " + reference.getClass().toString());
+				//System.out.println("INSERTING ENTRY");
+				//System.out.println("REFERENCE CLASS " + reference.getClass().toString());
 				entries.add(i, reference);
 				setHasChanged();
 				return;
