@@ -235,6 +235,7 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel {
 	/** TreeTableTreeModel: set the value of a parameter */
 	public void setNameAt(Object value, Object node, int col) {
 		//boolean ok = true;
+		if (value == null) return;
 		if (col != 0)
 			return;
 		if (node instanceof Parameter) {
