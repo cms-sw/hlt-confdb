@@ -197,7 +197,9 @@ public class ConfDbGUI {
 	private JTable jTablePrescales = new javax.swing.JTable(); // Prescales for rightUpperPanel.
 	private JScrollPane jScrollPanePrescales = new JScrollPane();
 	private PrescaleTableService PrescaleTServ = null;
-
+	
+	private String oldModuleName;
+	
 	// DB INFO fields:
 	public boolean extraPathFieldsAvailability;
 
@@ -3591,6 +3593,11 @@ public class ConfDbGUI {
 			displaySnippet();
 		if (node instanceof Path)
 			displayPathFields();
+		
+		if (node instanceof ModuleInstance) {
+			System.out.println("NEW MODULE NAME: " + ((ModuleInstance)node).name());
+			ConfigurationTreeActions.renameEDAliasVPSets(currentConfig, this.oldModuleName, ((ModuleInstance)node).name());	
+		}
 	}
 
 	private void jTreeCurrentConfigTreeNodesInserted(TreeModelEvent e) {
@@ -3712,6 +3719,11 @@ public class ConfDbGUI {
 		} else {
 			clearParameters();
 			clearSnippet();
+		}
+		
+		if (node instanceof ModuleInstance) {
+			System.out.println("NODE NAME: " + node.toString());
+			this.oldModuleName = node.toString();
 		}
 	}
 

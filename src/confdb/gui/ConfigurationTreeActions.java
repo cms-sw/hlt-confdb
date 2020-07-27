@@ -902,45 +902,15 @@ public class ConfigurationTreeActions {
 		TreePath parentTreePath = (depth == 3) ? treePath : treePath.getParentPath();
 		ReferenceContainer parent = (ReferenceContainer) parentTreePath.getLastPathComponent();
 
-		// INDEX: if you are cloning the EDAlias by hand use next position in selection
-		// path.
-		// if EDAlias is being cloned by "cloneSequence" use the count to insert it in
-		// order.
-
 		int index = parent.entryCount();
 
 		System.out.println("PARENT " + parent.getClass().toString());
 		// index = 0;
 
 		EDAliasInstance edAlias = config.insertEDAlias("<ENTER EDALIAS NAME>");
-		// SwitchProducer switchProducer = config.insertSwitchProducer(index, "<ENTER
-		// SWITCH PRODUCER NAME>");
-
-		// model.nodeInserted(model.switchProducersNode(), index);
-		System.out.println("SWITCHPERODUCERS" + model.getChildCount(model.switchProducersNode()));
-		// model.nodeInserted(model.modulesNode(), index); model.updateLevel1Nodes();
-
-		// TreePath parentPath = (index == 0) ? treePath : treePath.getParentPath();
-		// TreePath newTreePath = parentPath.pathByAddingChild(edAlias);
-		// TreePath newTreePath = parentPath.pathByAddingChild(switchProducer);
-
-		// tree.setSelectionPath(newTreePath);
-		// editNodeName(tree);
-
-		// CLONE LIKE TRY WITH REFERENCE
 		Reference reference = null;
 
-		// String instanceName = edAlias.name(); //
-		System.out.println("NAME " + edAlias.name());
-		System.out.println("PARENT " + parent.toString());
-		System.out.println("EDALIAS " + parent.toString());
-
-		// TODO; FIX THIS
-		// reference = config.insertEDAliasReference(parent, index, instanceName); //
-		// this creates new EDAlias internally reference =
 		reference = config.insertEDAliasReference(parent, index, edAlias);
-
-		// EDAliasInstance newEDAlias = (EDAliasInstance) reference.parent();
 
 		// Inserting in the model and refreshing tree view:
 		model.nodeInserted(parent, index);
@@ -5779,6 +5749,34 @@ public class ConfigurationTreeActions {
 				return "HLTFilter";
 			}
 		}
+	}
+
+	public static void renameEDAliasVPSets(IConfiguration config, String oldModuleName, String newModuleName) {
+		
+		/*
+		 * ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		 * Configuration config = (Configuration) model.getRoot();
+		 * 
+		 * TreePath treePath = tree.getSelectionPath();
+		 * 
+		 * int index = (treePath.getPathCount() == 2) ? 0 :
+		 * model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+		 * treePath.getLastPathComponent()) + 1;
+		 */		
+		//System.out.println("DDDD");
+		//String newModuleName = config.module(index).name();
+		//System.out.println("NEW MODULE NAME: " + newModuleName);
+		
+		Iterator<EDAliasInstance> itEDA = config.edAliasIterator();
+		while (itEDA.hasNext()) {
+			EDAliasInstance edAliasInstance = itEDA.next();
+			for (int j = 0; j < edAliasInstance.parameterCount(); j++) {
+				edAliasInstance.updateName(oldModuleName, "VPSet", newModuleName);
+				//edAliasInstance.updateParameter(j, edAliasInstance.parameter(j).valueAsString());
+			}
+
+		}
+
 	}
 
 }
