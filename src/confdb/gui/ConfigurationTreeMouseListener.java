@@ -2683,7 +2683,16 @@ class ModuleMenuListener implements ActionListener {
 		if (cmd.equals("Sort")) {
 			ConfigurationTreeActions.sortModules(tree);
 		} else if (cmd.equals("Rename Module")) {
+
+			String oldModuleName = ((ModuleInstance)node).name();
+			//System.out.println("OLD MODULE NAME: " + oldModuleName);
 			ConfigurationTreeActions.editNodeName(tree);
+			//String newModuleName = ((ModuleInstance)node).name();
+			//System.out.println("NEW MODULE NAME: " + oldModuleName);
+
+			//TODO: Here go through all EDAliases and rename VPSet name(s) if necessary
+			//this will need new method in ConfigurationTreeAction
+			//ConfigurationTreeActions.renameEDAliasVPSets(tree);
 		}
 		// replace the module by the selected one
 		else {
