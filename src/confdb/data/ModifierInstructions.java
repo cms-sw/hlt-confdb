@@ -556,7 +556,6 @@ public class ModifierInstructions {
 			}
 		}
 				
-		//BSataric: maybe search needs modifications from modules but we'll see
 		Iterator<EDAliasInstance> itEDA = config.edAliasIterator();
 		while (itEDA.hasNext()) {
 			EDAliasInstance edAlias = itEDA.next();

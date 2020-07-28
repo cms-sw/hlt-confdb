@@ -440,11 +440,6 @@ public class ConfigurationModifier implements IConfiguration {
 		return result.iterator();
 	}
 	
-	
-	/**
-	 * order switch producers such that each switch producer is defined before being referenced
-	 * BSATARIC: this method is probably obsolete since SP cannot contain SP in itself
-	 */
 	public Iterator<SwitchProducer> orderedSwitchProducerIterator() {
 		ArrayList<SwitchProducer> result = new ArrayList<SwitchProducer>();
 		Iterator<SwitchProducer> itSP = switchProducerIterator();
@@ -1126,5 +1121,4 @@ public class ConfigurationModifier implements IConfiguration {
 	public Iterator<Task> taskIterator() {
 		return (isModified) ? tasks.iterator() : master.taskIterator();
 	}
-
 }

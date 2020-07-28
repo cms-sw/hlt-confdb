@@ -99,9 +99,6 @@ abstract public class Parameter implements Comparable<Parameter>, Serializable
     /** set Name of the parameter */
     public void setName(String name) { this.name = name; }
     
-    
-    public void setRedName(String name) {this.name = name; }
-
     /** get the parent container, if any (otherwise: global pset, likely) */
     public ParameterContainer getParentContainer()
     {

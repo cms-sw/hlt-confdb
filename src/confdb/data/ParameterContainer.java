@@ -4,12 +4,12 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 /**
- * ParameterContainer
- * ------------------
+ * ParameterContainer ------------------
+ * 
  * @author Philipp Schieferdecker
  *
- * Base-class for all components which contain a list of parameters,
- * like instances, output modules, etc.
+ *         Base-class for all components which contain a list of parameters,
+ *         like instances, output modules, etc.
  */
 abstract public class ParameterContainer extends DatabaseEntry {
 	//
@@ -249,7 +249,7 @@ abstract public class ParameterContainer extends DatabaseEntry {
 			setHasChanged();
 		return result;
 	}
-	
+
 	/** update a name of the parameter when the value is changed */
 	public boolean updateName(String name, String type, String newName) {
 		Parameter p = findParameter(name, type);
@@ -261,10 +261,10 @@ abstract public class ParameterContainer extends DatabaseEntry {
 			p.setName(newName);
 			setHasChanged();
 			return true;
-		} 
+		}
 		return false;
 	}
-	
+
 	/** update a name of the parameter when the value is changed */
 	/*
 	 * public boolean updateRedName(String name, String type, String newName) {
@@ -289,18 +289,15 @@ abstract public class ParameterContainer extends DatabaseEntry {
 		}
 		// add an untracked parameter to the top-level
 		else {
-			//System.out.println("PARAMETER NOT FOUND, ADD!");
 			Parameter parameterNew = ParameterFactory.create(type, name, valueAsString, false);
-			/*
-			 * System.err .println("ParameterContainer INFO: " +
-			 * "Adding untracked parameter to top-level: " + parameterNew);
-			 */
+			System.err
+					.println("ParameterContainer INFO: " + "Adding untracked parameter to top-level: " + parameterNew);
 			addParameter(parameterNew);
 			setHasChanged();
 			return true;
 		}
 	}
-	
+
 	/** update a tracked parameter when the value is changed */
 	public boolean updateTrackedParameter(String name, String type, String valueAsString) {
 		Parameter p = findParameter(name, type);
@@ -316,11 +313,11 @@ abstract public class ParameterContainer extends DatabaseEntry {
 		}
 		// add an tracked parameter to the top-level
 		else {
-			Parameter parameterNew = ParameterFactory.create(type, name, valueAsString, true);
-			/*
-			 * System.err .println("ParameterContainer INFO: " +
-			 * "Adding tracked parameter to top-level: " + parameterNew);
-			 */
+			Parameter parameterNew = ParameterFactory.create(type, name, valueAsString, true);	
+			System.err
+			  	.println("ParameterContainer INFO: " +
+			  			 "Adding tracked parameter to top-level: " + 
+			  			parameterNew);
 			addParameter(parameterNew);
 			setHasChanged();
 			return true;
