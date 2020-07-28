@@ -57,7 +57,6 @@ import confdb.diff.*;
 /**
  * ConfDbGUI
  * ---------
- * 
  * @author Philipp Schieferdecker
  *
  * Graphical User Interface to create and manipulate CMSSW job
@@ -198,7 +197,7 @@ public class ConfDbGUI {
 	private JScrollPane jScrollPanePrescales = new JScrollPane();
 	private PrescaleTableService PrescaleTServ = null;
 	
-	private String oldModuleName;
+	private String oldModuleName; //Used for renaming EDAlias VPSets
 	
 	// DB INFO fields:
 	public boolean extraPathFieldsAvailability;
@@ -1693,7 +1692,6 @@ public class ConfDbGUI {
 	/** set the current configuration */
 	private void setCurrentConfig(Configuration config) {
 		TreePath tp = jTreeCurrentConfig.getSelectionPath();
-		System.out.println("***** CONFIG ***** " + config);
 		currentConfig = config;
 		treeModelCurrentConfig.setConfiguration(currentConfig);
 
@@ -2378,17 +2376,6 @@ public class ConfDbGUI {
 					EDAliasReference reference = (EDAliasReference) selectedNode;
 					EDAliasInstance instance = (EDAliasInstance) reference.parent();
 					text = "<html>" + instance.name();
-
-					// BSATARIC: not sure if we need this down for EDAliases (or something similar)
-					/*
-					 * Object component = (tp.getPathComponent(2)); if (component instanceof Path) {
-					 * Path path = (Path) (tp.getPathComponent(2)); String[] unresolved =
-					 * path.unresolvedInputTags(); if (unresolved.length > 0) text +=
-					 * "<br>Unresolved InputTags out of the " + unresolved.length +
-					 * " in the current path:"; for (String un : unresolved) { String[] tokens =
-					 * un.split("[/:]"); for (int i = 0; i < tokens.length; i++) { if
-					 * (instance.name().equals(tokens[i])) { text += "<br>" + un; break; } } } }
-					 */
 					text += "<html>";
 				} else if (selectedNode instanceof SequenceReference) {
 					// Do not display "unresolved input tags" for Sequences. bug/feature 82524
@@ -2764,7 +2751,6 @@ public class ConfDbGUI {
 		} else
 			return "ERROR: getUnresolvedInputTagsSummary(): unknown currentParameterContainer";
 
-		// BSATARIC: I'm not sure if this concerns EDAliases - TODO
 		String[] modules = new String[unresolved.length]; // as maximum.
 		int MLength = 0;
 
@@ -2946,9 +2932,6 @@ public class ConfDbGUI {
 			jSplitPaneRightUpper.setDividerLocation(-1);
 			jSplitPaneRightUpper.setDividerSize(8);
 
-			boolean sss = container instanceof EDAliasInstance;
-			System.out.println("container instanceof EDAliasInstance: " + sss);
-			System.out.println("CONTAINER CLASS: " + container.getClass());
 			if (container instanceof Instance && !(container instanceof EDAliasInstance)) {
 				Instance i = (Instance) container;
 				String subName = i.template().parentPackage().subsystem().name();
@@ -2961,6 +2944,7 @@ public class ConfDbGUI {
 				jTextFieldCVS.setText(cvsTag);
 				jLabelPlugin.setText(type + ":");
 				jTextFieldPlugin.setText(plugin);
+				
 			} else {
 				jTextFieldPackage.setText(new String());
 				jTextFieldCVS.setText(new String());
@@ -3155,8 +3139,6 @@ public class ConfDbGUI {
 
 			ModuleInstance module = (ModuleInstance) currentParameterContainer;
 			try {
-				//System.out.println("MODULE SNIPPET CREATION");
-				//System.out.println("cnvEngine " + cnvEngine.getModuleWriter().getClass().toString());
 				jEditorPaneSnippet.setText(cnvEngine.getModuleWriter().toString(module));
 			} catch (ConverterException e) {
 				jEditorPaneSnippet.setText(e.getMessage());
@@ -3174,8 +3156,6 @@ public class ConfDbGUI {
 
 			EDAliasInstance edAlias = (EDAliasInstance) currentParameterContainer;
 			try {
-				//System.out.println("EDALIAS SNIPPET CREATION");
-				//System.out.println("cnvEngine " + cnvEngine.getEDAliasWriter().getClass().toString());
 				jEditorPaneSnippet.setText(cnvEngine.getEDAliasWriter().toString(edAlias));
 			} catch (ConverterException e) {
 				jEditorPaneSnippet.setText(e.getMessage());
@@ -3277,8 +3257,7 @@ public class ConfDbGUI {
 			}
 		});
 
-		// Hyperlink listener to catch the module requests. (BSATARIC: do we need this
-		// for EDAliases? TODO)
+		// Hyperlink listener to catch the module requests.
 		jEditorPaneUnresolvedITags.addHyperlinkListener(new HyperlinkListener() {
 			public void hyperlinkUpdate(HyperlinkEvent event) {
 				if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -3515,8 +3494,6 @@ public class ConfDbGUI {
 	private void jTreeConfigExpandLevel1Nodes(JTree t) {
 		ConfigurationTreeModel m = (ConfigurationTreeModel) t.getModel();
 
-		// BSATARIC: TODO see weather there should be something for SwitchProducers or
-		// EDAliases here
 		TreePath tpPSets = new TreePath(m.getPathToRoot(m.psetsNode()));
 		t.expandPath(tpPSets);
 		TreePath tpEDSources = new TreePath(m.getPathToRoot(m.edsourcesNode()));
@@ -3533,6 +3510,8 @@ public class ConfDbGUI {
 		t.expandPath(tpSequences);
 		TreePath tpTasks = new TreePath(m.getPathToRoot(m.tasksNode()));
 		t.expandPath(tpTasks);
+		TreePath tpSwitchProducers = new TreePath(m.getPathToRoot(m.switchProducersNode()));
+		t.expandPath(tpSwitchProducers);
 		TreePath tpModules = new TreePath(m.getPathToRoot(m.modulesNode()));
 		t.expandPath(tpModules);
 		TreePath tpOutputs = new TreePath(m.getPathToRoot(m.outputsNode()));
@@ -3594,8 +3573,8 @@ public class ConfDbGUI {
 		if (node instanceof Path)
 			displayPathFields();
 		
+		//Potentially rename EDAlias VPSets when module name is changed
 		if (node instanceof ModuleInstance) {
-			System.out.println("NEW MODULE NAME: " + ((ModuleInstance)node).name());
 			ConfigurationTreeActions.renameEDAliasVPSets(currentConfig, this.oldModuleName, ((ModuleInstance)node).name());	
 		}
 	}
@@ -3722,8 +3701,7 @@ public class ConfDbGUI {
 		}
 		
 		if (node instanceof ModuleInstance) {
-			System.out.println("NODE NAME: " + node.toString());
-			this.oldModuleName = node.toString();
+			this.oldModuleName = node.toString(); //Save old module name
 		}
 	}
 

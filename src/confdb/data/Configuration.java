@@ -320,7 +320,7 @@ public class Configuration implements IConfiguration {
 		for (Task tas : tasks)
 			if (tas.hasChanged())
 				return true;
-		for (EDAliasInstance eda : edaliases)  //BSATARIC: not sure if this is necessary
+		for (EDAliasInstance eda : edaliases)
 			if (eda.hasChanged())
 				return true;
 		for (SwitchProducer swp : switchproducers)
@@ -474,8 +474,6 @@ public class Configuration implements IConfiguration {
 		int taskNumber = 0;
 		while (itT.hasNext()) {
 			Task t = itT.next();
-			System.out.println("TASK NUMBER: " + taskNumber++);
-			System.out.println("TASK ENTRYCOUNT: " + t.entryCount());
 			if (t.entryCount() == 0)
 				result++;
 		}
@@ -1078,10 +1076,7 @@ public class Configuration implements IConfiguration {
 		EDAliasInstance instance = null;
 
 		try {
-			//System.out.println("TRYING TO CREATE NEW EDALIAS ");
 			instance = new EDAliasInstance(instanceName);
-			//System.out.println("CREATED NEW EDALIAS ");
-			//System.out.println("INSTANCE " + instance);
 			if (instance.referenceCount() == 0) {
 				edaliases.add(instance);
 				instance.setConfig(this);
