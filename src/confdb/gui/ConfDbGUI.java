@@ -982,7 +982,7 @@ public class ConfDbGUI {
 							if (currentConfig.isUniqueQualifier(newName)) {
 								System.out.println("SmartRenaming EDAlias: " + newName + " [" + oldName + "]");
 								try {
-									edAlias.setNameAndPropagate(newName); // BSATARIC TODO: check how to make this
+									edAlias.setNameAndPropagate(newName);
 									treeModelCurrentConfig.nodeChanged(edAlias);
 								} catch (DataException e) {
 									System.err.println(e.getMessage());

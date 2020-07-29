@@ -411,6 +411,7 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 				getUnresolvedESInputTags(p, unresolved, prefix + "/" + module.name());
 			}
 		} else if (r instanceof OutputModuleReference) {
+		} else if (r instanceof EDAliasReference) {
 		} else {
 			ReferenceContainer container = (ReferenceContainer) r.parent();
 			Iterator<Reference> it = container.entryIterator();
