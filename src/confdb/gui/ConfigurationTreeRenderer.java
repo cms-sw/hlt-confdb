@@ -302,7 +302,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 		} else if (node instanceof OutputModule) {
 			OutputModule output = (OutputModule) node;
 			if (output.referenceCount() == 0)
-				result = "<html><font color=#ff0000>" + getText() + "</font><html>";
+				result = "<html><font color=#ff0000>" + getText() + "</font></html>";
 		} else if (node instanceof Stream) {
 			Stream stream = (Stream) node;
 			result = "<html>" + stream.toString();
