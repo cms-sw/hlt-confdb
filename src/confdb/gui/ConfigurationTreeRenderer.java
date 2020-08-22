@@ -284,21 +284,21 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 		if (node instanceof PSetParameter || node instanceof VPSetParameter) {
 			Parameter p = (Parameter) node;
 			result = "<font color=#00ff00>" + p.type() + "</font> " + p.name();
-			result = "<html><font size=-2><b>" + result + "</b></font></html>";
+			result = "<html>" + result + "</html>";
 		} else if (node instanceof Parameter) {
 			Parameter p = (Parameter) node;
 			result = "<font color=#00ff00>" + p.type() + "</font>  " + p.name() + " = ";
 			if (!p.isValueSet()) {
 				if (p.isTracked())
-					result += "<font color=#ff0000> ? </font>";
+					result += "<font color=#ff0000><b> ? </b></font>";
 				else
-					result += "<font color=#0000ff> ? </font>";
+					result += "<font color=#0000ff><b> ? </b></font>";
 			} else if (p.isDefault()) {
 				result += "<font color=#0000ff>" + p.valueAsString() + "</font>";
 			} else {
 				result += "<font color=#ff0000>" + p.valueAsString() + "</font>";
 			}
-			result = "<html><font size=-2><b>" + result + "</b></font></html>";
+			result = "<html>" + result + "</html>";
 		} else if (node instanceof OutputModule) {
 			OutputModule output = (OutputModule) node;
 			if (output.referenceCount() == 0)
