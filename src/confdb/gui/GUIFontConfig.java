@@ -9,7 +9,7 @@ import java.awt.*;
 public class GUIFontConfig {
 
     static String name = new String("Dialog");
-    static int size = 12; // Display: FullHD=12, 4K=20
+    static int size = 24; // Display: FullHD=12, 4K=20
 
     static String getName(){
 	return name;

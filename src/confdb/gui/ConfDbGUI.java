@@ -4452,6 +4452,8 @@ public class ConfDbGUI {
 	private void createRightLowerPanel() {
 		jEditorPaneSnippet.setEditable(false);
 		jEditorPaneSnippet.setFont(GUIFontConfig.getFont(0));
+		jScrollPaneRightLower.setFont(GUIFontConfig.getFont(0));
+		jTabbedPaneRightLower.setFont(GUIFontConfig.getFont(0));
 		jScrollPaneRightLower.setViewportView(jEditorPaneSnippet);
 		jTabbedPaneRightLower.addTab("Snippet", jScrollPaneRightLower);
 
