@@ -23,17 +23,27 @@ public class GUIFontConfig {
 	// int style: 0=plain, 1=bold, 2=italic
 	return new java.awt.Font(name,style,size);
     }
-    
+
     static java.awt.Font myFont = new java.awt.Font(name,0,size);
     static javax.swing.plaf.FontUIResource myFUIR = new javax.swing.plaf.FontUIResource(name,0,size);
-
-    static java.awt.Font myBold = new java.awt.Font(name,1,size);
 
     // https://stackoverflow.com/questions/7434845/setting-the-default-font-of-s
     public static void setFonts() {
 
 	int dpi = java.awt.Toolkit.getDefaultToolkit().getScreenResolution();
-	System.out.println("Screen resolution according to java: "+dpi);
+	double dX = java.awt.Toolkit.getDefaultToolkit().getScreenSize().getWidth();
+	double dY = java.awt.Toolkit.getDefaultToolkit().getScreenSize().getHeight();
+	System.out.println("Screen resolution according to java: "+dpi+" X:"+dX+" Y:" +dY);
+
+	if (dX<2000.0) {
+	    size=12;
+	} else {
+	    size=20;
+	}
+
+	myFont = new java.awt.Font(name,0,size);
+	myFUIR = new javax.swing.plaf.FontUIResource(name,0,size);
+
 
         java.util.Enumeration keys;
 

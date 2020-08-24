@@ -237,8 +237,6 @@ public class ConfDbGUI {
 		this.importRelease = new SoftwareRelease();
 		this.importConfig = new Configuration();
 
-		GUIFontConfig.setFonts();
-
 		// this.jTableCommands.setAutoCreateRowSorter(true);
 
 		try {
@@ -477,7 +475,12 @@ public class ConfDbGUI {
 
 	/** create the GUI and show it */
 	private static void createAndShowGUI() {
+
+		GUIFontConfig.setFonts();
+
 		JFrame frame = new JFrame("GDR ConfDbGUI");
+		frame.setFont(GUIFontConfig.getFont(0));
+
 		ConfDbGUI gui = new ConfDbGUI(frame);
 
 		int frameWidth = (int) (0.75 * frame.getToolkit().getScreenSize().getWidth());
