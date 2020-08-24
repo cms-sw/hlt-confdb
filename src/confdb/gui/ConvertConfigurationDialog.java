@@ -295,7 +295,7 @@ public class ConvertConfigurationDialog extends JDialog {
 
 		jButtonCancel.setText("Cancel");
 
-		jButtonConvert.setFont(new java.awt.Font("Dialog", 1, 13));
+		jButtonConvert.setFont(GUIFontConfig.getFont(1));
 		jButtonConvert.setText("Convert");
 
 		jRadioButtonAscii.setText("Ascii");

@@ -206,16 +206,16 @@ public class ConfDbGUI {
 		StyleConstants.setForeground(ITALIC_GRAY, Color.gray);
 		StyleConstants.setItalic(ITALIC_GRAY, true);
 		StyleConstants.setFontFamily(ITALIC_GRAY, "Helvetica");
-		StyleConstants.setFontSize(ITALIC_GRAY, 12);
+		StyleConstants.setFontSize(ITALIC_GRAY, GUIFontConfig.getSize());
 
 		StyleConstants.setForeground(BOLD_BLACK, Color.black);
 		StyleConstants.setBold(BOLD_BLACK, true);
 		StyleConstants.setFontFamily(BOLD_BLACK, "Helvetica");
-		StyleConstants.setFontSize(BOLD_BLACK, 12);
+		StyleConstants.setFontSize(BOLD_BLACK, GUIFontConfig.getSize());
 
 		StyleConstants.setForeground(BLACK, Color.black);
 		StyleConstants.setFontFamily(BLACK, "Helvetica");
-		StyleConstants.setFontSize(BLACK, 14);
+		StyleConstants.setFontSize(BLACK, GUIFontConfig.getSize());
 	}
 
 	/** Other program state values. */
@@ -236,6 +236,8 @@ public class ConfDbGUI {
 		this.currentConfig = new Configuration();
 		this.importRelease = new SoftwareRelease();
 		this.importConfig = new Configuration();
+
+		GUIFontConfig.setFonts();
 
 		// this.jTableCommands.setAutoCreateRowSorter(true);
 
@@ -1599,9 +1601,13 @@ public class ConfDbGUI {
 			jLabelLock.setToolTipText("It's all yours, nobody else can " + "modify this configuration until closed!");
 		}
 
+		jTextFieldProcess.setFont(GUIFontConfig.getFont(0));
 		jTextFieldProcess.setText(currentConfig.processName());
+		jButtonRelease.setFont(GUIFontConfig.getFont(0));
 		jButtonRelease.setText(currentRelease.releaseTag());
+		jTextFieldCreated.setFont(GUIFontConfig.getFont(0));
 		jTextFieldCreated.setText(currentConfig.created());
+		jTextFieldCreator.setFont(GUIFontConfig.getFont(0));
 		jTextFieldCreator.setText(currentConfig.creator());
 
 		jTextFieldProcess.setEditable(true);
@@ -2364,11 +2370,13 @@ public class ConfDbGUI {
 		} else
 			return "";
 
-		if (paths != null)
-			for (int i = 0; i < paths.length; i++) {
-				text += "<a href='" + paths[i] + "'>" + paths[i] + "</a> <br>";
-			}
-
+		if (paths != null) {
+		    text += "<html><font size=5>";
+		    for (int i = 0; i < paths.length; i++) {
+			text += "<a href='" + paths[i] + "'>" + paths[i] + "</a> <br>";
+		    }
+		    text += "</font></html>";
+		}
 		return text;
 	}
 
@@ -2384,6 +2392,7 @@ public class ConfDbGUI {
 			moduleInstance = (ModuleInstance) currentParameterContainer;
 
 			Iterator<Sequence> SeqIt = currentConfig.sequenceIterator();
+			text += "<html><font size=5>";
 			while (SeqIt.hasNext()) {
 				Sequence Seq = SeqIt.next();
 				Reference ref = Seq.entry(moduleInstance.name());
@@ -2391,10 +2400,12 @@ public class ConfDbGUI {
 					text += "<a href='" + Seq.name() + "'>" + Seq.name() + "</a> <br>";
 				}
 			}
+			text += "</font></html>";
 		} else if (currentParameterContainer instanceof Sequence) {
 			sequence = (Sequence) currentParameterContainer;
 
 			Iterator<Sequence> SeqIt = currentConfig.sequenceIterator();
+			text += "<html><font size=5>";
 			while (SeqIt.hasNext()) {
 				Sequence Seq = SeqIt.next();
 				Reference ref = Seq.entry(sequence.name());
@@ -2402,7 +2413,7 @@ public class ConfDbGUI {
 					text += "<a href='" + Seq.name() + "'>" + Seq.name() + "</a> <br>";
 				}
 			}
-
+			text += "</font></html>";
 		} else
 			return "";
 		return text;
@@ -2433,6 +2444,7 @@ public class ConfDbGUI {
 		int MLength = 0;
 
 		if (unresolved.length > 0) {
+		        text = "<html><font size=5>";
 			jEditorPaneUnresolvedITags.setText("");
 
 			// Coalesce duplicated modules.
@@ -2517,6 +2529,7 @@ public class ConfDbGUI {
 				// Display dots:
 				text += "    ... )<br><br>";
 			}
+			text += "</font></html>";
 		}
 		return text;
 	}
@@ -2710,7 +2723,9 @@ public class ConfDbGUI {
 			jSplitPaneRightUpper.setTopComponent(jPanelPathFields);
 			jScrollPaneParameters.setVisible(false);
 
+			jEditorPathDescription.setFont(GUIFontConfig.getFont(0));
 			jEditorPathDescription.setText(container.getDescription());
+			jEditorPathContacts.setFont(GUIFontConfig.getFont(0));
 			jEditorPathContacts.setText(container.getContacts());
 			jTextFieldPathName.setText(container.name());
 
@@ -3848,7 +3863,7 @@ public class ConfDbGUI {
 
 		jTextFieldCurrentConfig.setBackground(new java.awt.Color(255, 255, 255));
 		jTextFieldCurrentConfig.setEditable(false);
-		jTextFieldCurrentConfig.setFont(new java.awt.Font("Dialog", 1, 12));
+		jTextFieldCurrentConfig.setFont(GUIFontConfig.getFont(0));
 		jTextFieldCurrentConfig
 				.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
@@ -3962,6 +3977,7 @@ public class ConfDbGUI {
 		jButtonImportCancelSearch.setIcon(new ImageIcon(getClass().getResource("/CancelSearchIcon.png")));
 
 		jLabelImportSearch.setText("Search:");
+		jLabelImportSearch.setFont(GUIFontConfig.getFont(0));
 
 		jButtonImportCancelSearch.setEnabled(false);
 		jButtonImportCancelSearch.setBorder(null);
@@ -4006,6 +4022,8 @@ public class ConfDbGUI {
 		jToggleButtonImport.setEnabled(false);
 
 		jLabelSearch.setText("Search:");
+		jLabelSearch.setFont(GUIFontConfig.getFont(0));
+		jTextFieldSearch.setFont(GUIFontConfig.getFont(0));
 
 		jSplitPaneCurrentConfig.setResizeWeight(0.5);
 		jScrollPaneCurrentConfig.setViewportView(jTreeCurrentConfig);
@@ -4193,35 +4211,36 @@ public class ConfDbGUI {
 		JLabel jLabelPaths = new javax.swing.JLabel();
 
 		jSplitPaneRightUpper.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-		jLabelPackage.setFont(new java.awt.Font("Dialog", 0, 12));
+		jLabelPackage.setFont(GUIFontConfig.getFont(0));
 		jLabelPackage.setText("Package:");
 
 		jTextFieldPackage.setBackground(new java.awt.Color(250, 250, 250));
 		jTextFieldPackage.setEditable(false);
-		jTextFieldPackage.setFont(new java.awt.Font("Dialog", 0, 10));
+		jTextFieldPackage.setFont(GUIFontConfig.getFont(0));
 		jTextFieldPackage
 				.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
-		jLabelCVS.setFont(new java.awt.Font("Dialog", 0, 12));
+		jLabelCVS.setFont(GUIFontConfig.getFont(0));
 		jLabelCVS.setText("CVS:");
 
 		jTextFieldCVS.setBackground(new java.awt.Color(250, 250, 250));
 		jTextFieldCVS.setEditable(false);
-		jTextFieldCVS.setFont(new java.awt.Font("Dialog", 0, 10));
+		jTextFieldCVS.setFont(GUIFontConfig.getFont(0));
 		jTextFieldCVS.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
-		jLabelPlugin.setFont(new java.awt.Font("Dialog", 0, 12));
+		jLabelPlugin.setFont(GUIFontConfig.getFont(0));
 		jLabelPlugin.setText("Plugin:");
 
 		jTextFieldPlugin.setBackground(new java.awt.Color(250, 250, 250));
 		jTextFieldPlugin.setEditable(false);
-		jTextFieldPlugin.setFont(new java.awt.Font("Dialog", 0, 10));
+		jTextFieldPlugin.setFont(GUIFontConfig.getFont(0));
 		jTextFieldPlugin.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
 		jLabelLabel.setText("Label:");
 
 		jTextFieldLabel.setBackground(new java.awt.Color(255, 255, 255));
 		jTextFieldLabel.setEditable(false);
+		jTextFieldLabel.setFont(GUIFontConfig.getFont(0));
 		jTextFieldLabel.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
 		jLabelPaths.setText("Paths:");
@@ -4291,21 +4310,21 @@ public class ConfDbGUI {
 		JLabel jLabelPathName = new javax.swing.JLabel();
 		JLabel jLabelPrescales = new javax.swing.JLabel();
 
-		jLabelPathDescription.setFont(new java.awt.Font("Dialog", 0, 12));
+		jLabelPathDescription.setFont(GUIFontConfig.getFont(0));
 		jLabelPathDescription.setText("Description:");
 
-		jLabelPathContacts.setFont(new java.awt.Font("Dialog", 0, 12));
+		jLabelPathContacts.setFont(GUIFontConfig.getFont(0));
 		jLabelPathContacts.setText("Contacts:");
 
-		jLabelPathName.setFont(new java.awt.Font("Dialog", 0, 12));
+		jLabelPathName.setFont(GUIFontConfig.getFont(0));
 		jLabelPathName.setText("Path:");
 
-		jLabelPrescales.setFont(new java.awt.Font("Dialog", 0, 12));
+		jLabelPrescales.setFont(GUIFontConfig.getFont(0));
 		jLabelPrescales.setText("Prescales:");
 
 		jTextFieldPathName.setBackground(new java.awt.Color(250, 250, 250));
 		jTextFieldPathName.setEditable(false);
-		jTextFieldPathName.setFont(new java.awt.Font("Dialog", 0, 10));
+		jTextFieldPathName.setFont(GUIFontConfig.getFont(0));
 		jTextFieldPathName
 				.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
@@ -4380,10 +4399,10 @@ public class ConfDbGUI {
 								Short.MAX_VALUE)
 						.addComponent(jScrollPanePrescales, javax.swing.GroupLayout.DEFAULT_SIZE, 708, Short.MAX_VALUE)
 						.addGroup(jPanelPathLayout.createSequentialGroup()
-								.addComponent(jButtonCancelPathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 100,
+								.addComponent(jButtonCancelPathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 200,
 										javax.swing.GroupLayout.PREFERRED_SIZE)
 								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-								.addComponent(jButtonSavePathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 100,
+								.addComponent(jButtonSavePathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 200,
 										javax.swing.GroupLayout.PREFERRED_SIZE)
 								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))));
 
@@ -4401,12 +4420,12 @@ public class ConfDbGUI {
 				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 				.addGroup(jPanelPathLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 						.addComponent(jLabelPrescales)
-						.addComponent(jScrollPanePrescales, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE))
+						.addComponent(jScrollPanePrescales, GroupLayout.PREFERRED_SIZE, 72, GroupLayout.PREFERRED_SIZE))
 				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 				.addGroup(jPanelPathLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(jButtonCancelPathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 18,
+						.addComponent(jButtonCancelPathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 36,
 								javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(jButtonSavePathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 18,
+						.addComponent(jButtonSavePathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 36,
 								javax.swing.GroupLayout.PREFERRED_SIZE)));
 
 		//////////////////////////////////////////
@@ -4432,25 +4451,30 @@ public class ConfDbGUI {
 	/** create the right lower panel */
 	private void createRightLowerPanel() {
 		jEditorPaneSnippet.setEditable(false);
+		jEditorPaneSnippet.setFont(GUIFontConfig.getFont(0));
 		jScrollPaneRightLower.setViewportView(jEditorPaneSnippet);
 		jTabbedPaneRightLower.addTab("Snippet", jScrollPaneRightLower);
 
 		// Initialize the right lower tabs by default.
 		jEditorPanePathsToDataset.setEditable(false);
+		jEditorPanePathsToDataset.setFont(GUIFontConfig.getFont(0));
 		TAB_assignedToDatasets.setViewportView(jEditorPanePathsToDataset);
 		jTabbedPaneRightLower.addTab("Assigned to Datasets", TAB_assignedToDatasets);
 
 		jEditorPaneUnresolvedITags.setEditable(false);
+		jEditorPaneUnresolvedITags.setFont(GUIFontConfig.getFont(0));
 		jEditorPaneUnresolvedITags.setContentType("text/html");
 		TAB_unresolvedInputTags.setViewportView(jEditorPaneUnresolvedITags);
 		jTabbedPaneRightLower.addTab("Unresolved Input Tags", TAB_unresolvedInputTags);
 
 		jEditorContainedInPaths.setEditable(false);
+		jEditorContainedInPaths.setFont(GUIFontConfig.getFont(0));
 		jEditorContainedInPaths.setContentType("text/html");
 		TAB_containedInPaths.setViewportView(jEditorContainedInPaths);
 		jTabbedPaneRightLower.addTab("Contained in Paths", TAB_containedInPaths);
 
 		jEditorContainedInSequence.setEditable(false);
+		jEditorContainedInSequence.setFont(GUIFontConfig.getFont(0));
 		jEditorContainedInSequence.setContentType("text/html");
 		TAB_containedInSequence.setViewportView(jEditorContainedInSequence);
 		jTabbedPaneRightLower.addTab("Contained in Sequences", TAB_containedInSequence);

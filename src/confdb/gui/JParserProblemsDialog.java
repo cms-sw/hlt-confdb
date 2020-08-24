@@ -54,7 +54,7 @@ public class JParserProblemsDialog extends JDialog {
 		JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
 		JLabel jLabel1 = new javax.swing.JLabel();
 
-		jLabel1.setFont(new java.awt.Font("Dialog", 1, 14));
+		jLabel1.setFont(GUIFontConfig.getFont(1));
 		/*
 		 * jLabel1.setText("Problems were encountered parsing this configuration; "+
 		 * "a file problems.txt was created with the following "+ "content:");

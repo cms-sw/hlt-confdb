@@ -756,41 +756,41 @@ class MessageLoggerPanel extends JPanel {
 		jComboBoxThreshold.setEditable(false);
 		jComboBoxThreshold.setBackground(new java.awt.Color(255, 255, 255));
 		JLabel jLabelThreshold = new JLabel();
-		jLabelThreshold.setFont(new java.awt.Font("Dialog", 1, 12));
+		jLabelThreshold.setFont(GUIFontConfig.getFont(1));
 		jLabelThreshold.setText("Threshold:");
 
 		jComboBoxLimit.setEditable(true);
 		jComboBoxLimit.setBackground(new java.awt.Color(255, 255, 255));
 		JLabel jLabelLimit = new JLabel();
-		jLabelLimit.setFont(new java.awt.Font("Dialog", 1, 12));
+		jLabelLimit.setFont(GUIFontConfig.getFont(1));
 		jLabelLimit.setText("Limit:");
 
 		jComboBoxTimeSpan.setEditable(true);
 		jComboBoxTimeSpan.setBackground(new java.awt.Color(255, 255, 255));
 		JLabel jLabelTimeSpan = new JLabel();
-		jLabelTimeSpan.setFont(new java.awt.Font("Dialog", 1, 12));
+		jLabelTimeSpan.setFont(GUIFontConfig.getFont(1));
 		jLabelTimeSpan.setText("TimeSpan:");
 
 		JLabel jLabelSuppressAll = new JLabel();
 		jLabelSuppressAll.setText("Suppress All");
 
-		jCheckBoxInfo.setFont(new java.awt.Font("Dialog", 1, 12));
+		jCheckBoxInfo.setFont(GUIFontConfig.getFont(1));
 		jCheckBoxInfo.setSelected(false);
 		jCheckBoxInfo.setText("info");
 
-		jCheckBoxDebug.setFont(new java.awt.Font("Dialog", 1, 12));
+		jCheckBoxDebug.setFont(GUIFontConfig.getFont(1));
 		jCheckBoxDebug.setSelected(false);
 		jCheckBoxDebug.setText("debug");
 
-		jCheckBoxWarning.setFont(new java.awt.Font("Dialog", 1, 12));
+		jCheckBoxWarning.setFont(GUIFontConfig.getFont(1));
 		jCheckBoxWarning.setSelected(false);
 		jCheckBoxWarning.setText("warning");
 
-		jCheckBoxError.setFont(new java.awt.Font("Dialog", 1, 12));
+		jCheckBoxError.setFont(GUIFontConfig.getFont(1));
 		jCheckBoxError.setSelected(false);
 		jCheckBoxError.setText("error");
 
-		jCheckBoxShowSelected.setFont(new java.awt.Font("Dialog", 1, 12));
+		jCheckBoxShowSelected.setFont(GUIFontConfig.getFont(1));
 		jCheckBoxShowSelected.setSelected(false);
 		jCheckBoxShowSelected.setText("Show Only Selected");
 		jCheckBoxShowSelected.setVerticalTextPosition(javax.swing.SwingConstants.TOP);

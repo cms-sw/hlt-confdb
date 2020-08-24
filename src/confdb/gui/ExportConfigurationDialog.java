@@ -324,7 +324,7 @@ public class ExportConfigurationDialog extends JDialog {
 		JLabel jLabel9 = new JLabel();
 
 		jPanelLeft.setBorder(BorderFactory.createTitledBorder(null, "Target Database",
-				TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font("Dialog", 1, 12)));
+								      TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, GUIFontConfig.getFont(1)));
 		jLabel9.setText("Setup:");
 		jLabel3.setText("Host:");
 		jLabel4.setText("Port:");

@@ -262,9 +262,9 @@ public class DiffDialog extends JDialog {
 		JScrollPane jScrollPaneTree = new javax.swing.JScrollPane();
 		JScrollPane jScrollPaneText = new javax.swing.JScrollPane();
 
-		jLabel1.setFont(new java.awt.Font("Dialog", 1, 11));
+		jLabel1.setFont(GUIFontConfig.getFont(1));
 		jLabel1.setText("New Configuration:");
-		jLabel2.setFont(new java.awt.Font("Dialog", 1, 11));
+		jLabel2.setFont(GUIFontConfig.getFont(1));
 		jLabel2.setText("Old Configuration:");
 
 		jTextFieldNewConfig.setBackground(new java.awt.Color(255, 255, 255));
