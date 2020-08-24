@@ -30,7 +30,7 @@ public class GUIFontConfig {
     // https://stackoverflow.com/questions/7434845/setting-the-default-font-of-s
     public static void setFonts() {
 
-	int dpi = java.awt.Toolkit.getDefaultToolkit().getScreenResolution();
+	int dpi   = java.awt.Toolkit.getDefaultToolkit().getScreenResolution();
 	double dX = java.awt.Toolkit.getDefaultToolkit().getScreenSize().getWidth();
 	double dY = java.awt.Toolkit.getDefaultToolkit().getScreenSize().getHeight();
 	System.out.println("Screen resolution according to java: "+dpi+" X:"+dX+" Y:" +dY);
@@ -43,7 +43,6 @@ public class GUIFontConfig {
 
 	myFont = new java.awt.Font(name,0,size);
 	myFUIR = new javax.swing.plaf.FontUIResource(name,0,size);
-
 
         java.util.Enumeration keys;
 
