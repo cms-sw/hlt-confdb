@@ -27,7 +27,7 @@ public class GUIFontConfig {
     static java.awt.Font myFont = new java.awt.Font(name,0,size);
     static javax.swing.plaf.FontUIResource myFUIR = new javax.swing.plaf.FontUIResource(name,0,size);
 
-    // https://stackoverflow.com/questions/7434845/setting-the-default-font-of-s
+    // https://stackoverflow.com/questions/7434845/setting-the-default-font-of-swing-program
     public static void setFonts() {
 
 	int dpi   = java.awt.Toolkit.getDefaultToolkit().getScreenResolution();
