@@ -25,6 +25,10 @@ public class ModifierInstructions {
 	private boolean filterAllPSets = false;
 	private ArrayList<String> psetBlackList = new ArrayList<String>();
 	private ArrayList<String> psetWhiteList = new ArrayList<String>();
+	
+	/** global EDAliases */
+	private boolean undefineGlobalAllEDAliases = false;
+	private ArrayList<String> undefinedGlobalEDAliases = new ArrayList<String>();
 
 	/** EDSources */
 	private boolean filterAllEDSources = false;

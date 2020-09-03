@@ -35,7 +35,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 	/** reference to the configuration tree-model */
 	private ConfigurationTreeModel treeModel = null;
 
-	/** popup mneu associated with global psets */
+	/** popup menu associated with global psets */
 	private JPopupMenu popupPSets = null;
 
 	/** popup menu showing all available service templates */

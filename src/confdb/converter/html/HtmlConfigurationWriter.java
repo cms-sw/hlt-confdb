@@ -51,6 +51,16 @@ public class HtmlConfigurationWriter implements IConfigurationWriter {
 			}
 			str.append(converterEngine.getNewline());
 		}
+		
+		if (conf.globalEDAliasCount() > 0) {
+			str.append("<a name=\"global edaliases\"><hr noshade></a>");
+			IEDAliasWriter globalEDAliasWriter = converterEngine.getGlobalEDAliasWriter();
+			for (int i = 0; i < conf.globalEDAliasCount(); i++) {
+				EDAliasInstance globalEDAlias = conf.globalEDAlias(i);
+				str.append(globalEDAliasWriter.toString(globalEDAlias));
+			}
+			str.append(converterEngine.getNewline());
+		}
 
 		if (conf.pathCount() > 0) {
 			str.append("<a name=\"paths\"><hr noshade></a>");
