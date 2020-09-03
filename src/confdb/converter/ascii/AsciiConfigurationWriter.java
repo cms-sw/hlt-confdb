@@ -5,6 +5,7 @@ import java.util.Iterator;
 import confdb.converter.ConverterEngine;
 import confdb.converter.ConverterException;
 import confdb.converter.IConfigurationWriter;
+import confdb.converter.IEDAliasWriter;
 import confdb.converter.IEDSourceWriter;
 import confdb.converter.IESSourceWriter;
 import confdb.converter.IESModuleWriter;
@@ -14,7 +15,10 @@ import confdb.converter.IParameterWriter;
 import confdb.converter.IPathWriter;
 import confdb.converter.ISequenceWriter;
 import confdb.converter.IServiceWriter;
+import confdb.converter.ISwitchProducerWriter;
+import confdb.converter.ITaskWriter;
 import confdb.data.Block;
+import confdb.data.EDAliasInstance;
 import confdb.data.IConfiguration;
 import confdb.data.EDSourceInstance;
 import confdb.data.ESSourceInstance;
@@ -25,6 +29,8 @@ import confdb.data.Parameter;
 import confdb.data.Path;
 import confdb.data.Sequence;
 import confdb.data.ServiceInstance;
+import confdb.data.SwitchProducer;
+import confdb.data.Task;
 
 public class AsciiConfigurationWriter implements IConfigurationWriter 
 {
@@ -50,6 +56,20 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 			Sequence sequence = conf.sequence(i);
 			str.append( sequenceWriter.toString(sequence, converterEngine, indent ) );
 		}
+		
+		ITaskWriter taskWriter = converterEngine.getTaskWriter();
+		for ( int i = 0; i < conf.taskCount(); i++ )
+		{
+			Task task = conf.task(i);
+			str.append(taskWriter.toString(task, converterEngine, indent ) );
+		}
+		
+		ISwitchProducerWriter switchProducerWriter = converterEngine.getSwitchProducerWriter();
+		for ( int i = 0; i < conf.switchProducerCount(); i++ )
+		{
+			SwitchProducer switchProducer = conf.switchProducer(i);
+			str.append(switchProducerWriter.toString(switchProducer, converterEngine, indent ) );
+		}
 
 		IPathWriter pathWriter = converterEngine.getPathWriter();
 		for ( int i = 0; i < conf.pathCount(); i++ )
@@ -65,6 +85,12 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 			str.append( parameterWriter.toString( pset, converterEngine, indent ) );
 		}
 
+		IEDAliasWriter globalEDAliasWriter = converterEngine.getGlobalEDAliasWriter();
+		for ( int i = 0; i < conf.globalEDAliasCount(); i++ )
+		{
+			EDAliasInstance globalEDAlias = conf.globalEDAlias(i);
+			str.append( globalEDAliasWriter.toString( globalEDAlias ) );
+		}
 
 		IEDSourceWriter edsourceWriter = converterEngine.getEDSourceWriter();
 		for ( int i = 0; i < conf.edsourceCount(); i++ )
@@ -101,6 +127,13 @@ public class AsciiConfigurationWriter implements IConfigurationWriter
 		{
 			ModuleInstance module = conf.module(i);
 			str.append( moduleWriter.toString( module ) );
+		}
+		
+		IEDAliasWriter edAliasWriter = converterEngine.getEDAliasWriter();
+		for ( int i = 0; i < conf.edAliasCount(); i++ )
+		{
+			EDAliasInstance edAlias = conf.edAlias(i);
+			str.append( edAliasWriter.toString( edAlias ) );
 		}
 
 		IOutputWriter outputWriter = converterEngine.getOutputWriter();

@@ -7,11 +7,11 @@ import java.util.Collections;
 import java.util.StringTokenizer;
 
 /**
- * Configuration
- * -------------
+ * Configuration -------------
+ * 
  * @author Philipp Schieferdecker
  *
- * Description of a CMSSW job configuration.
+ *         Description of a CMSSW job configuration.
  */
 public class Configuration implements IConfiguration {
 	//
@@ -29,6 +29,10 @@ public class Configuration implements IConfiguration {
 	/** list of global parameter sets */
 	private GlobalPSetContainer psets = null;
 
+	/** list of global EDAliases */
+	//private GlobalEDAliasContainer globalEDAliases = null; //TODO FIX TO ARRAY OF INSTANCES
+	private ArrayList<EDAliasInstance> globalEDAliases = null; //global EDAliases will not have references
+
 	/** list of EDSources */
 	private ArrayList<EDSourceInstance> edsources = null;
 
@@ -43,10 +47,10 @@ public class Configuration implements IConfiguration {
 
 	/** list of Modules */
 	private ArrayList<ModuleInstance> modules = null;
-	
+
 	/** list of EDAliases */
 	private ArrayList<EDAliasInstance> edaliases = null;
-	
+
 	/** list of SwitchProducers */
 	private ArrayList<SwitchProducer> switchproducers = null;
 
@@ -72,6 +76,7 @@ public class Configuration implements IConfiguration {
 	/** empty constructor */
 	public Configuration() {
 		psets = new GlobalPSetContainer();
+		globalEDAliases = new ArrayList<EDAliasInstance>();
 		edsources = new ArrayList<EDSourceInstance>();
 		essources = new ArrayList<ESSourceInstance>();
 		esmodules = new ArrayList<ESModuleInstance>();
@@ -88,6 +93,7 @@ public class Configuration implements IConfiguration {
 	/** standard constructor */
 	public Configuration(ConfigInfo configInfo, SoftwareRelease release) {
 		psets = new GlobalPSetContainer();
+		globalEDAliases = new ArrayList<EDAliasInstance>();
 		edsources = new ArrayList<EDSourceInstance>();
 		essources = new ArrayList<ESSourceInstance>();
 		esmodules = new ArrayList<ESModuleInstance>();
@@ -115,10 +121,13 @@ public class Configuration implements IConfiguration {
 		setHasChanged(false);
 
 		psets.clear();
+		globalEDAliases.clear();
 		edsources.clear();
 		essources.clear();
 		services.clear();
 		modules.clear();
+		edaliases.clear();
+		switchproducers.clear();
 		paths.clear();
 		sequences.clear();
 		tasks.clear();
@@ -132,10 +141,13 @@ public class Configuration implements IConfiguration {
 		setHasChanged(false);
 
 		psets.clear();
+		globalEDAliases.clear();
 		edsources.clear();
 		essources.clear();
 		services.clear();
 		modules.clear();
+		edaliases.clear();
+		switchproducers.clear();
 		paths.clear();
 		sequences.clear();
 		tasks.clear();
@@ -183,7 +195,7 @@ public class Configuration implements IConfiguration {
 		else if (c == ModuleInstance.class)
 			return moduleCount();
 		else if (c == EDAliasInstance.class)
-			return moduleCount();
+			return edAliasCount();
 		else if (c == SwitchProducer.class)
 			return switchProducerCount();
 		else if (c == OutputModule.class)
@@ -201,8 +213,9 @@ public class Configuration implements IConfiguration {
 	/** isEmpty() */
 	public boolean isEmpty() {
 		return (name().length() == 0 && // psets.isEmpty()&&
-				psets.parameterCount() == 0 && edsources.isEmpty() && essources.isEmpty() && services.isEmpty()
-				&& modules.isEmpty() && paths.isEmpty() && sequences.isEmpty() && tasks.isEmpty()
+				psets.parameterCount() == 0 && globalEDAliases.isEmpty() && edsources.isEmpty()
+				&& essources.isEmpty() && services.isEmpty() && modules.isEmpty() && paths.isEmpty()
+				&& sequences.isEmpty() && tasks.isEmpty() && switchproducers.isEmpty() && edaliases.isEmpty()
 				&& contents.isEmpty());
 	}
 
@@ -299,6 +312,9 @@ public class Configuration implements IConfiguration {
 			return true;
 		if (psets.hasChanged())
 			return true;
+		for (EDAliasInstance geda : globalEDAliases)
+			if (geda.hasChanged())
+				return true;
 		for (EDSourceInstance eds : edsources)
 			if (eds.hasChanged())
 				return true;
@@ -325,7 +341,7 @@ public class Configuration implements IConfiguration {
 				return true;
 		for (SwitchProducer swp : switchproducers)
 			if (swp.hasChanged())
-				return true;	
+				return true;
 		for (EventContent evc : contents)
 			if (evc.hasChanged())
 				return true;
@@ -360,6 +376,9 @@ public class Configuration implements IConfiguration {
 				return false;
 		for (EDAliasInstance eda : edaliases)
 			if (eda.name().equals(qualifier))
+				return false;
+		for (EDAliasInstance geda : globalEDAliases)
+			if (geda.name().equals(qualifier))
 				return false;
 		for (SwitchProducer swp : switchproducers)
 			if (swp.name().equals(qualifier))
@@ -402,6 +421,12 @@ public class Configuration implements IConfiguration {
 			if (eda == referencable)
 				continue;
 			if (eda.name().equals(referencable.name()))
+				return false;
+		}
+		for (EDAliasInstance geda : globalEDAliases) {
+			if (geda == referencable)
+				continue;
+			if (geda.name().equals(referencable.name()))
 				return false;
 		}
 		for (SwitchProducer swp : switchproducers) {
@@ -499,6 +524,7 @@ public class Configuration implements IConfiguration {
 		result += unsetTrackedESModuleParameterCount();
 		result += unsetTrackedServiceParameterCount();
 		result += unsetTrackedModuleParameterCount();
+		result += unsetTrackedEDAliasParameterCount();
 		return result;
 	}
 
@@ -550,13 +576,20 @@ public class Configuration implements IConfiguration {
 			result += mod.unsetTrackedParameterCount();
 		return result;
 	}
-	
 
 	/** number of unset tracked EDAlias parameters */
 	public int unsetTrackedEDAliasParameterCount() {
 		int result = 0;
 		for (EDAliasInstance eda : edaliases)
 			result += eda.unsetTrackedParameterCount();
+		return result;
+	}
+	
+	/** number of unset tracked global EDAlias parameters */
+	public int unsetTrackedGlobalEDAliasParameterCount() {
+		int result = 0;
+		for (EDAliasInstance geda : globalEDAliases)
+			result += geda.unsetTrackedParameterCount();
 		return result;
 	}
 
@@ -610,6 +643,12 @@ public class Configuration implements IConfiguration {
 		if (result != null)
 			return result;
 		result = module(name);
+		if (result != null)
+			return result;
+		result = edAlias(name);
+		if (result != null)
+			return result;
+		result = globalEDAlias(name);
 		if (result != null)
 			return result;
 		System.err.println("Configuration::instance(): can't find '" + name + "'");
@@ -672,7 +711,73 @@ public class Configuration implements IConfiguration {
 		hasChanged = true;
 	}
 
-	// public void sortPSets() { Collections.sort(psets); hasChanged=true; }
+	//
+	// Global EDAliases (have no reference methods)
+	//
+
+	/** number of global EDAliases */
+	public int globalEDAliasCount() {
+		return globalEDAliases.size();
+	}
+
+	/** get i-th global EDAlias */
+	public EDAliasInstance globalEDAlias(int i) {
+		return globalEDAliases.get(i);
+	}
+
+	/** get global EDAlias by name */
+	public EDAliasInstance globalEDAlias(String globalEDAliasName) {
+		for (EDAliasInstance ge : globalEDAliases)
+			if (ge.name().equals(globalEDAliasName))
+				return ge;
+		return null;
+	}
+
+	/** index of a certain global EDAlias */
+	public int indexOfGlobalEDAlias(EDAliasInstance globalEDAlias) {
+		return globalEDAliases.indexOf(globalEDAlias);
+	}
+
+	/** retrieve global EDAlias iterator */
+	public Iterator<EDAliasInstance> globalEDAliasIterator() {
+		return globalEDAliases.iterator();
+	}
+
+	/** insert an global EDAlias */
+	public EDAliasInstance insertGlobalEDAlias(String instanceName) {
+
+		EDAliasInstance instance = null;
+
+		try {
+			instance = new EDAliasInstance(instanceName);
+			if (instance.referenceCount() == 0) {
+				globalEDAliases.add(instance);
+				instance.setConfig(this);
+				hasChanged = true;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+		return instance;
+	}
+
+	/** insert a pre-existing global EDAlias */
+	public boolean insertGlobalEDAlias(int i, EDAliasInstance edAlias) {
+		if (globalEDAliases.indexOf(edAlias) < 0 && edAlias.referenceCount() == 0) {
+			globalEDAliases.add(i, edAlias);
+			edAlias.setConfig(this);
+			hasChanged = true;
+			return true;
+		}
+		return false;
+	}
+
+	/** remove a global EDAlias reference - probably unnecessary*/
+
+	/** sort global EDAliases */
+	public void sortGlobalEDAliases() {
+		Collections.sort(globalEDAliases);
+	}
 
 	//
 	// EDSources
@@ -1036,8 +1141,7 @@ public class Configuration implements IConfiguration {
 	public void sortModules() {
 		Collections.sort(modules);
 	}
-	
-	
+
 	//
 	// EDAliases
 	//
@@ -1118,8 +1222,7 @@ public class Configuration implements IConfiguration {
 	}
 
 	/** insert EDAliasReference at i-th position into a path/sequence/task */
-	public EDAliasReference insertEDAliasReference(ReferenceContainer container, int i,
-			String instanceName) {
+	public EDAliasReference insertEDAliasReference(ReferenceContainer container, int i, String instanceName) {
 		EDAliasInstance instance = insertEDAlias(instanceName);
 		return (instance != null) ? insertEDAliasReference(container, i, instance) : null;
 	}
@@ -1128,7 +1231,7 @@ public class Configuration implements IConfiguration {
 	public void sortEDAliases() {
 		Collections.sort(edaliases);
 	}
-	
+
 	//
 	// SwitchProducers
 	//
@@ -1252,7 +1355,8 @@ public class Configuration implements IConfiguration {
 	}
 
 	/** insert a switch producer into another path */
-	public SwitchProducerReference insertSwitchProducerReference(ReferenceContainer parent, int i, SwitchProducer switchProducer) {
+	public SwitchProducerReference insertSwitchProducerReference(ReferenceContainer parent, int i,
+			SwitchProducer switchProducer) {
 		SwitchProducerReference reference = (SwitchProducerReference) switchProducer.createReference(parent, i);
 		hasChanged = true;
 		return reference;
@@ -1406,9 +1510,9 @@ public class Configuration implements IConfiguration {
 					int index = modules.indexOf(instance);
 					modules.remove(index);
 				}
-			} 
+			}
 		}
-			
+
 		// remove this paths from all streams (includes datasets & contents)
 		Iterator<Stream> itS = path.streamIterator();
 		while (itS.hasNext())

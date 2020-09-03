@@ -24,6 +24,7 @@ public class ConfigurationModifier implements IConfiguration {
 
 	/** filtered components */
 	private ArrayList<PSetParameter> psets = new ArrayList<PSetParameter>();
+	private ArrayList<EDAliasInstance> globalEDAliases = new ArrayList<EDAliasInstance>();
 	private ArrayList<EDSourceInstance> edsources = new ArrayList<EDSourceInstance>();
 	private ArrayList<ESSourceInstance> essources = new ArrayList<ESSourceInstance>();
 	private ArrayList<ESModuleInstance> esmodules = new ArrayList<ESModuleInstance>();
@@ -132,6 +133,7 @@ public class ConfigurationModifier implements IConfiguration {
 			return;
 
 		psets.clear();
+		globalEDAliases.clear();
 		edsources.clear();
 		essources.clear();
 		esmodules.clear();

@@ -35,6 +35,7 @@ public class Diff {
 
 	/** comparisons of the various components */
 	private ArrayList<Comparison> psets = new ArrayList<Comparison>();
+	private ArrayList<Comparison> globalEDAliases = new ArrayList<Comparison>();
 	private ArrayList<Comparison> edsources = new ArrayList<Comparison>();
 	private ArrayList<Comparison> essources = new ArrayList<Comparison>();
 	private ArrayList<Comparison> esmodules = new ArrayList<Comparison>();
@@ -93,6 +94,22 @@ public class Diff {
 			PSetParameter pset1 = itPSet1.next();
 			if (config2.pset(pset1.name()) == null)
 				psets.add(comparePSets(pset1, null));
+		}
+		
+		//global EDAliases
+		Iterator<EDAliasInstance> itGEDA2 = config2.globalEDAliasIterator();
+		while (itGEDA2.hasNext()) {
+			EDAliasInstance geda2 = itGEDA2.next();
+			EDAliasInstance geda1 = config1.globalEDAlias(geda2.name());
+			Comparison c = compareInstances(geda1, geda2);  //pretty convoluted how this works
+			if (!c.isIdentical())
+				globalEDAliases.add(c);
+		}
+		Iterator<EDAliasInstance> itGEDA1 = config1.globalEDAliasIterator();
+		while (itGEDA1.hasNext()) {
+			EDAliasInstance geda1 = itGEDA1.next();
+			if (config2.globalEDAlias(geda1.name()) == null)
+				globalEDAliases.add(compareInstances(geda1, null));
 		}
 
 		// EDSources
@@ -187,10 +204,9 @@ public class Diff {
 		Iterator<EDAliasInstance> itEDA1 = config1.edAliasIterator();
 		while (itEDA1.hasNext()) {
 			EDAliasInstance eda1 = itEDA1.next();
-			if (config2.module(eda1.name()) == null)
+			if (config2.edAlias(eda1.name()) == null)
 				edaliases.add(compareInstances(eda1, null));
 		}
-
 
 		// Outputs
 		Iterator<OutputModule> itOut2 = config2.outputIterator();
@@ -389,6 +405,14 @@ public class Diff {
 				if (!c.isIdentical())
 					services.add(c);
 			}
+		} else if (type.equalsIgnoreCase("EDAlias")) {
+			for (int i = 0; i < items.size(); i++) {
+				EDAliasInstance edaold = config1.edAlias(items.get(i));
+				EDAliasInstance edanew = config2.edAlias(items.get(i));
+				Comparison c = compareInstances(edaold, edanew);
+				if (!c.isIdentical())
+					edaliases.add(c);
+			}
 		} else if (type.equalsIgnoreCase("PSet")) {
 			for (int i = 0; i < items.size(); i++) {
 				PSetParameter pset1 = config1.pset(items.get(i));
@@ -396,6 +420,14 @@ public class Diff {
 				Comparison c = comparePSets(pset1, pset2);
 				if (!c.isIdentical())
 					psets.add(c);
+			}
+		} else if (type.equalsIgnoreCase("GEDAlias")) { //TODO: check this string how to call it
+			for (int i = 0; i < items.size(); i++) {
+				EDAliasInstance gedaold = config1.globalEDAlias(items.get(i));
+				EDAliasInstance gedanew = config2.globalEDAlias(items.get(i));
+				Comparison c = compareInstances(gedaold, gedanew);
+				if (!c.isIdentical())
+					globalEDAliases.add(c);
 			}
 		} else {
 			// by default:
@@ -422,6 +454,12 @@ public class Diff {
 				Comparison c = comparePSets(psetold, psetnew);
 				if (!c.isIdentical())
 					psets.add(c);
+			} else if (type.equalsIgnoreCase("GEDAlias") || type.equalsIgnoreCase("geda")) {
+				EDAliasInstance gedaold = config1.globalEDAlias(oldName);
+				EDAliasInstance gedanew = config2.globalEDAlias(newName);
+				Comparison c = compareInstances(gedaold, gedanew);
+				if (!c.isIdentical())
+					globalEDAliases.add(c);
 			} else if (type.equalsIgnoreCase("EDSource") || type.equalsIgnoreCase("eds")) {
 				EDSourceInstance edsold = config1.edsource(oldName);
 				EDSourceInstance edsnew = config2.edsource(newName);
@@ -606,6 +644,25 @@ public class Diff {
 			PSetParameter pset1 = itPSet1.next();
 			if (config2.pset(pset1.name()) == null)
 				psets.add(comparePSets(pset1, null));
+		}
+	}
+	
+	/** compare all global EDAliases and store all non-identical comparisons */
+	public void compareGlobalEDAliases() {
+		// global EDAliases
+		Iterator<EDAliasInstance> itGEDA2 = config2.globalEDAliasIterator();
+		while (itGEDA2.hasNext()) {
+			EDAliasInstance geda2 = itGEDA2.next();
+			EDAliasInstance geda1 = config1.globalEDAlias(geda2.name());
+			Comparison c = compareInstances(geda1, geda2);
+			if (!c.isIdentical())
+				globalEDAliases.add(c);
+		}
+		Iterator<EDAliasInstance> itGEDA1 = config1.globalEDAliasIterator();
+		while (itGEDA1.hasNext()) {
+			EDAliasInstance geda1 = itGEDA1.next();
+			if (config2.globalEDAlias(geda1.name()) == null)
+				globalEDAliases.add(compareInstances(geda1, null));
 		}
 	}
 
@@ -963,6 +1020,26 @@ public class Diff {
 	/** iterator over all global psets */
 	public Iterator<Comparison> psetIterator() {
 		return psets.iterator();
+	}
+	
+	/** number of global edaliases */
+	public int globalEDAliasCount() {
+		return globalEDAliases.size();
+	}
+
+	/** retrieve i-th global edalias comparison */
+	public Comparison globalEDAlias(int i) {
+		return globalEDAliases.get(i);
+	}
+
+	/** get index of global edalias comparison */
+	public int indexOfGlobalEDAlias(Comparison globalEDAlias) {
+		return globalEDAliases.indexOf(globalEDAlias);
+	}
+
+	/** iterator over all global edaliases */
+	public Iterator<Comparison> globalEDAliasIterator() {
+		return globalEDAliases.iterator();
 	}
 
 	/** number of edsources */
@@ -1531,6 +1608,13 @@ public class Diff {
 			result.append("\n---------------------------------------" + "----------------------------------------\n");
 			result.append("Global PSets (" + psetCount() + "):\n");
 			result.append(printInstanceComparisons(psetIterator()));
+		}
+		
+		// global edaliases
+		if (globalEDAliasCount() > 0) {
+			result.append("\n---------------------------------------" + "----------------------------------------\n");
+			result.append("Global EDAliases (" + globalEDAliasCount() + "):\n");
+			result.append(printInstanceComparisons(globalEDAliasIterator()));
 		}
 
 		// edsources

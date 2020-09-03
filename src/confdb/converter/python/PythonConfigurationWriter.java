@@ -66,6 +66,16 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 			}
 			str.append("\n");
 		}
+		
+		if (conf.globalEDAliasCount() > 0) {
+			IEDAliasWriter globalEDAliasWriter = converterEngine.getGlobalEDAliasWriter();
+			for (int i = 0; i < conf.globalEDAliasCount(); i++) {
+				EDAliasInstance globalEDAlias = conf.globalEDAlias(i);
+				str.append(object);
+				str.append(globalEDAliasWriter.toString(globalEDAlias));
+			}
+			str.append("\n");
+		}
 
 		if (conf.edsourceCount() > 0) {
 			IEDSourceWriter edsourceWriter = converterEngine.getEDSourceWriter();

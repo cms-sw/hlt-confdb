@@ -103,7 +103,28 @@ public interface IConfiguration extends Serializable {
 
 	/** insert a global pset */
 	public void insertPSet(PSetParameter pset);
+	
+	/** number of global EDAliases */
+	public int globalEDAliasCount();
 
+	/** get i-th global EDAlias */
+	public EDAliasInstance globalEDAlias(int i);
+
+	/** get global EDAlias by name (name) */
+	public EDAliasInstance globalEDAlias(String globalEDAliasName);
+
+	/** index of a certain global EDAlias */
+	public int indexGlobalOfEDAlias(EDAliasInstance globalEDAlias);
+
+	/** retrieve global EDAlias iterator */
+	public Iterator<EDAliasInstance> globalEDAliasIterator();
+	
+	/** insert a global EDAlias */
+	public EDAliasInstance insertGlobalEDAlias(String instanceName);
+
+	/** insert a pre-existing global EDAlias */
+	public EDAliasInstance insertGlobalEDAlias(int i, EDAliasInstance edAlias);
+	
 	/** number of EDSources */
 	public int edsourceCount();
 

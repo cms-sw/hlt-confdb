@@ -11,12 +11,11 @@ import confdb.gui.tree.AbstractTreeModel;
 import confdb.data.*;
 
 /**
- * ConfigurationTreeModel
- * ----------------------
+ * ConfigurationTreeModel ----------------------
  * 
  * @author Philipp Schieferdecker
  *
- * Display a configuration in a JTree structure.
+ *         Display a configuration in a JTree structure.
  */
 public class ConfigurationTreeModel extends AbstractTreeModel {
 	//
@@ -37,6 +36,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 
 	/** first level of nodes */
 	private StringBuffer psetsNode = new StringBuffer();
+	private StringBuffer edAliasesNode = new StringBuffer();
 	private StringBuffer edsourcesNode = new StringBuffer();
 	private StringBuffer essourcesNode = new StringBuffer();
 	private StringBuffer esmodulesNode = new StringBuffer();
@@ -88,6 +88,11 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 	/** get the PSets root node */
 	public StringBuffer psetsNode() {
 		return psetsNode;
+	}
+	
+	/** get the EDAliases root node */
+	public StringBuffer edAliasNode() {
+		return edAliasesNode;
 	}
 
 	/** get the EDSources root node */
@@ -163,6 +168,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		} else {
 			if (level1Nodes.isEmpty()) {
 				level1Nodes.add(psetsNode);
+				level1Nodes.add(edAliasesNode);
 				level1Nodes.add(edsourcesNode);
 				level1Nodes.add(essourcesNode);
 				level1Nodes.add(esmodulesNode);
@@ -221,6 +227,21 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		}
 		psetsNode.append("</html>");
 		nodeChanged(psetsNode);
+
+		// EDAliases node
+		int edAliasCount = config.edAliasCount();
+		int unsetEDAliasCount = config.unsetTrackedPSetParameterCount();
+		edAliasesNode.delete(0, edAliasesNode.length());
+		edAliasesNode.append("<html><b>EDAliases</b> (");
+		edAliasesNode.append(edAliasCount);
+		edAliasesNode.append(")");
+		if (unsetEDAliasCount > 0) {
+			edAliasesNode.append(" <font color=#ff0000>[");
+			edAliasesNode.append(unsetEDAliasCount);
+			edAliasesNode.append("]</font>");
+		}
+		edAliasesNode.append("</html>");
+		nodeChanged(edAliasesNode);
 
 		// EDSources node
 		int edsourceCount = config.edsourceCount();
@@ -399,6 +420,8 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		} else if (node instanceof StringBuffer) {
 			if (node.equals(psetsNode))
 				return config.psetCount();
+			if (node.equals(edAliasesNode))
+				return config.edAliasCount();
 			if (node.equals(edsourcesNode))
 				return config.edsourceCount();
 			if (node.equals(essourcesNode))
@@ -504,6 +527,8 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		} else if (parent instanceof StringBuffer) {
 			if (parent.equals(psetsNode))
 				return config.pset(i);
+			if (parent.equals(edAliasesNode))
+				return config.edAlias(i);
 			if (parent.equals(edsourcesNode))
 				return config.edsource(i);
 			if (parent.equals(essourcesNode))
@@ -610,6 +635,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			if (parent.equals(psetsNode)) {
 				PSetParameter pset = (PSetParameter) child;
 				return config.indexOfPSet(pset);
+			}
+			if (parent.equals(edAliasesNode)) {
+				EDAliasInstance edAlias = (EDAliasInstance) child;
+				return config.indexOfEDAlias(edAlias);
 			}
 			if (parent.equals(edsourcesNode)) {
 				EDSourceInstance edsource = (EDSourceInstance) child;
@@ -775,7 +804,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 
 	/** get parent of a node */
 	public Object getParent(Object node) {
-		//System.out.println("NODE OBJECT TYPE: " + node.getClass().toString());
+		// System.out.println("NODE OBJECT TYPE: " + node.getClass().toString());
 		if (node instanceof Parameter) {
 			Parameter p = (Parameter) node;
 			Object parent = p.parent();
@@ -796,8 +825,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		else if (node instanceof ModuleInstance) {
 			return modulesNode;
 		} else if (node instanceof EDAliasInstance) {
-			System.out.println("EDALIAS NODE NOT EXISTING, RETURNING NULL");
-			return null; //FOR NOW
+			return edAliasesNode;
 		} else if (node instanceof OutputModule)
 			return outputsNode;
 		else if (node instanceof Path)
