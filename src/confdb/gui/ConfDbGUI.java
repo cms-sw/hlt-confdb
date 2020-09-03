@@ -65,7 +65,7 @@ import confdb.diff.*;
  */
 public class ConfDbGUI {
 	//
-	// member data
+	// member data //TODO: global EDAliases
 	//
 
 	/** current user */
@@ -3493,7 +3493,7 @@ public class ConfDbGUI {
 
 	private void jTreeConfigExpandLevel1Nodes(JTree t) {
 		ConfigurationTreeModel m = (ConfigurationTreeModel) t.getModel();
-
+		//TODO: continue from here analyzing global PSETS
 		TreePath tpPSets = new TreePath(m.getPathToRoot(m.psetsNode()));
 		t.expandPath(tpPSets);
 		TreePath tpEDSources = new TreePath(m.getPathToRoot(m.edsourcesNode()));

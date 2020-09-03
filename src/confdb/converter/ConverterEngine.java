@@ -8,6 +8,7 @@ public class ConverterEngine {
 
 	private IConfigurationWriter configurationWriter = null;
 	private IParameterWriter parameterWriter = null;
+	private IEDAliasWriter globalEDAliasWriter = null;
 	private IEDSourceWriter edsourceWriter = null;
 	private IESSourceWriter essourceWriter = null;
 	private IESModuleWriter esmoduleWriter = null;
@@ -70,6 +71,15 @@ public class ConverterEngine {
 
 	protected void setParameterWriter(IParameterWriter parameterWriter) {
 		this.parameterWriter = parameterWriter;
+	}
+	
+	public IEDAliasWriter getGlobalEDAliasWriter() {
+		return globalEDAliasWriter;
+	}
+
+	protected void setGlobalEDAliasWriter(IEDAliasWriter globalEDAliasWriter) {
+		this.globalEDAliasWriter = globalEDAliasWriter;
+		this.globalEDAliasWriter.setConverterEngine(this);
 	}
 
 	public IEDSourceWriter getEDSourceWriter() {
