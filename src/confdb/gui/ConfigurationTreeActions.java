@@ -235,28 +235,6 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 	
-	
-	//
-	// EDAlias VPSets
-	//
-
-	/** insert edalias vpset */
-	public static boolean insertEDAliasVPSet(JTree tree, VPSetParameter vpset) {
-		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
-		Configuration config = (Configuration) model.getRoot();
-		TreePath treePath = tree.getSelectionPath();
-
-		//config.insertPSet(vpset);
-
-		model.nodeInserted(model.psetsNode(), config.psetCount() - 1);
-		model.updateLevel1Nodes();
-
-		TreePath parentPath = (treePath.getPathCount() == 2) ? treePath : treePath.getParentPath();
-		tree.setSelectionPath(parentPath.pathByAddingChild(vpset));
-
-		return true;
-	}
-
 	//
 	// EDSources
 	//
@@ -928,39 +906,130 @@ public class ConfigurationTreeActions {
 
 		return true;
 	}
+	
+	public static boolean removeGlobalEDAlias(JTree tree, EDAliasInstance globalEDAlias) {
+		return removeNode(tree, globalEDAlias);
+	}
+	
+	/** insert a new global EDAlias producer */
+	public static boolean insertGlobalEDAlias(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+		int depth = treePath.getPathCount();
+		TreePath parentTreePath = (depth == 3) ? treePath : treePath.getParentPath();
+		//EDAliasInstance parent = (EDAliasInstance) parentTreePath.getLastPathComponent();
+
+		int index = config.globalEDAliasCount();
+
+		//System.out.println("PARENT " + parent.getClass().toString());
+		// index = 0;
+
+		EDAliasInstance globalEDAlias = config.insertGlobalEDAlias("<ENTER GLOBAL EDALIAS NAME>");
+		Reference reference = null;
+
+		//reference = config.insertEDAliasReference(parent, index, edAlias);
+
+		// Inserting in the model and refreshing tree view:
+		model.nodeInserted(model.globalEDAliasesNode(), index);
+		model.updateLevel1Nodes();
+		
+		TreePath parentPath = (treePath.getPathCount() == 2) ? treePath : treePath.getParentPath();
+		tree.setSelectionPath(parentPath.pathByAddingChild(globalEDAlias));
+		//TODO: fix this
+		/*
+		 * TreePath newTreePath = parentTreePath.pathByAddingChild(reference);
+		 * tree.expandPath(newTreePath.getParentPath());
+		 * tree.setSelectionPath(newTreePath);
+		 */
+
+		// Allow the user to modify the name of the reference
+		if (globalEDAlias != null) {
+			TreePath edAliasTreePath = new TreePath(model.getPathToRoot((Object) globalEDAlias));
+			editNodeName(tree);
+		}
+
+		return true;
+	}
 
 	/**
 	 * insertEDAliasNamed
 	 * ----------------------------------------------------------------- Insert a
-	 * new switch producer using the given name passed by parameter It checks the
-	 * switch producer name existence and tries different suffixes using underscore
+	 * new EDAlias using the given name passed by parameter It checks the
+	 * EDAlias name existence and tries different suffixes using underscore
 	 * + a number from 0 to 9.
+	 * @throws DataException 
 	 */
-	private static String insertEDAliasNamed(JTree tree, String name) {
+	private static String insertEDAliasNamed(JTree tree, String name) throws DataException {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
 		TreePath treePath = tree.getSelectionPath();
+		int depth = treePath.getPathCount();
+		TreePath parentTreePath = (depth == 3) ? treePath : treePath.getParentPath();
+
+		ReferenceContainer parent = (ReferenceContainer) parentTreePath.getLastPathComponent();
 
 		int index = (treePath.getPathCount() == 2) ? 0
 				: model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
 						treePath.getLastPathComponent()) + 1;
-		// To make sure that switch producer name doesn't exist:
+		// To make sure that EDALias name doesn't exist:
 		String newName = name;
-		if (config.switchProducer(name) != null) {
+		if (config.edAlias(name) != null) {
 			for (int j = 0; j < 10; j++) {
 				newName = name + "_" + j;
-				if (config.switchProducer(newName) == null) {
+				if (config.edAlias(newName) == null) {
 					j = 10;
 				}
 			}
 		}
 
-		SwitchProducer switchProducer = config.insertSwitchProducer(index, newName);
+		EDAliasInstance edAlias = config.insertEDAlias(index, newName);
 
-		model.nodeInserted(model.tasksNode(), index);
+		model.nodeInserted(parent, index);
 		model.updateLevel1Nodes();
 		TreePath parentPath = (index == 0) ? treePath : treePath.getParentPath();
-		TreePath newTreePath = parentPath.pathByAddingChild(switchProducer);
+		TreePath newTreePath = parentPath.pathByAddingChild(edAlias);
+		tree.setSelectionPath(newTreePath);
+		return newName;
+	}
+	
+	/**
+	 * insertGlobalEDAliasNamed
+	 * ----------------------------------------------------------------- Insert a
+	 * new global EDAlias using the given name passed by parameter It checks the
+	 * EDAlias name existence and tries different suffixes using underscore
+	 * + a number from 0 to 9.
+	 * @throws DataException 
+	 */
+	private static String insertGlobalEDAliasNamed(JTree tree, String name) throws DataException {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+		int depth = treePath.getPathCount();
+		TreePath parentTreePath = (depth == 3) ? treePath : treePath.getParentPath();
+
+		ReferenceContainer parent = (ReferenceContainer) parentTreePath.getLastPathComponent();
+
+		int index = (treePath.getPathCount() == 2) ? 0
+				: model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+						treePath.getLastPathComponent()) + 1;
+		// To make sure that global EDALias name doesn't exist:
+		String newName = name;
+		if (config.globalEDAlias(name) != null) {
+			for (int j = 0; j < 10; j++) {
+				newName = name + "_" + j;
+				if (config.globalEDAlias(newName) == null) {
+					j = 10;
+				}
+			}
+		}
+
+		EDAliasInstance globalEDAlias = config.insertGlobalEDAlias(index, newName);
+
+		model.nodeInserted(parent, index);
+		model.updateLevel1Nodes();
+		TreePath parentPath = (index == 0) ? treePath : treePath.getParentPath();
+		TreePath newTreePath = parentPath.pathByAddingChild(globalEDAlias);
 		tree.setSelectionPath(newTreePath);
 		return newName;
 	}
@@ -3941,22 +4010,6 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
-	public static void addModuleToEDAlias(JTree tree, JFrame frame) {
-
-		AddParameterDialog dlg = new AddParameterDialog(frame, true);
-		dlg.addVParameterSet();
-		dlg.pack();
-		dlg.setLocationRelativeTo(frame);
-		dlg.setVisible(true);
-		if (dlg.validChoice()) {
-			
-			  VPSetParameter vpset = (VPSetParameter) ParameterFactory.create(dlg.type(),
-			  dlg.name(), dlg.valueAsString(), dlg.isTracked());
-			  ConfigurationTreeActions.insertEDAliasVPSet(tree, vpset);
-			 
-		}
-	}
-
 	/**
 	 * replace a container (path, sequence, task, switch producer) with the internal
 	 * one
@@ -5606,6 +5659,13 @@ public class ConfigurationTreeActions {
 				return false;
 			config.removePSet(pset);
 			parent = model.psetsNode();
+		} else if (node instanceof EDAliasInstance) {
+			EDAliasInstance globalEDAlias = (EDAliasInstance) node;
+			index = config.indexOfGlobalEDAlias(globalEDAlias);
+			if (index < 0)
+				return false;
+			config.removeGlobalEDAlias(globalEDAlias);
+			parent = model.globalEDAliasesNode();
 		} else if (node instanceof EDSourceInstance) {
 			EDSourceInstance edsource = (EDSourceInstance) node;
 			index = config.indexOfEDSource(edsource);

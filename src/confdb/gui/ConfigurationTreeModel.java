@@ -36,7 +36,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 
 	/** first level of nodes */
 	private StringBuffer psetsNode = new StringBuffer();
-	private StringBuffer edAliasesNode = new StringBuffer();
+	private StringBuffer globalEDAliasesNode = new StringBuffer();
 	private StringBuffer edsourcesNode = new StringBuffer();
 	private StringBuffer essourcesNode = new StringBuffer();
 	private StringBuffer esmodulesNode = new StringBuffer();
@@ -90,9 +90,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		return psetsNode;
 	}
 	
-	/** get the EDAliases root node */
-	public StringBuffer edAliasNode() {
-		return edAliasesNode;
+	/** get the global EDAliases root node */
+	public StringBuffer globalEDAliasesNode() {
+		return globalEDAliasesNode;
 	}
 
 	/** get the EDSources root node */
@@ -168,7 +168,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		} else {
 			if (level1Nodes.isEmpty()) {
 				level1Nodes.add(psetsNode);
-				level1Nodes.add(edAliasesNode);
+				level1Nodes.add(globalEDAliasesNode);
 				level1Nodes.add(edsourcesNode);
 				level1Nodes.add(essourcesNode);
 				level1Nodes.add(esmodulesNode);
@@ -228,20 +228,20 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		psetsNode.append("</html>");
 		nodeChanged(psetsNode);
 
-		// EDAliases node
-		int edAliasCount = config.edAliasCount();
+		// Global EDAliases node
+		int globalEDAliasCount = config.globalEDAliasCount();
 		int unsetEDAliasCount = config.unsetTrackedPSetParameterCount();
-		edAliasesNode.delete(0, edAliasesNode.length());
-		edAliasesNode.append("<html><b>EDAliases</b> (");
-		edAliasesNode.append(edAliasCount);
-		edAliasesNode.append(")");
+		globalEDAliasesNode.delete(0, globalEDAliasesNode.length());
+		globalEDAliasesNode.append("<html><b>Global EDAliases</b> (");
+		globalEDAliasesNode.append(globalEDAliasCount);
+		globalEDAliasesNode.append(")");
 		if (unsetEDAliasCount > 0) {
-			edAliasesNode.append(" <font color=#ff0000>[");
-			edAliasesNode.append(unsetEDAliasCount);
-			edAliasesNode.append("]</font>");
+			globalEDAliasesNode.append(" <font color=#ff0000>[");
+			globalEDAliasesNode.append(unsetEDAliasCount);
+			globalEDAliasesNode.append("]</font>");
 		}
-		edAliasesNode.append("</html>");
-		nodeChanged(edAliasesNode);
+		globalEDAliasesNode.append("</html>");
+		nodeChanged(globalEDAliasesNode);
 
 		// EDSources node
 		int edsourceCount = config.edsourceCount();
@@ -420,8 +420,8 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		} else if (node instanceof StringBuffer) {
 			if (node.equals(psetsNode))
 				return config.psetCount();
-			if (node.equals(edAliasesNode))
-				return config.edAliasCount();
+			if (node.equals(globalEDAliasesNode))
+				return config.globalEDAliasCount();
 			if (node.equals(edsourcesNode))
 				return config.edsourceCount();
 			if (node.equals(essourcesNode))
@@ -527,8 +527,8 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		} else if (parent instanceof StringBuffer) {
 			if (parent.equals(psetsNode))
 				return config.pset(i);
-			if (parent.equals(edAliasesNode))
-				return config.edAlias(i);
+			if (parent.equals(globalEDAliasesNode))
+				return config.globalEDAlias(i);
 			if (parent.equals(edsourcesNode))
 				return config.edsource(i);
 			if (parent.equals(essourcesNode))
@@ -636,9 +636,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 				PSetParameter pset = (PSetParameter) child;
 				return config.indexOfPSet(pset);
 			}
-			if (parent.equals(edAliasesNode)) {
-				EDAliasInstance edAlias = (EDAliasInstance) child;
-				return config.indexOfEDAlias(edAlias);
+			if (parent.equals(globalEDAliasesNode)) {
+				EDAliasInstance globalEDAlias = (EDAliasInstance) child;
+				return config.indexOfGlobalEDAlias(globalEDAlias);
 			}
 			if (parent.equals(edsourcesNode)) {
 				EDSourceInstance edsource = (EDSourceInstance) child;
@@ -825,7 +825,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		else if (node instanceof ModuleInstance) {
 			return modulesNode;
 		} else if (node instanceof EDAliasInstance) {
-			return edAliasesNode;
+			return globalEDAliasesNode;
 		} else if (node instanceof OutputModule)
 			return outputsNode;
 		else if (node instanceof Path)
