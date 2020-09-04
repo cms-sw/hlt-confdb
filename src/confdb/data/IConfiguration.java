@@ -114,16 +114,20 @@ public interface IConfiguration extends Serializable {
 	public EDAliasInstance globalEDAlias(String globalEDAliasName);
 
 	/** index of a certain global EDAlias */
-	public int indexGlobalOfEDAlias(EDAliasInstance globalEDAlias);
+	public int indexOfGlobalEDAlias(EDAliasInstance globalEDAlias);
 
 	/** retrieve global EDAlias iterator */
 	public Iterator<EDAliasInstance> globalEDAliasIterator();
 	
 	/** insert a global EDAlias */
 	public EDAliasInstance insertGlobalEDAlias(String instanceName);
+	
+	/** insert a pre-existing global EDAlias 
+	 * @throws DataException */
+	public EDAliasInstance insertGlobalEDAlias(int i, String edAliasName) throws DataException;
 
 	/** insert a pre-existing global EDAlias */
-	public EDAliasInstance insertGlobalEDAlias(int i, EDAliasInstance edAlias);
+	public boolean insertGlobalEDAlias(int i, EDAliasInstance edAlias);
 	
 	/** number of EDSources */
 	public int edsourceCount();

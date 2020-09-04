@@ -2377,6 +2377,10 @@ public class ConfDbGUI {
 					EDAliasInstance instance = (EDAliasInstance) reference.parent();
 					text = "<html>" + instance.name();
 					text += "<html>";
+				} else if (selectedNode instanceof EDAliasInstance) { //Global EDAliases
+					EDAliasInstance instance = (EDAliasInstance) selectedNode;
+					text = "<html>" + instance.name();
+					text += "<html>";
 				} else if (selectedNode instanceof SequenceReference) {
 					// Do not display "unresolved input tags" for Sequences. bug/feature 82524
 
@@ -3144,10 +3148,23 @@ public class ConfDbGUI {
 				jEditorPaneSnippet.setText(e.getMessage());
 			}
 		} else if (currentParameterContainer instanceof EDAliasInstance) {
-			jTabbedPaneRightLower.setEnabledAt(3, true); // sets second tab enabled
-			jTabbedPaneRightLower.setEnabledAt(4, true); // sets containedInSequence tab enabled
-			jTabbedPaneRightLower.setEnabledAt(5, true); // sets containedInTask tab enabled
-			jTabbedPaneRightLower.setEnabledAt(6, true); // sets containedInSwitchProducers tab enabled
+			//First check if instance has no references - this is the case for global EDALiases
+			boolean isGlobalEDAlias = false;
+			
+			if (Integer.parseInt(this.getAssignedPaths()) == 0 &&
+				Integer.parseInt(this.getAssignedSequences()) == 0 &&
+				Integer.parseInt(this.getAssignedTasks()) == 0 && 
+				Integer.parseInt(this.getAssignedSwitchProducers()) == 0)
+			{
+				isGlobalEDAlias = true;
+			}
+			
+			if (!isGlobalEDAlias) {
+				jTabbedPaneRightLower.setEnabledAt(3, true); // sets second tab enabled
+				jTabbedPaneRightLower.setEnabledAt(4, true); // sets containedInSequence tab enabled
+				jTabbedPaneRightLower.setEnabledAt(5, true); // sets containedInTask tab enabled
+				jTabbedPaneRightLower.setEnabledAt(6, true); // sets containedInSwitchProducers tab enabled
+			}
 
 			jEditorContainedInPaths.setText(this.getAssignedPaths());
 			jEditorContainedInSequence.setText(this.getAssignedSequences());
@@ -3493,9 +3510,11 @@ public class ConfDbGUI {
 
 	private void jTreeConfigExpandLevel1Nodes(JTree t) {
 		ConfigurationTreeModel m = (ConfigurationTreeModel) t.getModel();
-		//TODO: continue from here analyzing global PSETS
+		
 		TreePath tpPSets = new TreePath(m.getPathToRoot(m.psetsNode()));
 		t.expandPath(tpPSets);
+		TreePath tpGEDAliases = new TreePath(m.getPathToRoot(m.globalEDAliasNode()));
+		t.expandPath(tpGEDAliases);
 		TreePath tpEDSources = new TreePath(m.getPathToRoot(m.edsourcesNode()));
 		t.expandPath(tpEDSources);
 		TreePath tpESSources = new TreePath(m.getPathToRoot(m.essourcesNode()));
