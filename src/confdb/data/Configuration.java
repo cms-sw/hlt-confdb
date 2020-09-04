@@ -771,8 +771,22 @@ public class Configuration implements IConfiguration {
 		}
 		return false;
 	}
+	
+	/** insert a pre-existing global EDAlias 
+	 * @throws DataException */
+	public EDAliasInstance insertGlobalEDAlias(int i, String edAliasName) throws DataException {
+		EDAliasInstance globalEDAlias = new EDAliasInstance(edAliasName);
+		globalEDAliases.add(i, globalEDAlias);
+		globalEDAlias.setConfig(this);
+		hasChanged = true;
+		return globalEDAlias;
+	}
 
-	/** remove a global EDAlias reference - probably unnecessary*/
+	/** remove a global EDAlias*/
+	public void removeGlobalEDAlias(EDAliasInstance globalEDAlias) {
+		globalEDAliases.remove(globalEDAlias);
+		hasChanged = true;
+	}
 
 	/** sort global EDAliases */
 	public void sortGlobalEDAliases() {
@@ -1201,6 +1215,14 @@ public class Configuration implements IConfiguration {
 			return true;
 		}
 		return false;
+	}
+	
+	public EDAliasInstance insertEDAlias(int i, String edAliasName) throws DataException {
+		EDAliasInstance edAlias = new EDAliasInstance(edAliasName);
+		edaliases.add(i, edAlias);
+		edAlias.setConfig(this);
+		hasChanged = true;
+		return edAlias;
 	}
 
 	/** remove a EDAlias reference */

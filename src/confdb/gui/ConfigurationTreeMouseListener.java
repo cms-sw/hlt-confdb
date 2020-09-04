@@ -37,6 +37,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 	/** popup menu associated with global psets */
 	private JPopupMenu popupPSets = null;
+	
+	/** popup menu associated with global EDAliases */
+	private JPopupMenu popupGlobalEDAliases = null;
 
 	/** popup menu showing all available service templates */
 	private JPopupMenu popupServices = null;
@@ -76,6 +79,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 	/** action listener for psets-menu actions */
 	private PSetMenuListener psetListener = null;
+	
+	/** action listener for global EDAliases-menu actions */
+	private GlobalEDAliasMenuListener globalEDAliasListener = null;
 
 	/** action listener for services-menu actions */
 	private ServiceMenuListener serviceListener = null;
@@ -139,6 +145,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		this.treeModel = (ConfigurationTreeModel) tree.getModel();
 
 		psetListener = new PSetMenuListener(tree, frame);
+		globalEDAliasListener = new GlobalEDAliasMenuListener(tree, frame);
 		edsourceListener = new EDSourceMenuListener(tree);
 		essourceListener = new ESSourceMenuListener(tree);
 		esmoduleListener = new ESModuleMenuListener(tree);
@@ -210,6 +217,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		if (isInTreePath(treePath, treeModel.psetsNode()) && depth <= 3) {
 			updatePSetMenu();
 			popupPSets.show(e.getComponent(), e.getX(), e.getY());
+			return;
+		}
+		
+		if (isInTreePath(treePath, treeModel.globalEDAliasesNode()) && depth <= 3) {
+			updateGlobalEDAliasMenu();
+			popupGlobalEDAliases.show(e.getComponent(), e.getX(), e.getY());
 			return;
 		}
 
@@ -330,6 +343,32 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			menuItem = new JMenuItem("Remove PSet");
 			menuItem.addActionListener(psetListener);
 			popupPSets.add(menuItem);
+		}
+
+		// if (depth==2&&enableSort) {
+		// popupPSets.addSeparator();
+		// menuItem = new JMenuItem("Sort");
+		// menuItem.addActionListener(psetListener);
+		// popupPSets.addComponent(menuItem);
+		// }
+	}
+	
+	/** update 'Global EDAliases' menu */
+	public void updateGlobalEDAliasMenu() {
+		JMenuItem menuItem;
+		popupGlobalEDAliases = new JPopupMenu();
+
+		TreePath treePath = tree.getSelectionPath();
+		int depth = treePath.getPathCount();
+
+		menuItem = new JMenuItem("Add Global EDAlias");
+		menuItem.addActionListener(globalEDAliasListener);
+		popupGlobalEDAliases.add(menuItem);
+
+		if (depth == 3) {
+			menuItem = new JMenuItem("Remove Global EDAlias");
+			menuItem.addActionListener(globalEDAliasListener);
+			popupGlobalEDAliases.add(menuItem);
 		}
 
 		// if (depth==2&&enableSort) {
@@ -2196,6 +2235,39 @@ class PSetMenuListener implements ActionListener {
 
 }
 
+
+/**
+ * listen to actions from the 'Global EDAliases' popup menu
+ */
+class GlobalEDAliasMenuListener implements ActionListener {
+	/** reference to the tree to be manipulated */
+	private JTree tree = null;
+
+	/** reference to the parent frame */
+	private JFrame frame = null;
+
+	/** standard constructor */
+	public GlobalEDAliasMenuListener(JTree tree, JFrame frame) {
+		this.tree = tree;
+		this.frame = frame;
+		
+	}
+
+	/** ActionListener interface */
+	public void actionPerformed(ActionEvent e) {
+		JMenuItem source = (JMenuItem) (e.getSource());
+		String cmd = source.getText();
+
+		if (cmd.equals("Remove Global EDAlias")) {
+			EDAliasInstance globalEDAlias = (EDAliasInstance) tree.getSelectionPath().getLastPathComponent();
+			ConfigurationTreeActions.removeGlobalEDAlias(tree, globalEDAlias);
+		} else if (cmd.equals("Add Global EDAlias")) {		
+			ConfigurationTreeActions.insertGlobalEDAlias(tree);
+		}
+	}
+
+}
+
 /**
  * listen to actions from the 'EDSource' popup menu
  */
@@ -2637,7 +2709,6 @@ class SwitchProducerMenuListener implements ActionListener {
 		} else if (cmd.equals("Rename EDAlias")) {
 			ConfigurationTreeActions.editNodeName(tree);
 		} else if (cmd.equals("Add Module (VPSet)")) {
-			//ConfigurationTreeActions.addModuleToEDAlias(tree, frame);
 			app.addTrackedVPsetParameter();
 		} else if (cmd.equals("Remove module (VPSet)")) {
 			System.out.println("REMOVE MODULE (VPSET)");
