@@ -916,36 +916,19 @@ public class ConfigurationTreeActions {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
 		TreePath treePath = tree.getSelectionPath();
-		int depth = treePath.getPathCount();
-		TreePath parentTreePath = (depth == 3) ? treePath : treePath.getParentPath();
-		//EDAliasInstance parent = (EDAliasInstance) parentTreePath.getLastPathComponent();
-
 		int index = config.globalEDAliasCount();
 
-		//System.out.println("PARENT " + parent.getClass().toString());
-		// index = 0;
-
 		EDAliasInstance globalEDAlias = config.insertGlobalEDAlias("<ENTER GLOBAL EDALIAS NAME>");
-		Reference reference = null;
-
-		//reference = config.insertEDAliasReference(parent, index, edAlias);
 
 		// Inserting in the model and refreshing tree view:
 		model.nodeInserted(model.globalEDAliasesNode(), index);
 		model.updateLevel1Nodes();
-		
+				
 		TreePath parentPath = (treePath.getPathCount() == 2) ? treePath : treePath.getParentPath();
 		tree.setSelectionPath(parentPath.pathByAddingChild(globalEDAlias));
-		//TODO: fix this
-		/*
-		 * TreePath newTreePath = parentTreePath.pathByAddingChild(reference);
-		 * tree.expandPath(newTreePath.getParentPath());
-		 * tree.setSelectionPath(newTreePath);
-		 */
 
 		// Allow the user to modify the name of the reference
 		if (globalEDAlias != null) {
-			TreePath edAliasTreePath = new TreePath(model.getPathToRoot((Object) globalEDAlias));
 			editNodeName(tree);
 		}
 
@@ -3539,6 +3522,30 @@ public class ConfigurationTreeActions {
 
 		return true;
 	}
+	
+	/** import a single global EDAlias into a switch producer */
+	public static boolean importGlobalEDAlias(JTree tree, EDAliasInstance external) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+
+		EDAliasInstance target = config.globalEDAlias(external.name());
+
+		if (target != null) {
+			int choice = JOptionPane.showConfirmDialog(null,
+					"The Global EDALias '" + target.name() + "' exists, " + "do you want to overwrite it?",
+					"Overwrite Global EDAlias", JOptionPane.OK_CANCEL_OPTION);
+			if (choice == JOptionPane.CANCEL_OPTION)
+				return false;
+			else
+				return replaceGlobalEDAlias(null, tree, external);
+		} else if (treePath == null)
+			return false;
+
+		//Target reference part is probably completely unnecessary since global EDAliases cannot be referenced
+		
+		return true;
+	}
 
 	/**
 	 * replace a module with the internal one
@@ -3935,10 +3942,6 @@ public class ConfigurationTreeActions {
 	 * name. USAGE: if newName is null, it allows the user to edit the name,
 	 * otherwise it assign the prefix "copy_of_" to the sourceEDAlias.
 	 * 
-	 * @NOTE: if the user doesn't change the default name 'copy_of_xxx' it will
-	 *        throw an exception: Instance.setName() ERROR: name
-	 *        'copy_of_hltDisplacedHT250L25Associator' is not unique! That message
-	 *        is not a problem. It also happens adding a new EDAlias.
 	 */
 	public static boolean CloneEDAlias(JTree tree, EDAliasReference oldEDAlias, String newName) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
@@ -4002,6 +4005,69 @@ public class ConfigurationTreeActions {
 		if (newEDAlias != null && newEDAlias.referenceCount() == 1) {
 			TreePath edAliasTreePath = new TreePath(model.getPathToRoot((Object) newEDAlias));
 			// model.nodeInserted(model.modulesNode(), config.moduleCount() - 1);
+			// //BSATARIC: check if EDAlias node is needed
+			if (newName == null)
+				editNodeName(tree);
+		}
+
+		return true;
+	}
+	
+	/**
+	 * Clone EDAlias -------------------- Clone an existing global EDAlias with a different
+	 * name. USAGE: if newName is null, it allows the user to edit the name,
+	 * otherwise it assign the prefix "copy_of_" to the sourceGlobalEDAlias.
+	 * @throws DataException 
+	 * 
+	 */
+	public static boolean CloneGlobalEDAlias(JTree tree, EDAliasInstance oldGlobalEDAlias, String newName) throws DataException {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+		
+		int index = config.globalEDAliasCount();
+
+		//EDAliasInstance globalEDAlias = config.insertGlobalEDAlias("<ENTER GLOBAL EDALIAS NAME>");
+
+		EDAliasInstance original = config.globalEDAlias(oldGlobalEDAlias.name());
+
+		String instanceName = oldGlobalEDAlias.name();
+
+		// Temporary name "copy_of_xxx"
+		if (newName != null)
+			instanceName = newName;
+		else
+			instanceName = "copy_of_" + instanceName;
+
+		// To make sure global edAlias name doesn't exist.
+		String temp;
+		if (config.globalEDAlias(instanceName) != null)
+			for (int j = 0; j < 10; j++) {
+				temp = instanceName + "_" + j;
+				if (config.globalEDAlias(temp) == null) {
+					j = 10;
+					instanceName = temp;
+				}
+			}
+		
+		EDAliasInstance newEDAlias = config.insertGlobalEDAlias(index, instanceName);
+
+		// Copy values
+		Iterator<Parameter> itP = original.parameterIterator(); // this should copy EDAlias module names
+		while (itP.hasNext()) {
+			Parameter p = itP.next();
+			newEDAlias.updateTrackedParameter(p.name(), p.type(), p.valueAsString());
+		}
+
+		// Inserting in the model and refreshing tree view:
+		model.nodeInserted(model.globalEDAliasesNode(), index);
+		model.updateLevel1Nodes();
+
+		TreePath parentPath = (treePath.getPathCount() == 2) ? treePath : treePath.getParentPath();
+		tree.setSelectionPath(parentPath.pathByAddingChild(newEDAlias));
+
+		// Allow the user to modify the name of the reference
+		if (newEDAlias != null) {
 			// //BSATARIC: check if EDAlias node is needed
 			if (newName == null)
 				editNodeName(tree);
@@ -4300,6 +4366,14 @@ public class ConfigurationTreeActions {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
 		config.sortEDAliases();
+		// model.nodeStructureChanged(model.modulesNode()); //BSATARIC: check this
+	}
+	
+	/** sort global EDAliases */
+	public static void sortGlobalEDAliases(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		config.sortGlobalEDAliases();
 		// model.nodeStructureChanged(model.modulesNode()); //BSATARIC: check this
 	}
 
@@ -5440,6 +5514,52 @@ public class ConfigurationTreeActions {
 		}
 		return true;
 	}
+	
+	/**
+	 * replace a global EDAlias with the external one
+	 */
+	public static boolean replaceGlobalEDAlias(Configuration config, JTree tree, EDAliasInstance external) {
+		if ((config == null) && (tree == null))
+			return false;
+		if ((config != null) && (tree != null))
+			return false;
+
+		ConfigurationTreeModel model = null;
+
+		boolean updateModel = (tree != null);
+
+		if (updateModel) {
+			model = (ConfigurationTreeModel) tree.getModel();
+			config = (Configuration) model.getRoot();
+		}
+
+		EDAliasInstance oldGlobalEDAlias = config.globalEDAlias(external.name());
+		if (oldGlobalEDAlias == null)
+			return false;
+
+		int index = config.indexOfGlobalEDAlias(oldGlobalEDAlias);
+		
+		if (updateModel) model.nodeRemoved(model.globalEDAliasesNode(), index, oldGlobalEDAlias);
+		
+		try {
+			EDAliasInstance newGlobalEDAlias = new EDAliasInstance(external.name());
+			for (int i = 0; i < newGlobalEDAlias.parameterCount(); i++)
+				newGlobalEDAlias.updateParameter(i, external.parameter(i).valueAsString());
+			newGlobalEDAlias.setDatabaseId(external.databaseId());
+			config.insertGlobalEDAlias(index, newGlobalEDAlias);
+			 
+			if (updateModel) {
+				model.nodeInserted(model.globalEDAliasesNode(), index);
+				model.updateLevel1Nodes();
+				tree.expandPath(new TreePath(model.getPathToRoot(newGlobalEDAlias)));
+			}
+
+		} catch (DataException e) {
+			System.err.println("replaceGlobalEDAlias() FAILED: " + e.getMessage());
+			return false;
+		}
+		return true;
+	}
 
 	/**
 	 * import a node into the tree and add the respective component to the
@@ -5813,30 +5933,26 @@ public class ConfigurationTreeActions {
 
 	public static void renameEDAliasVPSets(IConfiguration config, String oldModuleName, String newModuleName) {
 		
-		/*
-		 * ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
-		 * Configuration config = (Configuration) model.getRoot();
-		 * 
-		 * TreePath treePath = tree.getSelectionPath();
-		 * 
-		 * int index = (treePath.getPathCount() == 2) ? 0 :
-		 * model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
-		 * treePath.getLastPathComponent()) + 1;
-		 */		
-		//System.out.println("DDDD");
-		//String newModuleName = config.module(index).name();
-		//System.out.println("NEW MODULE NAME: " + newModuleName);
-		
 		Iterator<EDAliasInstance> itEDA = config.edAliasIterator();
 		while (itEDA.hasNext()) {
 			EDAliasInstance edAliasInstance = itEDA.next();
 			for (int j = 0; j < edAliasInstance.parameterCount(); j++) {
 				edAliasInstance.updateName(oldModuleName, "VPSet", newModuleName);
-				//edAliasInstance.updateParameter(j, edAliasInstance.parameter(j).valueAsString());
 			}
 
 		}
+	}
+	
+	public static void renameGlobalEDAliasVPSets(IConfiguration config, String oldModuleName, String newModuleName) {
+		
+		Iterator<EDAliasInstance> itGEDA = config.globalEDAliasIterator();
+		while (itGEDA.hasNext()) {
+			EDAliasInstance globalEDAliasInstance = itGEDA.next();
+			for (int j = 0; j < globalEDAliasInstance.parameterCount(); j++) {
+				globalEDAliasInstance.updateName(oldModuleName, "VPSet", newModuleName);
+			}
 
+		}
 	}
 
 }
