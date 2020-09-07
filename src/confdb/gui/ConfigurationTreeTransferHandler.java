@@ -116,7 +116,7 @@ public class ConfigurationTreeTransferHandler extends TransferHandler {
 		return t;
 	}
 
-	/** wether a certain data flavor can be imported or not */
+	/** Weather a certain data flavor can be imported or not */
 	public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
 		return true;
 	}

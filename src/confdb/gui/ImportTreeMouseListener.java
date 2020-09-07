@@ -104,7 +104,7 @@ public class ImportTreeMouseListener extends MouseAdapter {
 						popup.add(item);
 						popup.show(e.getComponent(), e.getX(), e.getY());
 					}
-				} else if (child instanceof PSetParameter) {
+				} else if (child instanceof PSetParameter) { //TODO: add all EDAliases/GlobalEDaliases possibly
 					JPopupMenu popup = new JPopupMenu();
 					JMenuItem item = null;
 					item = new JMenuItem("Import All PSets");
@@ -147,11 +147,11 @@ public class ImportTreeMouseListener extends MouseAdapter {
 			item.addActionListener(new AddModuleListener(currentTree, module));
 			popup.add(item);
 			popup.show(e.getComponent(), e.getX(), e.getY());
-		} else if (node instanceof EDAliasInstance) {
-			EDAliasInstance module = (EDAliasInstance) node;
+		} else if (node instanceof EDAliasInstance) { 
+			EDAliasInstance edAlias = (EDAliasInstance) node;
 			JPopupMenu popup = new JPopupMenu();
-			JMenuItem item = new JMenuItem("Import " + module.name());
-			item.addActionListener(new AddEDAliasListener(currentTree, module));
+			JMenuItem item = new JMenuItem("Import " + edAlias.name());
+			item.addActionListener(new AddEDAliasListener(currentTree, edAlias)); //this will handle global EDAliases as well
 			popup.add(item);
 			popup.show(e.getComponent(), e.getX(), e.getY());
 		} else if (node instanceof Instance) {
@@ -264,7 +264,7 @@ class AddModuleListener implements ActionListener {
 	}
 }
 
-//module listener class
+//EDAlias listener class
 class AddEDAliasListener implements ActionListener {
 	// member data
 	private JTree targetTree;
@@ -278,7 +278,8 @@ class AddEDAliasListener implements ActionListener {
 
 	// member functions
 	public void actionPerformed(ActionEvent e) {
-		ConfigurationTreeActions.importEDAlias(targetTree, edAlias);
+		if (!ConfigurationTreeActions.importEDAlias(targetTree, edAlias))
+			ConfigurationTreeActions.importGlobalEDAlias(targetTree, edAlias);
 	}
 }
 

@@ -19,8 +19,8 @@ import confdb.data.*;
 import java.util.Collections;
 
 /**
- * ConfigurationTreeMouseListener
- * ------------------------------
+ * ConfigurationTreeMouseListener ------------------------------
+ * 
  * @author Philipp Schieferdecker
  *
  */
@@ -37,7 +37,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 	/** popup menu associated with global psets */
 	private JPopupMenu popupPSets = null;
-	
+
 	/** popup menu associated with global EDAliases */
 	private JPopupMenu popupGlobalEDAliases = null;
 
@@ -79,7 +79,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 	/** action listener for psets-menu actions */
 	private PSetMenuListener psetListener = null;
-	
+
 	/** action listener for global EDAliases-menu actions */
 	private GlobalEDAliasMenuListener globalEDAliasListener = null;
 
@@ -130,9 +130,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 	 * cell component when clicking the tree.
 	 */
 	private TreeTable TreeTableParameters;
-	
+
 	/** reference to the gui application */
-    //private ConfDbGUI app = null;
+	// private ConfDbGUI app = null;
 
 	//
 	// construction
@@ -145,7 +145,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		this.treeModel = (ConfigurationTreeModel) tree.getModel();
 
 		psetListener = new PSetMenuListener(tree, frame);
-		globalEDAliasListener = new GlobalEDAliasMenuListener(tree, frame);
+		globalEDAliasListener = new GlobalEDAliasMenuListener(tree, frame, app);
 		edsourceListener = new EDSourceMenuListener(tree);
 		essourceListener = new ESSourceMenuListener(tree);
 		esmoduleListener = new ESModuleMenuListener(tree);
@@ -158,7 +158,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		contentListener = new ContentMenuListener(tree);
 		streamListener = new StreamMenuListener(tree, frame);
 		datasetListener = new DatasetMenuListener(tree, frame);
-		
+
 	}
 
 	//
@@ -219,7 +219,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			popupPSets.show(e.getComponent(), e.getX(), e.getY());
 			return;
 		}
-		
+
 		if (isInTreePath(treePath, treeModel.globalEDAliasesNode()) && depth <= 3) {
 			updateGlobalEDAliasMenu();
 			popupGlobalEDAliases.show(e.getComponent(), e.getX(), e.getY());
@@ -283,7 +283,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		}
 
 		// show the 'VPSets' popup (EDAlias)?
-		
+
 		// show the 'Modules' popup?
 		if (isInTreePath(treePath, treeModel.modulesNode()) && depth <= 3) {
 			updateModuleMenu();
@@ -352,7 +352,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		// popupPSets.addComponent(menuItem);
 		// }
 	}
-	
+
 	/** update 'Global EDAliases' menu */
 	public void updateGlobalEDAliasMenu() {
 		JMenuItem menuItem;
@@ -360,6 +360,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 		TreePath treePath = tree.getSelectionPath();
 		int depth = treePath.getPathCount();
+		Object node = treePath.getPathComponent(depth - 1);
 
 		menuItem = new JMenuItem("Add Global EDAlias");
 		menuItem.addActionListener(globalEDAliasListener);
@@ -371,12 +372,22 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			popupGlobalEDAliases.add(menuItem);
 		}
 
-		// if (depth==2&&enableSort) {
-		// popupPSets.addSeparator();
-		// menuItem = new JMenuItem("Sort");
-		// menuItem.addActionListener(psetListener);
-		// popupPSets.addComponent(menuItem);
-		// }
+		if (node instanceof EDAliasInstance) {
+			menuItem = new JMenuItem("Rename Global EDAlias");
+			menuItem.addActionListener(globalEDAliasListener);
+			popupGlobalEDAliases.add(menuItem);
+
+			// CLONE OPTION:
+			menuItem = new JMenuItem("Clone Global EDAlias");
+			menuItem.addActionListener(globalEDAliasListener);
+			popupGlobalEDAliases.add(menuItem);
+			
+			menuItem = new JMenuItem("Add Module (VPSet)");
+			menuItem.addActionListener(globalEDAliasListener);
+			popupGlobalEDAliases.add(menuItem);
+			
+			//Removing VPSet is done through parameter table
+		}
 	}
 
 	/** update 'EDSource' menu */
@@ -1164,7 +1175,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				JMenu addModuleMenu = createAddRepModuleMenu(switchProducer, null, switchProducerListener, true, true);
 				popupSwitchProducers.add(addModuleMenu);
 
-				JMenu addEDAliasMenu = createAddRepEDAliasMenu(switchProducer, null, switchProducerListener, true);
+				JMenu addEDAliasMenu = createAddRepEDAliasMenu(switchProducer, null, switchProducerListener);
 				popupSwitchProducers.add(addEDAliasMenu);
 
 				popupSwitchProducers.addSeparator();
@@ -1196,7 +1207,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				JMenu addModuleMenu = createAddRepModuleMenu(switchProducer, null, switchProducerListener, true, true);
 				popupSwitchProducers.add(addModuleMenu);
 
-				JMenu addEDAliasMenu = createAddRepEDAliasMenu(switchProducer, null, switchProducerListener, true);
+				JMenu addEDAliasMenu = createAddRepEDAliasMenu(switchProducer, null, switchProducerListener);
 				popupSwitchProducers.add(addEDAliasMenu);
 			}
 
@@ -1230,23 +1241,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 					menuItem.addActionListener(switchProducerListener);
 					popupSwitchProducers.add(menuItem);
 				}
-				
-				/*
-				 * JMenuItem menuItem; popupPSets = new JPopupMenu();
-				 * 
-				 * TreePath treePath = tree.getSelectionPath(); int depth =
-				 * treePath.getPathCount(); Object node = treePath.getLastPathComponent();
-				 */
 
 				menuItem = new JMenuItem("Add Module (VPSet)");
 				menuItem.addActionListener(switchProducerListener);
 				popupSwitchProducers.add(menuItem);
-
-				if (depth == 3) {
-					menuItem = new JMenuItem("Remove Module (VPSet)");
-					menuItem.addActionListener(switchProducerListener);
-					popupSwitchProducers.add(menuItem);
-				}
+				
+				//Removing VPSets is done through parameter table menu
 
 				popupSwitchProducers.addSeparator();
 				popupSwitchProducers.add(createSetOperatorMenu((Reference) node, switchProducerListener));
@@ -1859,124 +1859,19 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		return moduleMenu;
 	}
 
-	/** create the 'Add/Replace EDAlias' submenu */ // TODO: test and fix this
+	/** create the 'Add/Replace EDAlias' submenu */
 	private JMenu createAddRepEDAliasMenu(ReferenceContainer container, EDAliasInstance edAlias,
-			ActionListener listener, boolean isAdd) {
+			ActionListener listener) {
 		JMenu edAliasMenu = null;
 		JMenuItem menuItem;
-		if (isAdd) {
-			edAliasMenu = new JMenu("Add EDAlias");
-		} else {
-			edAliasMenu = new JMenu("Replace EDAlias");
-		}
+		
+		edAliasMenu = new JMenu("Add EDAlias");
 
 		menuItem = new JMenuItem("New EDAlias");
 		menuItem.addActionListener(listener);
 		menuItem.setActionCommand("NEWEDA");
 		edAliasMenu.add(menuItem);
-		/*
-		 * edAliasMenu.addSeparator();
-		 * 
-		 * 
-		 * JMenuItem menuItemAll; JMenuItem copyItemAll; JMenuItem copyItem;
-		 * 
-		 * TreeModel model = tree.getModel(); Configuration config = (Configuration)
-		 * model.getRoot();
-		 * 
-		 * // dynamically fill menus to add remaining edAlias types HashMap<String,
-		 * JMenu> menuHashMap = new HashMap<String, JMenu>(); Iterator<EDAliasInstance>
-		 * it2 = container.edAliasIterator(); int edAliasNumber = config.edAliasCount();
-		 * for (int i = 0; i < edAliasNumber; i++) { EDAliasInstance ed =
-		 * config.edAlias(i);
-		 * 
-		 * System.out.println("EDAlias: " + ed.name());
-		 * 
-		 * JMenu edAliasTypeAllMenu; JMenu edAliasLetterMenu;
-		 * 
-		 * String edAliasTypeAll = "All"; if (!menuHashMap.containsKey(edAliasTypeAll))
-		 * { // edAliasTypeMenu = new ScrollableMenu("All EDAliases");
-		 * edAliasTypeAllMenu = new ScrollableMenu("All"); //
-		 * menuHashMap.put(moduleType, edAliasTypeMenu); menuHashMap.put(edAliasTypeAll,
-		 * edAliasTypeAllMenu); // edAliasMenu.add(edAliasTypeMenu);
-		 * edAliasMenu.add(edAliasTypeAllMenu); //
-		 * edAliasTypeMenu.add(edAliasTypeAllMenu); } else { // edAliasTypeMenu =
-		 * menuHashMap.get(moduleType); edAliasTypeAllMenu =
-		 * menuHashMap.get(edAliasTypeAll); }
-		 * 
-		 * String edAliasLetter = ed.name().substring(0, 1); if
-		 * (!menuHashMap.containsKey(edAliasLetter)) { edAliasLetterMenu = new
-		 * ScrollableMenu(edAliasLetter); menuHashMap.put(edAliasLetter,
-		 * edAliasLetterMenu); // edAliasTypeMenu.add(edAliasLetterMenu);
-		 * edAliasTypeAllMenu.add(edAliasLetterMenu); } else { edAliasLetterMenu =
-		 * menuHashMap.get(edAliasLetter); }
-		 * 
-		 * while (it2.hasNext()) { EDAliasInstance ed2 = it2.next();
-		 * 
-		 * // if 2 EDAliases are called the same (maybe object comparison instead?)
-		 * forbid // some options if (ed.name().matches(ed2.name())) { JMenu
-		 * instanceMenuAll = new ScrollableMenu(ed.name()); JMenu instanceMenu = new
-		 * ScrollableMenu(ed.name()); menuItemAll = new JMenuItem("New Instance");
-		 * menuItem = new JMenuItem("New Instance");
-		 * menuItemAll.addActionListener(listener);
-		 * menuItem.addActionListener(listener);
-		 * menuItemAll.setActionCommand(ed.name());
-		 * menuItem.setActionCommand(ed.name()); instanceMenuAll.add(menuItemAll);
-		 * instanceMenu.add(menuItem);
-		 * 
-		 * JMenu copyMenuAll = new ScrollableMenu("Copy"); JMenu copyMenu = new
-		 * ScrollableMenu("Copy"); instanceMenuAll.add(copyMenuAll);
-		 * instanceMenu.add(copyMenu);
-		 * 
-		 * instanceMenuAll.addSeparator(); instanceMenu.addSeparator();
-		 * 
-		 * ArrayList<String> sortedInstanceNames = new ArrayList<String>(); for (int j =
-		 * 0; j < ed.referenceCount(); j++) { // for (int i = 0; i < t.instanceCount();
-		 * i++) { // ModuleInstance instance = (ModuleInstance) t.instance(i); //
-		 * EDAliasInstance instance = (EDAliasInstance) //
-		 * sortedInstanceNames.add(instance.name());
-		 * sortedInstanceNames.add(ed.reference(j).name()); // BSATARIC: TODO: I'm not
-		 * sure how to do this // like instances
-		 * 
-		 * } Collections.sort(sortedInstanceNames);
-		 * 
-		 * Iterator<String> itI = sortedInstanceNames.iterator(); while (itI.hasNext())
-		 * { String instanceName = itI.next(); // ModuleInstance instance = null;
-		 * EDAliasInstance instance1 = null; // instance = (ModuleInstance)
-		 * t.instance(instanceName); instance1 = config.insertEDAlias(instanceName); //
-		 * this probably cannot be like this as it will // be the same name
-		 * 
-		 * menuItemAll = new JMenuItem(instance1.name()); menuItem = new
-		 * JMenuItem(instance1.name()); copyItemAll = new JMenuItem(instance1.name());
-		 * copyItem = new JMenuItem(instance1.name());
-		 * menuItemAll.addActionListener(listener);
-		 * menuItem.addActionListener(listener);
-		 * copyItemAll.addActionListener(listener);
-		 * copyItem.addActionListener(listener); menuItemAll.setActionCommand(ed.name()
-		 * + ":" + instance1.name()); menuItem.setActionCommand(ed.name() + ":" +
-		 * instance1.name()); copyItemAll.setActionCommand("copy:" + ed.name() + ":" +
-		 * instance1.name()); copyItem.setActionCommand("copy:" + ed.name() + ":" +
-		 * instance1.name());
-		 * 
-		 * if (container != null) { for (int j = 0; j < container.entryCount(); j++) {
-		 * Reference reference = container.entry(j); if
-		 * (instance1.isReferencedBy(reference)) { menuItemAll.setEnabled(false);
-		 * menuItem.setEnabled(false); copyItemAll.setEnabled(false);
-		 * copyItem.setEnabled(false); break; } } } if (edAlias != null) { if
-		 * (edAlias.name().equals(instance1.name())) { menuItemAll.setEnabled(false);
-		 * menuItem.setEnabled(false); copyItemAll.setEnabled(false);
-		 * copyItem.setEnabled(false); } }
-		 * 
-		 * instanceMenuAll.add(menuItemAll); instanceMenu.add(menuItem);
-		 * copyMenuAll.add(copyItemAll); copyMenu.add(copyItem); }
-		 * edAliasTypeAllMenu.add(instanceMenuAll); edAliasLetterMenu.add(instanceMenu);
-		 * } else { System.out.println("OVDE"); menuItemAll = new JMenuItem(ed.name());
-		 * menuItem = new JMenuItem(ed.name()); menuItemAll.setActionCommand(ed.name());
-		 * menuItem.setActionCommand(ed.name());
-		 * menuItemAll.addActionListener(listener);
-		 * menuItem.addActionListener(listener); edAliasTypeAllMenu.add(menuItemAll);
-		 * edAliasLetterMenu.add(menuItem); } } }
-		 */
-		// }
+	
 		return edAliasMenu;
 	}
 
@@ -2235,7 +2130,6 @@ class PSetMenuListener implements ActionListener {
 
 }
 
-
 /**
  * listen to actions from the 'Global EDAliases' popup menu
  */
@@ -2245,24 +2139,41 @@ class GlobalEDAliasMenuListener implements ActionListener {
 
 	/** reference to the parent frame */
 	private JFrame frame = null;
+	
+	/** reference to the parent GUI */
+	private ConfDbGUI app = null;
 
 	/** standard constructor */
-	public GlobalEDAliasMenuListener(JTree tree, JFrame frame) {
+	public GlobalEDAliasMenuListener(JTree tree, JFrame frame, ConfDbGUI app) {
 		this.tree = tree;
 		this.frame = frame;
-		
+		this.app = app;
 	}
 
 	/** ActionListener interface */
 	public void actionPerformed(ActionEvent e) {
 		JMenuItem source = (JMenuItem) (e.getSource());
 		String cmd = source.getText();
+		TreePath treePath = tree.getSelectionPath();
+		Object node = treePath.getLastPathComponent();
+
 
 		if (cmd.equals("Remove Global EDAlias")) {
 			EDAliasInstance globalEDAlias = (EDAliasInstance) tree.getSelectionPath().getLastPathComponent();
 			ConfigurationTreeActions.removeGlobalEDAlias(tree, globalEDAlias);
-		} else if (cmd.equals("Add Global EDAlias")) {		
+		} else if (cmd.equals("Add Global EDAlias")) {
 			ConfigurationTreeActions.insertGlobalEDAlias(tree);
+		} else if (cmd.equals("Rename Global EDAlias")) {
+			ConfigurationTreeActions.editNodeName(tree);
+		} else if (cmd.equals("Add Module (VPSet)")) {
+			app.addTrackedVPsetParameter();
+		} else if (cmd.equals("Clone Global EDAlias")) {
+			try {
+				ConfigurationTreeActions.CloneGlobalEDAlias(tree, (EDAliasInstance) node, null);
+			} catch (DataException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
 	}
 
@@ -2640,13 +2551,12 @@ class TaskMenuListener implements ActionListener {
 class SwitchProducerMenuListener implements ActionListener {
 	/** reference to the tree to be manipulated */
 	private JTree tree = null;
-	
+
 	/** reference to the parent frame */
 	private JFrame frame = null;
-	
-	/** reference to the parent GUI */
-    private ConfDbGUI app = null;
 
+	/** reference to the parent GUI */
+	private ConfDbGUI app = null;
 
 	/** standard constructor */
 	public SwitchProducerMenuListener(JTree tree, JFrame frame, ConfDbGUI app) {
@@ -2710,9 +2620,6 @@ class SwitchProducerMenuListener implements ActionListener {
 			ConfigurationTreeActions.editNodeName(tree);
 		} else if (cmd.equals("Add Module (VPSet)")) {
 			app.addTrackedVPsetParameter();
-		} else if (cmd.equals("Remove module (VPSet)")) {
-			System.out.println("REMOVE MODULE (VPSET)");
-			//ConfigurationTreeActions.removeReference(tree);
 		} else if (cmd.equals("Remove OutputModule")) {
 			ConfigurationTreeActions.removeReference(tree);
 		} else if (action.equals("OutputModule")) {
@@ -2755,15 +2662,15 @@ class ModuleMenuListener implements ActionListener {
 			ConfigurationTreeActions.sortModules(tree);
 		} else if (cmd.equals("Rename Module")) {
 
-			String oldModuleName = ((ModuleInstance)node).name();
-			//System.out.println("OLD MODULE NAME: " + oldModuleName);
+			String oldModuleName = ((ModuleInstance) node).name();
+			// System.out.println("OLD MODULE NAME: " + oldModuleName);
 			ConfigurationTreeActions.editNodeName(tree);
-			//String newModuleName = ((ModuleInstance)node).name();
-			//System.out.println("NEW MODULE NAME: " + oldModuleName);
+			// String newModuleName = ((ModuleInstance)node).name();
+			// System.out.println("NEW MODULE NAME: " + oldModuleName);
 
-			//TODO: Here go through all EDAliases and rename VPSet name(s) if necessary
-			//this will need new method in ConfigurationTreeAction
-			//ConfigurationTreeActions.renameEDAliasVPSets(tree);
+			// TODO: Here go through all EDAliases and rename VPSet name(s) if necessary
+			// this will need new method in ConfigurationTreeAction
+			// ConfigurationTreeActions.renameEDAliasVPSets(tree);
 		}
 		// replace the module by the selected one
 		else {

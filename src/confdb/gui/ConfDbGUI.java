@@ -3151,10 +3151,10 @@ public class ConfDbGUI {
 			//First check if instance has no references - this is the case for global EDALiases
 			boolean isGlobalEDAlias = false;
 			
-			if (Integer.parseInt(this.getAssignedPaths()) == 0 &&
-				Integer.parseInt(this.getAssignedSequences()) == 0 &&
-				Integer.parseInt(this.getAssignedTasks()) == 0 && 
-				Integer.parseInt(this.getAssignedSwitchProducers()) == 0)
+			if (this.getAssignedPaths().equals("") &&
+				this.getAssignedSequences().equals("") &&
+				this.getAssignedTasks().equals("") && 
+				this.getAssignedSwitchProducers().equals(""))
 			{
 				isGlobalEDAlias = true;
 			}
@@ -3513,7 +3513,7 @@ public class ConfDbGUI {
 		
 		TreePath tpPSets = new TreePath(m.getPathToRoot(m.psetsNode()));
 		t.expandPath(tpPSets);
-		TreePath tpGEDAliases = new TreePath(m.getPathToRoot(m.globalEDAliasNode()));
+		TreePath tpGEDAliases = new TreePath(m.getPathToRoot(m.globalEDAliasesNode()));
 		t.expandPath(tpGEDAliases);
 		TreePath tpEDSources = new TreePath(m.getPathToRoot(m.edsourcesNode()));
 		t.expandPath(tpEDSources);
@@ -3594,7 +3594,9 @@ public class ConfDbGUI {
 		
 		//Potentially rename EDAlias VPSets when module name is changed
 		if (node instanceof ModuleInstance) {
-			ConfigurationTreeActions.renameEDAliasVPSets(currentConfig, this.oldModuleName, ((ModuleInstance)node).name());	
+			ConfigurationTreeActions.renameEDAliasVPSets(currentConfig, this.oldModuleName, ((ModuleInstance)node).name());
+			//not sure if global renaming should be done
+			ConfigurationTreeActions.renameGlobalEDAliasVPSets(currentConfig, this.oldModuleName, ((ModuleInstance)node).name());
 		}
 	}
 
