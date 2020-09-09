@@ -193,7 +193,10 @@ public class ConfigurationTreeTransferHandler extends TransferHandler {
 			// insert EDAlias
 			if (sourceNode instanceof EDAliasInstance) {
 				EDAliasInstance source = (EDAliasInstance) sourceNode;
-				return ConfigurationTreeActions.importEDAlias(targetTree, source);
+				boolean success = false;
+				if ((success = ConfigurationTreeActions.importEDAlias(targetTree, source)) == false)
+						success = ConfigurationTreeActions.importGlobalEDAlias(targetTree, source);
+				return success;
 			}
 
 			// insert Path/Sequence/Task/SwitchProducer

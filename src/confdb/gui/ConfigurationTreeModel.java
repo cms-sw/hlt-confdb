@@ -50,7 +50,6 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 	private StringBuffer contentsNode = new StringBuffer();
 	private StringBuffer streamsNode = new StringBuffer();
 	private StringBuffer datasetsNode = new StringBuffer();
-	// BSATARIC: TODO (maybe EDAliases)
 
 	private StringBuffer unassignedPathsNode = new StringBuffer("<html><i>Unassigned " + "Paths</i></html>");
 
@@ -230,7 +229,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 
 		// Global EDAliases node
 		int globalEDAliasCount = config.globalEDAliasCount();
-		int unsetEDAliasCount = config.unsetTrackedPSetParameterCount();
+		int unsetEDAliasCount = config.unsetTrackedEDAliasParameterCount();
 		globalEDAliasesNode.delete(0, globalEDAliasesNode.length());
 		globalEDAliasesNode.append("<html><b>Global EDAliases</b> (");
 		globalEDAliasesNode.append(globalEDAliasCount);

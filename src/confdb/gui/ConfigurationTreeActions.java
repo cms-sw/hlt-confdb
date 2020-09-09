@@ -623,7 +623,7 @@ public class ConfigurationTreeActions {
 					config.insertModuleReference(container, index + i, module).setOperator(operators[i]);
 				} else if (instances[i] instanceof EDAliasInstance) {
 					EDAliasInstance edAlias = (EDAliasInstance) instances[i];
-					config.insertEDAlias(config.moduleCount(), edAlias);
+					config.insertEDAlias(config.edAliasCount(), edAlias);
 					// BSATARIC: this down should not be possible since only Switch Producer can
 					// reference EDAlias
 					// config.insertEDAliasReference(container, index + i,
@@ -871,7 +871,7 @@ public class ConfigurationTreeActions {
 		return newName;
 	}
 
-	/** insert a new EDAlias producer */
+	/** insert a new EDAlias */
 	public static boolean insertEDAlias(JTree tree) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
@@ -2469,8 +2469,8 @@ public class ConfigurationTreeActions {
 					if (!c.isIdentical()) { // replace edAlias.
 						if (updateModel) {
 							ConfigurationTreeActions.replaceEDAlias(null, targetTree, source);
-							// TODO: check if there should be EDAliases node
-							// treeModel.nodeStructureChanged(treeModel.modulesNode()); // forcing refresh
+							// refresh SP node since EDA are there
+							treeModel.nodeStructureChanged(treeModel.switchProducersNode()); // forcing refresh
 						} else {
 							ConfigurationTreeActions.replaceEDAlias(config, null, source);
 						}
@@ -2515,7 +2515,6 @@ public class ConfigurationTreeActions {
 							targetRef.setOperator(sourceRef.getOperator());
 							if (updateModel) {
 								treeModel.nodeInserted(targetContainer, i);
-								// TODO: check if EDAliases node should exist
 								/*
 								 * if (target.referenceCount() == 1)
 								 * treeModel.nodeInserted(treeModel.modulesNode(), config.moduleCount() - 1);
@@ -2543,7 +2542,6 @@ public class ConfigurationTreeActions {
 					targetRef.setOperator(sourceRef.getOperator());
 					if (updateModel) {
 						treeModel.nodeInserted(targetContainer, i);
-						// TODO: check if EDAliases node should exist
 						/*
 						 * if (target.referenceCount() == 1)
 						 * treeModel.nodeInserted(treeModel.modulesNode(), config.moduleCount() - 1);
@@ -3077,7 +3075,7 @@ public class ConfigurationTreeActions {
 				reference = config.insertEDAliasReference(parent, index, instanceName);
 			} else {
 				EDAliasInstance original = null;
-				original = config.edAlias(instanceName); // BSATARIC: is this ok?
+				original = config.edAlias(instanceName);
 				instanceName = "copy_of_" + instanceName;
 				reference = config.insertEDAliasReference(parent, index, original);
 				edAlias = (EDAliasInstance) reference.parent();
@@ -3148,7 +3146,7 @@ public class ConfigurationTreeActions {
 				ModuleInstance instance = (ModuleInstance) reference.parent();
 				if (instance.referenceCount() == 1)
 					unreferencedIndices.add(config.indexOfModule(instance));
-			}
+			} 
 		}
 
 		int childIndices[] = null;
@@ -3254,7 +3252,7 @@ public class ConfigurationTreeActions {
 
 		model.nodeRemoved(container, index, reference);
 		if (module != null && module.referenceCount() == 0)
-			model.nodeRemoved(model.modulesNode(), indexOfModule, module); // BSATARIC: do we need EDAlias node?
+			model.nodeRemoved(model.modulesNode(), indexOfModule, module);
 		model.updateLevel1Nodes();
 
 		TreePath parentTreePath = treePath.getParentPath();
@@ -3306,8 +3304,8 @@ public class ConfigurationTreeActions {
 		if (updateModel) {
 			model.nodeRemoved(container, index, reference);
 			if (module != null && module.referenceCount() == 0)
-				model.nodeRemoved(model.modulesNode(), indexOfModule, module); // TODO; check if there is need for
-																				// EDAliases node
+				model.nodeRemoved(model.modulesNode(), indexOfModule, module);
+																				
 			model.updateLevel1Nodes();
 		}
 
@@ -3419,6 +3417,19 @@ public class ConfigurationTreeActions {
 		Configuration config = (Configuration) model.getRoot();
 
 		TreePath Path = new TreePath(model.getPathToRoot(config.edAlias(edAliasName)));
+		tree.setSelectionPath(Path);
+		tree.expandPath(Path);
+		tree.scrollPathToVisible(Path);
+	}
+	
+	/**
+	 * scroll to the global edAlias given by the edAlias name and expand the tree.
+	 */
+	public static void scrollToGlobalEDAliasByName(String globalEDAliasName, JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+
+		TreePath Path = new TreePath(model.getPathToRoot(config.globalEDAlias(globalEDAliasName)));
 		tree.setSelectionPath(Path);
 		tree.expandPath(Path);
 		tree.scrollPathToVisible(Path);
@@ -3715,11 +3726,10 @@ public class ConfigurationTreeActions {
 		if (config == null)
 			return false;
 
-		if (config.module(oldEDAlias.name()) == null)
+		if (config.edAlias(oldEDAlias.name()) == null)
 			return false;
 
 		EDAliasInstance newEDAlias = null;
-		String newTemplateName = null;
 		if (s.length == 1) {
 			// temporary unique name
 			newEDAliasName = "Instance_of_" + s[0];
@@ -3789,7 +3799,7 @@ public class ConfigurationTreeActions {
 			return false;
 		}
 
-		int index = config.indexOfEDAlias(oldEDAlias);
+		//int index = config.indexOfEDAlias(oldEDAlias);
 		int refCount = oldEDAlias.referenceCount();
 		ReferenceContainer[] parents = new ReferenceContainer[refCount];
 		int[] indices = new int[refCount];
@@ -3836,12 +3846,139 @@ public class ConfigurationTreeActions {
 
 		model.updateLevel1Nodes();
 
-		// model.nodeStructureChanged(model.modulesNode()); //BSATARIC: check if EDAlias
-		// node is needed
+		// model.nodeStructureChanged(model.modulesNode());
 		if (s.length == 2) {
 			scrollToEDAliasByName(newEDAliasName, tree);
 		} else {
 			scrollToEDAliasByName(oldEDAliasName, tree);
+		}
+
+		return true;
+	}
+	
+	/**
+	 * replace a global EDAlias with the internal one
+	 */
+	public static boolean replaceGlobalEDAliasInternally(JTree tree, EDAliasInstance oldGlobalEDAlias, String newObject) {
+		/* newObject = class or class:name or copy:class:name */
+		System.out.println("XXX " + oldGlobalEDAlias.name() + " " + newObject);
+
+		if (tree == null || oldGlobalEDAlias == null || newObject == null)
+			return false;
+
+		String oldGlobalEDAliasName = oldGlobalEDAlias.name();
+		String newGlobalEDAliasName = null;
+		String[] s = newObject.split(":");
+
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		if (config == null)
+			return false;
+
+		if (config.globalEDAlias(oldGlobalEDAlias.name()) == null)
+			return false;
+
+		EDAliasInstance newGlobalEDAlias = null;
+		String newTemplateName = null;
+		if (s.length == 1) {
+			// temporary unique name
+			newGlobalEDAliasName = "Instance_of_" + s[0];
+			int i = 0;
+			while (!config.isUniqueQualifier(newGlobalEDAliasName)) {
+				newGlobalEDAliasName = "Instance_of_" + s[0] + "_" + i;
+				++i;
+			}
+			newGlobalEDAlias = config.insertGlobalEDAlias(newGlobalEDAliasName);
+			Iterator<Parameter> itP = null;
+			itP = oldGlobalEDAlias.parameterIterator();
+			while (itP.hasNext()) {
+				Parameter p = itP.next();
+				Iterator<Parameter> itQ = newGlobalEDAlias.parameterIterator();
+				while (itQ.hasNext()) {
+					Parameter q = itQ.next();
+					if (p.type().equals(q.type()))
+						newGlobalEDAlias.updateParameter(q.name(), q.type(), p.valueAsString());
+				}
+			}
+			itP = oldGlobalEDAlias.parameterIterator();
+			while (itP.hasNext()) {
+				Parameter p = itP.next();
+				Parameter n = newGlobalEDAlias.parameter(p.name(), p.type());
+				if (n != null)
+					newGlobalEDAlias.updateParameter(p.name(), p.type(), p.valueAsString()); // BSATARIC: why do this 2 times?
+			}
+		} else if (s.length == 2) {
+			// old edAlias replaced by existing edAlias, keeping newGlobalEDAliasName
+			// newTemplateName = s[0]; //BSATARIC: here there will have to be dummy, or
+			// empty space
+			newGlobalEDAliasName = s[1];
+			if (newGlobalEDAliasName.equals(oldGlobalEDAliasName))
+				return false;
+			newGlobalEDAlias = config.globalEDAlias(newGlobalEDAliasName);
+		} else if (s.length == 3) {
+			// old edAlias replaced by new copy of an existing edAlias, keeping
+			// oldGlobalEDAliasName
+			// newTemplateName = s[1];
+			// temporary unique name
+			newGlobalEDAliasName = "Copy_of_" + s[2];
+			int i = 0;
+			while (!config.isUniqueQualifier(newGlobalEDAliasName)) {
+				newGlobalEDAliasName = "Copy_of_" + s[2] + "_" + i;
+				++i;
+			}
+			newGlobalEDAlias = config.insertGlobalEDAlias(newGlobalEDAliasName);
+			Iterator<Parameter> itP = null;
+			itP = oldGlobalEDAlias.parameterIterator();
+			while (itP.hasNext()) {
+				Parameter p = itP.next();
+				Iterator<Parameter> itQ = newGlobalEDAlias.parameterIterator();
+				while (itQ.hasNext()) {
+					Parameter q = itQ.next();
+					if (p.type().equals(q.type()))
+						newGlobalEDAlias.updateParameter(q.name(), q.type(), p.valueAsString());
+				}
+			}
+			itP = oldGlobalEDAlias.parameterIterator();
+			while (itP.hasNext()) {
+				Parameter p = itP.next();
+				Parameter n = newGlobalEDAlias.parameter(p.name(), p.type());
+				if (n != null)
+					newGlobalEDAlias.updateParameter(p.name(), p.type(), p.valueAsString());
+			}
+		} else {
+			return false;
+		}
+
+		int index = config.indexOfGlobalEDAlias(oldGlobalEDAlias);
+
+		model.nodeRemoved(model.globalEDAliasesNode(), index, oldGlobalEDAlias);
+
+		try {
+			newGlobalEDAlias.setNameAndPropagate(oldGlobalEDAliasName);
+		} catch (DataException e) {
+			System.err.println(e.getMessage());
+		}
+
+
+		if (s.length == 2) {
+			// now rename newGlobalEDAlias back to its original name, and update all
+			// (V)InputTags/keeps etc. originally referring to both oldGlobalEDAlias
+			// and the also newGlobalEDAlias under oldModule's name to use newGlobalEDAlias's
+			// original and final name.
+			try {
+				newGlobalEDAlias.setNameAndPropagate(newGlobalEDAliasName);
+			} catch (DataException e) {
+				System.err.println(e.getMessage());
+			}
+		}
+
+		model.updateLevel1Nodes();
+
+		model.nodeStructureChanged(model.globalEDAliasesNode());
+		if (s.length == 2) {
+			scrollToGlobalEDAliasByName(newGlobalEDAliasName, tree);
+		} else {
+			scrollToGlobalEDAliasByName(oldGlobalEDAliasName, tree);
 		}
 
 		return true;
@@ -4005,7 +4142,6 @@ public class ConfigurationTreeActions {
 		if (newEDAlias != null && newEDAlias.referenceCount() == 1) {
 			TreePath edAliasTreePath = new TreePath(model.getPathToRoot((Object) newEDAlias));
 			// model.nodeInserted(model.modulesNode(), config.moduleCount() - 1);
-			// //BSATARIC: check if EDAlias node is needed
 			if (newName == null)
 				editNodeName(tree);
 		}
@@ -4068,7 +4204,7 @@ public class ConfigurationTreeActions {
 
 		// Allow the user to modify the name of the reference
 		if (newEDAlias != null) {
-			// //BSATARIC: check if EDAlias node is needed
+			model.nodeInserted(model.globalEDAliasesNode(), config.globalEDAliasCount() - 1);
 			if (newName == null)
 				editNodeName(tree);
 		}
@@ -4374,7 +4510,7 @@ public class ConfigurationTreeActions {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
 		config.sortGlobalEDAliases();
-		// model.nodeStructureChanged(model.modulesNode()); //BSATARIC: check this
+		model.nodeStructureChanged(model.globalEDAliasesNode());
 	}
 
 	//
@@ -5697,6 +5833,42 @@ public class ConfigurationTreeActions {
 
 		return true;
 	}
+	
+	
+	/**
+	 * Update All EDAliases.
+	 */
+	public static boolean UpdateAllEDAliases(JTree tree, JTree sourceTree, Object external) {
+		ConfigurationTreeModel sm = (ConfigurationTreeModel) sourceTree.getModel();
+
+		if (sm.getChildCount(external) == 0) {
+			String error = "[confdb.gui.ConfigurationTreeActions.UpdateAllEDAliases] ERROR: Child count == 0";
+			System.err.println(error);
+			return false;
+		}
+
+		if (sm.getChildCount(external) > 0) {
+			Instance instance = (Instance) sm.getChild(external, 0);
+			if (!(instance instanceof EDAliasInstance)) {
+				System.err.println("[confdb.gui.ConfigurationTreeActions.UpdateAllEDAliases] ERROR: type mismatch!");
+				return false;
+			}
+		} else
+			return false;
+
+		int choice = JOptionPane.showConfirmDialog(null,
+				" Items shared by both configurations will be overwritten.\n" + "Do you want to update them?",
+				"update all", JOptionPane.YES_NO_OPTION);
+
+		if (choice == JOptionPane.NO_OPTION)
+			return false;
+
+		UpdateAllEDAliasesThread worker = new UpdateAllEDAliasesThread(tree, sm, external);
+		WorkerProgressBar wpb = new WorkerProgressBar("Updating all EDAliases", worker);
+		wpb.createAndShowGUI();
+
+		return true;
+	}
 
 	/*
 	 * replace an existing instance with the external one
@@ -6119,7 +6291,7 @@ class ImportAllInstancesThread extends SwingWorker<String, String> {
 	}
 }
 
-/** Update Modules using threads. */ // BSATARIC: I'm not sure if this is necessary for EDAliases?
+/** Update Modules using threads. */
 final class UpdateAllModulesThread extends SwingWorker<String, String> {
 	/** member data */
 	private long startTime;
@@ -6212,6 +6384,104 @@ final class UpdateAllModulesThread extends SwingWorker<String, String> {
 		System.out.println(items.size() + " items updated! enlapsedTime: " + time);
 		targetModel.updateLevel1Nodes();
 		targetModel.nodeStructureChanged(targetModel.modulesNode());
+	}
+
+}
+
+/** Update Modules using threads. */
+final class UpdateAllEDAliasesThread extends SwingWorker<String, String> {
+	/** member data */
+	private long startTime;
+	private JTree tree;
+	private ConfigurationTreeModel sourceModel;
+	private ConfigurationTreeModel targetModel;
+	private Object ext;
+	private ArrayList<String> items; // names of imported items
+	private Configuration targetConfig;
+	private Configuration sourceConfig;
+	private ConfigurationModifier sourceConfM;
+	private String type;
+
+	/** standard constructor */
+	public UpdateAllEDAliasesThread(JTree Tree, ConfigurationTreeModel sourceModel, Object external) {
+		this.tree = Tree;
+		this.sourceModel = sourceModel;
+		this.targetModel = (ConfigurationTreeModel) tree.getModel();
+		this.ext = external;
+		this.items = new ArrayList<String>();
+		this.targetConfig = (Configuration) targetModel.getRoot();
+		this.type = "";
+		this.sourceConfig = null;
+		this.sourceConfM = null; // Necessary to allow import from a filtered configuration.
+
+		Object conf = sourceModel.getRoot();
+		if (conf instanceof Configuration)
+			this.sourceConfig = (Configuration) sourceModel.getRoot();
+		else if (conf instanceof ConfigurationModifier)
+			this.sourceConfM = (ConfigurationModifier) sourceModel.getRoot();
+
+	}
+
+	/** Return an Array list with containers name to perform a diff operation. */
+	public ArrayList<String> getUpdatedItems() {
+		return items;
+	}
+
+	@Override
+	protected String doInBackground() throws Exception {
+		startTime = System.currentTimeMillis();
+		int count = sourceModel.getChildCount(ext);
+		EDAliasInstance instance = null;
+		for (int i = 0; i < sourceModel.getChildCount(ext); i++) {
+			tree.setSelectionPath(null);
+			instance = (EDAliasInstance) sourceModel.getChild(ext, i);
+
+			int progress = (i * 100) / count; // range 0-100
+			setProgress(progress);
+
+			if ((instance instanceof EDAliasInstance) && targetConfig.module(instance.name()) != null) {
+				if (!ConfigurationTreeActions.replaceEDAlias(targetConfig, null, instance)) {
+					ConfigurationTreeActions.replaceGlobalEDAlias(targetConfig, null, instance);
+					type = "GEDAlias";
+				} else
+					type = "EDAlias";
+				items.add(instance.name()); // register item for diff
+				firePropertyChange("current", null, instance.name());
+			}
+		}
+		setProgress(100);
+
+		return new String("Done!");
+	}
+
+	/*
+	 * Executed in event dispatching thread
+	 */
+	@Override
+	public void done() {
+		long elapsedTime = System.currentTimeMillis() - startTime;
+
+		Diff diff;
+		if (sourceConfig != null)
+			diff = new Diff(sourceConfig, targetConfig);
+		else
+			diff = new Diff(sourceConfM, targetConfig);
+
+		diff.compare(type, items);
+		if (!diff.isIdentical()) {
+			DiffDialog dlg = new DiffDialog(diff);
+			dlg.pack();
+			dlg.setVisible(true);
+		}
+		String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(elapsedTime),
+				TimeUnit.MILLISECONDS.toSeconds(elapsedTime)
+						- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(elapsedTime)));
+
+		firePropertyChange("current", null, items.size() + " items updated! " + time);
+		System.out.println(items.size() + " items updated! enlapsedTime: " + time);
+		targetModel.updateLevel1Nodes();
+		targetModel.nodeStructureChanged(targetModel.globalEDAliasesNode());
+		targetModel.nodeStructureChanged(targetModel.switchProducersNode());
 	}
 
 }
