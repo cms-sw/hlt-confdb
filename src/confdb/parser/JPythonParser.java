@@ -223,9 +223,19 @@ public class JPythonParser
         parseFilterModules(process);
         // add analyzers:
         parseAnalyzerModules(process);
+        
+        // add EDAliases:
+        parseEDAliases(process);
 
         // add sequences
         parseSequencesFromPython(process);
+        
+        // add tasks
+        parseTasksFromPython(process);
+        
+        // add switchProducers
+        parseSwitchProducersFromPython(process);
+        
         // add paths
         parsePathsFromPython(process);
 
@@ -282,6 +292,13 @@ public class JPythonParser
         PyDictionary modules = (PyDictionary) process.__getattr__("_Process__producers");
         if (validPyObject(modules))
             parseModuleMap(modules, "EDProducers");
+    }
+    
+    // parse EDAliases:
+    private void parseEDAliases(PyObject process) {
+        PyDictionary edAliases = (PyDictionary) process.__getattr__("_Process__edaliases");
+        if (validPyObject(edAliases))
+            parseEDAliasMap(edAliases, "EDAliases");
     }
 
     // parse Modules of type filters:
@@ -355,6 +372,15 @@ public class JPythonParser
             parseModule(moduleObject.getValue());
         }
     }
+    
+    // parse edAliases dictionary
+    private void parseEDAliasMap(PyDictionary pydict, String name) {
+        alert(msg.inf, " " + name + " (" + pydict.size() + ")");
+        for (Object o : pydict.entrySet()) {
+            PyDictionary.Entry<String, PyObject> edAliasObject = (PyDictionary.Entry<String, PyObject>) o;
+            parseEDAlias(edAliasObject.getValue());
+        }
+    }
 
     // parse PSets dictionary
     private void parsePSetMap(PyDictionary pydict) {
@@ -415,6 +441,39 @@ public class JPythonParser
             //TODO: Update module with file values?
             PyDictionary parameterContainerObject = (PyDictionary) moduleObject.invoke("parameters_");
             updateModuleParameters(parameterContainerObject, module);
+        }
+
+        return true;
+    }
+    
+    // Parse one single edAlias
+    private boolean parseEDAlias(PyObject edAliasObject) {
+
+        String type  = getType(edAliasObject);
+        String label = getLabel(edAliasObject);
+
+        if (type == "EDAlias") {
+            EDAliasInstance edAlias = configuration.edAlias(label);
+
+            if (edAlias != null) {
+                PyDictionary parameterContainerObject = (PyDictionary) edAliasObject.invoke("parameters_");
+                updateEDAliasParameters(parameterContainerObject, edAlias);
+            } else {
+                edAlias = configuration.insertEDAlias(label);
+                PyDictionary parameterContainerObject = (PyDictionary) edAliasObject.invoke("parameters_");
+                updateEDAliasParameters(parameterContainerObject, edAlias);
+            }
+        } else if (type == "GEDAlias") {
+            EDAliasInstance globalEDAlias = configuration.globalEDAlias(label);
+
+            if (globalEDAlias != null) {
+                PyDictionary parameterContainerObject = (PyDictionary) edAliasObject.invoke("parameters_");
+                updateEDAliasParameters(parameterContainerObject, globalEDAlias);
+            } else {
+            	globalEDAlias = configuration.insertGlobalEDAlias(label);
+                PyDictionary parameterContainerObject = (PyDictionary) edAliasObject.invoke("parameters_");
+                updateEDAliasParameters(parameterContainerObject, globalEDAlias);
+            }
         }
 
         return true;
@@ -561,6 +620,20 @@ public class JPythonParser
         if (validPyObject(sequences))
             parseSequenceMap(sequences);
     }
+    
+    // Parse Sequences:
+    private void parseTasksFromPython(PyObject pyprocess){
+        PyDictionary tasks = (PyDictionary) pyprocess.__getattr__("_Process__tasks");
+        if (validPyObject(tasks))
+            parseTasksMap(tasks);
+    }
+    
+    // Parse SwitchProducers:
+    private void parseSwitchProducersFromPython(PyObject pyprocess){
+        PyDictionary switchProducers = (PyDictionary) pyprocess.__getattr__("_Process__switchproducers");
+        if (validPyObject(switchProducers))
+            parseSwitchProducersMap(switchProducers);
+    }
 
     // Parse Paths:
     private void parsePathsFromPython(PyObject pyprocess){
@@ -640,6 +713,15 @@ public class JPythonParser
         for (Object parameterObject : parameterContainer.entrySet()) {
             PyDictionary.Entry<String, PyObject> entry = (PyDictionary.Entry<String, PyObject>) parameterObject;
             parseParameter(entry.getKey(), entry.getValue(), module);
+        }
+
+    }
+    
+    private void updateEDAliasParameters(PyDictionary parameterContainer, confdb.data.Instance edAlias)
+    {
+        for (Object parameterObject : parameterContainer.entrySet()) {
+            PyDictionary.Entry<String, PyObject> entry = (PyDictionary.Entry<String, PyObject>) parameterObject;
+            parseParameter(entry.getKey(), entry.getValue(), edAlias);
         }
 
     }
@@ -1129,6 +1211,32 @@ public class JPythonParser
                 Reference reference = parentContainer.entry(label);
                 if (reference == null)
                     reference = configuration.insertSequenceReference(parentContainer, parentContainer.entryCount(), subSequence);
+            } 
+            else if (pythonObjects.task.is(type))
+            // Task
+            {
+                // Parse sub-items of label task on demand:
+                PyDictionary tasks = (PyDictionary) process.__getattr__("_Process__tasks");
+                PyObject task = tasks.__getitem__(new PyString(label));
+                confdb.data.Task subTask = parseTask(task);
+
+                // If task reference does not exist in this container, add it!
+                Reference reference = parentContainer.entry(label);
+                if (reference == null)
+                    reference = configuration.insertTaskReference(parentContainer, parentContainer.entryCount(), subTask);
+            }
+            else if (pythonObjects.switchProducer.is(type))
+            // SwitchProducer
+            {
+                // Parse sub-items of label task on demand:
+                PyDictionary switchProducers = (PyDictionary) process.__getattr__("_Process__switchproducers");
+                PyObject switchProducer = switchProducers.__getitem__(new PyString(label));
+                confdb.data.SwitchProducer subSwitchProducer = parseSwitchProducer(switchProducer);
+
+                // If task reference does not exist in this container, add it!
+                Reference reference = parentContainer.entry(label);
+               if (reference == null)
+                   reference = configuration.insertSwitchProducerReference(parentContainer, parentContainer.entryCount(), subSwitchProducer);
             }
             // Module with modifier (not or ignore)
             else if (pythonObjects.seqIgnore.is(type) || pythonObjects.seqNegation.is(type))
@@ -1183,6 +1291,100 @@ public class JPythonParser
         PyObject sequence = sequences.__getitem__(new PyString(label));
 
         return parseSequence(sequence);
+    }
+    
+    private void parseTasksMap(PyDictionary pydict) {
+        alert(msg.inf, " Tasks (" + pydict.size() + ")");
+        PyList keys = (PyList) pydict.invoke("keys");
+
+        for (Object key : keys) {
+            String taskName = (String) key;
+
+            confdb.data.Task tas = configuration.task(taskName);
+            if (tas == null) {
+                PyObject value = pydict.__getitem__(new PyString((String) key)); // Get the Task Python Object.
+                parseTask(value);   // Parse it and insert the Task. Recursively
+            }
+        }
+
+    }
+    
+    private confdb.data.Task parseTask(PyObject object) {
+        String type  = getType(object);
+        String label = getLabel(object);
+        //System.out.println("[parseTask] " + type + " " + label);
+        confdb.data.Task insertedTas = null;
+
+        if (confdbTypes.task.is(type)) {
+            insertedTas = configuration.task(label);
+
+            // create a new Task if needed
+            if (insertedTas == null) {
+                int tasIndex = configuration.taskCount();
+                insertedTas = configuration.insertTask(tasIndex, label);
+            }
+
+            // add the Sequence's elements
+            parseReferenceContainerContent(object.__getattr__("_seq"), insertedTas);
+
+        } else alert(msg.err, "[parseTask] expected Task, got type " + type);
+
+        return insertedTas;
+    }
+    
+    // Return the recently inserted task to be linked to the parent seq/task/container.
+    private confdb.data.Task parseTaskOnDemand(String label) {
+        PyDictionary tasks = (PyDictionary) process.__getattr__("_Process__tasks");
+        PyObject task = tasks.__getitem__(new PyString(label));
+
+        return parseTask(task);
+    }
+    
+    private void parseSwitchProducersMap(PyDictionary pydict) {
+        alert(msg.inf, " Tasks (" + pydict.size() + ")");
+        PyList keys = (PyList) pydict.invoke("keys");
+
+        for (Object key : keys) {
+            String switchProducerName = (String) key;
+
+            confdb.data.SwitchProducer sp = configuration.switchProducer(switchProducerName);
+            if (sp == null) {
+                PyObject value = pydict.__getitem__(new PyString((String) key)); // Get the SP Python Object.
+                parseSwitchProducer(value);   // Parse it and insert the SwitchProducer. Recursively
+            }
+        }
+
+    }
+    
+    private confdb.data.SwitchProducer parseSwitchProducer(PyObject object) {
+        String type  = getType(object);
+        String label = getLabel(object);
+        //System.out.println("[parseTask] " + type + " " + label);
+        confdb.data.SwitchProducer insertedSwitchProducer = null;
+
+        if (confdbTypes.switchProducer.is(type)) {
+        	insertedSwitchProducer = configuration.switchProducer(label);
+
+            // create a new SwitchProducer if needed
+            if (insertedSwitchProducer == null) {
+                int spIndex = configuration.switchProducerCount();
+                insertedSwitchProducer = configuration.insertSwitchProducer(spIndex, label);
+            }
+
+            // add the SwitchProducer's elements
+            parseReferenceContainerContent(object.__getattr__("_seq"), insertedSwitchProducer);
+
+        } else alert(msg.err, "[parseSwitchProducer] expected SwitchProducer, got type " + type);
+
+        return insertedSwitchProducer;
+    }
+    
+    // Return the recently inserted switchproducer to be linked to the parent seq/task/container.
+    private confdb.data.SwitchProducer parseSwitchProducerOnDemand(String label) {
+        PyDictionary switchProducers = (PyDictionary) process.__getattr__("_Process__switchproducer");
+        PyObject switchProducer = switchProducers.__getitem__(new PyString(label));
+
+        return parseSwitchProducer(switchProducer);
     }
 
     private boolean validPyObject(PyObject object) {
@@ -1285,6 +1487,8 @@ public class JPythonParser
 
     public enum confdbTypes {
         sequence("Sequence"),
+        task("Sequence"),
+        switchProducer("SwitchProducer"),
         path("Path"),
         endPath("EndPath"),
         module("Module");
@@ -1372,6 +1576,8 @@ public class JPythonParser
         seqNegation("_SequenceNegation"),
         seqIgnore("_SequenceIgnore"),
         seqOpAids("_SequenceOpAids"),
+        task("Task"),
+        switchProducer("SwitchProducer"),
         EDProducer("EDProducer"),
         EDFilter("EDFilter"),
         EDAnalyzer("EDAnalyzer"),

@@ -65,7 +65,7 @@ import confdb.diff.*;
  */
 public class ConfDbGUI {
 	//
-	// member data //TODO: global EDAliases
+	// member data
 	//
 
 	/** current user */

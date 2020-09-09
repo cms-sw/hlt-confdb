@@ -360,12 +360,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		int depth = treePath.getPathCount();
 		Object node = treePath.getPathComponent(depth - 1);
 
-		menuItem = new JMenuItem("Add Global EDAlias");
+		menuItem = new JMenuItem("Add EDAlias");
 		menuItem.addActionListener(globalEDAliasListener);
 		popupGlobalEDAliases.add(menuItem);
 
 		if (depth == 3) {
-			menuItem = new JMenuItem("Remove Global EDAlias");
+			menuItem = new JMenuItem("Remove EDAlias");
 			menuItem.addActionListener(globalEDAliasListener);
 			popupGlobalEDAliases.add(menuItem);
 		}
@@ -375,12 +375,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		popupGlobalEDAliases.add(menuItem);
 
 		if (node instanceof EDAliasInstance) {
-			menuItem = new JMenuItem("Rename Global EDAlias");
+			menuItem = new JMenuItem("Rename EDAlias");
 			menuItem.addActionListener(globalEDAliasListener);
 			popupGlobalEDAliases.add(menuItem);
 
 			// CLONE OPTION:
-			menuItem = new JMenuItem("Clone Global EDAlias");
+			menuItem = new JMenuItem("Clone EDAlias");
 			menuItem.addActionListener(globalEDAliasListener);
 			popupGlobalEDAliases.add(menuItem);
 			
@@ -2161,16 +2161,16 @@ class GlobalEDAliasMenuListener implements ActionListener {
 		Object node = treePath.getLastPathComponent();
 
 
-		if (cmd.equals("Remove Global EDAlias")) {
+		if (cmd.equals("Remove EDAlias")) {
 			EDAliasInstance globalEDAlias = (EDAliasInstance) tree.getSelectionPath().getLastPathComponent();
 			ConfigurationTreeActions.removeGlobalEDAlias(tree, globalEDAlias);
-		} else if (cmd.equals("Add Global EDAlias")) {
+		} else if (cmd.equals("Add EDAlias")) {
 			ConfigurationTreeActions.insertGlobalEDAlias(tree);
-		} else if (cmd.equals("Rename Global EDAlias")) {
+		} else if (cmd.equals("Rename EDAlias")) {
 			ConfigurationTreeActions.editNodeName(tree);
 		} else if (cmd.equals("Add Module (VPSet)")) {
 			app.addTrackedVPsetParameter();
-		} else if (cmd.equals("Clone Global EDAlias")) {
+		} else if (cmd.equals("Clone EDAlias")) {
 			try {
 				ConfigurationTreeActions.CloneGlobalEDAlias(tree, (EDAliasInstance) node, null);
 			} catch (DataException e1) {
