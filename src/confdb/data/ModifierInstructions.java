@@ -25,10 +25,6 @@ public class ModifierInstructions {
 	private boolean filterAllPSets = false;
 	private ArrayList<String> psetBlackList = new ArrayList<String>();
 	private ArrayList<String> psetWhiteList = new ArrayList<String>();
-	
-	/** global EDAliases */
-	private boolean undefineGlobalAllEDAliases = false;
-	private ArrayList<String> undefinedGlobalEDAliases = new ArrayList<String>();
 
 	/** EDSources */
 	private boolean filterAllEDSources = false;
@@ -92,6 +88,13 @@ public class ModifierInstructions {
 	/** EDAliases to be properly referenced but *not* defined */
 	private boolean undefineAllEDAliases = false;
 	private ArrayList<String> undefinedEDAliases = new ArrayList<String>();
+	
+	/** Global EDAliases requested */
+	private ArrayList<String> requestedGlobalEDAliases = new ArrayList<String>();
+	
+	/** EDAliases to be properly referenced but *not* defined */
+	private boolean undefineGlobalAllEDAliases = false;
+	private ArrayList<String> undefinedGlobalEDAliases = new ArrayList<String>();
 
 	/** SwitchProducers requested regardless of being referenced in requested path */
 	private ArrayList<String> requestedSwitchProducers = new ArrayList<String>();
@@ -1069,6 +1072,11 @@ public class ModifierInstructions {
 	/** get iterator for requested EDAliases */
 	public Iterator<String> requestedEDAliasIterator() {
 		return requestedEDAliases.iterator();
+	}
+	
+	/** get iterator for requested globaL EDAliases */
+	public Iterator<String> requestedGlobalEDAliasIterator() {
+		return requestedGlobalEDAliases.iterator();
 	}
 	
 	/** get iterator for requested switch producers */

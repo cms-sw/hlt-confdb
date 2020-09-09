@@ -100,20 +100,7 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 			dotIndex = parentParent.getClass().toString().lastIndexOf(".");
 			parentParentClassName = parentParent.getClass().toString().substring(dotIndex + 1);
 			isParentParentEDAlias = parentParentClassName.matches("EDAliasInstance") ? true : false;
-			/*
-			 * System.out.println("*********** PARENT PARENT ***********" +
-			 * parentParent.getClass().toString());
-			 */
 		}
-
-		// System.out.println("ISPARENTPARENTEDALIAS: " + isParentParentEDAlias);
-		// if(parent instanceof Instance){
-		// Template template = ((Instance)parent).template();
-		// Parameter pExists = template.parameter(parameter.name());
-		// if(pExists==null){
-		// bRemoveParam = true;
-		// }
-		// }
 
 		if (parent instanceof ParameterContainer) {
 			ParameterContainer container = (ParameterContainer) parent;
@@ -124,7 +111,7 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 			JMenuItem menuItem = new JMenuItem("Add PSet");
 			menuItem.addActionListener(this);
 			popup.add(menuItem);
-			System.out.println("this.isParentParentEDAlias " + this.isParentParentEDAlias);
+			//System.out.println("this.isParentParentEDAlias " + this.isParentParentEDAlias);
 			if (this.isParentEDAlias) {
 				menuItem = new JMenuItem("Rename Module (VPSet)");
 				menuItem.addActionListener(this);
@@ -169,25 +156,6 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 				VPSetParameter vpset = (VPSetParameter) parameter;
 				addParameterSet(vpset);
 			} else if (cmd.equals("Rename Module (VPSet)")) {
-				/*
-				 * JTree tree = treeTable.getTree(); System.out.println("TREETABLE TREE: " +
-				 * tree); TreePath treePath = tree.getSelectionPath();
-				 * System.out.println("TREETABLE PATH: "+ treePath);
-				 * tree.expandPath(treePath.getParentPath());
-				 * tree.scrollPathToVisible(treePath); tree.startEditingAtPath(treePath);
-				 */
-				/*
-				 * treeTable.requestFocus(); treeTable.setRowSelectionInterval(0, 0);
-				 */
-				//treeTable.changeSelection(0, 0, true, true);
-				//boolean rv1 = treeTable.isCellEditable(0, 0);
-				//System.out.println("IS EDITABLE: " + rv1);
-				/*
-				 * boolean rv = treeTable.editCellAt(0, 0); System.out.println("RV " + rv);
-				 */
-				//treeTable.getEditorComponent().requestFocus();
-				  //treeModel.setNameAt("AAA", parameter, 0); //FIX THIS SO IT COMES FROM INPUT
-				
 		        String name = JOptionPane.showInputDialog(frame, "Enter new module (VPSet) name", null);
 		        treeModel.setNameAt(name, parameter, 0);    	
 			} else if (parent instanceof PSetParameter) {

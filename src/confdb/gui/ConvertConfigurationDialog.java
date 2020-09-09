@@ -544,8 +544,29 @@ public class ConvertConfigurationDialog extends JDialog {
 					}
 					checkBox.setSelected(isSelected);
 					checkBox.setEnabled(false);
-				}
-			} else if (value instanceof Sequence || value instanceof Task || value instanceof SwitchProducer ||
+				} else if (value == treeModel.globalEDAliasesNode()) {
+					//This is probably unecessary since global EDAlias cannot be part of the path
+					boolean isSelected = false;
+					if (modifications.requestedGlobalEDAliasIterator().hasNext())
+						isSelected = true;
+					else {
+						Iterator<EDAliasInstance> it = config.globalEDAliasIterator();
+						while (!isSelected && it.hasNext()) {
+							EDAliasInstance globalEDAlias = it.next();
+							Path[] paths = globalEDAlias.parentPaths();
+							for (Path p : paths) {
+								if (!modifications.isInBlackList(p)) {
+									isSelected = true;
+									break;
+								}
+							}
+						}
+					}
+					checkBox.setSelected(isSelected);
+					checkBox.setEnabled(false);
+				} 
+			} 
+			else if (value instanceof Sequence || value instanceof Task || value instanceof SwitchProducer ||
 					   value instanceof ModuleInstance || value instanceof EDAliasInstance) {
 				checkBox.setEnabled(true);
 				Referencable object = (Referencable) value;

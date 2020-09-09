@@ -94,17 +94,21 @@ public class ImportTreeMouseListener extends MouseAdapter {
 						item = new JMenuItem("Import all EDSources");
 					else if (child instanceof ModuleInstance)
 						item = new JMenuItem("Update all existing Modules");
+					else if (child instanceof EDAliasInstance)
+						item = new JMenuItem("Update all existing EDAliases");
 					if (item != null) {
 						// Adding listeners:
 						if (child instanceof ModuleInstance)
 							item.addActionListener(new AddUpdateAllModulesListener(currentTree, importTree, node));
+						else if (child instanceof EDAliasInstance) //this will handle global EDAliases as well
+							item.addActionListener(new AddUpdateAllEDAliasesListener(currentTree, importTree, node));
 						else
 							item.addActionListener(new AddAllInstancesListener(currentTree, importTree, node));
 
 						popup.add(item);
 						popup.show(e.getComponent(), e.getX(), e.getY());
 					}
-				} else if (child instanceof PSetParameter) { //TODO: add all EDAliases/GlobalEDaliases possibly
+				} else if (child instanceof PSetParameter) {
 					JPopupMenu popup = new JPopupMenu();
 					JMenuItem item = null;
 					item = new JMenuItem("Import All PSets");
@@ -339,6 +343,26 @@ class AddUpdateAllModulesListener implements ActionListener {
 	// member functions
 	public void actionPerformed(ActionEvent e) {
 		ConfigurationTreeActions.UpdateAllModules(targetTree, sourceTree, container);
+	}
+}
+
+//Update shared EDAlias listener class
+class AddUpdateAllEDAliasesListener implements ActionListener {
+	// member data
+	private JTree targetTree;
+	private JTree sourceTree;
+	private Object container;
+
+	// constructor
+	public AddUpdateAllEDAliasesListener(JTree targetTree, JTree sourceTree, Object container) {
+		this.targetTree = targetTree;
+		this.sourceTree = sourceTree;
+		this.container = container;
+	}
+
+	// member functions
+	public void actionPerformed(ActionEvent e) {
+		ConfigurationTreeActions.UpdateAllEDAliases(targetTree, sourceTree, container);
 	}
 }
 
