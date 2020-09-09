@@ -65,6 +65,15 @@ public class ReleaseMigrator {
 			PSetParameter pset = sourceConfig.pset(i);
 			targetConfig.insertPSet((PSetParameter) pset.clone(null));
 		}
+		
+		// migrate global EDAliases
+		for (int i = 0; i < sourceConfig.globalEDAliasCount(); i++) {
+			EDAliasInstance source = sourceConfig.globalEDAlias(i);
+			EDAliasInstance target = targetConfig.insertGlobalEDAlias(source.name());
+			if (target != null) {
+				migrateParameters(source, target);
+			}
+		}
 
 		// migrate EDSources
 		for (int i = 0; i < sourceConfig.edsourceCount(); i++) {
@@ -147,7 +156,7 @@ public class ReleaseMigrator {
 			EDAliasInstance source = sourceConfig.edAlias(i);
 			EDAliasInstance target = targetConfig.insertEDAlias(source.name());
 			if (target != null) {
-				migrateParameters(source, target); //TODO: not sure how to exactly migrate without template
+				migrateParameters(source, target);
 			}
 		}
 
@@ -310,8 +319,14 @@ public class ReleaseMigrator {
 	/** set the target parameters according to the source parameters */
 	private void migrateParameters(Instance source, Instance target) {
 		if (source.parameterCount() != target.parameterCount()) {
-			String msg = "PARAMETER COUNT MISMATCH: '" + source.template().name() + "' source="
-					+ source.parameterCount() + " target=" + target.parameterCount();
+			String msg = "";
+			if (source.template() != null) {
+				msg = "PARAMETER COUNT MISMATCH: '" + source.template().name() + "' source="
+						+ source.parameterCount() + " target=" + target.parameterCount();
+			} else {
+				msg = "PARAMETER COUNT MISMATCH: '" + source.name() + "' source="
+						+ source.parameterCount() + " target=" + target.parameterCount();
+			}
 			messages.add(msg);
 		}
 
@@ -339,30 +354,43 @@ public class ReleaseMigrator {
 					String valueAsString = sourceParameter.valueAsString();
 					target.updateParameter(parameterName, parameterType, valueAsString);
 				} else {
-					String msg = "PARAMETER TYPE MISMATCH: " + source.template().type() + " '"
+					String msg = "";
+					if (source.template() != null) {
+						msg = "PARAMETER TYPE MISMATCH: " + source.template().type() + " '"
 							+ source.template().name() + "' : " + "source=" + sourceParameter.type() + " " + "target="
 							+ parameterType;
+					} else {
+						msg = "PARAMETER TYPE MISMATCH: " + source.name() + "' : " + 
+								"source=" + sourceParameter.type() + " " + "target="
+								+ parameterType;
+					}
 					messages.add(msg);
 					mismatchParameterTypeCount++;
 				}
 			} else {
-				String msg = "MISSING SOURCE PARAMETER: " + source.template().type() + " '" + source.template().name()
+				String msg = "";
+				if (source.template() != null) {
+					msg = "MISSING SOURCE PARAMETER: " + source.template().type() + " '" + source.template().name()
 						+ "' : " + parameterName;
+				} else {
+					msg = "MISSING SOURCE PARAMETER:" + source.name() + "' : " + parameterName;
+				}
 				messages.add(msg);
 				missingParameterCount++;
 			}
 		}
 
 		// consider added untracked top-level parameters!
-		for (int i = source.template().parameterCount(); i < source.parameterCount(); i++) {
-			Parameter sourceParameter = source.parameter(i);
-			if (source.isParameterRemovable(sourceParameter)) {
-				target.updateParameter(sourceParameter.name(), sourceParameter.type(), sourceParameter.valueAsString());
-			} else {
-				System.err
-						.println("ERROR: this is not a removable parameter:" + sourceParameter + ", WHAT THE F!@# !?");
+		if (source.template() != null)
+			for (int i = source.template().parameterCount(); i < source.parameterCount(); i++) {
+				Parameter sourceParameter = source.parameter(i);
+				if (source.isParameterRemovable(sourceParameter)) {
+					target.updateParameter(sourceParameter.name(), sourceParameter.type(), sourceParameter.valueAsString());
+				} else {
+					System.err
+							.println("ERROR: this is not a removable parameter:" + sourceParameter + ", WHAT THE F!@# !?");
+				}
 			}
-		}
 
 		// special E/g migration
 		// // if (target.template().name().equals("HLTEgammaEtFilter") ||

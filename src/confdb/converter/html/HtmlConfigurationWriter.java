@@ -53,7 +53,7 @@ public class HtmlConfigurationWriter implements IConfigurationWriter {
 		}
 		
 		if (conf.globalEDAliasCount() > 0) {
-			str.append("<a name=\"global edaliases\"><hr noshade></a>");
+			str.append("<a name=\"EDAliases\"><hr noshade></a>");
 			IEDAliasWriter globalEDAliasWriter = converterEngine.getGlobalEDAliasWriter();
 			for (int i = 0; i < conf.globalEDAliasCount(); i++) {
 				EDAliasInstance globalEDAlias = conf.globalEDAlias(i);

@@ -30,7 +30,6 @@ public class Configuration implements IConfiguration {
 	private GlobalPSetContainer psets = null;
 
 	/** list of global EDAliases */
-	//private GlobalEDAliasContainer globalEDAliases = null; //TODO FIX TO ARRAY OF INSTANCES
 	private ArrayList<EDAliasInstance> globalEDAliases = null; //global EDAliases will not have references
 
 	/** list of EDSources */
