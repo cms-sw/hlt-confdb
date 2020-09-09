@@ -231,7 +231,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		int globalEDAliasCount = config.globalEDAliasCount();
 		int unsetEDAliasCount = config.unsetTrackedEDAliasParameterCount();
 		globalEDAliasesNode.delete(0, globalEDAliasesNode.length());
-		globalEDAliasesNode.append("<html><b>Global EDAliases</b> (");
+		globalEDAliasesNode.append("<html><b>EDAliases</b> (");
 		globalEDAliasesNode.append(globalEDAliasCount);
 		globalEDAliasesNode.append(")");
 		if (unsetEDAliasCount > 0) {

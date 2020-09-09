@@ -4185,7 +4185,7 @@ public class ConfigurationTreeActions {
 					instanceName = temp;
 				}
 			}
-		
+				
 		EDAliasInstance newEDAlias = config.insertGlobalEDAlias(index, instanceName);
 
 		// Copy values
@@ -4203,10 +4203,8 @@ public class ConfigurationTreeActions {
 		tree.setSelectionPath(parentPath.pathByAddingChild(newEDAlias));
 
 		// Allow the user to modify the name of the reference
-		if (newEDAlias != null) {
-			model.nodeInserted(model.globalEDAliasesNode(), config.globalEDAliasCount() - 1);
-			if (newName == null)
-				editNodeName(tree);
+		if (newEDAlias != null && newName == null) {
+			editNodeName(tree);
 		}
 
 		return true;
