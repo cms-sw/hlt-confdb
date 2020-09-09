@@ -143,12 +143,6 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel {
 
 	/** TreeTableTreeModel: indicate if the cell is editable */
 	public boolean isCellEditable(Object node, int column) {
-		/*
-		 * Parameter p = (Parameter) node; System.out.println("COLUMN " + column +
-		 * " TYPE: " + p.type() + " PARENT " + p.parent().getClass()); if
-		 * (p.type().matches("VPSet") && p.parent() instanceof EDAliasInstance) {
-		 * System.out.println("COLUMN 0 EDITABLE NOW"); if (column == 0) return true; }
-		 */
 		if (getColumnClass(column) == TreeTableTreeModel.class)
 			return true;
 		if (node instanceof PSetParameter || node instanceof VPSetParameter) {
@@ -167,16 +161,8 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel {
 		Parameter p = (Parameter) node;
 		boolean isPSet = (p instanceof PSetParameter || p instanceof VPSetParameter);
 		
-		//System.out.println("NODE TYPE: " + node.getClass().toString());
-		//System.out.println("PARAMETER TYPE: " + p.type());
-		//System.out.println("COLUMN: " + column);
-
 		String result = new String();
 		if (column == 0) {
-			/*
-			 * boolean ok = true; if (p.type().equals("VPSet")) { if (p.parent() instanceof
-			 * EDAliasInstance) { ok = (config.module(p.name()) != null); } }
-			 */
 			result = p.name();
 			/*
 			 * if (!ok) { p.setRedName(result); } else { p.setName(result); }
@@ -241,23 +227,11 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel {
 		if (node instanceof Parameter) {
 			Parameter parameter = (Parameter) node;
 			ParameterContainer container = parameter.getParentContainer();
-			/*
-			 * if (parameter.type().equals("VPSet")) { if (parameter.parent() instanceof
-			 * EDAliasInstance) { ok = (config.module(value.toString()) != null); } }
-			 */
 			if (container != null) {
-				//System.out.println("PARAMETER FOUND");
-				//if (ok)
-					container.updateName(parameter.name(), parameter.type(), value.toString());
-				//else
-					//container.updateRedName(parameter.name(), parameter.type(), value.toString());
+				container.updateName(parameter.name(), parameter.type(), value.toString());
 			}
 			else {
-				//System.out.println("PARAMETER NOT FOUND");
-				//if (ok)
-					parameter.setName(value.toString());
-				//else
-					//parameter.setRedName(value.toString());
+				parameter.setName(value.toString());
 			}
 
 			nodeChanged(parameter);

@@ -28,6 +28,7 @@ public class DiffTreeModel extends AbstractTreeModel {
 
 	/** top-level nodes */
 	private StringBuffer psetsNode = new StringBuffer();
+	private StringBuffer globalEDAliasNode = new StringBuffer(); //on diff we can have 2 EDAlias nodes
 	private StringBuffer edsourcesNode = new StringBuffer();
 	private StringBuffer essourcesNode = new StringBuffer();
 	private StringBuffer esmodulesNode = new StringBuffer();
@@ -79,6 +80,17 @@ public class DiffTreeModel extends AbstractTreeModel {
 			Iterator<Comparison> it = diff.psetIterator();
 			while (it.hasNext())
 				it.next().setParent(psetsNode);
+		}
+		
+		// global EDAlias node
+		int globlaEDAliasCount = diff.globalEDAliasCount();
+		if (globlaEDAliasCount > 0) {
+			globalEDAliasNode.delete(0, globalEDAliasNode.length());
+			globalEDAliasNode.append("<html><b>Global EDAliases</b> (").append(globlaEDAliasCount).append(")</html>");
+			topNodes.add(globalEDAliasNode);
+			Iterator<Comparison> it = diff.globalEDAliasIterator();
+			while (it.hasNext())
+				it.next().setParent(globalEDAliasNode);
 		}
 
 		// EDSources node
@@ -180,7 +192,7 @@ public class DiffTreeModel extends AbstractTreeModel {
 				it.next().setParent(modulesNode);
 		}
 		
-		// EDAlias node (BSATARIC: I don 't know if this is necessary)
+		// EDAlias node
 		int edAliasCount = diff.edAliasCount();
 		if (edAliasCount > 0) {
 			edAliasNode.delete(0, edAliasNode.length());
@@ -262,6 +274,8 @@ public class DiffTreeModel extends AbstractTreeModel {
 		else if (node instanceof StringBuffer) {
 			if (node.equals(psetsNode))
 				return diff.psetCount();
+			if (node.equals(globalEDAliasNode))
+				return diff.globalEDAliasCount();
 			if (node.equals(edsourcesNode))
 				return diff.edsourceCount();
 			if (node.equals(essourcesNode))
@@ -303,6 +317,8 @@ public class DiffTreeModel extends AbstractTreeModel {
 		else if (parent instanceof StringBuffer) {
 			if (parent.equals(psetsNode))
 				return diff.pset(i);
+			if (parent.equals(globalEDAliasNode))
+				return diff.globalEDAlias(i);
 			if (parent.equals(edsourcesNode))
 				return diff.edsource(i);
 			if (parent.equals(essourcesNode))
@@ -345,6 +361,8 @@ public class DiffTreeModel extends AbstractTreeModel {
 		else if (parent instanceof StringBuffer) {
 			if (parent.equals(psetsNode))
 				return diff.indexOfPSet((Comparison) child);
+			if (parent.equals(globalEDAliasNode))
+				return diff.indexOfGlobalEDAlias((Comparison) child);
 			if (parent.equals(edsourcesNode))
 				return diff.indexOfEDSource((Comparison) child);
 			if (parent.equals(essourcesNode))

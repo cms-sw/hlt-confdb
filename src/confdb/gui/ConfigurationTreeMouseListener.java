@@ -282,8 +282,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			return;
 		}
 
-		// show the 'VPSets' popup (EDAlias)?
-
 		// show the 'Modules' popup?
 		if (isInTreePath(treePath, treeModel.modulesNode()) && depth <= 3) {
 			updateModuleMenu();
@@ -371,6 +369,10 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			menuItem.addActionListener(globalEDAliasListener);
 			popupGlobalEDAliases.add(menuItem);
 		}
+		
+		menuItem = new JMenuItem("Sort");
+		menuItem.addActionListener(globalEDAliasListener);
+		popupGlobalEDAliases.add(menuItem);
 
 		if (node instanceof EDAliasInstance) {
 			menuItem = new JMenuItem("Rename Global EDAlias");
@@ -2155,6 +2157,7 @@ class GlobalEDAliasMenuListener implements ActionListener {
 		JMenuItem source = (JMenuItem) (e.getSource());
 		String cmd = source.getText();
 		TreePath treePath = tree.getSelectionPath();
+		String action = source.getActionCommand();
 		Object node = treePath.getLastPathComponent();
 
 
@@ -2174,6 +2177,10 @@ class GlobalEDAliasMenuListener implements ActionListener {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+		} else if (cmd.equals("Sort")) {
+			ConfigurationTreeActions.sortGlobalEDAliases(tree);
+		} else {
+			ConfigurationTreeActions.replaceGlobalEDAliasInternally(tree, (EDAliasInstance) node, action);
 		}
 	}
 
@@ -2663,14 +2670,7 @@ class ModuleMenuListener implements ActionListener {
 		} else if (cmd.equals("Rename Module")) {
 
 			String oldModuleName = ((ModuleInstance) node).name();
-			// System.out.println("OLD MODULE NAME: " + oldModuleName);
 			ConfigurationTreeActions.editNodeName(tree);
-			// String newModuleName = ((ModuleInstance)node).name();
-			// System.out.println("NEW MODULE NAME: " + oldModuleName);
-
-			// TODO: Here go through all EDAliases and rename VPSet name(s) if necessary
-			// this will need new method in ConfigurationTreeAction
-			// ConfigurationTreeActions.renameEDAliasVPSets(tree);
 		}
 		// replace the module by the selected one
 		else {

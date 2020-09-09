@@ -73,6 +73,9 @@ public interface IConfiguration extends Serializable {
 	
 	/** number of unset tracked EDAlias parameters */
 	public int unsetTrackedEDAliasParameterCount();
+	
+	/** number of unset global tracked EDAlias parameters */
+	public int unsetTrackedGlobalEDAliasParameterCount();
 
 	/** number of output modules not assigned to any path */
 	public int unassignedOutputModuleCount();
