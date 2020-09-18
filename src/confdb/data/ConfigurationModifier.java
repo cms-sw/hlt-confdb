@@ -582,7 +582,7 @@ public class ConfigurationModifier implements IConfiguration {
 		return result;
 	}
 
-	/** number of unsert tracked global pset parameters */
+	/** number of unset tracked global pset parameters */
 	public int unsetTrackedPSetParameterCount() {
 		if (!isModified)
 			return master.unsetTrackedPSetParameterCount();
@@ -591,8 +591,17 @@ public class ConfigurationModifier implements IConfiguration {
 			result += pset.unsetTrackedParameterCount();
 		return result;
 	}
+	
+	
+	public int unsetTrackedGlobalEDAliasParameterCount() {
+		if (!isModified)
+			return master.unsetTrackedGlobalEDAliasParameterCount();
+		int result = 0;
+		for (EDAliasInstance geda : globalEDAliases)
+			result += geda.unsetTrackedParameterCount();
+		return result;	}
 
-	/** number of unsert tracked edsource parameters */
+	/** number of unset tracked edsource parameters */
 	public int unsetTrackedEDSourceParameterCount() {
 		if (!isModified)
 			return master.unsetTrackedEDSourceParameterCount();
@@ -602,7 +611,7 @@ public class ConfigurationModifier implements IConfiguration {
 		return result;
 	}
 
-	/** number of unsert tracked essource parameters */
+	/** number of unset tracked essource parameters */
 	public int unsetTrackedESSourceParameterCount() {
 		if (!isModified)
 			return master.unsetTrackedESSourceParameterCount();
@@ -612,7 +621,7 @@ public class ConfigurationModifier implements IConfiguration {
 		return result;
 	}
 
-	/** number of unsert tracked esmodule parameters */
+	/** number of unset tracked esmodule parameters */
 	public int unsetTrackedESModuleParameterCount() {
 		if (!isModified)
 			return master.unsetTrackedESModuleParameterCount();
@@ -622,7 +631,7 @@ public class ConfigurationModifier implements IConfiguration {
 		return result;
 	}
 
-	/** number of unsert tracked service parameters */
+	/** number of unset tracked service parameters */
 	public int unsetTrackedServiceParameterCount() {
 		if (!isModified)
 			return master.unsetTrackedServiceParameterCount();
@@ -743,6 +752,26 @@ public class ConfigurationModifier implements IConfiguration {
 	/** retrieve pset iterator */
 	public Iterator<PSetParameter> psetIterator() {
 		return (isModified) ? psets.iterator() : master.psetIterator();
+	}
+
+	public int globalEDAliasCount() {
+		return (isModified) ? globalEDAliases.size() : master.globalEDAliasCount();
+	}
+
+	public EDAliasInstance globalEDAlias(int i) {
+		return (isModified) ? globalEDAliases.get(i) : master.globalEDAlias(i);
+	}
+
+	public EDAliasInstance globalEDAlias(String globalEDAliasName) {
+		return master.globalEDAlias(globalEDAliasName);
+	}
+
+	public int indexOfGlobalEDAlias(EDAliasInstance globalEDAlias) {
+		return (isModified) ? globalEDAliases.indexOf(globalEDAlias) : master.indexOfGlobalEDAlias(globalEDAlias);
+	}
+
+	public Iterator<EDAliasInstance> globalEDAliasIterator() {
+		return (isModified) ? globalEDAliases.iterator() : master.globalEDAliasIterator();
 	}
 
 	/** number of EDSources */

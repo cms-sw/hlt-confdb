@@ -14,7 +14,7 @@ import java.awt.event.*;
 import java.util.EventObject;
 
 /**
- * TreeTable 
+ * TreeTable
  * ---------
  * @author Philipp Schieferdecker
  *

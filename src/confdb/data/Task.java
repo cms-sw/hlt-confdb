@@ -3,7 +3,7 @@ package confdb.data;
 import java.util.Iterator;
 
 /**
- * Task 
+ * Task
  * --------
  * @author Bogdan Sataric
  * 

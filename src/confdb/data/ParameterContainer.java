@@ -4,12 +4,12 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 /**
- * ParameterContainer ------------------
- * 
+ * ParameterContainer
+ * ------------------
  * @author Philipp Schieferdecker
  *
- *         Base-class for all components which contain a list of parameters,
- *         like instances, output modules, etc.
+ * Base-class for all components which contain a list of parameters,
+ * like instances, output modules, etc.
  */
 abstract public class ParameterContainer extends DatabaseEntry {
 	//
