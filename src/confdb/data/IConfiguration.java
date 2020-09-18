@@ -70,10 +70,10 @@ public interface IConfiguration extends Serializable {
 
 	/** number of unset tracked module parameters */
 	public int unsetTrackedModuleParameterCount();
-	
+
 	/** number of unset tracked EDAlias parameters */
 	public int unsetTrackedEDAliasParameterCount();
-	
+
 	/** number of unset global tracked EDAlias parameters */
 	public int unsetTrackedGlobalEDAliasParameterCount();
 
@@ -106,7 +106,7 @@ public interface IConfiguration extends Serializable {
 
 	/** insert a global pset */
 	public void insertPSet(PSetParameter pset);
-	
+
 	/** number of global EDAliases */
 	public int globalEDAliasCount();
 
@@ -121,17 +121,7 @@ public interface IConfiguration extends Serializable {
 
 	/** retrieve global EDAlias iterator */
 	public Iterator<EDAliasInstance> globalEDAliasIterator();
-	
-	/** insert a global EDAlias */
-	public EDAliasInstance insertGlobalEDAlias(String instanceName);
-	
-	/** insert a pre-existing global EDAlias 
-	 * @throws DataException */
-	public EDAliasInstance insertGlobalEDAlias(int i, String edAliasName) throws DataException;
 
-	/** insert a pre-existing global EDAlias */
-	public boolean insertGlobalEDAlias(int i, EDAliasInstance edAlias);
-	
 	/** number of EDSources */
 	public int edsourceCount();
 
@@ -206,7 +196,7 @@ public interface IConfiguration extends Serializable {
 
 	/** retrieve module iterator */
 	public Iterator<ModuleInstance> moduleIterator();
-	
+
 	/** number of EDAliases */
 	public int edAliasCount();
 
@@ -287,8 +277,7 @@ public interface IConfiguration extends Serializable {
 
 	/** retrieve task iterator */
 	public Iterator<Task> orderedTaskIterator();
-	
-	
+
 	/** number of switch producers */
 	public int switchProducerCount();
 

@@ -16,7 +16,7 @@ import confdb.diff.Diff;
 import confdb.data.*;
 
 /**
- * ConfigurationTreeActions 
+ * ConfigurationTreeActions
  * ------------------------
  * @author Philipp Schieferdecker
  *
@@ -5615,11 +5615,6 @@ public class ConfigurationTreeActions {
 			iRefCount++;
 		}
 
-		// TODO: check if there should be EDAliases node
-		/*
-		 * if (updateModel) model.nodeRemoved(model.modulesNode(), index, oldEDAlias);
-		 */
-
 		try {
 			EDAliasInstance newEDAlias = new EDAliasInstance(external.name());
 			for (int i = 0; i < newEDAlias.parameterCount(); i++)
@@ -5627,10 +5622,6 @@ public class ConfigurationTreeActions {
 			newEDAlias.setDatabaseId(external.databaseId());
 			config.insertEDAlias(index, newEDAlias);
 
-			// TODO: check if there should be EDAliases node
-			/*
-			 * if (updateModel) model.nodeInserted(model.modulesNode(), index);
-			 */
 			for (int i = 0; i < refCount; i++) {
 				config.insertEDAliasReference(parents[i], indices[i], newEDAlias).setOperator(operators[i]);
 				if (updateModel)

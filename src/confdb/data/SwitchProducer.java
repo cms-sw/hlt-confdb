@@ -9,7 +9,6 @@ import java.util.Iterator;
  * 
  * A 'SwitchProducer' can host only 1 or 2 elements of type EDProducer
  * or EDAlias
- * 
  */
 public class SwitchProducer extends ReferenceContainer {
 	//
