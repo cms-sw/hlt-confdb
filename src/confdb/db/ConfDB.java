@@ -31,11 +31,11 @@ import java.math.BigInteger;
 import oracle.jdbc.pool.OracleDataSource;
 
 /**
- * ConfDB
- * ------
+ * ConfDB ------
+ * 
  * @author Philipp Schieferdecker
  *
- * Handle all database access operations.
+ *         Handle all database access operations.
  */
 public class ConfDB {
 	//
@@ -144,6 +144,7 @@ public class ConfDB {
 	private PreparedStatement psSelectPrimaryDatasetEntries = null;
 
 	private PreparedStatement psSelectPSetsForConfig = null;
+	private PreparedStatement psSelectGEDaliasesForConfig = null;
 	private PreparedStatement psSelectEDSourcesForConfig = null;
 	private PreparedStatement psSelectESSourcesForConfig = null;
 	private PreparedStatement psSelectESModulesForConfig = null;
@@ -168,6 +169,7 @@ public class ConfDB {
 	private PreparedStatement psSelectVPSetsForSuperId = null;
 
 	private PreparedStatement psSelectPSetId = null;
+	private PreparedStatement psSelectGEDAliasId = null;
 	private PreparedStatement psSelectEDSourceId = null;
 	private PreparedStatement psSelectESSourceId = null;
 	private PreparedStatement psSelectESModuleId = null;
@@ -206,6 +208,7 @@ public class ConfDB {
 	private PreparedStatement psSelectSwitchProducerCount = null;
 	private PreparedStatement psSelectPathCount = null;
 	private PreparedStatement psSelectParameterCount = null;
+	private PreparedStatement psSelectGlobalEDAliasCount = null;
 	private PreparedStatement psSelectParameterSetCount = null;
 	private PreparedStatement psSelectVecParameterSetCount = null;
 
@@ -242,6 +245,7 @@ public class ConfDB {
 
 	private PreparedStatement psInsertSuperId = null;
 	private PreparedStatement psInsertGlobalPSet = null;
+	private PreparedStatement psInsertGlobalEDAlias = null;
 	private PreparedStatement psInsertEDSource = null;
 	private PreparedStatement psInsertConfigEDSourceAssoc = null;
 	private PreparedStatement psInsertESSource = null;
@@ -293,7 +297,9 @@ public class ConfDB {
 	private PreparedStatement psInsertESModuleTemplate = null;
 	private PreparedStatement psInsertModuleTemplate = null;
 	private PreparedStatement psInsertGPset = null;
+	private PreparedStatement psInsertGEDAlias = null;
 	private PreparedStatement psInsertParameterGPset = null;
+	private PreparedStatement psInsertParameterGEDAlias = null;
 	private PreparedStatement psInsertParameterEDS = null;
 	private PreparedStatement psInsertParameterEDST = null;
 	private PreparedStatement psInsertParameterESS = null;
@@ -343,6 +349,7 @@ public class ConfDB {
 	private PreparedStatement psDeleteSoftwareRelease = null;
 
 	private PreparedStatement psDeletePSetsFromConfig = null;
+	private PreparedStatement psDeleteGEDAliasesFromConfig = null;
 	private PreparedStatement psDeleteEDSourcesFromConfig = null;
 	private PreparedStatement psDeleteESSourcesFromConfig = null;
 	private PreparedStatement psDeleteESModulesFromConfig = null;
@@ -805,6 +812,9 @@ public class ConfDB {
 			rs = psSelectParameterCount.executeQuery();
 			rs.next();
 			int parameterCount = rs.getInt(1);
+			rs = psSelectGlobalEDAliasCount.executeQuery();
+			rs.next();
+			int globalEDAliasCount = rs.getInt(1);
 			rs = psSelectParameterSetCount.executeQuery();
 			rs.next();
 			int parameterSetCount = rs.getInt(1);
@@ -821,7 +831,8 @@ public class ConfDB {
 					+ edAliasCount + "\nSwitch Producers:      " + switchProducerCount + "\nSequences:      "
 					+ sequenceCount + "\nTasks:      " + taskCount + "\nPaths:          " + pathCount
 					+ "\nParameters:     " + parameterCount + "\nPSets:          " + parameterSetCount
-					+ "\nVPSets:         " + vecParameterSetCount + "\n");
+					+ "\nGlobal EDAliases:     " + globalEDAliasCount + "\nVPSets:         " + vecParameterSetCount
+					+ "\n");
 		} catch (SQLException e) {
 			String errMsg = "ConfDB::listCounts() failed:" + e.getMessage();
 			throw new DatabaseException(errMsg, e);
@@ -1058,7 +1069,7 @@ public class ConfDB {
 		// System.err.println("loadTemplates: release ");
 		try {
 			int releaseId = getReleaseId(release.releaseTag());
-			//System.out.println("LOADING TEMPLATE PARAMS");
+			// System.out.println("LOADING TEMPLATE PARAMS");
 			HashMap<Integer, ArrayList<Parameter>> templateParams = getParameters(-releaseId);
 
 			// System.err.println("templateParams " + templateParams);
@@ -1238,21 +1249,22 @@ public class ConfDB {
 			 */
 			// System.err.println("Trying rs instances"+configId);
 			psSelectInstances.setInt(1, configId);
-			psSelectInstances.setInt(2, configId);
+			psSelectInstances.setInt(2, configId); //GEDAliases
 			psSelectInstances.setInt(3, configId);
 			psSelectInstances.setInt(4, configId);
 			psSelectInstances.setInt(5, configId);
 			psSelectInstances.setInt(6, configId);
 			psSelectInstances.setInt(7, configId);
 			psSelectInstances.setInt(8, configId);
-			psSelectInstances.setInt(9, configId); // Sequence
+			psSelectInstances.setInt(9, configId);
 			psSelectInstances.setInt(10, configId); // Sequence
-			psSelectInstances.setInt(11, configId); // Tasks
+			psSelectInstances.setInt(11, configId); // Sequence
 			psSelectInstances.setInt(12, configId); // Tasks
-			psSelectInstances.setInt(13, configId); // SwitchProducer
+			psSelectInstances.setInt(13, configId); // Tasks
 			psSelectInstances.setInt(14, configId); // SwitchProducer
-			psSelectInstances.setInt(15, configId); // EDAliases
+			psSelectInstances.setInt(15, configId); // SwitchProducer
 			psSelectInstances.setInt(16, configId); // EDAliases
+			psSelectInstances.setInt(17, configId); // EDAliases
 			rsInstances = psSelectInstances.executeQuery();
 
 			psSelectPathEntries.setInt(1, configId);
@@ -1285,6 +1297,7 @@ public class ConfDB {
 
 			HashMap<Integer, ModuleInstance> idToModules = new HashMap<Integer, ModuleInstance>();
 			HashMap<Integer, EDAliasInstance> idToEDAliases = new HashMap<Integer, EDAliasInstance>();
+			HashMap<Integer, EDAliasInstance> idToGlobalEDAliases = new HashMap<Integer, EDAliasInstance>();
 			HashMap<Integer, Path> idToPaths = new HashMap<Integer, Path>();
 			HashMap<Integer, Sequence> idToSequences = new HashMap<Integer, Sequence>();
 			HashMap<Integer, Task> idToTasks = new HashMap<Integer, Task>();
@@ -1324,12 +1337,16 @@ public class ConfDB {
 						System.out.println("Found null PSet for instance " + instanceName + " " + id + "  templateid="
 								+ templateId + " entryType=" + type);
 					config.psets().setDatabaseId(1);
+				} else if (type.equals("GEDAlias")) { // BSATARIC: GEDALIAS cannot have template
+					EDAliasInstance globalEDAlias = config.insertGlobalEDAlias(instanceName);
+					globalEDAlias.setDatabaseId(id);
+					updateInstanceTrackedParameters(globalEDAlias, idToParams.remove(id)); // GEDAlias is always tracked
+					idToGlobalEDAliases.put(id, globalEDAlias);
 				} else if (type.equals("EDSource")) {
 					templateName = release.edsourceTemplateName(templateId);
 					Instance edsource = config.insertEDSource(templateName);
 					edsource.setDatabaseId(id);
 					updateInstanceParameters(edsource, idToParams.remove(id));
-
 				} else if (type.equals("ESSource")) {
 					int insertIndex = config.essourceCount();
 					templateName = release.essourceTemplateName(templateId);
@@ -1359,7 +1376,7 @@ public class ConfDB {
 				} else if (type.equals("EDAlias")) { // BSATARIC: EDALIAS cannot have template
 					EDAliasInstance edAlias = config.insertEDAlias(instanceName);
 					edAlias.setDatabaseId(id);
-					updateInstanceTrackedParameters(edAlias, idToParams.remove(id)); //EDAlias is always tracked
+					updateInstanceTrackedParameters(edAlias, idToParams.remove(id)); // EDAlias is always tracked
 					idToEDAliases.put(id, edAlias);
 				} else if (type.equals("Path")) {
 
@@ -2097,6 +2114,9 @@ public class ConfDB {
 			// insert global psets
 			insertGlobalPSets(configId, config);
 
+			// insert global EDAliases
+			insertGlobalEDAliases(configId, config);
+
 			// insert edsource
 			insertEDSources(configId, config);
 
@@ -2291,6 +2311,40 @@ public class ConfDB {
 			}
 		}
 		config.psets().setDatabaseId(1);
+	}
+
+	/** insert configuration's global EDAliases */
+	private void insertGlobalEDAliases(int configId, Configuration config) throws DatabaseException {
+		// ResultSet rs = null;
+
+		for (int sequenceNb = 0; sequenceNb < config.globalEDAliasCount(); sequenceNb++) {
+			EDAliasInstance globalEDAlias = config.globalEDAlias(sequenceNb);
+			// int crc32 = calculateModuleCRC(edAlias);
+			int crc32 = 0;
+			try {
+				// first, insert the global EDAlias
+				psInsertGEDAlias.setString(1, globalEDAlias.name());
+				psInsertGEDAlias.setBoolean(2, true);
+				psInsertGEDAlias.executeUpdate();
+				ResultSet rs = psInsertGEDAlias.getGeneratedKeys();
+				rs.next();
+				int globalEDAliasId = rs.getInt(1);
+
+				insertInstanceParameters(globalEDAliasId, globalEDAlias, psInsertParameterGEDAlias);
+
+				// now, enter association to configuration
+				psInsertGlobalEDAlias.setInt(1, configId);
+				psInsertGlobalEDAlias.setInt(2, globalEDAliasId);
+				psInsertGlobalEDAlias.setInt(3, sequenceNb);
+				psInsertGlobalEDAlias.executeUpdate();
+
+				globalEDAlias.setDatabaseId(globalEDAliasId);
+
+			} catch (SQLException e) {
+				String errMsg = "ConfDB::insertGlobalEDAliases(configId=" + configId + ") failed: " + e.getMessage();
+				throw new DatabaseException(errMsg, e);
+			}
+		}
 	}
 
 	/** insert configuration's edsoures */
@@ -2752,7 +2806,6 @@ public class ConfDB {
 				String taskName = task.name();
 
 				if (taskId <= 0) { // BSATARIC: if task doesn't exist in database
-					System.out.println("DIDN'T FIND TASK");
 					int crc32 = 0;
 					psInsertPathElement.setInt(1, 4); // paetype = 4 for task
 					psInsertPathElement.setString(2, taskName);
@@ -2767,13 +2820,9 @@ public class ConfDB {
 					taskId = rs.getInt(1); // Task Id produced by OracleSQL operation
 					result.put(taskName, taskId);
 					idToTask.put(taskId, task);
-					System.out.println("taskId: " + taskId);
 				} else {
-					System.out.println("FOUND TASK");
 					result.put(taskName, -taskId);
-					System.out.println("taskId: " + -taskId);
 				}
-				System.out.println("taskName: " + taskName);
 			}
 
 			// only *now* set the new databaseId of changed tasks!
@@ -2808,7 +2857,6 @@ public class ConfDB {
 				String switchProducerName = switchProducer.name();
 
 				if (switchProducerId <= 0) { // BSATARIC: if switchProducer doesn't exist in database
-					System.out.println("DIDN'T FIND SWITCHPRODUCER");
 					int crc32 = 0;
 					psInsertPathElement.setInt(1, 5); // paetype = 5 for switchProducer
 					psInsertPathElement.setString(2, switchProducerName);
@@ -2821,16 +2869,12 @@ public class ConfDB {
 					rs.next();
 
 					switchProducerId = rs.getInt(1); // switchProducer Id produced by OracleSQL operation
-					
+
 					result.put(switchProducerName, switchProducerId);
 					idToSwitchProducer.put(switchProducerId, switchProducer);
-					System.out.println("switchProducerId: " + switchProducerId);
 				} else {
-					System.out.println("FOUND SWITCHPRODUCER");
 					result.put(switchProducerName, -switchProducerId);
-					System.out.println("switchProducerId: " + -switchProducerId);
 				}
-				System.out.println("switchProducerName: " + switchProducerName);
 			}
 
 			// only *now* set the new databaseId of changed switch producers!
@@ -2873,7 +2917,7 @@ public class ConfDB {
 					rs = psInsertPathElement.getGeneratedKeys();
 					rs.next();
 					edAliasId = rs.getInt(1);
-					
+
 					insertInstanceParameters(edAliasId, edAlias, psInsertMoElement);
 
 					result.put(edAlias.name(), edAliasId);
@@ -3588,7 +3632,8 @@ public class ConfDB {
 
 		int switchProducerId = switchProducerHashMap.get(switchProducer.name());
 
-		// here there should be only 2 allowed (EDProducer or EDAlias - can be done in GUI)
+		// here there should be only 2 allowed (EDProducer or EDAlias - can be done in
+		// GUI)
 		for (int sequenceNb = 0; sequenceNb < switchProducer.entryCount(); sequenceNb++) {
 			Reference r = switchProducer.entry(sequenceNb);
 			if (r instanceof ModuleReference) {
@@ -3642,7 +3687,8 @@ public class ConfDB {
 			HashMap<String, Integer> moduleHashMap) throws DatabaseException {
 		int switchProducerId = switchProducerHashMap.get(switchProducer.name());
 
-		// here there should be only 2 allowed (EDProducer or EDAlias - can be done in GUI)
+		// here there should be only 2 allowed (EDProducer or EDAlias - can be done in
+		// GUI)
 		for (int sequenceNb = 0; sequenceNb < switchProducer.entryCount(); sequenceNb++) {
 			Reference r = switchProducer.entry(sequenceNb);
 			if (r instanceof ModuleReference) {
@@ -4091,7 +4137,7 @@ public class ConfDB {
 			throws DatabaseException {
 		for (int sequenceNb = 0; sequenceNb < instance.parameterCount(); sequenceNb++) {
 			Parameter p = instance.parameter(sequenceNb);
-			
+
 			if (!p.isDefault()) {
 				if (p instanceof VPSetParameter) {
 					VPSetParameter vpset = (VPSetParameter) p;
@@ -4396,6 +4442,7 @@ public class ConfDB {
 
 			// BSATARIC: empty calls (old DB)
 			removeGlobalPSets(configId); // NOT WORKING
+			removeGlobalEDAliases(configId); // NOT WORKING
 			removeEDSources(configId); // WORKS
 			removeESSources(configId); // WORKS
 			removeESModules(configId); // WORKS
@@ -4514,6 +4561,34 @@ public class ConfDB {
 				try {
 					psSelectPSetId.setInt(1, psetId);
 					rs2 = psSelectPSetId.executeQuery();
+
+					if (!rs2.next()) {
+						removeParameters(psetId);
+						psDeleteSuperId.setInt(1, psetId);
+						psDeleteSuperId.executeUpdate();
+					}
+				} finally {
+					dbConnector.release(rs2);
+				}
+			}
+		} finally {
+			dbConnector.release(rs1);
+		}
+	}
+
+	public synchronized void removeGlobalEDAliases(int configId) throws SQLException {
+		ResultSet rs1 = null;
+		try {
+			psSelectGEDaliasesForConfig.setInt(1, configId);
+			rs1 = psSelectGEDaliasesForConfig.executeQuery();
+			psDeleteGEDAliasesFromConfig.setInt(1, configId);
+			psDeleteGEDAliasesFromConfig.executeUpdate();
+			while (rs1.next()) {
+				int psetId = rs1.getInt(1);
+				ResultSet rs2 = null;
+				try {
+					psSelectGEDAliasId.setInt(1, psetId);
+					rs2 = psSelectGEDAliasId.executeQuery();
 
 					if (!rs2.next()) {
 						removeParameters(psetId);
@@ -4781,7 +4856,7 @@ public class ConfDB {
 		}
 	}
 
-	/** remove Parameters */
+	/** remove Parameters BSATRIC: it seems this method is obsolete */
 	public synchronized void removeParameters(int parentId) throws SQLException {
 		ResultSet rsParams = null;
 		ResultSet rsPSets = null;
@@ -5598,7 +5673,7 @@ public class ConfDB {
 
 			psSelectSequenceCount = dbConnector.getConnection()
 					.prepareStatement("SELECT COUNT(*) FROM u_paelements Modules WHERE paetype = 1");
-																										
+
 			preparedStatements.add(psSelectSequenceCount);
 
 			psSelectTaskCount = dbConnector.getConnection()
@@ -5617,6 +5692,10 @@ public class ConfDB {
 			psSelectParameterCount = dbConnector.getConnection()
 					.prepareStatement("SELECT COUNT(*) FROM u_pathids Paths"); // just a placholder
 			preparedStatements.add(psSelectParameterCount);
+
+			psSelectGlobalEDAliasCount = dbConnector.getConnection()
+					.prepareStatement("SELECT COUNT(*) FROM u_pathids Paths"); // just a placholder
+			preparedStatements.add(psSelectGlobalEDAliasCount);
 
 			psSelectParameterSetCount = dbConnector.getConnection()
 					.prepareStatement("SELECT COUNT(*) FROM u_pathids Paths"); // just a placholder
@@ -5727,6 +5806,10 @@ public class ConfDB {
 			psInsertGlobalPSet = dbConnector.getConnection()
 					.prepareStatement("INSERT INTO u_conf2gpset " + "(id_confver,id_gpset,ord) " + "VALUES(?, ?, ?)");
 			preparedStatements.add(psInsertGlobalPSet);
+
+			psInsertGlobalEDAlias = dbConnector.getConnection().prepareStatement(
+					"INSERT INTO u_conf2gedalias " + "(id_confver,id_gedalias,ord) " + "VALUES(?, ?, ?)");
+			preparedStatements.add(psInsertGlobalEDAlias);
 
 			psInsertEDSource = dbConnector.getConnection()
 					.prepareStatement("INSERT INTO u_edsources (id_template) " + "VALUES(?)", keyColumn);
@@ -5881,11 +5964,21 @@ public class ConfDB {
 					.prepareStatement("INSERT INTO u_globalpsets (name,tracked) " + "VALUES(?, ?)", keyColumn);
 			preparedStatements.add(psInsertGPset);
 
+			psInsertGEDAlias = dbConnector.getConnection()
+					.prepareStatement("INSERT INTO u_globaledaliases (name,tracked) " + "VALUES(?, ?)", keyColumn);
+			preparedStatements.add(psInsertGEDAlias);
+
 			psInsertParameterGPset = dbConnector.getConnection().prepareStatement(
 					"INSERT INTO u_gpsetelements (id_gpset,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) "
 							+ "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?,NULL, ?)",
 					keyColumn);
 			preparedStatements.add(psInsertParameterGPset);
+
+			psInsertParameterGEDAlias = dbConnector.getConnection().prepareStatement(
+					"INSERT INTO u_gedaliaselements (id_gedalias,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) "
+							+ "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?,NULL, ?)",
+					keyColumn);
+			preparedStatements.add(psInsertParameterGEDAlias);
 
 			psInsertParameterEDS = dbConnector.getConnection().prepareStatement(
 					"INSERT INTO u_edselements (id_edsource,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) "
@@ -6058,6 +6151,8 @@ public class ConfDB {
 			psSelectInstances = dbConnector.getConnection().prepareStatement(
 					"SELECT u_globalpsets.id+6000000, NULL, 'PSet', u_globalpsets.name, u_globalpsets.tracked, u_conf2gpset.ord, NULL as description, NULL as contact FROM u_globalpsets,u_conf2gpset WHERE u_conf2gpset.id_confver=? AND u_globalpsets.id=u_conf2gpset.id_gpset "
 							+ " UNION ALL "
+							+ " SELECT u_globaledaliases.id+6000000, NULL, 'GEDAlias', u_globaledaliases.name, u_globaledaliases.tracked, u_conf2gedalias.ord, NULL as description, NULL as contact FROM u_globaledaliases,u_conf2gedalias WHERE u_conf2gedalias.id_confver=? AND u_globaledaliases.id=u_conf2gedalias.id_gedalias "
+							+ " UNION ALL "
 							+ " SELECT u_edsources.id+1000000, u_edsources.id_template+1000000, 'EDSource',NULL,NULL, u_conf2eds.ord,NULL as description, NULL as contact  FROM u_edsources,u_conf2eds WHERE u_conf2eds.id_edsource=u_edsources.id and u_conf2eds.id_confver = ? "
 							+ " UNION ALL "
 							+ " SELECT u_essources.id+2000000, u_essources.id_template+2000000, 'ESSource', u_essources.name, u_conf2ess.prefer, u_conf2ess.ord,NULL as description, NULL as contact  FROM u_essources,u_conf2ess WHERE u_conf2ess.id_essource=u_essources.id and u_conf2ess.id_confver = ? "
@@ -6109,6 +6204,9 @@ public class ConfDB {
 							+ " UNION ALL "
 							+ "Select * from (SELECT a.id+6000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_gpset+6000000, a.lvl,  a.value,  a.valuelob, a.hex from u_GPSETELEMENTS a, u_CONF2GPSET c "
 							+ " where c.ID_CONFVER=? and c.ID_gpset=a.ID_gpset order by a.id_gpset+6000000,id ) "
+							+ " UNION ALL "
+							+ "Select * from (SELECT a.id+6000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_gedalias+6000000, a.lvl,  a.value,  a.valuelob, a.hex from u_GEDALIASELEMENTS a, u_CONF2GEDALIAS c "
+							+ " where c.ID_CONFVER=? and c.ID_gedalias=a.ID_gedalias order by a.id_gedalias+6000000,id ) "
 							+ " UNION ALL "
 							+ " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,u_streamids.id+5000000, a.lvl,  a.value,  a.valuelob, a.hex from u_outmelements a,u_pathid2conf,u_pathid2outm,u_streamids where a.id_streamid=u_streamids.id  AND u_streamids.id=u_pathid2outm.id_streamid and u_pathid2outm.id_pathid=u_pathid2conf.id_pathid AND u_pathid2conf.id_confver = ? order by u_streamids.id+5000000,id) )");
 			psSelectParameters.setFetchSize(8192);
@@ -6310,7 +6408,7 @@ public class ConfDB {
 	}
 
 	/**
-	 * get values as strings after loading templates/configuration TODO: EDAliases
+	 * get values as strings after loading templates/configuration
 	 */
 	private HashMap<Integer, ArrayList<Parameter>> getParameters(int configId) throws DatabaseException {
 		HashMap<Integer, ArrayList<Parameter>> idToParameters = new HashMap<Integer, ArrayList<Parameter>>();
@@ -6341,6 +6439,7 @@ public class ConfDB {
 				psSelectParameters.setInt(6, configId);
 				psSelectParameters.setInt(7, configId);
 				psSelectParameters.setInt(8, configId);
+				psSelectParameters.setInt(9, configId);
 				rsParameters = psSelectParameters.executeQuery();
 			}
 
@@ -6353,11 +6452,11 @@ public class ConfDB {
 			// Queue<Integer> idlifo = new LinkedList<Integer>();
 			Stack<Integer> idlifo = new Stack<Integer>();
 
-			int newpamid=8000000;
+			int newpamid = 8000000;
 			// if(configId==0) newpamid=10000000;
 			int previouslvl = 0;
 			int counter = 0;
-			//long thebefore=System.currentTimeMillis();
+			// long thebefore=System.currentTimeMillis();
 			while (rsParameters.next()) {
 				int parameterId = rsParameters.getInt(1); // moeid
 				String type = rsParameters.getString(2); // paramtype
@@ -6367,11 +6466,12 @@ public class ConfDB {
 				int parentId = rsParameters.getInt(6); // id_pae
 				int lvl = rsParameters.getInt(7); // value
 
-				//parameterId=++newpamid;
-				//parameterId=++countingParamIds;
-				//dbidParamHashMap.put(parameterId,parameterId+newpamid);
-				dbidParamHashMap.put(parameterId, ++countingParamIds); //bsataric: this hashmap is actually not used anywhere...
-				parameterId = countingParamIds; //this is also done almost for no reason at all
+				// parameterId=++newpamid;
+				// parameterId=++countingParamIds;
+				// dbidParamHashMap.put(parameterId,parameterId+newpamid);
+				dbidParamHashMap.put(parameterId, ++countingParamIds); // bsataric: this hashmap is actually not used
+																		// anywhere...
+				parameterId = countingParamIds; // this is also done almost for no reason at all
 
 				if (name == null)
 					name = "";
@@ -6441,7 +6541,7 @@ public class ConfDB {
 						|| type.contains("FileInPath") || type.contains("EventID")) {
 
 					String valueAsString = rsParameters.getString(8); // get PARAMETER_VALUE
-				
+
 					// if (valueAsString.startsWith("{")) valueAsString=valueAsString.substring(1,
 					// valueAsString.length()-1);
 					// valueAsString=valueAsString.trim();
@@ -6456,7 +6556,7 @@ public class ConfDB {
 							valueAsString = valueAsString.substring(1, valueAsString.length() - 1);
 						valueAsString = valueAsString.trim();
 					}
-									
+
 					idToValueAsString.put(parameterId, valueAsString);
 
 				}
@@ -6499,9 +6599,9 @@ public class ConfDB {
 					valueAsString = idToValueAsString.remove(parameterId);
 				if (valueAsString == null)
 					valueAsString = "";
-				
+
 				Parameter p = ParameterFactory.create(type, name, valueAsString, isTrkd);
-								
+
 				if (type.equals("PSet")) {
 					// idlifo.push(new Integer(parameterId));
 					idlifo.push(parameterId);
@@ -6524,7 +6624,7 @@ public class ConfDB {
 				}
 				while (parameters.size() <= seqNb)
 					parameters.add(null);
-				parameters.set(seqNb, p);			
+				parameters.set(seqNb, p);
 			}
 
 			Iterator<IdPSetPair> itPSet = psets.iterator();
@@ -6613,7 +6713,7 @@ public class ConfDB {
 		}
 		instance.setDatabaseId(id);
 	}
-	
+
 	/** set tracked parameters of an instance */
 	private void updateInstanceTrackedParameters(Instance instance, ArrayList<Parameter> parameters) {
 		if (parameters == null)
