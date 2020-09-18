@@ -73,18 +73,6 @@ public class InstanceComparison extends Comparison
     		else
     			return newInstance.name() + resultAsString(); 
     	}
-    	
-	/*
-	 * System.out.println("OLD INSTANCE: " + oldInstance);
-	 * System.out.println("NEW INSTANCE: " + oldInstance); if
-	 * (!oldInstance.template().equals(null) &&
-	 * !newInstance.template().equals(null)) { return (newInstance==null) ?
-	 * oldInstance.name()+" ["+oldInstance.template().name()+"] "+ resultAsString()
-	 * : newInstance.name()+" ["+newInstance.template().name()+"] "+
-	 * resultAsString(); } else { //EDAlias branch return (newInstance==null) ?
-	 * oldInstance.name() + resultAsString() : newInstance.name() +
-	 * resultAsString(); }
-	 */
     }
 
     /** html representation of the comparison */
