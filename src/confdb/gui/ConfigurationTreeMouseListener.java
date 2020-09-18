@@ -19,8 +19,8 @@ import confdb.data.*;
 import java.util.Collections;
 
 /**
- * ConfigurationTreeMouseListener ------------------------------
- * 
+ * ConfigurationTreeMouseListener
+ * ------------------------------
  * @author Philipp Schieferdecker
  *
  */
@@ -2174,7 +2174,6 @@ class GlobalEDAliasMenuListener implements ActionListener {
 			try {
 				ConfigurationTreeActions.CloneGlobalEDAlias(tree, (EDAliasInstance) node, null);
 			} catch (DataException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		} else if (cmd.equals("Sort")) {

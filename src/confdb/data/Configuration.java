@@ -7,11 +7,11 @@ import java.util.Collections;
 import java.util.StringTokenizer;
 
 /**
- * Configuration -------------
- * 
+ * Configuration
+ * -------------
  * @author Philipp Schieferdecker
  *
- *         Description of a CMSSW job configuration.
+ * Description of a CMSSW job configuration.
  */
 public class Configuration implements IConfiguration {
 	//
