@@ -882,9 +882,6 @@ public class ConfigurationTreeActions {
 
 		int index = parent.entryCount();
 
-		System.out.println("PARENT " + parent.getClass().toString());
-		// index = 0;
-
 		EDAliasInstance edAlias = config.insertEDAlias("<ENTER EDALIAS NAME>");
 		Reference reference = null;
 

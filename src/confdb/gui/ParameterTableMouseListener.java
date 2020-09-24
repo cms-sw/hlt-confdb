@@ -91,8 +91,6 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 		String parentClassName = parent.getClass().toString().substring(dotIndex + 1);
 		String parentParentClassName = null;
 
-		// System.out.println("*********** PARENT ********** " + parentClassName);
-
 		isParentEDAlias = (parentClassName.equals("EDAliasInstance")) ? true : false;
 
 		if (parentClassName.equals("VPSetParameter")) {
@@ -111,7 +109,6 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 			JMenuItem menuItem = new JMenuItem("Add PSet");
 			menuItem.addActionListener(this);
 			popup.add(menuItem);
-			//System.out.println("this.isParentParentEDAlias " + this.isParentParentEDAlias);
 			if (this.isParentEDAlias) {
 				menuItem = new JMenuItem("Rename Module (VPSet)");
 				menuItem.addActionListener(this);
