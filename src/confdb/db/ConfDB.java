@@ -2850,7 +2850,6 @@ public class ConfDB {
 		ResultSet rs = null;
 		try {
 			for (int switchProducerNb = 0; switchProducerNb < config.switchProducerCount(); switchProducerNb++) {
-				System.out.println("switchProducerNb: " + switchProducerNb);
 				SwitchProducer switchProducer = config.switchProducer(switchProducerNb);
 				switchProducer.hasChanged();
 				int switchProducerId = switchProducer.databaseId();

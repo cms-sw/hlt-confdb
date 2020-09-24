@@ -246,7 +246,6 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel {
 			Parameter parameter = (Parameter) node;
 			ParameterContainer container = parameter.getParentContainer();
 			if (container != null) {
-				System.out.println("CONTIANER: " + container);
 				container.updateParameter(parameter.fullName(), parameter.type(), value.toString());
 			}
 			else
