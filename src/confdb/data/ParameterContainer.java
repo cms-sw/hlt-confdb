@@ -290,8 +290,6 @@ abstract public class ParameterContainer extends DatabaseEntry {
 		// add an untracked parameter to the top-level
 		else {
 			Parameter parameterNew = ParameterFactory.create(type, name, valueAsString, false);
-			System.err
-					.println("ParameterContainer INFO: " + "Adding untracked parameter to top-level: " + parameterNew);
 			addParameter(parameterNew);
 			setHasChanged();
 			return true;
@@ -314,10 +312,6 @@ abstract public class ParameterContainer extends DatabaseEntry {
 		// add an tracked parameter to the top-level
 		else {
 			Parameter parameterNew = ParameterFactory.create(type, name, valueAsString, true);	
-			System.err
-			  	.println("ParameterContainer INFO: " +
-			  			 "Adding tracked parameter to top-level: " + 
-			  			parameterNew);
 			addParameter(parameterNew);
 			setHasChanged();
 			return true;
