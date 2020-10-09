@@ -57,7 +57,7 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 
 		if (toBeEdited == null)
 			return null;
-
+		
 		IConfiguration config = (IConfiguration) treeModel.getRoot();
 
 		if (toBeEdited instanceof Referencable) {
@@ -73,6 +73,10 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 					treeModel.nodeStructureChanged(treeModel.switchProducersNode());
 					treeModel.nodeStructureChanged(treeModel.pathsNode());
 
+				} else if (referencable instanceof EDAliasInstance) {
+					EDAliasInstance globalEDAliasInstance = (EDAliasInstance) referencable;
+					System.out.println("globalEDAliasInstance.setNameAndPropagate");
+					globalEDAliasInstance.setNameAndPropagate(name);
 				} else if (referencable instanceof Path) {
 					Path path = (Path) referencable;
 					path.setNameAndPropagate(name);
