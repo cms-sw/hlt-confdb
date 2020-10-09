@@ -5,6 +5,8 @@ import javax.swing.event.*;
 import javax.swing.tree.*;
 
 import confdb.data.IConfiguration;
+import confdb.data.Parameter;
+import confdb.gui.ParameterTreeModel;
 
 import javax.swing.table.*;
 
@@ -32,7 +34,7 @@ public class TreeTable extends JTable
 
 	/** root of the tree = configuration */
 	private IConfiguration config = null;
-    
+	    
     //
     // construction
     //
@@ -224,14 +226,21 @@ public class TreeTable extends JTable
 			renderer.setTextSelectionColor(UIManager.getColor("Table.selectionForeground"));
 		}
 
-		if (column == 0) {
-			if (config.module(value.toString()) != null) {
-				renderer.setTextNonSelectionColor(Color.BLACK);
-				renderer.setTextSelectionColor(Color.BLACK);
-			} else {
+		String name = table.getValueAt(row, column).toString();
+		int index = -1;
+		index = name.indexOf("___EDALIASRED___");
+
+		if (index != -1) {
+			name = name.replace("___EDALIASRED___","");
+		}
+		if (index != -1) {
+			if (column == 0) {
 				renderer.setTextNonSelectionColor(Color.RED);
 				renderer.setTextSelectionColor(Color.RED);
 			}
+		} else {
+			renderer.setTextNonSelectionColor(Color.BLACK);
+			renderer.setTextSelectionColor(Color.BLACK);
 		}
 
 		return this;

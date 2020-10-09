@@ -5,11 +5,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 /**
- * EDAliasInstance
- * --------------
+ * EDAliasInstance --------------
+ * 
  * @author Bogdan Sataric
  *
- * CMSSW framework EDAlias instance.
+ *         CMSSW framework EDAlias instance.
  */
 public class EDAliasInstance extends Instance implements Referencable {
 	//
@@ -74,103 +74,40 @@ public class EDAliasInstance extends Instance implements Referencable {
 		}
 		return list.toArray(new Path[list.size()]);
 	}
-	
-	/** set the name and propagate it to all relevant downstreams InputTags */
+
+	/** set the name and propagate it to all relevant InputTags */
 	public void setNameAndPropagate(String name) throws DataException {
 		String oldName = name();
 		if (oldName.equals(name))
 			return;
 		super.setName(name);
 
-		//This down is probably unnecessary (since EDAlias has no input tags etc)
-		// need to check all paths containing this EDAlias
-		Path[] paths = parentPaths();
-		HashSet<Path> pathSet = new HashSet<Path>();
-		for (Path path : paths)
-			pathSet.add(path);
-
-		// as well as endpaths for outputmodules/eventcontents
-		if (config() != null) {
-			Iterator<Path> itP = config().pathIterator();
+		Iterator<ModuleInstance> itMOD = config().moduleIterator();
+		while (itMOD.hasNext()) {
+			ModuleInstance module = itMOD.next();
+			Iterator<Parameter> itP = module.recursiveParameterIterator();
 			while (itP.hasNext()) {
-				Path path = itP.next();
-				if (path.isEndPath()) {
-					pathSet.add(path);
-				}
-			}
-		}
-
-		Iterator<Path> itPath = pathSet.iterator();
-		while (itPath.hasNext()) {
-			Path path = itPath.next();
-
-			// outputmodules/eventcontent
-			Iterator<OutputModule> itO = path.outputIterator();
-			while (itO.hasNext()) {
-				OutputModule output = itO.next();
-				Stream stream = output.parentStream();
-				EventContent content = stream.parentContent();
-				Iterator<OutputCommand> itC = content.commandIterator();
-				while (itC.hasNext()) {
-					OutputCommand command = itC.next();
-					if (command.moduleName().equals(oldName)) {
-						command.setModuleName(name());
-					}
-				}
-			}
-
-			boolean isDownstream = path.isEndPath();
-			Iterator<EDAliasInstance> itEDA = path.edAliasIterator();
-			while (itEDA.hasNext()) {
-				EDAliasInstance edAlias = itEDA.next();
-				if (!isDownstream) {
-					if (edAlias == this)
-						isDownstream = true;
+				Parameter p = itP.next();
+				if (!p.isValueSet())
 					continue;
-				}
-				Iterator<Parameter> itP = edAlias.recursiveParameterIterator();
-				while (itP.hasNext()) {
-					Parameter p = itP.next();
-					if (!p.isValueSet())
-						continue;
-					if (p instanceof InputTagParameter) {
-						InputTagParameter inputTag = (InputTagParameter) p;
-						if (inputTag.label().equals(oldName)) {
-							InputTagParameter tmp = (InputTagParameter) inputTag.clone(null);
-							tmp.setLabel(name());
-							edAlias.updateParameter(inputTag.fullName(), inputTag.type(), tmp.valueAsString());
-						}
-					} else if (p instanceof ESInputTagParameter) {
-						ESInputTagParameter esinputTag = (ESInputTagParameter) p;
-						/*
-						 * if (esinputTag.edAlias().equals(oldName)) { ESInputTagParameter tmp =
-						 * (ESInputTagParameter) esinputTag.clone(null); tmp.setModule(name());
-						 * edAlias.updateParameter(esinputTag.fullName(), esinputTag.type(),
-						 * tmp.valueAsString()); }
-						 */
-					} else if (p instanceof VInputTagParameter) {
-						VInputTagParameter vInputTag = (VInputTagParameter) p;
-						VInputTagParameter tmp = (VInputTagParameter) vInputTag.clone(null);
-						for (int i = 0; i < tmp.vectorSize(); i++) {
-							InputTagParameter inputTag = new InputTagParameter("", tmp.value(i).toString(), false);
-							if (inputTag.label().equals(oldName)) {
-								inputTag.setLabel(name());
-								tmp.setValue(i, inputTag.valueAsString());
-							}
-						}
-						edAlias.updateParameter(vInputTag.fullName(), vInputTag.type(), tmp.valueAsString());
-					} else if (p instanceof VESInputTagParameter) {
-						VESInputTagParameter vESInputTag = (VESInputTagParameter) p;
-						VESInputTagParameter tmp = (VESInputTagParameter) vESInputTag.clone(null);
-						/*
-						 * for (int i = 0; i < tmp.vectorSize(); i++) { ESInputTagParameter ESinputTag =
-						 * new ESInputTagParameter("", tmp.value(i).toString(), false); if
-						 * (ESinputTag.edAlias().equals(oldName)) { ESinputTag.setModule(name());
-						 * tmp.setValue(i, ESinputTag.valueAsString()); } }
-						 */
-						edAlias.updateParameter(vESInputTag.fullName(), vESInputTag.type(), tmp.valueAsString());
+				if (p instanceof InputTagParameter) {
+					InputTagParameter inputTag = (InputTagParameter) p;
+					if (inputTag.label().equals(oldName)) {
+						InputTagParameter tmp = (InputTagParameter) inputTag.clone(null);
+						tmp.setLabel(name());
+						module.updateParameter(inputTag.fullName(), inputTag.type(), tmp.valueAsString());
 					}
-
+				} else if (p instanceof VInputTagParameter) {
+					VInputTagParameter vInputTag = (VInputTagParameter) p;
+					VInputTagParameter tmp = (VInputTagParameter) vInputTag.clone(null);
+					for (int i = 0; i < tmp.vectorSize(); i++) {
+						InputTagParameter inputTag = new InputTagParameter("", tmp.value(i).toString(), false);
+						if (inputTag.label().equals(oldName)) {
+							inputTag.setLabel(name());
+							tmp.setValue(i, inputTag.valueAsString());
+						}
+					}
+					module.updateParameter(vInputTag.fullName(), vInputTag.type(), tmp.valueAsString());
 				}
 			}
 		}

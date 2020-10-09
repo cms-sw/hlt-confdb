@@ -3956,7 +3956,7 @@ public class ConfigurationTreeActions {
 			System.err.println(e.getMessage());
 		}
 
-
+		System.out.println("AAAAAAAAAAAA");
 		if (s.length == 2) {
 			// now rename newGlobalEDAlias back to its original name, and update all
 			// (V)InputTags/keeps etc. originally referring to both oldGlobalEDAlias
