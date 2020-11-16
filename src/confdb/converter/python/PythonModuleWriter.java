@@ -11,10 +11,16 @@ public class PythonModuleWriter implements IModuleWriter
 {
 	private IParameterWriter parameterWriter = null;
 	private ConverterEngine converterEngine = null;
-	private static final String indent = "  ";
-
-	public String toString( ModuleInstance module ) throws ConverterException 
+	private static final String baseIndent = "  ";
+    
+        public String toString( ModuleInstance module ) throws ConverterException 
+        {
+	    return toString(module,"");
+	}
+        
+        public String toString( ModuleInstance module, String extraIndent ) throws ConverterException 
 	{
+         	String indent = baseIndent+extraIndent;
 		if ( parameterWriter == null )
 			parameterWriter = converterEngine.getParameterWriter();
 		
@@ -40,7 +46,7 @@ public class PythonModuleWriter implements IModuleWriter
 				PythonFormatter.addComma( str, param );
 		}
 		PythonFormatter.removeComma( str );
-		str.append( ")\n" );
+		str.append(extraIndent+" )\n" );
 		return str.toString();
 	}
 

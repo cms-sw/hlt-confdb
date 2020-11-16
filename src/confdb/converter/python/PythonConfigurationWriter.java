@@ -46,6 +46,10 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 				+ converterEngine.getNewline());
 
 		str.append("import FWCore.ParameterSet.Config as cms\n\n");
+		if(conf.switchProducerCount() > 0) {
+		    str.append("from HeterogeneousCore.CUDACore.SwitchProducerCUDA import SwitchProducerCUDA\n\n");
+		}
+
 
 		String object = "";
 		if (writeProcess == WriteProcess.YES) {
@@ -155,22 +159,22 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 			str.append("\n");
 		}
 
+		if (conf.switchProducerCount() > 0) {
+			ISwitchProducerWriter switchProducerWriter = converterEngine.getSwitchProducerWriter();
+			Iterator<SwitchProducer> switchProducerIterator = conf.orderedSwitchProducerIterator();
+			while (switchProducerIterator.hasNext()) {
+				SwitchProducer switchProducer = switchProducerIterator.next();
+				str.append(switchProducerWriter.toString(switchProducer, converterEngine, object));
+			}
+			str.append("\n");
+		}
+
 		if (conf.outputCount() > 0) {
 			IOutputWriter outputWriter = converterEngine.getOutputWriter();
 			for (int i = 0; i < conf.outputCount(); i++) {
 				OutputModule output = conf.output(i);
 				str.append(object);
 				str.append(outputWriter.toString(output));
-			}
-			str.append("\n");
-		}
-
-		if (conf.sequenceCount() > 0) {
-			ISequenceWriter sequenceWriter = converterEngine.getSequenceWriter();
-			Iterator<Sequence> sequenceIterator = conf.orderedSequenceIterator();
-			while (sequenceIterator.hasNext()) {
-				Sequence sequence = sequenceIterator.next();
-				str.append(sequenceWriter.toString(sequence, converterEngine, object));
 			}
 			str.append("\n");
 		}
@@ -184,17 +188,17 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 			}
 			str.append("\n");
 		}
-		
-		if (conf.switchProducerCount() > 0) {
-			ISwitchProducerWriter switchProducerWriter = converterEngine.getSwitchProducerWriter();
-			Iterator<SwitchProducer> switchProducerIterator = conf.orderedSwitchProducerIterator();
-			while (switchProducerIterator.hasNext()) {
-				SwitchProducer switchProducer = switchProducerIterator.next();
-				str.append(switchProducerWriter.toString(switchProducer, converterEngine, object));
+
+		if (conf.sequenceCount() > 0) {
+			ISequenceWriter sequenceWriter = converterEngine.getSequenceWriter();
+			Iterator<Sequence> sequenceIterator = conf.orderedSequenceIterator();
+			while (sequenceIterator.hasNext()) {
+				Sequence sequence = sequenceIterator.next();
+				str.append(sequenceWriter.toString(sequence, converterEngine, object));
 			}
 			str.append("\n");
-		}
-
+		}		
+				
 		if (conf.pathCount() > 0) {
 			IPathWriter pathWriter = converterEngine.getPathWriter();
 			for (int i = 0; i < conf.pathCount(); i++) {
@@ -220,11 +224,10 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 			str.append("\n" + object + "HLTSchedule = cms.Schedule( *(");
 			for (int i = 0; i < conf.pathCount(); i++) {
 				Path path = conf.path(i);
+				//we need the "," when there is just one path
+				//and for multi paths it does no harm to leave it
 				str.append(object + path.name() + ", ");
 			}
-			int length = str.length();
-			str.setCharAt(length - 2, ' ');
-			str.setLength(length - 1);
 			str.append("))\n");
 		}
 

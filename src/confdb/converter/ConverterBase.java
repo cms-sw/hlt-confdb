@@ -21,7 +21,7 @@ public class ConverterBase
 	
 	
     public ConverterBase( String format, Connection connection ) throws ConverterException
-    {
+    {   
     	database = new ConfDB();
     	try {
     		database.connect( connection );
@@ -32,13 +32,13 @@ public class ConverterBase
     }
 	
     public ConverterBase( String format, String dbType, String dbUrl, String dbUser, String dbPwrd ) throws ConverterException
-    {
+    {       
     	this( format );
     	initDB( dbType, dbUrl, dbUser, dbPwrd );
     }
   
     protected ConverterBase( String format ) throws ConverterException
-    {
+    {     
 		try {
 			converterEngine = ConverterFactory.getConverterEngine( format );
 		} catch (Exception e) {
