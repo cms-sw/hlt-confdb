@@ -1202,6 +1202,7 @@ public class ConfDB {
 			throw new DatabaseException(errMsg, e);
 		}
 		;
+		newId = configId;
 		return loadConfiguration(newId);
 	}
 
@@ -4308,12 +4309,11 @@ public class ConfDB {
 
 	public synchronized int getConfigId(String fullConfigName) throws DatabaseException {
 		int newId = getConfigNewId(fullConfigName);
-		// System.out.println("getConfigId : " + fullConfigName + " newId " + newId );
 
 		reconnect();
 
 		ResultSet rs = null;
-		int oldId = -1;
+		int oldId = newId;
 
 		try {
 			psSelectOrigDbId.setInt(1, newId);
@@ -4327,7 +4327,8 @@ public class ConfDB {
 			throw new DatabaseException(errMsg, e);
 		}
 		;
-
+	
+		oldId = newId;
 		return oldId;
 	}
 
