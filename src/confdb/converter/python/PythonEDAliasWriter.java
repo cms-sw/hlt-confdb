@@ -11,9 +11,13 @@ public class PythonEDAliasWriter implements IEDAliasWriter {
 
 	private IParameterWriter parameterWriter = null;
 	private ConverterEngine converterEngine = null;
-	private static final String indent = "  ";
+	private static final String baseIndent = "  ";
 
 	public String toString(EDAliasInstance edAlias) throws ConverterException {
+	    return toString(edAlias,"");
+	}
+    public String toString(EDAliasInstance edAlias, String extraIndent) throws ConverterException {
+          	String indent = baseIndent+extraIndent;
 		if (parameterWriter == null)
 			parameterWriter = converterEngine.getParameterWriter();
 
@@ -26,7 +30,7 @@ public class PythonEDAliasWriter implements IEDAliasWriter {
 			return str.toString();
 		}
 
-		str.append(",\n");
+		str.append("\n");
 		for (int i = 0; i < edAlias.parameterCount(); i++) {
 			Parameter parameter = edAlias.parameter(i);
 			String param = parameterWriter.toString(parameter, converterEngine, indent + "  ");
@@ -34,7 +38,7 @@ public class PythonEDAliasWriter implements IEDAliasWriter {
 				PythonFormatter.addComma(str, param);
 		}
 		PythonFormatter.removeComma(str);
-		str.append(")\n");
+		str.append(extraIndent+")\n");
 		return str.toString();
 	}
 
