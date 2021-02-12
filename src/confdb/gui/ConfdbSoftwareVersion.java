@@ -62,7 +62,11 @@ public class ConfdbSoftwareVersion {
 
 			        confdbWebVersion = in.readLine(); // the version must be in the first line
 			        in.close();
-			        
+				if (confdbWebVersion==null) {
+				    confdbWebVersion="null";
+				    System.out.println("Error retriving version from: "+URL);
+				}
+
 			        if(confdbWebVersion.indexOf("=") != -1) // This is to fix the Properties class format.
 			        	confdbWebVersion = confdbWebVersion.substring(confdbWebVersion.indexOf("=") + 1); 
 					
