@@ -93,7 +93,7 @@ public class ESInputTagParameter extends ScalarParameter
     /** set the value  the parameter */
     public boolean setValue(String valueAsString)
     {
-	if (valueAsString==null||valueAsString.length()==0) {
+	if (valueAsString==null) {
 	    isValueSet = false;
 	    module     = null;
 	    data       = null;
