@@ -21,7 +21,7 @@ public class OutputModule extends ParameterContainer implements Referencable {
 	//
 
 	/** name of the class */
-	private String className = "ShmStreamConsumer";
+	private String className = "EvFOutputModule";
 
 	/** name of this OutputModule */
 	private String name = "";
@@ -46,16 +46,31 @@ public class OutputModule extends ParameterContainer implements Referencable {
 	public OutputModule(String name, Stream parentStream) {
 		this.name = name;
 		this.parentStream = parentStream;
+		
+		BoolParameter useCompresion = new BoolParameter("use_compression", true, false);
+		
+		StringParameter compressionAlgorithm = new StringParameter("compression_algorithm", "ZLIB", false);
+		
+		Int32Parameter compressionLevel = new Int32Parameter("compression_level", 1, false);
+		
+		Int32Parameter lumiSectionInterval = new Int32Parameter("lumiSection_interval", 0, false);
 
 		PSetParameter psetSelectEvents = new PSetParameter("SelectEvents", "", false);
 
 		vstringSelectEvents = new VStringParameter("SelectEvents", "", true);
 		psetSelectEvents.addParameter(vstringSelectEvents);
 
-		vstringOutputCommands = new VStringParameter("outputCommands", "", false);
+		vstringOutputCommands = new VStringParameter("outputCommands", "keep *", false);
+		
+		InputTagParameter psetMap = new InputTagParameter("psetMap", "hltPSetMap", false);
 
+		addParameter(useCompresion);
+		addParameter(compressionAlgorithm);
+		addParameter(compressionLevel);
+		addParameter(lumiSectionInterval);
 		addParameter(psetSelectEvents);
 		addParameter(vstringOutputCommands);
+		addParameter(psetMap);
 	}
 
 	//
