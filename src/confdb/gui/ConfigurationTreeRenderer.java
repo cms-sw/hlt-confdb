@@ -486,7 +486,6 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 			// just need to provide a sufficiently long string...
 			setText(prepareText().replaceAll("</html>", "XXXX</html>"));
 		} else {
-			//System.out.println("USAOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
 			if ((tp.getPathCount() > 2) && (tp.getPathComponent(2) instanceof Path))
 				xpath = (Path) (tp.getPathComponent(2));
 			setText(prepareText());

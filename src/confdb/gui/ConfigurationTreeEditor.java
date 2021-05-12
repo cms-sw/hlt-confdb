@@ -75,7 +75,6 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 
 				} else if (referencable instanceof EDAliasInstance) {
 					EDAliasInstance globalEDAliasInstance = (EDAliasInstance) referencable;
-					System.out.println("globalEDAliasInstance.setNameAndPropagate");
 					globalEDAliasInstance.setNameAndPropagate(name);
 				} else if (referencable instanceof Path) {
 					Path path = (Path) referencable;
