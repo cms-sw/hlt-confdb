@@ -37,6 +37,7 @@ def main(argv):
         "Alignment.LaserAlignment.LaserAlignmentEventFilter_cfi",
         "RecoMET.METFilters.hcalLaserEventFilter_cfi",
         "Calibration.LumiAlCaRecoProducers.alcaRawPCCProducer_cfi",
+        "Calibration/EcalCalibAlgos",
 #       "FWCore/PrescaleService",
 #       "DQM",
 #       "HLTrigger.special.hltHcalNoiseFilter_cfi"
