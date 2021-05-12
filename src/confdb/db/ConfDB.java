@@ -1069,7 +1069,6 @@ public class ConfDB {
 		// System.err.println("loadTemplates: release ");
 		try {
 			int releaseId = getReleaseId(release.releaseTag());
-			// System.out.println("LOADING TEMPLATE PARAMS");
 			HashMap<Integer, ArrayList<Parameter>> templateParams = getParameters(-releaseId);
 
 			// System.err.println("templateParams " + templateParams);
@@ -1245,9 +1244,7 @@ public class ConfDB {
 		SoftwareRelease release = config.release();
 
 		try {
-			/*
-			 * if (pera) return;
-			 */
+
 			// System.err.println("Trying rs instances"+configId);
 			psSelectInstances.setInt(1, configId);
 			psSelectInstances.setInt(2, configId); //GEDAliases
@@ -1338,7 +1335,7 @@ public class ConfDB {
 						System.out.println("Found null PSet for instance " + instanceName + " " + id + "  templateid="
 								+ templateId + " entryType=" + type);
 					config.psets().setDatabaseId(1);
-				} else if (type.equals("GEDAlias")) { // BSATARIC: GEDALIAS cannot have template
+				} else if (type.equals("GEDAlias")) { // GEDALIAS cannot have template
 					EDAliasInstance globalEDAlias = config.insertGlobalEDAlias(instanceName);
 					globalEDAlias.setDatabaseId(id);
 					updateInstanceTrackedParameters(globalEDAlias, idToParams.remove(id)); // GEDAlias is always tracked
@@ -1374,7 +1371,7 @@ public class ConfDB {
 					module.setDatabaseId(id);
 					updateInstanceParameters(module, idToParams.remove(id));
 					idToModules.put(id, module);
-				} else if (type.equals("EDAlias")) { // BSATARIC: EDALIAS cannot have template
+				} else if (type.equals("EDAlias")) { // EDALIAS cannot have template
 					EDAliasInstance edAlias = config.insertEDAlias(instanceName);
 					edAlias.setDatabaseId(id);
 					updateInstanceTrackedParameters(edAlias, idToParams.remove(id)); // EDAlias is always tracked
@@ -1641,7 +1638,7 @@ public class ConfDB {
 
 						sequence.setDatabaseId(seqTaskOrSPId);
 						sequenceToId.put(sequence, seqTaskOrSPId);
-					} else if (task != null) { // @bsataric (tasks)
+					} else if (task != null) {
 
 						int index = task.entryCount();
 						sequenceNb = index;
@@ -1717,7 +1714,7 @@ public class ConfDB {
 
 						task.setDatabaseId(seqTaskOrSPId);
 						taskToId.put(task, seqTaskOrSPId);
-					} else if (switchProducer != null) { // @bsataric (switchproducers)
+					} else if (switchProducer != null) {
 
 						int index = switchProducer.entryCount();
 						sequenceNb = index;
@@ -2740,9 +2737,8 @@ public class ConfDB {
 				int sequenceId = sequence.databaseId();
 				String sequenceName = sequence.name();
 
-				if (sequenceId <= 0) { // BSATARIC: if sequence doesn't exist in database
+				if (sequenceId <= 0) {
 					// int crc32 = calculateSequenceCRC(sequence);
-					System.out.println("DIDN'T FIND SEQUENCE");
 					int crc32 = 0;
 					psInsertPathElement.setInt(1, 2); // paetype
 					psInsertPathElement.setString(2, sequenceName);
@@ -2758,12 +2754,8 @@ public class ConfDB {
 					result.put(sequenceName, sequenceId);
 					idToSequence.put(sequenceId, sequence);
 					System.out.println("sequenceId: " + sequenceId);
-				} else {
-					System.out.println("FOUND SEQUENCE");
+				} else
 					result.put(sequenceName, -sequenceId);
-					System.out.println("sequenceId: " + -sequenceId);
-				}
-				System.out.println("sequenceName: " + sequenceName);
 
 				// psInsertConfigSequenceAssoc.setInt(1,configId);
 				// psInsertConfigSequenceAssoc.setInt(2,sequenceId);
@@ -2800,13 +2792,12 @@ public class ConfDB {
 		ResultSet rs = null;
 		try {
 			for (int taskNb = 0; taskNb < config.taskCount(); taskNb++) {
-				System.out.println("taskNb: " + taskNb);
 				Task task = config.task(taskNb);
 				task.hasChanged();
 				int taskId = task.databaseId();
 				String taskName = task.name();
 
-				if (taskId <= 0) { // BSATARIC: if task doesn't exist in database
+				if (taskId <= 0) {
 					int crc32 = 0;
 					psInsertPathElement.setInt(1, 4); // paetype = 4 for task
 					psInsertPathElement.setString(2, taskName);
@@ -2856,7 +2847,7 @@ public class ConfDB {
 				int switchProducerId = switchProducer.databaseId();
 				String switchProducerName = switchProducer.name();
 
-				if (switchProducerId <= 0) { // BSATARIC: if switchProducer doesn't exist in database
+				if (switchProducerId <= 0) {
 					int crc32 = 0;
 					psInsertPathElement.setInt(1, 5); // paetype = 5 for switchProducer
 					psInsertPathElement.setString(2, switchProducerName);
@@ -3178,8 +3169,6 @@ public class ConfDB {
 
 				insertTasReferences(task, configId, 0, 0, taskHashMap, switchProducerHashMap, EDAliasHashMap,
 						moduleHashMap);
-
-				System.out.println("AFTER insertTasReferences");
 
 			} catch (SQLException e) {
 				String errMsg = "ConfDB::insertTasReferences(config=" + config.toString() + ") failed (configId="
@@ -3593,15 +3582,13 @@ public class ConfDB {
 						psInsertPathElementAssoc.setInt(4, lvl); // lvl
 						psInsertPathElementAssoc.setInt(5, sequenceNb);
 						psInsertPathElementAssoc.setInt(6, r.getOperator().ordinal());
-						psInsertPathElementAssoc.addBatch(); //
+						psInsertPathElementAssoc.addBatch();
 						// psInsertPathElementAssoc.executeUpdate();
-
 					} catch (SQLException e) {
 						String errMsg = "ConfDB::insertReferences(Task=" + task.name() + ") failed (taskId=" + taskId
 								+ ",moduleId=" + moduleId + ",sequenceNb=" + sequenceNb + "): " + e.getMessage();
 						throw new DatabaseException(errMsg, e);
 					}
-
 				} else if (r instanceof OutputModuleReference) {
 					String streamName = r.name().replaceFirst("hltOutput", "");
 					int outputModuleId = streamHashMap.get(streamName);
@@ -3632,8 +3619,6 @@ public class ConfDB {
 
 		int switchProducerId = switchProducerHashMap.get(switchProducer.name());
 
-		// here there should be only 2 allowed (EDProducer or EDAlias - can be done in
-		// GUI)
 		for (int sequenceNb = 0; sequenceNb < switchProducer.entryCount(); sequenceNb++) {
 			Reference r = switchProducer.entry(sequenceNb);
 			if (r instanceof ModuleReference) {
@@ -3687,8 +3672,7 @@ public class ConfDB {
 			HashMap<String, Integer> moduleHashMap) throws DatabaseException {
 		int switchProducerId = switchProducerHashMap.get(switchProducer.name());
 
-		// here there should be only 2 allowed (EDProducer or EDAlias - can be done in
-		// GUI)
+
 		for (int sequenceNb = 0; sequenceNb < switchProducer.entryCount(); sequenceNb++) {
 			Reference r = switchProducer.entry(sequenceNb);
 			if (r instanceof ModuleReference) {
@@ -4440,18 +4424,17 @@ public class ConfDB {
 		try {
 			dbConnector.getConnection().setAutoCommit(false);
 
-			// BSATARIC: empty calls (old DB)
-			removeGlobalPSets(configId); // NOT WORKING
-			removeGlobalEDAliases(configId); // NOT WORKING
-			removeEDSources(configId); // WORKS
-			removeESSources(configId); // WORKS
-			removeESModules(configId); // WORKS
-			removeServices(configId); // WORKS
-			removeSequences(configId); // NOT WORKING
-			removeTasks(configId); // EMPTY
-			removeSwitchProducers(configId); // EMPTY
-			removePaths(configId); // HALF WORKING
-			removeContent(configId); // NOT WORKING
+			removeGlobalPSets(configId);
+			removeGlobalEDAliases(configId);
+			removeEDSources(configId);
+			removeESSources(configId);
+			removeESModules(configId);
+			removeServices(configId);
+			removeSequences(configId);
+			removeTasks(configId);
+			removeSwitchProducers(configId);
+			removePaths(configId);
+			removeContent(configId);
 
 			psDeleteConfiguration.setInt(1, configId);
 			psDeleteConfiguration.executeUpdate();
@@ -4768,17 +4751,10 @@ public class ConfDB {
 		}
 	}
 
-	/**
-	 * TODO: remove Tasks (it seems this is not used for sequences as well - only
-	 * testing purposes)
-	 */
 	public synchronized void removeTasks(int configId) throws SQLException {
 	}
 
-	/**
-	 * TODO: remove SwitchProducers (it seems this is not used for sequences as well
-	 * - only testing purposes)
-	 */
+
 	public synchronized void removeSwitchProducers(int configId) throws SQLException {
 	}
 
@@ -4856,7 +4832,7 @@ public class ConfDB {
 		}
 	}
 
-	/** remove Parameters BSATRIC: it seems this method is obsolete */
+	/** remove Parameters */
 	public synchronized void removeParameters(int parentId) throws SQLException {
 		ResultSet rsParams = null;
 		ResultSet rsPSets = null;
@@ -6469,9 +6445,8 @@ public class ConfDB {
 				// parameterId=++newpamid;
 				// parameterId=++countingParamIds;
 				// dbidParamHashMap.put(parameterId,parameterId+newpamid);
-				dbidParamHashMap.put(parameterId, ++countingParamIds); // bsataric: this hashmap is actually not used
-																		// anywhere...
-				parameterId = countingParamIds; // this is also done almost for no reason at all
+				dbidParamHashMap.put(parameterId, ++countingParamIds);														
+				parameterId = countingParamIds;
 
 				if (name == null)
 					name = "";

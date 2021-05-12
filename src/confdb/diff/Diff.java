@@ -541,7 +541,7 @@ public class Diff {
 			} else if (type.equalsIgnoreCase("Task") || type.equalsIgnoreCase("t")) {
 				Task told = config1.task(oldName);
 				Task tnew = config2.task(newName);
-				Comparison c = compareContainers(told, tnew); // BSATARIC: black box
+				Comparison c = compareContainers(told, tnew);
 				if (!c.isIdentical()) {
 					tasks.add(c);
 					Iterator<Comparison> it = c.recursiveComparisonIterator();
@@ -1419,12 +1419,10 @@ public class Diff {
 	/** compare two reference containers (path/sequence/task/switchproducer) */
 	public Comparison compareContainers(ReferenceContainer rc1, ReferenceContainer rc2) {
 		if (rc1 != null && rc2 != null && containerMap.containsKey(rc1.name() + "::" + rc2.name()))
-			return containerMap.get(rc1.name() + "::" + rc2.name()); // BSATARIC: if comparison was already done before
+			return containerMap.get(rc1.name() + "::" + rc2.name());
 
 		Comparison result = new ContainerComparison(rc1, rc2);
 
-		// BSATARIC: going from parent components (rc1 and rc2) dig into child
-		// components (entries) and compare them
 		if (!result.isAdded() && !result.isRemoved()) {
 			Iterator<Reference> itRef2 = rc2.entryIterator();
 			while (itRef2.hasNext()) {

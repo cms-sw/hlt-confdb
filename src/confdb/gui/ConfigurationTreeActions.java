@@ -624,7 +624,7 @@ public class ConfigurationTreeActions {
 				} else if (instances[i] instanceof EDAliasInstance) {
 					EDAliasInstance edAlias = (EDAliasInstance) instances[i];
 					config.insertEDAlias(config.edAliasCount(), edAlias);
-					// BSATARIC: this down should not be possible since only Switch Producer can
+					// this down should not be possible since only Switch Producer can
 					// reference EDAlias
 					// config.insertEDAliasReference(container, index + i,
 					// edAlias).setOperator(operators[i]);
@@ -1171,7 +1171,7 @@ public class ConfigurationTreeActions {
 
 		treePath = tree.getSelectionPath(); // need to get selection path again. (after insertTaskNamed).
 
-		if (targetContainer.entryCount() != 0) { // BSATARIC COMMENT: When this can happen?
+		if (targetContainer.entryCount() != 0) {
 			System.err.println("[confdb.gui.ConfigurationTreeActions.DeepCloneTask] ERROR: targetTask.entryCount != 0 "
 					+ targetContainer.name());
 		}
@@ -1416,8 +1416,6 @@ public class ConfigurationTreeActions {
 	 * perform clones of sequences or paths. This is also called "Simple Clone" or
 	 * "shallow clone". It will only create a new top level sequence/path containing
 	 * references to original modules and sequences of the source one.
-	 * 
-	 * @author bsataric (TASKS)
 	 */
 	public static boolean CloneReferenceContainer(JTree tree, ReferenceContainer sourceContainer) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
@@ -1479,13 +1477,13 @@ public class ConfigurationTreeActions {
 				model.nodeInserted(targetContainer, i);
 			} else if (entry instanceof TaskReference) {
 				TaskReference sourceRef = (TaskReference) entry;
-				Task source = (Task) sourceRef.parent(); // BSATARIC COMMENT: only reconnect references (no copies)
+				Task source = (Task) sourceRef.parent();
 				config.insertTaskReference(targetContainer, i, source).setOperator(sourceRef.getOperator());
 				model.nodeInserted(targetContainer, i);
 			} else if (entry instanceof SwitchProducerReference) {
 				SwitchProducerReference sourceRef = (SwitchProducerReference) entry;
-				SwitchProducer source = (SwitchProducer) sourceRef.parent(); // BSATARIC COMMENT: only reconnect
-																				// references (no copies)
+				SwitchProducer source = (SwitchProducer) sourceRef.parent();
+																				
 				config.insertSwitchProducerReference(targetContainer, i, source).setOperator(sourceRef.getOperator());
 				model.nodeInserted(targetContainer, i);
 			} else if (entry instanceof ModuleReference) {
@@ -1530,7 +1528,7 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
-	/** move an existing task within the list of tasks @author bsataric */
+	/** move an existing task within the list of tasks */
 	public static boolean moveTask(JTree tree, Task sourceTask) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
@@ -1550,8 +1548,7 @@ public class ConfigurationTreeActions {
 	}
 
 	/**
-	 * move an existing switch producer within the list of switch producers @author
-	 * bsataric
+	 * move an existing switch producer within the list of switch producers 
 	 */
 	public static boolean moveSwitchProducer(JTree tree, SwitchProducer sourceSwitchProducer) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
@@ -1575,7 +1572,6 @@ public class ConfigurationTreeActions {
 	 * Import all references from a container (paths, sequences or tasks). The
 	 * import operation is performed by a worker and showing a progress bar.
 	 * 
-	 * @author bsataric (TASKS)
 	 */
 	public static boolean importAllReferenceContainers(JTree tree, JTree sourceTree, Object external) {
 		ConfigurationTreeModel sm = (ConfigurationTreeModel) sourceTree.getModel();
@@ -1622,7 +1618,7 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
-	/** import Path / Sequence / Task @author bsataric (TASKS) */
+	/** import Path / Sequence / Task */
 	public static boolean importReferenceContainer(JTree tree, ReferenceContainer external) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
@@ -1666,7 +1662,7 @@ public class ConfigurationTreeActions {
 		}
 
 		boolean update = false;
-		if (container != null) { // BSATARIC COMMENT: this means imported container already exists
+		if (container != null) {
 
 			if (type.equals("path"))
 				index = config.indexOfPath((Path) container);
@@ -1747,7 +1743,6 @@ public class ConfigurationTreeActions {
 	 * implementation of this method has change to support filtering. It uses the
 	 * source configuration instead of the source JTree.
 	 * 
-	 * @author bsataric (TASKS)
 	 */
 	public static boolean DeepImportReferenceContainer(JTree tree, Configuration sourceConfig,
 			ReferenceContainer external) {
@@ -1776,7 +1771,7 @@ public class ConfigurationTreeActions {
 		Diff diff = null;
 
 		// prepare to make a diff.
-		Configuration importTestConfig = getConfigurationCopy(config); // BSATARIC: make a copy of original config
+		Configuration importTestConfig = getConfigurationCopy(config);
 		if (external instanceof Path) {
 			container = importTestConfig.path(external.name());
 			type = "path";
@@ -1858,8 +1853,7 @@ public class ConfigurationTreeActions {
 			type = "switchproducer";
 		}
 
-		if (container == null) { // if root container doesn't exist (BSATARIC: external is in copy but not in
-									// original):
+		if (container == null) { // if root container doesn't exist:								
 			if (!config.hasUniqueQualifier(external))
 				return false;
 			if (type.equals("path")) {
@@ -1911,8 +1905,6 @@ public class ConfigurationTreeActions {
 	 * DeepImportContainerEntriesSimulation.
 	 * ------------------------------------------------------------------------
 	 * NOTE: DO NOT USE this method to create functional copies of a configuration.
-	 * 
-	 * @author bsataric (TASKS)
 	 */
 	private static Configuration getConfigurationCopy(Configuration sourceConf) {
 		Configuration configurationCopy = new Configuration();
@@ -2073,8 +2065,6 @@ public class ConfigurationTreeActions {
 	 * import Path / Sequence / Task / Switch producer. Perform updates and
 	 * insertions of new references into a target configuration. NOTE: Nodes are not
 	 * updated in the Tree model.
-	 * 
-	 * @author bsataric (TASKS)
 	 */
 	public static boolean importReferenceContainersNoModel(JTree tree, ReferenceContainer external, boolean update) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
@@ -2107,7 +2097,7 @@ public class ConfigurationTreeActions {
 			type = "switchproducer";
 		}
 
-		if (container != null) { // BSATARIC: if container already exists in config
+		if (container != null) {
 			if (type.equals("path"))
 				index = config.indexOfPath((Path) container);
 			else if (type.equals("sequence"))
@@ -2118,7 +2108,7 @@ public class ConfigurationTreeActions {
 				index = config.indexOfSwitchProducer((SwitchProducer) container);
 
 			if (update) {
-				while (container.entryCount() > 0) { // BSATARIC: remove all container entries?
+				while (container.entryCount() > 0) {
 					Reference entry = (Reference) container.entry(0);
 					removeReference(config, null, entry);
 				}
@@ -2155,8 +2145,7 @@ public class ConfigurationTreeActions {
 	}
 
 	/**
-	 * insert entries of an external reference container into the local copy @author
-	 * bsataric (TASKS)
+	 * insert entries of an external reference container into the local copy
 	 */
 	private static boolean importContainerEntries(Configuration config, ConfigurationTreeModel treeModel,
 			ReferenceContainer sourceContainer, ReferenceContainer targetContainer) {
@@ -2208,7 +2197,6 @@ public class ConfigurationTreeActions {
 				}
 				targetRef.setOperator(sourceRef.getOperator());
 
-				// BSATARIC not sure what to do here since there is no EDAliases node for now...
 				if (updateModel) {
 					treeModel.nodeInserted(targetContainer, i);
 					/*
@@ -2284,18 +2272,18 @@ public class ConfigurationTreeActions {
 				TaskReference sourceRef = (TaskReference) entry;
 				Task source = (Task) sourceRef.parent();
 				Task target = config.task(sourceRef.name());
-				if (target != null) { // BSATARIC COMMENT: this means given task already exists by that name in config
+				if (target != null) {
 					config.insertTaskReference(targetContainer, i, target).setOperator(sourceRef.getOperator());
-					result = false; // BSATARIC COMMENT: so only make a reference to it
-				} else { // BSATARIC: otherwise insert the whole new task with a reference
+					result = false;
+				} else {
 					target = config.insertTask(config.taskCount(), sourceRef.name());
 					if (updateModel)
 						treeModel.nodeInserted(treeModel.tasksNode(), config.taskCount() - 1);
 					config.insertTaskReference(targetContainer, i, target).setOperator(sourceRef.getOperator());
-					boolean tmp = importContainerEntries(config, treeModel, source, target); // BSATARIC: recursion
-																								// again
+					boolean tmp = importContainerEntries(config, treeModel, source, target);
+																								
 					if (tmp)
-						target.setDatabaseId(source.databaseId()); // BSATARIC: same DB ID as in source on target
+						target.setDatabaseId(source.databaseId());
 					if (result)
 						result = tmp;
 				}
@@ -2306,21 +2294,20 @@ public class ConfigurationTreeActions {
 				SwitchProducerReference sourceRef = (SwitchProducerReference) entry;
 				SwitchProducer source = (SwitchProducer) sourceRef.parent();
 				SwitchProducer target = config.switchProducer(sourceRef.name());
-				if (target != null) { // BSATARIC COMMENT: this means given switch producer already exists by that
-										// name in config
+				if (target != null) {								
 					config.insertSwitchProducerReference(targetContainer, i, target)
 							.setOperator(sourceRef.getOperator());
-					result = false; // BSATARIC COMMENT: so only make a reference to it
-				} else { // BSATARIC: otherwise insert the whole new switch producer with a reference
+					result = false;
+				} else {
 					target = config.insertSwitchProducer(config.switchProducerCount(), sourceRef.name());
 					if (updateModel)
 						treeModel.nodeInserted(treeModel.switchProducersNode(), config.switchProducerCount() - 1);
 					config.insertSwitchProducerReference(targetContainer, i, target)
 							.setOperator(sourceRef.getOperator());
-					boolean tmp = importContainerEntries(config, treeModel, source, target); // BSATARIC: recursion
-																								// again
+					boolean tmp = importContainerEntries(config, treeModel, source, target);
+																								
 					if (tmp)
-						target.setDatabaseId(source.databaseId()); // BSATARIC: same DB ID as in source on target
+						target.setDatabaseId(source.databaseId());
 					if (result)
 						result = tmp;
 				}
@@ -2341,10 +2328,7 @@ public class ConfigurationTreeActions {
 	 * structure is changed then DeepImportContainerEntriesSimulation must also be
 	 * changed to ensure the diff results matches the DeepImport results.
 	 * 
-	 * @author jimeneze @author bsataric (TASKS, EDALIAS, SWITCH PRODUCER) BSATARIC:
-	 *         difference then importContainerEntries is in fact that it checks
-	 *         order of imported entries (I think) and that it removes the
-	 *         difference in entries in the end
+	 * @author jimeneze
 	 */
 	private static boolean DeepImportContainerEntries(Configuration config, Configuration sourceConfig,
 			JTree targetTree, ReferenceContainer sourceContainer, ReferenceContainer targetContainer) {
@@ -2674,8 +2658,7 @@ public class ConfigurationTreeActions {
 
 				SequenceReference sourceRef = (SequenceReference) entry;
 				Sequence source = (Sequence) sourceRef.parent();
-				Sequence target = config.sequence(sourceRef.name()); // BSATARIC: check if sequence exists in copy
-																		// config
+				Sequence target = config.sequence(sourceRef.name());															
 
 				if (target != null) { // if sequence already exist then just insert the reference.
 
@@ -2699,8 +2682,7 @@ public class ConfigurationTreeActions {
 							// Check if SequenceReference are in the same order:
 							if (i != j) {
 								// So remove reference, and insert it later.
-								if (updateModel) { // BSATARIC: if targetTree parameter is not null otherwise work with
-													// config
+								if (updateModel) {
 									removeReference(null, targetTree, subentry); // this might delete the ITEM (index of
 																					// -1 when searching).
 									treeModel.nodeStructureChanged(targetContainer);
@@ -2734,7 +2716,7 @@ public class ConfigurationTreeActions {
 						treeModel.nodeInserted(targetContainer, targetContainer.entryCount() - 1);
 				}
 
-				// INSERT REFERENCES: for new sequences, and out of order references (check up)
+				// INSERT REFERENCES: for new sequences, and out of order references.
 				boolean existance = false;
 				for (int j = 0; j < targetContainer.entryCount(); j++) {
 					Reference subentry = (Reference) targetContainer.entry(j);
@@ -2753,7 +2735,7 @@ public class ConfigurationTreeActions {
 
 				TaskReference sourceRef = (TaskReference) entry;
 				Task source = (Task) sourceRef.parent();
-				Task target = config.task(sourceRef.name()); // BSATARIC: check if task exists in copy config
+				Task target = config.task(sourceRef.name());
 
 				if (target != null) { // if task already exist then just insert the reference.
 
@@ -2775,12 +2757,9 @@ public class ConfigurationTreeActions {
 						if ((subentry instanceof TaskReference) && (entry instanceof TaskReference)
 								&& (subentry.name().equals(entry.name()))) {
 
-							// Check if TaskReference are in the same order (BSATARIC: is order important
-							// for tasks?):
 							if (i != j) {
 								// So remove reference, and insert it later.
-								if (updateModel) { // BSATARIC: if targetTree parameter is not null otherwise work with
-													// config
+								if (updateModel) {
 									removeReference(null, targetTree, subentry); // this might delete the ITEM (index of
 																					// -1 when searching).
 									treeModel.nodeStructureChanged(targetContainer);
@@ -2814,8 +2793,7 @@ public class ConfigurationTreeActions {
 						treeModel.nodeInserted(targetContainer, targetContainer.entryCount() - 1);
 				}
 
-				// INSERT REFERENCES: for new tasks, and out of order tasks (BSATARIC: is this
-				// necessary?)
+				// INSERT REFERENCES: for new tasks, and out of order tasks
 				boolean existance = false;
 				for (int j = 0; j < targetContainer.entryCount(); j++) {
 					Reference subentry = (Reference) targetContainer.entry(j);
@@ -2834,8 +2812,7 @@ public class ConfigurationTreeActions {
 
 				SwitchProducerReference sourceRef = (SwitchProducerReference) entry;
 				SwitchProducer source = (SwitchProducer) sourceRef.parent();
-				SwitchProducer target = config.switchProducer(sourceRef.name()); // BSATARIC: check if switch producer
-																					// exists in copy config
+				SwitchProducer target = config.switchProducer(sourceRef.name());																	
 
 				if (target != null) { // if switch producer already exist then just insert the reference.
 
@@ -2861,14 +2838,11 @@ public class ConfigurationTreeActions {
 							// Check if SwitchProducerReference are in the same order
 							if (i != j) {
 								// So remove reference, and insert it later.
-								if (updateModel) { // BSATARIC: if targetTree parameter is not null otherwise work with
-													// config
-									removeReference(null, targetTree, subentry); // this might delete the ITEM (index of
-																					// -1 when searching).
+								if (updateModel) {				
+									removeReference(null, targetTree, subentry); 												
 									treeModel.nodeStructureChanged(targetContainer);
 								} else {
-									removeReference(config, null, subentry); // this might delete the ITEM (index of -1
-																				// when searching).
+									removeReference(config, null, subentry);
 								}
 							} else {
 								subentry.setOperator(sourceRef.getOperator());
@@ -2898,8 +2872,7 @@ public class ConfigurationTreeActions {
 				}
 
 				// INSERT REFERENCES: for new switch producers, and out of order switch
-				// producers (BSATARIC: is this
-				// necessary?)
+				// producers 
 				boolean existance = false;
 				for (int j = 0; j < targetContainer.entryCount(); j++) {
 					Reference subentry = (Reference) targetContainer.entry(j);
@@ -2955,8 +2928,7 @@ public class ConfigurationTreeActions {
 	}
 
 	/**
-	 * insert reference into currently selected reference container @author bsataric
-	 * (TASKS)
+	 * insert reference into currently selected reference container
 	 */
 	public static boolean insertReference(JTree tree, String type, String name) {
 
@@ -2965,7 +2937,7 @@ public class ConfigurationTreeActions {
 		TreePath treePath = tree.getSelectionPath();
 		int depth = treePath.getPathCount();
 
-		TreePath parentTreePath = (depth == 3) ? treePath : treePath.getParentPath(); // BSATARIC: why 3?
+		TreePath parentTreePath = (depth == 3) ? treePath : treePath.getParentPath();
 		ReferenceContainer parent = (ReferenceContainer) parentTreePath.getLastPathComponent();
 		int index = (depth == 3) ? 0 : parent.indexOfEntry((Reference) treePath.getLastPathComponent()) + 1;
 
@@ -2986,8 +2958,7 @@ public class ConfigurationTreeActions {
 		} else if (type.equalsIgnoreCase("Task")) {
 			Task referencedTask = config.task(name);
 			if (referencedTask == null)
-				return false; // BSATARIC: parent is selected container and we make a reference on it to named
-								// task
+				return false;
 			reference = config.insertTaskReference(parent, index, referencedTask);
 		} else if (type.equalsIgnoreCase("SwitchProducer")) {
 			SwitchProducer referencedSwitchProducer = config.switchProducer(name);
@@ -3128,7 +3099,7 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
-	/** remove a reference container @author bsataric (TASKS) */
+	/** remove a reference container */
 	public static boolean removeReferenceContainer(JTree tree) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
@@ -3157,8 +3128,6 @@ public class ConfigurationTreeActions {
 				children[i] = config.module(moduleIndex);
 			}
 		}
-		// BSATARIC: I think children are unnecessary for EDAliases since there is no
-		// EDAlias node (for now)
 
 		int index = -1;
 		Object parent = null;
@@ -3236,7 +3205,6 @@ public class ConfigurationTreeActions {
 			indexOfModule = config.indexOfModule(module);
 			config.removeModuleReference((ModuleReference) reference);
 		} else if (reference instanceof EDAliasReference) {
-			System.out.println("REMOVING EDALIAS REFERENCE");
 			edAlias = (EDAliasInstance) reference.parent();
 			// indexOfEDAlias = config.indexOfEDAlias(edAlias);
 			config.removeEDAliasReference((EDAliasReference) reference);
@@ -3301,8 +3269,7 @@ public class ConfigurationTreeActions {
 		if (updateModel) {
 			model.nodeRemoved(container, index, reference);
 			if (module != null && module.referenceCount() == 0)
-				model.nodeRemoved(model.modulesNode(), indexOfModule, module);
-																				
+				model.nodeRemoved(model.modulesNode(), indexOfModule, module);																				
 			model.updateLevel1Nodes();
 		}
 
@@ -3366,8 +3333,7 @@ public class ConfigurationTreeActions {
 	}
 
 	/**
-	 * scroll to the Path given by the task name and expand the tree. @author
-	 * bsataric
+	 * scroll to the Path given by the task name and expand the tree.
 	 */
 	public static void scrollToTaskByName(String taskName, JTree tree) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
@@ -3381,7 +3347,7 @@ public class ConfigurationTreeActions {
 
 	/**
 	 * scroll to the Path given by the switch prouducer name and expand the
-	 * tree. @author bsataric
+	 * tree.
 	 */
 	public static void scrollToSwitchProducerByName(String switchProducerName, JTree tree) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
@@ -3525,7 +3491,6 @@ public class ConfigurationTreeActions {
 		target.setDatabaseId(external.databaseId());
 		model.nodeInserted(parent, insertAtIndex);
 		// model.nodeInserted(model.modulesNode(), config.moduleCount() - 1);
-		// //BSATARIC: watch if EDAlias nodes are needed
 		model.updateLevel1Nodes();
 
 		return true;
@@ -3709,8 +3674,6 @@ public class ConfigurationTreeActions {
 	 */
 	public static boolean replaceEDAliasInternally(JTree tree, EDAliasInstance oldEDAlias, String newObject) {
 		/* newObject = class or class:name or copy:class:name */
-		System.out.println("XXX " + oldEDAlias.name() + " " + newObject);
-
 		if (tree == null || oldEDAlias == null || newObject == null)
 			return false;
 
@@ -3752,12 +3715,11 @@ public class ConfigurationTreeActions {
 				Parameter p = itP.next();
 				Parameter n = newEDAlias.parameter(p.name(), p.type());
 				if (n != null)
-					newEDAlias.updateParameter(p.name(), p.type(), p.valueAsString()); // BSATARIC: why do this 2 times?
+					newEDAlias.updateParameter(p.name(), p.type(), p.valueAsString());
 			}
 		} else if (s.length == 2) {
 			// old edAlias replaced by existing edAlias, keeping newEDAliasName
-			// newTemplateName = s[0]; //BSATARIC: here there will have to be dummy, or
-			// empty space
+			// newTemplateName = s[0];
 			newEDAliasName = s[1];
 			if (newEDAliasName.equals(oldEDAliasName))
 				return false;
@@ -3811,8 +3773,7 @@ public class ConfigurationTreeActions {
 			model.nodeRemoved(parents[iRefCount], indices[iRefCount], reference);
 			iRefCount++;
 		}
-		// model.nodeRemoved(model.modulesNode(), index, oldEDAlias); //BSATARIC: check
-		// if EDAlias node needs to be added
+		// model.nodeRemoved(model.modulesNode(), index, oldEDAlias);
 
 		// oldEDAliase's refCount is now 0 and hence oldEDAlias is removed
 		// from the config; thus we can rename newEDAlias to oldEDAliase's
@@ -3858,8 +3819,6 @@ public class ConfigurationTreeActions {
 	 */
 	public static boolean replaceGlobalEDAliasInternally(JTree tree, EDAliasInstance oldGlobalEDAlias, String newObject) {
 		/* newObject = class or class:name or copy:class:name */
-		System.out.println("XXX " + oldGlobalEDAlias.name() + " " + newObject);
-
 		if (tree == null || oldGlobalEDAlias == null || newObject == null)
 			return false;
 
@@ -3902,11 +3861,11 @@ public class ConfigurationTreeActions {
 				Parameter p = itP.next();
 				Parameter n = newGlobalEDAlias.parameter(p.name(), p.type());
 				if (n != null)
-					newGlobalEDAlias.updateParameter(p.name(), p.type(), p.valueAsString()); // BSATARIC: why do this 2 times?
+					newGlobalEDAlias.updateParameter(p.name(), p.type(), p.valueAsString());
 			}
 		} else if (s.length == 2) {
 			// old edAlias replaced by existing edAlias, keeping newGlobalEDAliasName
-			// newTemplateName = s[0]; //BSATARIC: here there will have to be dummy, or
+			// newTemplateName = s[0]; //here there will have to be dummy, or
 			// empty space
 			newGlobalEDAliasName = s[1];
 			if (newGlobalEDAliasName.equals(oldGlobalEDAliasName))
@@ -3956,7 +3915,6 @@ public class ConfigurationTreeActions {
 			System.err.println(e.getMessage());
 		}
 
-		System.out.println("AAAAAAAAAAAA");
 		if (s.length == 2) {
 			// now rename newGlobalEDAlias back to its original name, and update all
 			// (V)InputTags/keeps etc. originally referring to both oldGlobalEDAlias
@@ -4210,17 +4168,11 @@ public class ConfigurationTreeActions {
 	/**
 	 * replace a container (path, sequence, task, switch producer) with the internal
 	 * one
-	 * 
-	 * @author bsataric (TASKS. SWITCH PRODUCERS)
 	 */
 	public static boolean replaceContainerInternally(JTree tree, String type, ReferenceContainer oldContainer,
 			String newObject) {
 		if (tree == null || type == null || oldContainer == null || newObject == null)
 			return false;
-
-		System.out.println("NEW OBJECT: " + newObject);
-		System.out.println("OLD CONTAINER NAME: " + oldContainer.name());
-
 		if (newObject.equals(oldContainer.name()))
 			return false;
 
@@ -4232,19 +4184,13 @@ public class ConfigurationTreeActions {
 		if (type.equals("Sequence")) {
 
 			Sequence oldSequence = (Sequence) oldContainer;
-			if (oldSequence == null) {
-				System.out.println("oldSequence == null");
+			if (oldSequence == null)
 				return false;
-			}
-			if (config.sequence(oldSequence.name()) == null) {
-				System.out.println("oldSequence.name()) == null");
+			if (config.sequence(oldSequence.name()) == null)
 				return false;
-			}
 			Sequence newSequence = config.sequence(newObject);
-			if (newSequence == null) {
-				System.out.println("newSequence == null");
+			if (newSequence == null)
 				return false;
-			}
 
 			int index = config.indexOfSequence(oldSequence);
 			int refCount = oldSequence.referenceCount();
@@ -4260,11 +4206,8 @@ public class ConfigurationTreeActions {
 				reference.remove();
 				model.nodeRemoved(parents[iRefCount], indices[iRefCount], reference);
 				iRefCount++;
-				System.out.println("Reference removed: " + reference.name());
 			}
 			model.nodeRemoved(model.sequencesNode(), index, oldSequence);
-			System.out.println("Sequence node removed at index: " + index);
-
 			for (int i = 0; i < refCount; i++) {
 				Reference check = parents[i].entry(newSequence.name());
 				int iref = parents[i].indexOfEntry(check);
@@ -4277,7 +4220,6 @@ public class ConfigurationTreeActions {
 					check.remove();
 					model.nodeRemoved(parents[i], iref, check);
 				}
-				System.out.println("IREF: " + iref);
 			}
 			model.updateLevel1Nodes();
 			tree.expandPath(new TreePath(model.getPathToRoot(newSequence)));
@@ -4290,8 +4232,8 @@ public class ConfigurationTreeActions {
 				return false;
 			if (config.task(oldTask.name()) == null)
 				return false;
-			Task newTask = config.task(newObject); // BSATARIC: newTask must exist already in config. It will replace
-													// old
+			Task newTask = config.task(newObject);
+													
 			if (newTask == null)
 				return false;
 
@@ -4302,12 +4244,11 @@ public class ConfigurationTreeActions {
 			Operator[] operators = new Operator[refCount];
 			int iRefCount = 0;
 			while (oldTask.referenceCount() > 0) {
-				Reference reference = oldTask.reference(0); // BSATARIC: fill old task parents (references)
+				Reference reference = oldTask.reference(0); // fill old task parents (references)
 				parents[iRefCount] = reference.container();
 				indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
 				operators[iRefCount] = reference.getOperator();
-				reference.remove(); // BSATARIC: basically removes all references to parent objects from old task
-									// (double bind)
+				reference.remove();
 				model.nodeRemoved(parents[iRefCount], indices[iRefCount], reference);
 				iRefCount++;
 			}
@@ -4315,11 +4256,9 @@ public class ConfigurationTreeActions {
 			for (int i = 0; i < refCount; i++) {
 				Reference check = parents[i].entry(newTask.name());
 				int iref = parents[i].indexOfEntry(check);
-				if (iref < 0) { // BSATARIC: newTask doesn't exist as parent's reference - add it
+				if (iref < 0) {
 					config.insertTaskReference(parents[i], indices[i], newTask).setOperator(operators[i]);
 					model.nodeInserted(parents[i], indices[i]);
-					// BSATARIC: I guess here newTask already exist so insert it at i but also
-					// remove it from iref position
 				} else if (iref > indices[i]) {
 					config.insertTaskReference(parents[i], indices[i], newTask).setOperator(operators[i]);
 					model.nodeInserted(parents[i], indices[i]);
@@ -4361,7 +4300,7 @@ public class ConfigurationTreeActions {
 			for (int i = 0; i < refCount; i++) {
 				Reference check = parents[i].entry(newSwitchProducer.name());
 				int iref = parents[i].indexOfEntry(check);
-				if (iref < 0) { // BSATARIC: newSwitchProducer doesn't exist as parent's reference - add it
+				if (iref < 0) {
 					config.insertSwitchProducerReference(parents[i], indices[i], newSwitchProducer)
 							.setOperator(operators[i]);
 					model.nodeInserted(parents[i], indices[i]);
@@ -4497,7 +4436,7 @@ public class ConfigurationTreeActions {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
 		config.sortEDAliases();
-		// model.nodeStructureChanged(model.modulesNode()); //BSATARIC: check this
+		// model.nodeStructureChanged(model.modulesNode());
 	}
 	
 	/** sort global EDAliases */

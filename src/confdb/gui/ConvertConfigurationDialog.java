@@ -624,8 +624,6 @@ public class ConvertConfigurationDialog extends JDialog {
 		public Object getCellEditorValue() {
 			ConfigurationTreeModel treeModel = (ConfigurationTreeModel) tree.getModel();
 			IConfiguration config = (IConfiguration) treeModel.getRoot();
-			
-			System.out.println("getCellEditorValue CALLED");
 
 			if (value instanceof StringBuffer) {
 				if (value == treeModel.psetsNode()) {
