@@ -24,7 +24,9 @@ public class SwitchProducer extends ReferenceContainer {
 	// member functions
 	//
 
-	/** insert a EDProducer or EDAlias into the SwitchProducer */
+	/** insert a EDProducer or EDAlias into the SwitchProducer 
+	 ** it is assumed that the caller ensures that the module
+	 ** is not already in another SP/Task/Sequence/Task */
 	public void insertEntry(int i, Reference reference) {
 		if (reference instanceof ModuleReference || reference instanceof EDAliasReference) {
 			if (!entries.contains(reference)) {
@@ -32,7 +34,17 @@ public class SwitchProducer extends ReferenceContainer {
 					ModuleReference module = (ModuleReference) reference;
 					module.setModuleType(1);										
 				}
+
+				if (!reference.name().startsWith(name()+"_")) {				
+					try {
+						reference.parent().setName(name()+"_"+reference.name());
+					} catch (DataException e) {
+						System.err.println(e.getMessage());
+					}
+				}				
+				
 				entries.add(i, reference);
+				
 				setHasChanged();
 				return;
 
@@ -62,4 +74,18 @@ public class SwitchProducer extends ReferenceContainer {
 		return reference;
 	}
 
+	/** set the name and propagate it to all relevant modules */
+	public void setNameAndPropagate(String name) throws DataException {
+		String oldName = name();
+		if (oldName.equals(name)) {
+			return;
+		}
+		super.setName(name);
+		for (Reference ref : entries) {
+			Referencable entry = ref.parent();
+			String newName = entry.name().replace(oldName+"_","");
+			newName = name() + "_" + newName ;
+			entry.setName(newName);
+		}
+	}
 }
