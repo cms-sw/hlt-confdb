@@ -1057,7 +1057,7 @@ public class ConfDbGUI {
 							if (currentConfig.isUniqueQualifier(newName)) {
 								System.out.println("SmartRenaming Switch producer: " + newName + " [" + oldName + "]");
 								try {
-									switchProducer.setName(newName);
+									switchProducer.setNameAndPropagate(newName);
 									treeModelCurrentConfig.nodeChanged(switchProducer);
 								} catch (DataException e) {
 									System.err.println(e.getMessage());

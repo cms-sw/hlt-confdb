@@ -79,6 +79,9 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 				} else if (referencable instanceof Path) {
 					Path path = (Path) referencable;
 					path.setNameAndPropagate(name);
+				} else if (referencable instanceof SwitchProducer) {
+					SwitchProducer switchProducer = (SwitchProducer) referencable;
+					switchProducer.setNameAndPropagate(name);				
 				} else {
 					referencable.setName(name);
 				}
