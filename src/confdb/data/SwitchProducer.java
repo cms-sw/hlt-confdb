@@ -37,7 +37,7 @@ public class SwitchProducer extends ReferenceContainer {
 
 				if (!reference.name().startsWith(name()+"_")) {				
 					try {
-						reference.parent().setName(name()+"_"+reference.name());
+						reference.parent().setName(getDefaultModuleName());
 					} catch (DataException e) {
 						System.err.println(e.getMessage());
 					}
@@ -86,6 +86,18 @@ public class SwitchProducer extends ReferenceContainer {
 			String newName = entry.name().replace(oldName+"_","");
 			newName = name() + "_" + newName ;
 			entry.setName(newName);
+		}
+	}
+
+	private String getDefaultModuleName() {
+		if (entries.isEmpty()){
+			return name()+"_cpu";
+		}else{
+			if ( entries.get(0).name().endsWith("cuda")) {
+				return name()+"_cpu";
+			}else{
+				return name()+"_cuda";
+			}
 		}
 	}
 }
