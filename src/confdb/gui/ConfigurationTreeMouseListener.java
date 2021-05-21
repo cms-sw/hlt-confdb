@@ -836,10 +836,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				popupPaths.add(menuItem);
 
 				// CLONE OPTION:
-				menuItem = new JMenuItem("Clone SwitchProducer");
-				menuItem.addActionListener(pathListener);
-				popupPaths.add(menuItem);
-
 				popupPaths.addSeparator();
 				popupPaths.add(createSetOperatorMenu((Reference) node, pathListener));
 			}
@@ -980,11 +976,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				menuItem.addActionListener(sequenceListener);
 				popupSequences.add(menuItem);
 
-				// CLONE OPTION:
-				menuItem = new JMenuItem("Clone SwitchProducer");
-				menuItem.addActionListener(sequenceListener);
-				popupSequences.add(menuItem);
-
 				popupSequences.addSeparator();
 				popupSequences.add(createSetOperatorMenu((Reference) node, sequenceListener));
 			}
@@ -1114,12 +1105,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				menuItem = new JMenuItem("Remove SwitchProducer");
 				menuItem.addActionListener(taskListener);
 				popupTasks.add(menuItem);
-
-				// CLONE OPTION:
-				menuItem = new JMenuItem("Clone SwitchProducer");
-				menuItem.addActionListener(taskListener);
-				popupTasks.add(menuItem);
-
 				popupTasks.addSeparator();
 				popupTasks.add(createSetOperatorMenu((Reference) node, sequenceListener));
 			}
@@ -1166,10 +1151,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			menuItem.addActionListener(switchProducerListener);
 			menuItem.setActionCommand("RMUNREFSP");
 			popupSwitchProducers.add(menuItem);
-			menuItem = new JMenuItem("Resolve Unnecessary SwitchProducers");
-			menuItem.addActionListener(switchProducerListener);
-			menuItem.setActionCommand("RESOLVESP");
-			popupSwitchProducers.add(menuItem);
 		} else if (depth == 3) {
 			SwitchProducer switchProducer = (SwitchProducer) node;
 
@@ -1184,10 +1165,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			}
 
 			menuItem = new JMenuItem("Rename SwitchProducer");
-			menuItem.addActionListener(switchProducerListener);
-			popupSwitchProducers.add(menuItem);
-
-			menuItem = new JMenuItem("Clone SwitchProducer");
 			menuItem.addActionListener(switchProducerListener);
 			popupSwitchProducers.add(menuItem);
 
@@ -2601,8 +2578,6 @@ class SwitchProducerMenuListener implements ActionListener {
 			ConfigurationTreeActions.editNodeName(tree);
 		} else if (cmd.equals("Deep Clone SwitchProducer")) {
 			ConfigurationTreeActions.DeepCloneSwitchProducer(tree, (SwitchProducer) node, null);
-		} else if (cmd.equals("Clone SwitchProducer")) {
-			ConfigurationTreeActions.CloneReferenceContainer(tree, (SwitchProducer) node);
 		} else if (cmd.equals("Remove SwitchProducer")) {
 			if (node instanceof SwitchProducer) {
 				SwitchProducer switchProducer = (SwitchProducer) node;
