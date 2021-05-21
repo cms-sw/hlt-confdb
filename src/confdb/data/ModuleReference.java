@@ -50,4 +50,8 @@ public class ModuleReference extends Reference {
 		return module.unsetTrackedParameterCount();
 	}
 
+	public void setModuleType(int val) {
+		ModuleInstance module = (ModuleInstance) parent();
+		module.setModuleType(val);	
+	}
 }

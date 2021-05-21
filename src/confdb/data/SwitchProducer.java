@@ -28,6 +28,10 @@ public class SwitchProducer extends ReferenceContainer {
 	public void insertEntry(int i, Reference reference) {
 		if (reference instanceof ModuleReference || reference instanceof EDAliasReference) {
 			if (!entries.contains(reference)) {
+				if (reference instanceof ModuleReference) {
+					ModuleReference module = (ModuleReference) reference;
+					module.setModuleType(1);										
+				}
 				entries.add(i, reference);
 				setHasChanged();
 				return;

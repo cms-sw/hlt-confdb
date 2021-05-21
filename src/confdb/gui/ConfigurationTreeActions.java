@@ -2986,18 +2986,25 @@ public class ConfigurationTreeActions {
 				templateName = s[1];
 				instanceName = s[2];
 			}
-
+			
 			ModuleTemplate template = config.release().moduleTemplate(templateName);
 
 			if (!copy) {
 				if (template.hasInstance(instanceName)) {
-					try {
-						module = (ModuleInstance) template.instance(instanceName);
-					} catch (DataException e) {
-						System.err.println(e.getMessage());
-						return false;
+					//switch producers can not add existing modules
+					
+					if (!(parent instanceof SwitchProducer) ) {
+						try {
+							module = (ModuleInstance) template.instance(instanceName);
+						} catch (DataException e) {
+							System.err.println(e.getMessage());
+							return false;
+						}
+						//modules in switch producers can not be added to other containers
+						if( module.moduleType() != 1 ){
+							reference = config.insertModuleReference(parent, index, module);
+						}
 					}
-					reference = config.insertModuleReference(parent, index, module);
 				} else {
 					instanceName = templateName;
 					int count = 2;
@@ -3024,6 +3031,7 @@ public class ConfigurationTreeActions {
 					Parameter p = itP.next();
 					module.updateParameter(p.name(), p.type(), p.valueAsString());
 				}
+				
 			}
 		} else if (type.equalsIgnoreCase("EDAlias")) {
 			String[] s = name.split(":");
@@ -3055,20 +3063,23 @@ public class ConfigurationTreeActions {
 			}
 		}
 
-		model.nodeInserted(parent, index);
-		model.updateLevel1Nodes();
+		if (reference != null) {
+			model.nodeInserted(parent, index);
+			model.updateLevel1Nodes();
 
-		TreePath newTreePath = parentTreePath.pathByAddingChild(reference);
-		tree.expandPath(newTreePath.getParentPath());
-		tree.setSelectionPath(newTreePath);
+			TreePath newTreePath = parentTreePath.pathByAddingChild(reference);
+			tree.expandPath(newTreePath.getParentPath());
+			tree.setSelectionPath(newTreePath);
 
-		if (module != null && module.referenceCount() == 1) {
-			TreePath moduleTreePath = new TreePath(model.getPathToRoot((Object) module));
-			model.nodeInserted(model.modulesNode(), config.moduleCount() - 1);
-			editNodeName(tree);
+			if (module != null && module.referenceCount() == 1) {
+				TreePath moduleTreePath = new TreePath(model.getPathToRoot((Object) module));
+				model.nodeInserted(model.modulesNode(), config.moduleCount() - 1);
+				editNodeName(tree);
+			}
+			return true;
+		} else {
+			return true;
 		}
-
-		return true;
 	}
 
 	/** move a reference within its container */
