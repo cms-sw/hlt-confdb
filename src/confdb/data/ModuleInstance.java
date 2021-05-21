@@ -22,6 +22,7 @@ public class ModuleInstance extends Instance implements Referencable {
 	/** list of references */
 	private ArrayList<ModuleReference> references = new ArrayList<ModuleReference>();
 
+	private int moduleType = 0; //0 = standard module, 1 = switch producer module
 	//
 	// construction
 	//
@@ -29,6 +30,11 @@ public class ModuleInstance extends Instance implements Referencable {
 	/** standard constructor */
 	public ModuleInstance(String name, ModuleTemplate template) throws DataException {
 		super(name, template);
+	}
+
+	public ModuleInstance(String name, ModuleTemplate template, int modType ) throws DataException {
+		super(name, template);
+		moduleType = modType;
 	}
 
 	//
@@ -199,6 +205,18 @@ public class ModuleInstance extends Instance implements Referencable {
 
 		return result;
 
+	}
+
+	public void setModuleType(int val) {
+		if (val != moduleType) {
+			moduleType = val;	
+			setHasChanged();
+		} 
+		
+	}
+	
+	public int moduleType() {
+		return moduleType;
 	}
 
 }
