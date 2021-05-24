@@ -38,7 +38,7 @@ public class PythonSwitchProducerWriter implements ISwitchProducerWriter {
 				    modStr=e.getMessage();
 				}
 			    }	
-			    modStr = modStr.replaceFirst(switchProducer.name()+"_","");
+			    modStr = modStr.replaceFirst(switchProducer.modulePrefix(),"");
 			    modStr = modStr.trim();
 			    modStr += ",\n";
 			    str += "  "+modStr;
