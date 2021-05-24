@@ -1,7 +1,7 @@
 package confdb.data;
 
 import java.util.Iterator;
-
+import java.util.HashSet;
 /**
  * SwitchProducer
  * --------
@@ -87,7 +87,27 @@ public class SwitchProducer extends ReferenceContainer {
 			String newName = entry.name().replace(oldModulePrefix,"");
 			newName = modulePrefix() + newName ;
 			entry.setName(newName);
+		}	
+		
+		// need to check all paths containing this module
+		Path[] paths = parentPaths();
+		HashSet<Path> pathSet = new HashSet<Path>();
+		for (Path path : paths)
+			pathSet.add(path);
+
+		// as well as endpaths for outputmodules/eventcontents
+		if (config() != null) {
+			Iterator<Path> itP = config().pathIterator();
+			while (itP.hasNext()) {
+				Path path = itP.next();
+				if (path.isEndPath()) {
+					pathSet.add(path);
+				}
+			}
 		}
+		updateInputTagsAndEvtContent(pathSet,oldName);
+
+		
 	}
 
 	//the name seperater charactor string
@@ -107,6 +127,80 @@ public class SwitchProducer extends ReferenceContainer {
 				return modulePrefix()+"cpu";
 			}else{
 				return modulePrefix()+"cuda";
+			}
+		}
+	}
+
+	/** copy paste of ModuleInstance.setNameAndPropagate with minor changes (sigh) */
+	public void updateInputTagsAndEvtContent(HashSet<Path> pathSet,String oldName){
+	
+        Iterator<Path> itPath = pathSet.iterator();
+		while (itPath.hasNext()) {
+			Path path = itPath.next();
+
+			// outputmodules/eventcontent
+			Iterator<OutputModule> itO = path.outputIterator();
+			while (itO.hasNext()) {
+				OutputModule output = itO.next();
+				Stream stream = output.parentStream();
+				EventContent content = stream.parentContent();
+				Iterator<OutputCommand> itC = content.commandIterator();
+				while (itC.hasNext()) {
+					OutputCommand command = itC.next();
+					if (command.moduleName().equals(oldName)) {
+						command.setModuleName(name());
+					}
+				}
+			}
+
+			Iterator<ModuleInstance> itM = path.moduleIterator();
+			while (itM.hasNext()) {
+				ModuleInstance module = itM.next();
+				Iterator<Parameter> itP = module.recursiveParameterIterator();
+				while (itP.hasNext()) {
+					Parameter p = itP.next();
+					if (!p.isValueSet())
+						continue;
+					if (p instanceof InputTagParameter) {
+						InputTagParameter inputTag = (InputTagParameter) p;
+						if (inputTag.label().equals(oldName)) {
+							InputTagParameter tmp = (InputTagParameter) inputTag.clone(null);
+							tmp.setLabel(name()
+);
+							module.updateParameter(inputTag.fullName(), inputTag.type(), tmp.valueAsString());
+						}
+					} else if (p instanceof ESInputTagParameter) {
+						ESInputTagParameter esinputTag = (ESInputTagParameter) p;
+						if (esinputTag.module().equals(oldName)) {
+							ESInputTagParameter tmp = (ESInputTagParameter) esinputTag.clone(null);
+							tmp.setModule(name());
+							module.updateParameter(esinputTag.fullName(), esinputTag.type(), tmp.valueAsString());
+						}
+					} else if (p instanceof VInputTagParameter) {
+						VInputTagParameter vInputTag = (VInputTagParameter) p;
+						VInputTagParameter tmp = (VInputTagParameter) vInputTag.clone(null);
+						for (int i = 0; i < tmp.vectorSize(); i++) {
+							InputTagParameter inputTag = new InputTagParameter("", tmp.value(i).toString(), false);
+							if (inputTag.label().equals(oldName)) {
+								inputTag.setLabel(name());
+								tmp.setValue(i, inputTag.valueAsString());
+							}
+						}
+						module.updateParameter(vInputTag.fullName(), vInputTag.type(), tmp.valueAsString());
+					} else if (p instanceof VESInputTagParameter) {
+						VESInputTagParameter vESInputTag = (VESInputTagParameter) p;
+						VESInputTagParameter tmp = (VESInputTagParameter) vESInputTag.clone(null);
+						for (int i = 0; i < tmp.vectorSize(); i++) {
+							ESInputTagParameter ESinputTag = new ESInputTagParameter("", tmp.value(i).toString(),
+									false);
+							if (ESinputTag.module().equals(oldName)) {
+								ESinputTag.setModule(name());
+								tmp.setValue(i, ESinputTag.valueAsString());
+							}
+						}
+						module.updateParameter(vESInputTag.fullName(), vESInputTag.type(), tmp.valueAsString());
+					}
+				}
 			}
 		}
 	}
