@@ -125,16 +125,17 @@ public class ModuleInstance extends Instance implements Referencable {
 					}
 				}
 			}
-
-			boolean isDownstream = path.isEndPath();
+			
 			Iterator<ModuleInstance> itM = path.moduleIterator();
 			while (itM.hasNext()) {
 				ModuleInstance module = itM.next();
-				if (!isDownstream) {
-					if (module == this)
-						isDownstream = true;
-					continue;
-				}
+				
+				/* there was a check for downstreamness before                    
+				/* ie a module would only be changed if was physically after the  
+				/* module being changed                                        
+				/* however with tasks, SP, this is no longer true, the order
+				/* doesnt matter so we globally replace   */
+				
 				Iterator<Parameter> itP = module.recursiveParameterIterator();
 				while (itP.hasNext()) {
 					Parameter p = itP.next();
