@@ -524,6 +524,9 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 			} else if (entry instanceof TaskReference) {
 				Task task = (Task) entry.parent();
 				getModulesAmongEntries(task.entryIterator(), modules);
+			} else if (entry instanceof SwitchProducerReference) {
+				SwitchProducer sp = (SwitchProducer) entry.parent();			
+				getModulesAmongEntries(sp.entryIterator(), modules);
 			}
 		}
 	}
