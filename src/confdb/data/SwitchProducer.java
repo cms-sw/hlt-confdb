@@ -35,7 +35,7 @@ public class SwitchProducer extends ReferenceContainer {
 					module.setModuleType(1);										
 				}
 
-				if (!reference.name().startsWith(name()+"_")) {				
+				if (!reference.name().startsWith(modulePrefix())) {				
 					try {
 						reference.parent().setName(getDefaultModuleName());
 					} catch (DataException e) {
@@ -77,26 +77,36 @@ public class SwitchProducer extends ReferenceContainer {
 	/** set the name and propagate it to all relevant modules */
 	public void setNameAndPropagate(String name) throws DataException {
 		String oldName = name();
+		String oldModulePrefix = modulePrefix();
 		if (oldName.equals(name)) {
 			return;
 		}
 		super.setName(name);
 		for (Reference ref : entries) {
 			Referencable entry = ref.parent();
-			String newName = entry.name().replace(oldName+"_","");
-			newName = name() + "_" + newName ;
+			String newName = entry.name().replace(oldModulePrefix,"");
+			newName = modulePrefix() + newName ;
 			entry.setName(newName);
 		}
 	}
 
+	//the name seperater charactor string
+	public static String nameSeperator() {
+		return "_";
+	}
+
+	public String modulePrefix() {
+		return name()+nameSeperator();
+	}
+
 	private String getDefaultModuleName() {
 		if (entries.isEmpty()){
-			return name()+"_cpu";
+			return modulePrefix()+"cpu";
 		}else{
 			if ( entries.get(0).name().endsWith("cuda")) {
-				return name()+"_cpu";
+				return modulePrefix()+"cpu";
 			}else{
-				return name()+"_cuda";
+				return modulePrefix()+"cuda";
 			}
 		}
 	}

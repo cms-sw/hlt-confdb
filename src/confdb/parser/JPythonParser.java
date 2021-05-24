@@ -1309,7 +1309,7 @@ public class JPythonParser
 
     private String switchProducerComponentName(PyObject switchProd,String component ){
 	String spName = getLabel(switchProd);
-	return spName+"_"+component;
+	return spName+SwitchProducer.nameSeperator()+component;
     }
 	
     // switch producers are sigificantly different than Tasks, Sequences, Paths

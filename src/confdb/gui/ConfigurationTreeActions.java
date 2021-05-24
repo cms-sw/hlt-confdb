@@ -1258,8 +1258,9 @@ public class ConfigurationTreeActions {
 		String newName;
 		for (int i = 0; i < sourceContainer.entryCount(); i++) { // technically only 2 entries are possible here
 			Reference entry = sourceContainer.entry(i);
-			newName = entry.name().replace(sourceContainer.name()+"_","");
-			newName = targetName+"_"+newName;
+			
+			newName = entry.name().replace(((SwitchProducer)sourceContainer).modulePrefix(),"");
+			newName = targetName+SwitchProducer.nameSeperator()+newName;
 			if (entry instanceof ModuleReference) {
 				ModuleReference sourceRef = (ModuleReference) entry;
 				ConfigurationTreeActions.CloneModule(tree, sourceRef, newName);
