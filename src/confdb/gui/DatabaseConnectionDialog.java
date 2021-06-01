@@ -418,6 +418,7 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener,
 		textFieldDbPort.setText(dbSetups.port(selectedIndex));
 		textFieldDbName.setText(dbSetups.name(selectedIndex));
 		textFieldDbUser.setText(dbSetups.user(selectedIndex));
+		checkBoxProxyEnabled.setSelected(dbSetups.proxy(selectedIndex));
 		String dbType = dbSetups.type(selectedIndex);
 		if (dbType.equals("mysql"))
 			mysqlButton.setSelected(true);
