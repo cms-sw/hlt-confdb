@@ -19,6 +19,7 @@
   <property name="dir.icons"  location="icons"/>
   <property name="dir.lib"    location="lib"/>
   <property name="dir.python" location="python"/>
+  <!-- see hlt-confdb.properties for a sample properties file -->
   <property file="${user.home}/.hlt-confdb.properties"/>
 
   <!-- initialize variables, make directories, check what needs to be rebuilt -->
