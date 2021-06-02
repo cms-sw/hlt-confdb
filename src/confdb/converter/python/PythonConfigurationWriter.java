@@ -143,8 +143,11 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 			IModuleWriter moduleWriter = converterEngine.getModuleWriter();
 			for (int i = 0; i < conf.moduleCount(); i++) {
 				ModuleInstance module = conf.module(i);
-				str.append(object);
-				str.append(moduleWriter.toString(module));
+				//do not write out switch producer modules
+				if (module.moduleType()!=1) {
+					str.append(object);
+					str.append(moduleWriter.toString(module));
+				}
 			}
 			str.append("\n");
 		}
