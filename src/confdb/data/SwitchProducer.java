@@ -112,7 +112,7 @@ public class SwitchProducer extends ReferenceContainer {
 
 	//the name seperater charactor string
 	public static String nameSeperator() {
-		return "_";
+		return ".";
 	}
 
 	public String modulePrefix() {
