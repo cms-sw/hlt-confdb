@@ -62,7 +62,15 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
     /** set the name of this instance */
     public void setName(String name) throws DataException
     {
-        name = name.replaceAll("\\W", "");
+        /** we allow EDAliases and Modules to have a . in their name due to 
+         *  SP sub modules needing them (and no good way to limit just to SP 
+         *  SP sub modules, issue is with parsing), otherwise not */
+        if( this instanceof ModuleInstance ||
+            this instanceof EDAliasInstance) {            
+            name = name.replaceAll("[^\\w.]", "");
+        }else{
+            name = name.replaceAll("\\W", "");
+        }
         if (template != null) {
 	if (template().hasInstance(name)
 	    ||(config!=null&&!config.isUniqueQualifier(name)))
