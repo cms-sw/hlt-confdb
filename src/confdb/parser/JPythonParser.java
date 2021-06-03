@@ -235,7 +235,7 @@ public class JPythonParser
         parsePathsFromPython(process);
 
         // add outputmodules + Streams + EventContents
-        // FIXME parseOutputModules(process);
+        parseOutputModules(process);
 
         // add global psets + Streams + Datasets
         parsePSets(process); // this need to go after Paths to properly link the Datasets.
@@ -428,8 +428,12 @@ public class JPythonParser
                 Stream stream = new Stream(streamName, content);
                 stream = content.insertStream(streamName);
 
-                // Recursively calling this function MUST Update the recently created OutputModule.
-                parseModule(moduleObject);
+                /* now get the new module created by the stream and update it */
+                module = configuration.output(label);
+                if( module != null) {
+                    PyDictionary parameterContainerObject = (PyDictionary) moduleObject.invoke("parameters_");
+                    updateOutputModuleParameters(parameterContainerObject, module);
+                }
             }
 
         } else {
