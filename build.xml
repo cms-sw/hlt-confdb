@@ -19,14 +19,8 @@
   <property name="dir.icons"  location="icons"/>
   <property name="dir.lib"    location="lib"/>
   <property name="dir.python" location="python"/>
-  <property name="sign.store" value="/afs/cern.ch/user/c/confdb/private/certificate/certificate.p12"/>
-  <property name="sign.alias" value="cms confdb's  id"/>
-  <property name="sign.pass"  value="confdb"/>
-  <!-- currently not working
-  <property name="sign.tsa"   value="https://timestamp.geotrust.com/tsa"/>
-  -->
-  <!-- alternative tsa url -->
-  <property name="sign.tsa"   value="http://time.certum.pl/"/>
+  <!-- see hlt-confdb.properties for a sample properties file -->
+  <property file="${user.home}/.hlt-confdb.properties"/>
 
   <!-- initialize variables, make directories, check what needs to be rebuilt -->
   <target name="init">

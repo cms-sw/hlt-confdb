@@ -4,6 +4,10 @@
 BASE=$HOME/www/v2
 URL=http://confdb.web.cern.ch/confdb/v2/gui/
 
+# buld everything from scratch
+ant clean
+ant all
+
 # backup an existing directory
 if [ -e "$BASE" ]; then
   BACKUP=$BASE.`date -u -r $BASE +%Y%m%d.%H%M%S`
