@@ -34,7 +34,7 @@ ant gui
 
 <h3>Connection details</h3>
 <p>In order to work, the GUI needs to connect to one of the Oracle database at CERN.<br>
-The offline database <b>HLTDEVv2</b> should be accessible from the CERN network and from all institutes
+The offline database <b>HLTDEVv2</b> should be accessible from the CERN network and from all (most?) institutes
 that belong to the CMS collaboration.<br>
 The online database <b>DAQv2</b> is accessible only from the .CMS network at Point 5, while its read-only
 copy <b>ORCOFFv2</b> is accessible from the CERN network. An ssh tunnel can be used to connect from outside.</p>
@@ -45,14 +45,14 @@ telnet cmsr1-s.cern.ch 10121
 </pre>
 If the output is something like
 <pre>
-Trying 188.184.36.76...
+Trying 10.116.96.89...
 Connected to db-rac-349.cern.ch.
 Escape character is '^]'.
 </pre>
 then you can connect to the database.<br>
 If the output is something like
 <pre>
-Trying 188.184.36.76...
+Trying 10.116.96.89...
 telnet: Unable to connect to remote host: Connection refused
 </pre>
 then you cannot connect directly to the database, and you need to use a tunnel.<br>
@@ -61,21 +61,23 @@ then you cannot connect directly to the database, and you need to use a tunnel.<
 Franck Pachot (cc Andrea Bocci)</a> providing the IP address range for your institute,
 and ask to allow it through the CMS database firewall.</p>
 
+<p> Note its probably easier just to tunnel the connection though...</p>
+
 <h3>Connection through a tunnel</h3>
-<p>Starting with the GUI version V02-06-00, the preferred method to connect is to create a dynamic
+<p>Currently the preferred method to connect is to create a dynamic
 forwarding through an ssh connection to lxplus:
 <pre>
 ssh -f -N -D 1080 lxplus.cern.ch
 </pre>
-then start the GUI, select the HLTDEVv2 database, and tick the "SOCKS Proxy" checkmark.<br>
-Change the proxy port number if you used a different local port.</p>
+then start the GUI, select the HLTDEVv2 (socks tunnel) option<br>
+Change the proxy port number if you used a different local port. </p>
 
 <p>If this approach does not work, it is also possible to forward a port.
 Forward the local port 10121 to the database server through an ssh connection to lxplus:
 <pre>
-ssh -f -N -L 10121:188.184.36.85:10121 lxplus.cern.ch
+ssh -f -N -L 10121:10.116.96.89:10121 lxplus.cern.ch
 </pre>
-then start the GUI, select the HLTDEVv2 database, and change the host to <code>localhost</code>.<br>
+then start the GUI, select the HLTDEVv2 (direct tunnel) option.
 Change the server port number if you used a different local port.
 </p>
 

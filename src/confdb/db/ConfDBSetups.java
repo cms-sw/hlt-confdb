@@ -2,7 +2,7 @@ package confdb.db;
 
 import java.util.ArrayList;
 import java.util.Properties;
-
+import java.lang.Boolean;
 import java.io.InputStream;
 import java.io.IOException;
 
@@ -37,6 +37,8 @@ public class ConfDBSetups {
 	/** database setup db users */
 	private ArrayList<String> users = new ArrayList<String>();
 
+	/** database setup db use proxies */
+       private ArrayList<Boolean> proxies = new ArrayList<Boolean>();
 	//
 	// construction
 	//
@@ -90,6 +92,10 @@ public class ConfDBSetups {
 	public String user(int i) {
 		return users.get(i);
 	}
+       /** retrieve i-th proxy */
+       public Boolean proxy(int i) {
+	        return proxies.get(i);
+	}
 
 	/** retrieve type by label */
 	public String type(String label) {
@@ -120,6 +126,11 @@ public class ConfDBSetups {
 		int index = labels.indexOf(label);
 		return (index >= 0) ? users.get(index) : null;
 	}
+       /** retrieve proxy by label */
+	public Boolean proxy(String label) {
+		int index = labels.indexOf(label);
+		return (index >= 0) ? proxies.get(index) : null;
+	}
 
 	/** initialize from properties file */
 	private void initialize(String fileName) {
@@ -129,6 +140,7 @@ public class ConfDBSetups {
 		names.add("");
 		users.add("");
 		hosts.add("");
+              proxies.add(false);
 
 		try {
 			InputStream inStream = getClass().getResourceAsStream(fileName);
@@ -151,6 +163,8 @@ public class ConfDBSetups {
 				names.add(new String(property));
 				property = properties.getProperty("confdb" + i + ".dbUser");
 				users.add(new String(property));
+				property = properties.getProperty("confdb" + i + ".proxy");
+				proxies.add(new Boolean(Boolean.valueOf(property)));
 			}
 		} catch (IOException e) {
 			System.out.println("Failed to initialize ConfDBSetups from '" + fileName + "': " + e.getMessage());
