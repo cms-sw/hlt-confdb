@@ -1,3 +1,12 @@
+2021-06-07 Sam Harper 
+	* tag V02-07-01
+	* add support for large screen resolutions
+	* update database connection parameters
+	* update jar signing configuration
+	* now builds from scratch for deployment
+	* minor cfi file clean ups
+	* eclipse formating
+
 2017-06-08 Andrea Bocci <andrea.bocci@cern.ch>
 	* tag V02-06-01
 	* add Kyungwook Nam to the admins
