@@ -390,6 +390,16 @@ public class ReleaseMigrator {
 				}
 			}
 
+		//copying objects which dont have templates, ie EDAliases
+		//to avoid unintended side effects right now (08/06/21), limit 
+		//explictly to EDAliasInstance
+		if (source.template() == null && source instanceof EDAliasInstance) {
+			for (int paramNr = 0; paramNr < source.parameterCount(); paramNr++) {
+				Parameter param = source.parameter(paramNr);
+				target.updateTrackedParameter(param.name(),param.type(),param.valueAsString());
+			}
+		}
+
 		// special E/g migration
 		// // if (target.template().name().equals("HLTEgammaEtFilter") ||
 		// target.template().name().equals("HLTPMMassFilter")) {
