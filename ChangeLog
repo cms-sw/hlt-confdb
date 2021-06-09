@@ -1,3 +1,9 @@
+2021-06-09 Sam Harper 
+	* tag V02-08-00
+	* add support for Aliases, SwitchProducers, Tasks
+	* updates output modules to EvFOutputModule
+	* note: still experimental version for GPU support
+
 2021-06-07 Sam Harper 
 	* tag V02-07-01
 	* add support for large screen resolutions
