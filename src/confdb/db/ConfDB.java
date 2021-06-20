@@ -269,8 +269,6 @@ public class ConfDB {
 	private PreparedStatement psInsertSequence = null;
 	private PreparedStatement psInsertTask = null;
 	private PreparedStatement psInsertConfigSequenceAssoc = null;
-	private PreparedStatement psInsertConfigTaskAssoc = null;
-	private PreparedStatement psInsertConfigSwitchProducerAssoc = null;
 	private PreparedStatement psInsertModule = null;
 	private PreparedStatement psInsertSequenceModuleAssoc = null;
 	private PreparedStatement psInsertSequenceOutputModuleAssoc = null;
@@ -3159,13 +3157,13 @@ public class ConfDB {
 			int taskId = task.databaseId();
 
 			try {
-				psInsertConfigTaskAssoc.setInt(1, configId);
-				psInsertConfigTaskAssoc.setInt(2, taskId);
-				psInsertConfigTaskAssoc.setNull(3, Types.INTEGER);// parent
-				psInsertConfigTaskAssoc.setInt(4, 0); // lvl
-				psInsertConfigTaskAssoc.setInt(5, sequenceNb);
-				psInsertConfigTaskAssoc.setInt(6, 0);
-				psInsertConfigTaskAssoc.addBatch();
+				psInsertConfigSequenceAssoc.setInt(1, configId);
+				psInsertConfigSequenceAssoc.setInt(2, taskId);
+				psInsertConfigSequenceAssoc.setNull(3, Types.INTEGER);// parent
+				psInsertConfigSequenceAssoc.setInt(4, 0); // lvl
+				psInsertConfigSequenceAssoc.setInt(5, sequenceNb);
+				psInsertConfigSequenceAssoc.setInt(6, 0);
+				psInsertConfigSequenceAssoc.addBatch();
 
 				insertTasReferences(task, configId, 0, 0, taskHashMap, switchProducerHashMap, EDAliasHashMap,
 						moduleHashMap);
@@ -3182,13 +3180,13 @@ public class ConfDB {
 			int switchProducerId = switchProducer.databaseId();
 
 			try {
-				psInsertConfigSwitchProducerAssoc.setInt(1, configId);
-				psInsertConfigSwitchProducerAssoc.setInt(2, switchProducerId);
-				psInsertConfigSwitchProducerAssoc.setNull(3, Types.INTEGER);// parent
-				psInsertConfigSwitchProducerAssoc.setInt(4, 0); // lvl
-				psInsertConfigSwitchProducerAssoc.setInt(5, sequenceNb);
-				psInsertConfigSwitchProducerAssoc.setInt(6, 0);
-				psInsertConfigSwitchProducerAssoc.addBatch();
+				psInsertConfigSequenceAssoc.setInt(1, configId);
+				psInsertConfigSequenceAssoc.setInt(2, switchProducerId);
+				psInsertConfigSequenceAssoc.setNull(3, Types.INTEGER);// parent
+				psInsertConfigSequenceAssoc.setInt(4, 0); // lvl
+				psInsertConfigSequenceAssoc.setInt(5, sequenceNb);
+				psInsertConfigSequenceAssoc.setInt(6, 0);
+				psInsertConfigSequenceAssoc.addBatch();
 
 				insertSwitchProducerReferences(switchProducer, configId, 0, 0, switchProducerHashMap, EDAliasHashMap,
 						moduleHashMap);
@@ -3205,8 +3203,6 @@ public class ConfDB {
 			psInsertPathElementAssoc.executeBatch();
 			psInsertPathOutputModuleAssoc.executeBatch();
 			psInsertConfigSequenceAssoc.executeBatch();
-			psInsertConfigTaskAssoc.executeBatch();
-			psInsertConfigSwitchProducerAssoc.executeBatch();
 //            psInsertPathPathAssoc.executeBatch();
 //            psInsertPathSequenceAssoc.executeBatch();
 //            psInsertPathModuleAssoc.executeBatch();
@@ -3457,13 +3453,13 @@ public class ConfDB {
 			if (r instanceof TaskReference) {
 				int childTaskId = Math.abs(taskHashMap.get(r.name()));
 				try {
-					psInsertConfigTaskAssoc.setInt(1, configId);
-					psInsertConfigTaskAssoc.setInt(2, childTaskId);
-					psInsertConfigTaskAssoc.setInt(3, parentId); // lvl
-					psInsertConfigTaskAssoc.setInt(4, lvl); // lvl
-					psInsertConfigTaskAssoc.setInt(5, sequenceNb);
-					psInsertConfigTaskAssoc.setInt(6, r.getOperator().ordinal());
-					psInsertConfigTaskAssoc.addBatch();
+					psInsertConfigSequenceAssoc.setInt(1, configId);
+					psInsertConfigSequenceAssoc.setInt(2, childTaskId);
+					psInsertConfigSequenceAssoc.setInt(3, parentId); // lvl
+					psInsertConfigSequenceAssoc.setInt(4, lvl); // lvl
+					psInsertConfigSequenceAssoc.setInt(5, sequenceNb);
+					psInsertConfigSequenceAssoc.setInt(6, r.getOperator().ordinal());
+					psInsertConfigSequenceAssoc.addBatch();
 
 					insertTasReferences((Task) r.parent(), configId, childTaskId, lvl + 1, taskHashMap,
 							switchProducerHashMap, EDAliasHashMap, moduleHashMap);
@@ -3499,14 +3495,14 @@ public class ConfDB {
 			} else if (r instanceof ModuleReference) {
 				int moduleId = moduleHashMap.get(r.name());
 				try {
-					psInsertConfigTaskAssoc.setInt(1, configId);
-					psInsertConfigTaskAssoc.setInt(2, moduleId);
-					psInsertConfigTaskAssoc.setInt(3, parentId); // lvl
-					psInsertConfigTaskAssoc.setInt(4, lvl); // lvl
-					psInsertConfigTaskAssoc.setInt(5, sequenceNb);
-					psInsertConfigTaskAssoc.setInt(6, r.getOperator().ordinal());
-					psInsertConfigTaskAssoc.addBatch(); //
-					// psInsertConfigTaskAssoc.executeUpdate();
+					psInsertConfigSequenceAssoc.setInt(1, configId);
+					psInsertConfigSequenceAssoc.setInt(2, moduleId);
+					psInsertConfigSequenceAssoc.setInt(3, parentId); // lvl
+					psInsertConfigSequenceAssoc.setInt(4, lvl); // lvl
+					psInsertConfigSequenceAssoc.setInt(5, sequenceNb);
+					psInsertConfigSequenceAssoc.setInt(6, r.getOperator().ordinal());
+					psInsertConfigSequenceAssoc.addBatch(); //
+					// psInsertConfigSequenceAssoc.executeUpdate();
 
 				} catch (SQLException e) {
 					String errMsg = "ConfDB::insertReferences(Task=" + task.name() + ") failed (taskId=" + taskId
@@ -3678,14 +3674,14 @@ public class ConfDB {
 			if (r instanceof ModuleReference) {
 				int moduleId = moduleHashMap.get(r.name());
 				try {
-					psInsertConfigSwitchProducerAssoc.setInt(1, configId);
-					psInsertConfigSwitchProducerAssoc.setInt(2, moduleId);
-					psInsertConfigSwitchProducerAssoc.setInt(3, parentId); // lvl
-					psInsertConfigSwitchProducerAssoc.setInt(4, lvl); // lvl
-					psInsertConfigSwitchProducerAssoc.setInt(5, sequenceNb);
-					psInsertConfigSwitchProducerAssoc.setInt(6, r.getOperator().ordinal());
-					psInsertConfigSwitchProducerAssoc.addBatch(); //
-					// psInsertConfigTaskAssoc.executeUpdate();
+					psInsertConfigSequenceAssoc.setInt(1, configId);
+					psInsertConfigSequenceAssoc.setInt(2, moduleId);
+					psInsertConfigSequenceAssoc.setInt(3, parentId); // lvl
+					psInsertConfigSequenceAssoc.setInt(4, lvl); // lvl
+					psInsertConfigSequenceAssoc.setInt(5, sequenceNb);
+					psInsertConfigSequenceAssoc.setInt(6, r.getOperator().ordinal());
+					psInsertConfigSequenceAssoc.addBatch(); //
+					// psInsertConfigSequenceAssoc.executeUpdate();
 
 				} catch (SQLException e) {
 					String errMsg = "ConfDB::insertReferences(SwitchProducer=" + switchProducer.name()
@@ -3697,14 +3693,14 @@ public class ConfDB {
 			} else if (r instanceof EDAliasReference) {
 				int edAliasId = EDAliasHashMap.get(r.name());
 				try {
-					psInsertConfigSwitchProducerAssoc.setInt(1, configId);
-					psInsertConfigSwitchProducerAssoc.setInt(2, edAliasId);
-					psInsertConfigSwitchProducerAssoc.setInt(3, parentId); // lvl
-					psInsertConfigSwitchProducerAssoc.setInt(4, lvl); // lvl
-					psInsertConfigSwitchProducerAssoc.setInt(5, sequenceNb);
-					psInsertConfigSwitchProducerAssoc.setInt(6, r.getOperator().ordinal());
-					psInsertConfigSwitchProducerAssoc.addBatch(); //
-					// psInsertConfigSwitchProducerAssoc.executeUpdate();
+					psInsertConfigSequenceAssoc.setInt(1, configId);
+					psInsertConfigSequenceAssoc.setInt(2, edAliasId);
+					psInsertConfigSequenceAssoc.setInt(3, parentId); // lvl
+					psInsertConfigSequenceAssoc.setInt(4, lvl); // lvl
+					psInsertConfigSequenceAssoc.setInt(5, sequenceNb);
+					psInsertConfigSequenceAssoc.setInt(6, r.getOperator().ordinal());
+					psInsertConfigSequenceAssoc.addBatch(); //
+					// psInsertConfigSequenceAssoc.executeUpdate();
 
 				} catch (SQLException e) {
 					String errMsg = "ConfDB::insertReferences(SwitchProducer=" + switchProducer.name()
@@ -5846,14 +5842,6 @@ public class ConfDB {
 			psInsertConfigSequenceAssoc = dbConnector.getConnection().prepareStatement("INSERT INTO "
 					+ "u_conf2pae (id_confver,id_pae,id_parent,lvl,ord,operator) " + "VALUES(?, ?, ?, ?, ?, ?)");
 			preparedStatements.add(psInsertConfigSequenceAssoc);
-
-			psInsertConfigTaskAssoc = dbConnector.getConnection().prepareStatement("INSERT INTO "
-					+ "u_conf2pae (id_confver,id_pae,id_parent,lvl,ord,operator) " + "VALUES(?, ?, ?, ?, ?, ?)");
-			preparedStatements.add(psInsertConfigTaskAssoc);
-
-			psInsertConfigSwitchProducerAssoc = dbConnector.getConnection().prepareStatement("INSERT INTO "
-					+ "u_conf2pae (id_confver,id_pae,id_parent,lvl,ord,operator) " + "VALUES(?, ?, ?, ?, ?, ?)");
-			preparedStatements.add(psInsertConfigSwitchProducerAssoc);
 
 			psInsertPathElement = dbConnector.getConnection().prepareStatement(
 					"INSERT INTO u_paelements (paetype,name,crc32,crc32logic,o_id) " + "VALUES(?, ?, ?, NULL,NULL)",
