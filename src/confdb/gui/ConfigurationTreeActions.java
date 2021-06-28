@@ -2490,8 +2490,11 @@ public class ConfigurationTreeActions {
 							targetRef = config.insertEDAliasReference(targetContainer, i, source.name());
 							target = (EDAliasInstance) targetRef.parent();
 							// Update parameters:
-							for (int j = 0; j < target.parameterCount(); j++)
-								target.updateParameter(j, source.parameter(j).valueAsString());
+							for (int j = 0; j < source.parameterCount(); j++){
+								Parameter param = source.parameter(j);
+								target.updateParameter(param);
+							}
+								
 							target.setDatabaseId(source.databaseId());
 
 							// it was inserted. common operations:
@@ -2517,8 +2520,11 @@ public class ConfigurationTreeActions {
 
 					target = (EDAliasInstance) targetRef.parent();
 					// Update parameters:
-					for (int j = 0; j < target.parameterCount(); j++)
-						target.updateParameter(j, source.parameter(j).valueAsString());
+					for (int j = 0; j < source.parameterCount(); j++){
+						Parameter param = source.parameter(j);
+						target.updateParameter(param);
+					}
+						
 					target.setDatabaseId(source.databaseId());
 
 					// it was inserted. common operations:
@@ -5566,8 +5572,10 @@ public class ConfigurationTreeActions {
 
 		try {
 			EDAliasInstance newEDAlias = new EDAliasInstance(external.name());
-			for (int i = 0; i < newEDAlias.parameterCount(); i++)
-				newEDAlias.updateParameter(i, external.parameter(i).valueAsString());
+			for (int i = 0; i < external.parameterCount(); i++){
+				Parameter param = external.parameter(i);
+				newEDAlias.updateParameter(param);
+			}
 			newEDAlias.setDatabaseId(external.databaseId());
 			config.insertEDAlias(index, newEDAlias);
 
