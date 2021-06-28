@@ -2193,8 +2193,8 @@ public class ConfigurationTreeActions {
 				} else {
 					targetRef = config.insertEDAliasReference(targetContainer, i, source.name());
 					target = (EDAliasInstance) targetRef.parent();
-					for (int j = 0; j < target.parameterCount(); j++)
-						target.updateParameter(j, source.parameter(j).valueAsString());
+					for (int j = 0; j < source.parameterCount(); j++)
+						target.updateParameter(source.parameter(j));
 					target.setDatabaseId(source.databaseId());
 				}
 				targetRef.setOperator(sourceRef.getOperator());
@@ -3505,8 +3505,9 @@ public class ConfigurationTreeActions {
 		if (target == null)
 			return false;
 
-		for (int i = 0; i < target.parameterCount(); i++)
-			target.updateParameter(i, external.parameter(i).valueAsString());
+		for (int i = 0; i < external.parameterCount(); i++) {
+			target.updateParameter(external.parameter(i));
+		}
 		target.setDatabaseId(external.databaseId());
 		model.nodeInserted(parent, insertAtIndex);
 		// model.nodeInserted(model.modulesNode(), config.moduleCount() - 1);
