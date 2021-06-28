@@ -317,6 +317,15 @@ abstract public class ParameterContainer extends DatabaseEntry {
 			return true;
 		}
 	}
+	/** update a parameter when the value is changed */
+	public boolean updateParameter(Parameter param){
+		if(param.isTracked()){
+			return updateTrackedParameter(param.name(),param.type(),param.valueAsString());
+		}else{
+			return updateTrackedParameter(param.name(),param.type(),param.valueAsString());
+		}
+	}
+
 
 	/** number of unset tracked parameters */
 	public int unsetTrackedParameterCount() {

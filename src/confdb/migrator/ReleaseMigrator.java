@@ -396,7 +396,7 @@ public class ReleaseMigrator {
 		if (source.template() == null && source instanceof EDAliasInstance) {
 			for (int paramNr = 0; paramNr < source.parameterCount(); paramNr++) {
 				Parameter param = source.parameter(paramNr);
-				target.updateTrackedParameter(param.name(),param.type(),param.valueAsString());
+				target.updateParameter(param);
 			}
 		}
 
