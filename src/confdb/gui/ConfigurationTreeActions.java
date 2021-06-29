@@ -787,9 +787,34 @@ public class ConfigurationTreeActions {
 		Configuration config = (Configuration) model.getRoot();
 		TreePath treePath = tree.getSelectionPath();
 
-		int index = (treePath.getPathCount() == 2) ? 0
-				: model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
-						treePath.getLastPathComponent()) + 1;
+		// okay the original sequence code assumed that decendents of sequences were allways sequences or modules
+		// which to be fair was true
+		// now with tasks and sps, we need to code the following logic
+		// first nomenclature:
+		//    getLastPathCompontent() : parent of our new module
+		//    getParentPath(): grand parent of our new module, this will 
+		//                     be the top level node (eg sequences, tasks)
+		// The goal of the index is to find out where to insert the new 
+		// reference container. This is index+1 of the parent path in the 
+		// top level node when the types are the same
+		// this means a deep cloned sequence will right after its original
+		// and all deep cloned child sequences will be directly after that 
+		// sequence
+		// 
+		// however when the parent is different to the inserted object, we
+		// will put it at last index of the of the new node
+	
+		int index = 0;
+		if( treePath.getPathCount() == 2){
+			index = 0;
+		}else if(treePath.getParentPath().equals(model.tasksNode())) {
+			index = (treePath.getPathCount() == 2) ? 0
+					: model.getIndexOfChild(treePath.getParentPath().	getLastPathComponent(),
+					treePath.getLastPathComponent()) + 1;	
+		}else{
+			index = config.taskCount();
+		}
+
 		// To make sure that task name doesn't exist:
 		String newName = name;
 		if (config.task(name) != null) {
@@ -805,7 +830,11 @@ public class ConfigurationTreeActions {
 
 		model.nodeInserted(model.tasksNode(), index);
 		model.updateLevel1Nodes();
-		TreePath parentPath = (index == 0) ? treePath : treePath.getParentPath();
+		
+		//bug fix: we need to ensure we are using the tasks node
+		//TreePath parentPath = (index == 0) ? treePath : treePath.getParentPath();
+		TreePath parentPath = (index == 0) ? treePath : new TreePath(model.getPathToRoot(model.tasksNode()));
+		
 		TreePath newTreePath = parentPath.pathByAddingChild(task);
 		tree.setSelectionPath(newTreePath);
 		return newName;
@@ -846,10 +875,35 @@ public class ConfigurationTreeActions {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
 		TreePath treePath = tree.getSelectionPath();
+		
+		// okay the original sequence code assumed that decendents of sequences were allways sequences or modules
+		// which to be fair was true
+		// now with tasks and sps, we need to code the following logic
+		// first nomenclature:
+		//    getLastPathCompontent() : parent of our new module
+		//    getParentPath(): grand parent of our new module, this will 
+		//                     be the top level node (eg sequences, tasks)
+		// The goal of the index is to find out where to insert the new 
+		// reference container. This is index+1 of the parent path in the 
+		// top level node when the types are the same
+		// this means a deep cloned sequence will right after its original
+		// and all deep cloned child sequences will be directly after that 
+		// sequence
+		// 
+		// however when the parent is different to the inserted object, we
+		// will put it at last index of the of the new node
+	
+		int index = 0;
+		if( treePath.getPathCount() == 2){
+			index = 0;
+		}else if(treePath.getParentPath().equals(model.switchProducersNode())) {
+			index = (treePath.getPathCount() == 2) ? 0
+					: model.getIndexOfChild(treePath.getParentPath().	getLastPathComponent(),
+					treePath.getLastPathComponent()) + 1;
+		}else{
+			index = config.switchProducerCount();
+		}
 
-		int index = (treePath.getPathCount() == 2) ? 0
-				: model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
-						treePath.getLastPathComponent()) + 1;
 		// To make sure that switch producer name doesn't exist:
 		String newName = name;
 		if (config.switchProducer(name) != null) {
@@ -865,7 +919,9 @@ public class ConfigurationTreeActions {
 
 		model.nodeInserted(model.switchProducersNode(), index);
 		model.updateLevel1Nodes();
-		TreePath parentPath = (index == 0) ? treePath : treePath.getParentPath();
+		//bug fix: we need to ensure we are using the tasks node
+		//TreePath parentPath = (index == 0) ? treePath : treePath.getParentPath();
+		TreePath parentPath = (index == 0) ? treePath : new TreePath(model.getPathToRoot(model.switchProducersNode()));
 		TreePath newTreePath = parentPath.pathByAddingChild(switchProducer);
 		tree.setSelectionPath(newTreePath);
 		return newName;
