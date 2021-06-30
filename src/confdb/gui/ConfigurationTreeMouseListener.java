@@ -1680,7 +1680,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		Configuration config = (Configuration) model.getRoot();
 		SoftwareRelease release = config.release();
 		
-		menuItem = new JMenuItem("Add Module (Combo)");
+		menuItem = new JMenuItem("Add Module (Inserter)");
 		menuItem.addActionListener(listener);
 		moduleMenu.add(menuItem);
 
@@ -2446,7 +2446,7 @@ class SequenceMenuListener implements ActionListener {
 			ConfigurationTreeActions.setOperator(tree, cmd);
 		} else if (cmd.equals("Clone Module")) {
 			ConfigurationTreeActions.CloneModule(tree, (ModuleReference) node, null);
-		} else if (cmd.equals("Add Module (Combo)")) {		
+		} else if (cmd.equals("Add Module (Inserter)")) {		
 			ModuleInsertDialog dialog = new ModuleInsertDialog(null,tree);
 			dialog.pack();	
 			dialog.setLocationRelativeTo(null);

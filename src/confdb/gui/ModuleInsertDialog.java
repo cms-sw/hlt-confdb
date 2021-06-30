@@ -41,7 +41,7 @@ public class ModuleInsertDialog extends JDialog {
     private JRadioButton jButtonClone = new JRadioButton("clone");
 
 
-    private boolean existingModules = false;
+    private boolean clone = false;
 	
 	
 	/** standard constructor */
@@ -103,21 +103,28 @@ public class ModuleInsertDialog extends JDialog {
 	//
 
     private void okButtonActionPerformed(ActionEvent e) {
-        ConfigurationTreeActions.insertReference(tree, "Module", (String) jComboBoxModule.getSelectedItem());
+        if(clone){
+            ConfigurationTreeActions.insertReference(tree, "Module", "copy:"+(String) jComboBoxModule.getSelectedItem());
+        }else{
+            ConfigurationTreeActions.insertReference(tree, "Module", (String) jComboBoxModule.getSelectedItem());
+        }
         System.err.println("clicked: "+jComboBoxModule.getSelectedItem());
         System.err.println("action: "+e);
     }
     private void newButtonActionPerformed(ActionEvent e) {
+        clone = false;
         setComboBoxEntriesNewMod();
         System.err.println("newButton: ");
         System.err.println("action: "+e);
     }
     private void existingButtonActionPerformed(ActionEvent e) {
+        clone = false;
         System.err.println("existingButton: ");
         System.err.println("action: "+e);
         setComboBoxEntriesExistingMod(true);
     }
     private void cloneButtonActionPerformed(ActionEvent e) {
+        clone = true
         System.err.println("cloneButton: ");
         System.err.println("action: "+e);
         setComboBoxEntriesExistingMod(true);
