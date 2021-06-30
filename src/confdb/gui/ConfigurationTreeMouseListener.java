@@ -891,9 +891,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			JMenu addModuleMenu = createAddRepModuleMenu(sequence, null, sequenceListener, true, false);
 			popupSequences.add(addModuleMenu);
 			
-			JMenuItem addModuleComboMenu = new JMenuItem("Add Module (Combo)");//createAddRepModuleMenuCombo(sequence, null, sequenceListener, true, false);
-			addModuleComboMenu.addActionListener(sequenceListener);
-			popupSequences.add(addModuleComboMenu);
 
 			JMenu addSequenceMenu = createAddRepSequenceMenu(sequence, sequenceListener, false, true);
 			popupSequences.add(addSequenceMenu);
@@ -1682,6 +1679,10 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		TreeModel model = tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
 		SoftwareRelease release = config.release();
+		
+		menuItem = new JMenuItem("Add Module (Combo)");
+		menuItem.addActionListener(listener);
+		moduleMenu.add(menuItem);
 
 		// Explicitly add OutputModule menu
 		if (!isSwitchProducer) {
@@ -1838,16 +1839,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				moduleTypeAllMenu.add(menuItemAll);
 				moduleTypeAndLetterMenu.add(menuItem);
 			}
-		}
-		return moduleMenu;
-	}
-
-	private JMenu createAddRepModuleMenuCombo(ReferenceContainer container, ModuleInstance module, ActionListener listener,boolean isAdd, boolean isSwitchProducer) {
-		JMenu moduleMenu = null;
-		if (isAdd) {
-			moduleMenu = new JMenu("Add Module (Combo)");
-		} else {
-			moduleMenu = new JMenu("Replace Module (Combo)");
 		}
 		return moduleMenu;
 	}
@@ -2079,30 +2070,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 	}
 
 }
-
-class ModuleInsertListener implements ActionListener {
-	private JTree tree  = null;
-	private JFrame frame = null;
-	
-	public ModuleInsertListener(JTree tree, JFrame frame) {
-		this.tree = tree;
-		this.frame = frame;
-	}
-	public void actionPerformed(ActionEvent e) {
-		JMenuItem source = (JMenuItem) (e.getSource());
-		String cmd = source.getText();
-	}
-
-	/** open prescale editor */
-	public void openModuleInserter() {
-	
-		ModuleInsertDialog dialog = new ModuleInsertDialog(frame, null);
-		dialog.pack();
-		dialog.setLocationRelativeTo(frame);
-		dialog.setVisible(true);
-	
-	}
-}	
 	
 /**
  * listen to actions from the 'PSets' popup menu
@@ -2484,7 +2451,7 @@ class SequenceMenuListener implements ActionListener {
 			dialog.pack();	
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
-		}
+		} 
 		// add a module to the selected sequence
 		else {
 			System.err.println("add module "+action);
