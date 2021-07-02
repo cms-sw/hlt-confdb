@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.io.*;
 import java.util.Scanner;
 import java.util.regex.*;
-
+import java.util.Collections;
 import confdb.data.*;
 import confdb.gui.*;
 /**
@@ -42,13 +42,13 @@ public class ModuleInsertDialog extends JDialog {
 
 
     private boolean clone = false;
+    private Boolean existingMods = null;
 	
 	
 	/** standard constructor */
 	public ModuleInsertDialog(JFrame jFrame, JTree tree) {
 		super(jFrame, "Module Inserter",true);
-		this.tree = tree;
-        this.existingModules = existingModules;
+		this.tree = tree;        
 
 		
 		jComboBoxModule.addActionListener(new ActionListener() {
@@ -124,7 +124,7 @@ public class ModuleInsertDialog extends JDialog {
         setComboBoxEntriesExistingMod(true);
     }
     private void cloneButtonActionPerformed(ActionEvent e) {
-        clone = true
+        clone = true;
         System.err.println("cloneButton: ");
         System.err.println("action: "+e);
         setComboBoxEntriesExistingMod(true);
@@ -154,7 +154,7 @@ public class ModuleInsertDialog extends JDialog {
         
         initComboBox();
         setComboBoxEntriesExistingMod(true);
-        jButtonExisting.setEnabled(true);
+        jButtonExisting.setSelected(true);
         jButtonOK.setText("OK");		
 		jButtonCancel.setText("Cancel");
 
@@ -167,6 +167,11 @@ public class ModuleInsertDialog extends JDialog {
 		AutoCompletion.enable(jComboBoxModule);
     }
     private void setComboBoxEntriesNewMod() {     
+        //if allready set, dont reset
+        if(existingMods!=null && existingMods==false) {
+            return;
+        }
+        existingMods = false;
         ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
         Configuration config = (Configuration) model.getRoot(); 
 		SoftwareRelease release = config.release();
@@ -181,25 +186,39 @@ public class ModuleInsertDialog extends JDialog {
         }
     }
 
-    private void setComboBoxEntriesExistingMod(boolean prefixType) {     
+    private void setComboBoxEntriesExistingMod(boolean prefixType) { 
+        //if allready set, dont reset  
+        if(existingMods!=null && existingMods==true) {
+            return;
+        }
+        existingMods = true;
         ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
         Configuration config = (Configuration) model.getRoot(); 
         SoftwareRelease release = config.release();
 		Iterator<ModuleInstance> it = config.moduleIterator();        
             
         jComboBoxModule.removeAllItems();
+        ArrayList<String> items = new ArrayList<String>();
 		while (it.hasNext()) {
 			ModuleInstance t = it.next();
             if(prefixType) {
                 if(t.template()!=null){
-                    jComboBoxModule.addItem(t.template().name()+":"+t.name());
+                    //jComboBoxModule.addItem(t.template().name()+":"+t.name());
+                    items.add(t.template().name()+":"+t.name());
                 }else{
-                    jComboBoxModule.addItem("NULL:"+t.name());
+                  //  jComboBoxModule.addItem("NULL:"+t.name());
+                    items.add("NULL:"+t.name());
+                    
                 }
             }else{
-                jComboBoxModule.addItem(t.name());  
+                //jComboBoxModule.addItem(t.name());  
+                items.add(t.name());  
             }
 			
+        }
+        Collections.sort(items);
+        for(int idx=0;idx<items.size();idx++){
+            jComboBoxModule.addItem(items.get(idx));
         }
     }
 }

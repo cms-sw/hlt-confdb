@@ -1680,7 +1680,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		Configuration config = (Configuration) model.getRoot();
 		SoftwareRelease release = config.release();
 		
-		menuItem = new JMenuItem("Add Module (Inserter)");
+		menuItem = new JMenuItem("Open Module Inserter");
 		menuItem.addActionListener(listener);
 		moduleMenu.add(menuItem);
 
@@ -2363,6 +2363,11 @@ class PathMenuListener implements ActionListener {
 			ConfigurationTreeActions.setOperator(tree, cmd);
 		} else if (cmd.equals("Clone Module")) {
 			ConfigurationTreeActions.CloneModule(tree, (ModuleReference) node, null);
+		}else if (cmd.equals("Open Module Inserter")) {		
+			ModuleInsertDialog dialog = new ModuleInsertDialog(null,tree);
+			dialog.pack();
+			dialog.setLocationRelativeTo(null);
+			dialog.setVisible(true);
 		}
 		// add a module(-reference) to the currently selected path
 		else {
@@ -2446,7 +2451,7 @@ class SequenceMenuListener implements ActionListener {
 			ConfigurationTreeActions.setOperator(tree, cmd);
 		} else if (cmd.equals("Clone Module")) {
 			ConfigurationTreeActions.CloneModule(tree, (ModuleReference) node, null);
-		} else if (cmd.equals("Add Module (Inserter)")) {		
+		} else if (cmd.equals("Open Module Inserter")) {		
 			ModuleInsertDialog dialog = new ModuleInsertDialog(null,tree);
 			dialog.pack();	
 			dialog.setLocationRelativeTo(null);
@@ -2531,7 +2536,12 @@ class TaskMenuListener implements ActionListener {
 			ConfigurationTreeActions.setOperator(tree, cmd);
 		} else if (cmd.equals("Clone Module")) {
 			ConfigurationTreeActions.CloneModule(tree, (ModuleReference) node, null);
-		}
+		} else if (cmd.equals("Open Module Inserter")) {		
+			ModuleInsertDialog dialog = new ModuleInsertDialog(null,tree);
+			dialog.pack();	
+			dialog.setLocationRelativeTo(null);
+			dialog.setVisible(true);
+		} 
 		// add a module to the selected task
 		else {
 			ConfigurationTreeActions.insertReference(tree, "Module", action);
@@ -2622,7 +2632,17 @@ class SwitchProducerMenuListener implements ActionListener {
 			ConfigurationTreeActions.CloneModule(tree, (ModuleReference) node, null);
 		} else if (cmd.equals("Clone EDAlias")) {
 			ConfigurationTreeActions.CloneEDAlias(tree, (EDAliasReference) node, null);
-		}
+		} else if (cmd.equals("Open Module Inserter")) {		
+			ModuleInsertDialog dialog = new ModuleInsertDialog(null,tree);
+			dialog.pack();	
+			dialog.setLocationRelativeTo(null);
+			dialog.setVisible(true);
+		} else if (cmd.equals("Open Module Inserter")) {		
+			ModuleInsertDialog dialog = new ModuleInsertDialog(null,tree);
+			dialog.pack();	
+			dialog.setLocationRelativeTo(null);
+			dialog.setVisible(true);
+		} 
 		// add a module to the selected task
 		else {
 			ConfigurationTreeActions.insertReference(tree, "Module", action);
