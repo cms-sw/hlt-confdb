@@ -60,7 +60,7 @@ public class StringParameter extends ScalarParameter
     /** set the value  the parameter, indicate if default */
     public boolean setValue(String valueAsString)
     {
-	if (valueAsString==null) {
+	if (valueAsString==null||valueAsString.length()==0) {
 	    isValueSet = false;
 	    value      = null;
 	}

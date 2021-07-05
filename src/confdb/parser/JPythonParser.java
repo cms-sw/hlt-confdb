@@ -107,6 +107,12 @@ public class JPythonParser
         return value;
     }
 
+    static String convertEmptyString(PyObject value) {
+        String valstr = value.toString();
+        if(valstr.isEmpty()) return "\"\""; // Empty string from the point of view of the GUI.
+        else return valstr;
+    }
+
     //
     // member functions
     //
@@ -1041,17 +1047,23 @@ public class JPythonParser
         }
         else if ("FileInPath" == type)
         {
-            module.updateParameter(parameterName, type, value.toString());
+            module.updateParameter(parameterName, type, convertEmptyString(value));
             module.findParameter(parameterName).setTracked(tracked);
         }
         else if ("InputTag" == type)
         {
-            module.updateParameter(parameterName, type, value.toString());
+            //the convertEmptyString appears to be redundant right now as
+            //it appears to allways pass "\"\""
+            //but guards against the behaviour changing on us
+            module.updateParameter(parameterName, type, convertEmptyString(value));
             module.findParameter(parameterName).setTracked(tracked);
         }
         else if ("ESInputTag" == type)
         {
-            module.updateParameter(parameterName, type, value.toString());
+            //the convertEmptyString appears to be redundant right now as
+            //it appears to allways pass ":""
+            //but guards against the behaviour changing on us
+            module.updateParameter(parameterName, type, convertEmptyString(value));
             module.findParameter(parameterName).setTracked(tracked);
         }
         else if ("VInputTag" == type)
