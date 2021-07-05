@@ -78,22 +78,25 @@ public class ESInputTagParameter extends ScalarParameter
     public String data() { return data; }
     
     /** retrieve the value of the parameter as a string */
+    /** note: an ESInputTag always needs a : if it is not empty 
+     *  therefore it returns module:, :data, module:data or "" */
     public String valueAsString()
     {
 	if (isValueSet) {
-	    String result = module;
-	    if (data.length()>0)
-		result += ":" + data;
-	    if (result.equals(new String())) result = "\"\"";
+	    String result = module + ":"+data;
+	    if (result.equals(":")) result = "\"\"";
 	    return result;
 	}
 	return new String();
     }
 
     /** set the value  the parameter */
+    /*  note the input from parsing an empty ESInputTag is :
+     *  therefore we check for this via a split length of 0 
+     *  and a non zero string length */
     public boolean setValue(String valueAsString)
     {
-	if (valueAsString==null) {
+	if (valueAsString==null||valueAsString.length()==0) {
 	    isValueSet = false;
 	    module     = null;
 	    data       = null;
@@ -102,10 +105,10 @@ public class ESInputTagParameter extends ScalarParameter
 	    if ((valueAsString.startsWith("'") &&valueAsString.endsWith("'"))||
 		(valueAsString.startsWith("\"")&&valueAsString.endsWith("\"")))
 		valueAsString=valueAsString.substring(1,valueAsString.length()-1);
-	    
+     
 	    String[] strValues = valueAsString.split(":");
-	    if (strValues.length==0||strValues.length>3) return false;
-	    module = strValues[0];
+	    if(strValues.length>2) return false;
+	    module = strValues.length==0 ? "" : strValues[0];
 	    if (strValues.length>1) data = strValues[1];
 	    else data = "";
 	    isValueSet = true;
