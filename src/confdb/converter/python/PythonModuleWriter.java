@@ -46,7 +46,7 @@ public class PythonModuleWriter implements IModuleWriter
 				PythonFormatter.addComma( str, param );
 		}
 		PythonFormatter.removeComma( str );
-		str.append(extraIndent+" )\n" );
+		str.append(extraIndent+")\n" );
 		return str.toString();
 	}
 
