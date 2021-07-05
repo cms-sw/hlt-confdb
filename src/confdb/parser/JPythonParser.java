@@ -553,9 +553,11 @@ public class JPythonParser
         //
         // Add parameters to PSET.
         ArrayList<confdb.data.Parameter> params = parsePSetParameters(psetObject);
-        for (int It = 0; It < params.size(); It++)
-            pset.addParameter(params.get(It));
-
+        for (int It = 0; It < params.size(); It++){
+            if(params.get(It)!=null) {
+                pset.addParameter(params.get(It));
+            }
+        }
         return pset;
     }
 
