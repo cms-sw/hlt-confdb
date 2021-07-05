@@ -1,4 +1,15 @@
 2021-06-09 Sam Harper 
+	* tag V02-08-01
+	* bug fixes to parsing empty strings and ESInputTags introduced in V2-08-0, they now properly use "\"\""  as the empty value and empty is now unset
+	    * configs writen with V02-08-01 and empty strings/tags now need to be fixed as they will appear to be unset
+	* properly fixes ESInputTag parsing
+	* fixes ESInputTag python output 
+	* fixes DeepCloning crashes with Tasks/SPs
+	* fixes issue in making unreadable configs when a Task/SP exist but not in a paths 
+	* fixes EDAlias importing
+	* minor adjustments to outputed python formating
+
+2021-06-09 Sam Harper 
 	* tag V02-08-00
 	* add support for Aliases, SwitchProducers, Tasks
 	* updates output modules to EvFOutputModule
