@@ -8,7 +8,7 @@
 
 import os, string, sys, posix, tokenize, array, getopt
 from pkgutil import extend_path
-import ConfdbOracleModuleLoader
+import ConfdbOracleModuleLoaderPy3
 import FWCore.ParameterSet.Config as cms
 
 def main(argv):
