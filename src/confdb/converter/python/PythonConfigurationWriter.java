@@ -152,16 +152,6 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 			str.append("\n");
 		}
 		
-		if (conf.edAliasCount() > 0) {
-			IEDAliasWriter edAliasWriter = converterEngine.getEDAliasWriter();
-			for (int i = 0; i < conf.edAliasCount(); i++) {
-				EDAliasInstance edAlias = conf.edAlias(i);
-				str.append(object);
-				str.append(edAliasWriter.toString(edAlias));
-			}
-			str.append("\n");
-		}
-
 		if (conf.switchProducerCount() > 0) {
 			ISwitchProducerWriter switchProducerWriter = converterEngine.getSwitchProducerWriter();
 			Iterator<SwitchProducer> switchProducerIterator = conf.orderedSwitchProducerIterator();
