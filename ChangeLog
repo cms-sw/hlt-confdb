@@ -1,4 +1,9 @@
-2021-07-15 Sam Harper 
+2021-08-06 Philipp Brummer
+    * tag V02-08-03
+    * bug fix: change HtmlSwitchProducerWriter class name to match expected spelling (HTML to Html)
+        * reported in CMSHLT-2161
+
+2021-07-15 Sam Harper
 	* tag V02-08-02
 	* bug fix: fixes SP EDAliases being mistakenly written out to the menu
 
