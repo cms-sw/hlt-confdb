@@ -1546,8 +1546,14 @@ public class ConfigurationTreeActions {
 				model.nodeInserted(targetContainer, i);
 			} else if (entry instanceof ModuleReference) {
 				ModuleInstance module = config.module(entry.name());
-				config.insertModuleReference(targetContainer, i, module).setOperator(entry.getOperator());
-				model.nodeInserted(targetContainer, i);
+				//prescale modules are unique to a path and thus must be cloned
+				if(module.template().name().equals("HLTPrescaler")){
+					String newName = Path.hltPrescalerLabel(targetName);
+					ConfigurationTreeActions.CloneModule(tree, (ModuleReference) entry, newName);	
+				}else{
+					config.insertModuleReference(targetContainer, i, module).setOperator(entry.getOperator());
+					model.nodeInserted(targetContainer, i);
+				}
 			} else if (entry instanceof EDAliasReference) {
 				EDAliasInstance edAlias = config.edAlias(entry.name());
 				config.insertEDAliasReference(targetContainer, i, edAlias).setOperator(entry.getOperator());
