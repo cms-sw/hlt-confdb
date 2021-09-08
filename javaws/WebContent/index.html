@@ -27,7 +27,7 @@ CERN Root Certification Authority 2 Certificate</a>.</p>
 <pre>
 git clone https://github.com/cms-sw/hlt-confdb.git
 cd hlt-confdb
-ant gui
+ant clean
 ./start
 </pre>
 </p>
@@ -45,23 +45,24 @@ telnet cmsr1-s.cern.ch 10121
 </pre>
 If the output is something like
 <pre>
-Trying 10.116.96.89...
+Trying 10.116.96.139...
 Connected to db-rac-349.cern.ch.
 Escape character is '^]'.
 </pre>
 then you can connect to the database.<br>
 If the output is something like
 <pre>
-Trying 10.116.96.89...
+Trying 10.116.96.139...
 telnet: Unable to connect to remote host: Connection refused
 </pre>
 then you cannot connect directly to the database, and you need to use a tunnel.<br>
 <p>If you are working from an institute outside CERN, please write to
-<a href="mailto:Franck Pachot <franck.pachot@cern.ch> ?cc=Andrea Bocci <andrea.bocci@cern.ch>" target="_blank">
-Franck Pachot (cc Andrea Bocci)</a> providing the IP address range for your institute,
+Katarzyna Dziedziniewicz-Wojcik (Kate) with cms-trigger coordinators in +cc providing the IP address range for your institute,
 and ask to allow it through the CMS database firewall.</p>
 
-<p> Note its probably easier just to tunnel the connection though...</p>
+<p> Note 1) before doing this, it would be better to pop into HLT user support channel on the TSG mattermost linked on  <a href="https://twiki.cern.ch/twiki/bin/view/CMS/TriggerStudies"> our TriggerStudies twiki</a> under "Getting help"
+
+<p> Note 2) its probably easier just to tunnel the connection than do this</p>
 
 <h3>Connection through a tunnel</h3>
 <p>Currently the preferred method to connect is to create a dynamic
@@ -72,14 +73,16 @@ ssh -f -N -D 1080 lxplus.cern.ch
 then start the GUI, select the HLTDEVv2 (socks tunnel) option<br>
 Change the proxy port number if you used a different local port. </p>
 
-<p>If this approach does not work, it is also possible to forward a port.
+<p>Note we currently are seeing instances of this not working when running via the prebuilt GUI  while it works on the locally compiled version. In this case, either locally compile or note it is it is also possible to forward a port.
 Forward the local port 10121 to the database server through an ssh connection to lxplus:
 <pre>
-ssh -f -N -L 10121:10.116.96.89:10121 lxplus.cern.ch
+ssh -f -N -L 10121:10.116.96.139:10121 lxplus.cern.ch
 </pre>
 then start the GUI, select the HLTDEVv2 (direct tunnel) option.
 Change the server port number if you used a different local port.
 </p>
+
+If you have problems, please again stop by HLT user support mattermost channel linked on  <a href="https://twiki.cern.ch/twiki/bin/view/CMS/TriggerStudies"> our TriggerStudies twiki</a> under "Getting help"
 
 </body>
 </html>

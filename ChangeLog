@@ -1,4 +1,8 @@
-2021-06-07 Sam Harper 
+2021-06-07 Sam Harper
+	* tag V02-07-02
+	* update database ip address
+ 
+2021-06-07 Sam Harper
 	* tag V02-07-01
 	* add support for large screen resolutions
 	* update database connection parameters
