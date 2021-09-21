@@ -612,6 +612,65 @@ public class ConfDbGUI {
 
 		}
 	}
+	/** open an existing configuration from another database **/
+	public void openConfigurationFromOtherDB() {
+		if (!closeConfiguration())
+			return;
+
+		ConfDB sourceDB = new ConfDB();
+		
+		DatabaseConnectionDialog dbDialog = new DatabaseConnectionDialog(frame);
+		dbDialog.pack();
+		dbDialog.setLocationRelativeTo(frame);
+		dbDialog.setVisible(true);
+
+		if (!dbDialog.validChoice())
+			return;
+		if (database.dbUrl().equals(new String()))
+			return;
+		
+		String dbType = dbDialog.getDbType();
+		String dbHost = dbDialog.getDbHost();
+		String dbPort = dbDialog.getDbPort();
+		String dbName = dbDialog.getDbName();
+		String dbUrl = dbDialog.getDbUrl();
+		String dbUser = dbDialog.getDbUser();
+		String dbPwrd = dbDialog.getDbPassword();
+		try {
+			sourceDB.connect(dbType, dbUrl, dbUser, dbPwrd);				
+		} catch (DatabaseException e) {
+			String msg = "Failed to connect to DB: " + e.getMessage();
+			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		PickConfigurationDialog dialog = new PickConfigurationDialog(frame, "Open Configuration", sourceDB);		
+		dialog.pack();
+		dialog.setLocationRelativeTo(frame);
+		dialog.setVisible(true);
+
+		// System.out.println(" Configuration picked\n");
+		if (dialog.validChoice()) {
+			OpenConfigurationFromOtherDBThread worker = new OpenConfigurationFromOtherDBThread(dialog.configInfo(),sourceDB);
+
+			worker.start();
+
+			jProgressBar.setIndeterminate(true);
+			jProgressBar.setVisible(true);
+			jProgressBar.setString("Loading Configuration ...");
+			menuBar.configurationIsOpen();
+			toolBar.configurationIsOpen();
+
+			// System.out.println("ElapsedTime: " + worker.getElapsedTime());
+
+		}
+		try {
+			sourceDB.disconnect();
+		} catch (DatabaseException e) {
+			String msg = "Failed to connect to disconnect from db: " + e.getMessage();
+			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+		}
+	}
 
 	/** close the current configuration */
 	public boolean closeConfiguration() {
@@ -1954,9 +2013,9 @@ public class ConfDbGUI {
 	/** load a configuration from the database */
 	private class OpenConfigurationThread extends SwingWorker<String> {
 		/** member data */
-		private ConfigInfo configInfo = null;
-		private long startTime;
-		private long elapsedTime;
+		protected ConfigInfo configInfo = null;
+		protected long startTime;
+		protected long elapsedTime;
 
 		/** standard constructor */
 		public OpenConfigurationThread(ConfigInfo configInfo) {
@@ -2051,7 +2110,33 @@ public class ConfDbGUI {
 		}
 
 	}
+	/** load a configuration from another database */
+	private class OpenConfigurationFromOtherDBThread extends OpenConfigurationThread {
+		
+		private ConfDB otherDatabase = null;
+		
+		public OpenConfigurationFromOtherDBThread(ConfigInfo configInfo,ConfDB db) {
+			super(configInfo);
+			this.otherDatabase = db;
+		}
 
+		protected String construct() throws DatabaseException {
+			startTime = System.currentTimeMillis();
+			
+
+			SoftwareRelease otherDBRelease = new SoftwareRelease();
+			Configuration otherDBConfig = this.otherDatabase.loadConfiguration(configInfo, otherDBRelease);
+
+			database.insertRelease(configInfo.releaseTag(), otherDBRelease);
+			database.loadSoftwareRelease(configInfo.releaseTag(),currentRelease);
+			Configuration config = new Configuration(new ConfigInfo(configInfo.name(), null, currentRelease.releaseTag()), currentRelease);
+			ReleaseMigrator releaseMigrator = new ReleaseMigrator(otherDBConfig, config);
+			releaseMigrator.migrate();
+			setCurrentConfig(config);
+
+			return new String("Done!");
+		}		
+	}
 	/** load a configuration from the old database version */
 	private class OpenOldConfigurationThread extends SwingWorker<String> {
 		/** member data */

@@ -2214,6 +2214,10 @@ public class ConfDB {
 	public synchronized void lockConfiguration(Configuration config, String userName) throws DatabaseException {
 		reconnect();
 
+		//first check if there is a parent dir, if there is none, it can not be locked
+		if(config.parentDir()==null) {
+			return;
+		}
 		int parentDirId = config.parentDir().dbId();
 		String parentDirName = config.parentDir().name();
 		String configName = config.name();
