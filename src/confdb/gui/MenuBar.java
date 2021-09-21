@@ -32,7 +32,7 @@ public class MenuBar {
 	private static final String configMenuCommentSave = "Comment&Save";
 	private static final String configMenuSaveAs = "Save As";
 	private static final String configMenuImport = "Import";
-	private static final String configMenuImportDB = "Import from Different DB";
+	private static final String configMenuImportDB = "Import (Different DB)";
 	private static final String configMenuMigrate = "Migrate";
 	private static final String configMenuConvert = "Convert";
 
