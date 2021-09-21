@@ -633,9 +633,9 @@ public class ConfDbGUI {
 		String dbHost = dbDialog.getDbHost();
 		String dbPort = dbDialog.getDbPort();
 		String dbName = dbDialog.getDbName();
-		String dbUrl = dbDialog.getDbUrl();
 		String dbUser = dbDialog.getDbUser();
 		String dbPwrd = dbDialog.getDbPassword();
+		String dbUrl = sourceDB.setDbParameters(dbPwrd, dbName, dbHost, dbPort);
 		try {
 			sourceDB.connect(dbType, dbUrl, dbUser, dbPwrd);				
 		} catch (DatabaseException e) {
@@ -1471,9 +1471,9 @@ public class ConfDbGUI {
 		String dbHost = dbDialog.getDbHost();
 		String dbPort = dbDialog.getDbPort();
 		String dbName = dbDialog.getDbName();
-		String dbUrl = dbDialog.getDbUrl();
 		String dbUser = dbDialog.getDbUser();
 		String dbPwrd = dbDialog.getDbPassword();
+		String dbUrl = sourceDB.setDbParameters(dbPwrd, dbName, dbHost, dbPort);
 		try {
 			sourceDB.connect(dbType, dbUrl, dbUser, dbPwrd);
 			// ((DatabaseInfoPanel)jPanelDbConnection).connectedToDatabase(dbType,
