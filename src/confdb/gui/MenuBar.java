@@ -24,6 +24,7 @@ public class MenuBar {
 	/** menu bar item names: configMenu */
 	private static final String configMenuNew = "New";
 	private static final String configMenuOpen = "Open";
+	private static final String configMenuOpenDB = "Open (Different DB)";
 	private static final String configMenuOpenOld = "Open Old Schema";
 	private static final String configMenuJParse = "Open Python File";
 	private static final String configMenuClose = "Close";
@@ -62,6 +63,7 @@ public class MenuBar {
 	private JMenuItem configMenuNewItem = null;
 	private JMenuItem configMenuJParseItem = null;
 	private JMenuItem configMenuOpenItem = null;
+	private JMenuItem configMenuOpenDBItem = null;
 	private JMenuItem configMenuOpenOldItem = null;
 	private JMenuItem configMenuCloseItem = null;
 	private JMenuItem configMenuCommentSaveItem = null;
@@ -107,6 +109,7 @@ public class MenuBar {
 		dbConnectionIsEstablished();
 		configMenuNewItem.setEnabled(true);
 		configMenuOpenItem.setEnabled(true);
+		configMenuOpenDBItem.setEnabled(true);
 		configMenuCloseItem.setEnabled(true);
 		configMenuSaveItem.setEnabled(true);
 		configMenuCommentSaveItem.setEnabled(true);
@@ -156,6 +159,7 @@ public class MenuBar {
 		configMenuNewItem.setEnabled(true);
 		configMenuJParseItem.setEnabled(true);
 		configMenuOpenItem.setEnabled(true);
+		configMenuOpenDBItem.setEnabled(true);
 		configMenuOpenOldItem.setEnabled(true);
 		toolMenuDiffItem.setEnabled(true);
 		toolMenuSmartVersionsItem.setEnabled(true);
@@ -171,6 +175,7 @@ public class MenuBar {
 		configMenuOpenOldItem.setEnabled(false);
 		configMenuJParseItem.setEnabled(false);
 		configMenuOpenItem.setEnabled(false);
+		configMenuOpenDBItem.setEnabled(false);
 		toolMenuDiffItem.setEnabled(false);
 		toolMenuSmartVersionsItem.setEnabled(false);
 		toolMenuSmartRenamingItem.setEnabled(false);
@@ -205,6 +210,10 @@ public class MenuBar {
 		configMenuOpenItem.setActionCommand(configMenuOpen);
 		configMenuOpenItem.addActionListener(listener);
 		configMenu.add(configMenuOpenItem);
+		configMenuOpenDBItem = new JMenuItem(configMenuOpenDB);
+		configMenuOpenDBItem.setActionCommand(configMenuOpenDB);
+		configMenuOpenDBItem.addActionListener(listener);
+		configMenu.add(configMenuOpenDBItem);
 		configMenuOpenOldItem = new JMenuItem(configMenuOpenOld, KeyEvent.VK_Q);
 		configMenuOpenOldItem.setActionCommand(configMenuOpenOld);
 		configMenuOpenOldItem.addActionListener(listener);
