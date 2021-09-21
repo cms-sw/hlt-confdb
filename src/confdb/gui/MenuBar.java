@@ -31,6 +31,7 @@ public class MenuBar {
 	private static final String configMenuCommentSave = "Comment&Save";
 	private static final String configMenuSaveAs = "Save As";
 	private static final String configMenuImport = "Import";
+	private static final String configMenuImportDB = "Import from Different DB";
 	private static final String configMenuMigrate = "Migrate";
 	private static final String configMenuConvert = "Convert";
 
@@ -68,6 +69,7 @@ public class MenuBar {
 	private JMenuItem configMenuSaveAsItem = null;
 
 	private JMenuItem configMenuImportItem = null;
+	private JMenuItem configMenuImportDBItem = null;
 	private JMenuItem configMenuMigrateItem = null;
 	private JMenuItem configMenuConvertItem = null;
 
@@ -110,6 +112,7 @@ public class MenuBar {
 		configMenuCommentSaveItem.setEnabled(true);
 		configMenuSaveAsItem.setEnabled(true);
 		configMenuImportItem.setEnabled(true);
+		configMenuImportDBItem.setEnabled(true);
 		configMenuMigrateItem.setEnabled(true);
 		configMenuConvertItem.setEnabled(true);
 		toolMenuReplaceItem.setEnabled(true);
@@ -132,6 +135,7 @@ public class MenuBar {
 		configMenuCommentSaveItem.setEnabled(false);
 		configMenuSaveAsItem.setEnabled(false);
 		configMenuImportItem.setEnabled(false);
+		configMenuImportDBItem.setEnabled(false);
 		configMenuMigrateItem.setEnabled(false);
 		configMenuConvertItem.setEnabled(false);
 		// toolMenuDiffItem.setEnabled(false);
@@ -233,6 +237,10 @@ public class MenuBar {
 		configMenuImportItem.setActionCommand(configMenuImport);
 		configMenuImportItem.addActionListener(listener);
 		configMenu.add(configMenuImportItem);
+		configMenuImportDBItem = new JMenuItem(configMenuImportDB, KeyEvent.VK_D);
+		configMenuImportDBItem.setActionCommand(configMenuImportDB);
+		configMenuImportDBItem.addActionListener(listener);
+		configMenu.add(configMenuImportDBItem);
 		configMenuMigrateItem = new JMenuItem(configMenuMigrate, KeyEvent.VK_M);
 		configMenuMigrateItem.setActionCommand(configMenuMigrate);
 		configMenuMigrateItem.addActionListener(listener);

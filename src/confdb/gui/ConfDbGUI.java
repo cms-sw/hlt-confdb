@@ -1398,6 +1398,57 @@ public class ConfDbGUI {
 		}
 	}
 
+	public void importConfigurationFromOtherDB() {
+		ConfDB sourceDB = new ConfDB();
+		
+		DatabaseConnectionDialog dbDialog = new DatabaseConnectionDialog(frame);
+		dbDialog.pack();
+		dbDialog.setLocationRelativeTo(frame);
+		dbDialog.setVisible(true);
+
+		if (!dbDialog.validChoice())
+			return;
+		String dbType = dbDialog.getDbType();
+		String dbHost = dbDialog.getDbHost();
+		String dbPort = dbDialog.getDbPort();
+		String dbName = dbDialog.getDbName();
+		String dbUrl = dbDialog.getDbUrl();
+		String dbUser = dbDialog.getDbUser();
+		String dbPwrd = dbDialog.getDbPassword();
+		try {
+			sourceDB.connect(dbType, dbUrl, dbUser, dbPwrd);
+			// ((DatabaseInfoPanel)jPanelDbConnection).connectedToDatabase(dbType,
+			// dbHost, dbPort,dbName,dbUser);
+		} catch (DatabaseException e) {
+			String msg = "Failed to connect to DB: " + e.getMessage();
+			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		PickConfigurationDialog cfgDialog = new PickConfigurationDialog(frame, "Open Configuration from Other Database",sourceDB);
+		cfgDialog.fixReleaseTag(currentRelease.releaseTag());
+		cfgDialog.pack();
+		cfgDialog.setLocationRelativeTo(frame);
+		cfgDialog.setVisible(true);
+
+		if (cfgDialog.validChoice() && cfgDialog.configInfo().releaseTag().equals(currentRelease.releaseTag())) {
+			ImportConfigurationFromDBThread worker = new ImportConfigurationFromDBThread(cfgDialog.configInfo(),sourceDB);
+			worker.start();
+			jProgressBar.setIndeterminate(true);
+			jProgressBar.setVisible(true);
+			jProgressBar.setString("Importing Configuration ...");
+		}
+		//clean up after outselves
+		//try {
+		//	sourceDB.disconnect();
+		//} catch (DatabaseException e) {
+		//	String msg = "Failed to connect to disconnect from db: " + e.getMessage();
+		//	JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+		//}
+		
+
+	}
+
 	/** export the current configuration to a new database */
 	public void importConfigurationFromDBV1() {
 
@@ -2071,6 +2122,58 @@ public class ConfDbGUI {
 			 * (DatabaseException e) { JOptionPane.showMessageDialog(frame,e.getMessage(),
 			 * "Failed to lock configuration", JOptionPane.ERROR_MESSAGE,null); } }
 			 */
+		}
+	}
+
+	/** import a configuration from the database */
+	private class ImportConfigurationFromDBThread extends SwingWorker<String> {
+		/** member data */
+		private ConfigInfo configInfo = null;
+		private long startTime;
+		private ConfDB database;
+
+		/** standard constructor */
+		public ImportConfigurationFromDBThread(ConfigInfo configInfo,
+										ConfDB db) {
+			this.configInfo = configInfo;
+			this.database = db;
+		}
+
+		/** SwingWorker: construct() */
+		protected String construct() throws DatabaseException {
+			startTime = System.currentTimeMillis();
+
+			SoftwareRelease otherDBRelease = new SoftwareRelease();
+			Configuration otherDBConfig = this.database.loadConfiguration(configInfo, otherDBRelease);
+
+			importRelease = new SoftwareRelease(currentRelease);
+			importConfig = new Configuration(configInfo, importRelease);
+			ReleaseMigrator releaseMigrator = new ReleaseMigrator(otherDBConfig, importConfig);
+			releaseMigrator.migrate();
+			
+			
+			return new String("Done!");
+		}
+
+		/** SwingWorker: finished */
+		protected void finished() {
+			try {
+				treeModelImportConfig.setConfiguration(importConfig);
+				showImportTree();
+				jToggleButtonImport.setEnabled(true);
+				jToggleButtonImport.setSelected(true);
+				long elapsedTime = System.currentTimeMillis() - startTime;
+				jProgressBar.setString(jProgressBar.getString() + get() + " (" + elapsedTime + " ms)");
+			} catch (ExecutionException e) {
+				String errMsg = "Import Configuration FAILED:\n" + e.getCause().getMessage();
+				JOptionPane.showMessageDialog(frame, errMsg, "Import Configuration failed", JOptionPane.ERROR_MESSAGE,
+						null);
+				jProgressBar.setString(jProgressBar.getString() + "FAILED!");
+			} catch (Exception e) {
+				e.printStackTrace();
+				jProgressBar.setString(jProgressBar.getString() + "FAILED!");
+			}
+			jProgressBar.setIndeterminate(false);
 		}
 	}
 
