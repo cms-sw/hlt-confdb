@@ -29,7 +29,7 @@ public class CommandActionListener implements ActionListener
     private static final String cmdSaveAs           = "Save As";
 
     private static final String cmdImport           = "Import";
-    private static final String cmdImportDB         = "Import from Different DB";
+    private static final String cmdImportDB         = "Import (Different DB)";
     private static final String cmdMigrate          = "Migrate";
     private static final String cmdConvert          = "Convert";
     
