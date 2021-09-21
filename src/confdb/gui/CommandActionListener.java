@@ -28,6 +28,7 @@ public class CommandActionListener implements ActionListener
     private static final String cmdSaveAs           = "Save As";
 
     private static final String cmdImport           = "Import";
+    private static final String cmdImportDB         = "Import from Different DB";
     private static final String cmdMigrate          = "Migrate";
     private static final String cmdConvert          = "Convert";
     
@@ -74,6 +75,7 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdSaveAs))           app.saveAsConfiguration();
 
 	if (command.equals(cmdImport))           app.importConfiguration();
+    if (command.equals(cmdImportDB))         app.importConfigurationFromOtherDB();
 	if (command.equals(cmdMigrate))          app.migrateConfiguration();
 	if (command.equals(cmdConvert))          app.convertConfiguration();
 	
