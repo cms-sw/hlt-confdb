@@ -1320,6 +1320,12 @@ public class ConfDbGUI {
 		}
 	}
 
+	public void convertToTasks() {
+		ConfigToTaskConverter converter = new ConfigToTaskConverter(currentConfig);
+		converter.convert();
+		
+	}
+
 	/** search/replace parameters in the current configuration */
 	public void searchAndReplace() {
 		if (currentConfig.isEmpty())
@@ -5643,6 +5649,77 @@ class CommandTableCellRenderer extends DefaultTableCellRenderer {
 
 		}
 		return this;
+	}
+
+}
+
+
+class ConfigToTaskConverter {
+	private Configuration cfg;
+
+	public ConfigToTaskConverter(Configuration cfg){
+		this.cfg = cfg;
+	}
+
+	private ArrayList<Sequence> getSequences(ModuleInstance mod){
+		ArrayList<Sequence> modSequences = new ArrayList<Sequence>();
+		Iterator<Sequence> seqIt = this.cfg.sequenceIterator();
+		while (seqIt.hasNext()){
+			Sequence seq = seqIt.next();
+			Reference ref = seq.entry(mod.name());
+			if(ref !=null) {
+				//System.err.println("adding seq "+seq.name()+ " "+mod.name());
+				modSequences.add(seq);
+			}
+		}
+		return modSequences;
+	}
+
+	private void generateTasks(ArrayList<Sequence> sequences,ModuleInstance mod){
+		//a task with this name may already exist but it is an error if it exists
+		//and is not on the sequence
+		for( int seqNr=0;seqNr<sequences.size();seqNr++) {
+			Sequence seq = sequences.get(seqNr);
+			String taskName = seq.name().replace("Sequence","Task");
+			if(taskName==seq.name()){
+				taskName+="Task";
+			}
+			Task task = this.cfg.task(taskName);
+			if(task==null){				
+				task = this.cfg.insertTask(this.cfg.taskCount(),taskName);
+			}
+			if(seq.entry(task.name())==null){
+				this.cfg.insertTaskReference(seq,0,task);
+			}
+			this.cfg.insertModuleReference(task,0,mod);
+			while(removeMod(seq,mod)){}
+		}
+	}
+
+	private void convertMod(ModuleInstance mod){
+		ArrayList<Sequence> seqs = getSequences(mod);	
+		generateTasks(seqs,mod);
+	}
+
+	public boolean removeMod(ReferenceContainer cont,ModuleInstance mod){
+		for(int refNr=0;refNr<cont.entryCount();refNr++){			
+			Reference ref = cont.entry(refNr);
+			if(ref.parent()==mod){
+				this.cfg.removeModuleReference((ModuleReference)ref);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void convert(){
+		for(int modNr = 0; modNr < this.cfg.moduleCount(); modNr++) {
+			ModuleInstance mod = this.cfg.module(modNr);
+			String moduleType = mod.template().type();
+			if (moduleType.equals("EDProducer") ) {
+				convertMod(mod);
+			}
+		}
 	}
 
 }
