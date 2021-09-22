@@ -41,6 +41,7 @@ public class MenuBar {
 	private static final String toolMenuDiff = "Compare (Diff)";
 	private static final String toolMenuSmartVersions = "Smart Path Versioning";
 	private static final String toolMenuSmartRenaming = "Smart Renaming";
+	private static final String toolMenuConvertToTasks = "Taskify";
 	private static final String toolMenuPSEditor = "Edit Prescales";
 	private static final String toolMenuSPSEditor = "Edit SmartPrescales";
 	private static final String toolMenuMLEditor = "Edit MessageLogger";
@@ -78,6 +79,7 @@ public class MenuBar {
 	private JMenuItem toolMenuDiffItem = null;
 	private JMenuItem toolMenuSmartVersionsItem = null;
 	private JMenuItem toolMenuSmartRenamingItem = null;
+	private JMenuItem toolMenuConvertToTasksItem = null;
 	private JMenuItem toolMenuReplaceItem = null;
 	private JMenuItem toolMenuPSEditorItem = null;
 	private JMenuItem toolMenuSPSEditorItem = null;
@@ -122,6 +124,7 @@ public class MenuBar {
 		toolMenuDiffItem.setEnabled(true);
 		toolMenuSmartVersionsItem.setEnabled(true);
 		toolMenuSmartRenamingItem.setEnabled(true);
+		toolMenuConvertToTasksItem.setEnabled(true);
 		toolMenuPSEditorItem.setEnabled(true);
 		toolMenuSPSEditorItem.setEnabled(true);
 		toolMenuMLEditorItem.setEnabled(true);
@@ -144,6 +147,7 @@ public class MenuBar {
 		// toolMenuDiffItem.setEnabled(false);
 		toolMenuSmartVersionsItem.setEnabled(false);
 		toolMenuSmartRenamingItem.setEnabled(false);
+		toolMenuConvertToTasksItem.setEnabled(false);
 		toolMenuReplaceItem.setEnabled(false);
 		toolMenuPSEditorItem.setEnabled(false);
 		toolMenuSPSEditorItem.setEnabled(false);
@@ -274,7 +278,10 @@ public class MenuBar {
 		toolMenuSmartRenamingItem = new JMenuItem(toolMenuSmartRenaming, KeyEvent.VK_N);
 		toolMenuSmartRenamingItem.setActionCommand(toolMenuSmartRenaming);
 		toolMenuSmartRenamingItem.addActionListener(listener);
-		toolMenu.add(toolMenuSmartRenamingItem);
+		toolMenuConvertToTasksItem = new JMenuItem(toolMenuConvertToTasks);
+		toolMenuConvertToTasksItem.setActionCommand(toolMenuConvertToTasks);
+		toolMenuConvertToTasksItem.addActionListener(listener);
+		toolMenu.add(toolMenuConvertToTasksItem);
 		toolMenuReplaceItem = new JMenuItem(toolMenuReplace, KeyEvent.VK_R);
 		toolMenuReplaceItem.setActionCommand(toolMenuReplace);
 		toolMenuReplaceItem.addActionListener(listener);

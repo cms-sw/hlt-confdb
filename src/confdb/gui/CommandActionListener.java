@@ -37,6 +37,7 @@ public class CommandActionListener implements ActionListener
     private static final String cmdDiff             = "Compare (Diff)";
     private static final String cmdSmartVersions    = "Smart Path Versioning";
     private static final String cmdSmartRenaming    = "Smart Renaming";
+    private static final String cmdConvertToTasks   = "Taskify";
     private static final String cmdPSEditor         = "Edit Prescales";
     private static final String cmdSPSEditor        = "Edit SmartPrescales";
     private static final String cmdMLEditor         = "Edit MessageLogger";
@@ -85,6 +86,7 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdDiff))             app.diffConfigurations();
 	if (command.equals(cmdSmartVersions))    app.smartVersionsConfigurations();
 	if (command.equals(cmdSmartRenaming))    app.smartRenamingConfigurations();
+    if (command.equals(cmdConvertToTasks))   app.convertToTasks();
 	if (command.equals(cmdPSEditor))         app.openPrescaleEditor();
 	if (command.equals(cmdSPSEditor))        app.openSmartPrescaleEditor();
 	if (command.equals(cmdMLEditor))         app.openMessageLoggerEditor();
