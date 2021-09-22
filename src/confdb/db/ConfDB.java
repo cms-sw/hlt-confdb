@@ -79,6 +79,8 @@ public class ConfDB {
 	private boolean operatorFieldForTasksAvailability = true;
 	private boolean operatorFieldForSwitchProducersAvailability = true;
 
+	private boolean globalEDAliasAvailability = false;
+
 	// sv
 	private Integer countingParamIds = 20000000;
 
@@ -1244,6 +1246,10 @@ public class ConfDB {
 		try {
 
 			// System.err.println("Trying rs instances"+configId);
+			for(int paramNr = 1; paramNr<=psSelectInstances.getParameterMetaData().getParameterCount();paramNr++){
+				psSelectInstances.setInt(paramNr, configId);
+			}
+			/*
 			psSelectInstances.setInt(1, configId);
 			psSelectInstances.setInt(2, configId); //GEDAliases
 			psSelectInstances.setInt(3, configId);
@@ -1261,6 +1267,7 @@ public class ConfDB {
 			psSelectInstances.setInt(15, configId); // SwitchProducer
 			psSelectInstances.setInt(16, configId); // EDAliases
 			psSelectInstances.setInt(17, configId); // EDAliases
+			*/
 			rsInstances = psSelectInstances.executeQuery();
 
 			psSelectPathEntries.setInt(1, configId);
@@ -2316,6 +2323,10 @@ public class ConfDB {
 	/** insert configuration's global EDAliases */
 	private void insertGlobalEDAliases(int configId, Configuration config) throws DatabaseException {
 		// ResultSet rs = null;
+		if(!globalEDAliasAvailability && config.globalEDAliasCount()!=0){
+			String errMsg = "ConfDB::insertGlobalEDAliases(configId=" + configId + ") failed as this database does not support this feature, please remove the GlobalEDAliases and try again";
+			throw new DatabaseException(errMsg);
+		}
 
 		for (int sequenceNb = 0; sequenceNb < config.globalEDAliasCount(); sequenceNb++) {
 			EDAliasInstance globalEDAlias = config.globalEDAlias(sequenceNb);
@@ -5270,6 +5281,21 @@ public class ConfDB {
 			//
 			// SELECT
 			//
+			/*			
+			Statement aliasTable = dbConnector.getConnection().createStatement();
+			
+			
+			ResultSet rs = aliasTable.executeQuery("SELECT table_name from all_tables where table_name LIKE '%_GEDALIASELEMENTS'");
+			if(!rs.next()){
+				globalEDAliasAvailability = false;
+				System.err.println("error no EDAlias Support");
+			}else{
+				System.err.println("result "+rs.getString(1));
+				globalEDAliasAvailability = true;
+				System.err.println("EDAlias Support");
+			}
+			*/
+
 
 			psSelectModuleTypes = dbConnector.getConnection()
 					.prepareStatement("SELECT" + " u_moduletypes.id," + " u_moduletypes.type " + "FROM u_moduletypes");
@@ -5783,8 +5809,10 @@ public class ConfDB {
 					.prepareStatement("INSERT INTO u_conf2gpset " + "(id_confver,id_gpset,ord) " + "VALUES(?, ?, ?)");
 			preparedStatements.add(psInsertGlobalPSet);
 
-			psInsertGlobalEDAlias = dbConnector.getConnection().prepareStatement(
-					"INSERT INTO u_conf2gedalias " + "(id_confver,id_gedalias,ord) " + "VALUES(?, ?, ?)");
+			if(globalEDAliasAvailability) {
+				psInsertGlobalEDAlias = dbConnector.getConnection().prepareStatement(
+						"INSERT INTO u_conf2gedalias " + "(id_confver,id_gedalias,ord) " + "VALUES(?, ?, ?)");
+			}
 			preparedStatements.add(psInsertGlobalEDAlias);
 
 			psInsertEDSource = dbConnector.getConnection()
@@ -5932,9 +5960,11 @@ public class ConfDB {
 					.prepareStatement("INSERT INTO u_globalpsets (name,tracked) " + "VALUES(?, ?)", keyColumn);
 			preparedStatements.add(psInsertGPset);
 
-			psInsertGEDAlias = dbConnector.getConnection()
-					.prepareStatement("INSERT INTO u_globaledaliases (name,tracked) " + "VALUES(?, ?)", keyColumn);
-			preparedStatements.add(psInsertGEDAlias);
+			if(globalEDAliasAvailability) { 
+				psInsertGEDAlias = dbConnector.getConnection()
+						.prepareStatement("INSERT INTO u_globaledaliases (name,tracked) " + "VALUES(?, ?)", keyColumn);
+				preparedStatements.add(psInsertGEDAlias);
+			}
 
 			psInsertParameterGPset = dbConnector.getConnection().prepareStatement(
 					"INSERT INTO u_gpsetelements (id_gpset,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) "
@@ -5942,10 +5972,12 @@ public class ConfDB {
 					keyColumn);
 			preparedStatements.add(psInsertParameterGPset);
 
-			psInsertParameterGEDAlias = dbConnector.getConnection().prepareStatement(
-					"INSERT INTO u_gedaliaselements (id_gedalias,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) "
-							+ "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?,NULL, ?)",
-					keyColumn);
+			if(globalEDAliasAvailability) {
+				psInsertParameterGEDAlias = dbConnector.getConnection().prepareStatement(
+						"INSERT INTO u_gedaliaselements (id_gedalias,name,lvl,tracked,paramtype,ord,value,valuelob,hex,o_id,moetype) "
+								+ "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?,NULL, ?)",
+						keyColumn);
+			}
 			preparedStatements.add(psInsertParameterGEDAlias);
 
 			psInsertParameterEDS = dbConnector.getConnection().prepareStatement(
@@ -6119,8 +6151,8 @@ public class ConfDB {
 			psSelectInstances = dbConnector.getConnection().prepareStatement(
 					"SELECT u_globalpsets.id+6000000, NULL, 'PSet', u_globalpsets.name, u_globalpsets.tracked, u_conf2gpset.ord, NULL as description, NULL as contact FROM u_globalpsets,u_conf2gpset WHERE u_conf2gpset.id_confver=? AND u_globalpsets.id=u_conf2gpset.id_gpset "
 							+ " UNION ALL "
-							+ " SELECT u_globaledaliases.id+6000000, NULL, 'GEDAlias', u_globaledaliases.name, u_globaledaliases.tracked, u_conf2gedalias.ord, NULL as description, NULL as contact FROM u_globaledaliases,u_conf2gedalias WHERE u_conf2gedalias.id_confver=? AND u_globaledaliases.id=u_conf2gedalias.id_gedalias "
-							+ " UNION ALL "
+							+ (globalEDAliasAvailability ? (" SELECT u_globaledaliases.id+6000000, NULL, 'GEDAlias', u_globaledaliases.name, u_globaledaliases.tracked, u_conf2gedalias.ord, NULL as description, NULL as contact FROM u_globaledaliases,u_conf2gedalias WHERE u_conf2gedalias.id_confver=? AND u_globaledaliases.id=u_conf2gedalias.id_gedalias "
+							+ " UNION ALL ") : "")
 							+ " SELECT u_edsources.id+1000000, u_edsources.id_template+1000000, 'EDSource',NULL,NULL, u_conf2eds.ord,NULL as description, NULL as contact  FROM u_edsources,u_conf2eds WHERE u_conf2eds.id_edsource=u_edsources.id and u_conf2eds.id_confver = ? "
 							+ " UNION ALL "
 							+ " SELECT u_essources.id+2000000, u_essources.id_template+2000000, 'ESSource', u_essources.name, u_conf2ess.prefer, u_conf2ess.ord,NULL as description, NULL as contact  FROM u_essources,u_conf2ess WHERE u_conf2ess.id_essource=u_essources.id and u_conf2ess.id_confver = ? "
@@ -6173,9 +6205,9 @@ public class ConfDB {
 							+ "Select * from (SELECT a.id+6000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_gpset+6000000, a.lvl,  a.value,  a.valuelob, a.hex from u_GPSETELEMENTS a, u_CONF2GPSET c "
 							+ " where c.ID_CONFVER=? and c.ID_gpset=a.ID_gpset order by a.id_gpset+6000000,id ) "
 							+ " UNION ALL "
-							+ "Select * from (SELECT a.id+6000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_gedalias+6000000, a.lvl,  a.value,  a.valuelob, a.hex from u_GEDALIASELEMENTS a, u_CONF2GEDALIAS c "
+							+ (globalEDAliasAvailability ? ("Select * from (SELECT a.id+6000000 as id, a.paramtype, a.name, a.tracked, a.ord,a.id_gedalias+6000000, a.lvl,  a.value,  a.valuelob, a.hex from u_GEDALIASELEMENTS a, u_CONF2GEDALIAS c "
 							+ " where c.ID_CONFVER=? and c.ID_gedalias=a.ID_gedalias order by a.id_gedalias+6000000,id ) "
-							+ " UNION ALL "
+							+ " UNION ALL ") : "")
 							+ " select * from (SELECT a.id+5000000 as id, a.paramtype, a.name, a.tracked, a.ord,u_streamids.id+5000000, a.lvl,  a.value,  a.valuelob, a.hex from u_outmelements a,u_pathid2conf,u_pathid2outm,u_streamids where a.id_streamid=u_streamids.id  AND u_streamids.id=u_pathid2outm.id_streamid and u_pathid2outm.id_pathid=u_pathid2conf.id_pathid AND u_pathid2conf.id_confver = ? order by u_streamids.id+5000000,id) )");
 			psSelectParameters.setFetchSize(8192);
 			preparedStatements.add(psSelectParameters);
@@ -6399,6 +6431,10 @@ public class ConfDB {
 				psSelectParametersTemplates.setInt(5, releaseId);
 				rsParameters = psSelectParametersTemplates.executeQuery();
 			} else {
+				for(int paramNr = 1; paramNr<=psSelectParameters.getParameterMetaData().getParameterCount();paramNr++){
+					psSelectParameters.setInt(paramNr, configId);
+				}	
+				/*
 				psSelectParameters.setInt(1, configId);
 				psSelectParameters.setInt(2, configId);
 				psSelectParameters.setInt(3, configId);
@@ -6408,6 +6444,7 @@ public class ConfDB {
 				psSelectParameters.setInt(7, configId);
 				psSelectParameters.setInt(8, configId);
 				psSelectParameters.setInt(9, configId);
+				*/
 				rsParameters = psSelectParameters.executeQuery();
 			}
 
