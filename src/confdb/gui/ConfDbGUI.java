@@ -1321,7 +1321,7 @@ public class ConfDbGUI {
 	}
 
 	public void convertToTasks() {
-		ConfigToTaskConverter converter = new ConfigToTaskConverter(currentConfig);
+		ConfigToTaskConverter converter = new ConfigToTaskConverter(currentConfig,jTreeCurrentConfig);
 		converter.convert();
 		
 	}
@@ -5656,9 +5656,11 @@ class CommandTableCellRenderer extends DefaultTableCellRenderer {
 
 class ConfigToTaskConverter {
 	private Configuration cfg;
+	private JTree tree;
 
-	public ConfigToTaskConverter(Configuration cfg){
+	public ConfigToTaskConverter(Configuration cfg,JTree tree){
 		this.cfg = cfg;
+		this.tree = tree;
 	}
 
 	private ArrayList<Sequence> getSequences(ModuleInstance mod){
@@ -5707,6 +5709,7 @@ class ConfigToTaskConverter {
 			if(ref.parent()==mod){
 				this.cfg.removeModuleReference((ModuleReference)ref);
 				return true;
+
 			}
 		}
 		return false;
