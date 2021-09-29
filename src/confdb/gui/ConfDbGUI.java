@@ -484,7 +484,7 @@ public class ConfDbGUI {
 
 		GUIFontConfig.setFonts();
 
-		JFrame frame = new JFrame("GDR ConfDbGUI DEVELOPMENT");
+		JFrame frame = new JFrame("GDR ConfDbGUI Run3");
 		frame.setFont(GUIFontConfig.getFont(0));
 
 		ConfDbGUI gui = new ConfDbGUI(frame);
@@ -610,6 +610,65 @@ public class ConfDbGUI {
 
 			// System.out.println("ElapsedTime: " + worker.getElapsedTime());
 
+		}
+	}
+	/** open an existing configuration from another database **/
+	public void openConfigurationFromOtherDB() {
+		if (!closeConfiguration())
+			return;
+
+		ConfDB sourceDB = new ConfDB();
+		
+		DatabaseConnectionDialog dbDialog = new DatabaseConnectionDialog(frame);
+		dbDialog.pack();
+		dbDialog.setLocationRelativeTo(frame);
+		dbDialog.setVisible(true);
+
+		if (!dbDialog.validChoice())
+			return;
+		if (database.dbUrl().equals(new String()))
+			return;
+		
+		String dbType = dbDialog.getDbType();
+		String dbHost = dbDialog.getDbHost();
+		String dbPort = dbDialog.getDbPort();
+		String dbName = dbDialog.getDbName();
+		String dbUser = dbDialog.getDbUser();
+		String dbPwrd = dbDialog.getDbPassword();
+		String dbUrl = sourceDB.setDbParameters(dbPwrd, dbName, dbHost, dbPort);
+		try {
+			sourceDB.connect(dbType, dbUrl, dbUser, dbPwrd);				
+		} catch (DatabaseException e) {
+			String msg = "Failed to connect to DB: " + e.getMessage();
+			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		PickConfigurationDialog dialog = new PickConfigurationDialog(frame, "Open Configuration", sourceDB);		
+		dialog.pack();
+		dialog.setLocationRelativeTo(frame);
+		dialog.setVisible(true);
+
+		// System.out.println(" Configuration picked\n");
+		if (dialog.validChoice()) {
+			OpenConfigurationFromOtherDBThread worker = new OpenConfigurationFromOtherDBThread(dialog.configInfo(),sourceDB);
+
+			worker.start();
+
+			jProgressBar.setIndeterminate(true);
+			jProgressBar.setVisible(true);
+			jProgressBar.setString("Loading Configuration ...");
+			menuBar.configurationIsOpen();
+			toolBar.configurationIsOpen();
+
+			// System.out.println("ElapsedTime: " + worker.getElapsedTime());
+
+		}
+		try {
+			sourceDB.disconnect();
+		} catch (DatabaseException e) {
+			String msg = "Failed to connect to disconnect from db: " + e.getMessage();
+			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -1261,6 +1320,12 @@ public class ConfDbGUI {
 		}
 	}
 
+	public void convertToTasks() {
+		ConfigToTaskConverter converter = new ConfigToTaskConverter(currentConfig,jTreeCurrentConfig);
+		converter.convert();
+		
+	}
+
 	/** search/replace parameters in the current configuration */
 	public void searchAndReplace() {
 		if (currentConfig.isEmpty())
@@ -1396,6 +1461,57 @@ public class ConfDbGUI {
 			jProgressBar.setVisible(true);
 			jProgressBar.setString("Migrate Configuration to " + targetDB.dbUrl() + " ... ");
 		}
+	}
+
+	public void importConfigurationFromOtherDB() {
+		ConfDB sourceDB = new ConfDB();
+		
+		DatabaseConnectionDialog dbDialog = new DatabaseConnectionDialog(frame);
+		dbDialog.pack();
+		dbDialog.setLocationRelativeTo(frame);
+		dbDialog.setVisible(true);
+
+		if (!dbDialog.validChoice())
+			return;
+		String dbType = dbDialog.getDbType();
+		String dbHost = dbDialog.getDbHost();
+		String dbPort = dbDialog.getDbPort();
+		String dbName = dbDialog.getDbName();
+		String dbUser = dbDialog.getDbUser();
+		String dbPwrd = dbDialog.getDbPassword();
+		String dbUrl = sourceDB.setDbParameters(dbPwrd, dbName, dbHost, dbPort);
+		try {
+			sourceDB.connect(dbType, dbUrl, dbUser, dbPwrd);
+			// ((DatabaseInfoPanel)jPanelDbConnection).connectedToDatabase(dbType,
+			// dbHost, dbPort,dbName,dbUser);
+		} catch (DatabaseException e) {
+			String msg = "Failed to connect to DB: " + e.getMessage();
+			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		PickConfigurationDialog cfgDialog = new PickConfigurationDialog(frame, "Open Configuration from Other Database",sourceDB);
+		cfgDialog.fixReleaseTag(currentRelease.releaseTag());
+		cfgDialog.pack();
+		cfgDialog.setLocationRelativeTo(frame);
+		cfgDialog.setVisible(true);
+
+		if (cfgDialog.validChoice() && cfgDialog.configInfo().releaseTag().equals(currentRelease.releaseTag())) {
+			ImportConfigurationFromDBThread worker = new ImportConfigurationFromDBThread(cfgDialog.configInfo(),sourceDB);
+			worker.start();
+			jProgressBar.setIndeterminate(true);
+			jProgressBar.setVisible(true);
+			jProgressBar.setString("Importing Configuration ...");
+		}
+		//clean up after outselves
+		//try {
+		//	sourceDB.disconnect();
+		//} catch (DatabaseException e) {
+		//	String msg = "Failed to connect to disconnect from db: " + e.getMessage();
+		//	JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+		//}
+		
+
 	}
 
 	/** export the current configuration to a new database */
@@ -1903,9 +2019,9 @@ public class ConfDbGUI {
 	/** load a configuration from the database */
 	private class OpenConfigurationThread extends SwingWorker<String> {
 		/** member data */
-		private ConfigInfo configInfo = null;
-		private long startTime;
-		private long elapsedTime;
+		protected ConfigInfo configInfo = null;
+		protected long startTime;
+		protected long elapsedTime;
 
 		/** standard constructor */
 		public OpenConfigurationThread(ConfigInfo configInfo) {
@@ -2000,7 +2116,33 @@ public class ConfDbGUI {
 		}
 
 	}
+	/** load a configuration from another database */
+	private class OpenConfigurationFromOtherDBThread extends OpenConfigurationThread {
+		
+		private ConfDB otherDatabase = null;
+		
+		public OpenConfigurationFromOtherDBThread(ConfigInfo configInfo,ConfDB db) {
+			super(configInfo);
+			this.otherDatabase = db;
+		}
 
+		protected String construct() throws DatabaseException {
+			startTime = System.currentTimeMillis();
+			
+
+			SoftwareRelease otherDBRelease = new SoftwareRelease();
+			Configuration otherDBConfig = this.otherDatabase.loadConfiguration(configInfo, otherDBRelease);
+
+			database.insertRelease(configInfo.releaseTag(), otherDBRelease);
+			database.loadSoftwareRelease(configInfo.releaseTag(),currentRelease);
+			Configuration config = new Configuration(new ConfigInfo(configInfo.name(), null, currentRelease.releaseTag()), currentRelease);
+			ReleaseMigrator releaseMigrator = new ReleaseMigrator(otherDBConfig, config);
+			releaseMigrator.migrate();
+			setCurrentConfig(config);
+
+			return new String("Done!");
+		}		
+	}
 	/** load a configuration from the old database version */
 	private class OpenOldConfigurationThread extends SwingWorker<String> {
 		/** member data */
@@ -2071,6 +2213,58 @@ public class ConfDbGUI {
 			 * (DatabaseException e) { JOptionPane.showMessageDialog(frame,e.getMessage(),
 			 * "Failed to lock configuration", JOptionPane.ERROR_MESSAGE,null); } }
 			 */
+		}
+	}
+
+	/** import a configuration from the database */
+	private class ImportConfigurationFromDBThread extends SwingWorker<String> {
+		/** member data */
+		private ConfigInfo configInfo = null;
+		private long startTime;
+		private ConfDB database;
+
+		/** standard constructor */
+		public ImportConfigurationFromDBThread(ConfigInfo configInfo,
+										ConfDB db) {
+			this.configInfo = configInfo;
+			this.database = db;
+		}
+
+		/** SwingWorker: construct() */
+		protected String construct() throws DatabaseException {
+			startTime = System.currentTimeMillis();
+
+			SoftwareRelease otherDBRelease = new SoftwareRelease();
+			Configuration otherDBConfig = this.database.loadConfiguration(configInfo, otherDBRelease);
+
+			importRelease = new SoftwareRelease(currentRelease);
+			importConfig = new Configuration(configInfo, importRelease);
+			ReleaseMigrator releaseMigrator = new ReleaseMigrator(otherDBConfig, importConfig);
+			releaseMigrator.migrate();
+			
+			
+			return new String("Done!");
+		}
+
+		/** SwingWorker: finished */
+		protected void finished() {
+			try {
+				treeModelImportConfig.setConfiguration(importConfig);
+				showImportTree();
+				jToggleButtonImport.setEnabled(true);
+				jToggleButtonImport.setSelected(true);
+				long elapsedTime = System.currentTimeMillis() - startTime;
+				jProgressBar.setString(jProgressBar.getString() + get() + " (" + elapsedTime + " ms)");
+			} catch (ExecutionException e) {
+				String errMsg = "Import Configuration FAILED:\n" + e.getCause().getMessage();
+				JOptionPane.showMessageDialog(frame, errMsg, "Import Configuration failed", JOptionPane.ERROR_MESSAGE,
+						null);
+				jProgressBar.setString(jProgressBar.getString() + "FAILED!");
+			} catch (Exception e) {
+				e.printStackTrace();
+				jProgressBar.setString(jProgressBar.getString() + "FAILED!");
+			}
+			jProgressBar.setIndeterminate(false);
 		}
 	}
 
@@ -5455,6 +5649,80 @@ class CommandTableCellRenderer extends DefaultTableCellRenderer {
 
 		}
 		return this;
+	}
+
+}
+
+
+class ConfigToTaskConverter {
+	private Configuration cfg;
+	private JTree tree;
+
+	public ConfigToTaskConverter(Configuration cfg,JTree tree){
+		this.cfg = cfg;
+		this.tree = tree;
+	}
+
+	private ArrayList<Sequence> getSequences(ModuleInstance mod){
+		ArrayList<Sequence> modSequences = new ArrayList<Sequence>();
+		Iterator<Sequence> seqIt = this.cfg.sequenceIterator();
+		while (seqIt.hasNext()){
+			Sequence seq = seqIt.next();
+			Reference ref = seq.entry(mod.name());
+			if(ref !=null) {
+				//System.err.println("adding seq "+seq.name()+ " "+mod.name());
+				modSequences.add(seq);
+			}
+		}
+		return modSequences;
+	}
+
+	private void generateTasks(ArrayList<Sequence> sequences,ModuleInstance mod){
+		//a task with this name may already exist but it is an error if it exists
+		//and is not on the sequence
+		for( int seqNr=0;seqNr<sequences.size();seqNr++) {
+			Sequence seq = sequences.get(seqNr);
+			String taskName = seq.name().replace("Sequence","Task");
+			if(taskName==seq.name()){
+				taskName+="Task";
+			}
+			Task task = this.cfg.task(taskName);
+			if(task==null){				
+				task = this.cfg.insertTask(this.cfg.taskCount(),taskName);
+			}
+			if(seq.entry(task.name())==null){
+				this.cfg.insertTaskReference(seq,0,task);
+			}
+			this.cfg.insertModuleReference(task,0,mod);
+			while(removeMod(seq,mod)){}
+		}
+	}
+
+	private void convertMod(ModuleInstance mod){
+		ArrayList<Sequence> seqs = getSequences(mod);	
+		generateTasks(seqs,mod);
+	}
+
+	public boolean removeMod(ReferenceContainer cont,ModuleInstance mod){
+		for(int refNr=0;refNr<cont.entryCount();refNr++){			
+			Reference ref = cont.entry(refNr);
+			if(ref.parent()==mod){
+				this.cfg.removeModuleReference((ModuleReference)ref);
+				return true;
+
+			}
+		}
+		return false;
+	}
+
+	public void convert(){
+		for(int modNr = 0; modNr < this.cfg.moduleCount(); modNr++) {
+			ModuleInstance mod = this.cfg.module(modNr);
+			String moduleType = mod.template().type();
+			if (moduleType.equals("EDProducer") ) {
+				convertMod(mod);
+			}
+		}
 	}
 
 }

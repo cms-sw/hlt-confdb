@@ -27,6 +27,7 @@ public class ToolBar {
 	private static final String cmdSaveAs = "Save As";
 
 	private static final String cmdImport = "Import";
+	private static final String cmdImportDB = "Import (Different DB)";
 	private static final String cmdMigrate = "Migrate";
 	private static final String cmdConvert = "Convert";
 
@@ -54,6 +55,7 @@ public class ToolBar {
 	private JButton jButtonSaveAs = new JButton();
 
 	private JButton jButtonImport = new JButton();
+	private JButton jButtonImportDB = new JButton();
 	private JButton jButtonMigrate = new JButton();
 	private JButton jButtonConvert = new JButton();
 
@@ -95,6 +97,7 @@ public class ToolBar {
 		jButtonSave.setEnabled(true);
 		jButtonSaveAs.setEnabled(true);
 		jButtonImport.setEnabled(true);
+		jButtonImportDB.setEnabled(true);
 		jButtonMigrate.setEnabled(true);
 		jButtonConvert.setEnabled(true);
 		jButtonReplace.setEnabled(true);
@@ -116,6 +119,7 @@ public class ToolBar {
 		jButtonSaveAs.setEnabled(false);
 
 		jButtonImport.setEnabled(false);
+		jButtonImportDB.setEnabled(false);
 		jButtonMigrate.setEnabled(false);
 		jButtonConvert.setEnabled(false);
 		jButtonReplace.setEnabled(false);
@@ -196,6 +200,12 @@ public class ToolBar {
 		jButtonImport.setToolTipText("import components from another configuration");
 		jButtonImport.setIcon(new ImageIcon(getClass().getResource("/ImportIcon.png")));
 		jToolBar.add(jButtonImport);
+
+		jButtonImportDB.setActionCommand(cmdImportDB);
+		jButtonImportDB.addActionListener(listener);
+		jButtonImportDB.setToolTipText("import components from another configuration");
+		jButtonImportDB.setIcon(new ImageIcon(getClass().getResource("/ImportIcon.png")));
+		jToolBar.add(jButtonImportDB);
 
 		jButtonMigrate.setActionCommand(cmdMigrate);
 		jButtonMigrate.addActionListener(listener);

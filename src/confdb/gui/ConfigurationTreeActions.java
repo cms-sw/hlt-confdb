@@ -28,6 +28,7 @@ public class ConfigurationTreeActions {
 	//
 	// Parameters
 	//
+	private static boolean globalEDAliasAvailability = false;
 
 	/** copy a parameter into another (v)pset */
 	public static boolean insertParameter(JTree tree, Parameter parameter, ParameterTreeModel parameterTreeModel) {
@@ -966,6 +967,12 @@ public class ConfigurationTreeActions {
 	
 	/** insert a new global EDAlias producer */
 	public static boolean insertGlobalEDAlias(JTree tree) {
+		if (globalEDAliasAvailability) {
+			errorNotificationPanel dialog = new errorNotificationPanel("Error: InsertGlobalEDAlias", "Error GlobalEDAliases are not supported by this database",
+			"This database does not have support for GlobalEDAliases (but supports EDAliases in SwitchProducers) at this time");
+			dialog.createAndShowGUI();
+			return true;
+		}
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
 		TreePath treePath = tree.getSelectionPath();
@@ -1546,8 +1553,14 @@ public class ConfigurationTreeActions {
 				model.nodeInserted(targetContainer, i);
 			} else if (entry instanceof ModuleReference) {
 				ModuleInstance module = config.module(entry.name());
-				config.insertModuleReference(targetContainer, i, module).setOperator(entry.getOperator());
-				model.nodeInserted(targetContainer, i);
+				//prescale modules are unique to a path and thus must be cloned
+				if(module.template().name().equals("HLTPrescaler")){
+					String newName = Path.hltPrescalerLabel(targetName);
+					ConfigurationTreeActions.CloneModule(tree, (ModuleReference) entry, newName);	
+				}else{
+					config.insertModuleReference(targetContainer, i, module).setOperator(entry.getOperator());
+					model.nodeInserted(targetContainer, i);
+				}
 			} else if (entry instanceof EDAliasReference) {
 				EDAliasInstance edAlias = config.edAlias(entry.name());
 				config.insertEDAliasReference(targetContainer, i, edAlias).setOperator(entry.getOperator());
