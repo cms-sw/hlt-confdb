@@ -138,13 +138,25 @@ public class ModuleInsertDialog extends JDialog {
 	/** initialize GUI components */
 	private JPanel initComponents() {
 		JPanel jPanel = new JPanel();
+        jPanel.setLayout(new GridBagLayout());
+        GridBagConstraints constraints = new GridBagConstraints();
 
-        jPanel.add(jComboBoxModule);
-        jPanel.add(jButtonOK);
-        jPanel.add(jButtonCancel);
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+
+        jPanel.add(jComboBoxModule,constraints);
+        constraints.gridx = 1;
         jPanel.add(jButtonNew);
-        jPanel.add(jButtonExisting);
-        jPanel.add(jButtonClone);
+        constraints.gridx = 2;
+        jPanel.add(jButtonExisting,constraints);
+        constraints.gridx = 3;
+        jPanel.add(jButtonClone,constraints);
+        constraints.gridx = 1;
+        constraints.gridy = 1;
+        jPanel.add(jButtonOK,constraints);
+        constraints.gridx = 2;
+        jPanel.add(jButtonCancel,constraints);
         
         
         ButtonGroup addGroup  = new ButtonGroup();
@@ -153,8 +165,8 @@ public class ModuleInsertDialog extends JDialog {
         addGroup.add(jButtonClone);
         
         initComboBox();
-        setComboBoxEntriesExistingMod(true);
-        jButtonExisting.setSelected(true);
+        setComboBoxEntriesNewMod();
+        jButtonNew.setSelected(true);
         jButtonOK.setText("OK");		
 		jButtonCancel.setText("Cancel");
 
@@ -164,7 +176,8 @@ public class ModuleInsertDialog extends JDialog {
     private void initComboBox() {     
         jComboBoxModule.setEditable(true);
 		jComboBoxModule.setBorder(BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
-		AutoCompletion.enable(jComboBoxModule);
+		jComboBoxModule.setPreferredSize(new Dimension(800,jComboBoxModule.getPreferredSize().height));
+        AutoCompletion.enable(jComboBoxModule);
     }
     private void setComboBoxEntriesNewMod() {     
         //if allready set, dont reset
