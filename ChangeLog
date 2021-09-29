@@ -1,6 +1,14 @@
+2021-09-29 Bogdan Sataric & Sam Harper
+        * tag V02-08-04
+        * initial public release of the condbv2 database upgrade for tasks and switch producers
+        * updates database connections for the run2/run3 databases
+	* disables global edalias support while it is still being tested
+	* handles the prescale module in paths when cloning correctly
+	* adds a new module inserter dialog
+	
 2021-08-06 Philipp Brummer
-    * tag V02-08-03
-    * bug fix: change HtmlSwitchProducerWriter class name to match expected spelling (HTML to Html)
+        * tag V02-08-03
+        * bug fix: change HtmlSwitchProducerWriter class name to match expected spelling (HTML to Html)
         * reported in CMSHLT-2161
 
 2021-07-15 Sam Harper
