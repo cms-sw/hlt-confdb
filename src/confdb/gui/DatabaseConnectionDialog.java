@@ -329,9 +329,6 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener,
 		textFieldDbUser.addActionListener(this);
 		textFieldDbUser.addFocusListener(this);
 
-		textFieldDbUser.setEditable(false);
-		textFieldDbUser.setEnabled(false);
-
 		textFieldDbPwrd.addActionListener(this);
 		textFieldDbPwrd.addFocusListener(this);
 
