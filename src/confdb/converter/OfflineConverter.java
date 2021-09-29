@@ -39,7 +39,13 @@ public class OfflineConverter extends ConverterBase
 	super(format,dbType,dbUrl,dbUser,dbPwrd);
     }
 
-    
+    /** destructor  */
+	protected void finalize() throws Throwable
+	{
+	super.finalize();
+	disconnect();
+	}
+			
     //
     // member functions
     //

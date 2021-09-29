@@ -27,6 +27,12 @@ public class ConverterBase
     		database.connect( connection );
     		converterEngine = ConverterFactory.getConverterEngine( format );
     	} catch (Exception e) {
+			//make sure we clean up our connection
+			try {
+				database.disconnect();
+			} catch (DatabaseException dbexcept) {
+				//no action needed
+			}
     		throw new ConverterException( "can't construct converter", e );
     	}
     }
@@ -52,6 +58,11 @@ public class ConverterBase
     	try {
     		database.connect( dbType, dbUrl, dbUser, dbPwrd );
     	} catch (Exception e) {
+			try {
+				database.disconnect();
+			} catch (DatabaseException dbexcept){
+				//no action needed
+			}
     		throw new ConverterException( "can't init database connection", e );
     	}
     }
@@ -62,7 +73,14 @@ public class ConverterBase
     	return database;
     }
 	
-    public ConverterEngine getConverterEngine() 
+	public void disconnect() throws DatabaseException
+	{
+		ConfDB db = getDatabase();
+		if ( db != null ) 
+			db.disconnect();
+	}
+    
+	public ConverterEngine getConverterEngine() 
     {
     	return converterEngine;
     }
