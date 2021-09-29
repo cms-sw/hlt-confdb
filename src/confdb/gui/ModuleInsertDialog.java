@@ -108,31 +108,23 @@ public class ModuleInsertDialog extends JDialog {
         }else{
             ConfigurationTreeActions.insertReference(tree, "Module", (String) jComboBoxModule.getSelectedItem());
         }
-        System.err.println("clicked: "+jComboBoxModule.getSelectedItem());
-        System.err.println("action: "+e);
     }
     private void newButtonActionPerformed(ActionEvent e) {
         clone = false;
         setComboBoxEntriesNewMod();
-        System.err.println("newButton: ");
-        System.err.println("action: "+e);
     }
     private void existingButtonActionPerformed(ActionEvent e) {
         clone = false;
-        System.err.println("existingButton: ");
-        System.err.println("action: "+e);
         setComboBoxEntriesExistingMod(true);
     }
     private void cloneButtonActionPerformed(ActionEvent e) {
         clone = true;
-        System.err.println("cloneButton: ");
-        System.err.println("action: "+e);
         setComboBoxEntriesExistingMod(true);
     }
     
 
 	private void jComboBoxModelActionPerformed(ActionEvent e) {
-        System.err.println(jComboBoxModule.getSelectedItem());
+        jComboBoxModule.getSelectedItem();
 	}
 
 	/** initialize GUI components */
