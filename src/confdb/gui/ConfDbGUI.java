@@ -484,7 +484,7 @@ public class ConfDbGUI {
 
 		GUIFontConfig.setFonts();
 
-		JFrame frame = new JFrame("GDR ConfDbGUI DEVELOPMENT");
+		JFrame frame = new JFrame("GDR ConfDbGUI Run3");
 		frame.setFont(GUIFontConfig.getFont(0));
 
 		ConfDbGUI gui = new ConfDbGUI(frame);
