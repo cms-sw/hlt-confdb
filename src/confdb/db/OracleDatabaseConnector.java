@@ -83,7 +83,7 @@ public class OracleDatabaseConnector extends DatabaseConnector {
 				e.printStackTrace();
 			}
 		} catch (SQLException e) {
-			String msg = "Failed to open connection to " + dbURL + " as user " + dbUser;
+			String msg = "Failed to open connection to " + dbURL + " as user " + dbUser+ "\n\n Exception: "+e.getMessage();
 			System.err.println("Exception: " + e.getMessage());
 
 			throw new DatabaseException(msg);

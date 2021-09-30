@@ -1382,42 +1382,45 @@ public class ConfDbGUI {
 		dbDialog.setLocationRelativeTo(frame);
 		dbDialog.setVisible(true);
 
-		if (!dbDialog.validChoice())
-			return;
-		String dbType = dbDialog.getDbType();
-		String dbHost = dbDialog.getDbHost();
-		String dbPort = dbDialog.getDbPort();
-		String dbName = dbDialog.getDbName();
-		String dbUrl = dbDialog.getDbUrl();
-		String dbUser = dbDialog.getDbUser();
-		String dbPwrd = dbDialog.getDbPassword();
+		boolean notConnected = true;
+		while(dbDialog.validChoice() && notConnected){
+		
+			String dbType = dbDialog.getDbType();
+			String dbHost = dbDialog.getDbHost();
+			String dbPort = dbDialog.getDbPort();
+			String dbName = dbDialog.getDbName();
+			String dbUrl = dbDialog.getDbUrl();
+			String dbUser = dbDialog.getDbUser();
+			String dbPwrd = dbDialog.getDbPassword();
 
-		if (dbDialog.isProxyEnabled()) {
-			System.setProperty("socksProxyHost", dbDialog.getProxyHost());
-			System.setProperty("socksProxyPort", dbDialog.getProxyPort());
-		} else {
-			System.setProperty("socksProxyHost", "");
-			System.setProperty("socksProxyPort", "");
-		}
-
-		try {
-
-			// Use TNSNames format to connect to oracle:
-			if (dbType.equals(database.dbTypeOracle)) {
-				dbUrl = database.setDbParameters(dbPwrd, dbName, dbHost, dbPort);
+			if (dbDialog.isProxyEnabled()) {
+				System.setProperty("socksProxyHost", dbDialog.getProxyHost());
+				System.setProperty("socksProxyPort", dbDialog.getProxyPort());
+			} else {
+				System.setProperty("socksProxyHost", "");
+				System.setProperty("socksProxyPort", "");
 			}
 
-			database.connect(dbType, dbUrl, dbUser, dbPwrd);
-			((DatabaseInfoPanel) jPanelDbConnection).connectedToDatabase(dbType, dbHost, dbPort, dbName, dbUser);
-		} catch (DatabaseException e) {
-			String msg = "Failed to connect to DB: " + e.getMessage();
-			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+			try {
+
+			// Use TNSNames format to connect to oracle:
+				if (dbType.equals(database.dbTypeOracle)) {
+					dbUrl = database.setDbParameters(dbPwrd, dbName, dbHost, dbPort);
+				}
+
+				database.connect(dbType, dbUrl, dbUser, dbPwrd);
+				((DatabaseInfoPanel) jPanelDbConnection).connectedToDatabase(dbType, dbHost, dbPort, dbName, dbUser);
+				notConnected = false;
+			} catch (DatabaseException e) {
+				String msg = "Failed to connect to DB: " + e.getMessage();
+				JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+				dbDialog.setVisible(true);
+			}
+			menuBar.dbConnectionIsEstablished();
+			toolBar.dbConnectionIsEstablished();
+
+			extraPathFieldsAvailability = database.getExtraPathFieldsAvailability();
 		}
-		menuBar.dbConnectionIsEstablished();
-		toolBar.dbConnectionIsEstablished();
-
-		extraPathFieldsAvailability = database.getExtraPathFieldsAvailability();
-
 	}
 
 	/** disconnect from the database */

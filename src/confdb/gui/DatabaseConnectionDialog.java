@@ -473,7 +473,8 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener,
 				validChoice = true;
 				setVisible(false);
 			} else {
-				setVisible(false);
+				validChoice = false;
+				setVisible(false);				
 				// JOptionPane.showMessageDialog(optionPane.getRootFrame(),
 				// "No database connection established.",
 				// "",

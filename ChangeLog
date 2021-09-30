@@ -5,6 +5,8 @@
 	* disables global edalias support while it is still being tested
 	* handles the prescale module in paths when cloning correctly
 	* adds a new module inserter dialog
+	* DB connect dialog does now does not close untill it either successfully connects or the cancel button is clicked
+	* DB connection now shows the actual error...
 	
 2021-08-06 Philipp Brummer
         * tag V02-08-03
