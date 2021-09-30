@@ -371,12 +371,10 @@ public class PickConfigurationDialog extends JDialog {
 		admins.add("martin");
 		// Silvio Donato
 		admins.add("sdonato");
-		// Geoffrey Smith
-		admins.add("geoff");
-		admins.add("gesmith");
-		admins.add("lschwab");
-		// Kyungwook Nam
-		admins.add("knam");
+		// Sam Harper
+		admins.add("sharper");
+		// Marino Missiroli
+		admins.add("missirol");
 
 		if (allowUnlocking && (userName.equalsIgnoreCase(configInfo.lockedByUser()) || admins.contains(userName)))
 			showPopup(e);
