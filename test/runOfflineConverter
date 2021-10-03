@@ -70,7 +70,7 @@ while (@ARGV)
 
 my $cmd = 
     "java " .
-    "-cp ../ext/ojdbc6.jar:../lib/cmssw-evf-confdb-converter.jar " .
+    "-cp ../ext/ojdbc8.jar:../lib/cmssw-evf-confdb-converter.jar " .
     "confdb.converter.OfflineConverter " .
     "-t oracle -h $db_host -d $db_name -u $db_user -s $db_pwrd $args";
 

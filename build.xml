@@ -210,7 +210,7 @@
       <classpath>
         <pathelement location="${dir.lib}/cmssw-evf-confdb-gui.jar"/>
         <pathelement location="${dir.lib}/cmssw-python.jar"/>
-        <pathelement location="${dir.signed}/ojdbc6.jar"/>
+        <pathelement location="${dir.signed}/ojdbc8.jar"/>
         <pathelement location="${dir.signed}/jython.jar"/>
       </classpath>
     </java>

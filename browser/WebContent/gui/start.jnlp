@@ -15,7 +15,7 @@
     <j2se version="1.8+" java-vm-args="-Doracle.jdbc.timezoneAsRegion=false"/>
     <jar href="cmssw-evf-confdb-gui.jar" main="true" download="eager"/>
     <jar href="cmssw-python.jar" main="true" download="eager"/>
-    <jar href="ojdbc6.jar" download="eager"/>
+    <jar href="ojdbc8.jar" download="eager"/>
     <jar href="jython.jar" download="eager"/>
   </resources>
   <application-desc main-class="confdb.gui.ConfDbGUI">
