@@ -55,6 +55,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 
 	private ArrayList<StringBuffer> level1Nodes = new ArrayList<StringBuffer>();
 
+	private boolean globalEDAliasAvailability = false;
 	//
 	// construction
 	//
@@ -167,7 +168,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		} else {
 			if (level1Nodes.isEmpty()) {
 				level1Nodes.add(psetsNode);
-				level1Nodes.add(globalEDAliasesNode);
+				if(globalEDAliasAvailability) level1Nodes.add(globalEDAliasesNode);
 				level1Nodes.add(edsourcesNode);
 				level1Nodes.add(essourcesNode);
 				level1Nodes.add(esmodulesNode);
