@@ -524,6 +524,10 @@ public class ConfDB {
 	// Set the URL. All other parameters will be ignored. This will be used for load
 	// balancing.
 	public String getDbURL() {
+		return getDbURL(dbHost,dbPort,dbName);
+	}
+
+	public static String getDbURL(String dbHost,String dbPort,String dbName) {
 
 		String url = "jdbc:oracle:thin:@(DESCRIPTION =";
 		String[] hosts = dbHost.split(",");
@@ -545,6 +549,8 @@ public class ConfDB {
 
 		return url;
 	}
+
+
 
 	public String getHostName() {
 		return dbHost;

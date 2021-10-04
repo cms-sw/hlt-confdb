@@ -351,7 +351,8 @@ public class BrowserConverter extends OfflineConverter
             dbUrl  = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+dbName;
         }
         else if (dbType.equalsIgnoreCase("oracle")) {
-            dbUrl = "jdbc:oracle:thin:@//"+dbHost+":"+dbPort+"/"+dbName;
+
+            dbUrl = ConfDB.getDbURL(dbHost,dbPort,dbName);
         }
         else {
             System.err.println("ERROR: Unknwown database type '"+dbType+"'");
