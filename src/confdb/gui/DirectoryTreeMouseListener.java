@@ -37,6 +37,9 @@ public class DirectoryTreeMouseListener extends MouseAdapter implements ActionLi
 	/** the database which is being described */
 	private ConfDB database = null;
 
+	/** user permissions model **/
+	private UserPermissionsManager userPermissions = null;
+
 	/** action commands */
 	private static final String ADD_DIRECTORY = new String("Add Directory");
 	private static final String RMV_DIRECTORY = new String("Remove Directory");
@@ -51,6 +54,7 @@ public class DirectoryTreeMouseListener extends MouseAdapter implements ActionLi
 		this.directoryTreeModel = (DirectoryTreeModel) directoryTree.getModel();
 		this.rootDir = (Directory) directoryTreeModel.getRoot();
 		this.database = database;
+		this.userPermissions = new UserPermissionsManager(this.database);
 
 		directoryTreeModel.addTreeModelListener(this);
 	}
@@ -105,9 +109,16 @@ public class DirectoryTreeMouseListener extends MouseAdapter implements ActionLi
 		TreePath treePath = directoryTree.getSelectionPath();
 		Directory selDir = (Directory) treePath.getLastPathComponent();
 
+		if (userPermissions!=null && !userPermissions.hasWritePermission(selDir.name())){
+			String errMsg = "You dont have admin privileges and therefore can only add/rm directories under /users. If you believe this is an error, please contact the STORM convenors. Please choose a different location";
+				JOptionPane.showMessageDialog(null, errMsg, "Permissions Error", JOptionPane.ERROR_MESSAGE,
+							null);
+			return;
+		}
+
 		if (actionCmd.equals(ADD_DIRECTORY)) {
 			Directory newDir = new Directory(-1, "<ENTER DIR NAME>", "", selDir);
-
+			
 			selDir.addChildDir(newDir);
 			directoryTreeModel.nodeInserted(selDir, selDir.childDirCount() - 1);
 

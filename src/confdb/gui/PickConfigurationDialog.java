@@ -67,6 +67,7 @@ public class PickConfigurationDialog extends JDialog {
 	/** allow user to unlock his own configurations? */
 	private boolean allowUnlocking = false;
 
+	private UserPermissionsManager userPermissions = null;
 	//
 	// construction
 	//
@@ -76,6 +77,7 @@ public class PickConfigurationDialog extends JDialog {
 		super(jFrame, true);
 		this.jFrame = jFrame;
 		this.database = database;
+		this.userPermissions = new UserPermissionsManager(this.database);
 		setTitle(title);
 
 		// System.out.println("Trying to load ConfDialog");
@@ -361,22 +363,7 @@ public class PickConfigurationDialog extends JDialog {
 			return;
 
 		String userName = System.getProperty("user.name");
-		ArrayList<String> admins = new ArrayList<String>();
-		// generic "admin" user
-		admins.add("admin");
-		// Andrea Bocci
-		admins.add("fwyzard");
-		// Martin Gruenewald
-		admins.add("gruen");
-		admins.add("martin");
-		// Silvio Donato
-		admins.add("sdonato");
-		// Sam Harper
-		admins.add("sharper");
-		// Marino Missiroli
-		admins.add("missirol");
-
-		if (allowUnlocking && (userName.equalsIgnoreCase(configInfo.lockedByUser()) || admins.contains(userName)))
+		if (allowUnlocking && (userName.equalsIgnoreCase(configInfo.lockedByUser()) || userPermissions.canUnlock()))
 			showPopup(e);
 	}
 

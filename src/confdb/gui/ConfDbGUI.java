@@ -205,6 +205,8 @@ public class ConfDbGUI {
 	// Instrumentation variables:
 	private long elapsedTime_OpenConfiguration = 0;
 
+	private UserPermissionsManager userPermissions = null;
+
 	static SimpleAttributeSet ITALIC_GRAY = new SimpleAttributeSet();
 	static SimpleAttributeSet BOLD_BLACK = new SimpleAttributeSet();
 	static SimpleAttributeSet BLACK = new SimpleAttributeSet();
@@ -242,7 +244,7 @@ public class ConfDbGUI {
 		this.currentConfig = new Configuration();
 		this.importRelease = new SoftwareRelease();
 		this.importConfig = new Configuration();
-
+		this.userPermissions = new UserPermissionsManager(this.database);
 		// this.jTableCommands.setAutoCreateRowSorter(true);
 
 		try {
@@ -713,6 +715,13 @@ public class ConfDbGUI {
 			saveAsConfiguration();
 			return;
 		} else {
+			if(!userPermissions.hasWritePermission(currentConfig)){
+				String errMsg = "You dont have admin privileges and therefore can only save under /users. If you believe this is an error, please contact the STORM convenors. Otherwise use \"saveAs\" to save in your users area";
+				JOptionPane.showMessageDialog(frame, errMsg, "Permissions Error", JOptionPane.ERROR_MESSAGE,
+							null);
+				return;
+			}
+	
 			try {
 				database.unlockConfiguration(currentConfig);
 			} catch (DatabaseException e) {
@@ -769,6 +778,8 @@ public class ConfDbGUI {
 		dialog.pack();
 		dialog.setLocationRelativeTo(frame);
 		dialog.setVisible(true);
+		//dialog box takes care of checking user can write where they are asking to
+		//if they cant it wont be a validChoice
 		if (dialog.validChoice()) {
 			SaveConfigurationThread worker = new SaveConfigurationThread(processName, dialog.comment());
 			worker.start();
